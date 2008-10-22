@@ -1,5 +1,5 @@
 SUBDIRS(
   igtl
-  ndicapi
+##  ndicapi
 )
 

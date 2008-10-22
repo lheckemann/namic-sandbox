@@ -68,16 +68,19 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkMultiThreader.h"
 #include "vtkCriticalSection.h"
 #include "vtkTimerLog.h"
-#include "vtkTrackerBuffer.h"
+////#include "vtkTrackerBuffer.h"
 #include "vtkObjectFactory.h"
 #include "vtkVideoSource.h"
-#include "vtkTrackerTool.h"
+////#include "vtkTrackerTool.h"
 #include "vtkPNGWriter.h"
+
+//MCGUMBEL
+#include "vtkMINCImageReader.h"
 
 vtkCxxRevisionMacro(vtk3DPanoramicVolumeReconstructor, "$Revision: 1.7 $");
 vtkStandardNewMacro(vtk3DPanoramicVolumeReconstructor);
 vtkCxxSetObjectMacro(vtk3DPanoramicVolumeReconstructor,VideoSource,vtkVideoSource);
-vtkCxxSetObjectMacro(vtk3DPanoramicVolumeReconstructor,TrackerTool,vtkTrackerTool);
+////vtkCxxSetObjectMacro(vtk3DPanoramicVolumeReconstructor,TrackerTool,vtkTrackerTool);
 vtkCxxSetObjectMacro(vtk3DPanoramicVolumeReconstructor,SliceAxes,vtkMatrix4x4);
 vtkCxxSetObjectMacro(vtk3DPanoramicVolumeReconstructor,SliceTransform,vtkLinearTransform);
 
@@ -205,12 +208,14 @@ vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
   // for running the reconstruction in the background
   this->VideoSource = NULL;
   this->TrackerTool = NULL;
-  this->TrackerBuffer = vtkTrackerBuffer::New();
+//  this->TrackerBuffer = vtkTrackerBuffer::New();
   this->ReconstructionThreader = vtkMultiThreader::New();
   this->ReconstructionRate = 0;
   this->ReconstructionThreadId = -1;
   this->RealTimeReconstruction = 0; // # real-time or buffered
   this->ReconstructionFrameCount = 0; // # of frames to reconstruct
+  
+  cout << "vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor() | Finished" <<endl;
 }
 
 //----------------------------------------------------------------------------
@@ -239,11 +244,11 @@ vtk3DPanoramicVolumeReconstructor::~vtk3DPanoramicVolumeReconstructor()
     this->Threader->Delete();
     }
   this->SetVideoSource(NULL);
-  this->SetTrackerTool(NULL);
-  if (this->TrackerBuffer)
-    {
-    this->TrackerBuffer->Delete();
-    }
+////  this->SetTrackerTool(NULL);
+////  if (this->TrackerBuffer)
+////    {
+////    this->TrackerBuffer->Delete();
+////    }
   if (this->ReconstructionThreader)
     {
     this->ReconstructionThreader->Delete();
@@ -277,6 +282,22 @@ vtkImageData* vtk3DPanoramicVolumeReconstructor::GetSlice()
     cerr<< "GetSlice: Executive = NULL \n";
     exit(0);
     }
+}
+
+
+vtkImageData* vtk3DPanoramicVolumeReconstructor::GetMasterSlice()
+{
+  vtkMINCImageReader* pDICOMReader = vtkMINCImageReader::New();
+  
+  pDICOMReader->SetFileName("/projects/mrrobot/gumprecht/images/mnc/volume.mnc");
+  pDICOMReader->Update();
+  
+  vtkImageData* imageData = vtkImageData::New();
+  imageData->DeepCopy(pDICOMReader->GetOutput());
+  imageData->SetOrigin(-160, -120, -120);
+  imageData->AllocateScalars();
+  
+  return imageData;  
 }
 
 //----------------------------------------------------------------------------
@@ -1278,8 +1299,8 @@ static void vtk3DPanoramicVolumeReconstructorInsertSlice(vtk3DPanoramicVolumeRec
   target++;
   
   // Get Increments to march through data 
-  outData->GetIncrements(outInc);
-  inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
+  outData->GetIncrements((vtkIdType*) outInc);
+  inData->GetContinuousIncrements(inExt,(vtkIdType&) inIncX,(vtkIdType&) inIncY,(vtkIdType&) inIncZ);
   numscalars = inData->GetNumberOfScalarComponents();
   
   // Set interpolation method
@@ -1464,7 +1485,7 @@ static void vtk3DPanoramicVolumeReconstructorFillHolesInOutput(vtk3DPanoramicVol
     }
 
   // get increments for output and for accumulation buffer
-  outData->GetIncrements(incX, incY, incZ);
+  outData->GetIncrements((vtkIdType&) incX,(vtkIdType&) incY,(vtkIdType&) incZ);
   accIncX = 1;
   accIncY = incY/incX;
   accIncZ = incZ/incX;
@@ -2682,8 +2703,8 @@ static void vtkOptimizedInsertSlice(vtk3DPanoramicVolumeReconstructor *self,
   target++;
   
   // Get Increments to march through data 
-  outData->GetIncrements(outInc);
-  inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
+  outData->GetIncrements((vtkIdType*) outInc);
+  inData->GetContinuousIncrements(inExt, (vtkIdType&) inIncX,(vtkIdType&) inIncY,(vtkIdType&) inIncZ);
   numscalars = inData->GetNumberOfScalarComponents();
   
   // break matrix into a set of axes plus an origin
@@ -2943,7 +2964,8 @@ void vtk3DPanoramicVolumeReconstructor::OptimizedInsertSlice()
     this->InternalClearOutput();
     }
 
-  vtkImageData *inData = this->GetSlice();
+  vtkImageData *inData = this->GetMasterSlice();
+//  vtkImageData *inData = this->GetSlice();
   vtkImageData *outData = this->GetOutput();
 
   // if not in ReconstructionThread, update the slice here
@@ -3180,175 +3202,180 @@ static int vtkThreadSleep(struct ThreadInfoStruct *data, double time)
 // of the partially reconstructed volume.
 static void *vtkReconstructionThread(struct ThreadInfoStruct *data)
 {
-  vtk3DPanoramicVolumeReconstructor *self = (vtk3DPanoramicVolumeReconstructor *)(data->UserData);
 
-  double prevtimes[10];
-  double currtime = 0;  // most recent timestamp
-  double lastcurrtime = 0;  // previous timestamp
-  double timestamp = 0;  // video timestamp, corrected for lag
-  double videolag = self->GetVideoLag();
-  int i;
-
-  for (i = 0; i < 10; i++)
-    {
-    prevtimes[i] = 0.0;
-    }
-
-  // the tracker tool provides the position of each inserted slice
-  if (!self->GetTrackerTool())
-    {
-    return NULL;
-    }
-
-  vtkMatrix4x4 *matrix = self->GetSliceAxes();
-  vtkTrackerBuffer *buffer = self->GetTrackerTool()->GetBuffer();
-  if (!self->RealTimeReconstruction)
-    { // if reconstructing previous data, use backup buffer
-    buffer = self->TrackerBuffer;
-    }
-
-  vtkVideoSource *video = self->GetVideoSource();
-  vtkImageData *inData = self->GetSlice();
+  cerr << "ERROR: static void *vtkReconstructionThread(struct ThreadInfoStruct *data) NOT USABLE (TrackerBuffer)" <<endl;
+  exit(-1);
   
-  // wait for video to start (i.e. wait for timestamp to change)
-  if (video && self->RealTimeReconstruction)
-    {
-    while (lastcurrtime == 0 || currtime == lastcurrtime) 
-      {
-      int clipExt[6];
-      self->GetClipExtent(clipExt, inData->GetOrigin(), inData->GetSpacing(),
-        inData->GetWholeExtent());
-      // VTK 5 : use Request-style method
-      inData->SetUpdateExtent(clipExt);
-      inData->Update();
-      lastcurrtime = currtime;
-      currtime = video->GetFrameTimeStamp();
-      double timenow = vtkTimerLog::GetUniversalTime();
-      double sleepuntil = currtime + 0.010;
-      if (sleepuntil > timenow)
-  {
-  vtkThreadSleep(data, sleepuntil);
-  }
-      }
-    }
-
-  double starttime = 0;
-
-  // loop continuously until reconstruction is halted
-  for (i = 0;;)
-    {
-    // save the last timestamp
-    lastcurrtime = currtime;
-
-    // update the slice data
-    int clipExt[6];
-    self->GetClipExtent(clipExt, inData->GetOrigin(), inData->GetSpacing(),
-      inData->GetWholeExtent());
-    // VTK 5: use Request methods
-    inData->SetUpdateExtent(clipExt);
-    inData->Update(); // VTK 5: RequestData ?? 
-    // get the timestamp for the video frame data
-    if (video) {
-      currtime = video->GetFrameTimeStamp();
-      timestamp = currtime - videolag;
-    }
-
-    if (starttime == 0)
-      {
-      starttime = timestamp;
-      }
-
-    buffer->Lock();
-    int flags = 0;
-    if (video && (videolag > 0.0 || !self->RealTimeReconstruction))
-      { // only do this if videolag is nonzero
-      flags = buffer->GetFlagsAndMatrixFromTime(matrix, timestamp);
-      }
-    else
-      {
-      buffer->GetMatrix(matrix, 0);
-      flags = buffer->GetFlags(0);
-      if (!video)
-  {
-  currtime = buffer->GetTimeStamp(0);
-  }
-      }
-    buffer->Unlock();
-
-    // tool must be properly tracking, and the position must have updated,
-    // if not we sleep until the next video frame
-    if (currtime == lastcurrtime && self->RealTimeReconstruction)
-      {
-      double timenow = vtkTimerLog::GetUniversalTime();
-      double sleepuntil = currtime + 0.033;
-      if (sleepuntil > timenow)
-  {
-  if (vtkThreadSleep(data, sleepuntil) == 0)
-    { // return if abort occurred during sleep
-    return NULL;
-    }
-  }
-      }
-    else if (flags & (TR_MISSING | TR_OUT_OF_VIEW))
-      {
-      double timenow = vtkTimerLog::GetUniversalTime();
-      double sleepuntil = currtime + 0.033;
-      if (sleepuntil > timenow)
-  {
-  if (vtkThreadSleep(data, sleepuntil) == 0)
-    { // return if abort occurred during sleep
-    return NULL;
-    }
-  }
-      }
-    else
-      {
-      // do the reconstruction
-      // VTK 5: this method should stay the same
-      self->InsertSlice();
-    
-      // get current reconstruction rate over last 10 updates
-      double tmptime = currtime;
-      if (!self->RealTimeReconstruction)
-  { // calculate frame rate using computer clock, not timestamps
-  tmptime = vtkTimerLog::GetUniversalTime();
-  }
-      double difftime = tmptime - prevtimes[i%10];
-      prevtimes[i%10] = tmptime;
-      if (i > 10 && difftime != 0)
-  {
-        self->ReconstructionRate = (10.0/difftime);
-  }
-      i++;
-      }
-
-    // check to see if we are being told to quit 
-    //data->ActiveFlagLock->Lock();
-    int activeFlag = *(data->ActiveFlag);
-    //data->ActiveFlagLock->Unlock();
-
-    if (activeFlag == 0)
-      {
-      return NULL;
-      }
-
-    if (!self->RealTimeReconstruction)
-      {
-      // sleep for a millisecond, just to give the main application
-      // thread some time
-      vtkSleep(0.001);
-
-      if (video)
-  {
-    //fprintf(stderr, "go!  %i %i %g\n", self->ReconstructionFrameCount, video->GetFrameIndex(), timestamp - starttime);
-  if (--self->ReconstructionFrameCount == 0)
-    {
-    return NULL;
-    }
-  video->Seek(1);
-  }
-      }
-    }
+////
+////  vtk3DPanoramicVolumeReconstructor *self = (vtk3DPanoramicVolumeReconstructor *)(data->UserData);
+////
+////  double prevtimes[10];
+////  double currtime = 0;  // most recent timestamp
+////  double lastcurrtime = 0;  // previous timestamp
+////  double timestamp = 0;  // video timestamp, corrected for lag
+////  double videolag = self->GetVideoLag();
+////  int i;
+////
+////  for (i = 0; i < 10; i++)
+////    {
+////    prevtimes[i] = 0.0;
+////    }
+////
+////  // the tracker tool provides the position of each inserted slice
+////  if (!self->GetTrackerTool())
+////    {
+////    return NULL;
+////    }
+////
+////  vtkMatrix4x4 *matrix = self->GetSliceAxes();
+////  vtkTrackerBuffer *buffer = self->GetTrackerTool()->GetBuffer();
+////  if (!self->RealTimeReconstruction)
+////    { // if reconstructing previous data, use backup buffer
+////    buffer = self->TrackerBuffer;
+////    }
+////
+////  vtkVideoSource *video = self->GetVideoSource();
+////  vtkImageData *inData = self->GetSlice();
+////  
+////  // wait for video to start (i.e. wait for timestamp to change)
+////  if (video && self->RealTimeReconstruction)
+////    {
+////    while (lastcurrtime == 0 || currtime == lastcurrtime) 
+////      {
+////      int clipExt[6];
+////      self->GetClipExtent(clipExt, inData->GetOrigin(), inData->GetSpacing(),
+////        inData->GetWholeExtent());
+////      // VTK 5 : use Request-style method
+////      inData->SetUpdateExtent(clipExt);
+////      inData->Update();
+////      lastcurrtime = currtime;
+////      currtime = video->GetFrameTimeStamp();
+////      double timenow = vtkTimerLog::GetUniversalTime();
+////      double sleepuntil = currtime + 0.010;
+////      if (sleepuntil > timenow)
+////  {
+////  vtkThreadSleep(data, sleepuntil);
+////  }
+////      }
+////    }
+////
+////  double starttime = 0;
+////
+////  // loop continuously until reconstruction is halted
+////  for (i = 0;;)
+////    {
+////    // save the last timestamp
+////    lastcurrtime = currtime;
+////
+////    // update the slice data
+////    int clipExt[6];
+////    self->GetClipExtent(clipExt, inData->GetOrigin(), inData->GetSpacing(),
+////      inData->GetWholeExtent());
+////    // VTK 5: use Request methods
+////    inData->SetUpdateExtent(clipExt);
+////    inData->Update(); // VTK 5: RequestData ?? 
+////    // get the timestamp for the video frame data
+////    if (video) {
+////      currtime = video->GetFrameTimeStamp();
+////      timestamp = currtime - videolag;
+////    }
+////
+////    if (starttime == 0)
+////      {
+////      starttime = timestamp;
+////      }
+////
+////    buffer->Lock();
+////    int flags = 0;
+////    if (video && (videolag > 0.0 || !self->RealTimeReconstruction))
+////      { // only do this if videolag is nonzero
+////      flags = buffer->GetFlagsAndMatrixFromTime(matrix, timestamp);
+////      }
+////    else
+////      {
+////      buffer->GetMatrix(matrix, 0);
+////      flags = buffer->GetFlags(0);
+////      if (!video)
+////  {
+////  currtime = buffer->GetTimeStamp(0);
+////  }
+////      }
+////    buffer->Unlock();
+////
+////    // tool must be properly tracking, and the position must have updated,
+////    // if not we sleep until the next video frame
+////    if (currtime == lastcurrtime && self->RealTimeReconstruction)
+////      {
+////      double timenow = vtkTimerLog::GetUniversalTime();
+////      double sleepuntil = currtime + 0.033;
+////      if (sleepuntil > timenow)
+////  {
+////  if (vtkThreadSleep(data, sleepuntil) == 0)
+////    { // return if abort occurred during sleep
+////    return NULL;
+////    }
+////  }
+////      }
+////    else if (flags & (TR_MISSING | TR_OUT_OF_VIEW))
+////      {
+////      double timenow = vtkTimerLog::GetUniversalTime();
+////      double sleepuntil = currtime + 0.033;
+////      if (sleepuntil > timenow)
+////  {
+////  if (vtkThreadSleep(data, sleepuntil) == 0)
+////    { // return if abort occurred during sleep
+////    return NULL;
+////    }
+////  }
+////      }
+////    else
+////      {
+////      // do the reconstruction
+////      // VTK 5: this method should stay the same
+////      self->InsertSlice();
+////    
+////      // get current reconstruction rate over last 10 updates
+////      double tmptime = currtime;
+////      if (!self->RealTimeReconstruction)
+////  { // calculate frame rate using computer clock, not timestamps
+////  tmptime = vtkTimerLog::GetUniversalTime();
+////  }
+////      double difftime = tmptime - prevtimes[i%10];
+////      prevtimes[i%10] = tmptime;
+////      if (i > 10 && difftime != 0)
+////  {
+////        self->ReconstructionRate = (10.0/difftime);
+////  }
+////      i++;
+////      }
+////
+////    // check to see if we are being told to quit 
+////    //data->ActiveFlagLock->Lock();
+////    int activeFlag = *(data->ActiveFlag);
+////    //data->ActiveFlagLock->Unlock();
+////
+////    if (activeFlag == 0)
+////      {
+////      return NULL;
+////      }
+////
+////    if (!self->RealTimeReconstruction)
+////      {
+////      // sleep for a millisecond, just to give the main application
+////      // thread some time
+////      vtkSleep(0.001);
+////
+////      if (video)
+////  {
+////    //fprintf(stderr, "go!  %i %i %g\n", self->ReconstructionFrameCount, video->GetFrameIndex(), timestamp - starttime);
+////  if (--self->ReconstructionFrameCount == 0)
+////    {
+////    return NULL;
+////    }
+////  video->Seek(1);
+////  }
+////      }
+////    }
 }
 
 //----------------------------------------------------------------------------
@@ -3409,17 +3436,20 @@ void vtk3DPanoramicVolumeReconstructor::StartRealTimeReconstruction()
 //----------------------------------------------------------------------------
 void vtk3DPanoramicVolumeReconstructor::StopRealTimeReconstruction()
 {
-  if (this->ReconstructionThreadId != -1)
-    {
-    this->Threader->TerminateThread(this->ReconstructionThreadId);
-    this->ReconstructionThreadId = -1;
-    if (this->TrackerTool)
-      {
-      this->TrackerTool->GetBuffer()->Lock();
-      this->TrackerBuffer->DeepCopy(this->TrackerTool->GetBuffer());
-      this->TrackerTool->GetBuffer()->Unlock();
-      }
-    }
+  cerr << "ERROR: void vtk3DPanoramicVolumeReconstructor::StopRealTimeReconstruction() not usable (TrackerBuffer)" <<endl;
+  exit(-1);  
+
+////  if (this->ReconstructionThreadId != -1)
+////    {
+////    this->Threader->TerminateThread(this->ReconstructionThreadId);
+////    this->ReconstructionThreadId = -1;
+////    if (this->TrackerTool)
+////      {
+////      this->TrackerTool->GetBuffer()->Lock();
+////      this->TrackerBuffer->DeepCopy(this->TrackerTool->GetBuffer());
+////      this->TrackerTool->GetBuffer()->Unlock();
+////      }
+////    }
 }
 
 //----------------------------------------------------------------------------
@@ -3454,80 +3484,82 @@ char *vtkJoinPath(char *cp, int n, const char *directory, const char *file)
 //----------------------------------------------------------------------------
 void vtk3DPanoramicVolumeReconstructor::SaveRawData(const char *directory, int frames)
 {
-  if (this->ReconstructionThreadId != -1)
-    {
-    if (this->RealTimeReconstruction)
-      {
-      this->StopRealTimeReconstruction();
-      }
-    else
-      {
-      this->StopReconstruction();
-      }
-    }
-
-  int res;
-#ifdef _WIN32
-  res = _mkdir(directory);
-#else
-  int mode = 0777;
-  res = mkdir(directory, mode);
-#endif
-
-  if (res < 0)
-    {
-    vtkErrorMacro(<< "couldn't create directory " << directory);
-    return;
-    }
-
-  char path[512];
-
-  vtkJoinPath(path,512,directory,"track.txt");
-  this->TrackerBuffer->WriteToFile(path);
-
-  vtkJoinPath(path,512,directory,"video.txt");
-  FILE *file = fopen(path,"w");
-
-  fprintf(file, "# vtk3DPanoramicVolumeReconstructor output\n\n");
-
-  vtkImageData *image = this->VideoSource->GetOutput();
-  image->UpdateInformation();
-
-  fprintf(file, "PixelSpacing = %7.5f %7.5f;\n",
-    image->GetSpacing()[0], image->GetSpacing()[1]);
-  fprintf(file, "PixelOrigin = %7.3f %7.3f;\n",
-    image->GetOrigin()[0], image->GetOrigin()[1]);
-  fprintf(file, "ClipRectangle = %7.3f %7.3f %7.3f %7.3f;\n",
-    this->ClipRectangle[0], this->ClipRectangle[1],
-    this->ClipRectangle[2], this->ClipRectangle[3]);
-  fprintf(file, "FanAngles = %7.2f %7.2f;\n",
-    this->FanAngles[0], this->FanAngles[1]);
-  fprintf(file, "FanOrigin = %7.3f %7.3f;\n",
-    this->FanOrigin[0], this->FanOrigin[1]);
-  fprintf(file, "FanDepth = %7.3f;\n", this->FanDepth);
-  fprintf(file, "VideoLag = %5.3f;\n\n", this->VideoLag);
-
-  vtkPNGWriter *writer = vtkPNGWriter::New();
-  writer->SetInput(image);
-
-  int i;
-  for (i = 0; i < frames; i++)
-    {
-    double currtime = this->VideoSource->GetFrameTimeStamp();
-    char filename[64];
-    sprintf(filename,"z%04.4d.png",i);
-    fprintf(file, "%-10s %14.3f;\n", filename, currtime);
-    vtkJoinPath(path,512,directory,filename);
-    writer->SetFileName(path);
-    writer->Write();
-    if (i != frames-1)
-      {
-      this->VideoSource->Seek(1);
-      }
-    }
-
-  writer->Delete();
-  fclose(file);
+  cerr << "ERROR: void vtk3DPanoramicVolumeReconstructor::SaveRawData(const char *directory, int frames) not usable (TrackerBuffer)" <<endl;
+  exit(-1);  
+//  if (this->ReconstructionThreadId != -1)
+//    {
+//    if (this->RealTimeReconstruction)
+//      {
+//      this->StopRealTimeReconstruction();
+//      }
+//    else
+//      {
+//      this->StopReconstruction();
+//      }
+//    }
+//
+//  int res;
+//#ifdef _WIN32
+//  res = _mkdir(directory);
+//#else
+//  int mode = 0777;
+//  res = mkdir(directory, mode);
+//#endif
+//
+//  if (res < 0)
+//    {
+//    vtkErrorMacro(<< "couldn't create directory " << directory);
+//    return;
+//    }
+//
+//  char path[512];
+//
+//  vtkJoinPath(path,512,directory,"track.txt");
+//  this->TrackerBuffer->WriteToFile(path);
+//
+//  vtkJoinPath(path,512,directory,"video.txt");
+//  FILE *file = fopen(path,"w");
+//
+//  fprintf(file, "# vtk3DPanoramicVolumeReconstructor output\n\n");
+//
+//  vtkImageData *image = this->VideoSource->GetOutput();
+//  image->UpdateInformation();
+//
+//  fprintf(file, "PixelSpacing = %7.5f %7.5f;\n",
+//    image->GetSpacing()[0], image->GetSpacing()[1]);
+//  fprintf(file, "PixelOrigin = %7.3f %7.3f;\n",
+//    image->GetOrigin()[0], image->GetOrigin()[1]);
+//  fprintf(file, "ClipRectangle = %7.3f %7.3f %7.3f %7.3f;\n",
+//    this->ClipRectangle[0], this->ClipRectangle[1],
+//    this->ClipRectangle[2], this->ClipRectangle[3]);
+//  fprintf(file, "FanAngles = %7.2f %7.2f;\n",
+//    this->FanAngles[0], this->FanAngles[1]);
+//  fprintf(file, "FanOrigin = %7.3f %7.3f;\n",
+//    this->FanOrigin[0], this->FanOrigin[1]);
+//  fprintf(file, "FanDepth = %7.3f;\n", this->FanDepth);
+//  fprintf(file, "VideoLag = %5.3f;\n\n", this->VideoLag);
+//
+//  vtkPNGWriter *writer = vtkPNGWriter::New();
+//  writer->SetInput(image);
+//
+//  int i;
+//  for (i = 0; i < frames; i++)
+//    {
+//    double currtime = this->VideoSource->GetFrameTimeStamp();
+//    char filename[64];
+//    sprintf(filename,"z%04.4d.png",i);
+//    fprintf(file, "%-10s %14.3f;\n", filename, currtime);
+//    vtkJoinPath(path,512,directory,filename);
+//    writer->SetFileName(path);
+//    writer->Write();
+//    if (i != frames-1)
+//      {
+//      this->VideoSource->Seek(1);
+//      }
+//    }
+//
+//  writer->Delete();
+//  fclose(file);
 }
 
 //----------------------------------------------------------------------------
@@ -3556,130 +3588,132 @@ char *vtk3DPanoramicVolumeReconstructorEatWhitespace(char *text)
 
 //----------------------------------------------------------------------------
 void vtk3DPanoramicVolumeReconstructor::ReadRawData(const char *directory)
-{
-  if (this->ReconstructionThreadId != -1)
-    {
-    if (this->RealTimeReconstruction)
-      {
-      this->StopRealTimeReconstruction();
-      }
-    else
-      {
-      this->StopReconstruction();
-      }
-    }
-
-  char path[512];
-  char text[128];
-  char filename[128];
-  char *cp;
-  int i = 0;
-  int line;
-  int state;
-  double timestamp;
-  double videolag = 0.0;
-  
-
-  vtkJoinPath(path,512,directory,"track.txt");
-  this->TrackerBuffer->ReadFromFile(path);
-
-  vtkJoinPath(path,512,directory,"video.txt");
-  FILE *file = fopen(path,"r");
-
-  if (file == 0)
-    {
-    vtkErrorMacro(<< "can't open file " << path);
-    return;
-    }
-
-  for (line = 1;; line++)
-    {
-    if (fgets(text, 128, file) == 0)
-      { // error or end of file
-      if (i != 0)
-        {
-        vtkErrorMacro( << "bad data: " << path << " line " << line);
-        }
-      break;
-      }
-    // eat leading whitespace
-    cp = vtk3DPanoramicVolumeReconstructorEatWhitespace(text);
-    // skip over empty lines or comments
-    if (cp == 0 || *cp == '\0' || *cp == '#')
-      {
-      continue;
-      }
-
-    if (strncmp(cp,"VideoLag =",
-                strlen("VideoLag =")) == 0)
-      {
-      cp += strlen("VideoLag =");
-      state = 1;
-      if (i != 0)
-        {
-        vtkErrorMacro( << "bad data: " << path << " line " << line);
-        break;
-        }
-      }
-
-    for (;;i++)
-      {
-      cp = vtk3DPanoramicVolumeReconstructorEatWhitespace(cp);
-      if (cp == 0 || *cp == '\0' || *cp == '#')
-        {
-        break;
-        }
-
-      if (state == 0)
-        {
-        if (i == 0)
-          {
-    int j;
-    for (j = 0; *cp != ' '; j++)
-      {
-      filename[j] = *cp++;
-      }
-    filename[j] = '\0';
-    }
-        else if (i == 1)
-          {
-          timestamp = strtod(cp, &cp);
-          }
-        else
-          {
-          if (i > 1 || *cp != ';')
-            {
-            vtkErrorMacro( << "bad data: " << path << " line " << line);
-            fclose(file);
-            return;
-            }
-    // do the stuff
-          i = 0;
-          state = 0;
-          break;
-          }
-        }
-      else if (state == 1)
-        {
-        if (i == 0)
-          {
-    videolag = strtod(cp, &cp);
-          }
-        else
-          {
-          if (i > 0 || *cp != ';')
-            {
-            vtkErrorMacro( << "bad data: " << path << " line " << line);
-            fclose(file);
-            return;
-            }
-          i = 0;
-          state = 0;
-          break;
-          }
-        }
-      }
-    }
-
-  fclose(file);
+{ 
+cerr << "ERROR: void vtk3DPanoramicVolumeReconstructor::ReadRawData(const char *directory) not usable (TrackerBuffer)" <<endl;
+exit(-1);
+//  if (this->ReconstructionThreadId != -1)
+//    {
+//    if (this->RealTimeReconstruction)
+//      {
+//      this->StopRealTimeReconstruction();
+//      }
+//    else
+//      {
+//      this->StopReconstruction();
+//      }
+//    }
+//
+//  char path[512];
+//  char text[128];
+//  char filename[128];
+//  char *cp;
+//  int i = 0;
+//  int line;
+//  int state;
+//  double timestamp;
+//  double videolag = 0.0;
+//  
+//
+//  vtkJoinPath(path,512,directory,"track.txt");
+//  this->TrackerBuffer->ReadFromFile(path);
+//
+//  vtkJoinPath(path,512,directory,"video.txt");
+//  FILE *file = fopen(path,"r");
+//
+//  if (file == 0)
+//    {
+//    vtkErrorMacro(<< "can't open file " << path);
+//    return;
+//    }
+//
+//  for (line = 1;; line++)
+//    {
+//    if (fgets(text, 128, file) == 0)
+//      { // error or end of file
+//      if (i != 0)
+//        {
+//        vtkErrorMacro( << "bad data: " << path << " line " << line);
+//        }
+//      break;
+//      }
+//    // eat leading whitespace
+//    cp = vtk3DPanoramicVolumeReconstructorEatWhitespace(text);
+//    // skip over empty lines or comments
+//    if (cp == 0 || *cp == '\0' || *cp == '#')
+//      {
+//      continue;
+//      }
+//
+//    if (strncmp(cp,"VideoLag =",
+//                strlen("VideoLag =")) == 0)
+//      {
+//      cp += strlen("VideoLag =");
+//      state = 1;
+//      if (i != 0)
+//        {
+//        vtkErrorMacro( << "bad data: " << path << " line " << line);
+//        break;
+//        }
+//      }
+//
+//    for (;;i++)
+//      {
+//      cp = vtk3DPanoramicVolumeReconstructorEatWhitespace(cp);
+//      if (cp == 0 || *cp == '\0' || *cp == '#')
+//        {
+//        break;
+//        }
+//
+//      if (state == 0)
+//        {
+//        if (i == 0)
+//          {
+//    int j;
+//    for (j = 0; *cp != ' '; j++)
+//      {
+//      filename[j] = *cp++;
+//      }
+//    filename[j] = '\0';
+//    }
+//        else if (i == 1)
+//          {
+//          timestamp = strtod(cp, &cp);
+//          }
+//        else
+//          {
+//          if (i > 1 || *cp != ';')
+//            {
+//            vtkErrorMacro( << "bad data: " << path << " line " << line);
+//            fclose(file);
+//            return;
+//            }
+//    // do the stuff
+//          i = 0;
+//          state = 0;
+//          break;
+//          }
+//        }
+//      else if (state == 1)
+//        {
+//        if (i == 0)
+//          {
+//    videolag = strtod(cp, &cp);
+//          }
+//        else
+//          {
+//          if (i > 0 || *cp != ';')
+//            {
+//            vtkErrorMacro( << "bad data: " << path << " line " << line);
+//            fclose(file);
+//            return;
+//            }
+//          i = 0;
+//          state = 0;
+//          break;
+//          }
+//        }
+//      }
+//    }
+//
+//  fclose(file);
 }

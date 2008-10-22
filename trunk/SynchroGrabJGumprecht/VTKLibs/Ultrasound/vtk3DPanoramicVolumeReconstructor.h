@@ -80,6 +80,7 @@ public:
   // Set the image slice to insert into the reconstruction volume.
   virtual void SetSlice(vtkImageData *);
   virtual vtkImageData* GetSlice();
+  vtkImageData* GetMasterSlice();
 
   virtual vtkImageData *GetOutput();
   // Description:
@@ -89,8 +90,8 @@ public:
 
   // Description:
   // Set the tracker tool to input transforms from.
-  virtual void SetTrackerTool(vtkTrackerTool *);
-  vtkGetObjectMacro(TrackerTool,vtkTrackerTool);
+////  virtual void SetTrackerTool(vtkTrackerTool *);
+////  vtkGetObjectMacro(TrackerTool,vtkTrackerTool);
 
   // Description:
   // Start doing a reconstruction from the video frames stored

@@ -3,9 +3,9 @@
 #
 
 SET (Ultrasound_SRCS
-  vtkSonixVideoSource.cxx
-  vtkTaggedImageFilter.cxx
-  vtkUltrasoundCalibFileReader.cxx
+#  vtkSonixVideoSource.cxx
+#  vtkTaggedImageFilter.cxx
+#  vtkUltrasoundCalibFileReader.cxx
   vtk3DPanoramicVolumeReconstructor.cxx
 )
 
@@ -19,18 +19,18 @@ SET (Ultrasound_LIBS
 #
 # Look for SonixRP Ulterius SDK
 #
-SET (ULTERIUS_ROOT "C:/Ulterius")
-FIND_PATH(ULTERIUS_INCLUDE_DIR "ulterius.h" "${ULTERIUS_ROOT}/inc")
-FIND_LIBRARY(ULTERIUS_LIBRARY ulterius "${ULTERIUS_ROOT}/lib")
-INCLUDE_DIRECTORIES(${ULTERIUS_INCLUDE_DIR})
-SET (Ultrasound_LIBS ${Ultrasound_LIBS} ${ULTERIUS_LIBRARY})
+#SET (ULTERIUS_ROOT "C:/Ulterius")
+#FIND_PATH(ULTERIUS_INCLUDE_DIR "ulterius.h" "${ULTERIUS_ROOT}/inc")
+#FIND_LIBRARY(ULTERIUS_LIBRARY ulterius "${ULTERIUS_ROOT}/lib")
+#INCLUDE_DIRECTORIES(${ULTERIUS_INCLUDE_DIR})
+SET (Ultrasound_LIBS ${Ultrasound_LIBS})# ${ULTERIUS_LIBRARY})
 
 #
 # Subdirectories
 #
 
 IF (BUILD_TESTING)
-  SUBDIRS(Testing)
+##  SUBDIRS(Testing)
 ENDIF (BUILD_TESTING)
 
 # --------------------------------------------------------------------------
@@ -38,7 +38,7 @@ ENDIF (BUILD_TESTING)
 
 # Create the vtkOpenIGTUltrasound C++ library
 ADD_LIBRARY (vtkOpenIGTUltrasound ${Ultrasound_SRCS})
-TARGET_LINK_LIBRARIES(vtkOpenIGTUltrasound vtkCommon vtkHybrid vtkParallel vtkOpenIGTTracking
+TARGET_LINK_LIBRARIES(vtkOpenIGTUltrasound vtkCommon vtkHybrid vtkParallel #vtkOpenIGTTracking
                       ${Ultrasound_LIBS})
 
 # Create the vtkOpenIGTUltrasound Tcl library
