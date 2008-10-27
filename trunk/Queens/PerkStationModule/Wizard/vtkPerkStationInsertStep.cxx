@@ -3,6 +3,8 @@
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkPerkStationModuleLogic.h"
 
+#include "vtkPerkStationSecondaryMonitor.h"
+
 #include "vtkKWCheckButton.h"
 #include "vtkKWCheckButtonWithLabel.h"
 #include "vtkKWEntry.h"
@@ -174,6 +176,8 @@ void vtkPerkStationInsertStep::ShowUserInterface()
   // TO DO: populate controls wherever needed
   this->PopulateControls();
 
+  // depth perception lines render
+  this->GetGUI()->GetSecondaryMonitor()->SetDepthPerceptionLines();
 }
 
 //----------------------------------------------------------------------------
@@ -508,6 +512,10 @@ void vtkPerkStationInsertStep::ResetControls()
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::Reset()
 {
+  if (this->GetGUI()->GetSecondaryMonitor()->GetDepthLinesInitialized())
+    {   
+    this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
+    }
   this->ResetControls();
 }
 
@@ -522,3 +530,4 @@ void vtkPerkStationInsertStep::SaveInsertion(ostream& of)
 {
  
 }
+

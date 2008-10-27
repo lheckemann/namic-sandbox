@@ -7,6 +7,7 @@ class vtkKWLabel;
 class vtkKWFrame;
 class vtkKWEntryWithLabel;
 class vtkKWEntrySet;
+class vtkKWPushButton;
 class vtkActor;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationPlanStep : public vtkPerkStationStep
@@ -28,12 +29,16 @@ public:
   void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
 
   // Description:
+  // Process GUI events
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
+
+  // Description:
   // Callback on value entered in the Insertion angle entry
-  virtual void InsertionAngleEntryCallback(double value);
+  virtual void InsertionAngleEntryCallback();
 
   // Description:
   // Callback on value entered in the Insertion depth entry
-  virtual void InsertionDepthEntryCallback(double value);
+  virtual void InsertionDepthEntryCallback();
 
   // Description:
   // Reimplement the superclass's method.
@@ -55,6 +60,12 @@ protected:
   vtkPerkStationPlanStep();
   ~vtkPerkStationPlanStep();
 
+  void AddGUIObservers();
+  void RemoveGUIObservers();
+  // Description:
+  // GUI callback  
+  static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
+
   // virtual void PopulateIntensityImagesTargetVolumeSelector();
   virtual void PopulateControls();
   virtual void InstallCallbacks();
@@ -62,6 +73,14 @@ protected:
   void ResetControls();
   bool DoubleEqual(double val1, double val2);
   virtual void CalculatePlanInsertionAngleAndDepth();
+
+
+  // in clinical mode
+  
+  // reset push button
+  vtkKWPushButton *ResetPlanButton;
+  vtkKWFrame *ResetFrame;
+
   // entry point RAS
   // information to be had from the user
   vtkKWFrame *EntryPointFrame;
@@ -80,7 +99,7 @@ protected:
   unsigned int ClickNumber;
   vtkActor *NeedleActor;
 private:
-
+  bool ProcessingCallback;
 
   vtkPerkStationPlanStep(const vtkPerkStationPlanStep&);
   void operator=(const vtkPerkStationPlanStep&);

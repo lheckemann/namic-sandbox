@@ -7,6 +7,7 @@ class vtkKWFrame;
 class vtkKWLabel;
 class vtkKWEntryWithLabel;
 class vtkKWEntrySet;
+class vtkKWPushButton;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationValidateStep : public vtkPerkStationStep
 {
@@ -26,6 +27,10 @@ public:
   virtual void AlignTargetImagesCallback(int state);*/
   void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
 
+  // Description:
+  // Process GUI events
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
+
   // Description
   // reset
   virtual void Reset();
@@ -39,11 +44,23 @@ protected:
   vtkPerkStationValidateStep();
   ~vtkPerkStationValidateStep();
 
+  void AddGUIObservers();
+  void RemoveGUIObservers();
+  // Description:
+  // GUI callback  
+  static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
+
+
   // virtual void PopulateIntensityImagesTargetVolumeSelector();
   virtual void PopulateControls();
   virtual void InstallCallbacks();
 
   void ResetControls();
+
+  // in clinical mode
+  // reset push button
+  vtkKWPushButton *ResetValidationButton;
+  vtkKWFrame *ResetFrame;
 
   // entry point RAS
   // information to be had from the user
@@ -55,7 +72,12 @@ protected:
   vtkKWEntrySet      *TargetPoint; 
   vtkKWEntryWithLabel *InsertionDepth;
  
+  bool EntryTargetAcquired;
+  unsigned int ClickNumber;
+
 private:
+  bool ProcessingCallback;
+
   vtkPerkStationValidateStep(const vtkPerkStationValidateStep&);
   void operator=(const vtkPerkStationValidateStep&);
 };
