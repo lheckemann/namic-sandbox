@@ -49,6 +49,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #define __vtkSynchroGrabPipeline_h
 
 #include "vtkObject.h"
+#include "vtkImageData.h"
+
 #include "igtlClientSocket.h"
 
 #include "igtlImageMessage.h"
@@ -130,6 +132,12 @@ protected:
   bool UseTrackerTransforms;
 
   double FrameRate;
+  
+  ///Jan should change this to vtkImage and alloc memory there
+  // I am doing this as a temporary measure
+  char* image_buffer;
+  vtkImageData *vtk_image_buffer;
+  
 
 /*
   vtkUltrasoundCalibFileReader *calibReader;
