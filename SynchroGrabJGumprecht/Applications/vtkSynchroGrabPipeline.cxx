@@ -112,6 +112,19 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
 */
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
+  
+  
+  
+  //// this is for Jan
+  /// I am doing this as temporary meausre;
+  image_buffer = new char [256*256*256];
+  
+  
+  vtk_image_buffer = vtkImageData::New();
+  vtk_image_buffer->SetDimensions(256,256,256);
+  vtk_image_buffer->AllocateScalars();
+ 
+  
 }
 
 //----------------------------------------------------------------------------
@@ -191,9 +204,16 @@ bool vtkSynchroGrabPipeline::StartTracker()
 */
 bool vtkSynchroGrabPipeline::ReconstructVolume()
 {
-  int volumeExtent[6] = {0, 419, 0, 319, 0, 2};
+//// "/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom"
+//  int volumeExtent[6] = {0, 419, 0, 319, 0, 0};
+//  int origin[3] = {0, 0, 0};
+//  double spacing [3] = {1, 1, 1};
+  
+//  "/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img/igtlTestImage1.raw"
+  int volumeExtent[6] = {0, 255, 0, 255, 0, 0};
   int origin[3] = {0, 0, 0};
-  double spacing [3] = {1, 1, 1}; 
+  double spacing [3] = {1, 1, 5};
+  
   
 //  this->sonixGrabber->Record();  //start recording frame from the video
 
@@ -206,15 +226,39 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 
 //  cout << "Recorded synchronized transforms and ultrasound images for " << this->NbFrames / this->FrameRate * 1000 << "ms" << endl;
 
+
+// Noby commented out the following part 
   // set up the panoramic reconstruction class
   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
-  panoramaReconstructor->CompoundingOn();
-  panoramaReconstructor->SetInterpolationModeToLinear();
+//  panoramaReconstructor->CompoundingOn();
+//  panoramaReconstructor->SetInterpolationModeToLinear();
 //  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar();
+
+ char *p_value = (char*)image_buffer;
+
+for (int i = 0; i < 256; i++)
+for (int j = 0; j< 256;j++)
+for (int k = 0; k < 256; k++){
+
+*p_value = k;
+p_value ++;
+
+}
+
+p_value = (char*)vtk_image_buffer->GetScalarPointer();
+
+for (int i = 0; i < 256; i++)
+for (int j = 0; j< 256;j++)
+for (int k = 0; k < 256; k++){
+
+*p_value = k;
+ p_value ++;
+
+}
+
 
   // Determine the extent of the volume that needs to be reconstructed by 
   // iterating throught all the acquired frames
-//TODO: create clip rectangle data
   double clipRectangle[4];
   clipRectangle[0] = volumeExtent[0];
   clipRectangle[1] = volumeExtent[1];
@@ -419,7 +463,8 @@ bool vtkSynchroGrabPipeline::SendImages()
 {
 //  cout << "vtkSynchroGrabPipeline::SendImages: Start" << endl;
   
-  char*  filedir  = "/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img";
+//  char*  filedir  = "/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img";
+  char*  filedir  = "";
 
   //------------------------------------------------------------
   // loop
@@ -429,12 +474,17 @@ bool vtkSynchroGrabPipeline::SendImages()
 //    cout << "vtkSynchroGrabPipeline::SendImages: SendImages loop i: "<< i << endl;  
 
     //------------------------------------------------------------
-    // size parameters    
+    // size parameters
+//    ------------------------------------------------------------
+//    "/projects/mrrobot/gumprecht/tutorials/na-mic/CUDA/heart/Heart256.raw"
      int   size[]     = {256, 256, 256};       // image dimension
     float spacing[]  = {1, 1, 1};     // spacing (mm/pixel)
     int   svsize[]   = {256, 256, 256};       // sub-volume size
     int   svoffset[] = {0, 0, 0};           // sub-volume offset
     int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
+//    ------------------------------------------------------------
+
+//  Imager Setting
 //    int   size[]     = {256, 256, 1};       // image dimension
 //    float spacing[]  = {1.0, 1.0, 5.0};     // spacing (mm/pixel)
 //    int   svsize[]   = {256, 256, 1};       // sub-volume size
@@ -520,6 +570,7 @@ bool vtkSynchroGrabPipeline::SendImages()
     int   svsize[]   = {256, 256, 256};       // sub-volume size
     int   svoffset[] = {0, 0, 0};           // sub-volume offset
     int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
+    
 /*    int   size[]     = {256, 256, 124};       // image dimension
     float spacing[]  = {-1.5, 0.9375, -0.9375};     // spacing (mm/pixel)
     int   svsize[]   = {256, 256, 1};       // sub-volume size
@@ -582,23 +633,49 @@ int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg, co
   char filename[128];
   sprintf(filename, "%s/igtlTestImage%d.raw", dir, i+1);
 //  std::cerr << "Reading " << filename << "...";
-  std::cerr << "Reading spgr.nhdr  ...";
+  std::cerr << "Reading Heart256.raw  ...";
 
   //------------------------------------------------------------
   // Load raw data from the file
 //  FILE *fp = fopen(filename, "rb");
   FILE *fp = fopen("/projects/mrrobot/gumprecht/tutorials/na-mic/CUDA/heart/Heart256.raw", "rb");
-//  FILE *fp = fopen("/projects/mrrobot/gumprecht/tutorials/na-mic/data_loading_and_visualization/SlicerSampleVisualization/nrrd/spgr.nhdr", "rb");
 
   if (fp == NULL)
-    {
+    { char *p_value = (char*)image_buffer;
+
+for (int i = 0; i < 256; i++)
+for (int j = 0; j< 256;j++)
+for (int k = 0; k < 256; k++){
+
+*p_value = i;
+ p_value ++;
+
+}
     std::cerr << "File opeining error: " << filename << std::endl;
     return 0;
     }
   int fsize = msg->GetImageSize();
+  
+  
   size_t b = fread(msg->GetScalarPointer(), 1, fsize, fp);
 
-  fclose(fp);
+/////////////////////
+
+char * p_msg = (char*) msg->GetScalarPointer();
+char * p_ibuffer = (char*) vtk_image_buffer->GetScalarPointer();
+for(int i=0;i<256*256*256;i++){
+  *p_msg = (char) * p_ibuffer;
+  p_ibuffer++; p_msg++;
+
+}
+
+
+
+
+
+//////////////
+
+fclose(fp);
 
   std::cerr << "done." << std::endl;
 
