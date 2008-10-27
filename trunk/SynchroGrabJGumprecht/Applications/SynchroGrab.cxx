@@ -52,8 +52,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkFileOutputWindow.h"
 #include "vtkMultiThreader.h"
 #include "vtkSynchroGrabPipeline.h"
-#include "vtkMINCImageReader.h"
+//#include "vtkMINCImageReader.h"
 #include "vtkImageData.h"
+//#include "vtkImageReader2.h"
+#include "vtkDICOMImageReader.h"
+
 
 using namespace std;
 
@@ -159,10 +162,20 @@ int main(int argc, char **argv)
 //
 //  pDICOMReader->SetFileName("/projects/mrrobot/gumprecht/images/mnc/volume.mnc");
 //  pDICOMReader->Update();
+  
+//  vtkImageReader2 * imageReader = vtkImageReader2::New();
+//  imageReader->SetFileName("/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom");
+//  imageReader->Update();
+//  
+//  vtkDICOMImageReader * imageReader = vtkDICOMImageReader::New();
+////  imageReader->SetFileName("/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img/igtlTestImage1.raw");
+//  imageReader->SetFileName("/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom");
+//  imageReader->Update();
 //  
 //  vtkImageData* imageData = vtkImageData::New();
-//  imageData->DeepCopy(pDICOMReader->GetOutput());
-//  imageData->SetOrigin(-160, -120, -120);
+//  imageData->DeepCopy(imageReader->GetOutput());
+////  imageData->DeepCopy(pDICOMReader->GetOutput());
+////  imageData->SetOrigin(-160, -120, -120);
 //  imageData->AllocateScalars();
 //  
 ////  Get Origin
@@ -180,7 +193,10 @@ int main(int argc, char **argv)
 ////  Get Extent
 //  int extent[6];
 //  imageData->GetExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
-//  cout << "Extent: x1/x2 y1/y2 z1/z2: " << extent[0] << "/" << extent[1] << "/" << extent[2] << "/" << extent[3] << "/" << extent[4] << "/"<< extent[5] << endl;
+//  cout << "Extent before set: x1/x2 y1/y2 z1/z2: " << extent[0] << "/" << extent[1] << " " << extent[2] << "/" << extent[3] << " " << extent[4] << "/"<< extent[5] << endl;
+//  imageData->SetExtent(0, 419, 0, 299, 0, 2);
+//  imageData->GetExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+//  cout << "Extent after set: x1/x2 y1/y2 z1/z2: " << extent[0] << "/" << extent[1] << " " << extent[2] << "/" << extent[3] << " " << extent[4] << "/"<< extent[5] << endl;
 //  cout << endl;
 //  
 ////  Get Dimensions
@@ -193,8 +209,8 @@ int main(int argc, char **argv)
 //  exit(0);
 
 
-////    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
-    vtkSynchroGrabPipeline *pipeline = new vtkSynchroGrabPipeline;
+    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
+////    vtkSynchroGrabPipeline *pipeline = new vtkSynchroGrabPipeline;
     
 //  cout << "Pipline created " << endl;
 
@@ -215,20 +231,20 @@ int main(int argc, char **argv)
 
 //    if(pipeline->GetTransfertImages())
 //        {
-////        if(!pipeline->ConnectToServer())
-////            return -1;
-////        if(!pipeline->SendImages())
-////            return -1;
-////        cout << "Images successfull send " << endl;
-////        
-////        if(!pipeline->CloseServerConnection())
-////            return -1;
+        if(!pipeline->ConnectToServer())
+            return -1;
+        if(!pipeline->SendImages())
+            return -1;
+        cout << "Images successfull send " << endl;
+        
+        if(!pipeline->CloseServerConnection())
+            return -1;
 //        }
 
 //    if(pipeline->GetVolumeReconstructionEnabled())
 //        {
-        if(!pipeline->ReconstructVolume())
-            return -1;
+//        if(!pipeline->ReconstructVolume())
+//            return -1;
 //        }
 
 //    pipeline->Delete();
