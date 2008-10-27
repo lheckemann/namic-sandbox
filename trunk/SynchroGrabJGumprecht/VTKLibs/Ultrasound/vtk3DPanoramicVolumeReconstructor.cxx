@@ -216,7 +216,7 @@ vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
   this->RealTimeReconstruction = 0; // # real-time or buffered
   this->ReconstructionFrameCount = 0; // # of frames to reconstruct
   
-  cout << "vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor() | Finished" <<endl;
+////  cout << "vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor() | Finished" <<endl;
 }
 
 //----------------------------------------------------------------------------
@@ -295,22 +295,25 @@ vtkImageData* vtk3DPanoramicVolumeReconstructor::GetMasterSlice()
   
 //  vtkImageData* imageData = vtkImageData::New();
 //  imageData->DeepCopy(pDICOMReader->GetOutput());
-  
+
 //  imageData->SetOrigin(-160, -120, -120);
 //  imageData->AllocateScalars();
 
+//  return imageData;  
+
+//----------------------------------------------------------------------------    
 //  vtkImageReader2 * imageReader = vtkImageReader2::New();
 //  imageReader->SetFileName("/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom");
 //  imageReader->Update();
-  /projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img/igtlTestImage1.raw
-  vtkDICOMImageReader * imageReader = vtkDICOMImageReader::New();
-  imageReader->SetFileName("/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom");
+
+  vtkImageReader2 * imageReader = vtkImageReader2::New();
+  imageReader->SetFileName("/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img/igtlTestImage1.raw");
   imageReader->Update();
   
   vtkImageData* imageData = vtkImageData::New();
   imageData->DeepCopy(imageReader->GetOutput());
 
-//  imageData->SetExtent(0, 419, 0, 299, 0, 2);  
+//  imageData->SetExtent(0, 255, 0, 255, 0, 0);  
   imageData->AllocateScalars();
   
   return imageData;  
