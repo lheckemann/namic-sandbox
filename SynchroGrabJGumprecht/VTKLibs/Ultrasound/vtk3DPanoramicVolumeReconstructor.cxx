@@ -75,7 +75,8 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkPNGWriter.h"
 
 //MCGUMBEL
-#include "vtkMINCImageReader.h"
+//#include "vtkMINCImageReader.h"
+#include "vtkDICOMImageReader.h"
 
 vtkCxxRevisionMacro(vtk3DPanoramicVolumeReconstructor, "$Revision: 1.7 $");
 vtkStandardNewMacro(vtk3DPanoramicVolumeReconstructor);
@@ -221,7 +222,7 @@ vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
 //----------------------------------------------------------------------------
 vtk3DPanoramicVolumeReconstructor::~vtk3DPanoramicVolumeReconstructor()
 {
-  this->StopRealTimeReconstruction();
+////  this->StopRealTimeReconstruction();
 
   this->SetSlice(NULL);
   this->SetSliceTransform(NULL);
@@ -284,17 +285,32 @@ vtkImageData* vtk3DPanoramicVolumeReconstructor::GetSlice()
     }
 }
 
-
+//----------------------------------------------------------------------------
 vtkImageData* vtk3DPanoramicVolumeReconstructor::GetMasterSlice()
 {
-  vtkMINCImageReader* pDICOMReader = vtkMINCImageReader::New();
+//  vtkMINCImageReader* pDICOMReader = vtkMINCImageReader::New();
+//  
+//  pDICOMReader->SetFileName("/projects/mrrobot/gumprecht/images/mnc/volume.mnc");
+//  pDICOMReader->Update();
   
-  pDICOMReader->SetFileName("/projects/mrrobot/gumprecht/images/mnc/volume.mnc");
-  pDICOMReader->Update();
+//  vtkImageData* imageData = vtkImageData::New();
+//  imageData->DeepCopy(pDICOMReader->GetOutput());
+  
+//  imageData->SetOrigin(-160, -120, -120);
+//  imageData->AllocateScalars();
+
+//  vtkImageReader2 * imageReader = vtkImageReader2::New();
+//  imageReader->SetFileName("/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom");
+//  imageReader->Update();
+  /projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img/igtlTestImage1.raw
+  vtkDICOMImageReader * imageReader = vtkDICOMImageReader::New();
+  imageReader->SetFileName("/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom");
+  imageReader->Update();
   
   vtkImageData* imageData = vtkImageData::New();
-  imageData->DeepCopy(pDICOMReader->GetOutput());
-  imageData->SetOrigin(-160, -120, -120);
+  imageData->DeepCopy(imageReader->GetOutput());
+
+//  imageData->SetExtent(0, 419, 0, 299, 0, 2);  
   imageData->AllocateScalars();
   
   return imageData;  
@@ -3438,7 +3454,7 @@ void vtk3DPanoramicVolumeReconstructor::StopRealTimeReconstruction()
 {
   cerr << "ERROR: void vtk3DPanoramicVolumeReconstructor::StopRealTimeReconstruction() not usable (TrackerBuffer)" <<endl;
   exit(-1);  
-
+////
 ////  if (this->ReconstructionThreadId != -1)
 ////    {
 ////    this->Threader->TerminateThread(this->ReconstructionThreadId);
