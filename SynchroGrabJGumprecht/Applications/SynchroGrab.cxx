@@ -225,6 +225,20 @@ int main(int argc, char **argv)
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
 
+
+ //   if(pipeline->GetVolumeReconstructionEnabled())
+  //      {
+ //       if(!pipeline->ReconstructVolume())
+ //           return -1;
+  //      }
+ 
+ 
+ // noby enabled it; 
+ pipeline->ReconstructVolume();
+ 
+ 
+        
+        
 //  cout << "VTK Error File handled " << endl;
 
 ////    pipeline->ConfigurePipeline();
@@ -236,16 +250,12 @@ int main(int argc, char **argv)
         if(!pipeline->SendImages())
             return -1;
         cout << "Images successfull send " << endl;
-        
+//        
         if(!pipeline->CloseServerConnection())
             return -1;
-//        }
+////        }
 
-//    if(pipeline->GetVolumeReconstructionEnabled())
-//        {
-//        if(!pipeline->ReconstructVolume())
-//            return -1;
-//        }
+
 
 //    pipeline->Delete();
 }
