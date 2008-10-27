@@ -191,8 +191,8 @@ bool vtkSynchroGrabPipeline::StartTracker()
 */
 bool vtkSynchroGrabPipeline::ReconstructVolume()
 {
-  int volumeExtent[6] = {0, 319, 0, 239, 0, 239};
-  int origin[3] = {-160, -120, -120};
+  int volumeExtent[6] = {0, 419, 0, 319, 0, 2};
+  int origin[3] = {0, 0, 0};
   double spacing [3] = {1, 1, 1}; 
   
 //  this->sonixGrabber->Record();  //start recording frame from the video
@@ -210,7 +210,7 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
   panoramaReconstructor->CompoundingOn();
   panoramaReconstructor->SetInterpolationModeToLinear();
-  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar();
+//  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar();
 
   // Determine the extent of the volume that needs to be reconstructed by 
   // iterating throught all the acquired frames
@@ -283,7 +283,7 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   vtkMatrix4x4 *sliceAxes = vtkMatrix4x4::New();
   sliceAxes->Zero();
   sliceAxes->Element[0][0] = 1; 
-  sliceAxes->Element[1][1] = 1; 
+  sliceAxes->Element[1][1] = -1; 
   sliceAxes->Element[2][2] = 1; 
   sliceAxes->Element[3][3] = 1; 
 ////  this->tagger->GetTransform()->GetMatrix(sliceAxes);
