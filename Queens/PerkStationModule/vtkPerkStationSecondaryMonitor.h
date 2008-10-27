@@ -4,6 +4,7 @@
 #include "vtkPerkStationModule.h"
 // for getting display device information
 #include "Windows.h"
+#include <vector>
 
 class vtkPerkStationModuleGUI;
 class vtkSlicerSliceViewer;
@@ -21,6 +22,8 @@ class vtkImageMapper;
 class vtkActor2D;
 class vtkActor;
 class vtkKWRenderWidget;
+class vtkLineSource;
+class vtkActorCollection;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationSecondaryMonitor
 {
@@ -74,6 +77,8 @@ public:
   void LoadCalibration();
 
 
+  bool GetDepthLinesInitialized(){return this->DepthLinesInitialized;};
+
   // Description
   // update matrices
   // please note that this function calls UpdateImageDisplay at end of recomputing matrices
@@ -104,9 +109,7 @@ public:
   // Get XYToSlice matrix
   vtkMatrix4x4 *GetXYToIJK(){ return this->XYToIJK;};
 
-  // Description
-  // Get ResliceTranform matrix
-  vtkMatrix4x4 *GetResliceTransformMatrix();
+  
 
   void GetTranslation(double & translationX, double & translationY){translationX = this->CurrentTranslation[0]; translationY = this->CurrentTranslation[1];};
 
@@ -145,6 +148,11 @@ public:
   // remove overlay guide needle actor
   void RemoveOverlayNeedleGuide();
 
+  void SetDepthPerceptionLines();  
+
+  void RemoveDepthPerceptionLines();
+
+
 protected:
   vtkPerkStationSecondaryMonitor();
   ~vtkPerkStationSecondaryMonitor();  
@@ -157,7 +165,8 @@ protected:
   vtkRenderWindowInteractor *Interator;
   vtkImageMapper *ImageMapper;
   vtkActor2D *ImageActor;
-  vtkActor *NeedleActor;  
+  vtkActor *NeedleActor; 
+  vtkActorCollection *DepthPerceptionLines;
   vtkImageMapToWindowLevelColors *MapToWindowLevelColors;
   
   vtkImageReslice *Reslice; // reslice/resample filter
@@ -184,6 +193,10 @@ protected:
   int ImageSize[3];
   bool VerticalFlipped;
   bool HorizontalFlipped;
+
+ 
+  unsigned int NumOfDepthPerceptionLines;
+  bool DepthLinesInitialized;
 
   double CurrentTranslation[2];
   double CurrentRotation;

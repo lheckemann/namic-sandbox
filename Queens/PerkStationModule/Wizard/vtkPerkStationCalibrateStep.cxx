@@ -2520,7 +2520,8 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
   if ((s == istyleSecondary) && (event == vtkCommand::LeftButtonPressEvent) )
     {
     // hear clicks only if the current sub state is Translate or Rotate
-    if (! ((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
+      //if ( (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))  && !( (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false)))
+      if (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
         return;
 
     if (this->ProcessingCallback)
@@ -2596,8 +2597,9 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
 
   vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
 
-  if ((style == istyleSecondary)  && (event == vtkCommand::CharEvent || event == vtkCommand::KeyPressEvent))
+  if ( (style == istyleSecondary) && (event == vtkCommand::KeyPressEvent))
     {
     // capture the key
     char  *key = style->GetKeySym();    
@@ -2800,6 +2802,14 @@ void vtkPerkStationCalibrateStep::RecordClick(int xyPoint[2], double rasPoint[3]
         }
         break;
     default:
+        if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical && !this->CORSpecified)
+          {
+          this->COR->GetWidget(0)->SetValueAsDouble(rasPoint[0]);
+          this->COR->GetWidget(1)->SetValueAsDouble(rasPoint[1]);
+          // set cneter of rotation in mrml node
+          this->GetGUI()->GetMRMLNode()->SetCenterOfRotation(rasPoint[0], rasPoint[1], rasPoint[2]);    
+          this->CORSpecified = true;
+          }
         this->ClickNumber = 0;
         break;
 

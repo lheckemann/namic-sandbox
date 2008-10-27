@@ -23,6 +23,10 @@ vtkPerkStationValidateStep::vtkPerkStationValidateStep()
 {
   this->SetName("4/5. Validate");
   this->SetDescription("Mark actual entry point and target hit");  
+  this->WizardGUICallbackCommand->SetCallback(vtkPerkStationValidateStep::WizardGUICallback);
+
+  this->ResetFrame = NULL;
+  this->ResetValidationButton = NULL;
 
   this->EntryPointFrame = NULL;
   this->EntryPointLabel = NULL;
@@ -31,12 +35,28 @@ vtkPerkStationValidateStep::vtkPerkStationValidateStep()
   this->TargetPointLabel = NULL;
   this->TargetPoint = NULL;
   this->InsertionDepth = NULL;
+  
+  this->EntryTargetAcquired = false;
+  this->ClickNumber = 0;
+  this->ProcessingCallback = false;
 
 }
 
 //----------------------------------------------------------------------------
 vtkPerkStationValidateStep::~vtkPerkStationValidateStep()
 {
+  if (this->ResetFrame)
+    {
+    this->ResetFrame->Delete();
+    this->ResetFrame = NULL;
+    }
+  if (this->ResetValidationButton)
+    {
+    this->ResetValidationButton->Delete();
+    this->ResetValidationButton = NULL;
+    }
+
+
   if (this->EntryPointFrame)
     {
     this->EntryPointFrame->Delete();
@@ -82,13 +102,32 @@ void vtkPerkStationValidateStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
 
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+  wizard_widget->GetCancelButton()->SetEnabled(0);
+  vtkKWWidget *parent = wizard_widget->GetClientArea();
+  int enabled = parent->GetEnabled();
+
+  // clear controls
+  if (this->ResetFrame)
+    {
+    this->Script("pack forget %s", 
+                    this->ResetFrame->GetWidgetName());
+    }
+
+  if (this->ResetValidationButton)
+    {
+    this->Script("pack forget %s", 
+                    this->ResetValidationButton->GetWidgetName());
+    }
+
+
   switch (this->GetGUI()->GetMode())      
     {
 
     case vtkPerkStationModuleGUI::ModeId::Training:
 
       this->SetName("4/5. Validate");
-      this->GetGUI()->GetWizardWidget()->Update();
+      this->GetGUI()->GetWizardWidget()->Update();  
       break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
@@ -96,18 +135,50 @@ void vtkPerkStationValidateStep::ShowUserInterface()
       // in clinical mode
       this->SetName("4/4. Validate");
       this->GetGUI()->GetWizardWidget()->Update();
+
+       // additional reset button
+
+      // frame for reset button
+      if (!this->ResetFrame)
+        {
+        this->ResetFrame = vtkKWFrame::New();
+        }
+      if (!this->ResetFrame->IsCreated())
+        {
+        this->ResetFrame->SetParent(parent);
+        this->ResetFrame->Create();     
+        }
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                        this->ResetFrame->GetWidgetName());
+      
+      if (!this->ResetValidationButton)
+        {
+        this->ResetValidationButton = vtkKWPushButton::New();
+        }
+      if(!this->ResetValidationButton->IsCreated())
+        {
+        this->ResetValidationButton->SetParent(this->ResetFrame);
+        this->ResetValidationButton->SetText("Reset validation");
+        this->ResetValidationButton->SetBorderWidth(2);
+        this->ResetValidationButton->SetReliefToRaised();      
+        this->ResetValidationButton->SetHighlightThickness(2);
+        this->ResetValidationButton->SetBackgroundColor(0.85,0.85,0.85);
+        this->ResetValidationButton->SetActiveBackgroundColor(1,1,1);      
+        this->ResetValidationButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
+        this->ResetValidationButton->Create();
+        }
+      
+      this->Script("pack %s -side top -padx 2 -pady 4", 
+                        this->ResetValidationButton->GetWidgetName());
+      
+      
+
       break;
     }
   
   this->SetDescription("Mark actual entry point and target hit");  
 
-  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
-  wizard_widget->GetCancelButton()->SetEnabled(0);
-
-  vtkKWWidget *parent = wizard_widget->GetClientArea();
-  int enabled = parent->GetEnabled();
-
+  
   // Create the individual components
 
   //frame
@@ -391,6 +462,28 @@ void vtkPerkStationValidateStep::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 }
 //----------------------------------------------------------------------------
+void vtkPerkStationValidateStep::AddGUIObservers()
+{
+  this->RemoveGUIObservers();
+
+  if (this->ResetValidationButton)
+    {
+    this->ResetValidationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    }
+ 
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationValidateStep::RemoveGUIObservers()
+{
+  if (this->ResetValidationButton)
+    {
+    this->ResetValidationButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    }
+  
+
+}
+
+//----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::InstallCallbacks()
 {
     // Configure the OK button to start
@@ -409,6 +502,8 @@ void vtkPerkStationValidateStep::InstallCallbacks()
 
     }
 
+  this->AddGUIObservers();
+
  
 }
 //----------------------------------------------------------------------------
@@ -423,7 +518,6 @@ void vtkPerkStationValidateStep::PopulateControls()
 //-----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
 {
-  static unsigned int clickNum = 0;
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
   // first identify if the step is pertinent, i.e. current step of wizard workflow is actually calibration step
@@ -440,6 +534,11 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
     return;
     }
 
+  if(this->EntryTargetAcquired)
+    {
+    return;
+    }
+
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
   vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
@@ -448,9 +547,9 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
   vtkMatrix4x4 *matrix;
   vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
 
-  if ((s == istyleSecondary) && (event == vtkCommand::LeftButtonPressEvent))
+  if ((s == istyle0) && (event == vtkCommand::LeftButtonPressEvent))
     {
-    ++clickNum;
+    ++this->ClickNumber;
     if (s == istyle0)
       {
       // mouse click happened in the axial slice view      
@@ -475,7 +574,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
 
     // depending on click number, it is either Entry point or target point
-    if (clickNum ==1)
+    if (this->ClickNumber ==1)
       {
       // entry point specification by user
       this->EntryPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
@@ -487,7 +586,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
       this->GetGUI()->GetMRMLNode()->CalculateEntryPointError();
       
       }
-    else if (clickNum == 2)
+    else if (this->ClickNumber == 2)
       {
       this->TargetPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
       this->TargetPoint->GetWidget(1)->SetValueAsDouble(ras[1]);
@@ -497,21 +596,17 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
       this->GetGUI()->GetMRMLNode()->SetValidateTargetPoint(ras);      
       this->GetGUI()->GetMRMLNode()->CalculateTargetPointError();
       
-      clickNum = 0;
+      this->ClickNumber = 0;
 
       double rasEntry[3];
       double rasTarget[3];
       this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint(rasEntry);
       this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint(rasTarget);
       double insDepth = sqrt( (rasTarget[0] - rasEntry[0])*(rasTarget[0] - rasEntry[0]) + (rasTarget[1] - rasEntry[1])*(rasTarget[1] - rasEntry[1]) + (rasTarget[2] - rasEntry[2])*(rasTarget[2] - rasEntry[2]) );
-      this->GetGUI()->GetMRMLNode()->SetValidateInsertionDepth(insDepth);  
-      // if in clinical mode, the insertion depth should be automatically calculated & displayed
-      if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
-        {   
-        this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
-        }       
+      this->GetGUI()->GetMRMLNode()->SetValidateInsertionDepth(insDepth);   
+      this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
 
-
+      this->EntryTargetAcquired = true;
       }
 
 
@@ -537,7 +632,9 @@ void vtkPerkStationValidateStep::Reset()
   mrmlNode->CalculateTargetPointError();
 
   // reset local member variables to defaults
- 
+  this->EntryTargetAcquired = false;
+  this->ClickNumber = 0;
+  this->ProcessingCallback = false;
   // reset gui controls
   this->ResetControls();
   
@@ -726,3 +823,35 @@ void vtkPerkStationValidateStep::SaveValidation(ostream& of)
 
 
 //----------------------------------------------------------------------------
+void vtkPerkStationValidateStep::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
+{
+    vtkPerkStationValidateStep *self = reinterpret_cast<vtkPerkStationValidateStep *>(clientData);
+    if (self) { self->ProcessGUIEvents(caller, event, callData); }
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationValidateStep::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  if(!mrmlNode)
+      return;
+
+  if(!mrmlNode->GetPlanningVolumeNode() || strcmp(mrmlNode->GetVolumeInUse(), "Validation")!=0)
+      return;
+
+  
+  if (this->ProcessingCallback)
+    {
+    return;
+    }
+
+  this->ProcessingCallback = true;
+  
+  // reset plan button
+  if (this->ResetValidationButton && this->ResetValidationButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+    {
+    this->Reset();
+    }
+  this->ProcessingCallback = false;
+}

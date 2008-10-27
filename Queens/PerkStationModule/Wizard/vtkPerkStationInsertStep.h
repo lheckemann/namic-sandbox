@@ -2,11 +2,13 @@
 #define __vtkPerkStationInsertStep_h
 
 #include "vtkPerkStationStep.h"
+#include <vector>
 
 class vtkKWFrame;
 class vtkKWLabel;
 class vtkKWEntrySet;
 class vtkKWCheckButtonWithLabel;
+class vtkLineSource;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationInsertStep : public vtkPerkStationStep
 {
@@ -44,7 +46,8 @@ protected:
   vtkKWEntrySet       *NeedleTipPosition;
   
 
-private:
+private:    
+
   vtkPerkStationInsertStep(const vtkPerkStationInsertStep&);
   void operator=(const vtkPerkStationInsertStep&);
 };

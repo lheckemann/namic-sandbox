@@ -15,6 +15,7 @@
 #include "vtkKWWizardWorkflow.h"
 
 #include "vtkCylinderSource.h"
+#include "vtkProperty.h"
 #include "vtkRenderer.h"
 #include "vtkIdentityTransform.h"
 #include "vtkMatrixToHomogeneousTransform.h"
@@ -30,6 +31,10 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->SetName("2/5. Plan");
   this->SetDescription("Plan the needle insertion");
 
+  this->WizardGUICallbackCommand->SetCallback(vtkPerkStationPlanStep::WizardGUICallback);
+
+  this->ResetFrame = NULL;
+  this->ResetPlanButton = NULL;
   this->EntryPointFrame = NULL;
   this->EntryPointLabel = NULL;
   this->EntryPoint = NULL;
@@ -47,12 +52,24 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
 
   this->EntryTargetAcquired = false;
   this->ClickNumber = 0;
+  this->ProcessingCallback = false;
   this->NeedleActor = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
 {
+  if (this->ResetFrame)
+    {
+    this->ResetFrame->Delete();
+    this->ResetFrame = NULL;
+    }
+  if (this->ResetPlanButton)
+    {
+    this->ResetPlanButton->Delete();
+    this->ResetPlanButton = NULL;
+    }
+
   if (this->EntryPointFrame)
     {
     this->EntryPointFrame->Delete();
@@ -103,6 +120,27 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
 void vtkPerkStationPlanStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
+
+  
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+  wizard_widget->GetCancelButton()->SetEnabled(0);
+  vtkKWWidget *parent = wizard_widget->GetClientArea();
+  int enabled = parent->GetEnabled();
+
+  // clear controls
+  if (this->ResetFrame)
+    {
+    this->Script("pack forget %s", 
+                    this->ResetFrame->GetWidgetName());
+    }
+
+  if (this->ResetPlanButton)
+    {
+    this->Script("pack forget %s", 
+                    this->ResetPlanButton->GetWidgetName());
+    }
+
+
   switch (this->GetGUI()->GetMode())      
     {
 
@@ -110,6 +148,8 @@ void vtkPerkStationPlanStep::ShowUserInterface()
 
       this->SetName("2/5. Plan");
       this->GetGUI()->GetWizardWidget()->Update();
+
+       
       break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
@@ -117,6 +157,47 @@ void vtkPerkStationPlanStep::ShowUserInterface()
       // in clinical mode
       this->SetName("2/4. Plan");
       this->GetGUI()->GetWizardWidget()->Update();
+
+      // additional reset button
+
+      // frame for reset button
+
+      if (!this->ResetFrame)
+        {
+        this->ResetFrame = vtkKWFrame::New();
+        }
+      if (!this->ResetFrame->IsCreated())
+        {
+        this->ResetFrame->SetParent(parent);
+        this->ResetFrame->Create();     
+        }
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                        this->ResetFrame->GetWidgetName());     
+      
+      
+
+      if (!this->ResetPlanButton)
+        {
+        this->ResetPlanButton = vtkKWPushButton::New();
+        }
+      if(!this->ResetPlanButton->IsCreated())
+        {
+        this->ResetPlanButton->SetParent(this->ResetFrame);
+        this->ResetPlanButton->SetText("Reset plan");
+        this->ResetPlanButton->SetBorderWidth(2);
+        this->ResetPlanButton->SetReliefToRaised();      
+        this->ResetPlanButton->SetHighlightThickness(2);
+        this->ResetPlanButton->SetBackgroundColor(0.85,0.85,0.85);
+        this->ResetPlanButton->SetActiveBackgroundColor(1,1,1);      
+        this->ResetPlanButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
+        this->ResetPlanButton->Create();
+        }
+      
+      this->Script("pack %s -side top -padx 2 -pady 4", 
+                        this->ResetPlanButton->GetWidgetName());
+      
+      
+
       break;
     }
   
@@ -129,10 +210,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     return;
     }*/
 
-  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-  wizard_widget->GetCancelButton()->SetEnabled(0);
-  vtkKWWidget *parent = wizard_widget->GetClientArea();
-  int enabled = parent->GetEnabled();
+ 
 
   // Create the individual components
 
@@ -302,8 +380,47 @@ void vtkPerkStationPlanStep::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
+void vtkPerkStationPlanStep::AddGUIObservers()
+{
+  this->RemoveGUIObservers();
+
+  if (this->ResetPlanButton)
+    {
+    this->ResetPlanButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    }
+  if(this->InsertionDepth)
+    {
+    this->InsertionDepth->GetWidget()->SetRestrictValueToDouble();
+    this->InsertionDepth->GetWidget()->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }
+  if(this->InsertionAngle)
+    {
+    this->InsertionAngle->GetWidget()->SetRestrictValueToDouble();
+    this->InsertionAngle->GetWidget()->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationPlanStep::RemoveGUIObservers()
+{
+  if (this->ResetPlanButton)
+    {
+    this->ResetPlanButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    }
+  if(this->InsertionDepth)
+    {
+    this->InsertionDepth->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }
+
+  if(this->InsertionAngle)
+    {
+    this->InsertionAngle->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }
+
+}
+//----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::InstallCallbacks()
 {
+  /*
   // callback on insertion depth
   this->InsertionDepth->GetWidget()->SetRestrictValueToDouble();
   this->InsertionDepth->GetWidget()->SetCommand(this, "InsertionDepthEntryCallback");
@@ -313,6 +430,9 @@ void vtkPerkStationPlanStep::InstallCallbacks()
   this->InsertionAngle->GetWidget()->SetRestrictValueToDouble();
   this->InsertionAngle->GetWidget()->SetCommand(this, "InsertionAngleEntryCallback");
   this->AddCallbackCommandObserver(this->InsertionAngle->GetWidget(), vtkKWEntry::EntryValueChangedEvent);
+*/
+
+  this->AddGUIObservers();
 
 }
 //----------------------------------------------------------------------------
@@ -413,7 +533,8 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
     
       // do an image overlay of a cylinder!!
       this->OverlayNeedleGuide();
-      this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();
+      this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
+      
       this->ClickNumber = 0;
 
       this->EntryTargetAcquired = true;
@@ -435,7 +556,7 @@ bool vtkPerkStationPlanStep::DoubleEqual(double val1, double val2)
 }
 
 //----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::InsertionDepthEntryCallback(double value)
+void vtkPerkStationPlanStep::InsertionDepthEntryCallback()
 {
     if (!this->GetGUI()->GetMRMLNode())
         return;
@@ -445,10 +566,15 @@ void vtkPerkStationPlanStep::InsertionDepthEntryCallback(double value)
     
     if (strcmpi(this->InsertionDepth->GetWidget()->GetValue(), "")!=0)
       {
-      if(!this->DoubleEqual(mrmlVal,value))
+      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
+      // in this case above code, won't detect change, but actually user has entered a change
+      // for insertion depth, initial value is 0
+      if(     ( (mrmlVal == 0) && (this->InsertionDepth->GetWidget()->GetValueAsDouble() == 0))
+        || (!this->DoubleEqual(mrmlVal,this->InsertionDepth->GetWidget()->GetValueAsDouble()))
+        )
         {
         // set the value in the mrml node
-        this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionDepth(value); 
+        this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionDepth(this->InsertionDepth->GetWidget()->GetValueAsDouble()); 
         this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionDepthError();  
         }
       }
@@ -457,7 +583,7 @@ void vtkPerkStationPlanStep::InsertionDepthEntryCallback(double value)
 
 
 //----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::InsertionAngleEntryCallback(double value)
+void vtkPerkStationPlanStep::InsertionAngleEntryCallback()
 {
     // TO DO: check if its a valid input i.e. 0-360 
     if (!this->GetGUI()->GetMRMLNode())
@@ -468,10 +594,15 @@ void vtkPerkStationPlanStep::InsertionAngleEntryCallback(double value)
     
     if (strcmpi(this->InsertionAngle->GetWidget()->GetValue(), "")!=0)
       {
-      if(!this->DoubleEqual(mrmlVal,value))
+      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
+      // in this case above code, won't detect change, but actually user has entered a change
+      // for insertion angle, initial value is 0
+      if(     ( (mrmlVal == 0) && (this->InsertionAngle->GetWidget()->GetValueAsDouble() == 0))
+        || (!this->DoubleEqual(mrmlVal,this->InsertionAngle->GetWidget()->GetValueAsDouble()))
+        )
         {
         // set the value in the mrml node
-        this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionAngle(value);  
+        this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionAngle(this->InsertionAngle->GetWidget()->GetValueAsDouble());  
         this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionAngleError();
         }
       }
@@ -588,6 +719,7 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   // after transfrom, set up actor
   this->NeedleActor = vtkActor::New(); 
   this->NeedleActor->SetMapper(needleMapper );  
+  this->NeedleActor->GetProperty()->SetOpacity(0.3);
   //needleActor->SetPosition(needleCenter[0], needleCenter[1],0);  
   //needleActor->RotateZ(90-angle);
   
@@ -626,6 +758,16 @@ void vtkPerkStationPlanStep::Reset()
 {
   // reset the overlay needle guide both in sliceviewer and in secondary monitor
   this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayNeedleGuide();
+
+  if (this->GetGUI()->GetSecondaryMonitor()->GetDepthLinesInitialized())
+    {
+    // although the depth perception lines are actually set and rendered in Insert step
+    // we do reset here, because we don't want to have reset button in 'Insert' step
+    // thats why we first check if the Depth lines were actually initialized
+    // if in case, we do decide to have reset button in 'Insert' step, then we should
+    // move the remove code to Reset of Insert itself
+    this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
+    }
   this->RemoveOverlayNeedleGuide();
 
   // reset parameters of mrml node
@@ -658,6 +800,7 @@ void vtkPerkStationPlanStep::Reset()
   this->WCTargetPoint[2] = 0.0;
   this->EntryTargetAcquired = false;
   this->ClickNumber = 0;
+  this->ProcessingCallback = false;
   // reset gui controls
   this->ResetControls();
   
@@ -873,4 +1016,51 @@ void vtkPerkStationPlanStep::SavePlanning(ostream& of)
 
   
 
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationPlanStep::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
+{
+    vtkPerkStationPlanStep *self = reinterpret_cast<vtkPerkStationPlanStep *>(clientData);
+    if (self) { self->ProcessGUIEvents(caller, event, callData); }
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationPlanStep::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  if(!mrmlNode)
+      return;
+
+  if(!mrmlNode->GetPlanningVolumeNode() || strcmp(mrmlNode->GetVolumeInUse(), "Planning")!=0)
+      return;
+
+  
+  if (this->ProcessingCallback)
+    {
+    return;
+    }
+
+  this->ProcessingCallback = true;
+  
+  // reset plan button
+  if (this->ResetPlanButton && this->ResetPlanButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+    {
+    this->Reset();
+    }
+
+  // insertion depth
+  if (this->InsertionDepth && this->InsertionDepth->GetWidget()== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
+    {
+    this->InsertionDepthEntryCallback();    
+    }
+
+    // insertion angle
+  if (this->InsertionAngle && this->InsertionAngle->GetWidget()== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
+    {
+    this->InsertionAngleEntryCallback();    
+    }
+
+  this->ProcessingCallback = false;
 }
