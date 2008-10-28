@@ -23,10 +23,12 @@
 #include "igtlImageMessage.h"
 #include "igtlServerSocket.h"
 #include "igtlStatusMessage.h"
+#include "igtlVFixtureMessage.h"
 
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveVFixture(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 
 int main(int argc, char* argv[])
 {
@@ -91,6 +93,10 @@ int main(int argc, char* argv[])
         else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
           {
           ReceiveStatus(socket, headerMsg);
+          }
+        else if (strcmp(headerMsg->GetDeviceType(), "*VFIXTURE") == 0)
+          {
+          ReceiveVFixture(socket, headerMsg);
           }
         else
           {
@@ -220,3 +226,49 @@ int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
   return 0;
 
 }
+
+
+int ReceiveVFixture(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving Virtual Fixture data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::VFixtureMessage::Pointer vfMsg;
+  vfMsg = igtl::VFixtureMessage::New();
+  vfMsg->SetMessageHeader(header);
+  vfMsg->AllocatePack();
+  
+  // Receive virtual fixture data from the socket
+  socket->Receive(vfMsg->GetPackBodyPointer(), vfMsg->GetPackBodySize());
+  
+  // Deserialize the virtual fixture data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = vfMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    std::cerr << "Device Name           : " << vfMsg->GetDeviceName() << std::endl;
+    std::cerr << "Number of Spheres     : " << vfMsg->GetNumberOfSpheres() << std::endl;
+    std::cerr << "Hardness              : " << vfMsg->GetHardness() << std::endl;
+
+    int n = vfMsg->GetNumberOfSpheres();
+
+    for (int i = 0; i < n; i ++)
+      {
+      int res = 0;
+      float x, y, z, r;
+      res += vfMsg->GetCenter(i, x, y, z);
+      res += vfMsg->GetRadius(i, r);
+      if (res == 2*i)
+        {
+        std::cerr << "  Center[" << i << "] : (" << x << ", " << y << ", " << z << ")" << std::endl;
+        std::cerr << "  Radius[" << i << "] : " << r << std::endl;
+        }
+      }
+    return 1;
+    }
+
+  return 0;
+
+}
+

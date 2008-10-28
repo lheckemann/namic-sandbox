@@ -11,6 +11,7 @@ if(NOT OpenIGTLink_PLATFORM_QNX)
       Imager
       Status
       Receiver
+      VFixture
       )
 else(NOT OpenIGTLink_PLATFORM_QNX)
   SUBDIRS(
