@@ -26,6 +26,7 @@ SET(OpenIGTLink_SOURCES
   igtlutil/igtl_transform.c
   igtlutil/igtl_status.c
   igtlutil/igtl_util.c
+  igtlutil/igtl_vfixture.c
   igtlClientSocket.cxx
   igtlConditionVariable.cxx
   igtlFastMutexLock.cxx
@@ -44,6 +45,7 @@ SET(OpenIGTLink_SOURCES
   igtlStatusMessage.cxx
   igtlTimeStamp.cxx
   igtlTransformMessage.cxx
+  igtlVFixtureMessage.cxx
   )
 
 ADD_LIBRARY(OpenIGTLink

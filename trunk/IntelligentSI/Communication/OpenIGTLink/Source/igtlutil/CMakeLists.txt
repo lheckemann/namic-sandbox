@@ -6,6 +6,7 @@ SET(IGTLUTIL_HEADS
   igtl_transform.h
   igtl_util.h
   igtl_types.h
+  igtl_vfixture.h
   )
 
 SET(IGTLUTIL_SRCS
@@ -13,6 +14,7 @@ SET(IGTLUTIL_SRCS
   igtl_image.c
   igtl_transform.c
   igtl_util.c
+  igtl_vfixture.c
   )       
 
 ADD_LIBRARY(igtlutil STATIC
