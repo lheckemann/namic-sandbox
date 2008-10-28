@@ -438,6 +438,40 @@ void vtkPerkStationPlanStep::InstallCallbacks()
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::PopulateControls()
 {
+    
+
+}
+//---------------------------------------------------------------------------
+void vtkPerkStationPlanStep::PopulateControlsOnLoadPlanning()
+{
+    if (!this->GetGUI()->GetMRMLNode())
+      return;
+
+    if (!this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+      return;
+
+    double rasEntry[3];
+    this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
+
+    // entry point
+    this->EntryPoint->GetWidget(0)->SetValueAsDouble(rasEntry[0]);
+    this->EntryPoint->GetWidget(1)->SetValueAsDouble(rasEntry[1]);
+    this->EntryPoint->GetWidget(2)->SetValueAsDouble(rasEntry[2]);
+
+    double rasTarget[3];
+    this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
+
+    // target point
+    this->TargetPoint->GetWidget(0)->SetValueAsDouble(rasTarget[0]);
+    this->TargetPoint->GetWidget(1)->SetValueAsDouble(rasTarget[1]);
+    this->TargetPoint->GetWidget(2)->SetValueAsDouble(rasTarget[2]);
+
+    // insertion angle  
+    double insAngle = this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionAngle();
+    this->InsertionAngle->GetWidget()->SetValueAsDouble(insAngle);
+    // insertion depth
+    double insDepth = this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionDepth();
+    this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
 
 }
 //----------------------------------------------------------------------------
@@ -466,28 +500,19 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
     }
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
+  
   
   vtkRenderWindowInteractor *rwi;
   vtkMatrix4x4 *matrix;
 
-  if (((s == istyle0)||(s == istyleSecondary)) && (event == vtkCommand::LeftButtonPressEvent))
+  // planning has to happen on slicer laptop, cannot be done from secondary monitor, so don't listen to clicks in secondary monitor
+  if ((s == istyle0)&& (event == vtkCommand::LeftButtonPressEvent))
     {
     ++this->ClickNumber;
     // mouse click happened in the axial slice view
-
-    if (s == istyle0)
-      {
-          
-      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
-      rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
-      matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-      }
-    else if (s == istyleSecondary)
-      {   
-      rwi = this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor();
-      matrix = this->GetGUI()->GetSecondaryMonitor()->GetXYToRAS(); 
-      }
+    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
+    rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
+    matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
 
     
     int point[2];
@@ -681,7 +706,8 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   // TO DO: transfrom needle mapper using vtkTransformPolyData
   vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
   transformMatrix->Identity();
-  double angle = this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionAngle();
+  //insertion angle is the angle with x-axis of the line which has entry and target as its end points;
+  double angle = double(180/vtkMath::Pi()) * atan(double((rasEntry[1] - rasTarget[1])/(rasEntry[0] - rasTarget[0])));
   double insAngleRad = vtkMath::Pi()/2 - double(vtkMath::Pi()/180)*angle;
   transformMatrix->SetElement(0,0, cos(insAngleRad));
   transformMatrix->SetElement(0,1, -sin(insAngleRad));
@@ -748,8 +774,80 @@ void vtkPerkStationPlanStep::CalculatePlanInsertionAngleAndDepth()
   
   if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
     {
+    // in clinical mode, the insertion angle reported is the angle with the vertical
+    // also if there was any rotation while calibration, that should be taken into account
+    // in effect, the angle should be calculated from xy space of the secondary monitor
+
+    vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+    vtkMatrix4x4 *XYToRAS = this->GetGUI()->GetSecondaryMonitor()->GetXYToRAS();
+    vtkMatrix4x4::Invert(XYToRAS, rasToXY);
+
+    int point[2];
+    double xyEntry[2];
+    double xyTarget[2];
+
+    // entry point
+    double rasEntry[3];
+    this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
+    double inPt[4] = {rasEntry[0], rasEntry[1], rasEntry[2], 1};
+    double outPt[4];  
+    rasToXY->MultiplyPoint(inPt, outPt);
+    point[0] = outPt[0];
+    point[1] = outPt[1];
+    xyEntry[0] = point[0];
+    xyEntry[1] = point[1];
+
+    double rasTarget[3];
+    this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
+    inPt[0] = rasTarget[0];
+    inPt[1] = rasTarget[1];
+    inPt[2] = rasTarget[2];
+    rasToXY->MultiplyPoint(inPt, outPt);
+    point[0] = outPt[0];
+    point[1] = outPt[1];
+    xyTarget[0] = point[0];
+    xyTarget[1] = point[1];
+
+    double denom = xyEntry[0]-xyTarget[0];
+    double numer = xyEntry[1]-xyTarget[1];
+
+    double insAngleXY = double(180/vtkMath::Pi()) * atan(double(numer/denom));
+
+    if( denom == 0)
+      {
+      insAngleXY = 0.0;
+      }
+    else if (numer == 0)
+      {
+      insAngleXY = 90.0;
+      }
+    else if (denom > 0 && numer > 0)
+      {
+      // first quadrant
+      // report angle w.r.t vertical
+      insAngleXY = 90 - insAngleXY;
+      }
+    else if (denom < 0 && numer > 0)
+      {
+      // second quadrant
+      // report angle w.r.t vertical
+      insAngleXY = 90 + insAngleXY;
+      }
+    else if (denom < 0 && numer < 0)
+      {
+      // third quadrant
+      // report angle w.r.t vertical
+      insAngleXY = 90 - insAngleXY;
+      }
+    else if (denom > 0 && numer < 0)
+      {
+      // fourth quadrant
+      // report angle w.r.t vertical
+      insAngleXY = 90 + insAngleXY;
+      }
+    this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionAngle(insAngleXY);
     this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
-    this->InsertionAngle->GetWidget()->SetValueAsDouble(insAngle);
+    this->InsertionAngle->GetWidget()->SetValueAsDouble(insAngleXY);
     }
 }
 
@@ -962,8 +1060,16 @@ void vtkPerkStationPlanStep::LoadPlanning(istream &file)
     // all params correctly read from file
     
     // reflect the values of params in GUI controls
-    // this->PopulateControlsOnLoadCalibration();
+    this->PopulateControlsOnLoadPlanning();
     // set any state variables required to be set
+
+    // overlay needle guide in slicer gui & secondary monitor
+    this->OverlayNeedleGuide();
+    this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
+    
+    this->ClickNumber = 0;
+
+    this->EntryTargetAcquired = true;
     }
   else
     {

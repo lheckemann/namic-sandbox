@@ -152,6 +152,7 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
       };
     //ETX
 
+  void SaveVolumeInformation(ostream& of);
 
 protected:
   vtkPerkStationModuleGUI();
@@ -225,7 +226,7 @@ private:
   // gui state variables
   int Mode; // clinical mode or training mode
   
-
+  int ObserverCount;
   int State; // whether in calibration mode, insert, validation , or
   vtkKWRadioButtonSet *StateButtonSet;  
 

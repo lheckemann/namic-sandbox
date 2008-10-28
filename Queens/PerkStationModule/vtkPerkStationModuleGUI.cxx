@@ -20,6 +20,9 @@ Version:   $Revision: 1.2 $
 #include <sys/types.h>  // For stat().
 #include <sys/stat.h>   // For stat().
 
+
+#include "itkMetaDataObject.h"
+
 #include "vtkObjectFactory.h"
 
 #include "vtkPerkStationModuleGUI.h"
@@ -119,6 +122,8 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   this->State = vtkPerkStationModuleGUI::StateId::Calibrate;  
 
   this->Built = false;
+
+  this->ObserverCount = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -230,12 +235,15 @@ void vtkPerkStationModuleGUI::AddGUIObservers ( )
   // add listener to main slicer's red slice view
   appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
   // add listener to own render window created for secondary monitor
-  this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+  
 
   if (this->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
     {
-    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::KeyPressEvent, (vtkCommand *)this->GUICallbackCommand);
-    appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::KeyPressEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::KeyPressEvent, (vtkCommand *)this->GUICallbackCommand);    
+    }
+  else
+    {
+    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
 
@@ -256,6 +264,8 @@ void vtkPerkStationModuleGUI::AddGUIObservers ( )
     {
     this->SaveExperimentFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
     }
+  this->ObserverCount++;
+
 }
 
 
@@ -267,12 +277,11 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
   //this->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver(vtkCommand::CharEvent, (vtkCommand *)this->GUICallbackCommand);
   
   this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);  
 
   if (this->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
     {
-    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);    
     }
 
   this->WizardWidget->GetWizardWorkflow()->RemoveObserver( static_cast<vtkCommand *>(this->GUICallbackCommand));
@@ -293,6 +302,8 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
     {
     this->SaveExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
     }
+
+  this->ObserverCount--;
 }
 
 
@@ -1142,6 +1153,7 @@ void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
     
     case vtkPerkStationModuleGUI::ModeId::Clinical:
         // save information about image volumes used
+        this->SaveVolumeInformation(of);
         // save information about calibration
         this->CalibrateStep->SaveCalibration(of);
         // save information about planning
@@ -1158,6 +1170,19 @@ void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
 //----------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::LoadExperiment(istream &file)
 {
+  // reset before you load
+  // 1) Reset individual work phase steps to bring to fresh state, who are in turn, responsible for reseting MRML node parameters
+  this->CalibrateStep->Reset();
+  this->PlanStep->Reset();
+  this->InsertStep->Reset();
+  this->ValidateStep->Reset();
+
+  // load individual steps
+  this->CalibrateStep->LoadCalibration(file);
+  this->PlanStep->LoadPlanning(file);
+  this->InsertStep->LoadInsertion(file);
+  this->ValidateStep->LoadValidation(file);
+
 }
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::SaveExperimentButtonCallback(const char *fileName)
@@ -1220,3 +1245,81 @@ char *vtkPerkStationModuleGUI::CreateFileName()
     //
   return dirName;
 }
+
+//---------------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+
+  vtkMRMLScalarVolumeNode *planVol = mrmlNode->GetPlanningVolumeNode();
+  if (planVol == NULL)
+    {
+    return;
+    }
+  const itk::MetaDataDictionary &planVolDictionary = planVol->GetMetaDataDictionary();
+
+  std::string tagValue;
+
+
+
+  // following information needs to be written to the file
+
+  // 1) Volume location file path
+  // 2) Series number from dictionary
+  // 3) Series description from dictionary
+  // 4) FOR UID from dictionary
+  // 5) Origin from node
+  // 6) Pixel spacing from node
+  
+  // entry point
+  of << " PlanVolumeFileLocation=\"" ;
+//  of <<  << " ";
+  of << "\" \n";
+  
+  // series number
+  tagValue.clear(); itk::ExposeMetaData<std::string>( planVolDictionary, "0020|0011", tagValue );
+  of << " PlanVolumeSeriesNumber=\"" ;
+  of << tagValue << " ";
+  of << "\" \n";
+
+  // series description
+  tagValue.clear(); itk::ExposeMetaData<std::string>( planVolDictionary, "0008|103e", tagValue );
+  of << " PlanVolumeSeriesDescription=\"" ;
+  of << tagValue << " ";
+  of << "\" \n";
+   
+  // frame of reference uid
+  tagValue.clear(); itk::ExposeMetaData<std::string>( planVolDictionary, "0020|0052", tagValue );
+  of << " PlanVolumeFORUID=\"" ;
+  of << tagValue << " ";
+  of << "\" \n";
+
+  // origin
+  of << " PlanVolumeOrigin=\"" ;
+  double origin[3];
+  planVol->GetOrigin(origin);
+  for(int i = 0; i < 3; i++)
+      of << origin[i] << " ";
+  of << "\" \n";
+  
+
+  // spacing
+  of << " PlanVolumeSpacing=\"" ;
+  double spacing[3];
+  planVol->GetSpacing(spacing);
+  for(int i = 0; i < 3; i++)
+      of << spacing[i] << " ";
+  of << "\" \n";
+
+
+  
+
+  
+
+}
+
