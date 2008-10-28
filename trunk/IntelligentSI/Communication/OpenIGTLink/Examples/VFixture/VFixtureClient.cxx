@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------
   // Parse Arguments
 
-  if ((argc - 5 - 4) % 4 != 0) // check number of arguments
+  if (argc < 9 || (argc >= 9 && (argc - 5 - 4) % 4 != 0)) // check number of arguments
     {
     // If not correct, print usage
     std::cerr << "Usage: " << argv[0] << " <hostname> <port> <fps> <h> [<x> <y> <z> <r>] ..." << std::endl;
