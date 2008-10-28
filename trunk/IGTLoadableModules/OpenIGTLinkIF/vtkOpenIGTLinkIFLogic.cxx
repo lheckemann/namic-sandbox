@@ -139,6 +139,8 @@ int vtkOpenIGTLinkIFLogic::Initialize()
 
     }
 
+  return 1;
+
 }
 
 
@@ -604,6 +606,8 @@ int  vtkOpenIGTLinkIFLogic::AddDeviceToConnector(int id, const char* deviceName,
       }
     }
 
+  return 1;
+
 }
 
 //---------------------------------------------------------------------------
@@ -637,6 +641,8 @@ int  vtkOpenIGTLinkIFLogic::DeleteDeviceFromConnector(int id, const char* device
       devList->erase(iter);
       }
     }
+
+  return 1;
 
 }
 
@@ -681,6 +687,8 @@ int  vtkOpenIGTLinkIFLogic::SetDeviceType(int id, const char* deviceName, const 
         }
       }
     }
+
+  return 1;
 
 }
 
