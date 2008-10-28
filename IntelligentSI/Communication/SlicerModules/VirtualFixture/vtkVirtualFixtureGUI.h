@@ -93,8 +93,9 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForTestFrame1();
-  void BuildGUIForTestFrame2();
+  void BuildGUIForSphereControl();
+  //void BuildGUIForTestFrame1();
+  //void BuildGUIForTestFrame2();
 
   //----------------------------------------------------------------
   // Update routines
@@ -116,10 +117,13 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkKWPushButton* TestButton11;
-  vtkKWPushButton* TestButton12;
-  vtkKWPushButton* TestButton21;
-  vtkKWPushButton* TestButton22;
+  vtkKWMenuButton* SphereMenu;
+  vtkKWEntry*      SphereNameEntry;
+  vtkKWEntry*      CenterXEntry;
+  vtkKWEntry*      CenterYEntry;
+  vtkKWEntry*      CenterZEntry;
+  vtkKWEntry*      RadiusEntry;
+  vtkKWPushButton* UpdateSphereButton;
 
   //----------------------------------------------------------------
   // Logic Values

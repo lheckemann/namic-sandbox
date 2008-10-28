@@ -32,7 +32,9 @@
 #include "vtkKWLabel.h"
 #include "vtkKWEvent.h"
 
+#include "vtkKWMenuButton.h"
 #include "vtkKWPushButton.h"
+#include "vtkKWEntry.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -56,10 +58,20 @@ vtkVirtualFixtureGUI::vtkVirtualFixtureGUI ( )
   
   //----------------------------------------------------------------
   // GUI widgets
+  this->SphereMenu         = NULL;
+  this->SphereNameEntry    = NULL;
+  this->CenterXEntry       = NULL;
+  this->CenterYEntry       = NULL;
+  this->CenterZEntry       = NULL;
+  this->RadiusEntry        = NULL;
+  this->UpdateSphereButton = NULL;
+
+  /*
   this->TestButton11 = NULL;
   this->TestButton12 = NULL;
   this->TestButton21 = NULL;
   this->TestButton22 = NULL;
+  */
   
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -87,6 +99,7 @@ vtkVirtualFixtureGUI::~vtkVirtualFixtureGUI ( )
   //----------------------------------------------------------------
   // Remove GUI widgets
 
+  /*
   if (this->TestButton11)
     {
     this->TestButton11->SetParent(NULL);
@@ -110,6 +123,7 @@ vtkVirtualFixtureGUI::~vtkVirtualFixtureGUI ( )
     this->TestButton22->SetParent(NULL);
     this->TestButton22->Delete();
     }
+  */
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -163,6 +177,7 @@ void vtkVirtualFixtureGUI::RemoveGUIObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
+  /*
   if (this->TestButton11)
     {
     this->TestButton11
@@ -186,6 +201,7 @@ void vtkVirtualFixtureGUI::RemoveGUIObservers ( )
     this->TestButton22
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  */
 
 
   this->RemoveLogicObservers();
@@ -217,6 +233,17 @@ void vtkVirtualFixtureGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
+  /*
+  this->SphereMenu
+  this->SphereNameEntry
+  this->CneterXEntry
+  this->CenterYEntry
+  this->CenterZEntry
+  this->RadiusEntry
+  this->UpdateSphereButton
+  */
+
+  /*
   this->TestButton11
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->TestButton12
@@ -225,6 +252,7 @@ void vtkVirtualFixtureGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->TestButton22
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  */
 
   this->AddLogicObservers();
 
@@ -276,7 +304,7 @@ void vtkVirtualFixtureGUI::ProcessGUIEvents(vtkObject *caller,
     return;
     }
 
-  
+  /*
   if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent)
     {
@@ -297,6 +325,7 @@ void vtkVirtualFixtureGUI::ProcessGUIEvents(vtkObject *caller,
     {
     std::cerr << "TestButton22 is pressed." << std::endl;
     }
+  */
 
 } 
 
@@ -360,8 +389,9 @@ void vtkVirtualFixtureGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "VirtualFixture", "VirtualFixture", NULL );
 
   BuildGUIForHelpFrame();
-  BuildGUIForTestFrame1();
-  BuildGUIForTestFrame2();
+  BuildGUIForSphereControl();
+  //BuildGUIForTestFrame1();
+  //BuildGUIForTestFrame2();
 
 }
 
@@ -407,103 +437,158 @@ void vtkVirtualFixtureGUI::BuildGUIForHelpFrame ()
 }
 
 //---------------------------------------------------------------------------
-void vtkVirtualFixtureGUI::BuildGUIForTestFrame1()
-{
-
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("VirtualFixture");
-  
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 1");
-  //conBrowsFrame->CollapseFrame();
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
-
-  // -----------------------------------------
-  // Test child frame
-
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
-
-  // -----------------------------------------
-  // Test push button
-
-  this->TestButton11 = vtkKWPushButton::New ( );
-  this->TestButton11->SetParent ( frame->GetFrame() );
-  this->TestButton11->Create ( );
-  this->TestButton11->SetText ("Test 11");
-  this->TestButton11->SetWidth (12);
-
-  this->TestButton12 = vtkKWPushButton::New ( );
-  this->TestButton12->SetParent ( frame->GetFrame() );
-  this->TestButton12->Create ( );
-  this->TestButton12->SetText ("Tset 12");
-  this->TestButton12->SetWidth (12);
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton11->GetWidgetName(),
-               this->TestButton12->GetWidgetName());
-
-  conBrowsFrame->Delete();
-  frame->Delete();
-
-}
-
-
-//---------------------------------------------------------------------------
-void vtkVirtualFixtureGUI::BuildGUIForTestFrame2 ()
+void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("VirtualFixture");
   
   vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 2");
+  conBrowsFrame->SetLabelText("Sphere Control");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Test child frame
+  // Sphere menu
 
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
-  
+  vtkKWFrame *sphereMenuFrame = vtkKWFrame::New();
+  sphereMenuFrame->SetParent(conBrowsFrame->GetFrame());
+  sphereMenuFrame->Create();
+  this->Script ("pack %s -fill both -expand true",  
+                 sphereMenuFrame->GetWidgetName() );
+
+  vtkKWLabel *sphereMenuLabel = vtkKWLabel::New();
+  sphereMenuLabel->SetParent(sphereMenuFrame);
+  sphereMenuLabel->Create();
+  sphereMenuLabel->SetWidth(14);
+  sphereMenuLabel->SetText("SphereName: ");
+
+  this->SphereMenu = vtkKWMenuButton::New();
+  this->SphereMenu->SetParent(sphereMenuFrame);
+  this->SphereMenu->Create();
+  this->SphereMenu->SetWidth(10);
+  this->SphereMenu->GetMenu()->AddRadioButton ("Sphere 1");
+  this->SphereMenu->GetMenu()->AddRadioButton ("Sphere 2");
+  this->SphereMenu->GetMenu()->AddRadioButton ("New Sphere");
+  this->SphereMenu->SetValue ("Sphere 1");
+
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              sphereMenuLabel->GetWidgetName() , this->SphereMenu->GetWidgetName());
+
   // -----------------------------------------
-  // Test push button
+  // Sphere name
+  vtkKWFrame *sphereNameFrame = vtkKWFrame::New();
+  sphereNameFrame->SetParent(conBrowsFrame->GetFrame());
+  sphereNameFrame->Create();
+  this->Script ("pack %s -fill both -expand true",  
+                sphereNameFrame->GetWidgetName() );
 
-  this->TestButton21 = vtkKWPushButton::New ( );
-  this->TestButton21->SetParent ( frame->GetFrame() );
-  this->TestButton21->Create ( );
-  this->TestButton21->SetText ("Test 21");
-  this->TestButton21->SetWidth (12);
+  vtkKWLabel *sphereNameLabel = vtkKWLabel::New();
+  sphereNameLabel->SetParent(sphereNameFrame);
+  sphereNameLabel->Create();
+  sphereNameLabel->SetWidth(14);
+  sphereNameLabel->SetText("SphereName: ");
 
-  this->TestButton22 = vtkKWPushButton::New ( );
-  this->TestButton22->SetParent ( frame->GetFrame() );
-  this->TestButton22->Create ( );
-  this->TestButton22->SetText ("Tset 22");
-  this->TestButton22->SetWidth (12);
+  this->SphereNameEntry = vtkKWEntry::New();
+  this->SphereNameEntry->SetParent(sphereNameFrame);
+  this->SphereNameEntry->Create();
+  this->SphereNameEntry->SetWidth(10);
+  this->SphereNameEntry->SetValue ("Sphere 1");
 
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton21->GetWidgetName(),
-               this->TestButton22->GetWidgetName());
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               sphereNameLabel->GetWidgetName() , this->SphereNameEntry->GetWidgetName());
 
+  // -----------------------------------------
+  // Center coordinate
+
+  vtkKWFrame *centerCoordinateFrame = vtkKWFrame::New();
+  centerCoordinateFrame->SetParent(conBrowsFrame->GetFrame());
+  centerCoordinateFrame->Create();
+  this->Script ("pack %s -fill both -expand true",  
+                centerCoordinateFrame->GetWidgetName() );
+
+  vtkKWLabel *centerCoordinateLabel = vtkKWLabel::New();
+  centerCoordinateLabel->SetParent(centerCoordinateFrame);
+  centerCoordinateLabel->Create();
+  centerCoordinateLabel->SetWidth(14);
+  centerCoordinateLabel->SetText("Center: ");
+
+  this->CenterXEntry = vtkKWEntry::New();
+  this->CenterXEntry->SetParent(centerCoordinateFrame);
+  this->CenterXEntry->Create();
+  this->CenterXEntry->SetWidth(8);
+  this->CenterXEntry->SetRestrictValueToDouble();
+  this->CenterXEntry->SetValue ("0.0");
+
+  this->CenterYEntry = vtkKWEntry::New();
+  this->CenterYEntry->SetParent(centerCoordinateFrame);
+  this->CenterYEntry->Create();
+  this->CenterYEntry->SetWidth(8);
+  this->CenterYEntry->SetRestrictValueToDouble();
+  this->CenterYEntry->SetValue ("0.0");
+
+  this->CenterZEntry = vtkKWEntry::New();
+  this->CenterZEntry->SetParent(centerCoordinateFrame);
+  this->CenterZEntry->Create();
+  this->CenterZEntry->SetWidth(8);
+  this->CenterZEntry->SetRestrictValueToDouble();
+  this->CenterZEntry->SetValue ("0.0");
+
+  this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 4 -pady 2", 
+               centerCoordinateLabel->GetWidgetName(),
+               this->CenterXEntry->GetWidgetName(),
+               this->CenterYEntry->GetWidgetName(),
+               this->CenterZEntry->GetWidgetName());
+
+  // -----------------------------------------
+  // Radius
+  vtkKWFrame *radiusFrame = vtkKWFrame::New();
+  radiusFrame->SetParent(conBrowsFrame->GetFrame());
+  radiusFrame->Create();
+  this->Script ("pack %s -fill both -expand true",  
+                radiusFrame->GetWidgetName() );
+
+  vtkKWLabel *radiusLabel = vtkKWLabel::New();
+  radiusLabel->SetParent(radiusFrame);
+  radiusLabel->Create();
+  radiusLabel->SetWidth(14);
+  radiusLabel->SetText("SphereName: ");
+
+  this->RadiusEntry = vtkKWEntry::New();
+  this->RadiusEntry->SetParent(radiusFrame);
+  this->RadiusEntry->Create();
+  this->RadiusEntry->SetWidth(10);
+  this->RadiusEntry->SetRestrictValueToDouble();
+  this->RadiusEntry->SetValue ("Sphere 1");
+
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               radiusLabel->GetWidgetName() , this->RadiusEntry->GetWidgetName());
+
+  sphereMenuFrame->Delete();
+  sphereMenuLabel->Delete();
+  sphereNameFrame->Delete();
+  sphereNameLabel->Delete();
+  radiusFrame->Delete();
+  radiusLabel->Delete();
+  centerCoordinateFrame->Delete();
+  centerCoordinateLabel->Delete();
 
   conBrowsFrame->Delete();
-  frame->Delete();
+
+  // -----------------------------------------
+  // Sphere name entry
+  
+  /*
+  this->CneterXEntry       = NULL;
+  this->CenterYEntry       = NULL;
+  this->CenterZEntry       = NULL;
+  this->RadiusEntry        = NULL;
+  this->UpdateSphereButton = NULL;
+  */
+
+  
 }
 
 
