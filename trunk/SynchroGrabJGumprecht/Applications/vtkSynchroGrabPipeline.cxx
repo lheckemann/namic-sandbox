@@ -44,6 +44,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 #define NOMINMAX
+
+#define VOLUME_X_LENGTH 256
+#define VOLUME_Y_LENGTH 256
+#define VOLUME_Z_LENGTH 256
+
+#define VOLUME_X_SPACING 1.0
+#define VOLUME_Y_SPACING 1.0
+#define VOLUME_Z_SPACING 1.0
  
 //#include <windows.h>
 
@@ -104,22 +112,17 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
   this->VolumeReconstructionEnabled = false;
   this->UseTrackerTransforms = false;
 
-/*
-  this->calibReader = vtkUltrasoundCalibFileReader::New();
-  this->sonixGrabber = vtkSonixVideoSource::New();
-  this->tagger = vtkTaggedImageFilter::New();
-  this->tracker = vtkNDICertusTracker::New();
-*/
+// McGumbel
+//  this->calibReader = vtkUltrasoundCalibFileReader::New();
+//  this->sonixGrabber = vtkSonixVideoSource::New();
+//  this->tagger = vtkTaggedImageFilter::New();
+//  this->tracker = vtkNDICertusTracker::New();
+
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
-  
-  
-  
-  //// this is for Jan
-  /// I am doing this as temporary meausre;
-  image_buffer = new char [256*256*256];
-  
-  
+
+// McGumbel    
+//  Initialize ImageBuffer
   vtk_image_buffer = vtkImageData::New();
   vtk_image_buffer->SetDimensions(256,256,256);
   vtk_image_buffer->AllocateScalars();
@@ -130,13 +133,14 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
 //----------------------------------------------------------------------------
 vtkSynchroGrabPipeline::~vtkSynchroGrabPipeline()
 {
-/*
-  this->tracker->Delete();
-  this->sonixGrabber->ReleaseSystemResources();
-  this->sonixGrabber->Delete();
-  this->tagger->Delete();
-  this->calibReader->Delete();
-*/
+
+// McGumbel
+//  this->tracker->Delete();
+//  this->sonixGrabber->ReleaseSystemResources();
+//  this->sonixGrabber->Delete();
+//  this->tagger->Delete();
+//  this->calibReader->Delete();
+
 ////  this->SetVolumeOutputFile(NULL);
 ////  this->SetSonixAddr(NULL);
   this->SetOIGTLServer(NULL);
@@ -151,69 +155,63 @@ void vtkSynchroGrabPipeline::PrintSelf(ostream& os, vtkIndent indent)
   // TODO
 
 }
-/*
-bool vtkSynchroGrabPipeline::ConfigurePipeline()
-{
-  this->calibReader->SetFileName(this->CalibrationFileName);
-  this->calibReader->ReadCalibFile();
 
-  // set up the video source (ultrasound machine)
-  this->sonixGrabber->SetSonixIP(this->SonixAddr);
-  this->sonixGrabber->SetFrameRate(this->FrameRate);
-  this->sonixGrabber->SetImagingMode(BMode);
-  this->sonixGrabber->SetAcquisitionDataType(udtBPost);
-  this->sonixGrabber->SetFrameBufferSize(this->NbFrames);
+//bool vtkSynchroGrabPipeline::ConfigurePipeline()
+//{
+//  this->calibReader->SetFileName(this->CalibrationFileName);
+//  this->calibReader->ReadCalibFile();
+//
+//  // set up the video source (ultrasound machine)
+//  this->sonixGrabber->SetSonixIP(this->SonixAddr);
+//  this->sonixGrabber->SetFrameRate(this->FrameRate);
+//  this->sonixGrabber->SetImagingMode(BMode);
+//  this->sonixGrabber->SetAcquisitionDataType(udtBPost);
+//  this->sonixGrabber->SetFrameBufferSize(this->NbFrames);
+//
+//  double *imageOrigin = this->calibReader->GetImageOrigin();
+//  this->sonixGrabber->SetDataOrigin(imageOrigin);
+//  double *imageSpacing = this->calibReader->GetImageSpacing();
+//  this->sonixGrabber->SetDataSpacing(imageSpacing);
+//
+//  int *imSize = this->calibReader->GetImageSize();
+//  this->sonixGrabber->SetFrameSize(imSize[0], imSize[1], 1);
+//
+//  // Setting up the synchronization filter
+//  this->tagger->SetVideoSource(sonixGrabber);
+//
+//  // set up the tracker if necessary
+//  bool error;
+//  if( this->UseTrackerTransforms)
+//    error = this->StartTracker();
+//
+//  this->tagger->Initialize();
+//
+//  return error;
+//}
+//
+//bool vtkSynchroGrabPipeline::StartTracker()
+//{
+//  if(this->tracker->Probe() != 1)
+//    {
+//    cerr << "Tracking system not found" << endl;
+//    return false;
+//    }
+//
+//  // make sure the tracking buffer is large enough for the number of the image sequence requested
+//  vtkTrackerTool *tool = this->tracker->GetTool(0);
+//  tool->GetBuffer()->SetBufferSize( this->NbFrames * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR ); 
+//  this->tracker->StartTracking();
+//
+//  this->tagger->SetTrackerTool(tool);
+//  this->tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
+//}
 
-  double *imageOrigin = this->calibReader->GetImageOrigin();
-  this->sonixGrabber->SetDataOrigin(imageOrigin);
-  double *imageSpacing = this->calibReader->GetImageSpacing();
-  this->sonixGrabber->SetDataSpacing(imageSpacing);
-
-  int *imSize = this->calibReader->GetImageSize();
-  this->sonixGrabber->SetFrameSize(imSize[0], imSize[1], 1);
-
-  // Setting up the synchronization filter
-  this->tagger->SetVideoSource(sonixGrabber);
-
-  // set up the tracker if necessary
-  bool error;
-  if( this->UseTrackerTransforms)
-    error = this->StartTracker();
-
-  this->tagger->Initialize();
-
-  return error;
-}
-
-bool vtkSynchroGrabPipeline::StartTracker()
-{
-  if(this->tracker->Probe() != 1)
-    {
-    cerr << "Tracking system not found" << endl;
-    return false;
-    }
-
-  // make sure the tracking buffer is large enough for the number of the image sequence requested
-  vtkTrackerTool *tool = this->tracker->GetTool(0);
-  tool->GetBuffer()->SetBufferSize( this->NbFrames * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR ); 
-  this->tracker->StartTracking();
-
-  this->tagger->SetTrackerTool(tool);
-  this->tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
-}
-*/
 bool vtkSynchroGrabPipeline::ReconstructVolume()
 {
-//// "/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom"
-//  int volumeExtent[6] = {0, 419, 0, 319, 0, 0};
-//  int origin[3] = {0, 0, 0};
-//  double spacing [3] = {1, 1, 1};
-  
-//  "/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img/igtlTestImage1.raw"
-  int volumeExtent[6] = {0, 255, 0, 255, 0, 0};
+
+  int volumeExtent[6] = {0, VOLUME_X_LENGTH - 1, 0, VOLUME_Z_LENGTH - 1, 0, VOLUME_Z_LENGTH - 1};
   int origin[3] = {0, 0, 0};
   double spacing [3] = {1, 1, 5};
-  
   
 //  this->sonixGrabber->Record();  //start recording frame from the video
 
@@ -234,22 +232,11 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 //  panoramaReconstructor->SetInterpolationModeToLinear();
 //  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar();
 
- char *p_value = (char*)image_buffer;
+char * p_value = (char*)vtk_image_buffer->GetScalarPointer();
 
-for (int i = 0; i < 256; i++)
-for (int j = 0; j< 256;j++)
-for (int k = 0; k < 256; k++){
-
-*p_value = k;
-p_value ++;
-
-}
-
-p_value = (char*)vtk_image_buffer->GetScalarPointer();
-
-for (int i = 0; i < 256; i++)
-for (int j = 0; j< 256;j++)
-for (int k = 0; k < 256; k++){
+for (int i = 0 ; i < VOLUME_X_LENGTH ; i++)
+for (int j = 0 ; j < VOLUME_Y_LENGTH ; j++)
+for (int k = 0 ; k < VOLUME_Z_LENGTH ; k++){
 
 *p_value = k;
  p_value ++;
@@ -386,111 +373,96 @@ bool vtkSynchroGrabPipeline::CloseServerConnection()
   return true;
 }
 
-/*bool vtkSynchroGrabPipeline::SendImages()
-{
-  // Start the video source and configure an image frame
-  this->sonixGrabber->Record();
-  this->sonixGrabber->Update();
 
-  igtl::ImageMessage::Pointer imMessage = igtl::ImageMessage::New();
-  imMessage->SetDeviceName("SonixRP");
-  vtkImageData *image = sonixGrabber->GetOutput();
-  int *dim = image->GetDimensions();
-  double *spacing = image->GetSpacing();
-
-  cout << "Dimensions " << dim[0] << " " << dim[1] << " " << endl;
-  cout << "Spacing " << spacing[0] << " " << spacing[1] << " " << spacing[2] << endl;
-  cout << "Data dimension : " << image->GetDataDimension() << endl;
-  cout << "Number of scalar components : " << image->GetNumberOfScalarComponents() << endl;
-  cout << "Scalar Type : " << image->GetScalarType() << " ( " << image->GetScalarTypeAsString() << ")" << endl;
-
-  imMessage->SetDimensions(dim[0], dim[1], 1);
-  imMessage->SetSpacing(spacing[0], spacing[1], spacing[2]);
-  imMessage->SetScalarType(image->GetScalarType());
-  imMessage->AllocateScalars();
-
-  int svd[3];
-  int svoff[3];
-  imMessage->GetSubVolume(svd, svoff);
-
-  cout << "SubVolume dimensions : " << svd[0] << " " << svd[1] << " " << svd[2] << endl;
-  cout << "SubVolume offsets : " << svoff[0] << " " << svoff[1] << " " << svoff[2] << endl;
-
-  // Setup a transform matrix for the OpenIGTLink message
-  igtl::Matrix4x4 igtlMatrix = {{1.0, 0.0, 0.0, 0.0},{0.0, 1.0, 0.0, 0.0},{0.0, 0.0, 1.0, 0.0},{0.0, 0.0, 0.0, 1.0}};
-  vtkMatrix4x4 *vtkMat = vtkMatrix4x4::New();
-  imMessage->SetMatrix(igtlMatrix);
-
-  for( int i=0; i < this->NbFrames; i++)
-    {
-    Sleep(1/this->FrameRate*1000);
-    this->tagger->Update();
-
-    if(this->UseTrackerTransforms)
-      {
-      this->tagger->GetTransform()->GetMatrix(vtkMat);
-      for(int i=0;i<4;i++)
-        for(int j=0;j<4;j++)
-          igtlMatrix[i][j]=(*vtkMat)[i][j];
-      imMessage->SetMatrix(igtlMatrix);
-      }
-
-    unsigned char* imgPtr = (unsigned char*)this->tagger->GetOutput()->GetScalarPointer();
-    int imSize = imMessage->GetImageSize();
-
-    // copy the image raw data 
-    memcpy(imMessage->GetScalarPointer(), imgPtr, imSize);
-    imMessage->Pack();
-
-    // sending this frame to the server
-    std::cout << "PackSize:  " << imMessage->GetPackSize() << std::endl;
-    std::cout << "BodyMode:  " << imMessage->GetBodyType() << std::endl;
-
-    int ret = socket->Send(imMessage->GetPackPointer(), imMessage->GetPackSize());
-    if (ret == 0)
-      {
-      std::cerr << "Error : Connection Lost!\n";
-      return false;
-      }
-    else
-      cout << "image frame send successfully" << endl;
-    }
-  return true;
-}
-*/
+//McGumbel : This is the Original
+//bool vtkSynchroGrabPipeline::SendImages()
+//{
+//  // Start the video source and configure an image frame
+//  this->sonixGrabber->Record();
+//  this->sonixGrabber->Update();
+//
+//  igtl::ImageMessage::Pointer imMessage = igtl::ImageMessage::New();
+//  imMessage->SetDeviceName("SonixRP");
+//  vtkImageData *image = sonixGrabber->GetOutput();
+//  int *dim = image->GetDimensions();
+//  double *spacing = image->GetSpacing();
+//
+//  cout << "Dimensions " << dim[0] << " " << dim[1] << " " << endl;
+//  cout << "Spacing " << spacing[0] << " " << spacing[1] << " " << spacing[2] << endl;
+//  cout << "Data dimension : " << image->GetDataDimension() << endl;
+//  cout << "Number of scalar components : " << image->GetNumberOfScalarComponents() << endl;
+//  cout << "Scalar Type : " << image->GetScalarType() << " ( " << image->GetScalarTypeAsString() << ")" << endl;
+//
+//  imMessage->SetDimensions(dim[0], dim[1], 1);
+//  imMessage->SetSpacing(spacing[0], spacing[1], spacing[2]);
+//  imMessage->SetScalarType(image->GetScalarType());
+//  imMessage->AllocateScalars();
+//
+//  int svd[3];
+//  int svoff[3];
+//  imMessage->GetSubVolume(svd, svoff);
+//
+//  cout << "SubVolume dimensions : " << svd[0] << " " << svd[1] << " " << svd[2] << endl;
+//  cout << "SubVolume offsets : " << svoff[0] << " " << svoff[1] << " " << svoff[2] << endl;
+//
+//  // Setup a transform matrix for the OpenIGTLink message
+//  igtl::Matrix4x4 igtlMatrix = {{1.0, 0.0, 0.0, 0.0},{0.0, 1.0, 0.0, 0.0},{0.0, 0.0, 1.0, 0.0},{0.0, 0.0, 0.0, 1.0}};
+//  vtkMatrix4x4 *vtkMat = vtkMatrix4x4::New();
+//  imMessage->SetMatrix(igtlMatrix);
+//
+//  for( int i=0; i < this->NbFrames; i++)
+//    {
+//    Sleep(1/this->FrameRate*1000);
+//    this->tagger->Update();
+//
+//    if(this->UseTrackerTransforms)
+//      {
+//      this->tagger->GetTransform()->GetMatrix(vtkMat);
+//      for(int i=0;i<4;i++)
+//        for(int j=0;j<4;j++)
+//          igtlMatrix[i][j]=(*vtkMat)[i][j];
+//      imMessage->SetMatrix(igtlMatrix);
+//      }
+//
+//    unsigned char* imgPtr = (unsigned char*)this->tagger->GetOutput()->GetScalarPointer();
+//    int imSize = imMessage->GetImageSize();
+//
+//    // copy the image raw data 
+//    memcpy(imMessage->GetScalarPointer(), imgPtr, imSize);
+//    imMessage->Pack();
+//
+//    // sending this frame to the server
+//    std::cout << "PackSize:  " << imMessage->GetPackSize() << std::endl;
+//    std::cout << "BodyMode:  " << imMessage->GetBodyType() << std::endl;
+//
+//    int ret = socket->Send(imMessage->GetPackPointer(), imMessage->GetPackSize());
+//    if (ret == 0)
+//      {
+//      std::cerr << "Error : Connection Lost!\n";
+//      return false;
+//      }
+//    else
+//      cout << "image frame send successfully" << endl;
+//    }
+//  return true;
+//}
 
 bool vtkSynchroGrabPipeline::SendImages()
 {
-//  cout << "vtkSynchroGrabPipeline::SendImages: Start" << endl;
-  
-//  char*  filedir  = "/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img";
-  char*  filedir  = "";
 
   //------------------------------------------------------------
   // loop
-//  cout << "vtkSynchroGrabPipeline::SendImages: Start SendImages loop " << endl;
   for (int i = 0; i < 100; i ++)
     {
-//    cout << "vtkSynchroGrabPipeline::SendImages: SendImages loop i: "<< i << endl;  
-
+    
     //------------------------------------------------------------
-    // size parameters
-//    ------------------------------------------------------------
-//    "/projects/mrrobot/gumprecht/tutorials/na-mic/CUDA/heart/Heart256.raw"
-     int   size[]     = {256, 256, 256};       // image dimension
-    float spacing[]  = {1, 1, 1};     // spacing (mm/pixel)
-    int   svsize[]   = {256, 256, 256};       // sub-volume size
+    //Imager Setting
+    int   size[]     = {VOLUME_X_LENGTH,  VOLUME_Y_LENGTH,  VOLUME_Z_LENGTH};       // image dimension
+    float spacing[]  = {VOLUME_X_SPACING, VOLUME_Y_SPACING, VOLUME_Z_SPACING};     // spacing (mm/pixel)
+    int   svsize[]   = {VOLUME_X_LENGTH,  VOLUME_Y_LENGTH,  VOLUME_Z_LENGTH};       // sub-volume size
     int   svoffset[] = {0, 0, 0};           // sub-volume offset
     int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
-//    ------------------------------------------------------------
-
-//  Imager Setting
-//    int   size[]     = {256, 256, 1};       // image dimension
-//    float spacing[]  = {1.0, 1.0, 5.0};     // spacing (mm/pixel)
-//    int   svsize[]   = {256, 256, 1};       // sub-volume size
-//    int   svoffset[] = {0, 0, 0};           // sub-volume offset
-//    int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
-//    cout << "vtkSynchroGrabPipeline::SendImages: Size parameters set" << endl;  
+    cout << "vtkSynchroGrabPipeline::SendImages: Size parameters set" << endl;  
 
     //------------------------------------------------------------
     // Create a new IMAGE type message
@@ -501,19 +473,16 @@ bool vtkSynchroGrabPipeline::SendImages()
     imgMsg->SetDeviceName("ImagerClient");
     imgMsg->SetSubVolume(svsize, svoffset);
     imgMsg->AllocateScalars();
-//    cout << "vtkSynchroGrabPipeline::SendImages: New image type message created" << endl;  
 
     //------------------------------------------------------------
-    // Set image data (See GetTestImage() bellow for the details)
-    vtkGetTestImage(imgMsg, filedir, i % 5);
-//    cout << "vtkSynchroGrabPipeline::SendImages: Image data set" << endl;  
+    // Get Image data
+    vtkGetTestImage(imgMsg);
 
     //------------------------------------------------------------
     // Get randome orientation matrix and set it.
     igtl::Matrix4x4 matrix;
     vtkGetRandomTestMatrix(matrix);
     imgMsg->SetMatrix(matrix);
-//    cout << "vtkSynchroGrabPipeline::SendImages: Receives ramdom orientation matrix" << endl;
 
     //------------------------------------------------------------
     // Pack (serialize) and send
@@ -528,156 +497,32 @@ bool vtkSynchroGrabPipeline::SendImages()
     else
       {
       cout << "vtkSynchroGrabPipeline::SendImages: image frame send successfully" << endl;
-      }
-     
-//    cout << "vtkSynchroGrabPipeline::SendImages: Message sent" << endl;
+      }     
     
     int sleeptime = (int) (1000.0 / this->FrameRate); 
 
     igtl::Sleep(sleeptime); // wait    
-//    cout << "vtkSynchroGrabPipeline::SendImages: After Sleep" << endl;
 
     }
     
-    cout << "vtkSynchroGrabPipeline::SendImages: LoopDone" << endl;
-    
-    // Close connection
-    socket->CloseSocket();
-    return true;
+  return true;
 
-
-  //------------------------------------------------------------
-  // Establish Connection
-  /*igtl::ClientSocket::Pointer socket;
-  socket = igtl::ClientSocket::New();
-  int r = socket->ConnectToServer("localhost", 18944);
-
-  if (r != 0)
-    {
-    std::cerr << "Cannot connect to the server." << std::endl;
-    exit(0);
-    }
-
-  //------------------------------------------------------------
-  // loop
-  for (int i = 0; i < 100; i ++)
-    {
-
-    //------------------------------------------------------------
-    // size parameters
-    int   size[]     = {256, 256, 256};       // image dimension
-    float spacing[]  = {1, 1, 1};     // spacing (mm/pixel)
-    int   svsize[]   = {256, 256, 256};       // sub-volume size
-    int   svoffset[] = {0, 0, 0};           // sub-volume offset
-    int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
-    
-/*    int   size[]     = {256, 256, 124};       // image dimension
-    float spacing[]  = {-1.5, 0.9375, -0.9375};     // spacing (mm/pixel)
-    int   svsize[]   = {256, 256, 1};       // sub-volume size
-    int   svoffset[] = {0, 0, 0};           // sub-volume offset
-    int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type*/
-/*
-    //------------------------------------------------------------
-    // Create a new IMAGE type message
-    igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
-    imgMsg->SetDimensions(size);
-    imgMsg->SetSpacing(spacing);
-    imgMsg->SetScalarType(scalarType);
-    imgMsg->SetDeviceName("ImagerClient");
-    imgMsg->SetSubVolume(svsize, svoffset);
-    imgMsg->AllocateScalars();
-
-    //------------------------------------------------------------
-    // Set image data (See GetTestImage() bellow for the details)
-    vtkGetTestImage(imgMsg, filedir, i % 5);
-
-    //------------------------------------------------------------
-    // Get randome orientation matrix and set it.
-    igtl::Matrix4x4 matrix;
-    vtkGetRandomTestMatrix(matrix);
-    imgMsg->SetMatrix(matrix);
-
-    //------------------------------------------------------------
-    // Pack (serialize) and send
-    imgMsg->Pack();
-    socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
-
-    int  interval = (int) (10000.0);
-
-    igtl::Sleep(interval); // wait
-
-    }
-
-  //------------------------------------------------------------
-  // Close connection
-  socket->CloseSocket();
-*/
 }
 
 
 //------------------------------------------------------------
-// Function to read test image data
-int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg, const char* dir, int i)
+// Function to get image data
+int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg)
 {
-
-  //------------------------------------------------------------
-  // Check if image index is in the range
-  if (i < 0 && i >= 5) 
-    {
-    std::cerr << "Image index is invalid." << std::endl;
-    return 0;
-    }
-
-  //------------------------------------------------------------
-  // Generate path to the raw image file
-  char filename[128];
-  sprintf(filename, "%s/igtlTestImage%d.raw", dir, i+1);
-//  std::cerr << "Reading " << filename << "...";
-  std::cerr << "Reading Heart256.raw  ...";
-
-  //------------------------------------------------------------
-  // Load raw data from the file
-//  FILE *fp = fopen(filename, "rb");
-  FILE *fp = fopen("/projects/mrrobot/gumprecht/tutorials/na-mic/CUDA/heart/Heart256.raw", "rb");
-
-  if (fp == NULL)
-    { char *p_value = (char*)image_buffer;
-
-for (int i = 0; i < 256; i++)
-for (int j = 0; j< 256;j++)
-for (int k = 0; k < 256; k++){
-
-*p_value = i;
- p_value ++;
-
-}
-    std::cerr << "File opeining error: " << filename << std::endl;
-    return 0;
-    }
-  int fsize = msg->GetImageSize();
-  
-  
-  size_t b = fread(msg->GetScalarPointer(), 1, fsize, fp);
-
-/////////////////////
 
 char * p_msg = (char*) msg->GetScalarPointer();
 char * p_ibuffer = (char*) vtk_image_buffer->GetScalarPointer();
-for(int i=0;i<256*256*256;i++){
+
+for(int i=0 ; i < VOLUME_X_LENGTH * VOLUME_Y_LENGTH * VOLUME_Z_LENGTH ; i++ )
+{
   *p_msg = (char) * p_ibuffer;
   p_ibuffer++; p_msg++;
-
 }
-
-
-
-
-
-//////////////
-
-fclose(fp);
-
-  std::cerr << "done." << std::endl;
 
   return 1;
 }
