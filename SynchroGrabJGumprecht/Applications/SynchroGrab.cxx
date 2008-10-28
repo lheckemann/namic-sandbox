@@ -152,110 +152,51 @@ bool parseCommandLineArguments(int argc, char **argv, vtkSynchroGrabPipeline *pi
         }
     return calibrationFileSpecified;
 }
-
+/******************************************************************************
+ * 
+ * MAIN
+ * 
+ ******************************************************************************/
 int main(int argc, char **argv)
 {
 
-//  cout << "SynchroGrab started " << endl;
-
-//  vtkMINCImageReader* pDICOMReader = vtkMINCImageReader::New();
-//
-//  pDICOMReader->SetFileName("/projects/mrrobot/gumprecht/images/mnc/volume.mnc");
-//  pDICOMReader->Update();
-  
-//  vtkImageReader2 * imageReader = vtkImageReader2::New();
-//  imageReader->SetFileName("/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom");
-//  imageReader->Update();
-//  
-//  vtkDICOMImageReader * imageReader = vtkDICOMImageReader::New();
-////  imageReader->SetFileName("/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img/igtlTestImage1.raw");
-//  imageReader->SetFileName("/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom");
-//  imageReader->Update();
-//  
-//  vtkImageData* imageData = vtkImageData::New();
-//  imageData->DeepCopy(imageReader->GetOutput());
-////  imageData->DeepCopy(pDICOMReader->GetOutput());
-////  imageData->SetOrigin(-160, -120, -120);
-//  imageData->AllocateScalars();
-//  
-////  Get Origin
-//  double origin[3];
-//  imageData->GetOrigin(origin);
-//  cout << "Origin: x/y/z: "<< origin[0] << "/" << origin[1] << "/" << origin[2]<<endl;
-//  cout << endl;
-//
-////  Get Spacing
-//    double spacing[3];
-//    imageData->GetSpacing(spacing[0], spacing[1], spacing[2]);
-//    cout << "Spacing: x/y/z: " << spacing[0] << "/" << spacing[1] <<"/" <<  spacing[2] <<endl;
-//    cout << endl;
-//    
-////  Get Extent
-//  int extent[6];
-//  imageData->GetExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
-//  cout << "Extent before set: x1/x2 y1/y2 z1/z2: " << extent[0] << "/" << extent[1] << " " << extent[2] << "/" << extent[3] << " " << extent[4] << "/"<< extent[5] << endl;
-//  imageData->SetExtent(0, 419, 0, 299, 0, 2);
-//  imageData->GetExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
-//  cout << "Extent after set: x1/x2 y1/y2 z1/z2: " << extent[0] << "/" << extent[1] << " " << extent[2] << "/" << extent[3] << " " << extent[4] << "/"<< extent[5] << endl;
-//  cout << endl;
-//  
-////  Get Dimensions
-//  int dims[3];
-//  imageData->GetDimensions(dims);
-//  cout << "Dimensions: x/y/z " << dims[0]<< "/" <<dims[1] << "/" << dims[2] << endl;
-//  cout << endl;
-//  cout << endl;
-//  
-//  exit(0);
-
-
     vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
-////    vtkSynchroGrabPipeline *pipeline = new vtkSynchroGrabPipeline;
     
-//  cout << "Pipline created " << endl;
+////    bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
+////    if(!successParsingCommandLine)
+////        return -1;
 
-/*
-    bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
-    if(!successParsingCommandLine)
-        return -1;
-*/
 
 //     redirect vtk errors to a file
     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
-
-
- //   if(pipeline->GetVolumeReconstructionEnabled())
-  //      {
- //       if(!pipeline->ReconstructVolume())
- //           return -1;
-  //      }
- 
- 
- // noby enabled it; 
- pipeline->ReconstructVolume();
- 
- 
-        
-        
-//  cout << "VTK Error File handled " << endl;
-
+    
 ////    pipeline->ConfigurePipeline();
 
-//    if(pipeline->GetTransfertImages())
-//        {
+pipeline->SetVolumeReconstructionEnabled(true);//Only needed until ConfigurePipeline works
+
+// Volume Reconstruction
+    if(pipeline->GetVolumeReconstructionEnabled())
+        {
+        if(!pipeline->ReconstructVolume())
+            return -1;
+        }
+
+pipeline->SetTransfertImages(true);//Only needed until Configure Pipeline works
+
+// Transfer Images
+    if(pipeline->GetTransfertImages())
+        {
         if(!pipeline->ConnectToServer())
             return -1;
         if(!pipeline->SendImages())
             return -1;
         cout << "Images successfull send " << endl;
-//        
+        
         if(!pipeline->CloseServerConnection())
             return -1;
-////        }
+        }
 
-
-
-//    pipeline->Delete();
+    pipeline->Delete();
 }
