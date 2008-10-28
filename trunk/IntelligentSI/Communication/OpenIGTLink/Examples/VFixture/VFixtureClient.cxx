@@ -28,14 +28,16 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------
   // Parse Arguments
 
-  if (argc != 4) // check number of arguments
+  if ((argc - 5 - 4) % 4 != 0) // check number of arguments
     {
     // If not correct, print usage
-    std::cerr << "Usage: " << argv[0] << " <hostname> <port> <fps>"    << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <hostname> <port> <fps> <h> [<x> <y> <z> <r>] ..." << std::endl;
     std::cerr << "    <hostname> : IP or host name"                    << std::endl;
     std::cerr << "    <port>     : Port # (18944 in Slicer default)"   << std::endl;
     std::cerr << "    <fps>      : Frequency (fps) to send coordinate" << std::endl;
-
+    std::cerr << "    <h>        : Hardness"                           << std::endl;
+    std::cerr << "    <x>,<y>,<z>: Center position"                    << std::endl;
+    std::cerr << "    <r>        : Radius"                             << std::endl;
     exit(0);
     }
 
@@ -43,6 +45,21 @@ int main(int argc, char* argv[])
   int    port     = atoi(argv[2]);
   double fps      = atof(argv[3]);
   int    interval = (int) (1000.0 / fps);
+  float  hardness = atof(argv[4]);
+
+  int    ndata    = (argc - 5) / 4;
+  float* centerx  = new float[ndata];
+  float* centery  = new float[ndata];
+  float* centerz  = new float[ndata];
+  float* radius   = new float[ndata];
+
+  for (int i = 0; i < ndata; i ++)
+    {
+    centerx[i] = atof(argv[5+i*4]);
+    centery[i] = atof(argv[5+i*4+1]);
+    centerz[i] = atof(argv[5+i*4+2]);
+    radius[i]  = atof(argv[5+i*4+3]);
+    }
 
   //------------------------------------------------------------
   // Establish Connection
@@ -58,15 +75,19 @@ int main(int argc, char* argv[])
 
   //------------------------------------------------------------
   // loop
-  for (int i = 0; i < 100; i ++)
+  for (int i = 0; i < 10; i ++)
     {
     //------------------------------------------------------------
     // Create a new IMAGE type message
     igtl::VFixtureMessage::Pointer vfMsg = igtl::VFixtureMessage::New();
-    vfMsg->SetNumberOfSpheres(1);
-    vfMsg->SetHardness(2.0);
-    vfMsg->SetCenter(0, 3.0, 4.0, 5.0);
-    vfMsg->SetRadius(0, 6.0);
+    vfMsg->SetNumberOfSpheres(ndata);
+    vfMsg->SetHardness(hardness);
+    for (int i = 0; i < ndata; i ++)
+      {
+      vfMsg->SetCenter(i, centerx[i], centery[i], centerz[i]);
+      vfMsg->SetRadius(i, radius[i]);
+      }
+
     vfMsg->SetDeviceName("VFClient");
     vfMsg->AllocateScalars();
 
