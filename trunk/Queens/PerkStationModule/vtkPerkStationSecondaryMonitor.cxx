@@ -240,7 +240,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
    xyToIJK->SetElement(i, 3, -(this->ScreenSize[i]-this->ImageSize[i])/ 2.); //translation assuming both image & display have origins at bottom left respectively
    }
  
-  xyToIJK->SetElement(2,3,0.);
+  xyToIJK->SetElement(2,3,0.0);
   this->XYToIJK->DeepCopy(xyToIJK);
 
   // to have consistent display i.e. same display as in SLICER's slice viewer, and own render window in secondary monitor

@@ -1443,7 +1443,7 @@ void vtkPerkStationCalibrateStep::ShowTranslateComponents()
         this->TranslateFrame->SetParent(parent);
         this->TranslateFrame->Create();
         this->TranslateFrame->SetLabelText("Translate");
-        this->TranslateFrame->SetBalloonHelpString("Click on the image fiducial first, followed by click on the corresponding physical fiducial you see through mirror, then enter the required translation here");
+        this->TranslateFrame->SetBalloonHelpString("Use arrow keys to translate and align image with phatom/patient");
         }
       this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                     this->TranslateFrame->GetWidgetName());
@@ -1455,9 +1455,9 @@ void vtkPerkStationCalibrateStep::ShowTranslateComponents()
         {
         this->TransMessage->SetParent(this->TranslateFrame->GetFrame());
         this->TransMessage->Create();
-        this->TransMessage->SetText("Use arrow keys on the keyboard to move/translate image so that image fiducials align with physical fiducials as seen through mirror. Hold shift key for finer movement");      
+        this->TransMessage->SetText("First make sure that the secondary monitor image window has 'focus'. You can click in that window to get focus. Use arrow keys on the keyboard to move/translate image. Use corresponding numeric keypad with NumLock 'On' for finer movement");      
         this->TransMessage->SetBackgroundColor(0.7, 0.7, 0.95);
-        this->TransMessage->SetHeight(5);
+        this->TransMessage->SetHeight(6);
         this->TransMessage->SetWrapToWord();
         this->TransMessage->ReadOnlyOn();
         this->TransMessage->SetBorderWidth(2);
@@ -1704,7 +1704,7 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
         this->RotateFrame->SetParent(parent);
         this->RotateFrame->Create();
         this->RotateFrame->SetLabelText("Rotate");
-        this->RotateFrame->SetBalloonHelpString("Click on the image fiducial first, followed by click on the corresponding physical fiducial you see through mirror, then enter the required rotation angle here");
+        this->RotateFrame->SetBalloonHelpString("Perform fine rotational alignment of image and phantom/patient");
         }
       this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                     this->RotateFrame->GetWidgetName());
@@ -1773,10 +1773,10 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
         {
         this->RotMessage->SetParent(this->RotateFrame->GetFrame());
         this->RotMessage->Create();
-        this->RotMessage->SetText("Use Ctrl + left/right arrow keys on the keyboard to rotate image so that image fiducials align with physical fiducials as seen through mirror. Hold shift key for finer movement");      
+        this->RotMessage->SetText("First make sure that the secondary monitor image window has 'focus'. You can click in that window to get focus. Use PageUp key for clockwise rotation, Home key for anti-clockwise. Use corresponding numeric keys 9 and 7 for finer rotation. Note that Center of Rotation must be specified prior to performing rotation.");      
         this->RotMessage->SetBackgroundColor(0.7, 0.7, 0.95);
         this->RotMessage->SetBorderWidth(2);
-        this->RotMessage->SetHeight(5);
+        this->RotMessage->SetHeight(6);
         this->RotMessage->SetWrapToWord();
         this->RotMessage->ReadOnlyOn();
         this->RotMessage->SetReliefToGroove();
@@ -1978,7 +1978,8 @@ void vtkPerkStationCalibrateStep::PopulateControls()
       
       double imgSpacing[3];
       inVolume->GetSpacing(imgSpacing);
-      
+
+           
       // set the actual scaling (image/mon) in mrml node
       mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]));
 
@@ -2513,16 +2514,17 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
     }
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
-  //vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
   vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
   
   // listen to click only when they come from secondary monitor's window
-  if ((s == istyleSecondary) && (event == vtkCommand::LeftButtonPressEvent) )
+  if (( (s == istyleSecondary) || (s == istyle0))&& (event == vtkCommand::LeftButtonPressEvent) )
     {
-    // hear clicks only if the current sub state is Translate or Rotate
-      //if ( (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))  && !( (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false)))
-      if (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
+    // hear clicks only if the current sub state is Translate or Rotate with one exception // to be able to specify COR from slicer's laptop window, only in clinical mode
+      if ( (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))  && !( (s == istyle0) && (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false)))
+      //if (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
         return;
+
 
     if (this->ProcessingCallback)
     {
@@ -2539,14 +2541,15 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
     // Note: at the moment, in calibrate step, listening only to clicks done in secondary monitor
     // because looking through secondary monitor mirror only can do calibration
 
-    /*if (s == istyle0)
+    if ( (s == istyle0) && (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false))
       {
       // coming from main gui viewer of SLICER
-      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
+      // to be able to specify COR from slicer's laptop window, only in clinical mode
+      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
       rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
       matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();    
       }
-    else if ( s == istyleSecondary)*/
+    else if ( s == istyleSecondary)
       {
       // coming from click on secondary monitor
       rwi = this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor();
@@ -3575,435 +3578,283 @@ void vtkPerkStationCalibrateStep::ResetControls()
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ClearLoadResetControls()
 {
-    switch (this->GetGUI()->GetMode())      
+   
+    if (this->LoadResetFrame)
     {
-
-    case vtkPerkStationModuleGUI::ModeId::Training:
-      // now the mode is Training, so clear the controls created for clinical mode
-      {
-      if (this->LoadResetFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->LoadResetFrame->GetWidgetName());
-        }
-      if (this->LoadCalibrationFileButton)
-        {
-        this->Script("pack forget %s", 
-                        this->LoadCalibrationFileButton->GetWidgetName());
-        }
-      if (this->ResetCalibrationButton)
-        {
-        this->Script("pack forget %s", 
-                        this->ResetCalibrationButton->GetWidgetName());
-        }
-      }
-      break;
-
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
-      // now the mode is clinical, so clear the controls created for training mode 
-      {
-      if (this->LoadResetFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->LoadResetFrame->GetWidgetName());
-        }
-      if (this->LoadCalibrationFileButton)
-        {
-        this->Script("pack forget %s", 
-                        this->LoadCalibrationFileButton->GetWidgetName());
-        }
-      if (this->ResetCalibrationButton)
-        {
-        this->Script("pack forget %s", 
-                        this->ResetCalibrationButton->GetWidgetName());
-        }
-      
-      }
-      break;
+    this->Script("pack forget %s", 
+                    this->LoadResetFrame->GetWidgetName());
     }
-     
+    if (this->LoadCalibrationFileButton)
+    {
+    this->Script("pack forget %s", 
+                    this->LoadCalibrationFileButton->GetWidgetName());
+    }
+    if (this->ResetCalibrationButton)
+    {
+    this->Script("pack forget %s", 
+                    this->ResetCalibrationButton->GetWidgetName());
+    }
+    
 }
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ClearSaveControls()
 {
-    switch (this->GetGUI()->GetMode())      
+   
+    if (this->SaveFrame)
     {
-
-    case vtkPerkStationModuleGUI::ModeId::Training:
-      // now the mode is Training, so clear the controls created for clinical mode
-      {
-      if (this->SaveFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->SaveFrame->GetWidgetName());
-        }
-      if (this->SaveCalibrationFileButton)
-        {
-        this->Script("pack forget %s", 
-                        this->SaveCalibrationFileButton->GetWidgetName());
-        }
-    
-      }
-      break;
-
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
-      // now the mode is clinical, so clear the controls created for training mode 
-      {
-      if (this->SaveFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->SaveFrame->GetWidgetName());
-        }
-      if (this->SaveCalibrationFileButton)
-        {
-        this->Script("pack forget %s", 
-                        this->SaveCalibrationFileButton->GetWidgetName());
-        }
-    
-      }
-      break;
+    this->Script("pack forget %s", 
+                    this->SaveFrame->GetWidgetName());
     }
+    if (this->SaveCalibrationFileButton)
+    {
+    this->Script("pack forget %s", 
+                    this->SaveCalibrationFileButton->GetWidgetName());
+    }
+
+   
 }
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ClearFlipComponents()
 {
-  // there is nothing to clear as the controls are common for both training and clinical mode
-  switch (this->GetGUI()->GetMode())      
+  
+    if (this->FlipFrame)
     {
-
-    case vtkPerkStationModuleGUI::ModeId::Training:
-      // now the mode is Training, so clear the controls created for clinical mode
-      if (this->FlipFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->FlipFrame->GetWidgetName());
-        }
-      if (this->VerticalFlipCheckButton)
-        {
-        this->Script("pack forget %s", 
-                        this->VerticalFlipCheckButton->GetWidgetName());
-        }
-      if (this->HorizontalFlipCheckButton)
-        {
-        this->Script("pack forget %s", 
-                        this->HorizontalFlipCheckButton->GetWidgetName());
-        }
-      break;
-
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
-      // now the mode is clinical, so clear the controls created for training mode
-      if (this->FlipFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->FlipFrame->GetWidgetName());
-        }
-      if (this->VerticalFlipCheckButton)
-        {
-        this->Script("pack forget %s", 
-                        this->VerticalFlipCheckButton->GetWidgetName());
-        }
-      if (this->HorizontalFlipCheckButton)
-        {
-        this->Script("pack forget %s", 
-                        this->HorizontalFlipCheckButton->GetWidgetName());
-        }
-
-      break;
+    this->Script("pack forget %s", 
+                    this->FlipFrame->GetWidgetName());
     }
+    if (this->VerticalFlipCheckButton)
+    {
+    this->Script("pack forget %s", 
+                    this->VerticalFlipCheckButton->GetWidgetName());
+    }
+    if (this->HorizontalFlipCheckButton)
+    {
+    this->Script("pack forget %s", 
+                    this->HorizontalFlipCheckButton->GetWidgetName());
+    }
+
 }
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ClearScaleComponents()
 {
-  switch (this->GetGUI()->GetMode())      
+    if (this->ScaleFrame)
     {
-
-    case vtkPerkStationModuleGUI::ModeId::Training:
-      // now the mode is Training, so clear the controls created for clinical mode
-      {
-      if (this->ScaleFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->ScaleFrame->GetWidgetName());
-        }
-      if (this->MonPhySizeFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->MonPhySizeFrame->GetWidgetName());
-        }
-      if (this->MonPhySizeLabel)
-        {
-        this->Script("pack forget %s", 
-                        this->MonPhySizeLabel->GetWidgetName());
-        }
-      if (this->MonPhySize) 
-        {
-        this->Script("pack forget %s", 
-                        this->MonPhySize->GetWidgetName());
-        }
-      if (this->MonPixResFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->MonPixResFrame->GetWidgetName());
-        }
-      if (this->MonPixResLabel)
-        {
-        this->Script("pack forget %s", 
-                        this->MonPixResLabel->GetWidgetName());
-        }
-      if (this->MonPixRes)
-        {
-        this->Script("pack forget %s", 
-                        this->MonPixRes->GetWidgetName());
-        }
-      if (this->UpdateAutoScale)
-        {
-        this->Script("pack forget %s", 
-                        this->UpdateAutoScale->GetWidgetName());
-        }
-      }
-      break;
-
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
-      // now the mode is clinical, so clear the controls created for training mode 
-      {
-      if (this->ScaleFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->ScaleFrame->GetWidgetName());
-        }
-      if (this->ImgPixSizeFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->ImgPixSizeFrame->GetWidgetName());
-        }
-
-      if (this->ImgPixSizeLabel)
-        {
-        this->Script("pack forget %s", 
-                    this->ImgPixSizeLabel->GetWidgetName());
-        }
-
-      if (this->ImgSpacing)
-        {
-        this->Script("pack forget %s", 
-                    this->ImgSpacing->GetWidgetName());
-        }
-
-      if (this->MonPixSizeFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->MonPixSizeFrame->GetWidgetName());
-        }
- 
-      if (this->MonPixSizeLabel)
-        {
-        this->Script("pack forget %s", 
-                    this->MonPixSizeLabel->GetWidgetName());
-        }
-
-      if (this->MonSpacing)
-        {
-        this->Script("pack forget %s", 
-                    this->MonSpacing->GetWidgetName());
-        }
-      if (this->ImgScaleFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->ImgScaleFrame->GetWidgetName());
-        }
-
-      if (this->ImgScaleLabel)
-        {
-        this->Script("pack forget %s", 
-                    this->ImgScaleLabel->GetWidgetName());
-        }
-
-      if (this->ImgScaling)
-        {
-        this->Script("pack forget %s", 
-                    this->ImgScaling->GetWidgetName());
-        }
-      }
-      break;
+    this->Script("pack forget %s", 
+                    this->ScaleFrame->GetWidgetName());
     }
+    if (this->MonPhySizeFrame)
+    {
+    this->Script("pack forget %s", 
+                    this->MonPhySizeFrame->GetWidgetName());
+    }
+    if (this->MonPhySizeLabel)
+    {
+    this->Script("pack forget %s", 
+                    this->MonPhySizeLabel->GetWidgetName());
+    }
+    if (this->MonPhySize) 
+    {
+    this->Script("pack forget %s", 
+                    this->MonPhySize->GetWidgetName());
+    }
+    if (this->MonPixResFrame)
+    {
+    this->Script("pack forget %s", 
+                    this->MonPixResFrame->GetWidgetName());
+    }
+    if (this->MonPixResLabel)
+    {
+    this->Script("pack forget %s", 
+                    this->MonPixResLabel->GetWidgetName());
+    }
+    if (this->MonPixRes)
+    {
+    this->Script("pack forget %s", 
+                    this->MonPixRes->GetWidgetName());
+    }
+    if (this->UpdateAutoScale)
+    {
+    this->Script("pack forget %s", 
+                    this->UpdateAutoScale->GetWidgetName());
+    }
+    if (this->ImgPixSizeFrame)
+    {
+    this->Script("pack forget %s", 
+                this->ImgPixSizeFrame->GetWidgetName());
+    }
+
+    if (this->ImgPixSizeLabel)
+    {
+    this->Script("pack forget %s", 
+                this->ImgPixSizeLabel->GetWidgetName());
+    }
+
+    if (this->ImgSpacing)
+    {
+    this->Script("pack forget %s", 
+                this->ImgSpacing->GetWidgetName());
+    }
+
+    if (this->MonPixSizeFrame)
+    {
+    this->Script("pack forget %s", 
+                this->MonPixSizeFrame->GetWidgetName());
+    } 
+    if (this->MonPixSizeLabel)
+    {
+    this->Script("pack forget %s", 
+                this->MonPixSizeLabel->GetWidgetName());
+    }
+
+    if (this->MonSpacing)
+    {
+    this->Script("pack forget %s", 
+                this->MonSpacing->GetWidgetName());
+    }
+    if (this->ImgScaleFrame)
+    {
+    this->Script("pack forget %s", 
+                this->ImgScaleFrame->GetWidgetName());
+    }
+
+    if (this->ImgScaleLabel)
+    {
+    this->Script("pack forget %s", 
+                this->ImgScaleLabel->GetWidgetName());
+    }
+
+    if (this->ImgScaling)
+    {
+    this->Script("pack forget %s", 
+                this->ImgScaling->GetWidgetName());
+    }
+
 }
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ClearTranslateComponents()
 {
-  switch (this->GetGUI()->GetMode())      
+    if (this->TranslateFrame)
     {
-
-    case vtkPerkStationModuleGUI::ModeId::Training:
-      // now the mode is Training, so clear the controls created for clinical mode
-      {
-      if (this->TranslateFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->TranslateFrame->GetWidgetName());
-        }
-      if (this->TransMessage)
-        {
-        this->Script("pack forget %s", 
-                    this->TransMessage->GetWidgetName());
-        }
-      }
-      break;
-
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
-      // now the mode is clinical, so clear the controls created for training mode 
-      {
-      if (this->TranslateFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->TranslateFrame->GetWidgetName());
-        }
-      if (this->TransImgFidFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->TransImgFidFrame->GetWidgetName());
-        }
-      if (this->TransImgFidLabel)
-        {
-        this->Script( "pack forget %s", 
-                    this->TransImgFidLabel->GetWidgetName());
-        }
-      if (this->TransImgFid)
-        {
-        this->Script("pack forget %s", 
-                    this->TransImgFid->GetWidgetName());
-        }
-      if (this->TransPhyFidFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->TransPhyFidFrame->GetWidgetName());
-        }
-      if (this->TransPhyFidLabel)
-        {
-        this->Script( "pack forget %s", 
-                    this->TransPhyFidLabel->GetWidgetName());
-        }
-      if (this->TransPhyFid)
-        {
-        this->Script("pack forget %s", 
-                    this->TransPhyFid->GetWidgetName());
-        }
-      if (this->TransEntryFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->TransEntryFrame->GetWidgetName());
-        }
-      if (this->TransEntryLabel)
-        {
-        this->Script( "pack forget %s", 
-                    this->TransEntryLabel->GetWidgetName());
-        }
-      if (this->Translation)
-        {
-        this->Script("pack forget %s", 
-                    this->Translation->GetWidgetName());
-        }
-      }
-      break;
+    this->Script("pack forget %s", 
+                this->TranslateFrame->GetWidgetName());
     }
+    if (this->TransMessage)
+    {
+    this->Script("pack forget %s", 
+                this->TransMessage->GetWidgetName());
+    }
+    if (this->TransImgFidFrame)
+    {
+    this->Script("pack forget %s", 
+                this->TransImgFidFrame->GetWidgetName());
+    }
+    if (this->TransImgFidLabel)
+    {
+    this->Script( "pack forget %s", 
+                this->TransImgFidLabel->GetWidgetName());
+    }
+    if (this->TransImgFid)
+    {
+    this->Script("pack forget %s", 
+                this->TransImgFid->GetWidgetName());
+    }
+    if (this->TransPhyFidFrame)
+    {
+    this->Script("pack forget %s", 
+                this->TransPhyFidFrame->GetWidgetName());
+    }
+    if (this->TransPhyFidLabel)
+    {
+    this->Script( "pack forget %s", 
+                this->TransPhyFidLabel->GetWidgetName());
+    }
+    if (this->TransPhyFid)
+    {
+    this->Script("pack forget %s", 
+                this->TransPhyFid->GetWidgetName());
+    }
+    if (this->TransEntryFrame)
+    {
+    this->Script("pack forget %s", 
+                this->TransEntryFrame->GetWidgetName());
+    }
+    if (this->TransEntryLabel)
+    {
+    this->Script( "pack forget %s", 
+                this->TransEntryLabel->GetWidgetName());
+    }
+    if (this->Translation)
+    {
+    this->Script("pack forget %s", 
+                this->Translation->GetWidgetName());
+    }
+
 }
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ClearRotateComponents()
 {
-  switch (this->GetGUI()->GetMode())      
+  
+    if (this->RotateFrame)
     {
-
-    case vtkPerkStationModuleGUI::ModeId::Training:
-      // now the mode is Training, so clear the controls created for clinical mode
-      {
-      if (this->RotateFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->RotateFrame->GetWidgetName());
-        }
-      if (this->CORFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->CORFrame->GetWidgetName());
-        }
-      if (this->CORLabel)
-        {
-        this->Script("pack forget %s", 
-                    this->CORLabel->GetWidgetName());
-        }
-      if (this->COR)
-        {
-        this->Script("pack forget %s", 
-                    this->COR->GetWidgetName());
-        }
-      if (this->RotMessage)
-        {
-        this->Script("pack forget %s", 
-                    this->RotMessage->GetWidgetName());
-        }
-      }
-      break;
-
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
-      // now the mode is clinical, so clear the controls created for training mode 
-      {
-      if (this->RotateFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->RotateFrame->GetWidgetName());
-        }
-      if (this->CORFrame)
-        {
-        this->Script("pack forget %s", 
-                    this->CORFrame->GetWidgetName());
-        }
-      if (this->CORLabel)
-        {
-        this->Script("pack forget %s", 
-                    this->CORLabel->GetWidgetName());
-        }
-      if (this->COR)
-        {
-        this->Script("pack forget %s", 
-                    this->COR->GetWidgetName());
-        }
-      if (this->RotImgFidFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->RotImgFidFrame->GetWidgetName()); 
-        }
-      if (this->RotImgFidLabel)
-        {
-        this->Script( "pack forget %s", 
-                        this->RotImgFidLabel->GetWidgetName());
-        }
-      if (this->RotImgFid)
-        {
-        this->Script("pack forget %s", 
-                        this->RotImgFid->GetWidgetName());
-        }
-      if (this->RotPhyFidFrame)
-        {
-        this->Script("pack forget %s", 
-                        this->RotPhyFidFrame->GetWidgetName());
-        }
-      if (this->RotPhyFidLabel)
-        {
-        this->Script( "pack forget %s", 
-                        this->RotPhyFidLabel->GetWidgetName());
-        }
-      if (this->RotPhyFid)
-        {
-        this->Script("pack forget %s", 
-                        this->RotPhyFid->GetWidgetName());
-        }
-      if (this->RotationAngle)
-        {
-        this->Script("pack forget %s", 
-                        this->RotationAngle->GetWidgetName());
-        }
-      }
-      break;
+    this->Script("pack forget %s", 
+                this->RotateFrame->GetWidgetName());
     }
+    if (this->CORFrame)
+    {
+    this->Script("pack forget %s", 
+                this->CORFrame->GetWidgetName());
+    }
+    if (this->CORLabel)
+    {
+    this->Script("pack forget %s", 
+                this->CORLabel->GetWidgetName());
+    }
+    if (this->COR)
+    {
+    this->Script("pack forget %s", 
+                this->COR->GetWidgetName());
+    }
+    if (this->RotMessage)
+    {
+    this->Script("pack forget %s", 
+                this->RotMessage->GetWidgetName());
+    }
+    if (this->RotImgFidFrame)
+    {
+    this->Script("pack forget %s", 
+                    this->RotImgFidFrame->GetWidgetName()); 
+    }
+    if (this->RotImgFidLabel)
+    {
+    this->Script( "pack forget %s", 
+                    this->RotImgFidLabel->GetWidgetName());
+    }
+    if (this->RotImgFid)
+    {
+    this->Script("pack forget %s", 
+                    this->RotImgFid->GetWidgetName());
+    }
+    if (this->RotPhyFidFrame)
+    {
+    this->Script("pack forget %s", 
+                    this->RotPhyFidFrame->GetWidgetName());
+    }
+    if (this->RotPhyFidLabel)
+    {
+    this->Script( "pack forget %s", 
+                    this->RotPhyFidLabel->GetWidgetName());
+    }
+    if (this->RotPhyFid)
+    {
+    this->Script("pack forget %s", 
+                    this->RotPhyFid->GetWidgetName());
+    }
+    if (this->RotationAngle)
+    {
+    this->Script("pack forget %s", 
+                    this->RotationAngle->GetWidgetName());
+    }
+
 }
 
 //----------------------------------------------------------------------------

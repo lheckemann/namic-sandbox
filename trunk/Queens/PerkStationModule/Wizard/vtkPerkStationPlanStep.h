@@ -56,6 +56,8 @@ public:
 
   void SavePlanning(ostream& of);
 
+  void PopulateControlsOnLoadPlanning();
+
 protected:
   vtkPerkStationPlanStep();
   ~vtkPerkStationPlanStep();
