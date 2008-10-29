@@ -82,10 +82,10 @@ int main(int argc, char* argv[])
     igtl::VFixtureMessage::Pointer vfMsg = igtl::VFixtureMessage::New();
     vfMsg->SetNumberOfSpheres(ndata);
     vfMsg->SetHardness(hardness);
-    for (int i = 0; i < ndata; i ++)
+    for (int j = 0; j < ndata; j ++)
       {
-      vfMsg->SetCenter(i, centerx[i], centery[i], centerz[i]);
-      vfMsg->SetRadius(i, radius[i]);
+      vfMsg->SetCenter(j, centerx[j], centery[j], centerz[j]);
+      vfMsg->SetRadius(j, radius[j]);
       }
 
     vfMsg->SetDeviceName("VFClient");
