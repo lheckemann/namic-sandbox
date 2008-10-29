@@ -34,6 +34,8 @@
 #include "vtkIGTLConnector.h"
 #include "vtkIGTLCircularBuffer.h"
 
+#include "vtkMRMLVirtualFixtureNode.h"
+
 //#include "igtl_header.h"
 //#include "igtl_image.h"
 //#include "igtl_transform.h"
@@ -793,6 +795,25 @@ void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long 
         
         //connector->SendData();
         }
+      else if (strcmp(node->GetNodeTagName(), "VirtualFixture") == 0)
+        {
+        vtkMRMLVirtualFixtureNode* vfixtureNode = vtkMRMLVirtualFixtureNode::SafeDownCast(node);
+
+        igtl::VFixtureMessage::Pointer vfMsg;
+        vfMsg = igtl::VFixtureMessage::New();
+        vfMsg->SetDeviceName(node->GetName());
+        vfMsg->SetNumberOfSpheres(1);
+        vfMsg->SetHardness(1);
+        double center[3];
+        double radius;
+        vfixtureNode->GetParameters(center, &radius);
+        vfMsg->SetCenter(1, center[0], center[1], center[2]);
+        vfMsg->SetRadius(1, radius);
+        vfMsg->Pack();
+
+        int r; 
+        r = connector->SendData(vfMsg->GetPackSize(), (unsigned char*)vfMsg->GetPackPointer());
+        }
       }
     }
 
@@ -1426,15 +1447,17 @@ void vtkOpenIGTLinkIFLogic::GetDeviceNamesFromMrml(IGTLMrmlNodeListType &list)
   char* deviceTypeNames[] = {
     "TRANSFORM",
     "IMAGE",
+    "*VFIXTURE"
   };
 
   char* classNames[] = 
     {
       "vtkMRMLLinearTransformNode",
-      "vtkMRMLVolumeNode"
+      "vtkMRMLVolumeNode",
+      "vtkMRMLVirtualFixtureNode"
     };
 
-  for (int i = 0; i < 2; i ++)
+  for (int i = 0; i < 3; i ++)
     {
     std::vector<vtkMRMLNode*> nodes;
     this->GetMRMLScene()->GetNodesByClass(classNames[i], nodes);

@@ -36,6 +36,7 @@
 
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
+#include "igtlVFixtureMessage.h"
 
 // switch to activate testing code for development  -- J.T. 06.17.2008
 //#define BRP_DEVELOPMENT      1
