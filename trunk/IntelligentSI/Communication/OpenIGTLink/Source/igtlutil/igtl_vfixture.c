@@ -67,6 +67,10 @@ void igtl_vfixture_data_convert_byte_order(int n, void* data)
     memcpy((void*)&tmp, (void*)(&(vftmp[i].z)), sizeof(igtl_float32));
     tmp = BYTE_SWAP_INT32(tmp);
     memcpy((void*)(&(vftmp[i].z)), (void*)&tmp, sizeof(igtl_float32));
+    /* radius */
+    memcpy((void*)&tmp, (void*)(&(vftmp[i].r)), sizeof(igtl_float32));
+    tmp = BYTE_SWAP_INT32(tmp);
+    memcpy((void*)(&(vftmp[i].r)), (void*)&tmp, sizeof(igtl_float32));
     }
 }
 
