@@ -357,9 +357,16 @@ void vtkVirtualFixtureGUI::ProcessGUIEvents(vtkObject *caller,
     int nitem = this->SphereMenu->GetMenu()->GetNumberOfItems();
     // Note: GetIndexOfSelectedItem is not available in Slicer 3.2
     //int sitem = this->SphereMenu->GetMenu()->GetIndexOfSelectedItem();
-    vtksys_stl::string group(this->SphereMenu->GetMenu()
-      ->GetItemGroupName(this->SphereMenu->GetMenu()->GetNumberOfItems() - 1));
-    int sitem = this->SphereMenu->GetMenu()->GetIndexOfSelectedItemInGroup(group.c_str());
+    int sitem = -1;
+    for (int i = 0; i < nitem; i ++)
+      {
+      if (this->SphereMenu->GetMenu()->GetItemSelectedState(i))
+        {
+        sitem = i;
+        }
+      }
+
+    std::cerr << "sitem = " << sitem << ", nitem = " << nitem << std::endl;
     if (sitem == nitem - 1) // "New Sphere" is selected
       {
       char name[128];
@@ -673,18 +680,6 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
   centerCoordinateLabel->Delete();
 
   conBrowsFrame->Delete();
-
-  // -----------------------------------------
-  // Sphere name entry
-  
-  /*
-  this->CenterXEntry       = NULL;
-  this->CenterYEntry       = NULL;
-  this->CenterZEntry       = NULL;
-  this->RadiusEntry        = NULL;
-  this->UpdateSphereButton = NULL;
-  this->DeleteSphereButton = NULL;
-  */
 
   
 }
