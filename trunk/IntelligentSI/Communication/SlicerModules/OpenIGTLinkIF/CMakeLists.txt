@@ -56,6 +56,7 @@ set(OpenIGTLinkIF_SRCS
   vtkOpenIGTLinkIFGUI.cxx
   vtkIGTLConnector.cxx
   vtkIGTLCircularBuffer.cxx
+  vtkMRMLVirtualFixtureNode.cxx
 )
 
 # --------------------------------------------------------------------------

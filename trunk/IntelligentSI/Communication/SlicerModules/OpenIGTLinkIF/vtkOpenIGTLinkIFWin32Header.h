@@ -20,10 +20,14 @@ Version:   $Revision: $
 #if defined(WIN32) && !defined(VTKSLICER_STATIC)
 #if defined(OpenIGTLinkIF_EXPORTS)
 #define VTK_OPENIGTLINKIF_EXPORT __declspec( dllexport ) 
+#define MRML_EXPORTS
 #else
 #define VTK_OPENIGTLINKIF_EXPORT __declspec( dllimport ) 
 #endif
 #else
 #define VTK_OPENIGTLINKIF_EXPORT 
 #endif
+
+#include <vtkMRMLWin32Header.h>
+
 #endif
