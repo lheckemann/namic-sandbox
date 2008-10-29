@@ -366,7 +366,6 @@ void vtkVirtualFixtureGUI::ProcessGUIEvents(vtkObject *caller,
         }
       }
 
-    std::cerr << "sitem = " << sitem << ", nitem = " << nitem << std::endl;
     if (sitem == nitem - 1) // "New Sphere" is selected
       {
       char name[128];
@@ -694,12 +693,12 @@ void vtkVirtualFixtureGUI::UpdateAll()
 int vtkVirtualFixtureGUI::AddNewSphere(const char* name)
 {
   // Create data
-  SphereData data;
-  data.name = std::string(name);
-  data.center[0] = 0.0;
-  data.center[1] = 0.0;
-  data.center[2] = 0.0;
-  data.radius = 10.0;
+  vtkMRMLVirtualFixtureNode* node =   vtkMRMLVirtualFixtureNode::New();
+  node->SetName(name);
+
+  double c[] = {0.0, 0.0, 0.0};
+  double r   = 10.0;
+  node->SetParameters(c, r);
 
   double color[3];
   color[0] = 1.0; // red
@@ -707,15 +706,15 @@ int vtkVirtualFixtureGUI::AddNewSphere(const char* name)
   color[2] = 0; // blue
 
   // Create Sphere Model
-  AddSphereModel(&data, data.center, data.radius, color);
+  AddSphereModel(node, color);
 
   // push into the list
-  this->SphereList.push_back(data);
+  this->SphereList.push_back(node);
   this->SphereMenu->GetMenu()->DeleteAllItems();
   SphereListType::iterator iter;
   for (iter = this->SphereList.begin(); iter != this->SphereList.end(); iter ++)
     {
-    this->SphereMenu->GetMenu()->AddRadioButton (iter->name.c_str());
+    this->SphereMenu->GetMenu()->AddRadioButton ((*iter)->GetName());
     }
   this->SphereMenu->GetMenu()->AddRadioButton ("New Sphere");
 
@@ -732,20 +731,24 @@ int vtkVirtualFixtureGUI::SelectSphere(int n)
     this->CurrentSphere = n;
     this->SphereMenu->GetMenu()->SelectItem(n);
 
-    SphereData data = this->SphereList[n];
-    this->SphereNameEntry->SetValue(data.name.c_str());
-    this->CenterXEntry->SetValueAsDouble(data.center[0]);
-    this->CenterYEntry->SetValueAsDouble(data.center[1]);
-    this->CenterZEntry->SetValueAsDouble(data.center[2]);
-    this->RadiusEntry->SetValueAsDouble(data.radius);
+    vtkMRMLVirtualFixtureNode* node = this->SphereList[n];
+    this->SphereNameEntry->SetValue(node->GetName());
+    double center[3];
+    double radius;
+    node->GetParameters(center, &radius);
+
+    this->CenterXEntry->SetValueAsDouble(center[0]);
+    this->CenterYEntry->SetValueAsDouble(center[1]);
+    this->CenterZEntry->SetValueAsDouble(center[2]);
+    this->RadiusEntry->SetValueAsDouble(radius);
 
     // highlight sphere model in the 3D scene
     SphereListType::iterator iter;
     for (iter = this->SphereList.begin(); iter != this->SphereList.end(); iter ++)
       {
-      HighlightSphereModel(&(*iter), false);
+      HighlightSphereModel(*iter, false);
       }
-    HighlightSphereModel(&(this->SphereList[n]), true);
+    HighlightSphereModel(this->SphereList[n], true);
 
     return n;
     }
@@ -764,90 +767,53 @@ int vtkVirtualFixtureGUI::UpdateSphere()
 
   int n = this->CurrentSphere;
 
-  this->SphereList[n].name = std::string(this->SphereNameEntry->GetValue());
-  this->SphereList[n].center[0] = this->CenterXEntry->GetValueAsDouble();
-  this->SphereList[n].center[1] = this->CenterYEntry->GetValueAsDouble();
-  this->SphereList[n].center[2] = this->CenterZEntry->GetValueAsDouble();
-  this->SphereList[n].radius    = this->RadiusEntry->GetValueAsDouble();
+  this->SphereList[n]->SetName(this->SphereNameEntry->GetValue());
+  double center[3];
+  center[0] = this->CenterXEntry->GetValueAsDouble();
+  center[1] = this->CenterYEntry->GetValueAsDouble();
+  center[2] = this->CenterZEntry->GetValueAsDouble();
+  double radius = this->RadiusEntry->GetValueAsDouble();
+  this->SphereList[n]->SetParameters(center, radius);
+
   this->SphereMenu->GetMenu()->SetItemLabel(n, this->SphereNameEntry->GetValue());
   this->SphereMenu->GetMenu()->SelectItem(this->SphereMenu->GetMenu()->GetNumberOfItems()-1);
   this->SphereMenu->GetMenu()->SelectItem(n);
 
-  UpdateSphereModel(&(this->SphereList[n]));
+  this->SphereList[n]->Modified();
+  this->GetApplicationLogic()->GetMRMLScene()->Modified();
 
   return n;
 }
 
 //---------------------------------------------------------------------------
-void vtkVirtualFixtureGUI::AddSphereModel(SphereData* data, double center[3], double radius,
-                                                       double color[3])
+void vtkVirtualFixtureGUI::AddSphereModel(vtkMRMLVirtualFixtureNode* node, double color[3])
 {
-  vtkMRMLModelNode           *model;
-  vtkMRMLModelDisplayNode    *disp;
+  vtkMRMLModelDisplayNode      *disp;
 
-  model = vtkMRMLModelNode::New();
   disp  = vtkMRMLModelDisplayNode::New();
   
   this->GetMRMLScene()->SaveStateForUndo();
   this->GetMRMLScene()->AddNode(disp);
-  this->GetMRMLScene()->AddNode(model);  
+  this->GetMRMLScene()->AddNode(node);
   
   disp->SetScene(this->GetMRMLScene());
   
-  model->SetName(data->name.c_str());
-  model->SetScene(this->GetMRMLScene());
-  model->SetAndObserveDisplayNodeID(disp->GetID());
-  model->SetHideFromEditors(1);
-  
-  // Sphere represents the locator tip 
-  vtkSphereSource *sphere = vtkSphereSource::New();
-  sphere->SetRadius(radius);
-  sphere->SetCenter(center);
-  sphere->Update();
-
-  /*
-  vtkAppendPolyData *apd = vtkAppendPolyData::New();
-  apd->AddInput(sphere->GetOutput());
-  apd->Update();
-  */
-  
-  //model->SetAndObservePolyData(apd->GetOutput());
-  model->SetAndObservePolyData(sphere->GetOutput());
-  
-  disp->SetPolyData(model->GetPolyData());
-  sphere->Delete();
-  //apd->Delete();
+  node->SetScene(this->GetMRMLScene());
+  node->SetAndObserveDisplayNodeID(disp->GetID());
+  node->SetHideFromEditors(1);
+  disp->SetPolyData(node->GetPolyData());
 
   disp->SetColor(color);
   disp->SetVisibility(1);
   disp->SetOpacity(0.3);
-  model->Modified();
+  node->Modified();
   this->GetApplicationLogic()->GetMRMLScene()->Modified();
 
-  data->sphere = sphere;
-  data->model  = model;
-
-  model->Delete();
   disp->Delete();
 }
 
-
-void vtkVirtualFixtureGUI::UpdateSphereModel(SphereData* data)
-{
-  data->sphere->SetRadius(data->radius);
-  data->sphere->SetCenter(data->center);
-  data->sphere->Update();
-  
-  //vtkMRMLModelDisplayNode* disp = data->model->GetDisplayNode();
-  //disp->SetOpacity(0.5);
-  //disp->SetColor(color);
-
-  data->model->Modified();
-  this->GetApplicationLogic()->GetMRMLScene()->Modified();
-}
-
-
-void vtkVirtualFixtureGUI::HighlightSphereModel(SphereData* data, bool highlight)
+//---------------------------------------------------------------------------
+void vtkVirtualFixtureGUI::HighlightSphereModel(vtkMRMLVirtualFixtureNode* node, bool highlight)
 {
   double color[3];
   if (highlight)
@@ -863,10 +829,10 @@ void vtkVirtualFixtureGUI::HighlightSphereModel(SphereData* data, bool highlight
     color[2] = 1.0;
     }
 
-  vtkMRMLDisplayNode* disp = data->model->GetDisplayNode();
+  vtkMRMLDisplayNode* disp = node->GetDisplayNode();
   disp->SetColor(color);
 
-  data->model->Modified();
+  node->Modified();
   this->GetApplicationLogic()->GetMRMLScene()->Modified();
 }
 

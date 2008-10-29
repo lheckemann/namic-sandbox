@@ -24,6 +24,7 @@
 #include "vtkSlicerInteractorStyle.h"
 
 #include "vtkVirtualFixtureLogic.h"
+#include "vtkMRMLVirtualFixtureNode.h"
 
 class vtkKWPushButton;
 class vtkSphereSource;
@@ -44,15 +45,18 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
   }
 
+  /*
   //BTX
   typedef struct {
     std::string       name;
     double            center[3];
     double            radius;
-    vtkMRMLModelNode* model;
+    //vtkMRMLModelNode* model;
+    vtkMRMLVirtualFixtureNode* model;
     vtkSphereSource*  sphere;
   } SphereData;
   //ETX
+  */
 
  protected:
   //----------------------------------------------------------------
@@ -122,10 +126,15 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
   int AddNewSphere(const char* name);
   int SelectSphere(int n);
   int UpdateSphere();
+  /*
   void AddSphereModel(SphereData* data, double center[3], double radius,
                       double color[3]);
   void UpdateSphereModel(SphereData* data);
   void HighlightSphereModel(SphereData* data, bool highlight);
+  */
+
+  void AddSphereModel(vtkMRMLVirtualFixtureNode* model, double color[3]);
+  void HighlightSphereModel(vtkMRMLVirtualFixtureNode* data, bool highlight);
 
  protected:
   
@@ -154,15 +163,15 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   vtkVirtualFixtureLogic *Logic;
-  vtkCallbackCommand *DataCallbackCommand;
-  int                        CloseScene;
+  vtkCallbackCommand     *DataCallbackCommand;
+  int                    CloseScene;
 
   //----------------------------------------------------------------
   // Sphere controls
   //----------------------------------------------------------------
 
   //BTX
-  typedef std::vector<SphereData> SphereListType;
+  typedef std::vector<vtkMRMLVirtualFixtureNode*> SphereListType;
   SphereListType SphereList;
 
   int CurrentSphere;
