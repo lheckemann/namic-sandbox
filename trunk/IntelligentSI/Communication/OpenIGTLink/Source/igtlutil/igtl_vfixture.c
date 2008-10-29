@@ -38,6 +38,7 @@ void igtl_vfixture_convert_byte_order(igtl_vfixture_header * header)
 
   if (igtl_is_little_endian())
     {
+    header->version     = BYTE_SWAP_INT16(header->version);
     header->nspheres    = BYTE_SWAP_INT16(header->nspheres);
     memcpy((void*)&tmp, (void*)(&(header->hardness)), sizeof(igtl_float32));
     tmp = BYTE_SWAP_INT32(tmp);
