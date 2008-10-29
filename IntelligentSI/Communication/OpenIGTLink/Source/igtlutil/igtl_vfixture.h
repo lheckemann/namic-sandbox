@@ -30,7 +30,7 @@ extern "C" {
 #pragma pack(1)     /* For 1-byte boundary in memroy */
 
 typedef struct {
-  igtl_uint8    version;           /* data format version number      */
+  igtl_uint16   version;           /* data format version number      */
   igtl_uint16   nspheres;          /* number of spheres               */
   igtl_float32  hardness;          /* hardness parameter              */
 } igtl_vfixture_header;
