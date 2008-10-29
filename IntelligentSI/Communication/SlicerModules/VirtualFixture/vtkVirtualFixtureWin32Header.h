@@ -20,10 +20,13 @@ Version:   $Revision: $
 #if defined(WIN32) && !defined(VTKSLICER_STATIC)
 #if defined(VirtualFixture_EXPORTS)
 #define VTK_VirtualFixture_EXPORT __declspec( dllexport ) 
+#define VTK_MRML_EXPORT __declspec( dllexport ) 
 #else
 #define VTK_VirtualFixture_EXPORT __declspec( dllimport ) 
+#define VTK_MRML_EXPORT __declspec( dllimport ) 
 #endif
 #else
 #define VTK_VirtualFixture_EXPORT 
+#define VTK_MRML_EXPORT 
 #endif
 #endif
