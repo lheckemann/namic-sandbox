@@ -37,7 +37,8 @@
 #include "vtkKWEntry.h"
 
 #include "vtkCornerAnnotation.h"
-
+#include "vtkSphereSource.h"
+#include "vtkAppendPolyData.h"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkVirtualFixtureGUI );
@@ -65,6 +66,7 @@ vtkVirtualFixtureGUI::vtkVirtualFixtureGUI ( )
   this->CenterZEntry       = NULL;
   this->RadiusEntry        = NULL;
   this->UpdateSphereButton = NULL;
+  this->DeleteSphereButton = NULL;
 
   /*
   this->TestButton11 = NULL;
@@ -74,7 +76,12 @@ vtkVirtualFixtureGUI::vtkVirtualFixtureGUI ( )
   */
   
   //----------------------------------------------------------------
-  // Locator  (MRML)
+  // Sphere data
+  this->SphereList.clear();
+  this->CurrentSphere = -1;
+
+  //----------------------------------------------------------------
+  // 
   this->TimerFlag = 0;
 
 }
@@ -99,31 +106,53 @@ vtkVirtualFixtureGUI::~vtkVirtualFixtureGUI ( )
   //----------------------------------------------------------------
   // Remove GUI widgets
 
-  /*
-  if (this->TestButton11)
+  if (this->SphereMenu)
     {
-    this->TestButton11->SetParent(NULL);
-    this->TestButton11->Delete();
+    this->SphereMenu->SetParent(NULL);
+    this->SphereMenu->Delete();
     }
 
-  if (this->TestButton12)
+  if (this->SphereNameEntry)
     {
-    this->TestButton12->SetParent(NULL);
-    this->TestButton12->Delete();
+    this->SphereNameEntry->SetParent(NULL);
+    this->SphereNameEntry->Delete();
+    }
+  
+  if (this->CenterXEntry)
+    {
+    this->CenterXEntry->SetParent(NULL);
+    this->CenterXEntry->Delete();
     }
 
-  if (this->TestButton21)
+  if (this->CenterYEntry)
     {
-    this->TestButton21->SetParent(NULL);
-    this->TestButton21->Delete();
+    this->CenterYEntry->SetParent(NULL);
+    this->CenterYEntry->Delete();
     }
 
-  if (this->TestButton22)
+  if (this->CenterZEntry)
     {
-    this->TestButton22->SetParent(NULL);
-    this->TestButton22->Delete();
+    this->CenterZEntry->SetParent(NULL);
+    this->CenterZEntry->Delete();
     }
-  */
+
+  if (this->RadiusEntry)
+    {
+    this->RadiusEntry->SetParent(NULL);
+    this->RadiusEntry->Delete();
+    }
+
+  if (this->UpdateSphereButton)
+    {
+    this->UpdateSphereButton->SetParent(NULL);
+    this->UpdateSphereButton->Delete();
+    }
+
+  if (this->DeleteSphereButton)
+    {
+    this->DeleteSphereButton->SetParent(NULL);
+    this->DeleteSphereButton->Delete();
+    }
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -177,32 +206,54 @@ void vtkVirtualFixtureGUI::RemoveGUIObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  /*
-  if (this->TestButton11)
+
+  if (this->SphereMenu)
     {
-    this->TestButton11
+    this->SphereMenu->GetMenu()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->TestButton12)
+  if (this->SphereNameEntry)
     {
-    this->TestButton12
+    this->SphereNameEntry
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  
+  if (this->CenterXEntry)
+    {
+    this->CenterXEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->TestButton21)
+  if (this->CenterYEntry)
     {
-    this->TestButton21
+    this->CenterYEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->TestButton22)
+  if (this->CenterZEntry)
     {
-    this->TestButton22
+    this->CenterZEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  */
 
+  if (this->RadiusEntry)
+    {
+    this->RadiusEntry
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->UpdateSphereButton)
+    {
+    this->UpdateSphereButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->DeleteSphereButton)
+    {
+    this->DeleteSphereButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   this->RemoveLogicObservers();
 
@@ -233,27 +284,23 @@ void vtkVirtualFixtureGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
-  /*
-  this->SphereMenu
+  this->SphereMenu->GetMenu()
+    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->SphereNameEntry
-  this->CneterXEntry
+    ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->CenterXEntry
+    ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->CenterYEntry
+    ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->CenterZEntry
+    ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->RadiusEntry
+    ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->UpdateSphereButton
-  */
-
-  /*
-  this->TestButton11
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton12
+  this->DeleteSphereButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton21
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton22
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  */
-
+    
   this->AddLogicObservers();
 
 }
@@ -304,28 +351,51 @@ void vtkVirtualFixtureGUI::ProcessGUIEvents(vtkObject *caller,
     return;
     }
 
-  /*
-  if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
-      && event == vtkKWPushButton::InvokedEvent)
+  if (this->SphereMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller) 
+      && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    std::cerr << "TestButton11 is pressed." << std::endl;
+    int nitem = this->SphereMenu->GetMenu()->GetNumberOfItems();
+    int sitem = this->SphereMenu->GetMenu()->GetIndexOfSelectedItem();
+    if (sitem == nitem - 1) // "New Sphere" is selected
+      {
+      char name[128];
+      sprintf(name, "VF Sphere %d", nitem - 1);
+      AddNewSphere(name);
+      }
+    else
+      {
+      SelectSphere(sitem);
+      }
     }
-  else if (this->TestButton12 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
+  else if (this->SphereNameEntry == vtkKWEntry::SafeDownCast(caller) 
+           && event == vtkKWEntry::EntryValueChangedEvent)
     {
-    std::cerr << "TestButton12 is pressed." << std::endl;
     }
-  else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
+  else if (this->CenterXEntry == vtkKWEntry::SafeDownCast(caller) 
+           && event == vtkKWEntry::EntryValueChangedEvent)
     {
-    std::cerr << "TestButton21 is pressed." << std::endl;
     }
-  else if (this->TestButton22 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
+  else if (this->CenterYEntry == vtkKWEntry::SafeDownCast(caller) 
+           && event == vtkKWEntry::EntryValueChangedEvent)
     {
-    std::cerr << "TestButton22 is pressed." << std::endl;
     }
-  */
+  else if (this->CenterZEntry == vtkKWEntry::SafeDownCast(caller) 
+           && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    }
+  else if (this->RadiusEntry == vtkKWEntry::SafeDownCast(caller) 
+           && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    }
+  else if (this->UpdateSphereButton == vtkKWPushButton::SafeDownCast(caller) 
+           && event == vtkKWPushButton::InvokedEvent)
+    {
+    UpdateSphere();
+    }
+  else if (this->DeleteSphereButton == vtkKWPushButton::SafeDownCast(caller) 
+           && event == vtkKWPushButton::InvokedEvent)
+    {
+    }
 
 } 
 
@@ -463,16 +533,14 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
   sphereMenuLabel->SetParent(sphereMenuFrame);
   sphereMenuLabel->Create();
   sphereMenuLabel->SetWidth(14);
-  sphereMenuLabel->SetText("SphereName: ");
+  sphereMenuLabel->SetText("VFixture: ");
 
   this->SphereMenu = vtkKWMenuButton::New();
   this->SphereMenu->SetParent(sphereMenuFrame);
   this->SphereMenu->Create();
   this->SphereMenu->SetWidth(10);
-  this->SphereMenu->GetMenu()->AddRadioButton ("Sphere 1");
-  this->SphereMenu->GetMenu()->AddRadioButton ("Sphere 2");
   this->SphereMenu->GetMenu()->AddRadioButton ("New Sphere");
-  this->SphereMenu->SetValue ("Sphere 1");
+  this->SphereMenu->SetValue ("");
 
   this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               sphereMenuLabel->GetWidgetName() , this->SphereMenu->GetWidgetName());
@@ -495,7 +563,7 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
   this->SphereNameEntry->SetParent(sphereNameFrame);
   this->SphereNameEntry->Create();
   this->SphereNameEntry->SetWidth(10);
-  this->SphereNameEntry->SetValue ("Sphere 1");
+  this->SphereNameEntry->SetValue ("");
 
   this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
                sphereNameLabel->GetWidgetName() , this->SphereNameEntry->GetWidgetName());
@@ -520,21 +588,21 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
   this->CenterXEntry->Create();
   this->CenterXEntry->SetWidth(8);
   this->CenterXEntry->SetRestrictValueToDouble();
-  this->CenterXEntry->SetValue ("0.0");
+  this->CenterXEntry->SetValueAsDouble (0.0);
 
   this->CenterYEntry = vtkKWEntry::New();
   this->CenterYEntry->SetParent(centerCoordinateFrame);
   this->CenterYEntry->Create();
   this->CenterYEntry->SetWidth(8);
   this->CenterYEntry->SetRestrictValueToDouble();
-  this->CenterYEntry->SetValue ("0.0");
+  this->CenterYEntry->SetValueAsDouble (0.0);
 
   this->CenterZEntry = vtkKWEntry::New();
   this->CenterZEntry->SetParent(centerCoordinateFrame);
   this->CenterZEntry->Create();
   this->CenterZEntry->SetWidth(8);
   this->CenterZEntry->SetRestrictValueToDouble();
-  this->CenterZEntry->SetValue ("0.0");
+  this->CenterZEntry->SetValueAsDouble (0.0);
 
   this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 4 -pady 2", 
                centerCoordinateLabel->GetWidgetName(),
@@ -554,17 +622,41 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
   radiusLabel->SetParent(radiusFrame);
   radiusLabel->Create();
   radiusLabel->SetWidth(14);
-  radiusLabel->SetText("SphereName: ");
+  radiusLabel->SetText("Radius: ");
 
   this->RadiusEntry = vtkKWEntry::New();
   this->RadiusEntry->SetParent(radiusFrame);
   this->RadiusEntry->Create();
   this->RadiusEntry->SetWidth(10);
   this->RadiusEntry->SetRestrictValueToDouble();
-  this->RadiusEntry->SetValue ("Sphere 1");
+  this->RadiusEntry->SetValueAsDouble (0.0);
 
   this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
                radiusLabel->GetWidgetName() , this->RadiusEntry->GetWidgetName());
+
+  // -----------------------------------------
+  // BUttons
+  vtkKWFrame *buttonsFrame = vtkKWFrame::New();
+  buttonsFrame->SetParent(conBrowsFrame->GetFrame());
+  buttonsFrame->Create();
+  this->Script ("pack %s -fill both -expand true",  
+                buttonsFrame->GetWidgetName() );
+
+  this->UpdateSphereButton = vtkKWPushButton::New();
+  this->UpdateSphereButton->SetParent(buttonsFrame);
+  this->UpdateSphereButton->Create();
+  this->UpdateSphereButton->SetWidth(10);
+  this->UpdateSphereButton->SetText("Update");
+
+  this->DeleteSphereButton = vtkKWPushButton::New();
+  this->DeleteSphereButton->SetParent(buttonsFrame);
+  this->DeleteSphereButton->Create();
+  this->DeleteSphereButton->SetWidth(10);
+  this->DeleteSphereButton->SetText("Delete");
+
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               this->UpdateSphereButton->GetWidgetName(),
+               this->DeleteSphereButton->GetWidgetName());
 
   sphereMenuFrame->Delete();
   sphereMenuLabel->Delete();
@@ -572,6 +664,7 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
   sphereNameLabel->Delete();
   radiusFrame->Delete();
   radiusLabel->Delete();
+  buttonsFrame->Delete();
   centerCoordinateFrame->Delete();
   centerCoordinateLabel->Delete();
 
@@ -581,11 +674,12 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
   // Sphere name entry
   
   /*
-  this->CneterXEntry       = NULL;
+  this->CenterXEntry       = NULL;
   this->CenterYEntry       = NULL;
   this->CenterZEntry       = NULL;
   this->RadiusEntry        = NULL;
   this->UpdateSphereButton = NULL;
+  this->DeleteSphereButton = NULL;
   */
 
   
@@ -596,4 +690,185 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
 void vtkVirtualFixtureGUI::UpdateAll()
 {
 }
+
+//----------------------------------------------------------------------------
+int vtkVirtualFixtureGUI::AddNewSphere(const char* name)
+{
+  // Create data
+  SphereData data;
+  data.name = std::string(name);
+  data.center[0] = 0.0;
+  data.center[1] = 0.0;
+  data.center[2] = 0.0;
+  data.radius = 10.0;
+
+  double color[3];
+  color[0] = 1.0; // red
+  color[1] = 0; // green
+  color[2] = 0; // blue
+
+  // Create Sphere Model
+  AddSphereModel(&data, data.center, data.radius, color);
+
+  // push into the list
+  this->SphereList.push_back(data);
+  this->SphereMenu->GetMenu()->DeleteAllItems();
+  SphereListType::iterator iter;
+  for (iter = this->SphereList.begin(); iter != this->SphereList.end(); iter ++)
+    {
+    this->SphereMenu->GetMenu()->AddRadioButton (iter->name.c_str());
+    }
+  this->SphereMenu->GetMenu()->AddRadioButton ("New Sphere");
+
+  SelectSphere(this->SphereList.size()-1);
+
+  return this->SphereList.size()-1;
+}
+
+//----------------------------------------------------------------------------
+int vtkVirtualFixtureGUI::SelectSphere(int n)
+{
+  if (n >= 0 && n < this->SphereList.size())
+    {
+    this->CurrentSphere = n;
+    this->SphereMenu->GetMenu()->SelectItem(n);
+
+    SphereData data = this->SphereList[n];
+    this->SphereNameEntry->SetValue(data.name.c_str());
+    this->CenterXEntry->SetValueAsDouble(data.center[0]);
+    this->CenterYEntry->SetValueAsDouble(data.center[1]);
+    this->CenterZEntry->SetValueAsDouble(data.center[2]);
+    this->RadiusEntry->SetValueAsDouble(data.radius);
+
+    // highlight sphere model in the 3D scene
+    SphereListType::iterator iter;
+    for (iter = this->SphereList.begin(); iter != this->SphereList.end(); iter ++)
+      {
+      HighlightSphereModel(&(*iter), false);
+      }
+    HighlightSphereModel(&(this->SphereList[n]), true);
+
+    return n;
+    }
+  else
+    {
+    return -1;
+    }
+}
+
+//----------------------------------------------------------------------------
+int vtkVirtualFixtureGUI::UpdateSphere()
+{
+
+  if (this->CurrentSphere < 0)
+    return -1;
+
+  int n = this->CurrentSphere;
+
+  this->SphereList[n].name = std::string(this->SphereNameEntry->GetValue());
+  this->SphereList[n].center[0] = this->CenterXEntry->GetValueAsDouble();
+  this->SphereList[n].center[1] = this->CenterYEntry->GetValueAsDouble();
+  this->SphereList[n].center[2] = this->CenterZEntry->GetValueAsDouble();
+  this->SphereList[n].radius    = this->RadiusEntry->GetValueAsDouble();
+  this->SphereMenu->GetMenu()->SetItemLabel(n, this->SphereNameEntry->GetValue());
+  this->SphereMenu->GetMenu()->SelectItem(this->SphereMenu->GetMenu()->GetNumberOfItems()-1);
+  this->SphereMenu->GetMenu()->SelectItem(n);
+
+  UpdateSphereModel(&(this->SphereList[n]));
+
+  return n;
+}
+
+//---------------------------------------------------------------------------
+void vtkVirtualFixtureGUI::AddSphereModel(SphereData* data, double center[3], double radius,
+                                                       double color[3])
+{
+  vtkMRMLModelNode           *model;
+  vtkMRMLModelDisplayNode    *disp;
+
+  model = vtkMRMLModelNode::New();
+  disp  = vtkMRMLModelDisplayNode::New();
+  
+  this->GetMRMLScene()->SaveStateForUndo();
+  this->GetMRMLScene()->AddNode(disp);
+  this->GetMRMLScene()->AddNode(model);  
+  
+  disp->SetScene(this->GetMRMLScene());
+  
+  model->SetName(data->name.c_str());
+  model->SetScene(this->GetMRMLScene());
+  model->SetAndObserveDisplayNodeID(disp->GetID());
+  model->SetHideFromEditors(1);
+  
+  // Sphere represents the locator tip 
+  vtkSphereSource *sphere = vtkSphereSource::New();
+  sphere->SetRadius(radius);
+  sphere->SetCenter(center);
+  sphere->Update();
+
+  /*
+  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+  apd->AddInput(sphere->GetOutput());
+  apd->Update();
+  */
+  
+  //model->SetAndObservePolyData(apd->GetOutput());
+  model->SetAndObservePolyData(sphere->GetOutput());
+  
+  disp->SetPolyData(model->GetPolyData());
+  sphere->Delete();
+  //apd->Delete();
+
+  disp->SetColor(color);
+  disp->SetVisibility(1);
+  disp->SetOpacity(0.3);
+  model->Modified();
+  this->GetApplicationLogic()->GetMRMLScene()->Modified();
+
+  data->sphere = sphere;
+  data->model  = model;
+
+  model->Delete();
+  disp->Delete();
+}
+
+
+void vtkVirtualFixtureGUI::UpdateSphereModel(SphereData* data)
+{
+  data->sphere->SetRadius(data->radius);
+  data->sphere->SetCenter(data->center);
+  data->sphere->Update();
+  
+  //vtkMRMLModelDisplayNode* disp = data->model->GetDisplayNode();
+  //disp->SetOpacity(0.5);
+  //disp->SetColor(color);
+
+  data->model->Modified();
+  this->GetApplicationLogic()->GetMRMLScene()->Modified();
+}
+
+
+void vtkVirtualFixtureGUI::HighlightSphereModel(SphereData* data, bool highlight)
+{
+  double color[3];
+  if (highlight)
+    {
+    color[0] = 1.0;
+    color[1] = 0.2;
+    color[2] = 0.2;
+    }
+  else
+    {
+    color[0] = 0.2;
+    color[1] = 0.2;
+    color[2] = 1.0;
+    }
+
+  vtkMRMLDisplayNode* disp = data->model->GetDisplayNode();
+  disp->SetColor(color);
+
+  data->model->Modified();
+  this->GetApplicationLogic()->GetMRMLScene()->Modified();
+}
+
 

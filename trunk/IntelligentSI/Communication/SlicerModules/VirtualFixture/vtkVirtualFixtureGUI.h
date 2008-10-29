@@ -26,6 +26,7 @@
 #include "vtkVirtualFixtureLogic.h"
 
 class vtkKWPushButton;
+class vtkSphereSource;
 
 class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
 {
@@ -42,6 +43,16 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
   { 
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
   }
+
+  //BTX
+  typedef struct {
+    std::string       name;
+    double            center[3];
+    double            radius;
+    vtkMRMLModelNode* model;
+    vtkSphereSource*  sphere;
+  } SphereData;
+  //ETX
 
  protected:
   //----------------------------------------------------------------
@@ -104,6 +115,18 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
   void UpdateAll();
 
 
+  //----------------------------------------------------------------
+  // Sphere controls
+  //----------------------------------------------------------------
+
+  int AddNewSphere(const char* name);
+  int SelectSphere(int n);
+  int UpdateSphere();
+  void AddSphereModel(SphereData* data, double center[3], double radius,
+                      double color[3]);
+  void UpdateSphereModel(SphereData* data);
+  void HighlightSphereModel(SphereData* data, bool highlight);
+
  protected:
   
   //----------------------------------------------------------------
@@ -124,6 +147,7 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
   vtkKWEntry*      CenterZEntry;
   vtkKWEntry*      RadiusEntry;
   vtkKWPushButton* UpdateSphereButton;
+  vtkKWPushButton* DeleteSphereButton;
 
   //----------------------------------------------------------------
   // Logic Values
@@ -133,6 +157,17 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;
 
+  //----------------------------------------------------------------
+  // Sphere controls
+  //----------------------------------------------------------------
+
+  //BTX
+  typedef std::vector<SphereData> SphereListType;
+  SphereListType SphereList;
+
+  int CurrentSphere;
+  //ETX
+  
 };
 
 
