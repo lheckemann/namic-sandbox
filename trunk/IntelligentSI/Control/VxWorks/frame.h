@@ -2,7 +2,7 @@
  * FileName      : frame.h
  * Created       : 2007/12/17
  * LastModified  : 2008/
- * Author        : Hiroaki KOZUKA Jumpei Arata NIT
+ * Author        : Hiroaki KOZUKA
  * Aim           : computed inverse/kinematics
  * OS            : VxWorks 5.5.1
  ***************************************************************************/
@@ -38,34 +38,35 @@
 #include "common.h"
 
 typedef struct ANGLE_INFO_STRUCT {
-    double limitMax;
-    double limitMin;
-    double Offset;
-    void Init(double max, double min, double offset){
-        limitMax = max;
-        limitMin = min;
-        Offset = offset;
-    }
+  double limitMax;
+  double limitMin;
+  double Offset;
+  void Init(double max, double min, double offset){
+    limitMax = max;
+    limitMin = min;
+    Offset = offset;
+  }
 }ANGLE_INFO;
 
 class FRAME{
  private:
-    int jNum;
-    double UNIT_ANGLE;
-    ANGLE_INFO* angleInfo;
-    
-    EE_POSITION limitPeeMax;
-    EE_POSITION limitPeeMin;
-    EE_POSITION Pee_1;
-    EE_POSITION sPee;   
-    void limitPosition(EE_POSITION* Pee);
+  int jNum;
+  double UNIT_ANGLE;
+  ANGLE_INFO* angleInfo;
+  double angleBef[4];
+  
+  EE_POSITION limitPeeMax;
+  EE_POSITION limitPeeMin;
+  EE_POSITION Pee_1;
+  EE_POSITION sPee; 
+  void limitPosition(EE_POSITION* Pee);
  public:
-    const TRANSFORM* getTransform();
-    const double* getAngles();
-    void calculateKinematics(const double *angle, EE_POSITION *Pee);
-    int calculateInvKinematics(const EE_POSITION *Pee, double* angle);
-    FRAME(double rad_deg);
-    ~FRAME();
+  const TRANSFORM* getTransform();
+  const double* getAngles();
+  void calculateKinematics(const double *angle, EE_POSITION *Pee);
+  int calculateInvKinematics(const EE_POSITION *Pee, double* angle);
+  FRAME(double rad_deg);
+  ~FRAME();
 };
 
 

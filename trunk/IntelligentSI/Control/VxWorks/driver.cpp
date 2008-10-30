@@ -2,7 +2,7 @@
  * FileName      : driver.cpp
  * Created       : 2007/08/27
  * LastModified  : 2007/10/
- * Author        : hiroaki KOZUKA Jumpei Arata
+ * Author        : hiroaki KOZUKA
  * Aim           : driver class for a bode control
  * OS            : VxWorks 5.5.1
  ***************************************************************************/
@@ -10,9 +10,9 @@
 
 #if defined VX__DRIVER
 //driver
-ACP420* ACP420::m_Instance = NULL;
-ACP550* ACP550::m_Instance = NULL;
-ACP560* ACP560::m_Instance = NULL;
+//ACP420* ACP420::m_Instance = NULL;
+//ACP550* ACP550::m_Instance = NULL;
+//ACP560* ACP560::m_Instance = NULL;
 #endif
 
 const HARDWARE_DATA_ DRIVER::HW[jNum];
@@ -22,26 +22,26 @@ DRIVER::DRIVER(){
     cout<<"Initialaze Driver Class..."<<endl;
    
 #if defined VX__DRIVER
-    // initialize Counter(ACP420), A/D(ACp550), D/A(ACp560)
+  // initialize Counter(ACP420), A/D(ACp550), D/A(ACp560)
     CNT_D = ACP420::getInstance();
     AD_D = ACP550::getInstance();
     DA_D = ACP560::getInstance();
 #elif defined ART__DRIVER
-    
+  
 #endif
 }
 
 DRIVER::~DRIVER(){
 #if defined VX__DRIVER
     //delete board driver
-    ACP420::m_Instance = NULL;
-    ACP550::m_Instance = NULL;
-    ACP560::m_Instance = NULL;
+  ACP420::m_Instance = NULL;
+  ACP550::m_Instance = NULL;
+  ACP560::m_Instance = NULL;
     delete CNT_D;
     delete AD_D;
     delete DA_D;
 #elif defined ART__DRIVER
-    
+  
 #endif
     //logMsg("End Driver class.\n",0,0,0,0,0,0);
     cout<<"End Driver class."<<endl;
@@ -72,15 +72,14 @@ DRIVER::angleReadWrite(int R_W){
 #if defined VX__DRIVER
         CNT_D->Write(0, EncData, sizeof(long)*4 );
 #elif defined ART__DRIVER
-        
+    
 #endif
     }
     else if(R_W == 1){
 #if defined VX__DRIVER
         CNT_D->Read(0, EncData, sizeof(long)*4 );
-        //cout<<"ENC"<<EncData[2]<<endl;
 #elif defined ART__DRIVER
-        
+    
 #endif
         for(int jID=0; jID < jNum; jID++){
             rAngle[jID] = HW[jID]. revl_linear*(double)EncData[jID]/(HW[jID].pulseNum*4);
@@ -97,8 +96,9 @@ void
 DRIVER::speedWrite(){
 #if defined VX__DRIVER
     DA_D->Output(0, wVolt[0], wVolt[1],  wVolt[2], 0);
+  //DA_D->Output(0, 0, 0, 0, 0);
 #elif defined ART__DRIVER
-    
+  
 #endif
 }
 
@@ -109,11 +109,11 @@ DRIVER::converSpeed2Volt(int jid, double speed){
     
     //Regulation volt
     if( volt > HW[jid].maxVolt )
-    volt = HW[jid].maxVolt;
+  volt = HW[jid].maxVolt;
     else if( volt < HW[jid].minVolt )
-    volt = HW[jid].minVolt;
+  volt = HW[jid].minVolt;
     else if((volt < HW[jid].maxVolt*0.01 ) && (volt > HW[jid].minVolt * 0.01) )
-    volt = HW[jid].Vo;
+  volt = HW[jid].Vo;
     
     return(volt);
 }
@@ -122,12 +122,12 @@ void
 DRIVER::angleZeroSet(){
     long EncData[jNum];
     for(int jID=0; jID<jNum; jID++){
-    EncData[jID] = 0;
+  EncData[jID] = 0;
     }
 #if defined VX__DRIVER
     CNT_D->Write(0, EncData , sizeof(long)*4);
 #elif defined ART__DRIVER
-    
+  
 #endif
 }
 
@@ -136,7 +136,7 @@ DRIVER::stop(){
 #if defined VX__DRIVER
     DA_D->Output(0,0,0,0,0);
 #elif defined ART__DRIVER
-    
+  
 #endif
 }
 

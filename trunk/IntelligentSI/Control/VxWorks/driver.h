@@ -2,7 +2,7 @@
  * FileName      : driver.h
  * Created       : 2007/08/23
  * LastModified  : 2007/10/
- * Author        : Hiroaki KOZUKA jumpei Arata NIT
+ * Author        : Hiroaki KOZUKA
  * Aim           : driver class for a motor control
  ***************************************************************************/
 
@@ -50,36 +50,36 @@
 class DRIVER{
  private:
 #if defined VX__DRIVER
-    ACP420 *CNT_D;
-    ACP550 *AD_D;
-    ACP560 *DA_D;
+  ACP420 *CNT_D;
+  ACP550 *AD_D;
+  ACP560 *DA_D;
 #elif defined ART__DRIVER
-    
+  
 #endif
-    static const int jNum = 3;
-    static const HARDWARE_DATA_ HW[jNum] ={
-        {10, -10, 0, 1, revl, minus, 67548},
-        {10, -10, 0, 1, revl, minus, 67548},
-        {10, -10, 0, 1, revl, plus, 23552},
-    };
-    
-    double rAngle[jNum]; //! Output Enc data
-    double wAngle[jNum]; //! Input Enc data
-    double rForce[jNum]; //! A/D volt data
-    double wVolt[jNum];  //! D/A volt data
+  static const int jNum = 3;
+  static const HARDWARE_DATA_ HW[jNum] ={
+    {10, -10, 0, 1, revl, minus, 67548},
+    {10, -10, 0, 1, revl, minus, 67548},
+    {10, -10, 0, 1, revl, plus, 23552},
+  };
+  
+  double rAngle[jNum]; //! Output Enc data
+  double wAngle[jNum]; //! Input Enc data
+  double rForce[jNum]; //! A/D volt data
+  double wVolt[jNum];  //! D/A volt data
  public:
-    DRIVER();
-    ~DRIVER();
-    void angleReadWrite(int R_W);
-    void speedWrite();
-    void stop();
-    void angleZeroSet();
-    double converSpeed2Volt(int jid, double volt);
-    double angleGet(int jid);
-    //double getForce(int jid);
-    void speedSet(int jid ,double speedData );
-    void angleSet(int jid, double setAngle);
-    double directionDataShow(int jid);
+  DRIVER();
+  ~DRIVER();
+  void angleReadWrite(int R_W);
+  void speedWrite();
+  void stop();
+  void angleZeroSet();
+  double converSpeed2Volt(int jid, double volt);
+  double angleGet(int jid);
+  //double getForce(int jid);
+  void speedSet(int jid ,double speedData );
+  void angleSet(int jid, double setAngle);
+  double directionDataShow(int jid);
 };
 
 

@@ -39,33 +39,33 @@
 
 class JOINT{
  private:
-    static const int jNum = 3;
-    PID_DATA PID;
-    static const PID_DEFAULT_DATA PID_D[jNum] = {
-        {0.4, 20, 0.002},
-        {0.4, 20, 0.002},
-        {0.4, 20, 0.002},
+  static const int jNum = 3;
+  PID_DATA PID;
+  static const PID_DEFAULT_DATA PID_D[jNum] = {
+    {0.4, 20, 0.002},
+    {0.4, 20, 0.002},
+    {0.4, 20, 0.002},
 /*      //for tool
-        {0.13, 15, 0.0012},
-        {0.13, 15, 0.0012},
-        {0.01, 4, 0},//{0.25, 4, 0.0015},
+    {0.13, 15, 0.0012},
+    {0.13, 15, 0.0012},
+    {0.01, 4, 0},//{0.25, 4, 0.0015},
 */
-    };
-    JOINT_DATA jData;
-    int  jID;
-    double curAngle;
-    double speed;
-    double PIDCalculate(double destValue, double curValue);
-    void jointDataCalculate();
+  };
+  JOINT_DATA jData;
+  int  jID;
+  double curAngle;
+  double speed;
+  double PIDCalculate(double destValue, double curValue);
+  void jointDataCalculate();
  public:
-    DRIVER& deviceDriver;
-    ~JOINT();
-    JOINT(DRIVER& driver,int jid);
-    void angleSet(double angle);
-    void speedSet(double speed);
-    void jointDataShow(JOINT_DATA* jData);
-    JOINT_DATA angleControl(double destAngle);
-    double ctrlForce();
+  DRIVER& deviceDriver;
+  ~JOINT();
+  JOINT(DRIVER& driver,int jid);
+  void angleSet(double angle);
+  void speedSet(double speed);
+  void jointDataShow(JOINT_DATA* jData);
+  JOINT_DATA angleControl(double destAngle);
+  double ctrlForce();
 };
 
 #endif JOINT__H

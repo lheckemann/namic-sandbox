@@ -33,21 +33,21 @@
 
 class SAVE {
  private:
-    double* data1;
-    double* data2;
-    double* data3;
-    double* data4;
-    static int fd;
+  double* data1;
+  double* data2;
+  double* data3;
+  double* data4;
+  static int fd;
         int dataLength;
         int pointNum;
-    int dataNum;
-    int dataVL;
+  int dataNum;
+  int dataVL;
  public:
-    SAVE(int timeNum);
-    ~SAVE();
-    void saveBuf(int time, double databuf1, double databuf2,
-                 double databuf3,double databuf4, double databuf5);
-    void savef();
+  SAVE(int timeNum);
+  ~SAVE();
+  void saveBuf(int time, double databuf1, double databuf2,
+               double databuf3,double databuf4, double databuf5);
+  void savef();
 };
 
 #endif SAVE__H

@@ -2,7 +2,7 @@
  * FileName      : joint.cpp
  * Created       : 2007/08/23
  * LastModified  : 2007/
- * Author        : hiroaki KOZUKA jumpei Arata
+ * Author        : hiroaki KOZUKA
  * Aim           : joint class for a motor control
  * OS            : VxWorks 5.5.1
  ***************************************************************************/
@@ -77,7 +77,7 @@ JOINT::PIDCalculate(double destValue, double curValue){
     PID.e_2 = PID.e_1;
     PID.e_1 = PID.e;
     PID.u_ = destValue; 
-    //cout<<"V:"<<PID.y<<endl;
+  //cout<<"V:"<<PID.y<<endl;
     return(PID.y);
 }
 
