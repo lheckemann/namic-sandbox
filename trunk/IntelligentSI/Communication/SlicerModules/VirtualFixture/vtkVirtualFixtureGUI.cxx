@@ -65,6 +65,7 @@ vtkVirtualFixtureGUI::vtkVirtualFixtureGUI ( )
   this->CenterYEntry       = NULL;
   this->CenterZEntry       = NULL;
   this->RadiusEntry        = NULL;
+  this->HardnessEntry      = NULL;
   this->UpdateSphereButton = NULL;
   this->DeleteSphereButton = NULL;
 
@@ -140,6 +141,12 @@ vtkVirtualFixtureGUI::~vtkVirtualFixtureGUI ( )
     {
     this->RadiusEntry->SetParent(NULL);
     this->RadiusEntry->Delete();
+    }
+
+  if (this->HardnessEntry)
+    {
+    this->HardnessEntry->SetParent(NULL);
+    this->HardnessEntry->Delete();
     }
 
   if (this->UpdateSphereButton)
@@ -243,6 +250,12 @@ void vtkVirtualFixtureGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->HardnessEntry)
+    {
+    this->HardnessEntry
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->UpdateSphereButton)
     {
     this->UpdateSphereButton
@@ -295,6 +308,8 @@ void vtkVirtualFixtureGUI::AddGUIObservers ( )
   this->CenterZEntry
     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->RadiusEntry
+    ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->HardnessEntry
     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->UpdateSphereButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -394,6 +409,10 @@ void vtkVirtualFixtureGUI::ProcessGUIEvents(vtkObject *caller,
     {
     }
   else if (this->RadiusEntry == vtkKWEntry::SafeDownCast(caller) 
+           && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    }
+  else if (this->HardnessEntry == vtkKWEntry::SafeDownCast(caller) 
            && event == vtkKWEntry::EntryValueChangedEvent)
     {
     }
@@ -645,6 +664,31 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
                radiusLabel->GetWidgetName() , this->RadiusEntry->GetWidgetName());
 
   // -----------------------------------------
+  // Hardness
+  vtkKWFrame *hardnessFrame = vtkKWFrame::New();
+  hardnessFrame->SetParent(conBrowsFrame->GetFrame());
+  hardnessFrame->Create();
+  this->Script ("pack %s -fill both -expand true",  
+                hardnessFrame->GetWidgetName() );
+
+  vtkKWLabel *hardnessLabel = vtkKWLabel::New();
+  hardnessLabel->SetParent(hardnessFrame);
+  hardnessLabel->Create();
+  hardnessLabel->SetWidth(14);
+  hardnessLabel->SetText("Hardness: ");
+
+  this->HardnessEntry = vtkKWEntry::New();
+  this->HardnessEntry->SetParent(hardnessFrame);
+  this->HardnessEntry->Create();
+  this->HardnessEntry->SetWidth(10);
+  this->HardnessEntry->SetRestrictValueToDouble();
+  this->HardnessEntry->SetValueAsDouble (0.0);
+
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               hardnessLabel->GetWidgetName() , this->HardnessEntry->GetWidgetName());
+
+
+  // -----------------------------------------
   // BUttons
   vtkKWFrame *buttonsFrame = vtkKWFrame::New();
   buttonsFrame->SetParent(conBrowsFrame->GetFrame());
@@ -674,6 +718,8 @@ void vtkVirtualFixtureGUI::BuildGUIForSphereControl()
   sphereNameLabel->Delete();
   radiusFrame->Delete();
   radiusLabel->Delete();
+  hardnessFrame->Delete();
+  hardnessLabel->Delete();
   buttonsFrame->Delete();
   centerCoordinateFrame->Delete();
   centerCoordinateLabel->Delete();
@@ -698,7 +744,8 @@ int vtkVirtualFixtureGUI::AddNewSphere(const char* name)
 
   double c[] = {0.0, 0.0, 0.0};
   double r   = 10.0;
-  node->SetParameters(c, r);
+  double h   = 1.0;
+  node->SetParameters(c, r, h);
 
   double color[3];
   color[0] = 1.0; // red
@@ -735,12 +782,14 @@ int vtkVirtualFixtureGUI::SelectSphere(int n)
     this->SphereNameEntry->SetValue(node->GetName());
     double center[3];
     double radius;
-    node->GetParameters(center, &radius);
+    double hardness;
+    node->GetParameters(center, &radius, &hardness);
 
     this->CenterXEntry->SetValueAsDouble(center[0]);
     this->CenterYEntry->SetValueAsDouble(center[1]);
     this->CenterZEntry->SetValueAsDouble(center[2]);
     this->RadiusEntry->SetValueAsDouble(radius);
+    this->HardnessEntry->SetValueAsDouble(hardness);
 
     // highlight sphere model in the 3D scene
     SphereListType::iterator iter;
@@ -773,7 +822,8 @@ int vtkVirtualFixtureGUI::UpdateSphere()
   center[1] = this->CenterYEntry->GetValueAsDouble();
   center[2] = this->CenterZEntry->GetValueAsDouble();
   double radius = this->RadiusEntry->GetValueAsDouble();
-  this->SphereList[n]->SetParameters(center, radius);
+  double hardness = this->HardnessEntry->GetValueAsDouble();
+  this->SphereList[n]->SetParameters(center, radius, hardness);
 
   this->SphereMenu->GetMenu()->SetItemLabel(n, this->SphereNameEntry->GetValue());
   this->SphereMenu->GetMenu()->SelectItem(this->SphereMenu->GetMenu()->GetNumberOfItems()-1);

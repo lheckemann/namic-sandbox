@@ -43,7 +43,7 @@ vtkMRMLVirtualFixtureNode* vtkMRMLVirtualFixtureNode::New()
   ret->Sphere = vtkSphereSource::New();
 
   double c[] = {0.0, 0.0, 0.0};
-  ret->SetParameters(c, 1.0);
+  ret->SetParameters(c, 1.0, 1.0);
   ret->SetAndObservePolyData(ret->Sphere->GetOutput());
 
   return ret;
@@ -71,12 +71,13 @@ void vtkMRMLVirtualFixtureNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLVirtualFixtureNode::SetParameters(double center[3], double radius)
+void vtkMRMLVirtualFixtureNode::SetParameters(double center[3], double radius, double hardness)
 {
   this->Center[0] = center[0];
   this->Center[1] = center[1];
   this->Center[2] = center[2];
   this->Radius = radius;
+  this->Hardness = hardness;
 
   if (this->Sphere)
     {
@@ -84,14 +85,19 @@ void vtkMRMLVirtualFixtureNode::SetParameters(double center[3], double radius)
     this->Sphere->SetCenter(center);
     this->Sphere->Update();
     }
+
+  this->Modified();
+  this->InvokeEvent(vtkMRMLVirtualFixtureNode::DisplayModifiedEvent, NULL);
+
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLVirtualFixtureNode::GetParameters(double* center, double* radius)
+void vtkMRMLVirtualFixtureNode::GetParameters(double* center, double* radius, double* hardness)
 {
   center[0] = this->Center[0];
   center[1] = this->Center[1];
   center[2] = this->Center[2];
   *radius   = this->Radius;
+  *hardness = this->Hardness;
 }

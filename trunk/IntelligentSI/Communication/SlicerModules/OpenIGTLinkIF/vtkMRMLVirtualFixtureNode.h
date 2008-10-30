@@ -50,8 +50,8 @@ public:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "VirtualFixture";};
 
-  void GetParameters(double* center, double* radius);
-  void SetParameters(double center[3], double radius);
+  void GetParameters(double* center, double* radius, double* hardness);
+  void SetParameters(double center[3], double radius, double hardness);
 
 protected:
   vtkMRMLVirtualFixtureNode(){};
@@ -62,6 +62,7 @@ protected:
 protected:
   double            Center[3];
   double            Radius;
+  double            Hardness;
   vtkSphereSource*  Sphere;
 };
 

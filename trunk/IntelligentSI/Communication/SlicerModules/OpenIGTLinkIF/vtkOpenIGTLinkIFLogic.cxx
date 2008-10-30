@@ -379,6 +379,18 @@ vtkMRMLLinearTransformNode* vtkOpenIGTLinkIFLogic::AddTransformNode(const char* 
 
 
 //---------------------------------------------------------------------------
+vtkMRMLVirtualFixtureNode* vtkOpenIGTLinkIFLogic::AddVirtualFixtureNode(const char* deviceName)
+{
+  vtkMRMLVirtualFixtureNode* node =   vtkMRMLVirtualFixtureNode::New();
+  node->SetName(deviceName);
+  node->SetDescription("Created by Open IGT Link Module");
+
+  this->GetMRMLScene()->AddNode(node);
+  return node;
+}
+
+
+//---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::RegisterDeviceEvent(vtkIGTLConnector* con, const char* deviceName, const char* deviceType)
 {
 
@@ -412,6 +424,17 @@ void vtkOpenIGTLinkIFLogic::RegisterDeviceEvent(vtkIGTLConnector* con, const cha
           }
         }
       }
+    if (strcmp(deviceType, "*VFIXTURE") == 0)
+      {
+      for (int i = 0; i < nItems; i ++)
+        {
+        vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
+        if (strcmp(node->GetNodeTagName(), "VirtualFixture") == 0)
+          {
+          srcNode = node;
+          }
+        }
+      }
     }
   if (nItems == 0 || srcNode == NULL) // if not
     {
@@ -422,6 +445,10 @@ void vtkOpenIGTLinkIFLogic::RegisterDeviceEvent(vtkIGTLConnector* con, const cha
     else if (strcmp(deviceType, "IMAGE") == 0)
       {
       srcNode = AddVolumeNode(deviceName);
+      }
+    else if (strcmp(deviceType, "*VFIXTURE") == 0)
+      {
+      srcNode = AddVirtualFixtureNode(deviceName);
       }
     }
   
@@ -450,6 +477,11 @@ void vtkOpenIGTLinkIFLogic::RegisterDeviceEvent(vtkIGTLConnector* con, const cha
     else if (strcmp(deviceType, "IMAGE") == 0)
       {
       nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
+          // NOTE: it hasn't been tested yet.
+      }
+    else if (strcmp(deviceType, "*VFIXTURE") == 0)
+      {
+      nodeEvents->InsertNextValue(vtkMRMLVirtualFixtureNode::DisplayModifiedEvent); 
           // NOTE: it hasn't been tested yet.
       }
 
@@ -501,6 +533,18 @@ void vtkOpenIGTLinkIFLogic::UnRegisterDeviceEvent(vtkIGTLConnector* con, const c
           }
         }
       }
+    if (strcmp(deviceType, "*VFIXTURE") == 0)
+      {
+      for (int i = 0; i < nItems; i ++)
+        {
+        vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
+        if (strcmp(node->GetNodeTagName(), "VirtualFixture") == 0)
+          {
+          srcNode = node;
+          }
+        }
+      }
+
     }
 
   if (nItems == 0 || srcNode == NULL) // not found
@@ -544,6 +588,12 @@ void vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers()
         UpdateMRMLLinearTransformNode(buffer);
         //UpdateMRMLLinearTransformNode((*nameIter).c_str(), buffer->PullSize(), buffer->PullData());
         }
+      else if (strcmp(buffer->GetDeviceType(), "*VFIXTURE") == 0)
+        {
+        UpdateMRMLVirtualFixtureNode(buffer);
+        //UpdateMRMLLinearTransformNode((*nameIter).c_str(), buffer->PullSize(), buffer->PullData());
+        }
+
       circBuffer->EndPull();
       }
       
@@ -698,7 +748,6 @@ int  vtkOpenIGTLinkIFLogic::SetDeviceType(int id, const char* deviceName, const 
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long event, void * callData)
 {
-  //std::cerr << "void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents() is called" << std::endl;
 
   if (caller != NULL)
     {
@@ -749,45 +798,9 @@ void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long 
         transMsg->SetMatrix(igtlmatrix);
         transMsg->Pack();
 
-        /*
-        // build message body
-        igtl_float32 transform[12];
-
-        transform[0]  = matrix->GetElement(0, 0);
-        transform[1]  = matrix->GetElement(1, 0);
-        transform[2]  = matrix->GetElement(2, 0);
-        transform[3]  = matrix->GetElement(0, 1);
-        transform[4]  = matrix->GetElement(1, 1);
-        transform[5]  = matrix->GetElement(2, 1);
-        transform[6]  = matrix->GetElement(0, 2);
-        transform[7]  = matrix->GetElement(1, 2);
-        transform[8]  = matrix->GetElement(2, 2);
-        transform[9]  = matrix->GetElement(0, 3);
-        transform[10] = matrix->GetElement(1, 3);
-        transform[11] = matrix->GetElement(2, 3);
-
-        // build header
-        igtl_header header;
-        igtl_uint64 crc = crc64(0, 0, 0LL); // initial crc
-
-        header.version   = IGTL_HEADER_VERSION;
-        header.timestamp = 0;
-        header.body_size = IGTL_TRANSFORM_SIZE;
-        header.crc       = crc64((unsigned char*)transform, IGTL_TRANSFORM_SIZE, crc);
-        strncpy(header.name, "TRANSFORM", 12);
-        strncpy(header.device_name, node->GetName(), 20);
-
-        igtl_transform_convert_byte_order(transform);
-        igtl_header_convert_byte_order(&header);
-        */
-
         int r; 
         r = connector->SendData(transMsg->GetPackSize(), (unsigned char*)transMsg->GetPackPointer());
-        /*
-        r = connector->SendData(IGTL_HEADER_SIZE, (unsigned char*) &header);
-        r = connector->SendData(IGTL_TRANSFORM_SIZE, (unsigned char*) transform);
-        */
-        
+
         }
       else if (strcmp(node->GetNodeTagName(), "Volume") == 0)
         {
@@ -801,14 +814,17 @@ void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long 
 
         igtl::VFixtureMessage::Pointer vfMsg;
         vfMsg = igtl::VFixtureMessage::New();
-        vfMsg->SetDeviceName(node->GetName());
+        vfMsg->SetDeviceName(vfixtureNode->GetName());
         vfMsg->SetNumberOfSpheres(1);
         vfMsg->SetHardness(1);
         double center[3];
         double radius;
-        vfixtureNode->GetParameters(center, &radius);
-        vfMsg->SetCenter(1, center[0], center[1], center[2]);
-        vfMsg->SetRadius(1, radius);
+        double hardness;
+        vfixtureNode->GetParameters(center, &radius, &hardness);
+        vfMsg->SetHardness((float)hardness);
+        vfMsg->SetCenter(0, (float)center[0], (float)center[1], (float)center[2]);
+        vfMsg->SetRadius(0, (float)radius);
+        vfMsg->AllocateScalars();
         vfMsg->Pack();
 
         int r; 
@@ -1173,6 +1189,74 @@ void vtkOpenIGTLinkIFLogic::UpdateMRMLLinearTransformNode(igtl::MessageBase::Poi
     }
 
 }
+
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFLogic::UpdateMRMLVirtualFixtureNode(igtl::MessageBase::Pointer ptr)
+{
+  // Create a message buffer to receive transform data
+  igtl::VFixtureMessage::Pointer vfMsg;
+  vfMsg = igtl::VFixtureMessage::New();
+
+  vfMsg->Copy(ptr);  // !! TODO: copy makes performance issue.
+
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = vfMsg->Unpack(1);
+
+  vtkMRMLVirtualFixtureNode* vfNode;
+  vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
+  vtkCollection* collection = scene->GetNodesByName(vfMsg->GetDeviceName());
+
+  if (collection->GetNumberOfItems() == 0)
+    {
+    vfNode = vtkMRMLVirtualFixtureNode::New();
+    vfNode->SetName(vfMsg->GetDeviceName());
+    vfNode->SetDescription("Received by OpenIGTLink");
+    scene->AddNode(vfNode);
+    }
+  else
+    {
+    vtkCollection* collection = scene->GetNodesByName(vfMsg->GetDeviceName());
+    vfNode = vtkMRMLVirtualFixtureNode::SafeDownCast(collection->GetItemAsObject(0));
+    }
+
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    //std::cerr << "Device Name           : " << vfMsg->GetDeviceName() << std::endl;
+    //std::cerr << "Number of Spheres     : " << vfMsg->GetNumberOfSpheres() << std::endl;
+    //std::cerr << "Hardness              : " << vfMsg->GetHardness() << std::endl;
+
+    int n = vfMsg->GetNumberOfSpheres();
+    double hardness = vfMsg->GetHardness();
+    float x, y, z, r;
+    vfMsg->GetCenter(0, x, y, z);
+    vfMsg->GetRadius(0, r);
+    double center[3];
+    center[0] = x;
+    center[1] = y;
+    center[2] = z;
+    double radius = r;
+    vfNode->SetParameters(center, radius, hardness);
+
+    /*
+    for (int i = 0; i < n; i ++)
+      {
+      int res = 0;
+      float x, y, z, r;
+      res += vfMsg->GetCenter(i, x, y, z);
+      res += vfMsg->GetRadius(i, r);
+      if (res == 2*i)
+        {
+        std::cerr << "  Center[" << i << "] : (" << x << ", " << y << ", " << z << ")" << std::endl;
+        std::cerr << "  Radius[" << i << "] : " << r << std::endl;
+        }
+      }
+    */
+    }
+
+}
+
 
 
 //---------------------------------------------------------------------------
