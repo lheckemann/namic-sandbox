@@ -261,8 +261,8 @@ ROBOT::armCtrl(int state, int state_1 ){
 }
 
 void
-ROBOT::timeOutErr(){
-  cout<<"ERR_TIME_OUT"<<endl;
+ROBOT::timeOutErr(unsigned long long t){
+  cout<<"ERR_TIME_OUT:"<<t<<endl;
 }
 
 void
@@ -272,6 +272,7 @@ ROBOT::robotMain(){
   do{
     //for real time
     semTake(timingSem, WAIT_FOREVER);
+    wdStart(timeLimit, sysClkRateGet()/1000, (FUNCPTR)timeOutErr, time);
     //read
     stateTransition();
     
@@ -287,6 +288,7 @@ ROBOT::robotMain(){
       time = 0;
     else
       time++;
+    wdCancel(timeLimit);
   }while(flag.state != S_PRGM_EXIT);
   driver.stop();
 }

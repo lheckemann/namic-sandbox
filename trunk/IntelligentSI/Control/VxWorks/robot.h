@@ -88,7 +88,7 @@ class ROBOT{
     void dataDisp(int Ts);
     void bilateralErrCaluculate(EE_POSITION* dest, EE_POSITION* cur, EE_POSITION*  err);
   void armCtrl(int state, int state_1);
-  void timeOutErr();
+  static void timeOutErr(unsigned long long);
   void init();
   void robotMain();
  public:
