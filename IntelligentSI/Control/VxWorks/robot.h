@@ -34,9 +34,6 @@
 #include <wdLib.h>
 #include <tickLib.h>
 
-
-#include <sockLib.h>
-
 #include "drv/pci/pciConfigLib.h"
 #include "mcpx800.h"
 #include "/usr/local/tornado.ppc/target/config/mcp820/config.h"
@@ -48,44 +45,41 @@
 #include "save.h"
 #include "frame.h"
 
+
 class ROBOT{
  private:
     static STATE_MACHINE flag;
     static const int jNum = 3;
 
-    WDOG_ID timeLimit;
-    SEM_ID timingSem;
-    SEM_ID exclusMutex;
-    unsigned long time;
-    double destAngle[3];
-    double curAngle[3]; 
-    double dx, dy, dz;
-    
-    //event
-    EVENT E;
-    //state
-    STATE S;
+  WDOG_ID timeLimit;
+  SEM_ID timingSem;
+  unsigned long long time;
+  double destAngle[3];
+  double curAngle[3]; 
+  double dx, dy, dz;
+  int stateSWFlag;
     
     //inner class
-    DRIVER driver;
-    IF_MANAGER IF_manager;
-    SAVE* save;
-    JOINT* joint[jNum];
-    FRAME* TF;
+  DRIVER driver;
+  IF_MANAGER IF_manager;
+  SAVE* save;
+  JOINT* joint[jNum];
+  FRAME* TF;
     
     //inner struct    
-    JOINT_DATA curJoint[jNum];
-    EE_POSITION destPee;
-    EE_POSITION destPee_1;
-    EE_POSITION curPee;
-    EE_POSITION errPee;
-    ARM_DATA curArm1;
-    DEG_COMPUTE_DATA Deg;
-    
-    static void timing(void* sem);
-    static void stateTransition(void* exMutex, void* manager, void* st, void* ev);
+  JOINT_DATA curJoint[jNum];
+  EE_POSITION destPee;
+  EE_POSITION destPee_1;
+  EE_POSITION curPee;
+  EE_POSITION errPee;
+  ARM_DATA curArm1;
+
+    //
+  static void timing(void* sem);
+  
+  void stateTransition();
     void originSet();
-    void destDataGet(int state, int state_1 , unsigned long ctrlTime);
+  void destDataGet(int state, int state_1 , unsigned long ctrlTime);
     void jointControl(double* jAngle, double* curjAngle, JOINT_DATA* jData);
     void invKinematicCalculate(EE_POSITION* destPee, double* jAngle);
     void kinematicCalculate(double* angle, EE_POSITION* Pee);
@@ -93,10 +87,10 @@ class ROBOT{
     void degCompute(double* angle, double endtime, double Ts, double A, int mode);
     void dataDisp(int Ts);
     void bilateralErrCaluculate(EE_POSITION* dest, EE_POSITION* cur, EE_POSITION*  err);
-    static void timeOutErr();
-    void armCtrl();
-    void init();
-    void robotMain();
+  void armCtrl(int state, int state_1);
+  void timeOutErr();
+  void init();
+  void robotMain();
  public:
     ROBOT();
     ~ROBOT();

@@ -27,13 +27,11 @@
 #include <strstream.h>
 #include <fstream.h>
 
-//namespace ctcs{
+#include "drv/pci/pciConfigLib.h"
+#include "mcpx800.h"
+#include "/usr/local/tornado.ppc/target/config/mcp820/config.h"
 
-#define VX__DRIVER
-//#define ART__DRIVER
 
-//#define FORCE__CTRL
-#define POSITION__CTRL
 
 #define SERVER 1
 #define CLIENT 2
@@ -44,20 +42,11 @@
 #define ON  1
 #define OFF 0
 
-//#define OK  1
-//#define NG -1
-
 #define START 1
 #define STOP  0
 
-//#define READ  1
-//#define WRITE 0
-
-#define JOINT_OUT   0
-#define JOINT_IN    1
-#define DRIVER_K    2
-#define ARM_K       3
-#define POSITION_K  4
+#define SLAVE    "SurgicalMotionBase"  // string length must be under 20
+#define MASTER  "TypeLambda"
 
 #define MASTER_TO_SLAVE_PORT  50000
 #define SLAVE_TO_MASTER_PORT  50010
@@ -69,34 +58,36 @@
 #define linr    1
 #define plus    1
 #define minus  -1
-#define PI  3.1416
+#define PI  3.1415926535897932384626433832795
+
+//namespace ctcs{
 
 enum DataConfig{
-    ARM_CONF,
-    JOINT_NUM_CONF,
-    JOINT_CTRL_CONF,
-    JOINT_ENC_CONF,
-    JOINT_SENSOR_CONF,
-    DRIVER_NUM_CONF,    // Number of driver class and each borad
-    DRIVER_DA_CONF,
-    DRIVER_AD_CONF,
-    DRIVER_CNT_CONF
+  ARM_CONF,
+  JOINT_NUM_CONF,
+  JOINT_CTRL_CONF,
+  JOINT_ENC_CONF,
+  JOINT_SENSOR_CONF,
+  DRIVER_NUM_CONF,    // Number of driver class and each borad
+  DRIVER_DA_CONF,
+  DRIVER_AD_CONF,
+  DRIVER_CNT_CONF
 };
 
 enum DataKind{
-    DEST_EE_POSITION,
-    DEST_TRANSFORM,
-    DEST_EE_FORCE,
-    DEST_JOINT_ANGLES,
-    DEST_JOINT_TORQUES,
-    CUR_TIME,
-    CUR_EE_POSITION,
-    CUR_TRANSFORM,
-    CUR_EE_FORCE,
-    CUR_JOINT_ANGLES,
-    CUR_JOINT_TORQUES,
-    EMERGENCY_CMMAND,
-    COMMAND
+  DEST_EE_POSITION,
+  DEST_TRANSFORM,
+  DEST_EE_FORCE,
+  DEST_JOINT_ANGLES,
+  DEST_JOINT_TORQUES,
+  CUR_TIME,
+  CUR_EE_POSITION,
+  CUR_TRANSFORM,
+  CUR_EE_FORCE,
+  CUR_JOINT_ANGLES,
+  CUR_JOINT_TORQUES,
+  EMERGENCY_CMMAND,
+  COMMAND
 };
 
 //!
@@ -144,14 +135,14 @@ typedef struct {
 
 //!for socket Interface (UDP/IP)
 typedef struct{
-    int outPortNum; //!< out port number
-    int inPortNum;  //!< in port number
-    char* hostName; //!< server/client name
-    char* myName;
-    int S_C;        //!< server/client  1/2
-    int buffSize;   //!< buffer size
-    int packetSize; //!< packet size
-    int packetNum;  //!< packet number
+    int outPortNum;   //!< out port number
+    int inPortNum;     //!< in port number
+    char* clientName;  //!< client name
+  char* serverName; //!< server name
+    int serverClient;  //!< server/client 
+    //int buffSize;       //!< buffer size
+    int packetSize;   //!< packet size
+    int packetNum;   //!< packet number
 }IF_DATA;
 
 typedef struct{
@@ -182,10 +173,10 @@ typedef struct{
     double alpha;
     double beta;
     double gamma;
-    void init(){
-        x = y = z = 0;
-        alpha = beta = gamma = 0;
-    }
+  void init(){
+    x = y = z = 0;
+    alpha = beta = gamma = 0;
+  }
 }EE_POSITION;
 
 typedef struct{
@@ -195,10 +186,10 @@ typedef struct{
     float alpha;
     float beta;
     float gamma;
-    void init(){
-        x = y = z = 0;
-        alpha = beta = gamma = 0;
-    }
+  void init(){
+    x = y = z = 0;
+    alpha = beta = gamma = 0;
+  }
 }EE_POSITION_S;
 
 //
@@ -249,18 +240,18 @@ typedef struct{
 
 #if defined OS__64__BIT
 struct IGTL_HEADER{
-    unsigned short V;
-    char TYPE[8];
-    char DEVICE_NAME[20];
+  unsigned short V;
+  char TYPE[8];
+  char DEVICE_NAME[20];
     unsigned long TIME_STAMP;
     unsigned long BODY_SIZE;
     unsigned long CRC;
 };
 #else
 struct IGTL_HEADER{
-    unsigned short V;
-    char TYPE[8];
-    char DEVICE_NAME[20];
+  unsigned short V;
+  char TYPE[8];
+  char DEVICE_NAME[20];
     unsigned long long TIME_STAMP;
     unsigned long long BODY_SIZE;
     unsigned long long CRC;
@@ -284,81 +275,84 @@ typedef struct{
 */
 
 struct IGTL_PHANTOM{
-    struct IGTL_HEADER header;
-    EE_POSITION_S Pee;
-    void init(){
-        header.V = 0;
-        for(int i=0; i<8; i++){
-            header.TYPE[i] = 0;
-        }
-        for(int i=0; i<20; i++){
-            header.DEVICE_NAME[i] = 0;
-        }
-        header.TIME_STAMP = header.BODY_SIZE = header.CRC = 0;
-        Pee.init();
+  struct IGTL_HEADER header;
+  EE_POSITION_S Pee;
+  void init(){
+    header.V = 0;
+    for(int i=0; i<8; i++){
+      header.TYPE[i] = 0;
     }
+    for(int i=0; i<20; i++){
+      header.DEVICE_NAME[i] = 0;
+    }
+    header.TIME_STAMP = header.BODY_SIZE = header.CRC = 0;
+    Pee.init();
+  }
 
-    void init( unsigned short v,
-               char *type,
-               char *device_name,
+  void init( unsigned short v,
+         char *type,
+         char *device_name,
 #if defined OS__64__BIT
-               unsigned long time_stamp,
-               unsigned long body_size,
-               unsigned long crc){
+         unsigned long time_stamp,
+         unsigned long body_size,
+         unsigned long crc){
 #else
-               unsigned long long time_stamp,
-               unsigned long long body_size,
-               unsigned long long crc){
+         unsigned long long time_stamp,
+         unsigned long long body_size,
+         unsigned long long crc){
 #endif
-        header.V = v;
-        for(int i=0; i<8; i++){
-            header.TYPE[i] = type[i];
-        }
-        for(int i=0; i<20; i++){
-            header.DEVICE_NAME[i] = device_name[i];
-        }
-        header.TIME_STAMP = time_stamp;
-        header.BODY_SIZE = body_size;
-        header.CRC = crc;
-        Pee.init();
+    header.V = v;
+    for(int i=0; i<8; i++){
+      header.TYPE[i] = type[i];
     }
+    for(int i=0; i<20; i++){
+      header.DEVICE_NAME[i] = device_name[i];
+    }
+    header.TIME_STAMP = time_stamp;
+    header.BODY_SIZE = body_size;
+    header.CRC = crc;
+    Pee.init();
+  }
+};
+
+
+typedef enum EVENT{
+  E_UNKNOWN,
+  E_PRGM_EXIT_,
+  E_EMERGENCY_0,
+  E_EMERGENCY_1,
+  E_EMERGENCY_2,
+  E_PRGM_EXIT,
+  E_PRGM_START,
+  E_CTRL_STOP_START,
+  E_CTRL_STOP_STOP,
+  E_CTRL_RUN_START,
+  E_CTRL_RUN_STOP
+};
+
+typedef enum STATE{
+  S_UNKNOWN,
+  S_EMERGENCY_0,
+  S_EMERGENCY_1,
+  S_EMERGENCY_2,
+  S_PRGM_EXIT,
+  S_PRGM_ENTRANCE,
+  S_CTRL_READY,
+  S_CTRL_STOP,
+  S_CTRL_RUN
 };
 
 
 typedef struct{
-    int state;
-    int state_1;
-    int event;
+  STATE state;
+  STATE state_1;
+  EVENT event;
 }STATE_MACHINE;
 
-typedef struct{
-    static const int UNKNOWN = -1;
-    static const int EMERGENCY_0     = 0;
-    static const int EMERGENCY_1     = 1;
-    static const int EMERGENCY_2     = 2;
-    static const int PRGM_EXIT       = 100;
-    static const int PRGM_START      = 101;
-    static const int CTRL_STOP_START = 102;
-    static const int CTRL_STOP_STOP  = 103;
-    static const int CTRL_RUN_START  = 104;
-    static const int CTRL_RUN_STOP   = 105;
-}EVENT;
-
-typedef struct{
-    static const int UNKNOWN = -1;
-    static const int EMERGENCY_0   = 0;
-    static const int EMERGENCY_1   = 1;
-    static const int EMERGENCY_2   = 2;
-    static const int PRGM_EXIT     = 100;
-    static const int PRGM_ENTRANCE = 101;
-    static const int CTRL_READY    = 102;
-    static const int CTRL_STOP     = 103;
-    static const int CTRL_RUN      = 104;
-}STATE;
 
 typedef double TRANSFORM[4][4];
 
-//}//End of namespace ctcs
+//} // End of namespace ctcs
  
-#endif COMMON__H
+#endif //COMMON__H
 

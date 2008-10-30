@@ -41,20 +41,17 @@
 class KEYCONSOLE{
  private:
     SEM_ID exclusMutex;
-    static int eventFlag;
+    static EVENT eventFlag;
     static string buffer;
-    static int checkInput( void* thisFunc, void* );
-    
-    // event of robot
-    EVENT E;
-    
+    static int checkInput( void* thisFunc );
+  
     int helpMessage();
-    int keyHandler(int flag);
-    
+    EVENT keyHandler(EVENT flag);
+  
  public:
     KEYCONSOLE();
     ~KEYCONSOLE();
-    int stateRead();
+  EVENT eventRead();
 };
 
 #endif KEYCON__H
