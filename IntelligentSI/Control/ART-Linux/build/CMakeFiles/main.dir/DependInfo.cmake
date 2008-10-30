@@ -1,0 +1,30 @@
+# The set of files whose dependency integrity should be checked:
+SET(CMAKE_DEPENDS_LANGUAGES
+  "CXX"
+  )
+SET(CMAKE_DEPENDS_CHECK_CXX
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/robot.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/robot.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/save.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/save.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/sockUDP.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/sockUDP.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/IFmanager.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/IFmanager.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/hrpifb.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/hrpifb.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/SlicerInterface.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/SlicerInterface.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/keyConsole.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/keyConsole.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/main.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/main.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/frame.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/frame.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/driver.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/driver.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/joint.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/joint.o"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/PNTM_interface.cpp"
+  "/home/vesko/src/NP-a2-2-2/20081014/CoreCtrlArtLin/build/CMakeFiles/main.dir/PNTM_interface.o"
+  )
