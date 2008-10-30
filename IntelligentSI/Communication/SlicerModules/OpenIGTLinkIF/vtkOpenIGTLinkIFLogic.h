@@ -41,6 +41,8 @@
 // switch to activate testing code for development  -- J.T. 06.17.2008
 //#define BRP_DEVELOPMENT      1
 
+#include "vtkMRMLVirtualFixtureNode.h"
+
 class vtkIGTLConnector;
 
 
@@ -165,6 +167,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   //BTX
   void UpdateMRMLScalarVolumeNode(igtl::MessageBase::Pointer ptr);
   void UpdateMRMLLinearTransformNode(igtl::MessageBase::Pointer ptr);
+  void UpdateMRMLVirtualFixtureNode(igtl::MessageBase::Pointer ptr);
   //ETX
   
   void UpdateSliceNode(int sliceNodeNumber,
@@ -212,6 +215,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
 
   vtkMRMLVolumeNode*          AddVolumeNode(const char*);
   vtkMRMLLinearTransformNode* AddTransformNode(const char*);
+  vtkMRMLVirtualFixtureNode*  AddVirtualFixtureNode(const char*);
   void                        RegisterDeviceEvent(vtkIGTLConnector* con,
                                                   const char* deviceName,
                                                   const char* deviceType);

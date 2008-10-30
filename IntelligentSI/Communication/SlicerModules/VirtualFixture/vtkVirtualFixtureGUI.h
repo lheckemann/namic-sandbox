@@ -45,19 +45,6 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
   }
 
-  /*
-  //BTX
-  typedef struct {
-    std::string       name;
-    double            center[3];
-    double            radius;
-    //vtkMRMLModelNode* model;
-    vtkMRMLVirtualFixtureNode* model;
-    vtkSphereSource*  sphere;
-  } SphereData;
-  //ETX
-  */
-
  protected:
   //----------------------------------------------------------------
   // Constructor / Destructor (proctected/private) 
@@ -123,16 +110,9 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
   // Sphere controls
   //----------------------------------------------------------------
 
-  int AddNewSphere(const char* name);
-  int SelectSphere(int n);
-  int UpdateSphere();
-  /*
-  void AddSphereModel(SphereData* data, double center[3], double radius,
-                      double color[3]);
-  void UpdateSphereModel(SphereData* data);
-  void HighlightSphereModel(SphereData* data, bool highlight);
-  */
-
+  int  AddNewSphere(const char* name);
+  int  SelectSphere(int n);
+  int  UpdateSphere();
   void AddSphereModel(vtkMRMLVirtualFixtureNode* model, double color[3]);
   void HighlightSphereModel(vtkMRMLVirtualFixtureNode* data, bool highlight);
 
@@ -155,6 +135,7 @@ class VTK_VirtualFixture_EXPORT vtkVirtualFixtureGUI : public vtkSlicerModuleGUI
   vtkKWEntry*      CenterYEntry;
   vtkKWEntry*      CenterZEntry;
   vtkKWEntry*      RadiusEntry;
+  vtkKWEntry*      HardnessEntry;
   vtkKWPushButton* UpdateSphereButton;
   vtkKWPushButton* DeleteSphereButton;
 
