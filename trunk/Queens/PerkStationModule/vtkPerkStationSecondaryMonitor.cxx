@@ -54,6 +54,9 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
   this->MonitorPhysicalSizeMM[0] = 304.8;
   this->MonitorPhysicalSizeMM[1] = 228.6;
 
+  this->MonitorPixelResolution[0] = 800;
+  this->MonitorPixelResolution[1] = 600;
+
 
   // display/view related
   this->ImageData = NULL;

@@ -1137,7 +1137,7 @@ void vtkPerkStationCalibrateStep::ShowScaleComponents()
           {
           vtkKWEntry *entry = this->MonPhySize->AddWidget(id);  
           entry->SetWidth(7);
-          entry->ReadOnlyOn();
+          //entry->ReadOnlyOn();
           entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
           }
         }
@@ -1199,7 +1199,7 @@ void vtkPerkStationCalibrateStep::ShowScaleComponents()
           {
           vtkKWEntry *entry = this->MonPixRes->AddWidget(id);  
           entry->SetWidth(7);
-          entry->ReadOnlyOn();
+          //entry->ReadOnlyOn();
           entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
           }
         }
