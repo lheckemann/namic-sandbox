@@ -483,6 +483,19 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep)
       {
 
+      // inside calibrate step
+
+      // what if the volume selected is actually validation
+      // in that case just return
+     if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+        {
+        if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+          {
+          n->SetVolumeInUse("Validation");          
+          return;
+          }
+        }
+
       if (n->GetPlanningVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
         {
         if (strcmpi(n->GetPlanningVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
@@ -491,6 +504,8 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
           }
         return;
         }
+
+      
 
       // calibrate/planning volume set
       n->SetPlanningVolumeRef(this->VolumeSelector->GetSelected()->GetID());
@@ -501,6 +516,14 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       vtkMRMLScalarVolumeDisplayNode *node = NULL;
       vtkSetAndObserveMRMLNodeMacro(node, n->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode());
 
+      const char *strName = this->VolumeSelector->GetSelected()->GetName();
+      std::string strPlan = std::string(strName) + "-Plan";
+      this->VolumeSelector->GetSelected()->SetName(strPlan.c_str());
+      this->VolumeSelector->GetSelected()->SetDescription("Planning image/volume; created by PerkStation module");
+      this->VolumeSelector->GetSelected()->Modified();
+
+      this->VolumeSelector->UpdateMenu();
+
       // set up the image on secondary monitor    
       this->SecondaryMonitor->SetupImageData();
       
@@ -510,8 +533,21 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       }
     else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep)
       {
+      // what if the volume selected is actually planning
+      // in that case just return
+      if (n->GetPlanningVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+        {
+        if (strcmpi(n->GetPlanningVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+          {
+          n->SetVolumeInUse("Planning");          
+          return;
+          }
+        }
+
+      // in case, the validation volume already exists
       if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
         {
+        // in case, the selected volume is actually validation volume
         if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
           {
           n->SetVolumeInUse("Validation");          
@@ -525,6 +561,15 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       n->SetValidationVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(n->GetValidationVolumeRef())));
       n->SetVolumeInUse("Validation");
 
+      const char *strName = this->VolumeSelector->GetSelected()->GetName();
+      std::string strPlan = std::string(strName) + "-Validation";
+      this->VolumeSelector->GetSelected()->SetName(strPlan.c_str());
+      this->VolumeSelector->GetSelected()->SetDescription("Validation image/volume; created by PerkStation module");
+      this->VolumeSelector->GetSelected()->Modified();
+
+      this->VolumeSelector->UpdateMenu();
+
+
       }
     else
       {
@@ -532,6 +577,29 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       // situation, when the user in neither calibration step, nor validation step
       // he could be fiddling around with GUI, and be in either planning or insertion step or evaluation step
 
+      // what if the volume selected is actually planning
+      // in that case just return
+      if (n->GetPlanningVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+        {
+        if (strcmpi(n->GetPlanningVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+          {
+          n->SetVolumeInUse("Planning");          
+          return;
+          }
+        }
+
+       // what if the volume selected is actually validation
+      // in that case just return
+     if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+        {
+        if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+          {
+          n->SetVolumeInUse("Validation");          
+          return;
+          }
+        }
+
+      
       // only to handle case when planning volume has not been set so far, in which case we set the planning volume
 
       if (n->GetPlanningVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
