@@ -96,9 +96,9 @@ struct vtkFreehandThreadStruct
 //----------------------------------------------------------------------------
 vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
 {
-  this->SetNumberOfInputPorts(1);
+  this->SetNumberOfInputPorts(1);    
   this->SetNumberOfOutputPorts(1);
- 
+    
   // set the video lag (i.e the lag between tracking information and
   // video information)
   this->VideoLag = 0.0;
@@ -215,8 +215,27 @@ vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
   this->ReconstructionThreadId = -1;
   this->RealTimeReconstruction = 0; // # real-time or buffered
   this->ReconstructionFrameCount = 0; // # of frames to reconstruct
+
+// McGumbel
+  this->vtkImageOutput = vtkImageData::New();
+  vtkImageOutput->SetDimensions(VOLUME_X_LENGTH, VOLUME_Y_LENGTH ,VOLUME_Z_LENGTH);
+  vtkImageOutput->AllocateScalars();
+  vtkImageOutput->SetScalarTypeToUnsignedChar();
   
-////  cout << "vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor() | Finished" <<endl;
+   char * p_value = (char*)vtkImageOutput->GetScalarPointer();
+
+  for (int i = 0 ; i < VOLUME_X_LENGTH ; i++)
+    {
+    for (int j = 0 ; j < VOLUME_Y_LENGTH ; j++)
+      {
+      for (int k = 0 ; k < VOLUME_Z_LENGTH ; k++)
+        {
+        *p_value = 96;
+        p_value ++;
+        }
+      }
+    }
+  
 }
 
 //----------------------------------------------------------------------------
@@ -267,69 +286,63 @@ void vtk3DPanoramicVolumeReconstructor::SetSlice(vtkImageData *slice)
 
 //----------------------------------------------------------------------------
 vtkImageData* vtk3DPanoramicVolumeReconstructor::GetSlice()
-{
-  if (this->GetNumberOfInputConnections(0) < 1)
-    {
-    return NULL;
-    }
+{ 
+//  cout << "vtkImageData* vtk3DPanoramicVolumeReconstructor::GetSlice() | Called " << endl;
+  vtkImageData * vtkImageMasterSlice = vtkImageData::New();
+  vtkImageMasterSlice->SetDimensions(VOLUME_X_LENGTH, VOLUME_Y_LENGTH ,VOLUME_Z_LENGTH);
+  vtkImageMasterSlice->AllocateScalars(); 
+  vtkImageMasterSlice->SetScalarTypeToUnsignedChar();
   
-  if (this->GetExecutive())
-    {
-    return vtkImageData::SafeDownCast(
-      this->GetExecutive()->GetInputData(0, 0));
-    }
-  else
-    {
-    cerr<< "GetSlice: Executive = NULL \n";
-    exit(0);
-    }
-}
+  //Spacing
+  vtkImageMasterSlice->SetSpacing(VOLUME_X_SPACING, VOLUME_Y_SPACING, VOLUME_Z_SPACING);
+  
+  //Origin
+  vtkImageMasterSlice->SetOrigin(VOLUME_X_ORIGIN, VOLUME_Y_ORIGIN, VOLUME_Z_ORIGIN);
+   
+  char * p_value = (char*)vtkImageMasterSlice->GetScalarPointer();
 
-//----------------------------------------------------------------------------
-vtkImageData* vtk3DPanoramicVolumeReconstructor::GetMasterSlice()
-{
-//  vtkMINCImageReader* pDICOMReader = vtkMINCImageReader::New();
+  for (int i = 0 ; i < VOLUME_X_LENGTH ; i++)
+    {
+    for (int j = 0 ; j < VOLUME_Y_LENGTH ; j++)
+      {
+      *p_value = j;
+      p_value ++;
+      }
+    }
+    
+  return vtkImageMasterSlice;
+    
+//  if (this->GetNumberOfInputConnections(0) < 1)
+//    {
+//    return NULL;
+//    }
 //  
-//  pDICOMReader->SetFileName("/projects/mrrobot/gumprecht/images/mnc/volume.mnc");
-//  pDICOMReader->Update();
-  
-//  vtkImageData* imageData = vtkImageData::New();
-//  imageData->DeepCopy(pDICOMReader->GetOutput());
-
-//  imageData->SetOrigin(-160, -120, -120);
-//  imageData->AllocateScalars();
-
-//  return imageData;  
-
-//----------------------------------------------------------------------------    
-//  vtkImageReader2 * imageReader = vtkImageReader2::New();
-//  imageReader->SetFileName("/projects/mrrobot/gumprecht/images/dicom/testvolume.dicom");
-//  imageReader->Update();
-
-  vtkImageReader2 * imageReader = vtkImageReader2::New();
-  imageReader->SetFileName("/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img/igtlTestImage1.raw");
-  imageReader->Update();
-  
-  vtkImageData* imageData = vtkImageData::New();
-  imageData->DeepCopy(imageReader->GetOutput());
-
-//  imageData->SetExtent(0, 255, 0, 255, 0, 0);  
-  imageData->AllocateScalars();
-  
-  return imageData;  
+//  if (this->GetExecutive())
+//    {
+//    return vtkImageData::SafeDownCast(
+//      this->GetExecutive()->GetInputData(0, 0));
+//    }
+//  else
+//    {
+//    cerr<< "GetSlice: Executive = NULL \n";
+//    exit(0);
+//    }
 }
 
 //----------------------------------------------------------------------------
 vtkImageData *vtk3DPanoramicVolumeReconstructor::GetOutput()
 {
-  if(this->GetOutputDataObject(0))
-    {
-    return vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
-    }
-  else
-    {
-    return NULL;
-    }
+
+  return this->vtkImageOutput;
+  
+//  if(this->GetOutputDataObject(0))
+//    {
+//    return vtkImageData::SafeDownCast(this->GetOutputDataObject(0));
+//    }
+//  else
+//    {
+//    return NULL;
+//    }
 }
 
 //----------------------------------------------------------------------------
@@ -1382,7 +1395,7 @@ void vtk3DPanoramicVolumeReconstructor::InsertSlice()
     this->OptimizedInsertSlice();
     return;
     }
-
+    
   if (this->ReconstructionThreadId == -1)
     {
     this->InternalExecuteInformation();
@@ -1789,6 +1802,8 @@ VTK_THREAD_RETURN_TYPE vtkFreehandThreadedFillExecute( void *arg )
   int ext[6], splitExt[6], total;
   int threadId, threadCount;
   vtkImageData *output;
+  
+  cout << "vtkFreehandThreadedFillExecute | Started "<< endl;
 
   threadId = ((ThreadInfoStruct *)(arg))->ThreadID;
   threadCount = ((ThreadInfoStruct *)(arg))->NumberOfThreads;
@@ -1800,7 +1815,6 @@ VTK_THREAD_RETURN_TYPE vtkFreehandThreadedFillExecute( void *arg )
   // execute the actual method with appropriate extent
   // first find out how many pieces extent can be split into.
   total = str->Filter->SplitSliceExtent(splitExt, ext, threadId, threadCount);
-  //total = 1;
   
   if (threadId < total)
     {
@@ -2968,6 +2982,15 @@ void vtk3DPanoramicVolumeReconstructor::MultiThread(vtkImageData *inData,
   // setup threading and the invoke threadedExecute
   this->Threader->SetSingleMethod(vtkFreehandThreadedExecute, &str);
   this->Threader->SingleMethodExecute();
+
+//  int threadId = 1;
+//  
+//  int splitExt[6];
+//  this->GetOutput()->GetExtent(splitExt[0], splitExt[1], splitExt[2], splitExt[3], splitExt[4], splitExt[5]);
+//  
+//  this->ThreadedSliceExecute(str.Input, str.Output,
+//              splitExt, threadId);
+
 }
 
 
@@ -2975,7 +2998,7 @@ void vtk3DPanoramicVolumeReconstructor::OptimizedInsertSlice()
 {
   if (this->ReconstructionThreadId == -1)
     {
-    // this->GetOutput()->Update();
+    this->GetOutput()->Update();
     this->InternalExecuteInformation();
     }
   if (this->NeedsClear)
@@ -2983,8 +3006,7 @@ void vtk3DPanoramicVolumeReconstructor::OptimizedInsertSlice()
     this->InternalClearOutput();
     }
 
-  vtkImageData *inData = this->GetMasterSlice();
-//  vtkImageData *inData = this->GetSlice();
+  vtkImageData *inData = this->GetSlice();
   vtkImageData *outData = this->GetOutput();
 
   // if not in ReconstructionThread, update the slice here
@@ -3029,6 +3051,8 @@ void vtk3DPanoramicVolumeReconstructor::ThreadedSliceExecute(
   int *outExt = this->OutputExtent;
   void *outPtr = outData->GetScalarPointerForExtent(outExt);
   void *accPtr = NULL;
+
+cout << "void vtk3DPanoramicVolumeReconstructor::ThreadedSliceExecute | Started" << endl; 
 
   vtkImageData *accData = this->AccumulationBuffer;
   if (this->Compounding)
