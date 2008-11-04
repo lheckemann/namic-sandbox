@@ -1,6 +1,6 @@
 /*=========================================================================
 
-Module:    $RCSfile: vtkSonixVideoSource.h,v $
+Module:    $RCSfile: vtkUltraSoundSimulator.h,v $
 Author:  Siddharth Vikal, Queens School Of Computing
 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
@@ -37,14 +37,14 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
   
-// .NAME vtkSonixVideoSource - VTK interface for video input from Ultrasonix machine
+// .NAME vtkUltraSoundSimulator - VTK interface for video input from UltraSound machine
 // .SECTION Description
-// vtkSonixVideoSource is a class for providing video input interfaces between VTK and Ultrasonix machine.
+// vtkUltraSoundSimulator is a class for providing video input interfaces between VTK and UltraSound machine.
 // The goal is to provide the ability to be able to do acquisition
 // in various imaging modes, buffer the image/volume series being acquired
 // and stream the frames to output. 
-// Note that the data coming out of the Sonix rp through ulterius is always RGB
-// This class talks to Ultrasonix's Ulterius SDK for executing the tasks 
+// Note that the data coming out of the UltraSound rp through ulterius is always RGB
+// This class talks to UltraSound's Ulterius SDK for executing the tasks 
 // .SECTION Caveats
 // You must call the ReleaseSystemResources() method before the application
 // exits.  Otherwise the application might hang while trying to exit.
@@ -61,32 +61,30 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 
-#ifndef __vtkSonixVideoSource_h
-#define __vtkSonixVideoSource_h
+#ifndef __vtkUltraSoundSimulator_h
+#define __vtkUltraSoundSimulator_h
 
 #include "vtkUltrasoundWin32Header.h"
 #include "vtkVideoSource.h"
+
+#define VOLUME_X_LENGTH 256
+#define VOLUME_Y_LENGTH 256
+#define VOLUME_Z_LENGTH 1
+
+#define BITS_PER_PIXEL 8
 
 //BTX
 
 class uDataDesc;
 class ulterius;
 
-class VTK_ULTRASOUND_EXPORT vtkSonixVideoSource;
+class VTK_ULTRASOUND_EXPORT vtkUltraSoundSimulator;
 
-class VTK_ULTRASOUND_EXPORT vtkSonixVideoSourceCleanup
+class VTK_EXPORT vtkUltraSoundSimulator : public vtkVideoSource
 {
 public:
-  vtkSonixVideoSourceCleanup();
-  ~vtkSonixVideoSourceCleanup();
-};
-//ETX
-
-class VTK_EXPORT vtkSonixVideoSource : public vtkVideoSource
-{
-public:
-  //static vtkSonixVideoSource *New();
-  vtkTypeRevisionMacro(vtkSonixVideoSource,vtkVideoSource);
+  //static vtkUltraSoundSimulator *New();
+  vtkTypeRevisionMacro(vtkUltraSoundSimulator,vtkVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
   // Description:
   // This is a singleton pattern New.  There will only be ONE
@@ -94,22 +92,16 @@ public:
   // call this must call Delete on the object so that the reference
   // counting will work.   The single instance will be unreferenced when
   // the program exits.
-  static vtkSonixVideoSource* New();
+  static vtkUltraSoundSimulator* New();
   // Description:
   // Return the singleton instance with no reference counting.
-  static vtkSonixVideoSource* GetInstance();
+  static vtkUltraSoundSimulator* GetInstance();
 
   // Description:
   // Supply a user defined output window. Call ->Delete() on the supplied
   // instance after setting it.
-  static void SetInstance(vtkSonixVideoSource *instance);
-  //BTX
-  // use this as a way of memory management when the
-  // program exits the SmartPointer will be deleted which
-  // will delete the Instance singleton
-  static vtkSonixVideoSourceCleanup Cleanup;
-  //ETX
-
+  static void SetInstance(vtkUltraSoundSimulator *instance);
+  
   // Description:
   // Record incoming video at the specified FrameRate.  The recording
   // continues indefinitely until Stop() is called. 
@@ -138,8 +130,8 @@ public:
   void GetImagingMode(int & mode){mode = ImagingMode;};
 
   // Description:
-  // Give the IP address of the sonix machine
-  void SetSonixIP(char *SonixIP);
+  // Give the IP address of the UltraSound machine
+  void SetUltraSoundIP(char *UltraSoundIP);
   
   /* List of parameters which can be set or read in B-mode, other mode parameters not currently implemented*/
 
@@ -162,7 +154,7 @@ public:
   vtkSetMacro(FrameRate, float);
 
   // Description:
-  // Request a particular data type from sonix machine by means of a mask.
+  // Request a particular data type from UltraSound machine by means of a mask.
   // Range of types supported:  1) Screen (800 x 600); 2) B Pre Scan Converted; 3) B Post Scan Converted (8 bit);
   //              4) B Post Scan Converted (32 bit); 5) RF; 6) M Pre Scan Converted;
   //              7) M Post Scan Converted; 8) PW RF; 9) PW Spectrum;
@@ -189,23 +181,22 @@ public:
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 protected:
-  vtkSonixVideoSource();
-  ~vtkSonixVideoSource();
+  vtkUltraSoundSimulator();
+  ~vtkUltraSoundSimulator();
 
   int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
-  ulterius *ult;
-  uDataDesc *DataDescriptor;
+//  ulterius *ult;
+//  uDataDesc *DataDescriptor;
   int Frequency;
   int Depth;
-  int FrameRate;
+  float FrameRate;
   int AcquisitionDataType;
   int ImagingMode;
   
-  char *SonixHostIP;
+  char *UltraSoundHostIP;
 
-  void UnpackRasterLine(char *outptr, char *inptr, 
-                        int start, int count);
+//  void UnpackRasterLine(char *outptr, char *inptr, int start, int count);
 
   void DoFormatSetup();
 
@@ -217,10 +208,10 @@ protected:
 private:
  
 
-  static vtkSonixVideoSource* Instance;
-  static bool vtkSonixVideoSourceNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
-  vtkSonixVideoSource(const vtkSonixVideoSource&);  // Not implemented.
-  void operator=(const vtkSonixVideoSource&);  // Not implemented.
+  static vtkUltraSoundSimulator* Instance;
+  static bool vtkUltraSoundSimulatorNewFrameCallback(void * data, int type, int sz, bool cine, int frmnum);
+  vtkUltraSoundSimulator(const vtkUltraSoundSimulator&);  // Not implemented.
+  void operator=(const vtkUltraSoundSimulator&);  // Not implemented.
 };
 
 #endif
