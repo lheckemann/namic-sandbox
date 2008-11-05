@@ -497,7 +497,7 @@ void vtkPerkStationValidateStep::InstallCallbacks()
       wizard_widget->GetOKButton()->SetCommand(
       this, "StartOverNewExperiment");
       wizard_widget->GetOKButton()->SetBalloonHelpString(
-      "Save and do another experiment");
+      "Do another experiment");
       }
 
     }
@@ -815,8 +815,17 @@ void vtkPerkStationValidateStep::SaveValidation(ostream& of)
   of << depth << " ";
   of << "\" \n";
 
-
+  // entry point error
+  of << " EntryPointError=\"";
+  double entryError = mrmlNode->GetEntryPointError();  
+  of << entryError << " ";
+  of << "\" \n";
   
+  // target point error
+  of << " TargetPointError=\"";
+  double targetError = mrmlNode->GetTargetPointError();  
+  of << targetError << " ";
+  of << "\" \n";
 
 }
 

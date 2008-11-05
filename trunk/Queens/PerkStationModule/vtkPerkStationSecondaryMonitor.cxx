@@ -34,7 +34,7 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
 
   // monitor info related
   this->DeviceActive = false; 
-  this->DisplayInitialized = false;
+  this->DisplayInitialized = false;  
   this->VirtualScreenCoord[0] = 0;
   this->VirtualScreenCoord[1] = 0;
   this->ScreenSize[0] = 800;
@@ -173,7 +173,7 @@ void vtkPerkStationSecondaryMonitor::ResetCalibration()
   flipMatrix = this->GetFlipMatrixFromDirectionCosines(directionMatrix,verticalFlip,horizontalFlip);
   this->CurrentTransformMatrix->DeepCopy(flipMatrix);
 
-  this->UpdateMatrices();  
+  this->UpdateMatrices();    
   
 }
 //----------------------------------------------------------------------------
@@ -228,12 +228,20 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->MapToWindowLevelColors->SetInput( this->Reslice->GetOutput() );
   // mapper
   this->ImageMapper->SetInput(this->MapToWindowLevelColors->GetOutput());
-  // actor
+  // actor  
+  // remove previous active actors
+  this->Renderer->RemoveAllViewProps();
+  // add new image actor
   this->Renderer->AddActor(this->ImageActor);
 
   // matrix stuff  
+  // matrices
+  this->XYToIJK->Identity();
+  this->XYToRAS->Identity();
+  this->CurrentTransformMatrix->Identity();
+  this->ResliceTransform->Identity();
 
- // calculate initial xytoijk matrix
+  // calculate initial xytoijk matrix
   vtkMatrix4x4 *xyToIJK = vtkMatrix4x4::New();
   xyToIJK->Identity();
 
@@ -246,6 +254,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   xyToIJK->SetElement(2,3,0.0);
   this->XYToIJK->DeepCopy(xyToIJK);
 
+    
   // to have consistent display i.e. same display as in SLICER's slice viewer, and own render window in secondary monitor
   // figure out whether a horizontal flip required or a vertical flip or both
   // Note: this does not counter the flip that will be required due to secondary monitors orientation/mounting
@@ -259,6 +268,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
 
   flipMatrix = this->GetFlipMatrixFromDirectionCosines(directionMatrix,verticalFlip,horizontalFlip);
   this->CurrentTransformMatrix->DeepCopy(flipMatrix);
+
 
   this->DisplayInitialized = true;
 
@@ -787,55 +797,127 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
   // Get insertion depth
   double insertionDepth = mrmlNode->GetActualPlanInsertionDepth();
 
-  // first calculate how many, in increments of 10 mm, less than equal to 5 lines, that less than max number of lines
-  this->NumOfDepthPerceptionLines = insertionDepth/10;
-  
-  double lengthIncrement = 10.0; // in mm
-  
-  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
-  vtkMatrix4x4::Invert(this->XYToRAS, rasToXY);
+  if (insertionDepth > 0)
+  {
 
-  double pointXY[2];
-  double worldCoordinate[4];
-  double wcStartPoint[4];
-  double wcEndPoint[4];
+    // first calculate how many, in increments of 10 mm, less than equal to 5 lines, that less than max number of lines
+    this->NumOfDepthPerceptionLines = insertionDepth/10;
+      
+    double lengthIncrement = 10.0; // in mm
+      
+    vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+    vtkMatrix4x4::Invert(this->XYToRAS, rasToXY);
 
-   // entry point
-  double rasEntry[3];
-  mrmlNode->GetPlanEntryPoint(rasEntry);
-   // target point
-  double rasTarget[3];
-  mrmlNode->GetPlanTargetPoint(rasTarget);
+    double pointXY[2];
+    double worldCoordinate[4];
+    double wcStartPoint[4];
+    double wcEndPoint[4];
 
-  double rasTemp[3];
-  double inPt[4];
-  double outPt[4];  
-    
+    // entry point
+    double rasEntry[3];
+    mrmlNode->GetPlanEntryPoint(rasEntry);
+    // target point
+    double rasTarget[3];
+    mrmlNode->GetPlanTargetPoint(rasTarget);
 
-  double denom = rasTarget[0]-rasEntry[0];
-  double numer = rasTarget[1]-rasEntry[1];
+    double rasTemp[3];
+    double inPt[4];
+    double outPt[4];  
+        
 
-  double insertionAngle = atan(double(rasTarget[1]-rasEntry[1])/double(rasTarget[0]-rasEntry[0]));
-  
+    double denom = rasTarget[0]-rasEntry[0];
+    double numer = rasTarget[1]-rasEntry[1];
 
-  // create the end point coordinates of each depth perception line, starting from entry point, moving towards target point
-  for (unsigned int i = 0; i < this->NumOfDepthPerceptionLines; i++)
-    {
-    if (denom>=0)
-      {
-      rasTemp[0] = rasEntry[0] + lengthIncrement*(i+1)*cos(insertionAngle);
-      rasTemp[1] = rasEntry[1] + lengthIncrement*(i+1)*sin(insertionAngle);
-      }
-    else
-      {
-      rasTemp[0] = rasEntry[0] - lengthIncrement*(i+1)*cos(insertionAngle);
-      rasTemp[1] = rasEntry[1] - lengthIncrement*(i+1)*sin(insertionAngle);
-      }
-    rasTemp[2] = rasEntry[2];
+    double insertionAngle = atan(double(rasTarget[1]-rasEntry[1])/double(rasTarget[0]-rasEntry[0]));
+      
 
-    inPt[0] = rasTemp[0];
-    inPt[1] = rasTemp[1];
-    inPt[2] = rasTemp[2];
+    // create the end point coordinates of each depth perception line, starting from entry point, moving towards target point
+    for (unsigned int i = 0; i < this->NumOfDepthPerceptionLines; i++)
+        {
+        if (denom>=0)
+        {
+        rasTemp[0] = rasEntry[0] + lengthIncrement*(i+1)*cos(insertionAngle);
+        rasTemp[1] = rasEntry[1] + lengthIncrement*(i+1)*sin(insertionAngle);
+        }
+        else
+        {
+        rasTemp[0] = rasEntry[0] - lengthIncrement*(i+1)*cos(insertionAngle);
+        rasTemp[1] = rasEntry[1] - lengthIncrement*(i+1)*sin(insertionAngle);
+        }
+        rasTemp[2] = rasEntry[2];
+
+        inPt[0] = rasTemp[0];
+        inPt[1] = rasTemp[1];
+        inPt[2] = rasTemp[2];
+        inPt[3] = 1;
+
+        // convert to xy
+        rasToXY->MultiplyPoint(inPt, outPt);
+        pointXY[0] = outPt[0];
+        pointXY[1] = outPt[1];
+
+        // convert to world coordinate
+        this->Renderer->SetDisplayPoint(pointXY[0],pointXY[1], 0);
+        this->Renderer->DisplayToWorld();
+        this->Renderer->GetWorldPoint(worldCoordinate);
+        
+        // get start and end points
+        wcStartPoint[0] = worldCoordinate[0];
+        wcStartPoint[1] = worldCoordinate[1];
+        wcStartPoint[2] = worldCoordinate[2];
+
+        // end point
+        if (denom>=0)
+        {
+        pointXY[0] = 0;   
+        }
+        else
+        {
+        pointXY[0] = this->MonitorPixelResolution[0];
+        }
+
+
+        // convert to world coordinate
+        this->Renderer->SetDisplayPoint(pointXY[0],pointXY[1], 0);
+        this->Renderer->DisplayToWorld();
+        this->Renderer->GetWorldPoint(worldCoordinate);
+
+        wcEndPoint[0] = worldCoordinate[0];
+        wcEndPoint[1] = worldCoordinate[1];
+        wcEndPoint[2] = worldCoordinate[2];
+
+        // set up the line
+        vtkLineSource *line = vtkLineSource::New();
+        line->SetPoint1(wcStartPoint);
+        line->SetPoint2(wcEndPoint);
+
+        // set up the mapper,
+        vtkPolyDataMapper *lineMapper = vtkPolyDataMapper::New();
+        lineMapper->SetInputConnection( line->GetOutputPort() );
+      
+
+        // actor
+        vtkActor *lineActor = vtkActor::New();
+        lineActor->SetMapper(lineMapper);
+
+
+        // add to actor collection
+        this->DepthPerceptionLines->AddItem(lineActor);
+        this->Renderer->AddActor(lineActor);
+
+        lineMapper->Delete();
+        lineActor->Delete();
+        
+        }
+      
+    // add the last line for final target depth
+    this->NumOfDepthPerceptionLines++;
+
+      
+
+    inPt[0] = rasTarget[0];
+    inPt[1] = rasTarget[1];
+    inPt[2] = rasTarget[2];
     inPt[3] = 1;
 
     // convert to xy
@@ -847,22 +929,21 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     this->Renderer->SetDisplayPoint(pointXY[0],pointXY[1], 0);
     this->Renderer->DisplayToWorld();
     this->Renderer->GetWorldPoint(worldCoordinate);
-    
+        
     // get start and end points
     wcStartPoint[0] = worldCoordinate[0];
     wcStartPoint[1] = worldCoordinate[1];
     wcStartPoint[2] = worldCoordinate[2];
 
     // end point
-    if (denom>=0)
-      {
-      pointXY[0] = 0;   
-      }
-    else
-      {
-      pointXY[0] = this->MonitorPixelResolution[0];
-      }
-
+        if (denom>=0)
+        {
+        pointXY[0] = 0;   
+        }
+        else
+        {
+        pointXY[0] = this->MonitorPixelResolution[0];
+        } 
 
     // convert to world coordinate
     this->Renderer->SetDisplayPoint(pointXY[0],pointXY[1], 0);
@@ -873,6 +954,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     wcEndPoint[1] = worldCoordinate[1];
     wcEndPoint[2] = worldCoordinate[2];
 
+
     // set up the line
     vtkLineSource *line = vtkLineSource::New();
     line->SetPoint1(wcStartPoint);
@@ -881,7 +963,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     // set up the mapper,
     vtkPolyDataMapper *lineMapper = vtkPolyDataMapper::New();
     lineMapper->SetInputConnection( line->GetOutputPort() );
-  
+      
 
     // actor
     vtkActor *lineActor = vtkActor::New();
@@ -894,80 +976,13 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
 
     lineMapper->Delete();
     lineActor->Delete();
-    
-    }
-  
-  // add the last line for final target depth
-  this->NumOfDepthPerceptionLines++;
 
-  
+    this->DepthLinesInitialized = true;
 
-  inPt[0] = rasTarget[0];
-  inPt[1] = rasTarget[1];
-  inPt[2] = rasTarget[2];
-  inPt[3] = 1;
+    if (this->DeviceActive && this->DisplayInitialized)
+        this->RenderWindow->Render();
 
-  // convert to xy
-  rasToXY->MultiplyPoint(inPt, outPt);
-  pointXY[0] = outPt[0];
-  pointXY[1] = outPt[1];
-
-  // convert to world coordinate
-  this->Renderer->SetDisplayPoint(pointXY[0],pointXY[1], 0);
-  this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint(worldCoordinate);
-    
-  // get start and end points
-  wcStartPoint[0] = worldCoordinate[0];
-  wcStartPoint[1] = worldCoordinate[1];
-  wcStartPoint[2] = worldCoordinate[2];
-
-  // end point
-    if (denom>=0)
-      {
-      pointXY[0] = 0;   
-      }
-    else
-      {
-      pointXY[0] = this->MonitorPixelResolution[0];
-      } 
-
-  // convert to world coordinate
-  this->Renderer->SetDisplayPoint(pointXY[0],pointXY[1], 0);
-  this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint(worldCoordinate);
-
-  wcEndPoint[0] = worldCoordinate[0];
-  wcEndPoint[1] = worldCoordinate[1];
-  wcEndPoint[2] = worldCoordinate[2];
-
-
-  // set up the line
-  vtkLineSource *line = vtkLineSource::New();
-  line->SetPoint1(wcStartPoint);
-  line->SetPoint2(wcEndPoint);
-
-  // set up the mapper,
-  vtkPolyDataMapper *lineMapper = vtkPolyDataMapper::New();
-  lineMapper->SetInputConnection( line->GetOutputPort() );
-  
-
-  // actor
-  vtkActor *lineActor = vtkActor::New();
-  lineActor->SetMapper(lineMapper);
-
-
-  // add to actor collection
-  this->DepthPerceptionLines->AddItem(lineActor);
-  this->Renderer->AddActor(lineActor);
-
-  lineMapper->Delete();
-  lineActor->Delete();
-
-  this->DepthLinesInitialized = true;
-
-  if (this->DeviceActive && this->DisplayInitialized)
-    this->RenderWindow->Render();
+  }
 
 }
 //------------------------------------------------------------------------------

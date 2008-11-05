@@ -857,15 +857,8 @@ void vtkPerkStationPlanStep::Reset()
   // reset the overlay needle guide both in sliceviewer and in secondary monitor
   this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayNeedleGuide();
 
-  if (this->GetGUI()->GetSecondaryMonitor()->GetDepthLinesInitialized())
-    {
-    // although the depth perception lines are actually set and rendered in Insert step
-    // we do reset here, because we don't want to have reset button in 'Insert' step
-    // thats why we first check if the Depth lines were actually initialized
-    // if in case, we do decide to have reset button in 'Insert' step, then we should
-    // move the remove code to Reset of Insert itself
-    this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
-    }
+  this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
+  
   this->RemoveOverlayNeedleGuide();
 
   // reset parameters of mrml node
@@ -1169,4 +1162,13 @@ void vtkPerkStationPlanStep::ProcessGUIEvents(vtkObject *caller, unsigned long e
     }
 
   this->ProcessingCallback = false;
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationPlanStep::Validate()
+{
+  this->Superclass::Validate();
+  
+  // depth perception lines render
+  this->GetGUI()->GetSecondaryMonitor()->SetDepthPerceptionLines();
 }

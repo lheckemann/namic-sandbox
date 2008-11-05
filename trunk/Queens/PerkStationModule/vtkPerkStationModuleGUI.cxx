@@ -483,6 +483,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep)
       {
 
+      bool planningVolumePreExists = false;
       // inside calibrate step
 
       // what if the volume selected is actually validation
@@ -500,9 +501,11 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
         {
         if (strcmpi(n->GetPlanningVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
           {
-          n->SetVolumeInUse("Planning");          
+          n->SetVolumeInUse("Planning");   
+          return;
           }
-        return;
+        // this implies that a planning volume already existed but now there is new image/volume chosen as planning volume in calibrate step
+        planningVolumePreExists = true;
         }
 
       
@@ -527,8 +530,15 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       // set up the image on secondary monitor    
       this->SecondaryMonitor->SetupImageData();
       
-      // repopulate/enable/disable controls now that volume has been loaded
-      this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
+      if (!planningVolumePreExists)
+        {
+        // repopulate/enable/disable controls now that volume has been loaded
+        this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
+        }
+      else
+        {
+        this->ResetAndStartNewExperiment();
+        }
 
       }
     else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep)
@@ -550,9 +560,10 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
         // in case, the selected volume is actually validation volume
         if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
           {
-          n->SetVolumeInUse("Validation");          
+          n->SetVolumeInUse("Validation");  
+          return;
           }
-        return;
+        // this implies that a validation volume already existed but now there is new image/volume chosen as validation volume in validate step
         }
            
 
@@ -577,6 +588,19 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       // situation, when the user in neither calibration step, nor validation step
       // he could be fiddling around with GUI, and be in either planning or insertion step or evaluation step
 
+      // what if the volume selected is actually validation
+      // in that case just return
+      if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+        {
+        if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+          {
+          n->SetVolumeInUse("Validation");          
+          return;
+          }
+        }
+
+      bool planningVolumePreExists = false;
+
       // what if the volume selected is actually planning
       // in that case just return
       if (n->GetPlanningVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
@@ -586,31 +610,10 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
           n->SetVolumeInUse("Planning");          
           return;
           }
+        // this implies that a planning volume already existed but now there is new image/volume chosen as planning volume in calibrate step
+        planningVolumePreExists = true;
         }
-
-       // what if the volume selected is actually validation
-      // in that case just return
-     if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
-        {
-        if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
-          {
-          n->SetVolumeInUse("Validation");          
-          return;
-          }
-        }
-
       
-      // only to handle case when planning volume has not been set so far, in which case we set the planning volume
-
-      if (n->GetPlanningVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
-        {
-        if (strcmpi(n->GetPlanningVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
-          {
-          n->SetVolumeInUse("Planning");          
-          }
-        return;
-        }
-
       // calibrate/planning volume set
       n->SetPlanningVolumeRef(this->VolumeSelector->GetSelected()->GetID());
       n->SetPlanningVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(n->GetPlanningVolumeRef())));
@@ -622,13 +625,20 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
        // set up the image on secondary monitor    
       this->SecondaryMonitor->SetupImageData();
 
-      // bring the wizard GUI back to Calibrate step
-      // the volume selection has changed/added, so make sure that the wizard is in the intial calibration state!
-      while (this->WizardWidget->GetWizardWorkflow()->GetCurrentState()!= this->WizardWidget->GetWizardWorkflow()->GetInitialState())
+      if (!planningVolumePreExists)
         {
-        this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
+        // bring the wizard GUI back to Calibrate step
+        // the volume selection has changed/added, so make sure that the wizard is in the intial calibration state!
+        while (this->WizardWidget->GetWizardWorkflow()->GetCurrentState()!= this->WizardWidget->GetWizardWorkflow()->GetInitialState())
+          {
+          this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
+          }
+        this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
         }
-      this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
+      else
+        {
+        this->ResetAndStartNewExperiment();
+        }
       }    
     
     }
@@ -1384,6 +1394,63 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
       of << spacing[i] << " ";
   of << "\" \n";
 
+
+  vtkMRMLScalarVolumeNode *validateVol = mrmlNode->GetValidationVolumeNode();
+  if (validateVol == NULL)
+    {
+    return;
+    }
+  const itk::MetaDataDictionary &validateVolDictionary = validateVol->GetMetaDataDictionary();
+
+  
+
+
+  // following information needs to be written to the file
+
+  // 1) Volume location file path
+  // 2) Series number from dictionary
+  // 3) Series description from dictionary
+  // 4) FOR UID from dictionary
+  // 5) Origin from node
+  // 6) Pixel spacing from node
+  
+  // entry point
+  of << " ValidationVolumeFileLocation=\"" ;
+//  of <<  << " ";
+  of << "\" \n";
+  
+  // series number
+  tagValue.clear(); itk::ExposeMetaData<std::string>( validateVolDictionary, "0020|0011", tagValue );
+  of << " ValidateVolumeSeriesNumber=\"" ;
+  of << tagValue << " ";
+  of << "\" \n";
+
+  // series description
+  tagValue.clear(); itk::ExposeMetaData<std::string>( validateVolDictionary, "0008|103e", tagValue );
+  of << " ValidateVolumeSeriesDescription=\"" ;
+  of << tagValue << " ";
+  of << "\" \n";
+   
+  // frame of reference uid
+  tagValue.clear(); itk::ExposeMetaData<std::string>( validateVolDictionary, "0020|0052", tagValue );
+  of << " ValidateVolumeFORUID=\"" ;
+  of << tagValue << " ";
+  of << "\" \n";
+
+  // origin
+  of << " ValidateVolumeOrigin=\"" ; 
+  validateVol->GetOrigin(origin);
+  for(int i = 0; i < 3; i++)
+      of << origin[i] << " ";
+  of << "\" \n";
+  
+
+  // spacing
+  of << " ValidateVolumeSpacing=\"" ; 
+  validateVol->GetSpacing(spacing);
+  for(int i = 0; i < 3; i++)
+      of << spacing[i] << " ";
+  of << "\" \n";
 
   
 

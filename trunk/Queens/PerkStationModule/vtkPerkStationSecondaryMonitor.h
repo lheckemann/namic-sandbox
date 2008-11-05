@@ -186,6 +186,7 @@ protected:
   // about the monitor
   bool DeviceActive;
   bool DisplayInitialized;
+  
   double MonitorPixelResolution[2];
   double MonitorPhysicalSizeMM[2];  
   int VirtualScreenCoord[2];
