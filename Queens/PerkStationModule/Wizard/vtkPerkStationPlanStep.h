@@ -72,6 +72,8 @@ protected:
   virtual void PopulateControls();
   virtual void InstallCallbacks();
 
+  virtual void Validate();
+
   void ResetControls();
   bool DoubleEqual(double val1, double val2);
   virtual void CalculatePlanInsertionAngleAndDepth();
