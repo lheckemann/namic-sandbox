@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Module:    $RCSfile: vtkNDICertusTracker.h,v $
+  Module:    $RCSfile: vtkTrackerSimulator.h,v $
   Creator:   David Gobbi <dgobbi@cs.queensu.ca>
   Language:  C++
   Author:    $Author: dgobbi $
@@ -42,17 +42,17 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
-// .NAME vtkNDICertusTracker - VTK interface for the NDI Optotrak Certus
+// .NAME vtkTrackerSimulator - VTK interface for the NDI Optotrak Certus
 // .SECTION Description
-// The vtkNDICertusTracker class provides an interface to the Optotrak
+// The vtkTrackerSimulator class provides an interface to the Optotrak
 // Certus (Northern Digital Inc., Waterloo, Canada), utilizing the PCI
 // interface card.
 // .SECTION see also
 // vtkNDITracker vtkTrackerTool
 
 
-#ifndef __vtkNDICertusTracker_h
-#define __vtkNDICertusTracker_h
+#ifndef __vtkTrackerSimulator_h
+#define __vtkTrackerSimulator_h
 
 #include "vtkTrackingWin32Header.h"
 #include "vtkTracker.h"
@@ -66,12 +66,12 @@ class vtkFrameToTimeConverter;
 
 
 
-class VTK_TRACKING_EXPORT vtkNDICertusTracker : public vtkTracker
+class VTK_TRACKING_EXPORT vtkTrackerSimulator : public vtkTracker
 {
 public:
 
-  static vtkNDICertusTracker *New();
-  vtkTypeMacro(vtkNDICertusTracker,vtkTracker);
+  static vtkTrackerSimulator *New();
+  vtkTypeMacro(vtkTrackerSimulator,vtkTracker);
   void PrintSelf(ostream& os, vtkIndent indent);
  
   // Description:
@@ -95,8 +95,8 @@ public:
   void StopTracking();
 
 protected:
-  vtkNDICertusTracker();
-  ~vtkNDICertusTracker();
+  vtkTrackerSimulator();
+  ~vtkTrackerSimulator();
 
   // Description:
   // Set the version information.
@@ -167,8 +167,8 @@ protected:
   int PortHandle[VTK_CERTUS_NTOOLS];
 
 private:
-  vtkNDICertusTracker(const vtkNDICertusTracker&);
-  void operator=(const vtkNDICertusTracker&);  
+  vtkTrackerSimulator(const vtkTrackerSimulator&);
+  void operator=(const vtkTrackerSimulator&);  
 };
 
 #endif

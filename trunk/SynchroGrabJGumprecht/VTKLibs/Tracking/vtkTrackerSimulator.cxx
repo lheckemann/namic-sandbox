@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Module:    $RCSfile: vtkNDICertusTracker.cxx,v $
+  Module:    $RCSfile: vtkTrackerSimulator.cxx,v $
   Creator:   David Gobbi <dgobbi@cs.queensu.ca>
   Language:  C++
   Author:    $Author: dgobbi $
@@ -64,7 +64,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkTimerLog.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
-#include "vtkNDICertusTracker.h"
+#include "vtkTrackerSimulator.h"
 #include "vtkTrackerTool.h"
 #include "vtkFrameToTimeConverter.h"
 #include "vtkObjectFactory.h"
@@ -80,20 +80,20 @@ static VLEDState vtkNDICertusMapVLEDState[] = {
   VLEDST_OFF, VLEDST_ON, VLEDST_BLINK };
 
 //----------------------------------------------------------------------------
-vtkNDICertusTracker* vtkNDICertusTracker::New()
+vtkTrackerSimulator* vtkTrackerSimulator::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkNDICertusTracker");
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkTrackerSimulator");
   if(ret)
     {
-    return (vtkNDICertusTracker*)ret;
+    return (vtkTrackerSimulator*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkNDICertusTracker;
+  return new vtkTrackerSimulator;
 }
 
 //----------------------------------------------------------------------------
-vtkNDICertusTracker::vtkNDICertusTracker()
+vtkTrackerSimulator::vtkTrackerSimulator()
 {
   this->Version = NULL;
   this->SendMatrix = vtkMatrix4x4::New();
@@ -114,7 +114,7 @@ vtkNDICertusTracker::vtkNDICertusTracker()
 }
 
 //----------------------------------------------------------------------------
-vtkNDICertusTracker::~vtkNDICertusTracker() 
+vtkTrackerSimulator::~vtkTrackerSimulator() 
 {
   if (this->Tracking)
     {
@@ -132,7 +132,7 @@ vtkNDICertusTracker::~vtkNDICertusTracker()
 }
   
 //----------------------------------------------------------------------------
-void vtkNDICertusTracker::PrintSelf(ostream& os, vtkIndent indent)
+void vtkTrackerSimulator::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkTracker::PrintSelf(os,indent);
 
@@ -157,14 +157,14 @@ static char vtkCertusErrorString[MAX_ERROR_STRING_LENGTH + 1];
 #if VTK_CERTUS_DEBUG_STATEMENTS
 #define vtkCertusDebugMacro(t) \
 { \
-  cerr << "vtkNDICertusTracker.cxx:" << __LINE__ << " " t << "\n"; \
+  cerr << "vtkTrackerSimulator.cxx:" << __LINE__ << " " t << "\n"; \
 }
 #else
 #define vtkCertusDebugMacro(t)
 #endif
 
 //----------------------------------------------------------------------------
-int vtkNDICertusTracker::InitializeCertusSystem()
+int vtkTrackerSimulator::InitializeCertusSystem()
 {
   // Variable to indicate that probe failed
   int successFlag = 1;  
@@ -281,7 +281,7 @@ int vtkNDICertusTracker::InitializeCertusSystem()
 }
 
 //----------------------------------------------------------------------------
-int vtkNDICertusTracker::ShutdownCertusSystem()
+int vtkTrackerSimulator::ShutdownCertusSystem()
 {
   // Just a simple shutdown command
   if (TransputerShutdownSystem() != OPTO_NO_ERROR_CODE)
@@ -293,7 +293,7 @@ int vtkNDICertusTracker::ShutdownCertusSystem()
 }
 
 //----------------------------------------------------------------------------
-int vtkNDICertusTracker::ActivateCertusMarkers()
+int vtkTrackerSimulator::ActivateCertusMarkers()
 {
   // count the number of markers on all tools first
   if (OptotrakSetupCollection(
@@ -322,7 +322,7 @@ int vtkNDICertusTracker::ActivateCertusMarkers()
 }
 
 //----------------------------------------------------------------------------
-int vtkNDICertusTracker::DeActivateCertusMarkers()
+int vtkTrackerSimulator::DeActivateCertusMarkers()
 {
   if(OptotrakDeActivateMarkers() != OPTO_NO_ERROR_CODE)
     {
@@ -333,7 +333,7 @@ int vtkNDICertusTracker::DeActivateCertusMarkers()
 }
 
 //----------------------------------------------------------------------------
-int vtkNDICertusTracker::Probe()
+int vtkTrackerSimulator::Probe()
 {
   // If device is already tracking, return success.
   if (this->IsDeviceTracking)
@@ -351,7 +351,7 @@ int vtkNDICertusTracker::Probe()
 } 
 
 //----------------------------------------------------------------------------
-void vtkNDICertusTracker::StartTracking()
+void vtkTrackerSimulator::StartTracking()
 {
 #if VTK_CERTUS_NO_THREADING
   this->Tracking = this->InternalStartTracking();
@@ -361,7 +361,7 @@ void vtkNDICertusTracker::StartTracking()
 }
 
 //----------------------------------------------------------------------------
-int vtkNDICertusTracker::InternalStartTracking()
+int vtkTrackerSimulator::InternalStartTracking()
 {
   if (this->IsDeviceTracking)
     {
@@ -395,7 +395,7 @@ int vtkNDICertusTracker::InternalStartTracking()
 }
 
 //----------------------------------------------------------------------------
-void vtkNDICertusTracker::StopTracking()
+void vtkTrackerSimulator::StopTracking()
 {
 #if VTK_CERTUS_NO_THREADING
   this->InternalStopTracking();
@@ -406,7 +406,7 @@ void vtkNDICertusTracker::StopTracking()
 }
 
 //----------------------------------------------------------------------------
-int vtkNDICertusTracker::InternalStopTracking()
+int vtkTrackerSimulator::InternalStopTracking()
 {
   if(OptotrakDeActivateMarkers() != OPTO_NO_ERROR_CODE)
     {
@@ -426,7 +426,7 @@ int vtkNDICertusTracker::InternalStopTracking()
 }
 
 //----------------------------------------------------------------------------
-void vtkNDICertusTracker::Update()
+void vtkTrackerSimulator::Update()
 {
 #if VTK_CERTUS_NO_THREADING
   if (this->Tracking)
@@ -439,7 +439,7 @@ void vtkNDICertusTracker::Update()
 }
 
 //----------------------------------------------------------------------------
-void vtkNDICertusTracker::InternalUpdate()
+void vtkTrackerSimulator::InternalUpdate()
 {
 //  int tool;
   int missing[VTK_CERTUS_NTOOLS];
@@ -562,7 +562,7 @@ void vtkNDICertusTracker::InternalUpdate()
 //----------------------------------------------------------------------------
 // Enable all tool ports that have tools plugged into them.
 // The reference port is enabled with NDI_STATIC.
-int vtkNDICertusTracker::EnableToolPorts()
+int vtkTrackerSimulator::EnableToolPorts()
 {
   int toolCounter = 0;
 
@@ -851,7 +851,7 @@ int vtkNDICertusTracker::EnableToolPorts()
 
 //----------------------------------------------------------------------------
 // Disable all enabled tool ports.
-int vtkNDICertusTracker::DisableToolPorts()
+int vtkTrackerSimulator::DisableToolPorts()
 {
   // stop tracking
   if (this->IsDeviceTracking)
@@ -888,7 +888,7 @@ int vtkNDICertusTracker::DisableToolPorts()
 }
 
 //----------------------------------------------------------------------------
-int vtkNDICertusTracker::GetToolFromHandle(int handle)
+int vtkTrackerSimulator::GetToolFromHandle(int handle)
 {
   int tool;
 
@@ -905,7 +905,7 @@ int vtkNDICertusTracker::GetToolFromHandle(int handle)
 
 //----------------------------------------------------------------------------
 // cause the system to beep
-int vtkNDICertusTracker::InternalBeep(int n)
+int vtkTrackerSimulator::InternalBeep(int n)
 {
   // beep is not implemented yet
   return 1;
@@ -913,7 +913,7 @@ int vtkNDICertusTracker::InternalBeep(int n)
 
 //----------------------------------------------------------------------------
 // change the state of an LED on the tool
-int vtkNDICertusTracker::InternalSetToolLED(int tool, int led, int state)
+int vtkTrackerSimulator::InternalSetToolLED(int tool, int led, int state)
 {
   if (this->Tracking &&
       tool >= 0 && tool < VTK_CERTUS_NTOOLS &&
