@@ -148,6 +148,8 @@ private:
 
   SeedArrayType *                   m_SeedArray1;
   SeedArrayType *                   m_SeedArray2;
+
+  InputImageRegionType              m_InternalRegion;
   
   typedef std::vector<OutputImagePixelType>   SeedNewValuesArrayType;
 

@@ -160,9 +160,11 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   // Process only the internal face
   fit = faceList.begin();
   
-  bit = ConstNeighborhoodIterator<InputImageType>( radius, inputImage, *fit );
-  itr  = ImageRegionIterator<OutputImageType>(this->m_OutputImage, *fit);
-  mtr  = ImageRegionIterator<SeedMaskImageType>(this->m_SeedsMask, *fit);
+  this->m_InternalRegion = *fit;
+
+  bit = ConstNeighborhoodIterator<InputImageType>( radius, inputImage, this->m_InternalRegion );
+  itr  = ImageRegionIterator<OutputImageType>(    this->m_OutputImage, this->m_InternalRegion );
+  mtr  = ImageRegionIterator<SeedMaskImageType>(  this->m_SeedsMask,   this->m_InternalRegion );
 
   bit.GoToBegin();
   itr.GoToBegin();
@@ -380,10 +382,14 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
       {
       NeighborOffsetType offset = this->m_Neighborhood.GetOffset(i);
       IndexType neighborIndex = this->GetCurrentPixelIndex() + offset;
-      if( this->m_SeedsMask->GetPixel( neighborIndex ) == 0 )
+
+      if( this->m_InternalRegion.IsInside( neighborIndex ) )
         {
-        this->m_SeedArray2->push_back( neighborIndex );
-        this->m_SeedsMask->SetPixel( neighborIndex, 255 );
+        if( this->m_SeedsMask->GetPixel( neighborIndex ) == 0 )
+          {
+          this->m_SeedArray2->push_back( neighborIndex );
+          this->m_SeedsMask->SetPixel( neighborIndex, 255 );
+          }
         }
       }
     }
