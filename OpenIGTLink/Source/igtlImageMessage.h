@@ -26,7 +26,7 @@
 namespace igtl
 {
 
-class ImageMessage: public MessageBase
+class IGTLCommon_EXPORT ImageMessage: public MessageBase
 {
 public:
   typedef ImageMessage              Self;
@@ -65,7 +65,6 @@ public:
     TYPE_FLOAT64 = 11
   };
 
-  static const int ScalarSizeTable[];
 
 public:
 
@@ -154,6 +153,7 @@ protected:
   unsigned char*  m_ImageHeader;
   unsigned char*  m_Image;
 
+  int ScalarSizeTable[8];
 };
 
 

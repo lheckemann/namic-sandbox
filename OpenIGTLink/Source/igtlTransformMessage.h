@@ -25,7 +25,7 @@
 namespace igtl
 {
 
-class TransformMessage: public MessageBase
+class IGTLCommon_EXPORT TransformMessage: public MessageBase
 {
 public:
   typedef TransformMessage               Self;
