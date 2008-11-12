@@ -21,14 +21,6 @@
 
 namespace igtl {
 
-const int ImageMessage::ScalarSizeTable[] = 
-  {
-    0, 0,
-    1, 1,   // INT8 / UINT8
-    2, 2,   // INT16 / UINT16
-    4, 4,   // INT32 / UINT32
-  };
-
 
 ImageMessage::ImageMessage():
   MessageBase()
@@ -56,6 +48,15 @@ ImageMessage::ImageMessage():
   m_Image       = NULL;
 
   m_DefaultBodyType  = "IMAGE";
+
+  ScalarSizeTable[0] = 0;
+  ScalarSizeTable[1] = 0;
+  ScalarSizeTable[2] = 1;
+  ScalarSizeTable[3] = 1;
+  ScalarSizeTable[4] = 2;
+  ScalarSizeTable[5] = 2;
+  ScalarSizeTable[6] = 4;
+  ScalarSizeTable[7] = 4;
 }
 
 ImageMessage::~ImageMessage()

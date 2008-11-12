@@ -57,7 +57,7 @@
 namespace igtl
 {
 
-class MessageBase: public Object
+class IGTLCommon_EXPORT MessageBase: public Object
 {
 public:
 
