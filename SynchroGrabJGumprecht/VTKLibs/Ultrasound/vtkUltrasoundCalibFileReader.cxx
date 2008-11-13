@@ -268,9 +268,17 @@ void vtkUltrasoundCalibFileReader::ReadCalibFile()
   //error
     }
   
-  // calculate calib matrix, image spacing, 
-  Calculate();
-  
+  // calculate calib matrix, image spacing,
+   
+//  Calculate();
+   cout << "void vtkUltrasoundCalibFileReader::ReadCalibFile() | Calculate deactivated" << endl;
+   
+  this->ImageSpacing[0] = 1.0;
+  this->ImageSpacing[1] = 1.0;
+  this->ImageSpacing[2] = 1.0;
+   
+   
+     
   // close the file stream
   this->CloseCalibFile();
   
