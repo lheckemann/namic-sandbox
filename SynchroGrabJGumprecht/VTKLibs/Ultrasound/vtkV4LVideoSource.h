@@ -58,25 +58,29 @@ POSSIBILITY OF SUCH DAMAGE.
 // .SECTION See Also
 // vtkWin32VideoSource vtkMILVideoSource
 
-
-
-
 #ifndef __vtkV4LVideoSource_h
 #define __vtkV4LVideoSource_h
 
 #include "vtkUltrasoundWin32Header.h"
 #include "vtkVideoSource.h"
 
-#define VOLUME_X_LENGTH 256
-#define VOLUME_Y_LENGTH 256
-#define VOLUME_Z_LENGTH 1
+#define SLICE_X_LENGTH 256
+#define SLICE_Y_LENGTH 256
+#define SLICE_Z_LENGTH 1
 
 #define BITS_PER_PIXEL 8
 
+
+//Imaging mode | not used in the simualtor. Only here for consistency.
+enum {BMode};
+
+//Acquistiontypes | not used in the simualtor. Only here for consistency.
+enum {udtBPost};
+
 //BTX
 
-class uDataDesc;
-class ulterius;
+//class uDataDesc;
+//class ulterius;
 
 class VTK_ULTRASOUND_EXPORT vtkV4LVideoSource;
 

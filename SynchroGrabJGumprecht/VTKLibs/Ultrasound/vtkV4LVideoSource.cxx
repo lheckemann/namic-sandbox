@@ -80,9 +80,9 @@ vtkV4LVideoSource::vtkV4LVideoSource()
 {
   this->Initialized = 0;
 
-  this->FrameSize[0] = VOLUME_X_LENGTH;
-  this->FrameSize[1] = VOLUME_Y_LENGTH;
-  this->FrameSize[2] = VOLUME_Z_LENGTH;
+  this->FrameSize[0] = SLICE_X_LENGTH;
+  this->FrameSize[1] = SLICE_Y_LENGTH;
+  this->FrameSize[2] = SLICE_Z_LENGTH;
   
   this->UltraSoundHostIP = "";
   this->FrameRate = 13; // in fps
@@ -98,6 +98,7 @@ vtkV4LVideoSource::vtkV4LVideoSource()
   this->FrameBufferBitsPerPixel = 8;
   this->FlipFrames = 1;
   this->FrameBufferRowAlignment = 1; 
+ 
 }
 
 //----------------------------------------------------------------------------
@@ -600,8 +601,8 @@ void vtkV4LVideoSource::DoFormatSetup()
 {
 
   //set the frame size from the data descriptor, 
-//  this->FrameSize[0] = VOLUME_X_LENGTH;
-//  this->FrameSize[1] = VOLUME_Y_LENGTH;
+//  this->FrameSize[0] = SLICE_X_LENGTH;
+//  this->FrameSize[1] = SLICE_Y_LENGTH;
   this->FrameBufferBitsPerPixel = BITS_PER_PIXEL;
 //  this->FrameBufferBitsPerPixel = this->DataDescriptor->ss;
 //  switch (this->AcquisitionDataType)
@@ -618,8 +619,8 @@ void vtkV4LVideoSource::DoFormatSetup()
 //  case udtBPre:
 //  case udtMPre:
 //  case udtElastoPre: //this data type does not have a FC at the start
-    this->FrameSize[0] = VOLUME_Y_LENGTH;
-    this->FrameSize[1] = VOLUME_X_LENGTH;      
+    this->FrameSize[0] = SLICE_Y_LENGTH;
+    this->FrameSize[1] = SLICE_X_LENGTH;      
     this->OutputFormat = VTK_LUMINANCE;
         this->NumberOfScalarComponents = 1;
 //        break;
@@ -628,8 +629,8 @@ void vtkV4LVideoSource::DoFormatSetup()
 //  case udtColorRF:
 //  case udtPWRF:
 //  case udtRF:
-//    this->FrameSize[0] = VOLUME_Y_LENGTH;
-//    this->FrameSize[1] = VOLUME_X_LENGTH;  
+//    this->FrameSize[0] = SLICE_Y_LENGTH;
+//    this->FrameSize[1] = SLICE_X_LENGTH;  
 //    this->OutputFormat = VTK_LUMINANCE;
 //        this->NumberOfScalarComponents = 1;
 //        break;
@@ -710,15 +711,15 @@ void vtkV4LVideoSource::FillFrameBuffer()
     // to the local buffer, which demands necessary advancement of deviceDataPtr
   
     // get the pointer to actual incoming data on to a local pointer
-    char* deviceDataPtr = new char[VOLUME_X_LENGTH * VOLUME_Y_LENGTH * VOLUME_Z_LENGTH];  
+    char* deviceDataPtr = new char[SLICE_X_LENGTH * SLICE_Y_LENGTH * SLICE_Z_LENGTH];  
   
-    for (int i = 0 ; i < VOLUME_Z_LENGTH ; i++)
+    for (int i = 0 ; i < SLICE_Z_LENGTH ; i++)
       {
-      for (int j = 0 ; j < VOLUME_Y_LENGTH ; j++)
+      for (int j = 0 ; j < SLICE_Y_LENGTH ; j++)
         {
-        for (int k = 0 ; k < VOLUME_X_LENGTH ; k++)
+        for (int k = 0 ; k < SLICE_X_LENGTH ; k++)
           {
-          deviceDataPtr[ i * VOLUME_Z_LENGTH + j * VOLUME_Y_LENGTH + k] = k;        
+          deviceDataPtr[ i * SLICE_Z_LENGTH + j * SLICE_Y_LENGTH + k] = k;        
           }            
         }
       }
