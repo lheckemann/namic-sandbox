@@ -4,8 +4,9 @@
 
 SET (Ultrasound_SRCS
 #  vtkSonixVideoSource.cxx
-#  vtkTaggedImageFilter.cxx
-#  vtkUltrasoundCalibFileReader.cxx
+   vtkV4LVideoSource.cxx
+  vtkTaggedImageFilter.cxx
+  vtkUltrasoundCalibFileReader.cxx
   vtk3DPanoramicVolumeReconstructor.cxx
 )
 
@@ -38,7 +39,7 @@ ENDIF (BUILD_TESTING)
 
 # Create the vtkOpenIGTUltrasound C++ library
 ADD_LIBRARY (vtkOpenIGTUltrasound ${Ultrasound_SRCS})
-TARGET_LINK_LIBRARIES(vtkOpenIGTUltrasound vtkCommon vtkHybrid vtkParallel #vtkOpenIGTTracking
+TARGET_LINK_LIBRARIES(vtkOpenIGTUltrasound vtkCommon vtkHybrid vtkParallel vtkOpenIGTTracking
                       ${Ultrasound_LIBS})
 
 # Create the vtkOpenIGTUltrasound Tcl library
