@@ -67,6 +67,8 @@ protected:
   static void* CallReceiveProcess(igtl::MultiThreader::ThreadInfo* vinfo);
   void         ReceiveProcess();
 
+  int          ReceiveTransform(igtl::ClientSocket::Pointer& socket,
+                                igtl::MessageHeader::Pointer& header);
   
 protected:
 

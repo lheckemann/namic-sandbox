@@ -38,6 +38,7 @@ public:
   virtual int  StopScan()  { return 0; };
   virtual void Process()   {};
   virtual int  SetMatrix(float* matrix){ return 0; };
+  virtual int  SetMatrix(igtl::Matrix4x4& m) { return 0; }
 
   void SetPostProcessThread(Thread* thread);
   igtl::MessageBase::Pointer GetFrameFromBuffer(int id);

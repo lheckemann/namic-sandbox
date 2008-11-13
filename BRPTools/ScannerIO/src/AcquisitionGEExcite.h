@@ -107,6 +107,7 @@ public:
   int PauseScan();
   int StopScan();
   int SetMatrix(float* matrix);
+  int SetMatrix(igtl::Matrix4x4& m);
 
   void SetRdsHost(std::string host, int port);
   void SetConsolHost(std::string address);
@@ -115,6 +116,7 @@ public:
   void SetViewsXfer(int v);
   void SetValidate(bool s);
   void SetLineOrder(std::string l);
+  void SetDelay(int d); // in ms
 
 public:
   AcquisitionGEExcite();
@@ -146,6 +148,8 @@ protected:
   igtl::ClientSocket::Pointer ClientSocket;
   
   //NodeVector sources;
+
+  int  delay; /*ms*/
 
   byte *pByteArray;
   short **real_data;

@@ -50,11 +50,13 @@ int main(int argc, char **argv)
 
   if (argc < 1) {
     std::cerr << "Invalid arguments!" << std::endl;
-    std::cerr << "Usage: " << argv[0] << " <x> <y> <z> <type> <rx> <ry> <rz>"
-              << " <fname_temp> <bindex> <eindex> <fps> <hostname>"
+    std::cerr << "Usage: " << argv[0] << " <delay>"
+              << "  <delay>: delay of image acuiqisition (ms)"
               << std::endl;
     exit(-1);
   }
+
+  int delay = atof(argv[1]);
 
   std::cerr << "Creating new Scanner..." << std::endl;
   //AcquisitionSimulator* acquisition = new AcquisitionSimulator;
@@ -64,6 +66,7 @@ int main(int argc, char **argv)
   acquisition->SetRdsHost("10.121.1.100", 5007);
   acquisition->SetRevision(AcquisitionGEExcite::REV_14_X);
   acquisition->SetChannels(8);
+  acquisition->SetDelay(delay);
   //acquisition->SetViewsXfer(int v);
   //acquisition->SetValidate(bool s);
   //acquisition->SetDataOrder();
