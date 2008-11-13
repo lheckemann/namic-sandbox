@@ -55,12 +55,26 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "igtlImageMessage.h"
 
-/*
+#define VOLUME_X_LENGTH 256
+#define VOLUME_Y_LENGTH 256
+#define VOLUME_Z_LENGTH 256
+
+#define VOLUME_X_SPACING 1.0
+#define VOLUME_Y_SPACING 1.0
+#define VOLUME_Z_SPACING 1.0
+
+#define VOLUME_X_ORIGIN VOLUME_X_LENGTH / 2
+#define VOLUME_Y_ORIGIN VOLUME_Y_LENGTH / 2
+#define VOLUME_Z_ORIGIN VOLUME_Z_LENGTH / 2
+
+
 class vtkUltrasoundCalibFileReader;
-class vtkSonixVideoSource;
+//class vtkSonixVideoSource;
+class vtkV4LVideoSource;
 class vtkTaggedImageFilter;
-class vtkNDICertusTracker;
-*/
+//class vtkNDICertusTracker;
+class vtkTrackerSimulator;
+
 
 class vtkSynchroGrabPipeline : public vtkObject
 {
@@ -111,13 +125,11 @@ public:
   bool SendImages();
   
   void vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix);
-  int vtkGetTestImage(igtl::ImageMessage::Pointer& msg, const char* dir, int i);
+  int vtkGetTestImage(igtl::ImageMessage::Pointer& msg);
 
+protected:
   vtkSynchroGrabPipeline();
   ~vtkSynchroGrabPipeline();
-protected:
-//  vtkSynchroGrabPipeline();
-//  ~vtkSynchroGrabPipeline();
 
   int ServerPort;
   int NbFrames;
@@ -139,12 +151,14 @@ protected:
   vtkImageData *vtk_image_buffer;
   
 
-/*
+// McGumbel
   vtkUltrasoundCalibFileReader *calibReader;
-  vtkSonixVideoSource *sonixGrabber;
+//  vtkSonixVideoSource *sonixGrabber;
+  vtkV4LVideoSource *sonixGrabber;
   vtkTaggedImageFilter *tagger;
-  vtkNDICertusTracker *tracker;
-*/  
+//  vtkNDICertusTracker *tracker;
+  vtkTrackerSimulator *tracker;
+  
   igtl::ClientSocket::Pointer socket;
 
 private:
