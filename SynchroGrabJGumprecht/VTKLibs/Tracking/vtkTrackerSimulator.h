@@ -56,7 +56,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkTrackingWin32Header.h"
 #include "vtkTracker.h"
-#include "ndicapi.h"
+//#include "ndicapi.h"
+#include "igtlMath.h"
 
 class vtkFrameToTimeConverter;
 
@@ -146,7 +147,7 @@ protected:
 
   // Description:
   // Find the tool for a specific port handle (-1 if not found).
-  int GetToolFromHandle(int handle);
+//  int GetToolFromHandle(int handle);
 
   // Description:
   // Class for updating the virtual clock that accurately times the
@@ -157,14 +158,16 @@ protected:
 
   char *Version;
 
-  int NumberOfMarkers;
+//  int NumberOfMarkers;
   int NumberOfRigidBodies;
 
   vtkMatrix4x4 *SendMatrix;
   int IsDeviceTracking;
 
   int PortEnabled[VTK_CERTUS_NTOOLS];
-  int PortHandle[VTK_CERTUS_NTOOLS];
+//  int PortHandle[VTK_CERTUS_NTOOLS];
+
+void GetRandomTestMatrix(vtkMatrix4x4& matrix);
 
 private:
   vtkTrackerSimulator(const vtkTrackerSimulator&);
