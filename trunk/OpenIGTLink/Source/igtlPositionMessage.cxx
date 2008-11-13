@@ -27,6 +27,7 @@ PositionMessage::PositionMessage():
   MessageBase()
 {
   Init();
+  m_DefaultBodyType  = "POSITION";
 }
 
 
@@ -56,6 +57,33 @@ void PositionMessage::SetPackType(int t)
     {
     this->m_PackType = t;
     }
+}
+
+
+int PositionMessage::SetPackTypeByBodySize(int s)
+{
+
+  if (s == IGTL_POSITION_MESSAGE_POSITON_ONLY_SIZE)
+    {
+    this->m_PackType = POSITION_ONLY;
+    }
+  else if (s == IGTL_POSITION_MESSAGE_WITH_QUATERNION3_SIZE)
+    {
+    this->m_PackType = WITH_QUATERNION3;
+    }
+  else if (s == IGTL_POSITION_MESSAGE_DEFAULT_SIZE)
+    {
+    this->m_PackType = ALL;
+    }
+  else
+    {
+    // Do any error handling?
+    this->m_PackType = ALL;
+    return 0;
+    }
+
+  return this->m_PackType;
+
 }
 
 
@@ -124,6 +152,16 @@ void PositionMessage::GetQuaternion(float* ox, float* oy, float* oz, float* w)
   *oy = this->m_Quaternion[1];
   *oz = this->m_Quaternion[2];
   *w  = this->m_Quaternion[3];
+}
+
+
+int PositionMessage::SetMessageHeader(const MessageHeader* mb)
+{
+  int rc = Copy(mb);
+  int rt = SetPackTypeByBodySize(this->GetPackBodySize());
+
+  return (rc && rt);
+  
 }
 
 

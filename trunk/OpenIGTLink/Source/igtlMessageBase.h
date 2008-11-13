@@ -127,7 +127,7 @@ public:
   // general header is copied.
   int Copy(const MessageBase* mb);
 
-  int SetMessageHeader(const MessageHeader* mb) { return Copy(mb); };
+  virtual int SetMessageHeader(const MessageHeader* mb) { return Copy(mb); };
   int GetBodySizeToRead()                       { return m_BodySizeToRead; };
   
 protected:
