@@ -24,6 +24,7 @@
 #include "igtlMacro.h"
 #include "igtlMultiThreader.h"
 #include "igtlOSUtil.h"
+#include "igtlTransformMessage.h"
 
 
 TransferOpenIGTLink::TransferOpenIGTLink()
@@ -172,7 +173,8 @@ void TransferOpenIGTLink::Process()
       {
       this->State = STATE_CONNECTED;
       std::cerr << "TransferOpenIGTLink::Process(): Client Connected." << std::endl;
-      this->ReceiveThreadID = this->ReceiveThread->SpawnThread((igtl::igtlThreadFunctionType)TransferOpenIGTLink::CallReceiveProcess, this);
+      this->ReceiveThreadID = this->ReceiveThread
+        ->SpawnThread((igtl::igtlThreadFunctionType)TransferOpenIGTLink::CallReceiveProcess, this);
       this->ReceiveController();
       this->State = STATE_WAIT_CONNECTION;
       }
@@ -243,61 +245,40 @@ void TransferOpenIGTLink::ReceiveProcess()
   int retval;
   unsigned int trans_bytes = 0;
 
+  igtl::MessageHeader::Pointer headerMsg;
+  headerMsg = igtl::MessageHeader::New();
+
   while (!this->StopReceiveThread)
     {
 
     if (this->Socket)
       {
-      // J. Tokuda 02/26/2007
-      // igtl_header should be wrapped by C++ class in future.
-      igtl_header header;
-      
-      retval = this->Socket->Receive(&header, IGTL_HEADER_SIZE);
+      headerMsg->InitPack();
 
-      if (retval != IGTL_HEADER_SIZE)
+      // Receive generic header from the socket
+      int r = this->Socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+
+      if (r != headerMsg->GetPackSize())
         {
-        std::cerr << "Irregluar size." << std::endl;
+        std::cerr << "Error: receiving data." << std::endl;
         }
       
-      igtl_header_convert_byte_order(&header);
-      if (header.version != IGTL_HEADER_VERSION)
+      // Deserialize the header
+      headerMsg->Unpack();
+
+      // Check data type and receive data body
+      if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
         {
-        std::cerr << "Unsupported OpenIGTLink version." << header.version << std::endl;
+        ReceiveTransform(this->Socket, headerMsg);
         }
-      
-      char deviceType[13];
-      char deviceName[21];
-      deviceType[12] = 0;
-      deviceName[20] = 0;
-      memcpy((void*)deviceType, header.name, 12);
-      //memcpy((void*)deviceName, header.device_name, 20);
-      
-      if (strcmp("TRANSFORM", deviceType) == 0)
+      //else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
+      //  {
+      //  ReceiveStatus(socket, headerMsg);
+      //  }
+      else
         {
-        std::cerr << "Receiving TRANSFORM." << std::endl;
-        //std::cerr << "Device Name : " << deviceName << std::endl;
-
-        float matrix[12];
-
-        retval = this->Socket->Receive((char*)matrix, IGTL_TRANSFORM_SIZE);
-
-        if (retval != IGTL_TRANSFORM_SIZE)
-          {
-          std::cerr << "Error : receiving header data!\n";
-          this->Disconnect();
-          return;
-          }
-        
-        // J. Tokuda 02/26/2008
-        // CRC should be checked here...
-        
-        if (this->AcquisitionThread)
-          {
-          igtl_transform_convert_byte_order(matrix);
-          this->AcquisitionThread->SetMatrix(matrix);
-          }
+        this->Socket->Skip(headerMsg->GetBodySizeToRead(), 0);
         }
-          
       }
     else
       {
@@ -308,3 +289,43 @@ void TransferOpenIGTLink::ReceiveProcess()
 }
 
 
+int TransferOpenIGTLink::ReceiveTransform(igtl::ClientSocket::Pointer& socket,
+                                          igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving TRANSFORM data type." << std::endl;
+  
+  // Create a message buffer to receive transform data
+  igtl::TransformMessage::Pointer transMsg;
+  transMsg = igtl::TransformMessage::New();
+  transMsg->SetMessageHeader(header);
+  transMsg->AllocatePack();
+  
+  // Receive transform data from the socket
+  socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = transMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+
+    // Retrive the transform data
+    igtl::Matrix4x4 matrix;
+    transMsg->GetMatrix(matrix);
+
+    if (this->AcquisitionThread)
+      {
+      this->AcquisitionThread->SetMatrix(matrix);
+      }
+  
+    igtl::PrintMatrix(matrix);
+
+    return 1;
+
+    }
+
+
+  return 0;
+}
