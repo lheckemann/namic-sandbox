@@ -110,6 +110,9 @@ void GetRandomTestVectors(float* position, float* quaternion)
   quaternion[3]=0.6666666666*sin(theta);
   theta = theta + 0.1;
 
+  std::cerr << "position   = (" << position[0] << ", " << position[1] << ", " << position[2] << ")" << std::endl;
+  std::cerr << "quaternion = (" << quaternion[0] << ", " << quaternion[1] << ", "
+            << quaternion[2] << ", " << quaternion[3] << ")" << std::endl << std::endl;
 }
 
 

@@ -51,6 +51,9 @@ public:
 
   void         SetPackType(int t); /* POSITION_ONLY / WITH_QUATERNION3 / ALL */
 
+  /** Specify pack type by body size (in most case obtained from general header) */
+  int          SetPackTypeByBodySize(int s);
+
   void         SetPosition(const float* pos);
   void         SetPosition(float x, float y, float z);
   void         SetQuaternion(const float* quat);
@@ -61,6 +64,8 @@ public:
   void         GetQuaternion(float* quat);
   void         GetQuaternion(float* ox, float* oy, float* oz, float* w);
 
+  virtual int  SetMessageHeader(const MessageHeader* mb);
+  
 protected:
   PositionMessage();
   ~PositionMessage();

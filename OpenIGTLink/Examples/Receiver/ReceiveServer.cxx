@@ -23,8 +23,10 @@
 #include "igtlImageMessage.h"
 #include "igtlServerSocket.h"
 #include "igtlStatusMessage.h"
+#include "igtlPositionMessage.h"
 
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 
@@ -84,6 +86,10 @@ int main(int argc, char* argv[])
           {
           ReceiveTransform(socket, headerMsg);
           }
+        if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
+          {
+          ReceivePosition(socket, headerMsg);
+          }
         else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
           {
           ReceiveImage(socket, headerMsg);
@@ -132,6 +138,44 @@ int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer
     igtl::Matrix4x4 matrix;
     transMsg->GetMatrix(matrix);
     igtl::PrintMatrix(matrix);
+    return 1;
+    }
+
+  return 0;
+
+}
+
+
+int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving POSITION data type." << std::endl;
+  
+  // Create a message buffer to receive transform data
+  igtl::PositionMessage::Pointer positionMsg;
+  positionMsg = igtl::PositionMessage::New();
+  positionMsg->SetMessageHeader(header);
+  positionMsg->AllocatePack();
+  
+  // Receive position position data from the socket
+  socket->Receive(positionMsg->GetPackBodyPointer(), positionMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = positionMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    // Retrive the transform data
+    float position[3];
+    float quaternion[4];
+
+    positionMsg->GetPosition(position);
+    positionMsg->GetQuaternion(quaternion);
+
+    std::cerr << "position   = (" << position[0] << ", " << position[1] << ", " << position[2] << ")" << std::endl;
+    std::cerr << "quaternion = (" << quaternion[0] << ", " << quaternion[1] << ", "
+              << quaternion[2] << ", " << quaternion[3] << ")" << std::endl << std::endl;
+
     return 1;
     }
 
