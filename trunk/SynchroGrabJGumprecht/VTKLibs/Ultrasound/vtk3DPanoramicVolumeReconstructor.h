@@ -101,8 +101,8 @@ public:
 
   // Description:
   // Set the tracker tool to input transforms from.
-////  virtual void SetTrackerTool(vtkTrackerTool *);
-////  vtkGetObjectMacro(TrackerTool,vtkTrackerTool);
+  virtual void SetTrackerTool(vtkTrackerTool *);
+  vtkGetObjectMacro(TrackerTool,vtkTrackerTool);
 
   // Description:
   // Start doing a reconstruction from the video frames stored
@@ -361,6 +361,7 @@ protected:
            int requestFromOutputPort,
            unsigned long* mtime);
 
+  vtkImageData * newOutput;
 
 private:
   vtk3DPanoramicVolumeReconstructor(const vtk3DPanoramicVolumeReconstructor&);
