@@ -20,6 +20,9 @@ if(NOT OpenIGTLink_BUILD_SHARED_LIBS)
   SET(OpenIGTLink_BUILD_GENERATE_PIC ${BUILD_GENERATE_PIC})
 endif(NOT OpenIGTLink_BUILD_SHARED_LIBS)
 
+OPTION(BUILD_EXAMPLES "Build OpenIGTLink example programs." OFF)
+SET(OpenIGTLink_BUILD_EXAMPLES ${BUILD_EXAMPLES})
+
 
 #-----------------------------------------------------------------------------
 # Output directories.
@@ -210,7 +213,11 @@ ADD_SUBDIRECTORY( Source    )
 ADD_SUBDIRECTORY( Testing   )
 ADD_SUBDIRECTORY( Tools     )
 #ADD_SUBDIRECTORY( Documents )
-#ADD_SUBDIRECTORY( Examples )
+
+IF(OpenIGTLink_BUILD_EXAMPLES)
+ ADD_SUBDIRECTORY( Examples )
+ENDIF(OpenIGTLink_BUILD_EXAMPLES)
+
 
 
 #-----------------------------------------------------------------------------

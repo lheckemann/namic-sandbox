@@ -26,7 +26,7 @@ SET(OpenIGTLink_SOURCES
   igtlutil/igtl_transform.c
   igtlutil/igtl_status.c
   igtlutil/igtl_util.c
-#  igtlutil/igtl_position.c
+  igtlutil/igtl_position.c
   igtlClientSocket.cxx
   igtlConditionVariable.cxx
   igtlFastMutexLock.cxx
@@ -39,7 +39,7 @@ SET(OpenIGTLink_SOURCES
   igtlOSUtil.cxx
   igtlObject.cxx
   igtlObjectFactoryBase.cxx
-#  igtlPositionMessage.cxx
+  igtlPositionMessage.cxx
   igtlServerSocket.cxx
   igtlSimpleFastMutexLock.cxx
   igtlSocket.cxx

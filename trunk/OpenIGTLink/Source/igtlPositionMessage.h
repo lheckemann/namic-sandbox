@@ -28,10 +28,11 @@ namespace igtl
 
 class IGTLCommon_EXPORT PositionMessage: public MessageBase
 {
+public:
   enum {
     POSITION_ONLY =  1,
     WITH_QUATERNION3,
-    ALL
+    ALL,
   };
 
 

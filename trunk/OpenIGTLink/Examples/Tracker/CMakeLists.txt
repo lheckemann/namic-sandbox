@@ -13,3 +13,8 @@ ADD_EXECUTABLE(TrackerClient   TrackerClient.cxx)
 TARGET_LINK_LIBRARIES(TrackerClient OpenIGTLink)
 ADD_EXECUTABLE(TrackerServer   TrackerServer.cxx)
 TARGET_LINK_LIBRARIES(TrackerServer OpenIGTLink)
+
+ADD_EXECUTABLE(TrackerClient2   TrackerClient2.cxx)
+TARGET_LINK_LIBRARIES(TrackerClient2 OpenIGTLink)
+ADD_EXECUTABLE(TrackerServer2   TrackerServer2.cxx)
+TARGET_LINK_LIBRARIES(TrackerServer2 OpenIGTLink)

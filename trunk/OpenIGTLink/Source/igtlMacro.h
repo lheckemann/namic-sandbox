@@ -584,27 +584,6 @@ private:
   #define IGTL_LOCATION "unknown"
 #endif
 
-//#include "igtlExceptionObject.h"
-//
-///** The exception macro is used to print error information (i.e., usually 
-// * a condition that results in program failure). Example usage looks like:
-// * igtlExceptionMacro(<< "this is error info" << this->SomeVariable); */
-//#define igtlExceptionMacro(x) \
-//  { \
-//  ::igtl::OStringStream message; \
-//  message << "igtl::ERROR: " << this->GetNameOfClass() \
-//          << "(" << this << "): " x; \
-//  ::igtl::ExceptionObject e_(__FILE__, __LINE__, message.str().c_str(),IGTL_LOCATION); \
-//  throw e_; /* Explicit naming to work around Intel compiler bug.  */ \
-//  }
-//
-//#define igtlGenericExceptionMacro(x) \
-//  { \
-//  ::igtl::OStringStream message; \
-//  message << "igtl::ERROR: " x; \
-//  ::igtl::ExceptionObject e_(__FILE__, __LINE__, message.str().c_str(),IGTL_LOCATION); \
-//  throw e_; /* Explicit naming to work around Intel compiler bug.  */ \
-//  }
 #define igtlExceptionMacro(x) \
   { \
   ::igtl::OStringStream igtlmsg;                                 \
