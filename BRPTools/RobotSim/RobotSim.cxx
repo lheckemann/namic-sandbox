@@ -80,27 +80,32 @@ std::vector<float> quat(4, 0.0);
 
 int main(int argc, char **argv)
 {
-  char* xmlfile;
+  int   port;
   long  rate;
 
   fcycle = 0;
   sign   = 1;
 
   // set parameters based on arguments
-  if (argc <= 1) {
-    cerr << "Usage: " << argv[0] << " [<rate in ms> [<range (mm)> <cycle (ms)> <dir (0, 1 or 2))>]]"  << endl;
+  if (argc <= 2) {
+    cerr << "Usage: " << argv[0] << " <port> [<rate in ms> [<range (mm)> <cycle (ms)> <dir (0, 1 or 2))>]]" 
+         << endl;
     exit(-1);
   }
-  if (argc > 1) {
-    rate = atoi(argv[1]) * 1000;
+
+  // port number
+  port = ati(argv[1]);
+
+  if (argc > 2) {
+    rate = atoi(argv[2]) * 1000;
   } else {
     rate = DEFAULT_LOOP_RATE * 1000;
   }
-  if (argc > 5) {
+  if (argc > 6) {
     fcycle = 1;
-    range = atof(argv[2]);
-    cycle = atof(argv[3]);
-    dir   = atoi(argv[4]);
+    range = atof(argv[3]);
+    cycle = atof(argv[4]);
+    dir   = atoi(argv[5]);
   }
 
   cerr << "Loop rate: " << (rate/1000) << "ms" << endl;
@@ -118,8 +123,64 @@ int main(int argc, char **argv)
 
 
   // Start OpenIGTLink Server
-  
+  igtl::ServerSocket::Pointer serverSocket;
+  serverSocket = igtl::ServerSocket::New();
+  serverSocket->CreateServer(port);
 
+  igtl::Socket::Pointer socket;
+  
+  while (1)
+    {
+    //------------------------------------------------------------
+    // Waiting for Connection
+    socket = serverSocket->WaitForConnection(1000);
+    
+    if (socket.IsNotNull()) // if client connected
+      {
+      // Create a message buffer to receive header
+      igtl::MessageHeader::Pointer headerMsg;
+      headerMsg = igtl::MessageHeader::New();
+
+      //------------------------------------------------------------
+      // loop
+      int fStop == 0;
+      while(1)
+        {
+        // Initialize receive buffer
+        headerMsg->InitPack();
+
+        // Receive generic header from the socket
+        int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+        if (r != headerMsg->GetPackSize())
+          {
+          std::cerr << "Error: receiving data." << std::endl;
+          break;
+          }
+
+        // Deserialize the header
+        headerMsg->Unpack();
+
+        // Check data type and receive data body
+        if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
+          {
+          ReceiveTransform(socket, headerMsg);
+          }
+        else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
+          {
+          ReceiveImage(socket, headerMsg);
+          }
+        else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
+          {
+          ReceiveStatus(socket, headerMsg);
+          }
+        else
+          {
+          // if the data type is unknown, skip reading.
+          socket->Skip(headerMsg->GetBodySizeToRead(), 0);
+          }
+        }
+      }
+    }
 
   // context loop
 
