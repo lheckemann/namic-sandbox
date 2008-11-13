@@ -6,7 +6,7 @@ SET(IGTLUTIL_HEADS
   igtl_transform.h
   igtl_util.h
   igtl_types.h
-#  igtl_position.h
+  igtl_position.h
   )
 
 SET(IGTLUTIL_SRCS
