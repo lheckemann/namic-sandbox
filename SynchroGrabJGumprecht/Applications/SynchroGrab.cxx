@@ -57,7 +57,6 @@ POSSIBILITY OF SUCH DAMAGE.
 //#include "vtkImageReader2.h"
 #include "vtkDICOMImageReader.h"
 
-
 using namespace std;
 
 void printUsage()
@@ -143,6 +142,11 @@ bool parseCommandLineArguments(int argc, char **argv, vtkSynchroGrabPipeline *pi
             if( i < argc - 1)
                 pipeline->SetFrameRate(atof(argv[++i]));
             }
+       else if(currentArg == "--reconstruct-volume")
+            {
+            pipeline->SetVolumeReconstructionEnabled(true);
+            pipeline->SetTransfertImages(true);
+            }           
         else 
             {
             printUsage();
@@ -159,22 +163,18 @@ bool parseCommandLineArguments(int argc, char **argv, vtkSynchroGrabPipeline *pi
  ******************************************************************************/
 int main(int argc, char **argv)
 {
-
     vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
     
-////    bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
-////    if(!successParsingCommandLine)
-////        return -1;
-
+    bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
+    if(!successParsingCommandLine)
+        return -1;
 
 //     redirect vtk errors to a file
     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
     
-////    pipeline->ConfigurePipeline();
-
-pipeline->SetVolumeReconstructionEnabled(true);//Only needed until ConfigurePipeline works
+    pipeline->ConfigurePipeline();
 
 // Volume Reconstruction
     if(pipeline->GetVolumeReconstructionEnabled())
@@ -182,8 +182,6 @@ pipeline->SetVolumeReconstructionEnabled(true);//Only needed until ConfigurePipe
         if(!pipeline->ReconstructVolume())
             return -1;
         }
-
-pipeline->SetTransfertImages(true);//Only needed until Configure Pipeline works
 
 // Transfer Images
     if(pipeline->GetTransfertImages())
