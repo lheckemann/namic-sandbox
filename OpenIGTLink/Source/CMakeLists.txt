@@ -12,11 +12,11 @@ ELSE(OpenIGTLink_PLATFORM_WIN32)
     )
   ELSE(OpenIGTLink_PLATFORM_QNX)
     SET(LINK_LIBS
-      pthread
       m
     )
   ENDIF(OpenIGTLink_PLATFORM_QNX)
 ENDIF(OpenIGTLink_PLATFORM_WIN32)
+
 
 ADD_SUBDIRECTORY( igtlutil )
 
@@ -55,6 +55,7 @@ ADD_LIBRARY(OpenIGTLink
 TARGET_LINK_LIBRARIES(OpenIGTLink
   ${LINK_LIBS}
   )
+
 
 FILE(GLOB __files1 "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
 INSTALL(FILES ${__files1}
