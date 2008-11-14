@@ -21,22 +21,23 @@
 #include <queue>
 
 #include "igtlMath.h"
+#include "igtlSocket.h"
+#include "igtlMutexLock.h"
 #include "igtlMultiThreader.h"
 #include "igtlWin32Header.h"
 
 namespace igtl
 {
 
-
-class IGTLCommon_EXPORT ServerThread : public : OpenIGTLink
+class IGTLCommon_EXPORT ServerThread : public  Object
 {
  public:
-  typedef queue<int> CommandListType; 
-  typedef queue<int> ErrorListType;
+  typedef std::queue<int> CommandListType; 
+  typedef std::queue<int> ErrorListType;
 
  public:
   /** Standard class typedefs. */
-  typedef MultiThreader             Self;
+  typedef ServerThread              Self;
   typedef Object                    Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -50,8 +51,18 @@ class IGTLCommon_EXPORT ServerThread : public : OpenIGTLink
   ServerThread();
   ~ServerThread();
 
+  void SetServerPort(int p) { this->m_Port = p; };
+  int  GetNextCommand();
+  int  PushErrorMessage();
+  int  SetCurrentStatus();
+  int  SetCurrentPosition(Matrix4x4& matrix);
+  //int  GetTargetPosition(float* position, float*);
+  int  GetTargetPosition(Matrix4x4& matrix);
+
   int  Run();
   int  Stop();
+
+  static void* ThreadFunction(void* ptr);
 
   int  WaitForClient(int port);
   int  GetTarget();
@@ -65,6 +76,11 @@ private:
   
   MultiThreader::Pointer m_Thread;
   Socket::Pointer        m_Socket;
+  MutexLock::Pointer     m_DataMutex;
+  MutexLock::Pointer     m_SocketMutex;
+  int                    m_ThreadID;
+
+  int             m_Port;            // port number
 
   CommandListType m_CommandList;     // List of commands received
   ErrorListType   m_ErrorList;       // List of errors to send
