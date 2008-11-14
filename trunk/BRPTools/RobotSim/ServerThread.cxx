@@ -17,21 +17,105 @@
 
 #include "ServerThread.h"
 
+#include "igtlServerSocket.h"
 #include "igtlMultiThreader.h"
 #include "igtlMutexLock.h"
 #include "igtlObjectFactory.h"
+#include "igtlMessageHeader.h"
 
 namespace igtl {
 
 ServerThread::ServerThread() : Object()
 {
-  this->m_Thread = new MultiThreader();
+  this->m_Thread = MultiThreader::New();
   this->m_ThreadID = -1;
+  this->m_DataMutex = MutexLock::New();
+  this->m_SocketMutex = MutexLock::New();
 }
 
 ServerThread::~ServerThread()
 {
 }
+
+int ServerThread::GetNextCommand()
+{
+  int cmd;
+  
+  this->m_DataMutex->Lock();
+  if (this->m_CommandList.empty())
+    {
+    cmd = -1;
+    }
+  else
+    {
+    cmd = this->m_CommandList.front();
+    this->m_CommandList.pop();
+    }
+  this->m_DataMutex->Unlock();
+
+  return cmd;
+}
+
+
+int ServerThread::PushErrorMessage()
+{
+}
+
+int ServerThread::SetCurrentStatus()
+{
+}
+
+
+int ServerThread::SetCurrentPosition(Matrix4x4& matrix)
+{
+  this->m_DataMutex->Lock();
+
+  this->m_CurrentPosition[0][0] = matrix[0][0];
+  this->m_CurrentPosition[1][0] = matrix[1][0];
+  this->m_CurrentPosition[2][0] = matrix[2][0];
+  this->m_CurrentPosition[3][0] = matrix[3][0];
+  this->m_CurrentPosition[0][1] = matrix[0][1];
+  this->m_CurrentPosition[1][1] = matrix[1][1];
+  this->m_CurrentPosition[2][1] = matrix[2][1];
+  this->m_CurrentPosition[3][1] = matrix[3][1];
+  this->m_CurrentPosition[0][2] = matrix[0][2];
+  this->m_CurrentPosition[1][2] = matrix[1][2];
+  this->m_CurrentPosition[2][2] = matrix[2][2];
+  this->m_CurrentPosition[3][2] = matrix[3][2];
+  this->m_CurrentPosition[0][3] = matrix[0][3];
+  this->m_CurrentPosition[1][3] = matrix[1][3];
+  this->m_CurrentPosition[2][3] = matrix[2][3];
+  this->m_CurrentPosition[3][3] = matrix[3][3];
+
+  this->m_DataMutex->Unlock();
+}
+
+
+int ServerThread::GetTargetPosition(Matrix4x4& matrix)
+{
+
+  this->m_DataMutex->Lock();
+
+  matrix[0][0] = this->m_TargetPosition[0][0];
+  matrix[1][0] = this->m_TargetPosition[1][0];
+  matrix[2][0] = this->m_TargetPosition[2][0];
+  matrix[3][0] = this->m_TargetPosition[3][0];
+  matrix[0][1] = this->m_TargetPosition[0][1];
+  matrix[1][1] = this->m_TargetPosition[1][1];
+  matrix[2][1] = this->m_TargetPosition[2][1];
+  matrix[3][1] = this->m_TargetPosition[3][1];
+  matrix[0][2] = this->m_TargetPosition[0][2];
+  matrix[1][2] = this->m_TargetPosition[1][2];
+  matrix[2][2] = this->m_TargetPosition[2][2];
+  matrix[3][2] = this->m_TargetPosition[3][2];
+  matrix[0][3] = this->m_TargetPosition[0][3];
+  matrix[1][3] = this->m_TargetPosition[1][3];
+  matrix[2][3] = this->m_TargetPosition[2][3];
+  matrix[3][3] = this->m_TargetPosition[3][3];
+
+  this->m_DataMutex->Unlock();
+}
+
 
 int ServerThread::Run()
 {
@@ -40,24 +124,24 @@ int ServerThread::Run()
     {
     return 0;
     }
-
   this->m_ServerStopFlag = 0;
-  this->ThreadID = this->Thread->SpawnThread((igtlThreadFunctionType) &ServerThread::ThreadFunction, this);
+  this->m_ThreadID = this->m_Thread->SpawnThread((igtlThreadFunctionType) &ServerThread::ThreadFunction, this);
+
   return 1;
 }
 
 
-int  ServerThread::Stop()
+int ServerThread::Stop()
 {
-  if (this->ThreadID >= 0)
+  if (this->m_ThreadID >= 0)
     {
     this->m_ServerStopFlag = true;
-    this->m_Mutex->Lock();
+    this->m_SocketMutex->Lock();
     if (this->m_Socket)
       {
       this->m_Socket->CloseSocket();
       }
-    this->Mutex->Unlock();
+    this->m_SocketMutex->Unlock();
     return 1;
     }
   else
@@ -66,20 +150,25 @@ int  ServerThread::Stop()
     }
 }
 
-int  ServerThread::ThreadFunction()
+
+void* ServerThread::ThreadFunction(void* ptr)
 {
-  while (!this->m_ServerStopFlag)
+  MultiThreader::ThreadInfo* tinfo = 
+    static_cast<MultiThreader::ThreadInfo*>(ptr);
+  ServerThread* pst = static_cast<ServerThread*>(tinfo->UserData);
+
+  while (!pst->m_ServerStopFlag)
     {
     ServerSocket::Pointer serverSocket;
     serverSocket = ServerSocket::New();
-    int port = this->m_Port;
+    int port = pst->m_Port;
     serverSocket->CreateServer(port);
     
     //------------------------------------------------------------
     // Waiting for Connection
-    this->m_Socket = serverSocket->WaitForConnection(1000);
+    pst->m_Socket = serverSocket->WaitForConnection(1000);
     
-    if (socket.IsNotNull()) // if client connected
+    if (pst->m_Socket.IsNotNull()) // if client connected
       {
       // Create a message buffer to receive header
       MessageHeader::Pointer headerMsg;
@@ -87,13 +176,13 @@ int  ServerThread::ThreadFunction()
 
       //------------------------------------------------------------
       // loop
-      while (!this->m_ServerStopFlag)
+      while (!pst->m_ServerStopFlag)
         {
         // Initialize receive buffer
         headerMsg->InitPack();
 
         // Receive generic header from the socket
-        int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+        int r = pst->m_Socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
         if (r != headerMsg->GetPackSize())
           {
           std::cerr << "Error: receiving data." << std::endl;
@@ -105,15 +194,15 @@ int  ServerThread::ThreadFunction()
         // Check data type and receive data body
         if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
           {
-          ReceiveTransform(socket, headerMsg);
+          pst->ReceiveTransform(pst->m_Socket, headerMsg);
           }
-        else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
-          {
-          ReceiveImage(socket, headerMsg);
-          }
+        //else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
+        //  {
+        //  ReceiveImage(socket, headerMsg);
+        //  }
         else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
           {
-          ReceiveStatus(socket, headerMsg);
+          pst->ReceiveStatus(socket, headerMsg);
           }
         else
           {
@@ -127,7 +216,7 @@ int  ServerThread::ThreadFunction()
   //------------------------------------------------------------
   // Close connection (The example code never reachs to this section ...)
   
-  socket->CloseSocket();
+  pst->m_Socket->CloseSocket();
 
 }
 
@@ -156,6 +245,8 @@ int ServerThread::ReceiveTransform(Socket::Pointer& socket, MessageHeader::Point
     transMsg->GetMatrix(matrix);
     PrintMatrix(matrix);
 
+    this->m_DataMutex->Lock();
+
     this->m_TargetPosition[0][0] = matrix[0][0];
     this->m_TargetPosition[1][0] = matrix[1][0];
     this->m_TargetPosition[2][0] = matrix[2][0];
@@ -173,6 +264,8 @@ int ServerThread::ReceiveTransform(Socket::Pointer& socket, MessageHeader::Point
     this->m_TargetPosition[2][3] = matrix[2][3];
     this->m_TargetPosition[3][3] = matrix[3][3];
 
+    this->m_DataMutex->Unlock();
+    
     return 1;
     }
 
@@ -180,6 +273,74 @@ int ServerThread::ReceiveTransform(Socket::Pointer& socket, MessageHeader::Point
 
 }
 
+int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving POSITION data type." << std::endl;
+  
+  // Create a message buffer to receive transform data
+  igtl::PositionMessage::Pointer positionMsg;
+  positionMsg = igtl::PositionMessage::New();
+  positionMsg->SetMessageHeader(header);
+  positionMsg->AllocatePack();
+  
+  // Receive position position data from the socket
+  socket->Receive(positionMsg->GetPackBodyPointer(), positionMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = positionMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    // Retrive the transform data
+    float position[3];
+    float quaternion[4];
+
+    positionMsg->GetPosition(position);
+    positionMsg->GetQuaternion(quaternion);
+
+    std::cerr << "position   = (" << position[0] << ", " << position[1] << ", " << position[2] << ")" << std::endl;
+    std::cerr << "quaternion = (" << quaternion[0] << ", " << quaternion[1] << ", "
+              << quaternion[2] << ", " << quaternion[3] << ")" << std::endl << std::endl;
+
+    return 1;
+    }
+
+  return 0;
+
+}
+
+int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving STATUS data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::StatusMessage::Pointer statusMsg;
+  statusMsg = igtl::StatusMessage::New();
+  statusMsg->SetMessageHeader(header);
+  statusMsg->AllocatePack();
+  
+  // Receive transform data from the socket
+  socket->Receive(statusMsg->GetPackBodyPointer(), statusMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = statusMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    std::cerr << "========== STATUS ==========" << std::endl;
+    std::cerr << " Code      : " << statusMsg->GetCode() << std::endl;
+    std::cerr << " SubCode   : " << statusMsg->GetSubCode() << std::endl;
+    std::cerr << " Error Name: " << statusMsg->GetErrorName() << std::endl;
+    std::cerr << " Status    : " << statusMsg->GetStatusString() << std::endl;
+    std::cerr << "============================" << std::endl;
+    }
+
+  return 0;
+
+}
 
 
 }

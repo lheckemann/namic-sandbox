@@ -9,6 +9,8 @@ find_package(OpenIGTLink REQUIRED)
 
 include(${OpenIGTLink_USE_FILE})
 
+add_library(RobotSimLib ServerThread.cxx)
+
 ADD_EXECUTABLE(RobotSim  RobotSim.cxx)
-TARGET_LINK_LIBRARIES(RobotSim OpenIGTLink)
+TARGET_LINK_LIBRARIES(RobotSim OpenIGTLink RobotSimLib)
 
