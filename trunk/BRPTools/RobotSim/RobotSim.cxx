@@ -25,19 +25,14 @@
 #include "igtlServerSocket.h"
 #include "igtlStatusMessage.h"
 
+#include "ServerThread.h"
+#include "Workphase.h"
+
 using namespace std;
-using namespace ot;
+using namespace igtl;
 
 //----------------------------------------------------------------------
 // Constants
-
-// Workphases
-#define WP_START   0
-#define WP_PLAN    1
-#define WP_CALIB   2
-#define WP_TARGET  3
-#define WP_MANUAL  4
-#define WP_EMERG   5
 
 // Loop rate
 #define DEFAULT_LOOP_RATE    100
@@ -47,12 +42,12 @@ using namespace ot;
 // Functions
 
 int  checkChangeWorkphase(int nextwp);
-bool procStartUp(bool init);
-bool procPlanning(bool init);
-bool procCalibration(bool init);
-bool procTargeting(bool init);
-bool procManual(bool init);
-bool procEmergency(bool init);
+bool procStartUp(bool init, ServerThread::Pointer& server);
+bool procPlanning(bool init, ServerThread::Pointer& server);
+bool procCalibration(bool init, ServerThread::Pointer& server);
+bool procTargeting(bool init, ServerThread::Pointer& server);
+bool procManual(bool init, ServerThread::Pointer& server);
+bool procEmergency(bool init, ServerThread::Pointer& server);
 
 
 //----------------------------------------------------------------------
@@ -68,11 +63,10 @@ double speed;
 //----------------------------------------------------------------------
 // Current position
 
-std::vector<float> cpos(3, 0.0);
-std::vector<float> cquat(4, 0.0);
-
-std::vector<float> pos(3, 0.0);
-std::vector<float> quat(4, 0.0);
+float cpos[3];
+float cquat[4];
+float pos[3];
+float quat[4];
 
 
 //----------------------------------------------------------------------
@@ -94,7 +88,7 @@ int main(int argc, char **argv)
   }
 
   // port number
-  port = ati(argv[1]);
+  port = atoi(argv[1]);
 
   if (argc > 2) {
     rate = atoi(argv[2]) * 1000;
@@ -123,67 +117,12 @@ int main(int argc, char **argv)
 
 
   // Start OpenIGTLink Server
-  igtl::ServerSocket::Pointer serverSocket;
-  serverSocket = igtl::ServerSocket::New();
-  serverSocket->CreateServer(port);
-
-  igtl::Socket::Pointer socket;
-  
-  while (1)
-    {
-    //------------------------------------------------------------
-    // Waiting for Connection
-    socket = serverSocket->WaitForConnection(1000);
-    
-    if (socket.IsNotNull()) // if client connected
-      {
-      // Create a message buffer to receive header
-      igtl::MessageHeader::Pointer headerMsg;
-      headerMsg = igtl::MessageHeader::New();
-
-      //------------------------------------------------------------
-      // loop
-      int fStop == 0;
-      while(1)
-        {
-        // Initialize receive buffer
-        headerMsg->InitPack();
-
-        // Receive generic header from the socket
-        int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
-        if (r != headerMsg->GetPackSize())
-          {
-          std::cerr << "Error: receiving data." << std::endl;
-          break;
-          }
-
-        // Deserialize the header
-        headerMsg->Unpack();
-
-        // Check data type and receive data body
-        if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
-          {
-          ReceiveTransform(socket, headerMsg);
-          }
-        else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
-          {
-          ReceiveImage(socket, headerMsg);
-          }
-        else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
-          {
-          ReceiveStatus(socket, headerMsg);
-          }
-        else
-          {
-          // if the data type is unknown, skip reading.
-          socket->Skip(headerMsg->GetBodySizeToRead(), 0);
-          }
-        }
-      }
-    }
+  ServerThread::Pointer server = ServerThread::New();
+  server->SetServerPort(port);
+  server->SetCurrentWorkphase(WP_STARTUP);
+  server->Start();
 
   // context loop
-
   cquat[3] = 1.0;
   quat[3]  = 1.0;
 
@@ -192,14 +131,12 @@ int main(int argc, char **argv)
   bool allowChangeWorkphase = false;
   bool fWorkphaseChanged    = true;
 
-  
-
 
   while (stopflag == 0) {
-    
-    stopflag = context.loopOnce();
 
-    int nextwp = robotSink->getLastWorkPhaseCmd();
+    //stopflag = context.loopOnce();
+
+    int nextwp = server->GetNextWorkphase();
 
     if (allowChangeWorkphase) {
       int prev_workphase = workphase;
@@ -207,38 +144,37 @@ int main(int argc, char **argv)
       if (prev_workphase != workphase) {
         sleep(1);
         fWorkphaseChanged = true;
-        stopflag = context.loopOnce();
+        //stopflag = context.loopOnce();
         usleep(rate);
       }
     }
-    if (robotModule) {
-      robotModule->sendCurrentWorkphase(workphase);
-    }
+
+    server->SetCurrentWorkphase(workphase);
 
     switch(workphase) {
-    case BRPRobotModule::WP_STARTUP:
+    case WP_STARTUP:
       //case WP_START:
-      allowChangeWorkphase = procStartUp(fWorkphaseChanged);
+      allowChangeWorkphase = procStartUp(fWorkphaseChanged, server);
       break;
-    case BRPRobotModule::WP_PLANNING:
+    case WP_PLANNING:
       //case WP_PLAN:
-      allowChangeWorkphase = procPlanning(fWorkphaseChanged);
+      allowChangeWorkphase = procPlanning(fWorkphaseChanged, server);
       break;
-    case BRPRobotModule::WP_CALIBRATION:
+    case WP_CALIBRATION:
       //case WP_CALIB:
-      allowChangeWorkphase = procCalibration(fWorkphaseChanged);
+      allowChangeWorkphase = procCalibration(fWorkphaseChanged, server);
       break;
-    case BRPRobotModule::WP_TARGETING:
+    case WP_TARGETING:
       //case WP_TARGET:
-      allowChangeWorkphase = procTargeting(fWorkphaseChanged);
+      allowChangeWorkphase = procTargeting(fWorkphaseChanged, server);
       break;
-    case BRPRobotModule::WP_MANUAL:
+    case WP_MANUAL:
       //case WP_MANUAL:
-      allowChangeWorkphase = procManual(fWorkphaseChanged);
+      allowChangeWorkphase = procManual(fWorkphaseChanged, server);
       break;
-    case BRPRobotModule::WP_EMERGENCY:
+    case WP_EMERGENCY:
       //case WP_EMERG:
-      allowChangeWorkphase = procEmergency(fWorkphaseChanged);
+      allowChangeWorkphase = procEmergency(fWorkphaseChanged, server);
       break;
     default:
       cerr << "Illegal workphase specified." << endl;
@@ -246,20 +182,19 @@ int main(int argc, char **argv)
       break;
     }
 
-    if (robotModule) {
-      cout << "Robot pos= ("
-           << cpos[0] << ", " << cpos[1] << ", " << cpos[2] << "),  ";
-      cout << "ori = ("
-           << cquat[0] << ", " << cquat[1] << ", " << cquat[2] << ", "
-           << cquat[3] << ")"  << std::endl;
-      robotModule->setTracker(cpos, cquat);
-    }
+    cout << "Robot pos= ("
+         << cpos[0] << ", " << cpos[1] << ", " << cpos[2] << "),  ";
+    cout << "ori = ("
+         << cquat[0] << ", " << cquat[1] << ", " << cquat[2] << ", "
+         << cquat[3] << ")"  << std::endl;
+
+    server->SetCurrentPosition(cpos, cquat);
+    server->SendCurrentPosition();
     
     usleep(rate);
     fWorkphaseChanged = false;
   }
-
-  context.close();
+  //context.close();
 
 }
 
@@ -273,7 +208,7 @@ int  checkChangeWorkphase(int nextwp)
 }
 
 
-bool procStartUp(bool init)
+bool procStartUp(bool init, ServerThread::Pointer& server)
 {
   // dummy bootup sequence
   static int step;
@@ -307,7 +242,7 @@ bool procStartUp(bool init)
 }
 
 
-bool procPlanning(bool init)
+bool procPlanning(bool init, ServerThread::Pointer& server)
 {
   if (init) {
     std::cerr << "==== PLANNING ==== " << std::endl;
@@ -317,7 +252,7 @@ bool procPlanning(bool init)
 }
 
 
-bool procCalibration(bool init)
+bool procCalibration(bool init, ServerThread::Pointer& server)
 {
   static std::vector<float> pos(3, 0.0);
   static std::vector<float> quat(4, 0.0);
@@ -327,19 +262,19 @@ bool procCalibration(bool init)
     std::cerr << "==== CALIBRATION ==== " << std::endl;
   }
 
-  if (robotSink) {
-    //robotSink->getZTracker(pos, quat);
-    std::cerr << "ZFRAME: pos = ( "
-              << pos[0]  << ", " << pos[1]  << ", " << pos[2] << " )"
-              << " ori = ( " << quat[0] << ", " << quat[1] << ", " 
-              << quat[2] << ", " << quat[3] << " )" << std::endl;
-  }
+//  if (robotSink) {
+//    //robotSink->getZTracker(pos, quat);
+//    std::cerr << "ZFRAME: pos = ( "
+//              << pos[0]  << ", " << pos[1]  << ", " << pos[2] << " )"
+//              << " ori = ( " << quat[0] << ", " << quat[1] << ", " 
+//              << quat[2] << ", " << quat[3] << " )" << std::endl;
+//  }
 
   return true;
 }
 
 
-bool procTargeting(bool init)
+bool procTargeting(bool init, ServerThread::Pointer& server)
 {
 
   if (init) {
@@ -356,14 +291,16 @@ bool procTargeting(bool init)
     cquat[3] = 1.0;
   }
 
-  if (robotSink) {
-    robotSink->getTracker(pos, quat);
-    cout << "Navigation pos= ("
-         << pos[0] << ", " << pos[1] << ", " << pos[2] << "),  ";
-    cout << "ori = ("
-         << quat[0] << ", " << quat[1] << ", " << quat[2] << ", "
-         << quat[3] << ")"  << std::endl;
-  }
+//  if (robotSink) {
+//    robotSink->getTracker(pos, quat);
+//    cout << "Navigation pos= ("
+//         << pos[0] << ", " << pos[1] << ", " << pos[2] << "),  ";
+//    cout << "ori = ("
+//         << quat[0] << ", " << quat[1] << ", " << quat[2] << ", "
+//         << quat[3] << ")"  << std::endl;
+//  }
+
+  server->GetTargetPosition(pos, quat);
 
   if (fcycle == 0) {
     /* smooth motion */
@@ -400,7 +337,7 @@ bool procTargeting(bool init)
 }
 
 
-bool procManual(bool init)
+bool procManual(bool init, ServerThread::Pointer& server)
 {
 
   if (init) {
@@ -430,7 +367,7 @@ bool procManual(bool init)
 }
 
 
-bool procEmergency(bool init)
+bool procEmergency(bool init, ServerThread::Pointer& server)
 {
   if (init) {
     std::cerr << "==== EMERGENCY ==== " << std::endl;

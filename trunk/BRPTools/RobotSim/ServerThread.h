@@ -25,6 +25,7 @@
 #include "igtlMutexLock.h"
 #include "igtlMultiThreader.h"
 #include "igtlWin32Header.h"
+#include "igtlMessageHeader.h"
 
 namespace igtl
 {
@@ -32,10 +33,12 @@ namespace igtl
 class IGTLCommon_EXPORT ServerThread : public  Object
 {
  public:
+
   typedef std::queue<int> CommandListType; 
   typedef std::queue<int> ErrorListType;
 
  public:
+
   /** Standard class typedefs. */
   typedef ServerThread              Self;
   typedef Object                    Superclass;
@@ -48,29 +51,45 @@ class IGTLCommon_EXPORT ServerThread : public  Object
   void PrintSelf(std::ostream& os);
   
  protected:
+
   ServerThread();
   ~ServerThread();
 
+
+ public:
   void SetServerPort(int p) { this->m_Port = p; };
   int  GetNextCommand();
   int  PushErrorMessage();
   int  SetCurrentStatus();
-  int  SetCurrentPosition(Matrix4x4& matrix);
-  //int  GetTargetPosition(float* position, float*);
-  int  GetTargetPosition(Matrix4x4& matrix);
 
-  int  Run();
+  int  SetCurrentPosition(const Matrix4x4& matrix);
+  int  GetCurrentPosition(Matrix4x4& matrix);
+  int  SetCurrentPosition(float* position, float* quaternion);
+  int  GetCurrentPosition(float* position, float* quaternion);
+
+  int  SetTargetPosition(const Matrix4x4& matrix);
+  int  GetTargetPosition(Matrix4x4& matrix);
+  int  SetTargetPosition(float* position, float* quaternion);
+  int  GetTargetPosition(float* position, float* quaternion);
+
+  int  SetCurrentWorkphase(int workphase);
+  int  GetCurrentWorkphase();
+  int  SetNextWorkphase(int workphase);
+  int  GetNextWorkphase();
+
+  int  Start();
   int  Stop();
 
   static void* ThreadFunction(void* ptr);
+  int  ReceiveTransform(Socket::Pointer& socket, MessageHeader::Pointer& header);
+  int  ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+  // int  ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+  
+  int  SendCurrentPosition();
+  int  SendCurrentWorkphase();
 
-  int  WaitForClient(int port);
-  int  GetTarget();
-  int  GetCommandList(CommandListType* comList);
-
-  int  SendPosition();
-  int  SendStatus();
-  int  SendError();
+  //int  WaitForClient(int port);
+  //int  GetCommandList(CommandListType* comList);
 
 private:
   
@@ -80,16 +99,18 @@ private:
   MutexLock::Pointer     m_SocketMutex;
   int                    m_ThreadID;
 
-  int             m_Port;            // port number
+  int                    m_Port;            // port number
 
-  CommandListType m_CommandList;     // List of commands received
-  ErrorListType   m_ErrorList;       // List of errors to send
-  int             m_CurrentStatus;   // Current status
-  Matrix4x4       m_TargetPosition;  // Target position
-  Matrix4x4       m_CurrentPosition; // Current position
+  CommandListType        m_CommandList;     // List of commands received
+  ErrorListType          m_ErrorList;       // List of errors to send
+  int                    m_CurrentStatus;   // Current status
+  Matrix4x4              m_TargetPosition;  // Target position
+  Matrix4x4              m_CurrentPosition; // Current position
 
-  int             m_ServerStopFlag;
-  
+  int                    m_NextWorkphase;   // Next workphase
+  int                    m_CurrentWorkphase;// Current workphase
+
+  int                    m_ServerStopFlag;
 
 };
 

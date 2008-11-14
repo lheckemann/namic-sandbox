@@ -16,22 +16,34 @@
 
 
 #include "ServerThread.h"
+#include "Workphase.h"
 
 #include "igtlServerSocket.h"
 #include "igtlMultiThreader.h"
 #include "igtlMutexLock.h"
 #include "igtlObjectFactory.h"
 #include "igtlMessageHeader.h"
+#include "igtlTransformMessage.h"
+#include "igtlPositionMessage.h"
+#include "igtlStatusMessage.h"
 
 namespace igtl {
 
 ServerThread::ServerThread() : Object()
 {
-  this->m_Thread = MultiThreader::New();
-  this->m_ThreadID = -1;
-  this->m_DataMutex = MutexLock::New();
+  this->m_Thread      = MultiThreader::New();
+  this->m_ThreadID    = -1;
+  this->m_DataMutex   = MutexLock::New();
   this->m_SocketMutex = MutexLock::New();
+  this->m_Port        = 18944;
+
+  this->m_CurrentStatus    = 0;
+  this->m_CurrentWorkphase = WP_STARTUP;
+
+  igtl::IdentityMatrix(this->m_CurrentPosition);
+  igtl::IdentityMatrix(this->m_TargetPosition);
 }
+
 
 ServerThread::~ServerThread()
 {
@@ -59,14 +71,37 @@ int ServerThread::GetNextCommand()
 
 int ServerThread::PushErrorMessage()
 {
+  return 1;
 }
 
 int ServerThread::SetCurrentStatus()
 {
+  return 1;
 }
 
+int ServerThread::SetCurrentWorkphase(int workphase)
+{
+  this->m_CurrentWorkphase = workphase;
+  return workphase;
+}
 
-int ServerThread::SetCurrentPosition(Matrix4x4& matrix)
+int ServerThread::GetCurrentWorkphase()
+{
+  return this->m_CurrentWorkphase;
+}
+
+int ServerThread::SetNextWorkphase(int workphase)
+{
+  this->m_NextWorkphase = workphase;
+  return workphase;
+}
+
+int ServerThread::GetNextWorkphase()
+{
+  return this->m_NextWorkphase;
+}
+
+int ServerThread::SetCurrentPosition(const Matrix4x4& matrix)
 {
   this->m_DataMutex->Lock();
 
@@ -88,12 +123,99 @@ int ServerThread::SetCurrentPosition(Matrix4x4& matrix)
   this->m_CurrentPosition[3][3] = matrix[3][3];
 
   this->m_DataMutex->Unlock();
+
+  return 1;
+}
+
+
+int ServerThread::GetCurrentPosition(Matrix4x4& matrix)
+{
+  this->m_DataMutex->Lock();
+
+  matrix[0][0] = this->m_CurrentPosition[0][0];
+  matrix[1][0] = this->m_CurrentPosition[1][0];
+  matrix[2][0] = this->m_CurrentPosition[2][0];
+  matrix[3][0] = this->m_CurrentPosition[3][0];
+  matrix[0][1] = this->m_CurrentPosition[0][1];
+  matrix[1][1] = this->m_CurrentPosition[1][1];
+  matrix[2][1] = this->m_CurrentPosition[2][1];
+  matrix[3][1] = this->m_CurrentPosition[3][1];
+  matrix[0][2] = this->m_CurrentPosition[0][2];
+  matrix[1][2] = this->m_CurrentPosition[1][2];
+  matrix[2][2] = this->m_CurrentPosition[2][2];
+  matrix[3][2] = this->m_CurrentPosition[3][2];
+  matrix[0][3] = this->m_CurrentPosition[0][3];
+  matrix[1][3] = this->m_CurrentPosition[1][3];
+  matrix[2][3] = this->m_CurrentPosition[2][3];
+  matrix[3][3] = this->m_CurrentPosition[3][3];
+
+  this->m_DataMutex->Unlock();
+
+  return 1;
+}
+
+
+int ServerThread::SetCurrentPosition(float* position, float* quaternion)
+{
+  // substitute current position
+  this->m_DataMutex->Lock();
+
+  QuaternionToMatrix(quaternion, this->m_CurrentPosition);
+
+  this->m_CurrentPosition[0][3] = position[0];
+  this->m_CurrentPosition[1][3] = position[1];
+  this->m_CurrentPosition[2][3] = position[2];
+
+  this->m_DataMutex->Unlock();
+
+  return 1;
+}
+
+
+int ServerThread::GetCurrentPosition(float* position, float* quaternion)
+{
+  this->m_DataMutex->Lock();
+
+  position[0] = this->m_CurrentPosition[0][3];
+  position[1] = this->m_CurrentPosition[1][3];
+  position[2] = this->m_CurrentPosition[2][3];
+
+  MatrixToQuaternion(this->m_CurrentPosition, quaternion);
+
+  this->m_DataMutex->Unlock();
+
+  return 1;
+}
+
+
+int ServerThread::SetTargetPosition(const Matrix4x4& matrix)
+{
+  this->m_DataMutex->Lock();
+
+  this->m_TargetPosition[0][0] = matrix[0][0];
+  this->m_TargetPosition[1][0] = matrix[1][0];
+  this->m_TargetPosition[2][0] = matrix[2][0];
+  this->m_TargetPosition[3][0] = matrix[3][0];
+  this->m_TargetPosition[0][1] = matrix[0][1];
+  this->m_TargetPosition[1][1] = matrix[1][1];
+  this->m_TargetPosition[2][1] = matrix[2][1];
+  this->m_TargetPosition[3][1] = matrix[3][1];
+  this->m_TargetPosition[0][2] = matrix[0][2];
+  this->m_TargetPosition[1][2] = matrix[1][2];
+  this->m_TargetPosition[2][2] = matrix[2][2];
+  this->m_TargetPosition[3][2] = matrix[3][2];
+  this->m_TargetPosition[0][3] = matrix[0][3];
+  this->m_TargetPosition[1][3] = matrix[1][3];
+  this->m_TargetPosition[2][3] = matrix[2][3];
+  this->m_TargetPosition[3][3] = matrix[3][3];
+
+  this->m_DataMutex->Unlock();
+  return 1;
 }
 
 
 int ServerThread::GetTargetPosition(Matrix4x4& matrix)
 {
-
   this->m_DataMutex->Lock();
 
   matrix[0][0] = this->m_TargetPosition[0][0];
@@ -114,10 +236,45 @@ int ServerThread::GetTargetPosition(Matrix4x4& matrix)
   matrix[3][3] = this->m_TargetPosition[3][3];
 
   this->m_DataMutex->Unlock();
+  
+  return 1;
 }
 
 
-int ServerThread::Run()
+int ServerThread::SetTargetPosition(float* position, float* quaternion)
+{
+  this->m_DataMutex->Lock();
+
+  QuaternionToMatrix(quaternion, this->m_TargetPosition);
+
+  this->m_TargetPosition[0][3] = position[0];
+  this->m_TargetPosition[1][3] = position[1];
+  this->m_TargetPosition[2][3] = position[2];
+
+  this->m_DataMutex->Unlock();
+
+  return 1;
+
+}
+
+
+int ServerThread::GetTargetPosition(float* position, float* quaternion)
+{
+  this->m_DataMutex->Lock();
+
+  position[0] = this->m_TargetPosition[0][3];
+  position[1] = this->m_TargetPosition[1][3];
+  position[2] = this->m_TargetPosition[2][3];
+
+  MatrixToQuaternion(this->m_TargetPosition, quaternion);
+
+  this->m_DataMutex->Unlock();
+
+  return 1;
+}
+
+
+int ServerThread::Start()
 {
   // if thread is already running
   if (this->m_ThreadID >= 0)
@@ -202,12 +359,12 @@ void* ServerThread::ThreadFunction(void* ptr)
         //  }
         else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
           {
-          pst->ReceiveStatus(socket, headerMsg);
+          //pst->ReceiveStatus(pst->m_Socket, headerMsg);
           }
         else
           {
           // if the data type is unknown, skip reading.
-          socket->Skip(headerMsg->GetBodySizeToRead(), 0);
+          pst->m_Socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           }
         }
       }
@@ -273,7 +430,8 @@ int ServerThread::ReceiveTransform(Socket::Pointer& socket, MessageHeader::Point
 
 }
 
-int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+
+int ServerThread::ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
   std::cerr << "Receiving POSITION data type." << std::endl;
   
@@ -310,6 +468,7 @@ int ReceivePosition(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer&
 
 }
 
+
 int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
 
@@ -339,6 +498,32 @@ int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
     }
 
   return 0;
+
+}
+
+
+int ServerThread::SendCurrentPosition()
+{
+  int r;
+
+  // prepare transform message
+  igtl::TransformMessage::Pointer transMsg;
+  transMsg = igtl::TransformMessage::New();
+  transMsg->SetDeviceName("Robot");
+
+  this->m_DataMutex->Lock();
+  transMsg->SetMatrix(this->m_CurrentPosition);
+  this->m_DataMutex->Unlock();
+
+  // send data
+  this->m_SocketMutex->Lock();
+  if (this->m_Socket->GetConnected())
+    {
+    r = this->m_Socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
+    }
+  this->m_SocketMutex->Unlock();
+
+  return r;
 
 }
 
