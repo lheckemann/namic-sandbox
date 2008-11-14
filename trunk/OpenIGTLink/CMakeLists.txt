@@ -98,6 +98,9 @@ INCLUDE_DIRECTORIES(
 #-----------------------------------------------------------------------------
 # OpenIGTLink requires special compiler flags on some platforms.
 
+
+INCLUDE (FindThreads)
+
 IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -w")
   SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -ftemplate-depth-50")
@@ -107,6 +110,12 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -fPIC")
     SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -fPIC")
   ENDIF(OpenIGTLink_BUILD_GENERATE_PIC)
+
+  # pthread
+  IF(CMAKE_HAVE_THREADS_LIBRARY)
+    SET(OpenIGTLink_REQUIRED_LINK_FLAGS "${OpenIGTLink_REQUIRED_LINK_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+  ENDIF(CMAKE_HAVE_THREADS_LIBRARY)
+
 
 #  IF(APPLE)
 #    # -no-cpp-precomp and -Wno-long-double were compiler flags present
