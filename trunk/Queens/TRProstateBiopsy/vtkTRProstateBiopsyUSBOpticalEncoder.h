@@ -19,7 +19,11 @@
 #define __vtkTRProstateBiopsyUSBOpticalEncoder_h
 
 /// This is a MS Windows specific module to access the USB driver
+#ifdef _WIN32
 #include <windows.h>
+#else /* _WIN32 */
+typedef int HANDLE;
+#endif /* _WIN32 */
 #include "vtkTRProstateBiopsyWin32Header.h"
 
 
