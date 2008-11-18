@@ -15,7 +15,11 @@ vtkTRProstateBiopsyUSBOpticalEncoder* vtkTRProstateBiopsyUSBOpticalEncoder::New(
 /// Constructor
 vtkTRProstateBiopsyUSBOpticalEncoder::vtkTRProstateBiopsyUSBOpticalEncoder(void)
 {
+#ifdef _WIN32
     this->USBDeviceHandle=INVALID_HANDLE_VALUE;
+#else /* WIN32 */
+    this->USBDeviceHandle=-1;
+#endif /* WIN32 */
 }
 
 
@@ -30,7 +34,7 @@ vtkTRProstateBiopsyUSBOpticalEncoder::~vtkTRProstateBiopsyUSBOpticalEncoder(void
 bool vtkTRProstateBiopsyUSBOpticalEncoder::OpenUSBdevice(void)
 {
     this->CloseUSBdevice();
-
+#ifdef _WIN32
     // Just open all of them and the first successul one is what we'll use
     LPCSTR lsUSBname;
     char USBstring[]={"\\\\.\\USDUSBB0"};
@@ -47,6 +51,7 @@ bool vtkTRProstateBiopsyUSBOpticalEncoder::OpenUSBdevice(void)
             return true;
         }
     }
+#endif /* _WIN32 */
 
     // nothing found
     return false;
@@ -56,16 +61,19 @@ bool vtkTRProstateBiopsyUSBOpticalEncoder::OpenUSBdevice(void)
 /// Close the current USB device, if opened
 void vtkTRProstateBiopsyUSBOpticalEncoder::CloseUSBdevice(void)
 {
+#ifdef _WIN32
     if (this->USBDeviceHandle!=INVALID_HANDLE_VALUE) {
         CloseHandle(this->USBDeviceHandle);
         this->USBDeviceHandle=INVALID_HANDLE_VALUE;
     }
+#endif /* _WIN32 */
 }
 
 
 /// Get current USB device module address ( -1 means "not found", other: usb device ID )
 int vtkTRProstateBiopsyUSBOpticalEncoder::GetModuleAddress(void)
 {
+#ifdef _WIN32
     if (this->USBDeviceHandle==INVALID_HANDLE_VALUE) {
         return -1;
     }
@@ -86,12 +94,16 @@ int vtkTRProstateBiopsyUSBOpticalEncoder::GetModuleAddress(void)
         return -1;
     }
     return outBufferAddress;
+#else /* _WIN32 */
+    return -1;
+#endif /* _WIN32 */
 }
 
 
 /// Set the Channel Counter mode to 4x
 bool vtkTRProstateBiopsyUSBOpticalEncoder::SetChannelCounterMode4x(int nChannel)
 {
+#ifdef _WIN32
     if (this->USBDeviceHandle==INVALID_HANDLE_VALUE) {
         return false;
     }
@@ -115,12 +127,16 @@ bool vtkTRProstateBiopsyUSBOpticalEncoder::SetChannelCounterMode4x(int nChannel)
         return false;
     }
     return (outBuffer.Result!=0);
+#else /* _WIN32 */
+    return false;
+#endif /* _WIN32 */
 }
 
 
 /// The the value of a given channel ( -1 = error retrieving data)
 int vtkTRProstateBiopsyUSBOpticalEncoder::GetChannelValue(int nChannel)
 {
+#if _WIN32
     if (this->USBDeviceHandle==INVALID_HANDLE_VALUE) {
         return -1;
     }
@@ -151,11 +167,15 @@ int vtkTRProstateBiopsyUSBOpticalEncoder::GetChannelValue(int nChannel)
 
     // should I check for status!=0 ?
     return nPosition;
+#else /* _WIN32 */
+    return false;
+#endif /* _WIN32 */
 }
 
 /// The the max value of a given channel ( -1 = error retrieving data) - the counter is between 0 and max, wraps!
 int vtkTRProstateBiopsyUSBOpticalEncoder::GetChannelMaxValue(int nChannel)
 {
+#if _WIN32
     if (this->USBDeviceHandle==INVALID_HANDLE_VALUE) {
         return -1;
     }
@@ -185,12 +205,16 @@ int vtkTRProstateBiopsyUSBOpticalEncoder::GetChannelMaxValue(int nChannel)
 
     // should I check for status!=0 ?
     return nMaxCount;
+#else /* _WIN32 */
+    return false;
+#endif /* _WIN32 */
 }
 
 
 /// Reset this channel
 bool vtkTRProstateBiopsyUSBOpticalEncoder::SetChannelValueToZero(int nChannel)
 {
+#if _WIN32
     if (this->USBDeviceHandle==INVALID_HANDLE_VALUE) {
         return false;
     }
@@ -212,4 +236,7 @@ bool vtkTRProstateBiopsyUSBOpticalEncoder::SetChannelValueToZero(int nChannel)
         return false;
     }
     return (outBuffer.Result!=0);
+#else /* _WIN32 */
+    return false;
+#endif /* _WIN32 */
 }

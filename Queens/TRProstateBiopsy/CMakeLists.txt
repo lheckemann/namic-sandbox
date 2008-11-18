@@ -48,17 +48,13 @@ set(TRProstateBiopsy_SRCS
   vtkTRProstateBiopsyLogic.cxx
   vtkTRProstateBiopsyGUI.cxx
   vtkTRProstateBiopsyMath.cxx
-  vtkTRProstateBiopsySecondaryMonitor.cxx
+  vtkTRProstateBiopsyUSBOpticalEncoder.cxx
+  #vtkTRProstateBiopsySecondaryMonitor.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyCalibrationStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyTargetingStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyVerificationStep.cxx
   )
-
-if(WIN32)
-  set(TRProstateBiopsy_SRCS ${TRProstateBiopsy_SRCS}
-      vtkTRProstateBiopsyUSBOpticalEncoder.cxx)
-endif(WIN32)
 
 # --------------------------------------------------------------------------
 # Wrapping
