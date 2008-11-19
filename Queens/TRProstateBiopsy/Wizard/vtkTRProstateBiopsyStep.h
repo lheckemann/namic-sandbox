@@ -22,20 +22,16 @@ public:
   // Description: 
   // Get/Set GUI
   vtkGetObjectMacro(GUI, vtkTRProstateBiopsyGUI);
-  vtkGetObjectMacro(Logic, vtkTRProstateBiopsyLogic);
+  //vtkGetObjectMacro(Logic, vtkTRProstateBiopsyLogic);
   virtual void SetGUI(vtkTRProstateBiopsyGUI*);
-  virtual void SetLogic(vtkTRProstateBiopsyLogic*);
+  //virtual void SetLogic(vtkTRProstateBiopsyLogic*);
 
-  void SetInMRMLCallbackFlag (int flag) {
-    this->InMRMLCallbackFlag = flag;
-  }
-  vtkGetMacro(InMRMLCallbackFlag, int);
-  void SetInGUICallbackFlag (int flag) {
-    this->InGUICallbackFlag = flag;
-    }
-  vtkGetMacro(InGUICallbackFlag, int);
+  //void SetInMRMLCallbackFlag (int flag) { this->InMRMLCallbackFlag = flag;};
+  //vtkGetMacro(InMRMLCallbackFlag, int);
+  //void SetInGUICallbackFlag (int flag) { this->InGUICallbackFlag = flag;};
+ // vtkGetMacro(InGUICallbackFlag, int);
 
-  void SetAndObserveMRMLScene ( vtkMRMLScene *mrml )
+  /*void SetAndObserveMRMLScene ( vtkMRMLScene *mrml )
     {
     vtkMRMLScene *oldValue = this->MRMLScene;
     this->MRMLObserverManager->SetAndObserveObject ( vtkObjectPointer( &this->MRMLScene), (vtkObject*)mrml );
@@ -44,7 +40,7 @@ public:
       this->InvokeEvent (vtkCommand::ModifiedEvent);
       }
     }
-
+*/
   void SetTitleBackgroundColor (double r, double g, double b) {
     this->TitleBackgroundColor[0] = r;
     this->TitleBackgroundColor[1] = g;
@@ -56,9 +52,9 @@ public:
   virtual void HideUserInterface();
   virtual void Validate();
   virtual int CanGoToSelf();
-  virtual void ShowUserInterface();
+  //virtual void ShowUserInterface();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData) {};
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
+  //virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
 
 
 protected:
@@ -67,16 +63,17 @@ protected:
 
   double TitleBackgroundColor[3];
 
-  int InGUICallbackFlag;
-  int InMRMLCallbackFlag;
-  vtkCallbackCommand *GUICallbackCommand;
-  vtkCallbackCommand *MRMLCallbackCommand;
+  //int InGUICallbackFlag;
+  //int InMRMLCallbackFlag;
+  
+  vtkCallbackCommand *WizardGUICallbackCommand;
+ // vtkCallbackCommand *MRMLCallbackCommand;
 
   vtkTRProstateBiopsyGUI   *GUI;
-  vtkTRProstateBiopsyLogic *Logic;
-  vtkMRMLScene        *MRMLScene;
+  //vtkTRProstateBiopsyLogic *Logic;
+  //vtkMRMLScene        *MRMLScene;
 
-  vtkObserverManager *MRMLObserverManager;
+  //vtkObserverManager *MRMLObserverManager;
   
 
 

@@ -20,8 +20,12 @@
 #ifndef __vtkTRProstateBiopsyLogic_h
 #define __vtkTRProstateBiopsyLogic_h
 
-#include "vtkTRProstateBiopsyWin32Header.h"
+
 #include "vtkSlicerModuleLogic.h"
+#include "vtkMRMLScene.h"
+
+#include "vtkTRProstateBiopsyModule.h"
+#include "vtkMRMLTRProstateBiopsyModuleNode.h"
 
 class vtkCallbackCommand;
 class vtkSlicerApplication;
@@ -55,16 +59,25 @@ public:
 
  //ETX
 
+
 public:
   
   static vtkTRProstateBiopsyLogic *New();  
   vtkTypeRevisionMacro(vtkTRProstateBiopsyLogic, vtkSlicerModuleLogic);
   void PrintSelf(ostream&, vtkIndent);
 
+   // Description: Get/Set MRML node storing parameter values
+  vtkGetObjectMacro (TRProstateBiopsyModuleNode, vtkMRMLTRProstateBiopsyModuleNode);
+  void SetAndObserveTRProstateBiopsyModuleNode(vtkMRMLTRProstateBiopsyModuleNode *n) 
+    {
+    vtkSetAndObserveMRMLNodeMacro( this->TRProstateBiopsyModuleNode, n);
+    }
+
   // Description:
   // The name of the Module.
   vtkGetStringMacro(ModuleName);
   vtkSetStringMacro(ModuleName);
+
 
   // Description:
   // Get parameters related to work phase.
@@ -79,39 +92,6 @@ public:
   int  IsPhaseTransitable(int);
   int WorkPhaseStringToID(const char* string);
 
-  // Description:
-  // Get Calibration Fiducials (used in the wizard steps)
-  vtkGetStringMacro(CalibrationFiducialListNodeID);
-  vtkSetStringMacro(CalibrationFiducialListNodeID);
-  vtkGetObjectMacro(CalibrationFiducialListNode, vtkMRMLFiducialListNode);
-  void SetCalibrationFiducialListNode(vtkMRMLFiducialListNode *);
-
-  // Description:
-  // Get Target Fiducials (used in the wizard steps)
-  vtkGetStringMacro(TargetFiducialListNodeID);
-  vtkSetStringMacro(TargetFiducialListNodeID);
-  vtkGetObjectMacro(TargetFiducialListNode, vtkMRMLFiducialListNode);
-  void SetTargetFiducialListNode(vtkMRMLFiducialListNode *);
-
-  // Description:
-  // Get Calibration Volume.
-  vtkGetObjectMacro(CalibrationVolumeNode, vtkMRMLScalarVolumeNode);
-  void SetCalibrationVolumeNode(vtkMRMLScalarVolumeNode *);
-
-  // Description:
-  // Get Targeting Volume.
-  vtkGetObjectMacro(TargetingVolumeNode, vtkMRMLScalarVolumeNode);
-  void SetTargetingVolumeNode(vtkMRMLScalarVolumeNode *);
-
-  // Description:
-  // Get Verification Volume.
-  vtkGetObjectMacro(VerificationVolumeNode, vtkMRMLScalarVolumeNode);
-  void SetVerificationVolumeNode(vtkMRMLScalarVolumeNode *);
-
-
-  // State of the MRML slice nodes for calibration.
-  //vtkGetStringMacro(CalibrationSliceNodeXML);
-  //vtkSetStringMacro(CalibrationSliceNodeXML);
 
   // Description:
   // Load the calibration volume and return the MRML node.
@@ -165,17 +145,7 @@ public:
   bool  Connected;
   bool  PhaseTransitionCheck;
   
-  char *CalibrationFiducialListNodeID;
-  vtkMRMLFiducialListNode *CalibrationFiducialListNode;
-  char *TargetFiducialListNodeID;
-  vtkMRMLFiducialListNode *TargetFiducialListNode;
-
-  vtkMRMLScalarVolumeNode *CalibrationVolumeNode;
-  vtkMRMLScalarVolumeNode *TargetingVolumeNode;
-  vtkMRMLScalarVolumeNode *VerificationVolumeNode;
-
-  //char *CalibrationSliceNodeXML;
-
+  
   bool  Connection;  
   
   // optical encoder related
@@ -194,8 +164,14 @@ public:
   vtkTRProstateBiopsyLogic(const vtkTRProstateBiopsyLogic&);
   void operator=(const vtkTRProstateBiopsyLogic&);
   
+  vtkMRMLTRProstateBiopsyModuleNode* TRProstateBiopsyModuleNode;
+
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
+
+   // Description:
+  // Updates parameters values in MRML node based on logic changes 
+  void UpdateMRML();
   
   vtkCallbackCommand *DataCallbackCommand;
 

@@ -17,9 +17,12 @@
 
 #include "vtkSlicerModuleGUI.h"
 #include "vtkTRProstateBiopsy.h"
+#include "vtkTRProstateBiopsyLogic.h"
 
 class vtkKWPushButton;
 class vtkKWPushButtonSet;
+class vtkKWRadioButton;
+class vtkKWRadioButtonSet;
 class vtkKWEntryWithLabel;
 class vtkKWMenuButtonWithLabel;
 class vtkKWMenuButton;
@@ -31,6 +34,8 @@ class vtkKWEntryWithLabel;
 class vtkKWLoadSaveButtonWithLabel;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkKWWizardWidget;
+class vtkKWLoadSaveButton;
+class vtkSlicerNodeSelectorWidget;
 
 class vtkCallbackCommand;
 class vtkTransform;
@@ -40,8 +45,6 @@ class vtkTRProstateBiopsyStep;
 class vtkIGTDataManager;
 class vtkIGTPat2ImgRegistration;
 class vtkSlicerInteractorStyle;
-
-
 
 #include "vtkTRProstateBiopsyLogic.h"
 
@@ -89,6 +92,10 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   // Get methods on class members (no Set methods required)
   vtkGetObjectMacro(Logic, vtkTRProstateBiopsyLogic);
   vtkSetObjectMacro(Logic, vtkTRProstateBiopsyLogic);
+
+  // Description: Get/Set MRML node
+  vtkGetObjectMacro (MRMLNode, vtkMRMLTRProstateBiopsyModuleNode);
+  vtkSetObjectMacro (MRMLNode, vtkMRMLTRProstateBiopsyModuleNode);
 
   // Description:
   // API for setting VolumeNode, VolumeLogic and
@@ -141,6 +148,14 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
                            void *clientData, void *callData);
   
   //ETX
+
+  // Description
+  // Callback on the load experiment button
+  void LoadExperimentButtonCallback(const char *fileName);
+
+  // Description
+  // Callback on the save calibration button
+  void SaveExperimentButtonCallback(const char *fileName);
   
  protected:
   vtkTRProstateBiopsyGUI();
@@ -149,7 +164,7 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   //----------------------------------------------------------------
   // Workphase Frame
   
-  vtkKWPushButtonSet *WorkPhaseButtonSet;
+  vtkKWRadioButtonSet *WorkPhaseButtonSet;
 
   //----------------------------------------------------------------
   // Wizard Frame
@@ -160,9 +175,29 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   //----------------------------------------------------------------
   // Logic Values
 
+  // logic and mrml nodes
   vtkTRProstateBiopsyLogic *Logic;
+  vtkMRMLTRProstateBiopsyModuleNode *MRMLNode;
+
+  // standard: for volume selection and for parameters
+  vtkSlicerNodeSelectorWidget* VolumeSelector; 
+  vtkSlicerNodeSelectorWidget* TRNodeSelector;
+
+  // 1)  button: open file dialog box
+  vtkKWLoadSaveButton *LoadExperimentFileButton;
+  // 2) button: save calib file dialog box
+  vtkKWLoadSaveButton *SaveExperimentFileButton;
+
 
   vtkCallbackCommand *DataCallbackCommand;
+
+  // Description:
+  // Updates GUI widgets based on parameters values in MRML node
+  void UpdateGUI();
+
+  // Description:
+  // Updates parameters values in MRML node based on GUI widgets 
+  void UpdateMRML();
 
   void UpdateAll();
 
@@ -178,6 +213,7 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   void operator=(const vtkTRProstateBiopsyGUI&); //Not implemented.
   
   void BuildGUIForWorkPhaseFrame();
+  void BuildGUIForModuleParamsVolumeAndExperimentFrame();
   void BuildGUIForWizardFrame();
   void BuildGUIForHelpFrame();
   

@@ -11,50 +11,50 @@
 vtkStandardNewMacro(vtkTRProstateBiopsyStep);
 vtkCxxRevisionMacro(vtkTRProstateBiopsyStep, "$Revision: 1.2 $");
 vtkCxxSetObjectMacro(vtkTRProstateBiopsyStep,GUI,vtkTRProstateBiopsyGUI);
-vtkCxxSetObjectMacro(vtkTRProstateBiopsyStep,Logic,vtkTRProstateBiopsyLogic);
+//vtkCxxSetObjectMacro(vtkTRProstateBiopsyStep,Logic,vtkTRProstateBiopsyLogic);
 
 //----------------------------------------------------------------------------
 vtkTRProstateBiopsyStep::vtkTRProstateBiopsyStep()
 {
   this->GUI = NULL;
-  this->Logic = NULL;
-  this->MRMLScene = NULL;
+//  this->Logic = NULL;
+  //this->MRMLScene = NULL;
 
-  this->GUICallbackCommand = vtkCallbackCommand::New();
-  this->GUICallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
+  this->WizardGUICallbackCommand = vtkCallbackCommand::New();
+  this->WizardGUICallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
 
-  this->MRMLObserverManager = vtkObserverManager::New();
-  this->MRMLObserverManager->GetCallbackCommand()->SetClientData( reinterpret_cast<void *> (this) );
+ // this->MRMLObserverManager = vtkObserverManager::New();
+ // this->MRMLObserverManager->GetCallbackCommand()->SetClientData( reinterpret_cast<void *> (this) );
   //this->MRMLObserverManager->GetCallbackCommand()->SetCallback(vtkTRProstateBiopsyStep::MRMLCallback);
   //this->MRMLCallbackCommand = this->MRMLObserverManager->GetCallbackCommand();
 
-  this->TitleBackgroundColor[0] = 0.8;
+/*  this->TitleBackgroundColor[0] = 0.8;
   this->TitleBackgroundColor[1] = 0.8;
   this->TitleBackgroundColor[2] = 1.0;
-
-  this->InGUICallbackFlag = 0;
-  this->InMRMLCallbackFlag = 0;
+*/
+  //this->InGUICallbackFlag = 0;
+  //this->InMRMLCallbackFlag = 0;
 
 }
 
 //----------------------------------------------------------------------------
 vtkTRProstateBiopsyStep::~vtkTRProstateBiopsyStep()
 {
-  this->SetAndObserveMRMLScene ( NULL );
+//  this->SetAndObserveMRMLScene ( NULL );
 
-  if (this->MRMLObserverManager)
+  //if (this->MRMLObserverManager)
     {
-    this->MRMLObserverManager->Delete();
+  //  this->MRMLObserverManager->Delete();
     }    
 
-  if ( this->GUICallbackCommand != NULL )
+  if ( this->WizardGUICallbackCommand != NULL )
     {
-    this->GUICallbackCommand->Delete ( );
-    this->GUICallbackCommand = NULL;
+    this->WizardGUICallbackCommand->Delete ( );
+    this->WizardGUICallbackCommand = NULL;
     }
 
   this->SetGUI(NULL);
-  this->SetLogic(NULL);
+ // this->SetLogic(NULL);
 
 }
 
@@ -78,7 +78,7 @@ void vtkTRProstateBiopsyStep::Validate()
     this->GetGUI()->GetWizardWidget()->GetWizardWorkflow();
 
   wizardWorkflow->PushInput(vtkKWWizardStep::GetValidationSucceededInput());
-  wizardWorkflow->ProcessInputs();
+  wizardWorkflow->ProcessInputs(); 
 }
 
 //----------------------------------------------------------------------------
@@ -94,13 +94,13 @@ void vtkTRProstateBiopsyStep::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkTRProstateBiopsyStep::ShowUserInterface()
+/*void vtkTRProstateBiopsyStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
   
-  if (!this->MRMLScene)
+//  if (!this->MRMLScene)
     {
-    this->MRMLScene = this->GetGUI()->GetMRMLScene();
+   // this->MRMLScene = this->GetGUI()->GetMRMLScene();
     }
 
   vtkKWWizardWidget *wizardWidget = this->GetGUI()->GetWizardWidget();
@@ -111,3 +111,4 @@ void vtkTRProstateBiopsyStep::ShowUserInterface()
 
 }
 
+*/
