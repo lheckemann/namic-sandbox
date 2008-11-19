@@ -35,12 +35,13 @@ int main( int argc, char * argv [] )
   LongType size = igtl_image_get_data_size( &header );
 
   igtl_image_get_matrix(spacing, origin, norm_i, norm_j, norm_k, & header);
-
   igtl_image_convert_byte_order( & header);
+
   // FIXME: verify the outcome
 
   
-  crc = igtl_image_get_crc( &header, (void*) image);
+  //crc = igtl_image_get_crc( &header, (void*) image);
+
   // FIXME: verify the outcome
 
 
