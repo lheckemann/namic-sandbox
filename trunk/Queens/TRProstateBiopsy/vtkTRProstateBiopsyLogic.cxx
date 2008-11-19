@@ -39,17 +39,6 @@
 vtkCxxRevisionMacro(vtkTRProstateBiopsyLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkTRProstateBiopsyLogic);
 
-vtkCxxSetObjectMacro(vtkTRProstateBiopsyLogic, CalibrationFiducialListNode,
-                     vtkMRMLFiducialListNode);
-vtkCxxSetObjectMacro(vtkTRProstateBiopsyLogic, TargetFiducialListNode,
-                     vtkMRMLFiducialListNode);
-
-vtkCxxSetObjectMacro(vtkTRProstateBiopsyLogic, CalibrationVolumeNode,
-                     vtkMRMLScalarVolumeNode);
-vtkCxxSetObjectMacro(vtkTRProstateBiopsyLogic, TargetingVolumeNode,
-                     vtkMRMLScalarVolumeNode);
-vtkCxxSetObjectMacro(vtkTRProstateBiopsyLogic, VerificationVolumeNode,
-                     vtkMRMLScalarVolumeNode);
 
 //---------------------------------------------------------------------------
 const int vtkTRProstateBiopsyLogic::PhaseTransitionMatrix[vtkTRProstateBiopsyLogic::NumPhases][vtkTRProstateBiopsyLogic::NumPhases] =
@@ -77,15 +66,7 @@ vtkTRProstateBiopsyLogic::vtkTRProstateBiopsyLogic()
   this->PhaseComplete        = false;
   this->PhaseTransitionCheck = true;
 
-  this->CalibrationFiducialListNodeID = NULL;
-  this->CalibrationFiducialListNode   = NULL;
-  
-  this->TargetFiducialListNodeID = NULL;
-  this->TargetFiducialListNode   = NULL;
-  
-  this->CalibrationVolumeNode = NULL;
-  this->TargetingVolumeNode = NULL;
-  this->VerificationVolumeNode = NULL;
+  this->TRProstateBiopsyModuleNode = NULL;
 
   this->USBEncoder = NULL;
 
@@ -110,16 +91,8 @@ vtkTRProstateBiopsyLogic::~vtkTRProstateBiopsyLogic()
   //  this->DataCallbackCommand->Delete();
   //  }
 
-
-  this->SetCalibrationFiducialListNodeID(NULL);
-  this->SetTargetFiducialListNodeID(NULL);
-
-  vtkSetMRMLNodeMacro(this->CalibrationFiducialListNode, NULL);
-  vtkSetMRMLNodeMacro(this->TargetFiducialListNode, NULL);
-
-  vtkSetMRMLNodeMacro(this->CalibrationVolumeNode, NULL);
-  vtkSetMRMLNodeMacro(this->TargetingVolumeNode, NULL);
-  vtkSetMRMLNodeMacro(this->VerificationVolumeNode, NULL);
+  vtkSetMRMLNodeMacro(this->TRProstateBiopsyModuleNode, NULL);
+  
 }
 
 
@@ -150,7 +123,6 @@ void vtkTRProstateBiopsyLogic::UpdateAll()
 {
 }
 
-
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyLogic::SetSliceViewFromVolume(
   vtkSlicerApplication *app,
@@ -166,26 +138,26 @@ void vtkTRProstateBiopsyLogic::SetSliceViewFromVolume(
   vtkMatrix4x4 *rotationMatrix = vtkMatrix4x4::New();
 
   volumeNode->GetIJKToRASDirectionMatrix(matrix);
-  slicerCerr("matrix");
-  slicerCerr("   " << matrix->GetElement(0,0) <<
-             "   " << matrix->GetElement(0,1) <<
-             "   " << matrix->GetElement(0,2));
-  slicerCerr("   " << matrix->GetElement(1,0) <<
-             "   " << matrix->GetElement(1,1) <<
-             "   " << matrix->GetElement(1,2));
-  slicerCerr("   " << matrix->GetElement(2,0) <<
-             "   " << matrix->GetElement(2,1) <<
-             "   " << matrix->GetElement(2,2));
+  //slicerCerr("matrix");
+  //slicerCerr("   " << matrix->GetElement(0,0) <<
+//             "   " << matrix->GetElement(0,1) <<
+  //           "   " << matrix->GetElement(0,2));
+  //slicerCerr("   " << matrix->GetElement(1,0) <<
+    //         "   " << matrix->GetElement(1,1) <<
+    //         "   " << matrix->GetElement(1,2));
+  //slicerCerr("   " << matrix->GetElement(2,0) <<
+   //          "   " << matrix->GetElement(2,1) <<
+    //         "   " << matrix->GetElement(2,2));
 
   int permutation[3];
   int flip[3];
   vtkTRProstateBiopsyMath::ComputePermutationFromOrientation(
     matrix, permutation, flip);
 
-  slicerCerr("permutation " << permutation[0] << " " <<
-             permutation[1] << " " << permutation[2]);
-  slicerCerr("flip " << flip[0] << " " <<
-             flip[1] << " " << flip[2]);
+  //slicerCerr("permutation " << permutation[0] << " " <<
+//             permutation[1] << " " << permutation[2]);
+  //slicerCerr("flip " << flip[0] << " " <<
+  //           flip[1] << " " << flip[2]);
 
   permutationMatrix->SetElement(0,0,0);
   permutationMatrix->SetElement(1,1,0);
@@ -198,16 +170,16 @@ void vtkTRProstateBiopsyLogic::SetSliceViewFromVolume(
   permutationMatrix->SetElement(2, permutation[2],
                      (flip[permutation[2]] ? -1 : 1));
 
-  slicerCerr("permutationMatrix");
-  slicerCerr("   " << permutationMatrix->GetElement(0,0) <<
-             "   " << permutationMatrix->GetElement(0,1) <<
-             "   " << permutationMatrix->GetElement(0,2));
-  slicerCerr("   " << permutationMatrix->GetElement(1,0) <<
-             "   " << permutationMatrix->GetElement(1,1) <<
-             "   " << permutationMatrix->GetElement(1,2));
-  slicerCerr("   " << permutationMatrix->GetElement(2,0) <<
-             "   " << permutationMatrix->GetElement(2,1) <<
-             "   " << permutationMatrix->GetElement(2,2));
+  //slicerCerr("permutationMatrix");
+  //slicerCerr("   " << permutationMatrix->GetElement(0,0) <<
+//             "   " << permutationMatrix->GetElement(0,1) <<
+  //           "   " << permutationMatrix->GetElement(0,2));
+  //slicerCerr("   " << permutationMatrix->GetElement(1,0) <<
+    //         "   " << permutationMatrix->GetElement(1,1) <<
+      //       "   " << permutationMatrix->GetElement(1,2));
+  //slicerCerr("   " << permutationMatrix->GetElement(2,0) <<
+        //     "   " << permutationMatrix->GetElement(2,1) <<
+          //   "   " << permutationMatrix->GetElement(2,2));
 
   permutationMatrix->Invert();
   vtkMatrix4x4::Multiply4x4(matrix, permutationMatrix, rotationMatrix); 
@@ -276,7 +248,9 @@ vtkMRMLScalarVolumeNode *vtkTRProstateBiopsyLogic::AddCalibrationVolume(
   vtkMRMLScalarVolumeNode *volumeNode =
     this->AddArchetypeVolume(app, fileName, volumeNameString.c_str());
 
-  vtkSetMRMLNodeMacro(this->CalibrationVolumeNode, volumeNode );
+  //vtkSetMRMLNodeMacro(this->CalibrationVolumeNode, volumeNode );
+  this->TRProstateBiopsyModuleNode->SetCalibrationVolumeNode(volumeNode);
+
   this->Modified();
 
   this->SetSliceViewFromVolume(app, volumeNode);
@@ -294,7 +268,8 @@ vtkMRMLScalarVolumeNode *vtkTRProstateBiopsyLogic::AddTargetingVolume(
   vtkMRMLScalarVolumeNode *volumeNode =
     this->AddArchetypeVolume(app, fileName, volumeNameString.c_str());
 
-  vtkSetMRMLNodeMacro(this->TargetingVolumeNode, volumeNode );
+//  vtkSetMRMLNodeMacro(this->TargetingVolumeNode, volumeNode );
+  this->TRProstateBiopsyModuleNode->SetTargetingVolumeNode(volumeNode);
   this->Modified();
 
   this->SetSliceViewFromVolume(app, volumeNode);
@@ -312,7 +287,9 @@ vtkMRMLScalarVolumeNode *vtkTRProstateBiopsyLogic::AddVerificationVolume(
   vtkMRMLScalarVolumeNode *volumeNode =
     this->AddArchetypeVolume(app, fileName, volumeNameString.c_str());
 
-  vtkSetMRMLNodeMacro(this->VerificationVolumeNode, volumeNode );
+  //vtkSetMRMLNodeMacro(this->VerificationVolumeNode, volumeNode );
+  this->TRProstateBiopsyModuleNode->SetVerificationVolumeNode(volumeNode);
+
   this->Modified();
 
   this->SetSliceViewFromVolume(app, volumeNode);
