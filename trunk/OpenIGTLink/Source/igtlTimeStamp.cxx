@@ -46,6 +46,7 @@
   #include <sys/time.h>
 #endif  // defined(WIN32) || defined(_WIN32)
 
+#include <string.h>
 
 namespace igtl
 {
