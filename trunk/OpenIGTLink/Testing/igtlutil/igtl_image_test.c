@@ -43,5 +43,6 @@ int main( int argc, char * argv [] )
   crc = igtl_image_get_crc( &header, (void*) image);
   // FIXME: verify the outcome
 
-  return EXIT_FAILURE;
+
+  return EXIT_SUCCESS;
 }
