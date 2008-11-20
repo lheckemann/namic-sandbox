@@ -22,11 +22,11 @@ namespace igtl
 
 typedef float  Matrix4x4[4][4];
 
-void PrintMatrix(igtl::Matrix4x4 &matrix);
-void QuaternionToMatrix(float* q, Matrix4x4& m);
-void MatrixToQuaternion(Matrix4x4& m, float* q);
-void Cross(float *a, float *b, float *c);
-void IdentityMatrix(igtl::Matrix4x4 &matrix);
+void IGTLCommon_EXPORT PrintMatrix(igtl::Matrix4x4 &matrix);
+void IGTLCommon_EXPORT QuaternionToMatrix(float* q, Matrix4x4& m);
+void IGTLCommon_EXPORT MatrixToQuaternion(Matrix4x4& m, float* q);
+void IGTLCommon_EXPORT Cross(float *a, float *b, float *c);
+void IGTLCommon_EXPORT IdentityMatrix(igtl::Matrix4x4 &matrix);
 
 }
 

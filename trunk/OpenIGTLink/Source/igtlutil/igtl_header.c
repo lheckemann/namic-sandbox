@@ -17,7 +17,7 @@
 #include "igtl_util.h"
 #include "igtl_header.h"
 
-void igtl_header_convert_byte_order(igtl_header * header)
+void igtl_export igtl_header_convert_byte_order(igtl_header * header)
 {
   if (igtl_is_little_endian()) {
     header->version   = BYTE_SWAP_INT16(header->version);

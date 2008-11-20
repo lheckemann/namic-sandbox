@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 
-void igtl_position_convert_byte_order(igtl_position* pos)
+void igtl_export igtl_position_convert_byte_order(igtl_position* pos)
 {
 
   int i;
@@ -47,7 +47,7 @@ void igtl_position_convert_byte_order(igtl_position* pos)
 }
 
 
-igtl_uint64 igtl_position_get_crc(igtl_position* pos)
+igtl_uint64 igtl_export igtl_position_get_crc(igtl_position* pos)
 {
 
   igtl_uint64 crc = crc64(0, 0, 0);

@@ -77,7 +77,7 @@ typedef struct {
  * or vice versa.
  */
 
-void igtl_status_convert_byte_order(igtl_status_header* status);
+void igtl_export igtl_status_convert_byte_order(igtl_status_header* status);
 
 
 /*
@@ -87,7 +87,7 @@ void igtl_status_convert_byte_order(igtl_status_header* status);
  *
  */
 
-igtl_uint64 igtl_status_get_crc(igtl_status_header* status, igtl_uint32 msglen, const char* msg);
+igtl_uint64 igtl_export igtl_status_get_crc(igtl_status_header* status, igtl_uint32 msglen, const char* msg);
 
 #ifdef __cplusplus
 }

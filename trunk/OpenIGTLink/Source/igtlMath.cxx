@@ -16,11 +16,12 @@
 
 #include <iostream>
 #include <math.h>
+#include "igtlWin32Header.h"
 #include "igtlMath.h"
 
 namespace igtl {
 
-void PrintMatrix(igtl::Matrix4x4 &matrix)
+void IGTLCommon_EXPORT PrintMatrix(igtl::Matrix4x4 &matrix)
 {
   std::cout << "=============" << std::endl;
   std::cout << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << ", " << matrix[0][3] << std::endl;
@@ -30,7 +31,7 @@ void PrintMatrix(igtl::Matrix4x4 &matrix)
   std::cout << "=============" << std::endl;
 }
 
-void QuaternionToMatrix(float* q, Matrix4x4& m)
+void IGTLCommon_EXPORT QuaternionToMatrix(float* q, Matrix4x4& m)
 {
 
   // normalize
@@ -76,7 +77,7 @@ void QuaternionToMatrix(float* q, Matrix4x4& m)
 }
 
 
-void MatrixToQuaternion(Matrix4x4& m, float* q)
+void IGTLCommon_EXPORT MatrixToQuaternion(Matrix4x4& m, float* q)
 {
   float trace = m[0][0] + m[1][1] + m[2][2];
 
@@ -124,14 +125,14 @@ void MatrixToQuaternion(Matrix4x4& m, float* q)
   
 
   
-void Cross(float *a, float *b, float *c)
+void IGTLCommon_EXPORT Cross(float *a, float *b, float *c)
 {
     a[0] = b[1]*c[2] - c[1]*b[2];
     a[1] = c[0]*b[2] - b[0]*c[2];
     a[2] = b[0]*c[1] - c[0]*b[1];
 }
 
-void IdentityMatrix(igtl::Matrix4x4 &matrix)
+void IGTLCommon_EXPORT IdentityMatrix(igtl::Matrix4x4 &matrix)
 {
   matrix[0][0] = 1.0;
   matrix[1][0] = 0.0;

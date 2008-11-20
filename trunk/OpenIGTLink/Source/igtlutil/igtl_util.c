@@ -16,14 +16,14 @@
 
 #include "igtl_util.h"
 
-int igtl_is_little_endian()
+int igtl_export igtl_is_little_endian()
 {
   short a = 1; 
   return ((char*)&a)[0];
 }
 
 
-igtl_uint64 crc64(unsigned char *data, int len, igtl_uint64 crc)
+igtl_uint64 igtl_export crc64(unsigned char *data, int len, igtl_uint64 crc)
 {
 
     static const igtl_uint64 table[256] = {
@@ -167,7 +167,7 @@ igtl_uint64 crc64(unsigned char *data, int len, igtl_uint64 crc)
 }
 
 
-igtl_uint32 igtl_nanosec_to_frac(igtl_uint32 nanosec)
+igtl_uint32 igtl_export igtl_nanosec_to_frac(igtl_uint32 nanosec)
 {
 
   igtl_uint32 base = 1000000000; /*10^9*/
@@ -191,7 +191,7 @@ igtl_uint32 igtl_nanosec_to_frac(igtl_uint32 nanosec)
 }
 
 
-igtl_uint32 igtl_frac_to_nanosec(igtl_uint32 frac)
+igtl_uint32 igtl_export igtl_frac_to_nanosec(igtl_uint32 frac)
 {
   igtl_uint32 base = 1000000000; /*10^9*/
 

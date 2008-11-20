@@ -17,6 +17,7 @@
 #ifndef __IGTL_POSITION_H
 #define __IGTL_POSITION_H
 
+#include "igtl_win32header.h"
 #include "igtl_util.h"
 #include "igtl_types.h"
 
@@ -51,7 +52,7 @@ typedef struct {
  * or vice versa.
  */
 
-void igtl_position_convert_byte_order(igtl_position* pos);
+void igtl_export igtl_position_convert_byte_order(igtl_position* pos);
 
 
 /*
@@ -61,7 +62,7 @@ void igtl_position_convert_byte_order(igtl_position* pos);
  *
  */
 
-igtl_uint64 igtl_position_get_crc(igtl_position* pos);
+igtl_uint64 igtl_export igtl_position_get_crc(igtl_position* pos);
 
 #ifdef __cplusplus
 }

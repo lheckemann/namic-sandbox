@@ -24,6 +24,7 @@
 #define IGTL_HEADER_DEVSIZE   20
 
 #include "igtl_types.h"
+#include "igtl_win32header.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,11 +60,11 @@ typedef struct {
  * to network byte order, or vice versa.
  *
  */
-void igtl_header_convert_byte_order(igtl_header * header);
+void igtl_export igtl_header_convert_byte_order(igtl_header * header);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // __IGTL_HEADER_H
+#endif /* __IGTL_HEADER_H */
 
