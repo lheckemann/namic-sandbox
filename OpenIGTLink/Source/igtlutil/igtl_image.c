@@ -20,7 +20,7 @@
 #include "igtl_image.h"
 #include "igtl_util.h"
 
-igtl_uint64 igtl_image_get_data_size(igtl_image_header * header)
+igtl_uint64 igtl_export igtl_image_get_data_size(igtl_image_header * header)
 {
   igtl_uint64 si;
   igtl_uint64 sj;
@@ -55,7 +55,7 @@ igtl_uint64 igtl_image_get_data_size(igtl_image_header * header)
 }
 
 
-void igtl_image_set_matrix(float spacing[3], float origin[3],
+void igtl_export igtl_image_set_matrix(float spacing[3], float origin[3],
                             float norm_i[3], float norm_j[3], float norm_k[3],
                             igtl_image_header * header)
 {
@@ -73,7 +73,7 @@ void igtl_image_set_matrix(float spacing[3], float origin[3],
   header->matrix[11] = (igtl_float32) (origin[2]);
 }
 
-void igtl_image_get_matrix(float spacing[3], float origin[3],
+void igtl_export igtl_image_get_matrix(float spacing[3], float origin[3],
                             float norm_i[3], float norm_j[3], float norm_k[3],
                             igtl_image_header * header)
 {
@@ -122,7 +122,7 @@ void igtl_image_get_matrix(float spacing[3], float origin[3],
 }
 
 
-void igtl_image_convert_byte_order(igtl_image_header * header)
+void igtl_export igtl_image_convert_byte_order(igtl_image_header * header)
 {
   int i;
   igtl_uint32 tmp[12];
@@ -150,7 +150,7 @@ void igtl_image_convert_byte_order(igtl_image_header * header)
 }
 
 
-igtl_uint64 igtl_image_get_crc(igtl_image_header * header, void* image)
+igtl_uint64 igtl_export igtl_image_get_crc(igtl_image_header * header, void* image)
 {
   igtl_uint64   crc;
   igtl_uint64   img_size;

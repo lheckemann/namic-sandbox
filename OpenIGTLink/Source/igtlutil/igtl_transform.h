@@ -17,6 +17,7 @@
 #ifndef __IGTL_TRANSFORM_H
 #define __IGTL_TRANSFORM_H
 
+#include "igtl_win32header.h"
 #include "igtl_util.h"
 
 #define IGTL_TRANSFORM_SIZE   48
@@ -37,7 +38,7 @@ typedef igtl_float32[12] transform;
  * or vice versa.
  */
 
-void igtl_transform_convert_byte_order(igtl_float32* transform);
+void igtl_export igtl_transform_convert_byte_order(igtl_float32* transform);
 
 
 /*
@@ -47,7 +48,7 @@ void igtl_transform_convert_byte_order(igtl_float32* transform);
  *
  */
 
-igtl_uint64 igtl_transform_get_crc(igtl_float32* transform);
+igtl_uint64 igtl_export igtl_transform_get_crc(igtl_float32* transform);
 
 #ifdef __cplusplus
 }

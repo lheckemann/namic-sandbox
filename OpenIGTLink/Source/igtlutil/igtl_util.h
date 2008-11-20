@@ -17,6 +17,7 @@
 #ifndef __IGTL_UTIL_H
 #define __IGTL_UTIL_H
 
+#include "igtl_win32header.h"
 #include "igtl_types.h"
 
 #ifdef __cplusplus
@@ -38,16 +39,16 @@ extern "C" {
 /*
  * Test endian of the host
  */
-int igtl_is_little_endian();
-igtl_uint64 crc64(unsigned char *data, int len, igtl_uint64 crc);
+int igtl_export igtl_is_little_endian();
+igtl_uint64 igtl_export crc64(unsigned char *data, int len, igtl_uint64 crc);
 
 
 /*
  * Convert nanosecond to fraction / fraction to nanosec
  */
 
-igtl_uint32 igtl_nanosec_to_frac(igtl_uint32 nanosec);
-igtl_uint32 igtl_frac_to_nanosec(igtl_uint32 frac);
+igtl_uint32 igtl_export igtl_nanosec_to_frac(igtl_uint32 nanosec);
+igtl_uint32 igtl_export igtl_frac_to_nanosec(igtl_uint32 frac);
 
 #ifdef __cplusplus
 }

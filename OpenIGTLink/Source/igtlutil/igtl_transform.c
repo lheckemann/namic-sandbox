@@ -17,11 +17,11 @@
 #include <string.h>
 #include "igtl_transform.h"
 #include "igtl_util.h"
-//#include "crc32.h"
+/*#include "crc32.h"*/
 
 #include <stdio.h>
 
-void igtl_transform_convert_byte_order(igtl_float32* transform)
+void igtl_export igtl_transform_convert_byte_order(igtl_float32* transform)
 {
   int i;
   igtl_uint32* tmp = (igtl_uint32*) transform;
@@ -34,7 +34,7 @@ void igtl_transform_convert_byte_order(igtl_float32* transform)
 }
 
 
-igtl_uint64 igtl_transform_get_crc(igtl_float32* transform)
+igtl_uint64 igtl_export igtl_transform_get_crc(igtl_float32* transform)
 {
 
   igtl_uint64 crc = crc64(0, 0, 0);
