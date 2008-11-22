@@ -1,0 +1,7 @@
+#ifndef __testconfig_h__
+#define __testconfig_h__
+
+#define CURL_SOURCE_DIR "${CURL_SOURCE_DIR}"
+#define CURL_BINARY_DIR "${CURL_BINARY_DIR}"
+
+#endif /* __testconfig_h__ */

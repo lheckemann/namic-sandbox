@@ -1,0 +1,50 @@
+#-----------------------------------------------------------------------------
+#
+# CURLConfig.cmake - CMake configuration file for external projects.
+#
+# This file is configured by CURL and used by the UseCURL.cmake 
+# module to load CURL's settings for an external project.
+
+SET(CURL_SOURCE_DIR "@CURL_SOURCE_DIR@")
+SET(CURL_BINARY_DIR "@CURL_BINARY_DIR@")
+
+# The CURL version number.
+SET(CURL_VERSION "@VERSION@")
+
+# The libraries.
+SET(CURL_LIBRARIES "@CURL_LIBRARIES_CONFIG@")
+
+# The configuration options.
+SET(CURL_BUILD_SHARED_LIBS "@BUILD_SHARED_LIBS@")
+
+# The "use" file.
+SET(CURL_USE_FILE "@CURL_USE_FILE_CONFIG@")
+
+# The library directories.
+SET(CURL_LIBRARY_DIRS "@CURL_LIBRARY_DIRS_CONFIG@")
+
+# The runtime directories.
+# Note that if CURL_CONFIGURATION_TYPES is set (see below) then
+# these directories will be the parent directories under which there will
+# be a directory of runtime binaries for each configuration type.
+SET(CURL_RUNTIME_DIRS "@CURL_RUNTIME_DIRS_CONFIG@")
+
+# The include directories.
+SET(CURL_INCLUDE_DIRS "@CURL_INCLUDE_DIRS_CONFIG@")
+
+# An install tree always provides one build configuration.
+# A build tree may provide either one or multiple build
+# configurations depending on the CMake generator used. Since
+# this project can be used either from a build tree or an install tree it
+# is useful for outside projects to know the configurations available.
+# If this CURLConfig.cmake is in an install tree
+# CURL_CONFIGURATION_TYPES will be empty and CURL_BUILD_TYPE
+# will be set to the value of CMAKE_BUILD_TYPE used to build
+# CURL. If CURLConfig.cmake is in a build tree
+# then CURL_CONFIGURATION_TYPES and CURL_BUILD_TYPE will
+# have values matching CMAKE_CONFIGURATION_TYPES and CMAKE_BUILD_TYPE
+# for that build tree (only one will ever be set).
+
+SET(CURL_CONFIGURATION_TYPES @CURL_CONFIGURATION_TYPES_CONFIG@)
+
+SET(CURL_BUILD_TYPE @CURL_BUILD_TYPE_CONFIG@)
