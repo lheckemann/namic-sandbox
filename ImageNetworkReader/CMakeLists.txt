@@ -21,9 +21,15 @@ foreach(Package ${Required_Packages})
   LOADPACKAGE(${Package})
 endforeach(Package)
 
+set(LIBRARY_OUTPUT_PATH "${ImageNetworkReader_BINARY_DIR}" CACHE PATH 
+      "Single output directory for building all libraries.")
+set(EXECUTABLE_OUTPUT_PATH ${ImageNetworkReader_BINARY_DIR} CACHE PATH 
+      "Single output directory for building all executables.")
 Subdirs ( curl )
 Add_Executable(ImageNetworkReaderTest ImageNetworkReaderTest.cxx )
 Target_Link_Libraries(ImageNetworkReaderTest ${ITK_LIBRARIES} curl) 
+INCLUDE_DIRECTORIES(${ImageNetworkReader_SOURCE_DIR}/curl/curl)
+
 
 # Test it
 Add_Test(ImageNetworkReaderTest ImageNetworkReaderTest http://www.na-mic.org/Wiki/images/f/f6/Test.nhdr)
