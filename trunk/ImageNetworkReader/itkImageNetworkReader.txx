@@ -70,6 +70,7 @@ ImageNetworkReader<TOutputImage, ConvertPixelTraits>
 {
   m_ImageIO = 0;
   m_URI = "";
+  m_DataExtention = "";
   m_UserSpecifiedImageIO = false;
   m_HeaderFetchSize = 4096;
   curl_global_init ( CURL_GLOBAL_ALL );
