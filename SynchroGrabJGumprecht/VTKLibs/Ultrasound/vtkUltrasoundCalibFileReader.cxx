@@ -272,13 +272,17 @@ void vtkUltrasoundCalibFileReader::ReadCalibFile()
    
 //  Calculate();
    cout << "void vtkUltrasoundCalibFileReader::ReadCalibFile() | Calculate deactivated" << endl;
-   
+//Replacement of Calculate   
   this->ImageSpacing[0] = 1.0;
   this->ImageSpacing[1] = 1.0;
   this->ImageSpacing[2] = 1.0;
+  
+  this->ClipRectangle[0] = 0 * this->ImageSpacing[0]+this->ImageOrigin[0];
+  this->ClipRectangle[1] = 0 * this->ImageSpacing[1]+this->ImageOrigin[1];
+  this->ClipRectangle[2] = (this->ImageSize[0] -1) * this->ImageSpacing[0] + this->ImageOrigin[0];
+  this->ClipRectangle[3] = (this->ImageSize[1] -1) * this->ImageSpacing[1] + this->ImageOrigin[1];
+//End Replacement
    
-   
-     
   // close the file stream
   this->CloseCalibFile();
   
