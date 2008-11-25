@@ -62,7 +62,7 @@ POSSIBILITY OF SUCH DAMAGE.
 class vtkFrameToTimeConverter;
 
 // the number of tools this class can handle
-#define VTK_CERTUS_NTOOLS 12
+#define VTK_CERTUS_NTOOLS 1
 
 
 
@@ -167,7 +167,7 @@ protected:
   int PortEnabled[VTK_CERTUS_NTOOLS];
 //  int PortHandle[VTK_CERTUS_NTOOLS];
 
-void GetRandomTestMatrix(vtkMatrix4x4& matrix);
+void GetRandomTestMatrix(vtkMatrix4x4& matrix, int index);
 
 private:
   vtkTrackerSimulator(const vtkTrackerSimulator&);
