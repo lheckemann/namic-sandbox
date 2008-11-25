@@ -682,8 +682,13 @@ void vtkV4LVideoSource::FillFrameBuffer()
 
   // get a thread lock on the frame buffer
   this->FrameBufferMutex->Lock();
+  
+  int limit = 100;
+  
+  //for testing
+//  limit = 3;
  
-  for (int n = 0; n <= 10; ++n)
+  for (int n = 0; n < limit; ++n)
  
     {
     // 1) Do the frame buffer indices maintenance
@@ -698,7 +703,9 @@ void vtkV4LVideoSource::FillFrameBuffer()
     int index = this->FrameBufferIndex;
 
     // 2) Do the time stamping
-    this->FrameBufferTimeStamps[index] = vtkTimerLog::GetUniversalTime();
+//    this->FrameBufferTimeStamps[index] = vtkTimerLog::GetUniversalTime();
+    //We need times that correspond to the tracking matrices, therefore the every Frame has its index as timestamp
+    this->FrameBufferTimeStamps[index] = index;
 
     if (this->FrameCount++ == 0)
       {
@@ -713,13 +720,62 @@ void vtkV4LVideoSource::FillFrameBuffer()
     // get the pointer to actual incoming data on to a local pointer
     char* deviceDataPtr = new char[SLICE_X_LENGTH * SLICE_Y_LENGTH * SLICE_Z_LENGTH];  
   
-    for (int i = 0 ; i < SLICE_Z_LENGTH ; i++)
+    int R = 50; //Radius of globe
+    double r; //Radius of circle in slice
+    int c = limit / 2; //Center of globe
+    double a;// Start to write at this position in the actual line
+    double b;// Stop to write at this position in the actual line
+  
+    for (int z = 0 ; z < SLICE_Z_LENGTH ; z++)
       {
-      for (int j = 0 ; j < SLICE_Y_LENGTH ; j++)
+      //Calc radius of slice
+      if(n - c >= R || c - n >= R)
         {
-        for (int k = 0 ; k < SLICE_X_LENGTH ; k++)
+        r = -1;
+        }
+      else
+        {
+        if(n >= c)
           {
-          deviceDataPtr[ i * SLICE_Z_LENGTH + j * SLICE_Y_LENGTH + k] = k;        
+          r = sqrt(R * R - (n - c) * (n - c));
+          }
+        else
+          {
+          r = sqrt(R * R - (c - n) * (c - n));
+          }
+//      cout << "******************************************\n";
+//      cout << "Globe Calculation: Slice has radius: " << r << endl;
+        }
+      for (int y = 0 ; y < SLICE_Y_LENGTH ; y++)
+        {
+        //Calc a, b
+        if(r == -1 || y - SLICE_Y_LENGTH / 2 >= r || SLICE_Y_LENGTH / 2 - y >= r)
+          {
+          a = -1;
+          b = -1;
+          }
+        else
+          {
+          if (y <= SLICE_X_LENGTH / 2)
+            {
+            a = SLICE_X_LENGTH / 2 - sqrt(r * r - (SLICE_Y_LENGTH / 2 - y) * (SLICE_Y_LENGTH / 2 - y));
+            b = SLICE_X_LENGTH / 2 + sqrt(r * r - (SLICE_Y_LENGTH / 2 - y) * (SLICE_Y_LENGTH / 2 - y));
+            }
+          else
+            {
+            a = SLICE_X_LENGTH / 2 - sqrt(r * r - (y - SLICE_Y_LENGTH / 2) * (y - SLICE_Y_LENGTH / 2));
+            b = SLICE_X_LENGTH / 2 + sqrt(r * r - (y - SLICE_Y_LENGTH / 2) * (y - SLICE_Y_LENGTH / 2));          
+            }
+//            cout << "A, B for this line: " << a << ", " << b << endl; 
+          } 
+        for (int x = 0 ; x < SLICE_X_LENGTH ; x++)
+          {
+          if(a == -1 || b == -1 || x <= a || x >= b)
+            {
+            deviceDataPtr[ z * SLICE_Z_LENGTH + y * SLICE_Y_LENGTH + x] = 255;
+            continue;
+            }                     
+          deviceDataPtr[ z * SLICE_Z_LENGTH + y * SLICE_Y_LENGTH + x] = 0;        
           }            
         }
       }
