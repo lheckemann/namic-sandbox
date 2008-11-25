@@ -125,7 +125,10 @@ public:
   bool SendImages();
   
   void vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix);
+  
   int vtkGetTestImage(igtl::ImageMessage::Pointer& msg);
+  
+  void FillImage();
 
 protected:
   vtkSynchroGrabPipeline();
