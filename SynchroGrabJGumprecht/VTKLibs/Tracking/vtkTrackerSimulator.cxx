@@ -563,13 +563,19 @@ void vtkTrackerSimulator::InternalUpdate()
 //    ndiTransformToMatrixd(transform[tool],*this->SendMatrix->Element);
 //    this->SendMatrix->Transpose();
 
-//TODO: Create Transformation matrix
-    this->SendMatrix->Identity();
+    int limit = 101;
 
-    GetRandomTestMatrix(*this->SendMatrix);
+    for (int index = 1; index < limit; ++index)
+      { 
 
-    // send the matrix and flags to the tool's vtkTrackerBuffer
-    this->ToolUpdate(tool, this->SendMatrix, flags, timestamp);
+      this->SendMatrix->Identity();
+
+      GetRandomTestMatrix(*this->SendMatrix, index);
+
+      // send the matrix and flags to the tool's vtkTrackerBuffer
+//      this->ToolUpdate(tool, this->SendMatrix, flags, timestamp);
+      this->ToolUpdate(tool, this->SendMatrix, flags, index);
+      }
     }
 }
 
@@ -950,7 +956,7 @@ int vtkTrackerSimulator::InternalSetToolLED(int tool, int led, int state)
   return 1;
 }
 
-void vtkTrackerSimulator::GetRandomTestMatrix(vtkMatrix4x4& matrix)
+void vtkTrackerSimulator::GetRandomTestMatrix(vtkMatrix4x4& matrix, int index)
 {
   float position[3];
   float orientation[4];
@@ -1000,7 +1006,7 @@ void vtkTrackerSimulator::GetRandomTestMatrix(vtkMatrix4x4& matrix)
   
   matrix.SetElement(0, 3, 1);
   matrix.SetElement(1, 3, 1);
-  matrix.SetElement(2, 3, 1);
+  matrix.SetElement(2, 3, index);
 
 }
 
