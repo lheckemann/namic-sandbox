@@ -1,0 +1,156 @@
+\documentclass{InsightArticle}
+
+\usepackage[dvips]{graphicx}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  hyperref should be the last package to be loaded.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[dvips,
+bookmarks,
+bookmarksopen,
+backref,
+colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+]{hyperref}
+
+
+%  This is a template for Papers to the Insight Journal. 
+%  It is comparable to a technical report format.
+
+% The title should be descriptive enough for people to be able to find
+% the relevant document. 
+\title{ImageNetworkReader: an ITK Class for Loading Images Across a Network}
+
+% 
+% NOTE: This is the last number of the "handle" URL that 
+% The Insight Journal assigns to your paper as part of the
+% submission process. Please replace the number "1338" with
+% the actual handle number that you get assigned.
+%
+\newcommand{\IJhandlerIDnumber}{1338}
+
+% Increment the release number whenever significant changes are made.
+% The author and/or editor can define 'significant' however they like.
+\release{1.00}
+
+% At minimum, give your name and an email address.  You can include a
+% snail-mail address if you like.
+\author{Daniel Blezek$^{1}$}
+\authoraddress{$^{1}$Mayo Clinic, Rochester, MN, USA}
+
+\begin{document}
+
+%
+% Add hyperlink to the web location and license of the paper.
+% The argument of this command is the handler identifier given
+% by the Insight Journal to this paper.
+% 
+\IJhandlefooter{\IJhandlerIDnumber}
+
+
+\maketitle
+
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+
+% The abstract should be a paragraph or two long, and describe the
+% scope of the document.
+\begin{abstract}
+\noindent
+This document describes a new class for the Insight Toolkit~(ITK \url{www.itk.org}) for reading images across a network.  Network access
+is handled by CURL (\url{http://curl.haxx.se/libcurl/}), an Open Source library for client-side URL transfer.  CURL supports the FTP,
+FTPS, HTTP, HTTPS, SCP, SFTP, TFTP, TELNET, DICT, LDAP, LDAPS and FILE protocols.
+
+This paper is accompanied with source code and a test to load a NRRD file across the network and verify that is is read properly.
+
+\end{abstract}
+
+\IJhandlenote{\IJhandlerIDnumber}
+
+\tableofcontents
+
+The rationale for this contribution to the Insight Journal is to meet a need for a cross-platform, integrated \code{ImageSource} for reading
+images across networks.  The class is straightforward, modeled after \code{ImageFileReader} and uses CURL, a well known library for URL transfer.
+
+\section{Basic Usage}
+
+\code{ImageNetworkReader} is a templated class.  The first step to usage as including the header, and defining a typedef for ease of use.
+
+\begin{verbatim}
+#include "itkImageNetworkReader.h"
+
+...
+
+  typedef itk::Image<short, 3> ImageType;
+  typedef itk::ImageNetworkReader<ImageType> ReaderType;
+
+  ReaderType::Pointer reader = ReaderType::New();
+\end{verbatim}
+
+The reader class requires a URI to be set.  This URI may have any of the common forms, the CURL documentation provides details on the supported protocols (\url{http://curl.haxx.se/docs/}).
+
+\begin{verbatim}
+  
+  reader->SetURI ( "http://www.na-mic.org/Wiki/images/f/f6/Test.nhdr" );
+
+\end{verbatim}
+
+The class functions like any other \code{ImageSource} and may be included in pipelines.
+
+\section{Advanced Usage}
+
+In addition to the same methods available to \code{ImageFileReader}, \code{ImageNetworkReader} has additional options available.  Images downloaded from the URI are saved in a temporary directory.  By default, the temporary directory is the current working directory, but this may be changed through a call to \code{SetTemporaryDirectory}.  All files will be downloaded into this directory before reading.  Files will be named according to the tail of the \code{URI}.  If an \code{ImageIO} object is set, the downloaded file will be read using that IO class, otherwise the standard \code{ImageIO} factory methods will be used.
+
+To properly allocate the output of the filter, \code{ImageNetworkReader} downloads the image header, under the assumption that most image formats have header information stored at the beginning of the file.  The size of this download is controlled by \code{SetHeaderFetchSize}.  This method takes an \code{unsigned long int} specifying the number of bytes to read from the file in the \code{GenerateOutputInformation} method.  NB: CURL does not allow termination of the download on exact byte boundaries.  The code is guaranteed to transfer at least \code{HeaderFetchSize} bytes, but may read more.  When reading a full file, the header is read twice, once during \code{GenerateOutputInformation} and again during \code{GenerateData}.  This is a limitation of the class.  However, the default \code{HeaderFetchSize} is \code{4K}, and should not incur much overhead.
+
+Since several file formats have separate header and data files, provisions have been made to specify a data file extension.  When set, this extension is used to replace the extension of the \code{SetURI} call and download the data file as well.
+
+\section{Software Requirements}
+
+You need to have the following software installed to compile and use \code{ImageNetworkReader}:
+
+\begin{itemize}
+  \item  Insight Toolkit 3.0 or greater
+  \item  CMake 2.4
+\end{itemize}
+
+Note that other versions of the Insight Toolkit are also available in the
+testing framework of the Insight Journal. Please refere to the following page
+for details
+
+\url{http://www.insightsoftwareconsortium.org/wiki/index.php/IJ-Testing-Environment}
+
+\section{CURL License}
+
+\begin{verbatim}
+COPYRIGHT AND PERMISSION NOTICE
+ 
+Copyright (c) 1996 - 2008, Daniel Stenberg, <daniel@haxx.se>.
+ 
+All rights reserved.
+ 
+Permission to use, copy, modify, and distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright
+notice and this permission notice appear in all copies.
+ 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF THIRD PARTY RIGHTS. IN
+NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+OR OTHER DEALINGS IN THE SOFTWARE.
+ 
+Except as contained in this notice, the name of a copyright holder shall not
+be used in advertising or otherwise to promote the sale, use or other dealings
+in this Software without prior written authorization of the copyright holder.
+\end{verbatim}
+
+\end{document}
+
+
+% LocalWords:  ImageFileReader

@@ -12,8 +12,10 @@ int main ( int argc, const char* argv[] )
   ReaderType::Pointer reader = ReaderType::New();
 
   reader->SetURI ( argv[1] );
-  // reader->SetDataExtention ( "raw" );
   reader->GenerateOutputInformation();
+  reader->GetOutput()->Print ( std::cout );
+
+  std::cout << "Updating" << std::endl;
 
   reader->Update();
   std::cout << "Information: \n";
