@@ -212,12 +212,13 @@ vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
   this->RealTimeReconstruction = 0; // # real-time or buffered
   this->ReconstructionFrameCount = 0; // # of frames to reconstruct
   
-  newOutput = vtkImageData::New();
-  newOutput->SetExtent(this->OutputExtent);
-  newOutput->SetOrigin(this->OutputOrigin);
-  newOutput->SetSpacing(this->OutputSpacing);
-  
-  this->SetOutput((vtkDataObject *) newOutput);
+//  newOutput = vtkImageData::New();
+//  newOutput->SetExtent(this->OutputExtent);
+//  newOutput->SetOrigin(this->OutputOrigin);
+//  newOutput->SetSpacing(this->OutputSpacing);
+//  newOutput->AllocateScalars();
+//  
+//  this->SetOutput((vtkDataObject *) newOutput);
 }
 
 //----------------------------------------------------------------------------
@@ -1296,8 +1297,6 @@ static void vtk3DPanoramicVolumeReconstructorInsertSlice(vtk3DPanoramicVolumeRec
   outInc[0] = (int) vtkIdTypeOutInc[0];
   outInc[1] = (int) vtkIdTypeOutInc[1];
   outInc[2] = (int) vtkIdTypeOutInc[2];
-  
-  cout << "Dangerous vtkIdType copy: vtkIdTypeOutInc "<< vtkIdTypeOutInc[0] <<"/" << vtkIdTypeOutInc[1] <<"/" << vtkIdTypeOutInc[2] << "should = outInc" << outInc[0] <<"/"<< outInc[1] <<"/"<< outInc[2] <<endl;
   
   inData->GetContinuousIncrements(inExt,inIncX,inIncY,inIncZ);
   numscalars = inData->GetNumberOfScalarComponents();
@@ -2710,8 +2709,6 @@ static void vtkOptimizedInsertSlice(vtk3DPanoramicVolumeReconstructor *self,
   outInc[0] = (int) vtkIdTypeOutInc[0];
   outInc[1] = (int) vtkIdTypeOutInc[1];
   outInc[2] = (int) vtkIdTypeOutInc[2];
-  
-  cout << "Dangerous vtkIdType copy: vtkIdTypeOutInc "<< vtkIdTypeOutInc[0] <<"/" << vtkIdTypeOutInc[1] <<"/" << vtkIdTypeOutInc[2] << "should = outInc" << outInc[0] <<"/"<< outInc[1] <<"/"<< outInc[2] <<endl;  
   
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
   numscalars = inData->GetNumberOfScalarComponents();
