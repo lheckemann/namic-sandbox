@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
-#include "vtkV4LVideoSource.h"
+#include "vtkV4L2VideoSource.h"
 
 #include "vtkImageData.h"
 #include "vtkCriticalSection.h"
