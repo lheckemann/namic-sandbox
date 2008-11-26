@@ -55,7 +55,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkObjectFactory.h"
 //#include "vtkSonixVideoSource.h"
-#include "vtkV4LVideoSource.h"
+#include "vtkV4L2VideoSource.h"
 #include "vtkSynchroGrabPipeline.h"
 
 #include "vtkTaggedImageFilter.h"
@@ -93,21 +93,18 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
   this->NbFrames = 10;
   this->FrameRate = 10000;
 
-  this->VolumeOutputFile = NULL;
-  this->SonixAddr=NULL;
+  this->VolumeOutputFile = NULL;  
   this->CalibrationFileName = NULL;
   this->OIGTLServer = NULL; 
-  this->SetVolumeOutputFile("./outputVol.vtk");
-  this->SetSonixAddr("127.0.0.1");
+  this->SetVolumeOutputFile("./outputVol.vtk");  
   this->SetOIGTLServer("localhost");
-
 
   this->TransfertImages = true; 
   this->VolumeReconstructionEnabled = false;
   this->UseTrackerTransforms = true;
 
   this->calibReader = vtkUltrasoundCalibFileReader::New();
-  this->sonixGrabber = vtkV4LVideoSource::New();
+  this->sonixGrabber = vtkV4L2VideoSource::New();
   this->tagger = vtkTaggedImageFilter::New();
 //  this->tracker = vtkNDICertusTracker::New();
   this->tracker = vtkTrackerSimulator::New();
@@ -134,8 +131,7 @@ vtkSynchroGrabPipeline::~vtkSynchroGrabPipeline()
   this->tagger->Delete();
   this->calibReader->Delete();
 
-  this->SetVolumeOutputFile(NULL);
-  this->SetSonixAddr(NULL);
+  this->SetVolumeOutputFile(NULL);  
   this->SetOIGTLServer(NULL);
   this->SetCalibrationFileName(NULL);
 }
@@ -143,8 +139,6 @@ vtkSynchroGrabPipeline::~vtkSynchroGrabPipeline()
 void vtkSynchroGrabPipeline::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-
-  // TODO
 
 }
 
@@ -154,15 +148,12 @@ bool vtkSynchroGrabPipeline::ConfigurePipeline()
   this->calibReader->SetFileName(this->CalibrationFileName);
   this->calibReader->ReadCalibFile();
 
-  // set up the video source (ultrasound machine)
-  this->sonixGrabber->SetUltraSoundIP(this->SonixAddr);
-  this->sonixGrabber->SetFrameRate(this->FrameRate);
-  this->sonixGrabber->SetImagingMode(BMode);
-  this->sonixGrabber->SetAcquisitionDataType(udtBPost);
+  // set up the video source (ultrasound machine)  
+  this->sonixGrabber->SetFrameRate(this->FrameRate);  
   this->sonixGrabber->SetFrameBufferSize(this->NbFrames);
 
   double *imageOrigin = this->calibReader->GetImageOrigin();
-  this->sonixGrabber->SetDataOrigin(imageOrigin);
+//  this->sonixGrabber->SetDataOrigin(imageOrigin);
   double *imageSpacing = this->calibReader->GetImageSpacing();
 //  double imageSpacing[3] = {1.0, 1.0, 1.0};
   this->sonixGrabber->SetDataSpacing(imageSpacing);

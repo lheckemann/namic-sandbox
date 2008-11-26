@@ -70,7 +70,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 class vtkUltrasoundCalibFileReader;
 //class vtkSonixVideoSource;
-class vtkV4LVideoSource;
+class vtkV4L2VideoSource;
 class vtkTaggedImageFilter;
 //class vtkNDICertusTracker;
 class vtkTrackerSimulator;
@@ -157,7 +157,7 @@ protected:
 // McGumbel
   vtkUltrasoundCalibFileReader *calibReader;
 //  vtkSonixVideoSource *sonixGrabber;
-  vtkV4LVideoSource *sonixGrabber;
+  vtkV4L2VideoSource *sonixGrabber;
   vtkTaggedImageFilter *tagger;
 //  vtkNDICertusTracker *tracker;
   vtkTrackerSimulator *tracker;
