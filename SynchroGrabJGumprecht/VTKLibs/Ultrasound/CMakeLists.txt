@@ -4,7 +4,7 @@
 
 SET (Ultrasound_SRCS
 #  vtkSonixVideoSource.cxx
-   vtkV4LVideoSource.cxx
+   vtkV4L2VideoSource.cxx
   vtkTaggedImageFilter.cxx
   vtkUltrasoundCalibFileReader.cxx
   vtk3DPanoramicVolumeReconstructor.cxx
