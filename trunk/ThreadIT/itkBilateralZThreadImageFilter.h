@@ -189,7 +189,10 @@ public:
     ZThreadStruct() {};
     ~ZThreadStruct() {};
     virtual void run() {
+      std::cout << "Running filter on region for threadID: " << threadId << std::endl;
+      std::cout << "Region: " << region << std::endl;
       Filter->ThreadedGenerateData ( region, threadId );
+      std::cout << "Thread: " << threadId << " finished" << std::endl;
     };
   };
     
