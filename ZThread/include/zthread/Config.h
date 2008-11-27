@@ -126,7 +126,9 @@
 
 #elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
 
-#  define ZT_MACOS
+// #  define ZT_MACOS
+// Use Posix threads
+#  define ZT_POSIX
 
 #else
 #  error "Could not select implementation, define ZT_WIN9X, ZT_WIN32, ZT_POSIX or ZT_MACOS"
