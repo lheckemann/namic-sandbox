@@ -1,26 +1,22 @@
-PROJECT ( ThreadIT )
+project ( ThreadIT )
 
-FIND_PACKAGE ( ITK )
-IF ( ITK_FOUND )
-  INCLUDE(${ITK_USE_FILE})
-ELSE ( ITK_FOUND )
-  MESSAGE ( FATAL_ERROR "Cannot build without ITK" )
-ENDIF ( ITK_FOUND )
+cmake_minimum_required ( VERSION 2.6 )
 
-FIND_PATH(ZTHREAD_LIB_PATH libZThread.a /projects/mion/Linux/lib)
-FIND_PATH(ZTHREAD_INCLUDE_PATH zthread/ZThread.h /projects/mion/Linux/include/)
+find_package ( ITK )
+if ( ITK_FOUND )
+  include(${ITK_USE_FILE})
+else ( ITK_FOUND )
+  message ( FATAL_ERROR "Cannot build without ITK" )
+endif ( ITK_FOUND )
 
-LINK_LIBRARIES(
+
+subdirs ( ZThread )
 # dependent libraries
-ITKNumerics
-ITKBasicFilters
-ITKIO
-ITKCommon
-ITKStatistics
-ITKAlgorithms
-ZThread
-)
+link_libraries( ${ITK_LIBRARIES} ZThread )
 
-INCLUDE_DIRECTORIES ( ${ZTHREAD_INCLUDE_PATH} )
-LINK_DIRECTORIES ( ${ZTHREAD_LIB_PATH} )
-ADD_EXECUTABLE ( ThreadIT ThreadIT.cxx )
+include_directories ( ${CMAKE_SOURCE_DIR}/ZThread/include )
+add_executable ( ThreadIT ThreadIT.cxx )
+
+enable_testing()
+include(Dart)
+add_test(ThreadIT ThreadIT)
