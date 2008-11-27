@@ -23,7 +23,7 @@
 #include "zthread/ThreadedExecutor.h"
 #include "zthread/Guard.h"
 #include "zthread/FastMutex.h"
-#include "zthread/Time.h"
+#include "zthread/ZTime.h"
 
 #include "ThreadImpl.h"
 
