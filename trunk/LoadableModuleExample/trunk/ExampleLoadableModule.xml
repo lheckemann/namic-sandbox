@@ -1,0 +1,13 @@
+<Name>ExampleLoadableModule</Name>
+<GuiName>ExampleLM</GuiName>
+<Description>Example Loadable Module</Description>
+<SourceLocation>https://www.nitrc.org/svn/slicer3examples/trunk/Slicer3ExampleModules/Loadable</SourceLocation>
+<HomePage>http://na-mic.org/Wiki/index.php/Slicer3:Build/Modules</HomePage>
+<Version>1.0</Version>
+<Dependency>VTK</Dependency>
+<Dependency>ITK</Dependency>
+<Author>Terry Lorber</Author>
+<Author>Alex Yarmarkovich</Author>
+<Acknowledgement>NA-MIC</Acknowledgement>
+<Acknowledgement>Kitware, Inc.</Acknowledgement>
+<Acknowledgement>Isomics, Inc.</Acknowledgement>
