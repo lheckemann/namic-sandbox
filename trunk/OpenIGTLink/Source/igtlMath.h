@@ -17,6 +17,8 @@
 #ifndef __igtlMath_h
 #define __igtlMath_h
 
+#include "igtlWin32Header.h"
+
 namespace igtl
 {
 
