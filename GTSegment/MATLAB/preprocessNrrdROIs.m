@@ -38,14 +38,14 @@ meanFiberRadiusPixels = output.processVars.meanFiberRadius/output.voxelSpacing;
 % Check for bundle specific masking
 if( strcmp( output.processVars.fiberType, 'cb' ) ),
   % Select the middle point of the ROI
-  [yS,xS,zS] = ind2sub( output.sizes(1:3), seedPts ); % seed
-  zSMedIdx = find( zS == median(zS) );
-  yS = yS(zSMedIdx); xS = xS(zSMedIdx); zS = zS(zSMedIdx);
-  seedPts = sub2ind( output.sizes(1:3), yS, xS, zS );
-  [yT,xT,zT] = ind2sub( output.sizes(1:3), targetPts ); % target
-  zTMedIdx = find( zT == median(zT) );
-  yT = yT(zTMedIdx); xT = xT(zTMedIdx); zT = zT(zTMedIdx);
-  targetPts = sub2ind( output.sizes(1:3), yT, xT, zT );
+%   [yS,xS,zS] = ind2sub( output.sizes(1:3), seedPts ); % seed
+%   zSMedIdx = find( zS == median(zS) );
+%   yS = yS(zSMedIdx); xS = xS(zSMedIdx); zS = zS(zSMedIdx);
+%   seedPts = sub2ind( output.sizes(1:3), yS, xS, zS );
+%   [yT,xT,zT] = ind2sub( output.sizes(1:3), targetPts ); % target
+%   zTMedIdx = find( zT == median(zT) );
+%   yT = yT(zTMedIdx); xT = xT(zTMedIdx); zT = zT(zTMedIdx);
+%   targetPts = sub2ind( output.sizes(1:3), yT, xT, zT );
 
   % Mask out strong left-right diffusion
   backPts = find( output.mask.data == 0 );
