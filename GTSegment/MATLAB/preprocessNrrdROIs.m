@@ -129,8 +129,8 @@ noisyPts = find( minDWI < output.ioVars.noisyThreshold );
 output.mask.data(noisyPts) = 0;
 
 % Put back the seed and target points
-output.mask.data(seedPts) = 1;   % add these back in just in case they were
-output.mask.data(targetPts) = 1; % removed
+% output.mask.data(seedPts) = 1;   % add these back in just in case they were
+% output.mask.data(targetPts) = 1; % removed
 
 % Save data
 output.meanFiberRadiusPixels = meanFiberRadiusPixels;
