@@ -1676,7 +1676,12 @@ void vtkV4L2VideoSource::InitDevice(void){
     InitUserp (fmt.fmt.pix.sizeimage);
     break;
   }
-  
+
+   int channel = 3;
+
+  if (-1 == xioctl (fd,VIDIOC_S_INPUT , &channel))
+    errno_exit ("VIDIOC_S_INPUT");
+
 }
 //New-End
 
