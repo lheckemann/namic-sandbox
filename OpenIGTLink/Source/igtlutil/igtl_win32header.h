@@ -20,7 +20,7 @@
 #include "igtl_typeconfig.h"
 
 #if (defined(_WIN32) || defined(WIN32)) && !defined(IGTLSTATIC) 
-# ifdef OpenIGTLink_EXPORTS
+# ifdef IGTLCommon_EXPORTS
 #  define igtl_export __declspec(dllexport)
 # else
 #  define igtl_export __declspec(dllimport)
