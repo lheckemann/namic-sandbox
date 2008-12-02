@@ -27,6 +27,7 @@
   #ifndef WIN32
     #define WIN32
   #endif
+  #define IGTLCommon_EXPORTS
 #endif
 
 #cmakedefine OpenIGTLink_USE_PTHREADS

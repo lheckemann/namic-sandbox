@@ -142,7 +142,7 @@
 #define IGTL_EXPORT
 
 #if (defined(_WIN32) || defined(WIN32)) && !defined(IGTLSTATIC) 
-# ifdef OpenIGTLink_EXPORTS
+# ifdef IGTLCommon_EXPORTS
 #  define IGTLCommon_EXPORT __declspec(dllexport)
 # else
 #  define IGTLCommon_EXPORT __declspec(dllimport)

@@ -71,6 +71,7 @@
   #ifndef WIN32
     #define WIN32
   #endif
+  #define IGTLCommon_EXPORTS
 #endif
 
 #endif /*__IGTL_TYPECONFIG_H*/
