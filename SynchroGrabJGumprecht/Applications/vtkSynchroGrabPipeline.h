@@ -86,11 +86,11 @@ public:
   vtkSetMacro(NbFrames, int);
   vtkGetMacro(NbFrames, int);
 
-  vtkSetStringMacro(VolumeOutputFile);
-  vtkGetStringMacro(VolumeOutputFile);
-
   vtkSetStringMacro(SonixAddr);
   vtkGetStringMacro(SonixAddr);
+  
+  vtkSetStringMacro(VideoDevice);
+  vtkGetStringMacro(VideoDevice);
 
   vtkSetStringMacro(CalibrationFileName);
   vtkGetStringMacro(CalibrationFileName);
@@ -137,21 +137,19 @@ protected:
   int ServerPort;
   int NbFrames;
 
-  char *VolumeOutputFile;
   char *SonixAddr;
   char *CalibrationFileName;
   char *OIGTLServer;
+  char *VideoDevice;
 
   bool TransfertImages;
   bool VolumeReconstructionEnabled;
   bool UseTrackerTransforms;
 
-  double FrameRate;
+  double FrameRate;  
   
-  ///Jan should change this to vtkImage and alloc memory there
-  // I am doing this as a temporary measure
-  char* image_buffer;
-  vtkImageData *vtk_image_buffer;
+  //Buffers the 3D volume before it transfered via OpenIGTLink
+  vtkImageData *transfer_buffer;
   
 
 // McGumbel

@@ -121,12 +121,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkSynchroGrabPipeline *pi
         else if(currentArg == "--use-tracker-transforms")
             {
             pipeline->SetUseTrackerTransforms(true);
-            }
-        else if(currentArg == "--output-file" || currentArg == "-o")
-            {
-            if( i < argc - 1)
-                pipeline->SetVolumeOutputFile(argv[++i]);
-            }
+            }        
         else if(currentArg == "--sonix-addr" || currentArg == "-a") 
             {
             if( i < argc - 1)
