@@ -3,7 +3,7 @@
 #
 
 SET (Ultrasound_SRCS
-#  vtkSonixVideoSource.cxx
+#  vtkSonixVideoSource.cxx #There is no hardware support so far
    vtkV4L2VideoSource.cxx
   vtkTaggedImageFilter.cxx
   vtkUltrasoundCalibFileReader.cxx
@@ -20,10 +20,10 @@ SET (Ultrasound_LIBS
 #
 # Look for SonixRP Ulterius SDK
 #
-#SET (ULTERIUS_ROOT "C:/Ulterius")
-#FIND_PATH(ULTERIUS_INCLUDE_DIR "ulterius.h" "${ULTERIUS_ROOT}/inc")
-#FIND_LIBRARY(ULTERIUS_LIBRARY ulterius "${ULTERIUS_ROOT}/lib")
-#INCLUDE_DIRECTORIES(${ULTERIUS_INCLUDE_DIR})
+#SET (ULTERIUS_ROOT "C:/Ulterius") #There is no hardware support at this point
+#FIND_PATH(ULTERIUS_INCLUDE_DIR "ulterius.h" "${ULTERIUS_ROOT}/inc") #There is no hardware support at this point
+#FIND_LIBRARY(ULTERIUS_LIBRARY ulterius "${ULTERIUS_ROOT}/lib") #There is no hardware support at this point
+#INCLUDE_DIRECTORIES(${ULTERIUS_INCLUDE_DIR}) #There is no hardware support at this point
 SET (Ultrasound_LIBS ${Ultrasound_LIBS})# ${ULTERIUS_LIBRARY})
 
 #
