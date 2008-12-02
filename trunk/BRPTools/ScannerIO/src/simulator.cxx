@@ -118,7 +118,7 @@ int main(int argc, char **argv)
       }
     if (argc == 14)
       {
-      port = atoi(argv[3]);
+      port = atoi(argv[13]);
       }
     }
   else // client mode
@@ -162,10 +162,10 @@ int main(int argc, char **argv)
     exit(-1);
   }
 
-  size[2] = 1;
   acquisition->SetSubVolumeDimension(size);
   acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
   acquisition->SetFrameRate(fps);
+  acquisition->SetDelay(1000);
   if (server)
     {
     transfer->SetServerMode(port);

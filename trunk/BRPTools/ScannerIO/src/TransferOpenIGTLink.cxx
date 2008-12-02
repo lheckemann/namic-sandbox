@@ -25,6 +25,8 @@
 #include "igtlMultiThreader.h"
 #include "igtlOSUtil.h"
 #include "igtlTransformMessage.h"
+#include "igtlPositionMessage.h"
+#include "igtlStatusMessage.h"
 
 
 TransferOpenIGTLink::TransferOpenIGTLink()
@@ -271,10 +273,14 @@ void TransferOpenIGTLink::ReceiveProcess()
         {
         ReceiveTransform(this->Socket, headerMsg);
         }
-      //else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
-      //  {
-      //  ReceiveStatus(socket, headerMsg);
-      //  }
+      else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
+        {
+        ReceivePosition(this->Socket, headerMsg);
+        }
+      else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
+        {
+        ReceiveStatus(this->Socket, headerMsg);
+        }
       else
         {
         this->Socket->Skip(headerMsg->GetBodySizeToRead(), 0);
@@ -328,4 +334,85 @@ int TransferOpenIGTLink::ReceiveTransform(igtl::ClientSocket::Pointer& socket,
 
 
   return 0;
+}
+
+
+int TransferOpenIGTLink::ReceivePosition(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving POSITION data type." << std::endl;
+  
+  // Create a message buffer to receive transform data
+  igtl::PositionMessage::Pointer positionMsg;
+  positionMsg = igtl::PositionMessage::New();
+  positionMsg->SetMessageHeader(header);
+  positionMsg->AllocatePack();
+  
+  // Receive position position data from the socket
+  socket->Receive(positionMsg->GetPackBodyPointer(), positionMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = positionMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    // Retrive the transform data
+    float position[3];
+    float quaternion[4];
+
+    positionMsg->GetPosition(position);
+    positionMsg->GetQuaternion(quaternion);
+
+    if (this->AcquisitionThread)
+      {
+      igtl::Matrix4x4 matrix;
+      igtl::QuaternionToMatrix(quaternion, matrix);
+      matrix[0][3] = position[0];
+      matrix[1][3] = position[1];
+      matrix[2][3] = position[2];
+      this->AcquisitionThread->SetMatrix(matrix);
+      }
+
+    std::cerr << "position   = (" << position[0] << ", " << position[1] << ", " << position[2] << ")" << std::endl;
+    std::cerr << "quaternion = (" << quaternion[0] << ", " << quaternion[1] << ", "
+              << quaternion[2] << ", " << quaternion[3] << ")" << std::endl << std::endl;
+
+    return 1;
+    }
+
+  return 0;
+}
+
+
+
+int TransferOpenIGTLink::ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving STATUS data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::StatusMessage::Pointer statusMsg;
+  statusMsg = igtl::StatusMessage::New();
+  statusMsg->SetMessageHeader(header);
+  statusMsg->AllocatePack();
+  
+  // Receive transform data from the socket
+  socket->Receive(statusMsg->GetPackBodyPointer(), statusMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = statusMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    std::cerr << "========== STATUS ==========" << std::endl;
+    std::cerr << " Code      : " << statusMsg->GetCode() << std::endl;
+    std::cerr << " SubCode   : " << statusMsg->GetSubCode() << std::endl;
+    std::cerr << " Error Name: " << statusMsg->GetErrorName() << std::endl;
+    std::cerr << " Status    : " << statusMsg->GetStatusString() << std::endl;
+    std::cerr << "============================" << std::endl;
+    }
+
+  return 0;
+
 }

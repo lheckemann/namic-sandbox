@@ -41,7 +41,21 @@ AcquisitionSimulator::AcquisitionSimulator()
     this->ScanPlaneBuffer.pop();
     }
 
+  this->CurrentMatrix[0][0] = 1.0;
+  this->CurrentMatrix[1][0] = 0.0;
+  this->CurrentMatrix[2][0] = 0.0;
+  this->CurrentMatrix[0][1] = 0.0;
+  this->CurrentMatrix[1][1] = 1.0;
+  this->CurrentMatrix[2][1] = 0.0;
+  this->CurrentMatrix[0][2] = 0.0;
+  this->CurrentMatrix[1][2] = 0.0;
+  this->CurrentMatrix[2][2] = 1.0;
+  this->CurrentMatrix[0][3] = 0.0;
+  this->CurrentMatrix[0][3] = 0.0;
+  this->CurrentMatrix[0][3] = 0.0;
+
 }
+
 
 AcquisitionSimulator::~AcquisitionSimulator()
 {
@@ -72,7 +86,7 @@ int AcquisitionSimulator::StopScan()
 
 int AcquisitionSimulator::SetMatrix(float* rmatrix)
 {
-  std::cerr << "AcquisitionGEExcite::SetMatrix() is called." << std::endl;
+  std::cerr << "AcquisitionSimulator::SetMatrix() is called." << std::endl;
 
   igtl::Matrix4x4 matrix;
   matrix[0][0] = rmatrix[0]; 
@@ -96,12 +110,11 @@ int AcquisitionSimulator::SetMatrix(float* rmatrix)
 
 int AcquisitionSimulator::SetMatrix(igtl::Matrix4x4& m)
 {
-  std::cerr << "AcquisitionGEExcite::SetMatrix() is called." << std::endl;
+  std::cerr << "AcquisitionSimulator::SetMatrix() is called." << std::endl;
 
   igtl::PrintMatrix(m);
 
   // push matrix and time stamp data into the queue
-
   ScanPlaneType sp;
 
   this->ScanPlaneMutex->Lock();
@@ -220,30 +233,38 @@ int AcquisitionSimulator::SetSubVolumeDimension(int dim[3])
 
 void AcquisitionSimulator::GetDelayedTransform(igtl::Matrix4x4& matrix)
 {
+  std::cerr << "AcquisitionSimulator::GetDelayedTransform(igtl::Matrix4x4& matrix) is called." << std::endl;
+
   this->ScanPlaneMutex->Lock();
 
   this->Time->GetTime();
   double ts = this->Time->GetTimeStamp() - this->Delay_s;
 
-  while (this->ScanPlaneBuffer.front().ts < ts)
+  while (!this->ScanPlaneBuffer.empty() && this->ScanPlaneBuffer.front().ts < ts)
     {
+    std::cerr << "Getting delayed matrix." << std::endl;
     this->ScanPlaneBuffer.pop();
     }
 
-  igtl::Matrix4x4& dm = this->ScanPlaneBuffer.front().matrix;
-  
-  matrix[0][0] = dm[0][0];
-  matrix[1][0] = dm[1][0];
-  matrix[2][0] = dm[2][0];
-  matrix[0][1] = dm[0][1];
-  matrix[1][1] = dm[1][1];
-  matrix[2][1] = dm[2][1];
-  matrix[0][2] = dm[0][2];
-  matrix[1][2] = dm[1][2];
-  matrix[2][2] = dm[2][2];
-  matrix[0][3] = dm[0][3];
-  matrix[0][3] = dm[0][3];
-  matrix[0][3] = dm[0][3];
+  if (!this->ScanPlaneBuffer.empty())
+    {
+    std::cerr << "Getting delayed matrix." << std::endl;
+
+    igtl::Matrix4x4& dm = this->ScanPlaneBuffer.front().matrix;
+    
+    matrix[0][0] = dm[0][0];
+    matrix[1][0] = dm[1][0];
+    matrix[2][0] = dm[2][0];
+    matrix[0][1] = dm[0][1];
+    matrix[1][1] = dm[1][1];
+    matrix[2][1] = dm[2][1];
+    matrix[0][2] = dm[0][2];
+    matrix[1][2] = dm[1][2];
+    matrix[2][2] = dm[2][2];
+    matrix[0][3] = dm[0][3];
+    matrix[0][3] = dm[0][3];
+    matrix[0][3] = dm[0][3];
+    }
 
   this->ScanPlaneMutex->Unlock();
 }
@@ -353,10 +374,10 @@ void AcquisitionSimulator::GetCurrentFrame(igtl::ImageMessage::Pointer& cf)
 
 
   // Set random matrix
-  igtl::Matrix4x4 matrix;
   //GetRandomTestMatrix(matrix);
-  GetDelayedTransform(matrix);
-  this->CurrentFrame->SetMatrix(matrix);
+  GetDelayedTransform(this->CurrentMatrix);
+  this->CurrentFrame->SetMatrix(this->CurrentMatrix);
+
   this->CurrentFrame->Pack();
   std::cerr << "packed" <<std::endl;
   
@@ -401,7 +422,7 @@ void AcquisitionSimulator::SetDelay(int d)
 {
   if (d > 0)
     {
-    this->Delay_s = d;
+    this->Delay_s = (double)d / 1000.0;
     }
 
 }
