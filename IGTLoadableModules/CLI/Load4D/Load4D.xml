@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Pulmonary Imaging</category>
+  <title>4D Image Loader</title>
+  <description>Load 4D image</description>
+  <version>1.0</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor>Junichi Tokuda</contributor>
+  <acknowledgements></acknowledgements>
+  <parameters>
+    <label>Input</label>
+    <description>Input parameters</description>
+    <directory>
+      <name>inputDirectory</name>
+      <label>Image Directory</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Directory holding Dicom series</description>
+    </directory>
+    <string>
+      <name>prefix</name>
+      <label>Series name prefix</label>
+      <flag>-n</flag>
+      <longflag>--name</longflag>
+      <description>Name to use for this image series</description>
+      <default>Series</default>
+    </string>
+</parameters>
+
+</executable>
