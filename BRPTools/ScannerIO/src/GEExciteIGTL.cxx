@@ -48,15 +48,17 @@
 int main(int argc, char **argv)
 {
 
-  if (argc < 1) {
+  if (argc < 3) {
     std::cerr << "Invalid arguments!" << std::endl;
-    std::cerr << "Usage: " << argv[0] << " <delay>"
-              << "  <delay>: delay of image acuiqisition (ms)"
+    std::cerr << "Usage: " << argv[0] << " <server> <delay>"
+              << "  <server>: OpenIGTLink server hostname"
+              << "  <delay> : delay of image acuiqisition (ms)"
               << std::endl;
     exit(-1);
   }
 
-  int delay = atof(argv[1]);
+  const char* hostname = argv[1];
+  int delay = atoi(argv[2]);
 
   std::cerr << "Creating new Scanner..." << std::endl;
   //AcquisitionSimulator* acquisition = new AcquisitionSimulator;
@@ -74,7 +76,8 @@ int main(int argc, char **argv)
   acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
 
   //transfer->SetServer("localhost", 18944);
-  transfer->SetServer("10.121.1.31", 18944);
+  //transfer->SetServer("10.121.1.31", 18944);
+  transfer->SetServer(hostname, 18944);
   transfer->SetAcquisitionThread(acquisition);
 
 

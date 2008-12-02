@@ -20,6 +20,7 @@
 #include <vector>
 #include <fstream>
 #include <map>
+#include <queue>
 /*
 #include <ace/SOCK_Stream.h>
 #include <ace/SOCK_Connector.h>
@@ -132,6 +133,8 @@ protected:
 
   void GetScanPlane(igtl::Matrix4x4& matrix);
   void GetCurrentFrame(igtl::ImageMessage::Pointer& cf);
+  
+  void GetDelayedTransform(igtl::Matrix4x4& matrix);
 
 protected:
 
@@ -148,8 +151,6 @@ protected:
   igtl::ClientSocket::Pointer ClientSocket;
   
   //NodeVector sources;
-
-  int  delay; /*ms*/
 
   byte *pByteArray;
   short **real_data;
@@ -189,9 +190,21 @@ protected:
 
   //ACE_Thread_Mutex* gemutex;
   igtl::MutexLock::Pointer Mutex;
-  
   igtl::Matrix4x4          RetMatrix;
   igtl::MutexLock::Pointer RetMatrixMutex;
+
+  // Position Delay
+  double Delay_s;          // delay of image plane control
+
+  typedef struct {
+    igtl::Matrix4x4 matrix;  // rotation matrix for slice orientation
+    double     ts;           // time stamp
+  } ScanPlaneType;
+
+  std::queue<ScanPlaneType> ScanPlaneBuffer;
+  igtl::TimeStamp::Pointer Time;
+  igtl::MutexLock::Pointer ScanPlaneMutex;
+  igtl::Matrix4x4 CurrentMatrix;
 
 };
 

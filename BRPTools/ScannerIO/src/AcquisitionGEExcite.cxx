@@ -81,25 +81,30 @@ AcquisitionGEExcite::AcquisitionGEExcite()
   this->Address = "";
   this->Port    = -1;
 
-  this->delay = 0;
+  this->Delay_s = 0.0;
 
-  RetMatrixMutex->Lock();
-  RetMatrix[0][0] = 1.0;
-  RetMatrix[1][0] = 0.0;
-  RetMatrix[2][0] = 0.0;
+  while (!this->ScanPlaneBuffer.empty())
+    {
+    this->ScanPlaneBuffer.pop();
+    }
 
-  RetMatrix[0][1] = 0.0;
-  RetMatrix[1][1] = 1.0;
-  RetMatrix[2][1] = 0.0;
+  this->RetMatrixMutex->Lock();
+  this->RetMatrix[0][0] = 1.0;
+  this->RetMatrix[1][0] = 0.0;
+  this->RetMatrix[2][0] = 0.0;
 
-  RetMatrix[0][2] = 0.0;
-  RetMatrix[1][2] = 0.0;
-  RetMatrix[2][2] = 1.0;
+  this->RetMatrix[0][1] = 0.0;
+  this->RetMatrix[1][1] = 1.0;
+  this->RetMatrix[2][1] = 0.0;
 
-  RetMatrix[0][3] = 0.0;
-  RetMatrix[1][3] = 0.0;
-  RetMatrix[2][3] = 0.0;
-  RetMatrixMutex->Unlock();
+  this->RetMatrix[0][2] = 0.0;
+  this->RetMatrix[1][2] = 0.0;
+  this->RetMatrix[2][2] = 1.0;
+
+  this->RetMatrix[0][3] = 0.0;
+  this->RetMatrix[1][3] = 0.0;
+  this->RetMatrix[2][3] = 0.0;
+  this->RetMatrixMutex->Unlock();
 
 }
 
@@ -186,6 +191,26 @@ int AcquisitionGEExcite::SetMatrix(float* rmatrix)
 int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
 {
 
+  // push matrix and time stamp data into the queue
+  ScanPlaneType sp;
+  this->ScanPlaneMutex->Lock();
+  sp.matrix[0][0] = m[0][0];
+  sp.matrix[1][0] = m[1][0];
+  sp.matrix[2][0] = m[2][0];
+  sp.matrix[0][1] = m[0][1];
+  sp.matrix[1][1] = m[1][1];
+  sp.matrix[2][1] = m[2][1];
+  sp.matrix[0][2] = m[0][2];
+  sp.matrix[1][2] = m[1][2];
+  sp.matrix[2][2] = m[2][2];
+  sp.matrix[0][3] = m[0][3];
+  sp.matrix[0][3] = m[0][3];
+  sp.matrix[0][3] = m[0][3];
+  this->Time->GetTime();
+  sp.ts = this->Time->GetTimeStamp();
+  this->ScanPlaneBuffer.push(sp);
+  this->ScanPlaneMutex->Unlock();
+
   igtl::Matrix4x4 matrix;
   float position[3];
 
@@ -206,20 +231,20 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
 
 #ifdef _RSP_CONTROL
 
-  RetMatrixMutex->Lock();
-  RetMatrix[0][0] = matrix[0][0];
-  RetMatrix[1][0] = matrix[1][0];
-  RetMatrix[2][0] = matrix[2][0];
-  RetMatrix[0][1] = matrix[0][1];
-  RetMatrix[1][1] = matrix[1][1];
-  RetMatrix[2][1] = matrix[2][1];
-  RetMatrix[0][2] = matrix[0][2];
-  RetMatrix[1][2] = matrix[1][2];
-  RetMatrix[2][2] = matrix[2][2];
-  RetMatrix[0][3] = matrix[0][3];
-  RetMatrix[1][3] = matrix[1][3];
-  RetMatrix[2][3] = matrix[2][3];
-  RetMatrixMutex->Unlock();
+  this->RetMatrixMutex->Lock();
+  this->RetMatrix[0][0] = matrix[0][0];
+  this->RetMatrix[1][0] = matrix[1][0];
+  this->RetMatrix[2][0] = matrix[2][0];
+  this->RetMatrix[0][1] = matrix[0][1];
+  this->RetMatrix[1][1] = matrix[1][1];
+  this->RetMatrix[2][1] = matrix[2][1];
+  this->RetMatrix[0][2] = matrix[0][2];
+  this->RetMatrix[1][2] = matrix[1][2];
+  this->RetMatrix[2][2] = matrix[2][2];
+  this->RetMatrix[0][3] = matrix[0][3];
+  this->RetMatrix[1][3] = matrix[1][3];
+  this->RetMatrix[2][3] = matrix[2][3];
+  this->RetMatrixMutex->Unlock();
 
   // check if frequency and phase encodings are flipped.
   int swap;
@@ -390,11 +415,11 @@ void AcquisitionGEExcite::SetLineOrder(std::string l)
   this->lineorder = l;
 }
 
-void AcquisitionGEExcite::SetDelay(int d)
+void AcquisitionGEExcite::SetDelay(int d) // in ms
 {
   if (d > 0)
     {
-    this->delay = d;
+      this->Delay_s = (double)d / 1000.0;
     }
 }
 
@@ -714,12 +739,12 @@ void AcquisitionGEExcite::Process()
                     }
 
                   int scalarSize = this->CurrentFrame->GetScalarSize();
-                  igtl::Matrix4x4 matrix;
+                  GetDelayedTransform(this->RetMatrix);
                   //GetScanPlane(matrix);
                   
-                  RetMatrixMutex->Lock();
-                  this->CurrentFrame->SetMatrix(RetMatrix);
-                  RetMatrixMutex->Unlock();
+                  this->RetMatrixMutex->Lock();
+                  this->CurrentFrame->SetMatrix(this->RetMatrix);
+                  this->RetMatrixMutex->Unlock();
 
                   this->CurrentFrame->Pack();
                   int id = this->PutFrameToBuffer(static_cast<igtl::MessageBase::Pointer>(this->CurrentFrame));
@@ -1077,6 +1102,42 @@ void AcquisitionGEExcite::GetScanPlane(igtl::Matrix4x4& matrix)
 
 
 
+void AcquisitionGEExcite::GetDelayedTransform(igtl::Matrix4x4& matrix)
+{
 
+  std::cerr << "AcquisitionSimulator::GetDelayedTransform(igtl::Matrix4x4& matrix) is called." << std::endl;
 
+  this->RetMatrixMutex->Lock();
 
+  this->Time->GetTime();
+  double ts = this->Time->GetTimeStamp() - this->Delay_s;
+
+  while (!this->ScanPlaneBuffer.empty() && this->ScanPlaneBuffer.front().ts < ts)
+    {
+    std::cerr << "Getting delayed matrix." << std::endl;
+    this->ScanPlaneBuffer.pop();
+    }
+
+  if (!this->ScanPlaneBuffer.empty())
+    {
+    std::cerr << "Getting delayed matrix." << std::endl;
+
+    igtl::Matrix4x4& dm = this->ScanPlaneBuffer.front().matrix;
+    
+    matrix[0][0] = dm[0][0];
+    matrix[1][0] = dm[1][0];
+    matrix[2][0] = dm[2][0];
+    matrix[0][1] = dm[0][1];
+    matrix[1][1] = dm[1][1];
+    matrix[2][1] = dm[2][1];
+    matrix[0][2] = dm[0][2];
+    matrix[1][2] = dm[1][2];
+    matrix[2][2] = dm[2][2];
+    matrix[0][3] = dm[0][3];
+    matrix[0][3] = dm[0][3];
+    matrix[0][3] = dm[0][3];
+    }
+
+  this->RetMatrixMutex->Unlock();
+
+}

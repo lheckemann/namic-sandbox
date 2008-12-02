@@ -69,6 +69,10 @@ protected:
 
   int          ReceiveTransform(igtl::ClientSocket::Pointer& socket,
                                 igtl::MessageHeader::Pointer& header);
+  int          ReceivePosition(igtl::ClientSocket::Pointer& socket,
+                               igtl::MessageHeader::Pointer& header);
+  int          ReceiveStatus(igtl::ClientSocket::Pointer& socket,
+                             igtl::MessageHeader::Pointer& header);
   
 protected:
 

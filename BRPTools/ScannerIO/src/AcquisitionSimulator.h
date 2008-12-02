@@ -69,8 +69,9 @@ protected:
   Thread* TransferThread;
 
   int Interval_ms;
-  double Delay_s;          // delay of image plane control
 
+  // Position Delay
+  double Delay_s;          // delay of image plane control
 
   typedef struct {
     igtl::Matrix4x4 matrix;  // rotation matrix for slice orientation
@@ -80,6 +81,7 @@ protected:
   std::queue<ScanPlaneType> ScanPlaneBuffer;
   igtl::TimeStamp::Pointer Time;
   igtl::MutexLock::Pointer ScanPlaneMutex;
+  igtl::Matrix4x4 CurrentMatrix;
 
 };
 
