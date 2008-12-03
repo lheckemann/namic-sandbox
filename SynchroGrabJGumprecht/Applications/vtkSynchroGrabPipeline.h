@@ -48,11 +48,12 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef __vtkSynchroGrabPipeline_h
 #define __vtkSynchroGrabPipeline_h
 
+#include "SynchroGrabConfigure.h"
+
 #include "vtkObject.h"
 #include "vtkImageData.h"
 
 #include "igtlClientSocket.h"
-
 #include "igtlImageMessage.h"
 
 #define VOLUME_X_LENGTH 256
@@ -69,14 +70,19 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 class vtkUltrasoundCalibFileReader;
-//class vtkSonixVideoSource;
-class vtkV4LVideoSource;
 class vtkTaggedImageFilter;
-//class vtkNDICertusTracker;
-//class vtkTrackerSimulator;
 
- class vtkNDITracker;
+#ifdef USE_ULTRASOUND_DEVICE
+class vtkV4L2VideoSource;
+#else
+class vtkVideoSourceSimulator;
+#endif
 
+#ifdef USE_TRACKER_DEVICE
+class vtkNDITracker;
+#else
+class vtkTrackerSimulator;
+#endif
 
 class vtkSynchroGrabPipeline : public vtkObject
 {
@@ -88,11 +94,11 @@ public:
   vtkSetMacro(NbFrames, int);
   vtkGetMacro(NbFrames, int);
 
-  vtkSetStringMacro(VolumeOutputFile);
-  vtkGetStringMacro(VolumeOutputFile);
-
   vtkSetStringMacro(SonixAddr);
   vtkGetStringMacro(SonixAddr);
+  
+  vtkSetStringMacro(VideoDevice);
+  vtkGetStringMacro(VideoDevice);
 
   vtkSetStringMacro(CalibrationFileName);
   vtkGetStringMacro(CalibrationFileName);
@@ -139,32 +145,37 @@ protected:
   int ServerPort;
   int NbFrames;
 
-  char *VolumeOutputFile;
   char *SonixAddr;
   char *CalibrationFileName;
   char *OIGTLServer;
+  char *VideoDevice;
 
   bool TransfertImages;
   bool VolumeReconstructionEnabled;
   bool UseTrackerTransforms;
 
-  double FrameRate;
+  double FrameRate;  
   
-  ///Jan should change this to vtkImage and alloc memory there
-  // I am doing this as a temporary measure
-  char* image_buffer;
-  vtkImageData *vtk_image_buffer;
+  //Buffers the 3D volume before it transfered via OpenIGTLink
+  vtkImageData *transfer_buffer;
   
 
 // McGumbel
   vtkUltrasoundCalibFileReader *calibReader;
-//  vtkSonixVideoSource *sonixGrabber;
-  vtkV4LVideoSource *sonixGrabber;
-  vtkTaggedImageFilter *tagger;
-//  vtkNDICertusTracker *tracker;
-//  vtkTrackerSimulator *tracker;
+  
+#ifdef USE_TRACKER_DEVICE
+  vtkNDITracker *tracker;  
+#else
+  vtkTrackerSimulator *tracker;  
+#endif
 
-  vtkNDITracker *tracker;
+  vtkTaggedImageFilter *tagger;
+
+#ifdef USE_ULTRASOUND_DEVICE
+  vtkV4L2VideoSource *sonixGrabber;  
+#else
+  vtkVideoSourceSimulator *sonixGrabber;
+#endif
   
   igtl::ClientSocket::Pointer socket;
 
