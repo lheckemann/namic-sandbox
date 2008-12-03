@@ -43,10 +43,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 #define NOMINMAX
-#undefine REMOVE_ALPHA_CHANNEL
+#undef REMOVE_ALPHA_CHANNEL
  
 //#include <windows.h>
-#include "SynchroGrabConfigure.h"
 
 #include "vtkDataSetWriter.h"
 #include "vtkImageCast.h"
@@ -69,13 +68,13 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkNDITracker.h"
 #else
 #include "vtkTrackerSimulator.h"
-#endif //USE_TRACKER_DEVICE
+#endif
 
 #ifdef USE_ULTRASOUND_DEVICE
 #include "vtkV4L2VideoSource.h"
 #else
 #include "vtkVideoSourceSimulator.h"
-#endif //USE_ULTRASOUND_DEVICE
+#endif
 
 #include "igtlImageMessage.h"
 #include "igtlMath.h"

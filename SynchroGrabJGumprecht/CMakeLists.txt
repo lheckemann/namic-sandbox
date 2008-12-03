@@ -28,8 +28,8 @@ ADD_DEFINITIONS(-DIGTLSTATIC=1)
 #
 # Enable / Disable Hardware Simulators
 #
-OPTION(USE_TRACKER_SIMULATOR "Use Tracker Simulator." OFF)
-OPTION(USE_ULTRASOUND_SIMULATOR "Use Ultrasound Simulator." OFF)
+OPTION(USE_TRACKER_DEVICE "Use Tracker Device." OFF)
+OPTION(USE_ULTRASOUND_DEVICE "Use Ultrasound Device." OFF)
 
 # 
 # Whether to build with shared libs: define our own symbol
