@@ -74,6 +74,7 @@ AcquisitionGEExcite::AcquisitionGEExcite()
   //this->gemutex = new ACE_Thread_Mutex;
   this->Mutex = igtl::MutexLock::New();
   this->RetMatrixMutex = igtl::MutexLock::New();
+  this->RspMutex = igtl::MutexLock::New();
   this->Time = igtl::TimeStamp::New();
   this->channels = 1;
   this->viewsxfer = 1;
@@ -127,12 +128,15 @@ int AcquisitionGEExcite::Init()
   /* Init rsp_modifier proxy */
 
 #ifdef _RSP_CONTROL
+  this->RspMutex->Lock();
   if(rsp_init(&argc,argv)==-1) {
     std::cout << "ERROR: No luck initializing the RSP modifier proxy\n" << std::endl;
+    this->RspMutex->Unlock();
     return 0;
   }
   else
   printf("rsp_init successful\n");
+  this->RspMutex->Unlock();
 
   /* Init SVAT interface */
   /*svat_driver_init((char*)console_host.c_str());*/
@@ -222,9 +226,11 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
   matrix[0][0] = m[0][0];
   matrix[1][0] = m[1][0];
   matrix[2][0] = m[2][0];
+
   matrix[0][1] = m[0][1];
   matrix[1][1] = m[1][1];
   matrix[2][1] = m[2][1];
+
   matrix[0][2] = m[0][2];
   matrix[1][2] = m[1][2];
   matrix[2][2] = m[2][2];
@@ -232,36 +238,21 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
 
 #ifdef _RSP_CONTROL
 
-  /*
-  this->RetMatrixMutex->Lock();
-  this->RetMatrix[0][0] = matrix[0][0];
-  this->RetMatrix[1][0] = matrix[1][0];
-  this->RetMatrix[2][0] = matrix[2][0];
-  this->RetMatrix[0][1] = matrix[0][1];
-  this->RetMatrix[1][1] = matrix[1][1];
-  this->RetMatrix[2][1] = matrix[2][1];
-  this->RetMatrix[0][2] = matrix[0][2];
-  this->RetMatrix[1][2] = matrix[1][2];
-  this->RetMatrix[2][2] = matrix[2][2];
-  this->RetMatrix[0][3] = matrix[0][3];
-  this->RetMatrix[1][3] = matrix[1][3];
-  this->RetMatrix[2][3] = matrix[2][3];
-  this->RetMatrixMutex->Unlock();
-  */
-
   // check if frequency and phase encodings are flipped.
-  int swap;
+  int swap = 1;
+  this->RspMutex->Lock();
   read_rsp_i("cont_swap_pf",&swap);
+  //set_rsp_i("cont_swap_pf",&swap);
+  this->RspMutex->Unlock();
   
-  if(swap)
-    {
-      // flipped
-    }
-  else
-    {
-      // not flipped
-    }
-
+  //if(swap)
+  //  {
+  //    // flipped
+  //  }
+  //else
+  //  {
+  //    // not flipped
+  //  }
 
   /* from RAS to image */
   /* inv(R)*T */
@@ -272,15 +263,26 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
   Py=matrix[0][1]*(position[0])+matrix[1][1]*(position[1])+matrix[2][1]*(position[2]);
   Pz=matrix[0][2]*(position[0])+matrix[1][2]*(position[1])+matrix[2][2]*(position[2]);
 
+  /*
+  Px=position[0];
+  Py=position[1];
+  Pz=position[2];
+  */
+
   Ix=lrintf(Px);
   Iy=lrintf(Py);
   Iz=lrintf(Pz);
 
   int feature_available;
   // Check which feature is available for  real-time RSP updaate
+  this->RspMutex->Lock();
   read_rsp_i("cont_avail_flag",&feature_available);
+  this->RspMutex->Unlock();
+
+
   if(feature_available & TRANSLATE_REALTIME)
     {
+      this->RspMutex->Lock();
       /*
       set_rsp_i("cont_GWRloc",&px);
       set_rsp_i("cont_GWPloc",&py);
@@ -324,47 +326,82 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
       
       value = matrix[2][0]*(-fov/2)+matrix[2][1]*(-fov/2)+position[2];
       set_rsp_f("cont_image_p2z",&value);
+
+      this->RspMutex->Unlock();
     }
   else
     {
       std::cout << "PDS does not support feature TRANSLATE_REALTIME" << std::endl;
     }
-  
+
+
   if(feature_available & ROTATE_REALTIME)
     {
+      this->RspMutex->Lock();
+
+      //// rotation
+      
+      //float value = (float)matrix[0][0];
+      //set_rsp_f("cont_Rot00",&value);
+      //
+      //value = (float)matrix[1][0];
+      //set_rsp_f("cont_Rot01",&value);
+      //
+      //value = (float)matrix[2][0];
+      //set_rsp_f("cont_Rot02",&value);
+      //
+      //value = (float)matrix[0][1];
+      //set_rsp_f("cont_Rot10",&value);
+      //
+      //value = (float)matrix[1][1];
+      //set_rsp_f("cont_Rot11",&value);
+      //
+      //value = (float)matrix[2][1];
+      //set_rsp_f("cont_Rot12",&value);
+      //
+      //value = (float)matrix[0][2];
+      //set_rsp_f("cont_Rot20",&value);
+      //
+      //value = (float)matrix[1][2];
+      //set_rsp_f("cont_Rot21",&value);
+      //
+      //value = (float)matrix[2][2];
+      //set_rsp_f("cont_Rot22",&value);
+
       // rotation
       float value = (float)matrix[0][0];
       set_rsp_f("cont_Rot00",&value);
       
       value = (float)matrix[1][0];
-      set_rsp_f("cont_Rot01",&value);
+      set_rsp_f("cont_Rot10",&value);
       
       value = (float)matrix[2][0];
-      set_rsp_f("cont_Rot02",&value);
+      set_rsp_f("cont_Rot20",&value);
       
       value = (float)matrix[0][1];
-      set_rsp_f("cont_Rot10",&value);
+      set_rsp_f("cont_Rot01",&value);
       
       value = (float)matrix[1][1];
       set_rsp_f("cont_Rot11",&value);
       
       value = (float)matrix[2][1];
-      set_rsp_f("cont_Rot12",&value);
+      set_rsp_f("cont_Rot21",&value);
       
       value = (float)matrix[0][2];
-      set_rsp_f("cont_Rot20",&value);
+      set_rsp_f("cont_Rot02",&value);
       
       value = (float)matrix[1][2];
-      set_rsp_f("cont_Rot21",&value);
+      set_rsp_f("cont_Rot12",&value);
       
       value = (float)matrix[2][2];
       set_rsp_f("cont_Rot22",&value);
+
+      this->RspMutex->Unlock();
     }
   else
     {
       std::cout << "PSD does not support feature ROTATE_REALTIME" << std::endl;
     }
-
 
 #endif //_RSP_CONTROL
 
@@ -580,6 +617,19 @@ void AcquisitionGEExcite::Process()
               packet.control_flags = BYTE_SWAP_INT32(packet.control_flags);
             }
 
+          //std::cerr << "packet.id             " << packet.id            << std::endl;
+          //std::cerr << "packet.timestamp      " << packet.timestamp     << std::endl;
+          //std::cerr << "packet.seq_num        " << packet.seq_num       << std::endl;
+          //std::cerr << "packet.raw_cs         " << packet.raw_cs        << std::endl;
+          //std::cerr << "packet.msg_cs         " << packet.msg_cs        << std::endl;
+          //std::cerr << "packet.raw_size       " << packet.raw_size      << std::endl;
+          //std::cerr << "packet.msg_size       " << packet.msg_size      << std::endl;
+          //std::cerr << "packet.aps_buff_addr  " << packet.aps_buff_addr << std::endl;
+          //std::cerr << "packet.aps_buff_size  " << packet.aps_buff_size << std::endl;
+          //std::cerr << "packet.start_offset   " << packet.start_offset  << std::endl;
+          //std::cerr << "packet.control_flags  " << packet.control_flags << std::endl;
+          
+
           totalSize = packet.raw_size + packet.msg_size;
           
           if(datakey != packet.seq_num) {
@@ -655,31 +705,33 @@ void AcquisitionGEExcite::Process()
               row+=this->viewsxfer;
 
 #ifdef _RSP_CONTROL
-              read_rsp_f("cont_xoffset",   &imgInfo.xoffset  );
-              read_rsp_f("cont_yoffset",   &imgInfo.yoffset  );
-              read_rsp_f("cont_zoffset",   &imgInfo.zoffset  );
-              read_rsp_f("cont_alpha",     &imgInfo.alpha    );
-              read_rsp_f("cont_beta",      &imgInfo.beta     );
-              read_rsp_f("cont_gamma",     &imgInfo.gamma    );
+              this->RspMutex->Lock();
+//              read_rsp_f("cont_xoffset",   &imgInfo.xoffset  );
+//              read_rsp_f("cont_yoffset",   &imgInfo.yoffset  );
+//              read_rsp_f("cont_zoffset",   &imgInfo.zoffset  );
+//              read_rsp_f("cont_alpha",     &imgInfo.alpha    );
+//              read_rsp_f("cont_beta",      &imgInfo.beta     );
+//              read_rsp_f("cont_gamma",     &imgInfo.gamma    );
               read_rsp_f("cont_slthick",   &imgInfo.slthick  );
-              //read_rsp_i("cont_time_sec",  &imgInfo.time_sec );
-              //read_rsp_i("cont_time_usec", &imgInfo.time_usec);
-              //read_rsp_i("cont_rtia_mode", &imgInfo.rtia_mode);
+//              //read_rsp_i("cont_time_sec",  &imgInfo.time_sec );
+//              //read_rsp_i("cont_time_usec", &imgInfo.time_usec);
+//              //read_rsp_i("cont_rtia_mode", &imgInfo.rtia_mode);
               read_rsp_i("cont_fov",       &imgInfo.fov      );
               read_rsp_i("cont_TR",        &imgInfo.tr       );
               read_rsp_i("cont_TI",        &imgInfo.ti       );
               read_rsp_i("cont_TE",        &imgInfo.te       );
-              read_rsp_i("cont_rotate",    &imgInfo.rotate   );
-              read_rsp_i("cont_transpose", &imgInfo.transpose);
-              read_rsp_f("cont_image_p0x", &imgInfo.image_p0x);
-              read_rsp_f("cont_image_p0y", &imgInfo.image_p0y);
-              read_rsp_f("cont_image_p0z", &imgInfo.image_p0z);
-              read_rsp_f("cont_image_p1x", &imgInfo.image_p1x);
-              read_rsp_f("cont_image_p1y", &imgInfo.image_p1y);
-              read_rsp_f("cont_image_p1z", &imgInfo.image_p1z);
-              read_rsp_f("cont_image_p2x", &imgInfo.image_p2x);
-              read_rsp_f("cont_image_p2y", &imgInfo.image_p2y);
-              read_rsp_f("cont_image_p2z", &imgInfo.image_p2z);
+//              read_rsp_i("cont_rotate",    &imgInfo.rotate   );
+//              read_rsp_i("cont_transpose", &imgInfo.transpose);
+//              read_rsp_f("cont_image_p0x", &imgInfo.image_p0x);
+//              read_rsp_f("cont_image_p0y", &imgInfo.image_p0y);
+//              read_rsp_f("cont_image_p0z", &imgInfo.image_p0z);
+//              read_rsp_f("cont_image_p1x", &imgInfo.image_p1x);
+//              read_rsp_f("cont_image_p1y", &imgInfo.image_p1y);
+//              read_rsp_f("cont_image_p1z", &imgInfo.image_p1z);
+//              read_rsp_f("cont_image_p2x", &imgInfo.image_p2x);
+//              read_rsp_f("cont_image_p2y", &imgInfo.image_p2y);
+//              read_rsp_f("cont_image_p2z", &imgInfo.image_p2z);
+              this->RspMutex->Unlock();
 #endif // _RSP_CONTROL
 
             }
@@ -698,12 +750,13 @@ void AcquisitionGEExcite::Process()
               pass++;
               //gemutex->acquire();
               this->Mutex->Lock();
-              ysize=row;
+              ysize = row;
               //gemutex->release();
               this->Mutex->Unlock();
               row=0;
 
-              std::cerr << "have PostProcessThread?" << std::endl;
+              //std::cerr << "xsize = " << xsize << std::endl;
+              //std::cerr << "ysize = " << xsize << std::endl;
 
               if (this->PostProcessThread)
                 {
@@ -711,12 +764,15 @@ void AcquisitionGEExcite::Process()
                   dim[0] = xsize;
                   dim[1] = ysize;
                   dim[2] = 1;
-                  float spacing[3];
 
+                  float spacing[3];
 #ifdef _RSP_CONTROL
-                  spacing[0] = imgInfo.fov/xsize;
-                  spacing[1] = imgInfo.fov/ysize;
-                  spacing[2] = imgInfo.slthick;
+                  if (xsize > 0 && ysize > 0)
+                    {
+                      spacing[0] = (float)imgInfo.fov/xsize;
+                      spacing[1] = (float)imgInfo.fov/ysize;
+                      spacing[2] = (float)imgInfo.slthick;
+                    }
 #else
                   spacing[0] = 1.0;
                   spacing[1] = 1.0;
@@ -741,10 +797,9 @@ void AcquisitionGEExcite::Process()
                                   (short*)this->CurrentFrame->GetScalarPointer());
                     }
 
-                  int scalarSize = this->CurrentFrame->GetScalarSize();
-                  GetDelayedTransform(this->RetMatrix);
+                  //int scalarSize = this->CurrentFrame->GetScalarSize();
                   //GetScanPlane(matrix);
-                  
+                  GetDelayedTransform(this->RetMatrix);
                   this->RetMatrixMutex->Lock();
                   this->CurrentFrame->SetMatrix(this->RetMatrix);
                   this->RetMatrixMutex->Unlock();
@@ -1118,7 +1173,14 @@ void AcquisitionGEExcite::GetDelayedTransform(igtl::Matrix4x4& matrix)
   while (!this->ScanPlaneBuffer.empty() && this->ScanPlaneBuffer.front().ts < ts)
     {
     std::cerr << "Getting delayed matrix." << std::endl;
-    this->ScanPlaneBuffer.pop();
+    if (this->ScanPlaneBuffer.size() > 1)
+      {
+      this->ScanPlaneBuffer.pop();
+      }
+    else
+      {
+      break;
+      }
     }
 
   if (!this->ScanPlaneBuffer.empty())

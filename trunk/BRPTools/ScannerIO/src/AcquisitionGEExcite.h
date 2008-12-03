@@ -192,6 +192,7 @@ protected:
   igtl::MutexLock::Pointer Mutex;
   igtl::Matrix4x4          RetMatrix;
   igtl::MutexLock::Pointer RetMatrixMutex;
+  igtl::MutexLock::Pointer RspMutex;
 
   // Position Delay
   double Delay_s;          // delay of image plane control
