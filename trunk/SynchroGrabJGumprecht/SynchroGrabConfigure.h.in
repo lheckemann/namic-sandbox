@@ -3,12 +3,7 @@
  * These values should only change when the target compile platform changes.
  */
 
-#cmakedefine USE_TRACKER_SIMULATOR
-#ifndef USE_TRACKER_SIMULATOR
-#define USE_TRACKER_DEVICE
-#endif
+#cmakedefine USE_TRACKER_DEVICE
 
-#cmakedefine USE_ULTRASOUND_SIMULATOR
-#ifndef USE_ULTRASOUND_SIMULATOR
-#define USE_ULTRASOUND_DEVICE
-#endif
+#cmakedefine USE_ULTRASOUND_DEVICE
+

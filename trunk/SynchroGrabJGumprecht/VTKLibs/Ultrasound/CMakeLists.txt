@@ -2,13 +2,23 @@
 # Source files
 #
 
-SET (Ultrasound_SRCS
-#  vtkSonixVideoSource.cxx #There is no hardware support so far
-   vtkV4L2VideoSource.cxx
-  vtkTaggedImageFilter.cxx
-  vtkUltrasoundCalibFileReader.cxx
-  vtk3DPanoramicVolumeReconstructor.cxx
-)
+IF(USE_ULTRASOUND_DEVICE)  
+  #Use Ultrasound device
+  SET (Ultrasound_SRCS
+    vtkV4L2VideoSource.cxx
+    vtkTaggedImageFilter.cxx
+    vtkUltrasoundCalibFileReader.cxx
+    vtk3DPanoramicVolumeReconstructor.cxx
+  )
+ELSE(USE_ULTRASOUND_DEVICE)  
+  #Use Ultrasound simulator
+  SET (Ultrasound_SRCS
+    vtkVideoSourceSimulator.cxx
+    vtkTaggedImageFilter.cxx
+    vtkUltrasoundCalibFileReader.cxx
+    vtk3DPanoramicVolumeReconstructor.cxx
+  )
+ENDIF(USE_ULTRASOUND_DEVICE)  
 
 #
 # Libraries (starts empty)

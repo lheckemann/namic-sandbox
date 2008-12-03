@@ -1,12 +1,23 @@
-SET ( Tracking_SRCS
-vtkTracker.cxx
-vtkTrackerTool.cxx
-vtkTrackerBuffer.cxx
-vtkFrameToTimeConverter.cxx
-vtkNDITracker.cxx
-#vtkNDICertusTracker.cxx
-#vtkTrackerSimulator.cxx
-)
+
+IF(USE_TRACKER_DEVICE)
+  #Use tracker device
+  SET ( Tracking_SRCS
+    vtkTracker.cxx
+    vtkTrackerTool.cxx
+    vtkTrackerBuffer.cxx
+    vtkFrameToTimeConverter.cxx
+    vtkNDITracker.cxx
+  )
+ELSE(USE_TRACKER_DEVICE)
+  # Use tracker simulator
+  SET ( Tracking_SRCS
+    vtkTracker.cxx
+    vtkTrackerTool.cxx
+    vtkTrackerBuffer.cxx
+    vtkFrameToTimeConverter.cxx    
+    vtkTrackerSimulator.cxx
+  )
+ENDIF(USE_TRACKER_DEVICE)
 
 SET_SOURCE_FILES_PROPERTIES(
 vtkTracker
