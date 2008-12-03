@@ -55,7 +55,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkObjectFactory.h"
 //#include "vtkSonixVideoSource.h"
-#include "vtkV4L2VideoSource.h"
+#include "vtkV4LVideoSource.h"
 #include "vtkSynchroGrabPipeline.h"
 
 #include "vtkTaggedImageFilter.h"
@@ -66,9 +66,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 //#include "vtkNDICertusTracker.h"
-//#include "vtkTrackerSimulator.h"
 
+// Include this file when we use tracker simulator
+#include "vtkTrackerSimulator.h"
 
+// Include this file when we use NDI Aurora or Polaris
 #include "vtkNDITracker.h"
 
 
@@ -94,20 +96,24 @@ vtkStandardNewMacro(vtkSynchroGrabPipeline);
 vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
 {
   this->ServerPort = 18944;
-  this->NbFrames = 150 + 100; //# of Frames to capture + additional 100 frames which are skipped
-  this->FrameRate = 30;
+  this->NbFrames = 10;
+  this->FrameRate = 10000;
 
+  this->VolumeOutputFile = NULL;
+  this->SonixAddr=NULL;
   this->CalibrationFileName = NULL;
   this->OIGTLServer = NULL; 
+  this->SetVolumeOutputFile("./outputVol.vtk");
+  this->SetSonixAddr("127.0.0.1");
   this->SetOIGTLServer("localhost");
-  this->SetVideoDevice("/dev/video");
+
 
   this->TransfertImages = true; 
   this->VolumeReconstructionEnabled = false;
   this->UseTrackerTransforms = true;
 
   this->calibReader = vtkUltrasoundCalibFileReader::New();
-  this->sonixGrabber = vtkV4L2VideoSource::New();
+  this->sonixGrabber = vtkV4LVideoSource::New();
   this->tagger = vtkTaggedImageFilter::New();
 //  this->tracker = vtkNDICertusTracker::New();
 //  this->tracker = vtkTrackerSimulator::New();
@@ -118,10 +124,11 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
 
-  // Initialize Transfer Buffer
-  this->transfer_buffer = vtkImageData::New();
-  this->transfer_buffer->SetDimensions(VOLUME_X_LENGTH , VOLUME_Y_LENGTH ,VOLUME_Z_LENGTH);
-  this->transfer_buffer->AllocateScalars();
+// McGumbel    
+//  Initialize ImageBuffer
+  this->vtk_image_buffer = vtkImageData::New();
+  this->vtk_image_buffer->SetDimensions(VOLUME_X_LENGTH , VOLUME_Y_LENGTH ,VOLUME_Z_LENGTH);
+  this->vtk_image_buffer->AllocateScalars();
  
 }
 
@@ -136,6 +143,8 @@ vtkSynchroGrabPipeline::~vtkSynchroGrabPipeline()
   this->tagger->Delete();
   this->calibReader->Delete();
 
+  this->SetVolumeOutputFile(NULL);
+  this->SetSonixAddr(NULL);
   this->SetOIGTLServer(NULL);
   this->SetCalibrationFileName(NULL);
 }
@@ -143,6 +152,8 @@ vtkSynchroGrabPipeline::~vtkSynchroGrabPipeline()
 void vtkSynchroGrabPipeline::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+
+  // TODO
 
 }
 
@@ -152,14 +163,15 @@ bool vtkSynchroGrabPipeline::ConfigurePipeline()
   this->calibReader->SetFileName(this->CalibrationFileName);
   this->calibReader->ReadCalibFile();
 
-  this->sonixGrabber->SetVideoDevice(this->GetVideoDevice());
-
-  // set up the video source (ultrasound machine)  
-  this->sonixGrabber->SetFrameRate(this->FrameRate);  
+  // set up the video source (ultrasound machine)
+  this->sonixGrabber->SetUltraSoundIP(this->SonixAddr);
+  this->sonixGrabber->SetFrameRate(this->FrameRate);
+  this->sonixGrabber->SetImagingMode(BMode);
+  this->sonixGrabber->SetAcquisitionDataType(udtBPost);
   this->sonixGrabber->SetFrameBufferSize(this->NbFrames);
 
   double *imageOrigin = this->calibReader->GetImageOrigin();
-//  this->sonixGrabber->SetDataOrigin(imageOrigin);
+  this->sonixGrabber->SetDataOrigin(imageOrigin);
   double *imageSpacing = this->calibReader->GetImageSpacing();
 //  double imageSpacing[3] = {1.0, 1.0, 1.0};
   this->sonixGrabber->SetDataSpacing(imageSpacing);
@@ -201,13 +213,32 @@ bool vtkSynchroGrabPipeline::StartTracker()
 //----------------------------------------------------------------------------
 bool vtkSynchroGrabPipeline::ReconstructVolume()
 {
-  this->sonixGrabber->Record();  //Start recording frame from the video
-  
-  igtl:sleep((int) (this->NbFrames / this->FrameRate + 0.5));// wait for the images (delay in seconds)
+this->sonixGrabber->Record();  //start recording frame from the video
 
-  this->sonixGrabber->Stop();//Stop recording
+  // wait for the images (delay in milliseconds)
+//  igtl:sleep((unsigned int) (this->NbFrames / this->FrameRate * 1000 + 0.5));
 
-  this->tracker->StopTracking();//Stop tracking
+  this->sonixGrabber->Stop();
+
+/*
+ * Here is the place we get tracking data from Aurora.
+ * tool->Update() is very important. It updates the tracking data when the tool is moved.
+ *  Haiying
+ *
+  int count = 100;
+  while (count > 0)
+  { 
+      vtkTrackerTool *tool = this->tracker->GetTool(0);
+      tool->Update();
+      vtkMatrix4x4 *matrix = tool->GetTransform()->GetMatrix();
+      matrix->Print(std::cout);
+      count--;
+      igtl::Sleep(1000); //Wait for 1 seconds   
+  }
+*/
+ 
+  this->tracker->StopTracking();
+
 
   cout << "Recorded synchronized transforms and ultrasound images for " << this->NbFrames / this->FrameRate * 1000 << "ms" << endl;
 
@@ -215,7 +246,7 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
   panoramaReconstructor->CompoundingOn();
   panoramaReconstructor->SetInterpolationModeToLinear();
-  //  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar(); //Causes a segmentation fault
+  //  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar();
 
   // Determine the extent of the volume that needs to be reconstructed by 
   // iterating throught all the acquired frames
@@ -243,7 +274,7 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   this->sonixGrabber->Rewind();
   for(int i=0; i < nbFramesGrabbed; i++)
     {
-    // get those transforms... and compute the bounding box
+    // get those transforms... and computer the bounding box
     this->tagger->Update();
 
     // determine the bounding box occupied by the reconstructed volume
@@ -260,6 +291,7 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
     this->sonixGrabber->Seek(1);
     }
 
+//  double spacing[3] = {0.5,0.5,0.5};
   double spacing[3] = {1,1,1};
   int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
                           0, (int)( (maxY - minY) / spacing[1] ), 
@@ -269,16 +301,10 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   panoramaReconstructor->SetOutputSpacing(spacing);
   panoramaReconstructor->SetOutputOrigin(minX, minY, minZ);
 
-  //---------------------------------------------------------------------------
-  //Rewind and add recorded Slices to the PanoramaReconstructor
-  
+  // rewind and add the slices the panoramaReconstructor
   panoramaReconstructor->SetSlice(tagger->GetOutput());
   panoramaReconstructor->GetOutput()->Update();
   this->sonixGrabber->Rewind();
-  
-  this->sonixGrabber->Seek(100);//The first 100 frames are black therefore skip them
-  cout << "Skip the first 100 frames" << endl;
-  
   this->tagger->Update();
 
   vtkMatrix4x4 *sliceAxes = vtkMatrix4x4::New();
@@ -288,22 +314,18 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   for(int i=0; i < nbFramesGrabbed; i++)
     {
     this->tagger->Update();
-    this->tagger->GetTransform()->GetMatrix(sliceAxes); //Get trackingmatrix of current frame
-    panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
-    panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
-    this->sonixGrabber->Seek(1); //Advance to the next frame
+    this->tagger->GetTransform()->GetMatrix(sliceAxes);
+    panoramaReconstructor->SetSliceAxes(sliceAxes);
+    panoramaReconstructor->InsertSlice();
+    this->sonixGrabber->Seek(1);
     }
-  //----- Reconstruction done -----
 
   cout << "Inserted " << panoramaReconstructor->GetPixelCount() << " pixels into the output volume" << endl;
 
   panoramaReconstructor->FillHolesInOutput();
 
-  //---------------------------------------------------------------------------
-  // Prepare reconstructed 3D volume for transfer
-
   // To remove the alpha channel of the reconstructed volume
-  //vtkImageExtractComponents *extract = vtkImageExtractComponents::New();
+  vtkImageExtractComponents *extract = vtkImageExtractComponents::New();
   
 //  extract->SetInput(panoramaReconstructor->GetOutput());
 //  extract->SetComponents(0);
@@ -311,27 +333,28 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 
   vtkImageData * extractOutput = panoramaReconstructor->GetOutput();
 
-  //Adjust Properties of transfer_buffer
+  //Adjust Properties of vtk_image_buffer
   
   //Dimensions
   int dimensions[3];   
   extractOutput->GetDimensions(dimensions);
-  this->transfer_buffer->SetDimensions(dimensions);
+  this->vtk_image_buffer->SetDimensions(dimensions);
   
   //Spacing
   double ouputSpacing[3];
   extractOutput->GetSpacing(ouputSpacing);
-  this->transfer_buffer->SetSpacing(ouputSpacing);
+  this->vtk_image_buffer->SetSpacing(ouputSpacing);
   
   //SetScalarType
-  this->transfer_buffer->SetScalarType(extractOutput->GetScalarType());
+  this->vtk_image_buffer->SetScalarType(extractOutput->GetScalarType());
   
-  this->transfer_buffer->AllocateScalars();
+  this->vtk_image_buffer->AllocateScalars();
 
-  char * pBuff = (char *) this->transfer_buffer->GetScalarPointer();
-  char * pExtract = (char *) extractOutput->GetScalarPointer();  
-
-  //Fill transfer buffer
+  char * pBuff = (char *) this->vtk_image_buffer->GetScalarPointer();
+  char * pExtract = (char *) extractOutput->GetScalarPointer();
+  
+  int value = *(pExtract + (dimensions[2] * dimensions[1] / 4));//This is just a test value for debugging
+  
   for(int i = 0 ; i < dimensions[2] ; ++i)
     {
     for(int j = 0 ; j < dimensions[1] ; ++j)
@@ -343,11 +366,20 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
         ++pExtract;
         }
       }
-    }   
+    }
 
-  //extract->Delete();
+   cout << "vtkSynchroGrabPipeline::ReconstructVolume | ImageValue:" << value << endl;
+
+//  // write it to the specified file.
+//  vtkDataSetWriter *writer3D = vtkDataSetWriter::New();
+//  writer3D->SetFileTypeToBinary();
+//  writer3D->SetInput(extract->GetOutput());
+//  writer3D->SetFileName(this->VolumeOutputFile);
+//  writer3D->Write();
+//
+//  writer3D->Delete();
+  extract->Delete();
   panoramaReconstructor->Delete();
-  
   return true;
 }
 
@@ -396,7 +428,7 @@ bool vtkSynchroGrabPipeline::CloseServerConnection()
 //  cout << "Number of scalar components : " << image->GetNumberOfScalarComponents() << endl;
 //  cout << "Scalar Type : " << image->GetScalarType() << " ( " << image->GetScalarTypeAsString() << ")" << endl;
 //  cout << "Frame count : " << this->sonixGrabber->GetFrameCount() <<endl;
-//int value = *(pExtract + (dimensions[2] * dimensions[1] / 4));//This is just a test value for debugging
+//
 //  imMessage->SetDimensions(dim[0], dim[1], 1);
 //  imMessage->SetSpacing(spacing[0], spacing[1], spacing[2]);
 //  imMessage->SetScalarType(image->GetScalarType());
@@ -523,13 +555,13 @@ int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg)
   //If we reconstructing a 3DVolume everything is already set for us
   if(this->GetVolumeReconstructionEnabled())
     {
-    this->transfer_buffer->GetDimensions(size);
-    this->transfer_buffer->GetSpacing(spacing);
+    this->vtk_image_buffer->GetDimensions(size);
+    this->vtk_image_buffer->GetSpacing(spacing);
     svsize[0]   = size[0];       
     svsize[1]   = size[1];       
     svsize[2]   = size[2];           
     svoffset[0] = svoffset[1] = svoffset[2] = 0;           
-    scalarType = this->transfer_buffer->GetScalarType();    
+    scalarType = this->vtk_image_buffer->GetScalarType();    
     }
   else
     {   
@@ -562,7 +594,7 @@ int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg)
     
 
   char * p_msg = (char*) msg->GetScalarPointer();
-  char * p_ibuffer = (char*) this->transfer_buffer->GetScalarPointer();
+  char * p_ibuffer = (char*) this->vtk_image_buffer->GetScalarPointer();
 
   for(int i=0 ; i < size[0] * size[1] * size[2] ; i++ )
     {
@@ -616,7 +648,7 @@ void vtkSynchroGrabPipeline::vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix)
 void vtkSynchroGrabPipeline::FillImage()
 {
       // get the pointer to actual incoming data on to a local pointer
-    char* deviceDataPtr = (char *) this->transfer_buffer->GetScalarPointer();  
+    char* deviceDataPtr = (char *) this->vtk_image_buffer->GetScalarPointer();  
   
     int R = 50; //Radius of globe
     double r; //Radius of circle in slice
