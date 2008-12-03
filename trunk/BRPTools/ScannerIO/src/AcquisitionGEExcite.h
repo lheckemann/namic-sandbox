@@ -203,7 +203,7 @@ protected:
 
   std::queue<ScanPlaneType> ScanPlaneBuffer;
   igtl::TimeStamp::Pointer Time;
-  igtl::MutexLock::Pointer ScanPlaneMutex;
+  //igtl::MutexLock::Pointer ScanPlaneMutex;
   igtl::Matrix4x4 CurrentMatrix;
 
 };

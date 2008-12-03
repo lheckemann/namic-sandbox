@@ -74,6 +74,7 @@ AcquisitionGEExcite::AcquisitionGEExcite()
   //this->gemutex = new ACE_Thread_Mutex;
   this->Mutex = igtl::MutexLock::New();
   this->RetMatrixMutex = igtl::MutexLock::New();
+  this->Time = igtl::TimeStamp::New();
   this->channels = 1;
   this->viewsxfer = 1;
   this->validate = false;
@@ -193,7 +194,7 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
 
   // push matrix and time stamp data into the queue
   ScanPlaneType sp;
-  this->ScanPlaneMutex->Lock();
+  this->RetMatrixMutex->Lock();
   sp.matrix[0][0] = m[0][0];
   sp.matrix[1][0] = m[1][0];
   sp.matrix[2][0] = m[2][0];
@@ -204,19 +205,19 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
   sp.matrix[1][2] = m[1][2];
   sp.matrix[2][2] = m[2][2];
   sp.matrix[0][3] = m[0][3];
-  sp.matrix[0][3] = m[0][3];
-  sp.matrix[0][3] = m[0][3];
+  sp.matrix[1][3] = m[1][3];
+  sp.matrix[2][3] = m[2][3];
   this->Time->GetTime();
   sp.ts = this->Time->GetTimeStamp();
   this->ScanPlaneBuffer.push(sp);
-  this->ScanPlaneMutex->Unlock();
+  this->RetMatrixMutex->Unlock();
 
   igtl::Matrix4x4 matrix;
   float position[3];
 
   position[0] = m[0][3];
-  position[1] = m[0][3];
-  position[2] = m[0][3];
+  position[1] = m[1][3];
+  position[2] = m[2][3];
 
   matrix[0][0] = m[0][0];
   matrix[1][0] = m[1][0];
@@ -231,6 +232,7 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
 
 #ifdef _RSP_CONTROL
 
+  /*
   this->RetMatrixMutex->Lock();
   this->RetMatrix[0][0] = matrix[0][0];
   this->RetMatrix[1][0] = matrix[1][0];
@@ -245,6 +247,7 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
   this->RetMatrix[1][3] = matrix[1][3];
   this->RetMatrix[2][3] = matrix[2][3];
   this->RetMatrixMutex->Unlock();
+  */
 
   // check if frequency and phase encodings are flipped.
   int swap;
@@ -677,7 +680,6 @@ void AcquisitionGEExcite::Process()
               read_rsp_f("cont_image_p2x", &imgInfo.image_p2x);
               read_rsp_f("cont_image_p2y", &imgInfo.image_p2y);
               read_rsp_f("cont_image_p2z", &imgInfo.image_p2z);
-
 #endif // _RSP_CONTROL
 
             }
@@ -710,6 +712,7 @@ void AcquisitionGEExcite::Process()
                   dim[1] = ysize;
                   dim[2] = 1;
                   float spacing[3];
+
 #ifdef _RSP_CONTROL
                   spacing[0] = imgInfo.fov/xsize;
                   spacing[1] = imgInfo.fov/ysize;

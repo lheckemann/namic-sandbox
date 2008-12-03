@@ -129,8 +129,8 @@ int AcquisitionSimulator::SetMatrix(igtl::Matrix4x4& m)
   sp.matrix[1][2] = m[1][2];
   sp.matrix[2][2] = m[2][2];
   sp.matrix[0][3] = m[0][3];
-  sp.matrix[0][3] = m[0][3];
-  sp.matrix[0][3] = m[0][3];
+  sp.matrix[1][3] = m[1][3];
+  sp.matrix[2][3] = m[2][3];
 
   this->Time->GetTime();
   sp.ts = this->Time->GetTimeStamp();
