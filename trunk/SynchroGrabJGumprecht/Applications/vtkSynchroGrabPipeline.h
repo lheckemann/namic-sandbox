@@ -70,12 +70,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 class vtkUltrasoundCalibFileReader;
 //class vtkSonixVideoSource;
-class vtkV4L2VideoSource;
+class vtkV4LVideoSource;
 class vtkTaggedImageFilter;
 //class vtkNDICertusTracker;
 //class vtkTrackerSimulator;
 
-class vtkNDITracker;
+ class vtkNDITracker;
 
 
 class vtkSynchroGrabPipeline : public vtkObject
@@ -88,11 +88,11 @@ public:
   vtkSetMacro(NbFrames, int);
   vtkGetMacro(NbFrames, int);
 
+  vtkSetStringMacro(VolumeOutputFile);
+  vtkGetStringMacro(VolumeOutputFile);
+
   vtkSetStringMacro(SonixAddr);
   vtkGetStringMacro(SonixAddr);
-  
-  vtkSetStringMacro(VideoDevice);
-  vtkGetStringMacro(VideoDevice);
 
   vtkSetStringMacro(CalibrationFileName);
   vtkGetStringMacro(CalibrationFileName);
@@ -139,25 +139,27 @@ protected:
   int ServerPort;
   int NbFrames;
 
+  char *VolumeOutputFile;
   char *SonixAddr;
   char *CalibrationFileName;
   char *OIGTLServer;
-  char *VideoDevice;
 
   bool TransfertImages;
   bool VolumeReconstructionEnabled;
   bool UseTrackerTransforms;
 
-  double FrameRate;  
+  double FrameRate;
   
-  //Buffers the 3D volume before it transfered via OpenIGTLink
-  vtkImageData *transfer_buffer;
+  ///Jan should change this to vtkImage and alloc memory there
+  // I am doing this as a temporary measure
+  char* image_buffer;
+  vtkImageData *vtk_image_buffer;
   
 
 // McGumbel
   vtkUltrasoundCalibFileReader *calibReader;
 //  vtkSonixVideoSource *sonixGrabber;
-  vtkV4L2VideoSource *sonixGrabber;
+  vtkV4LVideoSource *sonixGrabber;
   vtkTaggedImageFilter *tagger;
 //  vtkNDICertusTracker *tracker;
 //  vtkTrackerSimulator *tracker;
