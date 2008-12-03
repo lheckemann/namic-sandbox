@@ -44,6 +44,7 @@
 =========================================================================*/
 
 #include "igtlSocket.h"
+#include <string.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
   #include <windows.h>
