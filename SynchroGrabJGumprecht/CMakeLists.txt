@@ -25,6 +25,12 @@ ENDIF(COMMAND CMAKE_POLICY)
 #
 ADD_DEFINITIONS(-DIGTLSTATIC=1)
 
+#
+# Enable / Disable Hardware Simulators
+#
+OPTION(USE_TRACKER_SIMULATOR "Use Tracker Simulator." OFF)
+OPTION(USE_ULTRASOUND_SIMULATOR "Use Ultrasound Simulator." OFF)
+
 # 
 # Whether to build with shared libs: define our own symbol
 #
@@ -62,6 +68,11 @@ INCLUDE_DIRECTORIES(
 CONFIGURE_FILE(
   ${QUEENSOPENIGT_SOURCE_DIR}/QueensOpenIGTLibsConfigure.h.in
   ${QUEENSOPENIGT_BINARY_DIR}/QueensOpenIGTLibsConfigure.h
+)
+
+CONFIGURE_FILE(
+  ${QUEENSOPENIGT_SOURCE_DIR}/SynchroGrabConfigure.h.in
+  ${QUEENSOPENIGT_BINARY_DIR}/SynchroGrabConfigure.h
 )
 
 
