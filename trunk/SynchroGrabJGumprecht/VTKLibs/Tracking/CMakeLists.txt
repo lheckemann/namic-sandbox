@@ -3,9 +3,9 @@ vtkTracker.cxx
 vtkTrackerTool.cxx
 vtkTrackerBuffer.cxx
 vtkFrameToTimeConverter.cxx
-#vtkNDITracker.cxx
+vtkNDITracker.cxx
 #vtkNDICertusTracker.cxx
-vtkTrackerSimulator.cxx
+#vtkTrackerSimulator.cxx
 )
 
 SET_SOURCE_FILES_PROPERTIES(
