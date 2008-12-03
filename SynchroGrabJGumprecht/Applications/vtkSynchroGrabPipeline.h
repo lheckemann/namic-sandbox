@@ -73,7 +73,9 @@ class vtkUltrasoundCalibFileReader;
 class vtkV4L2VideoSource;
 class vtkTaggedImageFilter;
 //class vtkNDICertusTracker;
-class vtkTrackerSimulator;
+//class vtkTrackerSimulator;
+
+class vtkNDITracker;
 
 
 class vtkSynchroGrabPipeline : public vtkObject
@@ -158,7 +160,9 @@ protected:
   vtkV4L2VideoSource *sonixGrabber;
   vtkTaggedImageFilter *tagger;
 //  vtkNDICertusTracker *tracker;
-  vtkTrackerSimulator *tracker;
+//  vtkTrackerSimulator *tracker;
+
+  vtkNDITracker *tracker;
   
   igtl::ClientSocket::Pointer socket;
 
