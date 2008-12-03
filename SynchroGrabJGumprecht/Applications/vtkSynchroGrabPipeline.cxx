@@ -66,7 +66,11 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 //#include "vtkNDICertusTracker.h"
-#include "vtkTrackerSimulator.h"
+//#include "vtkTrackerSimulator.h"
+
+
+#include "vtkNDITracker.h"
+
 
 //#include "utx_imaging_modes.h"
 //#include "ulterius_def.h"
@@ -106,7 +110,10 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
   this->sonixGrabber = vtkV4L2VideoSource::New();
   this->tagger = vtkTaggedImageFilter::New();
 //  this->tracker = vtkNDICertusTracker::New();
-  this->tracker = vtkTrackerSimulator::New();
+//  this->tracker = vtkTrackerSimulator::New();
+
+  this->tracker = vtkNDITracker::New();
+
 
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
