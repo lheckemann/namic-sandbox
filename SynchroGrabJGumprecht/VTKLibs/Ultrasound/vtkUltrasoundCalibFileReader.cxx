@@ -37,6 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
+#include "SynchroGrabConfigure.h"
 #include "vtkUltrasoundCalibFileReader.h"
 
 #include "vtkInformation.h"
@@ -268,11 +269,11 @@ void vtkUltrasoundCalibFileReader::ReadCalibFile()
   //error
     }
   
-  // calculate calib matrix, image spacing,
-   
-//  Calculate();
-   cout << "void vtkUltrasoundCalibFileReader::ReadCalibFile() | Calculate deactivated" << endl;
-//Replacement of Calculate   
+#ifdef DO_CALIBRATION_FILE_CALCULATIONS
+  // calculate calib matrix, image spacing,   
+  Calculate();  
+#else
+  //The calculations don't work at the moment 
   this->ImageSpacing[0] = 1.0;
   this->ImageSpacing[1] = 1.0;
   this->ImageSpacing[2] = 1.0;
@@ -281,7 +282,8 @@ void vtkUltrasoundCalibFileReader::ReadCalibFile()
   this->ClipRectangle[1] = 0 * this->ImageSpacing[1]+this->ImageOrigin[1];
   this->ClipRectangle[2] = (this->ImageSize[0] -1) * this->ImageSpacing[0] + this->ImageOrigin[0];
   this->ClipRectangle[3] = (this->ImageSize[1] -1) * this->ImageSpacing[1] + this->ImageOrigin[1];
-//End Replacement
+
+#endif
    
   // close the file stream
   this->CloseCalibFile();
