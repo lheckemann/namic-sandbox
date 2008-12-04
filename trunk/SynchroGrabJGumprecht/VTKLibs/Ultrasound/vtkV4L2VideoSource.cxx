@@ -1,41 +1,34 @@
 /*=========================================================================
 
-  Module:    $RCSfile: vtkV4L2VideoSource.cxx,v $
-  Author:  Siddharth Vikal, Queens School Of Computing
+  Program:   Visualization Toolkit
+  Module:    $RCSfile: vtkVideoSource.h,v $
 
-Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
-All rights reserved.
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  All rights reserved.
+  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+  
+  Author:  Jan Gumprecht, Harvard Medical School
+  Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
+  All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
- * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
- * Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in
-   the documentation and/or other materials provided with the
-   distribution.
-
- * Neither the name of Queen's University nor the names of any
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
+// .NAME vtkV4L2VideoSource - Superclass of video input devices for VTK
+// .SECTION Description
+// vtkV4L2VideoSource is a superclass for video input interfaces for VTK.
+// The goal is to provide an interface which is very similar to the
+// interface of a VCR, where the 'tape' is an internal frame buffer
+// capable of holding a preset number of video frames.  Specialized
+// versions of this class record input from various video input sources.
+// This base class records input from a noise source.
+// .SECTION Caveats
+// You must call the ReleaseSystemResources() method before the application
+// exits.  Otherwise the application might hang while trying to exit.
+// .SECTION See Also
+// vtkWin32VideoSource vtkMILVideoSource
 
 #include "vtkV4L2VideoSource.h"
 
