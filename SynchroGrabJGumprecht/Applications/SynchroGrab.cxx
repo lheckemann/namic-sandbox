@@ -165,16 +165,17 @@ int main(int argc, char **argv)
 
     vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
 
+
+    //JG 12/4/08 The following lines have to be used otherwise Synchrograb doesn't work
     //NH
     //12/2/08
     // the following line is unkowon leak detected vtk
-    // removed temporary to avoid seg fault
-    //bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
-    //if(!successParsingCommandLine)
-    //    return -1;
+    // removed temporary to avoid seg fault    
+    bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
+    if(!successParsingCommandLine)
+        return -1;
     
     //line remal end. NH 12/2/08
-    
     
     //     redirect vtk errors to a file
     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
@@ -183,14 +184,14 @@ int main(int argc, char **argv)
     
     pipeline->ConfigurePipeline();
     // Volume Reconstruction
-if(pipeline->GetVolumeReconstructionEnabled())
- {if(!pipeline->ReconstructVolume())return -1;}
+    if(pipeline->GetVolumeReconstructionEnabled())
+      {if(!pipeline->ReconstructVolume())return -1;}
     // Transfer Images
     if(pipeline->GetTransfertImages())
       {
-if(!pipeline->ConnectToServer())return -1;
-if(!pipeline->SendImages())return -1;
-if(!pipeline->CloseServerConnection())return -1;
+      if(!pipeline->ConnectToServer())return -1;
+      if(!pipeline->SendImages())return -1;
+      if(!pipeline->CloseServerConnection())return -1;
       }
     pipeline->Delete();
 }
