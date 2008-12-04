@@ -1,6 +1,6 @@
 /*=========================================================================
 
-Module:    $RCSfile: vtkV4LVideoSource.h,v $
+Module:    $RCSfile: vtkVideoSourceSimulator.h,v $
 Author:  Siddharth Vikal, Queens School Of Computing
 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
