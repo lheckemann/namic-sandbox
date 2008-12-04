@@ -1,61 +1,23 @@
 /*=========================================================================
 
-Module:    $RCSfile: vtkV4L2VideoSource.h,v $
-Author:  Siddharth Vikal, Queens School Of Computing
+  Program:   Visualization Toolkit
+  Module:    $RCSfile: vtkV4L2VideoSource.cxx,v $
 
-Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
-All rights reserved.
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  All rights reserved.
+  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+  
+  Author:  Jan Gumprecht, Harvard Medical School
+  Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
+  All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
-
- * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-
- * Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in
-   the documentation and/or other materials provided with the
-   distribution.
-
- * Neither the name of Queen's University nor the names of any
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-  
-// .NAME vtkV4L2VideoSource - VTK interface for video input from UltraSound machine
-// .SECTION Description
-// vtkV4L2VideoSource is a class for providing video input interfaces between VTK and UltraSound machine.
-// The goal is to provide the ability to be able to do acquisition
-// in various imaging modes, buffer the image/volume series being acquired
-// and stream the frames to output. 
-// Note that the data coming out of the UltraSound rp through ulterius is always RGB
-// This class talks to UltraSound's Ulterius SDK for executing the tasks 
-// .SECTION Caveats
-// You must call the ReleaseSystemResources() method before the application
-// exits.  Otherwise the application might hang while trying to exit.
-// .SECTION Usage
-//  sonixGrabber->SetImagingMode(0);
-//  sonixGrabber->Record();  
-//  imageviewer->SetInput(sonixGrabber->GetOutput());
-//  See SonixVideoSourceTest.cxx for more details
-// .SECTION See Also
-// vtkWin32VideoSource vtkMILVideoSource
 
+  
 //New-Start
 // .NAME vtkV4L2VideoSource - Superclass of video input devices for VTK
 // .SECTION Description
