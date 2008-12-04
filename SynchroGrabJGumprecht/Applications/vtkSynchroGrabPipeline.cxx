@@ -289,7 +289,6 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 
   //NH
 
-
   this->sonixGrabber->Rewind();
 
   for(int i=0; i < nbFramesGrabbed; i++)
@@ -312,7 +311,6 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
     this->sonixGrabber->Seek(1);
 
     }
-
 
   double spacing[3] = {1,1,1};
   int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
@@ -368,7 +366,6 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 #ifdef REMOVE_ALPHA_CHANNEL
   // To remove the alpha channel of the reconstructed volume
   vtkImageExtractComponents *extract = vtkImageExtractComponents::New();
-  
 
   extract->SetInput(panoramaReconstructor->GetOutput());
   extract->SetComponents(0);
