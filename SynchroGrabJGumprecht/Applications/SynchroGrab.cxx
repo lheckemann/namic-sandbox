@@ -182,16 +182,15 @@ int main(int argc, char **argv)
     vtkOutputWindow::SetInstance(errOut);
     
     pipeline->ConfigurePipeline();
-    
-    
     // Volume Reconstruction
-    if(pipeline->GetVolumeReconstructionEnabled())
-      {if(!pipeline->ReconstructVolume())return -1;}
-// Transfer Images
-if(pipeline->GetTransfertImages())
-{if(!pipeline->ConnectToServer())return -1;
+if(pipeline->GetVolumeReconstructionEnabled())
+ {if(!pipeline->ReconstructVolume())return -1;}
+    // Transfer Images
+    if(pipeline->GetTransfertImages())
+      {
+if(!pipeline->ConnectToServer())return -1;
 if(!pipeline->SendImages())return -1;
-cout << "Images successfull send " << endl;
-if(!pipeline->CloseServerConnection())return -1;}
-pipeline->Delete();
+if(!pipeline->CloseServerConnection())return -1;
+      }
+    pipeline->Delete();
 }
