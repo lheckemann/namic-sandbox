@@ -1,6 +1,10 @@
 INCLUDE_DIRECTORIES(${ULTERIUS_INCLUDE_DIR})
 
-ADD_EXECUTABLE(SynchroGrab SynchroGrab.cxx vtkSynchroGrabPipeline.cxx)
+ADD_EXECUTABLE(SynchroGrab 
+  vtkUltrasoundVolumeReconstructor.cxx
+  vtkUltrasoundVolumeSender.cxx
+  SynchroGrab.cxx 
+  )
 
 IF(USE_TRACKER_DEVICE)
   #Use tracker device
