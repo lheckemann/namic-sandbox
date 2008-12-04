@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Module:    $RCSfile: vtkV4LVideoSource.cxx,v $
+  Module:    $RCSfile: vtkVideoSourceSimulator.cxx,v $
   Author:  Siddharth Vikal, Queens School Of Computing
 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
@@ -37,7 +37,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
-#include "vtkV4LVideoSource.h"
+#include "vtkVideoSourceSimulator.h"
 
 #include "vtkImageData.h"
 #include "vtkCriticalSection.h"
@@ -65,18 +65,18 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 
-vtkCxxRevisionMacro(vtkV4LVideoSource, "$Revision: 1.0$");
+vtkCxxRevisionMacro(vtkVideoSourceSimulator, "$Revision: 1.0$");
 //vtkStandardNewMacro(vtkWin32VideoSource);
 //----------------------------------------------------------------------------
 // Needed when we don't use the vtkStandardNewMacro.
-vtkInstantiatorNewMacro(vtkV4LVideoSource);
+vtkInstantiatorNewMacro(vtkVideoSourceSimulator);
 
 //----------------------------------------------------------------------------
 
-vtkV4LVideoSource* vtkV4LVideoSource::Instance = 0;
+vtkVideoSourceSimulator* vtkVideoSourceSimulator::Instance = 0;
 
 //----------------------------------------------------------------------------
-vtkV4LVideoSource::vtkV4LVideoSource()
+vtkVideoSourceSimulator::vtkVideoSourceSimulator()
 {
   this->Initialized = 0;
 
@@ -102,17 +102,17 @@ vtkV4LVideoSource::vtkV4LVideoSource()
 }
 
 //----------------------------------------------------------------------------
-vtkV4LVideoSource::~vtkV4LVideoSource()
+vtkVideoSourceSimulator::~vtkVideoSourceSimulator()
 { 
-  this->vtkV4LVideoSource::ReleaseSystemResources();
+  this->vtkVideoSourceSimulator::ReleaseSystemResources();
 }
 
 
 //----------------------------------------------------------------------------
 // Up the reference count so it behaves like New
-vtkV4LVideoSource* vtkV4LVideoSource::New()
+vtkVideoSourceSimulator* vtkVideoSourceSimulator::New()
 {
-  vtkV4LVideoSource* ret = vtkV4LVideoSource::GetInstance();
+  vtkVideoSourceSimulator* ret = vtkVideoSourceSimulator::GetInstance();
   ret->Register(NULL);
   return ret;
 }
@@ -120,38 +120,38 @@ vtkV4LVideoSource* vtkV4LVideoSource::New()
 
 //----------------------------------------------------------------------------
 // Return the single instance of the vtkOutputWindow
-vtkV4LVideoSource* vtkV4LVideoSource::GetInstance()
+vtkVideoSourceSimulator* vtkVideoSourceSimulator::GetInstance()
 {
-  if(!vtkV4LVideoSource::Instance)
+  if(!vtkVideoSourceSimulator::Instance)
     {
     // Try the factory first
-   vtkV4LVideoSource::Instance = (vtkV4LVideoSource*)vtkObjectFactory::CreateInstance("vtkV4LVideoSource");    
-   if(!vtkV4LVideoSource::Instance)
+   vtkVideoSourceSimulator::Instance = (vtkVideoSourceSimulator*)vtkObjectFactory::CreateInstance("vtkVideoSourceSimulator");    
+   if(!vtkVideoSourceSimulator::Instance)
      {
-     vtkV4LVideoSource::Instance = new vtkV4LVideoSource();     
+     vtkVideoSourceSimulator::Instance = new vtkVideoSourceSimulator();     
      }
-   if(!vtkV4LVideoSource::Instance)
+   if(!vtkVideoSourceSimulator::Instance)
      {
      int error = 0;
      }
     }
   // return the instance
-  return vtkV4LVideoSource::Instance;
+  return vtkVideoSourceSimulator::Instance;
 }
 
 //----------------------------------------------------------------------------
-void vtkV4LVideoSource::SetInstance(vtkV4LVideoSource* instance)
+void vtkVideoSourceSimulator::SetInstance(vtkVideoSourceSimulator* instance)
 {
-  if (vtkV4LVideoSource::Instance==instance)
+  if (vtkVideoSourceSimulator::Instance==instance)
     {
     return;
     }
   // preferably this will be NULL
-  if (vtkV4LVideoSource::Instance)
+  if (vtkVideoSourceSimulator::Instance)
     {
-    vtkV4LVideoSource::Instance->Delete();;
+    vtkVideoSourceSimulator::Instance->Delete();;
     }
-  vtkV4LVideoSource::Instance = instance;
+  vtkVideoSourceSimulator::Instance = instance;
   if (!instance)
     {
     return;
@@ -161,7 +161,7 @@ void vtkV4LVideoSource::SetInstance(vtkV4LVideoSource* instance)
 }
 
 //----------------------------------------------------------------------------
-void vtkV4LVideoSource::PrintSelf(ostream& os, vtkIndent indent)
+void vtkVideoSourceSimulator::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
@@ -173,7 +173,7 @@ void vtkV4LVideoSource::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //----------------------------------------------------------------------------
-void vtkV4LVideoSource::Initialize()
+void vtkVideoSourceSimulator::Initialize()
 {
   //to do:
   //1) connect to UltraSound machine using the ip address provided earlier
@@ -203,13 +203,13 @@ void vtkV4LVideoSource::Initialize()
 }
 
 //----------------------------------------------------------------------------
-void vtkV4LVideoSource::ReleaseSystemResources()
+void vtkVideoSourceSimulator::ReleaseSystemResources()
 {
 //  this->ult->disconnect();
 }
 
 //----------------------------------------------------------------------------
-void vtkV4LVideoSource::Grab()
+void vtkVideoSourceSimulator::Grab()
 {
   if (this->Recording)
     {
@@ -229,7 +229,7 @@ void vtkV4LVideoSource::Grab()
 }
 
 //----------------------------------------------------------------------------
-void vtkV4LVideoSource::Record()
+void vtkVideoSourceSimulator::Record()
 {
   this->Initialize();
   if (!this->Initialized)
@@ -252,13 +252,13 @@ void vtkV4LVideoSource::Record()
 }
     
 //----------------------------------------------------------------------------
-void vtkV4LVideoSource::Play()
+void vtkVideoSourceSimulator::Play()
 {
   this->vtkVideoSource::Play();
 }
     
 //----------------------------------------------------------------------------
-void vtkV4LVideoSource::Stop()
+void vtkVideoSourceSimulator::Stop()
 {
   if (this->Recording)
     {
@@ -274,7 +274,7 @@ void vtkV4LVideoSource::Stop()
 
 
 //----------------------------------------------------------------------------
-int vtkV4LVideoSource::RequestInformation(
+int vtkVideoSourceSimulator::RequestInformation(
   vtkInformation * vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
@@ -342,7 +342,7 @@ int vtkV4LVideoSource::RequestInformation(
 
 
 //----------------------------------------------------------------------------
-int vtkV4LVideoSource::RequestData(
+int vtkVideoSourceSimulator::RequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *vtkNotUsed(outputVector))
@@ -550,7 +550,7 @@ int vtkV4LVideoSource::RequestData(
 }
 
 //----------------------------------------------------------------------------
-void vtkV4LVideoSource::SetOutputFormat(int format)
+void vtkVideoSourceSimulator::SetOutputFormat(int format)
 {
   if (format == this->OutputFormat)
     {
@@ -597,7 +597,7 @@ void vtkV4LVideoSource::SetOutputFormat(int format)
 
 
 // check the current video format and set up the VTK video framebuffer to match
-void vtkV4LVideoSource::DoFormatSetup()
+void vtkVideoSourceSimulator::DoFormatSetup()
 {
 
   //set the frame size from the data descriptor, 
@@ -657,7 +657,7 @@ void vtkV4LVideoSource::DoFormatSetup()
 
 }
 
-void vtkV4LVideoSource::SetUltraSoundIP(char *UltraSoundIP)
+void vtkVideoSourceSimulator::SetUltraSoundIP(char *UltraSoundIP)
 {
   if (UltraSoundIP)
     {
@@ -666,7 +666,7 @@ void vtkV4LVideoSource::SetUltraSoundIP(char *UltraSoundIP)
     }
 }
 
-void vtkV4LVideoSource::FillFrameBuffer()
+void vtkVideoSourceSimulator::FillFrameBuffer()
 {
   //to do
   // 1) Do frame buffer indices maintenance

@@ -37,29 +37,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
   
-// .NAME vtkV4LVideoSource - VTK interface for video input from UltraSound machine
-// .SECTION Description
-// vtkV4LVideoSource is a class for providing video input interfaces between VTK and UltraSound machine.
-// The goal is to provide the ability to be able to do acquisition
-// in various imaging modes, buffer the image/volume series being acquired
-// and stream the frames to output. 
-// Note that the data coming out of the UltraSound rp through ulterius is always RGB
-// This class talks to UltraSound's Ulterius SDK for executing the tasks 
-// .SECTION Caveats
-// You must call the ReleaseSystemResources() method before the application
-// exits.  Otherwise the application might hang while trying to exit.
-// .SECTION Usage
-//  sonixGrabber->SetSonixIP("130.15.7.212");
-//  sonixGrabber->SetImagingMode(0);
-//  sonixGrabber->SetAcquisitionDataType(0x00000004);
-//  sonixGrabber->Record();  
-//  imageviewer->SetInput(sonixGrabber->GetOutput());
-//  See SonixVideoSourceTest.cxx for more details
-// .SECTION See Also
-// vtkWin32VideoSource vtkMILVideoSource
 
-#ifndef __vtkV4LVideoSource_h
-#define __vtkV4LVideoSource_h
+#ifndef __vtkVideoSourceSimulator_h
+#define __vtkVideoSourceSimulator_h
 
 #include "vtkUltrasoundWin32Header.h"
 #include "vtkVideoSource.h"
@@ -82,29 +62,23 @@ enum {udtBPost};
 //class uDataDesc;
 //class ulterius;
 
-class VTK_ULTRASOUND_EXPORT vtkV4LVideoSource;
+class VTK_ULTRASOUND_EXPORT vtkVideoSourceSimulator;
 
-class VTK_EXPORT vtkV4LVideoSource : public vtkVideoSource
+class VTK_EXPORT vtkVideoSourceSimulator : public vtkVideoSource
 {
 public:
-  //static vtkV4LVideoSource *New();
-  vtkTypeRevisionMacro(vtkV4LVideoSource,vtkVideoSource);
+  static vtkVideoSourceSimulator *New();
+  vtkTypeRevisionMacro(vtkVideoSourceSimulator,vtkVideoSource);
   void PrintSelf(ostream& os, vtkIndent indent);   
-  // Description:
-  // This is a singleton pattern New.  There will only be ONE
-  // reference to a vtkOutputWindow object per process.  Clients that
-  // call this must call Delete on the object so that the reference
-  // counting will work.   The single instance will be unreferenced when
-  // the program exits.
-  static vtkV4LVideoSource* New();
+  
   // Description:
   // Return the singleton instance with no reference counting.
-  static vtkV4LVideoSource* GetInstance();
+  static vtkVideoSourceSimulator* GetInstance();
 
   // Description:
   // Supply a user defined output window. Call ->Delete() on the supplied
   // instance after setting it.
-  static void SetInstance(vtkV4LVideoSource *instance);
+  static void SetInstance(vtkVideoSourceSimulator *instance);
   
   // Description:
   // Record incoming video at the specified FrameRate.  The recording
@@ -185,8 +159,8 @@ public:
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
 protected:
-  vtkV4LVideoSource();
-  ~vtkV4LVideoSource();
+  vtkVideoSourceSimulator();
+  ~vtkVideoSourceSimulator();
 
   int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
@@ -211,9 +185,9 @@ protected:
 private:
  
 
-  static vtkV4LVideoSource* Instance;
-  vtkV4LVideoSource(const vtkV4LVideoSource&);  // Not implemented.
-  void operator=(const vtkV4LVideoSource&);  // Not implemented.
+  static vtkVideoSourceSimulator* Instance;
+  vtkVideoSourceSimulator(const vtkVideoSourceSimulator&);  // Not implemented.
+  void operator=(const vtkVideoSourceSimulator&);  // Not implemented.
 };
 
 #endif
