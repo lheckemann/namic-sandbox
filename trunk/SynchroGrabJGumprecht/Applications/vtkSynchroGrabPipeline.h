@@ -153,10 +153,9 @@ protected:
   double FrameRate;  
   
   //Buffers the 3D volume before it transfered via OpenIGTLink
-  vtkImageData *transfer_buffer;
-  
+  vtkImageData *transfer_buffer;  
 
-  // McGumbel
+
   vtkUltrasoundCalibFileReader *calibReader;
 
   
