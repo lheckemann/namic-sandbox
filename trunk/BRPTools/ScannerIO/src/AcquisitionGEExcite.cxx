@@ -1199,8 +1199,8 @@ void AcquisitionGEExcite::GetDelayedTransform(igtl::Matrix4x4& matrix)
     matrix[1][2] = dm[1][2];
     matrix[2][2] = dm[2][2];
     matrix[0][3] = dm[0][3];
-    matrix[0][3] = dm[0][3];
-    matrix[0][3] = dm[0][3];
+    matrix[1][3] = dm[1][3];
+    matrix[2][3] = dm[2][3];
     }
 
   this->RetMatrixMutex->Unlock();
