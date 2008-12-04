@@ -2,10 +2,10 @@
 
 Module:  $RCSfile: vtkSynchroGrabPipeline.h,v $
 Author:  Jonathan Boisvert, Queens School Of Computing
-
+Author: Nobuhiko Hata, Harvard Medical School
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
-
+Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
 are met:
@@ -84,6 +84,7 @@ class vtkNDITracker;
 class vtkTrackerSimulator;
 #endif
 
+
 class vtkSynchroGrabPipeline : public vtkObject
 {
 public:
@@ -121,22 +122,17 @@ public:
   vtkSetMacro(FrameRate, double);
   vtkGetMacro(FrameRate, double);
 
-  bool StartTracker();
 
   bool ReconstructVolume();
-
   bool ConfigurePipeline();
-
   bool ConnectToServer();
   bool CloseServerConnection();
-
   bool SendImages();
-  
-  void vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix);
-  
+  void vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix); 
   int vtkGetTestImage(igtl::ImageMessage::Pointer& msg);
-  
   void FillImage();
+  bool StartTracker();
+
 
 protected:
   vtkSynchroGrabPipeline();
@@ -160,8 +156,9 @@ protected:
   vtkImageData *transfer_buffer;
   
 
-// McGumbel
+  // McGumbel
   vtkUltrasoundCalibFileReader *calibReader;
+
   
 #ifdef USE_TRACKER_DEVICE
   vtkNDITracker *tracker;  
@@ -169,17 +166,20 @@ protected:
   vtkTrackerSimulator *tracker;  
 #endif
 
+
   vtkTaggedImageFilter *tagger;
+
 
 #ifdef USE_ULTRASOUND_DEVICE
   vtkV4L2VideoSource *sonixGrabber;  
 #else
   vtkVideoSourceSimulator *sonixGrabber;
 #endif
+
   
   igtl::ClientSocket::Pointer socket;
-
-private:
+  
+ private:
   vtkSynchroGrabPipeline(const vtkSynchroGrabPipeline&);  // Not implemented.
   void operator=(const vtkSynchroGrabPipeline&);  // Not implemented.
 };

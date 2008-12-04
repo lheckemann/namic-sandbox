@@ -2,9 +2,11 @@
 
 Module:    $RCSfile: vtkSynchroGrabPipeline.cxx,v $
 Author:  Jonathan Boisvert, Queens School Of Computing
+Author: Nobuhiko Hata, Harvard Medical School
 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
+Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -100,8 +102,8 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
   this->SetOIGTLServer("localhost");
   this->SetVideoDevice("/dev/video");
 
-  this->TransfertImages = true; 
-  this->VolumeReconstructionEnabled = false;
+  this->TransfertImages = false; 
+  this->VolumeReconstructionEnabled = true;
   this->UseTrackerTransforms = true;
 
   this->calibReader = vtkUltrasoundCalibFileReader::New();
@@ -114,11 +116,13 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
   
   this->tagger = vtkTaggedImageFilter::New();
 
+
 #ifdef USE_TRACKER_DEVICE
   this->tracker = vtkNDITracker::New();
 #else
   this->tracker = vtkTrackerSimulator::New();
 #endif //USE_TRACKER_DEVICE
+
 
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
@@ -164,23 +168,31 @@ bool vtkSynchroGrabPipeline::ConfigurePipeline()
   // set up the video source (ultrasound machine)  
   this->sonixGrabber->SetFrameRate(this->FrameRate);  
   this->sonixGrabber->SetFrameBufferSize(this->NbFrames);
-
+  
   double *imageOrigin = this->calibReader->GetImageOrigin();
   this->sonixGrabber->SetDataOrigin(imageOrigin);
   double *imageSpacing = this->calibReader->GetImageSpacing();
   this->sonixGrabber->SetDataSpacing(imageSpacing);
-
+  
   int *imSize = this->calibReader->GetImageSize();
   this->sonixGrabber->SetFrameSize(imSize[0], imSize[1], 1);
-//
+  //
   // Setting up the synchronization filter
   this->tagger->SetVideoSource(sonixGrabber);
-
+  
   // set up the tracker if necessary
   bool error;
-  if( this->UseTrackerTransforms)
+  if( this->UseTrackerTransforms){
+    
     error = this->StartTracker();
-
+    
+    
+    //NH
+    //12/2/08
+    //Debug line
+    cerr << "DEBUG: this->StartTracker() returns:" << error << endl;
+  }
+  
   this->tagger->Initialize();
 
   return error;
@@ -197,9 +209,8 @@ bool vtkSynchroGrabPipeline::StartTracker()
 
   // make sure the tracking buffer is large enough for the number of the image sequence requested
   vtkTrackerTool *tool = this->tracker->GetTool(0);
-//  tool->GetBuffer()->SetBufferSize((int) (this->NbFrames * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) ); 
+  tool->GetBuffer()->SetBufferSize((int) (this->NbFrames * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) ); 
   this->tracker->StartTracking();
-
   this->tagger->SetTrackerTool(tool);  
   this->tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
 }
@@ -207,9 +218,12 @@ bool vtkSynchroGrabPipeline::StartTracker()
 //----------------------------------------------------------------------------
 bool vtkSynchroGrabPipeline::ReconstructVolume()
 {
+
   this->sonixGrabber->Record();  //Start recording frame from the video
 
+
   igtl:sleep((int) (this->NbFrames / this->FrameRate + 0.5));// wait for the images (delay in seconds)
+
 
   this->sonixGrabber->Stop();//Stop recording
   
@@ -229,16 +243,21 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
       igtl::Sleep(1000); //Wait for 1 seconds   
   }
 */
-
+  
   this->tracker->StopTracking();//Stop tracking
-
+  
   cout << "Recorded synchronized transforms and ultrasound images for " << this->NbFrames / this->FrameRate * 1000 << "ms" << endl;
-
+  
   // set up the panoramic reconstruction class
   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
   panoramaReconstructor->CompoundingOn();
   panoramaReconstructor->SetInterpolationModeToLinear();
   //  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar(); //Causes a segmentation fault
+  
+  //NH
+  //12/2/08
+  cerr << "vtk3DPanoramicVolumeReconsturctor instantiated" << endl;
+
 
   // Determine the extent of the volume that needs to be reconstructed by 
   // iterating throught all the acquired frames
@@ -246,26 +265,36 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   this->calibReader->GetClipRectangle(clipRectangle);
   panoramaReconstructor->SetClipRectangle(clipRectangle);
   double xmin = clipRectangle[0], ymin = clipRectangle[1], 
-         xmax = clipRectangle[2], ymax = clipRectangle[3];
-
+    xmax = clipRectangle[2], ymax = clipRectangle[3];
+  
   double imCorners[4][4]= { 
-      { xmin, ymin, 0, 1}, 
-      { xmin, ymax, 0, 1},
-      { xmax, ymin, 0, 1},
-      { xmax, ymax, 0, 1} };
-
+    { xmin, ymin, 0, 1}, 
+    { xmin, ymax, 0, 1},
+    { xmax, ymin, 0, 1},
+    { xmax, ymax, 0, 1} };
+  
   double transformedPt[4];
-
+  
   double maxX, maxY, maxZ;
   maxX = maxY = maxZ = -1 * numeric_limits<double>::max();
   double minX, minY, minZ;
   minX = minY = minZ = numeric_limits<double>::max();
-
+  
   int nbFramesGrabbed = sonixGrabber->GetFrameCount();
+  
+  //NH
+  // 12/02/08
+  cerr << "all clipping number set" << endl;
+  cerr << "nbFramesGrabbed: " << nbFramesGrabbed << endl;
+
+  //NH
+
 
   this->sonixGrabber->Rewind();
+
   for(int i=0; i < nbFramesGrabbed; i++)
     {
+
     // get those transforms... and compute the bounding box
     this->tagger->Update();
 
@@ -281,17 +310,19 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
       maxZ = max(transformedPt[2], maxZ);
       }
     this->sonixGrabber->Seek(1);
+
     }
+
 
   double spacing[3] = {1,1,1};
   int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
                           0, (int)( (maxY - minY) / spacing[1] ), 
                           0, (int)( (maxZ - minZ) / spacing[2] ) };
-
+  
   panoramaReconstructor->SetOutputExtent(volumeExtent);
   panoramaReconstructor->SetOutputSpacing(spacing);
   panoramaReconstructor->SetOutputOrigin(minX, minY, minZ);
-
+  
   //---------------------------------------------------------------------------
   //Rewind and add recorded Slices to the PanoramaReconstructor
   
@@ -305,25 +336,32 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 #endif
   
   this->tagger->Update();
-
+  
   vtkMatrix4x4 *sliceAxes = vtkMatrix4x4::New();
   this->tagger->GetTransform()->GetMatrix(sliceAxes);
   panoramaReconstructor->SetSliceAxes(sliceAxes);
-
+  
   for(int i=0; i < nbFramesGrabbed; i++)
     {
+
     this->tagger->Update();
     this->tagger->GetTransform()->GetMatrix(sliceAxes); //Get trackingmatrix of current frame
     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
     panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
     this->sonixGrabber->Seek(1); //Advance to the next frame
+
     }
+
   //----- Reconstruction done -----
 
+
   cout << "Inserted " << panoramaReconstructor->GetPixelCount() << " pixels into the output volume" << endl;
+  
+
+  //
 
   panoramaReconstructor->FillHolesInOutput();
-
+  
   //---------------------------------------------------------------------------
   // Prepare reconstructed 3D volume for transfer
 
@@ -331,14 +369,18 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   // To remove the alpha channel of the reconstructed volume
   vtkImageExtractComponents *extract = vtkImageExtractComponents::New();
   
+
   extract->SetInput(panoramaReconstructor->GetOutput());
   extract->SetComponents(0);
   vtkImageData * extractOutput = extract->GetOutput();
 #else
+
   vtkImageData * extractOutput = panoramaReconstructor->GetOutput();
 #endif
 
+
   //--- Adjust Properties of transfer_buffer ---
+
   
   //Dimensions
   int dimensions[3];   
@@ -373,10 +415,11 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
     }   
 
 #ifdef REMOVE_ALPHA_CHANNEL
+
   extract->Delete();
   panoramaReconstructor->Delete();
+
 #endif
-  
   return true;
 }
 

@@ -1,9 +1,12 @@
 /*========================================================================= 
 Module:  $RCSfile: SynchroGrab.cxx,v $ 
 Author:  Jonathan Boisvert, Queens School Of Computing
+Author: Jan Gumprecht, Nobuhiko Hata, Harvard Medical sChool
  
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
+
+Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -158,38 +161,37 @@ bool parseCommandLineArguments(int argc, char **argv, vtkSynchroGrabPipeline *pi
  ******************************************************************************/
 int main(int argc, char **argv)
 {
-    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
-    
-    bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
-    if(!successParsingCommandLine)
-        return -1;
 
-//     redirect vtk errors to a file
+
+    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
+
+    //NH
+    //12/2/08
+    // the following line is unkowon leak detected vtk
+    // removed temporary to avoid seg fault
+    //bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
+    //if(!successParsingCommandLine)
+    //    return -1;
+    
+    //line remal end. NH 12/2/08
+    
+    
+    //     redirect vtk errors to a file
     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
     
     pipeline->ConfigurePipeline();
-
-// Volume Reconstruction
+    
+    
+    // Volume Reconstruction
     if(pipeline->GetVolumeReconstructionEnabled())
-        {
-        if(!pipeline->ReconstructVolume())
-            return -1;
-        }
-
+      {if(!pipeline->ReconstructVolume())return -1;}
 // Transfer Images
-    if(pipeline->GetTransfertImages())
-        {
-        if(!pipeline->ConnectToServer())
-            return -1;
-        if(!pipeline->SendImages())
-            return -1;
-        cout << "Images successfull send " << endl;
-        
-        if(!pipeline->CloseServerConnection())
-            return -1;
-        }
-
-    pipeline->Delete();
+if(pipeline->GetTransfertImages())
+{if(!pipeline->ConnectToServer())return -1;
+if(!pipeline->SendImages())return -1;
+cout << "Images successfull send " << endl;
+if(!pipeline->CloseServerConnection())return -1;}
+pipeline->Delete();
 }
