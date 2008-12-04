@@ -417,9 +417,12 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 #ifdef REMOVE_ALPHA_CHANNEL
 
   extract->Delete();
-  panoramaReconstructor->Delete();
 
 #endif
+
+  panoramaReconstructor->Delete();
+
+
   return true;
 }
 
