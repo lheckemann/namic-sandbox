@@ -6,6 +6,10 @@ Author:  Siddharth Vikal, Queens School Of Computing
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
 
+Author:  Jan Gumprecht, Harvard Medical School
+Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
+All rights reserved.
+
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
 are met:
@@ -44,23 +48,23 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkUltrasoundWin32Header.h"
 #include "vtkVideoSource.h"
 
+//#undef NEW_SIMULATOR
+#define NEW_SIMULATOR
+
 #define SLICE_X_LENGTH 256
 #define SLICE_Y_LENGTH 256
 #define SLICE_Z_LENGTH 1
 
 #define BITS_PER_PIXEL 8
 
+class vtkMultiThreader;
 
 //Imaging mode | not used in the simualtor. Only here for consistency.
-enum {BMode};
+//enum {BMode};
 
 //Acquistiontypes | not used in the simualtor. Only here for consistency.
-enum {udtBPost};
+//enum {udtBPost};
 
-//BTX
-
-//class uDataDesc;
-//class ulterius;
 
 class VTK_ULTRASOUND_EXPORT vtkVideoSourceSimulator;
 
@@ -107,23 +111,7 @@ public:
   void SetImagingMode(int mode){ImagingMode = mode;};
   void GetImagingMode(int & mode){mode = ImagingMode;};
 
-  // Description:
-  // Give the IP address of the UltraSound machine
-  void SetUltraSoundIP(char *UltraSoundIP);
-  
   /* List of parameters which can be set or read in B-mode, other mode parameters not currently implemented*/
-
-  // Description:
-  // Request a particular mode of imaging (e.g. B-mode (0), M-mode(1), Color-doppler(2), pulsed-doppler(3); default: B-mode).
-  // Frequency corresponds to paramID value of 414 for Uterius SDK
-  vtkGetMacro(Frequency, int);
-  vtkSetMacro(Frequency, int);
-
-  // Description:
-  // Get/set the depth (mm) of B-mode ultrasound; valid range: ; in increments of 
-  // Depth corresponds to paramID value of 206 for Uterius SDK
-  vtkGetMacro(Depth, int);
-  vtkSetMacro(Depth, int);
 
   // Description:
   // Get/set the frame rate (fps) of B-mode ultrasound; valid range: ; in increments of 
@@ -157,6 +145,15 @@ public:
   //Description:
   // Request data method override
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  
+#ifdef NEW_SIMULATOR
+  //Add an image to the frame buffer
+  void InternalGrab();
+#else
+  //Fill Framebuffer with artificial images
+  void FillFrameBuffer();
+  
+#endif
 
 protected:
   vtkVideoSourceSimulator();
@@ -164,26 +161,18 @@ protected:
 
   int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
-//  ulterius *ult;
-//  uDataDesc *DataDescriptor;
-  int Frequency;
-  int Depth;
   float FrameRate;
   int AcquisitionDataType;
   int ImagingMode;
   
-  char *UltraSoundHostIP;
-
-//  void UnpackRasterLine(char *outptr, char *inptr, int start, int count);
-
   void DoFormatSetup();
-
   
-  //Fill Framebuffer with artificial images
-  void FillFrameBuffer();
+  //Multithreader to run a thread of recording and/or playing
+  vtkMultiThreader *PlayerThreader;
+  int PlayerThreadId;
+  
   
 private:
- 
 
   static vtkVideoSourceSimulator* Instance;
   vtkVideoSourceSimulator(const vtkVideoSourceSimulator&);  // Not implemented.

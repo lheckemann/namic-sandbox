@@ -1,9 +1,13 @@
 /*=========================================================================
 
   Module:    $RCSfile: vtkVideoSourceSimulator.cxx,v $
-  Author:  Siddharth Vikal, Queens School Of Computing
+  Author:  Siddharth Vikal, Queens School Of Computing  
 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
+All rights reserved.
+
+Author:  Jan Gumprecht, Harvard Medical School
+Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -51,6 +55,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <ctype.h>
 
+#include "vtkMultiThreader.h"
+#include "vtkMutexLock.h"
+
 // because of warnings in windows header push and pop the warning level
 #ifdef _MSC_VER
 #pragma warning (push, 3)
@@ -84,10 +91,7 @@ vtkVideoSourceSimulator::vtkVideoSourceSimulator()
   this->FrameSize[1] = SLICE_Y_LENGTH;
   this->FrameSize[2] = SLICE_Z_LENGTH;
   
-  this->UltraSoundHostIP = "";
-  this->FrameRate = 13; // in fps
-  this->Frequency = 1; //in Mhz
-  this->Depth = 150; //in mm
+  this->FrameRate = 30; // in fps
   this->AcquisitionDataType = 0x00000004; //corresponds to type: BPost 8-bit  
   this->ImagingMode = 0; //corresponds to BMode imaging  
 
@@ -96,8 +100,11 @@ vtkVideoSourceSimulator::vtkVideoSourceSimulator()
   this->OutputFormat = VTK_LUMINANCE;
   this->NumberOfScalarComponents = 1;
   this->FrameBufferBitsPerPixel = 8;
-  this->FlipFrames = 1;
+  this->FlipFrames = 0;
   this->FrameBufferRowAlignment = 1; 
+  
+  this->PlayerThreader = vtkMultiThreader::New();
+  this->PlayerThreadId = -1;
  
 }
 
@@ -166,7 +173,6 @@ void vtkVideoSourceSimulator::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 
   os << indent << "Imaging mode: " << this->ImagingMode << "\n";
-  os << indent << "Frequency: " << this->Frequency << "MHz\n";
   os << indent << "Frame rate: " << this->FrameRate << "fps\n";
   
 }
@@ -175,28 +181,19 @@ void vtkVideoSourceSimulator::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkVideoSourceSimulator::Initialize()
 {
-  //to do:
-  //1) connect to UltraSound machine using the ip address provided earlier
-  //2) set the imaging mode
-  //3) set the data acquisition type
-  //4) get the data descriptor corresponding to the data type requested
-  //5) set up the frame buffer accordingly
-  //6) set parameters like: frequency, frame rate, depth
-  //7) set the callback function which gets invoked upon arrival of new frame
-  //8) update frame buffer
   if (this->Initialized)
     {
     return;
     }
 
-   // 5) set up the frame buffer
   this->FrameBufferMutex->Lock();
   this->DoFormatSetup();
   this->FrameBufferMutex->Unlock();
-  
-  this->FillFrameBuffer();
 
-  // 8)update framebuffer 
+#ifndef NEW_SIMULATOR
+  this->FillFrameBuffer();
+#endif
+
   this->UpdateFrameBuffer();
 
   this->Initialized = 1;
@@ -205,10 +202,11 @@ void vtkVideoSourceSimulator::Initialize()
 //----------------------------------------------------------------------------
 void vtkVideoSourceSimulator::ReleaseSystemResources()
 {
-//  this->ult->disconnect();
+// Nothing to do here
 }
 
 //----------------------------------------------------------------------------
+//Grab a single frame
 void vtkVideoSourceSimulator::Grab()
 {
   if (this->Recording)
@@ -224,11 +222,89 @@ void vtkVideoSourceSimulator::Grab()
     }
 
   // just do the grab, the callback does the rest
-  //this->SetStartTimeStamp(vtkTimerLog::GetUniversalTime());
-//  capGrabFrameNoStop(this->Internal->CapWnd);
+  this->SetStartTimeStamp(vtkTimerLog::GetUniversalTime());
+
+}
+
+
+static inline void vtkSleep(double duration)
+{
+  duration = duration; // avoid warnings
+  // sleep according to OS preference
+#ifdef _WIN32
+  Sleep((int)(1000*duration));
+#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi)
+  struct timespec sleep_time, dummy;
+  sleep_time.tv_sec = (int)duration;
+  sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
+  nanosleep(&sleep_time,&dummy);
+#endif
 }
 
 //----------------------------------------------------------------------------
+// Sleep until the specified absolute time has arrived.
+// You must pass a handle to the current thread.  
+// If '0' is returned, then the thread was aborted before or during the wait.
+static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
+{
+  // loop either until the time has arrived or until the thread is ended
+  for (int i = 0;; i++)
+    {
+      double remaining = time - vtkTimerLog::GetUniversalTime();
+
+      // check to see if we have reached the specified time
+      if (remaining <= 0)
+        {
+        if (i == 0)
+          {
+          vtkGenericWarningMacro("Dropped a video frame.");
+          }
+        return 1;
+      }
+      // check the ActiveFlag at least every 0.1 seconds
+      if (remaining > 0.1)
+        {
+        remaining = 0.1;
+        }
+
+      // check to see if we are being told to quit 
+      data->ActiveFlagLock->Lock();
+      int activeFlag = *(data->ActiveFlag);
+      data->ActiveFlagLock->Unlock();
+
+      if (activeFlag == 0)
+        {
+        break;
+        }
+
+      vtkSleep(remaining);
+    }
+
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+// this function runs in an alternate thread to asyncronously grab frames
+static void *vtkVideoSourceSimulatorRecordThread(vtkMultiThreader::ThreadInfo *data)
+{
+  vtkVideoSourceSimulator *self = (vtkVideoSourceSimulator *)(data->UserData);
+  
+  double startTime = vtkTimerLog::GetUniversalTime();
+  double rate = self->GetFrameRate();
+  int frame = 0;
+
+  do
+    {
+      self->InternalGrab();
+      frame++;
+    }    
+  while (vtkThreadSleep(data, startTime + frame/rate));
+
+  return NULL;
+}
+
+//----------------------------------------------------------------------------
+//Record images
 void vtkVideoSourceSimulator::Record()
 {
   this->Initialize();
@@ -246,9 +322,14 @@ void vtkVideoSourceSimulator::Record()
     {
     this->Recording = 1;
     this->Modified();
-//    if(this->ult->getFreezeState())
-//    this->ult->toggleFreeze();
     }
+
+#ifdef NEW_SIMULATOR    
+  this->PlayerThreadId =  
+            this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
+            &vtkVideoSourceSimulatorRecordThread,this);
+#endif
+     
 }
     
 //----------------------------------------------------------------------------
@@ -262,6 +343,8 @@ void vtkVideoSourceSimulator::Stop()
 {
   if (this->Recording)
     {
+    this->PlayerThreader->TerminateThread(this->PlayerThreadId);
+    this->PlayerThreadId = -1;
     this->Recording = 0;
     this->Modified();
     }
@@ -320,23 +403,16 @@ int vtkVideoSourceSimulator::RequestInformation(
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),extent,6);
   
   outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),extent,6);
+
   // set the spacing
   outInfo->Set(vtkDataObject::SPACING(),this->DataSpacing,3);
 
   // set the origin.
   outInfo->Set(vtkDataObject::ORIGIN(),this->DataOrigin,3);
 
-//  if((this->AcquisitionDataType == udtRF) || (this->AcquisitionDataType == udtColorRF) || (this->AcquisitionDataType == udtPWRF))
-//    {
-//  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_SHORT, 
-//    this->NumberOfScalarComponents);
-//  }
-//  else
-//    {
-  // set default data type (8 bit greyscale)  
   vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_UNSIGNED_CHAR, 
     this->NumberOfScalarComponents);
-//  }
+
   return 1;
 }
 
@@ -600,72 +676,102 @@ void vtkVideoSourceSimulator::SetOutputFormat(int format)
 void vtkVideoSourceSimulator::DoFormatSetup()
 {
 
-  //set the frame size from the data descriptor, 
-//  this->FrameSize[0] = SLICE_X_LENGTH;
-//  this->FrameSize[1] = SLICE_Y_LENGTH;
-  this->FrameBufferBitsPerPixel = BITS_PER_PIXEL;
-//  this->FrameBufferBitsPerPixel = this->DataDescriptor->ss;
-//  switch (this->AcquisitionDataType)
-//    {
-//  // all these data types have 8-bit greyscale raster data
-//  case udtBPost:
-//  case udtMPost:
-//  case udtPWSpectrum:
-//  case udtElastoOverlay:
-//    this->OutputFormat = VTK_LUMINANCE;
-//        this->NumberOfScalarComponents = 1;
-//        break;
-//  //these data types give vector data 8-bit, with FC at the start
-//  case udtBPre:
-//  case udtMPre:
-//  case udtElastoPre: //this data type does not have a FC at the start
+    this->FrameBufferBitsPerPixel = BITS_PER_PIXEL;
     this->FrameSize[0] = SLICE_Y_LENGTH;
     this->FrameSize[1] = SLICE_X_LENGTH;      
     this->OutputFormat = VTK_LUMINANCE;
-        this->NumberOfScalarComponents = 1;
-//        break;
-//
-//  //these data types give 16-bit vector data, to be read into int, just one component
-//  case udtColorRF:
-//  case udtPWRF:
-//  case udtRF:
-//    this->FrameSize[0] = SLICE_Y_LENGTH;
-//    this->FrameSize[1] = SLICE_X_LENGTH;  
-//    this->OutputFormat = VTK_LUMINANCE;
-//        this->NumberOfScalarComponents = 1;
-//        break;
-//
-//  // 16-bit vector data, but two components
-//  // don't know how to handle it as yet
-//  case udtColorVelocityVariance:
-//    this->OutputFormat = VTK_RGB;
-//        this->NumberOfScalarComponents = 2;
-//        break;
-//
-//  //32-bit data
-//  case udtScreen:
-//  case udtBPost32:
-//  case udtColorPost:
-//  case udtElastoCombined:
-//    this->OutputFormat = VTK_RGBA;
-//        this->NumberOfScalarComponents = 4;        
-//    break;
-//    }
-
-  this->Modified();
+    this->NumberOfScalarComponents = 1;
+    this->Modified();
     this->UpdateFrameBuffer();
 
 }
 
-void vtkVideoSourceSimulator::SetUltraSoundIP(char *UltraSoundIP)
+#ifdef NEW_SIMULATOR
+void vtkVideoSourceSimulator::InternalGrab()
 {
-  if (UltraSoundIP)
-    {
-    this->UltraSoundHostIP = new char[256];
-    sprintf(this->UltraSoundHostIP, "%s", UltraSoundIP);    
-    }
-}
+  //to do
+  // 1) Do frame buffer indices maintenance
+  // 2) Do time stamping
+  // 3) decode the data according to type
+  // 4) copy data to the local vtk frame buffer
+    
+  
+  // get the pointer to data
+  // use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
+  // expected data type
 
+
+  // get a thread lock on the frame buffer
+  this->FrameBufferMutex->Lock();
+  
+    // 1) Do the frame buffer indices maintenance
+    if (this->AutoAdvance)
+      {
+      this->AdvanceFrameBuffer(1);
+      if (this->FrameIndex + 1 < this->FrameBufferSize)
+        {
+        this->FrameIndex++;
+        }
+      }
+    int index = this->FrameBufferIndex;
+
+    // 2) Do the time stamping
+    this->FrameBufferTimeStamps[index] = vtkTimerLog::GetUniversalTime();
+
+    if (this->FrameCount++ == 0)
+      {
+      this->StartTimeStamp = this->FrameBufferTimeStamps[index];
+      }
+
+  
+    // 3) read the data, based on the data type and clip region information, which is reflected in frame buffer extents
+    // this is necessary as there would be cases when there is a clip region defined i.e. only data from the desired extents should be copied 
+    // to the local buffer, which demands necessary advancement of deviceDataPtr
+  
+    // get the pointer to actual incoming data on to a local pointer
+    char* deviceDataPtr = new char[SLICE_X_LENGTH * SLICE_Y_LENGTH];  
+    
+    for (int j = 0 ; j < SLICE_Y_LENGTH ; j++)
+      {
+      for (int k = 0 ; k < SLICE_X_LENGTH ; k++)
+        {
+        deviceDataPtr[j * SLICE_Y_LENGTH + k] = k;        
+         }            
+      }
+
+    // get the pointer to the correct location in the frame buffer, where this data needs to be copied
+    unsigned char *frameBufferPtr = (unsigned char *)((reinterpret_cast<vtkUnsignedCharArray*>(this->FrameBuffer[index]))->GetPointer(0));
+
+   
+    int outBytesPerRow = ((this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1)* this->FrameBufferBitsPerPixel + 7)/8;
+    outBytesPerRow += outBytesPerRow % this->FrameBufferRowAlignment;
+
+    int inBytesPerRow = this->FrameSize[0] * this->FrameBufferBitsPerPixel/8;
+  
+    int rows = this->FrameBufferExtent[3]-this->FrameBufferExtent[2]+1;
+
+
+    // 4) copy data to the local vtk frame buffer
+    if (outBytesPerRow == inBytesPerRow)
+      {
+      memcpy(frameBufferPtr,deviceDataPtr,inBytesPerRow*rows);
+      }
+    else
+      {
+      while (--rows >= 0)
+        {
+        memcpy(frameBufferPtr,deviceDataPtr,outBytesPerRow);
+        frameBufferPtr += outBytesPerRow;
+        deviceDataPtr += (unsigned char) inBytesPerRow;
+        }
+      }
+ 
+    this->Modified();
+  
+  this->FrameBufferMutex->Unlock();
+
+}
+#else //NEW_SIMULATOR
 void vtkVideoSourceSimulator::FillFrameBuffer()
 {
   //to do
@@ -814,3 +920,4 @@ void vtkVideoSourceSimulator::FillFrameBuffer()
   this->FrameBufferMutex->Unlock();
 
 }
+#endif //NEW_SIMULATOR
