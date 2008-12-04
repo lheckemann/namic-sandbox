@@ -64,9 +64,6 @@ class vtkFrameToTimeConverter;
 // the number of tools this class can handle
 #define VTK_CERTUS_NTOOLS 1
 
-
-
-
 class VTK_TRACKING_EXPORT vtkTrackerSimulator : public vtkTracker
 {
 public:
