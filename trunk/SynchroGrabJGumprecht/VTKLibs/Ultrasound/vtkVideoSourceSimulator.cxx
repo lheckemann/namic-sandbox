@@ -112,6 +112,9 @@ vtkVideoSourceSimulator::vtkVideoSourceSimulator()
 vtkVideoSourceSimulator::~vtkVideoSourceSimulator()
 { 
   this->vtkVideoSourceSimulator::ReleaseSystemResources();
+  
+  this->PlayerThreader->Delete();
+  
 }
 
 
@@ -767,6 +770,8 @@ void vtkVideoSourceSimulator::InternalGrab()
       }
  
     this->Modified();
+    
+    delete deviceDataPtr;
   
   this->FrameBufferMutex->Unlock();
 
@@ -916,6 +921,8 @@ void vtkVideoSourceSimulator::FillFrameBuffer()
     this->Modified();
   
   }
+  
+  delete deviceDataPtr;
 
   this->FrameBufferMutex->Unlock();
 
