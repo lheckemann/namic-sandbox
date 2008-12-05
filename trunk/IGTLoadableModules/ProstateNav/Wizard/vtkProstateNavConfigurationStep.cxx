@@ -14,6 +14,10 @@
 #include "vtkKWLoadSaveButton.h"
 #include "vtkKWLoadSaveButtonWithLabel.h"
 
+#include "vtkOpenIGTLinkIFLogic.h"
+#include "vtkOpenIGTLinkIFGUI.h"
+
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavConfigurationStep);
 vtkCxxRevisionMacro(vtkProstateNavConfigurationStep, "$Revision: 1.1 $");
@@ -21,217 +25,254 @@ vtkCxxRevisionMacro(vtkProstateNavConfigurationStep, "$Revision: 1.1 $");
 //----------------------------------------------------------------------------
 vtkProstateNavConfigurationStep::vtkProstateNavConfigurationStep()
 {
+
   this->SetName("1/5. Configuration");
   this->SetDescription("Perform system configuration.");
 
-  this->ConfigNTFrame = NULL;
-  this->ConnectNTFrame = NULL;
-  this->LoadConfigButtonNT = NULL;
-  this->ConfigFileEntryNT = NULL;
-  this->ConnectCheckButtonNT = NULL;
-
+  this->RobotFrame          = NULL;
+  this->RobotLabel1         = NULL;
+  this->RobotLabel2         = NULL;
   this->RobotAddressEntry   = NULL;
   this->RobotPortEntry      = NULL;
+  this->RobotConnectButton  = NULL;
+
+  this->ScannerFrame        = NULL;
+  this->ScannerLabel1       = NULL;
+  this->ScannerLabel2       = NULL;
   this->ScannerAddressEntry = NULL;
   this->ScannerPortEntry    = NULL;
-  this->StartButton         = NULL;
+  this->ScannerConnectButton  = NULL;
+
+  this->OpenIGTLinkIFLogic  = NULL;
 
 }
+
 
 //----------------------------------------------------------------------------
 vtkProstateNavConfigurationStep::~vtkProstateNavConfigurationStep()
 {
-  if (this->LoadConfigButtonNT)
+
+  if (this->RobotFrame)
     {
-    this->LoadConfigButtonNT->GetWidget()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    this->LoadConfigButtonNT->SetParent(NULL );
-    this->LoadConfigButtonNT->Delete();
-    }
-  if (this->ConfigFileEntryNT)
-    {
-    this->ConfigFileEntryNT->SetParent(NULL );
-    this->ConfigFileEntryNT->Delete();
-    }
-  if (this->ConnectNTFrame)
-    {
-    this->ConnectNTFrame->SetParent(NULL);
-    this->ConnectNTFrame->Delete();
-    }
-  if (this->ConfigNTFrame)
-    {
-    this->ConfigNTFrame->SetParent(NULL);
-    this->ConfigNTFrame->Delete();
+    this->RobotFrame->SetParent(NULL);
+    this->RobotFrame->Delete();
     }
 
-  if (this->ConnectCheckButtonNT)
+  if (this->RobotLabel1)
     {
-    this->ConnectCheckButtonNT->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    this->ConnectCheckButtonNT->SetParent(NULL);
-    this->ConnectCheckButtonNT->Delete();
+    this->RobotLabel1->SetParent(NULL);
+    this->RobotLabel1->Delete();
     }
+
+  if (this->RobotLabel2)
+    {
+    this->RobotLabel2->SetParent(NULL);
+    this->RobotLabel2->Delete();
+    }
+
+  if (this->RobotAddressEntry)
+    {
+    this->RobotAddressEntry->SetParent(NULL);
+    this->RobotAddressEntry->Delete();
+    }
+
+  if (this->RobotPortEntry)
+    {
+    this->RobotPortEntry->SetParent(NULL);
+    this->RobotPortEntry->Delete();
+    }
+
+  if (this->RobotConnectButton)
+    {
+    this->RobotConnectButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->RobotConnectButton->SetParent(NULL);
+    this->RobotConnectButton->Delete();
+    }
+
+  if (this->ScannerFrame)
+    {
+    this->ScannerFrame->SetParent(NULL);
+    this->ScannerFrame->Delete();
+    }
+  if (this->ScannerLabel1)
+    {
+    this->ScannerLabel1->SetParent(NULL);
+    this->ScannerLabel1->Delete();
+    }
+  if (this->ScannerLabel2)
+    {
+    this->ScannerLabel2->SetParent(NULL);
+    this->ScannerLabel2->Delete();
+    }
+  if (this->ScannerAddressEntry)
+    {
+    this->ScannerAddressEntry->SetParent(NULL);
+    this->ScannerAddressEntry->Delete();
+    }
+  if (this->ScannerPortEntry)
+    {
+    this->ScannerPortEntry->SetParent(NULL);
+    this->ScannerPortEntry->Delete();
+    }
+  if (this->ScannerConnectButton)
+    {
+    this->ScannerConnectButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->ScannerConnectButton->SetParent(NULL);
+    this->ScannerConnectButton->Delete();
+    }
+
 }
+
 
 //----------------------------------------------------------------------------
 void vtkProstateNavConfigurationStep::ShowUserInterface()
 {
-  this->Superclass::ShowUserInterface();
 
+  this->Superclass::ShowUserInterface();
   vtkKWWizardWidget *wizardWidget = this->GetGUI()->GetWizardWidget();
   vtkKWWidget *parent = wizardWidget->GetClientArea();
 
+  if (!this->RobotFrame)
+    {
+    this->RobotFrame = vtkKWFrame::New();
+    this->RobotFrame->SetParent ( parent );
+    this->RobotFrame->Create ( );
+    }
+
+  this->Script ( "pack %s -side top -fill x",
+                 this->RobotFrame->GetWidgetName());
+
+  if (!this->RobotLabel1)
+    {
+    this->RobotLabel1 = vtkKWLabel::New();
+    this->RobotLabel1->SetParent(this->RobotFrame);
+    this->RobotLabel1->Create();
+    this->RobotLabel1->SetWidth(15);
+    this->RobotLabel1->SetText("Robot Addr: ");
+    }
+
   if (!this->RobotAddressEntry)
     {
-    vtkKWFrame *robotFrame = vtkKWFrame::New();
-    robotFrame->SetParent ( parent );
-    robotFrame->Create ( );
-    this->Script ( "pack %s -side top -fill x",
-                  robotFrame->GetWidgetName());
-
-    vtkKWLabel *robotLabel1 = vtkKWLabel::New();
-    robotLabel1->SetParent(robotFrame);
-    robotLabel1->Create();
-    robotLabel1->SetWidth(15);
-    robotLabel1->SetText("Robot Addr: ");
-
     this->RobotAddressEntry = vtkKWEntry::New();
-    this->RobotAddressEntry->SetParent(robotFrame);
+    this->RobotAddressEntry->SetParent(this->RobotFrame);
     this->RobotAddressEntry->Create();
-    this->RobotAddressEntry->SetWidth(20);
+    this->RobotAddressEntry->SetWidth(15);
+    }
 
-    vtkKWLabel *robotLabel2 = vtkKWLabel::New();
-    robotLabel2->SetParent(robotFrame);
-    robotLabel2->Create();
-    robotLabel2->SetWidth(3);
-    robotLabel2->SetText(":");
-
+  if (!this->RobotLabel2)
+    {
+    this->RobotLabel2 = vtkKWLabel::New();
+    this->RobotLabel2->SetParent(this->RobotFrame);
+    this->RobotLabel2->Create();
+    this->RobotLabel2->SetWidth(1);
+    this->RobotLabel2->SetText(":");
+    }
+  if (!this->RobotPortEntry)
+    {
     this->RobotPortEntry = vtkKWEntry::New();
-    this->RobotPortEntry->SetParent(robotFrame);
+    this->RobotPortEntry->SetParent(this->RobotFrame);
     this->RobotPortEntry->Create();
     this->RobotPortEntry->SetWidth(10);
+    this->RobotPortEntry->SetRestrictValueToInteger();
+    }
+  
+  if (!this->RobotConnectButton)
+    {
+    this->RobotConnectButton = vtkKWPushButton::New();
+    this->RobotConnectButton->SetParent (this->RobotFrame);
+    this->RobotConnectButton->Create();
+    this->RobotConnectButton->SetText("OFF");
+    this->RobotConnectButton->SetBalloonHelpString("Connect to Robot");
+    this->RobotConnectButton->AddObserver(vtkKWPushButton::InvokedEvent,
+                                          (vtkCommand *)this->GUICallbackCommand);
+    }
 
-    this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
-                 robotLabel1->GetWidgetName(), this->RobotAddressEntry->GetWidgetName(),
-                 robotLabel2->GetWidgetName(), this->RobotPortEntry->GetWidgetName());
 
-    robotFrame->Delete();
-    robotLabel1->Delete();
-    robotLabel2->Delete();
+  this->Script("pack %s %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               this->RobotLabel1->GetWidgetName(), this->RobotAddressEntry->GetWidgetName(),
+               this->RobotLabel2->GetWidgetName(), this->RobotPortEntry->GetWidgetName(),
+               this->RobotConnectButton->GetWidgetName());
+
+  if (!this->ScannerFrame)
+    {
+    this->ScannerFrame = vtkKWFrame::New();
+    this->ScannerFrame->SetParent ( parent );
+    this->ScannerFrame->Create ( );
+    }
+
+  this->Script ( "pack %s -side top -fill x",  
+                 this->ScannerFrame->GetWidgetName());
+
+  if (!this->ScannerLabel1)
+    {
+    this->ScannerLabel1 = vtkKWLabel::New();
+    this->ScannerLabel1->SetParent(this->ScannerFrame);
+    this->ScannerLabel1->Create();
+    this->ScannerLabel1->SetWidth(15);
+    this->ScannerLabel1->SetText("Scanner Addr: ");
     }
 
   if (!this->ScannerAddressEntry)
     {
-    vtkKWFrame *scannerFrame = vtkKWFrame::New();
-    scannerFrame->SetParent ( parent );
-    scannerFrame->Create ( );
-    this->Script ( "pack %s -side top -fill x",  
-                   scannerFrame->GetWidgetName());
-
-    vtkKWLabel *scannerLabel1 = vtkKWLabel::New();
-    scannerLabel1->SetParent(scannerFrame);
-    scannerLabel1->Create();
-    scannerLabel1->SetWidth(15);
-    scannerLabel1->SetText("Scanner Addr: ");
-
     this->ScannerAddressEntry = vtkKWEntry::New();
-    this->ScannerAddressEntry->SetParent(scannerFrame);
+    this->ScannerAddressEntry->SetParent(this->ScannerFrame);
     this->ScannerAddressEntry->Create();
-    this->ScannerAddressEntry->SetWidth(20);
+    this->ScannerAddressEntry->SetWidth(15);
+    }
 
-    vtkKWLabel *scannerLabel2 = vtkKWLabel::New();
-    scannerLabel2->SetParent(scannerFrame);
-    scannerLabel2->Create();
-    scannerLabel2->SetWidth(3);
-    scannerLabel2->SetText(":");
 
+  if (!this->ScannerLabel2)
+    {
+    this->ScannerLabel2 = vtkKWLabel::New();
+    this->ScannerLabel2->SetParent(this->ScannerFrame);
+    this->ScannerLabel2->Create();
+    this->ScannerLabel2->SetWidth(1);
+    this->ScannerLabel2->SetText(":");
+    }
+
+  if (!this->ScannerPortEntry)
+    {
     this->ScannerPortEntry = vtkKWEntry::New();
-    this->ScannerPortEntry->SetParent(scannerFrame);
+    this->ScannerPortEntry->SetParent(this->ScannerFrame);
     this->ScannerPortEntry->Create();
     this->ScannerPortEntry->SetWidth(10);
+    this->ScannerPortEntry->SetRestrictValueToInteger();
+    }
 
-    this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
-                scannerLabel1->GetWidgetName(), this->ScannerAddressEntry->GetWidgetName(),
-                scannerLabel2->GetWidgetName(), this->ScannerPortEntry->GetWidgetName());
-    
-    scannerFrame->Delete();
-    scannerLabel1->Delete();
-    scannerLabel2->Delete();
+  if (!this->ScannerConnectButton)
+    {
+    this->ScannerConnectButton = vtkKWPushButton::New();
+    this->ScannerConnectButton->SetParent (this->ScannerFrame);
+    this->ScannerConnectButton->Create();
+    this->ScannerConnectButton->SetText("OFF");
+    this->ScannerConnectButton->SetBalloonHelpString("Connect to Scanner");
+    this->ScannerConnectButton->AddObserver(vtkKWPushButton::InvokedEvent,
+                                          (vtkCommand *)this->GUICallbackCommand);
     }
   
+  this->Script("pack %s %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               this->ScannerLabel1->GetWidgetName(), this->ScannerAddressEntry->GetWidgetName(),
+               this->ScannerLabel2->GetWidgetName(), this->ScannerPortEntry->GetWidgetName(),
+               this->ScannerConnectButton->GetWidgetName());
 
-  /*
-  // Create the frame
-  if (!this->ConfigNTFrame)
+
+
+  if (!this->OpenIGTLinkIFLogic)
     {
-    this->ConfigNTFrame = vtkKWFrame::New();
-    this->ConfigNTFrame->SetParent ( parent );
-    this->ConfigNTFrame->Create ( );
-    }
-  
-  if (!this->ConnectNTFrame)
-    {
-    this->ConnectNTFrame = vtkKWFrame::New();
-    this->ConnectNTFrame->SetParent ( parent );
-    this->ConnectNTFrame->Create ( );
-    }
-
-  if (!this->LoadConfigButtonNT)
-    {
-    this->LoadConfigButtonNT = vtkKWLoadSaveButtonWithLabel::New();
-    this->LoadConfigButtonNT->SetParent(this->ConfigNTFrame);
-    this->LoadConfigButtonNT->Create();
-    //this->LoadConfigButtonNT->SetWidth(30);
-    this->LoadConfigButtonNT->SetLabelText("Config. File:");
-    this->LoadConfigButtonNT->GetWidget()->SetText ("Browse Config File");
-    this->LoadConfigButtonNT->GetWidget()->GetLoadSaveDialog()->SetFileTypes(
-      "{ {ProstateNav} {*.xml} }");
-    this->LoadConfigButtonNT->GetWidget()->GetLoadSaveDialog()
-      ->RetrieveLastPathFromRegistry("OpenPath");
-
-    this->LoadConfigButtonNT->GetWidget()
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-
-  // Create the file entry and load button
-  if (!this->ConfigFileEntryNT)
-    {
-    this->ConfigFileEntryNT = vtkKWEntry::New();
-    this->ConfigFileEntryNT->SetParent(this->ConfigNTFrame);
-    this->ConfigFileEntryNT->Create();
-    this->ConfigFileEntryNT->SetWidth(50);
-    this->ConfigFileEntryNT->SetValue ("");
-    
-    }
-
-  // The connnect button 
-  if (!this->ConnectCheckButtonNT)
-    {
-    this->ConnectCheckButtonNT = vtkKWCheckButton::New();
-    this->ConnectCheckButtonNT->SetParent(this->ConnectNTFrame);
-    this->ConnectCheckButtonNT->Create();
-    this->ConnectCheckButtonNT->SelectedStateOff();
-    this->ConnectCheckButtonNT->SetText("Connect");
-
-    this->ConnectCheckButtonNT
-      ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-
+    vtkOpenIGTLinkIFGUI* gui = 
+      vtkOpenIGTLinkIFGUI::SafeDownCast(vtkSlicerApplication::SafeDownCast(this->GetApplication())
+                                        ->GetModuleGUIByName("OpenIGTLink IF"));
+    if (gui)
+      {
+      this->OpenIGTLinkIFLogic = gui->GetLogic();
+      }
     }
 
 
-  this->Script( "pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
-                this->ConfigNTFrame->GetWidgetName());
-    
-  this->Script( "pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
-                this->ConnectNTFrame->GetWidgetName());
 
-
-  this->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
-               this->LoadConfigButtonNT->GetWidgetName());
-
-  this->Script("pack %s -side top -anchor w -padx 2 -pady 2", 
-               this->ConnectCheckButtonNT->GetWidgetName());
-  */
 
 }
+
 
 //----------------------------------------------------------------------------
 void vtkProstateNavConfigurationStep::PrintSelf(ostream& os, vtkIndent indent)
@@ -244,6 +285,50 @@ void vtkProstateNavConfigurationStep::ProcessGUIEvents( vtkObject *caller,
                                          unsigned long event, void *callData )
 {
 
+  if (this->RobotConnectButton == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent )
+    {
+    if (strcmp(this->RobotConnectButton->GetText(), "OFF") == 0)
+      {
+      if (this->OpenIGTLinkIFLogic)
+        {
+        const char* address = this->RobotAddressEntry->GetValue();
+        int port    = this->RobotPortEntry->GetValueAsInt();
+        if (strlen(address) > 0 && port > 0)
+          {
+          this->OpenIGTLinkIFLogic->AddClientConnector("BRPRobot", address, port);
+          this->RobotConnectButton->SetText("ON ");
+          }
+        }
+      }
+    else
+      {
+      this->RobotConnectButton->SetText("OFF");
+      }
+    }
+  else if (this->ScannerConnectButton == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent )
+    {
+    if (strcmp(this->ScannerConnectButton->GetText(), "OFF") == 0)
+      {
+      if (this->OpenIGTLinkIFLogic)
+        {
+        const char* address = this->ScannerAddressEntry->GetValue();
+        int port    = this->ScannerPortEntry->GetValueAsInt();
+        if (strlen(address) > 0 && port > 0)
+          {
+          this->OpenIGTLinkIFLogic->AddClientConnector("BRPRobot", address, port);
+          this->ScannerConnectButton->SetText("ON ");
+          }
+        }
+      }
+    else
+      {
+      this->ScannerConnectButton->SetText("OFF");
+      }
+    }
+
+  /*
   if (this->LoadConfigButtonNT->GetWidget() == vtkKWLoadSaveButton::SafeDownCast(caller) 
            && event == vtkKWPushButton::InvokedEvent )
     {
@@ -275,6 +360,7 @@ void vtkProstateNavConfigurationStep::ProcessGUIEvents( vtkObject *caller,
       this->Logic->DisconnectTracker();
       }
     }
+  */
 
 }
 
