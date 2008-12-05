@@ -1,0 +1,5 @@
+SUBDIRS (
+  CalibFileReader
+  SonixVideoSource
+)
+
