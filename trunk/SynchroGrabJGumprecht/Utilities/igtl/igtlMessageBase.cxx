@@ -52,7 +52,7 @@ MessageBase::~MessageBase()
     }
 }
 
-void MessageBase::SetDeviceName(std::string name)
+void MessageBase::SetDeviceName(const char* name)
 {
   m_DeviceName = std::string(name);
 }
@@ -74,7 +74,7 @@ const char* MessageBase::GetDeviceType()
     }
 }
 
-/* mcgumbel
+
 int MessageBase::SetTimeStamp(unsigned int sec, unsigned int frac)
 {
   m_TimeStampSec         = sec;
@@ -100,7 +100,7 @@ void MessageBase::GetTimeStamp(igtl::TimeStamp::Pointer& ts)
 {
   ts->SetTime(m_TimeStampSec, igtl_frac_to_nanosec(m_TimeStampSecFraction));
 }
-*/
+
 
 int MessageBase::Pack()
 {
