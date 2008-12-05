@@ -86,6 +86,8 @@ public:
   // Get the a string (perhaps a long one) describing the type and version
   // of the device.
   vtkGetStringMacro(Version);
+  
+  vtkGetMacro(matrixCounter, int);  
 
   // Description:
   // Get an update from the tracking system and push the new transforms
@@ -129,7 +131,7 @@ protected:
   vtkMatrix4x4 *SendMatrix;
   
   //Counts the amount of matrixes which have already been generated
-  int matrixCounter;  
+  int matrixCounter; 
   
   int IsDeviceTracking;
 
@@ -137,9 +139,11 @@ protected:
 
   void GenerateTrackerMatrix(vtkMatrix4x4& matrix, int zPosition);
   
+#ifdef NEW_TRACKER_SIMULATOR
   //Multithreader to run a thread for matrix recording
   vtkMultiThreader *PlayerThreader;
   int PlayerThreadId;
+#endif
 
 private:
   vtkTrackerSimulator(const vtkTrackerSimulator&);
