@@ -624,7 +624,7 @@ int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg)
       this->FillImage();
     }
   
-  size[0]=32;size[1]=32;size[2]=32;
+  // size[0]=128;size[1]=128;size[2]=128;
   
   //------------------------------------------------------------
   // Create a new IMAGE type message    
@@ -634,7 +634,7 @@ int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg)
   msg->SetDeviceName("ImagerClient");
   msg->SetSubVolume(svsize, svoffset);
   msg->AllocateScalars();
-    
+  
   cerr <<    "vtkSychroGrabPipeline::SendImagers size:" << size[0] << " " << size[1] << " " << size[2] << endl;
   cerr <<    "spacing:" << spacing[0] << " " << spacing[1] << " " << spacing[2] << endl;
   
