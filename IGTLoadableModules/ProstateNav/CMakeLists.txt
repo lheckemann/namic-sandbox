@@ -16,12 +16,30 @@ endif(NOT Slicer3_SOURCE_DIR)
 
 
 # --------------------------------------------------------------------------
+# Find Open IGT Link
+
+if(NOT OpenIGTLink_SOURCE_DIR)
+  find_package(OpenIGTLink REQUIRED)
+  include(${OpenIGTLink_USE_FILE})
+endif(NOT OpenIGTLink_SOURCE_DIR)
+
+
+# --------------------------------------------------------------------------
 # Include dirs
+
 
 #
 # Include dirs
 #
+
+set(OpenIGTLinkIF_SOURCE_DIR ../../Slicer3/Modules/OpenIGTLinkIF)
+set(OpenIGTLinkIF_BUILD_DIR ../../Slicer3-build/Modules/OpenIGTLinkIF)
+
+
 include_directories(
+  ${OpenIGTLinkIF_SOURCE_DIR}
+  ${OpenIGTLinkIF_BUILD_DIR}
+  ${OpenIGTLink_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -86,6 +104,7 @@ target_link_libraries(${lib_name}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
   ${ITK_LIBRARIES}
+  OpenIGTLinkIF.so
   )
 
 install(TARGETS ${lib_name}

@@ -9,6 +9,8 @@ class vtkKWFrame;
 class vtkKWEntry;
 class vtkKWCheckButton;
 class vtkKWPushButton;
+class vtkKWLabel;
+class vtkOpenIGTLinkIFLogic;
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavConfigurationStep :
   public vtkProstateNavStep
@@ -25,18 +27,31 @@ protected:
   vtkProstateNavConfigurationStep();
   ~vtkProstateNavConfigurationStep();
 
+  // pointer to OpenIGTLinkIF Logic
+  vtkOpenIGTLinkIFLogic* OpenIGTLinkIFLogic;
+  
+
   // GUI Widgets
   vtkKWFrame *ConfigNTFrame;
   vtkKWFrame *ConnectNTFrame;
   vtkKWLoadSaveButtonWithLabel *LoadConfigButtonNT;
   vtkKWEntry *ConfigFileEntryNT;
   vtkKWCheckButton *ConnectCheckButtonNT;
-  
+
+
+  vtkKWFrame *RobotFrame;
+  vtkKWLabel *RobotLabel1;
+  vtkKWLabel *RobotLabel2;
   vtkKWEntry *RobotAddressEntry;
   vtkKWEntry *RobotPortEntry;
+  vtkKWPushButton *RobotConnectButton;
+  
+  vtkKWFrame *ScannerFrame;
+  vtkKWLabel *ScannerLabel1;
+  vtkKWLabel *ScannerLabel2;
   vtkKWEntry *ScannerAddressEntry;
   vtkKWEntry *ScannerPortEntry;
-  vtkKWPushButton *StartButton;
+  vtkKWPushButton *ScannerConnectButton;
   
 private:
   vtkProstateNavConfigurationStep(const vtkProstateNavConfigurationStep&);
