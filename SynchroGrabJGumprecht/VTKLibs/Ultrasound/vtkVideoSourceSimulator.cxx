@@ -732,13 +732,13 @@ void vtkVideoSourceSimulator::InternalGrab()
     // to the local buffer, which demands necessary advancement of deviceDataPtr
   
     // get the pointer to actual incoming data on to a local pointer
-    char* deviceDataPtr = new char[SLICE_X_LENGTH * SLICE_Y_LENGTH];  
+    unsigned char* deviceDataPtr = new unsigned char[SLICE_X_LENGTH * SLICE_Y_LENGTH];  
     
     for (int j = 0 ; j < SLICE_Y_LENGTH ; j++)
       {
       for (int k = 0 ; k < SLICE_X_LENGTH ; k++)
         {
-deviceDataPtr[j * SLICE_Y_LENGTH + k] = (char) 255;        
+ deviceDataPtr[j * SLICE_Y_LENGTH + k] = (unsigned char) 64;        
          }            
       }
 
@@ -748,11 +748,15 @@ deviceDataPtr[j * SLICE_Y_LENGTH + k] = (char) 255;
    
     int outBytesPerRow = ((this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1)* this->FrameBufferBitsPerPixel + 7)/8;
     outBytesPerRow += outBytesPerRow % this->FrameBufferRowAlignment;
+    //int outBytesPerRow = (this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1);
 
+
+    
     int inBytesPerRow = this->FrameSize[0] * this->FrameBufferBitsPerPixel/8;
   
     int rows = this->FrameBufferExtent[3]-this->FrameBufferExtent[2]+1;
 
+    //cerr << rows << " " << inBytesPerRow << " " << outBytesPerRow << endl;
 
     // 4) copy data to the local vtk frame buffer
     if (outBytesPerRow == inBytesPerRow)
@@ -768,14 +772,14 @@ deviceDataPtr[j * SLICE_Y_LENGTH + k] = (char) 255;
         deviceDataPtr += (unsigned char) inBytesPerRow;
         }
       }
- 
+    
     delete deviceDataPtr;
     this->Modified();
     
-   
-  
-  this->FrameBufferMutex->Unlock();
-
+    
+    
+    this->FrameBufferMutex->Unlock();
+    
 }
 #else //NEW_SIMULATOR
 void vtkVideoSourceSimulator::FillFrameBuffer()
