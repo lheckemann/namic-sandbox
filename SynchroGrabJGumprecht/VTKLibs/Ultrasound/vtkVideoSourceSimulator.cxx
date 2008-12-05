@@ -738,7 +738,7 @@ void vtkVideoSourceSimulator::InternalGrab()
       {
       for (int k = 0 ; k < SLICE_X_LENGTH ; k++)
         {
-        deviceDataPtr[j * SLICE_Y_LENGTH + k] = k;        
+deviceDataPtr[j * SLICE_Y_LENGTH + k] = (char) 255;        
          }            
       }
 
@@ -769,9 +769,10 @@ void vtkVideoSourceSimulator::InternalGrab()
         }
       }
  
+    delete deviceDataPtr;
     this->Modified();
     
-    delete deviceDataPtr;
+   
   
   this->FrameBufferMutex->Unlock();
 
