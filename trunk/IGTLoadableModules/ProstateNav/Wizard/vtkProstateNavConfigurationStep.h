@@ -8,6 +8,7 @@ class vtkKWLoadSaveButtonWithLabel;
 class vtkKWFrame;
 class vtkKWEntry;
 class vtkKWCheckButton;
+class vtkKWPushButton;
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavConfigurationStep :
   public vtkProstateNavStep
@@ -30,7 +31,13 @@ protected:
   vtkKWLoadSaveButtonWithLabel *LoadConfigButtonNT;
   vtkKWEntry *ConfigFileEntryNT;
   vtkKWCheckButton *ConnectCheckButtonNT;
-
+  
+  vtkKWEntry *RobotAddressEntry;
+  vtkKWEntry *RobotPortEntry;
+  vtkKWEntry *ScannerAddressEntry;
+  vtkKWEntry *ScannerPortEntry;
+  vtkKWPushButton *StartButton;
+  
 private:
   vtkProstateNavConfigurationStep(const vtkProstateNavConfigurationStep&);
   void operator=(const vtkProstateNavConfigurationStep&);
