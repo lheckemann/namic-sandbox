@@ -113,30 +113,6 @@ protected:
   int InternalStopTracking();
 
   // Description:
-  // Cause the device to beep the specified number of times.
-  int InternalBeep(int n);
-
-  // Description:
-  // Set the specified tool LED to the specified state.
-  int InternalSetToolLED(int tool, int led, int state);
-
-  // Description:
-  // Initialize communication with the Certus system.
-  int InitializeCertusSystem();
-
-  // Description:
-  // Terminate communication with the Certus system.
-  int ShutdownCertusSystem();
-
-  // Description:
-  // Activate the markers for tracking.
-  int ActivateCertusMarkers();
-
-  // Description:
-  // Deactivate all markers.
-  int DeActivateCertusMarkers();
-
-  // Description:
   // Methods for detecting which ports have tools in them, and
   // auto-enabling those tools.
   int EnableToolPorts();
