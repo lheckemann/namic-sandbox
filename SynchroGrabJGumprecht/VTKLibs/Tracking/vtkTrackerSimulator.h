@@ -54,15 +54,19 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef __vtkTrackerSimulator_h
 #define __vtkTrackerSimulator_h
 
+#define NEW_TRACKER_SIMULATOR
+//#undef NEW_TRACKER_SIMULATOR
+
 #include "vtkTrackingWin32Header.h"
 #include "vtkTracker.h"
-//#include "ndicapi.h"
 #include "igtlMath.h"
 
-class vtkFrameToTimeConverter;
+#define MATRICES_PER_SECOND 20
+
+class vtkMultiThreader;
 
 // the number of tools this class can handle
-#define VTK_CERTUS_NTOOLS 1
+#define VTK_TRACKER_NTOOLS 1
 
 class VTK_TRACKING_EXPORT vtkTrackerSimulator : public vtkTracker
 {
@@ -86,7 +90,7 @@ public:
   // Description:
   // Get an update from the tracking system and push the new transforms
   // to the tools.  This should only be used within vtkTracker.cxx.
-  void InternalUpdate();
+  void InternalUpdate();  
   void Update();
 
   void StartTracking();
@@ -118,29 +122,24 @@ protected:
   int EnableToolPorts();
   int DisableToolPorts();
 
-  // Description:
-  // Find the tool for a specific port handle (-1 if not found).
-//  int GetToolFromHandle(int handle);
-
-  // Description:
-  // Class for updating the virtual clock that accurately times the
-  // arrival of each transform, more accurately than is possible with
-  // the system clock alone because the virtual clock averages out the
-  // jitter.
-  vtkFrameToTimeConverter *Timer;
-
   char *Version;
 
-//  int NumberOfMarkers;
   int NumberOfRigidBodies;
 
   vtkMatrix4x4 *SendMatrix;
+  
+  //Counts the amount of matrixes which have already been generated
+  int matrixCounter;  
+  
   int IsDeviceTracking;
 
-  int PortEnabled[VTK_CERTUS_NTOOLS];
-//  int PortHandle[VTK_CERTUS_NTOOLS];
+  int PortEnabled[VTK_TRACKER_NTOOLS];
 
-void GetRandomTestMatrix(vtkMatrix4x4& matrix, int index);
+  void GenerateTrackerMatrix(vtkMatrix4x4& matrix, int zPosition);
+  
+  //Multithreader to run a thread for matrix recording
+  vtkMultiThreader *PlayerThreader;
+  int PlayerThreadId;
 
 private:
   vtkTrackerSimulator(const vtkTrackerSimulator&);
