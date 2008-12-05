@@ -99,7 +99,7 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
 
   this->CalibrationFileName = NULL;
   this->OIGTLServer = NULL; 
-  this->SetOIGTLServer("localhost");
+  this->SetOIGTLServer("aml_d4_1");
   this->SetVideoDevice("/dev/video");
 
   this->TransfertImages = false; 
@@ -344,6 +344,8 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 
     this->tagger->Update();
     this->tagger->GetTransform()->GetMatrix(sliceAxes); //Get trackingmatrix of current frame
+    //cout << "Tracker matrix:\n";
+    //sliceAxes->Print(cout);
     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
     panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
     this->sonixGrabber->Seek(1); //Advance to the next frame
@@ -591,11 +593,11 @@ int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg)
   int svsize[3];    // sub-volume size
   int svoffset[3];  // sub-volume offset
   int scalarType;   // scalar type
-
+  
   //If we reconstructing a 3DVolume everything is already set for us
   if(this->GetVolumeReconstructionEnabled())
     {
-    this->transfer_buffer->GetDimensions(size);
+      this->transfer_buffer->GetDimensions(size);
     this->transfer_buffer->GetSpacing(spacing);
     svsize[0]   = size[0];       
     svsize[1]   = size[1];       
@@ -607,41 +609,44 @@ int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg)
     {   
     //------------------------------------------------------------
     //Imager Setting
-    size[0] = VOLUME_X_LENGTH;
-    size[1] = VOLUME_Y_LENGTH;
-    size[2] = VOLUME_Z_LENGTH;
-    spacing[0] = VOLUME_X_SPACING;
-    spacing[1] = VOLUME_Y_SPACING;
-    spacing[2] = VOLUME_Z_SPACING;
-    svsize[0] = VOLUME_X_LENGTH;
-    svsize[1] = VOLUME_Y_LENGTH;
-    svsize[2] = VOLUME_Z_LENGTH;
-    svoffset[0] = svoffset[1] = svoffset[2] = 0;           
-    scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
-    
-    this->FillImage();
+      size[0] = VOLUME_X_LENGTH;
+      size[1] = VOLUME_Y_LENGTH;
+      size[2] = VOLUME_Z_LENGTH;
+      spacing[0] = VOLUME_X_SPACING;
+      spacing[1] = VOLUME_Y_SPACING;
+      spacing[2] = VOLUME_Z_SPACING;
+      svsize[0] = VOLUME_X_LENGTH;
+      svsize[1] = VOLUME_Y_LENGTH;
+      svsize[2] = VOLUME_Z_LENGTH;
+      svoffset[0] = svoffset[1] = svoffset[2] = 0;           
+      scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
+      
+      this->FillImage();
     }
-    cout << "vtkSynchroGrabPipeline::SendImages: Size parameters set" << endl;
   
-    //------------------------------------------------------------
-    // Create a new IMAGE type message    
-    msg->SetDimensions(size);
-    msg->SetSpacing((float) spacing[0],(float) spacing[1], (float) spacing[2]);
-    msg->SetScalarType(scalarType);
-    msg->SetDeviceName("ImagerClient");
-    msg->SetSubVolume(svsize, svoffset);
-    msg->AllocateScalars();
+  size[0]=32;size[1]=32;size[2]=32;
+  
+  //------------------------------------------------------------
+  // Create a new IMAGE type message    
+  msg->SetDimensions(size);
+  msg->SetSpacing((float) spacing[0],(float) spacing[1], (float) spacing[2]);
+  msg->SetScalarType(scalarType);
+  msg->SetDeviceName("ImagerClient");
+  msg->SetSubVolume(svsize, svoffset);
+  msg->AllocateScalars();
     
-
+  cerr <<    "vtkSychroGrabPipeline::SendImagers size:" << size[0] << " " << size[1] << " " << size[2] << endl;
+  cerr <<    "spacing:" << spacing[0] << " " << spacing[1] << " " << spacing[2] << endl;
+  
   char * p_msg = (char*) msg->GetScalarPointer();
   char * p_ibuffer = (char*) this->transfer_buffer->GetScalarPointer();
-
+  
   for(int i=0 ; i < size[0] * size[1] * size[2] ; i++ )
     {
-    *p_msg = (char) * p_ibuffer;
-    p_ibuffer++; p_msg++;
+      *p_msg = (char) * p_ibuffer;
+      p_ibuffer++; p_msg++;
     }
-
+  
   return 1;
 }
 
@@ -653,6 +658,7 @@ void vtkSynchroGrabPipeline::vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix)
   float orientation[4];
 
   /*
+  
   // random position
   static float phi = 0.0;
   position[0] = 50.0 * cos(phi);
@@ -674,6 +680,7 @@ void vtkSynchroGrabPipeline::vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix)
   matrix[0][3] = position[0];
   matrix[1][3] = position[1];
   matrix[2][3] = position[2];
+  
   */
 
   matrix[0][0] = 1.0;  matrix[1][0] = 0.0;  matrix[2][0] = 0.0; matrix[3][0] = 0.0;
