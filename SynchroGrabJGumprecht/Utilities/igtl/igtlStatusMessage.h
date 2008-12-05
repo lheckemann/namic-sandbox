@@ -26,7 +26,7 @@
 namespace igtl
 {
 
-class StatusMessage: public MessageBase
+class IGTLCommon_EXPORT StatusMessage: public MessageBase
 {
 public:
   typedef StatusMessage                  Self;

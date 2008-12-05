@@ -25,9 +25,11 @@
 namespace igtl
 {
 
-class TransformMessage: public MessageBase
+class IGTLCommon_EXPORT TransformMessage: public MessageBase
 {
+
 public:
+
   typedef TransformMessage               Self;
   typedef MessageBase                    Superclass;
   typedef SmartPointer<Self>             Pointer;
@@ -35,6 +37,7 @@ public:
 
   igtlTypeMacro(igtl::TransformMessage, igtl::MessageBase);
   igtlNewMacro(igtl::TransformMessage);
+
 
 public:
 

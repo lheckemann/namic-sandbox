@@ -44,7 +44,6 @@
 =========================================================================*/
 
 #include "igtlSocket.h"
-#include <string.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
   #include <windows.h>
@@ -59,6 +58,8 @@
   #include <unistd.h>
   #include <sys/time.h>
 #endif
+
+#include <string.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #define WSA_VERSION MAKEWORD(1,1)

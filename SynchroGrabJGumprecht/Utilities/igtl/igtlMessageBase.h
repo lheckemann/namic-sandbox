@@ -57,7 +57,7 @@
 namespace igtl
 {
 
-class MessageBase: public Object
+class IGTLCommon_EXPORT MessageBase: public Object
 {
 public:
 
@@ -77,16 +77,15 @@ public:
 
 public:
 
-  void  SetDeviceName(std::string name);
+  void  SetDeviceName(const char* name);
   const char* GetDeviceName();
   const char* GetDeviceType();
   
-//  mcgumbel
-//  int   SetTimeStamp(unsigned int sec, unsigned int frac);
-//  int   GetTimeStamp(unsigned int* sec, unsigned int* frac);
+  int   SetTimeStamp(unsigned int sec, unsigned int frac);
+  int   GetTimeStamp(unsigned int* sec, unsigned int* frac);
 
-//  void  SetTimeStamp(igtl::TimeStamp::Pointer& ts);
-//  void  GetTimeStamp(igtl::TimeStamp::Pointer& ts);
+  void  SetTimeStamp(igtl::TimeStamp::Pointer& ts);
+  void  GetTimeStamp(igtl::TimeStamp::Pointer& ts);
 
   // Pack() serializes the header and body based on the member varilables.
   // PackBody() must be implemented in the child class.
@@ -128,7 +127,7 @@ public:
   // general header is copied.
   int Copy(const MessageBase* mb);
 
-  int SetMessageHeader(const MessageHeader* mb) { return Copy(mb); };
+  virtual int SetMessageHeader(const MessageHeader* mb) { return Copy(mb); };
   int GetBodySizeToRead()                       { return m_BodySizeToRead; };
   
 protected:

@@ -86,6 +86,7 @@ SET(OpenIGTLink_SOURCES
   igtlSimpleFastMutexLock.cxx
   igtlSocket.cxx
   igtlTransformMessage.cxx
+  igtlTimeStamp.cxx
   )
 
 INCLUDE_DIRECTORIES(
