@@ -50,17 +50,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
     Emergency,
     NumPhases,
   };
-  enum {
-    SLICE_DRIVER_USER    = 0,
-    SLICE_DRIVER_LOCATOR = 1,
-    SLICE_DRIVER_RTIMAGE = 2
-  };
-  enum ImageOrient{
-    SLICE_RTIMAGE_NONE      = 0,
-    SLICE_RTIMAGE_PERP      = 1,
-    SLICE_RTIMAGE_INPLANE90 = 2,
-    SLICE_RTIMAGE_INPLANE   = 3
-  };
   enum {  // Events
     LocatorUpdateEvent      = 50000,
     StatusUpdateEvent       = 50001,
@@ -82,41 +71,14 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   vtkGetMacro ( PrevPhase,            int );
   vtkGetMacro ( PhaseTransitionCheck, bool );
   vtkSetMacro ( PhaseTransitionCheck, bool );
-  vtkGetMacro ( RealtimeImageOrient,  int  );
-  vtkSetMacro ( RealtimeImageOrient,  int  );
   
-  vtkSetMacro ( NeedRealtimeImageUpdate0, int );
-  vtkGetMacro ( NeedRealtimeImageUpdate0, int );
-  vtkSetMacro ( NeedRealtimeImageUpdate1, int );
-  vtkGetMacro ( NeedRealtimeImageUpdate1, int );
-  vtkSetMacro ( NeedRealtimeImageUpdate2, int );
-  vtkGetMacro ( NeedRealtimeImageUpdate2, int );
-  /*
-  vtkSetMacro ( ImagingControl,          bool );
-  vtkGetMacro ( ImagingControl,          bool );
-  */
-  vtkSetMacro ( NeedUpdateLocator,       bool );
-  vtkGetMacro ( NeedUpdateLocator,       bool );
-
-  vtkSetMacro ( SliceDriver0, int );
-  vtkGetMacro ( SliceDriver0, int );
-  vtkSetMacro ( SliceDriver1, int );
-  vtkGetMacro ( SliceDriver1, int );
-  vtkSetMacro ( SliceDriver2, int );
-  vtkGetMacro ( SliceDriver2, int );
-
   vtkGetMacro ( Connection,              bool );
   vtkGetMacro ( RobotWorkPhase,           int );
   vtkGetMacro ( ScannerWorkPhase,         int );
 
-  vtkGetObjectMacro ( LocatorTransform, vtkTransform );
-  vtkGetObjectMacro ( LocatorMatrix,    vtkMatrix4x4 );
-
 
   void PrintSelf(ostream&, vtkIndent);
   
-  void AddRealtimeVolumeNode(const char* name);
-
   int  SwitchWorkPhase(int);
   int  IsPhaseTransitable(int);
   
@@ -152,50 +114,17 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   bool  PhaseTransitionCheck;
   bool  RealtimeImageUpdate;
 
-
-  //----------------------------------------------------------------
-  // Real-time image
-  //----------------------------------------------------------------
-  
-  vtkMRMLVolumeNode     *RealtimeVolumeNode;
-
-  int   NeedRealtimeImageUpdate0;
-  int   NeedRealtimeImageUpdate1;
-  int   NeedRealtimeImageUpdate2;
-
-  vtkMRMLSliceNode *SliceNode0;
-  vtkMRMLSliceNode *SliceNode1;
-  vtkMRMLSliceNode *SliceNode2;
-
-  int   SliceDriver0;
-  int   SliceDriver1;
-  int   SliceDriver2;
-  
-  bool  ImagingControl;
-  bool  NeedUpdateLocator;
-
-  long  RealtimeImageTimeStamp;
-  //int   RealtimeImageSerial;
-  int   RealtimeImageOrient;
-
-
   //----------------------------------------------------------------
   // Locator
   //----------------------------------------------------------------
 
   // Junichi Tokuda on 11/27/2007:
   // What's a difference between LocatorMatrix and Locator Transform???
-  vtkMatrix4x4*         LocatorMatrix;
-  vtkTransform*         LocatorTransform;
 
   bool  Connection;  
   int   RobotWorkPhase;
   int   ScannerWorkPhase;
   
-#ifdef USE_NAVITRACK
-  vtkProstateNavDataStream *OpenTrackerStream;
-#endif
-
  protected:
   
   vtkProstateNavLogic();
@@ -209,8 +138,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   void UpdateSliceDisplay();
   void UpdateLocator();
 
-  vtkMRMLVolumeNode* AddVolumeNode(const char*);
-  
   vtkCallbackCommand *DataCallbackCommand;
 
 };

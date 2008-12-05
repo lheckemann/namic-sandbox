@@ -5,10 +5,12 @@
 
 #include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
+#include "vtkKWLabel.h"
 #include "vtkKWEntry.h"
 #include "vtkKWCheckButton.h"
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
+#include "vtkKWPushButton.h"
 #include "vtkKWLoadSaveButton.h"
 #include "vtkKWLoadSaveButtonWithLabel.h"
 
@@ -27,6 +29,13 @@ vtkProstateNavConfigurationStep::vtkProstateNavConfigurationStep()
   this->LoadConfigButtonNT = NULL;
   this->ConfigFileEntryNT = NULL;
   this->ConnectCheckButtonNT = NULL;
+
+  this->RobotAddressEntry   = NULL;
+  this->RobotPortEntry      = NULL;
+  this->ScannerAddressEntry = NULL;
+  this->ScannerPortEntry    = NULL;
+  this->StartButton         = NULL;
+
 }
 
 //----------------------------------------------------------------------------
@@ -70,6 +79,86 @@ void vtkProstateNavConfigurationStep::ShowUserInterface()
   vtkKWWizardWidget *wizardWidget = this->GetGUI()->GetWizardWidget();
   vtkKWWidget *parent = wizardWidget->GetClientArea();
 
+  if (!this->RobotAddressEntry)
+    {
+    vtkKWFrame *robotFrame = vtkKWFrame::New();
+    robotFrame->SetParent ( parent );
+    robotFrame->Create ( );
+    this->Script ( "pack %s -side top -fill x",
+                  robotFrame->GetWidgetName());
+
+    vtkKWLabel *robotLabel1 = vtkKWLabel::New();
+    robotLabel1->SetParent(robotFrame);
+    robotLabel1->Create();
+    robotLabel1->SetWidth(15);
+    robotLabel1->SetText("Robot Addr: ");
+
+    this->RobotAddressEntry = vtkKWEntry::New();
+    this->RobotAddressEntry->SetParent(robotFrame);
+    this->RobotAddressEntry->Create();
+    this->RobotAddressEntry->SetWidth(20);
+
+    vtkKWLabel *robotLabel2 = vtkKWLabel::New();
+    robotLabel2->SetParent(robotFrame);
+    robotLabel2->Create();
+    robotLabel2->SetWidth(3);
+    robotLabel2->SetText(":");
+
+    this->RobotPortEntry = vtkKWEntry::New();
+    this->RobotPortEntry->SetParent(robotFrame);
+    this->RobotPortEntry->Create();
+    this->RobotPortEntry->SetWidth(10);
+
+    this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+                 robotLabel1->GetWidgetName(), this->RobotAddressEntry->GetWidgetName(),
+                 robotLabel2->GetWidgetName(), this->RobotPortEntry->GetWidgetName());
+
+    robotFrame->Delete();
+    robotLabel1->Delete();
+    robotLabel2->Delete();
+    }
+
+  if (!this->ScannerAddressEntry)
+    {
+    vtkKWFrame *scannerFrame = vtkKWFrame::New();
+    scannerFrame->SetParent ( parent );
+    scannerFrame->Create ( );
+    this->Script ( "pack %s -side top -fill x",  
+                   scannerFrame->GetWidgetName());
+
+    vtkKWLabel *scannerLabel1 = vtkKWLabel::New();
+    scannerLabel1->SetParent(scannerFrame);
+    scannerLabel1->Create();
+    scannerLabel1->SetWidth(15);
+    scannerLabel1->SetText("Scanner Addr: ");
+
+    this->ScannerAddressEntry = vtkKWEntry::New();
+    this->ScannerAddressEntry->SetParent(scannerFrame);
+    this->ScannerAddressEntry->Create();
+    this->ScannerAddressEntry->SetWidth(20);
+
+    vtkKWLabel *scannerLabel2 = vtkKWLabel::New();
+    scannerLabel2->SetParent(scannerFrame);
+    scannerLabel2->Create();
+    scannerLabel2->SetWidth(3);
+    scannerLabel2->SetText(":");
+
+    this->ScannerPortEntry = vtkKWEntry::New();
+    this->ScannerPortEntry->SetParent(scannerFrame);
+    this->ScannerPortEntry->Create();
+    this->ScannerPortEntry->SetWidth(10);
+
+    this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+                scannerLabel1->GetWidgetName(), this->ScannerAddressEntry->GetWidgetName(),
+                scannerLabel2->GetWidgetName(), this->ScannerPortEntry->GetWidgetName());
+    
+    scannerFrame->Delete();
+    scannerLabel1->Delete();
+    scannerLabel2->Delete();
+    }
+  
+
+  /*
   // Create the frame
   if (!this->ConfigNTFrame)
     {
@@ -140,6 +229,7 @@ void vtkProstateNavConfigurationStep::ShowUserInterface()
 
   this->Script("pack %s -side top -anchor w -padx 2 -pady 2", 
                this->ConnectCheckButtonNT->GetWidgetName());
+  */
 
 }
 
