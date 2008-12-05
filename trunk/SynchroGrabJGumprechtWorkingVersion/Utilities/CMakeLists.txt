@@ -1,0 +1,13 @@
+IF(USE_TRACKER_DEVICE)
+  SUBDIRS(
+    igtl
+    ndicapi
+  )
+ELSE(USE_TRACKER_DEVICE)
+  SUBDIRS(
+    igtl 
+  )
+ENDIF(USE_TRACKER_DEVICE)
+
+
+
