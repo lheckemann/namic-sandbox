@@ -1,7 +1,7 @@
 INCLUDE_DIRECTORIES(${ULTERIUS_INCLUDE_DIR})
 
 ADD_EXECUTABLE(SynchroGrab 
-  vtkSynchrograbPipeline.cxx
+  vtkSynchroGrabPipeline.cxx
 #  vtkUltrasoundVolumeReconstructor.cxx #JG: Not in use yet
 #  vtkUltrasoundVolumeSender.cxx #JG: Not in use yet
   SynchroGrab.cxx 
