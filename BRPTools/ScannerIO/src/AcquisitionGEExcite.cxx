@@ -235,7 +235,6 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
   matrix[1][2] = m[1][2];
   matrix[2][2] = m[2][2];
 
-
 #ifdef _RSP_CONTROL
 
   // check if frequency and phase encodings are flipped.
@@ -244,16 +243,16 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
   read_rsp_i("cont_swap_pf",&swap);
   //set_rsp_i("cont_swap_pf",&swap);
   this->RspMutex->Unlock();
-  
-  //if(swap)
-  //  {
-  //    // flipped
-  //  }
-  //else
-  //  {
-  //    // not flipped
-  //  }
 
+  if(swap)
+    {
+    //igtl::MatrixToQuaternion(matrix, tmp_orientation);
+    }
+  else
+    {
+    // not flipped
+    }
+  
   /* from RAS to image */
   /* inv(R)*T */
   float Px, Py, Pz;
@@ -295,13 +294,10 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
       int fov;
       /* read field-of-view */
       read_rsp_i("cont_fov",&fov);
-      /*
-      event.setAttribute("FOV",fov);
-      MathUtils::quaternionToMatrix(orientation,matrix);
-      */
-      
+
       /* from image to RAS */
       /* T*R */
+
       float value = matrix[0][0]*fov/2+matrix[0][1]*fov/2+position[0];
       set_rsp_f("cont_image_p0x",&value);
       value = matrix[1][0]*fov/2+matrix[1][1]*fov/2+position[1];
@@ -311,21 +307,18 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
       
       value = matrix[0][0]*(-fov/2)+matrix[0][1]*fov/2+position[0];
       set_rsp_f("cont_image_p1x",&value);
-      
       value = matrix[1][0]*(-fov/2)+matrix[1][1]*fov/2+position[1];
       set_rsp_f("cont_image_p1y",&value);
-      
       value = matrix[2][0]*(-fov/2)+matrix[2][1]*fov/2+position[2];
       set_rsp_f("cont_image_p1z",&value);
-      
+
       value = matrix[0][0]*(-fov/2)+matrix[0][1]*(-fov/2)+position[0];
       set_rsp_f("cont_image_p2x",&value);
-      
       value = matrix[1][0]*(-fov/2)+matrix[1][1]*(-fov/2)+position[1];
       set_rsp_f("cont_image_p2y",&value);
-      
       value = matrix[2][0]*(-fov/2)+matrix[2][1]*(-fov/2)+position[2];
       set_rsp_f("cont_image_p2z",&value);
+
 
       this->RspMutex->Unlock();
     }
@@ -341,57 +334,29 @@ int AcquisitionGEExcite::SetMatrix(igtl::Matrix4x4& m)
 
       //// rotation
       
-      //float value = (float)matrix[0][0];
-      //set_rsp_f("cont_Rot00",&value);
-      //
-      //value = (float)matrix[1][0];
-      //set_rsp_f("cont_Rot01",&value);
-      //
-      //value = (float)matrix[2][0];
-      //set_rsp_f("cont_Rot02",&value);
-      //
-      //value = (float)matrix[0][1];
-      //set_rsp_f("cont_Rot10",&value);
-      //
-      //value = (float)matrix[1][1];
-      //set_rsp_f("cont_Rot11",&value);
-      //
-      //value = (float)matrix[2][1];
-      //set_rsp_f("cont_Rot12",&value);
-      //
-      //value = (float)matrix[0][2];
-      //set_rsp_f("cont_Rot20",&value);
-      //
-      //value = (float)matrix[1][2];
-      //set_rsp_f("cont_Rot21",&value);
-      //
-      //value = (float)matrix[2][2];
-      //set_rsp_f("cont_Rot22",&value);
-
-      // rotation
       float value = (float)matrix[0][0];
       set_rsp_f("cont_Rot00",&value);
       
       value = (float)matrix[1][0];
-      set_rsp_f("cont_Rot10",&value);
+      set_rsp_f("cont_Rot01",&value);
       
       value = (float)matrix[2][0];
-      set_rsp_f("cont_Rot20",&value);
+      set_rsp_f("cont_Rot02",&value);
       
       value = (float)matrix[0][1];
-      set_rsp_f("cont_Rot01",&value);
+      set_rsp_f("cont_Rot10",&value);
       
       value = (float)matrix[1][1];
       set_rsp_f("cont_Rot11",&value);
       
       value = (float)matrix[2][1];
-      set_rsp_f("cont_Rot21",&value);
+      set_rsp_f("cont_Rot12",&value);
       
       value = (float)matrix[0][2];
-      set_rsp_f("cont_Rot02",&value);
+      set_rsp_f("cont_Rot20",&value);
       
       value = (float)matrix[1][2];
-      set_rsp_f("cont_Rot12",&value);
+      set_rsp_f("cont_Rot21",&value);
       
       value = (float)matrix[2][2];
       set_rsp_f("cont_Rot22",&value);
@@ -1076,23 +1041,27 @@ void AcquisitionGEExcite::Reconstruct(int xsize, int ysize, int channels, int c,
                 {
                   for(int j=0;j<ysize/2;j++)
                     {
-                      final_image[(ysize/2-j-1)*xsize + (xsize/2-i-1)]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
+                    //final_image[(ysize/2-j-1)*xsize + (xsize/2-i-1)]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
+                    final_image[(ysize/2-j-1) + (xsize-(xsize/2-i-1)-1)*ysize]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
                     }
                   for(int j=ysize/2;j<ysize;j++)
                     {
-                      final_image[(3*ysize/2-j-1)*xsize + (xsize/2-i-1)]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
+                    //final_image[(3*ysize/2-j-1)*xsize + (xsize/2-i-1)]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
+                    final_image[(3*ysize/2-j-1) + (xsize-(xsize/2-i-1)-1)*ysize]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
                     }
                 }
               for(int i=xsize/2;i<xsize;i++)
                 {
                   for(int j=0;j<ysize/2;j++)
                     {
-                      final_image[(ysize/2-j-1)*xsize + (3*xsize/2-i-1)]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
+                    //final_image[(ysize/2-j-1)*xsize + (3*xsize/2-i-1)]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
+                    final_image[(ysize/2-j-1) + (xsize-(3*xsize/2-i-1)-1)*ysize]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
                     }
                   
                   for(int j=ysize/2;j<ysize;j++)
                     {
-                      final_image[(3*ysize/2-j-1)*xsize + (3*xsize/2-i-1)]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
+                    //final_image[(3*ysize/2-j-1)*xsize + (3*xsize/2-i-1)]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
+                    final_image[(3*ysize/2-j-1) + (xsize-(3*xsize/2-i-1)-1)*ysize]=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/(float)(channels*4)*scalefactor);
                     }
                 }
               
@@ -1106,11 +1075,13 @@ void AcquisitionGEExcite::Reconstruct(int xsize, int ysize, int channels, int c,
               {
                 for(int j=0;j<ysize/2;j++)
                   {
-                    final_image[(ysize/2-j-1)*xsize+i]+=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/((float)(channels*40)*scalefactor));
+                  //final_image[(ysize/2-j-1)*xsize+i]+=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/((float)(channels*40)*scalefactor));
+                  final_image[(ysize/2-j-1)+(xsize-i-1)*ysize]+=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/((float)(channels*40)*scalefactor));
                   }
                 for(int j=ysize/2;j<ysize;j++)
                   {
-                    final_image[(3*ysize/2-j-1)*xsize+i]+=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/((float)(channels*40)*scalefactor));
+                  //final_image[(3*ysize/2-j-1)*xsize+i]+=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/((float)(channels*40)*scalefactor));
+                  final_image[(3*ysize/2-j-1)+(xsize-i-1)*ysize]+=(short)(sqrt(pow(R[k]->element(i,j),2)+pow(I[k]->element(i,j),2))/((float)(channels*40)*scalefactor));
                   }
               }
         }
