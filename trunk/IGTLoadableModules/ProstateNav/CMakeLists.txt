@@ -16,35 +16,23 @@ endif(NOT Slicer3_SOURCE_DIR)
 
 
 # --------------------------------------------------------------------------
-# Find Open IGT Link
-
-if(NOT OpenIGTLink_SOURCE_DIR)
-  find_package(OpenIGTLink REQUIRED)
-  include(${OpenIGTLink_USE_FILE})
-endif(NOT OpenIGTLink_SOURCE_DIR)
-
-
-# --------------------------------------------------------------------------
 # Include dirs
 
 
 #
 # Include dirs
 #
-
-set(OpenIGTLinkIF_SOURCE_DIR ../../Slicer3/Modules/OpenIGTLinkIF)
-set(OpenIGTLinkIF_BUILD_DIR ../../Slicer3-build/Modules/OpenIGTLinkIF)
 
 
 include_directories(
-  ${OpenIGTLinkIF_SOURCE_DIR}
-  ${OpenIGTLinkIF_BUILD_DIR}
-  ${OpenIGTLink_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard
   ${CMAKE_CURRENT_BINARY_DIR}
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
+  ${OpenIGTLinkIF_SOURCE_DIR}
+  ${OpenIGTLinkIF_BINARY_DIR}
+  ${OpenIGTLink_INCLUDE_DIRS}
   )
 
 
@@ -60,6 +48,13 @@ file(GLOB headers
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Wizard/*.h"
   )
+
+install(FILES 
+  ${headers} 
+  "${CMAKE_CURRENT_BINARY_DIR}/vktProstateNavConfigure.h"
+  DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
+  )
+
 
 # --------------------------------------------------------------------------
 # Sources
@@ -98,25 +93,21 @@ add_library(${lib_name}
   ${ProstateNav_SRCS} 
   ${ProstateNav_TCL_SRCS}
   )
+slicer3_set_modules_output_path(${lib_name})
 
-
-message("Link directory = \"${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_LIB_DIR}\"")
-
-link_directories(
-  ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_LIB_DIR}
-)
+#link_directories(
+#  ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_LIB_DIR}
+#)
 
 
 target_link_libraries(${lib_name}
-#  OpenIGTLinkIF
   ${Slicer3_Libs_LIBRARIES}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
   ${ITK_LIBRARIES}
+  OpenIGTLinkIF
   )
 
-install(TARGETS ${lib_name}
-  RUNTIME DESTINATION ${Slicer3_INSTALL_MODULES_BIN_DIR} COMPONENT RuntimeLibraries 
-  LIBRARY DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT Development
-  )
+
+slicer3_install_modules(${lib_name})
+
