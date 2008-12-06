@@ -45,7 +45,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 #define NOMINMAX
-#undef REMOVE_ALPHA_CHANNEL
+//#define REMOVE_ALPHA_CHANNEL
  
 //#include <windows.h>
 
@@ -54,6 +54,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkImageExtractComponents.h"
 #include "vtkImageData.h"
 #include "vtkJPEGWriter.h"
+#include "vtkBMPWriter.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkSynchroGrabPipeline.h"
@@ -99,7 +100,7 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
 
   this->CalibrationFileName = NULL;
   this->OIGTLServer = NULL; 
-  this->SetOIGTLServer("aml_d4_1");
+  this->SetOIGTLServer("localhost");
   this->SetVideoDevice("/dev/video");
 
   this->TransfertImages = false; 
@@ -258,7 +259,6 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   //12/2/08
   cerr << "vtk3DPanoramicVolumeReconsturctor instantiated" << endl;
 
-
   // Determine the extent of the volume that needs to be reconstructed by 
   // iterating throught all the acquired frames
   double clipRectangle[4];
@@ -316,7 +316,8 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
                           0, (int)( (maxY - minY) / spacing[1] ), 
                           0, (int)( (maxZ - minZ) / spacing[2] ) };
-  
+  //cerr << "volume Extent" << volumeExtent[1] << endl;
+
   panoramaReconstructor->SetOutputExtent(volumeExtent);
   panoramaReconstructor->SetOutputSpacing(spacing);
   panoramaReconstructor->SetOutputOrigin(minX, minY, minZ);
@@ -334,10 +335,17 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 #endif
   
   this->tagger->Update();
-  
   vtkMatrix4x4 *sliceAxes = vtkMatrix4x4::New();
   this->tagger->GetTransform()->GetMatrix(sliceAxes);
   panoramaReconstructor->SetSliceAxes(sliceAxes);
+ 
+   vtkBMPWriter *writer = vtkBMPWriter::New();
+   char filename[256];
+
+
+   //NH 12.05 08 Jan was worried about the 10 blank images in the beginning
+   this->sonixGrabber->Seek(10);
+
   
   for(int i=0; i < nbFramesGrabbed; i++)
     {
@@ -349,6 +357,10 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
     panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
     this->sonixGrabber->Seek(1); //Advance to the next frame
+    //writer->SetInput(this->tagger->GetOutput());  
+    //sprintf(filename,"Output/output%03d.bmp",i);
+    //writer->SetFileName(filename);
+    //writer->Update();
 
     }
 
@@ -356,10 +368,6 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 
 
   cout << "Inserted " << panoramaReconstructor->GetPixelCount() << " pixels into the output volume" << endl;
-  
-
-  //
-
   panoramaReconstructor->FillHolesInOutput();
   
   //---------------------------------------------------------------------------
@@ -375,12 +383,11 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 #else
 
   vtkImageData * extractOutput = panoramaReconstructor->GetOutput();
+
 #endif
+    //--- Adjust Properties of transfer_buffer ---
 
 
-  //--- Adjust Properties of transfer_buffer ---
-
-  
   //Dimensions
   int dimensions[3];   
   extractOutput->GetDimensions(dimensions);
@@ -392,12 +399,11 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   this->transfer_buffer->SetSpacing(ouputSpacing);
   
   //SetScalarType
-  this->transfer_buffer->SetScalarType(extractOutput->GetScalarType());
-  
+  this->transfer_buffer->SetScalarType(extractOutput->GetScalarType());  
   this->transfer_buffer->AllocateScalars();
 
-  char * pBuff = (char *) this->transfer_buffer->GetScalarPointer();
-  char * pExtract = (char *) extractOutput->GetScalarPointer();  
+  unsigned char * pBuff = (unsigned char *) this->transfer_buffer->GetScalarPointer();
+  unsigned char * pExtract = (unsigned char *) extractOutput->GetScalarPointer();  
 
   //Fill transfer buffer
   for(int i = 0 ; i < dimensions[2] ; ++i)
@@ -406,9 +412,9 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
       {
       for(int k = 0 ; k < dimensions[0] ; ++k)
         {
-        *pBuff = *pExtract;
-        ++pBuff;
-        ++pExtract;
+*pBuff = *pExtract;
+pBuff++;
+pExtract++;
         }
       }
     }   
