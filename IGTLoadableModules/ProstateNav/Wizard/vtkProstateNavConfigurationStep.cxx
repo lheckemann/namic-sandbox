@@ -324,7 +324,7 @@ void vtkProstateNavConfigurationStep::ProcessGUIEvents( vtkObject *caller,
           if (igtlGUI)
             {
             igtlGUI->GetLogic()->AddClientConnector("BRPScanner", address, port);
-            this->RobotConnectButton->SetText("ON ");
+            this->ScannerConnectButton->SetText("ON ");
             }
           }
         }

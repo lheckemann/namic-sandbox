@@ -18,6 +18,7 @@
 #include "vtkProstateNavStep.h"
 
 #include "vtkKWPushButton.h"
+#include "vtkKWCheckButton.h"
 #include "vtkKWLoadSaveButtonWithLabel.h"
 #include "vtkKWFrame.h"
 
@@ -32,13 +33,28 @@ public:
   virtual void ShowUserInterface();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
 
+  void ShowZFrameModel();
+  void HideZFrameModel();
+
+  const char* AddZFrameModel(const char* nodeName); // returns Node ID
+  const char* AddZFrameTransform(const char* nodeName);
+
 protected:
   vtkProstateNavCalibrationStep();
   ~vtkProstateNavCalibrationStep();
 
-  vtkKWFrame *SelectImageFrame;
+  vtkKWFrame       *SelectImageFrame;
   vtkKWLoadSaveButtonWithLabel *SelectImageButton;
-  vtkKWPushButton *CalibrateButton;
+  vtkKWPushButton  *CalibrateButton;
+  vtkKWCheckButton *ShowZFrameCheckButton;
+  vtkKWFrame       *ZFrameSettingFrame;
+
+  //vtkMRMLModelNode* ZFrameModelNode;
+  //BTX
+  std::string ZFrameModelNodeID;
+  std::string ZFrameTransformNodeID;
+  //ETX
+  
 
 private:
   vtkProstateNavCalibrationStep(const vtkProstateNavCalibrationStep&);
