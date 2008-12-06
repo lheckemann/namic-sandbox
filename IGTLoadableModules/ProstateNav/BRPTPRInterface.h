@@ -1,3 +1,17 @@
+/*==========================================================================
+
+  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+
+  See Doc/copyright/copyright.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
+
+  Program:   3D Slicer
+  Module:    $HeadURL: $
+  Date:      $Date: $
+  Version:   $Revision: $
+
+==========================================================================*/
+
 // BRPTPRInterface.h version 1.0: July 17, 2007 2:42pm
 
 #ifndef _BRPTPRInterface_h_
