@@ -10,7 +10,9 @@ class vtkKWEntry;
 class vtkKWCheckButton;
 class vtkKWPushButton;
 class vtkKWLabel;
-class vtkOpenIGTLinkIFLogic;
+
+#include "vtkOpenIGTLinkIFLogic.h"
+
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavConfigurationStep :
   public vtkProstateNavStep

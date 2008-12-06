@@ -257,20 +257,6 @@ void vtkProstateNavConfigurationStep::ShowUserInterface()
 
 
 
-  if (!this->OpenIGTLinkIFLogic)
-    {
-    vtkOpenIGTLinkIFGUI* gui = 
-      vtkOpenIGTLinkIFGUI::SafeDownCast(vtkSlicerApplication::SafeDownCast(this->GetApplication())
-                                        ->GetModuleGUIByName("OpenIGTLink IF"));
-    if (gui)
-      {
-      this->OpenIGTLinkIFLogic = gui->GetLogic();
-      }
-    }
-
-
-
-
 }
 
 
@@ -290,12 +276,18 @@ void vtkProstateNavConfigurationStep::ProcessGUIEvents( vtkObject *caller,
     {
     if (strcmp(this->RobotConnectButton->GetText(), "OFF") == 0)
       {
-      if (this->OpenIGTLinkIFLogic)
+      const char* address = this->RobotAddressEntry->GetValue();
+      int port    = this->RobotPortEntry->GetValueAsInt();
+      if (strlen(address) > 0 && port > 0)
         {
-        const char* address = this->RobotAddressEntry->GetValue();
-        int port    = this->RobotPortEntry->GetValueAsInt();
-        if (strlen(address) > 0 && port > 0)
+        vtkOpenIGTLinkIFGUI* gui = 
+          vtkOpenIGTLinkIFGUI::SafeDownCast(vtkSlicerApplication::SafeDownCast(this->GetApplication())
+                                            ->GetModuleGUIByName("OpenIGTLink IF"));
+        std::cerr << gui << std::endl;
+        if (gui)
           {
+          this->OpenIGTLinkIFLogic = gui->GetLogic();
+          std::cerr << this->OpenIGTLinkIFLogic << std::endl;          
           this->OpenIGTLinkIFLogic->AddClientConnector("BRPRobot", address, port);
           this->RobotConnectButton->SetText("ON ");
           }

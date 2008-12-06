@@ -47,6 +47,7 @@ include_directories(
   ${Slicer3_Base_INCLUDE_DIRS}
   )
 
+
 #
 # Configure include file
 #
@@ -99,12 +100,19 @@ add_library(${lib_name}
   )
 
 
+message("Link directory = \"${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_LIB_DIR}\"")
+
+link_directories(
+  ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_LIB_DIR}
+)
+
+
 target_link_libraries(${lib_name}
+#  OpenIGTLinkIF
   ${Slicer3_Libs_LIBRARIES}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
   ${ITK_LIBRARIES}
-  OpenIGTLinkIF.so
   )
 
 install(TARGETS ${lib_name}
