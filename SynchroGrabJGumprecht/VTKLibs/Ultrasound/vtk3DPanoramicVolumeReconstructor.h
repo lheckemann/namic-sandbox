@@ -77,8 +77,8 @@ class vtkTrackerBuffer;
 class vtkCriticalSection;
 class vtkImageData;
 
-#define VTK_FREEHAND_NEAREST 0
-#define VTK_FREEHAND_LINEAR 1
+#define VTK_FREEHAND_NEAREST 1
+#define VTK_FREEHAND_LINEAR 0
 
 class VTK_EXPORT vtk3DPanoramicVolumeReconstructor : public vtkImageAlgorithm
 {

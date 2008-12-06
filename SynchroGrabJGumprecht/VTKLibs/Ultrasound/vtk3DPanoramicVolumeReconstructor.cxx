@@ -201,8 +201,10 @@ vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
   // one thread for each CPU is used for the reconstruction
   this->Threader = vtkMultiThreader::New();
   this->NumberOfThreads = this->Threader->GetNumberOfThreads();  
-
+  //this->NumberOfThreads = 4;
+  //cerr << " NUM threads" << NumberOfThreads << endl;
   // for running the reconstruction in the background
+  
   this->VideoSource = NULL;
   this->TrackerTool = NULL;
   this->TrackerBuffer = vtkTrackerBuffer::New();
@@ -1005,24 +1007,33 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
   int outIdY = vtkUltraRound(point[1])-outExt[2];
   int outIdZ = vtkUltraRound(point[2])-outExt[4];
   
+  //cerr << "###" << endl;
+
   // fancy way of checking bounds
   if ((outIdX | (outExt[1]-outExt[0] - outIdX) |
        outIdY | (outExt[3]-outExt[2] - outIdY) |
        outIdZ | (outExt[5]-outExt[4] - outIdZ)) >= 0)
     {
     int inc = outIdX*outInc[0]+outIdY*outInc[1]+outIdZ*outInc[2];
-    outPtr += inc;
+    //    cerr << outInc[0] << outInc[1] << outInc[2] << endl;
+
+    //// Quick and Dirty
+    ////NH and JG 12/05/08
+    outPtr +=inc/2;
+
+    //    if(accPtr)cerr << " accPtr is in " << numscalars << endl;
+
     if (accPtr)
       {
-      // accumulation buffer: do compounding
       accPtr += inc/outInc[0];
       int newa = *accPtr + 255;
+      
       for (i = 0; i < numscalars; i++)
-        {
-        *outPtr = ((*inPtr++)*255 + (*outPtr)*(*accPtr))/newa;
-        outPtr++;
+{
+*outPtr = ((*inPtr++)*255 + (*outPtr)*(*accPtr))/newa;
+outPtr++;
         }
-      *outPtr = 255;
+      //*outPtr = 255;
       *accPtr = 65535;
       if (newa < 65535)
         {
@@ -1031,7 +1042,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
       }
     else
       {
-      // no accumulation buffer, replace what was there before
+       // no accumulation buffer, replace what was there before
       for (i = 0; i < numscalars; i++)
         {
         *outPtr++ = *inPtr++;
@@ -1225,8 +1236,9 @@ static void vtkGetUltraInterpFunc(vtk3DPanoramicVolumeReconstructor *self,
     case VTK_FREEHAND_NEAREST:
       *interpolate = &vtkNearestNeighborInterpolation;
       break;
-    case VTK_FREEHAND_LINEAR:
-      *interpolate = &vtkTrilinearInterpolation;
+         case VTK_FREEHAND_LINEAR:
+      *interpolate = &vtkNearestNeighborInterpolation;
+
       break;
     }
 }
@@ -1287,21 +1299,32 @@ static void vtk3DPanoramicVolumeReconstructorInsertSlice(vtk3DPanoramicVolumeRec
   target++;
   
   // Get Increments to march through data
-  
+ 
   vtkIdTypeOutInc[0] = outInc[0];
   vtkIdTypeOutInc[1] = outInc[1];
   vtkIdTypeOutInc[2] = outInc[2];
   
+ 
   outData->GetIncrements(vtkIdTypeOutInc); 
   
   outInc[0] = (int) vtkIdTypeOutInc[0];
   outInc[1] = (int) vtkIdTypeOutInc[1];
   outInc[2] = (int) vtkIdTypeOutInc[2];
+ 
+  //cerr << "###" << outInc[0] << " " << outInc[1] << " " << outInc[2] << endl;
+
   
   inData->GetContinuousIncrements(inExt,inIncX,inIncY,inIncZ);
+
+  //cerr << "###" << inIncX << " " << inIncY << " " << inIncZ << endl;
+
   numscalars = inData->GetNumberOfScalarComponents();
   
   // Set interpolation method
+  /// NH focing it to use nearest
+
+  //*interpolate = &vtkNearestNeighborInterpolation;
+
   vtkGetUltraInterpFunc(self,&interpolate);
 
   // Loop through input pixels
@@ -1331,12 +1354,9 @@ static void vtk3DPanoramicVolumeReconstructorInsertSlice(vtk3DPanoramicVolumeRec
             outPoint[1] /= outPoint[3]; //   was a perspective transform
             outPoint[2] /= outPoint[3];
             outPoint[3] = 1;
-        
-            int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, 
-                        outExt, outInc);
-      //    self->SetPixelCount( self->GetPixelCount() + hit);
-      self->IncrementPixelCount(0, hit);
-      
+ int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, outExt, outInc);
+//    self->SetPixelCount( self->GetPixelCount() + hit);
+self->IncrementPixelCount(0, hit);
             }
           }
         inPtr += numscalars; 
@@ -1356,11 +1376,15 @@ static void vtk3DPanoramicVolumeReconstructorInsertSlice(vtk3DPanoramicVolumeRec
 void vtk3DPanoramicVolumeReconstructor::InsertSlice()
 {
   
+  /*
+
   if (this->GetOptimization())
     {
     this->OptimizedInsertSlice();
     return;
     }
+  */
+
 
   if (this->ReconstructionThreadId == -1)
     {
@@ -1443,13 +1467,15 @@ void vtk3DPanoramicVolumeReconstructor::InsertSlice()
                              (unsigned short *)(accPtr), 
                              inData, (unsigned char *)(inPtr), 
                              inExt, matrix);
-      break;
+
+break;
     default:
       vtkErrorMacro(<< "InsertSlice: Unknown input ScalarType");
       return;
     }
 
   // this->Modified();
+  
 }
 
 //----------------------------------------------------------------------------

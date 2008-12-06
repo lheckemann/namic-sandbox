@@ -438,52 +438,23 @@ void vtkTrackerSimulator::GenerateTrackerMatrix(vtkMatrix4x4& matrix, int index)
   float position[3];
   float orientation[4];
 
-  // random position
-  static float phi = 0.0;
-  position[0] = 50.0 * cos(phi);
-  position[1] = 50.0 * sin(phi);
-  position[2] = 50.0 * cos(phi);
-  phi = phi + 0.2;
-
-  // random orientation
-//  static float theta = 0.0;
-//  orientation[0]=0.0;
-//  orientation[1]=0.6666666666*cos(theta);
-//  orientation[2]=0.577350269189626;
-//  orientation[3]=0.6666666666*sin(theta);
-//  theta = theta + 0.1;
-//
-//  igtl::Matrix4x4 igtlMatrix;
-
-//  for(int i = 0; i < 4; ++i)
-//    {
-//    for(int j = 0; j < 4; ++j)
-//      {
-//      igtlMatrix[i][j] = matrix[i][j]; 
-//      }
-//    }
-
-  //igtl::Matrix4x4 matrix;
-//  igtl::QuaternionToMatrix(orientation, igtlMatrix);
-
-//  igtl::PrintMatrix(igtlMatrix);
-  
-//  for(int i = 0; i < 4; ++i)
-//    {
-//    for(int j = 0; j < 4; ++j)
-//      {
-//      matrix[i][j] = igtlMatrix[i][j];  
-//      }
-//    }
-//  matrix[0][3] = position[0];
-//  matrix[1][3] = position[1];
-//  matrix[2][3] = position[2];
-
   matrix.Identity();
+  // random orientation
+  float theta = index/100*3.14;
+  orientation[0]=0.0;
+  orientation[1]=0.6666666666*cos(theta);
+  orientation[2]=0.577350269189626;
+  orientation[3]=0.6666666666*sin(theta);
   
-  matrix.SetElement(0, 3, 1);
-  matrix.SetElement(1, 3, 1);
-  matrix.SetElement(2, 3, index);
+  
+  matrix[0][3] = 0;
+  matrix[1][3] = 0;
+  matrix[2][3] = index;
+
+  // matrix.Identity();
+  //  matrix.SetElement(0, 2, orientation[1]);
+  //matrix.SetElement(1, 2, orientation[2]);
+  //matrix.SetElement(2, 2, orientation[3]);
 
 }
 

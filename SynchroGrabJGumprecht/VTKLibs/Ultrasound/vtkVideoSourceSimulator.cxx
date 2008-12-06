@@ -738,14 +738,13 @@ void vtkVideoSourceSimulator::InternalGrab()
       {
       for (int k = 0 ; k < SLICE_X_LENGTH ; k++)
         {
- deviceDataPtr[j * SLICE_Y_LENGTH + k] = (unsigned char) 64;        
-         }            
-      }
+deviceDataPtr[j * SLICE_Y_LENGTH + k] = (unsigned char) k;
+}            
+}
 
     // get the pointer to the correct location in the frame buffer, where this data needs to be copied
     unsigned char *frameBufferPtr = (unsigned char *)((reinterpret_cast<vtkUnsignedCharArray*>(this->FrameBuffer[index]))->GetPointer(0));
 
-   
     int outBytesPerRow = ((this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1)* this->FrameBufferBitsPerPixel + 7)/8;
     outBytesPerRow += outBytesPerRow % this->FrameBufferRowAlignment;
     //int outBytesPerRow = (this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1);
@@ -756,12 +755,14 @@ void vtkVideoSourceSimulator::InternalGrab()
   
     int rows = this->FrameBufferExtent[3]-this->FrameBufferExtent[2]+1;
 
+    
     //cerr << rows << " " << inBytesPerRow << " " << outBytesPerRow << endl;
 
     // 4) copy data to the local vtk frame buffer
     if (outBytesPerRow == inBytesPerRow)
       {
-      memcpy(frameBufferPtr,deviceDataPtr,inBytesPerRow*rows);
+//NH 12/05/08 temporarary commented out for debugging
+ memcpy(frameBufferPtr,deviceDataPtr,inBytesPerRow*rows);
       }
     else
       {
@@ -776,160 +777,9 @@ void vtkVideoSourceSimulator::InternalGrab()
     delete deviceDataPtr;
     this->Modified();
     
-    
-    
     this->FrameBufferMutex->Unlock();
     
 }
 #else //NEW_SIMULATOR
-void vtkVideoSourceSimulator::FillFrameBuffer()
-{
-  //to do
-  // 1) Do frame buffer indices maintenance
-  // 2) Do time stamping
-  // 3) decode the data according to type
-  // 4) copy data to the local vtk frame buffer
-    
-  
-  // get the pointer to data
-  // use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
-  // expected data type
 
-
-  // get a thread lock on the frame buffer
-  this->FrameBufferMutex->Lock();
-  
-  int limit = 100;
-  
-  //for testing
-//  limit = 3;
- 
-  for (int n = 0; n < limit; ++n)
- 
-    {
-    // 1) Do the frame buffer indices maintenance
-    if (this->AutoAdvance)
-      {
-      this->AdvanceFrameBuffer(1);
-      if (this->FrameIndex + 1 < this->FrameBufferSize)
-        {
-        this->FrameIndex++;
-        }
-      }
-    int index = this->FrameBufferIndex;
-
-    // 2) Do the time stamping
-//    this->FrameBufferTimeStamps[index] = vtkTimerLog::GetUniversalTime();
-    //We need times that correspond to the tracking matrices, therefore the every Frame has its index as timestamp
-    this->FrameBufferTimeStamps[index] = index;
-
-    if (this->FrameCount++ == 0)
-      {
-      this->StartTimeStamp = this->FrameBufferTimeStamps[index];
-      }
-
-  
-    // 3) read the data, based on the data type and clip region information, which is reflected in frame buffer extents
-    // this is necessary as there would be cases when there is a clip region defined i.e. only data from the desired extents should be copied 
-    // to the local buffer, which demands necessary advancement of deviceDataPtr
-  
-    // get the pointer to actual incoming data on to a local pointer
-    char* deviceDataPtr = new char[SLICE_X_LENGTH * SLICE_Y_LENGTH * SLICE_Z_LENGTH];  
-  
-    int R = 50; //Radius of globe
-    double r; //Radius of circle in slice
-    int c = limit / 2; //Center of globe
-    double a;// Start to write at this position in the actual line
-    double b;// Stop to write at this position in the actual line
-  
-    for (int z = 0 ; z < SLICE_Z_LENGTH ; z++)
-      {
-      //Calc radius of slice
-      if(n - c >= R || c - n >= R)
-        {
-        r = -1;
-        }
-      else
-        {
-        if(n >= c)
-          {
-          r = sqrt(R * R - (n - c) * (n - c));
-          }
-        else
-          {
-          r = sqrt(R * R - (c - n) * (c - n));
-          }
-//      cout << "******************************************\n";
-//      cout << "Globe Calculation: Slice has radius: " << r << endl;
-        }
-      for (int y = 0 ; y < SLICE_Y_LENGTH ; y++)
-        {
-        //Calc a, b
-        if(r == -1 || y - SLICE_Y_LENGTH / 2 >= r || SLICE_Y_LENGTH / 2 - y >= r)
-          {
-          a = -1;
-          b = -1;
-          }
-        else
-          {
-          if (y <= SLICE_X_LENGTH / 2)
-            {
-            a = SLICE_X_LENGTH / 2 - sqrt(r * r - (SLICE_Y_LENGTH / 2 - y) * (SLICE_Y_LENGTH / 2 - y));
-            b = SLICE_X_LENGTH / 2 + sqrt(r * r - (SLICE_Y_LENGTH / 2 - y) * (SLICE_Y_LENGTH / 2 - y));
-            }
-          else
-            {
-            a = SLICE_X_LENGTH / 2 - sqrt(r * r - (y - SLICE_Y_LENGTH / 2) * (y - SLICE_Y_LENGTH / 2));
-            b = SLICE_X_LENGTH / 2 + sqrt(r * r - (y - SLICE_Y_LENGTH / 2) * (y - SLICE_Y_LENGTH / 2));          
-            }
-//            cout << "A, B for this line: " << a << ", " << b << endl; 
-          } 
-        for (int x = 0 ; x < SLICE_X_LENGTH ; x++)
-          {
-          if(a == -1 || b == -1 || x <= a || x >= b)
-            {
-            deviceDataPtr[ z * SLICE_Z_LENGTH + y * SLICE_Y_LENGTH + x] = 255;
-            continue;
-            }                     
-          deviceDataPtr[ z * SLICE_Z_LENGTH + y * SLICE_Y_LENGTH + x] = 0;        
-          }            
-        }
-      }
-
-    // get the pointer to the correct location in the frame buffer, where this data needs to be copied
-    unsigned char *frameBufferPtr = (unsigned char *)((reinterpret_cast<vtkUnsignedCharArray*>(this->FrameBuffer[index]))->GetPointer(0));
-
-   
-    int outBytesPerRow = ((this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1)* this->FrameBufferBitsPerPixel + 7)/8;
-    outBytesPerRow += outBytesPerRow % this->FrameBufferRowAlignment;
-
-    int inBytesPerRow = this->FrameSize[0] * this->FrameBufferBitsPerPixel/8;
-  
-    int rows = this->FrameBufferExtent[3]-this->FrameBufferExtent[2]+1;
-
-
-    // 4) copy data to the local vtk frame buffer
-    if (outBytesPerRow == inBytesPerRow)
-      {
-      memcpy(frameBufferPtr,deviceDataPtr,inBytesPerRow*rows);
-      }
-    else
-      {
-      while (--rows >= 0)
-        {
-        memcpy(frameBufferPtr,deviceDataPtr,outBytesPerRow);
-        frameBufferPtr += outBytesPerRow;
-        deviceDataPtr += (unsigned char) inBytesPerRow;
-        }
-      }
- 
-    this->Modified();
-  
-  }
-  
-  delete deviceDataPtr;
-
-  this->FrameBufferMutex->Unlock();
-
-}
 #endif //NEW_SIMULATOR
