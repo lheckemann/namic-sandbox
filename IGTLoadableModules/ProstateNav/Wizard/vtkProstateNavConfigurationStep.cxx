@@ -43,8 +43,6 @@ vtkProstateNavConfigurationStep::vtkProstateNavConfigurationStep()
   this->ScannerPortEntry    = NULL;
   this->ScannerConnectButton  = NULL;
 
-  this->OpenIGTLinkIFLogic  = NULL;
-
 }
 
 
@@ -280,15 +278,12 @@ void vtkProstateNavConfigurationStep::ProcessGUIEvents( vtkObject *caller,
       int port    = this->RobotPortEntry->GetValueAsInt();
       if (strlen(address) > 0 && port > 0)
         {
-        vtkOpenIGTLinkIFGUI* gui = 
+        vtkOpenIGTLinkIFGUI* igtlGUI = 
           vtkOpenIGTLinkIFGUI::SafeDownCast(vtkSlicerApplication::SafeDownCast(this->GetApplication())
                                             ->GetModuleGUIByName("OpenIGTLink IF"));
-        std::cerr << gui << std::endl;
-        if (gui)
+        if (igtlGUI)
           {
-          this->OpenIGTLinkIFLogic = gui->GetLogic();
-          std::cerr << this->OpenIGTLinkIFLogic << std::endl;          
-          this->OpenIGTLinkIFLogic->AddClientConnector("BRPRobot", address, port);
+          igtlGUI->GetLogic()->AddClientConnector("BRPRobot", address, port);
           this->RobotConnectButton->SetText("ON ");
           }
         }
@@ -303,14 +298,20 @@ void vtkProstateNavConfigurationStep::ProcessGUIEvents( vtkObject *caller,
     {
     if (strcmp(this->ScannerConnectButton->GetText(), "OFF") == 0)
       {
-      if (this->OpenIGTLinkIFLogic)
+      const char* address = this->ScannerAddressEntry->GetValue();
+      int port    = this->ScannerPortEntry->GetValueAsInt();
+      if (strlen(address) > 0 && port > 0)
         {
-        const char* address = this->ScannerAddressEntry->GetValue();
-        int port    = this->ScannerPortEntry->GetValueAsInt();
         if (strlen(address) > 0 && port > 0)
           {
-          this->OpenIGTLinkIFLogic->AddClientConnector("BRPRobot", address, port);
-          this->ScannerConnectButton->SetText("ON ");
+          vtkOpenIGTLinkIFGUI* igtlGUI = 
+            vtkOpenIGTLinkIFGUI::SafeDownCast(vtkSlicerApplication::SafeDownCast(this->GetApplication())
+                                              ->GetModuleGUIByName("OpenIGTLink IF"));
+          if (igtlGUI)
+            {
+            igtlGUI->GetLogic()->AddClientConnector("BRPScanner", address, port);
+            this->RobotConnectButton->SetText("ON ");
+            }
           }
         }
       }

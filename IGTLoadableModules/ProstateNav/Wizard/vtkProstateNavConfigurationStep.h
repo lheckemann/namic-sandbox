@@ -11,9 +11,6 @@ class vtkKWCheckButton;
 class vtkKWPushButton;
 class vtkKWLabel;
 
-#include "vtkOpenIGTLinkIFLogic.h"
-
-
 class VTK_PROSTATENAV_EXPORT vtkProstateNavConfigurationStep :
   public vtkProstateNavStep
 {
@@ -29,18 +26,7 @@ protected:
   vtkProstateNavConfigurationStep();
   ~vtkProstateNavConfigurationStep();
 
-  // pointer to OpenIGTLinkIF Logic
-  vtkOpenIGTLinkIFLogic* OpenIGTLinkIFLogic;
-  
-
   // GUI Widgets
-  vtkKWFrame *ConfigNTFrame;
-  vtkKWFrame *ConnectNTFrame;
-  vtkKWLoadSaveButtonWithLabel *LoadConfigButtonNT;
-  vtkKWEntry *ConfigFileEntryNT;
-  vtkKWCheckButton *ConnectCheckButtonNT;
-
-
   vtkKWFrame *RobotFrame;
   vtkKWLabel *RobotLabel1;
   vtkKWLabel *RobotLabel2;
