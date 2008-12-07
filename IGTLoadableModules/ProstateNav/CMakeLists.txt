@@ -27,12 +27,15 @@ endif(NOT Slicer3_SOURCE_DIR)
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat
   ${CMAKE_CURRENT_BINARY_DIR}
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
   ${OpenIGTLinkIF_SOURCE_DIR}
   ${OpenIGTLinkIF_BINARY_DIR}
   ${OpenIGTLink_INCLUDE_DIRS}
+  ${Volumes_SOURCE_DIR}
+  ${Volumes_BINARY_DIR}
   )
 
 
@@ -47,6 +50,7 @@ configure_file(
 file(GLOB headers 
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Wizard/*.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/newmat/*.h"
   )
 
 install(FILES 
@@ -70,6 +74,36 @@ set(ProstateNav_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavManualControlStep.cxx
   )
 
+set(ProstateNavNewmat_SRCS
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat9.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmatrm.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/nm_misc.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/bandmat.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat1.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/solution.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/cholesky.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/hholder.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat2.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmatex.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat3.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/sort.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/evalue.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/jacobi.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat4.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/submat.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/example.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat5.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/svd.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/myexcept.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat6.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmatnl.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/fft.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat7.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newfft.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat8.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/newmat/ZLinAlg.cxx
+)
+
 
 # --------------------------------------------------------------------------
 # Wrapping
@@ -91,6 +125,7 @@ set(lib_name ProstateNav)
 
 add_library(${lib_name}
   ${ProstateNav_SRCS} 
+  ${ProstateNavNewmat_SRCS} 
   ${ProstateNav_TCL_SRCS}
   )
 slicer3_set_modules_output_path(${lib_name})
@@ -106,6 +141,7 @@ target_link_libraries(${lib_name}
   ${KWWidgets_LIBRARIES}
   ${ITK_LIBRARIES}
   OpenIGTLinkIF
+  Volumes
   )
 
 
