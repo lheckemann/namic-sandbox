@@ -35,3 +35,9 @@ ADD_TEST(FibonacciSphereSourceTest2b
   1000
   )
 
+ADD_TEST(FibonacciSphereSourceTest2c 
+  ${CXX_TEST_PATH}/FibonacciSphereSourceTest2
+  ${TEMP}/FibonacciSphereSourceTest2Output3.vtk
+  10000
+  )
+

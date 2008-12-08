@@ -41,6 +41,8 @@ int main( int argc, char *argv[] )
     sphere->SetRadius(1.0);
     sphere->Update();
 
+  sphere->Print( std::cout );
+
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
     writer->SetInput( sphere->GetOutput() );
     writer->SetFileName( argv[1] );
