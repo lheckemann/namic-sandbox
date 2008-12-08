@@ -41,6 +41,8 @@ POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
 
+#include "SynchroGrabConfigure.h"
+
 #include <limits.h>
 #include <float.h>
 #include <math.h>
