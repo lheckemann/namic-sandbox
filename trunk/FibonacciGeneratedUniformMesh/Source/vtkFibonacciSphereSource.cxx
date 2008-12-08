@@ -80,7 +80,7 @@ int vtkFibonacciSphereSource::RequestData(
   std::cout << "phi = " << phi << std::endl;
 
   // Generate point coordinates
-  for (i=0; i < this->TotalNumberOfPoints; i++)
+  for (i=1; i <= this->TotalNumberOfPoints; i++)
     {
     const float p = (float)(i)/(float)(this->TotalNumberOfPoints);
     const double zc = (1.0-2.0*p);
