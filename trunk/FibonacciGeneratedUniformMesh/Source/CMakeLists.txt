@@ -1,0 +1,4 @@
+
+ADD_LIBRARY(FibonacciGeneratedUniformMesh vtkFibonacciSphereSource.cxx )
+TARGET_LINK_LIBRARIES(FibonacciGeneratedUniformMesh vtkGraphics)
+
