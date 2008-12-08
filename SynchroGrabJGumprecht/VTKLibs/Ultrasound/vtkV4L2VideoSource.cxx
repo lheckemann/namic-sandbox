@@ -30,6 +30,8 @@
 // .SECTION See Also
 // vtkWin32VideoSource vtkMILVideoSource
 
+#include "SynchroGrabConfigure.h"
+
 #include "vtkV4L2VideoSource.h"
 
 #include "vtkImageData.h"
