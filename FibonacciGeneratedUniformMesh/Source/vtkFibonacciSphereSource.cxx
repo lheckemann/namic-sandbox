@@ -74,17 +74,20 @@ int vtkFibonacciSphereSource::RequestData(
   this->UpdateProgress(0.0);
 
   const double pi  = atan(1.0) * 4.0;
+  const double pi2 = 2.0 * pi;
   const double phi = ( 3.0 - sqrt(5.0) ) * pi;
 
   std::cout << "pi  = " << pi  << std::endl;
   std::cout << "phi = " << phi << std::endl;
+  std::cout << "TotalNumberOfPoints = " << this->TotalNumberOfPoints << std::endl;
+
+  double angle = 0.0;
 
   // Generate point coordinates
-  for (i=1; i <= this->TotalNumberOfPoints; i++)
+  for (i=0; i <= this->TotalNumberOfPoints; i++)
     {
     const float p = (float)(i)/(float)(this->TotalNumberOfPoints);
     const double zc = (1.0-2.0*p);
-    const double angle = i*phi;
     const double z2 = zc*zc;
     const double rxy = sqrt(1.0-zc*zc);
     const double xc = rxy*cos(angle);
@@ -105,6 +108,12 @@ int vtkFibonacciSphereSource::RequestData(
        }
     n[0] /= norm; n[1] /= norm; n[2] /= norm;
     newNormals->InsertNextTuple(n);
+
+    angle += phi;
+    if ( angle > pi2 )
+      {
+      angle -= pi2;
+      }
 
     this->UpdateProgress (p);
     }

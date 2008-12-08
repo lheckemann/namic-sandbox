@@ -31,8 +31,6 @@
 
 #include "vtkPolyDataAlgorithm.h"
 
-#define VTK_MAX_SPHERE_RESOLUTION 1024
-
 class VTK_GRAPHICS_EXPORT vtkFibonacciSphereSource : public vtkPolyDataAlgorithm 
 {
 public:
