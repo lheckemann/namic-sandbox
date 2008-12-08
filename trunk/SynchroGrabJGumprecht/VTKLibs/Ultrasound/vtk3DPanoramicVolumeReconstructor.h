@@ -53,18 +53,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #ifndef __vtk3DPanoramicVolumeReconstructor_h
 #define __vtk3DPanoramicVolumeReconstructor_h
 
-#define VOLUME_X_LENGTH 256
-#define VOLUME_Y_LENGTH 256
-#define VOLUME_Z_LENGTH 256
-
-#define VOLUME_X_SPACING 1.0
-#define VOLUME_Y_SPACING 1.0
-#define VOLUME_Z_SPACING 1.0
-
-#define VOLUME_X_ORIGIN VOLUME_X_LENGTH / 2
-#define VOLUME_Y_ORIGIN VOLUME_Y_LENGTH / 2
-#define VOLUME_Z_ORIGIN VOLUME_Z_LENGTH / 2
-
 #include "vtkImageSource.h"
 #include "vtkImageAlgorithm.h"
 

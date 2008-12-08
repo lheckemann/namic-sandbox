@@ -62,10 +62,6 @@ class vtkMultiThreader;
 class vtkScalarsToColors;
 //New-End
 
-#define SLICE_X_LENGTH 256
-#define SLICE_Y_LENGTH 256
-#define SLICE_Z_LENGTH 1
-
 #define BITS_PER_PIXEL 8
 
 

@@ -101,7 +101,7 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
   this->CalibrationFileName = NULL;
   this->OIGTLServer = NULL; 
   this->SetOIGTLServer("localhost");
-  this->SetVideoDevice("/dev/video");
+  this->SetVideoDevice("/dev/video0");
 
   this->TransfertImages = false; 
   this->VolumeReconstructionEnabled = true;
@@ -342,11 +342,6 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
    vtkBMPWriter *writer = vtkBMPWriter::New();
    char filename[256];
 
-
-   //NH 12.05 08 Jan was worried about the 10 blank images in the beginning
-   this->sonixGrabber->Seek(10);
-
-  
   for(int i=0; i < nbFramesGrabbed; i++)
     {
 
@@ -357,10 +352,10 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
     panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
     this->sonixGrabber->Seek(1); //Advance to the next frame
-    //writer->SetInput(this->tagger->GetOutput());  
-    //sprintf(filename,"Output/output%03d.bmp",i);
-    //writer->SetFileName(filename);
-    //writer->Update();
+    writer->SetInput(this->tagger->GetOutput());  
+    sprintf(filename,"./Output/output%03d.bmp",i);
+    writer->SetFileName(filename);
+    writer->Update();
 
     }
 
