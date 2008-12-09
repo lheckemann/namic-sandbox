@@ -22,11 +22,12 @@
 #include "vtkKWLoadSaveButtonWithLabel.h"
 #include "vtkKWFrame.h"
 
-#include "vtkImageData.h"
+#include "vtkMRMLScalarVolumeNode.h"
 #include "ZLinAlg.h"
-#include "newmatap.h">
+#include "newmatap.h"
 #include "newmat.h"
 //#include <math.h>
+#include "vtkMRMLLinearTransformNode.h"
 
 #define FORCE_SIZEX     256
 #define FORCE_SIZEY     256
@@ -52,7 +53,9 @@ public:
   void PerformZFrameCalibration(const char* filename);
 
   void Init(int xsize, int ysize);
-  void ZFrameRegistration(vtkImageData* image);
+  int  ZFrameRegistration(vtkMRMLScalarVolumeNode* volumeNode,
+                          vtkMRMLLinearTransformNode* transformNode,
+                          int slindex);
 
   short  *InputImage;
   int    imgxsize;
