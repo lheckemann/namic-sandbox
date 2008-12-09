@@ -1677,6 +1677,13 @@ void vtkV4L2VideoSource::InitDevice(void){
   if (-1 == xioctl (fd,VIDIOC_S_INPUT , &channel))
     errno_exit ("VIDIOC_S_INPUT");
 
+ v4l2_std_id std_id = V4L2_STD_NTSC;
+
+  if (-1 == ioctl (fd, VIDIOC_S_STD, &std_id)) {
+        perror ("VIDIOC_S_STD");
+        exit (EXIT_FAILURE);
+}
+
 }
 //New-End
 
