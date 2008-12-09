@@ -54,7 +54,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkFileOutputWindow.h"
 #include "vtkMultiThreader.h"
-#include "vtkSynchroGrabPipeline.h"
+//#include "vtkSynchroGrabPipeline.h"
+#include "vtkUltrasoundVolumeReconstructor.h"
+#include "vtkUltrasoundVolumeSender.h"
 //#include "vtkMINCImageReader.h"
 #include "vtkImageData.h"
 //#include "vtkImageReader2.h"
@@ -75,22 +77,21 @@ void printUsage()
         "recorded, the application creates the 3D volume and exists." << endl << endl;
 
     cout << "Options: " << endl
-         <<  "--calibration-file xxxx or -c xxxx: to specify the calibration file" << endl 
-         <<  "--output-file xxxx or -o xxxx: to specify the ouput file" << endl
-         <<  "                               (default value: outputVol.vtk)" << endl
-         << "--sonix-addr xxxx or -a xxxx: to specify the ip adress of the sonix " << endl
-         << "                              RP machine (default value : 127.0.0.1)" << endl
+         << "--calibration-file xxxx or -c xxxx: to specify the calibration file" << endl 
+         << "--output-file xxxx or -o xxxx: to specify the ouput file" << endl
+         << "                               (default value: outputVol.vtk)" << endl
          << "--nb-frames xxxx or -n xxxx: to specify the number of frames that " << endl 
          << "                            will be collected (default: 150)" << endl
          << "--fps: Number of frames per second for the ultrasound data collection" << endl
-         << "      (default 10)" << endl;
+         << "      (default 10)" << endl
+         << "--reconstruct-volume: Do volume reconstruction " << endl;
 }
 
 
 //
 // Parse the command line options.
 //
-bool parseCommandLineArguments(int argc, char **argv, vtkSynchroGrabPipeline *pipeline)
+bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconstructor *reconstructor, vtkUltrasoundVolumeSender *sender)
 {
     // needs to be supplied
     bool calibrationFileSpecified = false;
@@ -102,48 +103,48 @@ bool parseCommandLineArguments(int argc, char **argv, vtkSynchroGrabPipeline *pi
             {
             if( i < argc - 1)
                 {
-                pipeline->SetCalibrationFileName(argv[++i]);
+                reconstructor->SetCalibrationFileName(argv[++i]);
                 calibrationFileSpecified = true;
                 }
             }
-        else if(currentArg == "--oigtl-transfert-images")
-            {
-            pipeline->SetTransfertImages(true);
-            pipeline->SetVolumeReconstructionEnabled(false);
+        else if(currentArg == "--oigtl-transfert-images")            {
+            sender->SetTransfertImages(true);
+            reconstructor->SetVolumeReconstructionEnabled(false);
             }
         else if(currentArg == "--oigtl-transfert-volumes")
             {
-            pipeline->SetVolumeReconstructionEnabled(true);
-            pipeline->SetTransfertImages(false);
+            reconstructor->SetVolumeReconstructionEnabled(true);
+            sender->SetTransfertImages(false);
             }
         else if(currentArg == "--oigtl-port")
             {
             if( i < argc - 1)
-                pipeline->SetServerPort(atoi(argv[++i]));
+              {
+              sender->SetServerPort(atoi(argv[++i]));
+              }
             }
         else if(currentArg == "--use-tracker-transforms")
             {
-            pipeline->SetUseTrackerTransforms(true);
+            reconstructor->SetUseTrackerTransforms(true);
             }        
-        else if(currentArg == "--sonix-addr" || currentArg == "-a") 
-            {
-            if( i < argc - 1)
-                pipeline->SetSonixAddr(argv[++i]);
-            }
         else if(currentArg == "--nb-frames" || currentArg == "-n") 
             {
             if( i < argc - 1)
-                pipeline->SetNbFrames(atoi(argv[++i]));
+                reconstructor->SetNbFrames(atoi(argv[++i]));
             }
         else if(currentArg == "--fps") 
             {
             if( i < argc - 1)
-                pipeline->SetFrameRate(atof(argv[++i]));
+                reconstructor->SetFrameRate(atof(argv[++i]));
             }
        else if(currentArg == "--reconstruct-volume")
             {
-            pipeline->SetVolumeReconstructionEnabled(true);
-            pipeline->SetTransfertImages(true);
+            reconstructor->SetVolumeReconstructionEnabled(true);
+            sender->SetTransfertImages(true);
+            }           
+       else if(currentArg == "--oigtl-server")
+            {
+            sender->SetOIGTLServer(argv[++i]);
             }           
         else 
             {
@@ -163,15 +164,16 @@ int main(int argc, char **argv)
 {
 
 
-    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
-
+  //    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
+    vtkUltrasoundVolumeReconstructor *reconstructor = vtkUltrasoundVolumeReconstructor::New();
+    vtkUltrasoundVolumeSender *sender = vtkUltrasoundVolumeSender::New();
 
     //JG 12/4/08 The following lines have to be used otherwise Synchrograb doesn't work
     //NH
     //12/2/08
     // the following line is unkowon leak detected vtk
     // removed temporary to avoid seg fault    
-    bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
+    bool successParsingCommandLine = parseCommandLineArguments(argc,argv,reconstructor, sender);
     if(!successParsingCommandLine)
         return -1;
     
@@ -182,16 +184,20 @@ int main(int argc, char **argv)
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
     
-    pipeline->ConfigurePipeline();
+    //Configure Reconstructor
+    reconstructor->ConfigurePipeline();
+
     // Volume Reconstruction
-    if(pipeline->GetVolumeReconstructionEnabled())
-      {if(!pipeline->ReconstructVolume())return -1;}
+    if(reconstructor->GetVolumeReconstructionEnabled())
+      {if(!reconstructor->ReconstructVolume())return -1;}
+
     // Transfer Images
-    if(pipeline->GetTransfertImages())
+    if(sender->GetTransfertImages())
       {
-      if(!pipeline->ConnectToServer())return -1;
-      if(!pipeline->SendImages())return -1;
-      if(!pipeline->CloseServerConnection())return -1;
+      if(!sender->ConnectToServer())return -1;
+      if(!sender->SendImages())return -1;
+      if(!sender->CloseServerConnection())return -1;
       }
-    pipeline->Delete();
+    reconstructor->Delete();
+    sender->Delete();
 }
