@@ -247,7 +247,7 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   
   this->tracker->StopTracking();//Stop tracking
   
-  cout << "Recorded synchronized transforms and ultrasound images for " << this->NbFrames / this->FrameRate * 1000 << "ms" << endl;
+  cout << "Recorded synchronized transforms and ultrasound images for " << ((int) this->NbFrames / this->FrameRate + 0.5) << "s" << endl;
   
   // set up the panoramic reconstruction class
   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
