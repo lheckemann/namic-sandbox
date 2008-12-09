@@ -224,13 +224,13 @@ static void *vtkTrackerSimulatorRecordThread(vtkMultiThreader::ThreadInfo *data)
   vtkTrackerSimulator *self = (vtkTrackerSimulator *)(data->UserData);
   
   double startTime = vtkTimerLog::GetUniversalTime();
-  int matrix = 0;
+  double matrix = 1;
 
   cout << "Tracker Thread startet" <<endl;
 
   do
     {
-      self->InternalUpdate();      
+      self->InternalUpdate();
       matrix++;
     }    
   while (vtkThreadSleep(data, startTime + matrix/MATRICES_PER_SECOND));
@@ -449,7 +449,7 @@ void vtkTrackerSimulator::GenerateTrackerMatrix(vtkMatrix4x4& matrix, int index)
   
   matrix[0][3] = 0;
   matrix[1][3] = 0;
-  matrix[2][3] = index;
+  matrix[2][3] = index / 2.0;
 
   // matrix.Identity();
   //  matrix.SetElement(0, 2, orientation[1]);
