@@ -43,6 +43,8 @@ TransferOpenIGTLink::TransferOpenIGTLink()
 
   this->Mutex = igtl::MutexLock::New();
 
+  this->UseFlowControl = 0;
+  this->Flow = 1;
 }
 
 
@@ -72,6 +74,47 @@ int TransferOpenIGTLink::Disconnect()
   return 1;
 
 }
+
+
+void TransferOpenIGTLink::FlowControl(int s)
+{
+  if (s == 0)
+    {
+    this->UseFlowControl = 0;
+    }
+  else
+    {
+    this->UseFlowControl = 1;
+    }
+}
+
+int TransferOpenIGTLink::Start()
+{
+  if (this->UseFlowControl)
+    {
+    this->Flow = 1;
+    return 1;
+    }
+  else
+    {
+    return 0;
+    }
+}
+
+
+int TransferOpenIGTLink::Stop()
+{
+  if (this->UseFlowControl)
+    {
+    this->Flow = 0;
+    return 1;
+    }
+  else
+    {
+    return 0;
+    }
+}
+
 
 void TransferOpenIGTLink::SetServer(std::string hostname, int port)
 {
@@ -220,11 +263,16 @@ void TransferOpenIGTLink::ReceiveController()
       std::cerr << "PackSize:  " << frame->GetPackSize() << std::endl;
       std::cerr << "BodyMode:  " << frame->GetBodyType() << std::endl;
       
-      ret = this->Socket->Send(frame->GetPackPointer(), frame->GetPackSize());
-      if (ret == 0)
+
+      if (this->UseFlowControl == 0 ||
+          (this->UseFlowControl && this->Flow))
         {
-        Disconnect();
-        std::cerr << "Error : Connection Lost!\n";
+        ret = this->Socket->Send(frame->GetPackPointer(), frame->GetPackSize());
+        if (ret == 0)
+          {
+          Disconnect();
+          std::cerr << "Error : Connection Lost!\n";
+          }
         }
       }
     }

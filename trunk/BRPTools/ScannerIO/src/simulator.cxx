@@ -47,9 +47,9 @@ void PrintUsage(const char* name)
 
   std::cerr << "Invalid arguments!" << std::endl;
   std::cerr << "Usage: " << name << " <x> <y> <z> <type> <rx> <ry> <rz>"
-            << " <fname_temp> <bindex> <eindex> <fps> s [port]" << std::endl;
+            << " <fname_temp> <bindex> <eindex> <fps> s <port> <flowctrl>" << std::endl;
   std::cerr << "       " << name << " <x> <y> <z> <type> <rx> <ry> <rz>"
-            << " <fname_temp> <bindex> <eindex> <fps> c <hostname> [port]" << std::endl;
+            << " <fname_temp> <bindex> <eindex> <fps> c <hostname> <port> <flowctrl>" << std::endl;
   
   std::cerr << "    <x>, <y>, <z>   : Number of pixels in x, y and z direction." << std::endl;
   std::cerr << "    <type>          : Type (2:int8 3:uint8 4:int16 5:uint16 6:int32 7:uint32" << std::endl;
@@ -59,7 +59,8 @@ void PrintUsage(const char* name)
   std::cerr << "    <eindex>        : End  index." << std::endl;
   std::cerr << "    <fps>           : Frame rate (frames per second)." << std::endl;
   std::cerr << "    <hostname>      : (Client mode only) hostname." << std::endl;
-  std::cerr << "    [port]          : Port # (default is 18944)" << std::endl;
+  std::cerr << "    <port>          : Port # (default is 18944)" << std::endl;
+  std::cerr << "    <flowctrl>      : Flow control" << std::endl;
 
 }
 
@@ -67,7 +68,7 @@ void PrintUsage(const char* name)
 int main(int argc, char **argv)
 {
 
-  if (argc < 8)
+  if (argc < 11)
     {
     PrintUsage(argv[0]);
     exit(-1);
@@ -92,6 +93,8 @@ int main(int argc, char **argv)
   bool  server;
   char* hostname;
   int   port = 18944;
+  int   flowctrl = 0;
+
 
   // mode: server or client?
   if (strcmp(argv[12], "s") == 0)
@@ -109,30 +112,21 @@ int main(int argc, char **argv)
     }
 
   // hostname and port number
-  if (server)
+  if (server && argc == 15)
     {
-    if (argc < 13 || argc > 14) // illegal number of arguments
-      {
-      PrintUsage(argv[0]);
-      exit(-1);
-      }
-    if (argc == 14)
-      {
-      port = atoi(argv[13]);
-      }
+    port = atoi(argv[13]);
+    flowctrl = atoi(argv[14]);
     }
-  else // client mode
+  else if (!server && argc == 16)// client mode
     {
-    if (argc < 14 || argc > 15) // illegal number of arguments
-      {
-      PrintUsage(argv[0]);
-      exit(-1);
-      }
     hostname = argv[13];
-    if (argc == 15)
-      {
-      port = atoi(argv[14]);
-      }
+    port = atoi(argv[14]);
+    flowctrl = atoi(argv[15]);
+    }
+  else
+    {
+    PrintUsage(argv[0]);
+    exit(-1);
     }
 
 
@@ -166,6 +160,9 @@ int main(int argc, char **argv)
   acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
   acquisition->SetFrameRate(fps);
   acquisition->SetDelay(1000);
+
+  transfer->FlowControl(flowctrl);
+
   if (server)
     {
     transfer->SetServerMode(port);

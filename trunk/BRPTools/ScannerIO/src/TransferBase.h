@@ -34,6 +34,11 @@ public:
   virtual int  Connect()   { return 0; };
   virtual int  Disconnect(){ return 0; };
 
+  virtual void UseFlowControl(int s) {};
+  virtual int  Start()     { return 0; };
+  virtual int  Stop()      { return 0; };
+
+
   int SetAcquisitionThread(AcquisitionBase*);
 
 protected:

@@ -52,6 +52,10 @@ public:
   virtual int  Connect();
   virtual int  Disconnect();
   
+  void FlowControl(int s);  // Activate / deactivate flow control
+  virtual int  Start();
+  virtual int  Stop();
+  
   void SetServer(std::string hostname, int port);
   void SetClientMode(std::string hostname, int port);
   void SetServerMode(int port);
@@ -75,6 +79,9 @@ protected:
                              igtl::MessageHeader::Pointer& header);
   
 protected:
+
+  int UseFlowControl; // flow control flag -- 0: don't use Flow / 1: use Flow
+  int Flow;        // flow control -- 0: stop transfer / 1: do transfer
 
   int Mode;
   int State;
