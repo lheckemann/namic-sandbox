@@ -40,8 +40,11 @@
 #include "vtkMRMLScalarVolumeDisplayNode.h"
 #include "vtkMRMLVolumeHeaderlessStorageNode.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
+#include "vtkCollection.h"
 
 #include "vtkSlicerColorLogic.h"
+
+#include "igtlMath.h"
 
 #include "newmat.h"
 
@@ -103,8 +106,10 @@ void vtkProstateNavCalibrationStep::ShowUserInterface()
     this->SelectImageButton->Create();
     this->SelectImageButton->SetWidth(50);
     this->SelectImageButton->GetWidget()->SetText ("Browse Image File");
+    /*
     this->SelectImageButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes(
       "{ {ProstateNav} {*.dcm} }");
+    */
     this->SelectImageButton->GetWidget()->GetLoadSaveDialog()
       ->RetrieveLastPathFromRegistry("OpenPath");
     }
@@ -470,11 +475,44 @@ void vtkProstateNavCalibrationStep::PerformZFrameCalibration(const char* filenam
     {
     vtkSlicerVolumesLogic* volume_logic = 
       vtkSlicerVolumesGUI::SafeDownCast(m)->GetLogic();
-    volume_logic->AddArchetypeVolume(filename, "ZFrame Image", 0x0004);
-    }
-  //LoadImage(filename);
-}
+    volume_logic->AddArchetypeVolume(filename, "ZFrameImage", 0x0004);
 
+    vtkMRMLScalarVolumeNode* volumeNode = NULL;   // Event Source MRML node 
+    vtkCollection* collection = this->MRMLScene->GetNodesByName("ZFrameImage");
+    int nItems = collection->GetNumberOfItems();
+    for (int i = 0; i < nItems; i ++)
+      {
+      vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
+      if (strcmp(node->GetNodeTagName(), "Volume") == 0)
+        {
+        volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(node);
+        break;
+        }
+      }
+    if (volumeNode)
+      {
+      Init(256, 256);
+      vtkMRMLNode* node = this->MRMLScene->GetNodeByID(this->ZFrameTransformNodeID);
+      vtkMRMLLinearTransformNode* transformNode;
+      if (node != NULL)
+        {
+        transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+        }
+      else
+        {
+        this->ZFrameTransformNodeID = AddZFrameTransform("ZFrameTransform");
+        node = this->MRMLScene->GetNodeByID(this->ZFrameTransformNodeID);
+        transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+        }
+      ZFrameRegistration(volumeNode, transformNode, 0);
+      transformNode->Modified();
+      }
+    else
+      {
+      std::cerr << "Couldn't find ZFrame image in the MRML scene." << std::endl;
+      }
+    }
+}
 
 
 //----------------------------------------------------------------------------
@@ -580,9 +618,13 @@ void vtkProstateNavCalibrationStep::Init(int xsize, int ysize)
  * @param event The event value passed.
  * @param generator The node that generated the event.
  */
-void vtkProstateNavCalibrationStep::ZFrameRegistration(vtkImageData* image)
+int vtkProstateNavCalibrationStep::ZFrameRegistration(vtkMRMLScalarVolumeNode* volumeNode,
+                                                      vtkMRMLLinearTransformNode* transformNode,
+                                                      int slindex)
 {
-  int           xsize, ysize;
+  int           xsize;
+  int           ysize;
+  int           zsize;
   //Image         image_attrib;
   int           i,j;
   int           Zcoordinates[7][2];
@@ -604,28 +646,62 @@ void vtkProstateNavCalibrationStep::ZFrameRegistration(vtkImageData* image)
   ysize=event.getAttribute(string("ysize"),0);
   */
   int dimensions[3];
+  vtkImageData* image = volumeNode->GetImageData();
   image->GetDimensions(dimensions);
   xsize = dimensions[0];
   ysize = dimensions[1];
+  zsize = dimensions[2];
+  
+  // Get image position and orientation
+  vtkMatrix4x4* rtimgTransform = vtkMatrix4x4::New(); 
+  igtl::Matrix4x4 matrix;
+  volumeNode->GetIJKToRASMatrix(rtimgTransform);
+  matrix[0][0] = rtimgTransform->GetElement(0, 0);
+  matrix[1][0] = rtimgTransform->GetElement(1, 0);
+  matrix[2][0] = rtimgTransform->GetElement(2, 0);
+  matrix[0][1] = rtimgTransform->GetElement(0, 1);
+  matrix[1][1] = rtimgTransform->GetElement(1, 1);
+  matrix[2][1] = rtimgTransform->GetElement(2, 1);
+  matrix[0][2] = rtimgTransform->GetElement(0, 2);
+  matrix[1][2] = rtimgTransform->GetElement(1, 2);
+  matrix[2][2] = rtimgTransform->GetElement(2, 2);
+  matrix[0][3] = rtimgTransform->GetElement(0, 3);
+  matrix[1][3] = rtimgTransform->GetElement(1, 3);
+  matrix[2][3] = rtimgTransform->GetElement(2, 3);
 
-#if 0 // RT_CONTROL
+  igtl::PrintMatrix(matrix);
+
+  float position[3];
+  float quaternion[4];
+  igtl::MatrixToQuaternion(matrix, quaternion);
+  position[0] = matrix[0][3];
+  position[1] = matrix[1][3];
+  position[2] = matrix[2][3];
+
   // Get current position and orientation of the imaging plane.
   // SPL OpenTracker events always contain Position and Orientation attributes.
-  Iposition.setX( event.getPosition()[0] );
-  Iposition.setY( event.getPosition()[1] );
-  Iposition.setZ( event.getPosition()[2] );
-  Iorientation.setX( event.getOrientation()[0] );
-  Iorientation.setY( event.getOrientation()[1] );
-  Iorientation.setZ( event.getOrientation()[2] );
-  Iorientation.setW( event.getOrientation()[3] );
-#endif
- 
+  Iposition.setX( position[0] );
+  Iposition.setY( position[1] );
+  Iposition.setZ( position[2] );
+  Iorientation.setX( quaternion[0] );
+  Iorientation.setY( quaternion[1] );
+  Iorientation.setZ( quaternion[2] );
+  Iorientation.setW( quaternion[3] );
+
   //image_attrib=event.getAttribute((Image*)NULL,"image");
  
   // Get a pointer to the image array.
   image->SetScalarTypeToShort();
   image->Modified();
   InputImage=(short*)image->GetScalarPointer();
+  if (slindex >= 0 && slindex < zsize)
+    {
+    InputImage = &InputImage[xsize*ysize*slindex];
+    }
+  else
+    {
+    return 0;
+    }
 
   // Transfer image to a Matrix.
   SourceImage.ReSize(xsize,ysize);
@@ -634,6 +710,7 @@ void vtkProstateNavCalibrationStep::ZFrameRegistration(vtkImageData* image)
       SourceImage.element(i,j) = InputImage[i*ysize+j];
 
   // Find the 7 Z-frame fiducial intercept artifacts in the image.
+  std::cerr << "ZTrackerTransform - Searching fiducials...\n" << std::endl;
   if(LocateFiducials(SourceImage, xsize, ysize, Zcoordinates, tZcoordinates) == false)
   {
   std::cerr << "ZTrackerTransform::onEventGenerated - Ficudials not detected. No frame lock on this image.\n" << std::endl;
@@ -642,6 +719,7 @@ void vtkProstateNavCalibrationStep::ZFrameRegistration(vtkImageData* image)
   else frame_lock = true;
 
   // Check that the fiducial geometry makes sense.
+  std::cerr << "ZTrackerTransform - Checking the fiducial geometries...\n" << std::endl;
   if(CheckFiducialGeometry(Zcoordinates, xsize, ysize) == true)
     frame_lock = true;
   else 
@@ -683,24 +761,24 @@ void vtkProstateNavCalibrationStep::ZFrameRegistration(vtkImageData* image)
     }
   }
 
-#if RT_CONTROL==1
-//simond debug frame delay
-  if(frame_lock && flip_counter>=2)
-  {
-    // Compute the new image position and orientation that will be centred to
-    // the Z-frame.
-    Update_Scan_Plane(Iposition, Iorientation, Zposition, Zorientation);
-    flip_counter=0;
-  }
-  flip_counter++;
-#else
+//#if RT_CONTROL==1
+////simond debug frame delay
+//  if(frame_lock && flip_counter>=2)
+//  {
+//    // Compute the new image position and orientation that will be centred to
+//    // the Z-frame.
+//    Update_Scan_Plane(Iposition, Iorientation, Zposition, Zorientation);
+//    flip_counter=0;
+//  }
+//  flip_counter++;
+//#else
   if(frame_lock)
   {
     // Compute the new image position and orientation that will be centred to
     // the Z-frame.
     Update_Scan_Plane(Iposition, Iorientation, Zposition, Zorientation);
   }
-#endif
+//#endif
   
   // Construct a new event to pass on to the child node.
 
@@ -732,27 +810,58 @@ void vtkProstateNavCalibrationStep::ZFrameRegistration(vtkImageData* image)
 
   // Update the scan plane parameters. 
   // NOTE: if there is no frame lock, then we do not update the scan plane.
-#if 0
-#if Z_TRANSFORM_OUT==1
-  newevent.getPosition()[0] = Zposition.getX();
-  newevent.getPosition()[1] = Zposition.getY();
-  newevent.getPosition()[2] = Zposition.getZ();
-  newevent.getOrientation()[0] = Zorientation.getX();
-  newevent.getOrientation()[1] = Zorientation.getY();
-  newevent.getOrientation()[2] = Zorientation.getZ();
-  newevent.getOrientation()[3] = Zorientation.getW();
-#else
-  newevent.getPosition()[0] = Iposition.getX();
-  newevent.getPosition()[1] = Iposition.getY();
-  newevent.getPosition()[2] = Iposition.getZ();
-  newevent.getOrientation()[0] = Iorientation.getX();
-  newevent.getOrientation()[1] = Iorientation.getY();
-  newevent.getOrientation()[2] = Iorientation.getZ();
-  newevent.getOrientation()[3] = Iorientation.getW();
-#endif
-#endif
+  /*
+  position[0] = Iposition.getX();
+  position[1] = Iposition.getY();
+  position[2] = Iposition.getZ();
+  quaternion[0] = Iorientation.getX();
+  quaternion[1] = Iorientation.getY();
+  quaternion[2] = Iorientation.getZ();
+  quaternion[3] = Iorientation.getW();
+  */
+  position[0] = Iposition.getX();
+  position[1] = Iposition.getY();
+  position[2] = Iposition.getZ();
+  quaternion[0] = Iorientation.getX();
+  quaternion[1] = Iorientation.getY();
+  quaternion[2] = Iorientation.getZ();
+  quaternion[3] = Iorientation.getW();
 
-  // Done until next event.
+  igtl::QuaternionToMatrix(quaternion, matrix);
+  matrix[0][3] = position[0];
+  matrix[1][3] = position[1];
+  matrix[2][3] = position[2];
+
+  std::cerr << "Result matrix:" << std::endl;
+  igtl::PrintMatrix(matrix);
+
+  vtkMatrix4x4* zMatrix = vtkMatrix4x4::New();
+  zMatrix->Identity();
+  zMatrix->SetElement(0, 0, matrix[0][0]);
+  zMatrix->SetElement(1, 0, matrix[1][0]);
+  zMatrix->SetElement(2, 0, matrix[2][0]);
+  zMatrix->SetElement(0, 1, matrix[0][1]);
+  zMatrix->SetElement(1, 1, matrix[1][1]);
+  zMatrix->SetElement(2, 1, matrix[2][1]);
+  zMatrix->SetElement(0, 2, matrix[0][2]);
+  zMatrix->SetElement(1, 2, matrix[1][2]);
+  zMatrix->SetElement(2, 2, matrix[2][2]);
+  zMatrix->SetElement(0, 3, matrix[0][3]);
+  zMatrix->SetElement(1, 3, matrix[1][3]);
+  zMatrix->SetElement(2, 3, matrix[2][3]);
+
+  if (transformNode != NULL)
+    {
+    transformNode->ApplyTransform(zMatrix);
+    zMatrix->Delete();
+    
+    return 1;
+    }
+  else
+    {
+    return 0;
+    }
+
 }
 
 /*----------------------------------------------------------------------------*/
