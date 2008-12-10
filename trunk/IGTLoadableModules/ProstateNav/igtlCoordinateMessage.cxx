@@ -120,7 +120,7 @@ void CoordinateMessage::SetQuaternion(float ox, float oy, float oz, float w)
 }
 
 
-void CoordinateMessage::SetOffet(const float* offset)
+void CoordinateMessage::SetOffset(const float* offset)
 {
   this->m_Offset[0] = offset[0];
   this->m_Offset[1] = offset[1];
@@ -128,7 +128,7 @@ void CoordinateMessage::SetOffet(const float* offset)
 }
 
 
-void CoordinateMessage::SetOffet(float x, float y, float z)
+void CoordinateMessage::SetOffset(float x, float y, float z)
 {
   this->m_Offset[0] = x;
   this->m_Offset[1] = y;
@@ -237,12 +237,23 @@ int CoordinateMessage::PackBody()
 
   igtl_position_convert_byte_order(p);
 
+  igtl_float32* b = (igtl_float32*)((unsigned char*)this->m_Body + sizeof(igtl_position));
+  b[0] = this->m_Offset[0];
+  b[1] = this->m_Offset[1];
+  b[2] = this->m_Offset[2];
+  b[3] = this->m_Insertion;
+
+  igtl_uint32* a = (igtl_uint32*)b;
+  a[0] = BYTE_SWAP_INT32(a[0]);
+  a[1] = BYTE_SWAP_INT32(a[1]);
+  a[2] = BYTE_SWAP_INT32(a[2]);
+  a[3] = BYTE_SWAP_INT32(a[3]);
+
   return 1;
 }
 
 int CoordinateMessage::UnpackBody()
 {
-  
   igtl_position* p = (igtl_position*)this->m_Body;
   
   igtl_position_convert_byte_order(p);
@@ -255,9 +266,10 @@ int CoordinateMessage::UnpackBody()
   this->m_Quaternion[2] = p->quaternion[2];
   this->m_Quaternion[3] = p->quaternion[3];
 
-  if (this->GetPackSize() >= IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE+sizeof(igtlFloat32)*4)
+  if (this->GetPackSize() >= IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE
+      +sizeof(igtlFloat32)*4)
     {
-    void* off = (void*) this->m_Body;
+    unsigned char* off = (unsigned char*) this->m_Body;
     off += sizeof(igtl_position);
     
     igtlUint32 tmp[3];

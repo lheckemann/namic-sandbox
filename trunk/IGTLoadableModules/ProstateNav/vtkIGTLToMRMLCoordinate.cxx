@@ -18,7 +18,7 @@
 #include "vtkIGTLToMRMLCoordinate.h"
 
 #include "vtkMRMLLinearTransformNode.h"
-#include "igtlPositionMessage.h"
+#include "igtlCoordinateMessage.h"
 #include "igtlWin32Header.h"
 #include "igtlMath.h"
 
@@ -86,7 +86,7 @@ int vtkIGTLToMRMLCoordinate::IGTLToMRML(igtl::MessageBase::Pointer buffer, vtkMR
 
   // Deserialize the transform data
   // If you want to skip CRC check, call Unpack() without argument.
-  int c = positionMsg->Unpack(1);
+  int c = coordinateMsg->Unpack(1);
   if (!(c & igtl::MessageHeader::UNPACK_BODY)) // if CRC check fails
     {
     // TODO: error handling
@@ -107,10 +107,10 @@ int vtkIGTLToMRMLCoordinate::IGTLToMRML(igtl::MessageBase::Pointer buffer, vtkMR
   float insertion;
   igtl::Matrix4x4 matrix;
 
-  positionMsg->GetPosition(position);
-  positionMsg->GetQuaternion(quaternion);
-  positionMsg->GetOffset(offset);
-  insertion = positionMsg->GetInsertion();
+  coordinateMsg->GetPosition(position);
+  coordinateMsg->GetQuaternion(quaternion);
+  coordinateMsg->GetOffset(offset);
+  insertion = coordinateMsg->GetInsertion();
 
   igtl::QuaternionToMatrix(quaternion, matrix);
   //matrix[0][3] = position[0];
@@ -198,10 +198,10 @@ int vtkIGTLToMRMLCoordinate::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNo
       vtkMRMLLinearTransformNode::SafeDownCast(mrmlNode);
     vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
     
-    //igtl::PositionMessage::Pointer OutPositionMsg;
+    //igtl::CoordinateMessage::Pointer OutPositionMsg;
     if (this->OutPositionMsg.IsNull())
       {
-      this->OutPositionMsg = igtl::PositionMessage::New();
+      this->OutPositionMsg = igtl::CoordinateMessage::New();
       }
     
     this->OutPositionMsg->SetDeviceName(mrmlNode->GetName());
@@ -229,8 +229,8 @@ int vtkIGTLToMRMLCoordinate::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNo
     igtlmatrix[3][3]  = matrix->GetElement(3, 3);
 
     float position[3];
-    float quaternion[3];
-    
+    float quaternion[4];
+
     position[0] = igtlmatrix[0][3];
     position[1] = igtlmatrix[1][3];
     position[2] = igtlmatrix[2][3];
@@ -239,6 +239,8 @@ int vtkIGTLToMRMLCoordinate::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNo
     //this->OutPositionMsg->SetMatrix(igtlmatrix);
     this->OutPositionMsg->SetPosition(position);
     this->OutPositionMsg->SetQuaternion(quaternion);
+    this->OutPositionMsg->SetOffset(0.0, 0.0, 0.0);
+    this->OutPositionMsg->SetInsertion(0.0);
     this->OutPositionMsg->Pack();
 
     *size = this->OutPositionMsg->GetPackSize();

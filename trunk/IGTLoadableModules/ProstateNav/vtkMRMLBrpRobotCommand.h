@@ -52,8 +52,6 @@ class VTK_MRML_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLModelNode
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "BrpRobotCommand";};
 
-  
-
  protected:
   vtkMRMLBrpRobotCommandNode(){};
   ~vtkMRMLBrpRobotCommandNode(){};

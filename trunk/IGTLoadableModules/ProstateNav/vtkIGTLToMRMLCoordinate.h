@@ -20,7 +20,7 @@
 #include "vtkMRMLNode.h"
 #include "vtkIGTLToMRMLBase.h"
 
-#include "igtlPositionMessage.h"
+#include "igtlCoordinateMessage.h"
 
 class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLCoordinate : public vtkIGTLToMRMLBase
 {
@@ -31,7 +31,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLCoordinate : public vtkIGTLToMRMLBas
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual const char*  GetIGTLName() { return "POSITION"; };
+  virtual const char*  GetIGTLName() { return "COORDIANTE"; };
   virtual const char*  GetMRMLName() { return "LinearTransform"; };
   virtual vtkIntArray* GetNodeEvents();
   virtual vtkMRMLNode* CreateNewNode(vtkMRMLScene* scene, const char* name);
@@ -48,7 +48,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLCoordinate : public vtkIGTLToMRMLBas
 
  protected:
   //BTX
-  igtl::PositionMessage::Pointer OutPositionMsg;
+  igtl::CoordinateMessage::Pointer OutPositionMsg;
   //ETX
   
 };

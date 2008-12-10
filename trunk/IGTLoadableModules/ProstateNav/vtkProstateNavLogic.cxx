@@ -67,20 +67,18 @@ const char *vtkProstateNavLogic::WorkPhaseKey[vtkProstateNavLogic::NumPhases] =
 //---------------------------------------------------------------------------
 vtkProstateNavLogic::vtkProstateNavLogic()
 {
-
-    this->CurrentPhase         = StartUp;
-    this->PrevPhase            = StartUp;
-    this->PhaseComplete        = false;
-    this->PhaseTransitionCheck = true;
-
-    this->RobotWorkPhase       = -1;
-    this->ScannerWorkPhase     = -1;
-
-    // Timer Handling
-
-    this->DataCallbackCommand = vtkCallbackCommand::New();
-    this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
-    this->DataCallbackCommand->SetCallback(vtkProstateNavLogic::DataCallback);
+  this->CurrentPhase         = StartUp;
+  this->PrevPhase            = StartUp;
+  this->PhaseComplete        = false;
+  this->PhaseTransitionCheck = true;
+  
+  this->RobotWorkPhase       = -1;
+  this->ScannerWorkPhase     = -1;
+  
+  // Timer Handling
+  this->DataCallbackCommand = vtkCallbackCommand::New();
+  this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
+  this->DataCallbackCommand->SetCallback(vtkProstateNavLogic::DataCallback);
 
 }
 
