@@ -48,6 +48,8 @@
 
 #include "newmat.h"
 
+#define DEBUG_ZFRAME
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavCalibrationStep);
 vtkCxxRevisionMacro(vtkProstateNavCalibrationStep, "$Revision: 1.1 $");
@@ -227,18 +229,17 @@ void vtkProstateNavCalibrationStep::ShowZFrameModel()
 //----------------------------------------------------------------------------
 void vtkProstateNavCalibrationStep::HideZFrameModel()
 {
-  if (this->ZFrameModelNodeID.length() == 0)
-    {
-    return;
-    }
 
   vtkMRMLModelNode*  modelNode =
     vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID.c_str()));
 
-  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
-  displayNode->SetVisibility(0);
-  modelNode->Modified();
-  this->MRMLScene->Modified();
+  if (modelNode)
+    {
+    vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+    displayNode->SetVisibility(0);
+    modelNode->Modified();
+    this->MRMLScene->Modified();
+    }
 }
 
 
@@ -656,20 +657,60 @@ int vtkProstateNavCalibrationStep::ZFrameRegistration(vtkMRMLScalarVolumeNode* v
   vtkMatrix4x4* rtimgTransform = vtkMatrix4x4::New(); 
   igtl::Matrix4x4 matrix;
   volumeNode->GetIJKToRASMatrix(rtimgTransform);
-  matrix[0][0] = rtimgTransform->GetElement(0, 0);
-  matrix[1][0] = rtimgTransform->GetElement(1, 0);
-  matrix[2][0] = rtimgTransform->GetElement(2, 0);
-  matrix[0][1] = rtimgTransform->GetElement(0, 1);
-  matrix[1][1] = rtimgTransform->GetElement(1, 1);
-  matrix[2][1] = rtimgTransform->GetElement(2, 1);
-  matrix[0][2] = rtimgTransform->GetElement(0, 2);
-  matrix[1][2] = rtimgTransform->GetElement(1, 2);
-  matrix[2][2] = rtimgTransform->GetElement(2, 2);
-  matrix[0][3] = rtimgTransform->GetElement(0, 3);
-  matrix[1][3] = rtimgTransform->GetElement(1, 3);
-  matrix[2][3] = rtimgTransform->GetElement(2, 3);
 
-  igtl::PrintMatrix(matrix);
+  float tx = rtimgTransform->GetElement(0, 0);
+  float ty = rtimgTransform->GetElement(1, 0);
+  float tz = rtimgTransform->GetElement(2, 0);
+  float sx = rtimgTransform->GetElement(0, 1);
+  float sy = rtimgTransform->GetElement(1, 1);
+  float sz = rtimgTransform->GetElement(2, 1);
+  float nx = rtimgTransform->GetElement(0, 2);
+  float ny = rtimgTransform->GetElement(1, 2);
+  float nz = rtimgTransform->GetElement(2, 2);
+  float px = rtimgTransform->GetElement(0, 3);
+  float py = rtimgTransform->GetElement(1, 3);
+  float pz = rtimgTransform->GetElement(2, 3);
+
+  // normalize
+  float psi = sqrt(tx*tx + ty*ty + tz*tz);
+  float psj = sqrt(sx*sx + sy*sy + sz*sz);
+  float psk = sqrt(nx*nx + ny*ny + nz*nz);
+  float ntx = tx / psi;
+  float nty = ty / psi;
+  float ntz = tz / psi;
+  float nsx = sx / psj;
+  float nsy = sy / psj;
+  float nsz = sz / psj;
+  float nnx = nx / psk;
+  float nny = ny / psk;
+  float nnz = nz / psk;
+
+  // Shift the center
+  // NOTE: The center of the image should be shifted due to different
+  // definitions of image origin between VTK (Slicer) and OpenIGTLink;
+  // OpenIGTLink image has its origin at the center, while VTK image
+  // has one at the corner.
+
+  float hfovi = psi * (dimensions[0]) / 2.0;
+  float hfovj = psj * (dimensions[1]) / 2.0;
+  float hfovk = psk * (dimensions[2]) / 2.0;
+
+  float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
+  float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
+  float cz = ntz * hfovi + nsz * hfovj + nnz * hfovk;
+
+  matrix[0][0] = ntx;
+  matrix[1][0] = nty;
+  matrix[2][0] = ntz;
+  matrix[0][1] = nsx;
+  matrix[1][1] = nsy;
+  matrix[2][1] = nsz;
+  matrix[0][2] = nnx;
+  matrix[1][2] = nny;
+  matrix[2][2] = nnz;
+  matrix[0][3] = px + cx;
+  matrix[1][3] = py + cy;
+  matrix[2][3] = pz + cz;
 
   float position[3];
   float quaternion[4];
@@ -746,7 +787,7 @@ int vtkProstateNavCalibrationStep::ZFrameRegistration(vtkMRMLScalarVolumeNode* v
       tZcoordinates[i][0] = tmpCoord - (float)(ysize/2);
 
       // Flip the y-axis for IJK coordinates. 
-      tZcoordinates[i][1] *= -1.0;
+      //tZcoordinates[i][1] *= -1.0;
 
       // Scale coordinates by pixel size
       tZcoordinates[i][0] *= pixel_size;
@@ -761,28 +802,16 @@ int vtkProstateNavCalibrationStep::ZFrameRegistration(vtkMRMLScalarVolumeNode* v
     }
   }
 
-//#if RT_CONTROL==1
-////simond debug frame delay
-//  if(frame_lock && flip_counter>=2)
-//  {
-//    // Compute the new image position and orientation that will be centred to
-//    // the Z-frame.
-//    Update_Scan_Plane(Iposition, Iorientation, Zposition, Zorientation);
-//    flip_counter=0;
-//  }
-//  flip_counter++;
-//#else
   if(frame_lock)
   {
     // Compute the new image position and orientation that will be centred to
     // the Z-frame.
     Update_Scan_Plane(Iposition, Iorientation, Zposition, Zorientation);
   }
-//#endif
   
   // Construct a new event to pass on to the child node.
 
-#if 0
+#ifdef DEBUG_ZFRAME
   //simond Debug Image Output
   short output_image[FORCE_SIZEX*FORCE_SIZEY];
   if(frame_lock)
@@ -800,25 +829,12 @@ int vtkProstateNavCalibrationStep::ZFrameRegistration(vtkMRMLScalarVolumeNode* v
       }
     //if(++counter >7) counter=1;
   }
-  newevent.delAttribute("image");
-#if IMAGE_OUT==1
-  newevent.setAttribute("image",Image(FORCE_SIZEX,FORCE_SIZEY,sizeof(short),(char*)output_image));
-#endif
 #endif
 //end simond
 
 
   // Update the scan plane parameters. 
   // NOTE: if there is no frame lock, then we do not update the scan plane.
-  /*
-  position[0] = Iposition.getX();
-  position[1] = Iposition.getY();
-  position[2] = Iposition.getZ();
-  quaternion[0] = Iorientation.getX();
-  quaternion[1] = Iorientation.getY();
-  quaternion[2] = Iorientation.getZ();
-  quaternion[3] = Iorientation.getW();
-  */
   position[0] = Iposition.getX();
   position[1] = Iposition.getY();
   position[2] = Iposition.getZ();
@@ -1569,6 +1585,7 @@ void vtkProstateNavCalibrationStep::Update_Scan_Plane(Column3Vector &pcurrent,
    pcurrent = pcurrent + Zposition;
 
    // Compute the new image orientation.
+   //ocurrent = Zorientation * ocurrent;
    ocurrent = Zorientation * ocurrent;
 }
 
