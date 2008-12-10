@@ -329,6 +329,14 @@ void TransferOpenIGTLink::ReceiveProcess()
         {
         ReceiveStatus(this->Socket, headerMsg);
         }
+      else if (strcmp(headerMsg->GetDeviceType(), "*START") == 0)
+        {
+        this->Start();
+        }
+      else if (strcmp(headerMsg->GetDeviceType(), "*STOP") == 0)
+        {
+        this->Stop();
+        }
       else
         {
         this->Socket->Skip(headerMsg->GetBodySizeToRead(), 0);
