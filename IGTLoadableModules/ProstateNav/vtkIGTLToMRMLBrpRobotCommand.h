@@ -12,26 +12,26 @@
 
 ==========================================================================*/
 
-#ifndef __vtkIGTLToMRMLLinearTransform_h
-#define __vtkIGTLToMRMLLinearTransform_h
+#ifndef __vtkIGTLToMRMLBrpRobotCommand_h
+#define __vtkIGTLToMRMLBrpRobotCommand_h
 
 #include "vtkObject.h"
 #include "vtkOpenIGTLinkIFWin32Header.h" 
 #include "vtkMRMLNode.h"
 #include "vtkIGTLToMRMLBase.h"
 
-#include "igtlTransformMessage.h"
+#include "igtlHeaderMessage.h"
 
-class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLLinearTransform : public vtkIGTLToMRMLBase
+class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBrpRobotCommand : public vtkIGTLToMRMLBase
 {
  public:
 
-  static vtkIGTLToMRMLLinearTransform *New();
-  vtkTypeRevisionMacro(vtkIGTLToMRMLLinearTransform,vtkObject);
+  static vtkIGTLToMRMLBrpRobotCommand *New();
+  vtkTypeRevisionMacro(vtkIGTLToMRMLBrpRobotCommand,vtkObject);
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual int          GetConverterType { return TYPE_MULTI_IGTL_NAMES; };
+  virtual int          GetConverterType() { return TYPE_MULTI_IGTL_NAMES; };
   virtual const char*  GetIGTLName() { return NULL; };
   virtual const char*  GetMRMLName() { return NULL; };
   virtual vtkIntArray* GetNodeEvents();
@@ -42,16 +42,18 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLLinearTransform : public vtkIGTLToMR
   //ETX
   virtual int          MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNode, int* size, void** igtlMsg);
 
+ 
  protected:
-  vtkIGTLToMRMLLinearTransform();
-  ~vtkIGTLToMRMLLinearTransform();
+  vtkIGTLToMRMLBrpRobotCommand();
+  ~vtkIGTLToMRMLBrpRobotCommand();
 
  protected:
   //BTX
-  igtl::TransformMessage::Pointer OutTransformMsg;
+  std::string ZFrameTransformNodeID;
+  igtl::HeaderMessage::Pointer OutgoingMsg;
   //ETX
   
 };
 
 
-#endif //__vtkIGTLToMRMLLinearTransform_h
+#endif //__vtkIGTLToMRMLBrpRobotCommand_h

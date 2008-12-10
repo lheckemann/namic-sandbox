@@ -247,6 +247,9 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   
   int  ChangeWorkPhase(int phase, int fChangeWizard=0);
   void ChangeSlicePlaneDriver(int slice, const char* driver);
+
+
+  int Entered;
   
 };
 

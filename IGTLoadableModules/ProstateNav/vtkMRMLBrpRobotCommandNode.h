@@ -29,7 +29,8 @@
 //#include "vtkMRMLBrpRobotCommandTubeDisplayNode.h"
 //#include "vtkMRMLBrpRobotCommandGlyphDisplayNode.h"
 
-#include "string"
+#include <string>
+#include <queue>
 
 class vtkCallbackCommand;
 class vtkSphereSource;
@@ -58,11 +59,20 @@ class VTK_MRML_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLModelNode
   vtkMRMLBrpRobotCommandNode(const vtkMRMLBrpRobotCommandNode&);
   void operator=(const vtkMRMLBrpRobotCommandNode&);
   
+
+ public:
+  void SetZFrameTransformNodeID(const char* name);
+  void PushOutgoingCommand(const char* name);
+  const char* PopOutgoingCommand();
+  void PushIncomingCommand(const char* name);
+  const char* PopIncomingCommand();
+
+
  protected:
-  
   //BTX
   std::queue<std::string> InCommandQueue;
   std::queue<std::string> OutCommandQueue;
+  std::string ZFrameTransformNodeID;
   //ETX
 
 };

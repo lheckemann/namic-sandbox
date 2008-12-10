@@ -78,6 +78,7 @@
 #include "vtkOpenIGTLinkIFGUI.h"
 #include "vtkOpenIGTLinkIFLogic.h"
 #include "vtkIGTLToMRMLCoordinate.h"
+#include "vtkIGTLToMRMLBrpRobotCommand.h"
 
 #include <vector>
 
@@ -200,6 +201,9 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
 
   this->FiducialListNodeID = NULL;
   this->FiducialListNode   = NULL;
+
+  this->Entered = 0;
+
 }
 
 //---------------------------------------------------------------------------
@@ -832,22 +836,32 @@ void vtkProstateNavGUI::Enter()
   this->SliceNode1 = appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceNode();
   this->SliceNode2 = appGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceNode();
   
-  ChangeWorkPhase(vtkProstateNavLogic::StartUp, 1);
-  
-  // neccessary?
-  //this->Logic0->GetForegroundLayer()->SetUseReslice(0);
 
-  //----------------------------------------------------------------
-  // Following code should be in the logic class, but GetApplication()
-  // is not available there.
-
-  vtkOpenIGTLinkIFGUI* igtlGUI = 
-    vtkOpenIGTLinkIFGUI::SafeDownCast(vtkSlicerApplication::SafeDownCast(this->GetApplication())
-                                      ->GetModuleGUIByName("OpenIGTLink IF"));
-  if (igtlGUI)
+  if (this->Entered == 0)
     {
-      vtkIGTLToMRMLCoordinate* converter = vtkIGTLToMRMLCoordinate::New();
-      igtlGUI->GetLogic()->RegisterMessageConverter(converter);
+    ChangeWorkPhase(vtkProstateNavLogic::StartUp, 1);
+  
+    // neccessary?
+    //this->Logic0->GetForegroundLayer()->SetUseReslice(0);
+    
+    //----------------------------------------------------------------
+    // Following code should be in the logic class, but GetApplication()
+    // is not available there.
+    
+    vtkOpenIGTLinkIFGUI* igtlGUI = 
+      vtkOpenIGTLinkIFGUI::SafeDownCast(vtkSlicerApplication::SafeDownCast(this->GetApplication())
+                                        ->GetModuleGUIByName("OpenIGTLink IF"));
+    if (igtlGUI)
+      {
+      vtkIGTLToMRMLCoordinate* coordinateConverter = vtkIGTLToMRMLCoordinate::New();
+      vtkIGTLToMRMLBrpRobotCommand* commandConverter = vtkIGTLToMRMLBrpRobotCommand::New();
+      igtlGUI->GetLogic()->RegisterMessageConverter(coordinateConverter);
+      igtlGUI->GetLogic()->RegisterMessageConverter(commandConverter);
+      }
+
+    this->GetLogic()->Enter();
+
+    this->Entered = 1;
     }
 
   
