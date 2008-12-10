@@ -17,8 +17,8 @@
 #ifndef __igtlCoordinateMessage_h
 #define __igtlCoordinateMessage_h
 
+#include "igtlWin32Header.h"
 #include "igtlObject.h"
-//#include "igtlMacros.h"
 #include "igtlMath.h"
 #include "igtlMessageBase.h"
 #include "igtlTypes.h"
@@ -46,6 +46,7 @@ public:
   igtlTypeMacro(igtl::CoordinateMessage, igtl::MessageBase);
   igtlNewMacro(igtl::CoordinateMessage);
 
+
 public:
 
   void         Init();
@@ -59,8 +60,8 @@ public:
   void         SetPosition(float x, float y, float z);
   void         SetQuaternion(const float* quat);
   void         SetQuaternion(float ox, float oy, float oz, float w);
-  void         SetOffet(const float* offset);
-  void         SetOffet(float x, float y, float z);
+  void         SetOffset(const float* offset);
+  void         SetOffset(float x, float y, float z);
   void         SetInsertion(float i) { this->m_Insertion = i; };
 
   void         GetPosition(float* pos);

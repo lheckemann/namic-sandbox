@@ -75,6 +75,9 @@
 #include "vtkCylinderSource.h"
 #include "vtkMRMLLinearTransformNode.h"
 
+#include "vtkOpenIGTLinkIFGUI.h"
+#include "vtkOpenIGTLinkIFLogic.h"
+#include "vtkIGTLToMRMLCoordinate.h"
 
 #include <vector>
 
@@ -197,7 +200,6 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
 
   this->FiducialListNodeID = NULL;
   this->FiducialListNode   = NULL;
-  
 }
 
 //---------------------------------------------------------------------------
@@ -834,6 +836,20 @@ void vtkProstateNavGUI::Enter()
   
   // neccessary?
   //this->Logic0->GetForegroundLayer()->SetUseReslice(0);
+
+  //----------------------------------------------------------------
+  // Following code should be in the logic class, but GetApplication()
+  // is not available there.
+
+  vtkOpenIGTLinkIFGUI* igtlGUI = 
+    vtkOpenIGTLinkIFGUI::SafeDownCast(vtkSlicerApplication::SafeDownCast(this->GetApplication())
+                                      ->GetModuleGUIByName("OpenIGTLink IF"));
+  if (igtlGUI)
+    {
+      vtkIGTLToMRMLCoordinate* converter = vtkIGTLToMRMLCoordinate::New();
+      igtlGUI->GetLogic()->RegisterMessageConverter(converter);
+    }
+
   
   //----------------------------------------------------------------
   // Target Fiducials

@@ -66,6 +66,7 @@ install(FILES
 set(ProstateNav_SRCS 
   vtkProstateNavLogic.cxx
   vtkProstateNavGUI.cxx
+  vtkIGTLToMRMLCoordinate.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavConfigurationStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavScanControlStep.cxx
@@ -75,6 +76,7 @@ set(ProstateNav_SRCS
   )
 
 set(ProstateNavNewmat_SRCS
+  ${CMAKE_CURRENT_SOURCE_DIR}/igtlCoordinateMessage.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat9.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmatrm.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/newmat/nm_misc.cpp
