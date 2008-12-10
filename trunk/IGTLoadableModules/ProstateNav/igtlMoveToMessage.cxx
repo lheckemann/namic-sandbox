@@ -14,7 +14,7 @@
 
 =========================================================================*/
 
-#include "igtlCoordinateMessage.h"
+#include "igtlMoveToMessage.h"
 
 #include "igtl_header.h"
 #include "igtl_position.h"
@@ -23,20 +23,20 @@
 
 namespace igtl {
 
-CoordinateMessage::CoordinateMessage():
+MoveToMessage::MoveToMessage():
   MessageBase()
 {
   Init();
-  m_DefaultBodyType  = "COORDINATE";
+  m_DefaultBodyType  = "MOVE_TO";
 }
 
 
-CoordinateMessage::~CoordinateMessage()
+MoveToMessage::~MoveToMessage()
 {
 }
 
 
-void CoordinateMessage::Init()
+void MoveToMessage::Init()
 {
   this->m_PackType      = ALL;
 
@@ -51,7 +51,7 @@ void CoordinateMessage::Init()
 }
 
 
-void CoordinateMessage::SetPackType(int t)
+void MoveToMessage::SetPackType(int t)
 {
   if (t >= POSITION_ONLY && t <= ALL)
     {
@@ -60,7 +60,7 @@ void CoordinateMessage::SetPackType(int t)
 }
 
 
-int CoordinateMessage::SetPackTypeByBodySize(int s)
+int MoveToMessage::SetPackTypeByBodySize(int s)
 {
 
   if (s == IGTL_POSITION_MESSAGE_POSITON_ONLY_SIZE)
@@ -73,10 +73,11 @@ int CoordinateMessage::SetPackTypeByBodySize(int s)
     }
   else if (s == IGTL_POSITION_MESSAGE_DEFAULT_SIZE)
     {
-    this->m_PackType = WITH_QUATERNION;
+    this->m_PackType = ALL;
     }
   else
     {
+    // Do any error handling?
     this->m_PackType = ALL;
     return 0;
     }
@@ -86,7 +87,7 @@ int CoordinateMessage::SetPackTypeByBodySize(int s)
 }
 
 
-void CoordinateMessage::SetPosition(const float* pos)
+void MoveToMessage::SetPosition(const float* pos)
 {
   this->m_Position[0] = pos[0];
   this->m_Position[1] = pos[1];
@@ -94,7 +95,7 @@ void CoordinateMessage::SetPosition(const float* pos)
 }
 
 
-void CoordinateMessage::SetPosition(float x, float y, float z)
+void MoveToMessage::SetPosition(float x, float y, float z)
 {
   this->m_Position[0] = x;
   this->m_Position[1] = y;
@@ -102,7 +103,7 @@ void CoordinateMessage::SetPosition(float x, float y, float z)
 }
 
 
-void CoordinateMessage::SetQuaternion(const float* quat)
+void MoveToMessage::SetQuaternion(const float* quat)
 {
   this->m_Quaternion[0] = quat[0];
   this->m_Quaternion[1] = quat[1];
@@ -111,7 +112,7 @@ void CoordinateMessage::SetQuaternion(const float* quat)
 }
 
 
-void CoordinateMessage::SetQuaternion(float ox, float oy, float oz, float w)
+void MoveToMessage::SetQuaternion(float ox, float oy, float oz, float w)
 {
   this->m_Quaternion[0] = ox;
   this->m_Quaternion[1] = oy;
@@ -120,23 +121,7 @@ void CoordinateMessage::SetQuaternion(float ox, float oy, float oz, float w)
 }
 
 
-void CoordinateMessage::SetOffset(const float* offset)
-{
-  this->m_Offset[0] = offset[0];
-  this->m_Offset[1] = offset[1];
-  this->m_Offset[2] = offset[2];
-}
-
-
-void CoordinateMessage::SetOffset(float x, float y, float z)
-{
-  this->m_Offset[0] = x;
-  this->m_Offset[1] = y;
-  this->m_Offset[2] = z;
-}
-
-
-void CoordinateMessage::GetPosition(float* pos)
+void MoveToMessage::GetPosition(float* pos)
 {
   pos[0] = this->m_Position[0];
   pos[1] = this->m_Position[1];
@@ -144,7 +129,7 @@ void CoordinateMessage::GetPosition(float* pos)
 }
 
 
-void CoordinateMessage::GetPosition(float* x, float* y, float* z)
+void MoveToMessage::GetPosition(float* x, float* y, float* z)
 {
   *x = this->m_Position[0];
   *y = this->m_Position[1];
@@ -152,7 +137,7 @@ void CoordinateMessage::GetPosition(float* x, float* y, float* z)
 }
 
 
-void CoordinateMessage::GetQuaternion(float* quat)
+void MoveToMessage::GetQuaternion(float* quat)
 {
   quat[0] = this->m_Quaternion[0];
   quat[1] = this->m_Quaternion[1];
@@ -161,7 +146,7 @@ void CoordinateMessage::GetQuaternion(float* quat)
 }
 
 
-void CoordinateMessage::GetQuaternion(float* ox, float* oy, float* oz, float* w)
+void MoveToMessage::GetQuaternion(float* ox, float* oy, float* oz, float* w)
 {
   *ox = this->m_Quaternion[0];
   *oy = this->m_Quaternion[1];
@@ -170,22 +155,7 @@ void CoordinateMessage::GetQuaternion(float* ox, float* oy, float* oz, float* w)
 }
 
 
-void CoordinateMessage::GetOffset(float* offset)
-{
-  offset[0] = this->m_Offset[0];
-  offset[1] = this->m_Offset[1];
-  offset[2] = this->m_Offset[2];
-}
-
-void CoordinateMessage::GetOffset(float* x, float* y, float* z)
-{
-  *x = this->m_Offset[0];
-  *y = this->m_Offset[1];
-  *z = this->m_Offset[2];
-}
-
-
-int CoordinateMessage::SetMessageHeader(const MessageHeader* mb)
+int MoveToMessage::SetMessageHeader(const MessageHeader* mb)
 {
   int rc = Copy(mb);
   int rt = SetPackTypeByBodySize(this->GetPackBodySize());
@@ -195,7 +165,7 @@ int CoordinateMessage::SetMessageHeader(const MessageHeader* mb)
 }
 
 
-int CoordinateMessage::GetBodyPackSize()
+int MoveToMessage::GetBodyPackSize()
 {
   int ret;
 
@@ -207,11 +177,8 @@ int CoordinateMessage::GetBodyPackSize()
     case WITH_QUATERNION3:
       ret = IGTL_POSITION_MESSAGE_WITH_QUATERNION3_SIZE;
       break;
-    case WITH_QUATERNION:
-      ret = IGTL_POSITION_MESSAGE_DEFAULT_SIZE;
-      break;
     default:
-      ret = IGTL_POSITION_MESSAGE_DEFAULT_SIZE+sizeof(igtlFloat32)*4;
+      ret = IGTL_POSITION_MESSAGE_DEFAULT_SIZE;
     }
 
   return ret;
@@ -219,7 +186,7 @@ int CoordinateMessage::GetBodyPackSize()
 }
 
 
-int CoordinateMessage::PackBody()
+int MoveToMessage::PackBody()
 {
   // allocate pack
   AllocatePack();
@@ -237,26 +204,12 @@ int CoordinateMessage::PackBody()
 
   igtl_position_convert_byte_order(p);
 
-  igtl_float32* b = (igtl_float32*)((unsigned char*)this->m_Body + sizeof(igtl_position));
-  b[0] = this->m_Offset[0];
-  b[1] = this->m_Offset[1];
-  b[2] = this->m_Offset[2];
-  b[3] = this->m_Insertion;
-  
-  if (igtl_is_little_endian())
-    {
-    igtl_uint32* a = (igtl_uint32*)b;
-    a[0] = BYTE_SWAP_INT32(a[0]);
-    a[1] = BYTE_SWAP_INT32(a[1]);
-    a[2] = BYTE_SWAP_INT32(a[2]);
-    a[3] = BYTE_SWAP_INT32(a[3]);
-    }
-
   return 1;
 }
 
-int CoordinateMessage::UnpackBody()
+int MoveToMessage::UnpackBody()
 {
+  
   igtl_position* p = (igtl_position*)this->m_Body;
   
   igtl_position_convert_byte_order(p);
@@ -269,32 +222,6 @@ int CoordinateMessage::UnpackBody()
   this->m_Quaternion[2] = p->quaternion[2];
   this->m_Quaternion[3] = p->quaternion[3];
 
-  if (this->GetPackSize() >= IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE
-      +sizeof(igtlFloat32)*4)
-    {
-    unsigned char* off = (unsigned char*) this->m_Body;
-    off += sizeof(igtl_position);
-    if (igtl_is_little_endian())
-      {
-      
-      igtlUint32 tmp[3];
-      memcpy((void*)tmp, (void*)(off), sizeof(igtl_float32)*3);
-      tmp[0]  = BYTE_SWAP_INT32(tmp[0]);
-      tmp[1]  = BYTE_SWAP_INT32(tmp[1]);
-      tmp[2]  = BYTE_SWAP_INT32(tmp[2]);
-      memcpy((void*)this->m_Offset, (void*)tmp, sizeof(igtl_float32)*3);
-      
-      off += sizeof(igtl_float32)*3;
-      igtlUint32 tmp2;
-      memcpy((void*)tmp2, (void*)(off), sizeof(igtl_float32));
-      this->m_Insertion = BYTE_SWAP_INT32(tmp2);
-      }
-    else
-      {
-      memcpy((void*)this->m_Offset, (void*) off, sizeof(igtl_float32)*4);
-      }
-    }
-  
   return 1;
 
 }

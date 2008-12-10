@@ -103,6 +103,7 @@ vtkIGTLToMRMLBrpRobotCommand::vtkIGTLToMRMLBrpRobotCommand()
   */
 
   this->ZFrameTransformNodeID = "";
+  this->TargetTransformNodeID = "";
 }
 
 
@@ -160,23 +161,86 @@ int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* m
     {
     vtkMRMLBrpRobotCommandNode* commandNode 
       = vtkMRMLBrpRobotCommandNode::SafeDownCast(mrmlNode);
-    const char* command = commandNode->PopOutgoingCommand();
+    std::string command = commandNode->PopOutgoingCommand();
     
-    if (strcmp(command, "START_UP")       == 0 ||
-        strcmp(command, "TARGETING")      == 0 ||
-        strcmp(command, "MOVE_TO")        == 0 ||
-        strcmp(command, "MANUAL")         == 0 ||
-        strcmp(command, "EMERGENCY")      == 0 ||
-        strcmp(command, "HOME")           == 0 ||
-        strcmp(command, "BIOPSY")         == 0 ||
-        strcmp(command, "GET_COORDINATE") == 0 ||
-        strcmp(command, "GET_STATUS")     == 0)
+    if (strcmp(command.c_str(), "MoveTo") == 0)
       {
+      if (!commandNode->GetMRMLScene())
+        {
+        return 0;
+        }
+      vtkMRMLNode* node = commandNode->GetMRMLScene()->GetNodeByID(this->TargetTransformNodeID.c_str());
+      vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+      if (transformNode)
+        {
+        vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
+        if (this->OutMoveToMsg.IsNull())
+          {
+          this->OutMoveToMsg = igtl::MoveToMessage::New();
+          this->OutMoveToMsg->SetDeviceName(mrmlNode->GetName());
+          }
+
+        igtl::Matrix4x4 igtlmatrix;
+        
+        igtlmatrix[0][0]  = matrix->GetElement(0, 0);
+        igtlmatrix[1][0]  = matrix->GetElement(1, 0);
+        igtlmatrix[2][0]  = matrix->GetElement(2, 0);
+        igtlmatrix[3][0]  = matrix->GetElement(3, 0);
+        
+        igtlmatrix[0][1]  = matrix->GetElement(0, 1);
+        igtlmatrix[1][1]  = matrix->GetElement(1, 1);
+        igtlmatrix[2][1]  = matrix->GetElement(2, 1);
+        igtlmatrix[3][1]  = matrix->GetElement(3, 1);
+        
+        igtlmatrix[0][2]  = matrix->GetElement(0, 2);
+        igtlmatrix[1][2]  = matrix->GetElement(1, 2);
+        igtlmatrix[2][2]  = matrix->GetElement(2, 2);
+        igtlmatrix[3][2]  = matrix->GetElement(3, 2);
+        
+        igtlmatrix[0][3]  = matrix->GetElement(0, 3);
+        igtlmatrix[1][3]  = matrix->GetElement(1, 3);
+        igtlmatrix[2][3]  = matrix->GetElement(2, 3);
+        igtlmatrix[3][3]  = matrix->GetElement(3, 3);
+        
+        float position[3];
+        float quaternion[3];
+        
+        position[0] = igtlmatrix[0][3];
+        position[1] = igtlmatrix[1][3];
+        position[2] = igtlmatrix[2][3];
+        igtl::MatrixToQuaternion(igtlmatrix, quaternion);
+        
+        //this->OutMoveToMsg->SetMatrix(igtlmatrix);
+        this->OutMoveToMsg->SetPosition(position);
+        this->OutMoveToMsg->SetQuaternion(quaternion);
+        this->OutMoveToMsg->Pack();
+        
+        *size = this->OutMoveToMsg->GetPackSize();
+        *igtlMsg = (void*)this->OutMoveToMsg->GetPackPointer();
+        
+        }
+      else
+        {
+        return 0;
+        }
+
+
+      }
+    else if (strcmp(command.c_str(), "SET_Z_FRAME") == 0)
+      {
+      }
+    else if (strcmp(command.c_str(), "INSERT") == 0)
+      {
+      }
+    else
+      {
+      
       if (this->OutgoingMsg.IsNull())
         {
         this->OutgoingMsg = igtl::HeaderMessage::New();
+        this->OutgoingMsg->SetDeviceName(mrmlNode->GetName());
         }
-      if (!this->OutgoingMsg->SetDeviceType(command))
+      if (!this->OutgoingMsg->SetDeviceType(command.c_str()))
         {
         *size = 0;
         return 0;
@@ -185,18 +249,9 @@ int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* m
       *size = this->OutgoingMsg->GetPackSize();
       *igtlMsg = (void*)this->OutgoingMsg->GetPackPointer();
       return 1;
-
       }
-    else if (strcmp(command, "SET_Z_FRAME") == 0)
-      {
-      
-      }
-    else if (strcmp(command, "INSERT") == 0)
-      {
-      }
-
     }
-
+  
   return 0;
 
 }
