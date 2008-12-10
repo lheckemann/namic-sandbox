@@ -79,6 +79,8 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
 
   void PrintSelf(ostream&, vtkIndent);
   
+  
+  int  Enter();
   int  SwitchWorkPhase(int);
   int  IsPhaseTransitable(int);
   
@@ -103,28 +105,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   int WorkPhaseStringToID(const char* string);
 
 
- private:
-  
-  static const int PhaseTransitionMatrix[NumPhases][NumPhases];
-  
-  int   CurrentPhase;
-  int   PrevPhase;
-  int   PhaseComplete;
-  bool  Connected;
-  bool  PhaseTransitionCheck;
-  bool  RealtimeImageUpdate;
-
-  //----------------------------------------------------------------
-  // Locator
-  //----------------------------------------------------------------
-
-  // Junichi Tokuda on 11/27/2007:
-  // What's a difference between LocatorMatrix and Locator Transform???
-
-  bool  Connection;  
-  int   RobotWorkPhase;
-  int   ScannerWorkPhase;
-  
  protected:
   
   vtkProstateNavLogic();
@@ -139,6 +119,35 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   void UpdateLocator();
 
   vtkCallbackCommand *DataCallbackCommand;
+
+  
+ private:
+  
+  static const int PhaseTransitionMatrix[NumPhases][NumPhases];
+  
+  int   CurrentPhase;
+  int   PrevPhase;
+  int   PhaseComplete;
+  bool  Connected;
+  bool  PhaseTransitionCheck;
+  bool  RealtimeImageUpdate;
+
+  //BTX
+  //ETX
+
+
+  //----------------------------------------------------------------
+  // Locator
+  //----------------------------------------------------------------
+
+  // Junichi Tokuda on 11/27/2007:
+  // What's a difference between LocatorMatrix and Locator Transform???
+
+  bool  Connection;  
+  int   RobotWorkPhase;
+  int   ScannerWorkPhase;
+
+  
 
 };
 

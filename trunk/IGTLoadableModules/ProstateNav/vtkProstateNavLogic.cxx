@@ -34,6 +34,8 @@
 #include "itkGDCMImageIO.h"
 #include "itkSpatialOrientationAdapter.h"
 
+#include "vtkMRMLBrpRobotCommandNode.h"
+
 // for communication with robot and scanner
 #include "BRPTPRInterface.h"
 
@@ -118,6 +120,20 @@ void vtkProstateNavLogic::UpdateAll()
 
 }
 
+
+int vtkProstateNavLogic::Enter()
+{
+
+  vtkMRMLBrpRobotCommandNode* node = vtkMRMLBrpRobotCommandNode::New();
+  node->SetName("BRPRobotCommand");
+
+  this->GetMRMLScene()->SaveStateForUndo();
+  this->GetMRMLScene()->AddNode(node);
+
+  node->Modified();
+  this->GetMRMLScene()->Modified();
+
+}
 
 //---------------------------------------------------------------------------
 int vtkProstateNavLogic::SwitchWorkPhase(int newwp)

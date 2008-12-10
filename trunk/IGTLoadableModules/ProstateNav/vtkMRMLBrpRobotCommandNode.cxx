@@ -18,10 +18,10 @@ Version:   $Revision: 1.3 $
 #include "vtkObjectFactory.h"
 #include "vtkCallbackCommand.h"
 
+#include "vtkIGTLToMRMLBrpRobotCommand.h"
+
 #include "vtkMRMLBrpRobotCommandNode.h"
 #include "vtkMRMLDiffusionTensorDisplayPropertiesNode.h"
-
-#include "vtkSphereSource.h"
 
 //------------------------------------------------------------------------------
 vtkMRMLBrpRobotCommandNode* vtkMRMLBrpRobotCommandNode::New()
@@ -40,11 +40,7 @@ vtkMRMLBrpRobotCommandNode* vtkMRMLBrpRobotCommandNode::New()
     ret =  new vtkMRMLBrpRobotCommandNode;
     }
 
-  ret->Sphere = vtkSphereSource::New();
-
-  double c[] = {0.0, 0.0, 0.0};
-  ret->SetParameters(c, 1.0, 1.0);
-  ret->SetAndObservePolyData(ret->Sphere->GetOutput());
+  ret->ZFrameTransformNodeID = "";
 
   return ret;
 }
@@ -62,6 +58,7 @@ vtkMRMLNode* vtkMRMLBrpRobotCommandNode::CreateNodeInstance()
   return new vtkMRMLBrpRobotCommandNode;
 }
 
+
 //----------------------------------------------------------------------------
 void vtkMRMLBrpRobotCommandNode::PrintSelf(ostream& os, vtkIndent indent)
 {
@@ -70,34 +67,45 @@ void vtkMRMLBrpRobotCommandNode::PrintSelf(ostream& os, vtkIndent indent)
 
 }
 
+
 //----------------------------------------------------------------------------
-void vtkMRMLBrpRobotCommandNode::SetParameters(double center[3], double radius, double hardness)
+void vtkMRMLBrpRobotCommandNode::SetZFrameTransformNodeID(const char* name)
 {
-  this->Center[0] = center[0];
-  this->Center[1] = center[1];
-  this->Center[2] = center[2];
-  this->Radius = radius;
-  this->Hardness = hardness;
-
-  if (this->Sphere)
-    {
-    this->Sphere->SetRadius(radius);
-    this->Sphere->SetCenter(center);
-    this->Sphere->Update();
-    }
-
-  this->Modified();
-  this->InvokeEvent(vtkMRMLBrpRobotCommandNode::DisplayModifiedEvent, NULL);
-
+  this->ZFrameTransformNodeID = name;
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLBrpRobotCommandNode::GetParameters(double* center, double* radius, double* hardness)
+void vtkMRMLBrpRobotCommandNode::PushOutgoingCommand(const char* name)
 {
-  center[0] = this->Center[0];
-  center[1] = this->Center[1];
-  center[2] = this->Center[2];
-  *radius   = this->Radius;
-  *hardness = this->Hardness;
+  this->OutCommandQueue.push(std::string(name));
 }
+
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLBrpRobotCommandNode::PopOutgoingCommand()
+{
+  std::string ret = this->OutCommandQueue.front();
+  this->OutCommandQueue.pop();
+
+  return ret.c_str();
+}
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLBrpRobotCommandNode::PushIncomingCommand(const char* name)
+{
+  this->InCommandQueue.push(std::string(name));
+}
+
+
+//----------------------------------------------------------------------------
+const char* vtkMRMLBrpRobotCommandNode::PopIncomingCommand()
+{
+  std::string ret = this->InCommandQueue.front();
+  this->InCommandQueue.pop();
+
+  return ret.c_str();
+}
+
+
