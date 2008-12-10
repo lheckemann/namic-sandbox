@@ -82,6 +82,8 @@ vtkProstateNavLogic::vtkProstateNavLogic()
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkProstateNavLogic::DataCallback);
 
+  this->RobotCommandNodeID = "";
+
 }
 
 
@@ -124,8 +126,26 @@ void vtkProstateNavLogic::UpdateAll()
 int vtkProstateNavLogic::Enter()
 {
 
+  vtkMRMLBrpRobotCommandNode *linxnode = vtkMRMLBrpRobotCommandNode::New(); 
+  this->GetMRMLScene()->RegisterNodeClass( linxnode );
+  linxnode->Delete();
+  
+  std::cerr << "checking IsA() .." << std::endl;
+  if (linxnode->IsA("vtkMRMLBrpRobotCommandNode"))
+    {
+    std::cerr << "OK" << std::endl;
+    }
+  else
+    {
+    std::cerr << "NOT OK" << std::endl;
+    }
+
+  std::vector<vtkMRMLNode*> nodes;
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLBrpRobotCommandNode", nodes);
+
   vtkMRMLBrpRobotCommandNode* node = vtkMRMLBrpRobotCommandNode::New();
   node->SetName("BRPRobotCommand");
+  node->SetMRMLScene(this->GetMRMLScene());
 
   this->GetMRMLScene()->SaveStateForUndo();
   this->GetMRMLScene()->AddNode(node);
@@ -133,16 +153,58 @@ int vtkProstateNavLogic::Enter()
   node->Modified();
   this->GetMRMLScene()->Modified();
 
+  this->RobotCommandNodeID = node->GetID();
+
+
 }
+
 
 //---------------------------------------------------------------------------
 int vtkProstateNavLogic::SwitchWorkPhase(int newwp)
 {
+  std::cerr << "1--------------------" << std::endl;
   if (IsPhaseTransitable(newwp))
     {
+    std::cerr << "2--------------------" << std::endl;
     this->PrevPhase     = this->CurrentPhase;
     this->CurrentPhase  = newwp;
     this->PhaseComplete = false;
+
+    char* command = NULL;
+    switch(this->CurrentPhase)
+      {
+      case StartUp:
+        command = "START_UP";
+        break;
+      case Planning:
+        command = "PLANNING";
+        break;
+      case Calibration:
+        command = "CALIBRATION";
+        break;
+      case Targeting:
+        command = "TARGETING";
+        break;
+      case Manual:
+        command = "MANUAL";
+        break;
+      case Emergency:
+        command = "EMERGENCY";
+        break;
+      default:
+        break;
+      }
+    if (command)
+      {
+      vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID(this->RobotCommandNodeID.c_str());
+      vtkMRMLBrpRobotCommandNode* cnode = vtkMRMLBrpRobotCommandNode::SafeDownCast(node);
+      if (cnode)
+        {
+        cnode->PushOutgoingCommand(command);
+        cnode->InvokeEvent(vtkCommand::ModifiedEvent);
+        }
+
+      }
 
     return 1;
     }

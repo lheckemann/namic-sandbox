@@ -40,8 +40,6 @@ vtkMRMLBrpRobotCommandNode* vtkMRMLBrpRobotCommandNode::New()
     ret =  new vtkMRMLBrpRobotCommandNode;
     }
 
-  ret->ZFrameTransformNodeID = "";
-
   return ret;
 }
 
@@ -56,6 +54,13 @@ vtkMRMLNode* vtkMRMLBrpRobotCommandNode::CreateNodeInstance()
     }
   // If the factory was unable to create the object, then create it here.
   return new vtkMRMLBrpRobotCommandNode;
+}
+
+
+//----------------------------------------------------------------------------
+vtkMRMLBrpRobotCommandNode::vtkMRMLBrpRobotCommandNode()
+{
+  this->ZFrameTransformNodeID = "";
 }
 
 
@@ -78,34 +83,38 @@ void vtkMRMLBrpRobotCommandNode::SetZFrameTransformNodeID(const char* name)
 //----------------------------------------------------------------------------
 void vtkMRMLBrpRobotCommandNode::PushOutgoingCommand(const char* name)
 {
-  this->OutCommandQueue.push(std::string(name));
+  //this->OutCommandQueue.push(std::string(name));
+  this->OutCommand = name;
 }
 
 
 //----------------------------------------------------------------------------
 const char* vtkMRMLBrpRobotCommandNode::PopOutgoingCommand()
 {
-  std::string ret = this->OutCommandQueue.front();
-  this->OutCommandQueue.pop();
+  //std::string ret = this->OutCommandQueue.front();
+  //this->OutCommandQueue.pop();
 
-  return ret.c_str();
+  //return ret.c_str();
+  return this->OutCommand.c_str();
 }
 
 
 //----------------------------------------------------------------------------
 void vtkMRMLBrpRobotCommandNode::PushIncomingCommand(const char* name)
 {
-  this->InCommandQueue.push(std::string(name));
+  //this->InCommandQueue.push(std::string(name));
+  this->InCommand = name;
 }
 
 
 //----------------------------------------------------------------------------
 const char* vtkMRMLBrpRobotCommandNode::PopIncomingCommand()
 {
-  std::string ret = this->InCommandQueue.front();
-  this->InCommandQueue.pop();
-
-  return ret.c_str();
+  //std::string ret = this->InCommandQueue.front();
+  //this->InCommandQueue.pop();
+  //
+  //return ret.c_str();
+  return this->InCommand.c_str();
 }
 
 

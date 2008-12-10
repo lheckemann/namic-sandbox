@@ -23,7 +23,6 @@
 #include "vtkMRML.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLNode.h"
-#include "vtkMRMLModelNode.h"
 //#include "vtkMRMLBrpRobotCommandDisplayNode.h"
 //#include "vtkMRMLBrpRobotCommandLineDisplayNode.h"
 //#include "vtkMRMLBrpRobotCommandTubeDisplayNode.h"
@@ -35,12 +34,12 @@
 class vtkCallbackCommand;
 class vtkSphereSource;
 
-class VTK_MRML_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLModelNode
+class VTK_MRML_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLNode
 {
  public:
   static vtkMRMLBrpRobotCommandNode *New();
-  vtkTypeMacro(vtkMRMLBrpRobotCommandNode,vtkMRMLModelNode);
-  //vtkTypeMacro(vtkMRMLBrpRobotCommandNode,vtkMRMLTransformableNode);
+  vtkTypeMacro(vtkMRMLBrpRobotCommandNode,vtkMRMLNode);
+
   void PrintSelf(ostream& os, vtkIndent indent);
   
   //--------------------------------------------------------------------------
@@ -54,7 +53,7 @@ class VTK_MRML_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLModelNode
   virtual const char* GetNodeTagName() {return "BrpRobotCommand";};
 
  protected:
-  vtkMRMLBrpRobotCommandNode(){};
+  vtkMRMLBrpRobotCommandNode();
   ~vtkMRMLBrpRobotCommandNode(){};
   vtkMRMLBrpRobotCommandNode(const vtkMRMLBrpRobotCommandNode&);
   void operator=(const vtkMRMLBrpRobotCommandNode&);
@@ -62,18 +61,28 @@ class VTK_MRML_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLModelNode
 
  public:
   void SetZFrameTransformNodeID(const char* name);
+  void SetTargetTransformNodeID(const char* name);
+
   void PushOutgoingCommand(const char* name);
   const char* PopOutgoingCommand();
   void PushIncomingCommand(const char* name);
   const char* PopIncomingCommand();
-
+  
+  void SetMRMLScene(vtkMRMLScene* s) {this->MRMLScene = s;};
+  vtkMRMLScene* GetMRMLScene() { return this->MRMLScene; };
 
  protected:
   //BTX
+  std::string ZFrameTransformNodeID;
+  std::string TargetTransformNodeID;
+
   std::queue<std::string> InCommandQueue;
   std::queue<std::string> OutCommandQueue;
-  std::string ZFrameTransformNodeID;
+  std::string InCommand;
+  std::string OutCommand;
   //ETX
+
+  vtkMRMLScene* MRMLScene;
 
 };
 

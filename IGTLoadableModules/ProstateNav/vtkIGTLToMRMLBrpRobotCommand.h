@@ -21,6 +21,7 @@
 #include "vtkIGTLToMRMLBase.h"
 
 #include "igtlHeaderMessage.h"
+#include "igtlMoveToMessage.h"
 
 class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBrpRobotCommand : public vtkIGTLToMRMLBase
 {
@@ -31,11 +32,15 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBrpRobotCommand : public vtkIGTLToMR
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual int          GetConverterType() { return TYPE_MULTI_IGTL_NAMES; };
-  virtual const char*  GetIGTLName() { return NULL; };
-  virtual const char*  GetMRMLName() { return NULL; };
+  //virtual int          GetConverterType() { return TYPE_MULTI_IGTL_NAMES; };
+  virtual const char*  GetIGTLName() { return "RCOMMAND"; };
+  virtual const char*  GetMRMLName() { return "BrpRobotCommand"; };
   virtual vtkIntArray* GetNodeEvents();
   virtual vtkMRMLNode* CreateNewNode(vtkMRMLScene* scene, const char* name);
+
+  // for TYPE_MULTI_IGTL_NAMES
+  int                  GetNumberOfIGTLNames()   { return this->IGTLNames.size(); };
+  const char*          GetIGTLName(int index)   { return this->IGTLNames[index].c_str(); };
 
   //BTX
   virtual int          IGTLToMRML(igtl::MessageBase::Pointer buffer, vtkMRMLNode* node);
@@ -50,7 +55,9 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBrpRobotCommand : public vtkIGTLToMR
  protected:
   //BTX
   std::string ZFrameTransformNodeID;
+  std::string TargetTransformNodeID;
   igtl::HeaderMessage::Pointer OutgoingMsg;
+  igtl::MoveToMessage::Pointer OutMoveToMsg;
   //ETX
   
 };

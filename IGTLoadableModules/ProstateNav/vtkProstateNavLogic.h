@@ -133,6 +133,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   bool  RealtimeImageUpdate;
 
   //BTX
+  std::string RobotCommandNodeID;
   //ETX
 
 
