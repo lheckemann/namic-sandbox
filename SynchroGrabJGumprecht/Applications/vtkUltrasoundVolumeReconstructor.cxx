@@ -91,7 +91,7 @@ vtkStandardNewMacro(vtkUltrasoundVolumeReconstructor);
 //----------------------------------------------------------------------------
 vtkUltrasoundVolumeReconstructor::vtkUltrasoundVolumeReconstructor()
 {
-  this->NbFrames = 150 + 100; //# of Frames to capture + additional 100 frames which are skipped
+  this->NbFrames = 50 + 100; //# of Frames to capture + additional 100 frames which are skipped
   this->FrameRate = 30;
 
   this->CalibrationFileName = NULL;
