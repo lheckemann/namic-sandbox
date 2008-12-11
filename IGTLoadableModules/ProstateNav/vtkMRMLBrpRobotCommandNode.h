@@ -68,7 +68,7 @@ class VTK_MRML_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLNode
   void PushIncomingCommand(const char* name);
   const char* PopIncomingCommand();
   
-  void SetMRMLScene(vtkMRMLScene* s) {this->MRMLScene = s;};
+  void SetMRMLScene(vtkMRMLScene* s) { this->MRMLScene = s;};
   vtkMRMLScene* GetMRMLScene() { return this->MRMLScene; };
 
  protected:

@@ -81,6 +81,13 @@ void vtkMRMLBrpRobotCommandNode::SetZFrameTransformNodeID(const char* name)
 
 
 //----------------------------------------------------------------------------
+void vtkMRMLBrpRobotCommandNode::SetTargetTransformNodeID(const char* name)
+{
+  this->TargetTransformNodeID = name;
+}
+
+
+//----------------------------------------------------------------------------
 void vtkMRMLBrpRobotCommandNode::PushOutgoingCommand(const char* name)
 {
   //this->OutCommandQueue.push(std::string(name));

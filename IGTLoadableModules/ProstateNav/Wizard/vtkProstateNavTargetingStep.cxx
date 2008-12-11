@@ -33,6 +33,9 @@
 #include "vtkSlicerFiducialsLogic.h"
 #include "vtkMRMLSelectionNode.h"
 
+#include "vtkMRMLLinearTransformNode.h"
+#include "igtlMath.h"
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavTargetingStep);
 vtkCxxRevisionMacro(vtkProstateNavTargetingStep, "$Revision: 1.1 $");
@@ -269,8 +272,40 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
       orientation[2] = (float) matrix->GetElementValueAsDouble(0, 2);
       orientation[3] = (float) matrix->GetElementValueAsDouble(0, 3);
 
-      this->Logic->RobotMoveTo(position, orientation);
+      vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->
+        GetNodeByID(this->GetLogic()->GetRobotTargetNodeID());
+      vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+      if (transformNode)
+        {
+        vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
+        igtl::Matrix4x4 igtlmatrix;
 
+        igtl::QuaternionToMatrix(orientation, igtlmatrix);
+        igtlmatrix[0][3] = position[0];
+        igtlmatrix[1][3] = position[1];
+        igtlmatrix[2][3] = position[2];
+        
+        matrix->SetElement(0, 0, igtlmatrix[0][0]);
+        matrix->SetElement(1, 0, igtlmatrix[1][0]);
+        matrix->SetElement(2, 0, igtlmatrix[2][0]);
+        matrix->SetElement(3, 0, igtlmatrix[3][0]);
+        matrix->SetElement(0, 1, igtlmatrix[0][1]);
+        matrix->SetElement(1, 1, igtlmatrix[1][1]);
+        matrix->SetElement(2, 1, igtlmatrix[2][1]);
+        matrix->SetElement(3, 1, igtlmatrix[3][1]);
+        matrix->SetElement(0, 2, igtlmatrix[0][2]);
+        matrix->SetElement(1, 2, igtlmatrix[1][2]);
+        matrix->SetElement(2, 2, igtlmatrix[2][2]);
+        matrix->SetElement(3, 2, igtlmatrix[3][2]);
+        matrix->SetElement(0, 3, igtlmatrix[0][3]);
+        matrix->SetElement(1, 3, igtlmatrix[1][3]);
+        matrix->SetElement(2, 3, igtlmatrix[2][3]);
+        matrix->SetElement(3, 3, igtlmatrix[3][3]);
+        
+        vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
+        transformToParent->DeepCopy(matrix);
+        this->Logic->RobotMoveTo();
+        }
       }
     }
 

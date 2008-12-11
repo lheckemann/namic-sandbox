@@ -163,7 +163,9 @@ int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* m
       = vtkMRMLBrpRobotCommandNode::SafeDownCast(mrmlNode);
     std::string command = commandNode->PopOutgoingCommand();
     
-    if (strcmp(command.c_str(), "MoveTo") == 0)
+    std::cerr << "MRMLToIGTL   -- " << command << std::endl;
+
+    if (strcmp(command.c_str(), "MOVE_TO") == 0)
       {
       if (!commandNode->GetMRMLScene())
         {
@@ -223,11 +225,65 @@ int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* m
         {
         return 0;
         }
-
-
       }
     else if (strcmp(command.c_str(), "SET_Z_FRAME") == 0)
       {
+      if (!commandNode->GetMRMLScene())
+        {
+        return 0;
+        }
+      std::cerr << "int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNode, int* size, void** igtlMsg)" << std::endl;
+      std::cerr << "SET_Z_FRAMAE" << std::endl;
+      vtkMRMLNode* node = commandNode->GetMRMLScene()->GetNodeByID(this->ZFrameTransformNodeID.c_str());
+      vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+      if (transformNode)
+        {
+        vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
+        if (this->OutSetZFrameMsg.IsNull())
+          {
+          this->OutSetZFrameMsg = igtl::SetZFrameMessage::New();
+          this->OutSetZFrameMsg->SetDeviceName(mrmlNode->GetName());
+          }
+        
+        igtl::Matrix4x4 igtlmatrix;
+        
+        igtlmatrix[0][0]  = matrix->GetElement(0, 0);
+        igtlmatrix[1][0]  = matrix->GetElement(1, 0);
+        igtlmatrix[2][0]  = matrix->GetElement(2, 0);
+        igtlmatrix[3][0]  = matrix->GetElement(3, 0);
+        
+        igtlmatrix[0][1]  = matrix->GetElement(0, 1);
+        igtlmatrix[1][1]  = matrix->GetElement(1, 1);
+        igtlmatrix[2][1]  = matrix->GetElement(2, 1);
+        igtlmatrix[3][1]  = matrix->GetElement(3, 1);
+        
+        igtlmatrix[0][2]  = matrix->GetElement(0, 2);
+        igtlmatrix[1][2]  = matrix->GetElement(1, 2);
+        igtlmatrix[2][2]  = matrix->GetElement(2, 2);
+        igtlmatrix[3][2]  = matrix->GetElement(3, 2);
+        
+        igtlmatrix[0][3]  = matrix->GetElement(0, 3);
+        igtlmatrix[1][3]  = matrix->GetElement(1, 3);
+        igtlmatrix[2][3]  = matrix->GetElement(2, 3);
+        igtlmatrix[3][3]  = matrix->GetElement(3, 3);
+        
+        float position[3];
+        float quaternion[3];
+        
+        position[0] = igtlmatrix[0][3];
+        position[1] = igtlmatrix[1][3];
+        position[2] = igtlmatrix[2][3];
+        igtl::MatrixToQuaternion(igtlmatrix, quaternion);
+        
+        //this->OutMoveToMsg->SetMatrix(igtlmatrix);
+        this->OutSetZFrameMsg->SetPosition(position);
+        this->OutSetZFrameMsg->SetQuaternion(quaternion);
+        this->OutSetZFrameMsg->Pack();
+        
+        *size = this->OutSetZFrameMsg->GetPackSize();
+        *igtlMsg = (void*)this->OutSetZFrameMsg->GetPackPointer();
+        
+        }
       }
     else if (strcmp(command.c_str(), "INSERT") == 0)
       {
