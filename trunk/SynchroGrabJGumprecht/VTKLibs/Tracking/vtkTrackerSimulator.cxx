@@ -218,15 +218,13 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 }
 
 //----------------------------------------------------------------------------
-// this function runs in an alternate thread to asyncronously grab frames
+// this function runs in an alternate thread to asyncronously generate matrices
 static void *vtkTrackerSimulatorRecordThread(vtkMultiThreader::ThreadInfo *data)
 {
   vtkTrackerSimulator *self = (vtkTrackerSimulator *)(data->UserData);
   
   double startTime = vtkTimerLog::GetUniversalTime();
   double matrix = 1;
-
-  cout << "Tracker Thread startet" <<endl;
 
   do
     {
