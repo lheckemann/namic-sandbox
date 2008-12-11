@@ -76,22 +76,23 @@ public:
   vtkTypeRevisionMacro(vtkUltrasoundVolumeReconstructor, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  vtkSetMacro(NbFrames, int);
-  vtkGetMacro(NbFrames, int);
-
-  vtkSetStringMacro(SonixAddr);
-  vtkGetStringMacro(SonixAddr);
-  
-  vtkSetStringMacro(VideoDevice);
-  vtkGetStringMacro(VideoDevice);
-
-  vtkSetStringMacro(CalibrationFileName);
-  vtkGetStringMacro(CalibrationFileName);
   vtkSetMacro(VolumeReconstructionEnabled, bool);
   vtkGetMacro(VolumeReconstructionEnabled, bool);
 
-  vtkSetMacro(UseTrackerTransforms, bool);
-  vtkGetMacro(UseTrackerTransforms, bool);
+  vtkSetStringMacro(CalibrationFileName);
+  vtkGetStringMacro(CalibrationFileName);
+
+  vtkSetMacro(NbFrames, int);
+  vtkGetMacro(NbFrames, int);
+
+  vtkSetStringMacro(VideoDevice);
+  vtkGetStringMacro(VideoDevice);
+
+  vtkSetMacro(VideoChannel, int);
+  vtkGetMacro(VideoChannel, int);
+
+  vtkSetMacro(VideoMode, int);
+  vtkGetMacro(VideoMode, int);
 
   vtkSetMacro(FrameRate, double);
   vtkGetMacro(FrameRate, double);
@@ -104,14 +105,15 @@ protected:
   vtkUltrasoundVolumeReconstructor();
   ~vtkUltrasoundVolumeReconstructor();
 
-  int NbFrames;
+  int NbFrames; //Number of frames to grab
 
-  char *SonixAddr;
   char *CalibrationFileName;
-  char *VideoDevice;
+
+  char *VideoDevice; // e.g. /dev/video
+  int   VideoChannel; // e.g. 3 at Hauppauge Impact VCB Modell 558
+  int   VideoMode; //NTSC == 1 , PAL == 2
 
   bool VolumeReconstructionEnabled;
-  bool UseTrackerTransforms;
 
   double FrameRate;  
   
