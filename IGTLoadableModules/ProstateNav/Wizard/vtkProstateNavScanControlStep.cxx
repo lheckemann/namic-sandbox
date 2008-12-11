@@ -203,8 +203,6 @@ void vtkProstateNavScanControlStep::ProcessGUIEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
 
-  std::cerr << "vtkProstateNavScanControlStep::ProcessGUIEvents()" << std::endl;
-
   /*
   vtkMRMLFiducialListNode *activeFiducialListNode 
     = (vtkMRMLFiducialListNode *)this->MRMLScene->GetNodeByID(this->FiducialListNodeID);
@@ -268,8 +266,6 @@ void vtkProstateNavScanControlStep::ProcessGUIEvents(vtkObject *caller,
 void vtkProstateNavScanControlStep::ProcessMRMLEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
-  std::cerr << "vtkProstateNavScanControlStep::ProcessMRMLEvents() is called. " << std::cerr;
-
   vtkMRMLSelectionNode *selnode;
   if (this->GetGUI()->GetApplicationLogic())
     {

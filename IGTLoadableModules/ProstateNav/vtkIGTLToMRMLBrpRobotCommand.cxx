@@ -102,8 +102,6 @@ vtkIGTLToMRMLBrpRobotCommand::vtkIGTLToMRMLBrpRobotCommand()
   this->IGTLNames.push_back(std::string("AIR_PRESSURE"));
   */
 
-  this->ZFrameTransformNodeID = "";
-  this->TargetTransformNodeID = "";
 }
 
 
@@ -167,11 +165,11 @@ int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* m
 
     if (strcmp(command.c_str(), "MOVE_TO") == 0)
       {
-      if (!commandNode->GetMRMLScene())
+      if (!commandNode->GetScene())
         {
         return 0;
         }
-      vtkMRMLNode* node = commandNode->GetMRMLScene()->GetNodeByID(this->TargetTransformNodeID.c_str());
+      vtkMRMLNode* node = commandNode->GetScene()->GetNodeByID(commandNode->GetTargetTransformNodeID());
       vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
       if (transformNode)
         {
@@ -219,6 +217,7 @@ int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* m
         
         *size = this->OutMoveToMsg->GetPackSize();
         *igtlMsg = (void*)this->OutMoveToMsg->GetPackPointer();
+        return 1;
         
         }
       else
@@ -228,13 +227,12 @@ int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* m
       }
     else if (strcmp(command.c_str(), "SET_Z_FRAME") == 0)
       {
-      if (!commandNode->GetMRMLScene())
+      if (!commandNode->GetScene())
         {
         return 0;
         }
       std::cerr << "int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* mrmlNode, int* size, void** igtlMsg)" << std::endl;
-      std::cerr << "SET_Z_FRAMAE" << std::endl;
-      vtkMRMLNode* node = commandNode->GetMRMLScene()->GetNodeByID(this->ZFrameTransformNodeID.c_str());
+      vtkMRMLNode* node = commandNode->GetScene()->GetNodeByID(commandNode->GetZFrameTransformNodeID());
       vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
       if (transformNode)
         {
@@ -279,18 +277,22 @@ int vtkIGTLToMRMLBrpRobotCommand::MRMLToIGTL(unsigned long event, vtkMRMLNode* m
         this->OutSetZFrameMsg->SetPosition(position);
         this->OutSetZFrameMsg->SetQuaternion(quaternion);
         this->OutSetZFrameMsg->Pack();
+
+        std::cerr << "SIZE: " << this->OutSetZFrameMsg->GetPackSize() << std::endl;
         
         *size = this->OutSetZFrameMsg->GetPackSize();
         *igtlMsg = (void*)this->OutSetZFrameMsg->GetPackPointer();
+
+        return 1;
         
         }
       }
     else if (strcmp(command.c_str(), "INSERT") == 0)
       {
+      //return 1;
       }
     else
       {
-      
       if (this->OutgoingMsg.IsNull())
         {
         this->OutgoingMsg = igtl::HeaderMessage::New();

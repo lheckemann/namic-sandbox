@@ -55,8 +55,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBrpRobotCommand : public vtkIGTLToMR
 
  protected:
   //BTX
-  std::string ZFrameTransformNodeID;
-  std::string TargetTransformNodeID;
   igtl::HeaderMessage::Pointer OutgoingMsg;
   igtl::MoveToMessage::Pointer OutMoveToMsg;
   igtl::SetZFrameMessage::Pointer OutSetZFrameMsg;

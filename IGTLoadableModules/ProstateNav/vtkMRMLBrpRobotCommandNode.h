@@ -61,16 +61,15 @@ class VTK_MRML_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLNode
 
  public:
   void SetZFrameTransformNodeID(const char* name);
+  const char* GetZFrameTransformNodeID() { return this->ZFrameTransformNodeID.c_str(); };
   void SetTargetTransformNodeID(const char* name);
+  const char* GetTargetTransformNodeID() { return this->TargetTransformNodeID.c_str(); };
 
   void PushOutgoingCommand(const char* name);
   const char* PopOutgoingCommand();
   void PushIncomingCommand(const char* name);
   const char* PopIncomingCommand();
   
-  void SetMRMLScene(vtkMRMLScene* s) { this->MRMLScene = s;};
-  vtkMRMLScene* GetMRMLScene() { return this->MRMLScene; };
-
  protected:
   //BTX
   std::string ZFrameTransformNodeID;
@@ -81,8 +80,6 @@ class VTK_MRML_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLNode
   std::string InCommand;
   std::string OutCommand;
   //ETX
-
-  vtkMRMLScene* MRMLScene;
 
 };
 
