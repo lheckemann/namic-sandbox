@@ -44,7 +44,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 #define NOMINMAX
-#undef REMOVE_ALPHA_CHANNEL
+//#define REMOVE_ALPHA_CHANNEL
+//#define DEBUG_IMAGES //Write tagger output to HDD
+
  
 //#include <windows.h>
 
@@ -96,9 +98,10 @@ vtkUltrasoundVolumeReconstructor::vtkUltrasoundVolumeReconstructor()
 
   this->CalibrationFileName = NULL;
   this->SetVideoDevice("/dev/video0");
+  this->SetVideoChannel(3); //S-Video at Hauppauge Impact VCB Modell 558
+  this->SetVideoMode(1); //NTSC
 
   this->VolumeReconstructionEnabled = true;
-  this->UseTrackerTransforms = true;
 
   this->calibReader = vtkUltrasoundCalibFileReader::New();
   
@@ -123,20 +126,17 @@ vtkUltrasoundVolumeReconstructor::vtkUltrasoundVolumeReconstructor()
 vtkUltrasoundVolumeReconstructor::~vtkUltrasoundVolumeReconstructor()
 {
 
-// McGumbel
   this->tracker->Delete();
   this->sonixGrabber->ReleaseSystemResources();
   this->sonixGrabber->Delete();
   this->tagger->Delete();
   this->calibReader->Delete();
-
   this->SetCalibrationFileName(NULL);
 }
 //----------------------------------------------------------------------------
 void vtkUltrasoundVolumeReconstructor::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-
 }
 
 //----------------------------------------------------------------------------
@@ -147,6 +147,8 @@ bool vtkUltrasoundVolumeReconstructor::ConfigurePipeline()
 
 #ifdef USE_ULTRASOUND_DEVICE
   this->sonixGrabber->SetVideoDevice(this->GetVideoDevice());
+  this->sonixGrabber->SetVideoChannel(this->GetVideoChannel());
+  this->sonixGrabber->SetVideoMode(this->GetVideoMode());
 #endif
 
   // set up the video source (ultrasound machine)  
@@ -165,17 +167,7 @@ bool vtkUltrasoundVolumeReconstructor::ConfigurePipeline()
   this->tagger->SetVideoSource(sonixGrabber);
   
   // set up the tracker if necessary
-  bool error;
-  if( this->UseTrackerTransforms){
-    
-    error = this->StartTracker();
-    
-    
-    //NH
-    //12/2/08
-    //Debug line
-    //    cerr << "DEBUG: this->StartTracker() returns:" << error << endl;
-  }
+  bool error = this->StartTracker();    
   
   this->tagger->Initialize();
 
@@ -200,181 +192,204 @@ bool vtkUltrasoundVolumeReconstructor::StartTracker()
 }
 
 //----------------------------------------------------------------------------
-bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * ImageBuffer)
- {
+bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
+{
 
-   cout << "Initialization:" << std::flush;
-   cout << '\a' << std::flush;
-   for(int i = 0; i < 11; i++)
-     {
+  cout << "Initialization:" << std::flush;
+  cout << '\a' << std::flush;
+  for(int i = 0; i < 11; i++)
+    {
 #ifdef USE_TRACKER_DEVICE
-     vtkSleep(1);
+      vtkSleep(1);
 #else
-     vtkSleep(0.2);
+      vtkSleep(0.2);
 #endif
-     cout << 10 - i << " " << std::flush;
-     }
-   cout << endl;
+      cout << 10 - i << " " << std::flush;
+    }
+  cout << endl;
 
-   cout << "Start Scanning" << endl;
-   cout << '\a' << std::flush;
-   vtkSleep(0.2);
-   cout << '\a' << std::flush; 
+  cout << "Start Scanning" << endl;
+  cout << '\a' << std::flush;
+  vtkSleep(0.2);
+  cout << '\a' << std::flush; 
 
-   this->sonixGrabber->Record();  //Start recording frame from the video
+  this->sonixGrabber->Record();  //Start recording frame from the video
    
-   for (int i = 0; i < (int) (this->NbFrames / this->FrameRate + 0.5) * 2; i++)
-        { 
-    cout <<"*" << '\a' << std::flush;
-        vtkSleep(0.5);
-        }
-   cout << endl;
-   // igtl:sleep((int) (this->NbFrames / this->FrameRate + 0.5));// wait for the images (delay in seconds)
+  for (int i = 0; i < (int) (this->NbFrames / this->FrameRate + 0.5) * 2; i++)
+    {
 
-   this->sonixGrabber->Stop();//Stop recording
+#ifdef USE_TRACKER_DEVICE || USE_ULTRASOUND_DEVICE
+    cout <<"*" << '\a' << std::flush;//Only beep when we use no simulator
+#endif
 
-   this->tracker->StopTracking();//Stop tracking
+    vtkSleep(0.5);//Wait half a second for the next beep
+    }
+  cout << endl;
+  // igtl:sleep((int) (this->NbFrames / this->FrameRate + 0.5));// wait for the images (delay in seconds)
 
-   cout << "Stopped Scanning" << endl;
-   cout << '\a' << std::flush;
-   vtkSleep(0.2);
-   cout << '\a' << std::flush;
+  this->sonixGrabber->Stop();//Stop recording
 
-   cout << "Scanning successful" << endl;
+  this->tracker->StopTracking();//Stop tracking
 
-   cout << "  Recorded synchronized transforms and ultrasound images for " << ((int) this->NbFrames / this->FrameRate + 0.5) << "s" << endl;
+  cout << "Stopped Scanning" << endl;
+  cout << '\a' << std::flush;
+  vtkSleep(0.2);
+  cout << '\a' << std::flush;
 
-   // set up the panoramic reconstruction class
-   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
-   panoramaReconstructor->CompoundingOn();
-   panoramaReconstructor->SetInterpolationModeToLinear();
+  cout << "Scanning successful" << endl;
 
-   //NH
-   //12/2/08
-   //cerr << "vtk3DPanoramicVolumeReconsturctor instantiated" << endl;
+  cout << "  Recorded synchronized transforms and ultrasound images for " << ((int) this->NbFrames / this->FrameRate + 0.5) << "s" << endl;
+
+  // set up the panoramic reconstruction class
+  vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
+  panoramaReconstructor->CompoundingOn();
+  panoramaReconstructor->SetInterpolationModeToLinear();
+
+  //NH
+  //12/2/08
+  //cerr << "vtk3DPanoramicVolumeReconsturctor instantiated" << endl;
 
 
-   // Determine the extent of the volume that needs to be reconstructed by 
-   // iterating throught all the acquired frames
-   double clipRectangle[4];
-   this->calibReader->GetClipRectangle(clipRectangle);
-   panoramaReconstructor->SetClipRectangle(clipRectangle);
-   double xmin = clipRectangle[0], ymin = clipRectangle[1], 
-     xmax = clipRectangle[2], ymax = clipRectangle[3];
+  // Determine the extent of the volume that needs to be reconstructed by 
+  // iterating throught all the acquired frames
+  double clipRectangle[4];
+  this->calibReader->GetClipRectangle(clipRectangle);
+  panoramaReconstructor->SetClipRectangle(clipRectangle);
+  double xmin = clipRectangle[0], ymin = clipRectangle[1], 
+         xmax = clipRectangle[2], ymax = clipRectangle[3];
+     
+  double imCorners[4][4]= { 
+    { xmin, ymin, 0, 1}, 
+    { xmin, ymax, 0, 1},
+    { xmax, ymin, 0, 1},
+    { xmax, ymax, 0, 1} };
 
-   double imCorners[4][4]= { 
-     { xmin, ymin, 0, 1}, 
-     { xmin, ymax, 0, 1},
-     { xmax, ymin, 0, 1},
-     { xmax, ymax, 0, 1} };
+  double transformedPt[4];
 
-   double transformedPt[4];
+  double maxX, maxY, maxZ;
+  maxX = maxY = maxZ = -1 * numeric_limits<double>::max();
+  
+  double minX, minY, minZ;
+  minX = minY = minZ = numeric_limits<double>::max();
 
-   double maxX, maxY, maxZ;
-   maxX = maxY = maxZ = -1 * numeric_limits<double>::max();
-   double minX, minY, minZ;
-   minX = minY = minZ = numeric_limits<double>::max();
+  int nbFramesGrabbed = sonixGrabber->GetFrameCount();
 
-   int nbFramesGrabbed = sonixGrabber->GetFrameCount();
+  //NH
+  // 12/02/08
+  //   cerr << "all clipping number set" << endl;
+  if(nbFramesGrabbed == 0)
+    {
+    cerr << "ERROR: Grabbed no frames" << endl;
+    return false;        
+    }
+  else
+    {
+    cerr << " Grabbed Frames: " << nbFramesGrabbed << endl;
+    } 
 
-   //NH
-   // 12/02/08
-   //   cerr << "all clipping number set" << endl;
-   cerr << "  Grabbed Frames: " << nbFramesGrabbed << endl;
+  this->sonixGrabber->Rewind();
 
-   this->sonixGrabber->Rewind();
+  for(int i=0; i < nbFramesGrabbed; i++)
+    {
+    // get those transforms... and compute the bounding box
+    this->tagger->Update();
 
-   for(int i=0; i < nbFramesGrabbed; i++)
+    // determine the bounding box occupied by the reconstructed volume
+    for(int j=0; j < 4; j++)
+      {
+      this->tagger->GetTransform()->MultiplyPoint(imCorners[j],transformedPt);
+      minX = min(transformedPt[0], minX);
+      minY = min(transformedPt[1], minY);
+      minZ = min(transformedPt[2], minZ);
+      maxX = max(transformedPt[0], maxX);
+      maxY = max(transformedPt[1], maxY);
+      maxZ = max(transformedPt[2], maxZ);
+      }
+    this->sonixGrabber->Seek(1);
+    }
+
+  double spacing[3] = {1,1,1};
+  int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
+                          0, (int)( (maxY - minY) / spacing[1] ), 
+                          0, (int)( (maxZ - minZ) / spacing[2] ) };
+
+  panoramaReconstructor->SetOutputExtent(volumeExtent);
+  panoramaReconstructor->SetOutputSpacing(spacing);
+  panoramaReconstructor->SetOutputOrigin(minX, minY, minZ);
+
+  //---------------------------------------------------------------------------
+  //Rewind and add recorded Slices to the PanoramaReconstructor
+
+  panoramaReconstructor->SetSlice(tagger->GetOutput());
+  //JG
+  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar();
+  panoramaReconstructor->GetOutput()->Update();
+  this->sonixGrabber->Rewind();
+
+#ifdef USE_ULTRASOUND_DEVICE
+  this->sonixGrabber->Seek(100);//The first 100 frames are black therefore skip them
+  cout << "Skip the first 100 frames" << endl;
+#endif
+
+  this->tagger->Update();
+
+  vtkMatrix4x4 *sliceAxes = vtkMatrix4x4::New();
+  this->tagger->GetTransform()->GetMatrix(sliceAxes);
+  panoramaReconstructor->SetSliceAxes(sliceAxes);
+
+#ifdef DEBUG_IMAGES
+  //NH
+  vtkBMPWriter *writer = vtkBMPWriter::New();
+  char filename[256];
+#endif
+
+  //panoramaReconstructor->GetOutput()->SetNumberOfScalarComponents(tagger->GetOutput()->GetNumberOfScalarComponents()); 
+  //   panoramaReconstructor->GetOutput()->AllocateScalars();
+   
+  cout << "Start Volume Reconstruction" << endl;
+
+  for(int i=0; i < nbFramesGrabbed; i++)
+    {
+    cout << "*" << std::flush;
+
+    if (i % 80 == 0 and i <> 0)
      {
-     // get those transforms... and compute the bounding box
-     this->tagger->Update();
-
-     // determine the bounding box occupied by the reconstructed volume
-     for(int j=0; j < 4; j++)
-       {
-       this->tagger->GetTransform()->MultiplyPoint(imCorners[j],transformedPt);
-       minX = min(transformedPt[0], minX);
-       minY = min(transformedPt[1], minY);
-       minZ = min(transformedPt[2], minZ);
-       maxX = max(transformedPt[0], maxX);
-       maxY = max(transformedPt[1], maxY);
-       maxZ = max(transformedPt[2], maxZ);
-       }
-     this->sonixGrabber->Seek(1);
-
+     cout << "\n"<< std::flush;
      }
 
-   double spacing[3] = {1,1,1};
-   int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
-         0, (int)( (maxY - minY) / spacing[1] ), 
-         0, (int)( (maxZ - minZ) / spacing[2] ) };
+    this->tagger->Update();
+    this->tagger->GetTransform()->GetMatrix(sliceAxes); //Get trackingmatrix of current frame
+    panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
+    //cout << "Tracker matrix:\n";
+    //sliceAxes->Print(cout);
+    panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
+    this->sonixGrabber->Seek(1); //Advance to the next frame
 
-   panoramaReconstructor->SetOutputExtent(volumeExtent);
-   panoramaReconstructor->SetOutputSpacing(spacing);
-   panoramaReconstructor->SetOutputOrigin(minX, minY, minZ);
-
-   //---------------------------------------------------------------------------
-   //Rewind and add recorded Slices to the PanoramaReconstructor
-
-   panoramaReconstructor->SetSlice(tagger->GetOutput());
-   panoramaReconstructor->GetOutput()->Update();
-   this->sonixGrabber->Rewind();
-
- #ifdef USE_ULTRASOUND_DEVICE
-   this->sonixGrabber->Seek(100);//The first 100 frames are black therefore skip them
-   cout << "Skip the first 100 frames" << endl;
- #endif
-
-   this->tagger->Update();
-
-   vtkMatrix4x4 *sliceAxes = vtkMatrix4x4::New();
-   this->tagger->GetTransform()->GetMatrix(sliceAxes);
-   panoramaReconstructor->SetSliceAxes(sliceAxes);
-
-   //NH
-   vtkBMPWriter *writer = vtkBMPWriter::New();
-   char filename[256];
-
-   //panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar(); //Causes a segmentation fault
-   //panoramaReconstructor->GetOutput()->AllocateScalars(); //Causes a segmentation fault
-   
-   cout << "Start Volume Reconstruction" << endl;
-
-   for(int i=0; i < nbFramesGrabbed; i++)
-     {
-       cout << "*" << std::flush;
-
-        if (i % 80 == 0)
-         {
-         cout << "\n"<< std::flush;
-         }
-
-     this->tagger->Update();
-     this->tagger->GetTransform()->GetMatrix(sliceAxes); //Get trackingmatrix of current frame
-     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
-     //cout << "Tracker matrix:\n";
-     //sliceAxes->Print(cout);
-     panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
-     this->sonixGrabber->Seek(1); //Advance to the next frame
+#ifdef DEBUG_IMAGES
 
     writer->SetInput(this->tagger->GetOutput());  
     sprintf(filename,"./Output/output%03d.bmp",i);
     writer->SetFileName(filename);
     writer->Update();
 
+#endif
+
     }
+
+  cout << endl;
 
   //----- Reconstruction done -----
 
-   if(panoramaReconstructor->GetPixelCount() > 0)
-     {
-       cout << "Reconstruction successfully completed" << endl;
-       cout << "  Inserted " << panoramaReconstructor->GetPixelCount() << " pixels into the output volume" << endl;
-     }
-   else
-     {
-       cout << "Reconstruction failed" << endl;
-     }
+  if(panoramaReconstructor->GetPixelCount() > 0)
+    {
+      cout << "Reconstruction successfully completed" << endl;
+      cout << "  Inserted " << panoramaReconstructor->GetPixelCount() << " pixels into the output volume" << endl;
+    }
+  else
+    {
+      cout << "Reconstruction failed" << endl;
+      return false;
+    }
 
   
   panoramaReconstructor->FillHolesInOutput();
@@ -394,23 +409,23 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * ImageBuf
   
 #endif
 
-  //--- Adjust Properties of ImageBuffer ---
+  //--- Adjust Properties of Volume ---
   
   //Dimensions
   int dimensions[3];   
   extractOutput->GetDimensions(dimensions);
-  ImageBuffer->SetDimensions(dimensions);
+  Volume->SetDimensions(dimensions);
   
   //Spacing
   double ouputSpacing[3];
   extractOutput->GetSpacing(ouputSpacing);
-  ImageBuffer->SetSpacing(ouputSpacing);
+  Volume->SetSpacing(ouputSpacing);
   
   //SetScalarType
-  ImageBuffer->SetScalarType(extractOutput->GetScalarType());
-  ImageBuffer->AllocateScalars();
+  Volume->SetScalarType(extractOutput->GetScalarType());
+  Volume->AllocateScalars();
 
-  unsigned char * pBuff = (unsigned char *) ImageBuffer->GetScalarPointer();
+  unsigned char * pBuff = (unsigned char *) Volume->GetScalarPointer();
   unsigned char * pExtract = (unsigned char *) extractOutput->GetScalarPointer();  
 
   //Fill transfer buffer
