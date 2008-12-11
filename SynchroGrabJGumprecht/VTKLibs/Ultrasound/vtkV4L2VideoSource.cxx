@@ -1639,8 +1639,8 @@ void vtkV4L2VideoSource::InitDevice(void){
   CLEAR (fmt);
 
   fmt.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  fmt.fmt.pix.width       = 640; 
-  fmt.fmt.pix.height      = 480;
+  fmt.fmt.pix.width       = SLICE_X_LENGTH; 
+  fmt.fmt.pix.height      = SLICE_Y_LENGTH;
   fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
   fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
 
@@ -1671,13 +1671,19 @@ void vtkV4L2VideoSource::InitDevice(void){
     InitUserp (fmt.fmt.pix.sizeimage);
     break;
   }
-
-   int channel = 3;
+  
+  //Set Input channel to 3 = S-Video on a Hauppauge Impact VCB
+  int channel = 3;
 
   if (-1 == xioctl (fd,VIDIOC_S_INPUT , &channel))
     errno_exit ("VIDIOC_S_INPUT");
+  
+  //Set video mode to NTSC 
 
- v4l2_std_id std_id = V4L2_STD_NTSC;
+  v4l2_std_id std_id = V4L2_STD_NTSC;
+  //other options are
+  //  PAL: V4L2_STD_PAL
+  //  SECAM: V4L2_STD_SECAM
 
   if (-1 == ioctl (fd, VIDIOC_S_STD, &std_id)) {
         perror ("VIDIOC_S_STD");
