@@ -85,9 +85,6 @@ vtkUltrasoundVolumeSender::vtkUltrasoundVolumeSender()
   
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
-
-  // Initialize Transfer Buffer
-  this->ImageBuffer = NULL; 
 }
 
 //----------------------------------------------------------------------------
@@ -211,25 +208,19 @@ bool vtkUltrasoundVolumeSender::CloseServerConnection()
 //}
 
 //----------------------------------------------------------------------------
-bool vtkUltrasoundVolumeSender::SendImages()
+bool vtkUltrasoundVolumeSender::SendImages(vtkImageData * ImageBuffer, int repetitions)
 {
-  int limit = 10;
-  
-  if(this->GetVolumeReconstructionEnabled())
-    {
-    limit = 1;// Once is enough
-    }
 
   //------------------------------------------------------------
   // loop
-  for (int i = 0; i < limit; i ++)
+  for (int i = 0; i < repetitions; i ++)
     { 
 
     //------------------------------------------------------------
     // Get Image data
     igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
     
-    vtkGetTestImage(imgMsg);
+    vtkFillImageMessage(ImageBuffer, imgMsg);
 
     //------------------------------------------------------------
     // Get randome orientation matrix and set it.
@@ -264,7 +255,7 @@ bool vtkUltrasoundVolumeSender::SendImages()
 
 //------------------------------------------------------------
 // Function to get image data
-int vtkUltrasoundVolumeSender::vtkGetTestImage(igtl::ImageMessage::Pointer& msg)
+int vtkUltrasoundVolumeSender::vtkFillImageMessage(vtkImageData *ImageBuffer, igtl::ImageMessage::Pointer& msg)
 {
   int size[3];      // image dimension
   double spacing[3]; // spacing (mm/pixel)
@@ -273,52 +264,32 @@ int vtkUltrasoundVolumeSender::vtkGetTestImage(igtl::ImageMessage::Pointer& msg)
   int scalarType;   // scalar type
 
   //If we reconstructing a 3DVolume everything is already set for us
-  if(this->GetVolumeReconstructionEnabled())
-    {
-    this->ImageBuffer->GetDimensions(size);
-    this->ImageBuffer->GetSpacing(spacing);
+    ImageBuffer->GetDimensions(size);
+    ImageBuffer->GetSpacing(spacing);
     svsize[0]   = size[0];       
     svsize[1]   = size[1];       
     svsize[2]   = size[2];           
     svoffset[0] = svoffset[1] = svoffset[2] = 0;           
-    scalarType = this->ImageBuffer->GetScalarType();    
-    }
-  else
-    {   
-    //------------------------------------------------------------
-    //Imager Setting
-    size[0] = VOLUME_X_LENGTH;
-    size[1] = VOLUME_Y_LENGTH;
-    size[2] = VOLUME_Z_LENGTH;
-    spacing[0] = VOLUME_X_SPACING;
-    spacing[1] = VOLUME_Y_SPACING;
-    spacing[2] = VOLUME_Z_SPACING;
-    svsize[0] = VOLUME_X_LENGTH;
-    svsize[1] = VOLUME_Y_LENGTH;
-    svsize[2] = VOLUME_Z_LENGTH;
-    svoffset[0] = svoffset[1] = svoffset[2] = 0;           
-    scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
-    
-    this->FillImage();
-    }
-    cout << "vtkUltrasoundVolumeSender::SendImages: Size parameters set" << endl;
+    scalarType = ImageBuffer->GetScalarType();    
   
-    //------------------------------------------------------------
-    // Create a new IMAGE type message    
-    msg->SetDimensions(size);
-    msg->SetSpacing((float) spacing[0],(float) spacing[1], (float) spacing[2]);
-    msg->SetScalarType(scalarType);
-    msg->SetDeviceName("ImagerClient");
-    msg->SetSubVolume(svsize, svoffset);
-    msg->AllocateScalars();
+  //------------------------------------------------------------
+  // Create a new IMAGE type message    
+  msg->SetDimensions(size);
+  msg->SetSpacing((float) spacing[0],(float) spacing[1], (float) spacing[2]);
+  msg->SetScalarType(scalarType);
+  msg->SetDeviceName("ImagerClient");
+  msg->SetSubVolume(svsize, svoffset);
+  msg->AllocateScalars();
     
+  cerr <<    "vtkSychroGrabPipeline::SendImagers size:" << size[0] << " " << size[1] << " " << size[2] << endl;
+  cerr <<    "spacing:" << spacing[0] << " " << spacing[1] << " " << spacing[2] << endl;
 
-  char * p_msg = (char*) msg->GetScalarPointer();
-  char * p_ibuffer = (char*) this->ImageBuffer->GetScalarPointer();
+  unsigned char * p_msg = (unsigned char*) msg->GetScalarPointer();
+  unsigned char * p_ibuffer = (unsigned char*) ImageBuffer->GetScalarPointer();
 
   for(int i=0 ; i < size[0] * size[1] * size[2] ; i++ )
     {
-    *p_msg = (char) * p_ibuffer;
+    *p_msg = (unsigned char) * p_ibuffer;
     p_ibuffer++; p_msg++;
     }
 
@@ -332,105 +303,17 @@ void vtkUltrasoundVolumeSender::vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix)
   float position[3];
   float orientation[4];
 
-  /*
-  // random position
-  static float phi = 0.0;
-  position[0] = 50.0 * cos(phi);
-  position[1] = 50.0 * sin(phi);
-  position[2] = 0;
-  phi = phi + 0.2;
+  //Matrix looks like
+  // 1 0 0 0
+  // 0 1 0 0
+  // 0 0 1 0
+  // 0 0 0 1
 
-  // random orientation
-  static float theta = 0.0;
-  orientation[0]=0.0;
-  orientation[1]=0.6666666666*cos(theta);
-  orientation[2]=0.577350269189626;
-  orientation[3]=0.6666666666*sin(theta);
-  theta = theta + 0.1;
-
-  igtl::Matrix4x4 matrix;
-  igtl::QuaternionToMatrix(orientation, matrix);
-
-  matrix[0][3] = position[0];
-  matrix[1][3] = position[1];
-  matrix[2][3] = position[2];
-  */
 
   matrix[0][0] = 1.0;  matrix[1][0] = 0.0;  matrix[2][0] = 0.0; matrix[3][0] = 0.0;
-//  matrix[0][1] = 0.0;  matrix[1][1] = -1.0;  matrix[2][1] = 0.0; matrix[3][1] = 0.0;
   matrix[0][1] = 0.0;  matrix[1][1] = 1.0;  matrix[2][1] = 0.0; matrix[3][1] = 0.0;
   matrix[0][2] = 0.0;  matrix[1][2] = 0.0;  matrix[2][2] = 1.0; matrix[3][2] = 0.0;
   matrix[0][3] = 0.0;  matrix[1][3] = 0.0;  matrix[2][3] = 0.0; matrix[3][3] = 1.0;
   
-  igtl::PrintMatrix(matrix);
+  //igtl::PrintMatrix(matrix);
 }
-
-void vtkUltrasoundVolumeSender::FillImage()
-{
-      // get the pointer to actual incoming data on to a local pointer
-    char* deviceDataPtr = (char *) this->ImageBuffer->GetScalarPointer();  
-  
-    int R = 50; //Radius of globe
-    double r; //Radius of circle in slice
-    int c = 50; //Center of globe
-    double a;// Start to write at this position in the actual line
-    double b;// Stop to write at this position in the actual line
-    int n = 30;
-  
-    for (int z = 0 ; z < SLICE_Z_LENGTH ; z++)
-      {
-      //Calc radius of slice
-      if(n - c >= R || c - n >= R)
-        {
-        r = -1;
-        }
-      else
-        {
-        if(n >= c)
-          {
-          r = sqrt(R * R - (n - c) * (n - c));
-          }
-        else
-          {
-          r = sqrt(R * R - (c - n) * (c - n));
-          }
-//      cout << "******************************************\n";
-//      cout << "Globe Calculation: Slice has radius: " << r << endl;
-        }
-      for (int y = 0 ; y < SLICE_Y_LENGTH ; y++)
-        {
-        //Calc a, b
-        if(r == -1 || y - SLICE_Y_LENGTH / 2 >= r || SLICE_Y_LENGTH / 2 - y >= r)
-          {
-          a = -1;
-          b = -1;
-          }
-        else
-          {
-          if (y <= SLICE_X_LENGTH / 2)
-            {
-            a = SLICE_X_LENGTH / 2 - sqrt(r * r - (SLICE_Y_LENGTH / 2 - y) * (SLICE_Y_LENGTH / 2 - y));
-            b = SLICE_X_LENGTH / 2 + sqrt(r * r - (SLICE_Y_LENGTH / 2 - y) * (SLICE_Y_LENGTH / 2 - y));
-            }
-          else
-            {
-            a = SLICE_X_LENGTH / 2 - sqrt(r * r - (y - SLICE_Y_LENGTH / 2) * (y - SLICE_Y_LENGTH / 2));
-            b = SLICE_X_LENGTH / 2 + sqrt(r * r - (y - SLICE_Y_LENGTH / 2) * (y - SLICE_Y_LENGTH / 2));          
-            }
-//            cout << "A, B for this line: " << a << ", " << b << endl; 
-          } 
-        for (int x = 0 ; x < SLICE_X_LENGTH ; x++)
-          {
-          if(a == -1 || b == -1 || x <= a || x >= b)
-            {
-            deviceDataPtr[ z * SLICE_Z_LENGTH + y * SLICE_Y_LENGTH + x] = 255;
-            continue;
-            }                     
-          deviceDataPtr[ z * SLICE_Z_LENGTH + y * SLICE_Y_LENGTH + x] = 0;        
-          }            
-        }
-      }  
-}
-
-
-
