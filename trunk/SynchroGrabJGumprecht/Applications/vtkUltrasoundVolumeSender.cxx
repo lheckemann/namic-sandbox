@@ -301,19 +301,31 @@ int vtkUltrasoundVolumeSender::vtkFillImageMessage(vtkImageData *ImageBuffer, ig
 void vtkUltrasoundVolumeSender::vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix)
 {
   float position[3];
-  float orientation[4];
-
-  //Matrix looks like
-  // 1 0 0 0
-  // 0 1 0 0
-  // 0 0 1 0
-  // 0 0 0 1
-
-
-  matrix[0][0] = 1.0;  matrix[1][0] = 0.0;  matrix[2][0] = 0.0; matrix[3][0] = 0.0;
-  matrix[0][1] = 0.0;  matrix[1][1] = 1.0;  matrix[2][1] = 0.0; matrix[3][1] = 0.0;
-  matrix[0][2] = 0.0;  matrix[1][2] = 0.0;  matrix[2][2] = 1.0; matrix[3][2] = 0.0;
-  matrix[0][3] = 0.0;  matrix[1][3] = 0.0;  matrix[2][3] = 0.0; matrix[3][3] = 1.0;
+  float orientation[4];  
   
-  //igtl::PrintMatrix(matrix);
+ #ifdef USE_TRACKER_DEVICE
+ //NDI tracker matrix looks like
+  //  0  0 -1  0
+  // -1  0  0  0
+  //  0  1  0  0
+  //  0  0  0  1
+  matrix[0][0] =   0.0;  matrix[1][0] =  0.0;  matrix[2][0] = -1.0; matrix[3][0] = 0.0;
+  matrix[0][1] =  -1.0;  matrix[1][1] =  0.0;  matrix[2][1] =  0.0; matrix[3][1] = 0.0;
+  matrix[0][2] =   0.0;  matrix[1][2] =  1.0;  matrix[2][2] =  0.0; matrix[3][2] = 0.0;
+  matrix[0][3] =   0.0;  matrix[1][3] =  0.0;  matrix[2][3] =  0.0; matrix[3][3] = 1.0;
+#else
+  //Tracker simulator matrix looks like
+  //  1  0  0  0
+  //  0  1  0  0
+  //  0  0  1  0
+  //  0  0  0  1
+  matrix[0][0] =   1.0;  matrix[1][0] =  0.0;  matrix[2][0] =  0.0; matrix[3][0] = 0.0;
+  matrix[0][1] =   0.0;  matrix[1][1] =  1.0;  matrix[2][1] =  0.0; matrix[3][1] = 0.0;
+  matrix[0][2] =   0.0;  matrix[1][2] =  0.0;  matrix[2][2] =  1.0; matrix[3][2] = 0.0;
+  matrix[0][3] =   0.0;  matrix[1][3] =  0.0;  matrix[2][3] =  0.0; matrix[3][3] = 1.0;
+#endif
+
+  cout << "OpenIGTLink image message matrix" << endl;
+  igtl::PrintMatrix(matrix); 
+  
 }
