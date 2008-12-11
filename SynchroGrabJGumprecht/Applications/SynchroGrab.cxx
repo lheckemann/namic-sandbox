@@ -155,6 +155,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
         }
     return calibrationFileSpecified;
 }
+
 /******************************************************************************
  * 
  * MAIN
@@ -186,18 +187,29 @@ int main(int argc, char **argv)
     
     //Configure Reconstructor
     reconstructor->ConfigurePipeline();
+    
+    vtkImageData *ImageBuffer = vtkImageData::New();
 
     // Volume Reconstruction
     if(reconstructor->GetVolumeReconstructionEnabled())
-      {if(!reconstructor->ReconstructVolume())return -1;}
+      {
+      if(!reconstructor->ReconstructVolume(ImageBuffer))
+        {
+        return -1;
+        }
+      }
 
     // Transfer Images
     if(sender->GetTransfertImages())
       {
       if(!sender->ConnectToServer())return -1;
-      if(!sender->SendImages())return -1;
+      //Send volume once
+      if(!sender->SendImages(ImageBuffer, 1))return -1;
       if(!sender->CloseServerConnection())return -1;
       }
+
+    //Free Memory
+    ImageBuffer->Delete();
     reconstructor->Delete();
     sender->Delete();
 }
