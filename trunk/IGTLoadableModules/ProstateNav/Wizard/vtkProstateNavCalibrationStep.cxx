@@ -68,8 +68,10 @@ vtkProstateNavCalibrationStep::vtkProstateNavCalibrationStep()
   this->ShowZFrameCheckButton = NULL;
 
   //ZFrameModelNode = NULL;
+  /*
   this->ZFrameModelNodeID = "";
   this->ZFrameTransformNodeID = "";
+  */
 }
 
 //----------------------------------------------------------------------------
@@ -200,28 +202,28 @@ void vtkProstateNavCalibrationStep::ProcessGUIEvents(vtkObject *caller,
 void vtkProstateNavCalibrationStep::ShowZFrameModel()
 {
 
-  if (this->ZFrameModelNodeID.length() == 0 ||
-      this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID) == NULL)
-    {
-    this->ZFrameModelNodeID = AddZFrameModel("ZFrame");
-    }
+  //if (this->ZFrameModelNodeID.length() == 0 ||
+  //    this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID) == NULL)
+  //  {
+  //  this->ZFrameModelNodeID = AddZFrameModel("ZFrame");
+  //  }
 
   vtkMRMLModelNode*  modelNode =
-    vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID.c_str()));
+    //vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID.c_str()));
+    vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->GetLogic()->GetZFrameModelNodeID()));
 
   vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
   displayNode->SetVisibility(1);
   modelNode->Modified();
   this->MRMLScene->Modified();
-
-
-  if (this->ZFrameTransformNodeID.length() == 0 ||
-      this->MRMLScene->GetNodeByID(this->ZFrameTransformNodeID) == NULL)
-    {
-    this->ZFrameTransformNodeID = AddZFrameTransform("ZFrameTransform");
-    }
   
-  modelNode->SetAndObserveTransformNodeID(this->ZFrameTransformNodeID.c_str());
+  //if (this->ZFrameTransformNodeID.length() == 0 ||
+  //    this->MRMLScene->GetNodeByID(this->ZFrameTransformNodeID) == NULL)
+  //  {
+  //  this->ZFrameTransformNodeID = AddZFrameTransform("ZFrameTransform");
+  //  }
+  //
+  //modelNode->SetAndObserveTransformNodeID(this->ZFrameTransformNodeID.c_str());
 
 }
 
@@ -231,7 +233,7 @@ void vtkProstateNavCalibrationStep::HideZFrameModel()
 {
 
   vtkMRMLModelNode*  modelNode =
-    vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID.c_str()));
+    vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->GetLogic()->GetZFrameModelNodeID()));
 
   if (modelNode)
     {
@@ -493,20 +495,20 @@ void vtkProstateNavCalibrationStep::PerformZFrameCalibration(const char* filenam
     if (volumeNode)
       {
       Init(256, 256);
-      vtkMRMLNode* node = this->MRMLScene->GetNodeByID(this->ZFrameTransformNodeID);
+      //vtkMRMLNode* node = this->MRMLScene->GetNodeByID(this->ZFrameTransformNodeID);
+      vtkMRMLNode* node = this->MRMLScene->GetNodeByID(this->GetLogic()->GetZFrameTransformNodeID());
       vtkMRMLLinearTransformNode* transformNode;
       if (node != NULL)
         {
         transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+        ZFrameRegistration(volumeNode, transformNode, 0);
+        transformNode->Modified();
+        this->GetLogic()->SendZFrame();
         }
       else
         {
-        this->ZFrameTransformNodeID = AddZFrameTransform("ZFrameTransform");
-        node = this->MRMLScene->GetNodeByID(this->ZFrameTransformNodeID);
-        transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+        std::cerr << "Couldn't find zframe transform node" << std::endl;
         }
-      ZFrameRegistration(volumeNode, transformNode, 0);
-      transformNode->Modified();
       }
     else
       {
@@ -853,30 +855,33 @@ int vtkProstateNavCalibrationStep::ZFrameRegistration(vtkMRMLScalarVolumeNode* v
 
   vtkMatrix4x4* zMatrix = vtkMatrix4x4::New();
   zMatrix->Identity();
-  zMatrix->SetElement(0, 0, matrix[0][0]);
-  zMatrix->SetElement(1, 0, matrix[1][0]);
-  zMatrix->SetElement(2, 0, matrix[2][0]);
+  zMatrix->SetElement(0, 0, -matrix[0][0]);
+  zMatrix->SetElement(1, 0, -matrix[1][0]);
+  zMatrix->SetElement(2, 0, -matrix[2][0]);
   zMatrix->SetElement(0, 1, matrix[0][1]);
   zMatrix->SetElement(1, 1, matrix[1][1]);
   zMatrix->SetElement(2, 1, matrix[2][1]);
-  zMatrix->SetElement(0, 2, matrix[0][2]);
-  zMatrix->SetElement(1, 2, matrix[1][2]);
-  zMatrix->SetElement(2, 2, matrix[2][2]);
+  zMatrix->SetElement(0, 2, -matrix[0][2]);
+  zMatrix->SetElement(1, 2, -matrix[1][2]);
+  zMatrix->SetElement(2, 2, -matrix[2][2]);
   zMatrix->SetElement(0, 3, matrix[0][3]);
   zMatrix->SetElement(1, 3, matrix[1][3]);
   zMatrix->SetElement(2, 3, matrix[2][3]);
 
   if (transformNode != NULL)
     {
-    transformNode->ApplyTransform(zMatrix);
+    vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
+    transformToParent->DeepCopy(zMatrix);
     zMatrix->Delete();
-    
     return 1;
     }
   else
     {
+    zMatrix->Delete();
     return 0;
     }
+
+  
 
 }
 
@@ -1582,7 +1587,11 @@ void vtkProstateNavCalibrationStep::Update_Scan_Plane(Column3Vector &pcurrent,
    Quaternion Qcur, Qchg;
 
    // Update the scan plane position with the calculated offset in Zposition.
-   pcurrent = pcurrent + Zposition;
+   //pcurrent = pcurrent - Zposition;
+   double x = pcurrent.getX();
+   double y = pcurrent.getY();
+   double z = pcurrent.getZ();
+   pcurrent.setvalues(x - Zposition.getX(), y - Zposition.getY(), z + Zposition.getZ());
 
    // Compute the new image orientation.
    //ocurrent = Zorientation * ocurrent;

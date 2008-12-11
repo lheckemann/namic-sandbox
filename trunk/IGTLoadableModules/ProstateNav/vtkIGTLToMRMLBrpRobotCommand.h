@@ -22,6 +22,7 @@
 
 #include "igtlHeaderMessage.h"
 #include "igtlMoveToMessage.h"
+#include "igtlSetZFrameMessage.h"
 
 class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBrpRobotCommand : public vtkIGTLToMRMLBase
 {
@@ -58,6 +59,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLToMRMLBrpRobotCommand : public vtkIGTLToMR
   std::string TargetTransformNodeID;
   igtl::HeaderMessage::Pointer OutgoingMsg;
   igtl::MoveToMessage::Pointer OutMoveToMsg;
+  igtl::SetZFrameMessage::Pointer OutSetZFrameMsg;
   //ETX
   
 };

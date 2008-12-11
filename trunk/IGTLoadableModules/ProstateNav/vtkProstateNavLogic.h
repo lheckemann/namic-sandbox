@@ -28,6 +28,12 @@
 #include "vtkSlicerApplication.h"
 #include "vtkCallbackCommand.h"
 
+#include "vtkCylinderSource.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkTransform.h"
+#include "vtkAppendPolyData.h"
+
+
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLSliceNode.h"
 
@@ -92,6 +98,9 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
                    float nx, float ny, float nz,
                    float tx, float ty, float tz);
   int  RobotMoveTo(float position[3], float orientation[4]);
+
+  int  RobotMoveTo();
+  int  SendZFrame();
   
   int  ScanStart();
   int  ScanPause();
@@ -104,6 +113,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   
   int WorkPhaseStringToID(const char* string);
 
+  const char* GetRobotCommandNodeID()    { return this->RobotCommandNodeID.c_str();   };
+  const char* GetRobotTargetNodeID()     { return this->RobotTargetNodeID.c_str();    };
+  const char* GetZFrameTransformNodeID() { return this->ZFrameTransformNodeID.c_str();};
+  const char* GetZFrameModelNodeID()     { return this->ZFrameModelNodeID.c_str();};
 
  protected:
   
@@ -117,6 +130,9 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   void UpdateAll();
   void UpdateSliceDisplay();
   void UpdateLocator();
+
+
+  const char* AddZFrameModel(const char* nodeName);
 
   vtkCallbackCommand *DataCallbackCommand;
 
@@ -133,7 +149,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   bool  RealtimeImageUpdate;
 
   //BTX
-  std::string RobotCommandNodeID;
+  std::string RobotCommandNodeID;   
+  std::string RobotTargetNodeID;    
+  std::string ZFrameTransformNodeID;
+  std::string ZFrameModelNodeID;
   //ETX
 
 

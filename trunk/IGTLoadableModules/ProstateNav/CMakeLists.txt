@@ -81,6 +81,7 @@ set(ProstateNavNewmat_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/igtlCoordinateMessage.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/igtlHeaderMessage.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/igtlMoveToMessage.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/igtlSetZFrameMessage.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmat9.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/newmat/newmatrm.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/newmat/nm_misc.cpp
