@@ -64,27 +64,63 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std;
 
-void printUsage()
+void printSplashScreen()
 {
-    // print instructions on how to use this program.
-    cout << "Description : " << endl;
-    cout << "This humble program connects to a sonix RP machine runnig the standard" << endl <<
-        "clinical software (sonix RP) and to a Certus which is used to track the " << endl << 
-        "position and orientation of the ultrasound probe.  The calibration " << endl << 
-        " information (relation between the ultrasound image space and the" << endl <<
-        "dynamic reference object tracked by the Certus) have to be supplied by" << endl << 
-        "configuration file.  Once a predefined number of frames have been " << endl << 
-        "recorded, the application creates the 3D volume and exists." << endl << endl;
 
-    cout << "Options: " << endl
-         << "--calibration-file xxxx or -c xxxx: to specify the calibration file" << endl 
-         << "--output-file xxxx or -o xxxx: to specify the ouput file" << endl
-         << "                               (default value: outputVol.vtk)" << endl
+  cout << endl
+       <<"************************************************" << endl
+       <<"*                                              *" << endl
+       <<"* SynchroGrab - Tracked 3D Ultrasound Imaging  *" << endl
+       <<"*                                              *" << endl
+       <<"* Date: Dec 2008                               *" << endl
+       <<"*                                              *" << endl
+       <<"************************************************" << endl;
+
+}
+
+void goodByeScreen()
+{
+ 
+ cout << endl;
+ cout << "Terminate SynchroGrab" << endl
+      << endl
+      << "Bye Bye..." << endl <<endl << endl;
+
+}
+
+void printUsage()
+{   
+  printSplashScreen();
+    
+    cout << endl
+         << "--------------------------------------------------------------------------------"
+         << endl;
+
+    // print instructions on how to use this program.
+    cout << "DESCRIPTION : " << endl;
+    cout << "This software does tracked 3D Ultrasound imaging. It captures frames from an"<< endl
+         << "ultrasound device and tracking information from a tracker device." << endl
+         << "The images and the tracking information are combined to a 3D volume image."<<endl
+         << "The reconstructed volume is send to an OpenIGTLink server of choice," <<endl
+         << " e.g. 3DSlicer at the end." << endl;
+    cout << endl
+         << "--------------------------------------------------------------------------------"
+         << endl;
+    cout << "OPTIONS: " << endl
+         << "--calibration-file xxxx or -c xxxx: To specify the calibration file" << endl 
+         << "--reconstruct-volume or -rv: Do volume reconstruction" << endl
+         << "--oigtl-server or -os: Specify OpenIGTLink server (default: 'localhost')" << endl
+         << "--oigtl-port or -op: Specify OpenIGTLink port of server" <<endl
          << "--nb-frames xxxx or -n xxxx: to specify the number of frames that " << endl 
-         << "                            will be collected (default: 150)" << endl
+         << "                            will be collected (default: 50)" << endl
          << "--fps: Number of frames per second for the ultrasound data collection" << endl
-         << "      (default 10)" << endl
-         << "--reconstruct-volume: Do volume reconstruction " << endl;
+         << "      (default: 10)" << endl
+         << "--video-source or -vs: Set video source (default: '/dev/video0')" << endl
+         << "--video-source-channel or -vsc: Set video source channel (default: 3)" << endl
+         << "--video-mode or -vm: Set video mode; Options: NTSC, PAL (default: NTSC)" << endl
+         << endl
+         << "--------------------------------------------------------------------------------"
+         << endl  << endl; 
 }
 
 
@@ -100,59 +136,79 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
         {
         string currentArg(argv[i]);
         if( currentArg == "--calibration-file" || currentArg == "-c")
+          {
+          if( i < argc - 1)
             {
-            if( i < argc - 1)
-                {
-                reconstructor->SetCalibrationFileName(argv[++i]);
-                calibrationFileSpecified = true;
-                }
+            reconstructor->SetCalibrationFileName(argv[++i]);
+            calibrationFileSpecified = true;
             }
-        else if(currentArg == "--oigtl-transfert-images")            {
-            sender->SetTransfertImages(true);
-            reconstructor->SetVolumeReconstructionEnabled(false);
-            }
-        else if(currentArg == "--oigtl-transfert-volumes")
+          }
+        else if(currentArg == "--reconstruct-volume" || currentArg == "-rv")
+          {
+          reconstructor->SetVolumeReconstructionEnabled(true);
+          sender->SetTransfertImages(true);
+          }
+        else if(currentArg == "--oigtl-server" || currentArg == "-os")
+          {
+          sender->SetOIGTLServer(argv[++i]);
+          }           
+        else if(currentArg == "--oigtl-port" || currentArg == "-op")
+          {
+          if( i < argc - 1)
             {
-            reconstructor->SetVolumeReconstructionEnabled(true);
-            sender->SetTransfertImages(false);
+            sender->SetServerPort(atoi(argv[++i]));
             }
-        else if(currentArg == "--oigtl-port")
-            {
-            if( i < argc - 1)
-              {
-              sender->SetServerPort(atoi(argv[++i]));
-              }
-            }
-        else if(currentArg == "--use-tracker-transforms")
-            {
-            reconstructor->SetUseTrackerTransforms(true);
-            }        
+          }
         else if(currentArg == "--nb-frames" || currentArg == "-n") 
+          {
+          if( i < argc - 1)
             {
-            if( i < argc - 1)
-                reconstructor->SetNbFrames(atoi(argv[++i]));
+            reconstructor->SetNbFrames(atoi(argv[++i]));
             }
+          }
         else if(currentArg == "--fps") 
+          {
+          if( i < argc - 1)
             {
-            if( i < argc - 1)
-                reconstructor->SetFrameRate(atof(argv[++i]));
+            reconstructor->SetFrameRate(atof(argv[++i]));
             }
-       else if(currentArg == "--reconstruct-volume")
+          }
+       else if(currentArg == "--video-source" || currentArg == "-vs")
+          {
+          reconstructor->SetVideoDevice(argv[++i]);
+          }
+       else if(currentArg == "--video-source-channel" || currentArg == "-vsc")
+          {
+      reconstructor->SetVideoChannel(atoi(argv[++i]));
+          }
+       else if(currentArg == "--video-mode" || currentArg == "-vm")
+          {
+          string videoMode (argv[++i]);
+          if(videoMode == "NTSC")
             {
-            reconstructor->SetVolumeReconstructionEnabled(true);
-            sender->SetTransfertImages(true);
-            }           
-       else if(currentArg == "--oigtl-server")
+            reconstructor->SetVideoMode(1);            
+            }
+          else if(videoMode == "PAL")
             {
-            sender->SetOIGTLServer(argv[++i]);
-            }           
-        else 
+            reconstructor->SetVideoMode(2);            
+            }
+          else
             {
-            printUsage();
-            cout << "Unrecognized command: " << argv[i] << endl;
+            printSplashScreen();
+            cout << "ERROR: False video mode: " << videoMode  << endl
+                 << "       Available video modes: NTSC and PAL" << endl;
+            goodByeScreen();
             return false;
             }
-        }
+          }
+       else 
+          {
+          printUsage();
+          cout << "ERROR: Unrecognized command: '" << argv[i] <<"'" << endl;         
+          goodByeScreen();
+          return false;
+          }
+      }
     return calibrationFileSpecified;
 }
 
@@ -162,9 +218,8 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
  * 
  ******************************************************************************/
 int main(int argc, char **argv)
-{
-
-
+{ 
+  
   //    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
     vtkUltrasoundVolumeReconstructor *reconstructor = vtkUltrasoundVolumeReconstructor::New();
     vtkUltrasoundVolumeSender *sender = vtkUltrasoundVolumeSender::New();
@@ -178,6 +233,9 @@ int main(int argc, char **argv)
     if(!successParsingCommandLine)
         return -1;
     
+    printSplashScreen();
+    cout << "--- Started ---" << endl << endl;
+
     //line remal end. NH 12/2/08
     
     //     redirect vtk errors to a file
@@ -212,4 +270,7 @@ int main(int argc, char **argv)
     ImageBuffer->Delete();
     reconstructor->Delete();
     sender->Delete();
+
+    cout << endl;
+    cout << "--- Synchgrograb finished ---" << endl << endl;
 }
