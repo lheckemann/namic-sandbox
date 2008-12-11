@@ -202,11 +202,16 @@ bool vtkUltrasoundVolumeReconstructor::StartTracker()
 //----------------------------------------------------------------------------
 bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * ImageBuffer)
  {
+
    cout << "Initialization:" << std::flush;
    cout << '\a' << std::flush;
    for(int i = 0; i < 11; i++)
      {
+#ifdef USE_TRACKER_DEVICE
      vtkSleep(1);
+#else
+     vtkSleep(0.2);
+#endif
      cout << 10 - i << " " << std::flush;
      }
    cout << endl;
@@ -226,13 +231,11 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * ImageBuf
    cout << endl;
    // igtl:sleep((int) (this->NbFrames / this->FrameRate + 0.5));// wait for the images (delay in seconds)
 
-
    this->sonixGrabber->Stop();//Stop recording
-
 
    this->tracker->StopTracking();//Stop tracking
 
-   cout << "Stop Scanning" << endl;
+   cout << "Stopped Scanning" << endl;
    cout << '\a' << std::flush;
    vtkSleep(0.2);
    cout << '\a' << std::flush;
@@ -245,7 +248,6 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * ImageBuf
    vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
    panoramaReconstructor->CompoundingOn();
    panoramaReconstructor->SetInterpolationModeToLinear();
-   //  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar(); //Causes a segmentation fault
 
    //NH
    //12/2/08
@@ -333,6 +335,9 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * ImageBuf
    vtkBMPWriter *writer = vtkBMPWriter::New();
    char filename[256];
 
+   //panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar(); //Causes a segmentation fault
+   //panoramaReconstructor->GetOutput()->AllocateScalars(); //Causes a segmentation fault
+   
    cout << "Start Volume Reconstruction" << endl;
 
    for(int i=0; i < nbFramesGrabbed; i++)
