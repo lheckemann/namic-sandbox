@@ -45,15 +45,13 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef __vtkVideoSourceSimulator_h
 #define __vtkVideoSourceSimulator_h
 
+#include "SynchroGrabConfigure.h"
+
 #include "vtkUltrasoundWin32Header.h"
 #include "vtkVideoSource.h"
 
 //#undef NEW_SIMULATOR
 #define NEW_SIMULATOR
-
-#define SLICE_X_LENGTH 256
-#define SLICE_Y_LENGTH 256
-#define SLICE_Z_LENGTH 1
 
 #define BITS_PER_PIXEL 8
 
