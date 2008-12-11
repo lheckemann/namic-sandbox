@@ -53,19 +53,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkObject.h"
 #include "vtkImageData.h"
 
-#define VOLUME_X_LENGTH 256
-#define VOLUME_Y_LENGTH 256
-#define VOLUME_Z_LENGTH 256
-
-#define VOLUME_X_SPACING 1.0
-#define VOLUME_Y_SPACING 1.0
-#define VOLUME_Z_SPACING 1.0
-
-#define VOLUME_X_ORIGIN VOLUME_X_LENGTH / 2
-#define VOLUME_Y_ORIGIN VOLUME_Y_LENGTH / 2
-#define VOLUME_Z_ORIGIN VOLUME_Z_LENGTH / 2
-
-
 class vtkUltrasoundCalibFileReader;
 class vtkTaggedImageFilter;
 
@@ -100,7 +87,6 @@ public:
 
   vtkSetStringMacro(CalibrationFileName);
   vtkGetStringMacro(CalibrationFileName);
-
   vtkSetMacro(VolumeReconstructionEnabled, bool);
   vtkGetMacro(VolumeReconstructionEnabled, bool);
 
@@ -110,11 +96,7 @@ public:
   vtkSetMacro(FrameRate, double);
   vtkGetMacro(FrameRate, double);
 
-  vtkSetObjectMacro(ImageBuffer, vtkImageData);
-  vtkGetObjectMacro(ImageBuffer, vtkImageData);
-
-
-  bool ReconstructVolume();
+  bool ReconstructVolume(vtkImageData * ImageBuffer);
   bool StartTracker();
   bool ConfigurePipeline();
 
@@ -133,12 +115,7 @@ protected:
 
   double FrameRate;  
   
-  //Buffers the 3D volume before it transfered via OpenIGTLink
-  vtkImageData *ImageBuffer;  
-
-
   vtkUltrasoundCalibFileReader *calibReader;
-
   
 #ifdef USE_TRACKER_DEVICE
   vtkNDITracker *tracker;  
@@ -146,9 +123,7 @@ protected:
   vtkTrackerSimulator *tracker;  
 #endif
 
-
   vtkTaggedImageFilter *tagger;
-
 
 #ifdef USE_ULTRASOUND_DEVICE
   vtkV4L2VideoSource *sonixGrabber;  
