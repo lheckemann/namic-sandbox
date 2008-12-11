@@ -1566,7 +1566,7 @@ void vtkV4L2VideoSource::CloseDevice(void)
 //New-End
 
 //New-Start
-void vtkV4L2VideoSource::InitDevice(void){
+void vtkV4L2VideoSource::InitDevice(int channel, int videoMode){
   struct v4l2_capability cap;
   struct v4l2_cropcap cropcap;
   struct v4l2_crop crop;
@@ -1673,21 +1673,32 @@ void vtkV4L2VideoSource::InitDevice(void){
   }
   
   //Set Input channel to 3 = S-Video on a Hauppauge Impact VCB
-  int channel = 3;
-
-  if (-1 == xioctl (fd,VIDIOC_S_INPUT , &channel))
+  if (-1 == xioctl (fd,VIDIOC_S_INPUT , &this->VideoChannel))
     errno_exit ("VIDIOC_S_INPUT");
   
-  //Set video mode to NTSC 
+  
+  v4l2_std_id std_id;
 
-  v4l2_std_id std_id = V4L2_STD_NTSC;
-  //other options are
-  //  PAL: V4L2_STD_PAL
-  //  SECAM: V4L2_STD_SECAM
+  if(this->VideoMode == 1)
+    {
+    //Set video mode to NTSC
+    std_id = V4L2_STD_NTSC;
+    }
+  else if(videoMode == 2)
+    {//Set video mode to PAL
+    std_id = V4L2_STD_PAL;    
+    }
+  else
+    {//ERROR: Video Mode unkown
+    cerr << "ERROR: Unsupported Videomode selected: " << videoMode << endl
+         << "       Supported modes: NTSC == 1 and PAL == 2" << endl;           
+    exit (EXIT_FAILURE);   
+    }
 
   if (-1 == ioctl (fd, VIDIOC_S_STD, &std_id)) {
         perror ("VIDIOC_S_STD");
         exit (EXIT_FAILURE);
+
 }
 
 }

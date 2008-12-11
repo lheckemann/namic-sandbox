@@ -248,6 +248,17 @@ public:
   // Get the frame index relative to the 'beginning of the tape'.  This
   // value wraps back to zero if it increases past the FrameBufferSize.
   vtkGetMacro(FrameIndex, int);
+
+  //Description:
+  // This value sets the input channel of the framegrabber card. Input channel 3
+  // for example is the S-Video port at a Hauppauge Impact VCB modell 558
+  vtkSetMacro(VideoChannel, int);
+  vtkGetMacro(VideoChannel, int);
+
+  //Description:
+  // Available VideoModes: NTSC == 1, PAL == 2
+  vtkSetMacro(VideoMode, int);  
+  vtkGetMacro(VideoMode, int);
   
   // Description:
   // Get a time stamp in seconds (resolution of milliseconds) for
@@ -362,6 +373,9 @@ protected:
   void **FrameBuffer;
   double *FrameBufferTimeStamps;
 
+  int Channel; //S-Video is channel 3 at Hauppauge Impact VCB Modell 558
+  int VideoMode; //NTSC == 1, PAL == 2
+
   // Description:
   // These methods can be overridden in subclasses
   void UpdateFrameBuffer();
@@ -391,7 +405,7 @@ private:
    
    void OpenDevice(void);
    void CloseDevice(void);
-   void InitDevice(void);
+   void InitDevice();
    void UninitDevice(void);
    
    void InitRead(unsigned int buffer_size);
