@@ -113,7 +113,7 @@ vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
     {
     if(this->GetExecutive()->GetOutputInformation())
       {
-      cout<<"output port info\n";
+  //cout<<"output port info\n";
       }
     }
 
@@ -1239,7 +1239,8 @@ static void vtkGetUltraInterpFunc(vtk3DPanoramicVolumeReconstructor *self,
       *interpolate = &vtkNearestNeighborInterpolation;
       break;
          case VTK_FREEHAND_LINEAR:
-      *interpolate = &vtkNearestNeighborInterpolation;
+     *interpolate = &vtkNearestNeighborInterpolation;
+     //      *interpolate = &vtkTrilinearInterpolation;
 
       break;
     }
