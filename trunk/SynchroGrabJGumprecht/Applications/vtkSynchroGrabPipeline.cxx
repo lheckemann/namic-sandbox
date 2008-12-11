@@ -95,7 +95,7 @@ vtkStandardNewMacro(vtkSynchroGrabPipeline);
 vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
 {
   this->ServerPort = 18944;
-  this->NbFrames = 150 + 100; //# of Frames to capture + additional 100 frames which are skipped
+  this->NbFrames = 50 + 100; //# of Frames to capture + additional 100 frames which are skipped
   this->FrameRate = 30;
 
   this->CalibrationFileName = NULL;
@@ -347,8 +347,8 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 
     this->tagger->Update();
     this->tagger->GetTransform()->GetMatrix(sliceAxes); //Get trackingmatrix of current frame
-    //cout << "Tracker matrix:\n";
-    //sliceAxes->Print(cout);
+    //    cout << "Tracker matrix:\n";
+    //    sliceAxes->Print(cout);
     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
     panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
     this->sonixGrabber->Seek(1); //Advance to the next frame
