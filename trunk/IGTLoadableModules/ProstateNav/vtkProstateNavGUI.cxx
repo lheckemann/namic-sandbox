@@ -839,6 +839,8 @@ void vtkProstateNavGUI::Enter()
 
   if (this->Entered == 0)
     {
+    this->GetLogic()->SetGUI(this);
+
     ChangeWorkPhase(vtkProstateNavLogic::StartUp, 1);
   
     // neccessary?

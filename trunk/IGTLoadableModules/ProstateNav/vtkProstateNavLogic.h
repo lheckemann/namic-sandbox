@@ -23,6 +23,8 @@
 
 #include "vtkProstateNavWin32Header.h"
 
+#include "vtkKWTkUtilities.h"
+
 #include "vtkSlicerBaseLogic.h"
 #include "vtkSlicerModuleLogic.h"
 #include "vtkSlicerApplication.h"
@@ -41,6 +43,7 @@
   #include "vtkProstateNavDataStream.h"
 #endif
 
+class vtkProstateNavGUI;
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic 
 {
@@ -83,11 +86,15 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   vtkGetMacro ( ScannerWorkPhase,         int );
 
 
+  void SetGUI(vtkProstateNavGUI* gui) { this->GUI = gui; };
+  vtkProstateNavGUI* GetGUI()         { return this->GUI; };
+
   void PrintSelf(ostream&, vtkIndent);
   
   
   int  Enter();
   int  SwitchWorkPhase(int);
+  void  TimerHandler();
   int  IsPhaseTransitable(int);
   
   int  ConnectTracker(const char* filename);
@@ -139,6 +146,8 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   
  private:
   
+  vtkProstateNavGUI* GUI;
+
   static const int PhaseTransitionMatrix[NumPhases][NumPhases];
   
   int   CurrentPhase;
@@ -147,6 +156,8 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   bool  Connected;
   bool  PhaseTransitionCheck;
   bool  RealtimeImageUpdate;
+
+  int   TimerOn;
 
   //BTX
   std::string RobotCommandNodeID;   

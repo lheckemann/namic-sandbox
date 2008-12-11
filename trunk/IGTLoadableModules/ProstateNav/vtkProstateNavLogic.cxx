@@ -36,6 +36,8 @@
 
 #include "vtkMRMLBrpRobotCommandNode.h"
 
+#include "vtkProstateNavGUI.h"
+
 // for communication with robot and scanner
 #include "BRPTPRInterface.h"
 
@@ -83,6 +85,8 @@ vtkProstateNavLogic::vtkProstateNavLogic()
   this->DataCallbackCommand->SetCallback(vtkProstateNavLogic::DataCallback);
 
   this->RobotCommandNodeID = "";
+
+  this->TimerOn = 0;
 
 }
 
@@ -146,7 +150,7 @@ int vtkProstateNavLogic::Enter()
   // Command node
   vtkMRMLBrpRobotCommandNode* node = vtkMRMLBrpRobotCommandNode::New();
   node->SetName("BRPRobotCommand");
-  node->SetMRMLScene(this->GetMRMLScene());
+  node->SetScene(this->GetMRMLScene());
 
   this->GetMRMLScene()->SaveStateForUndo();
   this->GetMRMLScene()->AddNode(node);
@@ -165,7 +169,9 @@ int vtkProstateNavLogic::Enter()
   transform->Identity();
   //transformNode->SetAndObserveImageData(transform);
   tnode->ApplyTransform(transform);
+  tnode->SetScene(this->MRMLScene);
   transform->Delete();
+
   this->GetMRMLScene()->AddNode(tnode);
   this->RobotTargetNodeID = tnode->GetID();
 
@@ -179,6 +185,7 @@ int vtkProstateNavLogic::Enter()
   ztransform->Identity();
   //transformNode->SetAndObserveImageData(transform);
   ztnode->ApplyTransform(ztransform);
+  ztnode->SetScene(this->MRMLScene);
   ztransform->Delete();
   this->GetMRMLScene()->AddNode(ztnode);
   this->ZFrameTransformNodeID = ztnode->GetID();
@@ -197,6 +204,12 @@ int vtkProstateNavLogic::Enter()
 
   modelNode->SetAndObserveTransformNodeID(this->ZFrameTransformNodeID.c_str());
 
+
+  std::cerr << "Robot = " <<  this->RobotCommandNodeID << std::endl;
+  std::cerr << "Target = " <<  this->RobotTargetNodeID  << std::endl;
+  std::cerr << "ZFrame = " <<  this->ZFrameModelNodeID  << std::endl;
+
+
   return 1;
 }
 
@@ -204,10 +217,8 @@ int vtkProstateNavLogic::Enter()
 //---------------------------------------------------------------------------
 int vtkProstateNavLogic::SwitchWorkPhase(int newwp)
 {
-  std::cerr << "1--------------------" << std::endl;
   if (IsPhaseTransitable(newwp))
     {
-    std::cerr << "2--------------------" << std::endl;
     this->PrevPhase     = this->CurrentPhase;
     this->CurrentPhase  = newwp;
     this->PhaseComplete = false;
@@ -216,21 +227,35 @@ int vtkProstateNavLogic::SwitchWorkPhase(int newwp)
     switch(this->CurrentPhase)
       {
       case StartUp:
+        this->TimerOn = 0;
         command = "START_UP";
         break;
       case Planning:
+        this->TimerOn = 0;
         command = "PLANNING";
         break;
       case Calibration:
+        this->TimerOn = 0;
         command = "CALIBRATION";
         break;
       case Targeting:
         command = "TARGETING";
+        if (!this->TimerOn)
+          {
+          this->TimerOn = 1;
+          vtkKWTkUtilities::CreateTimerHandler(this->GetGUI()->GetApplication(), 200, this, "TimerHandler");
+          }
         break;
       case Manual:
         command = "MANUAL";
+        if (!this->TimerOn)
+          {
+          this->TimerOn = 1;
+          vtkKWTkUtilities::CreateTimerHandler(this->GetGUI()->GetApplication(), 200, this, "TimerHandler");
+          }
         break;
       case Emergency:
+        this->TimerOn = 0;
         command = "EMERGENCY";
         break;
       default:
@@ -252,6 +277,26 @@ int vtkProstateNavLogic::SwitchWorkPhase(int newwp)
     }
   return 0;
 }
+
+
+//----------------------------------------------------------------------------
+void vtkProstateNavLogic::TimerHandler()
+{
+  if (this->TimerOn)
+    {
+    vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID(this->RobotCommandNodeID.c_str());
+    vtkMRMLBrpRobotCommandNode* cnode = vtkMRMLBrpRobotCommandNode::SafeDownCast(node);
+    if (cnode)
+      {
+      //cnode->PushOutgoingCommand("GET_COORDINATE");
+      cnode->PushOutgoingCommand("GET_COORDINA");
+      cnode->InvokeEvent(vtkCommand::ModifiedEvent);
+      }
+    std::cerr << "void vtkProstateNavLogic::TimerHandler() is called" << std::endl;
+    vtkKWTkUtilities::CreateTimerHandler(this->GetGUI()->GetApplication(), 200, this, "TimerHandler");
+    }
+}
+
 
 //---------------------------------------------------------------------------
 int vtkProstateNavLogic::IsPhaseTransitable(int nextwp)
@@ -309,8 +354,6 @@ int vtkProstateNavLogic::RobotMoveTo(float px, float py, float pz,
 {
 
   std::cerr << "vtkProstateNavLogic::RobotMoveTo()" << std::endl;
-
-
   return 1;
 }
 
@@ -350,6 +393,8 @@ int vtkProstateNavLogic::SendZFrame()
     {
     return 0;
     }
+
+  std::cerr << "int vtkProstateNavLogic::SendZFrame(): " << this->ZFrameTransformNodeID.c_str() << std::endl;
 
   cnode->SetZFrameTransformNodeID(this->ZFrameTransformNodeID.c_str());
   cnode->PushOutgoingCommand("SET_Z_FRAME");
