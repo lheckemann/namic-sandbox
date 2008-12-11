@@ -55,19 +55,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "igtlClientSocket.h"
 #include "igtlImageMessage.h"
 
-#define VOLUME_X_LENGTH 256
-#define VOLUME_Y_LENGTH 256
-#define VOLUME_Z_LENGTH 256
-
-#define VOLUME_X_SPACING 1.0
-#define VOLUME_Y_SPACING 1.0
-#define VOLUME_Z_SPACING 1.0
-
-#define VOLUME_X_ORIGIN VOLUME_X_LENGTH / 2
-#define VOLUME_Y_ORIGIN VOLUME_Y_LENGTH / 2
-#define VOLUME_Z_ORIGIN VOLUME_Z_LENGTH / 2
-
-
 
 class vtkUltrasoundVolumeSender : public vtkObject
 {
@@ -85,19 +72,12 @@ public:
   vtkSetMacro(ServerPort, int);
   vtkGetMacro(ServerPort, int);
 
-  vtkSetMacro(VolumeReconstructionEnabled, bool);
-  vtkGetMacro(VolumeReconstructionEnabled, bool);
-
-  vtkSetObjectMacro(ImageBuffer, vtkImageData);
-  vtkGetObjectMacro(ImageBuffer, vtkImageData);
-
-
   bool ConnectToServer();
   bool CloseServerConnection();
-  bool SendImages();
+  bool SendImages(vtkImageData * ImageBuffer, int repetitions);
   void vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix); 
-  int vtkGetTestImage(igtl::ImageMessage::Pointer& msg);
-  void FillImage();
+  int vtkFillImageMessage(vtkImageData * ImageBuffer, igtl::ImageMessage::Pointer& msg);
+
 
 protected:
   vtkUltrasoundVolumeSender();
@@ -107,10 +87,7 @@ protected:
   char *OIGTLServer;
 
   bool TransfertImages;
-  bool VolumeReconstructionEnabled;
-  
-  //Buffers the 3D volume before it transfered via OpenIGTLink
-  vtkImageData *ImageBuffer;  
+
   igtl::ClientSocket::Pointer socket;
   
  private:
