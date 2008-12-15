@@ -1,8 +1,9 @@
 /*=========================================================================
 
-Module:    $RCSfile: vtkUltrasoundVolumeReconstructor.cxx,v $
+Module:  $RCSfile: vtkUltrasoundVolumeReconstructor.cxx,v $
 Author:  Jonathan Boisvert, Queens School Of Computing
 Authors: Jan Gumprecht, Haiying Liu, Nobuhiko Hata, Harvard Medical School
+
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
 Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
@@ -20,6 +21,10 @@ are met:
    distribution.
 
  * Neither the name of Queen's University nor the names of any
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
+ * Neither the name of Harvard Medical School nor the names of any
    contributors may be used to endorse or promote products derived
    from this software without specific prior written permission.
 
@@ -46,7 +51,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define NOMINMAX
 //#define REMOVE_ALPHA_CHANNEL
 //#define DEBUG_IMAGES //Write tagger output to HDD
-
+//#define DEBUG_MATRICES //Prints tagger matrices to stdout
  
 //#include <windows.h>
 
@@ -187,7 +192,7 @@ bool vtkUltrasoundVolumeReconstructor::StartTracker()
   vtkTrackerTool *tool = this->tracker->GetTool(0);
   tool->GetBuffer()->SetBufferSize((int) (this->NbFrames * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) ); 
   this->tracker->StartTracking();
-  this->tagger->SetTrackerTool(tool);  
+  this->tagger->SetTrackerTool(tool);
   this->tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
 }
 
@@ -217,15 +222,15 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
    
   for (int i = 0; i < (int) (this->NbFrames / this->FrameRate + 0.5) * 2; i++)
     {
+    cout << "*" << std::flush;
 
 #ifdef USE_TRACKER_DEVICE || USE_ULTRASOUND_DEVICE
-    cout <<"*" << '\a' << std::flush;//Only beep when we use no simulator
+    cout << '\a' << std::flush;//Only beep when we use no simulator
 #endif
 
     vtkSleep(0.5);//Wait half a second for the next beep
     }
   cout << endl;
-  // igtl:sleep((int) (this->NbFrames / this->FrameRate + 0.5));// wait for the images (delay in seconds)
 
   this->sonixGrabber->Stop();//Stop recording
 
@@ -237,18 +242,13 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   cout << '\a' << std::flush;
 
   cout << "Scanning successful" << endl;
-
   cout << "  Recorded synchronized transforms and ultrasound images for " << ((int) this->NbFrames / this->FrameRate + 0.5) << "s" << endl;
 
   // set up the panoramic reconstruction class
   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
   panoramaReconstructor->CompoundingOn();
   panoramaReconstructor->SetInterpolationModeToLinear();
-
-  //NH
-  //12/2/08
-  //cerr << "vtk3DPanoramicVolumeReconsturctor instantiated" << endl;
-
+  //panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar();
 
   // Determine the extent of the volume that needs to be reconstructed by 
   // iterating throught all the acquired frames
@@ -274,9 +274,6 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 
   int nbFramesGrabbed = sonixGrabber->GetFrameCount();
 
-  //NH
-  // 12/02/08
-  //   cerr << "all clipping number set" << endl;
   if(nbFramesGrabbed == 0)
     {
     cerr << "ERROR: Grabbed no frames" << endl;
@@ -284,7 +281,11 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
     }
   else
     {
-    cerr << " Grabbed Frames: " << nbFramesGrabbed << endl;
+    cout << "  Grabbed Frames: " << nbFramesGrabbed << endl;
+    cout << "  Tracker matrices:" 
+         << this->tagger->GetTrackerTool()->GetBuffer()->GetNumberOfItems() <<endl;
+    cout << "  Tracker buffer size: " 
+         <<  this->tagger->GetTrackerTool()->GetBuffer()->GetBufferSize() << endl;    
     } 
 
   this->sonixGrabber->Rewind();
@@ -308,10 +309,13 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
     this->sonixGrabber->Seek(1);
     }
 
+  cout << "X|Y|Z - Min: " << minX << "|" << minY <<"|"<< minZ
+       << "- Max: " << maxX <<"|" << maxY <<"|" << maxZ << endl;
+
   double spacing[3] = {1,1,1};
   int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
                           0, (int)( (maxY - minY) / spacing[1] ), 
-                          0, (int)( (maxZ - minZ) / spacing[2] ) };
+                          0, (int)( (maxZ - minZ) / spacing[2] )};
 
   panoramaReconstructor->SetOutputExtent(volumeExtent);
   panoramaReconstructor->SetOutputSpacing(spacing);
@@ -321,8 +325,6 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   //Rewind and add recorded Slices to the PanoramaReconstructor
 
   panoramaReconstructor->SetSlice(tagger->GetOutput());
-  //JG
-  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar();
   panoramaReconstructor->GetOutput()->Update();
   this->sonixGrabber->Rewind();
 
@@ -350,18 +352,26 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 
   for(int i=0; i < nbFramesGrabbed; i++)
     {
-    cout << "*" << std::flush;
+    
+    if( i != 0)
+      { 
+      cout << "*" <<std::flush;
+      }
 
-    if (i % 80 == 0 and i <> 0)
-     {
-     cout << "\n"<< std::flush;
-     }
+    if (i % 50 == 0 and i != 0)
+      {      
+      cout << "\n"<< std::flush;
+      }
 
     this->tagger->Update();
     this->tagger->GetTransform()->GetMatrix(sliceAxes); //Get trackingmatrix of current frame
     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
-    //cout << "Tracker matrix:\n";
-    //sliceAxes->Print(cout);
+
+#ifdef DEBUG_MATRICES
+    cout << "Tracker matrix:\n";
+    sliceAxes->Print(cout);
+#endif
+
     panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
     this->sonixGrabber->Seek(1); //Advance to the next frame
 
@@ -391,7 +401,6 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
       return false;
     }
 
-  
   panoramaReconstructor->FillHolesInOutput();
   
   //---------------------------------------------------------------------------
@@ -448,6 +457,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 
 #endif
 
+  sliceAxes->Delete();
   panoramaReconstructor->Delete();
 
 
