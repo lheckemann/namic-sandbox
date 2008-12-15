@@ -84,7 +84,9 @@ vtkNDITracker::vtkNDITracker()
   this->IsDeviceTracking = 0;
   this->SerialPort = -1; // default is to probe
   this->SerialDevice = 0;
-  this->BaudRate = 9600;
+  //JG  
+  //this->BaudRate = 9600;
+  this->BaudRate = 115200;  
   this->SetNumberOfTools(VTK_NDI_NTOOLS);
 
   for (int i = 0; i < VTK_NDI_NTOOLS; i++)
