@@ -1,13 +1,9 @@
 /*=========================================================================
 
-  Module:    $RCSfile: vtkTrackerSimulator.cxx,v $
-  Creator:   David Gobbi <dgobbi@cs.queensu.ca>
-  Language:  C++
-  Author:    $Author: dgobbi $
-  Date:      $Date: 2008/06/18 21:59:29 $
-  Version:   $Revision: 1.5 $
+Module:    $RCSfile: vtkTrackerSimulator.cxx,v $
+Author:  Jan Gumprecht, Harvard Medical School
 
-Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
+Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -22,7 +18,7 @@ are met:
    the documentation and/or other materials provided with the
    distribution.
 
- * Neither the name of Queen's University nor the names of any
+ * Neither the name of Harvard Medical School nor the names of any
    contributors may be used to endorse or promote products derived
    from this software without specific prior written permission.
 
