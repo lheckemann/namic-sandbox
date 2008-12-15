@@ -24,6 +24,10 @@ are met:
    contributors may be used to endorse or promote products derived
    from this software without specific prior written permission.
 
+ * Neither the name of Harvard Medical School nor the names of any
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -81,8 +85,6 @@ vtkUltrasoundVolumeSender::vtkUltrasoundVolumeSender()
   this->OIGTLServer = NULL; 
   this->SetOIGTLServer("localhost");
 
-  this->TransfertImages = false; 
-  
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
 }
@@ -245,9 +247,9 @@ bool vtkUltrasoundVolumeSender::SendImages(vtkImageData * ImageBuffer, int repet
     
       //int sleeptime = (int) (1000.0 / this->FrameRate); 
       //igtl::Sleep(sleeptime); // wait    
-      igtl::Sleep(33); // wait    
-    }
-    
+      igtl::Sleep(33); // wait          
+    }    
+  
   return true;
 
 }
@@ -266,6 +268,13 @@ int vtkUltrasoundVolumeSender::vtkFillImageMessage(vtkImageData *ImageBuffer, ig
   //If we reconstructing a 3DVolume everything is already set for us
     ImageBuffer->GetDimensions(size);
     ImageBuffer->GetSpacing(spacing);
+    //spacing[2] *= 1;
+
+    //For a fast Computer enable this
+    //spacing[0] *= 3;
+    //spacing[1] *= 3;
+    //spacing[2] *= 3;
+    
     svsize[0]   = size[0];       
     svsize[1]   = size[1];       
     svsize[2]   = size[2];           
@@ -319,9 +328,9 @@ void vtkUltrasoundVolumeSender::vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix)
   //  0  1  0  0
   //  0  0  1  0
   //  0  0  0  1
-  matrix[0][0] =   1.0;  matrix[1][0] =  0.0;  matrix[2][0] =  0.0; matrix[3][0] = 0.0;
-  matrix[0][1] =   0.0;  matrix[1][1] =  1.0;  matrix[2][1] =  0.0; matrix[3][1] = 0.0;
-  matrix[0][2] =   0.0;  matrix[1][2] =  0.0;  matrix[2][2] =  1.0; matrix[3][2] = 0.0;
+  matrix[0][0] =  -1.0;  matrix[1][0] =  0.0;  matrix[2][0] =  0.0; matrix[3][0] = 0.0;
+  matrix[0][1] =   0.0;  matrix[1][1] =  0.0;  matrix[2][1] =  1.0; matrix[3][1] = 0.0;
+  matrix[0][2] =   0.0;  matrix[1][2] =  1.0;  matrix[2][2] =  0.0; matrix[3][2] = 0.0;
   matrix[0][3] =   0.0;  matrix[1][3] =  0.0;  matrix[2][3] =  0.0; matrix[3][3] = 1.0;
 #endif
 
