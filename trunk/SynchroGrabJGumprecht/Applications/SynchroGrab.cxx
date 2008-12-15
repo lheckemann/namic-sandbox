@@ -1,7 +1,7 @@
 /*========================================================================= 
 Module:  $RCSfile: SynchroGrab.cxx,v $ 
 Author:  Jonathan Boisvert, Queens School Of Computing
-Author: Jan Gumprecht, Nobuhiko Hata, Harvard Medical sChool
+Author:  Jan Gumprecht, Nobuhiko Hata, Harvard Medical School
  
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
@@ -23,6 +23,10 @@ are met:
  * Neither the name of Queen's University nor the names of any
    contributors may be used to endorse or promote products derived
    from this software without specific prior written permission.
+
+ * Neither the name of Harvard Medical School nor the names of any
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -53,14 +57,9 @@ POSSIBILITY OF SUCH DAMAGE.
 //
 
 #include "vtkFileOutputWindow.h"
-#include "vtkMultiThreader.h"
-//#include "vtkSynchroGrabPipeline.h"
 #include "vtkUltrasoundVolumeReconstructor.h"
 #include "vtkUltrasoundVolumeSender.h"
-//#include "vtkMINCImageReader.h"
 #include "vtkImageData.h"
-//#include "vtkImageReader2.h"
-#include "vtkDICOMImageReader.h"
 
 using namespace std;
 
@@ -146,7 +145,6 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
         else if(currentArg == "--reconstruct-volume" || currentArg == "-rv")
           {
           reconstructor->SetVolumeReconstructionEnabled(true);
-          sender->SetTransfertImages(true);
           }
         else if(currentArg == "--oigtl-server" || currentArg == "-os")
           {
@@ -166,7 +164,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
             reconstructor->SetNbFrames(atoi(argv[++i]));
             }
           }
-        else if(currentArg == "--fps") 
+        else if(currentArg == "--frames-per-second" || currentArg == "-fps") 
           {
           if( i < argc - 1)
             {
@@ -220,15 +218,10 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
 int main(int argc, char **argv)
 { 
   
-  //    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
     vtkUltrasoundVolumeReconstructor *reconstructor = vtkUltrasoundVolumeReconstructor::New();
     vtkUltrasoundVolumeSender *sender = vtkUltrasoundVolumeSender::New();
-
-    //JG 12/4/08 The following lines have to be used otherwise Synchrograb doesn't work
-    //NH
-    //12/2/08
-    // the following line is unkowon leak detected vtk
-    // removed temporary to avoid seg fault    
+    
+    //Read command line arguments
     bool successParsingCommandLine = parseCommandLineArguments(argc,argv,reconstructor, sender);
     if(!successParsingCommandLine)
         return -1;
@@ -236,7 +229,6 @@ int main(int argc, char **argv)
     printSplashScreen();
     cout << "--- Started ---" << endl << endl;
 
-    //line remal end. NH 12/2/08
     
     //     redirect vtk errors to a file
     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
@@ -244,7 +236,10 @@ int main(int argc, char **argv)
     vtkOutputWindow::SetInstance(errOut);
     
     //Configure Reconstructor
-    reconstructor->ConfigurePipeline();
+    if(reconstructor->ConfigurePipeline()){
+        cerr << "ERROR: Could not configure UltrasoundVolumeReconstructor" << endl;
+        return -1;
+    };
     
     vtkImageData *ImageBuffer = vtkImageData::New();
 
@@ -253,18 +248,32 @@ int main(int argc, char **argv)
       {
       if(!reconstructor->ReconstructVolume(ImageBuffer))
         {
+        goodByeScreen();
+        return -1;
+        }
+      
+      // Connect to OpenIGTLink Server
+      if(!sender->ConnectToServer())
+        {
+        goodByeScreen();
+        return -1;
+        }
+
+      //Send volume
+      if(!sender->SendImages(ImageBuffer, 1))
+        {
+        goodByeScreen();
+        return -1;
+        }
+
+      //Close Sever Connection
+      if(!sender->CloseServerConnection())
+        {
+        goodByeScreen();
         return -1;
         }
       }
 
-    // Transfer Images
-    if(sender->GetTransfertImages())
-      {
-      if(!sender->ConnectToServer())return -1;
-      //Send volume once
-      if(!sender->SendImages(ImageBuffer, 1))return -1;
-      if(!sender->CloseServerConnection())return -1;
-      }
 
     //Free Memory
     ImageBuffer->Delete();
@@ -272,5 +281,7 @@ int main(int argc, char **argv)
     sender->Delete();
 
     cout << endl;
-    cout << "--- Synchgrograb finished ---" << endl << endl;
+    cout << "--- Synchgrograb finished ---" << endl;
+    goodByeScreen();
+
 }
