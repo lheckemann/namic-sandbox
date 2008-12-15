@@ -3,9 +3,11 @@
 Module:  $RCSfile: vtkUltrasoundVolumeReconstructor.h,v $
 Author:  Jonathan Boisvert, Queens School Of Computing
 Authors: Jan Gumprecht, Haiying Liu, Nobuhiko Hata, Harvard Medical School
+
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
 Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
+
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
 are met:
@@ -19,6 +21,10 @@ are met:
    distribution.
 
  * Neither the name of Queen's University nor the names of any
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+
+ * Neither the name of Harvard Medical School nor the names of any
    contributors may be used to endorse or promote products derived
    from this software without specific prior written permission.
 
