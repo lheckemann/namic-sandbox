@@ -373,7 +373,7 @@ protected:
   void **FrameBuffer;
   double *FrameBufferTimeStamps;
 
-  int Channel; //S-Video is channel 3 at Hauppauge Impact VCB Modell 558
+  int VideoChannel; //S-Video is channel 3 at Hauppauge Impact VCB Modell 558
   int VideoMode; //NTSC == 1, PAL == 2
 
   // Description:
