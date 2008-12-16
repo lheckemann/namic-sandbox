@@ -312,7 +312,7 @@ int ReceiveScalarValue(igtl::Socket::Pointer& socket, igtl::MessageHeader::Point
         {
             std::cerr << "Value No : " << j << std::endl;
             //std::cerr << "Value    : " << value[ j ] << std::endl;
-                        printf("%d \n",value[ j ]);
+            printf("%d \n",value[ j ]);
         }
     }
 
