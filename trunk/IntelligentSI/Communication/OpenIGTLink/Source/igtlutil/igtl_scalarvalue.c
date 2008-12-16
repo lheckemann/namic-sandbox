@@ -26,7 +26,7 @@ igtl_uint64 igtl_scalarvalue_get_data_size(igtl_scalarvalue_header * header)
   igtl_uint64 sp;
   igtl_uint64 return_data_size;
 
-  si = header->data_size;
+  si = header->dimension;
   
 
   switch (header->scalar_type) {

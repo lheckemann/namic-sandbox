@@ -49,6 +49,15 @@ ScalarValueMessage::~ScalarValueMessage()
 }
 
 
+  void ScalarValueMessage::SetDimension(int i)
+  {
+    dimension = i;
+  }
+
+  void ScalarValueMessage::GetDimension(int i)
+  {
+    i = dimension;
+  }
 
 void ScalarValueMessage::AllocateScalars()
 {
@@ -77,7 +86,7 @@ int ScalarValueMessage::PackBody()
   scalarvalue_header->version     = IGTL_SCALARVALUE_HEADER_VERSION;
   scalarvalue_header->scalar_type = this->scalarType;
   scalarvalue_header->endian      = this->endian;
-  
+  scalarvalue_header->dimension = dimension;
   igtl_scalarvalue_convert_byte_order(scalarvalue_header);
 
   return 1;
@@ -98,7 +107,7 @@ int ScalarValueMessage::UnpackBody()
       // ScalarValue format version 1
         this->scalarType       = scalarvalue_header->scalar_type;
       this->endian           = scalarvalue_header->endian;
-  
+      this->dimension = scalarvalue_header->dimension;
 
       m_ScalarValueHeader = m_Body;
       m_ScalarValue       = &m_ScalarValueHeader[IGTL_SCALARVALUE_HEADER_SIZE];
