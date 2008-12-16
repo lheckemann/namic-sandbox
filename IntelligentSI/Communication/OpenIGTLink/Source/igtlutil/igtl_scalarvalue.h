@@ -41,9 +41,6 @@
 #define IGTL_SCALARVALUE_ENDIAN_BIG           1
 #define IGTL_SCALARVALUE_ENDIAN_LITTLE        2
 
-/* Scalarvalue coordinate system */
-#define IGTL_SCALARVALUE_COORD_RAS            1
-#define IGTL_SCALARVALUE_COORD_LPS            2
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,22 +64,9 @@ extern "C" {
 
 typedef struct {
   igtl_uint16    version;          /* data format version number      */
-  igtl_uint8     data_type;        /* data type (scalar or vector)    */
   igtl_uint8     scalar_type;      /* scalar type                     */
   igtl_uint8     endian;           /* endian type of scalarvalue data       */
-  igtl_uint8     coord;            /* coordinate system (LPS or RAS)  */
-  igtl_uint16    size[3];          /* entire scalarvalue volume size        */
-  igtl_float32   matrix[12];       /* orientation / origin of scalarvalue   */
-                                   /*  - matrix[0-2]: norm_i * pix_i  */
-                                   /*  - matrix[3-5]: norm_j * pix_j  */
-                                   /*  - matrix[6-8]: norm_k * pix_k  */
-                                   /*  - matrix[9-11]:origin          */
-                                   /* where norm_* are normal vectors */
-                                   /* along each index, and pix_* are */
-                                   /* pixel size in each direction    */
-
-  igtl_uint16    subvol_offset[3]; /* sub volume offset               */
-  igtl_uint16    subvol_size[3];   /* sub volume size                 */
+  igtl_uint16    data_size;   /* sub volume size                 */
 } igtl_scalarvalue_header;
 
 #pragma pack()
@@ -97,21 +81,6 @@ typedef struct {
 
 igtl_uint64 igtl_scalarvalue_get_data_size(igtl_scalarvalue_header * header);
 
-
-/*
- * Generate matrix 
- *
- * This function generates scalarvalue orientation/origin matrix from 
- * spacing, origin and normal vectors.
- */
-
-void igtl_scalarvalue_set_matrix(float spacing[3], float origin[3],
-                            float norm_i[3], float norm_j[3], float norm_k[3],
-                            igtl_scalarvalue_header * header);
-
-void igtl_scalarvalue_get_matrix(float spacing[3], float origin[3],
-                            float norm_i[3], float norm_j[3], float norm_k[3],
-                            igtl_scalarvalue_header * header);
 
 /*
  * Byte order conversion for the header structure
