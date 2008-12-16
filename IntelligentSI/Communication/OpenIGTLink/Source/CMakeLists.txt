@@ -46,6 +46,7 @@ SET(OpenIGTLink_SOURCES
   igtlTimeStamp.cxx
   igtlTransformMessage.cxx
   igtlVFixtureMessage.cxx
+  igtlScalarValueMessage.cxx
   )
 
 ADD_LIBRARY(OpenIGTLink
