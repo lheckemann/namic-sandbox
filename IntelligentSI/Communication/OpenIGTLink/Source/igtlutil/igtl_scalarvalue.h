@@ -67,6 +67,7 @@ typedef struct {
   igtl_uint8     scalar_type;      /* scalar type                     */
   igtl_uint8     endian;           /* endian type of scalarvalue data       */
   igtl_uint16    data_size;   /* sub volume size                 */
+  igtl_uint16 dimension;
 } igtl_scalarvalue_header;
 
 #pragma pack()

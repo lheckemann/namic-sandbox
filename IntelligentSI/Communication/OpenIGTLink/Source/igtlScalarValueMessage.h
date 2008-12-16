@@ -29,6 +29,8 @@ namespace igtl
 class ScalarValueMessage: public MessageBase
 {
 public:
+  void SetDimension(int i);
+  void GetDimension(int i);
   typedef ScalarValueMessage              Self;
   typedef MessageBase               Superclass;
   typedef SmartPointer<Self>        Pointer;
@@ -74,7 +76,7 @@ public:
   // TBD: Should returned value be 64-bit integer?
   int  GetScalarValueSize()
   {
-    return GetScalarSize();
+    return dimension * GetScalarSize();
   };
 
   void  AllocateScalars();
@@ -90,6 +92,8 @@ protected:
   virtual int  PackBody();
   virtual int  UnpackBody();
   
+
+  int dimension;
 
   int    endian;
   int    scalarType;
