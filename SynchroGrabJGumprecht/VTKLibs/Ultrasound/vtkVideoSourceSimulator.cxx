@@ -1,14 +1,10 @@
 /*=========================================================================
 
-  Module:    $RCSfile: vtkVideoSourceSimulator.cxx,v $
-  Author:  Siddharth Vikal, Queens School Of Computing  
-
-Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
-All rights reserved.
-
-Author:  Jan Gumprecht, Harvard Medical School
-Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
-All rights reserved.
+  Module:  $RCSfile: vtkVideoSourceSimulator.cxx,v $
+  Author:  Jan Gumprecht, Harvard Medical School
+  
+  Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
+  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -22,7 +18,7 @@ are met:
    the documentation and/or other materials provided with the
    distribution.
 
- * Neither the name of Queen's University nor the names of any
+ * Neither the name of Harvard Medical School nor the names of any
    contributors may be used to endorse or promote products derived
    from this software without specific prior written permission.
 
@@ -87,9 +83,9 @@ vtkVideoSourceSimulator::vtkVideoSourceSimulator()
 {
   this->Initialized = 0;
 
-  this->FrameSize[0] = SLICE_X_LENGTH;
-  this->FrameSize[1] = SLICE_Y_LENGTH;
-  this->FrameSize[2] = SLICE_Z_LENGTH;
+  this->FrameSize[0] =320; // this->FrameSize[0];
+  this->FrameSize[1] =240; // this->FrameSize[1];
+  this->FrameSize[2] =1;   // this->FrameSize[2];
   
   this->FrameRate = 30; // in fps
   this->AcquisitionDataType = 0x00000004; //corresponds to type: BPost 8-bit  
@@ -680,8 +676,8 @@ void vtkVideoSourceSimulator::DoFormatSetup()
 {
 
     this->FrameBufferBitsPerPixel = BITS_PER_PIXEL;
-    this->FrameSize[0] = SLICE_Y_LENGTH;
-    this->FrameSize[1] = SLICE_X_LENGTH;      
+    this->FrameSize[0] = this->FrameSize[0];
+    this->FrameSize[1] = this->FrameSize[1];      
     this->OutputFormat = VTK_LUMINANCE;
     this->NumberOfScalarComponents = 1;
     this->Modified();
@@ -732,15 +728,22 @@ void vtkVideoSourceSimulator::InternalGrab()
     // to the local buffer, which demands necessary advancement of deviceDataPtr
   
     // get the pointer to actual incoming data on to a local pointer
-    unsigned char* deviceDataPtr = new unsigned char[SLICE_X_LENGTH * SLICE_Y_LENGTH];  
+    unsigned char* deviceDataPtr = new unsigned char[ this->FrameSize[0] * this->FrameSize[1]];  
     
-    for (int j = 0 ; j < SLICE_Y_LENGTH ; j++)
+    for (int j = 0 ; j < this->FrameSize[1]; j++)
       {
-      for (int k = 0 ; k < SLICE_X_LENGTH ; k++)
+      for (int k = 0 ; k <  this->FrameSize[0]; k++)
         {
-deviceDataPtr[j * SLICE_Y_LENGTH + k] = (unsigned char) k;
-}            
-}
+            if( k > 10 and k < 50 and j > 10 and j <  40)
+              {
+              deviceDataPtr[j *  this->FrameSize[0] + k] = (unsigned char) 255;
+              }
+            else
+              {
+              deviceDataPtr[j *  this->FrameSize[0] + k] = (unsigned char)(((double)k / this->FrameSize[0] * 255.0) + 0.5) ;
+              }
+        }            
+      }
 
     // get the pointer to the correct location in the frame buffer, where this data needs to be copied
     unsigned char *frameBufferPtr = (unsigned char *)((reinterpret_cast<vtkUnsignedCharArray*>(this->FrameBuffer[index]))->GetPointer(0));

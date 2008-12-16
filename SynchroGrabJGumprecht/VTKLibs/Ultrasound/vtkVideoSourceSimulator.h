@@ -1,12 +1,8 @@
 /*=========================================================================
 
-Module:    $RCSfile: vtkVideoSourceSimulator.h,v $
-Author:  Siddharth Vikal, Queens School Of Computing
-
-Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
-All rights reserved.
-
+Module:  $RCSfile: vtkVideoSourceSimulator.h,v $
 Author:  Jan Gumprecht, Harvard Medical School
+
 Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
 All rights reserved.
 
@@ -22,7 +18,7 @@ are met:
    the documentation and/or other materials provided with the
    distribution.
 
- * Neither the name of Queen's University nor the names of any
+ * Neither the name of Harvard Medical School nor the names of any
    contributors may be used to endorse or promote products derived
    from this software without specific prior written permission.
 
