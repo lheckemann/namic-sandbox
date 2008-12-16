@@ -24,11 +24,13 @@
 #include "igtlServerSocket.h"
 #include "igtlStatusMessage.h"
 #include "igtlVFixtureMessage.h"
+#include "igtlScalarValueMessage.h"
 
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveVFixture(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveScalarValue(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 
 int main(int argc, char* argv[])
 {
@@ -98,6 +100,10 @@ int main(int argc, char* argv[])
           {
           ReceiveVFixture(socket, headerMsg);
           }
+                else if (strcmp(headerMsg->GetDeviceType(), "SCALARVALUE") == 0)
+                    {
+                    ReceiveScalarValue(socket, headerMsg);
+                    }
         else
           {
           // if the data type is unknown, skip reading.
@@ -272,3 +278,50 @@ int ReceiveVFixture(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer&
 
 }
 
+int ReceiveScalarValue(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving SCALARVALUE data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::ScalarValueMessage::Pointer svMsg;
+  svMsg = igtl::ScalarValueMessage::New();
+  svMsg->SetMessageHeader(header);
+  svMsg->AllocatePack();
+  
+  // Receive transform data from the socket
+  socket->Receive(svMsg->GetPackBodyPointer(), svMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = svMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+        int size;
+        int scalarType;
+        unsigned char value[3];
+        size = svMsg->GetDimension();
+        scalarType = svMsg->GetScalarType();
+    std::cerr << "Device Name: " << svMsg->GetDeviceName() << std::endl;
+        std::cerr << "Size       : " << size << std::endl;
+    std::cerr << "Scalar Type: " << scalarType << std::endl;
+        
+        memcpy(value, (unsigned char *)svMsg->GetScalarPointer(), igtl::ScalarValueMessage::ScalarSizeTable[scalarType] * size * size);
+        for( int j = 0 ; j < size ; j ++ )
+        {
+            std::cerr << "Value No : " << j << std::endl;
+            std::cerr << "Value    : " << value[ j ] << std::endl;
+        }
+
+        //for( int j = 0 ; j < size ; j ++ )
+        //  {
+        //  std::cerr << "Value No : " << j << std::endl;
+        //  std::cerr << "Value    : " << *svMsg->GetScalarPointer() << std::endl;
+        //  svMsg->GetScalarPointer()++;
+        //  }
+    }
+
+  return 0;
+
+}

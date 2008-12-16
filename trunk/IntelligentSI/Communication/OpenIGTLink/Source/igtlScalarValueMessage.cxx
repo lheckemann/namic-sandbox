@@ -54,9 +54,9 @@ ScalarValueMessage::~ScalarValueMessage()
     dimension = i;
   }
 
-  void ScalarValueMessage::GetDimension(int i)
+  int ScalarValueMessage::GetDimension( )
   {
-    i = dimension;
+    return dimension;
   }
 
 void ScalarValueMessage::AllocateScalars()

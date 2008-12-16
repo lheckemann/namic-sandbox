@@ -12,6 +12,7 @@ if(NOT OpenIGTLink_PLATFORM_QNX)
       Status
       Receiver
       VFixture
+      ScalarValue
       )
 else(NOT OpenIGTLink_PLATFORM_QNX)
   SUBDIRS(
