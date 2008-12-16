@@ -61,10 +61,9 @@ int main(int argc, char* argv[])
 
     //------------------------------------------------------------
     // size parameters
-        int     size = 1;
-        unsigned char       value[1] = {0};
-
-    int   scalarType = igtl::ScalarValueMessage::TYPE_UINT8;// scalar type
+    int size = 3;
+    unsigned char value[3] = {1,2,3};
+    int scalarType = igtl::ScalarValueMessage::TYPE_UINT8;// scalar type
 
     //------------------------------------------------------------
     // Create a new ScalarValue type message
@@ -76,25 +75,7 @@ int main(int argc, char* argv[])
 
     //------------------------------------------------------------
     // Set Scalar Value
-        //unsigned char *test;
-        //test = (unsigned char *)svMsg->GetScalarPointer();
-        //*test = 10;
-        *((unsigned char *)svMsg->GetScalarPointer()) = 10;
-        //memcpy((unsigned char *)svMsg->GetScalarPointer(), value, sizeof(unsigned char) * size);
-        //std::cerr << sizeof( value ) << std::endl;
-        unsigned char *test2  = new unsigned char ;
-        //test2 = (unsigned char *)svMsg->GetScalarPointer();
-        *test2 = 10;
-        std::cerr << *test2 << std::endl;
-
-        //std::cerr << sizeof(*((unsigned char *)svMsg->GetScalarPointer())) << std::endl;
-    
-        //for ( int j = 0 ; j < size ; j ++ )
-        //  {
-        //      *svMsg->GetScalarPointer = (i * j);
-        //      svMsg->GetScalarPointer++:
-        //  }
-
+    memcpy((unsigned char *)svMsg->GetScalarPointer(), value, sizeof(unsigned char) * size);
 
     //------------------------------------------------------------
     // Pack (serialize) and send

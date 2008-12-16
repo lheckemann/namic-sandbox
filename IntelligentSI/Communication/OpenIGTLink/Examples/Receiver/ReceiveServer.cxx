@@ -307,19 +307,13 @@ int ReceiveScalarValue(igtl::Socket::Pointer& socket, igtl::MessageHeader::Point
         std::cerr << "Size       : " << size << std::endl;
     std::cerr << "Scalar Type: " << scalarType << std::endl;
         
-        memcpy(value, (unsigned char *)svMsg->GetScalarPointer(), igtl::ScalarValueMessage::ScalarSizeTable[scalarType] * size * size);
+        memcpy(value, (unsigned char *)svMsg->GetScalarPointer(), igtl::ScalarValueMessage::ScalarSizeTable[scalarType] * size);
         for( int j = 0 ; j < size ; j ++ )
         {
             std::cerr << "Value No : " << j << std::endl;
-            std::cerr << "Value    : " << value[ j ] << std::endl;
+            //std::cerr << "Value    : " << value[ j ] << std::endl;
+                        printf("%d \n",value[ j ]);
         }
-
-        //for( int j = 0 ; j < size ; j ++ )
-        //  {
-        //  std::cerr << "Value No : " << j << std::endl;
-        //  std::cerr << "Value    : " << *svMsg->GetScalarPointer() << std::endl;
-        //  svMsg->GetScalarPointer()++;
-        //  }
     }
 
   return 0;
