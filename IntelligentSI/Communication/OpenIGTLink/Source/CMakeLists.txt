@@ -27,6 +27,7 @@ SET(OpenIGTLink_SOURCES
   igtlutil/igtl_status.c
   igtlutil/igtl_util.c
   igtlutil/igtl_vfixture.c
+  igtlutil/igtl_scalarvalue.c
   igtlClientSocket.cxx
   igtlConditionVariable.cxx
   igtlFastMutexLock.cxx
