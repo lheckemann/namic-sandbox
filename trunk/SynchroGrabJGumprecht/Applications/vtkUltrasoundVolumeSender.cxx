@@ -225,7 +225,7 @@ bool vtkUltrasoundVolumeSender::SendImages(vtkImageData * ImageBuffer, int repet
     vtkFillImageMessage(ImageBuffer, imgMsg);
 
     //------------------------------------------------------------
-    // Get randome orientation matrix and set it.
+    // Get random orientation matrix and set it.
     igtl::Matrix4x4 matrix;
     vtkGetRandomTestMatrix(matrix);
     imgMsg->SetMatrix(matrix);
@@ -286,7 +286,7 @@ int vtkUltrasoundVolumeSender::vtkFillImageMessage(vtkImageData *ImageBuffer, ig
   msg->SetDimensions(size);
   msg->SetSpacing((float) spacing[0],(float) spacing[1], (float) spacing[2]);
   msg->SetScalarType(scalarType);
-  msg->SetDeviceName("ImagerClient");
+  msg->SetDeviceName("SynchroGrab");
   msg->SetSubVolume(svsize, svoffset);
   msg->AllocateScalars();
     
@@ -318,10 +318,10 @@ void vtkUltrasoundVolumeSender::vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix)
   // -1  0  0  0
   //  0  1  0  0
   //  0  0  0  1
-  matrix[0][0] =   0.0;  matrix[1][0] =  0.0;  matrix[2][0] = -1.0; matrix[3][0] = 0.0;
-  matrix[0][1] =  -1.0;  matrix[1][1] =  0.0;  matrix[2][1] =  0.0; matrix[3][1] = 0.0;
-  matrix[0][2] =   0.0;  matrix[1][2] =  1.0;  matrix[2][2] =  0.0; matrix[3][2] = 0.0;
-  matrix[0][3] =   0.0;  matrix[1][3] =  0.0;  matrix[2][3] =  0.0; matrix[3][3] = 1.0;
+  matrix[0][0] =   0.0;  matrix[1][0] =  0.0;  matrix[2][0] =  1.0; matrix[3][0] = 0.0;
+  matrix[0][1] =   0.0;  matrix[1][1] =  1.0;  matrix[2][1] =  0.0; matrix[3][1] = 0.0;
+  matrix[0][2] =  -1.0;  matrix[1][2] =  0.0;  matrix[2][2] =  0.0; matrix[3][2] = 0.0;
+  matrix[0][3] =  90.0;  matrix[1][3] =  0.0;  matrix[2][3] =  0.0; matrix[3][3] = 1.0;
 #else
   //Tracker simulator matrix looks like
   //  1  0  0  0
