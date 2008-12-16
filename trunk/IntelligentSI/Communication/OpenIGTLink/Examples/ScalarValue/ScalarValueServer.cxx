@@ -61,30 +61,29 @@ int main(int argc, char* argv[])
       // loop
       for (int i = 0; i < 100; i ++)
         {
-    //------------------------------------------------------------
-    // size parameters
-    int size = 3;
-    unsigned char value[3] = {1,2,3};
-    int scalarType = igtl::ScalarValueMessage::TYPE_UINT8;// scalar type
+        //------------------------------------------------------------
+        // size parameters
+        int size = 3;
+        unsigned char value[3] = {1,2,3};
+        int scalarType = igtl::ScalarValueMessage::TYPE_UINT8;// scalar type
 
-    //------------------------------------------------------------
-    // Create a new ScalarValue type message
-    igtl::ScalarValueMessage::Pointer svMsg = igtl::ScalarValueMessage::New();
-    svMsg->SetDimension( size );
-    svMsg->SetScalarType(scalarType);
-    svMsg->SetDeviceName("ScalarValueClient");
-    svMsg->AllocateScalars();
+        //------------------------------------------------------------
+        // Create a new ScalarValue type message
+        igtl::ScalarValueMessage::Pointer svMsg = igtl::ScalarValueMessage::New();
+        svMsg->SetDimension( size );
+        svMsg->SetScalarType(scalarType);
+        svMsg->SetDeviceName("ScalarValueClient");
+        svMsg->AllocateScalars();
 
-    //------------------------------------------------------------
-    // Set Scalar Value
-    memcpy((unsigned char *)svMsg->GetScalarPointer(), value, sizeof(unsigned char) * size);
+        //------------------------------------------------------------
+        // Set Scalar Value
+        memcpy((unsigned char *)svMsg->GetScalarPointer(), value, sizeof(unsigned char) * size);
 
-        
         //------------------------------------------------------------
         // Pack (serialize) and send
         svMsg->Pack();
         socket->Send(svMsg->GetPackPointer(), svMsg->GetPackSize());
-        
+
         igtl::Sleep(interval); // wait
         }
       }
