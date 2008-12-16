@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define NOMINMAX
 //#define REMOVE_ALPHA_CHANNEL
-//#define DEBUG_IMAGES //Write tagger output to HDD
+#define DEBUG_IMAGES //Write tagger output to HDD
 //#define DEBUG_MATRICES //Prints tagger matrices to stdout
  
 //#include <windows.h>
@@ -60,6 +60,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkImageExtractComponents.h"
 #include "vtkImageData.h"
 #include "vtkBMPWriter.h"
+#include "vtkMatrix4x4.h"
 
 
 #include "vtkObjectFactory.h"
@@ -87,6 +88,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define FUDGE_FACTOR 1.6
 #define CERTUS_UPDATE_RATE 625
+#define US_IMAGE_FAN_RATIO 0.6 //Amount of ultrasound images's height that
+                               //is used by the ultrasound fan
 
 using namespace std;
 
@@ -98,8 +101,14 @@ vtkStandardNewMacro(vtkUltrasoundVolumeReconstructor);
 //----------------------------------------------------------------------------
 vtkUltrasoundVolumeReconstructor::vtkUltrasoundVolumeReconstructor()
 {
+#ifdef USE_ULTRASOUND_DEVICE
   this->NbFrames = 50 + 100; //# of Frames to capture + additional 100 frames which are skipped
+#else
+  this->NbFrames = 50;
+#endif
+
   this->FrameRate = 30;
+  this->ScanDepth = 70; //Unit: mm
 
   this->CalibrationFileName = NULL;
   this->SetVideoDevice("/dev/video0");
@@ -199,8 +208,7 @@ bool vtkUltrasoundVolumeReconstructor::StartTracker()
 //----------------------------------------------------------------------------
 bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 {
-
-  cout << "Initialization:" << std::flush;
+  cout << "Initialization: " << std::flush;
   cout << '\a' << std::flush;
   for(int i = 0; i < 11; i++)
     {
@@ -282,13 +290,20 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   else
     {
     cout << "  Grabbed Frames: " << nbFramesGrabbed << endl;
+
+#ifdef DEBUG_MATRICES
     cout << "  Tracker matrices:" 
          << this->tagger->GetTrackerTool()->GetBuffer()->GetNumberOfItems() <<endl;
     cout << "  Tracker buffer size: " 
          <<  this->tagger->GetTrackerTool()->GetBuffer()->GetBufferSize() << endl;    
+#endif
     } 
 
   this->sonixGrabber->Rewind();
+
+#ifdef USE_TRACKER_DEVICE
+  vtkMatrix4x4 * tempMatrix = vtkMatrix4x4::New();
+#endif
 
   for(int i=0; i < nbFramesGrabbed; i++)
     {
@@ -298,7 +313,19 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
     // determine the bounding box occupied by the reconstructed volume
     for(int j=0; j < 4; j++)
       {
+
+#ifdef USE_TRACKER_DEVICE
+        //Adjust tracker matrix to ultrasound scan depth
+      tempMatrix->DeepCopy(this->tagger->GetTransform()->GetMatrix());
+      AdjustMatrix(*tempMatrix);
+      tempMatrix->MultiplyPoint(imCorners[j],transformedPt);
+
+#else
+
       this->tagger->GetTransform()->MultiplyPoint(imCorners[j],transformedPt);
+
+#endif
+
       minX = min(transformedPt[0], minX);
       minY = min(transformedPt[1], minY);
       minZ = min(transformedPt[2], minZ);
@@ -309,8 +336,14 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
     this->sonixGrabber->Seek(1);
     }
 
+#ifdef USE_TRACKER_DEVICE
+  tempMatrix->Delete();
+#endif
+
+#ifdef DEBUG_MATRICES
   cout << "X|Y|Z - Min: " << minX << "|" << minY <<"|"<< minZ
        << "- Max: " << maxX <<"|" << maxY <<"|" << maxZ << endl;
+#endif
 
   double spacing[3] = {1,1,1};
   int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
@@ -345,8 +378,9 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   char filename[256];
 #endif
 
+  //JG 08/12/16: Test for Trilinear interpolation
   //panoramaReconstructor->GetOutput()->SetNumberOfScalarComponents(tagger->GetOutput()->GetNumberOfScalarComponents()); 
-  //   panoramaReconstructor->GetOutput()->AllocateScalars();
+  //panoramaReconstructor->GetOutput()->AllocateScalars();
    
   cout << "Start Volume Reconstruction" << endl;
 
@@ -354,7 +388,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
     {
     
     if( i != 0)
-      { 
+      {
       cout << "*" <<std::flush;
       }
 
@@ -365,6 +399,11 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 
     this->tagger->Update();
     this->tagger->GetTransform()->GetMatrix(sliceAxes); //Get trackingmatrix of current frame
+
+#ifdef USE_TRACKER_DEVICE
+    AdjustMatrix(*sliceAxes);   // Adjust tracker matrix to ultrasound scan depth
+#endif
+
     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
 
 #ifdef DEBUG_MATRICES
@@ -464,6 +503,16 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   return true;
 }
 
+//Adjust tracker matrix to ultrasound scan depth
+void vtkUltrasoundVolumeReconstructor::AdjustMatrix(vtkMatrix4x4& matrix)
+{  
+  double scaleFactor = (this->sonixGrabber->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
+  
+  matrix.Element[0][3] = matrix.Element[0][3] * scaleFactor;//x
+  matrix.Element[1][3] = matrix.Element[1][3] * scaleFactor;//y
+  matrix.Element[2][3] = matrix.Element[2][3] * scaleFactor;//z
+
+}
 
 static inline void vtkSleep(double duration)
 {

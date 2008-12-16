@@ -74,6 +74,8 @@ class vtkNDITracker;
 class vtkTrackerSimulator;
 #endif
 
+class vtkMatrix4x4;
+
 
 class vtkUltrasoundVolumeReconstructor : public vtkObject
 {
@@ -99,9 +101,13 @@ public:
 
   vtkSetMacro(VideoMode, int);
   vtkGetMacro(VideoMode, int);
-
+  
   vtkSetMacro(FrameRate, double);
   vtkGetMacro(FrameRate, double);
+
+  //Depth of the Ultrasound scan in Millimeter
+  vtkSetMacro(ScanDepth, double);
+  vtkGetMacro(ScanDepth, double);
 
   bool ReconstructVolume(vtkImageData * ImageBuffer);
   bool StartTracker();
@@ -118,10 +124,11 @@ protected:
   char *VideoDevice; // e.g. /dev/video
   int   VideoChannel; // e.g. 3 at Hauppauge Impact VCB Modell 558
   int   VideoMode; //NTSC == 1 , PAL == 2
+  double FrameRate;  
 
   bool VolumeReconstructionEnabled;
 
-  double FrameRate;  
+  double ScanDepth;
   
   vtkUltrasoundCalibFileReader *calibReader;
   
@@ -138,6 +145,8 @@ protected:
 #else
   vtkVideoSourceSimulator *sonixGrabber;
 #endif
+
+  void AdjustMatrix(vtkMatrix4x4& matrix);
 
 private:
 
