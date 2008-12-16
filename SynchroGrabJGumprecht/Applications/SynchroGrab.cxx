@@ -96,7 +96,8 @@ void printUsage()
          << endl;
 
     // print instructions on how to use this program.
-    cout << "DESCRIPTION : " << endl;
+    cout << "DESCRIPTION " << endl
+         << "-----------"<<endl;
     cout << "This software does tracked 3D Ultrasound imaging. It captures frames from an"<< endl
          << "ultrasound device and tracking information from a tracker device." << endl
          << "The images and the tracking information are combined to a 3D volume image."<<endl
@@ -105,18 +106,30 @@ void printUsage()
     cout << endl
          << "--------------------------------------------------------------------------------"
          << endl;
-    cout << "OPTIONS: " << endl
-         << "--calibration-file xxxx or -c xxxx: To specify the calibration file" << endl 
-         << "--reconstruct-volume or -rv: Do volume reconstruction" << endl
-         << "--oigtl-server or -os: Specify OpenIGTLink server (default: 'localhost')" << endl
-         << "--oigtl-port or -op: Specify OpenIGTLink port of server" <<endl
-         << "--nb-frames xxxx or -n xxxx: to specify the number of frames that " << endl 
-         << "                            will be collected (default: 50)" << endl
-         << "--fps: Number of frames per second for the ultrasound data collection" << endl
-         << "      (default: 10)" << endl
-         << "--video-source or -vs: Set video source (default: '/dev/video0')" << endl
-         << "--video-source-channel or -vsc: Set video source channel (default: 3)" << endl
-         << "--video-mode or -vm: Set video mode; Options: NTSC, PAL (default: NTSC)" << endl
+    cout << "OPTIONS " << endl
+         << "-------"<<endl
+         << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl 
+         << "--reconstruct-volume or -rv:            Do volume reconstruction" << endl
+         << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<<endl
+         << "                                        (default: 'localhost')" << endl
+         << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<<endl
+         << "                                        server (default: 18944)" <<endl
+         << "--nb-frames xxx or -n xxx:              Specify the number of frames"<<endl
+         << "                                        that will be collected"<<endl
+         << "                                        (default: 50)" << endl
+         << "--frames-per-second xxx or -fps xxx:    Number of frames per second for"<<endl
+         << "                                        the ultrasound data collection"<<endl
+         << "                                        (default: 10)" << endl
+         << "--video-source xxx or -vs xxx:          Set video source "<<endl
+         << "                                        (default: '/dev/video0')" << endl
+         << "--video-source-channel xxx or -vsc xxx: Set video source channel"<<endl 
+         << "                                        (default: 3)" << endl
+         << "--video-mode xxx or -vm xxx:            Set video mode; "<<endl
+         << "                                        Options: NTSC, PAL "<<endl
+         << "                                        (default: NTSC)" << endl
+         << "--scan-depth xxx or -sd xxx:            Set depth of ultrasound "<<endl
+         << "                                        scan in Millimeter"<<endl
+         << "                                        (default: 70mm)" <<endl
          << endl
          << "--------------------------------------------------------------------------------"
          << endl  << endl; 
@@ -161,7 +174,11 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
           {
           if( i < argc - 1)
             {
-            reconstructor->SetNbFrames(atoi(argv[++i]));
+#ifdef USE_ULTRASOUND_DEVICE
+            reconstructor->SetNbFrames(atoi(argv[++i] + 100));
+#else
+            reconstructor->SetNbFrames(atoi(argv[++i]));            
+#endif
             }
           }
         else if(currentArg == "--frames-per-second" || currentArg == "-fps") 
@@ -177,7 +194,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
           }
        else if(currentArg == "--video-source-channel" || currentArg == "-vsc")
           {
-      reconstructor->SetVideoChannel(atoi(argv[++i]));
+          reconstructor->SetVideoChannel(atoi(argv[++i]));
           }
        else if(currentArg == "--video-mode" || currentArg == "-vm")
           {
@@ -199,6 +216,10 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
             return false;
             }
           }
+       else if(currentArg == "--scan-depth" || currentArg == "-sd")
+         {
+         reconstructor->SetScanDepth(atoi(argv[++i]));
+         }
        else 
           {
           printUsage();
@@ -282,6 +303,19 @@ int main(int argc, char **argv)
 
     cout << endl;
     cout << "--- Synchgrograb finished ---" << endl;
+    cout << endl;
+    cout << "Press 't' to terminate Synchrograb"<<endl;
+
+    string input;
+
+    while(cin >> input)
+      {
+      if(input == "t")
+        {
+          break;
+        }
+      }
+
     goodByeScreen();
 
 }
