@@ -24,11 +24,13 @@
 #include "igtlClientSocket.h"
 #include "igtlStatusMessage.h"
 #include "igtlVFixtureMessage.h"
+#include "igtlScalarValueMessage.h"
 
 int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveVFixture(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveScalarValue(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 
 int main(int argc, char* argv[])
 {
@@ -101,6 +103,10 @@ int main(int argc, char* argv[])
         {
         ReceiveVFixture(socket, headerMsg);
         }
+            else if (strcmp(headerMsg->GetDeviceType(), "SCALARVALUE") == 0)
+                {
+                ReceiveScalarValue(socket, headerMsg);
+                }
       else
         {
         socket->Skip(headerMsg->GetBodySizeToRead(), 0);
@@ -265,6 +271,51 @@ int ReceiveVFixture(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Po
         }
       }
     return 1;
+    }
+
+  return 0;
+
+}
+
+int ReceiveScalarValue(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving SCALARVALUE data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::ScalarValueMessage::Pointer svMsg;
+  svMsg = igtl::ScalarValueMessage::New();
+  svMsg->SetMessageHeader(header);
+  svMsg->AllocatePack();
+  
+  // Receive transform data from the socket
+  socket->Receive(svMsg->GetPackBodyPointer(), svMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = svMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+        int size;
+        char *value;
+    std::cerr << "Device Name: " << svMsg->GetDeviceName() << std::endl;
+        std::cerr << "Size       : " << svMsg->GetDimension() << std::endl;
+    std::cerr << "Scalar Type: " << svMsg->GetScalarType() << std::endl;
+        
+        memcpy(value, svMsg->GetScalarPointer(), 1 * size);
+        for( int j = 0 ; j < size ; j ++ )
+        {
+            std::cerr << "Value No : " << j << std::endl;
+            std::cerr << "Value    : " << value[ j ] << std::endl;
+        }
+
+        //for( int j = 0 ; j < size ; j ++ )
+        //  {
+        //  std::cerr << "Value No : " << j << std::endl;
+        //  std::cerr << "Value    : " << *svMsg->GetScalarPointer() << std::endl;
+        //  svMsg->GetScalarPointer()++;
+        //  }
     }
 
   return 0;

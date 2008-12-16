@@ -30,7 +30,7 @@ class ScalarValueMessage: public MessageBase
 {
 public:
   void SetDimension(int i);
-  void GetDimension(int i);
+  int GetDimension( );
   typedef ScalarValueMessage              Self;
   typedef MessageBase               Superclass;
   typedef SmartPointer<Self>        Pointer;
