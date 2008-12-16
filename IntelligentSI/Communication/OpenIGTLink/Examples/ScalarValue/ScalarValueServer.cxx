@@ -40,7 +40,6 @@ int main(int argc, char* argv[])
   double fps      = atof(argv[2]);
   int    interval = (int) (1000.0 / fps);
   char*  filedir  = argv[3];
-    int i;
   
   //------------------------------------------------------------
   // Prepare server socket
@@ -62,28 +61,24 @@ int main(int argc, char* argv[])
       // loop
       for (int i = 0; i < 100; i ++)
         {
-        //------------------------------------------------------------
-        // size parameters
-                int     size = 3;
-                int     value[ 3 ] = {0, 1, 2};
-        int   scalarType = igtl::ScalarValueMessage::TYPE_UINT8;// scalar type
-        
-        //------------------------------------------------------------
-        // Create a new IMAGE type message
-        igtl::ScalarValueMessage::Pointer svMsg = igtl::ScalarValueMessage::New();
-                svMsg->SetDimension( size );
-        svMsg->SetScalarType(scalarType);
-        svMsg->SetDeviceName("ScalarValueClient");
-        svMsg->AllocateScalars();
-        
-        //------------------------------------------------------------
-            // Set Scalar Value
-                memcpy(svMsg->GetScalarPointer(), value, 1 * size);
-                //for ( int j = 0 ; j < size ; j ++ )
-                //{
-                //  *svMsg->GetScalarPointer = (i * j);
-                //  svMsg->GetScalarPointer++:
-                //}
+    //------------------------------------------------------------
+    // size parameters
+    int size = 3;
+    unsigned char value[3] = {1,2,3};
+    int scalarType = igtl::ScalarValueMessage::TYPE_UINT8;// scalar type
+
+    //------------------------------------------------------------
+    // Create a new ScalarValue type message
+    igtl::ScalarValueMessage::Pointer svMsg = igtl::ScalarValueMessage::New();
+    svMsg->SetDimension( size );
+    svMsg->SetScalarType(scalarType);
+    svMsg->SetDeviceName("ScalarValueClient");
+    svMsg->AllocateScalars();
+
+    //------------------------------------------------------------
+    // Set Scalar Value
+    memcpy((unsigned char *)svMsg->GetScalarPointer(), value, sizeof(unsigned char) * size);
+
         
         //------------------------------------------------------------
         // Pack (serialize) and send
