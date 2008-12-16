@@ -16,154 +16,299 @@
 
 #include "igtlScalarValueMessage.h"
 
+
 #include "igtl_header.h"
-#include "igtl_vfixture.h"
+#include "igtl_image.h"
 
 namespace igtl {
+
+const int ScalarValueMessage::ScalarSizeTable[] = 
+  {
+    0, 0,
+    1, 1,   // INT8 / UINT8
+    2, 2,   // INT16 / UINT16
+    4, 4,   // INT32 / UINT32
+  };
+
 
 ScalarValueMessage::ScalarValueMessage():
   MessageBase()
 {
-  m_NSpheres = 0;
-  m_Hardness = 0.0;
-  m_CenterX  = NULL;
-  m_CenterY  = NULL;
-  m_CenterZ  = NULL;
-  m_Radius   = NULL;
+  for (int i = 0; i < 3; i ++)
+    {
+      dimensions[i] = 0;
+      spacing[i]    = 0.0;
+      subDimensions[i] = 0;
+      subOffset[i] = 0;
+    }
+  for (int i = 0; i < 3; i ++)
+    {
+      for (int j = 0; j < 4; j ++)
+        {
+          matrix[i][j] = 0.0;
+        }
+    }
+
+  endian        = ENDIAN_BIG;
+  dataType      = DTYPE_SCALAR;
+  coordinate    = COORDINATE_RAS;
+  scalarType    = TYPE_UINT8;
   m_ScalarValueHeader = NULL;
   m_ScalarValue       = NULL;
-  m_DefaultBodyType  = "*VFIXTURE";
+
+  m_DefaultBodyType  = "IMAGE";
 }
 
 ScalarValueMessage::~ScalarValueMessage()
 {
-  if (m_CenterX != NULL)
-    {
-    delete [] m_CenterX;
-    }
-  if (m_CenterY != NULL)
-    {
-    delete [] m_CenterY;
-    }
-  if (m_CenterZ != NULL)
-    {
-    delete [] m_CenterZ;
-    }
-  if (m_Radius != NULL)
-    {
-    delete [] m_Radius;
-    }
 }
 
-void  ScalarValueMessage::SetNumberOfSpheres(int n)
+void ScalarValueMessage::SetDimensions(int s[3])
 {
-  if (m_NSpheres != n)
+  dimensions[0] = s[0];
+  dimensions[1] = s[1];
+  dimensions[2] = s[2];
+
+  // initialize sub-volume
+  subDimensions[0] = dimensions[0];
+  subDimensions[1] = dimensions[1];
+  subDimensions[2] = dimensions[2];
+  subOffset[0] = 0;
+  subOffset[1] = 0;
+  subOffset[2] = 0;
+}
+
+void ScalarValueMessage::SetDimensions(int i, int j, int k)
+{
+  dimensions[0] = i;
+  dimensions[1] = j;
+  dimensions[2] = k;
+
+  // initialize sub-volume
+  subDimensions[0] = dimensions[0];
+  subDimensions[1] = dimensions[1];
+  subDimensions[2] = dimensions[2];
+  subOffset[0] = 0;
+  subOffset[1] = 0;
+  subOffset[2] = 0;
+}
+
+void ScalarValueMessage::GetDimensions(int s[3])
+{
+  s[0] = dimensions[0];
+  s[1] = dimensions[1];
+  s[2] = dimensions[2];
+}
+
+void ScalarValueMessage::GetDimensions(int &i, int &j, int &k)
+{
+  i = dimensions[0];
+  j = dimensions[1];
+  k = dimensions[2];
+}
+
+int ScalarValueMessage::SetSubVolume(int dim[3], int off[3])
+{
+  // make sure that sub-volume fits in the dimensions
+  if (off[0] + dim[0] <= dimensions[0] &&
+      off[1] + dim[1] <= dimensions[1] &&
+      off[2] + dim[2] <= dimensions[2])
     {
-    if (m_CenterX != NULL)
-      {
-      delete [] m_CenterX;
-      }
-    if (m_CenterY != NULL)
-      {
-      delete [] m_CenterY;
-      }
-    if (m_CenterZ != NULL)
-      {
-      delete [] m_CenterZ;
-      }
-    if (m_Radius != NULL)
-      {
-      delete [] m_Radius;
-      }
-    m_NSpheres = n;
-    m_CenterX  = new float[n];
-    m_CenterY  = new float[n];
-    m_CenterZ  = new float[n];
-    m_Radius   = new float[n];
-    for (int i = 0; i ++; i < n)
-      {
-      m_CenterX[i] = 0.0;
-      m_CenterY[i] = 0.0;
-      m_CenterZ[i] = 0.0;
-      m_Radius[i]  = 0.0;
-      }
-    }
-}
-
-int ScalarValueMessage::GetNumberOfSpheres()
-{
-  return m_NSpheres;
-}
-
-void ScalarValueMessage::SetHardness(float h)
-{
-  m_Hardness = h;
-}
-
-float ScalarValueMessage::GetHardness()
-{
-  return m_Hardness;
-}
-
-int ScalarValueMessage::SetCenter(int id, float x, float y, float z)
-{
-  if (id >= 0 && id < m_NSpheres)
-    {
-    m_CenterX[id] = x;
-    m_CenterY[id] = y;
-    m_CenterZ[id] = z;
-    return id;
+      subDimensions[0] = dim[0];
+      subDimensions[1] = dim[1];
+      subDimensions[2] = dim[2];
+      subOffset[0] = off[0];
+      subOffset[1] = off[1];
+      subOffset[2] = off[2];
+      return 1;
     }
   else
     {
-    return -1;
+      return 0;
     }
 }
 
-int ScalarValueMessage::GetCenter(int id, float& x, float& y, float& z)
+int ScalarValueMessage::SetSubVolume(int dimi, int dimj, int dimk, int offi, int offj, int offk)
 {
-  if (id >= 0 && id < m_NSpheres)
+  // make sure that sub-volume fits in the dimensions
+  if (offi + dimi <= dimensions[0] &&
+      offj + dimj <= dimensions[1] &&
+      offk + dimk <= dimensions[2])
     {
-    x = m_CenterX[id];
-    y = m_CenterY[id];
-    z = m_CenterZ[id];
-    return id;
+      subDimensions[0] = dimi;
+      subDimensions[1] = dimj;
+      subDimensions[2] = dimk;
+      subOffset[0] = offi;
+      subOffset[1] = offj;
+      subOffset[2] = offk;
+      return 1;
     }
   else
     {
-    return -1;
+      return 0;
     }
 }
 
-int ScalarValueMessage::SetRadius(int id, float r)
+void ScalarValueMessage::GetSubVolume(int dim[3], int off[3])
 {
-  if (id >= 0 && id < m_NSpheres)
-    {
-    m_Radius[id] = r;
-    return id;
-    }
-  else
-    {
-    return -1;
-    }
+  dim[0] = subDimensions[0];
+  dim[1] = subDimensions[1];
+  dim[2] = subDimensions[2];
+  off[0] = subOffset[0];
+  off[1] = subOffset[1];
+  off[2] = subOffset[2];
 }
 
-int ScalarValueMessage::GetRadius(int id, float& r)
+void ScalarValueMessage::GetSubVolume(int &dimi, int &dimj, int &dimk,
+                                int &offi, int &offj, int &offk)
 {
-  if (id >= 0 && id < m_NSpheres)
-    {
-    r = m_Radius[id];
-    return id;
-    }
-  else
-    {
-    return -1;
-    }
+  dimi = subDimensions[0];
+  dimj = subDimensions[1];
+  dimk = subDimensions[2];
+  offi = subOffset[0];
+  offj = subOffset[1];
+  offk = subOffset[2];
 }
 
-int ScalarValueMessage::GetDataSize()
+
+void ScalarValueMessage::SetSpacing(float s[3])
 {
-  return m_NSpheres * sizeof(igtl_vfixture_data);
+  spacing[0] = s[0];
+  spacing[1] = s[1];
+  spacing[2] = s[2];
+}
+
+void ScalarValueMessage::SetSpacing(float si, float sj, float sk)
+{
+  spacing[0] = si;
+  spacing[1] = sj;
+  spacing[2] = sk;
+}
+
+void ScalarValueMessage::GetSpacing(float s[3])
+{
+  s[0] = spacing[0];
+  s[1] = spacing[1];
+  s[2] = spacing[2];
+}
+
+void ScalarValueMessage::GetSpacing(float &si, float &sj, float &sk)
+{
+  si = spacing[0];
+  sj = spacing[1];
+  sk = spacing[2];
+}
+  
+void ScalarValueMessage::SetOrigin(float p[3])
+{
+  matrix[0][3] = p[0];
+  matrix[1][3] = p[1];
+  matrix[2][3] = p[2];
+}
+
+void ScalarValueMessage::SetOrigin(float px, float py, float pz)
+{
+  matrix[0][3] = px;
+  matrix[1][3] = py;
+  matrix[2][3] = pz;
+}
+
+void ScalarValueMessage::GetOrigin(float p[3])
+{
+  p[0] = matrix[0][3];
+  p[1] = matrix[1][3];
+  p[2] = matrix[2][3];
+}
+
+void ScalarValueMessage::GetOrigin(float &px, float &py, float &pz)
+{
+  px = matrix[0][3];
+  py = matrix[1][3];
+  pz = matrix[2][3];
+}
+
+void ScalarValueMessage::SetNormals(float o[3][3])
+{
+  matrix[0][0] = o[0][0];
+  matrix[0][1] = o[0][1];
+  matrix[0][2] = o[0][2];
+  matrix[1][0] = o[1][0];
+  matrix[1][1] = o[1][1];
+  matrix[1][2] = o[1][2];
+  matrix[2][0] = o[2][0];
+  matrix[2][1] = o[2][1];
+  matrix[2][2] = o[2][2];
+}
+
+void ScalarValueMessage::SetNormals(float t[3], float s[3], float n[3])
+{
+  matrix[0][0] = t[0];
+  matrix[1][0] = t[1];
+  matrix[2][0] = t[2];
+  matrix[0][1] = s[0];
+  matrix[1][1] = s[1];
+  matrix[2][1] = s[2];
+  matrix[0][2] = n[0];
+  matrix[1][2] = n[1];
+  matrix[2][2] = n[2];
+}
+
+void ScalarValueMessage::GetNormals(float o[3][3])
+{
+  o[0][0] = matrix[0][0];
+  o[0][1] = matrix[0][1];
+  o[0][2] = matrix[0][2];
+  o[1][0] = matrix[1][0];
+  o[1][1] = matrix[1][1];
+  o[1][2] = matrix[1][2];
+  o[2][0] = matrix[2][0];
+  o[2][1] = matrix[2][1];
+  o[2][2] = matrix[2][2];
+}
+
+void ScalarValueMessage::GetNormals(float t[3], float s[3], float n[3])
+{
+  t[0] = matrix[0][0];
+  t[1] = matrix[1][0];
+  t[2] = matrix[2][0];
+  s[0] = matrix[0][1];
+  s[1] = matrix[1][1];
+  s[2] = matrix[2][1];
+  n[0] = matrix[0][2];
+  n[1] = matrix[1][2];
+  n[2] = matrix[2][2];
+}
+
+void ScalarValueMessage::SetMatrix(Matrix4x4& mat)
+{
+  matrix[0][0] = mat[0][0];
+  matrix[1][0] = mat[1][0];
+  matrix[2][0] = mat[2][0];
+  matrix[0][1] = mat[0][1];
+  matrix[1][1] = mat[1][1];
+  matrix[2][1] = mat[2][1];
+  matrix[0][2] = mat[0][2];
+  matrix[1][2] = mat[1][2];
+  matrix[2][2] = mat[2][2];
+  matrix[0][3] = mat[0][3];
+  matrix[1][3] = mat[1][3];
+  matrix[2][3] = mat[2][3];
+}
+
+void ScalarValueMessage::GetMatrix(Matrix4x4& mat)
+{
+  mat[0][0] = matrix[0][0];
+  mat[1][0] = matrix[1][0];
+  mat[2][0] = matrix[2][0];
+  mat[0][1] = matrix[0][1];
+  mat[1][1] = matrix[1][1];
+  mat[2][1] = matrix[2][1];
+  mat[0][2] = matrix[0][2];
+  mat[1][2] = matrix[1][2];
+  mat[2][2] = matrix[2][2];
+  mat[0][3] = matrix[0][3];
+  mat[1][3] = matrix[1][3];
+  mat[2][3] = matrix[2][3];
 }
 
 void ScalarValueMessage::AllocateScalars()
@@ -173,7 +318,7 @@ void ScalarValueMessage::AllocateScalars()
   // in the parent class.
   AllocatePack();
   m_ScalarValueHeader = m_Body;
-  m_ScalarValue  = &m_ScalarValueHeader[IGTL_VFIXTURE_HEADER_SIZE];
+  m_ScalarValue  = &m_ScalarValueHeader[IGTL_IMAGE_HEADER_SIZE];
 }
 
 void* ScalarValueMessage::GetScalarPointer()
@@ -183,32 +328,48 @@ void* ScalarValueMessage::GetScalarPointer()
 
 int ScalarValueMessage::GetBodyPackSize()
 {
-  return GetDataSize() + IGTL_VFIXTURE_HEADER_SIZE;
+  return GetSubVolumeScalarValueSize() + IGTL_IMAGE_HEADER_SIZE;
 }
 
 int ScalarValueMessage::PackBody()
 {
-  igtl_vfixture_header* header = (igtl_vfixture_header*)m_ScalarValueHeader;
+  igtl_image_header* image_header = (igtl_image_header*)m_ScalarValueHeader;
 
-  // Copy common parameters
-  header->version  = IGTL_VFIXTURE_HEADER_VERSION;
-  header->nspheres = m_NSpheres;
-  header->hardness = m_Hardness;
+  image_header->version     = IGTL_IMAGE_HEADER_VERSION;
+  image_header->data_type   = this->dataType;
+  image_header->scalar_type = this->scalarType;
+  image_header->endian      = this->endian;
+  image_header->coord       = this->coordinate;
+  image_header->size[0]     = this->dimensions[0];
+  image_header->size[1]     = this->dimensions[1];
+  image_header->size[2]     = this->dimensions[2];
+  image_header->subvol_offset[0] = this->subOffset[0];
+  image_header->subvol_offset[1] = this->subOffset[1];
+  image_header->subvol_offset[2] = this->subOffset[2];
+  image_header->subvol_size[0] = this->subDimensions[0];
+  image_header->subvol_size[1] = this->subDimensions[1];
+  image_header->subvol_size[2] = this->subDimensions[2];
 
-  // Copy sphere data
-  for (int i = 0; i < m_NSpheres; i ++)
-    {
-    igtl_vfixture_data* data = (igtl_vfixture_data*)&m_ScalarValue[sizeof(igtl_vfixture_data)*i];
-    data->x = m_CenterX[i];
-    data->y = m_CenterY[i];
-    data->z = m_CenterZ[i];
-    data->r = m_Radius[i];
-    }
+  float origin[3];
+  float norm_i[3];
+  float norm_j[3];
+  float norm_k[3];
 
-  igtl_vfixture_convert_byte_order(header);
-  igtl_vfixture_data_convert_byte_order(m_NSpheres, m_ScalarValue);
+  for (int i = 0; i < 3; i ++) {
+    norm_i[i] = matrix[i][0];
+    norm_j[i] = matrix[i][1];
+    norm_k[i] = matrix[i][2];
+    origin[i] = matrix[i][3];
+  }
+
+  igtl_image_set_matrix(this->spacing, origin,
+                        norm_i, norm_j, norm_k,
+                        image_header);
+
+  igtl_image_convert_byte_order(image_header);
 
   return 1;
+
 }
 
 
@@ -217,26 +378,54 @@ int ScalarValueMessage::UnpackBody()
 
   m_ScalarValueHeader = m_Body;
 
-  igtl_vfixture_header* header = (igtl_vfixture_header*)m_ScalarValueHeader;
-  igtl_vfixture_convert_byte_order(header);
+  igtl_image_header* image_header = (igtl_image_header*)m_ScalarValueHeader;
+  igtl_image_convert_byte_order(image_header);
 
-  if (header->version == IGTL_VFIXTURE_HEADER_VERSION)
+  if (image_header->version == IGTL_IMAGE_HEADER_VERSION)
     {
-    // ScalarValue format version 1
-    SetNumberOfSpheres(header->nspheres);
-    m_Hardness = header->hardness;
+      // ScalarValue format version 1
+      this->dataType         = image_header->data_type;
+      this->scalarType       = image_header->scalar_type;
+      this->endian           = image_header->endian;
+      this->coordinate       = image_header->coord;
+      this->dimensions[0]    = image_header->size[0];
+      this->dimensions[1]    = image_header->size[1];
+      this->dimensions[2]    = image_header->size[2];
+      this->subOffset[0]     = image_header->subvol_offset[0];
+      this->subOffset[1]     = image_header->subvol_offset[1];
+      this->subOffset[2]     = image_header->subvol_offset[2];
+      this->subDimensions[0] = image_header->subvol_size[0];
+      this->subDimensions[1] = image_header->subvol_size[1];
+      this->subDimensions[2] = image_header->subvol_size[2];
 
-    m_ScalarValueHeader = m_Body;
-    m_ScalarValue       = &m_ScalarValueHeader[IGTL_VFIXTURE_HEADER_SIZE];
+      // Set image orientation
+      float rspacing[3];
+      float origin[3];
+      float norm_i[3];
+      float norm_j[3];
+      float norm_k[3];
 
-    igtl_vfixture_data_convert_byte_order(m_NSpheres, m_ScalarValue);
-    for (int i = 0; i < m_NSpheres; i ++)
-      {
-      igtl_vfixture_data* data = (igtl_vfixture_data*)&m_ScalarValue[sizeof(igtl_vfixture_data)*i];
-      SetCenter(i, data->x, data->y, data->z);
-      SetRadius(i, data->r);
+      igtl_image_get_matrix(rspacing, origin,
+                            norm_i, norm_j, norm_k,
+                            image_header);
+
+      for (int i = 0; i < 3; i ++) {
+        this->spacing[i] = rspacing[i];
+        matrix[i][0] = norm_i[i];
+        matrix[i][1] = norm_j[i];
+        matrix[i][2] = norm_k[i];
+        matrix[i][3] = origin[i];
       }
-    return 1;
+
+      matrix[3][0] = 0.0;
+      matrix[3][1] = 0.0;
+      matrix[3][2] = 0.0;
+      matrix[3][3] = 1.0;
+
+      m_ScalarValueHeader = m_Body;
+      m_ScalarValue       = &m_ScalarValueHeader[IGTL_IMAGE_HEADER_SIZE];
+      
+      return 1;
     }
   else
     {
