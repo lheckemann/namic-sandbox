@@ -297,22 +297,23 @@ int ReceiveScalarValue(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader:
   
   if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
     {
-        int size;
-        int scalarType;
-        unsigned char value[3];
-        size = svMsg->GetDimension();
-        scalarType = svMsg->GetScalarType();
-    std::cerr << "Device Name: " << svMsg->GetDeviceName() << std::endl;
-        std::cerr << "Size       : " << size << std::endl;
-    std::cerr << "Scalar Type: " << scalarType << std::endl;
+     int size;
+     int scalarType;
+     unsigned char value[3];
+     
+     size = svMsg->GetDimension();
+     scalarType = svMsg->GetScalarType();
+     std::cerr << "Device Name: " << svMsg->GetDeviceName() << std::endl;
+     std::cerr << "Size       : " << size << std::endl;
+     std::cerr << "Scalar Type: " << scalarType << std::endl;
         
-        memcpy(value, (unsigned char *)svMsg->GetScalarPointer(), igtl::ScalarValueMessage::ScalarSizeTable[scalarType] * size);
-        for( int j = 0 ; j < size ; j ++ )
-        {
-            std::cerr << "Value No : " << j << std::endl;
-            //std::cerr << "Value    : " << value[ j ] << std::endl;
-            printf("%d \n",value[ j ]);
-        }
+     memcpy(value, (unsigned char *)svMsg->GetScalarPointer(), igtl::ScalarValueMessage::ScalarSizeTable[scalarType] * size);
+     for( int j = 0 ; j < size ; j ++ )
+       {
+       std::cerr << "Value No : " << j << std::endl;
+       //std::cerr << "Value    : " << value[ j ] << std::endl;
+       printf("%d \n",value[ j ]);
+       }
     }
 
   return 0;
