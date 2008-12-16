@@ -35,9 +35,9 @@ ScalarValueMessage::ScalarValueMessage():
   MessageBase()
 {
 
-
+  dimension = 0;
   endian        = ENDIAN_BIG;
-    scalarType    = TYPE_UINT8;
+  scalarType    = TYPE_UINT8;
   m_ScalarValueHeader = NULL;
   m_ScalarValue       = NULL;
 
@@ -86,7 +86,7 @@ int ScalarValueMessage::PackBody()
   scalarvalue_header->version     = IGTL_SCALARVALUE_HEADER_VERSION;
   scalarvalue_header->scalar_type = this->scalarType;
   scalarvalue_header->endian      = this->endian;
-  scalarvalue_header->dimension = dimension;
+  scalarvalue_header->dimension = this -> dimension;
   igtl_scalarvalue_convert_byte_order(scalarvalue_header);
 
   return 1;
