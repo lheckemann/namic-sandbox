@@ -129,7 +129,14 @@ public:
 
   int SetMessageHeader(const MessageHeader* mb) { return Copy(mb); };
   int GetBodySizeToRead()                       { return m_BodySizeToRead; };
-  
+
+  //The following part is added by N Hata to make logging function
+  // In progress
+
+  void SetLoggingOn();
+  void SetLoggingOff();
+  int isLoggingOn();
+
 protected:
   MessageBase();
   ~MessageBase();
@@ -174,6 +181,12 @@ protected:
   int            m_IsHeaderUnpacked;
   int            m_IsBodyUnpacked;
 
+  ///the following part is added by NH to make logging function
+  // NH 
+  int m_IsLoggingOn;
+  FILE *fp;
+  char filename[256];
+  
 };
 
 

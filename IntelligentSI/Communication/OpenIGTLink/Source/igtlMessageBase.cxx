@@ -39,6 +39,11 @@ MessageBase::MessageBase():
   m_BodyType         = "";
   m_DefaultBodyType  = "";
 
+
+  ///the following part is added to make logging
+  //added by NH
+  m_IsLoggingOn = 0;
+
 }
 
 MessageBase::~MessageBase()
@@ -51,6 +56,20 @@ MessageBase::~MessageBase()
     m_Body   = NULL;
     }
 }
+
+
+  void MessageBase::SetLoggingOn()
+  {
+
+    m_IsLoggingOn = 1;
+  }
+
+
+  void MessageBase::SetLoggingOff()
+  {
+    m_IsLoggingOn =0;
+  }
+
 
 void MessageBase::SetDeviceName(const char* name)
 {
