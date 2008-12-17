@@ -115,9 +115,9 @@ vtkUltrasoundVolumeReconstructor::vtkUltrasoundVolumeReconstructor()
   this->SetVideoChannel(3); //S-Video at Hauppauge Impact VCB Modell 558
   this->SetVideoMode(1); //NTSC
 
-  this->VolumeReconstructionEnabled = true;
-
   this->calibReader = vtkUltrasoundCalibFileReader::New();
+
+  this->Verbose = false;
   
 #ifdef USE_ULTRASOUND_DEVICE
   this->sonixGrabber = vtkV4L2VideoSource::New();
@@ -126,7 +126,6 @@ vtkUltrasoundVolumeReconstructor::vtkUltrasoundVolumeReconstructor()
 #endif //USE_ULTRASOUND_DEVICE 
   
   this->tagger = vtkTaggedImageFilter::New();
-
 
 #ifdef USE_TRACKER_DEVICE
   this->tracker = vtkNDITracker::New();
@@ -193,7 +192,7 @@ bool vtkUltrasoundVolumeReconstructor::StartTracker()
 {
   if(this->tracker->Probe() != 1)
     {
-    cerr << "Tracking system not found" << endl;
+    cerr << "ERROR: Tracking system not found" << endl;
     return false;
     }
 
@@ -203,12 +202,14 @@ bool vtkUltrasoundVolumeReconstructor::StartTracker()
   this->tracker->StartTracking();
   this->tagger->SetTrackerTool(tool);
   this->tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
+
+  return true;
 }
 
 //----------------------------------------------------------------------------
 bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 {
-  cout << "Initialization: " << std::flush;
+  cout << "Hardware Initialization: " << std::flush;
   cout << '\a' << std::flush;
   for(int i = 0; i < 11; i++)
     {
@@ -221,7 +222,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
     }
   cout << endl;
 
-  cout << "Start Scanning" << endl;
+  cout << "Start Recording" << endl;
   cout << '\a' << std::flush;
   vtkSleep(0.2);
   cout << '\a' << std::flush; 
@@ -244,13 +245,10 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 
   this->tracker->StopTracking();//Stop tracking
 
-  cout << "Stopped Scanning" << endl;
+  cout << "Stopped Recording" << endl;
   cout << '\a' << std::flush;
   vtkSleep(0.2);
   cout << '\a' << std::flush;
-
-  cout << "Scanning successful" << endl;
-  cout << "  Recorded synchronized transforms and ultrasound images for " << ((int) this->NbFrames / this->FrameRate + 0.5) << "s" << endl;
 
   // set up the panoramic reconstruction class
   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
@@ -289,7 +287,12 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
     }
   else
     {
-    cout << "  Grabbed Frames: " << nbFramesGrabbed << endl;
+    cout << "Recording successful" << endl;
+    if(Verbose)
+      {
+      cout << "  Recorded synchronized transforms and ultrasound images for " << ((int) this->NbFrames / this->FrameRate + 0.5) << "s" << endl;
+      cout << "  Grabbed Frames: " << nbFramesGrabbed << endl;
+      }
 
 #ifdef DEBUG_MATRICES
     cout << "  Tracker matrices:" 
@@ -363,7 +366,10 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 
 #ifdef USE_ULTRASOUND_DEVICE
   this->sonixGrabber->Seek(100);//The first 100 frames are black therefore skip them
-  cout << "Skip the first 100 frames" << endl;
+  if(Verbose)
+    {
+    cout << "Skip the first 100 frames" << endl;
+    }
 #endif
 
   this->tagger->Update();
@@ -373,14 +379,13 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   panoramaReconstructor->SetSliceAxes(sliceAxes);
 
 #ifdef DEBUG_IMAGES
-  //NH
   vtkBMPWriter *writer = vtkBMPWriter::New();
   char filename[256];
 #endif
 
-  //JG 08/12/16: Test for Trilinear interpolation
-  //panoramaReconstructor->GetOutput()->SetNumberOfScalarComponents(tagger->GetOutput()->GetNumberOfScalarComponents()); 
-  //panoramaReconstructor->GetOutput()->AllocateScalars();
+  //Set the correct amount of the output volume's scalar components
+  panoramaReconstructor->GetOutput()->SetNumberOfScalarComponents(tagger->GetOutput()->GetNumberOfScalarComponents()); 
+  panoramaReconstructor->GetOutput()->AllocateScalars();
    
   cout << "Start Volume Reconstruction" << endl;
 
@@ -432,7 +437,10 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   if(panoramaReconstructor->GetPixelCount() > 0)
     {
       cout << "Reconstruction successfully completed" << endl;
-      cout << "  Inserted " << panoramaReconstructor->GetPixelCount() << " pixels into the output volume" << endl;
+      if(Verbose)
+        {
+        cout << "  Inserted " << panoramaReconstructor->GetPixelCount() << " pixels into the output volume" << endl;
+        }
     }
   else
     {
@@ -463,7 +471,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   int dimensions[3];   
   extractOutput->GetDimensions(dimensions);
   Volume->SetDimensions(dimensions);
-  
+
   //Spacing
   double ouputSpacing[3];
   extractOutput->GetSpacing(ouputSpacing);
