@@ -1017,11 +1017,13 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
        outIdZ | (outExt[5]-outExt[4] - outIdZ)) >= 0)
     {
     int inc = outIdX*outInc[0]+outIdY*outInc[1]+outIdZ*outInc[2];
-    //    cerr << outInc[0] << outInc[1] << outInc[2] << endl;
 
     //// Quick and Dirty
     ////NH and JG 12/05/08
-    outPtr +=inc/2;
+    //outPtr +=inc/2;
+
+    outPtr +=inc;
+    
 
     //    if(accPtr)cerr << " accPtr is in " << numscalars << endl;
 
@@ -1031,9 +1033,9 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
       int newa = *accPtr + 255;
       
       for (i = 0; i < numscalars; i++)
-{
-*outPtr = ((*inPtr++)*255 + (*outPtr)*(*accPtr))/newa;
-outPtr++;
+        {
+        *outPtr = ((*inPtr++)*255 + (*outPtr)*(*accPtr))/newa;
+        outPtr++;
         }
       //*outPtr = 255;
       *accPtr = 65535;
@@ -1081,6 +1083,9 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
        outIdY0 | (outExt[3]-outExt[2] - outIdY1) |
        outIdZ0 | (outExt[5]-outExt[4] - outIdZ1)) >= 0)
     {// do reverse trilinear interpolation
+        
+    //int inc = outIdX*outInc[0]+outIdY*outInc[1]+outIdZ*outInc[2];
+        
     int factX0 = outIdX0*outInc[0];
     int factY0 = outIdY0*outInc[1];
     int factZ0 = outIdZ0*outInc[2];
@@ -1158,7 +1163,8 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         while (i);
         // set accumulation
         *accPtrTmp = 65535;
-        *outPtrTmp = 255;
+        //JG 08/12/10
+        //*outPtrTmp = 255;
         a *= 255;
         if (a < F(65535)) // don't allow accumulation buffer overflow
           {
@@ -1235,12 +1241,14 @@ static void vtkGetUltraInterpFunc(vtk3DPanoramicVolumeReconstructor *self,
 {
   switch (self->GetInterpolationMode())
     {
-    case VTK_FREEHAND_NEAREST:
-      *interpolate = &vtkNearestNeighborInterpolation;
+    case VTK_FREEHAND_NEAREST: *interpolate = &vtkNearestNeighborInterpolation;
+     //JG
+     // *interpolate = &vtkTrilinearInterpolation;
       break;
-         case VTK_FREEHAND_LINEAR:
-     *interpolate = &vtkNearestNeighborInterpolation;
-     //      *interpolate = &vtkTrilinearInterpolation;
+    case VTK_FREEHAND_LINEAR: *interpolate = &vtkTrilinearInterpolation;
+     //JG
+     //*interpolate = &vtkNearestNeighborInterpolation;
+           
 
       break;
     }
@@ -1314,20 +1322,10 @@ static void vtk3DPanoramicVolumeReconstructorInsertSlice(vtk3DPanoramicVolumeRec
   outInc[1] = (int) vtkIdTypeOutInc[1];
   outInc[2] = (int) vtkIdTypeOutInc[2];
  
-  //cerr << "###" << outInc[0] << " " << outInc[1] << " " << outInc[2] << endl;
-
-  
   inData->GetContinuousIncrements(inExt,inIncX,inIncY,inIncZ);
-
-  //cerr << "###" << inIncX << " " << inIncY << " " << inIncZ << endl;
 
   numscalars = inData->GetNumberOfScalarComponents();
   
-  // Set interpolation method
-  /// NH focing it to use nearest
-
-  //*interpolate = &vtkNearestNeighborInterpolation;
-
   vtkGetUltraInterpFunc(self,&interpolate);
 
   // Loop through input pixels
@@ -1378,17 +1376,13 @@ self->IncrementPixelCount(0, hit);
 // the regions data types.
 void vtk3DPanoramicVolumeReconstructor::InsertSlice()
 {
-  
-  /*
-
+    
   if (this->GetOptimization())
     {
     this->OptimizedInsertSlice();
     return;
     }
-  */
-
-
+  
   if (this->ReconstructionThreadId == -1)
     {
     this->InternalExecuteInformation();
@@ -1403,8 +1397,6 @@ void vtk3DPanoramicVolumeReconstructor::InsertSlice()
   vtkImageData *accData = this->AccumulationBuffer;
   int *inExt = inData->GetWholeExtent();
   int *outExt = this->OutputExtent;
-
-  // fprintf(stderr,"inExt %d %d %d %d %d %d\n",inExt[0],inExt[1],inExt[2],inExt[3],inExt[4],inExt[5]);
 
   inData->SetUpdateExtent(inExt);
   inData->Update();
