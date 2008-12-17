@@ -21,7 +21,7 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
   <version>1.0</version>
   <documentation-url></documentation-url>
   <license></license>
-  <contributor>Jan Gumprecht</contributor>
+  <contributor>Jan Gumprecht, Harvard Medical School \nDr. Nobuhiko Hata, Harvard Medical School</contributor>
 
   <parameters>
     <!-- Select SynchroGrab Executable -->
@@ -40,23 +40,14 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
     <label>General Parameters</label>
     <description>Parameters for SynchroGrab</description>
 
-    <!-- Select Calibrations File -->
+    <!-- Select Calibration  File -->
     <file>
       <name>calibrationFile</name>
       <longflag>calibrationFile</longflag>
       <description>Calibration File needed to start Synchrograb</description>
       <label>Calibration File</label>
       <default>/home/ultrasound/workspace/SynchroGrabJGumprecht/Build/bin/CalibrationFile.txt</default>
-    </file>
-
-    <!-- Enable volume reconstruction -->
-    <boolean>
-     <name>reconstructVolume</name>
-     <longflag>reconstructVolume</longflag>
-     <label>Volume Reconstruction</label>
-     <description>Do Volume Reconstruction?</description>
-     <default>true</default>
-    </boolean>
+    </file> 
 
     <!-- OpenIGTLink server -->
     <string>
@@ -84,6 +75,15 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
       <label>Number of frames to grab</label>
       <default>50</default>
     </string>
+
+    <!-- Verbose Mode -->
+    <boolean>
+     <name>verbose</name>
+     <longflag>verbose</longflag>
+     <label>Print more information</label>
+     <description>Print more detailed information</description>
+     <default>false</default>
+    </boolean>
 
   </parameters> 
 
@@ -148,13 +148,13 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
 
 </executable>
 """
-
+import os
 
 def Execute(synchroGrab="",\
             calibrationFile="",\
-            reconstructVolume=True,\
             oigtlServer="127.0.0.1",\
             oigtlPort="18944",\
+            verbose=False,\
             videoSource="/dev/video0",\
             videoChannel="3",\
             videoMode="NTSC",\
@@ -164,9 +164,7 @@ def Execute(synchroGrab="",\
 
     commandline = "xterm -e "
 
-    #Generate commandline to execute
-    commandline = commandline\
-        + synchroGrab \
+    commandline = commandline + synchroGrab\
         + " -c "   + calibrationFile\
         + " -os "  + oigtlServer\
         + " -op "  + oigtlPort\
@@ -174,17 +172,16 @@ def Execute(synchroGrab="",\
         + " -vsc " + videoChannel\
         + " -vm "  + videoMode\
         + " -n "   + nbFrames\
-        + " -fps " + fps\
-        + " -sd "  + scanDepth
-    
-    #Enable volume reconstruction if selected
-    if reconstructVolume==True:
-        commandline = commandline + " --reconstruct-volume"      
-    
+        + " -sd "   + scanDepth\
+        + " -fps " + fps
+
+    #Enable verbose mode if selected
+    if verbose==True:
+        commandline = commandline + " -v"
+
+    print commandline
+
     #Start Synchrograb         
-    import os
     print os.system(commandline)
 
     return
-
-
