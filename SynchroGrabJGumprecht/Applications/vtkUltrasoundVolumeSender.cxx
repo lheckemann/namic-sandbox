@@ -87,6 +87,8 @@ vtkUltrasoundVolumeSender::vtkUltrasoundVolumeSender()
 
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
+
+  this->Verbose = false;
 }
 
 //----------------------------------------------------------------------------
@@ -112,11 +114,14 @@ bool vtkUltrasoundVolumeSender::ConnectToServer()
 
   if(e != 0)
     {
-    cout << "Failed to connect the OpenIGTLink socket to the server.  Error code : " << e << endl;
+    cout << " ERROR: Failed to connect the OpenIGTLink socket to the server ("<< OIGTLServer <<":"<<  ServerPort << ") Error code : " << e << endl;
     return false;
     }
-  else
+  else if(Verbose)
+    {
     cout << "Successful connection to the OpenIGTLink server ("<< OIGTLServer <<":"<<  ServerPort << ")" << endl;
+    }  
+
   return true;
 }
 
@@ -128,86 +133,6 @@ bool vtkUltrasoundVolumeSender::CloseServerConnection()
 }
 
 
-//----------------------------------------------------------------------------
-//McGumbel : This is the Original
-//bool vtkUltrasoundVolumeSender::SendImages()
-//{
-//  // Start the video source and configure an image frame
-//  this->sonixGrabber->Record();
-//  this->sonixGrabber->Update();
-//
-//  igtl::ImageMessage::Pointer imMessage = igtl::ImageMessage::New();
-//  imMessage->SetDeviceName("V4LVideoSource");
-//  vtkImageData *image = this->sonixGrabber->GetOutput();
-//  int *dim = image->GetDimensions();
-//  double *spacing = image->GetSpacing();
-//
-//  cout << "Dimensions " << dim[0] << " " << dim[1] << " " << dim[2] << endl;
-//  cout << "Spacing " << spacing[0] << " " << spacing[1] << " " << spacing[2] << endl;  
-//  cout << "Data dimension : " << image->GetDataDimension() << endl;
-//  cout << "Number of scalar components : " << image->GetNumberOfScalarComponents() << endl;
-//  cout << "Scalar Type : " << image->GetScalarType() << " ( " << image->GetScalarTypeAsString() << ")" << endl;
-//  cout << "Frame count : " << this->sonixGrabber->GetFrameCount() <<endl;
-//
-//  imMessage->SetDimensions(dim[0], dim[1], 1);
-//  imMessage->SetSpacing(spacing[0], spacing[1], spacing[2]);
-//  imMessage->SetScalarType(image->GetScalarType());
-//  imMessage->AllocateScalars();
-//
-//  int svd[3];
-//  int svoff[3];
-//  imMessage->GetSubVolume(svd, svoff);
-//
-//  cout << "SubVolume dimensions : " << svd[0] << " " << svd[1] << " " << svd[2] << endl;
-//  cout << "SubVolume offsets : " << svoff[0] << " " << svoff[1] << " " << svoff[2] << endl;
-//
-//  // Setup a transform matrix for the OpenIGTLink message
-//  igtl::Matrix4x4 igtlMatrix = {{1.0, 0.0, 0.0, 0.0},{0.0, 1.0, 0.0, 0.0},{0.0, 0.0, 1.0, 0.0},{0.0, 0.0, 0.0, 1.0}};
-//  vtkMatrix4x4 *vtkMat = vtkMatrix4x4::New();
-//  imMessage->SetMatrix(igtlMatrix);
-//
-//  for( int i=0; i < this->NbFrames; i++)
-//    {
-//////    igtl::Sleep(1/this->FrameRate*1000);
-//    this->tagger->Update();
-//
-//    if(this->UseTrackerTransforms)
-//      {
-//      this->tagger->GetTransform()->GetMatrix(vtkMat);
-//      for(int i=0;i<4;i++)
-//        for(int j=0;j<4;j++)
-//          igtlMatrix[i][j]=(*vtkMat)[i][j];
-//      igtl::PrintMatrix(igtlMatrix);  
-//      imMessage->SetMatrix(igtlMatrix);
-//      }
-//
-//    unsigned char* imgPtr = (unsigned char*)this->tagger->GetOutput()->GetScalarPointer();
-////    unsigned char* imgPtr = (unsigned char*) image->GetScalarPointer();
-//    int imSize = imMessage->GetImageSize();
-//
-//    // copy the image raw data 
-//    memcpy(imMessage->GetScalarPointer(), imgPtr, imSize);
-//    imMessage->Pack();
-//
-//    // sending this frame to the server
-//    std::cout << "PackSize:  " << imMessage->GetPackSize() << std::endl;
-//    std::cout << "BodyMode:  " << imMessage->GetBodyType() << std::endl;
-//    cout << "Frame color value : " <<(int) ((char *)(image->GetScalarPointer()))[10] << endl;
-//
-//    int ret = socket->Send(imMessage->GetPackPointer(), imMessage->GetPackSize());
-//    if (ret == 0)
-//      {
-//      std::cerr << "Error : Connection Lost!\n";
-//      return false;
-//      }
-//    else      
-//      cout << "image frame send successfully" << endl;
-//      
-//    igtl::Sleep(10000); //Wait for 10 seconds    
-//    
-//    }
-//  return true;
-//}
 
 //----------------------------------------------------------------------------
 bool vtkUltrasoundVolumeSender::SendImages(vtkImageData * ImageBuffer, int repetitions)
@@ -237,12 +162,12 @@ bool vtkUltrasoundVolumeSender::SendImages(vtkImageData * ImageBuffer, int repet
     int ret = this->socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
     if (ret == 0)
       {
-      std::cerr << "vtkUltrasoundVolumeSender::SendImages: Error : Connection Lost!\n";
+      std::cerr << "ERROR: Connection Lost to OpenIGTLink Server while sending!\n";
       return false;
       }
     else
       {
-      cout << "vtkUltrasoundVolumeSender::SendImages: image frame send successfully" << endl;
+      cout << "3D Volume successfully send to OpenIGTLink Server" << endl;
       }     
     
       //int sleeptime = (int) (1000.0 / this->FrameRate); 
@@ -253,7 +178,6 @@ bool vtkUltrasoundVolumeSender::SendImages(vtkImageData * ImageBuffer, int repet
   return true;
 
 }
-
 
 //------------------------------------------------------------
 // Function to get image data
@@ -289,9 +213,11 @@ int vtkUltrasoundVolumeSender::vtkFillImageMessage(vtkImageData *ImageBuffer, ig
   msg->SetDeviceName("SynchroGrab");
   msg->SetSubVolume(svsize, svoffset);
   msg->AllocateScalars();
-    
-  cerr <<    "vtkSychroGrabPipeline::SendImagers size:" << size[0] << " " << size[1] << " " << size[2] << endl;
-  cerr <<    "spacing:" << spacing[0] << " " << spacing[1] << " " << spacing[2] << endl;
+  
+  if(Verbose)
+    {
+    cerr <<    "3D Volume Size:" << size[0] << " " << size[1] << " " << size[2] << endl;
+    }
 
   unsigned char * p_msg = (unsigned char*) msg->GetScalarPointer();
   unsigned char * p_ibuffer = (unsigned char*) ImageBuffer->GetScalarPointer();
@@ -334,7 +260,10 @@ void vtkUltrasoundVolumeSender::vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix)
   matrix[0][3] =   0.0;  matrix[1][3] =  0.0;  matrix[2][3] =  0.0; matrix[3][3] = 1.0;
 #endif
 
-  cout << "OpenIGTLink image message matrix" << endl;
-  igtl::PrintMatrix(matrix); 
+  if(Verbose)
+    {
+    cout << "OpenIGTLink image message matrix" << endl;
+    igtl::PrintMatrix(matrix); 
+    }
   
 }

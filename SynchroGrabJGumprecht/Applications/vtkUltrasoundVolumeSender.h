@@ -69,6 +69,9 @@ public:
   vtkTypeRevisionMacro(vtkUltrasoundVolumeSender, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  vtkSetMacro(Verbose, bool);
+  vtkGetMacro(Verbose, bool);
+
   vtkSetStringMacro(OIGTLServer);
   vtkGetStringMacro(OIGTLServer);
 
@@ -85,6 +88,8 @@ public:
 protected:
   vtkUltrasoundVolumeSender();
   ~vtkUltrasoundVolumeSender();
+
+  bool Verbose;
 
   int ServerPort;
   char *OIGTLServer;
