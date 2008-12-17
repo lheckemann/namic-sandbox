@@ -84,8 +84,8 @@ public:
   vtkTypeRevisionMacro(vtkUltrasoundVolumeReconstructor, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  vtkSetMacro(VolumeReconstructionEnabled, bool);
-  vtkGetMacro(VolumeReconstructionEnabled, bool);
+  vtkSetMacro(Verbose, bool);
+  vtkGetMacro(Verbose, bool);
 
   vtkSetStringMacro(CalibrationFileName);
   vtkGetStringMacro(CalibrationFileName);
@@ -117,6 +117,8 @@ protected:
   vtkUltrasoundVolumeReconstructor();
   ~vtkUltrasoundVolumeReconstructor();
 
+  bool Verbose;
+
   int NbFrames; //Number of frames to grab
 
   char *CalibrationFileName;
@@ -125,8 +127,6 @@ protected:
   int   VideoChannel; // e.g. 3 at Hauppauge Impact VCB Modell 558
   int   VideoMode; //NTSC == 1 , PAL == 2
   double FrameRate;  
-
-  bool VolumeReconstructionEnabled;
 
   double ScanDepth;
   
