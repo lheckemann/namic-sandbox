@@ -63,6 +63,102 @@ POSSIBILITY OF SUCH DAMAGE.
 
 using namespace std;
 
+void printSplashScreen();
+void printUsage();
+bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconstructor *reconstructor, vtkUltrasoundVolumeSender *sender);
+void goodByeScreen();
+
+/******************************************************************************
+ * 
+ * MAIN
+ * 
+ ******************************************************************************/
+int main(int argc, char **argv)
+{ 
+  
+  vtkUltrasoundVolumeReconstructor *reconstructor = vtkUltrasoundVolumeReconstructor::New();
+  vtkUltrasoundVolumeSender *sender = vtkUltrasoundVolumeSender::New();
+
+  printSplashScreen();
+  
+  //Read command line arguments
+  bool successParsingCommandLine = parseCommandLineArguments(argc,argv,reconstructor, sender);
+  if(!successParsingCommandLine)
+      return -1;  
+
+  cout << "--- Started ---" << endl << endl;
+  
+  //redirect vtk errors to a file
+  vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
+  errOut->SetFileName("vtkError.txt");
+  vtkOutputWindow::SetInstance(errOut);
+  
+  //Configure Reconstructor
+  if(! reconstructor->ConfigurePipeline()){
+      cerr << "ERROR: Could not configure UltrasoundVolumeReconstructor" << endl;
+      goodByeScreen();
+      return -1;
+  };
+  
+  vtkImageData *ImageBuffer = vtkImageData::New();
+
+//----- Volume Reconstruction -----
+  
+  // Test Connection to OpenIGTLink Server
+  if(!sender->ConnectToServer())
+    {
+    goodByeScreen();
+    return -1;
+    }
+
+  //Close Test Connection
+  if(!sender->CloseServerConnection())
+    {
+    goodByeScreen();
+    return -1;
+    }
+
+  //Reconstruct volume
+  if(!reconstructor->ReconstructVolume(ImageBuffer))
+    {
+    goodByeScreen();
+    return -1;
+    }
+
+  // Connect to OpenIGTLink Server
+  if(!sender->ConnectToServer())
+    {
+    goodByeScreen();
+    return -1;
+    }
+  
+  //Send volume
+  if(!sender->SendImages(ImageBuffer, 1))
+    {
+    goodByeScreen();
+    return -1;
+    }
+  
+  //Close Sever Connection
+  if(!sender->CloseServerConnection())
+    {
+    goodByeScreen();
+    return -1;
+    }
+  
+  //Free Memory
+  ImageBuffer->Delete();
+  reconstructor->Delete();
+  sender->Delete();
+  
+  cout << endl;
+  cout << "--- Synchgrograb finished ---" << endl;
+  
+  goodByeScreen();
+
+}//End Main
+
+//------------------------------------------------------------------------------
 void printSplashScreen()
 {
 
@@ -77,20 +173,10 @@ void printSplashScreen()
 
 }
 
-void goodByeScreen()
-{
- 
- cout << endl;
- cout << "Terminate SynchroGrab" << endl
-      << endl
-      << "Bye Bye..." << endl <<endl << endl;
 
-}
-
+//------------------------------------------------------------------------------
 void printUsage()
 {   
-  printSplashScreen();
-    
     cout << endl
          << "--------------------------------------------------------------------------------"
          << endl;
@@ -109,7 +195,6 @@ void printUsage()
     cout << "OPTIONS " << endl
          << "-------"<<endl
          << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl 
-         << "--reconstruct-volume or -rv:            Do volume reconstruction" << endl
          << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<<endl
          << "                                        (default: 'localhost')" << endl
          << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<<endl
@@ -130,12 +215,13 @@ void printUsage()
          << "--scan-depth xxx or -sd xxx:            Set depth of ultrasound "<<endl
          << "                                        scan in Millimeter"<<endl
          << "                                        (default: 70mm)" <<endl
+         << "--verbose or -v                         Print more information" <<endl
          << endl
          << "--------------------------------------------------------------------------------"
          << endl  << endl; 
 }
 
-
+//------------------------------------------------------------------------------
 //
 // Parse the command line options.
 //
@@ -147,6 +233,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
     for(int i=1; i < argc; i++)
         {
         string currentArg(argv[i]);
+        //Calibration file
         if( currentArg == "--calibration-file" || currentArg == "-c")
           {
           if( i < argc - 1)
@@ -155,14 +242,12 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
             calibrationFileSpecified = true;
             }
           }
-        else if(currentArg == "--reconstruct-volume" || currentArg == "-rv")
-          {
-          reconstructor->SetVolumeReconstructionEnabled(true);
-          }
+        //OpenIGTLink Server
         else if(currentArg == "--oigtl-server" || currentArg == "-os")
           {
           sender->SetOIGTLServer(argv[++i]);
-          }           
+          }
+        //OpenIGTLink Port at Server
         else if(currentArg == "--oigtl-port" || currentArg == "-op")
           {
           if( i < argc - 1)
@@ -170,152 +255,125 @@ bool parseCommandLineArguments(int argc, char **argv, vtkUltrasoundVolumeReconst
             sender->SetServerPort(atoi(argv[++i]));
             }
           }
+        //Number of frames to grab
         else if(currentArg == "--nb-frames" || currentArg == "-n") 
           {
           if( i < argc - 1)
             {
+              int nbFrames = atoi(argv[++i]);
+                               
+            if(nbFrames <= 0)
+              {
+              cout << "ERROR: Number of frames must be greater than 0 and not: " << nbFrames << endl;
+              goodByeScreen();
+              return false;
+              }
 #ifdef USE_ULTRASOUND_DEVICE
-            reconstructor->SetNbFrames(atoi(argv[++i] + 100));
+            reconstructor->SetNbFrames(nbFrames + 100);
 #else
-            reconstructor->SetNbFrames(atoi(argv[++i]));            
+            reconstructor->SetNbFrames(nbFrames);            
 #endif
             }
           }
+        // Framerate of Ultrasound device
         else if(currentArg == "--frames-per-second" || currentArg == "-fps") 
           {
           if( i < argc - 1)
             {
-            reconstructor->SetFrameRate(atof(argv[++i]));
+              double fps = atof(argv[++i]);
+                               
+            if(fps <= 0)
+              {
+              cout << "ERROR: Framerate must be greater than 0 and not: " << fps << endl;
+              goodByeScreen();
+              return false;
+              }
+            reconstructor->SetFrameRate(fps);
             }
           }
-       else if(currentArg == "--video-source" || currentArg == "-vs")
+        //Video Source 
+        else if(currentArg == "--video-source" || currentArg == "-vs")
+           {
+           reconstructor->SetVideoDevice(argv[++i]);
+           }
+        //Video Source channel
+        else if(currentArg == "--video-source-channel" || currentArg == "-vsc")
+           {
+           reconstructor->SetVideoChannel(atoi(argv[++i]));
+           }
+        //Video Mode
+        else if(currentArg == "--video-mode" || currentArg == "-vm")
+           {
+           string videoMode (argv[++i]);
+  
+           if(videoMode == "NTSC")
+             {
+             reconstructor->SetVideoMode(1);            
+             }
+           else if(videoMode == "PAL")
+             {
+             reconstructor->SetVideoMode(2);            
+             }
+           else
+             {
+             printSplashScreen();
+             cout << "ERROR: False video mode: " << videoMode  << endl
+                  << "       Available video modes: NTSC and PAL" << endl;
+             goodByeScreen();
+             return false;
+             }
+           }
+        else if(currentArg == "--scan-depth" || currentArg == "-sd")
           {
-          reconstructor->SetVideoDevice(argv[++i]);
-          }
-       else if(currentArg == "--video-source-channel" || currentArg == "-vsc")
-          {
-          reconstructor->SetVideoChannel(atoi(argv[++i]));
-          }
-       else if(currentArg == "--video-mode" || currentArg == "-vm")
-          {
-          string videoMode (argv[++i]);
-          if(videoMode == "NTSC")
+          if( i < argc - 1)
             {
-            reconstructor->SetVideoMode(1);            
-            }
-          else if(videoMode == "PAL")
-            {
-            reconstructor->SetVideoMode(2);            
-            }
-          else
-            {
-            printSplashScreen();
-            cout << "ERROR: False video mode: " << videoMode  << endl
-                 << "       Available video modes: NTSC and PAL" << endl;
-            goodByeScreen();
-            return false;
+              double scanDepth  = atof(argv[++i]);
+                               
+            if(scanDepth <= 0)
+              {
+              cout << "ERROR: Scan Depth must be greater than 0 and not: " << scanDepth << endl;
+              goodByeScreen();
+              return false;
+              }
+            reconstructor->SetScanDepth(scanDepth);
             }
           }
-       else if(currentArg == "--scan-depth" || currentArg == "-sd")
-         {
-         reconstructor->SetScanDepth(atoi(argv[++i]));
-         }
-       else 
+        else if(currentArg == "--verbose" || currentArg == "-v")
           {
-          printUsage();
-          cout << "ERROR: Unrecognized command: '" << argv[i] <<"'" << endl;         
-          goodByeScreen();
-          return false;
+          reconstructor->SetVerbose(true);
+          sender->SetVerbose(true);
           }
+        else 
+           {
+           printUsage();
+           cout << "ERROR: Unrecognized command: '" << argv[i] <<"'" << endl;         
+           goodByeScreen();
+           return false;
+           }
       }
     return calibrationFileSpecified;
 }
 
-/******************************************************************************
- * 
- * MAIN
- * 
- ******************************************************************************/
-int main(int argc, char **argv)
-{ 
-  
-    vtkUltrasoundVolumeReconstructor *reconstructor = vtkUltrasoundVolumeReconstructor::New();
-    vtkUltrasoundVolumeSender *sender = vtkUltrasoundVolumeSender::New();
-    
-    //Read command line arguments
-    bool successParsingCommandLine = parseCommandLineArguments(argc,argv,reconstructor, sender);
-    if(!successParsingCommandLine)
-        return -1;
-    
-    printSplashScreen();
-    cout << "--- Started ---" << endl << endl;
+//------------------------------------------------------------------------------
+void goodByeScreen()
+{
+ 
+ cout << endl;
+ cout << "Press 't' to terminate Synchrograb"<<endl;
 
-    
-    //     redirect vtk errors to a file
-    vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
-    errOut->SetFileName("vtkError.txt");
-    vtkOutputWindow::SetInstance(errOut);
-    
-    //Configure Reconstructor
-    if(reconstructor->ConfigurePipeline()){
-        cerr << "ERROR: Could not configure UltrasoundVolumeReconstructor" << endl;
-        return -1;
-    };
-    
-    vtkImageData *ImageBuffer = vtkImageData::New();
+ string input;
 
-    // Volume Reconstruction
-    if(reconstructor->GetVolumeReconstructionEnabled())
-      {
-      if(!reconstructor->ReconstructVolume(ImageBuffer))
-        {
-        goodByeScreen();
-        return -1;
-        }
-      
-      // Connect to OpenIGTLink Server
-      if(!sender->ConnectToServer())
-        {
-        goodByeScreen();
-        return -1;
-        }
+ while(cin >> input)
+   {
+   if(input == "t")
+     {
+       break;
+     }
+   }
 
-      //Send volume
-      if(!sender->SendImages(ImageBuffer, 1))
-        {
-        goodByeScreen();
-        return -1;
-        }
-
-      //Close Sever Connection
-      if(!sender->CloseServerConnection())
-        {
-        goodByeScreen();
-        return -1;
-        }
-      }
-
-
-    //Free Memory
-    ImageBuffer->Delete();
-    reconstructor->Delete();
-    sender->Delete();
-
-    cout << endl;
-    cout << "--- Synchgrograb finished ---" << endl;
-    cout << endl;
-    cout << "Press 't' to terminate Synchrograb"<<endl;
-
-    string input;
-
-    while(cin >> input)
-      {
-      if(input == "t")
-        {
-          break;
-        }
-      }
-
-    goodByeScreen();
+  cout << endl;
+  cout << "Terminate SynchroGrab" << endl
+       << endl
+       << "Bye Bye..." << endl <<endl << endl;
 
 }
