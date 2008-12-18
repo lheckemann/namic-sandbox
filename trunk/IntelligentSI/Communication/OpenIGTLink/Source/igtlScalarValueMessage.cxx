@@ -28,6 +28,8 @@ const int ScalarValueMessage::ScalarSizeTable[] =
     1, 1,   // INT8 / UINT8
     2, 2,   // INT16 / UINT16
     4, 4,   // INT32 / UINT32
+    0, 0,
+    IGTL_SIZEOF_FLOAT, IGTL_SIZEOF_DOUBLE, // TYPE_FLOAT32 / TYPE_FLOAT64
   };
 
 
