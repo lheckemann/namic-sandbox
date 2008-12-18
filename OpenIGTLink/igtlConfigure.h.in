@@ -19,6 +19,7 @@
 
 #cmakedefine OpenIGTLink_PLATFORM_MACOSX
 #cmakedefine OpenIGTLink_PLATFORM_LINUX 
+#cmakedefine OpenIGTLink_PLATFORM_SUNOS 
 #cmakedefine OpenIGTLink_PLATFORM_WIN32
 #ifdef OpenIGTLink_PLATFORM_WIN32
   #ifndef _WIN32

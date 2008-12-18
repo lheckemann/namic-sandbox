@@ -1,20 +1,27 @@
-IF(OpenIGTLink_PLATFORM_WIN32)
+IF(OpenIGTLink_PLATFORM_WIN32) # for Windows System
   SET(LINK_LIBS
     ws2_32
     wsock32
   )
-ELSE(OpenIGTLink_PLATFORM_WIN32)
+ELSE(OpenIGTLink_PLATFORM_WIN32) # for POSIX-compatible OSs
+  SET(LINK_LIBS
+    m
+  )
   IF(OpenIGTLink_PLATFORM_QNX)
     SET(LINK_LIBS
+      ${LINK_LIBS}
       c
       socket
-      m
-    )
-  ELSE(OpenIGTLink_PLATFORM_QNX)
-    SET(LINK_LIBS
-      m
     )
   ENDIF(OpenIGTLink_PLATFORM_QNX)
+  IF(OpenIGTLink_PLATFORM_SUNOS)
+    SET(LINK_LIBS
+      ${LINK_LIBS}
+      rt
+      nsl
+      socket
+    )
+  ENDIF(OpenIGTLink_PLATFORM_SUNOS)
 ENDIF(OpenIGTLink_PLATFORM_WIN32)
 
 
