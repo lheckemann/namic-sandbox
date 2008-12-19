@@ -200,9 +200,9 @@ int TransformMessage::PackBody()
     transform[i+6] = matrix[i][2];
     transform[i+9] = matrix[i][3];
   }
-  memcpy((void*)this->m_Transform, (void*)transform, sizeof(igtl_float32)*12);
-  
+
   igtl_transform_convert_byte_order(transform);
+  memcpy((void*)this->m_Transform, (void*)transform, sizeof(igtl_float32)*12);
 
   return 1;
 }
