@@ -266,24 +266,25 @@ BilateralZThreadImageFilter<TInputImage, TOutputImage>
   // separate threads
   this->BeforeThreadedGenerateData();
 
-  std::cout << "Starting BilateralZThreadImageFilter" << std::endl;
+  // std::cout << "Starting BilateralZThreadImageFilter" << std::endl;
   // Do this with ZThread's, 10 execution blocks
   ZThread::PoolExecutor executor(this->GetMultiThreader()->GetNumberOfThreads());
   typename TOutputImage::RegionType splitRegion;
   try
     {
-    for ( int i = 0; i < 10; i++ )
+    int NumberOfRegions = 20;
+    for ( int i = 0; i < 20; i++ )
       {
       ZThreadStruct* s = new ZThreadStruct();
-      std::cout << "Starting thread: " << i << std::endl;
+      // std::cout << "Starting thread: " << i << std::endl;
       s->threadId = i;
       s->Filter = this;
-      this->SplitRequestedRegion(s->threadId, 10, splitRegion);
+      this->SplitRequestedRegion(s->threadId, 20, splitRegion);
       s->region = splitRegion;
       executor.execute ( s );
       }
     // Let it all finish
-    std::cout << "Waiting for all to finish" << std::endl;
+    // std::cout << "Waiting for all to finish" << std::endl;
     executor.wait();
     }
   catch ( ZThread::Synchronization_Exception &e )

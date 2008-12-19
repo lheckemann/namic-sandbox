@@ -1,0 +1,214 @@
+\documentclass{InsightArticle}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+
+\usepackage[dvips]{graphicx}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  hyperref should be the last package to be loaded.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[dvips,
+bookmarks,
+bookmarksopen,
+backref,
+colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+]{hyperref}
+
+
+% This command is required to stop the interaction between hyperref and referencing algorithms.
+% http://en.wikibooks.org/wiki/LaTeX/Algorithms_and_Pseudocode
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+\title{An alternative threading model for the Insight Toolkit}
+
+% 
+% NOTE: This is the last number of the "handle" URL that 
+% The Insight Journal assigns to your paper as part of the
+% submission process. Please replace the number "1338" with
+% the actual handle number that you get assigned.
+%
+% \newcommand{\IJhandlerIDnumber}{1338}
+
+% Increment the release number whenever significant changes are made.
+% The author and/or editor can define 'significant' however they like.
+\release{1.00}
+
+\author{Daniel Blezek$^{1}$}
+\authoraddress{$^{1}$blezek.daniel@mayo.edu\\Mayo Clinic, Rochester, MN, USA}
+
+\begin{document}
+
+%
+% Add hyperlink to the web location and license of the paper.
+% The argument of this command is the handler identifier given
+% by the Insight Journal to this paper.
+% 
+% \IJhandlefooter{\IJhandlerIDnumber}
+
+
+\maketitle
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+\begin{abstract}
+\noindent
+Here's the abstract
+\end{abstract}
+
+% \IJhandlenote{\IJhandlerIDnumber}
+
+\tableofcontents
+\clearpage
+\section{Introduction and Background}
+The basic model underlying the \code{MultiThreader} is ``scatter / gather'' of threads.  A multi-threaded filter implements
+\code{ThreadedGenerateData()} and processes the region passed a region to operate on (\code{OutputImageRegionType}).  Inside
+\code{ImageSource::GenerateData}, the entire output region is divided into N subregions, where N is the number of allowed threads
+(\code{MultiThreader::GetNumberOfThreads()}).  Then all N threads are created, and handed their region to process. 
+\code{ImageSource::GenerateData} then waits until all N threads have completed and returns.  The algorithm for
+\code{ImageSource::GenerateData} is shown in Algorithm~\ref{A:ImageSource}.
+
+\begin{algorithm}
+  \begin{algorithmic}
+    \STATE AllocateOutputs() \COMMENT{ Allocate the output of this filter }
+    \STATE BeforeThreadedGenerateData() \COMMENT{ Allow the sub class to perform any necessary setup}
+    \FORALL[Execute N threads in parallel] { Each thread is given an ID from 0..N-1}
+      \STATE  \COMMENT{ Get the threadID'th region of N output sub-regions}
+      \STATE SplitRegion = SplitRequestedRegion ( threadID, N )
+      \STATE  \COMMENT{ Have the subclass execute this portion of the output}
+      \STATE ThreadedGenerateData ( SplitRegion, threadID )
+    \ENDFOR % \COMMENT{Wait for thread join for all N threads (MultiThreader::SingleMethodExecute)}
+    \STATE AfterThreadedGenerateData() \COMMENT{ Allow the subclass to perform any cleanup }
+  \end{algorithmic}
+  \caption{Threading model for ImageSource::GenerateData.  \label{A:ImageSource}}
+\end{algorithm}
+
+\code{MultiThreader} instance in \code{ImageSource} is responsible for starting up N threads, calling \code{ImageSource::ThreadedGenerateData} in each one, then waiting for all N threads to exit.
+
+This model, though extremely useful for exploiting modern multi-core processors, has several important drawbacks for certain classes of filters.  Filters requiring large amounts of intermediate memory suffer in the current implementation.  Regardless of what N is, all intermediate results are required to be allocated all at once.  Consider a Hessian based filter such as the \code{HessianToObjectnessMeasureImageFilter} recently submitted to the Insight Journal~\cite{Antiga2007}.  If one thread is used, the entire output will be requested, necessitating the generation of the entire Hessian.  A Hessian calculation requires, at minimum, 6 times the memory of the input volume.  This memory requirement is prohibitively large for otherwise practical images.  If many threads are used, the memory overhead is not changed, in addition, the filter fails to achieve full speedup from multiple cores because it is forced to recalculate pixels on the border between regions.  Thus, this class of filters is often limited to a single thread.  For the purposes of this discussion, I call these filters Large Memory Filters (LMF).
+
+A second important limitation of \code{MultiThreader} is the lack of flexibility in scheduling threads.  The implementation of \code{ImageSource::SplitRequestedRegion} simply divides the image along the last dimension, i.e., by slices in 3D.  Though the user can override the default behavior of \code{ImageSource::SplitRequestedRegion} to divide the image up different, he cannot, for instance, divide the image into M small regions to be processed by N threads (where M $>>$ N).  This concept is know as a work pool~(see \url{http://en.wikipedia.org/wiki/Thread_pool_pattern} for instance).  The two limitations are related.
+
+\section{Fine Grain Thread Control}
+The limitations of ITK's threading scheme can be rectified through the use of several different parallel constructs.  Consider Algorithm~\ref{JobPool}.  In this algorithm, the processing of a LMF is divided into small parcels based on memory requirements, rather than simply splitting the image into N parts.  Allowing filter designers the flexibility to divide jobs by memory leads to fine grain control of parallel processing.  The number of threads executing may still be the number of processors, as before, but each processor will have more jobs of smaller size.
+
+\begin{algorithm}
+  \begin{algorithmic}
+    \STATE BeforeThreadedGenerateData()
+    \STATE queue = new PoolExecutor ( N ) \COMMENT {create a queue with N threads }
+    \STATE J = GetMemoryRequired() / 10 \COMMENT {Split the requested region into 10 MB jobs, J $>>$ N}
+    \FOR{i = 1..J}
+      \STATE SplitRegion = SplitRequestedRegion ( i, J );
+      \STATE queue.push ( new Job ( SplitRegion ) )
+    \ENDFOR
+    \STATE queue.wait() \COMMENT {Wait until all the jobs have been completed}
+    \STATE AfterThreadedGenerateData() \COMMENT{ Allow the subclass to perform any cleanup }
+  \end{algorithmic}
+  \label{JobPool}
+  \caption{Threading model for ImageSource::GenerateData  }
+\end{algorithm}
+
+Algorithm~\ref{JobPool} uses a JobPool (\code{PoolExecutor} from the ZThread library).  JobPools maintain a queue of jobs to process and one or more worker threads.  Each worker pops a job off the queue and processes it, repeating until the queue is empty.  The JobPool class grants greater flexibility to the filter writer.  This algorithm is shown in \code{itk::BilateralZThreadImageFilter} included with this document.  Rather than allowing the default implementation of \code{GenerateData} located in \code{itk::ImageSource} to use the standard ITK \code{itk::MultiThreader}, \code{itk::BilateralZThreadImageFilter} uses the \code{PoolExecutor} from the ZThread library.  The code is shown here:
+
+\begin{verbatim}
+//----------------------------------------------------------------------------
+template< class TInputImage, class TOutputImage >
+void
+BilateralZThreadImageFilter<TInputImage, TOutputImage>
+::GenerateData()
+{
+  // Call a method that can be overriden by a subclass to allocate
+  // memory for the filter's outputs
+  this->AllocateOutputs();
+  
+  // Call a method that can be overridden by a subclass to perform
+  // some calculations prior to splitting the main computations into
+  // separate threads
+  this->BeforeThreadedGenerateData();
+
+  // Do this with ZThread's PoolExecutor
+  ZThread::PoolExecutor executor(this->GetMultiThreader()->GetNumberOfThreads());
+  typename TOutputImage::RegionType splitRegion;
+  try
+    {
+    int NumberOfRegions = 20;
+    for ( int i = 0; i < NumberOfRegions; i++ )
+      {
+      ZThreadStruct* s = new ZThreadStruct();
+      s->threadId = i;
+      s->Filter = this;
+      this->SplitRequestedRegion(s->threadId, NumberOfRegions, splitRegion);
+      s->region = splitRegion;
+      executor.execute ( s );
+      }
+    // Wait for all jobs to finish
+    executor.wait();
+    }
+  catch ( ZThread::Synchronization_Exception &e )
+    {
+    itkGenericExceptionMacro ( << "Error adding runnable to executor: " << e.what() );
+    }
+
+  // Call a method that can be overridden by a subclass to perform
+  // some calculations after all the threads have completed
+  this->AfterThreadedGenerateData();
+}
+\end{verbatim}
+
+In this example, we create \code{NumberOfRegions} jobs in the \code{ZThread::PoolExecutor} represented by \code{ZThreadStruct}, a simple class that calls the filter's \code{ThreadedGenerateData}.  The \code{PoolExecutor} ensures each \code{ZThreadStruct} is \code{delete}d after being processes.
+
+Ideally, this code would migrate out of an individual filter and into a subclass of \code{MultiThreader}, however, the design of \code{MultiThreader} discourages sub-classing.  None of the methods are virtual, and many useful variables are private.  Use of alternative threading schemes in ITK would require redesign of this class.
+
+\section{ZThread Library}
+The ZThread library abstracts many important thread concepts including barriers, mutex locks, semaphores, and thread pools.  ZThreads is hosted on SourceForge (\url{http://sourceforge.net/projects/zthread/}) and documented using Doxygen (ZThreads is implemented using platform specific primitives.  The abstractions present a uniform API and many higher level constructs such as PoolExecutors (\url{http://zthread.sourceforge.net/html/classZThread_1_1PoolExecutor.html}).
+
+\section{Software Requirements}
+
+You need to have the following software installed to compile and use \code{ThreadID}:
+
+\begin{itemize}
+  \item  Insight Toolkit 3.0 or greater
+  \item  CMake 2.4
+\end{itemize}
+
+Note that other versions of the Insight Toolkit are also available in the
+testing framework of the Insight Journal. Please refere to the following page
+for details
+
+\url{http://www.insightsoftwareconsortium.org/wiki/index.php/IJ-Testing-Environment}
+
+\section{ZThread License}
+
+\begin{verbatim}
+Copyright (c) 2005, Eric Crahen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is furnished
+to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+\end{verbatim}
+
+\section*{References}
+\bibliographystyle{plain}
+\bibliography{ThreadIT}
+
+\end{document}
+
+
+% LocalWords:  ImageFileReader
