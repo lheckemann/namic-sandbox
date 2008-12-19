@@ -33,6 +33,7 @@
 
 #cmakedefine OpenIGTLink_USE_PTHREADS
 #cmakedefine OpenIGTLink_USE_WIN32_THREADS
+#cmakedefine OpenIGTLink_USE_SPROC
 
 #endif /*__IGTL_CONFIGURE_H*/
 

@@ -48,6 +48,11 @@
 #include <errno.h>
 #endif
 
+#ifdef OpenIGTLink_USE_PTHREADS
+#include <unistd.h>
+#endif
+
+
 // Need to define "igtlExternCThreadFunctionType" to avoid warning on some
 // platforms about passing function pointer to an argument expecting an
 // extern "C" function.  Placing the typedef of the function pointer type

@@ -83,7 +83,7 @@ void IGTLCommon_EXPORT MatrixToQuaternion(Matrix4x4& m, float* q)
 
   if( trace > 0.0 ) {
 
-    float s = 0.5f / sqrtf(trace + 1.0f);
+    float s = 0.5f / sqrt(trace + 1.0f);
 
     q[3] = 0.25f / s;
     q[0] = ( m[2][1] - m[1][2] ) * s;
@@ -94,7 +94,7 @@ void IGTLCommon_EXPORT MatrixToQuaternion(Matrix4x4& m, float* q)
 
     if ( m[0][0] > m[1][1] && m[0][0] > m[2][2] ) {
 
-      float s = 2.0f * sqrtf( 1.0f + m[0][0] - m[1][1] - m[2][2]);
+      float s = 2.0f * sqrt( 1.0f + m[0][0] - m[1][1] - m[2][2]);
 
       q[3] = (m[2][1] - m[1][2] ) / s;
       q[0] = 0.25f * s;
@@ -103,7 +103,7 @@ void IGTLCommon_EXPORT MatrixToQuaternion(Matrix4x4& m, float* q)
 
     } else if (m[1][1] > m[2][2]) {
 
-      float s = 2.0f * sqrtf( 1.0f + m[1][1] - m[0][0] - m[2][2]);
+      float s = 2.0f * sqrt( 1.0f + m[1][1] - m[0][0] - m[2][2]);
 
       q[3] = (m[0][2] - m[2][0] ) / s;
       q[0] = (m[0][1] + m[1][0] ) / s;
@@ -112,7 +112,7 @@ void IGTLCommon_EXPORT MatrixToQuaternion(Matrix4x4& m, float* q)
 
     } else {
 
-      float s = 2.0f * sqrtf( 1.0f + m[2][2] - m[0][0] - m[1][1] );
+      float s = 2.0f * sqrt( 1.0f + m[2][2] - m[0][0] - m[1][1] );
 
       q[3] = (m[1][0] - m[0][1] ) / s;
       q[0] = (m[0][2] + m[2][0] ) / s;
