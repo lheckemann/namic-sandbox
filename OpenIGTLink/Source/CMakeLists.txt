@@ -20,6 +20,7 @@ ELSE(OpenIGTLink_PLATFORM_WIN32) # for POSIX-compatible OSs
       rt
       nsl
       socket
+      stdc++
     )
   ENDIF(OpenIGTLink_PLATFORM_SUNOS)
 ENDIF(OpenIGTLink_PLATFORM_WIN32)
