@@ -147,23 +147,27 @@ int MessageBase::Unpack(int crccheck)
       igtl_header_convert_byte_order(h);
       m_TimeStampSecFraction = h->timestamp & 0xFFFFFFFF;
       m_TimeStampSec = (h->timestamp >> 32 ) & 0xFFFFFFFF;
+      
 
-      m_BodySizeToRead = h->body_size;
-
-      char bodyType[13];
-      char deviceName[21];
-
-      bodyType[12]   = '\0';
-      deviceName[20] = '\0';
-      strncpy(bodyType, h->name, 12);
-      strncpy(deviceName, h->device_name, 20);
-
-      m_BodyType   = bodyType;  // TODO: should check if the class is MessageBase...
-      m_DeviceName = deviceName;
-
-      // Mark as unpacked.
-      m_IsHeaderUnpacked = 1;
-      r |= UNPACK_HEADER;
+      if (h->version == IGTL_HEADER_VERSION)
+        {
+        m_BodySizeToRead = h->body_size;
+        
+        char bodyType[13];
+        char deviceName[21];
+        
+        bodyType[12]   = '\0';
+        deviceName[20] = '\0';
+        strncpy(bodyType, h->name, 12);
+        strncpy(deviceName, h->device_name, 20);
+        
+        m_BodyType   = bodyType;  // TODO: should check if the class is MessageBase...
+        m_DeviceName = deviceName;
+        
+        // Mark as unpacked.
+        m_IsHeaderUnpacked = 1;
+        r |= UNPACK_HEADER;
+        }
     }
 
   // Check if the body exists and it has not been unpacked
