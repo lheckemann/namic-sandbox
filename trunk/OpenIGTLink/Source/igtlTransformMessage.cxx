@@ -190,7 +190,9 @@ int TransformMessage::GetBodyPackSize()
 
 int TransformMessage::PackBody()
 {
-  igtl_float32* transform = (igtl_float32*)this->m_Transform;
+
+  //igtl_float32* transform = (igtl_float32*)this->m_Transform; // doesn't work on Solaris
+  igtl_float32 transform[12];
 
   for (int i = 0; i < 3; i ++) {
     transform[i]   = matrix[i][0];
@@ -198,6 +200,7 @@ int TransformMessage::PackBody()
     transform[i+6] = matrix[i][2];
     transform[i+9] = matrix[i][3];
   }
+  memcpy((void*)this->m_Transform, (void*)transform, sizeof(igtl_float32)*12);
   
   igtl_transform_convert_byte_order(transform);
 
@@ -208,7 +211,9 @@ int TransformMessage::UnpackBody()
 {
   m_Transform = m_Body;
 
-  igtl_float32* transform = (igtl_float32*)this->m_Transform;
+  //igtl_float32* transform = (igtl_float32*)this->m_Transform;  // doesn't work on Solaris
+  igtl_float32 transform[12];
+  memcpy((void*)transform, (void*)this->m_Transform, sizeof(igtl_float32)*12);
   igtl_transform_convert_byte_order(transform);
 
   for (int i = 0; i < 3; i ++) {

@@ -391,6 +391,10 @@ int Socket::Skip(int length, int skipFully/*=1*/)
       }
     
     n = this->Receive(dummy, block, skipFully);
+    if (!skipFully && n <= 0)
+      {
+      break;
+      }
     remain -= n;
     }
   while (remain > 0 || (skipFully && n < block));

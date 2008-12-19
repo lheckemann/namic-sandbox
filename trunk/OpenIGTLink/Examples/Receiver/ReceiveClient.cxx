@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
       int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
       if (r != headerMsg->GetPackSize())
         {
-        std::cerr << "Error: receiving data." << std::endl;
+        continue;
         }
       
       // Deserialize the header
@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
         {
         ReceiveTransform(socket, headerMsg);
         }
-      if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
+      else if (strcmp(headerMsg->GetDeviceType(), "POSITION") == 0)
         {
           ReceivePosition(socket, headerMsg);
         }
