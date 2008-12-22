@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
     GetTestImage(imgMsg, filedir, i % 5);
 
     //------------------------------------------------------------
-    // Get randome orientation matrix and set it.
+    // Get random orientation matrix and set it.
     igtl::Matrix4x4 matrix;
     GetRandomTestMatrix(matrix);
     imgMsg->SetMatrix(matrix);
