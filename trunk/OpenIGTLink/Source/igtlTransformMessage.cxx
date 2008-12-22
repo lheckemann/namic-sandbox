@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Open IGT Link Library
-  Module:    $RCSfile: $
+  Module:    $HeadURL$
   Language:  C++
-  Date:      $Date: $
-  Version:   $Revision: $
+  Date:      $Date$
+  Version:   $Revision$
 
   Copyright (c) Insight Software Consortium. All rights reserved.
 
@@ -18,6 +18,8 @@
 
 #include "igtl_header.h"
 #include "igtl_transform.h"
+
+#include <string.h>
 
 namespace igtl {
 

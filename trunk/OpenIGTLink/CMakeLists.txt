@@ -166,6 +166,9 @@ CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/igtlConfigure.h.in
 CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/igtl_typeconfig.h.in 
   ${OpenIGTLink_BINARY_DIR}/igtl_typeconfig.h)
 
+CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/igtlTypeConfig.h.in 
+  ${OpenIGTLink_BINARY_DIR}/igtlTypeConfig.h)
+
 
 #-----------------------------------------------------------------------------
 # Help other projects use OpenIGTLink.
@@ -201,6 +204,12 @@ INSTALL(FILES
 INSTALL(FILES
   ${OpenIGTLink_BINARY_DIR}/igtl_typeconfig.h
   DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}/igtlutil
+  COMPONENT Development
+  )
+
+INSTALL(FILES
+  ${OpenIGTLink_BINARY_DIR}/igtlTypeConfig.h
+  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}
   COMPONENT Development
   )
 
