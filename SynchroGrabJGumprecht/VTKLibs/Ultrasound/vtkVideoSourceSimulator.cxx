@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Module:  $RCSfile: vtkVideoSourceSimulator.cxx,v $
+  Module:  vtkVideoSourceSimulator.cxx
   Author:  Jan Gumprecht, Harvard Medical School
   
   Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
@@ -78,14 +78,20 @@ vtkInstantiatorNewMacro(vtkVideoSourceSimulator);
 
 vtkVideoSourceSimulator* vtkVideoSourceSimulator::Instance = 0;
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  vtkVideoSourceSimulator::vtkVideoSourceSimulator() 
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 vtkVideoSourceSimulator::vtkVideoSourceSimulator()
 {
   this->Initialized = 0;
 
-  this->FrameSize[0] =320; // this->FrameSize[0];
-  this->FrameSize[1] =240; // this->FrameSize[1];
-  this->FrameSize[2] =1;   // this->FrameSize[2];
+  this->FrameSize[0] =320; 
+  this->FrameSize[1] =240; 
+  this->FrameSize[2] =1;   
   
   this->FrameRate = 30; // in fps
   this->AcquisitionDataType = 0x00000004; //corresponds to type: BPost 8-bit  
@@ -104,18 +110,28 @@ vtkVideoSourceSimulator::vtkVideoSourceSimulator()
  
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  vtkVideoSourceSimulator::~vtkVideoSourceSimulator() 
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 vtkVideoSourceSimulator::~vtkVideoSourceSimulator()
-{ 
-  this->vtkVideoSourceSimulator::ReleaseSystemResources();
-  
-  this->PlayerThreader->Delete();
-  
+{   
+  this->PlayerThreader->Delete();  
 }
 
 
-//----------------------------------------------------------------------------
-// Up the reference count so it behaves like New
+/******************************************************************************
+ *  vtkVideoSourceSimulator* vtkVideoSourceSimulator::New() 
+ *
+ *  Up the reference count so it behaves like New
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 vtkVideoSourceSimulator* vtkVideoSourceSimulator::New()
 {
   vtkVideoSourceSimulator* ret = vtkVideoSourceSimulator::GetInstance();
@@ -124,8 +140,17 @@ vtkVideoSourceSimulator* vtkVideoSourceSimulator::New()
 }
 
 
-//----------------------------------------------------------------------------
-// Return the single instance of the vtkOutputWindow
+/******************************************************************************
+ *  vtkVideoSourceSimulator* vtkVideoSourceSimulator::GetInstance() 
+ *
+ *  Return the single instance of the vtkOutputWindow
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ *  @Return: Single Instance of vtkVideoSourceSimulator
+ * 
+ * ****************************************************************************/
 vtkVideoSourceSimulator* vtkVideoSourceSimulator::GetInstance()
 {
   if(!vtkVideoSourceSimulator::Instance)
@@ -145,7 +170,17 @@ vtkVideoSourceSimulator* vtkVideoSourceSimulator::GetInstance()
   return vtkVideoSourceSimulator::Instance;
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::SetInstance(vtkVideoSourceSimulator* instance) 
+ *
+ *  Set the single instance of the vtkOutputWindow
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ *  @Param: vtkVideoSourceSimulator* instance - Instance to set
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::SetInstance(vtkVideoSourceSimulator* instance)
 {
   if (vtkVideoSourceSimulator::Instance==instance)
@@ -166,7 +201,19 @@ void vtkVideoSourceSimulator::SetInstance(vtkVideoSourceSimulator* instance)
   instance->Register(NULL);
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::PrintSelf(ostream& os, vtkIndent indent) 
+ *
+ *  Print information about the current instance
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ *  @Param: ostream& os - Outstream on which to print the information
+ * 
+ *  @Param: vtkIndent indent
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
@@ -176,8 +223,15 @@ void vtkVideoSourceSimulator::PrintSelf(ostream& os, vtkIndent indent)
   
 }
 
-
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::Initialize() 
+ *
+ *  Initialize the video source simulator
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::Initialize()
 {
   if (this->Initialized)
@@ -198,14 +252,27 @@ void vtkVideoSourceSimulator::Initialize()
   this->Initialized = 1;
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::ReleaseSystemResources() 
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::ReleaseSystemResources()
 {
-// Nothing to do here
+// Nothing to do here. Kept for consistency
 }
 
-//----------------------------------------------------------------------------
-//Grab a single frame
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::Grab() 
+ *
+ *  Grab a single frame
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::Grab()
 {
   if (this->Recording)
@@ -225,7 +292,17 @@ void vtkVideoSourceSimulator::Grab()
 
 }
 
-
+/******************************************************************************
+ *  static inline void vtkSleep(double duration) 
+ *
+ *  Set the current thread to sleep for a certain amount of time
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ *  @Param: double duration - Time to sleep in ms 
+ * 
+ * ****************************************************************************/
 static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
@@ -240,10 +317,21 @@ static inline void vtkSleep(double duration)
 #endif
 }
 
-//----------------------------------------------------------------------------
-// Sleep until the specified absolute time has arrived.
-// You must pass a handle to the current thread.  
-// If '0' is returned, then the thread was aborted before or during the wait.
+/******************************************************************************
+ *  static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time) 
+ *
+ *  Sleep until the specified absolute time has arrived.
+ *  You must pass a handle to the current thread.  
+ *  If '0' is returned, then the thread was aborted before or during the wait. * 
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ *  @Param: vtkMultiThreader::ThreadInfo *data
+ * 
+ *  @Param: double time - Time until which to sleep
+ * 
+ * ****************************************************************************/
 static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 {
   // loop either until the time has arrived or until the thread is ended
@@ -282,8 +370,18 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// this function runs in an alternate thread to asyncronously grab frames
+/******************************************************************************
+ *  static void *vtkVideoSourceSimulatorRecordThread
+ *                                                                              (vtkMultiThreader::ThreadInfo *data) 
+ *
+ *  This function runs in an alternate thread to asyncronously generate frames 
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ *  @Param: vtkMultiThreader::ThreadInfo *data
+ * 
+ * ****************************************************************************/
 static void *vtkVideoSourceSimulatorRecordThread(vtkMultiThreader::ThreadInfo *data)
 {
   vtkVideoSourceSimulator *self = (vtkVideoSourceSimulator *)(data->UserData);
@@ -302,8 +400,15 @@ static void *vtkVideoSourceSimulatorRecordThread(vtkMultiThreader::ThreadInfo *d
   return NULL;
 }
 
-//----------------------------------------------------------------------------
-//Record images
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::Record() 
+ *
+ *  Start a thread that writes images into the image buffer 
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::Record()
 {
   this->Initialize();
@@ -331,13 +436,29 @@ void vtkVideoSourceSimulator::Record()
      
 }
     
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::Play() 
+ *
+ *  Calls the Play function of vtkVideoSource  
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::Play()
 {
   this->vtkVideoSource::Play();
 }
     
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::Stop() 
+ *
+ *  Stop recording new images  
+ *  
+ *  @Author:Jan Gumprecht
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::Stop()
 {
   if (this->Recording)
@@ -354,8 +475,23 @@ void vtkVideoSourceSimulator::Stop()
     }
 }
 
-
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  int vtkVideoSourceSimulator::RequestInformation(
+ *                              vtkInformation * vtkNotUsed(request),
+ *                              vtkInformationVector **vtkNotUsed(inputVector),
+ *                              vtkInformationVector *outputVector) 
+ *
+ *  Process information request  
+ *  
+ *  @Date:      22.December 2008
+ * 
+ *  @Param: vtkInformation * vtkNotUsed(request)
+ * 
+ *  @Param: vtkInformationVector **vtkNotUsed(inputVector)
+ * 
+ *  @Param: vtkInformationVector *outputVector 
+ * 
+ * ****************************************************************************/
 int vtkVideoSourceSimulator::RequestInformation(
   vtkInformation * vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
@@ -416,7 +552,23 @@ int vtkVideoSourceSimulator::RequestInformation(
 }
 
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  int vtkVideoSourceSimulator::RequestData(
+ *                              vtkInformation * vtkNotUsed(request),
+ *                              vtkInformationVector **vtkNotUsed(inputVector),
+ *                              vtkInformationVector *outputVector) 
+ *
+ *  Process data request  
+ *  
+ *  @Date:      22.December 2008
+ * 
+ *  @Param: vtkInformation * vtkNotUsed(request)
+ * 
+ *  @Param: vtkInformationVector **vtkNotUsed(inputVector)
+ * 
+ *  @Param: vtkInformationVector *outputVector 
+ * 
+ * ****************************************************************************/
 int vtkVideoSourceSimulator::RequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
@@ -624,7 +776,16 @@ int vtkVideoSourceSimulator::RequestData(
   return 1;
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::SetOutputFormat(int format) 
+ *
+ *  Set the output format of the video source simulator  
+ *  
+ *  @Date:      22.December 2008
+ * 
+ *  @Param: int format
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::SetOutputFormat(int format)
 {
   if (format == this->OutputFormat)
@@ -670,8 +831,16 @@ void vtkVideoSourceSimulator::SetOutputFormat(int format)
   this->Modified();
 }
 
-
-// check the current video format and set up the VTK video framebuffer to match
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::SetOutputFormat(int format) 
+ *
+ *  Check the current video format and set up the VTK video framebuffer to match  
+ *  
+ *  @Date:      22.December 2008
+ * 
+ *  @Param: int format
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::DoFormatSetup()
 {
 
@@ -685,25 +854,21 @@ void vtkVideoSourceSimulator::DoFormatSetup()
 
 }
 
-#ifdef NEW_SIMULATOR
+/******************************************************************************
+ *  void vtkVideoSourceSimulator::InternalGrab() 
+ *
+ *  Add a new frame to the frame buffer
+ *   
+ *  @Author:Jan 
+ *  @Date:      22.December 2008
+ * 
+ * ****************************************************************************/
 void vtkVideoSourceSimulator::InternalGrab()
 {
-  //to do
-  // 1) Do frame buffer indices maintenance
-  // 2) Do time stamping
-  // 3) decode the data according to type
-  // 4) copy data to the local vtk frame buffer
-    
-  
-  // get the pointer to data
-  // use the information about data type and frmnum to do cross checking that you are maintaining correct frame index, & receiving
-  // expected data type
-
-
   // get a thread lock on the frame buffer
   this->FrameBufferMutex->Lock();
   
-    // 1) Do the frame buffer indices maintenance
+    // Frame buffer indices maintenance
     if (this->AutoAdvance)
       {
       this->AdvanceFrameBuffer(1);
@@ -714,25 +879,21 @@ void vtkVideoSourceSimulator::InternalGrab()
       }
     int index = this->FrameBufferIndex;
 
-    // 2) Do the time stamping
+    // Time stamping
     this->FrameBufferTimeStamps[index] = vtkTimerLog::GetUniversalTime();
 
     if (this->FrameCount++ == 0)
       {
       this->StartTimeStamp = this->FrameBufferTimeStamps[index];
       }
-
   
-    // 3) read the data, based on the data type and clip region information, which is reflected in frame buffer extents
-    // this is necessary as there would be cases when there is a clip region defined i.e. only data from the desired extents should be copied 
-    // to the local buffer, which demands necessary advancement of deviceDataPtr
-  
-    // get the pointer to actual incoming data on to a local pointer
+    //Initialize memory for frame
     unsigned char* deviceDataPtr = new unsigned char[ this->FrameSize[0] * this->FrameSize[1]];  
     
-    for (int j = 0 ; j < this->FrameSize[1]; j++)
+    //Fill frame with data
+    for (int j = 0 ; j < this->FrameSize[1]; j++)//Lines
       {
-      for (int k = 0 ; k <  this->FrameSize[0]; k++)
+      for (int k = 0 ; k <  this->FrameSize[0]; k++)//Columns
         {
             if( k > 10 and k < 50 and j > 10 and j <  40)
               {
@@ -750,22 +911,15 @@ void vtkVideoSourceSimulator::InternalGrab()
 
     int outBytesPerRow = ((this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1)* this->FrameBufferBitsPerPixel + 7)/8;
     outBytesPerRow += outBytesPerRow % this->FrameBufferRowAlignment;
-    //int outBytesPerRow = (this->FrameBufferExtent[1]- this->FrameBufferExtent[0]+1);
-
-
     
     int inBytesPerRow = this->FrameSize[0] * this->FrameBufferBitsPerPixel/8;
   
     int rows = this->FrameBufferExtent[3]-this->FrameBufferExtent[2]+1;
 
-    
-    //cerr << rows << " " << inBytesPerRow << " " << outBytesPerRow << endl;
-
-    // 4) copy data to the local vtk frame buffer
+    //Copy data to the local vtk frame buffer
     if (outBytesPerRow == inBytesPerRow)
       {
-//NH 12/05/08 temporarary commented out for debugging
- memcpy(frameBufferPtr,deviceDataPtr,inBytesPerRow*rows);
+      memcpy(frameBufferPtr,deviceDataPtr,inBytesPerRow*rows);
       }
     else
       {
@@ -783,6 +937,3 @@ void vtkVideoSourceSimulator::InternalGrab()
     this->FrameBufferMutex->Unlock();
     
 }
-#else //NEW_SIMULATOR
-
-#endif //NEW_SIMULATOR
