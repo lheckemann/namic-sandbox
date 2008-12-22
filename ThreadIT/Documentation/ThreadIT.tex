@@ -56,7 +56,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \begin{abstract}
 \noindent
-Here's the abstract
+This technical note presents an alternative threading model for the Insight Toolkit.  The existing ITK threading model is based on a ``scatter / gather'' model and divides work evenly amongst all threads.  Though suitable for many filters, considerations such as memory allocation per thread are important in some classes of filters.  We propose to use the \href{http://sourceforge.net/projects/zthread/}{ZThread} library to explore a threading model based on an execution pool.  The ZThread library is a cross platform, open source thread abstraction library loosely based on Java's threading model.
 \end{abstract}
 
 % \IJhandlenote{\IJhandlerIDnumber}
@@ -167,12 +167,22 @@ The ZThread library abstracts many important thread concepts including barriers,
 
 \section{Software Requirements}
 
-You need to have the following software installed to compile and use \code{ThreadID}:
+You need to have the following software installed to compile this code:
 
 \begin{itemize}
   \item  Insight Toolkit 3.0 or greater
   \item  CMake 2.4
 \end{itemize}
+
+The code described in this paper is in the Subversion repository at 
+\begin{verbatim}
+http://svn.na-mic.org/NAMICSandBox/trunk/ThreadIT
+\end{verbatim}
+and may be anonymously checked out using the command:
+\begin{verbatim}
+svn co http://svn.na-mic.org/NAMICSandBox/trunk/ThreadIT ThreadIT
+\end{verbatim}
+The code should build on all reasonable platforms (ZThreads may not support SGI's sproc).
 
 Note that other versions of the Insight Toolkit are also available in the
 testing framework of the Insight Journal. Please refere to the following page
