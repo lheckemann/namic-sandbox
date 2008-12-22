@@ -34,6 +34,7 @@
 #include "vtkMultiThreader.h"
 
 #include "vtkIGTLConnector.h"
+#include "vtkIGTLServerClientConnector.h"
 #include "vtkIGTLCircularBuffer.h"
 
 //#include "igtl_header.h"
@@ -262,12 +263,12 @@ void vtkOpenIGTLinkIFLogic::AddConnector(const char* name)
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::AddServerConnector(const char* name, int port)
 {
-  vtkIGTLConnector* connector = vtkIGTLConnector::New();
+  vtkIGTLServerClientConnector* connector = vtkIGTLServerClientConnector::New();
   this->LastConnectorID ++;
   int newID = this->LastConnectorID;
 
   connector->SetName(name);
-  connector->SetType(vtkIGTLConnector::TYPE_SERVER);
+  connector->SetType(vtkIGTLServerClientConnector::TYPE_SERVER);
   connector->SetServerPort(port);
   //this->ConnectorMap.push_back(connector);
   this->ConnectorMap[newID] = connector;
@@ -276,16 +277,34 @@ void vtkOpenIGTLinkIFLogic::AddServerConnector(const char* name, int port)
   connector->SetRestrictDeviceName(this->RestrictDeviceName);
 }
 
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFLogic::AddServerConnector(int id)
+{
+  vtkIGTLServerClientConnector* connector = vtkIGTLServerClientConnector::New();
+  
+  //Get name from previous connector
+  connector->SetName(this->ConnectorMap[id]->GetName());
+
+  //Set values for new server connector
+  connector->SetType(vtkIGTLServerClientConnector::TYPE_SERVER);
+  
+  //Subsitute old connector for new server connector
+  this->ConnectorMap[id] = connector;
+  //this->ConnectorPrevStateList.push_back(-1);
+  this->ConnectorPrevStateList[id] = -1;
+  connector->SetRestrictDeviceName(this->RestrictDeviceName);
+  
+}
 
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::AddClientConnector(const char* name, const char* svrHostName, int port)
 {
-  vtkIGTLConnector* connector = vtkIGTLConnector::New();
+  vtkIGTLServerClientConnector* connector = vtkIGTLServerClientConnector::New();
   this->LastConnectorID ++;
   int newID = this->LastConnectorID;
 
   connector->SetName(name);
-  connector->SetType(vtkIGTLConnector::TYPE_CLIENT);
+  connector->SetType(vtkIGTLServerClientConnector::TYPE_CLIENT);
   connector->SetServerPort(port);
   connector->SetServerHostname(svrHostName);
   //this->ConnectorMap.push_back(connector);
@@ -295,6 +314,21 @@ void vtkOpenIGTLinkIFLogic::AddClientConnector(const char* name, const char* svr
   connector->SetRestrictDeviceName(this->RestrictDeviceName);
 }
 
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFLogic::AddClientConnector(int id)
+{
+  vtkIGTLServerClientConnector* connector = vtkIGTLServerClientConnector::New();
+
+  connector->SetName(this->ConnectorMap[id]->GetName());
+  connector->SetType(vtkIGTLServerClientConnector::TYPE_CLIENT);
+  
+  //this->ConnectorMap.push_back(connector);
+  this->ConnectorMap[id] = connector;
+  //this->ConnectorPrevStateList.push_back(-1);
+  this->ConnectorPrevStateList[id] = -1;
+  connector->SetRestrictDeviceName(this->RestrictDeviceName);
+}
 
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::DeleteConnector(int id)

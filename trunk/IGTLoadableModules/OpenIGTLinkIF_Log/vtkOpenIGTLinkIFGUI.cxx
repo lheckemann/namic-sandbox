@@ -72,6 +72,8 @@
 #include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkIGTLConnector.h"
+#include "vtkIGTLServerClientConnector.h"
+//#include "vtkIGTLFileConnector.h"
 
 #include <vector>
 #include <sstream>
@@ -84,11 +86,12 @@ vtkCxxRevisionMacro ( vtkOpenIGTLinkIFGUI, "$Revision: 1.0 $");
 
 //---------------------------------------------------------------------------
 // Labels
-const char *vtkOpenIGTLinkIFGUI::ConnectorTypeStr[vtkIGTLConnector::NUM_TYPE] = 
+const char *vtkOpenIGTLinkIFGUI::ConnectorTypeStr[NUM_TYPE] = 
 {
   "?", // TYPE_NOT_DEFINED
   "S", // TYPE_SERVER
   "C", // TYPE_CLIENT
+  "F"  // TYPE_FILE
 };
 
 const char *vtkOpenIGTLinkIFGUI::ConnectorStatusStr[vtkIGTLConnector::NUM_STATE] = 
@@ -402,6 +405,8 @@ void vtkOpenIGTLinkIFGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     this->ConnectorTypeButtonSet->GetWidget(1)
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->ConnectorTypeButtonSet->GetWidget(2)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   
   if (this->ConnectorStatusCheckButton)
@@ -580,6 +585,8 @@ void vtkOpenIGTLinkIFGUI::AddGUIObservers ( )
   this->ConnectorTypeButtonSet->GetWidget(0)
     ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ConnectorTypeButtonSet->GetWidget(1)
+    ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->ConnectorTypeButtonSet->GetWidget(2)
     ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->ConnectorStatusCheckButton
@@ -824,7 +831,10 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
     if (connector)
       {
-      connector->SetType(vtkIGTLConnector::TYPE_SERVER);
+      if (connector->GetType() != vtkIGTLServerClientConnector::TYPE_SERVER)
+        {
+        this->GetLogic()->AddServerConnector(id);
+        }
       UpdateConnectorList(UPDATE_SELECTED_ONLY);
       UpdateConnectorPropertyFrame(selected);
       UpdateIOConfigTree();
@@ -845,7 +855,31 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
     if (connector)
       {
-      connector->SetType(vtkIGTLConnector::TYPE_CLIENT);
+      if (connector->GetType() != vtkIGTLServerClientConnector::TYPE_CLIENT)
+        {
+        this->GetLogic()->AddClientConnector(id);
+        }
+      UpdateConnectorList(UPDATE_SELECTED_ONLY);
+      UpdateConnectorPropertyFrame(selected);
+      UpdateIOConfigTree();
+      }
+    }
+    
+  else if (this->ConnectorTypeButtonSet->GetWidget(2) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->ConnectorTypeButtonSet->GetWidget(2)->GetSelectedState() == 1)
+    {
+    int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
+    int id = -1;
+    if (selected >= 0 && selected < (int)this->ConnectorIDList.size())
+      {
+      id = this->ConnectorIDList[selected];
+      }
+
+    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
+    if (connector)
+      {
+      connector->SetType(vtkIGTLConnector::TYPE_FILE);
       UpdateConnectorList(UPDATE_SELECTED_ONLY);
       UpdateConnectorPropertyFrame(selected);
       UpdateIOConfigTree();
@@ -869,6 +903,7 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
         {
         //vtkErrorMacro("Starting Connector...........");
         connector->Start();
+        connector->SetState(vtkIGTLConnector::STATE_WAIT_CONNECTION);
         UpdateConnectorList(UPDATE_SELECTED_ONLY);
         UpdateConnectorPropertyFrame(selected);
         UpdateIOConfigTree();
@@ -929,7 +964,8 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       id = this->ConnectorIDList[selected];
       }
 
-    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
+    vtkIGTLServerClientConnector* connector = static_cast<vtkIGTLServerClientConnector*>
+                                                        (this->GetLogic()->GetConnector(id));
     if (connector)
       {
       connector->SetServerHostname(this->ConnectorAddressEntry->GetValue());
@@ -947,7 +983,8 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       id = this->ConnectorIDList[selected];
       }
 
-    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
+    vtkIGTLServerClientConnector* connector = static_cast<vtkIGTLServerClientConnector*>
+                                                         (this->GetLogic()->GetConnector(id));
     if (connector)
       {
       connector->SetServerPort(this->ConnectorPortEntry->GetValueAsInt());
@@ -1417,7 +1454,7 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   nameLabel->Delete();
   nameFrame->Delete();
 
-  // Connector Property -- Connector type (server or client)
+  // Connector Property -- Connector type (server, client or file)
   vtkKWFrame *typeFrame = vtkKWFrame::New();
   typeFrame->SetParent(controlFrame->GetFrame());
   typeFrame->Create();
@@ -1434,7 +1471,7 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   this->ConnectorTypeButtonSet->SetParent(typeFrame);
   this->ConnectorTypeButtonSet->Create();
   this->ConnectorTypeButtonSet->PackHorizontallyOn();
-  this->ConnectorTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
+  this->ConnectorTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(3);
   this->ConnectorTypeButtonSet->UniformColumnsOn();
   this->ConnectorTypeButtonSet->UniformRowsOn();
 
@@ -1442,6 +1479,8 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   this->ConnectorTypeButtonSet->GetWidget(0)->SetText("Server");
   this->ConnectorTypeButtonSet->AddWidget(1);
   this->ConnectorTypeButtonSet->GetWidget(1)->SetText("Client");
+  this->ConnectorTypeButtonSet->AddWidget(2);
+  this->ConnectorTypeButtonSet->GetWidget(2)->SetText("File");
   
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               typeLabel->GetWidgetName() , this->ConnectorTypeButtonSet->GetWidgetName());
@@ -2242,7 +2281,7 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
   //----------------------------------------------------------------
   // Update rows (UPDATE_ALL, UPDATE_PROPERTIES_ALL and UPDATE_SELECTED_ONLY)
 
-  // Generate lisft of rows to update
+  // Generate list of rows to update
   std::vector<int> updateRows;
   updateRows.clear();
   if (updateLevel != UPDATE_STATUS_ALL)
@@ -2287,13 +2326,16 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
           
       // Server and port information
       std::ostringstream ss;
-      if (connector->GetType() == vtkIGTLConnector::TYPE_SERVER)
+      if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
         {
-        ss << "--.--.--.--" << ":" << connector->GetServerPort();
+        std::cerr << connector->GetType() << std::endl;
+        vtkIGTLServerClientConnector* svrConnector = dynamic_cast<vtkIGTLServerClientConnector*>(connector);
+        ss << "--.--.--.--" << ":" << svrConnector->GetServerPort();
         }
-      else if (connector->GetType() == vtkIGTLConnector::TYPE_CLIENT)
+      else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
         {
-        ss << connector->GetServerHostname() << ":" << connector->GetServerPort();
+        vtkIGTLServerClientConnector* svrConnector = static_cast<vtkIGTLServerClientConnector*>(connector);
+        ss << svrConnector->GetServerHostname() << ":" << svrConnector->GetServerPort();
         }
       else
         {
@@ -2351,12 +2393,19 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     // Connector Type
     this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOff();
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOff();
+    this->ConnectorTypeButtonSet->GetWidget(2)->SelectedStateOff();
     this->ConnectorTypeButtonSet->EnabledOff();
     this->ConnectorTypeButtonSet->UpdateEnableState();
 
     // Connector Status
     this->ConnectorStatusCheckButton->SelectedStateOff();
     this->ConnectorStatusCheckButton->EnabledOff();
+    this->ConnectorStatusCheckButton->UpdateEnableState();
+    
+    // Logger Activation
+    this->ConnectorLogCheckButton->SelectedStateOff();
+    this->ConnectorLogCheckButton->EnabledOff();
+    this->ConnectorLogCheckButton->UpdateEnableState();
 
     // Server Address
     this->ConnectorAddressEntry->SetValue("");
@@ -2401,22 +2450,38 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     }
   this->ConnectorNameEntry->UpdateEnableState();
 
-  // Connection Type (server or client)
-  if (connector->GetType() == vtkIGTLConnector::TYPE_SERVER)
+  // Connection Type (server, client or file)
+  if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
     {
     this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOn();
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOff();
+    this->ConnectorTypeButtonSet->GetWidget(2)->SelectedStateOff();
     }
-  else if (connector->GetType() == vtkIGTLConnector::TYPE_CLIENT)
+  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
     {
     this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOff();
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOn();
+    this->ConnectorTypeButtonSet->GetWidget(2)->SelectedStateOff();
     }
-  else // if (connector->GetType == TYPE_NOT_DEFINED)
+  else if (connector->GetType() == vtkIGTLConnector::TYPE_FILE)
     {
     this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOff();
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOff();
+    this->ConnectorTypeButtonSet->GetWidget(2)->SelectedStateOn();
+    this->ConnectorStatusCheckButton->EnabledOn();
+    this->ConnectorAddressEntry->EnabledOff();
+    this->ConnectorPortEntry->EnabledOff();
     }
+  else
+    {
+    this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOff();
+    this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOff();
+    this->ConnectorTypeButtonSet->GetWidget(2)->SelectedStateOff();
+    }
+  this->ConnectorStatusCheckButton->UpdateEnableState();
+  this->ConnectorAddressEntry->UpdateEnableState();
+  this->ConnectorPortEntry->UpdateEnableState();
+  
   if (activeFlag)
     {
     this->ConnectorTypeButtonSet->EnabledOff();
@@ -2424,11 +2489,14 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
   else
     {
     this->ConnectorTypeButtonSet->EnabledOn();
+    this->ConnectorLogCheckButton->EnabledOn();
     }
 
   this->ConnectorTypeButtonSet->UpdateEnableState();
+  this->ConnectorLogCheckButton->UpdateEnableState();
 
   // Connection Status
+  std::cout << "Connector State: " << connector->GetState() << std::endl;
   if (connector->GetState() == vtkIGTLConnector::STATE_OFF)
     {
     this->ConnectorStatusCheckButton->SelectedStateOff();
@@ -2450,14 +2518,15 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
 
 
   // Connection Server Address entry
-  if (connector->GetType() == vtkIGTLConnector::TYPE_SERVER)
+  if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
     {
     this->ConnectorAddressEntry->SetValue("--.--.--.--");
     this->ConnectorAddressEntry->EnabledOff();
     }
-  else
+  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
     {
-    this->ConnectorAddressEntry->SetValue(connector->GetServerHostname());
+    vtkIGTLServerClientConnector* svrConnector = static_cast<vtkIGTLServerClientConnector*>(connector);
+    this->ConnectorAddressEntry->SetValue(svrConnector->GetServerHostname());
     if (activeFlag)
       {
       this->ConnectorAddressEntry->EnabledOff();
@@ -2467,19 +2536,33 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
       this->ConnectorAddressEntry->EnabledOn();
       }
     }
+  else if (connector->GetType() == vtkIGTLConnector::TYPE_FILE)
+    {
+    this->ConnectorAddressEntry->SetValue("--.--.--.--");
+    this->ConnectorAddressEntry->EnabledOff();
+    this->ConnectorLogCheckButton->EnabledOff();
+    this->ConnectorStatusCheckButton->EnabledOn();
+    }
   this->ConnectorAddressEntry->UpdateEnableState();
+  this->ConnectorLogCheckButton->UpdateEnableState();
+  this->ConnectorStatusCheckButton->UpdateEnableState();
 
   // Connection Port entry
-  this->ConnectorPortEntry->SetValueAsInt(connector->GetServerPort());
-  if (activeFlag)
+  if ((connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER) 
+       | (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT))
     {
-    this->ConnectorPortEntry->EnabledOff();
+    vtkIGTLServerClientConnector* svrConnector = static_cast<vtkIGTLServerClientConnector*>(connector);
+    this->ConnectorPortEntry->SetValueAsInt(svrConnector->GetServerPort());
+    if (activeFlag)
+      {
+      this->ConnectorPortEntry->EnabledOff();
+      }
+    else
+      {
+      this->ConnectorPortEntry->EnabledOn();
+      }
+    this->ConnectorPortEntry->UpdateEnableState();
     }
-  else
-    {
-    this->ConnectorPortEntry->EnabledOn();
-    }
-  this->ConnectorPortEntry->UpdateEnableState();
 
 }
 

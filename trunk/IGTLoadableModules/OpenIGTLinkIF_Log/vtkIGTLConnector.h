@@ -18,16 +18,12 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <set>
 #include <fstream>
+#include <set>
 
 #include "vtkObject.h"
 #include "vtkOpenIGTLinkIFWin32Header.h" 
-#include "igtlServerSocket.h"
-#include "igtlClientSocket.h"
 
-
-//class vtkSocketCommunicator;
 class vtkMultiThreader;
 class vtkMutexLock;
 
@@ -45,12 +41,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
   //----------------------------------------------------------------
 
   //BTX
-  enum {
-    TYPE_NOT_DEFINED,
-    TYPE_SERVER,
-    TYPE_CLIENT,
-    NUM_TYPE
-  };
+  static const int TYPE_NOT_DEFINED = 0;
+  static const int TYPE_FILE = 3;
   
   enum {
     STATE_OFF,
@@ -79,31 +71,38 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
   typedef std::set<int> DeviceIDSetType;
   //ETX
 
+  //----------------------------------------------------------------
+  // VTK functions and macros
+  //----------------------------------------------------------------
+
  public:
   
   static vtkIGTLConnector *New();
   vtkTypeRevisionMacro(vtkIGTLConnector,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  vtkGetMacro( ServerPort, int );
-  vtkSetMacro( ServerPort, int );
   vtkGetMacro( Type, int );
   vtkSetMacro( Type, int );
   vtkGetMacro( State, int );
-  //vtkSetMacro( State, int );
-
+  vtkSetMacro( State, int );
+  vtkGetMacro( ConnectorStopFlag, int );
+  vtkSetMacro( ConnectorStopFlag, int );
   vtkSetMacro( RestrictDeviceName, int );
   vtkGetMacro( RestrictDeviceName, int );
 
+  //----------------------------------------------------------------
+  // Data access functions
+  //----------------------------------------------------------------
+  
   //BTX
   void SetName (const char* str) { this->Name = str; }
   void SetName (std::string str) { this->Name = str; }
   const char* GetName() { return this->Name.c_str(); }
-  void SetServerHostname(const char* str) { this->ServerHostname = str; }
-  void SetServerHostname(std::string str) { this->ServerHostname = str; }
-  const char* GetServerHostname() { return this->ServerHostname.c_str(); }
   
-  //Save to file functions
+  //----------------------------------------------------------------
+  // Save to File Functions
+  //----------------------------------------------------------------
+  
   void PrepareToLogData();
   void LogData(char*, int);
   void StopLoggingData();
@@ -118,18 +117,11 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
   // Constructor and Destructor
   //----------------------------------------------------------------
 
+protected:
   vtkIGTLConnector();
-  virtual ~vtkIGTLConnector();
+  ~vtkIGTLConnector();
 
-  //----------------------------------------------------------------
-  // Connector configuration
-  //----------------------------------------------------------------
-
-  int SetTypeServer(int port);
-  int SetTypeClient(char* hostname, int port);
-  //BTX
-  int SetTypeClient(std::string hostname, int port);
-  //ETX
+public:
 
   //----------------------------------------------------------------
   // Thread Control
@@ -142,13 +134,13 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
   //----------------------------------------------------------------
   // OpenIGTLink Message handlers
   //----------------------------------------------------------------
-  //BTX
-  //igtl::ClientSocket::Pointer WaitForConnection();
-  //ETX
-  int WaitForConnection();
+  
+  virtual void* StartThread() { return NULL; }
+  virtual int WaitForConnection() {return 0; }
   int ReceiveController();
-  int SendData(int size, unsigned char* data);
-  int Skip(int length, int skipFully=1);
+  virtual int ReceiveData(void*, int, int skipFully=1) { return 0; }
+  virtual int SendData(int size, unsigned char* data) { return 0;}
+  virtual int Skip(int length, int skipFully=1);
 
   //----------------------------------------------------------------
   // Circular Buffer
@@ -193,18 +185,9 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
   //----------------------------------------------------------------
 
   vtkMultiThreader* Thread;
-  vtkMutexLock*     Mutex;
-  //BTX
-  igtl::ServerSocket::Pointer  ServerSocket;
-  igtl::ClientSocket::Pointer  Socket;
-  //ETX
-  int               ThreadID;
-  int               ServerPort;
-  int               ServerStopFlag;
 
-  //BTX
-  std::string       ServerHostname;
-  //ETX
+  int               ThreadID;
+  int               ConnectorStopFlag;
 
   //----------------------------------------------------------------
   // Data
