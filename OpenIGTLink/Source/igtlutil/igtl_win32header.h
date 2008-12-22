@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Open ITK Link Library
-  Module:    $RCSfile: $
+  Module:    $HeadURL$
   Language:  C
-  Date:      $Date: $
-  Version:   $Revision: $
+  Date:      $Date$
+  Version:   $Revision$
 
   Copyright (c) Insight Software Consortium. All rights reserved.
 

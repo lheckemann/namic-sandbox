@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Open IGT Link Library
-  Module:    $RCSfile: $
+  Module:    $HeadURL$
   Language:  C
-  Date:      $Date: $
-  Version:   $Revision: $
+  Date:      $Date$
+  Version:   $Revision$
 
   Copyright (c) Insight Software Consortium. All rights reserved.
 
@@ -17,7 +17,7 @@
 #ifndef __igtlTypes_H
 #define __igtlTypes_H
 
-#include "igtl_typeconfig.h"
+#include "igtlTypeConfig.h"
 
 /* 8-bit integer type */
 #if IGTL_SIZEOF_CHAR == 1
