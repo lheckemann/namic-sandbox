@@ -133,7 +133,9 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   void AddConnector();
   void AddConnector(const char* name);
   void AddServerConnector(const char* name, int port);
+  void AddServerConnector(int id);
   void AddClientConnector(const char* name, const char* svrHostName, int port);
+  void AddClientConnector(int id);
 
   // Delete connector
   void DeleteConnector(int index);

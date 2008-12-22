@@ -17,8 +17,6 @@
 #include <vtksys/SystemTools.hxx>
 
 #include "vtkMultiThreader.h"
-#include "igtlServerSocket.h"
-#include "igtlClientSocket.h"
 #include "vtkMutexLock.h"
 #include "vtkImageData.h"
 
@@ -39,11 +37,8 @@ vtkIGTLConnector::vtkIGTLConnector()
   this->State  = STATE_OFF;
 
   this->Thread = vtkMultiThreader::New();
-  this->ServerStopFlag = false;
+  this->ConnectorStopFlag = false;
   this->ThreadID = -1;
-  this->ServerHostname = "localhost";
-  this->ServerPort = 18944;
-  this->Mutex = vtkMutexLock::New();
   this->CircularBufferMutex = vtkMutexLock::New();
   this->RestrictDeviceName = 0;
   
@@ -74,11 +69,6 @@ vtkIGTLConnector::~vtkIGTLConnector()
     this->Thread->Delete();
     }
 
-  if (this->Mutex)
-    {
-    this->Mutex->Delete();
-    }
-
   if (this->CircularBufferMutex)
     {
     this->CircularBufferMutex->Delete();
@@ -88,32 +78,6 @@ vtkIGTLConnector::~vtkIGTLConnector()
 //---------------------------------------------------------------------------
 void vtkIGTLConnector::PrintSelf(ostream& os, vtkIndent indent)
 {
-}
-
-//---------------------------------------------------------------------------
-int vtkIGTLConnector::SetTypeServer(int port)
-{
-  this->Type = TYPE_SERVER;
-  this->ServerPort = port;
-  return 1;
-}
-
-//---------------------------------------------------------------------------
-int vtkIGTLConnector::SetTypeClient(char* hostname, int port)
-{
-  this->Type = TYPE_CLIENT;
-  this->ServerPort = port;
-  this->ServerHostname = hostname;
-  return 1;
-}
-
-//---------------------------------------------------------------------------
-int vtkIGTLConnector::SetTypeClient(std::string hostname, int port)
-{
-  this->Type = TYPE_CLIENT;
-  this->ServerPort = port;
-  this->ServerHostname = hostname;
-  return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -133,7 +97,7 @@ int vtkIGTLConnector::Start()
     return 0;
     }
 
-  this->ServerStopFlag = false;
+  this->ConnectorStopFlag = false;
   this->ThreadID = this->Thread->SpawnThread((vtkThreadFunctionType) &vtkIGTLConnector::ThreadFunction, this);
 
   // Following line is necessary in some Linux environment,
@@ -142,7 +106,6 @@ int vtkIGTLConnector::Start()
   // after calling vtkIGTLConnector::Start() in ProcessGUIEvent()
   // in vtkOpenIGTLinkIFGUI class.
   this->State = STATE_WAIT_CONNECTION;
-
   return 1;
 }
 
@@ -153,15 +116,7 @@ int vtkIGTLConnector::Stop()
   if (this->ThreadID >= 0)
     {
     // NOTE: Thread should be killed by activating ServerStopFlag.
-    this->ServerStopFlag = true;
-    this->Mutex->Lock();
-    if (this->Socket.IsNotNull())
-      {
-      this->Socket->CloseSocket();
-      }
-    this->Mutex->Unlock();
-    //this->Thread->TerminateThread(this->ThreadID);
-    //this->ThreadID = -1;
+    this->ConnectorStopFlag = true;
     return 1;
     }
   else
@@ -174,133 +129,36 @@ int vtkIGTLConnector::Stop()
 //---------------------------------------------------------------------------
 void* vtkIGTLConnector::ThreadFunction(void* ptr)
 {
-
-  //vtkIGTLConnector* igtlcon = static_cast<vtkIGTLConnector*>(ptr);
+  std::cerr << "Thread Function about to start" << std::endl;
   vtkMultiThreader::ThreadInfo* vinfo = 
-    static_cast<vtkMultiThreader::ThreadInfo*>(ptr);
+  static_cast<vtkMultiThreader::ThreadInfo*>(ptr);
   vtkIGTLConnector* igtlcon = static_cast<vtkIGTLConnector*>(vinfo->UserData);
   
-  igtlcon->State = STATE_WAIT_CONNECTION;
-  
-  if (igtlcon->Type == TYPE_SERVER)
-    {
-    igtlcon->ServerSocket = igtl::ServerSocket::New();
-    igtlcon->ServerSocket->CreateServer(igtlcon->ServerPort);
-    }
-  
-  // Communication -- common to both Server and Client
-  while (!igtlcon->ServerStopFlag)
-    {
-    //vtkErrorMacro("vtkOpenIGTLinkIFLogic::ThreadFunction(): alive.");
-    igtlcon->Mutex->Lock();
-    //igtlcon->Socket = igtlcon->WaitForConnection();
-    igtlcon->WaitForConnection();
-    igtlcon->Mutex->Unlock();
-    if (igtlcon->Socket.IsNotNull())
-      {
-      igtlcon->State = STATE_CONNECTED;
-      //vtkErrorMacro("vtkOpenIGTLinkIFLogic::ThreadFunction(): Client Connected.");
-      igtlcon->ReceiveController();
-      igtlcon->State = STATE_WAIT_CONNECTION;
-      }
-    }
-
-  if (igtlcon->Socket.IsNotNull())
-    {
-    igtlcon->Socket->CloseSocket();
-    }
-
-  if (igtlcon->Type == TYPE_SERVER && igtlcon->ServerSocket.IsNotNull())
-    {
-    igtlcon->ServerSocket->CloseSocket();
-    }
+  //StartThread function re-implemented in child classes
+  igtlcon->StartThread();
   
   igtlcon->ThreadID = -1;
   igtlcon->State = STATE_OFF;
-
+  
   return NULL;
-
-}
-
-//---------------------------------------------------------------------------
-//igtl::ClientSocket::Pointer vtkIGTLConnector::WaitForConnection()
-int vtkIGTLConnector::WaitForConnection()
-{
-  //igtl::ClientSocket::Pointer socket;
-
-  if (this->Type == TYPE_CLIENT)
-    {
-    //socket = igtl::ClientSocket::New();
-    this->Socket = igtl::ClientSocket::New();
-    }
-
-  while (!this->ServerStopFlag)
-    {
-    if (this->Type == TYPE_SERVER)
-      {
-      //vtkErrorMacro("vtkIGTLConnector: Waiting for client @ port #" << this->ServerPort);
-      this->Socket = this->ServerSocket->WaitForConnection(1000);      
-      if (this->Socket.IsNotNull()) // if client connected
-        {
-        //vtkErrorMacro("vtkIGTLConnector: connected.");
-        return 1;
-        }
-      }
-    else if (this->Type == TYPE_CLIENT) // if this->Type == TYPE_CLIENT
-      {
-      //vtkErrorMacro("vtkIGTLConnector: Connecting to server...");
-      int r = this->Socket->ConnectToServer(this->ServerHostname.c_str(), this->ServerPort);
-      if (r == 0) // if connected to server
-        {
-        return 1;
-        }
-      else
-        {
-        break;
-        }
-      }
-    else
-      {
-      this->ServerStopFlag = true;
-      }
-    }
-
-  if (this->Socket.IsNotNull())
-    {
-    //vtkErrorMacro("vtkOpenIGTLinkLogic::WaitForConnection(): Socket Closed.");
-    this->Socket->CloseSocket();
-    }
-
-  //return NULL;
-  return 0;
 }
 
 //---------------------------------------------------------------------------
 int vtkIGTLConnector::ReceiveController()
 {
-  //igtl_header header;
+  //Create OpenIGTLink message header;
   igtl::MessageHeader::Pointer headerMsg;
   headerMsg = igtl::MessageHeader::New();
-
-  if (this->Socket.IsNull())
-    {
-    return 0;
-    }
   
-  while (!this->ServerStopFlag)
+  //----------------------------------------------------------------
+  // Receive Header
+  //----------------------------------------------------------------
+
+  while (!this->ConnectorStopFlag)
     {
-    
-    // check if connection is alive
-    if (!this->Socket->GetConnected())
-      {
-      break;
-      }
-
-    //----------------------------------------------------------------
-    // Receive Header
     headerMsg->InitPack();
-
-    int r = this->Socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+    //ReceiveData function implemented in child classes
+    int r = this->ReceiveData(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
     if (r != headerMsg->GetPackSize())
       {
       vtkErrorMacro("Irregluar size.");
@@ -337,10 +195,10 @@ int vtkIGTLConnector::ReceiveController()
         RegisterDeviceIO(id, IO_INCOMING);
         }
       }
-    
+
     //----------------------------------------------------------------
     // Search Circular Buffer
-
+ 
     // TODO: 
     // Currently, the circular buffer is selected by device name, but
     // it should be selected by device name and device type.
@@ -353,72 +211,48 @@ int vtkIGTLConnector::ReceiveController()
       this->Buffer[key] = vtkIGTLCircularBuffer::New();
       this->CircularBufferMutex->Unlock();
       }
-    
+
     //----------------------------------------------------------------
-    // Load to the circular buffer
-    
+    // Load OpenIGTLink Message to Circular Buffer
+    //----------------------------------------------------------------
+
     vtkIGTLCircularBuffer* circBuffer = this->Buffer[key];
-    
+
     if (circBuffer && circBuffer->StartPush() != -1)
-      {
-      //std::cerr << "Pushing into the circular buffer." << std::endl;
-      circBuffer->StartPush();
-      
+     {
+     //std::cerr << "Pushing into the circular buffer." << std::endl;
+     circBuffer->StartPush();
+  
       igtl::MessageBase::Pointer buffer = circBuffer->GetPushBuffer();
       buffer->SetMessageHeader(headerMsg);
       buffer->AllocatePack();
-
-      int read = this->Socket->Receive(buffer->GetPackBodyPointer(), buffer->GetPackBodySize());
+    
+      //ReceiveData function implemented in child classes
+      int read = this->ReceiveData(buffer->GetPackBodyPointer(), buffer->GetPackBodySize());
       if (read != buffer->GetPackBodySize())
-        {
-        vtkErrorMacro ("Only read " << read << " but expected to read "
-                       << buffer->GetPackBodySize() << "\n");
-        continue;
-        }
-      
+       {
+       vtkErrorMacro ("Only read " << read << " but expected to read "
+                      << buffer->GetPackBodySize() << "\n");
+       continue;
+       }
+  
       //Log body data
       if (logData)
-        {
-        std::cerr << "Saving body data" << std::endl;
-        this->LogData((char*)buffer->GetPackBodyPointer(), buffer->GetPackBodySize());
-        }
-      
-      circBuffer->EndPush();
-      
+       {
+       std::cerr << "Saving body data" << std::endl;
+       this->LogData((char*)buffer->GetPackBodyPointer(), buffer->GetPackBodySize());
+       }
+  
+      circBuffer->EndPush();  
       }
     else
       {
       break;
       }
-    
-    } // while (!this->ServerStopFlag)
-  
-  this->Socket->CloseSocket();
-  
+    } // while (!this->ConnectorStopFlag)
+
   return 0;
-    
 }
-  
-
-//---------------------------------------------------------------------------
-int vtkIGTLConnector::SendData(int size, unsigned char* data)
-{
-  
-  if (this->Socket.IsNull())
-    {
-    return 0;
-    }
-  
-  // check if connection is alive
-  if (!this->Socket->GetConnected())
-    {
-    return 0;
-    }
-
-  return this->Socket->Send(data, size);  // return 1 on success, otherwise 0.
-
-}
-
 
 //---------------------------------------------------------------------------
 int vtkIGTLConnector::Skip(int length, int skipFully/*=1*/)
@@ -435,14 +269,12 @@ int vtkIGTLConnector::Skip(int length, int skipFully/*=1*/)
       block = remain;
       }
     
-    n = this->Socket->Receive(dummy, block, skipFully);
+    n = this->ReceiveData((void*)dummy, block, skipFully);
     remain -= n;
     }
   while (remain > 0 || (skipFully && n < block));
 
   return (length - remain);
-
-
 }
 
 

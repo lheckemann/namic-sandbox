@@ -88,7 +88,9 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
     NODE_DEVICE    = 3
   };
 
-  static const char* ConnectorTypeStr[vtkIGTLConnector::NUM_TYPE];
+  static const int NUM_TYPE = 4;
+  //static const char* ConnectorTypeStr[vtkIGTLConnector::NUM_TYPE + 1];
+  static const char* ConnectorTypeStr[NUM_TYPE];
   static const char* ConnectorStatusStr[vtkIGTLConnector::NUM_STATE];
 
   typedef std::vector<int> ConnectorIDListType;
