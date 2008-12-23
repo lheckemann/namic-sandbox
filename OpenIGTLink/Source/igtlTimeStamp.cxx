@@ -24,8 +24,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkRealTimeClock.cxx,v $
   Language:  C++
-  Date:      $Date: 2005-11-29 14:51:11 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date$
+  Version:   $Revision$
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.

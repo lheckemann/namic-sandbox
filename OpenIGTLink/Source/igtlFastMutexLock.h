@@ -18,8 +18,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkFastMutexLock.h,v $
   Language:  C++
-  Date:      $Date: 2006-03-06 15:07:34 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date$
+  Version:   $Revision$
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
