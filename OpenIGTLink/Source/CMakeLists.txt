@@ -6,6 +6,7 @@ IF(OpenIGTLink_PLATFORM_WIN32) # for Windows System
 ELSE(OpenIGTLink_PLATFORM_WIN32) # for POSIX-compatible OSs
   SET(LINK_LIBS
     m
+    pthread
   )
   IF(OpenIGTLink_PLATFORM_QNX)
     SET(LINK_LIBS
