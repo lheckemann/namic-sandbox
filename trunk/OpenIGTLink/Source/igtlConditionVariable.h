@@ -18,8 +18,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkConditionVariable.h,v $
   Language:  C++
-  Date:      $Date: 2007/01/26 14:28:44 $
-  Version:   $Revision: 1.11 $
+  Date:      $Date$
+  Version:   $Revision$
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.

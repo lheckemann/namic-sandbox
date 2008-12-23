@@ -18,8 +18,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkMacro.h,v $
   Language:  C++
-  Date:      $Date: 2007-12-28 18:28:29 $
-  Version:   $Revision: 1.83 $
+  Date:      $Date$
+  Version:   $Revision$
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.

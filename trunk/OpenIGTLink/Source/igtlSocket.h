@@ -32,8 +32,8 @@
   Program:   Open ITK Link Library
   Module:    $RCSfile: itkImage.h,v $
   Language:  C++
-  Date:      $Date: 2008/01/13 19:48:38 $
-  Version:   $Revision: 1.142 $
+  Date:      $Date$
+  Version:   $Revision$
 
   Copyright (c) Insight Software Consortium. All rights reserved.
 
