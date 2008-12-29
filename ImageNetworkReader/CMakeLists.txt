@@ -30,7 +30,7 @@ Add_Executable(ImageNetworkReaderTest ImageNetworkReaderTest.cxx )
 Target_Link_Libraries(ImageNetworkReaderTest ${ITK_LIBRARIES} curl) 
 INCLUDE_DIRECTORIES(${ImageNetworkReader_SOURCE_DIR}/curl/curl)
 
-
+ADD_DEFINITIONS ( -DTEST_CURL_SSL )
 # Test it
 Add_Test(ImageNetworkReaderTest ImageNetworkReaderTest http://www.na-mic.org/Wiki/images/f/f6/Test.nhdr)
 
