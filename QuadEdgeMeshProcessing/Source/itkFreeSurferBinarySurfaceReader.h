@@ -104,16 +104,20 @@ private:
 
   void OpenFile();
   void CloseFile();
+  void PrepareOutputMesh();
   void ReadHeader();
   void ReadSurface();
   void ReadFileType();
   void ReadComment();
   void ReadNumberOfPoints();
   void ReadNumberOfCells();
-  void ReadPoint();
+  void ReadPoints();
+  void ReadCells();
 
   void ReadInteger32( ITK_UINT32 & valueToRead );
   void ReadFloat( float & valueToRead );
+  void ReadPoint( PointType & point );
+  void ReadCell();
 
   std::ifstream  m_InputFile;
 
