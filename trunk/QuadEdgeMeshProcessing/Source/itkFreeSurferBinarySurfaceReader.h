@@ -21,6 +21,9 @@
 #include "itkMeshSource.h"
 #include "itkTriangleCell.h"
 #include "itkMapContainer.h"
+#include "itkIntTypes.h"
+
+#include <fstream>
 
 namespace itk
 {
@@ -93,11 +96,32 @@ protected:
   void GenerateData();
 
   /** Filename to read */
-  std::string m_FileName;
+  std::string      m_FileName;
 
 private:
   FreeSurferBinarySurfaceReader(const Self&); // purposely not implemented
   void operator=(const Self&); // purposely not implemented
+
+  void OpenFile();
+  void CloseFile();
+  void ReadHeader();
+  void ReadSurface();
+  void ReadFileType();
+  void ReadComment();
+  void ReadNumberOfPoints();
+  void ReadNumberOfCells();
+  void ReadPoint();
+
+  void ReadInteger32( ITK_UINT32 & valueToRead );
+  void ReadFloat( float & valueToRead );
+
+  std::ifstream  m_InputFile;
+
+  ITK_UINT32     m_FileType;
+  ITK_UINT32     m_NumberOfPoints;
+  ITK_UINT32     m_NumberOfCells;
+  std::string    m_Comment;
+
 };
 
 } // end namespace itk
