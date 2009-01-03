@@ -117,14 +117,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   this->m_FileType |= fileTypeId[2];
   this->m_FileType <<= 8;
 
-  std::cout << "FileType " 
-    << int(fileTypeId[0]) << " "
-    << int(fileTypeId[1]) << " "
-    << int(fileTypeId[2]) << " " << std::endl;
-
   itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &(this->m_FileType) );
-
-  std::cout << this->m_FileType << std::endl;
 }
 
 
@@ -148,7 +141,6 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
     byte = this->m_InputFile.get();
     }
 
-  std::cout << "Comment = " << this->m_Comment << std::endl;
 
   //
   // Try to get the second '\n', but if the '\n' is not there, we put the byte
@@ -168,7 +160,6 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadNumberOfPoints()
 {
   this->ReadInteger32( this->m_NumberOfPoints );
-  std::cout << "Number of points = " << this->m_NumberOfPoints << std::endl;
 }
 
 
@@ -178,7 +169,6 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadNumberOfCells()
 {
   this->ReadInteger32( this->m_NumberOfCells );
-  std::cout << "Number of cells = " << this->m_NumberOfCells << std::endl;
 }
 
 
@@ -233,10 +223,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
     {
     TriangleCellType * triangleCell = new TriangleCellType;
 
-    std::cout << "Cell " << ic << " = ";
-
     this->ReadCell( *triangleCell );
-
 
     CellAutoPointer cell;
     cell.TakeOwnership( triangleCell );
@@ -257,10 +244,8 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   for( PointIdentifier k = 0; k < numberOfCellPoints; k++ )
     {
     this->ReadInteger32( pointId );
-    std::cout << pointId << " : ";
     triangleCell.SetPointId( k, pointId );
     }
-  std::cout << std::endl;
 }
 
 
@@ -297,7 +282,6 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   this->ReadFloat( x );
   this->ReadFloat( y );
   this->ReadFloat( z );
-  std::cout <<  "Point = " << x << " " << y << " " << z << std::endl;
   
   point[0] = x;
   point[1] = y;
@@ -313,6 +297,10 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   Superclass::PrintSelf(os,indent);
 
   os << indent << "FileName: " << this->m_FileName << std::endl;
+  os << indent << "FileType: " << this->m_FileType << std::endl;
+  os << indent << "Comment : " << this->m_Comment << std::endl;
+  os << indent << "Number of Points : " << this->m_NumberOfPoints << std::endl;
+  os << indent << "Number of Cells  : " << this->m_NumberOfCells << std::endl;
 }
 
 } //end of namespace itk
