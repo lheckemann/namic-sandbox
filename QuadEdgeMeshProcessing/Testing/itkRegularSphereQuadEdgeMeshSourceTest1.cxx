@@ -41,11 +41,7 @@ int main( int argc, char * argv [] )
 
   typedef itk::RegularSphereMeshSource< MeshType >  SphereMeshSourceType;
 
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >   WriterType;
-
   SphereMeshSourceType::Pointer  mySphereMeshSource = SphereMeshSourceType::New();
-
-  WriterType::Pointer writer = WriterType::New();
 
   typedef SphereMeshSourceType::PointType   PointType;
   typedef SphereMeshSourceType::VectorType  VectorType;
@@ -62,17 +58,15 @@ int main( int argc, char * argv [] )
 
   mySphereMeshSource->Modified();
 
-  writer->SetInput( mySphereMeshSource->GetOutput() );
-  writer->SetFileName( argv[1] );
-
   try
     {
-    writer->Update();
+    mySphereMeshSource->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cerr << "Error during Update() " << std::endl;
+    std::cerr << "Error during source Update() " << std::endl;
     std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
     }
 
   std::cout << "mySphereMeshSource: " << mySphereMeshSource;
@@ -83,13 +77,54 @@ int main( int argc, char * argv [] )
 
   std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
 
-  for(unsigned int i=0; i<myMesh->GetNumberOfPoints(); i++) 
+  myMesh->Print( std::cout );
+
+  for( unsigned int i=0; i < myMesh->GetNumberOfPoints(); i++ )
     {
     myMesh->GetPoint(i, &pt);
     std::cout << "Point[" << i << "]: " << pt << std::endl;
     }
 
+  typedef MeshType::CellsContainerPointer  CellsContainerPointer;
+  typedef MeshType::CellsContainerIterator CellsContainerIterator;
+  typedef MeshType::CellType               CellType;
+
+  CellsContainerPointer cells = myMesh->GetCells();
+
+  unsigned faceId = 0;
+
+  for( MeshType::CellsContainerIterator cells_it = cells->Begin();
+       cells_it != cells->End();
+       ++cells_it, faceId++ )
+    {
+    CellType* cellPointer = cells_it.Value();
+    if( cellPointer->GetType() != 1 )
+      {
+      std::cout <<"Face " << faceId << " has " << cellPointer->GetNumberOfPoints() 
+                <<" points" << std::endl;
+      }
+    }
+
   std::cout << "Test End "<< std::endl;
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >   WriterType;
+
+  WriterType::Pointer writer = WriterType::New();
+
+  writer->SetInput( mySphereMeshSource->GetOutput() );
+  writer->SetFileName( argv[1] );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during writer Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   return EXIT_SUCCESS;
 
