@@ -227,7 +227,42 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadCells()
 {
+  typename OutputMeshType::Pointer outputMesh = this->GetOutput();
+
+  for( unsigned int ic=0; ic < this->m_NumberOfCells; ic++ )
+    {
+    TriangleCellType * triangleCell = new TriangleCellType;
+
+    std::cout << "Cell " << ic << " = ";
+
+    this->ReadCell( *triangleCell );
+
+
+    CellAutoPointer cell;
+    cell.TakeOwnership( triangleCell );
+    outputMesh->SetCell( ic, cell );
+    }
 }
+
+
+template<class TOutputMesh>
+void
+FreeSurferBinarySurfaceReader<TOutputMesh>
+::ReadCell( TriangleCellType & triangleCell )
+{
+  const unsigned int numberOfCellPoints = 3; // Triangles
+
+  ITK_UINT32 pointId;
+
+  for( PointIdentifier k = 0; k < numberOfCellPoints; k++ )
+    {
+    this->ReadInteger32( pointId );
+    std::cout << pointId << " : ";
+    triangleCell.SetPointId( k, pointId );
+    }
+  std::cout << std::endl;
+}
+
 
 template<class TOutputMesh>
 void
