@@ -3,6 +3,13 @@ SET(CXX_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
 SET(TEST_DATA_ROOT ${QuadEdgeMeshProcessing_SOURCE_DIR})
 SET(TEMP ${QuadEdgeMeshProcessing_BINARY_DIR}/Testing/Temporary)
 
+FIND_PATH(FREESURFER_DIR
+  SetUpFreeSurfer.sh
+  PATHS
+  $ENV{FREESURFER_HOME}
+  DOC "Directory where FreeSurfer is installed"
+  )
+
 #######################
 #######################
 #
@@ -42,13 +49,17 @@ ADD_TEST(itkRegularSphereQuadEdgeMeshSourceTest1
   ${TEMP}/itkRegularSphereQuadEdgeMeshSourceTest1.vtk
  )
 
+IF( FREESURFER_DIR )
+
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest1
   ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest1
-  ${FREESURFER_HOME}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
  )
 
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest2
   ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
-  ${FREESURFER_HOME}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
  )
+
+ENDIF( FREESURFER_DIR )
 
