@@ -43,18 +43,9 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::GenerateData()
 {
-  typename OutputMeshType::Pointer outputMesh = this->GetOutput();
-
-  outputMesh->SetCellsAllocationMethod(
-      OutputMeshType::CellsAllocatedDynamicallyCellByCell );
-
-  if( m_FileName == "" )
-    {
-    itkExceptionMacro("No input FileName");
-    }
-
   this->OpenFile();
   this->ReadHeader();
+  this->PrepareOutputMesh();
   this->ReadSurface();
   this->CloseFile();
 }
@@ -65,15 +56,20 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::OpenFile()
 {
+  if( this->m_FileName == "" )
+    {
+    itkExceptionMacro("No input FileName");
+    }
+
   //
   // Open file 
   //
-  this->m_InputFile.open( m_FileName.c_str() );
+  this->m_InputFile.open( this->m_FileName.c_str() );
 
   if( !this->m_InputFile.is_open() )
     {
     itkExceptionMacro("Unable to open file\n"
-        "inputFilename= " << m_FileName );
+        "inputFilename= " << this->m_FileName );
     }
 }
 
@@ -110,6 +106,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   this->m_InputFile.read( fileTypeId, fileTypeIdLength );
 
   this->m_FileType = 0;
+  this->m_FileType <<= 8;
 
   this->m_FileType |= fileTypeId[0];
   this->m_FileType <<= 8;
@@ -124,6 +121,8 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
     << int(fileTypeId[0]) << " "
     << int(fileTypeId[1]) << " "
     << int(fileTypeId[2]) << " " << std::endl;
+
+  itk::ByteSwapper<ITK_UINT32>::SwapFromSystemToBigEndian( &(this->m_FileType) );
 
   std::cout << this->m_FileType << std::endl;
 }
@@ -186,14 +185,49 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 template<class TOutputMesh>
 void
 FreeSurferBinarySurfaceReader<TOutputMesh>
+::PrepareOutputMesh()
+{
+  typename OutputMeshType::Pointer outputMesh = this->GetOutput();
+
+  outputMesh->SetCellsAllocationMethod(
+      OutputMeshType::CellsAllocatedDynamicallyCellByCell );
+
+  outputMesh->GetPoints()->Reserve( this->m_NumberOfPoints );
+}
+
+
+template<class TOutputMesh>
+void
+FreeSurferBinarySurfaceReader<TOutputMesh>
 ::ReadSurface()
 {
+  this->ReadPoints();
+  this->ReadCells();
+}
+
+
+template<class TOutputMesh>
+void
+FreeSurferBinarySurfaceReader<TOutputMesh>
+::ReadPoints()
+{
+  typename OutputMeshType::Pointer outputMesh = this->GetOutput();
+
+  PointType point;
   for( unsigned int ip=0; ip < this->m_NumberOfPoints; ip++ )
     {
-    this->ReadPoint();
+    this->ReadPoint( point );
+    outputMesh->SetPoint( ip, point );
     }
 }
 
+
+template<class TOutputMesh>
+void
+FreeSurferBinarySurfaceReader<TOutputMesh>
+::ReadCells()
+{
+}
 
 template<class TOutputMesh>
 void
@@ -220,7 +254,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 template<class TOutputMesh>
 void
 FreeSurferBinarySurfaceReader<TOutputMesh>
-::ReadPoint()
+::ReadPoint( PointType & point )
 {
   float x;
   float y;
@@ -229,6 +263,10 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
   this->ReadFloat( y );
   this->ReadFloat( z );
   std::cout <<  "Point = " << x << " " << y << " " << z << std::endl;
+  
+  point[0] = x;
+  point[1] = y;
+  point[2] = z;
 }
 
 
@@ -239,7 +277,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "FileName: " << m_FileName << std::endl;
+  os << indent << "FileName: " << this->m_FileName << std::endl;
 }
 
 } //end of namespace itk
