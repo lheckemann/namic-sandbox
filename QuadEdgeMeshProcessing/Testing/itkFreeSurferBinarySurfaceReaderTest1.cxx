@@ -23,14 +23,15 @@
 #include "itkMesh.h"
 #include "itkFreeSurferBinarySurfaceReader.h"
 #include "itkDefaultStaticMeshTraits.h"
+#include "itkVTKPolyDataWriter.h"
 
 #include <iostream>
 
 int main(int argc, char* argv[] )
 {
-  if( argc != 2 )
+  if( argc != 3 )
     {
-    std::cerr << "Usage: itkFreeSurferBinarySurfaceReaderTest inputFilename"
+    std::cerr << "Usage: itkFreeSurferBinarySurfaceReaderTest inputFilename outputFilename.vtk"
       << std::endl;
     return EXIT_FAILURE;
     }
@@ -38,16 +39,16 @@ int main(int argc, char* argv[] )
   typedef itk::Mesh<float, 3>                 MeshType;
   typedef itk::FreeSurferBinarySurfaceReader< MeshType >  ReaderType;
 
-  ReaderType::Pointer  polyDataReader = ReaderType::New();
+  ReaderType::Pointer  surfaceReader = ReaderType::New();
 
   typedef ReaderType::PointType   PointType;
   typedef ReaderType::VectorType  VectorType;
 
-  polyDataReader->SetFileName(argv[1]);
+  surfaceReader->SetFileName(argv[1]);
 
   try
     {
-    polyDataReader->Update();
+    surfaceReader->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -55,10 +56,10 @@ int main(int argc, char* argv[] )
     std::cerr << excp << std::endl;
     }
 
-  std::cout << "polyDataReader:" << std::endl;
-  std::cout << polyDataReader << std::endl;
+  std::cout << "surfaceReader:" << std::endl;
+  std::cout << surfaceReader << std::endl;
 
-  MeshType::Pointer mesh = polyDataReader->GetOutput();
+  MeshType::Pointer mesh = surfaceReader->GetOutput();
 
   PointType  point;
 
@@ -85,8 +86,15 @@ int main(int argc, char* argv[] )
   for(unsigned int i=0; i<numberOfPoints; i++)
     {
     mesh->GetPoint(i, &point);
-    //std::cout << "Point[" << i << "]: " << point << std::endl;
+    std::cout << "Point[" << i << "]: " << point << std::endl;
     }
+
+  typedef itk::VTKPolyDataWriter<MeshType>   WriterType;
+
+  WriterType::Pointer writer = WriterType::New();
+  writer->SetInput( mesh  );
+  writer->SetFileName( argv[2] );
+  writer->Write();
 
   std::cout << "Test passed"<< std::endl;
   return EXIT_SUCCESS;

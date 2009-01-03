@@ -54,12 +54,14 @@ IF( FREESURFER_DIR )
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest1
   ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest1
   ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
- )
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest1.vtk
+  )
 
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest2
   ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
   ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
- )
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
+  )
 
 ENDIF( FREESURFER_DIR )
 
