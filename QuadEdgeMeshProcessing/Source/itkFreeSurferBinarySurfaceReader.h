@@ -117,7 +117,7 @@ private:
   void ReadInteger32( ITK_UINT32 & valueToRead );
   void ReadFloat( float & valueToRead );
   void ReadPoint( PointType & point );
-  void ReadCell();
+  void ReadCell( TriangleCellType & triangleCell );
 
   std::ifstream  m_InputFile;
 
