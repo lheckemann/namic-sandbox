@@ -30,6 +30,8 @@ TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest1 ITKQuadEdgeMesh ITKI
 ADD_EXECUTABLE(itkFreeSurferBinarySurfaceReaderTest2 itkFreeSurferBinarySurfaceReaderTest2.cxx )
 TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkConformalFlatteningQuadEdgeMeshFilterTest itkConformalFlatteningQuadEdgeMeshFilterTest.cxx )
+TARGET_LINK_LIBRARIES(itkConformalFlatteningQuadEdgeMeshFilterTest ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 
 ###################
@@ -73,6 +75,24 @@ ADD_TEST(itkFreeSurferBinarySurfaceReaderTest4
   ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
   ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest4.vtk
+  )
+
+ADD_TEST(itkConformalFlatteningQuadEdgeMeshFilterTest01
+  ${CXX_TEST_PATH}/itkConformalFlatteningQuadEdgeMeshFilterTest
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
+  ${TEMP}/itkConformalFlatteningQuadEdgeMeshFilterTest01.vtk
+  0    # Polar cell Id
+  1.0  # Scale
+  1    # Map to sphere
+  )
+
+ADD_TEST(itkConformalFlatteningQuadEdgeMeshFilterTest02
+  ${CXX_TEST_PATH}/itkConformalFlatteningQuadEdgeMeshFilterTest
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest4.vtk
+  ${TEMP}/itkConformalFlatteningQuadEdgeMeshFilterTest02.vtk
+  0    # Polar cell Id
+  1.0  # Scale
+  1    # Map to sphere
   )
 
 ENDIF( FREESURFER_DIR )
