@@ -63,5 +63,17 @@ ADD_TEST(itkFreeSurferBinarySurfaceReaderTest2
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
   )
 
+ADD_TEST(itkFreeSurferBinarySurfaceReaderTest3
+  ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest1
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest3.vtk
+  )
+
+ADD_TEST(itkFreeSurferBinarySurfaceReaderTest4
+  ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest4.vtk
+  )
+
 ENDIF( FREESURFER_DIR )
 
