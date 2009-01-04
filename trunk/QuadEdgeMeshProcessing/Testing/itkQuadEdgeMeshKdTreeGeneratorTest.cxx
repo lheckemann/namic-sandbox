@@ -122,7 +122,11 @@ int main(int argc, char *argv[])
     {
     mesh->GetPoint(i, &queryPoint);
     tree->Search( queryPoint, numberOfNeighbors, neighbors ); 
-    std::cout << i << " " << neighbors[0] << std::endl;
+
+    if( neighbors[0] != i )
+      {
+      std::cout << "difference at " << i << " " << neighbors[0] << std::endl;
+      }
     }
 
   std::cout << "Test passed." << std::endl;
