@@ -108,44 +108,23 @@ int main(int argc, char *argv[])
 
   TreeType::Pointer tree = treeGenerator->GetOutput();
 
-  MeasurementVectorType queryPoint;
-  queryPoint[0] = 10.0;
-  queryPoint[1] = 7.0;
-  queryPoint[2] = 7.0;
 
-  unsigned int numberOfNeighbors = 5;
+  typedef MeasurementVectorType    PointType;
+
+  unsigned int numberOfPoints = mesh->GetNumberOfPoints();
 
   TreeType::InstanceIdentifierVectorType neighbors;
-  tree->Search( queryPoint, numberOfNeighbors, neighbors ); 
-  
-  std::cout << "kd-tree knn search result:" << std::endl 
-            << "query point = [" << queryPoint << "]" << std::endl
-            << "k = " << numberOfNeighbors << std::endl;
-  std::cout << "measurement vector : distance" << std::endl;
+  unsigned int numberOfNeighbors = 1;
 
-  for ( unsigned int i = 0; i < numberOfNeighbors; ++i )
+  PointType queryPoint;
+
+  for(unsigned int i=0; i<numberOfPoints; i++)
     {
-    std::cout << "[" << tree->GetMeasurementVector( neighbors[i] )
-              << "] : "  
-              << queryPoint.EuclideanDistanceTo( tree->GetMeasurementVector( neighbors[i]) ) << std::endl;
+    mesh->GetPoint(i, &queryPoint);
+    tree->Search( queryPoint, numberOfNeighbors, neighbors ); 
+    std::cout << i << " " << neighbors[0] << std::endl;
     }
 
-  double radius = 10.0;
-
-  tree->Search( queryPoint, radius, neighbors ); 
-  
-  std::cout << "kd-tree radius search result:" << std::endl
-            << "query point = [" << queryPoint << "]" << std::endl
-            << "search radius = " << radius << std::endl;
-  std::cout << "measurement vector : distance" << std::endl;
-
-  for ( unsigned int i = 0; i < neighbors.size(); ++i )
-    {
-    std::cout << "[" << tree->GetMeasurementVector( neighbors[i] )
-              << "] : "  
-              << queryPoint.EuclideanDistanceTo( tree->GetMeasurementVector( neighbors[i]) ) << std::endl;
-    }    
-  
   std::cout << "Test passed." << std::endl;
 
   return EXIT_SUCCESS;
