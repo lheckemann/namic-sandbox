@@ -29,10 +29,11 @@
 
 int main(int argc, char* argv[] )
 {
-  if( argc != 3 )
+  if( argc < 3 )
     {
-    std::cerr << "Usage: itkFreeSurferBinarySurfaceReaderTest inputFilename outputFilename.vtk"
-      << std::endl;
+    std::cerr << "Usage: itkFreeSurferBinarySurfaceReaderTest inputFilename outputFilename.vtk";
+    std::cerr << " [printOutPoints:0/1] ";
+    std::cerr << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -83,10 +84,20 @@ int main(int argc, char* argv[] )
     return EXIT_FAILURE;
     }
 
-  for(unsigned int i=0; i<numberOfPoints; i++)
+  bool printOutPoints = false;
+
+  if( argc > 3 )
     {
-    mesh->GetPoint(i, &point);
-    std::cout << "Point[" << i << "]: " << point << std::endl;
+    printOutPoints = atoi( argv[3] );
+    }
+
+  if( printOutPoints )
+    {
+    for(unsigned int i=0; i<numberOfPoints; i++)
+      {
+      mesh->GetPoint(i, &point);
+      std::cout << "Point[" << i << "]: " << point << std::endl;
+      }
     }
 
   typedef itk::VTKPolyDataWriter<MeshType>   WriterType;
