@@ -66,27 +66,34 @@ int main(int argc, char *argv[])
   MeshType::Pointer mesh = reader->GetOutput();
 
 
-  typedef MeshType::PointType  MeasurementVectorType ;
-
-//  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
-
+  //
+  // Adapt the Mesh to make it look like a ListSample
+  //
   typedef itk::Statistics::PointSetToListAdaptor< MeshType > SampleType;
 
-  SampleType::Pointer sample = SampleType::New() ;
+  SampleType::Pointer sample = SampleType::New();
 
   sample->SetMeasurementVectorSize( Dimension );
 
   sample->SetPointSet( mesh );
 
-  typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType ;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
 
-  treeGenerator->SetSample( sample ) ;
-  treeGenerator->SetBucketSize( 16 ) ;
+  // This is the same PointType of the MeshType;
+  typedef SampleType::MeasurementVectorType   MeasurementVectorType;
+
+
+  //
+  // Instantiate the KdTreeGenerator
+  //
+  typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType;
+  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+
+  treeGenerator->SetSample( sample );
+  treeGenerator->SetBucketSize( 16 );
 
   try
     {
-    treeGenerator->Update() ;
+    treeGenerator->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -95,78 +102,48 @@ int main(int argc, char *argv[])
     }
 
 
-  typedef TreeGeneratorType::KdTreeType TreeType ;
-  typedef TreeType::NearestNeighbors NeighborsType ;
-  typedef TreeType::KdTreeNodeType NodeType ;
+  typedef TreeGeneratorType::KdTreeType TreeType;
+  typedef TreeType::NearestNeighbors NeighborsType;
+  typedef TreeType::KdTreeNodeType NodeType;
 
-  TreeType::Pointer tree = treeGenerator->GetOutput() ;
+  TreeType::Pointer tree = treeGenerator->GetOutput();
 
-  NodeType* root = tree->GetRoot() ;
+  MeasurementVectorType queryPoint;
+  queryPoint[0] = 10.0;
+  queryPoint[1] = 7.0;
+  queryPoint[2] = 7.0;
 
-  if ( root->IsTerminal() )
-    {
-    std::cout << "Root node is a terminal node." << std::endl ;
-    }
-  else
-    {
-    std::cout << "Root node is not a terminal node." << std::endl ;
-    }
+  unsigned int numberOfNeighbors = 5;
 
-  unsigned int partitionDimension ;
-  float partitionValue ;
-  root->GetParameters( partitionDimension, partitionValue) ;
-  std::cout << "Dimension chosen to split the space = " 
-            << partitionDimension << std::endl ;
-  std::cout << "Split point on the partition dimension = "
-            << partitionValue << std::endl ;
-
-  std::cout << "Address of the left child of the root node = "
-            << root->Left() << std::endl ;
-  
-  std::cout << "Address of the right child of the root node = "
-            << root->Right() << std::endl ;
-
-  MeasurementVectorType queryPoint ;
-  queryPoint[0] = 10.0 ;
-  queryPoint[1] = 7.0 ;
-
-  typedef itk::Statistics::EuclideanDistance< MeasurementVectorType > DistanceMetricType ;
-  DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New() ;
-  DistanceMetricType::OriginType origin( Dimension ) ;
-  for ( unsigned int i = 0 ; i < MeasurementVectorType::Length ; ++i )
-    {
-    origin[i] = queryPoint[i] ;
-    }
-  distanceMetric->SetOrigin( origin ) ;
-
-  unsigned int numberOfNeighbors = 3 ;
-  TreeType::InstanceIdentifierVectorType neighbors ;
-  tree->Search( queryPoint, numberOfNeighbors, neighbors ) ; 
+  TreeType::InstanceIdentifierVectorType neighbors;
+  tree->Search( queryPoint, numberOfNeighbors, neighbors ); 
   
   std::cout << "kd-tree knn search result:" << std::endl 
             << "query point = [" << queryPoint << "]" << std::endl
-            << "k = " << numberOfNeighbors << std::endl ;
-  std::cout << "measurement vector : distance" << std::endl ;
-  for ( unsigned int i = 0 ; i < numberOfNeighbors ; ++i )
+            << "k = " << numberOfNeighbors << std::endl;
+  std::cout << "measurement vector : distance" << std::endl;
+
+  for ( unsigned int i = 0; i < numberOfNeighbors; ++i )
     {
     std::cout << "[" << tree->GetMeasurementVector( neighbors[i] )
               << "] : "  
-              << distanceMetric->Evaluate( tree->GetMeasurementVector( neighbors[i])) << std::endl ;
+              << queryPoint.EuclideanDistanceTo( tree->GetMeasurementVector( neighbors[i]) ) << std::endl;
     }
 
-  double radius = 437.0 ;
+  double radius = 10.0;
 
-  tree->Search( queryPoint, radius, neighbors ) ; 
+  tree->Search( queryPoint, radius, neighbors ); 
   
   std::cout << "kd-tree radius search result:" << std::endl
             << "query point = [" << queryPoint << "]" << std::endl
-            << "search radius = " << radius << std::endl ;
-  std::cout << "measurement vector : distance" << std::endl ;
-  for ( unsigned int i = 0 ; i < neighbors.size() ; ++i )
+            << "search radius = " << radius << std::endl;
+  std::cout << "measurement vector : distance" << std::endl;
+
+  for ( unsigned int i = 0; i < neighbors.size(); ++i )
     {
     std::cout << "[" << tree->GetMeasurementVector( neighbors[i] )
               << "] : "  
-              << distanceMetric->Evaluate( tree->GetMeasurementVector( neighbors[i])) << std::endl ;
+              << queryPoint.EuclideanDistanceTo( tree->GetMeasurementVector( neighbors[i]) ) << std::endl;
     }    
   
   std::cout << "Test passed." << std::endl;
