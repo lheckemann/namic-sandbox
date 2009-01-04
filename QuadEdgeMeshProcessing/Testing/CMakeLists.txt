@@ -33,6 +33,9 @@ TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest2 ITKQuadEdgeMesh ITKI
 ADD_EXECUTABLE(itkConformalFlatteningQuadEdgeMeshFilterTest itkConformalFlatteningQuadEdgeMeshFilterTest.cxx )
 TARGET_LINK_LIBRARIES(itkConformalFlatteningQuadEdgeMeshFilterTest ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkQuadEdgeMeshKdTreeGeneratorTest itkQuadEdgeMeshKdTreeGeneratorTest.cxx )
+TARGET_LINK_LIBRARIES(itkQuadEdgeMeshKdTreeGeneratorTest ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 
 ###################
 ###################
@@ -94,6 +97,13 @@ ADD_TEST(itkConformalFlatteningQuadEdgeMeshFilterTest02
   1.0  # Scale
   1    # Map to sphere
   )
+
+ADD_TEST(itkQuadEdgeMeshKdTreeGeneratorTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshKdTreeGeneratorTest
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
+  ${TEMP}/itkQuadEdgeMeshKdTreeGeneratorTest1.vtk
+  )
+
 
 ENDIF( FREESURFER_DIR )
 
