@@ -26,6 +26,7 @@
 #include "itkKdTreeGenerator.h"
 #include "itkEuclideanDistance.h"
 #include "itkPointSetToListAdaptor.h"
+#include "itkTimeProbesCollectorBase.h"
 
 
 int main(int argc, char *argv[])
@@ -44,6 +45,8 @@ int main(int argc, char *argv[])
  
   typedef itk::VTKPolyDataReader<MeshType>  ReaderType;
 
+  itk::TimeProbesCollectorBase chronometer;
+
   //
   // Read mesh file
   //
@@ -52,6 +55,8 @@ int main(int argc, char *argv[])
 
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
+
+  chronometer.Start("Reading");
 
   try
     {
@@ -62,6 +67,8 @@ int main(int argc, char *argv[])
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
+
+  chronometer.Stop("Reading");
 
   MeshType::Pointer mesh = reader->GetOutput();
 
@@ -91,6 +98,9 @@ int main(int argc, char *argv[])
   treeGenerator->SetSample( sample );
   treeGenerator->SetBucketSize( 16 );
 
+
+  chronometer.Start("Generate");
+
   try
     {
     treeGenerator->Update();
@@ -101,6 +111,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
     }
 
+  chronometer.Stop("Generate");
 
   typedef TreeGeneratorType::KdTreeType TreeType;
   typedef TreeType::NearestNeighbors NeighborsType;
@@ -118,6 +129,11 @@ int main(int argc, char *argv[])
 
   PointType queryPoint;
 
+  bool testPassed = true;
+
+
+  chronometer.Start("SearchClosest");
+
   for(unsigned int i=0; i<numberOfPoints; i++)
     {
     mesh->GetPoint(i, &queryPoint);
@@ -125,8 +141,19 @@ int main(int argc, char *argv[])
 
     if( neighbors[0] != i )
       {
-      std::cout << "difference at " << i << " " << neighbors[0] << std::endl;
+      std::cerr << "difference at " << i << " " << neighbors[0] << std::endl;
+      testPassed = false;
       }
+    }
+
+  chronometer.Stop("SearchClosest");
+
+  chronometer.Report( std::cout );
+
+  if( !testPassed )
+    {
+    std::cerr << "Test Failed." << std::endl;
+    return EXIT_FAILURE;
     }
 
   std::cout << "Test passed." << std::endl;
