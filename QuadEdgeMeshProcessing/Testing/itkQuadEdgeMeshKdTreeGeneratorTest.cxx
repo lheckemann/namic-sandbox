@@ -25,38 +25,75 @@
 #include "itkKdTree.h"
 #include "itkKdTreeGenerator.h"
 #include "itkEuclideanDistance.h"
+#include "itkPointSetToListAdaptor.h"
 
-int main(int, char* [])
+
+int main(int argc, char *argv[])
 {
+
+  if( argc < 2)
+    {
+    std::cerr << "Usage: " << argv[0] << " vtkInputFilename " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   const unsigned int Dimension = 3;
 
   typedef itk::QuadEdgeMesh< double, Dimension > MeshType;
  
   typedef itk::VTKPolyDataReader<MeshType>  ReaderType;
 
+  //
+  // Read mesh file
+  //
+
+  std::cout << "Read " << argv[1] << std::endl;
+
+  ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( argv[1] );
+
+  try
+    {
+    reader->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  MeshType::Pointer mesh = reader->GetOutput();
+
+
   typedef MeshType::PointType  MeasurementVectorType ;
 
-  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
+//  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
+
+  typedef itk::Statistics::PointSetToListAdaptor< MeshType > SampleType;
 
   SampleType::Pointer sample = SampleType::New() ;
 
   sample->SetMeasurementVectorSize( Dimension );
 
-  MeasurementVectorType mv ;
-  for (unsigned int i = 0 ; i < 1000 ; ++i )
-    {
-    mv[0] = (float) i ;
-    mv[1] = (float) ((1000 - i) / 2 ) ;
-    mv[2] = (float) ((2000 - i) / 3 ) ;
-    sample->PushBack( mv ) ;
-    }
+  sample->SetPointSet( mesh );
 
   typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType ;
   TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
 
   treeGenerator->SetSample( sample ) ;
   treeGenerator->SetBucketSize( 16 ) ;
-  treeGenerator->Update() ;
+
+  try
+    {
+    treeGenerator->Update() ;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   typedef TreeGeneratorType::KdTreeType TreeType ;
   typedef TreeType::NearestNeighbors NeighborsType ;
@@ -133,5 +170,6 @@ int main(int, char* [])
     }    
   
   std::cout << "Test passed." << std::endl;
+
   return EXIT_SUCCESS;
 }
