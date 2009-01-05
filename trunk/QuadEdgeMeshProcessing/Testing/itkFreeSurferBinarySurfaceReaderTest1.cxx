@@ -106,7 +106,17 @@ int main(int argc, char* argv[] )
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( mesh  );
   writer->SetFileName( argv[3] );
-  writer->Write();
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during writer Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   std::cout << "Test passed"<< std::endl;
   return EXIT_SUCCESS;
