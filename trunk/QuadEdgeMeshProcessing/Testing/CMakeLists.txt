@@ -30,6 +30,9 @@ TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest1 ITKQuadEdgeMesh ITKI
 ADD_EXECUTABLE(itkFreeSurferBinarySurfaceReaderTest2 itkFreeSurferBinarySurfaceReaderTest2.cxx )
 TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest1 itkLinearInterpolateMeshFunctionTest1.cxx )
+TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkConformalFlatteningQuadEdgeMeshFilterTest itkConformalFlatteningQuadEdgeMeshFilterTest.cxx )
 TARGET_LINK_LIBRARIES(itkConformalFlatteningQuadEdgeMeshFilterTest ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -59,25 +62,35 @@ IF( FREESURFER_DIR )
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest1
   ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest1
   ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest1.vtk
   )
 
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest2
   ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
   ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
   )
 
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest3
   ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest1
   ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.curv.pial
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest3.vtk
   )
 
 ADD_TEST(itkFreeSurferBinarySurfaceReaderTest4
   ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
   ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.curv.pial
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest4.vtk
+  )
+
+ADD_TEST(itkLinearInterpolateMeshFunctionTest1
+  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest1
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
   )
 
 ADD_TEST(itkConformalFlatteningQuadEdgeMeshFilterTest01
