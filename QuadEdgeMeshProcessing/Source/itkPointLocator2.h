@@ -18,6 +18,10 @@
 #define __itkPointLocator2_h
 
 #include "itkObject.h"
+#include "itkKdTree.h"
+#include "itkKdTreeGenerator.h"
+#include "itkEuclideanDistance.h"
+#include "itkPointSetToListAdaptor.h"
 
 namespace itk
 {
@@ -45,6 +49,8 @@ public:
   /** Standard part of every itk Object. */
   itkTypeMacro(PointLocator2, Object);
 
+  itkStaticConstMacro(PointDimension, unsigned int, TPointSet::PointDimension);
+
   /** Typedefs related to the PointSet type */
   typedef TPointSet                             PointSetType;
   typedef typename PointSetType::ConstPointer   PointSetConstPointer;
@@ -52,6 +58,11 @@ public:
   /** Connect the PointSet as input */
   itkSetConstObjectMacro( PointSet, PointSetType );
   itkGetConstObjectMacro( PointSet, PointSetType );
+
+  /** Pre-Compute the KdTree structure that will later facilitate the search of
+   * points */
+  void Initialize();
+
 
 protected:
   PointLocator2();
@@ -62,7 +73,18 @@ private:
   PointLocator2(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
+  typedef itk::Statistics::PointSetToListAdaptor< PointSetType >    SampleAdaptorType;
+  typedef typename SampleAdaptorType::Pointer                       SampleAdaptorPointer;
+
+  typedef itk::Statistics::KdTreeGenerator< SampleAdaptorType >     TreeGeneratorType;
+  typedef typename TreeGeneratorType::Pointer                       TreeGeneratorPointer;
+  typedef typename TreeGeneratorType::KdTreeType                    TreeType;
+  typedef typename TreeType::ConstPointer                           TreeConstPointer;
+
   PointSetConstPointer     m_PointSet;
+  SampleAdaptorPointer     m_SampleAdaptor;
+  TreeGeneratorPointer     m_KdTreeGenerator;
+  TreeConstPointer         m_Tree;
 };
 
 } // end namespace itk
