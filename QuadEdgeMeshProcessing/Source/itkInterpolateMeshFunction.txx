@@ -29,6 +29,7 @@ template <class TInputMesh, class TCoordRep>
 InterpolateMeshFunction<TInputMesh, TCoordRep>
 ::InterpolateMeshFunction()
 {
+  this->m_PointLocator = PointLocatorType::New();
 }
 
 
@@ -39,6 +40,43 @@ template <class TInputMesh, class TCoordRep>
 InterpolateMeshFunction<TInputMesh, TCoordRep>
 ::~InterpolateMeshFunction()
 {
+}
+
+
+/**
+ * Prepare the internal data structures of the point locator
+ */
+template <class TInputMesh, class TCoordRep>
+void
+InterpolateMeshFunction<TInputMesh, TCoordRep>
+::Initialize()
+{
+  this->m_PointLocator->SetPointSet( this->m_Mesh );
+  this->Initialize();
+}
+
+
+template <class TInputMesh, class TCoordRep>
+void
+InterpolateMeshFunction<TInputMesh, TCoordRep>
+::Search(const PointType &query,
+         unsigned int numberOfNeighborsRequested,
+         InstanceIdentifierVectorType& result) const
+{
+  typename PointLocatorType::PointType point( query );
+  this->m_PointLocator->Search( point, numberOfNeighborsRequested, result );
+}
+
+
+template <class TInputMesh, class TCoordRep>
+void
+InterpolateMeshFunction<TInputMesh, TCoordRep>
+::Search(const PointType &query,
+         double radius,
+         InstanceIdentifierVectorType& result) const
+{
+  typename PointLocatorType::PointType point( query );
+  this->m_PointLocator->Search( point, radius, result );
 }
 
 

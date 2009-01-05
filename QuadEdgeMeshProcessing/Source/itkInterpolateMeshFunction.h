@@ -18,6 +18,7 @@
 #define __itkInterpolateMeshFunction_h
 
 #include "itkMeshFunction.h"
+#include "itkPointLocator2.h"
 
 namespace itk
 {
@@ -81,15 +82,37 @@ public:
    **/
   virtual OutputType Evaluate( const PointType& point ) const;
 
+  /** Prepare internal data structures of the PointLocator. This method must be
+   * called before performing any call to Evaluate. */
+  void Initialize();
+
 protected:
   InterpolateMeshFunction();
   ~InterpolateMeshFunction();
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
+  typedef PointLocator2< TInputMesh >           PointLocatorType;
+  typedef typename PointLocatorType::Pointer    PointLocatorPointer;
+
+  typedef typename PointLocatorType::InstanceIdentifierVectorType InstanceIdentifierVectorType;
+
+  /** Searches the k-nearest neighbors */
+  void Search(const PointType &query,
+              unsigned int numberOfNeighborsRequested,
+              InstanceIdentifierVectorType& result) const;
+
+  /** Searches the neighbors fallen into a hypersphere */
+  void Search(const PointType &query,
+              double radius,
+              InstanceIdentifierVectorType& result) const;
+
+
 private:
   InterpolateMeshFunction( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
+
+  PointLocatorPointer    m_PointLocator;
 
 };
 
