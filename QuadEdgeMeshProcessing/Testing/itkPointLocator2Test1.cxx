@@ -20,12 +20,6 @@
 
 #include "itkQuadEdgeMesh.h"
 #include "itkVTKPolyDataReader.h"
-#include "itkVector.h"
-#include "itkListSample.h"
-#include "itkKdTree.h"
-#include "itkKdTreeGenerator.h"
-#include "itkEuclideanDistance.h"
-#include "itkPointSetToListAdaptor.h"
 #include "itkTimeProbesCollectorBase.h"
 #include "itkPointLocator2.h"
 
@@ -81,39 +75,12 @@ int main(int argc, char *argv[])
   PointLocatorType::Pointer locator = PointLocatorType::New();
 
   locator->SetPointSet( mesh );
-  locator->Initialize();
-
-  //
-  // Adapt the Mesh to make it look like a ListSample
-  //
-  typedef itk::Statistics::PointSetToListAdaptor< MeshType > SampleType;
-
-  SampleType::Pointer sample = SampleType::New();
-
-  sample->SetMeasurementVectorSize( Dimension );
-
-  sample->SetPointSet( mesh );
-
-
-  // This is the same PointType of the MeshType;
-  typedef SampleType::MeasurementVectorType   MeasurementVectorType;
-
-
-  //
-  // Instantiate the KdTreeGenerator
-  //
-  typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
-
-  treeGenerator->SetSample( sample );
-  treeGenerator->SetBucketSize( 16 );
-
 
   chronometer.Start("Generate");
 
   try
     {
-    treeGenerator->Update();
+    locator->Initialize();
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -123,29 +90,21 @@ int main(int argc, char *argv[])
 
   chronometer.Stop("Generate");
 
-  typedef TreeGeneratorType::KdTreeType TreeType;
-
-  TreeType::Pointer tree = treeGenerator->GetOutput();
-
-
-  typedef MeasurementVectorType    PointType;
-
   unsigned int numberOfPoints = mesh->GetNumberOfPoints();
 
-  TreeType::InstanceIdentifierVectorType neighbors;
+  PointLocatorType::InstanceIdentifierVectorType   neighbors;
   unsigned int numberOfNeighbors = 1;
 
-  PointType queryPoint;
+  MeshType::PointType queryPoint;
 
   bool testPassed = true;
-
 
   chronometer.Start("SearchClosest");
 
   for(unsigned int i=0; i<numberOfPoints; i++)
     {
     mesh->GetPoint(i, &queryPoint);
-    tree->Search( queryPoint, numberOfNeighbors, neighbors ); 
+    locator->Search( queryPoint, numberOfNeighbors, neighbors ); 
 
     if( neighbors[0] != i )
       {
