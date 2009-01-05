@@ -96,10 +96,7 @@ int main(int argc, char* argv[] )
 
   PointType  point;
 
-  // FIXME: Initalize the point better...
-  point[0] = 0.0;
-  point[1] = 0.0;
-  point[2] = 0.0;
+  mesh->GetPoint( 0, &point );
 
   InterpolatorType::RealType interpolatedValue = interpolator->Evaluate( point );
 
