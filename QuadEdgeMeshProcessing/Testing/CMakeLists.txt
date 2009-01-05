@@ -42,6 +42,9 @@ TARGET_LINK_LIBRARIES(itkConformalFlatteningQuadEdgeMeshFilterTest ITKQuadEdgeMe
 ADD_EXECUTABLE(itkQuadEdgeMeshKdTreeGeneratorTest itkQuadEdgeMeshKdTreeGeneratorTest.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshKdTreeGeneratorTest ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkPointLocator2Test1 itkPointLocator2Test1.cxx )
+TARGET_LINK_LIBRARIES(itkPointLocator2Test1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 
 ###################
 ###################
@@ -124,6 +127,11 @@ ADD_TEST(itkQuadEdgeMeshKdTreeGeneratorTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshKdTreeGeneratorTest
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
   ${TEMP}/itkQuadEdgeMeshKdTreeGeneratorTest1.vtk
+  )
+
+ADD_TEST(itkPointLocator2Test1
+  ${CXX_TEST_PATH}/itkPointLocator2Test1
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
   )
 
 
