@@ -23,15 +23,15 @@
 #include "itkQuadEdgeMesh.h"
 #include "itkFreeSurferBinarySurfaceReader.h"
 #include "itkDefaultStaticMeshTraits.h"
-#include "itkVTKPolyDataWriter.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
 #include <iostream>
 
 int main(int argc, char* argv[] )
 {
-  if( argc < 3 )
+  if( argc < 4 )
     {
-    std::cerr << "Usage: itkFreeSurferBinarySurfaceReaderTest inputFilename outputFilename.vtk";
+    std::cerr << "Usage: itkFreeSurferBinarySurfaceReaderTest inputFilename inputDataFilename outputFilename.vtk";
     std::cerr << " [printOutPoints:0/1] ";
     std::cerr << std::endl;
     return EXIT_FAILURE;
@@ -46,6 +46,7 @@ int main(int argc, char* argv[] )
   typedef ReaderType::VectorType  VectorType;
 
   surfaceReader->SetFileName(argv[1]);
+  surfaceReader->SetDataFileName(argv[2]);
 
   try
     {
@@ -86,9 +87,9 @@ int main(int argc, char* argv[] )
 
   bool printOutPoints = false;
 
-  if( argc > 3 )
+  if( argc > 4 )
     {
-    printOutPoints = atoi( argv[3] );
+    printOutPoints = atoi( argv[4] );
     }
 
   if( printOutPoints )
@@ -100,12 +101,22 @@ int main(int argc, char* argv[] )
       }
     }
 
-  typedef itk::VTKPolyDataWriter<MeshType>   WriterType;
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >   WriterType;
 
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( mesh  );
-  writer->SetFileName( argv[2] );
-  writer->Write();
+  writer->SetFileName( argv[3] );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during writer Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   std::cout << "Test passed"<< std::endl;
   return EXIT_SUCCESS;
