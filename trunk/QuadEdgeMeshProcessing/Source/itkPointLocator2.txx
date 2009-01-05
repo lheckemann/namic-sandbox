@@ -55,6 +55,28 @@ PointLocator2<TMesh>
 }
 
 
+template <class TMesh>
+void
+PointLocator2<TMesh>
+::Search(const PointType &query,
+         unsigned int numberOfNeighborsRequested,
+         InstanceIdentifierVectorType& result) const
+{
+  this->m_Tree->Search( query, numberOfNeighborsRequested, result );
+}
+
+
+template <class TMesh>
+void
+PointLocator2<TMesh>
+::Search(const PointType &query,
+         double radius,
+         InstanceIdentifierVectorType& result) const
+{
+  this->m_Tree->Search( query, radius, result );
+}
+
+
 /**
  * Print out internals
  */

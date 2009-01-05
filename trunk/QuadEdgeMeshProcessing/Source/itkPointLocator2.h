@@ -54,6 +54,19 @@ public:
   /** Typedefs related to the PointSet type */
   typedef TPointSet                             PointSetType;
   typedef typename PointSetType::ConstPointer   PointSetConstPointer;
+  typedef typename PointSetType::PointType      PointType;
+
+  /** Type of the PointSet to List Adaptor. */
+  typedef itk::Statistics::PointSetToListAdaptor< PointSetType >    SampleAdaptorType;
+  typedef typename SampleAdaptorType::Pointer                       SampleAdaptorPointer;
+
+  /** Types fo the KdTreeGenerator */
+  typedef itk::Statistics::KdTreeGenerator< SampleAdaptorType >     TreeGeneratorType;
+  typedef typename TreeGeneratorType::Pointer                       TreeGeneratorPointer;
+  typedef typename TreeGeneratorType::KdTreeType                    TreeType;
+  typedef typename TreeType::ConstPointer                           TreeConstPointer;
+  typedef typename TreeType::InstanceIdentifierVectorType           InstanceIdentifierVectorType;
+
 
   /** Connect the PointSet as input */
   itkSetConstObjectMacro( PointSet, PointSetType );
@@ -63,6 +76,15 @@ public:
    * points */
   void Initialize();
 
+  /** Searches the k-nearest neighbors */
+  void Search(const PointType &query,
+              unsigned int numberOfNeighborsRequested,
+              InstanceIdentifierVectorType& result) const;
+
+  /** Searches the neighbors fallen into a hypersphere */
+  void Search(const PointType &query,
+              double radius,
+              InstanceIdentifierVectorType& result) const;
 
 protected:
   PointLocator2();
@@ -72,14 +94,6 @@ protected:
 private:
   PointLocator2(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-
-  typedef itk::Statistics::PointSetToListAdaptor< PointSetType >    SampleAdaptorType;
-  typedef typename SampleAdaptorType::Pointer                       SampleAdaptorPointer;
-
-  typedef itk::Statistics::KdTreeGenerator< SampleAdaptorType >     TreeGeneratorType;
-  typedef typename TreeGeneratorType::Pointer                       TreeGeneratorPointer;
-  typedef typename TreeGeneratorType::KdTreeType                    TreeType;
-  typedef typename TreeType::ConstPointer                           TreeConstPointer;
 
   PointSetConstPointer     m_PointSet;
   SampleAdaptorPointer     m_SampleAdaptor;
