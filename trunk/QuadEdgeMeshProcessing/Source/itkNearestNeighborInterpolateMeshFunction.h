@@ -39,7 +39,7 @@ class ITK_EXPORT NearestNeighborInterpolateMeshFunction :
 {
 public:
   /** Standard class typedefs. */
-  typedef NearestNeighborInterpolateMeshFunction                     Self;
+  typedef NearestNeighborInterpolateMeshFunction            Self;
   typedef InterpolateMeshFunction<TInputMesh, TCoordRep>    Superclass;
   typedef SmartPointer<Self>                                Pointer;
   typedef SmartPointer<const Self>                          ConstPointer;

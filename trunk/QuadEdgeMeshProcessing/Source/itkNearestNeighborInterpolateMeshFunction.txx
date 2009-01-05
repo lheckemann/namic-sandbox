@@ -64,7 +64,14 @@ NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>::OutputType
 NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
 ::Evaluate( const PointType& point ) const
 {
-  // FIXME : add here, or in a derived class, the interpolation.
+  typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;
+
+  const unsigned int numberOfNeighbors = 1;
+  InstanceIdentifierVectorType result;
+
+  this->Search( point, numberOfNeighbors, result );
+
+  // FIXME: Use the returned pointId for accessing the PointData entries
   return 0.0;
 }
 
