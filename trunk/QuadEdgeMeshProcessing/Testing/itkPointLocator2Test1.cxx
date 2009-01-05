@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
   PointLocatorType::Pointer locator = PointLocatorType::New();
 
   locator->SetPointSet( mesh );
+  locator->Initialize();
 
   //
   // Adapt the Mesh to make it look like a ListSample
@@ -123,8 +124,6 @@ int main(int argc, char *argv[])
   chronometer.Stop("Generate");
 
   typedef TreeGeneratorType::KdTreeType TreeType;
-  typedef TreeType::NearestNeighbors NeighborsType;
-  typedef TreeType::KdTreeNodeType NodeType;
 
   TreeType::Pointer tree = treeGenerator->GetOutput();
 

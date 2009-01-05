@@ -25,6 +25,8 @@ template <class TMesh>
 PointLocator2<TMesh>
 ::PointLocator2()
 {
+  this->m_SampleAdaptor = SampleAdaptorType::New();
+  this->m_KdTreeGenerator = TreeGeneratorType::New();
 }
 
 template <class TMesh>
@@ -32,6 +34,26 @@ PointLocator2<TMesh>
 ::~PointLocator2()
 {
 }
+
+template <class TMesh>
+void
+PointLocator2<TMesh>
+::Initialize()
+{
+  // Lack of const-correctness in the PointSetAdaptor should be fixed.
+  this->m_SampleAdaptor->SetPointSet( 
+    const_cast< PointSetType * >( this->m_PointSet.GetPointer() ) );
+
+  this->m_SampleAdaptor->SetMeasurementVectorSize( PointDimension );
+
+  this->m_KdTreeGenerator->SetSample( this->m_SampleAdaptor );
+  this->m_KdTreeGenerator->SetBucketSize( 16 );
+
+  this->m_KdTreeGenerator->Update();
+
+  this->m_Tree = this->m_KdTreeGenerator->GetOutput();
+}
+
 
 /**
  * Print out internals
