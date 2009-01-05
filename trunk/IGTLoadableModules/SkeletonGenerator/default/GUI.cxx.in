@@ -368,43 +368,17 @@ void vtk$${MODULE_NAME}$$GUI::BuildGUI ( )
 
 void vtk$${MODULE_NAME}$$GUI::BuildGUIForHelpFrame ()
 {
-
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "$${MODULE_NAME}$$" );
-
   // Define your help text here.
   const char *help = 
-    " Write your help text here.";
+    "See "
+    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:$${MODULE_NAME}$$</a> for details.";
+  const char *about =
+    "This work is supported by NCIGT, NA-MIC.";
 
-  // ----------------------------------------------------------------
-  // HELP FRAME         
-  // ----------------------------------------------------------------
-  vtkSlicerModuleCollapsibleFrame *$${MODULE_NAME}$$HelpFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-  $${MODULE_NAME}$$HelpFrame->SetParent ( page );
-  $${MODULE_NAME}$$HelpFrame->Create ( );
-  $${MODULE_NAME}$$HelpFrame->CollapseFrame ( );
-  $${MODULE_NAME}$$HelpFrame->SetLabelText ("Help");
-  app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-                $${MODULE_NAME}$$HelpFrame->GetWidgetName(), page->GetWidgetName());
-    
-  // configure the parent classes help text widget
-  this->HelpText->SetParent ( $${MODULE_NAME}$$HelpFrame->GetFrame() );
-  this->HelpText->Create ( );
-  this->HelpText->SetHorizontalScrollbarVisibility ( 0 );
-  this->HelpText->SetVerticalScrollbarVisibility ( 1 );
-  this->HelpText->GetWidget()->SetText ( help );
-  this->HelpText->GetWidget()->SetReliefToFlat ( );
-  this->HelpText->GetWidget()->SetWrapToWord ( );
-  this->HelpText->GetWidget()->ReadOnlyOn ( );
-  this->HelpText->GetWidget()->QuickFormattingOn ( );
-  this->HelpText->GetWidget()->SetBalloonHelpString ( "" );
-  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4",
-                this->HelpText->GetWidgetName ( ) );
-
-  $${MODULE_NAME}$$HelpFrame->Delete();
-
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "$${MODULE_NAME}$$" );
+  this->BuildHelpAndAboutFrame (page, help, about);
 }
+
 
 //---------------------------------------------------------------------------
 void vtk$${MODULE_NAME}$$GUI::BuildGUIForTestFrame1()
