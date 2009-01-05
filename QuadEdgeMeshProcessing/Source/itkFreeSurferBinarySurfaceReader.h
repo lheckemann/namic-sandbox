@@ -71,6 +71,10 @@ public:
   
   typedef typename OutputMeshType::PointsContainer PointsContainer;
 
+  /** Types related to point data */
+  typedef typename OutputMeshType::PointDataContainer  PointDataContainer;
+  typedef typename PointDataContainer::Iterator        PointDataIterator;
+
   /** Define the triangular cell types which form the surface  */
   typedef TriangleCell<CellType>      TriangleCellType;
 
@@ -80,12 +84,13 @@ public:
   typedef MapContainer<IndexPairType, unsigned long> PointMapType;
   typedef typename PointType::VectorType             VectorType;
 
-  /** Set the resolution level to be used for generating cells in the
-   * Sphere. High values of this parameter will produce sphere with more
-   * triangles. */
   /** Set/Get the name of the file to be read. */
   itkSetStringMacro(FileName);
   itkGetStringMacro(FileName);
+
+  /** Set/Get the name of the file containing point data */
+  itkSetStringMacro(DataFileName);
+  itkGetStringMacro(DataFileName);
 
 protected:
   FreeSurferBinarySurfaceReader();
@@ -97,31 +102,45 @@ protected:
 
   /** Filename to read */
   std::string      m_FileName;
+  std::string      m_DataFileName;
 
 private:
   FreeSurferBinarySurfaceReader(const Self&); // purposely not implemented
   void operator=(const Self&); // purposely not implemented
 
-  void OpenFile();
-  void CloseFile();
+  void OpenGeometryFile();
+  void CloseGeometryFile();
   void PrepareOutputMesh();
-  void ReadHeader();
+  void ReadGeometryHeader();
   void ReadSurface();
-  void ReadFileType();
-  void ReadComment();
-  void ReadNumberOfPoints();
-  void ReadNumberOfCells();
+  void ReadFileTypeFromGeometryFile();
+  void ReadCommentFromGeometryFile();
+  void ReadNumberOfPointsFromGeometryFile();
+  void ReadNumberOfCellsFromGeometryFile();
   void ReadPoints();
   void ReadCells();
 
-  void ReadInteger32( ITK_UINT32 & valueToRead );
-  void ReadFloat( float & valueToRead );
+  bool DataFileIsAvailable() const;
+  void OpenDataFile();
+  void CloseDataFile();
+  void ReadDataHeader();
+  void ReadFileTypeFromDataFile();
+  void ReadPointData();
+  void ReadNumberOfPointsFromDataFile();
+  void ReadNumberOfCellsFromDataFile();
+  void ReadNumberOfValuesPerPointFromDataFile();
+
+  void ReadInteger32( std::ifstream & inputStream, ITK_UINT32 & valueToRead );
+  void ReadFloat( std::ifstream & inputStream, float & valueToRead );
   void ReadPoint( PointType & point );
   void ReadCell( TriangleCellType & triangleCell );
 
-  std::ifstream  m_InputFile;
+  std::ifstream  m_InputGeometryFile;
+  std::ifstream  m_InputDataFile;
 
   ITK_UINT32     m_FileType;
+  ITK_UINT32     m_DataFileType;
+
   ITK_UINT32     m_NumberOfPoints;
   ITK_UINT32     m_NumberOfCells;
   std::string    m_Comment;
