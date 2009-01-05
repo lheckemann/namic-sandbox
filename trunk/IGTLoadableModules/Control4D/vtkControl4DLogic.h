@@ -53,8 +53,9 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   void PrintSelf(ostream&, vtkIndent);
 
   void LoadImagesFromDir(const char* path);
-    SwitchNodeFG(int index);
-  int  SwitchNodeBG(int index);
+
+  const char* SwitchNodeFG(int index);
+  const char* SwitchNodeBG(int index);
   
 
  protected:

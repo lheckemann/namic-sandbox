@@ -32,7 +32,12 @@
 #include "vtkKWLabel.h"
 #include "vtkKWEvent.h"
 
+#include "vtkKWScaleWithEntry.h"
+#include "vtkKWScale.h"
 #include "vtkKWPushButton.h"
+
+#include "vtkKWLoadSaveButton.h"
+#include "vtkKWLoadSaveButtonWithLabel.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -56,11 +61,10 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   
   //----------------------------------------------------------------
   // GUI widgets
-  this->TestButton11 = NULL;
-  this->TestButton12 = NULL;
-  this->TestButton21 = NULL;
-  this->TestButton22 = NULL;
-  
+  this->SelectImageButton             = NULL;
+  this->ForegroundVolumeSelectorScale = NULL;
+  this->BackgroundVolumeSelectorScale = NULL;
+
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
@@ -163,30 +167,38 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
+  if (this->ForegroundVolumeSelectorScale)
+    {
+    this->ForegroundVolumeSelectorScale
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->BackgroundVolumeSelectorScale)
+    {
+    this->BackgroundVolumeSelectorScale
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
   if (this->TestButton11)
     {
     this->TestButton11
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
   if (this->TestButton12)
     {
     this->TestButton12
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
   if (this->TestButton21)
     {
     this->TestButton21
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
   if (this->TestButton22)
     {
     this->TestButton22
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
 
   this->RemoveLogicObservers();
 
@@ -217,14 +229,30 @@ void vtkControl4DGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
-  this->TestButton11
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton12
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton21
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton22
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  if (this->ForegroundVolumeSelectorScale)
+    {
+    this->ForegroundVolumeSelectorScale
+      ->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->BackgroundVolumeSelectorScale)
+    {
+    this->BackgroundVolumeSelectorScale
+      ->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+
+  if (this->TestButton11)
+    this->TestButton11
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  if (this->TestButton12)
+    this->TestButton12
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  if (this->TestButton21)
+    this->TestButton21
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  if (this->TestButton22)
+    this->TestButton22
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 
@@ -242,8 +270,6 @@ void vtkControl4DGUI::RemoveLogicObservers ( )
 }
 
 
-
-
 //---------------------------------------------------------------------------
 void vtkControl4DGUI::AddLogicObservers ( )
 {
@@ -255,6 +281,7 @@ void vtkControl4DGUI::AddLogicObservers ( )
                                   (vtkCommand *)this->LogicCallbackCommand);
     }
 }
+
 
 //---------------------------------------------------------------------------
 void vtkControl4DGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
@@ -276,31 +303,21 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     return;
     }
 
-  
-  if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
-      && event == vtkKWPushButton::InvokedEvent)
+  if (this->ForegroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
+      && event == vtkKWScale::ScaleValueChangedEvent)
     {
-    std::cerr << "TestButton11 is pressed." << std::endl;
+    int value = (int)this->ForegroundVolumeSelectorScale->GetValue();
     }
-  else if (this->TestButton12 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
+  else if (this->BackgroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
+      && event == vtkKWScale::ScaleValueChangedEvent)
     {
-    std::cerr << "TestButton12 is pressed." << std::endl;
-    }
-  else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton21 is pressed." << std::endl;
-    }
-  else if (this->TestButton22 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton22 is pressed." << std::endl;
+    int value = (int)this->BackgroundVolumeSelectorScale->GetValue();
     }
 
 } 
 
 
+//---------------------------------------------------------------------------
 void vtkControl4DGUI::DataCallback(vtkObject *caller, 
                                      unsigned long eid, void *clientData, void *callData)
 {
@@ -360,7 +377,8 @@ void vtkControl4DGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "Control4D", "Control4D", NULL );
 
   BuildGUIForHelpFrame();
-  BuildGUIForTestFrame1();
+  BuildGUIForLoadFrame();
+  BuildGUIForFrameControlFrame();
   BuildGUIForTestFrame2();
 
 }
@@ -368,46 +386,73 @@ void vtkControl4DGUI::BuildGUI ( )
 
 void vtkControl4DGUI::BuildGUIForHelpFrame ()
 {
-
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "Control4D" );
-
-  // Define your help text here.
-  const char *help = 
-    " Write your help text here.";
-
   // ----------------------------------------------------------------
   // HELP FRAME         
   // ----------------------------------------------------------------
-  vtkSlicerModuleCollapsibleFrame *Control4DHelpFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-  Control4DHelpFrame->SetParent ( page );
-  Control4DHelpFrame->Create ( );
-  Control4DHelpFrame->CollapseFrame ( );
-  Control4DHelpFrame->SetLabelText ("Help");
-  app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-                Control4DHelpFrame->GetWidgetName(), page->GetWidgetName());
-    
-  // configure the parent classes help text widget
-  this->HelpText->SetParent ( Control4DHelpFrame->GetFrame() );
-  this->HelpText->Create ( );
-  this->HelpText->SetHorizontalScrollbarVisibility ( 0 );
-  this->HelpText->SetVerticalScrollbarVisibility ( 1 );
-  this->HelpText->GetWidget()->SetText ( help );
-  this->HelpText->GetWidget()->SetReliefToFlat ( );
-  this->HelpText->GetWidget()->SetWrapToWord ( );
-  this->HelpText->GetWidget()->ReadOnlyOn ( );
-  this->HelpText->GetWidget()->QuickFormattingOn ( );
-  this->HelpText->GetWidget()->SetBalloonHelpString ( "" );
-  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4",
-                this->HelpText->GetWidgetName ( ) );
 
-  Control4DHelpFrame->Delete();
+  // Define your help text here.
+  const char *help = 
+    "**The OpenIGTLink Interface Module** helps you to manage OpenIGTLink connections:"
+    "OpenIGTLink is an open network protocol for communication among software / hardware "
+    "for image-guided therapy. See "
+    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:OpenIGTLinkIF</a> for details.";
+  const char *about =
+    "The module is designed and implemented by Junichi Tokuda for Brigham and Women's Hospital."
+    "This work is supported by NCIGT, NA-MIC and BRP \"Enabling Technologies for MRI-Guided Prostate Intervention\" project.";
+
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "Control4D" );
+  this->BuildHelpAndAboutFrame (page, help, about);
 
 }
 
+
 //---------------------------------------------------------------------------
-void vtkControl4DGUI::BuildGUIForTestFrame1()
+void vtkControl4DGUI::BuildGUIForLoadFrame ()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("Control4D");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Load");
+  //conBrowsFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Select File Frame
+
+  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
+  frame->SetParent(conBrowsFrame->GetFrame());
+  frame->Create();
+  frame->SetLabelText ("Input Directory");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 frame->GetWidgetName() );
+  
+  this->SelectImageButton = vtkKWLoadSaveButtonWithLabel::New();
+  this->SelectImageButton->SetParent(frame->GetFrame());
+  this->SelectImageButton->Create();
+  this->SelectImageButton->SetWidth(50);
+  this->SelectImageButton->GetWidget()->SetText ("Browse Image File");
+  /*
+    this->SelectImageButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes(
+    "{ {ProstateNav} {*.dcm} }");
+  */
+  this->SelectImageButton->GetWidget()->GetLoadSaveDialog()
+    ->RetrieveLastPathFromRegistry("OpenPath");
+
+  this->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               this->SelectImageButton->GetWidgetName());
+
+  conBrowsFrame->Delete();
+  frame->Delete();
+}
+
+
+//---------------------------------------------------------------------------
+void vtkControl4DGUI::BuildGUIForFrameControlFrame()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
@@ -417,42 +462,62 @@ void vtkControl4DGUI::BuildGUIForTestFrame1()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 1");
+  conBrowsFrame->SetLabelText("Frame Control");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Test child frame
+  // Foreground child frame
 
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
+  vtkKWFrameWithLabel *fframe = vtkKWFrameWithLabel::New();
+  fframe->SetParent(conBrowsFrame->GetFrame());
+  fframe->Create();
+  fframe->SetLabelText ("Foreground");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
+                 fframe->GetWidgetName() );
+
+  this->ForegroundVolumeSelectorScale = vtkKWScaleWithEntry::New();
+  this->ForegroundVolumeSelectorScale->SetParent( fframe->GetFrame() );
+  this->ForegroundVolumeSelectorScale->Create();
+  this->ForegroundVolumeSelectorScale->SetEntryPosition(vtkKWScaleWithEntry::EntryPositionRight);
+  this->ForegroundVolumeSelectorScale->SetOrientationToHorizontal();
+  this->ForegroundVolumeSelectorScale->SetLabelText("Frame #");
+  this->ForegroundVolumeSelectorScale->SetRange(0.0, 100.0);
+  this->ForegroundVolumeSelectorScale->SetResolution(1.0);
+
+  this->Script("pack %s -side left -fill x -padx 2 -pady 2", 
+               this->ForegroundVolumeSelectorScale->GetWidgetName());
 
   // -----------------------------------------
-  // Test push button
+  // Background child frame
 
-  this->TestButton11 = vtkKWPushButton::New ( );
-  this->TestButton11->SetParent ( frame->GetFrame() );
-  this->TestButton11->Create ( );
-  this->TestButton11->SetText ("Test 11");
-  this->TestButton11->SetWidth (12);
+  vtkKWFrameWithLabel *bframe = vtkKWFrameWithLabel::New();
+  bframe->SetParent(conBrowsFrame->GetFrame());
+  bframe->Create();
+  bframe->SetLabelText ("Background");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 bframe->GetWidgetName() );
 
-  this->TestButton12 = vtkKWPushButton::New ( );
-  this->TestButton12->SetParent ( frame->GetFrame() );
-  this->TestButton12->Create ( );
-  this->TestButton12->SetText ("Tset 12");
-  this->TestButton12->SetWidth (12);
+  this->BackgroundVolumeSelectorScale = vtkKWScaleWithEntry::New();
+  this->BackgroundVolumeSelectorScale->SetParent( bframe->GetFrame() );
+  this->BackgroundVolumeSelectorScale->Create();
+  this->BackgroundVolumeSelectorScale->SetEntryPosition(vtkKWScaleWithEntry::EntryPositionRight);
+  this->BackgroundVolumeSelectorScale->SetOrientationToHorizontal();
+  this->BackgroundVolumeSelectorScale->SetLabelText("Frame #");
+  this->BackgroundVolumeSelectorScale->SetRange(0.0, 100.0);
+  this->BackgroundVolumeSelectorScale->SetResolution(1.0);
 
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton11->GetWidgetName(),
-               this->TestButton12->GetWidgetName());
+  this->Script("pack %s -side left -fill x -padx 2 -pady 2", 
+               this->BackgroundVolumeSelectorScale->GetWidgetName());
+
+
+  // -----------------------------------------
+  // Delete pointers
 
   conBrowsFrame->Delete();
-  frame->Delete();
+  fframe->Delete();
+  bframe->Delete();
 
 }
 
@@ -517,13 +582,18 @@ void vtkControl4DGUI::UpdateAll()
 void vtkControl4DGUI::SetForeground(int index)
 {
 
-  vtkSlicerApplicationGUI *appGUI = this->GetGUI()->GetApplicationGUI();
+  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
   const char* nodeID = this->GetLogic()->SwitchNodeFG(index);
+  vtkMRMLVolumeNode* volNode =
+    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
 
-  appGUI->GetMainSliceGUI("Red")->GetLogic()->GetForegroundLayer()->SetVolumeNode(nodeID);
-  appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetForegroundLayer()->SetVolumeNode(nodeID);
-  appGUI->GetMainSliceGUI("Green")->GetLogic()->GetForegroundLayer()->SetVolumeNode(nodeID);
+  if (volNode)
+    {
+    appGUI->GetMainSliceGUI("Red")->GetLogic()->GetForegroundLayer()->SetVolumeNode(volNode);
+    appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetForegroundLayer()->SetVolumeNode(volNode);
+    appGUI->GetMainSliceGUI("Green")->GetLogic()->GetForegroundLayer()->SetVolumeNode(volNode);
+    }
 
 }
 
@@ -532,13 +602,19 @@ void vtkControl4DGUI::SetForeground(int index)
 void vtkControl4DGUI::SetBackground(int index)
 {
 
-  vtkSlicerApplicationGUI *appGUI = this->GetGUI()->GetApplicationGUI();
+  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
   const char* nodeID = this->GetLogic()->SwitchNodeBG(index);
+  vtkMRMLVolumeNode* volNode =
+    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
 
-  appGUI->GetMainSliceGUI("Red")->GetLogic()->GetBackgroundLayer()->SetVolumeNode(nodeID);
-  appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetBackgroundLayer()->SetVolumeNode(nodeID);
-  appGUI->GetMainSliceGUI("Green")->GetLogic()->GetBackgroundLayer()->SetVolumeNode(nodeID);
-
+  if (volNode)
+    {
+    appGUI->GetMainSliceGUI("Red")->GetLogic()->GetBackgroundLayer()->SetVolumeNode(volNode);
+    appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetBackgroundLayer()->SetVolumeNode(volNode);
+    appGUI->GetMainSliceGUI("Green")->GetLogic()->GetBackgroundLayer()->SetVolumeNode(volNode);
+    }
+  
 }
+
 

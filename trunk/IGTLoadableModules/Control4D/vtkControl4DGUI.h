@@ -25,7 +25,9 @@
 
 #include "vtkControl4DLogic.h"
 
+class vtkKWScaleWithEntry;
 class vtkKWPushButton;
+class vtkKWLoadSaveButtonWithLabel;
 
 class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 {
@@ -93,7 +95,8 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForTestFrame1();
+  void BuildGUIForLoadFrame();
+  void BuildGUIForFrameControlFrame();
   void BuildGUIForTestFrame2();
 
   //----------------------------------------------------------------
@@ -101,6 +104,14 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   void UpdateAll();
+
+
+  //----------------------------------------------------------------
+  // Viewer control
+  //----------------------------------------------------------------
+
+  void SetForeground(int index);
+  void SetBackground(int index);
 
 
  protected:
@@ -115,6 +126,12 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
+
+  vtkKWLoadSaveButtonWithLabel* SelectImageButton;
+
+  vtkKWScaleWithEntry* ForegroundVolumeSelectorScale;
+  vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
+
 
   vtkKWPushButton* TestButton11;
   vtkKWPushButton* TestButton12;

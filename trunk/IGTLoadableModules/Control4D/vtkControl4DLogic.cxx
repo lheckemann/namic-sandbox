@@ -89,8 +89,7 @@ const char* vtkControl4DLogic::SwitchNodeFG(int index)
 {
   if (index >= 0 && index < this->FrameNodeVector.size())
     {
-    vtkSlicerApplicationGUI *appGUI = this->GetGUI()->GetApplicationGUI();
-    this->CurrentFrameFG = this->FrameNodeVector[index];
+    this->CurrentFrameFG = this->FrameNodeVector[index].c_str();
     return this->CurrentFrameFG;
     }
   else
@@ -105,7 +104,7 @@ const char* vtkControl4DLogic::SwitchNodeBG(int index)
 {
   if (index >= 0 && index < this->FrameNodeVector.size())
     {
-    this->CurrentFrameBG = this->FrameNodeVector[index];
+      this->CurrentFrameBG = this->FrameNodeVector[index].c_str();
     return this->CurrentFrameBG;
     }
   else
