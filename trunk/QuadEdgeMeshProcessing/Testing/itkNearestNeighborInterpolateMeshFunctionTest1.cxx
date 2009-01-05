@@ -91,6 +91,8 @@ int main(int argc, char* argv[] )
 
   interpolator->SetInputMesh( mesh );
 
+  interpolator->Initialize();
+
   std::cout << "Interpolator " << std::endl;
   interpolator->Print( std::cout );
 
