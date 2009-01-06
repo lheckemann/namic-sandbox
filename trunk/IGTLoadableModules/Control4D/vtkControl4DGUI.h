@@ -28,6 +28,10 @@
 class vtkKWScaleWithEntry;
 class vtkKWPushButton;
 class vtkKWLoadSaveButtonWithLabel;
+class vtkKWPiecewiseFunctionEditor;
+class vtkKWMenuButton;
+class vtkKWSpinBox;
+class vtkKWCanvas;
 
 class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 {
@@ -97,6 +101,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   void BuildGUIForHelpFrame();
   void BuildGUIForLoadFrame();
   void BuildGUIForFrameControlFrame();
+  void BuildGUIForFunctionViewer();
   void BuildGUIForTestFrame2();
 
   //----------------------------------------------------------------
@@ -105,14 +110,14 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 
   void UpdateAll();
 
-
   //----------------------------------------------------------------
   // Viewer control
   //----------------------------------------------------------------
 
   void SetForeground(int index);
   void SetBackground(int index);
-
+  void UpdateMaskSelectMenu();
+  void SelectMask(const char* nodeID, int label);
 
  protected:
   
@@ -128,10 +133,16 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   vtkKWLoadSaveButtonWithLabel* SelectImageButton;
+  vtkKWPushButton* LoadImageButton;
 
   vtkKWScaleWithEntry* ForegroundVolumeSelectorScale;
   vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
 
+  vtkKWMenuButton* MaskSelectMenu;
+  vtkKWSpinBox*    MaskSelectSpinBox;
+  vtkKWCanvas*     MaskColorCanvas;
+
+  vtkKWPiecewiseFunctionEditor* FunctionEditor;
 
   vtkKWPushButton* TestButton11;
   vtkKWPushButton* TestButton12;
@@ -145,6 +156,12 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkControl4DLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;
+
+  //BTX
+  typedef std::vector<std::string> NodeIDListType;
+  //ETX
+
+  NodeIDListType MaskNodeIDList;
 
 };
 
