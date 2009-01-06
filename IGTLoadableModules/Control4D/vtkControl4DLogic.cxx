@@ -79,8 +79,11 @@ void vtkControl4DLogic::UpdateAll()
 
 
 //---------------------------------------------------------------------------
-void vtkControl4DLogic::LoadImagesFromDir(const char* path)
+int vtkControl4DLogic::LoadImagesFromDir(const char* path)
 {
+  std::cerr << "loading from " << path << std::endl;
+
+  return 10;
 }
 
 

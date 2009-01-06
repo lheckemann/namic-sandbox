@@ -52,11 +52,14 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   vtkTypeRevisionMacro(vtkControl4DLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
 
-  void LoadImagesFromDir(const char* path);
+  // Description:
+  // Loads series of volumes from the directory that contains the file
+  // specified by 'path' argument.
+  // Returns number of volumes in the series.
+  int LoadImagesFromDir(const char* path);
 
   const char* SwitchNodeFG(int index);
   const char* SwitchNodeBG(int index);
-  
 
  protected:
   
