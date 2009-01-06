@@ -60,10 +60,13 @@ public:
   itkStaticConstMacro(MeshDimension, unsigned int, Superclass::MeshDimension);
 
   /** Point typedef support. */
-  typedef typename Superclass::PointType PointType;
+  typedef typename Superclass::PointType                  PointType;
+  typedef typename Superclass::PointIdentifier            PointIdentifier;
 
   /** RealType typedef support. */
-  typedef typename NumericTraits<typename TInputMesh::PixelType>::RealType RealType;
+  typedef typename TInputMesh::PixelType                  PixelType;
+  typedef typename NumericTraits<PixelType>::RealType     RealType;
+
 
   /** Interpolate the mesh at a point position
    *

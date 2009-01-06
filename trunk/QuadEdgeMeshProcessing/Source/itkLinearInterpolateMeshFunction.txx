@@ -71,8 +71,30 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 
   this->Search( point, numberOfNeighbors, result );
 
-  // FIXME: Use the returned pointId for accessing the PointData entries
-  return 0.0;
+  //
+  // FIXME: This is missing the search for the cell in which the query point is embedded.
+  //        a temporary computation is included here, but doesn't really corresponds to
+  //        a linear interpolation in a cell yet.
+  //
+  PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
+  PixelType pixelValue2 = itk::NumericTraits< PixelType >::Zero;
+  PixelType pixelValue3 = itk::NumericTraits< PixelType >::Zero;
+
+  const PointIdentifier pointId1 = result[0];
+  const PointIdentifier pointId2 = result[1];
+  const PointIdentifier pointId3 = result[2];
+
+  this->GetPointData( pointId1, &pixelValue1 ); 
+  this->GetPointData( pointId2, &pixelValue2 ); 
+  this->GetPointData( pointId3, &pixelValue3 ); 
+
+  RealType pixelValueReal1 = static_cast< RealType >( pixelValue1 );
+  RealType pixelValueReal2 = static_cast< RealType >( pixelValue2 );
+  RealType pixelValueReal3 = static_cast< RealType >( pixelValue3 );
+
+  RealType returnValue = ( pixelValueReal1 + pixelValueReal2 + pixelValueReal3 ) / 3.0;
+
+  return returnValue;
 }
 
 

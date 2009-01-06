@@ -71,8 +71,15 @@ NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
 
   this->Search( point, numberOfNeighbors, result );
 
-  // FIXME: Use the returned pointId for accessing the PointData entries
-  return 0.0;
+  PixelType pixelValue = itk::NumericTraits< PixelType >::Zero;
+
+  const PointIdentifier pointId = result[0];
+
+  this->GetPointData( pointId, &pixelValue ); 
+
+  OutputType returnValue = static_cast<OutputType>( pixelValue );
+
+  return returnValue;
 }
 
 
