@@ -46,6 +46,7 @@ class vtkKWLoadSaveButtonWithLabel;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkKWWizardWidget;
 class vtkKWTreeWithScrollbars;
+class vtkKWLoadSaveButton;
 
 class vtkTransform;
 
@@ -242,6 +243,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   vtkKWCheckButton*    ConnectorLogCheckButton;
   vtkKWEntry*          ConnectorAddressEntry;
   vtkKWEntry*          ConnectorPortEntry;
+  vtkKWLoadSaveButton* FileLocationButton;
 
   //----------------------------------------------------------------
   // Data I/O Configuration frame

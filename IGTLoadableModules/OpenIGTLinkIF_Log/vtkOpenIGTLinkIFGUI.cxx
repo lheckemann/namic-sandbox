@@ -73,7 +73,7 @@
 
 #include "vtkIGTLConnector.h"
 #include "vtkIGTLServerClientConnector.h"
-//#include "vtkIGTLFileConnector.h"
+#include "vtkIGTLFileConnector.h"
 
 #include <vector>
 #include <sstream>
@@ -135,6 +135,7 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   this->ConnectorLogCheckButton = NULL;
   this->ConnectorAddressEntry = NULL;
   this->ConnectorPortEntry = NULL;
+  this->FileLocationButton = NULL;
 
   //----------------------------------------------------------------
   // Data I/O Configuration frame
@@ -313,6 +314,12 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
     this->ConnectorPortEntry->Delete();
     }
 
+  if ( this->FileLocationButton )
+    {
+    this->FileLocationButton->SetParent(NULL);
+    this->FileLocationButton->Delete();
+    }
+    
   //----------------------------------------------------------------
   // Etc Frame
 
@@ -433,6 +440,11 @@ void vtkOpenIGTLinkIFGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->FileLocationButton)
+    {
+    this->FileLocationButton->GetLoadSaveDialog()->RemoveObservers (vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
+    
   //----------------------------------------------------------------
   // Data I/O Configuration frame
 
@@ -600,6 +612,8 @@ void vtkOpenIGTLinkIFGUI::AddGUIObservers ( )
   this->ConnectorPortEntry
     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
+  this->FileLocationButton->GetLoadSaveDialog()
+    ->AddObserver (vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
   //----------------------------------------------------------------
   // Data I/O Configuration frame
   this->IOConfigTree->GetWidget()
@@ -879,7 +893,7 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
     if (connector)
       {
-      connector->SetType(vtkIGTLConnector::TYPE_FILE);
+      connector->SetType(vtkIGTLFileConnector::TYPE_FILE);
       UpdateConnectorList(UPDATE_SELECTED_ONLY);
       UpdateConnectorPropertyFrame(selected);
       UpdateIOConfigTree();
@@ -911,7 +925,6 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       else  // Deactivated
         {
         connector->Stop();
-        this->ConnectorLogCheckButton->SelectedStateOff();
         //vtkErrorMacro("Connector Stopped...........");
         UpdateConnectorList(UPDATE_SELECTED_ONLY);
         UpdateConnectorPropertyFrame(selected);
@@ -929,27 +942,17 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       {
       id = this->ConnectorIDList[selected];
       }
-
+      
     vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
     if (connector)
       {
       if (this->ConnectorLogCheckButton->GetSelectedState()) // Activated
         {
-        //vtkErrorMacro("Starting Connector...........");
         connector->PrepareToLogData();
-//        connector->Start();
-//        UpdateConnectorList(UPDATE_SELECTED_ONLY);
-//        UpdateConnectorPropertyFrame(selected);
-//        UpdateIOConfigTree();
         }
       else  // Deactivated
         {
         connector->StopLoggingData();
-//        connector->Stop();
-//        //vtkErrorMacro("Connector Stopped...........");
-//        UpdateConnectorList(UPDATE_SELECTED_ONLY);
-//        UpdateConnectorPropertyFrame(selected);
-//        UpdateIOConfigTree();
         }
       }
     }
@@ -991,6 +994,53 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       }
     UpdateConnectorList(UPDATE_SELECTED_ONLY);
     }
+ 
+  else if (this->FileLocationButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) 
+            && event == vtkKWTopLevel::WithdrawEvent )
+    {
+    std::cerr << "FileLocation Button pressed" << std::endl;
+    int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
+    int id = -1;
+    if (selected >= 0 && selected < (int)this->ConnectorIDList.size())
+      {
+      id = this->ConnectorIDList[selected];
+      }
+    
+    vtkIGTLFileConnector* connector = static_cast<vtkIGTLFileConnector*>(this->GetLogic()->GetConnector(id));
+    //Get filename from menu
+    const char * filename = this->FileLocationButton->GetFileName();
+    if (filename)
+      {
+      connector->SetFilename(filename);
+      std::cerr << "The filename selected is: " << connector->GetFilename() << std::endl;
+      }
+//    if (filename)
+//      {
+//      const vtksys_stl::string fname(filename);
+//      vtksys_stl::string name = vtksys::SystemTools::GetFilenameName(fname);
+//      this->NameEntry->GetWidget()->SetValue(name.c_str());
+//      // get dicom header (or meta data) from the selected file
+//      vtkITKArchetypeImageSeriesReader* reader = vtkITKArchetypeImageSeriesReader::New();
+//      reader->SetSingleFile( 1 );
+//      reader->SetArchetype( filename );
+//      try 
+//        {
+//        reader->Update();
+//        this->CopyTagAndValues( reader );
+//        }
+//      catch (vtkstd::exception &e) 
+//        {
+//        e=e; // dummy access to avoid warning
+//        }
+//      reader->Delete();
+//      }
+//    else
+//      {
+//      this->NameEntry->GetWidget()->SetValue("");
+//      }
+//    this->LoadVolumeButton->GetWidget()->SetText ("Select Volume File");
+    }
+
 
   else if (this->EnableAdvancedSettingButton == vtkKWCheckButton::SafeDownCast(caller)
            && event == vtkKWCheckButton::SelectedStateChangedEvent )
@@ -1585,6 +1635,35 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
 
   portFrame->Delete();
   portLabel->Delete();
+  
+  // File Selection browser
+  vtkKWFrame *fileFrame = vtkKWFrame::New();
+  fileFrame->SetParent(controlFrame->GetFrame());
+  fileFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                fileFrame->GetWidgetName());
+  
+  vtkKWLabel *fileLabel = vtkKWLabel::New();
+  fileLabel->SetParent(fileFrame);
+  fileLabel->Create();
+  fileLabel->SetWidth(8);
+  fileLabel->SetText("File: ");   
+  
+  this->FileLocationButton = vtkKWLoadSaveButton::New ( );
+  this->FileLocationButton->SetParent ( fileFrame );
+  this->FileLocationButton->Create ( );
+  this->FileLocationButton->SetWidth(180);
+  this->FileLocationButton->SetText ("Select Data File");
+  this->FileLocationButton->GetLoadSaveDialog()->SetTitle("Open Data File");
+  this->FileLocationButton->GetLoadSaveDialog()->SetFileTypes("{ {Text} {*.txt} }");
+  this->FileLocationButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+  
+  app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
+               fileLabel->GetWidgetName(), this->FileLocationButton->GetWidgetName());
+             
+  fileFrame->Delete();
+  fileLabel->Delete();
+  
   controlFrame->Delete();
 
 }
@@ -2416,6 +2495,11 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     this->ConnectorPortEntry->SetValueAsInt(0);
     this->ConnectorPortEntry->EnabledOff();
     this->ConnectorPortEntry->UpdateEnableState();
+    
+    //File Location Selection
+    //Set filename value to zero
+    this->FileLocationButton->EnabledOff();
+    this->FileLocationButton->UpdateEnableState();
 
     return;
     }
@@ -2463,14 +2547,11 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOn();
     this->ConnectorTypeButtonSet->GetWidget(2)->SelectedStateOff();
     }
-  else if (connector->GetType() == vtkIGTLConnector::TYPE_FILE)
+  else if (connector->GetType() == vtkIGTLFileConnector::TYPE_FILE)
     {
     this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOff();
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOff();
     this->ConnectorTypeButtonSet->GetWidget(2)->SelectedStateOn();
-    this->ConnectorStatusCheckButton->EnabledOn();
-    this->ConnectorAddressEntry->EnabledOff();
-    this->ConnectorPortEntry->EnabledOff();
     }
   else
     {
@@ -2478,9 +2559,6 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOff();
     this->ConnectorTypeButtonSet->GetWidget(2)->SelectedStateOff();
     }
-  this->ConnectorStatusCheckButton->UpdateEnableState();
-  this->ConnectorAddressEntry->UpdateEnableState();
-  this->ConnectorPortEntry->UpdateEnableState();
   
   if (activeFlag)
     {
@@ -2489,17 +2567,16 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
   else
     {
     this->ConnectorTypeButtonSet->EnabledOn();
-    this->ConnectorLogCheckButton->EnabledOn();
     }
 
   this->ConnectorTypeButtonSet->UpdateEnableState();
-  this->ConnectorLogCheckButton->UpdateEnableState();
 
   // Connection Status
   std::cout << "Connector State: " << connector->GetState() << std::endl;
   if (connector->GetState() == vtkIGTLConnector::STATE_OFF)
     {
     this->ConnectorStatusCheckButton->SelectedStateOff();
+    this->ConnectorLogCheckButton->SelectedStateOff();
     }
   else
     {
@@ -2515,7 +2592,27 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     this->ConnectorStatusCheckButton->EnabledOn();
     }
   this->ConnectorStatusCheckButton->UpdateEnableState();
+  this->ConnectorLogCheckButton->UpdateEnableState();
 
+  //Log Data option
+  if (connector->GetType() == vtkIGTLFileConnector::TYPE_FILE)
+    {
+    this->ConnectorLogCheckButton->EnabledOff();
+    }
+  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
+    {
+    this->ConnectorLogCheckButton->EnabledOn();
+    }
+  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
+    {
+    this->ConnectorLogCheckButton->EnabledOn();
+    }
+  else
+    {
+    this->ConnectorLogCheckButton->EnabledOff();
+    }
+  
+  this->ConnectorLogCheckButton->UpdateEnableState();
 
   // Connection Server Address entry
   if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
@@ -2536,16 +2633,12 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
       this->ConnectorAddressEntry->EnabledOn();
       }
     }
-  else if (connector->GetType() == vtkIGTLConnector::TYPE_FILE)
+  else if (connector->GetType() == vtkIGTLFileConnector::TYPE_FILE)
     {
     this->ConnectorAddressEntry->SetValue("--.--.--.--");
     this->ConnectorAddressEntry->EnabledOff();
-    this->ConnectorLogCheckButton->EnabledOff();
-    this->ConnectorStatusCheckButton->EnabledOn();
     }
   this->ConnectorAddressEntry->UpdateEnableState();
-  this->ConnectorLogCheckButton->UpdateEnableState();
-  this->ConnectorStatusCheckButton->UpdateEnableState();
 
   // Connection Port entry
   if ((connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER) 
@@ -2561,11 +2654,41 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
       {
       this->ConnectorPortEntry->EnabledOn();
       }
-    this->ConnectorPortEntry->UpdateEnableState();
+    }
+  else
+    {
+    this->ConnectorPortEntry->EnabledOff();
+    }
+  this->ConnectorPortEntry->UpdateEnableState();  
+  
+  // File Location 
+  if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
+    {
+    this->FileLocationButton->EnabledOff();
+    }
+  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
+    {
+    this->FileLocationButton->EnabledOff();
+    }
+  else if (connector->GetType() == vtkIGTLFileConnector::TYPE_FILE)
+    {
+    if (activeFlag)
+      {
+      this->FileLocationButton->EnabledOff();
+      }
+    else
+      {
+      this->FileLocationButton->EnabledOn();
+      }
+    }
+  else
+    {
+    this->FileLocationButton->EnabledOff();
     }
 
-}
+  this->FileLocationButton->UpdateEnableState();
 
+}
 
 
 //---------------------------------------------------------------------------

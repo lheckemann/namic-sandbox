@@ -17,8 +17,6 @@
 #include <vtksys/SystemTools.hxx>
 
 #include "vtkMultiThreader.h"
-#include "igtlServerSocket.h"
-#include "igtlClientSocket.h"
 #include "vtkMutexLock.h"
 #include "vtkImageData.h"
 
@@ -35,54 +33,13 @@ vtkCxxRevisionMacro(vtkIGTLFileConnector, "$Revision: 1.0 $");
 //---------------------------------------------------------------------------
 vtkIGTLFileConnector::vtkIGTLFileConnector()
 {
-//  this->Type   = TYPE_NOT_DEFINED;
-//  this->State  = STATE_OFF;
-//
-//  this->Thread = vtkMultiThreader::New();
-//  this->ServerStopFlag = false;
-//  this->ThreadID = -1;
-//  this->ServerHostname = "localhost";
-//  this->ServerPort = 18944;
-//  this->Mutex = vtkMutexLock::New();
-//  this->CircularBufferMutex = vtkMutexLock::New();
-//  this->RestrictDeviceName = 0;
-//  
-//  this->logData = false;
-//
-//  this->DeviceInfoList.clear();
-//  this->IncomingDeviceIDSet.clear();
-//  this->OutgoingDeviceIDSet.clear();
-//  this->UnspecifiedDeviceIDSet.clear();
-//
-//  this->LastID = -1;
+  this->filename  = "";
 }
 
 ////---------------------------------------------------------------------------
 vtkIGTLFileConnector::~vtkIGTLFileConnector()
 {
-//  this->CircularBufferMutex->Lock();
-//  CircularBufferMap::iterator iter;
-//  for (iter = this->Buffer.begin(); iter != this->Buffer.end(); iter ++)
-//    {
-//    iter->second->Delete();
-//    }
-//  this->Buffer.clear();
-//  this->CircularBufferMutex->Unlock();
-//  
-//  if (this->Thread)
-//    {
-//    this->Thread->Delete();
-//    }
-//
-//  if (this->Mutex)
-//    {
-//    this->Mutex->Delete();
-//    }
-//
-//  if (this->CircularBufferMutex)
-//    {
-//    this->CircularBufferMutex->Delete();
-//    }
+
 }
 
 //---------------------------------------------------------------------------
@@ -90,33 +47,14 @@ void vtkIGTLFileConnector::PrintSelf(ostream& os, vtkIndent indent)
 {
 }
 
-////---------------------------------------------------------------------------
-//int vtkIGTLConnector::SetTypeServer(int port)
-//{
-//  this->Type = TYPE_SERVER;
-//  this->ServerPort = port;
-//  return 1;
-//}
-//
-////---------------------------------------------------------------------------
-//int vtkIGTLConnector::SetTypeClient(char* hostname, int port)
-//{
-//  this->Type = TYPE_CLIENT;
-//  this->ServerPort = port;
-//  this->ServerHostname = hostname;
-//  return 1;
-//}
-//
-////---------------------------------------------------------------------------
-//int vtkIGTLConnector::SetTypeClient(std::string hostname, int port)
-//{
-//  this->Type = TYPE_CLIENT;
-//  this->ServerPort = port;
-//  this->ServerHostname = hostname;
-//  return 1;
-//}
-//
-////---------------------------------------------------------------------------
+//---------------------------------------------------------------------------
+void* vtkIGTLFileConnector::StartThread()
+{
+}
+
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
 //int vtkIGTLConnector::Start()
 //{
 //  // Check if type is defined.
@@ -224,8 +162,8 @@ void vtkIGTLFileConnector::PrintSelf(ostream& os, vtkIndent indent)
 //
 ////---------------------------------------------------------------------------
 ////igtl::ClientSocket::Pointer vtkIGTLConnector::WaitForConnection()
-//int vtkIGTLConnector::WaitForConnection()
-//{
+int vtkIGTLFileConnector::WaitForConnection()
+{
 //  //igtl::ClientSocket::Pointer socket;
 //
 //  if (this->Type == TYPE_CLIENT)
@@ -270,14 +208,14 @@ void vtkIGTLFileConnector::PrintSelf(ostream& os, vtkIndent indent)
 //    //vtkErrorMacro("vtkOpenIGTLinkLogic::WaitForConnection(): Socket Closed.");
 //    this->Socket->CloseSocket();
 //    }
-//
-//  //return NULL;
-//  return 0;
-//}
-//
-////---------------------------------------------------------------------------
-//int vtkIGTLConnector::ReceiveController()
-//{
+
+  //return NULL;
+  return 0;
+}
+
+//---------------------------------------------------------------------------
+int vtkIGTLFileConnector::ReceiveData(void*, int, int readFully /*=1*/)
+{
 //  //igtl_header header;
 //  igtl::MessageHeader::Pointer headerMsg;
 //  headerMsg = igtl::MessageHeader::New();
@@ -395,15 +333,15 @@ void vtkIGTLFileConnector::PrintSelf(ostream& os, vtkIndent indent)
 //  
 //  this->Socket->CloseSocket();
 //  
-//  return 0;
-//    
-//}
-//  
-//
-////---------------------------------------------------------------------------
-//int vtkIGTLConnector::SendData(int size, unsigned char* data)
-//{
-//  
+  return 0;
+    
+}
+  
+
+//---------------------------------------------------------------------------
+int vtkIGTLFileConnector::SendData(int size, unsigned char* data)
+{
+  
 //  if (this->Socket.IsNull())
 //    {
 //    return 0;
@@ -416,10 +354,11 @@ void vtkIGTLFileConnector::PrintSelf(ostream& os, vtkIndent indent)
 //    }
 //
 //  return this->Socket->Send(data, size);  // return 1 on success, otherwise 0.
-//
-//}
-//
-//
+  return 0; 
+
+}
+
+
 ////---------------------------------------------------------------------------
 //int vtkIGTLConnector::Skip(int length, int skipFully/*=1*/)
 //{
