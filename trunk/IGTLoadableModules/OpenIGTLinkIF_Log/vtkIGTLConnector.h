@@ -42,7 +42,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
 
   //BTX
   static const int TYPE_NOT_DEFINED = 0;
-  static const int TYPE_FILE = 3;
   
   enum {
     STATE_OFF,
@@ -106,8 +105,9 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
   void PrepareToLogData();
   void LogData(char*, int);
   void StopLoggingData();
+  void GenerateUniqueFilename(std::string&, std::string, std::string);
   bool logData;
-  std::string fileName;
+  std::string filename;
   ofstream outputFile;
   std::map<std::string,std::string> logMap;
   std::map<std::string,std::string>::iterator iter;

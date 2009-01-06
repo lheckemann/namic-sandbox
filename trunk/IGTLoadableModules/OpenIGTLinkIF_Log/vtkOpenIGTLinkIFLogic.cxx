@@ -331,6 +331,21 @@ void vtkOpenIGTLinkIFLogic::AddClientConnector(int id)
 }
 
 //---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFLogic::AddFileConnector(int id)
+{
+  vtkIGTLFileConnector* connector = vtkIGTLFileConnector::New();
+
+  connector->SetName(this->ConnectorMap[id]->GetName());
+  connector->SetType(vtkIGTLFileConnector::TYPE_File);
+  
+  //this->ConnectorMap.push_back(connector);
+  this->ConnectorMap[id] = connector;
+  //this->ConnectorPrevStateList.push_back(-1);
+  this->ConnectorPrevStateList[id] = -1;
+  connector->SetRestrictDeviceName(this->RestrictDeviceName);
+}
+
+//---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::DeleteConnector(int id)
 {
   ConnectorMapType::iterator iter = this->ConnectorMap.find(id);

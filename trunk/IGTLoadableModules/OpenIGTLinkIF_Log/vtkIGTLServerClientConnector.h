@@ -63,6 +63,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLServerClientConnector : public vtkIGTLConn
   void SetServerHostname(const char* str) { this->ServerHostname = str; }
   void SetServerHostname(std::string str) { this->ServerHostname = str; }
   const char* GetServerHostname() { return this->ServerHostname.c_str(); }
+  //ETX
 
   //----------------------------------------------------------------
   // Connector configuration
@@ -74,7 +75,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLServerClientConnector : public vtkIGTLConn
   int SetTypeClient(std::string hostname, int port);
   //ETX
 
-  
   //----------------------------------------------------------------
   // Constructor and Destructor
   //----------------------------------------------------------------

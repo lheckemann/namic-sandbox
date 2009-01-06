@@ -473,51 +473,31 @@ void vtkIGTLConnector::LogData(char* data, int r)
     {
     std::cerr << "Copying header to file" << std::endl;
     
-    //Extract device name
+    //Extract device name from header message
     char deviceName[21];
     deviceName[20] = '\0';
     memcpy((void*)deviceName, (void*)(data+14), 20);
     std::string dN = deviceName;
     
-    //Extract device type
+    //Extract device type from header message
     char deviceType[13];
-    deviceName[13] = '\0';
+    deviceType[13] = '\0';
     memcpy((void*)deviceType, (void*)(data+2), 12);
     std::string dT = deviceType;
     
-    //Search for filename in map
+    //Search for existing filename in logMap
     iter = this->logMap.find(dN);
     if (iter == this->logMap.end()) //key has not been found in the list
       {
-      //Create a filename: "deviceName_Date.txt" with Date being Month_dd_hh:mm:ss_yyyy
-      fileName.clear();
-      fileName = dN;
-      fileName.append("_");
-      fileName.append(dT);
-      fileName.append("_");
-      time_t rawtime;
-      time(&rawtime);
-      std::string fileDate = ctime(&rawtime);
-      fileDate.erase(0,4);  //delete weekday
-      //Extract month, day, time and year from fileDate;
-      for (int i=0; i < fileDate.length(); i++)
-        {
-        if (fileDate.at(i) == ' ')
-          fileDate.replace(i, 1, "_");
-        else if (fileDate.at(i) == '\n')
-          fileDate.erase(i,1);
-        }
-      //Append fileDate to file name
-      fileName.append("_");
-      fileName.append(fileDate);
-      fileName.append(".txt");
-      logMap[dN] = fileName;
-      std::cerr << "Created new filename: " << fileName << std::endl;
+      //Generate new filename with device name, device type, date and time
+      this->GenerateUniqueFilename(filename, dN, dT);
+      logMap[dN] = filename;
+      std::cerr << "Created new filename: " << filename << std::endl;
       }
     else
       {
-      fileName = logMap[dN];
-      std::cerr << "Filename: " << fileName << std::endl;
+      filename = logMap[dN];
+      std::cerr << "Filename: " << filename << std::endl;
       }
     }
   else  //data is body
@@ -526,7 +506,7 @@ void vtkIGTLConnector::LogData(char* data, int r)
     }
   
   //open, write to and close file
-  outputFile.open(fileName.c_str(), std::ios::out|std::ios::binary|std::ios::app);
+  outputFile.open(filename.c_str(), std::ios::out|std::ios::binary|std::ios::app);
     
   if (outputFile.fail())
     {
@@ -547,4 +527,59 @@ void vtkIGTLConnector::LogData(char* data, int r)
 void vtkIGTLConnector::StopLoggingData()
 {
   this->logData = false;
+}
+
+//--------------------------------------------------------------------------
+void vtkIGTLConnector::GenerateUniqueFilename(std::string& filename, std::string devName, std::string devType)
+{
+  //Generate unique filename: "deviceName_deviceType_Date_Time.txt" with Date: mmddyy and Time:hh:mm:ss
+  filename.clear();
+  
+  //device name and type
+  filename = devName;
+  filename.append("_");
+  filename.append(devType);
+  filename.append("_");
+  
+  //get calendar time
+  time_t rawtime;
+  struct tm* timeinfo;
+  time(&rawtime);
+  timeinfo = localtime(&rawtime);
+  //write date
+  std::stringstream filedate;
+  //month
+  if ((timeinfo->tm_mon+1) <= 9)
+    filedate << "0" << timeinfo->tm_mon+1;
+  else
+    filedate << timeinfo->tm_mon+1;
+  //day of the month
+  if ((timeinfo->tm_mday) <= 9)
+    filedate << "0" << timeinfo->tm_mday;
+  else
+    filedate << timeinfo->tm_mday;
+  //year
+  filedate << timeinfo->tm_year + 1900;
+  filedate << "_";
+  //hour
+  if ((timeinfo->tm_hour) <= 9)
+    filedate << "0" << timeinfo->tm_hour;
+  else
+    filedate << timeinfo->tm_hour;
+  filedate << ":";
+  //minutes
+  if ((timeinfo->tm_min) <= 9)
+    filedate << "0" << timeinfo->tm_min;
+  else
+    filedate << timeinfo->tm_min;
+  filedate << ":";
+  //seconds
+  if ((timeinfo->tm_sec) <= 9)
+    filedate << "0" << timeinfo->tm_sec;
+  else
+    filedate << timeinfo->tm_sec;
+  
+  //Append fileDate to file name
+  filename.append(filedate.str());
+  filename.append(".txt");
 }

@@ -63,7 +63,7 @@ set(OpenIGTLinkIF_SRCS
   vtkOpenIGTLinkIFGUI.cxx
   vtkIGTLConnector.cxx
   vtkIGTLServerClientConnector.cxx
-  #vtkIGTLFileConnector.cxx
+  vtkIGTLFileConnector.cxx
   vtkIGTLCircularBuffer.cxx
   vtkIGTLToMRMLBase.cxx
   vtkIGTLToMRMLLinearTransform.cxx
