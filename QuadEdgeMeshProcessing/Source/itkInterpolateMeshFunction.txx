@@ -81,6 +81,18 @@ InterpolateMeshFunction<TInputMesh, TCoordRep>
 
 
 /**
+ * Return the pixel value by delegating to the mesh.
+ */
+template <class TInputMesh, class TCoordRep>
+void
+InterpolateMeshFunction<TInputMesh, TCoordRep>
+::GetPointData( PointIdentifier pointId, PixelType * value ) const
+{
+  this->m_Mesh->GetPointData( pointId, value );
+}
+
+
+/**
  * Standard "PrintSelf" method
  */
 template <class TInputMesh, class TCoordRep>

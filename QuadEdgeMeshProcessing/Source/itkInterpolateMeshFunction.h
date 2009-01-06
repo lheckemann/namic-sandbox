@@ -60,7 +60,8 @@ public:
   typedef typename Superclass::OutputType OutputType;
 
   /** InputMeshType typedef support. */
-  typedef typename Superclass::InputMeshType InputMeshType;
+  typedef typename Superclass::InputMeshType        InputMeshType;
+  typedef typename InputMeshType::PointIdentifier   PointIdentifier;
   
   /** Dimension underlying input mesh. */
   itkStaticConstMacro(MeshDimension, unsigned int,
@@ -70,7 +71,8 @@ public:
   typedef typename Superclass::PointType PointType;
 
   /** RealType typedef support. */
-  typedef typename NumericTraits<typename TInputMesh::PixelType>::RealType RealType;
+  typedef typename TInputMesh::PixelType                    PixelType;
+  typedef typename NumericTraits<PixelType>::RealType       RealType;
 
   /** Interpolate the mesh at a point position
    *
@@ -107,12 +109,14 @@ protected:
               double radius,
               InstanceIdentifierVectorType& result) const;
 
+  /** Return the value associated with the point identified by pointId. */
+  void GetPointData( PointIdentifier pointId, PixelType * value ) const; 
 
 private:
   InterpolateMeshFunction( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
-  PointLocatorPointer    m_PointLocator;
+  PointLocatorPointer             m_PointLocator;
 
 };
 
