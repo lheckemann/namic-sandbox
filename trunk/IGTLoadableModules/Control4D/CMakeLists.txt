@@ -37,6 +37,12 @@ file(GLOB headers
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   )
 
+install(FILES 
+  ${headers} 
+  "${CMAKE_CURRENT_BINARY_DIR}/vtkControl4DConfigure.h"
+  DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
+  )
+
 # --------------------------------------------------------------------------
 # Sources
 
@@ -67,6 +73,8 @@ add_library(${lib_name}
   ${Control4D_SRCS} 
   ${Control4D_TCL_SRCS}
   )
+slicer3_set_modules_output_path(${lib_name})
+
 
 target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
