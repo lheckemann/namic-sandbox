@@ -194,7 +194,8 @@ void printUsage()
          << endl;
     cout << "OPTIONS " << endl
          << "-------"<<endl
-         << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl 
+         << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl
+         << "                                        (MANDATORY)"<<endl 
          << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<<endl
          << "                                        (default: 'localhost')" << endl
          << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<<endl
