@@ -24,7 +24,7 @@
       <flag>-n</flag>
       <longflag>--name</longflag>
       <description>Name to use for this image series</description>
-      <default>Series</default>
+      <default>series</default>
     </string>
 </parameters>
 
