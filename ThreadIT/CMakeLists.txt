@@ -15,7 +15,7 @@ subdirs ( ZThread )
 link_libraries( ${ITK_LIBRARIES} ZThread )
 
 include_directories ( ${CMAKE_SOURCE_DIR}/ZThread/include )
-add_executable ( ThreadIT ThreadIT.cxx )
+add_executable ( ThreadIT ThreadIT.cxx itkMultiZThreader.cxx )
 
 enable_testing()
 include(Dart)

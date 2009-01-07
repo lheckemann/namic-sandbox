@@ -115,8 +115,7 @@ MedianZThreadImageFilter<TInputImage, TOutputImage>
       ZThreadStruct* s = new ZThreadStruct();
       s->threadId = i;
       s->Filter = this;
-      int foo = this->SplitRequestedRegion(s->threadId, this->m_NumberOfPieces, splitRegion);
-      // std::cout << "SplitRequestedRegion returned " << foo << "\n" << splitRegion << std::endl;
+      this->SplitRequestedRegion(s->threadId, this->m_NumberOfPieces, splitRegion);
       s->region = splitRegion;
       executor->execute ( s );
       }

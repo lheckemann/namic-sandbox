@@ -272,7 +272,6 @@ BilateralZThreadImageFilter<TInputImage, TOutputImage>
   typename TOutputImage::RegionType splitRegion;
   try
     {
-    int NumberOfRegions = 20;
     for ( int i = 0; i < 20; i++ )
       {
       ZThreadStruct* s = new ZThreadStruct();
