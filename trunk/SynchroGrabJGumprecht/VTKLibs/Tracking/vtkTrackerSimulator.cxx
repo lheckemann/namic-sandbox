@@ -161,6 +161,10 @@ static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
   // sleep according to OS preference
+#ifdef __APPLE__
+  sleep(duration);
+
+#endif
 #ifdef _WIN32
   Sleep((int)(1000*duration));
 #elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi)

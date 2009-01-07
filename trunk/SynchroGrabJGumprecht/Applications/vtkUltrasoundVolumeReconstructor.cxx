@@ -216,7 +216,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 #ifdef USE_TRACKER_DEVICE
       vtkSleep(1);
 #else
-      vtkSleep(0.2);
+      vtkSleep(1);
 #endif
       cout << 10 - i << " " << std::flush;
     }
@@ -224,7 +224,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 
   cout << "Start Recording" << endl;
   cout << '\a' << std::flush;
-  vtkSleep(0.2);
+  vtkSleep(1);
   cout << '\a' << std::flush; 
 
   this->sonixGrabber->Record();  //Start recording frame from the video
@@ -236,8 +236,8 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 #ifdef USE_TRACKER_DEVICE || USE_ULTRASOUND_DEVICE
     cout << '\a' << std::flush;//Only beep when we use no simulator
 #endif
-
-    vtkSleep(0.5);//Wait half a second for the next beep
+    //sleep(1);
+    vtkSleep(1);//Wait half a second for the next beep
     }
   cout << endl;
 
@@ -526,6 +526,10 @@ static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
   // sleep according to OS preference
+#ifdef __APPLE__
+  sleep(duration);
+#endif
+
 #ifdef _WIN32
   Sleep((int)(1000*duration));
 #elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi)

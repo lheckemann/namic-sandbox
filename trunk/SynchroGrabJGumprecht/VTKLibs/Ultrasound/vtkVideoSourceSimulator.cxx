@@ -303,6 +303,11 @@ static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
   // sleep according to OS preference
+#ifdef __APPLE__
+  sleep(duration);
+
+#endif
+
 #ifdef _WIN32
   Sleep((int)(1000*duration));
 #elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi)
@@ -311,6 +316,7 @@ static inline void vtkSleep(double duration)
   sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
   nanosleep(&sleep_time,&dummy);
 #endif
+ 
 }
 
 /******************************************************************************
@@ -386,11 +392,15 @@ static void *vtkVideoSourceSimulatorRecordThread(vtkMultiThreader::ThreadInfo *d
   double rate = self->GetFrameRate();
   int frame = 0;
 
+  
+
   do
     {
+      //cerr << frame  << endl;
       self->InternalGrab();
       frame++;
-    }    
+    }   
+ 
   while (vtkThreadSleep(data, startTime + frame/rate));
 
   return NULL;
@@ -407,8 +417,12 @@ static void *vtkVideoSourceSimulatorRecordThread(vtkMultiThreader::ThreadInfo *d
  * ****************************************************************************/
 void vtkVideoSourceSimulator::Record()
 {
-  this->Initialize();
-  if (!this->Initialized)
+
+
+
+ this->Initialize();
+
+if (!this->Initialized)
     {
     return;
     }
