@@ -243,10 +243,6 @@ void vtkVideoSourceSimulator::Initialize()
   this->DoFormatSetup();
   this->FrameBufferMutex->Unlock();
 
-#ifndef NEW_SIMULATOR
-  this->FillFrameBuffer();
-#endif
-
   this->UpdateFrameBuffer();
 
   this->Initialized = 1;
@@ -428,11 +424,9 @@ void vtkVideoSourceSimulator::Record()
     this->Modified();
     }
 
-#ifdef NEW_SIMULATOR    
   this->PlayerThreadId =  
             this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
             &vtkVideoSourceSimulatorRecordThread,this);
-#endif
      
 }
     

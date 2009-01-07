@@ -133,8 +133,6 @@ public:
   //Add an image to the frame buffer
   void InternalGrab();
 
-#endif
-
 protected:
   vtkVideoSourceSimulator();
   ~vtkVideoSourceSimulator();
