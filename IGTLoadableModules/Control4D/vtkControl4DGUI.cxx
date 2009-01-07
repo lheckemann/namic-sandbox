@@ -573,7 +573,7 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
   this->BackgroundVolumeSelectorScale->SetRange(0.0, 100.0);
   this->BackgroundVolumeSelectorScale->SetResolution(1.0);
 
-  this->Script("pack %s %s -side bottom -fill x -padx 2 -pady 2", 
+  this->Script("pack %s %s -side top -fill x -padx 2 -pady 2", 
                this->ForegroundVolumeSelectorScale->GetWidgetName(),
                this->BackgroundVolumeSelectorScale->GetWidgetName());
 
@@ -792,7 +792,7 @@ void vtkControl4DGUI::SetBackground(int index)
         this->GetMRMLScene()->GetNthNodeByClass (i, "vtkMRMLSliceCompositeNode"));
       if ( cnode != NULL)
         {
-        cnode->SetForegroundVolumeID( nodeID );
+        cnode->SetBackgroundVolumeID( nodeID );
         }
       }
     }
