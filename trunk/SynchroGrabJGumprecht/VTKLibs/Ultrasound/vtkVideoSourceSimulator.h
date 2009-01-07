@@ -46,19 +46,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkUltrasoundWin32Header.h"
 #include "vtkVideoSource.h"
 
-//#undef NEW_SIMULATOR
-#define NEW_SIMULATOR
-
 #define BITS_PER_PIXEL 8
 
 class vtkMultiThreader;
-
-//Imaging mode | not used in the simualtor. Only here for consistency.
-//enum {BMode};
-
-//Acquistiontypes | not used in the simualtor. Only here for consistency.
-//enum {udtBPost};
-
 
 class VTK_ULTRASOUND_EXPORT vtkVideoSourceSimulator;
 
@@ -140,13 +130,9 @@ public:
   // Request data method override
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   
-#ifdef NEW_SIMULATOR
   //Add an image to the frame buffer
   void InternalGrab();
-#else
-  //Fill Framebuffer with artificial images
-  void FillFrameBuffer();
-  
+
 #endif
 
 protected:
