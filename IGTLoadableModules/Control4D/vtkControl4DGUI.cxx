@@ -262,12 +262,12 @@ void vtkControl4DGUI::AddGUIObservers ( )
   if (this->ForegroundVolumeSelectorScale)
     {
     this->ForegroundVolumeSelectorScale
-      ->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+      ->AddObserver(vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->BackgroundVolumeSelectorScale)
     {
     this->BackgroundVolumeSelectorScale
-      ->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+      ->AddObserver(vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->MaskSelectMenu)
     {
@@ -350,15 +350,17 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     // Adjust range of the scale
     this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n);
     this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n);
+    SetForeground(0);
+    SetBackground(0);
     }
   else if (this->ForegroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
-      && event == vtkKWScale::ScaleValueChangedEvent)
+      && event == vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/)
     {
     int value = (int)this->ForegroundVolumeSelectorScale->GetValue();
     SetForeground(value);
     }
   else if (this->BackgroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
-      && event == vtkKWScale::ScaleValueChangedEvent)
+      && event == vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/ )
     {
     int value = (int)this->BackgroundVolumeSelectorScale->GetValue();
     SetBackground(value);
@@ -744,27 +746,36 @@ void vtkControl4DGUI::UpdateAll()
 //----------------------------------------------------------------------------
 void vtkControl4DGUI::SetForeground(int index)
 {
-
+  int i, nnodes;
+  vtkMRMLSliceCompositeNode *cnode;
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
   const char* nodeID = this->GetLogic()->SwitchNodeFG(index);
   vtkMRMLVolumeNode* volNode =
-    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+  vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
 
   if (volNode)
     {
-    appGUI->GetMainSliceGUI("Red")->GetLogic()->GetForegroundLayer()->SetVolumeNode(volNode);
-    appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetForegroundLayer()->SetVolumeNode(volNode);
-    appGUI->GetMainSliceGUI("Green")->GetLogic()->GetForegroundLayer()->SetVolumeNode(volNode);
+    std::cerr << "node id = " << nodeID << std::endl;
+    nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass ( "vtkMRMLSliceCompositeNode");          
+    for ( i=0; i<nnodes; i++)
+      {
+      cnode = vtkMRMLSliceCompositeNode::SafeDownCast (
+        this->GetMRMLScene()->GetNthNodeByClass (i, "vtkMRMLSliceCompositeNode"));
+      if ( cnode != NULL)
+        {
+        cnode->SetForegroundVolumeID( nodeID );
+        }
+      }
     }
-
 }
 
 
 //----------------------------------------------------------------------------
 void vtkControl4DGUI::SetBackground(int index)
 {
-
+  int i, nnodes;
+  vtkMRMLSliceCompositeNode *cnode;
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
   const char* nodeID = this->GetLogic()->SwitchNodeBG(index);
@@ -773,11 +784,18 @@ void vtkControl4DGUI::SetBackground(int index)
 
   if (volNode)
     {
-    appGUI->GetMainSliceGUI("Red")->GetLogic()->GetBackgroundLayer()->SetVolumeNode(volNode);
-    appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetBackgroundLayer()->SetVolumeNode(volNode);
-    appGUI->GetMainSliceGUI("Green")->GetLogic()->GetBackgroundLayer()->SetVolumeNode(volNode);
+    std::cerr << "node id = " << nodeID << std::endl;
+    nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass ( "vtkMRMLSliceCompositeNode");          
+    for ( i=0; i<nnodes; i++)
+      {
+      cnode = vtkMRMLSliceCompositeNode::SafeDownCast (
+        this->GetMRMLScene()->GetNthNodeByClass (i, "vtkMRMLSliceCompositeNode"));
+      if ( cnode != NULL)
+        {
+        cnode->SetForegroundVolumeID( nodeID );
+        }
+      }
     }
-  
 }
 
 
