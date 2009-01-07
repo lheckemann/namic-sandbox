@@ -24,7 +24,8 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLScalarVolumeDisplayNode.h"
-#include "vtkMRMLVolumeHeaderlessStorageNode.h"
+//#include "vtkMRMLVolumeHeaderlessStorageNode.h"
+#include "vtkMRMLVolumeArchetypeStorageNode.h"
 
 #include "itkOrientedImage.h"
 #include "itkImageSeriesReader.h"
@@ -203,54 +204,34 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
 
   //vtkMRMLScene* scene = vtkMRMLScene::New();
   vtkMRMLScene* scene = this->GetMRMLScene();
+  scene->SaveStateForUndo();
+  this->FrameNodeVector.clear();
 
   for (int i = 0; i < nVolumes; i ++)
     {
     std::cerr << "Reading Volume " << i << std::endl;
 
-    /*
-    ReaderType::Pointer reader = ReaderType::New();
-    reader->SetImageIO( gdcmIO );
-    //reader->SetFileNames( *fnciter );
-    reader->SetFileNames( fileNamesContainerList[i] );
-    try
-      {
-      char str[128];
-      sprintf (str, "Reading Volume #%d", i);
-      collector.Start( str );
-      reader->Update();
-      collector.Stop( str );
-      }
-    catch (itk::ExceptionObject &excp)
-      {
-      std::cerr << "Exception thrown while reading the series" << std::endl;
-      std::cerr << excp << std::endl;
-      return EXIT_FAILURE;
-      }
-    //VolumeType::Pointer volume
-
-    WriterType::Pointer      writer =  WriterType::New();
-    char filename[128];
-    sprintf(filename, "output_%04d.dcm", i);
-    writer->SetFileName( filename );
-    writer->SetInput( reader->GetOutput() );
-    writer->Update();
-    std::cerr << "output : " << filename << std::endl; 
-    */
-
     vtkMRMLVolumeNode *volumeNode = NULL;
     vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
     vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
-    vtkMRMLVolumeHeaderlessStorageNode *storageNode = vtkMRMLVolumeHeaderlessStorageNode::New();
+    vtkMRMLVolumeArchetypeStorageNode*storageNode = vtkMRMLVolumeArchetypeStorageNode::New();
     //storageNode->SetFileName(filename);
     char nodeName[128];
+    std::cerr << "filename = " << fileNamesContainerList[i][0].c_str() << std::endl;
+    ReaderType::FileNamesContainer::iterator fnciter;
     storageNode->SetFileName(fileNamesContainerList[i][0].c_str());
+    storageNode->ResetFileNameList();
+    for (fnciter = fileNamesContainerList[i].begin(); fnciter != fileNamesContainerList[i].end(); fnciter ++)
+      {
+      storageNode->AddFileName(fnciter->c_str());
+      }
+    storageNode->SetSingleFile(0);
     storageNode->ReadData(scalarNode);
+
     volumeNode = scalarNode;
     sprintf(nodeName, "Vol_%03d", i);
     volumeNode->SetName(nodeName);
 
-    scene->SaveStateForUndo();
     volumeNode->SetScene(scene);
     storageNode->SetScene(scene);
     displayNode->SetScene(scene);
@@ -271,16 +252,13 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
     volumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
     volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
     scene->AddNode(volumeNode);  
+    this->FrameNodeVector.push_back(std::string(volumeNode->GetID()));
 
     scalarNode->Delete();
     storageNode->Delete();
     colorLogic->Delete();
-    if (displayNode)
-      {
-      displayNode->Delete();
-      }
-    
-    //scene->Import();
+    displayNode->Delete();
+
     }
   /*
   scene->SetURL( "test.mrml" );
@@ -311,7 +289,7 @@ const char* vtkControl4DLogic::SwitchNodeBG(int index)
 {
   if (index >= 0 && index < this->FrameNodeVector.size())
     {
-      this->CurrentFrameBG = this->FrameNodeVector[index].c_str();
+    this->CurrentFrameBG = this->FrameNodeVector[index].c_str();
     return this->CurrentFrameBG;
     }
   else
