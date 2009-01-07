@@ -162,6 +162,7 @@ int vtkIGTLConnector::ReceiveController()
     if (r != headerMsg->GetPackSize())
       {
       vtkErrorMacro("Irregluar size.");
+      this->ConnectorStopFlag = true;
       break;
       }
 

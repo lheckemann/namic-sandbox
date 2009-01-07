@@ -35,6 +35,7 @@
 
 #include "vtkIGTLConnector.h"
 #include "vtkIGTLServerClientConnector.h"
+#include "vtkIGTLFileConnector.h"
 #include "vtkIGTLCircularBuffer.h"
 
 //#include "igtl_header.h"
@@ -90,8 +91,6 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
   this->RestrictDeviceName = 0;
   
   this->LastConnectorID = -1;
-  this->ConnectorMap.clear();
-  this->ConnectorPrevStateList.clear();
 
   this->IDToMRMLNodeMap.clear();
   this->MessageConverterList.clear();
@@ -336,7 +335,7 @@ void vtkOpenIGTLinkIFLogic::AddFileConnector(int id)
   vtkIGTLFileConnector* connector = vtkIGTLFileConnector::New();
 
   connector->SetName(this->ConnectorMap[id]->GetName());
-  connector->SetType(vtkIGTLFileConnector::TYPE_File);
+  connector->SetType(vtkIGTLFileConnector::TYPE_FILE);
   
   //this->ConnectorMap.push_back(connector);
   this->ConnectorMap[id] = connector;

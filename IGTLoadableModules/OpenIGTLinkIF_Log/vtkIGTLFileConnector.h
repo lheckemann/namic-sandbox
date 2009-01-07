@@ -26,6 +26,14 @@
 #include "vtkOpenIGTLinkIFWin32Header.h" 
 #include "vtkIGTLConnector.h"
 
+#include "igtlOSUtil.h"
+#include "igtlMessageBase.h"
+#include "igtlMessageHeader.h"
+#include "igtlTransformMessage.h"
+#include "igtlImageMessage.h"
+
+class vtkMutexLock;
+
 
 class VTK_OPENIGTLINKIF_EXPORT vtkIGTLFileConnector : public vtkIGTLConnector
 {
@@ -41,6 +49,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLFileConnector : public vtkIGTLConnector
   void SetFilename(std::string fn){ filename = fn; }
   void GetFilename(std::string& fn) { fn = filename; } 
   const char* GetFilename() {return filename.c_str(); }
+  vtkGetMacro( Interval, int );
+  vtkSetMacro( Interval, int );
+  vtkGetMacro( SpeedFactor, int );
+  vtkSetMacro( SpeedFactor, int );
   //ETX
 
   //----------------------------------------------------------------
@@ -58,16 +70,32 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLFileConnector : public vtkIGTLConnector
   virtual int WaitForConnection();
   virtual int ReceiveData(void*, int, int readFully =1);
   virtual int SendData(int size, unsigned char* data);
+  int MessageInterval(void*, int);
+  
+ private:
+  int Interval;
+  int SpeedFactor;
+  //BTX
+  //Create two time stamp objects
+  igtl::TimeStamp::Pointer ts1;
+  igtl::TimeStamp::Pointer ts2;
+  //Create a pointer to the header of the OpenIGTLink message
+  igtl::MessageHeader::Pointer headerMsg;
+  int numMes;     //number of OpenIGTLink messages read
+  //ETX
   
   //----------------------------------------------------------------
-  // Thread and Socket
+  // Thread and File Manager
   //----------------------------------------------------------------
-  
+ 
+ protected:
   virtual void* StartThread();
+  vtkMutexLock* Mutex;
  
  private:
   //BTX
   std::string filename;
+  ifstream inputFile;
   //ETX
 };
 
