@@ -29,6 +29,7 @@
 #include "vtkCallbackCommand.h"
 
 #include "vtkMRMLSliceNode.h"
+#include "vtkMRMLScene.h"
 
 class vtkIGTLConnector;
 
@@ -74,8 +75,10 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
 
   vtkCallbackCommand *DataCallbackCommand;
 
-
  private:
+
+  vtkMRMLScene* MRMLScene;
+
   //BTX
   FrameNodeVectorType FrameNodeVector;
   //ETX

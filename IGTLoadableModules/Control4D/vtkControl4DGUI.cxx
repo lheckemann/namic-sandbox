@@ -347,7 +347,6 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     {
     const char* path = this->SelectImageButton->GetWidget()->GetFileName();
     int n = this->GetLogic()->LoadImagesFromDir(path);
-
     // Adjust range of the scale
     this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n);
     this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n);
@@ -505,6 +504,7 @@ void vtkControl4DGUI::BuildGUIForLoadFrame ()
   this->SelectImageButton->Create();
   this->SelectImageButton->SetWidth(50);
   this->SelectImageButton->GetWidget()->SetText ("Browse Image File");
+  this->SelectImageButton->GetWidget()->GetLoadSaveDialog()->ChooseDirectoryOn();
   /*
     this->SelectImageButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes(
     "{ {ProstateNav} {*.dcm} }");
