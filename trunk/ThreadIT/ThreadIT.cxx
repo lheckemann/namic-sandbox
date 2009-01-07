@@ -9,8 +9,10 @@
 #include <itkStdStreamLogOutput.h>
 #include <itkSimpleFilterWatcher.h>
 #include <itkBilateralImageFilter.h>
+#include <itkDifferenceImageFilter.h>
 #include <itkTimeProbesCollectorBase.h>
 #include "itkBilateralZThreadImageFilter.h"
+#include "itkBilateralZThreadImageFilter2.h"
 #include "itkMedianZThreadImageFilter.h"
 #include <itkMedianImageFilter.h>
 #include <itkRandomImageSource.h>
@@ -29,59 +31,51 @@ int main ( int argc, const char* argv[] )
   typedef itk::RandomImageSource<Volume> RIS;
 
   RIS::Pointer ris = RIS::New();
-  unsigned long int size[3] = {64, 64, 64};
+  unsigned long int size[3] = {128, 128, 128};
   ris->SetSize ( size );
 
   itk::TimeProbesCollectorBase probe;
 
+  typedef itk::BilateralImageFilter<Volume,Volume> BilateralType;
+  BilateralType::Pointer bilateral = BilateralType::New();
+  bilateral->SetDomainSigma ( 0.1 );
+  bilateral->SetRangeSigma ( 50.0 );
+  bilateral->SetInput ( ris->GetOutput() );
+
+  probe.Start ( "Original Bilateral" );
+  bilateral->Update();
+  probe.Stop ( "Original Bilateral" );
+
   // Process here
-  typedef itk::BilateralZThreadImageFilter<Volume,Volume> BilateralZThreadType;
-  BilateralZThreadType::Pointer bilateralZ = BilateralZThreadType::New();
-  bilateralZ->SetDomainSigma ( 0.1 );
-  bilateralZ->SetRangeSigma ( 50.0 );
-  bilateralZ->SetInput ( ris->GetOutput() );
-
-  std::cout << "Starting bilateralZ" << std::endl;
-  bilateralZ->Update();
-  typedef itk::MedianZThreadImageFilter<Volume,Volume> MedianZThreadType;
-
-  MedianZThreadType::InputSizeType sz;
-  sz[0] = 3;
-  sz[1] = 3;
-  sz[2] = 3;
-
-  ZThread::PoolExecutor executor((size_t)bilateralZ->GetMultiThreader()->GetNumberOfThreads());
-  char buffer[128];
-  for ( int i = 1; i < bilateralZ->GetMultiThreader()->GetNumberOfThreads() * 2; i++ )
-    {
-    MedianZThreadType::Pointer medianZ = MedianZThreadType::New();
-    medianZ->executor = &executor;
-    medianZ->SetRadius ( sz );
-    medianZ->SetInput ( bilateralZ->GetOutput() );
-    medianZ->SetNumberOfPieces ( i );
-
-    sprintf ( buffer, "MedianZ %02d Chunk", i );
-    probe.Start ( buffer );
-    // itk::SimpleFilterWatcher watcher ( medianZ, "MedianZ" );
-    medianZ->Update();
-    probe.Stop ( buffer );
-    std::cout << "Finished: " << buffer << std::endl;
-    
-    typedef itk::MedianImageFilter<Volume,Volume> MedianType;
-    MedianType::Pointer median = MedianType::New();
-    median->SetRadius ( sz );
-    median->SetInput ( bilateralZ->GetOutput() );
-    median->GetMultiThreader()->SetNumberOfThreads ( i );
-    
-    sprintf ( buffer, "Median %02d Threads", i );
-    probe.Start ( buffer );
-    // itk::SimpleFilterWatcher watcher2 ( median, "Median" );
-    median->Update();
-    probe.Stop ( buffer );
-    }
+  typedef itk::BilateralZThreadImageFilter2<Volume,Volume> BilateralZThreadType2;
+  BilateralZThreadType2::Pointer bilateralZ2 = BilateralZThreadType2::New();
+  bilateralZ2->SetDomainSigma ( 0.1 );
+  bilateralZ2->SetRangeSigma ( 50.0 );
+  bilateralZ2->SetInput ( ris->GetOutput() );
+  probe.Start ( "MultiZThreader" );
+  bilateralZ2->Update();
+  probe.Stop ( "MultiZThreader" );
 
   probe.Report();
 
-  return EXIT_SUCCESS;
+  // Now compare the two images
+  typedef itk::DifferenceImageFilter<Volume,Volume> DiffType;
+  DiffType::Pointer diff = DiffType::New();
+  diff->SetValidInput(bilateral->GetOutput());
+  diff->SetTestInput(bilateralZ2->GetOutput());
+  diff->SetDifferenceThreshold(2.0);
+  diff->UpdateLargestPossibleRegion();
 
+  double status = diff->GetTotalDifference();
+
+  std::cout << "\nDifference between implementations" << std::endl;
+  std::cout << "\tTotal difference:           " << diff->GetTotalDifference() << std::endl;
+  std::cout << "\tMean difference:            " << diff->GetMeanDifference() << std::endl;
+  std::cout << "\tNumber of different pixels: " << diff->GetNumberOfPixelsWithDifferences() << std::endl;
+
+  if ( status > 0.1 )
+    {
+    return EXIT_FAILURE;
+    }
+  return EXIT_SUCCESS;
 }
