@@ -253,7 +253,6 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
   panoramaReconstructor->CompoundingOn();
   panoramaReconstructor->SetInterpolationModeToLinear();
-  //  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar(); //Causes a segmentation fault
   
   //NH
   //12/2/08
@@ -312,7 +311,8 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 
     }
 
-  double spacing[3] = {1,1,1};
+//  double spacing[3] = {1,1,1};
+  double spacing[3] = {0.5,0.5,0.5};
   int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
                           0, (int)( (maxY - minY) / spacing[1] ), 
                           0, (int)( (maxZ - minZ) / spacing[2] ) };
@@ -326,6 +326,7 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   //Rewind and add recorded Slices to the PanoramaReconstructor
   
   panoramaReconstructor->SetSlice(tagger->GetOutput());
+  panoramaReconstructor->GetOutput()->SetScalarTypeToUnsignedChar(); //Causes a segmentation fault
   panoramaReconstructor->GetOutput()->Update();
   this->sonixGrabber->Rewind();
   
