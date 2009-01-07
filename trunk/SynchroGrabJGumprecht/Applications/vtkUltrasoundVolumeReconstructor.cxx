@@ -237,7 +237,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
     cout << '\a' << std::flush;//Only beep when we use no simulator
 #endif
     //sleep(1);
-    vtkSleep(1);//Wait half a second for the next beep
+    vtkSleep(0.5);//Wait half a second for the next beep
     }
   cout << endl;
 
@@ -526,13 +526,15 @@ static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
   // sleep according to OS preference
+  /*
 #ifdef __APPLE__
   sleep(duration);
 #endif
 
+  */
 #ifdef _WIN32
   Sleep((int)(1000*duration));
-#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi)
+#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || defined(__APPLE__)
   struct timespec sleep_time, dummy;
   sleep_time.tv_sec = (int)duration;
   sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
