@@ -136,6 +136,7 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   this->ConnectorAddressEntry = NULL;
   this->ConnectorPortEntry = NULL;
   this->FileLocationButton = NULL;
+  this->FilePlaySpeedButtonSet = NULL;
 
   //----------------------------------------------------------------
   // Data I/O Configuration frame
@@ -319,6 +320,12 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
     this->FileLocationButton->SetParent(NULL);
     this->FileLocationButton->Delete();
     }
+  
+  if ( this->FilePlaySpeedButtonSet )
+    {
+    this->FilePlaySpeedButtonSet->SetParent(NULL);
+    this->FilePlaySpeedButtonSet->Delete();
+    }
     
   //----------------------------------------------------------------
   // Etc Frame
@@ -443,6 +450,16 @@ void vtkOpenIGTLinkIFGUI::RemoveGUIObservers ( )
   if (this->FileLocationButton)
     {
     this->FileLocationButton->GetLoadSaveDialog()->RemoveObservers (vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
+    
+  if (this->FilePlaySpeedButtonSet)
+    {
+    this->FilePlaySpeedButtonSet->GetWidget(0)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->FilePlaySpeedButtonSet->GetWidget(1)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->FilePlaySpeedButtonSet->GetWidget(1)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
     
   //----------------------------------------------------------------
@@ -614,6 +631,14 @@ void vtkOpenIGTLinkIFGUI::AddGUIObservers ( )
 
   this->FileLocationButton->GetLoadSaveDialog()
     ->AddObserver (vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    
+  this->FilePlaySpeedButtonSet->GetWidget(0)
+    ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->FilePlaySpeedButtonSet->GetWidget(1)
+    ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->FilePlaySpeedButtonSet->GetWidget(2)
+    ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  
   //----------------------------------------------------------------
   // Data I/O Configuration frame
   this->IOConfigTree->GetWidget()
@@ -893,7 +918,10 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
     if (connector)
       {
-      connector->SetType(vtkIGTLFileConnector::TYPE_FILE);
+      if (connector->GetType() != vtkIGTLFileConnector::TYPE_FILE)
+        {
+        this->GetLogic()->AddFileConnector(id);
+        }
       UpdateConnectorList(UPDATE_SELECTED_ONLY);
       UpdateConnectorPropertyFrame(selected);
       UpdateIOConfigTree();
@@ -1008,37 +1036,57 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     
     vtkIGTLFileConnector* connector = static_cast<vtkIGTLFileConnector*>(this->GetLogic()->GetConnector(id));
     //Get filename from menu
-    const char * filename = this->FileLocationButton->GetFileName();
+    const char* filename = this->FileLocationButton->GetFileName();
     if (filename)
       {
       connector->SetFilename(filename);
       std::cerr << "The filename selected is: " << connector->GetFilename() << std::endl;
       }
-//    if (filename)
-//      {
-//      const vtksys_stl::string fname(filename);
-//      vtksys_stl::string name = vtksys::SystemTools::GetFilenameName(fname);
-//      this->NameEntry->GetWidget()->SetValue(name.c_str());
-//      // get dicom header (or meta data) from the selected file
-//      vtkITKArchetypeImageSeriesReader* reader = vtkITKArchetypeImageSeriesReader::New();
-//      reader->SetSingleFile( 1 );
-//      reader->SetArchetype( filename );
-//      try 
-//        {
-//        reader->Update();
-//        this->CopyTagAndValues( reader );
-//        }
-//      catch (vtkstd::exception &e) 
-//        {
-//        e=e; // dummy access to avoid warning
-//        }
-//      reader->Delete();
-//      }
-//    else
-//      {
-//      this->NameEntry->GetWidget()->SetValue("");
-//      }
-//    this->LoadVolumeButton->GetWidget()->SetText ("Select Volume File");
+    }
+    
+  else if (this->FilePlaySpeedButtonSet->GetWidget(0) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->FilePlaySpeedButtonSet->GetWidget(0)->GetSelectedState() == 1)
+    {
+    int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
+    int id = -1;
+    if (selected >= 0 && selected < (int)this->ConnectorIDList.size())
+      {
+      id = this->ConnectorIDList[selected];
+      }
+    
+    vtkIGTLFileConnector* connector = static_cast<vtkIGTLFileConnector*>(this->GetLogic()->GetConnector(id));
+    connector->SetSpeedFactor(1);
+    }
+    
+  else if (this->FilePlaySpeedButtonSet->GetWidget(1) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->FilePlaySpeedButtonSet->GetWidget(1)->GetSelectedState() == 1)
+    {
+    int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
+    int id = -1;
+    if (selected >= 0 && selected < (int)this->ConnectorIDList.size())
+      {
+      id = this->ConnectorIDList[selected];
+      }
+    
+    vtkIGTLFileConnector* connector = static_cast<vtkIGTLFileConnector*>(this->GetLogic()->GetConnector(id));
+    connector->SetSpeedFactor(2);
+    }
+  
+  else if (this->FilePlaySpeedButtonSet->GetWidget(2) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->FilePlaySpeedButtonSet->GetWidget(2)->GetSelectedState() == 1)
+    {
+    int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
+    int id = -1;
+    if (selected >= 0 && selected < (int)this->ConnectorIDList.size())
+      {
+      id = this->ConnectorIDList[selected];
+      }
+    
+    vtkIGTLFileConnector* connector = static_cast<vtkIGTLFileConnector*>(this->GetLogic()->GetConnector(id));
+    connector->SetSpeedFactor(4);
     }
 
 
@@ -1636,7 +1684,7 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   portFrame->Delete();
   portLabel->Delete();
   
-  // File Selection browser
+  // Connector Property - File Selection browser
   vtkKWFrame *fileFrame = vtkKWFrame::New();
   fileFrame->SetParent(controlFrame->GetFrame());
   fileFrame->Create();
@@ -1654,6 +1702,7 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   this->FileLocationButton->Create ( );
   this->FileLocationButton->SetWidth(180);
   this->FileLocationButton->SetText ("Select Data File");
+  this->FileLocationButton->TrimPathFromFileNameOn();
   this->FileLocationButton->GetLoadSaveDialog()->SetTitle("Open Data File");
   this->FileLocationButton->GetLoadSaveDialog()->SetFileTypes("{ {Text} {*.txt} }");
   this->FileLocationButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
@@ -1663,6 +1712,41 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
              
   fileFrame->Delete();
   fileLabel->Delete();
+  
+  // Connector Property -- File Play Speed (1x, 2x or 4x)
+  vtkKWFrame *speedFrame = vtkKWFrame::New();
+  speedFrame->SetParent(controlFrame->GetFrame());
+  speedFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                speedFrame->GetWidgetName());
+
+  vtkKWLabel *speedLabel = vtkKWLabel::New();
+  speedLabel->SetParent(speedFrame);
+  speedLabel->Create();
+  speedLabel->SetWidth(8);
+  speedLabel->SetText("Speed: ");
+
+  this->FilePlaySpeedButtonSet = vtkKWRadioButtonSet::New();
+  this->FilePlaySpeedButtonSet->SetParent(speedFrame);
+  this->FilePlaySpeedButtonSet->Create();
+  this->FilePlaySpeedButtonSet->PackHorizontallyOn();
+  this->FilePlaySpeedButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(3);
+  this->FilePlaySpeedButtonSet->UniformColumnsOn();
+  this->FilePlaySpeedButtonSet->UniformRowsOn();
+
+  this->FilePlaySpeedButtonSet->AddWidget(0);
+  this->FilePlaySpeedButtonSet->GetWidget(0)->SetText("1x");
+  this->FilePlaySpeedButtonSet->GetWidget(0)->SelectedStateOn();
+  this->FilePlaySpeedButtonSet->AddWidget(1);
+  this->FilePlaySpeedButtonSet->GetWidget(1)->SetText("2x");
+  this->FilePlaySpeedButtonSet->AddWidget(2);
+  this->FilePlaySpeedButtonSet->GetWidget(2)->SetText("4x");
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              speedLabel->GetWidgetName() , this->FilePlaySpeedButtonSet->GetWidgetName());
+
+  speedFrame->Delete();
+  speedLabel->Delete();
   
   controlFrame->Delete();
 
@@ -2496,14 +2580,19 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     this->ConnectorPortEntry->EnabledOff();
     this->ConnectorPortEntry->UpdateEnableState();
     
-    //File Location Selection
-    //Set filename value to zero
+    // File Location Selection
+    this->FileLocationButton->GetLoadSaveDialog()->SetFileName(NULL);
     this->FileLocationButton->EnabledOff();
     this->FileLocationButton->UpdateEnableState();
+    
+    // File Play speed
+    this->FilePlaySpeedButtonSet->GetWidget(0)->SelectedStateOn();
+    this->FilePlaySpeedButtonSet->EnabledOff();
+    this->FilePlaySpeedButtonSet->UpdateEnableState();
 
     return;
     }
-
+ 
   //----------------------------------------------------------------
   // A connector is selected on the list
 
@@ -2521,7 +2610,7 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
 
   // Check if the connector is active
   bool activeFlag = (connector->GetState() != vtkIGTLConnector::STATE_OFF);
-
+  
   // Connection Name entry
   this->ConnectorNameEntry->SetValue(connector->GetName());
   if (activeFlag)
@@ -2533,7 +2622,7 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     this->ConnectorNameEntry->EnabledOn();
     }
   this->ConnectorNameEntry->UpdateEnableState();
-
+  
   // Connection Type (server, client or file)
   if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
     {
@@ -2570,9 +2659,8 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     }
 
   this->ConnectorTypeButtonSet->UpdateEnableState();
-
+  
   // Connection Status
-  std::cout << "Connector State: " << connector->GetState() << std::endl;
   if (connector->GetState() == vtkIGTLConnector::STATE_OFF)
     {
     this->ConnectorStatusCheckButton->SelectedStateOff();
@@ -2593,7 +2681,7 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     }
   this->ConnectorStatusCheckButton->UpdateEnableState();
   this->ConnectorLogCheckButton->UpdateEnableState();
-
+  
   //Log Data option
   if (connector->GetType() == vtkIGTLFileConnector::TYPE_FILE)
     {
@@ -2613,7 +2701,7 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     }
   
   this->ConnectorLogCheckButton->UpdateEnableState();
-
+  
   // Connection Server Address entry
   if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
     {
@@ -2635,11 +2723,11 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     }
   else if (connector->GetType() == vtkIGTLFileConnector::TYPE_FILE)
     {
-    this->ConnectorAddressEntry->SetValue("--.--.--.--");
+    //this->ConnectorAddressEntry->SetValue("--.--.--.--");
     this->ConnectorAddressEntry->EnabledOff();
     }
   this->ConnectorAddressEntry->UpdateEnableState();
-
+  
   // Connection Port entry
   if ((connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER) 
        | (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT))
@@ -2688,6 +2776,21 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
 
   this->FileLocationButton->UpdateEnableState();
 
+  // File Play Speed (1x, 2x or 4x)
+  if ((connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER) | 
+     (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT))
+    {
+    this->FilePlaySpeedButtonSet->EnabledOff();
+    }
+  else if (connector->GetType() == vtkIGTLFileConnector::TYPE_FILE)
+    {
+    this->FilePlaySpeedButtonSet->EnabledOn();
+    }
+  else
+    {
+    this->FilePlaySpeedButtonSet->EnabledOff();
+    }
+  this->FilePlaySpeedButtonSet->UpdateEnableState();
 }
 
 

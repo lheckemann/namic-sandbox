@@ -244,6 +244,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   vtkKWEntry*          ConnectorAddressEntry;
   vtkKWEntry*          ConnectorPortEntry;
   vtkKWLoadSaveButton* FileLocationButton;
+  vtkKWRadioButtonSet* FilePlaySpeedButtonSet;
 
   //----------------------------------------------------------------
   // Data I/O Configuration frame
