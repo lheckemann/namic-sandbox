@@ -1270,7 +1270,7 @@ static void vtk3DPanoramicVolumeReconstructorInsertSlice(vtk3DPanoramicVolumeRec
   int numscalars;
   int idX, idY, idZ;
   vtkIdType inIncX, inIncY, inIncZ;
-  int outExt[6],outInc[3], clipExt[6]; 
+  int outExt[6], outInc[3], clipExt[6]; 
   vtkIdType vtkIdTypeOutInc[3];
   vtkFloatingPointType inSpacing[3], inOrigin[3];
   unsigned long target;
@@ -2721,9 +2721,9 @@ static void vtkOptimizedInsertSlice(vtk3DPanoramicVolumeReconstructor *self,
   target++;
   
   // Get Increments to march through data
-vtkIdTypeOutInc[0] = outInc[0];
-vtkIdTypeOutInc[1] = outInc[1];
-vtkIdTypeOutInc[2] = outInc[2];
+//vtkIdTypeOutInc[0] = outInc[0];
+//vtkIdTypeOutInc[1] = outInc[1];
+//vtkIdTypeOutInc[2] = outInc[2];
   
   outData->GetIncrements(vtkIdTypeOutInc); 
   
