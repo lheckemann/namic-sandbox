@@ -2721,15 +2721,15 @@ static void vtkOptimizedInsertSlice(vtk3DPanoramicVolumeReconstructor *self,
   target++;
   
   // Get Increments to march through data
-//  vtkIdTypeOutInc[0] = outInc[0];
-//  vtkIdTypeOutInc[1] = outInc[1];
-//  vtkIdTypeOutInc[2] = outInc[2];
+vtkIdTypeOutInc[0] = outInc[0];
+vtkIdTypeOutInc[1] = outInc[1];
+vtkIdTypeOutInc[2] = outInc[2];
   
   outData->GetIncrements(vtkIdTypeOutInc); 
   
-//  outInc[0] = (int) vtkIdTypeOutInc[0];
-//  outInc[1] = (int) vtkIdTypeOutInc[1];
-//  outInc[2] = (int) vtkIdTypeOutInc[2];
+outInc[0] = (int) vtkIdTypeOutInc[0];
+outInc[1] = (int) vtkIdTypeOutInc[1];
+outInc[2] = (int) vtkIdTypeOutInc[2];
   
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
   numscalars = inData->GetNumberOfScalarComponents();
@@ -3172,7 +3172,7 @@ static inline void vtkSleep(double duration)
   // sleep according to OS preference
 #ifdef _WIN32
   Sleep(vtkUltraFloor(1000*duration));
-#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi)
+#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || (__APPLE__)
   struct timespec sleep_time, remaining_time;
   int seconds = vtkUltraFloor(duration);
   int nanoseconds = vtkUltraFloor(1000000000*(duration - seconds));
