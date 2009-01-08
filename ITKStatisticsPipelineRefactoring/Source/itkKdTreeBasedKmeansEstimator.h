@@ -183,7 +183,7 @@ protected:
       }
 
     /** Initialize the centroids with the argument.
-     * At each iteration, this should be called before filtering*/
+     * At each iteration, this should be called before filtering. */
     void SetCentroids(InternalParametersType& centroids)
       {
       this->m_MeasurementVectorSize = MeasurementVectorTraits::GetLength( centroids[0] );
@@ -247,7 +247,7 @@ protected:
    * and current postion of all centroid. This is the primary termination
    * condition for this algorithm. If the return value is less than
    * the value that was set by the SetCentroidPositionChangesThreshold 
-   * method.*/
+   * method. */
   double GetSumOfSquaredPositionChanges(InternalParametersType &previous, 
                                         InternalParametersType &current);
 

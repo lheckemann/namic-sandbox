@@ -54,7 +54,7 @@ template< class TSample >
 class ITK_EXPORT ExpectationMaximizationMixtureModelEstimator : public Object
 {
 public:
-  /** Standard class typedef*/
+  /** Standard class typedef */
   typedef ExpectationMaximizationMixtureModelEstimator Self;
   typedef Object                                       Superclass;
   typedef SmartPointer< Self >                         Pointer;
@@ -87,7 +87,7 @@ public:
   typedef typename 
     MembershipFunctionVectorObjectType::Pointer           MembershipFunctionVectorObjectPointer;
 
-  /** Type of the mixture model component base class*/
+  /** Type of the mixture model component base class */
   typedef MixtureModelComponentBase< TSample > ComponentType;
 
   /** Type of the component pointer storage */ 
@@ -114,7 +114,7 @@ public:
   /** Gets the result proportion values */
   ProportionVectorType* GetProportions();
 
-  /** typedef for decorated array of proportion*/
+  /** typedef for decorated array of proportion */
   typedef SimpleDataObjectDecorator<
   ProportionVectorType>                 MembershipFunctionsWeightsArrayObjectType;
   typedef typename 

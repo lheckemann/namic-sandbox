@@ -28,49 +28,52 @@
 int itkCovarianceFilterTest(int, char* [] ) 
 {
   std::cout << "CovarianceFilter Test \n \n"; 
-  std::string whereFail = "" ;
+  std::string whereFail = "";
 
   // Now generate an image
-  enum { MeasurementVectorSize = 3 } ;
-  typedef float MeasurementType ;
-  typedef itk::FixedArray< MeasurementType, MeasurementVectorSize > 
-    MeasurementVectorType ;
-  typedef itk::Image< MeasurementVectorType, 3 > ImageType ;
-  ImageType::Pointer image = ImageType::New() ;
-  ImageType::RegionType region ;
-  ImageType::SizeType size ;
-  ImageType::IndexType index ;
-  index.Fill(0) ;
-  size.Fill(5) ;
-  region.SetIndex(index) ;
-  region.SetSize(size) ;
+  enum { MeasurementVectorSize = 3 };
+  typedef float MeasurementType;
+
+  typedef itk::FixedArray< MeasurementType, MeasurementVectorSize > MeasurementVectorType;
+  typedef itk::Image< MeasurementVectorType, 3 > ImageType;
+
+  ImageType::Pointer image = ImageType::New();
+  ImageType::RegionType region;
+  ImageType::SizeType size;
+  ImageType::IndexType index;
+  index.Fill(0);
+  size.Fill(5);
+  region.SetIndex(index);
+  region.SetSize(size);
   
   
-  image->SetBufferedRegion(region) ;
-  image->Allocate() ;
+  image->SetBufferedRegion(region);
+  image->Allocate();
 
-  typedef itk::ImageRegionIterator< ImageType > ImageIterator ;
-  ImageIterator iter(image, region) ;
+  typedef itk::ImageRegionIterator< ImageType > ImageIterator;
+  ImageIterator iter(image, region);
 
-  unsigned int count = 0 ;
-  MeasurementVectorType temp ;
+  unsigned int count = 0;
+  MeasurementVectorType temp;
+  temp.Fill(0);
+
   // fill the image
   while (!iter.IsAtEnd())
     {
-    temp[0] = count ;
-    iter.Set(temp) ;
-    ++iter ;
-    ++count ;
+    temp[0] = count;
+    iter.Set(temp);
+    ++iter;
+    ++count;
     }
 
   // creates an ImageToListAdaptor object
   typedef  itk::Statistics::ImageToListSampleFilter< ImageType, ImageType >
-                                     ImageToListSampleFilterType ;
+                                     ImageToListSampleFilterType;
 
   ImageToListSampleFilterType::Pointer sampleGeneratingFilter
-                            = ImageToListSampleFilterType::New() ;
+                            = ImageToListSampleFilterType::New();
 
-  sampleGeneratingFilter->SetInput( image ) ;
+  sampleGeneratingFilter->SetInput( image );
 
   try
     {
@@ -85,7 +88,7 @@ int itkCovarianceFilterTest(int, char* [] )
   typedef ImageToListSampleFilterType::ListSampleType                 ListSampleType;
   typedef itk::Statistics::CovarianceFilter< ListSampleType >         CovarianceFilterType;
 
-  CovarianceFilterType::Pointer covarianceFilter = CovarianceFilterType::New() ;
+  CovarianceFilterType::Pointer covarianceFilter = CovarianceFilterType::New();
 
   std::cout << covarianceFilter->GetNameOfClass() << std::endl;
   
@@ -111,7 +114,7 @@ int itkCovarianceFilterTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
-  covarianceFilter->SetInput( sampleGeneratingFilter->GetOutput() ) ;
+  covarianceFilter->SetInput( sampleGeneratingFilter->GetOutput() );
   try
     {
     covarianceFilter->Update();
@@ -128,7 +131,7 @@ int itkCovarianceFilterTest(int, char* [] )
 
   // CHECK THE RESULTS
   const CovarianceFilterType::MeasurementVectorDecoratedType * meanDecorator = 
-                                                covarianceFilter->GetMeanOutput() ;
+                                                covarianceFilter->GetMeanOutput();
 
   CovarianceFilterType::MeasurementVectorType    mean  = meanDecorator->Get();
   std::cout << "Mean:   " << mean << std::endl;
@@ -144,26 +147,26 @@ int itkCovarianceFilterTest(int, char* [] )
     }
 
 
-  const CovarianceFilterType::MatrixDecoratedType * decorator = covarianceFilter->GetCovarianceMatrixOutput() ;
+  const CovarianceFilterType::MatrixDecoratedType * decorator = covarianceFilter->GetCovarianceMatrixOutput();
   CovarianceFilterType::MatrixType    covarianceMatrix  = decorator->Get();
 
   std::cout << "Covariance matrix:   " << covarianceMatrix << std::endl;
 
   
-  typedef itk::Statistics::MeanFilter< ListSampleType > MeanFilterType ;
-  MeanFilterType::Pointer meanFilter = MeanFilterType::New() ;
+  typedef itk::Statistics::MeanFilter< ListSampleType > MeanFilterType;
+  MeanFilterType::Pointer meanFilter = MeanFilterType::New();
   meanFilter->SetInput( sampleGeneratingFilter->GetOutput());
 
   try
     {    
-    meanFilter->Update() ;
+    meanFilter->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
     }
 
-  MeanFilterType::MeasurementVectorType meanCalculatedUsingMeanFilter = meanFilter->GetMean() ;
+  MeanFilterType::MeasurementVectorType meanCalculatedUsingMeanFilter = meanFilter->GetMean();
  
   if ( ( fabs( meanCalculatedUsingMeanFilter[0] - mean[0]) > epsilon )  || 
        ( fabs( meanCalculatedUsingMeanFilter[1] - mean[1]) > epsilon)  || 
@@ -177,6 +180,3 @@ int itkCovarianceFilterTest(int, char* [] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-
