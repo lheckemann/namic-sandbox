@@ -18,6 +18,7 @@
 #define __itkStandardDeviationPerComponentFilter_txx
 
 #include "itkMeasurementVectorTraits.h"
+#include "vnl/vnl_math.h"
 
 namespace itk { 
 namespace Statistics {
@@ -128,11 +129,20 @@ StandardDeviationPerComponentFilter< TSample >
             static_cast< MeasurementVectorRealDecoratedType * >(
               this->ProcessObject::GetOutput(0));
 
-  MeasurementVectorType mean;
+  MeasurementVectorRealType sum;
+  MeasurementVectorRealType sumOfSquares;
+  MeasurementVectorRealType mean;
+  MeasurementVectorRealType standardDeviation;
 
+  MeasurementVectorTraits::SetLength( sum, measurementVectorSize );
   MeasurementVectorTraits::SetLength( mean, measurementVectorSize );
+  MeasurementVectorTraits::SetLength( sumOfSquares, measurementVectorSize );
+  MeasurementVectorTraits::SetLength( standardDeviation, measurementVectorSize );
 
+  sum.Fill(0.0);
   mean.Fill(0.0);
+  sumOfSquares.Fill(0.0);
+  standardDeviation.Fill(0.0);
 
   double frequency;
   double totalFrequency = 0.0;
@@ -155,46 +165,23 @@ StandardDeviationPerComponentFilter< TSample >
 
     for( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
-      mean[i] += frequency * measurements[i];
+      double value = measurements[i]; 
+      sum[i] += frequency * value;
+      sumOfSquares[i] += frequency * value * value;
       }
     ++iter;
     }
 
   for( unsigned int i = 0; i < measurementVectorSize; ++i )
     {
-    mean[i] = mean[i] / totalFrequency;
+    const double meanValue = sum[i] / totalFrequency;
+    mean[i] = meanValue;
+    const double variance = 
+     ( sumOfSquares[i] - meanValue * meanValue * totalFrequency ) / ( totalFrequency - 1.0 );
+    standardDeviation[i] = vcl_sqrt( variance );
     }
 
-
-  //reset the total frequency and iterator
-  iter = input->Begin();
-
-  MeasurementVectorRealType output;
-
-  // fills the lower triangle and the diagonal cells in the covariance matrix
-  while (iter != end)
-    {
-    frequency = iter.GetFrequency();
-    measurements = iter.GetMeasurementVector();
-    for ( unsigned int i = 0; i < measurementVectorSize; ++i )
-      {
-      diff[i] = measurements[i] - mean[i];
-      }
-
-    // updates the covariance matrix
-    for( unsigned int row = 0; row < measurementVectorSize; row++ )
-      {
-      output[row] += frequency * diff[row] * diff[row];
-      }
-    ++iter;
-    }
-
-  for(unsigned int k = 0; k < measurementVectorSize; k++ )
-    {
-    output[k] /= ( totalFrequency - 1.0 );
-    }
-
-  decoratedStandardDeviationOutput->Set( output );
+  decoratedStandardDeviationOutput->Set( standardDeviation );
 }
 
 template< class TSample >
