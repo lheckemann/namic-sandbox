@@ -532,7 +532,7 @@ static inline void vtkSleep(double duration)
   // sleep according to OS preference
 #ifdef _WIN32
   Sleep((int)(1000*duration));
-#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi)
+#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || (__APPLE__)
   struct timespec sleep_time, dummy;
   sleep_time.tv_sec = (int)duration;
   sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
