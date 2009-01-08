@@ -33,6 +33,7 @@ class vtkKWPiecewiseFunctionEditor;
 class vtkKWMenuButton;
 class vtkKWSpinBox;
 class vtkKWCanvas;
+class vtkKWProgressDialog;
 
 class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 {
@@ -138,6 +139,8 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
+  vtkKWProgressDialog *ProgressDialog;
+
   vtkKWLoadSaveButtonWithLabel* SelectImageButton;
   vtkKWPushButton* LoadImageButton;
 
@@ -150,11 +153,6 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 
   vtkKWPushButton* RunPlotButton;
   vtkKWPiecewiseFunctionEditor* FunctionEditor;
-
-  vtkKWPushButton* TestButton11;
-  vtkKWPushButton* TestButton12;
-  vtkKWPushButton* TestButton21;
-  vtkKWPushButton* TestButton22;
 
   //----------------------------------------------------------------
   // Logic Values

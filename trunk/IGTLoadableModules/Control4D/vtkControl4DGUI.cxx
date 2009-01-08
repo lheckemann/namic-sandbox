@@ -41,6 +41,8 @@
 #include "vtkKWSpinBox.h"
 #include "vtkKWCanvas.h"
 
+#include "vtkKWProgressDialog.h"
+
 #include "vtkKWLoadSaveButton.h"
 #include "vtkKWLoadSaveButtonWithLabel.h"
 #include "vtkKWPiecewiseFunctionEditor.h"
@@ -71,6 +73,7 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   
   //----------------------------------------------------------------
   // GUI widgets
+  this->ProgressDialog = NULL;
   this->SelectImageButton             = NULL;
   this->LoadImageButton               = NULL;
   this->ForegroundVolumeSelectorScale = NULL;
@@ -109,28 +112,55 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
   //----------------------------------------------------------------
   // Remove GUI widgets
 
-  if (this->TestButton11)
+  if (this->ProgressDialog)
     {
-    this->TestButton11->SetParent(NULL);
-    this->TestButton11->Delete();
+    this->ProgressDialog->SetParent(NULL);
+    this->ProgressDialog->Delete();
     }
-
-  if (this->TestButton12)
+  if (this->SelectImageButton)
     {
-    this->TestButton12->SetParent(NULL);
-    this->TestButton12->Delete();
+    this->SelectImageButton->SetParent(NULL);
+    this->SelectImageButton->Delete();
     }
-
-  if (this->TestButton21)
+  if (this->LoadImageButton)
     {
-    this->TestButton21->SetParent(NULL);
-    this->TestButton21->Delete();
+    this->LoadImageButton->SetParent(NULL);
+    this->LoadImageButton->Delete();
     }
-
-  if (this->TestButton22)
+  if (this->ForegroundVolumeSelectorScale)
     {
-    this->TestButton22->SetParent(NULL);
-    this->TestButton22->Delete();
+    this->ForegroundVolumeSelectorScale->SetParent(NULL);
+    this->ForegroundVolumeSelectorScale->Delete();
+    }
+  if (this->BackgroundVolumeSelectorScale)
+    {
+    this->BackgroundVolumeSelectorScale->SetParent(NULL);
+    this->BackgroundVolumeSelectorScale->Delete();
+    }
+  if (this->MaskSelectMenu)
+    {
+    this->MaskSelectMenu->SetParent(NULL);
+    this->MaskSelectMenu->Delete();
+    }
+  if (this->MaskSelectSpinBox)
+    {
+    this->MaskSelectSpinBox->SetParent(NULL);
+    this->MaskSelectSpinBox->Delete();
+    }
+  if (this->MaskColorCanvas)
+    {
+    this->MaskColorCanvas->SetParent(NULL);
+    this->MaskColorCanvas->Delete();
+    }
+  if (this->RunPlotButton)
+    {
+    this->RunPlotButton->SetParent(NULL);
+    this->RunPlotButton->Delete();
+    }
+  if (this->FunctionEditor)
+    {
+    this->FunctionEditor->SetParent(NULL);
+    this->FunctionEditor->Delete();
     }
 
   //----------------------------------------------------------------
@@ -218,27 +248,6 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->TestButton11)
-    {
-    this->TestButton11
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->TestButton12)
-    {
-    this->TestButton12
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->TestButton21)
-    {
-    this->TestButton21
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->TestButton22)
-    {
-    this->TestButton22
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
   this->RemoveLogicObservers();
 
 }
@@ -298,19 +307,6 @@ void vtkControl4DGUI::AddGUIObservers ( )
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->TestButton11)
-    this->TestButton11
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  if (this->TestButton12)
-    this->TestButton12
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  if (this->TestButton21)
-    this->TestButton21
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  if (this->TestButton22)
-    this->TestButton22
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-
   this->AddLogicObservers();
 
 }
@@ -364,9 +360,9 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
       && event == vtkKWPushButton::InvokedEvent)
     {
     const char* path = this->SelectImageButton->GetWidget()->GetFileName();
-    this->GetLogic()->AddObserver(vtkCommand::ProgressEvent,  this->LogicCallbackCommand);
+    this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     int n = this->GetLogic()->LoadImagesFromDir(path);
-    this->GetLogic()->RemoveObservers(vtkCommand::ProgressEvent,  this->LogicCallbackCommand);
+    this->GetLogic()->RemoveObservers(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     // Adjust range of the scale
     this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n);
     this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n);
@@ -427,17 +423,43 @@ void vtkControl4DGUI::DataCallback(vtkObject *caller,
 void vtkControl4DGUI::ProcessLogicEvents ( vtkObject *caller,
                                              unsigned long event, void *callData )
 {
-  std::cerr << "void vtkControl4DGUI::ProcessLogicEvents() is called." << std::endl;
-
   if (event == vtkControl4DLogic::StatusUpdateEvent)
     {
     //this->UpdateDeviceStatus();
     }
-  if (event ==  vtkCommand::ProgressEvent) 
+  else if (event ==  vtkCommand::ProgressEvent) 
     {
     double progress = *((double *)callData);
     this->GetApplicationGUI()->GetMainSlicerWindow()->GetProgressGauge()->SetValue(100*progress);
     }
+  else if (event == vtkControl4DLogic::ProgressDialogEvent)
+    {
+    vtkControl4DLogic::StatusMessageType* smsg
+      = (vtkControl4DLogic::StatusMessageType*)callData;
+    if (smsg->show)
+      {
+      if (!this->ProgressDialog)
+        {
+        this->ProgressDialog = vtkKWProgressDialog::New();
+        this->ProgressDialog->SetParent(this->GetApplicationGUI()->GetMainSlicerWindow());
+        this->ProgressDialog->SetMasterWindow(this->GetApplicationGUI()->GetMainSlicerWindow());
+        this->ProgressDialog->Create();
+        }
+      this->ProgressDialog->SetMessageText(smsg->message.c_str());
+      this->ProgressDialog->UpdateProgress(smsg->progress);
+      this->ProgressDialog->Display();
+      }
+    else
+      {
+      if (this->ProgressDialog)
+        {
+        this->ProgressDialog->SetParent(NULL);
+        this->ProgressDialog->Delete();
+        this->ProgressDialog = NULL;
+        }
+      }
+    }
+
 }
 
 

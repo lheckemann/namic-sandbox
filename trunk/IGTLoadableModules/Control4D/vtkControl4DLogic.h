@@ -41,7 +41,13 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   enum {  // Events
     //LocatorUpdateEvent      = 50000,
     StatusUpdateEvent       = 50001,
+    ProgressDialogEvent     = 50002,
   };
+  typedef struct {
+    int    show;
+    double progress;
+    std::string message;
+  } StatusMessageType;
   
   typedef std::vector<std::string> FrameNodeVectorType;
   typedef struct {
