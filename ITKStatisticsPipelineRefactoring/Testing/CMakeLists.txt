@@ -43,6 +43,7 @@ ADD_TEST(itkSampleToHistogramFilterTest5 ${STATISTICS_TESTS} itkSampleToHistogra
    )
 ADD_TEST(itkSampleToHistogramFilterTest6 ${STATISTICS_TESTS} itkSampleToHistogramFilterTest6)
 ADD_TEST(itkSampleToHistogramFilterTest7 ${STATISTICS_TESTS} itkSampleToHistogramFilterTest7)
+ADD_TEST(itkStandardDeviationPerComponentFilterTest ${STATISTICS_TESTS} itkStandardDeviationPerComponentFilterTest)
 ADD_TEST(itkMeanFilterTest ${STATISTICS_TESTS} itkMeanFilterTest)
 ADD_TEST(itkMeasurementVectorTraitsTest ${STATISTICS_TESTS} itkMeasurementVectorTraitsTest)
 ADD_TEST(itkMembershipSampleTest1 ${STATISTICS_TESTS} itkMembershipSampleTest1)
@@ -179,6 +180,7 @@ SET(Statistics_SRCS
   itkSampleToHistogramFilterTest5.cxx
   itkSampleToHistogramFilterTest6.cxx
   itkSampleToHistogramFilterTest7.cxx
+  itkStandardDeviationPerComponentFilterTest.cxx
   itkMeanFilterTest.cxx
   itkMeasurementVectorTraitsTest.cxx
   itkMembershipSampleTest1.cxx
