@@ -73,6 +73,13 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   this->LoadImageButton               = NULL;
   this->ForegroundVolumeSelectorScale = NULL;
   this->BackgroundVolumeSelectorScale = NULL;
+  this->MaskSelectMenu    = NULL;
+  this->MaskSelectSpinBox = NULL;
+  this->MaskColorCanvas   = NULL;
+
+  this->RunPlotButton  = NULL;
+  this->FunctionEditor = NULL;
+
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -205,6 +212,12 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
+  if (this->RunPlotButton)
+    {
+    this->RunPlotButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->TestButton11)
     {
     this->TestButton11
@@ -278,6 +291,11 @@ void vtkControl4DGUI::AddGUIObservers ( )
     {
     this->MaskSelectSpinBox
       ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->RunPlotButton)
+    {
+    this->RunPlotButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   if (this->TestButton11)
@@ -381,6 +399,15 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
     SelectMask(nodeID, label);
     }
+  else if (this->RunPlotButton == vtkKWPushButton::SafeDownCast(caller)
+           && event == vtkKWPushButton::InvokedEvent)
+    {
+    int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
+    int label = (int)this->MaskSelectSpinBox->GetValue();
+    const char* nodeID = this->MaskNodeIDList[selected].c_str();
+    vtkDoubleArray* p = this->GetLogic()->GetIntensityVariation(nodeID, label);
+    UpdateFunctionEditor(p);
+    }
 } 
 
 
@@ -449,7 +476,6 @@ void vtkControl4DGUI::BuildGUI ( )
   BuildGUIForLoadFrame();
   BuildGUIForFrameControlFrame();
   BuildGUIForFunctionViewer();
-  BuildGUIForTestFrame2();
 
 }
 
@@ -637,11 +663,18 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->MaskColorCanvas->SetBorderWidth(2);
   this->MaskColorCanvas->SetReliefToSolid();
 
-  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->RunPlotButton = vtkKWPushButton::New();
+  this->RunPlotButton->SetParent(msframe->GetFrame());
+  this->RunPlotButton->Create();
+  this->RunPlotButton->SetText ("Plot");
+  this->RunPlotButton->SetWidth (4);
+
+  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                menuLabel->GetWidgetName(),
                this->MaskSelectMenu->GetWidgetName(),
                this->MaskSelectSpinBox->GetWidgetName(),
-               this->MaskColorCanvas->GetWidgetName());
+               this->MaskColorCanvas->GetWidgetName(),
+               this->RunPlotButton->GetWidgetName());
   
   // -----------------------------------------
   // Plot frame
@@ -686,56 +719,6 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   conBrowsFrame->Delete();
   frame->Delete();
 }
-
-//---------------------------------------------------------------------------
-void vtkControl4DGUI::BuildGUIForTestFrame2 ()
-{
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("Control4D");
-  
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 2");
-  //conBrowsFrame->CollapseFrame();
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
-
-  // -----------------------------------------
-  // Test child frame
-
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
-  
-  // -----------------------------------------
-  // Test push button
-
-  this->TestButton21 = vtkKWPushButton::New ( );
-  this->TestButton21->SetParent ( frame->GetFrame() );
-  this->TestButton21->Create ( );
-  this->TestButton21->SetText ("Test 21");
-  this->TestButton21->SetWidth (12);
-
-  this->TestButton22 = vtkKWPushButton::New ( );
-  this->TestButton22->SetParent ( frame->GetFrame() );
-  this->TestButton22->Create ( );
-  this->TestButton22->SetText ("Tset 22");
-  this->TestButton22->SetWidth (12);
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton21->GetWidgetName(),
-               this->TestButton22->GetWidgetName());
-
-
-  conBrowsFrame->Delete();
-  frame->Delete();
-}
-
 
 //----------------------------------------------------------------------------
 void vtkControl4DGUI::UpdateAll()
@@ -883,4 +866,36 @@ void vtkControl4DGUI::SelectMask(const char* nodeID, int label)
     this->MaskColorCanvas->SetBackgroundColor(color[0], color[1], color[2]);
     }
   
+}
+
+//----------------------------------------------------------------------------
+void vtkControl4DGUI::UpdateFunctionEditor(vtkDoubleArray* data)
+{
+  if (data == NULL)
+    {
+    std::cerr << "no data..." << std::endl;
+    return;
+    }
+
+  int n = data->GetNumberOfTuples();
+  std::cerr << "number of components = " << n << std::endl;
+  if (n > 0)
+    {
+    double max = 0;
+    vtkPiecewiseFunction* tfun = vtkPiecewiseFunction::New();
+    for (int i = 0; i < n; i ++)
+      {
+      tfun->AddPoint((double)i, data->GetValue(i));
+      }
+    double range[2];
+    data->GetRange(range);
+    this->FunctionEditor->SetWholeParameterRange(0.0, (double)(n-1));
+    this->FunctionEditor->SetVisibleParameterRange(0.0, (double)(n-1));
+    this->FunctionEditor->SetWholeValueRange(0.0, range[1]);
+    this->FunctionEditor->SetVisibleValueRange(0.0, range[1]);
+    this->FunctionEditor->SetPiecewiseFunction(tfun);
+    //this->FunctionEditor->SetVisibleParameterRangeToWholeParameterRange ();
+    //this->FunctionEditor->SetWholeParameterRangeToFunctionRange();
+    this->FunctionEditor->Update();
+    }
 }

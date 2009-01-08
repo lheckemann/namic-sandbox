@@ -272,7 +272,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
 //---------------------------------------------------------------------------
 const char* vtkControl4DLogic::SwitchNodeFG(int index)
 {
-  if (index >= 0 && index < this->FrameNodeVector.size())
+  if (index >= 0 && index < (int)this->FrameNodeVector.size())
     {
     this->CurrentFrameFG = this->FrameNodeVector[index].c_str();
     return this->CurrentFrameFG;
@@ -287,7 +287,7 @@ const char* vtkControl4DLogic::SwitchNodeFG(int index)
 //---------------------------------------------------------------------------
 const char* vtkControl4DLogic::SwitchNodeBG(int index)
 {
-  if (index >= 0 && index < this->FrameNodeVector.size())
+  if (index >= 0 && index < (int)this->FrameNodeVector.size())
     {
     this->CurrentFrameBG = this->FrameNodeVector[index].c_str();
     return this->CurrentFrameBG;
@@ -298,6 +298,91 @@ const char* vtkControl4DLogic::SwitchNodeBG(int index)
     }
 }
 
+//---------------------------------------------------------------------------
+double vtkControl4DLogic::GetMeanIntencity(vtkImageData* image)
+{
+  // this function should be optimized.
+  double sum = 0.0;
 
+  IndexTableType::iterator iter;
+  for (iter = this->MaskIndexTable.begin(); iter != this->MaskIndexTable.end(); iter ++)
+    {
+    sum += image->GetScalarComponentAsDouble(iter->x, iter->y, iter->z, 0);
+    }
+
+  std::cerr << "sum = " << sum  << std::endl;
+  std::cerr << "cnt = " << this->MaskIndexTable.size()  << std::endl;
+  double mean = sum / (double)this->MaskIndexTable.size();
+
+  return mean;
+}
+
+//---------------------------------------------------------------------------
+void vtkControl4DLogic::GenerateIndexTable(vtkImageData* mask, int label)
+{
+  int maskDim[3];
+
+  this->MaskIndexTable.clear();
+  mask->GetDimensions(maskDim);
+  int x = maskDim[0];
+  int y = maskDim[1];
+  int z = maskDim[2];
+
+  for (int i = 0; i < x; i ++)
+    {
+    for (int j = 0; j < y; j ++)
+      {
+      for (int k = 0; k < z; k ++)
+        {
+        if ((int)mask->GetScalarComponentAsDouble(i, j, k, 0) == label)
+          {
+          CoordType index;
+          index.x = i;
+          index.y = j;
+          index.z = k;
+          this->MaskIndexTable.push_back(index);
+          }
+        }
+      }
+    }
+}
+
+//---------------------------------------------------------------------------
+vtkDoubleArray* vtkControl4DLogic::GetIntensityVariation(const char* maskID, int maskValue)
+{
+  vtkMRMLScalarVolumeNode* mnode =
+    vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(maskID));
+
+  if (!mnode)
+    {
+    return NULL;
+    }
+  
+  // generate mask index table
+  GenerateIndexTable(mnode->GetImageData(), maskValue);
+
+  vtkDoubleArray* iarray = vtkDoubleArray::New();
+  iarray->SetNumberOfValues(0);
+  FrameNodeVectorType::iterator iter;
+
+  for (iter = this->FrameNodeVector.begin(); iter != this->FrameNodeVector.end(); iter ++)
+    {
+    const char* imageID = iter->c_str();
+    std::cerr << "image id = " << imageID << std::endl;
+
+    vtkMRMLScalarVolumeNode* inode =
+      vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(imageID));
+    double value = 0.0;
+    if (inode)
+      {
+      value = GetMeanIntencity(inode->GetImageData());
+      }
+    std::cerr << "value = " << value << std::endl;
+    iarray->InsertNextValue(value); 
+    }
+
+  return iarray;
+  
+}
 
 

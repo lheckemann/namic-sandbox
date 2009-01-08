@@ -22,6 +22,7 @@
 #include "vtkSlicerModuleGUI.h"
 #include "vtkCallbackCommand.h"
 #include "vtkSlicerInteractorStyle.h"
+#include "vtkDoubleArray.h"
 
 #include "vtkControl4DLogic.h"
 
@@ -102,7 +103,6 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   void BuildGUIForLoadFrame();
   void BuildGUIForFrameControlFrame();
   void BuildGUIForFunctionViewer();
-  void BuildGUIForTestFrame2();
 
   //----------------------------------------------------------------
   // Update routines
@@ -118,6 +118,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   void SetBackground(int index);
   void UpdateMaskSelectMenu();
   void SelectMask(const char* nodeID, int label);
+  void UpdateFunctionEditor(vtkDoubleArray* data);
 
  protected:
   
@@ -142,6 +143,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkKWSpinBox*    MaskSelectSpinBox;
   vtkKWCanvas*     MaskColorCanvas;
 
+  vtkKWPushButton* RunPlotButton;
   vtkKWPiecewiseFunctionEditor* FunctionEditor;
 
   vtkKWPushButton* TestButton11;

@@ -27,6 +27,7 @@
 #include "vtkSlicerModuleLogic.h"
 #include "vtkSlicerApplication.h"
 #include "vtkCallbackCommand.h"
+#include "vtkDoubleArray.h"
 
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLScene.h"
@@ -43,7 +44,12 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   };
   
   typedef std::vector<std::string> FrameNodeVectorType;
-
+  typedef struct {
+    int x;
+    int y;
+    int z;
+  } CoordType;
+  typedef std::vector<CoordType> IndexTableType;
   //ETX
 
  public:
@@ -61,6 +67,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
 
   const char* SwitchNodeFG(int index);
   const char* SwitchNodeBG(int index);
+  vtkDoubleArray* GetIntensityVariation(const char* maskID, int maskValue);
 
  protected:
   
@@ -73,6 +80,9 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
 
+  double GetMeanIntencity(vtkImageData* image);
+  void   GenerateIndexTable(vtkImageData* mask, int label);
+
   vtkCallbackCommand *DataCallbackCommand;
 
  private:
@@ -81,10 +91,12 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
 
   //BTX
   FrameNodeVectorType FrameNodeVector;
+  IndexTableType MaskIndexTable;
   //ETX
 
   const char* CurrentFrameFG;
   const char* CurrentFrameBG;
+
   
 };
 
