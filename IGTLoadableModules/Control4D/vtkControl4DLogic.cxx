@@ -78,6 +78,16 @@ void vtkControl4DLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 }
 
+//----------------------------------------------------------------------------
+void vtkControl4DLogic::ProcessLogicEvents(vtkObject *caller, 
+                                            unsigned long event, 
+                                            void *callData)
+{
+  if (event ==  vtkCommand::ProgressEvent) 
+    {
+    this->InvokeEvent ( vtkCommand::ProgressEvent,callData );
+    }
+}
 
 //---------------------------------------------------------------------------
 void vtkControl4DLogic::DataCallback(vtkObject *caller, 
@@ -111,7 +121,9 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
   typedef itk::ImageFileWriter< VolumeType >  WriterType;
   typedef itk::VectorImage< PixelValueType, SpaceDim > NRRDImageType;
   
-  itk::TimeProbesCollectorBase collector;
+  double progress = 0.0;
+
+  //itk::TimeProbesCollectorBase collector;
 
   ImageIOType::Pointer gdcmIO = ImageIOType::New();
   gdcmIO->LoadPrivateTagsOn();
@@ -132,11 +144,14 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
     ReaderType::Pointer reader = ReaderType::New();
     reader->SetImageIO( gdcmIO );
     reader->SetFileNames( filenames );
+
+    progress = 0.1;
+    this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
     try
       {
-      collector.Start( "Checking series ...." );
+      //collector.Start( "Checking series ...." );
       reader->Update();
-      collector.Stop( "Checking series ...." );
+      //collector.Stop( "Checking series ...." );
       }
     catch (itk::ExceptionObject &excp)
       {
@@ -153,6 +168,8 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
     itk::ExposeMetaData<std::string> ( *(*inputDict)[0], "0020|1041",  tag);
     float firstSliceLocation = atof( tag.c_str() ); // first slice location
     int nSlicesInVolume;
+    progress = 0.0;
+    this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
     for (int i = 1; i < nSlices; i ++)
       {
       tag.clear();
@@ -164,23 +181,25 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
         nSlicesInVolume = i;
         break;
         }
+      progress = (double)i /(double)nSlices;
+      this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
       }
+    /*
     std::cerr << "Number of slices in Volume is " << nSlicesInVolume << std::endl;
     std::cerr << "Number of slices " << nSlices << std::endl;
     std::cerr << "Number of slices " << filenames.size() << std::endl;
+    */
 
     nVolumes = nSlices / nSlicesInVolume;
     fileNamesContainerList.resize(nVolumes);
 
-    //ReaderType::FileNamesContainer::iterator iter = filenames.begin();
     for (int i = 0; i < nVolumes; i ++)
       {
       fileNamesContainerList[i].resize(nSlicesInVolume);
       for (int j = 0; j < nSlicesInVolume; j ++)
         {
-        std::cerr << "fileNamesContainerList " << i << ", " << j << std::endl;
+        //std::cerr << "fileNamesContainerList " << i << ", " << j << std::endl;
         fileNamesContainerList[i][j] = filenames[i*nSlicesInVolume + j];
-        //iter ++;
         }
       }
 
@@ -191,10 +210,13 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
     //fileNamesContainerList.resize(nVolumes);
     fileNamesContainerList.clear();
 
+    progress = 0.0;
+    this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
+
     itk::SerieUIDContainer::iterator iter;
     for (iter = seriesUIDs.begin(); iter != seriesUIDs.end(); iter ++)
       {
-      std::cerr << "UID = " << *iter << std::endl;
+      //std::cerr << "UID = " << *iter << std::endl;
       fileNamesContainerList.push_back(inputNames->GetFileNames(*iter));
       }
     }
@@ -206,6 +228,9 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
   vtkMRMLScene* scene = this->GetMRMLScene();
   scene->SaveStateForUndo();
   this->FrameNodeVector.clear();
+
+  progress = 0.0;
+  this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
 
   for (int i = 0; i < nVolumes; i ++)
     {
@@ -226,6 +251,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
       storageNode->AddFileName(fnciter->c_str());
       }
     storageNode->SetSingleFile(0);
+    //storageNode->AddObserver(vtkCommand::ProgressEvent,  this->LogicCallbackCommand);
     storageNode->ReadData(scalarNode);
 
     volumeNode = scalarNode;
@@ -254,12 +280,20 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
     scene->AddNode(volumeNode);  
     this->FrameNodeVector.push_back(std::string(volumeNode->GetID()));
 
+    //storageNode->RemoveObservers(vtkCommand::ProgressEvent,  this->LogicCallbackCommand);
+
     scalarNode->Delete();
     storageNode->Delete();
     colorLogic->Delete();
     displayNode->Delete();
 
+    progress = (double)i / (double)nVolumes;
+    this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
     }
+
+  progress = 1.0;
+  this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
+
   /*
   scene->SetURL( "test.mrml" );
   scene->Commit();
@@ -310,8 +344,6 @@ double vtkControl4DLogic::GetMeanIntencity(vtkImageData* image)
     sum += image->GetScalarComponentAsDouble(iter->x, iter->y, iter->z, 0);
     }
 
-  std::cerr << "sum = " << sum  << std::endl;
-  std::cerr << "cnt = " << this->MaskIndexTable.size()  << std::endl;
   double mean = sum / (double)this->MaskIndexTable.size();
 
   return mean;

@@ -45,10 +45,15 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   vtkGetObjectMacro ( Logic, vtkControl4DLogic );
-  void SetModuleLogic ( vtkSlicerLogic *logic )
+  virtual void SetModuleLogic ( vtkControl4DLogic *logic )
   { 
     this->SetLogic ( vtkObjectPointer (&this->Logic), logic );
   }
+  virtual void SetAndObserveModuleLogic ( vtkControl4DLogic *logic )
+  { this->SetAndObserveLogic ( vtkObjectPointer (&this->Logic), logic ); }
+  virtual void SetModuleLogic( vtkSlicerLogic *logic )
+  { this->SetModuleLogic (reinterpret_cast<vtkControl4DLogic*> (logic)); }
+  
 
  protected:
   //----------------------------------------------------------------
