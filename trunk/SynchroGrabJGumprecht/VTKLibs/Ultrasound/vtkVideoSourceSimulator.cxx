@@ -1,5 +1,4 @@
 /*=========================================================================
-
   Module:  vtkVideoSourceSimulator.cxx
   Author:  Jan Gumprecht, Harvard Medical School
   
@@ -899,7 +898,7 @@ void vtkVideoSourceSimulator::InternalGrab()
       {
       for (int k = 0 ; k <  this->FrameSize[0]; k++)//Columns
         {
-            if( k > 10 and k < 50 and j > 10 and j <  40)
+            if( k > 10 && k < 50 && j > 10 && j <  40)
               {
               deviceDataPtr[j *  this->FrameSize[0] + k] = (unsigned char) 255;
               }
@@ -935,6 +934,7 @@ void vtkVideoSourceSimulator::InternalGrab()
         }
       }
     
+
     delete deviceDataPtr;
     this->Modified();
     

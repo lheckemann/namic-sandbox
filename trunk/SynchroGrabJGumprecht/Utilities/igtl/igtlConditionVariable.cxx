@@ -145,7 +145,7 @@ void ConditionVariable::Wait(SimpleMutexLock *mutex)
 
   // This call atomically releases the mutex and waits on the
   // semaphore until signaled
-  SignalObjectAndWait( mutex->GetMutexLock(), m_Semaphore, INFINITE, FALSE );
+  SignalObjectAndWait( (HANDLE)mutex->GetMutexLock(), m_Semaphore, INFINITE, FALSE );
 
   // Reacquire lock to avoid race conditions
   EnterCriticalSection( &m_NumberOfWaitersLock );
@@ -165,14 +165,14 @@ void ConditionVariable::Wait(SimpleMutexLock *mutex)
     // This call atomically signals the m_WaitersAreDone event and waits
     // until it can acquire the external mutex.  This is required to
     // ensure fairness
-    SignalObjectAndWait( m_WaitersAreDone, mutex->GetMutexLock(), 
+    SignalObjectAndWait( m_WaitersAreDone, (HANDLE)mutex->GetMutexLock(), 
                                                              INFINITE, FALSE);
     }
   else
     {
     // Always regain the external mutex since that's the guarentee we
     // give to our callers
-    WaitForSingleObject( mutex->GetMutexLock(), INFINITE );
+    WaitForSingleObject( (HANDLE)mutex->GetMutexLock(), INFINITE );
     }
 #endif
 #endif

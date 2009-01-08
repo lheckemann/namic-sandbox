@@ -1,13 +1,10 @@
-/*=========================================================================
+/*========================================================================
 
 Module:  $RCSfile: vtkUltrasoundVolumeReconstructor.cxx,v $
 Author:  Jonathan Boisvert, Queens School Of Computing
 Authors: Jan Gumprecht, Haiying Liu, Nobuhiko Hata, Harvard Medical School
-
-Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
-All rights reserved.
+Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada All rights reserved.
 Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
-
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
 are met:
@@ -111,9 +108,15 @@ vtkUltrasoundVolumeReconstructor::vtkUltrasoundVolumeReconstructor()
   this->ScanDepth = 70; //Unit: mm
 
   this->CalibrationFileName = NULL;
-  this->SetVideoDevice("/dev/video0");
+
+// Temporal change to test simulation mode working in windows
+#ifdef USE_ULTRASOUND_DEVICE
+  char* devicename = "/dev/video0";
+  this->SetVideoDevice(devicename);
   this->SetVideoChannel(3); //S-Video at Hauppauge Impact VCB Modell 558
   this->SetVideoMode(1); //NTSC
+#endif
+
 
   this->calibReader = vtkUltrasoundCalibFileReader::New();
 
@@ -216,7 +219,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 #ifdef USE_TRACKER_DEVICE
       vtkSleep(1);
 #else
-      vtkSleep(1);
+      vtkSleep(0.2);
 #endif
       cout << 10 - i << " " << std::flush;
     }
@@ -224,7 +227,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 
   cout << "Start Recording" << endl;
   cout << '\a' << std::flush;
-  vtkSleep(1);
+  vtkSleep(0.2);
   cout << '\a' << std::flush; 
 
   this->sonixGrabber->Record();  //Start recording frame from the video
@@ -236,7 +239,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 #ifdef USE_TRACKER_DEVICE || USE_ULTRASOUND_DEVICE
     cout << '\a' << std::flush;//Only beep when we use no simulator
 #endif
-    //sleep(1);
+
     vtkSleep(0.5);//Wait half a second for the next beep
     }
   cout << endl;
@@ -397,7 +400,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
       cout << "*" <<std::flush;
       }
 
-    if (i % 50 == 0 and i != 0)
+    if (i % 50 == 0 && i != 0)
       {      
       cout << "\n"<< std::flush;
       }
@@ -408,14 +411,15 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 #ifdef USE_TRACKER_DEVICE
     AdjustMatrix(*sliceAxes);   // Adjust tracker matrix to ultrasound scan depth
 #endif
-
+    fprintf(stderr,"1");
     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
+    fprintf(stderr,"2");
 
 #ifdef DEBUG_MATRICES
     cout << "Tracker matrix:\n";
     sliceAxes->Print(cout);
 #endif
-
+    fprintf(stderr,"3");
     panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
     this->sonixGrabber->Seek(1); //Advance to the next frame
 
@@ -526,15 +530,9 @@ static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
   // sleep according to OS preference
-  /*
-#ifdef __APPLE__
-  sleep(duration);
-#endif
-
-  */
 #ifdef _WIN32
   Sleep((int)(1000*duration));
-#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || defined(__APPLE__)
+#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi)
   struct timespec sleep_time, dummy;
   sleep_time.tv_sec = (int)duration;
   sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
