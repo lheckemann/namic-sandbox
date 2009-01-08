@@ -47,6 +47,8 @@
 #include "vtkPiecewiseFunction.h"
 #include "vtkDoubleArray.h"
 
+#include "vtkKWProgressGauge.h"
+
 #include "vtkCornerAnnotation.h"
 
 
@@ -133,8 +135,6 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
 
   //----------------------------------------------------------------
   // Unregister Logic class
-
-  this->SetModuleLogic ( NULL );
 
 }
 
@@ -364,7 +364,9 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
       && event == vtkKWPushButton::InvokedEvent)
     {
     const char* path = this->SelectImageButton->GetWidget()->GetFileName();
+    this->GetLogic()->AddObserver(vtkCommand::ProgressEvent,  this->LogicCallbackCommand);
     int n = this->GetLogic()->LoadImagesFromDir(path);
+    this->GetLogic()->RemoveObservers(vtkCommand::ProgressEvent,  this->LogicCallbackCommand);
     // Adjust range of the scale
     this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n);
     this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n);
@@ -425,13 +427,16 @@ void vtkControl4DGUI::DataCallback(vtkObject *caller,
 void vtkControl4DGUI::ProcessLogicEvents ( vtkObject *caller,
                                              unsigned long event, void *callData )
 {
+  std::cerr << "void vtkControl4DGUI::ProcessLogicEvents() is called." << std::endl;
 
-  if (this->GetLogic() == vtkControl4DLogic::SafeDownCast(caller))
+  if (event == vtkControl4DLogic::StatusUpdateEvent)
     {
-    if (event == vtkControl4DLogic::StatusUpdateEvent)
-      {
-      //this->UpdateDeviceStatus();
-      }
+    //this->UpdateDeviceStatus();
+    }
+  if (event ==  vtkCommand::ProgressEvent) 
+    {
+    double progress = *((double *)callData);
+    this->GetApplicationGUI()->GetMainSlicerWindow()->GetProgressGauge()->SetValue(100*progress);
     }
 }
 

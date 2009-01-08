@@ -77,6 +77,10 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   void operator=(const vtkControl4DLogic&);
   vtkControl4DLogic(const vtkControl4DLogic&);
 
+  virtual void ProcessLogicEvents ( vtkObject * /*caller*/, 
+                                  unsigned long /*event*/, 
+                                  void * /*callData*/ );  
+
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
 
