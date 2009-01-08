@@ -121,10 +121,15 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
   typedef itk::ImageFileWriter< VolumeType >  WriterType;
   typedef itk::VectorImage< PixelValueType, SpaceDim > NRRDImageType;
   
-  double progress = 0.0;
-
+  StatusMessageType statusMessage;
+  
   //itk::TimeProbesCollectorBase collector;
 
+  statusMessage.show = 1;
+  statusMessage.progress = 0.0;
+  statusMessage.message = "Checking directory....";
+  this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+  
   ImageIOType::Pointer gdcmIO = ImageIOType::New();
   gdcmIO->LoadPrivateTagsOn();
 
@@ -138,6 +143,9 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
 
   if (seriesUIDs.size() == 1)  // if single series UID is used
     {
+    statusMessage.message = "Splitting series....";
+    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+
     const ReaderType::FileNamesContainer & filenames = 
       inputNames->GetFileNames(seriesUIDs[0]);
     
@@ -145,8 +153,6 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
     reader->SetImageIO( gdcmIO );
     reader->SetFileNames( filenames );
 
-    progress = 0.1;
-    this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
     try
       {
       //collector.Start( "Checking series ...." );
@@ -168,10 +174,16 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
     itk::ExposeMetaData<std::string> ( *(*inputDict)[0], "0020|1041",  tag);
     float firstSliceLocation = atof( tag.c_str() ); // first slice location
     int nSlicesInVolume;
-    progress = 0.0;
-    this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
+
+    statusMessage.progress = 0.0;
+    statusMessage.message = "Checking slice locations...";
+    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+
     for (int i = 1; i < nSlices; i ++)
       {
+      statusMessage.progress = (double)i/(double)nSlices;
+      this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+      
       tag.clear();
       itk::ExposeMetaData<std::string> ( *(*inputDict)[i], "0020|1041",  tag);
       float sliceLocation = atof( tag.c_str() );
@@ -181,8 +193,6 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
         nSlicesInVolume = i;
         break;
         }
-      progress = (double)i /(double)nSlices;
-      this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
       }
     /*
     std::cerr << "Number of slices in Volume is " << nSlicesInVolume << std::endl;
@@ -210,9 +220,6 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
     //fileNamesContainerList.resize(nVolumes);
     fileNamesContainerList.clear();
 
-    progress = 0.0;
-    this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
-
     itk::SerieUIDContainer::iterator iter;
     for (iter = seriesUIDs.begin(); iter != seriesUIDs.end(); iter ++)
       {
@@ -229,12 +236,14 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
   scene->SaveStateForUndo();
   this->FrameNodeVector.clear();
 
-  progress = 0.0;
-  this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
+  statusMessage.progress = 0.0;
+  statusMessage.message = "Reading Volumes....";
+  this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
 
   for (int i = 0; i < nVolumes; i ++)
     {
-    std::cerr << "Reading Volume " << i << std::endl;
+    statusMessage.progress = (double)i / (double)nVolumes;
+    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
 
     vtkMRMLVolumeNode *volumeNode = NULL;
     vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
@@ -280,20 +289,16 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
     scene->AddNode(volumeNode);  
     this->FrameNodeVector.push_back(std::string(volumeNode->GetID()));
 
-    //storageNode->RemoveObservers(vtkCommand::ProgressEvent,  this->LogicCallbackCommand);
-
     scalarNode->Delete();
     storageNode->Delete();
     colorLogic->Delete();
     displayNode->Delete();
 
-    progress = (double)i / (double)nVolumes;
-    this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
     }
 
-  progress = 1.0;
-  this->InvokeEvent ( vtkCommand::ProgressEvent,&progress);
-
+  statusMessage.show = 0;
+  this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+  
   /*
   scene->SetURL( "test.mrml" );
   scene->Commit();
