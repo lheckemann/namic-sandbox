@@ -77,6 +77,7 @@ void RegisterTests()
   REGISTER_TEST(itkSubsampleTest3);
   REGISTER_TEST(itkStatisticsAlgorithmTest);
   REGISTER_TEST(itkStatisticsAlgorithmTest2);
+  REGISTER_TEST(itkStandardDeviationPerComponentFilterTest);
   REGISTER_TEST(itkWeightedMeanFilterTest);
   REGISTER_TEST(itkWeightedCovarianceFilterTest);
   REGISTER_TEST(itkImageToListSampleAdaptorTest); 
