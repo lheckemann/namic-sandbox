@@ -624,7 +624,7 @@ public:
    * the the bounding box defined by the lowerBound and the
    * upperBound. Otherwise returns false. Returns false if the ball
    * defined by the distance between the query point and the farthest
-   * neighbor touch the surface of the bounding box.*/
+   * neighbor touch the surface of the bounding box. */
   bool BallWithinBounds(const MeasurementVectorType &query,
                         MeasurementVectorType &lowerBound,
                         MeasurementVectorType &upperBound,
@@ -632,7 +632,7 @@ public:
 
   /** Returns true if the ball defined by the distance between the query
    * point and the farthest neighbor overlaps with the bounding box
-   * defined by the lower and the upper bounds.*/
+   * defined by the lower and the upper bounds. */
   bool BoundsOverlapBall(const MeasurementVectorType &query,
                          MeasurementVectorType &lowerBound,
                          MeasurementVectorType &upperBound,

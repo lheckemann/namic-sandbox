@@ -73,7 +73,7 @@ public:
   itkGetConstReferenceMacro(Origin, OriginType);
 
   /** Gets the distance between the origin point and x. This function
-   * work with SetOrigin() function*/
+   * work with SetOrigin() function. */
   virtual double Evaluate(const MeasurementVectorType &x) const = 0;
  
   /** Gets the distance between x1 and x2. This method is used by
