@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkBilateralZThreadImageFilter2.h,v $
+  Module:    $RCSfile: itkBilateralZThreadImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2006/03/24 16:03:16 $
   Version:   $Revision: 1.19 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkBilateralZThreadImageFilter2_h
-#define __itkBilateralZThreadImageFilter2_h
+#ifndef __itkBilateralZThreadImageFilter_h
+#define __itkBilateralZThreadImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkBilateralImageFilter.h"
@@ -24,16 +24,16 @@
 namespace itk
 {
 /**
- * \class BilateralZThreadImageFilter2
+ * \class BilateralZThreadImageFilter
  *        Test out new MultiZThreader.
 */
 template <class TInputImage, class TOutputImage >
-class ITK_EXPORT BilateralZThreadImageFilter2 :
+class ITK_EXPORT BilateralZThreadImageFilter :
     public BilateralImageFilter< TInputImage, TOutputImage > 
 {
 public:
   /** Standard class typedefs. */
-  typedef BilateralZThreadImageFilter2 Self;
+  typedef BilateralZThreadImageFilter Self;
   typedef BilateralImageFilter< TInputImage, TOutputImage > Superclass;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -42,14 +42,14 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(BilateralZThreadImageFilter2, BilateralImageFilter);
+  itkTypeMacro(BilateralZThreadImageFilter, BilateralImageFilter);
   
   /** Return the MultiZThreader used by this class */
   MultiZThreader* GetMultiZThreader()
   { return m_ZThreader; }
 
  protected:
-  BilateralZThreadImageFilter2()
+  BilateralZThreadImageFilter()
     {
     m_ZThreader = MultiZThreader::New();
     }
@@ -95,15 +95,11 @@ public:
 
 
 private:
-  BilateralZThreadImageFilter2(const Self&); //purposely not implemented
+  BilateralZThreadImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 };
   
 } // end namespace itk
-
-#ifndef ITK_MANUAL_INSTANTIATION
-// #include "itkBilateralZThreadImageFilter2.txx"
-#endif
 
 #endif
