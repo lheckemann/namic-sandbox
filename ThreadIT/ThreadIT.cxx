@@ -1,31 +1,15 @@
 #include <itkImage.h>
 #include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
-#include <itkGDCMSeriesFileNames.h>
-#include <itkGDCMImageIO.h>
-#include <itkImageSeriesReader.h>
-#include <itkLogger.h>
-#include <itkLoggerBase.h>
-#include <itkStdStreamLogOutput.h>
-#include <itkSimpleFilterWatcher.h>
 #include <itkBilateralImageFilter.h>
 #include <itkDifferenceImageFilter.h>
 #include <itkTimeProbesCollectorBase.h>
 #include "itkBilateralZThreadImageFilter.h"
-#include "itkBilateralZThreadImageFilter2.h"
-#include "itkMedianZThreadImageFilter.h"
-#include <itkMedianImageFilter.h>
 #include <itkRandomImageSource.h>
 
 
 int main ( int argc, const char* argv[] ) 
 {
   itk::OStringStream msg;
-  itk::StdStreamLogOutput::Pointer coutput = itk::StdStreamLogOutput::New();
-  coutput->SetStream(std::cout);
-  itk::Logger::Pointer logger = itk::Logger::New();
-  logger->SetName ( "ThreadIT" );
-  logger->AddLogOutput ( coutput );
 
   typedef itk::Image<short, 3> Volume;
   typedef itk::RandomImageSource<Volume> RIS;
@@ -47,8 +31,8 @@ int main ( int argc, const char* argv[] )
   probe.Stop ( "Original Bilateral" );
 
   // Process here
-  typedef itk::BilateralZThreadImageFilter2<Volume,Volume> BilateralZThreadType2;
-  BilateralZThreadType2::Pointer bilateralZ = BilateralZThreadType2::New();
+  typedef itk::BilateralZThreadImageFilter<Volume,Volume> BilateralZThreadType;
+  BilateralZThreadType::Pointer bilateralZ = BilateralZThreadType::New();
   bilateralZ->SetDomainSigma ( 0.5 );
   bilateralZ->SetRangeSigma ( 50.0 );
   bilateralZ->SetInput ( ris->GetOutput() );
