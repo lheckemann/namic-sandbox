@@ -381,10 +381,16 @@ void vtkControl4DLogic::ClearIntensityCurveCache(const char* maskID)
     return;
     }
   
+  std::cerr << "void vtkControl4DLogic::ClearIntensityCurveCache(): clearing cache..." << std::endl;
   IntensityCurveCacheType::iterator icciter = this->IntensityCurveCache.find(maskID);
   if (icciter != this->IntensityCurveCache.end())
     {
     this->IntensityCurveCache.erase(icciter);
+    }
+  icciter = this->IntensitySDCurveCache.find(maskID);
+  if (icciter != this->IntensitySDCurveCache.end())
+    {
+    this->IntensitySDCurveCache.erase(icciter);
     }
 }
 

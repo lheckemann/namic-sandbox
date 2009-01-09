@@ -552,7 +552,6 @@ void vtkControl4DGUI::ProcessLogicEvents ( vtkObject *caller,
 void vtkControl4DGUI::ProcessMRMLEvents ( vtkObject *caller,
                                             unsigned long event, void *callData )
 {
-  std::cerr << "void vtkControl4DGUI::ProcessMRMLEvents()" << std::endl;
   if (event == vtkMRMLScene::NodeAddedEvent)
     {
     UpdateMaskSelectMenu();
@@ -562,7 +561,6 @@ void vtkControl4DGUI::ProcessMRMLEvents ( vtkObject *caller,
     }
   else if (event == vtkMRMLVolumeNode::ImageDataModifiedEvent)
     {
-    std::cerr << "  vtkMRMLVolumeNode::ImageDataModifiedEvent " << std::endl;
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
 
     if (strcmp(node->GetNodeTagName(), "Volume") == 0)
@@ -571,7 +569,6 @@ void vtkControl4DGUI::ProcessMRMLEvents ( vtkObject *caller,
       if (svnode->GetLabelMap()) // if the updated node is label map
         {
         // delete cache in the logic class
-        std::cerr << "  clear cache " << std::endl;
         this->GetLogic()->ClearIntensityCurveCache(node->GetID());
         }
       }
