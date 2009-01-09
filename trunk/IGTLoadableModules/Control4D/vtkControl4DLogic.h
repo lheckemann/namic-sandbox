@@ -39,9 +39,13 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
  public:
   //BTX
   enum {  // Events
-    //LocatorUpdateEvent      = 50000,
+    //LocatorUpdateEvent    = 50000,
     StatusUpdateEvent       = 50001,
     ProgressDialogEvent     = 50002,
+  };
+  enum {
+    TYPE_MEAN,
+    TYPE_SD,
   };
   typedef struct {
     int    show;
@@ -77,7 +81,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   const char* SwitchNodeBG(int index);
 
   void  ClearIntensityCurveCache(const char* maskID);
-  vtkDoubleArray* GetIntensityCurve(const char* maskID, int label);
+  vtkDoubleArray* GetIntensityCurve(const char* maskID, int label, int type);
   int  SaveIntensityCurve(const char* maskID, int label, const char* filename);
 
  protected:
@@ -96,6 +100,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   void UpdateAll();
 
   double GetMeanIntencity(vtkImageData* image);
+  double GetSDIntencity(vtkImageData* image, double mean);
   void   GenerateIndexTable(vtkImageData* mask, int label);
 
   vtkCallbackCommand *DataCallbackCommand;
@@ -108,6 +113,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   FrameNodeVectorType FrameNodeVector;
   IndexTableType MaskIndexTable;
   IntensityCurveCacheType IntensityCurveCache;
+  IntensityCurveCacheType IntensitySDCurveCache;
   //ETX
 
   const char* CurrentFrameFG;

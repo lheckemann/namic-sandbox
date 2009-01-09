@@ -338,10 +338,10 @@ const char* vtkControl4DLogic::SwitchNodeBG(int index)
     }
 }
 
+
 //---------------------------------------------------------------------------
 double vtkControl4DLogic::GetMeanIntencity(vtkImageData* image)
 {
-  // this function should be optimized.
   double sum = 0.0;
 
   IndexTableType::iterator iter;
@@ -353,6 +353,22 @@ double vtkControl4DLogic::GetMeanIntencity(vtkImageData* image)
   double mean = sum / (double)this->MaskIndexTable.size();
 
   return mean;
+}
+
+
+double vtkControl4DLogic::GetSDIntencity(vtkImageData* image, double mean)
+{
+  double s = 0.0;
+  double n = (double) MaskIndexTable.size();
+
+  IndexTableType::iterator iter;
+  for (iter = this->MaskIndexTable.begin(); iter != this->MaskIndexTable.end(); iter ++)
+    {
+    double i = image->GetScalarComponentAsDouble(iter->x, iter->y, iter->z, 0);
+    s += (i - mean)*(i - mean);
+    }
+  double sigma = sqrt(s/n);
+  return sigma;
 }
 
 
@@ -404,7 +420,7 @@ void vtkControl4DLogic::GenerateIndexTable(vtkImageData* mask, int label)
 }
 
 //---------------------------------------------------------------------------
-vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int label)
+vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int label, int type)
 {
   vtkMRMLScalarVolumeNode* mnode =
     vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(maskID));
@@ -415,30 +431,57 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int lab
     }
 
   // Check cache to see if the intensity curve has already been generated.
+  int newCurveSet = 0;
   IntensityCurveCacheType::iterator icciter;
-  icciter = this->IntensityCurveCache.find(maskID);
-  if (icciter != this->IntensityCurveCache.end())
+  if (type == TYPE_MEAN)
     {
-    IntensityCurveSetType::iterator icsiter = icciter->second.find(label);
-    if (icsiter != icciter->second.end())
+    icciter = this->IntensityCurveCache.find(maskID);
+    if (icciter != this->IntensityCurveCache.end())
       {
-      return icsiter->second;
+      IntensityCurveSetType::iterator icsiter = icciter->second.find(label);
+      if (icsiter != icciter->second.end())
+        {
+        return icsiter->second;
+        }
+      }
+    else
+      {
+      newCurveSet = 1;
       }
     }
-  else
+  else // type == TYPE_SD
+    {
+    icciter = this->IntensitySDCurveCache.find(maskID);
+    if (icciter != this->IntensityCurveCache.end())
+      {
+      IntensityCurveSetType::iterator icsiter = icciter->second.find(label);
+      if (icsiter != icciter->second.end())
+        {
+        return icsiter->second;
+        }
+      }
+    else
+      {
+      newCurveSet = 1;
+      }
+    }
+
+  if (newCurveSet)
     {
     IntensityCurveSetType curveSet;
     this->IntensityCurveCache[std::string(maskID)] = curveSet;
+    this->IntensitySDCurveCache[std::string(maskID)] = curveSet;
     }
-
-
+    
   // generate mask index table
   GenerateIndexTable(mnode->GetImageData(), label);
   
-  vtkDoubleArray* iarray = vtkDoubleArray::New();
-  iarray->SetNumberOfValues(0);
-  FrameNodeVectorType::iterator iter;
+  vtkDoubleArray* meanArray = vtkDoubleArray::New();
+  vtkDoubleArray* sdArray = vtkDoubleArray::New();
+  meanArray->SetNumberOfValues(0);
+  sdArray->SetNumberOfValues(0);
 
+  FrameNodeVectorType::iterator iter;
   for (iter = this->FrameNodeVector.begin(); iter != this->FrameNodeVector.end(); iter ++)
     {
     const char* imageID = iter->c_str();
@@ -446,27 +489,39 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int lab
 
     vtkMRMLScalarVolumeNode* inode =
       vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(imageID));
-    double value = 0.0;
+    double meanvalue = 0.0;
+    double sdvalue = 0.0;
     if (inode)
       {
-      value = GetMeanIntencity(inode->GetImageData());
+      meanvalue = GetMeanIntencity(inode->GetImageData());
+      sdvalue   = GetSDIntencity(inode->GetImageData(), meanvalue);
       }
-    std::cerr << "value = " << value << std::endl;
-    iarray->InsertNextValue(value); 
+    std::cerr << "mean = " << meanvalue << ", sd = " << sdvalue << std::endl;
+    meanArray->InsertNextValue(meanvalue); 
+    sdArray->InsertNextValue(sdvalue); 
     }
 
-  this->IntensityCurveCache[std::string(maskID)][label] = iarray;
+  this->IntensityCurveCache[std::string(maskID)][label] = meanArray;
+  this->IntensitySDCurveCache[std::string(maskID)][label] = sdArray;
 
-  return iarray;
-  
+  if (type == TYPE_MEAN)
+    {
+    return meanArray;
+    }
+  else
+    {
+    return sdArray;
+    }
 }
+
 
 //---------------------------------------------------------------------------
 int vtkControl4DLogic::SaveIntensityCurve(const char* maskID, int label, const char* filename)
 {
-  vtkDoubleArray* iarray = GetIntensityCurve(maskID, label);
+  vtkDoubleArray* meanArray = GetIntensityCurve(maskID, label, TYPE_MEAN);
+  vtkDoubleArray* sdArray = GetIntensityCurve(maskID, label, TYPE_SD);
 
-  if (!iarray)
+  if (!meanArray || !sdArray)
     {
     vtkErrorMacro ("vtkControl4DLogic: could not generate intensity curve. ");
     return 0;
@@ -481,10 +536,10 @@ int vtkControl4DLogic::SaveIntensityCurve(const char* maskID, int label, const c
     return 0;
     }
 
-  int n = iarray->GetNumberOfTuples();
+  int n = meanArray->GetNumberOfTuples();
   for (int i = 0; i < n; i ++)
     {
-    fout << i << ", " << iarray->GetValue(i) << std::endl;
+    fout << i << ", " << meanArray->GetValue(i) << ", " << sdArray->GetValue(i) << std::endl;
     }
 
   fout.close();
