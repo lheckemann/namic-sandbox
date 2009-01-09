@@ -236,7 +236,7 @@ namespace ZThread {
       if( !(hasWaiter = (_waiter != 0)) ) {
 
         _shutdownTasks.push_back(task);
-        //ZTDEBUG("1 shutdown task added. %d\n", _shutdownTasks.size());
+        ZTDEBUG("1 shutdown task added. " <<  _shutdownTasks.size() << " tasks queued\n");
         
       }
 
@@ -257,7 +257,7 @@ namespace ZThread {
     if(removed)
       _shutdownTasks.erase(i);
 
-    //ZTDEBUG("1 shutdown task removed (%d)-%d\n", removed, _shutdownTasks.size());
+    ZTDEBUG("1 shutdown task removed (" << removed << ")-" << _shutdownTasks.size() << "\n" );
     
     return removed;
 

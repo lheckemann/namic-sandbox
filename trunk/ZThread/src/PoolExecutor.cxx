@@ -563,8 +563,9 @@ namespace ZThread {
    
     size(n);
     
+    // DJB: just shutdown when we go out of scope.
     // Request cancelation when main() exits
-    ThreadQueue::instance()->insertShutdownTask(_shutdown);
+    // ThreadQueue::instance()->insertShutdownTask(_shutdown);
 
   }
 
@@ -576,7 +577,7 @@ namespace ZThread {
        * If the shutdown task for this executor has not already been
        * selected to run, then run it locally
        */
-      if(ThreadQueue::instance()->removeShutdownTask(_shutdown)) 
+      // if(ThreadQueue::instance()->removeShutdownTask(_shutdown)) 
         _shutdown->run();
         
     } catch(...) { }
