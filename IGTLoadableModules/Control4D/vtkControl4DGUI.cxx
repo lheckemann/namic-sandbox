@@ -37,6 +37,8 @@
 #include "vtkKWScaleWithEntry.h"
 #include "vtkKWScale.h"
 #include "vtkKWPushButton.h"
+#include "vtkKWRadioButton.h"
+#include "vtkKWRadioButtonSet.h"
 #include "vtkKWMenuButton.h"
 #include "vtkKWSpinBox.h"
 #include "vtkKWCanvas.h"
@@ -83,6 +85,7 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   this->MaskColorCanvas   = NULL;
 
   this->RunPlotButton  = NULL;
+  this->PlotTypeButtonSet = NULL;
   this->FunctionEditor = NULL;
   this->SavePlotButton = NULL;
 
@@ -254,6 +257,14 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->PlotTypeButtonSet)
+    {
+    this->PlotTypeButtonSet->GetWidget(0)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    this->PlotTypeButtonSet->GetWidget(1)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->SavePlotButton)
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
@@ -317,6 +328,13 @@ void vtkControl4DGUI::AddGUIObservers ( )
     {
     this->RunPlotButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->PlotTypeButtonSet)
+    {
+    this->PlotTypeButtonSet->GetWidget(0)
+      ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->PlotTypeButtonSet->GetWidget(1)
+      ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->SavePlotButton)
     {
@@ -420,8 +438,47 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
-    vtkDoubleArray* p = this->GetLogic()->GetIntensityCurve(nodeID, label);
+
+    vtkDoubleArray* p;
+    if (this->PlotTypeButtonSet->GetWidget(0)->GetSelectedState())
+      {
+      p = this->GetLogic()->GetIntensityCurve(nodeID, label, vtkControl4DLogic::TYPE_MEAN);
+      }
+    else
+      {
+      p = this->GetLogic()->GetIntensityCurve(nodeID, label, vtkControl4DLogic::TYPE_SD);
+      }
     UpdateFunctionEditor(p);
+    }
+  else if (this->PlotTypeButtonSet->GetWidget(0) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->PlotTypeButtonSet->GetWidget(0)->GetSelectedState() == 1)
+    {
+    int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
+    int label = (int)this->MaskSelectSpinBox->GetValue();
+    const char* nodeID = this->MaskNodeIDList[selected].c_str();
+
+    if (nodeID)
+      {
+      vtkDoubleArray* p;
+      p = this->GetLogic()->GetIntensityCurve(nodeID, label, vtkControl4DLogic::TYPE_MEAN);
+      UpdateFunctionEditor(p);
+      }
+    }
+  else if (this->PlotTypeButtonSet->GetWidget(1) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->PlotTypeButtonSet->GetWidget(1)->GetSelectedState() == 1)
+    {
+    int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
+    int label = (int)this->MaskSelectSpinBox->GetValue();
+    const char* nodeID = this->MaskNodeIDList[selected].c_str();
+
+    if (nodeID)
+      {
+      vtkDoubleArray* p;
+      p = this->GetLogic()->GetIntensityCurve(nodeID, label, vtkControl4DLogic::TYPE_SD);
+      UpdateFunctionEditor(p);
+      }
     }
   else if (this->SavePlotButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
@@ -756,6 +813,21 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   frame->SetLabelText ("Intencity Plot");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
+  
+  this->PlotTypeButtonSet = vtkKWRadioButtonSet::New();
+  this->PlotTypeButtonSet->SetParent(frame);
+  this->PlotTypeButtonSet->Create();
+  this->PlotTypeButtonSet->PackHorizontallyOn();
+  this->PlotTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
+  this->PlotTypeButtonSet->UniformColumnsOn();
+  this->PlotTypeButtonSet->UniformRowsOn();
+
+  this->PlotTypeButtonSet->AddWidget(0);
+  this->PlotTypeButtonSet->GetWidget(0)->SetText("Mean");
+  this->PlotTypeButtonSet->AddWidget(1);
+  this->PlotTypeButtonSet->GetWidget(1)->SetText("SD");
+
+  this->PlotTypeButtonSet->GetWidget(0)->SelectedStateOn();
 
   vtkPiecewiseFunction* tfun = vtkPiecewiseFunction::New();
   /*
@@ -785,7 +857,8 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->FunctionEditor->ValueTicksVisibilityOn();
   this->FunctionEditor->SetValueTicksFormat("%-#4.2f");
 
-  this->Script("pack %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
+               this->PlotTypeButtonSet->GetWidgetName(),
                this->FunctionEditor->GetWidgetName());
 
   // -----------------------------------------

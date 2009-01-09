@@ -34,6 +34,8 @@ class vtkKWMenuButton;
 class vtkKWSpinBox;
 class vtkKWCanvas;
 class vtkKWProgressDialog;
+class vtkKWRadioButtonSet;
+class vtkKWRadioButton;
 
 class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 {
@@ -152,6 +154,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkKWCanvas*     MaskColorCanvas;
 
   vtkKWPushButton* RunPlotButton;
+  vtkKWRadioButtonSet* PlotTypeButtonSet;
   vtkKWPiecewiseFunctionEditor* FunctionEditor;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
 
