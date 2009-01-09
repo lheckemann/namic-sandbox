@@ -80,11 +80,6 @@ public:
     // execute the user specified threader callback, catching any exceptions
     try
       {
-      /*
-      std::cout << "\t\tStarting run method on thread " << threadInfoStruct->ThreadID << std::endl;
-      std::cout << "\t\tMethod: " << ThreadFunction << std::endl;
-      std::cout << "\t\tUserdata: " << UserData << std::endl;
-      */
       if ( ThreadFunction ) 
         {
         (*ThreadFunction)(threadInfoStruct);
@@ -93,7 +88,6 @@ public:
         }
       else
         {
-        // std::cout << "\t\tNo ThreadFunction specified" << std::endl;
         threadInfoStruct->ThreadExitCode = MultiThreader::ThreadInfoStruct::UNKNOWN;
         }
       
@@ -138,32 +132,45 @@ void MultiZThreader::SingleMethodExecute()
 {
   m_ExceptionOccurred = false;
   ZThread::PoolExecutor executor(this->GetNumberOfThreads());
-  // std::cout << "Starting SingleMethodExecute" << std::endl;
+  itkDebugMacro ( << "Starting SingleMethodExecute" );
   try
     {
     for ( unsigned int i = 0; i < this->GetNumberOfJobs(); i++ )
       {
-      // std::cout << "\tStarting job " << i << std::endl;
       ZThreadStruct* s = new ZThreadStruct();
       s->threadInfoStruct->ThreadID = i;
       s->threadInfoStruct->NumberOfThreads = this->GetNumberOfJobs();
       s->threadInfoStruct->UserData = (void*) m_SingleData;
       s->ThreadFunction = m_SingleMethod;
+      itkDebugMacro ( << "\tStarting job " << i );
       executor.execute ( s );
       }
-    // std::cout << "Waiting for all jobs to finish" << std::endl;
+    }
+    catch ( ZThread::Cancellation_Exception &ce )
+    {
+    itkGenericExceptionMacro ( << "Cancellation Error adding runnable to executor: " << ce.what() );
+    }
+    catch ( ZThread::Synchronization_Exception &e )
+    {
+    itkGenericExceptionMacro ( << "Synchronization Error adding runnable to executor: " << e.what() );
+    }
+  try
+    {
+    itkDebugMacro ( << "====  Waiting for all jobs to finish" );
     // Let it all finish
     executor.wait();
-    // std::cout << "All jobs finished" << std::endl;
+    itkDebugMacro ( << "====  All jobs finished" );
     }
-  catch ( ZThread::Synchronization_Exception &e )
+  catch ( ZThread::Interrupted_Exception &ie )
     {
-    itkGenericExceptionMacro ( << "Error adding runnable to executor: " << e.what() );
+    itkGenericExceptionMacro ( << "Error waiting for pool: " << ie.what() );
     }
   if (m_ExceptionOccurred)
     {
+    itkDebugMacro ( << "Exception flagged" );
     itkExceptionMacro("Exception occurred during SingleMethodExecute");
     }
+  itkDebugMacro ( << "Finished SingleMethodExecute" );
 }
 
 void MultiZThreader::PrintSelf(std::ostream& os, Indent indent) const

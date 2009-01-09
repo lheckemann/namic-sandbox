@@ -38,7 +38,7 @@ int main ( int argc, const char* argv[] )
 
   typedef itk::BilateralImageFilter<Volume,Volume> BilateralType;
   BilateralType::Pointer bilateral = BilateralType::New();
-  bilateral->SetDomainSigma ( 0.1 );
+  bilateral->SetDomainSigma ( 0.5 );
   bilateral->SetRangeSigma ( 50.0 );
   bilateral->SetInput ( ris->GetOutput() );
 
@@ -48,12 +48,12 @@ int main ( int argc, const char* argv[] )
 
   // Process here
   typedef itk::BilateralZThreadImageFilter2<Volume,Volume> BilateralZThreadType2;
-  BilateralZThreadType2::Pointer bilateralZ2 = BilateralZThreadType2::New();
-  bilateralZ2->SetDomainSigma ( 0.1 );
-  bilateralZ2->SetRangeSigma ( 50.0 );
-  bilateralZ2->SetInput ( ris->GetOutput() );
+  BilateralZThreadType2::Pointer bilateralZ = BilateralZThreadType2::New();
+  bilateralZ->SetDomainSigma ( 0.5 );
+  bilateralZ->SetRangeSigma ( 50.0 );
+  bilateralZ->SetInput ( ris->GetOutput() );
   probe.Start ( "MultiZThreader" );
-  bilateralZ2->Update();
+  bilateralZ->Update();
   probe.Stop ( "MultiZThreader" );
 
   probe.Report();
@@ -62,7 +62,7 @@ int main ( int argc, const char* argv[] )
   typedef itk::DifferenceImageFilter<Volume,Volume> DiffType;
   DiffType::Pointer diff = DiffType::New();
   diff->SetValidInput(bilateral->GetOutput());
-  diff->SetTestInput(bilateralZ2->GetOutput());
+  diff->SetTestInput(bilateralZ->GetOutput());
   diff->SetDifferenceThreshold(2.0);
   diff->UpdateLargestPossibleRegion();
 
@@ -77,5 +77,40 @@ int main ( int argc, const char* argv[] )
     {
     return EXIT_FAILURE;
     }
+
+  std::cout << "\nTesting with more jobs" << std::endl;
+  for ( int jobs = 1; jobs <= 10; jobs++ ) 
+    {
+    msg.str(""); msg << "Jobs == " << jobs;
+    probe.Start ( msg.str().c_str() );
+    bilateralZ->GetMultiZThreader()->SetNumberOfJobs ( jobs );
+    bilateralZ->Modified();
+    try
+      {
+      bilateralZ->Update();
+      }
+    catch ( itk::ExceptionObject &e )
+      {
+      std::cout << "Caught ITK exception " << e.what() << std::endl;
+      return EXIT_FAILURE;
+      }
+    catch (...)
+      {
+      std::cout << "Something or the other went wrong" << std::endl;
+      return EXIT_FAILURE;
+      }
+    probe.Stop ( msg.str().c_str() );
+
+    diff->UpdateLargestPossibleRegion();
+    std::cout << "\t" << jobs << " jobs, difference: " << diff->GetTotalDifference() << std::endl;
+    if ( diff->GetTotalDifference() > 0.1 )
+      {
+      std::cerr << "Difference is too great, returning error" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  probe.Report();
+
   return EXIT_SUCCESS;
 }
