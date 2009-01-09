@@ -153,6 +153,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 
   vtkKWPushButton* RunPlotButton;
   vtkKWPiecewiseFunctionEditor* FunctionEditor;
+  vtkKWLoadSaveButtonWithLabel* SavePlotButton;
 
   //----------------------------------------------------------------
   // Logic Values

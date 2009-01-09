@@ -56,6 +56,8 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
     int z;
   } CoordType;
   typedef std::vector<CoordType> IndexTableType;
+  typedef std::map<int, vtkDoubleArray*> IntensityCurveSetType;
+  typedef std::map<std::string, IntensityCurveSetType> IntensityCurveCacheType;
   //ETX
 
  public:
@@ -73,7 +75,10 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
 
   const char* SwitchNodeFG(int index);
   const char* SwitchNodeBG(int index);
-  vtkDoubleArray* GetIntensityVariation(const char* maskID, int maskValue);
+
+  void  ClearIntensityCurveCache(const char* maskID);
+  vtkDoubleArray* GetIntensityCurve(const char* maskID, int label);
+  int  SaveIntensityCurve(const char* maskID, int label, const char* filename);
 
  protected:
   
@@ -102,6 +107,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   //BTX
   FrameNodeVectorType FrameNodeVector;
   IndexTableType MaskIndexTable;
+  IntensityCurveCacheType IntensityCurveCache;
   //ETX
 
   const char* CurrentFrameFG;
