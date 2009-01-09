@@ -84,7 +84,7 @@ vtkControl4DGUI::vtkControl4DGUI ( )
 
   this->RunPlotButton  = NULL;
   this->FunctionEditor = NULL;
-
+  this->SavePlotButton = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -162,6 +162,12 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
     this->FunctionEditor->SetParent(NULL);
     this->FunctionEditor->Delete();
     }
+  if (this->SavePlotButton)
+    {
+    this->SavePlotButton->SetParent(NULL);
+    this->SavePlotButton->Delete();
+    }
+
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -248,6 +254,12 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->SavePlotButton)
+    {
+    this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->RemoveLogicObservers();
 
 }
@@ -305,6 +317,11 @@ void vtkControl4DGUI::AddGUIObservers ( )
     {
     this->RunPlotButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->SavePlotButton)
+    {
+    this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
+      ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   this->AddLogicObservers();
@@ -403,9 +420,20 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
-    vtkDoubleArray* p = this->GetLogic()->GetIntensityVariation(nodeID, label);
+    vtkDoubleArray* p = this->GetLogic()->GetIntensityCurve(nodeID, label);
     UpdateFunctionEditor(p);
     }
+  else if (this->SavePlotButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
+           && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
+    {
+    const char* filename = (const char*)callData;
+    int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
+    int label = (int)this->MaskSelectSpinBox->GetValue();
+    const char* nodeID = this->MaskNodeIDList[selected].c_str();
+    this->GetLogic()->SaveIntensityCurve(nodeID, label, filename);
+    //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->
+    }
+
 } 
 
 
@@ -467,12 +495,29 @@ void vtkControl4DGUI::ProcessLogicEvents ( vtkObject *caller,
 void vtkControl4DGUI::ProcessMRMLEvents ( vtkObject *caller,
                                             unsigned long event, void *callData )
 {
+  std::cerr << "void vtkControl4DGUI::ProcessMRMLEvents()" << std::endl;
   if (event == vtkMRMLScene::NodeAddedEvent)
     {
     UpdateMaskSelectMenu();
     }
   else if (event == vtkMRMLScene::SceneCloseEvent)
     {
+    }
+  else if (event == vtkMRMLVolumeNode::ImageDataModifiedEvent)
+    {
+    std::cerr << "  vtkMRMLVolumeNode::ImageDataModifiedEvent " << std::endl;
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+
+    if (strcmp(node->GetNodeTagName(), "Volume") == 0)
+      {
+      vtkMRMLScalarVolumeNode* svnode = vtkMRMLScalarVolumeNode::SafeDownCast(caller);
+      if (svnode->GetLabelMap()) // if the updated node is label map
+        {
+        // delete cache in the logic class
+        std::cerr << "  clear cache " << std::endl;
+        this->GetLogic()->ClearIntensityCurveCache(node->GetID());
+        }
+      }
     }
 }
 
@@ -705,7 +750,6 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   
   // -----------------------------------------
   // Plot frame
-
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
   frame->Create();
@@ -714,6 +758,7 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
                  frame->GetWidgetName() );
 
   vtkPiecewiseFunction* tfun = vtkPiecewiseFunction::New();
+  /*
   tfun->AddPoint(70.0, 0.0);
   tfun->AddPoint(599.0, 0);
   tfun->AddPoint(600.0, 0);
@@ -722,6 +767,7 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   tfun->AddPoint(1300, .3);
   tfun->AddPoint(2000, .3);
   tfun->AddPoint(4095.0, 1.0);
+  */
 
   this->FunctionEditor = vtkKWPiecewiseFunctionEditor::New();
   this->FunctionEditor->SetParent(frame->GetFrame());
@@ -731,7 +777,7 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->FunctionEditor->SetPadY(2);
   this->FunctionEditor->ParameterRangeVisibilityOff();
   this->FunctionEditor->SetCanvasHeight(200);
-  this->FunctionEditor->SetPiecewiseFunction(tfun);
+  //this->FunctionEditor->SetPiecewiseFunction(tfun);
   this->FunctionEditor->ReadOnlyOn();
   this->FunctionEditor->SetPointRadius(2);
   this->FunctionEditor->ParameterTicksVisibilityOn();
@@ -742,6 +788,27 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->Script("pack %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                this->FunctionEditor->GetWidgetName());
 
+  // -----------------------------------------
+  // Output frame
+  
+  vtkKWFrameWithLabel *oframe = vtkKWFrameWithLabel::New();
+  oframe->SetParent(conBrowsFrame->GetFrame());
+  oframe->Create();
+  oframe->SetLabelText ("Output");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 oframe->GetWidgetName() );
+
+  this->SavePlotButton = vtkKWLoadSaveButtonWithLabel::New();
+  this->SavePlotButton->SetParent(oframe->GetFrame());
+  this->SavePlotButton->Create();
+  this->SavePlotButton->SetWidth(50);
+  this->SavePlotButton->GetWidget()->SetText ("Save");
+  this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOn();
+  this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SetDefaultExtension(".csv");
+  
+
+  this->Script("pack %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+               this->SavePlotButton->GetWidgetName());
 
   conBrowsFrame->Delete();
   frame->Delete();
@@ -834,13 +901,21 @@ void vtkControl4DGUI::UpdateMaskSelectMenu()
       char str[256];
 
       vtkMRMLScalarVolumeNode* node =
-        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID((*iter)->GetID()));
+        vtkMRMLScalarVolumeNode::SafeDownCast(*iter);
+        //vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID((*iter)->GetID()));
       if (node != NULL && node->GetLabelMap())
         {
         //sprintf(str, "%s (%s)", (*iter)->GetName(), (*iter)->GetID());
         sprintf(str, "%s", (*iter)->GetName());
         this->MaskSelectMenu->GetMenu()->AddRadioButton(str);
-        this->MaskNodeIDList.push_back(std::string((*iter)->GetID()));
+        std::string id((*iter)->GetID());
+        this->MaskNodeIDList.push_back(id);
+        
+        vtkIntArray* events;
+        events = vtkIntArray::New();
+        events->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
+        vtkMRMLNode *nd = NULL; // TODO: is this OK?
+        vtkSetAndObserveMRMLNodeEventsMacro(nd,node,events);
         }
       }
     }
@@ -926,3 +1001,6 @@ void vtkControl4DGUI::UpdateFunctionEditor(vtkDoubleArray* data)
     this->FunctionEditor->Update();
     }
 }
+
+
+
