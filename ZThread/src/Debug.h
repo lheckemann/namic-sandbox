@@ -22,11 +22,11 @@
 
 #ifndef ZTDEBUG
 
-#ifndef NDEBUG
-#  include <stdio.h>
-#  define ZTDEBUG printf
-#else
+#ifdef NDEBUG
 #  define ZTDEBUG(x) 
+#else
+#  include <iostream>
+#  define ZTDEBUG(x) std::cerr << x;
 #endif
 
 #endif

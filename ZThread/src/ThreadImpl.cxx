@@ -403,7 +403,9 @@ namespace ZThread {
 
     try {
     
+    ZTDEBUG("Thread about to run...\n");
       task->run();
+    ZTDEBUG("Thread finished running...\n");
 
     } catch(...) {
 
