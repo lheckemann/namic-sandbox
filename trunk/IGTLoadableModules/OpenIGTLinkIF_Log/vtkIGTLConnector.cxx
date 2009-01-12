@@ -193,6 +193,7 @@ int vtkIGTLConnector::ReceiveController()
       if (GetDeviceID(headerMsg->GetDeviceName(), headerMsg->GetDeviceType()) < 0) // not found on the list
         {
         int id = RegisterNewDevice(headerMsg->GetDeviceName(), headerMsg->GetDeviceType());
+        std::cerr << "Device ID: " << id << std::endl;
         RegisterDeviceIO(id, IO_INCOMING);
         }
       }
