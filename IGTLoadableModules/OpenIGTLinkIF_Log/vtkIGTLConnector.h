@@ -82,6 +82,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
 
   vtkGetMacro( Type, int );
   vtkSetMacro( Type, int );
+  vtkGetMacro( LastID, int );
+  vtkSetMacro( LastID, int );
   vtkGetMacro( State, int );
   vtkSetMacro( State, int );
   vtkGetMacro( ConnectorStopFlag, int );
@@ -164,7 +166,7 @@ public:
 
   //BTX
   DeviceInfoType*     GetDeviceInfo(int id);
-  DeviceInfoMapType*  GetDeviceInfoList()    { return &(this->DeviceInfoList);        };
+  DeviceInfoMapType*  GetDeviceInfoList()    { return &(this->DeviceInfoList);        }
   DeviceIDSetType*    GetIncomingDevice()    { return &(this->IncomingDeviceIDSet);   }
   DeviceIDSetType*    GetOutgoingDevice()    { return &(this->OutgoingDeviceIDSet);   }
   DeviceIDSetType*    GetUnspecifiedDevice() { return &(this->UnspecifiedDeviceIDSet);}

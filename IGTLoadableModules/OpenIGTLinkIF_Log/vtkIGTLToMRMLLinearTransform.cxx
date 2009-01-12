@@ -29,18 +29,15 @@ vtkIGTLToMRMLLinearTransform::vtkIGTLToMRMLLinearTransform()
 {
 }
 
-
 //---------------------------------------------------------------------------
 vtkIGTLToMRMLLinearTransform::~vtkIGTLToMRMLLinearTransform()
 {
 }
 
-
 //---------------------------------------------------------------------------
 void vtkIGTLToMRMLLinearTransform::PrintSelf(ostream& os, vtkIndent indent)
 {
 }
-
 
 //---------------------------------------------------------------------------
 vtkMRMLNode* vtkIGTLToMRMLLinearTransform::CreateNewNode(vtkMRMLScene* scene, const char* name)

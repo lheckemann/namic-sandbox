@@ -269,6 +269,7 @@ void vtkOpenIGTLinkIFLogic::AddServerConnector(const char* name, int port)
   connector->SetName(name);
   connector->SetType(vtkIGTLServerClientConnector::TYPE_SERVER);
   connector->SetServerPort(port);
+  
   //this->ConnectorMap.push_back(connector);
   this->ConnectorMap[newID] = connector;
   //this->ConnectorPrevStateList.push_back(-1);
@@ -286,6 +287,14 @@ void vtkOpenIGTLinkIFLogic::AddServerConnector(int id)
 
   //Set values for new server connector
   connector->SetType(vtkIGTLServerClientConnector::TYPE_SERVER);
+  
+  //Get devicelists from previous connector
+  *(connector->GetDeviceInfoList()) = *(this->ConnectorMap[id]->GetDeviceInfoList());
+  *(connector->GetIncomingDevice()) = *(this->ConnectorMap[id]->GetIncomingDevice());
+  *(connector->GetOutgoingDevice()) = *(this->ConnectorMap[id]->GetOutgoingDevice());
+  *(connector->GetUnspecifiedDevice()) = *(this->ConnectorMap[id]->GetUnspecifiedDevice());
+  //Update LastID
+  connector->SetLastID(this->ConnectorMap[id]->GetLastID());
   
   //Subsitute old connector for new server connector
   this->ConnectorMap[id] = connector;
@@ -306,6 +315,7 @@ void vtkOpenIGTLinkIFLogic::AddClientConnector(const char* name, const char* svr
   connector->SetType(vtkIGTLServerClientConnector::TYPE_CLIENT);
   connector->SetServerPort(port);
   connector->SetServerHostname(svrHostName);
+  
   //this->ConnectorMap.push_back(connector);
   this->ConnectorMap[newID] = connector;
   //this->ConnectorPrevStateList.push_back(-1);
@@ -322,6 +332,14 @@ void vtkOpenIGTLinkIFLogic::AddClientConnector(int id)
   connector->SetName(this->ConnectorMap[id]->GetName());
   connector->SetType(vtkIGTLServerClientConnector::TYPE_CLIENT);
   
+  //Get devicelists from previous connector
+  *(connector->GetDeviceInfoList()) = *(this->ConnectorMap[id]->GetDeviceInfoList());
+  *(connector->GetIncomingDevice()) = *(this->ConnectorMap[id]->GetIncomingDevice());
+  *(connector->GetOutgoingDevice()) = *(this->ConnectorMap[id]->GetOutgoingDevice());
+  *(connector->GetUnspecifiedDevice()) = *(this->ConnectorMap[id]->GetUnspecifiedDevice());
+  //Update LastID
+  connector->SetLastID(this->ConnectorMap[id]->GetLastID());
+  
   //this->ConnectorMap.push_back(connector);
   this->ConnectorMap[id] = connector;
   //this->ConnectorPrevStateList.push_back(-1);
@@ -336,6 +354,14 @@ void vtkOpenIGTLinkIFLogic::AddFileConnector(int id)
 
   connector->SetName(this->ConnectorMap[id]->GetName());
   connector->SetType(vtkIGTLFileConnector::TYPE_FILE);
+  
+  //Get devicelists from previous connector
+  *(connector->GetDeviceInfoList()) = *(this->ConnectorMap[id]->GetDeviceInfoList());
+  *(connector->GetIncomingDevice()) = *(this->ConnectorMap[id]->GetIncomingDevice());
+  *(connector->GetOutgoingDevice()) = *(this->ConnectorMap[id]->GetOutgoingDevice());
+  *(connector->GetUnspecifiedDevice()) = *(this->ConnectorMap[id]->GetUnspecifiedDevice());
+  //Update LastID
+  connector->SetLastID(this->ConnectorMap[id]->GetLastID());
   
   //this->ConnectorMap.push_back(connector);
   this->ConnectorMap[id] = connector;
