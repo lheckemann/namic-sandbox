@@ -87,7 +87,7 @@ public:
   void  SetTimeStamp(igtl::TimeStamp::Pointer& ts);
   void  GetTimeStamp(igtl::TimeStamp::Pointer& ts);
 
-  // Pack() serializes the header and body based on the member varilables.
+  // Pack() serializes the header and body based on the member variables.
   // PackBody() must be implemented in the child class.
   int   Pack();
 
@@ -117,12 +117,12 @@ public:
   void AllocatePack();
 
   // Call InitPack() before receive header. 
-  // This function simply reset the Unpacked flag for both
-  // the hearder and body pack.
+  // This function simply resets the Unpacked flag for both
+  // the header and body pack.
   void InitPack();
 
   // Copy contents from the specified Massage class.
-  // If the type of the specified class is same as this class,
+  // If the type of the specified class is the same as this class,
   // both general header and body are copied. Otherwise, only
   // general header is copied.
   int Copy(const MessageBase* mb);
