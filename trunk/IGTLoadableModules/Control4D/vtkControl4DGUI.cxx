@@ -26,6 +26,7 @@
 #include "vtkSlicerTheme.h"
 
 #include "vtkMRMLColorNode.h"
+#include "vtkMRMLBSplineTransformNode.h"
 
 #include "vtkKWTkUtilities.h"
 #include "vtkKWWidget.h"
@@ -54,7 +55,9 @@
 #include "vtkKWProgressGauge.h"
 
 #include "vtkCornerAnnotation.h"
+#include "vtkCommandLineModuleGUI.h"
 
+#include "itksys/DynamicLoader.hxx"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkControl4DGUI );
@@ -88,6 +91,10 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   this->PlotTypeButtonSet = NULL;
   this->FunctionEditor = NULL;
   this->SavePlotButton = NULL;
+
+  this->RegistrationStartIndexSpinBox = NULL;
+  this->RegistrationEndIndexSpinBox   = NULL;
+  this->StartRegistrationButton       = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -170,7 +177,22 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
     this->SavePlotButton->SetParent(NULL);
     this->SavePlotButton->Delete();
     }
+  if (this->RegistrationStartIndexSpinBox)
+    {
+    this->RegistrationStartIndexSpinBox->SetParent(NULL);
+    this->RegistrationStartIndexSpinBox->Delete();
+    }
+  if (this->RegistrationEndIndexSpinBox)
+    {
+    this->RegistrationEndIndexSpinBox->SetParent(NULL);
+    this->RegistrationEndIndexSpinBox->Delete();
+    }
 
+  if (this->StartRegistrationButton)
+    {
+    this->StartRegistrationButton->SetParent(NULL);
+    this->StartRegistrationButton->Delete();
+    }
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -256,7 +278,6 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
     this->RunPlotButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
   if (this->PlotTypeButtonSet)
     {
     this->PlotTypeButtonSet->GetWidget(0)
@@ -264,10 +285,25 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
     this->PlotTypeButtonSet->GetWidget(1)
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
   if (this->SavePlotButton)
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->RegistrationStartIndexSpinBox)
+    {
+    this->RegistrationStartIndexSpinBox
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->RegistrationEndIndexSpinBox)
+    {
+    this->RegistrationEndIndexSpinBox
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->StartRegistrationButton)
+    {
+    this->StartRegistrationButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
@@ -340,6 +376,22 @@ void vtkControl4DGUI::AddGUIObservers ( )
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
       ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->RegistrationStartIndexSpinBox)
+    {
+    this->RegistrationStartIndexSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->RegistrationEndIndexSpinBox)
+    {
+    this->RegistrationEndIndexSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->StartRegistrationButton)
+    {
+    this->StartRegistrationButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   this->AddLogicObservers();
@@ -490,7 +542,45 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     this->GetLogic()->SaveIntensityCurve(nodeID, label, filename);
     //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->
     }
-
+  else if (this->RegistrationStartIndexSpinBox == vtkKWSpinBox::SafeDownCast(caller)
+           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+    {
+    int sid = (int)this->RegistrationStartIndexSpinBox->GetValue();
+    int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
+    if (sid < 0)
+      {
+      this->RegistrationStartIndexSpinBox->SetValue(0);
+      this->RegistrationStartIndexSpinBox->Modified();
+      }
+    else if (sid > eid)
+      {
+      this->RegistrationStartIndexSpinBox->SetValue(eid);
+      this->RegistrationStartIndexSpinBox->Modified();
+      }
+    }
+  else if (this->RegistrationEndIndexSpinBox == vtkKWSpinBox::SafeDownCast(caller)
+           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+    {
+    int sid = (int)this->RegistrationStartIndexSpinBox->GetValue();
+    int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
+    if (eid >= this->GetLogic()->GetNumberOfFrames())
+      {
+      this->RegistrationEndIndexSpinBox->SetValue(this->GetLogic()->GetNumberOfFrames()-1);
+      this->RegistrationEndIndexSpinBox->Modified();
+      }
+    if (sid > eid)
+      {
+      this->RegistrationEndIndexSpinBox->SetValue(sid);
+      this->RegistrationEndIndexSpinBox->Modified();
+      }
+    }
+  else if (this->StartRegistrationButton == vtkKWPushButton::SafeDownCast(caller)
+           && event == vtkKWPushButton::InvokedEvent)
+    {
+    int sid = (int)this->RegistrationStartIndexSpinBox->GetValue();
+    int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
+    RunSeriesRegistration(sid, eid, sid);
+    }
 } 
 
 
@@ -602,6 +692,7 @@ void vtkControl4DGUI::BuildGUI ( )
   BuildGUIForLoadFrame();
   BuildGUIForFrameControlFrame();
   BuildGUIForFunctionViewer();
+  BuildGUIForRegistrationFrame();
 
 }
 
@@ -812,7 +903,7 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
                  frame->GetWidgetName() );
   
   this->PlotTypeButtonSet = vtkKWRadioButtonSet::New();
-  this->PlotTypeButtonSet->SetParent(frame);
+  this->PlotTypeButtonSet->SetParent(frame->GetFrame());
   this->PlotTypeButtonSet->Create();
   this->PlotTypeButtonSet->PackHorizontallyOn();
   this->PlotTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
@@ -884,6 +975,68 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   frame->Delete();
 }
 
+
+//---------------------------------------------------------------------------
+void vtkControl4DGUI::BuildGUIForRegistrationFrame()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("Control4D");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Registration");
+  //conBrowsFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Parameter
+  
+  vtkKWFrameWithLabel *pframe = vtkKWFrameWithLabel::New();
+  pframe->SetParent(conBrowsFrame->GetFrame());
+  pframe->Create();
+  pframe->SetLabelText ("Mask Selector");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 pframe->GetWidgetName() );
+
+  vtkKWLabel *fromLabel = vtkKWLabel::New();
+  fromLabel->SetParent(pframe->GetFrame());
+  fromLabel->Create();
+  fromLabel->SetText("From: ");
+
+  this->RegistrationStartIndexSpinBox = vtkKWSpinBox::New();
+  this->RegistrationStartIndexSpinBox->SetParent(pframe->GetFrame());
+  this->RegistrationStartIndexSpinBox->Create();
+  this->RegistrationStartIndexSpinBox->SetWidth(3);
+
+  vtkKWLabel *toLabel = vtkKWLabel::New();
+  toLabel->SetParent(pframe->GetFrame());
+  toLabel->Create();
+  toLabel->SetText(" to: ");
+
+  this->RegistrationEndIndexSpinBox = vtkKWSpinBox::New();
+  this->RegistrationEndIndexSpinBox->SetParent(pframe->GetFrame());
+  this->RegistrationEndIndexSpinBox->Create();
+  this->RegistrationEndIndexSpinBox->SetWidth(3);
+
+  this->StartRegistrationButton = vtkKWPushButton::New();
+  this->StartRegistrationButton->SetParent(pframe->GetFrame());
+  this->StartRegistrationButton->Create();
+  this->StartRegistrationButton->SetText ("Plot");
+  this->StartRegistrationButton->SetWidth (4);
+
+  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+               fromLabel->GetWidgetName(),
+               this->RegistrationStartIndexSpinBox->GetWidgetName(),
+               toLabel->GetWidgetName(),
+               this->RegistrationEndIndexSpinBox->GetWidgetName(),
+               this->StartRegistrationButton->GetWidgetName());
+  
+}
+
+
 //----------------------------------------------------------------------------
 void vtkControl4DGUI::UpdateAll()
 {
@@ -897,9 +1050,9 @@ void vtkControl4DGUI::SetForeground(int index)
   vtkMRMLSliceCompositeNode *cnode;
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
-  const char* nodeID = this->GetLogic()->SwitchNodeFG(index);
+  const char* nodeID = this->GetLogic()->GetFrameNodeID(index);
   vtkMRMLVolumeNode* volNode =
-  vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
 
   if (volNode)
     {
@@ -925,7 +1078,7 @@ void vtkControl4DGUI::SetBackground(int index)
   vtkMRMLSliceCompositeNode *cnode;
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
-  const char* nodeID = this->GetLogic()->SwitchNodeBG(index);
+  const char* nodeID = this->GetLogic()->GetFrameNodeID(index);
   vtkMRMLVolumeNode* volNode =
     vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
 
@@ -1037,8 +1190,8 @@ void vtkControl4DGUI::SelectMask(const char* nodeID, int label)
     {
     this->MaskColorCanvas->SetBackgroundColor(color[0], color[1], color[2]);
     }
-  
 }
+
 
 //----------------------------------------------------------------------------
 void vtkControl4DGUI::UpdateFunctionEditor(vtkDoubleArray* data)
@@ -1053,7 +1206,6 @@ void vtkControl4DGUI::UpdateFunctionEditor(vtkDoubleArray* data)
   std::cerr << "number of components = " << n << std::endl;
   if (n > 0)
     {
-    double max = 0;
     vtkPiecewiseFunction* tfun = vtkPiecewiseFunction::New();
     for (int i = 0; i < n; i ++)
       {
@@ -1073,4 +1225,179 @@ void vtkControl4DGUI::UpdateFunctionEditor(vtkDoubleArray* data)
 }
 
 
+//---------------------------------------------------------------------------
+int vtkControl4DGUI::RunSeriesRegistration(int sIndex, int eIndex, int kIndex)
+{
+  if (sIndex < 0 ||
+      eIndex >= this->GetLogic()->GetNumberOfFrames() ||
+      kIndex < sIndex ||
+      kIndex > eIndex)
+    {
+    std::cerr << "int vtkControl4DGUI::RunSeriesRegistration(): irregular index" << std::endl;
+    return 0;
+    }
+  
+  this->GetLogic()->CreateRegisteredVolumeNodes();
+  
+  const char* fixedFrameNodeID = this->GetLogic()->GetFrameNodeID(kIndex);
+  vtkMRMLScalarVolumeNode* fixedNode;  
+  if (fixedFrameNodeID)
+    {
+    fixedNode = 
+      vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(fixedFrameNodeID));
+    }
+  else
+    {
+    std::cerr << "int vtkControl4DGUI::RunSeriesRegistration(): no fixed frame node ID found." << std::endl;
+    }
 
+  for (int i = sIndex; i <= eIndex; i++)
+    {
+    const char* movingFrameNodeID = this->GetLogic()->GetFrameNodeID(i);
+    const char* outputFrameNodeID = this->GetLogic()->GetRegisteredFrameNodeID(i);
+    if (movingFrameNodeID && outputFrameNodeID)
+      {
+      vtkMRMLScalarVolumeNode* movingNode;
+      movingNode = 
+        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(fixedFrameNodeID));
+
+      vtkMRMLScalarVolumeNode* outputNode;
+      outputNode = 
+        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(outputFrameNodeID));
+
+      RunRegistration(fixedNode, movingNode, outputNode);
+      }
+    }
+
+  return 1;
+
+}
+  
+
+//---------------------------------------------------------------------------
+int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRMLScalarVolumeNode* movingNode, vtkMRMLScalarVolumeNode* outputNode)
+{
+  vtkCommandLineModuleGUI* cligui;
+
+  vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast (this->GetApplication());
+  cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Deformable BSpline registration"));
+
+  if (cligui)
+    {
+    std::cerr << "Found CommandLineModule !!!" << std::endl;
+    
+    cligui->Enter();
+    vtkMRMLCommandLineModuleNode* node = 
+      static_cast<vtkMRMLCommandLineModuleNode*>(this->GetMRMLScene()->CreateNodeByClass("vtkMRMLCommandLineModuleNode"));
+    if(!node)
+      {
+      std::cerr << "Cannot create Rigid registration node. Aborting." << std::endl;
+      assert(0);
+      }
+    this->GetMRMLScene()->AddNode(node);
+    node->SetModuleDescription("Deformable registration");
+
+    //if(outputNode)
+    //  {
+    //  this->GetMRMLScene()->RemoveNode(outputNode);
+    //  }
+    
+    // Create output transform node
+    vtkMRMLBSplineTransformNode *transformNode =
+      vtkMRMLBSplineTransformNode::New();
+    //assert(transformNode);
+    char name[128];
+    sprintf(name, "BSpline-%s", movingNode->GetName());
+    std::cerr << "Transform = " << name << std::endl;
+    transformNode->SetName(name);
+    this->GetMRMLScene()->AddNode(transformNode);
+    
+    //node->SetModuleDescription( this->ModuleDescriptionObject );
+
+    node->SetParameterAsInt("Iterations", 20);
+    node->SetParameterAsInt("gridSize", 5);  /* 3 - 20, step 1*/
+    node->SetParameterAsInt("HistogramBins", 100); /* 1 - 500, step 5*/
+    node->SetParameterAsInt("SpatialSamples", 5000); /* 1000 - 500000, step 1000*/
+    node->SetParameterAsBool("ConstrainDeformation", 0); 
+    node->SetParameterAsDouble("MaximumDeformation", 1.0);
+    node->SetParameterAsInt("DefaultPixelValue", 0); /* 1000 - 500000, step 1000*/
+    //node->SetParameterAsString("InitialTransform", NULL);
+    node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
+    node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
+    node->SetParameterAsString("OutputTransform", transformNode->GetID());
+    node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
+#if 0
+    node->SetParameterAsString("Iterations", "20");
+    node->SetParameterAsString("gridSize", "5");  /* 3 - 20, step 1*/
+    node->SetParameterAsString("HistogramBins", "100"); /* 1 - 500, step 5*/
+    node->SetParameterAsString("SpatialSamples", "5000"); /* 1000 - 500000, step 1000*/
+    node->SetParameterAsString("ConstrainDeformation", "0"); 
+    node->SetParameterAsString("MaximumDeformation", "1.0");
+    node->SetParameterAsString("DefaultPixelValue", "0"); /* 1000 - 500000, step 1000*/
+    //node->SetParameterAsString("InitialTransform", NULL);
+    node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
+    node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
+    node->SetParameterAsString("OutputTransform", transformNode->GetID());
+    node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
+#endif
+    transformNode->Delete();
+
+    cligui->SetCommandLineModuleNode(node);
+    cligui->GetLogic()->SetCommandLineModuleNode(node);
+
+    ModuleDescription moduleDesc = node->GetModuleDescription();
+    cligui->GetLogic()->SetTemporaryDirectory(app->GetTemporaryDirectory());
+    if(moduleDesc.GetTarget() == "Unknown")
+      {
+      // Entry point is unknown
+      // "Linear registration" is shared object module, at least at this moment
+        std::cerr << "Unknown " << std::endl;
+
+      assert(moduleDesc.GetType() == "SharedObjectModule");
+      typedef int (*ModuleEntryPoint)(int argc, char* argv[]);
+      itksys::DynamicLoader::LibraryHandle lib =
+        itksys::DynamicLoader::OpenLibrary(moduleDesc.GetLocation().c_str());
+      if(lib)
+        {
+        ModuleEntryPoint entryPoint = 
+          (ModuleEntryPoint) itksys::DynamicLoader::GetSymbolAddress(
+                                                                     lib, "ModuleEntryPoint");
+        if(entryPoint)
+          {
+          char entryPointAsText[256];
+          std::string entryPointAsString;
+          
+          sprintf(entryPointAsText, "%p", entryPoint);
+          entryPointAsString = std::string("slicer:")+entryPointAsText;
+          moduleDesc.SetTarget(entryPointAsString);
+          cligui->SetModuleDescription(moduleDesc);      
+          }
+        else 
+          {
+          std::cerr << "Failed to find entry point for Rigid registration. Abort." << std::endl;
+          abort();
+          }
+        }
+      else
+        {
+        std::cerr << "Failed to locate module library. Abort." << std::endl;
+        abort();
+        }
+      }
+
+    std::cerr << "Starting Registration.... " << std::endl;    
+    cligui->GetLogic()->ApplyAndWait(node);
+    std::cerr << "Starting Registration.... done." << std::endl;    
+    //this->SaveVolume(app, outputNode);
+    node->Delete(); // AF: is it right to delete this here?
+    //std::cerr << "Temp dir = " << ((vtkSlicerApplication*)this->GetApplication())->GetTemporaryDirectory() << std::endl;
+
+    return 1;
+    }
+  else
+    {
+    std::cerr << "Couldn't find CommandLineModule !!!" << std::endl;
+    return 0;
+    }
+
+}
