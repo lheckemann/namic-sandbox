@@ -51,7 +51,8 @@ vtkMRMLNode* vtkIGTLToMRMLLinearTransform::CreateNewNode(vtkMRMLScene* scene, co
   vtkMatrix4x4* transform = vtkMatrix4x4::New();
   transform->Identity();
   //transformNode->SetAndObserveImageData(transform);
-  transformNode->ApplyTransform(transform);
+  transformNode->ApplyTransform(transform
+  );
   transform->Delete();
 
   scene->AddNode(transformNode);  

@@ -12,8 +12,8 @@
 
 ==========================================================================*/
 
-#ifndef __vtkIGTLServerClientConnector_h
-#define __vtkIGTLServerClientConnector_h
+#ifndef __vtkIGTLClientTCPIPConnector_h
+#define __vtkIGTLClientTCPIPConnector_h
 
 #include <string>
 #include <map>
@@ -35,7 +35,7 @@ class vtkMatrix4x4;
 class vtkIGTLCircularBuffer;
 class vtkMRMLNode;
 
-class VTK_OPENIGTLINKIF_EXPORT vtkIGTLServerClientConnector : public vtkIGTLConnector
+class VTK_OPENIGTLINKIF_EXPORT vtkIGTLClientTCPIPConnector : public vtkIGTLConnector
 {
 
  public:  
@@ -44,7 +44,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLServerClientConnector : public vtkIGTLConn
   //----------------------------------------------------------------
  
   //BTX
-  static const int TYPE_SERVER = 1;
   static const int TYPE_CLIENT = 2;
   //ETX
   
@@ -52,13 +51,13 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLServerClientConnector : public vtkIGTLConn
   // VTK Functions and Macros
   //----------------------------------------------------------------
   
-  static vtkIGTLServerClientConnector* New();
-  vtkTypeRevisionMacro(vtkIGTLServerClientConnector,vtkIGTLConnector);
+  static vtkIGTLClientTCPIPConnector* New();
+  vtkTypeRevisionMacro(vtkIGTLClientTCPIPConnector,vtkIGTLConnector);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   vtkGetMacro( ServerPort, int );
   vtkSetMacro( ServerPort, int );
-
+  
   //BTX
   void SetServerHostname(const char* str) { this->ServerHostname = str; }
   void SetServerHostname(std::string str) { this->ServerHostname = str; }
@@ -69,7 +68,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLServerClientConnector : public vtkIGTLConn
   // Connector configuration
   //----------------------------------------------------------------
 
-  int SetTypeServer(int port);
   int SetTypeClient(char* hostname, int port);
   //BTX
   int SetTypeClient(std::string hostname, int port);
@@ -80,8 +78,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLServerClientConnector : public vtkIGTLConn
   //----------------------------------------------------------------
 
 protected:
-  vtkIGTLServerClientConnector();
-  ~vtkIGTLServerClientConnector();
+  vtkIGTLClientTCPIPConnector();
+  ~vtkIGTLClientTCPIPConnector();
 
   //----------------------------------------------------------------
   // OpenIGTLink Message handlers
@@ -113,4 +111,4 @@ protected:
 
 };
 
-#endif // __vtkIGTLServerClientConnector_h
+#endif // __vtkIGTLClientTCPIPConnector_h

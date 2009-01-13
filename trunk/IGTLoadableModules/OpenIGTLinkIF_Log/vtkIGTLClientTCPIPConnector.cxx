@@ -26,13 +26,13 @@
 #include "igtlMessageHeader.h"
 
 #include "vtkIGTLConnector.h"
-#include "vtkIGTLServerClientConnector.h"
+#include "vtkIGTLClientTCPIPConnector.h"
 
-vtkStandardNewMacro(vtkIGTLServerClientConnector);
-vtkCxxRevisionMacro(vtkIGTLServerClientConnector, "$Revision: 1.0 $");
+vtkStandardNewMacro(vtkIGTLClientTCPIPConnector);
+vtkCxxRevisionMacro(vtkIGTLClientTCPIPConnector, "$Revision: 1.0 $");
 
 //---------------------------------------------------------------------------
-vtkIGTLServerClientConnector::vtkIGTLServerClientConnector()
+vtkIGTLClientTCPIPConnector::vtkIGTLClientTCPIPConnector()
 {
   this->ServerHostname = "localhost";
   this->ServerPort = 18944;
@@ -40,7 +40,7 @@ vtkIGTLServerClientConnector::vtkIGTLServerClientConnector()
 }
 
 //---------------------------------------------------------------------------
-vtkIGTLServerClientConnector::~vtkIGTLServerClientConnector()
+vtkIGTLClientTCPIPConnector::~vtkIGTLClientTCPIPConnector()
 {
   if (this->Mutex)
     {
@@ -49,20 +49,12 @@ vtkIGTLServerClientConnector::~vtkIGTLServerClientConnector()
 }
 
 //---------------------------------------------------------------------------
-void vtkIGTLServerClientConnector::PrintSelf(ostream& os, vtkIndent indent)
+void vtkIGTLClientTCPIPConnector::PrintSelf(ostream& os, vtkIndent indent)
 {
 }
 
 //---------------------------------------------------------------------------
-int vtkIGTLServerClientConnector::SetTypeServer(int port)
-{
-  this->SetType(TYPE_SERVER);
-  this->ServerPort = port;
-  return 1;
-}
-
-//---------------------------------------------------------------------------
-int vtkIGTLServerClientConnector::SetTypeClient(char* hostname, int port)
+int vtkIGTLClientTCPIPConnector::SetTypeClient(char* hostname, int port)
 {
   this->SetType(TYPE_CLIENT);
   this->ServerPort = port;
@@ -71,7 +63,7 @@ int vtkIGTLServerClientConnector::SetTypeClient(char* hostname, int port)
 }
 
 //---------------------------------------------------------------------------
-int vtkIGTLServerClientConnector::SetTypeClient(std::string hostname, int port)
+int vtkIGTLClientTCPIPConnector::SetTypeClient(std::string hostname, int port)
 {
   this->SetType(TYPE_CLIENT);
   this->ServerPort = port;
@@ -80,16 +72,11 @@ int vtkIGTLServerClientConnector::SetTypeClient(std::string hostname, int port)
 }
 
 //---------------------------------------------------------------------------
-void* vtkIGTLServerClientConnector::StartThread()
+void* vtkIGTLClientTCPIPConnector::StartThread()
 {
   this->SetState(STATE_WAIT_CONNECTION);
-  if (this->GetType() == TYPE_SERVER)
-    {
-    this->ServerSocket = igtl::ServerSocket::New();
-    this->ServerSocket->CreateServer(this->ServerPort);
-    }
 
-  // Communication -- common to both Server and Client
+  // Communication
   while (!this->GetConnectorStopFlag())
     {
     //vtkErrorMacro("vtkOpenIGTLinkIFLogic::ThreadFunction(): alive.");
@@ -111,16 +98,16 @@ void* vtkIGTLServerClientConnector::StartThread()
     this->Socket->CloseSocket();
     }
 
-  if (this->GetType() == TYPE_SERVER && this->ServerSocket.IsNotNull())
-    {
-    this->ServerSocket->CloseSocket();
-    }
+//  if (this->GetType() == TYPE_SERVER && this->ServerSocket.IsNotNull())
+//    {
+//    this->ServerSocket->CloseSocket();
+//    }
 
   return NULL;
 }
 
 //---------------------------------------------------------------------------
-int vtkIGTLServerClientConnector::WaitForConnection()
+int vtkIGTLClientTCPIPConnector::WaitForConnection()
 {
   if (this->GetType() == TYPE_CLIENT)
     {
@@ -129,34 +116,21 @@ int vtkIGTLServerClientConnector::WaitForConnection()
 
   while (!this->GetConnectorStopFlag())
     {
-    if (this->GetType() == TYPE_SERVER)
+    //vtkErrorMacro("vtkIGTLConnector: Connecting to server...");
+    int r = this->Socket->ConnectToServer(this->ServerHostname.c_str(), this->ServerPort);
+    if (r == 0) // if connected to server
       {
-      //vtkErrorMacro("vtkIGTLConnector: Waiting for client @ port #" << this->ServerPort);
-      this->Socket = this->ServerSocket->WaitForConnection(1000);      
-      if (this->Socket.IsNotNull()) // if client connected
-        {
-        //vtkErrorMacro("vtkIGTLConnector: connected.");
-        return 1;
-        }
-      }
-    else if (this->GetType() == TYPE_CLIENT) // if this->Type == TYPE_CLIENT
-      {
-      //vtkErrorMacro("vtkIGTLConnector: Connecting to server...");
-      int r = this->Socket->ConnectToServer(this->ServerHostname.c_str(), this->ServerPort);
-      if (r == 0) // if connected to server
-        {
-        return 1;
-        }
-      else
-        {
-        break;
-        }
+      return 1;
       }
     else
       {
-      this->SetConnectorStopFlag(true);
+      break;
       }
     }
+//    else
+//      {
+//      this->SetConnectorStopFlag(true);
+//      }
 
   if (this->Socket.IsNotNull())
     {
@@ -168,7 +142,7 @@ int vtkIGTLServerClientConnector::WaitForConnection()
 }
 
 //---------------------------------------------------------------------------
-int vtkIGTLServerClientConnector::ReceiveData(void* data, int size, int readFully /*=1*/)
+int vtkIGTLClientTCPIPConnector::ReceiveData(void* data, int size, int readFully /*=1*/)
 {
 
   //Check socket and connection
@@ -190,7 +164,7 @@ int vtkIGTLServerClientConnector::ReceiveData(void* data, int size, int readFull
   
 
 //---------------------------------------------------------------------------
-int vtkIGTLServerClientConnector::SendData(int size, unsigned char* data)
+int vtkIGTLClientTCPIPConnector::SendData(int size, unsigned char* data)
 {
   
   if (this->Socket.IsNull())

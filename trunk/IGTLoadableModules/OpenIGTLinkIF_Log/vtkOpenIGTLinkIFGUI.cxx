@@ -72,7 +72,9 @@
 #include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkIGTLConnector.h"
-#include "vtkIGTLServerClientConnector.h"
+#include "vtkIGTLServerTCPIPConnector.h"
+#include "vtkIGTLClientTCPIPConnector.h"
+//#include "vtkIGTLServerClientConnector.h"
 #include "vtkIGTLFileConnector.h"
 
 #include <vector>
@@ -870,7 +872,8 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
     if (connector)
       {
-      if (connector->GetType() != vtkIGTLServerClientConnector::TYPE_SERVER)
+      //if (connector->GetType() != vtkIGTLServerClientConnector::TYPE_SERVER)
+      if (connector->GetType() != vtkIGTLServerTCPIPConnector::TYPE_SERVER)
         {
         this->GetLogic()->AddServerConnector(id);
         }
@@ -894,7 +897,8 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     vtkIGTLConnector* connector = this->GetLogic()->GetConnector(id);
     if (connector)
       {
-      if (connector->GetType() != vtkIGTLServerClientConnector::TYPE_CLIENT)
+      //if (connector->GetType() != vtkIGTLServerClientConnector::TYPE_CLIENT)
+      if (connector->GetType() != vtkIGTLClientTCPIPConnector::TYPE_CLIENT)
         {
         this->GetLogic()->AddClientConnector(id);
         }
@@ -995,8 +999,9 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       id = this->ConnectorIDList[selected];
       }
 
-    vtkIGTLServerClientConnector* connector = static_cast<vtkIGTLServerClientConnector*>
+    vtkIGTLClientTCPIPConnector* connector = static_cast<vtkIGTLClientTCPIPConnector*>
                                                         (this->GetLogic()->GetConnector(id));
+    
     if (connector)
       {
       connector->SetServerHostname(this->ConnectorAddressEntry->GetValue());
@@ -1014,11 +1019,22 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       id = this->ConnectorIDList[selected];
       }
 
-    vtkIGTLServerClientConnector* connector = static_cast<vtkIGTLServerClientConnector*>
-                                                         (this->GetLogic()->GetConnector(id));
-    if (connector)
+    vtkIGTLConnector* con = this->GetLogic()->GetConnector(id);
+    if (con->GetType() == vtkIGTLServerTCPIPConnector::TYPE_SERVER)
+     {
+      vtkIGTLServerTCPIPConnector* connector = static_cast<vtkIGTLServerTCPIPConnector*>(con);
+      if (connector)
+        {
+        connector->SetServerPort(this->ConnectorPortEntry->GetValueAsInt());
+        }
+      }
+      else if (con->GetType() == vtkIGTLClientTCPIPConnector::TYPE_CLIENT)
       {
-      connector->SetServerPort(this->ConnectorPortEntry->GetValueAsInt());
+      vtkIGTLClientTCPIPConnector* connector = static_cast<vtkIGTLClientTCPIPConnector*>(con);
+      if (connector)
+        {
+        connector->SetServerPort(this->ConnectorPortEntry->GetValueAsInt());
+        }
       }
     UpdateConnectorList(UPDATE_SELECTED_ONLY);
     }
@@ -2489,16 +2505,16 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
           
       // Server and port information
       std::ostringstream ss;
-      if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
+      if (connector->GetType() == vtkIGTLServerTCPIPConnector::TYPE_SERVER)
         {
         std::cerr << connector->GetType() << std::endl;
-        vtkIGTLServerClientConnector* svrConnector = dynamic_cast<vtkIGTLServerClientConnector*>(connector);
+        vtkIGTLServerTCPIPConnector* svrConnector = dynamic_cast<vtkIGTLServerTCPIPConnector*>(connector);
         ss << "--.--.--.--" << ":" << svrConnector->GetServerPort();
         }
-      else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
+      else if (connector->GetType() == vtkIGTLClientTCPIPConnector::TYPE_CLIENT)
         {
-        vtkIGTLServerClientConnector* svrConnector = static_cast<vtkIGTLServerClientConnector*>(connector);
-        ss << svrConnector->GetServerHostname() << ":" << svrConnector->GetServerPort();
+        vtkIGTLClientTCPIPConnector* clientConnector = static_cast<vtkIGTLClientTCPIPConnector*>(connector);
+        ss << clientConnector->GetServerHostname() << ":" << clientConnector->GetServerPort();
         }
       else
         {
@@ -2624,13 +2640,13 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
   this->ConnectorNameEntry->UpdateEnableState();
   
   // Connection Type (server, client or file)
-  if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
+  if (connector->GetType() == vtkIGTLServerTCPIPConnector::TYPE_SERVER)
     {
     this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOn();
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOff();
     this->ConnectorTypeButtonSet->GetWidget(2)->SelectedStateOff();
     }
-  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
+  else if (connector->GetType() == vtkIGTLClientTCPIPConnector::TYPE_CLIENT)
     {
     this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOff();
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOn();
@@ -2687,11 +2703,11 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     {
     this->ConnectorLogCheckButton->EnabledOff();
     }
-  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
+  else if (connector->GetType() == vtkIGTLClientTCPIPConnector::TYPE_CLIENT)
     {
     this->ConnectorLogCheckButton->EnabledOn();
     }
-  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
+  else if (connector->GetType() == vtkIGTLServerTCPIPConnector::TYPE_SERVER)
     {
     this->ConnectorLogCheckButton->EnabledOn();
     }
@@ -2703,15 +2719,15 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
   this->ConnectorLogCheckButton->UpdateEnableState();
   
   // Connection Server Address entry
-  if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
+  if (connector->GetType() == vtkIGTLServerTCPIPConnector::TYPE_SERVER)
     {
     this->ConnectorAddressEntry->SetValue("--.--.--.--");
     this->ConnectorAddressEntry->EnabledOff();
     }
-  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
+  else if (connector->GetType() == vtkIGTLClientTCPIPConnector::TYPE_CLIENT)
     {
-    vtkIGTLServerClientConnector* svrConnector = static_cast<vtkIGTLServerClientConnector*>(connector);
-    this->ConnectorAddressEntry->SetValue(svrConnector->GetServerHostname());
+    vtkIGTLClientTCPIPConnector* clientConnector = static_cast<vtkIGTLClientTCPIPConnector*>(connector);
+    this->ConnectorAddressEntry->SetValue(clientConnector->GetServerHostname());
     if (activeFlag)
       {
       this->ConnectorAddressEntry->EnabledOff();
@@ -2729,11 +2745,23 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
   this->ConnectorAddressEntry->UpdateEnableState();
   
   // Connection Port entry
-  if ((connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER) 
-       | (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT))
+  if (connector->GetType() == vtkIGTLServerTCPIPConnector::TYPE_SERVER) 
     {
-    vtkIGTLServerClientConnector* svrConnector = static_cast<vtkIGTLServerClientConnector*>(connector);
+    vtkIGTLServerTCPIPConnector* svrConnector = static_cast<vtkIGTLServerTCPIPConnector*>(connector);
     this->ConnectorPortEntry->SetValueAsInt(svrConnector->GetServerPort());
+    if (activeFlag)
+      {
+      this->ConnectorPortEntry->EnabledOff();
+      }
+    else
+      {
+      this->ConnectorPortEntry->EnabledOn();
+      }
+    }
+  else if (connector->GetType() == vtkIGTLClientTCPIPConnector::TYPE_CLIENT)
+    {
+    vtkIGTLClientTCPIPConnector* clientConnector = static_cast<vtkIGTLClientTCPIPConnector*>(connector);
+    this->ConnectorPortEntry->SetValueAsInt(clientConnector->GetServerPort());
     if (activeFlag)
       {
       this->ConnectorPortEntry->EnabledOff();
@@ -2750,11 +2778,11 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
   this->ConnectorPortEntry->UpdateEnableState();  
   
   // File Location 
-  if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER)
+  if (connector->GetType() == vtkIGTLServerTCPIPConnector::TYPE_SERVER)
     {
     this->FileLocationButton->EnabledOff();
     }
-  else if (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT)
+  else if (connector->GetType() == vtkIGTLClientTCPIPConnector::TYPE_CLIENT)
     {
     this->FileLocationButton->EnabledOff();
     }
@@ -2777,8 +2805,8 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
   this->FileLocationButton->UpdateEnableState();
 
   // File Play Speed (1x, 2x or 4x)
-  if ((connector->GetType() == vtkIGTLServerClientConnector::TYPE_SERVER) | 
-     (connector->GetType() == vtkIGTLServerClientConnector::TYPE_CLIENT))
+  if ((connector->GetType() == vtkIGTLServerTCPIPConnector::TYPE_SERVER) | 
+     (connector->GetType() == vtkIGTLClientTCPIPConnector::TYPE_CLIENT))
     {
     this->FilePlaySpeedButtonSet->EnabledOff();
     }

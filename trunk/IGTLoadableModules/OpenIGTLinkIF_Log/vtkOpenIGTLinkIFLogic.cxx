@@ -34,13 +34,10 @@
 #include "vtkMultiThreader.h"
 
 #include "vtkIGTLConnector.h"
-#include "vtkIGTLServerClientConnector.h"
+#include "vtkIGTLServerTCPIPConnector.h"
+#include "vtkIGTLClientTCPIPConnector.h"
 #include "vtkIGTLFileConnector.h"
 #include "vtkIGTLCircularBuffer.h"
-
-//#include "igtl_header.h"
-//#include "igtl_image.h"
-//#include "igtl_transform.h"
 
 vtkCxxRevisionMacro(vtkOpenIGTLinkIFLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkOpenIGTLinkIFLogic);
@@ -262,12 +259,12 @@ void vtkOpenIGTLinkIFLogic::AddConnector(const char* name)
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::AddServerConnector(const char* name, int port)
 {
-  vtkIGTLServerClientConnector* connector = vtkIGTLServerClientConnector::New();
+  vtkIGTLServerTCPIPConnector* connector = vtkIGTLServerTCPIPConnector::New();
   this->LastConnectorID ++;
   int newID = this->LastConnectorID;
 
   connector->SetName(name);
-  connector->SetType(vtkIGTLServerClientConnector::TYPE_SERVER);
+  connector->SetType(vtkIGTLServerTCPIPConnector::TYPE_SERVER);
   connector->SetServerPort(port);
   
   //this->ConnectorMap.push_back(connector);
@@ -280,13 +277,13 @@ void vtkOpenIGTLinkIFLogic::AddServerConnector(const char* name, int port)
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::AddServerConnector(int id)
 {
-  vtkIGTLServerClientConnector* connector = vtkIGTLServerClientConnector::New();
+  vtkIGTLServerTCPIPConnector* connector = vtkIGTLServerTCPIPConnector::New();
   
   //Get name from previous connector
   connector->SetName(this->ConnectorMap[id]->GetName());
 
   //Set values for new server connector
-  connector->SetType(vtkIGTLServerClientConnector::TYPE_SERVER);
+  connector->SetType(vtkIGTLServerTCPIPConnector::TYPE_SERVER);
   
   //Get devicelists from previous connector
   *(connector->GetDeviceInfoList()) = *(this->ConnectorMap[id]->GetDeviceInfoList());
@@ -307,12 +304,12 @@ void vtkOpenIGTLinkIFLogic::AddServerConnector(int id)
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::AddClientConnector(const char* name, const char* svrHostName, int port)
 {
-  vtkIGTLServerClientConnector* connector = vtkIGTLServerClientConnector::New();
+  vtkIGTLClientTCPIPConnector* connector = vtkIGTLClientTCPIPConnector::New();
   this->LastConnectorID ++;
   int newID = this->LastConnectorID;
 
   connector->SetName(name);
-  connector->SetType(vtkIGTLServerClientConnector::TYPE_CLIENT);
+  connector->SetType(vtkIGTLClientTCPIPConnector::TYPE_CLIENT);
   connector->SetServerPort(port);
   connector->SetServerHostname(svrHostName);
   
@@ -327,10 +324,10 @@ void vtkOpenIGTLinkIFLogic::AddClientConnector(const char* name, const char* svr
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::AddClientConnector(int id)
 {
-  vtkIGTLServerClientConnector* connector = vtkIGTLServerClientConnector::New();
+  vtkIGTLClientTCPIPConnector* connector = vtkIGTLClientTCPIPConnector::New();
 
   connector->SetName(this->ConnectorMap[id]->GetName());
-  connector->SetType(vtkIGTLServerClientConnector::TYPE_CLIENT);
+  connector->SetType(vtkIGTLClientTCPIPConnector::TYPE_CLIENT);
   
   //Get devicelists from previous connector
   *(connector->GetDeviceInfoList()) = *(this->ConnectorMap[id]->GetDeviceInfoList());
