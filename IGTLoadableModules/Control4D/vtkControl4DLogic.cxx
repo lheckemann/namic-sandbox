@@ -52,8 +52,6 @@ vtkControl4DLogic::vtkControl4DLogic()
   this->DataCallbackCommand->SetCallback(vtkControl4DLogic::DataCallback);
 
   this->FrameNodeVector.clear();
-  this->CurrentFrameFG = NULL;
-  this->CurrentFrameBG = NULL;
 
   this->IntensityCurveCache.clear();
 }
@@ -310,12 +308,84 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
 
 
 //---------------------------------------------------------------------------
-const char* vtkControl4DLogic::SwitchNodeFG(int index)
+int vtkControl4DLogic::CreateRegisteredVolumeNodes()
+{
+  int nVolumes = this->FrameNodeVector.size();
+
+  if (this->RegisteredFrameNodeVector.size() != nVolumes)
+    {
+    if (this->RegisteredFrameNodeVector.size() != 0)
+      {
+      this->RegisteredFrameNodeVector.clear();
+      }
+
+    vtkMRMLScene* scene = this->GetMRMLScene();
+    for (int i = 0; i < nVolumes; i ++)
+      {
+      vtkMRMLVolumeNode *volumeNode = NULL;
+      vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
+      vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
+      //vtkMRMLVolumeArchetypeStorageNode*storageNode = vtkMRMLVolumeArchetypeStorageNode::New();
+      char nodeName[128];
+      //std::cerr << "filename = " << fileNamesContainerList[i][0].c_str() << std::endl;
+      //ReaderType::FileNamesContainer::iterator fnciter;
+      //storageNode->SetFileName(fileNamesContainerList[i][0].c_str());
+      //storageNode->ResetFileNameList();
+      //for (fnciter = fileNamesContainerList[i].begin(); fnciter != fileNamesContainerList[i].end(); fnciter ++)
+      //  {
+      //  storageNode->AddFileName(fnciter->c_str());
+      //  }
+      //storageNode->SetSingleFile(0);
+      ////storageNode->AddObserver(vtkCommand::ProgressEvent,  this->LogicCallbackCommand);
+      //storageNode->ReadData(scalarNode);
+      
+      volumeNode = scalarNode;
+      sprintf(nodeName, "RegVol_%03d", i);
+      volumeNode->SetName(nodeName);
+      volumeNode->SetScene(scene);
+      //storageNode->SetScene(scene);
+      displayNode->SetScene(scene);
+      
+      //double range[2];
+      //volumeNode->GetImageData()->GetScalarRange(range);
+      //range[0] = 0.0;
+      //range[1] = 256.0;
+      //displayNode->SetLowerThreshold(range[0]);
+      //displayNode->SetUpperThreshold(range[1]);
+      //displayNode->SetWindow(range[1] - range[0]);
+      //displayNode->SetLevel(0.5 * (range[1] - range[0]) );
+      vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
+      displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
+      
+      //scene->AddNode(storageNode);  
+      scene->AddNode(displayNode);  
+      //volumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
+      volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+      scene->AddNode(volumeNode);  
+      this->RegisteredFrameNodeVector.push_back(std::string(volumeNode->GetID()));
+      
+      scalarNode->Delete();
+      //storageNode->Delete();
+      colorLogic->Delete();
+      displayNode->Delete();
+      }
+    }
+  
+}
+
+
+//---------------------------------------------------------------------------
+int vtkControl4DLogic::GetNumberOfFrames()
+{
+  return this->FrameNodeVector.size();
+}
+
+//---------------------------------------------------------------------------
+const char* vtkControl4DLogic::GetFrameNodeID(int index)
 {
   if (index >= 0 && index < (int)this->FrameNodeVector.size())
     {
-    this->CurrentFrameFG = this->FrameNodeVector[index].c_str();
-    return this->CurrentFrameFG;
+    return this->FrameNodeVector[index].c_str();
     }
   else
     {
@@ -323,14 +393,12 @@ const char* vtkControl4DLogic::SwitchNodeFG(int index)
     }
 }
 
-
 //---------------------------------------------------------------------------
-const char* vtkControl4DLogic::SwitchNodeBG(int index)
+const char* vtkControl4DLogic::GetRegisteredFrameNodeID(int index)
 {
   if (index >= 0 && index < (int)this->FrameNodeVector.size())
     {
-    this->CurrentFrameBG = this->FrameNodeVector[index].c_str();
-    return this->CurrentFrameBG;
+    return this->FrameNodeVector[index].c_str();
     }
   else
     {
@@ -553,3 +621,4 @@ int vtkControl4DLogic::SaveIntensityCurve(const char* maskID, int label, const c
   return 1;
 
 }
+

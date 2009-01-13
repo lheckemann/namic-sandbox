@@ -76,9 +76,11 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   // specified by 'path' argument.
   // Returns number of volumes in the series.
   int LoadImagesFromDir(const char* path);
+  int CreateRegisteredVolumeNodes();
 
-  const char* SwitchNodeFG(int index);
-  const char* SwitchNodeBG(int index);
+  int         GetNumberOfFrames();
+  const char* GetFrameNodeID(int index);
+  const char* GetRegisteredFrameNodeID(int index);
 
   void  ClearIntensityCurveCache(const char* maskID);
   vtkDoubleArray* GetIntensityCurve(const char* maskID, int label, int type);
@@ -111,6 +113,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
 
   //BTX
   FrameNodeVectorType FrameNodeVector;
+  FrameNodeVectorType RegisteredFrameNodeVector;
   IndexTableType MaskIndexTable;
   IntensityCurveCacheType IntensityCurveCache;
   IntensityCurveCacheType IntensitySDCurveCache;
@@ -118,7 +121,6 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
 
   const char* CurrentFrameFG;
   const char* CurrentFrameBG;
-
   
 };
 

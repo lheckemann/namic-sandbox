@@ -111,6 +111,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   void BuildGUIForLoadFrame();
   void BuildGUIForFrameControlFrame();
   void BuildGUIForFunctionViewer();
+  void BuildGUIForRegistrationFrame();
 
   //----------------------------------------------------------------
   // Update routines
@@ -127,6 +128,8 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   void UpdateMaskSelectMenu();
   void SelectMask(const char* nodeID, int label);
   void UpdateFunctionEditor(vtkDoubleArray* data);
+  int  RunSeriesRegistration(int sIndex, int eIndex, int kIndex);
+  int  RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRMLScalarVolumeNode* movingNode, vtkMRMLScalarVolumeNode* outputNode);
 
  protected:
   
@@ -157,6 +160,10 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkKWRadioButtonSet* PlotTypeButtonSet;
   vtkKWPiecewiseFunctionEditor* FunctionEditor;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
+
+  vtkKWSpinBox*    RegistrationStartIndexSpinBox;
+  vtkKWSpinBox*    RegistrationEndIndexSpinBox;
+  vtkKWPushButton* StartRegistrationButton;
 
   //----------------------------------------------------------------
   // Logic Values
