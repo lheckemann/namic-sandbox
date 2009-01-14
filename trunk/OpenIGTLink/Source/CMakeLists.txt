@@ -1,4 +1,7 @@
-IF(OpenIGTLink_PLATFORM_WIN32) # for Windows System
+
+# list of libraries
+# Note: this part should be moved to OpenIGTLinkConfigPlatform.cmake
+IF(OpenIGTLink_PLATFORM_WIN32) # for Windows
   SET(LINK_LIBS
     ws2_32
     wsock32
@@ -18,10 +21,7 @@ ELSE(OpenIGTLink_PLATFORM_WIN32) # for POSIX-compatible OSs
   IF(OpenIGTLink_PLATFORM_SUNOS)
     SET(LINK_LIBS
       ${LINK_LIBS}
-      rt
-      nsl
-      socket
-      stdc++
+      ${OpenIGTLink_STD_LINK_LIBRARIES}
     )
   ENDIF(OpenIGTLink_PLATFORM_SUNOS)
 ENDIF(OpenIGTLink_PLATFORM_WIN32)
