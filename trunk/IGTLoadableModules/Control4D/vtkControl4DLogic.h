@@ -75,7 +75,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   // Loads series of volumes from the directory that contains the file
   // specified by 'path' argument.
   // Returns number of volumes in the series.
-  int LoadImagesFromDir(const char* path);
+  int LoadImagesFromDir(const char* path, double& rangeLower, double& rangeUpper);
   int CreateRegisteredVolumeNodes();
 
   int         GetNumberOfFrames();

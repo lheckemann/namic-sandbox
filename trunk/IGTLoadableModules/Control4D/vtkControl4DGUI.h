@@ -36,6 +36,8 @@ class vtkKWCanvas;
 class vtkKWProgressDialog;
 class vtkKWRadioButtonSet;
 class vtkKWRadioButton;
+class vtkKWRange;
+
 
 class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 {
@@ -125,6 +127,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 
   void SetForeground(int index);
   void SetBackground(int index);
+  void SetWindowLevelForCurrentFrame();
   void UpdateMaskSelectMenu();
   void SelectMask(const char* nodeID, int label);
   void UpdateFunctionEditor(vtkDoubleArray* data);
@@ -148,6 +151,9 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 
   vtkKWLoadSaveButtonWithLabel* SelectImageButton;
   vtkKWPushButton* LoadImageButton;
+  
+  vtkKWRange *WindowLevelRange;
+  vtkKWRange *ThresholdRange;
 
   vtkKWScaleWithEntry* ForegroundVolumeSelectorScale;
   vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
@@ -173,10 +179,20 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;
 
+  double  RangeLower;
+  double  RangeUpper;
+
+  double  Window;
+  double  Level;
+  double  ThresholdUpper;
+  double  ThresholdLower;
+
   //BTX
+  typedef std::vector<int> WindowLevelUpdateStatusType;
   typedef std::vector<std::string> NodeIDListType;
   //ETX
-
+  
+  WindowLevelUpdateStatusType WindowLevelUpdateStatus;
   NodeIDListType MaskNodeIDList;
 
 };
