@@ -43,6 +43,7 @@
 #include "vtkKWMenuButton.h"
 #include "vtkKWSpinBox.h"
 #include "vtkKWCanvas.h"
+#include "vtkKWRange.h"
 
 #include "vtkKWProgressDialog.h"
 
@@ -147,6 +148,17 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
     this->BackgroundVolumeSelectorScale->SetParent(NULL);
     this->BackgroundVolumeSelectorScale->Delete();
     }
+  if (this->WindowLevelRange)
+    {
+    this->WindowLevelRange->SetParent(NULL);
+    this->WindowLevelRange->Delete();
+    }
+  if (this->ThresholdRange)
+    {
+    this->ThresholdRange->SetParent(NULL);
+    this->ThresholdRange->Delete();
+    }
+
   if (this->MaskSelectMenu)
     {
     this->MaskSelectMenu->SetParent(NULL);
@@ -260,6 +272,16 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
     this->BackgroundVolumeSelectorScale
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->WindowLevelRange)
+    {
+    this->WindowLevelRange
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ThresholdRange)
+    {
+    this->ThresholdRange
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   if (this->MaskSelectMenu)
     {
@@ -350,6 +372,17 @@ void vtkControl4DGUI::AddGUIObservers ( )
     this->BackgroundVolumeSelectorScale
       ->AddObserver(vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/, (vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->WindowLevelRange)
+    {
+    this->WindowLevelRange
+      ->AddObserver(vtkKWRange::RangeValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ThresholdRange)
+    {
+    this->ThresholdRange
+      ->AddObserver(vtkKWRange::RangeValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->MaskSelectMenu)
     {
     this->MaskSelectMenu->GetMenu()
@@ -448,7 +481,13 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     {
     const char* path = this->SelectImageButton->GetWidget()->GetFileName();
     this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
-    int n = this->GetLogic()->LoadImagesFromDir(path);
+    int n = this->GetLogic()->LoadImagesFromDir(path, this->RangeLower, this->RangeUpper);
+    this->RegistrationEndIndexSpinBox->SetRange(0, n);
+    this->WindowLevelUpdateStatus.resize(n);
+    this->Window = 1.0;
+    this->Level  = 0.5;
+    this->ThresholdUpper = 0.0;
+    this->ThresholdLower = 1.0;
     this->GetLogic()->RemoveObservers(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     // Adjust range of the scale
     this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n);
@@ -467,6 +506,24 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     {
     int value = (int)this->BackgroundVolumeSelectorScale->GetValue();
     SetBackground(value);
+    }
+  else if (this->WindowLevelRange == vtkKWRange::SafeDownCast(caller)
+      && event == vtkKWRange::RangeValueChangingEvent)
+    {
+    double wllow, wlhigh;
+    this->WindowLevelRange->GetRange(wllow, wlhigh);
+    this->Window = wlhigh - wllow;
+    this->Level  = (wlhigh + wllow) / 2.0;
+    SetWindowLevelForCurrentFrame();
+    }
+  else if (this->ThresholdRange == vtkKWRange::SafeDownCast(caller)
+      && event == vtkKWRange::RangeValueChangingEvent)
+    {
+    double thlow, thhigh;
+    this->ThresholdRange->GetRange(thlow, thhigh);
+    this->ThresholdUpper  = thhigh; 
+    this->ThresholdLower  = thlow; 
+    SetWindowLevelForCurrentFrame();
     }
   else if (this->MaskSelectMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
@@ -563,6 +620,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     {
     int sid = (int)this->RegistrationStartIndexSpinBox->GetValue();
     int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
+    std::cerr << "number of frames = " << this->GetLogic()->GetNumberOfFrames() << std::endl;
     if (eid >= this->GetLogic()->GetNumberOfFrames())
       {
       this->RegistrationEndIndexSpinBox->SetValue(this->GetLogic()->GetNumberOfFrames()-1);
@@ -736,7 +794,6 @@ void vtkControl4DGUI::BuildGUIForLoadFrame ()
 
   // -----------------------------------------
   // Select File Frame
-
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
   frame->Create();
@@ -819,6 +876,68 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
   this->Script("pack %s %s -side top -fill x -padx 2 -pady 2", 
                this->ForegroundVolumeSelectorScale->GetWidgetName(),
                this->BackgroundVolumeSelectorScale->GetWidgetName());
+
+
+
+  // -----------------------------------------
+  // Contrast control
+
+  vtkKWFrameWithLabel *cframe = vtkKWFrameWithLabel::New();
+  cframe->SetParent(conBrowsFrame->GetFrame());
+  cframe->Create();
+  cframe->SetLabelText ("Contrast");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 cframe->GetWidgetName() );
+
+  vtkKWFrame *lwframe = vtkKWFrame::New();
+  lwframe->SetParent(cframe->GetFrame());
+  lwframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 lwframe->GetWidgetName() );
+
+  vtkKWLabel *lwLabel = vtkKWLabel::New();
+  lwLabel->SetParent(lwframe);
+  lwLabel->Create();
+  lwLabel->SetText("Window/Level: ");
+
+  this->WindowLevelRange = vtkKWRange::New();
+  this->WindowLevelRange->SetParent(lwframe);
+  this->WindowLevelRange->Create();
+  this->WindowLevelRange->SymmetricalInteractionOn();
+  this->WindowLevelRange->EntriesVisibilityOff ();  
+  this->WindowLevelRange->SetWholeRange(0.0, 1.0);
+  /*
+  this->WindowLevelRange->SetCommand(this, "ProcessWindowLevelCommand");
+  this->WindowLevelRange->SetStartCommand(this, "ProcessWindowLevelStartCommand");
+  */
+  this->Script("pack %s %s -side left -anchor nw -expand yes -fill x -padx 2 -pady 2",
+               lwLabel->GetWidgetName(),
+               this->WindowLevelRange->GetWidgetName());
+
+  vtkKWFrame *thframe = vtkKWFrame::New();
+  thframe->SetParent(cframe->GetFrame());
+  thframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 thframe->GetWidgetName() );
+
+  vtkKWLabel *thLabel = vtkKWLabel::New();
+  thLabel->SetParent(thframe);
+  thLabel->Create();
+  thLabel->SetText("Threashold:   ");
+
+  this->ThresholdRange = vtkKWRange::New();
+  this->ThresholdRange->SetParent(thframe);
+  this->ThresholdRange->Create();
+  this->ThresholdRange->SymmetricalInteractionOff();
+  this->ThresholdRange->EntriesVisibilityOff ();
+  this->ThresholdRange->SetWholeRange(0.0, 1.0);
+  /*
+  this->ThresholdRange->SetCommand(this, "ProcessThresholdCommand");
+  this->ThresholdRange->SetStartCommand(this, "ProcessThresholdStartCommand");
+  */
+  this->Script("pack %s %s -side left -anchor w -expand y -fill x -padx 2 -pady 2", 
+               thLabel->GetWidgetName(),
+               this->ThresholdRange->GetWidgetName());
 
 
   // -----------------------------------------
@@ -997,7 +1116,7 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
   vtkKWFrameWithLabel *pframe = vtkKWFrameWithLabel::New();
   pframe->SetParent(conBrowsFrame->GetFrame());
   pframe->Create();
-  pframe->SetLabelText ("Mask Selector");
+  pframe->SetLabelText ("Frames");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  pframe->GetWidgetName() );
 
@@ -1024,7 +1143,7 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
   this->StartRegistrationButton = vtkKWPushButton::New();
   this->StartRegistrationButton->SetParent(pframe->GetFrame());
   this->StartRegistrationButton->Create();
-  this->StartRegistrationButton->SetText ("Plot");
+  this->StartRegistrationButton->SetText ("Run");
   this->StartRegistrationButton->SetWidth (4);
 
   this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
@@ -1056,8 +1175,8 @@ void vtkControl4DGUI::SetForeground(int index)
 
   if (volNode)
     {
-    std::cerr << "node id = " << nodeID << std::endl;
-    nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass ( "vtkMRMLSliceCompositeNode");          
+    //std::cerr << "node id = " << nodeID << std::endl;
+    nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass ( "vtkMRMLSliceCompositeNode");
     for ( i=0; i<nnodes; i++)
       {
       cnode = vtkMRMLSliceCompositeNode::SafeDownCast (
@@ -1067,6 +1186,7 @@ void vtkControl4DGUI::SetForeground(int index)
         cnode->SetForegroundVolumeID( nodeID );
         }
       }
+    SetWindowLevelForCurrentFrame();
     }
 }
 
@@ -1084,7 +1204,7 @@ void vtkControl4DGUI::SetBackground(int index)
 
   if (volNode)
     {
-    std::cerr << "node id = " << nodeID << std::endl;
+    //std::cerr << "node id = " << nodeID << std::endl;
     nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass ( "vtkMRMLSliceCompositeNode");          
     for ( i=0; i<nnodes; i++)
       {
@@ -1093,6 +1213,83 @@ void vtkControl4DGUI::SetBackground(int index)
       if ( cnode != NULL)
         {
         cnode->SetBackgroundVolumeID( nodeID );
+        }
+      }
+    SetWindowLevelForCurrentFrame();
+    }
+}
+
+
+//----------------------------------------------------------------------------
+void vtkControl4DGUI::SetWindowLevelForCurrentFrame()
+{
+
+  vtkMRMLSliceCompositeNode *cnode = 
+    vtkMRMLSliceCompositeNode::SafeDownCast (this->GetMRMLScene()->GetNthNodeByClass (0, "vtkMRMLSliceCompositeNode"));
+  if (cnode != NULL)
+    {
+    const char* fgNodeID = cnode->GetForegroundVolumeID();
+    const char* bgNodeID = cnode->GetBackgroundVolumeID();
+    if (fgNodeID)
+      {
+      vtkMRMLVolumeNode* fgNode =
+        vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(fgNodeID));
+      vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(fgNode->GetDisplayNode());
+      if (displayNode)
+        {
+        //double r[2];
+        //fgNode->GetImageData()->GetScalarRange(r);
+        double lower = this->RangeLower;
+        double upper = this->RangeUpper;
+        double range = upper - lower;
+        double thLower = lower + range * this->ThresholdLower;
+        double thUpper = lower + range * this->ThresholdUpper;
+        double window  = range * this->Window;
+        double level   = lower + range * this->Level;
+        displayNode->SetAutoWindowLevel(0);
+        displayNode->SetAutoThreshold(0);
+        double cThLower = displayNode->GetLowerThreshold();
+        double cThUpper = displayNode->GetUpperThreshold();
+        double cWindow  = displayNode->GetWindow();
+        double cLevel   = displayNode->GetLevel();
+
+        int m = 0;
+        if (cThLower!=thLower) { displayNode->SetLowerThreshold(thLower); m = 1;}
+        if (cThUpper!=thUpper) { displayNode->SetUpperThreshold(thUpper); m = 1;}
+        if (cWindow!=window)   { displayNode->SetWindow(window); m = 1;}
+        if (cLevel!=level)     { displayNode->SetLevel(level); m = 1;}
+        if (m) { displayNode->UpdateImageDataPipeline(); }
+        }
+      }
+    if (bgNodeID && strcmp(fgNodeID, bgNodeID) != 0)
+      {
+      vtkMRMLVolumeNode* bgNode =
+        vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bgNodeID));
+      vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(bgNode->GetDisplayNode());
+      if (displayNode)
+        {
+        //double r[2];
+        //bgNode->GetImageData()->GetScalarRange(r);
+        double lower = this->RangeLower;
+        double upper = this->RangeUpper;
+        double range = upper - lower;
+        double thLower = lower + range * this->ThresholdLower;
+        double thUpper = lower + range * this->ThresholdUpper;
+        double window  = range * this->Window;
+        double level   = lower + range * this->Level;
+        displayNode->SetAutoWindowLevel(0);
+        displayNode->SetAutoThreshold(0);
+        double cThLower = displayNode->GetLowerThreshold();
+        double cThUpper = displayNode->GetUpperThreshold();
+        double cWindow  = displayNode->GetWindow();
+        double cLevel   = displayNode->GetLevel();
+
+        int m = 0;
+        if (cThLower!=thLower) { displayNode->SetLowerThreshold(thLower); m = 1;}
+        if (cThUpper!=thUpper) { displayNode->SetUpperThreshold(thUpper); m = 1;}
+        if (cWindow!=window)   { displayNode->SetWindow(window); m = 1;}
+        if (cLevel!=level)     { displayNode->SetLevel(level); m = 1;}
+        if (m) { displayNode->UpdateImageDataPipeline(); }
         }
       }
     }
@@ -1292,7 +1489,6 @@ int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRML
     if(!node)
       {
       std::cerr << "Cannot create Rigid registration node. Aborting." << std::endl;
-      assert(0);
       }
     this->GetMRMLScene()->AddNode(node);
     node->SetModuleDescription("Deformable registration");
@@ -1353,7 +1549,7 @@ int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRML
       // "Linear registration" is shared object module, at least at this moment
         std::cerr << "Unknown " << std::endl;
 
-      assert(moduleDesc.GetType() == "SharedObjectModule");
+        //assert(moduleDesc.GetType() == "SharedObjectModule");
       typedef int (*ModuleEntryPoint)(int argc, char* argv[]);
       itksys::DynamicLoader::LibraryHandle lib =
         itksys::DynamicLoader::OpenLibrary(moduleDesc.GetLocation().c_str());

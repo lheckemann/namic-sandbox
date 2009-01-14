@@ -105,7 +105,7 @@ void vtkControl4DLogic::UpdateAll()
 
 
 //---------------------------------------------------------------------------
-int vtkControl4DLogic::LoadImagesFromDir(const char* path)
+int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, double& rangeUpper)
 {
   std::cerr << "loading from " << path << std::endl;
 
@@ -239,6 +239,9 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
   statusMessage.message = "Reading Volumes....";
   this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
 
+  rangeLower = 0.0;
+  rangeUpper = 0.0;
+
   for (int i = 0; i < nVolumes; i ++)
     {
     statusMessage.progress = (double)i / (double)nVolumes;
@@ -246,8 +249,9 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
 
     vtkMRMLVolumeNode *volumeNode = NULL;
     vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
-    vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
     vtkMRMLVolumeArchetypeStorageNode*storageNode = vtkMRMLVolumeArchetypeStorageNode::New();
+    vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
+
     //storageNode->SetFileName(filename);
     char nodeName[128];
     std::cerr << "filename = " << fileNamesContainerList[i][0].c_str() << std::endl;
@@ -272,17 +276,24 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
 
     double range[2];
     volumeNode->GetImageData()->GetScalarRange(range);
-    range[0] = 0.0;
-    range[1] = 256.0;
+    /*
+      range[0] = 0.0;
+      range[1] = 256.0;
+    */
+    if (range[0] < rangeLower) rangeLower = range[0];
+    if (range[1] > rangeUpper) rangeUpper = range[1];
+    displayNode->SetAutoWindowLevel(0);
+    displayNode->SetAutoThreshold(0);
     displayNode->SetLowerThreshold(range[0]);
     displayNode->SetUpperThreshold(range[1]);
     displayNode->SetWindow(range[1] - range[0]);
     displayNode->SetLevel(0.5 * (range[1] - range[0]) );
     vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
     displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
+    colorLogic->Delete();
 
-    scene->AddNode(storageNode);  
     scene->AddNode(displayNode);  
+    scene->AddNode(storageNode);  
     volumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
     volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
     scene->AddNode(volumeNode);  
@@ -290,9 +301,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path)
 
     scalarNode->Delete();
     storageNode->Delete();
-    colorLogic->Delete();
     displayNode->Delete();
-
     }
 
   statusMessage.show = 0;
