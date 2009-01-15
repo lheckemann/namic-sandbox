@@ -83,6 +83,8 @@ target_link_libraries(${lib_name}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
   CommandLineModule
+  ${ITK_LIBRARIES}
+  ${CLP_MODULE}
   )
 
 install(TARGETS ${lib_name}

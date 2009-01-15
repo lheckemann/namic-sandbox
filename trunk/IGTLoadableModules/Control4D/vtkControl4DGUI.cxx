@@ -1456,7 +1456,7 @@ int vtkControl4DGUI::RunSeriesRegistration(int sIndex, int eIndex, int kIndex)
       {
       vtkMRMLScalarVolumeNode* movingNode;
       movingNode = 
-        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(fixedFrameNodeID));
+        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(movingFrameNodeID));
 
       vtkMRMLScalarVolumeNode* outputNode;
       outputNode = 
@@ -1478,6 +1478,7 @@ int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRML
 
   vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast (this->GetApplication());
   cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Deformable BSpline registration"));
+  //cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Linear registration"));
 
   if (cligui)
     {
@@ -1488,10 +1489,13 @@ int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRML
       static_cast<vtkMRMLCommandLineModuleNode*>(this->GetMRMLScene()->CreateNodeByClass("vtkMRMLCommandLineModuleNode"));
     if(!node)
       {
-      std::cerr << "Cannot create Rigid registration node. Aborting." << std::endl;
+      std::cerr << "Cannot create Rigid registration node." << std::endl;
       }
     this->GetMRMLScene()->AddNode(node);
-    node->SetModuleDescription("Deformable registration");
+    //tensorCLM->SetModuleDescription("Diffusion Tensor Estimation");
+    //tensorCLM->SetName("GradientEditor: Tensor Estimation");
+    node->SetModuleDescription(cligui->GetModuleDescription());  // this is very important !!!
+    node->SetName("Deformable BSpline registration");
 
     //if(outputNode)
     //  {
@@ -1520,7 +1524,7 @@ int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRML
     //node->SetParameterAsString("InitialTransform", NULL);
     node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
     node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
-    node->SetParameterAsString("OutputTransform", transformNode->GetID());
+    //node->SetParameterAsString("OutputTransform", transformNode->GetID());
     node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
 #if 0
     node->SetParameterAsString("Iterations", "20");
@@ -1538,18 +1542,14 @@ int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRML
 #endif
     transformNode->Delete();
 
-    cligui->SetCommandLineModuleNode(node);
-    cligui->GetLogic()->SetCommandLineModuleNode(node);
+    cligui->GetLogic()->SetTemporaryDirectory(app->GetTemporaryDirectory());
 
     ModuleDescription moduleDesc = node->GetModuleDescription();
-    cligui->GetLogic()->SetTemporaryDirectory(app->GetTemporaryDirectory());
     if(moduleDesc.GetTarget() == "Unknown")
       {
       // Entry point is unknown
       // "Linear registration" is shared object module, at least at this moment
-        std::cerr << "Unknown " << std::endl;
-
-        //assert(moduleDesc.GetType() == "SharedObjectModule");
+      assert(moduleDesc.GetType() == "SharedObjectModule");
       typedef int (*ModuleEntryPoint)(int argc, char* argv[]);
       itksys::DynamicLoader::LibraryHandle lib =
         itksys::DynamicLoader::OpenLibrary(moduleDesc.GetLocation().c_str());
@@ -1566,23 +1566,23 @@ int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRML
           sprintf(entryPointAsText, "%p", entryPoint);
           entryPointAsString = std::string("slicer:")+entryPointAsText;
           moduleDesc.SetTarget(entryPointAsString);
-          cligui->SetModuleDescription(moduleDesc);      
-          }
-        else 
+          node->SetModuleDescription(moduleDesc);      
+          } 
+        else
           {
           std::cerr << "Failed to find entry point for Rigid registration. Abort." << std::endl;
-          abort();
           }
-        }
-      else
-        {
-        std::cerr << "Failed to locate module library. Abort." << std::endl;
-        abort();
-        }
+        } else {
+      std::cerr << "Failed to locate module library. Abort." << std::endl;
       }
+    }
+
+    cligui->SetCommandLineModuleNode(node);
+    cligui->GetLogic()->SetCommandLineModuleNode(node);
 
     std::cerr << "Starting Registration.... " << std::endl;    
     cligui->GetLogic()->ApplyAndWait(node);
+    //cligui->GetLogic()->Apply();
     std::cerr << "Starting Registration.... done." << std::endl;    
     //this->SaveVolume(app, outputNode);
     node->Delete(); // AF: is it right to delete this here?
