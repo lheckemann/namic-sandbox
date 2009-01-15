@@ -82,8 +82,12 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   this->ProgressDialog = NULL;
   this->SelectImageButton             = NULL;
   this->LoadImageButton               = NULL;
+  
+  this->ForegroundSeriesMenu          = NULL;
   this->ForegroundVolumeSelectorScale = NULL;
+  this->BackgroundSeriesMenu          = NULL;
   this->BackgroundVolumeSelectorScale = NULL;
+
   this->MaskSelectMenu    = NULL;
   this->MaskSelectSpinBox = NULL;
   this->MaskColorCanvas   = NULL;
@@ -93,6 +97,7 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   this->FunctionEditor = NULL;
   this->SavePlotButton = NULL;
 
+  this->RegistrationFixedImageIndexSpinBox = NULL;
   this->RegistrationStartIndexSpinBox = NULL;
   this->RegistrationEndIndexSpinBox   = NULL;
   this->StartRegistrationButton       = NULL;
@@ -146,10 +151,20 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
     this->LoadImageButton->SetParent(NULL);
     this->LoadImageButton->Delete();
     }
+  if (this->ForegroundSeriesMenu)
+    {
+    this->ForegroundSeriesMenu->SetParent(NULL);
+    this->ForegroundSeriesMenu->Delete();
+    }
   if (this->ForegroundVolumeSelectorScale)
     {
     this->ForegroundVolumeSelectorScale->SetParent(NULL);
     this->ForegroundVolumeSelectorScale->Delete();
+    }
+  if (this->BackgroundSeriesMenu)
+    {
+    this->BackgroundSeriesMenu->SetParent(NULL);
+    this->BackgroundSeriesMenu->Delete();
     }
   if (this->BackgroundVolumeSelectorScale)
     {
@@ -196,6 +211,11 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
     {
     this->SavePlotButton->SetParent(NULL);
     this->SavePlotButton->Delete();
+    }
+  if (this->RegistrationFixedImageIndexSpinBox)
+    {
+    this->RegistrationFixedImageIndexSpinBox->SetParent(NULL);
+    this->RegistrationFixedImageIndexSpinBox->Delete();
     }
   if (this->RegistrationStartIndexSpinBox)
     {
@@ -270,9 +290,19 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->ForegroundSeriesMenu)
+    {
+    this->ForegroundSeriesMenu
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->ForegroundVolumeSelectorScale)
     {
     this->ForegroundVolumeSelectorScale
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->BackgroundSeriesMenu)
+    {
+    this->BackgroundSeriesMenu
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->BackgroundVolumeSelectorScale)
@@ -320,7 +350,11 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
+  if (this->RegistrationFixedImageIndexSpinBox)
+    {
+    this->RegistrationFixedImageIndexSpinBox
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
   if (this->RegistrationStartIndexSpinBox)
     {
     this->RegistrationStartIndexSpinBox
@@ -390,10 +424,20 @@ void vtkControl4DGUI::AddGUIObservers ( )
     this->LoadImageButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
+  if (this->ForegroundSeriesMenu)
+    {
+    this->ForegroundSeriesMenu
+      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);      
+    }
   if (this->ForegroundVolumeSelectorScale)
     {
     this->ForegroundVolumeSelectorScale
       ->AddObserver(vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->BackgroundSeriesMenu)
+    {
+    this->BackgroundSeriesMenu
+      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);      
     }
   if (this->BackgroundVolumeSelectorScale)
     {
@@ -437,6 +481,11 @@ void vtkControl4DGUI::AddGUIObservers ( )
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
       ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->RegistrationFixedImageIndexSpinBox)
+    {
+    this->RegistrationFixedImageIndexSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->RegistrationStartIndexSpinBox)
     {
@@ -529,6 +578,8 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     const char* path = this->SelectImageButton->GetWidget()->GetFileName();
     this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     int n = this->GetLogic()->LoadImagesFromDir(path, this->RangeLower, this->RangeUpper);
+    this->RegistrationFixedImageIndexSpinBox->SetRange(0, n);
+    this->RegistrationStartIndexSpinBox->SetRange(0, n);
     this->RegistrationEndIndexSpinBox->SetRange(0, n);
     this->WindowLevelUpdateStatus.resize(n);
     this->Window = 1.0;
@@ -539,20 +590,36 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     // Adjust range of the scale
     this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n);
     this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n);
-    SetForeground(0);
-    SetBackground(0);
+    SetForeground(0, 0);
+    SetBackground(0, 0);
+    }
+  else if (this->ForegroundSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+      && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    int series = this->ForegroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
+    SetForeground(series, volume);
+    }
+  else if (this->BackgroundSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+      && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    int series = this->BackgroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
+    SetBackground(series, volume);
     }
   else if (this->ForegroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
       && event == vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/)
     {
-    int value = (int)this->ForegroundVolumeSelectorScale->GetValue();
-    SetForeground(value);
+    int series = this->ForegroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
+    SetForeground(series, volume);
     }
   else if (this->BackgroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
       && event == vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/ )
     {
-    int value = (int)this->BackgroundVolumeSelectorScale->GetValue();
-    SetBackground(value);
+    int series = this->BackgroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int volume = (int)this->BackgroundVolumeSelectorScale->GetValue();
+    SetBackground(series, volume);
     }
   else if (this->WindowLevelRange == vtkKWRange::SafeDownCast(caller)
       && event == vtkKWRange::RangeValueChangingEvent)
@@ -646,6 +713,12 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     this->GetLogic()->SaveIntensityCurve(nodeID, label, filename);
     //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->
     }
+  /*
+  else if (this->RegistrationFixedImageIndexSpinBox == vtkKWSpinBox::SafeDownCast(caller)
+           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+    {
+    }
+  */
   else if (this->RegistrationStartIndexSpinBox == vtkKWSpinBox::SafeDownCast(caller)
            && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
     {
@@ -682,6 +755,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->StartRegistrationButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
+    int fid = (int)this->RegistrationFixedImageIndexSpinBox->GetValue();
     int sid = (int)this->RegistrationStartIndexSpinBox->GetValue();
     int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
 
@@ -690,11 +764,11 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     param[std::string("gridSize")]       = std::string(this->GridSizeEntry->GetWidget()->GetValue());      /* 3 - 20, step 1*/
     param[std::string("HistogramBins")]  = std::string(this->HistogramBinsEntry->GetWidget()->GetValue()); /* 1 - 500, step 5*/
     param[std::string("SpatialSamples")] = std::string(this->SpatialSamplesEntry->GetWidget()->GetValue());/* 1000 - 500000, step 1000*/
-    param[std::string("ConstrainDeformation")] = std::string("0");
-    param[std::string("MaximumDeformation")]   = std::string("1.0");
-    param[std::string("DefaultPixelValue")]    = std::string("0");   /* 1000 - 500000, step 1000*/
+    //param[std::string("ConstrainDeformation")] = std::string("0");
+    //param[std::string("MaximumDeformation")]   = std::string("1.0");
+    //param[std::string("DefaultPixelValue")]    = std::string("0");   /* 1000 - 500000, step 1000*/
 
-    RunSeriesRegistration(sid, eid, sid, param);
+    RunSeriesRegistration(sid, eid, fid, param);
     }
 } 
 
@@ -911,9 +985,23 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
   fframe->SetLabelText ("Frame");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  fframe->GetWidgetName() );
+  
+  vtkKWFrame *fgframe = vtkKWFrame::New();
+  fgframe->SetParent(fframe->GetFrame());
+  fgframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 fgframe->GetWidgetName() );
+  
+  this->ForegroundSeriesMenu = vtkKWMenuButton::New();
+  this->ForegroundSeriesMenu->SetParent(fgframe);
+  this->ForegroundSeriesMenu->Create();
+  this->ForegroundSeriesMenu->SetWidth(10);
+  this->ForegroundSeriesMenu->GetMenu()->AddRadioButton("Original");
+  this->ForegroundSeriesMenu->GetMenu()->AddRadioButton("Registered");
+  this->ForegroundSeriesMenu->SetValue("Original");
 
   this->ForegroundVolumeSelectorScale = vtkKWScaleWithEntry::New();
-  this->ForegroundVolumeSelectorScale->SetParent( fframe->GetFrame() );
+  this->ForegroundVolumeSelectorScale->SetParent(fgframe);
   this->ForegroundVolumeSelectorScale->Create();
   this->ForegroundVolumeSelectorScale->SetEntryPosition(vtkKWScaleWithEntry::EntryPositionRight);
   this->ForegroundVolumeSelectorScale->SetOrientationToHorizontal();
@@ -921,8 +1009,26 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
   this->ForegroundVolumeSelectorScale->SetRange(0.0, 100.0);
   this->ForegroundVolumeSelectorScale->SetResolution(1.0);
 
+  this->Script("pack %s %s -side left -fill x -padx 2 -pady 2", 
+               this->ForegroundSeriesMenu->GetWidgetName(),
+               this->ForegroundVolumeSelectorScale->GetWidgetName());
+  
+  vtkKWFrame *bgframe = vtkKWFrame::New();
+  bgframe->SetParent(fframe->GetFrame());
+  bgframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 bgframe->GetWidgetName() );
+
+  this->BackgroundSeriesMenu = vtkKWMenuButton::New();
+  this->BackgroundSeriesMenu->SetParent(bgframe);
+  this->BackgroundSeriesMenu->Create();
+  this->BackgroundSeriesMenu->SetWidth(10);
+  this->BackgroundSeriesMenu->GetMenu()->AddRadioButton("Original");
+  this->BackgroundSeriesMenu->GetMenu()->AddRadioButton("Registered");
+  this->BackgroundSeriesMenu->SetValue("Original");
+
   this->BackgroundVolumeSelectorScale = vtkKWScaleWithEntry::New();
-  this->BackgroundVolumeSelectorScale->SetParent( fframe->GetFrame() );
+  this->BackgroundVolumeSelectorScale->SetParent(bgframe);
   this->BackgroundVolumeSelectorScale->Create();
   this->BackgroundVolumeSelectorScale->SetEntryPosition(vtkKWScaleWithEntry::EntryPositionRight);
   this->BackgroundVolumeSelectorScale->SetOrientationToHorizontal();
@@ -930,10 +1036,9 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
   this->BackgroundVolumeSelectorScale->SetRange(0.0, 100.0);
   this->BackgroundVolumeSelectorScale->SetResolution(1.0);
 
-  this->Script("pack %s %s -side top -fill x -padx 2 -pady 2", 
-               this->ForegroundVolumeSelectorScale->GetWidgetName(),
+  this->Script("pack %s %s -side left -fill x -padx 2 -pady 2", 
+               this->BackgroundSeriesMenu->GetWidgetName(),
                this->BackgroundVolumeSelectorScale->GetWidgetName());
-
 
 
   // -----------------------------------------
@@ -1002,6 +1107,8 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
 
   conBrowsFrame->Delete();
   fframe->Delete();
+  fgframe->Delete();
+  bgframe->Delete();
 
 }
 
@@ -1166,10 +1273,20 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  eframe->GetWidgetName() );
 
+  vtkKWLabel *fixedLabel = vtkKWLabel::New();
+  fixedLabel->SetParent(eframe->GetFrame());
+  fixedLabel->Create();
+  fixedLabel->SetText("Fixed:");
+
+  this->RegistrationFixedImageIndexSpinBox = vtkKWSpinBox::New();
+  this->RegistrationFixedImageIndexSpinBox->SetParent(eframe->GetFrame());
+  this->RegistrationFixedImageIndexSpinBox->Create();
+  this->RegistrationFixedImageIndexSpinBox->SetWidth(3);
+
   vtkKWLabel *fromLabel = vtkKWLabel::New();
   fromLabel->SetParent(eframe->GetFrame());
   fromLabel->Create();
-  fromLabel->SetText("From: ");
+  fromLabel->SetText(" From:");
 
   this->RegistrationStartIndexSpinBox = vtkKWSpinBox::New();
   this->RegistrationStartIndexSpinBox->SetParent(eframe->GetFrame());
@@ -1179,7 +1296,7 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
   vtkKWLabel *toLabel = vtkKWLabel::New();
   toLabel->SetParent(eframe->GetFrame());
   toLabel->Create();
-  toLabel->SetText(" to: ");
+  toLabel->SetText(" to:");
 
   this->RegistrationEndIndexSpinBox = vtkKWSpinBox::New();
   this->RegistrationEndIndexSpinBox->SetParent(eframe->GetFrame());
@@ -1192,7 +1309,9 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
   this->StartRegistrationButton->SetText ("Run");
   this->StartRegistrationButton->SetWidth (4);
 
-  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+               fixedLabel->GetWidgetName(),
+               this->RegistrationFixedImageIndexSpinBox->GetWidgetName(),
                fromLabel->GetWidgetName(),
                this->RegistrationStartIndexSpinBox->GetWidgetName(),
                toLabel->GetWidgetName(),
@@ -1257,16 +1376,24 @@ void vtkControl4DGUI::UpdateAll()
 
 
 //----------------------------------------------------------------------------
-void vtkControl4DGUI::SetForeground(int index)
+void vtkControl4DGUI::SetForeground(int series, int index)
+  // series==0 : source image,  series==1 : registered image
 {
   int i, nnodes;
   vtkMRMLSliceCompositeNode *cnode;
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  
-  const char* nodeID = this->GetLogic()->GetFrameNodeID(index);
-  vtkMRMLVolumeNode* volNode =
-    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
 
+  vtkMRMLVolumeNode* volNode;
+  if (series == 0) // source image
+    {
+    const char* nodeID = this->GetLogic()->GetFrameNodeID(index);
+    volNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+    }
+  else  // registered image
+    {
+    const char* nodeID = this->GetLogic()->GetRegisteredFrameNodeID(index);
+    volNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+    }
   if (volNode)
     {
     //std::cerr << "node id = " << nodeID << std::endl;
@@ -1277,7 +1404,7 @@ void vtkControl4DGUI::SetForeground(int index)
         this->GetMRMLScene()->GetNthNodeByClass (i, "vtkMRMLSliceCompositeNode"));
       if ( cnode != NULL)
         {
-        cnode->SetForegroundVolumeID( nodeID );
+        cnode->SetForegroundVolumeID(volNode->GetID());
         }
       }
     SetWindowLevelForCurrentFrame();
@@ -1286,15 +1413,23 @@ void vtkControl4DGUI::SetForeground(int index)
 
 
 //----------------------------------------------------------------------------
-void vtkControl4DGUI::SetBackground(int index)
+void vtkControl4DGUI::SetBackground(int series, int index)
 {
   int i, nnodes;
   vtkMRMLSliceCompositeNode *cnode;
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
-  const char* nodeID = this->GetLogic()->GetFrameNodeID(index);
-  vtkMRMLVolumeNode* volNode =
-    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+  vtkMRMLVolumeNode* volNode;
+  if (series == 0) // source image
+    {
+    const char* nodeID = this->GetLogic()->GetFrameNodeID(index);
+    volNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+    }
+  else  // registered image
+    {
+    const char* nodeID = this->GetLogic()->GetRegisteredFrameNodeID(index);
+    volNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+    }
 
   if (volNode)
     {
@@ -1306,7 +1441,7 @@ void vtkControl4DGUI::SetBackground(int index)
         this->GetMRMLScene()->GetNthNodeByClass (i, "vtkMRMLSliceCompositeNode"));
       if ( cnode != NULL)
         {
-        cnode->SetBackgroundVolumeID( nodeID );
+        cnode->SetBackgroundVolumeID(volNode->GetID());
         }
       }
     SetWindowLevelForCurrentFrame();
@@ -1521,14 +1656,16 @@ int vtkControl4DGUI::RunSeriesRegistration(int sIndex, int eIndex, int kIndex, R
 {
   if (sIndex < 0 ||
       eIndex >= this->GetLogic()->GetNumberOfFrames() ||
-      kIndex < sIndex ||
-      kIndex > eIndex)
+      kIndex < 0 ||
+      kIndex >= this->GetLogic()->GetNumberOfFrames() )
     {
     std::cerr << "int vtkControl4DGUI::RunSeriesRegistration(): irregular index" << std::endl;
     return 0;
     }
-  
+      
+  this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
   this->GetLogic()->CreateRegisteredVolumeNodes();
+  this->GetLogic()->RemoveObservers(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
   
   const char* fixedFrameNodeID = this->GetLogic()->GetFrameNodeID(kIndex);
   vtkMRMLScalarVolumeNode* fixedNode;  
