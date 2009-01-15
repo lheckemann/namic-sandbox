@@ -405,9 +405,9 @@ const char* vtkControl4DLogic::GetFrameNodeID(int index)
 //---------------------------------------------------------------------------
 const char* vtkControl4DLogic::GetRegisteredFrameNodeID(int index)
 {
-  if (index >= 0 && index < (int)this->FrameNodeVector.size())
+  if (index >= 0 && index < (int)this->RegisteredFrameNodeVector.size())
     {
-    return this->FrameNodeVector[index].c_str();
+    return this->RegisteredFrameNodeVector[index].c_str();
     }
   else
     {
