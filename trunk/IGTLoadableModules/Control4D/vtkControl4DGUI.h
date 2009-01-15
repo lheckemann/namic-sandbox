@@ -26,6 +26,8 @@
 
 #include "vtkControl4DLogic.h"
 
+#include <map>
+
 class vtkKWScaleWithEntry;
 class vtkKWPushButton;
 class vtkKWLoadSaveButtonWithLabel;
@@ -44,6 +46,10 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
  public:
 
   vtkTypeRevisionMacro ( vtkControl4DGUI, vtkSlicerModuleGUI );
+
+  //BTX
+  typedef std::map<std::string, std::string> RegistrationParametersType;
+  //ETX
 
   //----------------------------------------------------------------
   // Set/Get Methods
@@ -131,8 +137,16 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   void UpdateMaskSelectMenu();
   void SelectMask(const char* nodeID, int label);
   void UpdateFunctionEditor(vtkDoubleArray* data);
-  int  RunSeriesRegistration(int sIndex, int eIndex, int kIndex);
-  int  RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRMLScalarVolumeNode* movingNode, vtkMRMLScalarVolumeNode* outputNode);
+
+  //----------------------------------------------------------------
+  // Registration
+  //----------------------------------------------------------------
+  //BTX
+  int  RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param);
+  int  RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRMLScalarVolumeNode* movingNode, vtkMRMLScalarVolumeNode* outputNode,
+                       RegistrationParametersType& param);
+
+  //ETX
 
  protected:
   
@@ -171,10 +185,17 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkKWSpinBox*    RegistrationEndIndexSpinBox;
   vtkKWPushButton* StartRegistrationButton;
 
+  vtkKWEntryWithLabel* IterationsEntry;
+  vtkKWEntryWithLabel* GridSizeEntry;
+  vtkKWEntryWithLabel* HistogramBinsEntry;
+  vtkKWEntryWithLabel* SpatialSamplesEntry;
+
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
 
+  RegistrationParametersType DefaultRegistrationParam;
+  
   vtkControl4DLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;

@@ -101,6 +101,14 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   // Locator  (MRML)
   this->TimerFlag = 0;
 
+  //Default parameters
+  this->DefaultRegistrationParam.clear();
+  this->DefaultRegistrationParam[std::string("Iterations")]           = std::string("20");
+  this->DefaultRegistrationParam[std::string("gridSize")]             = std::string("5");
+  this->DefaultRegistrationParam[std::string("HistogramBins")]        = std::string("100");
+  this->DefaultRegistrationParam[std::string("SpatialSamples")]       = std::string("5000");
+  //param[std::string("ConstrainDeformation")] = std::string("0");
+  //param[std::string("MaximumDeformation")]   = std::string("1.0");
 }
 
 //---------------------------------------------------------------------------
@@ -328,6 +336,26 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
     this->StartRegistrationButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->IterationsEntry)
+    {
+    this->IterationsEntry->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->GridSizeEntry)
+    {
+    this->GridSizeEntry->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->HistogramBinsEntry)
+    {
+    this->HistogramBinsEntry->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->SpatialSamplesEntry)
+    {
+    this->SpatialSamplesEntry->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   this->RemoveLogicObservers();
 
@@ -420,11 +448,30 @@ void vtkControl4DGUI::AddGUIObservers ( )
     this->RegistrationEndIndexSpinBox
       ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-
   if (this->StartRegistrationButton)
     {
     this->StartRegistrationButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->IterationsEntry)
+    {
+    this->IterationsEntry->GetWidget()
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->GridSizeEntry)
+    {
+    this->GridSizeEntry->GetWidget()
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);      
+    }
+  if (this->HistogramBinsEntry)
+    {
+    this->HistogramBinsEntry->GetWidget()
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->SpatialSamplesEntry)
+    {
+    this->SpatialSamplesEntry->GetWidget()
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
   this->AddLogicObservers();
@@ -637,7 +684,17 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     {
     int sid = (int)this->RegistrationStartIndexSpinBox->GetValue();
     int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
-    RunSeriesRegistration(sid, eid, sid);
+
+    RegistrationParametersType param;
+    param[std::string("Iterations")]     = std::string(this->IterationsEntry->GetWidget()->GetValue());
+    param[std::string("gridSize")]       = std::string(this->GridSizeEntry->GetWidget()->GetValue());      /* 3 - 20, step 1*/
+    param[std::string("HistogramBins")]  = std::string(this->HistogramBinsEntry->GetWidget()->GetValue()); /* 1 - 500, step 5*/
+    param[std::string("SpatialSamples")] = std::string(this->SpatialSamplesEntry->GetWidget()->GetValue());/* 1000 - 500000, step 1000*/
+    param[std::string("ConstrainDeformation")] = std::string("0");
+    param[std::string("MaximumDeformation")]   = std::string("1.0");
+    param[std::string("DefaultPixelValue")]    = std::string("0");   /* 1000 - 500000, step 1000*/
+
+    RunSeriesRegistration(sid, eid, sid, param);
     }
 } 
 
@@ -964,7 +1021,6 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
-
   // -----------------------------------------
   // Mask selector frame
   
@@ -1036,18 +1092,6 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
 
   this->PlotTypeButtonSet->GetWidget(0)->SelectedStateOn();
 
-  vtkPiecewiseFunction* tfun = vtkPiecewiseFunction::New();
-  /*
-  tfun->AddPoint(70.0, 0.0);
-  tfun->AddPoint(599.0, 0);
-  tfun->AddPoint(600.0, 0);
-  tfun->AddPoint(1195.0, 0);
-  tfun->AddPoint(1200, .2);
-  tfun->AddPoint(1300, .3);
-  tfun->AddPoint(2000, .3);
-  tfun->AddPoint(4095.0, 1.0);
-  */
-
   this->FunctionEditor = vtkKWPiecewiseFunctionEditor::New();
   this->FunctionEditor->SetParent(frame->GetFrame());
   this->FunctionEditor->Create();
@@ -1056,7 +1100,6 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->FunctionEditor->SetPadY(2);
   this->FunctionEditor->ParameterRangeVisibilityOff();
   this->FunctionEditor->SetCanvasHeight(200);
-  //this->FunctionEditor->SetPiecewiseFunction(tfun);
   this->FunctionEditor->ReadOnlyOn();
   this->FunctionEditor->SetPointRadius(2);
   this->FunctionEditor->ParameterTicksVisibilityOn();
@@ -1078,6 +1121,7 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  oframe->GetWidgetName() );
 
+
   this->SavePlotButton = vtkKWLoadSaveButtonWithLabel::New();
   this->SavePlotButton->SetParent(oframe->GetFrame());
   this->SavePlotButton->Create();
@@ -1085,13 +1129,15 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->SavePlotButton->GetWidget()->SetText ("Save");
   this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOn();
   this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SetDefaultExtension(".csv");
-  
 
   this->Script("pack %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                this->SavePlotButton->GetWidgetName());
 
   conBrowsFrame->Delete();
+  msframe->Delete();
+  menuLabel->Delete();
   frame->Delete();
+  oframe->Delete();
 }
 
 
@@ -1111,37 +1157,37 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Parameter
+  // Execution
   
-  vtkKWFrameWithLabel *pframe = vtkKWFrameWithLabel::New();
-  pframe->SetParent(conBrowsFrame->GetFrame());
-  pframe->Create();
-  pframe->SetLabelText ("Frames");
+  vtkKWFrameWithLabel *eframe = vtkKWFrameWithLabel::New();
+  eframe->SetParent(conBrowsFrame->GetFrame());
+  eframe->Create();
+  eframe->SetLabelText ("Execution");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 pframe->GetWidgetName() );
+                 eframe->GetWidgetName() );
 
   vtkKWLabel *fromLabel = vtkKWLabel::New();
-  fromLabel->SetParent(pframe->GetFrame());
+  fromLabel->SetParent(eframe->GetFrame());
   fromLabel->Create();
   fromLabel->SetText("From: ");
 
   this->RegistrationStartIndexSpinBox = vtkKWSpinBox::New();
-  this->RegistrationStartIndexSpinBox->SetParent(pframe->GetFrame());
+  this->RegistrationStartIndexSpinBox->SetParent(eframe->GetFrame());
   this->RegistrationStartIndexSpinBox->Create();
   this->RegistrationStartIndexSpinBox->SetWidth(3);
 
   vtkKWLabel *toLabel = vtkKWLabel::New();
-  toLabel->SetParent(pframe->GetFrame());
+  toLabel->SetParent(eframe->GetFrame());
   toLabel->Create();
   toLabel->SetText(" to: ");
 
   this->RegistrationEndIndexSpinBox = vtkKWSpinBox::New();
-  this->RegistrationEndIndexSpinBox->SetParent(pframe->GetFrame());
+  this->RegistrationEndIndexSpinBox->SetParent(eframe->GetFrame());
   this->RegistrationEndIndexSpinBox->Create();
   this->RegistrationEndIndexSpinBox->SetWidth(3);
 
   this->StartRegistrationButton = vtkKWPushButton::New();
-  this->StartRegistrationButton->SetParent(pframe->GetFrame());
+  this->StartRegistrationButton->SetParent(eframe->GetFrame());
   this->StartRegistrationButton->Create();
   this->StartRegistrationButton->SetText ("Run");
   this->StartRegistrationButton->SetWidth (4);
@@ -1153,6 +1199,54 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
                this->RegistrationEndIndexSpinBox->GetWidgetName(),
                this->StartRegistrationButton->GetWidgetName());
   
+  // -----------------------------------------
+  // Parameter Frame
+  
+  vtkKWFrameWithLabel *pframe = vtkKWFrameWithLabel::New();
+  pframe->SetParent(conBrowsFrame->GetFrame());
+  pframe->Create();
+  pframe->SetLabelText ("Parameters");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 pframe->GetWidgetName() );
+
+  this->IterationsEntry = vtkKWEntryWithLabel::New();
+  this->IterationsEntry->SetParent( pframe->GetFrame());
+  this->IterationsEntry->SetLabelText ("Iterations:                         ");
+  this->IterationsEntry->Create();
+  this->IterationsEntry->GetWidget()->SetRestrictValueToInteger();
+  this->IterationsEntry->GetWidget()->SetValue(this->DefaultRegistrationParam[std::string("Iterations")].c_str());
+
+  this->GridSizeEntry = vtkKWEntryWithLabel::New();
+  this->GridSizeEntry->SetParent( pframe->GetFrame());
+  this->GridSizeEntry->SetLabelText ("Grid size (3-20):                   ");
+  this->GridSizeEntry->Create();
+  this->GridSizeEntry->GetWidget()->SetRestrictValueToInteger();
+  this->GridSizeEntry->GetWidget()->SetValue(this->DefaultRegistrationParam[std::string("gridSize")].c_str());
+
+  this->HistogramBinsEntry = vtkKWEntryWithLabel::New();
+  this->HistogramBinsEntry->SetParent( pframe->GetFrame());
+  this->HistogramBinsEntry->SetLabelText ("HistogramBinEntry (1-500):          ");
+  this->HistogramBinsEntry->Create();
+  this->HistogramBinsEntry->GetWidget()->SetRestrictValueToInteger();
+  this->HistogramBinsEntry->GetWidget()->SetValue(this->DefaultRegistrationParam[std::string("HistogramBins")].c_str());
+
+  this->SpatialSamplesEntry = vtkKWEntryWithLabel::New();
+  this->SpatialSamplesEntry->SetParent( pframe->GetFrame());
+  this->SpatialSamplesEntry->SetLabelText ("SpatialSamplesEntry (1000 - 500000):");
+  this->SpatialSamplesEntry->Create();
+  this->SpatialSamplesEntry->GetWidget()->SetRestrictValueToInteger();
+  this->SpatialSamplesEntry->GetWidget()->SetValue(this->DefaultRegistrationParam[std::string("SpatialSamples")].c_str());
+
+  this->Script("pack %s %s %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
+               this->IterationsEntry->GetWidgetName(),
+               this->GridSizeEntry->GetWidgetName(),
+               this->HistogramBinsEntry->GetWidgetName(),
+               this->SpatialSamplesEntry->GetWidgetName());
+
+  eframe->Delete();
+  fromLabel->Delete();
+  toLabel->Delete();
+  pframe->Delete();
 }
 
 
@@ -1423,7 +1517,7 @@ void vtkControl4DGUI::UpdateFunctionEditor(vtkDoubleArray* data)
 
 
 //---------------------------------------------------------------------------
-int vtkControl4DGUI::RunSeriesRegistration(int sIndex, int eIndex, int kIndex)
+int vtkControl4DGUI::RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param)
 {
   if (sIndex < 0 ||
       eIndex >= this->GetLogic()->GetNumberOfFrames() ||
@@ -1462,7 +1556,7 @@ int vtkControl4DGUI::RunSeriesRegistration(int sIndex, int eIndex, int kIndex)
       outputNode = 
         vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(outputFrameNodeID));
 
-      RunRegistration(fixedNode, movingNode, outputNode);
+      RunRegistration(fixedNode, movingNode, outputNode, param);
       }
     }
 
@@ -1472,7 +1566,10 @@ int vtkControl4DGUI::RunSeriesRegistration(int sIndex, int eIndex, int kIndex)
   
 
 //---------------------------------------------------------------------------
-int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRMLScalarVolumeNode* movingNode, vtkMRMLScalarVolumeNode* outputNode)
+int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode,
+                                     vtkMRMLScalarVolumeNode* movingNode,
+                                     vtkMRMLScalarVolumeNode* outputNode,
+                                     RegistrationParametersType& param)
 {
   vtkCommandLineModuleGUI* cligui;
 
@@ -1512,34 +1609,27 @@ int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRML
     transformNode->SetName(name);
     this->GetMRMLScene()->AddNode(transformNode);
     
+    RegistrationParametersType::iterator iter;
+    for (iter = param.begin(); iter != param.end(); iter ++)
+      {
+      node->SetParameterAsString(iter->first.c_str(), iter->second.c_str());
+      }
     //node->SetModuleDescription( this->ModuleDescriptionObject );
-
+    /*
     node->SetParameterAsInt("Iterations", 20);
-    node->SetParameterAsInt("gridSize", 5);  /* 3 - 20, step 1*/
-    node->SetParameterAsInt("HistogramBins", 100); /* 1 - 500, step 5*/
-    node->SetParameterAsInt("SpatialSamples", 5000); /* 1000 - 500000, step 1000*/
+    node->SetParameterAsInt("gridSize", 5);  
+    node->SetParameterAsInt("HistogramBins", 100); 
+    node->SetParameterAsInt("SpatialSamples", 5000); 
     node->SetParameterAsBool("ConstrainDeformation", 0); 
     node->SetParameterAsDouble("MaximumDeformation", 1.0);
-    node->SetParameterAsInt("DefaultPixelValue", 0); /* 1000 - 500000, step 1000*/
+    */
+
+    node->SetParameterAsInt("DefaultPixelValue", 0); 
     //node->SetParameterAsString("InitialTransform", NULL);
     node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
     node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
     //node->SetParameterAsString("OutputTransform", transformNode->GetID());
     node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
-#if 0
-    node->SetParameterAsString("Iterations", "20");
-    node->SetParameterAsString("gridSize", "5");  /* 3 - 20, step 1*/
-    node->SetParameterAsString("HistogramBins", "100"); /* 1 - 500, step 5*/
-    node->SetParameterAsString("SpatialSamples", "5000"); /* 1000 - 500000, step 1000*/
-    node->SetParameterAsString("ConstrainDeformation", "0"); 
-    node->SetParameterAsString("MaximumDeformation", "1.0");
-    node->SetParameterAsString("DefaultPixelValue", "0"); /* 1000 - 500000, step 1000*/
-    //node->SetParameterAsString("InitialTransform", NULL);
-    node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
-    node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
-    node->SetParameterAsString("OutputTransform", transformNode->GetID());
-    node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
-#endif
     transformNode->Delete();
 
     cligui->GetLogic()->SetTemporaryDirectory(app->GetTemporaryDirectory());
