@@ -131,8 +131,8 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   // Viewer control
   //----------------------------------------------------------------
 
-  void SetForeground(int index);
-  void SetBackground(int index);
+  void SetForeground(int series, int index);
+  void SetBackground(int series, int index);
   void SetWindowLevelForCurrentFrame();
   void UpdateMaskSelectMenu();
   void SelectMask(const char* nodeID, int label);
@@ -169,7 +169,9 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkKWRange *WindowLevelRange;
   vtkKWRange *ThresholdRange;
 
+  vtkKWMenuButton*     ForegroundSeriesMenu;
   vtkKWScaleWithEntry* ForegroundVolumeSelectorScale;
+  vtkKWMenuButton*     BackgroundSeriesMenu;
   vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
 
   vtkKWMenuButton* MaskSelectMenu;
@@ -181,6 +183,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkKWPiecewiseFunctionEditor* FunctionEditor;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
 
+  vtkKWSpinBox*    RegistrationFixedImageIndexSpinBox;
   vtkKWSpinBox*    RegistrationStartIndexSpinBox;
   vtkKWSpinBox*    RegistrationEndIndexSpinBox;
   vtkKWPushButton* StartRegistrationButton;

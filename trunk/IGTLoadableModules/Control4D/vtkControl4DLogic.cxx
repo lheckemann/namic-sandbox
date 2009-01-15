@@ -319,6 +319,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
 //---------------------------------------------------------------------------
 int vtkControl4DLogic::CreateRegisteredVolumeNodes()
 {
+
   int nVolumes = this->FrameNodeVector.size();
 
   if (this->RegisteredFrameNodeVector.size() != nVolumes)
@@ -328,9 +329,18 @@ int vtkControl4DLogic::CreateRegisteredVolumeNodes()
       this->RegisteredFrameNodeVector.clear();
       }
 
+    StatusMessageType statusMessage;
+    statusMessage.show = 1;
+    statusMessage.progress = 0.0;
+    statusMessage.message = "Creating registerd image nodes....";
+    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+    
     vtkMRMLScene* scene = this->GetMRMLScene();
     for (int i = 0; i < nVolumes; i ++)
       {
+      statusMessage.progress = (double)i / (double)nVolumes;
+      this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+
       vtkMRMLVolumeNode *volumeNode = NULL;
       vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
       vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
@@ -378,6 +388,8 @@ int vtkControl4DLogic::CreateRegisteredVolumeNodes()
       colorLogic->Delete();
       displayNode->Delete();
       }
+    statusMessage.show = 0;
+    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
     }
   
 }
