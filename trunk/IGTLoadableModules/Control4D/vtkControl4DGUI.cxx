@@ -26,7 +26,6 @@
 #include "vtkSlicerTheme.h"
 
 #include "vtkMRMLColorNode.h"
-#include "vtkMRMLBSplineTransformNode.h"
 
 #include "vtkKWTkUtilities.h"
 #include "vtkKWWidget.h"
@@ -58,7 +57,6 @@
 #include "vtkCornerAnnotation.h"
 #include "vtkCommandLineModuleGUI.h"
 
-#include "itksys/DynamicLoader.hxx"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkControl4DGUI );
@@ -88,6 +86,7 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   this->BackgroundSeriesMenu          = NULL;
   this->BackgroundVolumeSelectorScale = NULL;
 
+  this->SeriesToPlotMenu  = NULL;
   this->MaskSelectMenu    = NULL;
   this->MaskSelectSpinBox = NULL;
   this->MaskColorCanvas   = NULL;
@@ -182,6 +181,11 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
     this->ThresholdRange->Delete();
     }
 
+  if (this->SeriesToPlotMenu)
+    {
+    this->SeriesToPlotMenu->SetParent(NULL);
+    this->SeriesToPlotMenu->Delete();
+    }
   if (this->MaskSelectMenu)
     {
     this->MaskSelectMenu->SetParent(NULL);
@@ -321,6 +325,11 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->SeriesToPlotMenu)
+    {
+    this->SeriesToPlotMenu->GetMenu()
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
   if (this->MaskSelectMenu)
     {
     this->MaskSelectMenu->GetMenu()
@@ -455,6 +464,11 @@ void vtkControl4DGUI::AddGUIObservers ( )
       ->AddObserver(vtkKWRange::RangeValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->SeriesToPlotMenu)
+    {
+    this->SeriesToPlotMenu->GetMenu()
+      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
   if (this->MaskSelectMenu)
     {
     this->MaskSelectMenu->GetMenu()
@@ -639,6 +653,10 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     this->ThresholdLower  = thlow; 
     SetWindowLevelForCurrentFrame();
     }
+  else if (this->SeriesToPlotMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+      && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    }
   else if (this->MaskSelectMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
@@ -658,6 +676,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->RunPlotButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
+    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
@@ -665,11 +684,11 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     vtkDoubleArray* p;
     if (this->PlotTypeButtonSet->GetWidget(0)->GetSelectedState())
       {
-      p = this->GetLogic()->GetIntensityCurve(nodeID, label, vtkControl4DLogic::TYPE_MEAN);
+      p = this->GetLogic()->GetIntensityCurve(series, nodeID, label, vtkControl4DLogic::TYPE_MEAN);
       }
     else
       {
-      p = this->GetLogic()->GetIntensityCurve(nodeID, label, vtkControl4DLogic::TYPE_SD);
+      p = this->GetLogic()->GetIntensityCurve(series, nodeID, label, vtkControl4DLogic::TYPE_SD);
       }
     UpdateFunctionEditor(p);
     }
@@ -677,6 +696,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWRadioButton::SelectedStateChangedEvent
            && this->PlotTypeButtonSet->GetWidget(0)->GetSelectedState() == 1)
     {
+    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
@@ -684,7 +704,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     if (nodeID)
       {
       vtkDoubleArray* p;
-      p = this->GetLogic()->GetIntensityCurve(nodeID, label, vtkControl4DLogic::TYPE_MEAN);
+      p = this->GetLogic()->GetIntensityCurve(series, nodeID, label, vtkControl4DLogic::TYPE_MEAN);
       UpdateFunctionEditor(p);
       }
     }
@@ -692,6 +712,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWRadioButton::SelectedStateChangedEvent
            && this->PlotTypeButtonSet->GetWidget(1)->GetSelectedState() == 1)
     {
+    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
@@ -699,7 +720,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     if (nodeID)
       {
       vtkDoubleArray* p;
-      p = this->GetLogic()->GetIntensityCurve(nodeID, label, vtkControl4DLogic::TYPE_SD);
+      p = this->GetLogic()->GetIntensityCurve(series, nodeID, label, vtkControl4DLogic::TYPE_SD);
       UpdateFunctionEditor(p);
       }
     }
@@ -707,10 +728,11 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
     {
     const char* filename = (const char*)callData;
+    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
-    this->GetLogic()->SaveIntensityCurve(nodeID, label, filename);
+    this->GetLogic()->SaveIntensityCurve(series, nodeID, label, filename);
     //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->
     }
   /*
@@ -759,7 +781,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     int sid = (int)this->RegistrationStartIndexSpinBox->GetValue();
     int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
 
-    RegistrationParametersType param;
+    vtkControl4DLogic::RegistrationParametersType param;
     param[std::string("Iterations")]     = std::string(this->IterationsEntry->GetWidget()->GetValue());
     param[std::string("gridSize")]       = std::string(this->GridSizeEntry->GetWidget()->GetValue());      /* 3 - 20, step 1*/
     param[std::string("HistogramBins")]  = std::string(this->HistogramBinsEntry->GetWidget()->GetValue()); /* 1 - 500, step 5*/
@@ -768,7 +790,10 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     //param[std::string("MaximumDeformation")]   = std::string("1.0");
     //param[std::string("DefaultPixelValue")]    = std::string("0");   /* 1000 - 500000, step 1000*/
 
-    RunSeriesRegistration(sid, eid, fid, param);
+    this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
+    this->GetLogic()->SetApplication(vtkSlicerApplication::SafeDownCast(this->GetApplication()));
+    this->GetLogic()->RunSeriesRegistration(sid, eid, fid, param);
+    this->GetLogic()->RemoveObservers(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     }
 } 
 
@@ -986,60 +1011,73 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  fframe->GetWidgetName() );
   
-  vtkKWFrame *fgframe = vtkKWFrame::New();
-  fgframe->SetParent(fframe->GetFrame());
-  fgframe->Create();
+  vtkKWFrame *mframe = vtkKWFrame::New();
+  mframe->SetParent(fframe->GetFrame());
+  mframe->Create();
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 fgframe->GetWidgetName() );
+                 mframe->GetWidgetName() );
   
+  vtkKWLabel *fgLabel = vtkKWLabel::New();
+  fgLabel->SetParent(mframe);
+  fgLabel->Create();
+  fgLabel->SetText("FG: ");
+
   this->ForegroundSeriesMenu = vtkKWMenuButton::New();
-  this->ForegroundSeriesMenu->SetParent(fgframe);
+  this->ForegroundSeriesMenu->SetParent(mframe);
   this->ForegroundSeriesMenu->Create();
   this->ForegroundSeriesMenu->SetWidth(10);
   this->ForegroundSeriesMenu->GetMenu()->AddRadioButton("Original");
   this->ForegroundSeriesMenu->GetMenu()->AddRadioButton("Registered");
   this->ForegroundSeriesMenu->SetValue("Original");
 
-  this->ForegroundVolumeSelectorScale = vtkKWScaleWithEntry::New();
-  this->ForegroundVolumeSelectorScale->SetParent(fgframe);
-  this->ForegroundVolumeSelectorScale->Create();
-  this->ForegroundVolumeSelectorScale->SetEntryPosition(vtkKWScaleWithEntry::EntryPositionRight);
-  this->ForegroundVolumeSelectorScale->SetOrientationToHorizontal();
-  this->ForegroundVolumeSelectorScale->SetLabelText("FG Frame #");
-  this->ForegroundVolumeSelectorScale->SetRange(0.0, 100.0);
-  this->ForegroundVolumeSelectorScale->SetResolution(1.0);
-
-  this->Script("pack %s %s -side left -fill x -padx 2 -pady 2", 
-               this->ForegroundSeriesMenu->GetWidgetName(),
-               this->ForegroundVolumeSelectorScale->GetWidgetName());
-  
-  vtkKWFrame *bgframe = vtkKWFrame::New();
-  bgframe->SetParent(fframe->GetFrame());
-  bgframe->Create();
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 bgframe->GetWidgetName() );
+  vtkKWLabel *bgLabel = vtkKWLabel::New();
+  bgLabel->SetParent(mframe);
+  bgLabel->Create();
+  bgLabel->SetText("BG: ");
 
   this->BackgroundSeriesMenu = vtkKWMenuButton::New();
-  this->BackgroundSeriesMenu->SetParent(bgframe);
+  this->BackgroundSeriesMenu->SetParent(mframe);
   this->BackgroundSeriesMenu->Create();
   this->BackgroundSeriesMenu->SetWidth(10);
   this->BackgroundSeriesMenu->GetMenu()->AddRadioButton("Original");
   this->BackgroundSeriesMenu->GetMenu()->AddRadioButton("Registered");
   this->BackgroundSeriesMenu->SetValue("Original");
 
+  this->Script("pack %s %s %s %s -side left -fill x -padx 2 -pady 2", 
+               fgLabel->GetWidgetName(),
+               this->ForegroundSeriesMenu->GetWidgetName(),
+               bgLabel->GetWidgetName(),
+               this->BackgroundSeriesMenu->GetWidgetName());
+  
+  vtkKWFrame *sframe = vtkKWFrame::New();
+  sframe->SetParent(fframe->GetFrame());
+  sframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 sframe->GetWidgetName() );
+
+  this->ForegroundVolumeSelectorScale = vtkKWScaleWithEntry::New();
+  this->ForegroundVolumeSelectorScale->SetParent(sframe);
+  this->ForegroundVolumeSelectorScale->Create();
+  this->ForegroundVolumeSelectorScale->SetEntryPosition(vtkKWScaleWithEntry::EntryPositionRight);
+  this->ForegroundVolumeSelectorScale->SetOrientationToHorizontal();
+  this->ForegroundVolumeSelectorScale->SetLabelText("FG");
+  this->ForegroundVolumeSelectorScale->SetRange(0.0, 100.0);
+  this->ForegroundVolumeSelectorScale->SetResolution(1.0);
+  this->ForegroundVolumeSelectorScale->SetWidth(30);
+
   this->BackgroundVolumeSelectorScale = vtkKWScaleWithEntry::New();
-  this->BackgroundVolumeSelectorScale->SetParent(bgframe);
+  this->BackgroundVolumeSelectorScale->SetParent(sframe);
   this->BackgroundVolumeSelectorScale->Create();
   this->BackgroundVolumeSelectorScale->SetEntryPosition(vtkKWScaleWithEntry::EntryPositionRight);
   this->BackgroundVolumeSelectorScale->SetOrientationToHorizontal();
-  this->BackgroundVolumeSelectorScale->SetLabelText("BG Frame #");
+  this->BackgroundVolumeSelectorScale->SetLabelText("BG");
   this->BackgroundVolumeSelectorScale->SetRange(0.0, 100.0);
   this->BackgroundVolumeSelectorScale->SetResolution(1.0);
-
-  this->Script("pack %s %s -side left -fill x -padx 2 -pady 2", 
-               this->BackgroundSeriesMenu->GetWidgetName(),
+  this->BackgroundVolumeSelectorScale->SetWidth(30);
+  
+  this->Script("pack %s %s -side top -fill x -padx 2 -pady 2", 
+               this->ForegroundVolumeSelectorScale->GetWidgetName(),
                this->BackgroundVolumeSelectorScale->GetWidgetName());
-
 
   // -----------------------------------------
   // Contrast control
@@ -1107,8 +1145,10 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
 
   conBrowsFrame->Delete();
   fframe->Delete();
-  fgframe->Delete();
-  bgframe->Delete();
+  mframe->Delete();
+  sframe->Delete();
+  fgLabel->Delete();
+  bgLabel->Delete();
 
 }
 
@@ -1138,23 +1178,52 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  msframe->GetWidgetName() );
 
+  vtkKWFrame* sframe = vtkKWFrame::New();
+  sframe->SetParent(msframe->GetFrame());
+  sframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 sframe->GetWidgetName() );
+  
+  vtkKWLabel *seriesLabel = vtkKWLabel::New();
+  seriesLabel->SetParent(sframe);
+  seriesLabel->Create();
+  seriesLabel->SetText("Series: ");
+
+  this->SeriesToPlotMenu = vtkKWMenuButton::New();
+  this->SeriesToPlotMenu->SetParent(sframe);
+  this->SeriesToPlotMenu->Create();
+  this->SeriesToPlotMenu->SetWidth(20);
+  this->SeriesToPlotMenu->GetMenu()->AddRadioButton("Original");
+  this->SeriesToPlotMenu->GetMenu()->AddRadioButton("Registered");
+  this->SeriesToPlotMenu->SetValue("Original");
+
+  this->Script("pack %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+               seriesLabel->GetWidgetName(),
+               this->SeriesToPlotMenu->GetWidgetName());
+
+  vtkKWFrame* mframe = vtkKWFrame::New();
+  mframe->SetParent(msframe->GetFrame());
+  mframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 mframe->GetWidgetName() );
+
   vtkKWLabel *menuLabel = vtkKWLabel::New();
-  menuLabel->SetParent(msframe->GetFrame());
+  menuLabel->SetParent(mframe);
   menuLabel->Create();
   menuLabel->SetText("Mask: ");
 
   this->MaskSelectMenu = vtkKWMenuButton::New();
-  this->MaskSelectMenu->SetParent(msframe->GetFrame());
+  this->MaskSelectMenu->SetParent(mframe);
   this->MaskSelectMenu->Create();
   this->MaskSelectMenu->SetWidth(20);
 
   this->MaskSelectSpinBox = vtkKWSpinBox::New();
-  this->MaskSelectSpinBox->SetParent(msframe->GetFrame());
+  this->MaskSelectSpinBox->SetParent(mframe);
   this->MaskSelectSpinBox->Create();
   this->MaskSelectSpinBox->SetWidth(3);
 
   this->MaskColorCanvas = vtkKWCanvas::New();
-  this->MaskColorCanvas->SetParent(msframe->GetFrame());
+  this->MaskColorCanvas->SetParent(mframe);
   this->MaskColorCanvas->Create();
   this->MaskColorCanvas->SetWidth(15);
   this->MaskColorCanvas->SetHeight(15);
@@ -1163,7 +1232,7 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->MaskColorCanvas->SetReliefToSolid();
 
   this->RunPlotButton = vtkKWPushButton::New();
-  this->RunPlotButton->SetParent(msframe->GetFrame());
+  this->RunPlotButton->SetParent(mframe);
   this->RunPlotButton->Create();
   this->RunPlotButton->SetText ("Plot");
   this->RunPlotButton->SetWidth (4);
@@ -1330,22 +1399,25 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
 
   this->IterationsEntry = vtkKWEntryWithLabel::New();
   this->IterationsEntry->SetParent( pframe->GetFrame());
-  this->IterationsEntry->SetLabelText ("Iterations:                         ");
+  this->IterationsEntry->SetLabelText ("Iterations:");
   this->IterationsEntry->Create();
+  this->IterationsEntry->GetWidget()->SetWidth(20);
   this->IterationsEntry->GetWidget()->SetRestrictValueToInteger();
   this->IterationsEntry->GetWidget()->SetValue(this->DefaultRegistrationParam[std::string("Iterations")].c_str());
 
   this->GridSizeEntry = vtkKWEntryWithLabel::New();
   this->GridSizeEntry->SetParent( pframe->GetFrame());
-  this->GridSizeEntry->SetLabelText ("Grid size (3-20):                   ");
+  this->GridSizeEntry->SetLabelText ("Grid size (3-20):");
   this->GridSizeEntry->Create();
+  this->GridSizeEntry->GetWidget()->SetWidth(20);
   this->GridSizeEntry->GetWidget()->SetRestrictValueToInteger();
   this->GridSizeEntry->GetWidget()->SetValue(this->DefaultRegistrationParam[std::string("gridSize")].c_str());
 
   this->HistogramBinsEntry = vtkKWEntryWithLabel::New();
   this->HistogramBinsEntry->SetParent( pframe->GetFrame());
-  this->HistogramBinsEntry->SetLabelText ("HistogramBinEntry (1-500):          ");
+  this->HistogramBinsEntry->SetLabelText ("HistogramBinEntry (1-500):");
   this->HistogramBinsEntry->Create();
+  this->HistogramBinsEntry->GetWidget()->SetWidth(20);
   this->HistogramBinsEntry->GetWidget()->SetRestrictValueToInteger();
   this->HistogramBinsEntry->GetWidget()->SetValue(this->DefaultRegistrationParam[std::string("HistogramBins")].c_str());
 
@@ -1353,9 +1425,10 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
   this->SpatialSamplesEntry->SetParent( pframe->GetFrame());
   this->SpatialSamplesEntry->SetLabelText ("SpatialSamplesEntry (1000 - 500000):");
   this->SpatialSamplesEntry->Create();
+  this->SpatialSamplesEntry->GetWidget()->SetWidth(20);
   this->SpatialSamplesEntry->GetWidget()->SetRestrictValueToInteger();
   this->SpatialSamplesEntry->GetWidget()->SetValue(this->DefaultRegistrationParam[std::string("SpatialSamples")].c_str());
-
+  
   this->Script("pack %s %s %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
                this->IterationsEntry->GetWidgetName(),
                this->GridSizeEntry->GetWidgetName(),
@@ -1651,176 +1724,3 @@ void vtkControl4DGUI::UpdateFunctionEditor(vtkDoubleArray* data)
 }
 
 
-//---------------------------------------------------------------------------
-int vtkControl4DGUI::RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param)
-{
-  if (sIndex < 0 ||
-      eIndex >= this->GetLogic()->GetNumberOfFrames() ||
-      kIndex < 0 ||
-      kIndex >= this->GetLogic()->GetNumberOfFrames() )
-    {
-    std::cerr << "int vtkControl4DGUI::RunSeriesRegistration(): irregular index" << std::endl;
-    return 0;
-    }
-      
-  this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
-  this->GetLogic()->CreateRegisteredVolumeNodes();
-  this->GetLogic()->RemoveObservers(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
-  
-  const char* fixedFrameNodeID = this->GetLogic()->GetFrameNodeID(kIndex);
-  vtkMRMLScalarVolumeNode* fixedNode;  
-  if (fixedFrameNodeID)
-    {
-    fixedNode = 
-      vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(fixedFrameNodeID));
-    }
-  else
-    {
-    std::cerr << "int vtkControl4DGUI::RunSeriesRegistration(): no fixed frame node ID found." << std::endl;
-    }
-
-  for (int i = sIndex; i <= eIndex; i++)
-    {
-    const char* movingFrameNodeID = this->GetLogic()->GetFrameNodeID(i);
-    const char* outputFrameNodeID = this->GetLogic()->GetRegisteredFrameNodeID(i);
-    if (movingFrameNodeID && outputFrameNodeID)
-      {
-      vtkMRMLScalarVolumeNode* movingNode;
-      movingNode = 
-        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(movingFrameNodeID));
-
-      vtkMRMLScalarVolumeNode* outputNode;
-      outputNode = 
-        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(outputFrameNodeID));
-
-      RunRegistration(fixedNode, movingNode, outputNode, param);
-      }
-    }
-
-  return 1;
-
-}
-  
-
-//---------------------------------------------------------------------------
-int vtkControl4DGUI::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode,
-                                     vtkMRMLScalarVolumeNode* movingNode,
-                                     vtkMRMLScalarVolumeNode* outputNode,
-                                     RegistrationParametersType& param)
-{
-  vtkCommandLineModuleGUI* cligui;
-
-  vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast (this->GetApplication());
-  cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Deformable BSpline registration"));
-  //cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Linear registration"));
-
-  if (cligui)
-    {
-    std::cerr << "Found CommandLineModule !!!" << std::endl;
-    
-    cligui->Enter();
-    vtkMRMLCommandLineModuleNode* node = 
-      static_cast<vtkMRMLCommandLineModuleNode*>(this->GetMRMLScene()->CreateNodeByClass("vtkMRMLCommandLineModuleNode"));
-    if(!node)
-      {
-      std::cerr << "Cannot create Rigid registration node." << std::endl;
-      }
-    this->GetMRMLScene()->AddNode(node);
-    //tensorCLM->SetModuleDescription("Diffusion Tensor Estimation");
-    //tensorCLM->SetName("GradientEditor: Tensor Estimation");
-    node->SetModuleDescription(cligui->GetModuleDescription());  // this is very important !!!
-    node->SetName("Deformable BSpline registration");
-
-    //if(outputNode)
-    //  {
-    //  this->GetMRMLScene()->RemoveNode(outputNode);
-    //  }
-    
-    // Create output transform node
-    vtkMRMLBSplineTransformNode *transformNode =
-      vtkMRMLBSplineTransformNode::New();
-    //assert(transformNode);
-    char name[128];
-    sprintf(name, "BSpline-%s", movingNode->GetName());
-    std::cerr << "Transform = " << name << std::endl;
-    transformNode->SetName(name);
-    this->GetMRMLScene()->AddNode(transformNode);
-    
-    RegistrationParametersType::iterator iter;
-    for (iter = param.begin(); iter != param.end(); iter ++)
-      {
-      node->SetParameterAsString(iter->first.c_str(), iter->second.c_str());
-      }
-    //node->SetModuleDescription( this->ModuleDescriptionObject );
-    /*
-    node->SetParameterAsInt("Iterations", 20);
-    node->SetParameterAsInt("gridSize", 5);  
-    node->SetParameterAsInt("HistogramBins", 100); 
-    node->SetParameterAsInt("SpatialSamples", 5000); 
-    node->SetParameterAsBool("ConstrainDeformation", 0); 
-    node->SetParameterAsDouble("MaximumDeformation", 1.0);
-    */
-
-    node->SetParameterAsInt("DefaultPixelValue", 0); 
-    //node->SetParameterAsString("InitialTransform", NULL);
-    node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
-    node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
-    //node->SetParameterAsString("OutputTransform", transformNode->GetID());
-    node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
-    transformNode->Delete();
-
-    cligui->GetLogic()->SetTemporaryDirectory(app->GetTemporaryDirectory());
-
-    ModuleDescription moduleDesc = node->GetModuleDescription();
-    if(moduleDesc.GetTarget() == "Unknown")
-      {
-      // Entry point is unknown
-      // "Linear registration" is shared object module, at least at this moment
-      assert(moduleDesc.GetType() == "SharedObjectModule");
-      typedef int (*ModuleEntryPoint)(int argc, char* argv[]);
-      itksys::DynamicLoader::LibraryHandle lib =
-        itksys::DynamicLoader::OpenLibrary(moduleDesc.GetLocation().c_str());
-      if(lib)
-        {
-        ModuleEntryPoint entryPoint = 
-          (ModuleEntryPoint) itksys::DynamicLoader::GetSymbolAddress(
-                                                                     lib, "ModuleEntryPoint");
-        if(entryPoint)
-          {
-          char entryPointAsText[256];
-          std::string entryPointAsString;
-          
-          sprintf(entryPointAsText, "%p", entryPoint);
-          entryPointAsString = std::string("slicer:")+entryPointAsText;
-          moduleDesc.SetTarget(entryPointAsString);
-          node->SetModuleDescription(moduleDesc);      
-          } 
-        else
-          {
-          std::cerr << "Failed to find entry point for Rigid registration. Abort." << std::endl;
-          }
-        } else {
-      std::cerr << "Failed to locate module library. Abort." << std::endl;
-      }
-    }
-
-    cligui->SetCommandLineModuleNode(node);
-    cligui->GetLogic()->SetCommandLineModuleNode(node);
-
-    std::cerr << "Starting Registration.... " << std::endl;    
-    cligui->GetLogic()->ApplyAndWait(node);
-    //cligui->GetLogic()->Apply();
-    std::cerr << "Starting Registration.... done." << std::endl;    
-    //this->SaveVolume(app, outputNode);
-    node->Delete(); // AF: is it right to delete this here?
-    //std::cerr << "Temp dir = " << ((vtkSlicerApplication*)this->GetApplication())->GetTemporaryDirectory() << std::endl;
-
-    return 1;
-    }
-  else
-    {
-    std::cerr << "Couldn't find CommandLineModule !!!" << std::endl;
-    return 0;
-    }
-
-}

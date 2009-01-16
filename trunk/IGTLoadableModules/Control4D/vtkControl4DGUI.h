@@ -47,10 +47,6 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 
   vtkTypeRevisionMacro ( vtkControl4DGUI, vtkSlicerModuleGUI );
 
-  //BTX
-  typedef std::map<std::string, std::string> RegistrationParametersType;
-  //ETX
-
   //----------------------------------------------------------------
   // Set/Get Methods
   //----------------------------------------------------------------
@@ -138,15 +134,6 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   void SelectMask(const char* nodeID, int label);
   void UpdateFunctionEditor(vtkDoubleArray* data);
 
-  //----------------------------------------------------------------
-  // Registration
-  //----------------------------------------------------------------
-  //BTX
-  int  RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param);
-  int  RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRMLScalarVolumeNode* movingNode, vtkMRMLScalarVolumeNode* outputNode,
-                       RegistrationParametersType& param);
-
-  //ETX
 
  protected:
   
@@ -174,6 +161,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkKWMenuButton*     BackgroundSeriesMenu;
   vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
 
+  vtkKWMenuButton* SeriesToPlotMenu;
   vtkKWMenuButton* MaskSelectMenu;
   vtkKWSpinBox*    MaskSelectSpinBox;
   vtkKWCanvas*     MaskColorCanvas;
@@ -193,11 +181,14 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkKWEntryWithLabel* HistogramBinsEntry;
   vtkKWEntryWithLabel* SpatialSamplesEntry;
 
+
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
 
-  RegistrationParametersType DefaultRegistrationParam;
+  //BTX
+  vtkControl4DLogic::RegistrationParametersType DefaultRegistrationParam;
+  //ETX
   
   vtkControl4DLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
