@@ -484,7 +484,6 @@ void vtkControl4DLogic::ClearIntensityCurveCache(const char* maskID)
     return;
     }
   
-  std::cerr << "void vtkControl4DLogic::ClearIntensityCurveCache(): clearing cache..." << std::endl;
   IntensityCurveCacheType::iterator icciter;
 
   icciter = this->IntensityCurveCache.find(maskID);
@@ -506,7 +505,7 @@ void vtkControl4DLogic::ClearIntensityCurveCache(const char* maskID)
     }
 
   icciter = this->RegisteredIntensitySDCurveCache.find(maskID);
-  if (icciter != this->RegisteredIntensityCurveCache.end())
+  if (icciter != this->RegisteredIntensitySDCurveCache.end())
     {
     this->RegisteredIntensitySDCurveCache.erase(icciter);
     }
@@ -555,6 +554,15 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(int series, const char* mas
     {
     return NULL;
     }
+
+  // Check last update
+  // if the mask has been updated since the intensity curve was updated 
+  std::cerr << "Modified time = " << mnode->GetMTime() << std::endl;
+  if (mnode->GetMTime() > this->MaskModifiedTimeMap[std::string(maskID)])
+    {
+    ClearIntensityCurveCache(maskID);
+    }
+
 
   // Check cache to see if the intensity curve has already been generated.
   int newCurveSet = 0;
@@ -611,17 +619,17 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(int series, const char* mas
       }
     }
 
-
-  if (newCurveSet)
+  if (newCurveSet == 1)
     {
     IntensityCurveSetType curveSet;
     //this->IntensityCurveCache[std::string(maskID)] = curveSet;
     (*meanCache)[std::string(maskID)] = curveSet;
     //this->IntensitySDCurveCache[std::string(maskID)] = curveSet;
     (*sdCache)[std::string(maskID)] = curveSet;
+    // generate mask index table
     }
-    
-  // generate mask index table
+
+  this->MaskModifiedTimeMap[std::string(maskID)] = mnode->GetMTime();
   GenerateIndexTable(mnode->GetImageData(), label);
   
   vtkDoubleArray* meanArray = vtkDoubleArray::New();

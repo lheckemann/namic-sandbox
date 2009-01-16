@@ -65,6 +65,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   typedef std::vector<CoordType> IndexTableType;
   typedef std::map<int, vtkDoubleArray*> IntensityCurveSetType;
   typedef std::map<std::string, IntensityCurveSetType> IntensityCurveCacheType;
+  typedef std::map<std::string, unsigned long>         MaskModifiedTimeMapType;
   typedef std::map<std::string, std::string> RegistrationParametersType;
   //ETX
 
@@ -133,6 +134,10 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   FrameNodeVectorType FrameNodeVector;
   FrameNodeVectorType RegisteredFrameNodeVector;
   IndexTableType MaskIndexTable;
+
+  // MaskModifiedTimeMap is used to store modified time of each mask
+  // to check if intensity curve caches need to be update
+  MaskModifiedTimeMapType MaskModifiedTimeMap;
   IntensityCurveCacheType IntensityCurveCache;
   IntensityCurveCacheType IntensitySDCurveCache;
   IntensityCurveCacheType RegisteredIntensityCurveCache;
