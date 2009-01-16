@@ -26,6 +26,8 @@
 #include "vtkMRMLScalarVolumeDisplayNode.h"
 //#include "vtkMRMLVolumeHeaderlessStorageNode.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
+#include "vtkCommandLineModuleLogic.h"
+#include "vtkCommandLineModuleGUI.h"
 
 #include "itkOrientedImage.h"
 #include "itkImageSeriesReader.h"
@@ -37,6 +39,10 @@
 #include "itkImageSeriesReader.h"
 #include "itkImageFileWriter.h"
 #include "itkTimeProbesCollectorBase.h"
+
+#include "vtkMRMLBSplineTransformNode.h"
+#include "itksys/DynamicLoader.hxx"
+
 
 vtkCxxRevisionMacro(vtkControl4DLogic, "$Revision$");
 vtkStandardNewMacro(vtkControl4DLogic);
@@ -54,6 +60,10 @@ vtkControl4DLogic::vtkControl4DLogic()
   this->FrameNodeVector.clear();
 
   this->IntensityCurveCache.clear();
+  this->IntensitySDCurveCache.clear();
+  this->RegisteredIntensityCurveCache.clear();
+  this->RegisteredIntensitySDCurveCache.clear();
+
 }
 
 
@@ -467,20 +477,41 @@ void vtkControl4DLogic::ClearIntensityCurveCache(const char* maskID)
   if (maskID == NULL)
     {
     this->IntensityCurveCache.clear();
+    this->IntensitySDCurveCache.clear();
+    this->RegisteredIntensityCurveCache.clear();
+    this->RegisteredIntensitySDCurveCache.clear();
+
     return;
     }
   
   std::cerr << "void vtkControl4DLogic::ClearIntensityCurveCache(): clearing cache..." << std::endl;
-  IntensityCurveCacheType::iterator icciter = this->IntensityCurveCache.find(maskID);
+  IntensityCurveCacheType::iterator icciter;
+
+  icciter = this->IntensityCurveCache.find(maskID);
   if (icciter != this->IntensityCurveCache.end())
     {
     this->IntensityCurveCache.erase(icciter);
     }
+
   icciter = this->IntensitySDCurveCache.find(maskID);
   if (icciter != this->IntensitySDCurveCache.end())
     {
     this->IntensitySDCurveCache.erase(icciter);
     }
+
+  icciter = this->RegisteredIntensityCurveCache.find(maskID);
+  if (icciter != this->RegisteredIntensityCurveCache.end())
+    {
+    this->RegisteredIntensityCurveCache.erase(icciter);
+    }
+
+  icciter = this->RegisteredIntensitySDCurveCache.find(maskID);
+  if (icciter != this->RegisteredIntensityCurveCache.end())
+    {
+    this->RegisteredIntensitySDCurveCache.erase(icciter);
+    }
+  
+
 }
 
 
@@ -515,7 +546,7 @@ void vtkControl4DLogic::GenerateIndexTable(vtkImageData* mask, int label)
 }
 
 //---------------------------------------------------------------------------
-vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int label, int type)
+vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(int series, const char* maskID, int label, int type)
 {
   vtkMRMLScalarVolumeNode* mnode =
     vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(maskID));
@@ -528,10 +559,27 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int lab
   // Check cache to see if the intensity curve has already been generated.
   int newCurveSet = 0;
   IntensityCurveCacheType::iterator icciter;
+
+  IntensityCurveCacheType* meanCache;
+  IntensityCurveCacheType* sdCache;
+
+  if (series == 0) // for original image
+    {
+    meanCache = &(this->IntensityCurveCache);
+    sdCache   = &(this->IntensitySDCurveCache);
+    }
+  else
+    {
+    meanCache = &(this->RegisteredIntensityCurveCache);
+    sdCache = &(this->RegisteredIntensitySDCurveCache);
+    }
+
   if (type == TYPE_MEAN)
     {
-    icciter = this->IntensityCurveCache.find(maskID);
-    if (icciter != this->IntensityCurveCache.end())
+    //icciter = this->IntensityCurveCache.find(maskID);
+    icciter = meanCache->find(maskID);
+    //if (icciter != this->IntensityCurveCache.end())
+    if (icciter != meanCache->end())
       {
       IntensityCurveSetType::iterator icsiter = icciter->second.find(label);
       if (icsiter != icciter->second.end())
@@ -546,8 +594,10 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int lab
     }
   else // type == TYPE_SD
     {
-    icciter = this->IntensitySDCurveCache.find(maskID);
-    if (icciter != this->IntensityCurveCache.end())
+    //icciter = this->IntensitySDCurveCache.find(maskID);
+    icciter = sdCache->find(maskID);
+    //if (icciter != this->IntensityCurveCache.end())
+    if (icciter != meanCache->end())
       {
       IntensityCurveSetType::iterator icsiter = icciter->second.find(label);
       if (icsiter != icciter->second.end())
@@ -561,11 +611,14 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int lab
       }
     }
 
+
   if (newCurveSet)
     {
     IntensityCurveSetType curveSet;
-    this->IntensityCurveCache[std::string(maskID)] = curveSet;
-    this->IntensitySDCurveCache[std::string(maskID)] = curveSet;
+    //this->IntensityCurveCache[std::string(maskID)] = curveSet;
+    (*meanCache)[std::string(maskID)] = curveSet;
+    //this->IntensitySDCurveCache[std::string(maskID)] = curveSet;
+    (*sdCache)[std::string(maskID)] = curveSet;
     }
     
   // generate mask index table
@@ -577,7 +630,17 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int lab
   sdArray->SetNumberOfValues(0);
 
   FrameNodeVectorType::iterator iter;
-  for (iter = this->FrameNodeVector.begin(); iter != this->FrameNodeVector.end(); iter ++)
+  FrameNodeVectorType* frameNodes;
+  if (series == 0)
+    {
+    frameNodes = &this->FrameNodeVector;
+    }
+  else
+    {
+    frameNodes = &this->RegisteredFrameNodeVector;
+    }
+  //for (iter = this->FrameNodeVector.begin(); iter != this->FrameNodeVector.end(); iter ++)
+  for (iter = frameNodes->begin(); iter != frameNodes->end(); iter ++)
     {
     const char* imageID = iter->c_str();
     std::cerr << "image id = " << imageID << std::endl;
@@ -596,8 +659,10 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int lab
     sdArray->InsertNextValue(sdvalue); 
     }
 
-  this->IntensityCurveCache[std::string(maskID)][label] = meanArray;
-  this->IntensitySDCurveCache[std::string(maskID)][label] = sdArray;
+  //this->IntensityCurveCache[std::string(maskID)][label] = meanArray;
+  //this->IntensitySDCurveCache[std::string(maskID)][label] = sdArray;
+  (*meanCache)[std::string(maskID)][label] = meanArray;
+  (*sdCache)[std::string(maskID)][label] = sdArray;
 
   if (type == TYPE_MEAN)
     {
@@ -611,10 +676,10 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* maskID, int lab
 
 
 //---------------------------------------------------------------------------
-int vtkControl4DLogic::SaveIntensityCurve(const char* maskID, int label, const char* filename)
+int vtkControl4DLogic::SaveIntensityCurve(int series, const char* maskID, int label, const char* filename)
 {
-  vtkDoubleArray* meanArray = GetIntensityCurve(maskID, label, TYPE_MEAN);
-  vtkDoubleArray* sdArray = GetIntensityCurve(maskID, label, TYPE_SD);
+  vtkDoubleArray* meanArray = GetIntensityCurve(series, maskID, label, TYPE_MEAN);
+  vtkDoubleArray* sdArray = GetIntensityCurve(series, maskID, label, TYPE_SD);
 
   if (!meanArray || !sdArray)
     {
@@ -643,3 +708,185 @@ int vtkControl4DLogic::SaveIntensityCurve(const char* maskID, int label, const c
 
 }
 
+
+//---------------------------------------------------------------------------
+int vtkControl4DLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param)
+{
+  if (sIndex < 0 ||
+      eIndex >= GetNumberOfFrames() ||
+      kIndex < 0 ||
+      kIndex >= GetNumberOfFrames() )
+    {
+    std::cerr << "int vtkControl4DGUI::RunSeriesRegistration(): irregular index" << std::endl;
+    return 0;
+    }
+  
+  CreateRegisteredVolumeNodes();
+  
+  const char* fixedFrameNodeID = GetFrameNodeID(kIndex);
+  vtkMRMLScalarVolumeNode* fixedNode;  
+  if (fixedFrameNodeID)
+    {
+    fixedNode = 
+      vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(fixedFrameNodeID));
+    }
+  else
+    {
+    std::cerr << "int vtkControl4DGUI::RunSeriesRegistration(): no fixed frame node ID found." << std::endl;
+    }
+
+
+  StatusMessageType statusMessage;
+  statusMessage.show = 1;
+  statusMessage.progress = 0.0;
+  statusMessage.message = "Running image registration ....";
+  this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+
+  for (int i = sIndex; i <= eIndex; i++)
+    {
+    statusMessage.progress = (double)(i-sIndex) / (double)(eIndex-sIndex + 1);
+    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+
+    const char* movingFrameNodeID = GetFrameNodeID(i);
+    const char* outputFrameNodeID = GetRegisteredFrameNodeID(i);
+    if (movingFrameNodeID && outputFrameNodeID)
+      {
+      vtkMRMLScalarVolumeNode* movingNode;
+      movingNode = 
+        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(movingFrameNodeID));
+
+      vtkMRMLScalarVolumeNode* outputNode;
+      outputNode = 
+        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(outputFrameNodeID));
+
+      RunRegistration(fixedNode, movingNode, outputNode, param);
+      }
+    }
+
+  return 1;
+
+}
+  
+
+//---------------------------------------------------------------------------
+int vtkControl4DLogic::RunRegistration(vtkMRMLScalarVolumeNode* fixedNode,
+                                       vtkMRMLScalarVolumeNode* movingNode,
+                                       vtkMRMLScalarVolumeNode* outputNode,
+                                       RegistrationParametersType& param)
+{
+  vtkCommandLineModuleGUI* cligui;
+
+  vtkSlicerApplication* app = this->GetApplication();
+  cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Deformable BSpline registration"));
+  //cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Linear registration"));
+
+  if (cligui)
+    {
+    std::cerr << "Found CommandLineModule !!!" << std::endl;
+    
+    cligui->Enter();
+    vtkMRMLCommandLineModuleNode* node = 
+      static_cast<vtkMRMLCommandLineModuleNode*>(this->GetMRMLScene()->CreateNodeByClass("vtkMRMLCommandLineModuleNode"));
+    if(!node)
+      {
+      std::cerr << "Cannot create Rigid registration node." << std::endl;
+      }
+    this->GetMRMLScene()->AddNode(node);
+    //tensorCLM->SetModuleDescription("Diffusion Tensor Estimation");
+    //tensorCLM->SetName("GradientEditor: Tensor Estimation");
+    node->SetModuleDescription(cligui->GetModuleDescription());  // this is very important !!!
+    node->SetName("Deformable BSpline registration");
+
+    //if(outputNode)
+    //  {
+    //  this->GetMRMLScene()->RemoveNode(outputNode);
+    //  }
+    
+    // Create output transform node
+    vtkMRMLBSplineTransformNode *transformNode =
+      vtkMRMLBSplineTransformNode::New();
+    //assert(transformNode);
+    char name[128];
+    sprintf(name, "BSpline-%s", movingNode->GetName());
+    std::cerr << "Transform = " << name << std::endl;
+    transformNode->SetName(name);
+    this->GetMRMLScene()->AddNode(transformNode);
+    
+    RegistrationParametersType::iterator iter;
+    for (iter = param.begin(); iter != param.end(); iter ++)
+      {
+      node->SetParameterAsString(iter->first.c_str(), iter->second.c_str());
+      }
+    //node->SetModuleDescription( this->ModuleDescriptionObject );
+    /*
+    node->SetParameterAsInt("Iterations", 20);
+    node->SetParameterAsInt("gridSize", 5);  
+    node->SetParameterAsInt("HistogramBins", 100); 
+    node->SetParameterAsInt("SpatialSamples", 5000); 
+    node->SetParameterAsBool("ConstrainDeformation", 0); 
+    node->SetParameterAsDouble("MaximumDeformation", 1.0);
+    */
+
+    node->SetParameterAsInt("DefaultPixelValue", 0); 
+    //node->SetParameterAsString("InitialTransform", NULL);
+    node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
+    node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
+    node->SetParameterAsString("OutputTransform", transformNode->GetID());
+    node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
+    transformNode->Delete();
+
+    cligui->GetLogic()->SetTemporaryDirectory(app->GetTemporaryDirectory());
+
+    ModuleDescription moduleDesc = node->GetModuleDescription();
+    if(moduleDesc.GetTarget() == "Unknown")
+      {
+      // Entry point is unknown
+      // "Linear registration" is shared object module, at least at this moment
+      //assert(moduleDesc.GetType() == "SharedObjectModule");
+      typedef int (*ModuleEntryPoint)(int argc, char* argv[]);
+      itksys::DynamicLoader::LibraryHandle lib =
+        itksys::DynamicLoader::OpenLibrary(moduleDesc.GetLocation().c_str());
+      if(lib)
+        {
+        ModuleEntryPoint entryPoint = 
+          (ModuleEntryPoint) itksys::DynamicLoader::GetSymbolAddress(
+                                                                     lib, "ModuleEntryPoint");
+        if(entryPoint)
+          {
+          char entryPointAsText[256];
+          std::string entryPointAsString;
+          
+          sprintf(entryPointAsText, "%p", entryPoint);
+          entryPointAsString = std::string("slicer:")+entryPointAsText;
+          moduleDesc.SetTarget(entryPointAsString);
+          node->SetModuleDescription(moduleDesc);      
+          } 
+        else
+          {
+          std::cerr << "Failed to find entry point for Rigid registration. Abort." << std::endl;
+          }
+        } else {
+      std::cerr << "Failed to locate module library. Abort." << std::endl;
+      }
+    }
+
+    cligui->SetCommandLineModuleNode(node);
+    cligui->GetLogic()->SetCommandLineModuleNode(node);
+
+    std::cerr << "Starting Registration.... " << std::endl;    
+    cligui->GetLogic()->ApplyAndWait(node);
+    //cligui->GetLogic()->Apply();
+    std::cerr << "Starting Registration.... done." << std::endl;    
+    //this->SaveVolume(app, outputNode);
+    node->Delete(); // AF: is it right to delete this here?
+    //std::cerr << "Temp dir = " << ((vtkSlicerApplication*)this->GetApplication())->GetTemporaryDirectory() << std::endl;
+
+    return 1;
+    }
+  else
+    {
+    std::cerr << "Couldn't find CommandLineModule !!!" << std::endl;
+    return 0;
+    }
+
+}

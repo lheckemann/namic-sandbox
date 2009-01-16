@@ -32,6 +32,9 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLScene.h"
 
+#include <string>
+#include <map>
+
 class vtkIGTLConnector;
 
 class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic 
@@ -62,6 +65,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   typedef std::vector<CoordType> IndexTableType;
   typedef std::map<int, vtkDoubleArray*> IntensityCurveSetType;
   typedef std::map<std::string, IntensityCurveSetType> IntensityCurveCacheType;
+  typedef std::map<std::string, std::string> RegistrationParametersType;
   //ETX
 
  public:
@@ -83,8 +87,12 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   const char* GetRegisteredFrameNodeID(int index);
 
   void  ClearIntensityCurveCache(const char* maskID);
-  vtkDoubleArray* GetIntensityCurve(const char* maskID, int label, int type);
-  int  SaveIntensityCurve(const char* maskID, int label, const char* filename);
+  vtkDoubleArray* GetIntensityCurve(int series, const char* maskID, int label, int type);
+  int  SaveIntensityCurve(int series, const char* maskID, int label, const char* filename);
+
+  void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
+  vtkSlicerApplication* GetApplication() { return this->Application; };
+  int  RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param);
 
  protected:
   
@@ -105,6 +113,16 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   double GetSDIntencity(vtkImageData* image, double mean);
   void   GenerateIndexTable(vtkImageData* mask, int label);
 
+
+  //----------------------------------------------------------------
+  // Registration
+  //----------------------------------------------------------------
+  //BTX
+  int  RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRMLScalarVolumeNode* movingNode, vtkMRMLScalarVolumeNode* outputNode,
+                       RegistrationParametersType& param);
+  //ETX
+
+  vtkSlicerApplication *Application;
   vtkCallbackCommand *DataCallbackCommand;
 
  private:
@@ -117,6 +135,8 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   IndexTableType MaskIndexTable;
   IntensityCurveCacheType IntensityCurveCache;
   IntensityCurveCacheType IntensitySDCurveCache;
+  IntensityCurveCacheType RegisteredIntensityCurveCache;
+  IntensityCurveCacheType RegisteredIntensitySDCurveCache;
   //ETX
 
   const char* CurrentFrameFG;
