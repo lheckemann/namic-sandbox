@@ -863,6 +863,7 @@ void vtkControl4DGUI::ProcessMRMLEvents ( vtkObject *caller,
   else if (event == vtkMRMLScene::SceneCloseEvent)
     {
     }
+  /*
   else if (event == vtkMRMLVolumeNode::ImageDataModifiedEvent)
     {
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
@@ -877,6 +878,7 @@ void vtkControl4DGUI::ProcessMRMLEvents ( vtkObject *caller,
         }
       }
     }
+  */
 }
 
 
