@@ -123,9 +123,9 @@ vtkUltrasoundVolumeReconstructor::vtkUltrasoundVolumeReconstructor()
   this->Verbose = false;
   
 #ifdef USE_ULTRASOUND_DEVICE
-  this->sonixGrabber = vtkV4L2VideoSource::New();
+  this->videoSource = vtkV4L2VideoSource::New();
 #else
-  this->sonixGrabber = vtkVideoSourceSimulator::New();
+  this->videoSource = vtkVideoSourceSimulator::New();
 #endif //USE_ULTRASOUND_DEVICE 
   
   this->tagger = vtkTaggedImageFilter::New();
@@ -143,8 +143,8 @@ vtkUltrasoundVolumeReconstructor::~vtkUltrasoundVolumeReconstructor()
 {
 
   this->tracker->Delete();
-  this->sonixGrabber->ReleaseSystemResources();
-  this->sonixGrabber->Delete();
+  this->videoSource->ReleaseSystemResources();
+  this->videoSource->Delete();
   this->tagger->Delete();
   this->calibReader->Delete();
   this->SetCalibrationFileName(NULL);
@@ -162,25 +162,25 @@ bool vtkUltrasoundVolumeReconstructor::ConfigurePipeline()
   this->calibReader->ReadCalibFile();
 
 #ifdef USE_ULTRASOUND_DEVICE
-  this->sonixGrabber->SetVideoDevice(this->GetVideoDevice());
-  this->sonixGrabber->SetVideoChannel(this->GetVideoChannel());
-  this->sonixGrabber->SetVideoMode(this->GetVideoMode());
+  this->videoSource->SetVideoDevice(this->GetVideoDevice());
+  this->videoSource->SetVideoChannel(this->GetVideoChannel());
+  this->videoSource->SetVideoMode(this->GetVideoMode());
 #endif
 
   // set up the video source (ultrasound machine)  
-  this->sonixGrabber->SetFrameRate(this->FrameRate);  
-  this->sonixGrabber->SetFrameBufferSize(this->NbFrames);
+  this->videoSource->SetFrameRate(this->FrameRate);  
+  this->videoSource->SetFrameBufferSize(this->NbFrames);
   
   double *imageOrigin = this->calibReader->GetImageOrigin();
-  this->sonixGrabber->SetDataOrigin(imageOrigin);
+  this->videoSource->SetDataOrigin(imageOrigin);
   double *imageSpacing = this->calibReader->GetImageSpacing();
-  this->sonixGrabber->SetDataSpacing(imageSpacing);
+  this->videoSource->SetDataSpacing(imageSpacing);
   
   int *imSize = this->calibReader->GetImageSize();
-  this->sonixGrabber->SetFrameSize(imSize[0], imSize[1], 1);
+  this->videoSource->SetFrameSize(imSize[0], imSize[1], 1);
   //
   // Setting up the synchronization filter
-  this->tagger->SetVideoSource(sonixGrabber);
+  this->tagger->SetVideoSource(videoSource);
   
   // set up the tracker if necessary
   bool error = this->StartTracker();    
@@ -230,7 +230,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   vtkSleep(0.2);
   cout << '\a' << std::flush; 
 
-  this->sonixGrabber->Record();  //Start recording frame from the video
+  this->videoSource->Record();  //Start recording frame from the video
    
   for (int i = 0; i < (int) (this->NbFrames / this->FrameRate + 0.5) * 2; i++)
     {
@@ -244,7 +244,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
     }
   cout << endl;
 
-  this->sonixGrabber->Stop();//Stop recording
+  this->videoSource->Stop();//Stop recording
 
   this->tracker->StopTracking();//Stop tracking
 
@@ -281,7 +281,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
   double minX, minY, minZ;
   minX = minY = minZ = numeric_limits<double>::max();
 
-  int nbFramesGrabbed = sonixGrabber->GetFrameCount();
+  int nbFramesGrabbed = videoSource->GetFrameCount();
 
   if(nbFramesGrabbed == 0)
     {
@@ -305,7 +305,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 #endif
     } 
 
-  this->sonixGrabber->Rewind();
+  this->videoSource->Rewind();
 
 #ifdef USE_TRACKER_DEVICE
   vtkMatrix4x4 * tempMatrix = vtkMatrix4x4::New();
@@ -339,7 +339,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
       maxY = max(transformedPt[1], maxY);
       maxZ = max(transformedPt[2], maxZ);
       }
-    this->sonixGrabber->Seek(1);
+    this->videoSource->Seek(1);
     }
 
 #ifdef USE_TRACKER_DEVICE
@@ -365,10 +365,10 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 
   panoramaReconstructor->SetSlice(tagger->GetOutput());
   panoramaReconstructor->GetOutput()->Update();
-  this->sonixGrabber->Rewind();
+  this->videoSource->Rewind();
 
 #ifdef USE_ULTRASOUND_DEVICE
-  this->sonixGrabber->Seek(100);//The first 100 frames are black therefore skip them
+  this->videoSource->Seek(100);//The first 100 frames are black therefore skip them
   if(Verbose)
     {
     cout << "Skip the first 100 frames" << endl;
@@ -411,17 +411,16 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 #ifdef USE_TRACKER_DEVICE
     AdjustMatrix(*sliceAxes);   // Adjust tracker matrix to ultrasound scan depth
 #endif
-    fprintf(stderr,"1");
+
     panoramaReconstructor->SetSliceAxes(sliceAxes); //Set current trackingmatrix
-    fprintf(stderr,"2");
 
 #ifdef DEBUG_MATRICES
     cout << "Tracker matrix:\n";
     sliceAxes->Print(cout);
 #endif
-    fprintf(stderr,"3");
+
     panoramaReconstructor->InsertSlice(); //Add current slice to the reconstructor
-    this->sonixGrabber->Seek(1); //Advance to the next frame
+    this->videoSource->Seek(1); //Advance to the next frame
 
 #ifdef DEBUG_IMAGES
 
@@ -518,7 +517,7 @@ bool vtkUltrasoundVolumeReconstructor::ReconstructVolume(vtkImageData * Volume)
 //Adjust tracker matrix to ultrasound scan depth
 void vtkUltrasoundVolumeReconstructor::AdjustMatrix(vtkMatrix4x4& matrix)
 {  
-  double scaleFactor = (this->sonixGrabber->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
+  double scaleFactor = (this->videoSource->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
   
   matrix.Element[0][3] = matrix.Element[0][3] * scaleFactor;//x
   matrix.Element[1][3] = matrix.Element[1][3] * scaleFactor;//y
