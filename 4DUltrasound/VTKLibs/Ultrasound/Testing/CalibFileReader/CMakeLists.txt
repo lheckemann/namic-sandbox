@@ -1,0 +1,2 @@
+ADD_EXECUTABLE(CalibFileReaderTest CalibFileReaderTest.cxx)
+TARGET_LINK_LIBRARIES(CalibFileReaderTest vtkOpenIGTUltrasound)
