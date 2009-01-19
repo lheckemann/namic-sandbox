@@ -140,8 +140,6 @@ void vtkTaggedImageFilter::SetTrackerTool(vtkTrackerTool *tool)
   this->TrackerTool = tool; 
 }
 
-
-
 // This method simply copies by reference the input data to the output.
 int vtkTaggedImageFilter::RequestData(
   vtkInformation *vtkNotUsed(request),
