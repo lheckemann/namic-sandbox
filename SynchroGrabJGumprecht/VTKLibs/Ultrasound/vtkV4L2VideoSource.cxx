@@ -1077,9 +1077,9 @@ void vtkV4L2VideoSource::InternalGrab()
     {
       this->AdvanceFrameBuffer(1);
       if (this->FrameIndex + 1 < this->FrameBufferSize)
-  {
-    this->FrameIndex++;
-  }
+        {
+        this->FrameIndex++;
+        }
     }
 
   index = this->FrameBufferIndex % this->FrameBufferSize;
