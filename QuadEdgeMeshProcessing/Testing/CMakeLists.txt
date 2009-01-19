@@ -48,6 +48,10 @@ TARGET_LINK_LIBRARIES(itkPointLocator2Test1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 ADD_EXECUTABLE(itkQuadEdgeMeshSplitFilterTest itkQuadEdgeMeshSplitFilterTest.cxx)
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSplitFilterTest ITKQuadEdgeMesh ITKIO)
 
+ADD_EXECUTABLE(itkQuadEdgeMeshToSphereFilterTest
+itkQuadEdgeMeshToSphereFilterTest.cxx )
+TARGET_LINK_LIBRARIES( itkQuadEdgeMeshToSphereFilterTest ITKQuadEdgeMesh ITKIO)
+
 
 ###################
 ###################
@@ -68,8 +72,9 @@ ADD_TEST(itkRegularSphereQuadEdgeMeshSourceTest1
 
 # ADD ONE SMALL MESH AS DATA...
 # ADD_TEST(itkQuadEdgeMeshSplitFilterTest
-#   ${CXX_TEST_PATH}/itkQuadEdgeMeshSplitFilterTest
-#
+#   ${CXX_TEST_PATH}/itkQuadEdgeMeshSplitFilterTest ...)
+#ADD_TEST(itkQuadEdgeMeshToSphereFilterTest
+#   ${CXX_TEST_PATH}/itkQuadEdgeMeshToSphereFilterTest ..)
 
 IF( FREESURFER_DIR )
 
