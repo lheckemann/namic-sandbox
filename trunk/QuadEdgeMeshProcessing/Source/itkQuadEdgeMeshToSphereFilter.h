@@ -96,13 +96,14 @@ public:
     }
 
 protected:
-  QuadEdgeMeshToSphereFilter() : Superclass() {}
+  QuadEdgeMeshToSphereFilter() : Superclass(), m_CoefficientsMethod( 0 ) {}
   ~QuadEdgeMeshToSphereFilter() {}
 
   CoefficientsComputation * m_CoefficientsMethod;
 
   void GenerateData( )
   {
+    assert( m_CoefficientsMethod != 0 );
     Superclass::GenerateData();
     OutputMeshPointer output = this->GetOutput();
 
