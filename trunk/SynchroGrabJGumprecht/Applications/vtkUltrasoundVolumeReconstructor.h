@@ -141,9 +141,9 @@ protected:
   vtkTaggedImageFilter *tagger;
 
 #ifdef USE_ULTRASOUND_DEVICE
-  vtkV4L2VideoSource *sonixGrabber;  
+  vtkV4L2VideoSource *videoSource;  
 #else
-  vtkVideoSourceSimulator *sonixGrabber;
+  vtkVideoSourceSimulator *videoSource;
 #endif
 
   void AdjustMatrix(vtkMatrix4x4& matrix);
