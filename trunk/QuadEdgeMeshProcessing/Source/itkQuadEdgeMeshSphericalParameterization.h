@@ -6,6 +6,12 @@
 
 namespace itk
 {
+  /**
+    * \class QuadEdgeMeshSphericalParameterization
+    * \brief Compute the spherical parameterization of the input mesh. The input
+    * mesh must be homeomorph to a sphere.
+    * \note No test is perform on the topology of the input mesh.
+  */
   template< class TInputMesh,
             class TOutputMesh,
             class TInitializationFilter >

@@ -13,9 +13,14 @@ namespace itk
 {
 /**
  * \class QuadEdgeMeshToSphereFilter
- * \brief
+ * \brief Map the input mesh to a sphere. First the input mesh is split into
+ * two meshes. These two meshes are then parameterized onto a planar disk.
+ * Then each disk is mapped to one sphere hemisphere by inverse stereo
+ * projection.
 */
-template< class TInputMesh, class TOutputMesh, class TSolverTraits >
+template< class TInputMesh,
+          class TOutputMesh,
+          class TSolverTraits >
 class QuadEdgeMeshToSphereFilter :
   public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 {
@@ -90,6 +95,9 @@ public:
 
   typedef MatrixCoefficients< OutputMeshType >       CoefficientsComputation;
 
+  /**
+   * \brief Provide matrix coefficients method for planar parameterization.
+  */
   void SetCoefficientsMethod( CoefficientsComputation* iMethod )
     {
     this->m_CoefficientsMethod = iMethod;
@@ -107,6 +115,7 @@ protected:
     Superclass::GenerateData();
     OutputMeshPointer output = this->GetOutput();
 
+    // split the input mesh into two meshes
     SplitFilterPointer split_filter = SplitFilterType::New();
     split_filter->SetInput( output );
     split_filter->Update();
@@ -129,6 +138,8 @@ protected:
     param1->SetCoefficientsMethod( m_CoefficientsMethod );
     param1->Update();
 
+
+    // Inverse stereo projection
     OutputPointsContainerPointer points = param0->GetOutput()->GetPoints();
     OutputPointType p, q;
     OutputCoordRepType den, r2;
