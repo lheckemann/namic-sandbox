@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <math.h>
+#include <cstdlib>
 
 #include "igtlOSUtil.h"
 #include "igtlPositionMessage.h"

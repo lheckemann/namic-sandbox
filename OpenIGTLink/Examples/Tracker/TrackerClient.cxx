@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <math.h>
+#include <cstdlib>
 
 #include "igtlOSUtil.h"
 #include "igtlTransformMessage.h"
