@@ -52,6 +52,13 @@ ADD_EXECUTABLE(itkQuadEdgeMeshToSphereFilterTest
 itkQuadEdgeMeshToSphereFilterTest.cxx )
 TARGET_LINK_LIBRARIES( itkQuadEdgeMeshToSphereFilterTest ITKQuadEdgeMesh ITKIO)
 
+ADD_EXECUTABLE(itkQuadEdgeMeshSphericalParameterizationTest
+itkQuadEdgeMeshSphericalParameterizationTest.cxx )
+TARGET_LINK_LIBRARIES( itkQuadEdgeMeshSphericalParameterizationTest
+ITKQuadEdgeMesh ITKIO)
+
+
+
 
 ###################
 ###################
