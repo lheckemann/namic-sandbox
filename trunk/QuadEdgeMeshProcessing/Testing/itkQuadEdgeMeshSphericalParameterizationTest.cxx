@@ -5,6 +5,7 @@
 #include <VNLIterativeSparseSolverTraits.h>
 #include <itkQuadEdgeMeshParamMatrixCoefficients.h>
 
+#include "itkQuadEdgeMeshToSphereFilter.h"
 #include "itkQuadEdgeMeshSphericalParameterization.h"
 
 using namespace itk;

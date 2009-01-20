@@ -2,11 +2,13 @@
 #define __itkQuadEdgeMeshSphericalParameterization_h
 
 #include <itkQuadEdgeMeshToQuadEdgeMeshFilter.h>
-#include <itkQEMeshParamMatrixCoefficients.h>
+#include <itkQuadEdgeMeshParamMatrixCoefficients.h>
 
 namespace itk
 {
-  template< class TInputMesh, class TOutputMesh, class TInitializationFilter >
+  template< class TInputMesh,
+            class TOutputMesh,
+            class TInitializationFilter >
   class QuadEdgeMeshSphericalParameterization :
     public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
   {
