@@ -3,7 +3,7 @@
 
 
 #include <itkQuadEdgeMeshDataTraits.h>
-#include <itkQENormalFilter.h>
+#include <itkQuadEdgeMeshNormalFilter.h>
 #include <itkQuadEdgeMeshToQuadEdgeMeshFilter.h>
 #include <itkQuadEdgeMeshParamMatrixCoefficients.h>
 
@@ -11,7 +11,8 @@ namespace itk
 {
 /**
  * \class QuadEdgeMeshGaussMapFilter
- * \brief
+ * \brief Compute the Gauss map of a given mesh. It change the position of 
+ * each vertex to its computed normal.
 */
 template< class TInput, class TOutput >
 class QuadEdgeMeshGaussMapFilter :
@@ -92,7 +93,7 @@ public:
   typedef typename OutputNormalMeshType::PointDataContainerIterator
     OutputNormalMeshPointDataContainerIterator;
 
-  typedef QENormalFilter< OutputMeshType, OutputNormalMeshType >
+  typedef QuadEdgeMeshNormalFilter< OutputMeshType, OutputNormalMeshType >
     NormalFilterType;
   typedef typename NormalFilterType::Pointer NormalFilterPointer;
 

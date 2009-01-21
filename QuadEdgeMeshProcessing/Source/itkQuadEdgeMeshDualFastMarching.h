@@ -12,6 +12,13 @@
 
 namespace itk
   {
+  /** 
+ * \class QuadEdgeMeshDualFastMarching
+ * \brief Fast marching implemented in a Dijkstra-like way. Given a list of 
+ * seeds (faces) compute clusters (one face belongs to one cluster if its 
+ * "distance" to the seed is smaller the distance to the other one).
+ * \note The distance between 2 faces is defined by TMetric.
+ * */
   template< class TMesh,
   class TMetric = QuadEdgeMeshDualSquaredEuclideanMetric< TMesh > >
   class QuadEdgeMeshDualFastMarching :
