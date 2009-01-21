@@ -8,7 +8,8 @@ namespace itk
 {
 /**
  * \class QuadEdgeMeshRayTracingFilter
- * \brief
+ * \brief This filter first computes the center of mass C of the input mesh. 
+ * Then it projects each vertex on a sphere centered at C.
 */
 template< class TInput, class TOutput >
 class QuadEdgeMeshRayTracingFilter :
@@ -104,7 +105,8 @@ protected:
       points->SetElement( p_it->Index(), u );
       }
     }
-
+  
+  /** \brief Compute the Center of mass of the input mesh. */
   void ComputeCenterOfMass( )
   {
     m_Center.Fill( 0. );
