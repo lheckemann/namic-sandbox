@@ -355,10 +355,143 @@ void vtkMRML4DBundleNode::ApplyTransform(vtkMatrix4x4* transformMatrix)
 //----------------------------------------------------------------------------
 void vtkMRML4DBundleNode::ApplyTransform(vtkAbstractTransform* transform)
 {
-  if (!transform->IsA("vtk4DBundle"))
+  if (!transform->IsA("vtkLinearTransform"))
     {
     vtkErrorMacro(<<"Can't harden a general transform in a linear transform.");
     }
-  this->ApplyTransform(vtk4DBundle::SafeDownCast(transform)->GetMatrix());
+  this->ApplyTransform(vtkLinearTransform::SafeDownCast(transform)->GetMatrix());
 }
+
+
+//----------------------------------------------------------------------------
+int vtkMRML4DBundleNode::SwitchCurrentFrame(int i)
+{
+  
+  if (i < 0 || i > this->FrameNodeIDList.size())
+    {
+    return -1;
+    }
+  
+  this->CurrentFrameNodeIndex = i;
+  return i;
+}
+
+
+//----------------------------------------------------------------------------
+int vtkMRML4DBundleNode::GetNumberOfFrames()
+{
+
+  return this->FrameNodeIDList.size())
+
+}
+
+
+//----------------------------------------------------------------------------
+int vtkMRML4DBundleNode::InsertFrame(int i, const char* nodeID)
+{
+  int index;
+
+  if (i < 0)
+    {
+    index = 0;
+    }
+  else if (i > this->FrameNodeIDList.size())
+    {
+    index = this->FrameNodeIDList.size();
+    }
+  else
+    {
+    index = i;
+    }
+
+  NodeIDListType::iterator iter;
+  iter = this->FrameNodeIDList.begin() + index;
+
+  this->FrameNodeIDList.insert(iter, std::string(nodeID));
+
+  return index;
+  
+}
+
+
+//----------------------------------------------------------------------------
+int AddFrame(const char* nodeID)
+{
+  this->FrameNodeIDList.push_back(std::string(nodeID));
+}
+
+
+//----------------------------------------------------------------------------
+int vtkMRML4DBundleNode::RemoveFrame(int i)
+{
+
+  if (i < 0)
+    {
+    index = 0;
+    }
+  else if (i > this->FrameNodeIDList.size())
+    {
+    index = this->FrameNodeIDList.size();
+    }
+  else
+    {
+    index = i;
+    }
+
+  NodeIDListType::iterator iter;
+  iter = this->FrameNodeIDList.begin() + index;
+  this->FrameNodeIDListerase.erase(iter);
+
+  return index;
+
+}
+
+
+//----------------------------------------------------------------------------
+int vtkMRML4DBundleNode::RemoveFrame(int i)
+{
+
+  if (i < 0)
+    {
+    index = 0;
+    }
+  else if (i > this->FrameNodeIDList.size())
+    {
+    index = this->FrameNodeIDList.size();
+    }
+  else
+    {
+    index = i;
+    }
+
+  NodeIDListType::iterator iter;
+  iter = this->FrameNodeIDList.begin() + index;
+  this->FrameNodeIDListerase.erase(iter);
+
+  return index;
+
+}
+
+
+//----------------------------------------------------------------------------
+int vtkMRML4DBundleNode::RemoveFrame(const char* nodeID)
+{
+  
+  int index = 0;
+  NodeIDListType::iterator iter;
+  for (iter = this->FrameNodeIDList.begin(); iter != this->FrameNodeIDList.end; iter ++)
+    {
+    if (*iter == nodeID)
+      {
+      this->FrameNodeIDListerase.erase(iter);
+      return index;
+      }
+    index ++;
+    }
+
+  return -1;
+}
+
+
+
 // End

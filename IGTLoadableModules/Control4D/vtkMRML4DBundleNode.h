@@ -89,11 +89,16 @@ class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLTransformNode
     return Superclass::CreateDefaultStorageNode();
     };
 
-  int SwitchCurrentFrame(int i);
 
-  int InsertFrame(const char* nodeID);
+  int SwitchCurrentFrame(int i);
+  int GetNumberofFrames();
+
+  int InsertFrame(int i, const char* nodeID);
+  int AddFrame(const char* nodeID);
   int RemoveFrame(int i);                // Delete a frame by index number (not remove from the scene)
   int RemoveFrame(const char* nodeID);   // Delete a frame by node ID (not remove from the scene)
+
+  vtkMRMLScalarImageNode* GetCurrentFrameNode();
 
 protected:
   vtkMRML4DBundleNode();
@@ -107,9 +112,10 @@ protected:
   //BTX
   typedef std::vector<std::string> NodeIDListType;
 
-  NodeIDListType    FrameNodeIDList;
-  NodeIDListType    TransformNodeIDList;
-  std::string       CurrentFrameNodeID;
+  NodeIDListType   FrameNodeIDList;
+  NodeIDListType   TransformNodeIDList;
+  //std::string      CurrentFrameNodeID;
+  int              CurrentFrameNodeIndex;
   //ETX
 
 };
