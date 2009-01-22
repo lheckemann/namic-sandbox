@@ -35,6 +35,7 @@
 #include <string>
 #include <map>
 
+
 class vtkIGTLConnector;
 
 class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic 
@@ -62,6 +63,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
     int y;
     int z;
   } CoordType;
+
   typedef std::vector<CoordType> IndexTableType;
   typedef std::map<int, vtkDoubleArray*> IntensityCurveSetType;
   typedef std::map<std::string, IntensityCurveSetType> IntensityCurveCacheType;
@@ -131,8 +133,11 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   vtkMRMLScene* MRMLScene;
 
   //BTX
-  FrameNodeVectorType FrameNodeVector;
-  FrameNodeVectorType RegisteredFrameNodeVector;
+  //FrameNodeVectorType FrameNodeVector;
+  //FrameNodeVectorType RegisteredFrameNodeVector;
+  std::string VolumeBundleID;
+  std::string RegisteredVolumeBundleID;
+
   IndexTableType MaskIndexTable;
 
   // MaskModifiedTimeMap is used to store modified time of each mask

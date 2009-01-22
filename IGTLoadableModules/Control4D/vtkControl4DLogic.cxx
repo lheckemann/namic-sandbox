@@ -43,6 +43,8 @@
 #include "vtkMRMLBSplineTransformNode.h"
 #include "itksys/DynamicLoader.hxx"
 
+#include "vtkMRML4DBundleNode.h"
+
 
 vtkCxxRevisionMacro(vtkControl4DLogic, "$Revision$");
 vtkStandardNewMacro(vtkControl4DLogic);
@@ -63,6 +65,10 @@ vtkControl4DLogic::vtkControl4DLogic()
   this->IntensitySDCurveCache.clear();
   this->RegisteredIntensityCurveCache.clear();
   this->RegisteredIntensitySDCurveCache.clear();
+
+
+  this->VolumeBundleID = "";
+  this->RegisteredVolumeBundleID = "";
 
 }
 
