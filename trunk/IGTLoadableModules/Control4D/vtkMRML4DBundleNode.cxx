@@ -18,7 +18,7 @@ Version:   $Revision: 1.14 $
 
 #include "vtkObjectFactory.h"
 #include "vtkCallbackCommand.h"
-#include "vtk4DBundle.h"
+#include "vtkLinearTransform.h"
 
 #include "vtkMRML4DBundleNode.h"
 #include "vtkMRMLScene.h"
@@ -62,7 +62,7 @@ vtkMRML4DBundleNode::vtkMRML4DBundleNode()
 
   this->FrameNodeIDList.clear();
   this->TransformNodeIDList.clear();
-  this->CurrentFrameNodeID.clear();
+  this->CurrentFrameNodeIndex = -1;
 }
 
 //----------------------------------------------------------------------------
@@ -75,7 +75,6 @@ vtkMRML4DBundleNode::~vtkMRML4DBundleNode()
 
   this->FrameNodeIDList.clear();
   this->TransformNodeIDList.clear();
-  this->CurrentFrameNodeID.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -381,7 +380,7 @@ int vtkMRML4DBundleNode::SwitchCurrentFrame(int i)
 int vtkMRML4DBundleNode::GetNumberOfFrames()
 {
 
-  return this->FrameNodeIDList.size())
+  return this->FrameNodeIDList.size();
 
 }
 
@@ -405,7 +404,8 @@ int vtkMRML4DBundleNode::InsertFrame(int i, const char* nodeID)
     }
 
   NodeIDListType::iterator iter;
-  iter = this->FrameNodeIDList.begin() + index;
+  iter = this->FrameNodeIDList.begin();
+  iter += index;
 
   this->FrameNodeIDList.insert(iter, std::string(nodeID));
 
@@ -415,7 +415,7 @@ int vtkMRML4DBundleNode::InsertFrame(int i, const char* nodeID)
 
 
 //----------------------------------------------------------------------------
-int AddFrame(const char* nodeID)
+int vtkMRML4DBundleNode::AddFrame(const char* nodeID)
 {
   this->FrameNodeIDList.push_back(std::string(nodeID));
 }
@@ -425,31 +425,7 @@ int AddFrame(const char* nodeID)
 int vtkMRML4DBundleNode::RemoveFrame(int i)
 {
 
-  if (i < 0)
-    {
-    index = 0;
-    }
-  else if (i > this->FrameNodeIDList.size())
-    {
-    index = this->FrameNodeIDList.size();
-    }
-  else
-    {
-    index = i;
-    }
-
-  NodeIDListType::iterator iter;
-  iter = this->FrameNodeIDList.begin() + index;
-  this->FrameNodeIDListerase.erase(iter);
-
-  return index;
-
-}
-
-
-//----------------------------------------------------------------------------
-int vtkMRML4DBundleNode::RemoveFrame(int i)
-{
+  int index;
 
   if (i < 0)
     {
@@ -465,8 +441,9 @@ int vtkMRML4DBundleNode::RemoveFrame(int i)
     }
 
   NodeIDListType::iterator iter;
-  iter = this->FrameNodeIDList.begin() + index;
-  this->FrameNodeIDListerase.erase(iter);
+  iter = this->FrameNodeIDList.begin();
+  iter += index;
+  this->FrameNodeIDList.erase(iter);
 
   return index;
 
@@ -477,13 +454,14 @@ int vtkMRML4DBundleNode::RemoveFrame(int i)
 int vtkMRML4DBundleNode::RemoveFrame(const char* nodeID)
 {
   
-  int index = 0;
+  int index;
+
   NodeIDListType::iterator iter;
-  for (iter = this->FrameNodeIDList.begin(); iter != this->FrameNodeIDList.end; iter ++)
+  for (iter = this->FrameNodeIDList.begin(); iter != this->FrameNodeIDList.end(); iter ++)
     {
     if (*iter == nodeID)
       {
-      this->FrameNodeIDListerase.erase(iter);
+      this->FrameNodeIDList.erase(iter);
       return index;
       }
     index ++;

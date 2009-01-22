@@ -57,6 +57,8 @@
 #include "vtkCornerAnnotation.h"
 #include "vtkCommandLineModuleGUI.h"
 
+#include "vtkMRML4DBundleNode.h"
+
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkControl4DGUI );
@@ -262,6 +264,12 @@ void vtkControl4DGUI::Enter()
     this->TimerInterval = 100;  // 100 ms
     ProcessTimerEvents();
     }
+
+  // register node type to the MRML scene
+  vtkMRML4DBundleNode* bundleNode = vtkMRML4DBundleNode::New();
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  scene->RegisterNodeClass(bundleNode);
+  bundleNode->Delete();
 
 }
 

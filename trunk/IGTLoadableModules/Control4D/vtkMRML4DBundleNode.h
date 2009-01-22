@@ -22,6 +22,7 @@
 #define __vtkMRML4DBundleNode_h
 
 #include "vtkMRMLTransformNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
 
 class vtkMRMLStorageNode;
 
@@ -91,14 +92,14 @@ class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLTransformNode
 
 
   int SwitchCurrentFrame(int i);
-  int GetNumberofFrames();
-
+  int GetNumberOfFrames();
+  
   int InsertFrame(int i, const char* nodeID);
   int AddFrame(const char* nodeID);
   int RemoveFrame(int i);                // Delete a frame by index number (not remove from the scene)
   int RemoveFrame(const char* nodeID);   // Delete a frame by node ID (not remove from the scene)
 
-  vtkMRMLScalarImageNode* GetCurrentFrameNode();
+  vtkMRMLScalarVolumeNode* GetCurrentFrameNode();
 
 protected:
   vtkMRML4DBundleNode();
@@ -114,8 +115,9 @@ protected:
 
   NodeIDListType   FrameNodeIDList;
   NodeIDListType   TransformNodeIDList;
-  //std::string      CurrentFrameNodeID;
   int              CurrentFrameNodeIndex;
+
+  std::string      VolumeNodeForVisualization();
   //ETX
 
 };
