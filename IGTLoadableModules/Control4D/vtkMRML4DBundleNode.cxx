@@ -186,142 +186,6 @@ void vtkMRML4DBundleNode::PrintSelf(ostream& os, vtkIndent indent)
     }
 }
 
-//----------------------------------------------------------------------------
-vtkGeneralTransform* vtkMRML4DBundleNode::GetTransformToParent()
-{
-  this->TransformToParent->Identity();
-  this->TransformToParent->Concatenate(this->MatrixTransformToParent);
-  return this->TransformToParent;
-}
-
-//----------------------------------------------------------------------------
-int  vtkMRML4DBundleNode::GetMatrixTransformToWorld(vtkMatrix4x4* transformToWorld)
-{
-  if (this->IsTransformToWorldLinear() != 1) 
-    {
-    transformToWorld->Identity();
-    return 0;
-    }
-
-  vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-  xform->DeepCopy(transformToWorld);
-  vtkMatrix4x4::Multiply4x4(xform, this->MatrixTransformToParent, transformToWorld);
-  xform->Delete();
-
-  vtkMRMLTransformNode *parent = this->GetParentTransformNode();
-  if (parent != NULL) 
-    {
-    vtkMRML4DBundleNode *lparent = dynamic_cast < vtkMRML4DBundleNode* > (parent);
-    if (lparent) 
-      {
-      return (lparent->GetMatrixTransformToWorld(transformToWorld));
-      }
-    }
-  // TODO: what does this return code mean?
-  return 1;
-}
-
-//----------------------------------------------------------------------------
-int  vtkMRML4DBundleNode::GetMatrixTransformToNode(vtkMRMLTransformNode* node,
-                                                          vtkMatrix4x4* transformToNode)
-{
-  if (node == NULL) 
-    {
-    this->GetMatrixTransformToWorld(transformToNode);
-    return 1;
-    }
-  if (this->IsTransformToNodeLinear(node) != 1) 
-    {
-    transformToNode->Identity();
-    return 0;
-    }
-  
-  
-  if (this->IsTransformNodeMyParent(node)) 
-    {
-    vtkMRMLTransformNode *parent = this->GetParentTransformNode();
-    if (parent != NULL) 
-      {
-
-      vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-      xform->DeepCopy(transformToNode);
-      vtkMatrix4x4::Multiply4x4(xform, this->MatrixTransformToParent, transformToNode);
-      xform->Delete();
-
-      if (strcmp(parent->GetID(), node->GetID()) ) 
-        {
-        this->GetMatrixTransformToNode(node, transformToNode);
-        }
-      }
-    else if (this->MatrixTransformToParent) 
-      {
-      vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-      xform->DeepCopy(transformToNode);
-      vtkMatrix4x4::Multiply4x4(xform, this->MatrixTransformToParent, transformToNode);
-      xform->Delete();
-      }
-    }
-  else if (this->IsTransformNodeMyChild(node)) 
-    {
-    vtkMRML4DBundleNode *lnode = dynamic_cast <vtkMRML4DBundleNode *> (node);
-    vtkMRML4DBundleNode *parent = dynamic_cast <vtkMRML4DBundleNode *> (node->GetParentTransformNode());
-    if (parent != NULL) 
-      {
-
-      vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-      xform->DeepCopy(transformToNode);
-      vtkMatrix4x4::Multiply4x4(xform, lnode->MatrixTransformToParent, transformToNode);
-      xform->Delete();
-
-      if (strcmp(parent->GetID(), this->GetID()) ) 
-        {
-        this->GetMatrixTransformToNode(this, transformToNode);
-        }
-      }
-    else if (lnode->MatrixTransformToParent) 
-      {
-      vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-      xform->DeepCopy(transformToNode);
-      vtkMatrix4x4::Multiply4x4(xform, lnode->MatrixTransformToParent, transformToNode);
-      xform->Delete();
-      }
-    }
-  else 
-    {
-    this->GetMatrixTransformToWorld(transformToNode);
-    vtkMatrix4x4* transformToWorld2 = vtkMatrix4x4::New();
-    transformToWorld2->Identity();
-    
-    node->GetMatrixTransformToWorld(transformToWorld2);
-    transformToWorld2->Invert();
-    
-    vtkMatrix4x4 *xform = vtkMatrix4x4::New();
-    xform->DeepCopy(transformToNode);
-    vtkMatrix4x4::Multiply4x4(xform, transformToWorld2, transformToNode);
-    xform->Delete();
-    transformToWorld2->Delete();
-    }
-  // TODO: what does this return code mean?
-  return 1;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRML4DBundleNode::SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix)
-{
-  if (this->MatrixTransformToParent != NULL)
-    {
-    vtkEventBroker::GetInstance()->RemoveObservations( 
-      this->MatrixTransformToParent, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    this->SetMatrixTransformToParent(NULL);
-    }
-  this->SetMatrixTransformToParent(matrix);
-  if ( this->MatrixTransformToParent )
-    {
-    vtkEventBroker::GetInstance()->AddObservation( 
-      this->MatrixTransformToParent, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-}
-
 
 //---------------------------------------------------------------------------
 void vtkMRML4DBundleNode::ProcessMRMLEvents ( vtkObject *caller,
@@ -330,35 +194,11 @@ void vtkMRML4DBundleNode::ProcessMRMLEvents ( vtkObject *caller,
 {
   Superclass::ProcessMRMLEvents ( caller, event, callData );
 
-  if (this->MatrixTransformToParent != NULL && this->MatrixTransformToParent == vtkMatrix4x4::SafeDownCast(caller) &&
-      event ==  vtkCommand::ModifiedEvent)
-    {
-    this->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent, NULL);
-    }
-}
-
-
-//----------------------------------------------------------------------------
-void vtkMRML4DBundleNode::ApplyTransform(vtkMatrix4x4* transformMatrix)
-{
-  vtkMatrix4x4* matrixToParent = this->GetMatrixTransformToParent();
-  vtkMatrix4x4* newMatrixToParent = vtkMatrix4x4::New();
-
-  vtkMatrix4x4::Multiply4x4(matrixToParent,transformMatrix,newMatrixToParent);
-
-  this->SetAndObserveMatrixTransformToParent(newMatrixToParent);
-
-  newMatrixToParent->Delete();
-}
-
-//----------------------------------------------------------------------------
-void vtkMRML4DBundleNode::ApplyTransform(vtkAbstractTransform* transform)
-{
-  if (!transform->IsA("vtkLinearTransform"))
-    {
-    vtkErrorMacro(<<"Can't harden a general transform in a linear transform.");
-    }
-  this->ApplyTransform(vtkLinearTransform::SafeDownCast(transform)->GetMatrix());
+//  if (this->MatrixTransformToParent != NULL && this->MatrixTransformToParent == vtkMatrix4x4::SafeDownCast(caller) &&
+//      event ==  vtkCommand::ModifiedEvent)
+//    {
+//    this->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent, NULL);
+//    }
 }
 
 

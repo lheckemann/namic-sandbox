@@ -21,16 +21,16 @@
 #ifndef __vtkMRML4DBundleNode_h
 #define __vtkMRML4DBundleNode_h
 
-#include "vtkMRMLTransformNode.h"
+#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
 
 class vtkMRMLStorageNode;
 
-class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLTransformNode
+class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformNode
 {
   public:
   static vtkMRML4DBundleNode *New();
-  vtkTypeMacro(vtkMRML4DBundleNode,vtkMRMLTransformNode);
+  vtkTypeMacro(vtkMRML4DBundleNode,vtkMRMLLinearTransformNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -52,36 +52,12 @@ class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLTransformNode
   virtual const char* GetNodeTagName() {return "4DBundle";};
 
   // Description:
-  // 1 if transfrom is linear, 0 otherwise
-  virtual int IsLinear() {return 1;};
-
-  // Description:
-  // vtkGeneral transform of this node to paren node
-  virtual vtkGeneralTransform* GetTransformToParent();
-
-  // Description:
-  // vtkMatrix4x4 transform of this node to paren node
-  vtkGetObjectMacro(MatrixTransformToParent, vtkMatrix4x4); 
-  void SetAndObserveMatrixTransformToParent(vtkMatrix4x4 *matrix);
-
-  // Description:
-  // Get concatinated transforms to the top
-  virtual int  GetMatrixTransformToWorld(vtkMatrix4x4* transformToWorld);
-  
-  // Description:
-  // Get concatinated transforms  bwetween nodes  
-  virtual int  GetMatrixTransformToNode(vtkMRMLTransformNode* node, 
-                                        vtkMatrix4x4* transformToNode);
-
-  // Description:
   // alternative method to propagate events generated in Transform nodes
   virtual void ProcessMRMLEvents ( vtkObject * /*caller*/, 
                                    unsigned long /*event*/, 
                                    void * /*callData*/ );
 
   virtual bool CanApplyNonLinearTransform() { return true; } 
-  virtual void ApplyTransform(vtkMatrix4x4* transformMatrix);
-  virtual void ApplyTransform(vtkAbstractTransform* transform);
  
   // Description:
   // Create default storage node or NULL if does not have one
@@ -90,25 +66,20 @@ class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLTransformNode
     return Superclass::CreateDefaultStorageNode();
     };
 
-
   int SwitchCurrentFrame(int i);
   int GetNumberOfFrames();
-  
   int InsertFrame(int i, const char* nodeID);
   int AddFrame(const char* nodeID);
-  int RemoveFrame(int i);                // Delete a frame by index number (not remove from the scene)
-  int RemoveFrame(const char* nodeID);   // Delete a frame by node ID (not remove from the scene)
+  int RemoveFrame(int i);              // Delete a frame by index number (not remove from the scene)
+  int RemoveFrame(const char* nodeID); // Delete a frame by node ID (not remove from the scene)
 
-  vtkMRMLScalarVolumeNode* GetCurrentFrameNode();
+  //  vtkMRMLScalarVolumeNode* GetCurrentFrameNode();
 
 protected:
   vtkMRML4DBundleNode();
   ~vtkMRML4DBundleNode();
   vtkMRML4DBundleNode(const vtkMRML4DBundleNode&);
   void operator=(const vtkMRML4DBundleNode&);
-
-  vtkSetObjectMacro(MatrixTransformToParent, vtkMatrix4x4); 
-  vtkMatrix4x4* MatrixTransformToParent;
 
   //BTX
   typedef std::vector<std::string> NodeIDListType;

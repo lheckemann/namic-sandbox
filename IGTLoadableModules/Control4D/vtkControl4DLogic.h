@@ -133,8 +133,8 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   vtkMRMLScene* MRMLScene;
 
   //BTX
-  //FrameNodeVectorType FrameNodeVector;
-  //FrameNodeVectorType RegisteredFrameNodeVector;
+  FrameNodeVectorType FrameNodeVector;
+  FrameNodeVectorType RegisteredFrameNodeVector;
   std::string VolumeBundleID;
   std::string RegisteredVolumeBundleID;
 
