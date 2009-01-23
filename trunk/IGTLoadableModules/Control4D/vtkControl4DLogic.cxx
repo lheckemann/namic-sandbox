@@ -40,6 +40,7 @@
 #include "itkImageFileWriter.h"
 #include "itkTimeProbesCollectorBase.h"
 
+#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLBSplineTransformNode.h"
 #include "itksys/DynamicLoader.hxx"
 
@@ -258,13 +259,25 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
   rangeLower = 0.0;
   rangeUpper = 0.0;
 
+  // prepare 4D bundle
+  vtkMRML4DBundleNode* bundleNode = vtkMRML4DBundleNode::New();
+  //vtkMRMLLinearTransformNode* bundleNode = vtkMRMLLinearTransformNode::New();
+  bundleNode->SetName("4D bundle");
+  bundleNode->SetDescription("Created by Control4D");
+
+  vtkMatrix4x4* transform = vtkMatrix4x4::New();
+  transform->Identity();
+  //transformNode->SetAndObserveImageData(transform);
+  bundleNode->ApplyTransform(transform);
+  transform->Delete();
+  scene->AddNode(bundleNode);
+
   for (int i = 0; i < nVolumes; i ++)
     {
     statusMessage.progress = (double)i / (double)nVolumes;
     this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
 
-    vtkMRMLVolumeNode *volumeNode = NULL;
-    vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
+    vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::New();
     vtkMRMLVolumeArchetypeStorageNode*storageNode = vtkMRMLVolumeArchetypeStorageNode::New();
     vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
 
@@ -280,9 +293,8 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
       }
     storageNode->SetSingleFile(0);
     //storageNode->AddObserver(vtkCommand::ProgressEvent,  this->LogicCallbackCommand);
-    storageNode->ReadData(scalarNode);
+    storageNode->ReadData(volumeNode);
 
-    volumeNode = scalarNode;
     sprintf(nodeName, "Vol_%03d", i);
     volumeNode->SetName(nodeName);
 
@@ -315,10 +327,19 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
     scene->AddNode(volumeNode);  
     this->FrameNodeVector.push_back(std::string(volumeNode->GetID()));
 
-    scalarNode->Delete();
+    // Add to 4D bundle
+    std::cerr << "calling volumeNode->SetAndObserveTransformNodeID(bundleNode->GetID());" << std::endl;
+    volumeNode->SetAndObserveTransformNodeID(bundleNode->GetID());
+    volumeNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+    std::cerr << "calling volumeNode->SetAndObserveTransformNodeID() -- end" << std::endl;
+    bundleNode->AddFrame(volumeNode->GetID());
+
+    volumeNode->Delete();
     storageNode->Delete();
     displayNode->Delete();
     }
+
+  
 
   statusMessage.show = 0;
   this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
