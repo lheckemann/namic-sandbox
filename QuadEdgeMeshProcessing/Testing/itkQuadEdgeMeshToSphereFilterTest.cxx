@@ -1,13 +1,12 @@
-#include <itkQuadEdgeMesh.h>
-#include <itkVTKPolyDataReader.h>
-#include <itkVTKPolyDataWriter.h>
+#include "itkQuadEdgeMesh.h"
+#include "itkVTKPolyDataReader.h"
+#include "itkVTKPolyDataWriter.h"
 
-#include <VNLIterativeSparseSolverTraits.h>
-#include <itkQuadEdgeMeshParamMatrixCoefficients.h>
+#include "VNLIterativeSparseSolverTraits.h"
+#include "itkQuadEdgeMeshParamMatrixCoefficients.h"
 
 #include "itkQuadEdgeMeshToSphereFilter.h"
 
-using namespace itk;
 
 int main( int argc, char** argv )
 {
@@ -20,10 +19,10 @@ int main( int argc, char** argv )
     // ** TYPEDEF **
   typedef double Coord;
 
-  typedef QuadEdgeMesh< Coord, 3 >                      MeshType;
+  typedef itk::QuadEdgeMesh< Coord, 3 >                 MeshType;
   typedef MeshType::Pointer                             MeshPointer;
-  typedef VTKPolyDataReader< MeshType >                 ReaderType;
-  typedef VTKPolyDataWriter< MeshType >                 WriterType;
+  typedef itk::VTKPolyDataReader< MeshType >            ReaderType;
+  typedef itk::VTKPolyDataWriter< MeshType >            WriterType;
 
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
@@ -40,11 +39,13 @@ int main( int argc, char** argv )
 
   MeshPointer mesh = reader->GetOutput();
 
-  OnesMatrixCoefficients< MeshType >                     coeff0;
+  itk::OnesMatrixCoefficients< MeshType >    coeff0;
 
   typedef VNLIterativeSparseSolverTraits< Coord >  SolverTraits;
-  typedef QuadEdgeMeshToSphereFilter< MeshType, MeshType,
-    SolverTraits > FilterType;
+
+  typedef itk::QuadEdgeMeshToSphereFilter< 
+    MeshType, MeshType, SolverTraits > FilterType;
+
   FilterType::Pointer filter = FilterType::New();
   filter->SetInput( mesh );
   filter->SetCoefficientsMethod( &coeff0 );
