@@ -1,12 +1,64 @@
+/*=========================================================================
+
+  Program:   Insight Segmentation & Registration Toolkit
+  Module:    $RCSfile: itkMeshToMeshMetric.txx,v $
+  Language:  C++
+  Date:      $Date: 2003-11-08 17:58:32 $
+  Version:   $Revision: 1.1 $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even 
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+
 #include "itkQuadEdgeMesh.h"
 #include "itkVTKPolyDataReader.h"
 #include "itkVTKPolyDataWriter.h"
+#include "itkMeshToMeshMetric.h"
 
-#include "VNLIterativeSparseSolverTraits.h"
-#include "itkQuadEdgeMeshParamMatrixCoefficients.h"
+namespace itk
+{
+template< class TMeshFixed, class TMeshMoving >
+class MetricHelper : public MeshToMeshMetric< TMeshFixed, TMeshMoving >
+{
+public:
+  typedef MetricHelper Self;
+  typedef MeshToMeshMetric< TMeshFixed, TMeshMoving > Superclass;
+  typedef SmartPointer< Self > Pointer;
+  typedef SmartPointer< const Self > ConstPointer;
 
-#include "itkQuadEdgeMeshToSphereFilter.h"
-#include "itkQuadEdgeMeshSphericalParameterization.h"
+  itkNewMacro( Self );
+
+  itkTypeMacro( MetricHelper, MeshToMeshMetric );
+
+  typedef typename Superclass::MeasureType      MeasureType;
+  typedef typename Superclass::DerivativeType   DerivativeType;
+  typedef typename Superclass::TransformParametersType   TransformParametersType;
+
+protected:
+  MetricHelper();
+  virtual ~MetricHelper();
+
+  /**  Get the value for single valued optimizers. */
+  MeasureType GetValue( const TransformParametersType & parameters ) const
+    {
+    return 1.0;
+    }
+
+  /**  Get value and derivatives for multiple valued optimizers. */
+  void GetValueAndDerivative( const TransformParametersType & parameters,
+                              MeasureType& Value, DerivativeType& Derivative ) const
+    {
+    Value = 1.0;
+    }
+
+};
+
+}
 
 
 int main( int argc, char** argv )
@@ -46,6 +98,9 @@ int main( int argc, char** argv )
   MeshPointer meshFixed  = readerFixed->GetOutput();
   MeshPointer meshMoving = readerMoving->GetOutput();
 
+  typedef itk::MetricHelper< MeshType, MeshType >  MetricType;
+
+  
 
   return EXIT_SUCCESS;
 }

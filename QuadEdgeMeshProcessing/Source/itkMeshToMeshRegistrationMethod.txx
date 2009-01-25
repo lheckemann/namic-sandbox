@@ -26,14 +26,14 @@ namespace itk
 /*
  * Constructor
  */
-template < typename TFixedPointSet, typename TMovingPointSet >
-MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
+template < typename TFixedMesh, typename TMovingMesh >
+MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
 ::MeshToMeshRegistrationMethod()
 {
   this->SetNumberOfRequiredOutputs( 1 );  // for the Transform
 
-  m_FixedPointSet   = 0; // has to be provided by the user.
-  m_MovingPointSet  = 0; // has to be provided by the user.
+  m_FixedMesh   = 0; // has to be provided by the user.
+  m_MovingMesh  = 0; // has to be provided by the user.
   m_Transform       = 0; // has to be provided by the user.
   m_Metric          = 0; // has to be provided by the user.
   m_Optimizer       = 0; // has to be provided by the user.
@@ -56,9 +56,9 @@ MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
 /*
  * Set the initial transform parameters
  */
-template < typename TFixedPointSet, typename TMovingPointSet >
+template < typename TFixedMesh, typename TMovingMesh >
 void
-MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
+MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
 ::SetInitialTransformParameters( const ParametersType & param )
 {
   m_InitialTransformParameters = param;
@@ -70,20 +70,20 @@ MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
 /*
  * Initialize by setting the interconnects between components. 
  */
-template < typename TFixedPointSet, typename TMovingPointSet >
+template < typename TFixedMesh, typename TMovingMesh >
 void
-MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
+MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
 ::Initialize() throw (ExceptionObject)
 {
 
-  if( !m_FixedPointSet )
+  if( !m_FixedMesh )
     {
-    itkExceptionMacro(<<"FixedPointSet is not present");
+    itkExceptionMacro(<<"FixedMesh is not present");
     }
 
-  if( !m_MovingPointSet )
+  if( !m_MovingMesh )
     {
-    itkExceptionMacro(<<"MovingPointSet is not present");
+    itkExceptionMacro(<<"MovingMesh is not present");
     }
 
   if ( !m_Metric )
@@ -102,8 +102,8 @@ MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
     }
 
   // Setup the metric
-  m_Metric->SetMovingPointSet(  m_MovingPointSet );
-  m_Metric->SetFixedPointSet( m_FixedPointSet );
+  m_Metric->SetMovingMesh(  m_MovingMesh );
+  m_Metric->SetFixedMesh( m_FixedMesh );
   m_Metric->SetTransform( m_Transform );
 
   m_Metric->Initialize();
@@ -133,9 +133,9 @@ MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
 /*
  * Starts the Registration Process
  */
-template < typename TFixedPointSet, typename TMovingPointSet >
+template < typename TFixedMesh, typename TMovingMesh >
 void
-MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
+MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
 ::StartRegistration( void )
 { 
 
@@ -198,25 +198,25 @@ MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
 /*
  * PrintSelf
  */
-template < typename TFixedPointSet, typename TMovingPointSet >
+template < typename TFixedMesh, typename TMovingMesh >
 void
-MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
+MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf( os, indent );
   os << indent << "Metric: " << m_Metric.GetPointer() << std::endl;
   os << indent << "Optimizer: " << m_Optimizer.GetPointer() << std::endl;
   os << indent << "Transform: " << m_Transform.GetPointer() << std::endl;
-  os << indent << "Fixed PointSet: " << m_FixedPointSet.GetPointer() << std::endl;
-  os << indent << "Moving PointSet: " << m_MovingPointSet.GetPointer() << std::endl;
+  os << indent << "Fixed Mesh: " << m_FixedMesh.GetPointer() << std::endl;
+  os << indent << "Moving Mesh: " << m_MovingMesh.GetPointer() << std::endl;
   os << indent << "Initial Transform Parameters: " << m_InitialTransformParameters << std::endl;
   os << indent << "Last    Transform Parameters: " << m_LastTransformParameters << std::endl;
 }
 
 
-template < typename TFixedPointSet, typename TMovingPointSet >
+template < typename TFixedMesh, typename TMovingMesh >
 void
-MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
+MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
 ::GenerateData()
 {
   this->StartRegistration();
@@ -227,9 +227,9 @@ MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
 /*
  *  Get Output
  */
-template < typename TFixedPointSet, typename TMovingPointSet >
-const typename MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>::TransformOutputType *
-MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
+template < typename TFixedMesh, typename TMovingMesh >
+const typename MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>::TransformOutputType *
+MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
 ::GetOutput() const
 {
   return static_cast< const TransformOutputType * >( this->ProcessObject::GetOutput(0) );
@@ -237,9 +237,9 @@ MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
 
 
 
-template < typename TFixedPointSet, typename TMovingPointSet >
+template < typename TFixedMesh, typename TMovingMesh >
 DataObject::Pointer
-MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
+MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
 ::MakeOutput(unsigned int output)
 {
   switch (output)
@@ -257,9 +257,9 @@ MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
 /**
  *
  */
-template < typename TFixedPointSet, typename TMovingPointSet >
+template < typename TFixedMesh, typename TMovingMesh >
 unsigned long
-MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
+MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
 ::GetMTime() const
 {
   unsigned long mtime = Superclass::GetMTime();
@@ -287,15 +287,15 @@ MeshToMeshRegistrationMethod<TFixedPointSet,TMovingPointSet>
     mtime = (m > mtime ? m : mtime);
     }
 
-  if (m_FixedPointSet)
+  if (m_FixedMesh)
     {
-    m = m_FixedPointSet->GetMTime();
+    m = m_FixedMesh->GetMTime();
     mtime = (m > mtime ? m : mtime);
     }
 
-  if (m_MovingPointSet)
+  if (m_MovingMesh)
     {
-    m = m_MovingPointSet->GetMTime();
+    m = m_MovingMesh->GetMTime();
     mtime = (m > mtime ? m : mtime);
     }
 
