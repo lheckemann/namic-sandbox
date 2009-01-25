@@ -57,7 +57,11 @@ itkQuadEdgeMeshSphericalParameterizationTest.cxx )
 TARGET_LINK_LIBRARIES( itkQuadEdgeMeshSphericalParameterizationTest
 ITKQuadEdgeMesh ITKIO)
 
+ADD_EXECUTABLE(itkMeshToMeshRegistrationMethodTest1 itkMeshToMeshRegistrationMethodTest1.cxx)
+TARGET_LINK_LIBRARIES(itkMeshToMeshRegistrationMethodTest1 ITKQuadEdgeMesh ITKIO)
 
+ADD_EXECUTABLE(itkMeshToMeshMetricTest1 itkMeshToMeshMetricTest1.cxx)
+TARGET_LINK_LIBRARIES(itkMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKIO)
 
 
 ###################
@@ -152,6 +156,22 @@ ADD_TEST(itkQuadEdgeMeshKdTreeGeneratorTest1
 ADD_TEST(itkPointLocator2Test1
   ${CXX_TEST_PATH}/itkPointLocator2Test1
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
+  )
+
+ADD_TEST(itkMeshToMeshRegistrationMethodTest1a
+  ${CXX_TEST_PATH}/itkMeshToMeshRegistrationMethodTest1
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.curv.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.curv.pial
+  )
+
+ADD_TEST(itkMeshToMeshMetricTest1a
+  ${CXX_TEST_PATH}/itkMeshToMeshMetricTest1
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.curv.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.curv.pial
   )
 
 
