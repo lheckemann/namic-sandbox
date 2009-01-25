@@ -23,19 +23,19 @@ namespace itk
 {
 
 /** Constructor */
-template <class TFixedPointSet, class TMovingPointSet> 
-MeshToMeshMetric<TFixedPointSet,TMovingPointSet>
+template <class TFixedMesh, class TMovingMesh> 
+MeshToMeshMetric<TFixedMesh,TMovingMesh>
 ::MeshToMeshMetric()
 {
-  m_FixedPointSet = 0; // has to be provided by the user.
-  m_MovingPointSet   = 0; // has to be provided by the user.
+  m_FixedMesh = 0; // has to be provided by the user.
+  m_MovingMesh   = 0; // has to be provided by the user.
   m_Transform     = 0; // has to be provided by the user.
 }
 
 /** Set the parameters that define a unique transform */
-template <class TFixedPointSet, class TMovingPointSet> 
+template <class TFixedMesh, class TMovingMesh> 
 void
-MeshToMeshMetric<TFixedPointSet,TMovingPointSet>
+MeshToMeshMetric<TFixedMesh,TMovingMesh>
 ::SetTransformParameters( const ParametersType & parameters ) const
 {
   if( !m_Transform )
@@ -47,9 +47,9 @@ MeshToMeshMetric<TFixedPointSet,TMovingPointSet>
 
 
 /** Initialize the metric */
-template <class TFixedPointSet, class TMovingPointSet> 
+template <class TFixedMesh, class TMovingMesh> 
 void
-MeshToMeshMetric<TFixedPointSet,TMovingPointSet>
+MeshToMeshMetric<TFixedMesh,TMovingMesh>
 ::Initialize(void) throw ( ExceptionObject )
 {
 
@@ -58,39 +58,39 @@ MeshToMeshMetric<TFixedPointSet,TMovingPointSet>
     itkExceptionMacro(<<"Transform is not present");
     }
 
-  if( !m_MovingPointSet )
+  if( !m_MovingMesh )
     {
-    itkExceptionMacro(<<"MovingPointSet is not present");
+    itkExceptionMacro(<<"MovingMesh is not present");
     }
 
-  if( !m_FixedPointSet )
+  if( !m_FixedMesh )
     {
-    itkExceptionMacro(<<"FixedPointSet is not present");
+    itkExceptionMacro(<<"FixedMesh is not present");
     }
 
-  // If the PointSet is provided by a source, update the source.
-  if( m_MovingPointSet->GetSource() )
+  // If the Mesh is provided by a source, update the source.
+  if( m_MovingMesh->GetSource() )
     {
-    m_MovingPointSet->GetSource()->Update();
+    m_MovingMesh->GetSource()->Update();
     }
 
   // If the point set is provided by a source, update the source.
-  if( m_FixedPointSet->GetSource() )
+  if( m_FixedMesh->GetSource() )
     {
-    m_FixedPointSet->GetSource()->Update();
+    m_FixedMesh->GetSource()->Update();
     }
 }
  
 
 /** PrintSelf */
-template <class TFixedPointSet, class TMovingPointSet> 
+template <class TFixedMesh, class TMovingMesh> 
 void
-MeshToMeshMetric<TFixedPointSet,TMovingPointSet>
+MeshToMeshMetric<TFixedMesh,TMovingMesh>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf( os, indent );
-  os << indent << "Moving PointSet: " << m_MovingPointSet.GetPointer()  << std::endl;
-  os << indent << "Fixed  PointSet: " << m_FixedPointSet.GetPointer()   << std::endl;
+  os << indent << "Moving Mesh: " << m_MovingMesh.GetPointer()  << std::endl;
+  os << indent << "Fixed  Mesh: " << m_FixedMesh.GetPointer()   << std::endl;
   os << indent << "Transform:    " << m_Transform.GetPointer()    << std::endl;
 }
 
