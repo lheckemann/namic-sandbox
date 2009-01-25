@@ -1,10 +1,9 @@
-#include <itkQuadEdgeMesh.h>
-#include <itkVTKPolyDataReader.h>
-#include <itkVTKPolyDataWriter.h>
+#include "itkQuadEdgeMesh.h"
+#include "itkVTKPolyDataReader.h"
+#include "itkVTKPolyDataWriter.h"
 
 #include "itkQuadEdgeMeshSplitFilter.h"
 
-using namespace itk;
 
 int main( int argc, char** argv )
 {
@@ -17,10 +16,10 @@ int main( int argc, char** argv )
     // ** TYPEDEF **
   typedef double Coord;
 
-  typedef QuadEdgeMesh< Coord, 3 >                      MeshType;
-  typedef MeshType::Pointer                             MeshPointer;
-  typedef VTKPolyDataReader< MeshType >                 ReaderType;
-  typedef VTKPolyDataWriter< MeshType >                 WriterType;
+  typedef itk::QuadEdgeMesh< Coord, 3 >               MeshType;
+  typedef MeshType::Pointer                           MeshPointer;
+  typedef itk::VTKPolyDataReader< MeshType >          ReaderType;
+  typedef itk::VTKPolyDataWriter< MeshType >          WriterType;
   
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
@@ -37,7 +36,7 @@ int main( int argc, char** argv )
   
   MeshPointer mesh = reader->GetOutput();
   
-  typedef QuadEdgeMeshSplitFilter< MeshType, MeshType > SplitFilterType;
+  typedef itk::QuadEdgeMeshSplitFilter< MeshType, MeshType > SplitFilterType;
   SplitFilterType::Pointer split = SplitFilterType::New();
   split->SetInput( mesh );
   split->Update();
