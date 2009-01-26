@@ -262,7 +262,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
   // prepare 4D bundle
   vtkMRML4DBundleNode* bundleNode = vtkMRML4DBundleNode::New();
   //vtkMRMLLinearTransformNode* bundleNode = vtkMRMLLinearTransformNode::New();
-  bundleNode->SetName("4D bundle");
+  bundleNode->SetName("4DBundle");
   bundleNode->SetDescription("Created by Control4D");
 
   vtkMatrix4x4* transform = vtkMatrix4x4::New();
@@ -329,6 +329,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
 
     // Add to 4D bundle
     std::cerr << "calling volumeNode->SetAndObserveTransformNodeID(bundleNode->GetID());" << std::endl;
+
     volumeNode->SetAndObserveTransformNodeID(bundleNode->GetID());
     volumeNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
     std::cerr << "calling volumeNode->SetAndObserveTransformNodeID() -- end" << std::endl;
@@ -339,8 +340,8 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
     displayNode->Delete();
     }
 
-  AddDisplayBufferNode(bundleNode, 0, "4DBundleDisplay0");
-  AddDisplayBufferNode(bundleNode, 1, "4DBundleDisplay1");
+  AddDisplayBufferNode(bundleNode, 0);
+  AddDisplayBufferNode(bundleNode, 1);
 
   statusMessage.show = 0;
   this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
@@ -355,7 +356,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
 
 
 //---------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkControl4DLogic::AddDisplayBufferNode(vtkMRML4DBundleNode* bundleNode, int index, const char* nodeName)
+vtkMRMLScalarVolumeNode* vtkControl4DLogic::AddDisplayBufferNode(vtkMRML4DBundleNode* bundleNode, int index)
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
 
@@ -376,10 +377,16 @@ vtkMRMLScalarVolumeNode* vtkControl4DLogic::AddDisplayBufferNode(vtkMRML4DBundle
   if (firstFrameNode)
     {
     volumeNode->Copy(firstFrameNode);
+    // J. Tokuda -- Jan 26, 2009: The display buffer node is placed outside
+    // the bundle to allow the users to make a label map with the buffer image.
+    volumeNode->SetAndObserveTransformNodeID(NULL);
     imageData = firstFrameNode->GetImageData();
     //imageData->DeepCopy(firstFrameNode->GetImageData());
     }
   volumeNode->SetAndObserveImageData(imageData);
+
+  char nodeName[128];
+  sprintf(nodeName, "%sDisplay%d", bundleNode->GetName(), index);
   volumeNode->SetName(nodeName);
   
   double rangeLower;
@@ -404,7 +411,7 @@ vtkMRMLScalarVolumeNode* vtkControl4DLogic::AddDisplayBufferNode(vtkMRML4DBundle
   volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   scene->AddNode(volumeNode);  
   //this->FrameNodeVector.push_back(std::string(volumeNode->GetID()));
-  
+
   bundleNode->SetDisplayBufferNodeID(index, volumeNode->GetID());
   
   volumeNode->Delete();
@@ -806,32 +813,99 @@ int vtkControl4DLogic::SaveIntensityCurve(int series, const char* maskID, int la
 
 
 //---------------------------------------------------------------------------
-int vtkControl4DLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param)
+int vtkControl4DLogic::CreateOutputBundle(const char* name, const char* inputBundleNodeID)
 {
-  if (sIndex < 0 ||
-      eIndex >= GetNumberOfFrames() ||
+  vtkMRML4DBundleNode* inputBundleNode 
+    = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(inputBundleNodeID));
+
+  if (!inputBundleNode)
+    {
+    return -1;
+    }
+
+  int nVolumes = inputBundleNode->GetNumberOfFrames();
+
+  StatusMessageType statusMessage;
+  statusMessage.show = 1;
+  statusMessage.progress = 0.0;
+  statusMessage.message = "Creating registerd image nodes....";
+  this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+  
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  for (int i = 0; i < nVolumes; i ++)
+    {
+    statusMessage.progress = (double)i / (double)nVolumes;
+    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+    
+    vtkMRMLVolumeNode *volumeNode = NULL;
+    vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
+    vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
+    char nodeName[128];
+
+    volumeNode = scalarNode;
+    sprintf(nodeName, "RegVol_%03d", i);
+    volumeNode->SetName(nodeName);
+    volumeNode->SetScene(scene);
+    displayNode->SetScene(scene);
+    
+    vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
+    displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
+    
+    scene->AddNode(displayNode);  
+    volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+    scene->AddNode(volumeNode);  
+    this->RegisteredFrameNodeVector.push_back(std::string(volumeNode->GetID()));
+    
+    scalarNode->Delete();
+    colorLogic->Delete();
+    displayNode->Delete();
+    }
+
+  statusMessage.show = 0;
+  this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+
+  vtkMRML4DBundleNode* bundleNode = vtkMRML4DBundleNode::New();
+  //vtkMRMLLinearTransformNode* bundleNode = vtkMRMLLinearTransformNode::New();
+  bundleNode->SetName("4D bundle");
+  bundleNode->SetDescription("Created by Control4D");
+
+  AddDisplayBufferNode(inputBundleNode, 0);
+  AddDisplayBufferNode(inputBundleNode, 1);
+
+
+}
+
+//---------------------------------------------------------------------------
+int vtkControl4DLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
+                                             const char* inputBundleNodeID,
+                                             const char* outputBundleNodeID,
+                                             RegistrationParametersType& param)
+{
+  vtkMRML4DBundleNode* inputBundleNode 
+    = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(inputBundleNodeID));
+
+  if (!inputBundleNode ||
+      sIndex < 0 ||
+      eIndex >= inputBundleNode->GetNumberOfFrames() ||
       kIndex < 0 ||
-      kIndex >= GetNumberOfFrames() )
+      kIndex >= inputBundleNode->GetNumberOfFrames() )
     {
     std::cerr << "int vtkControl4DGUI::RunSeriesRegistration(): irregular index" << std::endl;
     return 0;
     }
   
-  CreateRegisteredVolumeNodes();
+  vtkMRML4DBundleNode* outputBundleNode 
+    = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(outputBundleNodeID));
+  //CreateRegisteredVolumeNodes();
   
-  const char* fixedFrameNodeID = GetFrameNodeID(kIndex);
-  vtkMRMLScalarVolumeNode* fixedNode;  
-  if (fixedFrameNodeID)
-    {
-    fixedNode = 
-      vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(fixedFrameNodeID));
-    }
-  else
+  vtkMRMLScalarVolumeNode* fixedNode = 
+    vtkMRMLScalarVolumeNode::SafeDownCast(inputBundleNode->GetFrameNode(kIndex));
+
+  if (!fixedNode)
     {
     std::cerr << "int vtkControl4DGUI::RunSeriesRegistration(): no fixed frame node ID found." << std::endl;
     }
-
-
+ 
   StatusMessageType statusMessage;
   statusMessage.show = 1;
   statusMessage.progress = 0.0;
@@ -843,18 +917,13 @@ int vtkControl4DLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIndex,
     statusMessage.progress = (double)(i-sIndex) / (double)(eIndex-sIndex + 1);
     this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
 
-    const char* movingFrameNodeID = GetFrameNodeID(i);
-    const char* outputFrameNodeID = GetRegisteredFrameNodeID(i);
-    if (movingFrameNodeID && outputFrameNodeID)
+    vtkMRMLScalarVolumeNode* movingNode = 
+      vtkMRMLScalarVolumeNode::SafeDownCast(inputBundleNode->GetFrameNode(i));
+    vtkMRMLScalarVolumeNode* outputNode =
+      vtkMRMLScalarVolumeNode::SafeDownCast(outputBundleNode->GetFrameNode(i));
+
+    if (movingNode && outputNode)
       {
-      vtkMRMLScalarVolumeNode* movingNode;
-      movingNode = 
-        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(movingFrameNodeID));
-
-      vtkMRMLScalarVolumeNode* outputNode;
-      outputNode = 
-        vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(outputFrameNodeID));
-
       RunRegistration(fixedNode, movingNode, outputNode, param);
       }
     }

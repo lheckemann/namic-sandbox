@@ -86,8 +86,7 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   // Returns number of volumes in the series.
   int LoadImagesFromDir(const char* path, double& rangeLower, double& rangeUpper);
   vtkMRMLScalarVolumeNode* AddDisplayBufferNode(vtkMRML4DBundleNode* bundleNode, 
-                                                int index,
-                                                const char* nodeName);
+                                                int index);
   int CreateRegisteredVolumeNodes();
 
   int         GetNumberOfFrames();
@@ -100,7 +99,13 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
 
   void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
   vtkSlicerApplication* GetApplication() { return this->Application; };
-  int  RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param);
+  //int  RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param);
+
+  int CreateOutputBundle(const char* name, const char* inputBundleNodeID);
+  int RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
+                            const char* inputBundleNodeID,
+                            const char* outputBundleNodeID,
+                            RegistrationParametersType& param);
 
  protected:
   
