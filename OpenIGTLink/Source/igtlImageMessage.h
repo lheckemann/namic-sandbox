@@ -114,6 +114,10 @@ public:
   int  GetScalarSize()         { return ScalarSizeTable[scalarType]; };
   int  GetScalarSize(int type) { return ScalarSizeTable[type]; };
 
+  // Endian of image scalar (default is ENDIAN_BIG)
+  void SetEndian(int e)        { endian = e; };
+  void GetEndian()             { return endian; };
+
   // TBD: Should returned value be 64-bit integer?
   int  GetImageSize()
   {
