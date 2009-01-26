@@ -116,7 +116,7 @@ public:
 
   // Endian of image scalar (default is ENDIAN_BIG)
   void SetEndian(int e)        { endian = e; };
-  void GetEndian()             { return endian; };
+  int  GetEndian()             { return endian; };
 
   // TBD: Should returned value be 64-bit integer?
   int  GetImageSize()
