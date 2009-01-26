@@ -339,7 +339,8 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
     displayNode->Delete();
     }
 
-  
+  AddDisplayBufferNode(bundleNode, 0, "4DBundleDisplay0");
+  AddDisplayBufferNode(bundleNode, 1, "4DBundleDisplay1");
 
   statusMessage.show = 0;
   this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
@@ -350,6 +351,66 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
   scene->Delete();
   */
   return nVolumes;
+}
+
+
+//---------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkControl4DLogic::AddDisplayBufferNode(vtkMRML4DBundleNode* bundleNode, int index, const char* nodeName)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene();
+
+  // Create Display Buffer Node
+  vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::New();
+  vtkMRMLVolumeArchetypeStorageNode*storageNode = vtkMRMLVolumeArchetypeStorageNode::New();
+  vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
+  
+  volumeNode->SetScene(scene);
+  storageNode->SetScene(scene);
+  displayNode->SetScene(scene);
+
+  //vtkImageData* imageData = vtkImageData::New();
+  vtkImageData* imageData = NULL;
+  vtkMRMLScalarVolumeNode *firstFrameNode 
+    = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
+  
+  if (firstFrameNode)
+    {
+    volumeNode->Copy(firstFrameNode);
+    imageData = firstFrameNode->GetImageData();
+    //imageData->DeepCopy(firstFrameNode->GetImageData());
+    }
+  volumeNode->SetAndObserveImageData(imageData);
+  volumeNode->SetName(nodeName);
+  
+  double rangeLower;
+  double rangeUpper;
+
+  double range[2];
+  volumeNode->GetImageData()->GetScalarRange(range);
+  if (range[0] < rangeLower) rangeLower = range[0];
+  if (range[1] > rangeUpper) rangeUpper = range[1];
+  displayNode->SetAutoWindowLevel(0);
+  displayNode->SetAutoThreshold(0);
+  displayNode->SetLowerThreshold(range[0]);
+  displayNode->SetUpperThreshold(range[1]);
+  displayNode->SetWindow(range[1] - range[0]);
+  displayNode->SetLevel(0.5 * (range[1] - range[0]) );
+  vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
+  displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
+  colorLogic->Delete();
+  scene->AddNode(displayNode);  
+  scene->AddNode(storageNode);  
+  volumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
+  volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  scene->AddNode(volumeNode);  
+  //this->FrameNodeVector.push_back(std::string(volumeNode->GetID()));
+  
+  bundleNode->SetDisplayBufferNodeID(index, volumeNode->GetID());
+  
+  volumeNode->Delete();
+  storageNode->Delete();
+  displayNode->Delete();
+
 }
 
 

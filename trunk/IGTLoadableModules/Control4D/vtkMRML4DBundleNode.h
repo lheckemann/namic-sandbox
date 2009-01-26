@@ -66,14 +66,16 @@ class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformNode
     return Superclass::CreateDefaultStorageNode();
     };
 
-  int SwitchCurrentFrame(int i);
   int GetNumberOfFrames();
   int InsertFrame(int i, const char* nodeID);
   int AddFrame(const char* nodeID);
   int RemoveFrame(int i);              // Delete a frame by index number (not remove from the scene)
   int RemoveFrame(const char* nodeID); // Delete a frame by node ID (not remove from the scene)
 
-  //  vtkMRMLScalarVolumeNode* GetCurrentFrameNode();
+  vtkMRMLNode* GetFrameNode(int i);
+  int          SetDisplayBufferNodeID(int bufferIndex, const char* nodeID);
+  vtkMRMLNode* GetDisplayBufferNode(int bufferIndex);
+  void         SwitchDisplayBuffer(int bufferIndex, int i);
 
 protected:
   vtkMRML4DBundleNode();
@@ -86,9 +88,7 @@ protected:
 
   NodeIDListType   FrameNodeIDList;
   NodeIDListType   TransformNodeIDList;
-  int              CurrentFrameNodeIndex;
-
-  std::string      VolumeNodeForVisualization();
+  NodeIDListType   DisplayBufferNodeIDList;
   //ETX
 
 };

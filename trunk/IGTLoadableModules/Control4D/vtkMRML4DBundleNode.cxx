@@ -62,7 +62,8 @@ vtkMRML4DBundleNode::vtkMRML4DBundleNode()
 
   this->FrameNodeIDList.clear();
   this->TransformNodeIDList.clear();
-  this->CurrentFrameNodeIndex = -1;
+
+  this->DisplayBufferNodeIDList.resize(2);
 }
 
 //----------------------------------------------------------------------------
@@ -203,20 +204,6 @@ void vtkMRML4DBundleNode::ProcessMRMLEvents ( vtkObject *caller,
 
 
 //----------------------------------------------------------------------------
-int vtkMRML4DBundleNode::SwitchCurrentFrame(int i)
-{
-  
-  if (i < 0 || i > this->FrameNodeIDList.size())
-    {
-    return -1;
-    }
-  
-  this->CurrentFrameNodeIndex = i;
-  return i;
-}
-
-
-//----------------------------------------------------------------------------
 int vtkMRML4DBundleNode::GetNumberOfFrames()
 {
 
@@ -308,6 +295,60 @@ int vtkMRML4DBundleNode::RemoveFrame(const char* nodeID)
     }
 
   return -1;
+}
+
+
+//----------------------------------------------------------------------------
+vtkMRMLNode* vtkMRML4DBundleNode::GetFrameNode(int i)
+{
+  if (i < 0 || i > this->FrameNodeIDList.size())
+    {
+    return NULL;
+    }
+  
+  vtkMRMLNode* node =
+    vtkMRMLNode::SafeDownCast(this->GetScene()
+                              ->GetNodeByID(this->FrameNodeIDList[i].c_str()));
+
+  return node;
+
+}
+
+
+//----------------------------------------------------------------------------
+int vtkMRML4DBundleNode::SetDisplayBufferNodeID(int bufferIndex, const char* nodeID)
+{
+  this->DisplayBufferNodeIDList[bufferIndex] = nodeID;
+}
+
+
+//----------------------------------------------------------------------------
+vtkMRMLNode* vtkMRML4DBundleNode::GetDisplayBufferNode(int bufferIndex)
+{
+  vtkMRMLNode* node =
+    vtkMRMLNode::SafeDownCast(this->GetScene()
+                              ->GetNodeByID(this->DisplayBufferNodeIDList[bufferIndex].c_str()));
+
+  return node;
+}
+  
+
+//----------------------------------------------------------------------------
+void vtkMRML4DBundleNode::SwitchDisplayBuffer(int bufferIndex, int i)
+  // this function should be implemented in the child class
+{
+  vtkMRMLScalarVolumeNode* frame = 
+    vtkMRMLScalarVolumeNode::SafeDownCast(this->GetFrameNode(i));
+
+  vtkMRMLScalarVolumeNode* displayBuffer = 
+    vtkMRMLScalarVolumeNode::SafeDownCast(this->GetDisplayBufferNode(bufferIndex));
+
+  if (frame && displayBuffer)
+    {
+    displayBuffer->SetAndObserveImageData(frame->GetImageData());
+    displayBuffer->Modified();
+    }
+
 }
 
 

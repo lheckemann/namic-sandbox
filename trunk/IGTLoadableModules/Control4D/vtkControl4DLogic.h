@@ -31,6 +31,8 @@
 
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLScene.h"
+#include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRML4DBundleNode.h"
 
 #include <string>
 #include <map>
@@ -83,6 +85,9 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   // specified by 'path' argument.
   // Returns number of volumes in the series.
   int LoadImagesFromDir(const char* path, double& rangeLower, double& rangeUpper);
+  vtkMRMLScalarVolumeNode* AddDisplayBufferNode(vtkMRML4DBundleNode* bundleNode, 
+                                                int index,
+                                                const char* nodeName);
   int CreateRegisteredVolumeNodes();
 
   int         GetNumberOfFrames();
@@ -151,6 +156,11 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
 
   const char* CurrentFrameFG;
   const char* CurrentFrameBG;
+
+  //BTX
+  std::string ForegroundBundeNodeID;
+  std::string BackgroundBundeNodeID;
+  //ETX
   
 };
 
