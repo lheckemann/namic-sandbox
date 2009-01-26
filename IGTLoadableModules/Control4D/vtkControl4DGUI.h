@@ -127,9 +127,10 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   // Viewer control
   //----------------------------------------------------------------
 
-  void SetForeground(int series, int index);
-  void SetBackground(int series, int index);
+  void SetForeground(const char* bundleID, int index);
+  void SetBackground(const char* bundleID, int index);
   void SetWindowLevelForCurrentFrame();
+  void UpdateSeriesSelectorMenus();
   void UpdateMaskSelectMenu();
   void SelectMask(const char* nodeID, int label);
   void UpdateFunctionEditor(vtkDoubleArray* data);
@@ -209,6 +210,7 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   
   WindowLevelUpdateStatusType WindowLevelUpdateStatus;
   NodeIDListType MaskNodeIDList;
+  NodeIDListType BundleNodeIDList;
 
 };
 

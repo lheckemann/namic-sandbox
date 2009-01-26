@@ -304,7 +304,7 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
 
   if (this->ForegroundSeriesMenu)
     {
-    this->ForegroundSeriesMenu
+    this->ForegroundSeriesMenu->GetMenu()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->ForegroundVolumeSelectorScale)
@@ -314,7 +314,7 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
     }
   if (this->BackgroundSeriesMenu)
     {
-    this->BackgroundSeriesMenu
+    this->BackgroundSeriesMenu->GetMenu()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->BackgroundVolumeSelectorScale)
@@ -443,7 +443,7 @@ void vtkControl4DGUI::AddGUIObservers ( )
 
   if (this->ForegroundSeriesMenu)
     {
-    this->ForegroundSeriesMenu
+    this->ForegroundSeriesMenu->GetMenu()
       ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);      
     }
   if (this->ForegroundVolumeSelectorScale)
@@ -453,7 +453,7 @@ void vtkControl4DGUI::AddGUIObservers ( )
     }
   if (this->BackgroundSeriesMenu)
     {
-    this->BackgroundSeriesMenu
+    this->BackgroundSeriesMenu->GetMenu()
       ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);      
     }
   if (this->BackgroundVolumeSelectorScale)
@@ -612,36 +612,37 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     // Adjust range of the scale
     this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n);
     this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n);
-    SetForeground(0, 0);
-    SetBackground(0, 0);
+    UpdateSeriesSelectorMenus();
+    SetForeground(this->BundleNodeIDList[this->BundleNodeIDList.size()-1].c_str(), 0);
+    SetBackground(this->BundleNodeIDList[this->BundleNodeIDList.size()-1].c_str(), 0);
     }
   else if (this->ForegroundSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    int series = this->ForegroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int i = this->ForegroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
-    SetForeground(series, volume);
+    SetForeground(this->BundleNodeIDList[i].c_str(), volume);
     }
   else if (this->BackgroundSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    int series = this->BackgroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int i = this->BackgroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
-    SetBackground(series, volume);
+    SetBackground(this->BundleNodeIDList[i].c_str(), volume);
     }
   else if (this->ForegroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
       && event == vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/)
     {
-    int series = this->ForegroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int i = this->ForegroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
-    SetForeground(series, volume);
+    SetForeground(this->BundleNodeIDList[i].c_str(), volume);
     }
   else if (this->BackgroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
       && event == vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/ )
     {
-    int series = this->BackgroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int i = this->BackgroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int volume = (int)this->BackgroundVolumeSelectorScale->GetValue();
-    SetBackground(series, volume);
+    SetBackground(this->BundleNodeIDList[i].c_str(), volume);
     }
   else if (this->WindowLevelRange == vtkKWRange::SafeDownCast(caller)
       && event == vtkKWRange::RangeValueChangingEvent)
@@ -866,6 +867,7 @@ void vtkControl4DGUI::ProcessMRMLEvents ( vtkObject *caller,
 {
   if (event == vtkMRMLScene::NodeAddedEvent)
     {
+    UpdateSeriesSelectorMenus();
     UpdateMaskSelectMenu();
     }
   else if (event == vtkMRMLScene::SceneCloseEvent)
@@ -1036,9 +1038,11 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
   this->ForegroundSeriesMenu->SetParent(mframe);
   this->ForegroundSeriesMenu->Create();
   this->ForegroundSeriesMenu->SetWidth(10);
+  /*
   this->ForegroundSeriesMenu->GetMenu()->AddRadioButton("Original");
   this->ForegroundSeriesMenu->GetMenu()->AddRadioButton("Registered");
   this->ForegroundSeriesMenu->SetValue("Original");
+  */
 
   vtkKWLabel *bgLabel = vtkKWLabel::New();
   bgLabel->SetParent(mframe);
@@ -1049,9 +1053,11 @@ void vtkControl4DGUI::BuildGUIForFrameControlFrame()
   this->BackgroundSeriesMenu->SetParent(mframe);
   this->BackgroundSeriesMenu->Create();
   this->BackgroundSeriesMenu->SetWidth(10);
+  /*
   this->BackgroundSeriesMenu->GetMenu()->AddRadioButton("Original");
   this->BackgroundSeriesMenu->GetMenu()->AddRadioButton("Registered");
   this->BackgroundSeriesMenu->SetValue("Original");
+  */
 
   this->Script("pack %s %s %s %s -side left -fill x -padx 2 -pady 2", 
                fgLabel->GetWidgetName(),
@@ -1203,9 +1209,11 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->SeriesToPlotMenu->SetParent(sframe);
   this->SeriesToPlotMenu->Create();
   this->SeriesToPlotMenu->SetWidth(20);
+  /*
   this->SeriesToPlotMenu->GetMenu()->AddRadioButton("Original");
   this->SeriesToPlotMenu->GetMenu()->AddRadioButton("Registered");
   this->SeriesToPlotMenu->SetValue("Original");
+  */
 
   this->Script("pack %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                seriesLabel->GetWidgetName(),
@@ -1306,7 +1314,6 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   oframe->SetLabelText ("Output");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  oframe->GetWidgetName() );
-
 
   this->SavePlotButton = vtkKWLoadSaveButtonWithLabel::New();
   this->SavePlotButton->SetParent(oframe->GetFrame());
@@ -1459,27 +1466,29 @@ void vtkControl4DGUI::UpdateAll()
 
 
 //----------------------------------------------------------------------------
-void vtkControl4DGUI::SetForeground(int series, int index)
-  // series==0 : source image,  series==1 : registered image
+void vtkControl4DGUI::SetForeground(const char* bundleID, int index)
 {
+
   int i, nnodes;
   vtkMRMLSliceCompositeNode *cnode;
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  
+  vtkMRML4DBundleNode* bundleNode 
+    = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+
+  if (!bundleNode)
+    {
+    return;
+    }
 
   vtkMRMLVolumeNode* volNode;
-  if (series == 0) // source image
-    {
-    const char* nodeID = this->GetLogic()->GetFrameNodeID(index);
-    volNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
-    }
-  else  // registered image
-    {
-    const char* nodeID = this->GetLogic()->GetRegisteredFrameNodeID(index);
-    volNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
-    }
+  //volNode = vtkMRMLVolumeNode::SafeDownCast(bundleNode->GetFrameNode(index));
+  bundleNode->SwitchDisplayBuffer(0, index);
+  volNode = vtkMRMLVolumeNode::SafeDownCast(bundleNode->GetDisplayBufferNode(0));
+
   if (volNode)
     {
-    //std::cerr << "node id = " << nodeID << std::endl;
+    std::cerr << "volume node name  = " <<  volNode->GetName() << std::endl;
     nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass ( "vtkMRMLSliceCompositeNode");
     for ( i=0; i<nnodes; i++)
       {
@@ -1490,29 +1499,30 @@ void vtkControl4DGUI::SetForeground(int series, int index)
         cnode->SetForegroundVolumeID(volNode->GetID());
         }
       }
-    SetWindowLevelForCurrentFrame();
+    //SetWindowLevelForCurrentFrame();
     }
 }
 
 
 //----------------------------------------------------------------------------
-void vtkControl4DGUI::SetBackground(int series, int index)
+void vtkControl4DGUI::SetBackground(const char* bundleID, int index)
 {
   int i, nnodes;
   vtkMRMLSliceCompositeNode *cnode;
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
+  vtkMRML4DBundleNode* bundleNode 
+    = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+
+  if (!bundleNode)
+    {
+    return;
+    }
+
   vtkMRMLVolumeNode* volNode;
-  if (series == 0) // source image
-    {
-    const char* nodeID = this->GetLogic()->GetFrameNodeID(index);
-    volNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
-    }
-  else  // registered image
-    {
-    const char* nodeID = this->GetLogic()->GetRegisteredFrameNodeID(index);
-    volNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
-    }
+  //volNode = vtkMRMLVolumeNode::SafeDownCast(bundleNode->GetFrameNode(index));
+  bundleNode->SwitchDisplayBuffer(1, index);
+  volNode = vtkMRMLVolumeNode::SafeDownCast(bundleNode->GetDisplayBufferNode(1));
 
   if (volNode)
     {
@@ -1527,7 +1537,7 @@ void vtkControl4DGUI::SetBackground(int series, int index)
         cnode->SetBackgroundVolumeID(volNode->GetID());
         }
       }
-    SetWindowLevelForCurrentFrame();
+    //SetWindowLevelForCurrentFrame();
     }
 }
 
@@ -1605,6 +1615,43 @@ void vtkControl4DGUI::SetWindowLevelForCurrentFrame()
         }
       }
     }
+}
+
+
+//----------------------------------------------------------------------------
+void vtkControl4DGUI::UpdateSeriesSelectorMenus()
+{
+
+  // generate a list of 4D Bundles
+  std::vector<vtkMRMLNode*> nodes;
+  std::vector<std::string>  names;
+
+  this->GetApplicationLogic()->GetMRMLScene()->GetNodesByClass("vtkMRML4DBundleNode", nodes);
+
+  this->BundleNodeIDList.clear();
+  names.clear();
+  std::vector<vtkMRMLNode*>::iterator niter;
+  for (niter = nodes.begin(); niter != nodes.end(); niter ++)
+    {
+    this->BundleNodeIDList.push_back((*niter)->GetID());
+    names.push_back((*niter)->GetName());
+    }
+
+  if (this->ForegroundSeriesMenu && this->BackgroundSeriesMenu && this->SeriesToPlotMenu)
+    {
+    this->ForegroundSeriesMenu->GetMenu()->DeleteAllItems();
+    this->BackgroundSeriesMenu->GetMenu()->DeleteAllItems();
+    this->SeriesToPlotMenu->GetMenu()->DeleteAllItems();
+    
+    std::vector<std::string>::iterator siter;
+    for (siter = names.begin(); siter != names.end(); siter ++)
+      {
+      this->ForegroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->BackgroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->SeriesToPlotMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      }
+    }
+
 }
 
 
