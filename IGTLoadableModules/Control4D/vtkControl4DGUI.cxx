@@ -1679,8 +1679,8 @@ void vtkControl4DGUI::UpdateSeriesSelectorMenus()
     this->ForegroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->BackgroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->SeriesToPlotMenu->GetMenu()->DeleteAllItems();
-    this->InputSeriesMenu->GetMenu()->DeleteAllItems();
-    this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
+    //this->InputSeriesMenu->GetMenu()->DeleteAllItems();
+    //this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
     
     std::vector<std::string>::iterator siter;
     for (siter = names.begin(); siter != names.end(); siter ++)
@@ -1688,8 +1688,8 @@ void vtkControl4DGUI::UpdateSeriesSelectorMenus()
       this->ForegroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->BackgroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->SeriesToPlotMenu->GetMenu()->AddRadioButton((*siter).c_str());
-      this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
-      this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      //this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      //this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       }
     }
 
