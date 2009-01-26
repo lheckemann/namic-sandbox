@@ -66,10 +66,21 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
     int z;
   } CoordType;
 
-  typedef std::vector<CoordType> IndexTableType;
-  typedef std::map<int, vtkDoubleArray*> IntensityCurveSetType;
-  typedef std::map<std::string, IntensityCurveSetType> IntensityCurveCacheType;
-  typedef std::map<std::string, unsigned long>         MaskModifiedTimeMapType;
+  typedef std::vector<CoordType>                       IndexTableType;
+
+  typedef struct {
+    long             MaskModifiedTime;
+    vtkDoubleArray*  Mean;
+    vtkDoubleArray*  SD;
+  } CurveDataType;
+  
+  typedef std::map<int, CurveDataType> CurveDataListType;
+  typedef struct {
+    std::string       MaskNodeID;
+    CurveDataListType CurveList;
+  } CurveDataSetType;
+
+  typedef std::map<std::string, CurveDataSetType> CurveCacheType;
   typedef std::map<std::string, std::string> RegistrationParametersType;
   //ETX
 
@@ -93,9 +104,8 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   const char* GetFrameNodeID(int index);
   const char* GetRegisteredFrameNodeID(int index);
 
-  void  ClearIntensityCurveCache(const char* maskID);
-  vtkDoubleArray* GetIntensityCurve(int series, const char* maskID, int label, int type);
-  int  SaveIntensityCurve(int series, const char* maskID, int label, const char* filename);
+  vtkDoubleArray* GetIntensityCurve(const char* bundleID, const char* maskID, int label, int type);
+  int  SaveIntensityCurve(const char* bundleID, const char* maskID, int label, const char* filename);
 
   void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
   vtkSlicerApplication* GetApplication() { return this->Application; };
@@ -122,9 +132,9 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
 
-  double GetMeanIntencity(vtkImageData* image);
-  double GetSDIntencity(vtkImageData* image, double mean);
-  void   GenerateIndexTable(vtkImageData* mask, int label);
+  double GetMeanIntensity(vtkImageData* image, IndexTableType& indexTable);
+  double GetSDIntensity(vtkImageData* image, double mean, IndexTableType& indexTable);
+  void   GenerateIndexTable(vtkImageData* mask, int label, IndexTableType& indexTable);
 
 
   //----------------------------------------------------------------
@@ -152,11 +162,15 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
 
   // MaskModifiedTimeMap is used to store modified time of each mask
   // to check if intensity curve caches need to be update
+  /*
   MaskModifiedTimeMapType MaskModifiedTimeMap;
   IntensityCurveCacheType IntensityCurveCache;
   IntensityCurveCacheType IntensitySDCurveCache;
   IntensityCurveCacheType RegisteredIntensityCurveCache;
   IntensityCurveCacheType RegisteredIntensitySDCurveCache;
+  */
+
+  CurveCacheType CurveCache;  // CurveCache[<4d bundle name>][<label number>].<member of CurveDataType>
   //ETX
 
   const char* CurrentFrameFG;

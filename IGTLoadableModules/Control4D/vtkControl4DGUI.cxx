@@ -727,11 +727,13 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     vtkDoubleArray* p;
     if (this->PlotTypeButtonSet->GetWidget(0)->GetSelectedState())
       {
-      p = this->GetLogic()->GetIntensityCurve(series, nodeID, label, vtkControl4DLogic::TYPE_MEAN);
+      p = this->GetLogic()->GetIntensityCurve(this->BundleNodeIDList[series].c_str(),
+                                              nodeID, label, vtkControl4DLogic::TYPE_MEAN);
       }
     else
       {
-      p = this->GetLogic()->GetIntensityCurve(series, nodeID, label, vtkControl4DLogic::TYPE_SD);
+      p = this->GetLogic()->GetIntensityCurve(this->BundleNodeIDList[series].c_str(),
+                                              nodeID, label, vtkControl4DLogic::TYPE_SD);
       }
     UpdateFunctionEditor(p);
     }
@@ -747,7 +749,8 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     if (nodeID)
       {
       vtkDoubleArray* p;
-      p = this->GetLogic()->GetIntensityCurve(series, nodeID, label, vtkControl4DLogic::TYPE_MEAN);
+      p = this->GetLogic()->GetIntensityCurve(this->BundleNodeIDList[series].c_str(),
+                                              nodeID, label, vtkControl4DLogic::TYPE_MEAN);
       UpdateFunctionEditor(p);
       }
     }
@@ -763,7 +766,8 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     if (nodeID)
       {
       vtkDoubleArray* p;
-      p = this->GetLogic()->GetIntensityCurve(series, nodeID, label, vtkControl4DLogic::TYPE_SD);
+      p = this->GetLogic()->GetIntensityCurve(this->BundleNodeIDList[series].c_str(),
+                                              nodeID, label, vtkControl4DLogic::TYPE_SD);
       UpdateFunctionEditor(p);
       }
     }
@@ -775,7 +779,8 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
-    this->GetLogic()->SaveIntensityCurve(series, nodeID, label, filename);
+    this->GetLogic()->SaveIntensityCurve(this->BundleNodeIDList[series].c_str(),
+                                         nodeID, label, filename);
     //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->
     }
   /*
@@ -914,16 +919,6 @@ void vtkControl4DGUI::ProcessMRMLEvents ( vtkObject *caller,
   else if (event == vtkMRMLVolumeNode::ImageDataModifiedEvent)
     {
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
-
-    if (strcmp(node->GetNodeTagName(), "Volume") == 0)
-      {
-      vtkMRMLScalarVolumeNode* svnode = vtkMRMLScalarVolumeNode::SafeDownCast(caller);
-      if (svnode->GetLabelMap()) // if the updated node is label map
-        {
-        // delete cache in the logic class
-        this->GetLogic()->ClearIntensityCurveCache(node->GetID());
-        }
-      }
     }
   */
 }
@@ -1276,6 +1271,7 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   this->MaskSelectSpinBox->SetParent(mframe);
   this->MaskSelectSpinBox->Create();
   this->MaskSelectSpinBox->SetWidth(3);
+  this->MaskSelectSpinBox->SetRange(0, 127);
 
   this->MaskColorCanvas = vtkKWCanvas::New();
   this->MaskColorCanvas->SetParent(mframe);
@@ -1304,7 +1300,7 @@ void vtkControl4DGUI::BuildGUIForFunctionViewer()
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
   frame->Create();
-  frame->SetLabelText ("Intencity Plot");
+  frame->SetLabelText ("Intensity Plot");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
   
