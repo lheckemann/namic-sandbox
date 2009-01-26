@@ -98,6 +98,8 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   this->FunctionEditor = NULL;
   this->SavePlotButton = NULL;
 
+  this->InputSeriesMenu  = NULL;
+  this->OutputSeriesMenu = NULL;
   this->RegistrationFixedImageIndexSpinBox = NULL;
   this->RegistrationStartIndexSpinBox = NULL;
   this->RegistrationEndIndexSpinBox   = NULL;
@@ -217,6 +219,16 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
     {
     this->SavePlotButton->SetParent(NULL);
     this->SavePlotButton->Delete();
+    }
+  if (this->InputSeriesMenu)
+    {
+    this->InputSeriesMenu->SetParent(NULL);
+    this->InputSeriesMenu->Delete();
+    }
+  if (this->OutputSeriesMenu)
+    {
+    this->OutputSeriesMenu->SetParent(NULL);
+    this->OutputSeriesMenu->Delete();
     }
   if (this->RegistrationFixedImageIndexSpinBox)
     {
@@ -367,6 +379,17 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+
+  if (this->InputSeriesMenu)
+    {
+    this->InputSeriesMenu->GetMenu()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->OutputSeriesMenu)
+    {
+    this->OutputSeriesMenu->GetMenu()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->RegistrationFixedImageIndexSpinBox)
     {
     this->RegistrationFixedImageIndexSpinBox
@@ -503,6 +526,17 @@ void vtkControl4DGUI::AddGUIObservers ( )
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
       ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->InputSeriesMenu)
+    {
+    this->InputSeriesMenu->GetMenu()
+      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->OutputSeriesMenu)
+    {
+    this->OutputSeriesMenu->GetMenu()
+      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
   if (this->RegistrationFixedImageIndexSpinBox)
     {
@@ -801,7 +835,10 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
 
     this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     this->GetLogic()->SetApplication(vtkSlicerApplication::SafeDownCast(this->GetApplication()));
-    this->GetLogic()->RunSeriesRegistration(sid, eid, fid, param);
+
+    //this->GetLogic()->RunSeriesRegistration(sid, eid, fid, param);
+    //this->GetLogic()->RunSeriesRegistration(sid, eid, fid, param);
+
     this->GetLogic()->RemoveObservers(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     }
 } 
@@ -1642,6 +1679,8 @@ void vtkControl4DGUI::UpdateSeriesSelectorMenus()
     this->ForegroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->BackgroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->SeriesToPlotMenu->GetMenu()->DeleteAllItems();
+    this->InputSeriesMenu->GetMenu()->DeleteAllItems();
+    this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
     
     std::vector<std::string>::iterator siter;
     for (siter = names.begin(); siter != names.end(); siter ++)
@@ -1649,6 +1688,8 @@ void vtkControl4DGUI::UpdateSeriesSelectorMenus()
       this->ForegroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->BackgroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->SeriesToPlotMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       }
     }
 

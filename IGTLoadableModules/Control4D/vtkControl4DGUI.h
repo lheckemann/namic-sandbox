@@ -172,6 +172,8 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   vtkKWPiecewiseFunctionEditor* FunctionEditor;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
 
+  vtkKWMenuButton* InputSeriesMenu;
+  vtkKWMenuButton* OutputSeriesMenu;
   vtkKWSpinBox*    RegistrationFixedImageIndexSpinBox;
   vtkKWSpinBox*    RegistrationStartIndexSpinBox;
   vtkKWSpinBox*    RegistrationEndIndexSpinBox;
