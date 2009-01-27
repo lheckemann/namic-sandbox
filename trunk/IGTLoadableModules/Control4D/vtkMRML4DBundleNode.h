@@ -71,8 +71,10 @@ class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformNode
   int AddFrame(const char* nodeID);
   int RemoveFrame(int i);              // Delete a frame by index number (not remove from the scene)
   int RemoveFrame(const char* nodeID); // Delete a frame by node ID (not remove from the scene)
+  void RemoveAllFrames();
 
   vtkMRMLNode* GetFrameNode(int i);
+
   int          SetDisplayBufferNodeID(int bufferIndex, const char* nodeID);
   vtkMRMLNode* GetDisplayBufferNode(int bufferIndex);
   void         SwitchDisplayBuffer(int bufferIndex, int i);

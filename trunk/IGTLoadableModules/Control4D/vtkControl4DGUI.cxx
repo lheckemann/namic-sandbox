@@ -789,6 +789,32 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     {
     }
   */
+  else if (this->OutputSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+      && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    int selected = this->OutputSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    if (selected == this->BundleNodeIDList.size())  // if "New Series" is selected"
+      {
+      vtkMRML4DBundleNode* bundleNode = vtkMRML4DBundleNode::New();
+      vtkMRMLScene* scene = this->GetMRMLScene();
+
+      char nodeName[128];
+      sprintf(nodeName, "4DBundleOut_%d", selected);
+      bundleNode->SetName(nodeName);
+      bundleNode->SetDescription("Created by Control4D");
+
+      vtkMatrix4x4* transform = vtkMatrix4x4::New();
+      transform->Identity();
+      bundleNode->ApplyTransform(transform);
+      transform->Delete();
+      this->GetMRMLScene()->AddNode(bundleNode);
+      bundleNode->Delete();
+      
+      UpdateSeriesSelectorMenus();
+      this->OutputSeriesMenu->GetMenu()->SelectItemWithSelectedValueAsInt(selected-1);
+      }
+    }
+
   else if (this->RegistrationStartIndexSpinBox == vtkKWSpinBox::SafeDownCast(caller)
            && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
     {
@@ -825,6 +851,8 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->StartRegistrationButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
+    int inputSeries = this->InputSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int outputSeries = this->OutputSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int fid = (int)this->RegistrationFixedImageIndexSpinBox->GetValue();
     int sid = (int)this->RegistrationStartIndexSpinBox->GetValue();
     int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
@@ -841,8 +869,10 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     this->GetLogic()->SetApplication(vtkSlicerApplication::SafeDownCast(this->GetApplication()));
 
-    //this->GetLogic()->RunSeriesRegistration(sid, eid, fid, param);
-    //this->GetLogic()->RunSeriesRegistration(sid, eid, fid, param);
+    this->GetLogic()->RunSeriesRegistration(sid, eid, fid, 
+                                            this->BundleNodeIDList[inputSeries].c_str(),
+                                            this->BundleNodeIDList[outputSeries].c_str(),
+                                            param);
 
     this->GetLogic()->RemoveObservers(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     }
@@ -1383,6 +1413,42 @@ void vtkControl4DGUI::BuildGUIForRegistrationFrame()
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
+  // Data
+
+  vtkKWFrameWithLabel *dframe = vtkKWFrameWithLabel::New();
+  dframe->SetParent(conBrowsFrame->GetFrame());
+  dframe->Create();
+  dframe->SetLabelText ("Node");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 dframe->GetWidgetName() );
+
+  vtkKWLabel *inputLabel = vtkKWLabel::New();
+  inputLabel->SetParent(dframe->GetFrame());
+  inputLabel->Create();
+  inputLabel->SetText("Input:");
+
+  this->InputSeriesMenu = vtkKWMenuButton::New();
+  this->InputSeriesMenu->SetParent(dframe->GetFrame());
+  this->InputSeriesMenu->Create();
+  this->InputSeriesMenu->SetWidth(20);
+
+  vtkKWLabel *outputLabel = vtkKWLabel::New();
+  outputLabel->SetParent(dframe->GetFrame());
+  outputLabel->Create();
+  outputLabel->SetText(" Output:");
+  
+  this->OutputSeriesMenu = vtkKWMenuButton::New();
+  this->OutputSeriesMenu->SetParent(dframe->GetFrame());
+  this->OutputSeriesMenu->Create();
+  this->OutputSeriesMenu->SetWidth(20);
+
+  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+               inputLabel->GetWidgetName(),
+               this->InputSeriesMenu->GetWidgetName(),
+               outputLabel->GetWidgetName(),
+               this->OutputSeriesMenu->GetWidgetName());
+
+  // -----------------------------------------
   // Execution
   
   vtkKWFrameWithLabel *eframe = vtkKWFrameWithLabel::New();
@@ -1670,13 +1736,14 @@ void vtkControl4DGUI::UpdateSeriesSelectorMenus()
     names.push_back((*niter)->GetName());
     }
 
-  if (this->ForegroundSeriesMenu && this->BackgroundSeriesMenu && this->SeriesToPlotMenu)
+  if (this->ForegroundSeriesMenu && this->BackgroundSeriesMenu && this->SeriesToPlotMenu
+      && this->InputSeriesMenu && this->OutputSeriesMenu)
     {
     this->ForegroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->BackgroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->SeriesToPlotMenu->GetMenu()->DeleteAllItems();
-    //this->InputSeriesMenu->GetMenu()->DeleteAllItems();
-    //this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
+    this->InputSeriesMenu->GetMenu()->DeleteAllItems();
+    this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
     
     std::vector<std::string>::iterator siter;
     for (siter = names.begin(); siter != names.end(); siter ++)
@@ -1684,10 +1751,13 @@ void vtkControl4DGUI::UpdateSeriesSelectorMenus()
       this->ForegroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->BackgroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->SeriesToPlotMenu->GetMenu()->AddRadioButton((*siter).c_str());
-      //this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
-      //this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       }
     }
+
+  // OutputSeriesMenu has "New Series Button"
+  this->OutputSeriesMenu->GetMenu()->AddRadioButton("New Series");
 
 }
 
