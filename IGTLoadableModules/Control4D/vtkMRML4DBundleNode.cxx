@@ -64,6 +64,8 @@ vtkMRML4DBundleNode::vtkMRML4DBundleNode()
   this->TransformNodeIDList.clear();
 
   this->DisplayBufferNodeIDList.resize(2);
+  this->DisplayBufferNodeIDList[0] = "";
+  this->DisplayBufferNodeIDList[1] = "";
 }
 
 //----------------------------------------------------------------------------
@@ -85,6 +87,7 @@ void vtkMRML4DBundleNode::WriteXML(ostream& of, int nIndent)
 
   vtkIndent indent(nIndent);
 
+  // Transform to parent
   if (this->MatrixTransformToParent != NULL) 
     {
     std::stringstream ss;
@@ -106,7 +109,20 @@ void vtkMRML4DBundleNode::WriteXML(ostream& of, int nIndent)
     of << indent << " matrixTransformToParent=\"" << ss.str() << "\"";
     }
 
+  of << indent << " DisplayBuffer0=\"" << this->DisplayBufferNodeIDList[0] << "\"";
+  of << indent << " DisplayBuffer1=\"" << this->DisplayBufferNodeIDList[1] << "\"";
+
+  NodeIDListType::iterator iter;
+  int index = 0;
+
+  for (iter = this->FrameNodeIDList.begin(); iter != this->FrameNodeIDList.end(); iter ++)
+    {
+    of << indent << " Frame" << index << "=\"" << *iter << "\"";
+    index ++;
+    }
+
 }
+
 
 //----------------------------------------------------------------------------
 void vtkMRML4DBundleNode::ReadXMLAttributes(const char** atts)
@@ -142,7 +158,16 @@ void vtkMRML4DBundleNode::ReadXMLAttributes(const char** atts)
       this->SetAndObserveMatrixTransformToParent(matrix);
       matrix->Delete();
       }
+    if (!strcmp(attName, "DisplayBuffer0")) 
+      {
+      this->DisplayBufferNodeIDList[0] =attValue ;
+      }
+    if (!strcmp(attName, "DisplayBuffer1")) 
+      {
+      this->DisplayBufferNodeIDList[1] =attValue ;
+      }
     }  
+  
 }
 
 //----------------------------------------------------------------------------
@@ -270,6 +295,12 @@ int vtkMRML4DBundleNode::RemoveFrame(int i)
   NodeIDListType::iterator iter;
   iter = this->FrameNodeIDList.begin();
   iter += index;
+
+  /*
+  vtkMRMLNode* node =
+    vtkMRMLNode::SafeDownCast(this->GetScene()
+                              ->GetNodeByID(iter->c_str()));
+  */
   this->FrameNodeIDList.erase(iter);
 
   return index;
@@ -295,6 +326,13 @@ int vtkMRML4DBundleNode::RemoveFrame(const char* nodeID)
     }
 
   return -1;
+}
+
+
+//----------------------------------------------------------------------------
+void vtkMRML4DBundleNode::RemoveAllFrames()
+{
+  this->FrameNodeIDList.clear();
 }
 
 

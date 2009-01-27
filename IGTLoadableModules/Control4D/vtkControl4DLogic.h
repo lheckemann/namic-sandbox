@@ -98,8 +98,6 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   int LoadImagesFromDir(const char* path, double& rangeLower, double& rangeUpper);
   vtkMRMLScalarVolumeNode* AddDisplayBufferNode(vtkMRML4DBundleNode* bundleNode, 
                                                 int index);
-  int CreateRegisteredVolumeNodes();
-
   int         GetNumberOfFrames();
   const char* GetFrameNodeID(int index);
   const char* GetRegisteredFrameNodeID(int index);
@@ -111,7 +109,9 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   vtkSlicerApplication* GetApplication() { return this->Application; };
   //int  RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param);
 
-  int CreateOutputBundle(const char* name, const char* inputBundleNodeID);
+  int GenerateBundleFrames(vtkMRML4DBundleNode* inputBundleNode,
+                           vtkMRML4DBundleNode* outputBundleNode);
+
   int RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
                             const char* inputBundleNodeID,
                             const char* outputBundleNodeID,
@@ -141,7 +141,10 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   // Registration
   //----------------------------------------------------------------
   //BTX
-  int  RunRegistration(vtkMRMLScalarVolumeNode* fixedNode, vtkMRMLScalarVolumeNode* movingNode, vtkMRMLScalarVolumeNode* outputNode,
+  int  RunRegistration(vtkMRML4DBundleNode* bundleNode,
+                       vtkMRMLScalarVolumeNode* fixedNode,
+                       vtkMRMLScalarVolumeNode* movingNode,
+                       vtkMRMLScalarVolumeNode* outputNode,
                        RegistrationParametersType& param);
   //ETX
 
@@ -158,29 +161,9 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   std::string VolumeBundleID;
   std::string RegisteredVolumeBundleID;
 
-  IndexTableType MaskIndexTable;
-
-  // MaskModifiedTimeMap is used to store modified time of each mask
-  // to check if intensity curve caches need to be update
-  /*
-  MaskModifiedTimeMapType MaskModifiedTimeMap;
-  IntensityCurveCacheType IntensityCurveCache;
-  IntensityCurveCacheType IntensitySDCurveCache;
-  IntensityCurveCacheType RegisteredIntensityCurveCache;
-  IntensityCurveCacheType RegisteredIntensitySDCurveCache;
-  */
-
   CurveCacheType CurveCache;  // CurveCache[<4d bundle name>][<label number>].<member of CurveDataType>
   //ETX
 
-  const char* CurrentFrameFG;
-  const char* CurrentFrameBG;
-
-  //BTX
-  std::string ForegroundBundeNodeID;
-  std::string BackgroundBundeNodeID;
-  //ETX
-  
 };
 
 #endif
