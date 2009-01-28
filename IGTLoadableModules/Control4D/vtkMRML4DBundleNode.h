@@ -49,7 +49,7 @@ class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformNode
 
   // Description:
   // Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() {return "4DBundle";};
+  virtual const char* GetNodeTagName() {return "FourDBundle";};
 
   // Description:
   // alternative method to propagate events generated in Transform nodes
