@@ -6,15 +6,17 @@ See Doc/copyright/copyright.txt
 or http://www.slicer.org/copyright/copyright.txt for details.
 
 Program:   3D Slicer
-Module:    $RCSfile: vtkMRMLLinearTransformNode.cxx,v $
-Date:      $Date: 2006/03/17 17:01:53 $
-Version:   $Revision: 1.14 $
+Module:    $RCSfile: $
+Date:      $Date: $
+Version:   $Revision: $
 
 =========================================================================auto=*/
 
 #include <string>
 #include <iostream>
 #include <sstream>
+
+#include <inttypes.h>
 
 #include "vtkObjectFactory.h"
 #include "vtkCallbackCommand.h"
@@ -87,28 +89,6 @@ void vtkMRML4DBundleNode::WriteXML(ostream& of, int nIndent)
 
   vtkIndent indent(nIndent);
 
-  // Transform to parent
-  if (this->MatrixTransformToParent != NULL) 
-    {
-    std::stringstream ss;
-    for (int row=0; row<4; row++) 
-      {
-      for (int col=0; col<4; col++) 
-        {
-        ss << this->MatrixTransformToParent->GetElement(row, col);
-        if (!(row==3 && col==3)) 
-          {
-          ss << " ";
-          }
-        }
-      if ( row != 3 )
-        {
-        ss << " ";
-        }
-      }
-    of << indent << " matrixTransformToParent=\"" << ss.str() << "\"";
-    }
-
   of << indent << " DisplayBuffer0=\"" << this->DisplayBufferNodeIDList[0] << "\"";
   of << indent << " DisplayBuffer1=\"" << this->DisplayBufferNodeIDList[1] << "\"";
 
@@ -136,28 +116,10 @@ void vtkMRML4DBundleNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    if (!strcmp(attName, "matrixTransformToParent")) 
-      {
-      vtkMatrix4x4 *matrix  = vtkMatrix4x4::New();
-      matrix->Identity();
-      if (this->MatrixTransformToParent != NULL) 
-        {
-        this->SetAndObserveMatrixTransformToParent(NULL);
-        }
-      std::stringstream ss;
-      double val;
-      ss << attValue;
-      for (int row=0; row<4; row++) 
-        {
-        for (int col=0; col<4; col++) 
-          {
-          ss >> val;
-          matrix->SetElement(row, col, val);
-          }
-        }
-      this->SetAndObserveMatrixTransformToParent(matrix);
-      matrix->Delete();
-      }
+
+    std::cerr << "attName = " << attName << "." << std::endl;
+    std::cerr << "attValue = " << attValue << "." << std::endl;
+      
     if (!strcmp(attName, "DisplayBuffer0")) 
       {
       this->DisplayBufferNodeIDList[0] =attValue ;
@@ -166,9 +128,25 @@ void vtkMRML4DBundleNode::ReadXMLAttributes(const char** atts)
       {
       this->DisplayBufferNodeIDList[1] =attValue ;
       }
-    }  
-  
+    if (!strncmp("Frame", attName, 5))
+      {
+      std::cerr << "Frames" << std::endl;
+      const char* suffix = &attName[5];
+      char** endptr;
+      long index = strtol(suffix, endptr, 10);
+      std::cerr << "index = " << index << std::endl;
+      if (index >= this->FrameNodeIDList.size())
+        {
+        this->FrameNodeIDList.resize(index+1);
+        }
+      this->FrameNodeIDList[index] = attValue;
+      }
+    }
+  this->FrameNodeIDList.clear();
+  this->DisplayBufferNodeIDList.clear();
+
 }
+
 
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
@@ -181,7 +159,8 @@ void vtkMRML4DBundleNode::Copy(vtkMRMLNode *anode)
     {
     for (int j=0; j<4; j++)
       {
-      this->GetMatrixTransformToParent()->SetElement(i,j,(node->MatrixTransformToParent->GetElement(i,j)));
+      this->GetMatrixTransformToParent()
+        ->SetElement(i,j,(node->MatrixTransformToParent->GetElement(i,j)));
       }
     }
 }
@@ -348,6 +327,8 @@ vtkMRMLNode* vtkMRML4DBundleNode::GetFrameNode(int i)
     vtkMRMLNode::SafeDownCast(this->GetScene()
                               ->GetNodeByID(this->FrameNodeIDList[i].c_str()));
 
+  std::cerr << "GetFrameNode(int i) = " << node << std::endl;
+
   return node;
 
 }
@@ -367,6 +348,7 @@ vtkMRMLNode* vtkMRML4DBundleNode::GetDisplayBufferNode(int bufferIndex)
     vtkMRMLNode::SafeDownCast(this->GetScene()
                               ->GetNodeByID(this->DisplayBufferNodeIDList[bufferIndex].c_str()));
 
+  std::cerr << "GetDisplayBufferNode(int bufferIndex) = " << node << std::endl;
   return node;
 }
   
