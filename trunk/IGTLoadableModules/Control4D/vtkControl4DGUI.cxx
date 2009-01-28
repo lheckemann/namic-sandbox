@@ -644,8 +644,8 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     this->ThresholdLower = 1.0;
     this->GetLogic()->RemoveObservers(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     // Adjust range of the scale
-    this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n);
-    this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n);
+    this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
+    this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
     UpdateSeriesSelectorMenus();
     SetForeground(this->BundleNodeIDList[this->BundleNodeIDList.size()-1].c_str(), 0);
     SetBackground(this->BundleNodeIDList[this->BundleNodeIDList.size()-1].c_str(), 0);
