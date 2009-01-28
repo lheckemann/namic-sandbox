@@ -655,14 +655,28 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     {
     int i = this->ForegroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
-    SetForeground(this->BundleNodeIDList[i].c_str(), volume);
+    const char* bundleID = this->BundleNodeIDList[i].c_str();
+    vtkMRML4DBundleNode* bundleNode 
+      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+    if (bundleNode)
+      {
+      bundleNode->SwitchDisplayBuffer(0, volume);
+      }
+    //SetForeground(this->BundleNodeIDList[i].c_str(), volume);
     }
   else if (this->BackgroundSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
     int i = this->BackgroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
-    SetBackground(this->BundleNodeIDList[i].c_str(), volume);
+    const char* bundleID = this->BundleNodeIDList[i].c_str();
+    vtkMRML4DBundleNode* bundleNode 
+      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+    if (bundleNode)
+      {
+      bundleNode->SwitchDisplayBuffer(1, volume);
+      }
+    //SetBackground(this->BundleNodeIDList[i].c_str(), volume);
     }
   else if (this->ForegroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
       && event == vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/)
@@ -1587,7 +1601,7 @@ void vtkControl4DGUI::SetForeground(const char* bundleID, int index)
 
   if (volNode)
     {
-    std::cerr << "volume node name  = " <<  volNode->GetName() << std::endl;
+    //std::cerr << "volume node name  = " <<  volNode->GetName() << std::endl;
     nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass ( "vtkMRMLSliceCompositeNode");
     for ( i=0; i<nnodes; i++)
       {

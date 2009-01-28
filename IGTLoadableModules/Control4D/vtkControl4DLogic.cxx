@@ -360,22 +360,22 @@ vtkMRMLScalarVolumeNode* vtkControl4DLogic::AddDisplayBufferNode(vtkMRML4DBundle
   volumeNode->SetScene(scene);
   //storageNode->SetScene(scene);
   displayNode->SetScene(scene);
-  
-  //vtkImageData* imageData = vtkImageData::New();
-  vtkImageData* imageData = NULL;
+
+  vtkImageData* imageData = vtkImageData::New();
   vtkMRMLScalarVolumeNode *firstFrameNode 
     = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
-  
-  if (firstFrameNode)
+
+  if (firstFrameNode && firstFrameNode->GetImageData())
     {
     volumeNode->Copy(firstFrameNode);
-    // J. Tokuda -- Jan 26, 2009: The display buffer node is placed outside
-    // the bundle to allow the users to make a label map with the buffer image.
-    volumeNode->SetAndObserveTransformNodeID(NULL);
-    imageData = firstFrameNode->GetImageData();
-    //imageData->DeepCopy(firstFrameNode->GetImageData());
+    vtkImageData* firstImageData = firstFrameNode->GetImageData();
+    imageData->ShallowCopy(firstImageData);
     }
+  
+  // J. Tokuda -- Jan 26, 2009: The display buffer node is placed outside
+  // the bundle to allow the users to make a label map with the buffer image.
   volumeNode->SetAndObserveImageData(imageData);
+
 
   char nodeName[128];
   sprintf(nodeName, "%s_Display%d", bundleNode->GetName(), index);

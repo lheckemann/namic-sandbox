@@ -365,8 +365,10 @@ void vtkMRML4DBundleNode::SwitchDisplayBuffer(int bufferIndex, int i)
 
   if (frame && displayBuffer)
     {
-    displayBuffer->SetAndObserveImageData(frame->GetImageData());
+    vtkImageData* imageData = displayBuffer->GetImageData();
+    imageData->DeepCopy(frame->GetImageData());
     displayBuffer->Modified();
+    displayBuffer->InvokeEvent(vtkMRMLVolumeNode::ImageDataModifiedEvent);
     }
 
 }
