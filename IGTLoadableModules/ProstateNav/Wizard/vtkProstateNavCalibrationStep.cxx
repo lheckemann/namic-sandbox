@@ -693,9 +693,9 @@ int vtkProstateNavCalibrationStep::ZFrameRegistration(vtkMRMLScalarVolumeNode* v
   // OpenIGTLink image has its origin at the center, while VTK image
   // has one at the corner.
 
-  float hfovi = psi * (dimensions[0]) / 2.0;
-  float hfovj = psj * (dimensions[1]) / 2.0;
-  float hfovk = psk * (dimensions[2]) / 2.0;
+  float hfovi = psi * (dimensions[0]-1) / 2.0;
+  float hfovj = psj * (dimensions[1]-1) / 2.0;
+  float hfovk = psk * (dimensions[2]-1) / 2.0;
 
   float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
   float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
@@ -720,6 +720,11 @@ int vtkProstateNavCalibrationStep::ZFrameRegistration(vtkMRMLScalarVolumeNode* v
   position[0] = matrix[0][3];
   position[1] = matrix[1][3];
   position[2] = matrix[2][3];
+
+  std::cerr << "=== Image position ===" << std::endl;
+  std::cerr << "x = " << position[0] << std::endl; 
+  std::cerr << "y = " << position[1] << std::endl;
+  std::cerr << "z = " << position[2] << std::endl;
 
   // Get current position and orientation of the imaging plane.
   // SPL OpenTracker events always contain Position and Orientation attributes.
@@ -834,9 +839,6 @@ int vtkProstateNavCalibrationStep::ZFrameRegistration(vtkMRMLScalarVolumeNode* v
 #endif
 //end simond
 
-
-  // Update the scan plane parameters. 
-  // NOTE: if there is no frame lock, then we do not update the scan plane.
   position[0] = Iposition.getX();
   position[1] = Iposition.getY();
   position[2] = Iposition.getZ();
