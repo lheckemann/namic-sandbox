@@ -368,6 +368,7 @@ vtkMRMLScalarVolumeNode* vtkControl4DLogic::AddDisplayBufferNode(vtkMRML4DBundle
   if (firstFrameNode && firstFrameNode->GetImageData())
     {
     volumeNode->Copy(firstFrameNode);
+    volumeNode->SetAndObserveTransformNodeID(NULL);
     vtkImageData* firstImageData = firstFrameNode->GetImageData();
     imageData->ShallowCopy(firstImageData);
     }
