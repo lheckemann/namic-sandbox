@@ -10,6 +10,14 @@ ENABLE_TESTING()
 INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
 
 #-----------------------------------------------------------------------------
+# OpenIGTlink version number.
+SET(OpenIGTLink_VERSION_MAJOR "1")
+SET(OpenIGTLink_VERSION_MINOR "0")
+SET(OpenIGTLink_VERSION_PATCH "0")
+
+
+
+#-----------------------------------------------------------------------------
 # OpenIGTLink build configuration options.
 
 OPTION(BUILD_SHARED_LIBS "Build OpenIGTLink with shared libraries." OFF)
