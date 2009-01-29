@@ -119,7 +119,7 @@ int GetTestImage(igtl::ImageMessage::Pointer& msg, const char* dir, int i)
 
   //------------------------------------------------------------
   // Check if image index is in the range
-  if (i < 0 && i >= 5) 
+  if (i < 0 || i >= 5) 
     {
     std::cerr << "Image index is invalid." << std::endl;
     return 0;
