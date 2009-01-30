@@ -5,9 +5,11 @@
 #include "VNLIterativeSparseSolverTraits.h"
 #include "itkQuadEdgeMeshParamMatrixCoefficients.h"
 
-#include "itkQuadEdgeMeshToSphereFilter.h"
+#include "itkQuadEdgeMeshRayTracingFilter.h"
+// #include "itkQuadEdgeMeshToSphereFilter.h"
 #include "itkQuadEdgeMeshSphericalParameterization.h"
 
+#include <time.h>
 
 int main( int argc, char** argv )
 {
@@ -44,17 +46,26 @@ int main( int argc, char** argv )
 
   typedef VNLIterativeSparseSolverTraits< Coord >  SolverTraits;
 
-  typedef itk::QuadEdgeMeshToSphereFilter< 
-    MeshType, MeshType, SolverTraits > FilterType;
+//   typedef itk::QuadEdgeMeshToSphereFilter<
+//     MeshType, MeshType, SolverTraits > FilterType;
+//   typedef itk::QuadEdgeMeshGaussMapFilter< MeshType, MeshType >
+    typedef itk::QuadEdgeMeshRayTracingFilter< MeshType, MeshType >
+    FilterType;
 
-  typedef itk::QuadEdgeMeshSphericalParameterization< 
+  typedef itk::QuadEdgeMeshSphericalParameterization<
     MeshType, MeshType, FilterType > SphericalParameterizationType;
 
+  clock_t start = clock();
   SphericalParameterizationType::Pointer filter =
     SphericalParameterizationType::New();
   filter->SetInput( mesh );
   filter->SetCoefficientsMethod( &coeff0 );
   filter->Update();
+  clock_t end = clock();
+
+  std::cout <<"Time: "
+    <<static_cast<double>( end - start ) /
+      static_cast<double>(CLOCKS_PER_SEC) <<" s" <<std::endl;
 
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( filter->GetOutput( ) );
