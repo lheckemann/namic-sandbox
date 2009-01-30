@@ -102,10 +102,13 @@ public:
 
   void SetCoefficientsMethod( CoefficientsComputation* iMethod )
     {}
+  itkSetMacro( Radius, OutputCoordRepType );
 
 protected:
-  QuadEdgeMeshGaussMapFilter() : Superclass() {}
+  QuadEdgeMeshGaussMapFilter() : Superclass(), m_Radius(1.) {}
   ~QuadEdgeMeshGaussMapFilter() {}
+
+  OutputCoordRepType m_Radius;
 
   void GenerateData( )
   {
@@ -134,7 +137,7 @@ protected:
       id = it->Index();
       for( dim = 0; dim < PointDimension; ++dim )
         {
-        p[dim] = static_cast< OutputCoordRepType >( it.Value()[dim] );
+        p[dim] = m_Radius * static_cast< OutputCoordRepType >( it.Value()[dim] );
         }
         p.SetEdge( output->FindEdge( id ) );
         output->SetPoint( id, p );
