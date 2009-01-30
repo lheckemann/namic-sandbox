@@ -80,8 +80,11 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   //----------------------------------------------------------------
   // GUI widgets
   this->ProgressDialog = NULL;
-  this->SelectImageButton             = NULL;
+  this->SelectInputDirectoryButton    = NULL;
   this->LoadImageButton               = NULL;
+  this->SaveSeriesMenu                = NULL;
+  this->SelectOutputDirectoryButton   = NULL;
+  this->SaveImageButton               = NULL;
   
   this->ForegroundSeriesMenu          = NULL;
   this->ForegroundVolumeSelectorScale = NULL;
@@ -144,15 +147,30 @@ vtkControl4DGUI::~vtkControl4DGUI ( )
     this->ProgressDialog->SetParent(NULL);
     this->ProgressDialog->Delete();
     }
-  if (this->SelectImageButton)
+  if (this->SelectInputDirectoryButton)
     {
-    this->SelectImageButton->SetParent(NULL);
-    this->SelectImageButton->Delete();
+    this->SelectInputDirectoryButton->SetParent(NULL);
+    this->SelectInputDirectoryButton->Delete();
     }
   if (this->LoadImageButton)
     {
     this->LoadImageButton->SetParent(NULL);
     this->LoadImageButton->Delete();
+    }
+  if (this->SaveSeriesMenu)
+    {
+    this->SaveSeriesMenu->SetParent(NULL);
+    this->SaveSeriesMenu->Delete();
+    }
+  if (this->SelectOutputDirectoryButton)
+    {
+    this->SelectOutputDirectoryButton->SetParent(NULL);
+    this->SelectOutputDirectoryButton->Delete();
+    }
+  if (this->SaveImageButton)
+    {
+    this->SaveImageButton->SetParent(NULL);
+    this->SaveImageButton->Delete();
     }
   if (this->ForegroundSeriesMenu)
     {
@@ -313,6 +331,16 @@ void vtkControl4DGUI::RemoveGUIObservers ( )
     this->LoadImageButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->SaveSeriesMenu)
+    {
+    this->SaveSeriesMenu->GetMenu()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->SaveImageButton)
+    {
+    this->SaveImageButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   if (this->ForegroundSeriesMenu)
     {
@@ -461,8 +489,20 @@ void vtkControl4DGUI::AddGUIObservers ( )
   // GUI Observers
 
   if (this->LoadImageButton)
+    {
     this->LoadImageButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->SaveSeriesMenu)
+    {
+    this->SaveSeriesMenu->GetMenu()
+      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);      
+    }
+  if (this->SaveImageButton)
+    {
+    this->SaveImageButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
 
   if (this->ForegroundSeriesMenu)
     {
@@ -631,7 +671,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
   if (this->LoadImageButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    const char* path = this->SelectImageButton->GetWidget()->GetFileName();
+    const char* path = this->SelectInputDirectoryButton->GetWidget()->GetFileName();
     this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     int n = this->GetLogic()->LoadImagesFromDir(path, this->RangeLower, this->RangeUpper);
     this->RegistrationFixedImageIndexSpinBox->SetRange(0, n);
@@ -649,6 +689,17 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
     UpdateSeriesSelectorMenus();
     SetForeground(this->BundleNodeIDList[this->BundleNodeIDList.size()-1].c_str(), 0);
     SetBackground(this->BundleNodeIDList[this->BundleNodeIDList.size()-1].c_str(), 0);
+    }
+
+  if (this->SaveImageButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    const char* path = this->SelectOutputDirectoryButton->GetWidget()->GetFileName();
+    int i = this->SaveSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
+    this->GetLogic()->SetApplication(vtkSlicerApplication::SafeDownCast(this->GetApplication()));
+    this->GetLogic()->SaveImagesToDir(path, this->BundleNodeIDList[i].c_str(), "out", "nrrd");
+    this->GetLogic()->RemoveObservers(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     }
   else if (this->ForegroundSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
@@ -825,7 +876,7 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
       bundleNode->Delete();
       
       UpdateSeriesSelectorMenus();
-      this->OutputSeriesMenu->GetMenu()->SelectItemWithSelectedValueAsInt(selected-1);
+      this->OutputSeriesMenu->GetMenu()->SelectItemWithSelectedValueAsInt(selected-2);
       }
     }
 
@@ -1031,45 +1082,81 @@ void vtkControl4DGUI::BuildGUIForLoadFrame ()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Load");
+  conBrowsFrame->SetLabelText("Load / Save");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
   // Select File Frame
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Input Directory");
+  vtkKWFrameWithLabel *inFrame = vtkKWFrameWithLabel::New();
+  inFrame->SetParent(conBrowsFrame->GetFrame());
+  inFrame->Create();
+  inFrame->SetLabelText ("Input");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
+                 inFrame->GetWidgetName() );
   
-  this->SelectImageButton = vtkKWLoadSaveButtonWithLabel::New();
-  this->SelectImageButton->SetParent(frame->GetFrame());
-  this->SelectImageButton->Create();
-  this->SelectImageButton->SetWidth(50);
-  this->SelectImageButton->GetWidget()->SetText ("Browse Image File");
-  this->SelectImageButton->GetWidget()->GetLoadSaveDialog()->ChooseDirectoryOn();
+  this->SelectInputDirectoryButton = vtkKWLoadSaveButtonWithLabel::New();
+  this->SelectInputDirectoryButton->SetParent(inFrame->GetFrame());
+  this->SelectInputDirectoryButton->Create();
+  this->SelectInputDirectoryButton->SetWidth(50);
+  this->SelectInputDirectoryButton->GetWidget()->SetText ("Browse Input Directory");
+  this->SelectInputDirectoryButton->GetWidget()->GetLoadSaveDialog()->ChooseDirectoryOn();
   /*
-    this->SelectImageButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes(
+    this->SelectInputDirectoryButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes(
     "{ {ProstateNav} {*.dcm} }");
   */
-  this->SelectImageButton->GetWidget()->GetLoadSaveDialog()
+  this->SelectInputDirectoryButton->GetWidget()->GetLoadSaveDialog()
     ->RetrieveLastPathFromRegistry("OpenPath");
 
   this->LoadImageButton = vtkKWPushButton::New ( );
-  this->LoadImageButton->SetParent ( frame->GetFrame() );
+  this->LoadImageButton->SetParent ( inFrame->GetFrame() );
   this->LoadImageButton->Create ( );
   this->LoadImageButton->SetText ("Load Series");
   this->LoadImageButton->SetWidth (12);
 
   this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
-               this->SelectImageButton->GetWidgetName(),
+               this->SelectInputDirectoryButton->GetWidgetName(),
                this->LoadImageButton->GetWidgetName());
 
+  // -----------------------------------------
+  // Select File Frame
+
+  vtkKWFrameWithLabel *outFrame = vtkKWFrameWithLabel::New();
+  outFrame->SetParent(conBrowsFrame->GetFrame());
+  outFrame->Create();
+  outFrame->SetLabelText ("Output");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 outFrame->GetWidgetName() );
+
+  this->SaveSeriesMenu = vtkKWMenuButton::New();
+  this->SaveSeriesMenu->SetParent(outFrame->GetFrame());
+  this->SaveSeriesMenu->Create();
+  this->SaveSeriesMenu->SetWidth(10);
+
+  this->SelectOutputDirectoryButton = vtkKWLoadSaveButtonWithLabel::New();
+  this->SelectOutputDirectoryButton->SetParent(outFrame->GetFrame());
+  this->SelectOutputDirectoryButton->Create();
+  this->SelectOutputDirectoryButton->SetWidth(50);
+  this->SelectOutputDirectoryButton->GetWidget()->SetText ("Browse Output Directory");
+  this->SelectOutputDirectoryButton->GetWidget()->GetLoadSaveDialog()->ChooseDirectoryOn();
+  this->SelectOutputDirectoryButton->GetWidget()->GetLoadSaveDialog()
+    ->RetrieveLastPathFromRegistry("OpenPath");
+  
+  this->SaveImageButton = vtkKWPushButton::New ( );
+  this->SaveImageButton->SetParent ( outFrame->GetFrame() );
+  this->SaveImageButton->Create ( );
+  this->SaveImageButton->SetText ("Save Series");
+  this->SaveImageButton->SetWidth (12);
+
+  this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               this->SaveSeriesMenu->GetWidgetName(),
+               this->SelectOutputDirectoryButton->GetWidgetName(),
+               this->SaveImageButton->GetWidgetName());
+
   conBrowsFrame->Delete();
-  frame->Delete();
+  inFrame->Delete();
+  outFrame->Delete();
 }
 
 
@@ -1751,13 +1838,14 @@ void vtkControl4DGUI::UpdateSeriesSelectorMenus()
     }
 
   if (this->ForegroundSeriesMenu && this->BackgroundSeriesMenu && this->SeriesToPlotMenu
-      && this->InputSeriesMenu && this->OutputSeriesMenu)
+      && this->InputSeriesMenu && this->OutputSeriesMenu && this->SaveSeriesMenu)
     {
     this->ForegroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->BackgroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->SeriesToPlotMenu->GetMenu()->DeleteAllItems();
     this->InputSeriesMenu->GetMenu()->DeleteAllItems();
     this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
+    this->SaveSeriesMenu->GetMenu()->DeleteAllItems();
     
     std::vector<std::string>::iterator siter;
     for (siter = names.begin(); siter != names.end(); siter ++)
@@ -1767,6 +1855,7 @@ void vtkControl4DGUI::UpdateSeriesSelectorMenus()
       this->SeriesToPlotMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->SaveSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       }
     }
 

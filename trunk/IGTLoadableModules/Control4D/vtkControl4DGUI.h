@@ -151,8 +151,11 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
 
   vtkKWProgressDialog *ProgressDialog;
 
-  vtkKWLoadSaveButtonWithLabel* SelectImageButton;
-  vtkKWPushButton* LoadImageButton;
+  vtkKWLoadSaveButtonWithLabel* SelectInputDirectoryButton;
+  vtkKWPushButton*              LoadImageButton;
+  vtkKWMenuButton*              SaveSeriesMenu;
+  vtkKWLoadSaveButtonWithLabel* SelectOutputDirectoryButton;
+  vtkKWPushButton*              SaveImageButton;
   
   vtkKWRange *WindowLevelRange;
   vtkKWRange *ThresholdRange;

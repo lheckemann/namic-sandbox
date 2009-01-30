@@ -34,6 +34,11 @@
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRML4DBundleNode.h"
 
+
+#include "itkOrientedImage.h"
+#include "itkImageSeriesReader.h"
+
+
 #include <string>
 #include <map>
 
@@ -95,7 +100,18 @@ class VTK_Control4D_EXPORT vtkControl4DLogic : public vtkSlicerModuleLogic
   // Loads series of volumes from the directory that contains the file
   // specified by 'path' argument.
   // Returns number of volumes in the series.
+
+  //BTX
+  //const int SpaceDim = 3;
+  typedef short PixelValueType;
+  typedef itk::OrientedImage< PixelValueType, 3 > VolumeType;
+  typedef itk::ImageSeriesReader< VolumeType > ReaderType;
+  int CreateFileListFromDir(const char* path,
+                            std::vector<ReaderType::FileNamesContainer>& fileNamesContainerList);
+  //ETX
   int LoadImagesFromDir(const char* path, double& rangeLower, double& rangeUpper);
+  int SaveImagesToDir(const char* path, const char* bundleID, const char* prefix, const char* suffix);
+
   vtkMRMLScalarVolumeNode* AddDisplayBufferNode(vtkMRML4DBundleNode* bundleNode, 
                                                 int index);
   int         GetNumberOfFrames();
