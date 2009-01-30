@@ -87,8 +87,8 @@ namespace itk
 
   protected:
     QuadEdgeMeshSphericalParameterization() : Superclass(), m_Iteration( 0 ),
-      m_IterationSTOP( 100 ), m_OldEnergy( 1e12 ), m_NewEnergy( 1e12 ),
-      m_Threshold( 0.001 ), m_TimeStep( 0.1 )
+      m_IterationSTOP( 10000 ), m_OldEnergy( 1e12 ), m_NewEnergy( 1e12 ),
+      m_Threshold( 1e-3 ), m_TimeStep( 0.1 )
     {
       m_InitFilter = InitializationFilterType::New();
     }

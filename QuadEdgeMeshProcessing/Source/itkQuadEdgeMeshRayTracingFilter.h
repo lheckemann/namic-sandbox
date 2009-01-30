@@ -8,18 +8,18 @@ namespace itk
 {
 /**
  * \class QuadEdgeMeshRayTracingFilter
- * \brief This filter first computes the center of mass C of the input mesh. 
+ * \brief This filter first computes the center of mass C of the input mesh.
  * Then it projects each vertex on a sphere centered at C.
 */
-template< class TInput, class TOutput >
+template< class TInputMesh, class TOutputMesh >
 class QuadEdgeMeshRayTracingFilter :
-  public QuadEdgeMeshToQuadEdgeMeshFilter< TInput, TOutput >
+  public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 {
 public:
   typedef QuadEdgeMeshRayTracingFilter Self;
   typedef SmartPointer< Self > Pointer;
   typedef SmartPointer< const Self > ConstPointer;
-  typedef QuadEdgeMeshToQuadEdgeMeshFilter Superclass;
+  typedef QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh > Superclass;
 
   /** Run-time type information (and related methods).   */
   itkTypeMacro( QuadEdgeMeshRayTracingFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
@@ -88,8 +88,10 @@ protected:
     OutputPointsContainerIterator p_it = points->Begin();
 
     OutputCoordRepType norm2;
+    OutputPointType u;
+    unsigned int dim;
 
-    for( p_it = points->Begin(); p_it != points->End(); ++p_it, ++k )
+    for( p_it = points->Begin(); p_it != points->End(); ++p_it )
       {
       norm2 = 0.;
       u.SetEdge( p_it->Value().GetEdge() );
@@ -105,7 +107,7 @@ protected:
       points->SetElement( p_it->Index(), u );
       }
     }
-  
+
   /** \brief Compute the Center of mass of the input mesh. */
   void ComputeCenterOfMass( )
   {

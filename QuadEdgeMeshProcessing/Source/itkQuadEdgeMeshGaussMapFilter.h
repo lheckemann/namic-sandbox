@@ -2,7 +2,7 @@
 #define __itkQuadEdgeMeshGaussMapFilter_h
 
 
-#include <itkQuadEdgeMeshDataTraits.h>
+#include <itkQuadEdgeMeshExtendedTraits.h>
 #include <itkQuadEdgeMeshNormalFilter.h>
 #include <itkQuadEdgeMeshToQuadEdgeMeshFilter.h>
 #include <itkQuadEdgeMeshParamMatrixCoefficients.h>
@@ -11,18 +11,19 @@ namespace itk
 {
 /**
  * \class QuadEdgeMeshGaussMapFilter
- * \brief Compute the Gauss map of a given mesh. It change the position of 
+ * \brief Compute the Gauss map of a given mesh. It change the position of
  * each vertex to its computed normal.
 */
-template< class TInput, class TOutput >
+template< class TInputMesh, class TOutputMesh >
 class QuadEdgeMeshGaussMapFilter :
-  public QuadEdgeMeshToQuadEdgeMeshFilter< TInput, TOutput >
+  public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 {
 public:
   typedef QuadEdgeMeshGaussMapFilter Self;
   typedef SmartPointer< Self > Pointer;
   typedef SmartPointer< const Self > ConstPointer;
-  typedef QuadEdgeMeshToQuadEdgeMeshFilter< TInput, TOutput > Superclass;
+  typedef QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
+    Superclass;
 
 
   /** Run-time type information (and related methods).   */
@@ -109,6 +110,8 @@ protected:
   void GenerateData( )
   {
     Superclass::GenerateData();
+
+    OutputMeshPointer output = this->GetOutput();
 
     NormalFilterPointer normals = NormalFilterType::New();
     normals->SetInput( output );
