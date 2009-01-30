@@ -39,7 +39,8 @@ namespace itk
     typedef typename InputMeshType::PixelType       InputPixelType;
     typedef typename InputMeshType::Traits          InputTraits;
 
-    typedef typename InputMeshType::PointsContainer InputPointsContainer;
+    typedef typename InputMeshType::PointsContainerPointer
+      InputPointsContainerPointer;
     typedef typename InputMeshType::PointsContainerConstIterator
       InputPointsContainerConstIterator;
 
@@ -67,11 +68,13 @@ namespace itk
     itkStaticConstMacro( PointDimension, unsigned int,
                          OutputMeshType::PointDimension );
 
-    typedef MatrixCoefficients< OutputMeshType > CoefficientsComputation;
+    typedef MatrixCoefficients< InputMeshType > CoefficientsComputation;
 
     typedef TInitializationFilter InitializationFilterType;
     typedef typename InitializationFilterType::Pointer
       InitializationFilterPointer;
+    typedef std::pair< OutputPointIdentifier, OutputPointIdentifier >
+      PointPairType;
 
   public:
     void SetCoefficientsMethod( CoefficientsComputation* iMethod )
@@ -84,11 +87,12 @@ namespace itk
     itkSetMacro( IterationSTOP, unsigned int );
     itkSetMacro( TimeStep, OutputCoordRepType );
     itkSetMacro( Threshold, OutputCoordRepType );
+    itkSetMacro( Radius, OutputCoordRepType );
 
   protected:
     QuadEdgeMeshSphericalParameterization() : Superclass(), m_Iteration( 0 ),
-      m_IterationSTOP( 10000 ), m_OldEnergy( 1e12 ), m_NewEnergy( 1e12 ),
-      m_Threshold( 1e-3 ), m_TimeStep( 0.1 )
+      m_IterationSTOP( 100000 ), m_OldEnergy( 1e12 ), m_NewEnergy( 1e12 ),
+      m_Threshold( 1e-10 ), m_TimeStep( 0.1 ), m_Radius( 1. )
     {
       m_InitFilter = InitializationFilterType::New();
     }
@@ -99,10 +103,11 @@ namespace itk
     OutputCoordRepType m_OldEnergy;
     OutputCoordRepType m_NewEnergy;
 
-    std::map< OutputQEType*, OutputCoordRepType > m_CoefficientMap;
+    std::map< PointPairType, OutputCoordRepType > m_CoefficientMap;
 
     OutputCoordRepType m_Threshold;
     OutputCoordRepType m_TimeStep;
+    OutputCoordRepType m_Radius;
 
     InitializationFilterPointer m_InitFilter;
 
@@ -110,16 +115,16 @@ namespace itk
 
     void ComputeCoefficientMap()
     {
-      OutputMeshPointer output = this->GetOutput();
+      InputMeshPointer input = this->GetInput();
 
-      OutputPointsContainerPointer points = output->GetPoints();
-      OutputPointIdentifier p_id( 0 );
-      OutputQEType* qe( 0 );
-      OutputQEType* qe_it( 0 );
-      OutputPointType p;
+      InputPointsContainerPointer points = input->GetPoints();
+      InputPointIdentifier p_id( 0 );
+      InputQEType* qe( 0 );
+      InputQEType* qe_it( 0 );
+      InputPointType p;
       OutputCoordRepType coeff( 0. );
 
-      for( OutputPointsContainerIterator it = points->Begin();
+      for( InputPointsContainerConstIterator it = points->Begin();
            it != points->End();
            ++it )
         {
@@ -134,9 +139,10 @@ namespace itk
             {
             if( p_id < qe_it->GetDestination() )
               {
-              coeff = ( *m_CoefficientsMethod )( output, qe_it );
-              m_CoefficientMap[qe_it] = coeff;
-              m_CoefficientMap[qe_it->GetSym()] = coeff;
+              coeff = static_cast< OutputCoordRepType >(
+                ( *m_CoefficientsMethod )( input, qe_it ) );
+              m_CoefficientMap[ PointPairType( p_id, qe_it->GetDestination() ) ]
+                = coeff;
               }
             qe_it = qe_it->GetOnext();
             } while( qe_it != qe );
@@ -147,31 +153,34 @@ namespace itk
     void GenerateData()
     {
       assert( m_CoefficientsMethod != 0 );
-      Superclass::GenerateData();
 
-      OutputMeshPointer output = this->GetOutput();
       m_Iteration = 0;
 
       ComputeCoefficientMap();
 
-      m_InitFilter->SetInput( output );
+      m_InitFilter->SetInput( this->GetInput() );
+      m_InitFilter->SetRadius( m_Radius );
       m_InitFilter->SetCoefficientsMethod( m_CoefficientsMethod );
       m_InitFilter->Update();
 
-      output = m_InitFilter->GetOutput();
+      OutputMeshPointer output = this->GetOutput();
+      output->Graft( m_InitFilter->GetOutput() );
 
-      do
+      if( m_IterationSTOP > 0 )
       {
-        m_OldEnergy = m_NewEnergy;
-        ComputeEnergyAndRelaxVertexLocation();
-        //if( m_Iteration % 10 == 0 )
-        std::cout <<m_Iteration <<" " <<m_NewEnergy <<" "
-          <<vnl_math_abs( m_OldEnergy - m_NewEnergy )
-          <<std::endl;
-        ++m_Iteration;
-      } while( vnl_math_abs( m_OldEnergy - m_NewEnergy ) > m_Threshold
-        && m_Iteration < m_IterationSTOP );
-       std::cout <<m_Iteration <<std::endl;
+        do
+        {
+          m_OldEnergy = m_NewEnergy;
+          ComputeEnergyAndRelaxVertexLocation();
+          //if( m_Iteration % 10 == 0 )
+//           std::cout <<m_Iteration <<" " <<m_NewEnergy <<" "
+//             <<vnl_math_abs( m_OldEnergy - m_NewEnergy )
+//             <<std::endl;
+          ++m_Iteration;
+        } while( vnl_math_abs( m_OldEnergy - m_NewEnergy ) > m_Threshold
+          && m_Iteration < m_IterationSTOP );
+        std::cout <<m_Iteration <<std::endl;
+      }
     }
 
     inline OutputCoordRepType ComputeQuadEdgeEnergy(
@@ -198,6 +207,7 @@ namespace itk
       OutputQEType* qe = output->FindEdge( iId );
       OutputVectorType oVector;
       oVector.Fill( 0. );
+      OutputPointIdentifier id_dest;
 
       if( qe != 0 )
       {
@@ -214,8 +224,13 @@ namespace itk
 
         do
         {
-          p_dest = output->GetPoint( qe_it->GetDestination() );
-          coeff = m_CoefficientMap[ qe_it ];
+          id_dest = qe_it->GetDestination();
+          p_dest = output->GetPoint( id_dest );
+
+          coeff = ( iId < id_dest ) ?
+            m_CoefficientMap[ PointPairType(iId,id_dest)] :
+            m_CoefficientMap[ PointPairType(id_dest,iId)];
+
           m_NewEnergy += ComputeQuadEdgeEnergy( coeff, p_org, p_dest );
           delta += ComputeQuadEdgeAbsoluteDerivative( coeff, p_org, p_dest );
           qe_it = qe_it->GetOnext();
@@ -234,7 +249,7 @@ namespace itk
 
       OutputPointsContainerPointer points = output->GetPoints();
       OutputVectorType v;
-      OutputPointType p;
+      OutputPointType p, q;
       OutputPointIdentifier id( 0 );
       unsigned int dim( 0 );
       OutputCoordRepType norm( 0. );
@@ -246,9 +261,6 @@ namespace itk
         id = it->Index();
         p = it->Value();
 
-        for( dim = 0; dim < PointDimension; ++dim )
-          p[dim] *= ( 1. - m_TimeStep );
-
         if( p.GetEdge() != 0 )
         {
           v = ComputeEnergyAndAbsoluteDerivative( id );
@@ -256,15 +268,20 @@ namespace itk
 
           for( dim = 0; dim < PointDimension; ++dim )
           {
-            p[dim] += m_TimeStep * v[dim];
+            p[dim] = ( 1. - m_TimeStep ) * p[dim] + m_TimeStep * v[dim];
             norm += p[dim] * p[dim];
           }
 
-          norm = 1. / vcl_sqrt( norm );
+          norm = m_Radius / vcl_sqrt( norm );
           for( dim = 0; dim < PointDimension; ++dim )
             p[dim] *= norm;
 
           output->SetPoint( id, p );
+          q = output->GetPoint( id );
+        }
+        else
+        {
+        std::cout <<"p.GetEdge()==0" <<std::endl;
         }
       }
     }

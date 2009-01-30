@@ -43,7 +43,7 @@ int main( int argc, char** argv )
 
   typedef VNLIterativeSparseSolverTraits< Coord >  SolverTraits;
 
-  typedef itk::QuadEdgeMeshToSphereFilter< 
+  typedef itk::QuadEdgeMeshToSphereFilter<
     MeshType, MeshType, SolverTraits > FilterType;
 
   FilterType::Pointer filter = FilterType::New();
@@ -52,7 +52,7 @@ int main( int argc, char** argv )
   filter->Update();
 
   WriterType::Pointer writer = WriterType::New();
-  writer->SetInput( filter->GetOutput( ) );
+  writer->SetInput( filter->GetOutput() );
   writer->SetFileName( "sphere.vtk" );
   writer->Update();
 

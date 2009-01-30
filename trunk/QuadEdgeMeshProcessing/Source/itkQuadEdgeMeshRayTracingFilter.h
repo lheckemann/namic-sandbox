@@ -73,11 +73,14 @@ public:
   void SetCoefficientsMethod( CoefficientsComputation* iMethod )
     {}
 
+  itkSetMacro( Radius, OutputCoordRepType );
+
 protected:
-  QuadEdgeMeshRayTracingFilter() : Superclass() {}
+  QuadEdgeMeshRayTracingFilter() : Superclass(), m_Radius( 1. ) {}
   ~QuadEdgeMeshRayTracingFilter() {}
 
   OutputPointType m_Center;
+  OutputCoordRepType m_Radius;
 
   void GenerateData()
   {
@@ -101,7 +104,7 @@ protected:
         u[dim] = p_it->Value() [dim] - m_Center[dim];
         norm2 += u[dim] * u[dim];
         }
-      norm2 = 1. / vcl_sqrt( norm2 );
+      norm2 = m_Radius / vcl_sqrt( norm2 );
       for( dim = 0; dim < PointDimension; ++dim )
         u[dim] *= norm2;
       points->SetElement( p_it->Index(), u );

@@ -79,7 +79,7 @@ public:
 
   typedef TSolverTraits SolverTraits;
 
-  typedef QuadEdgeMeshSplitFilter< OutputMeshType,
+  typedef QuadEdgeMeshSplitFilter< InputMeshType,
     OutputMeshType >                                SplitFilterType;
   typedef typename SplitFilterType::Pointer         SplitFilterPointer;
 
@@ -103,11 +103,15 @@ public:
     this->m_CoefficientsMethod = iMethod;
     }
 
+  itkSetMacro( Radius, OutputCoordRepType );
+
 protected:
-  QuadEdgeMeshToSphereFilter() : Superclass(), m_CoefficientsMethod( 0 ) {}
+  QuadEdgeMeshToSphereFilter() : Superclass(),
+    m_CoefficientsMethod( 0 ), m_Radius( 1. ) {}
   ~QuadEdgeMeshToSphereFilter() {}
 
   CoefficientsComputation * m_CoefficientsMethod;
+  OutputCoordRepType m_Radius;
 
   void GenerateData( )
   {
@@ -117,7 +121,7 @@ protected:
 
     // split the input mesh into two meshes
     SplitFilterPointer split_filter = SplitFilterType::New();
-    split_filter->SetInput( output );
+    split_filter->SetInput( this->GetInput() );
     split_filter->Update();
 
     BorderTransformPointer border_transform = BorderTransformType::New();
@@ -150,9 +154,10 @@ protected:
       p = p_it->Value();
       r2 = p[0] * p[0] + p[1] * p[1];
       den = 1. / ( 1. + r2 );
-      p[0] = 2. * p[0] * den;
-      p[1] = 2. * p[1] * den;
-      p[2] = 2. * r2 * den  - 1.;
+      p[0] = m_Radius * ( 2. * p[0] * den );
+      p[1] = m_Radius * ( 2. * p[1] * den );
+      p[2] = m_Radius * ( 2. * r2 * den  - 1. );
+      q = output->GetPoint( p_it->Index() );
       q.CastFrom( p );
       output->SetPoint( p_it->Index(), q );
       }
@@ -164,9 +169,9 @@ protected:
       p = p_it->Value();
       r2 = p[0] * p[0] + p[1] * p[1];
       den = 1. / ( 1. + r2 );
-      p[0] = 2. * p[0] * den;
-      p[1] = 2. * p[1] * den;
-      p[2] = -2. * r2 * den + 1.;
+      p[0] = m_Radius * ( 2. * p[0] * den );
+      p[1] = m_Radius * ( 2. * p[1] * den );
+      p[2] = m_Radius * ( -2. * r2 * den + 1. );
       q = output->GetPoint( p_it->Index() );
       q.CastFrom( p );
       output->SetPoint( p_it->Index(), q );
