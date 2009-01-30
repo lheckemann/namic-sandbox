@@ -25,6 +25,8 @@ include_directories(
   ${Slicer3_Base_INCLUDE_DIRS}
   ${CommandLineModule_SOURCE_DIR}
   ${CommandLineModule_BINARY_DIR}
+  ${Volumes_SOURCE_DIR}
+  ${Volumes_BINARY_DIR}
   )
 
 #
@@ -86,6 +88,7 @@ target_link_libraries(${lib_name}
   CommandLineModule
   ${ITK_LIBRARIES}
   ${CLP_MODULE}
+  Volumes
   )
 
 install(TARGETS ${lib_name}

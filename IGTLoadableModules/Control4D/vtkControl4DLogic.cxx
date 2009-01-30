@@ -29,8 +29,6 @@
 #include "vtkCommandLineModuleLogic.h"
 #include "vtkCommandLineModuleGUI.h"
 
-#include "itkOrientedImage.h"
-#include "itkImageSeriesReader.h"
 #include "itkMetaDataDictionary.h"
 #include "itkGDCMImageIO.h"
 #include "itkGDCMSeriesFileNames.h"
@@ -46,6 +44,10 @@
 
 #include "vtkMRML4DBundleNode.h"
 
+#include "vtkGlobFileNames.h"
+
+#include "vtkSlicerVolumesGUI.h"
+#include "vtkSlicerVolumesLogic.h"
 
 vtkCxxRevisionMacro(vtkControl4DLogic, "$Revision$");
 vtkStandardNewMacro(vtkControl4DLogic);
@@ -118,20 +120,21 @@ void vtkControl4DLogic::UpdateAll()
 
 
 //---------------------------------------------------------------------------
-int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, double& rangeUpper)
+int vtkControl4DLogic::CreateFileListFromDir(const char* path,
+                                             std::vector<ReaderType::FileNamesContainer>& fileNamesContainerList)
 {
-  std::cerr << "loading from " << path << std::endl;
 
-  const int SpaceDim = 3;
-  typedef short PixelValueType;
+  std::cerr <<  "Searching directory: " << path << std::endl;
+  
   typedef itk::OrientedImage< PixelValueType, 2 > SliceType;
   typedef itk::ImageFileReader< SliceType > SliceReaderType;
-  typedef itk::OrientedImage< PixelValueType, SpaceDim > VolumeType;
-  typedef itk::ImageSeriesReader< VolumeType > ReaderType;
   typedef itk::GDCMImageIO ImageIOType;
   typedef itk::GDCMSeriesFileNames InputNamesGeneratorType;
   typedef itk::ImageFileWriter< VolumeType >  WriterType;
-  typedef itk::VectorImage< PixelValueType, SpaceDim > NRRDImageType;
+  //typedef itk::VectorImage< PixelValueType, SpaceDim > NRRDImageType;
+  typedef itk::VectorImage< PixelValueType, 3 > NRRDImageType;
+  
+  fileNamesContainerList.clear();
   
   StatusMessageType statusMessage;
   
@@ -142,104 +145,155 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
   statusMessage.message = "Checking directory....";
   this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
   
-  ImageIOType::Pointer gdcmIO = ImageIOType::New();
-  gdcmIO->LoadPrivateTagsOn();
-
-  InputNamesGeneratorType::Pointer inputNames = InputNamesGeneratorType::New();
-  inputNames->SetUseSeriesDetails(true);
-  inputNames->SetDirectory(path);
-
-  itk::SerieUIDContainer seriesUIDs = inputNames->GetSeriesUIDs();
   int nVolumes;
-  std::vector<ReaderType::FileNamesContainer> fileNamesContainerList;
 
-  if (seriesUIDs.size() == 1)  // if single series UID is used
+  // Search files with compatible types (except DICOM)
+  vtkGlobFileNames* gfn = vtkGlobFileNames::New();
+  gfn->SetDirectory(path);
+  gfn->AddFileNames("*.nhdr");
+  gfn->AddFileNames("*.nrrd");
+  gfn->AddFileNames("*.hdr");
+  gfn->AddFileNames("*.img");
+  gfn->AddFileNames("*.nii");
+  gfn->AddFileNames("*.nia");
+
+  int nFiles = gfn->GetNumberOfFileNames();
+  if (nFiles > 0)
     {
-    statusMessage.message = "Splitting series....";
-    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
-
-    const ReaderType::FileNamesContainer & filenames = 
-      inputNames->GetFileNames(seriesUIDs[0]);
+    std::cerr << "find non-dicom files" << std::endl;
+    for (int i = 0; i < nFiles; i ++)
+      {
+      ReaderType::FileNamesContainer container;
+      container.clear();
+      std::cerr << "FileName #" << i << " " << gfn->GetNthFileName(i) << std::endl;
+      container.push_back(gfn->GetNthFileName(i));
+      fileNamesContainerList.push_back(container);
+      }
+    nVolumes = nFiles;  // ??
+    }
+  else
+    {
+    // in case of dicom series
+    ImageIOType::Pointer gdcmIO = ImageIOType::New();
+    gdcmIO->LoadPrivateTagsOn();
     
-    ReaderType::Pointer reader = ReaderType::New();
-    reader->SetImageIO( gdcmIO );
-    reader->SetFileNames( filenames );
-
-    try
+    InputNamesGeneratorType::Pointer inputNames = InputNamesGeneratorType::New();
+    inputNames->SetUseSeriesDetails(true);
+    inputNames->SetDirectory(path);
+    
+    itk::SerieUIDContainer seriesUIDs = inputNames->GetSeriesUIDs();
+    if (seriesUIDs.size() == 1)  // if single series UID is used
       {
-      //collector.Start( "Checking series ...." );
-      reader->Update();
-      //collector.Stop( "Checking series ...." );
-      }
-    catch (itk::ExceptionObject &excp)
-      {
-      std::cerr << "Exception thrown while reading the series" << std::endl;
-      std::cerr << excp << std::endl;
-      return EXIT_FAILURE;
-      }
-    ReaderType::DictionaryArrayRawPointer inputDict = reader->GetMetaDataDictionaryArray();
-    int nSlices = inputDict->size();
-
-    // search "cycle" of slice location
-    std::string tag;
-    tag.clear();
-    itk::ExposeMetaData<std::string> ( *(*inputDict)[0], "0020|1041",  tag);
-    float firstSliceLocation = atof( tag.c_str() ); // first slice location
-    int nSlicesInVolume;
-
-    statusMessage.progress = 0.0;
-    statusMessage.message = "Checking slice locations...";
-    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
-
-    for (int i = 1; i < nSlices; i ++)
-      {
-      statusMessage.progress = (double)i/(double)nSlices;
+      statusMessage.message = "Splitting series....";
       this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
       
-      tag.clear();
-      itk::ExposeMetaData<std::string> ( *(*inputDict)[i], "0020|1041",  tag);
-      float sliceLocation = atof( tag.c_str() );
-      //std::cerr << "location = " << tag.c_str() << std::endl;
-      if (sliceLocation == firstSliceLocation)
-        {
-        nSlicesInVolume = i;
-        break;
-        }
-      }
-    /*
-    std::cerr << "Number of slices in Volume is " << nSlicesInVolume << std::endl;
-    std::cerr << "Number of slices " << nSlices << std::endl;
-    std::cerr << "Number of slices " << filenames.size() << std::endl;
-    */
-
-    nVolumes = nSlices / nSlicesInVolume;
-    fileNamesContainerList.resize(nVolumes);
-
-    for (int i = 0; i < nVolumes; i ++)
-      {
-      fileNamesContainerList[i].resize(nSlicesInVolume);
-      for (int j = 0; j < nSlicesInVolume; j ++)
-        {
-        //std::cerr << "fileNamesContainerList " << i << ", " << j << std::endl;
-        fileNamesContainerList[i][j] = filenames[i*nSlicesInVolume + j];
-        }
-      }
-
-    }
-  else // if the directory contains multiple series UIDs
-    {
-    nVolumes = seriesUIDs.size();
-    //fileNamesContainerList.resize(nVolumes);
-    fileNamesContainerList.clear();
-
-    itk::SerieUIDContainer::iterator iter;
-    for (iter = seriesUIDs.begin(); iter != seriesUIDs.end(); iter ++)
-      {
-      //std::cerr << "UID = " << *iter << std::endl;
-      fileNamesContainerList.push_back(inputNames->GetFileNames(*iter));
-      }
-    }
+      const ReaderType::FileNamesContainer & filenames = 
+        inputNames->GetFileNames(seriesUIDs[0]);
       
+      ReaderType::Pointer reader = ReaderType::New();
+      reader->SetImageIO( gdcmIO );
+      reader->SetFileNames( filenames );
+      
+      try
+        {
+        //collector.Start( "Checking series ...." );
+        reader->Update();
+        //collector.Stop( "Checking series ...." );
+        }
+      catch (itk::ExceptionObject &excp)
+        {
+        std::cerr << "Exception thrown while reading the series" << std::endl;
+        std::cerr << excp << std::endl;
+        return EXIT_FAILURE;
+        }
+      ReaderType::DictionaryArrayRawPointer inputDict = reader->GetMetaDataDictionaryArray();
+      int nSlices = inputDict->size();
+      
+      // search "cycle" of slice location
+      std::string tag;
+      tag.clear();
+      itk::ExposeMetaData<std::string> ( *(*inputDict)[0], "0020|1041",  tag);
+      float firstSliceLocation = atof( tag.c_str() ); // first slice location
+      int nSlicesInVolume;
+      
+      statusMessage.progress = 0.0;
+      statusMessage.message = "Checking slice locations...";
+      this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+      
+      for (int i = 1; i < nSlices; i ++)
+        {
+        statusMessage.progress = (double)i/(double)nSlices;
+        this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+        
+        tag.clear();
+        itk::ExposeMetaData<std::string> ( *(*inputDict)[i], "0020|1041",  tag);
+        float sliceLocation = atof( tag.c_str() );
+        //std::cerr << "location = " << tag.c_str() << std::endl;
+        if (sliceLocation == firstSliceLocation)
+          {
+          nSlicesInVolume = i;
+          break;
+          }
+        }
+      /*
+        std::cerr << "Number of slices in Volume is " << nSlicesInVolume << std::endl;
+        std::cerr << "Number of slices " << nSlices << std::endl;
+        std::cerr << "Number of slices " << filenames.size() << std::endl;
+      */
+      
+      nVolumes = nSlices / nSlicesInVolume;
+      fileNamesContainerList.resize(nVolumes);
+      
+      for (int i = 0; i < nVolumes; i ++)
+        {
+        fileNamesContainerList[i].resize(nSlicesInVolume);
+        for (int j = 0; j < nSlicesInVolume; j ++)
+          {
+          //std::cerr << "fileNamesContainerList " << i << ", " << j << std::endl;
+          fileNamesContainerList[i][j] = filenames[i*nSlicesInVolume + j];
+          }
+        }
+      
+      }
+    else // if the directory contains multiple series UIDs
+      {
+      nVolumes = seriesUIDs.size();
+      //fileNamesContainerList.resize(nVolumes);
+      fileNamesContainerList.clear();
+      
+      itk::SerieUIDContainer::iterator iter;
+      for (iter = seriesUIDs.begin(); iter != seriesUIDs.end(); iter ++)
+        {
+        //std::cerr << "UID = " << *iter << std::endl;
+        fileNamesContainerList.push_back(inputNames->GetFileNames(*iter));
+        }
+      }
+    }
+
+  return nVolumes;
+}
+
+
+//---------------------------------------------------------------------------
+int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, double& rangeUpper)
+{
+  StatusMessageType statusMessage;
+  
+  std::cerr << "loading from " << path << std::endl;
+
+  std::vector<ReaderType::FileNamesContainer> fileNamesContainerList;
+
+  // Analyze the directory and create the file list
+  if (CreateFileListFromDir(path, fileNamesContainerList) <= 0)
+    {
+    std::cerr << "Couldn't find files" << std::endl;
+    return 0;
+    }
+
+  int nVolumes = fileNamesContainerList.size();
+  std::cerr << "nVolumes = " << nVolumes << std::endl;
+
+
   //std::vector<ReaderType::FileNamesContainer>::iterator fnciter;
   //for (fnciter = fileNamesContainerList.begin(); fnciter != fileNamesContainerList.end(); fnciter ++)
 
@@ -248,6 +302,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
   scene->SaveStateForUndo();
   this->FrameNodeVector.clear();
 
+  statusMessage.show = 1;
   statusMessage.progress = 0.0;
   statusMessage.message = "Reading Volumes....";
   this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
@@ -269,6 +324,8 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
 
   for (int i = 0; i < nVolumes; i ++)
     {
+    std::cerr << "i = " << i << std::endl;
+
     statusMessage.progress = (double)i / (double)nVolumes;
     this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
 
@@ -342,6 +399,53 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
   this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
   
   return nVolumes;
+}
+
+
+//---------------------------------------------------------------------------
+int vtkControl4DLogic::SaveImagesToDir(const char* path,
+                                       const char* bundleID,
+                                       const char* prefix,
+                                       const char* suffix)
+{
+  vtkMRML4DBundleNode* bundleNode 
+    = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+
+  if (!bundleNode)
+    {
+    return 0;
+    }
+
+  StatusMessageType statusMessage;
+  statusMessage.show = 1;
+  statusMessage.progress = 0.0;
+  statusMessage.message = "Writing Volumes....";
+  this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+
+  int nFrames = bundleNode->GetNumberOfFrames();
+  for (int i = 0; i < nFrames; i ++)
+    {
+    statusMessage.progress = (double)i / (double) nFrames;
+    this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
+
+    vtkMRMLScalarVolumeNode* inode
+      = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(i));
+    if (inode)
+      {
+      vtkSlicerApplication* app = this->GetApplication();
+      vtkSlicerVolumesGUI* volumesGUI = 
+        vtkSlicerVolumesGUI::SafeDownCast(app->GetModuleGUIByName ("Volumes"));
+      vtkSlicerVolumesLogic* volumesLogic = volumesGUI->GetLogic(); 
+
+      char fileName[256];
+      sprintf(fileName, "%s/%s_%03d.%s", path, prefix, i, suffix);
+      std::cerr << "writing " << fileName << std::endl;
+      volumesLogic->SaveArchetypeVolume(fileName, inode);
+      }
+    }
+
+  statusMessage.show = 0;
+  this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
 }
 
 
