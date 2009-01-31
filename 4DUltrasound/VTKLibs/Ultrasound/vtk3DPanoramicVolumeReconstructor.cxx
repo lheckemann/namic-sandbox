@@ -3166,21 +3166,26 @@ void vtk3DPanoramicVolumeReconstructor::ThreadedSliceExecute(
     }
 }
 
-//----------------------------------------------------------------------------
-// platform-independent sleep function
+/******************************************************************************
+ *  static inline void vtkSleep(double duration) 
+ *
+ *  Platform-independent sleep function
+ *  Set the current thread to sleep for a certain amount of time
+ * 
+ *  @Param: double duration - Time to sleep in ms 
+ * 
+ * ****************************************************************************/
 static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
   // sleep according to OS preference
 #ifdef _WIN32
-  Sleep(vtkUltraFloor(1000*duration));
-#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || (__APPLE__)
-  struct timespec sleep_time, remaining_time;
-  int seconds = vtkUltraFloor(duration);
-  int nanoseconds = vtkUltraFloor(1000000000*(duration - seconds));
-  sleep_time.tv_sec = seconds;
-  sleep_time.tv_nsec = nanoseconds;
-  nanosleep(&sleep_time, &remaining_time);
+  Sleep((int)(1000*duration));
+#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || defined(__APPLE__)
+  struct timespec sleep_time, dummy;
+  sleep_time.tv_sec = (int)duration;
+  sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
+  nanosleep(&sleep_time,&dummy);
 #endif
 }
 
