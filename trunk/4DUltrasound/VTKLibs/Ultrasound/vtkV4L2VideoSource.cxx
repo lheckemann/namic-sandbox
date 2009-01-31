@@ -49,13 +49,12 @@
 #include "vtkMultiThreader.h"
 #include "vtkMutexLock.h"
 #include "vtkWindows.h"
-//New-End
 
 #include <ctype.h>
 
 //New-Start
 #include <time.h>
-//New-End
+
 
 // because of warnings in windows header push and pop the warning level
 #ifdef _MSC_VER
@@ -108,7 +107,7 @@
 //
 // Finally, when Execute() is reading from the FrameBuffer it must do
 // so from within a mutex lock.  Otherwise tearing artifacts might result.
-//New-End
+
 
 
 vtkCxxRevisionMacro(vtkV4L2VideoSource, "$Revision: 1.0$");
@@ -150,7 +149,7 @@ vtkV4L2VideoSource::vtkV4L2VideoSource()
   this->FrameSize[1] = 240;
   this->FrameSize[2] = 1;
   
-  //New-Start
+  
   int i;
   
   this->DeviceInitialized = 0;
@@ -221,8 +220,6 @@ vtkV4L2VideoSource::vtkV4L2VideoSource()
   this->io = IO_METHOD_MMAP;
   this->fd = -1;
   this->n_buffers = 0;
-  
-  //New-End  
 
 }
 
@@ -231,7 +228,6 @@ vtkV4L2VideoSource::~vtkV4L2VideoSource()
 { 
   this->vtkV4L2VideoSource::ReleaseSystemResources();
 
-  //New-Start
   if(this->DeviceInitialized){
     this->UninitDevice();
     this->CloseDevice();
@@ -240,13 +236,12 @@ vtkV4L2VideoSource::~vtkV4L2VideoSource()
   this->SetFrameBufferSize(0);
   this->FrameBufferMutex->Delete();
   this->PlayerThreader->Delete();
-  //New-End
 }
 
 //----------------------------------------------------------------------------
 void vtkV4L2VideoSource::PrintSelf(ostream& os, vtkIndent indent)
 {
-  //New-Start
+  
     int idx;
   
   this->Superclass::PrintSelf(os,indent);
@@ -311,29 +306,33 @@ void vtkV4L2VideoSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "FrameBufferBitsPerPixel: " << this->FrameBufferBitsPerPixel << "\n";
 
   os << indent << "FrameBufferRowAlignment: " << this->FrameBufferRowAlignment << "\n";
-  //New-End
+ 
   
 }
 
-//New-Start
-//----------------------------------------------------------------------------
-// platform-independent sleep function
+/******************************************************************************
+ *  static inline void vtkSleep(double duration) 
+ *
+ *  Platform-independent sleep function
+ *  Set the current thread to sleep for a certain amount of time
+ * 
+ *  @Param: double duration - Time to sleep in ms 
+ * 
+ * ****************************************************************************/
 static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
   // sleep according to OS preference
 #ifdef _WIN32
   Sleep((int)(1000*duration));
-#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi)
+#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || defined(__APPLE__)
   struct timespec sleep_time, dummy;
   sleep_time.tv_sec = (int)duration;
   sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
   nanosleep(&sleep_time,&dummy);
 #endif
 }
-//New-End
 
-//New-Start
 //----------------------------------------------------------------------------
 // Sleep until the specified absolute time has arrived.
 // You must pass a handle to the current thread.  
@@ -375,9 +374,9 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 
   return 0;
 }
-//New-End
 
-//New-Start
+
+
 //----------------------------------------------------------------------------
 // this function runs in an alternate thread to asyncronously grab frames
 static void *vtkV4L2VideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
@@ -397,7 +396,7 @@ static void *vtkV4L2VideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 
   return NULL;
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
 // Set the source to grab frames continuously.
@@ -405,7 +404,7 @@ static void *vtkV4L2VideoSourceRecordThread(vtkMultiThreader::ThreadInfo *data)
 void vtkV4L2VideoSource::Record()
 {
 
-//New-Start
+
 if (this->Playing)
     {
       this->Stop();
@@ -478,10 +477,10 @@ if (this->Playing)
   this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
             &vtkV4L2VideoSourceRecordThread,this);
     }    
-//New-End    
+    
 }
 
-//New-Start
+
 //----------------------------------------------------------------------------
 // this function runs in an alternate thread to 'play the tape' at the
 // specified frame rate.
@@ -502,7 +501,7 @@ static void *vtkV4L2VideoSourcePlayThread(vtkMultiThreader::ThreadInfo *data)
 
   return NULL;
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
 // Set the source to play back recorded frames.
@@ -733,7 +732,7 @@ void vtkV4L2VideoSource::SetFrameRate(float rate)
 //----------------------------------------------------------------------------
 void vtkV4L2VideoSource::SetOutputFormat(int format)
 {
-  //New-Start
+  
     if (format == this->OutputFormat)
     {
       return;
@@ -776,14 +775,14 @@ void vtkV4L2VideoSource::SetOutputFormat(int format)
     }
 
   this->Modified();
-  //New-End
+  
 }
 
 //----------------------------------------------------------------------------
 // set or change the circular buffer size
 // you will have to override this if you want the buffers 
 // to be device-specific (i.e. something other than vtkDataArray)
-//New-Start
+
 void vtkV4L2VideoSource::SetFrameBufferSize(int bufsize)
 {
   int i;
@@ -887,10 +886,10 @@ void vtkV4L2VideoSource::SetFrameBufferSize(int bufsize)
 
   this->FrameBufferMutex->Unlock();
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
-//New-Start
+
 void vtkV4L2VideoSource::SetClipRegion(int x0, int x1, int y0, int y1, 
                int z0, int z1)
 {
@@ -916,10 +915,10 @@ void vtkV4L2VideoSource::SetClipRegion(int x0, int x1, int y0, int y1,
   }
     }
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
-//New-Start
+
 double vtkV4L2VideoSource::GetFrameTimeStamp(int frame)
 { 
   double timeStamp;
@@ -937,11 +936,11 @@ double vtkV4L2VideoSource::GetFrameTimeStamp(int frame)
 
   return timeStamp;
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
 // Initialize() should be overridden to initialize the hardware frame grabber
-//New-Start
+
 void vtkV4L2VideoSource::Initialize()
 {
   if (this->Initialized)
@@ -951,7 +950,7 @@ void vtkV4L2VideoSource::Initialize()
   this->Initialized = 1;
 
   this->UpdateFrameBuffer();
-}//New-End
+}
 
 //----------------------------------------------------------------------------
 // ReleaseSystemResources() should be overridden to release the hardware
@@ -968,7 +967,7 @@ void vtkV4L2VideoSource::ReleaseSystemResources()
 //----------------------------------------------------------------------------
 // Copy pseudo-random noise into the frames.  This function may be called
 // asynchronously.
-//New-Start
+
 void vtkV4L2VideoSource::InternalGrab()
 {
   
@@ -1124,20 +1123,20 @@ void vtkV4L2VideoSource::InternalGrab()
 
   this->FrameBufferMutex->Unlock();
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
-//New-Start
+
 void vtkV4L2VideoSource::SetVideoDevice(const char* device){
   strcpy(this->dev_name, device);
   this->OpenDevice();
   this->InitDevice();
   this->DeviceInitialized = 1;
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
-//New-End
+
 int vtkV4L2VideoSource::RequestInformation(
   vtkInformation * vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
@@ -1195,7 +1194,7 @@ int vtkV4L2VideoSource::RequestInformation(
 
   return 1;
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
 // Update the FrameBuffers according to any changes in the FrameBuffer*
@@ -1203,7 +1202,7 @@ int vtkV4L2VideoSource::RequestInformation(
 // This function should always be called from within a FrameBufferMutex lock
 // and should never be called asynchronously.
 // It sets up the FrameBufferExtent
-//New-Start
+
 void vtkV4L2VideoSource::UpdateFrameBuffer()
 {
   int i, oldExt;
@@ -1257,11 +1256,11 @@ void vtkV4L2VideoSource::UpdateFrameBuffer()
   }
     }
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
 // This function MUST be called only from within a FrameBufferMutex->Lock()
-//New-Start
+
 void vtkV4L2VideoSource::AdvanceFrameBuffer(int n)
 {
   int i = (this->FrameBufferIndex - n) % this->FrameBufferSize;
@@ -1271,14 +1270,14 @@ void vtkV4L2VideoSource::AdvanceFrameBuffer(int n)
     }
   this->FrameBufferIndex = i;
 }
-//New-Start
+
 
 //----------------------------------------------------------------------------
 // The Execute method is fairly complex, so I would not recommend overriding
 // it unless you have to.  Override the UnpackRasterLine() method instead.
 // You should only have to override it if you are using something other 
 // than 8-bit vtkUnsignedCharArray for the frame buffer.
-//New-Start
+
 int vtkV4L2VideoSource::RequestData(
             vtkInformation *vtkNotUsed(request),
             vtkInformationVector **vtkNotUsed(inputVector),
@@ -1485,14 +1484,14 @@ int vtkV4L2VideoSource::RequestData(
 
   return 1;
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
 // The UnpackRasterLine method should be overridden if the framebuffer uses
 // unusual pixel packing formats, such as XRGB XBRG BGRX BGR etc.
 // The version below assumes that the packing of the framebuffer is
 // identical to that of the output.
-//New-Start
+
 void vtkV4L2VideoSource::UnpackRasterLine(char *outPtr, char *rowPtr, 
             int start, int count)
 {
@@ -1509,10 +1508,10 @@ void vtkV4L2VideoSource::UnpackRasterLine(char *outPtr, char *rowPtr,
   }
     }
 }
-//New-End
+
 
 //----------------------------------------------------------------------------
-//New-Start
+
 int vtkV4L2VideoSource::xioctl(int fd, int request, void *arg)
 {
   int r;
@@ -1522,9 +1521,9 @@ int vtkV4L2VideoSource::xioctl(int fd, int request, void *arg)
 
   return r;
 }
-//New-End
 
-//New-Start
+
+
 void vtkV4L2VideoSource::OpenDevice(void)
 {
   struct stat st; 
@@ -1548,9 +1547,9 @@ void vtkV4L2VideoSource::OpenDevice(void)
     exit (EXIT_FAILURE);
   }
 }
-//New-End
 
-//New-Start
+
+
 void vtkV4L2VideoSource::CloseDevice(void)
 {
   if (-1 == close (fd)){
@@ -1563,9 +1562,9 @@ void vtkV4L2VideoSource::CloseDevice(void)
   fd = -1;
 }
 
-//New-End
 
-//New-Start
+
+
 void vtkV4L2VideoSource::InitDevice(){
   struct v4l2_capability cap;
   struct v4l2_cropcap cropcap;
@@ -1707,9 +1706,9 @@ void vtkV4L2VideoSource::InitDevice(){
 }
 
 }
-//New-End
 
-//New-Start
+
+
 void vtkV4L2VideoSource::UninitDevice(void){
   
   unsigned int i;
@@ -1734,9 +1733,9 @@ void vtkV4L2VideoSource::UninitDevice(void){
   free (buffers);
     
 }
-//New-End
 
-//New-Start
+
+
 void
 vtkV4L2VideoSource::InitRead                       (unsigned int           buffer_size)
 {
@@ -1757,7 +1756,7 @@ vtkV4L2VideoSource::InitRead                       (unsigned int           buffe
 }
 //New-End
 
-//New-Start
+
 void
 vtkV4L2VideoSource::InitMmap                       (void)
 {
@@ -1816,9 +1815,9 @@ vtkV4L2VideoSource::InitMmap                       (void)
       errno_exit ("mmap");
   }
 }
-//New-End
 
-//New-Start
+
+
 void
 vtkV4L2VideoSource::InitUserp                      (unsigned int           buffer_size)
 {
@@ -1862,14 +1861,14 @@ vtkV4L2VideoSource::InitUserp                      (unsigned int           buffe
     }
   }
 }
-//New-End
 
-//New-Start
+
+
 void vtkV4L2VideoSource::errno_exit (const char *           s){
   fprintf (stderr, "%s error %d, %s\n",
      s, errno, strerror (errno));
   
   exit (EXIT_FAILURE);
 }
-//New-End
+
 
