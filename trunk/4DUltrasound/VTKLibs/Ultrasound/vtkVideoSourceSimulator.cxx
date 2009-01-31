@@ -65,8 +65,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #pragma warning (pop)
 #endif
 
-
-
 vtkCxxRevisionMacro(vtkVideoSourceSimulator, "$Revision: 1.0$");
 //vtkStandardNewMacro(vtkWin32VideoSource);
 //----------------------------------------------------------------------------
@@ -274,26 +272,25 @@ void vtkVideoSourceSimulator::Grab()
     {
     return;
     }
-
-  // ensure that the frame buffer is properly initialized
-  this->Initialize();
+  
   if (!this->Initialized)
     {
-    return;
+    this->Initialize();
+    if (!this->Initialized)
+      {
+      return;
+      }
     }
 
-  // just do the grab, the callback does the rest
-  this->SetStartTimeStamp(vtkTimerLog::GetUniversalTime());
-
+  this->InternalGrab();
+  
 }
 
 /******************************************************************************
  *  static inline void vtkSleep(double duration) 
  *
+ *  Platform-independent sleep function
  *  Set the current thread to sleep for a certain amount of time
- * 
- *  @Author:Jan Gumprecht
- *  @Date:      22.December 2008
  * 
  *  @Param: double duration - Time to sleep in ms 
  * 
@@ -302,7 +299,6 @@ static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
   // sleep according to OS preference
-
 #ifdef _WIN32
   Sleep((int)(1000*duration));
 #elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || defined(__APPLE__)
@@ -311,8 +307,8 @@ static inline void vtkSleep(double duration)
   sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
   nanosleep(&sleep_time,&dummy);
 #endif
- 
 }
+
 
 /******************************************************************************
  *  static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time) 
@@ -369,7 +365,7 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 
 /******************************************************************************
  *  static void *vtkVideoSourceSimulatorRecordThread
- *                                                                              (vtkMultiThreader::ThreadInfo *data) 
+ *                                         (vtkMultiThreader::ThreadInfo *data) 
  *
  *  This function runs in an alternate thread to asyncronously generate frames 
  *  
@@ -386,8 +382,6 @@ static void *vtkVideoSourceSimulatorRecordThread(vtkMultiThreader::ThreadInfo *d
   double startTime = vtkTimerLog::GetUniversalTime();
   double rate = self->GetFrameRate();
   int frame = 0;
-
-  
 
   do
     {
@@ -412,9 +406,6 @@ static void *vtkVideoSourceSimulatorRecordThread(vtkMultiThreader::ThreadInfo *d
  * ****************************************************************************/
 void vtkVideoSourceSimulator::Record()
 {
-
-
-
  this->Initialize();
 
 if (!this->Initialized)
