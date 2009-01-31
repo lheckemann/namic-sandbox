@@ -1,6 +1,6 @@
 /*=========================================================================
 
-Module:    $RCSfile: vtkTrackerSimulator.cxx,v $
+Module:  $RCSfile: vtkTrackerSimulator.cxx,v $
 Author:  Jan Gumprecht, Harvard Medical School
 
 Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
@@ -51,14 +51,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #define __WINDOWS_H
 #include "Windows.h"
 #endif
-
-//// requires NDIoapi/ndlib
-//#include "ndtypes.h"
-//#include "ndpack.h"
-//#include "ndopto.h"
-
-// requires Atamai ndicapi
-//#include "ndicapi_math.h"
 
 #include "vtkTimerLog.h"
 #include "vtkMatrix4x4.h"
@@ -157,11 +149,19 @@ int vtkTrackerSimulator::Probe()
   return 1;
 }
 
+/******************************************************************************
+ *  static inline void vtkSleep(double duration) 
+ *
+ *  Platform-independent sleep function
+ *  Set the current thread to sleep for a certain amount of time
+ * 
+ *  @Param: double duration - Time to sleep in ms 
+ * 
+ * ****************************************************************************/
 static inline void vtkSleep(double duration)
 {
   duration = duration; // avoid warnings
   // sleep according to OS preference
-
 #ifdef _WIN32
   Sleep((int)(1000*duration));
 #elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || defined(__APPLE__)
@@ -337,7 +337,7 @@ void vtkTrackerSimulator::InternalUpdate()
     }
 
 #ifdef NEW_TRACKER_SIMULATOR
-  double timestamp = vtkTimerLog::GetUniversalTime(); //New not original
+  double timestamp = vtkTimerLog::GetUniversalTime();
 #endif
 
   for (int tool = 0; tool < VTK_TRACKER_NTOOLS; tool++) 
@@ -430,16 +430,16 @@ int vtkTrackerSimulator::DisableToolPorts()
 
 void vtkTrackerSimulator::GenerateTrackerMatrix(vtkMatrix4x4& matrix, int index)
 {
-  float position[3];
-  float orientation[4];
+//  float position[3];
+//  float orientation[4];
 
   matrix.Identity();
-  // random orientation
-  float theta = index/100*3.14;
-  orientation[0]=0.0;
-  orientation[1]=0.6666666666*cos(theta);
-  orientation[2]=0.577350269189626;
-  orientation[3]=0.6666666666*sin(theta);
+//  // random orientation
+//  float theta = index/100*3.14;
+//  orientation[0]=0.0;
+//  orientation[1]=0.6666666666*cos(theta);
+//  orientation[2]=0.577350269189626;
+//  orientation[3]=0.6666666666*sin(theta);
   
   
   matrix[0][3] = 0;
@@ -447,9 +447,18 @@ void vtkTrackerSimulator::GenerateTrackerMatrix(vtkMatrix4x4& matrix, int index)
   matrix[2][3] = index / 2.0;
 
   // matrix.Identity();
-  //  matrix.SetElement(0, 2, orientation[1]);
-  //matrix.SetElement(1, 2, orientation[2]);
-  //matrix.SetElement(2, 2, orientation[3]);
+  // matrix.SetElement(0, 2, orientation[1]);
+  // matrix.SetElement(1, 2, orientation[2]);
+  // matrix.SetElement(2, 2, orientation[3]);
+
+vtkDebugMacro (\
+  << "Simulator Matrix" << endl\
+  << "=============" << endl\
+  << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << ", " << matrix[0][3] << endl\
+  << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << ", " << matrix[1][3] << endl\
+  << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << ", " << matrix[2][3] << endl\
+  << matrix[3][0] << ", " << matrix[3][1] << ", " << matrix[3][2] << ", " << matrix[3][3] << endl\
+  << "=============");
 
 }
 
