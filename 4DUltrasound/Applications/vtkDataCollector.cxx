@@ -151,6 +151,7 @@ vtkDataCollector::~vtkDataCollector()
   this->Tagger->Delete();
   this->calibReader->Delete();
   this->SetCalibrationFileName(NULL);
+  this->PlayerThreader->Delete();
 }
 //----------------------------------------------------------------------------
 void vtkDataCollector::PrintSelf(ostream& os, vtkIndent indent)
@@ -353,6 +354,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
       
     //Send frame + matrix
     self->GetDataSender()->NewData(self->GetTagger()->GetOutput(), trackerMatrix);
+    Auf Processor aendern
 
     frame++;
     } 

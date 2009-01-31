@@ -106,7 +106,7 @@ public:
   int StartSending();
   int StopSending();
   
-  int NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix);
+  int NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix);  
   
   void vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix); 
   int vtkFillImageMessage(vtkImageData * ImageBuffer, igtl::ImageMessage::Pointer& msg);

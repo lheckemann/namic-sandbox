@@ -103,6 +103,7 @@ vtkDataSender::vtkDataSender()
   this->PlayerThreadId = -1;
   
   this->newDataBufferSize = 100;
+  this->newDataBufferIndex = -1;
   
   frameProperties.Set = false;
   frameProperties.SubVolumeOffset[0] = 0;
@@ -114,6 +115,8 @@ vtkDataSender::vtkDataSender()
 vtkDataSender::~vtkDataSender()
 {
   this->SetOIGTLServer(NULL);
+  this->PlayerThreader->Delete();
+  
 }
 
 
@@ -210,10 +213,6 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
       // check to see if we have reached the specified time
       if (remaining <= 0)
         {
-        if (i == 0)
-          {
-          vtkGenericWarningMacro("No time to wait for sending data.");
-          }
         return 1;
       }
       // check the ActiveFlag at least every 0.1 seconds
@@ -289,6 +288,8 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
     //Increase counter for sleep time            
     counter++;
     
+    Warten ist unnoetig, falls Daten vorhanden
+    
     } 
   while(vtkThreadSleep(data, startTime + counter/rate));
   
@@ -339,11 +340,7 @@ int vtkDataSender::StartSending()
       }
     }
     
-  if (!this->Sending)
-    {
-    this->Sending = true;
-    }
-  else
+  if (this->Sending)
     {
     cerr << "ERROR: Data collector already collects data" << endl;
     return -1;
@@ -357,6 +354,7 @@ int vtkDataSender::StartSending()
   //Check if thread successfully started
   if(this->PlayerThreadId != -1)
     {
+    this->Sending = true;
     if(Verbose)
       {
       cout << "Successfully started to send" << endl;
