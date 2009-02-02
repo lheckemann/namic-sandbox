@@ -234,10 +234,11 @@ int main( int argc, char * argv [] )
 //------------------------------------------------------------
 // This call is mandatory before start querying the Metric
 // This method do all the necesary connections between the 
-// internal components: Interpolator, Transform and Meshs
+// internal components: Interpolator, Transform and Meshes
 //------------------------------------------------------------
-  try {
-    metric->Initialize();
+  try
+    {
+    registration->StartRegistration();
     }
   catch( itk::ExceptionObject & e )
     {
