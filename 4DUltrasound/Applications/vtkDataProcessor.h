@@ -54,13 +54,20 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef VTKDATAPROCESSOR_H_
 #define VTKDATAPROCESSOR_H_
 
+#define DEBUGPROCESSOR
+
 #include "SynchroGrabConfigure.h"
+
+#include <queue>
+#include <map>
 
 //#include "vtkObject.h"
 //#include "vtkImageData.h"
 
 class vtkMatrix4x4;
 class vtk3DPanoramicVolumeReconstructor;
+class vtkDataSender;
+class vtkUltrasoundCalibFileReader;
 
 class vtkDataProcessor : public vtkObject
 {
@@ -71,12 +78,28 @@ public:
 
   vtkSetMacro(Verbose, bool);
   vtkGetMacro(Verbose, bool);
-  
+
   vtkSetStringMacro(CalibrationFileName);
   vtkGetStringMacro(CalibrationFileName);
-  
+
+  vtkSetMacro(ProcessPeriod, float);
+  vtkGetMacro(ProcessPeriod, float);
+
+  vtkSetMacro(StartUpTime, double);
+  vtkGetMacro(StartUpTime, double);
+
   int NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix);
   int EnableVolumeReconstruction(bool flag);
+  int StartProcessing(vtkDataSender * sender);
+  int StopProcessing();
+  bool IsNewDataBufferFull();
+  bool IsNewDataBufferEmpty();
+  int DeleteData(int index);
+  int GetHeadOfNewDataBuffer();
+  int CheckandUpdateVolume(int index, int dataSenderIndex);
+  int ReconstructVolume(int index);
+  int ForwardData();
+  double GetUpTime();
 
 protected:
   vtkDataProcessor();
@@ -85,30 +108,40 @@ protected:
   bool Verbose;
   bool VolumeReconstructionEnabled;
   bool Processing;
+  float ProcessPeriod;
   double clipRectangle[4];
-  
-  std::queue<int> newDataBuffer; //Stores index of incoming objects 
+  double StartUpTime;
+
+  std::queue<int> newDataBuffer; //Stores index of incoming objects
   int newDataBufferSize; //Maximum amount of items that can be stored at the same time
   int newDataBufferIndex; //Object which is currently/ was last processed
-  
+
   std::map<int, vtkImageData*> newFrameMap;
-  std::map<int, vtkMatrix4x4*> newTrackerMatrixMap;  
-  
+  std::map<int, vtkMatrix4x4*> newTrackerMatrixMap;
+
+  vtkDataSender* DataSender;
+
   int AddFrameToFrameMap(int index, vtkImageData* frame);
   int AddMatrixToMatrixMap(int index, vtkMatrix4x4* matrix);
-  
+
   char *CalibrationFileName;
   vtkUltrasoundCalibFileReader *calibReader;
-  
+
   vtk3DPanoramicVolumeReconstructor * reconstructor;
 
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;
   int PlayerThreadId;
-  
-  int CheckandUpdateVolume(int dataSenderIndex);
-  int ReconstructVolume(int index);
-  int ForwardData();
+
+  void GetVolumeMatrix(vtkMatrix4x4* matrix);
+  int  MergeVolumes(vtkImageData* newVolume,
+                   vtkFloatingPointType* originNewVolume,
+                   int* extentNewVolume,
+                   vtkImageData* oldVolume,
+                   vtkFloatingPointType* originOldVolume,
+                   int* extentOldVolume);
+  int IncrementBufferIndex(int increment);
+  bool IsIndexAvailable(int index);
 
 private:
 
