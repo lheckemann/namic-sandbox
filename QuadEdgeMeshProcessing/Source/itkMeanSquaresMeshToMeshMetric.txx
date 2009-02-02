@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeanSquaresMeshToMeshMetric.h,v $
+  Module:    $RCSfile: itkMeanSquaresMeshToMeshMetric.txx,v $
   Language:  C++
   Date:      $Date:  $
   Version:   $Revision:  $
@@ -14,93 +14,356 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMeanSquaresMeshToMeshMetric_h
-#define __itkMeanSquaresMeshToMeshMetric_h
+#ifndef __itkMeanSquaresMeshToMeshMetric_txx
+#define __itkMeanSquaresMeshToMeshMetric_txx
 
 // First make sure that the configuration is available.
 // This line can be removed once the optimized versions
 // gets integrated into the main directories.
 #include "itkConfigure.h"
-#include "itkMeshToMeshMetric.h"
-#include "itkCovariantVector.h"
-#include "itkPoint.h"
 
+#include "itkMeanSquaresMeshToMeshMetric.h"
 
 namespace itk
 {
-/** \class MeanSquaresMeshToMeshMetric
- * \brief Computes similarity between two meshes to be registered
- *
- * This Class is templated over the type of the fixed and moving
- * meshes to be compared.
- *
- * This metric computes the sum of squared differences between point values 
- * in the moving mesh and point values in the fixed mesh. The spatial 
- * correspondance between both images is established through a Transform. 
- * Point values are taken from the Moving mesh. Their positions are mapped to 
- * the Fixed mesh and result in general in non-vertex position on it. Values 
- * at these non-vertex positions of the Fixed mesh are interpolated using a 
- * user-selected Interpolator.
- *
- * \ingroup RegistrationMetrics
+
+/**
+ * Constructor
  */
-template < class TFixedMesh, class TMovingMesh > 
-class ITK_EXPORT MeanSquaresMeshToMeshMetric : 
-    public MeshToMeshMetric< TFixedMesh, TMovingMesh>
+template <class TFixedMesh, class TMovingMesh> 
+MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
+::MeanSquaresMeshToMeshMetric()
 {
-public:
+  itkDebugMacro("Constructor");
+}
 
-  /** Standard class typedefs. */
-  typedef MeanSquaresMeshToMeshMetric                    Self;
-  typedef MeshToMeshMetric<TFixedMesh, TMovingMesh >     Superclass;
-  typedef SmartPointer<Self>                             Pointer;
-  typedef SmartPointer<const Self>                       ConstPointer;
+/**
+ * Get the match Measure
+ */
+template <class TFixedMesh, class TMovingMesh> 
+typename MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>::MeasureType
+MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
+::GetValue( const TransformParametersType & parameters ) const
+{
 
-  /** Method for creation through the object factory. */
-  itkNewMacro(Self);
- 
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(MeanSquaresMeshToMeshMetric, MeshToMeshMetric);
+  FixedMeshConstPointer fixedMesh = this->GetFixedMesh();
 
- 
-  /** Types transferred from the base class */
-  typedef typename Superclass::TransformType            TransformType;
-  typedef typename Superclass::TransformPointer         TransformPointer;
-  typedef typename Superclass::TransformParametersType  TransformParametersType;
-  typedef typename Superclass::TransformJacobianType    TransformJacobianType;
-  typedef typename Superclass::InputPointType           InputPointType;
-  typedef typename Superclass::OutputPointType          OutputPointType;
+  if( !fixedMesh ) 
+    {
+    itkExceptionMacro( << "Fixed point set has not been assigned" );
+    }
 
-  typedef typename Superclass::MeasureType              MeasureType;
-  typedef typename Superclass::DerivativeType           DerivativeType;
-  typedef typename Superclass::FixedMeshType            FixedMeshType;
-  typedef typename Superclass::MovingMeshType           MovingMeshType;
-  typedef typename Superclass::FixedMeshConstPointer    FixedMeshConstPointer;
-  typedef typename Superclass::MovingMeshConstPointer   MovingMeshConstPointer;
+  PointIterator pointItr = fixedMesh->GetPoints()->Begin();
+  PointIterator pointEnd = fixedMesh->GetPoints()->End();
+
+  PointDataIterator pointDataItr = fixedMesh->GetPointData()->Begin();
+  PointDataIterator pointDataEnd = fixedMesh->GetPointData()->End();
+
+  MeasureType measure = NumericTraits< MeasureType >::Zero;
+
+  this->m_NumberOfPixelsCounted = 0;
+
+  this->SetTransformParameters( parameters );
+
+  while( pointItr != pointEnd && pointDataItr != pointDataEnd )
+    {
+    InputPointType  inputPoint;
+    inputPoint.CastFrom( pointItr.Value() );
+    OutputPointType transformedPoint = 
+      this->m_Transform->TransformPoint( inputPoint );
+
+    if( this->m_Interpolator->IsInsideSurface( transformedPoint ) )
+      {
+      const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
+      const RealType fixedValue   = pointDataItr.Value();
+      const RealType diff = movingValue - fixedValue; 
+      measure += diff * diff; 
+      this->m_NumberOfPixelsCounted++;
+      }
+
+    ++pointItr;
+    ++pointDataItr;
+    }
+
+  if( !this->m_NumberOfPixelsCounted )
+    {
+    itkExceptionMacro(<<"All the points mapped to outside of the moving image");
+    }
+  else
+    {
+    measure /= this->m_NumberOfPixelsCounted;
+    }
 
 
-  /** Get the derivatives of the match measure. */
-  void GetDerivative( const TransformParametersType & parameters,
-                      DerivativeType & derivative ) const;
+  return measure;
 
-  /**  Get the value for single valued optimizers. */
-  MeasureType GetValue( const TransformParametersType & parameters ) const;
+}
 
-  /**  Get value and derivatives for multiple valued optimizers. */
-  void GetValueAndDerivative( const TransformParametersType & parameters,
-                              MeasureType& Value, DerivativeType& Derivative ) const;
 
-protected:
-  MeanSquaresMeshToMeshMetric();
-  virtual ~MeanSquaresMeshToMeshMetric() {};
+/**
+ * Get the Derivative Measure
+ */
+template < class TFixedMesh, class TMovingMesh> 
+void
+MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
+::GetDerivative( const TransformParametersType & parameters,
+                 DerivativeType & derivative  ) const
+{
 
-private:
-  MeanSquaresMeshToMeshMetric(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+#ifdef MICHEL_LATER
 
-};
+  itkDebugMacro("GetDerivative( " << parameters << " ) ");
+  
+  if( !this->GetGradientMesh() )
+    {
+    itkExceptionMacro(<<"The gradient image is null, maybe you forgot to call Initialize()");
+    }
+
+  FixedMeshConstPointer fixedMesh = this->m_FixedMesh;
+
+  if( !fixedMesh ) 
+    {
+    itkExceptionMacro( << "Fixed image has not been assigned" );
+    }
+
+  const unsigned int MeshDimension = FixedMeshType::MeshDimension;
+
+
+  typedef  itk::MeshRegionConstIteratorWithIndex<
+    FixedMeshType> FixedIteratorType;
+
+  typedef  itk::MeshRegionConstIteratorWithIndex<GradientMeshType> GradientIteratorType;
+
+
+  FixedIteratorType ti( fixedMesh, this->GetFixedMeshRegion() );
+
+  typename FixedMeshType::IndexType index;
+
+  this->m_NumberOfPixelsCounted = 0;
+
+  this->SetTransformParameters( parameters );
+
+  const unsigned int ParametersDimension = this->GetNumberOfParameters();
+  derivative = DerivativeType( ParametersDimension );
+  derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
+
+  ti.GoToBegin();
+
+  while(!ti.IsAtEnd())
+    {
+
+    index = ti.GetIndex();
+    
+    InputPointType inputPoint;
+    fixedMesh->TransformIndexToPhysicalPoint( index, inputPoint );
+
+    if( this->m_FixedMeshMask && !this->m_FixedMeshMask->IsInside( inputPoint ) )
+      {
+      ++ti;
+      continue;
+      }
+
+    OutputPointType transformedPoint = this->m_Transform->TransformPoint( inputPoint );
+
+    if( this->m_MovingMeshMask && !this->m_MovingMeshMask->IsInside( transformedPoint ) )
+      {
+      ++ti;
+      continue;
+      }
+
+    if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
+      {
+      const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
+
+      const TransformJacobianType & jacobian =
+        this->m_Transform->GetJacobian( inputPoint ); 
+
+      
+      const RealType fixedValue     = ti.Value();
+      this->m_NumberOfPixelsCounted++;
+      const RealType diff = movingValue - fixedValue; 
+
+      // Get the gradient by NearestNeighboorInterpolation: 
+      // which is equivalent to round up the point components.
+      typedef typename OutputPointType::CoordRepType CoordRepType;
+      typedef ContinuousIndex<CoordRepType,MovingMeshType::MeshDimension>
+        MovingMeshContinuousIndexType;
+
+      MovingMeshContinuousIndexType tempIndex;
+      this->m_MovingMesh->TransformPhysicalPointToContinuousIndex( transformedPoint, tempIndex );
+
+      typename MovingMeshType::IndexType mappedIndex; 
+      mappedIndex.CopyWithRound( tempIndex );
+
+      const GradientPixelType gradient = 
+        this->GetGradientMesh()->GetPixel( mappedIndex );
+
+      for(unsigned int par=0; par<ParametersDimension; par++)
+        {
+        RealType sum = NumericTraits< RealType >::Zero;
+        for(unsigned int dim=0; dim<MeshDimension; dim++)
+          {
+          sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];
+          }
+        derivative[par] += sum;
+        }
+      }
+
+    ++ti;
+    }
+
+  if( !this->m_NumberOfPixelsCounted )
+    {
+    itkExceptionMacro(<<"All the points mapped to outside of the moving image");
+    }
+  else
+    {
+    for(unsigned int i=0; i<ParametersDimension; i++)
+      {
+      derivative[i] /= this->m_NumberOfPixelsCounted;
+      }
+    }
+
+#endif
+
+}
+
+
+/*
+ * Get both the match Measure and theDerivative Measure 
+ */
+template <class TFixedMesh, class TMovingMesh> 
+void
+MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
+::GetValueAndDerivative(const TransformParametersType & parameters, 
+                        MeasureType & value, DerivativeType  & derivative) const
+{
+
+#ifdef MICHEL_LATER
+
+  itkDebugMacro("GetValueAndDerivative( " << parameters << " ) ");
+
+  if( !this->GetGradientMesh() )
+    {
+    itkExceptionMacro(<<"The gradient image is null, maybe you forgot to call Initialize()");
+    }
+
+  FixedMeshConstPointer fixedMesh = this->m_FixedMesh;
+
+  if( !fixedMesh ) 
+    {
+    itkExceptionMacro( << "Fixed image has not been assigned" );
+    }
+
+  const unsigned int MeshDimension = FixedMeshType::MeshDimension;
+
+  typedef  itk::MeshRegionConstIteratorWithIndex<
+    FixedMeshType> FixedIteratorType;
+
+  typedef  itk::MeshRegionConstIteratorWithIndex<GradientMeshType> GradientIteratorType;
+
+
+  FixedIteratorType ti( fixedMesh, this->GetFixedMeshRegion() );
+
+  typename FixedMeshType::IndexType index;
+
+  MeasureType measure = NumericTraits< MeasureType >::Zero;
+
+  this->m_NumberOfPixelsCounted = 0;
+
+  this->SetTransformParameters( parameters );
+
+  const unsigned int ParametersDimension = this->GetNumberOfParameters();
+  derivative = DerivativeType( ParametersDimension );
+  derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
+
+  ti.GoToBegin();
+
+  while(!ti.IsAtEnd())
+    {
+
+    index = ti.GetIndex();
+    
+    InputPointType inputPoint;
+    fixedMesh->TransformIndexToPhysicalPoint( index, inputPoint );
+
+    if( this->m_FixedMeshMask && !this->m_FixedMeshMask->IsInside( inputPoint ) )
+      {
+      ++ti;
+      continue;
+      }
+
+    OutputPointType transformedPoint = this->m_Transform->TransformPoint( inputPoint );
+
+    if( this->m_MovingMeshMask && !this->m_MovingMeshMask->IsInside( transformedPoint ) )
+      {
+      ++ti;
+      continue;
+      }
+
+    if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
+      {
+      const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
+
+      const TransformJacobianType & jacobian =
+        this->m_Transform->GetJacobian( inputPoint ); 
+
+      
+      const RealType fixedValue     = ti.Value();
+      this->m_NumberOfPixelsCounted++;
+
+      const RealType diff = movingValue - fixedValue; 
+  
+      measure += diff * diff;
+
+      // Get the gradient by NearestNeighboorInterpolation: 
+      // which is equivalent to round up the point components.
+      typedef typename OutputPointType::CoordRepType CoordRepType;
+      typedef ContinuousIndex<CoordRepType,MovingMeshType::MeshDimension>
+        MovingMeshContinuousIndexType;
+
+      MovingMeshContinuousIndexType tempIndex;
+      this->m_MovingMesh->TransformPhysicalPointToContinuousIndex( transformedPoint, tempIndex );
+
+      typename MovingMeshType::IndexType mappedIndex; 
+      mappedIndex.CopyWithRound( tempIndex );
+
+      const GradientPixelType gradient = 
+        this->GetGradientMesh()->GetPixel( mappedIndex );
+
+      for(unsigned int par=0; par<ParametersDimension; par++)
+        {
+        RealType sum = NumericTraits< RealType >::Zero;
+        for(unsigned int dim=0; dim<MeshDimension; dim++)
+          {
+          sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];
+          }
+        derivative[par] += sum;
+        }
+      }
+
+    ++ti;
+    }
+
+  if( !this->m_NumberOfPixelsCounted )
+    {
+    itkExceptionMacro(<<"All the points mapped to outside of the moving image");
+    }
+  else
+    {
+    for(unsigned int i=0; i<ParametersDimension; i++)
+      {
+      derivative[i] /= this->m_NumberOfPixelsCounted;
+      }
+    measure /= this->m_NumberOfPixelsCounted;
+    }
+
+  value = measure;
+
+#endif
+
+}
 
 } // end namespace itk
-
 
 #endif

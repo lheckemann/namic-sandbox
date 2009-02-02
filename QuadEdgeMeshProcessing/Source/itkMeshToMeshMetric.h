@@ -19,6 +19,7 @@
 
 #include "itkTransform.h"
 #include "itkSingleValuedCostFunction.h"
+#include "itkInterpolateMeshFunction.h"
 #include "itkExceptionObject.h"
 
 namespace itk
@@ -84,6 +85,12 @@ public:
   typedef typename TransformType::ParametersType     TransformParametersType;
   typedef typename TransformType::JacobianType       TransformJacobianType;
 
+  /**  Type of the Interpolator Base class */
+  typedef InterpolateMeshFunction<
+    MovingMeshType,
+    CoordinateRepresentationType >                   InterpolatorType;
+  typedef typename InterpolatorType::Pointer         InterpolatorPointer;
+
   /**  Type of the measure. */
   typedef Superclass::MeasureType          MeasureType;
 
@@ -131,6 +138,7 @@ protected:
   MovingMeshConstPointer        m_MovingMesh;
 
   mutable TransformPointer      m_Transform;
+  InterpolatorPointer           m_Interpolator;
 
 private:
   MeshToMeshMetric(const Self&); //purposely not implemented

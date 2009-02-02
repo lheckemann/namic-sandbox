@@ -91,6 +91,10 @@ public:
   typedef  typename MetricType::TransformType       TransformType;
   typedef  typename TransformType::Pointer          TransformPointer;
 
+  /**  Type of the Interpolator. */
+  typedef  typename MetricType::InterpolatorType   InterpolatorType;
+  typedef  typename InterpolatorType::Pointer      InterpolatorPointer;
+
   /** Type for the output: Using Decorator pattern for enabling
    *  the Transform to be passed in the data pipeline */
   typedef  DataObjectDecorator< TransformType >         TransformOutputType;
@@ -129,6 +133,10 @@ public:
   /** Set/Get the Transfrom. */
   itkSetObjectMacro( Transform, TransformType );
   itkGetObjectMacro( Transform, TransformType );
+
+  /** Set/Get the Interpolator. */
+  itkSetObjectMacro( Interpolator, InterpolatorType );
+  itkGetObjectMacro( Interpolator, InterpolatorType );
 
   /** Set/Get the initial transformation parameters. */
   virtual void SetInitialTransformParameters( const ParametersType & param );
@@ -172,6 +180,7 @@ private:
   FixedMeshConstPointer             m_FixedMesh;
 
   TransformPointer                  m_Transform;
+  InterpolatorPointer               m_Interpolator;
 
   ParametersType                    m_InitialTransformParameters;
   ParametersType                    m_LastTransformParameters;

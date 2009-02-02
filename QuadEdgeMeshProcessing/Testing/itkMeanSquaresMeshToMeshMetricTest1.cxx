@@ -201,11 +201,11 @@ int main( int argc, char * argv [] )
 // Set up a Transform
 //-----------------------------------------------------------
 
-  typedef itk::VersorRigid3DTransform<float>  TransformType;
+  typedef itk::VersorRigid3DTransform<double>  TransformType;
 
   TransformType::Pointer transform = TransformType::New();
 
-// FIXME  registration->SetTransform( transform );
+  registration->SetTransform( transform );
 
 
 //------------------------------------------------------------
@@ -219,7 +219,7 @@ int main( int argc, char * argv [] )
 
   interpolator->SetInputMesh( myMovingMesh );
  
-  // FIXME registration->SetInterpolator( interpolator );
+  registration->SetInterpolator( interpolator );
   
   std::cout << metric << std::endl;
 
