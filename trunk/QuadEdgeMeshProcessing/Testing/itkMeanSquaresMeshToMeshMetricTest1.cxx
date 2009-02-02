@@ -267,8 +267,6 @@ int main( int argc, char * argv [] )
 // for parameters[1] = {-10,10}  (arbitrary choice...)
 //---------------------------------------------------------
 
-  MetricType::MeasureType     measure;
-
   std::cout << "param[1]   Metric    d(Metric)/d(param[1] " << std::endl;
 
 
