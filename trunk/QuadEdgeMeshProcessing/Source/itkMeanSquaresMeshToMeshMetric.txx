@@ -73,6 +73,8 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     OutputPointType transformedPoint = 
       this->m_Transform->TransformPoint( inputPoint );
 
+    typedef typename InterpolatorType::RealType   RealType;
+
     if( this->m_Interpolator->IsInsideSurface( transformedPoint ) )
       {
       const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
