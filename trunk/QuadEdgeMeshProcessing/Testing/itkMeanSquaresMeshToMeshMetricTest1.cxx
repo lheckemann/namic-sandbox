@@ -90,12 +90,12 @@ int main( int argc, char * argv [] )
   fixedScale.Fill( 1.0 );
   
   myMovingSphereMeshSource->SetCenter( movingCenter );
-  myMovingSphereMeshSource->SetResolution( 4.0 );
+  myMovingSphereMeshSource->SetResolution( 2.0 );
   myMovingSphereMeshSource->SetScale( movingScale );
   myMovingSphereMeshSource->Modified();
 
   myFixedSphereMeshSource->SetCenter( fixedCenter );
-  myFixedSphereMeshSource->SetResolution( 4.0 );
+  myFixedSphereMeshSource->SetResolution( 2.0 );
   myFixedSphereMeshSource->SetScale( fixedScale );
   myFixedSphereMeshSource->Modified();
 
@@ -256,6 +256,22 @@ int main( int argc, char * argv [] )
   
   std::cout << metric << std::endl;
 
+//------------------------------------------------------------
+// Set up transform parameters
+//------------------------------------------------------------
+  const unsigned int numberOfTransformParameters = 
+     transform->GetNumberOfParameters();
+
+  ParametersType parameters( numberOfTransformParameters );
+
+  // initialize the offset/vector part
+  for( unsigned int k = 0; k < numberOfTransformParameters; k++ )
+    {
+    parameters[k]= 0.0f;
+    }
+
+  registration->SetInitialTransformParameters( parameters );
+
   // Optimizer Type
   typedef itk::GradientDescentOptimizer       OptimizerType;
 
@@ -278,21 +294,6 @@ int main( int argc, char * argv [] )
     std::cout << "Metric initialization failed" << std::endl;
     std::cout << "Reason " << e.GetDescription() << std::endl;
     return EXIT_FAILURE;
-    }
-
-
-//------------------------------------------------------------
-// Set up transform parameters
-//------------------------------------------------------------
-  const unsigned int numberOfTransformParameters = 
-     transform->GetNumberOfParameters();
-
-  ParametersType parameters( numberOfTransformParameters );
-
-  // initialize the offset/vector part
-  for( unsigned int k = 0; k < numberOfTransformParameters; k++ )
-    {
-    parameters[k]= 0.0f;
     }
 
 
