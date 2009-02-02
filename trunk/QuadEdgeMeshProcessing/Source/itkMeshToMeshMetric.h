@@ -121,6 +121,12 @@ public:
   /** Set the parameters defining the Transform. */
   void SetTransformParameters( const ParametersType & parameters ) const;
 
+  /** Connect the Interpolator. */
+  itkSetObjectMacro( Interpolator, InterpolatorType );
+
+  /** Get a pointer to the Interpolator.  */
+  itkGetConstObjectMacro( Interpolator, InterpolatorType );
+
   /** Return the number of parameters required by the Transform */
   unsigned int GetNumberOfParameters(void) const 
   { return m_Transform->GetNumberOfParameters(); }

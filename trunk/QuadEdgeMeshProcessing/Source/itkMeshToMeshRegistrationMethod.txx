@@ -105,6 +105,7 @@ MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
   m_Metric->SetMovingMesh(  m_MovingMesh );
   m_Metric->SetFixedMesh( m_FixedMesh );
   m_Metric->SetTransform( m_Transform );
+  m_Metric->SetInterpolator( m_Interpolator );
 
   m_Metric->Initialize();
 
