@@ -26,7 +26,7 @@
 #include "itkDefaultStaticMeshTraits.h"
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkMeshToMeshRegistrationMethod.h"
-#include "itkLinearInterpolateImageFunction.h"
+#include "itkLinearInterpolateMeshFunction.h"
 #include "itkGradientDescentOptimizer.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 //#include "itkCommandIterationUpdate.h"
@@ -205,8 +205,7 @@ int main( int argc, char * argv [] )
 
   TransformType::Pointer transform = TransformType::New();
 
-  //metric->SetTransform( transform.GetPointer() );
-  registration->SetTransform( transform.GetPointer() );
+// FIXME  registration->SetTransform( transform );
 
 
 //------------------------------------------------------------
@@ -218,16 +217,18 @@ int main( int argc, char * argv [] )
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
-  interpolator->SetInputMesh( movingMesh.GetPointer() );
+  interpolator->SetInputMesh( myMovingMesh );
  
-  metric->SetInterpolator( interpolator.GetPointer() );
+  // FIXME registration->SetInterpolator( interpolator );
   
   std::cout << metric << std::endl;
 
   // Optimizer Type
-  typedef itk::GradientDescentOptimizer                  OptimizerType;
-  typename OptimizerType::Pointer      optimizer     = OptimizerType::New();
-  registration->SetOptimizer(     optimizer     );
+  typedef itk::GradientDescentOptimizer       OptimizerType;
+
+  OptimizerType::Pointer      optimizer     = OptimizerType::New();
+
+  registration->SetOptimizer( optimizer );
 
 
 //------------------------------------------------------------
@@ -249,10 +250,13 @@ int main( int argc, char * argv [] )
 //------------------------------------------------------------
 // Set up transform parameters
 //------------------------------------------------------------
-  ParametersType parameters( transform->GetNumberOfParameters() );
+  const unsigned int numberOfTransformParameters = 
+     transform->GetNumberOfParameters();
+
+  ParametersType parameters( numberOfTransformParameters );
 
   // initialize the offset/vector part
-  for( unsigned int k = 0; k < MeshDimension; k++ )
+  for( unsigned int k = 0; k < numberOfTransformParameters; k++ )
     {
     parameters[k]= 0.0f;
     }
@@ -281,8 +285,6 @@ int main( int argc, char * argv [] )
   std::cout << "FixedMesh: " << metric->GetFixedMesh() << std::endl;
   std::cout << "MovingMesh: " << metric->GetMovingMesh() << std::endl;
   std::cout << "Transform: " << metric->GetTransform() << std::endl;
-  std::cout << "Interpolator: " << metric->GetInterpolator() << std::endl;
-  std::cout << "NumberOfPixelsCounted: " << metric->GetNumberOfPixelsCounted() << std::endl;
 
   std::cout << "Check case when Target is NULL" << std::endl;
   metric->SetFixedMesh( NULL );
@@ -301,34 +303,7 @@ int main( int argc, char * argv [] )
     std::cout << "Test for exception throwing... PASSED ! " << std::endl;
     }
   
- 
- bool pass;
-#define TEST_INITIALIZATION_ERROR( ComponentName, badComponent, goodComponent ) \
-  metric->Set##ComponentName( badComponent ); \
-  try \
-    { \
-    pass = false; \
-    metric->Initialize(); \
-    } \
-  catch( itk::ExceptionObject& err ) \
-    { \
-    std::cout << "Caught expected ExceptionObject" << std::endl; \
-    std::cout << err << std::endl; \
-    pass = true; \
-    } \
-  metric->Set##ComponentName( goodComponent ); \
-  \
-  if( !pass ) \
-    { \
-    std::cout << "Test failed." << std::endl; \
-    return EXIT_FAILURE; \
-    } 
 
-  TEST_INITIALIZATION_ERROR( Transform, NULL, transform );
-  TEST_INITIALIZATION_ERROR( FixedMesh, NULL, fixedMesh );
-  TEST_INITIALIZATION_ERROR( MovingMesh, NULL, movingMesh );
-  TEST_INITIALIZATION_ERROR( Interpolator, NULL, interpolator );
- 
   std::cout << "Test passed. " << std::endl;
 
   return EXIT_SUCCESS;
