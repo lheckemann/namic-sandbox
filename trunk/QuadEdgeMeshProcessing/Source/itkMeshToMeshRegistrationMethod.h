@@ -19,7 +19,7 @@
 
 #include "itkProcessObject.h"
 #include "itkMeshToMeshMetric.h"
-#include "itkMultipleValuedNonLinearOptimizer.h"
+#include "itkSingleValuedNonLinearOptimizer.h"
 #include "itkDataObjectDecorator.h"
 
 namespace itk
@@ -98,7 +98,7 @@ public:
   typedef typename TransformOutputType::ConstPointer    TransformOutputConstPointer;
 
   /**  Type of the optimizer. */
-  typedef   MultipleValuedNonLinearOptimizer            OptimizerType;
+  typedef   SingleValuedNonLinearOptimizer            OptimizerType;
 
   /** Type of the Transformation parameters This is the same type used to
    *  represent the search space of the optimization algorithm */
