@@ -101,6 +101,7 @@ private:
   MeanSquaresMeshToMeshMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
+  mutable unsigned int   m_NumberOfPixelsCounted;
 };
 
 } // end namespace itk

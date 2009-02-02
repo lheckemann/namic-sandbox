@@ -75,7 +75,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     typedef typename InterpolatorType::RealType   RealType;
 
-    if( this->m_Interpolator->IsInsideSurface( transformedPoint ) )
+    // FIXME: if( this->m_Interpolator->IsInsideSurface( transformedPoint ) )
       {
       const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
       const RealType fixedValue   = pointDataItr.Value();
