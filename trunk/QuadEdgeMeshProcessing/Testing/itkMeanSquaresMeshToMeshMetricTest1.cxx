@@ -29,6 +29,7 @@
 #include "itkLinearInterpolateMeshFunction.h"
 #include "itkGradientDescentOptimizer.h"
 #include "itkMeanSquaresImageToImageMetric.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 //#include "itkCommandIterationUpdate.h"
 
 #include <iostream>
@@ -174,6 +175,38 @@ int main( int argc, char * argv [] )
     std::cout << "Point[" << i << "]: " << movingPt << " radius " << radius << "  movingTheta " << movingTheta << "  phi " << phi  << "  movingValue " << movingValue << std::endl;
         
     }   
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   FixedWriterType;
+  FixedWriterType::Pointer fixedWriter = FixedWriterType::New();
+  fixedWriter->SetInput( myFixedMesh );
+  fixedWriter->SetFileName( "FixedMesh.vtk" );
+
+  try
+    {
+    fixedWriter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during fixedWriter Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >   MovingWriterType;
+  MovingWriterType::Pointer movingWriter = MovingWriterType::New();
+  movingWriter->SetInput( myMovingMesh );
+  movingWriter->SetFileName( "MovingMesh.vtk" );
+
+  try
+    {
+    movingWriter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during movingWriter Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
 
 //-----------------------------------------------------------
