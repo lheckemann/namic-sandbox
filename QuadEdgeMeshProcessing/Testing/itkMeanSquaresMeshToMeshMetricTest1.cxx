@@ -27,7 +27,7 @@
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkMeshToMeshRegistrationMethod.h"
 #include "itkLinearInterpolateMeshFunction.h"
-#include "itkGradientDescentOptimizer.h"
+#include "itkAmoebaOptimizer.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 //#include "itkCommandIterationUpdate.h"
@@ -273,9 +273,18 @@ int main( int argc, char * argv [] )
   registration->SetInitialTransformParameters( parameters );
 
   // Optimizer Type
-  typedef itk::GradientDescentOptimizer       OptimizerType;
+  typedef itk::AmoebaOptimizer         OptimizerType;
 
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
+
+  OptimizerType::ParametersType simplexDelta( numberOfTransformParameters );
+  simplexDelta.Fill( 0.1 );
+
+  optimizer->AutomaticInitialSimplexOff();
+  optimizer->SetInitialSimplexDelta( simplexDelta );
+  optimizer->SetParametersConvergenceTolerance( 0.01 ); // radiands ?
+  optimizer->SetFunctionConvergenceTolerance(0.001); // 0.1%
+  optimizer->SetMaximumNumberOfIterations( 200 );
 
   registration->SetOptimizer( optimizer );
 
