@@ -77,6 +77,8 @@ public:
   typedef typename Superclass::MovingMeshType           MovingMeshType;
   typedef typename Superclass::FixedMeshConstPointer    FixedMeshConstPointer;
   typedef typename Superclass::MovingMeshConstPointer   MovingMeshConstPointer;
+  typedef typename Superclass::PointIterator            PointIterator;
+  typedef typename Superclass::PointDataIterator        PointDataIterator;
 
 
   /** Get the derivatives of the match measure. */

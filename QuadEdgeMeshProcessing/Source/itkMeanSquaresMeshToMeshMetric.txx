@@ -53,6 +53,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     itkExceptionMacro( << "Fixed point set has not been assigned" );
     }
 
+
   PointIterator pointItr = fixedMesh->GetPoints()->Begin();
   PointIterator pointEnd = fixedMesh->GetPoints()->End();
 
