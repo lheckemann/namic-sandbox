@@ -1,7 +1,0 @@
-2005-12-19  John Poplett <john.poplett AT acm.org>
-	* Compilation of unit tests only if cppunit is present on system.
-	* Split out classes from CLI.h into separate header and cpp files.
-	* Eliminate dependency on boost and auto_ptr smart pointers. 
-
-2005-12-16  John Poplett <john.poplett AT acm.org>
-	* Initial release.

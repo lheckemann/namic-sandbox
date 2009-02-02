@@ -1,4 +1,0 @@
-base referer
-rect $classvtkMrmlData.html 7,32 106,56
-rect $classvtkMrmlDataTetraMesh.html 155,8 315,32
-rect $classvtkMrmlDataVolume.html 165,56 306,80

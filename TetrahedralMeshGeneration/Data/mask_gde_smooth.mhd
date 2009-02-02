@@ -1,8 +1,0 @@
-ObjectType = Image
-NDims = 3
-BinaryData = True
-BinaryDataByteOrderMSB = False
-ElementSpacing = 0.86 0.86 2.5
-DimSize = 276 296 80
-ElementType = MET_USHORT
-ElementDataFile = mask_gde_smooth.raw

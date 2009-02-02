@@ -1,9 +1,0 @@
-Synopsis:
-  ./convertAnalyzeToVTKImage inputImageFilename.img outputImageFilename.vti
-
-This program uses ITK to read in an Analyze 7.5 image.  It then converts this to 
-a VTK image and writes it to the user-specified .vti file using a 
-vtkXMLImageDataWriter.
-
-NOTE: This does NOT write vtkPolyData.  Therefore, attempting to surface render
-the output .vti image will not work.

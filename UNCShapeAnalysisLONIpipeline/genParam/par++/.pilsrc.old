@@ -1,8 +1,0 @@
-convergence-tolerance = 1e-10,
- method=cg,precond=no,
- max-iter 4000,
-/* print fill,*/
-/* NumDrop(0.001, 8), */
-print summary,
-
-initial-guess false

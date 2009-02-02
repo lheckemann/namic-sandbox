@@ -1,5 +1,0 @@
-Synopsis:
-  ./annotatePicker
-
-This program is a reimplementation of VTK/Examples/Annotation/Tcl/annotatePick.tcl
-done in C++.

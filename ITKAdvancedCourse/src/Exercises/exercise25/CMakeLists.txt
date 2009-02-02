@@ -1,9 +1,0 @@
-PROJECT(Exercise25)
-
-FIND_PACKAGE(ITK REQUIRED)
-
-INCLUDE(${ITK_USE_FILE})
-
-ADD_EXECUTABLE(DividerImageFilter25  main.cxx       )
-
-TARGET_LINK_LIBRARIES(DividerImageFilter25   ITKIO ITKNumerics ITKCommon )
