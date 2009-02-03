@@ -61,7 +61,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 class vtkUltrasoundCalibFileReader;
 class vtkTaggedImageFilter;
-class vtkDataSender;
+class vtkDataProcessor;
 class vtkMultiThreader;
 
 #ifdef USE_ULTRASOUND_DEVICE
@@ -99,32 +99,36 @@ public:
 
   vtkSetMacro(VideoMode, int);
   vtkGetMacro(VideoMode, int);
-  
+
   vtkSetMacro(FrameRate, double);
   vtkGetMacro(FrameRate, double);
 
   //Depth of the Ultrasound scan in Millimeter
   vtkSetMacro(ScanDepth, double);
   vtkGetMacro(ScanDepth, double);
-  
+
   vtkSetMacro(FrameBufferSize, int);
-  vtkGetMacro(FrameBufferSize, int);  
-  
+  vtkGetMacro(FrameBufferSize, int);
+
+  vtkSetMacro(StartUpTime, double);
+  vtkGetMacro(StartUpTime, double);
+
 #ifdef USE_ULTRASOUND_DEVICE
-  vtkGetMacro(VideoSource, vtkV4L2VideoSource *);  
+  vtkGetMacro(VideoSource, vtkV4L2VideoSource *);
 #else
   vtkGetMacro(VideoSource, vtkVideoSourceSimulator *);
 #endif
 
   vtkGetMacro(Tagger, vtkTaggedImageFilter *);
-  
-  vtkGetMacro(DataSender, vtkDataSender *);
+
+  vtkGetMacro(DataProcessor, vtkDataProcessor *);
 
   int StartTracker();
   int Initialize();
-  bool StartCollecting(vtkDataSender * sender);
+  bool StartCollecting(vtkDataProcessor * processor);
   bool StopCollecting();
   void AdjustMatrix(vtkMatrix4x4& matrix);
+  double GetUpTime();
 
 protected:
   vtkDataCollector();
@@ -139,31 +143,32 @@ protected:
   int   VideoMode; //NTSC == 1 , PAL == 2
   double FrameRate;
   int FrameBufferSize;
+  double StartUpTime;
 
   double ScanDepth;
-  
+
   vtkUltrasoundCalibFileReader *calibReader;
-  
+
 #ifdef USE_TRACKER_DEVICE
-  vtkNDITracker *tracker;  
+  vtkNDITracker *tracker;
 #else
-  vtkTrackerSimulator *tracker;  
+  vtkTrackerSimulator *tracker;
 #endif
 
   vtkTaggedImageFilter *Tagger;
 
 #ifdef USE_ULTRASOUND_DEVICE
-  vtkV4L2VideoSource *VideoSource;  
+  vtkV4L2VideoSource *VideoSource;
 #else
   vtkVideoSourceSimulator *VideoSource;
 #endif
 
-  vtkDataSender* DataSender;
-  
+  vtkDataProcessor* DataProcessor;
+
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;
   int PlayerThreadId;
-  
+
   bool Collecting;
   bool Initialized;
 

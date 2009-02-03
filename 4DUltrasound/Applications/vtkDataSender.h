@@ -43,7 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
-// .NAME vtkDataSender - send image to Slicer3 
+// .NAME vtkDataSender - send image to Slicer3
 // .SECTION Description
 // vtkDataSender is responsible for the creation and configuration
 // of socket connection with Slicer3, and as requested, sending images via OpenIGTLink.
@@ -71,9 +71,16 @@ struct FramePoperties {
         bool Set;
         int ScalarType;
         int Size[3];
-        double Spacing[3];      
+        double Spacing[3];
         int SubVolumeSize[3];
-        int SubVolumeOffset[3]; 
+        int SubVolumeOffset[3];
+};
+
+struct DataStruct{
+  vtkImageData* ImageData;
+  vtkMatrix4x4* Matrix;
+  int SenderLock;
+  int ProcessorLock;
 };
 
 class vtkDataSender : public vtkObject
@@ -91,61 +98,65 @@ public:
 
   vtkSetMacro(ServerPort, int);
   vtkGetMacro(ServerPort, int);
-  
-  vtkSetMacro(SendRate, double);
-  vtkGetMacro(SendRate, double);
-  
+
+  vtkSetMacro(SendPeriod, double);
+  vtkGetMacro(SendPeriod, double);
+
+  vtkSetMacro(StartUpTime, double);
+  vtkGetMacro(StartUpTime, double);
+
   int GetHeadOfNewDataBuffer();
-  bool IsNewDataBufferEmpty();
-  bool IsNewDataBufferFull();
+  bool IsSendDataBufferEmpty();
+  bool IsSendDataBufferFull();
   int IncrementBufferIndex(int increment);
 
   int ConnectToServer();
   int CloseServerConnection();
-  
+
   int StartSending();
   int StopSending();
-  
-  int NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix);  
-  
-  void vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix); 
-  int vtkFillImageMessage(vtkImageData * ImageBuffer, igtl::ImageMessage::Pointer& msg);
-  
-  igtl::ImageMessage::Pointer PrepareImageMessage(int index);
-  int SendMessage(igtl::ImageMessage::Pointer message);
-  int DeleteData(int index);
+
+  int NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix);
+
+  int PrepareImageMessage(int index, igtl::ImageMessage::Pointer& imageMessage);
+  int SendMessage(igtl::ImageMessage::Pointer& message);
+  int TryToDeleteData(int index);
+
+  vtkImageData* GetVolume(int index);
+  int UnlockData(int index, int lock);
+  double GetUpTime();
 
 protected:
   vtkDataSender();
   ~vtkDataSender();
 
   bool Verbose;
+  double StartUpTime;
 
   int ServerPort;
   char *OIGTLServer;
-  double SendRate;
+  double SendPeriod;
 
   igtl::ClientSocket::Pointer socket;
-  
+
   bool Sending;
   bool Connected;
-  
+
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;
   int PlayerThreadId;
-  
-  std::queue<int> newDataBuffer; //Stores index of incoming objects 
-  int newDataBufferSize; //Maximum amount of items that can be stored at the same time
-  int newDataBufferIndex; //Object which is currently/ was last processed
-  
-  std::map<int, vtkImageData*> newImageMap;
-  std::map<int, vtkMatrix4x4*> newTrackerMatrixMap;  
-  
-  int AddFrameToFrameMap(int index, vtkImageData* frame);
-  int AddMatrixToMatrixMap(int index, vtkMatrix4x4* matrix);
-  
+
+  std::queue<int> sendDataQueue; //Stores index of incoming objects
+  int sendDataBufferSize; //Maximum amount of items that can be stored at the same time
+  int sendDataBufferIndex; //Object which is currently/ was last processed
+
+  std::map<int, struct DataStruct> sendDataBuffer;
+
+  int AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix4x4* matrix);
+  bool IsIndexAvailable(int index);
+
   struct FramePoperties frameProperties;
-  
+
  private:
   vtkDataSender(const vtkDataSender&);  // Not implemented.
   void operator=(const vtkDataSender&);  // Not implemented.

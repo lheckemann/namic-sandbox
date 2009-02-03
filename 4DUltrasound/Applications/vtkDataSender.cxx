@@ -51,7 +51,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define NOMINMAX
 #undef REMOVE_ALPHA_CHANNEL
- 
+
 //#include <windows.h>
 
 #include "vtkDataSetWriter.h"
@@ -87,28 +87,30 @@ vtkStandardNewMacro(vtkDataSender);
 vtkDataSender::vtkDataSender()
 {
   this->ServerPort = 18944;
-  this->OIGTLServer = NULL; 
+  this->OIGTLServer = NULL;
   this->SetOIGTLServer("localhost");
-  this->SendRate = 30 * 1.5;
+  this->SendPeriod = 1 /(30 * 1.5);
 
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
 
   this->Verbose = false;
-  
+
   this->Connected = false;
   this->Sending = false;
-  
+
   this->PlayerThreader = vtkMultiThreader::New();;
   this->PlayerThreadId = -1;
-  
-  this->newDataBufferSize = 100;
-  this->newDataBufferIndex = -1;
-  
+
+  this->sendDataBufferSize = 100;
+  this->sendDataBufferIndex = -1;
+
   frameProperties.Set = false;
   frameProperties.SubVolumeOffset[0] = 0;
   frameProperties.SubVolumeOffset[1] = 0;
   frameProperties.SubVolumeOffset[2] = 0;
+
+  this->StartUpTime = vtkTimerLog::GetUniversalTime();
 }
 
 //----------------------------------------------------------------------------
@@ -116,7 +118,12 @@ vtkDataSender::~vtkDataSender()
 {
   this->SetOIGTLServer(NULL);
   this->PlayerThreader->Delete();
-  
+
+  //Delete all buffer objects
+  while(!this->IsSendDataBufferEmpty())
+    {
+    this->TryToDeleteData(this->GetHeadOfNewDataBuffer());
+    }
 }
 
 
@@ -140,8 +147,8 @@ int vtkDataSender::ConnectToServer()
     }
   else if(Verbose)
     {
-    cout << "Successful connected to the OpenIGTLink server ("<< OIGTLServer <<":"<<  ServerPort << ")" << endl;    
-    }  
+    cout << "Successful connected to the OpenIGTLink server ("<< OIGTLServer <<":"<<  ServerPort << ")" << endl;
+    }
 
   this->Connected = true;
 
@@ -151,27 +158,27 @@ int vtkDataSender::ConnectToServer()
 //----------------------------------------------------------------------------
 int vtkDataSender::CloseServerConnection()
 {
-  
+
   this->socket->CloseSocket();
-  
+
   if(Verbose && this->Connected)
     {
     cout << "Connection to the OpenIGTLink server ("<< OIGTLServer <<":"<<  ServerPort << ") closed" << endl;
     }
-    
+
   this->Connected = false;
-  
+
   return 0;
 }
 
 /******************************************************************************
- *  static inline void vtkSleep(double duration) 
+ *  static inline void vtkSleep(double duration)
  *
  *  Platform-independent sleep function
  *  Set the current thread to sleep for a certain amount of time
- * 
- *  @Param: double duration - Time to sleep in ms 
- * 
+ *
+ *  @Param: double duration - Time to sleep in ms
+ *
  * ****************************************************************************/
 static inline void vtkSleep(double duration)
 {
@@ -187,24 +194,39 @@ static inline void vtkSleep(double duration)
 #endif
 }
 
-
 /******************************************************************************
- *  static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time) 
+ *  static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
  *
  *  Sleep until the specified absolute time has arrived.
- *  You must pass a handle to the current thread.  
- *  If '0' is returned, then the thread was aborted before or during the wait. * 
- *  
+ *  You must pass a handle to the current thread.
+ *  If '0' is returned, then the thread was aborted before or during the wait. *
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  22.December 2008
- * 
+ *
  *  @Param: vtkMultiThreader::ThreadInfo *data
- * 
  *  @Param: double time - Time until which to sleep
- * 
+ *  @Param: bool checkActiveFlagImmediately - avoid waiting if enabled
+ *
  * ****************************************************************************/
-static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
+static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time, bool checkActiveFlagImmediately)
 {
+  if(checkActiveFlagImmediately)
+    {
+    // check to see if we are being told to quit
+      data->ActiveFlagLock->Lock();
+      int activeFlag = *(data->ActiveFlag);
+      data->ActiveFlagLock->Unlock();
+
+      if (activeFlag == 0)
+        {//We are told to quit
+        return 0;
+        }
+
+      //Go on processing
+      return 1;
+    }
+
   // loop either until the time has arrived or until the thread is ended
   for (int i = 0;; i++)
     {
@@ -221,7 +243,7 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
         remaining = 0.1;
         }
 
-      // check to see if we are being told to quit 
+      // check to see if we are being told to quit
       data->ActiveFlagLock->Lock();
       int activeFlag = *(data->ActiveFlag);
       data->ActiveFlagLock->Unlock();
@@ -238,100 +260,99 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 }
 
 /******************************************************************************
- *  static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data) 
+ *  static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
  *
- *  This function runs in an alternate thread to asyncronously send data 
- *  
+ *  This function runs in an alternate thread to asyncronously send data
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  20.Januar 2009
- * 
+ *
  *  @Param: vtkMultiThreader::ThreadInfo *data
- * 
+ *
  * ****************************************************************************/
 static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
 {
   vtkDataSender *self = (vtkDataSender *)(data->UserData);
-  
-  double startTime = vtkTimerLog::GetUniversalTime();
-  double rate = self->GetSendRate();
-  int counter = 0;
+
+  double sendPeriod = self->GetSendPeriod();
   int currentIndex = -1;
-  igtl::ImageMessage::Pointer imageMessage = igtl::ImageMessage::New();
+  igtl::ImageMessage::Pointer imageMessage;
   int errors = 0;
-  
+  bool dataAvailable = false;
+
   do
     {
-    if(!self->IsNewDataBufferEmpty())
+    if(dataAvailable || !self->IsSendDataBufferEmpty())
       {//New data available
-      
+
       //JG 09/01/21
       //cout << "New Data in Send Buffer arrived" <<endl;
-      
+
       currentIndex = self->GetHeadOfNewDataBuffer();
-      
+
       //Prepare new data
-      imageMessage = self->PrepareImageMessage(currentIndex);
-      
-      //Send new data
-      errors += self->SendMessage(imageMessage);
-      
-      //Delete sended data (Remove Index from new data buffer + free maps from data
-      errors += self->DeleteData(currentIndex);
-      
-      if(errors <= -10)
+      if(self->PrepareImageMessage(currentIndex, imageMessage) != -1)
         {
-        cerr << "ERROR: Too many errors occured while sending" << endl;
+        //Send new data
+        errors += self->SendMessage(imageMessage);
+        }
+
+      //Delete sended data (Remove Index from new data buffer + free maps from data
+      errors += self->UnlockData(currentIndex, DATASENDER);
+      errors += self->TryToDeleteData(currentIndex);
+
+      if(errors <= - ERRORTOLERANCE)
+        {
+        cerr << "ERROR: Stopped sending too many errors occured" << endl;
         break;
-        }    
+        }
       }
-    
-    //Increase counter for sleep time            
-    counter++;
-    
-    Warten ist unnoetig, falls Daten vorhanden
-    
-    } 
-  while(vtkThreadSleep(data, startTime + counter/rate));
-  
+
+    dataAvailable = !self->IsSendDataBufferEmpty();
+
+    }
+  while(vtkThreadSleep(data, vtkTimerLog::GetUniversalTime() + sendPeriod, dataAvailable));
+
   return NULL;
 }
 //----------------------------------------------------------------------------
-bool vtkDataSender::IsNewDataBufferEmpty()
+bool vtkDataSender::IsSendDataBufferEmpty()
 {
-  return this->newDataBuffer.empty();
+  return this->sendDataQueue.empty();
 }
 
-bool vtkDataSender::IsNewDataBufferFull()
+//----------------------------------------------------------------------------
+bool vtkDataSender::IsSendDataBufferFull()
 {
-  if(this->newDataBuffer.size() >= this->newDataBufferSize)
-    {           
+  if(this->sendDataQueue.size() >= this->sendDataBufferSize)
+    {
     return true;
     }
   else
     {
     return false;
-    } 
+    }
 }
 
 //----------------------------------------------------------------------------
 int vtkDataSender::GetHeadOfNewDataBuffer()
-{ 
-  int head = this->newDataBuffer.front();
-  this->newDataBuffer.pop();
+{
+  int head = this->sendDataQueue.front();
+  this->sendDataQueue.pop();
   return head;
 }
 
 //----------------------------------------------------------------------------
 int vtkDataSender::IncrementBufferIndex(int increment)
 {
-  this->newDataBufferIndex = (this->newDataBufferIndex + increment) % this->newDataBufferSize;
-        
-  return this->newDataBufferIndex;
+  this->sendDataBufferIndex = (this->sendDataBufferIndex + increment) % this->sendDataBufferSize;
+
+  return this->sendDataBufferIndex;
 }
 
 //----------------------------------------------------------------------------
 int vtkDataSender::StartSending()
-{ 
+{
    if (!this->Connected)
     {
     if(!this->ConnectToServer())
@@ -339,18 +360,18 @@ int vtkDataSender::StartSending()
       return 0;
       }
     }
-    
+
   if (this->Sending)
     {
     cerr << "ERROR: Data collector already collects data" << endl;
     return -1;
     }
-        
+
   //Start send thread
-  this->PlayerThreadId =  
+  this->PlayerThreadId =
             this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
             &vtkDataSenderThread, this);
-  
+
   //Check if thread successfully started
   if(this->PlayerThreadId != -1)
     {
@@ -365,74 +386,70 @@ int vtkDataSender::StartSending()
     {
     cerr << "ERROR: Could not start sender thread" << endl;
     return -1;
-    }  
+    }
 }
 
 //------------------------------------------------------------
 int vtkDataSender::StopSending()
 {
-  //Stop send thread  
+  //Stop send thread
   if (this->Sending)
-    {    
+    {
     this->PlayerThreader->TerminateThread(this->PlayerThreadId);
     this->PlayerThreadId = -1;
     this->Sending = false;
-    
+
     if(Verbose)
       {
       cout << "Stop sending" << endl;
       }
     }
-  
+
   return 0;
-        
+
 }
 
 //------------------------------------------------------------
-igtl::ImageMessage::Pointer vtkDataSender::PrepareImageMessage(int index)
-{ 
-  vtkImageData * frame = this->newImageMap[index];
-  
-  if(frame == NULL)
+int vtkDataSender::PrepareImageMessage(int index,
+                                       igtl::ImageMessage::Pointer& imageMessage)
+{
+
+  if(this->IsIndexAvailable(index))
     {
-    cerr << "ERROR: no image to prepare at index: " << index << endl;
-    return NULL;
+    cerr << "ERROR: No data to prepare at index: " << index << endl;
+    return -1;
     }
-  
-  vtkMatrix4x4 * matrix = this->newTrackerMatrixMap[index];
-  
-  if(matrix == NULL)
-    {
-    cerr << "ERROR: no matrix to prepare at index: " << index << endl;
-    return NULL;
-    }
-  
-  if(!frameProperties.Set)//Only neccessary once
-    {
+
+  //Get Data
+  vtkImageData * frame = this->sendDataBuffer[index].ImageData;
+  vtkMatrix4x4 * matrix = this->sendDataBuffer[index].Matrix;
+
+//  if(!frameProperties.Set)//Only neccessary once
+//    {
     //Get property of frame
     frame->GetDimensions(frameProperties.Size);
-    frame->GetSpacing(frameProperties.Spacing);               
-    frameProperties.ScalarType = frame->GetScalarType();    
+    frame->GetSpacing(frameProperties.Spacing);
+    frameProperties.ScalarType = frame->GetScalarType();
     frameProperties.SubVolumeSize[0] = frameProperties.Size[0];
     frameProperties.SubVolumeSize[1] = frameProperties.Size[1];
     frameProperties.SubVolumeSize[2] = frameProperties.Size[2];
-    frameProperties.Set = true;     
-    }
-  
+    frameProperties.Set = true;
+//    }
+
   //------------------------------------------------------------
   // Create a new IMAGE type message
-  igtl::ImageMessage::Pointer imageMessage = igtl::ImageMessage::New();
-   
+  imageMessage = igtl::ImageMessage::New();
+
   imageMessage->SetDimensions(frameProperties.Size);
   imageMessage->SetSpacing((float) frameProperties.Spacing[0],(float) frameProperties.Spacing[1], (float) frameProperties.Spacing[2]);
   imageMessage->SetScalarType(frameProperties.ScalarType);
   imageMessage->SetDeviceName("4D Ultrasound Data Sender");
   imageMessage->SetSubVolume(frameProperties.SubVolumeSize, frameProperties.SubVolumeOffset);
   imageMessage->AllocateScalars();
-  
+
   if(Verbose)
     {
-    cout << "Size of image frame to send:" << frameProperties.Size[0] << " | " << frameProperties.Size[1] << " | " << frameProperties.Size[2] << endl;
+    cout << "INFO: Size of image frame to send:" << frameProperties.Size[0] << " | " << frameProperties.Size[1] << " | " << frameProperties.Size[2] << endl;
     }
 
   //Copy image to output buffer
@@ -444,38 +461,39 @@ igtl::ImageMessage::Pointer vtkDataSender::PrepareImageMessage(int index)
     *pImageMessage = (unsigned char) *pFrame;
     pFrame++; pImageMessage++;
     }
-  
+
   igtl::Matrix4x4 igtlMatrix;
-  
+
   //Copy matrix to output buffer
   for(int i = 0; i < 4; ++i)
     {
     for(int j = 0; j < 4; ++j)
       {
-      igtlMatrix[i][j] = matrix->Element[i][j];      
+      igtlMatrix[i][j] = matrix->Element[i][j];
       }
-    } 
-  
+    }
+
   if(Verbose)
     {
-    cout << "OpenIGTLink image message matrix" << endl;
-    igtl::PrintMatrix(igtlMatrix); 
+    cout << "INFO: OpenIGTLink image message matrix" << endl;
+    igtl::PrintMatrix(igtlMatrix);
     }
-  
+
   imageMessage->SetMatrix(igtlMatrix);
-  
+
   imageMessage->Pack();// Pack (serialize)
 
-  return imageMessage;
-    
+  return 0;
+
 }
 
 //------------------------------------------------------------
-int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer message)
-{    
-    //Send message    
+int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer& message)
+{
+    //Send message
+    double sendTime = this->GetUpTime();
     int ret = this->socket->Send(message->GetPackPointer(), message->GetPackSize());
-    if (ret == 0)    
+    if (ret == 0)
       {
       std::cerr << "ERROR: Connection to OpenIGTLink Server lost while sending!\n";
       return -1;
@@ -484,9 +502,10 @@ int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer message)
       {
       if(Verbose)
         {
-        cout << "Message successfully send to OpenIGTLink Server" << endl;
+        cout << "INFO: Message successfully send to OpenIGTLink Server | Send time: "
+             << this->GetUpTime() - sendTime << endl;
         }
-      }     
+      }
   return 0;
 }
 
@@ -494,155 +513,138 @@ int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer message)
 int vtkDataSender::NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix)
 {
   //Check if new data buffer is full
-  if(this->IsNewDataBufferFull())
+  if(this->IsSendDataBufferFull())
     {
     cerr << "ERROR: Senders new data buffer is full" << endl;
     return -1;
-    }  
-          
+    }
+
   int index = this->IncrementBufferIndex(1);
-        
-  //Add new data to Buffer    
-  this->AddFrameToFrameMap(index, frame);//Imageframe  
-  this->AddMatrixToMatrixMap(index, trackerMatrix);//TrackerMatrix
-          
-  this->newDataBuffer.push(index);//Add Index to new data buffer
-  
-  return 0;     
+
+  //Add new data to Buffer
+  this->AddDatatoBuffer(index, frame, trackerMatrix);
+
+  this->sendDataQueue.push(index);//Add Index to new data buffer
+
+  return index;
 }
 
 //------------------------------------------------------------
-int vtkDataSender::DeleteData(int index)
+int vtkDataSender::TryToDeleteData(int index)
 {
-  if(this->newImageMap[index] == NULL)
+  if(this->IsIndexAvailable(index))
     {
-    cerr << "ERROR: new image map has no image for index: " << index << endl;
+    cerr << "ERROR: Not data to delete in Send Data Buffer at index: " << index << endl;
     return -1;
     }
-  
-  if(this->newTrackerMatrixMap[index] == NULL)
+
+  if(this->sendDataBuffer[index].SenderLock <= 0 && this->sendDataBuffer[index].ProcessorLock <= 0)
     {
-    cerr << "ERROR: new tracker matrix map has no matrix for index: " << index << endl;
-    return -1;
+    this->sendDataBuffer[index].ImageData->Delete();
+    this->sendDataBuffer[index].Matrix->Delete();
+    this->sendDataBuffer.erase(index);
     }
-    
-  this->newImageMap.erase(index);
-  this->newTrackerMatrixMap.erase(index);
-  
+
   return 0;
 }
 
 //------------------------------------------------------------
-int vtkDataSender::AddFrameToFrameMap(int index, vtkImageData* frame)
+int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix4x4* matrix)
 {
-  if(this->newImageMap[index] != NULL)
+  if(!this->IsIndexAvailable(index))
     {
-    cerr << "ERROR: new image map already has an image for index: " << index << endl;
+    cerr << "ERROR: Send Data Buffer already has data at index: " << index << endl;
     return -1;
     }
-    
-  this->newImageMap[index] = frame;
+
+  //Create and fill new send data object
+  struct DataStruct newSendData;
+
+  newSendData.ImageData = imageData;
+  newSendData.Matrix = matrix;
+  newSendData.SenderLock = 1;
+  newSendData.ProcessorLock = 1;
+
+  //Add Object to buffer
+  this->sendDataBuffer[index] = newSendData;
+
   return 0;
 }
 
 //------------------------------------------------------------
-int vtkDataSender::AddMatrixToMatrixMap(int index, vtkMatrix4x4* matrix)
+vtkImageData* vtkDataSender::GetVolume(int index)
 {
-  if(this->newTrackerMatrixMap[index] != NULL)
+if(this->IsIndexAvailable(index))
+   {
+   cerr << "ERROR: Send Data Buffer has no data at index: " << index << endl;
+   return NULL;
+   }
+
+  vtkImageData * volume = this->sendDataBuffer[index].ImageData;
+
+  return volume;
+}
+
+//------------------------------------------------------------
+int vtkDataSender::UnlockData(int index, int lock)
+{
+  if(this->IsIndexAvailable(index))
     {
-    cerr << "ERROR: new tracker matrix map already has a matrix for index: " << index << endl;
+    cerr << "ERROR: Send Data Buffer has no data at index: " << index << endl;
     return -1;
     }
-    
-  this->newTrackerMatrixMap[index] = matrix;
+
+  if(lock == DATASENDER)
+    {
+    this->sendDataBuffer[index].SenderLock--;
+    }
+  else if(lock == DATAPROCESSOR)
+    {
+    this->sendDataBuffer[index].ProcessorLock--;
+    }
+  else
+    {
+    cerr << "ERROR: Try to release unknown lock" << endl;
+    return -1;
+    }
+
   return 0;
 }
 
-//------------------------------------------------------------
-// Function to get image data
-int vtkDataSender::vtkFillImageMessage(vtkImageData *ImageBuffer, igtl::ImageMessage::Pointer& msg)
+/******************************************************************************
+ * double vtkDataSender::GetUpTime()
+ *
+ *  Returns elapsed Time since program start
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  2.February 2009
+ *
+ * ****************************************************************************/
+double vtkDataSender::GetUpTime()
 {
-  int size[3];      // image dimension
-  double spacing[3]; // spacing (mm/pixel)
-  int svsize[3];    // sub-volume size
-  int svoffset[3];  // sub-volume offset
-  int scalarType;   // scalar type
-
-  //If we reconstructing a 3DVolume everything is already set for us
-  ImageBuffer->GetDimensions(size);
-  ImageBuffer->GetSpacing(spacing);
-  //spacing[2] *= 1;
-
-  //For a fast Computer enable this
-  //spacing[0] *= 3;
-  //spacing[1] *= 3;
-  //spacing[2] *= 3;
-    
-  svsize[0]   = size[0];       
-  svsize[1]   = size[1];       
-  svsize[2]   = size[2];           
-  svoffset[0] = svoffset[1] = svoffset[2] = 0;           
-  scalarType = ImageBuffer->GetScalarType();    
-  
-  //------------------------------------------------------------
-  // Create a new IMAGE type message    
-  msg->SetDimensions(size);
-  msg->SetSpacing((float) spacing[0],(float) spacing[1], (float) spacing[2]);
-  msg->SetScalarType(scalarType);
-  msg->SetDeviceName("SynchroGrab");
-  msg->SetSubVolume(svsize, svoffset);
-  msg->AllocateScalars();
-  
-  if(Verbose)
-    {
-    cerr <<    "3D Volume Size:" << size[0] << " " << size[1] << " " << size[2] << endl;
-    }
-
-  unsigned char * p_msg = (unsigned char*) msg->GetScalarPointer();
-  unsigned char * p_ibuffer = (unsigned char*) ImageBuffer->GetScalarPointer();
-
-  for(int i=0 ; i < size[0] * size[1] * size[2] ; i++ )
-    {
-    *p_msg = (unsigned char) * p_ibuffer;
-    p_ibuffer++; p_msg++;
-    }
-
-  return 1;
+  return vtkTimerLog::GetUniversalTime() - this->GetStartUpTime();
 }
 
-//------------------------------------------------------------
-// Function to generate random matrix.
-void vtkDataSender::vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix)
+/******************************************************************************
+ * bool vtkDataSender::IsIndexAvailable(int index)
+ *
+ *  Checks if given index is available
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  2.February 2009
+ *
+ *  @Return: True, if index is available
+ *           False, if index is used
+ *
+ * ****************************************************************************/
+bool vtkDataSender::IsIndexAvailable(int index)
 {
-  float position[3];
-  float orientation[4];  
-  
- #ifdef USE_TRACKER_DEVICE
- //NDI tracker matrix looks like
-  //  0  0 -1 90
-  //  0  1  0  0
-  //  1  0  0  0
-  //  0  0  0  1  
-  matrix[0][0] =   0.0;  matrix[1][0] =  0.0;  matrix[2][0] =  1.0; matrix[3][0] = 0.0;
-  matrix[0][1] =   0.0;  matrix[1][1] =  1.0;  matrix[2][1] =  0.0; matrix[3][1] = 0.0;
-  matrix[0][2] =  -1.0;  matrix[1][2] =  0.0;  matrix[2][2] =  0.0; matrix[3][2] = 0.0;
-  matrix[0][3] =  90.0;  matrix[1][3] =  0.0;  matrix[2][3] =  0.0; matrix[3][3] = 1.0;
-#else
-  //Tracker simulator matrix looks like
-  // -1  0  0  0
-  //  0  0  1  0
-  //  0  1  0  0
-  //  0  0  0  1
-  matrix[0][0] =  -1.0;  matrix[1][0] =  0.0;  matrix[2][0] =  0.0; matrix[3][0] = 0.0;
-  matrix[0][1] =   0.0;  matrix[1][1] =  0.0;  matrix[2][1] =  1.0; matrix[3][1] = 0.0;
-  matrix[0][2] =   0.0;  matrix[1][2] =  1.0;  matrix[2][2] =  0.0; matrix[3][2] = 0.0;
-  matrix[0][3] =   0.0;  matrix[1][3] =  0.0;  matrix[2][3] =  0.0; matrix[3][3] = 1.0;
-#endif
-
-  if(Verbose)
+  if(this->sendDataBuffer.find(index) == this->sendDataBuffer.end())
     {
-    cout << "OpenIGTLink image message matrix" << endl;
-    igtl::PrintMatrix(matrix); 
+    return true;
     }
-  
+  else
+    {
+    return false;
+    }
 }
