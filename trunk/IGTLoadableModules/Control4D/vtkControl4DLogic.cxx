@@ -124,8 +124,6 @@ int vtkControl4DLogic::CreateFileListFromDir(const char* path,
                                              std::vector<ReaderType::FileNamesContainer>& fileNamesContainerList)
 {
 
-  std::cerr <<  "Searching directory: " << path << std::endl;
-  
   typedef itk::OrientedImage< PixelValueType, 2 > SliceType;
   typedef itk::ImageFileReader< SliceType > SliceReaderType;
   typedef itk::GDCMImageIO ImageIOType;
@@ -160,12 +158,12 @@ int vtkControl4DLogic::CreateFileListFromDir(const char* path,
   int nFiles = gfn->GetNumberOfFileNames();
   if (nFiles > 0)
     {
-    std::cerr << "find non-dicom files" << std::endl;
+    //std::cerr << "find non-dicom files" << std::endl;
     for (int i = 0; i < nFiles; i ++)
       {
       ReaderType::FileNamesContainer container;
       container.clear();
-      std::cerr << "FileName #" << i << " " << gfn->GetNthFileName(i) << std::endl;
+      //std::cerr << "FileName #" << i << " " << gfn->GetNthFileName(i) << std::endl;
       container.push_back(gfn->GetNthFileName(i));
       fileNamesContainerList.push_back(container);
       }
@@ -275,7 +273,9 @@ int vtkControl4DLogic::CreateFileListFromDir(const char* path,
 
 
 //---------------------------------------------------------------------------
-int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, double& rangeUpper)
+vtkMRML4DBundleNode* vtkControl4DLogic::LoadImagesFromDir(const char* path, const char* bundleNodeName,
+                                                          double& rangeLower,
+                                                          double& rangeUpper)
 {
   StatusMessageType statusMessage;
   
@@ -287,7 +287,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
   if (CreateFileListFromDir(path, fileNamesContainerList) <= 0)
     {
     std::cerr << "Couldn't find files" << std::endl;
-    return 0;
+    return NULL;
     }
 
   int nVolumes = fileNamesContainerList.size();
@@ -313,7 +313,8 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
   // prepare 4D bundle
   vtkMRML4DBundleNode* bundleNode = vtkMRML4DBundleNode::New();
   //vtkMRMLLinearTransformNode* bundleNode = vtkMRMLLinearTransformNode::New();
-  bundleNode->SetName("4DBundle");
+  //bundleNode->SetName("4DBundle");
+  bundleNode->SetName(bundleNodeName);
   bundleNode->SetDescription("Created by Control4D");
 
   vtkMatrix4x4* transform = vtkMatrix4x4::New();
@@ -324,7 +325,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
 
   for (int i = 0; i < nVolumes; i ++)
     {
-    std::cerr << "i = " << i << std::endl;
+    //std::cerr << "i = " << i << std::endl;
 
     statusMessage.progress = (double)i / (double)nVolumes;
     this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
@@ -380,11 +381,8 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
     this->FrameNodeVector.push_back(std::string(volumeNode->GetID()));
 
     // Add to 4D bundle
-    std::cerr << "calling volumeNode->SetAndObserveTransformNodeID(bundleNode->GetID());" << std::endl;
-
     volumeNode->SetAndObserveTransformNodeID(bundleNode->GetID());
     volumeNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-    std::cerr << "calling volumeNode->SetAndObserveTransformNodeID() -- end" << std::endl;
     bundleNode->AddFrame(volumeNode->GetID());
 
     volumeNode->Delete();
@@ -398,7 +396,7 @@ int vtkControl4DLogic::LoadImagesFromDir(const char* path, double& rangeLower, d
   statusMessage.show = 0;
   this->InvokeEvent ( vtkControl4DLogic::ProgressDialogEvent, &statusMessage);
   
-  return nVolumes;
+  return bundleNode;
 }
 
 
@@ -460,7 +458,6 @@ vtkMRMLScalarVolumeNode* vtkControl4DLogic::AddDisplayBufferNode(vtkMRML4DBundle
   vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
   
 
-  std::cerr << "SetScene() " << std::endl;
   volumeNode->SetScene(scene);
   //storageNode->SetScene(scene);
   displayNode->SetScene(scene);
@@ -748,7 +745,6 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* bundleID,
     this->CurveCache[bundleID].CurveList[label].SD = vtkDoubleArray::New();
     }
 
-  std::cerr << "Modified time = " << mnode->GetMTime() << std::endl;
   if (this->CurveCache[bundleID].CurveList[label].MaskModifiedTime < mnode->GetMTime())
     {
     // generate the curve
@@ -772,7 +768,7 @@ vtkDoubleArray* vtkControl4DLogic::GetIntensityCurve(const char* bundleID,
         double sdvalue = 0.0;
         meanvalue = GetMeanIntensity(inode->GetImageData(), indexTable);
         sdvalue   = GetSDIntensity(inode->GetImageData(), meanvalue, indexTable);
-        std::cerr << "mean = " << meanvalue << ", sd = " << sdvalue << std::endl;
+        //std::cerr << "mean = " << meanvalue << ", sd = " << sdvalue << std::endl;
         meanArray->InsertNextValue(meanvalue);
         sdArray->InsertNextValue(sdvalue);
         }
@@ -912,8 +908,6 @@ int vtkControl4DLogic::RunRegistration(vtkMRML4DBundleNode* bundleNode,
 
   if (cligui)
     {
-    std::cerr << "Found CommandLineModule !!!" << std::endl;
-    
     cligui->Enter();
     vtkMRMLCommandLineModuleNode* node = 
       static_cast<vtkMRMLCommandLineModuleNode*>(this->GetMRMLScene()->CreateNodeByClass("vtkMRMLCommandLineModuleNode"));
@@ -938,7 +932,7 @@ int vtkControl4DLogic::RunRegistration(vtkMRML4DBundleNode* bundleNode,
     //assert(transformNode);
     char name[128];
     sprintf(name, "BSpline%s", movingNode->GetName());
-    std::cerr << "Transform = " << name << std::endl;
+    //std::cerr << "Transform = " << name << std::endl;
     transformNode->SetName(name);
     transformNode->SetAndObserveTransformNodeID(bundleNode->GetID());
     this->GetMRMLScene()->AddNode(transformNode);

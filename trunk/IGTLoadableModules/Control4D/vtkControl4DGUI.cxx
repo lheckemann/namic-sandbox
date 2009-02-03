@@ -76,6 +76,8 @@ vtkControl4DGUI::vtkControl4DGUI ( )
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkControl4DGUI::DataCallback);
+
+  this->BundleNameCount = 0;
   
   //----------------------------------------------------------------
   // GUI widgets
@@ -672,8 +674,18 @@ void vtkControl4DGUI::ProcessGUIEvents(vtkObject *caller,
       && event == vtkKWPushButton::InvokedEvent)
     {
     const char* path = this->SelectInputDirectoryButton->GetWidget()->GetFileName();
+    const char* bundleName = this->SelectInputDirectoryButton->GetWidget()->GetText();
     this->GetLogic()->AddObserver(vtkControl4DLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
-    int n = this->GetLogic()->LoadImagesFromDir(path, this->RangeLower, this->RangeUpper);
+    vtkMRML4DBundleNode* bnode = this->GetLogic()->LoadImagesFromDir(path, bundleName, this->RangeLower, this->RangeUpper);
+    int n;
+    if (bnode)
+      {
+      n = bnode->GetNumberOfFrames();
+      }
+    else
+      {
+      n = 0;
+      }
     this->RegistrationFixedImageIndexSpinBox->SetRange(0, n);
     this->RegistrationStartIndexSpinBox->SetRange(0, n);
     this->RegistrationEndIndexSpinBox->SetRange(0, n);
@@ -1101,6 +1113,7 @@ void vtkControl4DGUI::BuildGUIForLoadFrame ()
   this->SelectInputDirectoryButton->Create();
   this->SelectInputDirectoryButton->SetWidth(50);
   this->SelectInputDirectoryButton->GetWidget()->SetText ("Browse Input Directory");
+  this->SelectInputDirectoryButton->GetWidget()->TrimPathFromFileNameOn();
   this->SelectInputDirectoryButton->GetWidget()->GetLoadSaveDialog()->ChooseDirectoryOn();
   /*
     this->SelectInputDirectoryButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes(
