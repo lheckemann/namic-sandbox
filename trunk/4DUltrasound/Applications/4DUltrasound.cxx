@@ -1,8 +1,8 @@
-/*========================================================================= 
-Module:  $RCSfile: SynchroGrab.cxx,v $ 
+/*=========================================================================
+Module:  $RCSfile: SynchroGrab.cxx,v $
 Author:  Jonathan Boisvert, Queens School Of Computing
 Author:  Jan Gumprecht, Nobuhiko Hata, Harvard Medical School
- 
+
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
 
@@ -44,47 +44,55 @@ POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 
 //
-// This command line application let you reconstruct 3D ultrasound volume 
+// This command line application let you reconstruct 3D ultrasound volume
 // based on the images collected with a tracked probe.
 //
-// The application first connects to a sonix RP machine during an image 
-// acquisition session.  Then, it also connects to a Certus which is used to 
+// The application first connects to a sonix RP machine during an image
+// acquisition session.  Then, it also connects to a Certus which is used to
 // track the position and orientation of the ultrasound probe.  The tion
 // information (relation between the ultrasound image space and the dynamic reference
 // object tracked by the Certus) have to be specified in a configuration file.
-// Once a predefined number of frames have been recorded, the application 
+// Once a predefined number of frames have been recorded, the application
 // creates the 3D volume and exists.
 //
 
 #include "vtkFileOutputWindow.h"
 #include "vtkDataCollector.h"
+#include "vtkDataProcessor.h"
 #include "vtkDataSender.h"
 #include "vtkImageData.h"
+#include "vtkTimerLog.h"
 
 using namespace std;
 
 void printSplashScreen();
 void printUsage();
-bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collector, vtkDataSender *sender);
+bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collector, vtkDataProcessor* processor, vtkDataSender *sender);
 void goodByeScreen();
 
 /******************************************************************************
- * 
+ *
  * MAIN
- * 
+ *
  ******************************************************************************/
 int main(int argc, char **argv)
 {
-  int terminate = 0; 
-  
+  int terminate = 0;
+
   vtkDataCollector *collector = vtkDataCollector::New();
+  vtkDataProcessor *processor = vtkDataProcessor::New();
   vtkDataSender *sender = vtkDataSender::New();
 
+  double startTime = vtkTimerLog::GetUniversalTime();
+  collector->SetStartUpTime(startTime);
+  processor->SetStartUpTime(startTime);
+  sender->SetStartUpTime(startTime);
+
   printSplashScreen();
-  
+
   //Read command line arguments
-  bool successParsingCommandLine = parseCommandLineArguments(argc,argv, collector, sender);
-  if(!successParsingCommandLine)        
+  bool successParsingCommandLine = parseCommandLineArguments(argc, argv, collector, processor, sender);
+  if(!successParsingCommandLine)
     {
     cerr << "ERROR: Could parse commandline arguments" << endl << endl;
     goodByeScreen();
@@ -92,26 +100,26 @@ int main(int argc, char **argv)
   else
     {
     cout << "--- Started ---" << endl << endl;
-  
+
     //redirect vtk errors to a file
     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
-  
+
     //Configure collector
     if(collector->Initialize() != 0)
       {
         cerr << "ERROR: Could not initialize DataCollector" <<endl;
-        printUsage(); 
+        printUsage();
         goodByeScreen();
-      } 
-    else 
+      }
+    else
       {
       // Connect to OpenIGTLink Server
       if(sender->ConnectToServer() != 0)
         {
         terminate += 1;
-        }     
+        }
 
       //Start Send Thread
       if(terminate == 0)
@@ -121,28 +129,43 @@ int main(int argc, char **argv)
           terminate += 2;
           }
         }
-        
-      //Colleced video frames and tracking matrices and forward them to the sender
+
+      //Start Send Thread
       if(terminate == 0)
         {
-        if(collector->StartCollecting(sender) != 0)
+        if(processor->StartProcessing(sender) != 0)
           {
           terminate += 4;
           }
         }
 
-          //Wait for user input to terminate 4D-Ultrasound        
+      //Colleced video frames and tracking matrices and forward them to the sender
+      if(terminate == 0)
+        {
+        if(collector->StartCollecting(processor) != 0)
+          {
+          terminate += 8;
+          }
+        }
+
+      //Wait for user input to terminate 4D-Ultrasound
       goodByeScreen();
 
       //Stop Collecting
       collector->StopCollecting();
+      collector->Delete();
+
+      //Stop Processing
+      processor->StopProcessing();
+      processor->Delete();
 
       //Stop Sending
       sender->StopSending();
-  
+      sender->Delete();
+
       //Close Sever Connection
       sender->CloseServerConnection();
-              
+
       cout << endl;
       if(terminate == 0)
         {
@@ -155,10 +178,6 @@ int main(int argc, char **argv)
         }
       }
     }
-  //Free Memory  
-  collector->Delete();
-  sender->Delete();
-
 }//End Main
 
 //------------------------------------------------------------------------------
@@ -181,7 +200,7 @@ void printSplashScreen()
 
 //------------------------------------------------------------------------------
 void printUsage()
-{   
+{
     cout << endl
          << "--------------------------------------------------------------------------------"
          << endl;
@@ -200,7 +219,8 @@ void printUsage()
     cout << "OPTIONS " << endl
          << "-------"<<endl
          << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl
-         << "                                        (MANDATORY)"<<endl 
+         << "                                        (MANDATORY)"<<endl
+         << "--reconstruct-volume or -rv:            Enable volume reconstruction" << endl
          << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<<endl
          << "                                        (default: 'localhost')" << endl
          << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<<endl
@@ -213,7 +233,7 @@ void printUsage()
          << "                                        (default: 10)" << endl
          << "--video-source xxx or -vs xxx:          Set video source "<<endl
          << "                                        (default: '/dev/video0')" << endl
-         << "--video-source-channel xxx or -vsc xxx: Set video source channel"<<endl 
+         << "--video-source-channel xxx or -vsc xxx: Set video source channel"<<endl
          << "                                        (default: 3)" << endl
          << "--video-mode xxx or -vm xxx:            Set video mode; "<<endl
          << "                                        Options: NTSC, PAL "<<endl
@@ -221,17 +241,17 @@ void printUsage()
          << "--scan-depth xxx or -sd xxx:            Set depth of ultrasound "<<endl
          << "                                        scan in Millimeter"<<endl
          << "                                        (default: 70mm)" <<endl
-         << "--verbose or -v                         Print more information" <<endl
+         << "--verbose or -v:                        Print more information" <<endl
          << endl
          << "--------------------------------------------------------------------------------"
-         << endl  << endl; 
+         << endl  << endl;
 }
 
 //------------------------------------------------------------------------------
 //
 // Parse the command line options.
 //
-bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collector, vtkDataSender *sender)
+bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collector, vtkDataProcessor *processor, vtkDataSender *sender)
 {
     // needs to be supplied
     bool calibrationFileSpecified = false;
@@ -244,10 +264,15 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
           {
           if( i < argc - 1)
             {
-            collector->SetCalibrationFileName(argv[i]);
-            processor->SetCalibrationFileName(argv[++i]);
+            collector->SetCalibrationFileName(argv[++i]);
+            processor->SetCalibrationFileName(argv[i]);
             calibrationFileSpecified = true;
             }
+          }
+        //Enable volume reconstruction
+        else if(currentArg == "--volume-reconstruction" || currentArg == "-vr")
+          {
+          processor->EnableVolumeReconstruction(true);
           }
         //OpenIGTLink Server
         else if(currentArg == "--oigtl-server" || currentArg == "-os")
@@ -263,11 +288,11 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
             }
           }
         //Number of frames to grab
-        else if(currentArg == "--nb-frames" || currentArg == "-n") 
+        else if(currentArg == "--nb-frames" || currentArg == "-n")
           {
           if( i < argc - 1)
             {
-              int nbFrames = atoi(argv[++i]);                               
+              int nbFrames = atoi(argv[++i]);
             if(nbFrames <= 0)
               {
               cout << "ERROR: Number of frames must be greater than 0 and not: " << nbFrames << endl;
@@ -276,22 +301,23 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
             }
           }
         // Framerate of Ultrasound device
-        else if(currentArg == "--frames-per-second" || currentArg == "-fps") 
+        else if(currentArg == "--frames-per-second" || currentArg == "-fps")
           {
           if( i < argc - 1)
             {
               double fps = atof(argv[++i]);
-                               
+
             if(fps <= 0)
               {
               cout << "ERROR: Framerate must be greater than 0 and not: " << fps << endl;
               return false;
               }
             collector->SetFrameRate(fps);
-            sender->SetSendRate(fps * 1.5);
+            processor->SetProcessPeriod(1/(fps * 1.5));
+            sender   ->SetSendPeriod(1/(fps * 1.5));
             }
           }
-        //Video Source 
+        //Video Source
         else if(currentArg == "--video-source" || currentArg == "-vs")
            {
            collector->SetVideoDevice(argv[++i]);
@@ -305,14 +331,14 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
         else if(currentArg == "--video-mode" || currentArg == "-vm")
            {
            string videoMode (argv[++i]);
-  
+
            if(videoMode == "NTSC")
              {
-             collector->SetVideoMode(1);            
+             collector->SetVideoMode(1);
              }
            else if(videoMode == "PAL")
              {
-             collector->SetVideoMode(2);            
+             collector->SetVideoMode(2);
              }
            else
              {
@@ -326,7 +352,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
           if( i < argc - 1)
             {
               double scanDepth  = atof(argv[++i]);
-                               
+
             if(scanDepth <= 0)
               {
               cout << "ERROR: Scan Depth must be greater than 0 and not: " << scanDepth << endl;
@@ -341,9 +367,9 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
           sender->SetVerbose(true);
           processor->SetVerbose(true);
           }
-        else 
-           {           
-           cout << "ERROR: Unrecognized command: '" << argv[i] <<"'" << endl;         
+        else
+           {
+           cout << "ERROR: Unrecognized command: '" << argv[i] <<"'" << endl;
            return false;
            }
       }
@@ -353,7 +379,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
 //------------------------------------------------------------------------------
 void goodByeScreen()
 {
- 
+
  cout << endl;
  cout << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<<endl;
 

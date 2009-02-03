@@ -3,6 +3,7 @@ INCLUDE_DIRECTORIES(${ULTERIUS_INCLUDE_DIR})
 ADD_EXECUTABLE(4DUltrasound
   4DUltrasound.cxx 
   vtkDataCollector.cxx 
+  vtkDataProcessor.cxx
   vtkDataSender.cxx 
   )
 

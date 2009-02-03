@@ -54,7 +54,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef VTKDATAPROCESSOR_H_
 #define VTKDATAPROCESSOR_H_
 
-#define DEBUGPROCESSOR
+//#define DEBUGPROCESSOR
+#undef DEBUGPROCESSOR
 
 #include "SynchroGrabConfigure.h"
 

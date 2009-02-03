@@ -317,15 +317,19 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
           cout << "INFO: Volume Reconstruction DONE" << " | " << self->GetUpTime()<< endl;
           #endif
           lastDataSenderIndex = self->ForwardData();
-          if(lastDataSenderIndex != -1)
-            {
-            #ifdef  DEBUGPROCESSOR
-            cout << "INFO: Volume forwarding DONE" << " | " << self->GetUpTime()<< endl;
-            #endif
-            self->DeleteData(currentIndex);
-            }
+          #ifdef  DEBUGPROCESSOR
+          cout << "INFO: Volume forwarding DONE" << " | " << self->GetUpTime()<< endl;
+          #endif
+          }
+        else
+          {
+          #ifdef  DEBUGPROCESSOR
+          cout << "WARNING: Volume Reconstruction failed" << " | " << self->GetUpTime()<< endl;
+          #endif
+          lastDataSenderIndex = -1;
           }
         }
+      self->DeleteData(currentIndex);
       }
 
       dataAvailable = !self->IsNewDataBufferEmpty();
@@ -530,6 +534,11 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
   double xmin = this->clipRectangle[0], ymin = this->clipRectangle[1],
          xmax = this->clipRectangle[2], ymax = this->clipRectangle[3];
 
+  #ifdef  DEBUGPROCESSOR
+  cerr << "INFO: Check and update a volume with matrix: " <<endl;
+  this->newTrackerMatrixMap[index]->Print(cout);
+  #endif
+
   double imCorners[4][4]= {
     { xmin, ymin, 0, 1},
     { xmin, ymax, 0, 1},
@@ -557,6 +566,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     }
 
   vtkFloatingPointType newOrigin[3] = {minX, minY, minZ};
+  vtkFloatingPointType newOriginBackup[3] = {minX, minY, minZ};
 
   double spacing[3] = {1,1,1};
   int newExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ),
@@ -584,12 +594,14 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
       }
 
     //Update extent
-    this->reconstructor->GetOutputExtent(newExtent);
+    this->reconstructor->GetOutputExtent(oldExtent);
     if(originChanged)
       {
       for(int i = 0; i < 3; ++i)
         {
-        newExtent[2 * i + 1] = max(((int)(oldOrigin[i] + 0.5)) + oldExtent[2 * i + 1], ((int) (newOrigin[i] + 0.5)) + newExtent[2 * i + 1]);
+        newExtent[2 * i + 1] =   max(((int)(oldOrigin[i] + 0.5)) + oldExtent[2 * i + 1],
+                                     ((int) (newOriginBackup[i] + 0.5)) + newExtent[2 * i + 1])
+                               - min((int) (oldOrigin[i] + 0.5), (int) (newOriginBackup[i] + 0.5));
         }
       }
     else
@@ -630,26 +642,38 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     this->reconstructor->GetOutput()->SetNumberOfScalarComponents(this->newFrameMap[index]->GetNumberOfScalarComponents());
     this->reconstructor->GetOutput()->AllocateScalars();
 
-    if(false)//originChanged || extentChanged)
+    if(originChanged || extentChanged)
       {
       #ifdef  DEBUGPROCESSOR
-      cout << "INFO: Expand volume" << " | " << this-> GetUpTime() << endl;
+      cout << "INFO: Expand volume | DataSenderIndex: "<< dataSenderIndex << " | " << this-> GetUpTime() << endl;
       #endif
 
+      #ifdef  DEBUGPROCESSOR
+
+      cout << "INFO: Old Volume: Origin: "<< oldOrigin[0]<<"| "<< oldOrigin[1]<<"| "<<  oldOrigin[2]<< endl
+           << "                  Extent:  "<< oldExtent[0]<<"-"<<oldExtent[1] <<" | "<< oldExtent[2]<<"-"<< oldExtent[3]
+                                           <<" | "<< oldExtent[4]<<"-"<< oldExtent[5]<<" "<<endl
+           << "      New Volume: Origin: "<< newOrigin[0]<<"| "<<newOrigin[1] <<"| "<< newOrigin[2]<<"" << endl
+           << "                  Extent:  "<< newExtent[0]<<"-"<<newExtent[1] <<" | "<< newExtent[2]<<"-"<< newExtent[3]
+                                           <<" | "<< newExtent[4]<<"-"<< newExtent[5]<<" "<<endl;
+
+      #endif
+      vtkImageData * oldVolume = this->DataSender->GetVolume(dataSenderIndex);
+
       //Copy Old Volume at correct position into new volume
-      if(this->MergeVolumes(reconstructor->GetOutput(),
-                           newOrigin,
-                           newExtent,
-                           this->DataSender->GetVolume(dataSenderIndex),
-                           oldOrigin,
-                           oldExtent)
-          == -1)
+      if(oldVolume != NULL
+         && this->MergeVolumes(reconstructor->GetOutput(),newOrigin,newExtent,
+                                                 oldVolume, oldOrigin,oldExtent)
+            == -1)
         {
         #ifdef  DEBUGPROCESSOR
         cerr << "ERROR: Could not expand volume" << " | " << this-> GetUpTime() << endl;
         #endif
         return -1;
         }
+
+      this->DataSender->UnlockData(dataSenderIndex, DATAPROCESSOR);
+      this->DataSender->TryToDeleteData(dataSenderIndex);
       }
     }
 
@@ -675,6 +699,14 @@ int vtkDataProcessor::ReconstructVolume(int index)
     {
     #ifdef  DEBUGPROCESSOR
     cerr << "ERROR: Try to reconstruct a volume without reconstruction enabled" <<endl;
+    #endif
+    return -1;
+    }
+
+  if(this->IsIndexAvailable(index))
+    {
+    #ifdef  DEBUGPROCESSOR
+    cerr << "ERROR: Try to reconstruct volume with empty index: " << index <<endl;
     #endif
     return -1;
     }
@@ -710,7 +742,7 @@ int vtkDataProcessor::ReconstructVolume(int index)
   #endif
   this->reconstructor->FillHolesInOutput();
   #ifdef  DEBUGPROCESSOR
-  cout << "INFO: FillHolesInOutput took: " << this->GetUpTime() - reconstructionTime <<endl;
+  cout << "      FillHolesInOutput took: " << this->GetUpTime() - reconstructionTime <<endl;
   #endif
 
   return 0;
@@ -770,6 +802,7 @@ int vtkDataProcessor::ForwardData()
 
   #ifdef DEBUGPROCESSOR
   double copyTime = this->GetUpTime();
+  int counter = 0;
   #endif
 
   for(int i = 0 ; i < dimensions[2] ; ++i)
@@ -781,6 +814,9 @@ int vtkDataProcessor::ForwardData()
         *pVolumeToForward = *pReconstructedVolume;
         pVolumeToForward++;
         pReconstructedVolume++;
+        #ifdef DEBUGPROCESSOR
+        counter++;
+        #endif
         }
       }
     }
@@ -796,7 +832,8 @@ int vtkDataProcessor::ForwardData()
     {
     #ifdef DEBUGPROCESSOR
     cout << "INFO: Volume forwarded to data sender "
-         << "(Copytime: " << this->GetUpTime() -  copyTime << ")"
+         << " |Copytime: " << this->GetUpTime() -  copyTime << " | Pixels: "<< counter
+         << " |Data Sender Index: " << retval
          << " | " << this-> GetUpTime()<< endl;
     #endif
     }
@@ -826,7 +863,7 @@ int vtkDataProcessor::ForwardData()
  * ****************************************************************************/
 int vtkDataProcessor::AddFrameToFrameMap(int index, vtkImageData* frame)
 {
-  if(!this->IsIndexAvailable(index))
+  if(this->newFrameMap.find(index) != this->newFrameMap.end())
     {
     #ifdef DEBUGPROCESSOR
     cerr << "ERROR: new image map already has an image for index: " << index << endl;
@@ -854,7 +891,7 @@ int vtkDataProcessor::AddFrameToFrameMap(int index, vtkImageData* frame)
  * ****************************************************************************/
 int vtkDataProcessor::AddMatrixToMatrixMap(int index, vtkMatrix4x4* matrix)
 {
-  if(!this->IsIndexAvailable(index))
+  if(this->newTrackerMatrixMap.find(index) != this->newTrackerMatrixMap.end())
     {
     #ifdef DEBUGPROCESSOR
     cerr << "ERROR: new tracker matrix map already has a matrix for index: " << index << endl;
@@ -1053,23 +1090,23 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
   int xEnd   = ((int) originOldVolume[0]) + extentOldVolume[1];
   int yStart =  (int) originOldVolume[1];
   int yEnd   = ((int) originOldVolume[1]) + extentOldVolume[3];
-  int zStart =  (int) originOldVolume[3];
-  int zEnd   = ((int) originOldVolume[0]) + extentOldVolume[5];
+  int zStart =  (int) originOldVolume[2];
+  int zEnd   = ((int) originOldVolume[2]) + extentOldVolume[5];
 
   //Get Data pointer
   unsigned char* pDataNewVolume = (unsigned char *) newVolume->GetScalarPointer();
   unsigned char* pDataOldVolume = (unsigned char *) oldVolume->GetScalarPointer();
 
   //Copy old volume into new volume
-  for(int z = (int) originOldVolume[2]; z < zEnd; ++z)
+  for(int z = (int) originNewVolume[2]; z <= zEnd; ++z)
     {
-    for(int y = (int) originOldVolume[1]; y < originOldVolume[1] + extentNewVolume[3]; ++y)
+    for(int y = (int) originNewVolume[1]; y <= originNewVolume[1] + extentNewVolume[3]; ++y)
       {
-      for(int x = (int)originOldVolume[0]; x < originOldVolume[0] + extentNewVolume[1]; ++x)
+      for(int x = (int)originNewVolume[0]; x <= originNewVolume[0] + extentNewVolume[1]; ++x)
         {
         if(   (x >= xStart && x <= xEnd)
-           || (y - originOldVolume[1] >= yStart && y - originOldVolume[1] <= zEnd)
-           || (z - originOldVolume[2] >= zStart && z - originOldVolume[2] <= zEnd))
+           && (y >= yStart && y <= yEnd)
+           && (z >= zStart && z <= zEnd))
           {
           *pDataNewVolume = *pDataOldVolume;
           ++pDataOldVolume;
@@ -1109,18 +1146,10 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
  * ****************************************************************************/
 int vtkDataProcessor::DeleteData(int index)
 {
-  if(this->newFrameMap[index] == NULL)
+  if(this->IsIndexAvailable(index))
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: Cannot delete data: new image map has no image for index: " << index << endl;
-    #endif
-    return -1;
-    }
-
-  if(this->newTrackerMatrixMap[index] == NULL)
-    {
-    #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: Cannot delete data: new tracker matrix map has no matrix for index: " << index << endl;
+    cerr << "ERROR: Cannot delete data; Index (" << index << ") empty "<< endl;
     #endif
     return -1;
     }

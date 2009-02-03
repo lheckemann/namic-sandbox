@@ -49,9 +49,10 @@ POSSIBILITY OF SUCH DAMAGE.
 //#define REMOVE_ALPHA_CHANNEL
 //#define DEBUG_IMAGES //Write tagger output to HDD
 //#define DEBUG_MATRICES //Prints tagger matrices to stdout
- 
+
 //#include <windows.h>
 
+#include "vtkDataCollector.h"
 #include "vtkDataSetWriter.h"
 #include "vtkImageCast.h"
 #include "vtkImageExtractComponents.h"
@@ -63,7 +64,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkMutexLock.h"
 
 #include "vtkObjectFactory.h"
-#include "vtkDataCollector.h"
 
 #include "vtkTaggedImageFilter.h"
 #include "vtkTransform.h"
@@ -73,7 +73,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 
-#include "vtkDataSender.h"
+#include "vtkDataProcessor.h"
 
 #ifdef USE_TRACKER_DEVICE
 #include "vtkNDITracker.h"
@@ -102,7 +102,7 @@ vtkDataCollector::vtkDataCollector()
 {
   this->FrameRate = 30;
   this->ScanDepth = 70; //Unit: mm
-  
+
   this->FrameBufferSize = 100;
 
   this->CalibrationFileName = NULL;
@@ -117,13 +117,13 @@ vtkDataCollector::vtkDataCollector()
   this->calibReader = vtkUltrasoundCalibFileReader::New();
 
   this->Verbose = false;
-  
+
 #ifdef USE_ULTRASOUND_DEVICE
   this->VideoSource = vtkV4L2VideoSource::New();
 #else
   this->VideoSource = vtkVideoSourceSimulator::New();
-#endif //USE_ULTRASOUND_DEVICE 
-  
+#endif //USE_ULTRASOUND_DEVICE
+
   this->Tagger = vtkTaggedImageFilter::New();
 
 #ifdef USE_TRACKER_DEVICE
@@ -132,13 +132,15 @@ vtkDataCollector::vtkDataCollector()
   this->tracker = vtkTrackerSimulator::New();
 #endif //USE_TRACKER_DEVICE
 
-  this->DataSender = NULL;
-  
+  this->DataProcessor = NULL;
+
   this->PlayerThreader = vtkMultiThreader::New();;
   this->PlayerThreadId = -1;
-  
+
   this->Collecting = false;
   this->Initialized = false;
+
+  this->StartUpTime = vtkTimerLog::GetUniversalTime();
 
 }
 
@@ -165,7 +167,7 @@ int vtkDataCollector::Initialize()
   if(this->Initialized)
     {
     return true;
-    }   
+    }
 
   this->calibReader->SetFileName(this->CalibrationFileName);
   this->calibReader->ReadCalibFile();
@@ -176,26 +178,26 @@ int vtkDataCollector::Initialize()
   this->VideoSource->SetVideoMode(this->GetVideoMode());
 #endif
 
-  // set up the video source (ultrasound machine)  
-  this->VideoSource->SetFrameRate(this->FrameRate);  
+  // set up the video source (ultrasound machine)
+  this->VideoSource->SetFrameRate(this->FrameRate);
   this->VideoSource->SetFrameBufferSize(this->FrameBufferSize);
-  
+
   double *imageOrigin = this->calibReader->GetImageOrigin();
   this->VideoSource->SetDataOrigin(imageOrigin);
   double *imageSpacing = this->calibReader->GetImageSpacing();
   this->VideoSource->SetDataSpacing(imageSpacing);
-  
+
   int *imSize = this->calibReader->GetImageSize();
   this->VideoSource->SetFrameSize(imSize[0], imSize[1], 1);
   //
   // Setting up the synchronization filter
   this->Tagger->SetVideoSource(VideoSource);
-  
+
   // set up the tracker if necessary
-  int error = this->StartTracker();    
-  
+  int error = this->StartTracker();
+
   this->Tagger->Initialize();
-  
+
   this->Initialized = true;
 
   return error;
@@ -212,7 +214,7 @@ int vtkDataCollector::StartTracker()
 
   // make sure the tracking buffer is large enough for the number of the image sequence requested
   vtkTrackerTool *tool = this->tracker->GetTool(0);
-  tool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) ); 
+  tool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) );
   this->tracker->StartTracking();
   this->Tagger->SetTrackerTool(tool);
   this->Tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
@@ -221,13 +223,13 @@ int vtkDataCollector::StartTracker()
 }
 
 /******************************************************************************
- *  static inline void vtkSleep(double duration) 
+ *  static inline void vtkSleep(double duration)
  *
  *  Platform-independent sleep function
  *  Set the current thread to sleep for a certain amount of time
- * 
- *  @Param: double duration - Time to sleep in ms 
- * 
+ *
+ *  @Param: double duration - Time to sleep in ms
+ *
  * ****************************************************************************/
 static inline void vtkSleep(double duration)
 {
@@ -243,21 +245,20 @@ static inline void vtkSleep(double duration)
 #endif
 }
 
-
 /******************************************************************************
- *  static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time) 
+ *  static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
  *
  *  Sleep until the specified absolute time has arrived.
- *  You must pass a handle to the current thread.  
- *  If '0' is returned, then the thread was aborted before or during the wait. * 
- *  
+ *  You must pass a handle to the current thread.
+ *  If '0' is returned, then the thread was aborted before or during the wait. *
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  22.December 2008
- * 
+ *
  *  @Param: vtkMultiThreader::ThreadInfo *data
- * 
+ *
  *  @Param: double time - Time until which to sleep
- * 
+ *
  * ****************************************************************************/
 static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 {
@@ -281,7 +282,7 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
         remaining = 0.1;
         }
 
-      // check to see if we are being told to quit 
+      // check to see if we are being told to quit
       data->ActiveFlagLock->Lock();
       int activeFlag = *(data->ActiveFlag);
       data->ActiveFlagLock->Unlock();
@@ -298,24 +299,24 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 }
 
 /******************************************************************************
- *  static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data) 
+ *  static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
  *
- *  This function runs in an alternate thread to asyncronously collect data 
- *  
+ *  This function runs in an alternate thread to asyncronously collect data
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  19.Januar 2009
- * 
+ *
  *  @Param: vtkMultiThreader::ThreadInfo *data
- * 
+ *
  * ****************************************************************************/
 static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
 {
   vtkDataCollector *self = (vtkDataCollector *)(data->UserData);
-  
+
   double startTime = vtkTimerLog::GetUniversalTime();
   double rate = self->GetFrameRate();
   int frame = 0;
-  
+
   vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
 
 #ifdef DEBUG_IMAGES
@@ -327,48 +328,49 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
     {
     //JG 09/01/21
     //cerr << "New frame to process" <<endl;
-        
+
     //Grab new frame
     self->GetVideoSource()->Grab();
-//    self->GetVideoSource()->Seek(1);  
-      
+//    self->GetVideoSource()->Seek(1);
+
     //Get Tracking Matrix for new frame
     self->GetTagger()->Update();
     self->GetTagger()->GetTransform()->GetMatrix(trackerMatrix);
-    
+
 #ifdef DEBUG_MATRICES
     cout << "Tracker matrix:" << endl;
     trackerMatrix->Print(cout);
 #endif
-    
+
 #ifdef DEBUG_IMAGES
-    writer->SetInput(self->GetTagger()->GetOutput());  
+    writer->SetInput(self->GetTagger()->GetOutput());
     sprintf(filename,"./Output/output%03d.bmp",frame);
     writer->SetFileName(filename);
     writer->Update();
 #endif
 
 #ifdef USE_TRACKER_DEVICE
-    self->AdjustMatrix(*trackerMatrix);   // Adjust tracker matrix to ultrasound scan depth
+    self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
 #endif
-      
+
     //Send frame + matrix
-    self->GetDataSender()->NewData(self->GetTagger()->GetOutput(), trackerMatrix);
-    Auf Processor aendern
+    if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
+      {
+      cerr << "WARNING: Data Collector can not forward data to Data Processor" << endl;
+      }
 
     frame++;
-    } 
+    }
   while(vtkThreadSleep(data, startTime + frame/rate));
-  
+
   trackerMatrix->Delete();
 
   return NULL;
 }
 
 //----------------------------------------------------------------------------
-bool vtkDataCollector::StartCollecting(vtkDataSender * sender)
+bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
 {
-  
   if (!this->Initialized)
     {
     if(!this->Initialize())
@@ -377,7 +379,7 @@ bool vtkDataCollector::StartCollecting(vtkDataSender * sender)
         return false;
       }
     }
-    
+
   if (!this->Collecting)
     {
     this->Collecting = true;
@@ -387,17 +389,17 @@ bool vtkDataCollector::StartCollecting(vtkDataSender * sender)
     cerr << "ERROR: Data collector already collects data";
     return false;
     }
-  
-  if(sender != NULL)
+
+  if(processor != NULL)
     {
-    this->DataSender = sender;
+    this->DataProcessor = processor;
     }
   else
     {
-    cerr << "ERROR: No data sender provided. Data collection not possible" << endl;
+    cerr << "ERROR: No data processor provided. Data collection not possible" << endl;
     return false;
     }
-        
+
   cout << "Hardware Initialization: " << std::flush;
   cout << '\a' << std::flush;
   for(int i = 0; i < 11; i++)
@@ -414,13 +416,13 @@ bool vtkDataCollector::StartCollecting(vtkDataSender * sender)
   cout << "Start Recording" << endl;
   cout << '\a' << std::flush;
   vtkSleep(0.2);
-  cout << '\a' << std::flush; 
+  cout << '\a' << std::flush;
 
   //Start Thread
-  this->PlayerThreadId =  
+  this->PlayerThreadId =
             this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
             &vtkDataCollectorThread, this);
-  
+
   if(this->PlayerThreadId != -1)
     {
     if(Verbose)
@@ -439,28 +441,42 @@ bool vtkDataCollector::StartCollecting(vtkDataSender * sender)
 bool vtkDataCollector::StopCollecting()
 {
   if (this->Collecting)
-    {    
+    {
     this->PlayerThreader->TerminateThread(this->PlayerThreadId);
     this->PlayerThreadId = -1;
     this->Collecting = false;
-    
+
     if(Verbose)
       {
       cout << "Stop collecting" << endl;
       }
     }
-  
+
   return true;
 }
 
 //-------------------------------------------------------------------
 //Adjust tracker matrix to ultrasound scan depth
 void vtkDataCollector::AdjustMatrix(vtkMatrix4x4& matrix)
-{  
+{
   double scaleFactor = (this->VideoSource->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
-  
+
   matrix.Element[0][3] = matrix.Element[0][3] * scaleFactor;//x
   matrix.Element[1][3] = matrix.Element[1][3] * scaleFactor;//y
   matrix.Element[2][3] = matrix.Element[2][3] * scaleFactor;//z
 
+}
+
+/******************************************************************************
+ * double vtkDataCollector::GetUpTime()
+ *
+ *  Returns elapsed Time since program start
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  2.February 2009
+ *
+ * ****************************************************************************/
+double vtkDataCollector::GetUpTime()
+{
+  return vtkTimerLog::GetUniversalTime() - this->GetStartUpTime();
 }
