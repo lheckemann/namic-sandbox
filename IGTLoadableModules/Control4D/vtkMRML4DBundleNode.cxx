@@ -327,8 +327,6 @@ vtkMRMLNode* vtkMRML4DBundleNode::GetFrameNode(int i)
     vtkMRMLNode::SafeDownCast(this->GetScene()
                               ->GetNodeByID(this->FrameNodeIDList[i].c_str()));
 
-  std::cerr << "GetFrameNode(int i) = " << node << std::endl;
-
   return node;
 
 }
@@ -348,7 +346,6 @@ vtkMRMLNode* vtkMRML4DBundleNode::GetDisplayBufferNode(int bufferIndex)
     vtkMRMLNode::SafeDownCast(this->GetScene()
                               ->GetNodeByID(this->DisplayBufferNodeIDList[bufferIndex].c_str()));
 
-  std::cerr << "GetDisplayBufferNode(int bufferIndex) = " << node << std::endl;
   return node;
 }
   

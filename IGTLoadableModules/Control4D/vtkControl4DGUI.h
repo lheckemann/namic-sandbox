@@ -217,6 +217,8 @@ class VTK_Control4D_EXPORT vtkControl4DGUI : public vtkSlicerModuleGUI
   NodeIDListType MaskNodeIDList;
   NodeIDListType BundleNodeIDList;
 
+  int BundleNameCount; // used to name 4D bundle
+
 };
 
 
