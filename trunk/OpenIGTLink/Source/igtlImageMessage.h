@@ -157,7 +157,7 @@ protected:
   unsigned char*  m_ImageHeader;
   unsigned char*  m_Image;
 
-  int ScalarSizeTable[8];
+  int ScalarSizeTable[12];
 };
 
 

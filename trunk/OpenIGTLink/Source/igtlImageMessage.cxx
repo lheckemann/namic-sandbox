@@ -51,12 +51,16 @@ ImageMessage::ImageMessage():
 
   ScalarSizeTable[0] = 0;
   ScalarSizeTable[1] = 0;
-  ScalarSizeTable[2] = 1;
-  ScalarSizeTable[3] = 1;
-  ScalarSizeTable[4] = 2;
-  ScalarSizeTable[5] = 2;
-  ScalarSizeTable[6] = 4;
-  ScalarSizeTable[7] = 4;
+  ScalarSizeTable[2] = sizeof(igtlInt8);    // TYPE_INT8
+  ScalarSizeTable[3] = sizeof(igtlUint8);   // TYPE_UINT8
+  ScalarSizeTable[4] = sizeof(igtlInt16);   // TYPE_INT16 
+  ScalarSizeTable[5] = sizeof(igtlUint16);  // TYPE_UINT16
+  ScalarSizeTable[6] = sizeof(igtlInt32);   // TYPE_INT32
+  ScalarSizeTable[7] = sizeof(igtlUint32);  // TYPE_UINT32
+  ScalarSizeTable[8] = 0;                   // not defined
+  ScalarSizeTable[9] = 0;                   // not defined
+  ScalarSizeTable[10]= sizeof(igtlFloat32); // TYPE_FLOAT32
+  ScalarSizeTable[11]= sizeof(igtlFloat64); // TYPE_FLOAT64
 }
 
 ImageMessage::~ImageMessage()
