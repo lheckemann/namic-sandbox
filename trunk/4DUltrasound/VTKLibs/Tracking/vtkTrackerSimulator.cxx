@@ -93,18 +93,18 @@ vtkTrackerSimulator::vtkTrackerSimulator()
 //    this->PortHandle[i] = 0;
     this->PortEnabled[i] = 0;
     }
-  
+
 #ifdef NEW_TRACKER_SIMULATOR
- 
+
   this->PlayerThreader = vtkMultiThreader::New();
   this->PlayerThreadId = -1;
- 
+
 #endif
-  
+
 }
 
 //----------------------------------------------------------------------------
-vtkTrackerSimulator::~vtkTrackerSimulator() 
+vtkTrackerSimulator::~vtkTrackerSimulator()
 {
   if (this->Tracking)
     {
@@ -115,11 +115,11 @@ vtkTrackerSimulator::~vtkTrackerSimulator()
     {
     delete [] this->Version;
     }
-#ifdef NEW_TRACKER_SIMULATOR    
+#ifdef NEW_TRACKER_SIMULATOR
   this->PlayerThreader->Delete();
 #endif
 }
-  
+
 //----------------------------------------------------------------------------
 void vtkTrackerSimulator::PrintSelf(ostream& os, vtkIndent indent)
 {
@@ -130,7 +130,7 @@ void vtkTrackerSimulator::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "NumberOfRigidBodies: " << this->NumberOfRigidBodies << "\n";
 //  os << indent << "NumberOfMarkers: " << this->NumberOfMarkers << "\n";
 }
-  
+
 //----------------------------------------------------------------------------
 static char vtkCertusErrorString[MAX_ERROR_STRING_LENGTH + 1];
 
@@ -150,13 +150,13 @@ int vtkTrackerSimulator::Probe()
 }
 
 /******************************************************************************
- *  static inline void vtkSleep(double duration) 
+ *  static inline void vtkSleep(double duration)
  *
  *  Platform-independent sleep function
  *  Set the current thread to sleep for a certain amount of time
- * 
- *  @Param: double duration - Time to sleep in ms 
- * 
+ *
+ *  @Param: double duration - Time to sleep in ms
+ *
  * ****************************************************************************/
 static inline void vtkSleep(double duration)
 {
@@ -174,7 +174,7 @@ static inline void vtkSleep(double duration)
 
 //----------------------------------------------------------------------------
 // Sleep until the specified absolute time has arrived.
-// You must pass a handle to the current thread.  
+// You must pass a handle to the current thread.
 // If '0' is returned, then the thread was aborted before or during the wait.
 static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 {
@@ -198,10 +198,10 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
         remaining = 0.1;
         }
 
-      // check to see if we are being told to quit 
+      // check to see if we are being told to quit
       data->ActiveFlagLock->Lock();
       int activeFlag = *(data->ActiveFlag);
-      data->ActiveFlagLock->Unlock();     
+      data->ActiveFlagLock->Unlock();
 
       if (activeFlag == 0)
         {
@@ -219,7 +219,7 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 static void *vtkTrackerSimulatorRecordThread(vtkMultiThreader::ThreadInfo *data)
 {
   vtkTrackerSimulator *self = (vtkTrackerSimulator *)(data->UserData);
-  
+
   double startTime = vtkTimerLog::GetUniversalTime();
   double matrix = 1;
 
@@ -227,7 +227,7 @@ static void *vtkTrackerSimulatorRecordThread(vtkMultiThreader::ThreadInfo *data)
     {
       self->InternalUpdate();
       matrix++;
-    }    
+    }
   while (vtkThreadSleep(data, startTime + matrix/MATRICES_PER_SECOND));
 
   return NULL;
@@ -236,9 +236,9 @@ static void *vtkTrackerSimulatorRecordThread(vtkMultiThreader::ThreadInfo *data)
 //----------------------------------------------------------------------------
 void vtkTrackerSimulator::StartTracking()
 {
-  
+
   this->Tracking = this->InternalStartTracking();
-  
+
 }
 
 //----------------------------------------------------------------------------
@@ -260,16 +260,16 @@ int vtkTrackerSimulator::InternalStartTracking()
 
 #ifdef NEW_TRACKER_SIMULATOR
 
-  this->PlayerThreadId =  
+  this->PlayerThreadId =
             this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
             &vtkTrackerSimulatorRecordThread,this);
-            
+
 #else
-  
+
   this->InternalUpdate();
 
 #endif
-  
+
   this->vtkTracker::Update();
 
   return 1;
@@ -293,11 +293,11 @@ int vtkTrackerSimulator::InternalStopTracking()
 
     this->PlayerThreader->TerminateThread(this->PlayerThreadId);
     this->PlayerThreadId = -1;
-    
-#endif    
-      
+
+#endif
+
     }
-  
+
 
   return 1;
 }
@@ -328,7 +328,7 @@ void vtkTrackerSimulator::InternalUpdate()
   // initialize transformations to identity
   for (int tool = 0; tool < VTK_TRACKER_NTOOLS; tool++)
     {
-    missing[tool] = 1; 
+    missing[tool] = 1;
 
     transform[tool][0] = 1.0;
     transform[tool][1] = transform[tool][2] = transform[tool][3] = 0.0;
@@ -340,9 +340,9 @@ void vtkTrackerSimulator::InternalUpdate()
   double timestamp = vtkTimerLog::GetUniversalTime();
 #endif
 
-  for (int tool = 0; tool < VTK_TRACKER_NTOOLS; tool++) 
+  for (int tool = 0; tool < VTK_TRACKER_NTOOLS; tool++)
     {
-      
+
     int flags = 0;
 #ifdef NEW_TRACKER_SIMULATOR
 
@@ -352,27 +352,27 @@ void vtkTrackerSimulator::InternalUpdate()
 
       // send the matrix and flags to the tool's vtkTrackerBuffer
       this->ToolUpdate(tool, this->SendMatrix, flags, timestamp);
-      
+
 #else
 
     int limit = 101;
 
     for (int time = 1; time < limit; ++time)
-      { 
+      {
 
       this->SendMatrix->Identity();
 
       GenerateTrackerMatrix(*this->SendMatrix, time);
-      
+
       // send the matrix and flags to the tool's vtkTrackerBuffer
       this->ToolUpdate(tool, this->SendMatrix, flags, index);
-      
+
       }
-      
+
 #endif
 
     }
-    
+
     ++this->matrixCounter;
 
 }
@@ -389,12 +389,12 @@ int vtkTrackerSimulator::EnableToolPorts()
     {
     this->PortEnabled[toolCounter] = 0;
     }
-    
-    this->NumberOfRigidBodies = 0; 
-    
+
+    this->NumberOfRigidBodies = 0;
+
     int port = 0;
 
-   //JG   
+   //JG
    char deviceName[128 + 1];
    sprintf(deviceName, "vtkTrackerSimulator");
   // add rigid bodies
@@ -405,7 +405,7 @@ int vtkTrackerSimulator::EnableToolPorts()
       this->Tools[toolCounter]->SetToolManufacturer(deviceName);
       this->Tools[toolCounter]->SetToolPartNumber(deviceName);
       //JG End
-      
+
     if (this->PortEnabled[toolCounter])
       {
         this->NumberOfRigidBodies++;
@@ -440,11 +440,15 @@ void vtkTrackerSimulator::GenerateTrackerMatrix(vtkMatrix4x4& matrix, int index)
 //  orientation[1]=0.6666666666*cos(theta);
 //  orientation[2]=0.577350269189626;
 //  orientation[3]=0.6666666666*sin(theta);
-  
-  
+
+
   matrix[0][3] = 0;
   matrix[1][3] = 0;
+#ifdef SIMPLETRACKERMODE
+  matrix[2][3] = index % 100;
+#else
   matrix[2][3] = index / 2.0;
+#endif
 
   // matrix.Identity();
   // matrix.SetElement(0, 2, orientation[1]);

@@ -1,6 +1,6 @@
 /*=========================================================================
 
-Module:  $RCSfile: vtkTrackerSimulator.h,v $ 
+Module:  $RCSfile: vtkTrackerSimulator.h,v $
 Author:  Jan Gumprecht, Harvard Medical School
 
 Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
@@ -52,6 +52,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define NEW_TRACKER_SIMULATOR
 //#undef NEW_TRACKER_SIMULATOR
+#define SIMPLETRACKERMODE
+//#undef SIMPLETRACKERMODE
 
 #include "vtkTrackingWin32Header.h"
 #include "vtkTracker.h"
@@ -71,7 +73,7 @@ public:
   static vtkTrackerSimulator *New();
   vtkTypeMacro(vtkTrackerSimulator,vtkTracker);
   void PrintSelf(ostream& os, vtkIndent indent);
- 
+
   // Description:
   // Probe to check whether there is an attached Certus system that
   // is able to track.  After Probe is called, you can call
@@ -82,13 +84,13 @@ public:
   // Get the a string (perhaps a long one) describing the type and version
   // of the device.
   vtkGetStringMacro(Version);
-  
-  vtkGetMacro(matrixCounter, int);  
+
+  vtkGetMacro(matrixCounter, int);
 
   // Description:
   // Get an update from the tracking system and push the new transforms
   // to the tools.  This should only be used within vtkTracker.cxx.
-  void InternalUpdate();  
+  void InternalUpdate();
   void Update();
 
   void StartTracking();
@@ -125,16 +127,16 @@ protected:
   int NumberOfRigidBodies;
 
   vtkMatrix4x4 *SendMatrix;
-  
+
   //Counts the amount of matrixes which have already been generated
-  int matrixCounter; 
-  
+  int matrixCounter;
+
   int IsDeviceTracking;
 
   int PortEnabled[VTK_TRACKER_NTOOLS];
 
   void GenerateTrackerMatrix(vtkMatrix4x4& matrix, int zPosition);
-  
+
 #ifdef NEW_TRACKER_SIMULATOR
   //Multithreader to run a thread for matrix recording
   vtkMultiThreader *PlayerThreader;
@@ -143,7 +145,7 @@ protected:
 
 private:
   vtkTrackerSimulator(const vtkTrackerSimulator&);
-  void operator=(const vtkTrackerSimulator&);  
+  void operator=(const vtkTrackerSimulator&);
 };
 
 #endif
