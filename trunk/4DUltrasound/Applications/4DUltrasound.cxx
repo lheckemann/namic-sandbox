@@ -78,6 +78,8 @@ void goodByeScreen();
 int main(int argc, char **argv)
 {
   int terminate = 0;
+  ofstream logStream;
+  char* logFile = "./logFile.txt";  
 
   vtkDataCollector *collector = vtkDataCollector::New();
   vtkDataProcessor *processor = vtkDataProcessor::New();
@@ -99,6 +101,13 @@ int main(int argc, char **argv)
     }
   else
     {
+    logStream.precision(0);
+    logStream.setf(ios::fixed,ios::floatfield);
+    logStream.open(logFile, ios::out);
+    collector->SetLogStream(logStream);
+    processor->SetLogStream(logStream);
+    sender->SetLogStream(logStream);
+          
     cout << "--- Started ---" << endl << endl;
 
     //redirect vtk errors to a file
@@ -177,6 +186,7 @@ int main(int argc, char **argv)
              << "---           ERRORCODE: "<< terminate <<"             ---" << endl;
         }
       }
+      logStream.close();
     }
 }//End Main
 

@@ -112,6 +112,12 @@ public:
 
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
+  
+#ifdef USE_TRACKER_DEVICE
+  vtkGetMacro(tracker, vtkNDITracker*);
+#else
+  vtkGetMacro(tracker, vtkTrackerSimulator*);
+#endif
 
 #ifdef USE_ULTRASOUND_DEVICE
   vtkGetMacro(VideoSource, vtkV4L2VideoSource *);
@@ -122,6 +128,9 @@ public:
   vtkGetMacro(Tagger, vtkTaggedImageFilter *);
 
   vtkGetMacro(DataProcessor, vtkDataProcessor *);
+  
+  void SetLogStream(ofstream &LogStream);
+  ofstream& GetLogStream();  
 
   int StartTracker();
   int Initialize();
@@ -135,6 +144,7 @@ protected:
   ~vtkDataCollector();
 
   bool Verbose;
+  ofstream LogStream;
 
   char *CalibrationFileName;
 

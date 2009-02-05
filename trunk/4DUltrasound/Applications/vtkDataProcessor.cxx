@@ -41,6 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <limits>
 #include <string>
@@ -132,6 +133,8 @@ vtkDataProcessor::vtkDataProcessor()
   this->DataSender = NULL;
 
   this->StartUpTime = vtkTimerLog::GetUniversalTime();
+  this->LogStream.ostream::rdbuf(cerr.rdbuf());
+  this->oldVolume = NULL;
 }
 
 /******************************************************************************
@@ -286,13 +289,13 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
   int errors = 0;
 
   #ifdef  DEBUGPROCESSOR
-  cout << "INFO: Processor Thread started" << endl;
+    self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Processor Thread started" << endl;
   #endif
 
   do
     {
     #ifdef DEBUGPROCESSOR
-    //cout << "INFO: Processor Thread looks for new data" << endl;
+    //self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Processor Thread looks for new data" << endl;
     #endif
 
     if(dataAvailable || !self->IsNewDataBufferEmpty())
@@ -301,33 +304,37 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
       currentIndex = self->GetHeadOfNewDataBuffer();
 
       #ifdef  DEBUGPROCESSOR
-      cout << "-------------------------------------" << endl;
-      cout << "INFO: Processor Thread found new data with index:" << currentIndex
-           << " | " << self->GetUpTime()<< endl;
+        self->GetLogStream() <<  self->GetUpTime() << " |-------------------------------------" << endl;
+        self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Processor Thread found new data with index:" << currentIndex
+                             << " | " << self->GetUpTime()<< endl;
       #endif
 
       if(self->CheckandUpdateVolume(currentIndex, lastDataSenderIndex) != -1)//Check if volume must be expanded
         {
         #ifdef  DEBUGPROCESSOR
-        cout << "INFO: Check and Update DONE" << " | " << self->GetUpTime()<< endl;
+          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Check and Update DONE" << " | " << self->GetUpTime()<< endl;
         #endif
         if(self->ReconstructVolume(currentIndex) != -1)
           {
           #ifdef  DEBUGPROCESSOR
-          cout << "INFO: Volume Reconstruction DONE" << " | " << self->GetUpTime()<< endl;
+            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume Reconstruction DONE" << " | " << self->GetUpTime()<< endl;
           #endif
           lastDataSenderIndex = self->ForwardData();
           #ifdef  DEBUGPROCESSOR
-          cout << "INFO: Volume forwarding DONE" << " | " << self->GetUpTime()<< endl;
+            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume forwarding DONE" << " | " << self->GetUpTime()<< endl;
           #endif
           }
         else
           {
           #ifdef  DEBUGPROCESSOR
-          cout << "WARNING: Volume Reconstruction failed" << " | " << self->GetUpTime()<< endl;
+            self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | " << self->GetUpTime()<< endl;
+            self->ResetOldVolume(lastDataSenderIndex);
           #endif
-          lastDataSenderIndex = -1;
           }
+        }
+      else
+        {
+        lastDataSenderIndex = -2;
         }
       self->DeleteData(currentIndex);
       }
@@ -335,14 +342,14 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
       dataAvailable = !self->IsNewDataBufferEmpty();
 
       #ifdef  DEBUGPROCESSOR
-      if(dataAvailable)
-        {
-        cout << "INFO: Data Processor wont't sleep" << " | " << self->GetUpTime()<< endl;
-        }
-      else
-        {
-        cout << "INFO: Data Processor sleeps now" << " | " << self->GetUpTime()<< endl;
-        }
+        if(dataAvailable)
+          {
+          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor wont't sleep" << " | " << self->GetUpTime()<< endl;
+          }
+        else
+          {
+          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor sleeps now" << " | " << self->GetUpTime()<< endl;
+          }
       #endif
 
     }
@@ -370,7 +377,7 @@ int vtkDataProcessor::StartProcessing(vtkDataSender * sender)
   if(this->Processing)
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "WARNING: Data Processor already processes data" << endl;
+      this->LogStream << this->GetUpTime()  << " |P-WARNING: Data Processor already processes data" << endl;
     #endif
     return 1;
     }
@@ -382,7 +389,7 @@ int vtkDataProcessor::StartProcessing(vtkDataSender * sender)
   else
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: No data sender provided. Data processing not possible" << endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: No data sender provided. Data processing not possible" << endl;
     #endif
     return -1;
     }
@@ -401,16 +408,15 @@ int vtkDataProcessor::StartProcessing(vtkDataSender * sender)
   if(this->PlayerThreadId != -1)
     {
     this->Processing = true;
-    if(Verbose)
-      {
-      cout << "Successfully started to process data" << endl;
-      }
+    #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Successfully started to process data" << endl;
+    #endif
     return 0;
     }
   else
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: Could not start process thread" << endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Could not start process thread" << endl;
     #endif
     return -1;
     }
@@ -435,15 +441,14 @@ int vtkDataProcessor::StopProcessing()
     this->PlayerThreadId = -1;
     this->Processing = false;
 
-    if(Verbose)
-      {
-      cout << "Stopped processing data" <<endl;
-      }
+    #ifdef  DEBUGPROCESSOR
+      cout << "Stop processing" <<endl;
+    #endif
     }
   else
     {
     #ifdef  DEBUGPROCESSOR
-    cerr << "WARNING: Try to stop processor thread although not running" << endl;
+      this->LogStream << this->GetUpTime()  << " |P-WARNING: Try to stop processor thread although not running" << endl;
     #endif
     return 1;
     }
@@ -489,7 +494,7 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
   this->VolumeReconstructionEnabled = flag;
 
   #ifdef  DEBUGPROCESSOR
-  cout << "INFO: Reconstruction started" << endl;
+    //this->LogStream << this->GetUpTime()  << " |P-INFO: Reconstruction started" << endl;
   #endif
 
   return 0;
@@ -513,11 +518,10 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
  * ****************************************************************************/
 int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
 {
-
   if(!this->VolumeReconstructionEnabled)
     {
     #ifdef  DEBUGPROCESSOR
-    cerr << "ERROR: Try to check and update a volume without reconstruction enabled" <<endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Try to check and update a volume without reconstruction enabled" <<endl;
     #endif
     return -1;
     }
@@ -525,7 +529,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
   if(this->IsIndexAvailable(index))
     {
     #ifdef  DEBUGPROCESSOR
-    cerr << "ERROR: Try to check and update a volume with empty index: " << index <<endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Try to check and update a volume with empty index: " << index <<endl;
     #endif
     return -1;
     }
@@ -535,8 +539,9 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
          xmax = this->clipRectangle[2], ymax = this->clipRectangle[3];
 
   #ifdef  DEBUGPROCESSOR
-  cerr << "INFO: Check and update a volume with matrix: " <<endl;
-  this->newTrackerMatrixMap[index]->Print(cout);
+    this->LogStream << this->GetUpTime()  << " |P-INFO: Check and update a volume" <<endl;
+    this->LogStream << this->GetUpTime()  << " |P-INFO: Update Matrix" <<endl;
+    this->newTrackerMatrixMap[index]->Print(this->LogStream );
   #endif
 
   double imCorners[4][4]= {
@@ -569,10 +574,16 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
   vtkFloatingPointType newOriginBackup[3] = {minX, minY, minZ};
 
   double spacing[3] = {1,1,1};
-  int newExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ),
-                       0, (int)( (maxY - minY) / spacing[1] ),
-                       0, (int)( (maxZ - minZ) / spacing[2] )};
+  int newExtent[6] = { 0, (int)( (maxX - minX) / spacing[0]),
+                       0, (int)( (maxY - minY) / spacing[1]),
+                       0, (int)( (maxZ - minZ) / spacing[2])};
 
+  #ifdef  DEBUGPROCESSOR
+    this->LogStream << this->GetUpTime()  << " |P-INFO: Properties New Frame:" << endl
+                    << "         | Origin: " << newOrigin[0] << "| " << newOrigin[1] << " |" << newOrigin[2] <<endl
+                    << "         | Dimensions: " << newExtent[1] + 1<< "| "<< newExtent[3] + 1<<" | "<< newExtent[5] + 1<< endl;
+  #endif
+  
   //Check if new extent larger than old extent or if origin changed------------
   vtkFloatingPointType oldOrigin[3];
   bool originChanged = false;
@@ -619,16 +630,23 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
 
   if(dataSenderIndex == -2 || originChanged || extentChanged)
     {
+    
     #ifdef  DEBUGPROCESSOR
-    if(dataSenderIndex == -2)
-      {
-      cerr << "INFO: Create initial volume" << " | " << this-> GetUpTime() << endl;
-      }
-    else
-      {
-      cerr << "INFO: Update Existing volume" << " | " << this-> GetUpTime() << endl;
-      }
-    #endif
+      if(dataSenderIndex == -2)
+        {
+        this->LogStream << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
+        }
+      else
+        {
+        this->LogStream << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
+        this->LogStream << this->GetUpTime()  << " |P-INFO: Old Volume: Origin: "<< oldOrigin[0]<<"| "<< oldOrigin[1]<<"| "<<  oldOrigin[2]<< endl
+                        << "         |             Extent:  "<< oldExtent[0]<<"-"<<oldExtent[1] <<" | "<< oldExtent[2]<<"-"<< oldExtent[3]
+                                                   <<" | "<< oldExtent[4]<<"-"<< oldExtent[5]<<" "<<endl
+                        << "         | New Volume: Origin: "<< newOrigin[0]<<"| "<<newOrigin[1] <<"| "<< newOrigin[2]<<"" << endl
+                        << "         |             Extent:  "<< newExtent[0]<<"-"<<newExtent[1] <<" | "<< newExtent[2]<<"-"<< newExtent[3]
+                                                   <<" | "<< newExtent[4]<<"-"<< newExtent[5]<<" "<<endl;
+        }
+      #endif
     //Create new volume-------------------------------------------------------
     this->reconstructor->SetOutputExtent(newExtent);
     this->reconstructor->SetOutputSpacing(spacing);
@@ -645,37 +663,23 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     if(originChanged || extentChanged)
       {
       #ifdef  DEBUGPROCESSOR
-      cout << "INFO: Expand volume | DataSenderIndex: "<< dataSenderIndex << " | " << this-> GetUpTime() << endl;
+        this->LogStream << this->GetUpTime()  << " |P-INFO: Expand volume | DataSenderIndex: "<< dataSenderIndex << " | "  << endl;
       #endif
-
-      #ifdef  DEBUGPROCESSOR
-
-      cout << "INFO: Old Volume: Origin: "<< oldOrigin[0]<<"| "<< oldOrigin[1]<<"| "<<  oldOrigin[2]<< endl
-           << "                  Extent:  "<< oldExtent[0]<<"-"<<oldExtent[1] <<" | "<< oldExtent[2]<<"-"<< oldExtent[3]
-                                           <<" | "<< oldExtent[4]<<"-"<< oldExtent[5]<<" "<<endl
-           << "      New Volume: Origin: "<< newOrigin[0]<<"| "<<newOrigin[1] <<"| "<< newOrigin[2]<<"" << endl
-           << "                  Extent:  "<< newExtent[0]<<"-"<<newExtent[1] <<" | "<< newExtent[2]<<"-"<< newExtent[3]
-                                           <<" | "<< newExtent[4]<<"-"<< newExtent[5]<<" "<<endl;
-
-      #endif
-      vtkImageData * oldVolume = this->DataSender->GetVolume(dataSenderIndex);
 
       //Copy Old Volume at correct position into new volume
-      if(oldVolume != NULL
+      if(this->oldVolume != NULL
          && this->MergeVolumes(reconstructor->GetOutput(),newOrigin,newExtent,
-                                                 oldVolume, oldOrigin,oldExtent)
+                                                 this->oldVolume, oldOrigin,oldExtent, this->newFrameMap[index]->GetNumberOfScalarComponents())
             == -1)
         {
         #ifdef  DEBUGPROCESSOR
-        cerr << "ERROR: Could not expand volume" << " | " << this-> GetUpTime() << endl;
+          this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << " | "  << endl;
         #endif
         return -1;
         }
-
-      this->DataSender->UnlockData(dataSenderIndex, DATAPROCESSOR);
-      this->DataSender->TryToDeleteData(dataSenderIndex);
       }
     }
+    this->ResetOldVolume(dataSenderIndex);
 
    return 0;
 }
@@ -698,7 +702,7 @@ int vtkDataProcessor::ReconstructVolume(int index)
   if(!this->VolumeReconstructionEnabled)
     {
     #ifdef  DEBUGPROCESSOR
-    cerr << "ERROR: Try to reconstruct a volume without reconstruction enabled" <<endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Try to reconstruct a volume without reconstruction enabled" <<endl;
     #endif
     return -1;
     }
@@ -706,7 +710,7 @@ int vtkDataProcessor::ReconstructVolume(int index)
   if(this->IsIndexAvailable(index))
     {
     #ifdef  DEBUGPROCESSOR
-    cerr << "ERROR: Try to reconstruct volume with empty index: " << index <<endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Try to reconstruct volume with empty index: " << index <<endl;
     #endif
     return -1;
     }
@@ -715,7 +719,7 @@ int vtkDataProcessor::ReconstructVolume(int index)
     this->reconstructor->SetSlice(this->newFrameMap[index]);
 
     #ifdef  DEBUGPROCESSOR
-    double reconstructionTime = this->GetUpTime();
+      double reconstructionTime = this->GetUpTime();
     #endif
 
     this->reconstructor->InsertSlice(); //Add current slice to the reconstructor
@@ -724,25 +728,25 @@ int vtkDataProcessor::ReconstructVolume(int index)
   if( this->reconstructor->GetPixelCount() > 0)
     {
     #ifdef  DEBUGPROCESSOR
-    cout << "INFO: Reconstruction successfully completed" << " | " << this-> GetUpTime()<< endl;
-    cout << "      Inserted " <<     this->reconstructor->GetPixelCount() << " pixels into the output volume" <<endl
-         << "      Reconstruction time: "<< this->GetUpTime() - reconstructionTime << endl;
+          this->LogStream << this->GetUpTime()  << " |P-INFO: Reconstruction successfully completed" << " | " << endl;
+          this->LogStream << "         | Inserted " <<     this->reconstructor->GetPixelCount() << " pixels into the output volume" <<endl
+                    << "         | Reconstruction time: "<< this->GetUpTime() - reconstructionTime << endl;
     #endif
     }
   else
     {
     #ifdef  DEBUGPROCESSOR
-    cerr << "ERROR: Reconstruction failed" << " | " << this-> GetUpTime()<< endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Reconstruction failed" << " | " << endl;
     #endif
     return -1;
     }
 
   #ifdef  DEBUGPROCESSOR
-  reconstructionTime = this->GetUpTime();
+    reconstructionTime = this->GetUpTime();
   #endif
-  this->reconstructor->FillHolesInOutput();
+  //this->reconstructor->FillHolesInOutput();
   #ifdef  DEBUGPROCESSOR
-  cout << "      FillHolesInOutput took: " << this->GetUpTime() - reconstructionTime <<endl;
+    this->LogStream << "         | FillHolesInOutput took: " << this->GetUpTime() - reconstructionTime <<endl;
   #endif
 
   return 0;
@@ -801,21 +805,21 @@ int vtkDataProcessor::ForwardData()
   unsigned char * pVolumeToForward = (unsigned char *) volumeToForward->GetScalarPointer();
 
   #ifdef DEBUGPROCESSOR
-  double copyTime = this->GetUpTime();
-  int counter = 0;
+    double copyTime = this->GetUpTime();
+    int counter = 0;
   #endif
 
-  for(int i = 0 ; i < dimensions[2] ; ++i)
+  for(int i = 0 ; i < dimensions[2]; ++i)
     {
-    for(int j = 0 ; j < dimensions[1] ; ++j)
+    for(int j = 0 ; j < dimensions[1]; ++j)
       {
-      for(int k = 0 ; k < dimensions[0] ; ++k)
+      for(int k = 0 ; k < dimensions[0]; ++k)
         {
         *pVolumeToForward = *pReconstructedVolume;
         pVolumeToForward++;
         pReconstructedVolume++;
         #ifdef DEBUGPROCESSOR
-        counter++;
+          counter++;
         #endif
         }
       }
@@ -827,20 +831,21 @@ int vtkDataProcessor::ForwardData()
 
   //Forward data to sender
   int retval = this->DataSender->NewData(volumeToForward, matrix);
+  this->oldVolume = volumeToForward;
 
   if(retval != -1)
     {
     #ifdef DEBUGPROCESSOR
-    cout << "INFO: Volume forwarded to data sender "
-         << " |Copytime: " << this->GetUpTime() -  copyTime << " | Pixels: "<< counter
-         << " |Data Sender Index: " << retval
-         << " | " << this-> GetUpTime()<< endl;
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Volume forwarded to data sender " << " | Copytime: " << this->GetUpTime() -  copyTime << endl
+                      << "         | Pixels: "<< counter << " | Data Sender Index: " << retval << endl
+                      << "         | Volume Dimensions: "<< dimensions[0] << " | "<< dimensions[1] << " | "<< dimensions[2] << " | " << endl
+                      << "         | SenderIndex: "<< retval << " | "  << endl;
     #endif
     }
   else
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: Could not forward volume to data sender" << " | " << this-> GetUpTime()<< endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Could not forward volume to data sender" << " | " << endl;
     #endif
     }
 
@@ -866,7 +871,7 @@ int vtkDataProcessor::AddFrameToFrameMap(int index, vtkImageData* frame)
   if(this->newFrameMap.find(index) != this->newFrameMap.end())
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: new image map already has an image for index: " << index << endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: new image map already has an image for index: " << index << endl;
     #endif
     return -1;
     }
@@ -894,7 +899,7 @@ int vtkDataProcessor::AddMatrixToMatrixMap(int index, vtkMatrix4x4* matrix)
   if(this->newTrackerMatrixMap.find(index) != this->newTrackerMatrixMap.end())
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: new tracker matrix map already has a matrix for index: " << index << endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: new tracker matrix map already has a matrix for index: " << index << endl;
     #endif
     return -1;
     }
@@ -923,7 +928,7 @@ int vtkDataProcessor::NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix)
   if(!this->Processing)
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: Data Processor is not started; Cannot accept data" << endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Data Processor is not started; Cannot accept data" << endl;
     #endif
     return -1;
     }
@@ -938,7 +943,7 @@ int vtkDataProcessor::NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix)
   if(this->IsNewDataBufferFull())
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "WARNING: Processors new data buffer is full" << endl;
+      this->LogStream << this->GetUpTime()  << " |P-WARNING: Processors new data buffer is full" << endl;
     #endif
     return -1;
     }
@@ -950,14 +955,14 @@ int vtkDataProcessor::NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix)
   if(this->AddFrameToFrameMap(index, frame) == -1) //Imageframe
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: Processor cannot add new frame to its frame map" << endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Processor cannot add new frame to its frame map" << endl;
     #endif
     return -1;
     }
   if(this->AddMatrixToMatrixMap(index, trackerMatrix) == -1) //TrackerMatrix
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: Processor cannot add new tracker matrix to its matrix map" << endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Processor cannot add new tracker matrix to its matrix map" << endl;
     #endif
     return -1;
     }
@@ -1000,7 +1005,7 @@ bool vtkDataProcessor::IsNewDataBufferFull()
     {
     return true;
     #ifdef DEBUGPROCESSOR
-    cout << "WARNING: Data processor new data buffer is full | BufferSize: " << this->newDataBufferSize << endl;
+      this->LogStream << this->GetUpTime()  << " |P-WARNING: Data processor new data buffer is full | BufferSize: " << this->newDataBufferSize << endl;
     #endif
     }
   else
@@ -1048,8 +1053,8 @@ void vtkDataProcessor::GetVolumeMatrix(vtkMatrix4x4* matrix)
 #endif
 
 #ifdef DEBUGPROCESSOR
-//    cout << "INFO: OpenIGTLink image message matrix" << endl;
-//    matrix->Print(cout);
+//    this->LogStream << this->GetUpTime()  << " |P-INFO: OpenIGTLink image message matrix" << endl;
+//    matrix->Print(this->LogStream);
 #endif
 }
 
@@ -1081,13 +1086,14 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
                                    int* extentNewVolume,
                                    vtkImageData* oldVolume,
                                    vtkFloatingPointType* originOldVolume,
-                                   int* extentOldVolume)
+                                   int* extentOldVolume,
+                                   int ScalarComponents)
 {
   int counter = 0;
 
   //Calc x, y, z start and end coordinates of old volume in new volume
   int xStart =  (int) originOldVolume[0];
-  int xEnd   = ((int) originOldVolume[0]) + extentOldVolume[1];
+  int xEnd   = ((int) originOldVolume[0]) + extentOldVolume[1] * ScalarComponents;
   int yStart =  (int) originOldVolume[1];
   int yEnd   = ((int) originOldVolume[1]) + extentOldVolume[3];
   int zStart =  (int) originOldVolume[2];
@@ -1102,7 +1108,7 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
     {
     for(int y = (int) originNewVolume[1]; y <= originNewVolume[1] + extentNewVolume[3]; ++y)
       {
-      for(int x = (int)originNewVolume[0]; x <= originNewVolume[0] + extentNewVolume[1]; ++x)
+      for(int x = (int)originNewVolume[0]; x <= originNewVolume[0] + extentNewVolume[1] * ScalarComponents; ++x)
         {
         if(   (x >= xStart && x <= xEnd)
            && (y >= yStart && y <= yEnd)
@@ -1120,14 +1126,14 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
   if(counter != 0)
     {
     #ifdef DEBUGPROCESSOR
-    cout << "INFO: Copied " << counter << " Pixel in expanded volume" << " | " << this-> GetUpTime()<< endl;
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Copied " << counter << " Pixel in expanded volume" << " | " << endl;
     #endif
     return 0;
     }
   else
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: No pixels in expanded volume copied"  << " | " << this-> GetUpTime()<< endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: No pixels in expanded volume copied"  << " | " << endl;
     #endif
     return -1;
     }
@@ -1149,7 +1155,7 @@ int vtkDataProcessor::DeleteData(int index)
   if(this->IsIndexAvailable(index))
     {
     #ifdef DEBUGPROCESSOR
-    cerr << "ERROR: Cannot delete data; Index (" << index << ") empty "<< endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Cannot delete data; Index (" << index << ") empty "<< endl;
     #endif
     return -1;
     }
@@ -1233,4 +1239,52 @@ bool vtkDataProcessor::IsIndexAvailable(int index)
     {
     return false;
     }
+}
+
+/******************************************************************************
+ * void vtkDataProcessor::SetLogStream(ofstream &LogStream)
+ *
+ *  Redirects Logstream
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ *
+ * ****************************************************************************/
+void vtkDataProcessor::SetLogStream(ofstream &LogStream)
+{
+  this->LogStream.ostream::rdbuf(LogStream.ostream::rdbuf());
+  this->LogStream.precision(6);
+  this->LogStream.setf(ios::fixed,ios::floatfield);
+}
+
+/******************************************************************************
+ * ofstream& vtkDataProcessor::GetLogStream()
+ *
+ *  Returns logstream
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ * 
+ *  @Return: Logstream
+ *
+ * ****************************************************************************/
+ofstream& vtkDataProcessor::GetLogStream()
+{
+        return this->LogStream;
+}
+
+/******************************************************************************
+ * void vtkDataProcessor::ResetOldVolume()
+ *
+ *  Resets the last reconstructed volume
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ * 
+ * ****************************************************************************/
+void vtkDataProcessor::ResetOldVolume(int dataSenderIndex)
+{
+  this->oldVolume = NULL;
+  this->DataSender->UnlockData(dataSenderIndex, DATAPROCESSOR);
+  this->DataSender->TryToDeleteData(dataSenderIndex);
 }

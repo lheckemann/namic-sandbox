@@ -104,6 +104,9 @@ public:
 
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
+  
+  void SetLogStream(ofstream &LogStream);
+  ofstream& GetLogStream();
 
   int GetHeadOfNewDataBuffer();
   bool IsSendDataBufferEmpty();
@@ -132,6 +135,7 @@ protected:
 
   bool Verbose;
   double StartUpTime;
+  ofstream LogStream;
 
   int ServerPort;
   char *OIGTLServer;
