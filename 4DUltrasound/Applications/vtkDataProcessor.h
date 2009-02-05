@@ -54,9 +54,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef VTKDATAPROCESSOR_H_
 #define VTKDATAPROCESSOR_H_
 
-//#define DEBUGPROCESSOR
-#undef DEBUGPROCESSOR
-
 #include "SynchroGrabConfigure.h"
 
 #include <queue>
@@ -88,6 +85,9 @@ public:
 
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
+  
+  void SetLogStream(ofstream &LogStream);
+  ofstream& GetLogStream();  
 
   int NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix);
   int EnableVolumeReconstruction(bool flag);
@@ -101,6 +101,7 @@ public:
   int ReconstructVolume(int index);
   int ForwardData();
   double GetUpTime();
+  void ResetOldVolume(int dataSenderIndex);
 
 protected:
   vtkDataProcessor();
@@ -112,14 +113,16 @@ protected:
   float ProcessPeriod;
   double clipRectangle[4];
   double StartUpTime;
+  ofstream LogStream;
+  vtkImageData* oldVolume;
 
   std::queue<int> newDataBuffer; //Stores index of incoming objects
   int newDataBufferSize; //Maximum amount of items that can be stored at the same time
   int newDataBufferIndex; //Object which is currently/ was last processed
 
   std::map<int, vtkImageData*> newFrameMap;
-  std::map<int, vtkMatrix4x4*> newTrackerMatrixMap;
-
+  std::map<int, vtkMatrix4x4*> newTrackerMatrixMap;  
+  
   vtkDataSender* DataSender;
 
   int AddFrameToFrameMap(int index, vtkImageData* frame);
@@ -140,7 +143,8 @@ protected:
                    int* extentNewVolume,
                    vtkImageData* oldVolume,
                    vtkFloatingPointType* originOldVolume,
-                   int* extentOldVolume);
+                   int* extentOldVolume,
+                   int ScalarComponents);
   int IncrementBufferIndex(int increment);
   bool IsIndexAvailable(int index);
 

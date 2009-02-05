@@ -47,7 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define NOMINMAX
 //#define REMOVE_ALPHA_CHANNEL
-//#define DEBUG_IMAGES //Write tagger output to HDD
+#define DEBUG_IMAGES //Write tagger output to HDD
 //#define DEBUG_MATRICES //Prints tagger matrices to stdout
 
 //#include <windows.h>
@@ -208,7 +208,7 @@ int vtkDataCollector::StartTracker()
 {
   if(this->tracker->Probe() != 1)
     {
-    cerr << "ERROR: Tracking system not found" << endl;
+    this->LogStream << "C-ERROR: Tracking system not found" << endl;
     return -1;
     }
 
@@ -313,7 +313,6 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
 {
   vtkDataCollector *self = (vtkDataCollector *)(data->UserData);
 
-  double startTime = vtkTimerLog::GetUniversalTime();
   double rate = self->GetFrameRate();
   int frame = 0;
 
@@ -327,19 +326,22 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
   do
     {
     //JG 09/01/21
-    //cerr << "New frame to process" <<endl;
+    //this->LogStream << "New frame to process" <<endl;
 
     //Grab new frame
     self->GetVideoSource()->Grab();
 //    self->GetVideoSource()->Seek(1);
 
     //Get Tracking Matrix for new frame
-    self->GetTagger()->Update();
+    
+    self->Gettracker()->StopTracking();
+    self->GetTagger()->Update();    
     self->GetTagger()->GetTransform()->GetMatrix(trackerMatrix);
+    self->Gettracker()->StartTracking();
 
 #ifdef DEBUG_MATRICES
-    cout << "Tracker matrix:" << endl;
-    trackerMatrix->Print(cout);
+    self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
+    trackerMatrix->Print(self->GetLogStream());
 #endif
 
 #ifdef DEBUG_IMAGES
@@ -356,12 +358,12 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
     //Send frame + matrix
     if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
       {
-      cerr << "WARNING: Data Collector can not forward data to Data Processor" << endl;
+      self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
       }
 
     frame++;
     }
-  while(vtkThreadSleep(data, startTime + frame/rate));
+  while(vtkThreadSleep(data, vtkTimerLog::GetUniversalTime() + 1 / rate));
 
   trackerMatrix->Delete();
 
@@ -375,7 +377,7 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     {
     if(!this->Initialize())
       {
-        cerr << "ERROR: Could not initialize DataCollector" << endl;
+        this->LogStream << this->GetUpTime() << " |C-ERROR: Could not initialize DataCollector" << endl;
         return false;
       }
     }
@@ -386,7 +388,7 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     }
   else
     {
-    cerr << "ERROR: Data collector already collects data";
+    this->LogStream << this->GetUpTime() << " |C-ERROR: Data collector already collects data";
     return false;
     }
 
@@ -396,7 +398,7 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     }
   else
     {
-    cerr << "ERROR: No data processor provided. Data collection not possible" << endl;
+    this->LogStream << this->GetUpTime() << " |C-ERROR: No data processor provided. Data collection not possible" << endl;
     return false;
     }
 
@@ -413,7 +415,7 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     }
   cout << endl;
 
-  cout << "Start Recording" << endl;
+  //cout << "Start Recording" << endl;
   cout << '\a' << std::flush;
   vtkSleep(0.2);
   cout << '\a' << std::flush;
@@ -427,13 +429,13 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     {
     if(Verbose)
       {
-      cout << "Start to collect" << endl;
+      cout << "Start to collect data" << endl;
       }
     return true;
     }
   else
     {
-    cerr << "ERROR: Collector thread could not be started" << endl;
+          this->LogStream << this->GetUpTime() << " |C-ERROR: Collector thread could not be started" << endl;
     return false;
     }
 }
@@ -479,4 +481,36 @@ void vtkDataCollector::AdjustMatrix(vtkMatrix4x4& matrix)
 double vtkDataCollector::GetUpTime()
 {
   return vtkTimerLog::GetUniversalTime() - this->GetStartUpTime();
+}
+
+/******************************************************************************
+ * void vtkDataCollector::SetLogStream(ofstream &LogStream)
+ *
+ *  Redirects Logstream
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ *
+ * ****************************************************************************/
+void vtkDataCollector::SetLogStream(ofstream &LogStream)
+{
+  this->LogStream.ostream::rdbuf(LogStream.ostream::rdbuf());
+  this->LogStream.precision(6);
+  this->LogStream.setf(ios::fixed,ios::floatfield);
+}
+
+/******************************************************************************
+ * ofstream& vtkDataCollector::GetLogStream()
+ *
+ *  Returns logstream
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ * 
+ *  @Return: Logstream
+ *
+ * ****************************************************************************/
+ofstream& vtkDataCollector::GetLogStream()
+{
+        return this->LogStream;
 }
