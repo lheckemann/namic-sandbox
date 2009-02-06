@@ -112,6 +112,9 @@ vtkDataSender::vtkDataSender()
 
   this->StartUpTime = vtkTimerLog::GetUniversalTime();
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
+  
+  this->lastFrameRateUpdate = 0;
+  this->UpDateCounter = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -291,16 +294,27 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
     if(dataAvailable || !self->IsSendDataBufferEmpty())
       {//New data available
 
-      //JG 09/01/21
-      //cout << "New Data in Send Buffer arrived" <<endl;
-
       currentIndex = self->GetHeadOfNewDataBuffer();
+      
+      #ifdef TIMINGSENDER
+      self->GetLogStream() << self->GetUpTime() <<" |*********************************************" << endl;
+      self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Sender Found new Data at Index: " << currentIndex << endl;
+      #endif
       
       //Prepare new data
       if(self->PrepareImageMessage(currentIndex, imageMessage) != -1)
         {
+        #ifdef TIMINGSENDER
+        self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Message Prepared" << endl;
+        #endif
+        
         //Send new data
         errors += self->SendMessage(imageMessage);
+      
+        #ifdef TIMINGSENDER
+        self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Message Send" << endl;
+        #endif
+        
         }
 
       //Delete sended data (Remove Index from new data buffer + free maps from data
@@ -309,7 +323,7 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
 
       if(errors <= - ERRORTOLERANCE)
         {
-        #ifdef  DEBUGSENDER
+        #ifdef  ERRORSENDER
           self->GetLogStream() << self->GetUpTime() <<" |S-ERROR: Stopped sending too many errors occured" << endl;
         #endif
         break;
@@ -371,7 +385,9 @@ int vtkDataSender::StartSending()
 
   if (this->Sending)
     {
+    #ifdef ERRORSENDER
     this->LogStream <<  this->GetUpTime() << " |S-ERROR: Data collector already collects data" << endl;
+    #endif
     return -1;
     }
 
@@ -384,14 +400,14 @@ int vtkDataSender::StartSending()
   if(this->PlayerThreadId != -1)
     {
     this->Sending = true;
-        #ifdef  DEBUGSENDER
+    #ifdef  DEBUGSENDER
       this->LogStream <<  this->GetUpTime() << " |S-INFO Successfully started to send" << endl;
     #endif
     return 0;
     }
   else
     {
-    #ifdef  DEBUGSENDER
+    #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: Could not start sender thread" << endl;
         #endif
     return -1;
@@ -425,7 +441,7 @@ int vtkDataSender::PrepareImageMessage(int index,
 
   if(this->IsIndexAvailable(index))
     {
-    #ifdef  DEBUGSENDER
+    #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: No data to prepare at index: " << index << endl;
     #endif    
     return -1;
@@ -466,6 +482,7 @@ int vtkDataSender::PrepareImageMessage(int index,
 
   #ifdef  DEBUGSENDER
     int counter = 0;
+    double copyStart = this->GetUpTime();
   #endif
   
   for(int i = 0 ; i < frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] ; i++ )
@@ -473,7 +490,7 @@ int vtkDataSender::PrepareImageMessage(int index,
     *pImageMessage = (unsigned char) *pFrame;
     ++pFrame; ++pImageMessage;
     #ifdef  DEBUGSENDER
-      ++counter;
+      ++counter;      
     #endif
     }
 
@@ -493,7 +510,8 @@ int vtkDataSender::PrepareImageMessage(int index,
                     << frameProperties.Size[0] << " | " 
                     << frameProperties.Size[1] << " | " 
                     << frameProperties.Size[2] << endl
-                    << "         | Copied Pixels: "<< counter << " | Index: " << index << " | "  <<endl;
+                    << "         | Copied Pixels: "<< counter << " | Copy time: " << this->GetUpTime() - copyStart <<endl
+                    << "         | Index: " << index << " | "  <<endl;
   #endif
     
   #ifdef  DEBUGSENDER
@@ -526,6 +544,10 @@ int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer& message)
         this->LogStream <<  this->GetUpTime() << " |S-INFO: Message successfully send to OpenIGTLink Server "<< endl
                         << "         | Send time: " << this->GetUpTime() - sendTime << "| "  << endl; 
       #endif
+      if(Verbose)
+        {
+        this->UpdateFrameRate(this->GetUpTime());
+        }
       }
   return 0;
 }
@@ -536,7 +558,7 @@ int vtkDataSender::NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix)
   //Check if new data buffer is full
   if(this->IsSendDataBufferFull())
     {
-    #ifdef  DEBUGSENDER
+    #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: Senders new data buffer is full" << endl; 
     #endif        
     return -1;
@@ -557,7 +579,7 @@ int vtkDataSender::TryToDeleteData(int index)
 {
   if(this->IsIndexAvailable(index))
     {
-    #ifdef  DEBUGSENDER
+    #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: Not data to delete in Send Data Buffer at index: " << index << endl; 
     #endif
     return -1;
@@ -578,7 +600,7 @@ int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix
 {
   if(!this->IsIndexAvailable(index))
     {
-        #ifdef  DEBUGSENDER
+        #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer already has data at index: " << index << endl; 
     #endif
     return -1;
@@ -603,7 +625,7 @@ vtkImageData* vtkDataSender::GetVolume(int index)
 {
 if(this->IsIndexAvailable(index))
    {
-   #ifdef  DEBUGSENDER
+   #ifdef  ERRORSENDER
      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer has no data at index: " << index << endl; 
    #endif
    return NULL;
@@ -619,7 +641,7 @@ int vtkDataSender::UnlockData(int index, int lock)
 {
   if(this->IsIndexAvailable(index))
     {
-    #ifdef  DEBUGSENDER
+    #ifdef  ERRORSENDER
     this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer has no data at index: " << index << endl; 
     #endif
     return -1;
@@ -635,7 +657,7 @@ int vtkDataSender::UnlockData(int index, int lock)
     }
   else
     {
-    #ifdef  DEBUGSENDER
+    #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: Try to release unknown lock" << endl; 
     #endif
     
@@ -714,3 +736,38 @@ ofstream& vtkDataSender::GetLogStream()
 {
         return this->LogStream;
 }
+
+/******************************************************************************
+ * void UpdateFrameRate(double sendTime)
+ * 
+ *  Calculates and prints current frame rate to console
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  5.February 2009
+ * 
+ *  @Param: double sentTime - send time of last message
+ *
+ * ****************************************************************************/
+void vtkDataSender::UpdateFrameRate(double sendTime)
+{
+  this->UpDateCounter++;  
+  
+  if(this->lastFrameRateUpdate + 1 <= this->GetUpTime())
+    {
+    if(this->lastFrameRateUpdate != 0)
+      {
+      float timeSpan = sendTime - this->lastFrameRateUpdate;
+      cout << "\b\b\b\b\b" << std::flush;
+      cout << setw(5) << setprecision(2) << this->UpDateCounter / timeSpan;
+      this->UpDateCounter = 0;
+      }
+    else
+      {
+      cout << "Frame rate:       fps\b\b\b\b" <<std::flush;
+      }
+    this->lastFrameRateUpdate = sendTime;
+    }
+
+
+}
+

@@ -57,7 +57,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "SynchroGrabConfigure.h"
 
 #include "vtkObject.h"
-#include "vtkImageData.h"
 
 class vtkUltrasoundCalibFileReader;
 class vtkTaggedImageFilter;
@@ -77,6 +76,7 @@ class vtkTrackerSimulator;
 #endif
 
 class vtkMatrix4x4;
+class vtkImageData;
 
 class vtkDataCollector : public vtkObject
 {
@@ -138,6 +138,7 @@ public:
   bool StopCollecting();
   void AdjustMatrix(vtkMatrix4x4& matrix);
   double GetUpTime();
+  int DuplicateFrame(vtkImageData * original, vtkImageData * duplicate);
 
 protected:
   vtkDataCollector();

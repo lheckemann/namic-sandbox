@@ -145,6 +145,8 @@ protected:
 
   bool Sending;
   bool Connected;
+  double lastFrameRateUpdate;
+  int UpDateCounter;
 
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;
@@ -158,6 +160,7 @@ protected:
 
   int AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix4x4* matrix);
   bool IsIndexAvailable(int index);
+  void UpdateFrameRate(double sendTime);
 
   struct FramePoperties frameProperties;
 

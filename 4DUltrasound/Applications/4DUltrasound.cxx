@@ -108,7 +108,9 @@ int main(int argc, char **argv)
     processor->SetLogStream(logStream);
     sender->SetLogStream(logStream);
           
-    cout << "--- Started ---" << endl << endl;
+    //cout << "--- Started ---" << endl << endl;
+    cout << "--- Started ---" << std::flush << "\b\b\b" <<std::flush << "Test" <<endl;
+    
 
     //redirect vtk errors to a file
     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
