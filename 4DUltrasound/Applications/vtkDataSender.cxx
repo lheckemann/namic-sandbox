@@ -288,31 +288,36 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
   igtl::ImageMessage::Pointer imageMessage;
   int errors = 0;
   bool dataAvailable = false;
+  double sectionTime;
+  double loopTime;
 
   do
     {
     if(dataAvailable || !self->IsSendDataBufferEmpty())
       {//New data available
-
+      loopTime = self->GetUpTime();
       currentIndex = self->GetHeadOfNewDataBuffer();
       
       #ifdef TIMINGSENDER
       self->GetLogStream() << self->GetUpTime() <<" |*********************************************" << endl;
-      self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Sender Found new Data at Index: " << currentIndex << endl;
+      self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Sender Found new Data at Index: " << currentIndex
+                           << " | L:" << self->GetUpTime() - loopTime << endl;
       #endif
       
       //Prepare new data
+      sectionTime = self->GetUpTime();
       if(self->PrepareImageMessage(currentIndex, imageMessage) != -1)
         {
         #ifdef TIMINGSENDER
-        self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Message Prepared" << endl;
+        self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Message Prepared" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
         #endif
         
         //Send new data
+        sectionTime = self->GetUpTime();
         errors += self->SendMessage(imageMessage);
       
         #ifdef TIMINGSENDER
-        self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Message Send" << endl;
+        self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Message Send" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
         #endif
         
         }
@@ -447,6 +452,10 @@ int vtkDataSender::PrepareImageMessage(int index,
     return -1;
     }
 
+   #ifdef TIMINGSENDER
+     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 1" << endl;
+   #endif
+  
   //Get Data
   vtkImageData * frame = this->sendDataBuffer[index].ImageData;
   vtkMatrix4x4 * matrix = this->sendDataBuffer[index].Matrix;
@@ -463,6 +472,9 @@ int vtkDataSender::PrepareImageMessage(int index,
     frameProperties.Set = true;
 //    }
 
+   #ifdef TIMINGSENDER
+     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 2" << endl;
+   #endif
     
   //------------------------------------------------------------
   // Create a new IMAGE type message
@@ -485,17 +497,27 @@ int vtkDataSender::PrepareImageMessage(int index,
     double copyStart = this->GetUpTime();
   #endif
   
-  for(int i = 0 ; i < frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] ; i++ )
-    {
-    *pImageMessage = (unsigned char) *pFrame;
-    ++pFrame; ++pImageMessage;
-    #ifdef  DEBUGSENDER
-      ++counter;      
-    #endif
-    }
+  #ifdef TIMINGSENDER
+     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 3" << endl;
+  #endif
+    
+  memcpy(pImageMessage, pFrame, frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] * frame->GetNumberOfScalarComponents());
+    
+//  for(int i = 0 ; i < frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] ; i++ )
+//    {
+//    *pImageMessage = (unsigned char) *pFrame;
+//    ++pFrame; ++pImageMessage;
+//    #ifdef  DEBUGSENDER
+//      ++counter;      
+//    #endif
+//    }
 
+   #ifdef TIMINGSENDER
+     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 4" << endl;
+   #endif
+  
   igtl::Matrix4x4 igtlMatrix;
-
+  
   //Copy matrix to output buffer
   for(int i = 0; i < 4; ++i)
     {
@@ -505,6 +527,10 @@ int vtkDataSender::PrepareImageMessage(int index,
       }
     }
 
+   #ifdef TIMINGSENDER
+     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 5" << endl;
+   #endif
+  
   #ifdef  DEBUGSENDER
     this->LogStream <<  this->GetUpTime() << " |S-INFO: Size of image frame to send:" 
                     << frameProperties.Size[0] << " | " 
@@ -521,7 +547,15 @@ int vtkDataSender::PrepareImageMessage(int index,
 
   imageMessage->SetMatrix(igtlMatrix);
 
+#ifdef TIMINGSENDER
+     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 6" << endl;
+   #endif
+  
   imageMessage->Pack();// Pack (serialize)
+  
+#ifdef TIMINGSENDER
+     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 7" << endl;
+   #endif
 
   return 0;
 
