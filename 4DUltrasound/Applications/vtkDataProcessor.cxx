@@ -53,6 +53,7 @@ POSSIBILITY OF SUCH DAMAGE.
 //#define DEBUG_MATRICES //Prints tagger matrices to stdout
 #define NEWFORWARDING
 #define MERGE
+#define NEWMERGE
 
 //#include <windows.h>
 
@@ -566,10 +567,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
                     << "         | Frame Origin: " << newFrame->GetOrigin()[0]<< "| " << newFrame->GetOrigin()[1]<< "|" << newFrame->GetOrigin()[2] << endl;
   #endif
 
-  #ifdef  TIMINGPROCESSOR
-  this->GetLogStream() <<  this->GetUpTime() << " |P-INFO: Check and Update 1" << endl;
-  #endif
-    
   double imCorners[4][4]= {
     { xmin, ymin, 0, 1},
     { xmin, ymax, 0, 1},
@@ -596,10 +593,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     maxZ = max(transformedPt[2], maxZ);
     }
 
-  #ifdef  TIMINGPROCESSOR
-  this->GetLogStream() <<  this->GetUpTime() << " |P-INFO: Check and Update 2" << endl;
-  #endif
-  
   vtkFloatingPointType newOrigin[3] = {minX, minY, minZ};
   vtkFloatingPointType newOriginBackup[3] = {minX, minY, minZ};
 
@@ -659,10 +652,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
       }
     }
 
-  #ifdef  TIMINGPROCESSOR
-  this->GetLogStream() <<  this->GetUpTime() << " |P-INFO: Check and Update 3" << endl;
-  #endif
-  
   if(dataSenderIndex == -2 || originChanged || extentChanged)
     {
     
@@ -695,10 +684,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     this->reconstructor->GetOutput()->SetNumberOfScalarComponents(newFrame->GetNumberOfScalarComponents());
     this->reconstructor->GetOutput()->AllocateScalars();
 
-  #ifdef  TIMINGPROCESSOR
-  this->GetLogStream() <<  this->GetUpTime() << " |P-INFO: Check and Update 4" << endl;
-  #endif
-    
 #ifdef MERGE    
     if(originChanged || extentChanged)
 #else
@@ -729,16 +714,9 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         }
       }
     }
-  #ifdef  TIMINGPROCESSOR
-  this->GetLogStream() <<  this->GetUpTime() << " |P-INFO: Check and Update 5" << endl;
-  #endif
   
   this->ResetOldVolume(dataSenderIndex);
   
-  #ifdef  TIMINGPROCESSOR
-  this->GetLogStream() <<  this->GetUpTime() << " |P-INFO: Check and Update 6" << endl;
-  #endif
-
    return retVal;
 }
 
@@ -1163,61 +1141,105 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
     return -1;
   }
 
-  #ifdef  TIMINGPROCESSOR
-  this->GetLogStream() <<  this->GetUpTime() << " |P-INFO: Merge 1" << endl;
-  #endif
+  int x, y, z;
   
   int counter = 0;
   vtkIdType inIncX, inIncY, inIncZ;
   vtkIdType outIncX, outIncY, outIncZ;
 
   //Calc x, y, z start and end coordinates of old volume in new volume
-  vtkFloatingPointType xStart = originNewVolume[0] + (originOldVolume[0] - originNewVolume[0]) * ScalarComponents;
-  vtkFloatingPointType xEnd   = xStart + extentOldVolume[1] * ScalarComponents;
-  vtkFloatingPointType yStart = originOldVolume[1];
-  vtkFloatingPointType yEnd   = yStart + extentOldVolume[3];
-  vtkFloatingPointType zStart = originOldVolume[2];
-  vtkFloatingPointType zEnd   = zStart + extentOldVolume[5];
+  int xStart = (int) originNewVolume[0] + ((int) originOldVolume[0] - (int) originNewVolume[0]) * ScalarComponents;
+  int xEnd   = xStart + extentOldVolume[1] * ScalarComponents;
+  int yStart = (int) originOldVolume[1];
+  int yEnd   = yStart + extentOldVolume[3];
+  int zStart = (int) originOldVolume[2];
+  int zEnd   = zStart + extentOldVolume[5];
 
   // Get increments to march through data
   oldVolume->GetContinuousIncrements(extentNewVolume, inIncX, inIncY, inIncZ);
   newVolume->GetContinuousIncrements(extentNewVolume, outIncX, outIncY, outIncZ);
   
+  int rowLength = (extentNewVolume[1] - extentNewVolume[0] + 1) * ScalarComponents + outIncY;
+  int oldRowLength = extentOldVolume[1] - extentOldVolume[0] + 1;
+  int frameSize = (extentNewVolume[3] - extentNewVolume[2] + 1) * rowLength + outIncZ;
+  
+  int spaceBeforeXStart = xStart - (int) originNewVolume[0];
+  int spaceAfterXEnd = (int) originNewVolume[0] + extentNewVolume[1] * ScalarComponents - xEnd;
+  
+  int spaceBeforeYStart = (yStart - (int) originNewVolume[1] + outIncY) * rowLength;
+  int spaceAfterYEnd = ((int) originNewVolume[1] + extentNewVolume[3] * ScalarComponents - yEnd) * rowLength;
+  
+  int spaceBeforeZStart = (zStart - (int) originNewVolume[2]) * frameSize;
+  
   //Get Data pointer
   unsigned char* pDataNewVolume = (unsigned char *) newVolume->GetScalarPointer();
   unsigned char* pDataOldVolume = (unsigned char *) oldVolume->GetScalarPointer();
 
-  #ifdef  TIMINGPROCESSOR
-  this->GetLogStream() <<  this->GetUpTime() << " |P-INFO: Merge 2" << endl;
-  #endif
-  
-  //Copy old volume into new volume
-  for(int z = (int) originNewVolume[2]; z <= zEnd; ++z)
-    {
-    for(int y = (int) originNewVolume[1]; y <= originNewVolume[1] + extentNewVolume[3]; ++y)
+  try
+   {
+    #ifdef NEWMERGE
+    //Copy Data  
+    pDataNewVolume += spaceBeforeZStart;
+    for(z = zStart; z <= zEnd; ++z)
       {
-      for(int x = (int)originNewVolume[0]; x <= originNewVolume[0] + extentNewVolume[1] * ScalarComponents; ++x)
+      pDataNewVolume += spaceBeforeYStart;
+      for(y = yStart; y <= yEnd; ++y)
         {
-        if(   (x >= xStart && x <= xEnd)
-           && (y >= yStart && y <= yEnd)
-           && (z >= zStart && z <= zEnd))
-          {
-          *pDataNewVolume = *pDataOldVolume;
-          ++pDataOldVolume;
-          ++counter;
-          }
-        ++pDataNewVolume;
+          pDataNewVolume += spaceBeforeXStart;
+          memcpy(pDataNewVolume, pDataOldVolume, oldRowLength);
+          pDataOldVolume += oldRowLength;
+          pDataNewVolume += oldRowLength;
+          counter += oldRowLength;
+//          for(x = xStart; x <= xEnd; ++x){//Copy data from old to new volume
+//          *pDataNewVolume = *pDataOldVolume;
+//            ++pDataOldVolume;
+//            ++pDataNewVolume;
+//            ++counter;
+//          }
+          
+          pDataNewVolume += spaceAfterXEnd;
+          
+          pDataNewVolume += outIncY;
+          pDataOldVolume += inIncY;
         }
-      pDataNewVolume += outIncY;
-      pDataOldVolume += inIncY;
+      pDataNewVolume += spaceAfterYEnd;
+      
+      pDataNewVolume += outIncZ;
+      pDataNewVolume += inIncZ;
       }
-    pDataNewVolume += outIncZ;
-    pDataOldVolume += inIncZ;
+    
+    #else //NEWMERGE
+    //Copy old volume into new volume
+    for( z = (int) originNewVolume[2]; z <= zEnd; ++z)
+      {
+      for( y = (int) originNewVolume[1]; y <= originNewVolume[1] + extentNewVolume[3]; ++y)
+        {
+        
+        for( x = (int)originNewVolume[0]; x <= originNewVolume[0] + extentNewVolume[1] * ScalarComponents; ++x)
+          {
+          if(   (x >= xStart && x <= xEnd)
+             && (y >= yStart && y <= yEnd)
+             && (z >= zStart && z <= zEnd))
+            {
+            *pDataNewVolume = *pDataOldVolume;
+            ++pDataOldVolume;
+            ++counter;
+            }
+          ++pDataNewVolume;
+          }
+        pDataNewVolume += outIncY;
+        pDataOldVolume += inIncY;
+        }
+      pDataNewVolume += outIncZ;
+      pDataOldVolume += inIncZ;
+      }
+    
+    #endif//NEWMERGE
+    }//End try
+  catch (...)
+    {
+    throw;
     }
-
-  #ifdef  TIMINGPROCESSOR
-  this->GetLogStream() <<  this->GetUpTime() << " |P-INFO: Merge 3" << endl;
-  #endif
   
   if(counter != 0)
     {
@@ -1432,23 +1454,33 @@ void vtkDataProcessor::DuplicateImage(vtkImageData * original, vtkImageData * du
   unsigned char * outPtr = (unsigned char*) duplicate->GetScalarPointer();
   unsigned char * inPtr = (unsigned char*) original->GetScalarPointer();
 
-  //Copy image data
-  for (idxZ = 0; idxZ <= maxZ; idxZ++)
+  
+  if(inIncY == outIncY && inIncZ == outIncZ)
     {
-    for (idxY = 0; idxY <= maxY; idxY++)
+    long long bytesToCopy = ((rowLength + outIncY) * (maxY + 1) + outIncZ) * (maxZ + 1);
+    memcpy(outPtr, inPtr, bytesToCopy);
+    }
+  else
+    {
+    
+    //Copy image data
+    for (idxZ = 0; idxZ <= maxZ; idxZ++)
       {
-      for (idxR = 0; idxR < rowLength; idxR++)
+      for (idxY = 0; idxY <= maxY; idxY++)
         {
-        // Pixel operation
-        *outPtr = *inPtr;
-        outPtr++;
-        inPtr++;
+        for (idxR = 0; idxR < rowLength; idxR++)
+          {
+          // Pixel operation
+          *outPtr = *inPtr;
+          outPtr++;
+          inPtr++;
+          }
+        outPtr += outIncY;
+        inPtr += inIncY;
         }
-      outPtr += outIncY;
-      inPtr += inIncY;
+      outPtr += outIncZ;
+      inPtr += inIncZ;
       }
-    outPtr += outIncZ;
-    inPtr += inIncZ;
     }
 }
 
