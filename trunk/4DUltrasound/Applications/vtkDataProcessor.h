@@ -102,6 +102,7 @@ public:
   int ForwardData();
   double GetUpTime();
   void ResetOldVolume(int dataSenderIndex);
+  void DuplicateImage(vtkImageData * original, vtkImageData * duplicate);
 
 protected:
   vtkDataProcessor();

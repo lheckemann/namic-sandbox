@@ -45,10 +45,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <limits>
 #include <string>
 
-#define NOMINMAX
 //#define REMOVE_ALPHA_CHANNEL
-#define DEBUG_IMAGES //Write tagger output to HDD
+//#define DEBUG_IMAGES //Write tagger output to HDD
 //#define DEBUG_MATRICES //Prints tagger matrices to stdout
+#define NEWCOLLECTOR
 
 //#include <windows.h>
 
@@ -62,6 +62,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkMultiThreader.h"
 #include "vtkTimerLog.h"
 #include "vtkMutexLock.h"
+#include "vtkImageData.h"
 
 #include "vtkObjectFactory.h"
 
@@ -315,8 +316,8 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
 
   double rate = self->GetFrameRate();
   int frame = 0;
+  int extent[6];
 
-  vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
 
 #ifdef DEBUG_IMAGES
   vtkBMPWriter *writer = vtkBMPWriter::New();
@@ -334,40 +335,57 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
 
     //Get Tracking Matrix for new frame
     
-    self->Gettracker()->StopTracking();
-    self->GetTagger()->Update();    
-    self->GetTagger()->GetTransform()->GetMatrix(trackerMatrix);
-    self->Gettracker()->StartTracking();
+    vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
+    //self->Gettracker()->StopTracking();
+    self->GetTagger()->Update();
+    trackerMatrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
+    //self->Gettracker()->StartTracking();
 
 #ifdef DEBUG_MATRICES
     self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
     trackerMatrix->Print(self->GetLogStream());
 #endif
 
-#ifdef DEBUG_IMAGES
-    writer->SetInput(self->GetTagger()->GetOutput());
-    sprintf(filename,"./Output/output%03d.bmp",frame);
-    writer->SetFileName(filename);
-    writer->Update();
-#endif
 
 #ifdef USE_TRACKER_DEVICE
     self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
 #endif
 
+#ifdef NEWCOLLECTOR
+    vtkImageData* newFrame = vtkImageData::New();    
+    self->DuplicateFrame(self->GetTagger()->GetOutput(), newFrame);
+#endif
+    
+#ifdef DEBUG_IMAGES
+    
+#ifdef NEWCOLLECTOR
+    writer->SetInput(newFrame);
+#else
+    writer->SetInput(self->GetTagger()->GetOutput());
+#endif
+    
+    sprintf(filename,"./Output/output%03d.bmp",frame);
+    writer->SetFileName(filename);
+    writer->Update();
+#endif //DEBUG_IMAGES
+    
     //Send frame + matrix
+    #ifdef NEWCOLLECTOR
+    if(self->GetDataProcessor()->NewData(newFrame, trackerMatrix) == -1)
+    #else
     if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
+    #endif
       {
+      #ifdef DEBUGCOLLECTOR
       self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
+      #endif
       }
 
     frame++;
     }
   while(vtkThreadSleep(data, vtkTimerLog::GetUniversalTime() + 1 / rate));
 
-  trackerMatrix->Delete();
-
-  return NULL;
+return NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -377,7 +395,9 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     {
     if(!this->Initialize())
       {
+        #ifdef ERRORCOLLECTOR
         this->LogStream << this->GetUpTime() << " |C-ERROR: Could not initialize DataCollector" << endl;
+        #endif
         return false;
       }
     }
@@ -388,7 +408,9 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     }
   else
     {
+    #ifdef ERRORCOLLECTOR
     this->LogStream << this->GetUpTime() << " |C-ERROR: Data collector already collects data";
+    #endif
     return false;
     }
 
@@ -398,7 +420,9 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     }
   else
     {
+    #ifdef ERRORCOLLECTOR
     this->LogStream << this->GetUpTime() << " |C-ERROR: No data processor provided. Data collection not possible" << endl;
+    #endif
     return false;
     }
 
@@ -435,7 +459,9 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     }
   else
     {
-          this->LogStream << this->GetUpTime() << " |C-ERROR: Collector thread could not be started" << endl;
+    #ifdef ERRORCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-ERROR: Collector thread could not be started" << endl;
+    #endif
     return false;
     }
 }
@@ -514,3 +540,29 @@ ofstream& vtkDataCollector::GetLogStream()
 {
         return this->LogStream;
 }
+
+/******************************************************************************
+ * void vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * duplicate)
+ *
+ *  Duplicates Image inData to Image outData
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ * 
+ *  @Param: vtkImageData * original - Original 
+ *  @Param: vtkImageData * copy - Copy
+ *
+ * ****************************************************************************/
+int vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * duplicate)
+{
+  if(this->DataProcessor != NULL)
+    {
+    this->DataProcessor->DuplicateImage(original, duplicate);
+    return 0;
+    }
+  else
+    {
+    return -1;
+    }
+}
+
