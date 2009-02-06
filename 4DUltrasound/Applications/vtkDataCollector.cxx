@@ -109,7 +109,7 @@ vtkDataCollector::vtkDataCollector()
   this->CalibrationFileName = NULL;
 
 #ifdef USE_ULTRASOUND_DEVICE
-  char* devicename = "/dev/video0";
+  char* devicename = "/dev/video";
   this->SetVideoDevice(devicename);
   this->SetVideoChannel(3); //S-Video at Hauppauge Impact VCB Modell 558
   this->SetVideoMode(1); //NTSC
