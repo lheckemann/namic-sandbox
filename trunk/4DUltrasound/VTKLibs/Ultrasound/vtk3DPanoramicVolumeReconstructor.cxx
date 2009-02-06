@@ -203,7 +203,7 @@ vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
   // one thread for each CPU is used for the reconstruction
   this->Threader = vtkMultiThreader::New();
   this->NumberOfThreads = this->Threader->GetNumberOfThreads();  
-  //this->NumberOfThreads = 4;
+  //this->NumberOfThreads = 1;
   //cerr << " NUM threads" << NumberOfThreads << endl;
   // for running the reconstruction in the background
   
@@ -1037,7 +1037,7 @@ static int vtkNearestNeighborInterpolation(F *point, T *inPtr, T *outPtr,
         *outPtr = ((*inPtr++)*255 + (*outPtr)*(*accPtr))/newa;
         outPtr++;
         }
-      //*outPtr = 255;
+      *outPtr = 255;
       *accPtr = 65535;
       if (newa < 65535)
         {
@@ -1168,7 +1168,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         a *= 255;
         if (a < F(65535)) // don't allow accumulation buffer overflow
           {
-//    cout<<"Overflow"<<endl;
+    //    cout<<"Overflow"<<endl;
           vtkUltraRound(a, *accPtrTmp);
           }
         }
@@ -1243,7 +1243,7 @@ static void vtkGetUltraInterpFunc(vtk3DPanoramicVolumeReconstructor *self,
     {
     case VTK_FREEHAND_NEAREST: *interpolate = &vtkNearestNeighborInterpolation;
      //JG
-     // *interpolate = &vtkTrilinearInterpolation;
+     //*interpolate = &vtkTrilinearInterpolation;
       break;
     case VTK_FREEHAND_LINEAR: *interpolate = &vtkTrilinearInterpolation;
      //JG
@@ -1336,7 +1336,7 @@ static void vtk3DPanoramicVolumeReconstructorInsertSlice(vtk3DPanoramicVolumeRec
       for (idX = inExt[0]; idX <= inExt[1]; idX++)
         {
         if (idX >= clipExt[0] && idX <= clipExt[1] && 
-      idY >= clipExt[2] && idY <= clipExt[3])
+            idY >= clipExt[2] && idY <= clipExt[3])
           {
           double x = (idX-xf);
           double y = (idY-yf);
@@ -1355,9 +1355,9 @@ static void vtk3DPanoramicVolumeReconstructorInsertSlice(vtk3DPanoramicVolumeRec
             outPoint[1] /= outPoint[3]; //   was a perspective transform
             outPoint[2] /= outPoint[3];
             outPoint[3] = 1;
- int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, outExt, outInc);
-//    self->SetPixelCount( self->GetPixelCount() + hit);
-self->IncrementPixelCount(0, hit);
+            int hit = interpolate(outPoint, inPtr, outPtr, accPtr, numscalars, outExt, outInc);
+            //    self->SetPixelCount( self->GetPixelCount() + hit);
+            self->IncrementPixelCount(0, hit);
             }
           }
         inPtr += numscalars; 
@@ -1923,10 +1923,11 @@ void vtk3DPanoramicVolumeReconstructor::InternalClearOutput()
   outData->SetExtent(outExtent);
   outData->AllocateScalars();
   void *outPtr = outData->GetScalarPointerForExtent(outExtent);
-  memset(outPtr,0,(outExtent[1]-outExtent[0]+1)*
-     (outExtent[3]-outExtent[2]+1)*
-     (outExtent[5]-outExtent[4]+1)*
-     outData->GetScalarSize()*numScalars);
+  //JG 2009/02/05 Avoid removing output data
+  //memset(outPtr,0,(outExtent[1]-outExtent[0]+1)*
+//     (outExtent[3]-outExtent[2]+1)*
+//     (outExtent[5]-outExtent[4]+1)*
+//     outData->GetScalarSize()*numScalars);
 
 
   if (this->Compounding)
@@ -2850,8 +2851,8 @@ outInc[2] = (int) vtkIdTypeOutInc[2];
         vtkFreehandOptimizedNNHelper(r1, r2, outPoint, outPoint1, xAxis, 
                                      inPtr, outPtr, outExt, outInc,
                                      numscalars, accPtr);
-  // self->PixelCount += r2-r1+1;
-  self->IncrementPixelCount(threadId, r2-r1+1);
+        // self->PixelCount += r2-r1+1;
+        self->IncrementPixelCount(threadId, r2-r1+1);
         }
   
       // skip the portion of the slice we don't want to reconstruct
