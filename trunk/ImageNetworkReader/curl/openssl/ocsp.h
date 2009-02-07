@@ -149,6 +149,9 @@ typedef struct ocsp_signature_st
  *       tbsRequest                  TBSRequest,
  *       optionalSignature   [0]     EXPLICIT Signature OPTIONAL }
  */
+#ifdef OCSP_REQUEST
+#undef OCSP_REQUEST
+#endif
 typedef struct ocsp_request_st
   {
   OCSP_REQINFO *tbsRequest;
@@ -186,6 +189,9 @@ typedef struct ocsp_resp_bytes_st
  *      responseStatus         OCSPResponseStatus,
  *      responseBytes          [0] EXPLICIT ResponseBytes OPTIONAL }
  */
+#ifdef OCSP_RESPONSE
+#undef OCSP_RESPONSE
+#endif
 typedef struct ocsp_response_st
   {
   ASN1_ENUMERATED *responseStatus;
