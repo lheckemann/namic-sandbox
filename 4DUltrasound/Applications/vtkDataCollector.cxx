@@ -192,13 +192,18 @@ int vtkDataCollector::Initialize()
   this->VideoSource->SetFrameSize(imSize[0], imSize[1], 1);
   //
   // Setting up the synchronization filter
-  this->Tagger->SetVideoSource(VideoSource);
+  this->Tagger->SetVideoSource(this->VideoSource);
 
   // set up the tracker if necessary
   int error = this->StartTracker();
 
   this->Tagger->Initialize();
-
+  
+  cout << "Test recording Start" << endl;
+  this->VideoSource->Record();
+  this->VideoSource->Stop();
+  
+  cout << "Test recording End" << endl;
   this->Initialized = true;
 
   return error;
