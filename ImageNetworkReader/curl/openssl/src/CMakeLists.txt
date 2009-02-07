@@ -12,12 +12,16 @@ CONFIGURE_FILE(${OpenSSL_SOURCE_DIR}/opensslconf.h.in
   ${OpenSSL_BINARY_DIR}/../opensslconf.h)
 
 INCLUDE_DIRECTORIES(${OpenSSL_BINARY_DIR}/../)
+INCLUDE_DIRECTORIES(${OpenSSL_BINARY_DIR}/../)
+INCLUDE_DIRECTORIES(${OpenSSL_BINARY_DIR}/../../)
 INCLUDE_DIRECTORIES(${OpenSSL_BINARY_DIR}/openssl)
 
 AUX_SOURCE_DIRECTORY(. OpenSSL_SRCS)
 
 INCLUDE_DIRECTORIES(
 ${OpenSSL_SOURCE_DIR}/crypto
+${OpenSSL_SOURCE_DIR}/../
+${OpenSSL_SOURCE_DIR}/../../
 )
 
 AUX_SOURCE_DIRECTORY(crypto/evp Crypto_SRCS)
@@ -82,6 +86,7 @@ ${Crypto_md5_SRCS}
 ${Crypto_buffer_SRCS}
 ${Crypto_bio_SRCS}
 ${Crypto_objects_SRCS}
+${Crypto_ocsp_SRCS}
 ${Crypto_comp_SRCS}
 ${Crypto_des_SRCS}
 ${Crypto_dh_SRCS}
@@ -101,7 +106,6 @@ ${Crypto_ecdsa_SRCS}
 ${Crypto_md2_SRCS}
 ${Crypto_rc2_SRCS}
 ${Crypto_rc4_SRCS}
-${Crypto_ocsp_SRCS}
 ${Crypto_conf_SRCS}
 ${Crypto_pkcs7_SRCS}
 ${Crypto_pkcs12_SRCS}
