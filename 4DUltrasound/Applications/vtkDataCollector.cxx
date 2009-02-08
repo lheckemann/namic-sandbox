@@ -195,18 +195,19 @@ int vtkDataCollector::Initialize()
   this->Tagger->SetVideoSource(this->VideoSource);
 
   // set up the tracker if necessary
-  int error = this->StartTracker();
+  if(-1 == this->StartTracker())
+    {
+    return -1;
+    }
+  else
+    {
+    this->Tagger->Initialize();
+    this->VideoSource->Record();
+    this->VideoSource->Stop();
+    this->Initialized = true;
+    return 0;
+    }
 
-  this->Tagger->Initialize();
-  
-  cout << "Test recording Start" << endl;
-  this->VideoSource->Record();
-  this->VideoSource->Stop();
-  
-  cout << "Test recording End" << endl;
-  this->Initialized = true;
-
-  return error;
 }
 //
 //----------------------------------------------------------------------------
@@ -339,7 +340,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
 //    self->GetVideoSource()->Seek(1);
 
     //Get Tracking Matrix for new frame
-    
+
     vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
     //self->Gettracker()->StopTracking();
     self->GetTagger()->Update();
@@ -357,23 +358,23 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
 #endif
 
 #ifdef NEWCOLLECTOR
-    vtkImageData* newFrame = vtkImageData::New();    
+    vtkImageData* newFrame = vtkImageData::New();
     self->DuplicateFrame(self->GetTagger()->GetOutput(), newFrame);
 #endif
-    
+
 #ifdef DEBUG_IMAGES
-    
+
 #ifdef NEWCOLLECTOR
     writer->SetInput(newFrame);
 #else
     writer->SetInput(self->GetTagger()->GetOutput());
 #endif
-    
+
     sprintf(filename,"./Output/output%03d.bmp",frame);
     writer->SetFileName(filename);
     writer->Update();
 #endif //DEBUG_IMAGES
-    
+
     //Send frame + matrix
     #ifdef NEWCOLLECTOR
     if(self->GetDataProcessor()->NewData(newFrame, trackerMatrix) == -1)
@@ -537,7 +538,7 @@ void vtkDataCollector::SetLogStream(ofstream &LogStream)
  *
  *  @Author:Jan Gumprecht
  *  @Date:  4.February 2009
- * 
+ *
  *  @Return: Logstream
  *
  * ****************************************************************************/
@@ -553,8 +554,8 @@ ofstream& vtkDataCollector::GetLogStream()
  *
  *  @Author:Jan Gumprecht
  *  @Date:  4.February 2009
- * 
- *  @Param: vtkImageData * original - Original 
+ *
+ *  @Param: vtkImageData * original - Original
  *  @Param: vtkImageData * copy - Copy
  *
  * ****************************************************************************/
