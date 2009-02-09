@@ -82,7 +82,8 @@ vtkInstrumentTracker::vtkInstrumentTracker()
   this->Enabled = false; //If false Instrument Tracker does nothing
 
   this->ServerPort = 18945;
-  this->OIGTLServer = "localhost";
+  this->OIGTLServer = NULL;
+  this->SetOIGTLServer("localhost");
   this->TrackingRate = 30;
   this->FrameBufferSize = 100;
   this->UltraSoundScanDepth = 70; //Unit: mm
