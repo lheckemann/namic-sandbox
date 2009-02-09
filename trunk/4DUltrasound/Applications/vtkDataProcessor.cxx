@@ -554,8 +554,8 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     this->LogStream << this->GetUpTime()  << " |P-INFO: Check and update a volume" <<endl;
     this->LogStream <<  "         |P-INFO: Update Matrix" <<endl;
     newTrackerMatrix->Print(this->LogStream );
-    this->LogStream << "         | Frame Extent: "<< newFrame->GetExtent()[0]<< ":"<< newFrame->GetExtent()[1]<< " | "<< newFrame->GetExtent()[2]<< ":"<< newFrame->GetExtent()[3]<< " | "<< newFrame->GetExtent()[4]<< ":"<< newFrame->GetExtent()[5]<< endl
-                    << "         | Frame Origin: " << newFrame->GetOrigin()[0]<< "| " << newFrame->GetOrigin()[1]<< "|" << newFrame->GetOrigin()[2] << endl;
+//    this->LogStream << "         | Frame Extent: "<< newFrame->GetExtent()[0]<< ":"<< newFrame->GetExtent()[1]<< " | "<< newFrame->GetExtent()[2]<< ":"<< newFrame->GetExtent()[3]<< " | "<< newFrame->GetExtent()[4]<< ":"<< newFrame->GetExtent()[5]<< endl
+//                    << "         | Frame Origin: " << newFrame->GetOrigin()[0]<< "| " << newFrame->GetOrigin()[1]<< "|" << newFrame->GetOrigin()[2] << endl;
   #endif
 
   double imCorners[4][4]= {
@@ -610,7 +610,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     //Update Origin and Extent
     this->reconstructor->GetOutputOrigin(oldOrigin);
     this->reconstructor->GetOutputExtent(oldExtent);
-    for(int i = 1; i <= 3; ++i)
+    for(int i = 0; i <= 2; ++i)
       {
       if(newOrigin[i] < oldOrigin[i])
         {
@@ -627,6 +627,14 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
           }
         }
       }
+    #ifdef  DEBUGPROCESSOR
+    this->LogStream << this->GetUpTime()  << " |P-INFO: Old Volume: Origin: "<< oldOrigin[0]<<"| "<< oldOrigin[1]<<"| "<<  oldOrigin[2]<< endl
+                            << "         |             Extent:  "<< oldExtent[0]<<"-"<<oldExtent[1] <<" | "<< oldExtent[2]<<"-"<< oldExtent[3]
+                                                       <<" | "<< oldExtent[4]<<"-"<< oldExtent[5]<<" "<<endl
+                            << "         | New Volume: Origin: "<< newOrigin[0]<<"| "<<newOrigin[1] <<"| "<< newOrigin[2]<<"" << endl
+                            << "         |             Extent:  "<< newExtent[0]<<"-"<<newExtent[1] <<" | "<< newExtent[2]<<"-"<< newExtent[3]
+                                                       <<" | "<< newExtent[4]<<"-"<< newExtent[5]<<" "<<endl;
+    #endif
     }
 
   if(dataSenderIndex == -2 || originChanged || extentChanged)
@@ -640,12 +648,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
       else
         {
         this->LogStream << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
-        this->LogStream << this->GetUpTime()  << " |P-INFO: Old Volume: Origin: "<< oldOrigin[0]<<"| "<< oldOrigin[1]<<"| "<<  oldOrigin[2]<< endl
-                        << "         |             Extent:  "<< oldExtent[0]<<"-"<<oldExtent[1] <<" | "<< oldExtent[2]<<"-"<< oldExtent[3]
-                                                   <<" | "<< oldExtent[4]<<"-"<< oldExtent[5]<<" "<<endl
-                        << "         | New Volume: Origin: "<< newOrigin[0]<<"| "<<newOrigin[1] <<"| "<< newOrigin[2]<<"" << endl
-                        << "         |             Extent:  "<< newExtent[0]<<"-"<<newExtent[1] <<" | "<< newExtent[2]<<"-"<< newExtent[3]
-                                                   <<" | "<< newExtent[4]<<"-"<< newExtent[5]<<" "<<endl;
         }
       #endif
     //Create new volume-------------------------------------------------------
