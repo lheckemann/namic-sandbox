@@ -4,7 +4,8 @@ ADD_EXECUTABLE(4DUltrasound
   4DUltrasound.cxx 
   vtkDataCollector.cxx 
   vtkDataProcessor.cxx
-  vtkDataSender.cxx 
+  vtkDataSender.cxx
+  vtkInstrumentTracker.cxx
   )
 
 IF(USE_TRACKER_DEVICE)
