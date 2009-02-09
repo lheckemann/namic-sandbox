@@ -142,12 +142,14 @@ vtkDataCollector::vtkDataCollector()
   this->Initialized = false;
 
   this->StartUpTime = vtkTimerLog::GetUniversalTime();
+  this->LogStream.ostream::rdbuf(cerr.rdbuf());
 
 }
 
 //----------------------------------------------------------------------------
 vtkDataCollector::~vtkDataCollector()
 {
+  this->StopCollecting();
   this->tracker->Delete();
   this->VideoSource->ReleaseSystemResources();
   this->VideoSource->Delete();
@@ -170,8 +172,16 @@ int vtkDataCollector::Initialize()
     return true;
     }
 
-  this->calibReader->SetFileName(this->CalibrationFileName);
-  this->calibReader->ReadCalibFile();
+  if(this->calibReader != NULL)
+    {
+    this->calibReader->SetFileName(this->CalibrationFileName);
+    this->calibReader->ReadCalibFile();
+    }
+  else
+    {
+    this->LogStream << "C-ERROR: Calibration file reader not specified" << endl;
+    return -1;
+    }
 
 #ifdef USE_ULTRASOUND_DEVICE
   this->VideoSource->SetVideoDevice(this->GetVideoDevice());
@@ -202,8 +212,10 @@ int vtkDataCollector::Initialize()
   else
     {
     this->Tagger->Initialize();
+    #ifdef USE_ULTRASOUND_DEVICE
     this->VideoSource->Record();
     this->VideoSource->Stop();
+    #endif
     this->Initialized = true;
     return 0;
     }
@@ -320,6 +332,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
 {
   vtkDataCollector *self = (vtkDataCollector *)(data->UserData);
 
+  double startTime = vtkTimerLog::GetUniversalTime();
   double rate = self->GetFrameRate();
   int frame = 0;
   int extent[6];
@@ -334,62 +347,60 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
     {
     //JG 09/01/21
     //this->LogStream << "New frame to process" <<endl;
-
-    //Grab new frame
-    self->GetVideoSource()->Grab();
-//    self->GetVideoSource()->Seek(1);
-
-    //Get Tracking Matrix for new frame
-
-    vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
-    //self->Gettracker()->StopTracking();
-    self->GetTagger()->Update();
-    trackerMatrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
-    //self->Gettracker()->StartTracking();
-
-#ifdef DEBUG_MATRICES
-    self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
-    trackerMatrix->Print(self->GetLogStream());
-#endif
-
-
-#ifdef USE_TRACKER_DEVICE
-    self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
-#endif
-
-#ifdef NEWCOLLECTOR
-    vtkImageData* newFrame = vtkImageData::New();
-    self->DuplicateFrame(self->GetTagger()->GetOutput(), newFrame);
-#endif
-
-#ifdef DEBUG_IMAGES
-
-#ifdef NEWCOLLECTOR
-    writer->SetInput(newFrame);
-#else
-    writer->SetInput(self->GetTagger()->GetOutput());
-#endif
-
-    sprintf(filename,"./Output/output%03d.bmp",frame);
-    writer->SetFileName(filename);
-    writer->Update();
-#endif //DEBUG_IMAGES
-
-    //Send frame + matrix
-    #ifdef NEWCOLLECTOR
-    if(self->GetDataProcessor()->NewData(newFrame, trackerMatrix) == -1)
-    #else
-    if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
-    #endif
+    if(!self->GetDataProcessor()->IsNewDataBufferFull())
       {
-      #ifdef DEBUGCOLLECTOR
-      self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
+      //Grab new frame
+      self->GetVideoSource()->Grab();
+
+      //Get Tracking Matrix for new frame
+      vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
+      self->GetTagger()->Update();
+      trackerMatrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
+
+      #ifdef DEBUG_MATRICES
+      self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
+      trackerMatrix->Print(self->GetLogStream());
       #endif
+
+
+      #ifdef USE_TRACKER_DEVICE
+      self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
+      #endif
+
+      #ifdef NEWCOLLECTOR
+      vtkImageData* newFrame = vtkImageData::New();
+      self->DuplicateFrame(self->GetTagger()->GetOutput(), newFrame);
+      #endif
+
+      #ifdef DEBUG_IMAGES
+
+      #ifdef NEWCOLLECTOR
+      writer->SetInput(newFrame);
+      #else
+      writer->SetInput(self->GetTagger()->GetOutput());
+      #endif
+
+      sprintf(filename,"./Output/output%03d.bmp",frame);
+      writer->SetFileName(filename);
+      writer->Update();
+      #endif //DEBUG_IMAGES
+
+      //Send frame + matrix
+      #ifdef NEWCOLLECTOR
+      if(self->GetDataProcessor()->NewData(newFrame, trackerMatrix) == -1)
+      #else
+      if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
+      #endif
+        {
+        #ifdef DEBUGCOLLECTOR
+        self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
+        #endif
+        }
       }
 
     frame++;
     }
-  while(vtkThreadSleep(data, vtkTimerLog::GetUniversalTime() + 1 / rate));
+  while(vtkThreadSleep(data, startTime + frame/rate));
 
 return NULL;
 }

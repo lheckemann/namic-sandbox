@@ -1,12 +1,10 @@
 /*=========================================================================
 
 Module:  $RCSfile: vtkDataCollector.h,v $
-Author:  Jonathan Boisvert, Queens School Of Computing
 Authors: Jan Gumprecht, Haiying Liu, Nobuhiko Hata, Harvard Medical School
 
-Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
-All rights reserved.
 Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
+All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -19,10 +17,6 @@ are met:
    notice, this list of conditions and the following disclaimer in
    the documentation and/or other materials provided with the
    distribution.
-
- * Neither the name of Queen's University nor the names of any
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
 
  * Neither the name of Harvard Medical School nor the names of any
    contributors may be used to endorse or promote products derived
@@ -112,7 +106,7 @@ public:
 
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
-  
+
 #ifdef USE_TRACKER_DEVICE
   vtkGetMacro(tracker, vtkNDITracker*);
 #else
@@ -128,9 +122,9 @@ public:
   vtkGetMacro(Tagger, vtkTaggedImageFilter *);
 
   vtkGetMacro(DataProcessor, vtkDataProcessor *);
-  
+
   void SetLogStream(ofstream &LogStream);
-  ofstream& GetLogStream();  
+  ofstream& GetLogStream();
 
   int StartTracker();
   int Initialize();
@@ -145,6 +139,7 @@ protected:
   ~vtkDataCollector();
 
   bool Verbose;
+  double StartUpTime;
   ofstream LogStream;
 
   char *CalibrationFileName;
@@ -154,7 +149,6 @@ protected:
   int   VideoMode; //NTSC == 1 , PAL == 2
   double FrameRate;
   int FrameBufferSize;
-  double StartUpTime;
 
   double ScanDepth;
 
