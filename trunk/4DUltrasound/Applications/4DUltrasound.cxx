@@ -120,7 +120,6 @@ int main(int argc, char **argv)
 
     cout << "--- Started ---" << endl << endl;
 
-
     //redirect vtk errors to a file
     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
     errOut->SetFileName("vtkError.txt");
@@ -178,6 +177,11 @@ int main(int argc, char **argv)
         }
 
       //Wait for user input to terminate 4D-Ultrasound
+      if(terminate != 0)
+        {
+        cerr << "ERROR occured while starting 4DUltrasound | Error-Code: " << terminate << endl;
+        }
+      
       goodByeScreen();
 
       instrumentTracker->StopTracking();
@@ -294,6 +298,7 @@ bool parseCommandLineArguments(int argc, char **argv,
         {
         string currentArg(argv[i]);
         //Calibration file
+        
         if( currentArg == "--calibration-file" || currentArg == "-c")
           {
           if( i < argc - 1)
