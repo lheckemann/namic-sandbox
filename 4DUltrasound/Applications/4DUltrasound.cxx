@@ -110,6 +110,8 @@ int main(int argc, char **argv)
     }
   else
     {
+    
+    //Log Stream Preparation
     logStream.precision(0);
     logStream.setf(ios::fixed,ios::floatfield);
     logStream.open(logFile, ios::out);
@@ -170,9 +172,9 @@ int main(int argc, char **argv)
       //Colleced instrument tracking matrices and forward them to the OpenIGTLink server
       if(terminate == 0)
         {
-        if(instrumentTracker->StartTracking() != 0 && instrumentTracker->ConnectToServer() != 0)
+        if(instrumentTracker->ConnectToServer() != 0 || instrumentTracker->StartTracking() != 0)
           {
-          terminate += 16;
+          //terminate += 16;
           }
         }
 
