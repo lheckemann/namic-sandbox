@@ -57,17 +57,23 @@ POSSIBILITY OF SUCH DAMAGE.
 //
 
 #include "vtkFileOutputWindow.h"
+#include "vtkImageData.h"
+#include "vtkTimerLog.h"
+
 #include "vtkDataCollector.h"
 #include "vtkDataProcessor.h"
 #include "vtkDataSender.h"
-#include "vtkImageData.h"
-#include "vtkTimerLog.h"
+#include "vtkInstrumentTracker.h"
 
 using namespace std;
 
 void printSplashScreen();
 void printUsage();
-bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collector, vtkDataProcessor* processor, vtkDataSender *sender);
+bool parseCommandLineArguments(int argc, char **argv,
+                               vtkDataCollector *collector,
+                               vtkDataProcessor* processor,
+                               vtkDataSender *sender,
+                               vtkInstrumentTracker *instrumentTracker);
 void goodByeScreen();
 
 /******************************************************************************
@@ -79,21 +85,24 @@ int main(int argc, char **argv)
 {
   int terminate = 0;
   ofstream logStream;
-  char* logFile = "./logFile.txt";  
+  char* logFile = "./logFile.txt";
 
   vtkDataCollector *collector = vtkDataCollector::New();
   vtkDataProcessor *processor = vtkDataProcessor::New();
   vtkDataSender *sender = vtkDataSender::New();
 
+  vtkInstrumentTracker *instrumentTracker =   vtkInstrumentTracker::New();
+
   double startTime = vtkTimerLog::GetUniversalTime();
   collector->SetStartUpTime(startTime);
   processor->SetStartUpTime(startTime);
   sender->SetStartUpTime(startTime);
+  instrumentTracker->SetStartUpTime(startTime);
 
   printSplashScreen();
 
   //Read command line arguments
-  bool successParsingCommandLine = parseCommandLineArguments(argc, argv, collector, processor, sender);
+  bool successParsingCommandLine = parseCommandLineArguments(argc, argv, collector, processor, sender, instrumentTracker);
   if(!successParsingCommandLine)
     {
     cerr << "ERROR: Could parse commandline arguments" << endl << endl;
@@ -107,10 +116,10 @@ int main(int argc, char **argv)
     collector->SetLogStream(logStream);
     processor->SetLogStream(logStream);
     sender->SetLogStream(logStream);
-          
-    //cout << "--- Started ---" << endl << endl;
-    cout << "--- Started ---" << std::flush << "\b\b\b" <<std::flush << "Test" <<endl;
-    
+    instrumentTracker->SetLogStream(logStream);
+
+    cout << "--- Started ---" << endl << endl;
+
 
     //redirect vtk errors to a file
     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
@@ -159,8 +168,20 @@ int main(int argc, char **argv)
           }
         }
 
+      //Colleced instrument tracking matrices and forward them to the OpenIGTLink server
+      if(terminate == 0)
+        {
+        if(instrumentTracker->StartTracking() != 0 && instrumentTracker->ConnectToServer() != 0)
+          {
+          terminate += 16;
+          }
+        }
+
       //Wait for user input to terminate 4D-Ultrasound
       goodByeScreen();
+
+      instrumentTracker->StopTracking();
+      instrumentTracker->CloseServerConnection();
 
       //Stop Collecting
       collector->StopCollecting();
@@ -172,10 +193,9 @@ int main(int argc, char **argv)
 
       //Stop Sending
       sender->StopSending();
-      sender->Delete();
-
       //Close Sever Connection
       sender->CloseServerConnection();
+      sender->Delete();
 
       cout << endl;
       if(terminate == 0)
@@ -233,13 +253,11 @@ void printUsage()
          << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl
          << "                                        (MANDATORY)"<<endl
          << "--reconstruct-volume or -rv:            Enable volume reconstruction" << endl
+         << "--instrument-tracking or -it:           Enable instrument tracking" << endl
          << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<<endl
          << "                                        (default: 'localhost')" << endl
          << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<<endl
          << "                                        server (default: 18944)" <<endl
-         << "--nb-frames xxx or -n xxx:              Specify the number of frames"<<endl
-         << "                                        that will be collected"<<endl
-         << "                                        (default: 50)" << endl
          << "--frames-per-second xxx or -fps xxx:    Number of frames per second for"<<endl
          << "                                        the ultrasound data collection"<<endl
          << "                                        (default: 10)" << endl
@@ -263,7 +281,11 @@ void printUsage()
 //
 // Parse the command line options.
 //
-bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collector, vtkDataProcessor *processor, vtkDataSender *sender)
+bool parseCommandLineArguments(int argc, char **argv,
+                               vtkDataCollector *collector,
+                               vtkDataProcessor *processor,
+                               vtkDataSender *sender,
+                               vtkInstrumentTracker *instrumentTracker)
 {
     // needs to be supplied
     bool calibrationFileSpecified = false;
@@ -278,6 +300,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
             {
             collector->SetCalibrationFileName(argv[++i]);
             processor->SetCalibrationFileName(argv[i]);
+            instrumentTracker->SetCalibrationFileName(argv[i]);
             calibrationFileSpecified = true;
             }
           }
@@ -290,6 +313,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
         else if(currentArg == "--oigtl-server" || currentArg == "-os")
           {
           sender->SetOIGTLServer(argv[++i]);
+          instrumentTracker->SetOIGTLServer(argv[i]);
           }
         //OpenIGTLink Port at Server
         else if(currentArg == "--oigtl-port" || currentArg == "-op")
@@ -297,19 +321,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
           if( i < argc - 1)
             {
             sender->SetServerPort(atoi(argv[++i]));
-            }
-          }
-        //Number of frames to grab
-        else if(currentArg == "--nb-frames" || currentArg == "-n")
-          {
-          if( i < argc - 1)
-            {
-              int nbFrames = atoi(argv[++i]);
-            if(nbFrames <= 0)
-              {
-              cout << "ERROR: Number of frames must be greater than 0 and not: " << nbFrames << endl;
-              return false;
-              }
+            instrumentTracker->SetServerPort(atoi(argv[i]));
             }
           }
         // Framerate of Ultrasound device
@@ -371,6 +383,7 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
               return false;
               }
             collector->SetScanDepth(scanDepth);
+            instrumentTracker->SetUltraSoundScanDepth(scanDepth);
             }
           }
         else if(currentArg == "--verbose" || currentArg == "-v")
@@ -378,6 +391,11 @@ bool parseCommandLineArguments(int argc, char **argv, vtkDataCollector *collecto
           collector->SetVerbose(true);
           sender->SetVerbose(true);
           processor->SetVerbose(true);
+          instrumentTracker->SetVerbose(true);
+          }
+        else if(currentArg == "--instrument-tracking" || currentArg == "-it")
+          {
+          instrumentTracker->SetEnabled(true);
           }
         else
            {
