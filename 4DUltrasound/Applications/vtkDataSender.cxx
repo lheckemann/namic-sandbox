@@ -74,6 +74,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "igtlImageMessage.h"
 #include "igtlMath.h"
 #include "igtlOSUtil.h"
+#include "igtlClientSocket.h"
 
 #define FUDGE_FACTOR 1.6
 #define CERTUS_UPDATE_RATE 625
@@ -87,8 +88,7 @@ vtkStandardNewMacro(vtkDataSender);
 vtkDataSender::vtkDataSender()
 {
   this->ServerPort = 18944;
-  this->OIGTLServer = NULL;
-  this->SetOIGTLServer("localhost");
+  this->OIGTLServer = "localhost";
   this->SendPeriod = 1 /(30 * 1.5);
 
   this->socket = NULL;
@@ -112,7 +112,7 @@ vtkDataSender::vtkDataSender()
 
   this->StartUpTime = vtkTimerLog::GetUniversalTime();
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
-  
+
   this->lastFrameRateUpdate = 0;
   this->UpDateCounter = 0;
 }
@@ -124,6 +124,9 @@ vtkDataSender::~vtkDataSender()
 
   this->SetOIGTLServer(NULL);
   this->PlayerThreader->Delete();
+
+  this->StopSending();
+  this->CloseServerConnection();
 
   //Delete all buffer objects
   while(!this->IsSendDataBufferEmpty())
@@ -297,13 +300,13 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
       {//New data available
       loopTime = self->GetUpTime();
       currentIndex = self->GetHeadOfNewDataBuffer();
-      
+
       #ifdef TIMINGSENDER
       self->GetLogStream() << self->GetUpTime() <<" |*********************************************" << endl;
       self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Sender Found new Data at Index: " << currentIndex
                            << " | L:" << self->GetUpTime() - loopTime << endl;
       #endif
-      
+
       //Prepare new data
       sectionTime = self->GetUpTime();
       if(self->PrepareImageMessage(currentIndex, imageMessage) != -1)
@@ -311,15 +314,18 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
         #ifdef TIMINGSENDER
         self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Message Prepared" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
         #endif
-        
+
         //Send new data
         sectionTime = self->GetUpTime();
         errors += self->SendMessage(imageMessage);
-      
+
         #ifdef TIMINGSENDER
-        self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Message Send" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+        self->GetLogStream() << self->GetUpTime() << " |S-INFO: Message Send"
+                                                  << " | S: " << self->GetUpTime() - sectionTime
+                                                  << " | L:" << self->GetUpTime() - loopTime
+                                                  << " | FPS: " << 1 / (self->GetUpTime() - loopTime) << endl;
         #endif
-        
+
         }
 
       //Delete sended data (Remove Index from new data buffer + free maps from data
@@ -448,14 +454,14 @@ int vtkDataSender::PrepareImageMessage(int index,
     {
     #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: No data to prepare at index: " << index << endl;
-    #endif    
+    #endif
     return -1;
     }
 
    #ifdef TIMINGSENDER
      this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 1" << endl;
    #endif
-  
+
   //Get Data
   vtkImageData * frame = this->sendDataBuffer[index].ImageData;
   vtkMatrix4x4 * matrix = this->sendDataBuffer[index].Matrix;
@@ -463,7 +469,7 @@ int vtkDataSender::PrepareImageMessage(int index,
 //  if(!frameProperties.Set)//Only neccessary once
 //    {
     //Get property of frame
-    frame->GetDimensions(frameProperties.Size);    
+    frame->GetDimensions(frameProperties.Size);
     frame->GetSpacing(frameProperties.Spacing);
     frameProperties.ScalarType = frame->GetScalarType();
     frameProperties.SubVolumeSize[0] = frameProperties.Size[0];
@@ -475,7 +481,7 @@ int vtkDataSender::PrepareImageMessage(int index,
    #ifdef TIMINGSENDER
      this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 2" << endl;
    #endif
-    
+
   //------------------------------------------------------------
   // Create a new IMAGE type message
   imageMessage = igtl::ImageMessage::New();
@@ -496,50 +502,70 @@ int vtkDataSender::PrepareImageMessage(int index,
     int counter = 0;
     double copyStart = this->GetUpTime();
   #endif
-  
+
   #ifdef TIMINGSENDER
      this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 3" << endl;
   #endif
-    
+
   memcpy(pImageMessage, pFrame, frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] * frame->GetNumberOfScalarComponents());
-    
+
 //  for(int i = 0 ; i < frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] ; i++ )
 //    {
 //    *pImageMessage = (unsigned char) *pFrame;
 //    ++pFrame; ++pImageMessage;
 //    #ifdef  DEBUGSENDER
-//      ++counter;      
+//      ++counter;
 //    #endif
 //    }
 
    #ifdef TIMINGSENDER
      this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 4" << endl;
    #endif
-  
+
   igtl::Matrix4x4 igtlMatrix;
-  
+
   //Copy matrix to output buffer
-  for(int i = 0; i < 4; ++i)
-    {
-    for(int j = 0; j < 4; ++j)
-      {
-      igtlMatrix[i][j] = matrix->Element[i][j];
-      }
-    }
+  igtlMatrix[0][0] = matrix->Element[0][0];
+  igtlMatrix[0][1] = matrix->Element[0][1];
+  igtlMatrix[0][2] = matrix->Element[0][2];
+  igtlMatrix[0][3] = matrix->Element[0][3];
+
+  igtlMatrix[1][0] = matrix->Element[1][0];
+  igtlMatrix[1][1] = matrix->Element[1][1];
+  igtlMatrix[1][2] = matrix->Element[1][2];
+  igtlMatrix[1][3] = matrix->Element[1][3];
+
+  igtlMatrix[2][0] = matrix->Element[2][0];
+  igtlMatrix[2][1] = matrix->Element[2][1];
+  igtlMatrix[2][2] = matrix->Element[2][2];
+  igtlMatrix[2][3] = matrix->Element[2][3];
+
+  igtlMatrix[3][0] = matrix->Element[3][0];
+  igtlMatrix[3][1] = matrix->Element[3][1];
+  igtlMatrix[3][2] = matrix->Element[3][2];
+  igtlMatrix[3][3] = matrix->Element[3][3];
+
+//  for(int i = 0; i < 4; ++i)
+//    {
+//    for(int j = 0; j < 4; ++j)
+//      {
+//      igtlMatrix[i][j] = matrix->Element[i][j];
+//      }
+//    }
 
    #ifdef TIMINGSENDER
      this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 5" << endl;
    #endif
-  
+
   #ifdef  DEBUGSENDER
-    this->LogStream <<  this->GetUpTime() << " |S-INFO: Size of image frame to send:" 
-                    << frameProperties.Size[0] << " | " 
-                    << frameProperties.Size[1] << " | " 
+    this->LogStream <<  this->GetUpTime() << " |S-INFO: Size of image frame to send:"
+                    << frameProperties.Size[0] << " | "
+                    << frameProperties.Size[1] << " | "
                     << frameProperties.Size[2] << endl
                     << "         | Copied Pixels: "<< counter << " | Copy time: " << this->GetUpTime() - copyStart <<endl
                     << "         | Index: " << index << " | "  <<endl;
   #endif
-    
+
   #ifdef  DEBUGSENDER
     //this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
     //matrix->Print(this->LogStream);
@@ -550,9 +576,9 @@ int vtkDataSender::PrepareImageMessage(int index,
 #ifdef TIMINGSENDER
      this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 6" << endl;
    #endif
-  
+
   imageMessage->Pack();// Pack (serialize)
-  
+
 #ifdef TIMINGSENDER
      this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 7" << endl;
    #endif
@@ -569,14 +595,14 @@ int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer& message)
     int ret = this->socket->Send(message->GetPackPointer(), message->GetPackSize());
     if (ret == 0)
       {
-      cerr << "ERROR: Connection to OpenIGTLink Server lost while sending!" <<endl; 
+      cerr << "ERROR: Connection to OpenIGTLink Server lost while sending!" <<endl;
       return -1;
       }
     else
       {
       #ifdef  DEBUGSENDER
         this->LogStream <<  this->GetUpTime() << " |S-INFO: Message successfully send to OpenIGTLink Server "<< endl
-                        << "         | Send time: " << this->GetUpTime() - sendTime << "| "  << endl; 
+                        << "         | Send time: " << this->GetUpTime() - sendTime << "| "  << endl;
       #endif
       if(Verbose)
         {
@@ -593,8 +619,8 @@ int vtkDataSender::NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix)
   if(this->IsSendDataBufferFull())
     {
     #ifdef  ERRORSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Senders new data buffer is full" << endl; 
-    #endif        
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Senders new data buffer is full" << endl;
+    #endif
     return -1;
     }
 
@@ -614,7 +640,7 @@ int vtkDataSender::TryToDeleteData(int index)
   if(this->IsIndexAvailable(index))
     {
     #ifdef  ERRORSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Not data to delete in Send Data Buffer at index: " << index << endl; 
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Not data to delete in Send Data Buffer at index: " << index << endl;
     #endif
     return -1;
     }
@@ -635,7 +661,7 @@ int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix
   if(!this->IsIndexAvailable(index))
     {
         #ifdef  ERRORSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer already has data at index: " << index << endl; 
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer already has data at index: " << index << endl;
     #endif
     return -1;
     }
@@ -660,7 +686,7 @@ vtkImageData* vtkDataSender::GetVolume(int index)
 if(this->IsIndexAvailable(index))
    {
    #ifdef  ERRORSENDER
-     this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer has no data at index: " << index << endl; 
+     this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer has no data at index: " << index << endl;
    #endif
    return NULL;
    }
@@ -676,7 +702,7 @@ int vtkDataSender::UnlockData(int index, int lock)
   if(this->IsIndexAvailable(index))
     {
     #ifdef  ERRORSENDER
-    this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer has no data at index: " << index << endl; 
+    this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer has no data at index: " << index << endl;
     #endif
     return -1;
     }
@@ -692,9 +718,9 @@ int vtkDataSender::UnlockData(int index, int lock)
   else
     {
     #ifdef  ERRORSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Try to release unknown lock" << endl; 
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Try to release unknown lock" << endl;
     #endif
-    
+
     return -1;
     }
 
@@ -762,7 +788,7 @@ void vtkDataSender::SetLogStream(ofstream &LogStream)
  *
  *  @Author:Jan Gumprecht
  *  @Date:  4.February 2009
- * 
+ *
  *  @Return: Logstream
  *
  * ****************************************************************************/
@@ -773,19 +799,19 @@ ofstream& vtkDataSender::GetLogStream()
 
 /******************************************************************************
  * void UpdateFrameRate(double sendTime)
- * 
+ *
  *  Calculates and prints current frame rate to console
  *
  *  @Author:Jan Gumprecht
  *  @Date:  5.February 2009
- * 
+ *
  *  @Param: double sentTime - send time of last message
  *
  * ****************************************************************************/
 void vtkDataSender::UpdateFrameRate(double sendTime)
 {
-  this->UpDateCounter++;  
-  
+  this->UpDateCounter++;
+
   if(this->lastFrameRateUpdate + 1 <= this->GetUpTime())
     {
     if(this->lastFrameRateUpdate != 0)

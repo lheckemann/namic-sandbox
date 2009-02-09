@@ -80,20 +80,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkDataSender.h"
 
-#ifdef USE_TRACKER_DEVICE
-#include "vtkNDITracker.h"
-#else
-#include "vtkTrackerSimulator.h"
-#endif
-
-#ifdef USE_ULTRASOUND_DEVICE
-#include "vtkV4L2VideoSource.h"
-#else
-#include "vtkVideoSourceSimulator.h"
-#endif
-
-#define FUDGE_FACTOR 1.6
-#define CERTUS_UPDATE_RATE 625
 #define US_IMAGE_FAN_RATIO 0.6 //Amount of ultrasound images's height that
                                //is used by the ultrasound fan
 
@@ -110,7 +96,7 @@ vtkStandardNewMacro(vtkDataProcessor);
  *  Constructor
  *
  *  @Author:Jan Gumprecht
- *  @Date:  27.January 2008
+ *  @Date:  27.January 2009
  *
  * ****************************************************************************/
 vtkDataProcessor::vtkDataProcessor()
@@ -147,11 +133,12 @@ vtkDataProcessor::vtkDataProcessor()
  *  Destructor
  *
  *  @Author:Jan Gumprecht
- *  @Date:  27.January 2008
+ *  @Date:  27.January 2009
  *
  * ****************************************************************************/
 vtkDataProcessor::~vtkDataProcessor()
 {
+  this->StopProcessing();
   if(VolumeReconstructionEnabled)
     {
     this->reconstructor->Delete();
@@ -175,7 +162,7 @@ vtkDataProcessor::~vtkDataProcessor()
  *  Print information about the instance
  *
  *  @Author:Jan Gumprecht
- *  @Date:  27.January 2008
+ *  @Date:  27.January 2009
  *
  * ****************************************************************************/
 void vtkDataProcessor::PrintSelf(ostream& os, vtkIndent indent)
@@ -215,7 +202,7 @@ static inline void vtkSleep(double duration)
  *  If '0' is returned, then the thread was aborted before or during the wait. *
  *
  *  @Author:Jan Gumprecht
- *  @Date:  27.January 2008
+ *  @Date:  27.January 2009
  *
  *  @Param: vtkMultiThreader::ThreadInfo *data *
  *  @Param: double time - Time until which to sleep
@@ -314,7 +301,7 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
 //        {
 //        assert(false);
 //        }
-      
+
       #ifdef  TIMINGPROCESSOR
         self->GetLogStream() <<  self->GetUpTime() << " |-------------------------------------" << endl;
         self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Processor Thread found new data with index:" << currentIndex
@@ -327,7 +314,7 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
         #ifdef  TIMINGPROCESSOR
           self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Check and Update DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
         #endif
-          
+
         sectionTime = self->GetUpTime();
         if(self->ReconstructVolume(currentIndex) != -1)
           {
@@ -337,7 +324,11 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
           sectionTime = self->GetUpTime();
           lastDataSenderIndex = self->ForwardData();
           #ifdef  TIMINGPROCESSOR
-            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume forwarding DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume forwarding DONE"
+                                                       << " | S: " << self->GetUpTime() - sectionTime
+                                                       << " | L:" << self->GetUpTime() - loopTime
+                                                       << " | FPS: " << 1 / (self->GetUpTime() - loopTime) << endl;
+
           #endif
           }
         else
@@ -367,7 +358,7 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
           self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor sleeps now" << " | " << self->GetUpTime()<< endl;
           }
       #endif
-        
+
     }
   while(vtkThreadSleep(data, vtkTimerLog::GetUniversalTime() + processPeriod, dataAvailable));
 
@@ -554,7 +545,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
 
   vtkImageData * newFrame = this->newFrameMap[index];
   vtkMatrix4x4 * newTrackerMatrix = this->newTrackerMatrixMap[index];
-  
+
   //Calculate neccessary volume extent------------------------------------------
   double xmin = this->clipRectangle[0], ymin = this->clipRectangle[1],
          xmax = this->clipRectangle[2], ymax = this->clipRectangle[3];
@@ -594,7 +585,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     }
 
   vtkFloatingPointType newOrigin[3] = {minX, minY, minZ};
-  vtkFloatingPointType newOriginBackup[3] = {minX, minY, minZ};
 
   double spacing[3];
   newFrame->GetSpacing(spacing);
@@ -607,7 +597,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
                     << "         | Origin: " << newOrigin[0] << "| " << newOrigin[1] << " |" << newOrigin[2] <<endl
                     << "         | Dimensions: " << newExtent[1] + 1<< "| "<< newExtent[3] + 1<<" | "<< newExtent[5] + 1<< endl;
   #endif
-  
+
   //Check if new extent larger than old extent or if origin changed------------
   vtkFloatingPointType oldOrigin[3];
   bool originChanged = false;
@@ -617,35 +607,22 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
   if(dataSenderIndex != -2)
     { // -2 == no volume was reconstructed so far
 
-    //Update Origin
+    //Update Origin and Extent
     this->reconstructor->GetOutputOrigin(oldOrigin);
-    for(int i = 0; i < 3; ++i)
-      {
-      if(oldOrigin[i] != newOrigin[i])
-        {
-        newOrigin[i] = min(oldOrigin[i], newOrigin[i]);
-        originChanged = true;
-        }
-      }
-
-    //Update extent
     this->reconstructor->GetOutputExtent(oldExtent);
-    if(originChanged)
+    for(int i = 1; i <= 3; ++i)
       {
-      for(int i = 0; i < 3; ++i)
+      if(newOrigin[i] < oldOrigin[i])
         {
-        newExtent[2 * i + 1] =   max(((int)(oldOrigin[i] + 0.5)) + oldExtent[2 * i + 1],
-                                     ((int) (newOriginBackup[i] + 0.5)) + newExtent[2 * i + 1])
-                               - min((int) (oldOrigin[i] + 0.5), (int) (newOriginBackup[i] + 0.5));
+        originChanged = true;
+        newExtent[2 * i + 1] = (int) (max(newOrigin[i] + newExtent[2 * i + 1], oldOrigin[i] + oldExtent[2 * i + 1]) - newOrigin[i]);
         }
-      }
-    else
-      {
-      for(int i = 0; i < 6; ++i)
+      else
         {
-        if(oldExtent[i] != newExtent[i])
+        newOrigin[i] = oldOrigin[i];
+        newExtent[2 * i + 1] = (int) (max(newOrigin[i] + newExtent[2 * i + 1], oldOrigin[i] + oldExtent[2 * i + 1]) - oldOrigin[i]);
+        if(newExtent[2 * i + 1] != oldExtent[2 * i + 1])
           {
-          newExtent[i] = max(oldExtent[i], newExtent[i]);
           extentChanged = true;
           }
         }
@@ -654,7 +631,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
 
   if(dataSenderIndex == -2 || originChanged || extentChanged)
     {
-    
+
     #ifdef  DEBUGPROCESSOR
       if(dataSenderIndex == -2)
         {
@@ -684,7 +661,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     this->reconstructor->GetOutput()->SetNumberOfScalarComponents(newFrame->GetNumberOfScalarComponents());
     this->reconstructor->GetOutput()->AllocateScalars();
 
-#ifdef MERGE    
+#ifdef MERGE
     if(originChanged || extentChanged)
 #else
     if(false)
@@ -703,7 +680,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         retVal = -1;
         }
       else if(this->MergeVolumes(reconstructor->GetOutput(),newOrigin,newExtent,
-                                 this->oldVolume, oldOrigin,oldExtent, 
+                                 this->oldVolume, oldOrigin,oldExtent,
                                  newFrame->GetNumberOfScalarComponents())
               == -1)
         {
@@ -714,9 +691,9 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         }
       }
     }
-  
+
   this->ResetOldVolume(dataSenderIndex);
-  
+
    return retVal;
 }
 
@@ -821,7 +798,7 @@ int vtkDataProcessor::ForwardData()
   //Generate and fill volume to be forwarded-----------------------------------
   vtkImageData* volumeToForward = vtkImageData::New();
 
-  
+
   //Dimensions
 #ifndef NEWFORWARDING
   int dimensions[3];
@@ -844,7 +821,7 @@ int vtkDataProcessor::ForwardData()
     double copyTime = this->GetUpTime();
     int counter = 0;
   #endif
-    
+
 #ifdef NEWFORWARDING
   this->DuplicateImage(reconstructedVolume, volumeToForward);
 #else
@@ -869,7 +846,7 @@ int vtkDataProcessor::ForwardData()
     }
 
 #endif
-    
+
 
   //Create and Fill Matrix for forwarding
   vtkMatrix4x4 * matrix = vtkMatrix4x4::New();
@@ -1052,9 +1029,6 @@ bool vtkDataProcessor::IsNewDataBufferFull()
   if(this->newDataBuffer.size() >= this->newDataBufferSize)
     {
     return true;
-    #ifdef DEBUGPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-WARNING: Data processor new data buffer is full | BufferSize: " << this->newDataBufferSize << endl;
-    #endif
     }
   else
     {
@@ -1142,7 +1116,7 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
   }
 
   int x, y, z;
-  
+
   int counter = 0;
   vtkIdType inIncX, inIncY, inIncZ;
   vtkIdType outIncX, outIncY, outIncZ;
@@ -1158,19 +1132,19 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
   // Get increments to march through data
   oldVolume->GetContinuousIncrements(extentNewVolume, inIncX, inIncY, inIncZ);
   newVolume->GetContinuousIncrements(extentNewVolume, outIncX, outIncY, outIncZ);
-  
+
   int rowLength = (extentNewVolume[1] - extentNewVolume[0] + 1) * ScalarComponents + outIncY;
   int oldRowLength = extentOldVolume[1] - extentOldVolume[0] + 1;
   int frameSize = (extentNewVolume[3] - extentNewVolume[2] + 1) * rowLength + outIncZ;
-  
+
   int spaceBeforeXStart = xStart - (int) originNewVolume[0];
   int spaceAfterXEnd = (int) originNewVolume[0] + extentNewVolume[1] * ScalarComponents - xEnd;
-  
+
   int spaceBeforeYStart = (yStart - (int) originNewVolume[1] + outIncY) * rowLength;
   int spaceAfterYEnd = ((int) originNewVolume[1] + extentNewVolume[3] * ScalarComponents - yEnd) * rowLength;
-  
+
   int spaceBeforeZStart = (zStart - (int) originNewVolume[2]) * frameSize;
-  
+
   //Get Data pointer
   unsigned char* pDataNewVolume = (unsigned char *) newVolume->GetScalarPointer();
   unsigned char* pDataOldVolume = (unsigned char *) oldVolume->GetScalarPointer();
@@ -1178,7 +1152,7 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
   try
    {
     #ifdef NEWMERGE
-    //Copy Data  
+    //Copy Data
     pDataNewVolume += spaceBeforeZStart;
     for(z = zStart; z <= zEnd; ++z)
       {
@@ -1196,25 +1170,25 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
 //            ++pDataNewVolume;
 //            ++counter;
 //          }
-          
+
           pDataNewVolume += spaceAfterXEnd;
-          
+
           pDataNewVolume += outIncY;
           pDataOldVolume += inIncY;
         }
       pDataNewVolume += spaceAfterYEnd;
-      
+
       pDataNewVolume += outIncZ;
       pDataNewVolume += inIncZ;
       }
-    
+
     #else //NEWMERGE
     //Copy old volume into new volume
     for( z = (int) originNewVolume[2]; z <= zEnd; ++z)
       {
       for( y = (int) originNewVolume[1]; y <= originNewVolume[1] + extentNewVolume[3]; ++y)
         {
-        
+
         for( x = (int)originNewVolume[0]; x <= originNewVolume[0] + extentNewVolume[1] * ScalarComponents; ++x)
           {
           if(   (x >= xStart && x <= xEnd)
@@ -1233,14 +1207,14 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
       pDataNewVolume += outIncZ;
       pDataOldVolume += inIncZ;
       }
-    
+
     #endif//NEWMERGE
     }//End try
   catch (...)
     {
     throw;
     }
-  
+
   if(counter != 0)
     {
     #ifdef DEBUGPROCESSOR
@@ -1278,10 +1252,11 @@ int vtkDataProcessor::DeleteData(int index)
     return -1;
     }
 
-//  this->newFrameMap[index]->Delete();
+  this->newFrameMap[index]->Delete();
   this->newFrameMap.erase(index);
-//  this->newTrackerMatrixMap[index]->Delete();
+  this->newTrackerMatrixMap[index]->Delete();
   this->newTrackerMatrixMap.erase(index);
+  this->newDataBuffer.pop();
 
   return 0;
 }
@@ -1300,7 +1275,6 @@ int vtkDataProcessor::DeleteData(int index)
 int vtkDataProcessor::GetHeadOfNewDataBuffer()
 {
   int head = this->newDataBuffer.front();
-  this->newDataBuffer.pop();
   return head;
 }
 
@@ -1384,7 +1358,7 @@ void vtkDataProcessor::SetLogStream(ofstream &LogStream)
  *
  *  @Author:Jan Gumprecht
  *  @Date:  4.February 2009
- * 
+ *
  *  @Return: Logstream
  *
  * ****************************************************************************/
@@ -1400,7 +1374,7 @@ ofstream& vtkDataProcessor::GetLogStream()
  *
  *  @Author:Jan Gumprecht
  *  @Date:  4.February 2009
- * 
+ *
  * ****************************************************************************/
 void vtkDataProcessor::ResetOldVolume(int dataSenderIndex)
 {
@@ -1416,8 +1390,8 @@ void vtkDataProcessor::ResetOldVolume(int dataSenderIndex)
  *
  *  @Author:Jan Gumprecht
  *  @Date:  4.February 2009
- * 
- *  @Param: vtkImageData * original - Original 
+ *
+ *  @Param: vtkImageData * original - Original
  *  @Param: vtkImageData * copy - Copy
  *
  * ****************************************************************************/
@@ -1429,16 +1403,16 @@ void vtkDataProcessor::DuplicateImage(vtkImageData * original, vtkImageData * du
   vtkIdType outIncX, outIncY, outIncZ;
   int rowLength;
   int extent[6];
-  
+
   //Duplicate Properties
-  original->GetExtent(extent);  
+  original->GetExtent(extent);
   duplicate->SetExtent(extent);
-  
+
   duplicate->SetSpacing(original->GetSpacing());
   duplicate->SetScalarType(original->GetScalarType());
   duplicate->SetOrigin(original->GetOrigin());
   duplicate->SetNumberOfScalarComponents(original->GetNumberOfScalarComponents());
-  
+
   //Reserve memory
   duplicate->AllocateScalars();
 
@@ -1450,11 +1424,11 @@ void vtkDataProcessor::DuplicateImage(vtkImageData * original, vtkImageData * du
   // Get increments to march through data
   original->GetContinuousIncrements(extent, inIncX, inIncY, inIncZ);
   duplicate->GetContinuousIncrements(extent, outIncX, outIncY, outIncZ);
-  
+
   unsigned char * outPtr = (unsigned char*) duplicate->GetScalarPointer();
   unsigned char * inPtr = (unsigned char*) original->GetScalarPointer();
 
-  
+
   if(inIncY == outIncY && inIncZ == outIncZ)
     {
     long long bytesToCopy = ((rowLength + outIncY) * (maxY + 1) + outIncZ) * (maxZ + 1);
@@ -1462,7 +1436,7 @@ void vtkDataProcessor::DuplicateImage(vtkImageData * original, vtkImageData * du
     }
   else
     {
-    
+
     //Copy image data
     for (idxZ = 0; idxZ <= maxZ; idxZ++)
       {
