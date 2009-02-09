@@ -128,8 +128,8 @@ public:
 
   int StartTracker();
   int Initialize();
-  bool StartCollecting(vtkDataProcessor * processor);
-  bool StopCollecting();
+  int StartCollecting(vtkDataProcessor * processor);
+  int StopCollecting();
   void AdjustMatrix(vtkMatrix4x4& matrix);
   double GetUpTime();
   int DuplicateFrame(vtkImageData * original, vtkImageData * duplicate);

@@ -169,7 +169,7 @@ int vtkDataCollector::Initialize()
 {
   if(this->Initialized)
     {
-    return true;
+    return 0;
     }
 
   if(this->calibReader != NULL)
@@ -406,7 +406,7 @@ return NULL;
 }
 
 //----------------------------------------------------------------------------
-bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
+int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
 {
   if (!this->Initialized)
     {
@@ -415,7 +415,7 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
         #ifdef ERRORCOLLECTOR
         this->LogStream << this->GetUpTime() << " |C-ERROR: Could not initialize DataCollector" << endl;
         #endif
-        return false;
+        return -1;
       }
     }
 
@@ -428,7 +428,7 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     #ifdef ERRORCOLLECTOR
     this->LogStream << this->GetUpTime() << " |C-ERROR: Data collector already collects data";
     #endif
-    return false;
+    return -1;
     }
 
   if(processor != NULL)
@@ -440,7 +440,7 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     #ifdef ERRORCOLLECTOR
     this->LogStream << this->GetUpTime() << " |C-ERROR: No data processor provided. Data collection not possible" << endl;
     #endif
-    return false;
+    return -1;
     }
 
   cout << "Hardware Initialization: " << std::flush;
@@ -472,18 +472,18 @@ bool vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
       {
       cout << "Start to collect data" << endl;
       }
-    return true;
+    return 0;
     }
   else
     {
     #ifdef ERRORCOLLECTOR
     this->LogStream << this->GetUpTime() << " |C-ERROR: Collector thread could not be started" << endl;
     #endif
-    return false;
+    return -1;
     }
 }
 //-------------------------------------------------------------------
-bool vtkDataCollector::StopCollecting()
+int vtkDataCollector::StopCollecting()
 {
   if (this->Collecting)
     {
@@ -497,7 +497,7 @@ bool vtkDataCollector::StopCollecting()
       }
     }
 
-  return true;
+  return 0;
 }
 
 //-------------------------------------------------------------------
