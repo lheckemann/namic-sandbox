@@ -88,7 +88,9 @@ vtkStandardNewMacro(vtkDataSender);
 vtkDataSender::vtkDataSender()
 {
   this->ServerPort = 18944;
-  this->OIGTLServer = "localhost";
+  this->OIGTLServer = NULL;
+  this->SetOIGTLServer("localhost");
+//  this->SetOIGTLServer("172.223.221.194");
   this->SendPeriod = 1 /(30 * 1.5);
 
   this->socket = NULL;
@@ -150,7 +152,7 @@ void vtkDataSender::PrintSelf(ostream& os, vtkIndent indent)
 int vtkDataSender::ConnectToServer()
 {
   // Opening an OpenIGTLink socket
-  int e = this->socket->ConnectToServer(OIGTLServer, ServerPort);
+  int e = this->socket->ConnectToServer(this->GetOIGTLServer(), this->ServerPort);
 
   if(e != 0)
     {
@@ -567,8 +569,8 @@ int vtkDataSender::PrepareImageMessage(int index,
   #endif
 
   #ifdef  DEBUGSENDER
-    //this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
-    //matrix->Print(this->LogStream);
+    this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
+    matrix->Print(this->LogStream);
   #endif
 
   imageMessage->SetMatrix(igtlMatrix);
@@ -660,7 +662,7 @@ int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix
 {
   if(!this->IsIndexAvailable(index))
     {
-        #ifdef  ERRORSENDER
+    #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer already has data at index: " << index << endl;
     #endif
     return -1;
