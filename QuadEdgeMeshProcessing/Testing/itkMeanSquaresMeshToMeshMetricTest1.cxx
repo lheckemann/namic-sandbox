@@ -20,13 +20,13 @@
 #endif
 
 #include <math.h>
-#include "itkVersorTransform.h"
+#include "itkVersorRigid3DTransform.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
 #include "itkDefaultStaticMeshTraits.h"
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkMeshToMeshRegistrationMethod.h"
-#include "itkLinearInterpolateMeshFunction.h"
+#include "itkNearestNeighborInterpolateMeshFunction.h"
 #include "itkAmoebaOptimizer.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
@@ -51,6 +51,61 @@ linearMapSphericalCoordinatesFunction(float inPhi, float inTheta)
 
   return result; 
 }
+
+//Linear mapping between 0 and 1 as a function of phi and theta
+static float 
+sineMapSphericalCoordinatesFunction(float inPhi, float inTheta) 
+{
+  float result; 
+
+  float phiFactor= (M_PI - inPhi)/M_PI; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
+  float thetaFactor= (sin(inTheta)+1.0)/2.0; //inTheta should be in [-PI,PI]; 
+
+  result= phiFactor * thetaFactor; 
+
+  return result; 
+}
+
+#include "itkCommand.h"
+
+static int counterCmdIteration= 0; 
+
+class CommandIterationUpdate : public itk::Command 
+{
+public:
+  typedef  CommandIterationUpdate   Self;
+  typedef  itk::Command             Superclass;
+  typedef itk::SmartPointer<Self>  Pointer;
+  itkNewMacro( Self );
+protected:
+  CommandIterationUpdate() {};
+public:
+  typedef itk::AmoebaOptimizer     OptimizerType;
+  typedef   const OptimizerType   *    OptimizerPointer;
+
+  void Execute(itk::Object *caller, const itk::EventObject & event)
+    {
+      Execute( (const itk::Object *)caller, event);
+    }
+
+  void Execute(const itk::Object * object, const itk::EventObject & event)
+    {
+      OptimizerPointer optimizer = 
+        dynamic_cast< OptimizerPointer >( object );
+      if( ! itk::IterationEvent().CheckEvent( &event ) )
+        {
+        return;
+        }
+      //std::cout << optimizer->GetCurrentIteration() << "   ";
+      //std::cout << "  value " << optimizer->GetValue() << "   ";
+      std::cout << " CommandIterationUpdate new iteration  number   " << ++counterCmdIteration;
+      std::cout << "  cached value " << optimizer->GetCachedValue() << "   ";
+      std::cout << "  position " << optimizer->GetCachedCurrentPosition() << std::endl ; 
+    }
+};
+
+
+
 
 int main( int argc, char * argv [] )
 {
@@ -90,12 +145,12 @@ int main( int argc, char * argv [] )
   fixedScale.Fill( 1.0 );
   
   myMovingSphereMeshSource->SetCenter( movingCenter );
-  myMovingSphereMeshSource->SetResolution( 2.0 );
+  myMovingSphereMeshSource->SetResolution( 4.0 );
   myMovingSphereMeshSource->SetScale( movingScale );
   myMovingSphereMeshSource->Modified();
 
   myFixedSphereMeshSource->SetCenter( fixedCenter );
-  myFixedSphereMeshSource->SetResolution( 2.0 );
+  myFixedSphereMeshSource->SetResolution( 4.0 );
   myFixedSphereMeshSource->SetScale( fixedScale );
   myFixedSphereMeshSource->Modified();
 
@@ -140,7 +195,7 @@ int main( int argc, char * argv [] )
     theta= atan2(fixedPt[1], fixedPt[0]); 
     phi= acos(fixedPt[2]/radius); 
 
-    fixedValue= linearMapSphericalCoordinatesFunction(phi, theta); 
+    fixedValue= sineMapSphericalCoordinatesFunction(phi, theta); 
 
     myFixedMesh->SetPointData(i, fixedValue);
 
@@ -168,7 +223,7 @@ int main( int argc, char * argv [] )
       movingTheta-= TWO_PI; 
       }
 
-    movingValue= linearMapSphericalCoordinatesFunction(phi, movingTheta); 
+    movingValue= sineMapSphericalCoordinatesFunction(phi, movingTheta); 
 
     myMovingMesh->SetPointData(i, movingValue);
 
@@ -244,16 +299,18 @@ int main( int argc, char * argv [] )
 //------------------------------------------------------------
 // Set up an Interpolator
 //------------------------------------------------------------
-  typedef itk::LinearInterpolateMeshFunction< 
+  typedef itk::NearestNeighborInterpolateMeshFunction< 
                     MovingMeshType,
                     double > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
   interpolator->SetInputMesh( myMovingMesh );
- 
+
   registration->SetInterpolator( interpolator );
-  
+
+  interpolator->Initialize();
+
   std::cout << metric << std::endl;
 
 //------------------------------------------------------------
@@ -261,9 +318,6 @@ int main( int argc, char * argv [] )
 //------------------------------------------------------------
   const unsigned int numberOfTransformParameters = 
      transform->GetNumberOfParameters();
-
-  std::cout << "Number of Transform Parameters = " 
-    << numberOfTransformParameters << std::endl;
 
   ParametersType parameters( numberOfTransformParameters );
 
@@ -289,7 +343,25 @@ int main( int argc, char * argv [] )
   optimizer->SetFunctionConvergenceTolerance(0.001); // 0.1%
   optimizer->SetMaximumNumberOfIterations( 200 );
 
+
+
   registration->SetOptimizer( optimizer );
+
+  // Create the Command observer and register it with the optimizer.
+  //
+  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  optimizer->AddObserver( itk::IterationEvent(), observer );
+
+  //typedef RegistrationInterfaceCommand<RegistrationType> CommandType;
+  //CommandType::Pointer command = CommandType::New();
+  //registration->AddObserver( itk::IterationEvent(), command );
+
+#ifdef MICHELOUT
+  //Callback to monitor results at each iteration
+  typedef IterationCallback< OptimizerType >   IterationCallbackType;
+  IterationCallbackType::Pointer callback = IterationCallbackType::New();
+  callback->SetOptimizer( optimizer );
+#endif
 
 
 //------------------------------------------------------------
@@ -314,7 +386,12 @@ int main( int argc, char * argv [] )
 // for parameters[1] = {-10,10}  (arbitrary choice...)
 //---------------------------------------------------------
 
-  std::cout << "param[1]   Metric    d(Metric)/d(param[1] " << std::endl;
+  OptimizerType::ParametersType finalParameters = 
+                    registration->GetLastTransformParameters();
+
+  const double bestValue = optimizer->GetValue();
+
+  std::cout << "final params " << finalParameters << "  final value " << bestValue << std::endl;
 
 
 
