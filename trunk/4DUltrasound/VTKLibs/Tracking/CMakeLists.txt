@@ -8,6 +8,7 @@ IF(USE_TRACKER_DEVICE)
     vtkTrackerBuffer.cxx
     vtkFrameToTimeConverter.cxx
     vtkNDITracker.cxx
+    vtkTrackerSimulator.cxx
   )
 ELSE(USE_TRACKER_DEVICE)
   # Use tracker simulator
@@ -17,6 +18,7 @@ ELSE(USE_TRACKER_DEVICE)
     vtkTrackerBuffer.cxx
     vtkFrameToTimeConverter.cxx    
     vtkTrackerSimulator.cxx
+    vtkNDITracker.cxx
   )
 ENDIF(USE_TRACKER_DEVICE)
 
@@ -32,14 +34,14 @@ SET (Tracking_LIBS
 #FIND_PATH(NDIOAPI_INCLUDE_DIR ndopto.h)
 #FIND_LIBRARY(NDIOAPI_LIBRARY oapi)
 
-#INCLUDE_DIRECTORIES(${NDICAPI_SOURCE_DIR}
-#                    ${NDICAPI_BINARY_DIR}
-#                    ${NDIOAPI_INCLUDE_DIR})
+INCLUDE_DIRECTORIES(${NDICAPI_SOURCE_DIR}
+                    ${NDICAPI_BINARY_DIR}
+                    ${NDIOAPI_INCLUDE_DIR})
 
-#SET (Tracking_LIBS ${Tracking_LIBS} ndicapi ${NDIOAPI_LIBRARY})
+SET (Tracking_LIBS ${Tracking_LIBS} ndicapi ${NDIOAPI_LIBRARY})
 
 ADD_LIBRARY(vtkOpenIGTTracking ${Tracking_SRCS})
 TARGET_LINK_LIBRARIES(vtkOpenIGTTracking vtkCommon vtkParallel
-#                      ${Tracking_LIBS}
+                     ${Tracking_LIBS}
                       )
 
