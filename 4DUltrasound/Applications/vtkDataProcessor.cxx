@@ -610,7 +610,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     //Update Origin and Extent
     this->reconstructor->GetOutputOrigin(oldOrigin);
     this->reconstructor->GetOutputExtent(oldExtent);
-    for(int i = 0; i <= 2; ++i)
+    for(int i = 0; i < 3; ++i)
       {
       if(newOrigin[i] < oldOrigin[i])
         {
@@ -619,8 +619,8 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         }
       else
         {
-        newOrigin[i] = oldOrigin[i];
         newExtent[2 * i + 1] = (int) (max(newOrigin[i] + newExtent[2 * i + 1], oldOrigin[i] + oldExtent[2 * i + 1]) - oldOrigin[i]);
+        newOrigin[i] = oldOrigin[i];
         if(newExtent[2 * i + 1] != oldExtent[2 * i + 1])
           {
           extentChanged = true;
