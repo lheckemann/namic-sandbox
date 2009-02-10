@@ -259,7 +259,9 @@ void printUsage()
          << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl
          << "                                        (MANDATORY)"<<endl
          << "--reconstruct-volume or -rv:            Enable volume reconstruction" << endl
-         << "--instrument-tracking or -it:           Enable instrument tracking" << endl
+         << "--track-instrument or -ti:              Enable instrument tracking" << endl
+         << "--simulate-instrument or -si:           Simulate instrument"<< endl
+         << "--track-ultrasound or -tu:              Enable ultrasound tracking"<<endl
          << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<<endl
          << "                                        (default: 'localhost')" << endl
          << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<<endl
@@ -312,9 +314,19 @@ bool parseCommandLineArguments(int argc, char **argv,
             }
           }
         //Enable volume reconstruction
-        else if(currentArg == "--volume-reconstruction" || currentArg == "-vr")
+        else if(currentArg == "--reconstruct-volume" || currentArg == "-rv")
           {
           processor->EnableVolumeReconstruction(true);
+          }
+        //Track operting instrument
+        else if(currentArg == "--track-instrument" || currentArg == "-ti")
+          {
+          instrumentTracker->SetEnabled(true);
+          }
+        //Track ultrasound
+        else if(currentArg == "--track-ultrasound" || currentArg == "-tu")
+          {
+          collector->EnableTrackerTool();
           }
         //OpenIGTLink Server
         else if(currentArg == "--oigtl-server" || currentArg == "-os")
@@ -399,11 +411,7 @@ bool parseCommandLineArguments(int argc, char **argv,
           sender->SetVerbose(true);
           processor->SetVerbose(true);
           instrumentTracker->SetVerbose(true);
-          }
-        else if(currentArg == "--instrument-tracking" || currentArg == "-it")
-          {
-          instrumentTracker->SetEnabled(true);
-          }
+          }       
         else
            {
            cout << "ERROR: Unrecognized command: '" << argv[i] <<"'" << endl;
