@@ -20,7 +20,7 @@
 #endif
 
 #include <math.h>
-#include "itkVersorRigid3DTransform.h"
+#include "itkVersorTransform.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
 #include "itkDefaultStaticMeshTraits.h"
@@ -234,7 +234,7 @@ int main( int argc, char * argv [] )
 // Set up a Transform
 //-----------------------------------------------------------
 
-  typedef itk::VersorRigid3DTransform<double>  TransformType;
+  typedef itk::VersorTransform<double>  TransformType;
 
   TransformType::Pointer transform = TransformType::New();
 
@@ -261,6 +261,9 @@ int main( int argc, char * argv [] )
 //------------------------------------------------------------
   const unsigned int numberOfTransformParameters = 
      transform->GetNumberOfParameters();
+
+  std::cout << "Number of Transform Parameters = " 
+    << numberOfTransformParameters << std::endl;
 
   ParametersType parameters( numberOfTransformParameters );
 
