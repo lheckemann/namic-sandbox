@@ -52,7 +52,7 @@ InterpolateMeshFunction<TInputMesh, TCoordRep>
 ::Initialize()
 {
   this->m_PointLocator->SetPointSet( this->m_Mesh );
-  this->Initialize();
+  this->m_PointLocator->Initialize();
 }
 
 
