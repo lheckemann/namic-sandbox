@@ -76,11 +76,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkDataProcessor.h"
 
-#ifdef USE_TRACKER_DEVICE
 #include "vtkNDITracker.h"
-#else
 #include "vtkTrackerSimulator.h"
-#endif
 
 #ifdef USE_ULTRASOUND_DEVICE
 #include "vtkV4L2VideoSource.h"
@@ -107,6 +104,7 @@ vtkDataCollector::vtkDataCollector()
   this->FrameBufferSize = 100;
 
   this->CalibrationFileName = NULL;
+  this->calibReader = vtkUltrasoundCalibFileReader::New();
 
 #ifdef USE_ULTRASOUND_DEVICE
   char* devicename = "/dev/video";
@@ -115,7 +113,6 @@ vtkDataCollector::vtkDataCollector()
   this->SetVideoMode(1); //NTSC
 #endif
 
-  this->calibReader = vtkUltrasoundCalibFileReader::New();
 
   this->Verbose = false;
 
@@ -127,12 +124,10 @@ vtkDataCollector::vtkDataCollector()
 
   this->Tagger = vtkTaggedImageFilter::New();
 
-#ifdef USE_TRACKER_DEVICE
-  this->tracker = vtkNDITracker::New();
-#else
-  this->tracker = vtkTrackerSimulator::New();
-#endif //USE_TRACKER_DEVICE
-
+  this->trackerDeviceEnabled = false;  
+  this->trackerSimulator = vtkTrackerSimulator::New();
+  this->NDItracker = NULL;
+  
   this->DataProcessor = NULL;
 
   this->PlayerThreader = vtkMultiThreader::New();;
@@ -150,7 +145,16 @@ vtkDataCollector::vtkDataCollector()
 vtkDataCollector::~vtkDataCollector()
 {
   this->StopCollecting();
-  this->tracker->Delete();
+  
+  if(this->trackerDeviceEnabled)
+    {
+    this->NDItracker->Delete();
+    }
+  else
+    {
+    this->trackerSimulator->Delete();
+    }
+  
   this->VideoSource->ReleaseSystemResources();
   this->VideoSource->Delete();
   this->Tagger->Delete();
@@ -225,16 +229,35 @@ int vtkDataCollector::Initialize()
 //----------------------------------------------------------------------------
 int vtkDataCollector::StartTracker()
 {
-  if(this->tracker->Probe() != 1)
+
+  vtkTrackerTool *tool;
+
+  if(this->trackerDeviceEnabled)
     {
-    this->LogStream << "C-ERROR: Tracking system not found" << endl;
-    return -1;
+    if(this->NDItracker->Probe() != 1)
+      {
+      this->LogStream << "C-ERROR: Tracking system not found" << endl;
+      return -1;
+      }
+    tool = this->NDItracker->GetTool(0);
+    }
+  else
+    {
+    tool = this->trackerSimulator->GetTool(0);
     }
 
   // make sure the tracking buffer is large enough for the number of the image sequence requested
-  vtkTrackerTool *tool = this->tracker->GetTool(0);
+
   tool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) );
-  this->tracker->StartTracking();
+  
+  if(this->trackerDeviceEnabled)
+    {
+    this->NDItracker->StartTracking();
+    }
+  else
+    {
+    this->trackerSimulator->StartTracking();
+    }
   this->Tagger->SetTrackerTool(tool);
   this->Tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
 
@@ -362,10 +385,10 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
       trackerMatrix->Print(self->GetLogStream());
       #endif
 
-
-      #ifdef USE_TRACKER_DEVICE
-      self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
-      #endif
+      if(self->IsTrackerDeviceEnabled())
+        {
+        self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
+        }
 
       #ifdef NEWCOLLECTOR
       vtkImageData* newFrame = vtkImageData::New();
@@ -447,11 +470,14 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
   cout << '\a' << std::flush;
   for(int i = 0; i < 11; i++)
     {
-#ifdef USE_TRACKER_DEVICE
+    if(this->trackerDeviceEnabled)
+      {
       vtkSleep(1);
-#else
+      }
+    else
+      {
       vtkSleep(0.2);
-#endif
+      }
       cout << 10 - i << " " << std::flush;
     }
   cout << endl;
@@ -490,6 +516,15 @@ int vtkDataCollector::StopCollecting()
     this->PlayerThreader->TerminateThread(this->PlayerThreadId);
     this->PlayerThreadId = -1;
     this->Collecting = false;
+    
+    if(this->trackerDeviceEnabled)
+      {
+      this->NDItracker->StopTracking();
+      }
+    else
+      {
+      this->trackerSimulator->StopTracking();
+      }
 
     if(Verbose)
       {
@@ -583,3 +618,46 @@ int vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * dup
     }
 }
 
+/******************************************************************************
+ * bool vtkDataCollector::IsTrackerDeviceEnabled()
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ *
+ *  @Return: True  - If tracker device enabled
+ *           False - If tracker device disabled
+ *
+ * ****************************************************************************/
+bool vtkDataCollector::IsTrackerDeviceEnabled()
+{
+  return this->trackerDeviceEnabled;
+}
+
+/******************************************************************************
+ * int vtkDataCollector::EnableTrackerTool()
+ *
+ * Enable tracker device
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ *
+ *  @Return:  0 - on success
+ *           -1 - on failure
+ *
+ * ****************************************************************************/
+int vtkDataCollector::EnableTrackerTool()
+{
+  if(this->Initialized)
+    {
+    #ifdef ERRORCOLLECTOR
+      this->LogStream << this->GetUpTime() << " |C-ERROR: Collector already initializes cannot start tracker device" << endl;
+    #endif
+    return -1;
+    }
+  
+  this->trackerDeviceEnabled = true;
+  this->NDItracker = vtkNDITracker::New();
+  this->trackerSimulator->Delete();
+  
+  return 0;
+}

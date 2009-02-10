@@ -63,11 +63,8 @@ class vtkV4L2VideoSource;
 class vtkVideoSourceSimulator;
 #endif
 
-#ifdef USE_TRACKER_DEVICE
 class vtkNDITracker;
-#else
 class vtkTrackerSimulator;
-#endif
 
 class vtkMatrix4x4;
 class vtkImageData;
@@ -107,12 +104,6 @@ public:
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
 
-#ifdef USE_TRACKER_DEVICE
-  vtkGetMacro(tracker, vtkNDITracker*);
-#else
-  vtkGetMacro(tracker, vtkTrackerSimulator*);
-#endif
-
 #ifdef USE_ULTRASOUND_DEVICE
   vtkGetMacro(VideoSource, vtkV4L2VideoSource *);
 #else
@@ -133,6 +124,8 @@ public:
   void AdjustMatrix(vtkMatrix4x4& matrix);
   double GetUpTime();
   int DuplicateFrame(vtkImageData * original, vtkImageData * duplicate);
+  bool IsTrackerDeviceEnabled();
+  int EnableTrackerTool();
 
 protected:
   vtkDataCollector();
@@ -154,11 +147,9 @@ protected:
 
   vtkUltrasoundCalibFileReader *calibReader;
 
-#ifdef USE_TRACKER_DEVICE
-  vtkNDITracker *tracker;
-#else
-  vtkTrackerSimulator *tracker;
-#endif
+  bool trackerDeviceEnabled;
+  vtkNDITracker *NDItracker;
+  vtkTrackerSimulator *trackerSimulator;
 
   vtkTaggedImageFilter *Tagger;
 
