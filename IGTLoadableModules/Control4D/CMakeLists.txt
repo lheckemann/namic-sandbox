@@ -53,6 +53,7 @@ install(FILES
 set(Control4D_SRCS 
   vtkControl4DLogic.cxx
   vtkControl4DGUI.cxx
+  vtkKWPlotGraph.cxx
   vtkMRML4DBundleNode.cxx
 )
 
