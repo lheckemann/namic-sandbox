@@ -93,6 +93,7 @@ vtkInstrumentTracker::vtkInstrumentTracker()
 
   this->Verbose = false;
   this->CalibrationFileName = NULL;
+  this->calibReader = vtkUltrasoundCalibFileReader::New();
 
   this->Connected = false;
   this->Tracking = false;
@@ -328,8 +329,7 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
     //Grab new frame
     loopTime = self->GetUpTime();
     #ifdef TIMING_INST_TRACKER
-    self->GetLogStream() << self->GetUpTime() << " |---------------------------------------" << endl;
-    self->GetLogStream() << self->GetUpTime() << " |S-INFO: Sender Found new Data at Index: " << currentIndex
+    self->GetLogStream() << self->GetUpTime() << " |---------------------------------------" << endl
                                               << " | L:" << self->GetUpTime() - loopTime << endl;
     #endif
 
@@ -337,7 +337,7 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
 
     #ifdef USE_TRACKER_DEVICE
     //Get Tracking Matrix for new frame
-    this->TrackerTool->GetBuffer()->GetFlagsAndMatrixFromTime(this->ToolMatrix, transformTime);
+    self->GetTrackerTool()->GetBuffer()->GetFlagsAndMatrixFromTime(trackerMatrix, vtkTimerLog::GetUniversalTime());
     self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
 
     //Copy matrix
@@ -476,6 +476,7 @@ int vtkInstrumentTracker::StopTracking()
     this->PlayerThreader->TerminateThread(this->PlayerThreadId);
     this->PlayerThreadId = -1;
     this->Tracking = false;
+    this->tracker->StopTracking();
 
     #ifdef DEBUG_INST_TRACKER
     this->LogStream << "I-INFO: Instrument Tracker Thread stop" << endl;
@@ -489,7 +490,7 @@ int vtkInstrumentTracker::StopTracking()
 int vtkInstrumentTracker::SendMessage(igtl::TransformMessage::Pointer& message)
 {
     //Send message
-    if (socket->Send(message->GetPackPointer(), message->GetPackSize()))
+    if (socket->Send(message->GetPackPointer(), message->GetPackSize()) == 0)
       {
       cerr << "ERROR: Connection to OpenIGTLink Server lost while sending!" <<endl;
       return -1;
@@ -497,7 +498,7 @@ int vtkInstrumentTracker::SendMessage(igtl::TransformMessage::Pointer& message)
     else
       {
       #ifdef  DEBUG_INST_TRACKER
-        this->LogStream <<  this->GetUpTime() << " |I-INFO: Message successfully send to OpenIGTLink Server "<< endl
+        this->LogStream <<  this->GetUpTime() << " |I-INFO: Message successfully send to OpenIGTLink Server "<< endl;
       #endif
       }
   return 0;
