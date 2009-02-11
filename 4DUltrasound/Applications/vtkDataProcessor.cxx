@@ -105,6 +105,7 @@ vtkDataProcessor::vtkDataProcessor()
   this->VolumeReconstructionEnabled = false;
   this->Processing = false;
   this->ProcessPeriod = 1 /(30 * 1.5);
+  this->UltraSoundTrackingEnabled = false;
 
   this->newDataBufferSize = 100;
   this->newDataBufferIndex = -1;
@@ -297,9 +298,9 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
       loopTime = self->GetUpTime();
       currentIndex = self->GetHeadOfNewDataBuffer();
 
-//      if(currentIndex == 2)
+//      if(currentIndex == 52)
 //        {
-//        assert(false);
+//        cout << "53" << endl;
 //        }
 
       #ifdef  TIMINGPROCESSOR
@@ -651,6 +652,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         }
       #endif
     //Create new volume-------------------------------------------------------
+
     this->reconstructor->SetOutputExtent(newExtent);
     this->reconstructor->SetOutputSpacing(spacing);
     this->reconstructor->SetOutputOrigin(newOrigin);
@@ -658,7 +660,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     this->reconstructor->SetSlice(newFrame);
     this->reconstructor->GetOutput()->Update();
 
-    this->reconstructor->SetSliceAxes(newTrackerMatrix);
+    this->reconstructor->SetSliceAxes(newTrackerMatrix);    
     //Set the correct amount of the output volume's scalar components
     this->reconstructor->GetOutput()->SetNumberOfScalarComponents(newFrame->GetNumberOfScalarComponents());
     this->reconstructor->GetOutput()->AllocateScalars();
@@ -673,6 +675,9 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         this->LogStream << this->GetUpTime()  << " |P-INFO: Expand volume | DataSenderIndex: "<< dataSenderIndex << endl;
       #endif
 
+      do{}
+      while(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR));
+      
       //Copy Old Volume at correct position into new volume
       if(this->oldVolume == NULL)
         {
@@ -691,9 +696,10 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         #endif
         retVal = -1;
         }
+      this->DataSender->ReleaseLock(DATAPROCESSOR);
       }
     }
-
+  
   this->ResetOldVolume(dataSenderIndex);
 
    return retVal;
@@ -735,6 +741,7 @@ int vtkDataProcessor::ReconstructVolume(int index)
 
     #ifdef  DEBUGPROCESSOR
       double reconstructionTime = this->GetUpTime();
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Start Reconstruction" << endl;
     #endif
 
     this->reconstructor->InsertSlice(); //Add current slice to the reconstructor
@@ -756,6 +763,8 @@ int vtkDataProcessor::ReconstructVolume(int index)
     return -1;
     }
 
+  this->reconstructor->GetOutput()->Update();
+  
   #ifdef  DEBUGPROCESSOR
     reconstructionTime = this->GetUpTime();
   #endif
@@ -1054,27 +1063,30 @@ void vtkDataProcessor::GetVolumeMatrix(vtkMatrix4x4* matrix)
   float position[3];
   float orientation[4];
 
- #ifdef USE_TRACKER_DEVICE
- //NDI tracker matrix looks like
-  //  0  0 -1 90
-  //  0  1  0  0
-  //  1  0  0  0
-  //  0  0  0  1
-  matrix->Element[0][0] =   0.0;  matrix->Element[1][0] =  0.0;  matrix->Element[2][0] =  1.0; matrix->Element[3][0] = 0.0;
-  matrix->Element[0][1] =   0.0;  matrix->Element[1][1] =  1.0;  matrix->Element[2][1] =  0.0; matrix->Element[3][1] = 0.0;
-  matrix->Element[0][2] =  -1.0;  matrix->Element[1][2] =  0.0;  matrix->Element[2][2] =  0.0; matrix->Element[3][2] = 0.0;
-  matrix->Element[0][3] =  90.0;  matrix->Element[1][3] =  0.0;  matrix->Element[2][3] =  0.0; matrix->Element[3][3] = 1.0;
-#else
-  //Tracker simulator matrix looks like
-  // -1  0  0  0
-  //  0  0  1  0
-  //  0  1  0  0
-  //  0  0  0  1
-  matrix->Element[0][0] =  -1.0;  matrix->Element[1][0] =  0.0;  matrix->Element[2][0] =  0.0; matrix->Element[3][0] = 0.0;
-  matrix->Element[0][1] =   0.0;  matrix->Element[1][1] =  0.0;  matrix->Element[2][1] =  1.0; matrix->Element[3][1] = 0.0;
-  matrix->Element[0][2] =   0.0;  matrix->Element[1][2] =  1.0;  matrix->Element[2][2] =  0.0; matrix->Element[3][2] = 0.0;
-  matrix->Element[0][3] =   0.0;  matrix->Element[1][3] =  0.0;  matrix->Element[2][3] =  0.0; matrix->Element[3][3] = 1.0;
-#endif
+  if(this->UltraSoundTrackingEnabled)
+    {
+    //NDI tracker matrix looks like
+    //  0  0 -1 90
+    //  0  1  0  0
+    //  1  0  0  0
+    //  0  0  0  1
+    matrix->Element[0][0] =   0.0;  matrix->Element[1][0] =  0.0;  matrix->Element[2][0] =  1.0; matrix->Element[3][0] = 0.0;
+    matrix->Element[0][1] =   0.0;  matrix->Element[1][1] =  1.0;  matrix->Element[2][1] =  0.0; matrix->Element[3][1] = 0.0;
+    matrix->Element[0][2] =  -1.0;  matrix->Element[1][2] =  0.0;  matrix->Element[2][2] =  0.0; matrix->Element[3][2] = 0.0;
+    matrix->Element[0][3] =  90.0;  matrix->Element[1][3] =  0.0;  matrix->Element[2][3] =  0.0; matrix->Element[3][3] = 1.0;
+    }
+  else
+    {
+    //Tracker simulator matrix looks like
+    // -1  0  0  0
+    //  0  0  1  0
+    //  0  1  0  0
+    //  0  0  0  1
+    matrix->Element[0][0] =  -1.0;  matrix->Element[1][0] =  0.0;  matrix->Element[2][0] =  0.0; matrix->Element[3][0] = 0.0;
+    matrix->Element[0][1] =   0.0;  matrix->Element[1][1] =  0.0;  matrix->Element[2][1] =  1.0; matrix->Element[3][1] = 0.0;
+    matrix->Element[0][2] =   0.0;  matrix->Element[1][2] =  1.0;  matrix->Element[2][2] =  0.0; matrix->Element[3][2] = 0.0;
+    matrix->Element[0][3] =   0.0;  matrix->Element[1][3] =  0.0;  matrix->Element[2][3] =  0.0; matrix->Element[3][3] = 1.0;
+    }
 
 #ifdef DEBUGPROCESSOR
 //    this->LogStream << this->GetUpTime()  << " |P-INFO: OpenIGTLink image message matrix" << endl;
@@ -1131,6 +1143,15 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
   int zStart = (int) originOldVolume[2];
   int zEnd   = zStart + extentOldVolume[5];
 
+  #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Print Infos about volumes " << endl;
+      vtkIndent indent;
+//      this->LogStream << this->GetUpTime()  << " |P-INFO: Old Volume " << endl;
+//      oldVolume->PrintSelf(this->LogStream, indent);
+//      this->LogStream << this->GetUpTime()  << " |P-INFO: New Volume " << endl;
+//      newVolume->PrintSelf(this->LogStream, indent);
+  #endif
+  
   // Get increments to march through data
   oldVolume->GetContinuousIncrements(extentNewVolume, inIncX, inIncY, inIncZ);
   newVolume->GetContinuousIncrements(extentNewVolume, outIncX, outIncY, outIncZ);
@@ -1162,16 +1183,17 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
       for(y = yStart; y <= yEnd; ++y)
         {
           pDataNewVolume += spaceBeforeXStart;
-          memcpy(pDataNewVolume, pDataOldVolume, oldRowLength);
-          pDataOldVolume += oldRowLength;
-          pDataNewVolume += oldRowLength;
-          counter += oldRowLength;
-//          for(x = xStart; x <= xEnd; ++x){//Copy data from old to new volume
-//          *pDataNewVolume = *pDataOldVolume;
-//            ++pDataOldVolume;
-//            ++pDataNewVolume;
-//            ++counter;
-//          }
+          
+//          memcpy(pDataNewVolume, pDataOldVolume, oldRowLength);
+//          pDataOldVolume += oldRowLength;
+//          pDataNewVolume += oldRowLength;
+//          counter += oldRowLength;
+          for(x = xStart; x <= xEnd; ++x){//Copy data from old to new volume
+          *pDataNewVolume = *pDataOldVolume;
+            ++pDataOldVolume;
+            ++pDataNewVolume;
+            ++counter;
+          }
 
           pDataNewVolume += spaceAfterXEnd;
 
@@ -1459,4 +1481,3 @@ void vtkDataProcessor::DuplicateImage(vtkImageData * original, vtkImageData * du
       }
     }
 }
-
