@@ -24,11 +24,26 @@
 #include "vtkFourDAnalysisWin32Header.h"
 #include "vtkKWRenderWidget.h"
 
+#include <string>
+#include <vector>
+
+class vtkDoubleArray;
+
 class vtkXYPlotActor;
 
 class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
 {
-public:
+ public:
+  //BTX
+  typedef struct {
+    int             visible;  // 0: invisible   1: visible
+    vtkDoubleArray* data;
+    std::string     label;
+    double          color[3];
+  } PlotDataType;
+  //ETX
+  
+ public:
   static vtkKWPlotGraph* New();
   vtkTypeRevisionMacro(vtkKWPlotGraph,vtkKWRenderWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -40,7 +55,15 @@ public:
   void UpdateWidget();
   // Description:
   // Update the matrix with the current values of the widget
-  void UpdateVTK();
+  void UpdateGraph();
+
+  int  SetNumberOfPlots(int n);
+  void SetData(int id, vtkDoubleArray* data, const char* label);
+  void SetColor(int id, double r, double g, double b);
+  void AutoRangeOn();
+  void AutoRangeOff();
+  void SetXrange(double min, double max);
+  void SetYrange(double min, double max);
 
   // Description:
   // Command to call when the User manipulates the widget
@@ -54,7 +77,7 @@ public:
   // TODO: access internal widgets
   //vtkKWRange* GetXRange() { return this->Range[0]; };
 
-protected:
+ protected:
   vtkKWPlotGraph();
   virtual ~vtkKWPlotGraph();
 
@@ -66,13 +89,23 @@ protected:
   //char *StartCommand;
   //char *EndCommand;
 
-private:
+ private:
   vtkKWPlotGraph(const vtkKWPlotGraph&); // Not implemented
   void operator=(const vtkKWPlotGraph&); // Not implemented
 
   vtkXYPlotActor* PlotActor;
 
   int Updating;
+
+  //BTX
+  typedef std::vector<PlotDataType> PlotDataVectorType;
+  //ETX
+
+  PlotDataVectorType PlotDataVector;
+  int AutoRangeX;
+  int AutoRangeY;
+  double RangeX[2];
+  double RangeY[2];
 
 };
 
