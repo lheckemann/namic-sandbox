@@ -1,2 +1,2 @@
-Name: 4D Analysis
-GUIName: FourDAnalysis
+Name: FourDAnalysis
+GUIName: 4D Analysis
