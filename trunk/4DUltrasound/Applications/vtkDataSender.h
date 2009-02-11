@@ -61,7 +61,8 @@ class igtlOSUtil;
 #include "igtlClientSocket.h"
 
 class vtkMultiThreader;
-class vtMatrix4x4;
+class vtkMatrix4x4;
+class vtkMutexLock;
 
 struct FramePoperties {
         bool Set;
@@ -124,6 +125,9 @@ public:
   vtkImageData* GetVolume(int index);
   int UnlockData(int index, int lock);
   double GetUpTime();
+  
+  int LockIndex(int index, int requester);
+  int ReleaseLock(int requester);
 
 protected:
   vtkDataSender();
@@ -146,6 +150,9 @@ protected:
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;
   int PlayerThreadId;
+  vtkMutexLock *IndexLock;
+  int IndexLockedByDataSender;
+  int IndexLockedByDataProcessor;
 
   std::queue<int> sendDataQueue; //Stores index of incoming objects
   int sendDataBufferSize; //Maximum amount of items that can be stored at the same time

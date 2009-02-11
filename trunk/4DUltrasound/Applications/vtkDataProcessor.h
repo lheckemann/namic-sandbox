@@ -71,6 +71,9 @@ public:
   vtkSetMacro(Verbose, bool);
   vtkGetMacro(Verbose, bool);
 
+  vtkSetMacro(UltraSoundTrackingEnabled, bool);
+  vtkGetMacro(UltraSoundTrackingEnabled, bool);
+  
   vtkSetStringMacro(CalibrationFileName);
   vtkGetStringMacro(CalibrationFileName);
 
@@ -110,6 +113,7 @@ protected:
   double StartUpTime;
   ofstream LogStream;
   vtkImageData* oldVolume;
+  bool UltraSoundTrackingEnabled;
 
   std::queue<int> newDataBuffer; //Stores index of incoming objects
   int newDataBufferSize; //Maximum amount of items that can be stored at the same time

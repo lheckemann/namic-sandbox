@@ -75,6 +75,7 @@ bool parseCommandLineArguments(int argc, char **argv,
                                vtkDataSender *sender,
                                vtkInstrumentTracker *instrumentTracker);
 void goodByeScreen();
+void goodByeInput();
 
 /******************************************************************************
  *
@@ -107,6 +108,7 @@ int main(int argc, char **argv)
     {
     cerr << "ERROR: Could parse commandline arguments" << endl << endl;
     goodByeScreen();
+    goodByeInput();
     }
   else
     {
@@ -133,9 +135,11 @@ int main(int argc, char **argv)
         cerr << "ERROR: Could not initialize DataCollector" <<endl;
         printUsage();
         goodByeScreen();
+        goodByeInput();
       }
     else
       {
+      
       // Connect to OpenIGTLink Server
       if(sender->ConnectToServer() != 0)
         {
@@ -159,7 +163,7 @@ int main(int argc, char **argv)
           terminate += 4;
           }
         }
-
+      
       //Colleced video frames and tracking matrices and forward them to the sender
       if(terminate == 0)
         {
@@ -168,13 +172,16 @@ int main(int argc, char **argv)
           terminate += 8;
           }
         }
+      
+      goodByeScreen();
 
       //Colleced instrument tracking matrices and forward them to the OpenIGTLink server
-      if(terminate == 0)
+      if(terminate == 0 
+         && (instrumentTracker->GetTrackingEnabled() || instrumentTracker->GetSimulationEnabled()))
         {
         if(instrumentTracker->ConnectToServer() != 0 || instrumentTracker->StartTracking() != 0)
           {
-          //terminate += 16;
+          terminate += 16;
           }
         }
 
@@ -184,10 +191,12 @@ int main(int argc, char **argv)
         cerr << "ERROR occured while starting 4DUltrasound | Error-Code: " << terminate << endl;
         }
       
-      goodByeScreen();
+      goodByeInput();
+      }
 
       instrumentTracker->StopTracking();
       instrumentTracker->CloseServerConnection();
+      instrumentTracker->Delete();
 
       //Stop Collecting
       collector->StopCollecting();
@@ -213,8 +222,8 @@ int main(int argc, char **argv)
         cout << "--- 4D Ultrasound finished with ERRORS ---" << endl
              << "---           ERRORCODE: "<< terminate <<"             ---" << endl;
         }
-      }
       logStream.close();
+      errOut->Delete();
     }
 }//End Main
 
@@ -321,7 +330,27 @@ bool parseCommandLineArguments(int argc, char **argv,
         //Track operting instrument
         else if(currentArg == "--track-instrument" || currentArg == "-ti")
           {
-          instrumentTracker->SetEnabled(true);
+          if(!instrumentTracker->GetSimulationEnabled())
+            {
+            instrumentTracker->SetTrackingEnabled(true);
+            }
+          else
+            {
+            cout << "ERROR: Instrument can either be simulated or tracked NOT BOTH" << endl;
+            return false;
+            }
+          }
+        else if(currentArg == "--simulate-instrument" || currentArg == "-si")
+          {
+          if(!instrumentTracker->GetTrackingEnabled())
+            {
+            instrumentTracker->SetSimulationEnabled(true);
+            }
+          else
+            {
+            cout << "ERROR: Instrument can either be simulated or tracked NOT BOTH" << endl;
+            return false;
+            }
           }
         //Track ultrasound
         else if(currentArg == "--track-ultrasound" || currentArg == "-tu")
@@ -427,9 +456,11 @@ void goodByeScreen()
 
  cout << endl;
  cout << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<<endl;
+}
 
+void goodByeInput()
+{
  string input;
-
  while(cin >> input)
    {
    if(input == "t")

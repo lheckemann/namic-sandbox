@@ -103,6 +103,9 @@ vtkDataSender::vtkDataSender()
 
   this->PlayerThreader = vtkMultiThreader::New();;
   this->PlayerThreadId = -1;
+  this->IndexLockedByDataSender = -1;
+  this->IndexLockedByDataProcessor = -1;
+  this->IndexLock = vtkMutexLock::New();
 
   this->sendDataBufferSize = 100;
   this->sendDataBufferIndex = -1;
@@ -460,11 +463,10 @@ int vtkDataSender::PrepareImageMessage(int index,
     return -1;
     }
 
-   #ifdef TIMINGSENDER
-     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 1" << endl;
-   #endif
-
   //Get Data
+  do{}
+  while(-1 == this->LockIndex(index, DATASENDER));
+  
   vtkImageData * frame = this->sendDataBuffer[index].ImageData;
   vtkMatrix4x4 * matrix = this->sendDataBuffer[index].Matrix;
 
@@ -480,11 +482,7 @@ int vtkDataSender::PrepareImageMessage(int index,
     frameProperties.Set = true;
 //    }
 
-   #ifdef TIMINGSENDER
-     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 2" << endl;
-   #endif
-
-  //------------------------------------------------------------
+    //------------------------------------------------------------
   // Create a new IMAGE type message
   imageMessage = igtl::ImageMessage::New();
 
@@ -505,24 +503,16 @@ int vtkDataSender::PrepareImageMessage(int index,
     double copyStart = this->GetUpTime();
   #endif
 
-  #ifdef TIMINGSENDER
-     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 3" << endl;
-  #endif
+  //memcpy(pImageMessage, pFrame, frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] * frame->GetNumberOfScalarComponents());
 
-  memcpy(pImageMessage, pFrame, frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] * frame->GetNumberOfScalarComponents());
-
-//  for(int i = 0 ; i < frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] ; i++ )
-//    {
-//    *pImageMessage = (unsigned char) *pFrame;
-//    ++pFrame; ++pImageMessage;
-//    #ifdef  DEBUGSENDER
-//      ++counter;
-//    #endif
-//    }
-
-   #ifdef TIMINGSENDER
-     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 4" << endl;
-   #endif
+  for(int i = 0 ; i < frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] ; i++ )
+    {
+    *pImageMessage = (unsigned char) *pFrame;
+    ++pFrame; ++pImageMessage;
+    #ifdef  DEBUGSENDER
+      ++counter;
+    #endif
+    }
 
   igtl::Matrix4x4 igtlMatrix;
 
@@ -547,6 +537,8 @@ int vtkDataSender::PrepareImageMessage(int index,
   igtlMatrix[3][2] = matrix->Element[3][2];
   igtlMatrix[3][3] = matrix->Element[3][3];
 
+  this->ReleaseLock(DATASENDER);
+  
 //  for(int i = 0; i < 4; ++i)
 //    {
 //    for(int j = 0; j < 4; ++j)
@@ -554,10 +546,6 @@ int vtkDataSender::PrepareImageMessage(int index,
 //      igtlMatrix[i][j] = matrix->Element[i][j];
 //      }
 //    }
-
-   #ifdef TIMINGSENDER
-     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 5" << endl;
-   #endif
 
   #ifdef  DEBUGSENDER
     this->LogStream <<  this->GetUpTime() << " |S-INFO: Size of image frame to send:"
@@ -569,21 +557,13 @@ int vtkDataSender::PrepareImageMessage(int index,
   #endif
 
   #ifdef  DEBUGSENDER
-    this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
-    matrix->Print(this->LogStream);
+    //this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
+    //matrix->Print(this->LogStream);
   #endif
 
   imageMessage->SetMatrix(igtlMatrix);
 
-#ifdef TIMINGSENDER
-     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 6" << endl;
-   #endif
-
   imageMessage->Pack();// Pack (serialize)
-
-#ifdef TIMINGSENDER
-     this->LogStream <<  this->GetUpTime() << " |S-INFO: Prepare Message 7" << endl;
-   #endif
 
   return 0;
 
@@ -829,7 +809,94 @@ void vtkDataSender::UpdateFrameRate(double sendTime)
       }
     this->lastFrameRateUpdate = sendTime;
     }
+}
 
+/******************************************************************************
+ * int vtkDataSender::LockIndex(int index, int requester)
+ *
+ *  Lock index "index"
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  11.February 2009
+ *
+ *  @Param: int index - index to lock
+ *  @Param: int requester - Thread who wants to lock the index
+ * 
+ *  @Param: 0 on success
+ *         -1 on failure
+ *
+ * ****************************************************************************/
+int vtkDataSender::LockIndex(int index, int requester)
+{
+  int retVal = 0;
+  this->IndexLock->Lock();
+  if(requester == DATASENDER)
+    {
+    if(index == this->IndexLockedByDataProcessor)
+       {
+       retVal = -1;
+       }
+    else
+      {
+      #ifdef  DEBUGSENDER
+        this->LogStream <<  this->GetUpTime() << " |S-Info: Sender locked index:" << index << endl;
+      #endif
+      this->IndexLockedByDataSender = index;    
+      }
+    }
+  else if(requester == DATAPROCESSOR)
+    {
+    if(index == this->IndexLockedByDataSender)
+       {
+       retVal = -1;
+       }
+    else
+      {
+      #ifdef DEBUGSENDER
+        this->LogStream <<  this->GetUpTime() << " |S-Info: Processor locked index:" << index << endl;
+      #endif
+      this->IndexLockedByDataProcessor = index;    
+      }
+    }
+  else
+    {
+    #ifdef  ERRORSENDER
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Unknown requester("<< requester <<") tries to lock index:" << index << endl;
+    #endif
+    retVal = -1;
+    }
+  this->IndexLock->Unlock();
+  
+  return retVal;
+}
 
+int vtkDataSender::ReleaseLock(int requester)
+{
+  int retVal = 0;
+  this->IndexLock->Lock();
+  if(requester == DATASENDER)
+    {
+    #ifdef  DEBUGSENDER
+        this->LogStream <<  this->GetUpTime() << " |S-Info: Sender released index:" << this->IndexLockedByDataSender << endl;
+    #endif
+    this->IndexLockedByDataSender = -1;
+    }
+  else if (requester == DATAPROCESSOR)
+    {
+    #ifdef  DEBUGSENDER
+        this->LogStream <<  this->GetUpTime() << " |S-Info: Processor released index:" << this->IndexLockedByDataProcessor << endl;
+    #endif
+    this->IndexLockedByDataProcessor = -1;
+    }
+  else
+    {
+    #ifdef  ERRORSENDER
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Unknown requester("<< requester <<") tries to release a lock "<< endl;
+    #endif
+    retVal = -1;
+    }
+  this->IndexLock->Unlock();
+  
+  return retVal;
 }
 

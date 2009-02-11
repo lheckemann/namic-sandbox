@@ -457,6 +457,7 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
   if(processor != NULL)
     {
     this->DataProcessor = processor;
+    this->DataProcessor->SetUltraSoundTrackingEnabled(this->trackerDeviceEnabled);
     }
   else
     {
@@ -653,8 +654,7 @@ int vtkDataCollector::EnableTrackerTool()
       this->LogStream << this->GetUpTime() << " |C-ERROR: Collector already initializes cannot start tracker device" << endl;
     #endif
     return -1;
-    }
-  
+    }  
   this->trackerDeviceEnabled = true;
   this->NDItracker = vtkNDITracker::New();
   this->trackerSimulator->Delete();
