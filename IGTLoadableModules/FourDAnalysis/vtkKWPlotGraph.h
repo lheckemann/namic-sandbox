@@ -24,6 +24,8 @@
 #include "vtkFourDAnalysisWin32Header.h"
 #include "vtkKWRenderWidget.h"
 
+class vtkXYPlotActor;
+
 class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
 {
 public:
@@ -67,6 +69,8 @@ protected:
 private:
   vtkKWPlotGraph(const vtkKWPlotGraph&); // Not implemented
   void operator=(const vtkKWPlotGraph&); // Not implemented
+
+  vtkXYPlotActor* PlotActor;
 
   int Updating;
 

@@ -103,6 +103,7 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->PlotTypeButtonSet = NULL;
   this->FunctionEditor = NULL;
   this->SavePlotButton = NULL;
+  this->IntensityPlot = NULL;
 
   this->InputSeriesMenu  = NULL;
   this->OutputSeriesMenu = NULL;
@@ -235,6 +236,11 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     {
     this->FunctionEditor->SetParent(NULL);
     this->FunctionEditor->Delete();
+    }
+  if (this->IntensityPlot)
+    {
+    this->IntensityPlot->SetParent(NULL);
+    this->IntensityPlot->Delete();
     }
   if (this->SavePlotButton)
     {
@@ -1479,8 +1485,15 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
   this->FunctionEditor->ValueTicksVisibilityOn();
   this->FunctionEditor->SetValueTicksFormat("%-#4.2f");
 
-  this->Script("pack %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->IntensityPlot = vtkKWPlotGraph::New();
+  this->IntensityPlot->SetParent(frame->GetFrame());
+  this->IntensityPlot->Create();
+  this->IntensityPlot->SetHeight(300);
+  this->IntensityPlot->UpdateVTK();
+
+  this->Script("pack %s %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
                this->PlotTypeButtonSet->GetWidgetName(),
+               this->IntensityPlot->GetWidgetName(),
                this->FunctionEditor->GetWidgetName());
 
   // -----------------------------------------

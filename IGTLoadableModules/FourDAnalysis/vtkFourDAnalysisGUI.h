@@ -25,6 +25,7 @@
 #include "vtkDoubleArray.h"
 
 #include "vtkFourDAnalysisLogic.h"
+#include "vtkKWPlotGraph.h"
 
 #include <map>
 
@@ -174,6 +175,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWRadioButtonSet* PlotTypeButtonSet;
   vtkKWPiecewiseFunctionEditor* FunctionEditor;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
+  vtkKWPlotGraph* IntensityPlot;
 
   vtkKWMenuButton* InputSeriesMenu;
   vtkKWMenuButton* OutputSeriesMenu;
