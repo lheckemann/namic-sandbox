@@ -65,6 +65,7 @@ class vtkVideoSourceSimulator;
 
 class vtkNDITracker;
 class vtkTrackerSimulator;
+class vtkTrackerTool;
 
 class vtkMatrix4x4;
 class vtkImageData;
@@ -81,6 +82,9 @@ public:
 
   vtkSetStringMacro(CalibrationFileName);
   vtkGetStringMacro(CalibrationFileName);
+  
+  vtkSetMacro(TrackerDeviceEnabled, bool);
+  vtkGetMacro(TrackerDeviceEnabled, bool);
 
   vtkSetStringMacro(VideoDevice);
   vtkGetStringMacro(VideoDevice);
@@ -117,8 +121,7 @@ public:
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
 
-  int StartTracker();
-  int Initialize();
+  int Initialize(vtkNDITracker* tracker);
   int StartCollecting(vtkDataProcessor * processor);
   int StopCollecting();
   void AdjustMatrix(vtkMatrix4x4& matrix);
@@ -126,6 +129,7 @@ public:
   int DuplicateFrame(vtkImageData * original, vtkImageData * duplicate);
   bool IsTrackerDeviceEnabled();
   int EnableTrackerTool();
+  bool IsIdentityMatrix(vtkMatrix4x4 * matrix);
 
 protected:
   vtkDataCollector();
@@ -147,7 +151,8 @@ protected:
 
   vtkUltrasoundCalibFileReader *calibReader;
 
-  bool trackerDeviceEnabled;
+  bool TrackerDeviceEnabled;
+  vtkTrackerTool *tool;
   vtkNDITracker *NDItracker;
   vtkTrackerSimulator *trackerSimulator;
 

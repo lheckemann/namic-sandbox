@@ -71,6 +71,7 @@ struct FramePoperties {
         double Spacing[3];
         int SubVolumeSize[3];
         int SubVolumeOffset[3];
+        float Origin[3];
 };
 
 struct DataStruct{
@@ -101,6 +102,8 @@ public:
 
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
+  
+  int GetBufferSize(){return sendDataQueue.size();}
 
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();

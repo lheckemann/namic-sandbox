@@ -47,7 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 //#define REMOVE_ALPHA_CHANNEL
 //#define DEBUG_IMAGES //Write tagger output to HDD
-//#define DEBUG_MATRICES //Prints tagger matrices to stdout
+#define DEBUG_MATRICES //Prints tagger matrices to stdout
 #define NEWCOLLECTOR
 
 //#include <windows.h>
@@ -124,7 +124,7 @@ vtkDataCollector::vtkDataCollector()
 
   this->Tagger = vtkTaggedImageFilter::New();
 
-  this->trackerDeviceEnabled = false;  
+  this->TrackerDeviceEnabled = false;  
   this->trackerSimulator = vtkTrackerSimulator::New();
   this->NDItracker = NULL;
   
@@ -146,9 +146,9 @@ vtkDataCollector::~vtkDataCollector()
 {
   this->StopCollecting();
   
-  if(this->trackerDeviceEnabled)
+  if(this->TrackerDeviceEnabled)
     {
-    this->NDItracker->Delete();
+//    this->NDItracker->Delete();
     }
   else
     {
@@ -169,13 +169,21 @@ void vtkDataCollector::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-int vtkDataCollector::Initialize()
+int vtkDataCollector::Initialize(vtkNDITracker* tracker)
 {
   if(this->Initialized)
     {
     return 0;
     }
 
+  if(this->TrackerDeviceEnabled && tracker == NULL)
+    {
+    #ifdef ERRORCOLLECTOR
+      this->GetLogStream() << this->GetUpTime() << " |C-ERROR: Can not initialize Data Collector no tracker provided" << endl;
+    #endif
+    return -1;
+    }
+  
   if(this->calibReader != NULL)
     {
     this->calibReader->SetFileName(this->CalibrationFileName);
@@ -183,7 +191,9 @@ int vtkDataCollector::Initialize()
     }
   else
     {
-    this->LogStream << "C-ERROR: Calibration file reader not specified" << endl;
+    #ifdef ERRORCOLLECTOR
+      this->LogStream << this->GetUpTime() << " |C-ERROR: Calibration file reader not specified" << endl;
+    #endif
     return -1;
     }
 
@@ -206,61 +216,32 @@ int vtkDataCollector::Initialize()
   this->VideoSource->SetFrameSize(imSize[0], imSize[1], 1);
   //
   // Setting up the synchronization filter
-  this->Tagger->SetVideoSource(this->VideoSource);
+  this->Tagger->SetVideoSource(this->VideoSource);  
 
-  // set up the tracker if necessary
-  if(-1 == this->StartTracker())
+  if(this->TrackerDeviceEnabled)
     {
-    return -1;
+    
+    this->NDItracker = tracker;
+    this->tool = this->NDItracker->GetTool(0);
+    this->tool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) );
     }
   else
     {
-    this->Tagger->Initialize();
-    #ifdef USE_ULTRASOUND_DEVICE
-    this->VideoSource->Record();
-    this->VideoSource->Stop();
-    #endif
-    this->Initialized = true;
-    return 0;
-    }
-
-}
-//
-//----------------------------------------------------------------------------
-int vtkDataCollector::StartTracker()
-{
-
-  vtkTrackerTool *tool;
-
-  if(this->trackerDeviceEnabled)
-    {
-    if(this->NDItracker->Probe() != 1)
-      {
-      this->LogStream << "C-ERROR: Tracking system not found" << endl;
-      return -1;
-      }
-    tool = this->NDItracker->GetTool(0);
-    }
-  else
-    {
-    tool = this->trackerSimulator->GetTool(0);
-    }
-
-  // make sure the tracking buffer is large enough for the number of the image sequence requested
-
-  tool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) );
-  
-  if(this->trackerDeviceEnabled)
-    {
-    this->NDItracker->StartTracking();
-    }
-  else
-    {
+    this->tool = this->trackerSimulator->GetTool(0);
+    this->tool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) );
     this->trackerSimulator->StartTracking();
     }
-  this->Tagger->SetTrackerTool(tool);
-  this->Tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
+  
 
+  this->Tagger->SetTrackerTool(this->tool);
+  this->Tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
+  
+  this->Tagger->Initialize();
+  #ifdef USE_ULTRASOUND_DEVICE
+  this->VideoSource->Record();
+  this->VideoSource->Stop();
+  #endif
+  this->Initialized = true;
   return 0;
 }
 
@@ -359,6 +340,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
   double rate = self->GetFrameRate();
   int frame = 0;
   int extent[6];
+  bool skip = false;
 
 
 #ifdef DEBUG_IMAGES
@@ -384,41 +366,60 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
       self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
       trackerMatrix->Print(self->GetLogStream());
       #endif
-
-      if(self->IsTrackerDeviceEnabled())
+      
+      
+        if(self->IsTrackerDeviceEnabled())
+          {
+          if(self->IsIdentityMatrix(trackerMatrix))
+            {
+            skip = true;
+            }
+          else
+            {
+            self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
+            }
+          }
+        
+      if(!skip)
         {
-        self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
+        #ifdef NEWCOLLECTOR
+        vtkImageData* newFrame = vtkImageData::New();
+        self->DuplicateFrame(self->GetTagger()->GetOutput(), newFrame);
+        newFrame->SetNumberOfScalarComponents(1);
+        #endif
+  
+        #ifdef DEBUG_IMAGES
+  
+        #ifdef NEWCOLLECTOR
+        writer->SetInput(newFrame);
+        #else
+        writer->SetInput(self->GetTagger()->GetOutput());
+        #endif
+  
+        sprintf(filename,"./Output/output%03d.bmp",frame);
+        writer->SetFileName(filename);
+        writer->Update();
+        #endif //DEBUG_IMAGES
+  
+        //Send frame + matrix
+        #ifdef NEWCOLLECTOR
+        if(self->GetDataProcessor()->NewData(newFrame, trackerMatrix) == -1)
+        #else
+        if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
+        #endif
+          {
+          #ifdef DEBUGCOLLECTOR
+          self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
+          #endif
+          }
         }
-
-      #ifdef NEWCOLLECTOR
-      vtkImageData* newFrame = vtkImageData::New();
-      self->DuplicateFrame(self->GetTagger()->GetOutput(), newFrame);
-      #endif
-
-      #ifdef DEBUG_IMAGES
-
-      #ifdef NEWCOLLECTOR
-      writer->SetInput(newFrame);
-      #else
-      writer->SetInput(self->GetTagger()->GetOutput());
-      #endif
-
-      sprintf(filename,"./Output/output%03d.bmp",frame);
-      writer->SetFileName(filename);
-      writer->Update();
-      #endif //DEBUG_IMAGES
-
-      //Send frame + matrix
-      #ifdef NEWCOLLECTOR
-      if(self->GetDataProcessor()->NewData(newFrame, trackerMatrix) == -1)
-      #else
-      if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
-      #endif
+      else
         {
         #ifdef DEBUGCOLLECTOR
-        self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
+          self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Tracker sends unusable matrices" << endl;
         #endif
         }
+      skip = false;
       }
 
     frame++;
@@ -433,13 +434,11 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
 {
   if (!this->Initialized)
     {
-    if(!this->Initialize())
-      {
-        #ifdef ERRORCOLLECTOR
-        this->LogStream << this->GetUpTime() << " |C-ERROR: Could not initialize DataCollector" << endl;
-        #endif
-        return -1;
-      }
+    #ifdef ERRORCOLLECTOR
+      this->LogStream << this->GetUpTime() << " |C-ERROR: Can not start tracking; Data collector not initialized";
+    #endif
+    return -1;
+    
     }
 
   if (!this->Collecting)
@@ -457,7 +456,7 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
   if(processor != NULL)
     {
     this->DataProcessor = processor;
-    this->DataProcessor->SetUltraSoundTrackingEnabled(this->trackerDeviceEnabled);
+    this->DataProcessor->SetUltraSoundTrackingEnabled(this->TrackerDeviceEnabled);
     }
   else
     {
@@ -466,20 +465,14 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     #endif
     return -1;
     }
-
+  
   cout << "Hardware Initialization: " << std::flush;
   cout << '\a' << std::flush;
   for(int i = 0; i < 11; i++)
     {
-    if(this->trackerDeviceEnabled)
-      {
-      vtkSleep(1);
-      }
-    else
-      {
-      vtkSleep(0.2);
-      }
-      cout << 10 - i << " " << std::flush;
+    vtkSleep(0.2);
+    
+    cout << 10 - i << " " << std::flush;
     }
   cout << endl;
 
@@ -518,9 +511,9 @@ int vtkDataCollector::StopCollecting()
     this->PlayerThreadId = -1;
     this->Collecting = false;
     
-    if(this->trackerDeviceEnabled)
+    if(this->TrackerDeviceEnabled)
       {
-      this->NDItracker->StopTracking();
+//      this->NDItracker->StopTracking();
       }
     else
       {
@@ -540,7 +533,37 @@ int vtkDataCollector::StopCollecting()
 //Adjust tracker matrix to ultrasound scan depth
 void vtkDataCollector::AdjustMatrix(vtkMatrix4x4& matrix)
 {
-  double scaleFactor = (this->VideoSource->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
+  int Offset[3] = {500, 348, -288}; //x, y, z
+  
+  vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
+  vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
+  
+  oldMatrix->DeepCopy(&matrix);
+  
+  adjustMatrix->Identity();
+  
+  adjustMatrix->Element[0][0] = 0;
+  adjustMatrix->Element[1][1] = 0;
+  adjustMatrix->Element[2][2] = 0;
+  
+  adjustMatrix->Element[2][0] = -1;
+  adjustMatrix->Element[0][2] = -1;
+  adjustMatrix->Element[1][1] = -1;
+  //Offset
+//  adjustMatrix->Element[0][3] = Offset[0];
+//  adjustMatrix->Element[1][3] = Offset[1];
+//  adjustMatrix->Element[2][3] = Offset[2];
+  
+  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, &matrix);
+  
+  #ifdef DEBUGCOLLECTOR
+      this->LogStream << this->GetUpTime() << " |C-INFO: Adjust Matrix Oldmatrix * Adjustmatrix = NewMatrix" << endl;
+      oldMatrix->Print(this->LogStream);
+      adjustMatrix->Print(this->LogStream);
+      matrix.Print(this->LogStream);
+  #endif
+
+  double scaleFactor = 1;//(this->VideoSource->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
 
   matrix.Element[0][3] = matrix.Element[0][3] * scaleFactor;//x
   matrix.Element[1][3] = matrix.Element[1][3] * scaleFactor;//y
@@ -631,7 +654,7 @@ int vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * dup
  * ****************************************************************************/
 bool vtkDataCollector::IsTrackerDeviceEnabled()
 {
-  return this->trackerDeviceEnabled;
+  return this->TrackerDeviceEnabled;
 }
 
 /******************************************************************************
@@ -655,9 +678,53 @@ int vtkDataCollector::EnableTrackerTool()
     #endif
     return -1;
     }  
-  this->trackerDeviceEnabled = true;
-  this->NDItracker = vtkNDITracker::New();
+  this->TrackerDeviceEnabled = true;  
   this->trackerSimulator->Delete();
   
   return 0;
+}
+
+/******************************************************************************
+ * bool vtkDataCollector::IsIdentityMatrix(vtkMatrix4x4 * matrix)
+ *
+ * Check if matrix "matrix" is identity matrix
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ *
+ *  @Param: vtkMatrix4x4 * matrix
+ * 
+ *  @Return:  true if identity matrix
+ *            false if not identity matrix
+ *
+ * ****************************************************************************/
+bool vtkDataCollector::IsIdentityMatrix(vtkMatrix4x4 * matrix)
+{
+  if(   matrix->Element[0][0] == 1
+     && matrix->Element[0][1] == 0
+     && matrix->Element[0][2] == 0
+     && matrix->Element[0][3] == 0
+  
+     && matrix->Element[1][0] == 0
+     && matrix->Element[1][1] == 1
+     && matrix->Element[1][2] == 0
+     && matrix->Element[1][3] == 0
+  
+     && matrix->Element[2][0] == 0
+     && matrix->Element[2][1] == 0
+     && matrix->Element[2][2] == 1
+     && matrix->Element[2][3] == 0
+  
+     && matrix->Element[3][0] == 0
+     && matrix->Element[3][1] == 0
+     && matrix->Element[3][2] == 0
+     && matrix->Element[3][3] == 1
+     )
+    {
+    return true;
+    }
+  else
+    {
+    return false;
+    }
 }

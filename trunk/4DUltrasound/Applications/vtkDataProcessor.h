@@ -85,6 +85,8 @@ public:
 
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
+  
+  int GetBufferSize(){return newDataBuffer.size();}
 
   int NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix);
   int EnableVolumeReconstruction(bool flag);

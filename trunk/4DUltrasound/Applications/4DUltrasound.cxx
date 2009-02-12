@@ -64,6 +64,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkDataProcessor.h"
 #include "vtkDataSender.h"
 #include "vtkInstrumentTracker.h"
+#include "vtkNDITracker.h"
 
 using namespace std;
 
@@ -91,9 +92,12 @@ int main(int argc, char **argv)
   vtkDataCollector *collector = vtkDataCollector::New();
   vtkDataProcessor *processor = vtkDataProcessor::New();
   vtkDataSender *sender = vtkDataSender::New();
-
+  
   vtkInstrumentTracker *instrumentTracker =   vtkInstrumentTracker::New();
 
+  vtkNDITracker * tracker = vtkNDITracker::New();
+  
+  //Fix StartUp time
   double startTime = vtkTimerLog::GetUniversalTime();
   collector->SetStartUpTime(startTime);
   processor->SetStartUpTime(startTime);
@@ -129,102 +133,159 @@ int main(int argc, char **argv)
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
 
-    //Configure collector
-    if(collector->Initialize() != 0)
-      {
-        cerr << "ERROR: Could not initialize DataCollector" <<endl;
-        printUsage();
-        goodByeScreen();
-        goodByeInput();
-      }
-    else
+    if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
       {
       
-      // Connect to OpenIGTLink Server
-      if(sender->ConnectToServer() != 0)
+      if(tracker->Probe() != 1)
         {
+        cerr << "ERROR: Tracking system not found" << endl;
         terminate += 1;
         }
-
-      //Start Send Thread
-      if(terminate == 0)
+      else 
         {
-        if(sender->StartSending() != 0)
-          {
-          terminate += 2;
-          }
+        tracker->StartTracking();
         }
-
-      //Start Send Thread
-      if(terminate == 0)
-        {
-        if(processor->StartProcessing(sender) != 0)
-          {
-          terminate += 4;
-          }
-        }
-      
-      //Colleced video frames and tracking matrices and forward them to the sender
-      if(terminate == 0)
-        {
-        if(collector->StartCollecting(processor) != 0)
-          {
-          terminate += 8;
-          }
-        }
-      
-      goodByeScreen();
-
-      //Colleced instrument tracking matrices and forward them to the OpenIGTLink server
-      if(terminate == 0 
-         && (instrumentTracker->GetTrackingEnabled() || instrumentTracker->GetSimulationEnabled()))
-        {
-        if(instrumentTracker->ConnectToServer() != 0 || instrumentTracker->StartTracking() != 0)
-          {
-          terminate += 16;
-          }
-        }
-
-      //Wait for user input to terminate 4D-Ultrasound
-      if(terminate != 0)
-        {
-        cerr << "ERROR occured while starting 4DUltrasound | Error-Code: " << terminate << endl;
-        }
-      
-      goodByeInput();
       }
-
-      instrumentTracker->StopTracking();
-      instrumentTracker->CloseServerConnection();
-      instrumentTracker->Delete();
-
-      //Stop Collecting
-      collector->StopCollecting();
-      collector->Delete();
-
-      //Stop Processing
-      processor->StopProcessing();
-      processor->Delete();
-
-      //Stop Sending
-      sender->StopSending();
-      //Close Sever Connection
-      sender->CloseServerConnection();
-      sender->Delete();
-
-      cout << endl;
-      if(terminate == 0)
+    
+    //Configure collector
+    if(terminate == 0)
+      {
+      if(collector->GetTrackerDeviceEnabled())
         {
-        cout << "--- 4D Ultrasound finished ---" << endl;
+        if(collector->Initialize(tracker) != 0)
+          {
+            cerr << "ERROR: Could not initialize DataCollector" << endl;
+            terminate += 2;
+          }
         }
       else
         {
-        cout << "--- 4D Ultrasound finished with ERRORS ---" << endl
-             << "---           ERRORCODE: "<< terminate <<"             ---" << endl;
+        if(collector->Initialize(NULL) != 0)
+          {
+            cerr << "ERROR: Could not initialize DataCollector" << endl;
+            terminate += 2;
+          }
         }
-      logStream.close();
-      errOut->Delete();
+      }
+      
+    // Connect Sender to OpenIGTLink Server
+    if(terminate == 0)
+      {
+      if(sender->ConnectToServer() != 0)
+        {
+        terminate += 4;
+        }
+      }
+
+    //Start Send Thread
+    if(terminate == 0)
+      {
+      if(sender->StartSending() != 0)
+        {
+        terminate += 8;
+        }
+      }
+
+    //Start Send Thread
+    if(terminate == 0)
+      {
+      if(processor->StartProcessing(sender) != 0)
+        {
+        terminate += 16;
+        }
+      }
+    
+    //Colleced video frames and tracking matrices and forward them to the sender
+    if(terminate == 0)
+      {
+      if(collector->StartCollecting(processor) != 0)
+        {
+        terminate += 32;
+        }
+      }
+    
+    goodByeScreen();
+
+    //Colleced instrument tracking matrices and forward them to the OpenIGTLink server
+    if(terminate == 0)
+      {
+      if(instrumentTracker->GetTrackingEnabled())
+        {
+        if(-1 != instrumentTracker->ConnectToServer())
+          {
+          if(-1 == instrumentTracker->StartTracking(tracker))
+            {
+            terminate += 64;
+            }
+          }
+        else
+          {
+          terminate += 64;
+          }
+        }
+      else if(instrumentTracker->GetSimulationEnabled())
+        {
+        if(-1 != instrumentTracker->ConnectToServer())
+          {
+          if(-1 == instrumentTracker->StartTracking(NULL))
+            {
+            terminate += 64;
+            }
+          }
+        else
+          {
+          terminate += 64;
+          }
+        }
+      }
+
+    //Wait for user input to terminate 4D-Ultrasound
+    if(terminate != 0)
+      {
+      cerr << "ERROR occured while starting 4DUltrasound | Error-Code: " << terminate << endl;
+      }
+    
+    goodByeInput();
+
+    instrumentTracker->StopTracking();
+    instrumentTracker->CloseServerConnection();
+
+    //Stop Collecting
+    collector->StopCollecting();
+
+    //Stop Processing
+    processor->StopProcessing();
+
+    //Stop Sending
+    sender->StopSending();
+    //Close Sever Connection
+    sender->CloseServerConnection();      
+
+    if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
+      {
+      tracker->StopTracking();
+      }
+    
+    
+    cout << endl;
+    if(terminate == 0)
+      {
+      cout << "--- 4D Ultrasound finished ---" << endl << endl;
+      }
+    else
+      {
+      cout << "--- 4D Ultrasound finished with ERRORS ---" << endl
+           << "---           ERRORCODE: "<< terminate <<"             ---" << endl << endl;
+      }
+    logStream.close();
+    errOut->Delete();
     }
+  instrumentTracker->Delete();
+  collector->Delete();
+  processor->Delete();
+  sender->Delete();
+  tracker->Delete();
+  
 }//End Main
 
 //------------------------------------------------------------------------------
@@ -443,6 +504,7 @@ bool parseCommandLineArguments(int argc, char **argv,
           }       
         else
            {
+           printUsage();
            cout << "ERROR: Unrecognized command: '" << argv[i] <<"'" << endl;
            return false;
            }

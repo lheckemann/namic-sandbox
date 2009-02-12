@@ -52,11 +52,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "igtlMath.h"
 #include "igtlOSUtil.h"
 
-#ifdef USE_TRACKER_DEVICE
 #include "vtkNDITracker.h"
-#else
 #include "vtkTrackerSimulator.h"
-#endif
+
+//#define DEBUG_MATRICES
 
 #define FUDGE_FACTOR 1.6
 #define CERTUS_UPDATE_RATE 625
@@ -79,7 +78,8 @@ vtkStandardNewMacro(vtkInstrumentTracker);
  * ****************************************************************************/
 vtkInstrumentTracker::vtkInstrumentTracker()
 {
-  this->Enabled = false; //If false Instrument Tracker does nothing
+  this->SimulationEnabled = false; //If false Instrument Tracker does nothing
+  this->TrackingEnabled = false;
 
   this->ServerPort = 18945;
   this->OIGTLServer = NULL;
@@ -98,13 +98,7 @@ vtkInstrumentTracker::vtkInstrumentTracker()
   this->Connected = false;
   this->Tracking = false;
 
-  #ifdef USE_TRACKER_DEVICE
-  this->tracker = vtkNDITracker::New();
-  #else
-  this->tracker = vtkTrackerSimulator::New();
-  #endif //USE_TRACKER_DEVICE
-
-  this->TrackerTool = this->tracker->GetTool(0);
+  this->tracker = NULL;
 
   this->PlayerThreader = vtkMultiThreader::New();;
   this->PlayerThreadId = -1;
@@ -124,7 +118,11 @@ vtkInstrumentTracker::vtkInstrumentTracker()
  * ****************************************************************************/
 vtkInstrumentTracker::~vtkInstrumentTracker()
 {
-  this->tracker->Delete();
+//  if(this->TrackingEnabled)
+//    {
+//    this->tracker->Delete();
+//    }
+  
   this->PlayerThreader->Delete();
 
   if(this->Tracking)
@@ -167,7 +165,7 @@ void vtkInstrumentTracker::PrintSelf(ostream& os, vtkIndent indent)
  * ****************************************************************************/
 int vtkInstrumentTracker::ConnectToServer()
 {
-  if(!this->Enabled)
+  if(!this->TrackingEnabled && !this->SimulationEnabled)
     {
     #ifdef ERROR_INST_TRACKER
     this->LogStream << this->GetUpTime() << " |I-ERROR: Instrument tracker not enabled can not connect to server" << endl;
@@ -326,44 +324,46 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
 
   do
     {
-    //Grab new frame
     loopTime = self->GetUpTime();
     #ifdef TIMING_INST_TRACKER
-    self->GetLogStream() << self->GetUpTime() << " |---------------------------------------" << endl
-                                              << " | L:" << self->GetUpTime() - loopTime << endl;
+    self->GetLogStream() << self->GetUpTime()  << " |---------------------------------------" << endl;
+    self->GetLogStream() <<  self->GetUpTime() << " |I-INFO: Instrument Tracker Thread starts new loop "
+                                               << " | L:" << self->GetUpTime() - loopTime << endl;
     #endif
 
     igtl::Matrix4x4 igtlMatrix;
 
-    #ifdef USE_TRACKER_DEVICE
-    //Get Tracking Matrix for new frame
-    self->GetTrackerTool()->GetBuffer()->GetFlagsAndMatrixFromTime(trackerMatrix, vtkTimerLog::GetUniversalTime());
-    self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
-
-    //Copy matrix
-    igtlMatrix[0][0] = trackerMatrix->Element[0][0];
-    igtlMatrix[0][1] = trackerMatrix->Element[0][1];
-    igtlMatrix[0][2] = trackerMatrix->Element[0][2];
-    igtlMatrix[0][3] = trackerMatrix->Element[0][3];
-
-    igtlMatrix[1][0] = trackerMatrix->Element[1][0];
-    igtlMatrix[1][1] = trackerMatrix->Element[1][1];
-    igtlMatrix[1][2] = trackerMatrix->Element[1][2];
-    igtlMatrix[1][3] = trackerMatrix->Element[1][3];
-
-    igtlMatrix[2][0] = trackerMatrix->Element[2][0];
-    igtlMatrix[2][1] = trackerMatrix->Element[2][1];
-    igtlMatrix[2][2] = trackerMatrix->Element[2][2];
-    igtlMatrix[2][3] = trackerMatrix->Element[2][3];
-
-    igtlMatrix[3][0] = trackerMatrix->Element[3][0];
-    igtlMatrix[3][1] = trackerMatrix->Element[3][1];
-    igtlMatrix[3][2] = trackerMatrix->Element[3][2];
-    igtlMatrix[3][3] = trackerMatrix->Element[3][3];
-
-    #else
-    self->GetRandomTestMatrix(igtlMatrix);
-    #endif
+    if(self->GetTrackingEnabled())
+      {
+      //Get Tracking Matrix for new frame
+      self->GetTrackerTool()->GetBuffer()->GetFlagsAndMatrixFromTime(trackerMatrix, vtkTimerLog::GetUniversalTime());
+      self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
+  
+      //Copy matrix
+      igtlMatrix[0][0] = trackerMatrix->Element[0][0];
+      igtlMatrix[0][1] = trackerMatrix->Element[0][1];
+      igtlMatrix[0][2] = trackerMatrix->Element[0][2];
+      igtlMatrix[0][3] = trackerMatrix->Element[0][3] * 2.057;
+  
+      igtlMatrix[1][0] = trackerMatrix->Element[1][0];
+      igtlMatrix[1][1] = trackerMatrix->Element[1][1];
+      igtlMatrix[1][2] = trackerMatrix->Element[1][2];
+      igtlMatrix[1][3] = trackerMatrix->Element[1][3] * 2.057;
+  
+      igtlMatrix[2][0] = trackerMatrix->Element[2][0];
+      igtlMatrix[2][1] = trackerMatrix->Element[2][1];
+      igtlMatrix[2][2] = trackerMatrix->Element[2][2];
+      igtlMatrix[2][3] = trackerMatrix->Element[2][3] * 2.057;
+  
+      igtlMatrix[3][0] = trackerMatrix->Element[3][0];
+      igtlMatrix[3][1] = trackerMatrix->Element[3][1];
+      igtlMatrix[3][2] = trackerMatrix->Element[3][2];
+      igtlMatrix[3][3] = trackerMatrix->Element[3][3];
+      }
+    else
+      {
+      self->GetRandomTestMatrix(igtlMatrix);
+      }
 
     #ifdef DEBUG_MATRICES
     self->GetLogStream() << self->GetUpTime() << " |I-INFO Tracker matrix:" << endl;
@@ -394,14 +394,17 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
     }
   while(vtkThreadSleep(data, startTime + frame/rate));
 
+  trackerMatrix->Delete();
+  //transMsg->Delete();
+  
 return NULL;
 }
 
 //----------------------------------------------------------------------------
 //StartTracking
-int vtkInstrumentTracker::StartTracking()
+int vtkInstrumentTracker::StartTracking(vtkNDITracker * tracker)
 {
-  if(!this->Enabled)
+  if(!this->TrackingEnabled && !this->SimulationEnabled)
     {
     #ifdef ERROR_INST_TRACKER
     this->LogStream << this->GetUpTime() << " |I-ERROR: Instrument tracker not enabled can not start tracking" << endl;
@@ -418,16 +421,8 @@ int vtkInstrumentTracker::StartTracking()
     #ifdef ERROR_INST_TRACKER
     this->LogStream << this->GetUpTime() << " |I-ERROR: Instrument tracker already collects data" << endl;
     #endif
-    return false;
+    return -1;
     }
-
-  if(this->tracker->Probe() != 1)
-   {
-   #ifdef ERROR_INST_TRACKER
-   this->LogStream << "I-ERROR: Tracking system not found" << endl;
-   #endif
-   return -1;
-   }
 
   if(this->calibReader != NULL)
     {
@@ -441,12 +436,27 @@ int vtkInstrumentTracker::StartTracking()
     #endif
     return -1;
     }
+    
+  if(this->TrackingEnabled)
+    {
+    if(tracker == NULL)
+      {
+      #ifdef ERROR_INST_TRACKER
+        this->LogStream << "I-ERROR: Tracking enabled but not tracker provided" << endl;
+      #endif
+      return -1;
+      }
+    
+    this->tracker = tracker;
+    
+    this->TrackerTool = this->tracker->GetTool(1);
+    
+    this->TrackerTool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->TrackingRate * FUDGE_FACTOR + 0.5) );
+    this->TrackerTool->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
 
-  this->TrackerTool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->TrackingRate * FUDGE_FACTOR + 0.5) );
-  this->TrackerTool->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
-
-  this->tracker->StartTracking();
-
+    //this->tracker->StartTracking();
+    }
+  
  //Start Thread
    this->PlayerThreadId =
              this->PlayerThreader->SpawnThread((vtkThreadFunctionType)\
@@ -473,10 +483,15 @@ int vtkInstrumentTracker::StopTracking()
 {
   if (this->Tracking)
     {
+//    if(this->TrackingEnabled)
+//      {
+//      this->tracker->StopTracking();
+//      }
+    
     this->PlayerThreader->TerminateThread(this->PlayerThreadId);
     this->PlayerThreadId = -1;
     this->Tracking = false;
-    this->tracker->StopTracking();
+    
 
     #ifdef DEBUG_INST_TRACKER
     this->LogStream << "I-INFO: Instrument Tracker Thread stop" << endl;
@@ -497,7 +512,7 @@ int vtkInstrumentTracker::SendMessage(igtl::TransformMessage::Pointer& message)
       }
     else
       {
-      #ifdef  DEBUG_INST_TRACKER
+      #ifdef DEBUG_INST_TRACKER
         this->LogStream <<  this->GetUpTime() << " |I-INFO: Message successfully send to OpenIGTLink Server "<< endl;
       #endif
       }
@@ -508,12 +523,23 @@ int vtkInstrumentTracker::SendMessage(igtl::TransformMessage::Pointer& message)
 //Adjust tracker matrix to ultrasound scan depth
 void vtkInstrumentTracker::AdjustMatrix(vtkMatrix4x4& matrix)
 {
-  double scaleFactor = (  this->calibReader->GetImageSize()[1]
-                        / this->UltraSoundScanDepth * US_IMAGE_FAN_RATIO);
 
-  matrix.Element[0][3] = matrix.Element[0][3] * scaleFactor;//x
-  matrix.Element[1][3] = matrix.Element[1][3] * scaleFactor;//y
-  matrix.Element[2][3] = matrix.Element[2][3] * scaleFactor;//z
+  if(this->Tracking)
+    {
+    double scaleFactor = 1;//(  this->calibReader->GetImageSize()[1]
+                         // / this->UltraSoundScanDepth * US_IMAGE_FAN_RATIO);
+  
+    matrix.Element[0][3] = matrix.Element[0][3];//scaleFactor;//x
+    matrix.Element[1][3] = matrix.Element[1][3];//scaleFactor;//y
+    matrix.Element[2][3] = matrix.Element[2][3];//scaleFactor;//z
+    }
+  else
+    {
+    #ifdef ERROR_INST_TRACKER
+        this->LogStream <<  this->GetUpTime() << " |I-ERROR: Cannot adjust matrix Calibration file not read"<< endl;
+    #endif
+    }
+
 
 }
 /******************************************************************************
@@ -561,8 +587,15 @@ ofstream& vtkInstrumentTracker::GetLogStream()
 {
         return this->LogStream;
 }
-//----------------------------------------------------------------------------
-//Generate Matrix
+/******************************************************************************
+ * void vtkInstrumentTracker::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
+ *
+ *  Generate Random matrix for instrument simulation
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  8.February 2009
+ *
+ * ****************************************************************************/
 void vtkInstrumentTracker::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
 {
   float position[3];
@@ -591,4 +624,97 @@ void vtkInstrumentTracker::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
   matrix[2][3] = position[2];
 
 //  igtl::PrintMatrix(matrix);
+}
+
+/******************************************************************************
+ * int vtkInstrumentTracker::SetTrackingEnabled(bool flag)
+ *
+ *  Enable / Disable instrument tracking
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  10.February 2009
+ *
+ * @Return:  0 on success
+ *          -1 on failure
+ * 
+ * ****************************************************************************/
+int vtkInstrumentTracker::SetTrackingEnabled(bool flag)
+{
+  if(this->Tracking)
+    {
+    #ifdef ERROR_INST_TRACKER
+      this->LogStream <<  this->GetUpTime() << " |I-ERROR: Can not change instrument setting while running"<< endl;
+    #endif
+    return -1;
+    }
+
+  if(this->SimulationEnabled && flag)
+    {
+    #ifdef ERROR_INST_TRACKER
+      this->LogStream <<  this->GetUpTime() << " |I-ERROR: Simulation enabled no tracking possible"<< endl;
+    #endif
+    return -1;
+    }
+
+  if(this->TrackingEnabled && flag)
+    {
+    #ifdef DEBUG_INST_TRACKER
+      this->LogStream <<  this->GetUpTime() << " |I-WARNING: Instrument Tracking already enabled"<< endl;
+    #endif
+    return -1;
+    }
+ 
+  if(this->TrackingEnabled && !flag)
+    {
+    #ifdef ERROR_INST_TRACKER
+      this->LogStream <<  this->GetUpTime() << " |I-ERROR: Can not disable instrument tracking once it is set"<< endl;
+    #endif
+    return -1;
+    }
+  
+  this->TrackingEnabled = flag;
+  return 0;
+}
+
+/******************************************************************************
+ * int vtkInstrumentTracker::SetSimulationEnabled(bool flag)
+ *
+ *  Enable / Disable instrument simulation
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  10.February 2009
+ *
+ * @Return:  0 on success
+ *          -1 on failure
+ * 
+ * ****************************************************************************/
+int vtkInstrumentTracker::SetSimulationEnabled(bool flag)
+{
+  if(this->Tracking)
+    {
+    #ifdef ERROR_INST_TRACKER
+      this->LogStream <<  this->GetUpTime() << " |I-ERROR: Can not change instrument setting while running"<< endl;
+    #endif
+    return -1;
+    }
+
+  if(this->TrackingEnabled && flag)
+    {
+    #ifdef DEBUG_INST_TRACKER
+      this->LogStream <<  this->GetUpTime() << " |I-ERROR: Instrument Tracking already enabled nt simulation possible"<< endl;
+    #endif
+    return -1;
+    }
+
+  if(this->SimulationEnabled && flag)
+    {
+    #ifdef ERROR_INST_TRACKER
+      this->LogStream <<  this->GetUpTime() << " |I-WARNING: Instrument Simulations already enabled"<< endl;
+    #endif
+    return -1;
+    }
+  
+  this->SimulationEnabled = flag;
+  
+  return 0;
 }
