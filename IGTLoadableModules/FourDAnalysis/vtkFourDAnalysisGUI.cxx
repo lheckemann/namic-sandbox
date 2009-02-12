@@ -1492,8 +1492,8 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
   this->IntensityPlot->SetParent(frame->GetFrame());
   this->IntensityPlot->Create();
   this->IntensityPlot->SetHeight(300);
-  //this->IntensityPlot->UpdateVTK();
 
+  /*
   vtkDoubleArray* values = vtkDoubleArray::New();
   values->SetNumberOfComponents( static_cast<vtkIdType>(2) );
   for ( int i = 0; i < 360; i+=10 )
@@ -1503,10 +1503,17 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
     xy[1] = sin( xy[0]*vtkMath::DegreesToRadians() );
     values->InsertNextTuple( xy );
     }
-
-  this->IntensityPlot->SetNumberOfPlots(1);
-  this->IntensityPlot->SetData(0, values, "1");
+  */
+  /*
+  this->IntensityPlot->AddHorizontalLine(0.0);
+  this->IntensityPlot->SetAxisLineColor(1.0, 0.0, 0.0);
+  int id = this->IntensityPlot->AddPlot(values, "1");
+  this->IntensityPlot->AddVerticalLine(180.0);
   this->IntensityPlot->AutoRangeOn();
+  this->IntensityPlot->UpdateGraph();
+  */
+  this->IntensityPlot->AddHorizontalLine(0.5);
+  this->IntensityPlot->SetAxisLineColor(1.0, 1.0, 1.0);
   this->IntensityPlot->UpdateGraph();
 
   this->Script("pack %s %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 

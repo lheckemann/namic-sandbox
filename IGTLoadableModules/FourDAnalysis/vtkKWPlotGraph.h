@@ -41,6 +41,11 @@ class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
     std::string     label;
     double          color[3];
   } PlotDataType;
+  typedef struct {
+    int             visible;
+    double          pos;
+    double          color[3];
+  } AxisLineType;
   //ETX
   
  public:
@@ -48,22 +53,21 @@ class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
   vtkTypeRevisionMacro(vtkKWPlotGraph,vtkKWRenderWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  //void SetAndObserveMatrix4x4(vtkMatrix4x4 *matrix);
-
-  // Description:
-  // Update the widget with the current values of the Matrix
-  void UpdateWidget();
-  // Description:
-  // Update the matrix with the current values of the widget
   void UpdateGraph();
-
-  int  SetNumberOfPlots(int n);
-  void SetData(int id, vtkDoubleArray* data, const char* label);
+  void ClearPlot();
+  int  AddPlot(vtkDoubleArray* data, const char* label); // returns plot id
   void SetColor(int id, double r, double g, double b);
+
+  void AddVerticalLine(double x);
+  void AddHorizontalLine(double y);
+  void SetAxisLineColor(double r, double g, double b);
+  void RemoveLines();
+
   void AutoRangeOn();
   void AutoRangeOff();
   void SetXrange(double min, double max);
   void SetYrange(double min, double max);
+
 
   // Description:
   // Command to call when the User manipulates the widget
@@ -99,9 +103,14 @@ class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
 
   //BTX
   typedef std::vector<PlotDataType> PlotDataVectorType;
+  typedef std::vector<AxisLineType> AxisLineVectorType;
   //ETX
 
   PlotDataVectorType PlotDataVector;
+  AxisLineVectorType VerticalLines;
+  AxisLineVectorType HorizontalLines;
+
+  double AxisLineColor[3];
   int AutoRangeX;
   int AutoRangeY;
   double RangeX[2];
