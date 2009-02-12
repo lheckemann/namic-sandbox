@@ -68,6 +68,8 @@ vtkMRML4DBundleNode::vtkMRML4DBundleNode()
   this->DisplayBufferNodeIDList.resize(2);
   this->DisplayBufferNodeIDList[0] = "";
   this->DisplayBufferNodeIDList[1] = "";
+
+  this->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -144,6 +146,7 @@ void vtkMRML4DBundleNode::ReadXMLAttributes(const char** atts)
     }
   this->FrameNodeIDList.clear();
   this->DisplayBufferNodeIDList.clear();
+  this->Modified();
 
 }
 
@@ -240,6 +243,8 @@ int vtkMRML4DBundleNode::InsertFrame(int i, const char* nodeID)
 
   this->FrameNodeIDList.insert(iter, std::string(nodeID));
 
+  this->Modified();
+
   return index;
   
 }
@@ -249,6 +254,7 @@ int vtkMRML4DBundleNode::InsertFrame(int i, const char* nodeID)
 int vtkMRML4DBundleNode::AddFrame(const char* nodeID)
 {
   this->FrameNodeIDList.push_back(std::string(nodeID));
+  this->Modified();
 }
 
 
@@ -281,6 +287,8 @@ int vtkMRML4DBundleNode::RemoveFrame(int i)
                               ->GetNodeByID(iter->c_str()));
   */
   this->FrameNodeIDList.erase(iter);
+
+  this->Modified();
 
   return index;
 
