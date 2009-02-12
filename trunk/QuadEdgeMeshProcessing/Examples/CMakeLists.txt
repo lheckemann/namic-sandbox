@@ -3,4 +3,4 @@
 #
 
 ADD_EXECUTABLE(MeanSquaresMeshToMeshMetricTest1 MeanSquaresMeshToMeshMetricTest1.cxx)
-TARGET_LINK_LIBRARIES(MeanSquaresMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKIO) 
+TARGET_LINK_LIBRARIES(MeanSquaresMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKNumerics ITKIO) 
