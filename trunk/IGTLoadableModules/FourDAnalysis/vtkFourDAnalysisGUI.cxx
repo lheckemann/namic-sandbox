@@ -2079,6 +2079,8 @@ void vtkFourDAnalysisGUI::UpdateIntensityPlot(vtkIntensityCurves* intensityCurve
 
   vtkIntArray* labels = this->IntensityCurves->GetLabelList();
   int n = labels->GetNumberOfTuples();
+
+  this->IntensityPlot->ClearPlot();
   for (int i = 0; i < n; i ++)
     {
     int label = labels->GetValue(i);

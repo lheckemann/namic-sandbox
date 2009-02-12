@@ -126,6 +126,7 @@ void vtkKWPlotGraph::CreateWidget()
 
   //# Create the Renderers, RenderWindow, and RenderWindowInteractor.
   vtkRenderer* ren = this->GetRenderer();
+  //ren->SetBackground(1.0, 1.0, 1.0);
   ren->SetBackground(1.0, 1.0, 1.0);
   ren->SetViewport(0.0, 0.0, 1.0, 1.0);
   ren->AddActor2D(this->PlotActor);
@@ -295,8 +296,10 @@ void vtkKWPlotGraph::UpdateGraph()
       }
     }
 
+  /*
   std::cerr << "data range X: [" << this->RangeX[0] << ", " << this->RangeX[1] << "]" << std::endl;
   std::cerr << "data range Y: [" << this->RangeY[0] << ", " << this->RangeY[1] << "]" << std::endl;
+  */
 
   // set color for axis lines
   AxisLineVectorType::iterator aiter;
@@ -317,7 +320,7 @@ void vtkKWPlotGraph::UpdateGraph()
     {
     this->PlotActor->RemoveAllInputs();
 
-    int i;
+    int i = 0;
     PlotDataVectorType::iterator iter;
     for (iter = this->PlotDataVector.begin(); iter != this->PlotDataVector.end(); iter ++)
       {
@@ -368,6 +371,7 @@ void vtkKWPlotGraph::UpdateGraph()
         this->PlotActor->SetDataObjectXComponent(i, 0);
         this->PlotActor->SetDataObjectYComponent(i, 1);
         this->PlotActor->SetPlotColor(i, aiter->color[0], aiter->color[1], aiter->color[2]);
+
         i ++;
         }
       }
@@ -398,6 +402,7 @@ void vtkKWPlotGraph::UpdateGraph()
         this->PlotActor->SetDataObjectXComponent(i, 0);
         this->PlotActor->SetDataObjectYComponent(i, 1);
         this->PlotActor->SetPlotColor(i, aiter->color[0], aiter->color[1], aiter->color[2]);
+
         i ++;
         }
       }
