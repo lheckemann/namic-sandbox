@@ -45,6 +45,9 @@ vtkKWPlotGraph::vtkKWPlotGraph()
   this->Updating  = 0;
   this->PlotActor = NULL;
   this->PlotDataVector.clear();
+  this->VerticalLines.clear();
+  this->HorizontalLines.clear();
+
   this->RangeX[0] = 0.0;
   this->RangeX[1] = 1.0;
   this->RangeY[0] = 0.0;
@@ -52,13 +55,20 @@ vtkKWPlotGraph::vtkKWPlotGraph()
 
   this->AutoRangeX = 1;
   this->AutoRangeY = 1;
+
+  this->AxisLineColor[0] = 0.0;
+  this->AxisLineColor[1] = 0.0;
+  this->AxisLineColor[2] = 0.0;
 }
+
 
 //----------------------------------------------------------------------------
 vtkKWPlotGraph::~vtkKWPlotGraph()
 {
 
-
+  this->PlotDataVector.clear();
+  this->VerticalLines.clear();
+  this->HorizontalLines.clear();
 
   if (this->PlotActor)
     {
@@ -125,23 +135,58 @@ void vtkKWPlotGraph::CreateWidget()
 
 
 //----------------------------------------------------------------------------
-int vtkKWPlotGraph::SetNumberOfPlots(int n)
+void vtkKWPlotGraph::ClearPlot()
 {
-  this->PlotDataVector.resize(n);
+  this->PlotDataVector.clear();
 }
 
 
 //----------------------------------------------------------------------------
-void vtkKWPlotGraph::SetData(int id, vtkDoubleArray* data, const char* label)
+int vtkKWPlotGraph::AddPlot(vtkDoubleArray* data, const char* label)
 {
-  if (id >= this->PlotDataVector.size())
-    {
-    return;
-    }
+  PlotDataType plotData;
+  plotData.data    = data;
+  plotData.label   = label;
+  plotData.visible = 1;
 
-  this->PlotDataVector[id].data  = data;
-  this->PlotDataVector[id].label = label;
-  this->PlotDataVector[id].visible = 1;
+  this->PlotDataVector.push_back(plotData);
+}
+
+
+//----------------------------------------------------------------------------
+void vtkKWPlotGraph::AddVerticalLine(double x)
+{
+  AxisLineType lineData;
+  lineData.pos     = x;
+  lineData.visible = 1;
+  this->VerticalLines.push_back(lineData);
+}
+
+
+//----------------------------------------------------------------------------
+void vtkKWPlotGraph::AddHorizontalLine(double y)
+{
+  AxisLineType lineData;
+  lineData.pos     = y;
+  lineData.visible = 1;
+  this->HorizontalLines.push_back(lineData);
+}
+
+
+//----------------------------------------------------------------------------
+void vtkKWPlotGraph::SetAxisLineColor(double r, double g, double b)
+{
+  this->AxisLineColor[0] = r;
+  this->AxisLineColor[1] = g;
+  this->AxisLineColor[2] = b;
+}
+
+
+//----------------------------------------------------------------------------
+void vtkKWPlotGraph::RemoveLines()
+{
+  this->VerticalLines.clear();
+  this->HorizontalLines.clear();
 }
 
 
@@ -198,21 +243,6 @@ void vtkKWPlotGraph::SetYrange(double min, double max)
     }
 }
 
-
-//----------------------------------------------------------------------------
-void vtkKWPlotGraph::UpdateWidget()
-{
-  if ( this->Updating ) 
-    {
-    return;
-    }
-  this->Updating = 1;
-
-  this->Updating = 0;
-
-  this->Modified();
-}
-
 //----------------------------------------------------------------------------
 void vtkKWPlotGraph::UpdateGraph()
 {
@@ -228,35 +258,37 @@ void vtkKWPlotGraph::UpdateGraph()
 
   // put the first value as an initial range
   it = this->PlotDataVector.begin();
-  it->data->GetTupleValue(0, xy);
-  if (this->AutoRangeX)
+  if (it != this->PlotDataVector.end())
     {
-    this->RangeX[0] = xy[0];
-    this->RangeX[1] = xy[0];
-    }
-  if (this->AutoRangeY)
-    {
-    this->RangeY[0] = xy[1];
-    this->RangeY[1] = xy[1];
-    }
-
-  if (this->AutoRangeX || this->AutoRangeY)
-    {
-    for (; it != this->PlotDataVector.end(); it ++)
+    it->data->GetTupleValue(0, xy);
+    if (this->AutoRangeX)
       {
-      int n = it->data->GetNumberOfTuples();
-      for (int i = 0; i < n; i ++)
+      this->RangeX[0] = xy[0];
+      this->RangeX[1] = xy[0];
+      }
+    if (this->AutoRangeY)
+      {
+      this->RangeY[0] = xy[1];
+      this->RangeY[1] = xy[1];
+      }
+    if (this->AutoRangeX || this->AutoRangeY)
+      {
+      for (; it != this->PlotDataVector.end(); it ++)
         {
-        it->data->GetTupleValue(i, xy);
-        if (this->AutoRangeX)
+        int n = it->data->GetNumberOfTuples();
+        for (int i = 0; i < n; i ++)
           {
-          if (xy[0] < this->RangeX[0]) this->RangeX[0] = xy[0];  // minimum X
-          if (xy[0] > this->RangeX[1]) this->RangeX[1] = xy[0];  // maximum X
-          }
-        if (this->AutoRangeY)
-          {
-          if (xy[1] < this->RangeY[0]) this->RangeY[0] = xy[1];  // minimum Y
-          if (xy[1] > this->RangeY[1]) this->RangeY[1] = xy[1];  // maximum Y
+          it->data->GetTupleValue(i, xy);
+          if (this->AutoRangeX)
+            {
+            if (xy[0] < this->RangeX[0]) this->RangeX[0] = xy[0];  // minimum X
+            if (xy[0] > this->RangeX[1]) this->RangeX[1] = xy[0];  // maximum X
+            }
+          if (this->AutoRangeY)
+            {
+            if (xy[1] < this->RangeY[0]) this->RangeY[0] = xy[1];  // minimum Y
+            if (xy[1] > this->RangeY[1]) this->RangeY[1] = xy[1];  // maximum Y
+            }
           }
         }
       }
@@ -265,11 +297,26 @@ void vtkKWPlotGraph::UpdateGraph()
   std::cerr << "data range X: [" << this->RangeX[0] << ", " << this->RangeX[1] << "]" << std::endl;
   std::cerr << "data range Y: [" << this->RangeY[0] << ", " << this->RangeY[1] << "]" << std::endl;
 
+  // set color for axis lines
+  AxisLineVectorType::iterator aiter;
+  for (aiter = this->VerticalLines.begin(); aiter != this->VerticalLines.end(); aiter ++)
+    {
+    aiter->color[0] = this->AxisLineColor[0];
+    aiter->color[1] = this->AxisLineColor[1];
+    aiter->color[2] = this->AxisLineColor[2];
+    }
+  for (aiter = this->HorizontalLines.begin(); aiter != this->HorizontalLines.end(); aiter ++)
+    {
+    aiter->color[0] = this->AxisLineColor[0];
+    aiter->color[1] = this->AxisLineColor[1];
+    aiter->color[2] = this->AxisLineColor[2];
+    }
 
   if (this->PlotActor)
     {
     this->PlotActor->RemoveAllInputs();
-    
+
+    int i = 0;
     PlotDataVectorType::iterator iter;
     for (iter = this->PlotDataVector.begin(); iter != this->PlotDataVector.end(); iter ++)
       {
@@ -284,24 +331,79 @@ void vtkKWPlotGraph::UpdateGraph()
 
         this->PlotActor->AddDataObjectInput(dataObject);
         dataObject->Delete();
-        }
-      }
-    
-    int i = 0;
-    for (iter = this->PlotDataVector.begin(); iter != this->PlotDataVector.end(); iter ++)
-      {
-      if (iter->visible)
-        {
+
         this->PlotActor->SetDataObjectXComponent(i, 0);
         this->PlotActor->SetDataObjectYComponent(i, 1);
         this->PlotActor->SetPlotColor(i, iter->color[0], iter->color[1], iter->color[2]);
         i ++;
+
+        }
+      }
+    
+    AxisLineVectorType::iterator aiter;
+    for (aiter = this->VerticalLines.begin(); aiter != this->VerticalLines.end(); aiter ++)
+      {
+      if (aiter->visible)
+        {
+        vtkFloatArray* value = vtkFloatArray::New();
+        value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
+        float xy[2];
+        xy[0] = aiter->pos;  xy[1] = this->RangeY[0]; 
+        value->InsertNextTuple( xy );
+        xy[0] = aiter->pos;  xy[1] = this->RangeY[1]; 
+        value->InsertNextTuple( xy );
+
+        vtkFieldData* fieldData = vtkFieldData::New();
+        fieldData->AddArray(value);
+        value->Delete();
+
+        vtkDataObject* dataObject = vtkDataObject::New();
+        dataObject->SetFieldData( fieldData );
+        fieldData->Delete();
+
+        this->PlotActor->AddDataObjectInput(dataObject);
+        dataObject->Delete();
+
+        this->PlotActor->SetDataObjectXComponent(i, 0);
+        this->PlotActor->SetDataObjectYComponent(i, 1);
+        this->PlotActor->SetPlotColor(i, aiter->color[0], aiter->color[1], aiter->color[2]);
+        i ++;
+        }
+      }
+    
+    for (aiter = this->HorizontalLines.begin(); aiter != this->HorizontalLines.end(); aiter ++)
+      {
+      if (aiter->visible)
+        {
+        vtkFloatArray* value = vtkFloatArray::New();
+        value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
+        float xy[2];
+        xy[0] = this->RangeX[0];  xy[1] = aiter->pos; 
+        value->InsertNextTuple( xy );
+        xy[0] = this->RangeX[1];  xy[1] = aiter->pos; 
+        value->InsertNextTuple( xy );
+
+        vtkFieldData* fieldData = vtkFieldData::New();
+        fieldData->AddArray(value);
+        value->Delete();
+
+        vtkDataObject* dataObject = vtkDataObject::New();
+        dataObject->SetFieldData( fieldData );
+        fieldData->Delete();
+
+        this->PlotActor->AddDataObjectInput(dataObject);
+        dataObject->Delete();
+
+        this->PlotActor->SetDataObjectXComponent(i, 0);
+        this->PlotActor->SetDataObjectYComponent(i, 1);
+        this->PlotActor->SetPlotColor(i, aiter->color[0], aiter->color[1], aiter->color[2]);
+        i ++;
         }
       }
 
-    //this->PlotActor->SetXRange(0.0, 360.0);
+
+    
     this->PlotActor->SetXRange(this->RangeX[0], this->RangeX[1]);
-    //this->PlotActor->SetYRange(-1.0, 1.0);
     this->PlotActor->SetYRange(this->RangeY[0], this->RangeY[1]);
     
     this->GetRenderWindowInteractor()->Initialize();
