@@ -62,8 +62,6 @@
 #include "vtkMRML4DBundleNode.h"
 
 
-
-
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkFourDAnalysisGUI );
 vtkCxxRevisionMacro ( vtkFourDAnalysisGUI, "$Revision: 3674 $");
@@ -82,6 +80,8 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->DataCallbackCommand->SetCallback(vtkFourDAnalysisGUI::DataCallback);
 
   this->BundleNameCount = 0;
+
+  this->IntensityCurves = vtkIntensityCurves::New();
   
   //----------------------------------------------------------------
   // GUI widgets
@@ -809,8 +809,20 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     int label = (int)this->MaskSelectSpinBox->GetValue();
-    const char* nodeID = this->MaskNodeIDList[selected].c_str();
+    const char* maskID   = this->MaskNodeIDList[selected].c_str();
+    const char* bundleID = this->BundleNodeIDList[series].c_str();
 
+    vtkMRML4DBundleNode* bundleNode 
+      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+    vtkMRMLScalarVolumeNode* maskNode =
+      vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(maskID));
+
+    this->IntensityCurves->SetBundleNode(bundleNode);
+    this->IntensityCurves->SetMaskNode(maskNode);
+
+    UpdateIntensityPlot(this->IntensityCurves);
+
+    /*
     vtkDoubleArray* p;
     if (this->PlotTypeButtonSet->GetWidget(0)->GetSelectedState())
       {
@@ -823,6 +835,7 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
                                               nodeID, label, vtkFourDAnalysisLogic::TYPE_SD);
       }
     UpdateFunctionEditor(p);
+    */
     }
   else if (this->PlotTypeButtonSet->GetWidget(0) == vtkKWRadioButton::SafeDownCast(caller)
            && event == vtkKWRadioButton::SelectedStateChangedEvent
@@ -1491,7 +1504,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
   this->IntensityPlot = vtkKWPlotGraph::New();
   this->IntensityPlot->SetParent(frame->GetFrame());
   this->IntensityPlot->Create();
-  this->IntensityPlot->SetHeight(300);
+  this->IntensityPlot->SetHeight(250);
 
   /*
   vtkDoubleArray* values = vtkDoubleArray::New();
@@ -2040,6 +2053,52 @@ void vtkFourDAnalysisGUI::UpdateFunctionEditor(vtkDoubleArray* data)
     //this->FunctionEditor->SetWholeParameterRangeToFunctionRange();
     this->FunctionEditor->Update();
     }
+}
+
+
+//----------------------------------------------------------------------------
+void vtkFourDAnalysisGUI::UpdateIntensityPlot(vtkIntensityCurves* intensityCurves)
+{
+  this->IntensityCurves->Update();
+  vtkMRMLScalarVolumeNode* node = this->IntensityCurves->GetMaskNode();
+  if (node == NULL || !node->GetLabelMap())
+    {
+    return;
+    }
+  vtkMRMLVolumeDisplayNode* dnode = node->GetVolumeDisplayNode();
+  if (dnode == NULL)
+    {
+    return;
+    }
+  vtkMRMLColorNode* cnode = dnode->GetColorNode();
+  if (cnode == NULL)
+    {
+    return;
+    }
+  vtkLookupTable* lt = cnode->GetLookupTable();
+
+  vtkIntArray* labels = this->IntensityCurves->GetLabelList();
+  int n = labels->GetNumberOfTuples();
+  for (int i = 0; i < n; i ++)
+    {
+    int label = labels->GetValue(i);
+    vtkDoubleArray* values = this->IntensityCurves->GetCurve(label);
+    int id = this->IntensityPlot->AddPlot(values, "1");
+
+    double color[3];
+    lt->GetColor(label, color);
+    if (color[0] > 0.99 && color[1] > 0.99  && color[2] > 0.99)
+      {
+      // if the line color is white, change the color to black
+      color[0] = 0.0;
+      color[1] = 0.0;
+      color[2] = 0.0;
+      }
+    this->IntensityPlot->SetColor(id, color[0], color[1], color[2]);
+    }
+  //this->IntensityPlot->AddVerticalLine(180.0);
+  this->IntensityPlot->AutoRangeOn();
+  this->IntensityPlot->UpdateGraph();
 }
 
 

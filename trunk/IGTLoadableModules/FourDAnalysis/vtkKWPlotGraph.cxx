@@ -150,6 +150,7 @@ int vtkKWPlotGraph::AddPlot(vtkDoubleArray* data, const char* label)
   plotData.visible = 1;
 
   this->PlotDataVector.push_back(plotData);
+  return this->PlotDataVector.size()-1;
 }
 
 
@@ -316,7 +317,7 @@ void vtkKWPlotGraph::UpdateGraph()
     {
     this->PlotActor->RemoveAllInputs();
 
-    int i = 0;
+    int i;
     PlotDataVectorType::iterator iter;
     for (iter = this->PlotDataVector.begin(); iter != this->PlotDataVector.end(); iter ++)
       {
@@ -335,8 +336,8 @@ void vtkKWPlotGraph::UpdateGraph()
         this->PlotActor->SetDataObjectXComponent(i, 0);
         this->PlotActor->SetDataObjectYComponent(i, 1);
         this->PlotActor->SetPlotColor(i, iter->color[0], iter->color[1], iter->color[2]);
-        i ++;
 
+        i ++;
         }
       }
     
@@ -401,7 +402,6 @@ void vtkKWPlotGraph::UpdateGraph()
         }
       }
 
-
     
     this->PlotActor->SetXRange(this->RangeX[0], this->RangeX[1]);
     this->PlotActor->SetYRange(this->RangeY[0], this->RangeY[1]);
@@ -413,67 +413,6 @@ void vtkKWPlotGraph::UpdateGraph()
     }
 
     
-//    vtkFloatArray* vtkXYValues = vtkFloatArray::New();
-//    vtkXYValues->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-//    for ( int i = 0; i < 360; i+=10 )
-//      {
-//      float xy[2];
-//      xy[0] = static_cast<float>(i);
-//      xy[1] = sin( xy[0]*vtkMath::DegreesToRadians() );
-//      vtkXYValues->InsertNextTuple( xy );
-//      }
-//    
-//    vtkFieldData* vtkGraphFieldData = vtkFieldData::New();
-//    vtkGraphFieldData->AddArray( vtkXYValues );
-//    vtkXYValues->Delete();
-//
-//  
-//    vtkDataObject* vtkGraphDataObject = vtkDataObject::New();
-//    vtkGraphDataObject->SetFieldData( vtkGraphFieldData );
-//    vtkGraphFieldData->Delete();
-//
-//    //
-//    vtkFloatArray* vtkXYValues2 = vtkFloatArray::New();
-//    vtkXYValues2->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-//    /*
-//    for ( int i = 0; i < 360; i+=10 )
-//      {
-//      float xy[2];
-//      xy[0] = static_cast<float>(i);
-//      xy[1] = sin( xy[0]*vtkMath::DegreesToRadians() )/2.0;
-//      vtkXYValues2->InsertNextTuple( xy );
-//      }
-//    */
-//    float xy[2];
-//    xy[0] = 100.0;     xy[1] = 1.0; 
-//    vtkXYValues2->InsertNextTuple( xy );
-//    xy[0] = 100.0;     xy[1] = -1.0; 
-//    vtkXYValues2->InsertNextTuple( xy );
-//
-//
-//    vtkFieldData* vtkGraphFieldData2 = vtkFieldData::New();
-//    vtkGraphFieldData2->AddArray( vtkXYValues2 );
-//    vtkXYValues2->Delete();
-//
-//    vtkDataObject* vtkGraphDataObject2 = vtkDataObject::New();
-//    vtkGraphDataObject2->SetFieldData( vtkGraphFieldData2 );
-//    vtkGraphFieldData2->Delete();
-//\
-//\
-//\    this->PlotActor->AddDataObjectInput(vtkGraphDataObject);
-//\    this->PlotActor->AddDataObjectInput(vtkGraphDataObject2);
-//\
-//\    this->PlotActor->SetDataObjectXComponent(0, 0);
-//\    this->PlotActor->SetDataObjectYComponent(0, 1);
-//\    this->PlotActor->SetDataObjectXComponent(1, 0);
-//\    this->PlotActor->SetDataObjectYComponent(1, 1);
-//\
-//\    this->PlotActor->SetPlotColor(0, 0.0, 0.0, 0.0);
-//\    this->PlotActor->SetPlotColor(1, 1.0, 0.0, 0.0);
-//
-//    vtkGraphDataObject->Delete();
-    
-
   this->Updating = 0;
 }
 

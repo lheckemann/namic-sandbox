@@ -40,7 +40,7 @@ class vtkKWProgressDialog;
 class vtkKWRadioButtonSet;
 class vtkKWRadioButton;
 class vtkKWRange;
-
+class vtkIntensityCurves;
 
 class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 {
@@ -135,7 +135,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void UpdateMaskSelectMenu();
   void SelectMask(const char* nodeID, int label);
   void UpdateFunctionEditor(vtkDoubleArray* data);
-
+  void UpdateIntensityPlot(vtkIntensityCurves* intensityCurves);
 
  protected:
   
@@ -220,6 +220,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   NodeIDListType BundleNodeIDList;
 
   int BundleNameCount; // used to name 4D bundle
+
+  vtkIntensityCurves* IntensityCurves;
 
 };
 

@@ -34,10 +34,11 @@
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRML4DBundleNode.h"
 
-
 #include "itkOrientedImage.h"
 #include "itkImageSeriesReader.h"
 
+
+#include "vtkIntensityCurves.h"
 
 #include <string>
 #include <map>
@@ -63,7 +64,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
     double progress;
     std::string message;
   } StatusMessageType;
-  
+
   typedef std::vector<std::string> FrameNodeVectorType;
   typedef struct {
     int x;
@@ -86,6 +87,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   } CurveDataSetType;
 
   typedef std::map<std::string, CurveDataSetType> CurveCacheType;
+
   typedef std::map<std::string, std::string> RegistrationParametersType;
   //ETX
 
