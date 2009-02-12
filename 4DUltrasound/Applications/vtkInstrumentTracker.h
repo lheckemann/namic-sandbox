@@ -61,11 +61,7 @@ class vtkMatrix4x4;
 class vtkTrackerTool;
 class vtkUltrasoundCalibFileReader;
 
-#ifdef USE_TRACKER_DEVICE
 class vtkNDITracker;
-#else
-class vtkTrackerSimulator;
-#endif
 
 class vtkInstrumentTracker : public vtkObject
 {
@@ -74,8 +70,11 @@ public:
   vtkTypeRevisionMacro(vtkInstrumentTracker, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  vtkSetMacro(Enabled, bool);
-  vtkGetMacro(Enabled, bool);
+  int SetTrackingEnabled(bool flag);
+  vtkGetMacro(TrackingEnabled, bool);
+  
+  int SetSimulationEnabled(bool flag);
+  vtkGetMacro(SimulationEnabled, bool);
 
   vtkSetMacro(Verbose, bool);
   vtkGetMacro(Verbose, bool);
@@ -101,11 +100,7 @@ public:
   vtkSetMacro(TrackerTool, vtkTrackerTool*);
   vtkGetMacro(TrackerTool, vtkTrackerTool*);
 
-  #ifdef USE_TRACKER_DEVICE
-  vtkGetMacro(tracker, vtkNDITracker*);
-  #else
-  vtkGetMacro(tracker, vtkTrackerSimulator*);
-# endif
+//  vtkGetMacro(tracker, vtkNDITracker*);
 
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
@@ -113,7 +108,7 @@ public:
   int ConnectToServer();
   int CloseServerConnection();
 
-  int StartTracking();
+  int StartTracking(vtkNDITracker* tracker);
   int StopTracking();
 
   int StartTracker();
@@ -129,7 +124,8 @@ protected:
   vtkInstrumentTracker();
   ~vtkInstrumentTracker();
 
-  bool Enabled;
+  bool TrackingEnabled;
+  bool SimulationEnabled;
   bool Verbose;
   double StartUpTime;
   ofstream LogStream;
@@ -148,12 +144,7 @@ protected:
 
   vtkUltrasoundCalibFileReader *calibReader;
 
-  #ifdef USE_TRACKER_DEVICE
   vtkNDITracker *tracker;
-  #else
-  vtkTrackerSimulator *tracker;
-  #endif
-
   vtkTrackerTool *TrackerTool;
 
   //Multithreader to run a thread of collecting and sending data

@@ -107,7 +107,7 @@ vtkDataSender::vtkDataSender()
   this->IndexLockedByDataProcessor = -1;
   this->IndexLock = vtkMutexLock::New();
 
-  this->sendDataBufferSize = 100;
+  this->sendDataBufferSize = 10;
   this->sendDataBufferIndex = -1;
 
   frameProperties.Set = false;
@@ -139,7 +139,7 @@ vtkDataSender::~vtkDataSender()
     index = this->GetHeadOfNewDataBuffer();
     this->UnlockData(index, DATASENDER);
     this->UnlockData(index, DATAPROCESSOR);
-    this->TryToDeleteData(this->GetHeadOfNewDataBuffer());
+    this->TryToDeleteData(index);
     }
 }
 
@@ -309,7 +309,8 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
       #ifdef TIMINGSENDER
       self->GetLogStream() << self->GetUpTime() <<" |*********************************************" << endl;
       self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Sender Found new Data at Index: " << currentIndex
-                           << " | L:" << self->GetUpTime() - loopTime << endl;
+                           << " | L:" << self->GetUpTime() - loopTime << endl
+                           << "         | BufferSize: " << self->GetBufferSize() <<endl;
       #endif
 
       //Prepare new data
@@ -479,6 +480,10 @@ int vtkDataSender::PrepareImageMessage(int index,
     frameProperties.SubVolumeSize[0] = frameProperties.Size[0];
     frameProperties.SubVolumeSize[1] = frameProperties.Size[1];
     frameProperties.SubVolumeSize[2] = frameProperties.Size[2];
+    frameProperties.Origin[0] = (float) frame->GetOrigin()[0];
+    frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
+    frameProperties.Origin[2] = (float) frame->GetOrigin()[2];
+    
     frameProperties.Set = true;
 //    }
 
@@ -486,6 +491,7 @@ int vtkDataSender::PrepareImageMessage(int index,
   // Create a new IMAGE type message
   imageMessage = igtl::ImageMessage::New();
 
+//  imageMessage->SetOrigin(frameProperties.Origin[0], frameProperties.Origin[1], frameProperties.Origin[2]);
   imageMessage->SetDimensions(frameProperties.Size);
   imageMessage->SetSpacing((float) frameProperties.Spacing[0],(float) frameProperties.Spacing[1], (float) frameProperties.Spacing[2]);
   imageMessage->SetScalarType(frameProperties.ScalarType);
@@ -493,26 +499,31 @@ int vtkDataSender::PrepareImageMessage(int index,
   imageMessage->SetSubVolume(frameProperties.SubVolumeSize, frameProperties.SubVolumeOffset);
   imageMessage->AllocateScalars();
 
-
   //Copy image to output buffer
   unsigned char * pImageMessage = (unsigned char*) imageMessage->GetScalarPointer();
   unsigned char * pFrame = (unsigned char*) frame->GetScalarPointer();
 
+  int scalarComponents = frame->GetNumberOfScalarComponents();
+  
   #ifdef  DEBUGSENDER
     int counter = 0;
     double copyStart = this->GetUpTime();
   #endif
 
-  //memcpy(pImageMessage, pFrame, frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] * frame->GetNumberOfScalarComponents());
+  #ifdef  DEBUGSENDER
+    counter = frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2]; //scalarcomponents
+  #endif
+//  memcpy(pImageMessage, pFrame, frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] * scalarComponents);
+  memcpy(pImageMessage, pFrame, frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2]);
 
-  for(int i = 0 ; i < frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] ; i++ )
-    {
-    *pImageMessage = (unsigned char) *pFrame;
-    ++pFrame; ++pImageMessage;
-    #ifdef  DEBUGSENDER
-      ++counter;
-    #endif
-    }
+//  for(int i = 0 ; i < frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] ; i++ )
+//    {
+//    *pImageMessage = (unsigned char) *pFrame;
+//    ++pFrame; ++pImageMessage;
+//    #ifdef  DEBUGSENDER
+//      ++counter;
+//    #endif
+//    }
 
   igtl::Matrix4x4 igtlMatrix;
 
@@ -552,13 +563,14 @@ int vtkDataSender::PrepareImageMessage(int index,
                     << frameProperties.Size[0] << " | "
                     << frameProperties.Size[1] << " | "
                     << frameProperties.Size[2] << endl
+                    << "         | Origin: " << frameProperties.Origin[0]<< "|" << frameProperties.Origin[1]<< "|" << frameProperties.Origin[3]<< endl
                     << "         | Copied Pixels: "<< counter << " | Copy time: " << this->GetUpTime() - copyStart <<endl
                     << "         | Index: " << index << " | "  <<endl;
   #endif
 
   #ifdef  DEBUGSENDER
-    //this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
-    //matrix->Print(this->LogStream);
+    this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
+    matrix->Print(this->LogStream);
   #endif
 
   imageMessage->SetMatrix(igtlMatrix);
@@ -584,7 +596,7 @@ int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer& message)
       {
       #ifdef  DEBUGSENDER
         this->LogStream <<  this->GetUpTime() << " |S-INFO: Message successfully send to OpenIGTLink Server "<< endl
-                        << "         | Send time: " << this->GetUpTime() - sendTime << "| "  << endl;
+                        << "         | Send time: " << this->GetUpTime() - sendTime << "| "  << endl;        
       #endif
       if(Verbose)
         {
@@ -801,6 +813,11 @@ void vtkDataSender::UpdateFrameRate(double sendTime)
       float timeSpan = sendTime - this->lastFrameRateUpdate;
       cout << "\b\b\b\b\b" << std::flush;
       cout << setw(5) << setprecision(2) << this->UpDateCounter / timeSpan;
+      cout << "\a" <<std::flush;
+      #ifdef  DEBUGSENDER
+        this->LogStream <<  this->GetUpTime() << " |S-INFO: Current frame rate " << this->UpDateCounter / timeSpan << endl;
+      #endif
+        
       this->UpDateCounter = 0;
       }
     else
@@ -839,7 +856,7 @@ int vtkDataSender::LockIndex(int index, int requester)
     else
       {
       #ifdef  DEBUGSENDER
-        this->LogStream <<  this->GetUpTime() << " |S-Info: Sender locked index:" << index << endl;
+        this->LogStream <<  this->GetUpTime() << " |S-INFO: Sender locked index:" << index << endl;
       #endif
       this->IndexLockedByDataSender = index;    
       }
@@ -853,7 +870,7 @@ int vtkDataSender::LockIndex(int index, int requester)
     else
       {
       #ifdef DEBUGSENDER
-        this->LogStream <<  this->GetUpTime() << " |S-Info: Processor locked index:" << index << endl;
+        this->LogStream <<  this->GetUpTime() << " |S-INFO: Processor locked index:" << index << endl;
       #endif
       this->IndexLockedByDataProcessor = index;    
       }
@@ -870,6 +887,21 @@ int vtkDataSender::LockIndex(int index, int requester)
   return retVal;
 }
 
+/******************************************************************************
+ * int vtkDataSender::ReleaseLock(int requester)
+ *
+ *  Release Lock
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  11.February 2009
+ *
+ *  @Param: int index - index to lock
+ *  @Param: int requester - Thread who wants to lock the index
+ * 
+ *  @Param: 0 on success
+ *         -1 on failure
+ *
+ * ****************************************************************************/
 int vtkDataSender::ReleaseLock(int requester)
 {
   int retVal = 0;
@@ -877,14 +909,14 @@ int vtkDataSender::ReleaseLock(int requester)
   if(requester == DATASENDER)
     {
     #ifdef  DEBUGSENDER
-        this->LogStream <<  this->GetUpTime() << " |S-Info: Sender released index:" << this->IndexLockedByDataSender << endl;
+        this->LogStream <<  this->GetUpTime() << " |S-INFO: Sender released index:" << this->IndexLockedByDataSender << endl;
     #endif
     this->IndexLockedByDataSender = -1;
     }
   else if (requester == DATAPROCESSOR)
     {
     #ifdef  DEBUGSENDER
-        this->LogStream <<  this->GetUpTime() << " |S-Info: Processor released index:" << this->IndexLockedByDataProcessor << endl;
+        this->LogStream <<  this->GetUpTime() << " |S-INFO: Processor released index:" << this->IndexLockedByDataProcessor << endl;
     #endif
     this->IndexLockedByDataProcessor = -1;
     }
