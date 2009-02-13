@@ -508,6 +508,7 @@ int vtkInstrumentTracker::SendMessage(igtl::TransformMessage::Pointer& message)
     if (socket->Send(message->GetPackPointer(), message->GetPackSize()) == 0)
       {
       cerr << "ERROR: Connection to OpenIGTLink Server lost while sending!" <<endl;
+      this->StopTracking();
       return -1;
       }
     else

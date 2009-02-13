@@ -417,9 +417,10 @@ int vtkDataSender::StartSending()
   if(this->PlayerThreadId != -1)
     {
     this->Sending = true;
-    #ifdef  DEBUGSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-INFO Successfully started to send" << endl;
-    #endif
+    if(Verbose)
+      {
+      cout << "Start sending data" << endl;
+      }
     return 0;
     }
   else
@@ -590,6 +591,7 @@ int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer& message)
     if (ret == 0)
       {
       cerr << "ERROR: Connection to OpenIGTLink Server lost while sending!" <<endl;
+      this->StopSending();
       return -1;
       }
     else

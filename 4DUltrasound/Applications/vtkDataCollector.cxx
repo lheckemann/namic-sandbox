@@ -352,75 +352,91 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
     {
     //JG 09/01/21
     //this->LogStream << "New frame to process" <<endl;
-    if(!self->GetDataProcessor()->IsNewDataBufferFull())
+    if(!self->GetDataProcessor()->GetProcessing())
       {
-      //Grab new frame
-      self->GetVideoSource()->Grab();
-
-      //Get Tracking Matrix for new frame
-      vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
-      self->GetTagger()->Update();
-      trackerMatrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
-
-      #ifdef DEBUG_MATRICES
-      self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
-      trackerMatrix->Print(self->GetLogStream());
+      #ifdef DEBUGCOLLECTOR
+        self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data processor stopped processing -> Stop collecting" << endl;
       #endif
+      self->StopCollecting();
       
-      
-        if(self->IsTrackerDeviceEnabled())
-          {
-          if(self->IsIdentityMatrix(trackerMatrix))
+      cout << "====================================================" << endl << endl
+           << "--- 4D Ultrasound stopped working ---" << endl << endl
+           << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<< endl;
+      }
+    else
+      {
+      if(!self->GetDataProcessor()->IsNewDataBufferFull())
+        {
+        
+        
+        //Grab new frame
+        self->GetVideoSource()->Grab();
+  
+        //Get Tracking Matrix for new frame
+        vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
+        self->GetTagger()->Update();
+        trackerMatrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
+  
+        #ifdef DEBUG_MATRICES
+        self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
+        trackerMatrix->Print(self->GetLogStream());
+        #endif
+        
+        
+          if(self->IsTrackerDeviceEnabled())
             {
-            skip = true;
+            if(self->IsIdentityMatrix(trackerMatrix))
+              {
+              skip = true;
+              }
+            else
+              {
+              self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
+              }
             }
-          else
+          
+        if(!skip)
+          {
+          #ifdef NEWCOLLECTOR
+          vtkImageData* newFrame = vtkImageData::New();
+          self->DuplicateFrame(self->GetTagger()->GetOutput(), newFrame);
+          newFrame->SetNumberOfScalarComponents(1);
+          #endif
+    
+          #ifdef DEBUG_IMAGES
+    
+          #ifdef NEWCOLLECTOR
+          writer->SetInput(newFrame);
+          #else
+          writer->SetInput(self->GetTagger()->GetOutput());
+          #endif
+    
+          sprintf(filename,"./Output/output%03d.bmp",frame);
+          writer->SetFileName(filename);
+          writer->Update();
+          #endif //DEBUG_IMAGES
+    
+          //Send frame + matrix
+          #ifdef NEWCOLLECTOR
+          if(self->GetDataProcessor()->NewData(newFrame, trackerMatrix) == -1)
+          #else
+          if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
+          #endif
             {
-            self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
+            #ifdef DEBUGCOLLECTOR
+            self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
+            #endif
             }
           }
-        
-      if(!skip)
-        {
-        #ifdef NEWCOLLECTOR
-        vtkImageData* newFrame = vtkImageData::New();
-        self->DuplicateFrame(self->GetTagger()->GetOutput(), newFrame);
-        newFrame->SetNumberOfScalarComponents(1);
-        #endif
-  
-        #ifdef DEBUG_IMAGES
-  
-        #ifdef NEWCOLLECTOR
-        writer->SetInput(newFrame);
-        #else
-        writer->SetInput(self->GetTagger()->GetOutput());
-        #endif
-  
-        sprintf(filename,"./Output/output%03d.bmp",frame);
-        writer->SetFileName(filename);
-        writer->Update();
-        #endif //DEBUG_IMAGES
-  
-        //Send frame + matrix
-        #ifdef NEWCOLLECTOR
-        if(self->GetDataProcessor()->NewData(newFrame, trackerMatrix) == -1)
-        #else
-        if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
-        #endif
+        else
           {
           #ifdef DEBUGCOLLECTOR
-          self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
+            self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Tracker sends unusable matrices" << endl;
           #endif
-          }
+          }//Check if Processor has buffer space available
+        skip = false;
         }
-      else
-        {
-        #ifdef DEBUGCOLLECTOR
-          self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Tracker sends unusable matrices" << endl;
-        #endif
-        }
-      skip = false;
-      }
+      }//Check if Processor stopped processing
 
     frame++;
     }
@@ -465,21 +481,6 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     #endif
     return -1;
     }
-  
-  cout << "Hardware Initialization: " << std::flush;
-  cout << '\a' << std::flush;
-  for(int i = 0; i < 11; i++)
-    {
-    vtkSleep(0.2);
-    
-    cout << 10 - i << " " << std::flush;
-    }
-  cout << endl;
-
-  //cout << "Start Recording" << endl;
-  cout << '\a' << std::flush;
-  vtkSleep(0.2);
-  cout << '\a' << std::flush;
 
   //Start Thread
   this->PlayerThreadId =
@@ -490,7 +491,7 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
     {
     if(Verbose)
       {
-      cout << "Start to collect data" << endl;
+      cout << "Start collecting data" << endl;
       }
     return 0;
     }

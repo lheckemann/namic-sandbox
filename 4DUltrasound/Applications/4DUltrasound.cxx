@@ -77,6 +77,7 @@ bool parseCommandLineArguments(int argc, char **argv,
                                vtkInstrumentTracker *instrumentTracker);
 void goodByeScreen();
 void goodByeInput();
+static inline void vtkSleep(double duration);
 
 /******************************************************************************
  *
@@ -133,6 +134,21 @@ int main(int argc, char **argv)
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
 
+    cout << "Hardware Initialization: " << std::flush;
+    cout << '\a' << std::flush;
+    for(int i = 0; i < 11; i++)
+      {
+      vtkSleep(0.2);
+      
+      cout << 10 - i << " " << std::flush;
+      }
+    cout << endl;
+
+    //cout << "Start Recording" << endl;
+    cout << '\a' << std::flush;
+    vtkSleep(0.2);
+    cout << '\a' << std::flush;
+    
     if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
       {
       
@@ -536,4 +552,27 @@ void goodByeInput()
        << endl
        << "Bye Bye..." << endl <<endl << endl;
 
+}
+
+/******************************************************************************
+ *  static inline void vtkSleep(double duration)
+ *
+ *  Platform-independent sleep function
+ *  Set the current thread to sleep for a certain amount of time
+ *
+ *  @Param: double duration - Time to sleep in ms
+ *
+ * ****************************************************************************/
+static inline void vtkSleep(double duration)
+{
+  duration = duration; // avoid warnings
+  // sleep according to OS preference
+#ifdef _WIN32
+  Sleep((int)(1000*duration));
+#elif defined(__FreeBSD__) || defined(__linux__) || defined(sgi) || defined(__APPLE__)
+  struct timespec sleep_time, dummy;
+  sleep_time.tv_sec = (int)duration;
+  sleep_time.tv_nsec = (int)(1000000000*(duration-sleep_time.tv_sec));
+  nanosleep(&sleep_time,&dummy);
+#endif
 }

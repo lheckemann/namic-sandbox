@@ -82,6 +82,10 @@ public:
 
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
+  
+  vtkGetMacro(DataSender, vtkDataSender*);
+  
+  vtkGetMacro(Processing, bool);
 
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
