@@ -256,7 +256,7 @@ void vtkKWPlotGraph::UpdateGraph()
 
   // if AutoRange is set, check the range of the values
   PlotDataVectorType::iterator it;
-  double xy[2];
+  double xy[3];
 
   // put the first value as an initial range
   it = this->PlotDataVector.begin();
