@@ -28,8 +28,8 @@
 #include <vector>
 
 class vtkDoubleArray;
-
 class vtkXYPlotActor;
+class vtkDataObject;
 
 class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
 {
@@ -68,6 +68,8 @@ class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
   void SetXrange(double min, double max);
   void SetYrange(double min, double max);
 
+  void ErrorBarOn();
+  void ErrorBarOff();
 
   // Description:
   // Command to call when the User manipulates the widget
@@ -88,6 +90,10 @@ class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
   // Description:
   // Create the widget.
   virtual void CreateWidget();
+
+  // Description:
+  // Create a vtkDataObject to draw a line on the graph
+  vtkDataObject* CreateDataObjectForLine(double p1[2], double p2[2]);
 
   char *Command;
   //char *StartCommand;
@@ -111,10 +117,12 @@ class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
   AxisLineVectorType HorizontalLines;
 
   double AxisLineColor[3];
-  int AutoRangeX;
-  int AutoRangeY;
+  int    AutoRangeX;
+  int    AutoRangeY;
   double RangeX[2];
   double RangeY[2];
+
+  int    ErrorBar;
 
 };
 
