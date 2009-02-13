@@ -66,8 +66,7 @@ class VTK_FourDAnalysis_EXPORT vtkIntensityCurves : public vtkObject
   vtkMRML4DBundleNode*     BundleNode;
   vtkMRMLScalarVolumeNode* MaskNode;
 
-  IntensityCurveMapType IntensityCurveMean;  // IntensityCurveMean[label]
-  IntensityCurveMapType IntensityCurveSD;    // IntensityCurveSD[label]
+  IntensityCurveMapType IntensityCurve;  // IntensityCurveMean[label]
 
 };
 

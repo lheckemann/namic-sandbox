@@ -781,20 +781,6 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
 
     UpdateIntensityPlot(this->IntensityCurves);
 
-    /*
-    vtkDoubleArray* p;
-    if (this->PlotTypeButtonSet->GetWidget(0)->GetSelectedState())
-      {
-      p = this->GetLogic()->GetIntensityCurve(this->BundleNodeIDList[series].c_str(),
-                                              nodeID, label, vtkFourDAnalysisLogic::TYPE_MEAN);
-      }
-    else
-      {
-      p = this->GetLogic()->GetIntensityCurve(this->BundleNodeIDList[series].c_str(),
-                                              nodeID, label, vtkFourDAnalysisLogic::TYPE_SD);
-      }
-    UpdateFunctionEditor(p);
-    */
     }
   else if (this->PlotTypeButtonSet->GetWidget(0) == vtkKWRadioButton::SafeDownCast(caller)
            && event == vtkKWRadioButton::SelectedStateChangedEvent
@@ -1057,14 +1043,13 @@ void vtkFourDAnalysisGUI::BuildGUIForHelpFrame ()
 
   // Define your help text here.
   const char *help = 
-    "**The OpenIGTLink Interface Module** helps you to manage OpenIGTLink connections:"
-    "OpenIGTLink is an open network protocol for communication among software / hardware "
-    "for image-guided therapy. See "
+    "**The 4D Analysis Module** helps you to load, view and analyze a series of 3D images (4D image),"
+    "such as perfusion MRI, DCE MRI, and fMRI. "
     "<a>http://www.slicer.org/slicerWiki/index.php/Modules:OpenIGTLinkIF</a> for details.";
   const char *about =
-    "The module is designed and implemented by Junichi Tokuda for Brigham and Women's Hospital."
-    "This work is supported by NCIGT, NA-MIC and BRP \"Enabling Technologies for MRI-Guided Prostate Intervention\" project.";
-
+    "This project is directed by Hiroto Hatabu, MD, PhD (BWH)."
+    "The module is designed and implemented by Junichi Tokuda, PhD (BWH), under supports from"
+    "Center for Pulmonary Functional Imaging at BWH, NCIGT and NA-MIC.";
   vtkKWWidget *page = this->UIPanel->GetPageWidget ( "FourDAnalysis" );
   this->BuildHelpAndAboutFrame (page, help, about);
 
@@ -1372,11 +1357,6 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
   this->SeriesToPlotMenu->SetParent(sframe);
   this->SeriesToPlotMenu->Create();
   this->SeriesToPlotMenu->SetWidth(20);
-  /*
-  this->SeriesToPlotMenu->GetMenu()->AddRadioButton("Original");
-  this->SeriesToPlotMenu->GetMenu()->AddRadioButton("Registered");
-  this->SeriesToPlotMenu->SetValue("Original");
-  */
 
   this->Script("pack %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                seriesLabel->GetWidgetName(),

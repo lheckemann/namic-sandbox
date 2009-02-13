@@ -121,9 +121,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   const char* GetFrameNodeID(int index);
   const char* GetRegisteredFrameNodeID(int index);
 
-  vtkDoubleArray* GetIntensityCurve(const char* bundleID, const char* maskID, int label, int type);
-
-  int  SaveIntensityCurve(const char* bundleID, const char* maskID, int label, const char* filename);
   int  SaveIntensityCurves(vtkIntensityCurves* curves, const char* fileNamePrefix);
 
   void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
@@ -152,10 +149,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
 
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
-
-  double GetMeanIntensity(vtkImageData* image, IndexTableType& indexTable);
-  double GetSDIntensity(vtkImageData* image, double mean, IndexTableType& indexTable);
-  void   GenerateIndexTable(vtkImageData* mask, int label, IndexTableType& indexTable);
 
 
   //----------------------------------------------------------------
