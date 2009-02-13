@@ -889,9 +889,9 @@ int vtkDataProcessor::ForwardData()
   vtkMatrix4x4 * matrix = vtkMatrix4x4::New();
   this->GetVolumeMatrix(matrix);
   
-  matrix->Element[0][3] += reconstructedVolume->GetOrigin()[0] + reconstructedVolume->GetDimensions()[0] / 2;
-  matrix->Element[1][3] += reconstructedVolume->GetOrigin()[1] + reconstructedVolume->GetDimensions()[1] / 2;;
-  matrix->Element[2][3] += reconstructedVolume->GetOrigin()[2] + reconstructedVolume->GetDimensions()[2] / 2;;
+//  matrix->Element[0][3] += reconstructedVolume->GetOrigin()[0] + reconstructedVolume->GetDimensions()[0] / 2;
+//  matrix->Element[1][3] += reconstructedVolume->GetOrigin()[1] + reconstructedVolume->GetDimensions()[1] / 2;;
+//  matrix->Element[2][3] += reconstructedVolume->GetOrigin()[2] + reconstructedVolume->GetDimensions()[2] / 2;;
 
   //Forward data to sender
   int retval = this->DataSender->NewData(volumeToForward, matrix);
@@ -1100,15 +1100,11 @@ void vtkDataProcessor::GetVolumeMatrix(vtkMatrix4x4* matrix)
     //  0  1  0  0
     //  1  0  0  0
     //  0  0  0  1
-//    matrix->Element[0][0] =   0.0;  matrix->Element[1][0] =  0.0;  matrix->Element[2][0] =  1.0; matrix->Element[3][0] = 0.0;
-//    matrix->Element[0][1] =   0.0;  matrix->Element[1][1] =  1.0;  matrix->Element[2][1] =  0.0; matrix->Element[3][1] = 0.0;
-//    matrix->Element[0][2] =  -1.0;  matrix->Element[1][2] =  0.0;  matrix->Element[2][2] =  0.0; matrix->Element[3][2] = 0.0;
-//    matrix->Element[0][3] =  90.0;  matrix->Element[1][3] =  0.0;  matrix->Element[2][3] =  0.0; matrix->Element[3][3] = 1.0;
-    
-    matrix->Element[0][0] =   1.0;  matrix->Element[1][0] =  0.0;  matrix->Element[2][0] =  0.0; matrix->Element[3][0] = 0.0;
-    matrix->Element[0][1] =   0.0;  matrix->Element[1][1] =  1.0;  matrix->Element[2][1] =  0.0; matrix->Element[3][1] = 0.0;
-    matrix->Element[0][2] =   0.0;  matrix->Element[1][2] =  0.0;  matrix->Element[2][2] =  1.0; matrix->Element[3][2] = 0.0;
-    matrix->Element[0][3] =   0.0;  matrix->Element[1][3] =  0.0;  matrix->Element[2][3] =  0.0; matrix->Element[3][3] = 1.0;
+
+    matrix->Element[0][0] =   0.0;  matrix->Element[0][1] =  0.0;  matrix->Element[0][2] =  1.0; matrix->Element[0][3] = 0.0;
+    matrix->Element[1][0] =   1.0;  matrix->Element[1][1] =  0.0;  matrix->Element[1][2] =  0.0; matrix->Element[1][3] = 0.0;
+    matrix->Element[2][0] =   0.0;  matrix->Element[2][1] =  1.0;  matrix->Element[2][2] =  0.0; matrix->Element[2][3] = 0.0;
+    matrix->Element[3][0] =   0.0;  matrix->Element[3][1] =  0.0;  matrix->Element[3][2] =  0.0; matrix->Element[3][3] = 1.0;
     
     }
   else
@@ -1118,10 +1114,11 @@ void vtkDataProcessor::GetVolumeMatrix(vtkMatrix4x4* matrix)
     //  0  0  1  0
     //  0  1  0  0
     //  0  0  0  1
-    matrix->Element[0][0] =  -1.0;  matrix->Element[1][0] =  0.0;  matrix->Element[2][0] =  0.0; matrix->Element[3][0] = 0.0;
-    matrix->Element[0][1] =   0.0;  matrix->Element[1][1] =  0.0;  matrix->Element[2][1] =  1.0; matrix->Element[3][1] = 0.0;
-    matrix->Element[0][2] =   0.0;  matrix->Element[1][2] =  1.0;  matrix->Element[2][2] =  0.0; matrix->Element[3][2] = 0.0;
-    matrix->Element[0][3] =   0.0;  matrix->Element[1][3] =  0.0;  matrix->Element[2][3] =  0.0; matrix->Element[3][3] = 1.0;
+    matrix->Element[0][0] =  -1.0;  matrix->Element[0][1] =  0.0;  matrix->Element[0][2] =  0.0; matrix->Element[0][3] = 0.0;
+    matrix->Element[1][0] =   0.0;  matrix->Element[1][1] =  0.0;  matrix->Element[1][2] =  1.0; matrix->Element[1][3] = 0.0;
+    matrix->Element[2][0] =   0.0;  matrix->Element[2][1] =  1.0;  matrix->Element[2][2] =  0.0; matrix->Element[2][3] = 0.0;
+    matrix->Element[3][0] =   0.0;  matrix->Element[3][1] =  0.0;  matrix->Element[3][2] =  0.0; matrix->Element[3][3] = 1.0;
+    
     }
 
 #ifdef DEBUGPROCESSOR
