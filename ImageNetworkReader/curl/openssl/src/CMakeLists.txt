@@ -56,16 +56,16 @@ AUX_SOURCE_DIRECTORY(crypto/sha Crypto_sha_SRCS)
 AUX_SOURCE_DIRECTORY(crypto/des Crypto_des_SRCS)
 IF(WIN32)
   IF(NOT CYGWIN)
-  AUX_SOURCE_DIRECTORY(crypto/pkcs7 Crypto_pkcs7_SRCS)
-  AUX_SOURCE_DIRECTORY(crypto/pkcs12 Crypto_pkcs12_SRCS)
+    AUX_SOURCE_DIRECTORY(crypto/pkcs7 Crypto_pkcs7_SRCS)
+    AUX_SOURCE_DIRECTORY(crypto/pkcs12 Crypto_pkcs12_SRCS)
   ENDIF(NOT CYGWIN)
 ENDIF(WIN32)
 AUX_SOURCE_DIRECTORY(crypto/ui Crypto_ui_SRCS)
 AUX_SOURCE_DIRECTORY(crypto/dso Crypto_dso_SRCS)
 
-  AUX_SOURCE_DIRECTORY(crypto/pkcs7 Crypto_pkcs7_SRCS)
-  AUX_SOURCE_DIRECTORY(crypto/pkcs12 Crypto_pkcs12_SRCS)
-  AUX_SOURCE_DIRECTORY(crypto/rc4 Crypto_rc4_SRCS)
+AUX_SOURCE_DIRECTORY(crypto/pkcs7 Crypto_pkcs7_SRCS)
+AUX_SOURCE_DIRECTORY(crypto/pkcs12 Crypto_pkcs12_SRCS)
+AUX_SOURCE_DIRECTORY(crypto/rc4 Crypto_rc4_SRCS)
 
 
 ADD_LIBRARY(OpenSSL 
