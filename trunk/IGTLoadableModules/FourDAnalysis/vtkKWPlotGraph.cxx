@@ -59,6 +59,8 @@ vtkKWPlotGraph::vtkKWPlotGraph()
   this->AxisLineColor[0] = 0.0;
   this->AxisLineColor[1] = 0.0;
   this->AxisLineColor[2] = 0.0;
+
+  this->ErrorBar = 0;
 }
 
 
@@ -245,6 +247,20 @@ void vtkKWPlotGraph::SetYrange(double min, double max)
     }
 }
 
+
+//----------------------------------------------------------------------------
+void vtkKWPlotGraph::ErrorBarOn()
+{
+  this->ErrorBar = 1;
+}
+
+
+//----------------------------------------------------------------------------
+void vtkKWPlotGraph::ErrorBarOff()
+{
+  this->ErrorBar = 0;
+}
+
 //----------------------------------------------------------------------------
 void vtkKWPlotGraph::UpdateGraph()
 {
@@ -330,7 +346,7 @@ void vtkKWPlotGraph::UpdateGraph()
     this->PlotActor->RemoveAllInputs();
 
     // -----------------------------------------
-    // Plot curves
+    // Plot curves and errobars
 
     int i = 0;
     PlotDataVectorType::iterator iter;
@@ -351,11 +367,33 @@ void vtkKWPlotGraph::UpdateGraph()
         this->PlotActor->SetDataObjectXComponent(i, 0);
         this->PlotActor->SetDataObjectYComponent(i, 1);
         this->PlotActor->SetPlotColor(i, iter->color[0], iter->color[1], iter->color[2]);
-
         i ++;
+
+        if (this->ErrorBar)
+          {
+          if (iter->data)
+            {
+            int nData = iter->data->GetNumberOfTuples();
+            for (int j = 0; j < nData; j ++)
+              {
+              double* values = iter->data->GetTuple(j);
+              double p1[2];
+              double p2[2];
+              p1[0] = p2[0] = values[0];
+              p1[1] = values[1] + values[2];
+              p2[1] = values[1] - values[2];
+              vtkDataObject* dataObject = CreateDataObjectForLine(p1, p2);
+              this->PlotActor->AddDataObjectInput(dataObject);
+              dataObject->Delete();
+              this->PlotActor->SetDataObjectXComponent(i, 0);
+              this->PlotActor->SetDataObjectYComponent(i, 1);
+              this->PlotActor->SetPlotColor(i, iter->color[0], iter->color[1], iter->color[2]);
+              i ++;
+              }
+            }
+          }
         }
       }
-
 
     // -----------------------------------------
     // Draw vertical lines
@@ -376,7 +414,7 @@ void vtkKWPlotGraph::UpdateGraph()
         vtkFieldData* fieldData = vtkFieldData::New();
         fieldData->AddArray(value);
         value->Delete();
-
+        
         vtkDataObject* dataObject = vtkDataObject::New();
         dataObject->SetFieldData( fieldData );
         fieldData->Delete();
@@ -450,3 +488,24 @@ void vtkKWPlotGraph::PrintSelf(ostream& os, vtkIndent indent)
   //os << indent << "Matrix4x4: " << this->GetMatrix4x4() << endl;
 }
 
+
+//----------------------------------------------------------------------------
+vtkDataObject* vtkKWPlotGraph::CreateDataObjectForLine(double p1[2], double p2[2])
+{
+
+  vtkDoubleArray* value = vtkDoubleArray::New();
+  value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
+  value->InsertNextTuple( p1 );
+  value->InsertNextTuple( p2 );
+  
+  vtkFieldData* fieldData = vtkFieldData::New();
+  fieldData->AddArray(value);
+  value->Delete();
+  
+  vtkDataObject* dataObject = vtkDataObject::New();
+  dataObject->SetFieldData( fieldData );
+  fieldData->Delete();
+  
+  return dataObject;
+  
+}
