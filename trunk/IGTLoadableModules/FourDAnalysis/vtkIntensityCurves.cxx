@@ -93,7 +93,43 @@ vtkIntArray* vtkIntensityCurves::GetLabelList()
 //---------------------------------------------------------------------------
 vtkDoubleArray* vtkIntensityCurves::GetCurve(int label)
 {
-  return this->IntensityCurveMean[label];
+  IntensityCurveMapType::iterator iter;
+
+  iter = this->IntensityCurveMean.find(label);
+  if (iter != this->IntensityCurveMean.end())
+    {
+    return iter->second;
+    }
+  else
+    {
+    return NULL;
+    }
+
+}
+
+
+//---------------------------------------------------------------------------
+int vtkIntensityCurves::OutputDataInCSV(ostream& os, int label)
+{
+
+  Update();
+
+  vtkDoubleArray* data = this->GetCurve(label);
+  if (data)
+    {
+    int nData = data->GetNumberOfTuples();
+    for (int i = 0; i < nData; i ++)
+      {
+      double* xy = data->GetTuple(i);
+      // Write the data
+      //      t        ,      mean
+      //   ---------------------------
+      os << xy[0] << ", " << xy[1] << std::endl;
+      }
+    }
+
+  return 1;
+
 }
 
 
