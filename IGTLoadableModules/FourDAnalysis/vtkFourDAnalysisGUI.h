@@ -133,8 +133,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void SetWindowLevelForCurrentFrame();
   void UpdateSeriesSelectorMenus();
   void UpdateMaskSelectMenu();
-  void SelectMask(const char* nodeID, int label);
-  void UpdateFunctionEditor(vtkDoubleArray* data);
   void UpdateIntensityPlot(vtkIntensityCurves* intensityCurves);
 
  protected:
@@ -168,14 +166,12 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 
   vtkKWMenuButton* SeriesToPlotMenu;
   vtkKWMenuButton* MaskSelectMenu;
-  vtkKWSpinBox*    MaskSelectSpinBox;
-  vtkKWCanvas*     MaskColorCanvas;
+  vtkKWPlotGraph*  IntensityPlot;
 
   vtkKWPushButton* RunPlotButton;
   vtkKWRadioButtonSet* PlotTypeButtonSet;
-  vtkKWPiecewiseFunctionEditor* FunctionEditor;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
-  vtkKWPlotGraph* IntensityPlot;
+
 
   vtkKWMenuButton* InputSeriesMenu;
   vtkKWMenuButton* OutputSeriesMenu;

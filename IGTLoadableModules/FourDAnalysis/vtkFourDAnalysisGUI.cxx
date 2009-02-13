@@ -49,8 +49,6 @@
 
 #include "vtkKWLoadSaveButton.h"
 #include "vtkKWLoadSaveButtonWithLabel.h"
-#include "vtkKWPiecewiseFunctionEditor.h"
-#include "vtkPiecewiseFunction.h"
 #include "vtkDoubleArray.h"
 #include "vtkMath.h"
 
@@ -99,12 +97,9 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
 
   this->SeriesToPlotMenu  = NULL;
   this->MaskSelectMenu    = NULL;
-  this->MaskSelectSpinBox = NULL;
-  this->MaskColorCanvas   = NULL;
 
   this->RunPlotButton  = NULL;
   this->PlotTypeButtonSet = NULL;
-  this->FunctionEditor = NULL;
   this->SavePlotButton = NULL;
   this->IntensityPlot = NULL;
 
@@ -220,25 +215,10 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->MaskSelectMenu->SetParent(NULL);
     this->MaskSelectMenu->Delete();
     }
-  if (this->MaskSelectSpinBox)
-    {
-    this->MaskSelectSpinBox->SetParent(NULL);
-    this->MaskSelectSpinBox->Delete();
-    }
-  if (this->MaskColorCanvas)
-    {
-    this->MaskColorCanvas->SetParent(NULL);
-    this->MaskColorCanvas->Delete();
-    }
   if (this->RunPlotButton)
     {
     this->RunPlotButton->SetParent(NULL);
     this->RunPlotButton->Delete();
-    }
-  if (this->FunctionEditor)
-    {
-    this->FunctionEditor->SetParent(NULL);
-    this->FunctionEditor->Delete();
     }
   if (this->IntensityPlot)
     {
@@ -396,12 +376,6 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
     }
 
-  if (this->MaskSelectSpinBox)
-    {
-    this->MaskSelectSpinBox
-      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
-    }
-
   if (this->RunPlotButton)
     {
     this->RunPlotButton
@@ -556,11 +530,6 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     {
     this->MaskSelectMenu->GetMenu()
       ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-    }
-  if (this->MaskSelectSpinBox)
-    {
-    this->MaskSelectSpinBox
-      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->RunPlotButton)
     {
@@ -790,25 +759,15 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->MaskSelectMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
-    int label = (int)this->MaskSelectSpinBox->GetValue();
-    const char* nodeID = this->MaskNodeIDList[selected].c_str();
-    SelectMask(nodeID, label);
-    }
-  else if (this->MaskSelectSpinBox == vtkKWSpinBox::SafeDownCast(caller)
-           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
-    {
-    int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
-    int label = (int)this->MaskSelectSpinBox->GetValue();
-    const char* nodeID = this->MaskNodeIDList[selected].c_str();
-    SelectMask(nodeID, label);
+    //int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
+    //const char* nodeID = this->MaskNodeIDList[selected].c_str();
+    //SelectMask(nodeID, label);
     }
   else if (this->RunPlotButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
     int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
-    int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* maskID   = this->MaskNodeIDList[selected].c_str();
     const char* bundleID = this->BundleNodeIDList[series].c_str();
 
@@ -841,9 +800,9 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWRadioButton::SelectedStateChangedEvent
            && this->PlotTypeButtonSet->GetWidget(0)->GetSelectedState() == 1)
     {
+    /*
     int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
-    int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
 
     if (nodeID)
@@ -853,14 +812,15 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
                                               nodeID, label, vtkFourDAnalysisLogic::TYPE_MEAN);
       UpdateFunctionEditor(p);
       }
+    */
     }
   else if (this->PlotTypeButtonSet->GetWidget(1) == vtkKWRadioButton::SafeDownCast(caller)
            && event == vtkKWRadioButton::SelectedStateChangedEvent
            && this->PlotTypeButtonSet->GetWidget(1)->GetSelectedState() == 1)
     {
+    /*
     int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
-    int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
 
     if (nodeID)
@@ -870,6 +830,7 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
                                               nodeID, label, vtkFourDAnalysisLogic::TYPE_SD);
       UpdateFunctionEditor(p);
       }
+    */
     }
   else if (this->SavePlotButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
@@ -877,11 +838,14 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     const char* filename = (const char*)callData;
     int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
-    int label = (int)this->MaskSelectSpinBox->GetValue();
+    //int label = (int)this->MaskSelectSpinBox->GetValue();
     const char* nodeID = this->MaskNodeIDList[selected].c_str();
+    /*
     this->GetLogic()->SaveIntensityCurve(this->BundleNodeIDList[series].c_str(),
                                          nodeID, label, filename);
-    //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->
+    */
+    this->GetLogic()->SaveIntensityCurves(this->IntensityCurves, filename);
+
     }
   /*
   else if (this->RegistrationFixedImageIndexSpinBox == vtkKWSpinBox::SafeDownCast(caller)
@@ -1434,32 +1398,15 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
   this->MaskSelectMenu->Create();
   this->MaskSelectMenu->SetWidth(20);
 
-  this->MaskSelectSpinBox = vtkKWSpinBox::New();
-  this->MaskSelectSpinBox->SetParent(mframe);
-  this->MaskSelectSpinBox->Create();
-  this->MaskSelectSpinBox->SetWidth(3);
-  this->MaskSelectSpinBox->SetRange(0, 127);
-
-  this->MaskColorCanvas = vtkKWCanvas::New();
-  this->MaskColorCanvas->SetParent(mframe);
-  this->MaskColorCanvas->Create();
-  this->MaskColorCanvas->SetWidth(15);
-  this->MaskColorCanvas->SetHeight(15);
-  this->MaskColorCanvas->SetBackgroundColor(0.0, 0.0, 0.0);
-  this->MaskColorCanvas->SetBorderWidth(2);
-  this->MaskColorCanvas->SetReliefToSolid();
-
   this->RunPlotButton = vtkKWPushButton::New();
   this->RunPlotButton->SetParent(mframe);
   this->RunPlotButton->Create();
   this->RunPlotButton->SetText ("Plot");
   this->RunPlotButton->SetWidth (4);
 
-  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                menuLabel->GetWidgetName(),
                this->MaskSelectMenu->GetWidgetName(),
-               this->MaskSelectSpinBox->GetWidgetName(),
-               this->MaskColorCanvas->GetWidgetName(),
                this->RunPlotButton->GetWidgetName());
   
   // -----------------------------------------
@@ -1486,53 +1433,18 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
 
   this->PlotTypeButtonSet->GetWidget(0)->SelectedStateOn();
 
-  this->FunctionEditor = vtkKWPiecewiseFunctionEditor::New();
-  this->FunctionEditor->SetParent(frame->GetFrame());
-  this->FunctionEditor->Create();
-  this->FunctionEditor->SetReliefToGroove();
-  this->FunctionEditor->SetPadX(2);
-  this->FunctionEditor->SetPadY(2);
-  this->FunctionEditor->ParameterRangeVisibilityOff();
-  this->FunctionEditor->SetCanvasHeight(200);
-  this->FunctionEditor->ReadOnlyOn();
-  this->FunctionEditor->SetPointRadius(2);
-  this->FunctionEditor->ParameterTicksVisibilityOn();
-  this->FunctionEditor->SetParameterTicksFormat("%-#4.2f");
-  this->FunctionEditor->ValueTicksVisibilityOn();
-  this->FunctionEditor->SetValueTicksFormat("%-#4.2f");
-
   this->IntensityPlot = vtkKWPlotGraph::New();
   this->IntensityPlot->SetParent(frame->GetFrame());
   this->IntensityPlot->Create();
   this->IntensityPlot->SetHeight(250);
 
-  /*
-  vtkDoubleArray* values = vtkDoubleArray::New();
-  values->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-  for ( int i = 0; i < 360; i+=10 )
-    {
-    double xy[2];
-    xy[0] = static_cast<double>(i);
-    xy[1] = sin( xy[0]*vtkMath::DegreesToRadians() );
-    values->InsertNextTuple( xy );
-    }
-  */
-  /*
-  this->IntensityPlot->AddHorizontalLine(0.0);
-  this->IntensityPlot->SetAxisLineColor(1.0, 0.0, 0.0);
-  int id = this->IntensityPlot->AddPlot(values, "1");
-  this->IntensityPlot->AddVerticalLine(180.0);
-  this->IntensityPlot->AutoRangeOn();
-  this->IntensityPlot->UpdateGraph();
-  */
   this->IntensityPlot->AddHorizontalLine(0.5);
   this->IntensityPlot->SetAxisLineColor(1.0, 1.0, 1.0);
   this->IntensityPlot->UpdateGraph();
 
-  this->Script("pack %s %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
                this->PlotTypeButtonSet->GetWidgetName(),
-               this->IntensityPlot->GetWidgetName(),
-               this->FunctionEditor->GetWidgetName());
+               this->IntensityPlot->GetWidgetName());
 
   // -----------------------------------------
   // Output frame
@@ -1550,7 +1462,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
   this->SavePlotButton->SetWidth(50);
   this->SavePlotButton->GetWidget()->SetText ("Save");
   this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOn();
-  this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SetDefaultExtension(".csv");
+  //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SetDefaultExtension(".csv");
 
   this->Script("pack %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                this->SavePlotButton->GetWidgetName());
@@ -1972,86 +1884,6 @@ void vtkFourDAnalysisGUI::UpdateMaskSelectMenu()
         vtkSetAndObserveMRMLNodeEventsMacro(nd,node,events);
         }
       }
-    }
-}
-
-
-//----------------------------------------------------------------------------
-void vtkFourDAnalysisGUI::SelectMask(const char* nodeID, int label)
-{
-
-  vtkMRMLScalarVolumeNode* node =
-    vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
-
-  if (node == NULL || !node->GetLabelMap())
-    {
-    return;
-    }
-
-  vtkMRMLVolumeDisplayNode* dnode = node->GetVolumeDisplayNode();
-  if (dnode == NULL)
-    {
-    return;
-    }
-
-  vtkMRMLColorNode* cnode = dnode->GetColorNode();
-  if (cnode == NULL)
-    {
-    return;
-    }
-
-  vtkLookupTable* lt = cnode->GetLookupTable();
-  double l, h;
-
-  l = lt->GetRange()[0];
-  h = lt->GetRange()[1];
-  if (label < l)
-    {
-    this->MaskSelectSpinBox->SetValue(l);
-    label = (int)l;
-    }
-  else if (label > h)
-    {
-    this->MaskSelectSpinBox->SetValue(h);
-    label = (int)h;
-    }
-  double color[3];
-  lt->GetColor(label, color);
-  if (this->MaskColorCanvas)
-    {
-    this->MaskColorCanvas->SetBackgroundColor(color[0], color[1], color[2]);
-    }
-}
-
-
-//----------------------------------------------------------------------------
-void vtkFourDAnalysisGUI::UpdateFunctionEditor(vtkDoubleArray* data)
-{
-  if (data == NULL)
-    {
-    std::cerr << "no data..." << std::endl;
-    return;
-    }
-
-  int n = data->GetNumberOfTuples();
-  std::cerr << "number of components = " << n << std::endl;
-  if (n > 0)
-    {
-    vtkPiecewiseFunction* tfun = vtkPiecewiseFunction::New();
-    for (int i = 0; i < n; i ++)
-      {
-      tfun->AddPoint((double)i, data->GetValue(i));
-      }
-    double range[2];
-    data->GetRange(range);
-    this->FunctionEditor->SetWholeParameterRange(0.0, (double)(n-1));
-    this->FunctionEditor->SetVisibleParameterRange(0.0, (double)(n-1));
-    this->FunctionEditor->SetWholeValueRange(0.0, range[1]);
-    this->FunctionEditor->SetVisibleValueRange(0.0, range[1]);
-    this->FunctionEditor->SetPiecewiseFunction(tfun);
-    //this->FunctionEditor->SetVisibleParameterRangeToWholeParameterRange ();
-    //this->FunctionEditor->SetWholeParameterRangeToFunctionRange();
-    this->FunctionEditor->Update();
     }
 }
 

@@ -50,6 +50,7 @@ class VTK_FourDAnalysis_EXPORT vtkIntensityCurves : public vtkObject
   int             Update();
   vtkIntArray*    GetLabelList();
   vtkDoubleArray* GetCurve(int label);
+  int             OutputDataInCSV(ostream& os, int label);
 
  protected:
   vtkIntensityCurves();

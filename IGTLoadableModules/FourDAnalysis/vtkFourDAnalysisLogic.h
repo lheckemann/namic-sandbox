@@ -75,7 +75,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   typedef std::vector<CoordType>                       IndexTableType;
 
   typedef struct {
-    long             MaskModifiedTime;
+    unsigned long    MaskModifiedTime;
     vtkDoubleArray*  Mean;
     vtkDoubleArray*  SD;
   } CurveDataType;
@@ -122,7 +122,9 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   const char* GetRegisteredFrameNodeID(int index);
 
   vtkDoubleArray* GetIntensityCurve(const char* bundleID, const char* maskID, int label, int type);
+
   int  SaveIntensityCurve(const char* bundleID, const char* maskID, int label, const char* filename);
+  int  SaveIntensityCurves(vtkIntensityCurves* curves, const char* fileNamePrefix);
 
   void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
   vtkSlicerApplication* GetApplication() { return this->Application; };

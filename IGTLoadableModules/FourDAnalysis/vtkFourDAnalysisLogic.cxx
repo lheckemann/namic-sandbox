@@ -444,6 +444,8 @@ int vtkFourDAnalysisLogic::SaveImagesToDir(const char* path,
 
   statusMessage.show = 0;
   this->InvokeEvent ( vtkFourDAnalysisLogic::ProgressDialogEvent, &statusMessage);
+
+  return 1;
 }
 
 
@@ -508,16 +510,17 @@ vtkMRMLScalarVolumeNode* vtkFourDAnalysisLogic::AddDisplayBufferNode(vtkMRML4DBu
 
   bundleNode->SetDisplayBufferNodeID(index, volumeNode->GetID());
   
-  volumeNode->Delete();
+  //volumeNode->Delete();
   //storageNode->Delete();
   displayNode->Delete();
+  return volumeNode;
 
 }
 
 
 //---------------------------------------------------------------------------
 int vtkFourDAnalysisLogic::GenerateBundleFrames(vtkMRML4DBundleNode* inputBundleNode,
-                                            vtkMRML4DBundleNode* outputBundleNode)
+                                                vtkMRML4DBundleNode* outputBundleNode)
 {
   int nfInput  = inputBundleNode->GetNumberOfFrames();
   int nfOutput = outputBundleNode->GetNumberOfFrames();
@@ -605,7 +608,8 @@ int vtkFourDAnalysisLogic::GenerateBundleFrames(vtkMRML4DBundleNode* inputBundle
 
   statusMessage.show = 0;
   this->InvokeEvent ( vtkFourDAnalysisLogic::ProgressDialogEvent, &statusMessage);
-
+  
+  return 1;
 }
 
 
@@ -819,6 +823,39 @@ int vtkFourDAnalysisLogic::SaveIntensityCurve(const char* bundleID, const char* 
   return 1;
 
 }
+
+
+//---------------------------------------------------------------------------
+int vtkFourDAnalysisLogic::SaveIntensityCurves(vtkIntensityCurves* curves, const char* fileNamePrefix)
+{
+  if (!curves)
+    {
+    return 0;
+    }
+
+  vtkIntArray* labels = curves->GetLabelList();
+  int nLabels = labels->GetNumberOfTuples();
+  for (int i = 0; i < nLabels; i ++)
+    {
+    int label = labels->GetValue(i);
+    char filename[256];
+    sprintf (filename, "%s_%03d.csv", fileNamePrefix, label);
+    
+    std::ofstream fout;
+    fout.open(filename, std::ios::out);
+    if (fout.fail())
+      {
+      vtkErrorMacro ("vtkFourDAnalysisLogic: could not open file " << filename );
+      return 0;
+      }
+    curves->OutputDataInCSV(fout, label);
+    fout.close();
+    }
+  
+  return 1;
+  
+}
+
 
 
 //---------------------------------------------------------------------------

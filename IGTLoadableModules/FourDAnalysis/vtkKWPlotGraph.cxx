@@ -100,7 +100,7 @@ void vtkKWPlotGraph::CreateWidget()
   //this->PlotActor->SetXValuesToArcLength();
   //this->PlotActor->SetNumberOfXLabels(6);
 
-  this->PlotActor->SetTitle("Intensity curve");
+  this->PlotActor->SetTitle("");
   this->PlotActor->SetXTitle("Time (s)");
   this->PlotActor->SetYTitle("");
   this->PlotActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
@@ -114,7 +114,7 @@ void vtkKWPlotGraph::CreateWidget()
   tprop->ItalicOff();
   tprop->BoldOff();
   tprop->ShadowOff();
-  tprop->SetFontSize(8);
+  tprop->SetFontSize(10);
 
   this->PlotActor->SetAxisTitleTextProperty(tprop);
   this->PlotActor->SetAxisLabelTextProperty(tprop);
