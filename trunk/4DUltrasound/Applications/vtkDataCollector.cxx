@@ -533,8 +533,8 @@ int vtkDataCollector::StopCollecting()
 //Adjust tracker matrix to ultrasound scan depth
 void vtkDataCollector::AdjustMatrix(vtkMatrix4x4& matrix)
 {
-  int Offset[3] = {500, 348, -288}; //x, y, z
-  
+//  int Offset[3] = {500, 348, -288}; //x, y, z
+//  
   vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
   vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
   
@@ -549,12 +549,36 @@ void vtkDataCollector::AdjustMatrix(vtkMatrix4x4& matrix)
   adjustMatrix->Element[2][0] = -1;
   adjustMatrix->Element[0][2] = -1;
   adjustMatrix->Element[1][1] = -1;
+
   //Offset
 //  adjustMatrix->Element[0][3] = Offset[0];
 //  adjustMatrix->Element[1][3] = Offset[1];
 //  adjustMatrix->Element[2][3] = Offset[2];
   
   vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, &matrix);
+  
+//  oldMatrix->DeepCopy(&matrix);
+//  adjustMatrix->Identity();
+//    
+//  adjustMatrix->Element[0][0] = 0;
+//  adjustMatrix->Element[1][1] = 0;
+//  adjustMatrix->Element[2][2] = 0;
+//  
+//  adjustMatrix->Element[1][0] = 1;
+//  adjustMatrix->Element[2][1] = 1;
+//  adjustMatrix->Element[0][2] = 1;
+//
+//  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, &matrix);
+  
+  //Adjust axis
+  double x = matrix.Element[0][3];
+  double y = matrix.Element[1][3];
+  double z = matrix.Element[2][3];
+  
+  matrix.Element[0][3] = y;
+  matrix.Element[1][3] = z;
+  matrix.Element[2][3] = x;
+  
   
   #ifdef DEBUGCOLLECTOR
       this->LogStream << this->GetUpTime() << " |C-INFO: Adjust Matrix Oldmatrix * Adjustmatrix = NewMatrix" << endl;
