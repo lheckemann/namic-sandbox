@@ -292,75 +292,87 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
     #ifdef DEBUGPROCESSOR
     //self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Processor Thread looks for new data" << endl;
     #endif
-
-    if(dataAvailable || !self->IsNewDataBufferEmpty())
-      {//New data to process available
-      loopTime = self->GetUpTime();
-      currentIndex = self->GetHeadOfNewDataBuffer();
-
-//      if(currentIndex == 52)
-//        {
-//        cout << "53" << endl;
-//        }
-
-      #ifdef  TIMINGPROCESSOR
-        self->GetLogStream() <<  self->GetUpTime() << " |-------------------------------------" << endl;
-        self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Processor Thread found new data with index:" << currentIndex
-                             << " | L:" << self->GetUpTime() - loopTime << endl
-                             << "        | BufferSize: " << self->GetBufferSize() << endl;
-        
+    
+    if(!self->GetDataSender()->GetSending())
+      {
+      #ifdef DEBUGPROCESSOR
+      self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Data sender stopped sending -> stop processing" << endl;
       #endif
-
-      sectionTime = self->GetUpTime();
-      if(-1 != self->CheckandUpdateVolume(currentIndex, lastDataSenderIndex))//Check if volume must be expanded
-        {
-        #ifdef  TIMINGPROCESSOR
-          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Check and Update DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
-        #endif
-
-        sectionTime = self->GetUpTime();
-        if(-1 != self->ReconstructVolume(currentIndex))
-          {
-          #ifdef  TIMINGPROCESSOR
-            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume Reconstruction DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
-          #endif
-          sectionTime = self->GetUpTime();
-          lastDataSenderIndex = self->ForwardData();
-          #ifdef  TIMINGPROCESSOR
-            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume forwarding DONE"
-                                                       << " | S: " << self->GetUpTime() - sectionTime
-                                                       << " | L:" << self->GetUpTime() - loopTime
-                                                       << " | FPS: " << 1 / (self->GetUpTime() - loopTime) << endl;
-
-          #endif
-          }
-        else
-          {
-          #ifdef  DEBUGPROCESSOR
-            self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
-            self->ResetOldVolume(lastDataSenderIndex);
-          #endif
-          }
-        }
-      else
-        {
-        lastDataSenderIndex = -2;
-        }
-      self->DeleteData(currentIndex);
+      self->StopProcessing();
       }
-
-      dataAvailable = !self->IsNewDataBufferEmpty();
-
-      #ifdef  DEBUGPROCESSOR
-        if(dataAvailable)
+    else
+      {
+      if(dataAvailable || !self->IsNewDataBufferEmpty())
+        {//New data to process available
+        loopTime = self->GetUpTime();
+        currentIndex = self->GetHeadOfNewDataBuffer();
+  
+  //      if(currentIndex == 52)
+  //        {
+  //        cout << "53" << endl;
+  //        }
+  
+        #ifdef  TIMINGPROCESSOR
+          self->GetLogStream() <<  self->GetUpTime() << " |-------------------------------------" << endl;
+          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Processor Thread found new data with index:" << currentIndex
+                               << " | L:" << self->GetUpTime() - loopTime << endl
+                               << "        | BufferSize: " << self->GetBufferSize() << endl;
+          
+        #endif
+  
+        sectionTime = self->GetUpTime();
+        if(-1 != self->CheckandUpdateVolume(currentIndex, lastDataSenderIndex))//Check if volume must be expanded
           {
-          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor wont't sleep" << " | " << self->GetUpTime()<< endl;
+          #ifdef  TIMINGPROCESSOR
+            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Check and Update DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+          #endif
+  
+          sectionTime = self->GetUpTime();
+          if(-1 != self->ReconstructVolume(currentIndex))
+            {
+            #ifdef  TIMINGPROCESSOR
+              self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume Reconstruction DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+            #endif
+            sectionTime = self->GetUpTime();
+            lastDataSenderIndex = self->ForwardData();
+            #ifdef  TIMINGPROCESSOR
+              self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume forwarding DONE"
+                                                         << " | S: " << self->GetUpTime() - sectionTime
+                                                         << " | L:" << self->GetUpTime() - loopTime
+                                                         << " | FPS: " << 1 / (self->GetUpTime() - loopTime) << endl;
+  
+            #endif
+            }
+          else
+            {
+            #ifdef  DEBUGPROCESSOR
+              self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+            #endif
+              self->ResetOldVolume(lastDataSenderIndex);
+              self->EnableVolumeReconstruction(false);
+              self->EnableVolumeReconstruction(true);
+            }
           }
         else
           {
-          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor sleeps now" << " | " << self->GetUpTime()<< endl;
+          lastDataSenderIndex = -2;
           }
-      #endif
+        self->DeleteData(currentIndex);
+        }
+  
+        dataAvailable = !self->IsNewDataBufferEmpty();
+  
+        #ifdef  DEBUGPROCESSOR
+          if(dataAvailable)
+            {
+            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor wont't sleep" << " | " << self->GetUpTime()<< endl;
+            }
+          else
+            {
+            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor sleeps now" << " | " << self->GetUpTime()<< endl;
+            }
+        #endif
+      }//Check if sender stopped sending
 
     }
   while(vtkThreadSleep(data, vtkTimerLog::GetUniversalTime() + processPeriod, dataAvailable));
@@ -419,9 +431,10 @@ int vtkDataProcessor::StartProcessing(vtkDataSender * sender)
   if(this->PlayerThreadId != -1)
     {
     this->Processing = true;
-    #ifdef DEBUGPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-INFO: Successfully started to process data" << endl;
-    #endif
+    if(Verbose)
+      {
+      cout << "Start processing data" << endl;
+      }
     return 0;
     }
   else
@@ -889,9 +902,9 @@ int vtkDataProcessor::ForwardData()
   vtkMatrix4x4 * matrix = vtkMatrix4x4::New();
   this->GetVolumeMatrix(matrix);
   
-//  matrix->Element[0][3] += reconstructedVolume->GetOrigin()[0] + reconstructedVolume->GetDimensions()[0] / 2;
-//  matrix->Element[1][3] += reconstructedVolume->GetOrigin()[1] + reconstructedVolume->GetDimensions()[1] / 2;;
-//  matrix->Element[2][3] += reconstructedVolume->GetOrigin()[2] + reconstructedVolume->GetDimensions()[2] / 2;;
+  matrix->Element[0][3] += reconstructedVolume->GetOrigin()[1] + reconstructedVolume->GetDimensions()[1] / 2;
+  matrix->Element[1][3] += reconstructedVolume->GetOrigin()[2] + reconstructedVolume->GetDimensions()[2] / 2;
+  matrix->Element[2][3] += reconstructedVolume->GetOrigin()[0] + reconstructedVolume->GetDimensions()[0] / 2;
 
   //Forward data to sender
   int retval = this->DataSender->NewData(volumeToForward, matrix);

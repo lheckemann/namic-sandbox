@@ -103,6 +103,8 @@ public:
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
   
+  vtkGetMacro(Sending, bool);
+  
   int GetBufferSize(){return sendDataQueue.size();}
 
   void SetLogStream(ofstream &LogStream);
