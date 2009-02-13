@@ -28,8 +28,7 @@ vtkIntensityCurves::vtkIntensityCurves()
   this->BundleNode = NULL;
   this->MaskNode   = NULL;
 
-  this->IntensityCurveMean.clear();
-  this->IntensityCurveSD.clear();
+  this->IntensityCurve.clear();
 }
 
 
@@ -80,7 +79,7 @@ vtkIntArray* vtkIntensityCurves::GetLabelList()
   vtkIntArray* array = vtkIntArray::New();
 
   IntensityCurveMapType::iterator iter;
-  for (iter = this->IntensityCurveMean.begin(); iter != this->IntensityCurveMean.end(); iter ++)
+  for (iter = this->IntensityCurve.begin(); iter != this->IntensityCurve.end(); iter ++)
     {
     int label = iter->first;
     array->InsertNextValue(label);
@@ -95,8 +94,8 @@ vtkDoubleArray* vtkIntensityCurves::GetCurve(int label)
 {
   IntensityCurveMapType::iterator iter;
 
-  iter = this->IntensityCurveMean.find(label);
-  if (iter != this->IntensityCurveMean.end())
+  iter = this->IntensityCurve.find(label);
+  if (iter != this->IntensityCurve.end())
     {
     return iter->second;
     }
@@ -124,7 +123,7 @@ int vtkIntensityCurves::OutputDataInCSV(ostream& os, int label)
       // Write the data
       //      t        ,      mean
       //   ---------------------------
-      os << xy[0] << ", " << xy[1] << std::endl;
+      os << xy[0] << ", " << xy[1] << xy[2] << std::endl;
       }
     }
 
@@ -137,8 +136,7 @@ int vtkIntensityCurves::OutputDataInCSV(ostream& os, int label)
 void vtkIntensityCurves::GenerateIntensityCurve()
 {
 
-  this->IntensityCurveMean.clear();
-  this->IntensityCurveSD.clear();
+  this->IntensityCurve.clear();
 
   if (this->BundleNode && this->MaskNode)
     {
@@ -151,10 +149,8 @@ void vtkIntensityCurves::GenerateIntensityCurve()
     for (iter = indexTableMap.begin(); iter != indexTableMap.end(); iter ++)
       {
       int label = iter->first;
-      this->IntensityCurveMean[label] = vtkDoubleArray::New();
-      this->IntensityCurveSD[label]   = vtkDoubleArray::New();
-      this->IntensityCurveMean[label]->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-      this->IntensityCurveSD[label]->SetNumberOfComponents( static_cast<vtkIdType>(2) );
+      this->IntensityCurve[label] = vtkDoubleArray::New();
+      this->IntensityCurve[label]->SetNumberOfComponents( static_cast<vtkIdType>(3) );
 
       std::cerr << "creating array for label = " << label << std::endl;
       }
@@ -176,13 +172,11 @@ void vtkIntensityCurves::GenerateIntensityCurve()
           double meanvalue = GetMeanIntensity(inode->GetImageData(), indexTable);
           double sdvalue   = GetSDIntensity(inode->GetImageData(), meanvalue, indexTable);
           //std::cerr << "mean = " << meanvalue << ", sd = " << sdvalue << std::endl;
-          double xy[2];
+          double xy[3];
           xy[0] = (double)i;
           xy[1] = meanvalue;
-          this->IntensityCurveMean[label]->InsertNextTuple(xy);
-          xy[0] = (double)i;
-          xy[1] = sdvalue;
-          this->IntensityCurveSD[label]->InsertNextTuple(xy);
+          xy[2] = sdvalue;
+          this->IntensityCurve[label]->InsertNextTuple(xy);
           }
         }
       }
