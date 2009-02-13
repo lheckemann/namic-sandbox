@@ -254,14 +254,24 @@ void vtkKWPlotGraph::UpdateGraph()
     }
   this->Updating = 1;
 
-  // if AutoRange is set, check the range of the values
+  // -----------------------------------------
+  // If AutoRange is set, check the range of the values
   PlotDataVectorType::iterator it;
-  double xy[3];
+  double xy[3];   // xy[0]: x,    xy[1]: mean of y,   xy[2]: SD of y
 
-  // put the first value as an initial range
+  // -----------------------------------------
+  // Put the first value as an initial range
   it = this->PlotDataVector.begin();
   if (it != this->PlotDataVector.end())
     {
+    // Check number of components in the tuple
+    int nComp = it->data->GetNumberOfComponents();
+    if (nComp == 2) // if the data contains only x and y values,
+      {
+      xy[2] = 0.0;  // SD (error) is always zero.
+      }
+
+    // Subsittute the first data as initial values
     it->data->GetTupleValue(0, xy);
     if (this->AutoRangeX)
       {
@@ -270,8 +280,8 @@ void vtkKWPlotGraph::UpdateGraph()
       }
     if (this->AutoRangeY)
       {
-      this->RangeY[0] = xy[1];
-      this->RangeY[1] = xy[1];
+      this->RangeY[0] = xy[1] - xy[2];  // minimum value = mean - sd
+      this->RangeY[1] = xy[1] + xy[2];  // maximum value = mean + sd
       }
     if (this->AutoRangeX || this->AutoRangeY)
       {
@@ -288,20 +298,18 @@ void vtkKWPlotGraph::UpdateGraph()
             }
           if (this->AutoRangeY)
             {
-            if (xy[1] < this->RangeY[0]) this->RangeY[0] = xy[1];  // minimum Y
-            if (xy[1] > this->RangeY[1]) this->RangeY[1] = xy[1];  // maximum Y
+            if (xy[1] - xy[2] < this->RangeY[0]) this->RangeY[0] = xy[1];  // minimum Y
+            if (xy[1] + xy[2] > this->RangeY[1]) this->RangeY[1] = xy[1];  // maximum Y
             }
           }
         }
       }
     }
 
-  /*
-  std::cerr << "data range X: [" << this->RangeX[0] << ", " << this->RangeX[1] << "]" << std::endl;
-  std::cerr << "data range Y: [" << this->RangeY[0] << ", " << this->RangeY[1] << "]" << std::endl;
-  */
 
-  // set color for axis lines
+  // -----------------------------------------
+  // Set color for lines parallel to the axes
+
   AxisLineVectorType::iterator aiter;
   for (aiter = this->VerticalLines.begin(); aiter != this->VerticalLines.end(); aiter ++)
     {
@@ -316,9 +324,13 @@ void vtkKWPlotGraph::UpdateGraph()
     aiter->color[2] = this->AxisLineColor[2];
     }
 
+
   if (this->PlotActor)
     {
     this->PlotActor->RemoveAllInputs();
+
+    // -----------------------------------------
+    // Plot curves
 
     int i = 0;
     PlotDataVectorType::iterator iter;
@@ -343,7 +355,11 @@ void vtkKWPlotGraph::UpdateGraph()
         i ++;
         }
       }
-    
+
+
+    // -----------------------------------------
+    // Draw vertical lines
+
     AxisLineVectorType::iterator aiter;
     for (aiter = this->VerticalLines.begin(); aiter != this->VerticalLines.end(); aiter ++)
       {
@@ -376,6 +392,10 @@ void vtkKWPlotGraph::UpdateGraph()
         }
       }
     
+
+    // -----------------------------------------
+    // Draw horizontal lines
+
     for (aiter = this->HorizontalLines.begin(); aiter != this->HorizontalLines.end(); aiter ++)
       {
       if (aiter->visible)
