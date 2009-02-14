@@ -538,14 +538,12 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct* pDataStruct)
     pDataStruct->Matrix->Print(this->LogStream);
   #endif
   
-  //Shift Matrix according to tracker ultrasound probe offset-------------------
-  double normal[3];
-  this->CalculateNormal(pDataStruct, normal);
-  
-  //Transform Matrix to correct coordinate system-------------------------------
+  //----------------------------------------------------------------------------
+  //Calibrate tracker Matrix----------------------------------------------------
   vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
   vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
   
+  //Adjust Obliqueness----------------------------------------------------------
   oldMatrix->DeepCopy(pDataStruct->Matrix);
   
   adjustMatrix->Identity();  
@@ -560,94 +558,69 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct* pDataStruct)
   adjustMatrix->Element[2][2] = 1;
 
   vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
+  
+  #ifdef DEBUGCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix Obliqueness adjusted:"<< endl;
+    pDataStruct->Matrix->Print(this->LogStream);
+  #endif
+
+  //Transform coordinate System-------------------------------------------------
+  oldMatrix->DeepCopy(pDataStruct->Matrix);
+  
+  adjustMatrix->Identity();  
+  adjustMatrix->Element[0][0] = 0;
+  adjustMatrix->Element[1][1] = 0;
+  adjustMatrix->Element[2][2] = 0;
+  
+  adjustMatrix->Element[0][0] =  1;
+  adjustMatrix->Element[2][1] = -1;
+  adjustMatrix->Element[1][2] = -1;
+
+  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
   adjustMatrix->Delete();
   oldMatrix->Delete();
   
-  //Shift Frame according to offset
-  pDataStruct->Matrix->Element[0][3] += (normal[0] * this->TrackerOffset);
-  pDataStruct->Matrix->Element[1][3] += (normal[1] * this->TrackerOffset);
-  pDataStruct->Matrix->Element[2][3] += (normal[2] * this->TrackerOffset);
+  #ifdef DEBUGCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix coordinate system transformed:"<< endl;
+    pDataStruct->Matrix->Print(this->LogStream);
+  #endif
   
+  //Apply Offset----------------------------------------------------------------
   double xOffset = -1 * this->calibReader->GetImageSize()[0] / 2;
-  double yOffset = -1 * this->calibReader->GetImageSize()[1] / 2 + 10;
+  double yOffset = -1 * (this->calibReader->GetImageSize()[1] + this->TrackerOffset);
+  double zOffset = -10;
   
-  pDataStruct->Matrix->Element[0][3] += (pDataStruct->Matrix->Element[0][0] * xOffset);
-  pDataStruct->Matrix->Element[1][3] += (pDataStruct->Matrix->Element[1][0] * xOffset);
-  pDataStruct->Matrix->Element[2][3] += (pDataStruct->Matrix->Element[2][0] * xOffset);
+  double xAxis[3] = {pDataStruct->Matrix->Element[0][0], pDataStruct->Matrix->Element[1][0], pDataStruct->Matrix->Element[2][0]};
+  double yAxis[3] = {pDataStruct->Matrix->Element[0][1], pDataStruct->Matrix->Element[1][1], pDataStruct->Matrix->Element[2][1]};
+  double zAxis[3] = {pDataStruct->Matrix->Element[0][2], pDataStruct->Matrix->Element[1][2], pDataStruct->Matrix->Element[2][2]};
   
-  pDataStruct->Matrix->Element[0][3] += (pDataStruct->Matrix->Element[0][1] * yOffset);
-  pDataStruct->Matrix->Element[1][3] += (pDataStruct->Matrix->Element[1][1] * yOffset);
-  pDataStruct->Matrix->Element[2][3] += (pDataStruct->Matrix->Element[2][1] * yOffset);
+  //Shift Frame according to offset
+  //X-Offset
+  pDataStruct->Matrix->Element[0][3] += (xAxis[0] * xOffset);
+  pDataStruct->Matrix->Element[1][3] += (xAxis[1] * xOffset);
+  pDataStruct->Matrix->Element[2][3] += (xAxis[2] * xOffset);
   
-//  adjustMatrix = vtkMatrix4x4::New();
-//  oldMatrix = vtkMatrix4x4::New();
-//  
-//  oldMatrix->DeepCopy(pDataStruct->Matrix);
-//    
-//  adjustMatrix->Identity();  
-//  adjustMatrix->Element[0][0] = 0;
-//  adjustMatrix->Element[1][1] = 0;
-//  adjustMatrix->Element[2][2] = 0;
-//  
-//  adjustMatrix->Element[2][0] = -1;
-//  adjustMatrix->Element[0][2] =  1;
-//  adjustMatrix->Element[1][1] = 1;
-//
-//  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
-//  adjustMatrix->Delete();
-//  oldMatrix->Delete();
+  //Y-Offset
+  pDataStruct->Matrix->Element[0][3] += (yAxis[0] * yOffset);
+  pDataStruct->Matrix->Element[1][3] += (yAxis[1] * yOffset);
+  pDataStruct->Matrix->Element[2][3] += (yAxis[2] * yOffset);
   
-  //Adjust axis to correct coordiante system------------------------------------
-//  double xPosition = pDataStruct->Matrix->Element[0][3];
-//  double yPosition = pDataStruct->Matrix->Element[1][3];
-//  double zPosition = pDataStruct->Matrix->Element[2][3];
-//  
-//  pDataStruct->Matrix->Element[0][3] = yPosition;
-//  pDataStruct->Matrix->Element[1][3] = zPosition;
-//  pDataStruct->Matrix->Element[2][3] = xPosition;
-//  
-//  double xOrientation[3];
-//  double yOrientation[3];
-//  double zOrientation[3];
-//  
-//  xOrientation[0] = pDataStruct->Matrix->Element[0][0]; 
-//  xOrientation[1] = pDataStruct->Matrix->Element[1][0]; 
-//  xOrientation[2] = pDataStruct->Matrix->Element[2][0];
-//
-//  yOrientation[0] = pDataStruct->Matrix->Element[0][1]; 
-//  yOrientation[1] = pDataStruct->Matrix->Element[1][1]; 
-//  yOrientation[2] = pDataStruct->Matrix->Element[2][1];
-//  
-//  zOrientation[0] = pDataStruct->Matrix->Element[0][2]; 
-//  zOrientation[1] = pDataStruct->Matrix->Element[1][2]; 
-//  zOrientation[2] = pDataStruct->Matrix->Element[2][2];
-//  
-//  pDataStruct->Matrix->Element[0][0] = yOrientation[0]; 
-//  pDataStruct->Matrix->Element[1][0] = yOrientation[1]; 
-//  pDataStruct->Matrix->Element[2][0] = yOrientation[2];
-//
-//  pDataStruct->Matrix->Element[0][1] = zOrientation[0];
-//  pDataStruct->Matrix->Element[1][1] = zOrientation[1]; 
-//  pDataStruct->Matrix->Element[2][1] = zOrientation[2];
-//  
-//  pDataStruct->Matrix->Element[0][2] = xOrientation[0];
-//  pDataStruct->Matrix->Element[1][2] = xOrientation[1];
-//  pDataStruct->Matrix->Element[2][2] = xOrientation[2];
-    
+  //Z-Offset
+  pDataStruct->Matrix->Element[0][3] += (zAxis[0] * zOffset);
+  pDataStruct->Matrix->Element[1][3] += (zAxis[1] * zOffset);
+  pDataStruct->Matrix->Element[2][3] += (zAxis[2] * zOffset);
   
   #ifdef DEBUGCOLLECTOR
-      this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix Oldmatrix * Adjustmatrix = NewMatrix" << endl;
-//      oldMatrix->Print(this->LogStream);
-//      adjustMatrix->Print(this->LogStream);
-      pDataStruct->Matrix->Print(this->LogStream);
+    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
+    pDataStruct->Matrix->Print(this->LogStream);
   #endif
 
   //Reshape matrix according to ultrasound scan depth---------------------------
-  double scaleFactor = 1;//(this->VideoSource->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
-
-  pDataStruct->Matrix->Element[0][3] = pDataStruct->Matrix->Element[0][3] * scaleFactor;//x
-  pDataStruct->Matrix->Element[1][3] = pDataStruct->Matrix->Element[1][3] * scaleFactor;//y
-  pDataStruct->Matrix->Element[2][3] = pDataStruct->Matrix->Element[2][3] * scaleFactor;//z
+//  double scaleFactor = 1;//(this->VideoSource->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
+//
+//  pDataStruct->Matrix->Element[0][3] = pDataStruct->Matrix->Element[0][3] * scaleFactor;//x
+//  pDataStruct->Matrix->Element[1][3] = pDataStruct->Matrix->Element[1][3] * scaleFactor;//y
+//  pDataStruct->Matrix->Element[2][3] = pDataStruct->Matrix->Element[2][3] * scaleFactor;//z
 
   if(-1 == this->CalculateVolumeProperties(pDataStruct))
     {
