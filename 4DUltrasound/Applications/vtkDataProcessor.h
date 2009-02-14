@@ -61,6 +61,17 @@ class vtk3DPanoramicVolumeReconstructor;
 class vtkDataSender;
 class vtkUltrasoundCalibFileReader;
 
+struct DataStruct 
+{
+  vtkImageData* Frame;
+  vtkMatrix4x4* Matrix;
+  double TimeStamp;
+  vtkFloatingPointType Origin[3];
+  int VolumeExtent[6];
+  double Spacing[3];
+};
+
+
 class vtkDataProcessor : public vtkObject
 {
 public:
@@ -86,6 +97,9 @@ public:
   vtkGetMacro(DataSender, vtkDataSender*);
   
   vtkGetMacro(Processing, bool);
+  
+  vtkSetMacro(MaximumVolumeSize, double);
+  double GetMaximumVolumeSize();
 
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
@@ -120,6 +134,7 @@ protected:
   ofstream LogStream;
   vtkImageData* oldVolume;
   bool UltraSoundTrackingEnabled;
+  double MaximumVolumeSize;
 
   std::queue<int> newDataBuffer; //Stores index of incoming objects
   int newDataBufferSize; //Maximum amount of items that can be stored at the same time

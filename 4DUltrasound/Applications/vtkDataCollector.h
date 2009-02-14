@@ -107,6 +107,9 @@ public:
 
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
+  
+  vtkSetMacro(TrackerOffset, double);
+  vtkGetMacro(TrackerOffset, double);
 
 #ifdef USE_ULTRASOUND_DEVICE
   vtkGetMacro(VideoSource, vtkV4L2VideoSource *);
@@ -118,18 +121,24 @@ public:
 
   vtkGetMacro(DataProcessor, vtkDataProcessor *);
 
+  vtkSetMacro(MaximumVolumeSize, double);
+  double GetMaximumVolumeSize();
+  
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
 
   int Initialize(vtkNDITracker* tracker);
   int StartCollecting(vtkDataProcessor * processor);
   int StopCollecting();
-  void AdjustMatrix(vtkMatrix4x4& matrix);
+  int ProcessMatrix(struct DataStruct* pDataStruct);
   double GetUpTime();
   int DuplicateFrame(vtkImageData * original, vtkImageData * duplicate);
   bool IsTrackerDeviceEnabled();
   int EnableTrackerTool();
   bool IsIdentityMatrix(vtkMatrix4x4 * matrix);
+  bool IsMatrixEmpty(vtkMatrix4x4 * matrix);
+  int CalculateNormal(struct DataStruct * pDataStruct, double* normal);
+  int CalculateVolumeProperties(struct DataStruct * pDataStruct);
 
 protected:
   vtkDataCollector();
@@ -140,16 +149,18 @@ protected:
   ofstream LogStream;
 
   char *CalibrationFileName;
-
+  vtkUltrasoundCalibFileReader *calibReader;
+  double clipRectangle[4];
+  
   char *VideoDevice; // e.g. /dev/video
   int   VideoChannel; // e.g. 3 at Hauppauge Impact VCB Modell 558
   int   VideoMode; //NTSC == 1 , PAL == 2
   double FrameRate;
   int FrameBufferSize;
+  double TrackerOffset;//Offset of tracker to ultrasound probe; Unit: mm
+  double MaximumVolumeSize;
 
   double ScanDepth;
-
-  vtkUltrasoundCalibFileReader *calibReader;
 
   bool TrackerDeviceEnabled;
   vtkTrackerTool *tool;

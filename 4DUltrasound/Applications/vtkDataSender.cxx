@@ -141,6 +141,8 @@ vtkDataSender::~vtkDataSender()
     this->UnlockData(index, DATAPROCESSOR);
     this->TryToDeleteData(index);
     }
+  this->IndexLock->Delete();
+  
 }
 
 
@@ -564,7 +566,7 @@ int vtkDataSender::PrepareImageMessage(int index,
                     << frameProperties.Size[0] << " | "
                     << frameProperties.Size[1] << " | "
                     << frameProperties.Size[2] << endl
-                    << "         | Origin: " << frameProperties.Origin[0]<< "|" << frameProperties.Origin[1]<< "|" << frameProperties.Origin[3]<< endl
+                    << "         | Origin: " << frameProperties.Origin[0]<< "|" << frameProperties.Origin[1]<< "|" << frameProperties.Origin[2]<< endl
                     << "         | Copied Pixels: "<< counter << " | Copy time: " << this->GetUpTime() - copyStart <<endl
                     << "         | Index: " << index << " | "  <<endl;
   #endif
@@ -663,7 +665,7 @@ int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix
     }
 
   //Create and fill new send data object
-  struct DataStruct newSendData;
+  struct SenderDataStruct newSendData;
 
   newSendData.ImageData = imageData;
   newSendData.Matrix = matrix;
