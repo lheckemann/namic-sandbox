@@ -592,24 +592,29 @@ int vtk3DPanoramicVolumeReconstructor::RequestInformation(
     if (this->GetVideoSource())
       {
       if (this->GetSlice() == 0)
-  {
-  this->SetSlice( this->GetVideoSource()->GetOutput());
-  //this->Slice->Register(this);
-  }
+        {
+        this->SetSlice( this->GetVideoSource()->GetOutput());
+        //this->Slice->Register(this);
+        }
       }
   
     if (this->GetSlice())
       {
+      //JG
+      
       this->GetSlice()->UpdateInformation();
       vtkDataObject::
-  SetPointDataActiveScalarInfo(outInfo,
+      SetPointDataActiveScalarInfo(outInfo,
              this->GetSlice()->GetScalarType(),
              this->GetSlice()->
              GetNumberOfScalarComponents()+1);
-      
       output->SetScalarType(this->GetSlice()->GetScalarType());
+//      output->SetNumberOfScalarComponents(this->GetSlice()->
+//            GetNumberOfScalarComponents()+1);
+      //JG 2009/Feb/14
+//      cout << "Request Information: Scalar Components are set to "<< this->GetSlice()->GetNumberOfScalarComponents() << endl;
       output->SetNumberOfScalarComponents(this->GetSlice()->
-            GetNumberOfScalarComponents()+1);
+            GetNumberOfScalarComponents());
       outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),
        this->OutputExtent, 6);
       outInfo->Set(vtkDataObject::SPACING(),
@@ -623,40 +628,40 @@ int vtk3DPanoramicVolumeReconstructor::RequestInformation(
  
       // check to see if output has changed
       if (this->OldScalarType != output->GetScalarType() ||
-    this->OldNComponents != output->GetNumberOfScalarComponents() ||
-    this->OldOutputExtent[0] != this->OutputExtent[0] ||
-    this->OldOutputExtent[1] != this->OutputExtent[1] ||
-    this->OldOutputExtent[2] != this->OutputExtent[2] ||
-    this->OldOutputExtent[3] != this->OutputExtent[3] ||
-    this->OldOutputExtent[4] != this->OutputExtent[4] ||
-    this->OldOutputExtent[5] != this->OutputExtent[5] ||
-    this->OldOutputSpacing[0] != this->OutputSpacing[0] ||
-    this->OldOutputSpacing[1] != this->OutputSpacing[1] ||
-    this->OldOutputSpacing[2] != this->OutputSpacing[2] ||
-    this->OldOutputOrigin[0] != this->OutputOrigin[0] ||
-    this->OldOutputOrigin[1] != this->OutputOrigin[1] ||
-    this->OldOutputOrigin[2] != this->OutputOrigin[2])
-  {
-  this->NeedsClear = 1;
-  }
+          this->OldNComponents != output->GetNumberOfScalarComponents() ||
+          this->OldOutputExtent[0] != this->OutputExtent[0] ||
+          this->OldOutputExtent[1] != this->OutputExtent[1] ||
+          this->OldOutputExtent[2] != this->OutputExtent[2] ||
+          this->OldOutputExtent[3] != this->OutputExtent[3] ||
+          this->OldOutputExtent[4] != this->OutputExtent[4] ||
+          this->OldOutputExtent[5] != this->OutputExtent[5] ||
+          this->OldOutputSpacing[0] != this->OutputSpacing[0] ||
+          this->OldOutputSpacing[1] != this->OutputSpacing[1] ||
+          this->OldOutputSpacing[2] != this->OutputSpacing[2] ||
+          this->OldOutputOrigin[0] != this->OutputOrigin[0] ||
+          this->OldOutputOrigin[1] != this->OutputOrigin[1] ||
+          this->OldOutputOrigin[2] != this->OutputOrigin[2])
+        {
+        this->NeedsClear = 1;
+        }
 
       if (this->Compounding)
-  {
-  int *extent = this->AccumulationBuffer->GetExtent();
-  this->AccumulationBuffer->SetScalarType(VTK_UNSIGNED_SHORT);
-  this->AccumulationBuffer->SetWholeExtent(this->OutputExtent);
-  this->AccumulationBuffer->SetSpacing(this->OutputSpacing);
-  this->AccumulationBuffer->SetOrigin(this->OutputOrigin);
-  if (extent[0] != this->OutputExtent[0] ||
-      extent[1] != this->OutputExtent[1] ||
-      extent[2] != this->OutputExtent[2] ||
-      extent[3] != this->OutputExtent[3] ||
-      extent[4] != this->OutputExtent[4] ||
-      extent[5] != this->OutputExtent[5])
-    {
-    this->NeedsClear = 1;
-    }
-  }
+        {
+        int *extent = this->AccumulationBuffer->GetExtent();
+        this->AccumulationBuffer->SetScalarType(VTK_UNSIGNED_SHORT);
+        this->AccumulationBuffer->SetWholeExtent(this->OutputExtent);
+        this->AccumulationBuffer->SetSpacing(this->OutputSpacing);
+        this->AccumulationBuffer->SetOrigin(this->OutputOrigin);
+        if (extent[0] != this->OutputExtent[0] ||
+            extent[1] != this->OutputExtent[1] ||
+            extent[2] != this->OutputExtent[2] ||
+            extent[3] != this->OutputExtent[3] ||
+            extent[4] != this->OutputExtent[4] ||
+            extent[5] != this->OutputExtent[5])
+          {
+          this->NeedsClear = 1;
+          }
+        }
 
       output->GetExtent(this->OldOutputExtent);
       output->GetWholeExtent(this->OldOutputExtent);
@@ -1163,8 +1168,8 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         while (i);
         // set accumulation
         *accPtrTmp = 65535;
-        //JG 08/12/10
-        *outPtrTmp = 255;
+        //JG 08/12/10 we use only 1 scalar component
+//        *outPtrTmp = 255;
         a *= 255;
         if (a < F(65535)) // don't allow accumulation buffer overflow
           {
@@ -1215,8 +1220,9 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
             *outPtrTmp++ = *inPtrTmp++;
             }
           while (i);
-          }          
-        *outPtrTmp = 255;
+          }
+        //JG 09/Feb/14 we use only 1 scalar component
+        //*outPtrTmp = 255;
         }
       while (j);
       }
@@ -1921,9 +1927,9 @@ void vtk3DPanoramicVolumeReconstructor::InternalClearOutput()
   int numScalars = outData->GetNumberOfScalarComponents();
   outData->SetExtent(outExtent);
   outData->AllocateScalars();
-  cout << "================================" << endl
-       << "InternalClearOutput" << endl
-       << "Extent: "<< outExtent[0]<<"-"<<outExtent[1]<<" | "<<outExtent[2]<<"-"<<outExtent[3]<<" | "<<outExtent[4]<<"- "<<outExtent[5]<<endl;
+//  cout << "================================" << endl
+//       << "InternalClearOutput" << endl
+//       << "Extent: "<< outExtent[0]<<"-"<<outExtent[1]<<" | "<<outExtent[2]<<"-"<<outExtent[3]<<" | "<<outExtent[4]<<"- "<<outExtent[5]<<endl;
   
   
   void *outPtr = outData->GetScalarPointerForExtent(outExtent);
