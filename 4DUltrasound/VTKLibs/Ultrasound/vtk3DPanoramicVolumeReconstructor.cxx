@@ -1164,7 +1164,7 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
         // set accumulation
         *accPtrTmp = 65535;
         //JG 08/12/10
-        //*outPtrTmp = 255;
+        *outPtrTmp = 255;
         a *= 255;
         if (a < F(65535)) // don't allow accumulation buffer overflow
           {
@@ -1919,15 +1919,19 @@ void vtk3DPanoramicVolumeReconstructor::InternalClearOutput()
   this->NeedsClear = 0;
   vtkImageData *outData = this->GetOutput();
   int numScalars = outData->GetNumberOfScalarComponents();
-
   outData->SetExtent(outExtent);
   outData->AllocateScalars();
+  cout << "================================" << endl
+       << "InternalClearOutput" << endl
+       << "Extent: "<< outExtent[0]<<"-"<<outExtent[1]<<" | "<<outExtent[2]<<"-"<<outExtent[3]<<" | "<<outExtent[4]<<"- "<<outExtent[5]<<endl;
+  
+  
   void *outPtr = outData->GetScalarPointerForExtent(outExtent);
   //JG 2009/02/05 Avoid removing output data
-  //memset(outPtr,0,(outExtent[1]-outExtent[0]+1)*
-//     (outExtent[3]-outExtent[2]+1)*
-//     (outExtent[5]-outExtent[4]+1)*
-//     outData->GetScalarSize()*numScalars);
+  memset(outPtr,0,(outExtent[1]-outExtent[0]+1)*
+     (outExtent[3]-outExtent[2]+1)*
+     (outExtent[5]-outExtent[4]+1)*
+     outData->GetScalarSize()*numScalars);
 
 
   if (this->Compounding)
@@ -2730,9 +2734,9 @@ static void vtkOptimizedInsertSlice(vtk3DPanoramicVolumeReconstructor *self,
   
   outData->GetIncrements(vtkIdTypeOutInc); 
   
-outInc[0] = (int) vtkIdTypeOutInc[0];
-outInc[1] = (int) vtkIdTypeOutInc[1];
-outInc[2] = (int) vtkIdTypeOutInc[2];
+  outInc[0] = (int) vtkIdTypeOutInc[0];
+  outInc[1] = (int) vtkIdTypeOutInc[1];
+  outInc[2] = (int) vtkIdTypeOutInc[2];
   
   inData->GetContinuousIncrements(inExt, inIncX, inIncY, inIncZ);
   numscalars = inData->GetNumberOfScalarComponents();
@@ -2989,10 +2993,11 @@ void vtk3DPanoramicVolumeReconstructor::OptimizedInsertSlice()
     // this->GetOutput()->Update();
     this->InternalExecuteInformation();
     }
-  if (this->NeedsClear)
-    {
-    this->InternalClearOutput();
-    }
+  //JG 2009/Feb/14 do output clear manually
+//  if (this->NeedsClear)
+//    {
+//    this->InternalClearOutput();
+//    }
 
   vtkImageData *inData = this->GetSlice();
   vtkImageData *outData = this->GetOutput();
