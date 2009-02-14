@@ -74,7 +74,7 @@ struct FramePoperties {
         float Origin[3];
 };
 
-struct DataStruct{
+struct SenderDataStruct{
   vtkImageData* ImageData;
   vtkMatrix4x4* Matrix;
   int SenderLock;
@@ -163,7 +163,7 @@ protected:
   int sendDataBufferSize; //Maximum amount of items that can be stored at the same time
   int sendDataBufferIndex; //Object which is currently/ was last processed
 
-  std::map<int, struct DataStruct> sendDataBuffer;
+  std::map<int, struct SenderDataStruct> sendDataBuffer;
 
   int AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix4x4* matrix);
   bool IsIndexAvailable(int index);

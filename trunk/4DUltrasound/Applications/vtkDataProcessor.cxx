@@ -106,6 +106,7 @@ vtkDataProcessor::vtkDataProcessor()
   this->Processing = false;
   this->ProcessPeriod = 1 /(30 * 1.5);
   this->UltraSoundTrackingEnabled = false;
+  this->MaximumVolumeSize = -1;
 
   this->newDataBufferSize = 20;
   this->newDataBufferIndex = -1;
@@ -346,7 +347,8 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
           else
             {
             #ifdef  DEBUGPROCESSOR
-              self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+//              self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+              cout <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
             #endif
               self->ResetOldVolume(lastDataSenderIndex);
               self->EnableVolumeReconstruction(false);
@@ -356,6 +358,8 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
         else
           {
           lastDataSenderIndex = -2;
+          self->EnableVolumeReconstruction(false);
+          self->EnableVolumeReconstruction(true);
           }
         self->DeleteData(currentIndex);
         }
@@ -571,8 +575,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     this->LogStream << this->GetUpTime()  << " |P-INFO: Check and update a volume" <<endl;
     this->LogStream <<  "         |P-INFO: Update Matrix" <<endl;
     newTrackerMatrix->Print(this->LogStream );
-//    this->LogStream << "         | Frame Extent: "<< newFrame->GetExtent()[0]<< ":"<< newFrame->GetExtent()[1]<< " | "<< newFrame->GetExtent()[2]<< ":"<< newFrame->GetExtent()[3]<< " | "<< newFrame->GetExtent()[4]<< ":"<< newFrame->GetExtent()[5]<< endl
-//                    << "         | Frame Origin: " << newFrame->GetOrigin()[0]<< "| " << newFrame->GetOrigin()[1]<< "|" << newFrame->GetOrigin()[2] << endl;
   #endif
 
   double imCorners[4][4]= {
@@ -625,7 +627,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
   #endif
 
   //Catch buggy tracking matrizes
-  if(abs(newExtent[1]) * abs(newExtent[3]) * abs(newExtent[4]) < this->clipRectangle[1] * this->clipRectangle[2] * this->clipRectangle[1])
+  if(abs(newExtent[1]) * abs(newExtent[3]) * abs(newExtent[5]) < this->GetMaximumVolumeSize())
     {
     //Check if new extent larger than old extent or if origin changed------------
     vtkFloatingPointType oldOrigin[3];
@@ -670,69 +672,85 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
       #endif
       }
   
-    if(dataSenderIndex == -2 || originChanged || extentChanged)
+    double volumeSize =   (newExtent[1] - newExtent[0] + 1)
+                        * (newExtent[3] - newExtent[2] + 1)
+                        * (newExtent[5] - newExtent[4] + 1);
+    
+    //Check Size of new volume
+    if(volumeSize < this->GetMaximumVolumeSize())
       {
-  
-      #ifdef  DEBUGPROCESSOR
-        if(dataSenderIndex == -2)
-          {
-          this->LogStream << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
-          }
-        else
-          {
-          this->LogStream << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
-          }
-        #endif
-      //Create new volume-------------------------------------------------------
-  
-      this->reconstructor->SetOutputExtent(newExtent);
-      this->reconstructor->SetOutputSpacing(spacing);
-      this->reconstructor->SetOutputOrigin(newOrigin);
-  
-      this->reconstructor->SetSlice(newFrame);
-      this->reconstructor->GetOutput()->Update();
-  
-      this->reconstructor->SetSliceAxes(newTrackerMatrix);    
-      //Set the correct amount of the output volume's scalar components
-      this->reconstructor->GetOutput()->SetNumberOfScalarComponents(newFrame->GetNumberOfScalarComponents());
-      this->reconstructor->GetOutput()->AllocateScalars();
-  
-  #ifdef MERGE
-      if(originChanged || extentChanged)
-  #else
-      if(false)
-  #endif
+    
+      if(dataSenderIndex == -2 || originChanged || extentChanged)
         {
+    
         #ifdef  DEBUGPROCESSOR
-          this->LogStream << this->GetUpTime()  << " |P-INFO: Expand volume | DataSenderIndex: "<< dataSenderIndex << endl;
-        #endif
-  
-        do{}
-        while(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR));
-        
-        //Copy Old Volume at correct position into new volume
-        if(this->oldVolume == NULL)
-          {
-          #ifdef  ERRORPROCESSOR
-            this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
+          if(dataSenderIndex == -2)
+            {
+            this->LogStream << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
+            }
+          else
+            {
+            this->LogStream << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
+            }
           #endif
-          retVal = -1;
-          }
-        else if(this->MergeVolumes(reconstructor->GetOutput(),newOrigin,newExtent,
-                                   this->oldVolume, oldOrigin,oldExtent,
-                                   this->reconstructor->GetOutput()->GetNumberOfScalarComponents())
-                == -1)
+        //Create new volume-------------------------------------------------------
+    
+        this->reconstructor->SetOutputExtent(newExtent);
+        this->reconstructor->SetOutputSpacing(spacing);
+        this->reconstructor->SetOutputOrigin(newOrigin);
+    
+        this->reconstructor->SetSlice(newFrame);
+        this->reconstructor->GetOutput()->Update();
+    
+        this->reconstructor->SetSliceAxes(newTrackerMatrix);    
+        //Set the correct amount of the output volume's scalar components
+        this->reconstructor->GetOutput()->SetNumberOfScalarComponents(newFrame->GetNumberOfScalarComponents());
+        this->reconstructor->GetOutput()->AllocateScalars();
+    
+    #ifdef MERGE
+        if(originChanged || extentChanged)
+    #else
+        if(false)
+    #endif
           {
-          #ifdef  ERRORPROCESSOR
-            this->LogStream << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
+          #ifdef  DEBUGPROCESSOR
+            this->LogStream << this->GetUpTime()  << " |P-INFO: Expand volume | DataSenderIndex: "<< dataSenderIndex << endl;
           #endif
-          retVal = -1;
+    
+          do{}
+          while(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR));
+          
+          //Copy Old Volume at correct position into new volume
+          if(this->oldVolume == NULL)
+            {
+            #ifdef  ERRORPROCESSOR
+              this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
+            #endif
+            retVal = -1;
+            }
+          else if(this->MergeVolumes(reconstructor->GetOutput(),newOrigin,newExtent,
+                                     this->oldVolume, oldOrigin,oldExtent,
+                                     this->reconstructor->GetOutput()->GetNumberOfScalarComponents())
+                  == -1)
+            {
+            #ifdef  ERRORPROCESSOR
+              this->LogStream << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
+            #endif
+            retVal = -1;
+            }
+          this->DataSender->ReleaseLock(DATAPROCESSOR);
           }
-        this->DataSender->ReleaseLock(DATAPROCESSOR);
         }
+      }// Check size of new volume
+    else
+      {
+      #ifdef  ERRORPROCESSOR
+        this->LogStream << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big" << endl;
+      #endif
+      retVal = -1;
       }
     }
-  else
+  else //Check volume size of new frame
     {
     #ifdef  ERRORPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-ERROR: Tracker provided unusable Matrix" << endl;
@@ -902,9 +920,17 @@ int vtkDataProcessor::ForwardData()
   vtkMatrix4x4 * matrix = vtkMatrix4x4::New();
   this->GetVolumeMatrix(matrix);
   
-  matrix->Element[0][3] += reconstructedVolume->GetOrigin()[1] + reconstructedVolume->GetDimensions()[1] / 2;
-  matrix->Element[1][3] += reconstructedVolume->GetOrigin()[2] + reconstructedVolume->GetDimensions()[2] / 2;
-  matrix->Element[2][3] += reconstructedVolume->GetOrigin()[0] + reconstructedVolume->GetDimensions()[0] / 2;
+  double xLength = (reconstructedVolume->GetDimensions()[0] - 1) / 2;
+  double yLength = (reconstructedVolume->GetDimensions()[1] - 1) / 2;
+  double zLength = (reconstructedVolume->GetDimensions()[2] - 1) / 2;
+  
+  double xOpenIGTLinkOffset = matrix->Element[0][0] * xLength + matrix->Element[0][1] * yLength + matrix->Element[0][2] * zLength;
+  double yOpenIGTLinkOffset = matrix->Element[1][0] * xLength + matrix->Element[1][1] * yLength + matrix->Element[1][2] * zLength;
+  double zOpenIGTLinkOffset = matrix->Element[2][0] * xLength + matrix->Element[2][1] * yLength + matrix->Element[2][2] * zLength;
+  
+  matrix->Element[0][3] = reconstructedVolume->GetOrigin()[0] + xOpenIGTLinkOffset;
+  matrix->Element[1][3] = reconstructedVolume->GetOrigin()[1] + yOpenIGTLinkOffset;
+  matrix->Element[2][3] = reconstructedVolume->GetOrigin()[2] + zOpenIGTLinkOffset;
 
   //Forward data to sender
   int retval = this->DataSender->NewData(volumeToForward, matrix);
@@ -1114,9 +1140,9 @@ void vtkDataProcessor::GetVolumeMatrix(vtkMatrix4x4* matrix)
     //  1  0  0  0
     //  0  0  0  1
 
-    matrix->Element[0][0] =   0.0;  matrix->Element[0][1] =  0.0;  matrix->Element[0][2] =  1.0; matrix->Element[0][3] = 0.0;
-    matrix->Element[1][0] =   1.0;  matrix->Element[1][1] =  0.0;  matrix->Element[1][2] =  0.0; matrix->Element[1][3] = 0.0;
-    matrix->Element[2][0] =   0.0;  matrix->Element[2][1] =  1.0;  matrix->Element[2][2] =  0.0; matrix->Element[2][3] = 0.0;
+    matrix->Element[0][0] =   1.0;  matrix->Element[0][1] =  0.0;  matrix->Element[0][2] =  0.0; matrix->Element[0][3] = 0.0;
+    matrix->Element[1][0] =   0.0;  matrix->Element[1][1] =  1.0;  matrix->Element[1][2] =  0.0; matrix->Element[1][3] = 0.0;
+    matrix->Element[2][0] =   0.0;  matrix->Element[2][1] =  0.0;  matrix->Element[2][2] =  1.0; matrix->Element[2][3] = 0.0;
     matrix->Element[3][0] =   0.0;  matrix->Element[3][1] =  0.0;  matrix->Element[3][2] =  0.0; matrix->Element[3][3] = 1.0;
     
     }
@@ -1531,4 +1557,45 @@ void vtkDataProcessor::DuplicateImage(vtkImageData * original, vtkImageData * du
       inPtr += inIncZ;
       }
     }
+}
+
+/******************************************************************************
+ * double vtkDataProcessor::GetMaximumVolumeSize()
+ *
+ * Returns the maximum volume size the system can handle
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:  13.February 2009
+ *
+ *  @Param: struct DataStruct * pDataStruct
+ *  @Param: double* normal
+ * 
+ *  @Return:  Maximum volume size the system can handle
+ *
+ * ****************************************************************************/
+double vtkDataProcessor::GetMaximumVolumeSize()
+{
+  double retVal;
+
+  if(-1 == this->MaximumVolumeSize)
+    {//Nothing was specified
+    double xMin = this->clipRectangle[0], yMin = this->clipRectangle[1],
+           xMax = this->clipRectangle[2], yMax = this->clipRectangle[3];
+    double width = xMax - xMin;
+    double height = yMax - yMin;
+    double depth = height;
+    
+    
+    retVal = width * height * depth;
+    }
+  else
+    {
+    retVal = this->MaximumVolumeSize;
+    }
+  
+    #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Maximum Volume Size is "<< retVal << endl;
+    #endif
+  
+  return retVal;
 }

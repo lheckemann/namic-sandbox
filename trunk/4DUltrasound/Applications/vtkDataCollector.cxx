@@ -48,7 +48,6 @@ POSSIBILITY OF SUCH DAMAGE.
 //#define REMOVE_ALPHA_CHANNEL
 //#define DEBUG_IMAGES //Write tagger output to HDD
 #define DEBUG_MATRICES //Prints tagger matrices to stdout
-#define NEWCOLLECTOR
 
 //#include <windows.h>
 
@@ -102,6 +101,7 @@ vtkDataCollector::vtkDataCollector()
   this->ScanDepth = 70; //Unit: mm
 
   this->FrameBufferSize = 100;
+  this->MaximumVolumeSize = -1;
 
   this->CalibrationFileName = NULL;
   this->calibReader = vtkUltrasoundCalibFileReader::New();
@@ -138,6 +138,8 @@ vtkDataCollector::vtkDataCollector()
 
   this->StartUpTime = vtkTimerLog::GetUniversalTime();
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
+  
+  this->TrackerOffset = 30; //mm
 
 }
 
@@ -146,11 +148,7 @@ vtkDataCollector::~vtkDataCollector()
 {
   this->StopCollecting();
   
-  if(this->TrackerDeviceEnabled)
-    {
-//    this->NDItracker->Delete();
-    }
-  else
+  if(!this->TrackerDeviceEnabled)
     {
     this->trackerSimulator->Delete();
     }
@@ -188,6 +186,7 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     {
     this->calibReader->SetFileName(this->CalibrationFileName);
     this->calibReader->ReadCalibFile();
+    this->calibReader->GetClipRectangle(this->clipRectangle);
     }
   else
     {
@@ -350,8 +349,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
 
   do
     {
-    //JG 09/01/21
-    //this->LogStream << "New frame to process" <<endl;
+    //Check if data processor still works---------------------------------------
     if(!self->GetDataProcessor()->GetProcessing())
       {
       #ifdef DEBUGCOLLECTOR
@@ -364,64 +362,57 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
            << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<< endl;
       }
     else
-      {
+      {//Check if data buffer of data processor already is full-----------------
       if(!self->GetDataProcessor()->IsNewDataBufferFull())
         {
+        struct DataStruct dataStruct;
+        struct DataStruct * pDataStruct = &dataStruct;
         
+        pDataStruct->TimeStamp = self->GetUpTime();
         
-        //Grab new frame
+        //Grab new frame--------------------------------------------------------
         self->GetVideoSource()->Grab();
-  
-        //Get Tracking Matrix for new frame
-        vtkMatrix4x4 *trackerMatrix = vtkMatrix4x4::New();
+        
+        //Get Tracking Matrix for new frame-------------------------------------
+        pDataStruct->Matrix = vtkMatrix4x4::New();
         self->GetTagger()->Update();
-        trackerMatrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
+        pDataStruct->Matrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
   
+        //Set Spacing of new frame----------------------------------------------
+        self->GetTagger()->GetOutput()->GetSpacing(pDataStruct->Spacing);
+        
         #ifdef DEBUG_MATRICES
         self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
-        trackerMatrix->Print(self->GetLogStream());
+        pDataStruct->Matrix->Print(self->GetLogStream());
+        self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix im Tagger:" << endl;
+        self->GetTagger()->GetTransform()->GetMatrix()->Print(self->GetLogStream());
         #endif
         
-        
-          if(self->IsTrackerDeviceEnabled())
-            {
-            if(self->IsIdentityMatrix(trackerMatrix))
-              {
-              skip = true;
-              }
-            else
-              {
-              self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
-              }
+        //Data Processing and error checking------------------------------------
+        if(self->IsTrackerDeviceEnabled())
+          {
+          if(-1 == self->ProcessMatrix(pDataStruct))
+            {//Tracker matrix is unusable
+            skip = true;
             }
+          }
           
         if(!skip)
           {
-          #ifdef NEWCOLLECTOR
-          vtkImageData* newFrame = vtkImageData::New();
-          self->DuplicateFrame(self->GetTagger()->GetOutput(), newFrame);
-          newFrame->SetNumberOfScalarComponents(1);
-          #endif
+          //Get new frame-------------------------------------------------------
+          pDataStruct->Frame = vtkImageData::New();
+          self->DuplicateFrame(self->GetTagger()->GetOutput(), pDataStruct->Frame);
+          pDataStruct->Frame->SetNumberOfScalarComponents(1);
     
           #ifdef DEBUG_IMAGES
-    
-          #ifdef NEWCOLLECTOR
           writer->SetInput(newFrame);
-          #else
-          writer->SetInput(self->GetTagger()->GetOutput());
-          #endif
-    
           sprintf(filename,"./Output/output%03d.bmp",frame);
           writer->SetFileName(filename);
           writer->Update();
           #endif //DEBUG_IMAGES
     
-          //Send frame + matrix
-          #ifdef NEWCOLLECTOR
-          if(self->GetDataProcessor()->NewData(newFrame, trackerMatrix) == -1)
-          #else
-          if(self->GetDataProcessor()->NewData(self->GetTagger()->GetOutput(), trackerMatrix) == -1)
-          #endif
+          //Send frame + matrix to data sender----------------------------------
+          if(-1 == self->GetDataProcessor()->NewData(pDataStruct->Frame, pDataStruct->Matrix))
             {
             #ifdef DEBUGCOLLECTOR
             self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
@@ -532,68 +523,150 @@ int vtkDataCollector::StopCollecting()
 
 //-------------------------------------------------------------------
 //Adjust tracker matrix to ultrasound scan depth
-void vtkDataCollector::AdjustMatrix(vtkMatrix4x4& matrix)
+int vtkDataCollector::ProcessMatrix(struct DataStruct* pDataStruct)
 {
-//  int Offset[3] = {500, 348, -288}; //x, y, z
-//  
+  if(this->IsMatrixEmpty(pDataStruct->Matrix) || this->IsIdentityMatrix(pDataStruct->Matrix))
+    {
+    #ifdef DEBUGCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-ERROR: Tracker received no data"<< endl;
+    #endif
+    return -1;
+    }
+  
+  #ifdef DEBUGCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix Original Matrix:"<< endl;
+    pDataStruct->Matrix->Print(this->LogStream);
+  #endif
+  
+  //Shift Matrix according to tracker ultrasound probe offset-------------------
+  double normal[3];
+  this->CalculateNormal(pDataStruct, normal);
+  
+  //Transform Matrix to correct coordinate system-------------------------------
   vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
   vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
   
-  oldMatrix->DeepCopy(&matrix);
+  oldMatrix->DeepCopy(pDataStruct->Matrix);
   
-  adjustMatrix->Identity();
-  
+  adjustMatrix->Identity();  
   adjustMatrix->Element[0][0] = 0;
   adjustMatrix->Element[1][1] = 0;
   adjustMatrix->Element[2][2] = 0;
   
-  adjustMatrix->Element[2][0] = -1;
-  adjustMatrix->Element[0][2] = -1;
-  adjustMatrix->Element[1][1] = -1;
+  adjustMatrix->Element[0][0] = 0.93358;
+  adjustMatrix->Element[1][0] = 0.35836;
+  adjustMatrix->Element[0][1] = -0.358368;
+  adjustMatrix->Element[1][1] = 0.933580;
+  adjustMatrix->Element[2][2] = 1;
 
-  //Offset
-//  adjustMatrix->Element[0][3] = Offset[0];
-//  adjustMatrix->Element[1][3] = Offset[1];
-//  adjustMatrix->Element[2][3] = Offset[2];
+  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
+  adjustMatrix->Delete();
+  oldMatrix->Delete();
   
-  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, &matrix);
+  //Shift Frame according to offset
+  pDataStruct->Matrix->Element[0][3] += (normal[0] * this->TrackerOffset);
+  pDataStruct->Matrix->Element[1][3] += (normal[1] * this->TrackerOffset);
+  pDataStruct->Matrix->Element[2][3] += (normal[2] * this->TrackerOffset);
   
-//  oldMatrix->DeepCopy(&matrix);
-//  adjustMatrix->Identity();
+  double xOffset = -1 * this->calibReader->GetImageSize()[0] / 2;
+  double yOffset = -1 * this->calibReader->GetImageSize()[1] / 2 + 10;
+  
+  pDataStruct->Matrix->Element[0][3] += (pDataStruct->Matrix->Element[0][0] * xOffset);
+  pDataStruct->Matrix->Element[1][3] += (pDataStruct->Matrix->Element[1][0] * xOffset);
+  pDataStruct->Matrix->Element[2][3] += (pDataStruct->Matrix->Element[2][0] * xOffset);
+  
+  pDataStruct->Matrix->Element[0][3] += (pDataStruct->Matrix->Element[0][1] * yOffset);
+  pDataStruct->Matrix->Element[1][3] += (pDataStruct->Matrix->Element[1][1] * yOffset);
+  pDataStruct->Matrix->Element[2][3] += (pDataStruct->Matrix->Element[2][1] * yOffset);
+  
+//  adjustMatrix = vtkMatrix4x4::New();
+//  oldMatrix = vtkMatrix4x4::New();
+//  
+//  oldMatrix->DeepCopy(pDataStruct->Matrix);
 //    
+//  adjustMatrix->Identity();  
 //  adjustMatrix->Element[0][0] = 0;
 //  adjustMatrix->Element[1][1] = 0;
 //  adjustMatrix->Element[2][2] = 0;
 //  
-//  adjustMatrix->Element[1][0] = 1;
-//  adjustMatrix->Element[2][1] = 1;
-//  adjustMatrix->Element[0][2] = 1;
+//  adjustMatrix->Element[2][0] = -1;
+//  adjustMatrix->Element[0][2] =  1;
+//  adjustMatrix->Element[1][1] = 1;
 //
-//  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, &matrix);
+//  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
+//  adjustMatrix->Delete();
+//  oldMatrix->Delete();
   
-  //Adjust axis
-  double x = matrix.Element[0][3];
-  double y = matrix.Element[1][3];
-  double z = matrix.Element[2][3];
-  
-  matrix.Element[0][3] = y;
-  matrix.Element[1][3] = z;
-  matrix.Element[2][3] = x;
-  
+  //Adjust axis to correct coordiante system------------------------------------
+//  double xPosition = pDataStruct->Matrix->Element[0][3];
+//  double yPosition = pDataStruct->Matrix->Element[1][3];
+//  double zPosition = pDataStruct->Matrix->Element[2][3];
+//  
+//  pDataStruct->Matrix->Element[0][3] = yPosition;
+//  pDataStruct->Matrix->Element[1][3] = zPosition;
+//  pDataStruct->Matrix->Element[2][3] = xPosition;
+//  
+//  double xOrientation[3];
+//  double yOrientation[3];
+//  double zOrientation[3];
+//  
+//  xOrientation[0] = pDataStruct->Matrix->Element[0][0]; 
+//  xOrientation[1] = pDataStruct->Matrix->Element[1][0]; 
+//  xOrientation[2] = pDataStruct->Matrix->Element[2][0];
+//
+//  yOrientation[0] = pDataStruct->Matrix->Element[0][1]; 
+//  yOrientation[1] = pDataStruct->Matrix->Element[1][1]; 
+//  yOrientation[2] = pDataStruct->Matrix->Element[2][1];
+//  
+//  zOrientation[0] = pDataStruct->Matrix->Element[0][2]; 
+//  zOrientation[1] = pDataStruct->Matrix->Element[1][2]; 
+//  zOrientation[2] = pDataStruct->Matrix->Element[2][2];
+//  
+//  pDataStruct->Matrix->Element[0][0] = yOrientation[0]; 
+//  pDataStruct->Matrix->Element[1][0] = yOrientation[1]; 
+//  pDataStruct->Matrix->Element[2][0] = yOrientation[2];
+//
+//  pDataStruct->Matrix->Element[0][1] = zOrientation[0];
+//  pDataStruct->Matrix->Element[1][1] = zOrientation[1]; 
+//  pDataStruct->Matrix->Element[2][1] = zOrientation[2];
+//  
+//  pDataStruct->Matrix->Element[0][2] = xOrientation[0];
+//  pDataStruct->Matrix->Element[1][2] = xOrientation[1];
+//  pDataStruct->Matrix->Element[2][2] = xOrientation[2];
+    
   
   #ifdef DEBUGCOLLECTOR
-      this->LogStream << this->GetUpTime() << " |C-INFO: Adjust Matrix Oldmatrix * Adjustmatrix = NewMatrix" << endl;
-      oldMatrix->Print(this->LogStream);
-      adjustMatrix->Print(this->LogStream);
-      matrix.Print(this->LogStream);
+      this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix Oldmatrix * Adjustmatrix = NewMatrix" << endl;
+//      oldMatrix->Print(this->LogStream);
+//      adjustMatrix->Print(this->LogStream);
+      pDataStruct->Matrix->Print(this->LogStream);
   #endif
 
+  //Reshape matrix according to ultrasound scan depth---------------------------
   double scaleFactor = 1;//(this->VideoSource->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
 
-  matrix.Element[0][3] = matrix.Element[0][3] * scaleFactor;//x
-  matrix.Element[1][3] = matrix.Element[1][3] * scaleFactor;//y
-  matrix.Element[2][3] = matrix.Element[2][3] * scaleFactor;//z
+  pDataStruct->Matrix->Element[0][3] = pDataStruct->Matrix->Element[0][3] * scaleFactor;//x
+  pDataStruct->Matrix->Element[1][3] = pDataStruct->Matrix->Element[1][3] * scaleFactor;//y
+  pDataStruct->Matrix->Element[2][3] = pDataStruct->Matrix->Element[2][3] * scaleFactor;//z
 
+  if(-1 == this->CalculateVolumeProperties(pDataStruct))
+    {
+    #ifdef DEBUGCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-ERROR: Can not calculate volume properties"<< endl;
+    #endif
+    return -1;
+    }
+  
+  if(pDataStruct->VolumeExtent[1] * pDataStruct->VolumeExtent[3] * pDataStruct->VolumeExtent[5] 
+        > this->GetMaximumVolumeSize())
+    {
+    #ifdef DEBUGCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-ERROR: Volume of new frame is too big"<< endl;
+    #endif
+    return -1;
+    }
+    
+  return 0;
 }
 
 /******************************************************************************
@@ -752,4 +825,254 @@ bool vtkDataCollector::IsIdentityMatrix(vtkMatrix4x4 * matrix)
     {
     return false;
     }
+}
+
+/******************************************************************************
+ * bool vtkDataCollector::IsMatrixEmpty(vtkMatrix4x4 * matrix)
+ *
+ * Check if matrix "matrix" is identity matrix
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:  13.February 2009
+ *
+ *  @Param: vtkMatrix4x4 * matrix
+ * 
+ *  @Return:  true if matrix is empty
+ *            false if not matrix is not empty
+ *
+ * ****************************************************************************/
+bool vtkDataCollector::IsMatrixEmpty(vtkMatrix4x4 * matrix)
+{
+  if(   matrix->Element[0][0] == 0
+     && matrix->Element[0][1] == 0
+     && matrix->Element[0][2] == 0
+     && matrix->Element[0][3] == 0
+  
+     && matrix->Element[1][0] == 0
+     && matrix->Element[1][1] == 0
+     && matrix->Element[1][2] == 0
+     && matrix->Element[1][3] == 0
+  
+     && matrix->Element[2][0] == 0
+     && matrix->Element[2][1] == 0
+     && matrix->Element[2][2] == 0
+     && matrix->Element[2][3] == 0
+  
+     && matrix->Element[3][0] == 0
+     && matrix->Element[3][1] == 0
+     && matrix->Element[3][2] == 0
+     && matrix->Element[3][3] == 0
+     )
+    {
+    return true;
+    }
+  else
+    {
+    return false;
+    }
+}
+
+/******************************************************************************
+ * int vtkDataCollector::CalculateVolumeProperties(struct DataStruct * pDataStruct)
+ *
+ * Calculates the normal of a plane. The plane was parallel to the x and y axis
+ * but is transformed according to given transformation matrix
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:  13.February 2009
+ *
+ *  @Param: struct DataStruct * pDataStruct
+ * 
+ *  @Return:  0 on success
+ *           -1 on failure or if volume is too big
+ *
+ * ****************************************************************************/
+int vtkDataCollector::CalculateVolumeProperties(struct DataStruct * pDataStruct)
+{
+  if(!this->Initialized)
+    {
+    #ifdef ERRORCOLLECTOR
+      this->LogStream << this->GetUpTime() << " |C-ERROR: Cannot calculate volume properties; Data Collector not initialized" << endl;
+    #endif
+    return -1;
+    }
+  
+  double xmin = this->clipRectangle[0], ymin = this->clipRectangle[1],
+         xmax = this->clipRectangle[2], ymax = this->clipRectangle[3];
+
+  double imCorners[4][4]= {
+    { xmin, ymin, 0, 1},
+    { xmin, ymax, 0, 1},
+    { xmax, ymin, 0, 1},
+    { xmax, ymax, 0, 1} };
+  
+  double transformedPt[4];
+  
+  double maxX, maxY, maxZ;
+  maxX = maxY = maxZ = -1 * numeric_limits<double>::max();
+  
+  double minX, minY, minZ;
+  minX = minY = minZ = numeric_limits<double>::max();
+  
+  // Determine dimensions of reconstructed volume
+  for(int j=0; j < 4; j++)
+    {
+    pDataStruct->Matrix->MultiplyPoint(imCorners[j],transformedPt);
+    minX = min(transformedPt[0], minX);
+    minY = min(transformedPt[1], minY);
+    minZ = min(transformedPt[2], minZ);
+    maxX = max(transformedPt[0], maxX);
+    maxY = max(transformedPt[1], maxY);
+    maxZ = max(transformedPt[2], maxZ);
+    }
+  
+  minX = floor(minX);
+  minY = floor(minY);
+  minZ = floor(minZ);
+  
+  maxX = floor(maxX);
+  maxY = floor(maxY);
+  maxZ = floor(maxZ);
+  
+  vtkFloatingPointType newOrigin[3] = {minX, minY, minZ};
+  
+  pDataStruct->Origin[0] = minX;
+  pDataStruct->Origin[1] = minY;
+  pDataStruct->Origin[2] = minZ;
+  
+  int newExtent[6] = { 0, (int)((maxX - minX) / pDataStruct->Spacing[0]),
+                       0, (int)((maxY - minY) / pDataStruct->Spacing[1]),
+                       0, (int)((maxZ - minZ) / pDataStruct->Spacing[2])};
+
+  pDataStruct->VolumeExtent[0] = newExtent[0];
+  pDataStruct->VolumeExtent[1] = newExtent[1];
+  pDataStruct->VolumeExtent[2] = newExtent[2];
+  pDataStruct->VolumeExtent[3] = newExtent[3];
+  pDataStruct->VolumeExtent[4] = newExtent[4];
+  pDataStruct->VolumeExtent[5] = newExtent[5];
+  
+  #ifdef DEBUGCOLLECTOR
+  this->LogStream << this->GetUpTime() << " |P-INFO: Volume Properties of new Frame: Origin: " << pDataStruct->Origin[0]<<"| "<< pDataStruct->Origin[1] <<"| "<<  pDataStruct->Origin[2]<< endl
+                               << "         |        Extent:  "<< pDataStruct->VolumeExtent[0]<<"-"<<pDataStruct->VolumeExtent[1] <<" | "<< pDataStruct->VolumeExtent[2]<<"-"<< pDataStruct->VolumeExtent[3] <<" | "<< pDataStruct->VolumeExtent[4]<<"-"<< pDataStruct->VolumeExtent[5]<<" "<<endl;
+  #endif
+    
+return 0;
+}
+
+/******************************************************************************
+ * int vtkDataCollector::Calculate(struct DataStruct * pDataStruct, double* normal)
+ *
+ * Calculates the normal of a plane. The plane was parallel to the x and y axis
+ * but is transformed according to given transformation matrix
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:  13.February 2009
+ *
+ *  @Param: struct DataStruct * pDataStruct
+ *  @Param: double* normal
+ * 
+ *  @Return:  0 on success
+ *           -1 on failure
+ *
+ * ****************************************************************************/
+int vtkDataCollector::CalculateNormal(struct DataStruct * pDataStruct, double* normal)
+{
+  if(pDataStruct->Matrix == NULL)
+    {
+    #ifdef ERRORCOLLECTOR
+      this->LogStream << this->GetUpTime() << " |C-ERROR: Cannot calculate normal no data provided" << endl;
+    #endif
+    return -1;
+    }
+  
+  double imCorners[4][4]= {
+    { 0, 0, 0, 1},
+    { 0, 1, 0, 1},
+    { 1, 0, 0, 1},
+    { 1, 1, 0, 1} };
+  
+  double transformedPt[4];
+  double minXminY[3], maxXminY[3], minXmaxY[3], maxXmaxY[3];
+  
+  //Calculate 2 vectors within the plane---------------------------------------
+  pDataStruct->Matrix->MultiplyPoint(imCorners[0],transformedPt);
+  minXminY[0] = transformedPt[0];
+  minXminY[1] = transformedPt[1];
+  minXminY[2] = transformedPt[2];
+  
+  pDataStruct->Matrix->MultiplyPoint(imCorners[1],transformedPt);
+  maxXminY[0] = transformedPt[0];
+  maxXminY[1] = transformedPt[1];
+  maxXminY[2] = transformedPt[2];
+
+  pDataStruct->Matrix->MultiplyPoint(imCorners[2],transformedPt);
+  minXmaxY[0] = transformedPt[0];
+  minXmaxY[1] = transformedPt[1];
+  minXmaxY[2] = transformedPt[2];
+  
+  double vector1[3];
+  vector1[0] = minXmaxY[0] - minXminY[0];
+  vector1[1] = minXmaxY[1] - minXminY[1];
+  vector1[2] = minXmaxY[2] - minXminY[2];
+
+  double vector2[3];
+  vector2[0] = maxXminY[0] - minXminY[0];
+  vector2[1] = maxXminY[1] - minXminY[1];
+  vector2[2] = maxXminY[2] - minXminY[2];
+  
+  //Calculate normal------------------------------------------------------------
+  normal[0] = vector1[1] * vector2[2] - vector1[2] * vector2[1];
+  normal[1] = vector1[2] * vector2[0] - vector1[0] * vector2[2];
+  normal[2] = vector1[0] * vector2[1] - vector1[1] * vector2[0];
+  
+  //Normalize-------------------------------------------------------------------
+  double length = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+  normal[0] /= length;
+  normal[1] /= length;
+  normal[2] /= length;
+  
+  #ifdef DEBUGCOLLECTOR
+    this->GetLogStream() << this->GetUpTime() << " |C-INFO: Normal Vector is: "<< normal[0] << "|" << normal[1] << "|" << normal[2] << endl;
+  #endif
+  
+return 0;
+}
+
+/******************************************************************************
+ * double vtkDataCollector::GetMaximumVolumeSize()
+ *
+ * Returns the maximum volume size the system can handle
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:  13.February 2009
+ *
+ *  @Param: struct DataStruct * pDataStruct
+ *  @Param: double* normal
+ * 
+ *  @Return:  Maximum volume size the system can handle
+ *
+ * ****************************************************************************/
+double vtkDataCollector::GetMaximumVolumeSize()
+{
+  double retVal;
+  
+  if(-1 == this->MaximumVolumeSize)
+    {//Nothing was specified
+    double xMin = this->clipRectangle[0], yMin = this->clipRectangle[1],
+           xMax = this->clipRectangle[2], yMax = this->clipRectangle[3];
+    double width = xMax - xMin;
+    double height = yMax - yMin;
+    double depth = height;
+    
+    retVal = width * height * depth;
+    }
+  else
+    {
+    retVal = this->MaximumVolumeSize;
+    }
+  
+  #ifdef DEBUGCOLLECTOR
+    this->GetLogStream() << this->GetUpTime() << " |C-INFO: Maximum volume size: "<< retVal << endl;
+  #endif
+  
 }

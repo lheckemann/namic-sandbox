@@ -343,32 +343,37 @@ void printUsage()
     cout << "OPTIONS " << endl
          << "-------"<<endl
          << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl
-         << "                                        (MANDATORY)"<<endl
+         << "                                        (MANDATORY)"<< endl
          << "--reconstruct-volume or -rv:            Enable volume reconstruction" << endl
+         << "--track-ultrasound or -tu:              Enable ultrasound tracking"<< endl
          << "--track-instrument or -ti:              Enable instrument tracking" << endl
          << "--simulate-instrument or -si:           Simulate instrument"<< endl
-         << "--track-ultrasound or -tu:              Enable ultrasound tracking"<<endl
-         << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<<endl
+         << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<< endl
          << "                                        (default: 'localhost')" << endl
-         << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<<endl
-         << "                                        server (default: 18944)" <<endl
-         << "--frames-per-second xxx or -fps xxx:    Number of frames per second for"<<endl
-         << "                                        the ultrasound data collection"<<endl
+         << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<< endl
+         << "                                        server (default: 18944)" << endl
+         << "--frames-per-second xxx or -fps xxx:    Number of frames per second for"<< endl
+         << "                                        the ultrasound data collection"<< endl
          << "                                        (default: 10)" << endl
-         << "--video-source xxx or -vs xxx:          Set video source "<<endl
-         << "                                        (default: '/dev/video0')" << endl
-         << "--video-source-channel xxx or -vsc xxx: Set video source channel"<<endl
+         << "--video-source xxx or -vs xxx:          Set video source "<< endl
+         << "                                        (default: '/dev/video0')"<< endl
+         << "--video-source-channel xxx or -vsc xxx: Set video source channel"<< endl
          << "                                        (default: 3)" << endl
-         << "--video-mode xxx or -vm xxx:            Set video mode; "<<endl
-         << "                                        Options: NTSC, PAL "<<endl
+         << "--video-mode xxx or -vm xxx:            Set video mode; "<< endl
+         << "                                        Options: NTSC, PAL "<< endl
          << "                                        (default: NTSC)" << endl
-         << "--scan-depth xxx or -sd xxx:            Set depth of ultrasound "<<endl
-         << "                                        scan in Millimeter"<<endl
-         << "                                        (default: 70mm)" <<endl
-         << "--verbose or -v:                        Print more information" <<endl
+         << "--scan-depth xxx or -sd xxx:            Set depth of ultrasound "<< endl
+         << "                                        scan in Millimeter"<< endl
+         << "                                        (default: 70mm)" << endl
+         << "--tracker-offset xxx or -to xxx:        Set offset of tracker to " << endl
+         << "                                        ultrasound probe in Millimeter" << endl
+         << "                                        (default: 35mm)" << endl
+         << "--maximum-volumesize xxx or -maxvs xxx: Maximum volume size (in Byte) " << endl
+         << "                                        the system can handle" << endl
+         << "--verbose or -v:                        Print more information" << endl
          << endl
          << "--------------------------------------------------------------------------------"
-         << endl  << endl;
+         << endl << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -509,6 +514,25 @@ bool parseCommandLineArguments(int argc, char **argv,
               }
             collector->SetScanDepth(scanDepth);
             instrumentTracker->SetUltraSoundScanDepth(scanDepth);
+            }
+          }
+        else if(currentArg == "--tracker-offset" || currentArg == "-to")
+          {
+          collector->SetTrackerOffset(atoi(argv[++i]));
+          }
+        else if(currentArg == "--maximum-volumesize" || currentArg == "-maxvs")
+          {
+          double volumeSize = atoi(argv[++i]);
+          if(volumeSize <= 0)
+            {
+            cout << "ERROR: Specified volume size ( "<< volumeSize <<" ) is too small." << endl
+                 << "       Volume size must be bigger than 0 " << endl;
+            return false;
+            }
+          else
+            {
+            collector->SetMaximumVolumeSize(volumeSize);
+            processor->SetMaximumVolumeSize(volumeSize);
             }
           }
         else if(currentArg == "--verbose" || currentArg == "-v")
