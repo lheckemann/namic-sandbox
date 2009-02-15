@@ -137,8 +137,8 @@ public:
   int EnableTrackerTool();
   bool IsIdentityMatrix(vtkMatrix4x4 * matrix);
   bool IsMatrixEmpty(vtkMatrix4x4 * matrix);
-  int CalculateNormal(struct DataStruct * pDataStruct, double* normal);
-  int CalculateVolumeProperties(struct DataStruct * pDataStruct);
+  int CalculateNormal(struct DataStruct DataStruct, double* normal);
+  int CalculateVolumeProperties(struct DataStruct* pDataStruct);
 
 protected:
   vtkDataCollector();
