@@ -28,7 +28,6 @@ ADD_DEFINITIONS(-DIGTLSTATIC=1)
 #
 # Enable / Disable Hardware Simulators
 #
-OPTION(USE_TRACKER_DEVICE "Use Tracker Device." OFF)
 OPTION(USE_ULTRASOUND_DEVICE "Use Ultrasound Device." OFF)
 
 # 
