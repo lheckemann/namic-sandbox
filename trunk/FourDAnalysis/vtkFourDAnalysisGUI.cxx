@@ -1420,7 +1420,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
 
   this->IntensityPlot->AddHorizontalLine(0.5);
   this->IntensityPlot->SetAxisLineColor(1.0, 1.0, 1.0);
-  this->IntensityPlot->ErrorBarOn();
+  this->IntensityPlot->ErrorBarOff();
   this->IntensityPlot->UpdateGraph();
 
   this->Script("pack %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
