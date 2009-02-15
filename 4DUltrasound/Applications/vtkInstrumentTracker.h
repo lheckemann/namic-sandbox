@@ -94,9 +94,6 @@ public:
   vtkSetMacro(TrackingRate, double);
   vtkGetMacro(TrackingRate, double);
 
-  vtkSetMacro(UltraSoundScanDepth, double);
-  vtkGetMacro(UltraSoundScanDepth, double);
-  
   vtkSetMacro(TrackerTool, vtkTrackerTool*);
   vtkGetMacro(TrackerTool, vtkTrackerTool*);
 
@@ -135,7 +132,6 @@ protected:
 
   double TrackingRate;
   int FrameBufferSize;
-  double UltraSoundScanDepth;
 
   int ServerPort;
   char *OIGTLServer;
