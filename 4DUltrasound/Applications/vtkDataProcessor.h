@@ -104,22 +104,28 @@ public:
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
   
-  int GetBufferSize(){return newDataBuffer.size();}
+  int GetBufferSize(){return dataBufferIndexQueue.size();}
+  
+  vtkGetMacro(Reconstructor, vtk3DPanoramicVolumeReconstructor *);
+  
+  vtkSetMacro(DelayFactor, double);
+  vtkGetMacro(DelayFactor, double);
 
-  int NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix);
+  int NewData(struct DataStruct dataStruct);
   int EnableVolumeReconstruction(bool flag);
   int StartProcessing(vtkDataSender * sender);
   int StopProcessing();
-  bool IsNewDataBufferFull();
-  bool IsNewDataBufferEmpty();
+  bool IsDataBufferFull();
+  bool IsDataBufferEmpty();
   int DeleteData(int index);
-  int GetHeadOfNewDataBuffer();
+  int GetHeadOfDataBuffer();
   int CheckandUpdateVolume(int index, int dataSenderIndex);
   int ReconstructVolume(int index);
-  int ForwardData();
+  int ForwardData(vtkImageData * image);
   double GetUpTime();
   void ResetOldVolume(int dataSenderIndex);
   void DuplicateImage(vtkImageData * original, vtkImageData * duplicate);
+  bool IsDataExpired(int index);
 
 protected:
   vtkDataProcessor();
@@ -135,23 +141,22 @@ protected:
   vtkImageData* oldVolume;
   bool UltraSoundTrackingEnabled;
   double MaximumVolumeSize;
+  double DelayFactor;
 
-  std::queue<int> newDataBuffer; //Stores index of incoming objects
-  int newDataBufferSize; //Maximum amount of items that can be stored at the same time
-  int newDataBufferIndex; //Object which is currently/ was last processed
+  std::queue<int> dataBufferIndexQueue; //Stores index of incoming objects
+  int dataBufferSize; //Maximum amount of items that can be stored at the same time
+  int dataBufferIndex; //Object which is currently/ was last processed
 
-  std::map<int, vtkImageData*> newFrameMap;
-  std::map<int, vtkMatrix4x4*> newTrackerMatrixMap;
+  std::map<int, struct DataStruct> dataBuffer;
 
   vtkDataSender* DataSender;
 
-  int AddFrameToFrameMap(int index, vtkImageData* frame);
-  int AddMatrixToMatrixMap(int index, vtkMatrix4x4* matrix);
+  int AddNewDataToBuffer(int index, struct DataStruct dataStruct);
 
   char *CalibrationFileName;
   vtkUltrasoundCalibFileReader *calibReader;
 
-  vtk3DPanoramicVolumeReconstructor * reconstructor;
+  vtk3DPanoramicVolumeReconstructor * Reconstructor;
 
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;

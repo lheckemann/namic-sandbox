@@ -482,9 +482,9 @@ int vtkDataProcessor::StopProcessing()
     }
   else
     {
-    #ifdef  DEBUGPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-WARNING: Try to stop processor thread although not running" << endl;
-    #endif
+//    #ifdef  DEBUGPROCESSOR
+//      this->LogStream << this->GetUpTime()  << " |P-WARNING: Try to stop processor thread although not running" << endl;
+//    #endif
     return 1;
     }
 
@@ -511,7 +511,8 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
 
     // set up the panoramic reconstruction class
     this->Reconstructor = vtk3DPanoramicVolumeReconstructor::New();
-    this->Reconstructor->CompoundingOn();
+//    this->Reconstructor->CompoundingOn();
+    this->Reconstructor->CompoundingOff();
     this->Reconstructor->SetInterpolationModeToLinear();
 
     this->calibReader->SetFileName(this->CalibrationFileName);
@@ -657,12 +658,10 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         if(dataSenderIndex == -2)
           {
           this->LogStream << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
-          cout << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
           }
         else
           {
           this->LogStream << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
-          cout << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
           }
         #endif
         
@@ -1150,19 +1149,19 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
         {
           pDataNewVolume += spaceBeforeXStart;
           
-//          memcpy(pDataNewVolume, pDataOldVolume, oldRowLength);
-//          pDataOldVolume += oldRowLength;
-//          pDataNewVolume += oldRowLength;
-//          counter += oldRowLength;
+          memcpy(pDataNewVolume, pDataOldVolume, oldRowLength);
+          pDataOldVolume += oldRowLength;
+          pDataNewVolume += oldRowLength;
+          counter += oldRowLength;
           
-          for(x = xStart; x <= xEnd; ++x)
-            {//Copy data from old to new volume
-            buf = *pDataOldVolume;
-            *pDataNewVolume = buf;
-            ++pDataOldVolume;
-            ++pDataNewVolume;
-            ++counter;
-            }
+//          for(x = xStart; x <= xEnd; ++x)
+//            {//Copy data from old to new volume
+//            buf = *pDataOldVolume;
+//            *pDataNewVolume = buf;
+//            ++pDataOldVolume;
+//            ++pDataNewVolume;
+//            ++counter;
+//            }
 
           pDataNewVolume += spaceAfterXEnd;
 
