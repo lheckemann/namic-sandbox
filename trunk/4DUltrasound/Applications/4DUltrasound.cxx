@@ -117,7 +117,6 @@ int main(int argc, char **argv)
     }
   else
     {
-    
     //Log Stream Preparation
     logStream.precision(0);
     logStream.setf(ios::fixed,ios::floatfield);
@@ -512,8 +511,7 @@ bool parseCommandLineArguments(int argc, char **argv,
               cout << "ERROR: Scan Depth must be greater than 0 and not: " << scanDepth << endl;
               return false;
               }
-            collector->SetScanDepth(scanDepth);
-            instrumentTracker->SetUltraSoundScanDepth(scanDepth);
+            collector->SetUltrasoundScanDepth(scanDepth);
             }
           }
         else if(currentArg == "--tracker-offset" || currentArg == "-to")

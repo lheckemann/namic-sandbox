@@ -1084,9 +1084,10 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
                                    int* extentOldVolume,
                                    int ScalarComponents)
 {
-  if(oldVolume == NULL){
+  if(oldVolume == NULL)
+    {
     return -1;
-  }
+    }
 
   int x, y, z;
 
@@ -1139,7 +1140,6 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
   
   try
    {
-    #ifdef NEWMERGE
     //Copy Data
     pDataNewVolume += spaceBeforeZStart;
     for(z = zStart; z <= zEnd; ++z)
@@ -1153,15 +1153,6 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
           pDataOldVolume += oldRowLength;
           pDataNewVolume += oldRowLength;
           counter += oldRowLength;
-          
-//          for(x = xStart; x <= xEnd; ++x)
-//            {//Copy data from old to new volume
-//            buf = *pDataOldVolume;
-//            *pDataNewVolume = buf;
-//            ++pDataOldVolume;
-//            ++pDataNewVolume;
-//            ++counter;
-//            }
 
           pDataNewVolume += spaceAfterXEnd;
 
@@ -1174,33 +1165,6 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
       pDataNewVolume += inIncZ;
       }
 
-    #else //NEWMERGE
-    //Copy old volume into new volume
-    for( z = (int) originNewVolume[2]; z <= zEnd; ++z)
-      {
-      for( y = (int) originNewVolume[1]; y <= originNewVolume[1] + extentNewVolume[3]; ++y)
-        {
-
-        for( x = (int)originNewVolume[0]; x <= originNewVolume[0] + extentNewVolume[1] * ScalarComponents; ++x)
-          {
-          if(   (x >= xStart && x <= xEnd)
-             && (y >= yStart && y <= yEnd)
-             && (z >= zStart && z <= zEnd))
-            {
-            *pDataNewVolume = *pDataOldVolume;
-            ++pDataOldVolume;
-            ++counter;
-            }
-          ++pDataNewVolume;
-          }
-        pDataNewVolume += outIncY;
-        pDataOldVolume += inIncY;
-        }
-      pDataNewVolume += outIncZ;
-      pDataOldVolume += inIncZ;
-      }
-
-    #endif//NEWMERGE
     }//End try
   catch (...)
     {
@@ -1210,14 +1174,14 @@ int vtkDataProcessor::MergeVolumes(vtkImageData* newVolume,
   if(counter != 0)
     {
     #ifdef DEBUGPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-INFO: Copied " << counter << " Pixel in expanded volume" << " | " << endl;
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Copied " << counter << " Pixel in expanded volume" << endl;
     #endif
     return 0;
     }
   else
     {
     #ifdef ERRORPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-ERROR: No pixels in expanded volume copied"  << " | " << endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: No pixels in expanded volume copied" << endl;
     #endif
     return -1;
     }
@@ -1256,7 +1220,7 @@ int vtkDataProcessor::DeleteData(int index)
   
   this->dataBuffer.erase(index);
   this->dataBufferIndexQueue.pop();
-
+  
   return 0;
 }
 

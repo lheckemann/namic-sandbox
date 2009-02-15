@@ -478,7 +478,10 @@ int vtkDataSender::PrepareImageMessage(int index,
 //    {
     //Get property of frame
     frame->GetDimensions(frameProperties.Size);
-    frame->GetSpacing(frameProperties.Spacing);
+//    frame->GetSpacing(frameProperties.Spacing);
+    frameProperties.Spacing[0] = 1;
+    frameProperties.Spacing[1] = 1;
+    frameProperties.Spacing[2] = 1;
     frameProperties.ScalarType = frame->GetScalarType();
     frameProperties.SubVolumeSize[0] = frameProperties.Size[0];
     frameProperties.SubVolumeSize[1] = frameProperties.Size[1];
@@ -792,7 +795,7 @@ void vtkDataSender::SetLogStream(ofstream &LogStream)
  * ****************************************************************************/
 ofstream& vtkDataSender::GetLogStream()
 {
-        return this->LogStream;
+  return this->LogStream;
 }
 
 /******************************************************************************

@@ -46,7 +46,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 //#define REMOVE_ALPHA_CHANNEL
-//#define DEBUG_IMAGES //Write tagger output to HDD
+#define DEBUG_IMAGES //Write tagger output to HDD
 #define DEBUG_MATRICES //Prints tagger matrices to stdout
 
 //#include <windows.h>
@@ -62,6 +62,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkTimerLog.h"
 #include "vtkMutexLock.h"
 #include "vtkImageData.h"
+#include "vtkImageShrink3D.h"
+#include "vtkOutputPort.h"
 
 #include "vtkObjectFactory.h"
 
@@ -86,8 +88,12 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define FUDGE_FACTOR 1.6
 #define CERTUS_UPDATE_RATE 625
-#define US_IMAGE_FAN_RATIO 0.6 //Amount of ultrasound images's height that
-                               //is used by the ultrasound fan
+
+#define DEFAULT_FPS 30
+#define DEFAULT_VIDEO_DEVICE_NAME /dev/video
+#define DEFAULT_VIDEO_CHANNEL 3 //S-Video at Hauppauge Impact VCB Modell 558
+#define DEFAULT_VIDEO_MODE 1 //NTSC
+#define DEFAULT_ULTRASOUND_SCANDEPTH 70 //mm
 
 using namespace std;
 
@@ -103,8 +109,9 @@ vtkStandardNewMacro(vtkDataCollector);
  * ****************************************************************************/
 vtkDataCollector::vtkDataCollector()
 {
-  this->FrameRate = 30;
-  this->ScanDepth = 70; //Unit: mm
+  this->Verbose = false;
+  this->FrameRate = DEFAULT_FPS;
+  this->UltrasoundScanDepth = DEFAULT_ULTRASOUND_SCANDEPTH; //Unit: mm
 
   this->FrameBufferSize = 100;
   this->MaximumVolumeSize = -1;
@@ -112,15 +119,22 @@ vtkDataCollector::vtkDataCollector()
   this->CalibrationFileName = NULL;
   this->calibReader = vtkUltrasoundCalibFileReader::New();
 
-#ifdef USE_ULTRASOUND_DEVICE
-  char* devicename = "/dev/video";
-  this->SetVideoDevice(devicename);
-  this->SetVideoChannel(3); //S-Video at Hauppauge Impact VCB Modell 558
-  this->SetVideoMode(1); //NTSC
-#endif
+  #ifdef USE_ULTRASOUND_DEVICE
+    char* devicename = "/dev/video";
+    this->SetVideoDevice(devicename);
+    this->SetVideoChannel(DEFAULT_VIDEO_CHANNEL); 
+    this->SetVideoMode(DEFAULT_VIDEO_MODE); //NTSC
+    this->VideoSource = vtkV4L2VideoSource::New();
+  #else
+   this->VideoSource = vtkVideoSourceSimulator::New();
+  #endif //USE_ULTRASOUND_DEVICE
 
-
-  this->Verbose = false;
+//#ifdef USE_ULTRASOUND_DEVICE
+//  char* devicename = "/dev/video";
+//  this->SetVideoDevice(devicename);
+//  this->SetVideoChannel(3); //S-Video at Hauppauge Impact VCB Modell 558
+//  this->SetVideoMode(1); //NTSC
+//#endif
 
 #ifdef USE_ULTRASOUND_DEVICE
   this->VideoSource = vtkV4L2VideoSource::New();
@@ -146,7 +160,12 @@ vtkDataCollector::vtkDataCollector()
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
   
   this->TrackerOffset = 30; //mm
-
+  
+  this->ImageMargin[0] = 0;
+  this->ImageMargin[1] = 0;
+  this->ImageMargin[2] = 0;
+  this->ImageMargin[3] = 0;
+  
 }
 
 /******************************************************************************
@@ -160,7 +179,7 @@ vtkDataCollector::~vtkDataCollector()
 {
   this->StopCollecting();
   
-  if(!this->TrackerDeviceEnabled)
+  if(!this->TrackerDeviceEnabled && this->trackerSimulator != NULL)
     {
     this->trackerSimulator->Delete();
     }
@@ -212,6 +231,7 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     this->calibReader->SetFileName(this->CalibrationFileName);
     this->calibReader->ReadCalibFile();
     this->calibReader->GetClipRectangle(this->clipRectangle);
+    this->calibReader->GetImageMargin(this->ImageMargin);
     }
   else
     {
@@ -231,9 +251,15 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
   this->VideoSource->SetFrameRate(this->FrameRate);
   this->VideoSource->SetFrameBufferSize(this->FrameBufferSize);
 
-  double *imageOrigin = this->calibReader->GetImageOrigin();
+  double imageOrigin[3] = {0 ,0, 0};//Images are not shifted
   this->VideoSource->SetDataOrigin(imageOrigin);
+  
   double *imageSpacing = this->calibReader->GetImageSpacing();
+  if(this->UltrasoundScanDepth != DEFAULT_ULTRASOUND_SCANDEPTH)
+    {//Ultrasoun scan depth was set via commandline
+    imageSpacing[1] = this->UltrasoundScanDepth / this->clipRectangle[3];
+    }
+  
   this->VideoSource->SetDataSpacing(imageSpacing);
 
   int *imSize = this->calibReader->GetImageSize();
@@ -418,13 +444,31 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
             dataStruct.Matrix->Delete();
             }
           }
+        
+        if(!skip && -1 == self->CalculateVolumeProperties(&dataStruct))
+          {
+          #ifdef DEBUGCOLLECTOR
+          self->GetLogStream() << self->GetUpTime() << " |C-ERROR: Can not calculate volume properties"<< endl;
+          #endif
+          skip = true;
+          }
+          
+        if(!skip && dataStruct.VolumeExtent[1] * dataStruct.VolumeExtent[3] * dataStruct.VolumeExtent[5] 
+                    > self->GetMaximumVolumeSize())
+          {
+          #ifdef DEBUGCOLLECTOR
+          self->GetLogStream() << self->GetUpTime() << " |C-ERROR: Volume of new frame is too big"<< endl;
+          #endif
+          skip = true;
+          }
+        
+        
           
         if(!skip)
           {
           //Get new frame-------------------------------------------------------
           dataStruct.Frame = vtkImageData::New();
-          self->DuplicateFrame(self->GetTagger()->GetOutput(), dataStruct.Frame);
-          dataStruct.Frame->SetNumberOfScalarComponents(1);
+          self->ExtractImage(self->GetTagger()->GetOutput(), dataStruct.Frame);
     
           #ifdef DEBUG_IMAGES
           writer->SetInput(dataStruct.Frame);
@@ -592,8 +636,8 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   adjustMatrix->Element[1][1] = 0;
   adjustMatrix->Element[2][2] = 0;
   
-  adjustMatrix->Element[0][0] = 0.93358;
-  adjustMatrix->Element[1][0] = 0.35836;
+  adjustMatrix->Element[0][0] = 0.933580;
+  adjustMatrix->Element[1][0] = 0.358368;
   adjustMatrix->Element[0][1] = -0.358368;
   adjustMatrix->Element[1][1] = 0.933580;
   adjustMatrix->Element[2][2] = 1;
@@ -627,8 +671,8 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
 //  #endif
   
   //Apply Offset----------------------------------------------------------------
-  double xOffset = -1 * this->calibReader->GetImageSize()[0] / 2;
-  double yOffset = -1 * (this->calibReader->GetImageSize()[1] + this->TrackerOffset);
+  double xOffset = -1 * (this->clipRectangle[2] + 1)  / 2;
+  double yOffset = -1 * (this->clipRectangle[3] + 1  + this->TrackerOffset);
   double zOffset = -10;
   
   double xAxis[3] = {pDataStruct->Matrix->Element[0][0], pDataStruct->Matrix->Element[1][0], pDataStruct->Matrix->Element[2][0]};
@@ -663,23 +707,6 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
 //  pDataStruct->Matrix->Element[1][3] = pDataStruct->Matrix->Element[1][3] * scaleFactor;//y
 //  pDataStruct->Matrix->Element[2][3] = pDataStruct->Matrix->Element[2][3] * scaleFactor;//z
 
-  if(-1 == this->CalculateVolumeProperties(pDataStruct))
-    {
-    #ifdef DEBUGCOLLECTOR
-    this->LogStream << this->GetUpTime() << " |C-ERROR: Can not calculate volume properties"<< endl;
-    #endif
-    return -1;
-    }
-  
-  if(pDataStruct->VolumeExtent[1] * pDataStruct->VolumeExtent[3] * pDataStruct->VolumeExtent[5] 
-        > this->GetMaximumVolumeSize())
-    {
-    #ifdef DEBUGCOLLECTOR
-    this->LogStream << this->GetUpTime() << " |C-ERROR: Volume of new frame is too big"<< endl;
-    #endif
-    return -1;
-    }
-    
   return 0;
 }
 
@@ -730,7 +757,7 @@ ofstream& vtkDataCollector::GetLogStream()
 }
 
 /******************************************************************************
- * void vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * duplicate)
+ * void vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * duplicate)
  *
  *  Duplicates Image inData to Image outData
  *
@@ -741,15 +768,108 @@ ofstream& vtkDataCollector::GetLogStream()
  *  @Param: vtkImageData * copy - Copy
  *
  * ****************************************************************************/
-int vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * duplicate)
+int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extract)
 {
-  if(this->DataProcessor != NULL)
+  if( original == NULL || extract == NULL)
     {
-    this->DataProcessor->DuplicateImage(original, duplicate);
+    #ifdef ERRORCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-ERROR: Extract Image called with empty image object(s)"<< endl;
+    #endif
+    return -1;
+    }
+
+  if(original->GetNumberOfScalarComponents() != 1)
+    {
+    #ifdef ERRORCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-ERROR: Original image has more than 1 scalar component: " << original->GetNumberOfScalarComponents()<< endl;
+    #endif
+    return -1;
+    }
+
+  #ifdef DEBUGCOLLECTOR
+    this->LogStream << this->GetUpTime()  << " |C-INFO: Extract Image " << endl;
+  #endif
+    
+  int x, y, z;
+  int ScalarComponents = 1;
+  
+  int topMargin    = this->calibReader->GetImageMargin()[0];
+  int bottomMargin = this->calibReader->GetImageMargin()[1];
+  int leftMargin   = this->calibReader->GetImageMargin()[2];
+  int rightMargin  = this->calibReader->GetImageMargin()[3];
+  
+  int width = (int)(this->clipRectangle[2] - this->clipRectangle[0] + 1);
+  int height = (int)(this->clipRectangle[3] - this->clipRectangle[1] + 1);
+  
+  //Create extracted image
+  extract->SetExtent(0, width -1, 0, height - 1, 0, 0);
+  extract->SetSpacing(original->GetSpacing());
+  extract->SetScalarType(original->GetScalarType());
+  extract->SetOrigin(original->GetOrigin());
+  extract->SetNumberOfScalarComponents(original->GetNumberOfScalarComponents());
+  extract->AllocateScalars(); //Reserve memory
+
+  int counter = 0;
+  vtkIdType inIncX, inIncY, inIncZ;
+  vtkIdType outIncX, outIncY, outIncZ;
+
+  //Calc x, y, z start and end coordinates of old volume in new volume
+  int yStart = topMargin;
+  int yEnd   = original->GetExtent()[3] - bottomMargin;
+
+  
+  // Get increments to march through data
+  original->GetContinuousIncrements(original->GetExtent(), inIncX, inIncY, inIncZ);
+  extract->GetContinuousIncrements(extract->GetExtent(), outIncX, outIncY, outIncZ);
+
+  int rowLength = width * ScalarComponents + outIncY;
+  int oldRowLength = original->GetExtent()[1] - original->GetExtent()[0] + 1;
+
+  int spaceBeforeXStart = leftMargin * ScalarComponents;
+  int spaceAfterXEnd = rightMargin * ScalarComponents;
+
+  int spaceBeforeYStart = (topMargin + outIncY) * oldRowLength;
+
+  //Get Data pointer
+  unsigned char* pDataOriginal = (unsigned char *) original->GetScalarPointer();
+  unsigned char* pDataExtract = (unsigned char *) extract->GetScalarPointer();
+
+  try
+    {
+    //Copy Data
+    pDataOriginal += spaceBeforeYStart;
+    for(y = yStart; y <= yEnd; ++y)
+      {
+      pDataOriginal += spaceBeforeXStart;
+      
+      memcpy(pDataExtract, pDataOriginal, rowLength);
+      pDataExtract += rowLength;
+      pDataOriginal += rowLength;
+      counter += rowLength;
+  
+      pDataOriginal += spaceAfterXEnd;
+  
+      pDataExtract += outIncY;
+      pDataOriginal += inIncY;
+      }
+    }//End try
+  catch (...)
+    {
+    throw;
+    }
+
+  if(counter != 0)
+    {
+    #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |C-INFO: extracted " << counter << " Pixel from original" << endl;
+    #endif
     return 0;
     }
   else
     {
+    #ifdef ERRORPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |C-ERROR: No pixels extracted " << endl;
+    #endif
     return -1;
     }
 }
@@ -910,7 +1030,9 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
     #endif
     return -1;
     }
+    
   
+    
   double xmin = this->clipRectangle[0], ymin = this->clipRectangle[1],
          xmax = this->clipRectangle[2], ymax = this->clipRectangle[3];
 
@@ -954,9 +1076,13 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
   pDataStruct->Origin[1] = minY;
   pDataStruct->Origin[2] = minZ;
   
-  int newExtent[6] = { 0, (int)((maxX - minX) / pDataStruct->Spacing[0]),
-                       0, (int)((maxY - minY) / pDataStruct->Spacing[1]),
-                       0, (int)((maxZ - minZ) / pDataStruct->Spacing[2])};
+//  int newExtent[6] = { 0, (int)((maxX - minX) / pDataStruct->Spacing[0]),
+//                       0, (int)((maxY - minY) / pDataStruct->Spacing[1]),
+//                       0, (int)((maxZ - minZ) / pDataStruct->Spacing[2])};
+  
+  int newExtent[6] = { 0, (int)((maxX - minX)),
+                       0, (int)((maxY - minY)),
+                       0, (int)((maxZ - minZ))};
 
   pDataStruct->VolumeExtent[0] = newExtent[0];
   pDataStruct->VolumeExtent[1] = newExtent[1];

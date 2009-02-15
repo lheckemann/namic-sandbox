@@ -86,7 +86,6 @@ vtkInstrumentTracker::vtkInstrumentTracker()
   this->SetOIGTLServer("localhost");
   this->TrackingRate = 30;
   this->FrameBufferSize = 100;
-  this->UltraSoundScanDepth = 70; //Unit: mm
 
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
@@ -334,7 +333,6 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
       {
       //Get Tracking Matrix for new frame
       self->GetTrackerTool()->GetBuffer()->GetFlagsAndMatrixFromTime(trackerMatrix, vtkTimerLog::GetUniversalTime());
-      self->AdjustMatrix(*trackerMatrix);// Adjust tracker matrix to ultrasound scan depth
   
       //Copy matrix
       igtlMatrix[0][0] = trackerMatrix->Element[0][0];
@@ -518,29 +516,6 @@ int vtkInstrumentTracker::SendMessage(igtl::TransformMessage::Pointer& message)
   return 0;
 }
 
-//----------------------------------------------------------------------------
-//Adjust tracker matrix to ultrasound scan depth
-void vtkInstrumentTracker::AdjustMatrix(vtkMatrix4x4& matrix)
-{
-
-  if(this->Tracking)
-    {
-    double scaleFactor = 1;//(  this->calibReader->GetImageSize()[1]
-                         // / this->UltraSoundScanDepth * US_IMAGE_FAN_RATIO);
-  
-    matrix.Element[0][3] = matrix.Element[0][3];//scaleFactor;//x
-    matrix.Element[1][3] = matrix.Element[1][3];//scaleFactor;//y
-    matrix.Element[2][3] = matrix.Element[2][3];//scaleFactor;//z
-    }
-  else
-    {
-    #ifdef ERROR_INST_TRACKER
-        this->LogStream <<  this->GetUpTime() << " |I-ERROR: Cannot adjust matrix Calibration file not read"<< endl;
-    #endif
-    }
-
-
-}
 /******************************************************************************
  * double vtkInstrumentTracker::GetUpTime()
  *

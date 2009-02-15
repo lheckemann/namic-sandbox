@@ -99,8 +99,8 @@ public:
   vtkGetMacro(FrameRate, double);
 
   //Depth of the Ultrasound scan in Millimeter
-  vtkSetMacro(ScanDepth, double);
-  vtkGetMacro(ScanDepth, double);
+  vtkSetMacro(UltrasoundScanDepth, double);
+  vtkGetMacro(UltrasoundScanDepth, double);
 
   vtkSetMacro(FrameBufferSize, int);
   vtkGetMacro(FrameBufferSize, int);
@@ -132,7 +132,7 @@ public:
   int StopCollecting();
   int ProcessMatrix(struct DataStruct* pDataStruct);
   double GetUpTime();
-  int DuplicateFrame(vtkImageData * original, vtkImageData * duplicate);
+  int ExtractImage(vtkImageData * original, vtkImageData * duplicate);
   bool IsTrackerDeviceEnabled();
   int EnableTrackerTool();
   bool IsIdentityMatrix(vtkMatrix4x4 * matrix);
@@ -160,7 +160,8 @@ protected:
   double TrackerOffset;//Offset of tracker to ultrasound probe; Unit: mm
   double MaximumVolumeSize;
 
-  double ScanDepth;
+  int ImageMargin[4];
+  double UltrasoundScanDepth;
 
   bool TrackerDeviceEnabled;
   vtkTrackerTool *tool;
