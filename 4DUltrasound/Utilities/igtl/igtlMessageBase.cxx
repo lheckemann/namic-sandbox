@@ -119,7 +119,8 @@ int MessageBase::Pack()
 
   h->timestamp = ts;
   h->body_size = GetBodyPackSize();
-  h->crc       = crc64((unsigned char*)m_Body, GetBodyPackSize(), crc);
+  //JG 2009/02/10 disabled for speedup
+  //h->crc       = crc64((unsigned char*)m_Body, GetBodyPackSize(), crc);
 
 
   strncpy(h->name, m_DefaultBodyType.c_str(), 12);
