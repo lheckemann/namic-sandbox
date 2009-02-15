@@ -505,7 +505,7 @@ bool parseCommandLineArguments(int argc, char **argv,
           {
           if( i < argc - 1)
             {
-              double scanDepth  = atof(argv[++i]);
+            double scanDepth  = atof(argv[++i]);
 
             if(scanDepth <= 0)
               {
@@ -534,6 +534,10 @@ bool parseCommandLineArguments(int argc, char **argv,
             collector->SetMaximumVolumeSize(volumeSize);
             processor->SetMaximumVolumeSize(volumeSize);
             }
+          }
+        else if(currentArg == "--delay-factor" || currentArg == "-df")
+          {
+          processor->SetDelayFactor(atof(argv[++i]));
           }
         else if(currentArg == "--verbose" || currentArg == "-v")
           {
