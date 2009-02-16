@@ -199,7 +199,8 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
       mappedIndex.CopyWithRound( tempIndex );
 
       const GradientPixelType gradient = 
-        this->GetGradientMesh()->GetPixel( mappedIndex );
+        this->m_Interpolator->EvaluateDerivative( transformedPoint )
+        
 
       for(unsigned int par=0; par<ParametersDimension; par++)
         {
