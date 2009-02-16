@@ -110,6 +110,8 @@ public:
   
   vtkSetMacro(TrackerOffset, double);
   vtkGetMacro(TrackerOffset, double);
+  
+  vtkGetVector3Macro(ShrinkFactor, int);
 
 #ifdef USE_ULTRASOUND_DEVICE
   vtkGetMacro(VideoSource, vtkV4L2VideoSource *);
@@ -133,6 +135,7 @@ public:
   int ProcessMatrix(struct DataStruct* pDataStruct);
   double GetUpTime();
   int ExtractImage(vtkImageData * original, vtkImageData * duplicate);
+  int DuplicateFrame(vtkImageData * original, vtkImageData * duplicate);
   bool IsTrackerDeviceEnabled();
   int EnableTrackerTool();
   bool IsIdentityMatrix(vtkMatrix4x4 * matrix);
@@ -162,6 +165,7 @@ protected:
 
   int ImageMargin[4];
   double UltrasoundScanDepth;
+  int ShrinkFactor[3];
 
   bool TrackerDeviceEnabled;
   vtkTrackerTool *tool;

@@ -1,9 +1,11 @@
 /*=========================================================================
 
-Module:    $RCSfile: vtkUltrasoundCalibFileReader.cxx,v $
-Author:  Siddharth Vikal, Queens School Of Computing
+Module: $RCSfile: vtkUltrasoundCalibFileReader.cxx,v $
+Author: Siddharth Vikal, Queens School Of Computing
+Author: Jan Gumprecht, Harvard Medical School
 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
+Copyright (c) 2009, Birgham and Women's Hospital
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -18,10 +20,11 @@ are met:
    the documentation and/or other materials provided with the
    distribution.
 
- * Neither the name of Queen's University nor the names of any
+ * Neither the name of Queen's University, Harvard Medical School,
+   Brigham and Women's Hospitla nor the names of any
    contributors may be used to endorse or promote products derived
    from this software without specific prior written permission.
-
+   
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -79,10 +82,23 @@ vtkUltrasoundCalibFileReader::vtkUltrasoundCalibFileReader()
   this->ClipRectangle[1] = 0;
   this->ClipRectangle[2] = 0;
   this->ClipRectangle[3] = 0;
+  
+  this->ImageMargin[0] = 0;
+  this->ImageMargin[1] = 0;
+  this->ImageMargin[2] = 0;
+  this->ImageMargin[3] = 0;
 
   this->HomogeneousMatrix = vtkMatrix4x4::New();
   this->CalibrationMatrix = vtkMatrix4x4::New();
 
+  this->LogStream.ostream::rdbuf(cerr.rdbuf());
+  
+  this->UltrasoundScanDepth = 70;//mm
+  
+  this->ShrinkFactor[0] = 1;
+  this->ShrinkFactor[1] = 1;
+  this->ShrinkFactor[2] = 1;
+  
 }
 
 //----------------------------------------------------------------------------
@@ -115,13 +131,13 @@ int vtkUltrasoundCalibFileReader::OpenCalibFile()
 {
   if(this->FileStream)
     {
-    vtkErrorMacro("File already open.");
+    this->LogStream << "WARNING: Calibration file already open.";
     return 1;
     }
 
   if (!this->FileName)
   {
-    vtkErrorMacro("File name not provided");
+    this->LogStream << "ERROR: Calibration file name not provided";
     return 0;
     }
     
@@ -130,14 +146,14 @@ int vtkUltrasoundCalibFileReader::OpenCalibFile()
   struct stat fs;
   if(stat(this->FileName, &fs) != 0)
     {
-    vtkErrorMacro("Error opening file " << this->FileName);
+    this->LogStream << "ERROR opening calibration file " << this->FileName;
     return 0;
     }
   this->FileStream = new ifstream(this->FileName, ios::in);
   
   if(!this->FileStream || !(*this->FileStream))
     {
-    vtkErrorMacro("Error opening file " << this->FileName);
+    this->LogStream << "ERROR opening calibration file " << this->FileName;
     if(this->FileStream)
       {
       delete this->FileStream;
@@ -176,113 +192,125 @@ void vtkUltrasoundCalibFileReader::Init()
   this->LinesIterator = this->Lines.begin();
 }
 //----------------------------------------------------------------------------
-void vtkUltrasoundCalibFileReader::ReadCalibFile()
+int vtkUltrasoundCalibFileReader::ReadCalibFile()
 {
   if (this->OpenCalibFile() == 0)
     {
   // error opening file
-  return;
+  return -1;
   }
   
   this->Init();
   
   vtkstd::vector<double> numbers;
-  // read the leading comments
+  //Read leading comments-------------------------------------------------------
   this->ReadBlankLines();
   this->ReadComments();
   this->ReadBlankLines();
 
-  // read the date section
-  this->ReadText();
-  this->ReadBlankLines();
+  //Read image setting----------------------------------------------------------
   this->ReadComments();
   this->ReadBlankLines();
-
+  this->ReadComments();
+  
   // read the size of the captured freehand images
-  this->ReadComments();
   numbers.clear();
   this->ReadNumbers(numbers);
   // there should two/three numbers indicating size in x and y, read them into member variable
   if (numbers.size() == 3)
     {
-  this->ImageDimensions = 3;
-  this->ImageSize[0] = int(numbers.at(0));
-  this->ImageSize[1] = int(numbers.at(1));
-  this->ImageSize[2] = int(numbers.at(2));
-  }
+    this->ImageDimensions = 3;
+    this->ImageSize[0] = int(numbers.at(0));
+    this->ImageSize[1] = int(numbers.at(1));
+    this->ImageSize[2] = int(numbers.at(2));
+    }
   else if (numbers.size() == 2)
-  {
-  this->ImageDimensions = 2;
-  this->ImageSize[0] = int(numbers.at(0));
-  this->ImageSize[1] = int(numbers.at(1));
-  this->ImageSize[2] = 0;
-  }
+    {
+    this->ImageDimensions = 2;
+    this->ImageSize[0] = int(numbers.at(0));
+    this->ImageSize[1] = int(numbers.at(1));
+    this->ImageSize[2] = 0;    
+    }
   else
-  {
-    //error
-  }
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read image size" << endl;
+    return -1;
+    }
   this->ReadBlankLines();
-
-  // read the position of the US image frame centre
+  
+  //Read image margins
   this->ReadComments();
   numbers.clear();
   this->ReadNumbers(numbers);
-  // there should two/three numbers indicating origin, read them into member variable
-  if (numbers.size() == 3)
+  // there should two/three numbers indicating size in x and y, read them into member variable
+  if (numbers.size() == 4)
     {
-  this->ImageOrigin[0] = int(numbers.at(0));
-  this->ImageOrigin[1] = int(numbers.at(1));
-  this->ImageOrigin[2] = int(numbers.at(2));;
-  }
-  else if (numbers.size() == 2)
-  {
-  this->ImageOrigin[0] = int(numbers.at(0));
-  this->ImageOrigin[1] = int(numbers.at(1));
-  this->ImageOrigin[2] = 0;  
-  }
+    this->ImageMargin[0] = int(numbers.at(0));
+    this->ImageMargin[1] = int(numbers.at(1));
+    this->ImageMargin[2] = int(numbers.at(2));
+    this->ImageMargin[3] = int(numbers.at(3));
+    }
   else
-  {
-    //error
-  }
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read Image margins" << endl;
+    return -1;
+    }
   this->ReadBlankLines();
-
+  
+  
+  
+  //Read calibration matrices
+  
+  //Read system settings
+  
+  //Read ultrasound setting
+  this->UltrasoundScanDepth = 70;//mm
+  this->ShrinkFactor[1] = (int) (this->ImageSize[1] / this->UltrasoundScanDepth + 0.5); 
+  
+  //Read instrument settings
+  
+  //Read OpenIGTLink settings
+  
   // read the homogeneous transform matrix
-  this->ReadComments();
-  numbers.clear();
-  this->ReadNumbers(numbers);
-  if (numbers.size() == 16)
-    {
-  int vecIndex = 0;
-  for (int i = 0; i < 4; i++)
-    for (int j = 0; j < 4; j++)
-     {
-     this->HomogeneousMatrix->SetElement(i,j,numbers.at(vecIndex++));
-     }
-  // convert from meters to mm
-  this->HomogeneousMatrix->SetElement(0,3, this->HomogeneousMatrix->GetElement(0,3)*1000);
-  this->HomogeneousMatrix->SetElement(1,3, this->HomogeneousMatrix->GetElement(1,3)*1000);
-  this->HomogeneousMatrix->SetElement(2,3, this->HomogeneousMatrix->GetElement(2,3)*1000);
-  this->CalibrationMatrix->DeepCopy(this->HomogeneousMatrix);
-    }
-  else
-    {
-  //error
-    }
+//  this->ReadComments();
+//  numbers.clear();
+//  this->ReadNumbers(numbers);
+//  if (numbers.size() == 16)
+//    {
+//  int vecIndex = 0;
+//  for (int i = 0; i < 4; i++)
+//    for (int j = 0; j < 4; j++)
+//     {
+//     this->HomogeneousMatrix->SetElement(i,j,numbers.at(vecIndex++));
+//     }
+//  // convert from meters to mm
+//  this->HomogeneousMatrix->SetElement(0,3, this->HomogeneousMatrix->GetElement(0,3)*1000);
+//  this->HomogeneousMatrix->SetElement(1,3, this->HomogeneousMatrix->GetElement(1,3)*1000);
+//  this->HomogeneousMatrix->SetElement(2,3, this->HomogeneousMatrix->GetElement(2,3)*1000);
+//  this->CalibrationMatrix->DeepCopy(this->HomogeneousMatrix);
+//    }
+//  else
+//    {
+//  //error
+//    }
   
 #ifdef DO_CALIBRATION_FILE_CALCULATIONS
   // calculate calib matrix, image spacing,   
   Calculate();  
 #else
   //The calculations don't work at the moment 
+  
+  this->ClipRectangle[0] = 0;
+  this->ClipRectangle[1] = 0;
+  this->ClipRectangle[2] = (this->ImageSize[0] - this->ImageMargin[2] - this->ImageMargin[3] -1) / this->ShrinkFactor[0];
+  this->ClipRectangle[3] = (this->ImageSize[1] - this->ImageMargin[0] - this->ImageMargin[1] -1) / this->ShrinkFactor[1];
+  
   this->ImageSpacing[0] = 1.0;
   this->ImageSpacing[1] = 1.0;
   this->ImageSpacing[2] = 1.0;
   
-  this->ClipRectangle[0] = 0 * this->ImageSpacing[0]+this->ImageOrigin[0];
-  this->ClipRectangle[1] = 0 * this->ImageSpacing[1]+this->ImageOrigin[1];
-  this->ClipRectangle[2] = (this->ImageSize[0] -1) * this->ImageSpacing[0] + this->ImageOrigin[0];
-  this->ClipRectangle[3] = (this->ImageSize[1] -1) * this->ImageSpacing[1] + this->ImageOrigin[1];
-
+  //this->LogStream << "Calibration File: ClipRectangle 0 - "<< this->ClipRectangle[2] <<"| 0 - "<< this->ClipRectangle[3]<< endl;
+  
 #endif
    
   // close the file stream
@@ -436,3 +464,34 @@ void vtkUltrasoundCalibFileReader::ReadBlankLines()
     
 }
 
+/******************************************************************************
+ * void vtkUltrasoundCalibFileReader::SetLogStream(ofstream &LogStream)
+ *
+ *  Redirects Logstream
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  15.February 2009
+ *
+ * ****************************************************************************/
+void vtkUltrasoundCalibFileReader::SetLogStream(ofstream &LogStream)
+{
+  this->LogStream.ostream::rdbuf(LogStream.ostream::rdbuf());
+  this->LogStream.precision(6);
+  this->LogStream.setf(ios::fixed,ios::floatfield);
+}
+
+/******************************************************************************
+ * ofstream& vtkUltrasoundCalibFileReader::GetLogStream()
+ *
+ *  Returns logstream
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  15.February 2009
+ *
+ *  @Return: Logstream
+ *
+ * ****************************************************************************/
+ofstream& vtkUltrasoundCalibFileReader::GetLogStream()
+{
+  return this->LogStream;
+}
