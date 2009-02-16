@@ -275,6 +275,8 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   derivative = DerivativeType( ParametersDimension );
   derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
+  typedef typename InterpolatorType::RealType   RealType;
+
   while( pointItr != pointEnd )
     {
     InputPointType  inputPoint;
@@ -302,7 +304,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
         this->m_Transform->GetJacobian( inputPoint ); 
 
       
-      const RealType fixedValue     = ti.Value();
+      const RealType fixedValue     = pointDataItr.Value();
       this->m_NumberOfPixelsCounted++;
 
       const RealType diff = movingValue - fixedValue; 
