@@ -62,7 +62,7 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 template <class TInputMesh, class TCoordRep>
 void
 LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
-::EvaluateDerivative( const PointType& point ) const
+::EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const
 {
 }
 
