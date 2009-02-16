@@ -73,13 +73,11 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     OutputPointType transformedPoint = 
       this->m_Transform->TransformPoint( inputPoint );
 
-    typedef typename InterpolatorType::RealType   RealType;
-
     // FIXME: if( this->m_Interpolator->IsInsideSurface( transformedPoint ) )
       {
-      const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
-      const RealType fixedValue   = pointDataItr.Value();
-      const RealType diff = movingValue - fixedValue; 
+      const RealDataType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
+      const RealDataType fixedValue   = pointDataItr.Value();
+      const RealDataType diff = movingValue - fixedValue; 
       measure += diff * diff; 
       this->m_NumberOfPixelsCounted++;
       }
@@ -173,15 +171,15 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
       {
-      const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
+      const RealDataType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
 
       const TransformJacobianType & jacobian =
         this->m_Transform->GetJacobian( inputPoint ); 
 
       
-      const RealType fixedValue     = ti.Value();
+      const RealDataType fixedValue     = ti.Value();
       this->m_NumberOfPixelsCounted++;
-      const RealType diff = movingValue - fixedValue; 
+      const RealDataType diff = movingValue - fixedValue; 
 
       // Get the gradient by NearestNeighboorInterpolation: 
       // which is equivalent to round up the point components.
@@ -195,13 +193,13 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
       typename MovingMeshType::IndexType mappedIndex; 
       mappedIndex.CopyWithRound( tempIndex );
 
-      GradientPixelType gradient;
+      DerivativeType gradient;
  
       this->m_Interpolator->EvaluateDerivative( transformedPoint, gradient );
 
       for(unsigned int par=0; par<ParametersDimension; par++)
         {
-        RealType sum = NumericTraits< RealType >::Zero;
+        RealDataType sum = NumericTraits< RealDataType >::Zero;
         for(unsigned int dim=0; dim<MeshDimension; dim++)
           {
           sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];
@@ -275,8 +273,6 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   derivative = DerivativeType( ParametersDimension );
   derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
-  typedef typename InterpolatorType::RealType   RealType;
-
   while( pointItr != pointEnd )
     {
     InputPointType  inputPoint;
@@ -298,16 +294,16 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     // FIXME:  if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
       {
-      const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
+      const RealDataType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
 
       const TransformJacobianType & jacobian =
         this->m_Transform->GetJacobian( inputPoint ); 
 
       
-      const RealType fixedValue     = pointDataItr.Value();
+      const RealDataType fixedValue     = pointDataItr.Value();
       this->m_NumberOfPixelsCounted++;
 
-      const RealType diff = movingValue - fixedValue; 
+      const RealDataType diff = movingValue - fixedValue; 
   
       measure += diff * diff;
 
@@ -323,13 +319,13 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
       typename MovingMeshType::IndexType mappedIndex; 
       mappedIndex.CopyWithRound( tempIndex );
 
-      GradientPixelType gradient;
+      DerivativeDataType gradient;
  
       this->m_Interpolator->EvaluateDerivative( transformedPoint, gradient );
 
       for(unsigned int par=0; par<ParametersDimension; par++)
         {
-        RealType sum = NumericTraits< RealType >::Zero;
+        RealDataType sum = NumericTraits< RealDataType >::Zero;
         for(unsigned int dim=0; dim<MeshDimension; dim++)
           {
           sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];

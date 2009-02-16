@@ -73,6 +73,7 @@ public:
   /** RealType typedef support. */
   typedef typename TInputMesh::PixelType                    PixelType;
   typedef typename NumericTraits<PixelType>::RealType       RealType;
+  typedef itk::CovariantVector< RealType, MeshDimension >   DerivativeType;
 
   /** Interpolate the mesh at a point position
    *
