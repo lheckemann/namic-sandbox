@@ -55,6 +55,18 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 }
 
 
+
+/**
+ * Evaluate the mesh at a given point position.
+ */
+template <class TInputMesh, class TCoordRep>
+void
+LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
+::EvaluateDerivative( const PointType& point ) const
+{
+}
+
+
 /**
  * Evaluate the mesh at a given point position.
  */
@@ -94,9 +106,53 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 
   RealType returnValue = ( pixelValueReal1 + pixelValueReal2 + pixelValueReal3 ) / 3.0;
 
+  const InputMeshType * mesh = this->GetInputMesh(); 
+
+  // From meeting with Arnaud
+  //
+  //
+  /*
+   edge1 = mesh->FindEdge( pointId )
+
+  temp = edge1;
+
+  do {
+    // METHOD A
+    temp = temp->GetOnext();
+    cellId = temp->GetLeft();
+    // use method to get pointId from triangular cell
+    //
+    // METHOD B: much faster
+    pointid1 = temp->GetDestination();
+    pointid2 = temp->GetOnext()->GetDestination();
+    }
+  while( temp != edge1 );
+
+  */
+
   return returnValue;
 }
 
+/* FROM meeting with Alex
+void toto()
+{
+  list_of_id_points = PointLocator->FincNclosestPoint( p, n );
+  for( ::iterator it = list_of_id_points.begin();
+{
+   edge = mesh->FindEdge( *it );
+temp = edge;
+   do
+{
+  // std::set to avoid duplicates!
+  list_of_id_points_ring_to_be_tested.push_back( temp->GetDestination() );
+temp = temp->GetOnext();
+} while( temp != edge );
+
+//iterate on list_of_id_points_ring
+}
+}
+
+*/
 
 } // end namespace itk
 
