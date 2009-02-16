@@ -77,6 +77,8 @@ public:
    **/
   virtual OutputType Evaluate( const PointType& point ) const;
 
+  virtual void EvaluateDerivative( const PointType& point ) const;
+
 protected:
   NearestNeighborInterpolateMeshFunction();
   ~NearestNeighborInterpolateMeshFunction();
