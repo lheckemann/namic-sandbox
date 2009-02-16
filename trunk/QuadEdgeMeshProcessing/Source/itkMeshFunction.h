@@ -103,6 +103,10 @@ public:
    * Subclasses must provide this method. */
   virtual TOutput Evaluate( const PointType& point ) const = 0;
 
+  /** Evaluate the derivative of the scalar function at the
+   *  specified point. */
+  virtual void EvaluateDerivative( const PointType& point ) const = 0;
+
 protected:
   MeshFunction();
   ~MeshFunction() {}
