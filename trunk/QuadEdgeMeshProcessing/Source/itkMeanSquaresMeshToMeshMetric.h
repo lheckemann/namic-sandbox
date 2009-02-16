@@ -85,7 +85,12 @@ public:
   typedef typename Superclass::RealDataType             RealDataType;
   typedef typename Superclass::DerivativeDataType       DerivativeDataType;
   
-
+  /** Constants for the pointset dimensions */
+  itkStaticConstMacro(MovingMeshDimension, unsigned int,
+                      Superclass::MovingMeshDimension);
+  itkStaticConstMacro(FixedMeshDimension, unsigned int,
+                      Superclass::FixedMeshDimension);
+ 
   /** Get the derivatives of the match measure. */
   void GetDerivative( const TransformParametersType & parameters,
                       DerivativeType & derivative ) const;
