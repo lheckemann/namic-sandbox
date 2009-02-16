@@ -85,6 +85,10 @@ public:
    **/
   virtual OutputType Evaluate( const PointType& point ) const;
 
+  /** Evaluate the derivative of the scalar function at the
+   *  specified point. */
+  virtual void EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const = 0;
+
   /** Prepare internal data structures of the PointLocator. This method must be
    * called before performing any call to Evaluate. */
   void Initialize();
