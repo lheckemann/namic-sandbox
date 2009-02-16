@@ -240,11 +240,6 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
   itkDebugMacro("GetValueAndDerivative( " << parameters << " ) ");
 
-  if( !this->GetGradientMesh() )
-    {
-    itkExceptionMacro(<<"The gradient image is null, maybe you forgot to call Initialize()");
-    }
-
   FixedMeshConstPointer fixedMesh = this->m_FixedMesh;
 
   if( !fixedMesh ) 

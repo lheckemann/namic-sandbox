@@ -81,6 +81,10 @@ public:
   typedef typename Superclass::PointDataIterator        PointDataIterator;
 
   typedef typename Superclass::InterpolatorType         InterpolatorType;
+ 
+  typedef typename Superclass::RealDataType             RealDataType;
+  typedef typename Superclass::DerivativeDataType       DerivativeDataType;
+  
 
   /** Get the derivatives of the match measure. */
   void GetDerivative( const TransformParametersType & parameters,
