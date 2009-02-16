@@ -116,6 +116,9 @@ public:
   double GetUpTime();
 
   void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
+  
+  vtkSetVector3Macro(SystemOffset, double);
+  vtkGetVector3Macro(SystemOffset, double);
 
 protected:
   vtkInstrumentTracker();
@@ -132,6 +135,7 @@ protected:
 
   double TrackingRate;
   int FrameBufferSize;
+  double SystemOffset[3];
 
   int ServerPort;
   char *OIGTLServer;

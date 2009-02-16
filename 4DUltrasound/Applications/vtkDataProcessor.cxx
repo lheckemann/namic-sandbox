@@ -658,10 +658,12 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         if(dataSenderIndex == -2)
           {
           this->LogStream << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
+          cout << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
           }
         else
           {
           this->LogStream << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
+          cout << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
           }
         #endif
         
@@ -696,6 +698,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
           {
           #ifdef  ERRORPROCESSOR
             this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
+            cout << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
           #endif
           retVal = -1;
           }
@@ -707,6 +710,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
           {
           #ifdef  ERRORPROCESSOR
             this->LogStream << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
+            cout << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
           #endif
           retVal = -1;
           }
@@ -718,6 +722,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     {
     #ifdef  ERRORPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big" << endl;
+      cout << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big" << endl;
     #endif
     retVal = -1;
     }

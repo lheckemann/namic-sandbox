@@ -31,6 +31,7 @@
 #define TIMINGSENDER
 
 //Instrument Tracker
-#define ERROR_INST_TRACKER
-#define DEBUG_INST_TRACKER
-#define TIMING_INST_TRACKER
+//#define ERROR_INST_TRACKER
+//#define DEBUG_INST_TRACKER
+//#define TIMING_INST_TRACKER
+

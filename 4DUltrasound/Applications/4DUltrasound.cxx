@@ -387,24 +387,35 @@ bool parseCommandLineArguments(int argc, char **argv,
 {
     // needs to be supplied
     bool calibrationFileSpecified = false;
+    
+    int i = 1;
+    
+    string firstArg(argv[i]);
+    
+    //Calibration file must be the first argument
+    if( firstArg == "--calibration-file" || firstArg == "-c")
+       {
+       if( i < argc - 1)
+         {
+         collector->SetCalibrationFileName(argv[++i]);
+         processor->SetCalibrationFileName(argv[i]);
+         instrumentTracker->SetCalibrationFileName(argv[i]);
+         calibrationFileSpecified = true;
+         }
+       }
+    else
+      {
+      printUsage();
+      cerr << "ERROR: The first parameter must be the calibration file" << endl;
+      return false;
+      }
 
-    for(int i=1; i < argc; i++)
+    for(i = 3; i < argc; i++)
         {
         string currentArg(argv[i]);
-        //Calibration file
-        
-        if( currentArg == "--calibration-file" || currentArg == "-c")
-          {
-          if( i < argc - 1)
-            {
-            collector->SetCalibrationFileName(argv[++i]);
-            processor->SetCalibrationFileName(argv[i]);
-            instrumentTracker->SetCalibrationFileName(argv[i]);
-            calibrationFileSpecified = true;
-            }
-          }
+       
         //Enable volume reconstruction
-        else if(currentArg == "--reconstruct-volume" || currentArg == "-rv")
+        if(currentArg == "--reconstruct-volume" || currentArg == "-rv")
           {
           processor->EnableVolumeReconstruction(true);
           }
@@ -441,8 +452,17 @@ bool parseCommandLineArguments(int argc, char **argv,
         //OpenIGTLink Server
         else if(currentArg == "--oigtl-server" || currentArg == "-os")
           {
-          sender->SetOIGTLServer(argv[++i]);
-          instrumentTracker->SetOIGTLServer(argv[i]);
+          if( i < argc - 1)
+             {
+             sender->SetOIGTLServer(argv[++i]);
+             instrumentTracker->SetOIGTLServer(argv[i]);
+             }
+          else
+            {
+            printUsage();
+            cout << "ERROR: OpenIGTLink Server not specified" << endl;
+            return false;
+            }
           }
         //OpenIGTLink Port at Server
         else if(currentArg == "--oigtl-port" || currentArg == "-op")
@@ -451,6 +471,12 @@ bool parseCommandLineArguments(int argc, char **argv,
             {
             sender->SetServerPort(atoi(argv[++i]));
             instrumentTracker->SetServerPort(atoi(argv[i]));
+            }
+          else
+            {
+            printUsage();
+            cout << "ERROR: OpenIGTLink Port not specified" << endl;
+            return false;
             }
           }
         // Framerate of Ultrasound device
@@ -469,34 +495,67 @@ bool parseCommandLineArguments(int argc, char **argv,
             processor->SetProcessPeriod(1/(fps * 1.5));
             sender   ->SetSendPeriod(1/(fps * 1.5));
             }
+          else
+            {
+            printUsage();
+            cout << "ERROR: Frames per second not specified" << endl;
+            return false;
+            }
           }
         //Video Source
         else if(currentArg == "--video-source" || currentArg == "-vs")
            {
-           collector->SetVideoDevice(argv[++i]);
+           if( i < argc - 1)
+             {
+             collector->SetVideoDevice(argv[++i]);
+             }
+           else
+             {
+             printUsage();
+             cout << "ERROR: Video source not specified" << endl;
+             return false;
+             }
            }
         //Video Source channel
         else if(currentArg == "--video-source-channel" || currentArg == "-vsc")
            {
-           collector->SetVideoChannel(atoi(argv[++i]));
+           if( i < argc - 1)
+             {
+             collector->SetVideoChannel(atoi(argv[++i]));
+             }
+           else
+             {
+             printUsage();
+             cout << "ERROR: Video source channel not specified" << endl;
+             return false;
+             }
            }
         //Video Mode
         else if(currentArg == "--video-mode" || currentArg == "-vm")
            {
-           string videoMode (argv[++i]);
-
-           if(videoMode == "NTSC")
+           if( i < argc - 1)
              {
-             collector->SetVideoMode(1);
-             }
-           else if(videoMode == "PAL")
-             {
-             collector->SetVideoMode(2);
+             string videoMode (argv[++i]);
+  
+             if(videoMode == "NTSC")
+               {
+               collector->SetVideoMode(1);
+               }
+             else if(videoMode == "PAL")
+               {
+               collector->SetVideoMode(2);
+               }
+             else
+               {
+               cout << "ERROR: False video mode: " << videoMode  << endl
+                    << "       Available video modes: NTSC and PAL" << endl;
+               return false;
+               }
              }
            else
              {
-             cout << "ERROR: False video mode: " << videoMode  << endl
-                  << "       Available video modes: NTSC and PAL" << endl;
+             printUsage();
+             cout << "ERROR: Video mode not specified" << endl;
              return false;
              }
            }
@@ -513,29 +572,63 @@ bool parseCommandLineArguments(int argc, char **argv,
               }
             collector->SetUltrasoundScanDepth(scanDepth);
             }
+          else
+            {
+            printUsage();
+            cout << "ERROR: Scand depth not specified" << endl;
+            return false;
+            }
           }
         else if(currentArg == "--tracker-offset" || currentArg == "-to")
           {
-          collector->SetTrackerOffset(atoi(argv[++i]));
-          }
-        else if(currentArg == "--maximum-volumesize" || currentArg == "-maxvs")
-          {
-          double volumeSize = atoi(argv[++i]);
-          if(volumeSize <= 0)
+          if( i < argc - 1)
             {
-            cout << "ERROR: Specified volume size ( "<< volumeSize <<" ) is too small." << endl
-                 << "       Volume size must be bigger than 0 " << endl;
-            return false;
+            collector->SetTrackerOffset(atoi(argv[++i]));
             }
           else
             {
-            collector->SetMaximumVolumeSize(volumeSize);
-            processor->SetMaximumVolumeSize(volumeSize);
+            printUsage();
+            cout << "ERROR: Tracker offset not specified" << endl;
+            return false;
+            }
+          }
+        else if(currentArg == "--maximum-volumesize" || currentArg == "-maxvs")
+          {
+          if( i < argc - 1)
+            {
+            double volumeSize = atoi(argv[++i]);
+            if(volumeSize <= 0)
+              {
+              printUsage();
+              cout << "ERROR: Specified volume size ( "<< volumeSize <<" ) is too small." << endl
+                   << "       Volume size must be bigger than 0 " << endl;
+              return false;
+              }
+            else
+              {
+              collector->SetMaximumVolumeSize(volumeSize);
+              processor->SetMaximumVolumeSize(volumeSize);
+              }
+            }
+          else
+            {
+            printUsage();
+            cout << "ERROR: Maximum volume size not specified" << endl;
+            return false;
             }
           }
         else if(currentArg == "--delay-factor" || currentArg == "-df")
           {
-          processor->SetDelayFactor(atof(argv[++i]));
+          if( i < argc - 1)
+            {
+            processor->SetDelayFactor(atof(argv[++i]));
+            }
+          else
+            {
+            printUsage();
+            cout << "ERROR: Delay factor size not specified" << endl;
+            return false;
+            }
           }
         else if(currentArg == "--verbose" || currentArg == "-v")
           {

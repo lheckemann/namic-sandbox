@@ -48,6 +48,7 @@ POSSIBILITY OF SUCH DAMAGE.
 //#define REMOVE_ALPHA_CHANNEL
 #define DEBUG_IMAGES //Write tagger output to HDD
 #define DEBUG_MATRICES //Prints tagger matrices to stdout
+#define SHRINK
 
 //#include <windows.h>
 
@@ -165,6 +166,9 @@ vtkDataCollector::vtkDataCollector()
   this->ImageMargin[2] = 0;
   this->ImageMargin[3] = 0;
   
+  this->SystemOffset[0] = 0;
+  this->SystemOffset[1] = 0;
+  this->SystemOffset[2] = 300;
 }
 
 /******************************************************************************
@@ -387,6 +391,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
   int extent[6];
   bool skip = false;
   vtkImageShrink3D* mask = vtkImageShrink3D::New();
+  mask->AveragingOn();
 
 #ifdef DEBUG_IMAGES
   vtkBMPWriter *writer = vtkBMPWriter::New();
@@ -464,11 +469,12 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           {
           //Get new frame-------------------------------------------------------
           dataStruct.Frame = vtkImageData::New();
-          
+
+//          self->DuplicateFrame(self->GetTagger()->GetOutput(), dataStruct.Frame);
           self->ExtractImage(self->GetTagger()->GetOutput(), dataStruct.Frame);
+          #ifdef SHRINK
             
           mask->SetInput(dataStruct.Frame);
-      //            mask->SetInputConnection(self->GetTagger()->GetOutputPort());
           mask->SetShrinkFactors(self->GetShrinkFactor()[0], self->GetShrinkFactor()[1], self->GetShrinkFactor()[2]);
           mask->Update();
           
@@ -476,6 +482,8 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           dataStruct.Frame = vtkImageData::New();
           
           self->DuplicateFrame(mask->GetOutput(), dataStruct.Frame);
+          dataStruct.Frame->SetSpacing(dataStruct.Spacing);
+          #endif
           
           #ifdef DEBUG_IMAGES
           writer->SetInput(dataStruct.Frame);
@@ -703,6 +711,11 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   pDataStruct->Matrix->Element[0][3] += (zAxis[0] * zOffset);
   pDataStruct->Matrix->Element[1][3] += (zAxis[1] * zOffset);
   pDataStruct->Matrix->Element[2][3] += (zAxis[2] * zOffset);
+  
+  //Apply System Offset
+  pDataStruct->Matrix->Element[0][3] += this->SystemOffset[0];
+  pDataStruct->Matrix->Element[1][3] += this->SystemOffset[1];
+  pDataStruct->Matrix->Element[2][3] += this->SystemOffset[2];
   
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
@@ -1101,7 +1114,9 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
   pDataStruct->VolumeExtent[5] = newExtent[5];
   
   #ifdef DEBUGCOLLECTOR
-  this->LogStream << this->GetUpTime() << " |C-INFO: Volume Properties of new Frame: Origin: " << pDataStruct->Origin[0]<<"| "<< pDataStruct->Origin[1] <<"| "<<  pDataStruct->Origin[2]<< endl
+  this->LogStream << this->GetUpTime() << " |C-INFO: Volume Properties of new Frame: " << endl
+                               << "         |        Clip Rectangle: "<< xmin << "-" << xmax << " | " << ymin << "-" << ymax << endl
+                               << "         |        Origin: " << pDataStruct->Origin[0]<<"| "<< pDataStruct->Origin[1] <<"| "<<  pDataStruct->Origin[2]<< endl
                                << "         |        Extent:  "<< pDataStruct->VolumeExtent[0]<<"-"<<pDataStruct->VolumeExtent[1] <<" | "<< pDataStruct->VolumeExtent[2]<<"-"<< pDataStruct->VolumeExtent[3] <<" | "<< pDataStruct->VolumeExtent[4]<<"-"<< pDataStruct->VolumeExtent[5]<<" "<<endl;
   #endif
     
