@@ -62,6 +62,7 @@ public:
   /** InputMeshType typedef support. */
   typedef typename Superclass::InputMeshType        InputMeshType;
   typedef typename InputMeshType::PointIdentifier   PointIdentifier;
+  typedef typename InputMeshType::CellIdentifier    CellIdentifier;
   
   /** Dimension underlying input mesh. */
   itkStaticConstMacro(MeshDimension, unsigned int,

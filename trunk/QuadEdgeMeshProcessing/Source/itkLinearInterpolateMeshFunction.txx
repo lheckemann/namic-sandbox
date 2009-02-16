@@ -83,6 +83,36 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 
   this->Search( point, numberOfNeighbors, result );
 
+  const InputMeshType * mesh = this->GetInputMesh(); 
+
+  typedef typename InputMeshType::QEPrimal    EdgeType;
+
+  PointIdentifier pointId1 = result[0];
+  PointIdentifier pointId2;
+  PointIdentifier pointId3;
+
+  //
+  // Find the edge connected to the closest point.
+  //
+  EdgeType * edge1 = mesh->FindEdge( pointId1 );
+
+  // 
+  // Explore triangles around pointId1
+  //
+  EdgeType * temp1 = edge1->GetOnext();
+
+  while( temp1 != edge1 )
+    {
+    EdgeType * temp2 = temp1->GetOnext();
+    PointIdentifier pointId2 = temp1->GetDestination();
+    PointIdentifier pointId3 = temp2->GetDestination();
+    temp1 = temp2;
+    }
+
+  typedef typename InputMeshType::CellType    CellInterfaceType;
+
+  typedef itk::TriangleCell< CellInterfaceType >  TriangleCellType;
+
   //
   // FIXME: This is missing the search for the cell in which the query point is embedded.
   //        a temporary computation is included here, but doesn't really corresponds to
@@ -91,10 +121,6 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
   PixelType pixelValue2 = itk::NumericTraits< PixelType >::Zero;
   PixelType pixelValue3 = itk::NumericTraits< PixelType >::Zero;
-
-  const PointIdentifier pointId1 = result[0];
-  const PointIdentifier pointId2 = result[1];
-  const PointIdentifier pointId3 = result[2];
 
   this->GetPointData( pointId1, &pixelValue1 ); 
   this->GetPointData( pointId2, &pixelValue2 ); 
@@ -105,30 +131,6 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   RealType pixelValueReal3 = static_cast< RealType >( pixelValue3 );
 
   RealType returnValue = ( pixelValueReal1 + pixelValueReal2 + pixelValueReal3 ) / 3.0;
-
-  const InputMeshType * mesh = this->GetInputMesh(); 
-
-  // From meeting with Arnaud
-  //
-  //
-  /*
-   edge1 = mesh->FindEdge( pointId )
-
-  temp = edge1;
-
-  do {
-    // METHOD A
-    temp = temp->GetOnext();
-    cellId = temp->GetLeft();
-    // use method to get pointId from triangular cell
-    //
-    // METHOD B: much faster
-    pointid1 = temp->GetDestination();
-    pointid2 = temp->GetOnext()->GetDestination();
-    }
-  while( temp != edge1 );
-
-  */
 
   return returnValue;
 }
