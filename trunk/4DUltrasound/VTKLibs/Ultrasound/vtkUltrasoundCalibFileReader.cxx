@@ -265,7 +265,11 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   
   //Read ultrasound setting
   this->UltrasoundScanDepth = 70;//mm
-  this->ShrinkFactor[1] = (int) (this->ImageSize[1] / this->UltrasoundScanDepth + 0.5); 
+  
+  int imageShrinkFactor = 1;
+  this->ShrinkFactor[0] = (int) (this->ImageSize[1] / this->UltrasoundScanDepth  * imageShrinkFactor + 0.5);//X 
+  this->ShrinkFactor[1] = (int) (this->ImageSize[1] / this->UltrasoundScanDepth  * imageShrinkFactor + 0.5);//Y
+  cout << "ShrinkFractor[0]: " << this->ShrinkFactor[1] << endl;
   
   //Read instrument settings
   

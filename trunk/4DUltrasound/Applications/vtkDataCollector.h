@@ -128,6 +128,9 @@ public:
   
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
+  
+  vtkSetVector3Macro(SystemOffset, double);
+  vtkGetVector3Macro(SystemOffset, double);
 
   int Initialize(vtkNDITracker* tracker);
   int StartCollecting(vtkDataProcessor * processor);
@@ -162,6 +165,7 @@ protected:
   int FrameBufferSize;
   double TrackerOffset;//Offset of tracker to ultrasound probe; Unit: mm
   double MaximumVolumeSize;
+  double SystemOffset[3];
 
   int ImageMargin[4];
   double UltrasoundScanDepth;

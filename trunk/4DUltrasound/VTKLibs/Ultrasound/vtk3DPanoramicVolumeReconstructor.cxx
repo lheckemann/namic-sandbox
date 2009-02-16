@@ -1927,8 +1927,8 @@ void vtk3DPanoramicVolumeReconstructor::InternalClearOutput()
   int numScalars = outData->GetNumberOfScalarComponents();
   outData->SetExtent(outExtent);
   outData->AllocateScalars();
-//  cout << "================================" << endl
-//       << "InternalClearOutput" << endl
+  cout << "================================" << endl
+       << "InternalClearOutput" << endl;
 //       << "Extent: "<< outExtent[0]<<"-"<<outExtent[1]<<" | "<<outExtent[2]<<"-"<<outExtent[3]<<" | "<<outExtent[4]<<"- "<<outExtent[5]<<endl;
   
   
