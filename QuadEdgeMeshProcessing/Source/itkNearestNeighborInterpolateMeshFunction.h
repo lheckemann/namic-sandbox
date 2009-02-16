@@ -65,7 +65,8 @@ public:
 
   /** RealType typedef support. */
   typedef typename TInputMesh::PixelType                  PixelType;
-  typedef typename NumericTraits<PixelType>::RealType     RealType;
+  typedef typename Superclass::RealType                   RealType;
+  typedef typename Superclass::DerivativeType             DerivativeType;
 
   /** Interpolate the mesh at a point position
    *
