@@ -62,6 +62,7 @@ public:
   /** Point typedef support. */
   typedef typename Superclass::PointType                  PointType;
   typedef typename Superclass::PointIdentifier            PointIdentifier;
+  typedef typename Superclass::CellIdentifier             CellIdentifier;
 
   /** RealType typedef support. */
   typedef typename TInputMesh::PixelType                  PixelType;
