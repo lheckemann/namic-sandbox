@@ -63,7 +63,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkMutexLock.h"
 #include "vtkImageData.h"
 #include "vtkImageShrink3D.h"
-#include "vtkOutputPort.h"
 
 #include "vtkObjectFactory.h"
 
@@ -232,6 +231,7 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     this->calibReader->ReadCalibFile();
     this->calibReader->GetClipRectangle(this->clipRectangle);
     this->calibReader->GetImageMargin(this->ImageMargin);
+    this->calibReader->GetShrinkFactor(this->ShrinkFactor);
     }
   else
     {
@@ -255,11 +255,6 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
   this->VideoSource->SetDataOrigin(imageOrigin);
   
   double *imageSpacing = this->calibReader->GetImageSpacing();
-  if(this->UltrasoundScanDepth != DEFAULT_ULTRASOUND_SCANDEPTH)
-    {//Ultrasoun scan depth was set via commandline
-    imageSpacing[1] = this->UltrasoundScanDepth / this->clipRectangle[3];
-    }
-  
   this->VideoSource->SetDataSpacing(imageSpacing);
 
   int *imSize = this->calibReader->GetImageSize();
@@ -391,6 +386,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
   int frame = 0;
   int extent[6];
   bool skip = false;
+  vtkImageShrink3D* mask = vtkImageShrink3D::New();
 
 #ifdef DEBUG_IMAGES
   vtkBMPWriter *writer = vtkBMPWriter::New();
@@ -468,8 +464,19 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           {
           //Get new frame-------------------------------------------------------
           dataStruct.Frame = vtkImageData::New();
+          
           self->ExtractImage(self->GetTagger()->GetOutput(), dataStruct.Frame);
-    
+            
+          mask->SetInput(dataStruct.Frame);
+      //            mask->SetInputConnection(self->GetTagger()->GetOutputPort());
+          mask->SetShrinkFactors(self->GetShrinkFactor()[0], self->GetShrinkFactor()[1], self->GetShrinkFactor()[2]);
+          mask->Update();
+          
+          dataStruct.Frame->Delete();
+          dataStruct.Frame = vtkImageData::New();
+          
+          self->DuplicateFrame(mask->GetOutput(), dataStruct.Frame);
+          
           #ifdef DEBUG_IMAGES
           writer->SetInput(dataStruct.Frame);
           sprintf(filename,"./Output/output%03d.bmp",frame);
@@ -501,6 +508,8 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
     }
   while(vtkThreadSleep(data, startTime + frame/rate));
 
+  mask->Delete();
+  
 return NULL;
 }
 
@@ -798,8 +807,8 @@ int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extra
   int leftMargin   = this->calibReader->GetImageMargin()[2];
   int rightMargin  = this->calibReader->GetImageMargin()[3];
   
-  int width = (int)(this->clipRectangle[2] - this->clipRectangle[0] + 1);
-  int height = (int)(this->clipRectangle[3] - this->clipRectangle[1] + 1);
+  int width = (int)(this->calibReader->GetImageSize()[0] - this->calibReader->GetImageMargin()[2] - this->calibReader->GetImageMargin()[3]);
+  int height = (int)(this->calibReader->GetImageSize()[1] - this->calibReader->GetImageMargin()[0] - this->calibReader->GetImageMargin()[1]);
   
   //Create extracted image
   extract->SetExtent(0, width -1, 0, height - 1, 0, 0);
@@ -857,7 +866,7 @@ int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extra
     {
     throw;
     }
-
+  
   if(counter != 0)
     {
     #ifdef DEBUGPROCESSOR
@@ -1212,4 +1221,29 @@ double vtkDataCollector::GetMaximumVolumeSize()
 //    this->GetLogStream() << this->GetUpTime() << " |C-INFO: Maximum volume size: "<< retVal << endl;
 //  #endif
   
+}
+
+/******************************************************************************
+ * void vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * duplicate)
+ *
+ *  Duplicates Image inData to Image outData
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  4.February 2009
+ *
+ *  @Param: vtkImageData * original - Original
+ *  @Param: vtkImageData * copy - Copy
+ *
+ * ****************************************************************************/
+int vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * duplicate)
+{
+  if(this->DataProcessor != NULL)
+    {
+    this->DataProcessor->DuplicateImage(original, duplicate);
+    return 0;
+    }
+  else
+    {
+    return -1;
+    }
 }

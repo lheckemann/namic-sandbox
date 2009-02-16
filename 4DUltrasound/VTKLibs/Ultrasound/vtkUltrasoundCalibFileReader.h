@@ -107,10 +107,14 @@ public:
 
   // Description:
   // Reads file, does file i/o; main function to be called
-  void ReadCalibFile();
+  int ReadCalibFile();
 
- 
-
+  void SetLogStream(ofstream &LogStream);
+  ofstream& GetLogStream();
+  
+  vtkGetVector4Macro(ImageMargin, int);
+  
+  vtkGetVector3Macro(ShrinkFactor, int);
   
 protected:
   vtkUltrasoundCalibFileReader();
@@ -137,6 +141,10 @@ protected:
   double ImageOrigin[3];
   double ClipRectangle[4];
   static const double DefaultClipPixels[4];
+  ofstream LogStream;
+  int ImageMargin[4];
+  double UltrasoundScanDepth;
+  int ShrinkFactor[3];
 
   vtkMatrix4x4 *HomogeneousMatrix;
   vtkMatrix4x4 *CalibrationMatrix;
