@@ -61,7 +61,7 @@ NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
 template <class TInputMesh, class TCoordRep>
 void
 NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
-::EvaluateDerivative( const PointType& point ) const
+::EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const
 {
 }
 
