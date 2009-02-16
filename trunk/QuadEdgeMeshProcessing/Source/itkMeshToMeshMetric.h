@@ -91,6 +91,8 @@ public:
     MovingMeshType,
     CoordinateRepresentationType >                   InterpolatorType;
   typedef typename InterpolatorType::Pointer         InterpolatorPointer;
+  typedef typename InterpolatorType::RealType        RealDataType;
+  typedef typename InterpolatorType::DerivativeType  DerivativeDataType;
 
   /**  Type of the measure. */
   typedef Superclass::MeasureType          MeasureType;
