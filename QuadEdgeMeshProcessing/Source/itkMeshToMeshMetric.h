@@ -21,6 +21,7 @@
 #include "itkSingleValuedCostFunction.h"
 #include "itkInterpolateMeshFunction.h"
 #include "itkExceptionObject.h"
+#include "itkSpatialObject.h"
 
 namespace itk
 {
@@ -100,6 +101,19 @@ public:
   /**  Type of the parameters. */
   typedef Superclass::ParametersType       ParametersType;
 
+  /**  Type for the mask of the fixed image. Only pixels that are "inside"
+       this mask will be considered for the computation of the metric */
+  typedef SpatialObject< itkGetStaticConstMacro(FixedMeshDimension) >
+                                                     FixedMeshMaskType;
+  typedef typename  FixedMeshMaskType::Pointer      FixedMeshMaskPointer;
+
+  /**  Type for the mask of the moving image. Only pixels that are "inside"
+       this mask will be considered for the computation of the metric */
+  typedef SpatialObject< itkGetStaticConstMacro(MovingMeshDimension) >
+                                                     MovingMeshMaskType;
+  typedef typename  MovingMeshMaskType::Pointer     MovingMeshMaskPointer;
+
+
   /** Connect the Fixed Pointset.  */
   itkSetConstObjectMacro( FixedMesh, FixedMeshType );
 
@@ -145,6 +159,9 @@ protected:
 
   mutable TransformPointer      m_Transform;
   InterpolatorPointer           m_Interpolator;
+
+  mutable FixedMeshMaskPointer   m_FixedMeshMask;
+  mutable MovingMeshMaskPointer  m_MovingMeshMask;
 
 private:
   MeshToMeshMetric(const Self&); //purposely not implemented

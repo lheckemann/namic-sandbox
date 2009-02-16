@@ -294,7 +294,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
       continue;
       }
 
-    if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
+    // FIXME:  if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
       {
       const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
 
