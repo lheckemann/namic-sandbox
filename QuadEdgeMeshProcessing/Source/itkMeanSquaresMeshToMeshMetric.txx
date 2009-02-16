@@ -135,9 +135,6 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   typedef  itk::MeshRegionConstIteratorWithIndex<
     FixedMeshType> FixedIteratorType;
 
-  typedef  itk::MeshRegionConstIteratorWithIndex<GradientMeshType> GradientIteratorType;
-
-
   FixedIteratorType ti( fixedMesh, this->GetFixedMeshRegion() );
 
   typename FixedMeshType::IndexType index;
@@ -243,8 +240,6 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
                         MeasureType & value, DerivativeType  & derivative) const
 {
 
-#ifdef MICHEL_LATER
-
   itkDebugMacro("GetValueAndDerivative( " << parameters << " ) ");
 
   if( !this->GetGradientMesh() )
@@ -261,13 +256,12 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
   const unsigned int MeshDimension = FixedMeshType::MeshDimension;
 
-  typedef  itk::MeshRegionConstIteratorWithIndex<
-    FixedMeshType> FixedIteratorType;
+  PointIterator pointItr = fixedMesh->GetPoints()->Begin();
+  PointIterator pointEnd = fixedMesh->GetPoints()->End();
 
-  typedef  itk::MeshRegionConstIteratorWithIndex<GradientMeshType> GradientIteratorType;
+  PointDataIterator pointDataItr = fixedMesh->GetPointData()->Begin();
+  PointDataIterator pointDataEnd = fixedMesh->GetPointData()->End();
 
-
-  FixedIteratorType ti( fixedMesh, this->GetFixedMeshRegion() );
 
   typename FixedMeshType::IndexType index;
 
@@ -281,19 +275,14 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   derivative = DerivativeType( ParametersDimension );
   derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
-  ti.GoToBegin();
-
-  while(!ti.IsAtEnd())
+  while( pointItr != pointEnd )
     {
-
-    index = ti.GetIndex();
-    
-    InputPointType inputPoint;
-    fixedMesh->TransformIndexToPhysicalPoint( index, inputPoint );
+    InputPointType  inputPoint;
+    inputPoint.CastFrom( pointItr.Value() );
 
     if( this->m_FixedMeshMask && !this->m_FixedMeshMask->IsInside( inputPoint ) )
       {
-      ++ti;
+      ++pointItr;
       continue;
       }
 
@@ -301,7 +290,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     if( this->m_MovingMeshMask && !this->m_MovingMeshMask->IsInside( transformedPoint ) )
       {
-      ++ti;
+      ++pointItr;
       continue;
       }
 
@@ -347,7 +336,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
         }
       }
 
-    ++ti;
+    ++pointItr;
     }
 
   if( !this->m_NumberOfPixelsCounted )
@@ -364,8 +353,6 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     }
 
   value = measure;
-
-#endif
 
 }
 
