@@ -247,16 +247,11 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     itkExceptionMacro( << "Fixed image has not been assigned" );
     }
 
-  const unsigned int MeshDimension = FixedMeshType::MeshDimension;
-
   PointIterator pointItr = fixedMesh->GetPoints()->Begin();
   PointIterator pointEnd = fixedMesh->GetPoints()->End();
 
   PointDataIterator pointDataItr = fixedMesh->GetPointData()->Begin();
   PointDataIterator pointDataEnd = fixedMesh->GetPointData()->End();
-
-
-  typename FixedMeshType::IndexType index;
 
   MeasureType measure = NumericTraits< MeasureType >::Zero;
 
@@ -302,18 +297,6 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   
       measure += diff * diff;
 
-      // Get the gradient by NearestNeighboorInterpolation: 
-      // which is equivalent to round up the point components.
-      typedef typename OutputPointType::CoordRepType CoordRepType;
-      typedef ContinuousIndex<CoordRepType,MovingMeshType::MeshDimension>
-        MovingMeshContinuousIndexType;
-
-      MovingMeshContinuousIndexType tempIndex;
-      this->m_MovingMesh->TransformPhysicalPointToContinuousIndex( transformedPoint, tempIndex );
-
-      typename MovingMeshType::IndexType mappedIndex; 
-      mappedIndex.CopyWithRound( tempIndex );
-
       DerivativeDataType gradient;
  
       this->m_Interpolator->EvaluateDerivative( transformedPoint, gradient );
@@ -321,7 +304,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
       for(unsigned int par=0; par<ParametersDimension; par++)
         {
         RealDataType sum = NumericTraits< RealDataType >::Zero;
-        for(unsigned int dim=0; dim<MeshDimension; dim++)
+        for(unsigned int dim=0; dim<MovingMeshDimension; dim++)
           {
           sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];
           }
