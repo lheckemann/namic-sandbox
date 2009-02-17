@@ -60,6 +60,26 @@
 #include "vtkMRML4DBundleNode.h"
 
 
+//#ifdef Slicer3_USE_PYTHON
+//// If debug, Python wants pythonxx_d.lib, so fake it out
+//#ifdef _DEBUG
+//#undef _DEBUG
+//#include <Python.h>
+//#define _DEBUG
+//#else
+//#include <Python.h>
+//#endif
+
+//extern "C" {
+//  void init_mytkinter( Tcl_Interp* );
+//  void init_slicer(void );
+//}
+//#include "vtkTclUtil.h"
+//
+//#endif
+
+
+
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkFourDAnalysisGUI );
 vtkCxxRevisionMacro ( vtkFourDAnalysisGUI, "$Revision: 3674 $");
@@ -766,6 +786,38 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->RunPlotButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
+      /*
+    PyObject* v;
+    std::string pythonCmd;
+    pythonCmd += "from Slicer import numpy\n";
+    pythonCmd += "from Slicer import slicer\n";
+    pythonCmd += "scene = slicer.MRMLScene\n";
+    pythonCmd += "node = scene.GetNodeByID('vtkMRMLLinearTransformNode4')\n";
+    pythonCmd += "lst  = node.GetName()\n";
+    pythonCmd += "str = ''.join( lst )\n";
+    pythonCmd += "print str\n";
+
+    v = PyRun_String(
+                     pythonCmd.c_str(),
+                     Py_file_input,
+                     (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
+                     (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()));
+      */
+    
+    /*
+    FILE *fp = PyFile_AsFile("test.py");
+    char *name = PyString_AsString(PyFile_Name(prog));
+    v = PyRun_File(fp, name, Py_file_input, globals,
+                   locals);
+    */
+
+      /*
+    if (v == NULL)
+      {
+      PyErr_Print();
+      }
+      */
+
     int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     const char* maskID   = this->MaskNodeIDList[selected].c_str();

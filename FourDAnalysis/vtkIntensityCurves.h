@@ -56,6 +56,7 @@ class VTK_FourDAnalysis_EXPORT vtkIntensityCurves : public vtkObject
   vtkIntensityCurves();
   virtual ~vtkIntensityCurves();
 
+  void   GenerateIntensityCurveMap();
   void   GenerateIntensityCurve();
   void   GenerateIndexMap(vtkImageData* mask, IndexTableMapType& indexTableMap);
   double GetMeanIntensity(vtkImageData* image, IndexTableType& indexTable);
