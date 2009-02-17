@@ -88,6 +88,11 @@ protected:
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
+  typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;
+
+  virtual bool ComputeWeights( const PointType & point,
+    const InstanceIdentifierVectorType & pointIds, RealType * weights ) const;
+
 private:
   LinearInterpolateMeshFunction( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
