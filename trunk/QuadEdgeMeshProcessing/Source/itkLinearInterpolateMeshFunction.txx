@@ -68,6 +68,23 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   InstanceIdentifierVectorType pointIds;
 
   this->FindTriangle( point, pointIds );
+
+  PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
+  PixelType pixelValue2 = itk::NumericTraits< PixelType >::Zero;
+  PixelType pixelValue3 = itk::NumericTraits< PixelType >::Zero;
+
+  this->GetPointData( pointIds[0], &pixelValue1 ); 
+  this->GetPointData( pointIds[1], &pixelValue2 ); 
+  this->GetPointData( pointIds[2], &pixelValue3 ); 
+
+  const RealType pixelValueReal1 = static_cast< RealType >( pixelValue1 );
+  const RealType pixelValueReal2 = static_cast< RealType >( pixelValue2 );
+  const RealType pixelValueReal3 = static_cast< RealType >( pixelValue3 );
+
+  const RealType variation12 = pixelValueReal1 - pixelValueReal2;
+  const RealType variation32 = pixelValueReal3 - pixelValueReal2;
+
+  derivative = m_U12 * variation12  + m_U32 * variation32;
 }
 
 
