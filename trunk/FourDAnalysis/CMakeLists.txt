@@ -27,6 +27,7 @@ include_directories(
   ${CommandLineModule_BINARY_DIR}
   ${Volumes_SOURCE_DIR}
   ${Volumes_BINARY_DIR}
+  ${PYTHON_INCLUDE_PATH}
   )
 
 #
@@ -91,6 +92,7 @@ target_link_libraries(${lib_name}
   ${ITK_LIBRARIES}
   ${CLP_MODULE}
   Volumes
+  ${PYTHON_LIBRARIES}
   )
 
 install(TARGETS ${lib_name}
