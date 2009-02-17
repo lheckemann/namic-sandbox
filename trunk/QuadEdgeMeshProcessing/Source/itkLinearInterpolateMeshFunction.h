@@ -91,12 +91,23 @@ protected:
   typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;
 
   virtual bool ComputeWeights( const PointType & point,
-    const InstanceIdentifierVectorType & pointIds, RealType * weights ) const;
+    const InstanceIdentifierVectorType & pointIds ) const;
+
+  virtual void FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
 
 private:
   LinearInterpolateMeshFunction( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
+  typedef typename PointType::VectorType             VectorType;
+
+  mutable VectorType  m_V12;
+  mutable VectorType  m_V32;
+
+  mutable VectorType  m_U12;
+  mutable VectorType  m_U32;
+
+  mutable RealType m_InterpolationWeights[MeshDimension];
 };
 
 } // end namespace itk

@@ -64,6 +64,10 @@ void
 LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 ::EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const
 {
+
+  InstanceIdentifierVectorType pointIds;
+
+  this->FindTriangle( point, pointIds );
 }
 
 
@@ -76,16 +80,46 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>::OutputType
 LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 ::Evaluate( const PointType& point ) const
 {
-  const unsigned int numberOfNeighbors = 3;
   InstanceIdentifierVectorType pointIds;
+
+  this->FindTriangle( point, pointIds );
+
+  PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
+  PixelType pixelValue2 = itk::NumericTraits< PixelType >::Zero;
+  PixelType pixelValue3 = itk::NumericTraits< PixelType >::Zero;
+
+  this->GetPointData( pointIds[0], &pixelValue1 ); 
+  this->GetPointData( pointIds[1], &pixelValue2 ); 
+  this->GetPointData( pointIds[2], &pixelValue3 ); 
+
+  RealType pixelValueReal1 = static_cast< RealType >( pixelValue1 );
+  RealType pixelValueReal2 = static_cast< RealType >( pixelValue2 );
+  RealType pixelValueReal3 = static_cast< RealType >( pixelValue3 );
+
+  RealType returnValue = 
+    pixelValueReal1 * m_InterpolationWeights[0] +
+    pixelValueReal2 * m_InterpolationWeights[1] +
+    pixelValueReal3 * m_InterpolationWeights[2];
+
+  return returnValue;
+}
+
+
+/**
+ * Find corresponding triangle, vector base and barycentric coordinates
+ */
+template <class TInputMesh, class TCoordRep>
+void 
+LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
+::FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const
+{
+  const unsigned int numberOfNeighbors = 3;
 
   this->Search( point, numberOfNeighbors, pointIds );
 
   const InputMeshType * mesh = this->GetInputMesh(); 
 
   typedef typename InputMeshType::QEPrimal    EdgeType;
-
-  RealType weights[MeshDimension];
 
   //
   // Find the edge connected to the closest point.
@@ -103,7 +137,7 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
     pointIds[1] = temp1->GetDestination();
     pointIds[2] = temp2->GetDestination();
 
-    const bool isInside = this->ComputeWeights( point, pointIds, weights );
+    const bool isInside = this->ComputeWeights( point, pointIds );
 
     if( isInside )
       {
@@ -113,24 +147,6 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
     temp1 = temp2;
     }
 
-  PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
-  PixelType pixelValue2 = itk::NumericTraits< PixelType >::Zero;
-  PixelType pixelValue3 = itk::NumericTraits< PixelType >::Zero;
-
-  this->GetPointData( pointIds[0], &pixelValue1 ); 
-  this->GetPointData( pointIds[1], &pixelValue2 ); 
-  this->GetPointData( pointIds[2], &pixelValue3 ); 
-
-  RealType pixelValueReal1 = static_cast< RealType >( pixelValue1 );
-  RealType pixelValueReal2 = static_cast< RealType >( pixelValue2 );
-  RealType pixelValueReal3 = static_cast< RealType >( pixelValue3 );
-
-  RealType returnValue = 
-    pixelValueReal1 * weights[0] +
-    pixelValueReal2 * weights[1] +
-    pixelValueReal3 * weights[2];
-
-  return returnValue;
 }
 
 
@@ -142,7 +158,7 @@ template <class TInputMesh, class TCoordRep>
 bool
 LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 ::ComputeWeights( const PointType & point, 
-  const InstanceIdentifierVectorType & pointIds, RealType * weights ) const
+  const InstanceIdentifierVectorType & pointIds ) const
 {
   const InputMeshType * mesh = this->GetInputMesh(); 
 
@@ -162,37 +178,37 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   // Compute Vectors along the edges.
   // These two vectors form a vector base for the 2D space of the triangle cell.
   //
-  VectorType v12 = pt1 - pt2;
-  VectorType v32 = pt3 - pt2;
+  VectorType m_V12 = pt1 - pt2;
+  VectorType m_V32 = pt3 - pt2;
 
   //
   // Compute Vectors in the dual vector base inside the 2D space of the triangle cell.
-  // u12 is orthogonal to v32
-  // u32 is orthogonal to v12
+  // m_U12 is orthogonal to m_V32
+  // m_U32 is orthogonal to m_V12
   //
-  const double dotproduct =  v12 * v32;
-  VectorType u12 = v12 - v32 * ( dotproduct / v32.GetSquaredNorm() );
-  VectorType u32 = v32 - v12 * ( dotproduct / v12.GetSquaredNorm() );
+  const double dotproduct =  m_V12 * m_V32;
+  VectorType m_U12 = m_V12 - m_V32 * ( dotproduct / m_V32.GetSquaredNorm() );
+  VectorType m_U32 = m_V32 - m_V12 * ( dotproduct / m_V12.GetSquaredNorm() );
 
   //
-  // Add normalizations for making {u12,u32} a vector basis orthonormal to {v12, v32}.
+  // Add normalizations for making {m_U12,m_U32} a vector basis orthonormal to {m_V12, m_V32}.
   //
-  u12 /= ( u12 * v12 );
-  u32 /= ( u32 * v32 );
+  m_U12 /= ( m_U12 * m_V12 );
+  m_U32 /= ( m_U32 * m_V32 );
 
   //
   // Project point to plane, by using the dual vector base
   //
   // Compute components of the input point in the 2D
-  // space defined by v12 and v32
+  // space defined by m_V12 and m_V32
   //
   VectorType xo = point - pt2;
 
-  const double u12p = xo * u12;
-  const double u32p = xo * u32;
+  const double u12p = xo * m_U12;
+  const double u32p = xo * m_U32;
 
-  VectorType x12 = v12 * u12p;
-  VectorType x32 = v32 * u32p;
+  VectorType x12 = m_V12 * u12p;
+  VectorType x32 = m_V32 * u32p;
 
   //
   // The projection of point X in the plane is cp
@@ -222,9 +238,9 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   if( ( b1 >= zwe ) && ( b2 >= zwe ) && ( b3 >= zwe ) )
     {
     // The points is inside this triangle 
-    weights[0] = b1;
-    weights[1] = b2;
-    weights[2] = b3;
+    m_InterpolationWeights[0] = b1;
+    m_InterpolationWeights[1] = b2;
+    m_InterpolationWeights[2] = b3;
     isInside = true;
     }
 
