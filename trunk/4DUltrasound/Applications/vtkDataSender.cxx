@@ -107,8 +107,8 @@ vtkDataSender::vtkDataSender()
   this->IndexLockedByDataProcessor = -1;
   this->IndexLock = vtkMutexLock::New();
 
-  this->sendDataBufferSize = 10;
-  this->sendDataBufferIndex = -1;
+  this->SendDataBufferSize = 10;
+  this->SendDataBufferIndex = -1;
 
   frameProperties.Set = false;
   frameProperties.SubVolumeOffset[0] = 0;
@@ -312,7 +312,7 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
       self->GetLogStream() << self->GetUpTime() <<" |*********************************************" << endl;
       self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Sender Found new Data at Index: " << currentIndex
                            << " | L:" << self->GetUpTime() - loopTime << endl
-                           << "         | BufferSize: " << self->GetBufferSize() <<endl;
+                           << "         | BufferSize: " << self->GetCurrentBufferSize() <<endl;
       #endif
 
       //Prepare new data
@@ -345,7 +345,7 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
         #ifdef  ERRORSENDER
           self->GetLogStream() << self->GetUpTime() <<" |S-ERROR: Stopped sending too many errors occured" << endl;
         #endif
-        break;
+        self->StopSending();
         }
       }
 
@@ -365,7 +365,7 @@ bool vtkDataSender::IsSendDataBufferEmpty()
 //----------------------------------------------------------------------------
 bool vtkDataSender::IsSendDataBufferFull()
 {
-  if(this->sendDataQueue.size() >= this->sendDataBufferSize)
+  if(this->sendDataQueue.size() >= this->SendDataBufferSize)
     {
     return true;
     }
@@ -386,9 +386,9 @@ int vtkDataSender::GetHeadOfNewDataBuffer()
 //----------------------------------------------------------------------------
 int vtkDataSender::IncrementBufferIndex(int increment)
 {
-  this->sendDataBufferIndex = (this->sendDataBufferIndex + increment) % this->sendDataBufferSize;
+  this->SendDataBufferIndex = (this->SendDataBufferIndex + increment) % this->SendDataBufferSize;
 
-  return this->sendDataBufferIndex;
+  return this->SendDataBufferIndex;
 }
 
 //----------------------------------------------------------------------------
@@ -459,7 +459,7 @@ int vtkDataSender::PrepareImageMessage(int index,
                                        igtl::ImageMessage::Pointer& imageMessage)
 {
 
-  if(this->IsIndexAvailable(index))
+  if(this->IsIndexAvailable(index) || index < 0 || index >= this->SendDataBufferSize)
     {
     #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: No data to prepare at index: " << index << endl;
@@ -467,9 +467,27 @@ int vtkDataSender::PrepareImageMessage(int index,
     return -1;
     }
 
+  #ifdef  DEBUGSENDER
+    this->LogStream <<  this->GetUpTime() << " |S-INFO: Acquire lock for index: " << index << endl;
+  #endif
+  
+  if(-1 == this->LockIndex(index, DATASENDER))
+    {
+    int i = 0;
+    do
+      {
+      if(i++ > 100)
+        {
+        #ifdef  ERRORSENDER
+          this->LogStream <<  this->GetUpTime() << " |S-ERROR: Cannot acquire lock for index: " << index << " | TimeWaited: " << i << " ms" <<endl;
+        #endif
+        }
+      vtkSleep(0.01);
+      }
+    while(-1 == this->LockIndex(index, DATASENDER));
+    }
+  
   //Get Data
-  do{}
-  while(-1 == this->LockIndex(index, DATASENDER));
   
   vtkImageData * frame = this->sendDataBuffer[index].ImageData;
   vtkMatrix4x4 * matrix = this->sendDataBuffer[index].Matrix;
@@ -479,9 +497,9 @@ int vtkDataSender::PrepareImageMessage(int index,
     //Get property of frame
     frame->GetDimensions(frameProperties.Size);
 //    frame->GetSpacing(frameProperties.Spacing);
-    frameProperties.Spacing[0] = 1;
-    frameProperties.Spacing[1] = 1;
-    frameProperties.Spacing[2] = 1;
+    frameProperties.Spacing[0] = 1;//0.25;
+    frameProperties.Spacing[1] = 1;//0.25;
+    frameProperties.Spacing[2] = 1;//0.25;
     frameProperties.ScalarType = frame->GetScalarType();
     frameProperties.SubVolumeSize[0] = frameProperties.Size[0];
     frameProperties.SubVolumeSize[1] = frameProperties.Size[1];
@@ -628,9 +646,12 @@ int vtkDataSender::NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix)
   int index = this->IncrementBufferIndex(1);
 
   //Add new data to Buffer
-  this->AddDatatoBuffer(index, frame, trackerMatrix);
+  if(-1 == this->AddDatatoBuffer(index, frame, trackerMatrix))
+    {
+    this->IncrementBufferIndex(-1);
+    return -1;
+    }
 
-  this->sendDataQueue.push(index);//Add Index to new data buffer
 
   return index;
 }
@@ -638,7 +659,7 @@ int vtkDataSender::NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix)
 //------------------------------------------------------------
 int vtkDataSender::TryToDeleteData(int index)
 {
-  if(this->IsIndexAvailable(index))
+  if(this->IsIndexAvailable(index) || index < 0 || index >= this->SendDataBufferSize)
     {
     #ifdef  ERRORSENDER
       this->LogStream <<  this->GetUpTime() << " |S-ERROR: Not data to delete in Send Data Buffer at index: " << index << endl;
@@ -651,6 +672,26 @@ int vtkDataSender::TryToDeleteData(int index)
     this->sendDataBuffer[index].ImageData->Delete();
     this->sendDataBuffer[index].Matrix->Delete();
     this->sendDataBuffer.erase(index);
+    #ifdef  DEBUGSENDER
+      this->LogStream <<  this->GetUpTime() << " |S-INFO: Deleted data in Send Data Buffer at index: " << index << endl;
+    #endif
+    }
+  else
+    {
+    #ifdef  DEBUGSENDER
+      this->LogStream <<  this->GetUpTime() << " |S-WARNING: Could not delet data at index:" << index << " lock by: ";
+      
+      if( this->sendDataBuffer[index].SenderLock > 0)
+        {
+        this->LogStream << "DataSender ";
+        }
+      
+      if(this->sendDataBuffer[index].ProcessorLock > 0)
+        {
+        this->LogStream << "DataProcessor";
+        }
+      this->LogStream << endl;
+    #endif
     }
 
   return 0;
@@ -677,6 +718,7 @@ int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix
 
   //Add Object to buffer
   this->sendDataBuffer[index] = newSendData;
+  this->sendDataQueue.push(index);//Add Index to new data buffer
 
   return 0;
 }
@@ -684,7 +726,7 @@ int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix
 //------------------------------------------------------------
 vtkImageData* vtkDataSender::GetVolume(int index)
 {
-if(this->IsIndexAvailable(index))
+if(this->IsIndexAvailable(index) || index < 0 || index >= this->SendDataBufferSize)
    {
    #ifdef  ERRORSENDER
      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer has no data at index: " << index << endl;
@@ -700,7 +742,7 @@ if(this->IsIndexAvailable(index))
 //------------------------------------------------------------
 int vtkDataSender::UnlockData(int index, int lock)
 {
-  if(this->IsIndexAvailable(index))
+  if(this->IsIndexAvailable(index) || index < 0 || index >= this->SendDataBufferSize)
     {
     #ifdef  ERRORSENDER
     this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer has no data at index: " << index << endl;
@@ -756,7 +798,7 @@ double vtkDataSender::GetUpTime()
  * ****************************************************************************/
 bool vtkDataSender::IsIndexAvailable(int index)
 {
-  if(this->sendDataBuffer.find(index) == this->sendDataBuffer.end())
+  if(this->sendDataBuffer.find(index) == this->sendDataBuffer.end() && index < this->SendDataBufferSize && index >= 0)
     {
     return true;
     }
