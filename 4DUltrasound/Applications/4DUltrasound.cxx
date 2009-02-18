@@ -55,7 +55,6 @@ POSSIBILITY OF SUCH DAMAGE.
 // Once a predefined number of frames have been recorded, the application
 // creates the 3D volume and exists.
 //
-
 #include "vtkFileOutputWindow.h"
 #include "vtkImageData.h"
 #include "vtkTimerLog.h"
@@ -262,9 +261,6 @@ int main(int argc, char **argv)
     
     goodByeInput();
 
-    instrumentTracker->StopTracking();
-    instrumentTracker->CloseServerConnection();
-
     //Stop Collecting
     collector->StopCollecting();
 
@@ -276,11 +272,18 @@ int main(int argc, char **argv)
     //Close Sever Connection
     sender->CloseServerConnection();      
 
+    if(instrumentTracker->GetTrackingEnabled() && instrumentTracker->GetTracking())
+      {
+      goodByeInput();
+      }
+
+    instrumentTracker->StopTracking();
+    instrumentTracker->CloseServerConnection();
+    
     if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
       {
       tracker->StopTracking();
       }
-    
     
     cout << endl;
     if(terminate == 0)
@@ -627,6 +630,21 @@ bool parseCommandLineArguments(int argc, char **argv,
             {
             printUsage();
             cout << "ERROR: Delay factor size not specified" << endl;
+            return false;
+            }
+          }
+        else if(currentArg == "--system-offset" || currentArg == "-so")
+          {
+          if( i < argc - 3)
+            {
+            double systemOffset[3] = {atof(argv[++i]), atof(argv[++i]), atof(argv[++i])};
+            collector->SetSystemOffset(systemOffset[0], systemOffset[1], systemOffset[2]);
+            instrumentTracker->SetSystemOffset(systemOffset[0], systemOffset[1], systemOffset[2]);
+            }
+          else
+            {
+            printUsage();
+            cout << "ERROR: System offset not specified" << endl;
             return false;
             }
           }
