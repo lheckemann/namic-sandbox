@@ -157,6 +157,7 @@ protected:
   vtkUltrasoundCalibFileReader *calibReader;
 
   vtk3DPanoramicVolumeReconstructor * Reconstructor;
+  int ReconstructorLifeTime;
 
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;
@@ -172,6 +173,7 @@ protected:
                    int ScalarComponents);
   int IncrementBufferIndex(int increment);
   bool IsIndexAvailable(int index);
+  void DecreaseLifeTimeOfReconstructor(int decrease);
 
 private:
 
