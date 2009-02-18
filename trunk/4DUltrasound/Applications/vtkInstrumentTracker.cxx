@@ -342,17 +342,17 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
       igtlMatrix[0][0] = trackerMatrix->Element[0][0];
       igtlMatrix[0][1] = trackerMatrix->Element[0][1];
       igtlMatrix[0][2] = trackerMatrix->Element[0][2];
-      igtlMatrix[0][3] = trackerMatrix->Element[0][3] + this->SystemOffset[0];//X
+      igtlMatrix[0][3] = trackerMatrix->Element[0][3] + self->GetSystemOffset()[0];//X
   
       igtlMatrix[1][0] = trackerMatrix->Element[1][0];
       igtlMatrix[1][1] = trackerMatrix->Element[1][1];
       igtlMatrix[1][2] = trackerMatrix->Element[1][2];
-      igtlMatrix[1][3] = trackerMatrix->Element[1][3] + this->SystemOffset[1];//Y
+      igtlMatrix[1][3] = trackerMatrix->Element[1][3] + self->GetSystemOffset()[1];//Y
   
       igtlMatrix[2][0] = trackerMatrix->Element[2][0];
       igtlMatrix[2][1] = trackerMatrix->Element[2][1];
       igtlMatrix[2][2] = trackerMatrix->Element[2][2];
-      igtlMatrix[2][3] = trackerMatrix->Element[2][3] + this->SystemOffset[2];//Z
+      igtlMatrix[2][3] = trackerMatrix->Element[2][3] + self->GetSystemOffset()[2];//Z
   
       igtlMatrix[3][0] = trackerMatrix->Element[3][0];
       igtlMatrix[3][1] = trackerMatrix->Element[3][1];
