@@ -51,6 +51,11 @@ set(RealTimeNeedleDetection_SRCS
   vtkRealTimeNeedleDetectionGUI.cxx
 )
 
+set(RealTimeNeedleDetection_Subroutines_SRCS 
+  ImageProcessor.cxx
+)
+
+
 
 # --------------------------------------------------------------------------
 # Wrapping
@@ -71,6 +76,7 @@ generatelm(RealTimeNeedleDetection_SRCS RealTimeNeedleDetection.txt)
 set(lib_name RealTimeNeedleDetection)
 add_library(${lib_name}
   ${RealTimeNeedleDetection_SRCS} 
+  ${RealTimeNeedleDetection_Subroutines_SRCS}
   ${RealTimeNeedleDetection_TCL_SRCS}
   )
 
