@@ -314,8 +314,8 @@ void vtkKWPlotGraph::UpdateGraph()
             }
           if (this->AutoRangeY)
             {
-            if (xy[1] - xy[2] < this->RangeY[0]) this->RangeY[0] = xy[1];  // minimum Y
-            if (xy[1] + xy[2] > this->RangeY[1]) this->RangeY[1] = xy[1];  // maximum Y
+            if (xy[1] - xy[2] < this->RangeY[0]) this->RangeY[0] = xy[1] - xy[2];  // minimum Y
+            if (xy[1] + xy[2] > this->RangeY[1]) this->RangeY[1] = xy[1] + xy[2];  // maximum Y
             }
           }
         }
@@ -355,7 +355,19 @@ void vtkKWPlotGraph::UpdateGraph()
       if (iter->visible)
         {
         vtkFieldData* fieldData = vtkFieldData::New();
-        fieldData->AddArray(iter->data);
+
+        if (this->ErrorBar)
+          {
+          // if error bar plotting is enabled, generate plot data with error bars.
+          vtkDoubleArray* data = CreatePlotDataWithErrorBar(iter->data);
+          fieldData->AddArray(data);
+          data->Delete();
+          }
+        else
+          {
+          fieldData->AddArray(iter->data);
+          }
+
         vtkDataObject* dataObject = vtkDataObject::New();
         dataObject->SetFieldData( fieldData );
 
@@ -369,85 +381,9 @@ void vtkKWPlotGraph::UpdateGraph()
         dataObject->Delete();
 
         obj ++;
-
-        // -----------------------------------------
-        // Draw error bars
-        if (this->ErrorBar)
-          {
-          // Check if the data exists and it has 3 components (x, y, and error)
-          if (iter->data && iter->data->GetNumberOfComponents() == static_cast<vtkIdType>(3))
-            {
-            // Note: Error bar
-            //
-            //        p2
-            //   p0 --+-- p1    ---
-            //        |          ^
-            //        *          | 2 * error
-            //        |          v
-            //   p4 --+-- p5    ---   
-            //        p3
-            //
-            //      |<->| error bar width * 2
-            //
-            // 'error bar width' = ((this->RangeX[1] - this->RangeX[0]) / nData) / 8
-            //
-
-            int nData = iter->data->GetNumberOfTuples();
-            double errorBarWidth;
-            if (nData > 10)
-              {
-              errorBarWidth = ((this->RangeX[1] - this->RangeX[0]) / (double)nData) / 8.0;
-              }
-            else
-              {
-              errorBarWidth = ((this->RangeX[1] - this->RangeX[0]) / 10.0) / 8.0;
-              }
-
-            std::cerr << "errorBarWidth = " << errorBarWidth << std::endl;
-
-            for (int j = 0; j < nData; j ++)
-              {
-              double* values = iter->data->GetTuple(j);
-              double p[6][2];
-              
-              // set x coordinates
-              p[0][0] = p[4][0] = values[0] - errorBarWidth;
-              p[2][0] = p[3][0] = values[0];
-              p[1][0] = p[5][0] = values[0] + errorBarWidth;
-
-              // set y coordinates
-              p[0][1] = p[1][1] = p[2][1] = values[1] + values[2];
-              p[3][1] = p[4][1] = p[5][1] = values[1] - values[2];
-
-              vtkDoubleArray* value = vtkDoubleArray::New();
-              value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-              for (int k = 0; k < 6; k ++)
-                {
-                value->InsertNextTuple( p[k] );
-                }
-
-              vtkFieldData* fieldData = vtkFieldData::New();
-              fieldData->AddArray(value);
-              vtkDataObject* dataObject = vtkDataObject::New();
-              dataObject->SetFieldData( fieldData );
-
-              this->PlotActor->AddDataObjectInput(dataObject);
-              this->PlotActor->SetDataObjectXComponent(obj, 0);
-              this->PlotActor->SetDataObjectYComponent(obj, 1);
-              this->PlotActor->SetPlotColor(obj, iter->color[0], iter->color[1], iter->color[2]);
-
-              value->Delete();
-              fieldData->Delete();
-              dataObject->Delete();
-              
-              obj ++;
-              }
-            }
-          }
+        
         }
       }
-
-    std::cerr << "&&&&&&&&&&&&&&&-------------------" << std::endl;
 
     // -----------------------------------------
     // Draw vertical lines
@@ -484,8 +420,6 @@ void vtkKWPlotGraph::UpdateGraph()
         }
       }
     
-    
-    std::cerr << "+++++++++++++++++++++++-------------------" << std::endl;
 
     // -----------------------------------------
     // Draw horizontal lines
@@ -521,8 +455,6 @@ void vtkKWPlotGraph::UpdateGraph()
         }
       }
 
-    std::cerr << "xxxxxxxxxxxxxxxxxxxxx-------------------" << std::endl;
-    
     this->PlotActor->SetXRange(this->RangeX[0], this->RangeX[1]);
     this->PlotActor->SetYRange(this->RangeY[0], this->RangeY[1]);
     
@@ -566,4 +498,79 @@ vtkDataObject* vtkKWPlotGraph::CreateDataObjectForLine(double p1[2], double p2[2
   return dataObject;
   
 }
+
+
+//----------------------------------------------------------------------------
+vtkDoubleArray* vtkKWPlotGraph::CreatePlotDataWithErrorBar(vtkDoubleArray* srcData)
+{
+  
+  // Check if the data exists and it has 3 components (x, y, and error)
+  if (!srcData || srcData->GetNumberOfComponents() != static_cast<vtkIdType>(3))
+    {
+    return NULL;
+    }
+
+  vtkDoubleArray* plotData;
+  plotData = vtkDoubleArray::New();
+  plotData->SetNumberOfComponents( static_cast<vtkIdType>(2) );
+  
+  // Note: Error bar
+  //
+  //        p2
+  //   p0 --+-- p1    ---
+  //        |          ^
+  //        *          | 2 * error
+  //        |          v
+  //   p4 --+-- p5    ---   
+  //        p3
+  //
+  //      |<->| error bar width * 2
+  //
+  // 'error bar width' = ((this->RangeX[1] - this->RangeX[0]) / nData) / 8
+  //
+  
+  int nData = srcData->GetNumberOfTuples();
+  double errorBarWidth;
+
+  if (nData > 10)
+    {
+    errorBarWidth = ((this->RangeX[1] - this->RangeX[0]) / (double)nData) / 8.0;
+    }
+  else
+    {
+    errorBarWidth = ((this->RangeX[1] - this->RangeX[0]) / 10.0) / 8.0;
+    }
+  
+  for (int j = 0; j < nData; j ++)
+    {
+    double* values = srcData->GetTuple(j);
+    double p[6][2];
+    
+    // set x coordinates
+    p[0][0] = p[4][0] = values[0] - errorBarWidth;
+    p[2][0] = p[3][0] = values[0];
+    p[1][0] = p[5][0] = values[0] + errorBarWidth;
+    
+    // set y coordinates
+    p[0][1] = p[1][1] = p[2][1] = values[1] + values[2];
+    p[3][1] = p[4][1] = p[5][1] = values[1] - values[2];
+    
+    // Add data point
+    plotData->InsertNextTuple( values );
+
+    // Add points for error bars
+    plotData->InsertNextTuple( p[2] );
+    plotData->InsertNextTuple( p[0] );
+    plotData->InsertNextTuple( p[1] );
+    plotData->InsertNextTuple( p[2] );
+    plotData->InsertNextTuple( p[3] );
+    plotData->InsertNextTuple( p[4] );
+    plotData->InsertNextTuple( p[5] );
+    plotData->InsertNextTuple( p[3] );
+    plotData->InsertNextTuple( values );
+    }
+
+  return plotData;
+}
+
 
