@@ -81,24 +81,24 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   
   //----------------------------------------------------------------
   // Image Values    
-  xLowerBound              = 0;
-  xUpperBound              = 246;
-  yLowerBound              = 0;
-  yUpperBound              = 256;
+  xLowerBound             = 0;
+  xUpperBound             = 246;
+  yLowerBound             = 0;
+  yUpperBound             = 256;
   xImageRegionSize        = xUpperBound - xLowerBound;
   yImageRegionSize        = yUpperBound - yLowerBound;
   imageDimensions[0]      = 256;
   imageDimensions[1]      = 256;
   imageDimensions[2]      = 1;
-  imageSpacing[0]          = 1;  
-  imageSpacing[1]          = 1;
-  imageSpacing[2]          = 1;
+  imageSpacing[0]         = 1;  
+  imageSpacing[1]         = 1;
+  imageSpacing[2]         = 1;
   imageOrigin[0]          = 0;
   imageOrigin[1]          = 0;
   imageOrigin[2]          = 0;
-  scalarSize               = 2;                      // scalarType 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
+  scalarSize              = 2;                      // scalarType 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
   lastModified            = 0;
-  pImage                   = NULL;
+  pImage                  = NULL;
   pImageProcessor         = new ImageProcessor::ImageProcessor();  //TODO:move the new to starting the whole detection
 }
 
