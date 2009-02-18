@@ -101,6 +101,8 @@ public:
 
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
+  
+  vtkGetMacro(Tracking, bool);
 
   int ConnectToServer();
   int CloseServerConnection();
