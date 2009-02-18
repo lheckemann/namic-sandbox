@@ -131,11 +131,11 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
-  vtkIGTDataManager*                 DataManager;
-  vtkRealTimeNeedleDetectionLogic*   Logic;
+  vtkIGTDataManager*                DataManager;
+  vtkRealTimeNeedleDetectionLogic*  Logic;
   vtkCallbackCommand*               DataCallbackCommand;
   int                        CloseScene;
-  int                         started;
+  int                        started;
   
   //----------------------------------------------------------------
   // Image Values
@@ -146,12 +146,12 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   int             yUpperBound;
   int             xImageRegionSize;
   int             yImageRegionSize;
-  int              imageDimensions[3]; // the number of cells on x, y and z axis
+  int             imageDimensions[3]; // the number of cells on x, y and z axis
   double          imageSpacing[3];
   double          imageOrigin[3];
   int             scalarSize;          // 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
-  unsigned long    lastModified;       // saves the time of the last change of the source image
-  void*            pImage;             // pointer to the image in pImageData
+  unsigned long   lastModified;       // saves the time of the last change of the source image
+  void*           pImage;             // pointer to the image in pImageData
   ImageProcessor* pImageProcessor;
 };
 
