@@ -145,10 +145,9 @@ vtkV4L2VideoSource::vtkV4L2VideoSource()
 {
   this->Initialized = 0;
 
-  this->FrameSize[0] = 320;
-  this->FrameSize[1] = 240;
+  this->FrameSize[0] = 640;
+  this->FrameSize[1] = 480;
   this->FrameSize[2] = 1;
-  
   
   int i;
   
@@ -1107,7 +1106,8 @@ void vtkV4L2VideoSource::InternalGrab()
   for(i=0;i<this->FrameSize[0];i++){
     for(j=0;j<this->FrameSize[1];j++){
       for(k=0;k<this->FrameSize[2];k++){
-  ptr[k*this->FrameSize[0]*this->FrameSize[1]+j*this->FrameSize[0]+i]=((unsigned char*)buffers[buf.index].start)[(k*this->FrameSize[0]*this->FrameSize[1]+(this->FrameSize[1]-1-j)*this->FrameSize[0]+i)*2];
+      ptr[k*this->FrameSize[0]*this->FrameSize[1]+j*this->FrameSize[0]+i]
+          =((unsigned char*)buffers[buf.index].start)[(k*this->FrameSize[0]*this->FrameSize[1]+(this->FrameSize[1]-1-j)*this->FrameSize[0]+i)*2];
       }
     }
   }
