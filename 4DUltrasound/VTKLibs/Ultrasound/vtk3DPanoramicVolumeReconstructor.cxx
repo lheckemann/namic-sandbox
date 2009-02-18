@@ -548,7 +548,8 @@ int vtk3DPanoramicVolumeReconstructor::RequestData(vtkInformation* request,
 
   if (this->ReconstructionThreadId == -1 && this->NeedsClear == 1)
     {
-    this->InternalClearOutput();
+    //JG 09/Feb/17 I want to control the out put clear
+    //this->InternalClearOutput();
     }
   outInfo->GetInformationObject(0)->Set(vtkDemandDrivenPipeline::DATA_NOT_GENERATED(), 1);
   ((vtkImageData *)outObject)->DataHasBeenGenerated();
@@ -1927,10 +1928,9 @@ void vtk3DPanoramicVolumeReconstructor::InternalClearOutput()
   int numScalars = outData->GetNumberOfScalarComponents();
   outData->SetExtent(outExtent);
   outData->AllocateScalars();
-  cout << "================================" << endl
-       << "InternalClearOutput" << endl;
+//  cout << "================================" << endl
+//       << "InternalClearOutput" << endl;
 //       << "Extent: "<< outExtent[0]<<"-"<<outExtent[1]<<" | "<<outExtent[2]<<"-"<<outExtent[3]<<" | "<<outExtent[4]<<"- "<<outExtent[5]<<endl;
-  
   
   void *outPtr = outData->GetScalarPointerForExtent(outExtent);
   //JG 2009/02/05 Avoid removing output data
