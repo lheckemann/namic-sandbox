@@ -95,6 +95,11 @@ class VTK_FourDAnalysis_EXPORT vtkKWPlotGraph : public vtkKWRenderWidget
   // Create a vtkDataObject to draw a line on the graph
   vtkDataObject* CreateDataObjectForLine(double p1[2], double p2[2]);
 
+
+  // Description:
+  // Create a vtkDoubleArray to draw a line with error bars
+  vtkDoubleArray* CreatePlotDataWithErrorBar(vtkDoubleArray* srcData);
+
   char *Command;
   //char *StartCommand;
   //char *EndCommand;

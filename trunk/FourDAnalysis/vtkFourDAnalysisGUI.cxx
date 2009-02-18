@@ -540,7 +540,6 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->ThresholdRange
       ->AddObserver(vtkKWRange::RangeValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-
   if (this->SeriesToPlotMenu)
     {
     this->SeriesToPlotMenu->GetMenu()
@@ -551,6 +550,7 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->MaskSelectMenu->GetMenu()
       ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
+
   if (this->RunPlotButton)
     {
     this->RunPlotButton
@@ -775,10 +775,12 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->SeriesToPlotMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
+    std::cerr << "this->SeriesToPlotMenu->GetMenu()" << std::endl;
     }
   else if (this->MaskSelectMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
+    std::cerr << "this->MaskSelectMenu->GetMenu()" << std::endl;
     //int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     //const char* nodeID = this->MaskNodeIDList[selected].c_str();
     //SelectMask(nodeID, label);
@@ -1472,7 +1474,8 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
 
   this->IntensityPlot->AddHorizontalLine(0.5);
   this->IntensityPlot->SetAxisLineColor(1.0, 1.0, 1.0);
-  this->IntensityPlot->ErrorBarOff();
+  this->IntensityPlot->ErrorBarOn();
+  //this->IntensityPlot->ErrorBarOff();
   this->IntensityPlot->UpdateGraph();
 
   this->Script("pack %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 

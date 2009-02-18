@@ -27,8 +27,11 @@ vtkIntensityCurves::vtkIntensityCurves()
 {
   this->BundleNode = NULL;
   this->MaskNode   = NULL;
-
+  this->PreviousBundleNode = NULL;
+  this->PreviousMaskNode   = NULL;
+  
   this->IntensityCurve.clear();
+  this->PreviousUpdateTime = 0;
 }
 
 
@@ -58,8 +61,16 @@ int vtkIntensityCurves::Update()
   std::cerr << "Bundle update: " << this->BundleNode->GetMTime() << std::endl;
   std::cerr << "Mask update: " << this->MaskNode->GetMTime() << std::endl;
 
-  if (this->GetMTime() > this->BundleNode->GetMTime() &&
-      this->GetMTime() > this->MaskNode->GetMTime())
+  // if BundleNode or MaskNode have been changed from the previous update
+  if (this->BundleNode != this->PreviousBundleNode ||
+      this->MaskNode != this->PreviousMaskNode)
+    {
+    // set PreviousUpdate time to zero to force intensity curve generation
+    this->PreviousUpdateTime = 0;
+    }
+
+  if (this->PreviousUpdateTime > this->BundleNode->GetMTime() &&
+      this->PreviousUpdateTime > this->MaskNode->GetMTime())
     {
     // if the intensity curve is newer than the 4D bundle and the mask
     // do nothing
@@ -68,8 +79,13 @@ int vtkIntensityCurves::Update()
     }
   
   // Generate intensity curves
+  this->PreviousBundleNode = this->BundleNode;
+  this->PreviousMaskNode   = this->MaskNode;
+
   GenerateIntensityCurve();
+
   this->Modified();
+  this->PreviousUpdateTime = this->GetMTime();
 }
 
 
@@ -151,14 +167,12 @@ void vtkIntensityCurves::GenerateIntensityCurve()
       int label = iter->first;
       this->IntensityCurve[label] = vtkDoubleArray::New();
       this->IntensityCurve[label]->SetNumberOfComponents( static_cast<vtkIdType>(3) );
-
-      std::cerr << "creating array for label = " << label << std::endl;
       }
     
     int nFrames = this->BundleNode->GetNumberOfFrames();
     for (int i = 0; i < nFrames; i ++)
       {
-      std::cerr << "processing frame = " << i << std::endl;
+      //std::cerr << "processing frame = " << i << std::endl;
       vtkMRMLScalarVolumeNode* inode
         = vtkMRMLScalarVolumeNode::SafeDownCast(this->BundleNode->GetFrameNode(i));
       if (inode)
@@ -167,7 +181,7 @@ void vtkIntensityCurves::GenerateIntensityCurve()
         for (iter2 = indexTableMap.begin(); iter2 != indexTableMap.end(); iter2 ++)
           {
           int label = iter2->first;
-          std::cerr << "    processing label = " << label << std::endl;
+          //std::cerr << "    processing label = " << label << std::endl;
           IndexTableType& indexTable = iter2->second;
           double meanvalue = GetMeanIntensity(inode->GetImageData(), indexTable);
           double sdvalue   = GetSDIntensity(inode->GetImageData(), meanvalue, indexTable);
