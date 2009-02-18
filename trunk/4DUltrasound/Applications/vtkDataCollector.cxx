@@ -46,8 +46,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 //#define REMOVE_ALPHA_CHANNEL
-#define DEBUG_IMAGES //Write tagger output to HDD
-#define DEBUG_MATRICES //Prints tagger matrices to stdout
+//#define DEBUG_IMAGES //Write tagger output to HDD
+//#define DEBUG_MATRICES //Prints tagger matrices to stdout
 #define SHRINK
 
 //#include <windows.h>
@@ -244,6 +244,9 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     #endif
     return -1;
     }
+  
+  int *imSize = this->calibReader->GetImageSize();
+  this->VideoSource->SetFrameSize(imSize[0], imSize[1], 1);
 
 #ifdef USE_ULTRASOUND_DEVICE
   this->VideoSource->SetVideoDevice(this->GetVideoDevice());
@@ -261,8 +264,6 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
   double *imageSpacing = this->calibReader->GetImageSpacing();
   this->VideoSource->SetDataSpacing(imageSpacing);
 
-  int *imSize = this->calibReader->GetImageSize();
-  this->VideoSource->SetFrameSize(imSize[0], imSize[1], 1);
   //
   // Setting up the synchronization filter
   this->Tagger->SetVideoSource(this->VideoSource);  
@@ -644,7 +645,7 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   //Calibrate tracker Matrix----------------------------------------------------
   vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
   vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
-  
+    
   //Adjust Obliqueness----------------------------------------------------------
   oldMatrix->DeepCopy(pDataStruct->Matrix);
   
@@ -679,8 +680,6 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   adjustMatrix->Element[1][2] = -1;
 
   vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
-  adjustMatrix->Delete();
-  oldMatrix->Delete();
   
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix coordinate system transformed:"<< endl;
@@ -717,6 +716,20 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   pDataStruct->Matrix->Element[1][3] += this->SystemOffset[1];
   pDataStruct->Matrix->Element[2][3] += this->SystemOffset[2];
   
+//  oldMatrix->DeepCopy(pDataStruct->Matrix);
+//    
+//    adjustMatrix->Identity();  
+//    adjustMatrix->Element[0][0] = 0;
+//    adjustMatrix->Element[1][1] = 0;
+//    adjustMatrix->Element[2][2] = 0;
+//    
+//    adjustMatrix->Element[0][0] =  1;
+//    adjustMatrix->Element[2][1] = -1;
+//    adjustMatrix->Element[1][2] =  1;
+//
+//  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
+
+  
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
 //    pDataStruct->Matrix->Print(this->LogStream);
@@ -729,6 +742,9 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
 //  pDataStruct->Matrix->Element[1][3] = pDataStruct->Matrix->Element[1][3] * scaleFactor;//y
 //  pDataStruct->Matrix->Element[2][3] = pDataStruct->Matrix->Element[2][3] * scaleFactor;//z
 
+  adjustMatrix->Delete();
+  oldMatrix->Delete();
+  
   return 0;
 }
 
@@ -808,9 +824,9 @@ int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extra
     return -1;
     }
 
-  #ifdef DEBUGCOLLECTOR
-    this->LogStream << this->GetUpTime()  << " |C-INFO: Extract Image " << endl;
-  #endif
+//  #ifdef DEBUGCOLLECTOR
+//    this->LogStream << this->GetUpTime()  << " |C-INFO: Extract Image " << endl;
+//  #endif
     
   int x, y, z;
   int ScalarComponents = 1;
@@ -882,9 +898,9 @@ int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extra
   
   if(counter != 0)
     {
-    #ifdef DEBUGPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |C-INFO: extracted " << counter << " Pixel from original" << endl;
-    #endif
+//    #ifdef DEBUGPROCESSOR
+//      this->LogStream << this->GetUpTime()  << " |C-INFO: extracted " << counter << " Pixel from original" << endl;
+//    #endif
     return 0;
     }
   else
