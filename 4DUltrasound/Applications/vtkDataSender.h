@@ -105,7 +105,9 @@ public:
   
   vtkGetMacro(Sending, bool);
   
-  int GetBufferSize(){return sendDataQueue.size();}
+  vtkGetMacro(SendDataBufferSize, int);
+  
+  int GetCurrentBufferSize(){return sendDataQueue.size();}
 
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
@@ -160,8 +162,8 @@ protected:
   int IndexLockedByDataProcessor;
 
   std::queue<int> sendDataQueue; //Stores index of incoming objects
-  int sendDataBufferSize; //Maximum amount of items that can be stored at the same time
-  int sendDataBufferIndex; //Object which is currently/ was last processed
+  int SendDataBufferSize; //Maximum amount of items that can be stored at the same time
+  int SendDataBufferIndex; //Object which is currently/ was last processed
 
   std::map<int, struct SenderDataStruct> sendDataBuffer;
 
