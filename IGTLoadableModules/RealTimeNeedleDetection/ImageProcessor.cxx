@@ -6,7 +6,7 @@ ImageProcessor::ImageProcessor()
   mLocalInputImage = FloatImageType::New();
   mLocalOutputImage = FloatImageType::New();
   mLocalTmp1 = FloatImageType::New();
-  mLocalTmp2 = FloatImageType::New();
+  mLocalTmp2 = FloatImageType::New(); 
   mScalarSize = 0;
   mWhichTmp = 0;
 } 
@@ -63,17 +63,21 @@ ImageProcessor::UShortImageType::Pointer ImageProcessor::RescaleFloatToUShort(Fl
 {
   RescaleToUShortFilter::Pointer rescale = RescaleToUShortFilter::New();  
   rescale->SetOutputMinimum(  0);
-  rescale->SetOutputMaximum(MAX);
+  rescale->SetOutputMaximum(MAXOUTPUT); //TODO:Change this back to MAX later on
   rescale->SetInput(outputImage);
   rescale->Update();
   return rescale->GetOutput();
 }
 
-// Sets the input 
+// Sets the input and initializes all the variables again
 void ImageProcessor::SetImage(void* pImage, int xSize, int ySize, int scalarSize, double spacing[3], double origin[3])
 {
   mScalarSize = scalarSize;  
-  mWhichTmp = 0;      
+  mWhichTmp = 0; 
+  mLocalInputImage = FloatImageType::New();
+  mLocalOutputImage = FloatImageType::New();
+  mLocalTmp1 = FloatImageType::New();
+  mLocalTmp2 = FloatImageType::New(); 
   double spacingFilterImage[2];
   spacingFilterImage[0] = spacing[0];
   spacingFilterImage[1] = spacing[1];
@@ -273,9 +277,9 @@ void ImageProcessor::HoughTransformation(bool inputTmp, bool outputTmp)
 {
   InverterType::Pointer inverter = InverterType::New();
   HoughFilter::Pointer houghFilter = HoughFilter::New();
-  int numberOfLines   = 1;
-  double avgIntensity = 0;   //average intensity of pixels of the needle
-  double lastIntensity= MAX;//intensity of last pixel examined, used to compare with the current to find the end of the needle
+  int numberOfLines    = 1;
+  double avgIntensity  = 0;   //average intensity of pixels of the needle
+  double lastIntensity = MAX; //intensity of last pixel examined, used to compare with the current to find the end of the needle
   int  length          = 0;   //length of the found needle in pixels
     
   if(inputTmp && (mWhichTmp == 1))
