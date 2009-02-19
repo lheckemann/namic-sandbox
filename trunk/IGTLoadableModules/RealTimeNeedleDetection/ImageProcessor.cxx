@@ -271,15 +271,15 @@ void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, 
   threshFilter->Update();
 }
 
-// The HoughTransformation finds lines in the image, it looks for bright lines
+// The HoughTransformation finds a line in the image, it looks for bright lines
 // An inversion of colors is included, because the needle appears dark in the original image
-void ImageProcessor::HoughTransformation(bool inputTmp, bool outputTmp)
+void ImageProcessor::HoughTransformation(bool inputTmp, bool outputTmp, double* points)
 {
   InverterType::Pointer inverter = InverterType::New();
   HoughFilter::Pointer houghFilter = HoughFilter::New();
   int numberOfLines    = 1;
-  double avgIntensity  = 0;   //average intensity of pixels of the needle
-  double lastIntensity = MAX; //intensity of last pixel examined, used to compare with the current to find the end of the needle
+  double avgIntensity  = 0;   //average intensity of the pixels of the needle
+  double lastIntensity = MAX; //intensity of last pixel examined, used to compare with the current pixel finding the end of the needle
   int  length          = 0;   //length of the found needle in pixels
     
   if(inputTmp && (mWhichTmp == 1))
@@ -298,8 +298,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, bool outputTmp)
     inverter->SetInput(mLocalInputImage);
   }
   
-  itk::ImageFileWriter<UCharImageType>::Pointer
-    writer = itk::ImageFileWriter<UCharImageType>::New();
+  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
   writer->SetFileName("/projects/mrrobot/goerlitz/test/inverted.png");
   writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
   writer->Update();
@@ -311,7 +310,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, bool outputTmp)
   // Don't need to do houghFilter->Update(), because it gets updated through houghFilter->GetLines
  
   //--------------------------------------------------------------------------------------------------
-  //get possible lines
+  //get line from HoughTransformation
   mLocalOutputImage = mLocalInputImage;
   HoughFilter::LinesListType lines = houghFilter->GetLines(numberOfLines);
 
@@ -338,27 +337,30 @@ void ImageProcessor::HoughTransformation(bool inputTmp, bool outputTmp)
     FloatImageType::IndexType localIndex;
     itk::Size<2> size = mLocalInputImage->GetLargestPossibleRegion().GetSize();
     //normalize the support vector to x = xSize  TODO: normalize to either x or y, if needle comes from the right or the bottom
-     double multiplier = 0;
-     multiplier = (u[0]-size[0]) / v[0]; // u[0]-multiplier*v[0] = size[0] 
-     u[0] -= multiplier * v[0];
-     u[1] -= multiplier * v[1];
-     //normalize the direction vector to negative x, because the needle enters from the right side of the image
-     if(v[0] > 0.0)
-     {
-       v[0] *= -1;
-       v[1] *= -1;
-     }
+    double multiplier = 0;
+    multiplier = (u[0]-size[0]) / v[0]; // u[0]-multiplier*v[0] = size[0]
+     
+    // find the first x and y coordinates of the first point of the line in the image and use these instead of instead of a random point u on the line
+    points[0] -= multiplier * v[0];
+    points[1] -= multiplier * v[1];
+     
+    //normalize the direction vector to negative x, because the needle enters from the right side of the image
+    if(v[0] > 0.0)
+    {
+      v[0] *= -1;
+      v[1] *= -1;
+    }
           
     float diag = sqrt((float)( size[0]*size[0] + size[1]*size[1] ));
-    std::cout << "line: " << u[0] << "|" << u[1] << " / " << v[0] <<"|" << v[1] << " mult: " << multiplier << std::endl;
+    std::cout << "line: " << points[0] << "|" << points[1] << " / " << v[0] <<"|" << v[1] << " mult: " << multiplier << std::endl;
     std::cout << "diag: " << diag << std::endl;
 
     //  The line might be as long as the diagonal, thus that many pixels have to be computed
     //  and every iteration they get checked, if they are in the bounds of the mLocalInputImage
     for(int i=0; i<=static_cast<int>(diag); i++)
     {
-      localIndex[0]=(long int)(u[0]+i*v[0]);
-      localIndex[1]=(long int)(u[1]+i*v[1]);
+      localIndex[0]=(long int)(points[0]+i*v[0]);
+      localIndex[1]=(long int)(points[1]+i*v[1]);
 
       FloatImageType::RegionType outputRegion =  mLocalInputImage->GetLargestPossibleRegion();
       
@@ -373,8 +375,12 @@ void ImageProcessor::HoughTransformation(bool inputTmp, bool outputTmp)
           avgIntensity += mLocalInputImage->GetPixel(localIndex);
           std::cout << " pixel:" << mLocalInputImage->GetPixel(localIndex) << " total:" << avgIntensity;
         }         
-        else
+        else // found the tip of the needle
+        {          
+          points[2] = localIndex[0];
+          points[3] = localIndex[1];
           break;
+        }
         std::cout << std::endl;
         mLocalInputImage->SetPixel(localIndex, 0);
       }

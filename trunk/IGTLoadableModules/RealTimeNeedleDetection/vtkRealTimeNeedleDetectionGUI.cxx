@@ -459,6 +459,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
     if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
     {
       std::cout << "-SourceNode Event" << std::endl;
+      double points[4]; // Array that contains 2 points of the needle transform (x1,y1,x2,y2)
+      points[0] = 0.0;
+      points[1] = 0.0;
+      points[2] = 0.0;
+      points[3] = 0.0;
       //------------------------------------------------------------------------------------------------
       // Crop out the imageRegion specified by the X- and Y-boundaries
       vtkImageData* pImageData  = vtkImageData::New();        
@@ -481,7 +486,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
        //pImageProcessor->Threshold(true,true,MAX,0,1);
        //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/threshold.png",3);
-      pImageProcessor->HoughTransformation(true,false);    
+      pImageProcessor->HoughTransformation(true, false, points);    
        //pImageProcessor->CannyEdgeDetection(true,false);
              //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
            //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",4);
@@ -495,13 +500,13 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       //------------------------------------------------------------------------------------------------
       // Retrieve the needle position and adjust the X- and Y-boundaries
       //TODO: adjust
+      
 //      currentXLowerBound;
 //      currentXUpperBound;        
 //      currentYLowerBound;     
 //      currentYUpperBound;
       currentXImageRegionSize = currentXUpperBound - currentXLowerBound;
-      currentYImageRegionSize = currentYUpperBound - currentYLowerBound;
-      
+      currentYImageRegionSize = currentYUpperBound - currentYLowerBound;    
     }
     started++;  //I also use started as a counter of the frames -> TODO:Check if started gets bigger than int
   }

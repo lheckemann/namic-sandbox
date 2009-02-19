@@ -64,10 +64,10 @@ public:
   void PassOn() {mLocalOutputImage = mLocalInputImage;};
   void GradientMagnitude(bool inputTmp, bool outputTmp);
   void Threshold(bool inputTmp, bool outputTmp, int outsideValue, int threshBelow, int threshAbove);
-  void HoughTransformation(bool inputTmp, bool outputTmp);
+  void HoughTransformation(bool inputTmp, bool outputTmp, double* points);
   void CannyEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore        
-  void BinaryThreshold(bool inputTmp, bool outputTmp);           // not used anymore
-  void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp);// not used anymore
+  void BinaryThreshold(bool inputTmp, bool outputTmp);            // not used anymore
+  void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp); // not used anymore
   void SobelEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore
   //Neighborhood Functions
   void SobelFilter(bool inputTmp, bool outputTmp, int direction); // my own version of the sobel edge detection filter
@@ -82,7 +82,7 @@ public:
   int mScalarSize;  // ScalarSize of the image 1:Char,UChar 2:Short,UShort
   int mWhichTmp;    // variable to decide which tmp buffer is currently in use: 
                     // 0 = none, 1 = mLocalTmp1, 2 = mLocalTmp2 
-                    // Attention: Gets only set back to 0 when an image is written to mLocalOutputImage
+                    // Attention: Gets only set back to 0 when an image is written to mLocalOutputImage or SetImage is called
 };
 
 
