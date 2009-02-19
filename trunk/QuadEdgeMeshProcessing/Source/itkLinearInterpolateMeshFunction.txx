@@ -19,6 +19,7 @@
 
 #include "itkLinearInterpolateMeshFunction.h"
 
+
 namespace itk
 {
 
@@ -54,6 +55,7 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   this->Superclass::PrintSelf( os, indent );
 }
 
+#include <iostream>
 
 
 /**
@@ -75,7 +77,7 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 
   this->GetPointData( pointIds[0], &pixelValue1 ); 
   this->GetPointData( pointIds[1], &pixelValue2 ); 
-  this->GetPointData( pointIds[2], &pixelValue3 ); 
+  this->GetPointData( pointIds[2], &pixelValue3 );
 
   const RealType pixelValueReal1 = static_cast< RealType >( pixelValue1 );
   const RealType pixelValueReal2 = static_cast< RealType >( pixelValue2 );
@@ -154,7 +156,7 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
     pointIds[1] = temp1->GetDestination();
     pointIds[2] = temp2->GetDestination();
 
-    const bool isInside = this->ComputeWeights( point, pointIds );
+  const bool isInside = this->ComputeWeights( point, pointIds );
 
     if( isInside )
       {
@@ -204,8 +206,8 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   // m_U32 is orthogonal to m_V12
   //
   const double dotproduct =  m_V12 * m_V32;
-  VectorType m_U12 = m_V12 - m_V32 * ( dotproduct / m_V32.GetSquaredNorm() );
-  VectorType m_U32 = m_V32 - m_V12 * ( dotproduct / m_V12.GetSquaredNorm() );
+  m_U12 = m_V12 - m_V32 * ( dotproduct / m_V32.GetSquaredNorm() );
+  m_U32 = m_V32 - m_V12 * ( dotproduct / m_V12.GetSquaredNorm() );
 
   //
   // Add normalizations for making {m_U12,m_U32} a vector basis orthonormal to {m_V12, m_V32}.
