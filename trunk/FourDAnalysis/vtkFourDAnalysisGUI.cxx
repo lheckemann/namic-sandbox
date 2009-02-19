@@ -61,14 +61,14 @@
 #include "vtkMRML4DBundleNode.h"
 
 
-//#ifdef Slicer3_USE_PYTHON
+#ifdef Slicer3_USE_PYTHON
 //// If debug, Python wants pythonxx_d.lib, so fake it out
 //#ifdef _DEBUG
 //#undef _DEBUG
 //#include <Python.h>
 //#define _DEBUG
 //#else
-//#include <Python.h>
+#include <Python.h>
 //#endif
 
 //extern "C" {
@@ -77,7 +77,7 @@
 //}
 //#include "vtkTclUtil.h"
 //
-//#endif
+#endif
 
 
 
@@ -123,6 +123,12 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->ErrorBarCheckButton     = NULL;
   this->SavePlotButton = NULL;
   this->IntensityPlot  = NULL;
+
+  this->MapInputSeriesMenu  = NULL;
+  this->MapOutputVolumeMenu = NULL;
+  this->ScriptSelectButton  = NULL;
+  this->RunScriptButton = NULL;
+
 
   this->InputSeriesMenu  = NULL;
   this->OutputSeriesMenu = NULL;
@@ -255,6 +261,26 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     {
     this->SavePlotButton->SetParent(NULL);
     this->SavePlotButton->Delete();
+    }
+  if (this->MapInputSeriesMenu)
+    {
+    this->MapInputSeriesMenu->SetParent(NULL);
+    this->MapInputSeriesMenu->Delete();
+    }
+  if (this->MapOutputVolumeMenu)
+    {
+    this->MapOutputVolumeMenu->SetParent(NULL);
+    this->MapOutputVolumeMenu->Delete();
+    }
+  if (this->ScriptSelectButton)
+    {
+    this->ScriptSelectButton->SetParent(NULL);
+    this->ScriptSelectButton->Delete();
+    }
+  if (this->RunScriptButton)
+    {
+    this->RunScriptButton->SetParent(NULL);
+    this->RunScriptButton->Delete();
     }
   if (this->InputSeriesMenu)
     {
@@ -418,6 +444,26 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->MapInputSeriesMenu)
+    {
+    this->MapInputSeriesMenu->GetMenu()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapOutputVolumeMenu)
+    {
+    this->MapOutputVolumeMenu->GetMenu()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ScriptSelectButton)
+    {
+    this->ScriptSelectButton->GetWidget()->GetLoadSaveDialog()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->RunScriptButton)
+    {
+    this->RunScriptButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->InputSeriesMenu)
     {
     this->InputSeriesMenu->GetMenu()
@@ -571,6 +617,26 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
       ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->MapInputSeriesMenu)
+    {
+    this->MapInputSeriesMenu->GetMenu()
+      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->MapOutputVolumeMenu)
+    {
+    this->MapOutputVolumeMenu->GetMenu()
+      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->ScriptSelectButton)
+    {
+    this->ScriptSelectButton->GetWidget()->GetLoadSaveDialog()
+      ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->RunScriptButton)
+    {
+    this->RunScriptButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->InputSeriesMenu)
     {
     this->InputSeriesMenu->GetMenu()
@@ -790,38 +856,6 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->RunPlotButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
-      /*
-    PyObject* v;
-    std::string pythonCmd;
-    pythonCmd += "from Slicer import numpy\n";
-    pythonCmd += "from Slicer import slicer\n";
-    pythonCmd += "scene = slicer.MRMLScene\n";
-    pythonCmd += "node = scene.GetNodeByID('vtkMRMLLinearTransformNode4')\n";
-    pythonCmd += "lst  = node.GetName()\n";
-    pythonCmd += "str = ''.join( lst )\n";
-    pythonCmd += "print str\n";
-
-    v = PyRun_String(
-                     pythonCmd.c_str(),
-                     Py_file_input,
-                     (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
-                     (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()));
-      */
-    
-    /*
-    FILE *fp = PyFile_AsFile("test.py");
-    char *name = PyString_AsString(PyFile_Name(prog));
-    v = PyRun_File(fp, name, Py_file_input, globals,
-                   locals);
-    */
-
-      /*
-    if (v == NULL)
-      {
-      PyErr_Print();
-      }
-      */
-
     int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     const char* maskID   = this->MaskNodeIDList[selected].c_str();
@@ -865,14 +899,58 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
                                          nodeID, label, filename);
     */
     this->GetLogic()->SaveIntensityCurves(this->IntensityCurves, filename);
-
     }
-  /*
-  else if (this->RegistrationFixedImageIndexSpinBox == vtkKWSpinBox::SafeDownCast(caller)
-           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+  else if (this->ScriptSelectButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
+           && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
     {
     }
-  */
+  else if (this->RunScriptButton == vtkKWPushButton::SafeDownCast(caller)
+           && event == vtkKWPushButton::InvokedEvent)
+    {
+    const char* filename = this->ScriptSelectButton->GetWidget()->GetFileName();
+
+    PyObject* v;
+    std::string pythonCmd;
+    pythonCmd += "from Slicer import numpy\n";
+    pythonCmd += "from Slicer import slicer\n";
+    pythonCmd += "import '";
+    pythonCmd += filename;
+    pythonCmd += "'\n";
+
+    /*
+    pythonCmd += "scene = slicer.MRMLScene\n";
+    pythonCmd += "node = scene.GetNodeByID('vtkMRMLLinearTransformNode4')\n";
+    pythonCmd += "lst  = node.GetName()\n";
+    pythonCmd += "str = ''.join( lst )\n";
+    pythonCmd += "print str\n";
+    */
+
+    v = PyRun_String(
+                     pythonCmd.c_str(),
+                     Py_file_input,
+                     (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
+                     (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()));
+
+    if (Py_FlushLine())
+      {
+      PyErr_Clear();
+      }
+
+    /*
+    FILE *fp = PyFile_AsFile("test.py");
+    char *name = PyString_AsString(PyFile_Name(prog));
+    v = PyRun_File(fp, name, Py_file_input, globals,
+                   locals);
+    */
+    /*
+      if (v == NULL)
+      {
+      PyErr_Print();
+      }
+    */
+    
+
+    }
   else if (this->OutputSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
@@ -1064,6 +1142,7 @@ void vtkFourDAnalysisGUI::BuildGUI ( )
   BuildGUIForLoadFrame();
   BuildGUIForFrameControlFrame();
   BuildGUIForFunctionViewer();
+  BuildGUIForMapGenerator();
   BuildGUIForRegistrationFrame();
 
 }
@@ -1483,8 +1562,98 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
 
 
 //---------------------------------------------------------------------------
+void vtkFourDAnalysisGUI::BuildGUIForMapGenerator()
+{
+
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("FourDAnalysis");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Map Generator");
+  //conBrowsFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Node Selector
+
+  vtkKWFrameWithLabel *dframe = vtkKWFrameWithLabel::New();
+  dframe->SetParent(conBrowsFrame->GetFrame());
+  dframe->Create();
+  dframe->SetLabelText ("Node");
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                dframe->GetWidgetName() );
+
+  vtkKWLabel *inputLabel = vtkKWLabel::New();
+  inputLabel->SetParent(dframe->GetFrame());
+  inputLabel->Create();
+  inputLabel->SetText("Input:");
+
+  this->MapInputSeriesMenu = vtkKWMenuButton::New();
+  this->MapInputSeriesMenu->SetParent(dframe->GetFrame());
+  this->MapInputSeriesMenu->Create();
+  this->MapInputSeriesMenu->SetWidth(20);
+
+  vtkKWLabel *outputLabel = vtkKWLabel::New();
+  outputLabel->SetParent(dframe->GetFrame());
+  outputLabel->Create();
+  outputLabel->SetText(" Output:");
+  
+  this->MapOutputVolumeMenu = vtkKWMenuButton::New();
+  this->MapOutputVolumeMenu->SetParent(dframe->GetFrame());
+  this->MapOutputVolumeMenu->Create();
+  this->MapOutputVolumeMenu->SetWidth(20);
+
+  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+               inputLabel->GetWidgetName(),
+               this->MapInputSeriesMenu->GetWidgetName(),
+               outputLabel->GetWidgetName(),
+               this->MapOutputVolumeMenu->GetWidgetName());
+
+  dframe->Delete();
+  inputLabel->Delete();
+  outputLabel->Delete();
+
+  // -----------------------------------------
+  // Script 
+
+  vtkKWFrameWithLabel *sframe = vtkKWFrameWithLabel::New();
+  sframe->SetParent(conBrowsFrame->GetFrame());
+  sframe->Create();
+  sframe->SetLabelText ("Script");
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                sframe->GetWidgetName() );
+
+  this->ScriptSelectButton = vtkKWLoadSaveButtonWithLabel::New();
+  this->ScriptSelectButton->SetParent(sframe->GetFrame());
+  this->ScriptSelectButton->Create();
+  this->ScriptSelectButton->SetWidth(50);
+  this->ScriptSelectButton->GetWidget()->SetText ("Load");
+  this->ScriptSelectButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOff();
+
+  this->RunScriptButton = vtkKWPushButton::New();
+  this->RunScriptButton->SetParent(sframe->GetFrame());
+  this->RunScriptButton->Create();
+  this->RunScriptButton->SetText ("Run Script");
+  this->RunScriptButton->SetWidth (10);
+
+  this->Script("pack %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+               this->ScriptSelectButton->GetWidgetName(),
+               this->RunScriptButton->GetWidgetName());
+
+
+  sframe->Delete();
+
+}
+
+
+//---------------------------------------------------------------------------
 void vtkFourDAnalysisGUI::BuildGUIForRegistrationFrame()
 {
+  
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("FourDAnalysis");
   
@@ -1821,12 +1990,14 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
     names.push_back((*niter)->GetName());
     }
 
-  if (this->ForegroundSeriesMenu && this->BackgroundSeriesMenu && this->SeriesToPlotMenu
+  if (this->ForegroundSeriesMenu && this->BackgroundSeriesMenu
+      && this->SeriesToPlotMenu && this->MapInputSeriesMenu
       && this->InputSeriesMenu && this->OutputSeriesMenu && this->SaveSeriesMenu)
     {
     this->ForegroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->BackgroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->SeriesToPlotMenu->GetMenu()->DeleteAllItems();
+    this->MapInputSeriesMenu->GetMenu()->DeleteAllItems();
     this->InputSeriesMenu->GetMenu()->DeleteAllItems();
     this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
     this->SaveSeriesMenu->GetMenu()->DeleteAllItems();
@@ -1837,6 +2008,7 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
       this->ForegroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->BackgroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->SeriesToPlotMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->MapInputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->SaveSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
