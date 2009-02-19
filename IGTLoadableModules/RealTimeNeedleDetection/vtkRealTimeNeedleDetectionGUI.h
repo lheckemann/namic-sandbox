@@ -125,8 +125,9 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // MRML nodes
   //----------------------------------------------------------------
-  vtkMRMLVolumeNode*  pSourceNode;   // MRML node, which Slicer received via OpenIGTLink from the Scanner
-  vtkMRMLVolumeNode*  pVolumeNode;   // MRML node, which contains the processed image
+  vtkMRMLVolumeNode*          pSourceNode;   // MRML node, which Slicer received via OpenIGTLink from the Scanner
+  vtkMRMLVolumeNode*          pVolumeNode;   // MRML node, which contains the processed image
+  vtkMRMLLinearTransformNode* pTransformNode; // MRML node, which contains the transform representing the needle
     
   //----------------------------------------------------------------
   // Logic Values
@@ -140,12 +141,16 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // Image Values
   //----------------------------------------------------------------   
-  int             xLowerBound;
-  int             xUpperBound;        
-  int             yLowerBound;     
-  int             yUpperBound;
-  int             xImageRegionSize;
-  int             yImageRegionSize;
+  int             initialXLowerBound;
+  int             initialXUpperBound;        
+  int             initialYLowerBound;     
+  int             initialYUpperBound;
+  int             currentXLowerBound;
+  int             currentXUpperBound;        
+  int             currentYLowerBound;     
+  int             currentYUpperBound;
+  int             currentXImageRegionSize;
+  int             currentYImageRegionSize;
   int             imageDimensions[3]; // the number of cells on x, y and z axis
   double          imageSpacing[3];
   double          imageOrigin[3];

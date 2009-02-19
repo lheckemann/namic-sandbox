@@ -72,21 +72,22 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   
   //--------------------------------------------------------------------
   // MRML nodes  
-  this->pVolumeNode  = NULL;
-  this->pSourceNode  = NULL;
+  this->pVolumeNode    = NULL;
+  this->pSourceNode    = NULL;
+  this->pTransformNode = NULL;
   
   //----------------------------------------------------------------
-  // Locator  (MRML)   TODO:What is this TimmerFlag? Do I need it?
+  // Locator  (MRML)   
   this->TimerFlag = 0;
   
   //----------------------------------------------------------------
   // Image Values - default  
-  xLowerBound           = 0;
-  xUpperBound           = 256;
-  yLowerBound           = 0;
-  yUpperBound           = 256;
-  xImageRegionSize      = xUpperBound - xLowerBound;
-  yImageRegionSize      = yUpperBound - yLowerBound;
+  currentXLowerBound = initialXLowerBound = 0;
+  currentXUpperBound = initialXUpperBound = 256;
+  currentYLowerBound = initialYLowerBound = 0;
+  currentYUpperBound = initialYUpperBound = 256;
+  currentXImageRegionSize                 = 256;
+  currentYImageRegionSize                 = 256;
   imageDimensions[0]    = 256;
   imageDimensions[1]    = 256;
   imageDimensions[2]    = 1;
@@ -170,6 +171,7 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
     this->pVolumeNode->Delete();
   if(this->pSourceNode)
     this->pSourceNode->Delete();
+  //TODO: Delete pTransformNode
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -192,9 +194,7 @@ void vtkRealTimeNeedleDetectionGUI::Init()
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::Enter()
 {
-  // Fill in
-  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  
+  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();  
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
@@ -207,7 +207,6 @@ void vtkRealTimeNeedleDetectionGUI::Enter()
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::Exit()
 {
-  // Fill in
 }
 
 
@@ -215,7 +214,6 @@ void vtkRealTimeNeedleDetectionGUI::Exit()
 void vtkRealTimeNeedleDetectionGUI::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->vtkObject::PrintSelf(os, indent);
-
   os << indent << "RealTimeNeedleDetectionGUI: " << this->GetClassName() << "\n";
   os << indent << "Logic: " << this->GetLogic() << "\n";
 }
@@ -311,7 +309,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
 
   const char* eventName = vtkCommand::GetStringFromEventId(event);
 
-  if (strcmp(eventName, "LeftButtonPressEvent") == 0)  //TODO:What does this do?
+  if (strcmp(eventName, "LeftButtonPressEvent") == 0)  // This is not used yet, since only mouse clicks on buttons are processed
   {
     vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
     HandleMouseEvent(style);
@@ -340,7 +338,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       if(nItems == 0) // pVolumeNode does not exist yet
       {
         std::cout << "items == 0" << std::endl; 
-        //vtkMRMLVolumeNode::New() doesn't work! TODO:why?
         vtkMRMLScalarVolumeNode* pScalarNode = vtkMRMLScalarVolumeNode::New();
         pScalarNode->SetLabelMap(0);   // set the label map to grey scale
         pVolumeNode = pScalarNode;    
@@ -349,9 +346,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pVolumeNode->UpdateID("VolumeNode");
         pVolumeNode->SetName("VolumeNode");
         pVolumeNode->SetDescription("MRMLNode that displays the tracked needle");
-        pVolumeNode->SetScene(this->GetMRMLScene());  //TODO:What does this do? Do I need that?
+        pVolumeNode->SetScene(this->GetMRMLScene());  
         
-        //vtkMRMLVolumeDisplayNode::New() doesn't work! TODO:why?
         vtkMRMLScalarVolumeDisplayNode* pScalarDisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
         pScalarDisplayNode->SetDefaultColorMap();   
         vtkMRMLScalarVolumeDisplayNode* pDisplayNode = pScalarDisplayNode;         
@@ -370,7 +366,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       else
       {
         std::cerr << "ERROR! More than one VolumeNode" << std::endl; // code should never get here!
-        //return;
+        return;
       }
       //--------------------------------------------------------------------------------------
       // Get the image variables
@@ -384,18 +380,13 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       std::cerr << "got data from image" << std::endl;
      // pImageData->Delete();  // If I delete this, I get a segmentation fault after pressing start and stop twice due to double freed memory -> I suggest GetImageData() does not deeply copy the ImageData
       std::cerr << "ImageData deleted" << std::endl;
-      xLowerBound           = this->pXLowerEntry->GetValueAsInt();
-      xUpperBound           = this->pXUpperEntry->GetValueAsInt();
-      yLowerBound           = this->pYLowerEntry->GetValueAsInt();
-      yUpperBound           = this->pYUpperEntry->GetValueAsInt();  
-      xImageRegionSize      = xUpperBound - xLowerBound;
-      yImageRegionSize      = yUpperBound - yLowerBound;  
-      std::cout << "Dimensions: " << imageDimensions[0] << " | " << imageDimensions[1] << " | " << imageDimensions[2] << std::endl;
-      std::cout << "imageSpacing: " << imageSpacing[0] << " | " << imageSpacing[1] << " | " << imageSpacing[2] << std::endl;
-      std::cout << "imageOrigin: " << imageOrigin[0] << " | " << imageOrigin[1] << " | " << imageOrigin[2] << std::endl;
-      std::cout << "ScalarSize:" << scalarSize << " - X:" << xLowerBound << "|" << xUpperBound << " - Y:" << yLowerBound << "|" << yUpperBound << std::endl;
-      // start checking for changes in pSourceNode to update pVolumeNode
-      started = 1;     
+      currentXLowerBound = initialXLowerBound = this->pXLowerEntry->GetValueAsInt();
+      currentXUpperBound = initialXUpperBound = this->pXUpperEntry->GetValueAsInt();
+      currentYLowerBound = initialYLowerBound = this->pYLowerEntry->GetValueAsInt();
+      currentYUpperBound = initialYUpperBound = this->pYUpperEntry->GetValueAsInt();  
+      currentXImageRegionSize                 = currentXUpperBound - currentXLowerBound;
+      currentYImageRegionSize                 = currentYUpperBound - currentYLowerBound;  
+      started = 1; // start checking for changes in pSourceNode to update pVolumeNode     
       std::cerr << "Start" << std::endl;
     }
     else // no Scanner node found in MRMLScene
@@ -405,22 +396,24 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
   if (this->pStopButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
   {    
     std::cerr << "StopButton is pressed." << std::endl;
-    // stop checking and unregister the observer of the ScannerMRMLNode
+    // unregister the observer of the ScannerMRMLNode
     if(this->pSourceNode)
     {
       this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
       this->pSourceNode = NULL;  
     }
     
-    // set the VolumeNode to NULL, because it should not get used while started==0
+    // Set the VolumeNode to NULL, because it should not get used while started==0
+    // It will not get deleted, because it is still referenced in the MRMLScene
     if(this->pVolumeNode)
     {
       //this->GetMRMLScene()->RemoveNodeNoNotify((vtkMRMLNode*) pVolumeNode);
       this->pVolumeNode = NULL; 
     }
-    started = 0;
+    
+    started = 0; // Stop checking MRLM events of pSourceNode 
   }
-  UpdateGUI();
+  UpdateGUI(); // enable or disable options for the user
 } 
 
 
@@ -451,9 +444,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
   //TODO: if MRMLNode deleted -> pScannerIDEntry=""
   
   if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
-  {
     std::cout << " call from pSourceNode" << std::endl;
-  }
   
   if((this->pVolumeNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
     std::cout << "call from pVolumeNode" << std::endl;
@@ -468,14 +459,16 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
     if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
     {
       std::cout << "-SourceNode Event" << std::endl;
+      //------------------------------------------------------------------------------------------------
+      // Crop out the imageRegion specified by the X- and Y-boundaries
       vtkImageData* pImageData  = vtkImageData::New();        
       pImageData->DeepCopy(((vtkMRMLVolumeNode*) pSourceNode)->GetImageData());  
-      unsigned char* pImageRegion = new unsigned char[xImageRegionSize*yImageRegionSize*scalarSize]; 
+      unsigned char* pImageRegion = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize]; 
       GetImageRegion(pImageData, pImageRegion);
   
       //--------------------------------------------------------------------------------------------------
-      // Use the ImageProcessor to alter the region of interest and retrieve the needle position
-      pImageProcessor->SetImage((void*) pImageRegion, xImageRegionSize, yImageRegionSize, scalarSize, imageSpacing, imageOrigin);
+      // Use the ImageProcessor to alter the region of interest and calculate the needle position
+      pImageProcessor->SetImage((void*) pImageRegion, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
       pImageProcessor->PassOn();
       //pImageProcessor->LaplacianRecursiveGaussian(false,false);
       pImageProcessor->Threshold(false, true, MAX, 0, 15000);
@@ -492,12 +485,23 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->CannyEdgeDetection(true,false);
              //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
            //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",4);
-       std::cout << "processed" << std::endl;    
+      std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegion);
       SetImageRegion(pImageData, pImageRegion);
       //pImageRegion->Delete();  //TODO:DELETE!!
       pVolumeNode->SetAndObserveImageData(pImageData); //automatically removes old observer and sets modified flag, if new image is different  TODO: Does it also delete the old observer?
       pImageData->Delete();
+      
+      //------------------------------------------------------------------------------------------------
+      // Retrieve the needle position and adjust the X- and Y-boundaries
+      //TODO: adjust
+//      currentXLowerBound;
+//      currentXUpperBound;        
+//      currentYLowerBound;     
+//      currentYUpperBound;
+      currentXImageRegionSize = currentXUpperBound - currentXLowerBound;
+      currentYImageRegionSize = currentYUpperBound - currentYLowerBound;
+      
     }
     started++;  //I also use started as a counter of the frames -> TODO:Check if started gets bigger than int
   }
@@ -706,7 +710,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
     this->pXUpperEntry->EnabledOn();
     this->pYLowerEntry->EnabledOn();
     this->pYUpperEntry->EnabledOn();
-    //this->pYUpperEntry->UpdateEnableState() TODO:Why do I need this?
   }
 }
 
@@ -728,9 +731,9 @@ void vtkRealTimeNeedleDetectionGUI::GetImageRegion(vtkImageData* pImageData, uns
   int j = 0;
   for(long i = 0; i < (imageDimensions[0] * imageDimensions[1] * scalarSize) ; i++)
   {
-    if((i >= yLowerBound*imageDimensions[1]*scalarSize) && (i < yUpperBound*imageDimensions[1]*scalarSize))  // Y-axis restrictions
+    if((i >= currentYLowerBound*imageDimensions[1]*scalarSize) && (i < currentYUpperBound*imageDimensions[1]*scalarSize))  // Y-axis restrictions
     {
-      if((xLowerBound*scalarSize <= (i%(imageDimensions[0]*scalarSize))) && (xUpperBound*scalarSize >  (i%(imageDimensions[0]*scalarSize))))
+      if((currentXLowerBound*scalarSize <= (i%(imageDimensions[0]*scalarSize))) && (currentXUpperBound*scalarSize >  (i%(imageDimensions[0]*scalarSize))))
       {            
         pImageRegion[j] = pImage[i];
         j++;
@@ -744,9 +747,9 @@ void vtkRealTimeNeedleDetectionGUI::GetImageRegion(vtkImageData* pImageData, uns
 void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion)
 {
   unsigned char* pImage = (unsigned char*) pImageData->GetScalarPointer();
-  for(long i = 0; i <= xImageRegionSize * yImageRegionSize * scalarSize; i++)
+  for(long i = 0; i <= currentXImageRegionSize * currentYImageRegionSize * scalarSize; i++)
   {
-    int positionInMessageImage = xLowerBound*scalarSize + (i%(xImageRegionSize*scalarSize)) + (i/(xImageRegionSize*scalarSize))*imageDimensions[0]*scalarSize;
+    int positionInMessageImage = currentXLowerBound*scalarSize + (i%(currentXImageRegionSize*scalarSize)) + (i/(currentXImageRegionSize*scalarSize))*imageDimensions[0]*scalarSize;
     pImage[positionInMessageImage+10*imageDimensions[0]*scalarSize] = pImageRegion[i];
   } 
 }
