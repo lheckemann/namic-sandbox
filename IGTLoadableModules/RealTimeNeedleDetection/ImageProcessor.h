@@ -64,7 +64,7 @@ public:
   void PassOn() {mLocalOutputImage = mLocalInputImage;};
   void GradientMagnitude(bool inputTmp, bool outputTmp);
   void Threshold(bool inputTmp, bool outputTmp, int outsideValue, int threshBelow, int threshAbove);
-  void HoughTransformation(bool inputTmp, bool outputTmp, double* points);
+  void HoughTransformation(bool inputTmp, double* points);
   void CannyEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore        
   void BinaryThreshold(bool inputTmp, bool outputTmp);            // not used anymore
   void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp); // not used anymore
