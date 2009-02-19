@@ -443,15 +443,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
   //TODO: If new mrmlNode added -> pScannerIDEntry=new mrml node 
   //TODO: if MRMLNode deleted -> pScannerIDEntry=""
   
-  if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
-    std::cout << " call from pSourceNode" << std::endl;
-  
-  if((this->pVolumeNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
-    std::cout << "call from pVolumeNode" << std::endl;
-  
-  if((vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("vtkMRMLScalarVolumeNode1")) == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
-    std::cout << "call from vtkMRMLScalarVolumeNode1" << std::endl;  
-  
   if(started && (lastModified != this->pSourceNode->GetMTime()))
   {
     lastModified = this->pSourceNode->GetMTime(); // This prevents unnecessarily issued ImageDataModifiedEvents from beging processed 
@@ -486,9 +477,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
        //pImageProcessor->Threshold(true,true,MAX,0,1);
        //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/threshold.png",3);
-      pImageProcessor->HoughTransformation(true, false, points);    
+      pImageProcessor->HoughTransformation(true, points);    
        //pImageProcessor->CannyEdgeDetection(true,false);
-             //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
+             pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
            //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",4);
       std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegion);
