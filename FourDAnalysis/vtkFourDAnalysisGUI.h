@@ -118,6 +118,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void BuildGUIForFrameControlFrame();
   void BuildGUIForFunctionViewer();
   void BuildGUIForRegistrationFrame();
+  void BuildGUIForMapGenerator();
 
   //----------------------------------------------------------------
   // Update routines
@@ -165,14 +166,27 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWMenuButton*     BackgroundSeriesMenu;
   vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
 
+  // -----------------------------------------
+  // Intensity Curve
+
   vtkKWMenuButton*  SeriesToPlotMenu;
   vtkKWMenuButton*  MaskSelectMenu;
   vtkKWPlotGraph*   IntensityPlot;
   vtkKWCheckButtonWithLabel* ErrorBarCheckButton;
-
   vtkKWPushButton* RunPlotButton;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
 
+  // -----------------------------------------
+  // Parameter Map
+
+  vtkKWMenuButton* MapInputSeriesMenu;
+  vtkKWMenuButton* MapOutputVolumeMenu;
+  vtkKWLoadSaveButtonWithLabel* ScriptSelectButton;
+  vtkKWPushButton* RunScriptButton;
+
+
+  // -----------------------------------------
+  // 4D Registration
 
   vtkKWMenuButton* InputSeriesMenu;
   vtkKWMenuButton* OutputSeriesMenu;
