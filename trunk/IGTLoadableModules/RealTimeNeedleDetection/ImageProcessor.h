@@ -15,7 +15,8 @@
 #include "itkSobelOperator.h"
 #include "itkNeighborhoodIterator.h"
 
-#define MAX 65335  // =Maximum grayscale Intensity for FloatImageType and UShortImageType (=maximum of unsigned short)
+#define MAX 65335       // Maximum gray scale Intensity for FloatImageType and UShortImageType (=maximum of unsigned short)
+#define MAXOUTPUT 600  // Maximum gray scale Intensity for the output image 
 
 template <class InputPixelType>
 class InvertIntensityFunctor
@@ -31,7 +32,7 @@ class ImageProcessor
 {
 public:
   typedef unsigned char                                                         UCharPixelType;
-  typedef  unsigned short                                                       UShortPixelType;
+  typedef unsigned short                                                        UShortPixelType;
   typedef float                                                                 FloatPixelType;
   typedef itk::Image<UCharPixelType, 2>                                         UCharImageType;
   typedef itk::Image<UShortPixelType, 2>                                        UShortImageType;
@@ -80,8 +81,8 @@ public:
   FloatImageType::Pointer mLocalOutputImage;
   int mScalarSize;  // ScalarSize of the image 1:Char,UChar 2:Short,UShort
   int mWhichTmp;    // variable to decide which tmp buffer is currently in use: 
-                    // 0 = none, 1 = mLocalTmp1, 2= mLocalTmp2 
-                    // Attention: Gets only set back to 0 when an image is written to the output buffer
+                    // 0 = none, 1 = mLocalTmp1, 2 = mLocalTmp2 
+                    // Attention: Gets only set back to 0 when an image is written to mLocalOutputImage
 };
 
 
