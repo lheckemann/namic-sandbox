@@ -15,9 +15,7 @@
 #include "itkSobelOperator.h"
 #include "itkNeighborhoodIterator.h"
 
-//TODO: where are the ImageRegion and Rescale libs included?
 #define MAX 65335  // =Maximum grayscale Intensity for FloatImageType and UShortImageType (=maximum of unsigned short)
-
 
 template <class InputPixelType>
 class InvertIntensityFunctor
@@ -33,22 +31,22 @@ class ImageProcessor
 {
 public:
   typedef unsigned char                                                         UCharPixelType;
-  typedef  unsigned short                                                        UShortPixelType;
-  typedef float                                                                  FloatPixelType;
-  typedef itk::Image<UCharPixelType, 2>                                          UCharImageType;
+  typedef  unsigned short                                                       UShortPixelType;
+  typedef float                                                                 FloatPixelType;
+  typedef itk::Image<UCharPixelType, 2>                                         UCharImageType;
   typedef itk::Image<UShortPixelType, 2>                                        UShortImageType;
-  typedef itk::Image<FloatPixelType, 2>                                          FloatImageType;
-  typedef itk::ImageRegionIterator<UCharImageType>                               UCharIteratorType;
-  typedef itk::ImageRegionIterator<UShortImageType>                              UShortIteratorType;
+  typedef itk::Image<FloatPixelType, 2>                                         FloatImageType;
+  typedef itk::ImageRegionIterator<UCharImageType>                              UCharIteratorType;
+  typedef itk::ImageRegionIterator<UShortImageType>                             UShortIteratorType;
   typedef itk::ImageRegionIterator<FloatImageType>                              FloatIteratorType;
   typedef itk::NeighborhoodIterator<FloatImageType>                             FloatNeighborhoodIteratorType;
   typedef itk::HoughTransform2DLinesImageFilter<FloatPixelType, FloatPixelType> HoughFilter; 
-  typedef itk::RescaleIntensityImageFilter<FloatImageType, UCharImageType>       RescaleToUCharFilter;      
+  typedef itk::RescaleIntensityImageFilter<FloatImageType, UCharImageType>      RescaleToUCharFilter;      
   typedef itk::RescaleIntensityImageFilter<FloatImageType, UShortImageType>     RescaleToUShortFilter;    
-  typedef itk::RescaleIntensityImageFilter<UCharImageType, FloatImageType>       RescaleUCharToFloatFilter; 
+  typedef itk::RescaleIntensityImageFilter<UCharImageType, FloatImageType>      RescaleUCharToFloatFilter; 
   typedef itk::RescaleIntensityImageFilter<UShortImageType, FloatImageType>     RescaleUShortToFloatFilter;
   typedef itk::UnaryFunctorImageFilter<FloatImageType, FloatImageType,
-               InvertIntensityFunctor< FloatImageType::PixelType> >              InverterType;
+               InvertIntensityFunctor< FloatImageType::PixelType> >             InverterType;
 
   ImageProcessor();
   //Conversion Functions
@@ -75,8 +73,7 @@ public:
   virtual ~ImageProcessor();
   
   private:
-  // TODO: I still have to do exception handling for localImages -> What happens if inputImage not set?if Filter fails to create an outputImage?
-  // TODO: can I just assign a new Image::Pointer?
+  // TODO: I still have to do exception handling for local images -> What happens if inputImage not set? if Filter fails to create an outputImage?
   FloatImageType::Pointer mLocalInputImage;
   FloatImageType::Pointer mLocalTmp1;
   FloatImageType::Pointer mLocalTmp2;

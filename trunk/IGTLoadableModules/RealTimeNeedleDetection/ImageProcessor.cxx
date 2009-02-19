@@ -13,7 +13,12 @@ ImageProcessor::ImageProcessor()
 
 ImageProcessor::~ImageProcessor()
 {
+  mLocalInputImage->Delete();
+  mLocalOutputImage->Delete();
+  mLocalTmp1->Delete();
+  mLocalTmp2->Delete();
   std::cout << "ImageProcessor destructed" << std::endl;
+ //TODO: delete properly 
 }
 
 //Change from little to big Endian | not used anymore
