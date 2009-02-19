@@ -321,6 +321,13 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
   igtl::TransformMessage::Pointer transMsg;
   transMsg = igtl::TransformMessage::New();
   transMsg->SetDeviceName("Instrument Tracker");
+  
+  vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
+  vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
+  
+  double xValue;
+  double yValue;
+  double zValue;
 
   do
     {
@@ -337,7 +344,55 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
       {
       //Get Tracking Matrix for new frame
       self->GetTrackerTool()->GetBuffer()->GetFlagsAndMatrixFromTime(trackerMatrix, vtkTimerLog::GetUniversalTime());
-  
+      
+//      //Final coordinate axis alignment that the layout fits to slicer
+////      oldMatrix->DeepCopy(trackerMatrix);
+////      
+////      adjustMatrix->Identity();  
+////      adjustMatrix->Element[0][0] = 0;
+////      adjustMatrix->Element[1][1] = 0;
+////      adjustMatrix->Element[2][2] = 0;
+////      
+////      adjustMatrix->Element[2][0] =  1;
+////      adjustMatrix->Element[2][1] =  1;
+////      adjustMatrix->Element[1][2] =  1;
+////
+////      vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, trackerMatrix);
+//      
+////
+//      xValue = trackerMatrix->Element[0][3] + self->GetSystemOffset()[0];
+//      yValue = trackerMatrix->Element[1][3] + self->GetSystemOffset()[1];
+//      zValue = trackerMatrix->Element[2][3] + self->GetSystemOffset()[2];
+////      
+////      trackerMatrix->Element[0][3] = yValue;
+////      trackerMatrix->Element[1][3] = -zValue;
+////      trackerMatrix->Element[2][3] = -xValue;
+//      
+//      trackerMatrix->Element[0][3] = xValue;
+//      trackerMatrix->Element[1][3] = yValue;
+//      trackerMatrix->Element[2][3] = zValue;
+//      
+//      //Copy matrix
+//      igtlMatrix[0][0] = trackerMatrix->Element[0][0];
+//      igtlMatrix[0][1] = trackerMatrix->Element[0][1];
+//      igtlMatrix[0][2] = trackerMatrix->Element[0][2];
+//      igtlMatrix[0][3] = trackerMatrix->Element[0][3];
+//  
+//      igtlMatrix[1][0] = trackerMatrix->Element[1][0];
+//      igtlMatrix[1][1] = trackerMatrix->Element[1][1];
+//      igtlMatrix[1][2] = trackerMatrix->Element[1][2];
+//      igtlMatrix[1][3] = trackerMatrix->Element[1][3];
+//  
+//      igtlMatrix[2][0] = trackerMatrix->Element[2][0];
+//      igtlMatrix[2][1] = trackerMatrix->Element[2][1];
+//      igtlMatrix[2][2] = trackerMatrix->Element[2][2];
+//      igtlMatrix[2][3] = trackerMatrix->Element[2][3];
+//  
+//      igtlMatrix[3][0] = trackerMatrix->Element[3][0];
+//      igtlMatrix[3][1] = trackerMatrix->Element[3][1];
+//      igtlMatrix[3][2] = trackerMatrix->Element[3][2];
+//      igtlMatrix[3][3] = trackerMatrix->Element[3][3];
+
       //Copy matrix
       igtlMatrix[0][0] = trackerMatrix->Element[0][0];
       igtlMatrix[0][1] = trackerMatrix->Element[0][1];
@@ -395,8 +450,8 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
   while(vtkThreadSleep(data, startTime + frame/rate));
 
   trackerMatrix->Delete();
-  //transMsg->Delete();
-  
+  oldMatrix->Delete();
+  adjustMatrix->Delete();
 return NULL;
 }
 

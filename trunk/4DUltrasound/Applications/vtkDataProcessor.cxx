@@ -483,9 +483,10 @@ int vtkDataProcessor::StopProcessing()
     this->PlayerThreadId = -1;
     this->Processing = false;
 
-    #ifdef  DEBUGPROCESSOR
+    if(this->Verbose)
+      {
       cout << "Stop processing" <<endl;
-    #endif
+      }
     }
   else
     {
@@ -495,6 +496,10 @@ int vtkDataProcessor::StopProcessing()
     return 1;
     }
 
+  #ifdef  DEBUGPROCESSOR
+    this->LogStream << this->GetUpTime()  << " |P-INFO: Data processor stopped processing" << endl;
+  #endif
+  
   return 0;
 }
 
@@ -889,7 +894,33 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
   vtkMatrix4x4 * matrix = vtkMatrix4x4::New();
   this->GetVolumeMatrix(matrix);
   
-  //Adjust matrix to OpenIGTLink offset
+//  vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
+//  vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
+//  
+//  //Transform coordinate System-------------------------------------------------
+//  oldMatrix->DeepCopy(matrix);
+//  
+//  adjustMatrix->Identity();  
+//  adjustMatrix->Element[0][0] = 0;
+//  adjustMatrix->Element[1][1] = 0;
+//  adjustMatrix->Element[2][2] = 0;
+//  
+//  adjustMatrix->Element[2][0] = -1;
+//  adjustMatrix->Element[0][1] =  1;
+//  adjustMatrix->Element[1][2] = -1;
+//
+//  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, matrix);
+//  
+//  adjustMatrix->Delete();
+//  oldMatrix->Delete();
+//    
+//  double xOrigin = reconstructedVolume->GetOrigin()[0];
+//  double yOrigin = reconstructedVolume->GetOrigin()[1];
+//  double zOrigin = reconstructedVolume->GetOrigin()[2];
+//  
+//  reconstructedVolume->SetOrigin(yOrigin, -zOrigin, -xOrigin);
+  
+  //Adjust matrix to OpenIGTLink offset-----------------------------------------
   double xLength = (reconstructedVolume->GetDimensions()[0] - 1) / 2;
   double yLength = (reconstructedVolume->GetDimensions()[1] - 1) / 2;
   double zLength = (reconstructedVolume->GetDimensions()[2] - 1) / 2;
@@ -950,6 +981,12 @@ int vtkDataProcessor::AddNewDataToBuffer(int index, struct DataStruct dataStruct
     }
 
   this->dataBuffer[index] = dataStruct;
+  
+  this->dataBufferIndexQueue.push(index);//Add Index to new data buffer queue
+  #ifdef  DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: New Data added at index "<< index << endl;
+  #endif
+  
   return 0;
 }
 
@@ -1004,8 +1041,6 @@ int vtkDataProcessor::NewData(struct DataStruct dataStruct)
     this->IncrementBufferIndex(-1);
     return -1;
     }
-
-  this->dataBufferIndexQueue.push(index);//Add Index to new data buffer queue
 
   return 0;
 }
@@ -1255,16 +1290,36 @@ int vtkDataProcessor::DeleteData(int index)
     return -1;
     }
 
-  #ifdef ERRORPROCESSOR
-    this->LogStream << this->GetUpTime()  << " |P-INFO: Delete data at Index: " << index << endl;
-  #endif
   
   if(this->VolumeReconstructionEnabled)
     {//If not enabled memory is freed at the data sender
-    this->dataBuffer[index].Frame->Delete();
-    this->dataBuffer[index].Matrix->Delete();
+    if(NULL != this->dataBuffer[index].Frame)
+      {
+      this->dataBuffer[index].Frame->Delete();
+      }
+    else
+      {
+      #ifdef ERRORPROCESSOR
+        this->LogStream << this->GetUpTime()  << " |P-ERROR: Valid Index (" << index << ") has no frame object"<< endl;
+      #endif
+      }
+    
+    if(NULL != this->dataBuffer[index].Matrix)
+      {
+      this->dataBuffer[index].Matrix->Delete();
+      }
+    else
+      {
+      #ifdef ERRORPROCESSOR
+        this->LogStream << this->GetUpTime()  << " |P-ERROR: Valid Index (" << index << ") has no matrix object"<< endl;
+      #endif
+      }
+    #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Delete data at Index: " << index << endl;
+    #endif
     }
   
+    
   this->dataBuffer.erase(index);
   this->dataBufferIndexQueue.pop();
   
