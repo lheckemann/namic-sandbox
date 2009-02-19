@@ -333,11 +333,13 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       
     if(pSourceNode)
     { //-----------------------------------------------------------------------------------------------------------------
-      // Create the volumeNode and displayNode, which display the detected needle      
+      // Create the volumeNode and displayNode, which display the detected needle   
+      std::cout << "pSourceNode exists" << std::endl;   
       vtkCollection* collectionOfVolumeNodes = this->GetMRMLScene()->GetNodesByName("VolumeNode");
       int nItems = collectionOfVolumeNodes->GetNumberOfItems();
       if(nItems == 0) // pVolumeNode does not exist yet
       {
+        std::cout << "items == 0" << std::endl; 
         //vtkMRMLVolumeNode::New() doesn't work! TODO:why?
         vtkMRMLScalarVolumeNode* pScalarNode = vtkMRMLScalarVolumeNode::New();
         pScalarNode->SetLabelMap(0);   // set the label map to grey scale
@@ -368,17 +370,20 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       else
       {
         std::cerr << "ERROR! More than one VolumeNode" << std::endl; // code should never get here!
-        return;
+        //return;
       }
       //--------------------------------------------------------------------------------------
       // Get the image variables
-      vtkImageData* pImageData  = ((vtkMRMLVolumeNode*) pSourceNode)->GetImageData();
+      vtkImageData* pImageData = ((vtkMRMLVolumeNode*) pSourceNode)->GetImageData();
+      std::cerr << "got ImageData" << std::endl;
       pImageData->GetDimensions(imageDimensions);
       pImageData->GetSpacing(imageSpacing);
       pImageData->GetOrigin(imageOrigin);
       scalarSize = pImageData->GetScalarSize();
       //TODO: Do I need to get the scalarType, too?
-      pImageData->Delete();
+      std::cerr << "got data from image" << std::endl;
+     // pImageData->Delete();  // If I delete this, I get a segmentation fault after pressing start and stop twice due to double freed memory -> I suggest GetImageData() does not deeply copy the ImageData
+      std::cerr << "ImageData deleted" << std::endl;
       xLowerBound           = this->pXLowerEntry->GetValueAsInt();
       xUpperBound           = this->pXUpperEntry->GetValueAsInt();
       yLowerBound           = this->pYLowerEntry->GetValueAsInt();
@@ -391,6 +396,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       std::cout << "ScalarSize:" << scalarSize << " - X:" << xLowerBound << "|" << xUpperBound << " - Y:" << yLowerBound << "|" << yUpperBound << std::endl;
       // start checking for changes in pSourceNode to update pVolumeNode
       started = 1;     
+      std::cerr << "Start" << std::endl;
     }
     else // no Scanner node found in MRMLScene
       std::cerr << "ERROR! No Scanner detected. RealTimeNeedleDetection did not start." << std::endl;
@@ -459,13 +465,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
   {
     lastModified = this->pSourceNode->GetMTime(); // This prevents unnecessarily issued ImageDataModifiedEvents from beging processed 
     std::cout << started << ":MRMLEvent processing while started";
-    //TODO: it still gets called 2 times, because OpenIGTLink calls it twice! Do something about that!
     if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
     {
       std::cout << "-SourceNode Event" << std::endl;
       vtkImageData* pImageData  = vtkImageData::New();        
       pImageData->DeepCopy(((vtkMRMLVolumeNode*) pSourceNode)->GetImageData());  
-              //ProcessImage(pImageData, started); 
       unsigned char* pImageRegion = new unsigned char[xImageRegionSize*yImageRegionSize*scalarSize]; 
       GetImageRegion(pImageData, pImageRegion);
   
@@ -474,21 +478,17 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->SetImage((void*) pImageRegion, xImageRegionSize, yImageRegionSize, scalarSize, imageSpacing, imageOrigin);
       pImageProcessor->PassOn();
       //pImageProcessor->LaplacianRecursiveGaussian(false,false);
-      //pImageProcessor->Threshold(false, true, MAX, 0, 15000);
+      pImageProcessor->Threshold(false, true, MAX, 0, 15000);
   //    pImageProcessor->SobelFilter(true,true,1);
   //    pImageProcessor->Threshold(true,true,MAX,0,10000);
   //    pImageProcessor->SobelEdgeDetection(false, true);
-  //    pImageProcessor->SobelEdgeDetection(true, true);
-  //    pImageProcessor->SobelEdgeDetection(true, true);
-  //    pImageProcessor->SobelEdgeDetection(true, true);
-  //    pImageProcessor->SobelEdgeDetection(true, true);
   //    pImageProcessor->SobelEdgeDetection(true, false);
        //pImageProcessor->GradientMagnitude(false,true);
        //pImageProcessor->Threshold(false,true,0,0,20000);
-       //pImageProcessor->Threshold(true,true,65535,18000,65535);
-       //pImageProcessor->Threshold(true,true,65535,0,1);
+       //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
+       //pImageProcessor->Threshold(true,true,MAX,0,1);
        //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/threshold.png",3);
-      //pImageProcessor->HoughTransformation(true,false);    
+      pImageProcessor->HoughTransformation(true,false);    
        //pImageProcessor->CannyEdgeDetection(true,false);
              //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
            //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",4);
@@ -662,13 +662,13 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pYLowerEntry->SetParent(yFrame);
   this->pYLowerEntry->Create();
   this->pYLowerEntry->SetWidth(7);
-  this->pYLowerEntry->SetValueAsInt(140);
+  this->pYLowerEntry->SetValueAsInt(120);
               
   this->pYUpperEntry = vtkKWEntry::New();
   this->pYUpperEntry->SetParent(yFrame);
   this->pYUpperEntry->Create();
   this->pYUpperEntry->SetWidth(7);
-  this->pYUpperEntry->SetValueAsInt(200);
+  this->pYUpperEntry->SetValueAsInt(150);
 
   app->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               yLabel->GetWidgetName(), this->pYLowerEntry->GetWidgetName(), this->pYUpperEntry->GetWidgetName());
@@ -747,7 +747,7 @@ void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, uns
   for(long i = 0; i <= xImageRegionSize * yImageRegionSize * scalarSize; i++)
   {
     int positionInMessageImage = xLowerBound*scalarSize + (i%(xImageRegionSize*scalarSize)) + (i/(xImageRegionSize*scalarSize))*imageDimensions[0]*scalarSize;
-    pImage[positionInMessageImage] = pImageRegion[i];
+    pImage[positionInMessageImage+10*imageDimensions[0]*scalarSize] = pImageRegion[i];
   } 
 }
 
