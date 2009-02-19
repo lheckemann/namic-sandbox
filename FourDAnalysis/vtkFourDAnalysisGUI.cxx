@@ -44,6 +44,7 @@
 #include "vtkKWSpinBox.h"
 #include "vtkKWCanvas.h"
 #include "vtkKWRange.h"
+#include "vtkKWCheckButtonWithLabel.h"
 
 #include "vtkKWProgressDialog.h"
 
@@ -119,9 +120,9 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->MaskSelectMenu    = NULL;
 
   this->RunPlotButton  = NULL;
-  this->PlotTypeButtonSet = NULL;
+  this->ErrorBarCheckButton     = NULL;
   this->SavePlotButton = NULL;
-  this->IntensityPlot = NULL;
+  this->IntensityPlot  = NULL;
 
   this->InputSeriesMenu  = NULL;
   this->OutputSeriesMenu = NULL;
@@ -244,6 +245,11 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     {
     this->IntensityPlot->SetParent(NULL);
     this->IntensityPlot->Delete();
+    }
+  if (this->ErrorBarCheckButton)
+    {
+    this->ErrorBarCheckButton->SetParent(NULL);
+    this->ErrorBarCheckButton->Delete();
     }
   if (this->SavePlotButton)
     {
@@ -401,11 +407,9 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->RunPlotButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  if (this->PlotTypeButtonSet)
+  if (this->ErrorBarCheckButton)
     {
-    this->PlotTypeButtonSet->GetWidget(0)
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    this->PlotTypeButtonSet->GetWidget(1)
+    this->ErrorBarCheckButton->GetWidget()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->SavePlotButton)
@@ -556,12 +560,10 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->RunPlotButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-  if (this->PlotTypeButtonSet)
+  if (this->ErrorBarCheckButton)
     {
-    this->PlotTypeButtonSet->GetWidget(0)
-      ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-    this->PlotTypeButtonSet->GetWidget(1)
-      ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->ErrorBarCheckButton->GetWidget()
+      ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->SavePlotButton)
     {
@@ -836,41 +838,19 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     UpdateIntensityPlot(this->IntensityCurves);
 
     }
-  else if (this->PlotTypeButtonSet->GetWidget(0) == vtkKWRadioButton::SafeDownCast(caller)
-           && event == vtkKWRadioButton::SelectedStateChangedEvent
-           && this->PlotTypeButtonSet->GetWidget(0)->GetSelectedState() == 1)
+  else if (this->ErrorBarCheckButton->GetWidget() == vtkKWCheckButton::SafeDownCast(caller)
+           && event == vtkKWCheckButton::SelectedStateChangedEvent)
     {
-    /*
-    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
-    int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
-    const char* nodeID = this->MaskNodeIDList[selected].c_str();
-
-    if (nodeID)
+    if (this->ErrorBarCheckButton->GetWidget()->GetSelectedState() == 1)
       {
-      vtkDoubleArray* p;
-      p = this->GetLogic()->GetIntensityCurve(this->BundleNodeIDList[series].c_str(),
-                                              nodeID, label, vtkFourDAnalysisLogic::TYPE_MEAN);
-      UpdateFunctionEditor(p);
+      this->IntensityPlot->ErrorBarOn();
+      this->IntensityPlot->UpdateGraph();
       }
-    */
-    }
-  else if (this->PlotTypeButtonSet->GetWidget(1) == vtkKWRadioButton::SafeDownCast(caller)
-           && event == vtkKWRadioButton::SelectedStateChangedEvent
-           && this->PlotTypeButtonSet->GetWidget(1)->GetSelectedState() == 1)
-    {
-    /*
-    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
-    int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
-    const char* nodeID = this->MaskNodeIDList[selected].c_str();
-
-    if (nodeID)
+    else
       {
-      vtkDoubleArray* p;
-      p = this->GetLogic()->GetIntensityCurve(this->BundleNodeIDList[series].c_str(),
-                                              nodeID, label, vtkFourDAnalysisLogic::TYPE_SD);
-      UpdateFunctionEditor(p);
+      this->IntensityPlot->ErrorBarOff();
+      this->IntensityPlot->UpdateGraph();
       }
-    */
     }
   else if (this->SavePlotButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
@@ -1452,21 +1432,6 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
   
-  this->PlotTypeButtonSet = vtkKWRadioButtonSet::New();
-  this->PlotTypeButtonSet->SetParent(frame->GetFrame());
-  this->PlotTypeButtonSet->Create();
-  this->PlotTypeButtonSet->PackHorizontallyOn();
-  this->PlotTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
-  this->PlotTypeButtonSet->UniformColumnsOn();
-  this->PlotTypeButtonSet->UniformRowsOn();
-
-  this->PlotTypeButtonSet->AddWidget(0);
-  this->PlotTypeButtonSet->GetWidget(0)->SetText("Mean");
-  this->PlotTypeButtonSet->AddWidget(1);
-  this->PlotTypeButtonSet->GetWidget(1)->SetText("SD");
-
-  this->PlotTypeButtonSet->GetWidget(0)->SelectedStateOn();
-
   this->IntensityPlot = vtkKWPlotGraph::New();
   this->IntensityPlot->SetParent(frame->GetFrame());
   this->IntensityPlot->Create();
@@ -1478,9 +1443,15 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
   //this->IntensityPlot->ErrorBarOff();
   this->IntensityPlot->UpdateGraph();
 
+  this->ErrorBarCheckButton = vtkKWCheckButtonWithLabel::New();
+  this->ErrorBarCheckButton->SetParent(frame->GetFrame());
+  this->ErrorBarCheckButton->Create();
+  this->ErrorBarCheckButton->GetWidget()->SelectedStateOff();
+  this->ErrorBarCheckButton->SetLabelText("Show SD");
+  
   this->Script("pack %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
-               this->PlotTypeButtonSet->GetWidgetName(),
-               this->IntensityPlot->GetWidgetName());
+               this->IntensityPlot->GetWidgetName(),
+               this->ErrorBarCheckButton->GetWidgetName());
 
   // -----------------------------------------
   // Output frame
