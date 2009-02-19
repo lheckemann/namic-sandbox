@@ -41,6 +41,7 @@ class vtkKWRadioButtonSet;
 class vtkKWRadioButton;
 class vtkKWRange;
 class vtkIntensityCurves;
+class vtkKWCheckButtonWithLabel;
 
 class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 {
@@ -164,12 +165,12 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWMenuButton*     BackgroundSeriesMenu;
   vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
 
-  vtkKWMenuButton* SeriesToPlotMenu;
-  vtkKWMenuButton* MaskSelectMenu;
-  vtkKWPlotGraph*  IntensityPlot;
+  vtkKWMenuButton*  SeriesToPlotMenu;
+  vtkKWMenuButton*  MaskSelectMenu;
+  vtkKWPlotGraph*   IntensityPlot;
+  vtkKWCheckButtonWithLabel* ErrorBarCheckButton;
 
   vtkKWPushButton* RunPlotButton;
-  vtkKWRadioButtonSet* PlotTypeButtonSet;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
 
 
