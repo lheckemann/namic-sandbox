@@ -502,6 +502,12 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
             dataStruct.Matrix->Delete();
             dataStruct.Frame->Delete();
             }
+          else
+            {
+            #ifdef DEBUGCOLLECTOR
+            self->GetLogStream() << self->GetUpTime() << " |C-INFO: Data sent to processor" << endl;
+            #endif
+            }
           }
         else
           {
@@ -610,10 +616,15 @@ int vtkDataCollector::StopCollecting()
       this->trackerSimulator->StopTracking();
       }
 
-    if(Verbose)
+    if(this->Verbose)
       {
       cout << "Stop collecting" << endl;
       }
+    
+    #ifdef DEBUGCOLLECTOR
+      this->LogStream << this->GetUpTime() << " |C-INFO: Data collector stopped collecting"<< endl;
+    #endif
+    
     }
 
   return 0;
@@ -630,7 +641,7 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
 {
   if(this->IsMatrixEmpty(pDataStruct->Matrix) || this->IsIdentityMatrix(pDataStruct->Matrix))
     {
-    #ifdef DEBUGCOLLECTOR
+    #ifdef INFOCOLLECTOR
     this->LogStream << this->GetUpTime() << " |C-ERROR: Tracker received no data"<< endl;
     #endif
     return -1;
@@ -666,8 +677,8 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix Obliqueness adjusted:"<< endl;
 //    pDataStruct->Matrix->Print(this->LogStream);
 //  #endif
-
-  //Transform coordinate System-------------------------------------------------
+  
+ //Transform coordinate System-------------------------------------------------
   oldMatrix->DeepCopy(pDataStruct->Matrix);
   
   adjustMatrix->Identity();  
@@ -715,20 +726,16 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   pDataStruct->Matrix->Element[0][3] += this->SystemOffset[0];
   pDataStruct->Matrix->Element[1][3] += this->SystemOffset[1];
   pDataStruct->Matrix->Element[2][3] += this->SystemOffset[2];
-  
-//  oldMatrix->DeepCopy(pDataStruct->Matrix);
-//    
-//    adjustMatrix->Identity();  
-//    adjustMatrix->Element[0][0] = 0;
-//    adjustMatrix->Element[1][1] = 0;
-//    adjustMatrix->Element[2][2] = 0;
-//    
-//    adjustMatrix->Element[0][0] =  1;
-//    adjustMatrix->Element[2][1] = -1;
-//    adjustMatrix->Element[1][2] =  1;
-//
-//  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
 
+
+//  
+//  double xValue = pDataStruct->Matrix->Element[0][3];
+//  double yValue = pDataStruct->Matrix->Element[1][3];
+//  double zValue = pDataStruct->Matrix->Element[2][3];
+//  
+//  pDataStruct->Matrix->Element[0][3] = yValue;
+//  pDataStruct->Matrix->Element[1][3] = -zValue;
+//  pDataStruct->Matrix->Element[2][3] = -xValue;
   
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
@@ -1239,7 +1246,7 @@ double vtkDataCollector::GetMaximumVolumeSize()
            xMax = this->clipRectangle[2], yMax = this->clipRectangle[3];
     double width = xMax - xMin;
     double height = yMax - yMin;
-    double depth = height;
+    double depth = width;
     
     retVal = width * height * depth;
     }

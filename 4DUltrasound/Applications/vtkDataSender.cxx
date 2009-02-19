@@ -351,6 +351,18 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
 
     dataAvailable = !self->IsSendDataBufferEmpty();
 
+    if(dataAvailable)
+      {
+      #ifdef  DEBUGSENDER
+        self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Data available sender won't sleep" << endl;
+      #endif
+      }
+    else
+      {
+      #ifdef  DEBUGSENDER
+        self->GetLogStream() << self->GetUpTime() <<" |S-INFO: NO Data available sender sleeps now" << endl;
+      #endif
+      }
     }
   while(vtkThreadSleep(data, vtkTimerLog::GetUniversalTime() + sendPeriod, dataAvailable));
 
@@ -444,12 +456,16 @@ int vtkDataSender::StopSending()
     this->PlayerThreadId = -1;
     this->Sending = false;
 
-    if(Verbose)
+    if(this->Verbose)
       {
       cout << "Stop sending" << endl;
       }
     }
 
+  #ifdef  DEBUGSENDER
+    this->LogStream <<  this->GetUpTime() << " |S-INFO: Data Sender stopped sending" << endl;
+  #endif
+  
   return 0;
 
 }
@@ -549,6 +565,7 @@ int vtkDataSender::PrepareImageMessage(int index,
 //    #endif
 //    }
 
+  
   igtl::Matrix4x4 igtlMatrix;
 
   //Copy matrix to output buffer
