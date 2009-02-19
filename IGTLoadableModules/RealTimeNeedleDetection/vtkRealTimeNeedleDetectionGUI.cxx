@@ -80,26 +80,26 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->TimerFlag = 0;
   
   //----------------------------------------------------------------
-  // Image Values    
-  xLowerBound             = 0;
-  xUpperBound             = 246;
-  yLowerBound             = 0;
-  yUpperBound             = 256;
-  xImageRegionSize        = xUpperBound - xLowerBound;
-  yImageRegionSize        = yUpperBound - yLowerBound;
-  imageDimensions[0]      = 256;
-  imageDimensions[1]      = 256;
-  imageDimensions[2]      = 1;
-  imageSpacing[0]         = 1;  
-  imageSpacing[1]         = 1;
-  imageSpacing[2]         = 1;
-  imageOrigin[0]          = 0;
-  imageOrigin[1]          = 0;
-  imageOrigin[2]          = 0;
-  scalarSize              = 2;                      // scalarType 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
-  lastModified            = 0;
-  pImage                  = NULL;
-  pImageProcessor         = new ImageProcessor::ImageProcessor();  //TODO:move the new to starting the whole detection
+  // Image Values - default  
+  xLowerBound           = 0;
+  xUpperBound           = 256;
+  yLowerBound           = 0;
+  yUpperBound           = 256;
+  xImageRegionSize      = xUpperBound - xLowerBound;
+  yImageRegionSize      = yUpperBound - yLowerBound;
+  imageDimensions[0]    = 256;
+  imageDimensions[1]    = 256;
+  imageDimensions[2]    = 1;
+  imageSpacing[0]       = 1;  
+  imageSpacing[1]       = 1;
+  imageSpacing[2]       = 1;
+  imageOrigin[0]        = 0;
+  imageOrigin[1]        = 0;
+  imageOrigin[2]        = 0;
+  scalarSize            = 2;                      // scalarType 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
+  lastModified          = 0;
+  pImage                = NULL;
+  pImageProcessor       = new ImageProcessor::ImageProcessor();  //TODO:move the new to starting the whole detection
 }
 
 //---------------------------------------------------------------------------
@@ -177,7 +177,8 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   
   //----------------------------------------------------------------
   // Delete pointers
-  // TODO: delete pImage and pImageProcessor
+  //delete pImageProcessor; //TODO: Does not work properly yet
+  // TODO: delete pImage
 }
 
 
@@ -223,8 +224,14 @@ void vtkRealTimeNeedleDetectionGUI::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
 {
+  //----------------------------------------------------------------
+  // MRML Observers
+  this->MRMLObserverManager->RemoveObjectEvents(pVolumeNode);
+  //TODO: Remove Observers of MRMLSceneEvents
+  
+  //----------------------------------------------------------------
+  // GUI Observers
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-
   if(this->pStartButton)
     this->pStartButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
   if(this->pStopButton)
@@ -238,19 +245,18 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
 void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
 {
   this->RemoveGUIObservers();
-
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
   //----------------------------------------------------------------
-  // MRML
+  // MRML Observers
   vtkIntArray* events = vtkIntArray::New();
-  //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
   
   if (this->GetMRMLScene() != NULL)
   {
-    //this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
+    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
   }
   events->Delete();
   
@@ -260,7 +266,6 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
   vtkSetAndObserveMRMLNodeEventsMacro(node,pVolumeNode,nodeEvents);  //TODO: What does this "node" do???
   nodeEvents->Delete();
-  //TODO:unregister??
 
   //----------------------------------------------------------------
   // GUI Observers
@@ -454,13 +459,13 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
   {
     lastModified = this->pSourceNode->GetMTime(); // This prevents unnecessarily issued ImageDataModifiedEvents from beging processed 
     std::cout << started << ":MRMLEvent processing while started";
-    //TODO: it still gets called 2 times, because OpenIGTLink calls it twice! Do something about it!
+    //TODO: it still gets called 2 times, because OpenIGTLink calls it twice! Do something about that!
     if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
     {
       std::cout << "-SourceNode Event" << std::endl;
       vtkImageData* pImageData  = vtkImageData::New();        
       pImageData->DeepCopy(((vtkMRMLVolumeNode*) pSourceNode)->GetImageData());  
-      ProcessImage(pImageData, started); 
+              //ProcessImage(pImageData, started); 
       unsigned char* pImageRegion = new unsigned char[xImageRegionSize*yImageRegionSize*scalarSize]; 
       GetImageRegion(pImageData, pImageRegion);
   
@@ -615,7 +620,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", parametersFrame->GetWidgetName() );
 
   // -----------------------------------------
-  // Boundary edit fields
+  // Boundary edit fields TODO: Check for bounds! 0 to imageDimensions
   vtkKWFrame* xFrame = vtkKWFrame::New();
   xFrame->SetParent(parametersFrame->GetFrame());
   xFrame->Create();
@@ -630,13 +635,13 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pXLowerEntry->SetParent(xFrame);
   this->pXLowerEntry->Create();
   this->pXLowerEntry->SetWidth(7);
-  this->pXLowerEntry->SetValueAsInt(0);
+  this->pXLowerEntry->SetValueAsInt(120);
               
   this->pXUpperEntry = vtkKWEntry::New();
   this->pXUpperEntry->SetParent(xFrame);
   this->pXUpperEntry->Create();
   this->pXUpperEntry->SetWidth(7);
-  this->pXUpperEntry->SetValueAsInt(256);
+  this->pXUpperEntry->SetValueAsInt(180);
 
   app->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               xLabel->GetWidgetName(), this->pXLowerEntry->GetWidgetName(), this->pXUpperEntry->GetWidgetName());
@@ -657,13 +662,13 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pYLowerEntry->SetParent(yFrame);
   this->pYLowerEntry->Create();
   this->pYLowerEntry->SetWidth(7);
-  this->pYLowerEntry->SetValueAsInt(0);
+  this->pYLowerEntry->SetValueAsInt(140);
               
   this->pYUpperEntry = vtkKWEntry::New();
   this->pYUpperEntry->SetParent(yFrame);
   this->pYUpperEntry->Create();
   this->pYUpperEntry->SetWidth(7);
-  this->pYUpperEntry->SetValueAsInt(256);
+  this->pYUpperEntry->SetValueAsInt(200);
 
   app->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               yLabel->GetWidgetName(), this->pYLowerEntry->GetWidgetName(), this->pYUpperEntry->GetWidgetName());
@@ -680,6 +685,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
 //----------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::UpdateAll()
 {
+  UpdateGUI();
 }
 
 //---------------------------------------------------------------------------
@@ -704,78 +710,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
   }
 }
 
-//---------------------------------------------------------------------------
-// This function is obsolete TODO: delete!
-vtkMRMLNode* vtkRealTimeNeedleDetectionGUI::CreateNewNode(vtkMRMLScene* scene, const char* name)
-{
-  vtkMRMLVolumeNode* pVolumeNode = NULL;
-  //vtkMRMLVolumeDisplayNode *displayNode = NULL;
-  vtkMRMLScalarVolumeDisplayNode *displayNode = NULL;
-  vtkMRMLScalarVolumeNode* scalarNode = vtkMRMLScalarVolumeNode::New();
-  vtkImageData* pImageData = vtkImageData::New();
-  
-  pImageData->SetDimensions(256, 256, 1);
-  pImageData->SetExtent(0, 255, 0, 255, 0, 0 );
-  pImageData->SetSpacing(1.0, 1.0, 1.0);
-  pImageData->SetOrigin(0.0, 0.0, 0.0);
-  pImageData->SetNumberOfScalarComponents(1);
-  pImageData->SetScalarTypeToShort();
-  pImageData->AllocateScalars();
-  
-  short* dest = (short*) pImageData->GetScalarPointer();
-  if (dest)
-  {
-    memset(dest, 0x00, 256*256*sizeof(short));
-    pImageData->Update();
-  }
-
-  scalarNode->SetAndObserveImageData(pImageData); 
-  
-  /* Based on the code in vtkSlicerVolumeLogic::AddHeaderVolume() */
-  //displayNode = vtkMRMLVolumeDisplayNode::New();
-  displayNode = vtkMRMLScalarVolumeDisplayNode::New();
-  scalarNode->SetLabelMap(0);
-  pVolumeNode = scalarNode;
-  
-  if (pVolumeNode != NULL)
-  {
-    pVolumeNode->SetName(name);
-    scene->SaveStateForUndo();
-    
-    pVolumeNode->SetScene(scene);
-    pVolumeNode->SetDescription("New Node");
-    
-    displayNode->SetScene(scene);
-    
-    
-    double range[2];
-    pVolumeNode->GetImageData()->GetScalarRange(range);
-    range[0] = 0.0;
-    range[1] = 256.0;
-    displayNode->SetLowerThreshold(range[0]);
-    displayNode->SetUpperThreshold(range[1]);
-    displayNode->SetWindow(range[1] - range[0]);
-    displayNode->SetLevel(0.5 * (range[1] - range[0]) );
-    
-    scene->AddNode(displayNode);
-    
-    displayNode->SetDefaultColorMap();
-    //vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
-    //displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
-    //colorLogic->Delete();
-    
-    pVolumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-    
-    scene->AddNode(pVolumeNode);
-  }
-  
-  scalarNode->Delete();
-  displayNode->Delete();
-  pImageData->Delete();
-
-  return pVolumeNode;
-}
-
 // Function to evoke changes in the image in every itaration | not used anymore
 void vtkRealTimeNeedleDetectionGUI::ProcessImage(vtkImageData* pImageData, int i)
 {
@@ -786,8 +720,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessImage(vtkImageData* pImageData, int i
   std::cout << "Image processed" << std::endl;      
 }
 
-//--------------------------------------------------------------------------------------------------
-// hard copy the region of interest of the original image that will get processed byte by byte
+//-----------------------------------------------------------------------------
+// hard copy the region of interest of the original image byte by byte
 void vtkRealTimeNeedleDetectionGUI::GetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion)
 {
   unsigned char* pImage = (unsigned char*) pImageData->GetScalarPointer(); 
@@ -805,6 +739,8 @@ void vtkRealTimeNeedleDetectionGUI::GetImageRegion(vtkImageData* pImageData, uns
   }
 }
 
+//--------------------------------------------------------------------------
+// hard copy the region of interest back to the imageRegion byte by byte
 void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion)
 {
   unsigned char* pImage = (unsigned char*) pImageData->GetScalarPointer();
