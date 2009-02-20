@@ -55,8 +55,9 @@ set(FourDAnalysis_SRCS
   vtkFourDAnalysisLogic.cxx
   vtkFourDAnalysisGUI.cxx
   vtkKWPlotGraph.cxx
-  vtkMRML4DBundleNode.cxx
   vtkIntensityCurves.cxx
+  vtkMRML4DBundleNode.cxx
+  vtkMRMLCurveAnalysisNode.cxx
 )
 
 
