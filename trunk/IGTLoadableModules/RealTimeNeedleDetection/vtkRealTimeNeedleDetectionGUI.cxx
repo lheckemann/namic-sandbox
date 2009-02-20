@@ -28,6 +28,12 @@
 #include "vtkSlicerColor.h"
 #include "vtkSlicerTheme.h"
 
+#include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRMLVolumeNode.h"
+#include "vtkMRMLDisplayableNode.h"
+#include "vtkMRMLTransformableNode.h"
+#include "vtkMRMLLinearTransformNode.h"
+
 #include "vtkKWTkUtilities.h"
 #include "vtkKWWidget.h"
 #include "vtkKWFrameWithLabel.h"
@@ -345,7 +351,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
           std::cout << "ERROR! VolumeNode == NULL!" << std::endl;
         pVolumeNode->UpdateID("VolumeNode");
         pVolumeNode->SetName("VolumeNode");
-        pVolumeNode->SetDescription("MRMLNode that displays the tracked needle");
+        pVolumeNode->SetDescription("MRMLNode that displays the tracked needle and the original image");
         pVolumeNode->SetScene(this->GetMRMLScene());  
         
         vtkMRMLScalarVolumeDisplayNode* pScalarDisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
@@ -357,11 +363,35 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pScalarNode->Delete();
         pScalarDisplayNode->Delete();
         pDisplayNode->Delete();
+        
+        //------------------------------------------------------------------------------------------------
+        // Create a TransformNode that displays the needle  
+        pTransformNode = vtkMRMLLinearTransformNode::New();
+        pTransformNode->UpdateID("Needle");
+        pTransformNode->SetName("Needle");
+        pTransformNode->SetDescription("tracked needle");
+        pTransformNode->SetScene(this->GetMRMLScene());
+      
+        vtkMatrix4x4* transform = vtkMatrix4x4::New();
+        transform->Identity();
+        pTransformNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
+        transform->Delete();      
+        this->GetMRMLScene()->AddNode(pTransformNode);     
       }
-      else if(nItems == 1)
+      else if(nItems >= 1)
       {
         std::cerr << "VolumeNode exists already. Starting again" << std::endl;
         pVolumeNode = vtkMRMLVolumeNode::SafeDownCast(collectionOfVolumeNodes->GetItemAsObject(0));
+        vtkCollection* collectionOfTransformNodes = this->GetMRMLScene()->GetNodesByName("Needle");
+        int needleTransforms = collectionOfTransformNodes->GetNumberOfItems();
+        if(needleTransforms == 1)
+          pTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(collectionOfTransformNodes->GetItemAsObject(0));
+        else // code should never get here!
+        {
+          std::cerr << "ERROR! No needleTransformNode found!!" << std::endl;
+          return;
+        } 
+           
       }
       else
       {
@@ -377,9 +407,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       pImageData->GetOrigin(imageOrigin);
       scalarSize = pImageData->GetScalarSize();
       //TODO: Do I need to get the scalarType, too?
-      std::cerr << "got data from image" << std::endl;
-     // pImageData->Delete();  // If I delete this, I get a segmentation fault after pressing start and stop twice due to double freed memory -> I suggest GetImageData() does not deeply copy the ImageData
-      std::cerr << "ImageData deleted" << std::endl;
       currentXLowerBound = initialXLowerBound = this->pXLowerEntry->GetValueAsInt();
       currentXUpperBound = initialXUpperBound = this->pXUpperEntry->GetValueAsInt();
       currentYLowerBound = initialYLowerBound = this->pYLowerEntry->GetValueAsInt();
@@ -387,7 +414,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       currentXImageRegionSize                 = currentXUpperBound - currentXLowerBound;
       currentYImageRegionSize                 = currentYUpperBound - currentYLowerBound;  
       started = 1; // start checking for changes in pSourceNode to update pVolumeNode     
-      std::cerr << "Start" << std::endl;
+      std::cerr << "Start checking for changes" << std::endl;
     }
     else // no Scanner node found in MRMLScene
       std::cerr << "ERROR! No Scanner detected. RealTimeNeedleDetection did not start." << std::endl;
@@ -403,13 +430,15 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       this->pSourceNode = NULL;  
     }
     
-    // Set the VolumeNode to NULL, because it should not get used while started==0
-    // It will not get deleted, because it is still referenced in the MRMLScene
+    // Set the VolumeNode and the TransformNode to NULL, because they should not get used while started==0
+    // They will not get deleted, because they are still referenced in the MRMLScene
     if(this->pVolumeNode)
     {
       //this->GetMRMLScene()->RemoveNodeNoNotify((vtkMRMLNode*) pVolumeNode);
       this->pVolumeNode = NULL; 
     }
+    if(this->pTransformNode)
+      this->pTransformNode = NULL;
     
     started = 0; // Stop checking MRLM events of pSourceNode 
   }
@@ -491,13 +520,48 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       //------------------------------------------------------------------------------------------------
       // Retrieve the needle position and adjust the X- and Y-boundaries
       //TODO: adjust
-      
-//      currentXLowerBound;
-//      currentXUpperBound;        
-//      currentYLowerBound;     
-//      currentYUpperBound;
-      currentXImageRegionSize = currentXUpperBound - currentXLowerBound;
-      currentYImageRegionSize = currentYUpperBound - currentYLowerBound;    
+      if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0))
+        std::cerr << "Error! Points of line are all 0! No needle detected!" << std::endl;
+      else // if everything is ok
+      {//TODO: make this generic!! Right now I assume the needle enters from the right
+        //switch(enteringPoint)
+        std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
+        std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
+        points[0] += currentXLowerBound;
+        points[1] += currentYLowerBound;
+        points[2] += currentXLowerBound;
+        points[3] += currentYLowerBound;
+        //        vtkMatrix4x4* transform = vtkMatrix4x4::New();
+//        vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
+//      
+//        transform->Identity();
+//        transform->SetElement(0, 0, tx);
+//        transform->SetElement(1, 0, ty);
+//        transform->SetElement(2, 0, tz);
+//        transform->SetElement(0, 1, sx);
+//        transform->SetElement(1, 1, sy);
+//        transform->SetElement(2, 1, sz);
+//        transform->SetElement(0, 2, nx);
+//        transform->SetElement(1, 2, ny);
+//        transform->SetElement(2, 2, nz);
+//        transform->SetElement(0, 3, px);
+//        transform->SetElement(1, 3, py);
+//        transform->SetElement(2, 3, pz);
+//      
+//        transformToParent->DeepCopy(transform);
+//      
+//        transform->Delete();    
+//        currentXLowerBound = (int) points[2] - 20;
+//        //currentYLowerBound = (int) points[3] - 10;
+//        currentXUpperBound = (int) points[0];        
+//        //currentYUpperBound = (int) points[1] + 10;
+//        std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
+//        currentXImageRegionSize = currentXUpperBound - currentXLowerBound;
+//        currentYImageRegionSize = currentYUpperBound - currentYLowerBound;
+        
+       
+
+      }    
     }
     started++;  //I also use started as a counter of the frames -> TODO:Check if started gets bigger than int
   }
