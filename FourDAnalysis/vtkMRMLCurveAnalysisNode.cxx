@@ -84,9 +84,57 @@ void vtkMRMLCurveAnalysisNode::Copy(vtkMRMLNode *anode)
   vtkMRMLCurveAnalysisNode *node = (vtkMRMLCurveAnalysisNode *) anode;
 }
 
+
 //----------------------------------------------------------------------------
 void vtkMRMLCurveAnalysisNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 }
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLCurveAnalysisNode::SetParameter(const char *name, const double value)
+{
+}
+
+
+//----------------------------------------------------------------------------
+vtkStringArray* vtkMRMLCurveAnalysisNode::GetParameterNameArray()
+{
+  OutputParameterMapType::iterator iter;
+
+  vtkStringArray* array = vtkStringArray::New();
+
+  for (iter = this->OutputParameters.begin(); iter != this->OutputParameters.begin(); iter ++)
+    {
+    array->InsertNextValue(iter->first.c_str());
+    }
+
+  return array;
+}
+
+
+//----------------------------------------------------------------------------
+double vtkMRMLCurveAnalysisNode::GetParameter(const char* name)
+{
+  OutputParameterMapType::iterator iter;
+  iter = this->OutputParameters.find(name);
+  if (iter != this->OutputParameters.end())
+    {
+    return this->OutputParameters[name]; 
+    }
+  else
+    {
+    return 0.0;
+    }
+}
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLCurveAnalysisNode::ClearParameters()
+{
+  this->OutputParameters.clear();
+}
+
+
 
