@@ -81,6 +81,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define US_IMAGE_FAN_RATIO 0.6 //Amount of ultrasound images's height that
                                //is used by the ultrasound fan
+#define DEFAULT_MAXIMUM_VOLUME_SIZE -1
+#define DEFAULT_DELAY_FACTOR 50
 
 using namespace std;
 
@@ -105,8 +107,8 @@ vtkDataProcessor::vtkDataProcessor()
   this->Processing = false;
   this->ProcessPeriod = 1 /(30 * 1.5);
   this->UltraSoundTrackingEnabled = false;
-  this->MaximumVolumeSize = -1;
-  this->DelayFactor = 50;
+  this->MaximumVolumeSize = DEFAULT_MAXIMUM_VOLUME_SIZE;
+  this->DelayFactor = DEFAULT_DELAY_FACTOR;
 
   this->dataBufferSize = 3;
   this->dataBufferIndex = -1;
@@ -530,7 +532,23 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
     this->calibReader->SetFileName(this->CalibrationFileName);
     this->calibReader->ReadCalibFile();
     this->calibReader->GetClipRectangle(this->clipRectangle);
+
+#ifdef HIGH_DEFINITION
+    this->Reconstructor->SetClipRectangle(0, 0, 640, 480);
+#else
     this->Reconstructor->SetClipRectangle(this->clipRectangle);
+#endif
+    
+    if(this->MaximumVolumeSize == DEFAULT_MAXIMUM_VOLUME_SIZE)
+      {
+      this->MaximumVolumeSize = this->calibReader->GetMaximumVolumeSize();
+      }
+    
+    if(this->DelayFactor == DEFAULT_DELAY_FACTOR)
+      {
+      this->DelayFactor = this->calibReader->GetDelayFactor();
+      }
+    
     this->ReconstructorLifeTime = 500;
     }
 
@@ -605,11 +623,11 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
                        this->dataBuffer[index].Spacing[1], 
                        this->dataBuffer[index].Spacing[2]};
   
-  int newExtent[6] = {this->dataBuffer[index].VolumeExtent[0], 
+  int newExtent[6] = {this->dataBuffer[index].VolumeExtent[0],
                       this->dataBuffer[index].VolumeExtent[1],
-                      this->dataBuffer[index].VolumeExtent[2], 
+                      this->dataBuffer[index].VolumeExtent[2],
                       this->dataBuffer[index].VolumeExtent[3],
-                      this->dataBuffer[index].VolumeExtent[4], 
+                      this->dataBuffer[index].VolumeExtent[4],
                       this->dataBuffer[index].VolumeExtent[5]};
 
   #ifdef  DEBUGPROCESSOR
@@ -894,31 +912,33 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
   vtkMatrix4x4 * matrix = vtkMatrix4x4::New();
   this->GetVolumeMatrix(matrix);
   
-//  vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
-//  vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
-//  
-//  //Transform coordinate System-------------------------------------------------
-//  oldMatrix->DeepCopy(matrix);
-//  
-//  adjustMatrix->Identity();  
-//  adjustMatrix->Element[0][0] = 0;
-//  adjustMatrix->Element[1][1] = 0;
-//  adjustMatrix->Element[2][2] = 0;
-//  
-//  adjustMatrix->Element[2][0] = -1;
-//  adjustMatrix->Element[0][1] =  1;
-//  adjustMatrix->Element[1][2] = -1;
-//
-//  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, matrix);
-//  
-//  adjustMatrix->Delete();
-//  oldMatrix->Delete();
-//    
-//  double xOrigin = reconstructedVolume->GetOrigin()[0];
-//  double yOrigin = reconstructedVolume->GetOrigin()[1];
-//  double zOrigin = reconstructedVolume->GetOrigin()[2];
-//  
-//  reconstructedVolume->SetOrigin(yOrigin, -zOrigin, -xOrigin);
+  #ifdef SLICER_COORDINATE_ADJUSTMENTS
+  vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
+  vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
+  
+  //Transform coordinate System-------------------------------------------------
+  oldMatrix->DeepCopy(matrix);
+  
+  adjustMatrix->Identity();  
+  adjustMatrix->Element[0][0] = 0;
+  adjustMatrix->Element[1][1] = 0;
+  adjustMatrix->Element[2][2] = 0;
+  
+  adjustMatrix->Element[2][0] = -1;
+  adjustMatrix->Element[0][1] =  1;
+  adjustMatrix->Element[1][2] = -1;
+
+  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, matrix);
+  
+  adjustMatrix->Delete();
+  oldMatrix->Delete();
+    
+  double xOrigin = reconstructedVolume->GetOrigin()[0];
+  double yOrigin = reconstructedVolume->GetOrigin()[1];
+  double zOrigin = reconstructedVolume->GetOrigin()[2];
+  
+  reconstructedVolume->SetOrigin(yOrigin, -zOrigin, -xOrigin);
+  #endif
   
   //Adjust matrix to OpenIGTLink offset-----------------------------------------
   double xLength = (reconstructedVolume->GetDimensions()[0] - 1) / 2;
@@ -1543,10 +1563,10 @@ double vtkDataProcessor::GetMaximumVolumeSize()
            xMax = this->clipRectangle[2], yMax = this->clipRectangle[3];
     double width = xMax - xMin;
     double height = yMax - yMin;
-    double depth = height;
+    double depth = width;
     
     
-    retVal = width * height * depth;
+    retVal = width * height * depth * depth;
     }
   else
     {
