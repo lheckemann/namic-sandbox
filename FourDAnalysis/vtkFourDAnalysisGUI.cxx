@@ -59,6 +59,7 @@
 #include "vtkCommandLineModuleGUI.h"
 
 #include "vtkMRML4DBundleNode.h"
+#include "vtkMRMLCurveAnalysisNode.h"
 
 
 #ifdef Slicer3_USE_PYTHON
@@ -340,11 +341,17 @@ void vtkFourDAnalysisGUI::Enter()
     }
 
   // register node type to the MRML scene
-  vtkMRML4DBundleNode* bundleNode = vtkMRML4DBundleNode::New();
   vtkMRMLScene* scene = this->GetMRMLScene();
+
+  // 4D bundle node (vtkMRML4DBundleNode)
+  vtkMRML4DBundleNode* bundleNode = vtkMRML4DBundleNode::New();
   scene->RegisterNodeClass(bundleNode);
   bundleNode->Delete();
 
+  // Curve analysis node (vtkMRMLCurveAnalysisNode)
+  vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
+  scene->RegisterNodeClass(curveNode);
+  curveNode->Delete();
 }
 
 
@@ -907,15 +914,19 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->RunScriptButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
+
+
+
+
     const char* filename = this->ScriptSelectButton->GetWidget()->GetFileName();
 
     PyObject* v;
     std::string pythonCmd;
-    pythonCmd += "from Slicer import numpy\n";
+//    pythonCmd += "from Slicer import numpy\n";
     pythonCmd += "from Slicer import slicer\n";
-    pythonCmd += "import '";
+    pythonCmd += "execfile('";
     pythonCmd += filename;
-    pythonCmd += "'\n";
+    pythonCmd += "')\n";
 
     /*
     pythonCmd += "scene = slicer.MRMLScene\n";
