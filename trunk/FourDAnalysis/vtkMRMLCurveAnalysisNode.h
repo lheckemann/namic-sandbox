@@ -19,11 +19,19 @@
 #include "vtkMRMLNode.h"
 #include "vtkMRMLStorageNode.h"
 
+#include "vtkDoubleArray.h"
+#include "vtkStringArray.h"
+
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 
 class VTK_FourDAnalysis_EXPORT vtkMRMLCurveAnalysisNode : public vtkMRMLNode
 {
+ public:
+  //BTX
+  typedef std::map<std::string, double> OutputParameterMapType;
+  //ETX
+
   public:
   static vtkMRMLCurveAnalysisNode *New();
   vtkTypeMacro(vtkMRMLCurveAnalysisNode,vtkMRMLNode);
@@ -48,13 +56,25 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLCurveAnalysisNode : public vtkMRMLNode
   virtual const char* GetNodeTagName()
     {return "CurveAnalysis";};
 
-  // Description:
-  // Get/Set a parameter for the module.
+  vtkSetObjectMacro( SourceData, vtkDoubleArray );
+  vtkGetObjectMacro( SourceData, vtkDoubleArray );
+  vtkSetObjectMacro( InterpolatedData, vtkDoubleArray );
+  vtkGetObjectMacro( InterpolatedData, vtkDoubleArray );
 
-  void SetParameterAsDouble(const char *name, const double value)
-  {};
-  const char* GetParameterAsDouble(const char* name)
-  {};
+  void SetFunctionName(const char* name)
+  {
+    this->FunctionName = name;
+  }
+
+  const char* GetFunctionName()
+  {
+    return this->FunctionName.c_str();
+  }
+
+  void SetParameter(const char *name, const double value);
+  vtkStringArray* GetParameterNameArray();
+  double GetParameter(const char* name);
+  void ClearParameters();
 
 private:
   vtkMRMLCurveAnalysisNode();
@@ -65,6 +85,11 @@ private:
   vtkDoubleArray* SourceData;
   vtkDoubleArray* InterpolatedData;
 
+  OutputParameterMapType OutputParameters;
+  
+  //BTX
+  std::string FunctionName;
+  //ETX
 
 };
 
