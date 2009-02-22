@@ -120,6 +120,8 @@ vtkDataProcessor::vtkDataProcessor()
 
   this->PlayerThreader = vtkMultiThreader::New();
   this->PlayerThreadId = -1;
+  this->DataBufferLock = vtkMutexLock::New();
+  this->DataBufferIndexQueueLock = vtkMutexLock::New();
 
   this->CalibrationFileName = NULL;
   this->calibReader = vtkUltrasoundCalibFileReader::New();
@@ -532,12 +534,7 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
     this->calibReader->SetFileName(this->CalibrationFileName);
     this->calibReader->ReadCalibFile();
     this->calibReader->GetClipRectangle(this->clipRectangle);
-
-#ifdef HIGH_DEFINITION
-    this->Reconstructor->SetClipRectangle(0, 0, 640, 480);
-#else
     this->Reconstructor->SetClipRectangle(this->clipRectangle);
-#endif
     
     if(this->MaximumVolumeSize == DEFAULT_MAXIMUM_VOLUME_SIZE)
       {
@@ -612,6 +609,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     }
   
   //Read New Data---------------------------------------------------------------
+  this->DataBufferLock->Lock();
   vtkImageData * newFrame = (this->dataBuffer[index]).Frame;
   vtkMatrix4x4 * newTrackerMatrix = this->dataBuffer[index].Matrix;
   
@@ -639,6 +637,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
                     << "          | Matrix:" <<endl;
 //    newTrackerMatrix->Print(this->LogStream );
   #endif
+  this->DataBufferLock->Unlock();
 
   //Check if new extent larger than old extent or if origin changed------------
   vtkFloatingPointType oldOrigin[3];
@@ -826,9 +825,10 @@ int vtkDataProcessor::ReconstructVolume(int index)
     #endif
     return -1;
     }
-
+    this->DataBufferLock->Lock();
     this->Reconstructor->SetSliceAxes(this->dataBuffer[index].Matrix); //Set current trackingmatrix
     this->Reconstructor->SetSlice(this->dataBuffer[index].Frame);
+    this->DataBufferLock->Unlock();
 
     #ifdef  DEBUGPROCESSOR
       double reconstructionTime = this->GetUpTime();
@@ -912,7 +912,6 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
   vtkMatrix4x4 * matrix = vtkMatrix4x4::New();
   this->GetVolumeMatrix(matrix);
   
-  #ifdef SLICER_COORDINATE_ADJUSTMENTS
   vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
   vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
   
@@ -938,7 +937,6 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
   double zOrigin = reconstructedVolume->GetOrigin()[2];
   
   reconstructedVolume->SetOrigin(yOrigin, -zOrigin, -xOrigin);
-  #endif
   
   //Adjust matrix to OpenIGTLink offset-----------------------------------------
   double xLength = (reconstructedVolume->GetDimensions()[0] - 1) / 2;
@@ -992,17 +990,23 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
  * ****************************************************************************/
 int vtkDataProcessor::AddNewDataToBuffer(int index, struct DataStruct dataStruct)
 {
+
+  this->DataBufferLock->Lock();
   if(this->dataBuffer.find(index) != this->dataBuffer.end())
     {
     #ifdef ERRORPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-ERROR: data buffer already has data at index: " << index << endl;
     #endif
+    this->DataBufferLock->Unlock();
     return -1;
     }
 
   this->dataBuffer[index] = dataStruct;
+  this->DataBufferLock->Unlock();
   
+  this->DataBufferIndexQueueLock->Lock();
   this->dataBufferIndexQueue.push(index);//Add Index to new data buffer queue
+  this->DataBufferIndexQueueLock->Unlock();
   #ifdef  DEBUGPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-INFO: New Data added at index "<< index << endl;
   #endif
@@ -1078,7 +1082,11 @@ int vtkDataProcessor::NewData(struct DataStruct dataStruct)
  * ****************************************************************************/
 bool vtkDataProcessor::IsDataBufferEmpty()
 {
-  return this->dataBufferIndexQueue.empty();
+  this->DataBufferIndexQueueLock->Lock();
+  bool retVal = this->dataBufferIndexQueue.empty();
+  this->DataBufferIndexQueueLock->Unlock();
+  
+  return retVal;
 }
 
 /******************************************************************************
@@ -1093,13 +1101,16 @@ bool vtkDataProcessor::IsDataBufferEmpty()
  *
  * ****************************************************************************/
 bool vtkDataProcessor::IsDataBufferFull()
-{
+{ 
+  this->DataBufferIndexQueueLock->Lock();
   if(this->dataBufferIndexQueue.size() >= this->dataBufferSize)
     {
+    this->DataBufferIndexQueueLock->Unlock();
     return true;
     }
   else
     {
+    this->DataBufferIndexQueueLock->Unlock();
     return false;
     }
 }
@@ -1311,6 +1322,7 @@ int vtkDataProcessor::DeleteData(int index)
     }
 
   
+  this->DataBufferLock->Lock();
   if(this->VolumeReconstructionEnabled)
     {//If not enabled memory is freed at the data sender
     if(NULL != this->dataBuffer[index].Frame)
@@ -1334,14 +1346,18 @@ int vtkDataProcessor::DeleteData(int index)
         this->LogStream << this->GetUpTime()  << " |P-ERROR: Valid Index (" << index << ") has no matrix object"<< endl;
       #endif
       }
+    
     #ifdef DEBUGPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-INFO: Delete data at Index: " << index << endl;
     #endif
     }
-  
     
   this->dataBuffer.erase(index);
+  this->DataBufferLock->Unlock();
+  
+  this->DataBufferIndexQueueLock->Lock();
   this->dataBufferIndexQueue.pop();
+  this->DataBufferIndexQueueLock->Unlock();
   
   return 0;
 }
@@ -1358,8 +1374,11 @@ int vtkDataProcessor::DeleteData(int index)
  *
  * ****************************************************************************/
 int vtkDataProcessor::GetHeadOfDataBuffer()
-{
+{ 
+  this->DataBufferIndexQueueLock->Lock();
   int head = this->dataBufferIndexQueue.front();
+  this->DataBufferIndexQueueLock->Unlock();
+  
   return head;
 }
 
@@ -1408,13 +1427,16 @@ double vtkDataProcessor::GetUpTime()
  *
  * ****************************************************************************/
 bool vtkDataProcessor::IsIndexAvailable(int index)
-{
+{ 
+  this->DataBufferLock->Lock();
   if(this->dataBuffer.find(index) == this->dataBuffer.end() && index <= this->dataBufferSize && index >= 0)
     {
+    this->DataBufferLock->Unlock();
     return true;
     }
   else
     {
+    this->DataBufferLock->Unlock();
     return false;
     }
 }
@@ -1596,20 +1618,40 @@ double vtkDataProcessor::GetMaximumVolumeSize()
  * ****************************************************************************/
 bool vtkDataProcessor::IsDataExpired(int index)
 {
-  if(   this->GetUpTime() - this->dataBuffer[index].TimeStamp
+  bool retVal;
+  
+  this->DataBufferLock->Lock();
+  
+  if(this->GetUpTime() - this->dataBuffer[index].TimeStamp
       > 0.01 * this->DelayFactor)
     {
     #ifdef DEBUGPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-INFO: Data is expired; Recording time: "<< this->dataBuffer[index].TimeStamp<<"; Maximum Delay: "<< this->GetProcessPeriod() * this->DelayFactor<< endl;
     #endif
-    return true;
+    retVal =  true;
     }
   else
     {
-    return false;
+    retVal =  false;
     }
+  
+  this->DataBufferLock->Unlock();
+    
+  return retVal;
 }
 
+/******************************************************************************
+ * void vtkDataProcessor::DecreaseLifeTimeOfReconstructor(int decrease)
+ *
+ *  Decrease lifetime of reconstructor. If reconstructor is dead create a new
+ *  reconstructor
+ * 
+ *  @Author:Jan Gumprecht
+ *  @Date:  13.February 2009
+ * 
+ *  @Param: int decrease - decrese lifetime of reconstructor about this amount
+ * 
+ * ****************************************************************************/
 void vtkDataProcessor::DecreaseLifeTimeOfReconstructor(int decrease)
 {
   this->ReconstructorLifeTime -= decrease;
