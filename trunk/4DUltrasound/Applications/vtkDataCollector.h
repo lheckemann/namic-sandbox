@@ -108,8 +108,8 @@ public:
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
   
-  vtkSetMacro(TrackerOffset, double);
-  vtkGetMacro(TrackerOffset, double);
+  vtkSetVector3Macro(TrackerOffset, double);
+  vtkGetVector3Macro(TrackerOffset, double);
   
   vtkGetVector3Macro(ShrinkFactor, int);
 
@@ -163,13 +163,17 @@ protected:
   int   VideoMode; //NTSC == 1 , PAL == 2
   double FrameRate;
   int FrameBufferSize;
-  double TrackerOffset;//Offset of tracker to ultrasound probe; Unit: mm
+  double TrackerOffset[3];//Offset of tracker to ultrasound probe; Unit: mm
   double MaximumVolumeSize;
   double SystemOffset[3];
+  
+  vtkMatrix4x4 *ObliquenessAdjustmentMatrix;
+  vtkMatrix4x4 *CoordinateTransformationMatrix;
 
   int ImageMargin[4];
   double UltrasoundScanDepth;
   int ShrinkFactor[3];
+  double TransformationFactorMmToPixel;
 
   bool TrackerDeviceEnabled;
   vtkTrackerTool *tool;
