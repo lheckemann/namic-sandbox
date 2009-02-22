@@ -353,7 +353,6 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
       trackerMatrix->Element[1][3] = yValue;
       trackerMatrix->Element[2][3] = zValue;
       
-      #ifdef SLICER_COORDINATE_ADJUSTMENTS
       //Final coordinate axis alignment that the layout fits to slicer
       oldMatrix->DeepCopy(trackerMatrix);
       
@@ -367,7 +366,6 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
       adjustMatrix->Element[1][2] = -1;
 
       vtkMatrix4x4::Multiply4x4(adjustMatrix, oldMatrix, trackerMatrix);
-      
       
       //Copy matrix
       igtlMatrix[0][0] = trackerMatrix->Element[0][0];
@@ -389,29 +387,6 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
       igtlMatrix[3][1] = trackerMatrix->Element[3][1];
       igtlMatrix[3][2] = trackerMatrix->Element[3][2];
       igtlMatrix[3][3] = trackerMatrix->Element[3][3];
-
-      #else //SLICER_COORDINATE_ADJUSTMENTS
-      //Copy matrix
-      igtlMatrix[0][0] = trackerMatrix->Element[0][0];
-      igtlMatrix[0][1] = trackerMatrix->Element[0][1];
-      igtlMatrix[0][2] = trackerMatrix->Element[0][2];
-      igtlMatrix[0][3] = trackerMatrix->Element[0][3] + self->GetSystemOffset()[0];//X
-  
-      igtlMatrix[1][0] = trackerMatrix->Element[1][0];
-      igtlMatrix[1][1] = trackerMatrix->Element[1][1];
-      igtlMatrix[1][2] = trackerMatrix->Element[1][2];
-      igtlMatrix[1][3] = trackerMatrix->Element[1][3] + self->GetSystemOffset()[1];//Y
-  
-      igtlMatrix[2][0] = trackerMatrix->Element[2][0];
-      igtlMatrix[2][1] = trackerMatrix->Element[2][1];
-      igtlMatrix[2][2] = trackerMatrix->Element[2][2];
-      igtlMatrix[2][3] = trackerMatrix->Element[2][3] + self->GetSystemOffset()[2];//Z
-  
-      igtlMatrix[3][0] = trackerMatrix->Element[3][0];
-      igtlMatrix[3][1] = trackerMatrix->Element[3][1];
-      igtlMatrix[3][2] = trackerMatrix->Element[3][2];
-      igtlMatrix[3][3] = trackerMatrix->Element[3][3];
-      #endif //SLICER_COORDINATE_ADJUSTMENTS
       }
     else
       {
