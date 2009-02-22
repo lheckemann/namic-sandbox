@@ -93,12 +93,20 @@ vtkUltrasoundCalibFileReader::vtkUltrasoundCalibFileReader()
 
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
   
-  this->UltrasoundScanDepth = 70;//mm
+  this->UltrasoundScanDepth = -1;//mm
+  this->UltrasoundScanFanHeight = -1;//Pixel
   
   this->ShrinkFactor[0] = 1;
   this->ShrinkFactor[1] = 1;
   this->ShrinkFactor[2] = 1;
   
+  this->TransformationFactorMmToPixel = 1;
+  
+  this->ObliquenessAdjustmentMatrix = vtkMatrix4x4::New();
+  this->ObliquenessAdjustmentMatrix->Identity();
+  
+  this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
+  this->CoordinateTransformationMatrix->Identity();
 }
 
 //----------------------------------------------------------------------------
@@ -196,9 +204,9 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
 {
   if (this->OpenCalibFile() == 0)
     {
-  // error opening file
-  return -1;
-  }
+    // error opening file
+    return -1;
+    }
   
   this->Init();
   
@@ -211,25 +219,17 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   //Read image setting----------------------------------------------------------
   this->ReadComments();
   this->ReadBlankLines();
-  this->ReadComments();
   
-  // read the size of the captured freehand images
+  //Read image size
+  this->ReadComments();
   numbers.clear();
   this->ReadNumbers(numbers);
-  // there should two/three numbers indicating size in x and y, read them into member variable
-  if (numbers.size() == 3)
-    {
-    this->ImageDimensions = 3;
-    this->ImageSize[0] = int(numbers.at(0));
-    this->ImageSize[1] = int(numbers.at(1));
-    this->ImageSize[2] = int(numbers.at(2));
-    }
-  else if (numbers.size() == 2)
+  if (numbers.size() == 2)
     {
     this->ImageDimensions = 2;
     this->ImageSize[0] = int(numbers.at(0));
     this->ImageSize[1] = int(numbers.at(1));
-    this->ImageSize[2] = 0;    
+    this->ImageSize[2] = 0;
     }
   else
     {
@@ -245,10 +245,13 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   // there should two/three numbers indicating size in x and y, read them into member variable
   if (numbers.size() == 4)
     {
-    this->ImageMargin[0] = int(numbers.at(0));
-    this->ImageMargin[1] = int(numbers.at(1));
+    this->ImageMargin[1] = int(numbers.at(0));//Top and Bottom are exchanged
+    this->ImageMargin[0] = int(numbers.at(1));
     this->ImageMargin[2] = int(numbers.at(2));
     this->ImageMargin[3] = int(numbers.at(3));
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Image margin is " << this->ImageMargin[0] << "| "<< this->ImageMargin[1]<< "| "<< this->ImageMargin[2] << "| "<< this->ImageMargin[3] << endl;
+    #endif
     }
   else
     {
@@ -257,64 +260,317 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
     }
   this->ReadBlankLines();
   
+  //----------------------------------------------------------------------------
+  //Calibration matrices
+  this->ReadComments();
+  this->ReadBlankLines();
+  
+  //Read Tracker Offset
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+   
+  if (numbers.size() == 3)
+    {
+    this->TrackerOffset[0] = int(numbers.at(0));
+    this->TrackerOffset[1] = int(numbers.at(1));
+    this->TrackerOffset[2] = int(numbers.at(2));
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << setprecision(4) <<"CF-INFO: Tracker offset is " << this->TrackerOffset[0] << "| "<< this->TrackerOffset[1]<< "| "<< this->TrackerOffset[2]<< endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read Tracker offset" << endl;
+    return -1;
+    }
+  this->ReadBlankLines();
+  
+  //Read Tracker obliqueness adjustment matrix
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  int vecIndex = 0;
+  if (numbers.size() == 16)
+    {
+    for (int i = 0; i < 4; i++)
+      {
+      for (int j = 0; j < 4; j++)
+       {
+       this->ObliquenessAdjustmentMatrix->Element[i][j] = numbers.at(vecIndex++);
+       }
+      }
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Obliqueness adjustment matrix is: " << endl;
+    this->ObliquenessAdjustmentMatrix->Print(this->LogStream);
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read obliqueness adjustment matrix" << endl;
+    return -1;
+    }
+  
+   this->ReadBlankLines();
+    
+  //Read Tracker coordinate adjustment matrix
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  vecIndex = 0;
+  if (numbers.size() == 16)
+    {
+    for (int i = 0; i < 4; i++)
+      {
+      for (int j = 0; j < 4; j++)
+       {
+       this->CoordinateTransformationMatrix->Element[i][j] = numbers.at(vecIndex++);
+       }
+      }
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Coordinate transformation matrix is: " << endl;
+    this->CoordinateTransformationMatrix->Print(this->LogStream);
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read coordinate transformation matrix" << endl;
+    return -1;
+    }
   
   
-  //Read calibration matrices
+  this->ReadBlankLines();
   
-  //Read system settings
+  //Read system offset
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
   
-  //Read ultrasound setting
-  this->UltrasoundScanDepth = 70;//mm
+  if (numbers.size() == 3)
+    {
+    this->SystemOffset[0] = int(numbers.at(0));
+    this->SystemOffset[1] = int(numbers.at(1));
+    this->SystemOffset[2] = int(numbers.at(2));
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: System offset is " << this->SystemOffset[0] << "| "<< this->SystemOffset[1]<< "| "<< this->SystemOffset[2]<< endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read system offset" << endl;
+    return -1;
+    }
   
-  int imageShrinkFactor = 1;
-  this->ShrinkFactor[0] = (int) (this->ImageSize[1] / this->UltrasoundScanDepth  * imageShrinkFactor + 0.5);//X 
-  this->ShrinkFactor[1] = (int) (this->ImageSize[1] / this->UltrasoundScanDepth  * imageShrinkFactor + 0.5);//Y
-//  this->ShrinkFactor[0] = 1; 
-//  this->ShrinkFactor[1] = 1;
+  
+  this->ReadBlankLines();
+  
+  //----------------------------------------------------------------------------
+  //System setting section
+  this->ReadComments();
+  this->ReadBlankLines();
+  
+  //Read max volume size
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  if (numbers.size() == 1)
+    {
+    this->MaximumVolumeSize = int(numbers.at(0));
+
+    #ifdef HIGH_DEFINITION
+    this->MaximumVolumeSize *= 3; //Byte
+    #endif
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Maximum volume size is " << this->MaximumVolumeSize << endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read maximum volume size" << endl;
+    return -1;
+    }
+  
+  this->ReadBlankLines();
+  
+  //Read video device name
+  this->ReadComments();
+  this->ReadNumbers(numbers);
+  
+  this->ReadBlankLines();
+  
+  //Read Video Channel
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  this->ReadBlankLines();
+  
+  //Read Video Mode
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  this->ReadBlankLines();
+  
+  //Read Delay Factor
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  if(numbers.size() == 1)
+    {
+    this->DelayFactor = int(numbers.at(0));
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Delay factor size is " << this->DelayFactor << endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read delay factor" << endl;
+    return -1;
+    }
+  
+  
+  this->ReadBlankLines();
+  
+  //----------------------------------------------------------------------------
+  //Ultrasound setting section
+  this->ReadComments();
+  this->ReadBlankLines();
+  
+  //Read Frames per second
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  this->ReadBlankLines();
+  
+  //Read Ultrasound Scan depth
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  if(numbers.size() == 1)
+    {
+    this->UltrasoundScanDepth = int(numbers.at(0));
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Ultrasound scan depth is " << this->UltrasoundScanDepth << endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read ultrasound scan depth" << endl;
+    return -1;
+    }
+  
+  this->ReadBlankLines();
+  
+  //Read Ultrasound Scan fan height
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  if(numbers.size() == 1)
+    {
+    this->UltrasoundScanFanHeight = int(numbers.at(0));
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Ultrasound scan fan height is " << this->UltrasoundScanFanHeight << endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read ultrasound scan fan height" << endl;
+    return -1;
+    }
+  
+  this->ReadBlankLines();
+  
+  //----------------------------------------------------------------------------
+  //Instrument setting section
+  this->ReadComments();
+  this->ReadBlankLines();
+  
+  //Instrument tracking rate per second
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  this->ReadBlankLines();
+    
+  //----------------------------------------------------------------------------
+  //OpenIGTLink settings
+  this->ReadComments();
+  this->ReadBlankLines();
+  
+  //OpenIGTLinkServer
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  this->ReadBlankLines();
+
+  //OpenIGTLinkPort US Tracker
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  this->ReadBlankLines();
+  
+  //OpenIGTLinkPort Instrument Tracker
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  
+  //----------------------------------------------------------------------------
+  //End of reading section do calculations
+  
+  this->TransformationFactorMmToPixel = this->UltrasoundScanFanHeight / this->UltrasoundScanDepth;
+  
+  #ifdef HIGH_DEFINITION
+  this->SystemOffset[0] = this->SystemOffset[0] * this->TransformationFactorMmToPixel;
+  this->SystemOffset[1] = this->SystemOffset[1] * this->TransformationFactorMmToPixel;
+  this->SystemOffset[2] = this->SystemOffset[2] * this->TransformationFactorMmToPixel;
+  #endif
+
+  
   //cout << "ShrinkFractor[0]: " << this->ShrinkFactor[1] << endl;
-  
-  //Read instrument settings
-  
-  //Read OpenIGTLink settings
-  
-  // read the homogeneous transform matrix
-//  this->ReadComments();
-//  numbers.clear();
-//  this->ReadNumbers(numbers);
-//  if (numbers.size() == 16)
-//    {
-//  int vecIndex = 0;
-//  for (int i = 0; i < 4; i++)
-//    for (int j = 0; j < 4; j++)
-//     {
-//     this->HomogeneousMatrix->SetElement(i,j,numbers.at(vecIndex++));
-//     }
-//  // convert from meters to mm
-//  this->HomogeneousMatrix->SetElement(0,3, this->HomogeneousMatrix->GetElement(0,3)*1000);
-//  this->HomogeneousMatrix->SetElement(1,3, this->HomogeneousMatrix->GetElement(1,3)*1000);
-//  this->HomogeneousMatrix->SetElement(2,3, this->HomogeneousMatrix->GetElement(2,3)*1000);
-//  this->CalibrationMatrix->DeepCopy(this->HomogeneousMatrix);
-//    }
-//  else
-//    {
-//  //error
-//    }
   
 #ifdef DO_CALIBRATION_FILE_CALCULATIONS
   // calculate calib matrix, image spacing,   
   Calculate();  
 #else
-  //The calculations don't work at the moment 
+  //The calculations don't work at the moment
+  
+  #ifdef HIGH_DEFINITION
+  this->ShrinkFactor[0] = 1; 
+  this->ShrinkFactor[1] = 1;
+  #else
+  this->ShrinkFactor[0] = (int) (this->TransformationFactorMmToPixel + 0.5);//X 
+  this->ShrinkFactor[1] = (int) (this->TransformationFactorMmToPixel + 0.5);//Y
+  #endif
+  
+  this->LogStream << "CF-INFO: Shrinkfactor is: " << this->ShrinkFactor[0] << " | " << this->ShrinkFactor[1] << " | " << this->ShrinkFactor[2]<< endl;
   
   this->ClipRectangle[0] = 0;
   this->ClipRectangle[1] = 0;
   this->ClipRectangle[2] = (this->ImageSize[0] - this->ImageMargin[2] - this->ImageMargin[3] -1) / this->ShrinkFactor[0];
   this->ClipRectangle[3] = (this->ImageSize[1] - this->ImageMargin[0] - this->ImageMargin[1] -1) / this->ShrinkFactor[1];
+
+  this->LogStream << "CF-INFO: ClipRectangle is: " << this->ClipRectangle[0] << " - " << this->ClipRectangle[1] << " | " << this->ClipRectangle[2] <<" - " << this->ClipRectangle[3] << endl;
   
+  #ifdef HIGH_DEFINITION
+//  this->ImageSpacing[0] = 0.25;
+//  this->ImageSpacing[1] = 0.25;
+//  this->ImageSpacing[2] = 0.25;
+  this->ImageSpacing[0] = 1;
+  this->ImageSpacing[1] = 1;
+  this->ImageSpacing[2] = 1;
+  #else
   this->ImageSpacing[0] = 1.0;
   this->ImageSpacing[1] = 1.0;
   this->ImageSpacing[2] = 1.0;
-  
+  #endif
   //this->LogStream << "Calibration File: ClipRectangle 0 - "<< this->ClipRectangle[2] <<"| 0 - "<< this->ClipRectangle[3]<< endl;
   
 #endif
@@ -397,14 +653,14 @@ void vtkUltrasoundCalibFileReader::ReadComments()
 void vtkUltrasoundCalibFileReader::ReadNumbers(vtkstd::vector<double> & numbers)
 {
   /*
-        """Read numbers until comment line or blank line.
-        """
-        numbers = []
-        while lines and lines[0].strip() != "" and lines[0][0] != '#':
-            numbers.append(map(float, lines[0].split()))
-            # remove the first line from the list
-            del lines[0]
-        return numbers
+  """Read numbers until comment line or blank line.
+  """
+  numbers = []
+  while lines and lines[0].strip() != "" and lines[0][0] != '#':
+      numbers.append(map(float, lines[0].split()))
+      # remove the first line from the list
+      del lines[0]
+  return numbers
   */
   if (this->LinesIterator != this->Lines.end())
     {
