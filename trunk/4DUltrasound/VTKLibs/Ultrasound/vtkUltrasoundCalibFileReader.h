@@ -62,6 +62,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkUltrasoundWin32Header.h"
 #include "vtkAlgorithm.h"
 
+#include "SynchroGrabConfigure.h"
+
 #include <vtkstd/vector> // Required for vector
 
 
@@ -116,6 +118,20 @@ public:
   
   vtkGetVector3Macro(ShrinkFactor, int);
   
+  vtkGetVector3Macro(SystemOffset, double);
+  
+  vtkGetMacro(MaximumVolumeSize, double);
+  
+  vtkGetMacro(DelayFactor, int);
+  
+  vtkGetMacro(TransformationFactorMmToPixel, double);
+  
+  vtkGetVector3Macro(TrackerOffset, double);
+  
+  vtkGetMacro(ObliquenessAdjustmentMatrix, vtkMatrix4x4*);
+  
+  vtkGetMacro(CoordinateTransformationMatrix, vtkMatrix4x4*);
+  
 protected:
   vtkUltrasoundCalibFileReader();
   ~vtkUltrasoundCalibFileReader();
@@ -144,8 +160,17 @@ protected:
   ofstream LogStream;
   int ImageMargin[4];
   double UltrasoundScanDepth;
+  double UltrasoundScanFanHeight;
   int ShrinkFactor[3];
-
+  double SystemOffset[3];
+  double MaximumVolumeSize;
+  int DelayFactor;
+  double TransformationFactorMmToPixel;
+  double TrackerOffset[3];
+  
+  vtkMatrix4x4 *ObliquenessAdjustmentMatrix;
+  vtkMatrix4x4 *CoordinateTransformationMatrix;
+  
   vtkMatrix4x4 *HomogeneousMatrix;
   vtkMatrix4x4 *CalibrationMatrix;
 
