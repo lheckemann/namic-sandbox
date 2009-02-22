@@ -363,15 +363,11 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
                 cout <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
               #endif
                 self->ResetOldVolume(lastDataSenderIndex);
-//                self->EnableVolumeReconstruction(false);
-//                self->EnableVolumeReconstruction(true);
               }
             }
           else
             {
             lastDataSenderIndex = -2;
-//            self->EnableVolumeReconstruction(false);
-//            self->EnableVolumeReconstruction(true);
             }
           }
         else
@@ -532,7 +528,13 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
     this->Reconstructor->SetInterpolationModeToLinear();
 
     this->calibReader->SetFileName(this->CalibrationFileName);
-    this->calibReader->ReadCalibFile();
+    if(-1 == this->calibReader->ReadCalibFile())
+       {
+       #ifdef ERRORPROCESSOR
+       this->GetLogStream() << this->GetUpTime() << " |P-ERROR: Can not read calibration file => Volume reconstruction not possible" << endl;
+       #endif
+       return -1;
+       }
     this->calibReader->GetClipRectangle(this->clipRectangle);
     this->Reconstructor->SetClipRectangle(this->clipRectangle);
     
@@ -600,7 +602,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     return -1;
     }
 
-  if(dataSenderIndex > this->DataSender->GetSendDataBufferSize() || dataSenderIndex < 0)
+  if((dataSenderIndex > this->DataSender->GetSendDataBufferSize() || dataSenderIndex < 0) && this->oldVolume == NULL)
     {
     #ifdef  DEBUGPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-WARNING: Data sender index ( " << dataSenderIndex <<" )invalid no expansion possible: " <<endl;
@@ -688,108 +690,111 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
       this->LogStream << this->GetUpTime()  << " |P-ERROR: Expansion not possible since data sender index is invalid" <<endl;
       cout << this->GetUpTime()  << " |P-ERROR: Expansion not possible since data sender index "<< dataSenderIndex << "is invalid" <<endl;
     #endif
-    return -1;
-    }
-  
-  //Check Size of new volume
-  double volumeSize =   (newExtent[1] - newExtent[0] + 1)
-                      * (newExtent[3] - newExtent[2] + 1)
-                      * (newExtent[5] - newExtent[4] + 1);
-  
-  if(volumeSize < this->GetMaximumVolumeSize())
-    {
-    //Check if volume properties have changed
-    if(dataSenderIndex == -2 || (originChanged || extentChanged))
-      {
-      #ifdef  DEBUGPROCESSOR
-        if(dataSenderIndex == -2)
-          {
-          this->LogStream << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
-          cout << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
-          }
-        else
-          {
-          this->LogStream << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
-          }
-        #endif
-        
-      //Create new volume-------------------------------------------------------
-      this->Reconstructor->SetOutputExtent(newExtent);
-      this->Reconstructor->SetOutputSpacing(spacing);
-      this->Reconstructor->SetOutputOrigin(newOrigin);
-      
-      this->Reconstructor->SetSlice(newFrame);
-      this->Reconstructor->GetOutput()->Update();
-      
-      this->Reconstructor->SetSliceAxes(newTrackerMatrix);    
-      this->Reconstructor->GetOutput()->SetNumberOfScalarComponents(newFrame->GetNumberOfScalarComponents());
-//      this->Reconstructor->GetOutput()->SetNumberOfScalarComponents(2);
-      this->Reconstructor->GetOutput()->AllocateScalars();
-      this->Reconstructor->ClearOutput();
-//      this->DecreaseLifeTimeOfReconstructor(1);
-  
-  #ifdef MERGE
-      if(originChanged || extentChanged)
-  #else
-      if(false)
-  #endif
-        {
-        #ifdef  DEBUGPROCESSOR
-          this->LogStream << this->GetUpTime()  << " |P-INFO: Expand volume | DataSenderIndex: "<< dataSenderIndex << endl;
-        #endif
-          
-        #ifdef  DEBUGPROCESSOR
-          this->LogStream << this->GetUpTime()  << " |P-INFO: Acquire lock for DataSenderIndex: "<< dataSenderIndex << endl;
-        #endif
-        
-        if(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR))
-          {
-          int i = 0;
-          do
-            {
-            if(++i > 100000)
-              {
-              #ifdef  ERRORPROCESSOR
-                this->LogStream << this->GetUpTime()  << " |P-ERROR: Cannot acquire lock for DataSenderIndex: " << dataSenderIndex << " | TimeWaited: " << i << " ms" <<endl;
-              #endif
-              }
-            vtkSleep(0.01);
-            } //Wait for Lock
-          while(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR));
-          }
-        
-        if(this->oldVolume == NULL)
-          {
-          #ifdef  ERRORPROCESSOR
-            this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
-          #endif
-          retVal = -1;
-          }
-        //Copy Old Volume at correct position into new volume
-        else if(this->MergeVolumes(Reconstructor->GetOutput(),newOrigin,newExtent,
-                                   this->oldVolume, oldOrigin,oldExtent,
-                                   this->Reconstructor->GetOutput()->GetNumberOfScalarComponents())
-                == -1)
-          {
-          #ifdef  ERRORPROCESSOR
-            this->LogStream << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
-            cout << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
-          #endif
-          retVal = -1;
-          }
-        this->DataSender->ReleaseLock(DATAPROCESSOR);
-        }
-      }
-    }// Check size of new volume
-  else
-    {
-    #ifdef  ERRORPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big" << endl;
-      cout << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big" << endl;
-    #endif
     retVal = -1;
     }
+  else
+    {
     
+    //Check Size of new volume
+    double volumeSize =   (newExtent[1] - newExtent[0] + 1)
+                        * (newExtent[3] - newExtent[2] + 1)
+                        * (newExtent[5] - newExtent[4] + 1);
+    
+    if(volumeSize < this->GetMaximumVolumeSize())
+      {
+      //Check if volume properties have changed
+      if(dataSenderIndex == -2 || (originChanged || extentChanged))
+        {
+        #ifdef  DEBUGPROCESSOR
+          if(dataSenderIndex == -2)
+            {
+            this->LogStream << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
+            cout << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
+            }
+          else
+            {
+            this->LogStream << this->GetUpTime()  << " |P-INFO: Update Existing volume" << " | "  << endl;
+            }
+          #endif
+          
+        //Create new volume-------------------------------------------------------
+        this->Reconstructor->SetOutputExtent(newExtent);
+        this->Reconstructor->SetOutputSpacing(spacing);
+        this->Reconstructor->SetOutputOrigin(newOrigin);
+        
+        this->Reconstructor->SetSlice(newFrame);
+        this->Reconstructor->GetOutput()->Update();
+        
+        this->Reconstructor->SetSliceAxes(newTrackerMatrix);    
+        this->Reconstructor->GetOutput()->SetNumberOfScalarComponents(newFrame->GetNumberOfScalarComponents());
+    //      this->Reconstructor->GetOutput()->SetNumberOfScalarComponents(2);
+        this->Reconstructor->GetOutput()->AllocateScalars();
+        this->Reconstructor->ClearOutput();
+    //      this->DecreaseLifeTimeOfReconstructor(1);
+    
+    #ifdef MERGE
+        if(originChanged || extentChanged)
+    #else
+        if(false)
+    #endif
+          {
+          #ifdef  DEBUGPROCESSOR
+            this->LogStream << this->GetUpTime()  << " |P-INFO: Expand volume | DataSenderIndex: "<< dataSenderIndex << endl;
+          #endif
+            
+          #ifdef  DEBUGPROCESSOR
+            this->LogStream << this->GetUpTime()  << " |P-INFO: Acquire lock for DataSenderIndex: "<< dataSenderIndex << endl;
+          #endif
+          
+          //Lock data
+          if(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR))
+            {
+            int i = 0;
+            do
+              {
+              if(++i > 100000)
+                {
+                #ifdef  ERRORPROCESSOR
+                  this->LogStream << this->GetUpTime()  << " |P-ERROR: Cannot acquire lock for DataSenderIndex: " << dataSenderIndex << " | TimeWaited: " << i << " ms" <<endl;
+                #endif
+                }
+              vtkSleep(0.01);
+              } //Wait for Lock
+            while(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR));
+            }
+          
+          if(this->oldVolume == NULL)
+            {
+            #ifdef  ERRORPROCESSOR
+              this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
+            #endif
+            retVal = -1;
+            }
+          //Copy Old Volume at correct position into new volume
+          else if(this->MergeVolumes(Reconstructor->GetOutput(),newOrigin,newExtent,
+                                     this->oldVolume, oldOrigin,oldExtent,
+                                     this->Reconstructor->GetOutput()->GetNumberOfScalarComponents())
+                  == -1)
+            {
+            #ifdef  ERRORPROCESSOR
+              this->LogStream << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
+              cout << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
+            #endif
+            retVal = -1;
+            }
+          this->DataSender->ReleaseLock(DATAPROCESSOR);
+          }
+        }
+      }// Check size of new volume
+    else
+      {
+      #ifdef  ERRORPROCESSOR
+        this->LogStream << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
+        cout << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
+      #endif
+      retVal = -1;
+      }
+    }
   this->ResetOldVolume(dataSenderIndex);
 
   return retVal;
