@@ -367,9 +367,6 @@ void printUsage()
          << "--scan-depth xxx or -sd xxx:            Set depth of ultrasound "<< endl
          << "                                        scan in Millimeter"<< endl
          << "                                        (default: 70mm)" << endl
-         << "--tracker-offset xxx or -to xxx:        Set offset of tracker to " << endl
-         << "                                        ultrasound probe in Millimeter" << endl
-         << "                                        (default: 35mm)" << endl
          << "--maximum-volumesize xxx or -maxvs xxx: Maximum volume size (in Byte) " << endl
          << "                                        the system can handle" << endl
          << "--verbose or -v:                        Print more information" << endl
@@ -579,19 +576,6 @@ bool parseCommandLineArguments(int argc, char **argv,
             {
             printUsage();
             cout << "ERROR: Scand depth not specified" << endl;
-            return false;
-            }
-          }
-        else if(currentArg == "--tracker-offset" || currentArg == "-to")
-          {
-          if( i < argc - 1)
-            {
-            collector->SetTrackerOffset(atoi(argv[++i]));
-            }
-          else
-            {
-            printUsage();
-            cout << "ERROR: Tracker offset not specified" << endl;
             return false;
             }
           }
