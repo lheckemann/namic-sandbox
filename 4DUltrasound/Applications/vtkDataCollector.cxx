@@ -94,6 +94,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define DEFAULT_VIDEO_CHANNEL 3 //S-Video at Hauppauge Impact VCB Modell 558
 #define DEFAULT_VIDEO_MODE 1 //NTSC
 #define DEFAULT_ULTRASOUND_SCANDEPTH 70 //mm
+#define DEFAULT_MAXIMUM_VOLUME_SIZE -1
 
 using namespace std;
 
@@ -159,7 +160,9 @@ vtkDataCollector::vtkDataCollector()
   this->StartUpTime = vtkTimerLog::GetUniversalTime();
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
   
-  this->TrackerOffset = 30; //mm
+  this->TrackerOffset[0] = 0; //mm
+  this->TrackerOffset[1] = -10; //mm
+  this->TrackerOffset[2] = 30; //mm
   
   this->ImageMargin[0] = 0;
   this->ImageMargin[1] = 0;
@@ -169,6 +172,14 @@ vtkDataCollector::vtkDataCollector()
   this->SystemOffset[0] = 0;
   this->SystemOffset[1] = 0;
   this->SystemOffset[2] = 300;
+  
+  this->TransformationFactorMmToPixel = 1;
+  
+  this->ObliquenessAdjustmentMatrix = vtkMatrix4x4::New();
+  this->ObliquenessAdjustmentMatrix->Identity();
+  
+  this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
+  this->CoordinateTransformationMatrix->Identity();
 }
 
 /******************************************************************************
@@ -236,6 +247,18 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     this->calibReader->GetClipRectangle(this->clipRectangle);
     this->calibReader->GetImageMargin(this->ImageMargin);
     this->calibReader->GetShrinkFactor(this->ShrinkFactor);
+    this->calibReader->GetSystemOffset(this->SystemOffset);
+    if(this->MaximumVolumeSize == DEFAULT_MAXIMUM_VOLUME_SIZE)
+          {
+          this->MaximumVolumeSize = this->calibReader->GetMaximumVolumeSize();
+          }
+    this->TransformationFactorMmToPixel =  this->calibReader->GetTransformationFactorMmToPixel();
+    
+    this->calibReader->GetTrackerOffset(this->TrackerOffset);
+    
+    this->ObliquenessAdjustmentMatrix = this->calibReader->GetObliquenessAdjustmentMatrix();
+    this->CoordinateTransformationMatrix = this->calibReader->GetCoordinateTransformationMatrix();
+    
     }
   else
     {
@@ -654,24 +677,11 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   
   //----------------------------------------------------------------------------
   //Calibrate tracker Matrix----------------------------------------------------
-  vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
   vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
     
   //Adjust Obliqueness----------------------------------------------------------
   oldMatrix->DeepCopy(pDataStruct->Matrix);
-  
-  adjustMatrix->Identity();  
-  adjustMatrix->Element[0][0] = 0;
-  adjustMatrix->Element[1][1] = 0;
-  adjustMatrix->Element[2][2] = 0;
-  
-  adjustMatrix->Element[0][0] = 0.933580;
-  adjustMatrix->Element[1][0] = 0.358368;
-  adjustMatrix->Element[0][1] = -0.358368;
-  adjustMatrix->Element[1][1] = 0.933580;
-  adjustMatrix->Element[2][2] = 1;
-
-  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
+  vtkMatrix4x4::Multiply4x4(oldMatrix, this->ObliquenessAdjustmentMatrix, pDataStruct->Matrix);
   
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix Obliqueness adjusted:"<< endl;
@@ -680,17 +690,7 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   
  //Transform coordinate System-------------------------------------------------
   oldMatrix->DeepCopy(pDataStruct->Matrix);
-  
-  adjustMatrix->Identity();  
-  adjustMatrix->Element[0][0] = 0;
-  adjustMatrix->Element[1][1] = 0;
-  adjustMatrix->Element[2][2] = 0;
-  
-  adjustMatrix->Element[0][0] =  1;
-  adjustMatrix->Element[2][1] = -1;
-  adjustMatrix->Element[1][2] = -1;
-
-  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, pDataStruct->Matrix);
+  vtkMatrix4x4::Multiply4x4(oldMatrix, this->CoordinateTransformationMatrix, pDataStruct->Matrix);
   
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix coordinate system transformed:"<< endl;
@@ -699,8 +699,8 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   
   //Apply Offset----------------------------------------------------------------
   double xOffset = -1 * (this->clipRectangle[2] + 1)  / 2;
-  double yOffset = -1 * (this->clipRectangle[3] + 1  + this->TrackerOffset);
-  double zOffset = -10;
+  double yOffset = -1 * (this->clipRectangle[3] + 1  + this->TrackerOffset[2]);
+  double zOffset = this->TrackerOffset[1];
   
   double xAxis[3] = {pDataStruct->Matrix->Element[0][0], pDataStruct->Matrix->Element[1][0], pDataStruct->Matrix->Element[2][0]};
   double yAxis[3] = {pDataStruct->Matrix->Element[0][1], pDataStruct->Matrix->Element[1][1], pDataStruct->Matrix->Element[2][1]};
@@ -722,34 +722,21 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   pDataStruct->Matrix->Element[1][3] += (zAxis[1] * zOffset);
   pDataStruct->Matrix->Element[2][3] += (zAxis[2] * zOffset);
   
-  //Apply System Offset
-  pDataStruct->Matrix->Element[0][3] += this->SystemOffset[0];
-  pDataStruct->Matrix->Element[1][3] += this->SystemOffset[1];
-  pDataStruct->Matrix->Element[2][3] += this->SystemOffset[2];
+  #ifdef HIGH_DEFINITION
+  pDataStruct->Matrix->Element[0][3] *= this->TransformationFactorMmToPixel;
+  pDataStruct->Matrix->Element[1][3] *= this->TransformationFactorMmToPixel;
+  pDataStruct->Matrix->Element[2][3] *= this->TransformationFactorMmToPixel;
+  #endif
 
-
-//  
-//  double xValue = pDataStruct->Matrix->Element[0][3];
-//  double yValue = pDataStruct->Matrix->Element[1][3];
-//  double zValue = pDataStruct->Matrix->Element[2][3];
-//  
-//  pDataStruct->Matrix->Element[0][3] = yValue;
-//  pDataStruct->Matrix->Element[1][3] = -zValue;
-//  pDataStruct->Matrix->Element[2][3] = -xValue;
+  pDataStruct->Matrix->Element[0][3] += this->GetSystemOffset()[0];
+  pDataStruct->Matrix->Element[1][3] += this->GetSystemOffset()[1];
+  pDataStruct->Matrix->Element[2][3] += this->GetSystemOffset()[2];
   
-//  #ifdef DEBUGCOLLECTOR
-//    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
-//    pDataStruct->Matrix->Print(this->LogStream);
-//  #endif
-
-  //Reshape matrix according to ultrasound scan depth---------------------------
-//  double scaleFactor = 1;//(this->VideoSource->GetFrameSize())[1] / this->ScanDepth * US_IMAGE_FAN_RATIO;
-//
-//  pDataStruct->Matrix->Element[0][3] = pDataStruct->Matrix->Element[0][3] * scaleFactor;//x
-//  pDataStruct->Matrix->Element[1][3] = pDataStruct->Matrix->Element[1][3] * scaleFactor;//y
-//  pDataStruct->Matrix->Element[2][3] = pDataStruct->Matrix->Element[2][3] * scaleFactor;//z
-
-  adjustMatrix->Delete();
+  #ifdef DEBUGCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
+    pDataStruct->Matrix->Print(this->LogStream);
+  #endif
+    
   oldMatrix->Delete();
   
   return 0;
@@ -843,8 +830,8 @@ int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extra
   int leftMargin   = this->calibReader->GetImageMargin()[2];
   int rightMargin  = this->calibReader->GetImageMargin()[3];
   
-  int width = (int)(this->calibReader->GetImageSize()[0] - this->calibReader->GetImageMargin()[2] - this->calibReader->GetImageMargin()[3]);
-  int height = (int)(this->calibReader->GetImageSize()[1] - this->calibReader->GetImageMargin()[0] - this->calibReader->GetImageMargin()[1]);
+  int width = (int)(this->calibReader->GetImageSize()[0] - leftMargin - rightMargin);
+  int height = (int)(this->calibReader->GetImageSize()[1] - topMargin - bottomMargin);
   
   //Create extracted image
   extract->SetExtent(0, width -1, 0, height - 1, 0, 0);
@@ -1076,8 +1063,6 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
     return -1;
     }
     
-  
-    
   double xmin = this->clipRectangle[0], ymin = this->clipRectangle[1],
          xmax = this->clipRectangle[2], ymax = this->clipRectangle[3];
 
@@ -1248,7 +1233,7 @@ double vtkDataCollector::GetMaximumVolumeSize()
     double height = yMax - yMin;
     double depth = width;
     
-    retVal = width * height * depth;
+    retVal = width * height * depth * depth;
     }
   else
     {
