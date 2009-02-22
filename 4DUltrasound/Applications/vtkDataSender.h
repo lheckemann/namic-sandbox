@@ -153,6 +153,7 @@ protected:
   bool Connected;
   double lastFrameRateUpdate;
   int UpDateCounter;
+  double TransformationFactorMmToPixel;
 
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;

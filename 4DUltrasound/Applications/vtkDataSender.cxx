@@ -120,6 +120,8 @@ vtkDataSender::vtkDataSender()
 
   this->lastFrameRateUpdate = 0;
   this->UpDateCounter = 0;
+  
+  this->TransformationFactorMmToPixel =  10;
 }
 
 //----------------------------------------------------------------------------
@@ -513,16 +515,30 @@ int vtkDataSender::PrepareImageMessage(int index,
     //Get property of frame
     frame->GetDimensions(frameProperties.Size);
 //    frame->GetSpacing(frameProperties.Spacing);
-    frameProperties.Spacing[0] = 1;//0.25;
-    frameProperties.Spacing[1] = 1;//0.25;
-    frameProperties.Spacing[2] = 1;//0.25;
+    
+    #ifdef HIGH_DEFINITION
+    frameProperties.Spacing[0] = 1 / this->TransformationFactorMmToPixel;
+    frameProperties.Spacing[1] = 1 / this->TransformationFactorMmToPixel;
+    frameProperties.Spacing[2] = 1 / this->TransformationFactorMmToPixel;
+//    frameProperties.Origin[0] = (float) frame->GetOrigin()[0] / this->TransformationFactorMmToPixel;
+//    frameProperties.Origin[1] = (float) frame->GetOrigin()[1] / this->TransformationFactorMmToPixel;
+//    frameProperties.Origin[2] = (float) frame->GetOrigin()[2] / this->TransformationFactorMmToPixel;
+    frameProperties.Origin[0] = (float) frame->GetOrigin()[0];
+    frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
+    frameProperties.Origin[2] = (float) frame->GetOrigin()[2];
+    #else
+    frameProperties.Spacing[0] = 1;
+    frameProperties.Spacing[1] = 1;
+    frameProperties.Spacing[2] = 1;
+    frameProperties.Origin[0] = (float) frame->GetOrigin()[0];
+    frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
+    frameProperties.Origin[2] = (float) frame->GetOrigin()[2];
+    #endif
+    
     frameProperties.ScalarType = frame->GetScalarType();
     frameProperties.SubVolumeSize[0] = frameProperties.Size[0];
     frameProperties.SubVolumeSize[1] = frameProperties.Size[1];
     frameProperties.SubVolumeSize[2] = frameProperties.Size[2];
-    frameProperties.Origin[0] = (float) frame->GetOrigin()[0];
-    frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
-    frameProperties.Origin[2] = (float) frame->GetOrigin()[2];
     
     frameProperties.Set = true;
 //    }
@@ -569,11 +585,32 @@ int vtkDataSender::PrepareImageMessage(int index,
   igtl::Matrix4x4 igtlMatrix;
 
   //Copy matrix to output buffer
+  #ifdef HIGH_DEFINITION
+  igtlMatrix[0][0] = matrix->Element[0][0];
+  igtlMatrix[0][1] = matrix->Element[0][1];
+  igtlMatrix[0][2] = matrix->Element[0][2];
+  igtlMatrix[0][3] = matrix->Element[0][3] / this->TransformationFactorMmToPixel;
+
+  igtlMatrix[1][0] = matrix->Element[1][0];
+  igtlMatrix[1][1] = matrix->Element[1][1];
+  igtlMatrix[1][2] = matrix->Element[1][2];
+  igtlMatrix[1][3] = matrix->Element[1][3] / this->TransformationFactorMmToPixel;
+
+  igtlMatrix[2][0] = matrix->Element[2][0];
+  igtlMatrix[2][1] = matrix->Element[2][1];
+  igtlMatrix[2][2] = matrix->Element[2][2];
+  igtlMatrix[2][3] = matrix->Element[2][3] / this->TransformationFactorMmToPixel;
+
+  igtlMatrix[3][0] = matrix->Element[3][0];
+  igtlMatrix[3][1] = matrix->Element[3][1];
+  igtlMatrix[3][2] = matrix->Element[3][2];
+  igtlMatrix[3][3] = matrix->Element[3][3];
+  #else
+  
   igtlMatrix[0][0] = matrix->Element[0][0];
   igtlMatrix[0][1] = matrix->Element[0][1];
   igtlMatrix[0][2] = matrix->Element[0][2];
   igtlMatrix[0][3] = matrix->Element[0][3];
-
   igtlMatrix[1][0] = matrix->Element[1][0];
   igtlMatrix[1][1] = matrix->Element[1][1];
   igtlMatrix[1][2] = matrix->Element[1][2];
@@ -588,6 +625,7 @@ int vtkDataSender::PrepareImageMessage(int index,
   igtlMatrix[3][1] = matrix->Element[3][1];
   igtlMatrix[3][2] = matrix->Element[3][2];
   igtlMatrix[3][3] = matrix->Element[3][3];
+  #endif
 
   this->ReleaseLock(DATASENDER);
   
@@ -609,10 +647,10 @@ int vtkDataSender::PrepareImageMessage(int index,
                     << "         | Index: " << index << " | "  <<endl;
   #endif
 
-  #ifdef  DEBUGSENDER
-    this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
-    matrix->Print(this->LogStream);
-  #endif
+//  #ifdef  DEBUGSENDER
+//    this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
+//    matrix->Print(this->LogStream);
+//  #endif
 
   imageMessage->SetMatrix(igtlMatrix);
 
@@ -696,7 +734,7 @@ int vtkDataSender::TryToDeleteData(int index)
   else
     {
     #ifdef  DEBUGSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-WARNING: Could not delet data at index:" << index << " lock by: ";
+      this->LogStream <<  this->GetUpTime() << " |S-WARNING: Could not delete data at index:" << index << " lock by: ";
       
       if( this->sendDataBuffer[index].SenderLock > 0)
         {
@@ -707,6 +745,7 @@ int vtkDataSender::TryToDeleteData(int index)
         {
         this->LogStream << "DataProcessor";
         }
+      
       this->LogStream << endl;
     #endif
     }
