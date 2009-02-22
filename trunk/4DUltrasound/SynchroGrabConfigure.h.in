@@ -35,3 +35,7 @@
 //#define DEBUG_INST_TRACKER
 //#define TIMING_INST_TRACKER
 
+//Calibration File Reader
+#define DEBUG_CALIBRATIONFILE_READER
+
+//#define HIGH_DEFINITION
