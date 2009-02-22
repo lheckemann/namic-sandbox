@@ -1084,6 +1084,10 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
   int outIdY1 = outIdY0 + (fy != 0);
   int outIdZ1 = outIdZ0 + (fz != 0);
   
+//  cout << "OutIdX0 OutIdY0 OutIdY0 :" << outIdX0 <<"|"<< outIdY0 <<"|"<< outIdZ0 << endl;
+//  cout << "OutIdX1 OutIdY1 OutIdY1 :" << outIdX1 <<"|"<< outIdY1 <<"|"<< outIdZ1 <<"|"<<endl;
+//  cout << "OutExtent: " << outExt[0] << "-" << outExt[1] << " | "<< outExt[2]<< "-"<< outExt[3]<<" | "<< outExt[4]<<"-"<< outExt[5]<<endl;
+  
   // bounds check
   if ((outIdX0 | (outExt[1]-outExt[0] - outIdX1) |
        outIdY0 | (outExt[3]-outExt[2] - outIdY1) |
@@ -2791,13 +2795,13 @@ static void vtkOptimizedInsertSlice(vtk3DPanoramicVolumeReconstructor *self,
       if (!(ml == 0 && mr == 0))
         {
         // first, check the angle range of the fan
-  if (r1 < -vtkUltraFloor(-(ml*y + xf + 1)))
+        if (r1 < -vtkUltraFloor(-(ml*y + xf + 1)))
           {
           r1 = -vtkUltraFloor(-(ml*y + xf + 1));
           }
-    if (r2 > vtkUltraFloor(mr*y + xf - 1))
+        if (r2 > vtkUltraFloor(mr*y + xf - 1))
           {
-    r2 = vtkUltraFloor(mr*y + xf - 1);
+          r2 = vtkUltraFloor(mr*y + xf - 1);
           }
       
         // next, check the radius of the fan
@@ -2812,11 +2816,11 @@ static void vtkOptimizedInsertSlice(vtk3DPanoramicVolumeReconstructor *self,
           dx = sqrt(dx);
           if (r1 < -vtkUltraFloor(-(xf - dx + 1)))
             {
-      r1 = -vtkUltraFloor(-(xf - dx + 1));
+            r1 = -vtkUltraFloor(-(xf - dx + 1));
             }
           if (r2 > vtkUltraFloor(xf + dx - 1))
             {
-      r2 = vtkUltraFloor(xf + dx - 1);
+            r2 = vtkUltraFloor(xf + dx - 1);
             }
           }
         }
