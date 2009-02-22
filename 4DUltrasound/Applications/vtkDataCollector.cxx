@@ -243,7 +243,13 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
   if(this->calibReader != NULL)
     {
     this->calibReader->SetFileName(this->CalibrationFileName);
-    this->calibReader->ReadCalibFile();
+    if(-1 == this->calibReader->ReadCalibFile())
+      {
+      #ifdef ERRORCOLLECTOR
+      this->GetLogStream() << this->GetUpTime() << " |C-ERROR: Can not read calibration file => Stop initialization" << endl;
+      #endif
+      return -1;
+      }
     this->calibReader->GetClipRectangle(this->clipRectangle);
     this->calibReader->GetImageMargin(this->ImageMargin);
     this->calibReader->GetShrinkFactor(this->ShrinkFactor);
@@ -732,10 +738,10 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   pDataStruct->Matrix->Element[1][3] += this->GetSystemOffset()[1];
   pDataStruct->Matrix->Element[2][3] += this->GetSystemOffset()[2];
   
-  #ifdef DEBUGCOLLECTOR
-    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
-    pDataStruct->Matrix->Print(this->LogStream);
-  #endif
+//  #ifdef DEBUGCOLLECTOR
+//    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
+//    pDataStruct->Matrix->Print(this->LogStream);
+//  #endif
     
   oldMatrix->Delete();
   

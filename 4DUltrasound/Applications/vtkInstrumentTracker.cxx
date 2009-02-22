@@ -456,7 +456,13 @@ int vtkInstrumentTracker::StartTracking(vtkNDITracker * tracker)
   if(this->calibReader != NULL)
     {
     this->calibReader->SetFileName(this->CalibrationFileName);
-    this->calibReader->ReadCalibFile();
+    if(-1 == this->calibReader->ReadCalibFile())
+      {
+      #ifdef ERROR_INST_TRACKER
+      this->GetLogStream() << this->GetUpTime() << " |I-ERROR: Can not read calibration file => Instrument tracking not possible" << endl;
+      #endif
+      return -1;
+      }
     this->calibReader->GetSystemOffset(this->SystemOffset);
     }
   else
