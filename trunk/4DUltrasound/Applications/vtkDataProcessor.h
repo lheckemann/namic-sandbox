@@ -60,6 +60,7 @@ class vtkMatrix4x4;
 class vtk3DPanoramicVolumeReconstructor;
 class vtkDataSender;
 class vtkUltrasoundCalibFileReader;
+class vtkMutexLock;
 
 struct DataStruct 
 {
@@ -162,6 +163,8 @@ protected:
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;
   int PlayerThreadId;
+  vtkMutexLock *DataBufferLock;
+  vtkMutexLock *DataBufferIndexQueueLock;
 
   void GetVolumeMatrix(vtkMatrix4x4* matrix);
   int  MergeVolumes(vtkImageData* newVolume,
