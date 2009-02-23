@@ -8,10 +8,11 @@
 # be written.
 #
 PROJECT(BRAINS_SLICER3_TEST_SUITE)
+cmake_minimum_required(VERSION 2.6)
 
 ENABLE_TESTING()
 
-FIND_PROGRAM(SLICER3_BIN Slicer3 ../Slicer3-bin ../../Slicer3-bin ../../../Slicer3-bin)
+FIND_PROGRAM(SLICER3_EXEC Slicer3 ../Slicer3-build ../Slicer3-bin ../../Slicer3-bin ../../../Slicer3-bin)
 
 SET(CMAKE_MODULE_PATH ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 

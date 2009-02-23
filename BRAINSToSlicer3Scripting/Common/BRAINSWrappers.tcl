@@ -187,6 +187,7 @@ if { [ info exists ::slicer3::MRMLScene ] == 1 } {
   set BRAINSScriptingScene $::slicer3::MRMLScene
   set BRAINSScriptingVolumesLogic [ $::slicer3::VolumesGUI GetLogic]
   set BRAINSScriptingColorLogic [$::slicer3::ColorGUI GetLogic]
+  set BRAINSScriptingFiducialsLogic [ $::slicer3::FiducialsGUI GetLogic]
   set BRAINSScriptingMRMLisGUI "true"
 } else {
   ## If not in gui mode (--no-splash -f )
@@ -313,7 +314,10 @@ b2_proc_generator b2_load_image { { fileName - required }  {centered 1} {labelim
     incr ::FileReaderIncrementUniqueIdCounter;
   }
 #  puts "set volumeNode \[ \[ GetBatchVolumesLogic \] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} \]"
-  set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]
+#  set centered 0;#By default do not center the images
+# load_options is a bit masks defining how to treat the loaded image
+  set load_options [ expr 1*${centered}+2*${labelimage} ]
+  set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName ${NodeName} ${load_options} ]
   if { [ llength $volumeNode ] == 0 } {
     puts "ERROR in reading file $fileName"
     return -1;
