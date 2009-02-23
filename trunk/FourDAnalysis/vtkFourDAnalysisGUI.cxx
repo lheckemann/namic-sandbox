@@ -120,12 +120,16 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->SeriesToPlotMenu  = NULL;
   this->MaskSelectMenu    = NULL;
 
-  this->RunPlotButton  = NULL;
-  this->ErrorBarCheckButton     = NULL;
+  this->RunPlotButton       = NULL;
+  this->ErrorBarCheckButton = NULL;
+  this->FittingLabelMenu    = NULL;
+  this->CurveScriptSelectButton  = NULL;
+  this->RunFittingButton    = NULL;
   this->SavePlotButton = NULL;
   this->IntensityPlot  = NULL;
 
   this->MapInputSeriesMenu  = NULL;
+  //this->MapOutputSelector   = NULL;
   this->MapOutputVolumeMenu = NULL;
   this->ScriptSelectButton  = NULL;
   this->RunScriptButton = NULL;
@@ -258,6 +262,21 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->ErrorBarCheckButton->SetParent(NULL);
     this->ErrorBarCheckButton->Delete();
     }
+  if (this->FittingLabelMenu)
+    {
+    this->FittingLabelMenu->SetParent(NULL);
+    this->FittingLabelMenu->Delete();
+    }
+  if (this->CurveScriptSelectButton)
+    {
+    this->CurveScriptSelectButton->SetParent(NULL);
+    this->CurveScriptSelectButton->Delete();
+    }
+  if (this->RunFittingButton)
+    {
+    this->RunFittingButton->SetParent(NULL);
+    this->RunFittingButton->Delete();
+    }
   if (this->SavePlotButton)
     {
     this->SavePlotButton->SetParent(NULL);
@@ -268,6 +287,13 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->MapInputSeriesMenu->SetParent(NULL);
     this->MapInputSeriesMenu->Delete();
     }
+  /*
+  if (this->MapOutputSelector)
+    {
+    this->MapOutputSelector->SetParent(NULL);
+    this->MapOutputSelector->Delete();
+    }
+  */
   if (this->MapOutputVolumeMenu)
     {
     this->MapOutputVolumeMenu->SetParent(NULL);
@@ -445,17 +471,38 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->ErrorBarCheckButton->GetWidget()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->FittingLabelMenu)
+    {
+    this->FittingLabelMenu
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CurveScriptSelectButton)
+    {
+    this->CurveScriptSelectButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->RunFittingButton)
+    {
+    this->RunFittingButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->SavePlotButton)
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
   if (this->MapInputSeriesMenu)
     {
     this->MapInputSeriesMenu->GetMenu()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  /*
+  if (this->MapOutputSelector)
+    {
+    this->MapOutputSelector
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  */
   if (this->MapOutputVolumeMenu)
     {
     this->MapOutputVolumeMenu->GetMenu()
@@ -618,17 +665,38 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->ErrorBarCheckButton->GetWidget()
       ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->FittingLabelMenu)
+    {
+    this->FittingLabelMenu
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CurveScriptSelectButton)
+    {
+    this->CurveScriptSelectButton->GetWidget()->GetLoadSaveDialog()
+      ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->RunFittingButton)
+    {
+    this->RunFittingButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->SavePlotButton)
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
       ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-
   if (this->MapInputSeriesMenu)
     {
     this->MapInputSeriesMenu->GetMenu()
       ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
+  /*
+  if (this->MapOutputSelector)
+    {
+    this->MapOutputSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+                                          (vtkCommand *) this->GUICallbackCommand);
+    }
+  */
   if (this->MapOutputVolumeMenu)
     {
     this->MapOutputVolumeMenu->GetMenu()
@@ -893,6 +961,31 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       this->IntensityPlot->UpdateGraph();
       }
     }
+  else if (this->RunFittingButton == vtkKWPushButton::SafeDownCast(caller)
+           && event == vtkKWPushButton::InvokedEvent)
+    {
+    int n = this->FittingLabelMenu->GetMenu()->GetIndexOfSelectedItem();
+    vtkIntArray* labels = this->IntensityCurves->GetLabelList();
+    int label = labels->GetValue(n);
+
+    vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
+    vtkMRMLScene* scene = this->GetMRMLScene();
+    this->GetMRMLScene()->AddNode(curveNode);
+    
+    vtkDoubleArray* curve = this->IntensityCurves->GetCurve(label);
+    if (curve)
+      {
+      const char* script = this->CurveScriptSelectButton->GetWidget()->GetFileName();
+      curveNode->SetSourceData(curve);
+      this->GetLogic()->RunCurveFitting(script, curveNode);
+      }
+    curve->Delete();
+    vtkDoubleArray* curve2 = curveNode->GetInterpolatedData();
+    if (curve2)
+      {
+      UpdateIntensityPlotWithFittedCurve(this->IntensityCurves, curve2);
+      }
+    }
   else if (this->SavePlotButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
     {
@@ -907,6 +1000,16 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     */
     this->GetLogic()->SaveIntensityCurves(this->IntensityCurves, filename);
     }
+  /*
+  else if (this->MapOutputSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+           && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent) 
+    {
+    vtkMRMLScalarVolumeNode* n = vtkMRMLScalarVolumeNode::SafeDownCast(this->MapOutputSelector->GetSelected());
+    if (n)
+      {
+      }
+    }
+  */
   else if (this->ScriptSelectButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
     {
@@ -914,53 +1017,20 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->RunScriptButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
-
-
-
-
+    /*
     const char* filename = this->ScriptSelectButton->GetWidget()->GetFileName();
+    //vtkMRMLScalarVolumeNode* outputVolumeNode =
+    //vtkMRMLScalarVolumeNode::SafeDownCast(this->MapOutputSelector->GetSelected());
 
-    PyObject* v;
-    std::string pythonCmd;
-//    pythonCmd += "from Slicer import numpy\n";
-    pythonCmd += "from Slicer import slicer\n";
-    pythonCmd += "execfile('";
-    pythonCmd += filename;
-    pythonCmd += "')\n";
-
-    /*
-    pythonCmd += "scene = slicer.MRMLScene\n";
-    pythonCmd += "node = scene.GetNodeByID('vtkMRMLLinearTransformNode4')\n";
-    pythonCmd += "lst  = node.GetName()\n";
-    pythonCmd += "str = ''.join( lst )\n";
-    pythonCmd += "print str\n";
-    */
-
-    v = PyRun_String(
-                     pythonCmd.c_str(),
-                     Py_file_input,
-                     (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
-                     (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()));
-
-    if (Py_FlushLine())
+    if (filename)
       {
-      PyErr_Clear();
-      }
+      vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
+      vtkMRMLScene* scene = this->GetMRMLScene();
+      this->GetMRMLScene()->AddNode(curveNode);
 
-    /*
-    FILE *fp = PyFile_AsFile("test.py");
-    char *name = PyString_AsString(PyFile_Name(prog));
-    v = PyRun_File(fp, name, Py_file_input, globals,
-                   locals);
-    */
-    /*
-      if (v == NULL)
-      {
-      PyErr_Print();
+      curveNode->Delete();
       }
     */
-    
-
     }
   else if (this->OutputSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
@@ -1544,6 +1614,46 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
                this->ErrorBarCheckButton->GetWidgetName());
 
   // -----------------------------------------
+  // Curve fitting frame
+  
+  vtkKWFrameWithLabel *cframe = vtkKWFrameWithLabel::New();
+  cframe->SetParent(conBrowsFrame->GetFrame());
+  cframe->Create();
+  cframe->SetLabelText ("Curve Fitting");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 cframe->GetWidgetName() );
+
+  vtkKWLabel *fittingLabelLabel = vtkKWLabel::New();
+  fittingLabelLabel->SetParent(cframe->GetFrame());
+  fittingLabelLabel->Create();
+  fittingLabelLabel->SetText("Label:");
+
+  this->FittingLabelMenu = vtkKWMenuButton::New();
+  this->FittingLabelMenu->SetParent(cframe->GetFrame());
+  this->FittingLabelMenu->Create();
+  this->FittingLabelMenu->SetWidth(5);
+
+  this->CurveScriptSelectButton = vtkKWLoadSaveButtonWithLabel::New();
+  this->CurveScriptSelectButton->SetParent(cframe->GetFrame());
+  this->CurveScriptSelectButton->Create();
+  this->CurveScriptSelectButton->SetWidth(50);
+  this->CurveScriptSelectButton->GetWidget()->SetText ("Load");
+  this->CurveScriptSelectButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOff();
+
+  this->RunFittingButton = vtkKWPushButton::New();
+  this->RunFittingButton->SetParent(cframe->GetFrame());
+  this->RunFittingButton->Create();
+  this->RunFittingButton->SetText ("Run");
+  this->RunFittingButton->SetWidth (4);
+  
+  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               fittingLabelLabel->GetWidgetName(),
+               this->FittingLabelMenu->GetWidgetName(),
+               this->CurveScriptSelectButton->GetWidgetName(),
+               this->RunFittingButton->GetWidgetName());
+  
+
+  // -----------------------------------------
   // Output frame
   
   vtkKWFrameWithLabel *oframe = vtkKWFrameWithLabel::New();
@@ -1613,6 +1723,23 @@ void vtkFourDAnalysisGUI::BuildGUIForMapGenerator()
   outputLabel->Create();
   outputLabel->SetText(" Output:");
   
+
+  /*
+  MapOutputSelector = vtkSlicerNodeSelectorWidget::New();
+  MapOutputSelector->ShowHiddenOn();
+  MapOutputSelector->SetNodeClass("vtkMRMLScalarVolumeNode", "Volume", title.c_str(), title.c_str());
+  MapOutputSelector->SetNewNodeEnabled(1);
+  MapOutputSelector->SetParent( moduleFrame->GetFrame() );
+  MapOutputSelector->Create();
+  MapOutputSelector->SetMRMLScene(this->Logic->GetMRMLScene());
+  MapOutputSelector->SetSelected(NULL);  // force empt select
+  MapOutputSelector->SetBorderWidth(2);
+  MapOutputSelector->SetReliefToFlat();
+  MapOutputSelector->SetLabelText( "Parameter set");
+  std::string nodeSelectorBalloonHelp = "select an output volume node from the current mrml scene.";
+  MapOutputSelector->SetBalloonHelpString(nodeSelectorBalloonHelp.c_str());
+  */
+
   this->MapOutputVolumeMenu = vtkKWMenuButton::New();
   this->MapOutputVolumeMenu->SetParent(dframe->GetFrame());
   this->MapOutputVolumeMenu->Create();
@@ -1623,6 +1750,7 @@ void vtkFourDAnalysisGUI::BuildGUIForMapGenerator()
                this->MapInputSeriesMenu->GetWidgetName(),
                outputLabel->GetWidgetName(),
                this->MapOutputVolumeMenu->GetWidgetName());
+
 
   dframe->Delete();
   inputLabel->Delete();
@@ -2120,6 +2248,76 @@ void vtkFourDAnalysisGUI::UpdateIntensityPlot(vtkIntensityCurves* intensityCurve
       }
     this->IntensityPlot->SetColor(id, color[0], color[1], color[2]);
     }
+  //this->IntensityPlot->AddVerticalLine(180.0);
+  this->IntensityPlot->AutoRangeOn();
+  this->IntensityPlot->UpdateGraph();
+
+  // Update FittingLabelMenu
+  if (this->FittingLabelMenu)
+    {
+    this->FittingLabelMenu->GetMenu()->DeleteAllItems();
+    for (int i = 0; i < n; i ++)
+      {
+      char str[256];
+      sprintf(str, "%d", labels->GetValue(i));
+      this->FittingLabelMenu->GetMenu()->AddRadioButton(str);
+      }
+    }
+}
+
+//----------------------------------------------------------------------------
+void vtkFourDAnalysisGUI::UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves* intensityCurves, vtkDoubleArray* array)
+{
+  this->IntensityCurves->Update();
+  vtkMRMLScalarVolumeNode* node = this->IntensityCurves->GetMaskNode();
+  if (node == NULL || !node->GetLabelMap())
+    {
+    return;
+    }
+  vtkMRMLVolumeDisplayNode* dnode = node->GetVolumeDisplayNode();
+  if (dnode == NULL)
+    {
+    return;
+    }
+  vtkMRMLColorNode* cnode = dnode->GetColorNode();
+  if (cnode == NULL)
+    {
+    return;
+    }
+  vtkLookupTable* lt = cnode->GetLookupTable();
+
+  vtkIntArray* labels = this->IntensityCurves->GetLabelList();
+  int n = labels->GetNumberOfTuples();
+
+  this->IntensityPlot->ClearPlot();
+  for (int i = 0; i < n; i ++)
+    {
+    int label = labels->GetValue(i);
+    vtkDoubleArray* values = this->IntensityCurves->GetCurve(label);
+    int id = this->IntensityPlot->AddPlot(values, "1");
+
+    double color[3];
+    lt->GetColor(label, color);
+    if (color[0] > 0.99 && color[1] > 0.99  && color[2] > 0.99)
+      {
+      // if the line color is white, change the color to black
+      color[0] = 0.0;
+      color[1] = 0.0;
+      color[2] = 0.0;
+      }
+    this->IntensityPlot->SetColor(id, color[0], color[1], color[2]);
+    }
+
+  if (array)
+    {
+    int id = this->IntensityPlot->AddPlot(array, "Fitted");
+    double color[3];
+    color[0] = 1.0;
+    color[1] = 0.0;
+    color[2] = 0.0;
+    this->IntensityPlot->SetColor(id, color[0], color[1], color[2]);
+    }
+  
   //this->IntensityPlot->AddVerticalLine(180.0);
   this->IntensityPlot->AutoRangeOn();
   this->IntensityPlot->UpdateGraph();

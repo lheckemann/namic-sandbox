@@ -507,7 +507,7 @@ vtkDoubleArray* vtkKWPlotGraph::CreatePlotDataWithErrorBar(vtkDoubleArray* srcDa
   // Check if the data exists and it has 3 components (x, y, and error)
   if (!srcData || srcData->GetNumberOfComponents() != static_cast<vtkIdType>(3))
     {
-    return NULL;
+    return srcData;
     }
 
   vtkDoubleArray* plotData;

@@ -48,6 +48,24 @@
 #include "vtkSlicerVolumesGUI.h"
 #include "vtkSlicerVolumesLogic.h"
 
+#ifdef Slicer3_USE_PYTHON
+//// If debug, Python wants pythonxx_d.lib, so fake it out
+//#ifdef _DEBUG
+//#undef _DEBUG
+//#include <Python.h>
+//#define _DEBUG
+//#else
+#include <Python.h>
+//#endif
+
+//extern "C" {
+//  void init_mytkinter( Tcl_Interp* );
+//  void init_slicer(void );
+//}
+//#include "vtkTclUtil.h"
+//
+#endif
+
 vtkCxxRevisionMacro(vtkFourDAnalysisLogic, "$Revision: 3633 $");
 vtkStandardNewMacro(vtkFourDAnalysisLogic);
 
@@ -676,6 +694,34 @@ int vtkFourDAnalysisLogic::SaveIntensityCurves(vtkIntensityCurves* curves, const
   
 }
 
+//---------------------------------------------------------------------------
+void vtkFourDAnalysisLogic::RunCurveFitting(const char* script, vtkMRMLCurveAnalysisNode* curveNode)
+{
+  PyObject* v;
+  std::string pythonCmd;
+  vtkDoubleArray* resultArray = vtkDoubleArray::New();
+  curveNode->SetInterpolatedData(resultArray);
+
+  pythonCmd += "from Slicer import slicer\n";
+  pythonCmd += "execdict = { 'CurveAnalysisNodeID' : '";
+  pythonCmd += curveNode->GetID();
+  pythonCmd += "' }\n";
+  pythonCmd += "execfile('";
+  pythonCmd += script;
+  pythonCmd += "', globals(), execdict)\n";
+  
+  v = PyRun_String(
+                   pythonCmd.c_str(),
+                   Py_file_input,
+                   (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
+                   (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()));
+  
+  if (Py_FlushLine())
+    {
+      PyErr_Clear();
+    }
+
+}
 
 
 //---------------------------------------------------------------------------
