@@ -368,8 +368,8 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
     {
       if(length == 0) // first point of the line in the image region
       {
-        points[0] = localIndex[0]; // X-coordinate of the first point of the needle in the image
-        points[1] = localIndex[1]; // Y-coordinate of the first point of the needle in the image
+        points[0] = (u[0]+i*v[0]); // X-coordinate of the first point of the needle in the image
+        points[1] = (u[1]+i*v[1]); // Y-coordinate of the first point of the needle in the image
       }
       if(mLocalOutputImage->GetPixel(localIndex) < lastIntensity + 10000)  // if pixel still belongs to needle
       {
@@ -380,17 +380,17 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
       else // found the end of the needle
       {  
         std::cout << "found the end of the needle" << std::endl;
-        points[2] = localIndex[0];  // X-coordinate of the needle tip
-        points[3] = localIndex[1];  // Y-coordinate of the needle tip
+        points[2] = (u[0]+i*v[0]);  // X-coordinate of the needle tip
+        points[3] = (u[1]+i*v[1]);  // Y-coordinate of the needle tip
         break;
       }
       mLocalOutputImage->SetPixel(localIndex, 0);
     }
-    else if(length > 0) // needle tip is outside of image region
+    else if(length > 0) // needle exists and needle tip is outside of image region
     {  
       std::cout << "needle tip outside" << std::endl;
-      points[2] = localIndex[0];  // X-coordinate of the needle tip
-      points[3] = localIndex[1];  // Y-coordinate of the needle tip
+      points[2] = (u[0]+i*v[0]);  // X-coordinate of the end of the needle
+      points[3] = (u[1]+i*v[1]);  // Y-coordinate of the end of the needle
       break;
     }
   }
