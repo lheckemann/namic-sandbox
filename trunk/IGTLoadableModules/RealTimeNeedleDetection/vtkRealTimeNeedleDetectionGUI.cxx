@@ -516,6 +516,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
     if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
     {
       std::cout << "-SourceNode Event" << std::endl;
+      clock_t begin = clock();
       double points[4]; // Array that contains 2 points of the needle transform (x1,y1,x2,y2)
                         // The points[0],points[1] is the point of the needle entering the image
       points[0] = 0.0;
@@ -636,7 +637,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
 //        currentYImageRegionSize = currentYUpperBound - currentYLowerBound;       
        
 
-      }    
+      }  
+    clock_t end = clock();
+    cout << "               Time elapsed: " << double(diffclock(end,begin)) << " ms"<< endl;  
     }
     started++;  //I also use started as a counter of the frames -> TODO:Check if started gets bigger than int
   }
