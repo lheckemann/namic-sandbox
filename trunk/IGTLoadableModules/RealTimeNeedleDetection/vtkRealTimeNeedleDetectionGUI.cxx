@@ -34,6 +34,11 @@
 #include "vtkMRMLTransformableNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 
+#include "vtkCylinderSource.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkSphereSource.h"
+#include "vtkAppendPolyData.h"
+
 #include "vtkKWTkUtilities.h"
 #include "vtkKWWidget.h"
 #include "vtkKWFrameWithLabel.h"
@@ -42,8 +47,12 @@
 #include "vtkKWEvent.h"
 #include "vtkKWPushButton.h"
 #include "vtkKWEntry.h"
+#include "vtkKWCheckButton.h"
 
 #include "vtkCornerAnnotation.h"
+
+#define PI 3.1415926535897932384626433832795 
+//TODO: how do I access the math pi?
 
 
 //---------------------------------------------------------------------------
@@ -56,7 +65,6 @@ vtkCxxRevisionMacro (vtkRealTimeNeedleDetectionGUI, "$Revision: 1.0 $");
 // Constructor
 vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
 {
-  std::cout << "NeedleDetectionConstructor" << std::endl;
   //----------------------------------------------------------------
   // Logic values
   this->Logic = NULL;
@@ -64,12 +72,14 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void *> (this));
   this->DataCallbackCommand->SetCallback(vtkRealTimeNeedleDetectionGUI::DataCallback);
   this->DataManager = vtkIGTDataManager::New();  //TODO: Do I need the DataManager?
-  started = 0;
+  started    = 0;
+  showNeedle = 0;
   
   //----------------------------------------------------------------
   // GUI widgets
   this->pStartButton      = NULL;
   this->pStopButton       = NULL;
+  this->pShowNeedleButton = NULL;
   this->pScannerIDEntry   = NULL;
   this->pXLowerEntry      = NULL;
   this->pXUpperEntry      = NULL;
@@ -80,7 +90,6 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   // MRML nodes  
   this->pVolumeNode    = NULL;
   this->pSourceNode    = NULL;
-  this->pTransformNode = NULL;
   
   //----------------------------------------------------------------
   // Locator  (MRML)   
@@ -107,13 +116,14 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   lastModified          = 0;
   pImage                = NULL;
   pImageProcessor       = new ImageProcessor::ImageProcessor();  //TODO:move the new to starting the whole detection
+  std::cout << "NeedleDetection constructed" << std::endl;
 }
 
 //---------------------------------------------------------------------------
 // Destructor
 vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
 {
-  std::cout << "NeedleDetectionDestructor" << std::endl;
+  std::cout << "NeedleDetection destruction started" << std::endl;
   if (this->DataManager)
   {
     // If we don't set the scene to NULL for DataManager,
@@ -144,6 +154,11 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   {
     this->pStopButton->SetParent(NULL);
     this->pStopButton->Delete();
+  }
+  if (this->pShowNeedleButton)
+  {
+    this->pShowNeedleButton->SetParent(NULL );
+    this->pShowNeedleButton->Delete ( );
   }
   if (this->pScannerIDEntry)
   {
@@ -177,7 +192,6 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
     this->pVolumeNode->Delete();
   if(this->pSourceNode)
     this->pSourceNode->Delete();
-  //TODO: Delete pTransformNode
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -187,6 +201,8 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   // Delete pointers
   //delete pImageProcessor; //TODO: Does not work properly yet
   // TODO: delete pImage
+  
+  std::cout << "NeedleDetection destructed" << std::endl;
 }
 
 
@@ -240,6 +256,8 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
     this->pStartButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
   if(this->pStopButton)
     this->pStopButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+  if (this->pShowNeedleButton)
+    this->pShowNeedleButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
     
   this->RemoveLogicObservers();
 }
@@ -277,6 +295,8 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pStopButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pShowNeedleButton
+    ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
 }
@@ -352,7 +372,21 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pVolumeNode->UpdateID("VolumeNode");
         pVolumeNode->SetName("VolumeNode");
         pVolumeNode->SetDescription("MRMLNode that displays the tracked needle and the original image");
-        pVolumeNode->SetScene(this->GetMRMLScene());  
+        pVolumeNode->SetScene(this->GetMRMLScene()); 
+        vtkMatrix4x4* matrix = vtkMatrix4x4::New();
+        matrix->Element[0][0] = -1.0;
+        matrix->Element[1][0] = 0.0;
+        matrix->Element[2][0] = 0.0;
+        matrix->Element[0][1] = 0.0;
+        matrix->Element[1][1] = 1.0;
+        matrix->Element[2][1] = 0.0;
+        matrix->Element[0][2] = 0.0;
+        matrix->Element[1][2] = 0.0;
+        matrix->Element[2][2] = -1.0;
+        matrix->Element[0][3] = 0.0;
+        matrix->Element[0][3] = 0.0;
+        matrix->Element[0][3] = 0.0;
+        pVolumeNode->SetRASToIJKMatrix(matrix); // TODO: take this out later, used for the scanner simulation
         
         vtkMRMLScalarVolumeDisplayNode* pScalarDisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
         pScalarDisplayNode->SetDefaultColorMap();   
@@ -363,35 +397,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pScalarNode->Delete();
         pScalarDisplayNode->Delete();
         pDisplayNode->Delete();
-        
-        //------------------------------------------------------------------------------------------------
-        // Create a TransformNode that displays the needle  
-        pTransformNode = vtkMRMLLinearTransformNode::New();
-        pTransformNode->UpdateID("Needle");
-        pTransformNode->SetName("Needle");
-        pTransformNode->SetDescription("tracked needle");
-        pTransformNode->SetScene(this->GetMRMLScene());
-      
-        vtkMatrix4x4* transform = vtkMatrix4x4::New();
-        transform->Identity();
-        pTransformNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
-        transform->Delete();      
-        this->GetMRMLScene()->AddNode(pTransformNode);     
       }
       else if(nItems >= 1)
       {
         std::cerr << "VolumeNode exists already. Starting again" << std::endl;
         pVolumeNode = vtkMRMLVolumeNode::SafeDownCast(collectionOfVolumeNodes->GetItemAsObject(0));
-        vtkCollection* collectionOfTransformNodes = this->GetMRMLScene()->GetNodesByName("Needle");
-        int needleTransforms = collectionOfTransformNodes->GetNumberOfItems();
-        if(needleTransforms == 1)
-          pTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(collectionOfTransformNodes->GetItemAsObject(0));
-        else // code should never get here!
-        {
-          std::cerr << "ERROR! No needleTransformNode found!!" << std::endl;
-          return;
-        } 
-           
       }
       else
       {
@@ -420,7 +430,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       std::cerr << "ERROR! No Scanner detected. RealTimeNeedleDetection did not start." << std::endl;
   }
   
-  if (this->pStopButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
+  else if (this->pStopButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
   {    
     std::cerr << "StopButton is pressed." << std::endl;
     // unregister the observer of the ScannerMRMLNode
@@ -430,21 +440,42 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       this->pSourceNode = NULL;  
     }
     
-    // Set the VolumeNode and the TransformNode to NULL, because they should not get used while started==0
-    // They will not get deleted, because they are still referenced in the MRMLScene
+    // Set the VolumeNode to NULL, because it should not get used while started==0
+    // It will not get deleted, because it is still referenced in the MRMLScene
     if(this->pVolumeNode)
     {
       //this->GetMRMLScene()->RemoveNodeNoNotify((vtkMRMLNode*) pVolumeNode);
       this->pVolumeNode = NULL; 
     }
-    if(this->pTransformNode)
-      this->pTransformNode = NULL;
+    //Don't set the Transform to NULL, because should be able to access it without the detection running
     
     started = 0; // Stop checking MRLM events of pSourceNode 
   }
+  
+  else if (this->pShowNeedleButton == vtkKWCheckButton::SafeDownCast(caller) && event == vtkKWCheckButton::SelectedStateChangedEvent )
+  {
+    std::cout << "ShowNeedleButton is pressed." << std::endl;
+    showNeedle = this->pShowNeedleButton->GetSelectedState(); 
+    if(!showNeedle)
+    {
+      vtkMRMLModelNode*   pNeedleModel;
+      vtkMRMLDisplayNode* pNeedleDisplay;
+      vtkCollection* collection = this->GetMRMLScene()->GetNodesByName("NeedleModel");
+      if (collection != NULL && collection->GetNumberOfItems() == 0)
+      {
+        // if a node doesn't exist, do nothing
+      }
+      else // if a node exists, set visibility to 0
+      {
+        pNeedleModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+        pNeedleDisplay = pNeedleModel->GetDisplayNode();
+        pNeedleDisplay->SetVisibility(0);
+      }
+    }
+  }
+      
   UpdateGUI(); // enable or disable options for the user
 } 
-
 
 void vtkRealTimeNeedleDetectionGUI::DataCallback(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
 {
@@ -472,7 +503,13 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
   //TODO: If new mrmlNode added -> pScannerIDEntry=new mrml node 
   //TODO: if MRMLNode deleted -> pScannerIDEntry=""
   
-  if(started && (lastModified != this->pSourceNode->GetMTime()))
+  if (event == vtkMRMLScene::SceneCloseEvent) //TODO: Do I actually catch this evnent?
+  {
+    if (this->pShowNeedleButton != NULL && this->pShowNeedleButton->GetSelectedState())
+      this->pShowNeedleButton->SelectedStateOff();
+  }
+  
+  else if(started && (lastModified != this->pSourceNode->GetMTime()))
   {
     lastModified = this->pSourceNode->GetMTime(); // This prevents unnecessarily issued ImageDataModifiedEvents from beging processed 
     std::cout << started << ":MRMLEvent processing while started";
@@ -480,6 +517,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
     {
       std::cout << "-SourceNode Event" << std::endl;
       double points[4]; // Array that contains 2 points of the needle transform (x1,y1,x2,y2)
+                        // The points[0],points[1] is the point of the needle entering the image
       points[0] = 0.0;
       points[1] = 0.0;
       points[2] = 0.0;
@@ -493,6 +531,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
   
       //--------------------------------------------------------------------------------------------------
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
+      // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegion, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
       pImageProcessor->PassOn();
       //pImageProcessor->LaplacianRecursiveGaussian(false,false);
@@ -508,7 +547,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/threshold.png",3);
       pImageProcessor->HoughTransformation(true, points);    
        //pImageProcessor->CannyEdgeDetection(true,false);
-             pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
+             //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
            //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",4);
       std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegion);
@@ -521,44 +560,80 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Retrieve the needle position and adjust the X- and Y-boundaries
       //TODO: adjust
       if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0))
-        std::cerr << "Error! Points of line are all 0! No needle detected!" << std::endl;
+        std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
       else // if everything is ok
       {//TODO: make this generic!! Right now I assume the needle enters from the right
-        //switch(enteringPoint)
+        //switch(needleEnteringDirection)
         std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
         std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
+        
         points[0] += currentXLowerBound;
         points[1] += currentYLowerBound;
         points[2] += currentXLowerBound;
         points[3] += currentYLowerBound;
-        //        vtkMatrix4x4* transform = vtkMatrix4x4::New();
-//        vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
-//      
-//        transform->Identity();
-//        transform->SetElement(0, 0, tx);
-//        transform->SetElement(1, 0, ty);
-//        transform->SetElement(2, 0, tz);
-//        transform->SetElement(0, 1, sx);
-//        transform->SetElement(1, 1, sy);
-//        transform->SetElement(2, 1, sz);
-//        transform->SetElement(0, 2, nx);
-//        transform->SetElement(1, 2, ny);
-//        transform->SetElement(2, 2, nz);
-//        transform->SetElement(0, 3, px);
-//        transform->SetElement(1, 3, py);
-//        transform->SetElement(2, 3, pz);
-//      
-//        transformToParent->DeepCopy(transform);
-//      
-//        transform->Delete();    
+        
+        double vector[2];
+        vector[0] = points[2] - points[0];
+        vector[1] = points[3] - points[1];
+        double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+        std::cout << "length: " << length << std::endl;
+        double angle = (atan2(points[1]-points[3],points[0]-points[2]))*180/PI;
+        std::cout << "angle: " << angle << std::endl;
+        
+        //-------------------------------------------------------------------------------------------
+        // make the needle transform fit the line detected in the image
+        // the origin of the transform is always in the center of the imge: (Dimension*spacing = fov) / 2
+        double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
+        double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
+        // do not need fovK because the images are 2D only
+        double translationLR = -(points[0]-fovI); //(X-axis)
+        double translationPA = points[1]-fovJ; //(Y-axis)
+        double translationIS = 0;              //(Z-axis)
+        
+        vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
+        transform->Identity();
+        transform->PostMultiply();
+        //TODO: switch(needleEnteringDirection)
+        transform->RotateZ(-90); 
+        transform->RotateZ(-angle);
+        transform->Translate(translationLR, translationPA, translationIS);
+        
+        if(showNeedle)
+        {        
+          vtkMRMLModelNode*   pNeedleModel;
+          vtkMRMLDisplayNode* pNeedleDisplay;
+          vtkCollection* collection = this->GetMRMLScene()->GetNodesByName("NeedleModel");
+          if (collection != NULL && collection->GetNumberOfItems() == 0)
+          {
+            // if a node doesn't exist
+            pNeedleModel = AddNeedleModel(transform, length);
+          }
+          else // if a node exists, remove it and make a new one with the current parameters
+          {
+            vtkMRMLModelNode* pNeedleModelOld = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+            this->GetMRMLScene()->RemoveNode((vtkMRMLNode*) pNeedleModelOld);
+            pNeedleModelOld->Delete();
+            pNeedleModel = AddNeedleModel(transform, length);
+          }
+          if (pNeedleModel)
+          {
+            pNeedleDisplay = pNeedleModel->GetDisplayNode();
+            pNeedleDisplay->SetVisibility(1);
+          }    
+          else // if pNeedleModel == NULL
+            std::cerr << "ERROR! No NeedleModel!" << std::endl; // Code should never get here!
+        }
+        transform->Delete();  
+        
+  
+            
 //        currentXLowerBound = (int) points[2] - 20;
 //        //currentYLowerBound = (int) points[3] - 10;
 //        currentXUpperBound = (int) points[0];        
 //        //currentYUpperBound = (int) points[1] + 10;
 //        std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
 //        currentXImageRegionSize = currentXUpperBound - currentXLowerBound;
-//        currentYImageRegionSize = currentYUpperBound - currentYLowerBound;
-        
+//        currentYImageRegionSize = currentYUpperBound - currentYLowerBound;       
        
 
       }    
@@ -617,11 +692,11 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
                parentFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Connection frame
+  // Control frame
   vtkKWFrameWithLabel* controlFrame = vtkKWFrameWithLabel::New();
   controlFrame->SetParent(parentFrame->GetFrame());
   controlFrame->Create();
-  controlFrame->SetLabelText("Connection");
+  controlFrame->SetLabelText("Needle detection controls");
   this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", controlFrame->GetWidgetName() );
 
   // -----------------------------------------
@@ -673,6 +748,16 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   
   scannerLabel->Delete();
   scannerFrame->Delete(); 
+  
+  this->pShowNeedleButton = vtkKWCheckButton::New();
+  this->pShowNeedleButton->SetParent(controlFrame->GetFrame());
+  this->pShowNeedleButton->Create();
+  this->pShowNeedleButton->SelectedStateOff();
+  this->pShowNeedleButton->SetText("Show Needle");
+  this->pShowNeedleButton->EnabledOff();
+  
+  this->Script("pack %s -side left -anchor w -padx 2 -pady 2", this->pShowNeedleButton->GetWidgetName());
+               
   controlFrame->Delete();
   
   // -----------------------------------------
@@ -684,7 +769,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", parametersFrame->GetWidgetName() );
 
   // -----------------------------------------
-  // Boundary edit fields TODO: Check for bounds! 0 to imageDimensions
+  // Boundary edit fields TODO: Check for bounds! 0 up to imageDimensions is possible
   vtkKWFrame* xFrame = vtkKWFrame::New();
   xFrame->SetParent(parametersFrame->GetFrame());
   xFrame->Create();
@@ -699,7 +784,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pXLowerEntry->SetParent(xFrame);
   this->pXLowerEntry->Create();
   this->pXLowerEntry->SetWidth(7);
-  this->pXLowerEntry->SetValueAsInt(120);
+  this->pXLowerEntry->SetValueAsInt(140);
               
   this->pXUpperEntry = vtkKWEntry::New();
   this->pXUpperEntry->SetParent(xFrame);
@@ -726,7 +811,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pYLowerEntry->SetParent(yFrame);
   this->pYLowerEntry->Create();
   this->pYLowerEntry->SetWidth(7);
-  this->pYLowerEntry->SetValueAsInt(120);
+  this->pYLowerEntry->SetValueAsInt(125);
               
   this->pYUpperEntry = vtkKWEntry::New();
   this->pYUpperEntry->SetParent(yFrame);
@@ -762,6 +847,7 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
     this->pXUpperEntry->EnabledOff();
     this->pYLowerEntry->EnabledOff();
     this->pYUpperEntry->EnabledOff();
+    this->pShowNeedleButton->EnabledOn();
   }
   else if(started == 0)
   {
@@ -813,5 +899,93 @@ void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, uns
     pImage[positionInMessageImage+10*imageDimensions[0]*scalarSize] = pImageRegion[i];
   } 
 }
+
+//---------------------------------------------------------------------------
+vtkMRMLModelNode* vtkRealTimeNeedleDetectionGUI::AddNeedleModel(vtkTransform* transform, double height)
+{
+  vtkMRMLModelNode*        pNeedleModel;
+  vtkMRMLModelDisplayNode* pNeedleDisplay;
+
+  pNeedleModel = vtkMRMLModelNode::New();
+  pNeedleDisplay = vtkMRMLModelDisplayNode::New();
+  
+  this->GetMRMLScene()->SaveStateForUndo();
+  this->GetMRMLScene()->AddNode(pNeedleDisplay);
+  this->GetMRMLScene()->AddNode(pNeedleModel);  
+  
+  pNeedleDisplay->SetScene(this->GetMRMLScene());
+  
+  pNeedleModel->SetName("NeedleModel");
+  pNeedleModel->SetScene(this->GetMRMLScene());
+  pNeedleModel->SetAndObserveDisplayNodeID(pNeedleDisplay->GetID());
+  pNeedleModel->SetHideFromEditors(0);
+  
+  // Cylinder represents the needle stick
+  vtkCylinderSource *cylinder = vtkCylinderSource::New();
+  cylinder->SetRadius(1);
+  cylinder->SetHeight(height);
+  cylinder->SetCenter(0, 0, 0);
+  cylinder->Update();
+
+  // Rotate cylinder
+  vtkTransformPolyDataFilter *tFilter1 = vtkTransformPolyDataFilter::New();
+  vtkTransform* trans =   vtkTransform::New();
+  //trans->RotateX(90.0);
+  trans->Translate(0.0, height/2, 0.0);
+  trans->Update();
+  tFilter1->SetInput(cylinder->GetOutput());
+  tFilter1->SetTransform(trans);
+  tFilter1->Update();
+  
+  // Sphere represents the needle tip 
+  vtkSphereSource *sphere = vtkSphereSource::New();
+  sphere->SetRadius(3.0);
+  sphere->SetCenter(0, 0, 0);
+  sphere->Update();
+  
+  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+  apd->AddInput(sphere->GetOutput());
+  //apd->AddInput(cylinder->GetOutput());
+  apd->AddInput(tFilter1->GetOutput());
+  apd->Update();
+  
+  // Rotate&translate both, the sphere and the cylinder
+  vtkTransformPolyDataFilter *tFilter2 = vtkTransformPolyDataFilter::New();
+  tFilter2->SetInput(apd->GetOutput());
+  tFilter2->SetTransform(transform);
+  tFilter2->Update();  //TODO: Is there a better way to rotate&translate the whole construct?  |  maybe get rid of the sphere?
+  
+  pNeedleModel->SetAndObservePolyData(tFilter2->GetOutput());
+  
+  double color[3];
+  color[0] = 0.0; // R
+  color[1] = 1.0; // G
+  color[2] = 0.0; // B
+  pNeedleDisplay->SetPolyData(pNeedleModel->GetPolyData());
+  pNeedleDisplay->SetColor(color);
+  
+  trans->Delete();
+  tFilter1->Delete();
+  tFilter2->Delete();
+  cylinder->Delete();
+  sphere->Delete();
+  apd->Delete();
+
+  pNeedleDisplay->Delete();
+
+  return pNeedleModel;
+}
+
+//TODO: take that out when done measuring
+double vtkRealTimeNeedleDetectionGUI::diffclock(clock_t clock1,clock_t clock2)
+{
+  double diffticks=clock1-clock2;
+  double diffms=(diffticks*1000)/CLOCKS_PER_SEC;
+  return diffms;
+} 
+
+
+
+
 
 
