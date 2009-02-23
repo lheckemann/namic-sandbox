@@ -335,7 +335,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
   //draw found lines in mLocalOutputImage        
   FloatImageType::IndexType localIndex;
   itk::Size<2> size = mLocalOutputImage->GetLargestPossibleRegion().GetSize();
-  //normalize the support vector to x = xSize  TODO: normalize to either x or y, if needle comes from the right or the bottom
+  //normalize the support vector to x = xSize  TODO: normalize to either x or y, if needle comes from the left or inferior
   double multiplier = 0;
   multiplier = (u[0]-size[0]) / v[0]; // u[0]-multiplier*v[0] = size[0]
    
@@ -343,7 +343,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
   u[0] -= multiplier * v[0];
   u[1] -= multiplier * v[1];
    
-  //normalize the direction vector to negative x, because the needle enters from the right side of the image
+  //normalize the direction vector to negative x, because the needle enters from the left side of the image
   //TODO: make this generic!!
   if(v[0] > 0.0)
   {
