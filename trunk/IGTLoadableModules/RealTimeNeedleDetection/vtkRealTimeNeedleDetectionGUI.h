@@ -28,6 +28,7 @@
 
 #include "vtkRealTimeNeedleDetectionLogic.h"
 #include "ImageProcessor.h"
+#include <time.h> //TODO: take that out when done measuring
 
 class vtkKWPushButton;
 
@@ -58,6 +59,8 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   void GetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion);
   void SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion);
   void operator = ( const vtkRealTimeNeedleDetectionGUI& ); //Not implemented.
+  vtkMRMLModelNode* AddNeedleModel(vtkTransform* trans, double height);
+  double diffclock(clock_t clock1,clock_t clock2);
 
  public:
   //----------------------------------------------------------------
@@ -113,21 +116,21 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
-  vtkKWPushButton* pStartButton;
-  vtkKWPushButton* pStopButton;
-  vtkKWMenuButton* pSourceMenu;
-  vtkKWEntry*      pScannerIDEntry;
-  vtkKWEntry*      pXLowerEntry;
-  vtkKWEntry*      pXUpperEntry;
-  vtkKWEntry*      pYLowerEntry;
-  vtkKWEntry*      pYUpperEntry;
+  vtkKWPushButton*  pStartButton;
+  vtkKWPushButton*  pStopButton;
+  vtkKWCheckButton* pShowNeedleButton;
+  vtkKWMenuButton*  pSourceMenu;
+  vtkKWEntry*       pScannerIDEntry;
+  vtkKWEntry*       pXLowerEntry;
+  vtkKWEntry*       pXUpperEntry;
+  vtkKWEntry*       pYLowerEntry;
+  vtkKWEntry*       pYUpperEntry;
   
   //----------------------------------------------------------------
   // MRML nodes
   //----------------------------------------------------------------
   vtkMRMLVolumeNode*          pSourceNode;    // MRML node, which Slicer received via OpenIGTLink from the Scanner
   vtkMRMLVolumeNode*          pVolumeNode;    // MRML node, which contains the processed image
-  vtkMRMLLinearTransformNode* pTransformNode; // MRML node, which contains the transform representing the needle
   //TODO: make a global scene pointer 
     
   //----------------------------------------------------------------
@@ -138,6 +141,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkCallbackCommand*               DataCallbackCommand;
   int                        CloseScene;
   int                        started;
+  int                        showNeedle;
   
   //----------------------------------------------------------------
   // Image Values
