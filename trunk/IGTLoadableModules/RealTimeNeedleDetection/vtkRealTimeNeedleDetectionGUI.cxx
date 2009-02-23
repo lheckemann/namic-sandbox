@@ -387,6 +387,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         matrix->Element[0][3] = 0.0;
         matrix->Element[0][3] = 0.0;
         pVolumeNode->SetRASToIJKMatrix(matrix); // TODO: take this out later, used for the scanner simulation
+        matrix->Delete();        
         
         vtkMRMLScalarVolumeDisplayNode* pScalarDisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
         pScalarDisplayNode->SetDefaultColorMap();   
@@ -407,7 +408,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       {
         std::cerr << "ERROR! More than one VolumeNode" << std::endl; // code should never get here!
         return;
-      }
+      }      
       //--------------------------------------------------------------------------------------
       // Get the image variables
       vtkImageData* pImageData = ((vtkMRMLVolumeNode*) pSourceNode)->GetImageData();
@@ -425,6 +426,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       currentYImageRegionSize                 = currentYUpperBound - currentYLowerBound;  
       started = 1; // start checking for changes in pSourceNode to update pVolumeNode     
       std::cerr << "Start checking for changes" << std::endl;
+      collectionOfVolumeNodes->Delete();
     }
     else // no Scanner node found in MRMLScene
       std::cerr << "ERROR! No Scanner detected. RealTimeNeedleDetection did not start." << std::endl;
@@ -447,7 +449,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       //this->GetMRMLScene()->RemoveNodeNoNotify((vtkMRMLNode*) pVolumeNode);
       this->pVolumeNode = NULL; 
     }
-    //Don't set the Transform to NULL, because should be able to access it without the detection running
     
     started = 0; // Stop checking MRLM events of pSourceNode 
   }
@@ -471,6 +472,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pNeedleDisplay = pNeedleModel->GetDisplayNode();
         pNeedleDisplay->SetVisibility(0);
       }
+      collection->Delete();
     }
   }
       
@@ -503,7 +505,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
   //TODO: If new mrmlNode added -> pScannerIDEntry=new mrml node 
   //TODO: if MRMLNode deleted -> pScannerIDEntry=""
   
-  if (event == vtkMRMLScene::SceneCloseEvent) //TODO: Do I actually catch this evnent?
+  if (event == vtkMRMLScene::SceneCloseEvent) //TODO: Do I actually catch this event?
   {
     if (this->pShowNeedleButton != NULL && this->pShowNeedleButton->GetSelectedState())
       this->pShowNeedleButton->SelectedStateOff();
@@ -518,7 +520,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       std::cout << "-SourceNode Event" << std::endl;
       clock_t begin = clock();
       double points[4]; // Array that contains 2 points of the needle transform (x1,y1,x2,y2)
-                        // The points[0],points[1] is the point of the needle entering the image
+                        // points[0],points[1] is the point of the needle entering the image
       points[0] = 0.0;
       points[1] = 0.0;
       points[2] = 0.0;
@@ -588,8 +590,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
         // do not need fovK because the images are 2D only
         double translationLR = -(points[0]-fovI); //(X-axis)
-        double translationPA = points[1]-fovJ; //(Y-axis)
-        double translationIS = 0;              //(Z-axis)
+        double translationPA = points[1]-fovJ;    //(Y-axis)
+        double translationIS = 0;                 //(Z-axis)
         
         vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
         transform->Identity();
@@ -612,7 +614,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           else // if a node exists, remove it and make a new one with the current parameters
           {
             vtkMRMLModelNode* pNeedleModelOld = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+            this->MRMLObserverManager->RemoveObjectEvents(pNeedleModelOld);
             this->GetMRMLScene()->RemoveNode((vtkMRMLNode*) pNeedleModelOld);
+            collection->Delete();
             pNeedleModelOld->Delete();
             pNeedleModel = AddNeedleModel(transform, length);
           }
@@ -912,7 +916,6 @@ vtkMRMLModelNode* vtkRealTimeNeedleDetectionGUI::AddNeedleModel(vtkTransform* tr
   pNeedleModel = vtkMRMLModelNode::New();
   pNeedleDisplay = vtkMRMLModelDisplayNode::New();
   
-  this->GetMRMLScene()->SaveStateForUndo();
   this->GetMRMLScene()->AddNode(pNeedleDisplay);
   this->GetMRMLScene()->AddNode(pNeedleModel);  
   
