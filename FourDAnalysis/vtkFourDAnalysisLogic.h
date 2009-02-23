@@ -33,6 +33,8 @@
 #include "vtkMRMLScene.h"
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRML4DBundleNode.h"
+#include "vtkMRMLCurveAnalysisNode.h"
+
 
 #include "itkOrientedImage.h"
 #include "itkImageSeriesReader.h"
@@ -129,6 +131,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
 
   int GenerateBundleFrames(vtkMRML4DBundleNode* inputBundleNode,
                            vtkMRML4DBundleNode* outputBundleNode);
+
+  void RunCurveFitting(const char* script, vtkMRMLCurveAnalysisNode* curveNode);
 
   int RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
                             const char* inputBundleNodeID,

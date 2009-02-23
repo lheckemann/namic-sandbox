@@ -26,6 +26,7 @@
 
 #include "vtkFourDAnalysisLogic.h"
 #include "vtkKWPlotGraph.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 
 #include <map>
 
@@ -136,6 +137,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void UpdateSeriesSelectorMenus();
   void UpdateMaskSelectMenu();
   void UpdateIntensityPlot(vtkIntensityCurves* intensityCurves);
+  void UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves* intensityCurves, vtkDoubleArray* array);
 
  protected:
   
@@ -173,6 +175,11 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWMenuButton*  MaskSelectMenu;
   vtkKWPlotGraph*   IntensityPlot;
   vtkKWCheckButtonWithLabel* ErrorBarCheckButton;
+
+  vtkKWMenuButton* FittingLabelMenu;
+  vtkKWLoadSaveButtonWithLabel* CurveScriptSelectButton;
+  vtkKWPushButton* RunFittingButton;
+
   vtkKWPushButton* RunPlotButton;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
 
@@ -180,6 +187,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   // Parameter Map
 
   vtkKWMenuButton* MapInputSeriesMenu;
+  vtkSlicerNodeSelectorWidget* MapOutputSelector;
   vtkKWMenuButton* MapOutputVolumeMenu;
   vtkKWLoadSaveButtonWithLabel* ScriptSelectButton;
   vtkKWPushButton* RunScriptButton;

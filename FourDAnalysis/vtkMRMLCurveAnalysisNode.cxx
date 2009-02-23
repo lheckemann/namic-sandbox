@@ -53,6 +53,9 @@ vtkMRMLNode* vtkMRMLCurveAnalysisNode::CreateNodeInstance()
 vtkMRMLCurveAnalysisNode::vtkMRMLCurveAnalysisNode()
 {
   this->HideFromEditors = true;
+  this->SourceData = NULL;
+  this->InterpolatedData = NULL;
+  this->OutputParameters.clear();
 }
 
 //----------------------------------------------------------------------------
