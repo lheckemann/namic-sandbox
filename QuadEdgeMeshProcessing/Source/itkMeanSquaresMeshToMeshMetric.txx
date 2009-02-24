@@ -310,6 +310,10 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
           }
         derivative[par] += sum;
         }
+
+      std::cout << "  transformedPoint " << transformedPoint << "  gradient " << gradient 
+                << "  jacobian " << jacobian << "  derivative " << derivative << " \n"; 
+
       }
 
     ++pointItr;
