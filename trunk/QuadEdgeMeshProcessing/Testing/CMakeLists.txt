@@ -66,6 +66,8 @@ TARGET_LINK_LIBRARIES(itkMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKIO)
 ADD_EXECUTABLE(itkMeanSquaresMeshToMeshMetricTest1 itkMeanSquaresMeshToMeshMetricTest1.cxx)
 TARGET_LINK_LIBRARIES(itkMeanSquaresMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKNumerics ITKIO)
 
+ADD_EXECUTABLE(itkMeanSquaresMeshToMeshMetricTest2 itkMeanSquaresMeshToMeshMetricTest2.cxx)
+TARGET_LINK_LIBRARIES(itkMeanSquaresMeshToMeshMetricTest2 ITKQuadEdgeMesh ITKNumerics ITKIO)
 
 ###################
 ###################
@@ -92,6 +94,10 @@ ADD_TEST(itkRegularSphereQuadEdgeMeshSourceTest1
 
 ADD_TEST(itkMeanSquaresMeshToMeshMetricTest1
   ${CXX_TEST_PATH}/itkMeanSquaresMeshToMeshMetricTest1
+  )
+
+ADD_TEST(itkMeanSquaresMeshToMeshMetricTest2
+  ${CXX_TEST_PATH}/itkMeanSquaresMeshToMeshMetricTest2
   )
 
 
