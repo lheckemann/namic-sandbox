@@ -46,7 +46,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 //#define REMOVE_ALPHA_CHANNEL
-//#define DEBUG_IMAGES //Write tagger output to HDD
+#define DEBUG_IMAGES //Write tagger output to HDD
 //#define DEBUG_MATRICES //Prints tagger matrices to stdout
 #define SHRINK
 
@@ -74,8 +74,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
-
-#include "vtkDataProcessor.h"
 
 #include "vtkNDITracker.h"
 #include "vtkTrackerSimulator.h"
@@ -115,7 +113,9 @@ vtkDataCollector::vtkDataCollector()
   this->UltrasoundScanDepth = DEFAULT_ULTRASOUND_SCANDEPTH; //Unit: mm
 
   this->FrameBufferSize = 100;
-  this->MaximumVolumeSize = -1;
+  this->MaximumVolumeSize[0] = DEFAULT_MAXIMUM_VOLUME_SIZE;
+  this->MaximumVolumeSize[1] = DEFAULT_MAXIMUM_VOLUME_SIZE;
+  this->MaximumVolumeSize[2] = DEFAULT_MAXIMUM_VOLUME_SIZE;
 
   this->CalibrationFileName = NULL;
   this->calibReader = vtkUltrasoundCalibFileReader::New();
@@ -180,6 +180,25 @@ vtkDataCollector::vtkDataCollector()
   
   this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
   this->CoordinateTransformationMatrix->Identity();
+  
+  this->FixedVolumeProperties.Frame = NULL;
+  this->FixedVolumeProperties.Matrix = NULL;
+  this->FixedVolumeProperties.Spacing[0] = 1;
+  this->FixedVolumeProperties.Spacing[1] = 1;
+  this->FixedVolumeProperties.Spacing[2] = 1;
+  this->FixedVolumeProperties.Origin[0] = 0;
+  this->FixedVolumeProperties.Origin[1] = 0;
+  this->FixedVolumeProperties.Origin[2] = 0;
+  this->FixedVolumeProperties.TimeStamp = this->StartUpTime;
+  this->FixedVolumeProperties.VolumeExtent[0] = -1;
+  this->FixedVolumeProperties.VolumeExtent[1] = -1;
+  this->FixedVolumeProperties.VolumeExtent[2] = -1;
+  this->FixedVolumeProperties.VolumeExtent[3] = -1;
+  this->FixedVolumeProperties.VolumeExtent[4] = -1;
+  this->FixedVolumeProperties.VolumeExtent[5] = -1;
+  
+  this->DynamicVolumeSize = false;
+  this->VolumeInitialized = false;
 }
 
 /******************************************************************************
@@ -254,10 +273,12 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     this->calibReader->GetImageMargin(this->ImageMargin);
     this->calibReader->GetShrinkFactor(this->ShrinkFactor);
     this->calibReader->GetSystemOffset(this->SystemOffset);
-    if(this->MaximumVolumeSize == DEFAULT_MAXIMUM_VOLUME_SIZE)
-          {
-          this->MaximumVolumeSize = this->calibReader->GetMaximumVolumeSize();
-          }
+    if(this->MaximumVolumeSize[0] == DEFAULT_MAXIMUM_VOLUME_SIZE)
+      {
+      this->MaximumVolumeSize[0] = this->calibReader->GetMaximumVolumeSize()[0];
+      this->MaximumVolumeSize[1] = this->calibReader->GetMaximumVolumeSize()[1];
+      this->MaximumVolumeSize[2] = this->calibReader->GetMaximumVolumeSize()[2];
+      }
     this->TransformationFactorMmToPixel =  this->calibReader->GetTransformationFactorMmToPixel();
     
     this->calibReader->GetTrackerOffset(this->TrackerOffset);
@@ -461,10 +482,10 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
         //Set Spacing of new frame----------------------------------------------
         self->GetTagger()->GetOutput()->GetSpacing(dataStruct.Spacing);
         
-        #ifdef DEBUG_MATRICES
+//        #ifdef DEBUG_MATRICES
 //        self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
 //        dataStruct.Matrix->Print(self->GetLogStream());
-        #endif
+//        #endif
         
         //Data Processing and error checking------------------------------------
         if(self->IsTrackerDeviceEnabled())
@@ -684,6 +705,7 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   //----------------------------------------------------------------------------
   //Calibrate tracker Matrix----------------------------------------------------
   vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
+  double stretchFactor = 4.0 / 5.0 * 9.0 / 10.0 * 1.08;
     
   //Adjust Obliqueness----------------------------------------------------------
   oldMatrix->DeepCopy(pDataStruct->Matrix);
@@ -702,6 +724,11 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix coordinate system transformed:"<< endl;
 //    pDataStruct->Matrix->Print(this->LogStream);
 //  #endif
+  
+  //Strech coordinate to make them fit to slicer coordinates i.g. 1 unit == 1 mm in slicer
+  pDataStruct->Matrix->Element[0][3] *= stretchFactor;
+  pDataStruct->Matrix->Element[1][3] *= stretchFactor;
+  pDataStruct->Matrix->Element[2][3] *= stretchFactor;
   
   //Apply Offset----------------------------------------------------------------
   double xOffset = -1 * (this->clipRectangle[2] + 1)  / 2;
@@ -734,9 +761,10 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   pDataStruct->Matrix->Element[2][3] *= this->TransformationFactorMmToPixel;
   #endif
 
-  pDataStruct->Matrix->Element[0][3] += this->GetSystemOffset()[0];
-  pDataStruct->Matrix->Element[1][3] += this->GetSystemOffset()[1];
-  pDataStruct->Matrix->Element[2][3] += this->GetSystemOffset()[2];
+  pDataStruct->Matrix->Element[0][3] += (this->GetSystemOffset()[0] * stretchFactor);
+  pDataStruct->Matrix->Element[1][3] += (this->GetSystemOffset()[1] * stretchFactor);
+  pDataStruct->Matrix->Element[2][3] += (this->GetSystemOffset()[2] * stretchFactor);
+  
   
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
@@ -1068,9 +1096,29 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
     #endif
     return -1;
     }
-    
-  double xmin = this->clipRectangle[0], ymin = this->clipRectangle[1],
-         xmax = this->clipRectangle[2], ymax = this->clipRectangle[3];
+  
+//  if(!this->DynamicVolumeSize && this->VolumeInitialized)
+//    {
+//    pDataStruct->Origin[0] = this->FixedVolumeProperties.Origin[0];
+//    pDataStruct->Origin[1] = this->FixedVolumeProperties.Origin[1];
+//    pDataStruct->Origin[2] = this->FixedVolumeProperties.Origin[2];
+//    
+//    pDataStruct->VolumeExtent[0] = this->FixedVolumeProperties.VolumeExtent[0];
+//    pDataStruct->VolumeExtent[1] = this->FixedVolumeProperties.VolumeExtent[1];
+//    pDataStruct->VolumeExtent[2] = this->FixedVolumeProperties.VolumeExtent[2];
+//    pDataStruct->VolumeExtent[3] = this->FixedVolumeProperties.VolumeExtent[3];
+//    pDataStruct->VolumeExtent[4] = this->FixedVolumeProperties.VolumeExtent[4];
+//    pDataStruct->VolumeExtent[5] = this->FixedVolumeProperties.VolumeExtent[5];
+//    return 0;
+//    }
+  
+  double maxX, maxY, maxZ;
+  double minX, minY, minZ;
+  double xOrigin, yOrigin, zOrigin;
+  double xmin, xmax, ymin, ymax;
+  
+  xmin = this->clipRectangle[0], ymin = this->clipRectangle[1],
+  xmax = this->clipRectangle[2], ymax = this->clipRectangle[3];
 
   double imCorners[4][4]= {
     { xmin, ymin, 0, 1},
@@ -1080,10 +1128,8 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
   
   double transformedPt[4];
   
-  double maxX, maxY, maxZ;
   maxX = maxY = maxZ = -1 * numeric_limits<double>::max();
   
-  double minX, minY, minZ;
   minX = minY = minZ = numeric_limits<double>::max();
   
   // Determine dimensions of reconstructed volume
@@ -1106,35 +1152,60 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
   maxY = floor(maxY);
   maxZ = floor(maxZ);
   
-  vtkFloatingPointType newOrigin[3] = {minX, minY, minZ};
+  xOrigin = minX;
+  yOrigin = minY;
+  zOrigin = minZ;
+    
+//  if(!this->DynamicVolumeSize)
+//    {
+//    xOrigin = xOrigin + (int)((maxX - minX)) - this->MaximumVolumeSize[0] / 2;
+//    yOrigin = yOrigin + (int)((maxY - minY)) - this->MaximumVolumeSize[1] / 2;
+//    zOrigin = zOrigin + (int)((maxZ - minZ)) - this->MaximumVolumeSize[2] / 2;
+//    
+//    minX = 0;
+//    minY = 0;
+//    minZ = 0;
+//    
+//    maxX = this->MaximumVolumeSize[0] - 1;
+//    maxY = this->MaximumVolumeSize[1] - 1;
+//    maxZ = this->MaximumVolumeSize[2] - 1;
+//    
+//    this->FixedVolumeProperties.Origin[0] = xOrigin;
+//    this->FixedVolumeProperties.Origin[1] = yOrigin;
+//    this->FixedVolumeProperties.Origin[2] = zOrigin;
+//    
+//    this->FixedVolumeProperties.VolumeExtent[0] = 0;
+//    this->FixedVolumeProperties.VolumeExtent[1] = (int) maxX;
+//    this->FixedVolumeProperties.VolumeExtent[2] = 0;
+//    this->FixedVolumeProperties.VolumeExtent[3] = (int) maxY;
+//    this->FixedVolumeProperties.VolumeExtent[4] = 0;
+//    this->FixedVolumeProperties.VolumeExtent[5] = (int) maxZ;
+//    
+//    this->VolumeInitialized = true;
+//    }
+    
+  pDataStruct->Origin[0] = xOrigin;
+  pDataStruct->Origin[1] = yOrigin;
+  pDataStruct->Origin[2] = zOrigin;
   
-  pDataStruct->Origin[0] = minX;
-  pDataStruct->Origin[1] = minY;
-  pDataStruct->Origin[2] = minZ;
-  
-//  int newExtent[6] = { 0, (int)((maxX - minX) / pDataStruct->Spacing[0]),
-//                       0, (int)((maxY - minY) / pDataStruct->Spacing[1]),
-//                       0, (int)((maxZ - minZ) / pDataStruct->Spacing[2])};
-  
-  int newExtent[6] = { 0, (int)((maxX - minX)),
-                       0, (int)((maxY - minY)),
-                       0, (int)((maxZ - minZ))};
-
-  pDataStruct->VolumeExtent[0] = newExtent[0];
-  pDataStruct->VolumeExtent[1] = newExtent[1];
-  pDataStruct->VolumeExtent[2] = newExtent[2];
-  pDataStruct->VolumeExtent[3] = newExtent[3];
-  pDataStruct->VolumeExtent[4] = newExtent[4];
-  pDataStruct->VolumeExtent[5] = newExtent[5];
+  pDataStruct->VolumeExtent[0] = 0;
+  pDataStruct->VolumeExtent[1] = (int)((maxX - minX));
+  pDataStruct->VolumeExtent[2] = 0;
+  pDataStruct->VolumeExtent[3] = (int)((maxY - minY));
+  pDataStruct->VolumeExtent[4] = 0;
+  pDataStruct->VolumeExtent[5] = (int)((maxZ - minZ));
   
   #ifdef DEBUGCOLLECTOR
-  this->LogStream << this->GetUpTime() << " |C-INFO: Volume Properties of new Frame: " << endl
-                               << "         |        Clip Rectangle: "<< xmin << "-" << xmax << " | " << ymin << "-" << ymax << endl
-                               << "         |        Origin: " << pDataStruct->Origin[0]<<"| "<< pDataStruct->Origin[1] <<"| "<<  pDataStruct->Origin[2]<< endl
+  this->LogStream << this->GetUpTime() << " |C-INFO: Volume Properties of new Frame: " << endl;
+  if(this->DynamicVolumeSize)
+    {
+               this->LogStream << "         |        Clip Rectangle: "<< xmin << "-" << xmax << " | " << ymin << "-" << ymax << endl;
+    }
+               this->LogStream << "         |        Origin: " << pDataStruct->Origin[0]<<"| "<< pDataStruct->Origin[1] <<"| "<<  pDataStruct->Origin[2]<< endl
                                << "         |        Extent:  "<< pDataStruct->VolumeExtent[0]<<"-"<<pDataStruct->VolumeExtent[1] <<" | "<< pDataStruct->VolumeExtent[2]<<"-"<< pDataStruct->VolumeExtent[3] <<" | "<< pDataStruct->VolumeExtent[4]<<"-"<< pDataStruct->VolumeExtent[5]<<" "<<endl;
   #endif
     
-return 0;
+  return 0;
 }
 
 /******************************************************************************
@@ -1231,7 +1302,7 @@ double vtkDataCollector::GetMaximumVolumeSize()
 {
   double retVal;
   
-  if(-1 == this->MaximumVolumeSize)
+  if(DEFAULT_MAXIMUM_VOLUME_SIZE == this->MaximumVolumeSize[0])
     {//Nothing was specified
     double xMin = this->clipRectangle[0], yMin = this->clipRectangle[1],
            xMax = this->clipRectangle[2], yMax = this->clipRectangle[3];
@@ -1243,7 +1314,7 @@ double vtkDataCollector::GetMaximumVolumeSize()
     }
   else
     {
-    retVal = this->MaximumVolumeSize;
+    retVal = this->MaximumVolumeSize[0] * this->MaximumVolumeSize[1] * this->MaximumVolumeSize[2];
     }
   
 //  #ifdef DEBUGCOLLECTOR

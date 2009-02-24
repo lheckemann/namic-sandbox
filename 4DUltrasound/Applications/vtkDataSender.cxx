@@ -47,6 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <limits>
 #include <string>
+#include <assert.h>
 
 
 #define NOMINMAX
@@ -122,6 +123,21 @@ vtkDataSender::vtkDataSender()
   this->UpDateCounter = 0;
   
   this->TransformationFactorMmToPixel =  10;
+  
+  this->Statistics.fpsCounter = 0;
+  this->Statistics.meanFPS = 0;
+  this->Statistics.maxFPS = -1;
+  this->Statistics.minFPS = 30;
+  this->Statistics.volumeCounter = 0;
+  this->Statistics.meanVolumeSize[0] = 0;
+  this->Statistics.meanVolumeSize[1] = 0;
+  this->Statistics.meanVolumeSize[2] = 0;
+  this->Statistics.maxVolumeSize[0] = 0;
+  this->Statistics.maxVolumeSize[1] = 0;
+  this->Statistics.maxVolumeSize[2] = 0;
+  this->Statistics.minVolumeSize[0] = 0;
+  this->Statistics.minVolumeSize[1] = 0;
+  this->Statistics.minVolumeSize[2] = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -642,9 +658,9 @@ int vtkDataSender::PrepareImageMessage(int index,
                     << frameProperties.Size[0] << " | "
                     << frameProperties.Size[1] << " | "
                     << frameProperties.Size[2] << endl
-                    << "         | Origin: " << frameProperties.Origin[0]<< "|" << frameProperties.Origin[1]<< "|" << frameProperties.Origin[2]<< endl
-                    << "         | Copied Pixels: "<< counter << " | Copy time: " << this->GetUpTime() - copyStart <<endl
-                    << "         | Index: " << index << " | "  <<endl;
+                    << "           | Origin: " << frameProperties.Origin[0]<< "|" << frameProperties.Origin[1]<< "|" << frameProperties.Origin[2]<< endl
+                    << "           | Copied Pixels: "<< counter << " | Copy time: " << this->GetUpTime() - copyStart <<endl
+                    << "           | Index: " << index << " | "  <<endl;
   #endif
 
 //  #ifdef  DEBUGSENDER
@@ -652,10 +668,40 @@ int vtkDataSender::PrepareImageMessage(int index,
 //    matrix->Print(this->LogStream);
 //  #endif
 
+    
   imageMessage->SetMatrix(igtlMatrix);
 
   imageMessage->Pack();// Pack (serialize)
-
+  
+    //Statistics----------------------------------------------------------------
+    this->Statistics.volumeCounter++;
+    this->Statistics.meanVolumeSize[0] += frameProperties.Size[0];
+    this->Statistics.meanVolumeSize[1] += frameProperties.Size[1];
+    this->Statistics.meanVolumeSize[2] += frameProperties.Size[2];
+    
+    double volumeSize = frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2];
+    
+    if(volumeSize > this->Statistics.maxVolumeSize[0] * this->Statistics.maxVolumeSize[1] * this->Statistics.maxVolumeSize[2])
+      {
+      this->Statistics.maxVolumeSize[0] = frameProperties.Size[0];
+      this->Statistics.maxVolumeSize[1] = frameProperties.Size[1];
+      this->Statistics.maxVolumeSize[2] = frameProperties.Size[2];
+      }
+    
+    if(volumeSize < this->Statistics.minVolumeSize[0] * this->Statistics.minVolumeSize[1] * this->Statistics.minVolumeSize[2])
+      {
+      this->Statistics.minVolumeSize[0] = frameProperties.Size[0];
+      this->Statistics.minVolumeSize[1] = frameProperties.Size[1];
+      this->Statistics.minVolumeSize[2] = frameProperties.Size[2];
+      }
+    
+    #ifdef  DEBUGSENDER
+      this->LogStream <<  this->GetUpTime() << " |S-INFO: Statistics" << endl
+                                   << "           |        Mean Volume Dimensions: " << this->Statistics.meanVolumeSize[0] / this->Statistics.volumeCounter << " | " << this->Statistics.meanVolumeSize[1] / this->Statistics.volumeCounter << " | " << this->Statistics.meanVolumeSize[2] / this->Statistics.volumeCounter << endl
+                                   << "           |        Max Volume Dimensions: " << this->Statistics.maxVolumeSize[0] << " | " << this->Statistics.maxVolumeSize[1] << " | " << this->Statistics.maxVolumeSize[2] << endl
+                                   << "           |        Min Volume Dimensions: " << this->Statistics.minVolumeSize[0] << " | " << this->Statistics.minVolumeSize[1] << " | " << this->Statistics.minVolumeSize[2] << endl;
+    #endif
+      
   return 0;
 
 }
@@ -712,6 +758,32 @@ int vtkDataSender::NewData(vtkImageData* frame, vtkMatrix4x4* trackerMatrix)
 }
 
 //------------------------------------------------------------
+int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix4x4* matrix)
+{
+  if(!this->IsIndexAvailable(index))
+    {
+    #ifdef  ERRORSENDER
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer already has data at index: " << index << endl;
+    #endif
+    return -1;
+    }
+
+  //Create and fill new send data object
+  struct SenderDataStruct newSendData;
+
+  newSendData.ImageData = imageData;
+  newSendData.Matrix = matrix;
+  newSendData.SenderLock = 1;
+  newSendData.ProcessorLock = 1;
+
+  //Add Object to buffer
+  this->sendDataBuffer[index] = newSendData;
+  this->sendDataQueue.push(index);//Add Index to new data buffer
+
+  return 0;
+}
+
+//------------------------------------------------------------
 int vtkDataSender::TryToDeleteData(int index)
 {
   if(this->IsIndexAvailable(index) || index < 0 || index >= this->SendDataBufferSize)
@@ -726,7 +798,10 @@ int vtkDataSender::TryToDeleteData(int index)
     {
     this->sendDataBuffer[index].ImageData->Delete();
     this->sendDataBuffer[index].Matrix->Delete();
-    this->sendDataBuffer.erase(index);
+    if(1 != this->sendDataBuffer.erase(index))
+      {
+      assert(true);
+      }
     #ifdef  DEBUGSENDER
       this->LogStream <<  this->GetUpTime() << " |S-INFO: Deleted data in Send Data Buffer at index: " << index << endl;
     #endif
@@ -749,32 +824,6 @@ int vtkDataSender::TryToDeleteData(int index)
       this->LogStream << endl;
     #endif
     }
-
-  return 0;
-}
-
-//------------------------------------------------------------
-int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix4x4* matrix)
-{
-  if(!this->IsIndexAvailable(index))
-    {
-    #ifdef  ERRORSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer already has data at index: " << index << endl;
-    #endif
-    return -1;
-    }
-
-  //Create and fill new send data object
-  struct SenderDataStruct newSendData;
-
-  newSendData.ImageData = imageData;
-  newSendData.Matrix = matrix;
-  newSendData.SenderLock = 1;
-  newSendData.ProcessorLock = 1;
-
-  //Add Object to buffer
-  this->sendDataBuffer[index] = newSendData;
-  this->sendDataQueue.push(index);//Add Index to new data buffer
 
   return 0;
 }
@@ -915,15 +964,27 @@ void vtkDataSender::UpdateFrameRate(double sendTime)
     {
     if(this->lastFrameRateUpdate != 0)
       {
-      float timeSpan = sendTime - this->lastFrameRateUpdate;
+      float fps = this->UpDateCounter / (sendTime - this->lastFrameRateUpdate);
       cout << "\b\b\b\b\b" << std::flush;
-      cout << setw(5) << setprecision(2) << this->UpDateCounter / timeSpan;
+      cout << setw(5) << setprecision(2) << fps;
       cout << "\a" <<std::flush;
-      #ifdef  DEBUGSENDER
-        this->LogStream <<  this->GetUpTime() << " |S-INFO: Current frame rate " << this->UpDateCounter / timeSpan << endl;
-      #endif
         
       this->UpDateCounter = 0;
+      this->Statistics.fpsCounter++;
+      this->Statistics.meanFPS += fps;
+      if(fps > this->Statistics.maxFPS)
+        {
+        this->Statistics.maxFPS = fps;
+        }
+      if(fps < this->Statistics.minFPS)
+        {
+        this->Statistics.minFPS = fps;
+        }
+      #ifdef  DEBUGSENDER
+        this->LogStream <<  this->GetUpTime() << " |S-INFO: Current frame rate " << fps << endl
+                                    << "           |        Mean FPS: " << this->Statistics.meanFPS / this->Statistics.fpsCounter << " Max FPS: "<< this->Statistics.maxFPS << " Min FPS: "<< this->Statistics.minFPS << endl;
+        
+      #endif
       }
     else
       {

@@ -120,7 +120,7 @@ public:
   
   vtkGetVector3Macro(SystemOffset, double);
   
-  vtkGetMacro(MaximumVolumeSize, double);
+  vtkGetVector3Macro(MaximumVolumeSize, double);
   
   vtkGetMacro(DelayFactor, int);
   
@@ -163,7 +163,7 @@ protected:
   double UltrasoundScanFanHeight;
   int ShrinkFactor[3];
   double SystemOffset[3];
-  double MaximumVolumeSize;
+  double MaximumVolumeSize[3];
   int DelayFactor;
   double TransformationFactorMmToPixel;
   double TrackerOffset[3];

@@ -107,6 +107,10 @@ vtkUltrasoundCalibFileReader::vtkUltrasoundCalibFileReader()
   
   this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
   this->CoordinateTransformationMatrix->Identity();
+  
+  this->MaximumVolumeSize[0] = -1;
+  this->MaximumVolumeSize[1] = -1;
+  this->MaximumVolumeSize[2] = -1;
 }
 
 //----------------------------------------------------------------------------
@@ -276,7 +280,7 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
     this->TrackerOffset[1] = int(numbers.at(1));
     this->TrackerOffset[2] = int(numbers.at(2));
     #ifdef DEBUG_CALIBRATIONFILE_READER
-    this->LogStream << setprecision(4) <<"CF-INFO: Tracker offset is " << this->TrackerOffset[0] << "| "<< this->TrackerOffset[1]<< "| "<< this->TrackerOffset[2]<< endl;
+    this->LogStream << setprecision(8) <<"CF-INFO: Tracker offset is " << this->TrackerOffset[0] << "| "<< this->TrackerOffset[1]<< "| "<< this->TrackerOffset[2]<< endl;
     #endif
     }
   else
@@ -374,15 +378,20 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   numbers.clear();
   this->ReadNumbers(numbers);
   
-  if (numbers.size() == 1)
+  if (numbers.size() == 3)
     {
-    this->MaximumVolumeSize = int(numbers.at(0));
+    this->MaximumVolumeSize[0] = int(numbers.at(0));
+    this->MaximumVolumeSize[1] = int(numbers.at(1));
+    this->MaximumVolumeSize[2] = int(numbers.at(2));
 
     #ifdef HIGH_DEFINITION
-    this->MaximumVolumeSize *= 3; //Byte
+    this->MaximumVolumeSize[0] *= 3; //Byte
+    this->MaximumVolumeSize[1] *= 3; //Byte
+    this->MaximumVolumeSize[2] *= 3; //Byte
     #endif
+    
     #ifdef DEBUG_CALIBRATIONFILE_READER
-    this->LogStream << "CF-INFO: Maximum volume size is " << this->MaximumVolumeSize << endl;
+    this->LogStream << "CF-INFO: Maximum volume size is " << this->MaximumVolumeSize[0] << "|" << this->MaximumVolumeSize[1] << "|" << this->MaximumVolumeSize[2] << endl;
     #endif
     }
   else
@@ -525,7 +534,7 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   //----------------------------------------------------------------------------
   //End of reading section do calculations
   
-  this->TransformationFactorMmToPixel = this->UltrasoundScanFanHeight / this->UltrasoundScanDepth;
+  this->TransformationFactorMmToPixel = this->UltrasoundScanFanHeight / this->UltrasoundScanDepth * 4.0 / 3.0;
   
   #ifdef HIGH_DEFINITION
   this->SystemOffset[0] = this->SystemOffset[0] * this->TransformationFactorMmToPixel;
@@ -548,6 +557,8 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   #else
   this->ShrinkFactor[0] = (int) (this->TransformationFactorMmToPixel + 0.5);//X 
   this->ShrinkFactor[1] = (int) (this->TransformationFactorMmToPixel + 0.5);//Y
+//  this->ShrinkFactor[0] = 1;//X 
+//  this->ShrinkFactor[1] = 1;//Y
   #endif
   
   this->LogStream << "CF-INFO: Shrinkfactor is: " << this->ShrinkFactor[0] << " | " << this->ShrinkFactor[1] << " | " << this->ShrinkFactor[2]<< endl;

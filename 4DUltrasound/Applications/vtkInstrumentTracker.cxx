@@ -349,9 +349,11 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
       yValue = trackerMatrix->Element[1][3] + self->GetSystemOffset()[1];
       zValue = trackerMatrix->Element[2][3] + self->GetSystemOffset()[2];
       
-      trackerMatrix->Element[0][3] = xValue;
-      trackerMatrix->Element[1][3] = yValue;
-      trackerMatrix->Element[2][3] = zValue;
+      double stretchFactor = 4.0 / 5.0 * 9.0 / 10.0 * 1.08;
+      
+      trackerMatrix->Element[0][3] = xValue * stretchFactor;
+      trackerMatrix->Element[1][3] = yValue * stretchFactor;
+      trackerMatrix->Element[2][3] = zValue * stretchFactor;
       
       //Final coordinate axis alignment that the layout fits to slicer
       oldMatrix->DeepCopy(trackerMatrix);

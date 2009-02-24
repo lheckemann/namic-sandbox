@@ -347,6 +347,8 @@ void printUsage()
          << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl
          << "                                        (MANDATORY)"<< endl
          << "--reconstruct-volume or -rv:            Enable volume reconstruction" << endl
+         << "--dynamic-volumesize or -dvs:           Enable dynamic volume size for" << endl
+         << "                                        reconstructed volume"<< endl
          << "--track-ultrasound or -tu:              Enable ultrasound tracking"<< endl
          << "--track-instrument or -ti:              Enable instrument tracking" << endl
          << "--simulate-instrument or -si:           Simulate instrument"<< endl
@@ -367,8 +369,6 @@ void printUsage()
          << "--scan-depth xxx or -sd xxx:            Set depth of ultrasound "<< endl
          << "                                        scan in Millimeter"<< endl
          << "                                        (default: 70mm)" << endl
-         << "--maximum-volumesize xxx or -maxvs xxx: Maximum volume size (in Byte) " << endl
-         << "                                        the system can handle" << endl
          << "--verbose or -v:                        Print more information" << endl
          << endl
          << "--------------------------------------------------------------------------------"
@@ -419,6 +419,20 @@ bool parseCommandLineArguments(int argc, char **argv,
           {
           processor->EnableVolumeReconstruction(true);
           }
+        else if(currentArg == "--dynamic-volumesize" || currentArg == "-dvs")
+          {
+          if(processor->GetVolumeReconstructionEnabled())
+            {
+            processor->SetDynamicVolumeSize(true);
+            collector->SetDynamicVolumeSize(true);
+            }
+          else
+            {
+            printUsage();
+            cerr << "ERROR: Volume reconstruction must be enabled before dynamic volume size option is avaliable" << endl;
+            return false;
+            }
+          }
         //Track operting instrument
         else if(currentArg == "--track-instrument" || currentArg == "-ti")
           {
@@ -428,6 +442,7 @@ bool parseCommandLineArguments(int argc, char **argv,
             }
           else
             {
+            printUsage();
             cout << "ERROR: Instrument can either be simulated or tracked NOT BOTH" << endl;
             return false;
             }
@@ -440,6 +455,7 @@ bool parseCommandLineArguments(int argc, char **argv,
             }
           else
             {
+            printUsage();
             cout << "ERROR: Instrument can either be simulated or tracked NOT BOTH" << endl;
             return false;
             }
@@ -576,31 +592,6 @@ bool parseCommandLineArguments(int argc, char **argv,
             {
             printUsage();
             cout << "ERROR: Scand depth not specified" << endl;
-            return false;
-            }
-          }
-        else if(currentArg == "--maximum-volumesize" || currentArg == "-maxvs")
-          {
-          if( i < argc - 1)
-            {
-            double volumeSize = atoi(argv[++i]);
-            if(volumeSize <= 0)
-              {
-              printUsage();
-              cout << "ERROR: Specified volume size ( "<< volumeSize <<" ) is too small." << endl
-                   << "       Volume size must be bigger than 0 " << endl;
-              return false;
-              }
-            else
-              {
-              collector->SetMaximumVolumeSize(volumeSize);
-              processor->SetMaximumVolumeSize(volumeSize);
-              }
-            }
-          else
-            {
-            printUsage();
-            cout << "ERROR: Maximum volume size not specified" << endl;
             return false;
             }
           }

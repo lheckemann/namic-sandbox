@@ -107,7 +107,9 @@ vtkDataProcessor::vtkDataProcessor()
   this->Processing = false;
   this->ProcessPeriod = 1 /(30 * 1.5);
   this->UltraSoundTrackingEnabled = false;
-  this->MaximumVolumeSize = DEFAULT_MAXIMUM_VOLUME_SIZE;
+  this->MaximumVolumeSize[0] = DEFAULT_MAXIMUM_VOLUME_SIZE;
+  this->MaximumVolumeSize[1] = DEFAULT_MAXIMUM_VOLUME_SIZE;
+  this->MaximumVolumeSize[2] = DEFAULT_MAXIMUM_VOLUME_SIZE;
   this->DelayFactor = DEFAULT_DELAY_FACTOR;
 
   this->dataBufferSize = 3;
@@ -131,6 +133,9 @@ vtkDataProcessor::vtkDataProcessor()
   this->StartUpTime = vtkTimerLog::GetUniversalTime();
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
   this->oldVolume = NULL;
+  
+  this->DynamicVolumeSize = false;
+  this->VolumeInitialized = false;
 }
 
 /******************************************************************************
@@ -355,6 +360,10 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
                                                           << " | L:" << self->GetUpTime() - loopTime
                                                           << " | FPS: " << 1 / (self->GetUpTime() - loopTime) << endl;
               #endif
+              if(lastDataSenderIndex == -1)
+                {
+                errors++;
+                }
               }
             else
               {
@@ -362,7 +371,8 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
   //              self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
                 cout <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
               #endif
-                self->ResetOldVolume(lastDataSenderIndex);
+              self->ResetOldVolume(lastDataSenderIndex);
+              errors++;
               }
             }
           else
@@ -381,6 +391,15 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
         }
       dataAvailable = !self->IsDataBufferEmpty();
   
+      if(errors > 50)
+        {
+        #ifdef ERRORPROCESSOR
+        self->GetLogStream() <<  self->GetUpTime() << " |P-ERROR: too many errors ( " << errors << " ) occured terminate data processor" << endl;
+        #endif
+        self->StopProcessing();
+        self->GetDataSender()->StopSending();
+        }
+      
       #ifdef  DEBUGPROCESSOR
         if(dataAvailable)
           {
@@ -538,9 +557,11 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
     this->calibReader->GetClipRectangle(this->clipRectangle);
     this->Reconstructor->SetClipRectangle(this->clipRectangle);
     
-    if(this->MaximumVolumeSize == DEFAULT_MAXIMUM_VOLUME_SIZE)
+    if(this->MaximumVolumeSize[0] == DEFAULT_MAXIMUM_VOLUME_SIZE)
       {
-      this->MaximumVolumeSize = this->calibReader->GetMaximumVolumeSize();
+      this->MaximumVolumeSize[0] = this->calibReader->GetMaximumVolumeSize()[0];
+      this->MaximumVolumeSize[1] = this->calibReader->GetMaximumVolumeSize()[1];
+      this->MaximumVolumeSize[2] = this->calibReader->GetMaximumVolumeSize()[2];
       }
     
     if(this->DelayFactor == DEFAULT_DELAY_FACTOR)
@@ -585,6 +606,14 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
 {
   int retVal = 0;
   bool expansionPossible = true;
+  
+  if(!this->DynamicVolumeSize && this->VolumeInitialized && dataSenderIndex == -2)
+    {
+    #ifdef  WARNINGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-WARNING: Data sender index reset" <<endl;
+    #endif
+    dataSenderIndex = -2;
+    }
 
   if(!this->VolumeReconstructionEnabled)
     {
@@ -594,6 +623,12 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     return -1;
     }
 
+//  if(!this->DynamicVolumeSize && this->VolumeInitialized)
+//    {
+//    this->ResetOldVolume(dataSenderIndex);
+//    return 0;
+//    }
+  
   if(this->IsIndexAvailable(index)  || index < 0 || index >= this->dataBufferSize)
     {
     #ifdef  ERRORPROCESSOR
@@ -684,23 +719,25 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     #endif
     }
 
-  if((extentChanged || originChanged) && !expansionPossible)
-    {
-    #ifdef  ERRORPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-ERROR: Expansion not possible since data sender index is invalid" <<endl;
-      cout << this->GetUpTime()  << " |P-ERROR: Expansion not possible since data sender index "<< dataSenderIndex << "is invalid" <<endl;
-    #endif
-    retVal = -1;
-    }
-  else
-    {
-    
     //Check Size of new volume
     double volumeSize =   (newExtent[1] - newExtent[0] + 1)
                         * (newExtent[3] - newExtent[2] + 1)
                         * (newExtent[5] - newExtent[4] + 1);
     
-    if(volumeSize < this->GetMaximumVolumeSize())
+  if((extentChanged || originChanged) && !expansionPossible)
+    {
+    if(!this->DynamicVolumeSize && volumeSize <= this->GetMaximumVolumeSize())
+      {
+      #ifdef  ERRORPROCESSOR
+        this->LogStream << this->GetUpTime()  << " |P-ERROR: Expansion not possible since data sender index is invalid" <<endl;
+        cout << this->GetUpTime()  << " |P-ERROR: Expansion not possible since data sender index "<< dataSenderIndex << "is invalid" <<endl;
+      #endif
+      retVal = -1;
+      }
+    }
+  else
+    {
+    if(volumeSize <= this->GetMaximumVolumeSize())
       {
       //Check if volume properties have changed
       if(dataSenderIndex == -2 || (originChanged || extentChanged))
@@ -732,8 +769,10 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         this->Reconstructor->ClearOutput();
     //      this->DecreaseLifeTimeOfReconstructor(1);
     
+        
+        
     #ifdef MERGE
-        if(originChanged || extentChanged)
+        if(originChanged || extentChanged || this->VolumeInitialized)
     #else
         if(false)
     #endif
@@ -765,10 +804,13 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
           
           if(this->oldVolume == NULL)
             {
-            #ifdef  ERRORPROCESSOR
-              this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
-            #endif
-            retVal = -1;
+            if(this->DynamicVolumeSize)
+              {
+              #ifdef  ERRORPROCESSOR
+                this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
+              #endif
+              retVal = -1;
+              }
             }
           //Copy Old Volume at correct position into new volume
           else if(this->MergeVolumes(Reconstructor->GetOutput(),newOrigin,newExtent,
@@ -784,15 +826,20 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
             }
           this->DataSender->ReleaseLock(DATAPROCESSOR);
           }
+        
+        this->VolumeInitialized = true;
         }
       }// Check size of new volume
     else
       {
-      #ifdef  ERRORPROCESSOR
-        this->LogStream << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
-        cout << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
-      #endif
-      retVal = -1;
+      if(!this->DynamicVolumeSize)
+        {
+        #ifdef  ERRORPROCESSOR
+          this->LogStream << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
+          cout << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
+        #endif
+        retVal = -1;
+        }
       }
     }
   this->ResetOldVolume(dataSenderIndex);
@@ -1584,7 +1631,7 @@ double vtkDataProcessor::GetMaximumVolumeSize()
 {
   double retVal;
 
-  if(-1 == this->MaximumVolumeSize)
+  if(DEFAULT_MAXIMUM_VOLUME_SIZE == this->MaximumVolumeSize[0])
     {//Nothing was specified
     double xMin = this->clipRectangle[0], yMin = this->clipRectangle[1],
            xMax = this->clipRectangle[2], yMax = this->clipRectangle[3];
@@ -1597,7 +1644,7 @@ double vtkDataProcessor::GetMaximumVolumeSize()
     }
   else
     {
-    retVal = this->MaximumVolumeSize;
+    retVal = this->MaximumVolumeSize[0] * this->MaximumVolumeSize[1] * this->MaximumVolumeSize[2];
     }
   
 //    #ifdef DEBUGPROCESSOR
