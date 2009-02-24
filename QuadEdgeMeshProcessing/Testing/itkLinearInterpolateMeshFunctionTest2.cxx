@@ -21,7 +21,6 @@
 
 #include <math.h>
 #include "itkVector.h"
-#include "itkVersorRigid3DTransform.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
 #include "itkDefaultStaticMeshTraits.h"
@@ -31,91 +30,64 @@
 #include "itkAmoebaOptimizer.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
+
 //#include "itkCommandIterationUpdate.h"
 
 #include <iostream>
 
-const float TWO_PI= M_PI * 2.0; 
+const float TWO_PI= M_PI * 2.0;
+const float THREE_PI_OVER_TWO= M_PI_2 * 3.0; 
 
-static float sineMapSphericalCoordinatesFunction(float inPhi, float inTheta); 
-static itk::Vector<float,3> sineMapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta); 
+static float mapSphericalCoordinatesFunction(float inPhi); 
+static itk::Vector<float,3> mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag); 
 
-//Combine a sinusoid mapping of theta with a linear mapping between 0 and 1 as a function of phi
+//Really simple example: a linear mapping between 0 and 1 as a function of phi, constant in theta
 static float 
-sineMapSphericalCoordinatesFunction(float inPhi, float inTheta) 
+mapSphericalCoordinatesFunction(float inPhi) 
 {
   float result; 
 
   float phiFactor= (M_PI - inPhi)/M_PI; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
-  float thetaFactor= (sin(inTheta)+1.0)/2.0; //inTheta should be in [-PI,PI]; 
 
-  result= phiFactor * thetaFactor; 
+  result= phiFactor; 
 
   return result; 
 }
 
 static itk::Vector<float,3>
-sineMapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta) 
+mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag) 
 {
-   itk::Vector<float,3> result; 
-   float derivativeThetaOverX;
-   float derivativeThetaOverY;
-   //const float derivativeThetaOverZ= 0.0;
-   //const float derivativePhiOverX= 0.0;
-   //const float derivativePhiOverY= 0.0;
-   float derivativePhiOverZ;
-   float X,Y,Z, YOverX, YOverXSquared;
-   const float SmallThreshold= 1.0e-8; 
-   const float OneLessSmallThreshold= 1.0-SmallThreshold;
-   
-  //float phiFactor= (M_PI - inPhi)/M_PI; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
-  //float thetaFactor= (sin(inTheta)+1.0)/2.0; //inTheta should be in [-PI,PI]; 
-
-  //derivative of phiFactor over Phi * thetaFactor
-  float functionDerivativeOverPhi= -(sin(inTheta)+1.0)/TWO_PI;
-  //derivative of thetaFactor over theta * phiFactor
-  float functionDerivativeOverTheta= ((M_PI - inPhi)*cos(inTheta))/TWO_PI;
+  itk::Vector<float,3> phiComponent, thetaComponent, result; 
   
-  //Chain rule: deriv F/deriv x = d F/d theta * d theta/d x +
-  //                            + d F/d phi * d phi/d x
-  //            and so on for y and z...
+  float cosTheta= cos(inTheta); 
+  float sinTheta= sin(inTheta); 
+  float cosPhi= cos(inPhi); 
+  float sinPhi= sin(inPhi);
 
-  // theta= arctan(y/x), therefore d theta/d x = (-y/x^2)/[1+(y/x)^2]  
-  //                               d theta/d y = (1/x)/[1+(y/x)^2]
-  //                               d theta/d z = 0
-  // phi = arccos (z/radius) = arccos(z), therefore d phi/d x= d phi/d y= 0
-  //                                                d phi/d z= -1/sqrt(1-z^2)
+  //derivative of phiFactor over Phi 
+  float functionDerivativeOverPhi= -1.0/M_PI;
 
-  X= sin(inPhi)*cos(inTheta);
-  Y= sin(inPhi)*sin(inTheta);
-  Z= cos(inPhi);
+  //Need to multiply dF/dphi by unit vector along phi
+  //unit vector along phi= cos(phi)*cos(theta) i + cos(phi)*sin(theta) j - sin(phi)k
 
-  if (fabs(X)>SmallThreshold)
+  phiComponent[0]= cosPhi * cosTheta * functionDerivativeOverPhi; 
+  phiComponent[1]= cosPhi * sinTheta * functionDerivativeOverPhi; 
+  phiComponent[2]= -sinPhi * functionDerivativeOverPhi; 
+
+  for (unsigned int i=0; i<3; i++)
     {
-    YOverX= Y/X;
-    YOverXSquared= YOverX*YOverX; 
-    derivativeThetaOverX= (-YOverX/X)/(1.0+YOverXSquared);
-    derivativeThetaOverY= (1.0/X)/(1.0+YOverXSquared);
-    }
-  else
-    {
-    YOverX= 1.0; //give it some value: phi=0 or PI 
-    derivativeThetaOverX= 0.0; //undefined at North or South Pole
-    derivativeThetaOverY= 0.0; //undefined at North or South Pole
+       result[i]= phiComponent[i]; 
     }
 
-  if (fabs(Z)<=(OneLessSmallThreshold))
+  if (printFlag)
     {
-    derivativePhiOverZ= (-1.0/sqrt(1.0-(Z*Z))); 
+    std::cout << "  inTheta " << inTheta << "  inPhi " << inPhi
+              << "  sinTheta " << sinTheta << "  cosTheta " << cosTheta  
+              << "  sinPhi " << sinPhi << "  cosPhi " << cosPhi  
+              << " dfdphi " << functionDerivativeOverPhi
+              << "  thetaComponent " << thetaComponent
+              << "  phiComponent " << phiComponent << "  result " << result << " \n";
     }
-  else
-    {
-    derivativePhiOverZ= 0.0; //undefined at North or South Pole
-    }
-
-  result[0]= functionDerivativeOverTheta * derivativeThetaOverX; 
-  result[1]= functionDerivativeOverTheta * derivativeThetaOverY; 
-  result[2]= functionDerivativeOverPhi * derivativePhiOverZ; 
      
   return result; 
 }
@@ -144,6 +116,7 @@ int main( int argc, char * argv [] )
   mySphereMeshSource->SetResolution( 4.0 );
   mySphereMeshSource->SetScale( myScale );
   mySphereMeshSource->Modified();
+  
 
   try
     {
@@ -161,7 +134,7 @@ int main( int argc, char * argv [] )
   MeshType::Pointer myMesh = mySphereMeshSource->GetOutput();
 
   PointType  myPt;
-  float radius, phi, theta, myTheta; //spherical coordinates
+  float radius, phi, theta; //spherical coordinates
   float myValue; 
   
   std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
@@ -180,20 +153,12 @@ int main( int argc, char * argv [] )
     theta= atan2(myPt[1], myPt[0]); 
     phi= acos(myPt[2]/radius); 
 
-#if 0    
-    myTheta= theta + M_PI_4; 
-    if (myTheta>M_PI) 
-      {
-      myTheta-= TWO_PI; 
-      }
-#endif
-
-    myValue= sineMapSphericalCoordinatesFunction(phi, theta); 
+    myValue= mapSphericalCoordinatesFunction(phi); 
 
     myMesh->SetPointData(i, myValue);
 
     std::cout << "Point[" << i << "]: " << myPt << " radius "
-              << radius << "  myTheta " << myTheta << "  phi "
+              << radius << "  theta " << theta << "  phi "
               << phi  << "  myValue " << myValue << std::endl; 
     }   
 
@@ -245,6 +210,8 @@ int main( int argc, char * argv [] )
 
   unsigned faceId = 0;
 
+  float maximumDifferenceMagnitude= 0.0;
+
   for( MeshType::CellsContainerIterator cells_it = cells->Begin();
        cells_it != cells->End();
        ++cells_it, faceId++ )
@@ -256,6 +223,15 @@ int main( int argc, char * argv [] )
       std::cout <<"Face " << faceId << " has " << cellPointer->GetNumberOfPoints() 
                 <<" points" << std::endl;
       }
+    
+    interpolator->printFlag= false;
+    
+#if 0
+    if ((faceId==800)) {
+       interpolator->printFlag= true; 
+       std::cout << " stop here \n";
+    }
+#endif    
     
     PointType myCellCenter;
     float cellCenterTheta=0.0;
@@ -269,6 +245,8 @@ int main( int argc, char * argv [] )
     {
        myCellCenter[i]= 0.0;
     }
+
+    
     while( pointIdIterator != pointIdEnd )
       {
          CellPointType cellPoint= myMesh->GetPoint(*pointIdIterator);
@@ -276,13 +254,27 @@ int main( int argc, char * argv [] )
          {
             myCellCenter[i]+= cellPoint[i];          
          }
-         //std::cout << "  cell Center " << myCellCenter <<  "  cellPoint " <<   cellPoint << "   "; 
+         if (interpolator->printFlag)
+           {
+           std::cout << "  cell Center " << myCellCenter <<  "  cellPoint " <<   cellPoint << "   ";
+           }
          pointIdIterator++;
       }
     for( unsigned int i = 0; i < 3; i++ )
     {
       myCellCenter[i]/= cellPointer->GetNumberOfPoints();
     }
+    
+#if 0
+         if (faceId==800) {
+           radius= sqrt(myCellCenter[0]*myCellCenter[0] +
+                        myCellCenter[1]*myCellCenter[1] + myCellCenter[2]*myCellCenter[2]);
+           theta= atan2(myCellCenter[1], myCellCenter[0]); 
+           phi= acos(myCellCenter[2]/radius); 
+           mapSphericalCoordinatesFunctionGradient(phi, theta, true);  
+         }
+#endif
+         
     //std::cout << "  final cell Center " << myCellCenter << std::endl;
     cellCenterRadius= sqrt(myCellCenter[0]*myCellCenter[0] +
                            myCellCenter[1]*myCellCenter[1] +
@@ -290,25 +282,42 @@ int main( int argc, char * argv [] )
     cellCenterTheta= atan2(myCellCenter[1], myCellCenter[0]); 
     cellCenterPhi= acos(myCellCenter[2]/cellCenterRadius); 
 
-#if 0    
-    for ( unsigned int i=0; i<3; i++ ) 
-      {
-        myCellCenter[i]-= myCenter[i];   //coordinates relative to center, if center is not origin
-      }
-#endif
 
     InterpolatorType::DerivativeType computedDerivative; 
-    interpolator->EvaluateDerivative(myCellCenter, computedDerivative); 
+    interpolator->EvaluateDerivative(myCellCenter, computedDerivative);
 
-#if 1  
+    itk::Vector<float,3> analyticalDerivative= mapSphericalCoordinatesFunctionGradient(cellCenterPhi, cellCenterTheta, interpolator->printFlag); 
+        
     std::cout << " faceId  " << faceId << "  cell Center " << myCellCenter
               << "  analytical derivative " 
-              << sineMapSphericalCoordinatesFunctionGradient(cellCenterPhi, cellCenterTheta)
+              << analyticalDerivative
               << "  computed derivative "
               << computedDerivative
               << std::endl;
-#endif    
+    
+    itk::Vector<float,3> differenceValue;
+    float differenceValueMagnitude= 0.0; 
+
+    for ( unsigned int i=0; i<3; i++ )
+      {
+         differenceValue[i]= analyticalDerivative[i] - computedDerivative[i];
+         differenceValueMagnitude+= (differenceValue[i]*differenceValue[i]); 
+      }
+
+    differenceValueMagnitude= sqrt(differenceValueMagnitude);
+
+    if ( differenceValueMagnitude >  maximumDifferenceMagnitude )
+      {
+      maximumDifferenceMagnitude = differenceValueMagnitude;
+      
+      printf(" maximum difference magnitude increasing %7.3f faceId %d \n", maximumDifferenceMagnitude, faceId ); 
+
+      }
+
     }
+
+  printf(" maximum difference magnitude %7.3f \n", maximumDifferenceMagnitude); 
+  
   std::cout << "Test End "<< std::endl;
 
 
