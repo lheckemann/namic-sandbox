@@ -51,10 +51,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "SynchroGrabConfigure.h"
 
 #include "vtkObject.h"
+#include "vtkDataProcessor.h"
 
 class vtkUltrasoundCalibFileReader;
 class vtkTaggedImageFilter;
-class vtkDataProcessor;
 class vtkMultiThreader;
 
 #ifdef USE_ULTRASOUND_DEVICE
@@ -123,7 +123,7 @@ public:
 
   vtkGetMacro(DataProcessor, vtkDataProcessor *);
 
-  vtkSetMacro(MaximumVolumeSize, double);
+  vtkSetVector3Macro(MaximumVolumeSize, double);
   double GetMaximumVolumeSize();
   
   void SetLogStream(ofstream &LogStream);
@@ -132,6 +132,9 @@ public:
   vtkSetVector3Macro(SystemOffset, double);
   vtkGetVector3Macro(SystemOffset, double);
 
+  vtkSetMacro(DynamicVolumeSize, bool);
+  vtkGetMacro(DynamicVolumeSize, bool);
+  
   int Initialize(vtkNDITracker* tracker);
   int StartCollecting(vtkDataProcessor * processor);
   int StopCollecting();
@@ -164,8 +167,11 @@ protected:
   double FrameRate;
   int FrameBufferSize;
   double TrackerOffset[3];//Offset of tracker to ultrasound probe; Unit: mm
-  double MaximumVolumeSize;
+  double MaximumVolumeSize[3];
   double SystemOffset[3];
+  struct DataStruct FixedVolumeProperties;
+  bool DynamicVolumeSize;
+  bool VolumeInitialized;
   
   vtkMatrix4x4 *ObliquenessAdjustmentMatrix;
   vtkMatrix4x4 *CoordinateTransformationMatrix;

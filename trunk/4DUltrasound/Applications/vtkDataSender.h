@@ -81,6 +81,17 @@ struct SenderDataStruct{
   int ProcessorLock;
 };
 
+struct StatisticsStruct{
+  int fpsCounter;
+  double meanFPS;
+  double maxFPS;
+  double minFPS;
+  int volumeCounter;
+  int meanVolumeSize[3];
+  int maxVolumeSize[3];
+  int minVolumeSize[3];
+};
+
 class vtkDataSender : public vtkObject
 {
 public:
@@ -173,6 +184,8 @@ protected:
   void UpdateFrameRate(double sendTime);
 
   struct FramePoperties frameProperties;
+  
+  struct StatisticsStruct Statistics;
 
  private:
   vtkDataSender(const vtkDataSender&);  // Not implemented.
