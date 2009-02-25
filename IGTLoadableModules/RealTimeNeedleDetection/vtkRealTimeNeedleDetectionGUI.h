@@ -72,7 +72,6 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   virtual void Enter();
   virtual void Exit();
   void PrintSelf (ostream& os, vtkIndent indent );
-  vtkMRMLNode* CreateNewNode(vtkMRMLScene* scene, const char* name);
 
   //----------------------------------------------------------------
   // Observer Management
@@ -133,7 +132,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkMRMLVolumeNode*       pSourceNode;    // MRML node, which Slicer received via OpenIGTLink from the Scanner
   vtkMRMLVolumeNode*       pVolumeNode;    // MRML node, which contains the processed image
   vtkMRMLModelNode*        pNeedleNode;    // TODO: make comment
-  //TODO: make a global scene pointer 
+  //TODO:Steve Use a global scene pointer?
     
   //----------------------------------------------------------------
   // Logic Values
