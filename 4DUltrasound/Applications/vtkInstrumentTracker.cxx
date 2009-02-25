@@ -345,6 +345,11 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
       //Get Tracking Matrix for new frame
       self->GetTrackerTool()->GetBuffer()->GetFlagsAndMatrixFromTime(trackerMatrix, vtkTimerLog::GetUniversalTime());
       
+      #ifdef DEBUG_INST_TRACKER
+      self->GetLogStream() <<  self->GetUpTime() << " |I-INFO: New Matrix " << endl;
+      trackerMatrix->Print(self->GetLogStream());
+      #endif
+      
       xValue = trackerMatrix->Element[0][3] + self->GetSystemOffset()[0];
       yValue = trackerMatrix->Element[1][3] + self->GetSystemOffset()[1];
       zValue = trackerMatrix->Element[2][3] + self->GetSystemOffset()[2];
