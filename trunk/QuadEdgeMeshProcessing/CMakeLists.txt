@@ -8,6 +8,9 @@ PROJECT(QuadEdgeMeshProcessing)
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
+FIND_PACKAGE(VTK REQUIRED)
+INCLUDE(${VTK_USE_FILE})
+
 SET(EXECUTABLE_OUTPUT_PATH ${QuadEdgeMeshProcessing_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables") 
 SET(LIBRARY_OUTPUT_PATH ${QuadEdgeMeshProcessing_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
 
