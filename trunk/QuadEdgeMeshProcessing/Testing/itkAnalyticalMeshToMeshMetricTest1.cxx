@@ -32,6 +32,8 @@
 #include "itkLinearInterpolateMeshFunction.h"
 #include "itkGradientDescentOptimizer.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
+#include "vtkPolyDataReader.h"
+#include "RegistrationMonitor.h"
 //#include "itkCommandIterationUpdate.h"
 
 #include <iostream>
@@ -112,6 +114,11 @@ int main( int argc, char * argv [] )
   typedef FixedSphereMeshSourceType::PointType   FixedPointType;
   typedef MovingSphereMeshSourceType::VectorType  MovingVectorType;
   typedef FixedSphereMeshSourceType::VectorType  FixedVectorType;
+  
+  //vtkPolyData*                FixedSurface;
+  //vtkPolyData*                MovingSurface;
+  //vtkPolyData*                OutputSurface;
+
 
   // Registration Method
   typedef itk::MeshToMeshRegistrationMethod< 
@@ -119,6 +126,7 @@ int main( int argc, char * argv [] )
                                     MovingMeshType >    RegistrationType;
   RegistrationType::Pointer   registration  = RegistrationType::New();
 
+  RegistrationMonitor monitor;
 
 
 // Set up synthetic data. Two spherical meshes, one is rotated theta=pi/4 from the other 
@@ -134,14 +142,16 @@ int main( int argc, char * argv [] )
   fixedScale.Fill( 1.0 );
   
   myMovingSphereMeshSource->SetCenter( movingCenter );
-  myMovingSphereMeshSource->SetResolution( 1.0 );
+  myMovingSphereMeshSource->SetResolution( 4.0 );
   myMovingSphereMeshSource->SetScale( movingScale );
   myMovingSphereMeshSource->Modified();
 
   myFixedSphereMeshSource->SetCenter( fixedCenter );
-  myFixedSphereMeshSource->SetResolution( 1.0 );
+  myFixedSphereMeshSource->SetResolution( 4.0 );
   myFixedSphereMeshSource->SetScale( fixedScale );
   myFixedSphereMeshSource->Modified();
+
+ 
 
   try
     {
@@ -256,6 +266,33 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
+  // Load the fixed surface
+  vtkPolyDataReader* fixedReader = vtkPolyDataReader::New();
+  fixedReader->SetFileName(fixedWriter->GetFileName());
+  fixedReader->Update();
+
+  if ( fixedReader->GetErrorCode() )
+    {
+       std::cerr << "Error: Failed reading " <<  fixedWriter->GetFileName() << std::endl;
+    fixedReader->Delete();
+    return EXIT_FAILURE;
+    }
+
+  // Load the moving surface
+  vtkPolyDataReader* movingReader = vtkPolyDataReader::New();
+  movingReader->SetFileName( movingWriter->GetFileName() );
+  movingReader->Update();
+
+  if ( movingReader->GetErrorCode() )
+    {
+    std::cerr << "Error: Failed reading " << movingWriter->GetFileName() << std::endl;
+    fixedReader->Delete();
+    movingReader->Delete();
+    return EXIT_FAILURE;
+    }
+
+  monitor.SetFixedSurface( fixedReader->GetOutput() );
+  monitor.SetMovingSurface( movingReader->GetOutput() );
 
 //-----------------------------------------------------------
 // Set up  the Metric
@@ -394,6 +431,9 @@ int main( int argc, char * argv [] )
   callback->SetOptimizer( optimizer );
 #endif
 
+    monitor.Observe( 
+      optimizer, transform );
+    monitor.SetNumberOfIterationPerUpdate( 1 );
 
 //------------------------------------------------------------
 // This call is mandatory before start querying the Metric

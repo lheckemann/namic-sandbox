@@ -69,8 +69,8 @@ TARGET_LINK_LIBRARIES(itkMeanSquaresMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKNum
 ADD_EXECUTABLE(itkMeanSquaresMeshToMeshMetricTest2 itkMeanSquaresMeshToMeshMetricTest2.cxx)
 TARGET_LINK_LIBRARIES(itkMeanSquaresMeshToMeshMetricTest2 ITKQuadEdgeMesh ITKNumerics ITKIO)
 
-ADD_EXECUTABLE(itkAnalyticalMeshToMeshMetricTest1 itkAnalyticalMeshToMeshMetricTest1.cxx)
-TARGET_LINK_LIBRARIES(itkAnalyticalMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKNumerics ITKIO)
+ADD_EXECUTABLE(itkAnalyticalMeshToMeshMetricTest1 itkAnalyticalMeshToMeshMetricTest1.cxx RegistrationMonitor.cxx)
+TARGET_LINK_LIBRARIES(itkAnalyticalMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKNumerics ITKIO vtkIO vtkGraphics vtkRendering )
 
 ###################
 ###################
