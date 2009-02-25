@@ -764,6 +764,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
         
         this->Reconstructor->SetSliceAxes(newTrackerMatrix);    
         this->Reconstructor->GetOutput()->SetNumberOfScalarComponents(newFrame->GetNumberOfScalarComponents());
+        this->Reconstructor->GetOutput()->Update();
     //      this->Reconstructor->GetOutput()->SetNumberOfScalarComponents(2);
         this->Reconstructor->GetOutput()->AllocateScalars();
         this->Reconstructor->ClearOutput();
