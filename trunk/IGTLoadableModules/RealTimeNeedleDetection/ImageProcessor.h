@@ -15,8 +15,12 @@
 #include "itkSobelOperator.h"
 #include "itkNeighborhoodIterator.h"
 
-#define MAX 65335       // Maximum gray scale Intensity for FloatImageType and UShortImageType (=maximum of unsigned short)
-#define MAXOUTPUT 600  // Maximum gray scale Intensity for the output image 
+#define MAX       65335 // Maximum gray scale Intensity for FloatImageType and UShortImageType (=maximum of unsigned short)
+#define MAXOUTPUT 600   // Maximum gray scale Intensity for the output image
+#define LEFT      1
+#define RIGHT     2
+#define TOP       3
+#define BOTTOM    4 
 
 template <class InputPixelType>
 class InvertIntensityFunctor
@@ -64,7 +68,7 @@ public:
   void PassOn() {mLocalOutputImage = mLocalInputImage;};
   void GradientMagnitude(bool inputTmp, bool outputTmp);
   void Threshold(bool inputTmp, bool outputTmp, int outsideValue, int threshBelow, int threshAbove);
-  void HoughTransformation(bool inputTmp, double* points);
+  void HoughTransformation(bool inputTmp, int needleOrigin, double* points);
   void CannyEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore        
   void BinaryThreshold(bool inputTmp, bool outputTmp);            // not used anymore
   void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp); // not used anymore
