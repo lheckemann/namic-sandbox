@@ -8,7 +8,7 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: ??$
-  Date:      $Date: 2009/02/12 19:10:09$
+  Date:      $Date: 2009/02/27 19:10:09$
   Version:   $Revision: 1.00$
 
 ==========================================================================*/
@@ -131,7 +131,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   vtkMRMLVolumeNode*       pSourceNode;    // MRML node, which Slicer received via OpenIGTLink from the Scanner
   vtkMRMLVolumeNode*       pVolumeNode;    // MRML node, which contains the processed image
-  vtkMRMLModelNode*        pNeedleNode;    // TODO: make comment
+  vtkMRMLModelNode*        pNeedleNode;    // MRML node, which contains the detected needle displayed as transform
   //TODO:Steve Use a global scene pointer?
     
   //----------------------------------------------------------------
@@ -140,9 +140,13 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkIGTDataManager*                DataManager;
   vtkRealTimeNeedleDetectionLogic*  Logic;
   vtkCallbackCommand*               DataCallbackCommand;
-  int                        CloseScene;
-  int                        started;
-  int                        showNeedle;
+  int                        CloseScene;    // TODO: Do I need that?
+  int                        started;       // flag wheter to process the new image from the scanner
+  int                        showNeedle;    // flag wheter to show the pNeedleNode in Slicer
+  //TODO: Do I really  need the scan plane?
+  int                        scanPlane;     // variable to indicate the scan plane: AXIAL, CORONAL, SAGITTAL
+  int                        needleOrigin;  // variable to indicate the direction the needle enters the image from 
+                                            // = LEFT, RIGHT, POSTERIOR, ANTERIOR, INFERIOR, SUPERIOR 
   
   //----------------------------------------------------------------
   // Image Values

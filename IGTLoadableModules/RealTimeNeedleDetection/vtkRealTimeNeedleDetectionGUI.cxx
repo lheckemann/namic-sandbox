@@ -8,7 +8,7 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: ??$
-  Date:      $Date: 2009/02/12 19:10:09$
+  Date:      $Date: 2009/02/27 19:10:09$
   Version:   $Revision: 1.00$
 
 ==========================================================================*/
@@ -51,6 +51,16 @@
 
 #define PI 3.1415926535897932384626433832795 
 //TODO: how do I access the math pi?
+#define PATIENTLEFT      1
+#define PATIENTRIGHT     2
+#define PATIENTPOSTERIOR 3
+#define PATIENTANTERIOR  4
+#define PATIENTINFERIOR  5
+#define PATIENTSUPERIOR  6
+
+#define AXIAL     1
+#define CORONAL   2
+#define SAGITTAL  3
 
 
 //---------------------------------------------------------------------------
@@ -70,8 +80,10 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void *> (this));
   this->DataCallbackCommand->SetCallback(vtkRealTimeNeedleDetectionGUI::DataCallback);
   this->DataManager = vtkIGTDataManager::New();  //TODO: Do I need the DataManager?
-  started    = 0;
-  showNeedle = 0;
+  started       = 0;
+  showNeedle    = 0;
+  scanPlane     = 0;
+  needleOrigin  = LEFT; //TODO: make this 0 whenever done testing
   
   //----------------------------------------------------------------
   // GUI widgets
@@ -126,7 +138,7 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   if (this->DataManager)
   {
     // If we don't set the scene to NULL for DataManager,
-    // Slicer will report a lot leak when it is closed.
+    // Slicer will report lots of leaks when it is closed.
     //TODO:Steve Do I need this DataManager?
     this->DataManager->SetMRMLScene(NULL);
     this->DataManager->Delete();
@@ -565,7 +577,36 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
        //pImageProcessor->Threshold(true,true,MAX,0,1);
        //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/threshold.png",3);
-      pImageProcessor->HoughTransformation(true, points);    
+      switch (needleOrigin) 
+      {
+        case PATIENTLEFT: //and AXIAL TODO: take care of scan plane
+        {
+          pImageProcessor->HoughTransformation(true, RIGHT, points);         
+          break;
+        }
+        case PATIENTRIGHT:
+        {
+          break;
+        }
+        case PATIENTPOSTERIOR:
+        {
+          break;
+        }
+        case PATIENTANTERIOR: //and AXIAL
+        {
+          pImageProcessor->HoughTransformation(true, TOP, points); 
+          break;
+        }
+        case PATIENTINFERIOR:
+        {
+          break;
+        }
+        case PATIENTSUPERIOR:
+        {
+          break;
+        }                
+      } //end of switch
+         
        //pImageProcessor->CannyEdgeDetection(true,false);
              //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
            //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",4);
@@ -583,21 +624,20 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
       else // if everything is ok
       {//TODO: make this generic!! Right now I assume the needle enters from the left
-        //switch(needleEnteringDirection)
-        std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
-        std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
-        
+                
         points[0] += currentXLowerBound;
         points[1] += currentYLowerBound;
         points[2] += currentXLowerBound;
         points[3] += currentYLowerBound;
+        std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
+        std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
         
         double vector[2];
         vector[0] = points[2] - points[0];
         vector[1] = points[3] - points[1];
         double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
         std::cout << "length: " << length << std::endl;
-        double angle = (atan2(points[1]-points[3],points[0]-points[2]))*180/PI;
+        double angle = (atan2(points[1]-points[3],points[0]-points[2]))*180/PI; //TODO:Subtract the points the other way around! The vector is in the wrong direction right now
         std::cout << "angle: " << angle << std::endl;
         
         //-------------------------------------------------------------------------------------------
@@ -606,17 +646,67 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
         double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
         // fovK is not needed, because the images are 2D only
-        double translationLR = -(points[0]-fovI); //(X-axis)
-        double translationPA = points[1]-fovJ;    //(Y-axis)
-        double translationIS = 0;                 //(Z-axis)
+        double translationLR = 0;   //(X-axis)
+        double translationPA = 0;   //(Y-axis)
+        double translationIS = 0;   //(Z-axis)
         
         vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
         transform->Identity();
         transform->PostMultiply();
-        //TODO: switch(needleEnteringDirection)
-        transform->RotateZ(-90); // rotate to have the cylinder pointing from left to right
-        transform->RotateZ(-angle);
-        transform->Translate(translationLR, translationPA, translationIS);
+        switch (needleOrigin) {
+          case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
+          {              
+            transform->RotateZ(-90); // rotate to have the cylinder pointing from left to right
+            transform->RotateZ(-angle);
+            translationLR = -(points[0]-fovI); 
+            translationPA = points[1]-fovJ;                
+            break;
+          }
+          case PATIENTRIGHT:
+          {
+            transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
+            //transform->RotateZ(angle);
+            translationLR = -(points[0]-fovI); 
+            translationPA = points[1]-fovJ; 
+            break;
+          }
+          case PATIENTPOSTERIOR:
+          {
+            //no RotateZ because the transform points in the right direction
+            //transform->RotateZ(angle);
+            //translationLR = -(points[0]-fovI); 
+            //translationPA = points[1]-fovJ; 
+            break;
+          }
+          case PATIENTANTERIOR:
+          {
+            transform->RotateZ(-180); // rotate to have the cylinder pointing from anterior to posterior
+            //transform->RotateZ(angle);
+            //translationLR = -(points[0]-fovI); 
+            //translationPA = points[1]-fovJ; 
+            break;
+          }
+          case PATIENTINFERIOR:
+          {
+            transform->RotateX(90); // rotate to have the cylinder pointing from inferior to superior
+            //transform->Rotate(angle);
+            //translationLR = -(points[0]-fovI); 
+            //translationPA = points[1]-fovJ; 
+            break;
+          }
+          case PATIENTSUPERIOR:
+          {
+            transform->RotateX(-90); // rotate to have the cylinder pointing from superior to inferior
+            //transform->Rotate(angle);
+            //translationLR = -(points[0]-fovI); 
+            //translationPA = points[1]-fovJ; 
+            break;
+          }
+          default:
+            std::cerr << "ERROR! needleOrigin has an unknown value!" << std::endl;
+            break;
+        } //end switch          
+        transform->Translate(translationLR, translationPA, translationIS);    
         
         if(showNeedle)
         { 
@@ -781,6 +871,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
 
   // -----------------------------------------
   // Boundary edit fields TODO: Check for bounds! 0 up to imageDimensions is possible
+  //TODO:Steve How do I check suff that gets typed in?
   vtkKWFrame* xFrame = vtkKWFrame::New();
   xFrame->SetParent(parametersFrame->GetFrame());
   xFrame->Create();

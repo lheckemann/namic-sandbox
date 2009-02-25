@@ -273,7 +273,12 @@ void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, 
 
 // The HoughTransformation finds a line in the image | it finds bright lines
 // An inversion of colors is included, because the needle appears dark in the original image
-void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
+// It assumes the needle is entering from the right side of the image pointing to the left
+//     inputTmp:     Input image is coming from localTmp or localInputImg
+//     needleOrigin: LEFT, RIGHT, TOP, BOTTOM defining from where the needle enters
+//     points:       Array that contains 2 points of the needle transform (x1,y1,x2,y2)
+//                   points[0],points[1] is the point of the needle entering the image | points[2],points[3] is the end of the needle
+void ImageProcessor::HoughTransformation(bool inputTmp, int needleOrigin, double* points) //TODO: take out needleOrigin if not needed!
 {
   InverterType::Pointer inverter = InverterType::New();
   HoughFilter::Pointer houghFilter = HoughFilter::New();
@@ -311,7 +316,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
  
   //--------------------------------------------------------------------------------------------------
   // Get line from HoughTransformation
-  //TODO: really copy the image!
+  //TODO: really hard copy the image! | right now it is just just reference copied -> mLocalInputImage changes, too
   mLocalOutputImage = mLocalInputImage; // Output image = input image with line drawn into it
   HoughFilter::LinesListType lines = houghFilter->GetLines(numberOfLines);
   HoughFilter::LinesListType::const_iterator itLines = lines.begin();
@@ -335,7 +340,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
   //draw found lines in mLocalOutputImage        
   FloatImageType::IndexType localIndex;
   itk::Size<2> size = mLocalOutputImage->GetLargestPossibleRegion().GetSize();
-  //normalize the support vector to x = xSize  TODO: normalize to either x or y, if needle comes from the left or inferior
+  //normalize the support vector to x = xSize  TODO: maybe I have to normalize to either x or y, if needle comes from the right or bottom
   double multiplier = 0;
   multiplier = (u[0]-size[0]) / v[0]; // u[0]-multiplier*v[0] = size[0]
    
@@ -343,8 +348,8 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
   u[0] -= multiplier * v[0];
   u[1] -= multiplier * v[1];
    
-  //normalize the direction vector to negative x, because the needle enters from the left side of the image
-  //TODO: make this generic!!
+  //normalize the direction vector to negative x, because the needle enters from the right side of the image
+  //TODO: make this generic!?!?
   if(v[0] > 0.0)
   {
     v[0] *= -1;
