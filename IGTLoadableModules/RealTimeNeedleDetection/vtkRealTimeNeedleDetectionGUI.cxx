@@ -14,7 +14,6 @@
 ==========================================================================*/
 
 
-//TODO: maybe remove the DataManager
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
@@ -34,7 +33,6 @@
 #include "vtkMRMLTransformableNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 
-#include "vtkCylinderSource.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkSphereSource.h"
 #include "vtkAppendPolyData.h"
@@ -90,11 +88,12 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   // MRML nodes  
   this->pVolumeNode    = NULL;
   this->pSourceNode    = NULL;
+  this->pNeedleNode    = NULL;
   
   //----------------------------------------------------------------
   // Locator  (MRML)   
   this->TimerFlag = 0;
-  
+   
   //----------------------------------------------------------------
   // Image Values - default  
   currentXLowerBound = initialXLowerBound = 0;
@@ -128,7 +127,7 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   {
     // If we don't set the scene to NULL for DataManager,
     // Slicer will report a lot leak when it is closed.
-    //TODO: Do I need this DataManager?
+    //TODO:Steve Do I need this DataManager?
     this->DataManager->SetMRMLScene(NULL);
     this->DataManager->Delete();
   }
@@ -189,9 +188,11 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   //-----------------------------------------------------------------
   // Remove MRML nodes
   if(this->pVolumeNode)
-    this->pVolumeNode->Delete();
+    this->pVolumeNode->Delete(); //TODO:Steve What about the DisplayNode? What about DisplayNodeObserver?
   if(this->pSourceNode)
     this->pSourceNode->Delete();
+  if(this->pNeedleNode)
+    this->pNeedleNode->Delete(); //TODO:Steve What about the DisplayNode? What about DisplayNodeObserver?
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -247,6 +248,8 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
   //----------------------------------------------------------------
   // MRML Observers
   this->MRMLObserverManager->RemoveObjectEvents(pVolumeNode);
+  //this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
+  //this->MRMLObserverManager->RemoveObjectEvents(pNeedleNode);
   //TODO: Remove Observers of MRMLSceneEvents
   
   //----------------------------------------------------------------
@@ -286,7 +289,7 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   vtkMRMLNode *node = NULL; // TODO: is this OK?
   vtkIntArray* nodeEvents = vtkIntArray::New();
   nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
-  vtkSetAndObserveMRMLNodeEventsMacro(node,pVolumeNode,nodeEvents);  //TODO: What does this "node" do???
+  vtkSetAndObserveMRMLNodeEventsMacro(node,pVolumeNode,nodeEvents);  //TODO:Steve What does this "node" do???
   nodeEvents->Delete();
 
   //----------------------------------------------------------------
@@ -449,6 +452,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       //this->GetMRMLScene()->RemoveNodeNoNotify((vtkMRMLNode*) pVolumeNode);
       this->pVolumeNode = NULL; 
     }
+    //Do not make pNeedleNode to NULL, because it might still be accessed
     
     started = 0; // Stop checking MRLM events of pSourceNode 
   }
@@ -457,22 +461,47 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
   {
     std::cout << "ShowNeedleButton is pressed." << std::endl;
     showNeedle = this->pShowNeedleButton->GetSelectedState(); 
-    if(!showNeedle)
+    if(showNeedle)
     {
-      vtkMRMLModelNode*   pNeedleModel;
-      vtkMRMLDisplayNode* pNeedleDisplay;
-      vtkCollection* collection = this->GetMRMLScene()->GetNodesByName("NeedleModel");
-      if (collection != NULL && collection->GetNumberOfItems() == 0)
+      if(pNeedleNode)
       {
-        // if a node doesn't exist, do nothing
+        std::cout << "Still TODO" << std::endl;
+        //TODO: set display again?/
       }
-      else // if a node exists, set visibility to 0
+      else // the NeedleNode doesn't exist yet -> make a new one
       {
-        pNeedleModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
-        pNeedleDisplay = pNeedleModel->GetDisplayNode();
-        pNeedleDisplay->SetVisibility(0);
+        pNeedleNode = vtkMRMLModelNode::New();
+        pNeedleNode->SetName("NeedleModel");
+        pNeedleNode->SetScene(this->GetMRMLScene());
+        pNeedleNode->SetHideFromEditors(0);
+        
+        this->GetMRMLScene()->AddNode(pNeedleNode);  
+        
+        std::cout << "NeedleNode added" << std::endl;
       }
-      collection->Delete();
+    }
+    else // !showNeedle
+    {
+      if(pNeedleNode) // if a node exists, set visibility to 0
+      {
+        std::cout << "before SetVisibility(0)" << std::endl;
+        //pNeedleModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+        vtkMRMLDisplayNode* pNeedleDisplay = pNeedleNode->GetDisplayNode(); //TODO:Steve Can I delete this displayNode later on? 
+        if(pNeedleDisplay)
+        {
+          pNeedleDisplay->SetVisibility(0);
+          pNeedleNode->Modified();
+          this->GetMRMLScene()->Modified();
+        }
+        else
+          std::cerr << "Error! DisplayNode for needle does not exist!" << std::endl;
+        std::cout << "SetVisibility(0) set" << std::endl;
+      }
+      else 
+      {
+        std::cout << "Error! Node does not exist!" << std::endl;
+         // If a node doesn't exist, do nothing! However, this should never get called
+      }
     }
   }
       
@@ -502,6 +531,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessLogicEvents(vtkObject* caller, unsign
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData )
 {
+  std::cout << "MRMLEvent" << std::endl;
   //TODO: If new mrmlNode added -> pScannerIDEntry=new mrml node 
   //TODO: if MRMLNode deleted -> pScannerIDEntry=""
   
@@ -555,7 +585,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegion);
       SetImageRegion(pImageData, pImageRegion);
-      //pImageRegion->Delete();  //TODO:DELETE!!
+      //pImageRegion->Delete();  //TODO:DELETE pImageRegion!!
       pVolumeNode->SetAndObserveImageData(pImageData); //automatically removes old observer and sets modified flag, if new image is different  TODO: Does it also delete the old observer?
       pImageData->Delete();
       
@@ -565,7 +595,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0))
         std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
       else // if everything is ok
-      {//TODO: make this generic!! Right now I assume the needle enters from the right
+      {//TODO: make this generic!! Right now I assume the needle enters from the left
         //switch(needleEnteringDirection)
         std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
         std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
@@ -588,7 +618,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         // the origin of the transform is always in the center of the imge: (Dimension*spacing = fov) / 2
         double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
         double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
-        // do not need fovK because the images are 2D only
+        // fovK is not needed, because the images are 2D only
         double translationLR = -(points[0]-fovI); //(X-axis)
         double translationPA = points[1]-fovJ;    //(Y-axis)
         double translationIS = 0;                 //(Z-axis)
@@ -597,36 +627,23 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         transform->Identity();
         transform->PostMultiply();
         //TODO: switch(needleEnteringDirection)
-        transform->RotateZ(-90); 
+        transform->RotateZ(-90); // rotate to have the cylinder pointing from left to right
         transform->RotateZ(-angle);
         transform->Translate(translationLR, translationPA, translationIS);
         
         if(showNeedle)
-        {        
-          vtkMRMLModelNode*   pNeedleModel;
+        { 
+          //delete old needle displaynode, if it exists
           vtkMRMLDisplayNode* pNeedleDisplay;
-          vtkCollection* collection = this->GetMRMLScene()->GetNodesByName("NeedleModel");
-          if (collection != NULL && collection->GetNumberOfItems() == 0)
+          pNeedleDisplay = pNeedleNode->GetDisplayNode();
+          if(pNeedleDisplay) //If MakeNeedleModel has been called before, a displayNode exists
           {
-            // if a node doesn't exist
-            pNeedleModel = AddNeedleModel(transform, length);
-          }
-          else // if a node exists, remove it and make a new one with the current parameters
-          {
-            vtkMRMLModelNode* pNeedleModelOld = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
-            this->MRMLObserverManager->RemoveObjectEvents(pNeedleModelOld);
-            this->GetMRMLScene()->RemoveNode((vtkMRMLNode*) pNeedleModelOld);
-            collection->Delete();
-            pNeedleModelOld->Delete();
-            pNeedleModel = AddNeedleModel(transform, length);
-          }
-          if (pNeedleModel)
-          {
-            pNeedleDisplay = pNeedleModel->GetDisplayNode();
-            pNeedleDisplay->SetVisibility(1);
-          }    
-          else // if pNeedleModel == NULL
-            std::cerr << "ERROR! No NeedleModel!" << std::endl; // Code should never get here!
+            pNeedleDisplay->SetVisibility(0);
+            this->MRMLObserverManager->RemoveObjectEvents(pNeedleDisplay); //TODO:Steve Does this remove the observer correctly? Is it necessary?
+            this->GetMRMLScene()->RemoveNode((vtkMRMLNode*) pNeedleDisplay); //TODO:Steve Is this necessary? Can I now leave pNeedleNode->Modified() and pNeedleDisplay->Delete() out?
+          } 
+          
+          MakeNeedleModel(transform, length); // New Node DisplayNode gets added in this function -> modified gets called 
         }
         transform->Delete();  
         
@@ -847,6 +864,7 @@ void vtkRealTimeNeedleDetectionGUI::UpdateAll()
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
 {
+  std::cout << "updating GUI" << std::endl;
   if(started)
   {
     this->pScannerIDEntry->EnabledOff();
@@ -864,6 +882,7 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
     this->pYLowerEntry->EnabledOn();
     this->pYUpperEntry->EnabledOn();
   }
+  std::cout << "GUI updated" << std::endl;
 }
 
 // Function to evoke changes in the image in every itaration | not used anymore
@@ -908,38 +927,28 @@ void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, uns
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkRealTimeNeedleDetectionGUI::AddNeedleModel(vtkTransform* transform, double height)
-{
-  vtkMRMLModelNode*        pNeedleModel;
-  vtkMRMLModelDisplayNode* pNeedleDisplay;
-
-  pNeedleModel = vtkMRMLModelNode::New();
-  pNeedleDisplay = vtkMRMLModelDisplayNode::New();
-  
-  this->GetMRMLScene()->AddNode(pNeedleDisplay);
-  this->GetMRMLScene()->AddNode(pNeedleModel);  
-  
-  pNeedleDisplay->SetScene(this->GetMRMLScene());
-  
-  pNeedleModel->SetName("NeedleModel");
-  pNeedleModel->SetScene(this->GetMRMLScene());
-  pNeedleModel->SetAndObserveDisplayNodeID(pNeedleDisplay->GetID());
-  pNeedleModel->SetHideFromEditors(0);
+void vtkRealTimeNeedleDetectionGUI::MakeNeedleModel(vtkTransform* transform, double height)
+{  
+  std::cout << "start making NeedleModel" << std::endl;
+  vtkMRMLModelDisplayNode* pNeedleModelDisplay = vtkMRMLModelDisplayNode::New();
+  GetMRMLScene()->AddNode(pNeedleModelDisplay);
+  pNeedleModelDisplay->SetScene(this->GetMRMLScene());
+  pNeedleNode->SetAndObserveDisplayNodeID(pNeedleModelDisplay->GetID());
   
   // Cylinder represents the needle stick
-  vtkCylinderSource *cylinder = vtkCylinderSource::New();
-  cylinder->SetRadius(1);
-  cylinder->SetHeight(height);
-  cylinder->SetCenter(0, 0, 0);
-  cylinder->Update();
+  vtkCylinderSource* pCylinder = vtkCylinderSource::New();
+  pCylinder = vtkCylinderSource::New();
+  pCylinder->SetRadius(1);
+  pCylinder->SetHeight(height);
+  pCylinder->SetCenter(0, 0, 0);
+  pCylinder->Update();
 
   // Rotate cylinder
   vtkTransformPolyDataFilter *tFilter1 = vtkTransformPolyDataFilter::New();
   vtkTransform* trans =   vtkTransform::New();
-  //trans->RotateX(90.0);
   trans->Translate(0.0, height/2, 0.0);
   trans->Update();
-  tFilter1->SetInput(cylinder->GetOutput());
+  tFilter1->SetInput(pCylinder->GetOutput());
   tFilter1->SetTransform(trans);
   tFilter1->Update();
   
@@ -959,27 +968,26 @@ vtkMRMLModelNode* vtkRealTimeNeedleDetectionGUI::AddNeedleModel(vtkTransform* tr
   vtkTransformPolyDataFilter *tFilter2 = vtkTransformPolyDataFilter::New();
   tFilter2->SetInput(apd->GetOutput());
   tFilter2->SetTransform(transform);
-  tFilter2->Update();  //TODO: Is there a better way to rotate&translate the whole construct?  |  maybe get rid of the sphere?
-  
-  pNeedleModel->SetAndObservePolyData(tFilter2->GetOutput());
+  tFilter2->Update();  //TODO:Steve Is there a better way to rotate&translate the whole construct?  |  maybe get rid of the sphere?
+
+  pNeedleNode->SetAndObservePolyData(tFilter2->GetOutput());
   
   double color[3];
   color[0] = 0.0; // R
   color[1] = 1.0; // G
   color[2] = 0.0; // B
-  pNeedleDisplay->SetPolyData(pNeedleModel->GetPolyData());
-  pNeedleDisplay->SetColor(color);
+  pNeedleModelDisplay->SetPolyData(pNeedleNode->GetPolyData());
+  pNeedleModelDisplay->SetColor(color);
   
   trans->Delete();
   tFilter1->Delete();
   tFilter2->Delete();
-  cylinder->Delete();
   sphere->Delete();
+  pCylinder->Delete();
   apd->Delete();
-
-  pNeedleDisplay->Delete();
-
-  return pNeedleModel;
+  
+  pNeedleModelDisplay->Delete();
+  std::cout << "made NeedleModel" << std::endl;
 }
 
 //TODO: take that out when done measuring
