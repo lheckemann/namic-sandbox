@@ -360,11 +360,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       
     if(pSourceNode)
     { //-----------------------------------------------------------------------------------------------------------------
-      // Create the volumeNode and displayNode, which display the detected needle   
+      // Create the volumeNode and the corresponding displayNode, which displays the detected needle   
       std::cout << "pSourceNode exists" << std::endl;   
-      vtkCollection* collectionOfVolumeNodes = this->GetMRMLScene()->GetNodesByName("VolumeNode");
-      int nItems = collectionOfVolumeNodes->GetNumberOfItems();
-      if(nItems == 0) // pVolumeNode does not exist yet
+      pVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("VolumeNode"));
+      if(pVolumeNode == NULL) // pVolumeNode does not exist yet
       {
         std::cout << "items == 0" << std::endl; 
         vtkMRMLScalarVolumeNode* pScalarNode = vtkMRMLScalarVolumeNode::New();
@@ -400,18 +399,14 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         this->GetMRMLScene()->AddNode(pVolumeNode);
         pScalarNode->Delete();
         pScalarDisplayNode->Delete();
-        pDisplayNode->Delete();
+        pDisplayNode->Delete(); //TODO:Steve Why can I delete this? I thought the MRMLScene needs it to display the node
       }
-      else if(nItems >= 1)
+      else //VolumeNode exists already
       {
         std::cerr << "VolumeNode exists already. Starting again" << std::endl;
-        pVolumeNode = vtkMRMLVolumeNode::SafeDownCast(collectionOfVolumeNodes->GetItemAsObject(0));
+        
       }
-      else
-      {
-        std::cerr << "ERROR! More than one VolumeNode" << std::endl; // code should never get here!
-        return;
-      }      
+    
       //--------------------------------------------------------------------------------------
       // Get the image variables
       vtkImageData* pImageData = ((vtkMRMLVolumeNode*) pSourceNode)->GetImageData();
@@ -429,7 +424,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       currentYImageRegionSize                 = currentYUpperBound - currentYLowerBound;  
       started = 1; // start checking for changes in pSourceNode to update pVolumeNode     
       std::cerr << "Start checking for changes" << std::endl;
-      collectionOfVolumeNodes->Delete();
     }
     else // no Scanner node found in MRMLScene
       std::cerr << "ERROR! No Scanner detected. RealTimeNeedleDetection did not start." << std::endl;
@@ -452,7 +446,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       //this->GetMRMLScene()->RemoveNodeNoNotify((vtkMRMLNode*) pVolumeNode);
       this->pVolumeNode = NULL; 
     }
-    //Do not make pNeedleNode to NULL, because it might still be accessed
+    //Do not set pNeedleNode to NULL, because it might still be accessed
     
     started = 0; // Stop checking MRLM events of pSourceNode 
   }
@@ -463,29 +457,24 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     showNeedle = this->pShowNeedleButton->GetSelectedState(); 
     if(showNeedle)
     {
-      if(pNeedleNode)
-      {
-        std::cout << "Still TODO" << std::endl;
-        //TODO: set display again?/
-      }
-      else // the NeedleNode doesn't exist yet -> make a new one
+      if(!pNeedleNode) // If the NeedleNode doesn't exist yet -> make a new one      
       {
         pNeedleNode = vtkMRMLModelNode::New();
         pNeedleNode->SetName("NeedleModel");
+        pNeedleNode->UpdateID("NeedleModel");
         pNeedleNode->SetScene(this->GetMRMLScene());
         pNeedleNode->SetHideFromEditors(0);
         
-        this->GetMRMLScene()->AddNode(pNeedleNode);  
-        
+        this->GetMRMLScene()->AddNode(pNeedleNode);         
         std::cout << "NeedleNode added" << std::endl;
       }
+      //TODO: Do something to display pNeedleNode right away. Problem: started might be 0 and last modified time from pSourceNode will not have changed
+      
     }
     else // !showNeedle
     {
       if(pNeedleNode) // if a node exists, set visibility to 0
       {
-        std::cout << "before SetVisibility(0)" << std::endl;
-        //pNeedleModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
         vtkMRMLDisplayNode* pNeedleDisplay = pNeedleNode->GetDisplayNode(); //TODO:Steve Can I delete this displayNode later on? 
         if(pNeedleDisplay)
         {
@@ -495,7 +484,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         }
         else
           std::cerr << "Error! DisplayNode for needle does not exist!" << std::endl;
-        std::cout << "SetVisibility(0) set" << std::endl;
       }
       else 
       {
@@ -531,7 +519,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessLogicEvents(vtkObject* caller, unsign
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData )
 {
-  std::cout << "MRMLEvent" << std::endl;
   //TODO: If new mrmlNode added -> pScannerIDEntry=new mrml node 
   //TODO: if MRMLNode deleted -> pScannerIDEntry=""
   
@@ -864,7 +851,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateAll()
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
 {
-  std::cout << "updating GUI" << std::endl;
   if(started)
   {
     this->pScannerIDEntry->EnabledOff();
@@ -872,7 +858,7 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
     this->pXUpperEntry->EnabledOff();
     this->pYLowerEntry->EnabledOff();
     this->pYUpperEntry->EnabledOff();
-    this->pShowNeedleButton->EnabledOn();
+    this->pShowNeedleButton->EnabledOn();  //initially this Button is disabled
   }
   else if(started == 0)
   {
@@ -882,7 +868,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
     this->pYLowerEntry->EnabledOn();
     this->pYUpperEntry->EnabledOn();
   }
-  std::cout << "GUI updated" << std::endl;
 }
 
 // Function to evoke changes in the image in every itaration | not used anymore
