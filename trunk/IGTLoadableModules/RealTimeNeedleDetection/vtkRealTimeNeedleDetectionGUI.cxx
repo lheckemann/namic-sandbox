@@ -98,9 +98,10 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   
   //--------------------------------------------------------------------
   // MRML nodes  
-  this->pVolumeNode    = NULL;
-  this->pSourceNode    = NULL;
-  this->pNeedleNode    = NULL;
+  this->pVolumeNode          = NULL;
+  this->pSourceNode          = NULL;
+  this->pNeedleModelNode     = NULL;
+  this->pNeedleTransformNode = NULL;
   
   //----------------------------------------------------------------
   // Locator  (MRML)   
@@ -201,10 +202,12 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   // Remove MRML nodes
   if(this->pVolumeNode)
     this->pVolumeNode->Delete(); //TODO:Steve What about the DisplayNode? What about DisplayNodeObserver?
-  if(this->pSourceNode)
+  if(this->pSourceNode)           //TODO:Steve What about removing the node from the scene?
     this->pSourceNode->Delete();
-  if(this->pNeedleNode)
-    this->pNeedleNode->Delete(); //TODO:Steve What about the DisplayNode? What about DisplayNodeObserver?
+  if(this->pNeedleModelNode)
+    this->pNeedleModelNode->Delete(); //TODO:Steve What about the DisplayNode? What about DisplayNodeObserver?
+  if(this->pNeedleTransformNode)
+    this->pNeedleTransformNode->Delete();
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -261,7 +264,7 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
   // MRML Observers
   this->MRMLObserverManager->RemoveObjectEvents(pVolumeNode);
   //this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
-  //this->MRMLObserverManager->RemoveObjectEvents(pNeedleNode);
+  //this->MRMLObserverManager->RemoveObjectEvents(pNeedleModelNode);
   //TODO: Remove Observers of MRMLSceneEvents
   
   //----------------------------------------------------------------
@@ -458,7 +461,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       //this->GetMRMLScene()->RemoveNodeNoNotify((vtkMRMLNode*) pVolumeNode);
       this->pVolumeNode = NULL; 
     }
-    //Do not set pNeedleNode to NULL, because it might still be accessed
+    //Do not set pNeedleModelNode to NULL, because it might still be accessed
     
     started = 0; // Stop checking MRLM events of pSourceNode 
   }
@@ -469,29 +472,58 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     showNeedle = this->pShowNeedleButton->GetSelectedState(); 
     if(showNeedle)
     {
-      if(!pNeedleNode) // If the NeedleNode doesn't exist yet -> make a new one      
+      //-------------------------------------------------------------------
+      // Create a MRMLModelNode that displays the needle
+      if(!pNeedleModelNode)       
       {
-        pNeedleNode = vtkMRMLModelNode::New();
-        pNeedleNode->SetName("NeedleModel");
-        pNeedleNode->UpdateID("NeedleModel");
-        pNeedleNode->SetScene(this->GetMRMLScene());
-        pNeedleNode->SetHideFromEditors(0);
+        pNeedleModelNode = vtkMRMLModelNode::New();
+        pNeedleModelNode->SetName("NeedleModel");
+        pNeedleModelNode->UpdateID("NeedleModel");
+        pNeedleModelNode->SetScene(this->GetMRMLScene());
+        pNeedleModelNode->SetHideFromEditors(0);
         
-        this->GetMRMLScene()->AddNode(pNeedleNode);         
-        std::cout << "NeedleNode added" << std::endl;
+        this->GetMRMLScene()->AddNode(pNeedleModelNode);
+        std::cout << "NeedleModelNode added" << std::endl;
+        MakeNeedleModel();        
       }
-      //TODO: Do something to display pNeedleNode right away. Problem: started might be 0 and last modified time from pSourceNode will not have changed
+      //------------------------------------------------------------------------------------------------
+      // Create a TransformNode that displays the needle  
+      if(!pNeedleTransformNode) // If the NeedleTransformNode doesn't exist yet -> make a new one 
+      {
+        pNeedleTransformNode = vtkMRMLLinearTransformNode::New();
+        pNeedleTransformNode->SetName("NeedleTransform");
+        pNeedleTransformNode->UpdateID("NeedleTransform");
+        pNeedleTransformNode->SetScene(this->GetMRMLScene());
+        pNeedleTransformNode->SetHideFromEditors(0);
+        vtkMatrix4x4* transform = vtkMatrix4x4::New(); // vtkMatrix is initialized with the identity matrix
+        pNeedleTransformNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
+        
+        this->GetMRMLScene()->AddNode(pNeedleTransformNode);         
+        std::cout << "NeedleTransformNode added" << std::endl;
+        
+        pNeedleModelNode->SetAndObserveTransformNodeID(pNeedleTransformNode->GetID());
+        pNeedleModelNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+      }
+      vtkMRMLDisplayNode* pNeedleDisplay = pNeedleModelNode->GetDisplayNode(); //TODO:Steve Can I delete this displayNode later on? 
+      if(pNeedleDisplay)
+      {
+        pNeedleDisplay->SetVisibility(1);
+        pNeedleModelNode->Modified();
+        this->GetMRMLScene()->Modified();
+      }
+      else
+        std::cerr << "Error! DisplayNode for needle does not exist!" << std::endl;
       
     }
     else // !showNeedle
     {
-      if(pNeedleNode) // if a node exists, set visibility to 0
+      if(pNeedleModelNode) // if a node exists, set visibility to 0
       {
-        vtkMRMLDisplayNode* pNeedleDisplay = pNeedleNode->GetDisplayNode(); //TODO:Steve Can I delete this displayNode later on? 
+        vtkMRMLDisplayNode* pNeedleDisplay = pNeedleModelNode->GetDisplayNode(); //TODO:Steve Can I delete this displayNode later on? 
         if(pNeedleDisplay)
         {
           pNeedleDisplay->SetVisibility(0);
-          pNeedleNode->Modified();
+          pNeedleModelNode->Modified();
           this->GetMRMLScene()->Modified();
         }
         else
@@ -617,112 +649,102 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pVolumeNode->SetAndObserveImageData(pImageData); //automatically removes old observer and sets modified flag, if new image is different  TODO: Does it also delete the old observer?
       pImageData->Delete();
       
-      //------------------------------------------------------------------------------------------------
-      // Retrieve the needle position and adjust the X- and Y-boundaries
-      //TODO: adjust
-      if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0))
-        std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
-      else // if everything is ok
-      {//TODO: make this generic!! Right now I assume the needle enters from the left
-                
-        points[0] += currentXLowerBound;
-        points[1] += currentYLowerBound;
-        points[2] += currentXLowerBound;
-        points[3] += currentYLowerBound;
-        std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
-        std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
-        
-        double vector[2];
-        vector[0] = points[2] - points[0];
-        vector[1] = points[3] - points[1];
-        double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-        std::cout << "length: " << length << std::endl;
-        double angle = (atan2(points[1]-points[3],points[0]-points[2]))*180/PI; //TODO:Subtract the points the other way around! The vector is in the wrong direction right now
-        std::cout << "angle: " << angle << std::endl;
-        
-        //-------------------------------------------------------------------------------------------
-        // make the needle transform fit the line detected in the image
-        // the origin of the transform is always in the center of the imge: (Dimension*spacing = fov) / 2
-        double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
-        double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
-        // fovK is not needed, because the images are 2D only
-        double translationLR = 0;   //(X-axis)
-        double translationPA = 0;   //(Y-axis)
-        double translationIS = 0;   //(Z-axis)
-        
-        vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
-        transform->Identity();
-        transform->PostMultiply();
-        switch (needleOrigin) {
-          case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
-          {              
-            transform->RotateZ(-90); // rotate to have the cylinder pointing from left to right
-            transform->RotateZ(-angle);
-            translationLR = -(points[0]-fovI); 
-            translationPA = points[1]-fovJ;                
-            break;
-          }
-          case PATIENTRIGHT:
-          {
-            transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
-            //transform->RotateZ(angle);
-            translationLR = -(points[0]-fovI); 
-            translationPA = points[1]-fovJ; 
-            break;
-          }
-          case PATIENTPOSTERIOR:
-          {
-            //no RotateZ because the transform points in the right direction
-            //transform->RotateZ(angle);
-            //translationLR = -(points[0]-fovI); 
-            //translationPA = points[1]-fovJ; 
-            break;
-          }
-          case PATIENTANTERIOR:
-          {
-            transform->RotateZ(-180); // rotate to have the cylinder pointing from anterior to posterior
-            //transform->RotateZ(angle);
-            //translationLR = -(points[0]-fovI); 
-            //translationPA = points[1]-fovJ; 
-            break;
-          }
-          case PATIENTINFERIOR:
-          {
-            transform->RotateX(90); // rotate to have the cylinder pointing from inferior to superior
-            //transform->Rotate(angle);
-            //translationLR = -(points[0]-fovI); 
-            //translationPA = points[1]-fovJ; 
-            break;
-          }
-          case PATIENTSUPERIOR:
-          {
-            transform->RotateX(-90); // rotate to have the cylinder pointing from superior to inferior
-            //transform->Rotate(angle);
-            //translationLR = -(points[0]-fovI); 
-            //translationPA = points[1]-fovJ; 
-            break;
-          }
-          default:
-            std::cerr << "ERROR! needleOrigin has an unknown value!" << std::endl;
-            break;
-        } //end switch          
-        transform->Translate(translationLR, translationPA, translationIS);    
-        
-        if(showNeedle)
-        { 
-          //delete old needle displaynode, if it exists
-          vtkMRMLDisplayNode* pNeedleDisplay;
-          pNeedleDisplay = pNeedleNode->GetDisplayNode();
-          if(pNeedleDisplay) //If MakeNeedleModel has been called before, a displayNode exists
-          {
-            pNeedleDisplay->SetVisibility(0);
-            this->MRMLObserverManager->RemoveObjectEvents(pNeedleDisplay); //TODO:Steve Does this remove the observer correctly? Is it necessary?
-            this->GetMRMLScene()->RemoveNode((vtkMRMLNode*) pNeedleDisplay); //TODO:Steve Is this necessary? Can I now leave pNeedleNode->Modified() and pNeedleDisplay->Delete() out?
-          } 
+      if(showNeedle)
+      {   
+        //------------------------------------------------------------------------------------------------
+        // Retrieve the line from the houghtransformation
+        if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0)) 
+          std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
+        else // if everything is ok
+        {//TODO: make this generic!! Right now I assume the needle enters from the left                  
+          points[0] += currentXLowerBound;
+          points[1] += currentYLowerBound;
+          points[2] += currentXLowerBound;
+          points[3] += currentYLowerBound;
+          std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
+          std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
           
-          MakeNeedleModel(transform, length); // New Node DisplayNode gets added in this function -> modified gets called 
+          double vector[2]; //vector from Tip of the needle to the end
+          vector[0] = points[0] - points[2];
+          vector[1] = points[1] - points[3];
+          double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+          std::cout << "length: " << length << std::endl;
+          double angle = (atan2(points[1]-points[3],points[0]-points[2]))*180/PI; 
+          std::cout << "angle: " << angle << std::endl;
+          
+          //-------------------------------------------------------------------------------------------
+          // make the needle transform fit the line detected in the image
+          // the origin of the transform is always in the center of the imge: (Dimension*spacing = fov) / 2
+          double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
+          double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
+          // fovK is not needed, because the images are 2D only
+          double translationLR = 0;   //(X-axis)
+          double translationPA = 0;   //(Y-axis)
+          double translationIS = 0;   //(Z-axis)
+          
+          vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
+          transform->Identity();
+          transform->PostMultiply();
+          switch (needleOrigin) {
+            case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
+            {              
+              transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
+              transform->RotateZ(-angle);
+              translationLR = -(points[2]-fovI); 
+              translationPA = points[3]-fovJ;                
+              break;
+            }
+            case PATIENTRIGHT:
+            {
+              //transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
+              //transform->RotateZ(angle);
+              //translationLR = -(points[0]-fovI); 
+              //translationPA = points[1]-fovJ; 
+              break;
+            }
+            case PATIENTPOSTERIOR:
+            {
+              //no RotateZ because the transform points in the right direction
+              //transform->RotateZ(angle);
+              //translationLR = -(points[0]-fovI); 
+              //translationPA = points[1]-fovJ; 
+              break;
+            }
+            case PATIENTANTERIOR:
+            {
+              //transform->RotateZ(-180); // rotate to have the cylinder pointing from anterior to posterior
+              //transform->RotateZ(angle);
+              //translationLR = -(points[0]-fovI); 
+              //translationPA = points[1]-fovJ; 
+              break;
+            }
+            case PATIENTINFERIOR:
+            {
+              //transform->RotateX(90); // rotate to have the cylinder pointing from inferior to superior
+              //transform->Rotate(angle);
+              //translationLR = -(points[0]-fovI); 
+              //translationPA = points[1]-fovJ; 
+              break;
+            }
+            case PATIENTSUPERIOR:
+            {
+              //transform->RotateX(-90); // rotate to have the cylinder pointing from superior to inferior
+              //transform->Rotate(angle);
+              //translationLR = -(points[0]-fovI); 
+              //translationPA = points[1]-fovJ; 
+              break;
+            }
+            default:
+              std::cerr << "ERROR! needleOrigin has an unknown value!" << std::endl;
+              break;
+          } //end switch          
+          transform->Translate(translationLR, translationPA, translationIS);    
+                
+          vtkMatrix4x4* transformToParent = pNeedleTransformNode->GetMatrixTransformToParent();
+          transformToParent->DeepCopy(transform->GetMatrix()); // This calls the modified event
+          transform->Delete();
         }
-        transform->Delete();  
+          
         
   
             
@@ -1003,30 +1025,30 @@ void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, uns
 }
 
 //---------------------------------------------------------------------------
-void vtkRealTimeNeedleDetectionGUI::MakeNeedleModel(vtkTransform* transform, double height)
+void vtkRealTimeNeedleDetectionGUI::MakeNeedleModel()
 {  
-  std::cout << "start making NeedleModel" << std::endl;
+  int heightOfNeedle = 80;
   vtkMRMLModelDisplayNode* pNeedleModelDisplay = vtkMRMLModelDisplayNode::New();
   GetMRMLScene()->AddNode(pNeedleModelDisplay);
   pNeedleModelDisplay->SetScene(this->GetMRMLScene());
-  pNeedleNode->SetAndObserveDisplayNodeID(pNeedleModelDisplay->GetID());
+  pNeedleModelNode->SetAndObserveDisplayNodeID(pNeedleModelDisplay->GetID());
   
   // Cylinder represents the needle stick
   vtkCylinderSource* pCylinder = vtkCylinderSource::New();
   pCylinder = vtkCylinderSource::New();
   pCylinder->SetRadius(1);
-  pCylinder->SetHeight(height);
+  pCylinder->SetHeight(heightOfNeedle);
   pCylinder->SetCenter(0, 0, 0);
   pCylinder->Update();
 
   // Rotate cylinder
-  vtkTransformPolyDataFilter *tFilter1 = vtkTransformPolyDataFilter::New();
-  vtkTransform* trans =   vtkTransform::New();
-  trans->Translate(0.0, height/2, 0.0);
+  vtkTransformPolyDataFilter *tFilter = vtkTransformPolyDataFilter::New();
+  vtkTransform* trans = vtkTransform::New();
+  trans->Translate(0.0, heightOfNeedle/2, 0.0);
   trans->Update();
-  tFilter1->SetInput(pCylinder->GetOutput());
-  tFilter1->SetTransform(trans);
-  tFilter1->Update();
+  tFilter->SetInput(pCylinder->GetOutput());
+  tFilter->SetTransform(trans);
+  tFilter->Update();
   
   // Sphere represents the needle tip 
   vtkSphereSource *sphere = vtkSphereSource::New();
@@ -1037,27 +1059,20 @@ void vtkRealTimeNeedleDetectionGUI::MakeNeedleModel(vtkTransform* transform, dou
   vtkAppendPolyData *apd = vtkAppendPolyData::New();
   apd->AddInput(sphere->GetOutput());
   //apd->AddInput(cylinder->GetOutput());
-  apd->AddInput(tFilter1->GetOutput());
+  apd->AddInput(tFilter->GetOutput());
   apd->Update();
   
-  // Rotate&translate both, the sphere and the cylinder
-  vtkTransformPolyDataFilter *tFilter2 = vtkTransformPolyDataFilter::New();
-  tFilter2->SetInput(apd->GetOutput());
-  tFilter2->SetTransform(transform);
-  tFilter2->Update();  //TODO:Steve Is there a better way to rotate&translate the whole construct?  |  maybe get rid of the sphere?
-
-  pNeedleNode->SetAndObservePolyData(tFilter2->GetOutput());
+  pNeedleModelNode->SetAndObservePolyData(apd->GetOutput());
   
   double color[3];
   color[0] = 0.0; // R
   color[1] = 1.0; // G
   color[2] = 0.0; // B
-  pNeedleModelDisplay->SetPolyData(pNeedleNode->GetPolyData());
+  pNeedleModelDisplay->SetPolyData(pNeedleModelNode->GetPolyData());
   pNeedleModelDisplay->SetColor(color);
   
   trans->Delete();
-  tFilter1->Delete();
-  tFilter2->Delete();
+  tFilter->Delete();
   sphere->Delete();
   pCylinder->Delete();
   apd->Delete();

@@ -60,7 +60,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   void GetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion);
   void SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion);
   void operator = ( const vtkRealTimeNeedleDetectionGUI& ); //Not implemented.
-  void MakeNeedleModel(vtkTransform* trans, double height);
+  void MakeNeedleModel();
   double diffclock(clock_t clock1,clock_t clock2);
 
  public:
@@ -84,13 +84,12 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // Event Handlers
   //----------------------------------------------------------------
-  virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
-  virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
-  virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
+  virtual void ProcessLogicEvents (vtkObject *caller, unsigned long event, void *callData );
+  virtual void ProcessGUIEvents (vtkObject *caller, unsigned long event, void *callData );
+  virtual void ProcessMRMLEvents (vtkObject *caller, unsigned long event, void *callData );
   void ProcessTimerEvents();
   void HandleMouseEvent(vtkSlicerInteractorStyle *style);
-  static void DataCallback(vtkObject *caller, 
-                           unsigned long eid, void *clientData, void *callData);
+  static void DataCallback(vtkObject *caller, unsigned long eid, void *clientData, void *callData);
   
   //----------------------------------------------------------------
   // Build Frames
@@ -129,9 +128,10 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // MRML nodes
   //----------------------------------------------------------------
-  vtkMRMLVolumeNode*       pSourceNode;    // MRML node, which Slicer received via OpenIGTLink from the Scanner
-  vtkMRMLVolumeNode*       pVolumeNode;    // MRML node, which contains the processed image
-  vtkMRMLModelNode*        pNeedleNode;    // MRML node, which contains the detected needle displayed as transform
+  vtkMRMLVolumeNode*          pSourceNode;          // MRML node, which Slicer received via OpenIGTLink from the Scanner
+  vtkMRMLVolumeNode*          pVolumeNode;          // MRML node, which contains the processed image
+  vtkMRMLModelNode*           pNeedleModelNode;     // MRML node, which contains the detected needle displayed as transform
+  vtkMRMLLinearTransformNode* pNeedleTransformNode;
   //TODO:Steve Use a global scene pointer?
     
   //----------------------------------------------------------------
