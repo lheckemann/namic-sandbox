@@ -341,7 +341,6 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     measure /= this->m_NumberOfPixelsCounted;
     }
 
-  std::cout << "GetValue() = " << this->GetValue( parameters ) <<  " : " <<  value << std::endl;
   value = measure;
 
 }

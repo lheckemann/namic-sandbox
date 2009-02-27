@@ -78,7 +78,7 @@ AnalyticalMeshToMeshMetric<TFixedMesh,TMovingMesh>
       {
       const RealDataType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
       const RealDataType fixedValue   = pointDataItr.Value();
-      const RealDataType diff = movingValue -  fixedValue; 
+      const RealDataType diff = movingValue - fixedValue; 
       measure += diff * diff; 
       this->m_NumberOfPixelsCounted++;
       }
@@ -296,7 +296,7 @@ AnalyticalMeshToMeshMetric<TFixedMesh,TMovingMesh>
       const RealDataType fixedValue     = pointDataItr.Value();
       this->m_NumberOfPixelsCounted++;
 
-      const RealDataType diff = movingValue -  fixedValue; 
+      const RealDataType diff = movingValue - fixedValue; 
   
       measure += diff * diff;
 
@@ -342,7 +342,6 @@ AnalyticalMeshToMeshMetric<TFixedMesh,TMovingMesh>
     measure /= this->m_NumberOfPixelsCounted;
     }
 
-  std::cout << "GetValue() = " << this->GetValue( parameters ) <<  " : " <<  value << std::endl;
   value = measure;
 
 }
