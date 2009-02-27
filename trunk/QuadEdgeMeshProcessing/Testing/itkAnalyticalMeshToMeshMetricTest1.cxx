@@ -50,8 +50,8 @@ sineMapSphericalCoordinatesFunction(float inPhi, float inTheta)
   float result; 
 
   //Sharply peaked function at phi=PI/2, theta=PI/2
-  float phiFactor= pow(sin(inPhi),3.0); //inPhi should be in [0,PI]; peak at equator: phi=PI/2.
-  float thetaFactor= pow((sin(inTheta)+1.0)/2.0,3.0); //inTheta should be in [-PI,PI]; 
+  float phiFactor= pow(sin(inPhi),1.0); //inPhi should be in [0,PI]; peak at equator: phi=PI/2.
+  float thetaFactor= pow((sin(inTheta)+1.0)/2.0,1.0); //inTheta should be in [-PI,PI]; 
 
   result= phiFactor * thetaFactor; 
 
@@ -363,15 +363,6 @@ int main( int argc, char * argv [] )
 
   ParametersType parameters( numberOfTransformParameters );
 
-  // initialize the offset/vector part
-  for( unsigned int k = 0; k < numberOfTransformParameters; k++ )
-  {
-    parameters[k]= 0.0f;
-  }
-
-  registration->SetInitialTransformParameters( parameters );
-
-
   //typedef versorCostFunction::ParametersType    ParametersType;
 
   // Optimizer Type
@@ -406,11 +397,19 @@ int main( int argc, char * argv [] )
   parametersScale[0] = 1.0;
   parametersScale[1] = 1.0;
   parametersScale[2] = 1.0;
+  
+  // initialize the offset/vector part
+  //for( unsigned int k = 0; k < numberOfTransformParameters; k++ )
+  //{
+  //parameters[k]= 0.0f;
+  //}
+
+  registration->SetInitialTransformParameters( initialPosition );
 
   optimizer->MinimizeOn();
   optimizer->SetScales( parametersScale );
   optimizer->SetGradientMagnitudeTolerance( 1e-15 );
-  optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
+  optimizer->SetMaximumStepLength( 0.35 ); // About 20 degrees
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetNumberOfIterations( 200 );
   optimizer->SetInitialPosition( initialPosition );
@@ -418,6 +417,32 @@ int main( int argc, char * argv [] )
 
   registration->SetOptimizer( optimizer );
 
+
+  typedef itk::TransformMeshFilter<MovingMeshType,OutputMeshType,TransformBaseType> MeshTransformFilter;
+  MeshTransformFilter::Pointer filter = MeshTransformFilter::New();
+  filter->SetInput( myMovingMesh );
+  //registration->Update();
+  filter->SetTransform( registration->GetTransform()  );
+  filter->Update();
+  OutputMeshType::Pointer myOutputMesh = filter->GetOutput();
+  std::cout << " first transform applied to moving mesh by filter " <<  filter->GetTransform()->GetParameters() << " \n";
+  
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< OutputMeshType >   OutputWriterType;
+  OutputWriterType::Pointer outputWriter = OutputWriterType::New();
+  outputWriter->SetInput( myOutputMesh );
+  outputWriter->SetFileName( "OutputMeshFirst.vtk" );
+
+  try
+    {
+    outputWriter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during outputWriter Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+  
   // Create the Command observer and register it with the optimizer.
   //
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
@@ -468,21 +493,19 @@ int main( int argc, char * argv [] )
 
   std::cout << "final params " << finalParameters << "  final value " << bestValue << std::endl;
 
-  typedef itk::TransformMeshFilter<MovingMeshType,OutputMeshType,TransformBaseType> MeshTransformFilter;
-  MeshTransformFilter::Pointer filter = MeshTransformFilter::New();
+  //typedef itk::TransformMeshFilter<MovingMeshType,OutputMeshType,TransformBaseType> MeshTransformFilter;
+  //MeshTransformFilter::Pointer filter = MeshTransformFilter::New();
   filter->SetInput( myMovingMesh ); 
   filter->SetTransform( transform );
   filter->Update();
-  OutputMeshType::Pointer myOutputMesh = filter->GetOutput(); 
+  /*OutputMeshType::Pointer */ myOutputMesh = filter->GetOutput(); 
   
 
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< OutputMeshType >   OutputWriterType;
-  OutputWriterType::Pointer outputWriter = OutputWriterType::New();
+  //typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< OutputMeshType >   OutputWriterType;
+  //OutputWriterType::Pointer outputWriter = OutputWriterType::New();
   outputWriter->SetInput( myOutputMesh );
-  outputWriter->SetFileName( "OutputMesh.vtk" );
-
-  outputWriter->SetFileName( "OutputMesh.vtk" );
-  outputWriter->SetInput( myOutputMesh );
+  outputWriter->SetFileName( "OutputMeshFinal.vtk" );
+  std::cout << " second transform applied to moving mesh by filter " <<  filter->GetTransform()->GetParameters() << " \n";
 
   try
     {
