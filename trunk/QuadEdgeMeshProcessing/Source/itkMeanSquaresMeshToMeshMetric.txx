@@ -263,7 +263,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   derivative = DerivativeType( ParametersDimension );
   derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
-  while( pointItr != pointEnd )
+  while( pointItr != pointEnd && pointDataItr != pointDataEnd )
     {
     InputPointType  inputPoint;
     inputPoint.CastFrom( pointItr.Value() );
@@ -271,6 +271,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     if( this->m_FixedMeshMask && !this->m_FixedMeshMask->IsInside( inputPoint ) )
       {
       ++pointItr;
+      ++pointDataItr;
       continue;
       }
 
@@ -279,6 +280,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     if( this->m_MovingMeshMask && !this->m_MovingMeshMask->IsInside( transformedPoint ) )
       {
       ++pointItr;
+      ++pointDataItr;
       continue;
       }
 
@@ -310,7 +312,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
           }
         derivative[par] += sum;
         }
-
+/*
       std::cout << "  Transform " << this->m_Transform->GetParameters() << std::endl;
       std::cout << "  inputPoint " << inputPoint << std::endl;
       std::cout << "  transformedPoint " << transformedPoint << std::endl;
@@ -318,10 +320,12 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
       std::cout << "  jacobian " << jacobian << std::endl;
       std::cout << "  derivative " << derivative << std::endl;
       std::cout << std::endl;
+*/
 
       }
 
     ++pointItr;
+    ++pointDataItr;
     }
 
   if( !this->m_NumberOfPixelsCounted )
@@ -337,6 +341,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     measure /= this->m_NumberOfPixelsCounted;
     }
 
+  std::cout << "GetValue() = " << this->GetValue( parameters ) <<  " : " <<  value << std::endl;
   value = measure;
 
 }
