@@ -85,7 +85,13 @@ add_library(${lib_name}
 slicer3_set_modules_output_path(${lib_name})
 
 find_library( CommandLineModuleLib CommandLineModule ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_BIN_DIR} )
+if ( ${CommandLineModuleLib} MATCHES "NOTFOUND" )
+   set ( CommandLineModuleLib CommandLineModule )
+endif ( ${CommandLineModuleLib} MATCHES "NOTFOUND" )
 find_library( VolumesLib Volumes ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_BIN_DIR} )
+if ( ${VolumesLib} MATCHES "NOTFOUND" )
+   set ( VolumesLib Volumes )
+endif ( ${VolumesLib} MATCHES "NOTFOUND" )
 
 target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
