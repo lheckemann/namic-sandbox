@@ -402,9 +402,9 @@ int main( int argc, char * argv [] )
   parametersScale[1] = 1.0;
   parametersScale[2] = 1.0;
   
-  parametersScale[3] = 1.0;
-  parametersScale[4] = 1.0;
-  parametersScale[5] = 1.0;
+  parametersScale[3] = 1e9;
+  parametersScale[4] = 1e9;
+  parametersScale[5] = 1e9;
 
   registration->SetInitialTransformParameters( initialPosition );
 
