@@ -264,7 +264,7 @@ AnalyticalMeshToMeshMetric<TFixedMesh,TMovingMesh>
   derivative = DerivativeType( ParametersDimension );
   derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
-  while( pointItr != pointEnd )
+  while( pointItr != pointEnd && pointDataItr != pointDataEnd )
     {
     InputPointType  inputPoint;
     inputPoint.CastFrom( pointItr.Value() );
@@ -272,6 +272,7 @@ AnalyticalMeshToMeshMetric<TFixedMesh,TMovingMesh>
     if( this->m_FixedMeshMask && !this->m_FixedMeshMask->IsInside( inputPoint ) )
       {
       ++pointItr;
+      ++pointDataItr;
       continue;
       }
 
@@ -280,6 +281,7 @@ AnalyticalMeshToMeshMetric<TFixedMesh,TMovingMesh>
     if( this->m_MovingMeshMask && !this->m_MovingMeshMask->IsInside( transformedPoint ) )
       {
       ++pointItr;
+      ++pointDataItr;
       continue;
       }
 
@@ -324,6 +326,7 @@ AnalyticalMeshToMeshMetric<TFixedMesh,TMovingMesh>
       }
 
     ++pointItr;
+    ++pointDataItr;
     }
 
   if( !this->m_NumberOfPixelsCounted )
