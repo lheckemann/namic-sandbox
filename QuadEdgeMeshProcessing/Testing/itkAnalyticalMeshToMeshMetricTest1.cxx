@@ -326,7 +326,7 @@ int main( int argc, char * argv [] )
 // Set up a Transform
 //-----------------------------------------------------------
 
-  typedef itk::VersorRigid3DTransform<double>  TransformType;
+  typedef itk::VersorTransform<double>  TransformType;
 
   TransformType::Pointer transform = TransformType::New();
 
@@ -382,7 +382,7 @@ int main( int argc, char * argv [] )
   axis[1] =  0.0f;
   axis[2] =  0.0f;
 
-  VersorType::ValueType angle = 0.34f;
+  VersorType::ValueType angle = 1.0f;
 
   VersorType initialRotation;
   
@@ -393,18 +393,10 @@ int main( int argc, char * argv [] )
   initialPosition[1] = initialRotation.GetY();
   initialPosition[2] = initialRotation.GetZ();
 
-  initialPosition[3] = 0.0;
-  initialPosition[4] = 0.0;
-  initialPosition[5] = 0.0;
-
   ScalesType    parametersScale( numberOfTransformParameters );
   parametersScale[0] = 1.0;
   parametersScale[1] = 1.0;
   parametersScale[2] = 1.0;
-  
-  parametersScale[3] = 1e9;
-  parametersScale[4] = 1e9;
-  parametersScale[5] = 1e9;
 
   registration->SetInitialTransformParameters( initialPosition );
 
