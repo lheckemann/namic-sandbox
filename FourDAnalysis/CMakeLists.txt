@@ -84,15 +84,17 @@ add_library(${lib_name}
   )
 slicer3_set_modules_output_path(${lib_name})
 
+find_library( CommandLineModuleLib CommandLineModule ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_BIN_DIR} )
+find_library( VolumesLib Volumes ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_BIN_DIR} )
 
 target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
-  CommandLineModule
+  ${CommandLineModuleLib}
   ${ITK_LIBRARIES}
   ${CLP_MODULE}
-  Volumes
+  ${VolumesLib}
   ${PYTHON_LIBRARIES}
   )
 
