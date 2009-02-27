@@ -382,7 +382,7 @@ int main( int argc, char * argv [] )
   axis[1] =  0.0f;
   axis[2] =  0.0f;
 
-  VersorType::ValueType angle = 90.0f;
+  VersorType::ValueType angle = 0.1f;
 
   VersorType initialRotation;
   
@@ -409,9 +409,10 @@ int main( int argc, char * argv [] )
   optimizer->MinimizeOn();
   optimizer->SetScales( parametersScale );
   optimizer->SetGradientMagnitudeTolerance( 1e-15 );
-  optimizer->SetMaximumStepLength( 0.35 ); // About 20 degrees
+  optimizer->SetMaximumStepLength( 0.01 ); // About 20 degrees
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetNumberOfIterations( 200 );
+  optimizer->SetRelaxationFactor( 0.9 );
   optimizer->SetInitialPosition( initialPosition );
   optimizer->SetCostFunction( metric.GetPointer() );  
 
