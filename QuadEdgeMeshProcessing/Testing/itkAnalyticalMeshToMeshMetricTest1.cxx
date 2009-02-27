@@ -22,8 +22,8 @@
 #include <math.h>
 #include "itkVersor.h"
 #include "itkCovariantVector.h"
-#include "itkVersorTransform.h"
-#include "itkVersorTransformOptimizer.h"
+#include "itkVersorRigid3DTransform.h"
+#include "itkVersorRigid3DTransformOptimizer.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
 #include "itkDefaultStaticMeshTraits.h"
@@ -72,7 +72,7 @@ public:
 protected:
   CommandIterationUpdate() {};
 public:
-  typedef itk::VersorTransformOptimizer     OptimizerType;
+  typedef itk::VersorRigid3DTransformOptimizer     OptimizerType;
   typedef   const OptimizerType   *    OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -312,21 +312,21 @@ int main( int argc, char * argv [] )
   typedef TransformBaseType::ParametersType         ParametersType;
 
   MetricType::Pointer  metric = MetricType::New();
-  registration->SetMetric( metric.GetPointer() ); 
+  registration->SetMetric( metric ); 
 
 
 //-----------------------------------------------------------
 // Plug the Meshes into the metric
 //-----------------------------------------------------------
   registration->SetFixedMesh( myFixedMesh );
-  registration->SetMovingMesh( myMovingMesh );
+  registration->SetMovingMesh( myFixedMesh );
 
 
 //-----------------------------------------------------------
 // Set up a Transform
 //-----------------------------------------------------------
 
-  typedef itk::VersorTransform<double>  TransformType;
+  typedef itk::VersorRigid3DTransform<double>  TransformType;
 
   TransformType::Pointer transform = TransformType::New();
 
@@ -366,7 +366,7 @@ int main( int argc, char * argv [] )
   //typedef versorCostFunction::ParametersType    ParametersType;
 
   // Optimizer Type
-  typedef itk::VersorTransformOptimizer         OptimizerType;
+  typedef itk::VersorRigid3DTransformOptimizer         OptimizerType;
 
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
 
@@ -382,27 +382,29 @@ int main( int argc, char * argv [] )
   axis[1] =  0.0f;
   axis[2] =  0.0f;
 
-  VersorType::ValueType angle = 0.1f;
+  VersorType::ValueType angle = 0.34f;
 
   VersorType initialRotation;
   
   initialRotation.Set( axis, angle );
   
-  ParametersType  initialPosition( 3 );
+  ParametersType  initialPosition( numberOfTransformParameters );
   initialPosition[0] = initialRotation.GetX();
   initialPosition[1] = initialRotation.GetY();
   initialPosition[2] = initialRotation.GetZ();
 
-  ScalesType    parametersScale( 3 );
+  initialPosition[3] = 0.0;
+  initialPosition[4] = 0.0;
+  initialPosition[5] = 0.0;
+
+  ScalesType    parametersScale( numberOfTransformParameters );
   parametersScale[0] = 1.0;
   parametersScale[1] = 1.0;
   parametersScale[2] = 1.0;
   
-  // initialize the offset/vector part
-  //for( unsigned int k = 0; k < numberOfTransformParameters; k++ )
-  //{
-  //parameters[k]= 0.0f;
-  //}
+  parametersScale[3] = 1.0;
+  parametersScale[4] = 1.0;
+  parametersScale[5] = 1.0;
 
   registration->SetInitialTransformParameters( initialPosition );
 
@@ -413,8 +415,6 @@ int main( int argc, char * argv [] )
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetNumberOfIterations( 200 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetInitialPosition( initialPosition );
-  optimizer->SetCostFunction( metric.GetPointer() );  
 
   registration->SetOptimizer( optimizer );
 
