@@ -34,6 +34,7 @@
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "vtkPolyDataReader.h"
 #include "RegistrationMonitor.h"
+#include "itkTransformMeshFilter.h"
 //#include "itkCommandIterationUpdate.h"
 
 #include <iostream>
@@ -103,12 +104,15 @@ int main( int argc, char * argv [] )
 
   typedef itk::QuadEdgeMesh<float, 3>   MovingMeshType;
   typedef itk::QuadEdgeMesh<float, 3>   FixedMeshType;
+  typedef itk::QuadEdgeMesh<float, 3>   OutputMeshType;
 
   typedef itk::RegularSphereMeshSource< MovingMeshType >  MovingSphereMeshSourceType;
   typedef itk::RegularSphereMeshSource< FixedMeshType >  FixedSphereMeshSourceType;
+  typedef itk::RegularSphereMeshSource< OutputMeshType >  OutputSphereMeshSourceType;
 
   MovingSphereMeshSourceType::Pointer  myMovingSphereMeshSource = MovingSphereMeshSourceType::New();
   FixedSphereMeshSourceType::Pointer  myFixedSphereMeshSource = FixedSphereMeshSourceType::New();
+  OutputSphereMeshSourceType::Pointer  myOutputSphereMeshSource = OutputSphereMeshSourceType::New();
 
   typedef MovingSphereMeshSourceType::PointType   MovingPointType;
   typedef FixedSphereMeshSourceType::PointType   FixedPointType;
@@ -387,16 +391,16 @@ int main( int argc, char * argv [] )
   axis[1] =  0.0f;
   axis[2] =  0.0f;
 
-  VersorType::ValueType angle = 0.0f;
+  VersorType::ValueType angle = 90.0f;
 
   VersorType initialRotation;
   
   initialRotation.Set( axis, angle );
   
   ParametersType  initialPosition( 3 );
-  initialPosition[0] = 0; //initialRotation.GetX();
-  initialPosition[1] = 0; //initialRotation.GetY();
-  initialPosition[2] = 0; //initialRotation.GetZ();
+  initialPosition[0] = initialRotation.GetX();
+  initialPosition[1] = initialRotation.GetY();
+  initialPosition[2] = initialRotation.GetZ();
 
   ScalesType    parametersScale( 3 );
   parametersScale[0] = 1.0;
@@ -408,7 +412,7 @@ int main( int argc, char * argv [] )
   optimizer->SetGradientMagnitudeTolerance( 1e-15 );
   optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
   optimizer->SetMinimumStepLength( 1e-9 );
-  optimizer->SetNumberOfIterations( 1 );
+  optimizer->SetNumberOfIterations( 200 );
   optimizer->SetInitialPosition( initialPosition );
   optimizer->SetCostFunction( metric.GetPointer() );  
 
@@ -464,6 +468,32 @@ int main( int argc, char * argv [] )
 
   std::cout << "final params " << finalParameters << "  final value " << bestValue << std::endl;
 
+  typedef itk::TransformMeshFilter<MovingMeshType,OutputMeshType,TransformBaseType> MeshTransformFilter;
+  MeshTransformFilter::Pointer filter = MeshTransformFilter::New();
+  filter->SetInput( myMovingMesh ); 
+  filter->SetTransform( transform );
+  filter->Update();
+  OutputMeshType::Pointer myOutputMesh = filter->GetOutput(); 
+  
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< OutputMeshType >   OutputWriterType;
+  OutputWriterType::Pointer outputWriter = OutputWriterType::New();
+  outputWriter->SetInput( myOutputMesh );
+  outputWriter->SetFileName( "OutputMesh.vtk" );
+
+  outputWriter->SetFileName( "OutputMesh.vtk" );
+  outputWriter->SetInput( myOutputMesh );
+
+  try
+    {
+    outputWriter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during outputWriter Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
 
 //-------------------------------------------------------
