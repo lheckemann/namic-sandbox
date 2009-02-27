@@ -203,7 +203,33 @@ int main( int argc, char * argv [] )
 #endif
     
     }
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   FixedWriterType;
+  FixedWriterType::Pointer fixedWriter = FixedWriterType::New();
+  fixedWriter->SetInput( myFixedMesh );
+  fixedWriter->SetFileName( "FixedMesh.vtk" );
 
+  try
+    {
+    fixedWriter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during fixedWriter Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+  
+  // Load the fixed surface
+  vtkPolyDataReader* fixedReader = vtkPolyDataReader::New();
+  fixedReader->SetFileName(fixedWriter->GetFileName());
+  fixedReader->Update();
+
+  if ( fixedReader->GetErrorCode() )
+    {
+       std::cerr << "Error: Failed reading " <<  fixedWriter->GetFileName() << std::endl;
+    fixedReader->Delete();
+    return EXIT_FAILURE;
+    }
    for( unsigned int i=0; i < myMovingMesh->GetNumberOfPoints(); i++ )
     {
       
@@ -234,22 +260,6 @@ int main( int argc, char * argv [] )
         
     }   
 
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   FixedWriterType;
-  FixedWriterType::Pointer fixedWriter = FixedWriterType::New();
-  fixedWriter->SetInput( myFixedMesh );
-  fixedWriter->SetFileName( "FixedMesh.vtk" );
-
-  try
-    {
-    fixedWriter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during fixedWriter Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >   MovingWriterType;
   MovingWriterType::Pointer movingWriter = MovingWriterType::New();
   movingWriter->SetInput( myMovingMesh );
@@ -266,17 +276,6 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  // Load the fixed surface
-  vtkPolyDataReader* fixedReader = vtkPolyDataReader::New();
-  fixedReader->SetFileName(fixedWriter->GetFileName());
-  fixedReader->Update();
-
-  if ( fixedReader->GetErrorCode() )
-    {
-       std::cerr << "Error: Failed reading " <<  fixedWriter->GetFileName() << std::endl;
-    fixedReader->Delete();
-    return EXIT_FAILURE;
-    }
 
   // Load the moving surface
   vtkPolyDataReader* movingReader = vtkPolyDataReader::New();
@@ -409,7 +408,7 @@ int main( int argc, char * argv [] )
   optimizer->SetGradientMagnitudeTolerance( 1e-15 );
   optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
   optimizer->SetMinimumStepLength( 1e-9 );
-  optimizer->SetNumberOfIterations( 200 );
+  optimizer->SetNumberOfIterations( 1 );
   optimizer->SetInitialPosition( initialPosition );
   optimizer->SetCostFunction( metric.GetPointer() );  
 
