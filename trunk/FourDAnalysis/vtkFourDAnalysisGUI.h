@@ -178,6 +178,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 
   vtkKWMenuButton* FittingLabelMenu;
   vtkKWLoadSaveButtonWithLabel* CurveScriptSelectButton;
+  vtkKWSpinBox*    CurveFittingStartIndexSpinBox;
+  vtkKWSpinBox*    CurveFittingEndIndexSpinBox;
   vtkKWPushButton* RunFittingButton;
 
   vtkKWPushButton* RunPlotButton;

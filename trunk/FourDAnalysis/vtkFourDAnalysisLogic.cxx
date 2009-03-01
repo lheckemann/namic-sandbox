@@ -697,21 +697,24 @@ int vtkFourDAnalysisLogic::SaveIntensityCurves(vtkIntensityCurves* curves, const
 //---------------------------------------------------------------------------
 void vtkFourDAnalysisLogic::RunCurveFitting(const char* script, vtkMRMLCurveAnalysisNode* curveNode)
 {
+
   PyObject* v;
   std::string pythonCmd;
-  vtkDoubleArray* resultArray = vtkDoubleArray::New();
-  curveNode->SetInterpolatedData(resultArray);
 
   pythonCmd += "from Slicer import slicer\n";
-  pythonCmd += "execdict = { 'CurveAnalysisNodeID' : '";
+  pythonCmd += "scene = slicer.MRMLScene\n";
+  pythonCmd += "curveNode  = scene.GetNodeByID('";
   pythonCmd += curveNode->GetID();
-  pythonCmd += "' }\n";
+  pythonCmd += "')\n";
+  pythonCmd += "execdict = {}\n";
+  pythonCmd += "execdict['InputCurve']  = curveNode.GetSourceData().ToArray()\n";
+  pythonCmd += "execdict['FittedCurve'] = curveNode.GetFittedData().ToArray()\n";
+  pythonCmd += "execdict['ParameterDictionary'] = {}\n";
   pythonCmd += "execfile('";
   pythonCmd += script;
   pythonCmd += "', globals(), execdict)\n";
-  
-  v = PyRun_String(
-                   pythonCmd.c_str(),
+
+  v = PyRun_String(pythonCmd.c_str(),
                    Py_file_input,
                    (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
                    (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()));

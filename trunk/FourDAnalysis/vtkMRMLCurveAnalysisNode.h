@@ -58,8 +58,8 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLCurveAnalysisNode : public vtkMRMLNode
 
   vtkSetObjectMacro( SourceData, vtkDoubleArray );
   vtkGetObjectMacro( SourceData, vtkDoubleArray );
-  vtkSetObjectMacro( InterpolatedData, vtkDoubleArray );
-  vtkGetObjectMacro( InterpolatedData, vtkDoubleArray );
+  vtkSetObjectMacro( FittedData, vtkDoubleArray );
+  vtkGetObjectMacro( FittedData, vtkDoubleArray );
 
   void SetFunctionName(const char* name)
   {
@@ -83,7 +83,7 @@ private:
   void operator=(const vtkMRMLCurveAnalysisNode&);
 
   vtkDoubleArray* SourceData;
-  vtkDoubleArray* InterpolatedData;
+  vtkDoubleArray* FittedData;
 
   OutputParameterMapType OutputParameters;
   

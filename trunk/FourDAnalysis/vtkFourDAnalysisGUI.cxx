@@ -124,6 +124,8 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->ErrorBarCheckButton = NULL;
   this->FittingLabelMenu    = NULL;
   this->CurveScriptSelectButton  = NULL;
+  this->CurveFittingStartIndexSpinBox = NULL;
+  this->CurveFittingEndIndexSpinBox        = NULL;
   this->RunFittingButton    = NULL;
   this->SavePlotButton = NULL;
   this->IntensityPlot  = NULL;
@@ -271,6 +273,16 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     {
     this->CurveScriptSelectButton->SetParent(NULL);
     this->CurveScriptSelectButton->Delete();
+    }
+  if (this->CurveFittingStartIndexSpinBox)
+    {
+    this->CurveFittingStartIndexSpinBox->SetParent(NULL);
+    this->CurveFittingStartIndexSpinBox->Delete();
+    }
+  if (this->CurveFittingEndIndexSpinBox)
+    {
+    this->CurveFittingEndIndexSpinBox->SetParent(NULL);
+    this->CurveFittingEndIndexSpinBox->Delete();
     }
   if (this->RunFittingButton)
     {
@@ -481,6 +493,16 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->CurveScriptSelectButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->CurveFittingStartIndexSpinBox)
+    {
+    this->CurveFittingStartIndexSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CurveFittingEndIndexSpinBox)
+    {
+    this->CurveFittingEndIndexSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->RunFittingButton)
     {
     this->RunFittingButton
@@ -674,6 +696,16 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     {
     this->CurveScriptSelectButton->GetWidget()->GetLoadSaveDialog()
       ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CurveFittingStartIndexSpinBox)
+    {
+    this->CurveFittingStartIndexSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CurveFittingEndIndexSpinBox)
+    {
+    this->CurveFittingEndIndexSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->RunFittingButton)
     {
@@ -918,7 +950,17 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->SeriesToPlotMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    std::cerr << "this->SeriesToPlotMenu->GetMenu()" << std::endl;
+    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
+    const char* bundleID = this->BundleNodeIDList[series].c_str();
+    vtkMRML4DBundleNode* bundleNode 
+      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+    int n = bundleNode->GetNumberOfFrames();
+    this->CurveFittingStartIndexSpinBox->SetRange(0, n-1);
+    this->CurveFittingEndIndexSpinBox->SetRange(0, n-1);
+    this->CurveFittingStartIndexSpinBox->SetValue(0);
+    this->CurveFittingStartIndexSpinBox->Modified();
+    this->CurveFittingEndIndexSpinBox->SetValue(n-1);
+    this->CurveFittingEndIndexSpinBox->Modified();
     }
   else if (this->MaskSelectMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
@@ -968,22 +1010,70 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     vtkIntArray* labels = this->IntensityCurves->GetLabelList();
     int label = labels->GetValue(n);
 
-    vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
-    vtkMRMLScene* scene = this->GetMRMLScene();
-    this->GetMRMLScene()->AddNode(curveNode);
-    
     vtkDoubleArray* curve = this->IntensityCurves->GetCurve(label);
     if (curve)
       {
+      // Add a new vtkMRMLCurveAnalysisNode to the MRML scene
+      vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
+      vtkMRMLScene* scene = this->GetMRMLScene();
+      this->GetMRMLScene()->AddNode(curveNode);
+
+      // Prepare vtkDoubleArray to pass the source cueve data
+      vtkDoubleArray* srcCurve = vtkDoubleArray::New();
+      srcCurve->SetNumberOfComponents( curve->GetNumberOfComponents() );
+
+      // Check the range of the curve to fit
+      int max   = curve->GetNumberOfTuples();
+      int start = this->CurveFittingStartIndexSpinBox->GetValue();
+      int end   = this->CurveFittingEndIndexSpinBox->GetValue();
+      if (start < 0)   start = 0;
+      if (end >= max)  end   = max-1;
+      if (start > end) start = end;
+      for (int i = start; i <= end; i ++)
+        {
+        double* xy = curve->GetTuple(i);
+        srcCurve->InsertNextTuple(xy);
+        }
+
+      // Prepare vtkDoubleArray to receive a fitted curve from the script
+      // (The size of the fitted curve should be the same as original
+      // intensity curve)
+      vtkDoubleArray* fittedCurve = vtkDoubleArray::New();
+      fittedCurve->SetNumberOfComponents(2);
+      for (int i = 0; i < max; i ++)
+        {
+        double* xy = curve->GetTuple(i);
+        fittedCurve->InsertNextTuple(xy);
+        }
+
+      // Set source and fitted curve arrays to the curve analysis node.
+      curveNode->SetSourceData(srcCurve);
+      curveNode->SetFittedData(fittedCurve);
+
+      // Get the path to the script
       const char* script = this->CurveScriptSelectButton->GetWidget()->GetFileName();
-      curveNode->SetSourceData(curve);
+
+      // Call Logic to excecute the curve fitting script
       this->GetLogic()->RunCurveFitting(script, curveNode);
-      }
-    curve->Delete();
-    vtkDoubleArray* curve2 = curveNode->GetInterpolatedData();
-    if (curve2)
-      {
-      UpdateIntensityPlotWithFittedCurve(this->IntensityCurves, curve2);
+
+      // Get fitted curve
+      vtkDoubleArray* resultCurve = curveNode->GetFittedData();
+      // NOTE: this might not be necessary... just use the fittedCurve pointer defined above.
+      if (resultCurve)
+        {
+        int num = resultCurve->GetNumberOfTuples();
+        std::cerr << "result curve number of tuples = " << num << std::endl;
+        for (int i = 0; i < num; i ++)
+          {
+          double* xy = resultCurve->GetTuple(i);
+          std::cerr << "xy = " << xy[0]  << ", " << xy[1] << std::endl;
+          }
+        if (resultCurve)
+          {
+          UpdateIntensityPlotWithFittedCurve(this->IntensityCurves, resultCurve);
+          }
+        this->GetMRMLScene()->RemoveNode(curveNode);
+        }
       }
     }
   else if (this->SavePlotButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
@@ -1623,33 +1713,71 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer()
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  cframe->GetWidgetName() );
 
+  vtkKWFrame* scriptFrame = vtkKWFrame::New();
+  scriptFrame->SetParent(cframe->GetFrame());
+  scriptFrame->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 scriptFrame->GetWidgetName() );
+
   vtkKWLabel *fittingLabelLabel = vtkKWLabel::New();
-  fittingLabelLabel->SetParent(cframe->GetFrame());
+  fittingLabelLabel->SetParent(scriptFrame);
   fittingLabelLabel->Create();
   fittingLabelLabel->SetText("Label:");
 
   this->FittingLabelMenu = vtkKWMenuButton::New();
-  this->FittingLabelMenu->SetParent(cframe->GetFrame());
+  this->FittingLabelMenu->SetParent(scriptFrame);
   this->FittingLabelMenu->Create();
   this->FittingLabelMenu->SetWidth(5);
 
   this->CurveScriptSelectButton = vtkKWLoadSaveButtonWithLabel::New();
-  this->CurveScriptSelectButton->SetParent(cframe->GetFrame());
+  this->CurveScriptSelectButton->SetParent(scriptFrame);
   this->CurveScriptSelectButton->Create();
   this->CurveScriptSelectButton->SetWidth(50);
   this->CurveScriptSelectButton->GetWidget()->SetText ("Load");
   this->CurveScriptSelectButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOff();
 
+  this->Script("pack %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               fittingLabelLabel->GetWidgetName(),
+               this->FittingLabelMenu->GetWidgetName(),
+               this->CurveScriptSelectButton->GetWidgetName());
+
+  vtkKWFrame* rangeFrame = vtkKWFrame::New();
+  rangeFrame->SetParent(cframe->GetFrame());
+  rangeFrame->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 rangeFrame->GetWidgetName() );
+
+  vtkKWLabel *startLabel = vtkKWLabel::New();
+  startLabel->SetParent(rangeFrame);
+  startLabel->Create();
+  startLabel->SetText("From:");
+  
+  this->CurveFittingStartIndexSpinBox = vtkKWSpinBox::New();
+  this->CurveFittingStartIndexSpinBox->SetParent(rangeFrame);
+  this->CurveFittingStartIndexSpinBox->Create();
+  this->CurveFittingStartIndexSpinBox->SetWidth(3);
+
+  vtkKWLabel *endLabel = vtkKWLabel::New();
+  endLabel->SetParent(rangeFrame);
+  endLabel->Create();
+  endLabel->SetText("to:");
+
+  this->CurveFittingEndIndexSpinBox = vtkKWSpinBox::New();
+  this->CurveFittingEndIndexSpinBox->SetParent(rangeFrame);
+  this->CurveFittingEndIndexSpinBox->Create();
+  this->CurveFittingEndIndexSpinBox->SetWidth(3);
+
   this->RunFittingButton = vtkKWPushButton::New();
-  this->RunFittingButton->SetParent(cframe->GetFrame());
+  this->RunFittingButton->SetParent(rangeFrame);
   this->RunFittingButton->Create();
   this->RunFittingButton->SetText ("Run");
   this->RunFittingButton->SetWidth (4);
   
-  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
-               fittingLabelLabel->GetWidgetName(),
-               this->FittingLabelMenu->GetWidgetName(),
-               this->CurveScriptSelectButton->GetWidgetName(),
+  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               startLabel->GetWidgetName(),
+               this->CurveFittingStartIndexSpinBox->GetWidgetName(),
+               endLabel->GetWidgetName(),
+               this->CurveFittingEndIndexSpinBox->GetWidgetName(),
                this->RunFittingButton->GetWidgetName());
   
 

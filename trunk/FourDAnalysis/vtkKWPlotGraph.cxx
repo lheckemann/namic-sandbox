@@ -34,6 +34,7 @@
 #include "vtkTextProperty.h"
 #include "vtkGlyphSource2D.h"
 
+#include <math.h>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro( vtkKWPlotGraph );
@@ -287,17 +288,30 @@ void vtkKWPlotGraph::UpdateGraph()
       xy[2] = 0.0;  // SD (error) is always zero.
       }
 
-    // Subsittute the first data as initial values
     it->data->GetTupleValue(0, xy);
-    if (this->AutoRangeX)
+
+    // Substitute the first data as initial values
+    if (!finite(xy[0]) || !finite(xy[1]))
       {
-      this->RangeX[0] = xy[0];
-      this->RangeX[1] = xy[0];
+      // if the values are not finite numbers (NaN of Inf)
+      it->visible = 0; 
+      this->RangeX[0] = 0.0;
+      this->RangeX[1] = 1.0;
+      this->RangeY[0] = 0.0;
+      this->RangeY[1] = 1.0;
       }
-    if (this->AutoRangeY)
+    else 
       {
-      this->RangeY[0] = xy[1] - xy[2];  // minimum value = mean - sd
-      this->RangeY[1] = xy[1] + xy[2];  // maximum value = mean + sd
+      if (this->AutoRangeX)
+        {
+        this->RangeX[0] = xy[0];
+        this->RangeX[1] = xy[0];
+        }
+      if (this->AutoRangeY)
+        {
+        this->RangeY[0] = xy[1] - xy[2];  // minimum value = mean - sd
+        this->RangeY[1] = xy[1] + xy[2];  // maximum value = mean + sd
+        }
       }
     if (this->AutoRangeX || this->AutoRangeY)
       {
@@ -307,6 +321,11 @@ void vtkKWPlotGraph::UpdateGraph()
         for (int i = 0; i < n; i ++)
           {
           it->data->GetTupleValue(i, xy);
+          if (!finite(xy[0]) || !finite(xy[1]))
+            {
+            it->visible = 0;
+            continue;
+            }
           if (this->AutoRangeX)
             {
             if (xy[0] < this->RangeX[0]) this->RangeX[0] = xy[0];  // minimum X
@@ -503,17 +522,22 @@ vtkDataObject* vtkKWPlotGraph::CreateDataObjectForLine(double p1[2], double p2[2
 //----------------------------------------------------------------------------
 vtkDoubleArray* vtkKWPlotGraph::CreatePlotDataWithErrorBar(vtkDoubleArray* srcData)
 {
-  
-  // Check if the data exists and it has 3 components (x, y, and error)
-  if (!srcData || srcData->GetNumberOfComponents() != static_cast<vtkIdType>(3))
-    {
-    return srcData;
-    }
-
   vtkDoubleArray* plotData;
   plotData = vtkDoubleArray::New();
   plotData->SetNumberOfComponents( static_cast<vtkIdType>(2) );
   
+  // Check if the data exists and it has 3 components (x, y, and error)
+  if (!srcData || srcData->GetNumberOfComponents() != static_cast<vtkIdType>(3))
+    {
+    int nData = srcData->GetNumberOfTuples();
+    for (int i = 0; i < nData; i ++)
+      {
+      double* values = srcData->GetTuple(i);
+      plotData->InsertNextTuple( values );
+      }
+    return plotData;
+    }
+
   // Note: Error bar
   //
   //        p2
