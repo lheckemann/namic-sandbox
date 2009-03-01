@@ -54,7 +54,7 @@ vtkMRMLCurveAnalysisNode::vtkMRMLCurveAnalysisNode()
 {
   this->HideFromEditors = true;
   this->SourceData = NULL;
-  this->InterpolatedData = NULL;
+  this->FittedData = NULL;
   this->OutputParameters.clear();
 }
 

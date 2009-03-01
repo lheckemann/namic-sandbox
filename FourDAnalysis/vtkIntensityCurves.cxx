@@ -139,7 +139,7 @@ int vtkIntensityCurves::OutputDataInCSV(ostream& os, int label)
       // Write the data
       //      t        ,      mean
       //   ---------------------------
-      os << xy[0] << ", " << xy[1] << xy[2] << std::endl;
+      os << xy[0] << ", " << xy[1] << ", " << xy[2] << std::endl;
       }
     }
 
