@@ -536,6 +536,61 @@ vtkMRMLScalarVolumeNode* vtkFourDAnalysisLogic::AddDisplayBufferNode(vtkMRML4DBu
 
 
 //---------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkFourDAnalysisLogic::AddMapVolumeNode(vtkMRML4DBundleNode* bundleNode,
+                                                                 const char* nodeName)
+{
+  vtkMRMLScene* scene = this->GetMRMLScene();
+
+  vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::New();
+  vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
+
+  volumeNode->SetScene(scene);
+  displayNode->SetScene(scene);
+
+  vtkImageData* imageData = vtkImageData::New();
+  vtkMRMLScalarVolumeNode *firstFrameNode 
+    = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
+
+  if (firstFrameNode && firstFrameNode->GetImageData())
+    {
+    vtkImageData* firstImageData = firstFrameNode->GetImageData();
+
+    imageData->SetDimensions(firstImageData->GetDimensions());
+    imageData->SetExtent(firstImageData->GetExtent());
+    imageData->SetSpacing(firstImageData->GetSpacing());
+    imageData->SetOrigin(firstImageData->GetOrigin());
+    imageData->SetNumberOfScalarComponents(1);
+    imageData->SetScalarTypeToDouble();  // Set to double to store parameters
+    imageData->AllocateScalars();
+    }
+  
+  double range[2];
+  vtkDebugMacro("Set basic display info");
+  volumeNode->GetImageData()->GetScalarRange(range);
+  range[0] = 0.0;
+  range[1] = 256.0;
+  displayNode->SetLowerThreshold(range[0]);
+  displayNode->SetUpperThreshold(range[1]);
+  displayNode->SetWindow(range[1] - range[0]);
+  displayNode->SetLevel(0.5 * (range[1] - range[0]) );
+  
+  vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
+  displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
+  colorLogic->Delete();
+  scene->AddNode(displayNode);  
+  volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
+  scene->AddNode(volumeNode);  
+
+  //volumeNode->Delete();
+  //storageNode->Delete();
+  displayNode->Delete();
+  return volumeNode;
+}
+
+
+
+
+//---------------------------------------------------------------------------
 int vtkFourDAnalysisLogic::GenerateBundleFrames(vtkMRML4DBundleNode* inputBundleNode,
                                                 vtkMRML4DBundleNode* outputBundleNode)
 {
@@ -697,7 +752,6 @@ int vtkFourDAnalysisLogic::SaveIntensityCurves(vtkIntensityCurves* curves, const
 //---------------------------------------------------------------------------
 void vtkFourDAnalysisLogic::RunCurveFitting(const char* script, vtkMRMLCurveAnalysisNode* curveNode)
 {
-
   PyObject* v;
   std::string pythonCmd;
 
@@ -724,6 +778,36 @@ void vtkFourDAnalysisLogic::RunCurveFitting(const char* script, vtkMRMLCurveAnal
       PyErr_Clear();
     }
 
+}
+
+
+//---------------------------------------------------------------------------
+void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
+                                                 vtkMRML4DBundleNode* bundleNode,
+                                                 const char* outputNodeNamePrefix)
+{
+  // Add a new vtkMRMLCurveAnalysisNode to the MRML scene
+  vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  this->GetMRMLScene()->AddNode(curveNode);
+
+  // Prepare vtkDoubleArray to pass the source cueve data
+  vtkDoubleArray* srcCurve = vtkDoubleArray::New();
+  srcCurve->SetNumberOfComponents(2);
+
+  vtkDoubleArray* fittedCurve = vtkDoubleArray::New();
+  fittedCurve->SetNumberOfComponents(2);
+  
+  if (bundleNode)
+    {
+    int nFrames = bundleNode->GetNumberOfFrames();  
+    srcCurve->SetNumberOfTuples(nFrames);
+    char  nodeName[256];
+    const char* paramName = "S0";
+    sprintf(nodeName, "%s_%s", outputNodeNamePrefix, paramName);
+    AddMapVolumeNode(bundleNode, nodeName);
+    }
+  
 }
 
 

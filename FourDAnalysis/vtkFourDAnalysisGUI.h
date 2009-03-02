@@ -115,11 +115,12 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForLoadFrame();
-  void BuildGUIForFrameControlFrame();
-  void BuildGUIForFunctionViewer();
-  void BuildGUIForRegistrationFrame();
-  void BuildGUIForMapGenerator();
+  void BuildGUIForLoadFrame(int show);
+  void BuildGUIForFrameControlFrame(int show);
+  void BuildGUIForFunctionViewer(int show);
+  void BuildGUIForMapGenerator(int show);
+  void BuildGUIForRegistrationFrame(int show);
+
 
   //----------------------------------------------------------------
   // Update routines
@@ -188,9 +189,10 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   // -----------------------------------------
   // Parameter Map
 
-  vtkKWMenuButton* MapInputSeriesMenu;
+  vtkKWMenuButton*             MapInputSeriesMenu;
   vtkSlicerNodeSelectorWidget* MapOutputSelector;
-  vtkKWMenuButton* MapOutputVolumeMenu;
+  vtkKWEntry*                  MapOutputVolumePrefixEntry;
+  //vtkKWMenuButton* MapOutputVolumeMenu;
   vtkKWLoadSaveButtonWithLabel* ScriptSelectButton;
   vtkKWPushButton* RunScriptButton;
 
