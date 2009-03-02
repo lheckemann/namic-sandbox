@@ -1,7 +1,34 @@
-import scipy.optimize 
+# ----------------------------------------------------------------------
+#
+#  Python Package for Curve Fitting in 3D Slicer 4D Analysis Module
+#
+#   Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH)
+#   All Rights Reserved.
+#
+#   See Doc/copyright/copyright.txt
+#   or http://www.slicer.org/copyright/copyright.txt for details.
+#
+#   Author: Junichi Tokuda (tokuda@bwh.harvard.edu)
+#
+#   For more detail, please refer:
+#      http://wiki.na-mic.org/Wiki/index.php/Slicer3:FourDAnalysis
+# ----------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
+# NOTE:
+#   This python script requires SciPy package, which doesn't come with
+#   Slicer3 package in default. Build 3D Slicer with USE_SCIPY option
+#   (can be configured in slicer_variables.tcl) before run this script
+#   from 3D Slicer.
+# ----------------------------------------------------------------------
+
+
+
+# ----------------------------------------------------------------------
+# Base class for curve fitting algorithm classes
+# ----------------------------------------------------------------------
 
 class CurveAnalysisBase(object):
-
     OptimParamNameList    = []
     InitialOptimParam     = []
     
@@ -35,6 +62,8 @@ class CurveAnalysisBase(object):
         self.SourceCurve = sourceCurve
 
     def Execute(self):
+        import scipy.optimize 
+
         x      = self.SourceCurve[:, 0]
         y_meas = self.SourceCurve[:, 1]
 
@@ -50,3 +79,70 @@ class CurveAnalysisBase(object):
 
     def GetOutputParam(self):   # returns dictionary
         return {}
+
+
+
+# ----------------------------------------------------------------------
+# Class to execute curve fitting
+# ----------------------------------------------------------------------
+
+class CurveAnalysisExecuter(object):
+
+    ModuleName = ''
+    DebugMode = 0
+
+    # ------------------------------
+    # Constructor
+    def __init__(self, modulePath):
+        import re
+        import sys
+        import imp
+
+        # ------------------------------
+        # Extract directory path, file name and module name
+        
+        direxp = re.compile('([^\/]+)$')
+        extexp = re.compile('(\.py)$')
+        
+        directory = direxp.sub('', modulePath)
+        fileNameMatch = direxp.search(modulePath)
+        fileName = fileNameMatch.groups()[0]
+        self.ModuleName = extexp.sub('', fileName)
+
+        sys.stderr.write('Directory     : %s\n' % directory )
+        sys.stderr.write('File name     : %s\n' % fileName )
+        sys.stderr.write('File name     : %s\n' % fileName )
+
+        # ------------------------------
+        # Add the search path if it hasn't been registered.
+        try:
+            id = sys.path.search(directory)
+        except:
+            sys.path.append(directory)
+
+        # ------------------------------
+        # Load / reload the module.
+
+        fp, pathname, description = imp.find_module(self.ModuleName)
+        try:
+            self.Module = imp.load_module(self.ModuleName, fp, pathname, description)
+        finally:
+            if fp:
+                fp.close()
+
+
+    # ------------------------------
+    # Call curve fitting class
+    def Execute(self, inputCurve, outputCurve):
+
+        exec('fitting = self.Module.' + self.ModuleName + '()')
+        fitting.SetSourceCurve(inputCurve)
+        fitting.Execute()
+        x = outputCurve[:, 0]
+        y = fitting.GetFitCurve(x)
+        
+        outputCurve[:, 1] = y
+        
+        result = fitting.GetOutputParam()
+        
+        return result

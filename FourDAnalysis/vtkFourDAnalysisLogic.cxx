@@ -754,7 +754,7 @@ void vtkFourDAnalysisLogic::RunCurveFitting(const char* script, vtkMRMLCurveAnal
 {
   PyObject* v;
   std::string pythonCmd;
-
+  /*
   pythonCmd += "from Slicer import slicer\n";
   pythonCmd += "scene = slicer.MRMLScene\n";
   pythonCmd += "curveNode  = scene.GetNodeByID('";
@@ -767,6 +767,28 @@ void vtkFourDAnalysisLogic::RunCurveFitting(const char* script, vtkMRMLCurveAnal
   pythonCmd += "execfile('";
   pythonCmd += script;
   pythonCmd += "', globals(), execdict)\n";
+  */
+
+  // Obtain MRML CurveAnalysis Node instance
+  pythonCmd += "from Slicer import slicer\n";
+  pythonCmd += "import imp\n";
+  pythonCmd += "fp, pathname, description = imp.find_module('FourDAnalysis')\n";
+  pythonCmd += "try:\n";
+  pythonCmd += "    fda = imp.load_module('FourDAnalysis', fp, pathname, description)\n";
+  pythonCmd += "finally:\n";
+  pythonCmd += "    if fp:\n";
+  pythonCmd += "        fp.close()\n";
+  pythonCmd += "scene = slicer.MRMLScene\n";
+  pythonCmd += "curveNode  = scene.GetNodeByID('";
+  pythonCmd += curveNode->GetID();
+  pythonCmd += "')\n";
+  // Get input and output
+  pythonCmd += "inputCurve  = curveNode.GetSourceData().ToArray()\n";
+  pythonCmd += "outputCurve = curveNode.GetFittedData().ToArray()\n";
+  pythonCmd += "caexec = fda.CurveAnalysisExecuter('";
+  pythonCmd += script;
+  pythonCmd += "')\n";
+  pythonCmd += "result = caexec.Execute(inputCurve, outputCurve)\n";
 
   v = PyRun_String(pythonCmd.c_str(),
                    Py_file_input,
