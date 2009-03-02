@@ -2,33 +2,23 @@
 
 import sys
 import scipy, scipy.optimize, scipy.io, numpy
-
+import re
+import FourDAnalysis as fda
 
 if len(sys.argv) < 4:
     sys.exit()
 
-ModuleName    = sys.argv[1]
+Path          = sys.argv[1]
 InputCsvFile  = sys.argv[2]
 OutputCsvFile = sys.argv[3]
 
-module = __import__(ModuleName)
 
-#from CurveFittingGammaVariate import  CurveFittingGammaVariate 
+inputCurve    = scipy.io.read_array(InputCsvFile, separator=',')
+outputCurve   = inputCurve
 
-fitting = module.CurveFittingGammaVariate()
-data    = scipy.io.read_array(InputCsvFile, separator=',')
-fitting.SetSourceCurve(data)
-fitting.Execute()
+caexec = fda.CurveAnalysisExecuter(Path)
+result = caexec.Execute(inputCurve, outputCurve)
 
-x1          = numpy.arange(0.0, 30.0)
-y           = fitting.GetFitCurve(x1)
-
-fittedCurve = scipy.zeros([x1.shape[0], 2])
-fittedCurve[:, 0] = x1
-fittedCurve[:, 1] = y
-scipy.io.write_array(OutputCsvFile, fittedCurve, separator=',')
-
-result = fitting.GetOutputParam()
 for i, v, in result.iteritems():
     sys.stderr.write(' %5s     : %f\n'  % (i, v) )
 
