@@ -62,6 +62,16 @@ set(FourDAnalysis_SRCS
 
 
 # --------------------------------------------------------------------------
+# Python files (must be in Python/ directory)
+
+set(FourDAnalysis_PYTHON_DIR Python)
+set(FourDAnalysis_PYTHON_FILES
+  FourDAnalysis.py
+)
+
+
+
+# --------------------------------------------------------------------------
 # Wrapping
 
 include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
@@ -110,4 +120,25 @@ install(TARGETS ${lib_name}
   ARCHIVE DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT Development
   )
 
+
 slicer3_install_modules(${lib_name})
+
+
+# --------------------------------------------------------------------------
+# Install the Python files
+
+foreach(file ${FourDAnalysis_PYTHON_FILES})
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/${FourDAnalysis_PYTHON_DIR}/${file}
+    ${CMAKE_BINARY_DIR}/${Slicer3_INSTALL_PLUGINS_BIN_DIR}/${file}
+    COPYONLY)
+endforeach(file)
+
+install(
+  FILES ${FourDAnalysis_PYTHON_DIR}/${FourDAnalysis_PYTHON_FILES}
+  DESTINATION ${Slicer3_INSTALL_PLUGINS_BIN_DIR}
+)
+
+message("PYTHON FILES ARE INSTALLED IN : ${Slicer3_INSTALL_PLUGINS_BIN_DIR}")
+
+

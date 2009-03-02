@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #
-#  Example Script for Curve Fitting for 3D Slicer Four D Analysis Module
+#  Example Script of Curve Fitting for 3D Slicer Four D Analysis Module
 #
 #   Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH)
 #   All Rights Reserved.
@@ -61,7 +61,8 @@ def main(execdict):
     # ------------------------------
     # Set initial parameter
     # Sp, alpha, beta, Ta, S0
-    param_init = [400.0, 3.0, 1.0, 0.0, 20.0]
+    #param_init = [400.0, 3.0, 1.0, 0.0, 20.0]
+    param_init = [200.0, 3.0, 1.0, 0.0, 20.0]
     
     # ------------------------------
     # Perform optimization

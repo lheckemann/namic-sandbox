@@ -119,6 +119,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
 
   vtkMRMLScalarVolumeNode* AddDisplayBufferNode(vtkMRML4DBundleNode* bundleNode, 
                                                 int index);
+  vtkMRMLScalarVolumeNode* AddMapVolumeNode(vtkMRML4DBundleNode* bundleNode,
+                                            const char* nodeName);
   int         GetNumberOfFrames();
   const char* GetFrameNodeID(int index);
   const char* GetRegisteredFrameNodeID(int index);
@@ -133,6 +135,9 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
                            vtkMRML4DBundleNode* outputBundleNode);
 
   void RunCurveFitting(const char* script, vtkMRMLCurveAnalysisNode* curveNode);
+  void GenerateParameterMap(const char* script,
+                            vtkMRML4DBundleNode* bundleNode, 
+                            const char* outputNodeNamePrefix);
 
   int RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
                             const char* inputBundleNodeID,
