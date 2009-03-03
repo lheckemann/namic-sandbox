@@ -387,7 +387,7 @@ vtkMRML4DBundleNode* vtkFourDAnalysisLogic::LoadImagesFromDir(const char* path, 
     displayNode->SetLowerThreshold(range[0]);
     displayNode->SetUpperThreshold(range[1]);
     displayNode->SetWindow(range[1] - range[0]);
-    displayNode->SetLevel(0.5 * (range[1] - range[0]) );
+    displayNode->SetLevel(0.5 * (range[1] + range[0]) );
     vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
     displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
     colorLogic->Delete();
@@ -547,7 +547,6 @@ vtkMRMLScalarVolumeNode* vtkFourDAnalysisLogic::AddMapVolumeNode(vtkMRML4DBundle
   vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::New();
 
   volumeNode->SetScene(scene);
-  displayNode->SetScene(scene);
 
   vtkImageData* imageData = vtkImageData::New();
   vtkMRMLScalarVolumeNode *firstFrameNode 
@@ -576,28 +575,31 @@ vtkMRMLScalarVolumeNode* vtkFourDAnalysisLogic::AddMapVolumeNode(vtkMRML4DBundle
   scene->SaveStateForUndo();
   volumeNode->SetScene(scene);
   volumeNode->SetDescription("Created by 4D Analysis Module");
-  displayNode->SetScene(scene);
   
   double range[2];
   vtkDebugMacro("Set basic display info");
-  volumeNode->GetImageData()->GetScalarRange(range);
+  //volumeNode->GetImageData()->GetScalarRange(range);
   range[0] = 0.0;
   range[1] = 256.0;
+  displayNode->SetAutoWindowLevel(0);
+  displayNode->SetAutoThreshold(0);
   displayNode->SetLowerThreshold(range[0]);
   displayNode->SetUpperThreshold(range[1]);
   displayNode->SetWindow(range[1] - range[0]);
-  displayNode->SetLevel(0.5 * (range[1] - range[0]) );
+  displayNode->SetLevel(0.5 * (range[1] + range[0]) );
   
   vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
   displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
-  colorLogic->Delete();
+  displayNode->SetScene(scene);
   scene->AddNode(displayNode);  
-  volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
   scene->AddNode(volumeNode);  
+
+  volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
 
   //volumeNode->Delete();
   //storageNode->Delete();
-  displayNode->Delete();
+  //displayNode->Delete();
+  //colorLogic->Delete();
 
   volumeNode->Modified();
   volumeNode->GetImageData()->Modified();
@@ -865,22 +867,12 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
   pythonCmd += script;
   pythonCmd += "')\n";
   
-  // Run the script above
-  v = PyRun_String(pythonCmd.c_str(),
-                   Py_file_input,
-                   (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
-                   (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()));
-  if (Py_FlushLine())
-    {
-    PyErr_Clear();
-    }
-  
   // Get output parameter list
   std::cerr << "Get output parameter list" << std::endl;
-  pythonCmd = "";
   pythonCmd += "parameters = caexec.GetOutputParameterNames()\n";
   pythonCmd += "for key in parameters:\n";
   pythonCmd += "    curveNode.SetParameter(key, 0.0)\n";
+
   v = PyRun_String(pythonCmd.c_str(),
                    Py_file_input,
                    (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
@@ -895,7 +887,9 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
   // Create map volumes for each parameter
   int numKeys = nameArray->GetNumberOfTuples();
   typedef std::map<std::string, vtkImageData*> ParameterImageMapType;
+  typedef std::map<std::string, vtkMRMLScalarVolumeNode*> ParameterVolumeNodeMapType;
   ParameterImageMapType ParameterImages;
+  ParameterVolumeNodeMapType ParameterImageNodes;
   for (int i = 0; i < numKeys; i ++)
     {
     char  nodeName[256];
@@ -904,6 +898,7 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
     std::cerr << "Creating " << nodeName << std::endl;
     vtkMRMLScalarVolumeNode* node = AddMapVolumeNode(bundleNode, nodeName);
     ParameterImages[paramName] = node->GetImageData();
+    ParameterImageNodes[paramName] = node;
     }
   
   // Check the index range
@@ -911,16 +906,6 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
   if (start < 0)   start = 0;
   if (end >= max)  end   = max-1;
   if (start > end) start = end;
-  
-  // Run Map generation
-  //  -- prepare python commands 
-  pythonCmd  = "";
-  pythonCmd += "inputCurve  = curveNode.GetSourceData().ToArray()\n";
-  pythonCmd += "outputCurve = curveNode.GetFittedData().ToArray()\n";
-  pythonCmd += "result      = caexec.Execute(inputCurve, outputCurve)\n";
-  pythonCmd += "for key, value in result.iteritems():\n";
-  pythonCmd += "    curveNode.SetParameter(key, value)\n";
-  pythonCmd += "\n";
   
   // Make an array of vtkImageData
   int nSrcPoints = end - start + 1;
@@ -934,14 +919,39 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
   
   int* dim = imageArray[0]->GetDimensions();
   int x = dim[0]; int y = dim[1]; int z = dim[2];
-  
+
   srcCurve->SetNumberOfTuples(nSrcPoints);
-  for (int i = 0; i < x; i ++)
+  fittedCurve->SetNumberOfTuples(0);
+
+  // Run Map generation
+  //  -- prepare python commands 
+  pythonCmd  = "";
+  pythonCmd += "inputCurve  = curveNode.GetSourceData().ToArray()\n";
+  pythonCmd += "outputCurve = curveNode.GetFittedData().ToArray()\n";
+
+  v = PyRun_String(pythonCmd.c_str(),
+                   Py_file_input,
+                   (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
+                   (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()));
+  if (Py_FlushLine())
     {
-    std::cerr << "processing i = " << i << std::endl;
+    PyErr_Clear();
+    }
+  
+  pythonCmd  = "";
+  pythonCmd += "result      = caexec.Execute(inputCurve, outputCurve)\n";
+  pythonCmd += "for key, value in result.iteritems():\n";
+  pythonCmd += "    curveNode.SetParameter(key, value)\n";
+  pythonCmd += "\n";
+  
+  for (int k = 0; k < z; k ++)
+    {
+    std::cerr << std::endl;
+    std::cerr << "Processing Slice k = " << k << std::endl;
     for (int j = 0; j < y; j ++)
       {
-      for (int k = 0; k < z; k ++)
+      std::cerr << "    Processing line j = " << j << std::endl;
+      for (int i = 0; i < x; i ++)
         {
         // Copy intensity data
         for (int t = 0; t < nSrcPoints; t ++)
@@ -951,6 +961,7 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
           xy[1] = imageArray[t]->GetScalarComponentAsDouble(i, j, k, 0);
           srcCurve->SetTuple(t, xy);
           }
+
         // Run curve fitting
         v = PyRun_String(pythonCmd.c_str(),
                          Py_file_input,
@@ -960,7 +971,8 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
           {
           PyErr_Clear();
           }
-        // put results
+
+        // Put results
         ParameterImageMapType::iterator iter;
         for (iter = ParameterImages.begin(); iter != ParameterImages.end(); iter ++)
           {
@@ -969,14 +981,34 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
             {
             param = 0.0;
             }
-          //std::cerr << param << ", ";
+          std::cerr << param << ", ";
           iter->second->SetScalarComponentFromFloat(i, j, k, 0, param);
           }
+        std::cerr << std::endl;
         }
       }
     //std::cerr << std::endl;
     }
-    
+  
+  // Put results
+  ParameterVolumeNodeMapType::iterator iter;
+  for (iter = ParameterImageNodes.begin(); iter != ParameterImageNodes.end(); iter ++)
+    {
+    double range[2];
+    vtkImageData* imageData = iter->second->GetImageData();
+    vtkMRMLScalarVolumeDisplayNode* displayNode 
+      = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(iter->second->GetDisplayNode());
+    imageData->Update();
+    imageData->GetScalarRange(range);
+    std::cerr << "range = (" << range[0] << ", " << range[1] << ")" << std::endl;
+    displayNode->SetAutoWindowLevel(0);
+    displayNode->SetAutoThreshold(0);
+    displayNode->SetLowerThreshold(range[0]);
+    displayNode->SetUpperThreshold(range[1]);
+    displayNode->SetWindow(range[1] - range[0]);
+    displayNode->SetLevel(0.5 * (range[1] + range[0]));
+    }
+  
   std::cerr << "END " << std::endl;
 }
 

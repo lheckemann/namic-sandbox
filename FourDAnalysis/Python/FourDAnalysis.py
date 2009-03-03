@@ -22,7 +22,10 @@
 #   from 3D Slicer.
 # ----------------------------------------------------------------------
 
-
+import re
+import sys
+import imp
+import scipy.optimize 
 
 # ----------------------------------------------------------------------
 # Base class for curve fitting algorithm classes
@@ -72,7 +75,6 @@ class CurveAnalysisBase(object):
         self.SourceCurve = sourceCurve
 
     def Execute(self):
-        import scipy.optimize 
 
         x      = self.SourceCurve[:, 0]
         y_meas = self.SourceCurve[:, 1]
@@ -101,10 +103,6 @@ class CurveAnalysisExecuter(object):
     # ------------------------------
     # Constructor
     def __init__(self, modulePath):
-        import re
-        import sys
-        import imp
-
         # ------------------------------
         # Extract directory path, file name and module name
         
@@ -140,7 +138,6 @@ class CurveAnalysisExecuter(object):
     # ------------------------------
     # Get Output Parameter Name List
     def GetOutputParameterNames(self):
-        import sys
         exec('fitting = self.Module.' + self.ModuleName + '()')
         list =  fitting.GetOutputParamNameList()
         for i in list:
@@ -151,9 +148,6 @@ class CurveAnalysisExecuter(object):
     # ------------------------------
     # Call curve fitting class
     def Execute(self, inputCurve, outputCurve):
-
-        import sys
-
         exec('fitting = self.Module.' + self.ModuleName + '()')
         fitting.SetSourceCurve(inputCurve)
         fitting.Execute()
