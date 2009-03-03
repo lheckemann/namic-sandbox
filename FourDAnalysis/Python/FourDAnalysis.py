@@ -49,6 +49,13 @@ class CurveAnalysisBase(object):
     def GetOptimParamNameList(self):
         return self.OptimParamNameList
 
+    def GetOutputParamNameList(self):
+        dict = self.CalcOutputParam(self.InitialOptimParam)
+        list = []
+        for key, value in dict.iteritems():
+            list.append(key)
+        return list
+
     def SetInitialOptimParam(self, param):
         self.InitialOptimParam = param
 
@@ -57,6 +64,9 @@ class CurveAnalysisBase(object):
     
     def GetOptimParam(self):
         return self.OptimParam
+
+    def GetOutputParam(self):
+        return self.CalcOutputParam(self.OptimParam)
     
     def SetSourceCurve(self, sourceCurve):
         self.SourceCurve = sourceCurve
@@ -76,9 +86,6 @@ class CurveAnalysisBase(object):
 
     def GetFitCurve(self, x):
         return self.Function(x, self.OptimParam)
-
-    def GetOutputParam(self):   # returns dictionary
-        return {}
 
 
 
@@ -130,10 +137,22 @@ class CurveAnalysisExecuter(object):
             if fp:
                 fp.close()
 
+    # ------------------------------
+    # Get Output Parameter Name List
+    def GetOutputParameterNames(self):
+        import sys
+        exec('fitting = self.Module.' + self.ModuleName + '()')
+        list =  fitting.GetOutputParamNameList()
+        for i in list:
+            sys.stderr.write('name     : %s\n' % i )
+        return list
+
 
     # ------------------------------
     # Call curve fitting class
     def Execute(self, inputCurve, outputCurve):
+
+        import sys
 
         exec('fitting = self.Module.' + self.ModuleName + '()')
         fitting.SetSourceCurve(inputCurve)
@@ -144,5 +163,5 @@ class CurveAnalysisExecuter(object):
         outputCurve[:, 1] = y
         
         result = fitting.GetOutputParam()
-        
+
         return result

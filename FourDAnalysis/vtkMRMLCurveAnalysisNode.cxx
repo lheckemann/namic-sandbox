@@ -98,6 +98,7 @@ void vtkMRMLCurveAnalysisNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkMRMLCurveAnalysisNode::SetParameter(const char *name, const double value)
 {
+  this->OutputParameters[name] = value;
 }
 
 
@@ -108,7 +109,7 @@ vtkStringArray* vtkMRMLCurveAnalysisNode::GetParameterNameArray()
 
   vtkStringArray* array = vtkStringArray::New();
 
-  for (iter = this->OutputParameters.begin(); iter != this->OutputParameters.begin(); iter ++)
+  for (iter = this->OutputParameters.begin(); iter != this->OutputParameters.end(); iter ++)
     {
     array->InsertNextValue(iter->first.c_str());
     }

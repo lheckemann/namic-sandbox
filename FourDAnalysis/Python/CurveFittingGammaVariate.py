@@ -47,21 +47,21 @@ class CurveFittingGammaVariate(CurveAnalysisBase):
         return y
     
     # ------------------------------
-    # Calculate the output parameters
-    def GetOutputParam(self):
-        Sp, alpha, beta, Ta, S0 = self.OptimParam
+    # Calculate the output parameters (called by GetOutputParam())
+    def CalcOutputParam(self, param):
+        Sp, alpha, beta, Ta, S0 = param
 
-        sts = quad(lambda x: x*(self.Function(x, self.OptimParam) - S0), 0.0, 100.0)
-        ss  = quad(lambda x: self.Function(x, self.OptimParam) - S0, 0.0, 100.0)
+        sts = quad(lambda x: x*(self.Function(x, param) - S0), 0.0, 100.0)
+        ss  = quad(lambda x: self.Function(x, param) - S0, 0.0, 100.0)
         MTT = sts[0] / ss[0]
 
         dict = {}
         dict['MTT']   = MTT
         dict['Sp']    = Sp
-        dict['alpha'] = alpha
-        dict['beta']  = beta
-        dict['Ta']    = Ta
-        dict['S0']    = S0
+        #dict['alpha'] = alpha
+        #dict['beta']  = beta
+        #dict['Ta']    = Ta
+        #dict['S0']    = S0
 
         return dict
 
