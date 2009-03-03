@@ -137,7 +137,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   void RunCurveFitting(const char* script, vtkMRMLCurveAnalysisNode* curveNode);
   void GenerateParameterMap(const char* script,
                             vtkMRML4DBundleNode* bundleNode, 
-                            const char* outputNodeNamePrefix);
+                            const char* outputNodeNamePrefix,
+                            int start, int end);
 
   int RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
                             const char* inputBundleNodeID,

@@ -1137,7 +1137,9 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
     if (prefix && filename)
       {
-      this->GetLogic()->GenerateParameterMap(prefix, bundleNode, filename);
+      int start = this->CurveFittingStartIndexSpinBox->GetValue();
+      int end   = this->CurveFittingEndIndexSpinBox->GetValue();
+      this->GetLogic()->GenerateParameterMap(filename, bundleNode, prefix, start, end);
       }
     }
   else if (this->OutputSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
