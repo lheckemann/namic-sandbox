@@ -981,10 +981,8 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
             {
             param = 0.0;
             }
-          std::cerr << param << ", ";
           iter->second->SetScalarComponentFromFloat(i, j, k, 0, param);
           }
-        std::cerr << std::endl;
         }
       }
     //std::cerr << std::endl;
