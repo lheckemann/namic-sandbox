@@ -26,6 +26,7 @@ from FourDAnalysis import CurveAnalysisBase
 
 import scipy, numpy
 from scipy.integrate import quad
+import sys
 
 # ----------------------------------------------------------------------
 # Gamma Variate Function fitting class
@@ -53,11 +54,15 @@ class CurveFittingGammaVariate(CurveAnalysisBase):
 
         sts = quad(lambda x: x*(self.Function(x, param) - S0), 0.0, 100.0)
         ss  = quad(lambda x: self.Function(x, param) - S0, 0.0, 100.0)
-        MTT = sts[0] / ss[0]
+        if ss <> 0.0:
+            MTT = sts[0] / ss[0]
+        else:
+            MTT = 0.0
 
         dict = {}
         dict['MTT']   = MTT
         dict['Sp']    = Sp
+
         #dict['alpha'] = alpha
         #dict['beta']  = beta
         #dict['Ta']    = Ta
