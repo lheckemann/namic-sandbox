@@ -26,8 +26,8 @@
 #include "itkNearestNeighborInterpolateMeshFunction.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkCommand.h"
+#include "itkTestingMacros.h"
 
-#include <iostream>
 
 
 //Linear mapping between 0 and 1 as a function of phi and theta
@@ -45,22 +45,6 @@ sineMapSphericalCoordinatesFunction(float inPhi, float inTheta)
 
   return result; 
 }
-
-
-
-#define TRY_EXPECT_EXCEPTION( command ) \
-  try \
-    {  \
-    command;  \
-    std::cout << "Failed to catch Expected exception" << std::endl;  \
-    return EXIT_FAILURE;  \
-    }  \
-  catch( itk::ExceptionObject & excp )  \
-    {  \
-    std::cout << "Catched expected exception" << std::endl;  \
-    std::cout << excp << std::endl; \
-    }  
-
 
 
 int main( int argc, char * argv [] )
