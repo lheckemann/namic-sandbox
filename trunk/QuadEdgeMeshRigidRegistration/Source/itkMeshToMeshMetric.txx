@@ -27,9 +27,10 @@ template <class TFixedMesh, class TMovingMesh>
 MeshToMeshMetric<TFixedMesh,TMovingMesh>
 ::MeshToMeshMetric()
 {
-  m_FixedMesh = 0; // has to be provided by the user.
-  m_MovingMesh   = 0; // has to be provided by the user.
+  m_FixedMesh     = 0; // has to be provided by the user.
+  m_MovingMesh    = 0; // has to be provided by the user.
   m_Transform     = 0; // has to be provided by the user.
+  m_Interpolator  = 0; // has to be provided by the user.
 }
 
 /** Set the parameters that define a unique transform */
@@ -56,6 +57,11 @@ MeshToMeshMetric<TFixedMesh,TMovingMesh>
   if( !m_Transform )
     {
     itkExceptionMacro(<<"Transform is not present");
+    }
+
+  if( !m_Interpolator )
+    {
+    itkExceptionMacro(<<"Interpolator is not present");
     }
 
   if( !m_MovingMesh )
@@ -92,6 +98,7 @@ MeshToMeshMetric<TFixedMesh,TMovingMesh>
   os << indent << "Moving Mesh: " << m_MovingMesh.GetPointer()  << std::endl;
   os << indent << "Fixed  Mesh: " << m_FixedMesh.GetPointer()   << std::endl;
   os << indent << "Transform:    " << m_Transform.GetPointer()    << std::endl;
+  os << indent << "Interpolator: " << m_Interpolator.GetPointer()    << std::endl;
 }
 
 
