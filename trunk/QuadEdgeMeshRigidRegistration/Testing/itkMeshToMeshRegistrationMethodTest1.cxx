@@ -22,6 +22,7 @@
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkVersorTransform.h"
 #include "itkVersorTransformOptimizer.h"
+#include "itkTestingMacros.h"
 
 namespace itk
 {
@@ -47,20 +48,6 @@ private:
 };
 
 }
-
-#define TRY_EXPECT_EXCEPTION( command ) \
-  try \
-    {  \
-    command;  \
-    std::cout << "Failed to catch Expected exception" << std::endl;  \
-    return EXIT_FAILURE;  \
-    }  \
-  catch( itk::ExceptionObject & excp )  \
-    {  \
-    std::cout << "Catched expected exception" << std::endl;  \
-    std::cout << excp << std::endl; \
-    }  
-
 
 int main( int argc, char * argv [] )
 {
@@ -103,6 +90,7 @@ int main( int argc, char * argv [] )
 
   RegistrationMethodType::Pointer registrator = RegistrationMethodType::New();
 
+  std::cout << registrator->GetNameOfClass() << std::endl;
   registrator->Print( std::cout );
 
 
@@ -115,6 +103,8 @@ int main( int argc, char * argv [] )
   registrator->SetFixedMesh( meshFixed );
 
   TRY_EXPECT_EXCEPTION( registrator->Initialize() );
+
+  TEST_SET_GET( meshFixed, registrator->GetFixedMesh() );
 
   registrator->SetFixedMesh( meshMoving );
 
@@ -140,6 +130,8 @@ int main( int argc, char * argv [] )
   registrator->SetTransform( transform );
 
   TRY_EXPECT_EXCEPTION( registrator->Initialize() );
+
+  TEST_SET_GET( transform, registrator->GetTransform() );
   
   return EXIT_SUCCESS;
 }

@@ -21,6 +21,7 @@
 #include "itkMeshToMeshMetric.h"
 #include "itkNearestNeighborInterpolateMeshFunction.h"
 #include "itkVersorTransform.h"
+#include "itkTestingMacros.h"
 
 namespace itk
 {
@@ -71,31 +72,6 @@ protected:
 }
 
 
-#define TRY_EXPECT_EXCEPTION( command ) \
-  try \
-    {  \
-    command;  \
-    std::cout << "Failed to catch Expected exception" << std::endl;  \
-    return EXIT_FAILURE;  \
-    }  \
-  catch( itk::ExceptionObject & excp )  \
-    {  \
-    std::cout << "Catched expected exception" << std::endl;  \
-    std::cout << excp << std::endl; \
-    }  
-
-#define TRY_EXPECT_NO_EXCEPTION( command ) \
-  try \
-    {  \
-    command;  \
-    }  \
-  catch( itk::ExceptionObject & excp )  \
-    {  \
-    std::cerr << excp << std::endl; \
-    return EXIT_FAILURE;  \
-    }  
-
-
 int main( int argc, char** argv )
 {
   if( argc != 2 )
@@ -104,7 +80,7 @@ int main( int argc, char** argv )
     std::cout <<"1-Input FileName" <<std::endl;
     return EXIT_FAILURE;
     }
-    // ** TYPEDEF **
+
   typedef double Coord;
 
   typedef itk::QuadEdgeMesh< Coord, 3 >                 MeshType;
@@ -166,11 +142,11 @@ int main( int argc, char** argv )
     return EXIT_FAILURE;
     }
 
-  metric->SetFixedMesh( meshFixed );
+  metric->SetMovingMesh( meshMoving );
 
   TRY_EXPECT_EXCEPTION( metric->Initialize() );
 
-  metric->SetMovingMesh( meshMoving );
+  metric->SetFixedMesh( meshFixed );
 
   TRY_EXPECT_NO_EXCEPTION( metric->Initialize() );
 
