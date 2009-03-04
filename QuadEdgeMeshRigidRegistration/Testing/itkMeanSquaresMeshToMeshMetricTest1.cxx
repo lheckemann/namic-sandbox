@@ -19,15 +19,11 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkVersorRigid3DTransform.h"
+#include "itkVersorTransform.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
-#include "itkDefaultStaticMeshTraits.h"
 #include "itkMeanSquaresMeshToMeshMetric.h"
-#include "itkMeshToMeshRegistrationMethod.h"
 #include "itkNearestNeighborInterpolateMeshFunction.h"
-#include "itkAmoebaOptimizer.h"
-#include "itkMeanSquaresImageToImageMetric.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkCommand.h"
 
@@ -52,45 +48,18 @@ sineMapSphericalCoordinatesFunction(float inPhi, float inTheta)
 
 
 
-class CommandIterationUpdate : public itk::Command 
-{
-public:
-  typedef  CommandIterationUpdate   Self;
-  typedef  itk::Command             Superclass;
-  typedef itk::SmartPointer<Self>  Pointer;
-  itkNewMacro( Self );
-protected:
-  CommandIterationUpdate()
-    {
-    this->IterationCounter = 0;
-    }
-public:
-  typedef itk::AmoebaOptimizer     OptimizerType;
-  typedef   const OptimizerType   *    OptimizerPointer;
-
-  void Execute(itk::Object *caller, const itk::EventObject & event)
-    {
-      Execute( (const itk::Object *)caller, event);
-    }
-
-  void Execute(const itk::Object * object, const itk::EventObject & event)
-    {
-      OptimizerPointer optimizer = 
-        dynamic_cast< OptimizerPointer >( object );
-      if( ! itk::IterationEvent().CheckEvent( &event ) )
-        {
-        return;
-        }
-      std::cout << "  Iteration " << IterationCounter++ << "   ";
-      std::cout << "  cached value " << optimizer->GetCachedValue() << "   ";
-      std::cout << "  position " << optimizer->GetCachedCurrentPosition() << std::endl ; 
-    }
-
-private:
-   unsigned int   IterationCounter;
-
-};
-
+#define TRY_EXPECT_EXCEPTION( command ) \
+  try \
+    {  \
+    command;  \
+    std::cout << "Failed to catch Expected exception" << std::endl;  \
+    return EXIT_FAILURE;  \
+    }  \
+  catch( itk::ExceptionObject & excp )  \
+    {  \
+    std::cout << "Catched expected exception" << std::endl;  \
+    std::cout << excp << std::endl; \
+    }  
 
 
 
@@ -106,20 +75,14 @@ int main( int argc, char * argv [] )
   MovingSphereMeshSourceType::Pointer  myMovingSphereMeshSource = MovingSphereMeshSourceType::New();
   FixedSphereMeshSourceType::Pointer  myFixedSphereMeshSource = FixedSphereMeshSourceType::New();
 
-  typedef MovingSphereMeshSourceType::PointType   MovingPointType;
-  typedef FixedSphereMeshSourceType::PointType   FixedPointType;
-  typedef MovingSphereMeshSourceType::VectorType  MovingVectorType;
-  typedef FixedSphereMeshSourceType::VectorType  FixedVectorType;
-
-  // Registration Method
-  typedef itk::MeshToMeshRegistrationMethod< 
-                                    FixedMeshType, 
-                                    MovingMeshType >    RegistrationType;
-  RegistrationType::Pointer   registration  = RegistrationType::New();
+  typedef MovingSphereMeshSourceType::PointType     MovingPointType;
+  typedef FixedSphereMeshSourceType::PointType      FixedPointType;
+  typedef MovingSphereMeshSourceType::VectorType    MovingVectorType;
+  typedef FixedSphereMeshSourceType::VectorType     FixedVectorType;
 
 
-
-// Set up synthetic data. Two spherical meshes, one is rotated theta=pi/4 from the other 
+  // Set up synthetic data. Two spherical meshes, one is rotated theta=pi/4
+  // from the other 
 
   MovingPointType movingCenter; 
   movingCenter.Fill( 0.0 );
@@ -160,9 +123,13 @@ int main( int argc, char * argv [] )
   MovingMeshType::Pointer myMovingMesh = myMovingSphereMeshSource->GetOutput();
 
   MovingPointType  movingPt;
-  FixedPointType  fixedPt;
-  float radius, phi, theta, movingTheta; //spherical coordinates
-  float fixedValue, movingValue; 
+  FixedPointType   fixedPt;
+
+  typedef MovingPointType::VectorType  MovingVectorType;
+  typedef FixedPointType::VectorType   FixedVectorType;
+
+  MovingVectorType  movingVtr;
+  FixedVectorType   fixedVtr;
   
   std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
 
@@ -173,52 +140,47 @@ int main( int argc, char * argv [] )
       
     myFixedMesh->GetPoint(i, &fixedPt);
 
-    for ( unsigned int j=0; j<3; j++ ) 
-      {
-        fixedPt[j]-= fixedCenter[j];   //coordinates relative to center, if center is not origin
-      }
+    fixedVtr = fixedPt - fixedCenter;
 
-    radius= sqrt(fixedPt[0]*fixedPt[0] + fixedPt[1]*fixedPt[1] + fixedPt[2]*fixedPt[2]); //assuming radius is not valued 1
-    theta= atan2(fixedPt[1], fixedPt[0]); 
-    phi= acos(fixedPt[2]/radius); 
+    const float radius = fixedVtr.GetNorm();
+    const float theta  = atan2(fixedVtr[1], fixedVtr[0]); 
+    const float phi    = acos(fixedVtr[2]/radius); 
 
-    fixedValue= sineMapSphericalCoordinatesFunction(phi, theta); 
+    const float fixedValue= sineMapSphericalCoordinatesFunction(phi, theta); 
 
     myFixedMesh->SetPointData(i, fixedValue);
 
-    std::cout << "Point[" << i << "]: " << fixedPt << " radius " << radius << "  theta " << theta << "  phi " << phi  << "  fixedValue " << fixedValue << std::endl;
-        
+    std::cout << "Point[" << i << "]: " << fixedPt << " radius " << radius
+      << " theta " << theta << "  phi " << phi 
+      << "  fixedValue " << fixedValue << std::endl;
     }
 
-   const double pi = 4.0 * atan( 1.0 );
+    const double pi = 4.0 * atan( 1.0 );
 
-   for( unsigned int i=0; i < myMovingMesh->GetNumberOfPoints(); i++ )
-    {
-      
-    myMovingMesh->GetPoint(i, &movingPt);
-
-    for ( unsigned int j=0; j<3; j++ ) 
+    for( unsigned int i=0; i < myMovingMesh->GetNumberOfPoints(); i++ )
       {
-        movingPt[j]-= movingCenter[j];   //coordinates relative to center, if center is not origin
-      }
-
-    radius= sqrt(movingPt[0]*movingPt[0] + movingPt[1]*movingPt[1] + movingPt[2]*movingPt[2]); //assuming radius is not valued 1
-    theta= atan2(movingPt[1], movingPt[0]); 
-    phi= acos(movingPt[2]/radius); 
-
-    movingTheta= theta + pi / 4.0; 
-    if ( movingTheta > pi ) 
-      {
-      movingTheta-= 2.0 * pi; 
-      }
-
-    movingValue= sineMapSphericalCoordinatesFunction(phi, movingTheta); 
-
-    myMovingMesh->SetPointData(i, movingValue);
-
-    std::cout << "Point[" << i << "]: " << movingPt << " radius " << radius << "  movingTheta " << movingTheta << "  phi " << phi  << "  movingValue " << movingValue << std::endl;
         
-    }   
+      myMovingMesh->GetPoint(i, &movingPt);
+
+      movingVtr = movingPt - movingCenter;
+
+      const float radius = movingVtr.GetNorm();
+      const float theta  = atan2(movingVtr[1], movingVtr[0]); 
+      const float phi    = acos(movingVtr[2]/radius); 
+
+      float movingTheta = theta + pi / 4.0; 
+      if ( movingTheta > pi ) 
+        {
+        movingTheta-= 2.0 * pi; 
+        }
+
+      const float movingValue= sineMapSphericalCoordinatesFunction(phi, movingTheta);
+
+      myMovingMesh->SetPointData(i, movingValue);
+
+      std::cout << "Point[" << i << "]: " << movingPt << " radius " << radius << "  movingTheta " << movingTheta << "  phi " << phi  << "  movingValue " << movingValue << std::endl;
+          
+      }   
 
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   FixedWriterType;
   FixedWriterType::Pointer fixedWriter = FixedWriterType::New();
@@ -253,36 +215,37 @@ int main( int argc, char * argv [] )
     }
 
 
-//-----------------------------------------------------------
-// Set up  the Metric
-//-----------------------------------------------------------
-  typedef itk::MeanSquaresMeshToMeshMetric< FixedMeshType, 
-                                            MovingMeshType >   
-                                            MetricType;
-
-  typedef MetricType::TransformType                 TransformBaseType;
-  typedef TransformBaseType::ParametersType         ParametersType;
+  //-----------------------------------------------------------
+  // Set up  the Metric
+  //-----------------------------------------------------------
+  typedef itk::MeanSquaresMeshToMeshMetric< 
+    FixedMeshType, MovingMeshType >   MetricType;
 
   MetricType::Pointer  metric = MetricType::New();
-  registration->SetMetric( metric.GetPointer() ); 
 
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
 
-//-----------------------------------------------------------
-// Plug the Meshes into the metric
-//-----------------------------------------------------------
-  registration->SetFixedMesh( myFixedMesh );
-  registration->SetMovingMesh( myMovingMesh );
+  //-----------------------------------------------------------
+  // Plug the Meshes into the metric
+  //-----------------------------------------------------------
+  metric->SetFixedMesh( myFixedMesh );
 
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
 
-//-----------------------------------------------------------
-// Set up a Transform
-//-----------------------------------------------------------
+  metric->SetMovingMesh( myMovingMesh );
 
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
+
+  //-----------------------------------------------------------
+  // Set up a Transform
+  //-----------------------------------------------------------
   typedef itk::VersorTransform<double>  TransformType;
 
   TransformType::Pointer transform = TransformType::New();
 
-  registration->SetTransform( transform );
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
+
+  metric->SetTransform( transform );
 
 
 //------------------------------------------------------------
@@ -296,7 +259,7 @@ int main( int argc, char * argv [] )
 
   interpolator->SetInputMesh( myMovingMesh );
 
-  registration->SetInterpolator( interpolator );
+  metric->SetInterpolator( interpolator );
 
   interpolator->Initialize();
 
@@ -308,91 +271,53 @@ int main( int argc, char * argv [] )
   const unsigned int numberOfTransformParameters = 
      transform->GetNumberOfParameters();
 
+  typedef MetricType::TransformType                 TransformBaseType;
+  typedef TransformBaseType::ParametersType         ParametersType;
+
   ParametersType parameters( numberOfTransformParameters );
 
-  // initialize the offset/vector part
-  for( unsigned int k = 0; k < numberOfTransformParameters; k++ )
-    {
-    parameters[k]= 0.0f;
+  const unsigned int numberOfSampleValues = 10;
+
+  const float toRadians = 8.0 * atan( 1.0 );
+
+  typedef itk::Versor< double > VersorType;
+  VersorType versor;
+
+  VersorType::VectorType  axis;
+  axis[0] = 0.0;
+  axis[1] = 0.0;
+  axis[2] = 1.0;
+
+  MetricType::DerivativeType derivative1;
+  MetricType::DerivativeType derivative2;
+
+  MetricType::MeasureType value1;
+  MetricType::MeasureType value2;
+
+  for( unsigned int p = 0; p < numberOfSampleValues; p++ )
+    { 
+    const float angle = p * toRadians / numberOfSampleValues;
+
+    versor.Set( axis, angle );
+
+    parameters[0] = versor.GetX();
+    parameters[1] = versor.GetY();
+    parameters[2] = versor.GetZ();
+    
+    value1 = metric->GetValue( parameters );
+    metric->GetDerivative( parameters, derivative1 );
+    metric->GetValueAndDerivative( parameters, value2, derivative2 );
     }
-
-  registration->SetInitialTransformParameters( parameters );
-
-  // Optimizer Type
-  typedef itk::AmoebaOptimizer         OptimizerType;
-
-  OptimizerType::Pointer      optimizer     = OptimizerType::New();
-
-  OptimizerType::ParametersType simplexDelta( numberOfTransformParameters );
-  simplexDelta.Fill( 0.1 );
-
-  optimizer->AutomaticInitialSimplexOff();
-  optimizer->SetInitialSimplexDelta( simplexDelta );
-  optimizer->SetParametersConvergenceTolerance( 0.01 ); // radiands ?
-  optimizer->SetFunctionConvergenceTolerance(0.001); // 0.1%
-  optimizer->SetMaximumNumberOfIterations( 200 );
-
-
-
-  registration->SetOptimizer( optimizer );
-
-  // Create the Command observer and register it with the optimizer.
-  //
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
-  optimizer->AddObserver( itk::IterationEvent(), observer );
-
-  //typedef RegistrationInterfaceCommand<RegistrationType> CommandType;
-  //CommandType::Pointer command = CommandType::New();
-  //registration->AddObserver( itk::IterationEvent(), command );
-
-#ifdef MICHELOUT
-  //Callback to monitor results at each iteration
-  typedef IterationCallback< OptimizerType >   IterationCallbackType;
-  IterationCallbackType::Pointer callback = IterationCallbackType::New();
-  callback->SetOptimizer( optimizer );
-#endif
-
-
-//------------------------------------------------------------
-// This call is mandatory before start querying the Metric
-// This method do all the necesary connections between the 
-// internal components: Interpolator, Transform and Meshes
-//------------------------------------------------------------
-  try
-    {
-    registration->StartRegistration();
-    }
-  catch( itk::ExceptionObject & e )
-    {
-    std::cout << "Metric initialization failed" << std::endl;
-    std::cout << "Reason " << e.GetDescription() << std::endl;
-    return EXIT_FAILURE;
-    }
-
-
-//---------------------------------------------------------
-// Print out metric values
-// for parameters[1] = {-10,10}  (arbitrary choice...)
-//---------------------------------------------------------
-
-  OptimizerType::ParametersType finalParameters = 
-                    registration->GetLastTransformParameters();
-
-  const double bestValue = optimizer->GetValue();
-
-  std::cout << "final params " << finalParameters << "  final value " << bestValue << std::endl;
-
-
-
-//-------------------------------------------------------
-// exercise Print() method
-//-------------------------------------------------------
+  
+  //-------------------------------------------------------
+  // exercise Print() method
+  //-------------------------------------------------------
   metric->Print( std::cout );
 
 
-//-------------------------------------------------------
-// exercise misc member functions
-//-------------------------------------------------------
+  //-------------------------------------------------------
+  // exercise misc member functions
+  //-------------------------------------------------------
   std::cout << "FixedMesh: " << metric->GetFixedMesh() << std::endl;
   std::cout << "MovingMesh: " << metric->GetMovingMesh() << std::endl;
   std::cout << "Transform: " << metric->GetTransform() << std::endl;
@@ -420,4 +345,3 @@ int main( int argc, char * argv [] )
   return EXIT_SUCCESS;
 
 }
-
