@@ -90,6 +90,9 @@ int main(int argc, char *argv[])
 
   chronometer.Stop("Generate");
 
+  std::cout << locator->GetNameOfClass() << std::endl;
+  locator->Print( std::cout );
+
   unsigned int numberOfPoints = mesh->GetNumberOfPoints();
 
   PointLocatorType::InstanceIdentifierVectorType   neighbors;
