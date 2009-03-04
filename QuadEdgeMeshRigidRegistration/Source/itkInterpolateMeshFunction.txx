@@ -104,20 +104,6 @@ InterpolateMeshFunction<TInputMesh, TCoordRep>
 }
 
 
-/**
- * Evaluate the mesh at a given point position.
- */
-template <class TInputMesh, class TCoordRep>
-typename 
-InterpolateMeshFunction<TInputMesh, TCoordRep>::OutputType
-InterpolateMeshFunction<TInputMesh, TCoordRep>
-::Evaluate( const PointType& point ) const
-{
-  // FIXME : add here, or in a derived class, the interpolation.
-  return 0.0;
-}
-
-
 } // end namespace itk
 
 #endif

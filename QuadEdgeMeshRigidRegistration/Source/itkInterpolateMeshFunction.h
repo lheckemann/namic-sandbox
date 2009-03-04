@@ -84,7 +84,7 @@ public:
    * FIXME: What to do if the point is far from the Mesh ?
    *
    */
-  virtual OutputType Evaluate( const PointType& point ) const;
+  virtual OutputType Evaluate( const PointType& point ) const = 0;
 
   /** Evaluate the derivative of the scalar function at the
    *  specified point. */
