@@ -93,6 +93,17 @@ int main(int argc, char* argv[] )
 
   interpolator->Initialize();
 
+  typedef InterpolatorType::Superclass    InterpolatorSuperclassType;
+
+  std::cout << interpolator->InterpolatorSuperclassType::GetNameOfClass() << std::endl;
+  interpolator->InterpolatorSuperclassType::Print( std::cout );
+
+  typedef InterpolatorSuperclassType::Superclass  InterpolatorSuperSuperclassType;
+
+  std::cout << interpolator->InterpolatorSuperSuperclassType::GetNameOfClass() << std::endl;
+  interpolator->InterpolatorSuperSuperclassType::Print( std::cout );
+
+
   std::cout << "Interpolator " << std::endl;
   interpolator->Print( std::cout );
 
