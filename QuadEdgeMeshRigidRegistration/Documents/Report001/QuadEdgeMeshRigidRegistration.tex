@@ -110,7 +110,17 @@ Registration Framework in ITK.  In particular, we have the usual components
 \end{itemize}
 
 and we have the two objects to be registered, in this case Meshes instead of
-Images.
+Images. The two main components that must be providded in order to support Mesh
+registration are Iterpolators and Metrics.
 
+The following diagram indicates the hierarchy of classes that are included 
+in this contribution.
+
+\begin{figure}
+\center
+\includegraphics[width=0.7\textwidth]{ClassHierarchy.pdf}
+\itkcaption[Registration Class Hierarchy]{Hierarchy of new Registration Classes.}
+\label{fig:ClassHierarchy}
+\end{figure}
 
 \end{document}

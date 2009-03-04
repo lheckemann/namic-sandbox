@@ -6,6 +6,10 @@ IF(NOT PDFLATEX_COMPILER)
   MESSAGE("pdflatex compiler was not found. Please pass to advanced mode and provide its full path")
 ENDIF(NOT PDFLATEX_COMPILER)
 
+
+FIND_PROGRAM(FIG2DEV_EXECUTABLE NAMES fig2dev)
+
+
 #
 # These are source files needed for the report generation.
 #
@@ -23,6 +27,7 @@ SET(REPORT_SRCS
   QuadEdgeMeshRigidRegistration.tex
   times.sty
   picins.sty
+  ClassHierarchy.fig
   )
 
 #
@@ -41,8 +46,23 @@ FOREACH(SOURCE_FILE ${REPORT_SRCS})
    SET(COPY_RESULTS ${COPY_RESULTS} ${QuadEdgeMeshRigidRegistrationReport001_BINARY_DIR}/${SOURCE_FILE})
 ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
 
+FILE(GLOB XFIG_FIGURES *.fig)
+
+FOREACH(image ${XFIG_FIGURES})
+  GET_FILENAME_COMPONENT(Imagebase ${image} NAME)
+  GET_FILENAME_COMPONENT(ImageBase ${Imagebase} NAME_WE)
+  ADD_CUSTOM_COMMAND( 
+    OUTPUT    ${PROJECT_BINARY_DIR}/${ImageBase}.pdf
+    DEPENDS   ${PROJECT_BINARY_DIR}/${ImageBase}.fig
+    COMMAND   ${FIG2DEV_EXECUTABLE} 
+      -L pdf ${PROJECT_BINARY_DIR}/${ImageBase}.fig ${PROJECT_BINARY_DIR}/${ImageBase}.pdf
+    )
+  SET(EPS_DEPS ${EPS_DEPS} ${PROJECT_BINARY_DIR}/${ImageBase}.pdf)
+ENDFOREACH(image)
+
 
 SET(REPORT_ELEMENTS 
+  ${EPS_DEPS}
   )
 
 #
