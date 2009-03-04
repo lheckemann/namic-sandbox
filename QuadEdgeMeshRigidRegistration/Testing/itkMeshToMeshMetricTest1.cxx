@@ -20,6 +20,7 @@
 #include "itkVTKPolyDataWriter.h"
 #include "itkMeshToMeshMetric.h"
 #include "itkNearestNeighborInterpolateMeshFunction.h"
+#include "itkVersorTransform.h"
 
 namespace itk
 {
@@ -70,6 +71,31 @@ protected:
 }
 
 
+#define TRY_EXPECT_EXCEPTION( command ) \
+  try \
+    {  \
+    command;  \
+    std::cout << "Failed to catch Expected exception" << std::endl;  \
+    return EXIT_FAILURE;  \
+    }  \
+  catch( itk::ExceptionObject & excp )  \
+    {  \
+    std::cout << "Catched expected exception" << std::endl;  \
+    std::cout << excp << std::endl; \
+    }  
+
+#define TRY_EXPECT_NO_EXCEPTION( command ) \
+  try \
+    {  \
+    command;  \
+    }  \
+  catch( itk::ExceptionObject & excp )  \
+    {  \
+    std::cerr << excp << std::endl; \
+    return EXIT_FAILURE;  \
+    }  
+
+
 int main( int argc, char** argv )
 {
   if( argc != 2 )
@@ -112,6 +138,15 @@ int main( int argc, char** argv )
 
   MetricType::Pointer metric = MetricType::New();
 
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
+
+  typedef itk::VersorTransform< double > TransformType;
+  TransformType::Pointer transform = TransformType::New();
+
+  metric->SetTransform( transform );
+
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
+  
   typedef itk::NearestNeighborInterpolateMeshFunction< 
                     MeshType,
                     double > InterpolatorType;
@@ -119,6 +154,8 @@ int main( int argc, char** argv )
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
   metric->SetInterpolator( interpolator );
+
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
 
   MetricType::InterpolatorType::ConstPointer interpolator2 = 
     metric->GetInterpolator();
@@ -128,6 +165,22 @@ int main( int argc, char** argv )
     std::cerr << "Error in Set/GetInterpolator() " << std::endl;
     return EXIT_FAILURE;
     }
+
+  metric->SetFixedMesh( meshFixed );
+
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
+
+  metric->SetMovingMesh( meshMoving );
+
+  TRY_EXPECT_NO_EXCEPTION( metric->Initialize() );
+
+  metric->SetTransform( NULL );
+
+  TRY_EXPECT_EXCEPTION( metric->SetTransformParameters( transform->GetParameters() ) );
+
+  metric->SetTransform( transform );
+
+  TRY_EXPECT_NO_EXCEPTION( metric->SetTransformParameters( transform->GetParameters() ) );
 
   std::cout << metric->MetricSuperclassType::GetNameOfClass() << std::endl;
   metric->MetricSuperclassType::Print( std::cout );
