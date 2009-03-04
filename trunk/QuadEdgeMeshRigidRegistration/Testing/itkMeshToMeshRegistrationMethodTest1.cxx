@@ -52,9 +52,10 @@ private:
     std::cout << "Failed to catch Expected exception" << std::endl;  \
     return EXIT_FAILURE;  \
     }  \
-  catch( itk::ExceptionObject & )  \
+  catch( itk::ExceptionObject & excp )  \
     {  \
     std::cout << "Catched expected exception" << std::endl;  \
+    std::cout << excp << std::endl; \
     }  
 
 
@@ -102,16 +103,17 @@ int main( int argc, char * argv [] )
   registrator->Print( std::cout );
 
 
-  try
-    {
-    registrator->Initialize();
-    std::cout << "Failed to catch Expected exception" << std::endl;
-    return EXIT_FAILURE;
-    }
-  catch( itk::ExceptionObject & )
-    {
-    std::cout << "Catched expected exception" << std::endl;
-    }
+  std::cout << std::endl;
+  std::cout << "Exercise Exception Catching" << std::endl;
+  std::cout << std::endl;
+
+  TRY_EXPECT_EXCEPTION( registrator->Initialize() );
+
+  registrator->SetFixedMesh( meshFixed );
+
+  TRY_EXPECT_EXCEPTION( registrator->Initialize() );
+
+  registrator->SetFixedMesh( meshMoving );
 
   TRY_EXPECT_EXCEPTION( registrator->Initialize() );
   
