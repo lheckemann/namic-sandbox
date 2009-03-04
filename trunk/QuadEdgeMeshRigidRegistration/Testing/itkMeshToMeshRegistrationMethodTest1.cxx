@@ -19,6 +19,9 @@
 #include "itkVTKPolyDataReader.h"
 #include "itkVTKPolyDataWriter.h"
 #include "itkMeshToMeshRegistrationMethod.h"
+#include "itkMeanSquaresMeshToMeshMetric.h"
+#include "itkVersorTransform.h"
+#include "itkVersorTransformOptimizer.h"
 
 namespace itk
 {
@@ -117,6 +120,26 @@ int main( int argc, char * argv [] )
 
   TRY_EXPECT_EXCEPTION( registrator->Initialize() );
   
+  typedef itk::MeanSquaresMeshToMeshMetric< MeshType, MeshType >  MetricType;
+  MetricType::Pointer metric = MetricType::New();
 
+  registrator->SetMetric( metric );
+
+  TRY_EXPECT_EXCEPTION( registrator->Initialize() );
+  
+  typedef itk::VersorTransformOptimizer  OptimizerType;
+  OptimizerType::Pointer optimizer = OptimizerType::New();
+
+  registrator->SetOptimizer( optimizer );
+
+  TRY_EXPECT_EXCEPTION( registrator->Initialize() );
+  
+  typedef itk::VersorTransform< double > TransformType;
+  TransformType::Pointer transform = TransformType::New();
+
+  registrator->SetTransform( transform );
+
+  TRY_EXPECT_EXCEPTION( registrator->Initialize() );
+  
   return EXIT_SUCCESS;
 }
