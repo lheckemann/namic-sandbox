@@ -45,6 +45,18 @@ private:
 
 }
 
+#define TRY_EXPECT_EXCEPTION( command ) \
+  try \
+    {  \
+    command;  \
+    std::cout << "Failed to catch Expected exception" << std::endl;  \
+    return EXIT_FAILURE;  \
+    }  \
+  catch( itk::ExceptionObject & )  \
+    {  \
+    std::cout << "Catched expected exception" << std::endl;  \
+    }  
+
 
 int main( int argc, char * argv [] )
 {
@@ -89,6 +101,19 @@ int main( int argc, char * argv [] )
 
   registrator->Print( std::cout );
 
+
+  try
+    {
+    registrator->Initialize();
+    std::cout << "Failed to catch Expected exception" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & )
+    {
+    std::cout << "Catched expected exception" << std::endl;
+    }
+
+  TRY_EXPECT_EXCEPTION( registrator->Initialize() );
   
 
   return EXIT_SUCCESS;
