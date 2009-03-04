@@ -85,6 +85,10 @@ MeshToMeshMetric<TFixedMesh,TMovingMesh>
     {
     m_FixedMesh->GetSource()->Update();
     }
+
+  // Initialize the internal point locator structure 
+  this->m_Interpolator->SetInputMesh( this->m_MovingMesh );
+  this->m_Interpolator->Initialize();
 }
  
 
