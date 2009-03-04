@@ -76,6 +76,14 @@ int main(int argc, char *argv[])
 
   locator->SetPointSet( mesh );
 
+  MeshType::ConstPointer mesh2 = locator->GetPointSet();
+
+  if( mesh.GetPointer() != mesh2.GetPointer() )
+    {
+    std::cerr << "Error in SetPointSet()/GetPointSet() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
   chronometer.Start("Generate");
 
   try

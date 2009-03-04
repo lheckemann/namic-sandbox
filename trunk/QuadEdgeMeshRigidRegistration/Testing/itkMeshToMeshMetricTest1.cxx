@@ -108,6 +108,7 @@ int main( int argc, char** argv )
   MeshPointer meshMoving = readerMoving->GetOutput();
 
   typedef itk::MetricHelper< MeshType, MeshType >  MetricType;
+  typedef MetricType::Superclass                   MetricSuperclassType;
 
   MetricType::Pointer metric = MetricType::New();
 
@@ -127,6 +128,9 @@ int main( int argc, char** argv )
     std::cerr << "Error in Set/GetInterpolator() " << std::endl;
     return EXIT_FAILURE;
     }
+
+  std::cout << metric->MetricSuperclassType::GetNameOfClass() << std::endl;
+  metric->MetricSuperclassType::Print( std::cout );
 
   std::cout << metric->GetNameOfClass() << std::endl;
   metric->Print( std::cout );
