@@ -48,6 +48,22 @@ int main(int argc, char* argv[] )
   surfaceReader->SetFileName(argv[1]);
   surfaceReader->SetDataFileName(argv[2]);
 
+  std::string filename2 = surfaceReader->GetFileName();
+  std::string datafilename2 = surfaceReader->GetDataFileName();
+
+  if( filename2 != argv[1] )
+    {
+    std::cerr << "Error in Set/GetFileName()" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( datafilename2 != argv[2] )
+    {
+    std::cerr << "Error in Set/GetDataFileName()" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   try
     {
     surfaceReader->Update();
