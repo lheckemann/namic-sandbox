@@ -19,6 +19,7 @@
 #include "itkVTKPolyDataReader.h"
 #include "itkVTKPolyDataWriter.h"
 #include "itkMeshToMeshMetric.h"
+#include "itkNearestNeighborInterpolateMeshFunction.h"
 
 namespace itk
 {
@@ -40,8 +41,8 @@ public:
   typedef typename Superclass::TransformParametersType   TransformParametersType;
 
 protected:
-  MetricHelper();
-  virtual ~MetricHelper();
+  MetricHelper() {}
+  virtual ~MetricHelper() {}
 
   /**  Get the value for single valued optimizers. */
   MeasureType GetValue( const TransformParametersType & parameters ) const
@@ -49,11 +50,19 @@ protected:
     return 1.0;
     }
 
+  /**  Get derivatives for multiple valued optimizers. */
+  void GetDerivative( const TransformParametersType & parameters,
+                              DerivativeType& derivative ) const
+    {
+    derivative.Fill( 0.0 );
+    }
+
   /**  Get value and derivatives for multiple valued optimizers. */
   void GetValueAndDerivative( const TransformParametersType & parameters,
-                              MeasureType& Value, DerivativeType& Derivative ) const
+                              MeasureType& Value, DerivativeType& derivative ) const
     {
     Value = 1.0;
+    derivative.Fill( 0.0 );
     }
 
 };
@@ -100,7 +109,27 @@ int main( int argc, char** argv )
 
   typedef itk::MetricHelper< MeshType, MeshType >  MetricType;
 
-  
+  MetricType::Pointer metric = MetricType::New();
+
+  typedef itk::NearestNeighborInterpolateMeshFunction< 
+                    MeshType,
+                    double > InterpolatorType;
+
+  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+
+  metric->SetInterpolator( interpolator );
+
+  MetricType::InterpolatorType::ConstPointer interpolator2 = 
+    metric->GetInterpolator();
+
+  if( interpolator2.GetPointer() != interpolator.GetPointer() )
+    {
+    std::cerr << "Error in Set/GetInterpolator() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  std::cout << metric->GetNameOfClass() << std::endl;
+  metric->Print( std::cout );
 
   return EXIT_SUCCESS;
 }
