@@ -96,6 +96,8 @@ int main(int argc, char* argv[] )
   std::cout << "Interpolator " << std::endl;
   interpolator->Print( std::cout );
 
+  std::cout << interpolator->GetNameOfClass() << std::endl;
+
   PointType  point;
 
   mesh->GetPoint( 0, &point );
