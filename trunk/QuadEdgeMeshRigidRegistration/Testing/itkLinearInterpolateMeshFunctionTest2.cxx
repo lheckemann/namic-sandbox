@@ -31,8 +31,6 @@
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
-//#include "itkCommandIterationUpdate.h"
-
 #include <iostream>
 
 const float TWO_PI= M_PI * 2.0;
@@ -226,19 +224,13 @@ int main( int argc, char * argv [] )
     
     interpolator->printFlag= false;
     
-#if 0
-    if ((faceId==800)) {
-       interpolator->printFlag= true; 
-       std::cout << " stop here \n";
-    }
-#endif    
-    
+   
     PointType myCellCenter;
     float cellCenterTheta=0.0;
     float cellCenterPhi=0.0; 
     float cellCenterRadius=0.0; 
-    //cellPointer->ComputeCenterOfGravity();
-    //myCellCenter= cellPointer->GetCenterOfGravity();
+
+
     PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
     PointIdIterator pointIdEnd = cellPointer->PointIdsEnd();
     for( unsigned int i = 0; i < 3; i++ )
@@ -265,17 +257,6 @@ int main( int argc, char * argv [] )
       myCellCenter[i]/= cellPointer->GetNumberOfPoints();
     }
     
-#if 0
-         if (faceId==800) {
-           radius= sqrt(myCellCenter[0]*myCellCenter[0] +
-                        myCellCenter[1]*myCellCenter[1] + myCellCenter[2]*myCellCenter[2]);
-           theta= atan2(myCellCenter[1], myCellCenter[0]); 
-           phi= acos(myCellCenter[2]/radius); 
-           mapSphericalCoordinatesFunctionGradient(phi, theta, true);  
-         }
-#endif
-         
-    //std::cout << "  final cell Center " << myCellCenter << std::endl;
     cellCenterRadius= sqrt(myCellCenter[0]*myCellCenter[0] +
                            myCellCenter[1]*myCellCenter[1] +
                            myCellCenter[2]*myCellCenter[2]); //assuming radius is not valued 1
