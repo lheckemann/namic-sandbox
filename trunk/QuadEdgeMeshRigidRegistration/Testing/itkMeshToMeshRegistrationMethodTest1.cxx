@@ -22,6 +22,7 @@
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkVersorTransform.h"
 #include "itkVersorTransformOptimizer.h"
+#include "itkNearestNeighborInterpolateMeshFunction.h"
 #include "itkTestingMacros.h"
 
 namespace itk
@@ -90,6 +91,11 @@ int main( int argc, char * argv [] )
 
   RegistrationMethodType::Pointer registrator = RegistrationMethodType::New();
 
+  typedef RegistrationMethodType::Superclass    RegistrationMethodSuperclassType;
+
+  std::cout << registrator->RegistrationMethodSuperclassType::GetNameOfClass() << std::endl;
+  registrator->RegistrationMethodSuperclassType::Print( std::cout );
+
   std::cout << registrator->GetNameOfClass() << std::endl;
   registrator->Print( std::cout );
 
@@ -106,10 +112,12 @@ int main( int argc, char * argv [] )
 
   TEST_SET_GET( meshFixed, registrator->GetFixedMesh() );
 
-  registrator->SetFixedMesh( meshMoving );
+  registrator->SetMovingMesh( meshMoving );
 
   TRY_EXPECT_EXCEPTION( registrator->Initialize() );
   
+  TEST_SET_GET( meshMoving, registrator->GetMovingMesh() );
+
   typedef itk::MeanSquaresMeshToMeshMetric< MeshType, MeshType >  MetricType;
   MetricType::Pointer metric = MetricType::New();
 
@@ -117,6 +125,8 @@ int main( int argc, char * argv [] )
 
   TRY_EXPECT_EXCEPTION( registrator->Initialize() );
   
+  TEST_SET_GET( metric, registrator->GetMetric() );
+
   typedef itk::VersorTransformOptimizer  OptimizerType;
   OptimizerType::Pointer optimizer = OptimizerType::New();
 
@@ -124,6 +134,8 @@ int main( int argc, char * argv [] )
 
   TRY_EXPECT_EXCEPTION( registrator->Initialize() );
   
+  TEST_SET_GET( optimizer, registrator->GetOptimizer() );
+
   typedef itk::VersorTransform< double > TransformType;
   TransformType::Pointer transform = TransformType::New();
 
@@ -132,6 +144,35 @@ int main( int argc, char * argv [] )
   TRY_EXPECT_EXCEPTION( registrator->Initialize() );
 
   TEST_SET_GET( transform, registrator->GetTransform() );
+
+  typedef itk::NearestNeighborInterpolateMeshFunction< 
+                    MeshType,
+                    double > InterpolatorType;
+
+  InterpolatorType::Pointer interpolator = InterpolatorType::New();
+
+  registrator->SetInterpolator( interpolator );
+
+  TEST_SET_GET( interpolator, registrator->GetInterpolator() );
+ 
+  TransformType::ParametersType parameters1 = transform->GetParameters();
+
+  registrator->SetInitialTransformParameters( parameters1 );
+
+  TransformType::ParametersType parameters2 = registrator->GetInitialTransformParameters();
   
+  const unsigned int numberOfParameters = transform->GetNumberOfParameters();
+
+  const double tolerance = 1e5;
+
+  for( unsigned int p=0; p < numberOfParameters; p++ )
+    {
+    if( vnl_math_abs( parameters2[p] - parameters1[p] ) > tolerance )
+      {
+      std::cerr << "Error in SetInitialTransformParameters()/GetInitialTransformParameters() " << std::endl;
+      return EXIT_FAILURE;
+      } 
+    }
+
   return EXIT_SUCCESS;
 }
