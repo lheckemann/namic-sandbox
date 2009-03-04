@@ -111,15 +111,8 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
                  DerivativeType & derivative  ) const
 {
 
-#ifdef MICHEL_LATER
-
   itkDebugMacro("GetDerivative( " << parameters << " ) ");
-  
-  if( !this->GetGradientMesh() )
-    {
-    itkExceptionMacro(<<"The gradient image is null, maybe you forgot to call Initialize()");
-    }
-
+ 
   FixedMeshConstPointer fixedMesh = this->m_FixedMesh;
 
   if( !fixedMesh ) 
@@ -127,15 +120,11 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     itkExceptionMacro( << "Fixed image has not been assigned" );
     }
 
-  const unsigned int MeshDimension = FixedMeshType::MeshDimension;
+  PointIterator pointItr = fixedMesh->GetPoints()->Begin();
+  PointIterator pointEnd = fixedMesh->GetPoints()->End();
 
-
-  typedef  itk::MeshRegionConstIteratorWithIndex<
-    FixedMeshType> FixedIteratorType;
-
-  FixedIteratorType ti( fixedMesh, this->GetFixedMeshRegion() );
-
-  typename FixedMeshType::IndexType index;
+  PointDataIterator pointDataItr = fixedMesh->GetPointData()->Begin();
+  PointDataIterator pointDataEnd = fixedMesh->GetPointData()->End();
 
   this->m_NumberOfPixelsCounted = 0;
 
@@ -145,19 +134,15 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   derivative = DerivativeType( ParametersDimension );
   derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
-  ti.GoToBegin();
-
-  while(!ti.IsAtEnd())
+  while( pointItr != pointEnd && pointDataItr != pointDataEnd )
     {
-
-    index = ti.GetIndex();
-    
-    InputPointType inputPoint;
-    fixedMesh->TransformIndexToPhysicalPoint( index, inputPoint );
+    InputPointType  inputPoint;
+    inputPoint.CastFrom( pointItr.Value() );
 
     if( this->m_FixedMeshMask && !this->m_FixedMeshMask->IsInside( inputPoint ) )
       {
-      ++ti;
+      ++pointItr;
+      ++pointDataItr;
       continue;
       }
 
@@ -165,11 +150,12 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     if( this->m_MovingMeshMask && !this->m_MovingMeshMask->IsInside( transformedPoint ) )
       {
-      ++ti;
+      ++pointItr;
+      ++pointDataItr;
       continue;
       }
 
-    if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
+    // FIXME:  if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
       {
       const RealDataType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
 
@@ -177,30 +163,19 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
         this->m_Transform->GetJacobian( inputPoint ); 
 
       
-      const RealDataType fixedValue     = ti.Value();
+      const RealDataType fixedValue     = pointDataItr.Value();
       this->m_NumberOfPixelsCounted++;
+
       const RealDataType diff = movingValue - fixedValue; 
-
-      // Get the gradient by NearestNeighboorInterpolation: 
-      // which is equivalent to round up the point components.
-      typedef typename OutputPointType::CoordRepType CoordRepType;
-      typedef ContinuousIndex<CoordRepType,MovingMeshType::MeshDimension>
-        MovingMeshContinuousIndexType;
-
-      MovingMeshContinuousIndexType tempIndex;
-      this->m_MovingMesh->TransformPhysicalPointToContinuousIndex( transformedPoint, tempIndex );
-
-      typename MovingMeshType::IndexType mappedIndex; 
-      mappedIndex.CopyWithRound( tempIndex );
-
-      DerivativeType gradient;
+  
+      DerivativeDataType gradient;
  
       this->m_Interpolator->EvaluateDerivative( transformedPoint, gradient );
 
       for(unsigned int par=0; par<ParametersDimension; par++)
         {
         RealDataType sum = NumericTraits< RealDataType >::Zero;
-        for(unsigned int dim=0; dim<MeshDimension; dim++)
+        for(unsigned int dim=0; dim<MovingMeshDimension; dim++)
           {
           sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];
           }
@@ -208,7 +183,8 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
         }
       }
 
-    ++ti;
+    ++pointItr;
+    ++pointDataItr;
     }
 
   if( !this->m_NumberOfPixelsCounted )
@@ -222,9 +198,6 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
       derivative[i] /= this->m_NumberOfPixelsCounted;
       }
     }
-
-#endif
-
 }
 
 
@@ -312,16 +285,6 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
           }
         derivative[par] += sum;
         }
-/*
-      std::cout << "  Transform " << this->m_Transform->GetParameters() << std::endl;
-      std::cout << "  inputPoint " << inputPoint << std::endl;
-      std::cout << "  transformedPoint " << transformedPoint << std::endl;
-      std::cout << "  gradient " << gradient  << std::endl;
-      std::cout << "  jacobian " << jacobian << std::endl;
-      std::cout << "  derivative " << derivative << std::endl;
-      std::cout << std::endl;
-*/
-
       }
 
     ++pointItr;

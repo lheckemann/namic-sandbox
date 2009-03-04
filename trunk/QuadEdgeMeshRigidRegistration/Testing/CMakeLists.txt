@@ -51,6 +51,9 @@ TARGET_LINK_LIBRARIES(itkMeanSquaresMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKNum
 ADD_EXECUTABLE(itkMeanSquaresMeshToMeshMetricTest2 itkMeanSquaresMeshToMeshMetricTest2.cxx)
 TARGET_LINK_LIBRARIES(itkMeanSquaresMeshToMeshMetricTest2 ITKQuadEdgeMesh ITKNumerics ITKIO)
 
+ADD_EXECUTABLE(itkMeanSquaresMeshToMeshMetricTest3 itkMeanSquaresMeshToMeshMetricTest3.cxx)
+TARGET_LINK_LIBRARIES(itkMeanSquaresMeshToMeshMetricTest3 ITKQuadEdgeMesh ITKNumerics ITKIO)
+
 ADD_EXECUTABLE(itkImageToImageRotationRegistrationTest itkImageToImageRotationRegistrationTest.cxx)
 TARGET_LINK_LIBRARIES(itkImageToImageRotationRegistrationTest ITKNumerics ITKIO)
 
@@ -74,6 +77,10 @@ ADD_TEST(itkMeanSquaresMeshToMeshMetricTest1
 
 ADD_TEST(itkMeanSquaresMeshToMeshMetricTest2
   ${CXX_TEST_PATH}/itkMeanSquaresMeshToMeshMetricTest2
+  )
+
+ADD_TEST(itkMeanSquaresMeshToMeshMetricTest3
+  ${CXX_TEST_PATH}/itkMeanSquaresMeshToMeshMetricTest3
   )
 
 

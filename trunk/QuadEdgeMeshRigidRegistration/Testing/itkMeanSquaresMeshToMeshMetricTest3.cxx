@@ -19,26 +19,20 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include <math.h>
-#include "itkVersor.h"
-#include "itkCovariantVector.h"
-#include "itkVersorTransform.h"
-#include "itkVersorTransformOptimizer.h"
+#include "itkVersorRigid3DTransform.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
 #include "itkDefaultStaticMeshTraits.h"
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkMeshToMeshRegistrationMethod.h"
-#include "itkLinearInterpolateMeshFunction.h"
-#include "itkGradientDescentOptimizer.h"
+#include "itkNearestNeighborInterpolateMeshFunction.h"
+#include "itkAmoebaOptimizer.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
+#include "itkCommand.h"
 
 #include <iostream>
 
-const float TWO_PI= M_PI * 2.0; 
-
-static float sineMapSphericalCoordinatesFunction(float inPhi, float inTheta); 
 
 //Linear mapping between 0 and 1 as a function of phi and theta
 static float 
@@ -46,7 +40,9 @@ sineMapSphericalCoordinatesFunction(float inPhi, float inTheta)
 {
   float result; 
 
-  float phiFactor= (M_PI - inPhi)/M_PI; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
+  const float pi = atan(1.0) * 4.0;
+
+  float phiFactor= (pi - inPhi)/pi; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
   float thetaFactor= (sin(inTheta)+1.0)/2.0; //inTheta should be in [-PI,PI]; 
 
   result= phiFactor * thetaFactor; 
@@ -54,9 +50,7 @@ sineMapSphericalCoordinatesFunction(float inPhi, float inTheta)
   return result; 
 }
 
-#include "itkCommand.h"
 
-static int counterCmdIteration= 0; 
 
 class CommandIterationUpdate : public itk::Command 
 {
@@ -66,9 +60,12 @@ public:
   typedef itk::SmartPointer<Self>  Pointer;
   itkNewMacro( Self );
 protected:
-  CommandIterationUpdate() {};
+  CommandIterationUpdate()
+    {
+    this->IterationCounter = 0;
+    }
 public:
-  typedef itk::VersorTransformOptimizer     OptimizerType;
+  typedef itk::AmoebaOptimizer     OptimizerType;
   typedef   const OptimizerType   *    OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -84,12 +81,14 @@ public:
         {
         return;
         }
-      //std::cout << optimizer->GetCurrentIteration() << "   ";
-      //std::cout << "  value " << optimizer->GetValue() << "   ";
-      std::cout << " CommandIterationUpdate new iteration  number   " << ++counterCmdIteration;
-      std::cout << "  cached value " << optimizer->GetValue() << "   ";
-      std::cout << "  position " << optimizer->GetCurrentPosition() << std::endl ; 
+      std::cout << "  Iteration " << IterationCounter++ << "   ";
+      std::cout << "  cached value " << optimizer->GetCachedValue() << "   ";
+      std::cout << "  position " << optimizer->GetCachedCurrentPosition() << std::endl ; 
     }
+
+private:
+   unsigned int   IterationCounter;
+
 };
 
 
@@ -133,12 +132,12 @@ int main( int argc, char * argv [] )
   fixedScale.Fill( 1.0 );
   
   myMovingSphereMeshSource->SetCenter( movingCenter );
-  myMovingSphereMeshSource->SetResolution( 1.0 );
+  myMovingSphereMeshSource->SetResolution( 4.0 );
   myMovingSphereMeshSource->SetScale( movingScale );
   myMovingSphereMeshSource->Modified();
 
   myFixedSphereMeshSource->SetCenter( fixedCenter );
-  myFixedSphereMeshSource->SetResolution( 1.0 );
+  myFixedSphereMeshSource->SetResolution( 4.0 );
   myFixedSphereMeshSource->SetScale( fixedScale );
   myFixedSphereMeshSource->Modified();
 
@@ -187,11 +186,11 @@ int main( int argc, char * argv [] )
 
     myFixedMesh->SetPointData(i, fixedValue);
 
-#ifdef DEBUG    
     std::cout << "Point[" << i << "]: " << fixedPt << " radius " << radius << "  theta " << theta << "  phi " << phi  << "  fixedValue " << fixedValue << std::endl;
-#endif
-    
+        
     }
+
+   const double pi = 4.0 * atan( 1.0 );
 
    for( unsigned int i=0; i < myMovingMesh->GetNumberOfPoints(); i++ )
     {
@@ -207,19 +206,17 @@ int main( int argc, char * argv [] )
     theta= atan2(movingPt[1], movingPt[0]); 
     phi= acos(movingPt[2]/radius); 
 
-    movingTheta= theta + M_PI_4; 
-    if (movingTheta>M_PI) 
+    movingTheta= theta + pi / 4.0; 
+    if ( movingTheta > pi ) 
       {
-      movingTheta-= TWO_PI; 
+      movingTheta-= 2.0 * pi; 
       }
 
     movingValue= sineMapSphericalCoordinatesFunction(phi, movingTheta); 
 
     myMovingMesh->SetPointData(i, movingValue);
 
-#ifdef DEBUG    
     std::cout << "Point[" << i << "]: " << movingPt << " radius " << radius << "  movingTheta " << movingTheta << "  phi " << phi  << "  movingValue " << movingValue << std::endl;
-#endif    
         
     }   
 
@@ -291,7 +288,7 @@ int main( int argc, char * argv [] )
 //------------------------------------------------------------
 // Set up an Interpolator
 //------------------------------------------------------------
-  typedef itk::LinearInterpolateMeshFunction< 
+  typedef itk::NearestNeighborInterpolateMeshFunction< 
                     MovingMeshType,
                     double > InterpolatorType;
 
@@ -302,11 +299,6 @@ int main( int argc, char * argv [] )
   registration->SetInterpolator( interpolator );
 
   interpolator->Initialize();
-
-
-//------------------------------------------------------------
-// Simple Test of derivative computed by Interpolator
-//------------------------------------------------------------
 
   std::cout << metric << std::endl;
 
@@ -320,56 +312,27 @@ int main( int argc, char * argv [] )
 
   // initialize the offset/vector part
   for( unsigned int k = 0; k < numberOfTransformParameters; k++ )
-  {
+    {
     parameters[k]= 0.0f;
-  }
+    }
 
   registration->SetInitialTransformParameters( parameters );
 
-
-  //typedef versorCostFunction::ParametersType    ParametersType;
-
   // Optimizer Type
-  typedef itk::VersorTransformOptimizer         OptimizerType;
+  typedef itk::AmoebaOptimizer         OptimizerType;
 
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
 
-  typedef  OptimizerType::ScalesType            ScalesType;
-  typedef OptimizerType::VersorType      VersorType;
+  OptimizerType::ParametersType simplexDelta( numberOfTransformParameters );
+  simplexDelta.Fill( 0.1 );
 
-  //OptimizerType::ParametersType simplexDelta( numberOfTransformParameters );
-  //simplexDelta.Fill( 0.1 );
+  optimizer->AutomaticInitialSimplexOff();
+  optimizer->SetInitialSimplexDelta( simplexDelta );
+  optimizer->SetParametersConvergenceTolerance( 0.01 ); // radiands ?
+  optimizer->SetFunctionConvergenceTolerance(0.001); // 0.1%
+  optimizer->SetMaximumNumberOfIterations( 200 );
 
-  // We start with a null rotation
-  VersorType::VectorType axis;
-  axis[0] =  1.0f;
-  axis[1] =  0.0f;
-  axis[2] =  0.0f;
 
-  VersorType::ValueType angle = 0.0f;
-
-  VersorType initialRotation;
-  
-  initialRotation.Set( axis, angle );
-  
-  ParametersType  initialPosition( 3 );
-  initialPosition[0] = 0; //initialRotation.GetX();
-  initialPosition[1] = 0; //initialRotation.GetY();
-  initialPosition[2] = 0; //initialRotation.GetZ();
-
-  ScalesType    parametersScale( 3 );
-  parametersScale[0] = 1.0;
-  parametersScale[1] = 1.0;
-  parametersScale[2] = 1.0;
-
-  optimizer->MinimizeOn();
-  optimizer->SetScales( parametersScale );
-  optimizer->SetGradientMagnitudeTolerance( 1e-15 );
-  optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
-  optimizer->SetMinimumStepLength( 1e-9 );
-  optimizer->SetNumberOfIterations( 200 );
-  optimizer->SetInitialPosition( initialPosition );
-  optimizer->SetCostFunction( metric.GetPointer() );  
 
   registration->SetOptimizer( optimizer );
 
@@ -397,8 +360,7 @@ int main( int argc, char * argv [] )
 //------------------------------------------------------------
   try
     {
-       //optimizer->StartOptimization(); 
-       registration->StartRegistration();
+    registration->StartRegistration();
     }
   catch( itk::ExceptionObject & e )
     {
@@ -427,8 +389,7 @@ int main( int argc, char * argv [] )
 //-------------------------------------------------------
   metric->Print( std::cout );
 
-  
-#if 0
+
 //-------------------------------------------------------
 // exercise misc member functions
 //-------------------------------------------------------
@@ -436,11 +397,11 @@ int main( int argc, char * argv [] )
   std::cout << "MovingMesh: " << metric->GetMovingMesh() << std::endl;
   std::cout << "Transform: " << metric->GetTransform() << std::endl;
 
+  std::cout << "Check case when Target is NULL" << std::endl;
   metric->SetFixedMesh( NULL );
   try 
     {
     std::cout << "Value = " << metric->GetValue( parameters );
-    std::cout << "Check case when Target is NULL" << std::endl;
     std::cout << "If you are reading this message the Metric " << std::endl;
     std::cout << "is NOT managing exceptions correctly    " << std::endl;
     return EXIT_FAILURE;
@@ -453,10 +414,10 @@ int main( int argc, char * argv [] )
     std::cout << "Test for exception throwing... PASSED ! " << std::endl;
     }
   
-#endif
-  
+
   std::cout << "Test passed. " << std::endl;
 
   return EXIT_SUCCESS;
 
 }
+
