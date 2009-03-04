@@ -35,33 +35,18 @@ public:
 
   itkTypeMacro( RegistrationMethodHelper, MeshToMeshRegistrationMethod );
 
-  typedef typename Superclass::MeasureType      MeasureType;
-  typedef typename Superclass::DerivativeType   DerivativeType;
-  typedef typename Superclass::TransformParametersType   TransformParametersType;
-
 protected:
-  RegistrationMethodHelper();
-  virtual ~RegistrationMethodHelper();
+  RegistrationMethodHelper() {}
+  virtual ~RegistrationMethodHelper() {}
 
-  /**  Get the value for single valued optimizers. */
-  MeasureType GetValue( const TransformParametersType & parameters ) const
-    {
-    return 1.0;
-    }
-
-  /**  Get value and derivatives for multiple valued optimizers. */
-  void GetValueAndDerivative( const TransformParametersType & parameters,
-                              MeasureType& Value, DerivativeType& Derivative ) const
-    {
-    Value = 1.0;
-    }
+private:
 
 };
 
 }
 
 
-int main( int argc, char** argv )
+int main( int argc, char * argv [] )
 {
   if( argc != 2 )
     {
@@ -69,7 +54,7 @@ int main( int argc, char** argv )
     std::cout <<"1-Input FileName" <<std::endl;
     return EXIT_FAILURE;
     }
-    // ** TYPEDEF **
+
   typedef double Coord;
 
   typedef itk::QuadEdgeMesh< Coord, 3 >                 MeshType;
@@ -99,6 +84,10 @@ int main( int argc, char** argv )
   MeshPointer meshMoving = readerMoving->GetOutput();
 
   typedef itk::RegistrationMethodHelper< MeshType, MeshType >  RegistrationMethodType;
+
+  RegistrationMethodType::Pointer registrator = RegistrationMethodType::New();
+
+  registrator->Print( std::cout );
 
   
 
