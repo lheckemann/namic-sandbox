@@ -137,7 +137,6 @@ int main( int argc, char * argv [] )
 
   for( unsigned int i=0; i < myFixedMesh->GetNumberOfPoints(); i++ )
     {
-      
     myFixedMesh->GetPoint(i, &fixedPt);
 
     fixedVtr = fixedPt - fixedCenter;
@@ -149,17 +148,12 @@ int main( int argc, char * argv [] )
     const float fixedValue= sineMapSphericalCoordinatesFunction(phi, theta); 
 
     myFixedMesh->SetPointData(i, fixedValue);
-
-    std::cout << "Point[" << i << "]: " << fixedPt << " radius " << radius
-      << " theta " << theta << "  phi " << phi 
-      << "  fixedValue " << fixedValue << std::endl;
     }
 
     const double pi = 4.0 * atan( 1.0 );
 
     for( unsigned int i=0; i < myMovingMesh->GetNumberOfPoints(); i++ )
       {
-        
       myMovingMesh->GetPoint(i, &movingPt);
 
       movingVtr = movingPt - movingCenter;
@@ -177,9 +171,6 @@ int main( int argc, char * argv [] )
       const float movingValue= sineMapSphericalCoordinatesFunction(phi, movingTheta);
 
       myMovingMesh->SetPointData(i, movingValue);
-
-      std::cout << "Point[" << i << "]: " << movingPt << " radius " << radius << "  movingTheta " << movingTheta << "  phi " << phi  << "  movingValue " << movingValue << std::endl;
-          
       }   
 
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   FixedWriterType;
@@ -294,6 +285,8 @@ int main( int argc, char * argv [] )
   MetricType::MeasureType value1;
   MetricType::MeasureType value2;
 
+  const double tolerance = 1e-5;
+
   for( unsigned int p = 0; p < numberOfSampleValues; p++ )
     { 
     const float angle = p * toRadians / numberOfSampleValues;
@@ -307,6 +300,12 @@ int main( int argc, char * argv [] )
     value1 = metric->GetValue( parameters );
     metric->GetDerivative( parameters, derivative1 );
     metric->GetValueAndDerivative( parameters, value2, derivative2 );
+
+    if ( vnl_math_abs( value2 - value1 ) > tolerance )
+      {
+      std::cerr << "GetValue() does not match GetValueAndDerivative()" << std::endl;
+      return EXIT_FAILURE;
+      }
     }
   
   //-------------------------------------------------------
@@ -324,21 +323,10 @@ int main( int argc, char * argv [] )
 
   std::cout << "Check case when Target is NULL" << std::endl;
   metric->SetFixedMesh( NULL );
-  try 
-    {
-    std::cout << "Value = " << metric->GetValue( parameters );
-    std::cout << "If you are reading this message the Metric " << std::endl;
-    std::cout << "is NOT managing exceptions correctly    " << std::endl;
-    return EXIT_FAILURE;
-    }
-  catch( itk::ExceptionObject & e )
-    { 
-    std::cout << "Exception received (as expected) "    << std::endl;
-    std::cout << "Description : " << e.GetDescription() << std::endl;
-    std::cout << "Location    : " << e.GetLocation()    << std::endl;
-    std::cout << "Test for exception throwing... PASSED ! " << std::endl;
-    }
-  
+        
+  TRY_EXPECT_EXCEPTION( metric->GetValue( parameters ) );
+  TRY_EXPECT_EXCEPTION( metric->GetDerivative( parameters, derivative1 ) );
+  TRY_EXPECT_EXCEPTION( metric->GetValueAndDerivative( parameters, value1, derivative1  ) );
 
   std::cout << "Test passed. " << std::endl;
 
