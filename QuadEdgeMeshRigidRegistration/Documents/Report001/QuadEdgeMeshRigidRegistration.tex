@@ -1,0 +1,116 @@
+\documentclass{InsightArticle}
+
+\usepackage[dvips]{graphicx}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  hyperref should be the last package to be loaded.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[dvips,
+bookmarks,
+bookmarksopen,
+backref,
+colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+]{hyperref}
+
+
+\title{Rotational Registration of Spherical Surfaces Represented as QuadEdge Meshes}
+
+
+% 
+% NOTE: This is the last number of the "handle" URL that 
+% The Insight Journal assigns to your paper as part of the
+% submission process. Please replace the number "1338" with
+% the actual handle number that you get assigned.
+%
+\newcommand{\IJhandlerIDnumber}{1338}
+
+
+\release{1.00}
+
+\author{Michel Audette$^{1}$, Luis Ibanez$^{1}$, Thomas Yeo$^{1}$, Polina Goland$^{2}$}
+\authoraddress{$^{1}$Kitware Inc., Clifton Park, NY\\
+               $^{2}$CSAIL MIT, Boston, MA}
+
+\begin{document}
+
+
+%
+% Add hyperlink to the web location and license of the paper.
+% The argument of this command is the handler identifier given
+% by the Insight Journal to this paper.
+% 
+\IJhandlefooter{\IJhandlerIDnumber}
+
+
+\ifpdf
+\else
+   %
+   % Commands for including Graphics when using latex
+   % 
+   \DeclareGraphicsExtensions{.eps,.jpg,.gif,.tiff,.bmp,.png}
+   \DeclareGraphicsRule{.jpg}{eps}{.jpg.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.gif}{eps}{.gif.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.tiff}{eps}{.tiff.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.bmp}{eps}{.bmp.bb}{`convert #1 eps:-}
+   \DeclareGraphicsRule{.png}{eps}{.png.bb}{`convert #1 eps:-}
+\fi
+
+
+\maketitle
+
+
+\ifhtml
+\chapter*{Front Matter\label{front}}
+\fi
+
+
+\begin{abstract}
+\noindent
+This document describes a contribution to the Insight Toolkit intended to
+support the process of registering two Meshes.  The methods included here are
+restricted to Meshes with a Spherical geometry and topology, and with scalar
+values associated to their nodes.
+
+This paper is accompanied with the source code, input data, parameters and
+output data that we used for validating the algorithm described in this paper.
+This adheres to the fundamental principle that scientific publications must
+facilitate \textbf{reproducibility} of the reported results.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+The Insight Toolkit already provides methods for registering
+
+\begin{itemize}
+\item Image to Image
+\item PointSet to Image
+\item PointSet to Pointset
+\end{itemize}
+
+but it lacks methods for registering one Mesh versus another Mesh.
+
+In this paper we contribute new classes that can be used for performing
+registration between two spherical meshes, although not all of of the classes
+in this contribution are restricted to be used on spherical meshes.
+
+\section{Overview}
+
+The design of these classes follows very closely the one of the Image
+Registration Framework in ITK.  In particular, we have the usual components
+
+\begin{itemize}
+\item Optimizer
+\item Metric
+\item Transform
+\item Interpolator
+\end{itemize}
+
+and we have the two objects to be registered, in this case Meshes instead of
+Images.
+
+
+\end{document}
