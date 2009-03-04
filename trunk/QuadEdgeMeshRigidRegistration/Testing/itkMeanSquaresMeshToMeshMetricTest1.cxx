@@ -19,7 +19,6 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include <math.h>
 #include "itkVersorRigid3DTransform.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
@@ -30,27 +29,10 @@
 #include "itkAmoebaOptimizer.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
-//#include "itkCommandIterationUpdate.h"
+#include "itkCommand.h"
 
 #include <iostream>
 
-const float TWO_PI= M_PI * 2.0; 
-
-static float linearMapSphericalCoordinatesFunction(float inPhi, float inTheta); 
-
-//Linear mapping between 0 and 1 as a function of phi and theta
-static float 
-linearMapSphericalCoordinatesFunction(float inPhi, float inTheta) 
-{
-  float result; 
-
-  float phiFactor= (M_PI - inPhi)/M_PI; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
-  float thetaFactor= (inTheta + M_PI)/TWO_PI; //inTheta should be in [-PI,PI]; 
-
-  result= phiFactor * thetaFactor; 
-
-  return result; 
-}
 
 //Linear mapping between 0 and 1 as a function of phi and theta
 static float 
@@ -58,7 +40,9 @@ sineMapSphericalCoordinatesFunction(float inPhi, float inTheta)
 {
   float result; 
 
-  float phiFactor= (M_PI - inPhi)/M_PI; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
+  const float pi = atan(1.0) * 4.0;
+
+  float phiFactor= (pi - inPhi)/pi; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
   float thetaFactor= (sin(inTheta)+1.0)/2.0; //inTheta should be in [-PI,PI]; 
 
   result= phiFactor * thetaFactor; 
@@ -66,9 +50,7 @@ sineMapSphericalCoordinatesFunction(float inPhi, float inTheta)
   return result; 
 }
 
-#include "itkCommand.h"
 
-static int counterCmdIteration= 0; 
 
 class CommandIterationUpdate : public itk::Command 
 {
@@ -78,7 +60,10 @@ public:
   typedef itk::SmartPointer<Self>  Pointer;
   itkNewMacro( Self );
 protected:
-  CommandIterationUpdate() {};
+  CommandIterationUpdate()
+    {
+    this->IterationCounter = 0;
+    }
 public:
   typedef itk::AmoebaOptimizer     OptimizerType;
   typedef   const OptimizerType   *    OptimizerPointer;
@@ -96,12 +81,14 @@ public:
         {
         return;
         }
-      //std::cout << optimizer->GetCurrentIteration() << "   ";
-      //std::cout << "  value " << optimizer->GetValue() << "   ";
-      std::cout << " CommandIterationUpdate new iteration  number   " << ++counterCmdIteration;
+      std::cout << "  Iteration " << IterationCounter++ << "   ";
       std::cout << "  cached value " << optimizer->GetCachedValue() << "   ";
       std::cout << "  position " << optimizer->GetCachedCurrentPosition() << std::endl ; 
     }
+
+private:
+   unsigned int   IterationCounter;
+
 };
 
 
@@ -203,6 +190,8 @@ int main( int argc, char * argv [] )
         
     }
 
+   const double pi = 4.0 * atan( 1.0 );
+
    for( unsigned int i=0; i < myMovingMesh->GetNumberOfPoints(); i++ )
     {
       
@@ -217,10 +206,10 @@ int main( int argc, char * argv [] )
     theta= atan2(movingPt[1], movingPt[0]); 
     phi= acos(movingPt[2]/radius); 
 
-    movingTheta= theta + M_PI_4; 
-    if (movingTheta>M_PI) 
+    movingTheta= theta + pi / 4.0; 
+    if ( movingTheta > pi ) 
       {
-      movingTheta-= TWO_PI; 
+      movingTheta-= 2.0 * pi; 
       }
 
     movingValue= sineMapSphericalCoordinatesFunction(phi, movingTheta); 
