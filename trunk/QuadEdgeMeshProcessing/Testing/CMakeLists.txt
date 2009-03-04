@@ -49,9 +49,6 @@ ADD_TEST(itkQuadEdgeMeshTest1
 #ADD_TEST(itkQuadEdgeMeshToSphereFilterTest
 #   ${CXX_TEST_PATH}/itkQuadEdgeMeshToSphereFilterTest ..)
 
-ADD_TEST(itkMeanSquaresMeshToMeshMetricTest1
-  ${CXX_TEST_PATH}/itkMeanSquaresMeshToMeshMetricTest1
-  )
 
 ADD_TEST(itkConformalFlatteningQuadEdgeMeshFilterTest01
   ${CXX_TEST_PATH}/itkConformalFlatteningQuadEdgeMeshFilterTest
