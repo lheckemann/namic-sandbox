@@ -22,8 +22,9 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLScene.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLFiducialListNode.h"
+#include "vtkMRMLFiducial.h"
 #include "vtkMRMLScalarVolumeNode.h"
-
+#include "vtkTRProstateBiopsyTargetDescriptor.h"
 #include "vtkSlicerLogic.h"
 
 
@@ -65,16 +66,42 @@ vtkMRMLTRProstateBiopsyModuleNode::vtkMRMLTRProstateBiopsyModuleNode()
 {
    
   this->VolumeInUse = NULL;
-  
+  this->SegmentationOutputVolumeRef = NULL;
+  this->SegmentationInputVolumeRef = NULL;
+  this->SegmentationSeedVolumeRef = NULL;
   this->CalibrationFiducialsList   = NULL;  
-  this->NumberOfTargetingFiducialLists = 0;
+  this->ExperimentSavePathInConfigFile = NULL;  
  
-  
+  this->AxesDistance = -1;
+  this->AxesAngleDegrees = 0;
+  this->RobotRegistrationAngleDegrees = 0;
+  this->SetI1(0.0,0.0,0.0);
+  this->SetI2(0.0,0.0,0.0);
+  this->Setv1(0.0,0.0,0.0);
+  this->Setv2(0.0,0.0,0.0);
   this->CalibrationVolumeNode = NULL;
   this->TargetingVolumeNode = NULL;
   this->VerificationVolumeNode = NULL;
+  this->FiducialSegmentationRegistrationComplete = false;
 
   this->HideFromEditors = true;
+  
+  // initialize at least one needle
+  this->NumberOfNeedles = 1;
+  this->NeedlesVector.resize(this->NumberOfNeedles); 
+  NeedleDescriptorStruct *needle = new NeedleDescriptorStruct;
+  needle->Description = "Biopsy needle";
+  needle->NeedleDepth = -13;
+  needle->NeedleOvershoot = 15;
+  needle->NeedleType = "Biopsy";
+  needle->UniqueIdentifier = 1;
+  this->NeedlesVector[0] = needle;
+    
+  this->TargetingFiducialsListsNames.clear();
+  this->TargetingFiducialsListsVector.clear();
+  this->TargetDescriptorsVector.clear();
+  this->NeedlesVector.clear();
+  
 
   this->InitializeFiducialListNode();
 }
@@ -87,6 +114,29 @@ vtkMRMLTRProstateBiopsyModuleNode::~vtkMRMLTRProstateBiopsyModuleNode()
   this->SetCalibrationVolumeNode(NULL);
   this->SetTargetingVolumeNode(NULL);
   this->SetVerificationVolumeNode(NULL);
+  this->SetExperimentSavePathInConfigFile(NULL);
+  this->CalibrationFiducialsList = NULL;
+
+  this->AxesDistance = -1;
+  this->AxesAngleDegrees = 0;
+  this->RobotRegistrationAngleDegrees = 0;
+  this->SetI1(0.0,0.0,0.0);
+  this->SetI2(0.0,0.0,0.0);
+  this->Setv1(0.0,0.0,0.0);
+  this->Setv2(0.0,0.0,0.0);
+  this->CalibrationVolumeNode = NULL;
+  this->TargetingVolumeNode = NULL;
+  this->VerificationVolumeNode = NULL;
+  this->FiducialSegmentationRegistrationComplete = false;
+
+  this->HideFromEditors = true;
+  
+  this->NumberOfNeedles = 0;
+  this->TargetingFiducialsListsNames.clear();
+  this->TargetingFiducialsListsVector.clear();
+  this->TargetDescriptorsVector.clear();
+  this->NeedlesVector.clear();
+  
 
 }
 
@@ -194,28 +244,11 @@ void vtkMRMLTRProstateBiopsyModuleNode::InitializeFiducialListNode()
     this->CalibrationFiducialsList->SetColor(0.5,0.5,0.5);
     this->CalibrationFiducialsList->SetGlyphType(vtkMRMLFiducialListNode::Diamond3D);
     this->CalibrationFiducialsList->SetOpacity(0.7);
-    this->CalibrationFiducialsList->SetAllFiducialsVisibility(true);
-    this->CalibrationFiducialsList->SetSymbolScale(20);
-    this->CalibrationFiducialsList->SetTextScale(10);
+    this->CalibrationFiducialsList->SetAllFiducialsVisibility(false);
+    this->CalibrationFiducialsList->SetSymbolScale(5);
+    this->CalibrationFiducialsList->SetTextScale(5);
 
-    // create at least one targeting fiducials list
-    vtkMRMLFiducialListNode *targetFidList = vtkMRMLFiducialListNode::New();
-    targetFidList->SetLocked(true);
-    targetFidList->SetName("TRProstateBiopsyFiducialList");
-    targetFidList->SetDescription("Created by TR Prostate Biopsy Module; marks 4 calibration markers on the device");
-    targetFidList->SetColor(0.5,0.5,0.5);
-    targetFidList->SetGlyphType(vtkMRMLFiducialListNode::Diamond3D);
-    targetFidList->SetOpacity(0.7);
-    targetFidList->SetAllFiducialsVisibility(true);
-    targetFidList->SetSymbolScale(20);
-    targetFidList->SetTextScale(10);
-
-    this->TargetingFiducialsListsVector.clear();
-    this->NumberOfTargetingFiducialLists = 1;
-    this->TargetingFiducialsListsVector.push_back(targetFidList);
-    this->SetTargetingFiducialsList(targetFidList, 0);
-    this->TargetingFiducialsListsNames.clear();
-    this->TargetingFiducialsListsNames.push_back(std::string("Biopsy"));
+    this->NumberOfNeedles = 1;
 
     
 
@@ -239,7 +272,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetVerificationVolumeNode(vtkMRMLScalarV
 //-------------------------------------------------------------------------------
 void vtkMRMLTRProstateBiopsyModuleNode::SetTargetingFiducialsList(vtkMRMLFiducialListNode *targetList, unsigned int index)
 {
-  if (index < this->NumberOfTargetingFiducialLists)
+  if (index < this->NumberOfNeedles)
     {   
     vtkSetMRMLNodeMacro(this->TargetingFiducialsListsVector[index], targetList);
     }
@@ -249,13 +282,243 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetCalibrationFiducialsList(vtkMRMLFiduc
 {
   vtkSetMRMLNodeMacro(this->CalibrationFiducialsList, calibList);
 }
-//------------------------------------------------------------------------------
-void vtkMRMLTRProstateBiopsyModuleNode::AddTargetingFiducialsList(vtkMRMLFiducialListNode *targetList, std::string listName)
+//-------------------------------------------------------------------------------
+unsigned int vtkMRMLTRProstateBiopsyModuleNode::AddTargetDescriptor(vtkTRProstateBiopsyTargetDescriptor *target)
+{
+  unsigned int index = this->TargetDescriptorsVector.size();
+  this->TargetDescriptorsVector.push_back(target);  
+  return index;
+}
+//-------------------------------------------------------------------------------
+vtkTRProstateBiopsyTargetDescriptor *vtkMRMLTRProstateBiopsyModuleNode::GetTargetDescriptorAtIndex(unsigned int index)
+{
+  if (index < this->TargetDescriptorsVector.size())
+    {
+    return this->TargetDescriptorsVector[index];
+    }
+  else
+    {
+    return NULL;
+    }
+}
+//-------------------------------------------------------------------------------
+bool vtkMRMLTRProstateBiopsyModuleNode::AddTargetToFiducialList(double targetRAS[3], unsigned int fiducialListIndex, unsigned int targetNr, unsigned int & fiducialIndex)
+{
+  if (fiducialListIndex < this->NumberOfNeedles)
+    {
+    std::string targetTypeName = this->TargetingFiducialsListsNames[fiducialListIndex];
+    this->TargetingFiducialsListsVector[fiducialListIndex]->SetDisableModifiedEvent(1);
+    fiducialIndex = this->TargetingFiducialsListsVector[fiducialListIndex]->AddFiducialWithXYZ(targetRAS[0], targetRAS[1], targetRAS[2], false);
+    if (fiducialIndex!= -1)
+      {
+      char targetName[20];
+      sprintf(targetName, "%s_%1d", targetTypeName.c_str(),targetNr);
+      this->TargetingFiducialsListsVector[fiducialListIndex]->SetNthFiducialLabelText(fiducialIndex, std::string(targetName).c_str());
+      this->TargetingFiducialsListsVector[fiducialListIndex]->SetNthFiducialID(fiducialIndex, std::string(targetName).c_str());
+      this->TargetingFiducialsListsVector[fiducialListIndex]->SetDisableModifiedEvent(0);
+      this->TargetingFiducialsListsVector[fiducialListIndex]->Modified();
+
+      //this->TargetingFiducialsListsVector[fiducialListIndex]->SetNthFiducialVisibility(fiducialIndex, true);
+      return true;
+      }
+    }
+
+  return false;
+}
+//-------------------------------------------------------------------------------
+bool vtkMRMLTRProstateBiopsyModuleNode::GetTargetFromFiducialList(unsigned int fiducialListIndex, unsigned int fiducialIndex, double &r, double &a, double &s)
+{
+    if (fiducialListIndex < this->NumberOfNeedles)
+      {
+      if (fiducialIndex < this->TargetingFiducialsListsVector.size())
+        {
+        float *ras = new float[3];
+        ras = this->TargetingFiducialsListsVector[fiducialListIndex]->GetNthFiducialXYZ(fiducialIndex);
+        r = ras[0];
+        a = ras[1];
+        s = ras[2];
+        return true;
+        }
+      }
+    return false;
+    
+}
+
+//-------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::SetupNeedlesList()
+{
+  this->NeedlesVector.resize(this->NumberOfNeedles); 
+  for (unsigned int i = 0; i < this->NumberOfNeedles; i++)
+    {
+    NeedleDescriptorStruct *needle = new NeedleDescriptorStruct;
+    this->NeedlesVector[i] = needle;
+    }
+
+}
+//-------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::SetupTargetingFiducialsList()
 { 
-  this->NumberOfTargetingFiducialLists++;
-  this->TargetingFiducialsListsVector.resize(this->NumberOfTargetingFiducialLists);
-  this->TargetingFiducialsListsVector.push_back(targetList);
-  this->SetTargetingFiducialsList(targetList, this->NumberOfTargetingFiducialLists-1);
-  this->TargetingFiducialsListsNames.resize(this->NumberOfTargetingFiducialLists);
-  this->TargetingFiducialsListsNames.push_back(listName);
+   
+  this->TargetingFiducialsListsVector.resize(this->NumberOfNeedles);  
+  this->TargetingFiducialsListsNames.resize(this->NumberOfNeedles);  
+
+  this->TargetingFiducialsListsVector.clear();
+  this->TargetingFiducialsListsNames.clear();
+
+  for (unsigned int i = 0; i < this->NumberOfNeedles; i++)
+  {
+    std::string needleType = this->NeedlesVector[i]->NeedleType;
+    this->TargetingFiducialsListsNames.push_back(this->NeedlesVector[i]->NeedleType);   
+    // create corresponding targeting fiducials list
+    vtkMRMLFiducialListNode *targetFidList = vtkMRMLFiducialListNode::New();
+    targetFidList->SetLocked(true);
+    targetFidList->SetName("TRProstateBiopsyFiducialList");
+    targetFidList->SetDescription("Created by TR Prostate Biopsy Module");
+    targetFidList->SetColor(0.5+i/10.0,0.7+i/10.0,0.3+i/10.0);
+    targetFidList->SetGlyphType(vtkMRMLFiducialListNode::Sphere3D);
+    targetFidList->SetOpacity(0.6);
+    targetFidList->SetAllFiducialsVisibility(true);
+    targetFidList->SetSymbolScale(5);
+    targetFidList->SetTextScale(5);        
+    this->TargetingFiducialsListsVector.push_back(targetFidList);
+    this->SetTargetingFiducialsList(targetFidList, i);
+  }
+}
+
+//------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::SetCalibrationMarker(unsigned int markerNr, double markerRAS[3])
+{
+  if (markerNr <=4 && markerNr >0)
+    {
+    char markername[20];
+    sprintf(markername, "Marker_%1d", markerNr);
+    int index = this->CalibrationFiducialsList->GetFiducialIndex(std::string(markername));
+    if (index == -1)
+      {
+      index = this->CalibrationFiducialsList->AddFiducialWithXYZ(markerRAS[0], markerRAS[1], markerRAS[2],false);
+      }
+    this->CalibrationFiducialsList->SetNthFiducialLabelText(index, std::string(markername).c_str());
+    this->CalibrationFiducialsList->SetNthFiducialID(index, std::string(markername).c_str());
+    this->CalibrationFiducialsList->SetNthFiducialVisibility(index, false);
+    }
+}
+//------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::GetCalibrationMarker(unsigned int markerNr, double &r, double &a, double &s)
+{
+  if (markerNr <=4 && markerNr >0)
+    {
+    char markername[20];
+    sprintf(markername, "Marker_%1d", markerNr);
+    int index = this->CalibrationFiducialsList->GetFiducialIndex(std::string(markername));
+
+    if (index != -1)
+      {
+      float *ras = new float[3];
+      ras = this->CalibrationFiducialsList->GetNthFiducialXYZ(index);
+      r = ras[0];
+      a = ras[1];
+      s = ras[2];
+      }
+    
+    }
+}
+//------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleType(unsigned int needleIndex, std::string type)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    this->NeedlesVector[needleIndex]->NeedleType = type;
+    }
+}
+//----------------------------------------------------------------------------
+std::string vtkMRMLTRProstateBiopsyModuleNode::GetNeedleType(unsigned int needleIndex)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    return this->NeedlesVector[needleIndex]->NeedleType;
+    }
+  else
+    {
+    return NULL;
+    }
+}
+//-----------------------------------------------------------------------------  
+void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleDescription(unsigned int needleIndex, std::string desc)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    this->NeedlesVector[needleIndex]->Description = desc;
+    }
+}
+//-----------------------------------------------------------------------------
+std::string vtkMRMLTRProstateBiopsyModuleNode::GetNeedleDescription(unsigned int needleIndex)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    return this->NeedlesVector[needleIndex]->Description;
+    }
+  else
+    {
+    return NULL;
+    }
+}
+//------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleDepth(unsigned int needleIndex, float depth)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    this->NeedlesVector[needleIndex]->NeedleDepth = depth;
+    }
+}
+//------------------------------------------------------------------------------
+float vtkMRMLTRProstateBiopsyModuleNode::GetNeedleDepth(unsigned int needleIndex)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    return this->NeedlesVector[needleIndex]->NeedleDepth;
+    }
+  else
+    {
+    return 0;
+    }
+}
+//------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleOvershoot(unsigned int needleIndex, float overshoot)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    this->NeedlesVector[needleIndex]->NeedleOvershoot = overshoot;
+    }
+}
+//------------------------------------------------------------------------------
+float vtkMRMLTRProstateBiopsyModuleNode::GetNeedleOvershoot(unsigned int needleIndex)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    return this->NeedlesVector[needleIndex]->NeedleOvershoot;
+    }
+  else
+    {
+    return 0;
+    }
+}
+//------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleUID(unsigned int needleIndex, unsigned int uid)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    this->NeedlesVector[needleIndex]->UniqueIdentifier = uid;
+    }  
+}
+//------------------------------------------------------------------------------
+unsigned int vtkMRMLTRProstateBiopsyModuleNode::GetNeedleUID(unsigned int needleIndex)
+{
+  if (needleIndex < this->NumberOfNeedles)
+    {
+    return this->NeedlesVector[needleIndex]->UniqueIdentifier;
+    }
+  else
+    {
+    return 0;
+    } 
 }

@@ -15,7 +15,7 @@
 #include "vtkTRProstateBiopsyMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMath.h"
-
+#include "itkPoint.h"
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkTRProstateBiopsyMath);
 vtkCxxRevisionMacro(vtkTRProstateBiopsyMath, "$Revision: 1.0 $");
@@ -193,4 +193,36 @@ double vtkTRProstateBiopsyMath::ComputeDistanceLinePoint(double x[3],
   // additional code ends here
 
   return sqrt(vtkMath::Dot(w,w));
+}
+
+//------------------------------------------------------------------------
+// distance between 2 points
+double vtkTRProstateBiopsyMath::VMagnitudeM( itk::Point<double,3> Point1, double Point2[3] )
+{
+    double Vector[3];
+
+    Vector[0] = Point2[0] - Point1[0];
+    Vector[1] = Point2[1] - Point1[1];
+    Vector[2] = Point2[2] - Point1[2];
+
+    double d = sqrt( Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2] );
+
+    return d;
+}
+//------------------------------------------------------------------------
+// distance between a line and a point
+double vtkTRProstateBiopsyMath::PointDistanceFromLineM(itk::Point<double, 3> point, double L[3], double v[3])
+{
+    double u;
+    double Intersection[3];
+    
+    u = ( ( ( point[0] - L[0] ) * v[0] ) +
+        ( ( point[1] - L[1] ) * v[1] ) +
+        ( ( point[2] - L[2] ) * v[2] ) ) ;
+    
+    Intersection[0] = L[0] + u * v[0];
+    Intersection[1] = L[1] + u * v[1];
+    Intersection[2] = L[2] + u * v[2];
+    
+    return VMagnitudeM( point, Intersection );
 }

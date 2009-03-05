@@ -5,6 +5,7 @@
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationLogic.h"
+#include "vtkMRMLFiducialListNode.h"
 
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
@@ -36,7 +37,7 @@ vtkCxxRevisionMacro(vtkTRProstateBiopsyCalibrationStep, "$Revision: 1.1 $");
 //----------------------------------------------------------------------------
 vtkTRProstateBiopsyCalibrationStep::vtkTRProstateBiopsyCalibrationStep()
 {
-  this->SetName("1/3. Calibration");
+  this->SetName("1/4. Calibration");
   this->SetDescription("Perform robot calibration.");
 
   this->WizardGUICallbackCommand->SetCallback(&vtkTRProstateBiopsyCalibrationStep::WizardGUICallback);
@@ -98,6 +99,7 @@ vtkTRProstateBiopsyCalibrationStep::vtkTRProstateBiopsyCalibrationStep()
   this->ProcessingCallback = false;
   this->ObserverCount = 0;
   this->ClickNumber = 0;
+  this->AllMarkersAcquired = false;
 
 }
 
@@ -1160,7 +1162,51 @@ void vtkTRProstateBiopsyCalibrationStep::ShowUserInterface()
   // Activate additional details for entering this step
   //this->Enter();
 }
+//----------------------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::PopulateSegmentationResults()
+{
+  double marker_1_RAS[3], marker_2_RAS[3], marker_3_RAS[3], marker_4_RAS[3] ;
 
+  // marker 1
+  this->GetGUI()->GetMRMLNode()->GetCalibrationMarker(1, marker_1_RAS[0], marker_1_RAS[1], marker_1_RAS[2]); 
+
+  for (int i = 0; i < 3; i++)
+    this->Marker_1_Centroid->GetWidget(i)->SetValueAsDouble(marker_1_RAS[i]);
+
+  // marker 2
+  this->GetGUI()->GetMRMLNode()->GetCalibrationMarker(2, marker_2_RAS[0], marker_2_RAS[1], marker_2_RAS[2]); 
+  
+  for (int i = 0; i < 3; i++)
+    this->Marker_2_Centroid->GetWidget(i)->SetValueAsDouble(marker_2_RAS[i]);
+
+  // marker 3
+  this->GetGUI()->GetMRMLNode()->GetCalibrationMarker(3, marker_3_RAS[0], marker_3_RAS[1], marker_3_RAS[2]); 
+  
+  for (int i = 0; i < 3; i++)
+    this->Marker_3_Centroid->GetWidget(i)->SetValueAsDouble(marker_3_RAS[i]);
+
+  // marker 4
+  this->GetGUI()->GetMRMLNode()->GetCalibrationMarker(4, marker_4_RAS[0], marker_4_RAS[1], marker_4_RAS[2]); 
+
+  for (int i = 0; i < 3; i++)
+    this->Marker_4_Centroid->GetWidget(i)->SetValueAsDouble(marker_4_RAS[i]);
+
+
+}
+//----------------------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::PopulateRegistrationResults()
+{
+  double angle, distance ;
+
+  // angle
+  angle = this->GetGUI()->GetMRMLNode()->GetAxesAngleDegrees(); 
+  this->AxesAngle->GetWidget()->SetValueAsDouble(angle);
+
+  // distance
+  distance = this->GetGUI()->GetMRMLNode()->GetAxesDistance(); 
+  this->AxesDistance->GetWidget()->SetValueAsDouble(distance);
+
+}
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::AddGUIObservers()
 {
@@ -1478,6 +1524,8 @@ void vtkTRProstateBiopsyCalibrationStep::LoadCalibrationVolumeButtonCallback(con
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::Reset()
 {
+    this->AllMarkersAcquired = false;
+    this->ClickNumber = 0;
 }
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
@@ -1502,17 +1550,13 @@ void vtkTRProstateBiopsyCalibrationStep::ProcessImageClickEvents(vtkObject *call
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  //vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyle1 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyle2 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  
   
   // listen to click only when they come from secondary monitor's window
-  if ((s == istyle0)&& (event == vtkCommand::LeftButtonPressEvent) )
-    {
-    // hear clicks only if the current sub state is Translate or Rotate with one exception // to be able to specify COR from slicer's laptop window, only in clinical mode
-     // if ( (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))  && !( (s == istyle0) && (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false)))
-      //if (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
-      //  return;
-
-
+  if (( (s == istyle0)|| (s == istyle1) || (s == istyle2) )&& (event == vtkCommand::LeftButtonPressEvent) && !this->AllMarkersAcquired)
+    {  
     if (this->ProcessingCallback)
     {
     return;
@@ -1523,26 +1567,27 @@ void vtkTRProstateBiopsyCalibrationStep::ProcessImageClickEvents(vtkObject *call
     ++this->ClickNumber;
 
     vtkRenderWindowInteractor *rwi;
-    vtkMatrix4x4 *matrix;    
+    vtkMatrix4x4 *matrix;        
     
-    // Note: at the moment, in calibrate step, listening only to clicks done in secondary monitor
-    // because looking through secondary monitor mirror only can do calibration
-
-    if ( (s == istyle0) )
+    if (s == istyle0)
       {
-      // coming from main gui viewer of SLICER
-      // to be able to specify COR from slicer's laptop window, only in clinical mode
       vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
       rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
-      matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();    
+      matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();     
       }
-    /*else if ( s == istyleSecondary)
+    else if (s == istyle1)
       {
-      // coming from click on secondary monitor
-      rwi = this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor();
-      matrix = this->GetGUI()->GetSecondaryMonitor()->GetXYToRAS();  
-      //matrix1 = this->GetGUI()->GetSecondaryMonitor()->GetXYToIJK();
-      }*/
+      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Yellow");
+      rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
+      matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();     
+      }
+    else if (s == istyle2)
+      {
+      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Green");
+      rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
+      matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();     
+      }
+    
 
     // capture the point
     int point[2];
@@ -1561,23 +1606,69 @@ void vtkTRProstateBiopsyCalibrationStep::RecordClick(double rasPoint[])
 {
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  if(!mrmlNode)
+      return;
+
   char *msg = new char[40];
 
   if (this->ClickNumber ==1)
     {
     sprintf(msg, "Clicked 1st marker at %3.1f %3.1f %3.1f", rasPoint[0], rasPoint[1], rasPoint[2]);
+    mrmlNode->SetCalibrationMarker(1, rasPoint);
     }
   else if (this->ClickNumber == 2)
     {
     sprintf(msg, "Clicked 2nd marker at %3.1f %3.1f %3.1f", rasPoint[0], rasPoint[1], rasPoint[2]);
+    mrmlNode->SetCalibrationMarker(2, rasPoint);
     }
   else if (this->ClickNumber == 3)
     {
     sprintf(msg, "Clicked 3rd marker at %3.1f %3.1f %3.1f", rasPoint[0], rasPoint[1], rasPoint[2]);
+    mrmlNode->SetCalibrationMarker(3, rasPoint);
     }
   else if (this->ClickNumber == 4)
     {
+    this->ClickNumber = 0;
+    this->AllMarkersAcquired = true;
     sprintf(msg, "Clicked 4th marker at %3.1f %3.1f %3.1f", rasPoint[0], rasPoint[1], rasPoint[2]);
+    wizard_widget->SetErrorText(msg);
+    wizard_widget->Update();
+    mrmlNode->SetCalibrationMarker(4, rasPoint);
+    sprintf(msg, "Starting segmentation....");
+    wizard_widget->SetErrorText(msg);
+    wizard_widget->Update();
+
+    // gather information about thresholds
+    double thresh[4];
+    for (int i=0 ; i<4; i++)
+        thresh[i] = this->FiducialThresholdScale[i]->GetValue();
+    
+    // gather info about the fiducial dimenstions
+    double fidDims[3];
+    fidDims[0] = this->FiducialWidthSpinBox->GetWidget()->GetValue();
+    fidDims[1] = this->FiducialHeightSpinBox->GetWidget()->GetValue();
+    fidDims[2] = this->FiducialDepthSpinBox->GetWidget()->GetValue();
+
+    // gather info about initial radius, and initial angle
+    double radius = 0;
+    bool bUseRadius = false;
+    double initialAngle = 0;
+
+    radius = this->RadiusSpinBox->GetWidget()->GetValue();
+    bUseRadius = this->RadiusCheckButton->GetSelectedState();
+    initialAngle = this->InitialAngleSpinBox->GetWidget()->GetValue();
+
+    // start the segmentation/registration
+    this->GetGUI()->GetLogic()->SegmentRegisterMarkers(thresh, fidDims, radius, bUseRadius, initialAngle);
+
+    // populate controls
+    mrmlNode->GetCalibrationFiducialsList()->SetAllFiducialsVisibility(true);
+    this->PopulateSegmentationResults();
+    this->PopulateRegistrationResults();
+
+    sprintf(msg, "Segmentation complete!"); 
     }
 
   wizard_widget->SetErrorText(msg);

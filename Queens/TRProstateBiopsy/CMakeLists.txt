@@ -26,6 +26,8 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard
   ${CMAKE_CURRENT_BINARY_DIR}/Wizard
+  ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation
+  ${CMAKE_CURRENT_BINARY_DIR}/Segmentation
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
   ${Volumes_SOURCE_DIR}
@@ -49,12 +51,28 @@ set(TRProstateBiopsy_SRCS
   vtkTRProstateBiopsyGUI.cxx
   vtkTRProstateBiopsyMath.cxx
   vtkTRProstateBiopsyUSBOpticalEncoder.cxx
+  vtkTRProstateBiopsyTargetDescriptor.cxx
   vtkTRProstateBiopsySecondaryMonitor.cxx
   vtkMRMLTRProstateBiopsyModuleNode.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyCalibrationStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsySegmentationStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyTargetingStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyVerificationStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/randomWalkSeg.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/cVolume.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/cVolOp.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/spdEqSolver.cxx
+  )
+
+# Helper classes
+
+set_source_files_properties(
+  ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/randomWalkSeg.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/cVolume.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/cVolOp.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/spdEqSolver.cxx
+  WRAP_EXCLUDE
   )
 
 # --------------------------------------------------------------------------
@@ -85,7 +103,7 @@ target_link_libraries(${LIB_NAME}
   ${Slicer3_Libs_LIBRARIES}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
-#  ${ITK_LIBRARIES}
+  ${ITK_LIBRARIES}
   )
 
 slicer3_install_modules(${LIB_NAME})

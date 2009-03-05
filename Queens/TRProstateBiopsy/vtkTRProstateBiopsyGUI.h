@@ -19,20 +19,15 @@
 #include "vtkTRProstateBiopsy.h"
 #include "vtkTRProstateBiopsyLogic.h"
 
-class vtkKWPushButton;
-class vtkKWPushButtonSet;
 class vtkKWRadioButton;
 class vtkKWRadioButtonSet;
 class vtkKWEntryWithLabel;
-class vtkKWMenuButtonWithLabel;
-class vtkKWMenuButton;
 class vtkKWCheckButton;
 class vtkKWScaleWithEntry;
 class vtkKWEntry;
 class vtkKWFrame;
 class vtkKWEntryWithLabel;
 class vtkKWLoadSaveButtonWithLabel;
-class vtkKWMultiColumnListWithScrollbars;
 class vtkKWWizardWidget;
 class vtkKWLoadSaveButton;
 class vtkSlicerNodeSelectorWidget;
