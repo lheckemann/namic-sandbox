@@ -52,9 +52,13 @@ public:
   virtual void HideUserInterface();
   virtual void Validate();
   virtual int CanGoToSelf();
-  //virtual void ShowUserInterface();
+  virtual void ShowUserInterface();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData) {};
   //virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
+  
+  // Description:
+  // Callbacks to capture mouse click on image
+  virtual void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
 
 
 protected:

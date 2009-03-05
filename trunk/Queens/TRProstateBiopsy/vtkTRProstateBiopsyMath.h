@@ -21,6 +21,7 @@
 
 #include "vtkObject.h"
 #include "vtkTRProstateBiopsyWin32Header.h"
+#include "itkPoint.h"
 
 class vtkMatrix4x4;
 
@@ -38,8 +39,12 @@ public:
 
   // Description
   // Calculate distance between a line (defined by two points) and a point
-  double ComputeDistanceLinePoint(double LinePoint1[3], double LinePoint2[3], double TargetPoint[3]);
+  static double ComputeDistanceLinePoint(double LinePoint1[3], double LinePoint2[3], double TargetPoint[3]);
 
+  //BTX
+  static double VMagnitudeM( itk::Point<double,3> Point1, double Point2[3] );  
+  static double PointDistanceFromLineM(itk::Point<double,3>, double L[3], double v[3]);
+  //ETX
 
 protected:
   vtkTRProstateBiopsyMath() {};

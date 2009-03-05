@@ -2,6 +2,7 @@
 #define __vtkTRProstateBiopsyTargetingStep_h
 
 #include "vtkTRProstateBiopsyStep.h"
+#include <vector>
 
 class vtkKWFrame;
 class vtkKWEntry;
@@ -33,6 +34,8 @@ public:
   // Reset
   virtual void Reset();
 
+  
+
 
 protected:
   vtkTRProstateBiopsyTargetingStep();
@@ -50,6 +53,35 @@ protected:
   void ShowMessageAndDeleteControls();
   void ClearMessageAndDeleteControls();
 
+  unsigned int PopulateListWithTargetDetails(unsigned int targetDescIndex);
+
+   // Description
+  // Callback on the load targeting volume button
+  void LoadTargetingVolumeButtonCallback(const char *fileName); 
+  
+  void TargetSelectedFromListCallback();
+  void TargetDeselectedFromListCallback();
+  // display information in the message box
+  void PopulateMessageBoxWithTargetInfo();
+
+  // display information in the secondary window
+  void DisplayTargetInfoInSecondaryWindow();
+
+  // bring target to view in all three views
+  void BringTargetToViewIn2DViews();
+
+  // change target color
+  void SetTargetFiducialColor(bool selected);
+
+  // show needle path in 2D views
+  void ShowNeedlePathIn2DViews();
+
+  // show needle path in 3D view
+  void ShowNeedlePathIn3DView();
+
+  // Description:
+  // GUI callback  
+  static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
 
   void AddGUIObservers();
   void RemoveGUIObservers();
@@ -87,6 +119,12 @@ protected:
     DepthColumn = 6,
     NumberOfColumns = 7,
     };
+  // a list indexed by row index, and the value is targetDesc index
+  typedef struct{
+      unsigned int TargetDescIndex;
+      unsigned int FiducialIndex;
+  }TargetIndicesStruct;
+  std::vector<TargetIndicesStruct*> TargetDescriptorIndicesIndexedByListIndex;
   //ETX
 
   // delete button
@@ -94,8 +132,11 @@ protected:
   vtkKWText *Message;
   vtkKWPushButton *DeleteButton;
 
+  
   bool ProcessingCallback;
 
+  int LastSelectedTargetDescriptorIndex;
+  int CurrentSelectedTargetDescriptorIndex;
 
 private:
   vtkTRProstateBiopsyTargetingStep(const vtkTRProstateBiopsyTargetingStep&);

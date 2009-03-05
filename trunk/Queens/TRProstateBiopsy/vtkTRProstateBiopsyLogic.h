@@ -27,6 +27,9 @@
 #include "vtkTRProstateBiopsyModule.h"
 #include "vtkMRMLTRProstateBiopsyModuleNode.h"
 
+#include <vector>
+#include "itkPoint.h"
+
 class vtkCallbackCommand;
 class vtkSlicerApplication;
 class vtkSlicerBaseLogic;
@@ -34,10 +37,12 @@ class vtkMRMLFiducialListNode;
 class vtkScalarVolumeNode;
 
 class vtkTRProstateBiopsyUSBOpticalEncoder;
+class vtkTRProstateBiopsyTargetDescriptor;
 
 //BTX
 #define TRPB_CALIBRATION "CALIBRATION"
 #define TRPB_TARGETING "TARGETING"
+#define TRPB_SEGMENTATION "SEGMENTATION"
 #define TRPB_VERIFICATION "VERIFICATION"
 //ETX
 
@@ -49,6 +54,7 @@ public:
 
   enum WorkPhase {
     Calibration = 0,
+    Segmentation,
     Targeting,
     Verification,
     NumPhases,
@@ -108,6 +114,11 @@ public:
   vtkMRMLScalarVolumeNode *AddVerificationVolume(vtkSlicerApplication* app,
                                                  const char *fileName);
 
+   // Description:
+  // Add volume to MRML scene and return the MRML node.
+  vtkMRMLScalarVolumeNode *AddVolumeToScene(vtkSlicerApplication* app,
+                                                const char *fileName);
+
   // Description:
   // Helper method for loading a volume via the Volume module.
   vtkMRMLScalarVolumeNode *AddArchetypeVolume(vtkSlicerApplication* app,
@@ -118,7 +129,25 @@ public:
   // Set Slicers's 2D view orientations from the image orientation.
   void SetSliceViewFromVolume(vtkSlicerApplication *app,
                               vtkMRMLVolumeNode *volumeNode);
+  
+  bool DoubleEqual(double val1, double val2);
 
+  void SegmentRegisterMarkers(double thresh[4], double fidDims[3], double radius, bool bUseRadius, double initialAngle);
+  void SegmentAxis(int nAxis, double thresh[4], double fidDims[3], double radius, bool bUseRadius, double initialAngle, double P1[3], double v1[3]);
+  bool SegmentCircle(float originToBeChanged[3],const double normal[3],  double thresh, double fidDims[3], double radius, bool bUseRadius, double initialAngle);
+  bool CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double *gx, double *gy, double *gz, int nVotedNeeded, bool lDebug);
+  void RemoveOutliners(double P_[3], double v_[3], double def1[3],double def2[3]);
+  void FindProbe(double P1[3], double P2[3], double v1[3], double v2[3], double I1[3], double I2[3], double initialAngle);
+  //BTX
+  void Linefinder(double P_[3], double v_[3], std::vector<itk::Point<double,3> > CoordVector);
+  //ETX
+
+  bool FindTargetingParams(vtkTRProstateBiopsyTargetDescriptor *target);
+  bool RotatePoint(double H_before[3], double rotation_rad, double alpha_rad, double mainaxis[3], double I[3], /*out*/double H_after[3]);
+
+  //BTX
+  bool AddTargetToNeedle(std::string needleType, double rasLocation[3], unsigned int & targetDescIndex, unsigned int & fiducialIndex);
+  //ETX
   // Description:
   // Get USB optical encoder
   vtkGetObjectMacro(USBEncoder, vtkTRProstateBiopsyUSBOpticalEncoder);
@@ -131,8 +160,9 @@ public:
 
   void InitializeOpticalEncoder();
   void ResetOpticalEncoder();
-
   bool IsOpticalEncoderInitialized(){return this->OpticalEncoderInitialized;};
+
+  void ReadConfigFile();
 
 
  private:
@@ -154,7 +184,10 @@ public:
   int NeedleAngle;  
   bool OpticalEncoderInitialized;
 
-  
+  //BTX
+  //typedef itk::Point<double, 3> PointType;
+  std::vector<itk::Point<double,3> > CoordinatesVector;
+  //ETX
   
 
  protected:

@@ -84,6 +84,7 @@ protected:
   vtkTRProstateBiopsyCalibrationStep();
   ~vtkTRProstateBiopsyCalibrationStep();
 
+  
   void ShowLoadResetControls();
   void ClearLoadResetControls();
 
@@ -99,11 +100,14 @@ protected:
   void ShowSaveResegmentControls();
   void ClearSaveResegmentControls();
 
-
+  void PopulateSegmentationResults();
+  void PopulateRegistrationResults();
 
   void AddGUIObservers();
   void RemoveGUIObservers();
   void RecordClick(double rasPoint[3]);
+  void SegmentRegisterMarkers();
+  void SegmentAxis(int nAxis);
 
   // Description:
   // GUI callback  
@@ -171,8 +175,9 @@ protected:
   int ObserverCount;
   unsigned int ClickNumber;
   bool ProcessingCallback;
+  bool AllMarkersAcquired;
   
-private:
+private:  
   vtkTRProstateBiopsyCalibrationStep(const vtkTRProstateBiopsyCalibrationStep&);
   void operator=(const vtkTRProstateBiopsyCalibrationStep&);
 };

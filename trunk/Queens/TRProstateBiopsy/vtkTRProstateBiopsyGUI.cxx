@@ -29,6 +29,7 @@
 #include "vtkKWWizardWorkflow.h"
 #include "vtkTRProstateBiopsyStep.h"
 #include "vtkTRProstateBiopsyCalibrationStep.h"
+#include "vtkTRProstateBiopsySegmentationStep.h"
 #include "vtkTRProstateBiopsyTargetingStep.h"
 #include "vtkTRProstateBiopsyVerificationStep.h"
 #include "vtkTRProstateBiopsyUSBOpticalEncoder.h"
@@ -93,6 +94,7 @@ vtkCxxRevisionMacro(vtkTRProstateBiopsyGUI, "$Revision: 1.0 $");
 const double vtkTRProstateBiopsyGUI::WorkPhaseColor[vtkTRProstateBiopsyLogic::NumPhases][3] =
   {
   /* Cl */ { 1.0, 0.6, 1.0 },
+  /* Sg */ { 1.0, 0.8, 0.8 },
   /* Tg */ { 1.0, 1.0, 0.6 },
   /* Ve */ { 0.6, 0.6, 1.0 },
   };
@@ -100,6 +102,7 @@ const double vtkTRProstateBiopsyGUI::WorkPhaseColor[vtkTRProstateBiopsyLogic::Nu
 const double vtkTRProstateBiopsyGUI::WorkPhaseColorActive[vtkTRProstateBiopsyLogic::NumPhases][3] =
   {
   /* Cl */ { 1.0, 0.4, 1.0 },
+  /* Sg */ { 1.0, 0.5, 0.5 },
   /* Tg */ { 1.0, 1.0, 0.4 },
   /* Ve */ { 0.4, 0.4, 1.0 },
   };
@@ -107,6 +110,7 @@ const double vtkTRProstateBiopsyGUI::WorkPhaseColorActive[vtkTRProstateBiopsyLog
 const double vtkTRProstateBiopsyGUI::WorkPhaseColorDisabled[vtkTRProstateBiopsyLogic::NumPhases][3] =
   {
   /* Cl */ { 1.0, 0.95, 1.0 },
+  /* Sg */ { 1.0, 0.95, 0.95 },
   /* Tg */ { 1.0, 1.0, 0.95 },
   /* Ve */ { 0.95, 0.95, 1.0 },
   };
@@ -114,6 +118,7 @@ const double vtkTRProstateBiopsyGUI::WorkPhaseColorDisabled[vtkTRProstateBiopsyL
 const char *vtkTRProstateBiopsyGUI::WorkPhaseStr[vtkTRProstateBiopsyLogic::NumPhases] =
   {
   /* Cl */ "Calibration",
+  /* Sg */ "Segmentation",
   /* Tg */ "Targeting",
   /* Ve */ "Verification",
   };
@@ -241,6 +246,11 @@ void vtkTRProstateBiopsyGUI::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyGUI::RemoveGUIObservers()
 {
+  this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  this->GetApplicationGUI()->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  this->GetApplicationGUI()->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+
+
   this->VolumeSelector->RemoveObservers (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
 
   this->TRNodeSelector->RemoveObservers (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );    
@@ -254,8 +264,8 @@ void vtkTRProstateBiopsyGUI::RemoveGUIObservers()
     this->SaveExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
     }
 
+  
   // Workphase Frame
-
   if (this->WorkPhaseButtonSet)
     {
     for (int i = 0; i < this->WorkPhaseButtonSet->GetNumberOfWidgets(); i ++)
@@ -266,9 +276,7 @@ void vtkTRProstateBiopsyGUI::RemoveGUIObservers()
     
 
   // Wizard Frame
-
-  this->WizardWidget->GetWizardWorkflow()->RemoveObserver(
-    static_cast<vtkCommand *>(this->GUICallbackCommand));
+  this->WizardWidget->GetWizardWorkflow()->RemoveObserver(static_cast<vtkCommand *>(this->GUICallbackCommand));
 
   this->RemoveLogicObservers();
 }
@@ -291,6 +299,11 @@ void vtkTRProstateBiopsyGUI::AddGUIObservers()
 {
   this->RemoveGUIObservers();
 
+  this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->GetApplicationGUI()->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->GetApplicationGUI()->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  
   this->VolumeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
 
   this->TRNodeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand ); 
@@ -373,12 +386,11 @@ void vtkTRProstateBiopsyGUI::ProcessGUIEvents(
 
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
     {
-    vtkSlicerInteractorStyle *style =
-            vtkSlicerInteractorStyle::SafeDownCast(caller);
-
-    this->HandleMouseEvent(style);
-
-    return;
+    int phase = this->GetLogic()->GetCurrentPhase();
+    if (phase < vtkTRProstateBiopsyLogic::NumPhases)
+      {
+      this->WizardSteps[phase]->ProcessImageClickEvents(caller, event, callData);      
+      }
     } 
   else if ( (wizardWorkflow == vtkKWWizardWorkflow::SafeDownCast(caller)) &&  (event == vtkKWWizardWorkflow::CurrentStateChangedEvent))
     {
@@ -509,7 +521,7 @@ void vtkTRProstateBiopsyGUI::UpdateMRML ()
     // one node for calibration fiducials list
     this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetCalibrationFiducialsList());
     // as many nodes as there are targeting fiducials lists
-    for (unsigned int i = 0; i < this->MRMLNode->GetNumberOfTargetingFiducialLists(); i++)
+    for (unsigned int i = 0; i < this->MRMLNode->GetNumberOfNeedles(); i++)
       {
       this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetTargetingFiducialsList(i));
       }
@@ -846,16 +858,25 @@ void vtkTRProstateBiopsyGUI::Enter()
 
      // add MRMLFiducialListNode to the scene
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
+
+    //read the config file
+    this->GetLogic()->ReadConfigFile();
+
+    // set up fiducial lists
+    n->SetupTargetingFiducialsList();
+
     // one node for calibration fiducials list
     this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetCalibrationFiducialsList());
     // as many nodes as there are targeting fiducials lists
-    for (unsigned int i = 0; i < this->MRMLNode->GetNumberOfTargetingFiducialLists(); i++)
+    for (unsigned int i = 0; i < this->MRMLNode->GetNumberOfNeedles(); i++)
       {
       this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetTargetingFiducialsList(i));
       }
 
 
     }
+
+  
 
   // first try to open up communication at usb port with optical encoder for readout
   this->Logic->InitializeOpticalEncoder();
@@ -1147,6 +1168,18 @@ void vtkTRProstateBiopsyGUI::BuildGUIForWizardFrame()
   
 
   // -----------------------------------------------------------------
+  // Segmentation step
+
+  
+  if (!this->WizardSteps[vtkTRProstateBiopsyLogic::Segmentation])
+    {
+    this->WizardSteps[vtkTRProstateBiopsyLogic::Segmentation] = vtkTRProstateBiopsySegmentationStep::New();
+    }
+  wizardWorkflow->AddNextStep(this->WizardSteps[vtkTRProstateBiopsyLogic::Segmentation]);
+
+
+
+  // -----------------------------------------------------------------
   // Targeting step
 
   if (!this->WizardSteps[vtkTRProstateBiopsyLogic::Targeting])
@@ -1390,7 +1423,7 @@ void vtkTRProstateBiopsyGUI::BuildGUIForWorkPhaseFrame()
   this->WorkPhaseButtonSet->Create();
   this->WorkPhaseButtonSet->PackHorizontallyOn();
   this->WorkPhaseButtonSet->SetBorderWidth(2);
-  this->WorkPhaseButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(3);
+  this->WorkPhaseButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(vtkTRProstateBiopsyLogic::NumPhases);
   this->WorkPhaseButtonSet->SetWidgetsInternalPadX(2);  
   this->WorkPhaseButtonSet->UniformColumnsOn();
   this->WorkPhaseButtonSet->UniformRowsOn();

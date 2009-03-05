@@ -28,10 +28,10 @@ vtkTRProstateBiopsyStep::vtkTRProstateBiopsyStep()
   //this->MRMLObserverManager->GetCallbackCommand()->SetCallback(vtkTRProstateBiopsyStep::MRMLCallback);
   //this->MRMLCallbackCommand = this->MRMLObserverManager->GetCallbackCommand();
 
-/*  this->TitleBackgroundColor[0] = 0.8;
+  this->TitleBackgroundColor[0] = 0.8;
   this->TitleBackgroundColor[1] = 0.8;
   this->TitleBackgroundColor[2] = 1.0;
-*/
+
   //this->InGUICallbackFlag = 0;
   //this->InMRMLCallbackFlag = 0;
 
@@ -94,7 +94,7 @@ void vtkTRProstateBiopsyStep::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-/*void vtkTRProstateBiopsyStep::ShowUserInterface()
+void vtkTRProstateBiopsyStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
   
@@ -111,4 +111,8 @@ void vtkTRProstateBiopsyStep::PrintSelf(ostream& os, vtkIndent indent)
 
 }
 
-*/
+//-----------------------------------------------------------------------------
+void vtkTRProstateBiopsyStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
+{
+  // has to be reimplemented in derived classes
+}

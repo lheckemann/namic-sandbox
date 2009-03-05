@@ -29,7 +29,7 @@ vtkCxxRevisionMacro(vtkTRProstateBiopsyVerificationStep, "$Revision: 1.1 $");
 //----------------------------------------------------------------------------
 vtkTRProstateBiopsyVerificationStep::vtkTRProstateBiopsyVerificationStep()
 {
-  this->SetName("3/3. Verification");
+  this->SetName("4/4. Verification");
   this->SetDescription("Select targets and prepare for biopsy.");
 
    // load calibration volume dicom series
