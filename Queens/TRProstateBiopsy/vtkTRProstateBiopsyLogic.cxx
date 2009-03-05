@@ -1884,7 +1884,8 @@ bool vtkTRProstateBiopsyLogic::AddTargetToNeedle(std::string needleType, double 
       return false;
 
   // 1) get the needle information based on needleType 
-  for (int needleIndex=0; needleIndex < this->GetTRProstateBiopsyModuleNode()->GetNumberOfNeedles(); needleIndex++)
+  int needleIndex;
+  for (needleIndex=0; needleIndex < this->GetTRProstateBiopsyModuleNode()->GetNumberOfNeedles(); needleIndex++)
     {
     if (this->GetTRProstateBiopsyModuleNode()->GetNeedleType(needleIndex) == needleType)
         break;
