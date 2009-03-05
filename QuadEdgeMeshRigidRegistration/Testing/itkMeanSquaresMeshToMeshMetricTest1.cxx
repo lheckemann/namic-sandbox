@@ -27,168 +27,20 @@
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkCommand.h"
 #include "itkTestingMacros.h"
-
-
-
-//Linear mapping between 0 and 1 as a function of phi and theta
-static float 
-sineMapSphericalCoordinatesFunction(float inPhi, float inTheta) 
-{
-  float result; 
-
-  const float pi = atan(1.0) * 4.0;
-
-  float phiFactor= (pi - inPhi)/pi; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
-  float thetaFactor= (sin(inTheta)+1.0)/2.0; //inTheta should be in [-PI,PI]; 
-
-  result= phiFactor * thetaFactor; 
-
-  return result; 
-}
+#include "itkMeshGeneratorHelper.h"
 
 
 int main( int argc, char * argv [] )
 {
-
   typedef itk::QuadEdgeMesh<float, 3>   MovingMeshType;
   typedef itk::QuadEdgeMesh<float, 3>   FixedMeshType;
 
-  typedef itk::RegularSphereMeshSource< MovingMeshType >  MovingSphereMeshSourceType;
-  typedef itk::RegularSphereMeshSource< FixedMeshType >  FixedSphereMeshSourceType;
+  FixedMeshType::Pointer   fixedMesh;
+  MovingMeshType::Pointer  movingMesh;
 
-  MovingSphereMeshSourceType::Pointer  myMovingSphereMeshSource = MovingSphereMeshSourceType::New();
-  FixedSphereMeshSourceType::Pointer  myFixedSphereMeshSource = FixedSphereMeshSourceType::New();
+  typedef MeshGeneratorHelper< FixedMeshType, MovingMeshType >  GeneratorType;
 
-  typedef MovingSphereMeshSourceType::PointType     MovingPointType;
-  typedef FixedSphereMeshSourceType::PointType      FixedPointType;
-  typedef MovingSphereMeshSourceType::VectorType    MovingVectorType;
-  typedef FixedSphereMeshSourceType::VectorType     FixedVectorType;
-
-
-  // Set up synthetic data. Two spherical meshes, one is rotated theta=pi/4
-  // from the other 
-
-  MovingPointType movingCenter; 
-  movingCenter.Fill( 0.0 );
-  MovingPointType fixedCenter; 
-  fixedCenter.Fill( 0.0 );
-
-  MovingVectorType movingScale;
-  movingScale.Fill( 1.0 );
-  FixedVectorType fixedScale;
-  fixedScale.Fill( 1.0 );
-  
-  myMovingSphereMeshSource->SetCenter( movingCenter );
-  myMovingSphereMeshSource->SetResolution( 4.0 );
-  myMovingSphereMeshSource->SetScale( movingScale );
-  myMovingSphereMeshSource->Modified();
-
-  myFixedSphereMeshSource->SetCenter( fixedCenter );
-  myFixedSphereMeshSource->SetResolution( 4.0 );
-  myFixedSphereMeshSource->SetScale( fixedScale );
-  myFixedSphereMeshSource->Modified();
-
-  try
-    {
-    myMovingSphereMeshSource->Update();
-    myFixedSphereMeshSource->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during source Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  std::cout << "myMovingSphereMeshSource: " << myMovingSphereMeshSource;
-  std::cout << "myFixedSphereMeshSource: " << myFixedSphereMeshSource;
-  
-  FixedMeshType::Pointer myFixedMesh = myFixedSphereMeshSource->GetOutput();
-  MovingMeshType::Pointer myMovingMesh = myMovingSphereMeshSource->GetOutput();
-
-  MovingPointType  movingPt;
-  FixedPointType   fixedPt;
-
-  typedef MovingPointType::VectorType  MovingVectorType;
-  typedef FixedPointType::VectorType   FixedVectorType;
-
-  MovingVectorType  movingVtr;
-  FixedVectorType   fixedVtr;
-  
-  std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
-
-  myFixedMesh->Print( std::cout );
-
-  for( unsigned int i=0; i < myFixedMesh->GetNumberOfPoints(); i++ )
-    {
-    myFixedMesh->GetPoint(i, &fixedPt);
-
-    fixedVtr = fixedPt - fixedCenter;
-
-    const float radius = fixedVtr.GetNorm();
-    const float theta  = atan2(fixedVtr[1], fixedVtr[0]); 
-    const float phi    = acos(fixedVtr[2]/radius); 
-
-    const float fixedValue= sineMapSphericalCoordinatesFunction(phi, theta); 
-
-    myFixedMesh->SetPointData(i, fixedValue);
-    }
-
-    const double pi = 4.0 * atan( 1.0 );
-
-    for( unsigned int i=0; i < myMovingMesh->GetNumberOfPoints(); i++ )
-      {
-      myMovingMesh->GetPoint(i, &movingPt);
-
-      movingVtr = movingPt - movingCenter;
-
-      const float radius = movingVtr.GetNorm();
-      const float theta  = atan2(movingVtr[1], movingVtr[0]); 
-      const float phi    = acos(movingVtr[2]/radius); 
-
-      float movingTheta = theta + pi / 4.0; 
-      if ( movingTheta > pi ) 
-        {
-        movingTheta-= 2.0 * pi; 
-        }
-
-      const float movingValue= sineMapSphericalCoordinatesFunction(phi, movingTheta);
-
-      myMovingMesh->SetPointData(i, movingValue);
-      }   
-
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   FixedWriterType;
-  FixedWriterType::Pointer fixedWriter = FixedWriterType::New();
-  fixedWriter->SetInput( myFixedMesh );
-  fixedWriter->SetFileName( "FixedMesh.vtk" );
-
-  try
-    {
-    fixedWriter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during fixedWriter Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >   MovingWriterType;
-  MovingWriterType::Pointer movingWriter = MovingWriterType::New();
-  movingWriter->SetInput( myMovingMesh );
-  movingWriter->SetFileName( "MovingMesh.vtk" );
-
-  try
-    {
-    movingWriter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during movingWriter Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
+  GeneratorType::GenerateMeshes( fixedMesh, movingMesh );
 
   //-----------------------------------------------------------
   // Set up  the Metric
@@ -203,11 +55,11 @@ int main( int argc, char * argv [] )
   //-----------------------------------------------------------
   // Plug the Meshes into the metric
   //-----------------------------------------------------------
-  metric->SetFixedMesh( myFixedMesh );
+  metric->SetFixedMesh( fixedMesh );
 
   TRY_EXPECT_EXCEPTION( metric->Initialize() );
 
-  metric->SetMovingMesh( myMovingMesh );
+  metric->SetMovingMesh( movingMesh );
 
   TRY_EXPECT_EXCEPTION( metric->Initialize() );
 
@@ -232,7 +84,7 @@ int main( int argc, char * argv [] )
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
-  interpolator->SetInputMesh( myMovingMesh );
+  interpolator->SetInputMesh( movingMesh );
 
   metric->SetInterpolator( interpolator );
 
@@ -315,5 +167,4 @@ int main( int argc, char * argv [] )
   std::cout << "Test passed. " << std::endl;
 
   return EXIT_SUCCESS;
-
 }
