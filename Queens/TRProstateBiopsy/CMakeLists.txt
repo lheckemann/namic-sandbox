@@ -52,7 +52,6 @@ set(TRProstateBiopsy_SRCS
   vtkTRProstateBiopsyMath.cxx
   vtkTRProstateBiopsyUSBOpticalEncoder.cxx
   vtkTRProstateBiopsyTargetDescriptor.cxx
-  vtkTRProstateBiopsySecondaryMonitor.cxx
   vtkMRMLTRProstateBiopsyModuleNode.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyCalibrationStep.cxx
@@ -64,6 +63,11 @@ set(TRProstateBiopsy_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/cVolOp.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Segmentation/spdEqSolver.cxx
   )
+
+if(WIN32)
+  set( TRProstateBiopsy_SRCS ${TRProstateBiopsy_SRCS} 
+  vtkTRProstateBiopsySecondaryMonitor.cxx )
+endif(WIN32)
 
 # Helper classes
 
