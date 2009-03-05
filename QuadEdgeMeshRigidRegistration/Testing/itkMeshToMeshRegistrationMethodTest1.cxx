@@ -153,11 +153,22 @@ int main( int argc, char * argv [] )
 
   registrator->SetInterpolator( interpolator );
 
+  TRY_EXPECT_EXCEPTION( registrator->Initialize() );
+
   TEST_SET_GET( interpolator, registrator->GetInterpolator() );
  
+  const unsigned int wrongNumberOfParameters = transform->GetNumberOfParameters() - 1;
+  TransformType::ParametersType parameters0( wrongNumberOfParameters );
+
+  registrator->SetInitialTransformParameters( parameters0 );
+
+  TRY_EXPECT_EXCEPTION( registrator->Initialize() );
+
   TransformType::ParametersType parameters1 = transform->GetParameters();
 
   registrator->SetInitialTransformParameters( parameters1 );
+
+  TRY_EXPECT_NO_EXCEPTION( registrator->Initialize() );
 
   TransformType::ParametersType parameters2 = registrator->GetInitialTransformParameters();
   
@@ -173,6 +184,10 @@ int main( int argc, char * argv [] )
       return EXIT_FAILURE;
       } 
     }
+
+  registrator->SetTransform( NULL );
+
+  TRY_EXPECT_EXCEPTION( registrator->StartRegistration() );
 
   return EXIT_SUCCESS;
 }
