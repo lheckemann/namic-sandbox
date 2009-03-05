@@ -34,6 +34,48 @@
 #include "itkMeshGeneratorHelper.h"
 
 
+class CommandIterationUpdate : public itk::Command 
+{
+public:
+  typedef  CommandIterationUpdate   Self;
+  typedef  itk::Command             Superclass;
+  typedef itk::SmartPointer<Self>  Pointer;
+  itkNewMacro( Self );
+protected:
+  CommandIterationUpdate()
+    {
+    this->IterationCounter = 0;
+    }
+public:
+  typedef itk::VersorTransformOptimizer    OptimizerType;
+  typedef   const OptimizerType   *        OptimizerPointer;
+
+  void Execute(itk::Object *caller, const itk::EventObject & event)
+    {
+    Execute( (const itk::Object *)caller, event);
+    }
+
+  void Execute(const itk::Object * object, const itk::EventObject & event)
+    {
+    OptimizerPointer optimizer = 
+      dynamic_cast< OptimizerPointer >( object );
+    if( ! itk::IterationEvent().CheckEvent( &event ) )
+      {
+      return;
+      }
+    std::cout << "  Iteration " << IterationCounter++ << "   ";
+    std::cout << optimizer->GetValue() << "   ";
+    std::cout << optimizer->GetCurrentPosition() << std::endl;
+    }
+
+private:
+   unsigned int   IterationCounter;
+
+};
+
+
+
+
 int main( int argc, char * argv [] )
 {
   typedef itk::QuadEdgeMesh<float, 3>   MovingMeshType;
@@ -102,11 +144,6 @@ int main( int argc, char * argv [] )
 
   interpolator->Initialize();
 
-
-//------------------------------------------------------------
-// Simple Test of derivative computed by Interpolator
-//------------------------------------------------------------
-
   std::cout << metric << std::endl;
 
 //------------------------------------------------------------
@@ -124,9 +161,6 @@ int main( int argc, char * argv [] )
     }
 
   registration->SetInitialTransformParameters( parameters );
-
-
-  //typedef versorCostFunction::ParametersType    ParametersType;
 
   // Optimizer Type
   typedef itk::VersorTransformOptimizer         OptimizerType;
@@ -169,6 +203,11 @@ int main( int argc, char * argv [] )
   optimizer->SetNumberOfIterations( 200 );
   optimizer->SetInitialPosition( initialPosition );
   optimizer->SetCostFunction( metric.GetPointer() );  
+
+  // Create the Command observer and register it with the optimizer.
+  //
+  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  optimizer->AddObserver( itk::IterationEvent(), observer );
 
   registration->SetOptimizer( optimizer );
 
