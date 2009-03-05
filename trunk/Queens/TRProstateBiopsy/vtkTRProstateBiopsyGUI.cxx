@@ -542,11 +542,11 @@ void vtkTRProstateBiopsyGUI::UpdateMRML ()
     
     switch(phase)
       {
-      case vtkTRProstateBiopsyLogic::WorkPhase::Calibration:
+      case vtkTRProstateBiopsyLogic::Calibration:
         break;
-      case vtkTRProstateBiopsyLogic::WorkPhase::Targeting:
+      case vtkTRProstateBiopsyLogic::Targeting:
         break;
-      case vtkTRProstateBiopsyLogic::WorkPhase::Verification:
+      case vtkTRProstateBiopsyLogic::Verification:
         break;
       }
     
