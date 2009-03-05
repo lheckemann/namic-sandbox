@@ -100,6 +100,11 @@ MeshToMeshRegistrationMethod<TFixedMesh,TMovingMesh>
     itkExceptionMacro(<<"Transform is not present");
     }
 
+  if( !m_Interpolator )
+    {
+    itkExceptionMacro(<<"Interpolator is not present");
+    }
+
   // Setup the metric
   m_Metric->SetMovingMesh(  m_MovingMesh );
   m_Metric->SetFixedMesh( m_FixedMesh );
