@@ -140,6 +140,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
                             const char* outputNodeNamePrefix,
                             int start, int end);
 
+  int RunSeriesCropping(const char* inputBundleNodeID,
+                        int imin, int imax, int jmin, int jmax, int kmin, int kmax);
   int RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
                             const char* inputBundleNodeID,
                             const char* outputBundleNodeID,
@@ -164,6 +166,10 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   //----------------------------------------------------------------
   // Registration
   //----------------------------------------------------------------
+
+  int   RunCropping(vtkMRMLScalarVolumeNode* inputNode,
+                    vtkMRMLScalarVolumeNode* outputNode,
+                    int imin, int imax, int jmin, int jmax, int kmin, int kmax);
   //BTX
   int  RunRegistration(vtkMRML4DBundleNode* bundleNode,
                        vtkMRMLScalarVolumeNode* fixedNode,
