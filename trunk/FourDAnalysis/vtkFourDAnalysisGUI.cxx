@@ -130,6 +130,7 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->SavePlotButton = NULL;
   this->IntensityPlot  = NULL;
 
+
   this->MapInputSeriesMenu  = NULL;
   this->MapOutputVolumePrefixEntry = NULL;
   //this->MapOutputSelector   = NULL;
@@ -137,9 +138,17 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->ScriptSelectButton  = NULL;
   this->RunScriptButton = NULL;
 
+  this->CropSeriesMenu      = NULL;
+  this->StartCroppingButton = NULL;
+  this->CropIMinSpinBox     = NULL;
+  this->CropIMaxSpinBox     = NULL;
+  this->CropJMinSpinBox     = NULL;
+  this->CropJMaxSpinBox      = NULL;
+  this->CropKMinSpinBox     = NULL;
+  this->CropKMaxSpinBox     = NULL;
 
-  this->InputSeriesMenu  = NULL;
-  this->OutputSeriesMenu = NULL;
+  this->InputSeriesMenu     = NULL;
+  this->OutputSeriesMenu    = NULL;
   this->RegistrationFixedImageIndexSpinBox = NULL;
   this->RegistrationStartIndexSpinBox = NULL;
   this->RegistrationEndIndexSpinBox   = NULL;
@@ -295,6 +304,7 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->SavePlotButton->SetParent(NULL);
     this->SavePlotButton->Delete();
     }
+
   if (this->MapInputSeriesMenu)
     {
     this->MapInputSeriesMenu->SetParent(NULL);
@@ -329,6 +339,49 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->RunScriptButton->SetParent(NULL);
     this->RunScriptButton->Delete();
     }
+
+  if (this->CropSeriesMenu)
+    {
+    this->CropSeriesMenu->SetParent(NULL);
+    this->CropSeriesMenu->Delete();
+    }
+  if (this->StartCroppingButton)
+    {
+    this->StartCroppingButton->SetParent(NULL);
+    this->StartCroppingButton->Delete();
+    }
+  if (this->CropIMinSpinBox)
+    {
+    this->CropIMinSpinBox->SetParent(NULL);
+    this->CropIMinSpinBox->Delete();
+    }
+  if (this->CropIMaxSpinBox)
+    {
+    this->CropIMaxSpinBox->SetParent(NULL);
+    this->CropIMaxSpinBox->Delete();
+    }
+  if (this->CropJMinSpinBox)
+    {
+    this->CropJMinSpinBox->SetParent(NULL);
+    this->CropJMinSpinBox->Delete();
+    }
+  if (this->CropJMaxSpinBox)
+    {
+    this->CropJMaxSpinBox->SetParent(NULL);
+    this->CropJMaxSpinBox->Delete();
+    }
+  if (this->CropKMinSpinBox)
+    {
+    this->CropKMinSpinBox->SetParent(NULL);
+    this->CropKMinSpinBox->Delete();
+    }
+  if (this->CropKMaxSpinBox)
+    {
+    this->CropKMaxSpinBox->SetParent(NULL);
+    this->CropKMaxSpinBox->Delete();
+    }
+
+
   if (this->InputSeriesMenu)
     {
     this->InputSeriesMenu->SetParent(NULL);
@@ -555,6 +608,48 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->RunScriptButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+
+  if (this->CropSeriesMenu)
+    {
+    this->CropSeriesMenu
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->StartCroppingButton)
+    {
+    this->StartCroppingButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropIMinSpinBox)
+    {
+    this->CropIMinSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropIMaxSpinBox)
+    {
+    this->CropIMaxSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropJMinSpinBox)
+    {
+    this->CropJMinSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropJMaxSpinBox)
+    {
+    this->CropJMaxSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropKMinSpinBox)
+    {
+    this->CropKMinSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropKMaxSpinBox)
+    {
+    this->CropKMaxSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->InputSeriesMenu)
     {
     this->InputSeriesMenu->GetMenu()
@@ -765,6 +860,46 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     {
     this->RunScriptButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropSeriesMenu)
+    {
+    this->CropSeriesMenu->GetMenu()
+      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->StartCroppingButton)
+    {
+    this->StartCroppingButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropIMinSpinBox)
+    {
+    this->CropIMinSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropIMaxSpinBox)
+    {
+    this->CropIMaxSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropJMinSpinBox)
+    {
+    this->CropJMinSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropJMaxSpinBox)
+    {
+    this->CropJMaxSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropKMinSpinBox)
+    {
+    this->CropKMinSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CropKMaxSpinBox)
+    {
+    this->CropKMaxSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->InputSeriesMenu)
     {
@@ -1037,7 +1172,6 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       {
       // Add a new vtkMRMLCurveAnalysisNode to the MRML scene
       vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
-      vtkMRMLScene* scene = this->GetMRMLScene();
       this->GetMRMLScene()->AddNode(curveNode);
 
       // Prepare vtkDoubleArray to pass the source cueve data
@@ -1046,8 +1180,8 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
 
       // Check the range of the curve to fit
       int max   = curve->GetNumberOfTuples();
-      int start = this->CurveFittingStartIndexSpinBox->GetValue();
-      int end   = this->CurveFittingEndIndexSpinBox->GetValue();
+      int start = (int)this->CurveFittingStartIndexSpinBox->GetValue();
+      int end   = (int)this->CurveFittingEndIndexSpinBox->GetValue();
       if (start < 0)   start = 0;
       if (end >= max)  end   = max-1;
       if (start > end) start = end;
@@ -1102,10 +1236,10 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
     {
     const char* filename = (const char*)callData;
-    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
+    //int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     //int label = (int)this->MaskSelectSpinBox->GetValue();
-    const char* nodeID = this->MaskNodeIDList[selected].c_str();
+    //const char* nodeID = this->MaskNodeIDList[selected].c_str();
     /*
     this->GetLogic()->SaveIntensityCurve(this->BundleNodeIDList[series].c_str(),
                                          nodeID, label, filename);
@@ -1137,11 +1271,87 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
     if (prefix && filename)
       {
-      int start = this->CurveFittingStartIndexSpinBox->GetValue();
-      int end   = this->CurveFittingEndIndexSpinBox->GetValue();
+      int start = (int)this->CurveFittingStartIndexSpinBox->GetValue();
+      int end   = (int)this->CurveFittingEndIndexSpinBox->GetValue();
       this->GetLogic()->GenerateParameterMap(filename, bundleNode, prefix, start, end);
       }
     }
+  else if (this->CropSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+           && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    int i = this->CropSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    const char* bundleID = this->BundleNodeIDList[i].c_str();
+    vtkMRML4DBundleNode* bundleNode 
+      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+
+    // set spin box ranges
+    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
+    if (volumeNode)
+      {
+      vtkImageData* imageData = volumeNode->GetImageData();
+      int* dimensions = imageData->GetDimensions();
+
+      this->CropIMinSpinBox->SetRange(0, dimensions[0]-1);
+      this->CropIMinSpinBox->SetValue(0);
+      this->CropIMaxSpinBox->SetRange(0, dimensions[0]-1);
+      this->CropIMaxSpinBox->SetValue(dimensions[0]-1);
+
+      this->CropJMinSpinBox->SetRange(0, dimensions[1]-1);
+      this->CropJMinSpinBox->SetValue(0);
+      this->CropJMaxSpinBox->SetRange(0, dimensions[1]-1);
+      this->CropJMaxSpinBox->SetValue(dimensions[1]-1);
+
+      this->CropKMinSpinBox->SetRange(0, dimensions[2]-1);
+      this->CropKMinSpinBox->SetValue(0);
+      this->CropKMaxSpinBox->SetRange(0, dimensions[2]-1);
+      this->CropKMaxSpinBox->SetValue(dimensions[2]-1);
+      }
+    }
+  else if (this->StartCroppingButton == vtkKWPushButton::SafeDownCast(caller)
+           && event == vtkKWPushButton::InvokedEvent)
+    {
+
+    int i = this->CropSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    const char* bundleID = this->BundleNodeIDList[i].c_str();
+
+    int imin = (int)this->CropIMinSpinBox->GetValue();
+    int imax = (int)this->CropIMaxSpinBox->GetValue();
+    int jmin = (int)this->CropJMinSpinBox->GetValue();
+    int jmax = (int)this->CropJMaxSpinBox->GetValue();
+    int kmin = (int)this->CropKMinSpinBox->GetValue();
+    int kmax = (int)this->CropKMaxSpinBox->GetValue();
+
+    this->GetLogic()->SetApplication(vtkSlicerApplication::SafeDownCast(this->GetApplication()));
+    this->GetLogic()->AddObserver(vtkFourDAnalysisLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
+    this->GetLogic()->RunSeriesCropping(bundleID, imin, imax, jmin, jmax, kmin, kmax);
+    this->GetLogic()->RemoveObservers(vtkFourDAnalysisLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
+
+    }
+  else if (this->CropIMinSpinBox == vtkKWSpinBox::SafeDownCast(caller)
+           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+    {
+    }
+  else if (this->CropIMaxSpinBox == vtkKWSpinBox::SafeDownCast(caller)
+           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+    {
+    }
+  else if (this->CropJMinSpinBox == vtkKWSpinBox::SafeDownCast(caller)
+           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+    {
+    }
+  else if (this->CropJMaxSpinBox == vtkKWSpinBox::SafeDownCast(caller)
+           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+    {
+    }
+  else if (this->CropKMinSpinBox == vtkKWSpinBox::SafeDownCast(caller)
+           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+    {
+    }
+  else if (this->CropKMaxSpinBox == vtkKWSpinBox::SafeDownCast(caller)
+           && event == vtkKWSpinBox::SpinBoxValueChangedEvent)
+    {
+    }
+
   else if (this->OutputSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
@@ -1149,7 +1359,7 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     if (selected == this->BundleNodeIDList.size())  // if "New Series" is selected"
       {
       vtkMRML4DBundleNode* bundleNode = vtkMRML4DBundleNode::New();
-      vtkMRMLScene* scene = this->GetMRMLScene();
+      //vtkMRMLScene* scene = this->GetMRMLScene();
 
       char nodeName[128];
       sprintf(nodeName, "4DBundleOut_%d", selected);
@@ -1334,6 +1544,7 @@ void vtkFourDAnalysisGUI::BuildGUI ( )
   BuildGUIForFrameControlFrame(0);
   BuildGUIForFunctionViewer(0);
   BuildGUIForMapGenerator(0);
+  BuildGUIForCroppingFrame(0);
   BuildGUIForRegistrationFrame(0);
 
 }
@@ -1972,6 +2183,221 @@ void vtkFourDAnalysisGUI::BuildGUIForMapGenerator(int show)
 
 
 //---------------------------------------------------------------------------
+void vtkFourDAnalysisGUI::BuildGUIForCroppingFrame(int show)
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("FourDAnalysis");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Cropping");
+  if (!show)
+    {
+    conBrowsFrame->CollapseFrame();
+    }
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+
+  vtkKWFrameWithLabel *cframe = vtkKWFrameWithLabel::New();
+  cframe->SetParent(conBrowsFrame->GetFrame());
+  cframe->Create();
+  cframe->SetLabelText ("Node");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 cframe->GetWidgetName() );
+
+  // Series menu
+
+  vtkKWFrame *dframe = vtkKWFrame::New();
+  dframe->SetParent(cframe->GetFrame());
+  dframe->Create();
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                dframe->GetWidgetName() );
+
+  vtkKWLabel *dlabel = vtkKWLabel::New();
+  dlabel->SetParent(dframe);
+  dlabel->Create();
+  dlabel->SetText("4D Bundle: ");
+
+  this->CropSeriesMenu = vtkKWMenuButton::New();
+  this->CropSeriesMenu->SetParent(dframe);
+  this->CropSeriesMenu->Create();
+  this->CropSeriesMenu->SetWidth(20);
+
+  this->Script("pack %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               dlabel->GetWidgetName(),
+               this->CropSeriesMenu->GetWidgetName());
+
+  dlabel->Delete();
+
+  // i range
+
+  vtkKWFrame *iframe = vtkKWFrame::New();
+  iframe->SetParent(cframe->GetFrame());
+  iframe->Create();
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                iframe->GetWidgetName() );
+  
+  vtkKWLabel *ilabel1 = vtkKWLabel::New();
+  ilabel1->SetParent(iframe);
+  ilabel1->Create();
+  ilabel1->SetText("Input: ");
+
+  vtkKWLabel *ilabel2 = vtkKWLabel::New();
+  ilabel2->SetParent(iframe);
+  ilabel2->Create();
+  ilabel2->SetText("min:");
+
+  this->CropIMinSpinBox = vtkKWSpinBox::New();
+  this->CropIMinSpinBox->SetParent(iframe);
+  this->CropIMinSpinBox->Create();
+  this->CropIMinSpinBox->SetWidth(3);
+  this->CropIMinSpinBox->SetRange(0, 0);
+
+  vtkKWLabel *ilabel3 = vtkKWLabel::New();
+  ilabel3->SetParent(iframe);
+  ilabel3->Create();
+  ilabel3->SetText("max:");
+
+  this->CropIMaxSpinBox = vtkKWSpinBox::New();
+  this->CropIMaxSpinBox->SetParent(iframe);
+  this->CropIMaxSpinBox->Create();
+  this->CropIMaxSpinBox->SetWidth(3);
+  this->CropIMaxSpinBox->SetRange(0, 0);
+
+  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               ilabel1->GetWidgetName(),
+               ilabel2->GetWidgetName(),
+               this->CropIMinSpinBox->GetWidgetName(),
+               ilabel3->GetWidgetName(),
+               this->CropIMaxSpinBox->GetWidgetName());
+
+  iframe->Delete();
+  ilabel1->Delete();
+  ilabel2->Delete();
+  ilabel3->Delete();
+
+
+  // j range
+
+  vtkKWFrame *jframe = vtkKWFrame::New();
+  jframe->SetParent(cframe->GetFrame());
+  jframe->Create();
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                jframe->GetWidgetName() );
+  
+  vtkKWLabel *jlabel1 = vtkKWLabel::New();
+  jlabel1->SetParent(jframe);
+  jlabel1->Create();
+  jlabel1->SetText("Input: ");
+
+  vtkKWLabel *jlabel2 = vtkKWLabel::New();
+  jlabel2->SetParent(jframe);
+  jlabel2->Create();
+  jlabel2->SetText("min:");
+
+  this->CropJMinSpinBox = vtkKWSpinBox::New();
+  this->CropJMinSpinBox->SetParent(jframe);
+  this->CropJMinSpinBox->Create();
+  this->CropJMinSpinBox->SetWidth(3);
+  this->CropJMinSpinBox->SetRange(0, 0);
+
+  vtkKWLabel *jlabel3 = vtkKWLabel::New();
+  jlabel3->SetParent(jframe);
+  jlabel3->Create();
+  jlabel3->SetText("max:");
+
+  this->CropJMaxSpinBox = vtkKWSpinBox::New();
+  this->CropJMaxSpinBox->SetParent(jframe);
+  this->CropJMaxSpinBox->Create();
+  this->CropJMaxSpinBox->SetWidth(3);
+  this->CropJMaxSpinBox->SetRange(0, 0);
+  
+  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               jlabel1->GetWidgetName(),
+               jlabel2->GetWidgetName(),
+               this->CropJMinSpinBox->GetWidgetName(),
+               jlabel3->GetWidgetName(),
+               this->CropJMaxSpinBox->GetWidgetName());
+
+  jframe->Delete();
+  jlabel1->Delete();
+  jlabel2->Delete();
+  jlabel3->Delete();
+
+
+  // k range
+
+  vtkKWFrame *kframe = vtkKWFrame::New();
+  kframe->SetParent(cframe->GetFrame());
+  kframe->Create();
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                kframe->GetWidgetName() );
+  
+  vtkKWLabel *klabel1 = vtkKWLabel::New();
+  klabel1->SetParent(kframe);
+  klabel1->Create();
+  klabel1->SetText("Input: ");
+
+  vtkKWLabel *klabel2 = vtkKWLabel::New();
+  klabel2->SetParent(kframe);
+  klabel2->Create();
+  klabel2->SetText("min:");
+
+  this->CropKMinSpinBox = vtkKWSpinBox::New();
+  this->CropKMinSpinBox->SetParent(kframe);
+  this->CropKMinSpinBox->Create();
+  this->CropKMinSpinBox->SetWidth(3);
+  this->CropKMinSpinBox->SetRange(0, 0);
+
+  vtkKWLabel *klabel3 = vtkKWLabel::New();
+  klabel3->SetParent(kframe);
+  klabel3->Create();
+  klabel3->SetText("max:");
+
+  this->CropKMaxSpinBox = vtkKWSpinBox::New();
+  this->CropKMaxSpinBox->SetParent(kframe);
+  this->CropKMaxSpinBox->Create();
+  this->CropKMaxSpinBox->SetWidth(3);
+  this->CropKMaxSpinBox->SetRange(0, 0);
+
+  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               klabel1->GetWidgetName(),
+               klabel2->GetWidgetName(),
+               this->CropKMinSpinBox->GetWidgetName(),
+               klabel3->GetWidgetName(),
+               this->CropKMaxSpinBox->GetWidgetName());
+
+  kframe->Delete();
+  klabel1->Delete();
+  klabel2->Delete();
+  klabel3->Delete();
+
+
+  // start button
+
+  vtkKWFrame *sframe = vtkKWFrame::New();
+  sframe->SetParent(cframe->GetFrame());
+  sframe->Create();
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                sframe->GetWidgetName() );
+
+  this->StartCroppingButton = vtkKWPushButton::New();
+  this->StartCroppingButton->SetParent(sframe);
+  this->StartCroppingButton->Create();
+  this->StartCroppingButton->SetText("Crop");
+  this->StartCroppingButton->SetWidth (12);
+
+  this->Script("pack %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               this->StartCroppingButton->GetWidgetName());
+
+  sframe->Delete();
+}
+
+
+//---------------------------------------------------------------------------
 void vtkFourDAnalysisGUI::BuildGUIForRegistrationFrame(int show)
 {
   
@@ -2148,7 +2574,7 @@ void vtkFourDAnalysisGUI::SetForeground(const char* bundleID, int index)
 
   int i, nnodes;
   vtkMRMLSliceCompositeNode *cnode;
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
   vtkMRML4DBundleNode* bundleNode 
     = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
@@ -2186,7 +2612,7 @@ void vtkFourDAnalysisGUI::SetBackground(const char* bundleID, int index)
 {
   int i, nnodes;
   vtkMRMLSliceCompositeNode *cnode;
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
   vtkMRML4DBundleNode* bundleNode 
     = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
@@ -2316,7 +2742,8 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
 
   if (this->ForegroundSeriesMenu && this->BackgroundSeriesMenu
       && this->SeriesToPlotMenu && this->MapInputSeriesMenu
-      && this->InputSeriesMenu && this->OutputSeriesMenu && this->SaveSeriesMenu)
+      && this->InputSeriesMenu && this->OutputSeriesMenu
+      && this->SaveSeriesMenu && this->CropSeriesMenu)
     {
     this->ForegroundSeriesMenu->GetMenu()->DeleteAllItems();
     this->BackgroundSeriesMenu->GetMenu()->DeleteAllItems();
@@ -2325,6 +2752,7 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
     this->InputSeriesMenu->GetMenu()->DeleteAllItems();
     this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
     this->SaveSeriesMenu->GetMenu()->DeleteAllItems();
+    this->CropSeriesMenu->GetMenu()->DeleteAllItems();
     
     std::vector<std::string>::iterator siter;
     for (siter = names.begin(); siter != names.end(); siter ++)
@@ -2336,6 +2764,7 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
       this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->SaveSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->CropSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       }
     }
 

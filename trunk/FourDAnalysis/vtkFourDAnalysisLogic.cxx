@@ -1012,10 +1012,69 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
 
 
 //---------------------------------------------------------------------------
+int vtkFourDAnalysisLogic::RunSeriesCropping(const char* inputBundleNodeID,
+                                             int imin, int imax, int jmin, int jmax, int kmin, int kmax)
+{
+  vtkMRML4DBundleNode* inputBundleNode 
+    = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(inputBundleNodeID));
+
+  if (!inputBundleNode)
+    {
+    std::cerr << "int vtkFourDAnalysisGUI::RunSeriesCropping(): Irregular input bundle" << std::endl;
+    return 0;
+    }
+
+  // Check index
+  if (imin < 0 || imin >= imax || jmin < 0 || jmin >= jmax || jmin < 0 || jmin >= jmax)
+    {
+    std::cerr << "int vtkFourDAnalysisGUI::RunSeriesCropping(): irregular index" << std::endl;
+    return 0;
+    }
+
+  int nFrames = inputBundleNode->GetNumberOfFrames();
+
+
+  StatusMessageType statusMessage;
+  statusMessage.show = 1;
+  statusMessage.progress = 0.0;
+  statusMessage.message = "Cropping images ....";
+  this->InvokeEvent ( vtkFourDAnalysisLogic::ProgressDialogEvent, &statusMessage);
+
+  // Crop each frame
+  for (int i = 0; i < nFrames; i ++)
+    {
+    statusMessage.progress = (double)i / (double)nFrames;
+    this->InvokeEvent ( vtkFourDAnalysisLogic::ProgressDialogEvent, &statusMessage);
+
+    vtkMRMLScalarVolumeNode* volumeNode = 
+      vtkMRMLScalarVolumeNode::SafeDownCast(inputBundleNode->GetFrameNode(i));
+    vtkFourDAnalysisLogic::RunCropping(volumeNode, volumeNode,
+                                       imin, imax, jmin, jmax,kmin, kmax);
+    }
+
+  // Crop display image node
+  vtkMRMLScalarVolumeNode* dinode0 = 
+    vtkMRMLScalarVolumeNode::SafeDownCast(inputBundleNode->GetDisplayBufferNode(0));
+  vtkMRMLScalarVolumeNode* dinode1 = 
+    vtkMRMLScalarVolumeNode::SafeDownCast(inputBundleNode->GetDisplayBufferNode(1));
+
+  vtkFourDAnalysisLogic::RunCropping(dinode0, dinode0, imin, imax, jmin, jmax,kmin, kmax);
+  vtkFourDAnalysisLogic::RunCropping(dinode1, dinode1, imin, imax, jmin, jmax,kmin, kmax);
+
+  statusMessage.show = 0;
+  statusMessage.progress = 0.0;
+  this->InvokeEvent ( vtkFourDAnalysisLogic::ProgressDialogEvent, &statusMessage);
+
+
+  return 1;
+}
+
+
+//---------------------------------------------------------------------------
 int vtkFourDAnalysisLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
-                                             const char* inputBundleNodeID,
-                                             const char* outputBundleNodeID,
-                                             RegistrationParametersType& param)
+                                                 const char* inputBundleNodeID,
+                                                 const char* outputBundleNodeID,
+                                                 RegistrationParametersType& param)
 {
   vtkMRML4DBundleNode* inputBundleNode 
     = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(inputBundleNodeID));
@@ -1025,8 +1084,7 @@ int vtkFourDAnalysisLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIn
     std::cerr << "int vtkFourDAnalysisGUI::RunSeriesRegistration(): Irregular input bundle" << std::endl;
     return 0;
     }
-  if (!inputBundleNode ||
-      sIndex < 0 ||
+  if (sIndex < 0 ||
       eIndex >= inputBundleNode->GetNumberOfFrames() ||
       kIndex < 0 ||
       kIndex >= inputBundleNode->GetNumberOfFrames() )
@@ -1078,10 +1136,110 @@ int vtkFourDAnalysisLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIn
       }
     }
 
+  statusMessage.show = 0;
+  statusMessage.progress = 0.0;
+  this->InvokeEvent ( vtkFourDAnalysisLogic::ProgressDialogEvent, &statusMessage);
+
   return 1;
 
 }
   
+
+//---------------------------------------------------------------------------
+int vtkFourDAnalysisLogic::RunCropping(vtkMRMLScalarVolumeNode* inputNode,
+                                       vtkMRMLScalarVolumeNode* outputNode,
+                                       int imin, int imax, int jmin, int jmax, int kmin, int kmax)
+{
+
+  // NOTE: This function requires "Image Cropping" CLI module, which does not come with Slicer3 in default.
+  // The Image Cropping CLI is available from the subversion repository at:
+  //
+  //  http://svn.na-mic.org/NAMICSandBox/trunk/IGTLoadableModules/CLI/Crop
+  //
+  vtkCommandLineModuleGUI* cligui;
+  vtkSlicerApplication* app = this->GetApplication();
+  cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Image Cropping"));
+
+  std::cerr << "RunCropping()" << std::endl;
+
+  if (cligui)
+    {
+    cligui->Enter();
+
+    vtkMRMLCommandLineModuleNode* node = 
+      static_cast<vtkMRMLCommandLineModuleNode*>(this->GetMRMLScene()->CreateNodeByClass("vtkMRMLCommandLineModuleNode"));
+    if(!node)
+      {
+      std::cerr << "Cannot create Rigid registration node." << std::endl;
+      }
+    this->GetMRMLScene()->AddNode(node);
+    node->SetModuleDescription(cligui->GetModuleDescription());  // this is very important !!!
+    node->SetName("Image Cropping");
+
+    node->SetParameterAsInt("iMinValue", imin); 
+    node->SetParameterAsInt("iMaxValue", imax); 
+    node->SetParameterAsInt("jMinValue", jmin); 
+    node->SetParameterAsInt("jMaxValue", jmax); 
+    node->SetParameterAsInt("kMinValue", kmin); 
+    node->SetParameterAsInt("kMaxValue", kmax); 
+
+    node->SetParameterAsString("inputVolume1", inputNode->GetID());
+    node->SetParameterAsString("outputVolume", outputNode->GetID());
+
+    cligui->GetLogic()->SetTemporaryDirectory(app->GetTemporaryDirectory());
+
+    ModuleDescription moduleDesc = node->GetModuleDescription();
+    if(moduleDesc.GetTarget() == "Unknown")
+      {
+      // Entry point is unknown
+      //assert(moduleDesc.GetType() == "SharedObjectModule");
+      typedef int (*ModuleEntryPoint)(int argc, char* argv[]);
+      itksys::DynamicLoader::LibraryHandle lib =
+        itksys::DynamicLoader::OpenLibrary(moduleDesc.GetLocation().c_str());
+      if(lib)
+        {
+        ModuleEntryPoint entryPoint = 
+          (ModuleEntryPoint) itksys::DynamicLoader::GetSymbolAddress(
+                                                                     lib, "ModuleEntryPoint");
+        if(entryPoint)
+          {
+          char entryPointAsText[256];
+          std::string entryPointAsString;
+          
+          sprintf(entryPointAsText, "%p", entryPoint);
+          entryPointAsString = std::string("slicer:")+entryPointAsText;
+          moduleDesc.SetTarget(entryPointAsString);
+          node->SetModuleDescription(moduleDesc);      
+          } 
+        else
+          {
+          std::cerr << "Failed to find entry point for Rigid registration. Abort." << std::endl;
+          }
+        } else {
+      std::cerr << "Failed to locate module library. Abort." << std::endl;
+      }
+    }
+
+    cligui->SetCommandLineModuleNode(node);
+    cligui->GetLogic()->SetCommandLineModuleNode(node);
+
+    std::cerr << "Starting cropping.... " << std::endl;    
+    cligui->GetLogic()->ApplyAndWait(node);
+    std::cerr << "Done." << std::endl;    
+    node->Delete(); // AF: is it right to delete this here?
+
+    //std::cerr << "Temp dir = " << ((vtkSlicerApplication*)this->GetApplication())->GetTemporaryDirectory() << std::endl;
+
+    return 1;
+    }
+  else
+    {
+    std::cerr << "Couldn't find CommandLineModule !!!" << std::endl;
+    return 0;
+    }
+  
+}
+
 
 //---------------------------------------------------------------------------
 int vtkFourDAnalysisLogic::RunRegistration(vtkMRML4DBundleNode* bundleNode,
@@ -1191,7 +1349,7 @@ int vtkFourDAnalysisLogic::RunRegistration(vtkMRML4DBundleNode* bundleNode,
     std::cerr << "Starting Registration.... " << std::endl;    
     cligui->GetLogic()->ApplyAndWait(node);
     //cligui->GetLogic()->Apply();
-    std::cerr << "Starting Registration.... done." << std::endl;    
+    std::cerr << "Done." << std::endl;    
     //this->SaveVolume(app, outputNode);
     node->Delete(); // AF: is it right to delete this here?
     //std::cerr << "Temp dir = " << ((vtkSlicerApplication*)this->GetApplication())->GetTemporaryDirectory() << std::endl;

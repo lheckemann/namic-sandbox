@@ -119,6 +119,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void BuildGUIForFrameControlFrame(int show);
   void BuildGUIForFunctionViewer(int show);
   void BuildGUIForMapGenerator(int show);
+  void BuildGUIForCroppingFrame(int show);
   void BuildGUIForRegistrationFrame(int show);
 
 
@@ -196,6 +197,17 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWLoadSaveButtonWithLabel* ScriptSelectButton;
   vtkKWPushButton* RunScriptButton;
 
+  // -----------------------------------------
+  // 4D Cropping
+
+  vtkKWMenuButton* CropSeriesMenu;
+  vtkKWPushButton* StartCroppingButton;
+  vtkKWSpinBox*    CropIMinSpinBox;
+  vtkKWSpinBox*    CropIMaxSpinBox;
+  vtkKWSpinBox*    CropJMinSpinBox;
+  vtkKWSpinBox*    CropJMaxSpinBox;
+  vtkKWSpinBox*    CropKMinSpinBox;
+  vtkKWSpinBox*    CropKMaxSpinBox;
 
   // -----------------------------------------
   // 4D Registration
