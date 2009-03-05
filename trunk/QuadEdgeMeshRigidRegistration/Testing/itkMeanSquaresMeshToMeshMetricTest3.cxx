@@ -30,26 +30,7 @@
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkCommand.h"
-
-#include <iostream>
-
-
-//Linear mapping between 0 and 1 as a function of phi and theta
-static float 
-sineMapSphericalCoordinatesFunction(float inPhi, float inTheta) 
-{
-  float result; 
-
-  const float pi = atan(1.0) * 4.0;
-
-  float phiFactor= (pi - inPhi)/pi; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
-  float thetaFactor= (sin(inTheta)+1.0)/2.0; //inTheta should be in [-PI,PI]; 
-
-  result= phiFactor * thetaFactor; 
-
-  return result; 
-}
-
+#include "itkMeshGeneratorHelper.h"
 
 
 class CommandIterationUpdate : public itk::Command 
@@ -65,8 +46,8 @@ protected:
     this->IterationCounter = 0;
     }
 public:
-  typedef itk::AmoebaOptimizer     OptimizerType;
-  typedef   const OptimizerType   *    OptimizerPointer;
+  typedef itk::AmoebaOptimizer             OptimizerType;
+  typedef   const OptimizerType   *        OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
     {
@@ -82,8 +63,8 @@ public:
         return;
         }
       std::cout << "  Iteration " << IterationCounter++ << "   ";
-      std::cout << "  cached value " << optimizer->GetCachedValue() << "   ";
-      std::cout << "  position " << optimizer->GetCachedCurrentPosition() << std::endl ; 
+      std::cout << optimizer->GetValue() << "   ";
+      std::cout << optimizer->GetCurrentPosition() << std::endl;
     }
 
 private:
@@ -96,20 +77,15 @@ private:
 
 int main( int argc, char * argv [] )
 {
-
   typedef itk::QuadEdgeMesh<float, 3>   MovingMeshType;
   typedef itk::QuadEdgeMesh<float, 3>   FixedMeshType;
 
-  typedef itk::RegularSphereMeshSource< MovingMeshType >  MovingSphereMeshSourceType;
-  typedef itk::RegularSphereMeshSource< FixedMeshType >  FixedSphereMeshSourceType;
+  FixedMeshType::Pointer   fixedMesh;
+  MovingMeshType::Pointer  movingMesh;
 
-  MovingSphereMeshSourceType::Pointer  myMovingSphereMeshSource = MovingSphereMeshSourceType::New();
-  FixedSphereMeshSourceType::Pointer  myFixedSphereMeshSource = FixedSphereMeshSourceType::New();
+  typedef MeshGeneratorHelper< FixedMeshType, MovingMeshType >  GeneratorType;
 
-  typedef MovingSphereMeshSourceType::PointType   MovingPointType;
-  typedef FixedSphereMeshSourceType::PointType   FixedPointType;
-  typedef MovingSphereMeshSourceType::VectorType  MovingVectorType;
-  typedef FixedSphereMeshSourceType::VectorType  FixedVectorType;
+  GeneratorType::GenerateMeshes( fixedMesh, movingMesh );
 
   // Registration Method
   typedef itk::MeshToMeshRegistrationMethod< 
@@ -118,139 +94,6 @@ int main( int argc, char * argv [] )
   RegistrationType::Pointer   registration  = RegistrationType::New();
 
 
-
-// Set up synthetic data. Two spherical meshes, one is rotated theta=pi/4 from the other 
-
-  MovingPointType movingCenter; 
-  movingCenter.Fill( 0.0 );
-  MovingPointType fixedCenter; 
-  fixedCenter.Fill( 0.0 );
-
-  MovingVectorType movingScale;
-  movingScale.Fill( 1.0 );
-  FixedVectorType fixedScale;
-  fixedScale.Fill( 1.0 );
-  
-  myMovingSphereMeshSource->SetCenter( movingCenter );
-  myMovingSphereMeshSource->SetResolution( 4.0 );
-  myMovingSphereMeshSource->SetScale( movingScale );
-  myMovingSphereMeshSource->Modified();
-
-  myFixedSphereMeshSource->SetCenter( fixedCenter );
-  myFixedSphereMeshSource->SetResolution( 4.0 );
-  myFixedSphereMeshSource->SetScale( fixedScale );
-  myFixedSphereMeshSource->Modified();
-
-  try
-    {
-    myMovingSphereMeshSource->Update();
-    myFixedSphereMeshSource->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during source Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  std::cout << "myMovingSphereMeshSource: " << myMovingSphereMeshSource;
-  std::cout << "myFixedSphereMeshSource: " << myFixedSphereMeshSource;
-  
-  FixedMeshType::Pointer myFixedMesh = myFixedSphereMeshSource->GetOutput();
-  MovingMeshType::Pointer myMovingMesh = myMovingSphereMeshSource->GetOutput();
-
-  MovingPointType  movingPt;
-  FixedPointType  fixedPt;
-  float radius, phi, theta, movingTheta; //spherical coordinates
-  float fixedValue, movingValue; 
-  
-  std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
-
-  myFixedMesh->Print( std::cout );
-
-  for( unsigned int i=0; i < myFixedMesh->GetNumberOfPoints(); i++ )
-    {
-      
-    myFixedMesh->GetPoint(i, &fixedPt);
-
-    for ( unsigned int j=0; j<3; j++ ) 
-      {
-        fixedPt[j]-= fixedCenter[j];   //coordinates relative to center, if center is not origin
-      }
-
-    radius= sqrt(fixedPt[0]*fixedPt[0] + fixedPt[1]*fixedPt[1] + fixedPt[2]*fixedPt[2]); //assuming radius is not valued 1
-    theta= atan2(fixedPt[1], fixedPt[0]); 
-    phi= acos(fixedPt[2]/radius); 
-
-    fixedValue= sineMapSphericalCoordinatesFunction(phi, theta); 
-
-    myFixedMesh->SetPointData(i, fixedValue);
-
-    std::cout << "Point[" << i << "]: " << fixedPt << " radius " << radius << "  theta " << theta << "  phi " << phi  << "  fixedValue " << fixedValue << std::endl;
-        
-    }
-
-   const double pi = 4.0 * atan( 1.0 );
-
-   for( unsigned int i=0; i < myMovingMesh->GetNumberOfPoints(); i++ )
-    {
-      
-    myMovingMesh->GetPoint(i, &movingPt);
-
-    for ( unsigned int j=0; j<3; j++ ) 
-      {
-        movingPt[j]-= movingCenter[j];   //coordinates relative to center, if center is not origin
-      }
-
-    radius= sqrt(movingPt[0]*movingPt[0] + movingPt[1]*movingPt[1] + movingPt[2]*movingPt[2]); //assuming radius is not valued 1
-    theta= atan2(movingPt[1], movingPt[0]); 
-    phi= acos(movingPt[2]/radius); 
-
-    movingTheta= theta + pi / 4.0; 
-    if ( movingTheta > pi ) 
-      {
-      movingTheta-= 2.0 * pi; 
-      }
-
-    movingValue= sineMapSphericalCoordinatesFunction(phi, movingTheta); 
-
-    myMovingMesh->SetPointData(i, movingValue);
-
-    std::cout << "Point[" << i << "]: " << movingPt << " radius " << radius << "  movingTheta " << movingTheta << "  phi " << phi  << "  movingValue " << movingValue << std::endl;
-        
-    }   
-
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   FixedWriterType;
-  FixedWriterType::Pointer fixedWriter = FixedWriterType::New();
-  fixedWriter->SetInput( myFixedMesh );
-  fixedWriter->SetFileName( "FixedMesh.vtk" );
-
-  try
-    {
-    fixedWriter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during fixedWriter Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >   MovingWriterType;
-  MovingWriterType::Pointer movingWriter = MovingWriterType::New();
-  movingWriter->SetInput( myMovingMesh );
-  movingWriter->SetFileName( "MovingMesh.vtk" );
-
-  try
-    {
-    movingWriter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during movingWriter Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
 
 
 //-----------------------------------------------------------
@@ -270,8 +113,8 @@ int main( int argc, char * argv [] )
 //-----------------------------------------------------------
 // Plug the Meshes into the metric
 //-----------------------------------------------------------
-  registration->SetFixedMesh( myFixedMesh );
-  registration->SetMovingMesh( myMovingMesh );
+  registration->SetFixedMesh( fixedMesh );
+  registration->SetMovingMesh( movingMesh );
 
 
 //-----------------------------------------------------------
@@ -294,7 +137,7 @@ int main( int argc, char * argv [] )
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
-  interpolator->SetInputMesh( myMovingMesh );
+  interpolator->SetInputMesh( movingMesh );
 
   registration->SetInterpolator( interpolator );
 
@@ -334,30 +177,13 @@ int main( int argc, char * argv [] )
 
 
 
-  registration->SetOptimizer( optimizer );
-
   // Create the Command observer and register it with the optimizer.
   //
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
   optimizer->AddObserver( itk::IterationEvent(), observer );
 
-  //typedef RegistrationInterfaceCommand<RegistrationType> CommandType;
-  //CommandType::Pointer command = CommandType::New();
-  //registration->AddObserver( itk::IterationEvent(), command );
+  registration->SetOptimizer( optimizer );
 
-#ifdef MICHELOUT
-  //Callback to monitor results at each iteration
-  typedef IterationCallback< OptimizerType >   IterationCallbackType;
-  IterationCallbackType::Pointer callback = IterationCallbackType::New();
-  callback->SetOptimizer( optimizer );
-#endif
-
-
-//------------------------------------------------------------
-// This call is mandatory before start querying the Metric
-// This method do all the necesary connections between the 
-// internal components: Interpolator, Transform and Meshes
-//------------------------------------------------------------
   try
     {
     registration->StartRegistration();
@@ -420,4 +246,3 @@ int main( int argc, char * argv [] )
   return EXIT_SUCCESS;
 
 }
-
