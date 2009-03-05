@@ -27,7 +27,6 @@
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkMeshToMeshRegistrationMethod.h"
 #include "itkLinearInterpolateMeshFunction.h"
-#include "itkAmoebaOptimizer.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
