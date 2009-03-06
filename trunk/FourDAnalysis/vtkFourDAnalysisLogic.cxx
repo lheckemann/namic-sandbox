@@ -1074,7 +1074,8 @@ int vtkFourDAnalysisLogic::RunSeriesCropping(const char* inputBundleNodeID,
 int vtkFourDAnalysisLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
                                                  const char* inputBundleNodeID,
                                                  const char* outputBundleNodeID,
-                                                 RegistrationParametersType& param)
+                                                 RegistrationParametersType& affineParam,
+                                                 RegistrationParametersType& deformableParam)
 {
   vtkMRML4DBundleNode* inputBundleNode 
     = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(inputBundleNodeID));
@@ -1120,6 +1121,21 @@ int vtkFourDAnalysisLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIn
   statusMessage.message = "Running image registration ....";
   this->InvokeEvent ( vtkFourDAnalysisLogic::ProgressDialogEvent, &statusMessage);
 
+
+  // create a transform node to pass results of linear transformation to deformable registration
+  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::New();
+  transformNode->SetName("Affine Registration");
+  transformNode->SetDescription("Created by FourDAnalysis module");
+
+  vtkMatrix4x4* transform = vtkMatrix4x4::New();
+  transform->Identity();
+  //transformNode->SetAndObserveImageData(transform);
+  transformNode->ApplyTransform(transform);
+  transform->Delete();
+
+  this->GetMRMLScene()->AddNode(transformNode);
+
+
   for (int i = sIndex; i <= eIndex; i++)
     {
     statusMessage.progress = (double)(i-sIndex) / (double)(eIndex-sIndex + 1);
@@ -1132,7 +1148,8 @@ int vtkFourDAnalysisLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIn
 
     if (movingNode && outputNode)
       {
-      RunRegistration(inputBundleNode, fixedNode, movingNode, outputNode, param);
+      RunAffineRegistration(inputBundleNode, fixedNode, movingNode, transformNode, NULL, affineParam);
+      RunDeformableRegistration(inputBundleNode, transformNode, fixedNode, movingNode, outputNode, deformableParam);
       }
     }
 
@@ -1242,11 +1259,115 @@ int vtkFourDAnalysisLogic::RunCropping(vtkMRMLScalarVolumeNode* inputNode,
 
 
 //---------------------------------------------------------------------------
-int vtkFourDAnalysisLogic::RunRegistration(vtkMRML4DBundleNode* bundleNode,
-                                       vtkMRMLScalarVolumeNode* fixedNode,
-                                       vtkMRMLScalarVolumeNode* movingNode,
-                                       vtkMRMLScalarVolumeNode* outputNode,
-                                       RegistrationParametersType& param)
+int vtkFourDAnalysisLogic::RunAffineRegistration(vtkMRML4DBundleNode* bundleNode,
+                                                 vtkMRMLScalarVolumeNode* fixedNode,
+                                                 vtkMRMLScalarVolumeNode* movingNode,
+                                                 vtkMRMLLinearTransformNode* outputTransformNode,
+                                                 vtkMRMLScalarVolumeNode* outputNode,
+                                                 RegistrationParametersType& param)
+{
+  vtkCommandLineModuleGUI* cligui;
+
+  vtkSlicerApplication* app = this->GetApplication();
+  cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Affine registration"));
+  //cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Linear registration"));
+
+  if (cligui)
+    {
+
+    cligui->Enter();
+    vtkMRMLCommandLineModuleNode* node = 
+      static_cast<vtkMRMLCommandLineModuleNode*>(this->GetMRMLScene()->CreateNodeByClass("vtkMRMLCommandLineModuleNode"));
+    if(!node)
+      {
+      std::cerr << "Cannot create Rigid registration node." << std::endl;
+      }
+
+    this->GetMRMLScene()->AddNode(node);
+    node->SetModuleDescription(cligui->GetModuleDescription());  // this is very important !!!
+    node->SetName("Deformable BSpline registration");
+
+    // Create output transform node
+    char name[128];
+    sprintf(name, "BSpline%s", movingNode->GetName());
+    RegistrationParametersType::iterator iter;
+    for (iter = param.begin(); iter != param.end(); iter ++)
+      {
+      node->SetParameterAsString(iter->first.c_str(), iter->second.c_str());
+      }
+
+    node->SetParameterAsInt("DefaultPixelValue", 0); 
+    node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
+    node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
+    node->SetParameterAsString("OutputTransform",     outputTransformNode->GetID());
+    if (outputNode)
+      {
+      node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
+      }
+
+    cligui->GetLogic()->SetTemporaryDirectory(app->GetTemporaryDirectory());
+
+    ModuleDescription moduleDesc = node->GetModuleDescription();
+    if(moduleDesc.GetTarget() == "Unknown")
+      {
+      // Entry point is unknown
+      // "Linear registration" is shared object module, at least at this moment
+      //assert(moduleDesc.GetType() == "SharedObjectModule");
+      typedef int (*ModuleEntryPoint)(int argc, char* argv[]);
+      itksys::DynamicLoader::LibraryHandle lib =
+        itksys::DynamicLoader::OpenLibrary(moduleDesc.GetLocation().c_str());
+      if(lib)
+        {
+        ModuleEntryPoint entryPoint = 
+          (ModuleEntryPoint) itksys::DynamicLoader::GetSymbolAddress(
+                                                                     lib, "ModuleEntryPoint");
+        if(entryPoint)
+          {
+          char entryPointAsText[256];
+          std::string entryPointAsString;
+          
+          sprintf(entryPointAsText, "%p", entryPoint);
+          entryPointAsString = std::string("slicer:")+entryPointAsText;
+          moduleDesc.SetTarget(entryPointAsString);
+          node->SetModuleDescription(moduleDesc);      
+          } 
+        else
+          {
+          std::cerr << "Failed to find entry point for Rigid registration. Abort." << std::endl;
+          }
+        } else {
+      std::cerr << "Failed to locate module library. Abort." << std::endl;
+      }
+    }
+
+    cligui->SetCommandLineModuleNode(node);
+    cligui->GetLogic()->SetCommandLineModuleNode(node);
+
+    std::cerr << "Starting Registration.... " << std::endl;    
+    cligui->GetLogic()->ApplyAndWait(node);
+    //cligui->GetLogic()->Apply();
+    std::cerr << "Done." << std::endl;    
+    //this->SaveVolume(app, outputNode);
+    node->Delete(); // AF: is it right to delete this here?
+    //std::cerr << "Temp dir = " << ((vtkSlicerApplication*)this->GetApplication())->GetTemporaryDirectory() << std::endl;
+
+    return 1;
+    }
+  else
+    {
+    std::cerr << "Couldn't find CommandLineModule !!!" << std::endl;
+    return 0;
+    }
+}
+
+
+//---------------------------------------------------------------------------
+int vtkFourDAnalysisLogic::RunDeformableRegistration(vtkMRML4DBundleNode* bundleNode,
+                                                     vtkMRMLLinearTransformNode* initialTransformNode,
+                                                     vtkMRMLScalarVolumeNode* fixedNode,
+                                                     vtkMRMLScalarVolumeNode* movingNode,
+                                                     vtkMRMLScalarVolumeNode* outputNode,
+                                                     RegistrationParametersType& param)
 {
   vtkCommandLineModuleGUI* cligui;
 
@@ -1301,7 +1422,10 @@ int vtkFourDAnalysisLogic::RunRegistration(vtkMRML4DBundleNode* bundleNode,
     */
 
     node->SetParameterAsInt("DefaultPixelValue", 0); 
-    //node->SetParameterAsString("InitialTransform", NULL);
+    if (initialTransformNode)
+      {
+      node->SetParameterAsString("InitialTransform", initialTransformNode->GetID());
+      }
     node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
     node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
     node->SetParameterAsString("OutputTransform", transformNode->GetID());
