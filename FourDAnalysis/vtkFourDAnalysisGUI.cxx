@@ -1483,10 +1483,10 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
 
     vtkFourDAnalysisLogic::RegistrationParametersType affineParam;
-    affineParam[std::string("Iterations")]       = std::string(this->IterationsEntry->GetWidget()->GetValue());
-    affineParam[std::string("TranslationScale")] = std::string(this->GridSizeEntry->GetWidget()->GetValue());
-    affineParam[std::string("HistogramBins")]    = std::string(this->HistogramBinsEntry->GetWidget()->GetValue());
-    affineParam[std::string("SpatialSamples")]   = std::string(this->SpatialSamplesEntry->GetWidget()->GetValue());
+    affineParam[std::string("Iterations")]       = std::string(this->AffineIterationsEntry->GetWidget()->GetValue());
+    affineParam[std::string("TranslationScale")] = std::string(this->AffineTranslationEntry->GetWidget()->GetValue());
+    affineParam[std::string("HistogramBins")]    = std::string(this->AffineHistgramBinEntry->GetWidget()->GetValue());
+    affineParam[std::string("SpatialSamples")]   = std::string(this->AffineSamplesEntry->GetWidget()->GetValue());
 
     vtkFourDAnalysisLogic::RegistrationParametersType deformableParam;
     deformableParam[std::string("Iterations")]     = std::string(this->IterationsEntry->GetWidget()->GetValue());
