@@ -145,7 +145,9 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   int RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
                             const char* inputBundleNodeID,
                             const char* outputBundleNodeID,
-                            RegistrationParametersType& param);
+                            RegistrationParametersType& affineParam,
+                            RegistrationParametersType& deformableParam);
+
 
  protected:
   
@@ -171,11 +173,19 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
                     vtkMRMLScalarVolumeNode* outputNode,
                     int imin, int imax, int jmin, int jmax, int kmin, int kmax);
   //BTX
-  int  RunRegistration(vtkMRML4DBundleNode* bundleNode,
-                       vtkMRMLScalarVolumeNode* fixedNode,
-                       vtkMRMLScalarVolumeNode* movingNode,
-                       vtkMRMLScalarVolumeNode* outputNode,
-                       RegistrationParametersType& param);
+  int RunAffineRegistration(vtkMRML4DBundleNode* bundleNode,
+                            vtkMRMLScalarVolumeNode* fixedNode,
+                            vtkMRMLScalarVolumeNode* movingNode,
+                            vtkMRMLLinearTransformNode* outputTransformNode,
+                            vtkMRMLScalarVolumeNode* outputNode,
+                            RegistrationParametersType& param);
+  
+  int RunDeformableRegistration(vtkMRML4DBundleNode* bundleNode,
+                                vtkMRMLLinearTransformNode* initialTransformNode,
+                                vtkMRMLScalarVolumeNode* fixedNode,
+                                vtkMRMLScalarVolumeNode* movingNode,
+                                vtkMRMLScalarVolumeNode* outputNode,
+                                RegistrationParametersType& param);
   //ETX
 
   vtkSlicerApplication *Application;

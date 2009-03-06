@@ -219,6 +219,11 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWSpinBox*    RegistrationEndIndexSpinBox;
   vtkKWPushButton* StartRegistrationButton;
 
+  vtkKWEntryWithLabel* AffineIterationsEntry; 
+  vtkKWEntryWithLabel* AffineSamplesEntry;    
+  vtkKWEntryWithLabel* AffineHistgramBinEntry;
+  vtkKWEntryWithLabel* AffineTranslationEntry;
+
   vtkKWEntryWithLabel* IterationsEntry;
   vtkKWEntryWithLabel* GridSizeEntry;
   vtkKWEntryWithLabel* HistogramBinsEntry;
@@ -230,6 +235,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   //BTX
+  vtkFourDAnalysisLogic::RegistrationParametersType DefaultAffineRegistrationParam;
   vtkFourDAnalysisLogic::RegistrationParametersType DefaultRegistrationParam;
   //ETX
   

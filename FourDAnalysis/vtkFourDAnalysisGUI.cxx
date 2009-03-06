@@ -154,16 +154,34 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->RegistrationEndIndexSpinBox   = NULL;
   this->StartRegistrationButton       = NULL;
 
+  this->AffineIterationsEntry  = NULL;
+  this->AffineSamplesEntry     = NULL;
+  this->AffineHistgramBinEntry = NULL;
+  this->AffineTranslationEntry = NULL;
+
+  this->IterationsEntry        = NULL;
+  this->GridSizeEntry          = NULL;
+  this->HistogramBinsEntry     = NULL;
+  this->SpatialSamplesEntry    = NULL;
+
+
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
 
-  //Default parameters
+  //Default parameters for Affine Registration
+  this->DefaultAffineRegistrationParam.clear();
+  this->DefaultAffineRegistrationParam[std::string("Iterations")]           = std::string("2000");
+  this->DefaultAffineRegistrationParam[std::string("TranslationScale")]     = std::string("100");
+  this->DefaultAffineRegistrationParam[std::string("HistogramBins")]        = std::string("30");
+  this->DefaultAffineRegistrationParam[std::string("SpatialSamples")]       = std::string("10000");
+
+  //Default parameters for Deformable Registration
   this->DefaultRegistrationParam.clear();
   this->DefaultRegistrationParam[std::string("Iterations")]           = std::string("20");
   this->DefaultRegistrationParam[std::string("gridSize")]             = std::string("5");
   this->DefaultRegistrationParam[std::string("HistogramBins")]        = std::string("100");
-  this->DefaultRegistrationParam[std::string("SpatialSamples")]       = std::string("5000");
+  this->DefaultRegistrationParam[std::string("SpatialSamples")]       = std::string("500000");
   //param[std::string("ConstrainDeformation")] = std::string("0");
   //param[std::string("MaximumDeformation")]   = std::string("1.0");
 }
@@ -680,6 +698,28 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->StartRegistrationButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+
+  if (this->AffineIterationsEntry)
+    {
+    this->AffineIterationsEntry->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AffineSamplesEntry)
+    {
+    this->AffineSamplesEntry->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AffineHistgramBinEntry)
+    {
+    this->AffineHistgramBinEntry->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AffineTranslationEntry)
+    {
+    this->AffineTranslationEntry->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->IterationsEntry)
     {
     this->IterationsEntry->GetWidget()
@@ -931,6 +971,28 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->StartRegistrationButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+
+  if (this->AffineIterationsEntry)
+    {
+    this->AffineIterationsEntry->GetWidget()
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AffineSamplesEntry)
+    {
+    this->AffineSamplesEntry->GetWidget()
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AffineHistgramBinEntry)
+    {
+    this->AffineHistgramBinEntry->GetWidget()
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AffineTranslationEntry)
+    {
+    this->AffineTranslationEntry->GetWidget()
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->IterationsEntry)
     {
     this->IterationsEntry->GetWidget()
@@ -1420,11 +1482,17 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     int sid = (int)this->RegistrationStartIndexSpinBox->GetValue();
     int eid = (int)this->RegistrationEndIndexSpinBox->GetValue();
 
-    vtkFourDAnalysisLogic::RegistrationParametersType param;
-    param[std::string("Iterations")]     = std::string(this->IterationsEntry->GetWidget()->GetValue());
-    param[std::string("gridSize")]       = std::string(this->GridSizeEntry->GetWidget()->GetValue());      /* 3 - 20, step 1*/
-    param[std::string("HistogramBins")]  = std::string(this->HistogramBinsEntry->GetWidget()->GetValue()); /* 1 - 500, step 5*/
-    param[std::string("SpatialSamples")] = std::string(this->SpatialSamplesEntry->GetWidget()->GetValue());/* 1000 - 500000, step 1000*/
+    vtkFourDAnalysisLogic::RegistrationParametersType affineParam;
+    affineParam[std::string("Iterations")]       = std::string(this->IterationsEntry->GetWidget()->GetValue());
+    affineParam[std::string("TranslationScale")] = std::string(this->GridSizeEntry->GetWidget()->GetValue());
+    affineParam[std::string("HistogramBins")]    = std::string(this->HistogramBinsEntry->GetWidget()->GetValue());
+    affineParam[std::string("SpatialSamples")]   = std::string(this->SpatialSamplesEntry->GetWidget()->GetValue());
+
+    vtkFourDAnalysisLogic::RegistrationParametersType deformableParam;
+    deformableParam[std::string("Iterations")]     = std::string(this->IterationsEntry->GetWidget()->GetValue());
+    deformableParam[std::string("gridSize")]       = std::string(this->GridSizeEntry->GetWidget()->GetValue());
+    deformableParam[std::string("HistogramBins")]  = std::string(this->HistogramBinsEntry->GetWidget()->GetValue());
+    deformableParam[std::string("SpatialSamples")] = std::string(this->SpatialSamplesEntry->GetWidget()->GetValue());
     //param[std::string("ConstrainDeformation")] = std::string("0");
     //param[std::string("MaximumDeformation")]   = std::string("1.0");
     //param[std::string("DefaultPixelValue")]    = std::string("0");   /* 1000 - 500000, step 1000*/
@@ -1435,7 +1503,7 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     this->GetLogic()->RunSeriesRegistration(sid, eid, fid, 
                                             this->BundleNodeIDList[inputSeries].c_str(),
                                             this->BundleNodeIDList[outputSeries].c_str(),
-                                            param);
+                                            affineParam, deformableParam);
 
     this->GetLogic()->RemoveObservers(vtkFourDAnalysisLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     }
@@ -2517,9 +2585,47 @@ void vtkFourDAnalysisGUI::BuildGUIForRegistrationFrame(int show)
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  pframe->GetWidgetName() );
 
+
+  this->AffineIterationsEntry = vtkKWEntryWithLabel::New();
+  this->AffineIterationsEntry->SetParent( pframe->GetFrame());
+  this->AffineIterationsEntry->SetLabelText ("(Affine) Iterations:");
+  this->AffineIterationsEntry->Create();
+  this->AffineIterationsEntry->GetWidget()->SetWidth(20);
+  this->AffineIterationsEntry->GetWidget()->SetRestrictValueToInteger();
+  this->AffineIterationsEntry->GetWidget()
+    ->SetValue(this->DefaultAffineRegistrationParam[std::string("Iterations")].c_str());
+
+  this->AffineSamplesEntry = vtkKWEntryWithLabel::New();
+  this->AffineSamplesEntry->SetParent( pframe->GetFrame());
+  this->AffineSamplesEntry->SetLabelText ("(Affine) Spatial Samples (1000-50000):");
+  this->AffineSamplesEntry->Create();
+  this->AffineSamplesEntry->GetWidget()->SetWidth(20);
+  this->AffineSamplesEntry->GetWidget()->SetRestrictValueToInteger();
+  this->AffineSamplesEntry->GetWidget()
+    ->SetValue(this->DefaultAffineRegistrationParam[std::string("SpatialSamples")].c_str());
+
+  this->AffineHistgramBinEntry = vtkKWEntryWithLabel::New();
+  this->AffineHistgramBinEntry->SetParent( pframe->GetFrame());
+  this->AffineHistgramBinEntry->SetLabelText ("(Affine) Histgrams Bin (1-500):");
+  this->AffineHistgramBinEntry->Create();
+  this->AffineHistgramBinEntry->GetWidget()->SetWidth(20);
+  this->AffineHistgramBinEntry->GetWidget()->SetRestrictValueToInteger();
+  this->AffineHistgramBinEntry->GetWidget()
+    ->SetValue(this->DefaultAffineRegistrationParam[std::string("HistogramBins")].c_str());
+  
+  this->AffineTranslationEntry = vtkKWEntryWithLabel::New();
+  this->AffineTranslationEntry->SetParent( pframe->GetFrame());
+  this->AffineTranslationEntry->SetLabelText ("(Affine) Translation scaling (10-5000):");
+  this->AffineTranslationEntry->Create();
+  this->AffineTranslationEntry->GetWidget()->SetWidth(20);
+  this->AffineTranslationEntry->GetWidget()->SetRestrictValueToInteger();
+  this->AffineTranslationEntry->GetWidget()
+    ->SetValue(this->DefaultAffineRegistrationParam[std::string("TranslationScale")].c_str());
+  
+
   this->IterationsEntry = vtkKWEntryWithLabel::New();
   this->IterationsEntry->SetParent( pframe->GetFrame());
-  this->IterationsEntry->SetLabelText ("Iterations:");
+  this->IterationsEntry->SetLabelText ("(Deformable)Iterations:");
   this->IterationsEntry->Create();
   this->IterationsEntry->GetWidget()->SetWidth(20);
   this->IterationsEntry->GetWidget()->SetRestrictValueToInteger();
@@ -2527,7 +2633,7 @@ void vtkFourDAnalysisGUI::BuildGUIForRegistrationFrame(int show)
 
   this->GridSizeEntry = vtkKWEntryWithLabel::New();
   this->GridSizeEntry->SetParent( pframe->GetFrame());
-  this->GridSizeEntry->SetLabelText ("Grid size (3-20):");
+  this->GridSizeEntry->SetLabelText ("(Deformable)Grid size (3-20):");
   this->GridSizeEntry->Create();
   this->GridSizeEntry->GetWidget()->SetWidth(20);
   this->GridSizeEntry->GetWidget()->SetRestrictValueToInteger();
@@ -2535,7 +2641,7 @@ void vtkFourDAnalysisGUI::BuildGUIForRegistrationFrame(int show)
 
   this->HistogramBinsEntry = vtkKWEntryWithLabel::New();
   this->HistogramBinsEntry->SetParent( pframe->GetFrame());
-  this->HistogramBinsEntry->SetLabelText ("HistogramBinEntry (1-500):");
+  this->HistogramBinsEntry->SetLabelText ("(Deformable)HistogramBinEntry (1-500):");
   this->HistogramBinsEntry->Create();
   this->HistogramBinsEntry->GetWidget()->SetWidth(20);
   this->HistogramBinsEntry->GetWidget()->SetRestrictValueToInteger();
@@ -2543,13 +2649,17 @@ void vtkFourDAnalysisGUI::BuildGUIForRegistrationFrame(int show)
 
   this->SpatialSamplesEntry = vtkKWEntryWithLabel::New();
   this->SpatialSamplesEntry->SetParent( pframe->GetFrame());
-  this->SpatialSamplesEntry->SetLabelText ("SpatialSamplesEntry (1000 - 500000):");
+  this->SpatialSamplesEntry->SetLabelText ("(Deformable)SpatialSamplesEntry (1000 - 500000):");
   this->SpatialSamplesEntry->Create();
   this->SpatialSamplesEntry->GetWidget()->SetWidth(20);
   this->SpatialSamplesEntry->GetWidget()->SetRestrictValueToInteger();
   this->SpatialSamplesEntry->GetWidget()->SetValue(this->DefaultRegistrationParam[std::string("SpatialSamples")].c_str());
   
-  this->Script("pack %s %s %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s %s %s %s %s %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
+               this->AffineIterationsEntry->GetWidgetName(),
+               this->AffineSamplesEntry->GetWidgetName(),
+               this->AffineHistgramBinEntry->GetWidgetName(),
+               this->AffineTranslationEntry->GetWidgetName(),
                this->IterationsEntry->GetWidgetName(),
                this->GridSizeEntry->GetWidgetName(),
                this->HistogramBinsEntry->GetWidgetName(),
