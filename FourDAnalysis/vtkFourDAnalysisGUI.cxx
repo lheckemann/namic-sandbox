@@ -1436,7 +1436,8 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       bundleNode->Delete();
       
       UpdateSeriesSelectorMenus();
-      this->OutputSeriesMenu->GetMenu()->SelectItemWithSelectedValueAsInt(selected-2);
+      this->OutputSeriesMenu->GetMenu()->SelectItem(selected);
+
       }
     }
 

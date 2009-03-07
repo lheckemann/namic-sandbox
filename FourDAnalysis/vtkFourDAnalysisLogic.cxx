@@ -822,7 +822,6 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
 {
   // Add a new vtkMRMLCurveAnalysisNode to the MRML scene
   vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
-  vtkMRMLScene* scene = this->GetMRMLScene();
   this->GetMRMLScene()->AddNode(curveNode);
 
   // Prepare vtkDoubleArray to pass the source cueve data
@@ -1129,7 +1128,6 @@ int vtkFourDAnalysisLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIn
 
   vtkMatrix4x4* transform = vtkMatrix4x4::New();
   transform->Identity();
-  //transformNode->SetAndObserveImageData(transform);
   transformNode->ApplyTransform(transform);
   transform->Delete();
 
@@ -1296,10 +1294,10 @@ int vtkFourDAnalysisLogic::RunAffineRegistration(vtkMRML4DBundleNode* bundleNode
       node->SetParameterAsString(iter->first.c_str(), iter->second.c_str());
       }
 
-    node->SetParameterAsInt("DefaultPixelValue", 0); 
     node->SetParameterAsString("FixedImageFileName", fixedNode->GetID());
     node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
     node->SetParameterAsString("OutputTransform",     outputTransformNode->GetID());
+
     if (outputNode)
       {
       node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
@@ -1335,11 +1333,13 @@ int vtkFourDAnalysisLogic::RunAffineRegistration(vtkMRML4DBundleNode* bundleNode
           {
           std::cerr << "Failed to find entry point for Rigid registration. Abort." << std::endl;
           }
-        } else {
-      std::cerr << "Failed to locate module library. Abort." << std::endl;
+        }
+      else
+        {
+        std::cerr << "Failed to locate module library. Abort." << std::endl;
+        }
       }
-    }
-
+    
     cligui->SetCommandLineModuleNode(node);
     cligui->GetLogic()->SetCommandLineModuleNode(node);
 
@@ -1430,7 +1430,6 @@ int vtkFourDAnalysisLogic::RunDeformableRegistration(vtkMRML4DBundleNode* bundle
     node->SetParameterAsString("MovingImageFileName", movingNode->GetID());
     node->SetParameterAsString("OutputTransform", transformNode->GetID());
     node->SetParameterAsString("ResampledImageFileName", outputNode->GetID());
-    transformNode->Delete();
 
     cligui->GetLogic()->SetTemporaryDirectory(app->GetTemporaryDirectory());
 
