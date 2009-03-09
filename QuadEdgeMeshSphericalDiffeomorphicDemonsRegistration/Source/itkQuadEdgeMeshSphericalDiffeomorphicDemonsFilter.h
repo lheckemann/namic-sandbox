@@ -23,40 +23,41 @@
 
 namespace itk
 {
-template< class TInputMesh, class TOutputMesh >
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 class QuadEdgeMeshSphericalDiffeomorphicDemonsFilter : 
-    public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
+    public QuadEdgeMeshToQuadEdgeMeshFilter< TFixedMesh, TOutputMesh >
 {
 public:
   typedef QuadEdgeMeshSphericalDiffeomorphicDemonsFilter                Self;
   typedef SmartPointer< Self >                                          Pointer;
   typedef SmartPointer< const Self >                                    ConstPointer;
-  typedef QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >   Superclass;
+  typedef QuadEdgeMeshToQuadEdgeMeshFilter< TFixedMesh, TOutputMesh >   Superclass;
   
-  /** Input types. */
-  typedef TInputMesh                              InputMeshType;
-  typedef typename InputMeshType::Pointer         InputMeshPointer;
-  typedef typename InputMeshType::ConstPointer    InputMeshConstPointer;
-  typedef typename InputMeshType::CoordRepType    InputCoordRepType;
-  typedef typename InputMeshType::PointType       InputPointType;
-  typedef typename InputMeshType::PointIdentifier InputPointIdentifier;
-  typedef typename InputMeshType::VectorType      InputVectorType;
-
-  typedef typename InputMeshType::PointsContainerConstPointer
-    InputPointsContainerConstPointer;
-  typedef typename InputMeshType::PointsContainerConstIterator
-    InputPointsContainerConstIterator;
-
-  /** Output types. */
-  typedef TOutputMesh                               OutputMeshType;
-  typedef typename OutputMeshType::Pointer          OutputMeshPointer;
-  typedef typename OutputMeshType::ConstPointer     OutputMeshConstPointer;
- 
-  
-public:
+  /** Method that instantiates a new object */
   itkNewMacro( Self );
+
+  /** Method that provides the name of the class as a string as well as the
+   * name of the parent class. */
   itkTypeMacro( QuadEdgeMeshSphericalDiffeomorphicDemonsFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
   
+  /** Input types. */
+  typedef TFixedMesh                                FixedMeshType;
+  typedef TMovingMesh                               MovingMeshType;
+  typedef typename  FixedMeshType::ConstPointer     FixedMeshConstPointer;
+  typedef typename  MovingMeshType::ConstPointer    MovingMeshConstPointer;
+
+  /** Output types. */
+  typedef TOutputMesh               OutputMeshType;
+ 
+  /** Set/Get the Fixed mesh. */
+  void SetFixedMesh( const FixedMeshType * fixedMesh );
+  itkGetConstObjectMacro( FixedMesh, FixedMeshType ); 
+
+  /** Set/Get the Moving mesh. */
+  void SetMovingMesh( const MovingMeshType * movingMesh );
+  itkGetConstObjectMacro( MovingMesh, MovingMeshType );
+
+
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -66,6 +67,9 @@ protected:
 private:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter( const Self& );
   void operator = ( const Self& );
+
+  MovingMeshConstPointer          m_MovingMesh;
+  FixedMeshConstPointer           m_FixedMesh;
 };
 
 }

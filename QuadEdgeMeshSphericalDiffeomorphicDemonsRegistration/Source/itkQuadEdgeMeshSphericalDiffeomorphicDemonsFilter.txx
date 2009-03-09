@@ -23,9 +23,9 @@
 namespace itk
 {
 
-template< class TInputMesh, class TOutputMesh >
-QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TInputMesh, TOutputMesh >::
-QuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
+::QuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
 {
   this->SetNumberOfRequiredInputs( 2 );
   this->SetNumberOfRequiredOutputs( 1 );
@@ -33,22 +33,60 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
   this->SetNthOutput( 0, OutputMeshType::New() );
 }
 
-template< class TInputMesh, class TOutputMesh >
-QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TInputMesh, TOutputMesh >::
-~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
+::~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
 {
 }
 
-template< class TInputMesh, class TOutputMesh >
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
+::SetFixedMesh( const FixedMeshType * fixedMesh )
+{
+  itkDebugMacro("setting Fixed Mesh to " << fixedMesh ); 
+
+  if (this->m_FixedMesh.GetPointer() != fixedMesh ) 
+    { 
+    this->m_FixedMesh = fixedMesh;
+
+    // Process object is not const-correct so the const_cast is required here
+    this->ProcessObject::SetNthInput(0, 
+                                   const_cast< FixedMeshType *>( fixedMesh ) );
+    
+    this->Modified(); 
+    } 
+}
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
+::SetMovingMesh( const MovingMeshType * movingMesh )
+{
+  itkDebugMacro("setting Moving Mesh to " << movingMesh ); 
+
+  if (this->m_MovingMesh.GetPointer() != movingMesh ) 
+    { 
+    this->m_MovingMesh = movingMesh;
+
+    // Process object is not const-correct so the const_cast is required here
+    this->ProcessObject::SetNthInput(1, 
+                                   const_cast< MovingMeshType *>( movingMesh ) );
+    
+    this->Modified(); 
+    } 
+}
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
-QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TInputMesh, TOutputMesh >::
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GenerateData( )
 {
-  InputMeshPointer input = this->GetInput();
+  typename FixedMeshType::ConstPointer input = this->GetInput( 0 );
 
-  OutputMeshPointer output0 = this->GetOutput( 0 );
+  typename OutputMeshType::Pointer output = this->GetOutput( 0 );
 
-  output0->SetCellsAllocationMethod(
+  output->SetCellsAllocationMethod(
       OutputMeshType::CellsAllocatedDynamicallyCellByCell );
 
 }
