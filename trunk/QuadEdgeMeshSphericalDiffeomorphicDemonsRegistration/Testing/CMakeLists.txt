@@ -9,6 +9,10 @@ FIND_PATH(FREESURFER_DIR
   DOC "Directory where FreeSurfer is installed"
   )
 
+INCLUDE_DIRECTORIES(
+  ${PROJECT_SOURCE_DIR}/Testing
+  )
+
 #######################
 #######################
 #
@@ -16,6 +20,9 @@ FIND_PATH(FREESURFER_DIR
 #
 #######################
 #######################
+
+ADD_EXECUTABLE(itkMeshGeneratorHelperTest1 itkMeshGeneratorHelperTest1.cxx )
+TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -30,11 +37,17 @@ TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITK
 ###################
 ###################
 
+ADD_TEST(itkMeshGeneratorHelperTest1
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest1
+  ${TEMP}/fixedMesh01.vtk
+  ${TEMP}/movingMesh01.vtk
+ )
+
 ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
-  ${TEST_DATA_ROOT}/Input/mesh01.vtk
-  ${TEST_DATA_ROOT}/Input/mesh02.vtk
-  ${TEMP}/Input/mesh02registeredtToMesh01.vtk
+  ${TEMP}/fixedMesh01.vtk
+  ${TEMP}/movingMesh01.vtk
+  ${TEMP}/movingMesh01RegisteredToFixedMesh01.vtk
  )
 
 
