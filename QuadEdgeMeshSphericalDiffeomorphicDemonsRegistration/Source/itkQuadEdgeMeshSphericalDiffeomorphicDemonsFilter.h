@@ -47,7 +47,8 @@ public:
   typedef typename  MovingMeshType::ConstPointer    MovingMeshConstPointer;
 
   /** Output types. */
-  typedef TOutputMesh               OutputMeshType;
+  typedef TOutputMesh                               OutputMeshType;
+  typedef typename  OutputMeshType::Pointer         OutputMeshPointer;
  
   /** Set/Get the Fixed mesh. */
   void SetFixedMesh( const FixedMeshType * fixedMesh );
@@ -67,6 +68,8 @@ protected:
 private:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter( const Self& );
   void operator = ( const Self& );
+
+  void AllocateOutputMesh();
 
   MovingMeshConstPointer          m_MovingMesh;
   FixedMeshConstPointer           m_FixedMesh;
