@@ -21,6 +21,7 @@
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkVTKPolyDataReader.h"
+#include "itkMeshGeneratorHelper.h"
 
 int main( int argc, char *argv[] )
 {
@@ -96,6 +97,7 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  itk::MeshWriterHelper<RegisteredMeshType>::WriteMeshToFile( demonsFilter->GetOutput(), argv[3] );
 
   return EXIT_SUCCESS;
 }
