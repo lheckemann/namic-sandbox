@@ -35,8 +35,17 @@ int main( int argc, char *argv[] )
   typedef float      MeshPixelType;
   const unsigned int Dimension = 3;
 
-  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MovingMeshType;
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   FixedMeshType;
+  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MovingMeshType;
+  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   RegisteredMeshType;
+
+  typedef itk::QuadEdgeMeshSphericalDiffeomorphicDemonsFilter<
+    FixedMeshType, MovingMeshType, RegisteredMeshType >   DemonsFilterType;
+
+  DemonsFilterType::Pointer demonsFilter = DemonsFilterType::New();
+
+  std::cout << demonsFilter->GetNameOfClass() << std::endl;
+  demonsFilter->Print( std::cout );
 
   return EXIT_SUCCESS;
 }
