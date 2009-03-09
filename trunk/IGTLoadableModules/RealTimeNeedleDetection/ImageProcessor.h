@@ -53,8 +53,13 @@ public:
   typedef itk::RescaleIntensityImageFilter<FloatImageType, UShortImageType>     RescaleToUShortFilter;    
   typedef itk::RescaleIntensityImageFilter<UCharImageType, FloatImageType>      RescaleUCharToFloatFilter; 
   typedef itk::RescaleIntensityImageFilter<UShortImageType, FloatImageType>     RescaleUShortToFloatFilter;
+  typedef itk::BinaryBallStructuringElement<FloatPixelType, 2>                  StructuringElementType;  // Structuring element for erode and dilate
+  typedef itk::GrayscaleErodeImageFilter<FloatImageType, FloatImageType,
+                                         StructuringElementType>                ErodeFilterType;
+  typedef itk::GrayscaleDilateImageFilter<FloatImageType, FloatImageType,
+                                          StructuringElementType>               DilateFilterType;
   typedef itk::UnaryFunctorImageFilter<FloatImageType, FloatImageType,
-               InvertIntensityFunctor< FloatImageType::PixelType> >             InverterType;
+                           InvertIntensityFunctor< FloatImageType::PixelType> > InverterType;
 
   ImageProcessor();
   //Conversion Functions
@@ -75,7 +80,8 @@ public:
   void CannyEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore        
   void BinaryThreshold(bool inputTmp, bool outputTmp);            // not used anymore
   void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp); // not used anymore
-  void SobelEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore
+  void SobelEdgeDetection(bool inputTmp, bool outputTmp);         
+  void DilateAndErode(bool inputTmp, bool outputTmp);
   //Neighborhood Functions
   void SobelFilter(bool inputTmp, bool outputTmp, int direction); // my own version of the sobel edge detection filter
   virtual ~ImageProcessor();

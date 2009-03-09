@@ -636,6 +636,57 @@ void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)  
   }  
 }
 
+void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp)
+{
+  DilateFilterType::Pointer grayscaleDilate = DilateFilterType::New();
+  ErodeFilterType::Pointer grayscaleErode = ErodeFilterType::New();
+  
+  if(inputTmp && (mWhichTmp == 1))
+    grayscaleDilate->SetInput(mLocalTmp1);
+  else if (inputTmp && (mWhichTmp == 2))
+    grayscaleDilate->SetInput(mLocalTmp2);
+  else
+    grayscaleDilate->SetInput(mLocalInputImage);  
+  
+  StructuringElementType structuringElement;
+  structuringElement.SetRadius(1); // 3x3 structuring
+  structuringElement.CreateStructuringElement();
+  
+  grayscaleDilate->SetKernel(structuringElement);
+  grayscaleErode->SetKernel(structuringElement);
+  
+  grayscaleErode->SetInput(grayscaleDilate->GetOutput() );
+
+  if(outputTmp)
+  {
+    if(mWhichTmp == 1)
+    {
+      mWhichTmp = 2;
+      mLocalTmp2 = grayscaleErode->GetOutput();
+    }
+    else
+    {
+      mWhichTmp = 1;
+      mLocalTmp1 = grayscaleErode->GetOutput();
+    }
+  }
+  else
+  {
+    mLocalOutputImage = grayscaleErode->GetOutput();
+    mWhichTmp = 0;
+  }
+
+  try
+  {
+    grayscaleErode->Update();
+    }
+      catch( itk::ExceptionObject & err )
+    {
+    std::cout << "ExceptionObject caught updating the erode filter!" << std::endl;
+    std::cout << err << std::endl;
+  }  
+}
+
 // only writes grayscale integer 2D images
 void ImageProcessor::Write(const char* filePath, int whichImage)
 {
