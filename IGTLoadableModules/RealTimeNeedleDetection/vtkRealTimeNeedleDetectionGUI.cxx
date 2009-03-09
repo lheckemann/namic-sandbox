@@ -596,12 +596,15 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegion, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
-      //pImageProcessor->PassOn();
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Input.png",1);
-      pImageProcessor->Threshold(false, true, MAX, 0, 15000);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Threshold.png",2);
-      pImageProcessor->SobelFilter(true, true, 1);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",3);
+      //pImageProcessor->PassOn();
+      
+      pImageProcessor->DilateAndErode(false, true);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/DilateAndErode.png",2);
+      pImageProcessor->Threshold(true, true, MAX, 0, 25000);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Threshold.png",3);
+//      pImageProcessor->SobelFilter(true, true, 1);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",3);
       
    //   pImageProcessor->LaplacianRecursiveGaussian(false,true);  //makes the line white -> no inversion in houghtransform needed
    //   pImageProcessor->Write("/projects/mrrobot/goerlitz/test/LaplacianRecursiveGaussian.png",2);
