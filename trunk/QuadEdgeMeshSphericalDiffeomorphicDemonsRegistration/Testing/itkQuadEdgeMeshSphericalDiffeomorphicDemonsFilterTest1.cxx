@@ -20,6 +20,7 @@
 
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkQuadEdgeMesh.h"
+#include "itkVTKPolyDataReader.h"
 
 int main( int argc, char *argv[] )
 {
@@ -46,6 +47,43 @@ int main( int argc, char *argv[] )
 
   std::cout << demonsFilter->GetNameOfClass() << std::endl;
   demonsFilter->Print( std::cout );
+
+  typedef itk::VTKPolyDataReader< FixedMeshType >         FixedReaderType;
+  typedef itk::VTKPolyDataReader< MovingMeshType >        MovingReaderType;
+
+  FixedReaderType::Pointer fixedReader = FixedReaderType::New();
+  fixedReader->SetFileName( argv[1] );
+
+  MovingReaderType::Pointer movingReader = MovingReaderType::New();
+  movingReader->SetFileName( argv[2] );
+
+  try
+    {
+    fixedReader->Update( );
+    movingReader->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << "Exception thrown while reading the input file " << std::endl;
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  demonsFilter->SetFixedMesh( fixedReader->GetOutput() );
+  demonsFilter->SetMovingMesh( movingReader->GetOutput() );
+
+  if( demonsFilter->GetFixedMesh() != fixedReader->GetOutput() )
+    {
+    std::cerr << "Error in SetFixedMesh()/GetFixedMesh() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( demonsFilter->GetMovingMesh() != movingReader->GetOutput() )
+    {
+    std::cerr << "Error in SetMovingMesh()/GetMovingMesh() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   return EXIT_SUCCESS;
 }
