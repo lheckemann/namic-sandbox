@@ -275,10 +275,9 @@ void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, 
 // An inversion of colors is included, because the needle appears dark in the original image
 // It assumes the needle is entering from the right side of the image pointing to the left
 //     inputTmp:     Input image is coming from localTmp or localInputImg
-//     needleOrigin: LEFT, RIGHT, TOP, BOTTOM defining from where the needle enters
 //     points:       Array that contains 2 points of the needle transform (x1,y1,x2,y2)
 //                   points[0],points[1] is the point of the needle entering the image | points[2],points[3] is the end of the needle
-void ImageProcessor::HoughTransformation(bool inputTmp, int needleOrigin, double* points) //TODO: take out needleOrigin if not needed!
+void ImageProcessor::HoughTransformation(bool inputTmp, double* points) 
 {
   InverterType::Pointer inverter = InverterType::New();
   HoughFilter::Pointer houghFilter = HoughFilter::New();
@@ -290,25 +289,28 @@ void ImageProcessor::HoughTransformation(bool inputTmp, int needleOrigin, double
   if(inputTmp && (mWhichTmp == 1))
   {
     std::cout << "mLocalTmp1" << std::endl;
+    //houghFilter->SetInput(mLocalTmp1);
     inverter->SetInput(mLocalTmp1);
   }
   else if (inputTmp && (mWhichTmp == 2))
   {
     std::cout << "mLocalTmp2" << std::endl;
+    //houghFilter->SetInput(mLocalTmp2);
     inverter->SetInput(mLocalTmp2);
   }
   else
   {
     std::cout << "mLocalInput" << std::endl;
+    //houghFilter->SetInput(mLocalInputImage);
     inverter->SetInput(mLocalInputImage);
   }
   
   itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
   writer->SetFileName("/projects/mrrobot/goerlitz/test/inverted.png");
   writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
-  writer->Update();
-  
+  writer->Update();  
   houghFilter->SetInput(inverter->GetOutput()); 
+  
   houghFilter->SetNumberOfLines(numberOfLines);
   houghFilter->SetVariance(1);   // default is 10 -> no blurring with the gaussian
   houghFilter->SetDiscRadius(5);  // default is 5
@@ -337,19 +339,19 @@ void ImageProcessor::HoughTransformation(bool inputTmp, int needleOrigin, double
   v[1] /= norm;    
           
   //--------------------------------------------------------------------------------------------------
-  //draw found lines in mLocalOutputImage        
+  //draw found line in mLocalOutputImage
+//TODO: make this generic!?!?        
   FloatImageType::IndexType localIndex;
   itk::Size<2> size = mLocalOutputImage->GetLargestPossibleRegion().GetSize();
-  //normalize the support vector to x = xSize  TODO: maybe I have to normalize to either x or y, if needle comes from the right or bottom
+  //normalize the support vector to x = xSize (v[0] = size[0])  
   double multiplier = 0;
-  multiplier = (u[0]-size[0]) / v[0]; // u[0]-multiplier*v[0] = size[0]
+  multiplier = (u[0]-size[0]) / v[0]; // ==u[0]-m*v[0]=size[0] 
    
   // find the first x and y coordinates of the first point of the line in the image and use these instead of instead of a random point u on the line
   u[0] -= multiplier * v[0];
   u[1] -= multiplier * v[1];
    
   //normalize the direction vector to negative x, because the needle enters from the right side of the image
-  //TODO: make this generic!?!?
   if(v[0] > 0.0)
   {
     v[0] *= -1;
@@ -365,7 +367,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, int needleOrigin, double
   for(int i=0; i<=static_cast<int>(diag); i++)
   {
     localIndex[0]=(long int)(u[0]+i*v[0]);
-    localIndex[1]=(long int)(u[1]+i*v[1]);
+    localIndex[1]=(long int)(u[1]+i*v[1])+1; // offset of 1 for the line, because it is detected a little too high
 
     FloatImageType::RegionType outputRegion =  mLocalOutputImage->GetLargestPossibleRegion(); //TODO: take out of for-loop!?
     
@@ -376,6 +378,9 @@ void ImageProcessor::HoughTransformation(bool inputTmp, int needleOrigin, double
         points[0] = (u[0]+i*v[0]); // X-coordinate of the first point of the needle in the image
         points[1] = (u[1]+i*v[1]); // Y-coordinate of the first point of the needle in the image
       }
+//      FloatImageType::IndexType offsetIndex; //compare with adjcent pixel, because line is detected too high 
+//      offsetIndex[0] = localIndex[0];
+//      offsetIndex[1] = localIndex[1]+1;
       if(mLocalOutputImage->GetPixel(localIndex) < lastIntensity + 10000)  // if pixel still belongs to needle
       {
         length++;
@@ -553,7 +558,7 @@ void ImageProcessor::SobelEdgeDetection(bool inputTmp, bool outputTmp)
   }  
 }
 
-void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction) 
+void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)    // Direction switching is not working yet, only x-axis
 {
   FloatImageType::Pointer image; 
   if(inputTmp && (mWhichTmp == 1))
@@ -562,20 +567,9 @@ void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)
     image = mLocalTmp2;
   else
     image = mLocalInputImage;  
-  int a,b; 
-  if(direction == 1) // Operatordirection is x
-  {
-    a = 2;
-    b = 1;
-  }
-  else if(direction == 2) // Operatordirection is y 
-  {
-    a = 1;
-    b = 2;
-  }
-      
-  // TODO: Comment on direction switchting, also make a const for X and Y axis
-  //        Direction switching is not working yet, only x-axis
+  int a = 2;
+  int b = 1;
+
   FloatImageType::SizeType size;
   size[0] = a;         // x-Dimension: 5 Pixel, 2 into each direction from the center
   size[1] = b;        // y-Dimension: 3 Pixel, 1 into each direction from the center
@@ -605,15 +599,15 @@ void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)
   for (it.GoToBegin(), out.GoToBegin(); !it.IsAtEnd(); ++it, ++out)
   {
     float sum = 0;
-    sum = it.GetPixel(position10) - it.GetPixel(position1);
-    sum += it.GetPixel(position11) - it.GetPixel(position2);
-    sum += it.GetPixel(position12) - it.GetPixel(position3);
-    sum += it.GetPixel(position13) - it.GetPixel(position4);
-    sum += it.GetPixel(position14) - it.GetPixel(position5);
-    sum += 2.0 * it.GetPixel(position6);
-    sum += 2.0 * it.GetPixel(position7);
-    sum += 2.0 * it.GetPixel(position8);
-    sum += 2.0 * it.GetPixel(position9); 
+    sum =  it.GetPixel(position10) + it.GetPixel(position1);
+    sum += it.GetPixel(position11) + it.GetPixel(position2);
+    //sum += it.GetPixel(position12) + it.GetPixel(position3);
+    sum += it.GetPixel(position13) + it.GetPixel(position4);
+    sum += it.GetPixel(position14) + it.GetPixel(position5);
+    sum -= 2.0 * it.GetPixel(position6);
+    sum -= 2.0 * it.GetPixel(position7);
+    sum -= 2.0 * it.GetPixel(position8);
+    sum -= 2.0 * it.GetPixel(position9); 
     if(sum < 0)
       sum = 0;
     out.Set(sum);
