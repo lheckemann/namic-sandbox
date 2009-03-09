@@ -82,14 +82,23 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GenerateData( )
 {
-  typename FixedMeshType::ConstPointer input = this->GetInput( 0 );
+  OutputMeshPointer output = this->GetOutput( 0 );
 
-  typename OutputMeshType::Pointer output = this->GetOutput( 0 );
+  this->AllocateOutputMesh();
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+AllocateOutputMesh( )
+{
+  OutputMeshPointer output = this->GetOutput( 0 );
 
   output->SetCellsAllocationMethod(
-      OutputMeshType::CellsAllocatedDynamicallyCellByCell );
-
+    OutputMeshType::CellsAllocatedDynamicallyCellByCell );
 }
+
 
 }
 
