@@ -19,15 +19,9 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkVersorTransform.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
-#include "itkMeanSquaresMeshToMeshMetric.h"
-#include "itkNearestNeighborInterpolateMeshFunction.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
-#include "itkCommand.h"
-#include "itkTestingMacros.h"
-
 
 
 //Linear mapping between 0 and 1 as a function of phi and theta
