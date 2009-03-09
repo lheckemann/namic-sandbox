@@ -8,7 +8,7 @@
 
   Program:   3D Slicer
   Module:    $HeadURL: ??$
-  Date:      $Date: 2009/02/27 19:10:09$
+  Date:      $Date: 2009/03/09 09:10:09$
   Version:   $Revision: 1.00$
 
 ==========================================================================*/
@@ -418,8 +418,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       }
       else //VolumeNode exists already
       {
-        std::cerr << "VolumeNode exists already. Starting again" << std::endl;
-        
+        std::cerr << "VolumeNode exists already. Starting again" << std::endl;        
       }
     
       //--------------------------------------------------------------------------------------
@@ -597,9 +596,15 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegion, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
-      pImageProcessor->PassOn();
-      //pImageProcessor->LaplacianRecursiveGaussian(false,false);
+      //pImageProcessor->PassOn();
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Input.png",1);
       pImageProcessor->Threshold(false, true, MAX, 0, 15000);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Threshold.png",2);
+      pImageProcessor->SobelFilter(true, true, 1);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",3);
+      
+   //   pImageProcessor->LaplacianRecursiveGaussian(false,true);  //makes the line white -> no inversion in houghtransform needed
+   //   pImageProcessor->Write("/projects/mrrobot/goerlitz/test/LaplacianRecursiveGaussian.png",2);
   //    pImageProcessor->SobelFilter(true,true,1);
   //    pImageProcessor->Threshold(true,true,MAX,0,10000);
   //    pImageProcessor->SobelEdgeDetection(false, true);
@@ -608,37 +613,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Threshold(false,true,0,0,20000);
        //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
        //pImageProcessor->Threshold(true,true,MAX,0,1);
-       //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/threshold.png",3);
-      switch (needleOrigin) 
-      {
-        case PATIENTLEFT: //and AXIAL TODO: take care of scan plane
-        {
-          pImageProcessor->HoughTransformation(true, RIGHT, points);         
-          break;
-        }
-        case PATIENTRIGHT:
-        {
-          break;
-        }
-        case PATIENTPOSTERIOR:
-        {
-          break;
-        }
-        case PATIENTANTERIOR: //and AXIAL
-        {
-          pImageProcessor->HoughTransformation(true, TOP, points); 
-          break;
-        }
-        case PATIENTINFERIOR:
-        {
-          break;
-        }
-        case PATIENTSUPERIOR:
-        {
-          break;
-        }                
-      } //end of switch
-         
+        pImageProcessor->HoughTransformation(true, points);     
        //pImageProcessor->CannyEdgeDetection(true,false);
              //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
            //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",4);
@@ -656,7 +631,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0)) 
           std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
         else // if everything is ok
-        {//TODO: make this generic!! Right now I assume the needle enters from the left                  
+        {//TODO: make this generic!! Right now I assume the needle enters from the patientleft                  
           points[0] += currentXLowerBound;
           points[1] += currentYLowerBound;
           points[2] += currentXLowerBound;
@@ -840,6 +815,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pStopButton->Create();
   this->pStopButton->SetText("Stop");
   this->pStopButton->SetWidth(15);
+  this->pStopButton->EnabledOff();
 
   this->Script("pack %s %s -side left -padx 2 -pady 2", 
                this->pStartButton->GetWidgetName(),
@@ -966,6 +942,8 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
 {
   if(started)
   {
+    this->pStartButton->EnabledOff();
+    this->pStopButton->EnabledOn();
     this->pScannerIDEntry->EnabledOff();
     this->pXLowerEntry->EnabledOff();
     this->pXUpperEntry->EnabledOff();
@@ -975,6 +953,8 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
   }
   else if(started == 0)
   {
+    this->pStartButton->EnabledOn();
+    this->pStopButton->EnabledOff();
     this->pScannerIDEntry->EnabledOn();
     this->pXLowerEntry->EnabledOn();
     this->pXUpperEntry->EnabledOn();

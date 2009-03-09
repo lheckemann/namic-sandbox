@@ -14,6 +14,9 @@
 #include "itkRescaleIntensityImageFilter.h"            // used to cast float back to char/short 
 #include "itkSobelOperator.h"
 #include "itkNeighborhoodIterator.h"
+#include "itkGrayscaleErodeImageFilter.h"             // used to close gaps needle created by thinning
+#include "itkGrayscaleDilateImageFilter.h"           //  used to close gaps needle created by thinning
+#include "itkBinaryBallStructuringElement.h"         // only used for erode and dilate TODO: remove when unnecessary
 
 #define MAX       65335 // Maximum gray scale Intensity for FloatImageType and UShortImageType (=maximum of unsigned short)
 #define MAXOUTPUT 600   // Maximum gray scale Intensity for the output image
@@ -68,7 +71,7 @@ public:
   void PassOn() {mLocalOutputImage = mLocalInputImage;};
   void GradientMagnitude(bool inputTmp, bool outputTmp);
   void Threshold(bool inputTmp, bool outputTmp, int outsideValue, int threshBelow, int threshAbove);
-  void HoughTransformation(bool inputTmp, int needleOrigin, double* points);
+  void HoughTransformation(bool inputTmp, double* points);
   void CannyEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore        
   void BinaryThreshold(bool inputTmp, bool outputTmp);            // not used anymore
   void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp); // not used anymore
