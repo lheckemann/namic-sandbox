@@ -85,5 +85,17 @@ int main( int argc, char *argv[] )
     }
 
 
+  try
+    {
+    demonsFilter->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << "Exception thrown while running the Demons filter " << std::endl;
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   return EXIT_SUCCESS;
 }
