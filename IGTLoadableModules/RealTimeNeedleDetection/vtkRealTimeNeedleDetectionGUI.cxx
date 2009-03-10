@@ -596,19 +596,28 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       //------------------------------------------------------------------------------------------------
       // Crop out the imageRegion specified by the X- and Y-boundaries
       vtkImageData* pImageData  = vtkImageData::New();        
-      pImageData->DeepCopy(((vtkMRMLVolumeNode*) pSourceNode)->GetImageData());  
-      unsigned char* pImageRegion = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize]; 
-      GetImageRegion(pImageData, pImageRegion);
+      pImageData->DeepCopy(((vtkMRMLVolumeNode*) pSourceNode)->GetImageData());
+      unsigned char* pImageRegionInput = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];  
+      unsigned char* pImageRegion1 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];
+      unsigned char* pImageRegion2 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize]; 
+      GetImageRegion(pImageData, pImageRegionInput);
   
       //--------------------------------------------------------------------------------------------------
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
-      pImageProcessor->SetImage((void*) pImageRegion, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
+      pImageProcessor->SetImage((void*) pImageRegionInput, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       //pImageProcessor->PassOn();
       
       pImageProcessor->DilateAndErode(false, true);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
+      
+      pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
+      pImageProcessor->GetImage((void*) pImageRegion1);
+      SetImageRegion(pImageData, pImageRegion1, false);  // write the region of interest with the drawn needle in it below the MRI image received from the scanner
+      //TODO:DELETE pImageRegion!!
+      
       pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
       pImageProcessor->BinaryThinning(true, true);
@@ -631,9 +640,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
              //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",INPUT);         
            //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",OUTPUT);
       std::cout << "ImageRegion processed" << std::endl;    
-      pImageProcessor->GetImage((void*) pImageRegion);
-      SetImageRegion(pImageData, pImageRegion);
-      //pImageRegion->Delete();  //TODO:DELETE pImageRegion!!
+      pImageProcessor->GetImage((void*) pImageRegion2);
+      SetImageRegion(pImageData, pImageRegion2, true);  // write the region of interest with the drawn needle in it above the MRI image received from the scanner
+      //pImageRegion2->Delete();  //TODO:DELETE pImageRegion!!
       pVolumeNode->SetAndObserveImageData(pImageData); //automatically removes old observer and sets modified flag, if new image is different  TODO: Does it also delete the old observer?
       pImageData->Delete();
       
@@ -1021,14 +1030,18 @@ void vtkRealTimeNeedleDetectionGUI::GetImageRegion(vtkImageData* pImageData, uns
 
 //--------------------------------------------------------------------------
 // hard copy the region of interest back to the imageRegion byte by byte
-void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion)
+void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion, bool above)
 {
   unsigned char* pImage = (unsigned char*) pImageData->GetScalarPointer();
+  int positionInMessageImage = 0;
   for(long i = 0; i <= currentXImageRegionSize * currentYImageRegionSize * scalarSize; i++)
   {
-    int positionInMessageImage = currentXLowerBound*scalarSize + (i%(currentXImageRegionSize*scalarSize)) + (i/(currentXImageRegionSize*scalarSize))*imageDimensions[0]*scalarSize;
-    pImage[positionInMessageImage+10*imageDimensions[0]*scalarSize] = pImageRegion[i];
-  } 
+    positionInMessageImage = currentXLowerBound*scalarSize + (i%(currentXImageRegionSize*scalarSize)) + (i/(currentXImageRegionSize*scalarSize))*imageDimensions[0]*scalarSize;
+    if(above) //the position of the region of interest is above the original image
+      pImage[positionInMessageImage+10*imageDimensions[0]*scalarSize] = pImageRegion[i];      
+    else //the position of the region of interest is below the original image
+      pImage[positionInMessageImage+(imageDimensions[1]-currentYImageRegionSize-10)*imageDimensions[0]*scalarSize] = pImageRegion[i];
+  }    
 }
 
 //---------------------------------------------------------------------------
