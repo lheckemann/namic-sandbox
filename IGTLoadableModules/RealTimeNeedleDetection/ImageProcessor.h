@@ -17,6 +17,7 @@
 #include "itkGrayscaleErodeImageFilter.h"             // used to close gaps needle created by thinning
 #include "itkGrayscaleDilateImageFilter.h"           //  used to close gaps needle created by thinning
 #include "itkBinaryBallStructuringElement.h"         // only used for erode and dilate TODO: remove when unnecessary
+#include "itkBinaryThinningImageFilter.h"             
 
 #define MAX       65335 // Maximum gray scale Intensity for FloatImageType and UShortImageType (=maximum of unsigned short)
 #define MAXOUTPUT 600   // Maximum gray scale Intensity for the output image
@@ -25,6 +26,7 @@
 #define TOP       3
 #define BOTTOM    4 
 
+//TODO: maybe no need for floatImage? HoughTransform and Thinning need inverted images and they use Uchar inverted images
 template <class InputPixelType>
 class InvertIntensityFunctor
 {
@@ -82,6 +84,7 @@ public:
   void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp); // not used anymore
   void SobelEdgeDetection(bool inputTmp, bool outputTmp);         
   void DilateAndErode(bool inputTmp, bool outputTmp);
+  void BinaryThinning(bool inputTmp, bool outputTmp);
   //Neighborhood Functions
   void SobelFilter(bool inputTmp, bool outputTmp, int direction); // my own version of the sobel edge detection filter
   virtual ~ImageProcessor();

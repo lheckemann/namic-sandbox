@@ -289,27 +289,27 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
   if(inputTmp && (mWhichTmp == 1))
   {
     std::cout << "mLocalTmp1" << std::endl;
-    //houghFilter->SetInput(mLocalTmp1);
-    inverter->SetInput(mLocalTmp1);
+    houghFilter->SetInput(mLocalTmp1);
+    //inverter->SetInput(mLocalTmp1);
   }
   else if (inputTmp && (mWhichTmp == 2))
   {
     std::cout << "mLocalTmp2" << std::endl;
-    //houghFilter->SetInput(mLocalTmp2);
-    inverter->SetInput(mLocalTmp2);
+    houghFilter->SetInput(mLocalTmp2);
+    //inverter->SetInput(mLocalTmp2);
   }
   else
   {
     std::cout << "mLocalInput" << std::endl;
-    //houghFilter->SetInput(mLocalInputImage);
-    inverter->SetInput(mLocalInputImage);
+    houghFilter->SetInput(mLocalInputImage);
+    //inverter->SetInput(mLocalInputImage);
   }
   
-  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
-  writer->SetFileName("/projects/mrrobot/goerlitz/test/inverted.png");
-  writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
-  writer->Update();  
-  houghFilter->SetInput(inverter->GetOutput()); 
+//  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
+//  writer->SetFileName("/projects/mrrobot/goerlitz/test/inverted.png");
+//  writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
+//  writer->Update();  
+//  houghFilter->SetInput(inverter->GetOutput()); 
   
   houghFilter->SetNumberOfLines(numberOfLines);
   houghFilter->SetVariance(1);   // default is 10 -> no blurring with the gaussian
@@ -636,55 +636,118 @@ void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)  
   }  
 }
 
-void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp)
-{
-  DilateFilterType::Pointer grayscaleDilate = DilateFilterType::New();
+void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp) //dilates and erodes bright spots in the image
+{                                                                  //the order of operation is erode and then dilate, because the needle is black and to dilate black parts one needs to erode the white parts
   ErodeFilterType::Pointer grayscaleErode = ErodeFilterType::New();
+  DilateFilterType::Pointer grayscaleDilate = DilateFilterType::New();  
   
   if(inputTmp && (mWhichTmp == 1))
-    grayscaleDilate->SetInput(mLocalTmp1);
+    grayscaleErode->SetInput(mLocalTmp1);
   else if (inputTmp && (mWhichTmp == 2))
-    grayscaleDilate->SetInput(mLocalTmp2);
+    grayscaleErode->SetInput(mLocalTmp2);
   else
-    grayscaleDilate->SetInput(mLocalInputImage);  
+    grayscaleErode->SetInput(mLocalInputImage);  
   
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius(1); // 3x3 structuring
-  structuringElement.CreateStructuringElement();
+  StructuringElementType structuringElementErode;
+  StructuringElementType structuringElementDilate;
+  structuringElementErode.SetRadius(2); // 5x5 structuring
+  structuringElementDilate.SetRadius(3); // 7x7 structuring
+  structuringElementErode.CreateStructuringElement();
+  structuringElementDilate.CreateStructuringElement();
   
-  grayscaleDilate->SetKernel(structuringElement);
-  grayscaleErode->SetKernel(structuringElement);
+  grayscaleErode->SetKernel(structuringElementErode);
+  grayscaleDilate->SetKernel(structuringElementDilate);
+    
+  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
+  writer->SetFileName("/projects/mrrobot/goerlitz/test/erode.png");
+  writer->SetInput(RescaleFloatToUChar(grayscaleErode->GetOutput()));
+  writer->Update();  
   
-  grayscaleErode->SetInput(grayscaleDilate->GetOutput() );
-
+  grayscaleDilate->SetInput(grayscaleErode->GetOutput() );
+  
   if(outputTmp)
   {
     if(mWhichTmp == 1)
     {
       mWhichTmp = 2;
-      mLocalTmp2 = grayscaleErode->GetOutput();
+      mLocalTmp2 = grayscaleDilate->GetOutput();
     }
     else
     {
       mWhichTmp = 1;
-      mLocalTmp1 = grayscaleErode->GetOutput();
+      mLocalTmp1 = grayscaleDilate->GetOutput();
     }
   }
   else
   {
-    mLocalOutputImage = grayscaleErode->GetOutput();
+    mLocalOutputImage = grayscaleDilate->GetOutput();
     mWhichTmp = 0;
   }
 
   try
   {
-    grayscaleErode->Update();
+    grayscaleDilate->Update();
     }
       catch( itk::ExceptionObject & err )
     {
-    std::cout << "ExceptionObject caught updating the erode filter!" << std::endl;
+    std::cout << "ExceptionObject caught updating the dilating the filter!" << std::endl;
     std::cout << err << std::endl;
   }  
+}
+
+void ImageProcessor::BinaryThinning(bool inputTmp, bool outputTmp)
+{
+  InverterType::Pointer inverter = InverterType::New();
+  itk::BinaryThinningImageFilter<FloatImageType, FloatImageType>::Pointer thinFilter;
+  thinFilter = itk::BinaryThinningImageFilter<FloatImageType, FloatImageType>::New();
+  if(inputTmp && (mWhichTmp == 1))
+    inverter->SetInput(mLocalTmp1);
+    //thinFilter->SetInput(mLocalTmp1);
+  else if (inputTmp && (mWhichTmp == 2))
+    inverter->SetInput(mLocalTmp2);
+    //thinFilter->SetInput(mLocalTmp2);
+  else
+    inverter->SetInput(mLocalInputImage);
+    //thinFilter->SetInput(mLocalInputImage);     
+  
+  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
+  writer->SetFileName("/projects/mrrobot/goerlitz/test/inverted.png");
+  writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
+  writer->Update();  
+  thinFilter->SetInput(inverter->GetOutput()); 
+    
+//  thinFilter->SetForegroundValue(0);
+//  thinFilter->SetBackgroundValue(MAX); 
+    
+  if(outputTmp)
+  {
+    if(mWhichTmp == 1)
+    {
+      mWhichTmp = 2;
+      mLocalTmp2 = thinFilter->GetOutput();
+    }
+    else
+    {
+      mWhichTmp = 1;
+      mLocalTmp1 = thinFilter->GetOutput();
+    }
+  }
+  else
+  {
+    mLocalOutputImage = thinFilter->GetOutput();
+    mWhichTmp = 0;
+  }
+  
+  try
+  {
+    thinFilter->Update();
+    }
+      catch( itk::ExceptionObject & err )
+    {
+    std::cout << "ExceptionObject caught updating the thinning filter!" << std::endl;
+    std::cout << err << std::endl;
+  }  
+  
 }
 
 // only writes grayscale integer 2D images
@@ -695,17 +758,19 @@ void ImageProcessor::Write(const char* filePath, int whichImage)
   writer->SetFileName(filePath);
   switch(whichImage)
   {
-    case  1: 
+    case INPUT: 
       writer->SetInput(RescaleFloatToUChar(mLocalInputImage));
       std::cout << "inputimage selected to write to file" << std::endl;
       break;
-    case  2: 
-      writer->SetInput(RescaleFloatToUChar(mLocalTmp1));
+    case TMP:
+      if(mWhichTmp == 1) 
+        writer->SetInput(RescaleFloatToUChar(mLocalTmp1));
+      else if(mWhichTmp == 2)
+        writer->SetInput(RescaleFloatToUChar(mLocalTmp2));
+      else // this should never happen!
+        std::cerr << "ERROR! invalid temporary file! No image written to file" << std::endl;
       break;
-    case  3:
-      writer->SetInput(RescaleFloatToUChar(mLocalTmp2));
-      break;
-    case  4:
+    case  OUTPUT:
       writer->SetInput(RescaleFloatToUChar(mLocalOutputImage));
       std::cout << "outputimage selected to write to file" << std::endl;
       break;
