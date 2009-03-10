@@ -62,6 +62,10 @@
 #define CORONAL   2
 #define SAGITTAL  3
 
+#define INPUT     1
+#define TMP       2
+#define OUTPUT    3
+
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkRealTimeNeedleDetectionGUI);
@@ -596,18 +600,22 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegion, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Input.png",1);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Input.png",INPUT);
       //pImageProcessor->PassOn();
       
       pImageProcessor->DilateAndErode(false, true);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/DilateAndErode.png",2);
-      pImageProcessor->Threshold(true, true, MAX, 0, 25000);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Threshold.png",3);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/DilateAndErode.png",TMP);
+      pImageProcessor->Threshold(true, true, MAX, 0, 18000);
+      //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Threshold1.png",TMP);
+      //pImageProcessor->Threshold(true, true, 0, 18001, MAX);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Threshold2.png",TMP);
+      pImageProcessor->BinaryThinning(true, true);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Thinning.png",TMP);
 //      pImageProcessor->SobelFilter(true, true, 1);
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",3);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",TMP);
       
    //   pImageProcessor->LaplacianRecursiveGaussian(false,true);  //makes the line white -> no inversion in houghtransform needed
-   //   pImageProcessor->Write("/projects/mrrobot/goerlitz/test/LaplacianRecursiveGaussian.png",2);
+   //   pImageProcessor->Write("/projects/mrrobot/goerlitz/test/LaplacianRecursiveGaussian.png",TMP);
   //    pImageProcessor->SobelFilter(true,true,1);
   //    pImageProcessor->Threshold(true,true,MAX,0,10000);
   //    pImageProcessor->SobelEdgeDetection(false, true);
@@ -618,8 +626,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Threshold(true,true,MAX,0,1);
         pImageProcessor->HoughTransformation(true, points);     
        //pImageProcessor->CannyEdgeDetection(true,false);
-             //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",1);         
-           //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",4);
+             //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",INPUT);         
+           //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",OUTPUT);
       std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegion);
       SetImageRegion(pImageData, pImageRegion);
