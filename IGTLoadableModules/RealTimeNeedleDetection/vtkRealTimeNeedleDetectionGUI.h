@@ -115,15 +115,16 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
-  vtkKWPushButton*  pStartButton;
-  vtkKWPushButton*  pStopButton;
-  vtkKWCheckButton* pShowNeedleButton;
-  vtkKWMenuButton*  pSourceMenu;
-  vtkKWEntry*       pScannerIDEntry;
-  vtkKWEntry*       pXLowerEntry;
-  vtkKWEntry*       pXUpperEntry;
-  vtkKWEntry*       pYLowerEntry;
-  vtkKWEntry*       pYUpperEntry;
+  vtkKWPushButton*      pStartButton;
+  vtkKWPushButton*      pStopButton;
+  vtkKWCheckButton*     pShowNeedleButton;
+  vtkKWMenuButton*      pSourceMenu;
+  vtkKWEntry*           pScannerIDEntry;
+  vtkKWScaleWithEntry*  pThresholdScale;
+  vtkKWEntry*           pXLowerEntry;
+  vtkKWEntry*           pXUpperEntry;
+  vtkKWEntry*           pYLowerEntry;
+  vtkKWEntry*           pYUpperEntry;
   
   //----------------------------------------------------------------
   // MRML nodes
@@ -151,6 +152,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // Image Values
   //----------------------------------------------------------------   
+  double          needleDetectionThreshold;
   int             initialXLowerBound;
   int             initialXUpperBound;        
   int             initialYLowerBound;     
