@@ -46,6 +46,8 @@
 #include "vtkKWPushButton.h"
 #include "vtkKWEntry.h"
 #include "vtkKWCheckButton.h"
+#include "vtkKWScaleWithEntry.h"
+#include "vtkKWScale.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -62,11 +64,12 @@
 #define CORONAL   2
 #define SAGITTAL  3
 
+#define DEFAULTTHRESHOLD 18000
+
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkRealTimeNeedleDetectionGUI);
 vtkCxxRevisionMacro (vtkRealTimeNeedleDetectionGUI, "$Revision: 1.0 $");
 //---------------------------------------------------------------------------
-
 
 //---------------------------------------------------------------------------
 // Constructor
@@ -90,6 +93,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->pStopButton       = NULL;
   this->pShowNeedleButton = NULL;
   this->pScannerIDEntry   = NULL;
+  this->pThresholdScale   = NULL;
   this->pXLowerEntry      = NULL;
   this->pXUpperEntry      = NULL;
   this->pYLowerEntry      = NULL;
@@ -114,6 +118,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   currentYUpperBound = initialYUpperBound = 256;
   currentXImageRegionSize                 = 256;
   currentYImageRegionSize                 = 256;
+  needleDetectionThreshold                = DEFAULTTHRESHOLD;
   imageDimensions[0]    = 256;
   imageDimensions[1]    = 256;
   imageDimensions[2]    = 1;
@@ -176,6 +181,12 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
     this->pScannerIDEntry->SetParent(NULL);
     this->pScannerIDEntry->Delete();
   }
+  if (this->pThresholdScale) 
+  {
+    this->pThresholdScale->SetParent(NULL);
+    this->pThresholdScale->Delete();
+    this->pThresholdScale = NULL;  //TODO:Steve - I found this somewhere in some other code. Is this correct? Do I need to set it to NULL after deleting?
+  }
   if (this->pXLowerEntry)
   {
     this->pXLowerEntry->SetParent(NULL);
@@ -220,13 +231,11 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   std::cout << "NeedleDetection destructed" << std::endl;
 }
 
-
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::Init()
 {
   this->DataManager->SetMRMLScene(this->GetMRMLScene());
 }
-
 
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::Enter()
@@ -240,12 +249,10 @@ void vtkRealTimeNeedleDetectionGUI::Enter()
     }
 }
 
-
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::Exit()
 {
 }
-
 
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::PrintSelf(ostream& os, vtkIndent indent)
@@ -254,7 +261,6 @@ void vtkRealTimeNeedleDetectionGUI::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "RealTimeNeedleDetectionGUI: " << this->GetClassName() << "\n";
   os << indent << "Logic: " << this->GetLogic() << "\n";
 }
-
 
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
@@ -274,11 +280,12 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
   if(this->pStopButton)
     this->pStopButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
   if (this->pShowNeedleButton)
-    this->pShowNeedleButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
+    this->pShowNeedleButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+  if(this->pThresholdScale)
+    this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
     
   this->RemoveLogicObservers();
 }
-
 
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
@@ -308,16 +315,13 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
 
   //----------------------------------------------------------------
   // GUI Observers
-  this->pStartButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pStopButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pShowNeedleButton
-    ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->pStartButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pStopButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pThresholdScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
 
   this->AddLogicObservers();
 }
-
 
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::RemoveLogicObservers ( )
@@ -327,7 +331,6 @@ void vtkRealTimeNeedleDetectionGUI::RemoveLogicObservers ( )
     this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand*) this->LogicCallbackCommand);
     }
 }
-
 
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::AddLogicObservers ( )
@@ -349,17 +352,23 @@ void vtkRealTimeNeedleDetectionGUI::HandleMouseEvent(vtkSlicerInteractorStyle* s
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, void* callData)
 {
+  //TODO:check events first in these ifs, because it is probably faster than the downcast
 
   const char* eventName = vtkCommand::GetStringFromEventId(event);
 
-  if (strcmp(eventName, "LeftButtonPressEvent") == 0)  // This is not used yet, since only mouse clicks on buttons are processed
+  if(strcmp(eventName, "LeftButtonPressEvent") == 0)  // This is not used yet, since only mouse clicks on buttons are processed
   {
     vtkSlicerInteractorStyle* style = vtkSlicerInteractorStyle::SafeDownCast(caller);
     HandleMouseEvent(style);
     return;
   }
   
-  else if (this->pStartButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
+  else if(this->pThresholdScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent) 
+  {
+    needleDetectionThreshold = this->pThresholdScale->GetValue();
+  }
+  
+  else if(this->pStartButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
   {
     std::cout << "StartButton is pressed." << std::endl;
        
@@ -595,17 +604,15 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegion, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Input.png",INPUT);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       //pImageProcessor->PassOn();
       
       pImageProcessor->DilateAndErode(false, true);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/DilateAndErode.png",TMP);
-      pImageProcessor->Threshold(true, true, MAX, 0, 18000);
-      //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Threshold1.png",TMP);
-      //pImageProcessor->Threshold(true, true, 0, 18001, MAX);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Threshold2.png",TMP);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
+      pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
       pImageProcessor->BinaryThinning(true, true);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/Thinning.png",TMP);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
 //      pImageProcessor->SobelFilter(true, true, 1);
 //      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",TMP);
       
@@ -725,8 +732,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           transformToParent->DeepCopy(transform->GetMatrix()); // This calls the modified event
           transform->Delete();
         }
-          
-        
   
             
 //        currentXLowerBound = (int) points[2] - 20;
@@ -759,7 +764,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessTimerEvents()
 
 
 //---------------------------------------------------------------------------
-void vtkRealTimeNeedleDetectionGUI::BuildGUI ( )
+void vtkRealTimeNeedleDetectionGUI::BuildGUI()
 {
   this->UIPanel->AddPage("RealTimeNeedleDetection", "RealTimeNeedleDetection", NULL);
 
@@ -776,7 +781,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForHelpFrame ()
   const char* about =
     "This module is designed and implemented by Roland Goerlitz for the Brigham and Women's Hospital.\nThis work is supported by Junichi Tokuda and Nobuhiko Hata.";
     
-  vtkKWWidget* page   = this->UIPanel->GetPageWidget("RealTimeNeedleDetection");
+  vtkKWWidget* page = this->UIPanel->GetPageWidget("RealTimeNeedleDetection");
   this->BuildHelpAndAboutFrame(page, help, about);
 }
 
@@ -796,13 +801,39 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
                parentFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Control frame
+  // control frame
   vtkKWFrameWithLabel* controlFrame = vtkKWFrameWithLabel::New();
   controlFrame->SetParent(parentFrame->GetFrame());
   controlFrame->Create();
   controlFrame->SetLabelText("Needle detection controls");
-  this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", controlFrame->GetWidgetName() );
+  this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", controlFrame->GetWidgetName());
 
+  // ----------------------------------------------------               
+  // scanner ID
+  vtkKWFrame *scannerFrame = vtkKWFrame::New();
+  scannerFrame->SetParent(controlFrame->GetFrame());
+  scannerFrame->Create();
+  app->Script("pack %s -fill both -expand true", scannerFrame->GetWidgetName());
+
+  vtkKWLabel *scannerLabel = vtkKWLabel::New();
+  scannerLabel->SetParent(scannerFrame);
+  scannerLabel->Create();
+  scannerLabel->SetWidth(17);
+  scannerLabel->SetText("Scanner MRML ID: ");
+
+  this->pScannerIDEntry = vtkKWEntry::New();
+  this->pScannerIDEntry->SetParent(scannerFrame);
+  this->pScannerIDEntry->Create();
+  this->pScannerIDEntry->SetWidth(25);
+  this->pScannerIDEntry->SetValue("vtkMRMLScalarVolumeNode1");
+  //TODO:Steve what does anchor w mean? anchor width?  
+
+  app->Script("pack %s %s -side left -fill x -padx 2 -pady 2", 
+              scannerLabel->GetWidgetName() , this->pScannerIDEntry->GetWidgetName());
+  
+  scannerLabel->Delete();
+  scannerFrame->Delete(); 
+  
   // -----------------------------------------
   // push buttons
   vtkKWFrame* buttonFrame = vtkKWFrame::New();
@@ -822,62 +853,52 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pStopButton->SetText("Stop");
   this->pStopButton->SetWidth(15);
   this->pStopButton->EnabledOff();
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->pStartButton->GetWidgetName(),
-               this->pStopButton->GetWidgetName());
-               
-  buttonFrame->Delete();
-
-  // ----------------------------------------------------               
-  // Scanner ID
-  vtkKWFrame *scannerFrame = vtkKWFrame::New();
-  scannerFrame->SetParent(controlFrame->GetFrame());
-  scannerFrame->Create();
-  app->Script("pack %s -fill both -expand true", scannerFrame->GetWidgetName());
-
-  vtkKWLabel *scannerLabel = vtkKWLabel::New();
-  scannerLabel->SetParent(scannerFrame);
-  scannerLabel->Create();
-  scannerLabel->SetWidth(20);
-  scannerLabel->SetText("Scanner MRML ID: ");
-
-  this->pScannerIDEntry = vtkKWEntry::New();
-  this->pScannerIDEntry->SetParent(scannerFrame);
-  this->pScannerIDEntry->Create();
-  this->pScannerIDEntry->SetWidth(25);
-  this->pScannerIDEntry->SetValue("vtkMRMLScalarVolumeNode1");
-
-  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
-              scannerLabel->GetWidgetName() , this->pScannerIDEntry->GetWidgetName());
-  
-  scannerLabel->Delete();
-  scannerFrame->Delete(); 
   
   this->pShowNeedleButton = vtkKWCheckButton::New();
-  this->pShowNeedleButton->SetParent(controlFrame->GetFrame());
+  this->pShowNeedleButton->SetParent(buttonFrame);
   this->pShowNeedleButton->Create();
   this->pShowNeedleButton->SelectedStateOff();
   this->pShowNeedleButton->SetText("Show Needle");
   this->pShowNeedleButton->EnabledOff();
-  
+
+  this->Script("pack %s %s %s -side left -padx 2 -pady 2", 
+               this->pStartButton->GetWidgetName(),
+               this->pStopButton->GetWidgetName(),
+               this->pShowNeedleButton->GetWidgetName());              
+    
   this->Script("pack %s -side left -anchor w -padx 2 -pady 2", this->pShowNeedleButton->GetWidgetName());
-               
-  controlFrame->Delete();
+                          
+  buttonFrame->Delete();
+  
+  // ------------------------------------------------------
+  // slider buttons  
+  this->pThresholdScale = vtkKWScaleWithEntry::New();
+  this->pThresholdScale->SetParent(controlFrame->GetFrame());
+  this->pThresholdScale->SetLabelText("Threshold");
+  this->pThresholdScale->Create();
+  this->pThresholdScale->GetScale()->SetLength(180); 
+  this->pThresholdScale->SetRange(0,MAX);
+  this->pThresholdScale->SetResolution(10);
+  //TODO:Steve can I constrict the values to integer?
+  this->pThresholdScale->SetValue(DEFAULTTHRESHOLD);
+  
+  app->Script("pack %s -side left -anchor w -padx 2 -pady 2", this->pThresholdScale->GetWidgetName());
+  
+  controlFrame->Delete();  
   
   // -----------------------------------------
-  // Parameters frame
-  vtkKWFrameWithLabel* parametersFrame = vtkKWFrameWithLabel::New();
-  parametersFrame->SetParent(parentFrame->GetFrame());
-  parametersFrame->Create();
-  parametersFrame->SetLabelText("Coordinates");
-  this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", parametersFrame->GetWidgetName() );
+  // Coordinates frame
+  vtkKWFrameWithLabel* coordinatesFrame = vtkKWFrameWithLabel::New();
+  coordinatesFrame->SetParent(parentFrame->GetFrame());
+  coordinatesFrame->Create();
+  coordinatesFrame->SetLabelText("Coordinates");
+  this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", coordinatesFrame->GetWidgetName() );
 
   // -----------------------------------------
   // Boundary edit fields TODO: Check for bounds! 0 up to imageDimensions is possible
   //TODO:Steve How do I check suff that gets typed in?
   vtkKWFrame* xFrame = vtkKWFrame::New();
-  xFrame->SetParent(parametersFrame->GetFrame());
+  xFrame->SetParent(coordinatesFrame->GetFrame());
   xFrame->Create();
   app->Script ( "pack %s -fill both -expand true", xFrame->GetWidgetName());
   vtkKWLabel* xLabel = vtkKWLabel::New();
@@ -904,9 +925,9 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   xFrame->Delete();
   
   vtkKWFrame* yFrame = vtkKWFrame::New();
-  yFrame->SetParent(parametersFrame->GetFrame());
+  yFrame->SetParent(coordinatesFrame->GetFrame());
   yFrame->Create();
-  app->Script ( "pack %s -fill both -expand true", yFrame->GetWidgetName());
+  app->Script ("pack %s -fill both -expand true", yFrame->GetWidgetName());
   vtkKWLabel* yLabel = vtkKWLabel::New();
   yLabel->SetParent(yFrame);
   yLabel->Create();
@@ -930,9 +951,9 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   yLabel->Delete();
   yFrame->Delete();
   
-  parametersFrame->Delete();
-  parentFrame->Delete();
+  coordinatesFrame->Delete();
   
+  parentFrame->Delete();
   UpdateGUI();
 }
 
