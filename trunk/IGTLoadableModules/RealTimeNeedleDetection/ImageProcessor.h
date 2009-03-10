@@ -26,6 +26,11 @@
 #define TOP       3
 #define BOTTOM    4 
 
+//defines for the Write function determining which image to write
+#define INPUT     1
+#define TMP       2
+#define OUTPUT    3
+
 //TODO: maybe no need for floatImage? HoughTransform and Thinning need inverted images and they use Uchar inverted images
 template <class InputPixelType>
 class InvertIntensityFunctor

@@ -62,11 +62,6 @@
 #define CORONAL   2
 #define SAGITTAL  3
 
-#define INPUT     1
-#define TMP       2
-#define OUTPUT    3
-
-
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkRealTimeNeedleDetectionGUI);
 vtkCxxRevisionMacro (vtkRealTimeNeedleDetectionGUI, "$Revision: 1.0 $");
