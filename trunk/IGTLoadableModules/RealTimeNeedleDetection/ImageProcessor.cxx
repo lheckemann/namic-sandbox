@@ -224,10 +224,7 @@ void ImageProcessor::GradientMagnitude(bool inputTmp, bool outputTmp)
     }
   }
   else
-  {
     mLocalOutputImage = gradFilter->GetOutput();
-    mWhichTmp = 0;
-  }
   gradFilter->Update();
 }
 
@@ -255,10 +252,8 @@ void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, 
     }
   }
   else
-  {
     mLocalOutputImage = threshFilter->GetOutput();
-    mWhichTmp = 0;
-  }
+    
   threshFilter->SetOutsideValue(outsideValue);
   if(secondThresh >= 0)
     threshFilter->ThresholdOutside(firstThresh,secondThresh);
@@ -432,10 +427,7 @@ void ImageProcessor::CannyEdgeDetection(bool inputTmp, bool outputTmp)
     }
   }
   else
-  {
     mLocalOutputImage = cannyFilter->GetOutput();
-    mWhichTmp = 0;
-  }
 
   cannyFilter->SetVariance(5);
   cannyFilter->Update();  
@@ -465,10 +457,7 @@ void ImageProcessor::BinaryThreshold(bool inputTmp, bool outputTmp)
     }
   }
   else
-  {
     mLocalOutputImage = binFilter->GetOutput();
-    mWhichTmp = 0;
-  }
   
   binFilter->SetOutsideValue(MAX);
   binFilter->SetInsideValue(0);
@@ -501,10 +490,8 @@ void ImageProcessor::LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp)
     }
   }
   else
-  {
     mLocalOutputImage = lapFilter->GetOutput();
-    mWhichTmp = 0;
-  }
+
   lapFilter->SetNormalizeAcrossScale( false );
   lapFilter->SetSigma(1);
   try
@@ -542,10 +529,8 @@ void ImageProcessor::SobelEdgeDetection(bool inputTmp, bool outputTmp)
     }
   }
   else
-  {
     mLocalOutputImage = sobelFilter->GetOutput();
-    mWhichTmp = 0;
-  }  
+
   //TODO: are there any input parameters of the sobel filter that can be set?  
   try
   {
@@ -630,10 +615,7 @@ void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)  
     }
   }
   else
-  {
     mLocalOutputImage = output;
-    mWhichTmp = 0;
-  }  
 }
 
 void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp) //dilates and erodes bright spots in the image
@@ -679,10 +661,7 @@ void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp) //dilates and
     }
   }
   else
-  {
     mLocalOutputImage = grayscaleDilate->GetOutput();
-    mWhichTmp = 0;
-  }
 
   try
   {
@@ -733,10 +712,7 @@ void ImageProcessor::BinaryThinning(bool inputTmp, bool outputTmp)
     }
   }
   else
-  {
     mLocalOutputImage = thinFilter->GetOutput();
-    mWhichTmp = 0;
-  }
   
   try
   {
