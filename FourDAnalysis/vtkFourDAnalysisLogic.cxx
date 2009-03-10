@@ -1144,14 +1144,14 @@ int vtkFourDAnalysisLogic::RunSeriesRegistration(int sIndex, int eIndex, int kIn
 
     if (movingNode && outputNode)
       {
-      statusMessage.progress = (double)((i-sIndex)*2+1) / (double)(eIndex-sIndex + 1)*2;
+      statusMessage.progress = (double)((i-sIndex)*2+1) / (double)((eIndex-sIndex + 1)*2);
       this->InvokeEvent ( vtkFourDAnalysisLogic::ProgressDialogEvent, &statusMessage);
 
       RunAffineRegistration(inputBundleNode, fixedNode, movingNode, transformNode, NULL, affineParam);
 
       // The following InvokeEvent is necessary to correctly pass transformNode as an initial transform
       // (I'm not sure why)
-      statusMessage.progress = (double)((i-sIndex)*2+2) / (double)(eIndex-sIndex + 1)*2;
+      statusMessage.progress = (double)((i-sIndex)*2+2) / (double)((eIndex-sIndex + 1)*2);
       this->InvokeEvent ( vtkFourDAnalysisLogic::ProgressDialogEvent, &statusMessage);
 
       RunDeformableRegistration(inputBundleNode, transformNode, fixedNode, movingNode, outputNode, deformableParam);
