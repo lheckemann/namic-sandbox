@@ -408,10 +408,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         matrix->Element[0][2] = 0.0;
         matrix->Element[1][2] = 0.0;
         matrix->Element[2][2] = -1.0;
-        matrix->Element[0][3] = 0.0;
-        matrix->Element[0][3] = 0.0;
-        matrix->Element[0][3] = 0.0;
-        pVolumeNode->SetRASToIJKMatrix(matrix); // TODO: take this out later, used for the scanner simulation
+        matrix->Element[0][3] = 128.0;
+        matrix->Element[1][3] = 128.0;
+        matrix->Element[2][3] = 0.0;
+        pVolumeNode->SetRASToIJKMatrix(matrix); // TODO: make this matrix generic! right now it is adapted to the scanner simulation
         matrix->Delete();        
         
         vtkMRMLScalarVolumeDisplayNode* pScalarDisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
