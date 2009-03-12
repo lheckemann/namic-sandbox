@@ -694,8 +694,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
           // fovK is not needed, because the images are 2D only
           double translationLR = 0;   //(X-axis)
-          double translationPA = 0;   //(Z-axis)
-          double translationIS = 0;   //(Y-axis)
+          double translationPA = 0;   //(Y-axis)
+          double translationIS = 0;   //(Z-axis)
           
           vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
           transform->Identity();
@@ -758,8 +758,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           vtkMatrix4x4* transformToParent1 = pNeedleTransformNode->GetMatrixTransformToParent();
           transformToParent1->DeepCopy(transform->GetMatrix()); // This calls the modified event
           translationLR *= -1;   //(X-axis)
-          translationPA *= -1;   //(Z-axis)
-          translationIS *= -1;   //(Y-axis)
+          translationPA *= -1;   //(Y-axis)
+          translationIS *= -1;   //(Z-axis)
           transform->Translate(translationLR, translationPA, translationIS);
           transform->PreMultiply(); // = local coordinate system
           transform->RotateZ(90);
