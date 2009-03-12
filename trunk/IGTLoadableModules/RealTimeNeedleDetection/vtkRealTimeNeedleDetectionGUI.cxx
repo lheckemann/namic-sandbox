@@ -105,6 +105,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->pSourceNode          = NULL;
   this->pNeedleModelNode     = NULL;
   this->pNeedleTransformNode = NULL;
+  this->pScanPlaneNormalNode = NULL;
   
   //----------------------------------------------------------------
   // Locator  (MRML)   
@@ -218,6 +219,8 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
     this->pNeedleModelNode->Delete(); //TODO:Steve What about the DisplayNode? What about DisplayNodeObserver?
   if(this->pNeedleTransformNode)
     this->pNeedleTransformNode->Delete();
+  if(this->pScanPlaneNormalNode)
+    this->pScanPlaneNormalNode->Delete();
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -494,7 +497,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         MakeNeedleModel();        
       }
       //------------------------------------------------------------------------------------------------
-      // Create a TransformNode that displays the needle  
+      // Create a TransformNode that changes according to the found needle and will be observed by the ModelNode to display the needle  
       if(!pNeedleTransformNode) // If the NeedleTransformNode doesn't exist yet -> make a new one 
       {
         pNeedleTransformNode = vtkMRMLLinearTransformNode::New();
@@ -503,6 +506,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pNeedleTransformNode->SetScene(this->GetMRMLScene());
         pNeedleTransformNode->SetHideFromEditors(0);
         vtkMatrix4x4* transform = vtkMatrix4x4::New(); // vtkMatrix is initialized with the identity matrix
+        //TODO:Steve Can I delete this transform after I set it to the Node?
         pNeedleTransformNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
         
         this->GetMRMLScene()->AddNode(pNeedleTransformNode);         
@@ -510,6 +514,21 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         
         pNeedleModelNode->SetAndObserveTransformNodeID(pNeedleTransformNode->GetID());
         pNeedleModelNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+      }
+      //------------------------------------------------------------------------------------------------
+      // Create a TransformNode that is the normal of the scan plane  
+      if(!pScanPlaneNormalNode) // If the NeedleTransformNode doesn't exist yet -> make a new one 
+      {
+        pScanPlaneNormalNode = vtkMRMLLinearTransformNode::New();
+        pScanPlaneNormalNode->SetName("ScanPlaneNormal");
+        pScanPlaneNormalNode->UpdateID("ScanPlaneNormal");
+        pScanPlaneNormalNode->SetScene(this->GetMRMLScene());
+        pScanPlaneNormalNode->SetHideFromEditors(0);
+        vtkMatrix4x4* transform = vtkMatrix4x4::New(); // vtkMatrix is initialized with the identity matrix
+        pScanPlaneNormalNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
+        
+        this->GetMRMLScene()->AddNode(pScanPlaneNormalNode);         
+        std::cout << "ScanPlaneNormalNode added" << std::endl;
       }
       vtkMRMLDisplayNode* pNeedleDisplay = pNeedleModelNode->GetDisplayNode(); //TODO:Steve Can I delete this displayNode later on? 
       if(pNeedleDisplay)
@@ -635,10 +654,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Threshold(false,true,0,0,20000);
        //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
        //pImageProcessor->Threshold(true,true,MAX,0,1);
-        pImageProcessor->HoughTransformation(true, points);     
-       //pImageProcessor->CannyEdgeDetection(true,false);
-             //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/input.png",INPUT);         
-           //  pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",OUTPUT);
+        pImageProcessor->HoughTransformation(true, points);
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",OUTPUT);     
+       //pImageProcessor->CannyEdgeDetection(true,false);           
       std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegion2);
       SetImageRegion(pImageData, pImageRegion2, true);  // write the region of interest with the drawn needle in it above the MRI image received from the scanner
@@ -676,12 +694,12 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
           // fovK is not needed, because the images are 2D only
           double translationLR = 0;   //(X-axis)
-          double translationPA = 0;   //(Y-axis)
-          double translationIS = 0;   //(Z-axis)
+          double translationPA = 0;   //(Z-axis)
+          double translationIS = 0;   //(Y-axis)
           
           vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
           transform->Identity();
-          transform->PostMultiply();
+          transform->PostMultiply(); // = global coordinate system
           switch (needleOrigin) {
             case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
             {              
@@ -737,8 +755,16 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           } //end switch          
           transform->Translate(translationLR, translationPA, translationIS);    
                 
-          vtkMatrix4x4* transformToParent = pNeedleTransformNode->GetMatrixTransformToParent();
-          transformToParent->DeepCopy(transform->GetMatrix()); // This calls the modified event
+          vtkMatrix4x4* transformToParent1 = pNeedleTransformNode->GetMatrixTransformToParent();
+          transformToParent1->DeepCopy(transform->GetMatrix()); // This calls the modified event
+          translationLR *= -1;   //(X-axis)
+          translationPA *= -1;   //(Z-axis)
+          translationIS *= -1;   //(Y-axis)
+          transform->Translate(translationLR, translationPA, translationIS);
+          transform->PreMultiply(); // = local coordinate system
+          transform->RotateZ(90);
+          vtkMatrix4x4* transformToParent2 = pScanPlaneNormalNode->GetMatrixTransformToParent();
+          transformToParent2->DeepCopy(transform->GetMatrix()); // This calls the modified event
           transform->Delete();
         }
   

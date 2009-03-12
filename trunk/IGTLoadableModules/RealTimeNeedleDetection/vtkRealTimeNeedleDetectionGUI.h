@@ -133,6 +133,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkMRMLVolumeNode*          pVolumeNode;          // MRML node, which contains the processed image
   vtkMRMLModelNode*           pNeedleModelNode;     // MRML node, which contains the detected needle displayed as transform
   vtkMRMLLinearTransformNode* pNeedleTransformNode;
+  vtkMRMLLinearTransformNode* pScanPlaneNormalNode;
   //TODO:Steve Use a global scene pointer?
     
   //----------------------------------------------------------------
