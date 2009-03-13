@@ -30,6 +30,8 @@ TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITK
 ADD_EXECUTABLE(itkVersorOperationsTest1 itkVersorOperationsTest1.cxx )
 TARGET_LINK_LIBRARIES(itkVersorOperationsTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkNodeScalarGradientCalculatorTest1 itkNodeScalarGradientCalculatorTest1.cxx )
+TARGET_LINK_LIBRARIES(itkNodeScalarGradientCalculatorTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 
 ###################
@@ -56,6 +58,13 @@ ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
 ADD_TEST(itkVersorOperationsTest1
   ${CXX_TEST_PATH}/itkVersorOperationsTest1
   )
+
+ADD_TEST(itkNodeScalarGradientCalculatorTest1
+  ${CXX_TEST_PATH}/itkNodeScalarGradientCalculatorTest1
+  ${TEMP}/fixedMesh01.vtk
+  ${TEMP}/movingMesh01.vtk
+  )
+
 
 
 IF( FREESURFER_DIR )

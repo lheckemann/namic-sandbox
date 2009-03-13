@@ -22,16 +22,16 @@
 #include "itkQuadEdgeMesh.h"
 #include "itkVTKPolyDataReader.h"
 #include "itkMeshGeneratorHelper.h"
+#include "itkCovariantVector.h"
 
 int main( int argc, char *argv[] )
 {
   
-  if( argc < 4 )
+  if( argc < 3 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " fixedMeshFile  movingMeshFile ";
-    std::cerr << " outputMeshfile " << std::endl;
+    std::cerr << " fixedMeshFile  movingMeshFile " << std::endl;
     return EXIT_FAILURE;
     }
   
@@ -40,12 +40,11 @@ int main( int argc, char *argv[] )
 
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   FixedMeshType;
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MovingMeshType;
-  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   RegisteredMeshType;
 
-  typedef itk::NodeScalarGradientCalculator<
-    FixedMeshType, MovingMeshType, RegisteredMeshType >   DemonsFilterType;
+  typedef itk::CovariantVector< MeshPixelType, Dimension >   GradientType;
+  typedef itk::NodeScalarGradientCalculator< FixedMeshType, GradientType  >   GradientCalculatorType;
 
-  DemonsFilterType::Pointer gradientCalculator = DemonsFilterType::New();
+  GradientCalculatorType::Pointer gradientCalculator = GradientCalculatorType::New();
 
   std::cout << gradientCalculator->GetNameOfClass() << std::endl;
   gradientCalculator->Print( std::cout );
@@ -71,34 +70,13 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  gradientCalculator->SetFixedMesh( fixedReader->GetOutput() );
-  gradientCalculator->SetMovingMesh( movingReader->GetOutput() );
+  gradientCalculator->SetInputMesh( fixedReader->GetOutput() );
 
-  if( gradientCalculator->GetFixedMesh() != fixedReader->GetOutput() )
+  if( gradientCalculator->GetInputMesh() != fixedReader->GetOutput() )
     {
     std::cerr << "Error in SetFixedMesh()/GetFixedMesh() " << std::endl;
     return EXIT_FAILURE;
     }
-
-  if( gradientCalculator->GetMovingMesh() != movingReader->GetOutput() )
-    {
-    std::cerr << "Error in SetMovingMesh()/GetMovingMesh() " << std::endl;
-    return EXIT_FAILURE;
-    }
-
-
-  try
-    {
-    gradientCalculator->Update( );
-    }
-  catch( itk::ExceptionObject & exp )
-    {
-    std::cerr << "Exception thrown while running the Demons filter " << std::endl;
-    std::cerr << exp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  itk::MeshWriterHelper<RegisteredMeshType>::WriteMeshToFile( gradientCalculator->GetOutput(), argv[3] );
 
   return EXIT_SUCCESS;
 }

@@ -17,7 +17,9 @@
 #ifndef __itkNodeScalarGradientCalculator_h
 #define __itkNodeScalarGradientCalculator_h
 
-#include "itkMeshFunction.h"
+#include "itkFunctionBase.h"
+#include "itkCovariantVector.h"
+#include "itkMesh.h"
 
 namespace itk
 {
@@ -31,14 +33,23 @@ namespace itk
  * \ingroup MeshFunctions 
  * 
  * */
-template <class TInputMesh, class TCoordRep = double>
+template <class TInputMesh, class TScalar = double>
 class ITK_EXPORT NodeScalarGradientCalculator :
-  public MeshFunction< TInputMesh, TCoordRep >
+  public FunctionBase< typename TInputMesh::PointIdentifier,
+    CovariantVector< 
+      typename NumericTraits< TScalar >::RealType,
+      ::itk::GetMeshDimension<TInputMesh>::PointDimension > >
 {
 public:
+  
+  typedef typename NumericTraits< TScalar >::RealType       RealScalarType;
+  typedef CovariantVector< RealScalarType, 3 >              CovariantType;
+
   /** Standard class typedefs. */
   typedef NodeScalarGradientCalculator                      Self;
-  typedef MeshFunction<TInputMesh, TCoordRep>               Superclass;
+  typedef FunctionBase< 
+    typename TInputMesh::PointIdentifier, 
+    CovariantType > Superclass;
   typedef SmartPointer<Self>                                Pointer;
   typedef SmartPointer<const Self>                          ConstPointer;
   
@@ -46,78 +57,26 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(NodeScalarGradientCalculator, MeshFunction);
+  itkTypeMacro(NodeScalarGradientCalculator, FunctionBase);
 
-  /** OutputType typedef support. */
-  typedef typename Superclass::OutputType OutputType;
-
-  /** InputMeshType typedef support. */
-  typedef typename Superclass::InputMeshType InputMeshType;
-  
   /** Dimension underlying input mesh. */
-  itkStaticConstMacro(MeshDimension, unsigned int, Superclass::MeshDimension);
+  itkStaticConstMacro(MeshDimension, unsigned int, 
+    ::itk::GetMeshDimension<TInputMesh>::PointDimension );
 
   /** Point typedef support. */
-  typedef typename Superclass::PointType                  PointType;
-  typedef typename Superclass::PointIdentifier            PointIdentifier;
-  typedef typename Superclass::CellIdentifier             CellIdentifier;
+  typedef typename TInputMesh::PointType                  PointType;
 
-  /** RealType typedef support. */
-  typedef typename TInputMesh::PixelType                  PixelType;
-  typedef typename Superclass::RealType                   RealType;
+  /** Set the input mesh. */
+  virtual void SetInputMesh( const TInputMesh * ptr );
 
-  /** Type used for representing point components  */
-  typedef Superclass::ParametersValueType CoordinateRepresentationType;
+  /** Get the input mesh. */
+  const TInputMesh * GetInputMesh() const;
 
+  typedef typename Superclass::OutputType                 OutputType;
+  typedef typename Superclass::InputType                  InputType;
 
-   /** Constants for the pointset dimensions */
-  itkStaticConstMacro(MeshDimension, unsigned int,
-                      TMesh::PointDimension);
-  
-  typedef typename MeshType::ConstPointer     MeshConstPointer;
-  typedef typename MeshType::PointsContainer::ConstIterator        PointIterator;
-  typedef typename MeshType::PointDataContainer::ConstIterator     PointDataIterator;
-
-
-  /**  Type of the Gradient Calculator Base class */
-  typedef MeshFunction<
-    MovingMeshType,
-    CoordinateRepresentationType >                   NodeScalarGradientCalculatorType;
-  typedef typename NodeScalarGradientCalculatorType::Pointer         NodeScalarGradientCalculatorPointer;
-  typedef typename NodeScalarGradientCalculatorType::RealType        RealDataType;
-
-  typedef SmartPointer<RealDataType>                 ScalarDataPointer;
-  typedef itk::CovariantVector< RealType, MeshDimension >   GradientType;
-
-  typedef typename NodeScalarGradientCalculatorType::GradientType    GradientDataType;
-
-  typedef SmartPointer<RealDataType>                 RealDataPointer;
-  typedef SmartPointer<GradientDataType>             GradientDataPointer;
-
-  /** 
-   * Compute gradient of the mesh at a point position.
-   * Returns the gradient of the mesh intensity at a specified node. The
-   * mesh cell is located based on proximity to the point to be evaluated.
-   *
-   *
-   */
-  virtual OutputType Evaluate( unsigned int index ) const;  
-
-  /** 
-   * Set the fixed mesh. 
-   * The method needs this to evaluate values of the warped moving mesh at
-   * node points of the fixed mesh. */
-  void SetMesh( const MeshType * fixedMesh )
-    {
-    this->m_Mesh = fixedMesh;
-    }
-
-
-  /** 
-   * Set the scalar array, according to which to compute the gradient. 
-   * The method needs these values of the warped moving mesh, to then evaluate
-   * node points of the fixed mesh. */
-  void SetScalarArray( RealDataPointer inScalarArray); 
+  /** Evaluate at the specified input position */
+  virtual OutputType Evaluate( const InputType& input ) const { return OutputType(); }
 
 protected:
   NodeScalarGradientCalculator();
@@ -125,22 +84,11 @@ protected:
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;
-
-  virtual bool ComputeWeights( const PointType & point,
-    const InstanceIdentifierVectorType & pointIds ) const;
-
-  virtual void FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
-
 private:
   NodeScalarGradientCalculator( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
-  typedef typename PointType::VectorType             VectorType;
-
-  MeshConstPointer             m_FixedMesh;
-  RealDataPointer              m_ScalarArray;
-  GradientDataPointer          m_GradientArray; 
+  typename TInputMesh::ConstPointer    m_Mesh;
 };
 
 } // end namespace itk
