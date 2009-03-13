@@ -41,17 +41,14 @@ class ITK_EXPORT NodeScalarGradientCalculator :
       ::itk::GetMeshDimension<TInputMesh>::PointDimension > >
 {
 public:
-  
-  typedef typename NumericTraits< TScalar >::RealType       RealScalarType;
-  typedef CovariantVector< RealScalarType, 3 >              CovariantType;
-
   /** Standard class typedefs. */
-  typedef NodeScalarGradientCalculator                      Self;
-  typedef FunctionBase< 
-    typename TInputMesh::PointIdentifier, 
-    CovariantType > Superclass;
-  typedef SmartPointer<Self>                                Pointer;
-  typedef SmartPointer<const Self>                          ConstPointer;
+  typedef NodeScalarGradientCalculator                         Self;
+  typedef FunctionBase< typename TInputMesh::PointIdentifier,
+    CovariantVector< 
+      typename NumericTraits< TScalar >::RealType,
+      ::itk::GetMeshDimension<TInputMesh>::PointDimension > >  Superclass;
+  typedef SmartPointer<Self>                                   Pointer;
+  typedef SmartPointer<const Self>                             ConstPointer;
   
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -64,19 +61,22 @@ public:
     ::itk::GetMeshDimension<TInputMesh>::PointDimension );
 
   /** Point typedef support. */
-  typedef typename TInputMesh::PointType                  PointType;
+  typedef TInputMesh                            InputMeshType;
+  typedef typename InputMeshType::PointType     PointType;
 
   /** Set the input mesh. */
-  virtual void SetInputMesh( const TInputMesh * ptr );
+  virtual void SetInputMesh( const InputMeshType * ptr );
 
   /** Get the input mesh. */
-  const TInputMesh * GetInputMesh() const;
+  const InputMeshType * GetInputMesh() const;
 
+  /** Definition of input type and output type. The input type is actually a
+   * point identifier, while the output type is a gradient of the scalar values. */
   typedef typename Superclass::OutputType                 OutputType;
   typedef typename Superclass::InputType                  InputType;
 
   /** Evaluate at the specified input position */
-  virtual OutputType Evaluate( const InputType& input ) const { return OutputType(); }
+  virtual OutputType Evaluate( const InputType& input ) const;
 
 protected:
   NodeScalarGradientCalculator();
@@ -88,7 +88,7 @@ private:
   NodeScalarGradientCalculator( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
-  typename TInputMesh::ConstPointer    m_Mesh;
+  typename InputMeshType::ConstPointer    m_Mesh;
 };
 
 } // end namespace itk
