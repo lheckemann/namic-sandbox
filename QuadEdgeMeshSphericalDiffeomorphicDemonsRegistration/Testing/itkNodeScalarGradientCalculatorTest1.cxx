@@ -41,8 +41,10 @@ int main( int argc, char *argv[] )
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   FixedMeshType;
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MovingMeshType;
 
-  typedef float   ScalarType;
-  typedef itk::NodeScalarGradientCalculator< FixedMeshType, ScalarType  >   GradientCalculatorType;
+  typedef MovingMeshType::PointDataContainer              MovingPointDataContainerType;
+
+  typedef itk::NodeScalarGradientCalculator< 
+    FixedMeshType, MovingPointDataContainerType  >   GradientCalculatorType;
 
   GradientCalculatorType::Pointer gradientCalculator = GradientCalculatorType::New();
 
