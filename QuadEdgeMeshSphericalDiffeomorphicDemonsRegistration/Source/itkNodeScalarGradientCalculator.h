@@ -64,11 +64,13 @@ public:
   typedef TInputMesh                            InputMeshType;
   typedef typename InputMeshType::PointType     PointType;
 
-  /** Set the input mesh. */
-  virtual void SetInputMesh( const InputMeshType * ptr );
+  /** Set/Get the input mesh. */
+  itkSetConstObjectMacro( InputMesh, InputMeshType );
+  itkGetConstObjectMacro( InputMesh, InputMeshType );
 
-  /** Get the input mesh. */
-  const InputMeshType * GetInputMesh() const;
+  /** Set/Get the input mesh. */
+  itkSetConstObjectMacro( DataContainer, TPointDataContainer );
+  itkGetConstObjectMacro( DataContainer, TPointDataContainer );
 
   /** Definition of input type and output type. The input type is actually a
    * point identifier, while the output type is a gradient of the scalar values. */
@@ -88,7 +90,8 @@ private:
   NodeScalarGradientCalculator( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
-  typename InputMeshType::ConstPointer    m_Mesh;
+  typename InputMeshType::ConstPointer        m_InputMesh;
+  typename TPointDataContainer::ConstPointer  m_DataContainer;
 };
 
 } // end namespace itk
