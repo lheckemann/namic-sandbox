@@ -18,6 +18,7 @@ INCLUDE(CTest)
 
 INCLUDE_DIRECTORIES(
   ${PROJECT_SOURCE_DIR}/Source
+  ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshRigidRegistration/Source
   )
 
 # Disable MSVC 8 warnings
