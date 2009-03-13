@@ -44,32 +44,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 
 
 /**
- * Initialize by setting the input mesh
- */
-template <class TInputMesh, class TScalar>
-void
-NodeScalarGradientCalculator<TInputMesh, TScalar>
-::SetInputMesh( const TInputMesh * ptr )
-{
-  if( this->m_Mesh != ptr )
-    {
-    this->m_Mesh = ptr;
-    this->Modified();
-    }
-}
-
-/**
- * Return the input mesh
- */
-template <class TInputMesh, class TScalar >
-const TInputMesh *
-NodeScalarGradientCalculator<TInputMesh, TScalar>
-::GetInputMesh() const
-{
-  return this->m_Mesh;
-}
-
-/**
  * Compute the function
  */
 template <class TInputMesh, class TScalar >
@@ -79,6 +53,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 { 
   return OutputType();
 }
+
 
 /**
  * Standard "PrintSelf" method

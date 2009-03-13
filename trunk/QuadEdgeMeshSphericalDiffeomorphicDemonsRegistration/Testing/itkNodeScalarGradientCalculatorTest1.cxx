@@ -80,6 +80,14 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  gradientCalculator->SetDataContainer( movingReader->GetOutput()->GetPointData() );
+
+  if( gradientCalculator->GetDataContainer() != movingReader->GetOutput()->GetPointData() )
+    {
+    std::cerr << "Error in SetDataContainer()/GetDataContainer() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
   try
     {
     gradientCalculator->Evaluate( 17 );
