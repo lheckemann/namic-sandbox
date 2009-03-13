@@ -27,7 +27,7 @@ namespace itk
 /** \class TriangleBasisSystem
  * \brief  Stores basis coefficients at a triangular cell.
  *
- * TriangleBasisSystem computes and stores basis coefficients
+ * TriangleBasisSystem stores basis coefficients
  * within a triangle. Basis coefficients can be used thereafter
  * for interpolation and gradient computation within that triangle. 
  *
