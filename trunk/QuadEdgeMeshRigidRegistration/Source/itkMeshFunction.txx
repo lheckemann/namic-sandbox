@@ -54,8 +54,7 @@ void
 MeshFunction<TInputMesh, TOutput, TCoordRep>
 ::SetInputMesh( const InputMeshType * ptr )
 {
-  // set the input mesh
-  m_Mesh = ptr;
+  this->m_Mesh = ptr;
 
   if ( ptr )
     {
@@ -63,6 +62,16 @@ MeshFunction<TInputMesh, TOutput, TCoordRep>
     }
 }
 
+/**
+ * Return the input mesh
+ */
+template <class TInputMesh, class TOutput, class TCoordRep>
+const typename MeshFunction<TInputMesh, TOutput, TCoordRep>::InputMeshType *
+MeshFunction<TInputMesh, TOutput, TCoordRep>
+::GetInputMesh() const
+{
+  return m_Mesh;
+}
 
 } // end namespace itk
 

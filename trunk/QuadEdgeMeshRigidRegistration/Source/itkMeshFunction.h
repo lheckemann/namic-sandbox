@@ -18,6 +18,7 @@
 #define __itkMeshFunction_h
 
 #include "itkFunctionBase.h"
+#include "itkMesh.h"
 #include "itkPoint.h"
 
 namespace itk
@@ -96,8 +97,7 @@ public:
   virtual void SetInputMesh( const InputMeshType * ptr );
 
   /** Get the input mesh. */
-  const InputMeshType * GetInputMesh() const
-    { return m_Mesh.GetPointer(); }
+  const InputMeshType * GetInputMesh() const;
 
   /** Evaluate the function at specified Point position.
    * Subclasses must provide this method. */
