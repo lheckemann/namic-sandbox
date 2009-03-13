@@ -26,30 +26,56 @@ namespace itk
 /**
  * Constructor
  */
-template <class TInputMesh, class TCoordRep>
-NodeScalarGradientCalculator<TInputMesh, TCoordRep>
+template <class TInputMesh, class TScalar>
+NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::NodeScalarGradientCalculator()
 {
-    this->m_ScalarArraySize= 0; 
 }
 
 
 /**
  * Destructor
  */
-template <class TInputMesh, class TCoordRep>
-NodeScalarGradientCalculator<TInputMesh, TCoordRep>
+template <class TInputMesh, class TScalar>
+NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::~NodeScalarGradientCalculator()
 {
 }
 
 
 /**
+ * Initialize by setting the input mesh
+ */
+template <class TInputMesh, class TScalar>
+void
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::SetInputMesh( const TInputMesh * ptr )
+{
+  if( this->m_Mesh != ptr )
+    {
+    this->m_Mesh = ptr;
+    this->Modified();
+    }
+}
+
+/**
+ * Return the input mesh
+ */
+template <class TInputMesh, class TScalar >
+const TInputMesh *
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::GetInputMesh() const
+{
+  return this->m_Mesh;
+}
+
+
+/**
  * Standard "PrintSelf" method
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh, class TScalar>
 void
-NodeScalarGradientCalculator<TInputMesh, TCoordRep>
+NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf( os, indent );
@@ -57,43 +83,6 @@ NodeScalarGradientCalculator<TInputMesh, TCoordRep>
 
 #include <iostream>
 
-
-template <class TInputMesh, class TCoordRep>
-void
-NodeScalarGradientCalculator<TInputMesh, TCoordRep>
-::SetScalarArray( RealDataPointer inScalarArray)
-{
-  if (inScalarArray!=NULL)
-  { 
-    this->m_ScalarArray = inScalarArray;
-    this->m_ScalarArraySize= sizeof(*inScalarArray)/sizeof(RealDataType); 
-  }
-
-  //FIXME: does this have to help in the mapping for the data population?
-
-  // Evaluate gradient at each triangle onces, then average these gradients
-  // At each point and store in gradient array. 
-
-}
-
-/**
- * Evaluate the mesh at a given point position.
- */
-template <class TInputMesh, class TCoordRep>
-typename 
-NodeScalarGradientCalculator<TInputMesh, TCoordRep>::OutputType
-NodeScalarGradientCalculator<TInputMesh, TCoordRep>
-::Evaluate( unsigned int index ) const
-{
-
-  if (index > this->m_ScalarArraySize)
-    {
-    itkExceptionMacro("NodeScalarGradientCalculator Evaluate index is larger than number of vertices.");  
-    }
-
-  // Read gradient at each triangle based on stored value
-  return this->m_GradientArray[ index ];
-}
 
 } // end namespace itk
 
