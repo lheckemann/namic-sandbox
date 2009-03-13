@@ -69,6 +69,16 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   return this->m_Mesh;
 }
 
+/**
+ * Compute the function
+ */
+template <class TInputMesh, class TScalar >
+typename NodeScalarGradientCalculator<TInputMesh, TScalar>::OutputType
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::Evaluate( const InputType& input ) const 
+{ 
+  return OutputType();
+}
 
 /**
  * Standard "PrintSelf" method

@@ -41,8 +41,8 @@ int main( int argc, char *argv[] )
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   FixedMeshType;
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MovingMeshType;
 
-  typedef itk::CovariantVector< MeshPixelType, Dimension >   GradientType;
-  typedef itk::NodeScalarGradientCalculator< FixedMeshType, GradientType  >   GradientCalculatorType;
+  typedef float   ScalarType;
+  typedef itk::NodeScalarGradientCalculator< FixedMeshType, ScalarType  >   GradientCalculatorType;
 
   GradientCalculatorType::Pointer gradientCalculator = GradientCalculatorType::New();
 
@@ -75,6 +75,16 @@ int main( int argc, char *argv[] )
   if( gradientCalculator->GetInputMesh() != fixedReader->GetOutput() )
     {
     std::cerr << "Error in SetFixedMesh()/GetFixedMesh() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  try
+    {
+    gradientCalculator->Evaluate( 17 );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
     return EXIT_FAILURE;
     }
 
