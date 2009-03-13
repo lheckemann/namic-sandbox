@@ -33,11 +33,11 @@ namespace itk
  * \ingroup MeshFunctions 
  * 
  * */
-template <class TInputMesh, class TScalar = double>
+template <class TInputMesh, class TPointDataContainer = double>
 class ITK_EXPORT NodeScalarGradientCalculator :
   public FunctionBase< typename TInputMesh::PointIdentifier,
     CovariantVector< 
-      typename NumericTraits< TScalar >::RealType,
+      typename NumericTraits< typename TPointDataContainer::Element >::RealType,
       ::itk::GetMeshDimension<TInputMesh>::PointDimension > >
 {
 public:
@@ -45,7 +45,7 @@ public:
   typedef NodeScalarGradientCalculator                         Self;
   typedef FunctionBase< typename TInputMesh::PointIdentifier,
     CovariantVector< 
-      typename NumericTraits< TScalar >::RealType,
+      typename NumericTraits< typename TPointDataContainer::Element >::RealType,
       ::itk::GetMeshDimension<TInputMesh>::PointDimension > >  Superclass;
   typedef SmartPointer<Self>                                   Pointer;
   typedef SmartPointer<const Self>                             ConstPointer;
