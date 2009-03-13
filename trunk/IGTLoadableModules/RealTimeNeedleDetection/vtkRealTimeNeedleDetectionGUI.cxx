@@ -83,6 +83,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->DataCallbackCommand->SetCallback(vtkRealTimeNeedleDetectionGUI::DataCallback);
   this->DataManager = vtkIGTDataManager::New();  //TODO: Do I need the DataManager?
   started       = 0;
+  ROIpresent    = 0;
   showNeedle    = 0;
   scanPlane     = 0;
   needleOrigin  = LEFT; //TODO: make this 0 whenever done testing
@@ -98,6 +99,8 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->pXUpperEntry      = NULL;
   this->pYLowerEntry      = NULL;
   this->pYUpperEntry      = NULL;
+  this->pZLowerEntry      = NULL;
+  this->pZUpperEntry      = NULL;
   
   //--------------------------------------------------------------------
   // MRML nodes  
@@ -207,6 +210,16 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   {
     this->pYUpperEntry->SetParent(NULL);
     this->pYUpperEntry->Delete();
+  }
+  if (this->pZLowerEntry)
+  {
+    this->pZLowerEntry->SetParent(NULL);
+    this->pZLowerEntry->Delete();
+  }
+  if (this->pZUpperEntry)
+  {
+    this->pZUpperEntry->SetParent(NULL);
+    this->pZUpperEntry->Delete();
   }
     
   //-----------------------------------------------------------------
@@ -351,7 +364,6 @@ void vtkRealTimeNeedleDetectionGUI::HandleMouseEvent(vtkSlicerInteractorStyle* s
 {
 }
 
-
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned long event, void* callData)
 {
@@ -441,6 +453,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       pImageData->GetOrigin(imageOrigin);
       scalarSize = pImageData->GetScalarSize();
       //TODO: Do I need to get the scalarType, too?
+      if(ROIpresent)
+      {
+        vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("VolumeNode"));
+        std::cout << "MRLMROINode exists" << std::endl; 
+      }
       currentXLowerBound = initialXLowerBound = this->pXLowerEntry->GetValueAsInt();
       currentXUpperBound = initialXUpperBound = this->pXUpperEntry->GetValueAsInt();
       currentYLowerBound = initialYLowerBound = this->pYLowerEntry->GetValueAsInt();
@@ -592,10 +609,30 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
   //TODO: If new mrmlNode added -> pScannerIDEntry=new mrml node 
   //TODO: if MRMLNode deleted -> pScannerIDEntry=""
   
-  if (event == vtkMRMLScene::SceneCloseEvent) //TODO: Do I actually catch this event?
+  if(event == vtkMRMLScene::SceneCloseEvent) //TODO: Do I actually catch this event?
   {
     if (this->pShowNeedleButton != NULL && this->pShowNeedleButton->GetSelectedState())
       this->pShowNeedleButton->SelectedStateOff();
+  }
+   
+  else if(vtkMRMLScene::SafeDownCast(caller) == this->GetMRMLScene() && event == vtkMRMLScene::NodeAddedEvent)
+  {
+    vtkMRMLNode* node =  reinterpret_cast<vtkMRMLNode*> (callData);
+    if(node->IsA("vtkMRMLROINode"))
+    {
+      ROIpresent++;
+      UpdateGUI();
+    }
+  }
+  
+  else if(vtkMRMLScene::SafeDownCast(caller) == this->GetMRMLScene() && event == vtkMRMLScene::NodeRemovedEvent)
+  {
+    vtkMRMLNode* node =  reinterpret_cast<vtkMRMLNode*> (callData);
+    if(node->IsA("vtkMRMLROINode"))
+    {
+      ROIpresent--;
+      UpdateGUI();
+    }
   }
   
   else if(started && (lastModified != this->pSourceNode->GetMTime()))
@@ -757,12 +794,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
                 
           vtkMatrix4x4* transformToParent1 = pNeedleTransformNode->GetMatrixTransformToParent();
           transformToParent1->DeepCopy(transform->GetMatrix()); // This calls the modified event
-          translationLR *= -1;   //(X-axis)
-          translationPA *= -1;   //(Y-axis)
-          translationIS *= -1;   //(Z-axis)
-          transform->Translate(translationLR, translationPA, translationIS);
-          transform->PreMultiply(); // = local coordinate system
-          transform->RotateZ(90);
+          transform->Translate(-translationLR, -translationPA, -translationIS);
+          //transform->RotateZ(90); //TODO:continue here!
           vtkMatrix4x4* transformToParent2 = pScanPlaneNormalNode->GetMatrixTransformToParent();
           transformToParent2->DeepCopy(transform->GetMatrix()); // This calls the modified event
           transform->Delete();
@@ -932,6 +965,25 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   // -----------------------------------------
   // Boundary edit fields TODO: Check for bounds! 0 up to imageDimensions is possible
   //TODO:Steve How do I check suff that gets typed in?
+  vtkKWFrame* descriptionFrame = vtkKWFrame::New();
+  descriptionFrame->SetParent(coordinatesFrame->GetFrame());
+  descriptionFrame->Create();
+  app->Script ( "pack %s -fill both -expand true", descriptionFrame->GetWidgetName());
+  vtkKWTextWithHyperlinksWithScrollbars* descriptionText = vtkKWTextWithHyperlinksWithScrollbars::New();  //TODO:Steve what to use if I only need text?
+  descriptionText->SetParent(descriptionFrame);
+  descriptionText->Create(); 
+  descriptionText->SetHorizontalScrollbarVisibility(0);
+  descriptionText->SetVerticalScrollbarVisibility(0);
+  descriptionText->GetWidget()->SetReliefToFlat();
+  descriptionText->GetWidget()->SetWrapToWord();
+  descriptionText->GetWidget()->QuickFormattingOn();
+  descriptionText->SetText("Set the boundaries for the part of the image where the needle detection will start. They can be set manually or with an MRMLROINode. If a MRLMROINode exists, all the following values will be overriden." );
+  //Important that Read only after SetText otherwise it doesn't work
+  descriptionText->GetWidget()->ReadOnlyOn();
+  app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4", descriptionText->GetWidgetName());
+  descriptionText->Delete();
+  descriptionFrame->Delete();    
+    
   vtkKWFrame* xFrame = vtkKWFrame::New();
   xFrame->SetParent(coordinatesFrame->GetFrame());
   xFrame->Create();
@@ -939,14 +991,14 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWLabel* xLabel = vtkKWLabel::New();
   xLabel->SetParent(xFrame);
   xLabel->Create();
-  xLabel->SetWidth(15);
-  xLabel->SetText("Boundaries for X: ");
+  xLabel->SetWidth(23);
+  xLabel->SetText("Boundaries in LR-direction: ");
 
   this->pXLowerEntry = vtkKWEntry::New();
   this->pXLowerEntry->SetParent(xFrame);
   this->pXLowerEntry->Create();
   this->pXLowerEntry->SetWidth(7);
-  this->pXLowerEntry->SetValueAsInt(140);
+  this->pXLowerEntry->SetValueAsInt(100);
               
   this->pXUpperEntry = vtkKWEntry::New();
   this->pXUpperEntry->SetParent(xFrame);
@@ -966,8 +1018,8 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWLabel* yLabel = vtkKWLabel::New();
   yLabel->SetParent(yFrame);
   yLabel->Create();
-  yLabel->SetWidth(15);
-  yLabel->SetText("Boundaries for Y: ");
+  yLabel->SetWidth(23);
+  yLabel->SetText("Boundaries in PA-direction: ");
 
   this->pYLowerEntry = vtkKWEntry::New();
   this->pYLowerEntry->SetParent(yFrame);
@@ -979,12 +1031,39 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pYUpperEntry->SetParent(yFrame);
   this->pYUpperEntry->Create();
   this->pYUpperEntry->SetWidth(7);
-  this->pYUpperEntry->SetValueAsInt(150);
+  this->pYUpperEntry->SetValueAsInt(145);
 
   app->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               yLabel->GetWidgetName(), this->pYLowerEntry->GetWidgetName(), this->pYUpperEntry->GetWidgetName());
   yLabel->Delete();
   yFrame->Delete();
+  
+  vtkKWFrame* zFrame = vtkKWFrame::New();
+  zFrame->SetParent(coordinatesFrame->GetFrame());
+  zFrame->Create();
+  app->Script ("pack %s -fill both -expand true", zFrame->GetWidgetName());
+  vtkKWLabel* zLabel = vtkKWLabel::New();
+  zLabel->SetParent(zFrame);
+  zLabel->Create();
+  zLabel->SetWidth(23);
+  zLabel->SetText("Boundaries for Z (!not yet used!): ");
+
+  this->pZLowerEntry = vtkKWEntry::New();
+  this->pZLowerEntry->SetParent(zFrame);
+  this->pZLowerEntry->Create();
+  this->pZLowerEntry->SetWidth(7);
+  this->pZLowerEntry->SetValueAsInt(1);
+              
+  this->pZUpperEntry = vtkKWEntry::New();
+  this->pZUpperEntry->SetParent(zFrame);
+  this->pZUpperEntry->Create();
+  this->pZUpperEntry->SetWidth(7);
+  this->pZUpperEntry->SetValueAsInt(1);
+
+  app->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              zLabel->GetWidgetName(), this->pZLowerEntry->GetWidgetName(), this->pZUpperEntry->GetWidgetName());
+  zLabel->Delete();
+  zFrame->Delete();
   
   coordinatesFrame->Delete();
   
@@ -1011,17 +1090,33 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
     this->pXUpperEntry->EnabledOff();
     this->pYLowerEntry->EnabledOff();
     this->pYUpperEntry->EnabledOff();
-    this->pShowNeedleButton->EnabledOn();  //initially this Button is disabled
+    this->pZLowerEntry->EnabledOff();
+    this->pZUpperEntry->EnabledOff();
+    this->pShowNeedleButton->EnabledOn();  //initially this Button is disabled until the needle detection is started for the first time
   }
   else if(started == 0)
   {
     this->pStartButton->EnabledOn();
     this->pStopButton->EnabledOff();
     this->pScannerIDEntry->EnabledOn();
-    this->pXLowerEntry->EnabledOn();
-    this->pXUpperEntry->EnabledOn();
-    this->pYLowerEntry->EnabledOn();
-    this->pYUpperEntry->EnabledOn();
+    if(ROIpresent)
+    {
+      this->pXLowerEntry->EnabledOff();
+      this->pXUpperEntry->EnabledOff();
+      this->pYLowerEntry->EnabledOff();
+      this->pYUpperEntry->EnabledOff();
+      this->pZLowerEntry->EnabledOff();
+      this->pZUpperEntry->EnabledOff();
+    }
+    else 
+    {
+      this->pXLowerEntry->EnabledOn();
+      this->pXUpperEntry->EnabledOn();
+      this->pYLowerEntry->EnabledOn();
+      this->pYUpperEntry->EnabledOn();
+      this->pZLowerEntry->EnabledOn();
+      this->pZUpperEntry->EnabledOn();
+    }
   }
 }
 

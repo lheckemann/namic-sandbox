@@ -125,6 +125,8 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkKWEntry*           pXUpperEntry;
   vtkKWEntry*           pYLowerEntry;
   vtkKWEntry*           pYUpperEntry;
+  vtkKWEntry*           pZLowerEntry;
+  vtkKWEntry*           pZUpperEntry;
   
   //----------------------------------------------------------------
   // MRML nodes
@@ -143,8 +145,9 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkRealTimeNeedleDetectionLogic*  Logic;
   vtkCallbackCommand*               DataCallbackCommand;
   int                        CloseScene;    // TODO: Do I need that?
-  int                        started;       // flag wheter to process the new image from the scanner
-  int                        showNeedle;    // flag wheter to show the pNeedleNode in Slicer
+  int                        started;       // flag whether to process the new image from the scanner
+  int                        ROIpresent;    // flag whether a MRMLROINode is present and the coordinate input has to be disabled
+  int                        showNeedle;    // flag whether to show the pNeedleNode in Slicer
   //TODO: Do I really  need the scan plane?
   int                        scanPlane;     // variable to indicate the scan plane: AXIAL, CORONAL, SAGITTAL
   int                        needleOrigin;  // variable to indicate the direction the needle enters the image from 
