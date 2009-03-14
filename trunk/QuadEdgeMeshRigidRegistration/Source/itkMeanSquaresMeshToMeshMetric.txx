@@ -70,8 +70,23 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     {
     InputPointType  inputPoint;
     inputPoint.CastFrom( pointItr.Value() );
+
+    if( this->m_FixedMask && !this->m_FixedMask->IsInside( inputPoint ) )
+      {
+      ++pointItr;
+      ++pointDataItr;
+      continue;
+      }
+
     OutputPointType transformedPoint = 
       this->m_Transform->TransformPoint( inputPoint );
+
+    if( this->m_MovingMask && !this->m_MovingMask->IsInside( transformedPoint ) )
+      {
+      ++pointItr;
+      ++pointDataItr;
+      continue;
+      }
 
     // FIXME: if( this->m_Interpolator->IsInsideSurface( transformedPoint ) )
       {
