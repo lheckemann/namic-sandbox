@@ -1,4 +1,3 @@
-
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
@@ -71,9 +70,11 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
   VectorType  u12;
   VectorType  u32;
 
-  typedef PointLocator2< MeshType >           PointLocatorType;
-  typedef typename PointLocatorType::Pointer    PointLocatorPointer;
-  typedef typename PointLocatorType::InstanceIdentifierVectorType InstanceIdentifierVectorType;
+  typedef PointLocator2< MeshType >                 PointLocatorType;
+  typedef typename PointLocatorType::Pointer        PointLocatorPointer;
+  typedef typename 
+    PointLocatorType::InstanceIdentifierVectorType  InstanceIdentifierVectorType;
+
   InstanceIdentifierVectorType pointIds;
 
   const PointsContainer * points = this->m_InputMesh->GetCell(cellIndex)->GetPoints();
@@ -114,9 +115,3 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
 } // end namespace itk
 
 #endif
-
-
-
-
-
-
