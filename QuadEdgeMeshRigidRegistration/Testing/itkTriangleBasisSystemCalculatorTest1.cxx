@@ -31,13 +31,11 @@ int main(int argc, char *argv[])
   const unsigned int SurfaceDimension = 2; 
 
   typedef itk::QuadEdgeMesh< double, Dimension > MeshType;
-  typedef MeshType::CellType CellType;
    
   MeshType::Pointer mesh = MeshType::New();
 
-  typedef itk::Vector<double,3> VectorType; 
-  VectorType v_01;
-  VectorType v_02;
+  typedef MeshType::PointType       PointType;
+  typedef PointType::VectorType     VectorType;
 
   typedef itk::TriangleBasisSystem< VectorType, SurfaceDimension>  TriangleBasisSystemType;
   TriangleBasisSystemType triangleBasisSystem;
@@ -53,6 +51,7 @@ int main(int argc, char *argv[])
   PointType p0;
   PointType p1;
   PointType p2;
+
   p0[0]= 0.0; p0[1]= 0.0; p0[2]= 0.0;
   p1[0]= 1.0; p1[1]= 0.0; p1[2]= 0.0;
   p2[0]= 0.5; p2[1]= 1.0; p2[2]= 0.0;
@@ -65,20 +64,12 @@ int main(int argc, char *argv[])
 
   TEST_SET_GET( mesh, triangleBasisSystemCalculator->GetInputMesh() );
 
-
-  //Should be SurfaceDimension-1 at most
-  //Will compile later...
-  //TRY_EXPECT_EXCEPTION( triangleBasisSystemCalculator->SetInputMesh(static_cast< MeshType > (NULL)) ); 
-  //Should be SurfaceDimension-1 at most
-  //TRY_EXPECT_EXCEPTION( triangleBasisSystemCalculator->GetInputMesh() ); 
-  //Should be Dimension-1 at most
-  //TRY_EXPECT_NO_EXCEPTION( triangleBasisSystemCalculator->SetInputMesh(mesh) ); 
-  //Should be Dimension-1 at most
-  //TRY_EXPECT_NO_EXCEPTION( triangleBasisSystemCalculator->GetInputMesh() ); 
-
-  //FIXME need to include a basic test for CalculateTriangle...
+  triangleBasisSystemCalculator->CalculateTriangle( 0, triangleBasisSystem );
   
-  //std::cout << "Test passed." << std::endl;
+  VectorType expectedV01;
+  VectorType expectedV02;
+
+  std::cout << "Test passed." << std::endl;
 
   return EXIT_SUCCESS;
 }
