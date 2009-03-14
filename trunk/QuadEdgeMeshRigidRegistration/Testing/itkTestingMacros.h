@@ -21,6 +21,7 @@
 #define TRY_EXPECT_EXCEPTION( command ) \
   try \
     {  \
+    std::cout << "Trying " << #command << std::endl; \
     command;  \
     std::cerr << "Failed to catch Expected exception" << std::endl;  \
     return EXIT_FAILURE;  \
@@ -35,6 +36,7 @@
 #define TRY_EXPECT_NO_EXCEPTION( command ) \
   try \
     {  \
+    std::cout << "Trying " << #command << std::endl; \
     command;  \
     }  \
   catch( itk::ExceptionObject & excp )  \
