@@ -39,7 +39,7 @@ namespace itk
  *
  * \ingroup TriangleBasisSystems
  */
-template <class TVector, unsigned int M >
+template <class TVector, unsigned int NSubspaceDimension >
 class ITK_EXPORT TriangleBasisSystem
 {
 public:
@@ -53,7 +53,7 @@ public:
   virtual ~TriangleBasisSystem();
 
 private:
-  VectorType m_Basis[M];
+  VectorType m_Basis[NSubspaceDimension];
 
 };
 

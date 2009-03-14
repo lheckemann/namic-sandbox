@@ -25,8 +25,8 @@ namespace itk
 /**
  * Constructor
  */
-template <class TVector, unsigned int M>
-TriangleBasisSystem<TVector, M >
+template <class TVector, unsigned int NSubspaceDimension>
+TriangleBasisSystem<TVector, NSubspaceDimension >
 ::TriangleBasisSystem()
 {
 }
@@ -34,19 +34,19 @@ TriangleBasisSystem<TVector, M >
 /**
  * Destructor
  */
-template <class TVector, unsigned int M>
-TriangleBasisSystem<TVector, M >
+template <class TVector, unsigned int NSubspaceDimension>
+TriangleBasisSystem<TVector, NSubspaceDimension >
 ::~TriangleBasisSystem()
 {
 }
 
 
-template <class TVector, unsigned int M >
+template <class TVector, unsigned int NSubspaceDimension >
 void
-TriangleBasisSystem<TVector, M >
+TriangleBasisSystem<TVector, NSubspaceDimension >
 ::SetVector( unsigned int k, const VectorType & v )
 {
-  if( k >= M ) 
+  if( k >= NSubspaceDimension ) 
     {
     itkGenericExceptionMacro(<<"TriangleBasisSystem  SetVector index k is too high.");
     }
@@ -54,12 +54,12 @@ TriangleBasisSystem<TVector, M >
 }
 
 
-template <class TVector, unsigned int M >
+template <class TVector, unsigned int NSubspaceDimension >
 const TVector & 
-TriangleBasisSystem<TVector, M >
+TriangleBasisSystem<TVector, NSubspaceDimension >
 ::GetVector( unsigned int k ) const
 {
-  if( k >= M ) 
+  if( k >= NSubspaceDimension ) 
     {
     itkGenericExceptionMacro(<<"TriangleBasisSystem  GetVector index k is too high.");
     }
