@@ -1,4 +1,3 @@
-
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
@@ -30,41 +29,43 @@ template <class TVector, unsigned int M>
 TriangleBasisSystem<TVector, M >
 ::TriangleBasisSystem()
 {
-  itkDebugMacro("Constructor");
-  
 }
+
+/**
+ * Destructor
+ */
+template <class TVector, unsigned int M>
+TriangleBasisSystem<TVector, M >
+::~TriangleBasisSystem()
+{
+}
+
 
 template <class TVector, unsigned int M >
 void
 TriangleBasisSystem<TVector, M >
 ::SetVector( unsigned int k, const VectorType & v )
 {
-  if (k>=M) 
+  if( k >= M ) 
     {
-    itkExceptionMacro(<<"TriangleBasisSystem  SetVector index k is too high.");
+    itkGenericExceptionMacro(<<"TriangleBasisSystem  SetVector index k is too high.");
     }
   m_Basis[k]= v;
 }
+
 
 template <class TVector, unsigned int M >
 const TVector & 
 TriangleBasisSystem<TVector, M >
 ::GetVector( unsigned int k ) const
 {
-  if (k>=M) 
+  if( k >= M ) 
     {
-    itkExceptionMacro(<<"TriangleBasisSystem  GetVector index k is too high.");
+    itkGenericExceptionMacro(<<"TriangleBasisSystem  GetVector index k is too high.");
     }
-  const VectorType & result= m_Basis[k]; 
-  return (result);
+  return m_Basis[k]; 
 }
 
 } // end namespace itk
 
 #endif
-
-
-
-
-
-

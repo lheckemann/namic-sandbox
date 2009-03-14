@@ -22,7 +22,7 @@
   try \
     {  \
     command;  \
-    std::cout << "Failed to catch Expected exception" << std::endl;  \
+    std::cerr << "Failed to catch Expected exception" << std::endl;  \
     return EXIT_FAILURE;  \
     }  \
   catch( itk::ExceptionObject & excp )  \

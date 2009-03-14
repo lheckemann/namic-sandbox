@@ -40,29 +40,18 @@ namespace itk
  * \ingroup TriangleBasisSystems
  */
 template <class TVector, unsigned int M >
-class ITK_EXPORT TriangleBasisSystem : public Object
+class ITK_EXPORT TriangleBasisSystem
 {
 public:
   typedef TVector   VectorType;
 
-  /** Standard class typedefs. */
-  typedef TriangleBasisSystem             Self;
-  typedef Object                          Superclass;
-  typedef SmartPointer<Self>              Pointer;
-  typedef SmartPointer<const Self>        ConstPointer;
-  
-  /** Method for creation through the object factory. */
-  itkNewMacro(Self);
-
-  /** Standard part of every itk Object. */
-  itkTypeMacro(TriangleBasisSystem, Object);
-
-
+  /** Set/Get the vector at index k. */
   void SetVector( unsigned int k, const VectorType & v );
   const VectorType & GetVector( unsigned int k ) const;
-protected:
+
   TriangleBasisSystem();
-  virtual ~TriangleBasisSystem() {};
+  virtual ~TriangleBasisSystem();
+
 private:
   VectorType m_Basis[M];
 
