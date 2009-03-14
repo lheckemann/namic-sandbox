@@ -33,8 +33,7 @@ namespace itk
  *
  * This class is templated over the input vector type and dimension of basis.
  *
- *
- *
+ * \sa TriangleBasisSystem
  *
  */
 template < class TMesh, class TBasisSystem >
