@@ -22,6 +22,7 @@
 #include "itkQuadEdgeMesh.h"
 #include "itkTriangleBasisSystem.h"
 #include "itkTriangleBasisSystemCalculator.h"
+#include "itkTriangleCell.h"
 #include "itkTestingMacros.h"
 
 int main(int argc, char *argv[])
@@ -60,12 +61,28 @@ int main(int argc, char *argv[])
   mesh->SetPoint( 1, p1 ); 
   mesh->SetPoint( 2, p2 );
 
+  TRY_EXPECT_EXCEPTION( triangleBasisSystemCalculator->CalculateTriangle( 0, triangleBasisSystem ) );
+
   TRY_EXPECT_NO_EXCEPTION( triangleBasisSystemCalculator->SetInputMesh( mesh ) ); 
 
   TEST_SET_GET( mesh, triangleBasisSystemCalculator->GetInputMesh() );
 
-  triangleBasisSystemCalculator->CalculateTriangle( 0, triangleBasisSystem );
+  TRY_EXPECT_EXCEPTION( triangleBasisSystemCalculator->CalculateTriangle( 0, triangleBasisSystem ) );
   
+  typedef MeshType::CellType                CellType;
+  typedef itk::TriangleCell< CellType >     TriangleType;
+
+  CellType::CellAutoPointer cellpointer;
+  cellpointer.TakeOwnership( new TriangleType );
+  cellpointer->SetPointId( 0, 0 );
+  cellpointer->SetPointId( 1, 1 );
+  cellpointer->SetPointId( 2, 2 );
+
+  mesh->SetCell( 0, cellpointer );
+
+  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystemCalculator->CalculateTriangle( 0, triangleBasisSystem ) );
+  TRY_EXPECT_EXCEPTION( triangleBasisSystemCalculator->CalculateTriangle( 1, triangleBasisSystem ) );
+
   VectorType expectedV01;
   VectorType expectedV02;
 

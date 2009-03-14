@@ -56,7 +56,7 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
     itkExceptionMacro(<<"TriangleBasisSystemCalculator CalculateTriangle  m_InputMesh is NULL.");
     }
 
-  if (cellIndex >= this->m_InputMesh->GetNumberOfCells()) 
+  if( cellIndex >= this->m_InputMesh->GetNumberOfCells() )
     {
     itkExceptionMacro(<<"TriangleBasisSystemCalculator CalculateTriangle  cellIndex is too high.");
     }
@@ -64,20 +64,20 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
   typedef typename MeshType::CellType           CellType; 
   typedef typename MeshType::PointType          PointType; 
   typedef typename MeshType::CellsContainer     CellsContainer; 
-  typedef typename CellType::PointsContainer    PointsContainer;
+  typedef typename MeshType::PointsContainer    PointsContainer;
   typedef typename PointType::VectorType        VectorType;
 
   VectorType  u12;
   VectorType  u32;
 
-  typedef PointLocator2< MeshType >                 PointLocatorType;
-  typedef typename PointLocatorType::Pointer        PointLocatorPointer;
-  typedef typename 
-    PointLocatorType::InstanceIdentifierVectorType  InstanceIdentifierVectorType;
+  const PointsContainer * points = this->m_InputMesh->GetPoints();
+  const CellsContainer  * cells = this->m_InputMesh->GetCells();
 
-  InstanceIdentifierVectorType pointIds;
+  const CellType * cell = cells->ElementAt( cellIndex ); 
 
-  const PointsContainer * points = this->m_InputMesh->GetCell(cellIndex)->GetPoints();
+  typedef typename CellType::PointIdentifier   PointIdentifier;
+
+  const PointIdentifier * pointIds = cell->GetPointIds();
 
   //
   // Get the vertexes of this triangle
