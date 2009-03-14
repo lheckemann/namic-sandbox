@@ -30,50 +30,80 @@ int main(int argc, char *argv[])
   const unsigned int SurfaceDimension = 2; 
 
   typedef itk::QuadEdgeMesh< double, Dimension > MeshType;
-  typedef MeshType::CellType CellType;
+
+  typedef MeshType::PointType       PointType;
+  typedef PointType::VectorType     VectorType;
    
-  MeshType::Pointer mesh = MeshType::New();
-
-  typedef itk::Vector<double,3> VectorType; 
-  VectorType v_01;
-  VectorType v_02;
-
   typedef itk::TriangleBasisSystem<VectorType, SurfaceDimension>  TriangleBasisSystemType;
+
   TriangleBasisSystemType triangleBasisSystem;
   
-  //Define a simple triangular cell
-  MeshType::PointType p0;
-  MeshType::PointType p1;
-  MeshType::PointType p2;
+  /*
+   * Define a simple triangular cell
+   *                         
+   *     ^      p2           
+   *     |     /  \          
+   *     |    /    \         
+   *     |   /      \        
+   *     |  /        \       
+   *     | /          \      
+   *     |/            \     
+   *    p0--------------p1-->
+   *
+   */
+
+  PointType p0;
+  PointType p1;
+  PointType p2;
+
   p0[0]= 0.0; p0[1]= 0.0; p0[2]= 0.0;
   p1[0]= 1.0; p1[1]= 0.0; p1[2]= 0.0;
   p2[0]= 0.5; p2[1]= 1.0; p2[2]= 0.0;
 
-  mesh->SetPoint( 0, p0 ); 
-  mesh->SetPoint( 1, p1 ); 
-  mesh->SetPoint( 2, p2 );
-
-  for (int i=0; i<3; i++)
-    {
-    v_01[i]= p1[i]-p0[i];
-    v_02[i]= p2[i]-p0[i];
-    }
+  VectorType v01 = p1 - p0;
+  VectorType v02 = p2 - p0;
 
   //Should be SurfaceDimension-1 at most
-  TRY_EXPECT_EXCEPTION( triangleBasisSystem.SetVector(SurfaceDimension, v_01) ); 
+  TRY_EXPECT_EXCEPTION( triangleBasisSystem.SetVector(SurfaceDimension, v01) ); 
 
   //Should be Dimension-1 at most
-  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystem.SetVector(0, v_01) ); 
+  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystem.SetVector(0, v01) ); 
 
   //Should be Dimension-1 at most
-  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystem.SetVector(1, v_02) ); 
+  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystem.SetVector(1, v02) ); 
 
   //Should be Dimension-1 at most
   TRY_EXPECT_EXCEPTION( triangleBasisSystem.GetVector(SurfaceDimension) ); 
+  TRY_EXPECT_EXCEPTION( triangleBasisSystem.GetVector(SurfaceDimension+5) ); 
+  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystem.GetVector(SurfaceDimension-1) ); 
 
-  std::cout << " basis vector 0 " << triangleBasisSystem.GetVector(0) ;  
-  std::cout << " basis vector 1 " << triangleBasisSystem.GetVector(1) ; 
+  VectorType vb01 = triangleBasisSystem.GetVector(0);
+  VectorType vb02 = triangleBasisSystem.GetVector(1);
+
+  std::cout << std::endl;
+  std::cout << "Basis vector 0 " << vb01 << std::endl;  
+  std::cout << "Basis vector 1 " << vb02 << std::endl;
+  std::cout << std::endl;
   
+  const double tolerance = 1e-5;
+
+  for( unsigned int k=0; k < Dimension; k++ )
+    {
+
+    if( vnl_math_abs( vb01[k] - v01[k] ) > tolerance )
+      {
+      std::cerr << "Error, SetVector()/GetVector() failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    if( vnl_math_abs( vb02[k] - v02[k] ) > tolerance )
+      {
+      std::cerr << "Error, SetVector()/GetVector() failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+ 
+    }
+
   std::cout << "Test passed." << std::endl;
 
   return EXIT_SUCCESS;
