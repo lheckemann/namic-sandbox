@@ -139,7 +139,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     InputPointType  inputPoint;
     inputPoint.CastFrom( pointItr.Value() );
 
-    if( this->m_FixedMeshMask && !this->m_FixedMeshMask->IsInside( inputPoint ) )
+    if( this->m_FixedMask && !this->m_FixedMask->IsInside( inputPoint ) )
       {
       ++pointItr;
       ++pointDataItr;
@@ -148,7 +148,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     OutputPointType transformedPoint = this->m_Transform->TransformPoint( inputPoint );
 
-    if( this->m_MovingMeshMask && !this->m_MovingMeshMask->IsInside( transformedPoint ) )
+    if( this->m_MovingMask && !this->m_MovingMask->IsInside( transformedPoint ) )
       {
       ++pointItr;
       ++pointDataItr;
@@ -241,7 +241,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
     InputPointType  inputPoint;
     inputPoint.CastFrom( pointItr.Value() );
 
-    if( this->m_FixedMeshMask && !this->m_FixedMeshMask->IsInside( inputPoint ) )
+    if( this->m_FixedMask && !this->m_FixedMask->IsInside( inputPoint ) )
       {
       ++pointItr;
       ++pointDataItr;
@@ -250,7 +250,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     OutputPointType transformedPoint = this->m_Transform->TransformPoint( inputPoint );
 
-    if( this->m_MovingMeshMask && !this->m_MovingMeshMask->IsInside( transformedPoint ) )
+    if( this->m_MovingMask && !this->m_MovingMask->IsInside( transformedPoint ) )
       {
       ++pointItr;
       ++pointDataItr;

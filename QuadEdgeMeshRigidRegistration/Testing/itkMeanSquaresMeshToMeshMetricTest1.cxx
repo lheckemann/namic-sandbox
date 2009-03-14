@@ -28,12 +28,15 @@
 #include "itkCommand.h"
 #include "itkTestingMacros.h"
 #include "itkMeshGeneratorHelper.h"
+#include "itkEllipseSpatialObject.h"
 
 
 int main( int argc, char * argv [] )
 {
-  typedef itk::QuadEdgeMesh<float, 3>   MovingMeshType;
-  typedef itk::QuadEdgeMesh<float, 3>   FixedMeshType;
+  const unsigned int Dimension = 3;
+
+  typedef itk::QuadEdgeMesh< float, Dimension >   MovingMeshType;
+  typedef itk::QuadEdgeMesh< float, Dimension >   FixedMeshType;
 
   FixedMeshType::Pointer   fixedMesh;
   MovingMeshType::Pointer  movingMesh;
@@ -160,6 +163,33 @@ int main( int argc, char * argv [] )
   std::cout << "Check case when Target is NULL" << std::endl;
   metric->SetFixedMesh( NULL );
         
+  TRY_EXPECT_EXCEPTION( metric->GetValue( parameters ) );
+  TRY_EXPECT_EXCEPTION( metric->GetDerivative( parameters, derivative1 ) );
+  TRY_EXPECT_EXCEPTION( metric->GetValueAndDerivative( parameters, value1, derivative1  ) );
+
+
+  //---------------------------------------------------
+  // exercise masks
+  //---------------------------------------------------
+  std::cout << "Exercising Masks" << std::endl;
+
+  typedef itk::EllipseSpatialObject< Dimension >    MaskType;
+
+  MaskType::Pointer fixedMask  = MaskType::New();
+  MaskType::Pointer movingMask = MaskType::New();
+
+  fixedMask->SetRadius(0.1);
+  movingMask->SetRadius(0.1);
+
+  metric->SetFixedMask( fixedMask );
+  TEST_SET_GET( fixedMask, metric->GetFixedMask() );
+
+  metric->SetMovingMask( movingMask );
+  TEST_SET_GET( movingMask, metric->GetMovingMask() );
+
+  metric->SetFixedMesh( fixedMesh );
+
+  // Since the masks are outside, we expect exceptions in the following calls.
   TRY_EXPECT_EXCEPTION( metric->GetValue( parameters ) );
   TRY_EXPECT_EXCEPTION( metric->GetDerivative( parameters, derivative1 ) );
   TRY_EXPECT_EXCEPTION( metric->GetValueAndDerivative( parameters, value1, derivative1  ) );

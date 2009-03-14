@@ -105,15 +105,13 @@ public:
 
   /**  Type for the mask of the fixed image. Only pixels that are "inside"
        this mask will be considered for the computation of the metric */
-  typedef SpatialObject< itkGetStaticConstMacro(FixedMeshDimension) >
-                                                     FixedMeshMaskType;
-  typedef typename  FixedMeshMaskType::Pointer      FixedMeshMaskPointer;
+  typedef SpatialObject< itkGetStaticConstMacro(FixedMeshDimension) > FixedMaskType;
+  typedef typename  FixedMaskType::ConstPointer      FixedMaskPointer;
 
   /**  Type for the mask of the moving image. Only pixels that are "inside"
        this mask will be considered for the computation of the metric */
-  typedef SpatialObject< itkGetStaticConstMacro(MovingMeshDimension) >
-                                                     MovingMeshMaskType;
-  typedef typename  MovingMeshMaskType::Pointer     MovingMeshMaskPointer;
+  typedef SpatialObject< itkGetStaticConstMacro(MovingMeshDimension) > MovingMaskType;
+  typedef typename  MovingMaskType::ConstPointer     MovingMaskPointer;
 
 
   /** Connect the Fixed Pointset.  */
@@ -147,6 +145,19 @@ public:
   unsigned int GetNumberOfParameters(void) const 
   { return m_Transform->GetNumberOfParameters(); }
 
+  /** Connect the FixedMask .  */
+  itkSetConstObjectMacro( FixedMask, FixedMaskType );
+
+  /** Get the Fixed Pointset. */
+  itkGetConstObjectMacro( FixedMask, FixedMaskType );
+
+  /** Connect the Moving Pointset.  */
+  itkSetConstObjectMacro( MovingMask, MovingMaskType );
+
+  /** Get the Moving Pointset. */
+  itkGetConstObjectMacro( MovingMask, MovingMaskType );
+
+
   /** Initialize the Metric by making sure that all the components
    *  are present and plugged together correctly     */
   virtual void Initialize(void) throw ( ExceptionObject );
@@ -162,8 +173,8 @@ protected:
   mutable TransformPointer      m_Transform;
   InterpolatorPointer           m_Interpolator;
 
-  mutable FixedMeshMaskPointer   m_FixedMeshMask;
-  mutable MovingMeshMaskPointer  m_MovingMeshMask;
+  mutable FixedMaskPointer   m_FixedMask;
+  mutable MovingMaskPointer  m_MovingMask;
 
 private:
   MeshToMeshMetric(const Self&); //purposely not implemented
