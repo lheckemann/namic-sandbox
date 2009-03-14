@@ -45,6 +45,9 @@ int main(int argc, char *argv[])
   typedef itk::TriangleBasisSystemCalculator< MeshType, TriangleBasisSystemType >  TriangleBasisSystemCalculatorType;
   TriangleBasisSystemCalculatorType::Pointer triangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
   
+  std::cout << triangleBasisSystemCalculator->GetNameOfClass() << std::endl;
+  triangleBasisSystemCalculator->Print( std::cout );
+
   //Define a simple triangular cell
   typedef MeshType::PointType PointType; 
   PointType p0;
@@ -57,6 +60,11 @@ int main(int argc, char *argv[])
   mesh->SetPoint( 0, p0 ); 
   mesh->SetPoint( 1, p1 ); 
   mesh->SetPoint( 2, p2 );
+
+  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystemCalculator->SetInputMesh( mesh ) ); 
+
+  TEST_SET_GET( mesh, triangleBasisSystemCalculator->GetInputMesh() );
+
 
   //Should be SurfaceDimension-1 at most
   //Will compile later...
