@@ -17,6 +17,11 @@ FIND_PATH(FREESURFER_DIR
 #######################
 #######################
 
+ADD_EXECUTABLE(itkTriangleBasisSystemCalculatorTest1 itkTriangleBasisSystemCalculatorTest1.cxx )
+TARGET_LINK_LIBRARIES(itkTriangleBasisSystemCalculatorTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkTriangleBasisSystemTest1 itkTriangleBasisSystemTest1.cxx )
+TARGET_LINK_LIBRARIES(itkTriangleBasisSystemTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkRegularSphereQuadEdgeMeshSourceTest1 itkRegularSphereQuadEdgeMeshSourceTest1.cxx )
 TARGET_LINK_LIBRARIES(itkRegularSphereQuadEdgeMeshSourceTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -65,6 +70,14 @@ TARGET_LINK_LIBRARIES(itkImageToImageRotationRegistrationTest ITKNumerics ITKIO)
 #
 ###################
 ###################
+
+ADD_TEST(itkTriangleBasisSystemCalculatorTest1
+  ${CXX_TEST_PATH}/itkTriangleBasisSystemCalculatorTest1
+ )
+
+ADD_TEST(itkTriangleBasisSystemTest1
+  ${CXX_TEST_PATH}/itkTriangleBasisSystemTest1
+ )
 
 ADD_TEST(itkRegularSphereQuadEdgeMeshSourceTest1
   ${CXX_TEST_PATH}/itkRegularSphereQuadEdgeMeshSourceTest1
