@@ -32,33 +32,19 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
 ::TriangleBasisSystemCalculator()
 {
   itkDebugMacro("Constructor");
-  m_InputMesh= NULL; 
+  this->m_InputMesh= NULL; 
 }
 
+/**
+ * Destructor
+ */
 template <class TMesh, class TBasisSystem >
-void
 TriangleBasisSystemCalculator<TMesh, TBasisSystem>
-::SetInputMesh( const TMesh & m)
+::~TriangleBasisSystemCalculator()
 {
-  if (m==NULL) 
-    {
-    itkExceptionMacro(<<"TriangleBasisSystemCalculator  SetInputMesh input parameter is NULL.");
-    }
-  m_InputMesh= m; 
+  itkDebugMacro("Destructor");
 }
 
-template <class TMesh, class TBasisSystem >
-const TMesh & 
-TriangleBasisSystemCalculator<TMesh, TBasisSystem>
-::GetInputMesh(void) const
-{
-  if (m_InputMesh!=NULL) 
-    {
-    itkExceptionMacro(<<"TriangleBasisSystemCalculator  GetInputMesh m_InputMesh is NULL.");
-    }
-  const MeshType & result= m_InputMesh; 
-  return (result);
-}
 
 template <class TMesh, class TBasisSystem >
 void
@@ -66,24 +52,24 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
 ::CalculateTriangle( unsigned int cellIndex, TBasisSystem & bs ) const
 {
 
-  if (m_InputMesh!=NULL) 
+  if( this->m_InputMesh.IsNull() ) 
     {
     itkExceptionMacro(<<"TriangleBasisSystemCalculator CalculateTriangle  m_InputMesh is NULL.");
     }
 
-  if (cellIndex>=this->m_InputMesh->GetNumberOfCells()) 
+  if (cellIndex >= this->m_InputMesh->GetNumberOfCells()) 
     {
     itkExceptionMacro(<<"TriangleBasisSystemCalculator CalculateTriangle  cellIndex is too high.");
     }
 
   typedef typename MeshType::CellType           CellType; 
-  typedef typename MeshType::PointType           PointType; 
+  typedef typename MeshType::PointType          PointType; 
   typedef typename MeshType::CellsContainer     CellsContainer; 
   typedef typename CellType::PointsContainer    PointsContainer;
   typedef typename PointType::VectorType        VectorType;
 
-  VectorType  m_U12;
-  VectorType  m_U32;
+  VectorType  u12;
+  VectorType  u32;
 
   typedef PointLocator2< MeshType >           PointLocatorType;
   typedef typename PointLocatorType::Pointer    PointLocatorPointer;
@@ -103,27 +89,26 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
   // Compute Vectors along the edges.
   // These two vectors form a vector base for the 2D space of the triangle cell.
   //
-  VectorType m_V12 = pt1 - pt2;
-  VectorType m_V32 = pt3 - pt2;
+  VectorType v12 = pt1 - pt2;
+  VectorType v32 = pt3 - pt2;
 
   //
   // Compute Vectors in the dual vector base inside the 2D space of the triangle cell.
-  // m_U12 is orthogonal to m_V32
-  // m_U32 is orthogonal to m_V12
+  // u12 is orthogonal to v32
+  // u32 is orthogonal to v12
   //
-  const double dotproduct =  m_V12 * m_V32;
-  m_U12 = m_V12 - m_V32 * ( dotproduct / m_V32.GetSquaredNorm() );
-  m_U32 = m_V32 - m_V12 * ( dotproduct / m_V12.GetSquaredNorm() );
+  const double dotproduct =  v12 * v32;
+  u12 = v12 - v32 * ( dotproduct / v32.GetSquaredNorm() );
+  u32 = v32 - v12 * ( dotproduct / v12.GetSquaredNorm() );
 
   //
-  // Add normalizations for making {m_U12,m_U32} a vector basis orthonormal to {m_V12, m_V32}.
+  // Add normalizations for making {u12,u32} a vector basis orthonormal to {v12, v32}.
   //
-  m_U12 /= ( m_U12 * m_V12 );
-  m_U32 /= ( m_U32 * m_V32 );
+  u12 /= ( u12 * v12 );
+  u32 /= ( u32 * v32 );
 
-  bs->SetVector(0, m_U12); 
-  bs->SetVector(1, m_U32); 
-
+  bs.SetVector( 0, u12 ); 
+  bs.SetVector( 1, u32 ); 
 }
 
 } // end namespace itk

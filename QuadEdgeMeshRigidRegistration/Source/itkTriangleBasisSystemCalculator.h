@@ -37,13 +37,10 @@ namespace itk
  *
  *
  */
-template <class TMesh, class TBasisSystem >
+template < class TMesh, class TBasisSystem >
 class ITK_EXPORT TriangleBasisSystemCalculator : public Object
 {
 public:
-  typedef TBasisSystem BasisSystemType;
-  typedef TMesh MeshType;
-    
   /** Standard class typedefs. */
   typedef TriangleBasisSystemCalculator             Self;
   typedef Object                                    Superclass;
@@ -56,15 +53,23 @@ public:
   /** Standard part of every itk Object. */
   itkTypeMacro(TriangleBasisSystemCalculator, Object);
 
-  void SetInputMesh( const TMesh & m);
-  const TMesh & GetInputMesh(void) const; 
+  typedef TBasisSystem                            BasisSystemType;
+  typedef TMesh                                   MeshType;
+  typedef typename MeshType::ConstPointer         MeshConstPointer;
+    
+  itkSetConstObjectMacro( InputMesh, MeshType );
+  itkGetConstObjectMacro( InputMesh, MeshType );
+
+  /** Compute the basis system at the triangular cell of the Mesh that is
+   * identified by cellIndex. */
   void CalculateTriangle( unsigned int cellIndex, TBasisSystem & bs ) const; 
 
 protected:
   TriangleBasisSystemCalculator();
-  virtual ~TriangleBasisSystemCalculator() {};
+  virtual ~TriangleBasisSystemCalculator();
+
 private:
-  MeshType m_InputMesh;   
+  MeshConstPointer     m_InputMesh;   
 
 };
 

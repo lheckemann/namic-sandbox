@@ -39,13 +39,11 @@ int main(int argc, char *argv[])
   VectorType v_01;
   VectorType v_02;
 
-#ifdef LATER  
-  typedef itk::TriangleBasisSystem<VectorType, SurfaceDimension>  TriangleBasisSystemType;
-  TriangleBasisSystemType::Pointer triangleBasisSystem = TriangleBasisSystemType::New(); 
+  typedef itk::TriangleBasisSystem< VectorType, SurfaceDimension>  TriangleBasisSystemType;
+  TriangleBasisSystemType triangleBasisSystem;
 
-  typedef itk::TriangleBasisSystemCalculator<MeshType, TriangleBasisSystemType >  TriangleBasisSystemCalculatorType;
+  typedef itk::TriangleBasisSystemCalculator< MeshType, TriangleBasisSystemType >  TriangleBasisSystemCalculatorType;
   TriangleBasisSystemCalculatorType::Pointer triangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
-#endif
   
   //Define a simple triangular cell
   typedef MeshType::PointType PointType; 
@@ -59,21 +57,6 @@ int main(int argc, char *argv[])
   mesh->SetPoint( 0, p0 ); 
   mesh->SetPoint( 1, p1 ); 
   mesh->SetPoint( 2, p2 );
-
-#if 0  
-  typedef MeshType::CellType CellType;
-  typedef CellType::CellAutoPointer CellAutoPointer; 
-  
-  CellAutoPointer line0; 
-  CellAutoPointer line1;
-  line0.TakeOwner
-
-  for (int i=0; i<3; i++) {
-     v_01[i]= p1[i]-p0[i];
-     v_02[i]= p2[i]-p0[i];
-  }
-  //Michel FIXME
-#endif
 
   //Should be SurfaceDimension-1 at most
   //Will compile later...

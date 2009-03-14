@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
   VectorType v_02;
 
   typedef itk::TriangleBasisSystem<VectorType, SurfaceDimension>  TriangleBasisSystemType;
-  TriangleBasisSystemType::Pointer triangleBasisSystem = TriangleBasisSystemType::New(); 
+  TriangleBasisSystemType triangleBasisSystem;
   
   //Define a simple triangular cell
   MeshType::PointType p0;
@@ -53,26 +53,26 @@ int main(int argc, char *argv[])
   mesh->SetPoint( 1, p1 ); 
   mesh->SetPoint( 2, p2 );
 
-
-  for (int i=0; i<3; i++) {
-     v_01[i]= p1[i]-p0[i];
-     v_02[i]= p2[i]-p0[i];
-  }
+  for (int i=0; i<3; i++)
+    {
+    v_01[i]= p1[i]-p0[i];
+    v_02[i]= p2[i]-p0[i];
+    }
 
   //Should be SurfaceDimension-1 at most
-  TRY_EXPECT_EXCEPTION( triangleBasisSystem->SetVector(SurfaceDimension, v_01) ); 
-  //Should be Dimension-1 at most
-  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystem->SetVector(0, v_01) ); 
-  //Should be Dimension-1 at most
-  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystem->SetVector(1, v_02) ); 
+  TRY_EXPECT_EXCEPTION( triangleBasisSystem.SetVector(SurfaceDimension, v_01) ); 
 
   //Should be Dimension-1 at most
-  TRY_EXPECT_EXCEPTION( triangleBasisSystem->GetVector(SurfaceDimension) ); 
+  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystem.SetVector(0, v_01) ); 
 
-  std::cout << " basis vector 0 " <<
-     triangleBasisSystem->GetVector(0) ;  
-  std::cout << " basis vector 1 " <<
-     triangleBasisSystem->GetVector(1) ; 
+  //Should be Dimension-1 at most
+  TRY_EXPECT_NO_EXCEPTION( triangleBasisSystem.SetVector(1, v_02) ); 
+
+  //Should be Dimension-1 at most
+  TRY_EXPECT_EXCEPTION( triangleBasisSystem.GetVector(SurfaceDimension) ); 
+
+  std::cout << " basis vector 0 " << triangleBasisSystem.GetVector(0) ;  
+  std::cout << " basis vector 1 " << triangleBasisSystem.GetVector(1) ; 
   
   std::cout << "Test passed." << std::endl;
 
