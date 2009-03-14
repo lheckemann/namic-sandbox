@@ -50,7 +50,7 @@ TriangleBasisSystem<TVector, NSubspaceDimension >
     {
     itkGenericExceptionMacro(<<"TriangleBasisSystem  SetVector index k is too high.");
     }
-  m_Basis[k]= v;
+  m_Basis[k] = v;
 }
 
 
