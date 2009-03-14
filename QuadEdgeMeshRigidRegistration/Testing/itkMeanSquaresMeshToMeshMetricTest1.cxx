@@ -172,27 +172,40 @@ int main( int argc, char * argv [] )
   // exercise masks
   //---------------------------------------------------
   std::cout << "Exercising Masks" << std::endl;
+  metric->SetFixedMesh( fixedMesh );
 
   typedef itk::EllipseSpatialObject< Dimension >    MaskType;
 
   MaskType::Pointer fixedMask  = MaskType::New();
-  MaskType::Pointer movingMask = MaskType::New();
-
   fixedMask->SetRadius(0.1);
-  movingMask->SetRadius(0.1);
 
   metric->SetFixedMask( fixedMask );
   TEST_SET_GET( fixedMask, metric->GetFixedMask() );
-
-  metric->SetMovingMask( movingMask );
-  TEST_SET_GET( movingMask, metric->GetMovingMask() );
-
-  metric->SetFixedMesh( fixedMesh );
 
   // Since the masks are outside, we expect exceptions in the following calls.
   TRY_EXPECT_EXCEPTION( metric->GetValue( parameters ) );
   TRY_EXPECT_EXCEPTION( metric->GetDerivative( parameters, derivative1 ) );
   TRY_EXPECT_EXCEPTION( metric->GetValueAndDerivative( parameters, value1, derivative1  ) );
+
+  fixedMask->SetRadius(5.1); // enlarge radius to accept all points.
+  
+  MaskType::Pointer movingMask = MaskType::New();
+  movingMask->SetRadius(0.1);
+
+  metric->SetMovingMask( movingMask );
+  TEST_SET_GET( movingMask, metric->GetMovingMask() );
+
+  // Since the masks are outside, we expect exceptions in the following calls.
+  TRY_EXPECT_EXCEPTION( metric->GetValue( parameters ) );
+  TRY_EXPECT_EXCEPTION( metric->GetDerivative( parameters, derivative1 ) );
+  TRY_EXPECT_EXCEPTION( metric->GetValueAndDerivative( parameters, value1, derivative1  ) );
+
+  movingMask->SetRadius(5.1);
+
+  // Since the masks are outside, we expect exceptions in the following calls.
+  TRY_EXPECT_NO_EXCEPTION( metric->GetValue( parameters ) );
+  TRY_EXPECT_NO_EXCEPTION( metric->GetDerivative( parameters, derivative1 ) );
+  TRY_EXPECT_NO_EXCEPTION( metric->GetValueAndDerivative( parameters, value1, derivative1  ) );
 
   std::cout << "Test passed. " << std::endl;
 
