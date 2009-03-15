@@ -24,6 +24,7 @@
 #include "itkFreeSurferBinarySurfaceReader.h"
 #include "itkDefaultStaticMeshTraits.h"
 #include "itkVTKPolyDataWriter.h"
+#include "itkTestingMacros.h"
 
 #include <iostream>
 
@@ -42,10 +43,21 @@ int main(int argc, char* argv[] )
 
   ReaderType::Pointer  surfaceReader = ReaderType::New();
 
+  std::cout << "Trying to read without connecting any filename" << std::endl;
+  TRY_EXPECT_EXCEPTION( surfaceReader->Update() );
+
   typedef ReaderType::PointType   PointType;
   typedef ReaderType::VectorType  VectorType;
 
   surfaceReader->SetFileName(argv[1]);
+
+  TRY_EXPECT_NO_EXCEPTION( surfaceReader->Update() );
+
+  surfaceReader->SetDataFileName("NonExistantFile");
+
+  // Missing data file only produces a warning, not an exception.
+  TRY_EXPECT_NO_EXCEPTION( surfaceReader->Update() );
+
   surfaceReader->SetDataFileName(argv[2]);
 
   std::string filename2 = surfaceReader->GetFileName();
@@ -63,16 +75,8 @@ int main(int argc, char* argv[] )
     return EXIT_FAILURE;
     }
 
-
-  try
-    {
-    surfaceReader->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    }
+  std::cout << "Trying to read with both filenames connected" << std::endl;
+  TRY_EXPECT_NO_EXCEPTION( surfaceReader->Update() );
 
   std::cout << "surfaceReader:" << std::endl;
   std::cout << surfaceReader << std::endl;

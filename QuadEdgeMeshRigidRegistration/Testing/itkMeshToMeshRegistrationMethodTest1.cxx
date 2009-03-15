@@ -189,5 +189,8 @@ int main( int argc, char * argv [] )
 
   TRY_EXPECT_EXCEPTION( registrator->StartRegistration() );
 
+  TRY_EXPECT_EXCEPTION( registrator->MakeOutput(1) );
+  TRY_EXPECT_NO_EXCEPTION( registrator->MakeOutput(0) );
+
   return EXIT_SUCCESS;
 }
