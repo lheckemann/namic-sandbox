@@ -86,7 +86,7 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::OpenGeometryFile()
 {
-  if( this->m_FileName == "" )
+  if( this->m_FileName.empty() )
     {
     itkExceptionMacro("No input FileName");
     }
@@ -103,8 +103,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 
   if( !this->m_InputGeometryFile.is_open() )
     {
-    itkExceptionMacro("Unable to open file\n"
-        "inputFilename= " << this->m_FileName );
+    itkExceptionMacro("Unable to open file inputFilename= " << this->m_FileName );
     }
 }
 
@@ -123,11 +122,6 @@ void
 FreeSurferBinarySurfaceReader<TOutputMesh>
 ::OpenDataFile()
 {
-  if( this->m_DataFileName == "" )
-    {
-    itkExceptionMacro("No input FileName");
-    }
-
   //
   // Open file 
   //
@@ -135,8 +129,7 @@ FreeSurferBinarySurfaceReader<TOutputMesh>
 
   if( !this->m_InputDataFile.is_open() )
     {
-    itkExceptionMacro("Unable to open file\n"
-        "inputFilename= " << this->m_DataFileName );
+    itkExceptionMacro("Unable to open file inputFilename= " << this->m_DataFileName );
     }
 }
 
