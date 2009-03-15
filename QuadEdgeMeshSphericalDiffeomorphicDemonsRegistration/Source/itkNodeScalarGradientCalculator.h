@@ -26,7 +26,7 @@ namespace itk
 
 /** \class NodeScalarGradientCalculator
  * Estimates Gradient of a scalar function at at the node of a mesh.
- 
+ * 
  * \brief 
  *
  * \sa NodeScalarGradientCalculator
