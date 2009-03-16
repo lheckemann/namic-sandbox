@@ -13,7 +13,6 @@
 
 ==========================================================================*/
 
-
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
@@ -32,6 +31,7 @@
 #include "vtkMRMLDisplayableNode.h"
 #include "vtkMRMLTransformableNode.h"
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLROINode.h"
 
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkSphereSource.h"
@@ -48,6 +48,8 @@
 #include "vtkKWCheckButton.h"
 #include "vtkKWScaleWithEntry.h"
 #include "vtkKWScale.h"
+#include "vtkKWRadioButton.h"
+#include "vtkKWRadioButtonSet.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -86,21 +88,22 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   ROIpresent    = 0;
   showNeedle    = 0;
   scanPlane     = 0;
-  needleOrigin  = LEFT; //TODO: make this 0 whenever done testing
+  needleOrigin  = PATIENTLEFT; //if this default value gets changed, the initial value for pEntryPointButtonSet needs to get changed, too
   
   //----------------------------------------------------------------
   // GUI widgets
-  this->pStartButton      = NULL;
-  this->pStopButton       = NULL;
-  this->pShowNeedleButton = NULL;
-  this->pScannerIDEntry   = NULL;
-  this->pThresholdScale   = NULL;
-  this->pXLowerEntry      = NULL;
-  this->pXUpperEntry      = NULL;
-  this->pYLowerEntry      = NULL;
-  this->pYUpperEntry      = NULL;
-  this->pZLowerEntry      = NULL;
-  this->pZUpperEntry      = NULL;
+  this->pStartButton              = NULL;
+  this->pStopButton               = NULL;
+  this->pShowNeedleButton         = NULL;
+  this->pScannerIDEntry           = NULL;
+  this->pThresholdScale           = NULL;
+  this->pEntryPointButtonSet  = NULL;
+  this->pXLowerEntry              = NULL;
+  this->pXUpperEntry              = NULL;
+  this->pYLowerEntry              = NULL;
+  this->pYUpperEntry              = NULL;
+  this->pZLowerEntry              = NULL;
+  this->pZUpperEntry              = NULL;
   
   //--------------------------------------------------------------------
   // MRML nodes  
@@ -175,28 +178,33 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
     this->pStopButton->SetParent(NULL);
     this->pStopButton->Delete();
   }
-  if (this->pShowNeedleButton)
+  if(this->pShowNeedleButton)
   {
     this->pShowNeedleButton->SetParent(NULL );
     this->pShowNeedleButton->Delete ( );
   }
-  if (this->pScannerIDEntry)
+  if(this->pScannerIDEntry)
   {
     this->pScannerIDEntry->SetParent(NULL);
     this->pScannerIDEntry->Delete();
   }
-  if (this->pThresholdScale) 
+  if(this->pThresholdScale) 
   {
     this->pThresholdScale->SetParent(NULL);
     this->pThresholdScale->Delete();
     this->pThresholdScale = NULL;  //TODO:Steve - I found this somewhere in some other code. Is this correct? Do I need to set it to NULL after deleting?
+  }
+  if(this->pEntryPointButtonSet)
+  {
+    this->pEntryPointButtonSet->SetParent(NULL);
+    this->pEntryPointButtonSet->Delete();
   }
   if (this->pXLowerEntry)
   {
     this->pXLowerEntry->SetParent(NULL);
     this->pXLowerEntry->Delete();
   }
-  if (this->pXUpperEntry)
+  if(this->pXUpperEntry)
   {
     this->pXUpperEntry->SetParent(NULL);
     this->pXUpperEntry->Delete();
@@ -206,12 +214,12 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
     this->pYLowerEntry->SetParent(NULL);
     this->pYLowerEntry->Delete();
   }
-  if (this->pYUpperEntry)
+  if(this->pYUpperEntry)
   {
     this->pYUpperEntry->SetParent(NULL);
     this->pYUpperEntry->Delete();
   }
-  if (this->pZLowerEntry)
+  if(this->pZLowerEntry)
   {
     this->pZLowerEntry->SetParent(NULL);
     this->pZLowerEntry->Delete();
@@ -299,6 +307,15 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
     this->pShowNeedleButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
   if(this->pThresholdScale)
     this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
+  if (this->pEntryPointButtonSet)
+  {
+    this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+  }
     
   this->RemoveLogicObservers();
 }
@@ -335,6 +352,12 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   this->pStopButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pThresholdScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
+  this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
 
   this->AddLogicObservers();
 }
@@ -382,6 +405,43 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
   {
     needleDetectionThreshold = this->pThresholdScale->GetValue();
   }
+  
+  else if (this->pEntryPointButtonSet->GetWidget(PATIENTLEFT) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->GetSelectedState() == 1)
+  { 
+    needleOrigin = PATIENTLEFT;
+  }
+  else if (this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->GetSelectedState() == 1)
+  {
+    needleOrigin = PATIENTRIGHT; 
+  }
+  else if (this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->GetSelectedState() == 1)
+  {
+    needleOrigin = PATIENTPOSTERIOR; 
+  }
+  else if (this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->GetSelectedState() == 1)
+  {
+    needleOrigin = PATIENTANTERIOR; 
+  }
+  else if (this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->GetSelectedState() == 1)
+  {
+    needleOrigin = PATIENTINFERIOR; 
+  }
+  else if (this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->GetSelectedState() == 1)
+  {
+    needleOrigin = PATIENTSUPERIOR; 
+  }  
   
   else if(this->pStartButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
   {
@@ -455,8 +515,28 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       //TODO: Do I need to get the scalarType, too?
       if(ROIpresent)
       {
-        vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("VolumeNode"));
-        std::cout << "MRLMROINode exists" << std::endl; 
+        std::cout << "MRLMROINode exists" << std::endl;
+        vtkCollection* collectionOfROINodes = this->GetMRMLScene()->GetNodesByName("MRMLROINode");
+        int nItems = collectionOfROINodes->GetNumberOfItems();
+        if(nItems > 0)
+        {
+          vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(collectionOfROINodes->GetItemAsObject(0));
+          double center[3];
+          double radius[3];
+          // the origin of the transform is always in the center of the imge: (Dimension*spacing = fov) / 2
+          double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
+          double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
+          // fovK is not needed, because the images are 2D only
+          pROINode->GetRadiusXYZ(radius);
+          pROINode->GetXYZ(center);
+          this->pXLowerEntry->SetValueAsInt((int) (center[0] - radius[0] + fovI)); //TODO:Problem with the ROI -> LR directions are switched | my x-axis points to Left whereas in RAS coordinates the Right is positive
+          this->pXUpperEntry->SetValueAsInt((int) (center[0] + radius[0] + fovI));          
+          this->pYLowerEntry->SetValueAsInt((int) (center[1] - radius[1] + fovJ));
+          this->pYUpperEntry->SetValueAsInt((int) (center[1] + radius[1] + fovJ));  
+          //TODO: Implement Z value        
+          //this->pZLowerEntry->SetValueAsInt();
+          //this->pZUpperEntry->SetValueAsInt();
+        }         
       }
       currentXLowerBound = initialXLowerBound = this->pXLowerEntry->GetValueAsInt();
       currentXUpperBound = initialXUpperBound = this->pXUpperEntry->GetValueAsInt();
@@ -902,6 +982,47 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   scannerLabel->Delete();
   scannerFrame->Delete(); 
   
+  // ------------------------------------------------------
+  // Needle entering direction button set
+  vtkKWFrame *buttonSetFrame = vtkKWFrame::New();
+  buttonSetFrame->SetParent(controlFrame->GetFrame());
+  buttonSetFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                buttonSetFrame->GetWidgetName());
+
+  vtkKWLabel *buttonSetLabel = vtkKWLabel::New();
+  buttonSetLabel->SetParent(buttonSetFrame);
+  buttonSetLabel->Create();
+  buttonSetLabel->SetWidth(15);
+  buttonSetLabel->SetText("Entering direction \n of the needle: ");
+
+  this->pEntryPointButtonSet = vtkKWRadioButtonSet::New();
+  this->pEntryPointButtonSet->SetParent(buttonSetFrame);
+  this->pEntryPointButtonSet->Create();
+  this->pEntryPointButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
+  this->pEntryPointButtonSet->UniformColumnsOn();
+  this->pEntryPointButtonSet->UniformRowsOn();  
+
+  this->pEntryPointButtonSet->AddWidget(PATIENTLEFT);
+  this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->SetText("Left");
+  this->pEntryPointButtonSet->AddWidget(PATIENTRIGHT);
+  this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->SetText("Right");
+  this->pEntryPointButtonSet->AddWidget(PATIENTPOSTERIOR);
+  this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->SetText("Posterior");
+  this->pEntryPointButtonSet->AddWidget(PATIENTANTERIOR);
+  this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->SetText("Anterior");
+  this->pEntryPointButtonSet->AddWidget(PATIENTINFERIOR);
+  this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->SetText("Inferior");
+  this->pEntryPointButtonSet->AddWidget(PATIENTSUPERIOR);
+  this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->SetText("Superior");
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              buttonSetLabel->GetWidgetName() , this->pEntryPointButtonSet->GetWidgetName());
+  
+  this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->SelectedStateOn();  //default, always needs to correspond to the member variable needleOrigin
+  this->pEntryPointButtonSet->EnabledOn();
+  buttonSetFrame->Delete();
+  
   // -----------------------------------------
   // push buttons
   vtkKWFrame* buttonFrame = vtkKWFrame::New();
@@ -929,17 +1050,21 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pShowNeedleButton->SetText("Show Needle");
   this->pShowNeedleButton->EnabledOff();
 
-  this->Script("pack %s %s %s -side left -padx 2 -pady 2", 
+  this->Script("pack %s %s %s %s -side left -padx 2 -pady 2", 
                this->pStartButton->GetWidgetName(),
                this->pStopButton->GetWidgetName(),
-               this->pShowNeedleButton->GetWidgetName());              
-    
-  this->Script("pack %s -side left -anchor w -padx 2 -pady 2", this->pShowNeedleButton->GetWidgetName());
+               this->pShowNeedleButton->GetWidgetName(),
+               this->pShowNeedleButton->GetWidgetName());
                           
   buttonFrame->Delete();
   
-  // ------------------------------------------------------
-  // slider buttons  
+    // ------------------------------------------------------
+  // threshold slider button  
+  vtkKWFrame* sliderFrame = vtkKWFrame::New();
+  sliderFrame->SetParent(controlFrame->GetFrame());
+  sliderFrame->Create();
+  app->Script("pack %s -fill both -expand true", sliderFrame->GetWidgetName());
+  
   this->pThresholdScale = vtkKWScaleWithEntry::New();
   this->pThresholdScale->SetParent(controlFrame->GetFrame());
   this->pThresholdScale->SetLabelText("Threshold");
@@ -950,7 +1075,11 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   //TODO:Steve can I constrict the values to integer?
   this->pThresholdScale->SetValue(DEFAULTTHRESHOLD);
   
-  app->Script("pack %s -side left -anchor w -padx 2 -pady 2", this->pThresholdScale->GetWidgetName());
+  app->Script("pack %s -side left -padx 2 -pady 2", this->pThresholdScale->GetWidgetName());
+  
+  sliderFrame->Delete();  //TODO:Steve put slider above buttons
+  
+  //TODO: this->script? app->script?
   
   controlFrame->Delete();  
   
@@ -1086,6 +1215,7 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
     this->pStartButton->EnabledOff();
     this->pStopButton->EnabledOn();
     this->pScannerIDEntry->EnabledOff();
+    this->pEntryPointButtonSet->EnabledOff();
     this->pXLowerEntry->EnabledOff();
     this->pXUpperEntry->EnabledOff();
     this->pYLowerEntry->EnabledOff();
@@ -1099,6 +1229,7 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
     this->pStartButton->EnabledOn();
     this->pStopButton->EnabledOff();
     this->pScannerIDEntry->EnabledOn();
+    this->pEntryPointButtonSet->EnabledOn();
     if(ROIpresent)
     {
       this->pXLowerEntry->EnabledOff();
