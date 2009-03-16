@@ -525,17 +525,16 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
           double radius[3];
           // the origin of the transform is always in the center of the imge: (Dimension*spacing = fov) / 2
           double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
-          double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
-          // fovK is not needed, because the images are 2D only
+          double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;
+          double fovK = imageDimensions[2] * imageSpacing[2] / 2.0;         
           pROINode->GetRadiusXYZ(radius);
           pROINode->GetXYZ(center);
-          this->pXLowerEntry->SetValueAsInt((int) (center[0] - radius[0] + fovI)); //TODO:Problem with the ROI -> LR directions are switched | my x-axis points to Left whereas in RAS coordinates the Right is positive
-          this->pXUpperEntry->SetValueAsInt((int) (center[0] + radius[0] + fovI));          
+          this->pXLowerEntry->SetValueAsInt((int) ((-center[0]) - radius[0] + fovI)); // negative center point for the x-axis, because the ROIMRMLNode coordinates are in RAS (LR direction of X-axis), 
+          this->pXUpperEntry->SetValueAsInt((int) ((-center[0]) + radius[0] + fovI)); // but the slicer axial and coronal view, which are used as reference, switch the direction (RL direction of X-axis)
           this->pYLowerEntry->SetValueAsInt((int) (center[1] - radius[1] + fovJ));
           this->pYUpperEntry->SetValueAsInt((int) (center[1] + radius[1] + fovJ));  
-          //TODO: Implement Z value        
-          //this->pZLowerEntry->SetValueAsInt();
-          //this->pZUpperEntry->SetValueAsInt();
+          this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovK));
+          this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovK));
         }         
       }
       currentXLowerBound = initialXLowerBound = this->pXLowerEntry->GetValueAsInt();
@@ -822,7 +821,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
             {              
               transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
               transform->RotateZ(-angle);
-              translationLR = -(points[2]-fovI); 
+              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates is to the patient right, but in the slicer axial and coronal view it is to the patient left 
               translationPA = points[3]-fovJ;                
               break;
             }
