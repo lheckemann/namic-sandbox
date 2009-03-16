@@ -4,7 +4,7 @@ FIND_PACKAGE(LATEX)
 
 IF(NOT PDFLATEX_COMPILER)
   MESSAGE("pdflatex compiler was not found. Please pass to advanced mode and provide its full path")
-ENDIF(NOT PDFLATEX_COMPILER)
+ELSE(NOT PDFLATEX_COMPILER)
 
 
 FIND_PROGRAM(FIG2DEV_EXECUTABLE NAMES fig2dev)
@@ -81,3 +81,4 @@ ADD_CUSTOM_TARGET(ReportIJ ALL
    WORKING_DIRECTORY ${QuadEdgeMeshRigidRegistrationReport001_BINARY_DIR}
    )
  
+ENDIF(NOT PDFLATEX_COMPILER)
