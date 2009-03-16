@@ -121,6 +121,8 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkKWMenuButton*      pSourceMenu;
   vtkKWEntry*           pScannerIDEntry;
   vtkKWScaleWithEntry*  pThresholdScale;
+  vtkKWRadioButtonSet*  pEntryPointButtonSet;
+  
   vtkKWEntry*           pXLowerEntry;
   vtkKWEntry*           pXUpperEntry;
   vtkKWEntry*           pYLowerEntry;
