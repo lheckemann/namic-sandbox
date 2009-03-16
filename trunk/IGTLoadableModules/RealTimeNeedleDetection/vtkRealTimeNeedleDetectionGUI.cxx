@@ -748,7 +748,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
       pImageProcessor->GetImage((void*) pImageRegion1);
       SetImageRegion(pImageData, pImageRegion1, false);  // write the region of interest with the drawn needle in it below the MRI image received from the scanner
       //TODO:DELETE pImageRegion!!
@@ -874,7 +873,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           vtkMatrix4x4* transformToParent1 = pNeedleTransformNode->GetMatrixTransformToParent();
           transformToParent1->DeepCopy(transform->GetMatrix()); // This calls the modified event
           transform->Translate(-translationLR, -translationPA, -translationIS);
-          //transform->RotateZ(90); //TODO:continue here!
+          transform->RotateZ(90); //TODO: this might include errors
           vtkMatrix4x4* transformToParent2 = pScanPlaneNormalNode->GetMatrixTransformToParent();
           transformToParent2->DeepCopy(transform->GetMatrix()); // This calls the modified event
           transform->Delete();
