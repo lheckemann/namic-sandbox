@@ -33,6 +33,9 @@ TARGET_LINK_LIBRARIES(itkVersorOperationsTest1 ITKQuadEdgeMesh ITKIO ITKNumerics
 ADD_EXECUTABLE(itkNodeScalarGradientCalculatorTest1 itkNodeScalarGradientCalculatorTest1.cxx )
 TARGET_LINK_LIBRARIES(itkNodeScalarGradientCalculatorTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkTriangleBasisSystemTest1 itkTriangleBasisSystemTest1.cxx )
+TARGET_LINK_LIBRARIES(itkTriangleBasisSystemTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 
 ###################
 ###################
@@ -65,6 +68,9 @@ ADD_TEST(itkNodeScalarGradientCalculatorTest1
   ${TEMP}/movingMesh01.vtk
   )
 
+ADD_TEST(itkTriangleBasisSystemTest1
+  ${CXX_TEST_PATH}/itkTriangleBasisSystemTest1
+ )
 
 
 IF( FREESURFER_DIR )
