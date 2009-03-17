@@ -56,6 +56,7 @@ public:
   typedef TMesh                                   MeshType;
   typedef typename MeshType::ConstPointer         MeshConstPointer;
     
+  /** Set/Get the mesh for which the basis system will be computed. */
   itkSetConstObjectMacro( InputMesh, MeshType );
   itkGetConstObjectMacro( InputMesh, MeshType );
 
