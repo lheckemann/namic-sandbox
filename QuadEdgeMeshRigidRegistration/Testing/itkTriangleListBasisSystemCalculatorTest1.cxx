@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -31,7 +31,7 @@
 int main(int argc, char *argv[])
 {
 
-  const unsigned int SurfaceDimension = 2; 
+  const unsigned int SurfaceDimension = 2;
   const unsigned int Dimension = 3;
 
   typedef itk::QuadEdgeMesh< float, Dimension >   MovingMeshType;
@@ -53,17 +53,15 @@ int main(int argc, char *argv[])
      TriangleListBasisSystemCalculatorType;
 
   TriangleListBasisSystemCalculatorType::Pointer triangleListBasisSystemCalculator =
-     TriangleListBasisSystemCalculatorType::New(); 
+     TriangleListBasisSystemCalculatorType::New();
 
-  const TriangleListBasisSystemCalculatorType::BasisSystemListType * basisSystemListPtr= NULL; 
-   
-  //std::cout << triangleListBasisSystemCalculator->GetNameOfClass() << std::endl; //Michel FIXME: print is inaccessible
-  //triangleListBasisSystemCalculator->Print( std::cout ); //Michel FIXME: print is inaccessible
+  std::cout << triangleListBasisSystemCalculator->GetNameOfClass() << std::endl;
+  triangleListBasisSystemCalculator->Print( std::cout );
 
   //Mesh not set yet. Exception!
   TRY_EXPECT_EXCEPTION( triangleListBasisSystemCalculator->Calculate() );
-  
-  TRY_EXPECT_NO_EXCEPTION( triangleListBasisSystemCalculator->SetInputMesh( mesh ) ); 
+
+  TRY_EXPECT_NO_EXCEPTION( triangleListBasisSystemCalculator->SetInputMesh( mesh ) );
 
   //List not computed yet. Exception!
   TRY_EXPECT_EXCEPTION( triangleListBasisSystemCalculator->GetBasisSystemList() );
@@ -73,14 +71,16 @@ int main(int argc, char *argv[])
   //This should produce a list
   TRY_EXPECT_NO_EXCEPTION( triangleListBasisSystemCalculator->Calculate() );
 
-  basisSystemListPtr=  triangleListBasisSystemCalculator->GetBasisSystemList();
+  const TriangleListBasisSystemCalculatorType::BasisSystemListType * basisSystemListPtr = 
+    triangleListBasisSystemCalculator->GetBasisSystemList();
 
-#if 0  
   TriangleListBasisSystemCalculatorType::BasisSystemListIterator basisSystemListIterator;
 
-  basisSystemListIterator= basisSystemListPtr->Begin();  
-  std::cout << " basis list first element " << (*listBasisSystemIterator) << std::endl;
-#endif
+  basisSystemListIterator = basisSystemListPtr->Begin();
+
+  std::cout << " basis list first element " << std::endl;
+  std::cout << basisSystemListIterator->Value().GetVector(0) << std::endl;
+  std::cout << basisSystemListIterator->Value().GetVector(1) << std::endl;
 
   std::cout << "Test passed." << std::endl;
 
