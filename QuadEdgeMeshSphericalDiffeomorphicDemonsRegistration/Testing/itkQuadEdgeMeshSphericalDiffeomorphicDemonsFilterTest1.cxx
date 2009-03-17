@@ -23,6 +23,7 @@
 #include "itkVTKPolyDataReader.h"
 #include "itkMeshGeneratorHelper.h"
 #include "itkTestingMacros.h"
+#include "itkFilterWatcher.h"
 
 int main( int argc, char *argv[] )
 {
@@ -93,6 +94,8 @@ int main( int argc, char *argv[] )
   maximumNumberOfIterations = 15;
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
   TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
+
+  FilterWatcher watcher( demonsFilter, "Demons Filter");
 
   try
     {
