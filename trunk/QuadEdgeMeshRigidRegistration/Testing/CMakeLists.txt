@@ -50,6 +50,9 @@ TARGET_LINK_LIBRARIES(itkPointLocator2Test1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 ADD_EXECUTABLE(itkMeshToMeshRegistrationMethodTest1 itkMeshToMeshRegistrationMethodTest1.cxx)
 TARGET_LINK_LIBRARIES(itkMeshToMeshRegistrationMethodTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkMeshToMeshRegistrationMethodTest2 itkMeshToMeshRegistrationMethodTest2.cxx)
+TARGET_LINK_LIBRARIES(itkMeshToMeshRegistrationMethodTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkMeshToMeshMetricTest1 itkMeshToMeshMetricTest1.cxx)
 TARGET_LINK_LIBRARIES(itkMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -159,6 +162,11 @@ ADD_TEST(itkPointLocator2Test1
 
 ADD_TEST(itkMeshToMeshRegistrationMethodTest1a
   ${CXX_TEST_PATH}/itkMeshToMeshRegistrationMethodTest1
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest1.vtk
+  )
+
+ADD_TEST(itkMeshToMeshRegistrationMethodTest2
+  ${CXX_TEST_PATH}/itkMeshToMeshRegistrationMethodTest2
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest1.vtk
   )
 
