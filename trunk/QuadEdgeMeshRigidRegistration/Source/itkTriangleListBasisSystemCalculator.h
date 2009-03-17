@@ -31,7 +31,7 @@ namespace itk
  * TriangleListBasisSystemCalculator computes basis coefficients
  * within a list of triangles contained in a mesh. Basis coefficients
  * can be used thereafter for interpolation and gradient computation
- * within those triangles. 
+ * within those triangles.
  *
  * This class is templated over the input vector type and dimension of basis.
  *
@@ -39,49 +39,52 @@ namespace itk
  *
  */
 template < class TMesh, class TBasisSystem >
-class ITK_EXPORT TriangleListBasisSystemCalculator : public TriangleBasisSystemCalculator< TMesh, TBasisSystem >
+class ITK_EXPORT TriangleListBasisSystemCalculator : public Object
 {
 public:
-    /** Standard class typedefs. */
-    typedef TriangleListBasisSystemCalculator< TMesh, TBasisSystem >             Self;
-    typedef TriangleBasisSystemCalculator< TMesh, TBasisSystem >                 Superclass;
-    typedef SmartPointer<Self>                        Pointer;
-    typedef SmartPointer<const Self>                  ConstPointer;
-  
-    /** Method for creation through the object factory. */
-    itkNewMacro(Self);
+  /** Standard class typedefs. */
+  typedef TriangleListBasisSystemCalculator         Self;
+  typedef Object                                    Superclass;
+  typedef SmartPointer<Self>                        Pointer;
+  typedef SmartPointer<const Self>                  ConstPointer;
 
-    /** Standard part of every itk Object. */
-    itkTypeMacro(TriangleListBasisSystemCalculator, Object);
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
 
-    typedef TBasisSystem BasisSystemType;
-    typedef
-       VectorContainer<TMesh, TBasisSystem> BasisSystemListType;
-    typedef typename BasisSystemListType::Iterator  BasisSystemListIterator;    
-    typedef typename BasisSystemListType::Pointer   BasisSystemListPointer;
+  /** Standard part of every itk Object. */
+  itkTypeMacro(TriangleListBasisSystemCalculator, Object);
 
-    typedef TMesh                                   MeshType;
-    typedef typename MeshType::PointType            PointType;
-    typedef typename MeshType::CellType             CellType;
-    typedef typename PointType::VectorType          VectorType;
-    typedef typename MeshType::ConstPointer         MeshConstPointer;
+  typedef TBasisSystem                                   BasisSystemType;
+  typedef typename TMesh::CellIdentifier                 CellIdentifier;
+  typedef VectorContainer<CellIdentifier, TBasisSystem>  BasisSystemListType;
+  typedef typename BasisSystemListType::ConstIterator    BasisSystemListIterator;
+  typedef typename BasisSystemListType::Pointer          BasisSystemListPointer;
 
-    typedef typename MeshType::CellsContainerIterator CellsContainerIterator;
-    
+  typedef TMesh                                         MeshType;
+  typedef typename MeshType::PointType                  PointType;
+  typedef typename MeshType::CellType                   CellType;
+  typedef typename PointType::VectorType                VectorType;
+  typedef typename MeshType::ConstPointer               MeshConstPointer;
+  typedef typename MeshType::CellsContainerIterator     CellsContainerIterator;
 
-    itkSetConstObjectMacro( InputMesh, MeshType );
-    itkGetConstObjectMacro( InputMesh, MeshType );
 
-    void Calculate();
-    const BasisSystemListType * GetBasisSystemList() const; 
+  /** Set/Get the input mesh. */
+  itkSetConstObjectMacro( InputMesh, MeshType );
+  itkGetConstObjectMacro( InputMesh, MeshType );
+
+  /** Compute the basis system at every triangle. */
+  void Calculate();
+
+  /** Get the list of basis systems. */
+  itkGetConstObjectMacro( BasisSystemList, BasisSystemListType );
 
 protected:
   TriangleListBasisSystemCalculator();
   virtual ~TriangleListBasisSystemCalculator();
 
 private:
-  MeshConstPointer        m_InputMesh;
-  BasisSystemListPointer   m_List;
+  MeshConstPointer            m_InputMesh;
+  BasisSystemListPointer      m_BasisSystemList;
 };
 
 

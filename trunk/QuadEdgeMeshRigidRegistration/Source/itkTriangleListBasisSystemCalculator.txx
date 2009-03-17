@@ -33,8 +33,8 @@ TriangleListBasisSystemCalculator<TMesh, TBasisSystem>
 ::TriangleListBasisSystemCalculator()
 {
   itkDebugMacro("Constructor");
-  this->m_InputMesh= NULL; 
-  this->m_List= NULL; 
+  this->m_InputMesh = NULL; 
+  this->m_BasisSystemList = BasisSystemListType::New();
 }
 
 /**
@@ -51,7 +51,7 @@ TriangleListBasisSystemCalculator<TMesh, TBasisSystem>
 template <class TMesh, class TBasisSystem >
 void
 TriangleListBasisSystemCalculator<TMesh, TBasisSystem>
-::Calculate( void ) 
+::Calculate() 
 {
 
   if( this->m_InputMesh.IsNull() ) 
@@ -59,39 +59,35 @@ TriangleListBasisSystemCalculator<TMesh, TBasisSystem>
     itkExceptionMacro(<<"TriangleListBasisSystemCalculator CalculateTriangle  m_InputMesh is NULL.");
     }
 
-  //const unsigned int SurfaceDimension = 2; 
+  this->m_BasisSystemList = BasisSystemListType::New();
+
+  
+  this->m_BasisSystemList->Reserve( this->m_InputMesh->GetCells()->Size() );
+
+  typedef TriangleBasisSystemCalculator< TMesh, TBasisSystem >  TriangleBasisSystemCalculatorType;
+
+  typename TriangleBasisSystemCalculatorType::Pointer basisCalculator = 
+    TriangleBasisSystemCalculatorType::New();
+
+  basisCalculator->SetInputMesh( this->m_InputMesh );
 
   CellsContainerIterator cellIterator = this->m_InputMesh->GetCells()->Begin();
   CellsContainerIterator cellEnd = this->m_InputMesh->GetCells()->End();
 
   TBasisSystem triangleBasisSystem;
-  //triangleBasisSystem= TBasisSystem::New();
 
   unsigned int cellIndex=0; 
   while( cellIterator != cellEnd && cellIterator != cellEnd )
     {
 
-    this->CalculateTriangle( cellIndex, triangleBasisSystem);
-    m_List->push_back( triangleBasisSystem ); 
+    basisCalculator->CalculateTriangle( cellIndex, triangleBasisSystem);
+    this->m_BasisSystemList->push_back( triangleBasisSystem ); 
 
     ++cellIterator;
     ++cellIndex;
     }
 }
 
-template <class TMesh, class TBasisSystem >
-const VectorContainer<TMesh, TBasisSystem> *
-TriangleListBasisSystemCalculator<TMesh, TBasisSystem>
-::GetBasisSystemList(void) const
-{
-
-   if( this->m_List.IsNull() ) 
-    {
-    itkExceptionMacro(<<"TriangleListBasisSystemCalculator GetBasisSystemList  m_List is NULL.");
-    } 
-
-    return m_List; 
-}
 
 } // end namespace itk
 
