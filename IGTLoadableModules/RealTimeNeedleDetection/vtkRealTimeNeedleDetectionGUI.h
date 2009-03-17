@@ -135,10 +135,9 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   vtkMRMLVolumeNode*          pSourceNode;          // MRML node, which Slicer received via OpenIGTLink from the Scanner
   vtkMRMLVolumeNode*          pVolumeNode;          // MRML node, which contains the processed image
-  vtkMRMLModelNode*           pNeedleModelNode;     // MRML node, which contains the detected needle displayed as transform
-  vtkMRMLLinearTransformNode* pNeedleTransformNode;
-  vtkMRMLLinearTransformNode* pScanPlaneNormalNode;
-  //TODO:Steve Use a global scene pointer?
+  vtkMRMLModelNode*           pNeedleModelNode;     // MRML node, which contains the displayable detected needle
+  vtkMRMLLinearTransformNode* pNeedleTransformNode; // MRML node, which contains a transform of the detected needle
+  vtkMRMLLinearTransformNode* pScanPlaneNormalNode; // MRML node, which contains a transform of the normal to the detected needle
     
   //----------------------------------------------------------------
   // Logic Values
