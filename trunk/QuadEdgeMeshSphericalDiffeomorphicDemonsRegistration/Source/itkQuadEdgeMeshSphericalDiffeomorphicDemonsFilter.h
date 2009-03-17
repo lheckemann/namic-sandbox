@@ -19,6 +19,10 @@
 #define __itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter_h
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
+#include "itkTriangleBasisSystemCalculator.h"
+#include "itkTriangleBasisSystem.h"
+#include "itkVectorContainer.h"
+#include "itkVector.h"
 
 
 namespace itk
@@ -73,6 +77,16 @@ private:
 
   MovingMeshConstPointer          m_MovingMesh;
   FixedMeshConstPointer           m_FixedMesh;
+
+  typedef Vector< float, 3 >                                    VectorType;
+  typedef TriangleBasisSystem< VectorType, 2 >                  BasisSystemType;
+  typedef typename TFixedMesh::PointIdentifier                  PointIdentifier;
+  typedef VectorContainer< PointIdentifier, BasisSystemType >   BasisSystemContainerType;
+  typedef typename BasisSystemContainerType::Pointer            BasisSystemContainerPointer;
+
+  /** This is the Array of "Cn" matrices presented in equation 3.14 in the
+   * paper. */
+  BasisSystemContainerPointer     m_BasisSystemAtNode; 
 };
 
 }

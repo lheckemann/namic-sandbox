@@ -18,7 +18,7 @@
 #ifndef __itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter_txx
 #define __itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter_txx
 
-#include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.txx"
+#include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 
 namespace itk
 {
@@ -31,6 +31,8 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->SetNumberOfRequiredOutputs( 1 );
   this->SetNumberOfOutputs( 1 );
   this->SetNthOutput( 0, OutputMeshType::New() );
+
+  this->m_BasisSystemAtNode = BasisSystemContainerType::New();
 }
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
