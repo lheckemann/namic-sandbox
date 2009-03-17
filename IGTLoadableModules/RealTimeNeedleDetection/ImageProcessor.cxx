@@ -13,10 +13,14 @@ ImageProcessor::ImageProcessor()
 
 ImageProcessor::~ImageProcessor()
 {
-  mLocalInputImage->Delete();
-  mLocalOutputImage->Delete();
-  mLocalTmp1->Delete();
-  mLocalTmp2->Delete();
+  if(mLocalInputImage)
+    mLocalInputImage->Delete();
+  if(mLocalOutputImage)
+    mLocalOutputImage->Delete();
+  if(mLocalTmp1)
+    mLocalTmp1->Delete();
+  if(mLocalTmp2)
+    mLocalTmp2->Delete();
   std::cout << "ImageProcessor destructed" << std::endl;
  //TODO: delete properly 
 }
@@ -30,6 +34,7 @@ void ImageProcessor::changeEndian(unsigned short* data)
   *data = ((*data&0x5555)<<1)+((*data&0xaaaa)>>1);  
 }
 
+//TODO:Steve Do those Smartpointers of the filters get deleted after returning from the function?
 ImageProcessor::FloatImageType::Pointer ImageProcessor::RescaleUCharToFloat(UCharImageType::Pointer inputImage)
 {
   RescaleUCharToFloatFilter::Pointer rescale = RescaleUCharToFloatFilter::New();  
@@ -74,6 +79,7 @@ void ImageProcessor::SetImage(void* pImage, int xSize, int ySize, int scalarSize
 {
   mScalarSize = scalarSize;  
   mWhichTmp = 0; 
+  //TODO: I always create new local images and only delete them when the image processor gets deleted
   mLocalInputImage = FloatImageType::New();
   mLocalOutputImage = FloatImageType::New();
   mLocalTmp1 = FloatImageType::New();
@@ -226,6 +232,7 @@ void ImageProcessor::GradientMagnitude(bool inputTmp, bool outputTmp)
   else
     mLocalOutputImage = gradFilter->GetOutput();
   gradFilter->Update();
+  return;
 }
 
 void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, int firstThresh, int secondThresh)
@@ -264,6 +271,7 @@ void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, 
   else
     std::cerr << "Error! ImageProcessor::Threshold was not used with the right parameters!" << std::endl;
   threshFilter->Update();
+  return;
 }
 
 // The HoughTransformation finds a line in the image | it finds bright lines
@@ -401,6 +409,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
   }
   avgIntensity /= length; 
   std::cout << "end of houghtransform - avgIntensity: " << avgIntensity << std::endl;
+  return;
 }
    
 void ImageProcessor::CannyEdgeDetection(bool inputTmp, bool outputTmp)
@@ -430,7 +439,8 @@ void ImageProcessor::CannyEdgeDetection(bool inputTmp, bool outputTmp)
     mLocalOutputImage = cannyFilter->GetOutput();
 
   cannyFilter->SetVariance(5);
-  cannyFilter->Update();  
+  cannyFilter->Update(); 
+  return; 
 }
 
 void ImageProcessor::BinaryThreshold(bool inputTmp, bool outputTmp)
@@ -464,6 +474,7 @@ void ImageProcessor::BinaryThreshold(bool inputTmp, bool outputTmp)
   binFilter->SetLowerThreshold(20000);
   binFilter->SetUpperThreshold(40000); 
   binFilter->Update();
+  return;
 }
 
 void ImageProcessor::LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp)
@@ -503,6 +514,7 @@ void ImageProcessor::LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp)
     std::cout << "ExceptionObject caught updating the lap filter!" << std::endl;
     std::cout << err << std::endl;
   }  
+  return;
 }
 
 void ImageProcessor::SobelEdgeDetection(bool inputTmp, bool outputTmp)
@@ -541,6 +553,7 @@ void ImageProcessor::SobelEdgeDetection(bool inputTmp, bool outputTmp)
     std::cout << "ExceptionObject caught updating the sobel filter!" << std::endl;
     std::cout << err << std::endl;
   }  
+  return;
 }
 
 void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)    // Direction switching is not working yet, only x-axis
@@ -568,7 +581,7 @@ void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)  
     
   FloatNeighborhoodIteratorType::OffsetType position1  = {{ a , b }};
   FloatNeighborhoodIteratorType::OffsetType position2  = {{a-1, b }};
-  FloatNeighborhoodIteratorType::OffsetType position3  = {{a-2, b }};
+  //FloatNeighborhoodIteratorType::OffsetType position3  = {{a-2, b }};
   FloatNeighborhoodIteratorType::OffsetType position4  = {{a-3, b }};
   FloatNeighborhoodIteratorType::OffsetType position5  = {{a-4, b }};
   FloatNeighborhoodIteratorType::OffsetType position6  = {{ a, b-1}};
@@ -577,7 +590,7 @@ void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)  
   FloatNeighborhoodIteratorType::OffsetType position9  = {{a-4,b-1}};
   FloatNeighborhoodIteratorType::OffsetType position10 = {{ a ,b-2}};
   FloatNeighborhoodIteratorType::OffsetType position11 = {{a-1,b-2}};
-  FloatNeighborhoodIteratorType::OffsetType position12 = {{a-2,b-2}};
+  //FloatNeighborhoodIteratorType::OffsetType position12 = {{a-2,b-2}};
   FloatNeighborhoodIteratorType::OffsetType position13 = {{a-3,b-2}};
   FloatNeighborhoodIteratorType::OffsetType position14 = {{a-4,b-2}};
   
@@ -616,9 +629,10 @@ void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)  
   }
   else
     mLocalOutputImage = output;
+  return;
 }
 
-void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp) //dilates and erodes bright spots in the image
+void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp, int erode, int dilate) //dilates and erodes bright spots in the image
 {                                                                  //the order of operation is erode and then dilate, because the needle is black and to dilate black parts one needs to erode the white parts
   ErodeFilterType::Pointer grayscaleErode = ErodeFilterType::New();
   DilateFilterType::Pointer grayscaleDilate = DilateFilterType::New();  
@@ -632,8 +646,8 @@ void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp) //dilates and
   
   StructuringElementType structuringElementErode;
   StructuringElementType structuringElementDilate;
-  structuringElementErode.SetRadius(2); // 5x5 structuring
-  structuringElementDilate.SetRadius(3); // 7x7 structuring
+  structuringElementErode.SetRadius(erode); // 5x5 structuring
+  structuringElementDilate.SetRadius(dilate); // 7x7 structuring
   structuringElementErode.CreateStructuringElement();
   structuringElementDilate.CreateStructuringElement();
   
@@ -672,6 +686,7 @@ void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp) //dilates and
     std::cout << "ExceptionObject caught updating the dilating the filter!" << std::endl;
     std::cout << err << std::endl;
   }  
+  return;
 }
 
 void ImageProcessor::BinaryThinning(bool inputTmp, bool outputTmp)
@@ -723,7 +738,7 @@ void ImageProcessor::BinaryThinning(bool inputTmp, bool outputTmp)
     std::cout << "ExceptionObject caught updating the thinning filter!" << std::endl;
     std::cout << err << std::endl;
   }  
-  
+  return;
 }
 
 // only writes grayscale integer 2D images
@@ -764,6 +779,7 @@ void ImageProcessor::Write(const char* filePath, int whichImage)
     std::cerr << "Exception caught !" << std::endl;
     std::cerr << excep << std::endl;
   }
+  return;
 }
 
 
