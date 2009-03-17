@@ -99,5 +99,19 @@ int main( int argc, char *argv[] )
 
   itk::MeshWriterHelper<RegisteredMeshType>::WriteMeshToFile( demonsFilter->GetOutput(), argv[3] );
 
+  typedef DemonsFilterType::DestinationPointContainerType    DestinationPointContainerType;
+  typedef DestinationPointContainerType::ConstPointer        DestinationPointContainerConstPointer;
+
+  DestinationPointContainerConstPointer destinationPoints = demonsFilter->GetDestinationPoints();
+
+  std::cout << "Number of Destination points = " << destinationPoints->Size() << std::endl;
+
+  typedef DemonsFilterType::BasisSystemContainerType         BasisSystemContainerType;
+  typedef BasisSystemContainerType::ConstPointer             BasisSystemContainerPointer;
+
+  BasisSystemContainerPointer basisSystems = demonsFilter->GetBasisSystemAtNode();
+
+  std::cout << "Number of basis systems = " << basisSystems->Size() << std::endl;
+
   return EXIT_SUCCESS;
 }
