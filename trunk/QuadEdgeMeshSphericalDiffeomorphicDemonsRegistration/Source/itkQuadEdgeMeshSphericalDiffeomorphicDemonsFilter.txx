@@ -167,6 +167,12 @@ ComputeBasisSystemAtEveryNode()
 {
   const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
 
+  // create a new container, in case the filter has been run previously
+  // with a mesh having a larger number of nodes than the current mesh.
+  this->m_BasisSystemAtNode = BasisSystemContainerType::New();
+
+  this->m_BasisSystemAtNode->Reserve( numberOfNodes );
+
   typedef typename TFixedMesh::PointsContainer    PointsContainer;
   const PointsContainer * points = this->m_FixedMesh->GetPoints();
 
@@ -182,9 +188,19 @@ ComputeBasisSystemAtEveryNode()
     const PointType point1 = points->GetElement( pointId1 );
     const PointType point2 = points->GetElement( pointId2 );
 
+    const VectorType v12    = point1 - point2;
+    const VectorType radial = point1.GetVectorFromOrigin();
+
+    const VectorType u12 = CrossProduct( v12, radial );
+
+    BasisSystemType basis;
+    basis.SetVector( 0, v12 );
+    basis.SetVector( 1, u12 );
+
+    this->m_BasisSystemAtNode->SetElement( pointId1, basis );
     }
-
 }
 
 }
+
 #endif
