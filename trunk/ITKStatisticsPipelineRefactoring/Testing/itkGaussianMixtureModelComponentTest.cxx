@@ -140,6 +140,11 @@ int itkGaussianMixtureModelComponentTest(int argc, char* argv[] )
       (components[i])->SetParameters(initialParameters[i]) ;
     }
 
+  ComponentPointer testComponent = ComponentType::New();
+
+  std::cout << testComponent->GetNameOfClass() << std::endl;
+  testComponent->Print( std::cout );  
+
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
