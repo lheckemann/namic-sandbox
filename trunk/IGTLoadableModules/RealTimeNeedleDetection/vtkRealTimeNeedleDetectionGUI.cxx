@@ -753,7 +753,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       //pImageProcessor->PassOn();
       
-      pImageProcessor->DilateAndErode(false, true);
+      pImageProcessor->DilateAndErode(false, true, 2, 3); //2 == erode value, 2 == dilate value
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);

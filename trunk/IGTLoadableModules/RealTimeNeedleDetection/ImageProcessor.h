@@ -88,7 +88,7 @@ public:
   void BinaryThreshold(bool inputTmp, bool outputTmp);            // not used anymore
   void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp); // not used anymore
   void SobelEdgeDetection(bool inputTmp, bool outputTmp);         
-  void DilateAndErode(bool inputTmp, bool outputTmp);
+  void DilateAndErode(bool inputTmp, bool outputTmp, int erode, int dilate);
   void BinaryThinning(bool inputTmp, bool outputTmp);
   //Neighborhood Functions
   void SobelFilter(bool inputTmp, bool outputTmp, int direction); // my own version of the sobel edge detection filter
