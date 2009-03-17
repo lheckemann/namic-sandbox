@@ -53,4 +53,13 @@
     return EXIT_FAILURE; \
     }
 
+
+#define TEST_SET_GET_VALUE( variable, command ) \
+  if( variable != command )   \
+    {   \
+    std::cerr << "Error in " << #command << std::endl; \
+    return EXIT_FAILURE; \
+    }
+
+
 #endif
