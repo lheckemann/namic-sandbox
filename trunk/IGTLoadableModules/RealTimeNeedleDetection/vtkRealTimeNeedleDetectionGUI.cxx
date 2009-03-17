@@ -192,7 +192,6 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   {
     this->pThresholdScale->SetParent(NULL);
     this->pThresholdScale->Delete();
-    this->pThresholdScale = NULL;  //TODO:Steve - I found this somewhere in some other code. Is this correct? Do I need to set it to NULL after deleting?
   }
   if(this->pEntryPointButtonSet)
   {
@@ -233,11 +232,11 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   //-----------------------------------------------------------------
   // Remove MRML nodes
   if(this->pVolumeNode)
-    this->pVolumeNode->Delete(); //TODO:Steve What about the DisplayNode? What about DisplayNodeObserver?
-  if(this->pSourceNode)           //TODO:Steve What about removing the node from the scene?
+    this->pVolumeNode->Delete(); 
+  if(this->pSourceNode)           
     this->pSourceNode->Delete();
   if(this->pNeedleModelNode)
-    this->pNeedleModelNode->Delete(); //TODO:Steve What about the DisplayNode? What about DisplayNodeObserver?
+    this->pNeedleModelNode->Delete(); 
   if(this->pNeedleTransformNode)
     this->pNeedleTransformNode->Delete();
   if(this->pScanPlaneNormalNode)
@@ -340,7 +339,7 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   events->Delete();
   
   // register the volume node in the event observer  
-  vtkMRMLNode *node = NULL; // TODO: is this OK?
+  vtkMRMLNode *node = NULL; // TODO: is this OK? ->NodeSelector->GetselectedID
   vtkIntArray* nodeEvents = vtkIntArray::New();
   nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
   vtkSetAndObserveMRMLNodeEventsMacro(node,pVolumeNode,nodeEvents);  //TODO:Steve What does this "node" do???
@@ -497,7 +496,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         this->GetMRMLScene()->AddNode(pVolumeNode);
         pScalarNode->Delete();
         pScalarDisplayNode->Delete();
-        pDisplayNode->Delete(); //TODO:Steve Why can I delete this? I thought the MRMLScene needs it to display the node
+        pDisplayNode->Delete(); 
       }
       else //VolumeNode exists already
       {
