@@ -646,8 +646,8 @@ void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp, int erode, in
   
   StructuringElementType structuringElementErode;
   StructuringElementType structuringElementDilate;
-  structuringElementErode.SetRadius(erode); // 5x5 structuring
-  structuringElementDilate.SetRadius(dilate); // 7x7 structuring
+  structuringElementErode.SetRadius(erode); // if erode==2 -> 5x5 structuring
+  structuringElementDilate.SetRadius(dilate); // if dilate==3 -> 7x7 structuring
   structuringElementErode.CreateStructuringElement();
   structuringElementDilate.CreateStructuringElement();
   
