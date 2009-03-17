@@ -83,6 +83,11 @@ public:
    * completed. It can be used for tracking the progress of the filter. */
   itkGetConstObjectMacro( DestinationPoints, DestinationPointContainerType );
 
+  /** Set/Get the maximum number of iterations that the filter will be
+   * allowed to run.  The default is set to 50. */
+  itkSetMacro( MaximumNumberOfIterations, unsigned int );
+  itkGetMacro( MaximumNumberOfIterations, unsigned int );
+
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -95,20 +100,25 @@ private:
 
   void AllocateOutputMesh();
   void AllocateInternalArrays();
-
   void ComputeBasisSystemAtEveryNode();
+  void RunIterations();
+  void ComputeDeformationFieldUpdate();
+  void SmoothDeformationField();
 
-  MovingMeshConstPointer          m_MovingMesh;
-  FixedMeshConstPointer           m_FixedMesh;
+  MovingMeshConstPointer                m_MovingMesh;
+  FixedMeshConstPointer                 m_FixedMesh;
 
   /** This is the Array of "Qn" matrices 
    *  presented in equation 3.14 in the paper. */
-  BasisSystemContainerPointer     m_BasisSystemAtNode; 
+  BasisSystemContainerPointer           m_BasisSystemAtNode; 
 
   /** Array containing the destination coordinates of every node in the Fixed
    * Mesh.  This array represents both the deformation field c(xn) and its
    * smoothed version, the field s(xn) as defined in.  */
-  DestinationPointContainerPointer   m_DestinationPoints;
+  DestinationPointContainerPointer      m_DestinationPoints;
+
+  /** Maximum number of iterations that the filter will be allowed to run. */
+  unsigned int                          m_MaximumNumberOfIterations;
 };
 
 }

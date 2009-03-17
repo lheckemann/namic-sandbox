@@ -22,6 +22,7 @@
 #include "itkQuadEdgeMesh.h"
 #include "itkVTKPolyDataReader.h"
 #include "itkMeshGeneratorHelper.h"
+#include "itkTestingMacros.h"
 
 int main( int argc, char *argv[] )
 {
@@ -85,6 +86,13 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  unsigned int maximumNumberOfIterations = 10;
+  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+  TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
+
+  maximumNumberOfIterations = 15;
+  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+  TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
 
   try
     {
