@@ -34,13 +34,17 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_BasisSystemAtNode = BasisSystemContainerType::New();
   this->m_DestinationPoints = DestinationPointContainerType::New();
+
+  this->m_MaximumNumberOfIterations = 50;
 }
+
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
 {
 }
+
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void 
@@ -61,6 +65,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     } 
 }
 
+
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void 
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
@@ -80,6 +85,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     } 
 }
 
+
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
@@ -88,7 +94,8 @@ GenerateData()
   this->AllocateOutputMesh();
   this->AllocateInternalArrays();
   this->ComputeBasisSystemAtEveryNode();
-
+  this->RunIterations();
+  
   OutputMeshPointer output = this->GetOutput( 0 );
 }
 
@@ -161,6 +168,7 @@ AllocateOutputMesh()
     }
 }
 
+
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
@@ -224,6 +232,38 @@ ComputeBasisSystemAtEveryNode()
     this->m_BasisSystemAtNode->SetElement( pointId1, basis );
     }
 }
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+RunIterations()
+{
+  for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
+    {
+    this->ComputeDeformationFieldUpdate();
+    this->SmoothDeformationField();
+
+    this->InvokeEvent( IterationEvent() );
+    }
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeDeformationFieldUpdate()
+{
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+SmoothDeformationField()
+{
+}
+
 
 }
 
