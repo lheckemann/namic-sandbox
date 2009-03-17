@@ -189,12 +189,20 @@ ComputeBasisSystemAtEveryNode()
     const PointType point2 = points->GetElement( pointId2 );
 
     const VectorType v12    = point1 - point2;
+
+    // v12 is not necessarily tangent to the sphere, therefore we must use
+    // cross products in order to find an orthogonal system.
+
     const VectorType radial = point1.GetVectorFromOrigin();
 
-    const VectorType u12 = CrossProduct( v12, radial );
+    VectorType u12 = CrossProduct( v12, radial );
+    VectorType w12 = CrossProduct( radial, u12 );
+
+    w12.Normalize();
+    u12.Normalize();
 
     BasisSystemType basis;
-    basis.SetVector( 0, v12 );
+    basis.SetVector( 0, w12 );
     basis.SetVector( 1, u12 );
 
     this->m_BasisSystemAtNode->SetElement( pointId1, basis );
