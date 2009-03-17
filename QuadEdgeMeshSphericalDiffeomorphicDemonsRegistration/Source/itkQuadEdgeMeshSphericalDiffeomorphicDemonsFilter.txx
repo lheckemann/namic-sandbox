@@ -33,6 +33,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->SetNthOutput( 0, OutputMeshType::New() );
 
   this->m_BasisSystemAtNode = BasisSystemContainerType::New();
+  this->m_DestinationPoints = DestinationPointContainerType::New();
 }
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
@@ -85,7 +86,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 GenerateData()
 {
   this->AllocateOutputMesh();
-
+  this->AllocateInternalArrays();
   this->ComputeBasisSystemAtEveryNode();
 
   OutputMeshPointer output = this->GetOutput( 0 );
@@ -163,15 +164,30 @@ AllocateOutputMesh()
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
-ComputeBasisSystemAtEveryNode()
+AllocateInternalArrays()
 {
   const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
 
-  // create a new container, in case the filter has been run previously
-  // with a mesh having a larger number of nodes than the current mesh.
-  this->m_BasisSystemAtNode = BasisSystemContainerType::New();
+  //
+  // create new containers and allocate memory for them, in case the filter has
+  // been run previously with a mesh having a larger number of nodes than the
+  // current mesh.
+  //
 
+  this->m_BasisSystemAtNode = BasisSystemContainerType::New();
   this->m_BasisSystemAtNode->Reserve( numberOfNodes );
+
+  this->m_DestinationPoints = DestinationPointContainerType::New();
+  this->m_DestinationPoints->Reserve( numberOfNodes );
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeBasisSystemAtEveryNode()
+{
+  const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
 
   typedef typename TFixedMesh::PointsContainer    PointsContainer;
   const PointsContainer * points = this->m_FixedMesh->GetPoints();
