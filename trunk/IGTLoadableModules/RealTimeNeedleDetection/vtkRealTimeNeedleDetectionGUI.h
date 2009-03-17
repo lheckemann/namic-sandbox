@@ -32,6 +32,7 @@
 #include <time.h> //TODO: take that out when done measuring
 
 class vtkKWPushButton;
+class vtkSlicerNodeSelectorWidget;  //TODO:Steve I needed to add this line to make the selector work. Why do I not need classes for the slider, etc widget?
 
 class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public vtkSlicerModuleGUI
 {
@@ -115,14 +116,12 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
-  vtkKWPushButton*      pStartButton;
-  vtkKWPushButton*      pStopButton;
-  vtkKWCheckButton*     pShowNeedleButton;
-  vtkKWMenuButton*      pSourceMenu;
-  vtkKWEntry*           pScannerIDEntry;
-  vtkKWScaleWithEntry*  pThresholdScale;
-  vtkKWRadioButtonSet*  pEntryPointButtonSet;
-  
+  vtkSlicerNodeSelectorWidget*  pVolumeSelector;
+  vtkKWRadioButtonSet*          pEntryPointButtonSet;
+  vtkKWScaleWithEntry*          pThresholdScale;
+  vtkKWPushButton*              pStartButton;
+  vtkKWPushButton*              pStopButton;
+  vtkKWCheckButton*             pShowNeedleButton;  
   vtkKWEntry*           pXLowerEntry;
   vtkKWEntry*           pXUpperEntry;
   vtkKWEntry*           pYLowerEntry;

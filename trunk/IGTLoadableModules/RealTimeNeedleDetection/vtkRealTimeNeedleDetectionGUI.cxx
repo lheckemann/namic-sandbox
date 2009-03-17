@@ -50,6 +50,7 @@
 #include "vtkKWScale.h"
 #include "vtkKWRadioButton.h"
 #include "vtkKWRadioButtonSet.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 
 #include "vtkCornerAnnotation.h"
 
@@ -92,12 +93,12 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   
   //----------------------------------------------------------------
   // GUI widgets
+  this->pVolumeSelector           = NULL; 
+  this->pThresholdScale           = NULL;
+  this->pEntryPointButtonSet      = NULL;
   this->pStartButton              = NULL;
   this->pStopButton               = NULL;
   this->pShowNeedleButton         = NULL;
-  this->pScannerIDEntry           = NULL;
-  this->pThresholdScale           = NULL;
-  this->pEntryPointButtonSet  = NULL;
   this->pXLowerEntry              = NULL;
   this->pXUpperEntry              = NULL;
   this->pYLowerEntry              = NULL;
@@ -151,7 +152,7 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   {
     // If we don't set the scene to NULL for DataManager,
     // Slicer will report lots of leaks when it is closed.
-    //TODO:Steve Do I need this DataManager?
+    //TODO: Do I really need this datamanager?
     this->DataManager->SetMRMLScene(NULL);
     this->DataManager->Delete();
   }
@@ -168,6 +169,21 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
 
   //----------------------------------------------------------------
   // Remove GUI widgets
+  if (this->pVolumeSelector)
+  {
+    this->pVolumeSelector->SetParent(NULL);
+    this->pVolumeSelector->Delete();
+  }
+  if(this->pThresholdScale) 
+  {
+    this->pThresholdScale->SetParent(NULL);
+    this->pThresholdScale->Delete();
+  }
+  if(this->pEntryPointButtonSet)
+  {
+    this->pEntryPointButtonSet->SetParent(NULL);
+    this->pEntryPointButtonSet->Delete();
+  }
   if(this->pStartButton)
   {
     this->pStartButton->SetParent(NULL);
@@ -183,21 +199,7 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
     this->pShowNeedleButton->SetParent(NULL );
     this->pShowNeedleButton->Delete ( );
   }
-  if(this->pScannerIDEntry)
-  {
-    this->pScannerIDEntry->SetParent(NULL);
-    this->pScannerIDEntry->Delete();
-  }
-  if(this->pThresholdScale) 
-  {
-    this->pThresholdScale->SetParent(NULL);
-    this->pThresholdScale->Delete();
-  }
-  if(this->pEntryPointButtonSet)
-  {
-    this->pEntryPointButtonSet->SetParent(NULL);
-    this->pEntryPointButtonSet->Delete();
-  }
+  
   if (this->pXLowerEntry)
   {
     this->pXLowerEntry->SetParent(NULL);
@@ -286,40 +288,6 @@ void vtkRealTimeNeedleDetectionGUI::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //---------------------------------------------------------------------------
-void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
-{
-  //----------------------------------------------------------------
-  // MRML Observers
-  this->MRMLObserverManager->RemoveObjectEvents(pVolumeNode);
-  //this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
-  //this->MRMLObserverManager->RemoveObjectEvents(pNeedleModelNode);
-  //TODO: Remove Observers of MRMLSceneEvents
-  
-  //----------------------------------------------------------------
-  // GUI Observers
-  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  if(this->pStartButton)
-    this->pStartButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-  if(this->pStopButton)
-    this->pStopButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-  if (this->pShowNeedleButton)
-    this->pShowNeedleButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-  if(this->pThresholdScale)
-    this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
-  if (this->pEntryPointButtonSet)
-  {
-    this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-  }
-    
-  this->RemoveLogicObservers();
-}
-
-//---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
 {
   this->RemoveGUIObservers();
@@ -347,10 +315,11 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
 
   //----------------------------------------------------------------
   // GUI Observers
+  this->pVolumeSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pThresholdScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pStartButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pStopButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pThresholdScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
   this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
@@ -362,12 +331,38 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
 }
 
 //---------------------------------------------------------------------------
-void vtkRealTimeNeedleDetectionGUI::RemoveLogicObservers ( )
+void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
 {
-  if (this->GetLogic())
-    {
-    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand*) this->LogicCallbackCommand);
-    }
+  //----------------------------------------------------------------
+  // MRML Observers
+  this->MRMLObserverManager->RemoveObjectEvents(pVolumeNode);
+  //this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
+  //this->MRMLObserverManager->RemoveObjectEvents(pNeedleModelNode);
+  //TODO: Remove Observers of MRMLSceneEvents
+  
+  //----------------------------------------------------------------
+  // GUI Observers
+  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  this->pVolumeSelector->RemoveObservers(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*) this->GUICallbackCommand);
+  if(this->pThresholdScale)
+    this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
+  if (this->pEntryPointButtonSet)
+  {
+    this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+  }
+  if(this->pStartButton)
+    this->pStartButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+  if(this->pStopButton)
+    this->pStopButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+  if (this->pShowNeedleButton)
+    this->pShowNeedleButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    
+  this->RemoveLogicObservers();
 }
 
 //---------------------------------------------------------------------------
@@ -378,6 +373,15 @@ void vtkRealTimeNeedleDetectionGUI::AddLogicObservers ( )
   if (this->GetLogic())
     {
     this->GetLogic()->AddObserver(vtkRealTimeNeedleDetectionLogic::StatusUpdateEvent, (vtkCommand*) this->LogicCallbackCommand);
+    }
+}
+
+//---------------------------------------------------------------------------
+void vtkRealTimeNeedleDetectionGUI::RemoveLogicObservers ( )
+{
+  if (this->GetLogic())
+    {
+    this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand*) this->LogicCallbackCommand);
     }
 }
 
@@ -399,6 +403,12 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     HandleMouseEvent(style);
     return;
   }
+  
+  else if (this->pVolumeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent && this->pVolumeSelector->GetSelected() != NULL) 
+  { 
+    pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->pVolumeSelector->GetSelected());
+  }
+  
   
   else if(this->pThresholdScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent) 
   {
@@ -448,7 +458,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
        
     //-----------------------------------------------------------------------------------------------------------------
     // Set the sourceNode and register it to the event observer | it gets unregistered when the StopButton is pressed
-    pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->pScannerIDEntry->GetValue()));
+   // pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->pScannerIDEntry->GetValue()));
     vtkMRMLNode* node = NULL; // TODO: is this OK?
     vtkIntArray* nodeEvents = vtkIntArray::New();
     nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
@@ -545,7 +555,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       started = 1; // start checking for changes in pSourceNode to update pVolumeNode     
       std::cerr << "Start checking for changes" << std::endl;
     }
-    else // no Scanner node found in MRMLScene
+    else // no Scanner node selected from MRMLScene
       std::cerr << "ERROR! No Scanner detected. RealTimeNeedleDetection did not start." << std::endl;
   }
   
@@ -955,30 +965,19 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
 
   // ----------------------------------------------------               
   // scanner ID
-  vtkKWFrame *scannerFrame = vtkKWFrame::New();
-  scannerFrame->SetParent(controlFrame->GetFrame());
-  scannerFrame->Create();
-  app->Script("pack %s -fill both -expand true", scannerFrame->GetWidgetName());
+  this->pVolumeSelector = vtkSlicerNodeSelectorWidget::New();
+  this->pVolumeSelector->SetNodeClass("vtkMRMLVolumeNode", NULL, NULL, NULL);
+  this->pVolumeSelector->SetParent(controlFrame->GetFrame() );
+  this->pVolumeSelector->Create();
+  this->pVolumeSelector->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->pVolumeSelector->UpdateMenu();
 
-  vtkKWLabel *scannerLabel = vtkKWLabel::New();
-  scannerLabel->SetParent(scannerFrame);
-  scannerLabel->Create();
-  scannerLabel->SetWidth(17);
-  scannerLabel->SetText("Scanner MRML ID: ");
-
-  this->pScannerIDEntry = vtkKWEntry::New();
-  this->pScannerIDEntry->SetParent(scannerFrame);
-  this->pScannerIDEntry->Create();
-  this->pScannerIDEntry->SetWidth(25);
-  this->pScannerIDEntry->SetValue("vtkMRMLScalarVolumeNode1");
-  //TODO:Steve what does anchor w mean? anchor width?  
-
-  app->Script("pack %s %s -side left -fill x -padx 2 -pady 2", 
-              scannerLabel->GetWidgetName() , this->pScannerIDEntry->GetWidgetName());
-  
-  scannerLabel->Delete();
-  scannerFrame->Delete(); 
-  
+  this->pVolumeSelector->SetBorderWidth(2);
+  this->pVolumeSelector->SetLabelText( "Scanner MRMLNode: ");
+  this->pVolumeSelector->SetBalloonHelpString("select an input scanner from the current MRML scene.");
+  app->Script("pack %s -side top -anchor e -padx 20 -pady 4", 
+                this->pVolumeSelector->GetWidgetName());
+   
   // ------------------------------------------------------
   // Needle entering direction button set
   vtkKWFrame *buttonSetFrame = vtkKWFrame::New();
@@ -1069,7 +1068,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pThresholdScale->GetScale()->SetLength(180); 
   this->pThresholdScale->SetRange(0,MAX);
   this->pThresholdScale->SetResolution(10);
-  //TODO:Steve can I constrict the values to integer?
+  //TODO:Steve can I constrict the values to integer?  -> floor?
   this->pThresholdScale->SetValue(DEFAULTTHRESHOLD);
   
   app->Script("pack %s -side left -padx 2 -pady 2", this->pThresholdScale->GetWidgetName());
@@ -1209,24 +1208,24 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
 {
   if(started)
   {
+    this->pVolumeSelector->EnabledOff();
+    this->pEntryPointButtonSet->EnabledOff();
     this->pStartButton->EnabledOff();
     this->pStopButton->EnabledOn();
-    this->pScannerIDEntry->EnabledOff();
-    this->pEntryPointButtonSet->EnabledOff();
+    this->pShowNeedleButton->EnabledOn();  //initially this Button is disabled until the needle detection is started for the first time
     this->pXLowerEntry->EnabledOff();
     this->pXUpperEntry->EnabledOff();
     this->pYLowerEntry->EnabledOff();
     this->pYUpperEntry->EnabledOff();
     this->pZLowerEntry->EnabledOff();
     this->pZUpperEntry->EnabledOff();
-    this->pShowNeedleButton->EnabledOn();  //initially this Button is disabled until the needle detection is started for the first time
   }
   else if(started == 0)
   {
-    this->pStartButton->EnabledOn();
-    this->pStopButton->EnabledOff();
-    this->pScannerIDEntry->EnabledOn();
+    this->pVolumeSelector->EnabledOn();
     this->pEntryPointButtonSet->EnabledOn();
+    this->pStartButton->EnabledOn();
+    this->pStopButton->EnabledOff();  
     if(ROIpresent)
     {
       this->pXLowerEntry->EnabledOff();
