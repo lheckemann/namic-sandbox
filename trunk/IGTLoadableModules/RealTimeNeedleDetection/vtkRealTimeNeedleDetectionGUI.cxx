@@ -952,7 +952,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   parentFrame->SetParent(page);
   parentFrame->Create();
   parentFrame->SetLabelText("needle detection parameters");
-  app->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                parentFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
@@ -975,7 +975,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pVolumeSelector->SetBorderWidth(2);
   this->pVolumeSelector->SetLabelText( "Scanner MRMLNode: ");
   this->pVolumeSelector->SetBalloonHelpString("select an input scanner from the current MRML scene.");
-  app->Script("pack %s -side top -anchor e -padx 20 -pady 4", 
+  this->Script("pack %s -side left -anchor e -padx 20 -pady 4", 
                 this->pVolumeSelector->GetWidgetName());
    
   // ------------------------------------------------------
@@ -983,7 +983,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWFrame *buttonSetFrame = vtkKWFrame::New();
   buttonSetFrame->SetParent(controlFrame->GetFrame());
   buttonSetFrame->Create();
-  app->Script ( "pack %s -fill both -expand true",  
+  this->Script ( "pack %s -fill both -expand true",  
                 buttonSetFrame->GetWidgetName());
 
   vtkKWLabel *buttonSetLabel = vtkKWLabel::New();
@@ -1012,7 +1012,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pEntryPointButtonSet->AddWidget(PATIENTSUPERIOR);
   this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->SetText("Superior");
   
-  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               buttonSetLabel->GetWidgetName() , this->pEntryPointButtonSet->GetWidgetName());
   
   this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->SelectedStateOn();  //default, always needs to correspond to the member variable needleOrigin
@@ -1024,7 +1024,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWFrame* buttonFrame = vtkKWFrame::New();
   buttonFrame->SetParent(controlFrame->GetFrame());
   buttonFrame->Create();
-  app->Script("pack %s -fill both -expand true", buttonFrame->GetWidgetName());
+  this->Script("pack %s -fill both -expand true", buttonFrame->GetWidgetName());
                 
   this->pStartButton = vtkKWPushButton::New();
   this->pStartButton->SetParent(buttonFrame);
@@ -1059,7 +1059,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWFrame* sliderFrame = vtkKWFrame::New();
   sliderFrame->SetParent(controlFrame->GetFrame());
   sliderFrame->Create();
-  app->Script("pack %s -fill both -expand true", sliderFrame->GetWidgetName());
+  this->Script("pack %s -fill both -expand true", sliderFrame->GetWidgetName());
   
   this->pThresholdScale = vtkKWScaleWithEntry::New();
   this->pThresholdScale->SetParent(controlFrame->GetFrame());
@@ -1071,12 +1071,10 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   //TODO:Steve can I constrict the values to integer?  -> floor?
   this->pThresholdScale->SetValue(DEFAULTTHRESHOLD);
   
-  app->Script("pack %s -side left -padx 2 -pady 2", this->pThresholdScale->GetWidgetName());
+  this->Script("pack %s -side left -padx 2 -pady 2", this->pThresholdScale->GetWidgetName());
   
   sliderFrame->Delete();  //TODO:Steve put slider above buttons
-  
-  //TODO: this->script? app->script?
-  
+   
   controlFrame->Delete();  
   
   // -----------------------------------------
@@ -1093,7 +1091,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWFrame* descriptionFrame = vtkKWFrame::New();
   descriptionFrame->SetParent(coordinatesFrame->GetFrame());
   descriptionFrame->Create();
-  app->Script ( "pack %s -fill both -expand true", descriptionFrame->GetWidgetName());
+  this->Script ( "pack %s -fill both -expand true", descriptionFrame->GetWidgetName());
   vtkKWTextWithHyperlinksWithScrollbars* descriptionText = vtkKWTextWithHyperlinksWithScrollbars::New();  //TODO:Steve what to use if I only need text?
   descriptionText->SetParent(descriptionFrame);
   descriptionText->Create(); 
@@ -1105,14 +1103,14 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   descriptionText->SetText("Set the boundaries for the part of the image where the needle detection will start. They can be set manually or with an MRMLROINode. If a MRLMROINode exists, all the following values will be overriden." );
   //Important that Read only after SetText otherwise it doesn't work
   descriptionText->GetWidget()->ReadOnlyOn();
-  app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4", descriptionText->GetWidgetName());
+  this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4", descriptionText->GetWidgetName());
   descriptionText->Delete();
   descriptionFrame->Delete();    
     
   vtkKWFrame* xFrame = vtkKWFrame::New();
   xFrame->SetParent(coordinatesFrame->GetFrame());
   xFrame->Create();
-  app->Script ( "pack %s -fill both -expand true", xFrame->GetWidgetName());
+  this->Script ( "pack %s -fill both -expand true", xFrame->GetWidgetName());
   vtkKWLabel* xLabel = vtkKWLabel::New();
   xLabel->SetParent(xFrame);
   xLabel->Create();
@@ -1131,7 +1129,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pXUpperEntry->SetWidth(7);
   this->pXUpperEntry->SetValueAsInt(180);
 
-  app->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+  this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               xLabel->GetWidgetName(), this->pXLowerEntry->GetWidgetName(), this->pXUpperEntry->GetWidgetName());
   xLabel->Delete();
   xFrame->Delete();
@@ -1139,7 +1137,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWFrame* yFrame = vtkKWFrame::New();
   yFrame->SetParent(coordinatesFrame->GetFrame());
   yFrame->Create();
-  app->Script ("pack %s -fill both -expand true", yFrame->GetWidgetName());
+  this->Script ("pack %s -fill both -expand true", yFrame->GetWidgetName());
   vtkKWLabel* yLabel = vtkKWLabel::New();
   yLabel->SetParent(yFrame);
   yLabel->Create();
@@ -1158,7 +1156,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pYUpperEntry->SetWidth(7);
   this->pYUpperEntry->SetValueAsInt(145);
 
-  app->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+  this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               yLabel->GetWidgetName(), this->pYLowerEntry->GetWidgetName(), this->pYUpperEntry->GetWidgetName());
   yLabel->Delete();
   yFrame->Delete();
@@ -1166,7 +1164,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWFrame* zFrame = vtkKWFrame::New();
   zFrame->SetParent(coordinatesFrame->GetFrame());
   zFrame->Create();
-  app->Script ("pack %s -fill both -expand true", zFrame->GetWidgetName());
+  this->Script ("pack %s -fill both -expand true", zFrame->GetWidgetName());
   vtkKWLabel* zLabel = vtkKWLabel::New();
   zLabel->SetParent(zFrame);
   zLabel->Create();
@@ -1185,7 +1183,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pZUpperEntry->SetWidth(7);
   this->pZUpperEntry->SetValueAsInt(1);
 
-  app->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+  this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               zLabel->GetWidgetName(), this->pZLowerEntry->GetWidgetName(), this->pZUpperEntry->GetWidgetName());
   zLabel->Delete();
   zFrame->Delete();
@@ -1309,7 +1307,7 @@ void vtkRealTimeNeedleDetectionGUI::MakeNeedleModel()
   pCylinder->SetCenter(0, 0, 0);
   pCylinder->Update();
 
-  // Rotate cylinder
+  // Translate cylinder to have the end at the tip of the needle
   vtkTransformPolyDataFilter *tFilter = vtkTransformPolyDataFilter::New();
   vtkTransform* trans = vtkTransform::New();
   trans->Translate(0.0, heightOfNeedle/2, 0.0);
@@ -1326,7 +1324,6 @@ void vtkRealTimeNeedleDetectionGUI::MakeNeedleModel()
   
   vtkAppendPolyData *apd = vtkAppendPolyData::New();
   apd->AddInput(sphere->GetOutput());
-  //apd->AddInput(cylinder->GetOutput());
   apd->AddInput(tFilter->GetOutput());
   apd->Update();
   
