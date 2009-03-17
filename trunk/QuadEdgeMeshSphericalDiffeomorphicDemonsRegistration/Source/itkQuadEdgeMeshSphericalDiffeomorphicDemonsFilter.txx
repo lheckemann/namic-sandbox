@@ -244,6 +244,9 @@ RunIterations()
     this->ComputeDeformationFieldUpdate();
     this->SmoothDeformationField();
 
+    // Report progress via Events
+    const float progress = (float)i / (float)(this->m_MaximumNumberOfIterations);
+    this->UpdateProgress( progress );
     this->InvokeEvent( IterationEvent() );
     }
 }
