@@ -58,18 +58,28 @@ int main(int argc, char *argv[])
   std::cout << triangleListBasisSystemCalculator->GetNameOfClass() << std::endl;
   triangleListBasisSystemCalculator->Print( std::cout );
 
+  std::cout << "test 1 \n"; 
+  
   //Mesh not set yet. Exception!
   TRY_EXPECT_EXCEPTION( triangleListBasisSystemCalculator->Calculate() );
 
+  std::cout << "test 2 \n"; 
+
   TRY_EXPECT_NO_EXCEPTION( triangleListBasisSystemCalculator->SetInputMesh( mesh ) );
 
-  //List not computed yet. Exception!
-  TRY_EXPECT_EXCEPTION( triangleListBasisSystemCalculator->GetBasisSystemList() );
+  std::cout << "test 3 \n"; 
+
+  //List should be allocated with constructor now. No exception. 
+  TRY_EXPECT_NO_EXCEPTION( triangleListBasisSystemCalculator->GetBasisSystemList() );
+
+  std::cout << "test 4 \n"; 
 
   TEST_SET_GET( mesh, triangleListBasisSystemCalculator->GetInputMesh() );
 
   //This should produce a list
   TRY_EXPECT_NO_EXCEPTION( triangleListBasisSystemCalculator->Calculate() );
+
+  std::cout << "after test 4 \n"; 
 
   const TriangleListBasisSystemCalculatorType::BasisSystemListType * basisSystemListPtr = 
     triangleListBasisSystemCalculator->GetBasisSystemList();
