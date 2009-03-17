@@ -75,6 +75,8 @@ private:
 
   void AllocateOutputMesh();
 
+  void ComputeBasisSystemAtEveryNode();
+
   MovingMeshConstPointer          m_MovingMesh;
   FixedMeshConstPointer           m_FixedMesh;
 

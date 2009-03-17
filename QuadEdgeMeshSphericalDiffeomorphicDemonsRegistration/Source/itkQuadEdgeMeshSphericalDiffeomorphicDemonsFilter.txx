@@ -86,6 +86,8 @@ GenerateData()
 {
   this->AllocateOutputMesh();
 
+  this->ComputeBasisSystemAtEveryNode();
+
   OutputMeshPointer output = this->GetOutput( 0 );
 }
 
@@ -158,7 +160,31 @@ AllocateOutputMesh()
     }
 }
 
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeBasisSystemAtEveryNode()
+{
+  const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
+
+  typedef typename TFixedMesh::PointsContainer    PointsContainer;
+  const PointsContainer * points = this->m_FixedMesh->GetPoints();
+
+  typedef typename TFixedMesh::QEPrimal           EdgeType;
+  typedef typename TFixedMesh::PointType          PointType;
+  typedef typename PointType::VectorType          VectorType;
+
+  for( PointIdentifier pointId1 = 0; pointId1 < numberOfNodes; pointId1++ )
+    {
+    const EdgeType * edge = this->m_FixedMesh->FindEdge( pointId1 );
+    PointIdentifier pointId2 = edge->GetDestination();
+
+    const PointType point1 = points->GetElement( pointId1 );
+    const PointType point2 = points->GetElement( pointId2 );
+
+    }
 
 }
 
+}
 #endif
