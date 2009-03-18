@@ -449,14 +449,15 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     std::cout << "StartButton is pressed." << std::endl;
        
     //-----------------------------------------------------------------------------------------------------------------
-    // Set the sourceNode and register it to the event observer | it gets unregistered when the StopButton is pressed
-    pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->pVolumeSelector->GetSelected());  //TODO: What happens if nothing is selected? Does it just return NULL?
-    vtkMRMLNode* node = NULL; // TODO: is this OK?
+    // Register the scanner node as pSourceNode to the event observer | it gets unregistered when the StopButton is pressed
+    //pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->pVolumeSelector->GetSelected());  //TODO: What happens if nothing is selected? Does it just return NULL?
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(this->pVolumeSelector->GetSelected()); // TODO: is this OK?
     vtkIntArray* nodeEvents = vtkIntArray::New();
     nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
     vtkSetAndObserveMRMLNodeEventsMacro(node,pSourceNode,nodeEvents);
     nodeEvents->Delete();     
       
+      //TODO: pSourceNode == NULL -> the selector has to be pressed everytime to start the needle detection
     if(pSourceNode)
     { //-----------------------------------------------------------------------------------------------------------------
       // Create the volumeNode and the corresponding displayNode, which displays the detected needle   
@@ -501,7 +502,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       }
       else //VolumeNode exists already
       {
-        std::cerr << "VolumeNode exists already. Starting again" << std::endl;        
+        std::cerr << "VolumeNode exists already. Starting needle tracking again" << std::endl;        
       }
     
       //--------------------------------------------------------------------------------------
