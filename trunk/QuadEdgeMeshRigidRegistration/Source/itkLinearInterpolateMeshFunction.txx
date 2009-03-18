@@ -197,13 +197,13 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   PointType pt3 = points->GetElement( pointIds[2] );
 
   const unsigned int SurfaceDimension = 2; 
-  typedef typename itk::TriangleBasisSystem< VectorType, SurfaceDimension>  TriangleBasisSystemType;
-  TriangleBasisSystemType *triangleBasisSystem= TriangleBasisSystemType::New();
+  typedef TriangleBasisSystem< VectorType, SurfaceDimension>  TriangleBasisSystemType;
+  TriangleBasisSystemType triangleBasisSystem;
 
-  typedef typename itk::TriangleBasisSystemCalculator< TInputMesh, TriangleBasisSystemType >  TriangleBasisSystemCalculatorType;
-  TriangleBasisSystemCalculatorType *triangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
+  typedef TriangleBasisSystemCalculator< TInputMesh, TriangleBasisSystemType >  TriangleBasisSystemCalculatorType;
+  typename TriangleBasisSystemCalculatorType::Pointer triangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
 
-  triangleBasisSystemCalculator->CalculateBasis(pt1, pt2, pt3, triangleBasisSystem );
+  triangleBasisSystemCalculator->CalculateBasis( pt1, pt2, pt3, triangleBasisSystem );
   m_U12= triangleBasisSystem.GetVector(0); 
   m_U32= triangleBasisSystem.GetVector(1); 
 
