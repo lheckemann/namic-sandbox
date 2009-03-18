@@ -180,8 +180,7 @@ int main( int argc, char * argv [] )
 // Set up an Interpolator
 //------------------------------------------------------------
   typedef itk::LinearInterpolateMeshFunction< 
-                    MeshType,
-                    double > InterpolatorType;
+                    MeshType> InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
@@ -221,9 +220,6 @@ int main( int argc, char * argv [] )
                 <<" points" << std::endl;
       }
     
-    interpolator->printFlag= false;
-    
-   
     PointType myCellCenter;
     float cellCenterTheta=0.0;
     float cellCenterPhi=0.0; 
@@ -245,10 +241,6 @@ int main( int argc, char * argv [] )
          {
             myCellCenter[i]+= cellPoint[i];          
          }
-         if (interpolator->printFlag)
-           {
-           std::cout << "  cell Center " << myCellCenter <<  "  cellPoint " <<   cellPoint << "   ";
-           }
          pointIdIterator++;
       }
     for( unsigned int i = 0; i < 3; i++ )
@@ -266,7 +258,7 @@ int main( int argc, char * argv [] )
     InterpolatorType::DerivativeType computedDerivative; 
     interpolator->EvaluateDerivative(myCellCenter, computedDerivative);
 
-    itk::Vector<float,3> analyticalDerivative= mapSphericalCoordinatesFunctionGradient(cellCenterPhi, cellCenterTheta, interpolator->printFlag); 
+    itk::Vector<float,3> analyticalDerivative= mapSphericalCoordinatesFunctionGradient(cellCenterPhi, cellCenterTheta, false); 
         
     std::cout << " faceId  " << faceId << "  cell Center " << myCellCenter
               << "  analytical derivative " 
