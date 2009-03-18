@@ -39,19 +39,19 @@ namespace itk
  * \ingroup MeshFunctions MeshInterpolators
  * 
  * */
-template <class TInputMesh, class TCoordRep = double>
+template <class TInputMesh >
 class ITK_EXPORT InterpolateMeshFunction :
   public MeshFunction< TInputMesh,
-    ITK_TYPENAME NumericTraits<typename TInputMesh::PixelType>::RealType, TCoordRep >
+    ITK_TYPENAME NumericTraits<typename TInputMesh::PixelType>::RealType >
 {
 public:
   /** Standard class typedefs. */
-  typedef InterpolateMeshFunction      Self;
+  typedef InterpolateMeshFunction                     Self;
   typedef MeshFunction<TInputMesh,
-    typename NumericTraits<typename TInputMesh::PixelType>::RealType,
-    TCoordRep>                         Superclass;
-  typedef SmartPointer<Self>           Pointer;
-  typedef SmartPointer<const Self>     ConstPointer;
+    typename NumericTraits<
+      typename TInputMesh::PixelType>::RealType >     Superclass;
+  typedef SmartPointer<Self>                          Pointer;
+  typedef SmartPointer<const Self>                    ConstPointer;
   
   /** Run-time type information (and related methods). */
   itkTypeMacro(InterpolateMeshFunction, MeshFunction);

@@ -121,7 +121,7 @@ int main( int argc, char * argv [] )
 // Set up a Transform
 //-----------------------------------------------------------
 
-  typedef itk::VersorTransform<double>  TransformType;
+  typedef itk::VersorTransform< FixedMeshType::CoordRepType >  TransformType;
 
   TransformType::Pointer transform = TransformType::New();
 
@@ -131,9 +131,7 @@ int main( int argc, char * argv [] )
 //------------------------------------------------------------
 // Set up an Interpolator
 //------------------------------------------------------------
-  typedef itk::NearestNeighborInterpolateMeshFunction< 
-                    MovingMeshType,
-                    double > InterpolatorType;
+  typedef itk::NearestNeighborInterpolateMeshFunction< MovingMeshType > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 

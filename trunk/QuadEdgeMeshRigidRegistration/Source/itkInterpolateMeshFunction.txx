@@ -25,8 +25,8 @@ namespace itk
 /**
  * Constructor
  */
-template <class TInputMesh, class TCoordRep>
-InterpolateMeshFunction<TInputMesh, TCoordRep>
+template <class TInputMesh>
+InterpolateMeshFunction<TInputMesh>
 ::InterpolateMeshFunction()
 {
   this->m_PointLocator = PointLocatorType::New();
@@ -36,8 +36,8 @@ InterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Destructor
  */
-template <class TInputMesh, class TCoordRep>
-InterpolateMeshFunction<TInputMesh, TCoordRep>
+template <class TInputMesh>
+InterpolateMeshFunction<TInputMesh>
 ::~InterpolateMeshFunction()
 {
 }
@@ -46,9 +46,9 @@ InterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Prepare the internal data structures of the point locator
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void
-InterpolateMeshFunction<TInputMesh, TCoordRep>
+InterpolateMeshFunction<TInputMesh>
 ::Initialize()
 {
   this->m_PointLocator->SetPointSet( this->m_Mesh );
@@ -56,9 +56,9 @@ InterpolateMeshFunction<TInputMesh, TCoordRep>
 }
 
 
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void
-InterpolateMeshFunction<TInputMesh, TCoordRep>
+InterpolateMeshFunction<TInputMesh>
 ::Search(const PointType &query,
          unsigned int numberOfNeighborsRequested,
          InstanceIdentifierVectorType& result) const
@@ -68,9 +68,9 @@ InterpolateMeshFunction<TInputMesh, TCoordRep>
 }
 
 
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void
-InterpolateMeshFunction<TInputMesh, TCoordRep>
+InterpolateMeshFunction<TInputMesh>
 ::Search(const PointType &query,
          double radius,
          InstanceIdentifierVectorType& result) const
@@ -83,9 +83,9 @@ InterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Return the pixel value by delegating to the mesh.
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void
-InterpolateMeshFunction<TInputMesh, TCoordRep>
+InterpolateMeshFunction<TInputMesh>
 ::GetPointData( PointIdentifier pointId, PixelType * value ) const
 {
   this->m_Mesh->GetPointData( pointId, value );
@@ -95,9 +95,9 @@ InterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void
-InterpolateMeshFunction<TInputMesh, TCoordRep>
+InterpolateMeshFunction<TInputMesh>
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf( os, indent );

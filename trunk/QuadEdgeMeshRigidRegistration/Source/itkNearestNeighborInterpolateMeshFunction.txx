@@ -25,8 +25,8 @@ namespace itk
 /**
  * Constructor
  */
-template <class TInputMesh, class TCoordRep>
-NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
+template <class TInputMesh>
+NearestNeighborInterpolateMeshFunction<TInputMesh>
 ::NearestNeighborInterpolateMeshFunction()
 {
 }
@@ -35,8 +35,8 @@ NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Destructor
  */
-template <class TInputMesh, class TCoordRep>
-NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
+template <class TInputMesh>
+NearestNeighborInterpolateMeshFunction<TInputMesh>
 ::~NearestNeighborInterpolateMeshFunction()
 {
 }
@@ -45,9 +45,9 @@ NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void
-NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
+NearestNeighborInterpolateMeshFunction<TInputMesh>
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf( os, indent );
@@ -57,9 +57,9 @@ NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Evaluate the mesh at a given point position.
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void
-NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
+NearestNeighborInterpolateMeshFunction<TInputMesh>
 ::EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const
 {
 }
@@ -67,10 +67,10 @@ NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Evaluate the mesh at a given point position.
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 typename 
-NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>::OutputType
-NearestNeighborInterpolateMeshFunction<TInputMesh, TCoordRep>
+NearestNeighborInterpolateMeshFunction<TInputMesh>::OutputType
+NearestNeighborInterpolateMeshFunction<TInputMesh>
 ::Evaluate( const PointType& point ) const
 {
   typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;

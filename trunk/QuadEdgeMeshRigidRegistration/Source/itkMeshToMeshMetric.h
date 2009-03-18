@@ -52,7 +52,7 @@ public:
   typedef SmartPointer<const Self>        ConstPointer;
 
   /** Type used for representing point components  */
-  typedef Superclass::ParametersValueType CoordinateRepresentationType;
+  typedef typename TFixedMesh::CoordRepType         CoordinateRepresentationType;
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(MeshToMeshMetric, SingleValuedCostFunction);
@@ -87,9 +87,7 @@ public:
   typedef typename TransformType::JacobianType       TransformJacobianType;
 
   /**  Type of the Interpolator Base class */
-  typedef InterpolateMeshFunction<
-    MovingMeshType,
-    CoordinateRepresentationType >                   InterpolatorType;
+  typedef InterpolateMeshFunction< MovingMeshType >  InterpolatorType;
   typedef typename InterpolatorType::Pointer         InterpolatorPointer;
   typedef typename InterpolatorType::RealType        RealDataType;
   typedef typename InterpolatorType::DerivativeType  DerivativeDataType;
