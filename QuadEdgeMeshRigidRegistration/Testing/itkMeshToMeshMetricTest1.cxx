@@ -116,16 +116,14 @@ int main( int argc, char** argv )
 
   TRY_EXPECT_EXCEPTION( metric->Initialize() );
 
-  typedef itk::VersorTransform< double > TransformType;
+  typedef itk::VersorTransform< MeshType::CoordRepType > TransformType;
   TransformType::Pointer transform = TransformType::New();
 
   metric->SetTransform( transform );
 
   TRY_EXPECT_EXCEPTION( metric->Initialize() );
   
-  typedef itk::NearestNeighborInterpolateMeshFunction< 
-                    MeshType,
-                    double > InterpolatorType;
+  typedef itk::NearestNeighborInterpolateMeshFunction< MeshType > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 

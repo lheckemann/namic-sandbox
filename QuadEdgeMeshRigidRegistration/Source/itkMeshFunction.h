@@ -48,27 +48,20 @@ namespace itk
  *
  * \ingroup MeshFunctions
  */
-template <
-class TInputMesh,
-class TOutput,
-class TCoordRep = float
->
+template < class TInputMesh, class TOutput >
 class ITK_EXPORT MeshFunction :
-    public FunctionBase< Point<TCoordRep,
-                               ::itk::GetMeshDimension<TInputMesh>::PointDimension>,
-                       TOutput >
+    public FunctionBase< typename TInputMesh::PointType, TOutput >
 {
 public:
   /** Dimension underlying input mesh. */
   itkStaticConstMacro(MeshDimension, unsigned int, TInputMesh::PointDimension);
 
   /** Standard class typedefs. */
-  typedef MeshFunction                                         Self;
-  typedef FunctionBase<
-    Point<TCoordRep, itkGetStaticConstMacro(MeshDimension)>,
-    TOutput >                                                   Superclass;
-  typedef SmartPointer<Self>                                    Pointer;
-  typedef SmartPointer<const Self>                              ConstPointer;
+  typedef MeshFunction                                  Self;
+  typedef FunctionBase< 
+    typename TInputMesh::PointType, TOutput >           Superclass;
+  typedef SmartPointer<Self>                            Pointer;
+  typedef SmartPointer<const Self>                      ConstPointer;
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(MeshFunction, FunctionBase);
@@ -86,10 +79,10 @@ public:
   typedef TOutput OutputType;
 
   /** CoordRepType typedef support. */
-  typedef TCoordRep CoordRepType;
+  typedef typename InputMeshType::CoordRepType CoordRepType;
 
   /** Point Type. */
-  typedef Point<TCoordRep,itkGetStaticConstMacro(MeshDimension)> PointType;
+  typedef typename InputMeshType::PointType    PointType;
 
   /** Set the input mesh.
    * \warning this method caches information.  If the Mesh has changed, user

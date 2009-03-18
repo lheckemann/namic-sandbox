@@ -215,7 +215,7 @@ int main( int argc, char * argv [] )
   
   TEST_SET_GET( optimizer, registrator->GetOptimizer() );
 
-  typedef itk::VersorTransform< double > TransformType;
+  typedef itk::VersorTransform< MeshType::CoordRepType > TransformType;
   TransformType::Pointer transform = TransformType::New();
 
   registrator->SetTransform( transform );
@@ -224,9 +224,7 @@ int main( int argc, char * argv [] )
 
   TEST_SET_GET( transform, registrator->GetTransform() );
 
-  typedef itk::NearestNeighborInterpolateMeshFunction< 
-                    MeshType,
-                    double > InterpolatorType;
+  typedef itk::NearestNeighborInterpolateMeshFunction< MeshType > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 

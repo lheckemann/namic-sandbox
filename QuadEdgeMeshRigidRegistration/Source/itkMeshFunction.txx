@@ -25,8 +25,8 @@ namespace itk
 /**
  * Constructor
  */
-template <class TInputMesh, class TOutput, class TCoordRep>
-MeshFunction<TInputMesh, TOutput, TCoordRep>
+template <class TInputMesh, class TOutput>
+MeshFunction<TInputMesh, TOutput>
 ::MeshFunction()
 {
   m_Mesh = NULL;
@@ -36,9 +36,9 @@ MeshFunction<TInputMesh, TOutput, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputMesh, class TOutput, class TCoordRep>
+template <class TInputMesh, class TOutput>
 void
-MeshFunction<TInputMesh, TOutput, TCoordRep>
+MeshFunction<TInputMesh, TOutput>
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf( os, indent );
@@ -49,9 +49,9 @@ MeshFunction<TInputMesh, TOutput, TCoordRep>
 /**
  * Initialize by setting the input mesh
  */
-template <class TInputMesh, class TOutput, class TCoordRep>
+template <class TInputMesh, class TOutput>
 void
-MeshFunction<TInputMesh, TOutput, TCoordRep>
+MeshFunction<TInputMesh, TOutput>
 ::SetInputMesh( const InputMeshType * ptr )
 {
   this->m_Mesh = ptr;
@@ -65,9 +65,9 @@ MeshFunction<TInputMesh, TOutput, TCoordRep>
 /**
  * Return the input mesh
  */
-template <class TInputMesh, class TOutput, class TCoordRep>
-const typename MeshFunction<TInputMesh, TOutput, TCoordRep>::InputMeshType *
-MeshFunction<TInputMesh, TOutput, TCoordRep>
+template <class TInputMesh, class TOutput>
+const typename MeshFunction<TInputMesh, TOutput>::InputMeshType *
+MeshFunction<TInputMesh, TOutput>
 ::GetInputMesh() const
 {
   return m_Mesh;

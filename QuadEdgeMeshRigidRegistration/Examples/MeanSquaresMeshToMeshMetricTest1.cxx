@@ -133,15 +133,14 @@ int main( int argc, char * argv [] )
   registration->SetMovingMesh( movingMeshReader->GetOutput() );
 
 
-  typedef itk::VersorTransform<double>  TransformType;
+  typedef itk::VersorTransform< FixedMeshType::CoordRepType >  TransformType;
 
   TransformType::Pointer transform = TransformType::New();
 
   registration->SetTransform( transform );
 
 
-  typedef itk::LinearInterpolateMeshFunction< 
-    MovingMeshType, double > InterpolatorType;
+  typedef itk::LinearInterpolateMeshFunction< MovingMeshType > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 

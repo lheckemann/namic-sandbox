@@ -30,8 +30,8 @@ namespace itk
 /**
  * Constructor
  */
-template <class TInputMesh, class TCoordRep>
-LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
+template <class TInputMesh>
+LinearInterpolateMeshFunction<TInputMesh>
 ::LinearInterpolateMeshFunction()
 {
 }
@@ -40,8 +40,8 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Destructor
  */
-template <class TInputMesh, class TCoordRep>
-LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
+template <class TInputMesh>
+LinearInterpolateMeshFunction<TInputMesh>
 ::~LinearInterpolateMeshFunction()
 {
 }
@@ -50,9 +50,9 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void
-LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
+LinearInterpolateMeshFunction<TInputMesh>
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf( os, indent );
@@ -64,9 +64,9 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Evaluate the mesh at a given point position.
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void
-LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
+LinearInterpolateMeshFunction<TInputMesh>
 ::EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const
 {
 
@@ -96,10 +96,10 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Evaluate the mesh at a given point position.
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 typename 
-LinearInterpolateMeshFunction<TInputMesh, TCoordRep>::OutputType
-LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
+LinearInterpolateMeshFunction<TInputMesh>::OutputType
+LinearInterpolateMeshFunction<TInputMesh>
 ::Evaluate( const PointType& point ) const
 {
   InstanceIdentifierVectorType pointIds;
@@ -130,9 +130,9 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
 /**
  * Find corresponding triangle, vector base and barycentric coordinates
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 void 
-LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
+LinearInterpolateMeshFunction<TInputMesh>
 ::FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const
 {
   const unsigned int numberOfNeighbors = 3;
@@ -176,9 +176,9 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
  * Compute interpolation weights and verify if the input point is inside the
  * triangle formed by the three identifiers.
  */
-template <class TInputMesh, class TCoordRep>
+template <class TInputMesh>
 bool
-LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
+LinearInterpolateMeshFunction<TInputMesh>
 ::ComputeWeights( const PointType & point, 
   const InstanceIdentifierVectorType & pointIds ) const
 {
