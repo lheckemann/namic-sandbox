@@ -207,30 +207,6 @@ LinearInterpolateMeshFunction<TInputMesh>
   m_U12= triangleBasisSystem.GetVector(0); 
   m_U32= triangleBasisSystem.GetVector(1); 
 
-#if 0
-  //
-  // Compute Vectors along the edges.
-  // These two vectors form a vector base for the 2D space of the triangle cell.
-  //
-  VectorType m_V12 = pt1 - pt2;
-  VectorType m_V32 = pt3 - pt2;
-
-  //
-  // Compute Vectors in the dual vector base inside the 2D space of the triangle cell.
-  // m_U12 is orthogonal to m_V32
-  // m_U32 is orthogonal to m_V12
-  //
-  const double dotproduct =  m_V12 * m_V32;
-  m_U12 = m_V12 - m_V32 * ( dotproduct / m_V32.GetSquaredNorm() );
-  m_U32 = m_V32 - m_V12 * ( dotproduct / m_V12.GetSquaredNorm() );
-
-  //
-  // Add normalizations for making {m_U12,m_U32} a vector basis orthonormal to {m_V12, m_V32}.
-  //
-  m_U12 /= ( m_U12 * m_V12 );
-  m_U32 /= ( m_U32 * m_V32 );
-
-#endif
   //
   // Project point to plane, by using the dual vector base
   //
