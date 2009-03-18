@@ -61,15 +61,6 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
     itkExceptionMacro(<<"TriangleBasisSystemCalculator CalculateTriangle  cellIndex is too high.");
     }
 
-  typedef typename MeshType::CellType           CellType; 
-  typedef typename MeshType::PointType          PointType; 
-  typedef typename MeshType::CellsContainer     CellsContainer; 
-  typedef typename MeshType::PointsContainer    PointsContainer;
-  typedef typename PointType::VectorType        VectorType;
-
-  VectorType  u12;
-  VectorType  u32;
-
   const PointsContainer * points = this->m_InputMesh->GetPoints();
   const CellsContainer  * cells = this->m_InputMesh->GetCells();
 
@@ -86,12 +77,26 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
   PointType pt2 = points->GetElement( pointIds[1] );
   PointType pt3 = points->GetElement( pointIds[2] );
 
+  CalculateBasis(pt1, pt2, pt3, bs);  
+
+}
+
+template <class TMesh, class TBasisSystem >
+void
+TriangleBasisSystemCalculator<PointType, TBasisSystem>
+::CalculateBasis(PointType pt1, PointType pt2, PointType pt3,
+                 TBasisSystem & bs ) const
+{
+
   //
   // Compute Vectors along the edges.
   // These two vectors form a vector base for the 2D space of the triangle cell.
   //
   VectorType v12 = pt1 - pt2;
   VectorType v32 = pt3 - pt2;
+
+  VectorType  u12;
+  VectorType  u32;
 
   //
   // Compute Vectors in the dual vector base inside the 2D space of the triangle cell.
@@ -110,6 +115,7 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
 
   bs.SetVector( 0, u12 ); 
   bs.SetVector( 1, u32 ); 
+
 }
 
 } // end namespace itk

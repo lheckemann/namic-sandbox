@@ -55,6 +55,11 @@ public:
   typedef TBasisSystem                            BasisSystemType;
   typedef TMesh                                   MeshType;
   typedef typename MeshType::ConstPointer         MeshConstPointer;
+  typedef typename MeshType::CellType             CellType; 
+  typedef typename MeshType::PointType            PointType; 
+  typedef typename MeshType::CellsContainer       CellsContainer; 
+  typedef typename MeshType::PointsContainer      PointsContainer;
+  typedef typename PointType::VectorType          VectorType;
     
   /** Set/Get the mesh for which the basis system will be computed. */
   itkSetConstObjectMacro( InputMesh, MeshType );
@@ -63,7 +68,8 @@ public:
   /** Compute the basis system at the triangular cell of the Mesh that is
    * identified by cellIndex. */
   void CalculateTriangle( unsigned int cellIndex, TBasisSystem & bs ) const; 
-
+  void CalculateBasis(PointType pt1, PointType pt2, PointType pt3,
+                      TBasisSystem & bs ) const; 
 protected:
   TriangleBasisSystemCalculator();
   virtual ~TriangleBasisSystemCalculator();
