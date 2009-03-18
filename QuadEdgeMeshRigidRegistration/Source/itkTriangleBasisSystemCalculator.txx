@@ -83,7 +83,7 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
 
 template <class TMesh, class TBasisSystem >
 void
-TriangleBasisSystemCalculator<PointType, TBasisSystem>
+TriangleBasisSystemCalculator<TMesh, TBasisSystem>
 ::CalculateBasis(PointType pt1, PointType pt2, PointType pt3,
                  TBasisSystem & bs ) const
 {
