@@ -306,13 +306,6 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   }
   events->Delete();
   
-  // register the volume node in the event observer  
-  vtkMRMLNode *node = NULL; // TODO: is this OK? ->NodeSelector->GetselectedID
-  vtkIntArray* nodeEvents = vtkIntArray::New();
-  nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
-  vtkSetAndObserveMRMLNodeEventsMacro(node,pVolumeNode,nodeEvents);  //TODO:Steve What does this "node" do???
-  nodeEvents->Delete();
-
   //----------------------------------------------------------------
   // GUI Observers
   this->pVolumeSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*) this->GUICallbackCommand);
@@ -335,7 +328,6 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
 {
   //----------------------------------------------------------------
   // MRML Observers
-  this->MRMLObserverManager->RemoveObjectEvents(pVolumeNode);
   //this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
   //this->MRMLObserverManager->RemoveObjectEvents(pNeedleModelNode);
   //TODO: Remove Observers of MRMLSceneEvents
@@ -458,7 +450,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
        
     //-----------------------------------------------------------------------------------------------------------------
     // Set the sourceNode and register it to the event observer | it gets unregistered when the StopButton is pressed
-   // pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->pScannerIDEntry->GetValue()));
+    pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->pVolumeSelector->GetSelected());  //TODO: What happens if nothing is selected? Does it just return NULL?
     vtkMRMLNode* node = NULL; // TODO: is this OK?
     vtkIntArray* nodeEvents = vtkIntArray::New();
     nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
@@ -469,10 +461,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     { //-----------------------------------------------------------------------------------------------------------------
       // Create the volumeNode and the corresponding displayNode, which displays the detected needle   
       std::cout << "pSourceNode exists" << std::endl;   
-      pVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("VolumeNode"));
+      //pVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("VolumeNode"));
       if(pVolumeNode == NULL) // pVolumeNode does not exist yet
       {
-        std::cout << "items == 0" << std::endl; 
         vtkMRMLScalarVolumeNode* pScalarNode = vtkMRMLScalarVolumeNode::New();
         pScalarNode->SetLabelMap(0);   // set the label map to grey scale
         pVolumeNode = pScalarNode;    
@@ -568,16 +559,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
       this->pSourceNode = NULL;  
     }
-    
-    // Set the VolumeNode to NULL, because it should not get used while started==0
-    // It will not get deleted, because it is still referenced in the MRMLScene
-    if(this->pVolumeNode)
-    {
-      //this->GetMRMLScene()->RemoveNodeNoNotify((vtkMRMLNode*) pVolumeNode);
-      this->pVolumeNode = NULL; 
-    }
-    //Do not set pNeedleModelNode to NULL, because it might still be accessed
-    
+       
     started = 0; // Stop checking MRLM events of pSourceNode 
   }
   
@@ -611,9 +593,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pNeedleTransformNode->SetScene(this->GetMRMLScene());
         pNeedleTransformNode->SetHideFromEditors(0);
         vtkMatrix4x4* transform = vtkMatrix4x4::New(); // vtkMatrix is initialized with the identity matrix
-        //TODO:Steve Can I delete this transform after I set it to the Node?
         pNeedleTransformNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
-        
+        transform->Delete();        
         this->GetMRMLScene()->AddNode(pNeedleTransformNode);         
         std::cout << "NeedleTransformNode added" << std::endl;
         
@@ -944,7 +925,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForHelpFrame ()
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
 {
-  vtkSlicerApplication* app = (vtkSlicerApplication*) this->GetApplication();
+  vtkSlicerApplication* app = (vtkSlicerApplication*) this->GetApplication(); //TODO: Can I delete app?
   vtkKWWidget* page = this->UIPanel->GetPageWidget("RealTimeNeedleDetection");
   
   vtkSlicerModuleCollapsibleFrame* parentFrame = vtkSlicerModuleCollapsibleFrame::New();
@@ -975,7 +956,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pVolumeSelector->SetBorderWidth(2);
   this->pVolumeSelector->SetLabelText( "Scanner MRMLNode: ");
   this->pVolumeSelector->SetBalloonHelpString("select an input scanner from the current MRML scene.");
-  this->Script("pack %s -side left -anchor e -padx 20 -pady 4", 
+  this->Script("pack %s -side top -anchor e -padx 2 -pady 2", 
                 this->pVolumeSelector->GetWidgetName());
    
   // ------------------------------------------------------
