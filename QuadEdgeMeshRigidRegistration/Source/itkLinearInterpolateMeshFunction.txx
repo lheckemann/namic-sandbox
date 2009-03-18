@@ -17,8 +17,12 @@
 #ifndef __itkLinearInterpolateMeshFunction_txx
 #define __itkLinearInterpolateMeshFunction_txx
 
+#include "itkVector.h"
+#include "itkQuadEdgeMesh.h"
+#include "itkTriangleBasisSystem.h"
+#include "itkTriangleBasisSystemCalculator.h"
 #include "itkLinearInterpolateMeshFunction.h"
-
+#include "itkTriangleCell.h"
 
 namespace itk
 {
@@ -192,6 +196,18 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   PointType pt2 = points->GetElement( pointIds[1] );
   PointType pt3 = points->GetElement( pointIds[2] );
 
+  const unsigned int SurfaceDimension = 2; 
+  typedef typename itk::TriangleBasisSystem< VectorType, SurfaceDimension>  TriangleBasisSystemType;
+  TriangleBasisSystemType *triangleBasisSystem= TriangleBasisSystemType::New();
+
+  typedef typename itk::TriangleBasisSystemCalculator< TInputMesh, TriangleBasisSystemType >  TriangleBasisSystemCalculatorType;
+  TriangleBasisSystemCalculatorType *triangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
+
+  triangleBasisSystemCalculator->CalculateBasis(pt1, pt2, pt3, triangleBasisSystem );
+  m_U12= triangleBasisSystem.GetVector(0); 
+  m_U32= triangleBasisSystem.GetVector(1); 
+
+#if 0
   //
   // Compute Vectors along the edges.
   // These two vectors form a vector base for the 2D space of the triangle cell.
@@ -214,6 +230,7 @@ LinearInterpolateMeshFunction<TInputMesh, TCoordRep>
   m_U12 /= ( m_U12 * m_V12 );
   m_U32 /= ( m_U32 * m_V32 );
 
+#endif
   //
   // Project point to plane, by using the dual vector base
   //
