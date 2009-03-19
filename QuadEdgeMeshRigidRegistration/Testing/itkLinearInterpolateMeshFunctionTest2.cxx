@@ -32,9 +32,6 @@
 
 #include <iostream>
 
-const float TWO_PI= M_PI * 2.0;
-const float THREE_PI_OVER_TWO= M_PI_2 * 3.0; 
-
 static float mapSphericalCoordinatesFunction(float inPhi); 
 static itk::Vector<float,3> mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag); 
 
@@ -44,7 +41,7 @@ mapSphericalCoordinatesFunction(float inPhi)
 {
   float result; 
 
-  float phiFactor= (M_PI - inPhi)/M_PI; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
+  float phiFactor= (vnl_math::pi - inPhi) / vnl_math::pi ; //inPhi should be in [0,PI]; peak at North Pole: phi=0.
 
   result= phiFactor; 
 
@@ -62,7 +59,7 @@ mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFl
   float sinPhi= sin(inPhi);
 
   //derivative of phiFactor over Phi 
-  float functionDerivativeOverPhi= -1.0/M_PI;
+  float functionDerivativeOverPhi= -1.0 / vnl_math::pi;
 
   //Need to multiply dF/dphi by unit vector along phi
   //unit vector along phi= cos(phi)*cos(theta) i + cos(phi)*sin(theta) j - sin(phi)k
@@ -73,7 +70,7 @@ mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFl
 
   for (unsigned int i=0; i<3; i++)
     {
-       result[i]= phiComponent[i]; 
+    result[i]= phiComponent[i]; 
     }
 
   if (printFlag)
@@ -81,7 +78,7 @@ mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFl
     std::cout << "  inTheta " << inTheta << "  inPhi " << inPhi
               << "  sinTheta " << sinTheta << "  cosTheta " << cosTheta  
               << "  sinPhi " << sinPhi << "  cosPhi " << cosPhi  
-              << " dfdphi " << functionDerivativeOverPhi
+              << "  dfdphi " << functionDerivativeOverPhi
               << "  thetaComponent " << thetaComponent
               << "  phiComponent " << phiComponent << "  result " << result << " \n";
     }
@@ -101,7 +98,7 @@ int main( int argc, char * argv [] )
   typedef SphereMeshSourceType::PointType   PointType;
   typedef SphereMeshSourceType::VectorType  VectorType;
 
-// Set up synthetic data.  
+  // Set up synthetic data.  
 
   PointType myCenter; 
   myCenter.Fill( 0.0 );
@@ -229,24 +226,24 @@ int main( int argc, char * argv [] )
     PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
     PointIdIterator pointIdEnd = cellPointer->PointIdsEnd();
     for( unsigned int i = 0; i < 3; i++ )
-    {
-       myCellCenter[i]= 0.0;
-    }
+      {
+      myCellCenter[i]= 0.0;
+      }
 
     
     while( pointIdIterator != pointIdEnd )
       {
-         CellPointType cellPoint= myMesh->GetPoint(*pointIdIterator);
-         for( unsigned int i = 0; i < 3; i++ )
+      CellPointType cellPoint= myMesh->GetPoint(*pointIdIterator);
+      for( unsigned int i = 0; i < 3; i++ )
          {
-            myCellCenter[i]+= cellPoint[i];          
+         myCellCenter[i]+= cellPoint[i];          
          }
          pointIdIterator++;
       }
     for( unsigned int i = 0; i < 3; i++ )
-    {
+      {
       myCellCenter[i]/= cellPointer->GetNumberOfPoints();
-    }
+      }
     
     cellCenterRadius= sqrt(myCellCenter[0]*myCellCenter[0] +
                            myCellCenter[1]*myCellCenter[1] +
@@ -272,8 +269,8 @@ int main( int argc, char * argv [] )
 
     for ( unsigned int i=0; i<3; i++ )
       {
-         differenceValue[i]= analyticalDerivative[i] - computedDerivative[i];
-         differenceValueMagnitude+= (differenceValue[i]*differenceValue[i]); 
+      differenceValue[i]= analyticalDerivative[i] - computedDerivative[i];
+      differenceValueMagnitude+= (differenceValue[i]*differenceValue[i]); 
       }
 
     differenceValueMagnitude= sqrt(differenceValueMagnitude);
@@ -282,13 +279,12 @@ int main( int argc, char * argv [] )
       {
       maximumDifferenceMagnitude = differenceValueMagnitude;
       
-      printf(" maximum difference magnitude increasing %7.3f faceId %d \n", maximumDifferenceMagnitude, faceId ); 
-
+      std::cout << " maximum difference magnitude increasing " << maximumDifferenceMagnitude << " faceId " << faceId << std::endl;
       }
 
     }
 
-  printf(" maximum difference magnitude %7.3f \n", maximumDifferenceMagnitude); 
+  std::cout << " maximum difference magnitude " << maximumDifferenceMagnitude << std::endl;
   
   std::cout << "Test End "<< std::endl;
 
