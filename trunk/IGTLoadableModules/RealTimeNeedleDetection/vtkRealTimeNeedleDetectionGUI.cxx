@@ -82,7 +82,6 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void *> (this));
   this->DataCallbackCommand->SetCallback(vtkRealTimeNeedleDetectionGUI::DataCallback);
-  this->DataManager = vtkIGTDataManager::New();  //TODO: Do I need the DataManager?
   started       = 0;
   ROIpresent    = 0;
   showNeedle    = 0;
@@ -148,15 +147,6 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
 vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
 {
   std::cout << "NeedleDetection destruction started" << std::endl;
-  if (this->DataManager)
-  {
-    // If we don't set the scene to NULL for DataManager,
-    // Slicer will report lots of leaks when it is closed.
-    //TODO: Do I really need this datamanager?
-    this->DataManager->SetMRMLScene(NULL);
-    this->DataManager->Delete();
-  }
-
   //----------------------------------------------------------------
   // Remove Callbacks
   if (this->DataCallbackCommand)
@@ -269,7 +259,6 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::Init()
 {
-  this->DataManager->SetMRMLScene(this->GetMRMLScene());
 }
 
 //---------------------------------------------------------------------------
@@ -319,7 +308,7 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
   this->pVolumeSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pThresholdScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);  //TODO:I could take this event out and only poll the number when start is pressed
+  //this->pThresholdScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);  //TODO:I could take this event out and only poll the number when start is pressed
   this->pStartButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pStopButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
@@ -346,8 +335,8 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
   // GUI Observers
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   this->pVolumeSelector->RemoveObservers(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*) this->GUICallbackCommand);
-  if(this->pThresholdScale)
-    this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
+//  if(this->pThresholdScale)
+//    this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
   if (this->pEntryPointButtonSet)
   {
     this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
@@ -406,11 +395,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     return;
   }
   
-  else if (this->pVolumeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent && this->pVolumeSelector->GetSelected() != NULL) 
-  { 
-    std::cout << "VolumeSelector pressed." << std::endl;
-    pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->pVolumeSelector->GetSelected()); //TODO: I can take this out later, because pSourceNode is assigned when startButton is pressed
-  }
+//  else if (this->pVolumeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent && this->pVolumeSelector->GetSelected() != NULL) 
+//  { 
+//    std::cout << "VolumeSelector pressed." << std::endl;
+//    pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->pVolumeSelector->GetSelected()); //TODO: I can take this out later, because pSourceNode is assigned when startButton is pressed
+//  }
   
   else if(this->pThresholdScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent)   //TODO: I might not need to catch this event -> just get the value when start is pressed
   {
@@ -467,22 +456,21 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
        
     //-----------------------------------------------------------------------------------------------------------------
     // Register the scanner node as pSourceNode to the event observer | it gets unregistered when the StopButton is pressed
-    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(this->pVolumeSelector->GetSelected());  //TODO:Steve This MRMLNode gets set to NULL in vtkSetAndObserveMRMLNodeEventsMacro(node,pSourceNode,nodeEvents) everytime except for the first time the startButton is pressed. Why?
-//    vtkMRMLNode* pSourceNode = vtkMRMLNode::SafeDownCast(this->pVolumeSelector->GetSelected()); //TODO:Steve actually I need the same nodes in there. does that make sense?
-//TODO: I have to press the selectorNode before I can start again. Why??? 
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(this->pVolumeSelector->GetSelected());  
     if(!node)
       std::cout << "no node" << std::endl;
     else
       std::cout << "node exists" << std::endl;
     vtkIntArray* nodeEvents = vtkIntArray::New();
     nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
-    vtkSetAndObserveMRMLNodeEventsMacro(node,pSourceNode,nodeEvents); 
+    vtkSetAndObserveMRMLNodeEventsMacro(pSourceNode, node, nodeEvents);   //this registers the in pVolumeSelector selected node to pSourceNode  
     if(!node)
       std::cout << "no node" << std::endl;
     else
       std::cout << "node exists" << std::endl;
-    nodeEvents->Delete();    
-    if(node)
+    nodeEvents->Delete();   
+    //TODO:Steve Do I have to delete node? 
+    if(pSourceNode)
     { //-----------------------------------------------------------------------------------------------------------------
       // Create the OutputNode and the corresponding displayNode, which displays the detected needle   
       std::cout << "pSourceNode exists" << std::endl;   
@@ -577,7 +565,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
   else if (this->pStopButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
   {    
     std::cerr << "StopButton is pressed." << std::endl;
-    // unregister the observer of the ScannerMRMLNode
+    // unregister the observer of the ScannerMRMLNode | do not delete pSourceNode, because it gets used again when start is pressed again
     if(this->pSourceNode)
     {
       this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
@@ -1022,26 +1010,6 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->SelectedStateOn();  //default, always needs to correspond to the member variable needleOrigin
   this->pEntryPointButtonSet->EnabledOn();
   buttonSetFrame->Delete();
-   
-  // ------------------------------------------------------
-  // threshold slider button  
-  vtkKWFrame* sliderFrame = vtkKWFrame::New();
-  sliderFrame->SetParent(controlFrame->GetFrame());
-  sliderFrame->Create();
-  this->Script("pack %s -fill both -expand true", sliderFrame->GetWidgetName());
-  
-  this->pThresholdScale = vtkKWScaleWithEntry::New();
-  this->pThresholdScale->SetParent(sliderFrame);
-  this->pThresholdScale->SetLabelText("Threshold");
-  this->pThresholdScale->Create();
-  this->pThresholdScale->GetScale()->SetLength(180); 
-  this->pThresholdScale->SetRange(0,MAX);
-  this->pThresholdScale->SetResolution(10);
-  //TODO:Steve can I constrict the values to integer?  -> floor?
-  this->pThresholdScale->SetValue(DEFAULTTHRESHOLD);  
-  this->Script("pack %s -side left -padx 2 -pady 2", this->pThresholdScale->GetWidgetName());  
-  
-  sliderFrame->Delete(); 
   
   // ------------------------------------------------------
   // Dilate and Erode Value Entry  
@@ -1076,10 +1044,30 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   
   this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               erodeLabel->GetWidgetName(), this->pErodeEntry->GetWidgetName(), dilateLabel->GetWidgetName(), this->pDilateEntry->GetWidgetName());
-  erodeLabel->Delete();
-  dilateLabel->Delete();
   
+  erodeLabel->Delete();
+  dilateLabel->Delete();  
   dilateErodeFrame->Delete(); 
+   
+  // ------------------------------------------------------
+  // threshold slider button  
+  vtkKWFrame* sliderFrame = vtkKWFrame::New();
+  sliderFrame->SetParent(controlFrame->GetFrame());
+  sliderFrame->Create();
+  this->Script("pack %s -fill both -expand true", sliderFrame->GetWidgetName());
+  
+  this->pThresholdScale = vtkKWScaleWithEntry::New();
+  this->pThresholdScale->SetParent(sliderFrame);
+  this->pThresholdScale->SetLabelText("Threshold");
+  this->pThresholdScale->Create();
+  this->pThresholdScale->GetScale()->SetLength(180); 
+  this->pThresholdScale->SetRange(0,MAX);
+  this->pThresholdScale->SetResolution(10);
+  //TODO:Steve can I constrict the values to integer?  -> floor?
+  this->pThresholdScale->SetValue(DEFAULTTHRESHOLD);  
+  this->Script("pack %s -side left -padx 2 -pady 2", this->pThresholdScale->GetWidgetName());  
+  
+  sliderFrame->Delete(); 
   
   // -----------------------------------------
   // push buttons
@@ -1128,12 +1116,11 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
 
   // -----------------------------------------
   // Boundary edit fields TODO: Check for bounds! 0 up to imageDimensions is possible
-  //TODO:Steve How do I check suff that gets typed in?
   vtkKWFrame* descriptionFrame = vtkKWFrame::New();
   descriptionFrame->SetParent(coordinatesFrame->GetFrame());
   descriptionFrame->Create();
   this->Script ( "pack %s -fill both -expand true", descriptionFrame->GetWidgetName());
-  vtkKWTextWithHyperlinksWithScrollbars* descriptionText = vtkKWTextWithHyperlinksWithScrollbars::New();  //TODO:Steve what to use if I only need text?
+  vtkKWTextWithHyperlinksWithScrollbars* descriptionText = vtkKWTextWithHyperlinksWithScrollbars::New();  //TODO:Steve what should I use, if I only need text?
   descriptionText->SetParent(descriptionFrame);
   descriptionText->Create(); 
   descriptionText->SetHorizontalScrollbarVisibility(0);
@@ -1249,7 +1236,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
   {
     this->pVolumeSelector->EnabledOff();
     this->pEntryPointButtonSet->EnabledOff();
-    this->pThresholdScale->EnabledOff();
     this->pStartButton->EnabledOff();
     this->pStopButton->EnabledOn();
     this->pShowNeedleButton->EnabledOn();  // this Button is disabled until the needle detection was started for the first time  TODO: I should change it to being disabled until the needlemodel was created
@@ -1264,7 +1250,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
   {
     this->pVolumeSelector->EnabledOn();
     this->pEntryPointButtonSet->EnabledOn();
-    this->pThresholdScale->EnabledOn();
     this->pStartButton->EnabledOn();
     this->pStopButton->EnabledOff();  
     if(ROIpresent)

@@ -24,8 +24,6 @@
 #include "vtkCallbackCommand.h"
 #include "vtkSlicerInteractorStyle.h"
 
-#include "vtkIGTDataManager.h"
-
 #include "vtkRealTimeNeedleDetectionLogic.h"
 #include "ImageProcessor.h"
 #include "vtkCylinderSource.h"
@@ -143,7 +141,6 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
-  vtkIGTDataManager*                DataManager;
   vtkRealTimeNeedleDetectionLogic*  Logic;
   vtkCallbackCommand*               DataCallbackCommand;
   int                        CloseScene;    // TODO: Do I need that?
