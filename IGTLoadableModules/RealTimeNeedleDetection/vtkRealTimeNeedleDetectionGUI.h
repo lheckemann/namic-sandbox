@@ -119,6 +119,8 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkSlicerNodeSelectorWidget*  pVolumeSelector;
   vtkKWRadioButtonSet*          pEntryPointButtonSet;
   vtkKWScaleWithEntry*          pThresholdScale;
+  vtkKWEntry*                   pDilateEntry;
+  vtkKWEntry*                   pErodeEntry;
   vtkKWPushButton*              pStartButton;
   vtkKWPushButton*              pStopButton;
   vtkKWCheckButton*             pShowNeedleButton;  
@@ -133,7 +135,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   // MRML nodes
   //----------------------------------------------------------------
   vtkMRMLVolumeNode*          pSourceNode;          // MRML node, which Slicer received via OpenIGTLink from the Scanner
-  vtkMRMLVolumeNode*          pVolumeNode;          // MRML node, which contains the processed image
+  vtkMRMLVolumeNode*          pOutputNode;          // MRML node, which contains the processed image
   vtkMRMLModelNode*           pNeedleModelNode;     // MRML node, which contains the displayable detected needle
   vtkMRMLLinearTransformNode* pNeedleTransformNode; // MRML node, which contains a transform of the detected needle
   vtkMRMLLinearTransformNode* pScanPlaneNormalNode; // MRML node, which contains a transform of the normal to the detected needle
