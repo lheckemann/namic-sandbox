@@ -142,11 +142,13 @@ int main( int argc, char *argv[] )
   std::cout << "test 1 gradientCalculator->GetDataContainer() " <<
      gradientCalculator->GetDataContainer() << "\n";
   
-  //Have still not properly initialized gradientCalculator yet...
+
+  // It is not initialized correctly, we expect no exception
+  TRY_EXPECT_NO_EXCEPTION( gradientCalculator->Compute(); );
 
   try
     {
-       gradientCalculator->Evaluate( 17 );
+    gradientCalculator->Evaluate( 17 );
     }
   catch( itk::ExceptionObject & exp )
     {
