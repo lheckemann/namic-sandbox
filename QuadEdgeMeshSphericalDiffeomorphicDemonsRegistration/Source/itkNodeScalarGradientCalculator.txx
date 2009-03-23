@@ -84,7 +84,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 }
 
 
-
 /**
  * Compute the function
  */

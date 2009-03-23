@@ -71,12 +71,9 @@ public:
   typedef typename InputMeshType::CellIdentifier                            CellIdentifier;
   typedef VectorContainer<CellIdentifier, TriangleBasisSystemType>          BasisSystemListType;
   typedef typename BasisSystemListType::ConstIterator                       BasisSystemListIterator;
-//typedef typename BasisSystemListType::Pointer                             BasisSystemListPointer;
 
-#if 0
-  typedef TriangleListBasisSystemCalculator< InputMeshType, TriangleBasisSystemType >
-     TriangleListBasisSystemCalculatorType;
-#endif
+  typedef TriangleListBasisSystemCalculator< 
+    InputMeshType, TriangleBasisSystemType >          TriangleListBasisSystemCalculatorType;
 
   /** Set/Get the input mesh. */
   itkSetConstObjectMacro( InputMesh, InputMeshType );
