@@ -42,6 +42,33 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 {
 }
 
+/**
+ * Compute the function
+ */
+template <class TInputMesh, class TScalar >
+void
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::Initialize( void ) const 
+{
+
+  if( this->m_InputMesh.IsNull() ) 
+    {
+    itkExceptionMacro(<<"NodeScalarGradientCalculator Initialize  m_InputMesh is NULL.");
+    }
+  
+  if( this->m_DataContainer.IsNull() ) 
+    {
+    itkExceptionMacro(<<"NodeScalarGradientCalculator Initialize  m_DataContainer is NULL.");
+    }
+
+  if( this->m_BasisSystemList.IsNull() ) 
+    {
+    itkExceptionMacro(<<"NodeScalarGradientCalculator Initialize  m_BasisSystemList is NULL.");
+    }
+
+  return;
+}
+
 
 /**
  * Compute the function
@@ -50,7 +77,9 @@ template <class TInputMesh, class TScalar >
 typename NodeScalarGradientCalculator<TInputMesh, TScalar>::OutputType
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Evaluate( const InputType& input ) const 
-{ 
+{
+  Initialize(); 
+
   return OutputType();
 }
 

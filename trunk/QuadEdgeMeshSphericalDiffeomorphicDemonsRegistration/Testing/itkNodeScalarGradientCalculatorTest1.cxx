@@ -23,6 +23,10 @@
 #include "itkVTKPolyDataReader.h"
 #include "itkMeshGeneratorHelper.h"
 #include "itkCovariantVector.h"
+#include "itkTestingMacros.h"
+#include "itkTriangleBasisSystem.h"
+#include "itkTriangleBasisSystemCalculator.h"
+#include "itkTriangleListBasisSystemCalculator.h"
 
 int main( int argc, char *argv[] )
 {
@@ -72,13 +76,46 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  gradientCalculator->SetInputMesh( fixedReader->GetOutput() );
+  std::cout << "test 4 \n";
 
-  if( gradientCalculator->GetInputMesh() != fixedReader->GetOutput() )
+
+  //Have not properly initialized gradientCalculator yet...
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Evaluate( 17 ); );
+  //First item needed: triangle basis list.
+  const unsigned int SurfaceDimension = 2;
+  typedef FixedMeshType::PointType  PointType;
+  typedef PointType::VectorType     VectorType;
+  typedef itk::TriangleBasisSystem< VectorType, SurfaceDimension>  TriangleBasisSystemType;
+  TriangleBasisSystemType triangleBasisSystem;
+
+  typedef itk::TriangleListBasisSystemCalculator< FixedMeshType, TriangleBasisSystemType >
+     TriangleListBasisSystemCalculatorType;
+
+  TriangleListBasisSystemCalculatorType::Pointer triangleListBasisSystemCalculator =
+     TriangleListBasisSystemCalculatorType::New();
+
+  triangleListBasisSystemCalculator->SetInputMesh( fixedReader->GetOutput() );
+
+  //Should be able to compute basis list with fixed mesh.
+  TRY_EXPECT_NO_EXCEPTION( triangleListBasisSystemCalculator->Calculate() );
+
+  std::cout << "test 3 \n";
+
+  //Still have not properly initialized gradientCalculator yet... 2 to go
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Evaluate( 17 ); );
+
+  gradientCalculator->SetInputMesh( triangleListBasisSystemCalculator->GetInputMesh() );
+
+  if( gradientCalculator->GetInputMesh() != triangleListBasisSystemCalculator->GetInputMesh() )
     {
     std::cerr << "Error in SetFixedMesh()/GetFixedMesh() " << std::endl;
     return EXIT_FAILURE;
     }
+
+  std::cout << "test 2 \n";
+
+  //Still have not properly initialized gradientCalculator yet... 1 to go
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Evaluate( 17 ); );
 
   gradientCalculator->SetDataContainer( movingReader->GetOutput()->GetPointData() );
 
@@ -88,15 +125,23 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  std::cout << "test 1 gradientCalculator->GetDataContainer() " <<
+     gradientCalculator->GetDataContainer() << "\n";
+  
+  //Have still not properly initialized gradientCalculator yet...
+  TRY_EXPECT_NO_EXCEPTION( gradientCalculator->Evaluate( 17 ); );
+
+#if 0  
   try
     {
-    gradientCalculator->Evaluate( 17 );
+       gradientCalculator->Evaluate( 17 );
     }
   catch( itk::ExceptionObject & exp )
     {
     std::cerr << exp << std::endl;
     return EXIT_FAILURE;
     }
+#endif
 
   return EXIT_SUCCESS;
 }
