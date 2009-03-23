@@ -469,7 +469,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     else
       std::cout << "node exists" << std::endl;
     nodeEvents->Delete();   
-    //TODO:Steve Do I have to delete node? 
+    //TODO:Steve Do I have to delete node? Does it actually exist?
     if(pSourceNode)
     { //-----------------------------------------------------------------------------------------------------------------
       // Create the OutputNode and the corresponding displayNode, which displays the detected needle   
@@ -643,7 +643,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     {
       if(pNeedleModelNode) // if a node exists, set visibility to 0
       {
-        vtkMRMLDisplayNode* pNeedleDisplay = pNeedleModelNode->GetDisplayNode(); //TODO:Steve Can I delete this displayNode later on? 
+        vtkMRMLDisplayNode* pNeedleDisplay = pNeedleModelNode->GetDisplayNode();  
         if(pNeedleDisplay)
         {
           pNeedleDisplay->SetVisibility(0);
@@ -661,7 +661,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     }
   }
       
-  UpdateGUI(); // enable or disable options for the user
+  UpdateGUI(); // enable or disable GUIoptions for the user
 } 
 
 void vtkRealTimeNeedleDetectionGUI::DataCallback(vtkObject* caller, unsigned long eid, void* clientData, void* callData)
@@ -719,10 +719,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
   else if(started && (lastModified != this->pSourceNode->GetMTime()))
   {
     lastModified = this->pSourceNode->GetMTime(); // This prevents unnecessarily issued ImageDataModifiedEvents from beging processed 
-    std::cout << started << ":MRMLEvent processing while started";
     if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
     {
-      std::cout << "-SourceNode Event" << std::endl;
       clock_t begin = clock();
       double points[4]; // Array that contains 2 points of the needle transform (x1,y1,x2,y2)
                         // points[0],points[1] is the point of the needle entering the image
@@ -735,8 +733,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       vtkImageData* pImageData  = vtkImageData::New();        
       pImageData->DeepCopy(((vtkMRMLVolumeNode*) pSourceNode)->GetImageData());
       unsigned char* pImageRegionInput = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];  
-      unsigned char* pImageRegion1 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];
-      unsigned char* pImageRegion2 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize]; 
+      unsigned char* pImageRegionOutput1 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];
+      unsigned char* pImageRegionOutput2 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize]; 
       GetImageRegion(pImageData, pImageRegionInput);
   
       //--------------------------------------------------------------------------------------------------
@@ -744,19 +742,18 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
-      //pImageProcessor->PassOn();
       
       pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
-      pImageProcessor->GetImage((void*) pImageRegion1);
-      SetImageRegion(pImageData, pImageRegion1, false);  // write the region of interest with the drawn needle in it below the MRI image received from the scanner
-      //TODO:DELETE pImageRegion!!
+      pImageProcessor->GetImage((void*) pImageRegionOutput1);
+      SetImageRegion(pImageData, pImageRegionOutput1, false);  // write the region of interest after dilateAndErode and thresholding below the MRI image received from the scanner
+      //TODO:DELETE pImageRegionOutput1!!
       
       pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
-      pImageProcessor->BinaryThinning(true, true);
+      pImageProcessor->BinaryThinning(true, true);  // needs iverted images, because it thins to a white line
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
 //      pImageProcessor->SobelFilter(true, true, 1);
 //      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",TMP);
@@ -771,13 +768,13 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Threshold(false,true,0,0,20000);
        //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
        //pImageProcessor->Threshold(true,true,MAX,0,1);
-        pImageProcessor->HoughTransformation(true, points);
+        pImageProcessor->HoughTransformation(true, points); //Does not need input true, because without input true, the houghtransformation does not work
         pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",OUTPUT);     
        //pImageProcessor->CannyEdgeDetection(true,false);           
       std::cout << "ImageRegion processed" << std::endl;    
-      pImageProcessor->GetImage((void*) pImageRegion2);
-      SetImageRegion(pImageData, pImageRegion2, true);  // write the region of interest with the drawn needle in it above the MRI image received from the scanner
-      //pImageRegion2->Delete();  //TODO:DELETE pImageRegion!!
+      pImageProcessor->GetImage((void*) pImageRegionOutput2);
+      SetImageRegion(pImageData, pImageRegionOutput2, true);  // write the region of interest with the drawn needle above the MRI image received from the scanner
+      //pImageRegionOutput->Delete();  //TODO:DELETE pImageRegion!!
       pOutputNode->SetAndObserveImageData(pImageData); //automatically removes old observer and sets modified flag, if new image is different  TODO: Does it also delete the old observer?
       pImageData->Delete();
       
@@ -822,7 +819,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
             {              
               transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
               transform->RotateZ(-angle);
-              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates is to the patient right, but in the slicer axial and coronal view it is to the patient left 
+              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
               translationPA = points[3]-fovJ;                
               break;
             }
