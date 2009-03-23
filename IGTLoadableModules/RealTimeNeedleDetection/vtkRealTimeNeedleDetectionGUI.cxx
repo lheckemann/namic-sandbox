@@ -804,19 +804,16 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       points[2] = 0.0;
       points[3] = 0.0;
       //------------------------------------------------------------------------------------------------
-      // Crop out the imageRegion specified by the X- and Y-boundaries
-      unsigned char* pImageRegionInput = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];
-      //TODO: !!!!ATTENTION!!!! Depending on image plane the boundaries for the characters need to be different!!
-      unsigned char* pImageRegionOutput1 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];
-      unsigned char* pImageRegionOutput2 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];
- 
+      // Crop out the imageRegion specified by the boundaries for the imageRegion
+      unsigned char* pImageRegionInput = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
+      unsigned char* pImageRegionOutput1 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
+      unsigned char* pImageRegionOutput2 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize]; 
       GetImageRegion(pImageData, pImageRegionInput);
   
       //--------------------------------------------------------------------------------------------------
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
-      //TODO: !!!ATTENTION!!! Depending on the image plane the currentRegionSize must be differen!!!
-      pImageProcessor->SetImage((void*) pImageRegionInput, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
+      pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
       pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
