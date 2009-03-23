@@ -102,6 +102,7 @@ private:
   void AllocateInternalArrays();
   void ComputeBasisSystemAtEveryNode();
   void RunIterations();
+  void ComputeGradientsOfMappedMovingValueAtEveryNode();
   void ComputeDeformationFieldUpdate();
   void SmoothDeformationField();
 
