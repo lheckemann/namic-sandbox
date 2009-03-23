@@ -91,10 +91,14 @@ public:
   typedef typename Superclass::OutputType                 OutputType;
   typedef typename Superclass::InputType                  InputType;
 
-  /** Evaluate at the specified input position */
-  virtual void Initialize( void ) const;
+  /** Compute the values at every node. */
+  virtual void Compute();  
 
-/** Evaluate at the specified input position */
+  /** Set/Get list of basis systems at every cell. */
+  itkSetConstObjectMacro( BasisSystemList, BasisSystemListType );
+  itkGetConstObjectMacro( BasisSystemList, BasisSystemListType );
+
+  /** Evaluate at the specified input position */
   virtual OutputType Evaluate( const InputType& input ) const;
 
 protected:
@@ -110,6 +114,10 @@ private:
   typename InputMeshType::ConstPointer                         m_InputMesh;
   typename TPointDataContainer::ConstPointer                   m_DataContainer;
   typename BasisSystemListType::ConstPointer                   m_BasisSystemList;
+
+  /** Check that all necessary inputs are connected. */
+  virtual void Initialize( void ) const;
+
 };
 
 } // end namespace itk

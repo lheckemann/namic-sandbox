@@ -80,7 +80,7 @@ int main( int argc, char *argv[] )
 
 
   //Have not properly initialized gradientCalculator yet...
-  TRY_EXPECT_EXCEPTION( gradientCalculator->Evaluate( 17 ); );
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
   //First item needed: triangle basis list.
   const unsigned int SurfaceDimension = 2;
   typedef FixedMeshType::PointType  PointType;
@@ -102,7 +102,7 @@ int main( int argc, char *argv[] )
   std::cout << "test 3 \n";
 
   //Still have not properly initialized gradientCalculator yet... 2 to go
-  TRY_EXPECT_EXCEPTION( gradientCalculator->Evaluate( 17 ); );
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
 
   gradientCalculator->SetInputMesh( triangleListBasisSystemCalculator->GetInputMesh() );
 
@@ -115,7 +115,7 @@ int main( int argc, char *argv[] )
   std::cout << "test 2 \n";
 
   //Still have not properly initialized gradientCalculator yet... 1 to go
-  TRY_EXPECT_EXCEPTION( gradientCalculator->Evaluate( 17 ); );
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
 
   gradientCalculator->SetDataContainer( movingReader->GetOutput()->GetPointData() );
 
@@ -129,7 +129,22 @@ int main( int argc, char *argv[] )
      gradientCalculator->GetDataContainer() << "\n";
   
   //Have still not properly initialized gradientCalculator yet...
-  TRY_EXPECT_NO_EXCEPTION( gradientCalculator->Evaluate( 17 ); );
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
+
+  gradientCalculator->SetBasisSystemList( triangleListBasisSystemCalculator->GetBasisSystemList() );
+
+  if( gradientCalculator->GetBasisSystemList() != triangleListBasisSystemCalculator->GetBasisSystemList() )
+    {
+    std::cerr << "Error in SetBasisSystemList()/GetBasisSystemList() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  std::cout << "test 1 gradientCalculator->GetDataContainer() " <<
+     gradientCalculator->GetDataContainer() << "\n";
+  
+  //Have still not properly initialized gradientCalculator yet...
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
+
 
 #if 0  
   try

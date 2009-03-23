@@ -74,12 +74,26 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
  * Compute the function
  */
 template <class TInputMesh, class TScalar >
+void
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::Compute()
+{
+  this->Initialize(); 
+
+  // Add here computation at every node...
+}
+
+
+
+/**
+ * Compute the function
+ */
+template <class TInputMesh, class TScalar >
 typename NodeScalarGradientCalculator<TInputMesh, TScalar>::OutputType
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Evaluate( const InputType& input ) const 
 {
-  Initialize(); 
-
+  // Add here query from an array
   return OutputType();
 }
 
