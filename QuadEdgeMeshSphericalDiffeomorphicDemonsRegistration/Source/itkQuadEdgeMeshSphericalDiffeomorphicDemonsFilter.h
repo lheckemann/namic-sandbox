@@ -19,7 +19,8 @@
 #define __itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter_h
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
-#include "itkTriangleBasisSystemCalculator.h"
+#include "itkNodeScalarGradientCalculator.h"
+#include "itkTriangleListBasisSystemCalculator.h"
 #include "itkTriangleBasisSystem.h"
 #include "itkVectorContainer.h"
 #include "itkVector.h"
@@ -58,7 +59,7 @@ public:
   /** Declaration of internal types, some of which are exposed for monitoring purposes */
   typedef typename PointType::VectorType                        VectorType;
   typedef TriangleBasisSystem< VectorType, 2 >                  BasisSystemType;
-  typedef typename TFixedMesh::PointIdentifier                  PointIdentifier;
+  typedef typename FixedMeshType::PointIdentifier               PointIdentifier;
   typedef VectorContainer< PointIdentifier, BasisSystemType >   BasisSystemContainerType;
   typedef typename BasisSystemContainerType::Pointer            BasisSystemContainerPointer;
   typedef VectorContainer< PointIdentifier, PointType >         DestinationPointContainerType;
@@ -120,6 +121,33 @@ private:
 
   /** Maximum number of iterations that the filter will be allowed to run. */
   unsigned int                          m_MaximumNumberOfIterations;
+
+  typedef TriangleListBasisSystemCalculator< 
+    FixedMeshType, BasisSystemType > TriangleListBasisSystemCalculatorType;
+
+  /** Helper class that will compute basis systems at every triangle of the Fixed Mesh. */
+  typename TriangleListBasisSystemCalculatorType::Pointer m_TriangleListBasisSystemCalculator;
+
+  /** Types definitions for the container of values resampled from the Moving
+   * mesh into the coordinates of the Fixed mesh nodes. */ 
+  typedef typename MovingMeshType::PixelType                    MovingPixelType;
+  typedef typename NumericTraits< MovingPixelType >::RealType   MovingPixelRealType;
+  typedef VectorContainer< 
+    PointIdentifier, MovingPixelRealType >                      ResampledMovingValuesContainerType;
+
+  /** Container that stores values resampled from the Moving mesh field at the
+   * coordinates resulting from mapping the fixed mesh nodes through the current
+   * deformation field. */
+  typename ResampledMovingValuesContainerType::Pointer          m_ResampledMovingValuesContainer;
+
+
+  typedef NodeScalarGradientCalculator< 
+    FixedMeshType, ResampledMovingValuesContainerType >         NodeScalarGradientCalculatorType;
+
+  /** Helper class that will compute the gradient of resampled Moving mesh
+   * values at every node of the Fixed mesh with respect to the coordinate system
+   * of that node in the fixed mesh. */
+  typename NodeScalarGradientCalculatorType::Pointer            m_NodeScalarGradientCalculator; 
 };
 
 }

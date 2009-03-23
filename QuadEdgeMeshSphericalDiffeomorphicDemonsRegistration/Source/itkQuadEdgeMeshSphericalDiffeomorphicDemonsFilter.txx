@@ -35,6 +35,12 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_BasisSystemAtNode = BasisSystemContainerType::New();
   this->m_DestinationPoints = DestinationPointContainerType::New();
 
+  this->m_TriangleListBasisSystemCalculator = TriangleListBasisSystemCalculatorType::New(); 
+  
+  this->m_NodeScalarGradientCalculator = NodeScalarGradientCalculatorType::New(); 
+
+  this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
+
   this->m_MaximumNumberOfIterations = 50;
 }
 
@@ -258,6 +264,14 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeGradientsOfMappedMovingValueAtEveryNode()
 {
+  this->m_TriangleListBasisSystemCalculator->SetInputMesh( this->m_FixedMesh );
+  this->m_TriangleListBasisSystemCalculator->Calculate();
+
+  this->m_NodeScalarGradientCalculator->SetInputMesh( this->m_FixedMesh );
+  this->m_NodeScalarGradientCalculator->SetDataContainer( this->m_ResampledMovingValuesContainer );
+
+  // Pass here the list of basis systems from the
+  // m_TriangleListBasisSystemCalculator to the m_NodeScalarGradientCalculator.
 }
 
 
