@@ -143,10 +143,7 @@ int main( int argc, char *argv[] )
      gradientCalculator->GetDataContainer() << "\n";
   
   //Have still not properly initialized gradientCalculator yet...
-  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
 
-
-#if 0  
   try
     {
        gradientCalculator->Evaluate( 17 );
@@ -156,7 +153,6 @@ int main( int argc, char *argv[] )
     std::cerr << exp << std::endl;
     return EXIT_FAILURE;
     }
-#endif
 
   return EXIT_SUCCESS;
 }
