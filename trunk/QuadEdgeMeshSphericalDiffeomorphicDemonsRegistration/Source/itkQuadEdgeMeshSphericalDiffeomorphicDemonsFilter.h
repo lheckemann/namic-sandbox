@@ -102,6 +102,7 @@ private:
   void AllocateOutputMesh();
   void AllocateInternalArrays();
   void ComputeBasisSystemAtEveryNode();
+  void ComputeInitialArrayOfDestinationPoints();
 
   void RunIterations();
   void ComputeMappedMovingValueAtEveryNode();

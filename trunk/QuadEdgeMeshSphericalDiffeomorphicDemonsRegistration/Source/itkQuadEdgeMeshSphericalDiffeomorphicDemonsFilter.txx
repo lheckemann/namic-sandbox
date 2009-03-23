@@ -85,8 +85,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     this->m_MovingMesh = movingMesh;
 
     // Process object is not const-correct so the const_cast is required here
-    this->ProcessObject::SetNthInput(1, 
-                                   const_cast< MovingMeshType *>( movingMesh ) );
+    this->ProcessObject::SetNthInput(1, const_cast< MovingMeshType *>( movingMesh ) );
     
     this->Modified(); 
     } 
@@ -101,6 +100,8 @@ GenerateData()
   this->AllocateOutputMesh();
   this->AllocateInternalArrays();
   this->ComputeBasisSystemAtEveryNode();
+  this->ComputeInitialArrayOfDestinationPoints();
+
   this->RunIterations();
   
   OutputMeshPointer output = this->GetOutput( 0 );
@@ -247,6 +248,37 @@ ComputeBasisSystemAtEveryNode()
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeInitialArrayOfDestinationPoints()
+{
+  //
+  // We start with a deformation field defining an identity transform.
+  // This should be modified if we ever take an initial deformation field
+  // as an input.
+  //
+  typedef typename TFixedMesh::PointsContainer        PointsContainer;
+  typedef typename PointsContainer::ConstIterator     PointsIterator;
+
+  const PointsContainer * points = this->m_FixedMesh->GetPoints();
+
+  PointsIterator srcPointItr = points->Begin();
+
+  typedef typename DestinationPointContainerType::Iterator  DestinationPointIterator;
+
+  DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
+  DestinationPointIterator dstPointEnd = this->m_DestinationPoints->End();
+
+  while( dstPointItr != dstPointEnd )
+    {
+    dstPointItr.Value() = srcPointItr.Value();
+    ++srcPointItr;
+    ++dstPointItr;
+    }
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 RunIterations()
 {
   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
@@ -275,8 +307,8 @@ ComputeGradientsOfMappedMovingValueAtEveryNode()
   this->m_NodeScalarGradientCalculator->SetInputMesh( this->m_FixedMesh );
   this->m_NodeScalarGradientCalculator->SetDataContainer( this->m_ResampledMovingValuesContainer );
 
-  // Pass here the list of basis systems from the
-  // m_TriangleListBasisSystemCalculator to the m_NodeScalarGradientCalculator.
+  // this->m_NodeScalarGradientCalculator->SetBasisSystemList( 
+  //  this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
 }
 
 
