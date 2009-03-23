@@ -102,7 +102,9 @@ private:
   void AllocateOutputMesh();
   void AllocateInternalArrays();
   void ComputeBasisSystemAtEveryNode();
+
   void RunIterations();
+  void ComputeMappedMovingValueAtEveryNode();
   void ComputeGradientsOfMappedMovingValueAtEveryNode();
   void ComputeDeformationFieldUpdate();
   void SmoothDeformationField();

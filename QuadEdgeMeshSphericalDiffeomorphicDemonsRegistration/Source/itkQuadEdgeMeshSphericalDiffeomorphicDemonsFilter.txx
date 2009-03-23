@@ -19,6 +19,7 @@
 #define __itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter_txx
 
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
+#include "itkLinearInterpolateMeshFunction.h"
 
 namespace itk
 {
@@ -193,6 +194,9 @@ AllocateInternalArrays()
 
   this->m_DestinationPoints = DestinationPointContainerType::New();
   this->m_DestinationPoints->Reserve( numberOfNodes );
+
+  this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
+  this->m_ResampledMovingValuesContainer->Reserve( numberOfNodes );
 }
 
 
@@ -247,6 +251,7 @@ RunIterations()
 {
   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
     {
+    this->ComputeMappedMovingValueAtEveryNode();
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
     this->ComputeDeformationFieldUpdate();
     this->SmoothDeformationField();
@@ -272,6 +277,37 @@ ComputeGradientsOfMappedMovingValueAtEveryNode()
 
   // Pass here the list of basis systems from the
   // m_TriangleListBasisSystemCalculator to the m_NodeScalarGradientCalculator.
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeMappedMovingValueAtEveryNode()
+{
+  typedef typename DestinationPointContainerType::ConstIterator  DestinationPointIterator;
+
+  DestinationPointIterator pointItr = this->m_DestinationPoints->Begin();
+  DestinationPointIterator pointEnd = this->m_DestinationPoints->End();
+
+  typedef typename ResampledMovingValuesContainerType::Iterator  ResampledMovingValuesContainerIterator;
+
+  ResampledMovingValuesContainerIterator  resampledArrayItr = this->m_ResampledMovingValuesContainer->Begin();
+
+  typedef LinearInterpolateMeshFunction< MovingMeshType >   InterpolatorType;
+
+  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+
+  interpolator->SetInputMesh( this->m_MovingMesh );
+
+  interpolator->Initialize(); // This step doesn't really need to be repeated...
+
+  while( pointItr != pointEnd )
+    {
+    resampledArrayItr.Value() = interpolator->Evaluate( pointItr.Value() );
+    ++pointItr;
+    ++resampledArrayItr;
+    }
 }
 
 
