@@ -156,16 +156,20 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   // Image Values
   //----------------------------------------------------------------   
   double          needleDetectionThreshold;
-  int             initialXLowerBound;
-  int             initialXUpperBound;        
-  int             initialYLowerBound;     
-  int             initialYUpperBound;
+  int             imageRegionSize[2];   //these are the current values for the 2D image region that gets processed in the ImageProcessor
+  int             imageRegionLower[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
+  int             imageRegionUpper[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
+  //TODO: Can Imake the "imageRegion.." arrays local variables? 
+  //TODO: make the "current...bounds" arrays!! Maybe I do not need them anymore later on
   int             currentXLowerBound;
   int             currentXUpperBound;        
   int             currentYLowerBound;     
   int             currentYUpperBound;
+  int             currentZLowerBound;     
+  int             currentZUpperBound;
   int             currentXImageRegionSize;
   int             currentYImageRegionSize;
+  int             currentZImageRegionSize;
   int             imageDimensions[3]; // the number of cells on x, y and z axis
   double          imageSpacing[3];
   double          imageOrigin[3];
