@@ -119,26 +119,29 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
    
   //----------------------------------------------------------------
   // Image Values - default  
-  currentXLowerBound = initialXLowerBound = 0;
-  currentXUpperBound = initialXUpperBound = 256;
-  currentYLowerBound = initialYLowerBound = 0;
-  currentYUpperBound = initialYUpperBound = 256;
-  currentXImageRegionSize                 = 256;
-  currentYImageRegionSize                 = 256;
-  needleDetectionThreshold                = DEFAULTTHRESHOLD;
-  imageDimensions[0]    = 256;
-  imageDimensions[1]    = 256;
-  imageDimensions[2]    = 1;
-  imageSpacing[0]       = 1;  
-  imageSpacing[1]       = 1;
-  imageSpacing[2]       = 1;
-  imageOrigin[0]        = 0;
-  imageOrigin[1]        = 0;
-  imageOrigin[2]        = 0;
-  scalarSize            = 2;                      // scalarType 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
-  lastModified          = 0;
-  pImage                = NULL;
-  pImageProcessor       = new ImageProcessor::ImageProcessor();  //TODO:move the new to starting the whole detection
+  currentXLowerBound        = 0;
+  currentXUpperBound        = 256;
+  currentYLowerBound        = 0;
+  currentYUpperBound        = 256;
+  currentZLowerBound        = 0;
+  currentZUpperBound        = 256;
+  currentXImageRegionSize   = 256;
+  currentYImageRegionSize   = 256;
+  currentZImageRegionSize   = 256;
+  needleDetectionThreshold  = DEFAULTTHRESHOLD;
+  imageDimensions[0]        = 256;
+  imageDimensions[1]        = 256;
+  imageDimensions[2]        = 1;
+  imageSpacing[0]           = 1;  
+  imageSpacing[1]           = 1;
+  imageSpacing[2]           = 1;
+  imageOrigin[0]            = 0;
+  imageOrigin[1]            = 0;
+  imageOrigin[2]            = 0;
+  scalarSize                = 2;                      // scalarType 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
+  lastModified              = 0;
+  pImage                    = NULL;
+  pImageProcessor           = new ImageProcessor::ImageProcessor();  //TODO:move the new to starting the whole detection
   std::cout << "NeedleDetection constructed" << std::endl;
 }
 
@@ -486,18 +489,76 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pOutputNode->SetDescription("MRMLNode that displays the tracked needle and the original image");
         pOutputNode->SetScene(this->GetMRMLScene()); 
         vtkMatrix4x4* matrix = vtkMatrix4x4::New(); 
-        matrix->Element[0][0] = -1.0;
-        matrix->Element[1][0] = 0.0;
-        matrix->Element[2][0] = 0.0;
-        matrix->Element[0][1] = 0.0;
-        matrix->Element[1][1] = 1.0;
-        matrix->Element[2][1] = 0.0;
-        matrix->Element[0][2] = 0.0;
-        matrix->Element[1][2] = 0.0;
-        matrix->Element[2][2] = 1.0;
-        matrix->Element[0][3] = 128.0;
-        matrix->Element[1][3] = 128.0;
-        matrix->Element[2][3] = 0.0;
+//identity
+//  matrix->Element[0][0] = 1.0;
+//  matrix->Element[1][0] = 0.0;
+//  matrix->Element[2][0] = 0.0;
+//  matrix->Element[0][1] = 0.0;
+//  matrix->Element[1][1] = 1.0;
+//  matrix->Element[2][1] = 0.0;
+//  matrix->Element[0][2] = 0.0;
+//  matrix->Element[1][2] = 0.0;
+//  matrix->Element[2][2] = 1.0;
+//  matrix->Element[0][3] = 0.0;
+//  matrix->Element[1][3] = 0.0;
+//  matrix->Element[2][3] = 0.0;
+
+//axial
+  matrix->Element[0][0] = -1.0;
+  matrix->Element[1][0] = 0.0;
+  matrix->Element[2][0] = 0.0;
+  matrix->Element[0][1] = 0.0;
+  matrix->Element[1][1] = 1.0;
+  matrix->Element[2][1] = 0.0;
+  matrix->Element[0][2] = 0.0;
+  matrix->Element[1][2] = 0.0;
+  matrix->Element[2][2] = -1.0;
+  matrix->Element[0][3] = 128.0;
+  matrix->Element[1][3] = 128.0;
+  matrix->Element[2][3] = 0.0;
+
+//coronal
+//  matrix->Element[0][0] = -1.0;
+//  matrix->Element[1][0] = 0.0;
+//  matrix->Element[2][0] = 0.0;
+//  matrix->Element[0][1] = 0.0;
+//  matrix->Element[1][1] = 0.0;
+//  matrix->Element[2][1] = -1.0;
+//  matrix->Element[0][2] = 0.0;
+//  matrix->Element[1][2] = -1.0;
+//  matrix->Element[2][2] = 0.0;
+//  matrix->Element[0][3] = 128.0;
+//  matrix->Element[1][3] = 0.0;
+//  matrix->Element[2][3] = 128.0;
+
+//sagital
+//  matrix->Element[0][0] = 0.0;
+//  matrix->Element[1][0] = 1.0;
+//  matrix->Element[2][0] = 0.0;
+//  matrix->Element[0][1] = 0.0;
+//  matrix->Element[1][1] = 0.0;
+//  matrix->Element[2][1] = -1.0;
+//  matrix->Element[0][2] = -1.0;
+//  matrix->Element[1][2] = 0.0;
+//  matrix->Element[2][2] = 0.0;
+//  matrix->Element[0][3] = 0.0;
+//  matrix->Element[1][3] = 128.0;
+//  matrix->Element[2][3] = 128.0;
+
+//testing: coronal flipped
+//  matrix->Element[0][0] = -1.0;
+//  matrix->Element[1][0] = 0.0;
+//  matrix->Element[2][0] = 0.0;
+//  matrix->Element[0][1] = 0.0;
+//  matrix->Element[1][1] = 0.0;
+//  matrix->Element[2][1] = 1.0;
+//  matrix->Element[0][2] = 0.0;
+//  matrix->Element[1][2] = 1.0;
+//  matrix->Element[2][2] = 0.0;
+//  matrix->Element[0][3] = 128.0;
+//  matrix->Element[1][3] = 0.0;
+//  matrix->Element[2][3] = 128.0;
+
         pOutputNode->SetRASToIJKMatrix(matrix); // TODO: make this matrix generic! right now it is adapted to the scanner simulation
         matrix->Delete();                       // this matrix should not be needed for real images, because the header information should be correct
         
@@ -514,47 +575,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
       else //OutputNode exists already
       {
         std::cerr << "OutputNode exists already. Starting needle tracking again" << std::endl;        
-      }
-    
-      //--------------------------------------------------------------------------------------
-      // Get the image variables
-      vtkImageData* pImageData = ((vtkMRMLVolumeNode*) pSourceNode)->GetImageData();
-      std::cerr << "got ImageData" << std::endl;
-      pImageData->GetDimensions(imageDimensions);
-      pImageData->GetSpacing(imageSpacing);
-      pImageData->GetOrigin(imageOrigin);
-      scalarSize = pImageData->GetScalarSize();
-      //TODO: Do I need to get the scalarType, too?
-      if(ROIpresent)
-      {
-        std::cout << "MRLMROINode exists" << std::endl;
-        vtkCollection* collectionOfROINodes = this->GetMRMLScene()->GetNodesByName("MRMLROINode");
-        int nItems = collectionOfROINodes->GetNumberOfItems();
-        if(nItems > 0)
-        {
-          vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(collectionOfROINodes->GetItemAsObject(0));
-          double center[3];
-          double radius[3];
-          // the origin of the transform is always in the center of the imge: (Dimension*spacing = fov) / 2
-          double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
-          double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;
-          double fovK = imageDimensions[2] * imageSpacing[2] / 2.0;         
-          pROINode->GetRadiusXYZ(radius);
-          pROINode->GetXYZ(center);
-          this->pXLowerEntry->SetValueAsInt((int) ((-center[0]) - radius[0] + fovI)); // negative center point for the x-axis, because the ROIMRMLNode coordinates are in RAS (LR direction of X-axis), 
-          this->pXUpperEntry->SetValueAsInt((int) ((-center[0]) + radius[0] + fovI)); // but the slicer axial and coronal view, which are used as reference, switch the direction (RL direction of X-axis)
-          this->pYLowerEntry->SetValueAsInt((int) (center[1] - radius[1] + fovJ));
-          this->pYUpperEntry->SetValueAsInt((int) (center[1] + radius[1] + fovJ));  
-          this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovK));
-          this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovK));
-        }         
-      }
-      currentXLowerBound = initialXLowerBound = this->pXLowerEntry->GetValueAsInt();
-      currentXUpperBound = initialXUpperBound = this->pXUpperEntry->GetValueAsInt();
-      currentYLowerBound = initialYLowerBound = this->pYLowerEntry->GetValueAsInt();
-      currentYUpperBound = initialYUpperBound = this->pYUpperEntry->GetValueAsInt();  
-      currentXImageRegionSize                 = currentXUpperBound - currentXLowerBound;
-      currentYImageRegionSize                 = currentYUpperBound - currentYLowerBound;  
+      }      
       started = 1; // start checking for changes in pSourceNode to update pOutputNode     
       std::cerr << "Start checking for changes" << std::endl;
     }
@@ -722,6 +743,60 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
     if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
     {
       clock_t begin = clock();
+      
+      //--------------------------------------------------------------------------------------
+      // Get the image variables
+      vtkImageData* pImageData  = vtkImageData::New();        
+      pImageData->DeepCopy(((vtkMRMLVolumeNode*) pSourceNode)->GetImageData());
+      std::cerr << "got ImageData" << std::endl;
+      pImageData->GetDimensions(imageDimensions);
+      pImageData->GetSpacing(imageSpacing);
+      pImageData->GetOrigin(imageOrigin);
+      scalarSize = pImageData->GetScalarSize();
+      //TODO: Do I need to get the scalarType, too?
+      if(ROIpresent)
+      {
+        std::cout << "MRLMROINode exists" << std::endl;
+        vtkCollection* collectionOfROINodes = this->GetMRMLScene()->GetNodesByName("MRMLROINode");
+        int nItems = collectionOfROINodes->GetNumberOfItems();
+        if(nItems > 0)
+        {
+          vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(collectionOfROINodes->GetItemAsObject(0));
+          double center[3];
+          double radius[3];
+          // the origin in slicer is always in the center of the imge: (Dimension*spacing = fov) / 2
+          double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
+          double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;
+          double fovK = imageDimensions[2] * imageSpacing[2] / 2.0;         
+          pROINode->GetRadiusXYZ(radius);
+          pROINode->GetXYZ(center);
+          this->pXLowerEntry->SetValueAsInt((int) ((-center[0]) - radius[0] + fovI)); // negative center point for the x-axis, because the ROIMRMLNode coordinates are in RAS (LR direction of X-axis), 
+          this->pXUpperEntry->SetValueAsInt((int) ((-center[0]) + radius[0] + fovI)); // but the slicer axial and coronal view, which are used as reference, switch the direction (RL direction of X-axis)
+          this->pYLowerEntry->SetValueAsInt((int) (center[1] - radius[1] + fovJ));
+          this->pYUpperEntry->SetValueAsInt((int) (center[1] + radius[1] + fovJ));  
+          this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovK));
+          this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovK));
+        }         
+      }
+      currentXLowerBound      = this->pXLowerEntry->GetValueAsInt();
+      currentXUpperBound      = this->pXUpperEntry->GetValueAsInt();
+      currentYLowerBound      = this->pYLowerEntry->GetValueAsInt();
+      currentYUpperBound      = this->pYUpperEntry->GetValueAsInt();  
+      currentZLowerBound      = this->pZLowerEntry->GetValueAsInt();
+      currentZUpperBound      = this->pZUpperEntry->GetValueAsInt(); 
+      currentXImageRegionSize = currentXUpperBound - currentXLowerBound;
+      currentYImageRegionSize = currentYUpperBound - currentYLowerBound;
+      currentZImageRegionSize = currentZUpperBound - currentZLowerBound; 
+      
+      //TODO:Do something (getMatrix?) to get the right numbers for the variables
+      //if(axial, sagital or coronal)       
+      imageRegionSize[0]  = currentXImageRegionSize;
+      imageRegionSize[1]  = currentYImageRegionSize;
+      imageRegionLower[0] = currentXLowerBound;
+      imageRegionLower[1] = currentYLowerBound;
+      imageRegionUpper[0] = currentXUpperBound;
+      imageRegionUpper[1] = currentYUpperBound;     
+      
       double points[4]; // Array that contains 2 points of the needle transform (x1,y1,x2,y2)
                         // points[0],points[1] is the point of the needle entering the image
       points[0] = 0.0;
@@ -730,16 +805,17 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       points[3] = 0.0;
       //------------------------------------------------------------------------------------------------
       // Crop out the imageRegion specified by the X- and Y-boundaries
-      vtkImageData* pImageData  = vtkImageData::New();        
-      pImageData->DeepCopy(((vtkMRMLVolumeNode*) pSourceNode)->GetImageData());
-      unsigned char* pImageRegionInput = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];  
+      unsigned char* pImageRegionInput = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];
+      //TODO: !!!!ATTENTION!!!! Depending on image plane the boundaries for the characters need to be different!!
       unsigned char* pImageRegionOutput1 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];
-      unsigned char* pImageRegionOutput2 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize]; 
+      unsigned char* pImageRegionOutput2 = new unsigned char[currentXImageRegionSize*currentYImageRegionSize*scalarSize];
+ 
       GetImageRegion(pImageData, pImageRegionInput);
   
       //--------------------------------------------------------------------------------------------------
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
+      //TODO: !!!ATTENTION!!! Depending on the image plane the currentRegionSize must be differen!!!
       pImageProcessor->SetImage((void*) pImageRegionInput, currentXImageRegionSize, currentYImageRegionSize, scalarSize, imageSpacing, imageOrigin);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
@@ -768,8 +844,43 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Threshold(false,true,0,0,20000);
        //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
        //pImageProcessor->Threshold(true,true,MAX,0,1);
-        pImageProcessor->HoughTransformation(true, points); //Does not need input true, because without input true, the houghtransformation does not work
-        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/output.png",OUTPUT);     
+        switch (needleOrigin) 
+        {
+          case PATIENTLEFT: 
+          {   
+            pImageProcessor->HoughTransformation(true, points, ENTERINGRIGHT); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
+            break;
+          }
+          case PATIENTRIGHT:
+          {
+            std::cerr << "This needle entering direction is not implemented yet!" << std::endl; 
+            break;
+          }
+          case PATIENTPOSTERIOR:
+          {
+            std::cerr << "This needle entering direction is not implemented yet!" << std::endl; 
+            break;
+          }
+          case PATIENTANTERIOR:
+          {
+            std::cerr << "This needle entering direction is not implemented yet!" << std::endl; 
+            break;
+          }
+          case PATIENTINFERIOR:
+          {
+            std::cerr << "This needle entering direction is not implemented yet!" << std::endl; 
+            break;
+          }
+          case PATIENTSUPERIOR:
+          {
+            pImageProcessor->HoughTransformation(true, points, ENTERINGTOP); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work 
+            break;
+          }
+          default:
+            std::cerr << "ERROR! needleOrigin has an unknown value!" << std::endl;
+            break;
+        } //end switch    
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);     
        //pImageProcessor->CannyEdgeDetection(true,false);           
       std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegionOutput2);
@@ -778,7 +889,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pOutputNode->SetAndObserveImageData(pImageData); //automatically removes old observer and sets modified flag, if new image is different  TODO: Does it also delete the old observer?
       pImageData->Delete();
       
-      if(showNeedle)
+      if(showNeedle)  //TODO: Take this if out. The calculations should always be applied to the needle transform regardless if the transform is shown or not
       {   
         //------------------------------------------------------------------------------------------------
         // Retrieve the line from the houghtransformation
@@ -806,7 +917,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           // the origin of the transform is always in the center of the imge: (Dimension*spacing = fov) / 2
           double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
           double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
-          // fovK is not needed, because the images are 2D only
+          double fovK = imageDimensions[2] * imageSpacing[2] / 2.0; 
           double translationLR = 0;   //(X-axis)
           double translationPA = 0;   //(Y-axis)
           double translationIS = 0;   //(Z-axis)
@@ -826,41 +937,29 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
             case PATIENTRIGHT:
             {
               //transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
-              //transform->RotateZ(angle);
-              //translationLR = -(points[0]-fovI); 
-              //translationPA = points[1]-fovJ; 
               break;
             }
             case PATIENTPOSTERIOR:
             {
               //no RotateZ because the transform points in the right direction
-              //transform->RotateZ(angle);
-              //translationLR = -(points[0]-fovI); 
-              //translationPA = points[1]-fovJ; 
               break;
             }
             case PATIENTANTERIOR:
             {
               //transform->RotateZ(-180); // rotate to have the cylinder pointing from anterior to posterior
-              //transform->RotateZ(angle);
-              //translationLR = -(points[0]-fovI); 
-              //translationPA = points[1]-fovJ; 
               break;
             }
             case PATIENTINFERIOR:
             {
               //transform->RotateX(90); // rotate to have the cylinder pointing from inferior to superior
-              //transform->Rotate(angle);
-              //translationLR = -(points[0]-fovI); 
-              //translationPA = points[1]-fovJ; 
               break;
             }
             case PATIENTSUPERIOR:
             {
-              //transform->RotateX(-90); // rotate to have the cylinder pointing from superior to inferior
-              //transform->Rotate(angle);
-              //translationLR = -(points[0]-fovI); 
-              //translationPA = points[1]-fovJ; 
+              transform->RotateX(-90); // rotate to have the cylinder pointing from superior to inferior
+              //transform->RotateZ(-angle); TODO: get the right angle!
+              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
+              translationIS = points[3]-fovJ;    //TODO:!!!!ATTENTION!!!! This should be fovK, but because of the scanner it is not!!!!     
               break;
             }
             default:
@@ -868,9 +967,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
               break;
           } //end switch          
           transform->Translate(translationLR, translationPA, translationIS);    
-                
+              
           vtkMatrix4x4* transformToParent1 = pNeedleTransformNode->GetMatrixTransformToParent();
           transformToParent1->DeepCopy(transform->GetMatrix()); // This calls the modified event
+          
+          //TODO: The whole ScanPlaneNormalNode is not working corectly yet 
           transform->Translate(-translationLR, -translationPA, -translationIS);
           transform->RotateZ(90); //TODO: this might include errors
           vtkMatrix4x4* transformToParent2 = pScanPlaneNormalNode->GetMatrixTransformToParent();
@@ -1139,7 +1240,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWLabel* xLabel = vtkKWLabel::New();
   xLabel->SetParent(xFrame);
   xLabel->Create();
-  xLabel->SetWidth(23);
+  xLabel->SetWidth(25);
   xLabel->SetText("Boundaries in LR-direction: ");
 
   this->pXLowerEntry = vtkKWEntry::New();
@@ -1166,7 +1267,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWLabel* yLabel = vtkKWLabel::New();
   yLabel->SetParent(yFrame);
   yLabel->Create();
-  yLabel->SetWidth(23);
+  yLabel->SetWidth(25);
   yLabel->SetText("Boundaries in PA-direction: ");
 
   this->pYLowerEntry = vtkKWEntry::New();
@@ -1193,8 +1294,8 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   vtkKWLabel* zLabel = vtkKWLabel::New();
   zLabel->SetParent(zFrame);
   zLabel->Create();
-  zLabel->SetWidth(23);
-  zLabel->SetText("Boundaries for Z (!not yet used!): ");
+  zLabel->SetWidth(25);
+  zLabel->SetText("Boundaries in IS-direction: ");
 
   this->pZLowerEntry = vtkKWEntry::New();
   this->pZLowerEntry->SetParent(zFrame);
@@ -1288,9 +1389,9 @@ void vtkRealTimeNeedleDetectionGUI::GetImageRegion(vtkImageData* pImageData, uns
   int j = 0;
   for(long i = 0; i < (imageDimensions[0] * imageDimensions[1] * scalarSize) ; i++)
   {
-    if((i >= currentYLowerBound*imageDimensions[1]*scalarSize) && (i < currentYUpperBound*imageDimensions[1]*scalarSize))  // Y-axis restrictions
+    if((i >= imageRegionLower[1]*imageDimensions[1]*scalarSize) && (i < imageRegionUpper[1]*imageDimensions[1]*scalarSize))  // Y-axis restrictions
     {
-      if((currentXLowerBound*scalarSize <= (i%(imageDimensions[0]*scalarSize))) && (currentXUpperBound*scalarSize >  (i%(imageDimensions[0]*scalarSize))))
+      if((imageRegionLower[0]*scalarSize <= (i%(imageDimensions[0]*scalarSize))) && (imageRegionUpper[0]*scalarSize >  (i%(imageDimensions[0]*scalarSize))))
       {            
         pImageRegion[j] = pImage[i];
         j++;
@@ -1305,13 +1406,13 @@ void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, uns
 {
   unsigned char* pImage = (unsigned char*) pImageData->GetScalarPointer();
   int positionInMessageImage = 0;
-  for(long i = 0; i <= currentXImageRegionSize * currentYImageRegionSize * scalarSize; i++)
+  for(long i = 0; i <= imageRegionSize[0] * imageRegionSize[1] * scalarSize; i++)
   {
-    positionInMessageImage = currentXLowerBound*scalarSize + (i%(currentXImageRegionSize*scalarSize)) + (i/(currentXImageRegionSize*scalarSize))*imageDimensions[0]*scalarSize;
+    positionInMessageImage = imageRegionLower[0]*scalarSize + (i%(imageRegionSize[0]*scalarSize)) + (i/(imageRegionSize[0]*scalarSize))*imageDimensions[0]*scalarSize;
     if(above) //the position of the region of interest is above the original image
       pImage[positionInMessageImage+10*imageDimensions[0]*scalarSize] = pImageRegion[i];      
     else //the position of the region of interest is below the original image
-      pImage[positionInMessageImage+(imageDimensions[1]-currentYImageRegionSize-10)*imageDimensions[0]*scalarSize] = pImageRegion[i];
+      pImage[positionInMessageImage+(imageDimensions[1]-imageRegionSize[1]-10)*imageDimensions[0]*scalarSize] = pImageRegion[i];
   }    
 }
 

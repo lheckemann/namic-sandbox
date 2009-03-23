@@ -68,7 +68,7 @@ ImageProcessor::UShortImageType::Pointer ImageProcessor::RescaleFloatToUShort(Fl
 {
   RescaleToUShortFilter::Pointer rescale = RescaleToUShortFilter::New();  
   rescale->SetOutputMinimum(  0);
-  rescale->SetOutputMaximum(MAXOUTPUT); //TODO:Change this back to MAX later on
+  rescale->SetOutputMaximum(MAXOUTPUT); //TODO:Change this back to MAX later on or make MAXOUTPUT the maximum of the inputimage
   rescale->SetInput(outputImage);
   rescale->Update();
   return rescale->GetOutput();
@@ -277,10 +277,11 @@ void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, 
 // The HoughTransformation finds a line in the image | it finds bright lines
 // An inversion of colors is included, because the needle appears dark in the original image
 // It assumes the needle is entering from the right side of the image pointing to the left
-//     inputTmp:     Input image is coming from localTmp or localInputImg
-//     points:       Array that contains 2 points of the needle transform (x1,y1,x2,y2)
-//                   points[0],points[1] is the point of the needle entering the image | points[2],points[3] is the end of the needle
-void ImageProcessor::HoughTransformation(bool inputTmp, double* points) 
+//     inputTmp:                Input image is coming from localTmp or localInputImg
+//     points:                  Array that contains 2 points of the needle transform (x1,y1,x2,y2)
+//                              points[0],points[1] is the point of the needle entering the image | points[2],points[3] is the end of the needle
+//     needleEnteringDirection: Entering direction of the needle in the image set in SetImage -> either ENTERINGRIGHT or ENTERINGBOTTOM
+void ImageProcessor::HoughTransformation(bool inputTmp, double* points, int needleEnteringDirection) 
 {
   InverterType::Pointer inverter = InverterType::New();
   HoughFilter::Pointer houghFilter = HoughFilter::New();
@@ -315,7 +316,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
  
   //--------------------------------------------------------------------------------------------------
   // Get line from HoughTransformation
-  //TODO: really hard copy the image! | right now it is just just reference copied -> mLocalInputImage changes, too
+  //TODO: really hard copy the image! | right now it is just reference copy -> mLocalInputImage changes, too
   mLocalOutputImage = mLocalInputImage; // Output image = input image with line drawn into it
   HoughFilter::LinesListType lines = houghFilter->GetLines(numberOfLines);
   HoughFilter::LinesListType::const_iterator itLines = lines.begin();
@@ -340,20 +341,42 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
 //TODO: make this generic!?!?        
   FloatImageType::IndexType localIndex;
   itk::Size<2> size = mLocalOutputImage->GetLargestPossibleRegion().GetSize();
-  //normalize the support vector to x = xSize (v[0] = size[0])  
   double multiplier = 0;
-  multiplier = (u[0]-size[0]) / v[0]; // ==u[0]-m*v[0]=size[0] 
-   
-  // find the first x and y coordinates of the first point of the line in the image and use these instead of instead of a random point u on the line
-  u[0] -= multiplier * v[0];
-  u[1] -= multiplier * v[1];
-   
-  //normalize the direction vector to negative x, because the needle enters from the right side of the image
-  if(v[0] > 0.0)
+  
+  if(needleEnteringDirection == ENTERINGRIGHT)
   {
-    v[0] *= -1;
-    v[1] *= -1;
+    //normalize the support vector to x = xSize | v[0] = size[0]  
+    multiplier = (u[0]-size[0]) / v[0]; // ==u[0]-m*v[0]=size[0] 
+     
+    // find the x and y coordinates of the first point of the line in the image and use these instead of a random point u on the line
+    u[0] -= multiplier * v[0];
+    u[1] -= multiplier * v[1];
+     
+    //normalize the direction vector to negative x, because the needle enters from the right side of the image
+    if(v[0] > 0.0)
+    {
+      v[0] *= -1;
+      v[1] *= -1;
+    }
   }
+  else if(needleEnteringDirection == ENTERINGTOP)
+  {
+    //normalize the support vector to y = ySize | v[1] = size[1]  
+    multiplier = (u[1]-size[1]) / v[1]; // ==u[1]-m*v[1]=size[1]
+    
+    //normalize the direction vector to negative y, because the needle enters from the top of the image
+    if(v[1] > 0.0)
+    {
+      v[0] *= -1;
+      v[1] *= -1;
+    }
+  }
+  else //Code should never get here!!!
+  {
+    std::cerr << "wrong argument for needleEnteringDirection! Abort hough transformation!" << std::endl;
+    return;    
+  }
+  
         
   float diag = sqrt((float)( size[0]*size[0] + size[1]*size[1] ));
   std::cout << "line: " << u[0] << "|" << u[1] << " / " << v[0] <<"|" << v[1] << " mult: " << multiplier << std::endl;
@@ -364,7 +387,8 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
   for(int i=0; i<=static_cast<int>(diag); i++)
   {
     localIndex[0]=(long int)(u[0]+i*v[0]);
-    localIndex[1]=(long int)(u[1]+i*v[1])+1; // offset of 1 for the line, because it is detected a little too high
+    localIndex[1]=(long int)(u[1]+i*v[1]);
+//    localIndex[1]=(long int)(u[1]+i*v[1])+1; // offset of 1 for the line, because it is detected a little too high
 
     FloatImageType::RegionType outputRegion =  mLocalOutputImage->GetLargestPossibleRegion(); //TODO: take out of for-loop!?
     
@@ -703,10 +727,7 @@ void ImageProcessor::BinaryThinning(bool inputTmp, bool outputTmp)
 //  writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
 //  writer->Update();  
   thinFilter->SetInput(inverter->GetOutput()); 
-    
-//  thinFilter->SetForegroundValue(0);
-//  thinFilter->SetBackgroundValue(MAX); 
-    
+        
   if(outputTmp)
   {
     if(mWhichTmp == 1)
@@ -775,45 +796,4 @@ void ImageProcessor::Write(const char* filePath, int whichImage)
   }
   return;
 }
-
-
-// HoughTransform Algorithm
-// Create the line
-//        LineType::PointListType list; // insert two points per line
-//
-//        double radius = it_input.GetIndex()[0]; 
-//        double teta   = ((it_input.GetIndex()[1])*2*nPI/this->GetAngleResolution())-nPI;
-//        double Vx = radius*vcl_cos(teta );
-//        double Vy = radius*vcl_sin(teta );
-//        double norm = vcl_sqrt(Vx*Vx+Vy*Vy);
-//        double VxNorm = Vx/norm;
-//        double VyNorm = Vy/norm;
-//
-//        if((teta<=0) || (teta >= nPI / 2 ) )
-//          {
-//          if(teta >= nPI/2)
-//            {
-//            VyNorm = - VyNorm;
-//            VxNorm = - VxNorm;
-//            }
-//
-//          LinePointType p;
-//          p.SetPosition(Vx,Vy);
-//          list.push_back(p);
-//          p.SetPosition(Vx-VyNorm*5,Vy+VxNorm*5);
-//          list.push_back(p);
-//          }
-//        else // if teta>0
-//          {
-//          LinePointType p;
-//          p.SetPosition(Vx,Vy);
-//          list.push_back(p);
-//          p.SetPosition(Vx-VyNorm*5,Vy+VxNorm*5);
-//          list.push_back(p);
-//          } // end if(teta>0)
-
-
-
-
-
 

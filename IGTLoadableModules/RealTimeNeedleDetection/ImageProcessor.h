@@ -21,10 +21,9 @@
 
 #define MAX       65335 // Maximum gray scale Intensity for FloatImageType and UShortImageType (=maximum of unsigned short)
 #define MAXOUTPUT 560   // Maximum gray scale Intensity for the output image
-#define LEFT      1
-#define RIGHT     2
-#define TOP       3
-#define BOTTOM    4 
+
+#define ENTERINGRIGHT  1
+#define ENTERINGTOP 2
 
 //defines for the Write function determining which image to write
 #define INPUT     1
@@ -83,11 +82,11 @@ public:
   void PassOn() {mLocalOutputImage = mLocalInputImage;};
   void GradientMagnitude(bool inputTmp, bool outputTmp);
   void Threshold(bool inputTmp, bool outputTmp, int outsideValue, int threshBelow, int threshAbove);
-  void HoughTransformation(bool inputTmp, double* points);
+  void HoughTransformation(bool inputTmp, double* points, int needleEnteringDirection);
   void CannyEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore        
   void BinaryThreshold(bool inputTmp, bool outputTmp);            // not used anymore
   void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp); // not used anymore
-  void SobelEdgeDetection(bool inputTmp, bool outputTmp);         
+  void SobelEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore
   void DilateAndErode(bool inputTmp, bool outputTmp, int erode, int dilate);
   void BinaryThinning(bool inputTmp, bool outputTmp);
   //Neighborhood Functions
