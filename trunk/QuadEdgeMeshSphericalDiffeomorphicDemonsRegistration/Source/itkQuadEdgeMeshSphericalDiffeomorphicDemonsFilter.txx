@@ -307,8 +307,8 @@ ComputeGradientsOfMappedMovingValueAtEveryNode()
   this->m_NodeScalarGradientCalculator->SetInputMesh( this->m_FixedMesh );
   this->m_NodeScalarGradientCalculator->SetDataContainer( this->m_ResampledMovingValuesContainer );
 
-  // this->m_NodeScalarGradientCalculator->SetBasisSystemList( 
-  //  this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
+  this->m_NodeScalarGradientCalculator->SetBasisSystemList( 
+    this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
 }
 
 
