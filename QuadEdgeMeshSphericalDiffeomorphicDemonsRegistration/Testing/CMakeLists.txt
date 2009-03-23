@@ -2,6 +2,8 @@ SET(CXX_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
 SET(TEST_DATA_ROOT ${CMAKE_SOURCE_DIR}/Data)
 SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
 
+SET(QuadEdgeMeshRigidRegistration ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshRigidRegistration)
+
 FIND_PATH(FREESURFER_DIR
   SetUpFreeSurfer.sh
   PATHS
@@ -33,8 +35,17 @@ TARGET_LINK_LIBRARIES(itkVersorOperationsTest1 ITKQuadEdgeMesh ITKIO ITKNumerics
 ADD_EXECUTABLE(itkNodeScalarGradientCalculatorTest1 itkNodeScalarGradientCalculatorTest1.cxx )
 TARGET_LINK_LIBRARIES(itkNodeScalarGradientCalculatorTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
-ADD_EXECUTABLE(itkTriangleBasisSystemTest1 itkTriangleBasisSystemTest1.cxx )
+ADD_EXECUTABLE(itkTriangleBasisSystemTest1 
+  ${QuadEdgeMeshRigidRegistration}/Testing/itkTriangleBasisSystemTest1.cxx )
 TARGET_LINK_LIBRARIES(itkTriangleBasisSystemTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkTriangleListBasisSystemCalculatorTest1 
+  ${QuadEdgeMeshRigidRegistration}/Testing/itkTriangleListBasisSystemCalculatorTest1.cxx )
+TARGET_LINK_LIBRARIES(itkTriangleListBasisSystemCalculatorTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkTriangleBasisSystemCalculatorTest1 
+  ${QuadEdgeMeshRigidRegistration}/Testing/itkTriangleBasisSystemCalculatorTest1.cxx )
+TARGET_LINK_LIBRARIES(itkTriangleBasisSystemCalculatorTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 
 ###################
@@ -71,6 +82,15 @@ ADD_TEST(itkNodeScalarGradientCalculatorTest1
 ADD_TEST(itkTriangleBasisSystemTest1
   ${CXX_TEST_PATH}/itkTriangleBasisSystemTest1
  )
+
+ADD_TEST(itkTriangleListBasisSystemCalculatorTest1
+  ${CXX_TEST_PATH}/itkTriangleListBasisSystemCalculatorTest1
+ )
+
+ADD_TEST(itkTriangleBasisSystemCalculatorTest1
+  ${CXX_TEST_PATH}/itkTriangleBasisSystemCalculatorTest1
+ )
+
 
 
 IF( FREESURFER_DIR )
