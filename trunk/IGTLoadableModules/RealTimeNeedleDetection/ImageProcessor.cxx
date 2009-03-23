@@ -308,12 +308,6 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points)
     //inverter->SetInput(mLocalInputImage);
   }
   
-//  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
-//  writer->SetFileName("/projects/mrrobot/goerlitz/test/inverted.png");
-//  writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
-//  writer->Update();  
-//  houghFilter->SetInput(inverter->GetOutput()); 
-  
   houghFilter->SetNumberOfLines(numberOfLines);
   houghFilter->SetVariance(1);   // default is 10 -> no blurring with the gaussian
   houghFilter->SetDiscRadius(5);  // default is 5
@@ -654,10 +648,10 @@ void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp, int erode, in
   grayscaleErode->SetKernel(structuringElementErode);
   grayscaleDilate->SetKernel(structuringElementDilate);
     
-  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
-  writer->SetFileName("/projects/mrrobot/goerlitz/test/erode.png");
-  writer->SetInput(RescaleFloatToUChar(grayscaleErode->GetOutput()));
-  writer->Update();  
+//  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
+//  writer->SetFileName("/projects/mrrobot/goerlitz/test/erode.png");
+//  writer->SetInput(RescaleFloatToUChar(grayscaleErode->GetOutput()));
+//  writer->Update();  
   
   grayscaleDilate->SetInput(grayscaleErode->GetOutput() );
   
@@ -704,10 +698,10 @@ void ImageProcessor::BinaryThinning(bool inputTmp, bool outputTmp)
     inverter->SetInput(mLocalInputImage);
     //thinFilter->SetInput(mLocalInputImage);     
   
-  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
-  writer->SetFileName("/projects/mrrobot/goerlitz/test/inverted.png");
-  writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
-  writer->Update();  
+//  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
+//  writer->SetFileName("/projects/mrrobot/goerlitz/test/inverted.png");
+//  writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
+//  writer->Update();  
   thinFilter->SetInput(inverter->GetOutput()); 
     
 //  thinFilter->SetForegroundValue(0);
