@@ -20,6 +20,8 @@
 #include "itkFunctionBase.h"
 #include "itkCovariantVector.h"
 #include "itkMesh.h"
+#include "itkTriangleBasisSystem.h"
+#include "itkTriangleListBasisSystemCalculator.h"
 
 namespace itk
 {
@@ -61,8 +63,20 @@ public:
     ::itk::GetMeshDimension<TInputMesh>::PointDimension );
 
   /** Point typedef support. */
-  typedef TInputMesh                            InputMeshType;
-  typedef typename InputMeshType::PointType     PointType;
+  typedef TInputMesh                                                        InputMeshType;
+  typedef typename InputMeshType::PointType                                 PointType;
+  typedef typename PointType::VectorType                                    VectorType;
+
+  typedef TriangleBasisSystem< VectorType, 2 >                              TriangleBasisSystemType;
+  typedef typename InputMeshType::CellIdentifier                            CellIdentifier;
+  typedef VectorContainer<CellIdentifier, TriangleBasisSystemType>          BasisSystemListType;
+  typedef typename BasisSystemListType::ConstIterator                       BasisSystemListIterator;
+//typedef typename BasisSystemListType::Pointer                             BasisSystemListPointer;
+
+#if 0
+  typedef TriangleListBasisSystemCalculator< InputMeshType, TriangleBasisSystemType >
+     TriangleListBasisSystemCalculatorType;
+#endif
 
   /** Set/Get the input mesh. */
   itkSetConstObjectMacro( InputMesh, InputMeshType );
@@ -78,6 +92,9 @@ public:
   typedef typename Superclass::InputType                  InputType;
 
   /** Evaluate at the specified input position */
+  virtual void Initialize( void ) const;
+
+/** Evaluate at the specified input position */
   virtual OutputType Evaluate( const InputType& input ) const;
 
 protected:
@@ -90,8 +107,9 @@ private:
   NodeScalarGradientCalculator( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
-  typename InputMeshType::ConstPointer        m_InputMesh;
-  typename TPointDataContainer::ConstPointer  m_DataContainer;
+  typename InputMeshType::ConstPointer                         m_InputMesh;
+  typename TPointDataContainer::ConstPointer                   m_DataContainer;
+  typename BasisSystemListType::ConstPointer                   m_BasisSystemList;
 };
 
 } // end namespace itk
