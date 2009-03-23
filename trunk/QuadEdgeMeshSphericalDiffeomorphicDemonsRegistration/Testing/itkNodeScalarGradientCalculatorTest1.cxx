@@ -117,9 +117,14 @@ int main( int argc, char *argv[] )
   //Still have not properly initialized gradientCalculator yet... 1 to go
   TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
 
-  gradientCalculator->SetDataContainer( movingReader->GetOutput()->GetPointData() );
+  MovingPointDataContainerType::ConstPointer movingData = 
+    movingReader->GetOutput()->GetPointData();
 
-  if( gradientCalculator->GetDataContainer() != movingReader->GetOutput()->GetPointData() )
+  std::cout << "GetPointData from moving mesh " << movingData.GetPointer() << std::endl;
+
+  gradientCalculator->SetDataContainer( movingData );
+
+  if( gradientCalculator->GetDataContainer() != movingData )
     {
     std::cerr << "Error in SetDataContainer()/GetDataContainer() " << std::endl;
     return EXIT_FAILURE;
