@@ -241,6 +241,7 @@ RunIterations()
 {
   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
     {
+    this->ComputeGradientsOfMappedMovingValueAtEveryNode();
     this->ComputeDeformationFieldUpdate();
     this->SmoothDeformationField();
 
@@ -255,8 +256,40 @@ RunIterations()
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeGradientsOfMappedMovingValueAtEveryNode()
+{
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeDeformationFieldUpdate()
 {
+  const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
+
+  typedef typename TFixedMesh::PointsContainer    PointsContainer;
+  const PointsContainer * points = this->m_FixedMesh->GetPoints();
+
+  vnl_matrix<double> Gn(3,3);
+
+  for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
+    {
+    const PointType point = points->GetElement( pointId );
+
+    Gn(0,0) = 0.0;
+    Gn(1,1) = 0.0;
+    Gn(2,2) = 0.0;
+
+    Gn(0,1) = -point[2];
+    Gn(0,2) =  point[1];
+    Gn(1,2) = -point[0];
+
+    Gn(1,0) =  point[2];
+    Gn(2,0) = -point[1];
+    Gn(2,1) =  point[0];
+    }
+
 }
 
 
