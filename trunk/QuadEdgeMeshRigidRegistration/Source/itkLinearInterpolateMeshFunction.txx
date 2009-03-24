@@ -82,6 +82,21 @@ LinearInterpolateMeshFunction<TInputMesh>
   this->GetPointData( pointIds[1], &pixelValue2 ); 
   this->GetPointData( pointIds[2], &pixelValue3 );
 
+  //Move this part to a different fcn. Re-use if same basis, changing scalar fcn.
+  this->GetDerivativeFromPixelsAndBasis(pixelValue1, pixelValue2, pixelValue3,
+                                        m_U12, m_U32, derivative); 
+
+}
+
+
+template <class TInputMesh>
+void
+LinearInterpolateMeshFunction<TInputMesh>
+::GetDerivativeFromPixelsAndBasis(PixelType pixelValue1, PixelType pixelValue2,
+                                  PixelType pixelValue3, VectorType  m_U12,
+                                  VectorType  m_U32, DerivativeType & derivative)
+{
+
   const RealType pixelValueReal1 = static_cast< RealType >( pixelValue1 );
   const RealType pixelValueReal2 = static_cast< RealType >( pixelValue2 );
   const RealType pixelValueReal3 = static_cast< RealType >( pixelValue3 );
@@ -91,6 +106,7 @@ LinearInterpolateMeshFunction<TInputMesh>
 
   derivative = m_U12 * variation12  + m_U32 * variation32;
 }
+
 
 
 /**

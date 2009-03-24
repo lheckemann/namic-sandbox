@@ -68,6 +68,7 @@ public:
   typedef typename TInputMesh::PixelType                  PixelType;
   typedef typename Superclass::RealType                   RealType;
   typedef typename Superclass::DerivativeType             DerivativeType;
+  typedef typename PointType::VectorType                  VectorType;
 
 
   /** 
@@ -81,6 +82,10 @@ public:
   virtual OutputType Evaluate( const PointType& point ) const;
 
   virtual void EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const;
+
+  void GetDerivativeFromPixelsAndBasis(PixelType pixelValue1, PixelType pixelValue2,
+                                       PixelType pixelValue3, VectorType  m_U12,
+                                       VectorType  m_U32, DerivativeType & derivative); 
 
 protected:
   LinearInterpolateMeshFunction();
@@ -98,8 +103,6 @@ protected:
 private:
   LinearInterpolateMeshFunction( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
-
-  typedef typename PointType::VectorType             VectorType;
 
   mutable VectorType  m_V12;
   mutable VectorType  m_V32;
