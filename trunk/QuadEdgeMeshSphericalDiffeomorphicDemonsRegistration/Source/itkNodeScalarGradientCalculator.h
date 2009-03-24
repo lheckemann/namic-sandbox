@@ -96,7 +96,7 @@ public:
   typedef typename InterpolatorType::DerivativeType                         DerivativeType;
   typedef VectorContainer<CellIdentifier, DerivativeType>                   DerivativeListType;
 
-/** Set/Get the input mesh. */
+  /** Set/Get the input mesh. */
   itkSetConstObjectMacro( InputMesh, InputMeshType );
   itkGetConstObjectMacro( InputMesh, InputMeshType );
 
