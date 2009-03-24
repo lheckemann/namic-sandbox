@@ -104,10 +104,6 @@ protected:
 
 private:
 
-  std::vector< MeasurementVectorRealType >  m_ThreadSum;
-  std::vector< MeasurementVectorRealType >  m_SumOfSquares;
-  std::vector< unsigned long >              m_Count;
-
 }; // end of class
     
 } // end of namespace Statistics 
