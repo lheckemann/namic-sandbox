@@ -108,7 +108,6 @@ LinearInterpolateMeshFunction<TInputMesh>
 }
 
 
-
 /**
  * Evaluate the mesh at a given point position.
  */
