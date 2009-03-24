@@ -95,17 +95,14 @@ TriangleBasisSystemCalculator<TMesh, TBasisSystem>
   VectorType v12 = pt1 - pt2;
   VectorType v32 = pt3 - pt2;
 
-  VectorType  u12;
-  VectorType  u32;
-
   //
   // Compute Vectors in the dual vector base inside the 2D space of the triangle cell.
   // u12 is orthogonal to v32
   // u32 is orthogonal to v12
   //
   const double dotproduct =  v12 * v32;
-  u12 = v12 - v32 * ( dotproduct / v32.GetSquaredNorm() );
-  u32 = v32 - v12 * ( dotproduct / v12.GetSquaredNorm() );
+  VectorType u12 = v12 - v32 * ( dotproduct / v32.GetSquaredNorm() );
+  VectorType u32 = v32 - v12 * ( dotproduct / v12.GetSquaredNorm() );
 
   //
   // Add normalizations for making {u12,u32} a vector basis orthonormal to {v12, v32}.
