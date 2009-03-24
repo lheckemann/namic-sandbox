@@ -83,9 +83,9 @@ public:
 
   virtual void EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const;
 
-  void GetDerivativeFromPixelsAndBasis(PixelType pixelValue1, PixelType pixelValue2,
-                                       PixelType pixelValue3, VectorType  m_U12,
-                                       VectorType  m_U32, DerivativeType & derivative); 
+  void GetDerivativeFromPixelsAndBasis(
+    PixelType pixelValue1, PixelType pixelValue2, PixelType pixelValue3,
+    const VectorType & m_U12, const VectorType & m_U32, DerivativeType & derivative) const;
 
 protected:
   LinearInterpolateMeshFunction();
