@@ -77,12 +77,9 @@ TriangleListBasisSystemCalculator<TMesh, TBasisSystem>
   TBasisSystem triangleBasisSystem;
 
   unsigned int cellIndex=0; 
-  while( cellIterator != cellEnd && cellIterator != cellEnd )
+  while( cellIterator != cellEnd )
     {
-
-    basisCalculator->CalculateTriangle( cellIndex, triangleBasisSystem);
-    this->m_BasisSystemList->push_back( triangleBasisSystem ); 
-
+    basisCalculator->CalculateTriangle( cellIndex, this->m_BasisSystemList[cellIndex] );
     ++cellIterator;
     ++cellIndex;
     }
