@@ -30,6 +30,8 @@ template <class TInputMesh, class TScalar>
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::NodeScalarGradientCalculator()
 {
+  this->m_DerivativeList = DerivativeListType::New();
+  this->m_Interpolator = InterpolatorType::New();
 }
 
 
@@ -42,13 +44,14 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 {
 }
 
+
 /**
- * Compute the function
+ * Check inputs
  */
 template <class TInputMesh, class TScalar >
 void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
-::Initialize( void ) const 
+::VerifyInputs( ) const
 {
 
   if( this->m_InputMesh.IsNull() ) 
@@ -65,13 +68,22 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     {
     itkExceptionMacro(<<"NodeScalarGradientCalculator Initialize  m_BasisSystemList is NULL.");
     }
+}
 
 
-  m_Interpolator.SetInputMesh( m_InputMesh );
-  m_Interpolator.Initialize();
-  m_DerivativeList.Reserve( this->m_InputMesh->GetCells()->Size() );
+/**
+ * Initialize internal variables
+ */
+template <class TInputMesh, class TScalar >
+void
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::Initialize( void )
+{
+  this->m_Interpolator->SetInputMesh( this->m_InputMesh );
+  this->m_Interpolator->Initialize();
 
-  return;
+  this->m_DerivativeList = DerivativeListType::New();
+  this->m_DerivativeList->Reserve( this->m_InputMesh->GetCells()->Size() );
 }
 
 
@@ -83,6 +95,8 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Compute()
 {
+
+  this->VerifyInputs(); 
   this->Initialize(); 
 
   // Start with gradient computation for each triangle. Uses linear interpolator.
@@ -120,10 +134,10 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     m_U32= basisSystemListIterator->Value().GetVector(1); 
  
     DerivativeType derivative; 
-    m_Interpolator.GetDerivativeFromPixelsAndBasis(pixelValue[0], pixelValue[1], pixelValue[2],
+    this->m_Interpolator->GetDerivativeFromPixelsAndBasis(pixelValue[0], pixelValue[1], pixelValue[2],
                                                    m_U12, m_U32, derivative);
 
-    m_DerivativeList.push_back( derivative );
+    this->m_DerivativeList->push_back( derivative );
 
     ++cellIterator; ++basisSystemListIterator; 
 

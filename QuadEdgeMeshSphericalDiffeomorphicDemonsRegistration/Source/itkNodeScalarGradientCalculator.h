@@ -132,11 +132,14 @@ private:
   typename InputMeshType::ConstPointer                         m_InputMesh;
   typename TPointDataContainer::ConstPointer                   m_DataContainer;
   typename BasisSystemListType::ConstPointer                   m_BasisSystemList;
-  DerivativeListType                                           m_DerivativeList;
-  InterpolatorType                                             m_Interpolator; 
+  typename DerivativeListType::Pointer                         m_DerivativeList;
+  typename InterpolatorType::Pointer                           m_Interpolator; 
 
   /** Check that all necessary inputs are connected. */
-  virtual void Initialize( void ) const;
+  virtual void VerifyInputs( void ) const;
+
+  /** Initialize internal variables. */
+  virtual void Initialize( void );
 
 };
 

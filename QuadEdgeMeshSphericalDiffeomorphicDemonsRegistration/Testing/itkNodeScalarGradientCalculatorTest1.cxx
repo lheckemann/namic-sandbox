@@ -81,6 +81,7 @@ int main( int argc, char *argv[] )
 
   //Have not properly initialized gradientCalculator yet...
   TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
+
   //First item needed: triangle basis list.
   const unsigned int SurfaceDimension = 2;
   typedef FixedMeshType::PointType  PointType;
