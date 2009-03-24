@@ -81,16 +81,22 @@ int main(int argc, char *argv[])
 
   std::cout << "after test 4 \n"; 
 
-  const TriangleListBasisSystemCalculatorType::BasisSystemListType * basisSystemListPtr = 
+  const TriangleListBasisSystemCalculatorType::BasisSystemListType * basisSystemList = 
     triangleListBasisSystemCalculator->GetBasisSystemList();
 
   TriangleListBasisSystemCalculatorType::BasisSystemListIterator basisSystemListIterator;
 
-  basisSystemListIterator = basisSystemListPtr->Begin();
+  std::cout << "Number of elements in the basis system list " << basisSystemList->Size() << std::endl;
+
+  basisSystemListIterator = basisSystemList->Begin();
 
   std::cout << " basis list first element " << std::endl;
-  std::cout << basisSystemListIterator->Value().GetVector(0) << std::endl;
-  std::cout << basisSystemListIterator->Value().GetVector(1) << std::endl;
+
+  typedef TriangleListBasisSystemCalculatorType::BasisSystemType   BasisSystemType;
+
+  BasisSystemType basis = basisSystemListIterator->Value();
+  std::cout << basis.GetVector(0) << std::endl;
+  std::cout << basis.GetVector(1) << std::endl;
 
   std::cout << "Test passed." << std::endl;
 
