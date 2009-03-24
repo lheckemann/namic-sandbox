@@ -55,6 +55,19 @@ ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest1
   ${QuadEdgeMeshRigidRegistration}/Testing/itkLinearInterpolateMeshFunctionTest1.cxx )
 TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkFreeSurferBinarySurfaceReaderTest1 
+  ${QuadEdgeMeshRigidRegistration}/Testing/itkFreeSurferBinarySurfaceReaderTest1.cxx )
+TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkFreeSurferBinarySurfaceReaderTest2 
+  ${QuadEdgeMeshRigidRegistration}/Testing/itkFreeSurferBinarySurfaceReaderTest2.cxx )
+TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkPointLocator2Test1 
+  ${QuadEdgeMeshRigidRegistration}/Testing/itkPointLocator2Test1.cxx )
+TARGET_LINK_LIBRARIES(itkPointLocator2Test1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+
 
 ###################
 ###################
@@ -99,9 +112,42 @@ ADD_TEST(itkTriangleBasisSystemCalculatorTest1
   ${CXX_TEST_PATH}/itkTriangleBasisSystemCalculatorTest1
  )
 
+ADD_TEST(itkPointLocator2Test1
+  ${CXX_TEST_PATH}/itkPointLocator2Test1
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
+  )
+
 
 
 IF( FREESURFER_DIR )
+
+ADD_TEST(itkFreeSurferBinarySurfaceReaderTest1
+  ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest1
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest1.vtk
+  )
+
+ADD_TEST(itkFreeSurferBinarySurfaceReaderTest2
+  ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
+  )
+
+ADD_TEST(itkFreeSurferBinarySurfaceReaderTest3
+  ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest1
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.curv.pial
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest3.vtk
+  )
+
+ADD_TEST(itkFreeSurferBinarySurfaceReaderTest4
+  ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/rh.curv.pial
+  ${TEMP}/itkFreeSurferBinarySurfaceReaderTest4.vtk
+  )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest2
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest2
