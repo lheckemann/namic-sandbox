@@ -47,6 +47,14 @@ ADD_EXECUTABLE(itkTriangleBasisSystemCalculatorTest1
   ${QuadEdgeMeshRigidRegistration}/Testing/itkTriangleBasisSystemCalculatorTest1.cxx )
 TARGET_LINK_LIBRARIES(itkTriangleBasisSystemCalculatorTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest2 
+  ${QuadEdgeMeshRigidRegistration}/Testing/itkLinearInterpolateMeshFunctionTest2.cxx )
+TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest1 
+  ${QuadEdgeMeshRigidRegistration}/Testing/itkLinearInterpolateMeshFunctionTest1.cxx )
+TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 
 ###################
 ###################
@@ -95,6 +103,17 @@ ADD_TEST(itkTriangleBasisSystemCalculatorTest1
 
 IF( FREESURFER_DIR )
 
+ADD_TEST(itkLinearInterpolateMeshFunctionTest2
+  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest2
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
+  )
+
+ADD_TEST(itkLinearInterpolateMeshFunctionTest1
+  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest1
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
+  )
 
 ENDIF( FREESURFER_DIR )
 
