@@ -51,6 +51,9 @@ public:
   TriangleBasisSystem();
   virtual ~TriangleBasisSystem();
 
+  TriangleBasisSystem( const TriangleBasisSystem & rhs );
+  const TriangleBasisSystem & operator=( const TriangleBasisSystem & rhs );
+
 private:
   VectorType m_Basis[NSubspaceDimension];
 

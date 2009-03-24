@@ -40,6 +40,33 @@ TriangleBasisSystem<TVector, NSubspaceDimension >
 {
 }
 
+/**
+ * Copy Constructor
+ */
+template <class TVector, unsigned int NSubspaceDimension>
+TriangleBasisSystem<TVector, NSubspaceDimension >
+::TriangleBasisSystem( const TriangleBasisSystem & rhs )
+{
+  for( unsigned int i = 0; i < NSubspaceDimension; i++ )
+    {
+    this->m_Basis[i] = rhs.m_Basis[i];
+    }
+}
+
+/**
+ * Operator assignment
+ */
+template <class TVector, unsigned int NSubspaceDimension>
+const TriangleBasisSystem<TVector, NSubspaceDimension > &
+TriangleBasisSystem<TVector, NSubspaceDimension >
+::operator=( const TriangleBasisSystem & rhs )
+{
+  for( unsigned int i = 0; i < NSubspaceDimension; i++ )
+    {
+    this->m_Basis[i] = rhs.m_Basis[i];
+    }
+  return *this;
+}
 
 template <class TVector, unsigned int NSubspaceDimension >
 void
