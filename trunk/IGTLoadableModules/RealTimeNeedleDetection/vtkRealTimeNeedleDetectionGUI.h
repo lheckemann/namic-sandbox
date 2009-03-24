@@ -159,7 +159,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   int             imageRegionSize[2];   //these are the current values for the 2D image region that gets processed in the ImageProcessor
   int             imageRegionLower[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
   int             imageRegionUpper[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
-  //TODO: Can Imake the "imageRegion.." arrays local variables? 
+  //TODO: Can I make the "imageRegion.." arrays local variables? 
   //TODO: make the "current...bounds" arrays!! Maybe I do not need them anymore later on
   int             currentXLowerBound;
   int             currentXUpperBound;        
