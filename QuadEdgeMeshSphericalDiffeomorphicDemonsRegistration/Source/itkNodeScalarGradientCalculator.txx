@@ -108,8 +108,8 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   basisSystemListIterator = m_BasisSystemList->Begin();
 
   // Look at all triangular cells, re-use the basis of each, and new scalar values.
-  while ( cellIterator != cellEnd ) {
-
+  while ( cellIterator != cellEnd )
+    {
     CellType* cellPointer = cellIterator.Value();
 
     //Consider current cell. Iterate through its points. 
@@ -125,7 +125,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
       pointIds[i]= *pointIdIterator; 
       pixelValue[i]= this->m_DataContainer->GetElement( pointIds[i] ); 
       i++;
-    }
+      }
 
     VectorType  m_U12;
     VectorType  m_U32;
@@ -140,8 +140,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     this->m_DerivativeList->push_back( derivative );
 
     ++cellIterator; ++basisSystemListIterator; 
-
-  }
+    }
 
 }
 
