@@ -60,7 +60,9 @@ int itkStandardDeviationPerComponentFilterTest(int, char* [] )
   // fill the image
   while (!iter.IsAtEnd())
     {
-    temp[0] = count;
+    temp[0] =     count;
+    temp[1] = 2 * count;
+    temp[2] = 3 * count;
     iter.Set(temp);
     ++iter;
     ++count;
