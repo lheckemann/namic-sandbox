@@ -93,8 +93,8 @@ template <class TInputMesh>
 void
 LinearInterpolateMeshFunction<TInputMesh>
 ::GetDerivativeFromPixelsAndBasis(PixelType pixelValue1, PixelType pixelValue2,
-                                  PixelType pixelValue3, VectorType  m_U12,
-                                  VectorType  m_U32, DerivativeType & derivative)
+                                  PixelType pixelValue3, const VectorType  & m_U12,
+                                  const VectorType &  m_U32, DerivativeType & derivative) const
 {
 
   const RealType pixelValueReal1 = static_cast< RealType >( pixelValue1 );
