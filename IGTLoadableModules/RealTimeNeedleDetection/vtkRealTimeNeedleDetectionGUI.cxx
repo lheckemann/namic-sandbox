@@ -752,6 +752,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageData->GetDimensions(imageDimensions);
       pImageData->GetSpacing(imageSpacing);
       pImageData->GetOrigin(imageOrigin);
+      // the origin in slicer is always in the center of the imge: (Dimension*spacing = fov) / 2
+      // the image received from OpenIGTLink needs to be shifted in every iteration
+      double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
+      double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;
+      double fovK = imageDimensions[2] * imageSpacing[2] / 2.0;  
       scalarSize = pImageData->GetScalarSize();
       //TODO: Do I need to get the scalarType, too?
       if(ROIpresent)
@@ -764,10 +769,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(collectionOfROINodes->GetItemAsObject(0));
           double center[3];
           double radius[3];
-          // the origin in slicer is always in the center of the imge: (Dimension*spacing = fov) / 2
-          double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
-          double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;
-          double fovK = imageDimensions[2] * imageSpacing[2] / 2.0;         
+                 
           pROINode->GetRadiusXYZ(radius);
           pROINode->GetXYZ(center);
           this->pXLowerEntry->SetValueAsInt((int) ((-center[0]) - radius[0] + fovI)); // negative center point for the x-axis, because the ROIMRMLNode coordinates are in RAS (LR direction of X-axis), 
@@ -776,6 +778,12 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           this->pYUpperEntry->SetValueAsInt((int) (center[1] + radius[1] + fovJ));  
           this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovK));
           this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovK));
+          
+          if(needleOrigin == PATIENTSUPERIOR) //TODO:!!!ATTENTION!!! This is only for testing!!!
+          {
+            this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovJ));  // !!!ATTTENTION!!! This should be fovK!!!
+            this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovJ));
+          }          
         }         
       }
       currentXLowerBound      = this->pXLowerEntry->GetValueAsInt();
@@ -791,12 +799,22 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       //TODO:Do something (getMatrix?) to get the right numbers for the variables
       //if(axial, sagital or coronal)       
       imageRegionSize[0]  = currentXImageRegionSize;
-      imageRegionSize[1]  = currentYImageRegionSize;
       imageRegionLower[0] = currentXLowerBound;
-      imageRegionLower[1] = currentYLowerBound;
-      imageRegionUpper[0] = currentXUpperBound;
-      imageRegionUpper[1] = currentYUpperBound;     
+      imageRegionUpper[0] = currentXUpperBound;  
       
+      if(needleOrigin == PATIENTLEFT)//TODO:!!!ATTENTION!!! This is only for testing!!!
+      {
+        imageRegionSize[1]  = currentYImageRegionSize;
+        imageRegionLower[1] = currentYLowerBound;           
+        imageRegionUpper[1] = currentYUpperBound;        
+      }
+      else if(needleOrigin == PATIENTSUPERIOR)
+      {
+        imageRegionLower[1] = currentZLowerBound;           
+        imageRegionUpper[1] = currentZUpperBound;
+        imageRegionSize[1]  = currentZImageRegionSize;
+      }
+            
       double points[4]; // Array that contains 2 points of the needle transform (x1,y1,x2,y2)
                         // points[0],points[1] is the point of the needle entering the image
       points[0] = 0.0;
@@ -808,7 +826,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       unsigned char* pImageRegionInput = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
       unsigned char* pImageRegionOutput1 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
       unsigned char* pImageRegionOutput2 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize]; 
+      std::cout << "getting ImageRegion" << std::endl;
       GetImageRegion(pImageData, pImageRegionInput);
+      std::cout << "got ImageRegion" << std::endl;
   
       //--------------------------------------------------------------------------------------------------
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
@@ -894,11 +914,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
         else // if everything is ok
         {//TODO: make this generic!! Right now I assume the needle enters from the patientleft                  
-          points[0] += currentXLowerBound;
-          points[1] += currentYLowerBound;
-          points[2] += currentXLowerBound;
-          points[3] += currentYLowerBound;
-          std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
+          points[0] += imageRegionLower[0];
+          points[1] += imageRegionLower[1];
+          points[2] += imageRegionLower[0];
+          points[3] += imageRegionLower[1];
+          std::cout << "bounds: " << imageRegionLower[0] << "|" << imageRegionLower[1] << "|" << imageRegionUpper[0] << "|" <<  imageRegionUpper[1] << std::endl;
           std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
           
           double vector[2]; //vector from Tip of the needle to the end
@@ -911,10 +931,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           
           //-------------------------------------------------------------------------------------------
           // make the needle transform fit the line detected in the image
-          // the origin of the transform is always in the center of the imge: (Dimension*spacing = fov) / 2
-          double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
-          double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;        
-          double fovK = imageDimensions[2] * imageSpacing[2] / 2.0; 
           double translationLR = 0;   //(X-axis)
           double translationPA = 0;   //(Y-axis)
           double translationIS = 0;   //(Z-axis)
