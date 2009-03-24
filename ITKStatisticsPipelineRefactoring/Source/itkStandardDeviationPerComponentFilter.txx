@@ -17,6 +17,7 @@
 #ifndef __itkStandardDeviationPerComponentFilter_txx
 #define __itkStandardDeviationPerComponentFilter_txx
 
+#include "itkStandardDeviationPerComponentFilter.h"
 #include "itkMeasurementVectorTraits.h"
 #include "vnl/vnl_math.h"
 
@@ -28,11 +29,16 @@ StandardDeviationPerComponentFilter< TSample >
 ::StandardDeviationPerComponentFilter()  
 {
   this->ProcessObject::SetNumberOfRequiredInputs(1);
-  this->ProcessObject::SetNumberOfRequiredOutputs(1);
+  this->ProcessObject::SetNumberOfRequiredOutputs(2);
 
-  typename MeasurementVectorRealDecoratedType::Pointer measurementVectorDecorator = 
+  typename MeasurementVectorRealDecoratedType::Pointer standardDeviation = 
     static_cast< MeasurementVectorRealDecoratedType * >( this->MakeOutput(0).GetPointer() );
-  this->ProcessObject::SetNthOutput(1, measurementVectorDecorator.GetPointer());
+
+  typename MeasurementVectorRealDecoratedType::Pointer mean = 
+    static_cast< MeasurementVectorRealDecoratedType * >( this->MakeOutput(1).GetPointer() );
+
+  this->ProcessObject::SetNthOutput(0, standardDeviation.GetPointer());
+  this->ProcessObject::SetNthOutput(1, mean.GetPointer());
 }
 
 template< class TSample >
@@ -79,6 +85,17 @@ StandardDeviationPerComponentFilter< TSample >
   if ( index == 0 )
     {
     typedef typename MeasurementVectorTraitsTypes< MeasurementVectorType >::ValueType   ValueType;
+    MeasurementVectorType standardDeviation;
+    MeasurementVectorTraits::SetLength( standardDeviation,  this->GetMeasurementVectorSize() );
+    standardDeviation.Fill( NumericTraits< ValueType >::Zero );
+    typename MeasurementVectorRealDecoratedType::Pointer decoratedStandardDeviation = MeasurementVectorRealDecoratedType::New();
+    decoratedStandardDeviation->Set( standardDeviation ); 
+    return static_cast< DataObject * >( decoratedStandardDeviation.GetPointer() );
+    }
+
+  if ( index == 1 )
+    {
+    typedef typename MeasurementVectorTraitsTypes< MeasurementVectorType >::ValueType   ValueType;
     MeasurementVectorType mean;
     MeasurementVectorTraits::SetLength( mean,  this->GetMeasurementVectorSize() );
     mean.Fill( NumericTraits< ValueType >::Zero );
@@ -86,6 +103,7 @@ StandardDeviationPerComponentFilter< TSample >
     decoratedStandardDeviation->Set( mean ); 
     return static_cast< DataObject * >( decoratedStandardDeviation.GetPointer() );
     }
+
   itkExceptionMacro("Trying to create output of index " << index << " larger than the number of output");
 }
 
@@ -114,7 +132,6 @@ StandardDeviationPerComponentFilter< TSample >
 
   return measurementVectorSize;
 }
- 
 
 template< class TSample >
 inline void
@@ -128,6 +145,11 @@ StandardDeviationPerComponentFilter< TSample >
   MeasurementVectorRealDecoratedType * decoratedStandardDeviationOutput =
             static_cast< MeasurementVectorRealDecoratedType * >(
               this->ProcessObject::GetOutput(0));
+
+  MeasurementVectorRealDecoratedType * decoratedMean =
+            static_cast< MeasurementVectorRealDecoratedType * >(
+              this->ProcessObject::GetOutput(1));
+
 
   MeasurementVectorRealType sum;
   MeasurementVectorRealType sumOfSquares;
@@ -144,8 +166,8 @@ StandardDeviationPerComponentFilter< TSample >
   sumOfSquares.Fill(0.0);
   standardDeviation.Fill(0.0);
 
-  double frequency;
-  double totalFrequency = 0.0;
+  typename TSample::AbsoluteFrequencyType frequency;
+  typename TSample::TotalAbsoluteFrequencyType totalFrequency = 0.0;
 
   typename TSample::ConstIterator iter = input->Begin();
   typename TSample::ConstIterator end = input->End();
@@ -182,6 +204,7 @@ StandardDeviationPerComponentFilter< TSample >
     }
 
   decoratedStandardDeviationOutput->Set( standardDeviation );
+  decoratedMean->Set( mean );
 }
 
 template< class TSample >
@@ -199,6 +222,23 @@ StandardDeviationPerComponentFilter< TSample >
 {
   return this->GetStandardDeviationPerComponentOutput()->Get();
 }
+
+template< class TSample >
+const typename StandardDeviationPerComponentFilter< TSample>::MeasurementVectorRealDecoratedType *
+StandardDeviationPerComponentFilter< TSample >
+::GetMeanPerComponentOutput() const
+{
+  return static_cast<const MeasurementVectorRealDecoratedType *>(this->ProcessObject::GetOutput(1));
+}
+
+template< class TSample >
+const typename StandardDeviationPerComponentFilter< TSample>::MeasurementVectorRealType
+StandardDeviationPerComponentFilter< TSample >
+::GetMeanPerComponent() const 
+{
+  return this->GetMeanPerComponentOutput()->Get();
+}
+
 
 } // end of namespace Statistics 
 } // end of namespace itk
