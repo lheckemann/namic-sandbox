@@ -94,9 +94,19 @@ int main(int argc, char *argv[])
 
   typedef TriangleListBasisSystemCalculatorType::BasisSystemType   BasisSystemType;
 
+  VectorType reference;
+  reference[0] = 17.0;
+  reference[1] = 19.0;
+  reference[2] = 21.0;
+
+  std::cout << "Reference = " << reference << std::endl;
+  
   BasisSystemType basis = basisSystemListIterator->Value();
-  std::cout << basis.GetVector(0) << std::endl;
-  std::cout << basis.GetVector(1) << std::endl;
+  VectorType vector0 = basis.GetVector(0); 
+  VectorType vector1 = basis.GetVector(1); 
+
+  std::cout << vector0 << std::endl;
+  std::cout << vector1 << std::endl;
 
   std::cout << "Test passed." << std::endl;
 
