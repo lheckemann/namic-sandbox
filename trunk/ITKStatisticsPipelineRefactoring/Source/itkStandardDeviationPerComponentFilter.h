@@ -23,6 +23,7 @@
 #include "itkArray.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkSimpleDataObjectDecorator.h"
+#include "itkNumericTraitsFixedArrayPixel.h"
 
 namespace itk { 
 namespace Statistics {
@@ -80,6 +81,10 @@ public:
   const MeasurementVectorRealType GetStandardDeviationPerComponent() const;
   const MeasurementVectorRealDecoratedType* GetStandardDeviationPerComponentOutput() const;
 
+  /** Return the mean vector */
+  const MeasurementVectorRealType GetMeanPerComponent() const;
+  const MeasurementVectorRealDecoratedType* GetMeanPerComponentOutput() const;
+
 protected:
   StandardDeviationPerComponentFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
@@ -98,6 +103,11 @@ protected:
   MeasurementVectorSizeType GetMeasurementVectorSize() const;
 
 private:
+
+  std::vector< MeasurementVectorRealType >  m_ThreadSum;
+  std::vector< MeasurementVectorRealType >  m_SumOfSquares;
+  std::vector< unsigned long >              m_Count;
+
 }; // end of class
     
 } // end of namespace Statistics 
