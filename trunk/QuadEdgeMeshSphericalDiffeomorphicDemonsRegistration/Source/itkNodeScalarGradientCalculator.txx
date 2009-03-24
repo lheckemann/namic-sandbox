@@ -66,6 +66,11 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     itkExceptionMacro(<<"NodeScalarGradientCalculator Initialize  m_BasisSystemList is NULL.");
     }
 
+
+  m_Interpolator.SetInputMesh( m_InputMesh );
+  m_Interpolator.Initialize();
+  m_DerivativeList.Reserve( this->m_InputMesh->GetCells()->Size() );
+
   return;
 }
 
@@ -80,7 +85,50 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 {
   this->Initialize(); 
 
-  // Add here computation at every node...
+  // Start with gradient computation for each triangle. Uses linear interpolator.
+
+  CellsContainerIterator cellIterator = this->m_InputMesh->GetCells()->Begin();
+  CellsContainerIterator cellEnd = this->m_InputMesh->GetCells()->End();
+
+  BasisSystemListIterator basisSystemListIterator;
+  basisSystemListIterator = m_BasisSystemList->Begin();
+
+  // Look at all triangular cells, re-use the basis of each, and new scalar values.
+  while ( cellIterator != cellEnd ) {
+
+    CellType* cellPointer = cellIterator.Value();
+
+    //Consider current cell. Iterate through its points. 
+    PixelType pixelValue[3]; 
+    PointIdentifier pointIds[3];
+
+    PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
+    PointIdIterator pointIdEnd = cellPointer->PointIdsEnd();
+
+    unsigned int i=0; 
+    while( pointIdIterator != pointIdEnd )
+      {
+      pointIds[i]= *pointIdIterator; 
+      pixelValue[i]= this->m_DataContainer->GetElement( pointIds[i] ); 
+      i++;
+    }
+
+    VectorType  m_U12;
+    VectorType  m_U32;
+
+    m_U12= basisSystemListIterator->Value().GetVector(0); 
+    m_U32= basisSystemListIterator->Value().GetVector(1); 
+ 
+    DerivativeType derivative; 
+    m_Interpolator.GetDerivativeFromPixelsAndBasis(pixelValue[0], pixelValue[1], pixelValue[2],
+                                                   m_U12, m_U32, derivative);
+
+    m_DerivativeList.push_back( derivative );
+
+    ++cellIterator; ++basisSystemListIterator; 
+
+  }
+
 }
 
 

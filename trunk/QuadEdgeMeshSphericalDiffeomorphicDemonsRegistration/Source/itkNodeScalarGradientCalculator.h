@@ -22,6 +22,9 @@
 #include "itkMesh.h"
 #include "itkTriangleBasisSystem.h"
 #include "itkTriangleListBasisSystemCalculator.h"
+#include "itkInterpolateMeshFunction.h"
+#include "itkLinearInterpolateMeshFunction.h"
+#include "itkPointLocator2.h"
 
 namespace itk
 {
@@ -72,10 +75,28 @@ public:
   typedef VectorContainer<CellIdentifier, TriangleBasisSystemType>          BasisSystemListType;
   typedef typename BasisSystemListType::ConstIterator                       BasisSystemListIterator;
 
-  typedef TriangleListBasisSystemCalculator< 
-    InputMeshType, TriangleBasisSystemType >          TriangleListBasisSystemCalculatorType;
+  typedef typename InputMeshType::CellType                                  CellType;
+  typedef typename InputMeshType::CellTraits                                CellTraits;
+  typedef typename InputMeshType::CellsContainerIterator                    CellsContainerIterator;
+  typedef typename CellTraits::PointIdIterator                              PointIdIterator;
+  typedef typename InputMeshType::PointDataContainer                        PointDataContainer;
+  typedef typename PointDataContainer::Iterator                             PointDataIterator;
+  typedef typename InputMeshType::PixelType                                 PixelType;
 
-  /** Set/Get the input mesh. */
+  typedef TriangleListBasisSystemCalculator< InputMeshType, TriangleBasisSystemType >
+    TriangleListBasisSystemCalculatorType;
+
+  typedef LinearInterpolateMeshFunction<InputMeshType>                      InterpolatorType;
+
+  typedef PointLocator2< TInputMesh >                                       PointLocatorType;
+  typedef typename PointLocatorType::Pointer                                PointLocatorPointer;
+  typedef typename InterpolatorType::PointIdentifier                        PointIdentifier;
+
+  typedef typename InterpolatorType::RealType                               RealType;
+  typedef typename InterpolatorType::DerivativeType                         DerivativeType;
+  typedef VectorContainer<CellIdentifier, DerivativeType>                   DerivativeListType;
+
+/** Set/Get the input mesh. */
   itkSetConstObjectMacro( InputMesh, InputMeshType );
   itkGetConstObjectMacro( InputMesh, InputMeshType );
 
@@ -111,6 +132,8 @@ private:
   typename InputMeshType::ConstPointer                         m_InputMesh;
   typename TPointDataContainer::ConstPointer                   m_DataContainer;
   typename BasisSystemListType::ConstPointer                   m_BasisSystemList;
+  DerivativeListType                                           m_DerivativeList;
+  InterpolatorType                                             m_Interpolator; 
 
   /** Check that all necessary inputs are connected. */
   virtual void Initialize( void ) const;
