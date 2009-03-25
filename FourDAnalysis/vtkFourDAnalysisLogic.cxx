@@ -818,7 +818,8 @@ void vtkFourDAnalysisLogic::RunCurveFitting(const char* script, vtkMRMLCurveAnal
 void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
                                                  vtkMRML4DBundleNode* bundleNode,
                                                  const char* outputNodeNamePrefix,
-                                                 int start, int end)
+                                                 int start, int end,
+                                                 int imin, int imax, int jmin, int jmax, int kmin, int kmax)
 {
   // Add a new vtkMRMLCurveAnalysisNode to the MRML scene
   vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
@@ -942,15 +943,41 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
   pythonCmd += "for key, value in result.iteritems():\n";
   pythonCmd += "    curveNode.SetParameter(key, value)\n";
   pythonCmd += "\n";
+
+  // Check index
+  if (imin < 0 || imin >= imax || imax >= x ||
+      jmin < 0 || jmin >= jmax || jmax >= y ||
+      kmin < 0 || kmin >= kmax || kmax >= z)
+    {
+    std::cerr << "int vtkFourDAnalysisGUI::RunSeriesCropping(): irregular index" << std::endl;
+    imin = 0;
+    jmin = 0;
+    kmin = 0;
+    imax = x;
+    jmax = y;
+    kmax = z;
+    }
   
-  for (int k = 0; k < z; k ++)
+  /*
+  //for (int k = 0; k < z; k ++)
+  int imin, imax, jmin, jmax, kmin, kmax;
+  imin = 0;
+  jmin = 0;
+  //kmin = 0;
+  
+  imax = x;
+  jmax = y;
+  //kmax = z;
+  */
+
+  for (int k = kmin; k < kmax; k ++)
     {
     std::cerr << std::endl;
     std::cerr << "Processing Slice k = " << k << std::endl;
-    for (int j = 0; j < y; j ++)
+    for (int j = jmin; j < jmax; j ++)
       {
       std::cerr << "    Processing line j = " << j << std::endl;
-      for (int i = 0; i < x; i ++)
+      for (int i = imin; i < imax; i ++)
         {
         // Copy intensity data
         for (int t = 0; t < nSrcPoints; t ++)

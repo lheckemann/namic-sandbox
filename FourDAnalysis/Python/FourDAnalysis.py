@@ -80,7 +80,7 @@ class CurveAnalysisBase(object):
         y_meas = self.SourceCurve[:, 1]
 
         param0 = self.InitialOptimParam
-        param_output = scipy.optimize.leastsq(self.ResidualError, param0, args=(y_meas, x),full_output=True)
+        param_output = scipy.optimize.leastsq(self.ResidualError, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
         self.OptimParam       = param_output[0] # fitted parameters
         self.CovarianceMatrix = param_output[1] # covariant matrix
         

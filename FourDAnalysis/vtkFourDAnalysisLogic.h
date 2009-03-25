@@ -138,7 +138,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   void GenerateParameterMap(const char* script,
                             vtkMRML4DBundleNode* bundleNode, 
                             const char* outputNodeNamePrefix,
-                            int start, int end);
+                            int start, int end,
+                            int imin, int imax, int jmin, int jmax, int kmin, int kmax);
 
   int RunSeriesCropping(const char* inputBundleNodeID,
                         int imin, int imax, int jmin, int jmax, int kmin, int kmax);
