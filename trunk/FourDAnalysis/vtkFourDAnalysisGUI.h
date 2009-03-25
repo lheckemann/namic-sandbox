@@ -197,6 +197,13 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWLoadSaveButtonWithLabel* ScriptSelectButton;
   vtkKWPushButton* RunScriptButton;
 
+  vtkKWSpinBox*    MapIMinSpinBox;
+  vtkKWSpinBox*    MapIMaxSpinBox;
+  vtkKWSpinBox*    MapJMinSpinBox;
+  vtkKWSpinBox*    MapJMaxSpinBox;
+  vtkKWSpinBox*    MapKMinSpinBox;
+  vtkKWSpinBox*    MapKMaxSpinBox;
+
   // -----------------------------------------
   // 4D Cropping
 

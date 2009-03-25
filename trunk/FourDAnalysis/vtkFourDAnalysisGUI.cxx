@@ -138,6 +138,13 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->ScriptSelectButton  = NULL;
   this->RunScriptButton = NULL;
 
+  this->MapIMinSpinBox     = NULL;
+  this->MapIMaxSpinBox     = NULL;
+  this->MapJMinSpinBox     = NULL;
+  this->MapJMaxSpinBox      = NULL;
+  this->MapKMinSpinBox     = NULL;
+  this->MapKMaxSpinBox     = NULL;
+
   this->CropSeriesMenu      = NULL;
   this->StartCroppingButton = NULL;
   this->CropIMinSpinBox     = NULL;
@@ -356,6 +363,36 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     {
     this->RunScriptButton->SetParent(NULL);
     this->RunScriptButton->Delete();
+    }
+  if (this->MapIMinSpinBox)
+    {
+    this->MapIMinSpinBox->SetParent(NULL);
+    this->MapIMinSpinBox->Delete();
+    }
+  if (this->MapIMaxSpinBox)
+    {
+    this->MapIMaxSpinBox->SetParent(NULL);
+    this->MapIMaxSpinBox->Delete();
+    }
+  if (this->MapJMinSpinBox)
+    {
+    this->MapJMinSpinBox->SetParent(NULL);
+    this->MapJMinSpinBox->Delete();
+    }
+  if (this->MapJMaxSpinBox)
+    {
+    this->MapJMaxSpinBox->SetParent(NULL);
+    this->MapJMaxSpinBox->Delete();
+    }
+  if (this->MapKMinSpinBox)
+    {
+    this->MapKMinSpinBox->SetParent(NULL);
+    this->MapKMinSpinBox->Delete();
+    }
+  if (this->MapKMaxSpinBox)
+    {
+    this->MapKMaxSpinBox->SetParent(NULL);
+    this->MapKMaxSpinBox->Delete();
     }
 
   if (this->CropSeriesMenu)
@@ -587,6 +624,37 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->RunFittingButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->MapIMinSpinBox)
+    {
+    this->MapIMinSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapIMaxSpinBox)
+    {
+    this->MapIMaxSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapJMinSpinBox)
+    {
+    this->MapJMinSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapJMaxSpinBox)
+    {
+    this->MapJMaxSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapKMinSpinBox)
+    {
+    this->MapKMinSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapKMaxSpinBox)
+    {
+    this->MapKMaxSpinBox
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->SavePlotButton)
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
@@ -901,6 +969,38 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->RunScriptButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+
+  if (this->MapIMinSpinBox)
+    {
+    this->MapIMinSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapIMaxSpinBox)
+    {
+    this->MapIMaxSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapJMinSpinBox)
+    {
+    this->MapJMinSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapJMaxSpinBox)
+    {
+    this->MapJMaxSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapKMinSpinBox)
+    {
+    this->MapKMinSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->MapKMaxSpinBox)
+    {
+    this->MapKMaxSpinBox
+      ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->CropSeriesMenu)
     {
     this->CropSeriesMenu->GetMenu()
@@ -1322,6 +1422,35 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
     {
     }
+  else if (this->MapInputSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+           && event == vtkKWMenu::MenuItemInvokedEvent)
+    {
+    int i = this->MapInputSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    const char* bundleID = this->BundleNodeIDList[i].c_str();
+    vtkMRML4DBundleNode* bundleNode 
+      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+
+    // set spin box ranges
+    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
+    if (volumeNode)
+      {
+      vtkImageData* imageData = volumeNode->GetImageData();
+      int* dimensions = imageData->GetDimensions();
+
+      this->MapIMinSpinBox->SetRange(0, dimensions[0]-1);
+      this->MapIMinSpinBox->SetValue(0);
+      this->MapIMaxSpinBox->SetRange(0, dimensions[0]-1);
+      this->MapIMaxSpinBox->SetValue(dimensions[0]-1);
+      this->MapJMinSpinBox->SetRange(0, dimensions[1]-1);
+      this->MapJMinSpinBox->SetValue(0);
+      this->MapJMaxSpinBox->SetRange(0, dimensions[1]-1);
+      this->MapJMaxSpinBox->SetValue(dimensions[1]-1);
+      this->MapKMinSpinBox->SetRange(0, dimensions[2]-1);
+      this->MapKMinSpinBox->SetValue(0);
+      this->MapKMaxSpinBox->SetRange(0, dimensions[2]-1);
+      this->MapKMaxSpinBox->SetValue(dimensions[2]-1);
+      }
+    }
   else if (this->RunScriptButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
@@ -1329,13 +1458,22 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     const char* filename = this->ScriptSelectButton->GetWidget()->GetFileName();
     int i = this->MapInputSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     const char* bundleID = this->BundleNodeIDList[i].c_str();
+
+    int imin = (int)this->MapIMinSpinBox->GetValue();
+    int imax = (int)this->MapIMaxSpinBox->GetValue();
+    int jmin = (int)this->MapJMinSpinBox->GetValue();
+    int jmax = (int)this->MapJMaxSpinBox->GetValue();
+    int kmin = (int)this->MapKMinSpinBox->GetValue();
+    int kmax = (int)this->MapKMaxSpinBox->GetValue();
+
     vtkMRML4DBundleNode* bundleNode 
       = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
     if (prefix && filename)
       {
       int start = (int)this->CurveFittingStartIndexSpinBox->GetValue();
       int end   = (int)this->CurveFittingEndIndexSpinBox->GetValue();
-      this->GetLogic()->GenerateParameterMap(filename, bundleNode, prefix, start, end);
+      this->GetLogic()->GenerateParameterMap(filename, bundleNode, prefix, start, end,
+                                             imin, imax, jmin, jmax, kmin, kmax);
       }
     }
   else if (this->CropSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
@@ -2191,6 +2329,148 @@ void vtkFourDAnalysisGUI::BuildGUIForMapGenerator(int show)
                scriptLabel->GetWidgetName(),
                this->ScriptSelectButton->GetWidgetName());
 
+  // i range
+
+  vtkKWFrame *iframe = vtkKWFrame::New();
+  iframe->SetParent(dframe->GetFrame());
+  iframe->Create();
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                iframe->GetWidgetName() );
+  
+  vtkKWLabel *ilabel1 = vtkKWLabel::New();
+  ilabel1->SetParent(iframe);
+  ilabel1->Create();
+  ilabel1->SetText("i range: ");
+
+  vtkKWLabel *ilabel2 = vtkKWLabel::New();
+  ilabel2->SetParent(iframe);
+  ilabel2->Create();
+  ilabel2->SetText("min:");
+
+  this->MapIMinSpinBox = vtkKWSpinBox::New();
+  this->MapIMinSpinBox->SetParent(iframe);
+  this->MapIMinSpinBox->Create();
+  this->MapIMinSpinBox->SetWidth(3);
+  this->MapIMinSpinBox->SetRange(0, 0);
+
+  vtkKWLabel *ilabel3 = vtkKWLabel::New();
+  ilabel3->SetParent(iframe);
+  ilabel3->Create();
+  ilabel3->SetText("max:");
+
+  this->MapIMaxSpinBox = vtkKWSpinBox::New();
+  this->MapIMaxSpinBox->SetParent(iframe);
+  this->MapIMaxSpinBox->Create();
+  this->MapIMaxSpinBox->SetWidth(3);
+  this->MapIMaxSpinBox->SetRange(0, 0);
+
+  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               ilabel1->GetWidgetName(),
+               ilabel2->GetWidgetName(),
+               this->MapIMinSpinBox->GetWidgetName(),
+               ilabel3->GetWidgetName(),
+               this->MapIMaxSpinBox->GetWidgetName());
+
+  iframe->Delete();
+  ilabel1->Delete();
+  ilabel2->Delete();
+  ilabel3->Delete();
+
+
+  // j range
+
+  vtkKWFrame *jframe = vtkKWFrame::New();
+  jframe->SetParent(dframe->GetFrame());
+  jframe->Create();
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                jframe->GetWidgetName() );
+  
+  vtkKWLabel *jlabel1 = vtkKWLabel::New();
+  jlabel1->SetParent(jframe);
+  jlabel1->Create();
+  jlabel1->SetText("j range: ");
+
+  vtkKWLabel *jlabel2 = vtkKWLabel::New();
+  jlabel2->SetParent(jframe);
+  jlabel2->Create();
+  jlabel2->SetText("min:");
+
+  this->MapJMinSpinBox = vtkKWSpinBox::New();
+  this->MapJMinSpinBox->SetParent(jframe);
+  this->MapJMinSpinBox->Create();
+  this->MapJMinSpinBox->SetWidth(3);
+  this->MapJMinSpinBox->SetRange(0, 0);
+
+  vtkKWLabel *jlabel3 = vtkKWLabel::New();
+  jlabel3->SetParent(jframe);
+  jlabel3->Create();
+  jlabel3->SetText("max:");
+
+  this->MapJMaxSpinBox = vtkKWSpinBox::New();
+  this->MapJMaxSpinBox->SetParent(jframe);
+  this->MapJMaxSpinBox->Create();
+  this->MapJMaxSpinBox->SetWidth(3);
+  this->MapJMaxSpinBox->SetRange(0, 0);
+  
+  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               jlabel1->GetWidgetName(),
+               jlabel2->GetWidgetName(),
+               this->MapJMinSpinBox->GetWidgetName(),
+               jlabel3->GetWidgetName(),
+               this->MapJMaxSpinBox->GetWidgetName());
+
+  jframe->Delete();
+  jlabel1->Delete();
+  jlabel2->Delete();
+  jlabel3->Delete();
+
+
+  // k range
+
+  vtkKWFrame *kframe = vtkKWFrame::New();
+  kframe->SetParent(dframe->GetFrame());
+  kframe->Create();
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                kframe->GetWidgetName() );
+  
+  vtkKWLabel *klabel1 = vtkKWLabel::New();
+  klabel1->SetParent(kframe);
+  klabel1->Create();
+  klabel1->SetText("k range: ");
+
+  vtkKWLabel *klabel2 = vtkKWLabel::New();
+  klabel2->SetParent(kframe);
+  klabel2->Create();
+  klabel2->SetText("min:");
+
+  this->MapKMinSpinBox = vtkKWSpinBox::New();
+  this->MapKMinSpinBox->SetParent(kframe);
+  this->MapKMinSpinBox->Create();
+  this->MapKMinSpinBox->SetWidth(3);
+  this->MapKMinSpinBox->SetRange(0, 0);
+
+  vtkKWLabel *klabel3 = vtkKWLabel::New();
+  klabel3->SetParent(kframe);
+  klabel3->Create();
+  klabel3->SetText("max:");
+
+  this->MapKMaxSpinBox = vtkKWSpinBox::New();
+  this->MapKMaxSpinBox->SetParent(kframe);
+  this->MapKMaxSpinBox->Create();
+  this->MapKMaxSpinBox->SetWidth(3);
+  this->MapKMaxSpinBox->SetRange(0, 0);
+
+  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               klabel1->GetWidgetName(),
+               klabel2->GetWidgetName(),
+               this->MapKMinSpinBox->GetWidgetName(),
+               klabel3->GetWidgetName(),
+               this->MapKMaxSpinBox->GetWidgetName());
+
+  kframe->Delete();
+  klabel1->Delete();
+  klabel2->Delete();
+  klabel3->Delete();
 
   vtkKWFrame *outputFrame = vtkKWFrame::New();
   outputFrame->SetParent(dframe->GetFrame());
@@ -2312,7 +2592,7 @@ void vtkFourDAnalysisGUI::BuildGUIForCroppingFrame(int show)
   vtkKWLabel *ilabel1 = vtkKWLabel::New();
   ilabel1->SetParent(iframe);
   ilabel1->Create();
-  ilabel1->SetText("Input: ");
+  ilabel1->SetText("i range: ");
 
   vtkKWLabel *ilabel2 = vtkKWLabel::New();
   ilabel2->SetParent(iframe);
@@ -2360,7 +2640,7 @@ void vtkFourDAnalysisGUI::BuildGUIForCroppingFrame(int show)
   vtkKWLabel *jlabel1 = vtkKWLabel::New();
   jlabel1->SetParent(jframe);
   jlabel1->Create();
-  jlabel1->SetText("Input: ");
+  jlabel1->SetText("j range: ");
 
   vtkKWLabel *jlabel2 = vtkKWLabel::New();
   jlabel2->SetParent(jframe);
@@ -2408,7 +2688,7 @@ void vtkFourDAnalysisGUI::BuildGUIForCroppingFrame(int show)
   vtkKWLabel *klabel1 = vtkKWLabel::New();
   klabel1->SetParent(kframe);
   klabel1->Create();
-  klabel1->SetText("Input: ");
+  klabel1->SetText("k range: ");
 
   vtkKWLabel *klabel2 = vtkKWLabel::New();
   klabel2->SetParent(kframe);

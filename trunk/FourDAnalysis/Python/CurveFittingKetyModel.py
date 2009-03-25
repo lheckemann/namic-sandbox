@@ -44,8 +44,8 @@ class CurveFittingKetyModel(CurveAnalysisBase):
     def __init__(self):
         self.OptimParamNameList = ['Ktrans', 'vp', 've']
         #self.InitialOptimParam  = [0.2, 1.0, 1.0] 
-        #self.InitialOptimParam  = [0.015, 0.12, 0.12] 
-        self.InitialOptimParam  = [0.05, 0.2, 0.2] 
+        self.InitialOptimParam  = [0.015, 0.12, 0.12] 
+        #self.InitialOptimParam  = [0.05, 0.2, 0.2] 
 
         self.AifTime = r_[0:30]
         self.AifData = r_[40.1429,
@@ -80,12 +80,16 @@ class CurveFittingKetyModel(CurveAnalysisBase):
                           465.305]
 
         self.tck = splrep(self.AifTime, self.AifData, s=0)
-
+        #self.dt = 0.001
+        #self.AifTime2 = r_[0:30:self.dt]
+        #self.AifTable = splev(self.AifTime2, self.tck, der=0)
+        #print 'done.'
+        
     # ------------------------------
     # Arteral input function (AIF)
     def Aif(self, x):
         y = splev(x, self.tck, der=0)
-
+        #y = self.AifTable[int(x/self.dt)]
         return y
 
     # ------------------------------
@@ -93,12 +97,12 @@ class CurveFittingKetyModel(CurveAnalysisBase):
     def Function(self, x, param):
         Ktrans, vp, ve = param
         lst = range(len(x))
-        y = vp * self.Aif(x)
+        y = scipy.zeros(len(x))
         for i in lst:
             xx = x[i]
             s = quadrature(lambda t: self.Aif(t) * scipy.exp(-Ktrans*(xx-t)/ve), 0.0, xx, tol=1.0e-00, vec_func=False)
             #s = quadrature(lambda t: splev(t,self.tck,der=0) * scipy.exp(-Ktrans*(xx-t)/ve), 0.0, xx, vec_func=False)
-            y[i] = y[i] + Ktrans  * s[0]
+            y[i] = vp * self.Aif(xx) + Ktrans  * s[0]
         return y
 
     # ------------------------------
