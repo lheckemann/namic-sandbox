@@ -488,7 +488,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pOutputNode->SetName("OutputNode");
         pOutputNode->SetDescription("MRMLNode that displays the tracked needle and the original image");
         pOutputNode->SetScene(this->GetMRMLScene()); 
-        vtkMatrix4x4* matrix = vtkMatrix4x4::New(); 
+vtkMatrix4x4* matrix = vtkMatrix4x4::New(); 
 //identity
 //  matrix->Element[0][0] = 1.0;
 //  matrix->Element[1][0] = 0.0;
@@ -508,11 +508,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
   matrix->Element[1][0] = 0.0;
   matrix->Element[2][0] = 0.0;
   matrix->Element[0][1] = 0.0;
-  matrix->Element[1][1] = 1.0;
+  matrix->Element[1][1] = -1.0;
   matrix->Element[2][1] = 0.0;
   matrix->Element[0][2] = 0.0;
   matrix->Element[1][2] = 0.0;
-  matrix->Element[2][2] = -1.0;
+  matrix->Element[2][2] = 1.0;
   matrix->Element[0][3] = 128.0;
   matrix->Element[1][3] = 128.0;
   matrix->Element[2][3] = 0.0;
@@ -529,7 +529,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
 //  matrix->Element[2][2] = 0.0;
 //  matrix->Element[0][3] = 128.0;
 //  matrix->Element[1][3] = 0.0;
-//  matrix->Element[2][3] = 128.0;
+//  matrix->Element[2][3] = -128.0;
 
 //sagital
 //  matrix->Element[0][0] = 0.0;
@@ -543,24 +543,12 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
 //  matrix->Element[2][2] = 0.0;
 //  matrix->Element[0][3] = 0.0;
 //  matrix->Element[1][3] = 128.0;
-//  matrix->Element[2][3] = 128.0;
+//  matrix->Element[2][3] = -128.0;
 
-//testing: coronal flipped
-//  matrix->Element[0][0] = -1.0;
-//  matrix->Element[1][0] = 0.0;
-//  matrix->Element[2][0] = 0.0;
-//  matrix->Element[0][1] = 0.0;
-//  matrix->Element[1][1] = 0.0;
-//  matrix->Element[2][1] = 1.0;
-//  matrix->Element[0][2] = 0.0;
-//  matrix->Element[1][2] = 1.0;
-//  matrix->Element[2][2] = 0.0;
-//  matrix->Element[0][3] = 128.0;
-//  matrix->Element[1][3] = 0.0;
-//  matrix->Element[2][3] = 128.0;
 
-        pOutputNode->SetRASToIJKMatrix(matrix); // TODO: make this matrix generic! right now it is adapted to the scanner simulation
-        matrix->Delete();                       // this matrix should not be needed for real images, because the header information should be correct
+//!!ATTENTION!!! Take this out when really testing on the scanner
+pOutputNode->SetRASToIJKMatrix(matrix); // TODO: make this matrix generic! right now it is adapted to the scanner simulation
+matrix->Delete();                       // this matrix should not be needed for real images, because the header information should be correct
         
         vtkMRMLScalarVolumeDisplayNode* pScalarDisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
         pScalarDisplayNode->SetDefaultColorMap();   
@@ -774,8 +762,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           pROINode->GetXYZ(center);
           this->pXLowerEntry->SetValueAsInt((int) ((-center[0]) - radius[0] + fovI)); // negative center point for the x-axis, because the ROIMRMLNode coordinates are in RAS (LR direction of X-axis), 
           this->pXUpperEntry->SetValueAsInt((int) ((-center[0]) + radius[0] + fovI)); // but the slicer axial and coronal view, which are used as reference, switch the direction (RL direction of X-axis)
-          this->pYLowerEntry->SetValueAsInt((int) (center[1] - radius[1] + fovJ));
-          this->pYUpperEntry->SetValueAsInt((int) (center[1] + radius[1] + fovJ));  
+          this->pYLowerEntry->SetValueAsInt((int) ((-center[1]) - radius[1] + fovJ)); // negative center point for the y-axis, because the ROIMRMLNode coordinates are in RAS (PA direction of Y-axis),
+          this->pYUpperEntry->SetValueAsInt((int) ((-center[1]) + radius[1] + fovJ)); // but the slicer axial and sagital view, which are used as reference, switch the direction (AP direction of Y-axis)
           this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovK));
           this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovK));
           
@@ -810,9 +798,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       }
       else if(needleOrigin == PATIENTSUPERIOR)
       {
-        imageRegionLower[1] = currentZLowerBound;           
-        imageRegionUpper[1] = currentZUpperBound;
         imageRegionSize[1]  = currentZImageRegionSize;
+        imageRegionLower[1] = currentZLowerBound;           
+        imageRegionUpper[1] = currentZUpperBound;        
       }
             
       double points[4]; // Array that contains 2 points of the needle transform (x1,y1,x2,y2)
@@ -942,9 +930,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
             case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
             {              
               transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
-              transform->RotateZ(-angle);
+              transform->RotateZ(angle);
               translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-              translationPA = points[3]-fovJ;                
+              translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
               break;
             }
             case PATIENTRIGHT:
@@ -969,10 +957,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
             }
             case PATIENTSUPERIOR:
             {
-              transform->RotateX(-90); // rotate to have the cylinder pointing from superior to inferior
+              transform->RotateX(90); // rotate to have the cylinder pointing from superior to inferior
               //transform->RotateZ(-angle); TODO: get the right angle!
               translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-              translationIS = points[3]-fovJ;    //TODO:!!!!ATTENTION!!!! This should be fovK, but because of the scanner it is not!!!!     
+              translationIS = points[3]-fovJ;    //TODO:!!!!ATTENTION!!!! This should be fovK, but because of the scannersimulation it is not!!!!     
               break;
             }
             default:
@@ -1261,12 +1249,14 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pXLowerEntry->Create();
   this->pXLowerEntry->SetWidth(7);
   this->pXLowerEntry->SetValueAsInt(100);
+  //this->pXLowerEntry->SetValueAsInt(135);
               
   this->pXUpperEntry = vtkKWEntry::New();
   this->pXUpperEntry->SetParent(xFrame);
   this->pXUpperEntry->Create();
   this->pXUpperEntry->SetWidth(7);
   this->pXUpperEntry->SetValueAsInt(180);
+  //this->pXUpperEntry->SetValueAsInt(155);
 
   this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               xLabel->GetWidgetName(), this->pXLowerEntry->GetWidgetName(), this->pXUpperEntry->GetWidgetName());
@@ -1314,13 +1304,13 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pZLowerEntry->SetParent(zFrame);
   this->pZLowerEntry->Create();
   this->pZLowerEntry->SetWidth(7);
-  this->pZLowerEntry->SetValueAsInt(1);
+  this->pZLowerEntry->SetValueAsInt(50);
               
   this->pZUpperEntry = vtkKWEntry::New();
   this->pZUpperEntry->SetParent(zFrame);
   this->pZUpperEntry->Create();
   this->pZUpperEntry->SetWidth(7);
-  this->pZUpperEntry->SetValueAsInt(1);
+  this->pZUpperEntry->SetValueAsInt(120);
 
   this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               zLabel->GetWidgetName(), this->pZLowerEntry->GetWidgetName(), this->pZUpperEntry->GetWidgetName());
