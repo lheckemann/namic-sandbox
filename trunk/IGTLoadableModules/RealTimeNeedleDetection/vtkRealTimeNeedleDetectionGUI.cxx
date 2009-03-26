@@ -856,33 +856,14 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
             pImageProcessor->HoughTransformation(true, points, ENTERINGRIGHT); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
             break;
           }
-          case PATIENTRIGHT:
-          {
-            std::cerr << "This needle entering direction is not implemented yet!" << std::endl; 
-            break;
-          }
-          case PATIENTPOSTERIOR:
-          {
-            std::cerr << "This needle entering direction is not implemented yet!" << std::endl; 
-            break;
-          }
-          case PATIENTANTERIOR:
-          {
-            std::cerr << "This needle entering direction is not implemented yet!" << std::endl; 
-            break;
-          }
           case PATIENTINFERIOR:
           {
-            std::cerr << "This needle entering direction is not implemented yet!" << std::endl; 
-            break;
-          }
-          case PATIENTSUPERIOR:
-          {
+            //pImageProcessor->FlipX();
             pImageProcessor->HoughTransformation(true, points, ENTERINGTOP); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work 
             break;
           }
           default:
-            std::cerr << "ERROR! needleOrigin has an unknown value!" << std::endl;
+            std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
             break;
         } //end switch    
         pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);     
@@ -901,7 +882,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0)) 
           std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
         else // if everything is ok
-        {//TODO: make this generic!! Right now I assume the needle enters from the patientleft                  
+        {//TODO: make this generic!! Right now I assume the needle enters from the patientleft or patientinferior                 
           points[0] += imageRegionLower[0];
           points[1] += imageRegionLower[1];
           points[2] += imageRegionLower[0];
@@ -935,48 +916,27 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
               translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
               break;
             }
-            case PATIENTRIGHT:
-            {
-              //transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
-              break;
-            }
-            case PATIENTPOSTERIOR:
-            {
-              //no RotateZ because the transform points in the right direction
-              break;
-            }
-            case PATIENTANTERIOR:
-            {
-              //transform->RotateZ(-180); // rotate to have the cylinder pointing from anterior to posterior
-              break;
-            }
             case PATIENTINFERIOR:
-            {
-              //transform->RotateX(90); // rotate to have the cylinder pointing from inferior to superior
-              break;
-            }
-            case PATIENTSUPERIOR:
             {
               transform->RotateX(90); // rotate to have the cylinder pointing from superior to inferior
               //transform->RotateZ(-angle); TODO: get the right angle!
               translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-              translationIS = points[3]-fovJ;    //TODO:!!!!ATTENTION!!!! This should be fovK, but because of the scannersimulation it is not!!!!     
+              translationIS = points[3]-fovJ;    //TODO:!!!!ATTENTION!!!! This should be fovK, but because of the scannersimulation it is not!!!!
               break;
             }
             default:
-              std::cerr << "ERROR! needleOrigin has an unknown value!" << std::endl;
+              std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
               break;
           } //end switch          
           transform->Translate(translationLR, translationPA, translationIS);    
               
-          vtkMatrix4x4* transformToParent1 = pNeedleTransformNode->GetMatrixTransformToParent();
-          transformToParent1->DeepCopy(transform->GetMatrix()); // This calls the modified event
+          vtkMatrix4x4* transformToParentNeedle = pNeedleTransformNode->GetMatrixTransformToParent();
+          transformToParentNeedle->DeepCopy(transform->GetMatrix()); // This calls the modified event
           
-          //TODO: The whole ScanPlaneNormalNode is not working corectly yet 
           transform->Translate(-translationLR, -translationPA, -translationIS);
-          transform->RotateZ(90); //TODO: this might include errors
-          vtkMatrix4x4* transformToParent2 = pScanPlaneNormalNode->GetMatrixTransformToParent();
-          transformToParent2->DeepCopy(transform->GetMatrix()); // This calls the modified event
+          transform->RotateZ(90); 
+          vtkMatrix4x4* transformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
+          transformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
           transform->Delete();
         }
   
@@ -1109,6 +1069,12 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->SelectedStateOn();  //default, always needs to correspond to the member variable needleOrigin
   this->pEntryPointButtonSet->EnabledOn();
   buttonSetFrame->Delete();
+  
+  //TODO:Implement the usage of those buttons
+  this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->EnabledOff();
+  this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->EnabledOff();
+  this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->EnabledOff();
+  this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->EnabledOff(); 
   
   // ------------------------------------------------------
   // Dilate and Erode Value Entry  
