@@ -359,11 +359,12 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, int need
       v[1] *= -1;
     }
   }
-  else if(needleEnteringDirection == ENTERINGTOP)
+  else if(needleEnteringDirection == ENTERINGBOTTOM)
   {
     //normalize the support vector to y = ySize | v[1] = size[1]  
     multiplier = (u[1]-size[1]) / v[1]; // ==u[1]-m*v[1]=size[1]
     
+    //TODO: This should not be correct yet!!!
     //normalize the direction vector to negative y, because the needle enters from the top of the image
     if(v[1] > 0.0)
     {

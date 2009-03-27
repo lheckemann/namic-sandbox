@@ -23,7 +23,7 @@
 #define MAXOUTPUT 560   // Maximum gray scale Intensity for the output image
 
 #define ENTERINGRIGHT  1
-#define ENTERINGTOP 2
+#define ENTERINGBOTTOM 2
 
 //defines for the Write function determining which image to write
 #define INPUT     1
