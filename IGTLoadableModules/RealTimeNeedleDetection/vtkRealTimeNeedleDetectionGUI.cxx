@@ -490,25 +490,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pOutputNode->SetScene(this->GetMRMLScene()); 
 vtkMatrix4x4* matrix = vtkMatrix4x4::New(); 
 //identity
-//  matrix->Element[0][0] = 1.0;
-//  matrix->Element[1][0] = 0.0;
-//  matrix->Element[2][0] = 0.0;
-//  matrix->Element[0][1] = 0.0;
-//  matrix->Element[1][1] = 1.0;
-//  matrix->Element[2][1] = 0.0;
-//  matrix->Element[0][2] = 0.0;
-//  matrix->Element[1][2] = 0.0;
-//  matrix->Element[2][2] = 1.0;
-//  matrix->Element[0][3] = 0.0;
-//  matrix->Element[1][3] = 0.0;
-//  matrix->Element[2][3] = 0.0;
-
-//axial
-  matrix->Element[0][0] = -1.0;
+  matrix->Element[0][0] = 1.0;
   matrix->Element[1][0] = 0.0;
   matrix->Element[2][0] = 0.0;
   matrix->Element[0][1] = 0.0;
-  matrix->Element[1][1] = -1.0;
+  matrix->Element[1][1] = 1.0;
   matrix->Element[2][1] = 0.0;
   matrix->Element[0][2] = 0.0;
   matrix->Element[1][2] = 0.0;
@@ -517,7 +503,21 @@ vtkMatrix4x4* matrix = vtkMatrix4x4::New();
   matrix->Element[1][3] = 128.0;
   matrix->Element[2][3] = 0.0;
 
-//coronal
+//axial
+//  matrix->Element[0][0] = -1.0;
+//  matrix->Element[1][0] = 0.0;
+//  matrix->Element[2][0] = 0.0;
+//  matrix->Element[0][1] = 0.0;
+//  matrix->Element[1][1] = -1.0;
+//  matrix->Element[2][1] = 0.0;
+//  matrix->Element[0][2] = 0.0;
+//  matrix->Element[1][2] = 0.0;
+//  matrix->Element[2][2] = 1.0;
+//  matrix->Element[0][3] = 128.0;
+//  matrix->Element[1][3] = 128.0;
+//  matrix->Element[2][3] = 0.0;
+
+//coronal probably wrong
 //  matrix->Element[0][0] = -1.0;
 //  matrix->Element[1][0] = 0.0;
 //  matrix->Element[2][0] = 0.0;
@@ -531,7 +531,7 @@ vtkMatrix4x4* matrix = vtkMatrix4x4::New();
 //  matrix->Element[1][3] = 0.0;
 //  matrix->Element[2][3] = -128.0;
 
-//sagital
+//sagital probably wrong
 //  matrix->Element[0][0] = 0.0;
 //  matrix->Element[1][0] = 1.0;
 //  matrix->Element[2][0] = 0.0;
@@ -767,11 +767,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovK));
           this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovK));
           
-          if(needleOrigin == PATIENTSUPERIOR) //TODO:!!!ATTENTION!!! This is only for testing!!!
-          {
-            this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovJ));  // !!!ATTTENTION!!! This should be fovK!!!
-            this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovJ));
-          }          
+//          if(needleOrigin == PATIENTINFERIOR) //TODO:!!!ATTENTION!!! This is only for testing!!!
+//          {
+//            this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovJ));  // !!!ATTTENTION!!! This should be fovK!!!
+//            this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovJ));
+//          }          
         }         
       }
       currentXLowerBound      = this->pXLowerEntry->GetValueAsInt();
@@ -796,7 +796,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         imageRegionLower[1] = currentYLowerBound;           
         imageRegionUpper[1] = currentYUpperBound;        
       }
-      else if(needleOrigin == PATIENTSUPERIOR)
+      else if(needleOrigin == PATIENTINFERIOR)
       {
         imageRegionSize[1]  = currentZImageRegionSize;
         imageRegionLower[1] = currentZLowerBound;           
@@ -822,10 +822,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
       pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
       pImageProcessor->GetImage((void*) pImageRegionOutput1);
@@ -833,9 +833,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       //TODO:DELETE pImageRegionOutput1!!
       
       pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
       pImageProcessor->BinaryThinning(true, true);  // needs iverted images, because it thins to a white line
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
 //      pImageProcessor->SobelFilter(true, true, 1);
 //      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",TMP);
       
@@ -859,7 +859,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           case PATIENTINFERIOR:
           {
             //pImageProcessor->FlipX();
-            pImageProcessor->HoughTransformation(true, points, ENTERINGTOP); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work 
+            pImageProcessor->HoughTransformation(true, points, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work 
             break;
           }
           default:
@@ -996,7 +996,6 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForHelpFrame ()
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
 {
-  //vtkSlicerApplication* app = (vtkSlicerApplication*) this->GetApplication(); //TODO: Can I delete app?
   vtkKWWidget* page = this->UIPanel->GetPageWidget("RealTimeNeedleDetection");
   
   vtkSlicerModuleCollapsibleFrame* parentFrame = vtkSlicerModuleCollapsibleFrame::New();
@@ -1069,12 +1068,6 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->SelectedStateOn();  //default, always needs to correspond to the member variable needleOrigin
   this->pEntryPointButtonSet->EnabledOn();
   buttonSetFrame->Delete();
-  
-  //TODO:Implement the usage of those buttons
-  this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->EnabledOff();
-  this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->EnabledOff();
-  this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->EnabledOff();
-  this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->EnabledOff(); 
   
   // ------------------------------------------------------
   // Dilate and Erode Value Entry  
