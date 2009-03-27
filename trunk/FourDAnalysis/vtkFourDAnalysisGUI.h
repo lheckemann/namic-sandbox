@@ -118,7 +118,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void BuildGUIForLoadFrame(int show);
   void BuildGUIForFrameControlFrame(int show);
   void BuildGUIForFunctionViewer(int show);
-  void BuildGUIForMapGenerator(int show);
+  //void BuildGUIForMapGenerator(int show);
   void BuildGUIForCroppingFrame(int show);
   void BuildGUIForRegistrationFrame(int show);
 
@@ -156,18 +156,21 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 
   vtkKWProgressDialog *ProgressDialog;
 
+  // -----------------------------------------
+  // Load / Save / Active frame
   vtkKWLoadSaveButtonWithLabel* SelectInputDirectoryButton;
   vtkKWPushButton*              LoadImageButton;
   vtkKWMenuButton*              SaveSeriesMenu;
   vtkKWLoadSaveButtonWithLabel* SelectOutputDirectoryButton;
   vtkKWPushButton*              SaveImageButton;
-  
+  vtkKWMenuButton*              ActiveSeriesMenu;
+
+  // -----------------------------------------
+  // Frame control
   vtkKWRange *WindowLevelRange;
   vtkKWRange *ThresholdRange;
 
-  vtkKWMenuButton*     ForegroundSeriesMenu;
   vtkKWScaleWithEntry* ForegroundVolumeSelectorScale;
-  vtkKWMenuButton*     BackgroundSeriesMenu;
   vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
 
   // -----------------------------------------
@@ -189,8 +192,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 
   // -----------------------------------------
   // Parameter Map
-
-  vtkKWMenuButton*             MapInputSeriesMenu;
   vtkSlicerNodeSelectorWidget* MapOutputSelector;
   vtkKWEntry*                  MapOutputVolumePrefixEntry;
   //vtkKWMenuButton* MapOutputVolumeMenu;
