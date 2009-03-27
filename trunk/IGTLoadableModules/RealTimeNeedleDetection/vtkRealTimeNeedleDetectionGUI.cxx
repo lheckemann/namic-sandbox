@@ -866,7 +866,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
             std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
             break;
         } //end switch    
-        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);     
+        //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);     
        //pImageProcessor->CannyEdgeDetection(true,false);           
       std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegionOutput2);
