@@ -132,7 +132,7 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->MapOutputVolumePrefixEntry = NULL;
   //this->MapOutputSelector   = NULL;
   //this->MapOutputVolumeMenu = NULL;
-  this->ScriptSelectButton  = NULL;
+  //this->ScriptSelectButton  = NULL;
   this->RunScriptButton = NULL;
 
   this->MapIMinSpinBox     = NULL;
@@ -335,11 +335,6 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->MapOutputVolumeMenu->Delete();
     }
   */
-  if (this->ScriptSelectButton)
-    {
-    this->ScriptSelectButton->SetParent(NULL);
-    this->ScriptSelectButton->Delete();
-    }
   if (this->RunScriptButton)
     {
     this->RunScriptButton->SetParent(NULL);
@@ -649,11 +644,6 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   */
-  if (this->ScriptSelectButton)
-    {
-    this->ScriptSelectButton->GetWidget()->GetLoadSaveDialog()
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
   if (this->RunScriptButton)
     {
     this->RunScriptButton
@@ -908,11 +898,6 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
       ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
   */
-  if (this->ScriptSelectButton)
-    {
-    this->ScriptSelectButton->GetWidget()->GetLoadSaveDialog()
-      ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
   if (this->RunScriptButton)
     {
     this->RunScriptButton
@@ -1368,10 +1353,12 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       }
     }
   */
+  /*
   else if (this->ScriptSelectButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
     {
     }
+  */
   else if (this->RunScriptButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
