@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>
+  Statistics
+  </category>
+  <title>
+  Label Diameter Estimation
+  </title>
+  <description>
+  Estimates the largest diameter of a label, saved as a list of endpoint
+  fiducials in a file.
+  </description>
+  <version>1.0</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor>Andriy Fedorov</contributor>
+<acknowledgements>
+This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+</acknowledgements>
+
+  <parameters>
+    <label> Parameters</label>
+    <description>Parameters for diameter estimation</description>
+
+    <integer>
+      <name>inputLabel</name>
+      <longflag>--label</longflag>
+      <description>The value of the label that should be used for diameter estimation.</description>
+      <label>Label value</label>
+      <default>1</default>
+    </integer>
+
+  </parameters>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>inputVolume</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input volume to be segmented</description>
+    </image>
+
+    <image type="label">
+      <name>outputDiameters</name>
+      <label>Output label image</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description>Output label image will show the identified diameters</description>
+    </image>
+
+    <file fileExtensions=".fcvs">
+      <name>outputFiducialFile</name>
+      <label>File to keep the output fiducials</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description>File to save the list of fiducials corresponding to the
+      identified diameters</description>
+    </file>
+
+  </parameters>
+</executable>
