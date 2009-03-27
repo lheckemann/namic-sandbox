@@ -111,13 +111,11 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->SaveSeriesMenu                = NULL;
   this->SelectOutputDirectoryButton   = NULL;
   this->SaveImageButton               = NULL;
+  this->ActiveSeriesMenu              = NULL;
   
-  this->ForegroundSeriesMenu          = NULL;
   this->ForegroundVolumeSelectorScale = NULL;
-  this->BackgroundSeriesMenu          = NULL;
   this->BackgroundVolumeSelectorScale = NULL;
 
-  this->SeriesToPlotMenu  = NULL;
   this->MaskSelectMenu    = NULL;
 
   this->RunPlotButton       = NULL;
@@ -131,7 +129,6 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->IntensityPlot  = NULL;
 
 
-  this->MapInputSeriesMenu  = NULL;
   this->MapOutputVolumePrefixEntry = NULL;
   //this->MapOutputSelector   = NULL;
   //this->MapOutputVolumeMenu = NULL;
@@ -243,20 +240,15 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->SaveImageButton->SetParent(NULL);
     this->SaveImageButton->Delete();
     }
-  if (this->ForegroundSeriesMenu)
+  if (this->ActiveSeriesMenu)
     {
-    this->ForegroundSeriesMenu->SetParent(NULL);
-    this->ForegroundSeriesMenu->Delete();
+    this->ActiveSeriesMenu->SetParent(NULL);
+    this->ActiveSeriesMenu->Delete();
     }
   if (this->ForegroundVolumeSelectorScale)
     {
     this->ForegroundVolumeSelectorScale->SetParent(NULL);
     this->ForegroundVolumeSelectorScale->Delete();
-    }
-  if (this->BackgroundSeriesMenu)
-    {
-    this->BackgroundSeriesMenu->SetParent(NULL);
-    this->BackgroundSeriesMenu->Delete();
     }
   if (this->BackgroundVolumeSelectorScale)
     {
@@ -272,12 +264,6 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     {
     this->ThresholdRange->SetParent(NULL);
     this->ThresholdRange->Delete();
-    }
-
-  if (this->SeriesToPlotMenu)
-    {
-    this->SeriesToPlotMenu->SetParent(NULL);
-    this->SeriesToPlotMenu->Delete();
     }
   if (this->MaskSelectMenu)
     {
@@ -330,11 +316,6 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->SavePlotButton->Delete();
     }
 
-  if (this->MapInputSeriesMenu)
-    {
-    this->MapInputSeriesMenu->SetParent(NULL);
-    this->MapInputSeriesMenu->Delete();
-    }
   if (this->MapOutputVolumePrefixEntry)
     {
     this->MapOutputVolumePrefixEntry->SetParent(NULL);
@@ -546,20 +527,14 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->SaveImageButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
-  if (this->ForegroundSeriesMenu)
+  if (this->ActiveSeriesMenu)
     {
-    this->ForegroundSeriesMenu->GetMenu()
+    this->ActiveSeriesMenu->GetMenu()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->ForegroundVolumeSelectorScale)
     {
     this->ForegroundVolumeSelectorScale
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->BackgroundSeriesMenu)
-    {
-    this->BackgroundSeriesMenu->GetMenu()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->BackgroundVolumeSelectorScale)
@@ -578,11 +553,6 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->SeriesToPlotMenu)
-    {
-    this->SeriesToPlotMenu->GetMenu()
-      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
-    }
   if (this->MaskSelectMenu)
     {
     this->MaskSelectMenu->GetMenu()
@@ -658,11 +628,6 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
   if (this->SavePlotButton)
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->MapInputSeriesMenu)
-    {
-    this->MapInputSeriesMenu->GetMenu()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->MapOutputVolumePrefixEntry)
@@ -853,21 +818,15 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->SaveImageButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-
-  if (this->ForegroundSeriesMenu)
+  if (this->ActiveSeriesMenu)
     {
-    this->ForegroundSeriesMenu->GetMenu()
+    this->ActiveSeriesMenu->GetMenu()
       ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);      
     }
   if (this->ForegroundVolumeSelectorScale)
     {
     this->ForegroundVolumeSelectorScale
       ->AddObserver(vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/, (vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->BackgroundSeriesMenu)
-    {
-    this->BackgroundSeriesMenu->GetMenu()
-      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);      
     }
   if (this->BackgroundVolumeSelectorScale)
     {
@@ -883,11 +842,6 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     {
     this->ThresholdRange
       ->AddObserver(vtkKWRange::RangeValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->SeriesToPlotMenu)
-    {
-    this->SeriesToPlotMenu->GetMenu()
-      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
   if (this->MaskSelectMenu)
     {
@@ -934,11 +888,6 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     {
     this->SavePlotButton->GetWidget()->GetLoadSaveDialog()
       ->AddObserver(vtkKWLoadSaveDialog::FileNameChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->MapInputSeriesMenu)
-    {
-    this->MapInputSeriesMenu->GetMenu()
-      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
     }
   if (this->MapOutputVolumePrefixEntry)
     {
@@ -1206,45 +1155,62 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     this->GetLogic()->SaveImagesToDir(path, this->BundleNodeIDList[i].c_str(), "out", "nrrd");
     this->GetLogic()->RemoveObservers(vtkFourDAnalysisLogic::ProgressDialogEvent,  this->LogicCallbackCommand);
     }
-  else if (this->ForegroundSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
-      && event == vtkKWMenu::MenuItemInvokedEvent)
+  else if (this->ActiveSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+           && event == vtkKWMenu::MenuItemInvokedEvent)
     {
-    int i = this->ForegroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int i = this->ActiveSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
     const char* bundleID = this->BundleNodeIDList[i].c_str();
     vtkMRML4DBundleNode* bundleNode 
       = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
     if (bundleNode)
       {
+      // frame control
       bundleNode->SwitchDisplayBuffer(0, volume);
-      }
-    //SetForeground(this->BundleNodeIDList[i].c_str(), volume);
-    }
-  else if (this->BackgroundSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
-      && event == vtkKWMenu::MenuItemInvokedEvent)
-    {
-    int i = this->BackgroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
-    int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
-    const char* bundleID = this->BundleNodeIDList[i].c_str();
-    vtkMRML4DBundleNode* bundleNode 
-      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
-    if (bundleNode)
-      {
       bundleNode->SwitchDisplayBuffer(1, volume);
+
+      // plot
+      int n = bundleNode->GetNumberOfFrames();
+      this->CurveFittingStartIndexSpinBox->SetRange(0, n-1);
+      this->CurveFittingEndIndexSpinBox->SetRange(0, n-1);
+      this->CurveFittingStartIndexSpinBox->SetValue(0);
+      this->CurveFittingStartIndexSpinBox->Modified();
+      this->CurveFittingEndIndexSpinBox->SetValue(n-1);
+      this->CurveFittingEndIndexSpinBox->Modified();
+
+      // set spin box ranges for 3D map generation
+      vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
+      if (volumeNode)
+        {
+        vtkImageData* imageData = volumeNode->GetImageData();
+        int* dimensions = imageData->GetDimensions();
+        
+        this->MapIMinSpinBox->SetRange(0, dimensions[0]-1);
+        this->MapIMinSpinBox->SetValue(0);
+        this->MapIMaxSpinBox->SetRange(0, dimensions[0]-1);
+        this->MapIMaxSpinBox->SetValue(dimensions[0]-1);
+        this->MapJMinSpinBox->SetRange(0, dimensions[1]-1);
+        this->MapJMinSpinBox->SetValue(0);
+        this->MapJMaxSpinBox->SetRange(0, dimensions[1]-1);
+        this->MapJMaxSpinBox->SetValue(dimensions[1]-1);
+        this->MapKMinSpinBox->SetRange(0, dimensions[2]-1);
+        this->MapKMinSpinBox->SetValue(0);
+        this->MapKMaxSpinBox->SetRange(0, dimensions[2]-1);
+        this->MapKMaxSpinBox->SetValue(dimensions[2]-1);
+        }
       }
-    //SetBackground(this->BundleNodeIDList[i].c_str(), volume);
     }
   else if (this->ForegroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
       && event == vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/)
     {
-    int i = this->ForegroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int i = this->ActiveSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int volume = (int)this->ForegroundVolumeSelectorScale->GetValue();
     SetForeground(this->BundleNodeIDList[i].c_str(), volume);
     }
   else if (this->BackgroundVolumeSelectorScale == vtkKWScaleWithEntry::SafeDownCast(caller)
       && event == vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/ )
     {
-    int i = this->BackgroundSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int i = this->ActiveSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int volume = (int)this->BackgroundVolumeSelectorScale->GetValue();
     SetBackground(this->BundleNodeIDList[i].c_str(), volume);
     }
@@ -1266,21 +1232,6 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     this->ThresholdLower  = thlow; 
     SetWindowLevelForCurrentFrame();
     }
-  else if (this->SeriesToPlotMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
-      && event == vtkKWMenu::MenuItemInvokedEvent)
-    {
-    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
-    const char* bundleID = this->BundleNodeIDList[series].c_str();
-    vtkMRML4DBundleNode* bundleNode 
-      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
-    int n = bundleNode->GetNumberOfFrames();
-    this->CurveFittingStartIndexSpinBox->SetRange(0, n-1);
-    this->CurveFittingEndIndexSpinBox->SetRange(0, n-1);
-    this->CurveFittingStartIndexSpinBox->SetValue(0);
-    this->CurveFittingStartIndexSpinBox->Modified();
-    this->CurveFittingEndIndexSpinBox->SetValue(n-1);
-    this->CurveFittingEndIndexSpinBox->Modified();
-    }
   else if (this->MaskSelectMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
       && event == vtkKWMenu::MenuItemInvokedEvent)
     {
@@ -1292,7 +1243,7 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
   else if (this->RunPlotButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
-    int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
+    int series   = this->ActiveSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     const char* maskID   = this->MaskNodeIDList[selected].c_str();
     const char* bundleID = this->BundleNodeIDList[series].c_str();
@@ -1398,7 +1349,6 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
     {
     const char* filename = (const char*)callData;
-    //int series   = this->SeriesToPlotMenu->GetMenu()->GetIndexOfSelectedItem();
     int selected = this->MaskSelectMenu->GetMenu()->GetIndexOfSelectedItem();
     //int label = (int)this->MaskSelectSpinBox->GetValue();
     //const char* nodeID = this->MaskNodeIDList[selected].c_str();
@@ -1422,41 +1372,12 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
     {
     }
-  else if (this->MapInputSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
-           && event == vtkKWMenu::MenuItemInvokedEvent)
-    {
-    int i = this->MapInputSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
-    const char* bundleID = this->BundleNodeIDList[i].c_str();
-    vtkMRML4DBundleNode* bundleNode 
-      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
-
-    // set spin box ranges
-    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
-    if (volumeNode)
-      {
-      vtkImageData* imageData = volumeNode->GetImageData();
-      int* dimensions = imageData->GetDimensions();
-
-      this->MapIMinSpinBox->SetRange(0, dimensions[0]-1);
-      this->MapIMinSpinBox->SetValue(0);
-      this->MapIMaxSpinBox->SetRange(0, dimensions[0]-1);
-      this->MapIMaxSpinBox->SetValue(dimensions[0]-1);
-      this->MapJMinSpinBox->SetRange(0, dimensions[1]-1);
-      this->MapJMinSpinBox->SetValue(0);
-      this->MapJMaxSpinBox->SetRange(0, dimensions[1]-1);
-      this->MapJMaxSpinBox->SetValue(dimensions[1]-1);
-      this->MapKMinSpinBox->SetRange(0, dimensions[2]-1);
-      this->MapKMinSpinBox->SetValue(0);
-      this->MapKMaxSpinBox->SetRange(0, dimensions[2]-1);
-      this->MapKMaxSpinBox->SetValue(dimensions[2]-1);
-      }
-    }
   else if (this->RunScriptButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
     const char* prefix   = this->MapOutputVolumePrefixEntry->GetValue();
     const char* filename = this->ScriptSelectButton->GetWidget()->GetFileName();
-    int i = this->MapInputSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int i = this->ActiveSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     const char* bundleID = this->BundleNodeIDList[i].c_str();
 
     int imin = (int)this->MapIMinSpinBox->GetValue();
@@ -1750,7 +1671,6 @@ void vtkFourDAnalysisGUI::BuildGUI ( )
   BuildGUIForLoadFrame(1);
   BuildGUIForFrameControlFrame(0);
   BuildGUIForFunctionViewer(0);
-  BuildGUIForMapGenerator(0);
   BuildGUIForCroppingFrame(0);
   BuildGUIForRegistrationFrame(0);
 
@@ -1788,7 +1708,7 @@ void vtkFourDAnalysisGUI::BuildGUIForLoadFrame (int show)
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Load / Save");
+  conBrowsFrame->SetLabelText("Load / Save / Active Series");
   if (!show)
     {
     conBrowsFrame->CollapseFrame();
@@ -1797,7 +1717,7 @@ void vtkFourDAnalysisGUI::BuildGUIForLoadFrame (int show)
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Select File Frame
+  // Input File Frame
   vtkKWFrameWithLabel *inFrame = vtkKWFrameWithLabel::New();
   inFrame->SetParent(conBrowsFrame->GetFrame());
   inFrame->Create();
@@ -1830,7 +1750,7 @@ void vtkFourDAnalysisGUI::BuildGUIForLoadFrame (int show)
                this->LoadImageButton->GetWidgetName());
 
   // -----------------------------------------
-  // Select File Frame
+  // Output File Frame
 
   vtkKWFrameWithLabel *outFrame = vtkKWFrameWithLabel::New();
   outFrame->SetParent(conBrowsFrame->GetFrame());
@@ -1864,9 +1784,29 @@ void vtkFourDAnalysisGUI::BuildGUIForLoadFrame (int show)
                this->SelectOutputDirectoryButton->GetWidgetName(),
                this->SaveImageButton->GetWidgetName());
 
+
+  // -----------------------------------------
+  // Active Series
+
+  vtkKWFrameWithLabel *activeFrame = vtkKWFrameWithLabel::New();
+  activeFrame->SetParent(conBrowsFrame->GetFrame());
+  activeFrame->Create();
+  activeFrame->SetLabelText ("Active Series");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 activeFrame->GetWidgetName() );
+
+  this->ActiveSeriesMenu = vtkKWMenuButton::New();
+  this->ActiveSeriesMenu->SetParent(activeFrame->GetFrame());
+  this->ActiveSeriesMenu->Create();
+  this->ActiveSeriesMenu->SetWidth(10);
+  
+  this->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
+               this->ActiveSeriesMenu->GetWidgetName());
+
   conBrowsFrame->Delete();
   inFrame->Delete();
   outFrame->Delete();
+  activeFrame->Delete();
 }
 
 
@@ -1898,48 +1838,6 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
   fframe->SetLabelText ("Frame");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  fframe->GetWidgetName() );
-  
-  vtkKWFrame *mframe = vtkKWFrame::New();
-  mframe->SetParent(fframe->GetFrame());
-  mframe->Create();
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 mframe->GetWidgetName() );
-  
-  vtkKWLabel *fgLabel = vtkKWLabel::New();
-  fgLabel->SetParent(mframe);
-  fgLabel->Create();
-  fgLabel->SetText("FG: ");
-
-  this->ForegroundSeriesMenu = vtkKWMenuButton::New();
-  this->ForegroundSeriesMenu->SetParent(mframe);
-  this->ForegroundSeriesMenu->Create();
-  this->ForegroundSeriesMenu->SetWidth(10);
-  /*
-  this->ForegroundSeriesMenu->GetMenu()->AddRadioButton("Original");
-  this->ForegroundSeriesMenu->GetMenu()->AddRadioButton("Registered");
-  this->ForegroundSeriesMenu->SetValue("Original");
-  */
-
-  vtkKWLabel *bgLabel = vtkKWLabel::New();
-  bgLabel->SetParent(mframe);
-  bgLabel->Create();
-  bgLabel->SetText("BG: ");
-
-  this->BackgroundSeriesMenu = vtkKWMenuButton::New();
-  this->BackgroundSeriesMenu->SetParent(mframe);
-  this->BackgroundSeriesMenu->Create();
-  this->BackgroundSeriesMenu->SetWidth(10);
-  /*
-  this->BackgroundSeriesMenu->GetMenu()->AddRadioButton("Original");
-  this->BackgroundSeriesMenu->GetMenu()->AddRadioButton("Registered");
-  this->BackgroundSeriesMenu->SetValue("Original");
-  */
-
-  this->Script("pack %s %s %s %s -side left -fill x -padx 2 -pady 2", 
-               fgLabel->GetWidgetName(),
-               this->ForegroundSeriesMenu->GetWidgetName(),
-               bgLabel->GetWidgetName(),
-               this->BackgroundSeriesMenu->GetWidgetName());
   
   vtkKWFrame *sframe = vtkKWFrame::New();
   sframe->SetParent(fframe->GetFrame());
@@ -2037,10 +1935,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
 
   conBrowsFrame->Delete();
   fframe->Delete();
-  mframe->Delete();
   sframe->Delete();
-  fgLabel->Delete();
-  bgLabel->Delete();
 
 }
 
@@ -2055,7 +1950,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Function Viewer");
+  conBrowsFrame->SetLabelText("Curve Fitting / Parameter Map");
   if (!show)
     {
     conBrowsFrame->CollapseFrame();
@@ -2072,26 +1967,6 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   msframe->SetLabelText ("Mask Selector");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  msframe->GetWidgetName() );
-
-  vtkKWFrame* sframe = vtkKWFrame::New();
-  sframe->SetParent(msframe->GetFrame());
-  sframe->Create();
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 sframe->GetWidgetName() );
-  
-  vtkKWLabel *seriesLabel = vtkKWLabel::New();
-  seriesLabel->SetParent(sframe);
-  seriesLabel->Create();
-  seriesLabel->SetText("Series: ");
-
-  this->SeriesToPlotMenu = vtkKWMenuButton::New();
-  this->SeriesToPlotMenu->SetParent(sframe);
-  this->SeriesToPlotMenu->Create();
-  this->SeriesToPlotMenu->SetWidth(20);
-
-  this->Script("pack %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
-               seriesLabel->GetWidgetName(),
-               this->SeriesToPlotMenu->GetWidgetName());
 
   vtkKWFrame* mframe = vtkKWFrame::New();
   mframe->SetParent(msframe->GetFrame());
@@ -2119,6 +1994,10 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
                menuLabel->GetWidgetName(),
                this->MaskSelectMenu->GetWidgetName(),
                this->RunPlotButton->GetWidgetName());
+
+  msframe->Delete();
+  menuLabel->Delete();
+
   
   // -----------------------------------------
   // Plot frame
@@ -2150,100 +2029,87 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
                this->IntensityPlot->GetWidgetName(),
                this->ErrorBarCheckButton->GetWidgetName());
 
+  frame->Delete();
+
   // -----------------------------------------
-  // Curve fitting frame
+  // Curve fitting Setting frame
   
   vtkKWFrameWithLabel *cframe = vtkKWFrameWithLabel::New();
   cframe->SetParent(conBrowsFrame->GetFrame());
   cframe->Create();
-  cframe->SetLabelText ("Curve Fitting");
+  cframe->SetLabelText ("Curve Fitting Configuration");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  cframe->GetWidgetName() );
 
-  vtkKWFrame* scriptFrame = vtkKWFrame::New();
-  scriptFrame->SetParent(cframe->GetFrame());
-  scriptFrame->Create();
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 scriptFrame->GetWidgetName() );
-
-  vtkKWLabel *fittingLabelLabel = vtkKWLabel::New();
-  fittingLabelLabel->SetParent(scriptFrame);
-  fittingLabelLabel->Create();
-  fittingLabelLabel->SetText("Label:");
-
-  this->FittingLabelMenu = vtkKWMenuButton::New();
-  this->FittingLabelMenu->SetParent(scriptFrame);
-  this->FittingLabelMenu->Create();
-  this->FittingLabelMenu->SetWidth(5);
-
   vtkKWLabel *scriptLabel = vtkKWLabel::New();
-  scriptLabel->SetParent(scriptFrame);
+  scriptLabel->SetParent(cframe->GetFrame());
   scriptLabel->Create();
   scriptLabel->SetText("Script:");
 
   this->CurveScriptSelectButton = vtkKWLoadSaveButtonWithLabel::New();
-  this->CurveScriptSelectButton->SetParent(scriptFrame);
+  this->CurveScriptSelectButton->SetParent(cframe->GetFrame());
   this->CurveScriptSelectButton->Create();
   this->CurveScriptSelectButton->SetWidth(50);
   this->CurveScriptSelectButton->GetWidget()->SetText ("Load");
   this->CurveScriptSelectButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOff();
 
-  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
-               fittingLabelLabel->GetWidgetName(),
-               this->FittingLabelMenu->GetWidgetName(),
-               scriptLabel->GetWidgetName(),
-               this->CurveScriptSelectButton->GetWidgetName());
-
-  vtkKWFrame* rangeFrame = vtkKWFrame::New();
-  rangeFrame->SetParent(cframe->GetFrame());
-  rangeFrame->Create();
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 rangeFrame->GetWidgetName() );
-
   vtkKWLabel *startLabel = vtkKWLabel::New();
-  startLabel->SetParent(rangeFrame);
+  startLabel->SetParent(cframe->GetFrame());
   startLabel->Create();
   startLabel->SetText("From:");
   
   this->CurveFittingStartIndexSpinBox = vtkKWSpinBox::New();
-  this->CurveFittingStartIndexSpinBox->SetParent(rangeFrame);
+  this->CurveFittingStartIndexSpinBox->SetParent(cframe->GetFrame());
   this->CurveFittingStartIndexSpinBox->Create();
   this->CurveFittingStartIndexSpinBox->SetWidth(3);
 
   vtkKWLabel *endLabel = vtkKWLabel::New();
-  endLabel->SetParent(rangeFrame);
+  endLabel->SetParent(cframe->GetFrame());
   endLabel->Create();
   endLabel->SetText("to:");
 
   this->CurveFittingEndIndexSpinBox = vtkKWSpinBox::New();
-  this->CurveFittingEndIndexSpinBox->SetParent(rangeFrame);
+  this->CurveFittingEndIndexSpinBox->SetParent(cframe->GetFrame());
   this->CurveFittingEndIndexSpinBox->Create();
   this->CurveFittingEndIndexSpinBox->SetWidth(3);
 
-  this->RunFittingButton = vtkKWPushButton::New();
-  this->RunFittingButton->SetParent(rangeFrame);
-  this->RunFittingButton->Create();
-  this->RunFittingButton->SetText ("Run");
-  this->RunFittingButton->SetWidth (4);
-  
-  this->Script("pack %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+  this->Script("pack %s %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
+               scriptLabel->GetWidgetName(),
+               this->CurveScriptSelectButton->GetWidgetName(),
                startLabel->GetWidgetName(),
                this->CurveFittingStartIndexSpinBox->GetWidgetName(),
                endLabel->GetWidgetName(),
-               this->CurveFittingEndIndexSpinBox->GetWidgetName(),
-               this->RunFittingButton->GetWidgetName());
-  
+               this->CurveFittingEndIndexSpinBox->GetWidgetName());
+
+  scriptLabel->Delete();
+
 
   // -----------------------------------------
-  // Output frame
+  // Single curve fitting
   
   vtkKWFrameWithLabel *oframe = vtkKWFrameWithLabel::New();
   oframe->SetParent(conBrowsFrame->GetFrame());
   oframe->Create();
-  oframe->SetLabelText ("Output");
+  oframe->SetLabelText ("Single Curve Fitting");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  oframe->GetWidgetName() );
 
+  vtkKWLabel *fittingLabelLabel = vtkKWLabel::New();
+  fittingLabelLabel->SetParent(oframe->GetFrame());
+  fittingLabelLabel->Create();
+  fittingLabelLabel->SetText("Label:");
+
+  this->FittingLabelMenu = vtkKWMenuButton::New();
+  this->FittingLabelMenu->SetParent(oframe->GetFrame());
+  this->FittingLabelMenu->Create();
+  this->FittingLabelMenu->SetWidth(5);
+
+  this->RunFittingButton = vtkKWPushButton::New();
+  this->RunFittingButton->SetParent(oframe->GetFrame());
+  this->RunFittingButton->Create();
+  this->RunFittingButton->SetText ("Run");
+  this->RunFittingButton->SetWidth (4);
+  
   this->SavePlotButton = vtkKWLoadSaveButtonWithLabel::New();
   this->SavePlotButton->SetParent(oframe->GetFrame());
   this->SavePlotButton->Create();
@@ -2252,41 +2118,18 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOn();
   //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SetDefaultExtension(".csv");
 
-  this->Script("pack %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+               fittingLabelLabel->GetWidgetName(),
+               this->FittingLabelMenu->GetWidgetName(),
+               this->RunFittingButton->GetWidgetName(),
                this->SavePlotButton->GetWidgetName());
 
-  conBrowsFrame->Delete();
-  msframe->Delete();
-  menuLabel->Delete();
-  frame->Delete();
   oframe->Delete();
   fittingLabelLabel->Delete();
-  scriptLabel->Delete();
 
-}
-
-
-//---------------------------------------------------------------------------
-void vtkFourDAnalysisGUI::BuildGUIForMapGenerator(int show)
-{
-
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("FourDAnalysis");
-  
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Map Generator");
-  if (!show)
-    {
-    conBrowsFrame->CollapseFrame();
-    }
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Node Selector
+  // Parameter Map
 
   vtkKWFrameWithLabel *dframe = vtkKWFrameWithLabel::New();
   dframe->SetParent(conBrowsFrame->GetFrame());
@@ -2294,40 +2137,6 @@ void vtkFourDAnalysisGUI::BuildGUIForMapGenerator(int show)
   dframe->SetLabelText ("Generate Map");
   this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                 dframe->GetWidgetName() );
-
-  vtkKWFrame *inputFrame = vtkKWFrame::New();
-  inputFrame->SetParent(dframe->GetFrame());
-  inputFrame->Create();
-  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                inputFrame->GetWidgetName() );
-
-  vtkKWLabel *inputLabel = vtkKWLabel::New();
-  inputLabel->SetParent(inputFrame);
-  inputLabel->Create();
-  inputLabel->SetText("Input:");
-
-  this->MapInputSeriesMenu = vtkKWMenuButton::New();
-  this->MapInputSeriesMenu->SetParent(inputFrame);
-  this->MapInputSeriesMenu->Create();
-  this->MapInputSeriesMenu->SetWidth(20);
-
-  vtkKWLabel *scriptLabel = vtkKWLabel::New();
-  scriptLabel->SetParent(inputFrame);
-  scriptLabel->Create();
-  scriptLabel->SetText("Script:");
-
-  this->ScriptSelectButton = vtkKWLoadSaveButtonWithLabel::New();
-  this->ScriptSelectButton->SetParent(inputFrame);
-  this->ScriptSelectButton->Create();
-  this->ScriptSelectButton->SetWidth(50);
-  this->ScriptSelectButton->GetWidget()->SetText ("Load");
-  this->ScriptSelectButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOff();
-
-  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
-               inputLabel->GetWidgetName(),
-               this->MapInputSeriesMenu->GetWidgetName(),
-               scriptLabel->GetWidgetName(),
-               this->ScriptSelectButton->GetWidgetName());
 
   // i range
 
@@ -2481,7 +2290,7 @@ void vtkFourDAnalysisGUI::BuildGUIForMapGenerator(int show)
   vtkKWLabel *outputLabel = vtkKWLabel::New();
   outputLabel->SetParent(outputFrame);
   outputLabel->Create();
-  outputLabel->SetText(" Output prefix:");
+  outputLabel->SetText("Output prefix:");
   
   this->MapOutputVolumePrefixEntry = vtkKWEntry::New();
   this->MapOutputVolumePrefixEntry->SetParent(outputFrame);
@@ -2492,41 +2301,19 @@ void vtkFourDAnalysisGUI::BuildGUIForMapGenerator(int show)
   this->RunScriptButton = vtkKWPushButton::New();
   this->RunScriptButton->SetParent(outputFrame);
   this->RunScriptButton->Create();
-  this->RunScriptButton->SetText ("Run Script");
+  this->RunScriptButton->SetText ("Run");
   this->RunScriptButton->SetWidth (10);
   
   this->Script("pack %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                outputLabel->GetWidgetName(),
                this->MapOutputVolumePrefixEntry->GetWidgetName(),
                this->RunScriptButton->GetWidgetName());
-/*
-  MapOutputSelector = vtkSlicerNodeSelectorWidget::New();
-  MapOutputSelector->ShowHiddenOn();
-  MapOutputSelector->SetNodeClass("vtkMRMLScalarVolumeNode", "Volume", title.c_str(), title.c_str());
-  MapOutputSelector->SetNewNodeEnabled(1);
-  MapOutputSelector->SetParent( moduleFrame->GetFrame() );
-  MapOutputSelector->Create();
-  MapOutputSelector->SetMRMLScene(this->Logic->GetMRMLScene());
-  MapOutputSelector->SetSelected(NULL);  // force empt select
-  MapOutputSelector->SetBorderWidth(2);
-  MapOutputSelector->SetReliefToFlat();
-  MapOutputSelector->SetLabelText( "Parameter set");
-  std::string nodeSelectorBalloonHelp = "select an output volume node from the current mrml scene.";
-  MapOutputSelector->SetBalloonHelpString(nodeSelectorBalloonHelp.c_str());
-  */
-
-  /*
-  this->MapOutputVolumeMenu = vtkKWMenuButton::New();
-  this->MapOutputVolumeMenu->SetParent(dframe->GetFrame());
-  this->MapOutputVolumeMenu->Create();
-  this->MapOutputVolumeMenu->SetWidth(20);
-  */
 
   dframe->Delete();
-  inputFrame->Delete();
   outputFrame->Delete();
-  inputLabel->Delete();
   outputLabel->Delete();
+
+  conBrowsFrame->Delete();
 
 }
 
@@ -2558,7 +2345,6 @@ void vtkFourDAnalysisGUI::BuildGUIForCroppingFrame(int show)
                  cframe->GetWidgetName() );
 
   // Series menu
-
   vtkKWFrame *dframe = vtkKWFrame::New();
   dframe->SetParent(cframe->GetFrame());
   dframe->Create();
@@ -2856,6 +2642,9 @@ void vtkFourDAnalysisGUI::BuildGUIForRegistrationFrame(int show)
                this->RegistrationEndIndexSpinBox->GetWidgetName(),
                this->StartRegistrationButton->GetWidgetName());
   
+  eframe->Delete();
+  
+
   // -----------------------------------------
   // Parameter Frame
   
@@ -2946,7 +2735,6 @@ void vtkFourDAnalysisGUI::BuildGUIForRegistrationFrame(int show)
                this->HistogramBinsEntry->GetWidgetName(),
                this->SpatialSamplesEntry->GetWidgetName());
 
-  eframe->Delete();
   fromLabel->Delete();
   toLabel->Delete();
   pframe->Delete();
@@ -3131,15 +2919,11 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
     names.push_back((*niter)->GetName());
     }
 
-  if (this->ForegroundSeriesMenu && this->BackgroundSeriesMenu
-      && this->SeriesToPlotMenu && this->MapInputSeriesMenu
+  if (this->ActiveSeriesMenu 
       && this->InputSeriesMenu && this->OutputSeriesMenu
       && this->SaveSeriesMenu && this->CropSeriesMenu)
     {
-    this->ForegroundSeriesMenu->GetMenu()->DeleteAllItems();
-    this->BackgroundSeriesMenu->GetMenu()->DeleteAllItems();
-    this->SeriesToPlotMenu->GetMenu()->DeleteAllItems();
-    this->MapInputSeriesMenu->GetMenu()->DeleteAllItems();
+    this->ActiveSeriesMenu->GetMenu()->DeleteAllItems();
     this->InputSeriesMenu->GetMenu()->DeleteAllItems();
     this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
     this->SaveSeriesMenu->GetMenu()->DeleteAllItems();
@@ -3148,10 +2932,7 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
     std::vector<std::string>::iterator siter;
     for (siter = names.begin(); siter != names.end(); siter ++)
       {
-      this->ForegroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
-      this->BackgroundSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
-      this->SeriesToPlotMenu->GetMenu()->AddRadioButton((*siter).c_str());
-      this->MapInputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
+      this->ActiveSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->SaveSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
