@@ -39,51 +39,67 @@ from numpy import r_
 
 class CurveFittingKetyModel(CurveAnalysisBase):
 
+
     # ------------------------------
     # Constructor -- Set initial parameters
     def __init__(self):
         self.OptimParamNameList = ['Ktrans', 'vp', 've']
-        #self.InitialOptimParam  = [0.2, 1.0, 1.0] 
-        self.InitialOptimParam  = [0.015, 0.12, 0.12] 
+        self.InitialOptimParam  = [0.1, 0.2, 0.01] 
+        #self.InitialOptimParam  = [0.015, 0.12, 0.12] 
         #self.InitialOptimParam  = [0.05, 0.2, 0.2] 
 
-        self.AifTime = r_[0:30]
-        self.AifData = r_[40.1429,
-                          43.1039,
-                          41.7273,
-                          474.117,
-                          743.247,
-                          819.422,
-                          785.175,
-                          776.857,
-                          593.701,
-                          481.416,
-                          312.636,
-                          277.273,
-                          339.195,
-                          423.636,
-                          486.792,
-                          538.506,
-                          552.182,
-                          549.955,
-                          537.052,
-                          508.961,
-                          483.825,
-                          493.701,
-                          505.247,
-                          460.688,
-                          496.831,
-                          513.864,
-                          464.006,
-                          470.487,
-                          479.468,
-                          465.305]
+        self.InputCurveNameList = ['AIF']
 
+        self.AifTime = r_[0:33]
+        self.AifData = array(
+            [r_[0:33],
+             [36.7619,
+              37.5714,
+              38.3333,
+              38.1905,
+              38.2857,
+              38.381 ,
+              38.8095,
+              33.0476,
+              51.1429,
+              240.286,
+              403.667,
+              428.857,
+              408.905,
+              383.476,
+              335.333,
+              288.667,
+              269.952,
+              262.81 ,
+              276.333,
+              291.095,
+              288.571,
+              286    ,
+              274.381,
+              260.81 ,
+              272    ,
+              269.19 ,
+              278.238,
+              272.905,
+              271.952,
+              266.095,
+              260.952,
+              263.714,
+              250.476]])
+        
         self.tck = splrep(self.AifTime, self.AifData, s=0)
         #self.dt = 0.001
         #self.AifTime2 = r_[0:30:self.dt]
         #self.AifTable = splev(self.AifTime2, self.tck, der=0)
         #print 'done.'
+        
+    # ------------------------------
+    # Generate arteral input function from given data
+    def SetInputData(self, name, curve):
+        if name == 'AIF':
+            self.AifTime = curve[0]
+            self.AifData = curve[1]
+            self.tck = splrep(self.AifTime, self.AifData, s=0)
         
     # ------------------------------
     # Arteral input function (AIF)

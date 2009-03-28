@@ -34,6 +34,7 @@ import scipy.optimize
 class CurveAnalysisBase(object):
     OptimParamNameList    = []
     InitialOptimParam     = []
+    InputCurveNameList    = []
     
     OptimParam        = []
     CovarianceMatrix  = []
@@ -48,9 +49,12 @@ class CurveAnalysisBase(object):
     def ResidualError(self, param, y, x):
         err = y - (self.Function(x, param))
         return err
-    
+
     def GetOptimParamNameList(self):
         return self.OptimParamNameList
+
+    def GetInputCurveNameList(self):
+        return self.InputCurveNameList
 
     def GetOutputParamNameList(self):
         dict = self.CalcOutputParam(self.InitialOptimParam)
@@ -64,6 +68,9 @@ class CurveAnalysisBase(object):
 
     def GetInitialOptimParam(self):
         return self.InitialOptimParam
+
+    def SetInputCurve(self, name, curve):
+        return 0
     
     def GetOptimParam(self):
         return self.OptimParam
@@ -75,7 +82,6 @@ class CurveAnalysisBase(object):
         self.SourceCurve = sourceCurve
 
     def Execute(self):
-
         x      = self.SourceCurve[:, 0]
         y_meas = self.SourceCurve[:, 1]
 
@@ -134,6 +140,28 @@ class CurveAnalysisExecuter(object):
         finally:
             if fp:
                 fp.close()
+
+
+    # ------------------------------
+    # Get Input Curve Name List
+    def GetInputCurveNames(self):
+        exec('fitting = self.Module.' + self.ModuleName + '()')
+        list =  fitting.GetInputCurveNameList()
+        for i in list:
+            sys.stderr.write('name     : %s\n' % i )
+        return list
+        
+    # ------------------------------
+    # Get Initial Optimization Parameter List
+    def GetInitialOptimParams(self):
+        exec('fitting = self.Module.' + self.ModuleName + '()')
+        names  = fitting.GetOptimParamNameList()
+        values = fitting.GetInitialOptimParam()
+        n = len(names)
+        params = {}
+        for i in range(n):
+            params[names[i]] = values[i]
+        return params
 
     # ------------------------------
     # Get Output Parameter Name List

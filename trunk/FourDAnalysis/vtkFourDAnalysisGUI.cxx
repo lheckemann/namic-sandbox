@@ -142,7 +142,6 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->MapKMinSpinBox     = NULL;
   this->MapKMaxSpinBox     = NULL;
 
-  this->CropSeriesMenu      = NULL;
   this->StartCroppingButton = NULL;
   this->CropIMinSpinBox     = NULL;
   this->CropIMaxSpinBox     = NULL;
@@ -371,11 +370,6 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->MapKMaxSpinBox->Delete();
     }
 
-  if (this->CropSeriesMenu)
-    {
-    this->CropSeriesMenu->SetParent(NULL);
-    this->CropSeriesMenu->Delete();
-    }
   if (this->StartCroppingButton)
     {
     this->StartCroppingButton->SetParent(NULL);
@@ -650,11 +644,6 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->CropSeriesMenu)
-    {
-    this->CropSeriesMenu
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
   if (this->StartCroppingButton)
     {
     this->StartCroppingButton
@@ -935,11 +924,6 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
       ->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->CropSeriesMenu)
-    {
-    this->CropSeriesMenu->GetMenu()
-      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-    }
   if (this->StartCroppingButton)
     {
     this->StartCroppingButton
@@ -1163,13 +1147,14 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       this->CurveFittingEndIndexSpinBox->SetValue(n-1);
       this->CurveFittingEndIndexSpinBox->Modified();
 
-      // set spin box ranges for 3D map generation
+      // set spin box ranges for 3D map generation and cropping
       vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
       if (volumeNode)
         {
         vtkImageData* imageData = volumeNode->GetImageData();
         int* dimensions = imageData->GetDimensions();
-        
+
+        // Map
         this->MapIMinSpinBox->SetRange(0, dimensions[0]-1);
         this->MapIMinSpinBox->SetValue(0);
         this->MapIMaxSpinBox->SetRange(0, dimensions[0]-1);
@@ -1182,6 +1167,20 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
         this->MapKMinSpinBox->SetValue(0);
         this->MapKMaxSpinBox->SetRange(0, dimensions[2]-1);
         this->MapKMaxSpinBox->SetValue(dimensions[2]-1);
+
+        // Cropping
+        this->CropIMinSpinBox->SetRange(0, dimensions[0]-1);
+        this->CropIMinSpinBox->SetValue(0);
+        this->CropIMaxSpinBox->SetRange(0, dimensions[0]-1);
+        this->CropIMaxSpinBox->SetValue(dimensions[0]-1);
+        this->CropJMinSpinBox->SetRange(0, dimensions[1]-1);
+        this->CropJMinSpinBox->SetValue(0);
+        this->CropJMaxSpinBox->SetRange(0, dimensions[1]-1);
+        this->CropJMaxSpinBox->SetValue(dimensions[1]-1);
+        this->CropKMinSpinBox->SetRange(0, dimensions[2]-1);
+        this->CropKMinSpinBox->SetValue(0);
+        this->CropKMaxSpinBox->SetRange(0, dimensions[2]-1);
+        this->CropKMaxSpinBox->SetValue(dimensions[2]-1);
         }
       }
     }
@@ -1384,42 +1383,11 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
                                              imin, imax, jmin, jmax, kmin, kmax);
       }
     }
-  else if (this->CropSeriesMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
-           && event == vtkKWMenu::MenuItemInvokedEvent)
-    {
-    int i = this->CropSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
-    const char* bundleID = this->BundleNodeIDList[i].c_str();
-    vtkMRML4DBundleNode* bundleNode 
-      = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
-
-    // set spin box ranges
-    vtkMRMLScalarVolumeNode* volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(bundleNode->GetFrameNode(0));
-    if (volumeNode)
-      {
-      vtkImageData* imageData = volumeNode->GetImageData();
-      int* dimensions = imageData->GetDimensions();
-
-      this->CropIMinSpinBox->SetRange(0, dimensions[0]-1);
-      this->CropIMinSpinBox->SetValue(0);
-      this->CropIMaxSpinBox->SetRange(0, dimensions[0]-1);
-      this->CropIMaxSpinBox->SetValue(dimensions[0]-1);
-
-      this->CropJMinSpinBox->SetRange(0, dimensions[1]-1);
-      this->CropJMinSpinBox->SetValue(0);
-      this->CropJMaxSpinBox->SetRange(0, dimensions[1]-1);
-      this->CropJMaxSpinBox->SetValue(dimensions[1]-1);
-
-      this->CropKMinSpinBox->SetRange(0, dimensions[2]-1);
-      this->CropKMinSpinBox->SetValue(0);
-      this->CropKMaxSpinBox->SetRange(0, dimensions[2]-1);
-      this->CropKMaxSpinBox->SetValue(dimensions[2]-1);
-      }
-    }
   else if (this->StartCroppingButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
 
-    int i = this->CropSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
+    int i = this->ActiveSeriesMenu->GetMenu()->GetIndexOfSelectedItem();
     const char* bundleID = this->BundleNodeIDList[i].c_str();
 
     int imin = (int)this->CropIMinSpinBox->GetValue();
@@ -1951,7 +1919,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   vtkKWFrameWithLabel *msframe = vtkKWFrameWithLabel::New();
   msframe->SetParent(conBrowsFrame->GetFrame());
   msframe->Create();
-  msframe->SetLabelText ("Mask Selector");
+  msframe->SetLabelText ("Plot curves");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  msframe->GetWidgetName() );
 
@@ -1977,10 +1945,19 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   this->RunPlotButton->SetText ("Plot");
   this->RunPlotButton->SetWidth (4);
 
-  this->Script("pack %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->SavePlotButton = vtkKWLoadSaveButtonWithLabel::New();
+  this->SavePlotButton->SetParent(oframe->GetFrame());
+  this->SavePlotButton->Create();
+  this->SavePlotButton->SetWidth(50);
+  this->SavePlotButton->GetWidget()->SetText ("Save");
+  this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOn();
+  //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SetDefaultExtension(".csv");
+
+  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                menuLabel->GetWidgetName(),
                this->MaskSelectMenu->GetWidgetName(),
-               this->RunPlotButton->GetWidgetName());
+               this->RunPlotButton->GetWidgetName(),
+               this->SavePlotButton->GetWidgetName());
 
   msframe->Delete();
   menuLabel->Delete();
@@ -2097,19 +2074,10 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   this->RunFittingButton->SetText ("Run");
   this->RunFittingButton->SetWidth (4);
   
-  this->SavePlotButton = vtkKWLoadSaveButtonWithLabel::New();
-  this->SavePlotButton->SetParent(oframe->GetFrame());
-  this->SavePlotButton->Create();
-  this->SavePlotButton->SetWidth(50);
-  this->SavePlotButton->GetWidget()->SetText ("Save");
-  this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOn();
-  //this->SavePlotButton->GetWidget()->GetLoadSaveDialog()->SetDefaultExtension(".csv");
-
-  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2", 
                fittingLabelLabel->GetWidgetName(),
                this->FittingLabelMenu->GetWidgetName(),
-               this->RunFittingButton->GetWidgetName(),
-               this->SavePlotButton->GetWidgetName());
+               this->RunFittingButton->GetWidgetName());
 
   oframe->Delete();
   fittingLabelLabel->Delete();
@@ -2331,31 +2299,7 @@ void vtkFourDAnalysisGUI::BuildGUIForCroppingFrame(int show)
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  cframe->GetWidgetName() );
 
-  // Series menu
-  vtkKWFrame *dframe = vtkKWFrame::New();
-  dframe->SetParent(cframe->GetFrame());
-  dframe->Create();
-  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                dframe->GetWidgetName() );
-
-  vtkKWLabel *dlabel = vtkKWLabel::New();
-  dlabel->SetParent(dframe);
-  dlabel->Create();
-  dlabel->SetText("4D Bundle: ");
-
-  this->CropSeriesMenu = vtkKWMenuButton::New();
-  this->CropSeriesMenu->SetParent(dframe);
-  this->CropSeriesMenu->Create();
-  this->CropSeriesMenu->SetWidth(20);
-
-  this->Script("pack %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
-               dlabel->GetWidgetName(),
-               this->CropSeriesMenu->GetWidgetName());
-
-  dlabel->Delete();
-
   // i range
-
   vtkKWFrame *iframe = vtkKWFrame::New();
   iframe->SetParent(cframe->GetFrame());
   iframe->Create();
@@ -2908,13 +2852,12 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
 
   if (this->ActiveSeriesMenu 
       && this->InputSeriesMenu && this->OutputSeriesMenu
-      && this->SaveSeriesMenu && this->CropSeriesMenu)
+      && this->SaveSeriesMenu)
     {
     this->ActiveSeriesMenu->GetMenu()->DeleteAllItems();
     this->InputSeriesMenu->GetMenu()->DeleteAllItems();
     this->OutputSeriesMenu->GetMenu()->DeleteAllItems();
     this->SaveSeriesMenu->GetMenu()->DeleteAllItems();
-    this->CropSeriesMenu->GetMenu()->DeleteAllItems();
     
     std::vector<std::string>::iterator siter;
     for (siter = names.begin(); siter != names.end(); siter ++)
@@ -2923,7 +2866,6 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
       this->InputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->OutputSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       this->SaveSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
-      this->CropSeriesMenu->GetMenu()->AddRadioButton((*siter).c_str());
       }
     }
 
