@@ -326,7 +326,7 @@ void vtkMRML4DBundleNode::RemoveAllFrames()
 //----------------------------------------------------------------------------
 vtkMRMLNode* vtkMRML4DBundleNode::GetFrameNode(int i)
 {
-  if (i < 0 || i > this->FrameNodeIDList.size())
+  if (i < 0 || i >= this->FrameNodeIDList.size())
     {
     return NULL;
     }

@@ -116,18 +116,20 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
   void BuildGUIForLoadFrame(int show);
+  void BuildGUIForActiveBundleSelectorFrame();
   void BuildGUIForFrameControlFrame(int show);
   void BuildGUIForFunctionViewer(int show);
   //void BuildGUIForMapGenerator(int show);
   void BuildGUIForCroppingFrame(int show);
   void BuildGUIForRegistrationFrame(int show);
 
-
   //----------------------------------------------------------------
   // Update routines
   //----------------------------------------------------------------
 
   void UpdateAll();
+  void SelectActive4DBundle(vtkMRML4DBundleNode* bundleNode);
+
 
   //----------------------------------------------------------------
   // Viewer control
@@ -164,6 +166,10 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWLoadSaveButtonWithLabel* SelectOutputDirectoryButton;
   vtkKWPushButton*              SaveImageButton;
   vtkKWMenuButton*              ActiveSeriesMenu;
+
+  // -----------------------------------------
+  // Active 4D Bundle selector
+  vtkSlicerNodeSelectorWidget*  Active4DBundleSelectorWidget;
 
   // -----------------------------------------
   // Frame control
