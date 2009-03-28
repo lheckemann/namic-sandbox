@@ -30,6 +30,8 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLCurveAnalysisNode : public vtkMRMLNode
  public:
   //BTX
   typedef std::map<std::string, double> OutputParameterMapType;
+  typedef std::map<std::string, vtkDoubleArray*> InputDataMapType;
+  typedef std::map<std::string, double> InitialOptimParameterMapType;
   //ETX
 
   public:
@@ -71,10 +73,24 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLCurveAnalysisNode : public vtkMRMLNode
     return this->FunctionName.c_str();
   }
 
+  // Input curve data
+  void SetInputData(const char* name, vtkDoubleArray* data=NULL);
+  vtkDoubleArray* GetInputData(const char* name);
+  vtkStringArray* GetInputDataNameArray();
+  void ClearInputData();
+
+  // Initial optimization parameters
+  void SetInitialOptimParameter(const char* name, double value);
+  double GetInitialOptimParameter(const char* name);
+  vtkStringArray* GetInitialOptimParameterNameArray();
+  void ClearInitialOptimParameters();
+
+  // Output parameters
   void SetParameter(const char *name, const double value);
+  double GetParameter(const char* namoe);
   vtkStringArray* GetParameterNameArray();
-  double GetParameter(const char* name);
   void ClearParameters();
+
 
 private:
   vtkMRMLCurveAnalysisNode();
@@ -85,8 +101,10 @@ private:
   vtkDoubleArray* SourceData;
   vtkDoubleArray* FittedData;
 
-  OutputParameterMapType OutputParameters;
-  
+  OutputParameterMapType       OutputParameters;
+  InputDataMapType             InputData;
+  InitialOptimParameterMapType InitialOptimParameters;
+
   //BTX
   std::string FunctionName;
   //ETX

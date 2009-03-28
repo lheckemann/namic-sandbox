@@ -766,8 +766,71 @@ int vtkFourDAnalysisLogic::SaveIntensityCurves(vtkIntensityCurves* curves, const
     }
   
   return 1;
-  
 }
+
+//---------------------------------------------------------------------------
+vtkMRMLCurveAnalysisNode* vtkFourDAnalysisLogic::CreateCurveAnalysisNode(const char* script)
+{
+  //NOTE: this function creates vtkMRMLCurveAnalysisNode and obtain necessary parameters
+  // (e.g. list of input curves and initial parameters) for the curve fitting.
+
+  vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
+  
+  PyObject* v;
+  std::string pythonCmd;
+
+  // Obtain MRML CurveAnalysis Node instance
+  pythonCmd += "from Slicer import slicer\n";
+  pythonCmd += "scene = slicer.MRMLScene\n";
+  pythonCmd += "curveNode  = scene.GetNodeByID('";
+  pythonCmd += curveNode->GetID();
+  pythonCmd += "')\n";
+
+  // Load 4D Analysis Python Module
+  pythonCmd += "import imp\n";
+  pythonCmd += "fp, pathname, description = imp.find_module('FourDAnalysis')\n";
+  pythonCmd += "try:\n";
+  pythonCmd += "    fda = imp.load_module('FourDAnalysis', fp, pathname, description)\n";
+  pythonCmd += "finally:\n";
+  pythonCmd += "    if fp:\n";
+  pythonCmd += "        fp.close()\n";
+
+  // Get input and output curves from MRML node
+  pythonCmd += "inputCurve  = curveNode.GetSourceData().ToArray()\n";
+  pythonCmd += "outputCurve = curveNode.GetFittedData().ToArray()\n";
+  pythonCmd += "caexec      = fda.CurveAnalysisExecuter('";
+  pythonCmd += script;
+  pythonCmd += "')\n";
+
+  // Get lists of input curves, initial parameters etc.
+  pythonCmd += "curveNames           = caexec.GetInputCurveNames()\n";
+  pythonCmd += "initialOptimParams   = caexec.GetInitialOptimParams()\n";
+  pythonCmd += "outputParameterNames = caexec.GetOutputCurveNames()\n";
+
+  // Set lists
+  pythonCmd += "for key in curveNames:\n";
+  pythonCmd += "    curveNode.SetInputData(key)\n";
+
+  pythonCmd += "for key, value in initialOptimParams.iteritems():\n";
+  pythonCmd += "    curveNode.SetInitialOptimParameter(key, value)\n";
+
+  pythonCmd += "for key in outputParameterNames:\n";
+  pythonCmd += "    curveNode.SetParameter(key, 0.0)\n";
+
+  v = PyRun_String(pythonCmd.c_str(),
+                   Py_file_input,
+                   (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()),
+                   (PyObject*)(vtkSlicerApplication::GetInstance()->GetPythonDictionary()));
+  
+  if (Py_FlushLine())
+    {
+      PyErr_Clear();
+    }
+
+  return curveNode;
+
+}
+
 
 //---------------------------------------------------------------------------
 void vtkFourDAnalysisLogic::RunCurveFitting(const char* script, vtkMRMLCurveAnalysisNode* curveNode)
@@ -958,18 +1021,6 @@ void vtkFourDAnalysisLogic::GenerateParameterMap(const char* script,
     kmax = z;
     }
   
-  /*
-  //for (int k = 0; k < z; k ++)
-  int imin, imax, jmin, jmax, kmin, kmax;
-  imin = 0;
-  jmin = 0;
-  //kmin = 0;
-  
-  imax = x;
-  jmax = y;
-  //kmax = z;
-  */
-
   for (int k = kmin; k < kmax; k ++)
     {
     std::cerr << std::endl;
