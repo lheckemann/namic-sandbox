@@ -95,7 +95,10 @@ public:
   }
 
 protected:
-  LevelSetHessianTerm() {}
+  LevelSetHessianTerm() 
+  {
+    this->m_Cached = true;
+  }
 
   virtual ~LevelSetHessianTerm() {}
 

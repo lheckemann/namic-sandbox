@@ -33,6 +33,7 @@ protected:
   virtual void PrintSelf(std::ostream& os, Indent indent) const;
 
   virtual void Initialize();
+  virtual void InitializeIteration();
 
   virtual void GenerateData();
 

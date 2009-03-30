@@ -26,88 +26,140 @@ void
 ModularLevelSetFunction< TImageType>
 ::Initialize()
 {
-// TODO: uncomment this to go the singletons way
-//  FunctionTermMapIterator termIt;
-//  typename LevelSetTermType::DependencyMapIterator depIt;
-//
-//  FunctionTermMapType dependencyMap;
-//
-//  for (termIt = m_FunctionTermMap.begin(); termIt != m_FunctionTermMap.end(); ++termIt)
-//    {
-//    std::string name = (*termIt).first;
-//    LevelSetTermPointer term = (*termIt).second;
-//
-//    for (depIt = term->m_DependencyMap.begin(); depIt != term->m_DependencyMap.end(); ++depIt)
-//      {
-//      std::string dependencyName = (*depIt).first;
-//      LevelSetTermPointer dependencyTerm = (*depIt).second;
-//      if (m_FunctionTermMap.count(dependencyName) == 0)
-//        {
-////        std::cout<<"Adding dependency term for "<<name<<": "<<dependencyName<<"."<<std::endl;
-//        dependencyMap[dependencyName] = dependencyTerm;
-//        }
-//      }
-//    }
-//  
-//  for (termIt = dependencyMap.begin(); termIt != dependencyMap.end(); ++termIt)
-//    {
-//    m_FunctionTermMap[(*termIt).first] = (*termIt).second;
-//    }
+  LevelSetTermMapIterator termIt;
 
-  FunctionTermMapIterator termIt;
-  typename LevelSetTermType::DependencyMapIterator depIt;
+  m_CachedLevelSetTermMap.erase(m_CachedLevelSetTermMap.begin(),m_CachedLevelSetTermMap.end());
 
-  for (termIt = m_FunctionTermMap.begin(); termIt != m_FunctionTermMap.end(); ++termIt)
+  for (termIt = m_LevelSetTermMap.begin(); termIt != m_LevelSetTermMap.end(); ++termIt)
     {
+    std::string name = (*termIt).first;
     LevelSetTermPointer term = (*termIt).second;
-    for (depIt = term->m_DependencyMap.begin(); depIt != term->m_DependencyMap.end(); ++depIt)
+    if (m_UseCaching && term->IsCached())
       {
-      LevelSetTermPointer dependencyTerm = (*depIt).second;
-      dependencyTerm->Initialize();
+      m_CachedLevelSetTermMap[name] = term;
+      std::cout<<"Cached "<<name<<" "<<term<<std::endl;
       }
-    std::cout<<"Initializing "<<(*termIt).first<<"."<<std::endl;
+    std::cout<<"Initializing dependencies of "<<name<<"."<<std::endl;
+    this->InitializeDependency(term);
+    std::cout<<"Initializing "<<name<<"."<<std::endl;
     term->Initialize();
     std::cout<<"Done."<<std::endl;
     }
 }
 
 template< class TImageType >
+void
+ModularLevelSetFunction< TImageType >
+::InitializeDependency(LevelSetTermPointer term)
+{
+  typename LevelSetTermType::DependencyMapIterator depIt;
+  for (depIt = term->m_DependencyMap.begin(); depIt != term->m_DependencyMap.end(); ++depIt)
+    {
+    std::string dependencyName = (*depIt).first;
+    LevelSetTermPointer dependencyTerm = (*depIt).second;
+    if (m_UseCaching && dependencyTerm->IsCached())
+      {
+      m_CachedLevelSetTermMap[dependencyName] = dependencyTerm;
+      std::cout<<"Cached "<<dependencyName<<" "<<dependencyTerm<<std::endl;
+      }
+    std::cout<<"Initializing dependencies of "<<dependencyName<<"."<<std::endl;
+    this->InitializeDependency(dependencyTerm);
+    std::cout<<"Initializing "<<dependencyName<<"."<<std::endl;
+    dependencyTerm->Initialize();
+    std::cout<<"Done."<<std::endl;
+    }
+}
+
+template< class TImageType >
+void
+ModularLevelSetFunction< TImageType >
+::ComputeDependencyUpdate(const NeighborhoodType &it, 
+                          LevelSetTermPointer term, 
+                          void *globalData,
+                          LevelSetTermGlobalDataType *termGlobalData, 
+                          const FloatOffsetType& offset)
+{
+  CachedGlobalDataMapType& cachedGlobalDataMap = ((GlobalDataType*)globalData)->m_CachedGlobalDataMap;
+  typename LevelSetTermType::DependencyMapIterator depIt;
+  for (depIt = term->m_DependencyMap.begin(); depIt != term->m_DependencyMap.end(); ++depIt)
+    {
+    std::string dependencyName = (*depIt).first;
+    LevelSetTermPointer dependencyTerm = (*depIt).second;
+    LevelSetTermGlobalDataType* dependencyGlobalData = NULL;
+    if (m_UseCaching && dependencyTerm->IsCached() && cachedGlobalDataMap.find(dependencyName) != cachedGlobalDataMap.end())
+      {
+      dependencyGlobalData = cachedGlobalDataMap[dependencyName]; 
+      }
+    else
+      {
+      dependencyGlobalData = (LevelSetTermGlobalDataType*)dependencyTerm->GetGlobalDataPointer();
+      this->ComputeDependencyUpdate(it,dependencyTerm,globalData,dependencyGlobalData,offset);
+      dependencyTerm->ComputeUpdate(it,dependencyGlobalData,offset);
+      if (m_UseCaching && dependencyTerm->IsCached())
+        {
+        cachedGlobalDataMap[dependencyName] = dependencyGlobalData;
+        }
+      }
+    termGlobalData->m_DependencyGlobalDataMap[dependencyName] = dependencyGlobalData;
+    }
+}
+
+template< class TImageType >
+void
+ModularLevelSetFunction< TImageType >
+::ReleaseDependencyGlobalDataPointer(LevelSetTermPointer term, 
+                                     LevelSetTermGlobalDataType *termGlobalData) 
+{
+  typename LevelSetTermType::DependencyMapIterator depIt;
+  for (depIt = term->m_DependencyMap.begin(); depIt != term->m_DependencyMap.end(); ++depIt)
+    {
+    std::string dependencyName = (*depIt).first;
+    LevelSetTermPointer dependencyTerm = (*depIt).second;
+    if (m_UseCaching && dependencyTerm->IsCached())
+      {
+      continue;
+      }
+    LevelSetTermGlobalDataType* dependencyGlobalData = (LevelSetTermGlobalDataType*)termGlobalData->m_DependencyGlobalDataMap[dependencyName];
+    this->ReleaseDependencyGlobalDataPointer(dependencyTerm,dependencyGlobalData);
+    dependencyTerm->ReleaseGlobalDataPointer(termGlobalData->m_DependencyGlobalDataMap[dependencyName]);
+    }
+}
+
+template< class TImageType >
 typename ModularLevelSetFunction< TImageType >::PixelType
 ModularLevelSetFunction< TImageType >
-::ComputeUpdate(const NeighborhoodType &it, void *globalData,
+::ComputeUpdate(const NeighborhoodType &it, 
+                void *globalData,
                 const FloatOffsetType& offset)
 {
-  FunctionTermMapIterator termIt;
-  typename LevelSetTermType::DependencyMapIterator depIt;
+  LevelSetTermMapIterator termIt;
 
   PixelType functionValue = NumericTraits<PixelType>::Zero;
 
-  for (termIt = m_FunctionTermMap.begin(); termIt != m_FunctionTermMap.end(); ++termIt)
+  CachedGlobalDataMapType& cachedGlobalDataMap = ((GlobalDataType*)globalData)->m_CachedGlobalDataMap;
+
+  for (termIt = m_LevelSetTermMap.begin(); termIt != m_LevelSetTermMap.end(); ++termIt)
     {
     std::string name = (*termIt).first;
     LevelSetTermPointer term = (*termIt).second;
     LevelSetTermGlobalDataType* termGlobalData = (LevelSetTermGlobalDataType*)term->GetGlobalDataPointer();
-//TODO: solve problem here: what if dependencies have dependencies?
-    for (depIt = term->m_DependencyMap.begin(); depIt != term->m_DependencyMap.end(); ++depIt)
-      {
-      std::string dependencyName = (*depIt).first;
-      LevelSetTermPointer dependencyTerm = (*depIt).second;
-      LevelSetTermGlobalDataType* dependencyGlobalData = (LevelSetTermGlobalDataType*)dependencyTerm->GetGlobalDataPointer();
-      dependencyTerm->ComputeUpdate(it,dependencyGlobalData,offset);
-      termGlobalData->m_DependencyGlobalDataMap[dependencyName] = dependencyGlobalData;
-      }
-
+    this->ComputeDependencyUpdate(it,term,globalData,termGlobalData);
     functionValue += term->ComputeUpdate(it,termGlobalData,offset);
-
-    for (depIt = term->m_DependencyMap.begin(); depIt != term->m_DependencyMap.end(); ++depIt)
-      {
-      std::string dependencyName = (*depIt).first;
-      LevelSetTermPointer dependencyTerm = (*depIt).second;
-      dependencyTerm->ReleaseGlobalDataPointer(termGlobalData->m_DependencyGlobalDataMap[dependencyName]);
-      }
-
+    this->ReleaseDependencyGlobalDataPointer(term,termGlobalData);
     term->ReleaseGlobalDataPointer(termGlobalData);
     }
+
+  for (termIt = m_CachedLevelSetTermMap.begin(); termIt != m_CachedLevelSetTermMap.end(); ++termIt)
+    {
+    std::string name = (*termIt).first;
+    LevelSetTermPointer term = (*termIt).second;
+    LevelSetTermGlobalDataType* termGlobalData = cachedGlobalDataMap[name];
+    //std::cout<<"Releasing "<<name<<" "<<termGlobalData<<" "<<termGlobalData->m_MaxChange<<std::endl;
+// dealloc problem here
+    term->ReleaseGlobalDataPointer(termGlobalData);
+//    std::cout<<"Done releasing "<<name<<std::endl;
+    }
+  cachedGlobalDataMap.erase(cachedGlobalDataMap.begin(),cachedGlobalDataMap.end());
 
   return functionValue;
 }

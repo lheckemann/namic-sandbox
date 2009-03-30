@@ -43,9 +43,11 @@ public:
   typedef SmartPointer<LevelSetTermType> LevelSetTermPointer;
   typedef typename LevelSetTermType::GlobalDataType LevelSetTermGlobalDataType;
 
-  typedef std::map<std::string, LevelSetTermPointer> FunctionTermMapType;
-  typedef typename FunctionTermMapType::const_iterator FunctionTermMapConstIterator;
-  typedef typename FunctionTermMapType::iterator FunctionTermMapIterator;
+  typedef std::map<std::string, LevelSetTermPointer> LevelSetTermMapType;
+  typedef typename LevelSetTermMapType::const_iterator LevelSetTermMapConstIterator;
+  typedef typename LevelSetTermMapType::iterator LevelSetTermMapIterator;
+
+  typedef std::map<std::string, LevelSetTermGlobalDataType*> CachedGlobalDataMapType;
 
   /** A global data type for this class of equations.  Used to store
    * values that are needed in calculating the time step and other intermediate
@@ -56,29 +58,31 @@ public:
   {
   // TODO: the global data struct must be a list (or map) of void* to GlobalDataStructs belonging to each term.
   // Each struct is always a GlobalDataStruct. Each term has to have a m_MaxChange inside its GlobalDataStruct.
+
+    CachedGlobalDataMapType m_CachedGlobalDataMap;
   };
+
+  typedef GlobalDataStruct GlobalDataType;
 
 //    ScalarValueType m_MaxAdvectionChange;
 //    ScalarValueType m_MaxPropagationChange;
 //    ScalarValueType m_MaxCurvatureChange;
-//  
-//    /** Hessian matrix */
-//    vnl_matrix_fixed<ScalarValueType,
-//                     itkGetStaticConstMacro(ImageDimension),
-//                     itkGetStaticConstMacro(ImageDimension)> m_dxy;
-//    
-//    /** Array of first derivatives*/
-//    ScalarValueType m_dx[itkGetStaticConstMacro(ImageDimension)];
-//
-//    ScalarValueType m_dx_forward[itkGetStaticConstMacro(ImageDimension)];
-//    ScalarValueType m_dx_backward[itkGetStaticConstMacro(ImageDimension)];
-//
-//    ScalarValueType m_GradMagSqr;
 
   /** Compute the equation value. */
-  virtual PixelType ComputeUpdate(const NeighborhoodType &neighborhood,
+  virtual PixelType ComputeUpdate(const NeighborhoodType &it,
                                   void *globalData,
-                                  const FloatOffsetType& = FloatOffsetType(0.0));
+                                  const FloatOffsetType& = FloatOffsetType(0.0)); 
+
+  virtual void ComputeDependencyUpdate(const NeighborhoodType &it, 
+                                       LevelSetTermPointer term, 
+                                       void* globalData,
+                                       LevelSetTermGlobalDataType *termGlobalData,
+                                       const FloatOffsetType& = FloatOffsetType(0.0));
+
+  virtual void ReleaseDependencyGlobalDataPointer(LevelSetTermPointer term, 
+                                                  LevelSetTermGlobalDataType *termGlobalData);
+
+  virtual void InitializeDependency(LevelSetTermPointer term);
 
   /** Computes the time step for an update given a global data structure.
     * The data used in the computation may take different forms depending on
@@ -121,12 +125,17 @@ public:
 
   void AddTerm(LevelSetTermType* term)
   {
-    m_FunctionTermMap[term->GetNameOfClass()] = term;
+    m_LevelSetTermMap[term->GetNameOfClass()] = term;
   }
 
   LevelSetTermPointer GetTerm(const char* name)
   {
-    return m_FunctionTermMap[name];
+    return m_LevelSetTermMap[name];
+  }
+
+  void SetUseCaching(bool useCaching)
+  {
+    m_UseCaching = useCaching;
   }
 
 protected:
@@ -135,13 +144,17 @@ protected:
     RadiusType r;
     r.Fill(1);
     this->SetRadius(r);
+    m_UseCaching = true;
   }
 
   virtual ~ModularLevelSetFunction() {}
 
   void PrintSelf(std::ostream &s, Indent indent) const;
 
-  FunctionTermMapType m_FunctionTermMap;
+  LevelSetTermMapType m_LevelSetTermMap;
+  LevelSetTermMapType m_CachedLevelSetTermMap;
+
+  bool m_UseCaching;
 
 private:
   ModularLevelSetFunction(const Self&); //purposely not implemented

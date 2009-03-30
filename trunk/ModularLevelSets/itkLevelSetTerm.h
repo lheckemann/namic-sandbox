@@ -58,6 +58,7 @@ public:
     {
       m_MaxChange = NumericTraits<TimeStepType>::Zero;
     }
+    bool m_Computed;
     ScalarValueType m_MaxChange;
     DependencyGlobalDataMapType m_DependencyGlobalDataMap;
   };
@@ -81,9 +82,10 @@ public:
     this->Initialize();
   }
 
-//  itkSetMacro(Cacheable,bool);
-//  itkGetMacro(Cacheable,bool);
-//  itkBooleanMacro(Cacheable);
+  bool IsCached()
+  {
+    return m_Cached;
+  }
 
   virtual void SetWeight(const ScalarValueType w)
   { m_Weight = w; }
@@ -110,7 +112,7 @@ protected:
     r.Fill(1);
     this->SetRadius(r);
 
-//    this->CacheableOn();
+    m_Cached = false;
   }
 
   virtual ~LevelSetTerm() {}
@@ -119,12 +121,20 @@ protected:
 
   void AddDependency(Self* term)
   {
+    if (this->IsCached() && !term->IsCached())
+      {
+      ExceptionObject exception(__FILE__, __LINE__);
+      std::string errorMessage = "Error, Cannot set non-cached term as a dependency for a cached term.";
+      exception.SetDescription(errorMessage.c_str());
+      exception.SetLocation(ITK_LOCATION);
+      throw exception;
+      }
     this->m_DependencyMap[term->GetNameOfClass()] = term;
   }
 
   ScalarValueType m_Weight;
 
-//  bool m_Cacheable;
+  bool m_Cached;
 
   ::size_t m_Center;
 
