@@ -64,6 +64,7 @@
 #define PATIENTSUPERIOR  6
 
 #define DEFAULTTHRESHOLD 18000
+#define DEFAULTINTENSITY 15000
 #define DEFAULTERODE     2
 #define DEFAULTDILATE    3
 
@@ -92,6 +93,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   // GUI widgets
   this->pVolumeSelector           = NULL; 
   this->pThresholdScale           = NULL;
+  this->pIntensityScale           = NULL;
   this->pDilateEntry              = NULL;
   this->pErodeEntry               = NULL;
   this->pEntryPointButtonSet      = NULL;
@@ -129,6 +131,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   currentYImageRegionSize   = 256;
   currentZImageRegionSize   = 256;
   needleDetectionThreshold  = DEFAULTTHRESHOLD;
+  needleIntensity           = DEFAULTINTENSITY;
   imageDimensions[0]        = 256;
   imageDimensions[1]        = 256;
   imageDimensions[2]        = 1;
@@ -171,6 +174,11 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   {
     this->pThresholdScale->SetParent(NULL);
     this->pThresholdScale->Delete();
+  }
+  if(this->pIntensityScale) 
+  {
+    this->pIntensityScale->SetParent(NULL);
+    this->pIntensityScale->Delete();
   }
   if (this->pErodeEntry)
   {
@@ -311,7 +319,8 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
   this->pVolumeSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*) this->GUICallbackCommand);
-  //this->pThresholdScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);  //TODO:I could take this event out and only poll the number when start is pressed
+  this->pThresholdScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pIntensityScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pStartButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pStopButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
@@ -338,8 +347,10 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
   // GUI Observers
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   this->pVolumeSelector->RemoveObservers(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*) this->GUICallbackCommand);
-//  if(this->pThresholdScale)
-//    this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
+  if(this->pThresholdScale)
+    this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
+  if(this->pIntensityScale)
+    this->pIntensityScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
   if (this->pEntryPointButtonSet)
   {
     this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
@@ -408,6 +419,12 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
   {
     std::cout << "NeedleThreshold changed." << std::endl;
     needleDetectionThreshold = this->pThresholdScale->GetValue();
+  }
+  
+  else if(this->pIntensityScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent)   //TODO: I might not need to catch this event -> just get the value when start is pressed
+  {
+    std::cout << "NeedleIntensity changed." << std::endl;
+    needleIntensity = this->pIntensityScale->GetValue();
   }
   
   else if (this->pEntryPointButtonSet->GetWidget(PATIENTLEFT) == vtkKWRadioButton::SafeDownCast(caller)
@@ -784,13 +801,13 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       currentYImageRegionSize = currentYUpperBound - currentYLowerBound;
       currentZImageRegionSize = currentZUpperBound - currentZLowerBound; 
       
-      //TODO:Do something (getMatrix?) to get the right numbers for the variables
+      //TODO:Do something (getMatrix?) to get the current plane of the slice for the sizing variables
       //if(axial, sagital or coronal)       
       imageRegionSize[0]  = currentXImageRegionSize;
       imageRegionLower[0] = currentXLowerBound;
       imageRegionUpper[0] = currentXUpperBound;  
       
-      if(needleOrigin == PATIENTLEFT)//TODO:!!!ATTENTION!!! This is only for testing!!!
+      if((needleOrigin == PATIENTLEFT) || (needleOrigin == PATIENTPOSTERIOR))//TODO:!!!ATTENTION!!! This is only for testing!!!
       {
         imageRegionSize[1]  = currentYImageRegionSize;
         imageRegionLower[1] = currentYLowerBound;           
@@ -822,10 +839,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
       pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
       pImageProcessor->GetImage((void*) pImageRegionOutput1);
@@ -833,9 +850,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       //TODO:DELETE pImageRegionOutput1!!
       
       pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
       pImageProcessor->BinaryThinning(true, true);  // needs iverted images, because it thins to a white line
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
 //      pImageProcessor->SobelFilter(true, true, 1);
 //      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",TMP);
       
@@ -853,20 +870,25 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         {
           case PATIENTLEFT: 
           {   
-            pImageProcessor->HoughTransformation(true, points, ENTERINGRIGHT); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
+            pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGRIGHT); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
+            break;
+          }
+          case PATIENTPOSTERIOR: 
+          {   
+            pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
             break;
           }
           case PATIENTINFERIOR:
           {
-            //pImageProcessor->FlipX();
-            pImageProcessor->HoughTransformation(true, points, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work 
+            //pImageProcessor->FlipTheImageAboutTheX-Axis;
+            pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work 
             break;
           }
           default:
             std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
             break;
         } //end switch    
-        //pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);     
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);     
        //pImageProcessor->CannyEdgeDetection(true,false);           
       std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegionOutput2);
@@ -912,6 +934,14 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
             {              
               transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
               transform->RotateZ(angle);
+              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
+              translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
+              break;
+            }
+            case PATIENTPOSTERIOR: //and axial! TODO: Take care of differences in scan plane
+            {              
+              transform->RotateX(180); // rotate to have the cylinder pointing from posterior to anterior
+              //transform->RotateZ(angle); TODO: get the right angle!
               translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
               translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
               break;
@@ -1126,6 +1156,26 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->Script("pack %s -side left -padx 2 -pady 2", this->pThresholdScale->GetWidgetName());  
   
   sliderFrame->Delete(); 
+  
+  // ------------------------------------------------------
+  // intensity slider button  
+  vtkKWFrame* sliderFrame2 = vtkKWFrame::New();
+  sliderFrame2->SetParent(controlFrame->GetFrame());
+  sliderFrame2->Create();
+  this->Script("pack %s -fill both -expand true", sliderFrame2->GetWidgetName());
+  
+  this->pIntensityScale = vtkKWScaleWithEntry::New();
+  this->pIntensityScale->SetParent(sliderFrame2);
+  this->pIntensityScale->SetLabelText("Needle Intensity");
+  this->pIntensityScale->Create();
+  this->pIntensityScale->GetScale()->SetLength(180); 
+  this->pIntensityScale->SetRange(0,MAX);
+  this->pIntensityScale->SetResolution(10);
+  //TODO:Steve can I constrict the values to integer?  -> floor?
+  this->pIntensityScale->SetValue(DEFAULTINTENSITY);  
+  this->Script("pack %s -side left -padx 2 -pady 2", this->pIntensityScale->GetWidgetName());  
+  
+  sliderFrame2->Delete(); 
   
   // -----------------------------------------
   // push buttons

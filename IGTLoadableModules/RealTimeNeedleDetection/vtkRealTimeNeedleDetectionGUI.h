@@ -117,6 +117,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkSlicerNodeSelectorWidget*  pVolumeSelector;
   vtkKWRadioButtonSet*          pEntryPointButtonSet;
   vtkKWScaleWithEntry*          pThresholdScale;
+  vtkKWScaleWithEntry*          pIntensityScale;
   vtkKWEntry*                   pDilateEntry;
   vtkKWEntry*                   pErodeEntry;
   vtkKWPushButton*              pStartButton;
@@ -156,6 +157,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   // Image Values
   //----------------------------------------------------------------   
   double          needleDetectionThreshold;
+  double          needleIntensity;
   int             imageRegionSize[2];   //these are the current values for the 2D image region that gets processed in the ImageProcessor
   int             imageRegionLower[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
   int             imageRegionUpper[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor

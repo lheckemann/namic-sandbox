@@ -280,8 +280,9 @@ void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, 
 //     inputTmp:                Input image is coming from localTmp or localInputImg
 //     points:                  Array that contains 2 points of the needle transform (x1,y1,x2,y2)
 //                              points[0],points[1] is the point of the needle entering the image | points[2],points[3] is the end of the needle
+//     intensityThresh:         intensity until which a point is considered belonging to the needle
 //     needleEnteringDirection: Entering direction of the needle in the image set in SetImage -> either ENTERINGRIGHT or ENTERINGBOTTOM
-void ImageProcessor::HoughTransformation(bool inputTmp, double* points, int needleEnteringDirection) 
+void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double intensityThresh, int needleEnteringDirection) 
 {
   InverterType::Pointer inverter = InverterType::New();
   HoughFilter::Pointer houghFilter = HoughFilter::New();
@@ -334,50 +335,43 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, int need
   v[1] = u[1]-(*itPoints).GetPosition()[1];
   double norm = sqrt(v[0]*v[0]+v[1]*v[1]);
   v[0] /= norm;
-  v[1] /= norm;    
+  v[1] /= norm; 
+  std::cout << "    points: u=" << u[0] << "|" << u[1] << " v=" << v[0] << "|" << v[1] << std::endl;   
           
   //--------------------------------------------------------------------------------------------------
   //draw found line in mLocalOutputImage
-//TODO: make this generic!?!?        
   FloatImageType::IndexType localIndex;
+  FloatImageType::IndexType offsetIndex; // for checking adjacent pixels 
   itk::Size<2> size = mLocalOutputImage->GetLargestPossibleRegion().GetSize();
+  std::cout << "    size: " << size[0] << "|" << size[1] << std::endl;
   double multiplier = 0;
   
   if(needleEnteringDirection == ENTERINGRIGHT)
   {
     //normalize the support vector to x = xSize | v[0] = size[0]  
     multiplier = (u[0]-size[0]) / v[0]; // ==u[0]-m*v[0]=size[0] 
-     
-    // find the x and y coordinates of the first point of the line in the image and use these instead of a random point u on the line
-    u[0] -= multiplier * v[0];
-    u[1] -= multiplier * v[1];
-     
-    //normalize the direction vector to negative x, because the needle enters from the right side of the image
-    if(v[0] > 0.0)
-    {
-      v[0] *= -1;
-      v[1] *= -1;
-    }
   }
   else if(needleEnteringDirection == ENTERINGBOTTOM)
   {
-    //normalize the support vector to y = ySize | v[1] = size[1]  
+    //normalize the support vector to y = ySize | v[1] = size[1] -> in ITKimages the origin is in the upper left corner  
     multiplier = (u[1]-size[1]) / v[1]; // ==u[1]-m*v[1]=size[1]
-    
-    //TODO: This should not be correct yet!!!
-    //normalize the direction vector to negative y, because the needle enters from the top of the image
-    if(v[1] > 0.0)
-    {
-      v[0] *= -1;
-      v[1] *= -1;
-    }
   }
   else //Code should never get here!!!
   {
     std::cerr << "wrong argument for needleEnteringDirection! Abort hough transformation!" << std::endl;
     return;    
   }
+    
+  // find the x and y coordinates of the first point of the line in the image and use these instead of a random point u on the line
+  u[0] -= multiplier * v[0];
+  u[1] -= multiplier * v[1];  
   
+  //normalize the direction vector to negative y, because the needle enters from the bottom of the image
+  if(multiplier < 0.0) 
+  {
+    v[0] *= -1;
+    v[1] *= -1;
+  }  
         
   float diag = sqrt((float)( size[0]*size[0] + size[1]*size[1] ));
   std::cout << "line: " << u[0] << "|" << u[1] << " / " << v[0] <<"|" << v[1] << " mult: " << multiplier << std::endl;
@@ -387,23 +381,38 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, int need
   //  and every iteration they get checked, if they are in the bounds of the mLocalOutputImage
   for(int i=0; i<=static_cast<int>(diag); i++)
   {
-    localIndex[0]=(long int)(u[0]+i*v[0]);
-    localIndex[1]=(long int)(u[1]+i*v[1]);
-//    localIndex[1]=(long int)(u[1]+i*v[1])+1; // offset of 1 for the line, because it is detected a little too high
+    
+    offsetIndex[0] = localIndex[0]=(long int)(u[0]+i*v[0]);
+    offsetIndex[1] = localIndex[1]=(long int)(u[1]+i*v[1]);
+//    localIndex[0]=(long int)(u[0]+i*v[0])+1; // offset of 1 for the line, because it is detected a little too high for NeedleEntering == BOTTOM
+//    localIndex[1]=(long int)(u[1]+i*v[1])+1; // offset of 1 for the line, because it is detected a little too high for NeedleEntering == Left
 
     FloatImageType::RegionType outputRegion =  mLocalOutputImage->GetLargestPossibleRegion(); //TODO: take out of for-loop!?
     
+    bool pixelIsNeedle = false;    
     if(outputRegion.IsInside(localIndex)) // this pixel of the line is inside the boundings of mLocalOutputImage
     {
       if(length == 0) // first point of the line in the image region
       {
         points[0] = (u[0]+i*v[0]); // X-coordinate of the first point of the needle in the image
         points[1] = (u[1]+i*v[1]); // Y-coordinate of the first point of the needle in the image
+        pixelIsNeedle = true;
       }
-//      FloatImageType::IndexType offsetIndex; //compare with adjcent pixel, because line is detected too high 
-//      offsetIndex[0] = localIndex[0];
-//      offsetIndex[1] = localIndex[1]+1;
-      if(mLocalOutputImage->GetPixel(localIndex) < lastIntensity + 10000)  // if pixel still belongs to needle
+      else
+      {        
+        for (int j = -1; j < 2; ++j) 
+        {
+          if(needleEnteringDirection == ENTERINGRIGHT) 
+            offsetIndex[1] = localIndex[1]+j; //Y-1, Y, Y+1
+          else if(needleEnteringDirection == ENTERINGBOTTOM) 
+            offsetIndex[0] = localIndex[0]+j;    //X-1, X, X+1    
+
+          if(mLocalOutputImage->GetPixel(offsetIndex) < intensityThresh)
+            pixelIsNeedle = true;            
+        }          
+      }
+  
+      if(pixelIsNeedle)  // if pixel still belongs to needle
       {
         length++;
         lastIntensity = mLocalOutputImage->GetPixel(localIndex);
@@ -426,7 +435,8 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, int need
       break;
     }
   }
-  avgIntensity /= length; 
+  if(length != 0)
+    avgIntensity /= length; 
   std::cout << "end of houghtransform - avgIntensity: " << avgIntensity << std::endl;
   return;
 }
