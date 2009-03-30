@@ -839,10 +839,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
       pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
       pImageProcessor->GetImage((void*) pImageRegionOutput1);
@@ -850,9 +850,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       //TODO:DELETE pImageRegionOutput1!!
       
       pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
       pImageProcessor->BinaryThinning(true, true);  // needs iverted images, because it thins to a white line
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
 //      pImageProcessor->SobelFilter(true, true, 1);
 //      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",TMP);
       
@@ -888,7 +888,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
             std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
             break;
         } //end switch    
-        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);     
+//        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);     
        //pImageProcessor->CannyEdgeDetection(true,false);           
       std::cout << "ImageRegion processed" << std::endl;    
       pImageProcessor->GetImage((void*) pImageRegionOutput2);
