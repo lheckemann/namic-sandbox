@@ -42,6 +42,14 @@ ModularLevelSetImageFilter<TSolver, TLevelSetFunction>
 template <class TSolver, class TLevelSetFunction>
 void
 ModularLevelSetImageFilter<TSolver, TLevelSetFunction>
+::InitializeIteration()
+{
+  Superclass::InitializeIteration();
+}
+
+template <class TSolver, class TLevelSetFunction>
+void
+ModularLevelSetImageFilter<TSolver, TLevelSetFunction>
 ::GenerateData()
 {
   Superclass::GenerateData();

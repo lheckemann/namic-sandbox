@@ -108,6 +108,7 @@ protected:
   { 
     this->AddDependency(LevelSetDerivativesTerm<ImageType>::New()); 
     this->AddDependency(LevelSetHessianTerm<ImageType>::New()); 
+    this->m_Cached = false;
   }
 
   virtual ~LevelSetCurvatureTerm() {}

@@ -84,7 +84,10 @@ public:
   }
 
 protected:
-  LevelSetDerivativesTerm() {}
+  LevelSetDerivativesTerm() 
+  {
+    this->m_Cached = true;
+  }
 
   virtual ~LevelSetDerivativesTerm() {}
 
