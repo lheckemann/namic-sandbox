@@ -141,7 +141,6 @@ class CurveAnalysisExecuter(object):
             if fp:
                 fp.close()
 
-
     # ------------------------------
     # Get Input Curve Name List
     def GetInputCurveNames(self):
@@ -150,6 +149,12 @@ class CurveAnalysisExecuter(object):
         for i in list:
             sys.stderr.write('name     : %s\n' % i )
         return list
+
+    # ------------------------------
+    # Set Input Curve
+    def SetInputCurve(self, name, curve):
+        exec('fitting = self.Module.' + self.ModuleName + '()')
+        fitting.SetInputCurve(name, curve)
         
     # ------------------------------
     # Get Initial Optimization Parameter List
