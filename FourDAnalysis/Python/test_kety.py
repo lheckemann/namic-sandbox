@@ -10,16 +10,20 @@ if len(sys.argv) < 4:
 
 Path          = 'CurveFittingKetyModel.py'
 AifCsvFile    = sys.argv[1]
-InputCsvFile  = sys.argv[2]
+TargetCsvFile = sys.argv[2]
 OutputCsvFile = sys.argv[3]
 
 aifCurve      = scipy.io.read_array(AifCsvFile, separator=',')
-inputCurve    = scipy.io.read_array(InputCsvFile, separator=',')
-outputCurve   = inputCurve
+targetCurve    = scipy.io.read_array(TargetCsvFile, separator=',')
+outputCurve   = targetCurve
+
+inputCurveDict = {'AIF': aifCurve}
+initialParamDict = { 'Ktrans': 0.04,
+                     'vp':     0.1,
+                     've':     0.4}
 
 caexec = fda.CurveAnalysisExecuter(Path)
-caexec.SetInputCurve('AIF', aifCurve)
-result = caexec.Execute(inputCurve, outputCurve)
+result = caexec.Execute(inputCurveDict, initialParamDict, targetCurve, outputCurve)
 
 scipy.io.write_array(OutputCsvFile, outputCurve, separator=',')
 

@@ -26,19 +26,21 @@ import re
 import sys
 import imp
 import scipy.optimize 
+import numpy
 
 # ----------------------------------------------------------------------
 # Base class for curve fitting algorithm classes
 # ----------------------------------------------------------------------
 
 class CurveAnalysisBase(object):
+
     OptimParamNameList    = []
     InitialOptimParam     = []
     InputCurveNameList    = []
     
     OptimParam        = []
     CovarianceMatrix  = []
-    SourceCurve       = []
+    TargetCurve       = []
 
     #def __init__(self):
     #    ## OptimParamNameList and Initial Param should be set here
@@ -78,12 +80,12 @@ class CurveAnalysisBase(object):
     def GetOutputParam(self):
         return self.CalcOutputParam(self.OptimParam)
     
-    def SetSourceCurve(self, sourceCurve):
-        self.SourceCurve = sourceCurve
+    def SetTargetCurve(self, sourceCurve):
+        self.TargetCurve = sourceCurve
 
     def Execute(self):
-        x      = self.SourceCurve[:, 0]
-        y_meas = self.SourceCurve[:, 1]
+        x      = self.TargetCurve[:, 0]
+        y_meas = self.TargetCurve[:, 1]
 
         param0 = self.InitialOptimParam
         param_output = scipy.optimize.leastsq(self.ResidualError, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
@@ -151,12 +153,6 @@ class CurveAnalysisExecuter(object):
         return list
 
     # ------------------------------
-    # Set Input Curve
-    def SetInputCurve(self, name, curve):
-        exec('fitting = self.Module.' + self.ModuleName + '()')
-        fitting.SetInputCurve(name, curve)
-        
-    # ------------------------------
     # Get Initial Optimization Parameter List
     def GetInitialOptimParams(self):
         exec('fitting = self.Module.' + self.ModuleName + '()')
@@ -177,12 +173,26 @@ class CurveAnalysisExecuter(object):
             sys.stderr.write('name     : %s\n' % i )
         return list
 
-
     # ------------------------------
     # Call curve fitting class
-    def Execute(self, inputCurve, outputCurve):
+    def Execute(self, inputCurvesDict, initialOptimParamDict, targetCurve, outputCurve):
+
         exec('fitting = self.Module.' + self.ModuleName + '()')
-        fitting.SetSourceCurve(inputCurve)
+
+        # set input curves
+        for name, curve in inputCurvesDict.iteritems():
+            fitting.SetInputCurve(name, curve)
+
+        # set initial optimization parameters
+        nameList = fitting.GetOptimParamNameList()
+        n = len(nameList)
+        paramList = numpy.zeros(n)
+        for i in range(n):
+            paramList[i] = initialOptimParamDict[nameList[i]]
+
+        fitting.SetTargetCurve(targetCurve)
+        fitting.SetInitialOptimParam(paramList)
+
         fitting.Execute()
         x = outputCurve[:, 0]
         y = fitting.GetFitCurve(x)
