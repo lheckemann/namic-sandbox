@@ -292,23 +292,14 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   int  length          = 0;   //length of the found needle in pixels
     
   if(inputTmp && (mWhichTmp == 1))
-  {
-    std::cout << "mLocalTmp1" << std::endl;
     houghFilter->SetInput(mLocalTmp1);
     //inverter->SetInput(mLocalTmp1);
-  }
   else if (inputTmp && (mWhichTmp == 2))
-  {
-    std::cout << "mLocalTmp2" << std::endl;
     houghFilter->SetInput(mLocalTmp2);
     //inverter->SetInput(mLocalTmp2);
-  }
   else
-  {
-    std::cout << "mLocalInput" << std::endl;
     houghFilter->SetInput(mLocalInputImage);
     //inverter->SetInput(mLocalInputImage);
-  }
   
   houghFilter->SetNumberOfLines(numberOfLines);
   houghFilter->SetVariance(1);   // default is 10 -> no blurring with the gaussian
@@ -336,14 +327,14 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   double norm = sqrt(v[0]*v[0]+v[1]*v[1]);
   v[0] /= norm;
   v[1] /= norm; 
-  std::cout << "    points: u=" << u[0] << "|" << u[1] << " v=" << v[0] << "|" << v[1] << std::endl;   
+  std::cout << " | | points: u=" << u[0] << "|" << u[1] << " v=" << v[0] << "|" << v[1] << std::endl;   
           
   //--------------------------------------------------------------------------------------------------
   //draw found line in mLocalOutputImage
   FloatImageType::IndexType localIndex;
   FloatImageType::IndexType offsetIndex; // for checking adjacent pixels 
   itk::Size<2> size = mLocalOutputImage->GetLargestPossibleRegion().GetSize();
-  std::cout << "    size: " << size[0] << "|" << size[1] << std::endl;
+  std::cout << " | | size: " << size[0] << "|" << size[1] << std::endl;
   double multiplier = 0;
   
   if(needleEnteringDirection == ENTERINGRIGHT)
@@ -374,8 +365,8 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   }  
         
   float diag = sqrt((float)( size[0]*size[0] + size[1]*size[1] ));
-  std::cout << "line: " << u[0] << "|" << u[1] << " / " << v[0] <<"|" << v[1] << " mult: " << multiplier << std::endl;
-  std::cout << "diag: " << diag << std::endl;
+  std::cout << " | | line: " << u[0] << "|" << u[1] << " / " << v[0] <<"|" << v[1] << " mult: " << multiplier << std::endl;
+  std::cout << " | | diag: " << diag << std::endl;
 
   //  The line might be as long as the diagonal, thus that many pixels have to be computed
   //  and every iteration they get checked, if they are in the bounds of the mLocalOutputImage
@@ -420,7 +411,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
       }         
       else // found the end of the needle
       {  
-        std::cout << "found the end of the needle" << std::endl;
+        std::cout << " | | found the end of the needle" << std::endl;
         points[2] = (u[0]+i*v[0]);  // X-coordinate of the needle tip
         points[3] = (u[1]+i*v[1]);  // Y-coordinate of the needle tip
         break;
@@ -429,7 +420,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
     }
     else if(length > 0) // needle exists and needle tip is outside of image region
     {  
-      std::cout << "needle tip outside" << std::endl;
+      std::cout << " | | needle tip outside" << std::endl;
       points[2] = (u[0]+i*v[0]);  // X-coordinate of the end of the needle
       points[3] = (u[1]+i*v[1]);  // Y-coordinate of the end of the needle
       break;
@@ -437,7 +428,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   }
   if(length != 0)
     avgIntensity /= length; 
-  std::cout << "end of houghtransform - avgIntensity: " << avgIntensity << std::endl;
+  std::cout << " | | end of houghtransform - avgIntensity: " << avgIntensity << std::endl;
   return;
 }
    
@@ -777,9 +768,10 @@ void ImageProcessor::Write(const char* filePath, int whichImage)
   {
     case INPUT: 
       writer->SetInput(RescaleFloatToUChar(mLocalInputImage));
-      std::cout << "inputimage selected to write to file" << std::endl;
+      std::cout << "inputimage selected to write to file   ";
       break;
     case TMP:
+      std::cout << "Tmp selected to write to file   ";
       if(mWhichTmp == 1) 
         writer->SetInput(RescaleFloatToUChar(mLocalTmp1));
       else if(mWhichTmp == 2)
@@ -789,10 +781,10 @@ void ImageProcessor::Write(const char* filePath, int whichImage)
       break;
     case  OUTPUT:
       writer->SetInput(RescaleFloatToUChar(mLocalOutputImage));
-      std::cout << "outputimage selected to write to file" << std::endl;
+      std::cout << "outputimage selected to write to file   ";
       break;
     default:
-      std::cerr << "invalid selection to write to file" << std::endl;
+      std::cerr << "!!invalid selection to write to file!!" << std::endl;
   } // end switch
   
   try
