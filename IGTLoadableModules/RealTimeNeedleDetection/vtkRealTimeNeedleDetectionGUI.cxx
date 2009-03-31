@@ -831,18 +831,16 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       unsigned char* pImageRegionInput = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
       unsigned char* pImageRegionOutput1 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
       unsigned char* pImageRegionOutput2 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize]; 
-      std::cout << "getting ImageRegion" << std::endl;
       GetImageRegion(pImageData, pImageRegionInput);
-      std::cout << "got ImageRegion" << std::endl;
   
       //--------------------------------------------------------------------------------------------------
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
       pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
       pImageProcessor->GetImage((void*) pImageRegionOutput1);
@@ -850,14 +848,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       //TODO:DELETE pImageRegionOutput1!!
       
       pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
       pImageProcessor->BinaryThinning(true, true);  // needs iverted images, because it thins to a white line
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
-//      pImageProcessor->SobelFilter(true, true, 1);
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/sobel.png",TMP);
-      
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
+//      pImageProcessor->SobelFilter(true, true, 1);     
    //   pImageProcessor->LaplacianRecursiveGaussian(false,true);  //makes the line white -> no inversion in houghtransform needed
-   //   pImageProcessor->Write("/projects/mrrobot/goerlitz/test/LaplacianRecursiveGaussian.png",TMP);
   //    pImageProcessor->SobelFilter(true,true,1);
   //    pImageProcessor->Threshold(true,true,MAX,0,10000);
   //    pImageProcessor->SobelEdgeDetection(false, true);
@@ -866,110 +861,104 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
        //pImageProcessor->Threshold(false,true,0,0,20000);
        //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
        //pImageProcessor->Threshold(true,true,MAX,0,1);
-        switch (needleOrigin) 
+      switch (needleOrigin) 
+      {
+        case PATIENTLEFT: 
+        {   
+          pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGRIGHT); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
+          break;
+        }
+        case PATIENTPOSTERIOR: 
+        {   
+          pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
+          break;
+        }
+        case PATIENTINFERIOR:
         {
-          case PATIENTLEFT: 
-          {   
-            pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGRIGHT); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
-            break;
-          }
-          case PATIENTPOSTERIOR: 
-          {   
-            pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
-            break;
-          }
-          case PATIENTINFERIOR:
-          {
-            //pImageProcessor->FlipTheImageAboutTheX-Axis;
-            pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work 
-            break;
-          }
-          default:
-            std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
-            break;
-        } //end switch    
-//        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);     
-       //pImageProcessor->CannyEdgeDetection(true,false);           
-      std::cout << "ImageRegion processed" << std::endl;    
+          //pImageProcessor->FlipTheImageAboutTheX-Axis;
+          pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work 
+          break;
+        }
+        default:
+          std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
+          break;
+      } //end switch    
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);      
       pImageProcessor->GetImage((void*) pImageRegionOutput2);
       SetImageRegion(pImageData, pImageRegionOutput2, true);  // write the region of interest with the drawn needle above the MRI image received from the scanner
       //pImageRegionOutput->Delete();  //TODO:DELETE pImageRegion!!
       pOutputNode->SetAndObserveImageData(pImageData); //automatically removes old observer and sets modified flag, if new image is different  TODO: Does it also delete the old observer?
       pImageData->Delete();
       
-      if(showNeedle)  //TODO: Take this if out. The calculations should always be applied to the needle transform regardless if the transform is shown or not
-      {   
-        //------------------------------------------------------------------------------------------------
-        // Retrieve the line from the houghtransformation
-        if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0)) 
-          std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
-        else // if everything is ok
-        {//TODO: make this generic!! Right now I assume the needle enters from the patientleft or patientinferior                 
-          points[0] += imageRegionLower[0];
-          points[1] += imageRegionLower[1];
-          points[2] += imageRegionLower[0];
-          points[3] += imageRegionLower[1];
-          std::cout << "bounds: " << imageRegionLower[0] << "|" << imageRegionLower[1] << "|" << imageRegionUpper[0] << "|" <<  imageRegionUpper[1] << std::endl;
-          std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
-          
-          double vector[2]; //vector from Tip of the needle to the end
-          vector[0] = points[0] - points[2];
-          vector[1] = points[1] - points[3];
-          double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-          std::cout << "length: " << length << std::endl;
-          double angle = (atan2(points[1]-points[3],points[0]-points[2]))*180/PI; 
-          std::cout << "angle: " << angle << std::endl;
-          
-          //-------------------------------------------------------------------------------------------
-          // make the needle transform fit the line detected in the image
-          double translationLR = 0;   //(X-axis)
-          double translationPA = 0;   //(Y-axis)
-          double translationIS = 0;   //(Z-axis)
-          
-          vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
-          transform->Identity();
-          transform->PostMultiply(); // = global coordinate system
-          switch (needleOrigin) {
-            case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
-            {              
-              transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
-              transform->RotateZ(angle);
-              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-              translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
-              break;
-            }
-            case PATIENTPOSTERIOR: //and axial! TODO: Take care of differences in scan plane
-            {              
-              transform->RotateX(180); // rotate to have the cylinder pointing from posterior to anterior
-              //transform->RotateZ(angle); TODO: get the right angle!
-              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-              translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
-              break;
-            }
-            case PATIENTINFERIOR:
-            {
-              transform->RotateX(90); // rotate to have the cylinder pointing from superior to inferior
-              //transform->RotateZ(-angle); TODO: get the right angle!
-              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-              translationIS = points[3]-fovJ;    //TODO:!!!!ATTENTION!!!! This should be fovK, but because of the scannersimulation it is not!!!!
-              break;
-            }
-            default:
-              std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
-              break;
-          } //end switch          
-          transform->Translate(translationLR, translationPA, translationIS);    
-              
-          vtkMatrix4x4* transformToParentNeedle = pNeedleTransformNode->GetMatrixTransformToParent();
-          transformToParentNeedle->DeepCopy(transform->GetMatrix()); // This calls the modified event
-          
-          transform->Translate(-translationLR, -translationPA, -translationIS);
-          transform->RotateZ(90); 
-          vtkMatrix4x4* transformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
-          transformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
-          transform->Delete();
-        }
-  
+      //------------------------------------------------------------------------------------------------
+      // Retrieve the line from the houghtransformation
+      if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0)) //If the points are still the default value something went wrong
+        std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
+      else // if everything is ok
+      {//TODO: make this generic!! Right now I assume the needle enters from the patientleft or patientinferior                 
+        points[0] += imageRegionLower[0];
+        points[1] += imageRegionLower[1];
+        points[2] += imageRegionLower[0];
+        points[3] += imageRegionLower[1];
+        std::cout << "bounds: " << imageRegionLower[0] << "|" << imageRegionLower[1] << "|" << imageRegionUpper[0] << "|" <<  imageRegionUpper[1] << std::endl;
+        std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
+        
+        double vector[2]; //vector from Tip of the needle to the end
+        vector[0] = points[0] - points[2];
+        vector[1] = points[1] - points[3];
+        double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+        std::cout << "length: " << length << std::endl;
+        double angle = (atan2(points[1]-points[3],points[0]-points[2]))*180/PI; 
+        std::cout << "angle: " << angle << std::endl;
+        
+        //-------------------------------------------------------------------------------------------
+        // make the needle transform fit the line detected in the image
+        double translationLR = 0;   //(X-axis)
+        double translationPA = 0;   //(Y-axis)
+        double translationIS = 0;   //(Z-axis)
+        
+        vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
+        transform->Identity();
+        transform->PostMultiply(); // = global coordinate system
+        switch (needleOrigin) {
+          case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
+          {              
+            transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
+            transform->RotateZ(angle);
+            translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
+            translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
+            break;
+          }
+          case PATIENTPOSTERIOR: //and axial! TODO: Take care of differences in scan plane
+          {              
+            transform->RotateX(180); // rotate to have the cylinder pointing from posterior to anterior
+            //transform->RotateZ(angle); TODO: get the right angle!
+            translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
+            translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
+            break;
+          }
+          case PATIENTINFERIOR:
+          {
+            transform->RotateX(90); // rotate to have the cylinder pointing from superior to inferior
+            //transform->RotateZ(-angle); TODO: get the right angle!
+            translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
+            translationIS = points[3]-fovJ;    //TODO:!!!!ATTENTION!!!! This should be fovK, but because of the scannersimulation it is not!!!!
+            break;
+          }
+          default:
+            std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
+            break;
+        } //end switch          
+        transform->Translate(translationLR, translationPA, translationIS);    
+            
+        vtkMatrix4x4* transformToParentNeedle = pNeedleTransformNode->GetMatrixTransformToParent();
+        transformToParentNeedle->DeepCopy(transform->GetMatrix()); // This calls the modified event
+        
+        transform->Translate(-translationLR, -translationPA, -translationIS);
+        transform->RotateZ(90); 
+        vtkMatrix4x4* transformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
+        transformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
+        transform->Delete();
             
 //        currentXLowerBound = (int) points[2] - 20;
 //        //currentYLowerBound = (int) points[3] - 10;
