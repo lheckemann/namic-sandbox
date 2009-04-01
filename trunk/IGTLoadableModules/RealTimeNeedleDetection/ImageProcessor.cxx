@@ -397,10 +397,13 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
             offsetIndex[1] = localIndex[1]+j; //Y-1, Y, Y+1
           else if(needleEnteringDirection == ENTERINGBOTTOM) 
             offsetIndex[0] = localIndex[0]+j;    //X-1, X, X+1    
+            
+          std::cout << mLocalOutputImage->GetPixel(offsetIndex) << "|";
 
           if(mLocalOutputImage->GetPixel(offsetIndex) < intensityThresh)
             pixelIsNeedle = true;            
         }          
+        std::cout << std::endl;
       }
   
       if(pixelIsNeedle)  // if pixel still belongs to needle
