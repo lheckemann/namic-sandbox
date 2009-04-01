@@ -505,6 +505,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pOutputNode->SetName("OutputNode");
         pOutputNode->SetDescription("MRMLNode that displays the tracked needle and the original image");
         pOutputNode->SetScene(this->GetMRMLScene()); 
+        
 vtkMatrix4x4* matrix = vtkMatrix4x4::New(); 
 //identity
   matrix->Element[0][0] = 1.0;
@@ -753,7 +754,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Get the image variables
       vtkImageData* pImageData  = vtkImageData::New();        
       pImageData->DeepCopy(((vtkMRMLVolumeNode*) pSourceNode)->GetImageData());
-      std::cerr << "got ImageData" << std::endl;
       pImageData->GetDimensions(imageDimensions);
       pImageData->GetSpacing(imageSpacing);
       pImageData->GetOrigin(imageOrigin);
@@ -910,8 +910,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           vector[1] = points[1] - points[3];
           double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
           std::cout << "length: " << length << std::endl;
-          double angle = (atan2(points[1]-points[3],points[0]-points[2]))*180/PI; 
+          double angle = (atan2(vector[1],vector[0]))*180/PI;  // atan2(y,x) to calculate the "angle between the two points" == angle of the vector to the X-axis
           std::cout << "angle: " << angle << std::endl;
+                    
+          //TODO: Take this out later on          //std::cout << atan2(-1,3)*180/PI << "|" << atan2(1,3)*180/PI << "|" << atan2(3,1)*180/PI << "|" << atan2(3,-1)*180/PI << "|" << std::endl;
           
           //-------------------------------------------------------------------------------------------
           // make the needle transform fit the line detected in the image
@@ -925,16 +927,14 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           switch (needleOrigin) {
             case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
             {              
-              transform->RotateZ(90); // rotate to have the cylinder pointing from right to left
-              transform->RotateZ(angle);
+              transform->RotateZ(90+angle); // rotate +90 degrees to have the cylinder pointing from right to left
               translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
               translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
               break;
             }
             case PATIENTPOSTERIOR: //and axial! TODO: Take care of differences in scan plane
             {              
-              transform->RotateX(180); // rotate to have the cylinder pointing from posterior to anterior
-              //transform->RotateZ(angle); TODO: get the right angle!
+              transform->RotateZ(90+angle); // rotate +90 degrees to have the cylinder pointing from right to left
               translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
               translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
               break;
