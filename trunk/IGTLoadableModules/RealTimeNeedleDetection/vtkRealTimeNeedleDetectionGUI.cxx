@@ -409,12 +409,6 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     return;
   }
   
-//  else if (this->pVolumeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent && this->pVolumeSelector->GetSelected() != NULL) 
-//  { 
-//    std::cout << "VolumeSelector pressed." << std::endl;
-//    pSourceNode = vtkMRMLVolumeNode::SafeDownCast(this->pVolumeSelector->GetSelected()); //TODO: I can take this out later, because pSourceNode is assigned when startButton is pressed
-//  }
-  
   else if(this->pThresholdScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent)   //TODO: I might not need to catch this event -> just get the value when start is pressed
   {
     std::cout << "NeedleThreshold changed." << std::endl;
@@ -582,6 +576,61 @@ matrix->Delete();                       // this matrix should not be needed for 
       {
         std::cerr << "OutputNode exists already. Starting needle tracking again" << std::endl;        
       }      
+      //-------------------------------------------------------------------
+      // Create a MRMLModelNode that displays the needle
+      if(!pNeedleModelNode)       
+      {
+        pNeedleModelNode = vtkMRMLModelNode::New();
+        pNeedleModelNode->SetName("NeedleModel");
+        pNeedleModelNode->UpdateID("NeedleModel");
+        pNeedleModelNode->SetScene(this->GetMRMLScene());
+        pNeedleModelNode->SetHideFromEditors(0);
+              
+        this->GetMRMLScene()->AddNode(pNeedleModelNode);
+        std::cout << "NeedleModelNode added" << std::endl;
+        MakeNeedleModel();
+        
+        vtkMRMLDisplayNode* pNeedleDisplay = pNeedleModelNode->GetDisplayNode();  //GetDisplayNode() does not create a new reference -> do not delete later on
+        pNeedleDisplay->SetVisibility(0);
+        pNeedleModelNode->Modified();
+        this->GetMRMLScene()->Modified();        
+      }
+      
+      //------------------------------------------------------------------------------------------------
+      // Create a TransformNode that changes according to the found needle and will be observed by the ModelNode to display the needle  
+      if(!pNeedleTransformNode) // If the NeedleTransformNode doesn't exist yet -> make a new one 
+      {
+        pNeedleTransformNode = vtkMRMLLinearTransformNode::New();
+        pNeedleTransformNode->SetName("NeedleTransform");
+        pNeedleTransformNode->UpdateID("NeedleTransform");
+        pNeedleTransformNode->SetScene(this->GetMRMLScene());
+        pNeedleTransformNode->SetHideFromEditors(0);
+        vtkMatrix4x4* transform = vtkMatrix4x4::New(); // vtkMatrix is initialized with the identity matrix
+        pNeedleTransformNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
+        transform->Delete();        
+        this->GetMRMLScene()->AddNode(pNeedleTransformNode);         
+        std::cout << "NeedleTransformNode added" << std::endl;
+        
+        pNeedleModelNode->SetAndObserveTransformNodeID(pNeedleTransformNode->GetID());
+        pNeedleModelNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+      }
+      
+      //------------------------------------------------------------------------------------------------
+      // Create a TransformNode that is the normal of the scan plane  
+      if(!pScanPlaneNormalNode) // If the NeedleTransformNode doesn't exist yet -> make a new one 
+      {
+        pScanPlaneNormalNode = vtkMRMLLinearTransformNode::New();
+        pScanPlaneNormalNode->SetName("ScanPlaneNormal");
+        pScanPlaneNormalNode->UpdateID("ScanPlaneNormal");
+        pScanPlaneNormalNode->SetScene(this->GetMRMLScene());
+        pScanPlaneNormalNode->SetHideFromEditors(0);
+        vtkMatrix4x4* transform = vtkMatrix4x4::New(); // vtkMatrix is initialized with the identity matrix
+        pScanPlaneNormalNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
+        
+        this->GetMRMLScene()->AddNode(pScanPlaneNormalNode);         
+        std::cout << "ScanPlaneNormalNode added" << std::endl;
+      }
+      
       started = 1; // start checking for changes in pSourceNode to update pOutputNode     
       std::cerr << "Start checking for changes" << std::endl;
     }
@@ -607,55 +656,8 @@ matrix->Delete();                       // this matrix should not be needed for 
     std::cout << "ShowNeedleButton is pressed." << std::endl;
     showNeedle = this->pShowNeedleButton->GetSelectedState(); 
     if(showNeedle)
-    {
-      //-------------------------------------------------------------------
-      // Create a MRMLModelNode that displays the needle
-      if(!pNeedleModelNode)       
-      {
-        pNeedleModelNode = vtkMRMLModelNode::New();
-        pNeedleModelNode->SetName("NeedleModel");
-        pNeedleModelNode->UpdateID("NeedleModel");
-        pNeedleModelNode->SetScene(this->GetMRMLScene());
-        pNeedleModelNode->SetHideFromEditors(0);
-        
-        this->GetMRMLScene()->AddNode(pNeedleModelNode);
-        std::cout << "NeedleModelNode added" << std::endl;
-        MakeNeedleModel();        
-      }
-      //------------------------------------------------------------------------------------------------
-      // Create a TransformNode that changes according to the found needle and will be observed by the ModelNode to display the needle  
-      if(!pNeedleTransformNode) // If the NeedleTransformNode doesn't exist yet -> make a new one 
-      {
-        pNeedleTransformNode = vtkMRMLLinearTransformNode::New();
-        pNeedleTransformNode->SetName("NeedleTransform");
-        pNeedleTransformNode->UpdateID("NeedleTransform");
-        pNeedleTransformNode->SetScene(this->GetMRMLScene());
-        pNeedleTransformNode->SetHideFromEditors(0);
-        vtkMatrix4x4* transform = vtkMatrix4x4::New(); // vtkMatrix is initialized with the identity matrix
-        pNeedleTransformNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
-        transform->Delete();        
-        this->GetMRMLScene()->AddNode(pNeedleTransformNode);         
-        std::cout << "NeedleTransformNode added" << std::endl;
-        
-        pNeedleModelNode->SetAndObserveTransformNodeID(pNeedleTransformNode->GetID());
-        pNeedleModelNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-      }
-      //------------------------------------------------------------------------------------------------
-      // Create a TransformNode that is the normal of the scan plane  
-      if(!pScanPlaneNormalNode) // If the NeedleTransformNode doesn't exist yet -> make a new one 
-      {
-        pScanPlaneNormalNode = vtkMRMLLinearTransformNode::New();
-        pScanPlaneNormalNode->SetName("ScanPlaneNormal");
-        pScanPlaneNormalNode->UpdateID("ScanPlaneNormal");
-        pScanPlaneNormalNode->SetScene(this->GetMRMLScene());
-        pScanPlaneNormalNode->SetHideFromEditors(0);
-        vtkMatrix4x4* transform = vtkMatrix4x4::New(); // vtkMatrix is initialized with the identity matrix
-        pScanPlaneNormalNode->ApplyTransform(transform);  // SetAndObserveMatrixTransformToParent called in this function
-        
-        this->GetMRMLScene()->AddNode(pScanPlaneNormalNode);         
-        std::cout << "ScanPlaneNormalNode added" << std::endl;
-      }
-      vtkMRMLDisplayNode* pNeedleDisplay = pNeedleModelNode->GetDisplayNode(); //TODO:Steve Can I delete this displayNode later on? 
+    {      
+      vtkMRMLDisplayNode* pNeedleDisplay = pNeedleModelNode->GetDisplayNode(); //GetDisplayNode() does not create a new reference -> do not delete later on 
       if(pNeedleDisplay)
       {
         pNeedleDisplay->SetVisibility(1);
@@ -663,8 +665,7 @@ matrix->Delete();                       // this matrix should not be needed for 
         this->GetMRMLScene()->Modified();
       }
       else
-        std::cerr << "Error! DisplayNode for needle does not exist!" << std::endl;
-      
+        std::cerr << "Error! DisplayNode for needle does not exist!" << std::endl;      
     }
     else // !showNeedle
     {
@@ -890,80 +891,77 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pOutputNode->SetAndObserveImageData(pImageData); //automatically removes old observer and sets modified flag, if new image is different  TODO: Does it also delete the old observer?
       pImageData->Delete();
       
-      if(showNeedle)  //TODO: Take this if out. The calculations should always be applied to the needle transform regardless if the transform is shown or not
-      {   
-        //------------------------------------------------------------------------------------------------
-        // Retrieve the line from the houghtransformation
-        if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0)) //If the points are still the default value something went wrong
-          std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
-        else // if everything is ok
-        {//TODO: make this generic!! Right now I assume the needle enters from the patientleft or patientinferior                 
-          points[0] += imageRegionLower[0];
-          points[1] += imageRegionLower[1];
-          points[2] += imageRegionLower[0];
-          points[3] += imageRegionLower[1];
-          std::cout << "bounds: " << imageRegionLower[0] << "|" << imageRegionLower[1] << "|" << imageRegionUpper[0] << "|" <<  imageRegionUpper[1] << std::endl;
-          std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
-          
-          double vector[2]; //vector from Tip of the needle to the end
-          vector[0] = points[0] - points[2];
-          vector[1] = points[1] - points[3];
-          double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-          std::cout << "length: " << length << std::endl;
-          double angle = (atan2(vector[1],vector[0]))*180/PI;  // atan2(y,x) to calculate the "angle between the two points" == angle of the vector to the X-axis
-          std::cout << "angle: " << angle << std::endl;
-                    
-          //TODO: Take this out later on          //std::cout << atan2(-1,3)*180/PI << "|" << atan2(1,3)*180/PI << "|" << atan2(3,1)*180/PI << "|" << atan2(3,-1)*180/PI << "|" << std::endl;
-          
-          //-------------------------------------------------------------------------------------------
-          // make the needle transform fit the line detected in the image
-          double translationLR = 0;   //(X-axis)
-          double translationPA = 0;   //(Y-axis)
-          double translationIS = 0;   //(Z-axis)
-          
-          vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
-          transform->Identity();
-          transform->PostMultiply(); // = global coordinate system
-          switch (needleOrigin) {
-            case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
-            {              
-              transform->RotateZ(90+angle); // rotate +90 degrees to have the cylinder pointing from right to left
-              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-              translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
-              break;
-            }
-            case PATIENTPOSTERIOR: //and axial! TODO: Take care of differences in scan plane
-            {              
-              transform->RotateZ(90+angle); // rotate +90 degrees to have the cylinder pointing from right to left
-              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-              translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
-              break;
-            }
-            case PATIENTINFERIOR:
-            {
-              transform->RotateX(90); // rotate to have the cylinder pointing from superior to inferior
-              //transform->RotateZ(-angle); TODO: get the right angle!
-              translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-              translationIS = points[3]-fovJ;    //TODO:!!!!ATTENTION!!!! This should be fovK, but because of the scannersimulation it is not!!!!
-              break;
-            }
-            default:
-              std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
-              break;
-          } //end switch          
-          transform->Translate(translationLR, translationPA, translationIS);    
-              
-          vtkMatrix4x4* transformToParentNeedle = pNeedleTransformNode->GetMatrixTransformToParent();
-          transformToParentNeedle->DeepCopy(transform->GetMatrix()); // This calls the modified event
-          
-          transform->Translate(-translationLR, -translationPA, -translationIS);
-          transform->RotateZ(90); 
-          vtkMatrix4x4* transformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
-          transformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
-          transform->Delete();
-        }
-  
+      //------------------------------------------------------------------------------------------------
+      // Retrieve the line from the houghtransformation
+      if((points[0] == 0) && (points[1] == 0) && (points[2] == 0) && (points[3] == 0)) //If the points are still the default value something went wrong
+        std::cerr << "Error! Points of line are all 0.0! No needle detected!" << std::endl;
+      else // if everything is ok
+      {//TODO: make this generic!! Right now I assume the needle enters from the patientleft or patientinferior                 
+        points[0] += imageRegionLower[0];
+        points[1] += imageRegionLower[1];
+        points[2] += imageRegionLower[0];
+        points[3] += imageRegionLower[1];
+        std::cout << "bounds: " << imageRegionLower[0] << "|" << imageRegionLower[1] << "|" << imageRegionUpper[0] << "|" <<  imageRegionUpper[1] << std::endl;
+        std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
+        
+        double vector[2]; //vector from Tip of the needle to the end
+        vector[0] = points[0] - points[2];
+        vector[1] = points[1] - points[3];
+        double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
+        std::cout << "length: " << length << std::endl;
+        double angle = (atan2(vector[1],vector[0]))*180/PI;  // atan2(y,x) to calculate the "angle between the two points" == angle of the vector to the X-axis
+        std::cout << "angle: " << angle << std::endl;
+                  
+        //TODO: Take this out later on          //std::cout << atan2(-1,3)*180/PI << "|" << atan2(1,3)*180/PI << "|" << atan2(3,1)*180/PI << "|" << atan2(3,-1)*180/PI << "|" << std::endl;
+        
+        //-------------------------------------------------------------------------------------------
+        // make the needle transform fit the line detected in the image
+        double translationLR = 0;   //(X-axis)
+        double translationPA = 0;   //(Y-axis)
+        double translationIS = 0;   //(Z-axis)
+        
+        vtkTransform* transform = vtkTransform::New(); // initialized with identity matrix
+        transform->Identity();
+        transform->PostMultiply(); // = global coordinate system
+        switch (needleOrigin) 
+        {
+          case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
+          {              
+            transform->RotateZ(90+angle); // rotate +90 degrees to have the cylinder pointing from right to left
+            translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
+            translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
+            break;
+          }
+          case PATIENTPOSTERIOR: //and axial! TODO: Take care of differences in scan plane
+          {              
+            transform->RotateZ(90+angle); // rotate +90 degrees to have the cylinder pointing from right to left
+            translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
+            translationPA = -(points[3]-fovJ); // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
+            break;
+          }
+          case PATIENTINFERIOR:
+          {
+            transform->RotateX(90); // rotate to have the cylinder pointing from superior to inferior
+            //transform->RotateZ(-angle); TODO: get the right angle!
+            translationLR = -(points[2]-fovI); // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
+            translationIS = points[3]-fovJ;    //TODO:!!!!ATTENTION!!!! This should be fovK, but because of the scannersimulation it is not!!!!
+            break;
+          }
+          default:
+            std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
+            break;
+        } //end switch          
+        transform->Translate(translationLR, translationPA, translationIS);    
             
+        vtkMatrix4x4* transformToParentNeedle = pNeedleTransformNode->GetMatrixTransformToParent();
+        transformToParentNeedle->DeepCopy(transform->GetMatrix()); // This calls the modified event
+        
+        transform->Translate(-translationLR, -translationPA, -translationIS);
+        transform->RotateZ(90); 
+        vtkMatrix4x4* transformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
+        transformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
+        transform->Delete();
+          
 //        currentXLowerBound = (int) points[2] - 20;
 //        //currentYLowerBound = (int) points[3] - 10;
 //        currentXUpperBound = (int) points[0];        
@@ -971,11 +969,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
 //        std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
 //        currentXImageRegionSize = currentXUpperBound - currentXLowerBound;
 //        currentYImageRegionSize = currentYUpperBound - currentYLowerBound;       
-       
+     
 
       }  
-    clock_t end = clock();
-    cout << "               Time elapsed: " << double(diffclock(end,begin)) << " ms"<< endl;  
+      clock_t end = clock();
+      cout << "               Time elapsed: " << double(diffclock(end,begin)) << " ms"<< endl;  
     }
     started++;  //I also use started as a counter of the frames -> TODO:Check if started gets bigger than int
   }
