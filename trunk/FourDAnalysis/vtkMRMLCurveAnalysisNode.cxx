@@ -98,6 +98,8 @@ void vtkMRMLCurveAnalysisNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkMRMLCurveAnalysisNode::SetInputData(const char* name, vtkDoubleArray* data)
 {
+  std::cerr << "void vtkMRMLCurveAnalysisNode::SetInputData(const char* name, vtkDoubleArray* data)" << std::endl;
+  std::cerr << name << std::endl;
   this->InputData[name] = data;
 }
 

@@ -74,7 +74,8 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLCurveAnalysisNode : public vtkMRMLNode
   }
 
   // Input curve data
-  void SetInputData(const char* name, vtkDoubleArray* data=NULL);
+  void SetInputData(const char* name, vtkDoubleArray* data);
+  void AddInputDataName(const char* name) { SetInputData(name, NULL); };
   vtkDoubleArray* GetInputData(const char* name);
   vtkStringArray* GetInputDataNameArray();
   void ClearInputData();
@@ -87,7 +88,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLCurveAnalysisNode : public vtkMRMLNode
 
   // Output parameters
   void SetParameter(const char *name, const double value);
-  double GetParameter(const char* namoe);
+  double GetParameter(const char* name);
   vtkStringArray* GetParameterNameArray();
   void ClearParameters();
 

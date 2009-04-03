@@ -28,6 +28,8 @@
 #include "vtkKWPlotGraph.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 
+#include "vtkKWMultiColumnListWithScrollbars.h"
+
 #include <map>
 
 class vtkKWScaleWithEntry;
@@ -140,6 +142,11 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void SetWindowLevelForCurrentFrame();
   void UpdateSeriesSelectorMenus();
   void UpdateMaskSelectMenu();
+
+  void UpdateInitialParameterList(vtkMRMLCurveAnalysisNode* curveNode);
+  void GetInitialParametersAndInputCurves(vtkMRMLCurveAnalysisNode* curveNode, int start, int end);
+  void UpdateOutputParameterList(vtkMRMLCurveAnalysisNode* curveNode);
+
   void UpdateIntensityPlot(vtkIntensityCurves* intensityCurves);
   void UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves* intensityCurves, vtkDoubleArray* array);
 
@@ -192,9 +199,11 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWSpinBox*    CurveFittingStartIndexSpinBox;
   vtkKWSpinBox*    CurveFittingEndIndexSpinBox;
   vtkKWPushButton* RunFittingButton;
+  vtkKWMultiColumnListWithScrollbars* InitialParameterList;
 
   vtkKWPushButton* RunPlotButton;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
+  vtkKWMultiColumnListWithScrollbars* ResultParameterList;
 
   // -----------------------------------------
   // Parameter Map

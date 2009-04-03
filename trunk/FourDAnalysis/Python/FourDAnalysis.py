@@ -52,6 +52,20 @@ class CurveAnalysisBase(object):
         err = y - (self.Function(x, param))
         return err
 
+    def CalcOutputParamDict(self, param):
+        return {}
+
+    # ------------------------------
+    # Convert signal intensity curve to concentration curve
+    def SignalToConcent(self, signal):
+        return signal
+
+    # ------------------------------
+    # Convert concentration curve to signal intensity curve
+    # (used to generate a fit curve)
+    def ConcentToSignal(self, concent):
+        return concent
+
     def GetOptimParamNameList(self):
         return self.OptimParamNameList
 
@@ -59,7 +73,7 @@ class CurveAnalysisBase(object):
         return self.InputCurveNameList
 
     def GetOutputParamNameList(self):
-        dict = self.CalcOutputParam(self.InitialOptimParam)
+        dict = self.CalcOutputParamDict(self.InitialOptimParam)
         list = []
         for key, value in dict.iteritems():
             list.append(key)
@@ -78,8 +92,8 @@ class CurveAnalysisBase(object):
         return self.OptimParam
 
     def GetOutputParam(self):
-        return self.CalcOutputParam(self.OptimParam)
-    
+        return self.CalcOutputParamDict(self.OptimParam)
+
     def SetTargetCurve(self, sourceCurve):
         self.TargetCurve = sourceCurve
 
@@ -88,14 +102,19 @@ class CurveAnalysisBase(object):
         y_meas = self.TargetCurve[:, 1]
 
         param0 = self.InitialOptimParam
+
+        sys.stderr.write('!Ktrans     : %f\n' % param0[0] )
+        sys.stderr.write('!vp         : %f\n' % param0[1] )
+        sys.stderr.write('!ve         : %f\n' % param0[2] )
+
         param_output = scipy.optimize.leastsq(self.ResidualError, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
         self.OptimParam       = param_output[0] # fitted parameters
         self.CovarianceMatrix = param_output[1] # covariant matrix
         
-        return 1        ## shoud return 0 if optimization fails
+        return 1        ## should return 0 if optimization fails
 
     def GetFitCurve(self, x):
-        return self.Function(x, self.OptimParam)
+        return self.ConcentToSignal(self.Function(x, self.OptimParam))
 
 
 
@@ -148,8 +167,6 @@ class CurveAnalysisExecuter(object):
     def GetInputCurveNames(self):
         exec('fitting = self.Module.' + self.ModuleName + '()')
         list =  fitting.GetInputCurveNameList()
-        for i in list:
-            sys.stderr.write('name     : %s\n' % i )
         return list
 
     # ------------------------------
@@ -169,8 +186,6 @@ class CurveAnalysisExecuter(object):
     def GetOutputParameterNames(self):
         exec('fitting = self.Module.' + self.ModuleName + '()')
         list =  fitting.GetOutputParamNameList()
-        for i in list:
-            sys.stderr.write('name     : %s\n' % i )
         return list
 
     # ------------------------------
