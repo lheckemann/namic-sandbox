@@ -52,6 +52,19 @@ class CurveFittingKetyModel(CurveAnalysisBase):
         self.AifTime = r_[0:5]
         self.AifData = r_[0:5]
         self.tck = splrep(self.AifTime, self.AifData, s=0)
+
+    # ------------------------------
+    # Convert signal intensity curve to concentration curve
+    # Assuming parmagnetic contrast media (e.g. Gd-DTPA)
+    def SignalToConcent(self, signal):
+        cont = signal / signal[0] - 1.0
+        return cont
+
+    # ------------------------------
+    # Convert concentration curve to signal intensity curve
+    def ConcentToSignal(self, concent):
+        signal = (concent + 1.0) * self.TargetCurve[0, 1]
+        return signal
         
     # ------------------------------
     # Generate arteral input function from given data
@@ -83,7 +96,7 @@ class CurveFittingKetyModel(CurveAnalysisBase):
 
     # ------------------------------
     # Calculate the output parameters (called by GetOutputParam())
-    def CalcOutputParam(self, param):
+    def CalcOutputParamDict(self, param):
         Ktrans, vp, ve = param
 
         dict = {}
@@ -94,11 +107,6 @@ class CurveFittingKetyModel(CurveAnalysisBase):
         sys.stderr.write('Ktrans     : %f\n' % Ktrans )
         sys.stderr.write('vp         : %f\n' % vp )
         sys.stderr.write('ve         : %f\n' % ve )
-
-        #dict['alpha'] = alpha
-        #dict['beta']  = beta
-        #dict['Ta']    = Ta
-        #dict['S0']    = S0
 
         return dict
 

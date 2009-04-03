@@ -18,9 +18,17 @@ targetCurve    = scipy.io.read_array(TargetCsvFile, separator=',')
 outputCurve   = targetCurve
 
 inputCurveDict = {'AIF': aifCurve}
-initialParamDict = { 'Ktrans': 0.04,
-                     'vp':     0.1,
-                     've':     0.4}
+#initialParamDict = { 'Ktrans': 0.04,
+#                     'vp':     0.1,
+#                     've':     0.4}
+
+initialParamDict = { 'Ktrans': 0.1,
+                     'vp':     0.01,
+                     've':     0.01}
+
+print inputCurveDict['AIF']
+
+print targetCurve
 
 caexec = fda.CurveAnalysisExecuter(Path)
 result = caexec.Execute(inputCurveDict, initialParamDict, targetCurve, outputCurve)
