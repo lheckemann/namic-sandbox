@@ -74,9 +74,9 @@ public:
   /** Typedef requried to generate dataobject decorated output that can
     * be plugged into SampleClassifierFilter */ 
   typedef GaussianMembershipFunction< MeasurementVectorType > 
-                                                   GaussianMembershipFunction;
+                                                   GaussianMembershipFunctionType;
 
-  typedef typename GaussianMembershipFunction::Pointer 
+  typedef typename GaussianMembershipFunctionType::Pointer 
                                                    GaussianMembershipFunctionPointer;
 
   typedef MembershipFunctionBase< MeasurementVectorType > MembershipFunctionType;
