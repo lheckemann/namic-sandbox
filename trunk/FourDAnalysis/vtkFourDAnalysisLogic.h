@@ -126,6 +126,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   const char* GetRegisteredFrameNodeID(int index);
 
   int  SaveIntensityCurves(vtkIntensityCurves* curves, const char* fileNamePrefix);
+  int  SaveCurve(vtkDoubleArray* curve, const char* fileNamePrefix);
 
   void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
   vtkSlicerApplication* GetApplication() { return this->Application; };

@@ -768,6 +768,35 @@ int vtkFourDAnalysisLogic::SaveIntensityCurves(vtkIntensityCurves* curves, const
   return 1;
 }
 
+
+//---------------------------------------------------------------------------
+int vtkFourDAnalysisLogic::SaveCurve(vtkDoubleArray* curve, const char* fileNamePrefix)
+{
+  char filename[256];
+  sprintf (filename, "%s.csv", fileNamePrefix);
+  std::ofstream fout;
+  fout.open(filename, std::ios::out);
+  if (fout.fail())
+    {
+    vtkErrorMacro ("vtkFourDAnalysisLogic: could not open file " << filename );
+    return 0;
+    }
+  
+  int n = curve->GetNumberOfTuples();
+  for (int i = 0; i < n; i ++)
+    {
+    double* xy = curve->GetTuple(i);
+    // Write the data
+    //      t        ,      mean
+    //   ---------------------------
+    fout << xy[0] << ", " << xy[1] << std::endl;
+    }
+
+  fout.close();
+}
+
+
+
 //---------------------------------------------------------------------------
 void vtkFourDAnalysisLogic::GetCurveAnalysisInfo(const char* script, vtkMRMLCurveAnalysisNode* curveNode)
 {
