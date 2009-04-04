@@ -223,9 +223,9 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
   while( functionIter != end )
     {
     ImageClassifierFilterType::MembershipFunctionPointer membershipFunction = *functionIter;
-    const EstimatorType::GaussianMembershipFunction * 
+    const EstimatorType::GaussianMembershipFunctionType * 
           gaussianMemberShpFunction = 
-        dynamic_cast<const EstimatorType::GaussianMembershipFunction*>(membershipFunction.GetPointer());
+        dynamic_cast<const EstimatorType::GaussianMembershipFunctionType*>(membershipFunction.GetPointer());
     std::cout << "\tMembership function:\t " << counter << std::endl;
     std::cout << "\t\tMean="<< gaussianMemberShpFunction->GetMean() << std::endl;
     std::cout << "\t\tCovariance matrix=" << gaussianMemberShpFunction->GetCovariance() << std::endl;
