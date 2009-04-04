@@ -58,14 +58,12 @@ class CurveFittingKetyModel(CurveAnalysisBase):
     # Assuming parmagnetic contrast media (e.g. Gd-DTPA)
     def SignalToConcent(self, signal):
         cont = signal / signal[0] - 1.0
-        sys.stderr.write('BASE  =  %f\n' % signal[0] )        
         return cont
     
     # ------------------------------
     # Convert concentration curve to signal intensity curve
     def ConcentToSignal(self, concent):
         signal = (concent + 1.0) * self.TargetCurve[0, 1]
-        sys.stderr.write('BASE  =  %f\n' %  self.TargetCurve[0, 1])
         return signal
        
     # ------------------------------

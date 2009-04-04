@@ -103,10 +103,6 @@ class CurveAnalysisBase(object):
 
         param0 = self.InitialOptimParam
 
-        sys.stderr.write('!Ktrans     : %f\n' % param0[0] )
-        sys.stderr.write('!vp         : %f\n' % param0[1] )
-        sys.stderr.write('!ve         : %f\n' % param0[2] )
-
         param_output = scipy.optimize.leastsq(self.ResidualError, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
         self.OptimParam       = param_output[0] # fitted parameters
         self.CovarianceMatrix = param_output[1] # covariant matrix

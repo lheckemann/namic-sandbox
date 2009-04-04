@@ -199,9 +199,11 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWSpinBox*    CurveFittingStartIndexSpinBox;
   vtkKWSpinBox*    CurveFittingEndIndexSpinBox;
   vtkKWPushButton* RunFittingButton;
-  vtkKWMultiColumnListWithScrollbars* InitialParameterList;
 
+
+  vtkKWMultiColumnListWithScrollbars* InitialParameterList;
   vtkKWPushButton* RunPlotButton;
+  vtkKWLoadSaveButtonWithLabel* SaveFittedCurveButton;
   vtkKWLoadSaveButtonWithLabel* SavePlotButton;
   vtkKWMultiColumnListWithScrollbars* ResultParameterList;
 
@@ -285,6 +287,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   int BundleNameCount; // used to name 4D bundle
 
   vtkIntensityCurves* IntensityCurves;
+  vtkDoubleArray*     FittedCurve;
 
 };
 

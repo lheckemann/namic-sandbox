@@ -137,8 +137,8 @@ int vtkIntensityCurves::OutputDataInCSV(ostream& os, int label)
       {
       double* xy = data->GetTuple(i);
       // Write the data
-      //      t        ,      mean
-      //   ---------------------------
+      //      t        ,      mean     ,      std
+      //   -----------------------------------------
       os << xy[0] << ", " << xy[1] << ", " << xy[2] << std::endl;
       }
     }
