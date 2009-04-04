@@ -99,7 +99,7 @@ class CurveAnalysisBase(object):
 
     def Execute(self):
         x      = self.TargetCurve[:, 0]
-        y_meas = self.TargetCurve[:, 1]
+        y_meas = self.SignalToConcent(self.TargetCurve[:, 1])
 
         param0 = self.InitialOptimParam
 
