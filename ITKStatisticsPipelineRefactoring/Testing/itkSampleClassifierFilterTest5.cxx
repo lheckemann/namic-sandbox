@@ -56,12 +56,12 @@ int itkSampleClassifierFilterTest5(int argc, char *argv[] )
 
   //Populate the list with samples from two normal distributions
 
-  EstimatorType::DistanceToCentroidMembershipFunction::CentroidType  mean1;
+  EstimatorType::DistanceToCentroidMembershipFunctionType::CentroidType  mean1;
 
   itk::Statistics::MeasurementVectorTraits::SetLength( mean1, numberOfComponents );
   mean1[0] = 10.5;
 
-  EstimatorType::DistanceToCentroidMembershipFunction::CentroidType  mean2;
+  EstimatorType::DistanceToCentroidMembershipFunctionType::CentroidType  mean2;
   itk::Statistics::MeasurementVectorTraits::SetLength( mean2, numberOfComponents );
   mean2[0] = 200.5;
 
@@ -153,9 +153,9 @@ int itkSampleClassifierFilterTest5(int argc, char *argv[] )
   while( functionIter != end )
     {
     FilterType::MembershipFunctionPointer membershipFunction = *functionIter;
-    const EstimatorType::DistanceToCentroidMembershipFunction * 
+    const EstimatorType::DistanceToCentroidMembershipFunctionType * 
           distanceMemberShpFunction = 
-        dynamic_cast<const EstimatorType::DistanceToCentroidMembershipFunction*>(membershipFunction.GetPointer());
+        dynamic_cast<const EstimatorType::DistanceToCentroidMembershipFunctionType*>(membershipFunction.GetPointer());
     std::cout << "Centroid of the " << counter << " membership function " 
               << distanceMemberShpFunction->GetCentroid() << std::endl;
     functionIter++;
