@@ -89,7 +89,7 @@ class CurveFittingKetyModel(CurveAnalysisBase):
         y = scipy.zeros(len(x))
         for i in lst:
             xx = x[i]
-            s = quadrature(lambda t: self.Aif(t) * scipy.exp(-Ktrans*(xx-t)/ve), 0.0, xx, tol=1.0e-00, vec_func=False)
+            s = quadrature(lambda t: self.Aif(t) * scipy.exp(-Ktrans*(xx-t)/ve), 0.0, xx, tol=1.0e-03, vec_func=False)
             #s = quadrature(lambda t: splev(t,self.Tck,der=0) * scipy.exp(-Ktrans*(xx-t)/ve), 0.0, xx, vec_func=False)
             y[i] = vp * self.Aif(xx) + Ktrans  * s[0]
         return y
