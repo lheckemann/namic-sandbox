@@ -457,9 +457,9 @@ KdTreeBasedKmeansEstimator< TKdTree >
   for( unsigned int i=0; i < numberOfClasses; i++ )
     {
     DistanceToCentroidMembershipFunctionPointer membershipFunction =
-                DistanceToCentroidMembershipFunction::New(); 
+                DistanceToCentroidMembershipFunctionType::New(); 
     membershipFunction->SetMeasurementVectorSize( m_MeasurementVectorSize );
-    typename DistanceToCentroidMembershipFunction::CentroidType    centroid;
+    typename DistanceToCentroidMembershipFunctionType::CentroidType    centroid;
     centroid.SetSize( m_MeasurementVectorSize );
     for(unsigned int j=0; j < m_MeasurementVectorSize; j++)
       {

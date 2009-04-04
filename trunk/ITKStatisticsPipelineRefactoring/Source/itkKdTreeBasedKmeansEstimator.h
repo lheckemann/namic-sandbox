@@ -105,9 +105,9 @@ public:
    /** Typedef requried to generate dataobject decorated output that can
     * be plugged into SampleClassifierFilter */ 
   typedef DistanceToCentroidMembershipFunction< MeasurementVectorType > 
-                                                   DistanceToCentroidMembershipFunction;
+                                                   DistanceToCentroidMembershipFunctionType;
 
-  typedef typename DistanceToCentroidMembershipFunction::Pointer 
+  typedef typename DistanceToCentroidMembershipFunctionType::Pointer 
                                                    DistanceToCentroidMembershipFunctionPointer;
 
   typedef MembershipFunctionBase< MeasurementVectorType > MembershipFunctionType;
