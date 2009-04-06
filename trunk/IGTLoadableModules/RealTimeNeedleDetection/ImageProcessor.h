@@ -31,6 +31,7 @@
 #define OUTPUT    3
 
 //TODO: maybe no need for floatImage? HoughTransform and Thinning need inverted images and they use Uchar inverted images
+//TODO: maybe no need for inputTmp and outputTmp variables for filter functions
 template <class InputPixelType>
 class InvertIntensityFunctor
 {

@@ -65,8 +65,8 @@
 
 #define DEFAULTTHRESHOLD 48000
 #define DEFAULTINTENSITY 15000
-#define DEFAULTERODE     2
-#define DEFAULTDILATE    3
+#define DEFAULTERODE     3
+#define DEFAULTDILATE    2
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkRealTimeNeedleDetectionGUI);
@@ -515,69 +515,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         pOutputNode->SetName("OutputNode");
         pOutputNode->SetDescription("MRMLNode that displays the tracked needle and the original image");
         pOutputNode->SetScene(this->GetMRMLScene()); 
-        
-vtkMatrix4x4* matrix = vtkMatrix4x4::New(); 
-//identity
-  matrix->Element[0][0] = 1.0;
-  matrix->Element[1][0] = 0.0;
-  matrix->Element[2][0] = 0.0;
-  matrix->Element[0][1] = 0.0;
-  matrix->Element[1][1] = 1.0;
-  matrix->Element[2][1] = 0.0;
-  matrix->Element[0][2] = 0.0;
-  matrix->Element[1][2] = 0.0;
-  matrix->Element[2][2] = 1.0;
-  matrix->Element[0][3] = 128.0;
-  matrix->Element[1][3] = 128.0;
-  matrix->Element[2][3] = 0.0;
-
-//axial
-//  matrix->Element[0][0] = -1.0;
-//  matrix->Element[1][0] = 0.0;
-//  matrix->Element[2][0] = 0.0;
-//  matrix->Element[0][1] = 0.0;
-//  matrix->Element[1][1] = -1.0;
-//  matrix->Element[2][1] = 0.0;
-//  matrix->Element[0][2] = 0.0;
-//  matrix->Element[1][2] = 0.0;
-//  matrix->Element[2][2] = 1.0;
-//  matrix->Element[0][3] = 128.0;
-//  matrix->Element[1][3] = 128.0;
-//  matrix->Element[2][3] = 0.0;
-
-//coronal probably wrong
-//  matrix->Element[0][0] = -1.0;
-//  matrix->Element[1][0] = 0.0;
-//  matrix->Element[2][0] = 0.0;
-//  matrix->Element[0][1] = 0.0;
-//  matrix->Element[1][1] = 0.0;
-//  matrix->Element[2][1] = -1.0;
-//  matrix->Element[0][2] = 0.0;
-//  matrix->Element[1][2] = -1.0;
-//  matrix->Element[2][2] = 0.0;
-//  matrix->Element[0][3] = 128.0;
-//  matrix->Element[1][3] = 0.0;
-//  matrix->Element[2][3] = -128.0;
-
-//sagital probably wrong
-//  matrix->Element[0][0] = 0.0;
-//  matrix->Element[1][0] = 1.0;
-//  matrix->Element[2][0] = 0.0;
-//  matrix->Element[0][1] = 0.0;
-//  matrix->Element[1][1] = 0.0;
-//  matrix->Element[2][1] = -1.0;
-//  matrix->Element[0][2] = -1.0;
-//  matrix->Element[1][2] = 0.0;
-//  matrix->Element[2][2] = 0.0;
-//  matrix->Element[0][3] = 0.0;
-//  matrix->Element[1][3] = 128.0;
-//  matrix->Element[2][3] = -128.0;
-
-
-//!!ATTENTION!!! Take this out when really testing on the scanner
-pOutputNode->SetRASToIJKMatrix(matrix); // TODO: make this matrix generic! right now it is adapted to the scanner simulation
-matrix->Delete();                       // this matrix should not be needed for real images, because the header information should be correct
-        
+              
         vtkMRMLScalarVolumeDisplayNode* pScalarDisplayNode = vtkMRMLScalarVolumeDisplayNode::New();
         pScalarDisplayNode->SetDefaultColorMap();   
         vtkMRMLScalarVolumeDisplayNode* pDisplayNode = pScalarDisplayNode;         
@@ -780,6 +718,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;
       double fovK = imageDimensions[2] * imageSpacing[2] / 2.0;  
       scalarSize = pImageData->GetScalarSize();
+      orientOutputImage(fovI, fovJ, fovK);
       //TODO: Do I need to get the scalarType, too?
       if(ROIpresent)
       {
@@ -859,25 +798,25 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
       //TODO:write all images not only in tmp, but also in the output!
-           
-      pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
-      pImageProcessor->DilateAndErode(false, false, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt());
-      pImageProcessor->GetImage((void*) pImageRegionOutput2);
-      SetImageRegion(pImageData, pImageRegionOutput2, 2);  // write the region of interest after top/right in the MRI image received from the scanner
-      //TODO:DELETE pImageRegionOutput2!!        
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
-      
+                 
       if(gaussVariance)
       {
-        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, true, true);  //makes the line white -> no inversion needed
-        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, true, false); 
+        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, true);  //makes the line white -> no inversion needed
+        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, false); 
         pImageProcessor->GetImage((void*) pImageRegionOutput1);
         SetImageRegion(pImageData, pImageRegionOutput1, 1);  // write the region of interest after top/left in the MRI image received from the scanner
         //TODO:DELETE pImageRegionOutput1!!        
       }
       else
-        pImageProcessor->Invert(true, true);        
+        pImageProcessor->Invert(false, true);        
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
+      
+      pImageProcessor->DilateAndErode(true, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // 2 == dilate value, default: 3 == erode value
+      pImageProcessor->DilateAndErode(true, false, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt());
+      pImageProcessor->GetImage((void*) pImageRegionOutput2);
+      SetImageRegion(pImageData, pImageRegionOutput2, 2);  // write the region of interest after top/right in the MRI image received from the scanner
+      //TODO:DELETE pImageRegionOutput2!!        
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, true, 0, (int) needleDetectionThreshold, MAX);
       pImageProcessor->Threshold(true, false, 0, (int) needleDetectionThreshold, MAX);
@@ -1137,18 +1076,6 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   dilateErodeFrame->Create();
   this->Script ("pack %s -fill both -expand true", dilateErodeFrame->GetWidgetName());
   
-  vtkKWLabel* erodeLabel = vtkKWLabel::New();
-  erodeLabel->SetParent(dilateErodeFrame);
-  erodeLabel->Create();
-  erodeLabel->SetWidth(7);
-  erodeLabel->SetText("Erode: ");
-              
-  this->pErodeEntry = vtkKWEntry::New();
-  this->pErodeEntry->SetParent(dilateErodeFrame);
-  this->pErodeEntry->Create();
-  this->pErodeEntry->SetWidth(7);
-  this->pErodeEntry->SetValueAsInt(DEFAULTERODE);
-  
   vtkKWLabel* dilateLabel = vtkKWLabel::New();
   dilateLabel->SetParent(dilateErodeFrame);
   dilateLabel->Create();
@@ -1161,11 +1088,23 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pDilateEntry->SetWidth(7);
   this->pDilateEntry->SetValueAsInt(DEFAULTDILATE);
   
-  this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
-              erodeLabel->GetWidgetName(), this->pErodeEntry->GetWidgetName(), dilateLabel->GetWidgetName(), this->pDilateEntry->GetWidgetName());
+  vtkKWLabel* erodeLabel = vtkKWLabel::New();
+  erodeLabel->SetParent(dilateErodeFrame);
+  erodeLabel->Create();
+  erodeLabel->SetWidth(7);
+  erodeLabel->SetText("Erode: ");
+              
+  this->pErodeEntry = vtkKWEntry::New();
+  this->pErodeEntry->SetParent(dilateErodeFrame);
+  this->pErodeEntry->Create();
+  this->pErodeEntry->SetWidth(7);
+  this->pErodeEntry->SetValueAsInt(DEFAULTERODE);
   
-  erodeLabel->Delete();
+  this->Script("pack %s %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              dilateLabel->GetWidgetName(), this->pDilateEntry->GetWidgetName(), erodeLabel->GetWidgetName(), this->pErodeEntry->GetWidgetName());
+  
   dilateLabel->Delete();  
+  erodeLabel->Delete();
   dilateErodeFrame->Delete(); 
    
   // ------------------------------------------------------
@@ -1540,6 +1479,74 @@ void vtkRealTimeNeedleDetectionGUI::MakeNeedleModel()
   pNeedleModelDisplay->Delete();
   std::cout << "made NeedleModel" << std::endl;
 }
+
+
+void vtkRealTimeNeedleDetectionGUI::orientOutputImage(double fovI, double fovJ, double fovK)
+{
+  vtkMatrix4x4* matrix = vtkMatrix4x4::New(); 
+  //identity
+    matrix->Element[0][0] = 1.0;
+    matrix->Element[1][0] = 0.0;
+    matrix->Element[2][0] = 0.0;
+    matrix->Element[0][1] = 0.0;
+    matrix->Element[1][1] = 1.0;
+    matrix->Element[2][1] = 0.0;
+    matrix->Element[0][2] = 0.0;
+    matrix->Element[1][2] = 0.0;
+    matrix->Element[2][2] = 1.0;
+    matrix->Element[0][3] = fovI;
+    matrix->Element[1][3] = fovJ;
+    matrix->Element[2][3] = 0.0;
+  
+  //axial
+  //  matrix->Element[0][0] = -1.0;
+  //  matrix->Element[1][0] = 0.0;
+  //  matrix->Element[2][0] = 0.0;
+  //  matrix->Element[0][1] = 0.0;
+  //  matrix->Element[1][1] = -1.0;
+  //  matrix->Element[2][1] = 0.0;
+  //  matrix->Element[0][2] = 0.0;
+  //  matrix->Element[1][2] = 0.0;
+  //  matrix->Element[2][2] = 1.0;
+  //  matrix->Element[0][3] = fovI;
+  //  matrix->Element[1][3] = fovJ;
+  //  matrix->Element[2][3] = 0.0;
+  
+  //coronal probably wrong
+  //  matrix->Element[0][0] = -1.0;
+  //  matrix->Element[1][0] = 0.0;
+  //  matrix->Element[2][0] = 0.0;
+  //  matrix->Element[0][1] = 0.0;
+  //  matrix->Element[1][1] = 0.0;
+  //  matrix->Element[2][1] = -1.0;
+  //  matrix->Element[0][2] = 0.0;
+  //  matrix->Element[1][2] = -1.0;
+  //  matrix->Element[2][2] = 0.0;
+  //  matrix->Element[0][3] = fovI;
+  //  matrix->Element[1][3] = 0.0;
+  //  matrix->Element[2][3] = -fovK;
+  
+  //sagital probably wrong
+  //  matrix->Element[0][0] = 0.0;
+  //  matrix->Element[1][0] = 1.0;
+  //  matrix->Element[2][0] = 0.0;
+  //  matrix->Element[0][1] = 0.0;
+  //  matrix->Element[1][1] = 0.0;
+  //  matrix->Element[2][1] = -1.0;
+  //  matrix->Element[0][2] = -1.0;
+  //  matrix->Element[1][2] = 0.0;
+  //  matrix->Element[2][2] = 0.0;
+  //  matrix->Element[0][3] = 0.0;
+  //  matrix->Element[1][3] = fovJ;
+  //  matrix->Element[2][3] = -fovK;
+  
+  
+  //!!ATTENTION!!! Take this out when really testing on the scanner
+  pOutputNode->SetRASToIJKMatrix(matrix); // TODO: make this matrix generic! right now it is adapted to the scanner simulation
+  matrix->Delete();                       // this matrix should not be needed for real images, because the header information should be correct
+}
+
+
 
 //TODO: take that out when done measuring
 double vtkRealTimeNeedleDetectionGUI::diffclock(clock_t clock1,clock_t clock2)

@@ -324,7 +324,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   InverterType::Pointer inverter = InverterType::New();
   HoughFilter::Pointer houghFilter = HoughFilter::New();
   int numberOfLines    = 1;
-  double avgIntensity  = -1;   //average intensity of the pixels of the needle
+  double avgIntensity  = -1;  //average intensity of the pixels of the needle
   double lastIntensity = MAX; //intensity of last pixel examined | used to compare with the current pixel finding the end of the needle
   int  length          = 0;   //length of the found needle in pixels
     
@@ -690,57 +690,52 @@ void ImageProcessor::SobelFilter(bool inputTmp, bool outputTmp, int direction)  
 }
 
 void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp, int erode, int dilate) //dilates and erodes bright spots in the image
-{                                                                  //the order of operation is erode and then dilate, because the needle is black and to dilate black parts one needs to erode the white parts
-  ErodeFilterType::Pointer grayscaleErode = ErodeFilterType::New();
+{                                                                  
   DilateFilterType::Pointer grayscaleDilate = DilateFilterType::New();  
+  ErodeFilterType::Pointer grayscaleErode = ErodeFilterType::New();
   
   if(inputTmp && (mWhichTmp == 1))
-    grayscaleErode->SetInput(mLocalTmp1);
+    grayscaleDilate->SetInput(mLocalTmp1);
   else if (inputTmp && (mWhichTmp == 2))
-    grayscaleErode->SetInput(mLocalTmp2);
+    grayscaleDilate->SetInput(mLocalTmp2);
   else
-    grayscaleErode->SetInput(mLocalInputImage);  
+    grayscaleDilate->SetInput(mLocalInputImage);  
   
-  StructuringElementType structuringElementErode;
   StructuringElementType structuringElementDilate;
-  structuringElementErode.SetRadius(erode); // if erode==2 -> 5x5 structuring
-  structuringElementDilate.SetRadius(dilate); // if dilate==3 -> 7x7 structuring
-  structuringElementErode.CreateStructuringElement();
+  StructuringElementType structuringElementErode;  
+  structuringElementDilate.SetRadius(dilate); // if dilate==2 -> 5x5 structuring
+  structuringElementErode.SetRadius(erode); // if erode==3 -> 7x7 structuring
   structuringElementDilate.CreateStructuringElement();
+  structuringElementErode.CreateStructuringElement();
   
-  grayscaleErode->SetKernel(structuringElementErode);
   grayscaleDilate->SetKernel(structuringElementDilate);
-    
-//  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
-//  writer->SetFileName("/projects/mrrobot/goerlitz/test/erode.png");
-//  writer->SetInput(RescaleFloatToUChar(grayscaleErode->GetOutput()));
-//  writer->Update();  
-  
-  grayscaleDilate->SetInput(grayscaleErode->GetOutput() );
+  grayscaleErode->SetKernel(structuringElementErode);
+     
+  grayscaleErode->SetInput(grayscaleDilate->GetOutput() );
   
   if(outputTmp)
   {
     if(mWhichTmp == 1)
     {
       mWhichTmp = 2;
-      mLocalTmp2 = grayscaleDilate->GetOutput();
+      mLocalTmp2 = grayscaleErode->GetOutput();
     }
     else
     {
       mWhichTmp = 1;
-      mLocalTmp1 = grayscaleDilate->GetOutput();
+      mLocalTmp1 = grayscaleErode->GetOutput();
     }
   }
   else
-    mLocalOutputImage = grayscaleDilate->GetOutput();
+    mLocalOutputImage = grayscaleErode->GetOutput();
 
   try
   {
-    grayscaleDilate->Update();
+    grayscaleErode->Update();
     }
       catch( itk::ExceptionObject & err )
     {
-    std::cout << "ExceptionObject caught updating the dilating the filter!" << std::endl;
+    std::cout << "ExceptionObject caught updating the eroding filter!" << std::endl;
     std::cout << err << std::endl;
   }  
   return;
