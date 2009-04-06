@@ -63,7 +63,7 @@
 #define PATIENTINFERIOR  5
 #define PATIENTSUPERIOR  6
 
-#define DEFAULTTHRESHOLD 18000
+#define DEFAULTTHRESHOLD 48000
 #define DEFAULTINTENSITY 15000
 #define DEFAULTERODE     2
 #define DEFAULTDILATE    3
@@ -847,7 +847,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Crop out the imageRegion specified by the boundaries for the imageRegion
       unsigned char* pImageRegionInput = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
       unsigned char* pImageRegionOutput1 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
-      unsigned char* pImageRegionOutput2 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize]; 
+      unsigned char* pImageRegionOutput2 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
+      unsigned char* pImageRegionOutput3 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize]; 
+      unsigned char* pImageRegionOutput4 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize]; 
       GetImageRegion(pImageData, pImageRegionInput);
   
       //--------------------------------------------------------------------------------------------------
@@ -855,33 +857,42 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
+      
+      //TODO:write all images not only in tmp, but also in the output!
            
       pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
+      pImageProcessor->DilateAndErode(false, false, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt());
+      pImageProcessor->GetImage((void*) pImageRegionOutput2);
+      SetImageRegion(pImageData, pImageRegionOutput2, 2);  // write the region of interest after top/right in the MRI image received from the scanner
+      //TODO:DELETE pImageRegionOutput2!!        
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
       
       if(gaussVariance)
       {
-        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, true,true);  //makes the line white -> no inversion needed
-        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-LaPlacianGaussian.png",TMP);
+        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, true, true);  //makes the line white -> no inversion needed
+        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, true, false); 
+        pImageProcessor->GetImage((void*) pImageRegionOutput1);
+        SetImageRegion(pImageData, pImageRegionOutput1, 1);  // write the region of interest after top/left in the MRI image received from the scanner
+        //TODO:DELETE pImageRegionOutput1!!        
       }
       else
-      {
-        //TODO:only invert!
-      }
+        pImageProcessor->Invert(true, true);        
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
       
-      pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
-      pImageProcessor->GetImage((void*) pImageRegionOutput1);
-      SetImageRegion(pImageData, pImageRegionOutput1, false);  // write the region of interest after dilateAndErode and thresholding below the MRI image received from the scanner
-      //TODO:DELETE pImageRegionOutput1!!
-      
-      pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
-      
-      pImageProcessor->Invert(true, true);  
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Invert.png",TMP);
+      pImageProcessor->Threshold(true, true, 0, (int) needleDetectionThreshold, MAX);
+      pImageProcessor->Threshold(true, false, 0, (int) needleDetectionThreshold, MAX);
+      pImageProcessor->GetImage((void*) pImageRegionOutput3);
+      SetImageRegion(pImageData, pImageRegionOutput3, 3);  // write the region of interest bottom/left in the MRI image received from the scanner
+      //TODO:DELETE pImageRegionOutput3!!      
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Threshold.png",TMP);      
       
       pImageProcessor->BinaryThinning(true, true);  // needs inverted images, because it thins to a white line
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
+      pImageProcessor->BinaryThinning(true, false);
+      pImageProcessor->GetImage((void*) pImageRegionOutput4);
+      SetImageRegion(pImageData, pImageRegionOutput4, 4);  // write the region of interest bottom/right in the MRI image received from the scanner
+      //TODO:DELETE pImageRegionOutput4!!  
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Thinning.png",TMP);
+      
 //      pImageProcessor->SobelFilter(true, true, 1);     
   //    pImageProcessor->SobelFilter(true,true,1);
   //    pImageProcessor->Threshold(true,true,MAX,0,10000);
@@ -913,10 +924,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
           break;
       } //end switch    
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Output.png",OUTPUT);      
-      pImageProcessor->GetImage((void*) pImageRegionOutput2);
-      SetImageRegion(pImageData, pImageRegionOutput2, true);  // write the region of interest with the drawn needle above the MRI image received from the scanner
-      //pImageRegionOutput->Delete();  //TODO:DELETE pImageRegion!!
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/6-Output.png",OUTPUT);      
+//      pImageProcessor->GetImage((void*) pImageRegionOutput4);
+//      SetImageRegion(pImageData, pImageRegionOutput4, 4);  // write the region of interest bottom/right in the MRI image received from the scanner
+//      //pImageRegionOutput->Delete();  //TODO:DELETE pImageRegion!!
       pOutputNode->SetAndObserveImageData(pImageData); //automatically removes old observer and sets modified flag, if new image is different  TODO: Does it also delete the old observer?
       pImageData->Delete();
       
@@ -1454,17 +1465,23 @@ void vtkRealTimeNeedleDetectionGUI::GetImageRegion(vtkImageData* pImageData, uns
 
 //--------------------------------------------------------------------------
 // hard copy the region of interest back to the imageRegion byte by byte
-void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion, bool above)
+// put it in the original image according to position (1:top/left, 2:top/right, 3:bottom/left, 4:bottom/right)
+void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion, int position)
 {
   unsigned char* pImage = (unsigned char*) pImageData->GetScalarPointer();
   int positionInMessageImage = 0;
   for(long i = 0; i <= imageRegionSize[0] * imageRegionSize[1] * scalarSize; i++)
   {
-    positionInMessageImage = imageRegionLower[0]*scalarSize + (i%(imageRegionSize[0]*scalarSize)) + (i/(imageRegionSize[0]*scalarSize))*imageDimensions[0]*scalarSize;
-    if(above) //the position of the region of interest is above the original image
-      pImage[positionInMessageImage+10*imageDimensions[0]*scalarSize] = pImageRegion[i];      
+    if(position == 1 || position == 3) //the position of the region of interest is to the left
+      positionInMessageImage = 5*scalarSize + (i%(imageRegionSize[0]*scalarSize)) + (i/(imageRegionSize[0]*scalarSize))*imageDimensions[0]*scalarSize;
+    else //the position of the region of interest is to the right
+      positionInMessageImage = (imageDimensions[0]-5-imageRegionSize[0])*scalarSize + (i%(imageRegionSize[0]*scalarSize)) + (i/(imageRegionSize[0]*scalarSize))*imageDimensions[0]*scalarSize;    
+    //old command to get the exact position on the x-axis in the image:  positionInMessageImage = imageRegionLower[0]*scalarSize + (i%(imageRegionSize[0]*scalarSize)) + (i/(imageRegionSize[0]*scalarSize))*imageDimensions[0]*scalarSize;
+      
+    if(position == 1 || position == 2) //the position of the region of interest is above the original image
+      pImage[positionInMessageImage+5*imageDimensions[0]*scalarSize] = pImageRegion[i];      
     else //the position of the region of interest is below the original image
-      pImage[positionInMessageImage+(imageDimensions[1]-imageRegionSize[1]-10)*imageDimensions[0]*scalarSize] = pImageRegion[i];
+      pImage[positionInMessageImage+(imageDimensions[1]-imageRegionSize[1]-5)*imageDimensions[0]*scalarSize] = pImageRegion[i];
   }    
 }
 
