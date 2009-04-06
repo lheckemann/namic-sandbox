@@ -274,6 +274,43 @@ void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, 
   return;
 }
 
+void ImageProcessor::Invert(bool inputTmp, bool outputTmp)
+{
+  InverterType::Pointer inverter = InverterType::New();
+  if(inputTmp && (mWhichTmp == 1))
+    inverter->SetInput(mLocalTmp1);
+  else if (inputTmp && (mWhichTmp == 2))
+    inverter->SetInput(mLocalTmp2);
+  else
+    inverter->SetInput(mLocalInputImage);
+  if(outputTmp)
+  {
+    if(mWhichTmp == 1)
+    {
+      mWhichTmp = 2;
+      mLocalTmp2 = inverter->GetOutput();
+    }
+    else
+    {
+      mWhichTmp = 1;
+      mLocalTmp1 = inverter->GetOutput();
+    }
+  }
+  else
+    mLocalOutputImage = inverter->GetOutput();
+  
+  try
+  {
+    inverter->Update();
+    }
+      catch( itk::ExceptionObject & err )
+    {
+    std::cout << "ExceptionObject caught updating the thinning filter!" << std::endl;
+    std::cout << err << std::endl;
+  }  
+  return;
+}
+
 // The HoughTransformation finds a line in the image | it finds bright lines
 // An inversion of colors is included, because the needle appears dark in the original image
 // It assumes the needle is entering from the right side of the image pointing to the left
@@ -293,13 +330,10 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
     
   if(inputTmp && (mWhichTmp == 1))
     houghFilter->SetInput(mLocalTmp1);
-    //inverter->SetInput(mLocalTmp1);
   else if (inputTmp && (mWhichTmp == 2))
     houghFilter->SetInput(mLocalTmp2);
-    //inverter->SetInput(mLocalTmp2);
   else
     houghFilter->SetInput(mLocalInputImage);
-    //inverter->SetInput(mLocalInputImage);
   
   houghFilter->SetNumberOfLines(numberOfLines);
   houghFilter->SetVariance(1);   // default is 10 -> 1 means no blurring with the gaussian
@@ -714,25 +748,15 @@ void ImageProcessor::DilateAndErode(bool inputTmp, bool outputTmp, int erode, in
 
 void ImageProcessor::BinaryThinning(bool inputTmp, bool outputTmp)
 {
-  InverterType::Pointer inverter = InverterType::New();
   itk::BinaryThinningImageFilter<FloatImageType, FloatImageType>::Pointer thinFilter;
   thinFilter = itk::BinaryThinningImageFilter<FloatImageType, FloatImageType>::New();
   if(inputTmp && (mWhichTmp == 1))
-    inverter->SetInput(mLocalTmp1);
-    //thinFilter->SetInput(mLocalTmp1);
+    thinFilter->SetInput(mLocalTmp1);
   else if (inputTmp && (mWhichTmp == 2))
-    inverter->SetInput(mLocalTmp2);
-    //thinFilter->SetInput(mLocalTmp2);
+    thinFilter->SetInput(mLocalTmp2);
   else
-    inverter->SetInput(mLocalInputImage);
-    //thinFilter->SetInput(mLocalInputImage);     
-  
-//  itk::ImageFileWriter<UCharImageType>::Pointer writer = itk::ImageFileWriter<UCharImageType>::New();
-//  writer->SetFileName("/projects/mrrobot/goerlitz/test/inverted.png");
-//  writer->SetInput(RescaleFloatToUChar(inverter->GetOutput()));
-//  writer->Update();  
-  thinFilter->SetInput(inverter->GetOutput()); 
-        
+    thinFilter->SetInput(mLocalInputImage);     
+
   if(outputTmp)
   {
     if(mWhichTmp == 1)
