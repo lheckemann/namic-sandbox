@@ -79,7 +79,8 @@ public:
   void GetImage(void* pImage); 
   void Write(const char* filePath, int whichImage);
   //Filter Functions
-  void PassOn() {mLocalOutputImage = mLocalInputImage;};
+  void PassOn() {mLocalOutputImage = mLocalInputImage;}; //Do nothing
+  void Invert(bool inputTmp, bool outputTmp);
   void GradientMagnitude(bool inputTmp, bool outputTmp);
   void Threshold(bool inputTmp, bool outputTmp, int outsideValue, int threshBelow, int threshAbove);
   void HoughTransformation(bool inputTmp, double* points, double intensityThresh, int needleEnteringDirection);

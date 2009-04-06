@@ -859,10 +859,14 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
       
-      //if(gaussVariance)
+      if(gaussVariance)
       {
-        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, true,true);  //makes the line white -> no inversion in houghtransform needed
+        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, true,true);  //makes the line white -> no inversion needed
         pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-LaPlacianGaussian.png",TMP);
+      }
+      else
+      {
+        //TODO:only invert!
       }
       
       pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
@@ -872,6 +876,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       
       pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
+      
+      pImageProcessor->Invert(true, true);  
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Invert.png",TMP);
+      
       pImageProcessor->BinaryThinning(true, true);  // needs inverted images, because it thins to a white line
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
 //      pImageProcessor->SobelFilter(true, true, 1);     
