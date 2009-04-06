@@ -323,7 +323,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
 {
   InverterType::Pointer inverter = InverterType::New();
   HoughFilter::Pointer houghFilter = HoughFilter::New();
-  int numberOfLines    = 1;
+  double initialIntensity = -1; //average intensity of the first 6 pixels of the needle
   double avgIntensity  = -1;  //average intensity of the pixels of the needle
   double lastIntensity = MAX; //intensity of last pixel examined | used to compare with the current pixel finding the end of the needle
   int  length          = 0;   //length of the found needle in pixels
@@ -335,7 +335,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   else
     houghFilter->SetInput(mLocalInputImage);
   
-  houghFilter->SetNumberOfLines(numberOfLines);
+  houghFilter->SetNumberOfLines(1);
   houghFilter->SetVariance(1);   // default is 10 -> 1 means no blurring with the gaussian
   houghFilter->SetDiscRadius(5);  // default is 5 (this is the size of the surrounding disc in houghspace that gets taken out when a line is found. Since I only need one line, I do not need this)
   // Don't need to do houghFilter->Update(), because it gets updated through houghFilter->GetLines
@@ -344,7 +344,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   // Get line from HoughTransformation
   //TODO: really hard copy the image! | right now it is just reference copy -> mLocalInputImage changes, too
   mLocalOutputImage = mLocalInputImage; // Output image = input image with line drawn into it
-  HoughFilter::LinesListType lines = houghFilter->GetLines(numberOfLines);
+  HoughFilter::LinesListType lines = houghFilter->GetLines(1);
   HoughFilter::LinesListType::const_iterator itLines = lines.begin();
 
   typedef HoughFilter::LineType::PointListType  PointListType;  
@@ -422,6 +422,26 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
         points[0] = (u[0]+i*v[0]); // X-coordinate of the first point of the needle in the image
         points[1] = (u[1]+i*v[1]); // Y-coordinate of the first point of the needle in the image
         pixelIsNeedle = true;
+        //TODO:get initial intensity right
+//        initialIntensity = 0;
+//        for(int j = -1; j < 2; ++j)
+//          for(int k = 0; k < 2; ++k)
+//          {
+//            if(needleEnteringDirection == ENTERINGRIGHT)
+//            {
+//              offsetIndex[0] = localIndex[0]+k;
+//              offsetIndex[1] = localIndex[1]+j;
+//            }
+//            else if(needleEnteringDirection == ENTERINGBOTTOM)
+//            {
+//              offsetIndex[0] = localIndex[0]+j;
+//              offsetIndex[1] = localIndex[1]+k;
+//            }
+//            initialIntensity += mLocalOutputImage->GetPixel(offsetIndex);
+//            std::cout << " | | intensities:" << mLocalOutputImage->GetPixel(offsetIndex) << std::endl;
+//          }
+//        initialIntensity /= 6;
+//        std::cout << " | | initial intensity:" << initialIntensity << std::endl;
       }
       else
       {        
@@ -432,12 +452,12 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
           else if(needleEnteringDirection == ENTERINGBOTTOM) 
             offsetIndex[0] = localIndex[0]+j;    //X-1, X, X+1    
             
-          std::cout << mLocalOutputImage->GetPixel(offsetIndex) << "|";
+   //       std::cout << mLocalOutputImage->GetPixel(offsetIndex) << "|";
 
           if(mLocalOutputImage->GetPixel(offsetIndex) < intensityThresh)
             pixelIsNeedle = true;            
         }          
-        std::cout << std::endl;
+ //       std::cout << std::endl;
       }
   
       if(pixelIsNeedle)  // if pixel still belongs to needle
