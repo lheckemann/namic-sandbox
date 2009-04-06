@@ -795,7 +795,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
       //TODO:write all images not only in tmp, but also in the output!
                  
@@ -809,28 +809,28 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       }
       else
         pImageProcessor->Invert(false, true);        
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
       
       pImageProcessor->DilateAndErode(true, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // 2 == dilate value, default: 3 == erode value
       pImageProcessor->DilateAndErode(true, false, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt());
       pImageProcessor->GetImage((void*) pImageRegionOutput2);
       SetImageRegion(pImageData, pImageRegionOutput2, 2);  // write the region of interest after top/right in the MRI image received from the scanner
       //TODO:DELETE pImageRegionOutput2!!        
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, true, 0, (int) needleDetectionThreshold, MAX);
       pImageProcessor->Threshold(true, false, 0, (int) needleDetectionThreshold, MAX);
       pImageProcessor->GetImage((void*) pImageRegionOutput3);
       SetImageRegion(pImageData, pImageRegionOutput3, 3);  // write the region of interest bottom/left in the MRI image received from the scanner
       //TODO:DELETE pImageRegionOutput3!!      
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Threshold.png",TMP);      
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Threshold.png",TMP);      
       
       pImageProcessor->BinaryThinning(true, true);  // needs inverted images, because it thins to a white line
       pImageProcessor->BinaryThinning(true, false);
       pImageProcessor->GetImage((void*) pImageRegionOutput4);
       SetImageRegion(pImageData, pImageRegionOutput4, 4);  // write the region of interest bottom/right in the MRI image received from the scanner
       //TODO:DELETE pImageRegionOutput4!!  
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Thinning.png",TMP);
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Thinning.png",TMP);
       
 //      pImageProcessor->SobelFilter(true, true, 1);     
   //    pImageProcessor->SobelFilter(true,true,1);
@@ -863,7 +863,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
           break;
       } //end switch    
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/6-Output.png",OUTPUT);      
+//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/6-Output.png",OUTPUT);      
 //      pImageProcessor->GetImage((void*) pImageRegionOutput4);
 //      SetImageRegion(pImageData, pImageRegionOutput4, 4);  // write the region of interest bottom/right in the MRI image received from the scanner
 //      //pImageRegionOutput->Delete();  //TODO:DELETE pImageRegion!!
@@ -881,15 +881,15 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         points[2] += imageRegionLower[0];
         points[3] += imageRegionLower[1];
         std::cout << "bounds: " << imageRegionLower[0] << "|" << imageRegionLower[1] << "|" << imageRegionUpper[0] << "|" <<  imageRegionUpper[1] << std::endl;
-        std::cout << "points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
+        std::cout << "--!!!-- points: " << points[0] << "|" << points[1] << "|" << points[2] << "|" <<  points[3] << std::endl;
         
         double vector[2]; //vector from Tip of the needle to the end
         vector[0] = points[0] - points[2];
         vector[1] = points[1] - points[3];
         double length = sqrt(vector[0] * vector[0] + vector[1] * vector[1]);
-        std::cout << "length: " << length << std::endl;
+        std::cout << "--!!!-- length: " << length << std::endl;
         double angle = (atan2(vector[1],vector[0]))*180/PI;  // atan2(y,x) to calculate the "angle between the two points" == angle of the vector to the X-axis
-        std::cout << "angle: " << angle << std::endl;
+        std::cout << "--!!!-- angle: " << angle << std::endl;
                   
         //TODO: Take this out later on          //std::cout << atan2(-1,3)*180/PI << "|" << atan2(1,3)*180/PI << "|" << atan2(3,1)*180/PI << "|" << atan2(3,-1)*180/PI << "|" << std::endl;
         
