@@ -302,8 +302,8 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
     //inverter->SetInput(mLocalInputImage);
   
   houghFilter->SetNumberOfLines(numberOfLines);
-  houghFilter->SetVariance(1);   // default is 10 -> no blurring with the gaussian
-  houghFilter->SetDiscRadius(5);  // default is 5
+  houghFilter->SetVariance(1);   // default is 10 -> 1 means no blurring with the gaussian
+  houghFilter->SetDiscRadius(5);  // default is 5 (this is the size of the surrounding disc in houghspace that gets taken out when a line is found. Since I only need one line, I do not need this)
   // Don't need to do houghFilter->Update(), because it gets updated through houghFilter->GetLines
  
   //--------------------------------------------------------------------------------------------------
@@ -500,7 +500,7 @@ void ImageProcessor::BinaryThreshold(bool inputTmp, bool outputTmp)
   return;
 }
 
-void ImageProcessor::LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp)
+void ImageProcessor::LaplacianRecursiveGaussian(double gaussVariance, bool inputTmp, bool outputTmp)
 {
   itk::LaplacianRecursiveGaussianImageFilter<FloatImageType, FloatImageType>::Pointer lapFilter;
   lapFilter = itk::LaplacianRecursiveGaussianImageFilter<FloatImageType, FloatImageType>::New();
@@ -526,8 +526,8 @@ void ImageProcessor::LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp)
   else
     mLocalOutputImage = lapFilter->GetOutput();
 
-  lapFilter->SetNormalizeAcrossScale( false );
-  lapFilter->SetSigma(1);
+  lapFilter->SetNormalizeAcrossScale(false);
+  lapFilter->SetSigma((int) gaussVariance);
   try
   {
     lapFilter->Update();

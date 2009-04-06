@@ -94,6 +94,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->pVolumeSelector           = NULL; 
   this->pThresholdScale           = NULL;
   this->pIntensityScale           = NULL;
+  this->pGaussScale               = NULL;
   this->pDilateEntry              = NULL;
   this->pErodeEntry               = NULL;
   this->pEntryPointButtonSet      = NULL;
@@ -132,6 +133,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   currentZImageRegionSize   = 256;
   needleDetectionThreshold  = DEFAULTTHRESHOLD;
   needleIntensity           = DEFAULTINTENSITY;
+  gaussVariance             = 0;                  // = LaplacianGaussian Filter does not get used
   imageDimensions[0]        = 256;
   imageDimensions[1]        = 256;
   imageDimensions[2]        = 1;
@@ -179,6 +181,11 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   {
     this->pIntensityScale->SetParent(NULL);
     this->pIntensityScale->Delete();
+  }
+   if(this->pGaussScale) 
+  {
+    this->pGaussScale->SetParent(NULL);
+    this->pGaussScale->Delete();
   }
   if (this->pErodeEntry)
   {
@@ -321,6 +328,7 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   this->pVolumeSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pThresholdScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pIntensityScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pGaussScale->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pStartButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pStopButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
@@ -348,9 +356,11 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   this->pVolumeSelector->RemoveObservers(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand*) this->GUICallbackCommand);
   if(this->pThresholdScale)
-    this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
+    this->pThresholdScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   if(this->pIntensityScale)
-    this->pIntensityScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand );
+    this->pIntensityScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  if(this->pGaussScale)
+    this->pGaussScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   if (this->pEntryPointButtonSet)
   {
     this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
@@ -409,16 +419,22 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     return;
   }
   
-  else if(this->pThresholdScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent)   //TODO: I might not need to catch this event -> just get the value when start is pressed
+  else if(this->pThresholdScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent)
   {
     std::cout << "NeedleThreshold changed." << std::endl;
     needleDetectionThreshold = this->pThresholdScale->GetValue();
   }
   
-  else if(this->pIntensityScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent)   //TODO: I might not need to catch this event -> just get the value when start is pressed
+  else if(this->pIntensityScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent)   
   {
     std::cout << "NeedleIntensity changed." << std::endl;
     needleIntensity = this->pIntensityScale->GetValue();
+  }
+  
+  else if(this->pGaussScale == vtkKWScaleWithEntry::SafeDownCast(caller) && event == vtkKWScale::ScaleValueChangedEvent)   
+  {
+    std::cout << "Gaussvariance changed." << std::endl;
+    gaussVariance = this->pGaussScale->GetValue();
   }
   
   else if (this->pEntryPointButtonSet->GetWidget(PATIENTLEFT) == vtkKWRadioButton::SafeDownCast(caller)
@@ -839,9 +855,15 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
-      
+           
       pImageProcessor->DilateAndErode(false, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // default: 2 == erode value, 3 == dilate value
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-DilateAndErode.png",TMP);
+      
+      //if(gaussVariance)
+      {
+        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, true,true);  //makes the line white -> no inversion in houghtransform needed
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-LaPlacianGaussian.png",TMP);
+      }
       
       pImageProcessor->Threshold(true, false, MAX, 0, (int) needleDetectionThreshold);
       pImageProcessor->GetImage((void*) pImageRegionOutput1);
@@ -850,10 +872,9 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       
       pImageProcessor->Threshold(true, true, MAX, 0, (int) needleDetectionThreshold);
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-Threshold.png",TMP);
-      pImageProcessor->BinaryThinning(true, true);  // needs iverted images, because it thins to a white line
+      pImageProcessor->BinaryThinning(true, true);  // needs inverted images, because it thins to a white line
       pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Thinning.png",TMP);
 //      pImageProcessor->SobelFilter(true, true, 1);     
-   //   pImageProcessor->LaplacianRecursiveGaussian(false,true);  //makes the line white -> no inversion in houghtransform needed
   //    pImageProcessor->SobelFilter(true,true,1);
   //    pImageProcessor->Threshold(true,true,MAX,0,10000);
   //    pImageProcessor->SobelEdgeDetection(false, true);
@@ -1166,7 +1187,27 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pIntensityScale->SetValue(DEFAULTINTENSITY);  
   this->Script("pack %s -side left -padx 2 -pady 2", this->pIntensityScale->GetWidgetName());  
   
-  sliderFrame2->Delete(); 
+  sliderFrame2->Delete();
+  
+  // ------------------------------------------------------
+  // gauss variance slider button  
+  vtkKWFrame* sliderFrame3 = vtkKWFrame::New();
+  sliderFrame3->SetParent(controlFrame->GetFrame());
+  sliderFrame3->Create();
+  this->Script("pack %s -fill both -expand true", sliderFrame3->GetWidgetName());
+  
+  this->pGaussScale = vtkKWScaleWithEntry::New();
+  this->pGaussScale->SetParent(sliderFrame3);
+  this->pGaussScale->SetLabelText("Gaussian Variance");
+  this->pGaussScale->Create();
+  this->pGaussScale->GetScale()->SetLength(180); 
+  this->pGaussScale->SetRange(0,10);
+  this->pGaussScale->SetResolution(1);
+  //TODO:Steve can I constrict the values to integer?  -> floor?
+  this->pGaussScale->SetValue(0);  
+  this->Script("pack %s -side left -padx 2 -pady 2", this->pGaussScale->GetWidgetName());  
+  
+  sliderFrame3->Delete();  
   
   // -----------------------------------------
   // push buttons
