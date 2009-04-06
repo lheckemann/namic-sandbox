@@ -952,7 +952,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
 
       }  
       clock_t end = clock();
-      cout << "               Time elapsed: " << double(diffclock(end,begin)) << " ms"<< endl;  
+      cout << "               Time elapsed: " << double(diffclock(end,begin)) << " ms"<< endl << endl;  
     }
     started++;  //I also use started as a counter of the frames -> TODO:Check if started gets bigger than int
   }
