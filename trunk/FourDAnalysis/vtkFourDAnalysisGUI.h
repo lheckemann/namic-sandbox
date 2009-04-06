@@ -189,6 +189,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   // -----------------------------------------
   // Intensity Curve
 
+  vtkKWEntry*       AcqTimeEntry;
   vtkKWMenuButton*  SeriesToPlotMenu;
   vtkKWMenuButton*  MaskSelectMenu;
   vtkKWPlotGraph*   IntensityPlot;
