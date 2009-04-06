@@ -118,6 +118,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkKWRadioButtonSet*          pEntryPointButtonSet;
   vtkKWScaleWithEntry*          pThresholdScale;
   vtkKWScaleWithEntry*          pIntensityScale;
+  vtkKWScaleWithEntry*          pGaussScale;
   vtkKWEntry*                   pDilateEntry;
   vtkKWEntry*                   pErodeEntry;
   vtkKWPushButton*              pStartButton;
@@ -158,6 +159,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------   
   double          needleDetectionThreshold;
   double          needleIntensity;
+  double          gaussVariance;
   int             imageRegionSize[2];   //these are the current values for the 2D image region that gets processed in the ImageProcessor
   int             imageRegionLower[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
   int             imageRegionUpper[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor

@@ -85,7 +85,7 @@ public:
   void HoughTransformation(bool inputTmp, double* points, double intensityThresh, int needleEnteringDirection);
   void CannyEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore        
   void BinaryThreshold(bool inputTmp, bool outputTmp);            // not used anymore
-  void LaplacianRecursiveGaussian(bool inputTmp, bool outputTmp); // not used anymore
+  void LaplacianRecursiveGaussian(double gaussVariance, bool inputTmp, bool outputTmp); 
   void SobelEdgeDetection(bool inputTmp, bool outputTmp);         // not used anymore
   void DilateAndErode(bool inputTmp, bool outputTmp, int erode, int dilate);
   void BinaryThinning(bool inputTmp, bool outputTmp);
