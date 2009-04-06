@@ -187,7 +187,7 @@ void vtkIntensityCurves::GenerateIntensityCurve()
           double sdvalue   = GetSDIntensity(inode->GetImageData(), meanvalue, indexTable);
           //std::cerr << "mean = " << meanvalue << ", sd = " << sdvalue << std::endl;
           double xy[3];
-          xy[0] = (double)i;
+          xy[0] = (double)i * this->Interval;
           xy[1] = meanvalue;
           xy[2] = sdvalue;
           this->IntensityCurve[label]->InsertNextTuple(xy);
