@@ -35,6 +35,9 @@ TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest1 ITKQuadEdgeMesh ITKI
 ADD_EXECUTABLE(itkFreeSurferBinarySurfaceReaderTest2 itkFreeSurferBinarySurfaceReaderTest2.cxx )
 TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest3 itkLinearInterpolateMeshFunctionTest3.cxx )
+TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest3 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest2 itkLinearInterpolateMeshFunctionTest2.cxx )
 TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -138,6 +141,12 @@ ADD_TEST(itkFreeSurferBinarySurfaceReaderTest4
   ${FREESURFER_DIR}/subjects/bert/surf/rh.pial
   ${FREESURFER_DIR}/subjects/bert/surf/rh.curv.pial
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest4.vtk
+  )
+
+ADD_TEST(itkLinearInterpolateMeshFunctionTest3
+  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest3
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
   )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest2
