@@ -145,14 +145,10 @@ ADD_TEST(itkFreeSurferBinarySurfaceReaderTest4
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest3
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest3
-  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
-  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
   )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest2
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest2
-  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
-  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
   )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest1

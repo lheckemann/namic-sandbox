@@ -88,7 +88,7 @@ mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFl
 }
                                     
 
-int main( int argc, char * argv [] )
+int main( int , char * [] )
 {
   const unsigned int Dimension = 3;
 
