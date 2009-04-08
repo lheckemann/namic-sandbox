@@ -52,7 +52,9 @@ mapSphericalCoordinatesFunction(float inTheta)
 static itk::Vector<float,3>
 mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag) 
 {
-  itk::Vector<float,3> phiComponent, thetaComponent, result; 
+  itk::Vector<float,3> phiComponent;
+  itk::Vector<float,3> thetaComponent;
+  itk::Vector<float,3> result; 
   
   float cosTheta= cos(inTheta); 
   float sinTheta= sin(inTheta); 
@@ -240,6 +242,8 @@ int main( int argc , char * argv [] )
       }
     
     PointType myCellCenter;
+    myCellCenter.Fill( 0.0 );
+
     float cellCenterTheta=0.0;
     float cellCenterPhi=0.0; 
     float cellCenterRadius=0.0; 
@@ -248,7 +252,6 @@ int main( int argc , char * argv [] )
     PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
     PointIdIterator pointIdEnd = cellPointer->PointIdsEnd();
 
-    myCellCenter.Fill( 0.0 );
     
     while( pointIdIterator != pointIdEnd )
       {
