@@ -143,12 +143,14 @@ ADD_TEST(itkFreeSurferBinarySurfaceReaderTest4
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest4.vtk
   )
 
-ADD_TEST(itkLinearInterpolateMeshFunctionTest3
-  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest3
-  )
-
 ADD_TEST(itkLinearInterpolateMeshFunctionTest2
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest2
+  ${TEMP}
+  )
+
+ADD_TEST(itkLinearInterpolateMeshFunctionTest3
+  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest3
+  ${TEMP}
   )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest1

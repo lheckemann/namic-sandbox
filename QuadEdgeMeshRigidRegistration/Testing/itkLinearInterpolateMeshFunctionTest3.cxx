@@ -88,8 +88,15 @@ mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFl
 }
                                     
 
-int main( int , char * [] )
+int main( int argc , char * argv [] )
 {
+  if( argc < 2 )
+    { 
+    std::cerr << "Missing Argument " << std::endl;
+    std::cerr << "Usage: " << std::endl;
+    std::cerr << argv[0] << " outputDirectory " << std::endl;
+    }
+
   const unsigned int Dimension = 3;
 
   typedef itk::QuadEdgeMesh< float, Dimension >   MovingMeshType;
@@ -172,7 +179,12 @@ int main( int , char * [] )
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >   WriterType;
   WriterType::Pointer myWriter = WriterType::New();
   myWriter->SetInput( myMesh );
-  myWriter->SetFileName( "Mesh.vtk" );
+
+  std::string filename = argv[1];
+  filename += "/itkLinearInterpolateMeshFunctionTest3.vtk";
+
+  myWriter->SetFileName( filename );
+
 
   try
     {
@@ -264,10 +276,11 @@ int main( int , char * [] )
     cellCenterTheta= atan2(myCellCenter[1], myCellCenter[0]); 
     cellCenterPhi= acos(myCellCenter[2]/cellCenterRadius); 
 
-    if (faceId==1365) {
-       std::cout << " problem case \n";       
-       std::cout << " stop here \n";
-    }
+    if( faceId==1365 )
+      {
+      std::cout << " problem case \n";       
+      std::cout << " stop here \n";
+      }
     
     InterpolatorType::DerivativeType computedDerivative; 
     interpolator->EvaluateDerivative(myCellCenter, computedDerivative);
