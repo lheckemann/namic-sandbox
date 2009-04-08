@@ -148,9 +148,7 @@ int main( int argc , char * argv [] )
   MeshType::Pointer myMesh = mySphereMeshSource->GetOutput();
 
   PointType  myPt;
-  float radius, phi, theta; //spherical coordinates
-  float myValue; 
-  
+
   std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
 
    for( unsigned int i=0; i < myMesh->GetNumberOfPoints(); i++ )
@@ -158,16 +156,15 @@ int main( int argc , char * argv [] )
       
     myMesh->GetPoint(i, &myPt);
 
-    for ( unsigned int j=0; j<3; j++ ) 
-      {
-        myPt[j]-= myCenter[j];   //coordinates relative to center, if center is not origin
-      }
+    const VectorType radial = myPt - myCenter;
+    
+    const double radius= radial.GetNorm(); //assuming radius is not valued 1
 
-    radius= sqrt(myPt[0]*myPt[0] + myPt[1]*myPt[1] + myPt[2]*myPt[2]); //assuming radius is not valued 1
-    theta= atan2(myPt[1], myPt[0]); 
-    phi= acos(myPt[2]/radius); 
+    const double theta = vcl_atan2( myPt[1], myPt[0] ); 
 
-    myValue= mapSphericalCoordinatesFunction(theta); 
+    const double phi = vcl_acos( myPt[2] / radius ); 
+
+    const double myValue = mapSphericalCoordinatesFunction(theta); 
 
     myMesh->SetPointData(i, myValue);
 
@@ -250,11 +247,8 @@ int main( int argc , char * argv [] )
 
     PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
     PointIdIterator pointIdEnd = cellPointer->PointIdsEnd();
-    for( unsigned int i = 0; i < 3; i++ )
-      {
-      myCellCenter[i]= 0.0;
-      }
 
+    myCellCenter.Fill( 0.0 );
     
     while( pointIdIterator != pointIdEnd )
       {
