@@ -48,19 +48,19 @@ public:
   static void GenerateMeshes( 
     typename TFixedMesh::Pointer & fixedMesh, typename TMovingMesh::Pointer & movingMesh )
   {
-  typedef itk::QuadEdgeMesh<float, 3>   MovingMeshType;
-  typedef itk::QuadEdgeMesh<float, 3>   FixedMeshType;
+  typedef TMovingMesh   MovingMeshType;
+  typedef TFixedMesh    FixedMeshType;
 
   typedef itk::RegularSphereMeshSource< MovingMeshType >  MovingSphereMeshSourceType;
   typedef itk::RegularSphereMeshSource< FixedMeshType >  FixedSphereMeshSourceType;
 
-  MovingSphereMeshSourceType::Pointer  movingSphereMeshSource = MovingSphereMeshSourceType::New();
-  FixedSphereMeshSourceType::Pointer   fixedShpereMeshSource = FixedSphereMeshSourceType::New();
+  typename MovingSphereMeshSourceType::Pointer  movingSphereMeshSource = MovingSphereMeshSourceType::New();
+  typename FixedSphereMeshSourceType::Pointer   fixedShpereMeshSource = FixedSphereMeshSourceType::New();
 
-  typedef MovingSphereMeshSourceType::PointType     MovingPointType;
-  typedef FixedSphereMeshSourceType::PointType      FixedPointType;
-  typedef MovingSphereMeshSourceType::VectorType    MovingVectorType;
-  typedef FixedSphereMeshSourceType::VectorType     FixedVectorType;
+  typedef typename MovingSphereMeshSourceType::PointType     MovingPointType;
+  typedef typename FixedSphereMeshSourceType::PointType      FixedPointType;
+  typedef typename MovingSphereMeshSourceType::VectorType    MovingVectorType;
+  typedef typename FixedSphereMeshSourceType::VectorType     FixedVectorType;
 
 
   // Set up synthetic data. Two spherical meshes, one is rotated theta=pi/4
@@ -106,9 +106,6 @@ public:
 
   MovingPointType  movingPt;
   FixedPointType   fixedPt;
-
-  typedef MovingPointType::VectorType  MovingVectorType;
-  typedef FixedPointType::VectorType   FixedVectorType;
 
   MovingVectorType  movingVtr;
   FixedVectorType   fixedVtr;
@@ -156,7 +153,7 @@ public:
       }   
 
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   FixedWriterType;
-  FixedWriterType::Pointer fixedWriter = FixedWriterType::New();
+  typename FixedWriterType::Pointer fixedWriter = FixedWriterType::New();
   fixedWriter->SetInput( fixedMesh );
   fixedWriter->SetFileName( "FixedMesh.vtk" );
 
@@ -172,7 +169,7 @@ public:
     }
 
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >   MovingWriterType;
-  MovingWriterType::Pointer movingWriter = MovingWriterType::New();
+  typename MovingWriterType::Pointer movingWriter = MovingWriterType::New();
   movingWriter->SetInput( movingMesh );
   movingWriter->SetFileName( "MovingMesh.vtk" );
 
