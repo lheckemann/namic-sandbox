@@ -33,7 +33,7 @@
 #include <iostream>
 
 static float mapSphericalCoordinatesFunction(float inPhi); 
-static itk::Vector<float,3> mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag); 
+static itk::CovariantVector<float,3> mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag); 
 
 //Really simple example: a sinusoid mapping between 0 and 1 as a function of theta, constant in phi
 static float 
@@ -41,7 +41,7 @@ mapSphericalCoordinatesFunction(float inTheta)
 {
   float result; 
 
-  float thetaFactor= sin(inTheta); // simplest non-constant function of theta
+  float thetaFactor= vcl_sin(inTheta); // simplest non-constant function of theta
                                    // that is smooth at 0-2pi boundary
 
   result= thetaFactor; 
@@ -49,32 +49,29 @@ mapSphericalCoordinatesFunction(float inTheta)
   return result; 
 }
 
-static itk::Vector<float,3>
+static itk::CovariantVector<float,3>
 mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag) 
 {
-  itk::Vector<float,3> phiComponent;
-  itk::Vector<float,3> thetaComponent;
-  itk::Vector<float,3> result; 
+  itk::CovariantVector<float,3> phiComponent;
+  itk::CovariantVector<float,3> thetaComponent;
+  itk::CovariantVector<float,3> result; 
   
-  float cosTheta= cos(inTheta); 
-  float sinTheta= sin(inTheta); 
-  float cosPhi= cos(inPhi); 
-  float sinPhi= sin(inPhi);
+  float cosTheta= vcl_cos(inTheta); 
+  float sinTheta= vcl_sin(inTheta); 
+  float cosPhi= vcl_cos(inPhi); 
+  float sinPhi= vcl_sin(inPhi);
 
   //derivative of phiFactor over Theta 
-  float functionDerivativeOverTheta= cos(inTheta);
+  float functionDerivativeOverTheta = vcl_cos(inTheta);
 
   //Need to multiply dF/dtheta by unit vector 
-  //unit vector= cos(phi)*cos(theta) i + cos(phi)*sin(theta) j - sin(phi)k
+  //unit vector= vcl_cos(phi)*vcl_cos(theta) i + vcl_cos(phi)*vcl_sin(theta) j - vcl_sin(phi)k
 
   thetaComponent[0]= -sinPhi * sinTheta * functionDerivativeOverTheta; 
   thetaComponent[1]= sinPhi * cosTheta * functionDerivativeOverTheta; 
   thetaComponent[2]= 0.0;
 
-  for (unsigned int i=0; i<3; i++)
-    {
-    result[i]= thetaComponent[i]; 
-    }
+  result = thetaComponent;
 
   if (printFlag)
     {
@@ -241,38 +238,31 @@ int main( int argc , char * argv [] )
                 <<" points" << std::endl;
       }
     
-    PointType myCellCenter;
-    myCellCenter.Fill( 0.0 );
-
-    float cellCenterTheta=0.0;
-    float cellCenterPhi=0.0; 
-    float cellCenterRadius=0.0; 
-
-
     PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
-    PointIdIterator pointIdEnd = cellPointer->PointIdsEnd();
 
-    
-    while( pointIdIterator != pointIdEnd )
+    if( cellPointer->GetNumberOfPoints() == 3 )  // ignore non triangular cells.
       {
-      CellPointType cellPoint= myMesh->GetPoint(*pointIdIterator);
-      for( unsigned int i = 0; i < 3; i++ )
-         {
-         myCellCenter[i]+= cellPoint[i];          
-         }
-         pointIdIterator++;
+      std::cerr << "Ignoring non-triangular face " << std::endl;
+      continue;
       }
-    for( unsigned int i = 0; i < 3; i++ )
-      {
-      myCellCenter[i]/= cellPointer->GetNumberOfPoints();
-      }
-    
-    cellCenterRadius= sqrt(myCellCenter[0]*myCellCenter[0] +
-                           myCellCenter[1]*myCellCenter[1] +
-                           myCellCenter[2]*myCellCenter[2]); //assuming radius is not valued 1
-    cellCenterTheta= atan2(myCellCenter[1], myCellCenter[0]); 
-    cellCenterPhi= acos(myCellCenter[2]/cellCenterRadius); 
 
+    CellPointType points[3];  // three nodes in the triangular cell
+
+    for( unsigned int pointId = 0; pointId < 3; pointId++ )
+      {
+      points[pointId] = myMesh->GetPoint(*pointIdIterator);
+      pointIdIterator++;
+      }
+
+    PointType myCellCenter;
+    myCellCenter.SetToBarycentricCombination( points[0], points[1], points[2], 0.5, 0.5 );
+    
+    VectorType radial = myCellCenter.GetVectorFromOrigin();
+
+    const double cellCenterRadius = radial.GetNorm();
+    const double cellCenterTheta  = vcl_atan2( myCellCenter[1], myCellCenter[0] ); 
+    const double cellCenterPhi    = vcl_acos( myCellCenter[2] / cellCenterRadius ); 
+    
     if( faceId==1365 )
       {
       std::cout << " problem case \n";       
@@ -280,9 +270,9 @@ int main( int argc , char * argv [] )
       }
     
     InterpolatorType::DerivativeType computedDerivative; 
-    interpolator->EvaluateDerivative(myCellCenter, computedDerivative);
+    interpolator->EvaluateDerivative( myCellCenter, computedDerivative );
 
-    itk::Vector<float,3> analyticalDerivative= mapSphericalCoordinatesFunctionGradient(cellCenterPhi, cellCenterTheta, false); 
+    itk::CovariantVector<float,3> analyticalDerivative= mapSphericalCoordinatesFunctionGradient(cellCenterPhi, cellCenterTheta, false); 
         
     std::cout << " faceId  " << faceId << "  cell Center " << myCellCenter
               << "  analytical derivative " 
@@ -291,16 +281,8 @@ int main( int argc , char * argv [] )
               << computedDerivative
               << std::endl;
 
-    itk::Vector<float,3> differenceValue;
-    float differenceValueMagnitude= 0.0; 
-
-    for ( unsigned int i=0; i<3; i++ )
-      {
-      differenceValue[i]= analyticalDerivative[i] - computedDerivative[i];
-      differenceValueMagnitude+= (differenceValue[i]*differenceValue[i]); 
-      }
-
-    differenceValueMagnitude= sqrt(differenceValueMagnitude);
+    itk::CovariantVector<float,3> differenceValue = analyticalDerivative - computedDerivative;
+    const float differenceValueMagnitude = differenceValue.GetNorm();
 
     if ( differenceValueMagnitude >  maximumDifferenceMagnitude )
       {
@@ -308,7 +290,7 @@ int main( int argc , char * argv [] )
       
       std::cout << " maximum difference magnitude increasing " << maximumDifferenceMagnitude << " faceId " << faceId << std::endl;
       }
-
+    
     }
 
   std::cout << " maximum difference magnitude " << maximumDifferenceMagnitude << std::endl;
