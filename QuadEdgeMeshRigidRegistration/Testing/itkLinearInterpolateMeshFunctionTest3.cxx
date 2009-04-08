@@ -240,7 +240,7 @@ int main( int argc , char * argv [] )
     
     PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
 
-    if( cellPointer->GetNumberOfPoints() == 3 )  // ignore non triangular cells.
+    if( cellPointer->GetNumberOfPoints() != 3 )  // ignore non triangular cells.
       {
       std::cerr << "Ignoring non-triangular face " << std::endl;
       continue;
