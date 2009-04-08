@@ -33,7 +33,7 @@
 #include <iostream>
 
 static float mapSphericalCoordinatesFunction(float inPhi); 
-static itk::Vector<float,3> mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag); 
+static itk::CovariantVector<float,3> mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag); 
 
 //Really simple example: a linear mapping between 0 and 1 as a function of phi, constant in theta
 static float 
@@ -48,21 +48,23 @@ mapSphericalCoordinatesFunction(float inPhi)
   return result; 
 }
 
-static itk::Vector<float,3>
+static itk::CovariantVector<float,3>
 mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag) 
 {
-  itk::Vector<float,3> phiComponent, thetaComponent, result; 
+  itk::Vector<float,3> phiComponent;
+  itk::Vector<float,3> thetaComponent;
+  itk::CovariantVector<float,3> result; 
   
-  float cosTheta= cos(inTheta); 
-  float sinTheta= sin(inTheta); 
-  float cosPhi= cos(inPhi); 
-  float sinPhi= sin(inPhi);
+  float cosTheta= vcl_cos(inTheta); 
+  float sinTheta= vcl_sin(inTheta); 
+  float cosPhi= vcl_cos(inPhi); 
+  float sinPhi= vcl_sin(inPhi);
 
   //derivative of phiFactor over Phi 
   float functionDerivativeOverPhi= -1.0 / vnl_math::pi;
 
   //Need to multiply dF/dphi by unit vector along phi
-  //unit vector along phi= cos(phi)*cos(theta) i + cos(phi)*sin(theta) j - sin(phi)k
+  //unit vector along phi= vcl_cos(phi)*vcl_cos(theta) i + vcl_cos(phi)*vcl_sin(theta) j - vcl_sin(phi)k
 
   phiComponent[0]= cosPhi * cosTheta * functionDerivativeOverPhi; 
   phiComponent[1]= cosPhi * sinTheta * functionDerivativeOverPhi; 
@@ -134,8 +136,6 @@ int main( int argc , char * argv [] )
   MeshType::Pointer myMesh = mySphereMeshSource->GetOutput();
 
   PointType  myPt;
-  float radius, phi, theta; //spherical coordinates
-  float myValue; 
   
   std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
 
@@ -144,16 +144,15 @@ int main( int argc , char * argv [] )
       
     myMesh->GetPoint(i, &myPt);
 
-    for ( unsigned int j=0; j<3; j++ ) 
-      {
-        myPt[j]-= myCenter[j];   //coordinates relative to center, if center is not origin
-      }
+    const VectorType radial = myPt - myCenter;
+    
+    const double radius= radial.GetNorm(); //assuming radius is not valued 1
 
-    radius= sqrt(myPt[0]*myPt[0] + myPt[1]*myPt[1] + myPt[2]*myPt[2]); //assuming radius is not valued 1
-    theta= atan2(myPt[1], myPt[0]); 
-    phi= acos(myPt[2]/radius); 
+    const double theta = vcl_atan2( myPt[1], myPt[0] ); 
 
-    myValue= mapSphericalCoordinatesFunction(phi); 
+    const double phi = vcl_acos( myPt[2] / radius ); 
+
+    const double myValue = mapSphericalCoordinatesFunction(phi); 
 
     myMesh->SetPointData(i, myValue);
 
@@ -228,44 +227,37 @@ int main( int argc , char * argv [] )
       }
     
     PointType myCellCenter;
-    float cellCenterTheta=0.0;
-    float cellCenterPhi=0.0; 
-    float cellCenterRadius=0.0; 
-
+    myCellCenter.Fill(0.0);
 
     PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
-    PointIdIterator pointIdEnd = cellPointer->PointIdsEnd();
-    for( unsigned int i = 0; i < 3; i++ )
+    
+    if( cellPointer->GetNumberOfPoints() == 3 )  // ignore non triangular cells.
       {
-      myCellCenter[i]= 0.0;
+      std::cerr << "Ignoring non-triangular face " << std::endl;
+      continue;
       }
 
-    
-    while( pointIdIterator != pointIdEnd )
-      {
-      CellPointType cellPoint= myMesh->GetPoint(*pointIdIterator);
-      for( unsigned int i = 0; i < 3; i++ )
-         {
-         myCellCenter[i]+= cellPoint[i];          
-         }
-         pointIdIterator++;
-      }
-    for( unsigned int i = 0; i < 3; i++ )
-      {
-      myCellCenter[i]/= cellPointer->GetNumberOfPoints();
-      }
-    
-    cellCenterRadius= sqrt(myCellCenter[0]*myCellCenter[0] +
-                           myCellCenter[1]*myCellCenter[1] +
-                           myCellCenter[2]*myCellCenter[2]); //assuming radius is not valued 1
-    cellCenterTheta= atan2(myCellCenter[1], myCellCenter[0]); 
-    cellCenterPhi= acos(myCellCenter[2]/cellCenterRadius); 
+    CellPointType points[3];  // three nodes in the triangular cell
 
+    for( unsigned int pointId = 0; pointId < 3; pointId++ )
+      {
+      points[pointId] = myMesh->GetPoint(*pointIdIterator);
+      pointIdIterator++;
+      }
+
+    myCellCenter.SetToBarycentricCombination( points[0], points[1], points[2], 0.5, 0.5 );
+    
+    VectorType radial = myCellCenter.GetVectorFromOrigin();
+
+    const double cellCenterRadius = radial.GetNorm();
+    const double cellCenterTheta  = vcl_atan2( myCellCenter[1], myCellCenter[0] ); 
+    const double cellCenterPhi    = vcl_acos( myCellCenter[2] / cellCenterRadius ); 
 
     InterpolatorType::DerivativeType computedDerivative; 
-    interpolator->EvaluateDerivative(myCellCenter, computedDerivative);
+    interpolator->EvaluateDerivative( myCellCenter, computedDerivative );
 
-    itk::Vector<float,3> analyticalDerivative= mapSphericalCoordinatesFunctionGradient(cellCenterPhi, cellCenterTheta, false); 
+    itk::CovariantVector<float,3> analyticalDerivative =
+      mapSphericalCoordinatesFunctionGradient(cellCenterPhi, cellCenterTheta, false); 
         
     std::cout << " faceId  " << faceId << "  cell Center " << myCellCenter
               << "  analytical derivative " 
@@ -274,16 +266,8 @@ int main( int argc , char * argv [] )
               << computedDerivative
               << std::endl;
     
-    itk::Vector<float,3> differenceValue;
-    float differenceValueMagnitude= 0.0; 
-
-    for ( unsigned int i=0; i<3; i++ )
-      {
-      differenceValue[i]= analyticalDerivative[i] - computedDerivative[i];
-      differenceValueMagnitude+= (differenceValue[i]*differenceValue[i]); 
-      }
-
-    differenceValueMagnitude= sqrt(differenceValueMagnitude);
+    itk::CovariantVector<float,3> differenceValue = analyticalDerivative - computedDerivative;
+    const float differenceValueMagnitude = differenceValue.GetNorm();
 
     if ( differenceValueMagnitude >  maximumDifferenceMagnitude )
       {
