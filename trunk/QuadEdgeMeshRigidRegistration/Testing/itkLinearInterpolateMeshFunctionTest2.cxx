@@ -87,8 +87,14 @@ mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFl
 }
                                     
 
-int main( int , char * [] )
+int main( int argc , char * argv [] )
 {
+  if( argc < 2 )
+    { 
+    std::cerr << "Missing Argument " << std::endl;
+    std::cerr << "Usage: " << std::endl;
+    std::cerr << argv[0] << " outputDirectory " << std::endl;
+    }
 
   typedef itk::QuadEdgeMesh<float, 3>   MeshType;
   typedef itk::RegularSphereMeshSource< MeshType >  SphereMeshSourceType;
@@ -159,7 +165,11 @@ int main( int , char * [] )
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >   WriterType;
   WriterType::Pointer myWriter = WriterType::New();
   myWriter->SetInput( myMesh );
-  myWriter->SetFileName( "Mesh.vtk" );
+
+  std::string filename = argv[1];
+  filename += "/itkLinearInterpolateMeshFunctionTest2.vtk";
+
+  myWriter->SetFileName( filename );
 
   try
     {
