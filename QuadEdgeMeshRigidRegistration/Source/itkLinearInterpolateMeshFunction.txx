@@ -69,23 +69,22 @@ void
 LinearInterpolateMeshFunction<TInputMesh>
 ::EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const
 {
-
   InstanceIdentifierVectorType pointIds;
 
-  this->FindTriangle( point, pointIds );
+  if( this->FindTriangle( point, pointIds ) )
+    {
+    PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
+    PixelType pixelValue2 = itk::NumericTraits< PixelType >::Zero;
+    PixelType pixelValue3 = itk::NumericTraits< PixelType >::Zero;
 
-  PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
-  PixelType pixelValue2 = itk::NumericTraits< PixelType >::Zero;
-  PixelType pixelValue3 = itk::NumericTraits< PixelType >::Zero;
+    this->GetPointData( pointIds[0], &pixelValue1 ); 
+    this->GetPointData( pointIds[1], &pixelValue2 ); 
+    this->GetPointData( pointIds[2], &pixelValue3 );
 
-  this->GetPointData( pointIds[0], &pixelValue1 ); 
-  this->GetPointData( pointIds[1], &pixelValue2 ); 
-  this->GetPointData( pointIds[2], &pixelValue3 );
-
-  //Move this part to a different fcn. Re-use if same basis, changing scalar fcn.
-  this->GetDerivativeFromPixelsAndBasis(pixelValue1, pixelValue2, pixelValue3,
-                                        m_U12, m_U32, derivative); 
-
+    //Move this part to a different fcn. Re-use if same basis, changing scalar fcn.
+    this->GetDerivativeFromPixelsAndBasis(
+      pixelValue1, pixelValue2, pixelValue3, m_U12, m_U32, derivative); 
+    }
 }
 
 
@@ -119,7 +118,12 @@ LinearInterpolateMeshFunction<TInputMesh>
 {
   InstanceIdentifierVectorType pointIds;
 
-  this->FindTriangle( point, pointIds );
+  bool foundTriangle = this->FindTriangle( point, pointIds );
+
+  if( !foundTriangle )
+    {
+    return itk::NumericTraits< OutputType >::ZeroValue();
+    }
 
   PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
   PixelType pixelValue2 = itk::NumericTraits< PixelType >::Zero;
@@ -146,7 +150,7 @@ LinearInterpolateMeshFunction<TInputMesh>
  * Find corresponding triangle, vector base and barycentric coordinates
  */
 template <class TInputMesh>
-void 
+bool
 LinearInterpolateMeshFunction<TInputMesh>
 ::FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const
 {
@@ -166,11 +170,14 @@ LinearInterpolateMeshFunction<TInputMesh>
   // 
   // Explore triangles around pointIds[0]
   //
-  EdgeType * temp1 = edge1->GetOnext();
+  EdgeType * temp1 = NULL;
+  EdgeType * temp2 = edge1;
 
-  while( temp1 != edge1 )
+  do
     {
-    EdgeType * temp2 = temp1->GetOnext();
+    temp1 = temp2;
+    temp2 = temp1->GetOnext();
+
     pointIds[1] = temp1->GetDestination();
     pointIds[2] = temp2->GetDestination();
 
@@ -178,12 +185,13 @@ LinearInterpolateMeshFunction<TInputMesh>
 
     if( isInside )
       {
-      break;
+      return true;
       }
 
-    temp1 = temp2;
     }
+  while( temp2 != edge1 );
 
+  return false;
 }
 
 

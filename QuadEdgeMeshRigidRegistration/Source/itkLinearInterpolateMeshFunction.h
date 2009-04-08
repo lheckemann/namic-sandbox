@@ -98,7 +98,7 @@ protected:
   virtual bool ComputeWeights( const PointType & point,
     const InstanceIdentifierVectorType & pointIds ) const;
 
-  virtual void FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
+  virtual bool FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
 
 private:
   LinearInterpolateMeshFunction( const Self& ); //purposely not implemented
