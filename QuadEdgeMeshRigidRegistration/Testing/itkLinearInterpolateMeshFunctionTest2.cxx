@@ -51,8 +51,8 @@ mapSphericalCoordinatesFunction(float inPhi)
 static itk::CovariantVector<float,3>
 mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFlag) 
 {
-  itk::Vector<float,3> phiComponent;
-  itk::Vector<float,3> thetaComponent;
+  itk::CovariantVector<float,3> phiComponent;
+  itk::CovariantVector<float,3> thetaComponent;
   itk::CovariantVector<float,3> result; 
   
   float cosTheta= vcl_cos(inTheta); 
@@ -70,10 +70,7 @@ mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFl
   phiComponent[1]= cosPhi * sinTheta * functionDerivativeOverPhi; 
   phiComponent[2]= -sinPhi * functionDerivativeOverPhi; 
 
-  for (unsigned int i=0; i<3; i++)
-    {
-    result[i]= phiComponent[i]; 
-    }
+  result = phiComponent;
 
   if (printFlag)
     {
@@ -226,9 +223,6 @@ int main( int argc , char * argv [] )
                 <<" points" << std::endl;
       }
     
-    PointType myCellCenter;
-    myCellCenter.Fill(0.0);
-
     PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
     
     if( cellPointer->GetNumberOfPoints() == 3 )  // ignore non triangular cells.
@@ -245,6 +239,7 @@ int main( int argc , char * argv [] )
       pointIdIterator++;
       }
 
+    PointType myCellCenter;
     myCellCenter.SetToBarycentricCombination( points[0], points[1], points[2], 0.5, 0.5 );
     
     VectorType radial = myCellCenter.GetVectorFromOrigin();
