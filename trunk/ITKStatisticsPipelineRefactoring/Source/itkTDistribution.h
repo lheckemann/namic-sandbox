@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkChiSquareDistribution.h,v $
+  Module:    $RCSfile: itkTDistribution.h,v $
   Language:  C++
   Date:      $Date: 2007-02-24 13:47:32 $
   Version:   $Revision: 1.1 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkChiSquareDistribution_h
-#define __itkChiSquareDistribution_h
+#ifndef __itkTDistribution_h
+#define __itkTDistribution_h
 
 #include "itkProbabilityDistribution.h"
 #include "itkNumericTraits.h"
@@ -23,13 +23,13 @@
 namespace itk { 
 namespace Statistics {
 
-/** \class ChiSquareDistribution
- * \brief ChiSquareDistribution class defines the interface for a
- * univariate Chi-Square distribution (pdfs, cdfs, etc.).
+/** \class TDistribution
+ * \brief TDistribution class defines the interface for a univariate
+ * Student-t distribution (pdfs, cdfs, etc.).
  *
- * ChiSquareDistribution provides access to the probability density
+ * TDistribution provides access to the probability density
  * function (pdf), the cumulative distribution function (cdf), and the
- * inverse cumulative distribution function for a Chi-Square distribution.
+ * inverse cumulative distribution function for a Student-t distribution.
  *
  * The EvaluatePDF(), EvaluateCDF, EvaluateInverseCDF() methods are
  * all virtual, allowing algorithms to be written with an abstract
@@ -39,11 +39,11 @@ namespace Statistics {
  * for optimized access to distributions when the distribution is
  * known a priori to the algorithm.
  *
- * ChiSquareDistributions are univariate.  Multivariate versions may
+ * TDistributions are univariate.  Multivariate versions may
  * be provided under a separate superclass (since the parameters to the
  * pdf and cdf would have to be vectors not scalars).
  *
- * ChiSquareDistributions can be used for Chi-Square tests.
+ * TDistributions can be used for t tests.
  *
  * \note This work is part of the National Alliance for Medical Image
  * Computing (NAMIC), funded by the National Institutes of Health
@@ -51,23 +51,23 @@ namespace Statistics {
  * Information on the National Centers for Biomedical Computing
  * can be obtained from http://nihroadmap.nih.gov/bioinformatics.  
  */
-class ITK_EXPORT ChiSquareDistribution :
+class ITK_EXPORT TDistribution :
     public ProbabilityDistribution
 {
 public:
   /** Standard class typedefs */
-  typedef ChiSquareDistribution    Self;
+  typedef TDistribution            Self;
   typedef ProbabilityDistribution  Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Strandard macros */
-  itkTypeMacro(ChiSquareDistribution, ProbabilityDistribution);
+  itkTypeMacro(TDistribution, ProbabilityDistribution);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Return the number of parameters.  For a Chi-Square
+  /** Return the number of parameters.  For a univariate Student-t
    * distribution, the number of parameters is 1 (degrees of freedom) */
   virtual unsigned long GetNumberOfParameters() const { return 1; }
   
@@ -113,7 +113,7 @@ public:
    * of the distribution are passed as separate parameters. */
   virtual double EvaluateInverseCDF(double p, long degreesOfFreedom) const;
 
-  /** Set the number of degrees of freedom in the Chi-Square distribution.
+  /** Set the number of degrees of freedom in the Student-t distribution.
    * Defaults to 1 */
   virtual void SetDegreesOfFreedom(long);
 
@@ -121,34 +121,36 @@ public:
    * distribution. Defaults to 1 */
   virtual long GetDegreesOfFreedom() const;
 
-  /** Does the Chi-Square distribution have a mean? */
+  /** Does the Student-t distribution have a mean? */
   virtual bool HasMean() const { return true; }
   
   /** Get the mean of the distribution. */
   virtual double GetMean() const;
 
-  /** Does the Chi-Square distribution have a variance? */
-  virtual bool HasVariance() const { return true; }
+  /** Does the Student-t distribution have a variance? Variance is
+   * only defined for degrees of freedom greater than 2 */
+  virtual bool HasVariance() const;
   
-  /** Get the variance of the distribution. */
+  /** Get the variance of the distribution. If the variance does not exist,
+   * then quiet_NaN is returned. */
   virtual double GetVariance() const;
 
-    
+
   /** Static method to evaluate the probability density function (pdf)
-   * of a Chi-Square with a specified number of degrees of freedom. The
+   * of a Student-t with a specified number of degrees of freedom. The
    * static method provides optimized access without requiring an
    * instance of the class. The degrees of freedom for the
    * distribution are passed in a parameters vector. */
   static double PDF(double x, const ParametersType&);
-
+  
   /** Static method to evaluate the probability density function (pdf)
-   * of a Chi-Square with a specified number of degrees of freedom. The
+   * of a Student-t with a specified number of degrees of freedom. The
    * static method provides optimized access without requiring an
    * instance of the class. */
   static double PDF(double x, long degreesOfFreedom);
   
   /** Static method to evaluate the cumulative distribution function
-   * (cdf) of a Chi-Square with a specified number of degrees of
+   * (cdf) of a Student-t with a specified number of degrees of
    * freedom. The static method provides optimized access without
    * requiring an instance of the class. The degrees of freedom are
    * passed as a parameters vector.
@@ -159,7 +161,7 @@ public:
   static double CDF(double x, const ParametersType&);
 
   /** Static method to evaluate the cumulative distribution function
-   * (cdf) of a Chi-Square with a specified number of degrees of
+   * (cdf) of a Student-t with a specified number of degrees of
    * freedom. The static method provides optimized access without
    * requiring an instance of the class.
    *
@@ -169,7 +171,7 @@ public:
   static double CDF(double x, long degreesOfFreedom);
 
   /** Static method to evaluate the inverse cumulative distribution
-   * function of a Chi-Square with a specified number of degrees of
+   * function of a Student-t with a specified number of degrees of
    * freedom.  The static method provides optimized access without
    * requiring an instance of the class. Parameter p must be between
    * 0.0 and 1.0. The degrees of freedom are passed as a parameters vector.
@@ -181,7 +183,7 @@ public:
   static double InverseCDF(double p, const ParametersType&);
 
   /** Static method to evaluate the inverse cumulative distribution
-   * function of a Chi-Square with a specified number of degrees of
+   * function of a Student-t with a specified number of degrees of
    * freedom.  The static method provides optimized access without
    * requiring an instance of the class. Parameter p must be between
    * 0.0 and 1.0.
@@ -193,13 +195,13 @@ public:
   static double InverseCDF(double p, long degreesOfFreedom);
 
 protected:
-  ChiSquareDistribution(void);
-  virtual ~ChiSquareDistribution(void) {}
+  TDistribution(void);
+  virtual ~TDistribution(void) {}
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
 private:
-  ChiSquareDistribution(const Self&); //purposely not implemented
+  TDistribution(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
 }; // end of class

@@ -120,5 +120,8 @@ void RegisterTests()
 
   REGISTER_TEST(itkImageClassifierFilterTest);
 
+  REGISTER_TEST(itkChiSquareDistributionTest);
+  REGISTER_TEST(itkGaussianDistributionTest);
+  REGISTER_TEST(itkTDistributionTest);
 }
 
