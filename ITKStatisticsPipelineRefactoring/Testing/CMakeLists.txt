@@ -161,6 +161,15 @@ ADD_TEST(itkImageClassifierFilterTest
          itkImageClassifierFilterTest
          ${TEMP}/ImageClassifierFilterTestClassifiedImage.png)
 
+ADD_TEST(itkChiSquareDistributionTest ${STATISTICS_TESTS}
+  itkChiSquareDistributionTest
+  )
+ADD_TEST(itkGaussianDistributionTest ${STATISTICS_TESTS}
+  itkGaussianDistributionTest
+  )
+ADD_TEST(itkTDistributionTest ${STATISTICS_TESTS} itkTDistributionTest)
+
+
 SET(Statistics_SRCS
   itkCovarianceFilterTest.cxx
   itkCovarianceFilterTest2.cxx
@@ -250,6 +259,9 @@ SET(Statistics_SRCS
 
   itkImageClassifierFilterTest.cxx
 
+  itkGaussianDistributionTest.cxx
+  itkChiSquareDistributionTest.cxx
+  itkTDistributionTest.cxx
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})
