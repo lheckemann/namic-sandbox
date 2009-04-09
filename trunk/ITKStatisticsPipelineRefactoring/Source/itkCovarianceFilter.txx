@@ -95,6 +95,7 @@ CovarianceFilter< TSample >
     {
     typedef typename MeasurementVectorTraitsTypes< MeasurementVectorType >::ValueType   ValueType;
     MeasurementVectorType mean;
+    (void)mean; // for complainty pants : valgrind
     MeasurementVectorTraits::SetLength( mean,  this->GetMeasurementVectorSize() );
     mean.Fill( NumericTraits< ValueType >::Zero );
     typename MeasurementVectorDecoratedType::Pointer decoratedMean = MeasurementVectorDecoratedType::New();

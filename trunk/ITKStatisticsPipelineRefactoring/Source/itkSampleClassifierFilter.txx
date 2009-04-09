@@ -26,6 +26,8 @@ template< class TSample >
 SampleClassifierFilter< TSample >
 ::SampleClassifierFilter()
 {
+  this->m_NumberOfClasses = 0;
+
   this->SetNumberOfRequiredInputs( 3 );
   this->SetNumberOfRequiredOutputs( 1 );
 
