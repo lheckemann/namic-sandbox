@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeanSquaresMeshToMeshMetricTest1.cxx,v $
+  Module:    $RCSfile: itkLinearInterpolateMeshFunctionTest3.cxx,v $
   Language:  C++
   Date:      $Date: 2007-09-06 17:44:24 $
   Version:   $Revision: 1.3 $
@@ -64,11 +64,11 @@ mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFl
   //derivative of phiFactor over Theta 
   float functionDerivativeOverTheta = vcl_cos(inTheta);
 
-  //Need to multiply dF/dtheta by unit vector 
-  //unit vector= vcl_cos(phi)*vcl_cos(theta) i + vcl_cos(phi)*vcl_sin(theta) j - vcl_sin(phi)k
+  //Need to multiply dF/dtheta by unit vector theta
+  //unit vector= -sinTheta i + cosTheta j
 
-  thetaComponent[0]= -sinPhi * sinTheta * functionDerivativeOverTheta; 
-  thetaComponent[1]= sinPhi * cosTheta * functionDerivativeOverTheta; 
+  thetaComponent[0]= -sinTheta * functionDerivativeOverTheta; 
+  thetaComponent[1]= cosTheta * functionDerivativeOverTheta; 
   thetaComponent[2]= 0.0;
 
   result = thetaComponent;
