@@ -27,6 +27,7 @@ template < class TImage, class TMaskImage >
 ImageToListSampleFilter< TImage, TMaskImage >
 ::ImageToListSampleFilter()
 {
+  (void)(this->m_MaskValue);
   this->SetNumberOfRequiredInputs(1);
   this->SetNumberOfRequiredOutputs(1);
 

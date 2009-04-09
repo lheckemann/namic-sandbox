@@ -24,6 +24,7 @@ template< class TSample >
 MembershipSample< TSample >
 ::MembershipSample()
 {
+  this->m_NumberOfClasses = 0;
 }
 
 template< class TSample >
