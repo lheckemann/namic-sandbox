@@ -34,4 +34,5 @@ void RegisterTests()
   REGISTER_TEST(itkCovarianceCalculatorTest);
   REGISTER_TEST(itkWeightedCovarianceCalculatorTest);
   REGISTER_TEST(itkDenseFrequencyContainerTest);
+  REGISTER_TEST(itkKdTreeBasedKmeansEstimatorTest);
 }

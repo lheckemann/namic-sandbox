@@ -14,6 +14,10 @@ ADD_TEST(itkCovarianceCalculatorBCTest ${STATISTICS_TESTS} itkCovarianceCalculat
 ADD_TEST(itkWeightedCovarianceCalculatorBCTest ${STATISTICS_TESTS} itkWeightedCovarianceCalculatorTest)
 ADD_TEST(itkWeightedMeanCalculatorBCTest ${STATISTICS_TESTS} itkWeightedMeanCalculatorTest)
 ADD_TEST(itkDenseFrequencyContainerBCTest ${STATISTICS_TESTS} itkDenseFrequencyContainerTest)
+ADD_TEST(itkKdTreeBasedKmeansEstimatorTest ${STATISTICS_TESTS} 
+         itkKdTreeBasedKmeansEstimatorTest 
+         ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat 
+         1 28.54746 0.07)
 
 SET(Statistics_SRCS
   itkMeanCalculatorTest.cxx
@@ -22,6 +26,7 @@ SET(Statistics_SRCS
   itkWeightedCovarianceCalculatorTest.cxx
   itkWeightedMeanCalculatorTest.cxx
   itkKdTreeGeneratorTest.cxx
+  itkKdTreeBasedKmeansEstimatorTest.cxx
   itkDenseFrequencyContainerTest
 )
 
