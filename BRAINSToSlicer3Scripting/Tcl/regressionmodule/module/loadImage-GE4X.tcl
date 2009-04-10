@@ -26,7 +26,7 @@ proc loadImage-GE4X {pathToRegressionDir dateString} {
         set ImageMin 0.000000
         set ImageMax 200.000000
         set Dimensions "256 256 124"
-        set Resolutions "1.01562 1.01562 1.500000"
+        set Resolutions "1.015625 1.015625 1.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096]
 #only continue upon success

@@ -126,9 +126,9 @@ proc getDimsResTransform {pathToRegressionDir dateString} {
     set ResliceRes [ b2_get_reslice-res_transform $TestXfrmID]
 
     set ExpectStandardDims {256 256 192}
-    set ExpectStandardRes {1.01562  1.01562 1.01562}
+    set ExpectStandardRes {1.015625  1.015625 1.015625}
     set ExpectResliceDims {256 256 124}
-    set ExpectResliceRes {1.01562  1.01562 1.500000}
+    set ExpectResliceRes {1.015625  1.015625 1.500000}
     for {set i 0} {$i < 3} {incr i} {
         set SubTestDes "Get STANDARD-DIMS Index ($i)"
         ReportTestStatus $LogFile  [ expr {[lindex $StandardDims $i] == [lindex $ExpectStandardDims $i] } ] $ModuleName $SubTestDes

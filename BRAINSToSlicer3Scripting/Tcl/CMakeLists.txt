@@ -52,7 +52,8 @@ SET(SLICER_RUN_MODE "-f")  ## No   gui
 SET(SLICER_RUN_MODE "-p")  ## With gui
 FOREACH(MODULE_TO_RUN ${BATCH_TEST_LIST} )
 #  MESSAGE(STATUS "Adding Test: ${MODULE_TO_RUN}_test ${SLICER3_EXEC} ${SLICER3_COMMAND_INVOCATION} ${B2COMMANDTEST_BINARY_DIR}/Testing/results/${MODULE_TO_RUN}_wrapper.b2")
-  ADD_TEST(${MODULE_TO_RUN}_test ${SLICER3_EXEC} --no-modules --no-splash ${SLICER_RUN_MODE} ${B2COMMANDTEST_BINARY_DIR}/Testing/results/${MODULE_TO_RUN}_wrapper.b2 )
+#  ADD_TEST(${MODULE_TO_RUN}_test ${SLICER3_EXEC} --no-modules --no-splash ${SLICER_RUN_MODE} ${B2COMMANDTEST_BINARY_DIR}/Testing/results/${MODULE_TO_RUN}_wrapper.b2 )
+  ADD_TEST(${MODULE_TO_RUN}_test ${SLICER3_EXEC} /ipldev/scratch/hjohnson/src/Slicer3-build/Slicer3 --test-mode --script ${B2COMMANDTEST_BINARY_DIR}/Testing/results/${MODULE_TO_RUN}_wrapper.b2 )
 ENDFOREACH(MODULE_TO_RUN)
 
 ENDIF(BRAINS_TESTING_DATA)

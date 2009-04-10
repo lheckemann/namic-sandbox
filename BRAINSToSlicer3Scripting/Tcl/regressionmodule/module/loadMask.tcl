@@ -53,9 +53,9 @@ proc loadMask {pathToRegressionDir dateString} {
     set YDims 256
     set ZDims 192
     set NumRes 3
-    set XRes 1.01562
-    set YRes 1.01562
-    set ZRes 1.01562
+    set XRes 1.015625
+    set YRes 1.015625
+    set ZRes 1.015625
     set SubTestDes "load $MaskTypeName test"
     set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_brain_trim.mask]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ]} {

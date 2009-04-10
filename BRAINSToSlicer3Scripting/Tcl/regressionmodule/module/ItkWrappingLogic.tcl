@@ -68,7 +68,7 @@ proc ItkWrappingLogic {pathToRegressionDir dateString} {
     set ImageTypeName "ITKWrapped-RecursiveGaussian-6.0" ;
     set ImageType "ITK-Image" ;
     set Dimensions "256 256 192" ;
-    set Resolutions "1.01562 1.01562 1.01562" ;
+    set Resolutions "1.015625 1.015625 1.015625" ;
     set SubTestDes "take data (result: $itkRGaussian) from the ITK pipeline test" ;
     if { [ ReportTestStatus $LogFile  [ expr {[string equal [string index $itkRGaussian 0] "i"] } ] $ModuleName $SubTestDes ]} {
         CoreImageTest $ImageTypeName $itkRGaussian $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes;
@@ -79,7 +79,7 @@ proc ItkWrappingLogic {pathToRegressionDir dateString} {
     set ImageTypeName "b2-itkRecursiveGaussian-6.0";
     set ImageType "Classified";
     set Dimensions "256 256 192" ;
-    set Resolutions "1.01562 1.01562 1.01562" ;
+    set Resolutions "1.015625 1.015625 1.015625" ;
     set SubTestDes "take data (result: $b2RGaussian) from the brains2 kernel test";
     if { [ ReportTestStatus $LogFile  [ expr {[string equal [string index $b2RGaussian 0] "i"] } ] $ModuleName $SubTestDes ]} {
         CoreImageTest $ImageTypeName $b2RGaussian $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes;

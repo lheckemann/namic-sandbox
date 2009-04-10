@@ -34,7 +34,7 @@ proc loadImage-GE5X {pathToRegressionDir dateString} {
         set ImageMin 0.000000
         set ImageMax  2337.000000
         set Dimensions "256 256 124"
-        set Resolutions "1.01562 1.01562 1.500000"
+        set Resolutions "1.015625 1.015625 1.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099]
 #only continue upon success
@@ -49,7 +49,7 @@ proc loadImage-GE5X {pathToRegressionDir dateString} {
         set ImageMin 0.000000
         set ImageMax  824.000000
         set Dimensions "256 256 59"
-        set Resolutions "1.01562 1.01562 3.000000"
+        set Resolutions "1.015625 1.015625 3.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/31_003/113766.003.070]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
@@ -63,7 +63,7 @@ proc loadImage-GE5X {pathToRegressionDir dateString} {
         set ImageMin 0.000000
         set ImageMax  1183.000000
         set Dimensions "256 256 59"
-        set Resolutions "1.01562 1.01562 3.000000"
+        set Resolutions "1.015625 1.015625 3.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/31_003/113766.003.071]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {

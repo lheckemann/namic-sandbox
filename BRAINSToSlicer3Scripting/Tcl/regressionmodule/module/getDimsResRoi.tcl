@@ -84,7 +84,7 @@ proc getDimsResRoi {pathToRegressionDir dateString} {
     set RoiRes [ b2_get_res_roi $TestRoiID]
 
     set ExpectDims {256 256 192}
-    set ExpectRes {1.01562  1.01562 1.01562}
+    set ExpectRes {1.015625  1.015625 1.015625}
     for {set i 0} {$i < 3} {incr i} {
         set SubTestDes "10_ACPC Get DIMS ROI Index ($i)"
         ReportTestStatus $LogFile  [ expr {[lindex $RoiDims $i] == [lindex $ExpectDims $i] } ] $ModuleName $SubTestDes

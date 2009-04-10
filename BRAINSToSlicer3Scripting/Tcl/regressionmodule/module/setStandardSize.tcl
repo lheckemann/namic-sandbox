@@ -36,8 +36,8 @@ proc setStandardSize {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set errorTest [b2_set_standard-size]
-    set SubTestDes "Does observed default $errorTest == 1.01562"
-    ReportTestStatus $LogFile  [ expr {$errorTest == 1.01562 } ] $ModuleName $SubTestDes
+    set SubTestDes "Does observed default $errorTest == 1.015625"
+    ReportTestStatus $LogFile  [ expr {$errorTest == 1.015625 } ] $ModuleName $SubTestDes
 
 
     set SubTestDes "Set Standard Size Test"

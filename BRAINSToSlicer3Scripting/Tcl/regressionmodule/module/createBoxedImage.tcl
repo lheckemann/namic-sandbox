@@ -42,8 +42,8 @@ proc createBoxedImage {pathToRegressionDir dateString} {
 
 # Run Tests
 
-        set img1 [b2_create_bullet-image 20 0 256 256 192 1.01562 1.01562 1.01562 120 100 75 8 3 1]
-        set img2 [b2_create_bullet-image 18 0 256 256 192 1.01562 1.01562 1.01562 126 108 73 1 2 9]
+        set img1 [b2_create_bullet-image 20 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 8 3 1]
+        set img2 [b2_create_bullet-image 18 0 256 256 192 1.015625 1.015625 1.015625 126 108 73 1 2 9]
     set imgN [b2_sum_images [list $img1 $img2]]
 
 
@@ -98,15 +98,15 @@ proc createBoxedImage {pathToRegressionDir dateString} {
                     }
 
                 set SubTestDes "res\[0\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
                     }
 
                 set SubTestDes "res\[1\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
                     }
 
                 set SubTestDes "res\[2\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
                     }
 
 
