@@ -33,4 +33,5 @@ void RegisterTests()
   REGISTER_TEST(itkScalarImageTextureCalculatorTest);
   REGISTER_TEST(itkCovarianceCalculatorTest);
   REGISTER_TEST(itkWeightedCovarianceCalculatorTest);
+  REGISTER_TEST(itkDenseFrequencyContainerTest);
 }
