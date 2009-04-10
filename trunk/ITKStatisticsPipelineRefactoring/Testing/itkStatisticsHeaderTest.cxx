@@ -47,8 +47,6 @@
 #include "itkImageToListSampleAdaptor.h"
 #include "itkPointSetToListSampleAdaptor.h"
 #include "itkJointDomainImageToListSampleAdaptor.h"
-#include "itkDenseFrequencyContainer.h"
-#include "itkSparseFrequencyContainer.h"
 #include "itkScalarImageToTextureFeaturesFilter.h"
 #include "itkMembershipFunctionBase.h"
 #include "itkDistanceMetric.h"
