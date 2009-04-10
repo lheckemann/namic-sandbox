@@ -13,6 +13,7 @@ ADD_TEST(itkScalarImageTextureCalculatorBCTest ${STATISTICS_TESTS} itkScalarImag
 ADD_TEST(itkCovarianceCalculatorBCTest ${STATISTICS_TESTS} itkCovarianceCalculatorTest)
 ADD_TEST(itkWeightedCovarianceCalculatorBCTest ${STATISTICS_TESTS} itkWeightedCovarianceCalculatorTest)
 ADD_TEST(itkWeightedMeanCalculatorBCTest ${STATISTICS_TESTS} itkWeightedMeanCalculatorTest)
+ADD_TEST(itkDenseFrequencyContainerBCTest ${STATISTICS_TESTS} itkDenseFrequencyContainerTest)
 
 SET(Statistics_SRCS
   itkMeanCalculatorTest.cxx
@@ -21,6 +22,7 @@ SET(Statistics_SRCS
   itkWeightedCovarianceCalculatorTest.cxx
   itkWeightedMeanCalculatorTest.cxx
   itkKdTreeGeneratorTest.cxx
+  itkDenseFrequencyContainerTest
 )
 
 ADD_EXECUTABLE(itkStatisticsBCTests itkStatisticsBCTests.cxx ${Statistics_SRCS})
