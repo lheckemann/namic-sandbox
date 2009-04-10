@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 
   //------------------------------------------------------------
   // loop
-  for (int i = 0; i < 100; i ++)
+  while (1)
     {
     igtl::Matrix4x4 matrix;
     GetRandomTestMatrix(matrix);

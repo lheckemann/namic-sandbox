@@ -68,8 +68,7 @@ int main(int argc, char* argv[])
 
   //------------------------------------------------------------
   // loop
-
-  for (int i = 0; i < 100; i ++)
+  while (1)
     {
     float position[3];
     float quaternion[4];
