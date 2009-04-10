@@ -138,7 +138,7 @@ proc saveImage {pathToRegressionDir dateString} {
     set RgbImageStd  43.517092386806489 ;
 #        set RgbImageStd  45.373369306353894 ;
     set RgbDimensions "256 256 192" ;
-    set RgbResolutions "1.01562 1.01562 1.01562" ;
+    set RgbResolutions "1.015625 1.015625 1.015625" ;
 
 
 

@@ -36,7 +36,7 @@ proc getDimsResImage {pathToRegressionDir dateString} {
     set ImageMin 0.000000
     set ImageMax  4095.000000
     set Dimensions "256 256 124"
-    set Resolutions "1.01562 1.01562 1.500000"
+    set Resolutions "1.015625 1.015625 1.500000"
     set SubTestDes "Get Image Dims/Res load $ImageType test"
     set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099]
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ] == 0} {

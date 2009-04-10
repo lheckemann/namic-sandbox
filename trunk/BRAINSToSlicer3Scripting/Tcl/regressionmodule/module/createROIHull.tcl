@@ -113,15 +113,15 @@ proc createROIHull {pathToRegressionDir dateString} {
 }
 
                 set SubTestDes "hull Y res\[0\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "hull Y res\[1\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "hull Y res\[2\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set dim_ret [b2_get_dims_mask $mask_Z]
@@ -149,15 +149,15 @@ proc createROIHull {pathToRegressionDir dateString} {
 }
 
                 set SubTestDes "hull Z res\[0\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "hull Z res\[1\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "hull Z res\[2\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set dim_ret [b2_get_dims_mask $mask_X]
@@ -185,15 +185,15 @@ proc createROIHull {pathToRegressionDir dateString} {
 }
 
                 set SubTestDes "hull X res\[0\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "hull X res\[1\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "hull X res\[2\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 

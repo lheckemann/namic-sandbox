@@ -1,18 +1,44 @@
 ######
 # Need to source the BRAINS wrapper scripts.
+update
 source @COMMON_INCLUDE_SCRIPT@
 
 ## Author Hans J. Johnson
-## This simple script is causing Slicer to SegmentationFault
 ## This file can be read in other ITK applications
+proc TestReadNiftiFile {} {
 
-puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
-puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
-puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
-puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
-puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+  puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+  puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+  puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+  puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+  puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
 
-set fileName @COMMON_DATA_DIR@/AVG_T1.nii.gz
-set inputImage [ b2_load_image ${fileName} ]
-${inputImage} Delete
+  set fileName @COMMON_DATA_DIR@/AVG_T1.nii.gz
+  set inputImage [ b2_load_image ${fileName} ]
+
+  set return_status=0; # Success
+  if [ ${inputImage} != -1 ] {
+    ${inputImage} Delete
+    set return_status=-1; # Failure
+  }
+  return ${return_status}
+}
+
+proc runtest {} {
+      set ret [ catch {
+                 $::slicer3::Application TraceScript TestReadNiftiFile
+                       } res]
+
+#      set ff [open logger "w"]
+#      puts $ff $ret $res
+#      close $ff
+      if { $ret } {
+            puts stderr $res
+            exit -1; #Failure
+      }
+      exit 0; #Success
+}
+
+update
+after idle runtest
 

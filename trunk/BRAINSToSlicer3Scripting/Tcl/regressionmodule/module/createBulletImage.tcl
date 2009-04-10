@@ -47,30 +47,30 @@ proc createBulletImage {pathToRegressionDir dateString} {
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.01562 1.01562 1.01562 120 100 75 2.0 1.0]
-        set SubTestDes "required argument test: \[b2_create_bullet-image 256 256 192 1.01562 1.01562 1.01562 120 100 75 2.0 1.0\]"
+        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0]
+        set SubTestDes "required argument test: \[b2_create_bullet-image 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.01562 1.01562 1.01562 120 100 75 2.0 1.0 4.0 5]
-        set SubTestDes "required argument test: \[b2_create_bullet-image 256 256 192 1.01562 1.01562 1.01562 120 100 75 2.0 1.0 4.0 5\]"
+        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 5]
+        set SubTestDes "required argument test: \[b2_create_bullet-image 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 5\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
         set SubTestDes "optional argument number test"
-        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.01562 1.01562 1.01562 120 100 75 2.0 1.0 4.0 junk= ]
+        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test"
-        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.01562 1.01562 1.01562 120 100 75 2.0 1.0 4.0 junk= test]
+        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-        set img_ret [b2_create_bullet-image 200 0 256 256 192 1.01562 1.01562 1.01562 120 100 75 2.0 1.0 4.0]
-        set SubTestDes "correct response test: \[b2_create_bullet-image 256 256 192 1.01562 1.01562 1.01562 120 100 75 2.0 1.0 4.0\]"
+        set img_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0]
+        set SubTestDes "correct response test: \[b2_create_bullet-image 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0\]"
         if {[ReportTestStatus $LogFile  [ expr {$img_ret >= 0} ] $ModuleName $SubTestDes] == 0} {
 }
 
@@ -99,15 +99,15 @@ proc createBulletImage {pathToRegressionDir dateString} {
 }
 
                 set SubTestDes "res\[0\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "res\[1\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "res\[2\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
@@ -148,15 +148,15 @@ proc createBulletImage {pathToRegressionDir dateString} {
 }
 
                 set SubTestDes "thresh mask res\[0\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "thresh mask res\[1\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "thresh mask res\[2\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
@@ -203,15 +203,15 @@ proc createBulletImage {pathToRegressionDir dateString} {
 }
 
                 set SubTestDes "boxed bullet res\[0\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 0] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "boxed bullet res\[1\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 1] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
                 set SubTestDes "boxed bullet res\[2\] test"
-                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.01562 } ] $ModuleName $SubTestDes] == 0} {
+                if {[ReportTestStatus $LogFile  [ expr {[lindex $test_res 2] == 1.015625 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 

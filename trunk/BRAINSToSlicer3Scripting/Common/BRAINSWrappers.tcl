@@ -1,4 +1,3 @@
-
 ######## Adapted from http://wiki.tcl.tk/14770
 # The argument processor.
 proc userargs {_arglist _args} {
@@ -173,6 +172,8 @@ b2_proc_generator b2_tester { {imageNodeID - required} {printstring1 p1 } {print
   }
 }
 
+
+####################### Josiah From Here down is where you need to pay attention.
 ## Note: This needs to be sourced first.
 ## NOTE:  The DISPLAY environmental variable MUST BE SET TO A VALID DISPLAY!
 ## Run with ~/src/Slicer3-build/Slicer3 --no-splash -f ~/NewScript.tcl
@@ -186,8 +187,8 @@ if { [ info exists ::slicer3::MRMLScene ] == 1 } {
   puts "SETTING MRML TO THE DEFAULT SLICER SCENE"
   set BRAINSScriptingScene $::slicer3::MRMLScene
   set BRAINSScriptingVolumesLogic [ $::slicer3::VolumesGUI GetLogic]
-  set BRAINSScriptingColorLogic [$::slicer3::ColorGUI GetLogic]
-  set BRAINSScriptingFiducialsLogic [ $::slicer3::FiducialsGUI GetLogic]
+#  set BRAINSScriptingColorLogic [$::slicer3::ColorGUI GetLogic]
+#  set BRAINSScriptingFiducialsLogic [ $::slicer3::FiducialsGUI GetLogic]
   set BRAINSScriptingMRMLisGUI "true"
 } else {
   ## If not in gui mode (--no-splash -f )
@@ -196,7 +197,9 @@ if { [ info exists ::slicer3::MRMLScene ] == 1 } {
   puts "SETTING MRML TO THE BATCH MODE New Instance of a SLICER SCENE"
   puts "SETTING MRML TO THE BATCH MODE New Instance of a SLICER SCENE"
   set BRAINSScriptingScene [ vtkMRMLScene New ]
-  set BRAINSScriptingVolumesLogic [ vtkSlicerVolumesLogic New ]
+  set BRAINSScriptingVolumesLogic [ $::slicer3::VolumesGUI GetLogic]
+#  set BRAINSScriptingColorLogic [$::slicer3::ColorGUI GetLogic]
+#  set BRAINSScriptingFiducialsLogic [ $::slicer3::FiducialsGUI GetLogic]
   ${BRAINSScriptingVolumesLogic} SetMRMLScene $BRAINSScriptingScene
   set BRAINSScriptingMRMLisGUI "false"
 }
@@ -307,17 +310,32 @@ b2_proc_generator b2_load_histogram { { volumeNode - required }  {arugment2defau
 #Return  Upon successful completion a newly created image
 #       object identifier is returned,  otherwise an error
 #       status of -1 is returned.
-b2_proc_generator b2_load_image { { fileName - required }  {centered 1} {labelimage 0} {NodeName EmptyStringValue} } {
-#  puts [ GetBatchVolumesLogic ]
+b2_proc_generator b2_load_image { { fileName - required }  {centered 0} {labelimage 0} {NodeName EmptyStringValue} } {
   if { "${NodeName}" == "EmptyStringValue" } then {
     set NodeName [file tail $fileName]_$::FileReaderIncrementUniqueIdCounter;
     incr ::FileReaderIncrementUniqueIdCounter;
   }
-#  puts "set volumeNode \[ \[ GetBatchVolumesLogic \] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} \]"
-#  set centered 0;#By default do not center the images
 # load_options is a bit masks defining how to treat the loaded image
-  set load_options [ expr 1*${centered}+2*${labelimage} ]
-  set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName ${NodeName} ${load_options} ]
+  set centered 0;
+  set orient 0;
+  set label 0;
+  set singleFile 0;
+  set loadingOptions [expr $label * 1 + $centered * 2 + $singleFile * 4 + $orient * 16];
+
+  set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume "$fileName" ${NodeName} ${loadingOptions} ]
+
+  set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+  if { $volumeNode == "" } {
+    $this errorDialog "Could not load $fileName as a volume"
+    return -1
+  } else {
+    if { $label } {
+      $selNode SetReferenceActiveLabelVolumeID [$volumeNode GetID]
+    } else {
+      $selNode SetReferenceActiveVolumeID [$volumeNode GetID]
+    }
+    $::slicer3::ApplicationLogic PropagateVolumeSelection
+  }
   if { [ llength $volumeNode ] == 0 } {
     puts "ERROR in reading file $fileName"
     return -1;

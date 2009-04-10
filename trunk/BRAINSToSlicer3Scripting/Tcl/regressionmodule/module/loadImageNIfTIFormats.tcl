@@ -45,7 +45,7 @@ for {set currfilename 0} { $currfilename < $lenfilelist } {incr currfilename} {
         set ImageMin 0.000000
         set ImageMax  255.000000
         set Dimensions "256 256 192"
-        set Resolutions "1.01562 1.01562 1.01562"
+        set Resolutions "1.015625 1.015625 1.015625"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/phantom/NIfTIImages/$FileName]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {

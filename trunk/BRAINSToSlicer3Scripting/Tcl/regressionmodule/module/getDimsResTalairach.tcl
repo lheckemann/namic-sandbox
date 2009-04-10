@@ -128,7 +128,7 @@ proc getDimsResTalairach {pathToRegressionDir dateString} {
     set ExpectStandardDims {172 176 195}
     set ExpectStandardRes {1.000000  1.000000 1.00000}
     set ExpectResliceDims {256 256 192}
-    set ExpectResliceRes {1.01562  1.01562 1.01562}
+    set ExpectResliceRes {1.015625  1.015625 1.015625}
     for {set i 0} {$i < 3} {incr i} {
         set SubTestDes "Get STANDARD-DIMS Index ($i)"
         ReportTestStatus $LogFile  [ expr {[lindex $StandardDims $i] == [lindex $ExpectStandardDims $i] } ] $ModuleName $SubTestDes
