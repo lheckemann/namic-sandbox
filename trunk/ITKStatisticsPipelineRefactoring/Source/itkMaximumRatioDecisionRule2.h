@@ -41,7 +41,7 @@ namespace Statistics {
  * \sa MaximumDecisionRule, MinimumDecisionRule 
  */
  
-class ITKCommon_EXPORT MaximumRatioDecisionRule2 : 
+class ITK_EXPORT MaximumRatioDecisionRule2 : 
     public DecisionRule
 {
 public:
