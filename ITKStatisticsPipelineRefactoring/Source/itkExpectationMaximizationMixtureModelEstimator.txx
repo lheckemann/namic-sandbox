@@ -359,11 +359,11 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
       ++parameterIndex;
       }
 
-    for ( unsigned int i = 0; i < measurementVectorSize; i++ )
+    for ( unsigned int ii = 0; ii < measurementVectorSize; ii++ )
       {
-      for ( unsigned int j = 0; j < measurementVectorSize; j++ )
+      for ( unsigned int jj = 0; jj < measurementVectorSize; jj++ )
         {
-        covariance.GetVnlMatrix().put(i, j, parameters[parameterIndex]);
+        covariance.GetVnlMatrix().put(ii, jj, parameters[parameterIndex]);
         ++parameterIndex;
         }
       }
