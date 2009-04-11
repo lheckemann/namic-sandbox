@@ -61,11 +61,22 @@ int itkMixtureModelComponentBaseTest( int , char* [] )
   typedef itk::Array< double > MeasurementVectorType ;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
 
+  typedef itk::Statistics::MixtureModelComponentBase<SampleType>  ComponentBaseType;
+
+  ComponentBaseType::Pointer component1 = ComponentBaseType::New();
+
+  component1->Print( std::cout );
+
+  std::cout << "GetNameOfClass() = " << component1->GetNameOfClass() << std::endl;
+
+  std::cout << "Full Parameters = " << component1->GetFullParameters() << std::endl;
+  std::cout << "Minimal change  = " << component1->GetMinimalParametersChange() << std::endl;
+
   typedef itk::Statistics::MixtureModelComponentBaseTestHelper<SampleType>  ComponentType;
 
-  ComponentType::Pointer component = ComponentType::New();
+  ComponentType::Pointer component2 = ComponentType::New();
 
-  component->RunTests();
+  component2->RunTests();
 
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
