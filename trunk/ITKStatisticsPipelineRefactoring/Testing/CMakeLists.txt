@@ -50,6 +50,7 @@ ADD_TEST(itkMembershipSampleTest1 ${STATISTICS_TESTS} itkMembershipSampleTest1)
 ADD_TEST(itkMembershipSampleTest2 ${STATISTICS_TESTS} itkMembershipSampleTest2)
 ADD_TEST(itkMembershipSampleTest3 ${STATISTICS_TESTS} itkMembershipSampleTest3)
 ADD_TEST(itkMembershipSampleTest4 ${STATISTICS_TESTS} itkMembershipSampleTest4)
+ADD_TEST(itkMixtureModelComponentBaseTest ${STATISTICS_TESTS} itkMixtureModelComponentBaseTest)
 ADD_TEST(itkNeighborhoodSamplerTest1 ${STATISTICS_TESTS} itkNeighborhoodSamplerTest1)
 ADD_TEST(itkNormalVariateGeneratorTest1 ${STATISTICS_TESTS} itkNormalVariateGeneratorTest1)
 ADD_TEST(itkRandomVariateGeneratorBaseTest ${STATISTICS_TESTS} itkRandomVariateGeneratorBaseTest)
@@ -198,6 +199,7 @@ SET(Statistics_SRCS
   itkMembershipSampleTest2.cxx
   itkMembershipSampleTest3.cxx
   itkMembershipSampleTest4.cxx
+  itkMixtureModelComponentBaseTest.cxx
   itkNeighborhoodSamplerTest1.cxx
   itkNormalVariateGeneratorTest1.cxx
   itkRandomVariateGeneratorBaseTest.cxx
