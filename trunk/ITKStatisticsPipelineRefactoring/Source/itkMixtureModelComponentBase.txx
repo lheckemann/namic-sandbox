@@ -225,14 +225,6 @@ MixtureModelComponentBase< TSample >
   this->GenerateData();
 }
 
-template< class TSample >
-void
-MixtureModelComponentBase< TSample >
-::GenerateData()
-{
-  // subclasses should override this function.
-}
-
 
 } // end of namespace Statistics 
 } // end of namespace itk

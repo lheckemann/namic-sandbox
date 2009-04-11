@@ -44,12 +44,18 @@ public:
     std::cout << "Superclass Name " << this->Superclass::GetNameOfClass() << std::endl;
     std::cout << "This class Name " << this->GetNameOfClass() << std::endl;
 
+    this->Superclass::Print( std::cout );
     this->Print( std::cout );
 
-    std::cout << "Full Parameters = " << this->GetFullParameters() << std::endl;
-    std::cout << "Minimal change  = " << this->GetMinimalParametersChange() << std::endl;
+    std::cout << "Full Parameters = " << this->Superclass::GetFullParameters() << std::endl;
+    std::cout << "Minimal change  = " << this->Superclass::GetMinimalParametersChange() << std::endl;
     }
 
+protected:
+  virtual void GenerateData()
+    {
+    std::cout << "Executing GenerateData() " << std::endl;
+    }
 };
 
 }
@@ -61,22 +67,11 @@ int itkMixtureModelComponentBaseTest( int , char* [] )
   typedef itk::Array< double > MeasurementVectorType ;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
 
-  typedef itk::Statistics::MixtureModelComponentBase<SampleType>  ComponentBaseType;
-
-  ComponentBaseType::Pointer component1 = ComponentBaseType::New();
-
-  component1->Print( std::cout );
-
-  std::cout << "GetNameOfClass() = " << component1->GetNameOfClass() << std::endl;
-
-  std::cout << "Full Parameters = " << component1->GetFullParameters() << std::endl;
-  std::cout << "Minimal change  = " << component1->GetMinimalParametersChange() << std::endl;
-
   typedef itk::Statistics::MixtureModelComponentBaseTestHelper<SampleType>  ComponentType;
 
-  ComponentType::Pointer component2 = ComponentType::New();
+  ComponentType::Pointer component = ComponentType::New();
 
-  component2->RunTests();
+  component->RunTests();
 
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;

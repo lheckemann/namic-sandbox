@@ -62,7 +62,6 @@ public:
 
   /**Standard Macros */
   itkTypeMacro(MixtureModelComponentBase, Object);
-  itkNewMacro(Self);
   
   typedef typename TSample::MeasurementVectorType     MeasurementVectorType;
   typedef typename TSample::MeasurementVectorSizeType MeasurementVectorSizeType;
@@ -140,7 +139,7 @@ protected:
    * object after dynamic creation */ 
   void SetMembershipFunction(MembershipFunctionType* function);
 
-  virtual void GenerateData();
+  virtual void GenerateData() = 0;
 
 private:
   /** target sample data pointer */
