@@ -29,6 +29,11 @@ int itkGaussianDistributionTest(int, char* [] )
 
   DistributionType::Pointer distributionFunction = DistributionType::New();
 
+  std::cout << "GetNameOfClass() = " << distributionFunction->GetNameOfClass() << std::endl;
+  std::cout << "HasMean()        = " << distributionFunction->HasMean() << std::endl;
+  std::cout << "HasVariance()    = " << distributionFunction->HasVariance() << std::endl;
+  std::cout << "Number of parameters = " << distributionFunction->GetNumberOfParameters() << std::endl;
+
   int i;
   double x;
   double value;
