@@ -65,23 +65,11 @@ long
 TDistribution
 ::GetDegreesOfFreedom() const
 {
-  if (m_Parameters.GetSize() == 1)
+  if (m_Parameters.GetSize() != 1)
     {
-    return static_cast<long>(m_Parameters[0]);
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-  
-  return 1;
+  return static_cast<long>(m_Parameters[0]);
 }
 
 double
@@ -103,23 +91,11 @@ double
 TDistribution
 ::PDF(double x, const ParametersType& p)
 {
-  if (p.GetSize() == 1)
+  if( p.GetSize() != 1 )
     {
-    return TDistribution::PDF(x, static_cast<long>(p[0]));
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " 
-            << "TDistribution: "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-
-  return 0.0;
+  return TDistribution::PDF(x, static_cast<long>(p[0]));
 }
 
 double
@@ -174,23 +150,11 @@ double
 TDistribution
 ::CDF(double x, const ParametersType& p)
 {
-  if (p.GetSize() == 1)
+  if (p.GetSize() != 1)
     {
-    return TDistribution::CDF(x, static_cast<long>(p[0]));
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " 
-            << "TDistribution: "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-
-  return 0.0;
+  return TDistribution::CDF(x, static_cast<long>(p[0]));
 }
 
 
@@ -273,23 +237,11 @@ double
 TDistribution
 ::InverseCDF(double p, const ParametersType& params)
 {
-  if (params.GetSize() == 1)
+  if( params.GetSize() != 1 )
     {
-    return TDistribution::InverseCDF(p, static_cast<long>(params[0]));
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " 
-            << "TDistribution: "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-
-  return 0.0;
+  return TDistribution::InverseCDF(p, static_cast<long>(params[0]));
 }
 
 
@@ -297,44 +249,22 @@ double
 TDistribution
 ::EvaluatePDF(double x) const
 {
-  if (m_Parameters.GetSize() == 1)
+  if( m_Parameters.GetSize() != 1 )
     {
-    return TDistribution::PDF(x, static_cast<long>(m_Parameters[0]));
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-  return 0.0;
+  return TDistribution::PDF(x, static_cast<long>(m_Parameters[0]));
 }
 
 double
 TDistribution
 ::EvaluatePDF(double x, const ParametersType& p) const
 {
-  if (p.GetSize() == 1)
+  if (p.GetSize() != 1)
     {
-    return TDistribution::PDF(x, static_cast<long>(p[0]));
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-  return 0.0;
+  return TDistribution::PDF(x, static_cast<long>(p[0]));
 }
 
 double
@@ -349,44 +279,22 @@ double
 TDistribution
 ::EvaluateCDF(double x) const
 {
-  if (m_Parameters.GetSize() == 1)
+  if( m_Parameters.GetSize() != 1 )
     {
-    return TDistribution::CDF(x, static_cast<long>(m_Parameters[0]));
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-  return 0.0;
+  return TDistribution::CDF(x, static_cast<long>(m_Parameters[0]));
 }
 
 double
 TDistribution
 ::EvaluateCDF(double x, const ParametersType& p) const
 {
-  if (p.GetSize() == 1)
+  if( p.GetSize() != 1 )
     {
-    return TDistribution::CDF(x, static_cast<long>(p[0]));
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-  return 0.0;
+  return TDistribution::CDF(x, static_cast<long>(p[0]));
 }
 
 double
@@ -401,44 +309,22 @@ double
 TDistribution
 ::EvaluateInverseCDF(double p) const
 {
-  if (m_Parameters.GetSize() == 1)
+  if (m_Parameters.GetSize() != 1)
     {
-    return TDistribution::InverseCDF(p, static_cast<long>(m_Parameters[0]));
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-  return 0.0;
+  return TDistribution::InverseCDF(p, static_cast<long>(m_Parameters[0]));
 }
 
 double
 TDistribution
 ::EvaluateInverseCDF(double p, const ParametersType& params) const
 {
-  if (params.GetSize() == 1)
+  if (params.GetSize() != 1)
     {
-    return TDistribution::InverseCDF(p, static_cast<long>(params[0]));
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    }
-  return 0.0;
+  return TDistribution::InverseCDF(p, static_cast<long>(params[0]));
 }
 
 double
@@ -461,14 +347,7 @@ TDistribution
     }
   else
     {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
 
   return false;
@@ -500,16 +379,8 @@ TDistribution
     }
   else
     {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-          << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-
   
   return NumericTraits<double>::quiet_NaN();
 }
