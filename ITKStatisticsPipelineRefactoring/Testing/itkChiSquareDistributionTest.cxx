@@ -510,12 +510,15 @@ int itkChiSquareDistributionTest(int, char* [] )
   std::cout << "Variance() = " <<  distributionFunction->GetVariance() << std::endl;
   std::cout << "PDF(x,p) = " <<  distributionFunction->PDF( x, parameters ) << std::endl;
   std::cout << "PDF(x,dof) = " <<  distributionFunction->PDF( x, dof ) << std::endl;
+  std::cout << "EvaluatePDF(x) = " << distributionFunction->EvaluatePDF( x ) << std::endl;
   std::cout << "EvaluatePDF(x,p) = " << distributionFunction->EvaluatePDF( x, parameters ) << std::endl;
   std::cout << "EvaluatePDF(x,dof) = " << distributionFunction->EvaluatePDF( x, dof ) << std::endl;
   std::cout << "CDF(x,p) = " <<  distributionFunction->CDF( x, parameters ) << std::endl;
   std::cout << "CDF(x,dof) = " <<  distributionFunction->CDF( x, dof ) << std::endl;
   std::cout << "EvaluateCDF(x,p) = " << distributionFunction->EvaluateCDF( x, parameters ) << std::endl;
   std::cout << "EvaluateCDF(x,dof) = " << distributionFunction->EvaluateCDF( x, dof ) << std::endl;
+  std::cout << "InverseCDF(x,p) = " <<  distributionFunction->InverseCDF( x, parameters ) << std::endl;
+  std::cout << "InverseCDF(x,dof) = " <<  distributionFunction->InverseCDF( x, dof ) << std::endl;
     
 
   const unsigned int wrongNumberOfParameters =  distributionFunction->GetNumberOfParameters() * 42;
@@ -523,6 +526,11 @@ int itkChiSquareDistributionTest(int, char* [] )
   distributionFunction->SetParameters( wrongNumberOfParameters );
 
   TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
+
+  long newdof = 17;
+  distributionFunction->SetDegreesOfFreedom( newdof );
+  TEST_SET_GET_VALUE( newdof, distributionFunction->GetDegreesOfFreedom() ); 
+
 
   return status;
 }
