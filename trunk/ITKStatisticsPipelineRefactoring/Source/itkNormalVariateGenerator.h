@@ -120,26 +120,27 @@ protected:
   double FastNorm (void);
     
 private:
-  double Scale;
-  double Rscale;
-  double Rcons;
-  int ELEN;
-  int LEN;
-  int LMASK;
-  int TLEN;
+  double   m_Scale;
+  double   m_Rscale;
+  double   m_Rcons;
+  int      m_ELEN;
+  int      m_LEN;
+  int      m_LMASK;
+  int      m_TLEN;
     
-  int gaussfaze;
-  int *gausssave;
+  int      m_Gaussfaze;
+  int    * m_Gausssave;
   
-  double GScale;
+  double   m_GScale;
     
-  int* vec1;
-  int nslew;
-  int irs;
-  int lseed;
-  double chic1;
-  double chic2;
-  double actualRSD;
+  int    * m_Vec1;
+  int      m_Nslew;
+  int      m_Irs;
+  int      m_Lseed;
+  double   m_Chic1;
+  double   m_Chic2;
+  double   m_ActualRSD;
+
 };  // end of class
   
 } // end of namespace Statistics
