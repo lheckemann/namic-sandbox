@@ -161,7 +161,7 @@ public:
     
     InstanceIdentifier GetInstanceIdentifier() const   
       {
-        return ( m_Iter - m_Subsample->GetIdHolder().begin() );
+      return ( m_Iter - m_Subsample->GetIdHolder().begin() );
       }
     
     protected:
