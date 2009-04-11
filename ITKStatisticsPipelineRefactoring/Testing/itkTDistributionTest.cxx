@@ -32,6 +32,8 @@ int itkTDistributionTest(int, char* [] )
   std::cout << "HasMean()        = " << distributionFunction->HasMean() << std::endl;
   std::cout << "Number of parameters = " << distributionFunction->GetNumberOfParameters() << std::endl;
 
+  distributionFunction->Print( std::cout );
+
   int i;
   double x;
   double value;
@@ -414,5 +416,21 @@ int itkTDistributionTest(int, char* [] )
       }
     }
         
+
+  DistributionType::ParametersType parameters( distributionFunction->GetNumberOfParameters() );
+  parameters[0] = 1.0;
+
+  long dof = 2;
+
+  std::cout << "Variance() = " <<  distributionFunction->GetVariance() << std::endl;
+  std::cout << "PDF(x,p) = " <<  distributionFunction->PDF( x, parameters ) << std::endl;
+  std::cout << "PDF(x,dof) = " <<  distributionFunction->PDF( x, dof ) << std::endl;
+  std::cout << "EvaluatePDF(x,p) = " << distributionFunction->EvaluatePDF( x, parameters ) << std::endl;
+  std::cout << "EvaluatePDF(x,dof) = " << distributionFunction->EvaluatePDF( x, dof ) << std::endl;
+  std::cout << "CDF(x,p) = " <<  distributionFunction->CDF( x, parameters ) << std::endl;
+  std::cout << "CDF(x,dof) = " <<  distributionFunction->CDF( x, dof ) << std::endl;
+  std::cout << "EvaluateCDF(x,p) = " << distributionFunction->EvaluateCDF( x, parameters ) << std::endl;
+  std::cout << "EvaluateCDF(x,dof) = " << distributionFunction->EvaluateCDF( x, dof ) << std::endl;
+ 
   return status;
 }
