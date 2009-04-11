@@ -19,6 +19,7 @@
 #endif
 
 #include "itkGaussianDistribution.h"
+#include "itkTestingMacros.h"
 #include <math.h>
 
 int itkGaussianDistributionTest(int, char* [] ) 
@@ -336,6 +337,11 @@ int itkGaussianDistributionTest(int, char* [] )
   std::cout << "EvaluateCDF(x,p) = " << distributionFunction->EvaluateCDF( x, parameters ) << std::endl;
   std::cout << "EvaluateCDF(x,dof) = " << distributionFunction->EvaluateCDF( x, dof ) << std::endl;
  
-  return status;
+  const unsigned int wrongNumberOfParameters =  distributionFunction->GetNumberOfParameters() * 42;
+  DistributionType::ParametersType wrongParameters( wrongNumberOfParameters );
+  distributionFunction->SetParameters( wrongNumberOfParameters );
 
+  TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
+
+  return status;
 }
