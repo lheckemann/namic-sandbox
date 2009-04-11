@@ -443,6 +443,11 @@ int itkTDistributionTest(int, char* [] )
 
   TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
 
+  long newdof = 17;
+  distributionFunction->SetDegreesOfFreedom( newdof );
+  TEST_SET_GET_VALUE( newdof, distributionFunction->GetDegreesOfFreedom() ); 
+
+
 
   return status;
 }
