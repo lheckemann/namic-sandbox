@@ -128,13 +128,18 @@ private:
   int LMASK;
   int TLEN;
     
-  int gaussfaze, *gausssave;
+  int gaussfaze;
+  int *gausssave;
+  
   double GScale;
     
   int* vec1;
   int nslew;
-  int irs, lseed;
-  double chic1, chic2, actualRSD;
+  int irs;
+  int lseed;
+  double chic1;
+  double chic2;
+  double actualRSD;
 };  // end of class
   
 } // end of namespace Statistics
