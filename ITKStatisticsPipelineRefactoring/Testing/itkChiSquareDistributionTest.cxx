@@ -19,6 +19,7 @@
 #endif
 
 #include "itkChiSquareDistribution.h"
+#include "itkTestingMacros.h"
 
 int itkChiSquareDistributionTest(int, char* [] ) 
 {
@@ -516,5 +517,12 @@ int itkChiSquareDistributionTest(int, char* [] )
   std::cout << "EvaluateCDF(x,p) = " << distributionFunction->EvaluateCDF( x, parameters ) << std::endl;
   std::cout << "EvaluateCDF(x,dof) = " << distributionFunction->EvaluateCDF( x, dof ) << std::endl;
     
+
+  const unsigned int wrongNumberOfParameters =  distributionFunction->GetNumberOfParameters() * 42;
+  DistributionType::ParametersType wrongParameters( wrongNumberOfParameters );
+  distributionFunction->SetParameters( wrongNumberOfParameters );
+
+  TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
+
   return status;
 }
