@@ -168,7 +168,10 @@ SampleToHistogramFilter< TSample, THistogram >
 
   if( histogramSize.Size() != measurementVectorSize )
     {
-    itkExceptionMacro("Histogram Size input number of components doesn't match the sample number of components.");
+    itkExceptionMacro("Histogram number of components: "
+                      << histogramSize.Size()
+                      << " doesn't match Measurement Vector Size: "
+                      << measurementVectorSize);
     }
 
   outputHistogram->SetMeasurementVectorSize( measurementVectorSize );
