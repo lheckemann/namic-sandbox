@@ -71,7 +71,10 @@ public:
   typedef std::vector< InstanceIdentifier > InstanceIdentifierHolder;
 
   /** Get the Id Holder */
-  itkGetConstReferenceMacro(IdHolder, InstanceIdentifierHolder);
+  virtual const InstanceIdentifierHolder & GetIdHolder () const
+    {                                                                 \
+    return this->m_IdHolder;
+    }
 
   /** Plug in the actual sample data */
   void SetSample(const TSample* sample);
