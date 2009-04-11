@@ -90,7 +90,7 @@ int itkCovarianceFilterTest(int, char* [] )
 
   CovarianceFilterType::Pointer covarianceFilter = CovarianceFilterType::New();
 
-  std::cout << covarianceFilter->GetNameOfClass() << std::endl;
+  std::cout << "GetNameOfClass() = " << covarianceFilter->GetNameOfClass() << std::endl;
   
   //Invoke update before adding an input. An exception should be 
   try

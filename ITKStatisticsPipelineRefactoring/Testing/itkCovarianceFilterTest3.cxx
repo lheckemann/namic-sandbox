@@ -46,6 +46,10 @@ class MyCovarianceFilter : public CovarianceFilter< TSample >
     unsigned int index=3;
     Superclass::MakeOutput( index );
     }
+  unsigned int GetMeasurementVectorSize() const 
+    {
+    return this->Superclass::GetMeasurementVectorSize();
+    }
 };
 }
 }
@@ -135,8 +139,7 @@ int itkCovarianceFilterTest3(int, char* [] )
     }
 
 
-  typedef itk::Statistics::MyCovarianceFilter< SampleType > 
-    FilterType;
+  typedef itk::Statistics::MyCovarianceFilter< SampleType > FilterType;
 
   FilterType::Pointer filter = FilterType::New() ;
 
@@ -172,6 +175,8 @@ int itkCovarianceFilterTest3(int, char* [] )
 
   std::cout << "Mean: "              << meanOutput << std::endl;
   std::cout << "Covariance Matrix: " << covarianceOutput << std::endl;
+
+  std::cout << "GetMeasurementVectorSize = " << filter->GetMeasurementVectorSize() << std::endl;
 
   double epsilon = 1;
 
