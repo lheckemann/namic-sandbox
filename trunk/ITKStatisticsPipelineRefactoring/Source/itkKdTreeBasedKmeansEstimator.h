@@ -71,7 +71,7 @@ class ITK_EXPORT KdTreeBasedKmeansEstimator:
     public Object
 {
 public:
-  /** Standard "Self" typedef. */
+  /** Standard Self typedef. */
   typedef KdTreeBasedKmeansEstimator  Self;
   typedef Object                      Superclass;
   typedef SmartPointer<Self>          Pointer;
@@ -251,19 +251,19 @@ protected:
   double GetSumOfSquaredPositionChanges(InternalParametersType &previous, 
                                         InternalParametersType &current);
 
-  /** get the index of the closest candidate to the "measurements" 
+  /** get the index of the closest candidate to the measurements 
    * measurement vector */
   int GetClosestCandidate(ParameterType &measurements, 
                           std::vector< int > &validIndexes);
 
-  /** returns true if the "pointA is farther than pointB to the boundary */
+  /** returns true if the pointA is farther than pointB to the boundary */
   bool IsFarther(ParameterType &pointA,
                  ParameterType &pointB,
                  MeasurementVectorType &lowerBound,
                  MeasurementVectorType &upperBound);
 
-  /** recursive pruning algorithm. the "validIndexes" vector contains
-   * only the indexes of the surviving candidates for the "node" */  
+  /** recursive pruning algorithm. the validIndexes vector contains
+   * only the indexes of the surviving candidates for the node */  
   void Filter(KdTreeNodeType* node, 
               std::vector< int > validIndexes,
               MeasurementVectorType &lowerBound, 
@@ -278,7 +278,7 @@ protected:
   /** copies the source parameters (k-means) to the target */
   void CopyParameters(InternalParametersType &source, ParametersType &target);
 
-  /** imports the "measurements" measurement vector data to the "point" */ 
+  /** imports the measurements measurement vector data to the point */ 
   void GetPoint(ParameterType &point, MeasurementVectorType measurements);
 
   void PrintPoint(ParameterType &point);
@@ -299,25 +299,26 @@ private:
   typename EuclideanDistanceMetric< ParameterType >::Pointer m_DistanceMetric;
 
   /** k-means */
-  ParametersType m_Parameters;
+  ParametersType                          m_Parameters;
 
-  CandidateVector m_CandidateVector;
+  CandidateVector                         m_CandidateVector;
   
-  ParameterType m_TempVertex;
+  ParameterType                           m_TempVertex;
 
   bool                                    m_UseClusterLabels;
   bool                                    m_GenerateClusterLabels;
   ClusterLabelsType                       m_ClusterLabels;
   MeasurementVectorSizeType               m_MeasurementVectorSize;
   MembershipFunctionVectorObjectPointer   m_MembershipFunctionsObject;
+
 }; // end of class
 
 } // end of namespace Statistics
+
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "itkKdTreeBasedKmeansEstimator.txx"
 #endif
-
 
 #endif
