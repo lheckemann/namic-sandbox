@@ -53,12 +53,12 @@ public:
   
   /** Typedefs for Measurement vector, measurement, Instance Identifier, 
    * frequency, size, size element value from the template argument TSample */
-  itkSuperclassTraitMacro( SampleType );
-  itkSuperclassTraitMacro( MeasurementVectorType );
-  itkSuperclassTraitMacro( MeasurementType );
-  itkSuperclassTraitMacro( InstanceIdentifier );
-  itkSuperclassTraitMacro( SubsampleType );
-  itkSuperclassTraitMacro( OutputType );
+  itkSuperclassTraitMacro( SampleType )
+  itkSuperclassTraitMacro( MeasurementVectorType )
+  itkSuperclassTraitMacro( MeasurementType )
+  itkSuperclassTraitMacro( InstanceIdentifier )
+  itkSuperclassTraitMacro( SubsampleType )
+  itkSuperclassTraitMacro( OutputType )
 
   /** Type of the distance radius. */ 
   typedef double RadiusType;

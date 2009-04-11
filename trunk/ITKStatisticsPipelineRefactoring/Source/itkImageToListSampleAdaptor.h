@@ -85,10 +85,10 @@ public:
          PixelType >::MeasurementVectorType                    MeasurementVectorType; 
   typedef typename MeasurementVectorTraitsTypes< 
              MeasurementVectorType >::ValueType                MeasurementType;
-  itkSuperclassTraitMacro( AbsoluteFrequencyType );
-  itkSuperclassTraitMacro( TotalAbsoluteFrequencyType );
-  itkSuperclassTraitMacro( MeasurementVectorSizeType );
-  itkSuperclassTraitMacro( InstanceIdentifier );
+  itkSuperclassTraitMacro( AbsoluteFrequencyType )
+  itkSuperclassTraitMacro( TotalAbsoluteFrequencyType )
+  itkSuperclassTraitMacro( MeasurementVectorSizeType )
+  itkSuperclassTraitMacro( InstanceIdentifier )
 
   typedef MeasurementVectorType                                ValueType;
 

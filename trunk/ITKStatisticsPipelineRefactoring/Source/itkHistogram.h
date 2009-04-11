@@ -102,10 +102,10 @@ public:
   typedef TMeasurement MeasurementType;
 
   /** Common sample class typedefs */
-  itkSuperclassTraitMacro(MeasurementVectorType);
-  itkSuperclassTraitMacro(InstanceIdentifier);
-  itkSuperclassTraitMacro(MeasurementVectorSizeType);
-  typedef MeasurementVectorType ValueType;
+  itkSuperclassTraitMacro(MeasurementVectorType)
+  itkSuperclassTraitMacro(InstanceIdentifier)
+  itkSuperclassTraitMacro(MeasurementVectorSizeType)
+    typedef MeasurementVectorType ValueType;
 
   /** frequency container typedef */
   typedef TFrequencyContainer                        FrequencyContainerType;

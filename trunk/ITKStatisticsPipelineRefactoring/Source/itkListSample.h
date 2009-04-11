@@ -57,12 +57,12 @@ public:
   itkNewMacro(Self);
 
   /** Typedefs inherited from the superclass */
-  itkSuperclassTraitMacro( MeasurementVectorType );
-  itkSuperclassTraitMacro( MeasurementVectorSizeType );
-  itkSuperclassTraitMacro( MeasurementType );
-  itkSuperclassTraitMacro( AbsoluteFrequencyType );
-  itkSuperclassTraitMacro( TotalAbsoluteFrequencyType );
-  itkSuperclassTraitMacro( InstanceIdentifier );
+  itkSuperclassTraitMacro( MeasurementVectorType )
+  itkSuperclassTraitMacro( MeasurementVectorSizeType )
+  itkSuperclassTraitMacro( MeasurementType )
+  itkSuperclassTraitMacro( AbsoluteFrequencyType )
+  itkSuperclassTraitMacro( TotalAbsoluteFrequencyType )
+  itkSuperclassTraitMacro( InstanceIdentifier )
 
   /** Value type of a measurement (component of the measurement
    * vector) */
