@@ -85,6 +85,8 @@ void RegisterTests()
   REGISTER_TEST(itkImageToListSampleAdaptorTest); 
   REGISTER_TEST(itkImageToListSampleAdaptorTest2); 
   REGISTER_TEST(itkPointSetToListSampleAdaptorTest); 
+  REGISTER_TEST(itkProbabilityDistributionTest); 
+
   REGISTER_TEST(itkJointDomainImageToListSampleAdaptorTest); 
   REGISTER_TEST(itkDenseFrequencyContainer2Test); 
   REGISTER_TEST(itkSparseFrequencyContainer2Test); 

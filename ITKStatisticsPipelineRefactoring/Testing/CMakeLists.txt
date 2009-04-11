@@ -84,6 +84,7 @@ ADD_TEST(itkImageToListSampleAdaptorTest ${STATISTICS_TESTS} itkImageToListSampl
 ADD_TEST(itkImageToListSampleAdaptorTest2 ${STATISTICS_TESTS} itkImageToListSampleAdaptorTest2)
 ADD_TEST(itkJointDomainImageToListSampleAdaptorTest ${STATISTICS_TESTS} itkJointDomainImageToListSampleAdaptorTest)
 ADD_TEST(itkPointSetToListSampleAdaptorTest ${STATISTICS_TESTS} itkPointSetToListSampleAdaptorTest)
+ADD_TEST(itkProbabilityDistributionTest ${STATISTICS_TESTS} itkProbabilityDistributionTest)
 ADD_TEST(itkDenseFrequencyContainer2Test ${STATISTICS_TESTS} itkDenseFrequencyContainer2Test)
 ADD_TEST(itkSparseFrequencyContainer2Test ${STATISTICS_TESTS} itkSparseFrequencyContainer2Test)
 ADD_TEST(itkScalarImageToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkScalarImageToTextureFeaturesFilterTest)
@@ -231,6 +232,7 @@ SET(Statistics_SRCS
   itkImageToListSampleAdaptorTest2.cxx
   itkJointDomainImageToListSampleAdaptorTest.cxx
   itkPointSetToListSampleAdaptorTest.cxx
+  itkProbabilityDistributionTest.cxx
   itkDenseFrequencyContainer2Test.cxx
   itkSparseFrequencyContainer2Test.cxx
   itkScalarImageToTextureFeaturesFilterTest.cxx
