@@ -18,6 +18,7 @@ ADD_TEST(itkKdTreeBasedKmeansEstimatorTest ${STATISTICS_TESTS}
          itkKdTreeBasedKmeansEstimatorTest 
          ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat 
          1 28.54746 0.07)
+ADD_TEST(itkVariableDimensionHistogramTest ${STATISTICS_TESTS} itkVariableDimensionHistogramTest)
 
 SET(Statistics_SRCS
   itkMeanCalculatorTest.cxx
@@ -29,6 +30,7 @@ SET(Statistics_SRCS
   itkKdTreeBasedKmeansEstimatorTest.cxx
   itkDenseFrequencyContainerTest.cxx
   itkHistogramTest.cxx
+  itkVariableDimensionHistogramTest.cxx
 )
 
 ADD_EXECUTABLE(itkStatisticsBCTests itkStatisticsBCTests.cxx ${Statistics_SRCS})

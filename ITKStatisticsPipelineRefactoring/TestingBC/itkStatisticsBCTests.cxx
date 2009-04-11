@@ -36,4 +36,5 @@ void RegisterTests()
   REGISTER_TEST(itkDenseFrequencyContainerTest);
   REGISTER_TEST(itkKdTreeBasedKmeansEstimatorTest);
   REGISTER_TEST(itkHistogramTest);
+  REGISTER_TEST(itkVariableDimensionHistogramTest);
 }
