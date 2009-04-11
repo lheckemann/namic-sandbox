@@ -117,7 +117,7 @@ GaussianMixtureModelComponent< TSample >
   ::itk::Statistics::MeasurementVectorTraits::SetLength( mean,
    measurementVectorSize);
 
-  for( unsigned int i=0; i < measurementVectorSize; ++i )
+  for( i=0; i < measurementVectorSize; ++i )
     {
     mean[i] = m_Mean[i];
     }
@@ -282,7 +282,7 @@ GaussianMixtureModelComponent< TSample >
 
   //THIS IS NEEDED TO update m_Mean and m_Covariance.SHOULD BE REMOVED 
   paramIndex = 0;
-  for ( unsigned int i = 0; i < measurementVectorSize; i++)
+  for ( i = 0; i < measurementVectorSize; i++)
     {
     m_Mean[i] = parameters[paramIndex];
     ++paramIndex;
@@ -292,15 +292,15 @@ GaussianMixtureModelComponent< TSample >
   ::itk::Statistics::MeasurementVectorTraits::SetLength( mean,
    measurementVectorSize);
 
-  for( unsigned int i=0; i < measurementVectorSize; ++i )
+  for( i=0; i < measurementVectorSize; ++i )
     {
     mean[i] = m_Mean[i];
     }
   m_GaussianMembershipFunction->SetMean(mean);
 
-  for ( unsigned int i = 0; i < measurementVectorSize; i++ )
+  for (i = 0; i < measurementVectorSize; i++ )
     {
-    for ( unsigned int j = 0; j < measurementVectorSize; j++ )
+    for ( j = 0; j < measurementVectorSize; j++ )
       {
       m_Covariance.GetVnlMatrix().put(i, j, parameters[paramIndex]);
       ++paramIndex;
