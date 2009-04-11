@@ -92,6 +92,31 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
         }
       }
  
+  // 
+  // Exercise the iterators
+  //
+  typedef ImageToListSampleAdaptorType::ConstIterator ConstIterator;
+  
+  ConstIterator itrBegin = adaptor->Begin();
+  ConstIterator itrEnd   = adaptor->End();
+
+  ConstIterator citr = itrBegin;
+
+  double frequencySum = 0.0;
+
+  while( citr != itrEnd )
+    {
+    frequencySum += citr.GetFrequency();
+    ++citr;
+    }
+
+  if( citr == itrEnd )
+    {
+    std::cout << "Reached the end successfully" << std::endl;
+    }
+
+  std::cout << "Frequency Sum = " << frequencySum << std::endl;
+
   typedef itk::VariableLengthVector< float > VariableLengthPixelType;
 
   typedef itk::Image< VariableLengthPixelType, ImageDimension > VariableLengthImageType;
