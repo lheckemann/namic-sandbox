@@ -63,7 +63,7 @@ public:
 
 
   /** Type for the data object output */
-  itkSuperclassTraitMacro( DataObjectPointer );
+  itkSuperclassTraitMacro( DataObjectPointer )
 
   /** Set/Get the input sample */
   virtual void SetInput( const SampleType * sample );

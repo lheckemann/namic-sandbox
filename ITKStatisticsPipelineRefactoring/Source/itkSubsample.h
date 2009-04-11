@@ -70,6 +70,9 @@ public:
    * object */
   typedef std::vector< InstanceIdentifier > InstanceIdentifierHolder;
 
+  /** Get the Id Holder */
+  itkGetConstReferenceMacro(IdHolder, InstanceIdentifierHolder);
+
   /** Plug in the actual sample data */
   void SetSample(const TSample* sample);
   const TSample* GetSample() const;
@@ -104,7 +107,6 @@ public:
   MeasurementVectorType GetMeasurementVectorByIndex(unsigned int index) const;
 
   AbsoluteFrequencyType GetFrequencyByIndex(unsigned int index) const;
-
 
   class ConstIterator
     {
@@ -159,7 +161,7 @@ public:
     
     InstanceIdentifier GetInstanceIdentifier() const   
       {
-      return ( m_Iter - m_Subsample->m_IdHolder.begin() );
+        return ( m_Iter - m_Subsample->GetIdHolder().begin() );
       }
     
     protected:
@@ -169,7 +171,7 @@ public:
     // Only to be called from the Subsample
     ConstIterator(typename InstanceIdentifierHolder::const_iterator iter, 
              const Self* classSample)
-      :m_Iter(iter), m_Subsample(classSample), m_Sample(classSample->m_Sample)
+      :m_Iter(iter), m_Subsample(classSample), m_Sample(classSample->GetSample())
     {}
 
     // ConstIterator pointing to ImageToListAdaptor

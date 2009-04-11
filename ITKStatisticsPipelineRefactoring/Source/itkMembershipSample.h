@@ -198,7 +198,7 @@ public:
     // Only to be called from the MembershipSample
     ConstIterator(
              const Self* memberSample, InstanceIdentifier iid)
-      :m_Sample(memberSample->m_Sample), m_MembershipSample( memberSample), m_InstanceIdentifier(iid)
+      :m_Sample(memberSample->GetSample()), m_MembershipSample( memberSample), m_InstanceIdentifier(iid)
       {
 
       }

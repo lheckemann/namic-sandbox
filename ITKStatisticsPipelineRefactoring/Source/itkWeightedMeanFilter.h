@@ -51,12 +51,12 @@ public:
   itkNewMacro(Self);
 
   /** Traits derived from the base class */
-  itkSuperclassTraitMacro( SampleType );
-  itkSuperclassTraitMacro( MeasurementType );
-  itkSuperclassTraitMacro( MeasurementVectorType );
-  itkSuperclassTraitMacro( MeasurementVectorSizeType );
-  itkSuperclassTraitMacro( MeasurementVectorDecoratedType );
-  itkSuperclassTraitMacro( OutputType );
+  itkSuperclassTraitMacro( SampleType )
+  itkSuperclassTraitMacro( MeasurementType )
+  itkSuperclassTraitMacro( MeasurementVectorType )
+  itkSuperclassTraitMacro( MeasurementVectorSizeType )
+  itkSuperclassTraitMacro( MeasurementVectorDecoratedType )
+  itkSuperclassTraitMacro( OutputType )
 
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType;

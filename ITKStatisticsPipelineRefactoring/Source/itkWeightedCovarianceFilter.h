@@ -53,11 +53,11 @@ public:
   itkNewMacro(Self);
   
   /** Traits derived from the base class */
-  itkSuperclassTraitMacro( SampleType );
-  itkSuperclassTraitMacro( MeasurementVectorType );
-  itkSuperclassTraitMacro( MeasurementVectorSizeType );
-  itkSuperclassTraitMacro( MeasurementVectorDecoratedType );
-  itkSuperclassTraitMacro( OutputType );
+  itkSuperclassTraitMacro( SampleType )
+  itkSuperclassTraitMacro( MeasurementVectorType )
+  itkSuperclassTraitMacro( MeasurementVectorSizeType )
+  itkSuperclassTraitMacro( MeasurementVectorDecoratedType )
+  itkSuperclassTraitMacro( OutputType )
   
   /** Typedef for WeightedCovariance output */
   typedef VariableSizeMatrix< double >               MatrixType;
