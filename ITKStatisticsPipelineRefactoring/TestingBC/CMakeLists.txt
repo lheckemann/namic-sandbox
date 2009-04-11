@@ -27,7 +27,8 @@ SET(Statistics_SRCS
   itkWeightedMeanCalculatorTest.cxx
   itkKdTreeGeneratorTest.cxx
   itkKdTreeBasedKmeansEstimatorTest.cxx
-  itkDenseFrequencyContainerTest
+  itkDenseFrequencyContainerTest.cxx
+  itkHistogramTest.cxx
 )
 
 ADD_EXECUTABLE(itkStatisticsBCTests itkStatisticsBCTests.cxx ${Statistics_SRCS})
