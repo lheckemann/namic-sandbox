@@ -36,22 +36,11 @@ double
 GaussianDistribution
 ::GetMean() const
 {
-  if (m_Parameters.GetSize() == 2)
+  if (m_Parameters.GetSize() != 2)
     {
-    return m_Parameters[0];
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
-    }
+  return m_Parameters[0];
 }
 
 void
@@ -108,22 +97,11 @@ double
 GaussianDistribution
 ::GetVariance() const
 {
-  if (m_Parameters.GetSize() == 2)
+  if (m_Parameters.GetSize() != 2)
     {
-    return m_Parameters[1];
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
-    }
+  return m_Parameters[1];
 }
 
 void
@@ -209,15 +187,7 @@ GaussianDistribution
     }
   else
     {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " 
-            << "GaussianDistribution: "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
 }
 
@@ -244,23 +214,11 @@ double
 GaussianDistribution
 ::CDF(double x, const ParametersType& p)
 {
-  // verify the parameter vector length
-  if (p.GetSize() == 2)
+  if (p.GetSize() != 2)
     {
-    return GaussianDistribution::CDF(x, p[0], p[1]);
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " 
-            << "GaussianDistribution: "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
-    }
+  return GaussianDistribution::CDF(x, p[0], p[1]);
 }
 
 double
@@ -335,23 +293,12 @@ double
 GaussianDistribution
 ::InverseCDF(double p, const ParametersType& params)
 {
-  // verify the parameter vector length
-  if (params.GetSize() == 2)
+
+  if (params.GetSize() != 2)
     {
-    return GaussianDistribution::InverseCDF(p, params[0], params[1]);
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
-  else
-    {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " 
-            << "GaussianDistribution: "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
-    }
+  return GaussianDistribution::InverseCDF(p, params[0], params[1]);
 }
 
 double
@@ -369,15 +316,7 @@ GaussianDistribution
     }
   else
     {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
 }
 
@@ -396,15 +335,7 @@ GaussianDistribution
     }
   else
     {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
 }
 
@@ -436,15 +367,7 @@ GaussianDistribution
     }
   else
     {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
 }
 
@@ -463,15 +386,7 @@ GaussianDistribution
     }
   else
     {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
 }
 
@@ -503,15 +418,7 @@ GaussianDistribution
     }
   else
     {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
 }
 
@@ -530,15 +437,7 @@ GaussianDistribution
     }
   else
     {
-    InvalidArgumentError exp(__FILE__, __LINE__);
-    ::itk::OStringStream message;
-    message << "itk::ERROR: " << this->GetNameOfClass() 
-            << "(" << this << "): "
-            << "Invalid number of parameters to describe distribution.";
-    exp.SetDescription(message.str());
-    exp.SetLocation(ITK_LOCATION);
-    throw exp;
-    return 0.0;
+    itkGenericExceptionMacro("Invalid number of parameters to describe distribution.");
     }
 }
 
