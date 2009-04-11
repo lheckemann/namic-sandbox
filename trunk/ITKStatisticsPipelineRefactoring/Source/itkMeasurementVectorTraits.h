@@ -574,14 +574,36 @@ public:
   typedef typename TMeasurementVector::ValueType    ValueType;
 };
 
+//
+// Visual Studio 6.0 and 7.0 are not capable of managing the next
+// template implementation. A macro workaround is provided.
+#define itkMeasurementVectorTraitsTypesMacro(T) \
+template <> \
+class MeasurementVectorTraitsTypes< std::vector< T > > \
+{ \
+public: \
+   typedef T ValueType; \
+};
 
+#if defined( _MSC_VER ) && ( _MSC_VER < 1310 )
+itkMeasurementVectorTraitsTypesMacro( char );
+itkMeasurementVectorTraitsTypesMacro( unsigned char );
+itkMeasurementVectorTraitsTypesMacro( short );
+itkMeasurementVectorTraitsTypesMacro( unsigned short );
+itkMeasurementVectorTraitsTypesMacro( int );
+itkMeasurementVectorTraitsTypesMacro( unsigned int );
+itkMeasurementVectorTraitsTypesMacro( long );
+itkMeasurementVectorTraitsTypesMacro( unsigned long );
+itkMeasurementVectorTraitsTypesMacro( float );
+itkMeasurementVectorTraitsTypesMacro( double );
+#else
 template< class T >
 class MeasurementVectorTraitsTypes< std::vector< T > >
 {
 public:
    typedef T ValueType;
 };
-
+#endif
 
 /** Traits for generating the MeasurementVectorType that best matches a
  * particular pixel type. */
