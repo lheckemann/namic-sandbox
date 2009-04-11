@@ -52,6 +52,7 @@ ADD_TEST(itkMembershipSampleTest3 ${STATISTICS_TESTS} itkMembershipSampleTest3)
 ADD_TEST(itkMembershipSampleTest4 ${STATISTICS_TESTS} itkMembershipSampleTest4)
 ADD_TEST(itkNeighborhoodSamplerTest1 ${STATISTICS_TESTS} itkNeighborhoodSamplerTest1)
 ADD_TEST(itkNormalVariateGeneratorTest1 ${STATISTICS_TESTS} itkNormalVariateGeneratorTest1)
+ADD_TEST(itkRandomVariateGeneratorBaseTest ${STATISTICS_TESTS} itkRandomVariateGeneratorBaseTest)
 ADD_TEST(itkScalarImageToCooccurrenceMatrixFilterTest ${STATISTICS_TESTS} itkScalarImageToCooccurrenceMatrixFilterTest)
 ADD_TEST(itkScalarImageToCooccurrenceMatrixFilterTest2 ${STATISTICS_TESTS} itkScalarImageToCooccurrenceMatrixFilterTest2)
 ADD_TEST(itkScalarImageToCooccurrenceListSampleFilterTest ${STATISTICS_TESTS} itkScalarImageToCooccurrenceListSampleFilterTest)
@@ -199,6 +200,7 @@ SET(Statistics_SRCS
   itkMembershipSampleTest4.cxx
   itkNeighborhoodSamplerTest1.cxx
   itkNormalVariateGeneratorTest1.cxx
+  itkRandomVariateGeneratorBaseTest.cxx
   itkScalarImageToCooccurrenceMatrixFilterTest.cxx
   itkScalarImageToCooccurrenceMatrixFilterTest2.cxx
   itkScalarImageToCooccurrenceListSampleFilterTest.cxx
