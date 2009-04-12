@@ -21,7 +21,7 @@
 #include <vnl/vnl_vector.h>
 #include <vnl/vnl_matrix.h>
 
-#include "itkWeightedMeanFilter.h"
+#include "itkWeightedMeanSampleFilter.h"
 
 namespace itk { 
 namespace Statistics {
@@ -46,17 +46,17 @@ namespace Statistics {
 
 template< class TSample >
 class WeightedMeanCalculator :
-    public WeightedMeanFilter< TSample >
+    public WeightedMeanSampleFilter< TSample >
 {
 public:
   /**Standard class typedefs. */
-  typedef WeightedMeanCalculator         Self;
-  typedef WeightedMeanFilter< TSample >  Superclass;
-  typedef SmartPointer<Self>             Pointer;
-  typedef SmartPointer<const Self>       ConstPointer;
+  typedef WeightedMeanCalculator              Self;
+  typedef WeightedMeanSampleFilter< TSample > Superclass;
+  typedef SmartPointer<Self>                  Pointer;
+  typedef SmartPointer<const Self>            ConstPointer;
 
   /**Standard Macros */
-  itkTypeMacro(WeightedMeanCalculator, WeightedMeanFilter);
+  itkTypeMacro(WeightedMeanCalculator, WeightedMeanSampleFilter);
   itkNewMacro(Self);
   
   /** Typedef for the mean output */

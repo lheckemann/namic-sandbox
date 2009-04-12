@@ -18,7 +18,7 @@
 #ifndef __itkMeanCalculator_h
 #define __itkMeanCalculator_h
 
-#include "itkMeanFilter.h"
+#include "itkMeanSampleFilter.h"
 #include "itkArray.h"
 
 namespace itk { 
@@ -44,12 +44,12 @@ namespace Statistics {
 
 template< class TSample >
 class MeanCalculator :
-      public MeanFilter< TSample >
+      public MeanSampleFilter< TSample >
 {
 public:
   /**Standard class typedefs. */
   typedef MeanCalculator                  Self;
-  typedef MeanFilter < TSample >          Superclass;
+  typedef MeanSampleFilter < TSample >    Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;
 
@@ -64,7 +64,7 @@ public:
     }
 
   /**Standard Macros */
-  itkTypeMacro(MeanCalculator, MeanFilter);
+  itkTypeMacro(MeanCalculator, MeanSampleFilter);
   itkNewMacro(Self);
 
   void SetInputSample( const TSample * sample ) 
