@@ -19,7 +19,7 @@
 #define __itkWeightedCovarianceSampleFilter_h
 
 #include "itkFunctionBase.h"
-#include "itkCovarianceFilter.h"
+#include "itkCovarianceSampleFilter.h"
 #include "itkDataObjectDecorator.h"
 
 namespace itk { 
@@ -33,23 +33,23 @@ namespace Statistics {
  * or an array containing weight values. If none of these two is specified, 
  * the covariance matrix is generated with equal weights.  
  *
- * \sa CovarianceFilter
+ * \sa CovarianceSampleFilter
  *
  */
 
 template< class TSample >
 class WeightedCovarianceSampleFilter :
-    public CovarianceFilter< TSample >
+    public CovarianceSampleFilter< TSample >
 {
 public:
   /** Standard class typedefs. */
   typedef WeightedCovarianceSampleFilter        Self;
-  typedef CovarianceFilter< TSample >     Superclass;
+  typedef CovarianceSampleFilter< TSample >     Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;
 
   /** Standard Macros */
-  itkTypeMacro(WeightedCovarianceSampleFilter, CovarianceFilter);
+  itkTypeMacro(WeightedCovarianceSampleFilter, CovarianceSampleFilter);
   itkNewMacro(Self);
   
   /** Traits derived from the base class */

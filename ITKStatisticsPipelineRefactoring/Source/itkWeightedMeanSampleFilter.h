@@ -18,7 +18,7 @@
 #ifndef __itkWeightedMeanSampleFilter_h
 #define __itkWeightedMeanSampleFilter_h
 
-#include "itkMeanFilter.h"
+#include "itkMeanSampleFilter.h"
 #include "itkFunctionBase.h"
 #include "itkDataObjectDecorator.h"
 
@@ -33,21 +33,21 @@ namespace Statistics {
  * using SetInput method and provides weight by an array or function.
  *. Then call the Update method to run the alogithm.
  * 
- * \sa MeanFilter 
+ * \sa MeanSampleFilter 
  *
  */
 template< class TSample >
-class ITK_EXPORT WeightedMeanSampleFilter : public MeanFilter< TSample >
+class ITK_EXPORT WeightedMeanSampleFilter : public MeanSampleFilter< TSample >
 {
 public:
   /**Standard class typedefs. */
   typedef WeightedMeanSampleFilter                      Self;
-  typedef MeanFilter< TSample >                   Superclass;
+  typedef MeanSampleFilter< TSample >                   Superclass;
   typedef SmartPointer<Self>                      Pointer;
   typedef SmartPointer<const Self>                ConstPointer;
 
   /**Standard Macros */
-  itkTypeMacro(WeightedMeanSampleFilter, MeanFilter);
+  itkTypeMacro(WeightedMeanSampleFilter, MeanSampleFilter);
   itkNewMacro(Self);
 
   /** Traits derived from the base class */

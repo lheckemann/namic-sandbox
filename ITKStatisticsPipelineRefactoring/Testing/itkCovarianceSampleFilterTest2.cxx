@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkCovarianceFilterTest.cxx,v $
+  Module:    $RCSfile: itkCovarianceSampleFilterTest.cxx,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:55:14 $
   Version:   $Revision: 1.8 $
@@ -18,13 +18,13 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkCovarianceFilter.h"
+#include "itkCovarianceSampleFilter.h"
 #include "itkListSample.h"
 #include "itkFixedArray.h"
 
-int itkCovarianceFilterTest2(int, char* [] ) 
+int itkCovarianceSampleFilterTest2(int, char* [] ) 
 {
-  std::cout << "CovarianceFilter test \n \n";
+  std::cout << "CovarianceSampleFilter test \n \n";
   std::string failureMeassage= "";
 
   const unsigned int                  MeasurementVectorSize = 3;
@@ -55,7 +55,7 @@ int itkCovarianceFilterTest2(int, char* [] )
     counter++;
     }
 
-  typedef itk::Statistics::CovarianceFilter< SampleType > 
+  typedef itk::Statistics::CovarianceSampleFilter< SampleType > 
     FilterType;
 
   typedef FilterType::MatrixType          CovarianceMatrixType;
