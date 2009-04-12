@@ -320,12 +320,12 @@ int itkGaussianDistributionTest(int, char* [] )
     }
   std::cout << std::endl;
 
-  const double mean = 1.0;
-  const double variance = 2.5;
+  const double mean1 = 1.0;
+  const double variance1 = 2.5;
 
   DistributionType::ParametersType parameters( distributionFunction->GetNumberOfParameters() );
-  parameters[0] = mean;
-  parameters[1] = variance;
+  parameters[0] = mean1;
+  parameters[1] = variance1;
 
   long dof = 2;
 
@@ -335,7 +335,7 @@ int itkGaussianDistributionTest(int, char* [] )
   std::cout << "PDF(x,dof) = " <<  distributionFunction->PDF( x, dof ) << std::endl;
   std::cout << "EvaluatePDF(x) = " << distributionFunction->EvaluatePDF( x ) << std::endl;
   std::cout << "EvaluatePDF(x,p) = " << distributionFunction->EvaluatePDF( x, parameters ) << std::endl;
-  std::cout << "EvaluatePDF(x,m,v) = " << distributionFunction->EvaluatePDF( x, mean, variance ) << std::endl;
+  std::cout << "EvaluatePDF(x,m,v) = " << distributionFunction->EvaluatePDF( x, mean1, variance1 ) << std::endl;
   std::cout << "EvaluatePDF(x,dof) = " << distributionFunction->EvaluatePDF( x, dof ) << std::endl;
   std::cout << "CDF(x,p) = " <<  distributionFunction->CDF( x, parameters ) << std::endl;
   std::cout << "CDF(x,dof) = " <<  distributionFunction->CDF( x, dof ) << std::endl;
@@ -357,7 +357,7 @@ int itkGaussianDistributionTest(int, char* [] )
   TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateCDF( x ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateCDF( x, wrongParameters ) );
-  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateInverseCDF( 0.5 ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateInverseCDF( x ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->CDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->InverseCDF( x, wrongParameters ) );
 
@@ -371,8 +371,11 @@ int itkGaussianDistributionTest(int, char* [] )
   distributionFunction->SetVariance( newVariance );
   TEST_SET_GET_VALUE( newVariance, distributionFunction->GetVariance() ); 
 
-  parameters[0] = 0.0;
-  parameters[1] = 1.0;
+  const double mean2 = 0.0;
+  const double variance2 = 1.0;
+
+  parameters[0] = mean2;
+  parameters[1] = variance2;
 
   distributionFunction->SetParameters( parameters );
 
@@ -382,16 +385,26 @@ int itkGaussianDistributionTest(int, char* [] )
   std::cout << "PDF(x,dof) = " <<  distributionFunction->PDF( x, dof ) << std::endl;
   std::cout << "EvaluatePDF(x) = " << distributionFunction->EvaluatePDF( x ) << std::endl;
   std::cout << "EvaluatePDF(x,p) = " << distributionFunction->EvaluatePDF( x, parameters ) << std::endl;
-  std::cout << "EvaluatePDF(x,m,v) = " << distributionFunction->EvaluatePDF( x, mean, variance ) << std::endl;
+  std::cout << "EvaluatePDF(x,m,v) = " << distributionFunction->EvaluatePDF( x, mean2, variance2 ) << std::endl;
   std::cout << "EvaluatePDF(x,dof) = " << distributionFunction->EvaluatePDF( x, dof ) << std::endl;
   std::cout << "CDF(x,p) = " <<  distributionFunction->CDF( x, parameters ) << std::endl;
   std::cout << "CDF(x,dof) = " <<  distributionFunction->CDF( x, dof ) << std::endl;
   std::cout << "EvaluateCDF(x,p) = " << distributionFunction->EvaluateCDF( x, parameters ) << std::endl;
   std::cout << "EvaluateCDF(x,dof) = " << distributionFunction->EvaluateCDF( x, dof ) << std::endl;
+  std::cout << "EvaluateCDF(x,m,v) = " << distributionFunction->EvaluateCDF( x, mean2, variance2 ) << std::endl;
   std::cout << "InverseCDF(x,p) = " <<  distributionFunction->InverseCDF( x, parameters ) << std::endl;
   std::cout << "InverseCDF(x,dof) = " <<  distributionFunction->InverseCDF( x, dof ) << std::endl;
-  std::cout << "InverseCDF(x,p) = " <<  distributionFunction->InverseCDF( x, parameters ) << std::endl;
-  std::cout << "InverseCDF(x,dof) = " <<  distributionFunction->InverseCDF( x, dof ) << std::endl;
+  std::cout << "EvaluateInverseCDF(x,p) = " <<  distributionFunction->EvaluateInverseCDF( x, parameters ) << std::endl;
+  std::cout << "EvaluateInverseCDF(x,dof) = " <<  distributionFunction->EvaluateInverseCDF( x, dof ) << std::endl;
+  std::cout << "EvaluateInverseCDF(x,m,v) = " << distributionFunction->EvaluateInverseCDF( x, mean2, variance2 ) << std::endl;
  
+  DistributionType::ParametersType parameters0( 0 );
+  distributionFunction->SetParameters( parameters0 );
+  distributionFunction->Print( std::cout );
+
+  DistributionType::ParametersType parameters1( 1 );
+  distributionFunction->SetParameters( parameters1 );
+  distributionFunction->Print( std::cout );
+
   return status;
 }
