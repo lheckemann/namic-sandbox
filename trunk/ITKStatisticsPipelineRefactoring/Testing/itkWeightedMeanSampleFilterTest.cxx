@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeanFilterTest.cxx,v $
+  Module:    $RCSfile: itkMeanSampleFilterTest.cxx,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:55:14 $
   Version:   $Revision: 1.8 $
@@ -18,7 +18,7 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkWeightedMeanFilter.h"
+#include "itkWeightedMeanSampleFilter.h"
 #include "itkListSample.h"
 #include "itkFixedArray.h"
 #include "itkFunctionBase.h"
@@ -71,9 +71,9 @@ protected:
 } ; // end of class
 
 
-int itkWeightedMeanFilterTest(int, char* [] ) 
+int itkWeightedMeanSampleFilterTest(int, char* [] ) 
 {
-  std::cout << "WeightedMeanFilter test \n \n";
+  std::cout << "WeightedMeanSampleFilter test \n \n";
 
   const unsigned int                  numberOfMeasurementVectors = 5;
   unsigned int                        counter = 0;
@@ -103,7 +103,7 @@ int itkWeightedMeanFilterTest(int, char* [] )
     counter++;
     }
 
-  typedef itk::Statistics::WeightedMeanFilter< SampleType > 
+  typedef itk::Statistics::WeightedMeanSampleFilter< SampleType > 
     FilterType;
 
   FilterType::Pointer filter = FilterType::New() ;

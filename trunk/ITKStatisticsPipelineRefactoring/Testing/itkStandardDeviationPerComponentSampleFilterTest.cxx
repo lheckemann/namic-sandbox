@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkStandardDeviationPerComponentFilterTest.cxx,v $
+  Module:    $RCSfile: itkStandardDeviationPerComponentSampleFilterTest.cxx,v $
   Language:  C++
   Date:      $Date: 2005/02/08 03:18:41 $
   Version:   $Revision: 1.11 $
@@ -19,15 +19,15 @@
 #endif
 
 #include "itkImageToListSampleFilter.h"
-#include "itkStandardDeviationPerComponentFilter.h"
+#include "itkStandardDeviationPerComponentSampleFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkFixedArray.h"
 #include "itkVector.h"
-#include "itkCovarianceFilter.h"
+#include "itkCovarianceSampleFilter.h"
 
-int itkStandardDeviationPerComponentFilterTest(int, char* [] ) 
+int itkStandardDeviationPerComponentSampleFilterTest(int, char* [] ) 
 {
-  std::cout << "StandardDeviationPerComponentFilter Test \n \n"; 
+  std::cout << "StandardDeviationPerComponentSampleFilter Test \n \n"; 
   std::string whereFail = "";
 
   // Now generate an image
@@ -88,9 +88,9 @@ int itkStandardDeviationPerComponentFilterTest(int, char* [] )
     }
 
   typedef ImageToListSampleFilterType::ListSampleType                 ListSampleType;
-  typedef itk::Statistics::StandardDeviationPerComponentFilter< ListSampleType >         StandardDeviationPerComponentFilterType;
+  typedef itk::Statistics::StandardDeviationPerComponentSampleFilter< ListSampleType >         StandardDeviationPerComponentSampleFilterType;
 
-  StandardDeviationPerComponentFilterType::Pointer standardDeviationFilter = StandardDeviationPerComponentFilterType::New();
+  StandardDeviationPerComponentSampleFilterType::Pointer standardDeviationFilter = StandardDeviationPerComponentSampleFilterType::New();
 
   std::cout << standardDeviationFilter->GetNameOfClass() << std::endl;
   
@@ -132,8 +132,8 @@ int itkStandardDeviationPerComponentFilterTest(int, char* [] )
   const double   epsilon = 1e-6; 
 
   // CHECK THE RESULTS
-  typedef StandardDeviationPerComponentFilterType::MeasurementVectorRealType  MeasurementVectorRealType;
-  typedef StandardDeviationPerComponentFilterType::MeasurementVectorRealDecoratedType  MeasurementVectorRealDecoratedType;
+  typedef StandardDeviationPerComponentSampleFilterType::MeasurementVectorRealType  MeasurementVectorRealType;
+  typedef StandardDeviationPerComponentSampleFilterType::MeasurementVectorRealDecoratedType  MeasurementVectorRealDecoratedType;
 
   const MeasurementVectorRealDecoratedType * standardDeviationDecorator = 
     standardDeviationFilter->GetStandardDeviationPerComponentOutput();
@@ -159,8 +159,8 @@ int itkStandardDeviationPerComponentFilterTest(int, char* [] )
     }
 
 
-  typedef itk::Statistics::CovarianceFilter< ListSampleType > CovarianceFilterType;
-  CovarianceFilterType::Pointer covarianceFilter = CovarianceFilterType::New();
+  typedef itk::Statistics::CovarianceSampleFilter< ListSampleType > CovarianceSampleFilterType;
+  CovarianceSampleFilterType::Pointer covarianceFilter = CovarianceSampleFilterType::New();
   covarianceFilter->SetInput( sampleGeneratingFilter->GetOutput());
 
   try
@@ -172,29 +172,29 @@ int itkStandardDeviationPerComponentFilterTest(int, char* [] )
     std::cerr << "Exception caught: " << excp << std::endl;
     }
 
-  CovarianceFilterType::MeasurementVectorType meanCalculatedUsingCovarianceFilter = covarianceFilter->GetMean();
+  CovarianceSampleFilterType::MeasurementVectorType meanCalculatedUsingCovarianceSampleFilter = covarianceFilter->GetMean();
  
-  if ( ( vnl_math_abs( meanCalculatedUsingCovarianceFilter[0] - mean[0]) > epsilon )  || 
-       ( vnl_math_abs( meanCalculatedUsingCovarianceFilter[1] - mean[1]) > epsilon )  || 
-       ( vnl_math_abs( meanCalculatedUsingCovarianceFilter[2] - mean[2]) > epsilon ) ) 
+  if ( ( vnl_math_abs( meanCalculatedUsingCovarianceSampleFilter[0] - mean[0]) > epsilon )  || 
+       ( vnl_math_abs( meanCalculatedUsingCovarianceSampleFilter[1] - mean[1]) > epsilon )  || 
+       ( vnl_math_abs( meanCalculatedUsingCovarianceSampleFilter[2] - mean[2]) > epsilon ) ) 
     {
-    std::cerr << "Mean calculated using the CovarianceFilter is different from\
-                 the one calculated using the StandardDeviationPerComponentFilter " << std::endl;
+    std::cerr << "Mean calculated using the CovarianceSampleFilter is different from\
+                 the one calculated using the StandardDeviationPerComponentSampleFilter " << std::endl;
     return EXIT_FAILURE;
     }
  
-  CovarianceFilterType::MatrixType covarianceCalculatedUsingCovarianceFilter = covarianceFilter->GetCovarianceMatrix();
+  CovarianceSampleFilterType::MatrixType covarianceCalculatedUsingCovarianceSampleFilter = covarianceFilter->GetCovarianceMatrix();
  
   for( unsigned int k = 0; k < MeasurementVectorSize; k++ )
     {
-    const double variance = covarianceCalculatedUsingCovarianceFilter(k,k);
+    const double variance = covarianceCalculatedUsingCovarianceSampleFilter(k,k);
     const double standardDeviationValue = vcl_sqrt( variance );
     
     if ( ( vnl_math_abs( standardDeviationValue - standardDeviation[k] ) > epsilon ) )
       {
-      std::cerr << "Standard deviation calculated using the CovarianceFilter";
+      std::cerr << "Standard deviation calculated using the CovarianceSampleFilter";
       std::cerr << " (as the square root of the diagonal) is different from ";
-      std::cerr << " the one calculated using the StandardDeviationPerComponentFilter " << std::endl;
+      std::cerr << " the one calculated using the StandardDeviationPerComponentSampleFilter " << std::endl;
       return EXIT_FAILURE;
       }
     }

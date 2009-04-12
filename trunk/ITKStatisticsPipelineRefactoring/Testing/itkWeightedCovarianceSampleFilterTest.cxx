@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkWeightedCovarianceFilterTest.cxx,v $
+  Module:    $RCSfile: itkWeightedCovarianceSampleFilterTest.cxx,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:55:14 $
   Version:   $Revision: 1.8 $
@@ -18,7 +18,7 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkWeightedCovarianceFilter.h"
+#include "itkWeightedCovarianceSampleFilter.h"
 #include "itkListSample.h"
 #include "itkFixedArray.h"
 #include "itkFunctionBase.h"
@@ -33,11 +33,11 @@ typedef itk::FixedArray<
 namespace itk {
 namespace Statistics {
 template < class TSample >
-class MyWeightedCovarianceFilter : public WeightedCovarianceFilter< TSample >
+class MyWeightedCovarianceSampleFilter : public WeightedCovarianceSampleFilter< TSample >
 {
  public:
-  typedef MyWeightedCovarianceFilter           Self;
-  typedef WeightedCovarianceFilter<TSample>     Superclass;
+  typedef MyWeightedCovarianceSampleFilter           Self;
+  typedef WeightedCovarianceSampleFilter<TSample>     Superclass;
   typedef SmartPointer<Self>                   Pointer;
   typedef SmartPointer<const Self>             ConstPointer;
   typedef TSample                              SampleType;
@@ -93,14 +93,14 @@ protected:
 
 
 
-int itkWeightedCovarianceFilterTest(int, char* [] ) 
+int itkWeightedCovarianceSampleFilterTest(int, char* [] ) 
 {
-  std::cout << "WeightedCovarianceFilter test \n \n";
+  std::cout << "WeightedCovarianceSampleFilter test \n \n";
 
  typedef itk::Statistics::ListSample< 
     MeasurementVectorType >                    SampleType;
 
-  typedef itk::Statistics::MyWeightedCovarianceFilter< SampleType > 
+  typedef itk::Statistics::MyWeightedCovarianceSampleFilter< SampleType > 
     FilterType;
 
   typedef FilterType::MatrixType                 CovarianceMatrixType; 

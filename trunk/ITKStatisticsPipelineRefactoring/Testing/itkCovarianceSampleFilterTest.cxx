@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkCovarianceFilterTest.cxx,v $
+  Module:    $RCSfile: itkCovarianceSampleFilterTest.cxx,v $
   Language:  C++
   Date:      $Date: 2005/02/08 03:18:41 $
   Version:   $Revision: 1.11 $
@@ -19,15 +19,15 @@
 #endif
 
 #include "itkImageToListSampleFilter.h"
-#include "itkCovarianceFilter.h"
+#include "itkCovarianceSampleFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkFixedArray.h"
 #include "itkVector.h"
-#include "itkMeanFilter.h"
+#include "itkMeanSampleFilter.h"
 
-int itkCovarianceFilterTest(int, char* [] ) 
+int itkCovarianceSampleFilterTest(int, char* [] ) 
 {
-  std::cout << "CovarianceFilter Test \n \n"; 
+  std::cout << "CovarianceSampleFilter Test \n \n"; 
   std::string whereFail = "";
 
   // Now generate an image
@@ -86,9 +86,9 @@ int itkCovarianceFilterTest(int, char* [] )
     }
 
   typedef ImageToListSampleFilterType::ListSampleType                 ListSampleType;
-  typedef itk::Statistics::CovarianceFilter< ListSampleType >         CovarianceFilterType;
+  typedef itk::Statistics::CovarianceSampleFilter< ListSampleType >         CovarianceSampleFilterType;
 
-  CovarianceFilterType::Pointer covarianceFilter = CovarianceFilterType::New();
+  CovarianceSampleFilterType::Pointer covarianceFilter = CovarianceSampleFilterType::New();
 
   std::cout << "GetNameOfClass() = " << covarianceFilter->GetNameOfClass() << std::endl;
   
@@ -130,12 +130,12 @@ int itkCovarianceFilterTest(int, char* [] )
   const double   epsilon = 1e-6; 
 
   // CHECK THE RESULTS
-  const CovarianceFilterType::MeasurementVectorDecoratedType * meanDecorator = 
+  const CovarianceSampleFilterType::MeasurementVectorDecoratedType * meanDecorator = 
                                                 covarianceFilter->GetMeanOutput();
 
-  CovarianceFilterType::MeasurementVectorType    mean  = meanDecorator->Get();
+  CovarianceSampleFilterType::MeasurementVectorType    mean  = meanDecorator->Get();
   std::cout << "Mean:   " << mean << std::endl;
-  CovarianceFilterType::MeasurementVectorType    mean2 = covarianceFilter->GetMean();
+  CovarianceSampleFilterType::MeasurementVectorType    mean2 = covarianceFilter->GetMean();
 
   if ( ( fabs( mean[0] - mean[0]) > epsilon )  || 
        ( fabs( mean[1] - mean[1]) > epsilon)  || 
@@ -147,14 +147,14 @@ int itkCovarianceFilterTest(int, char* [] )
     }
 
 
-  const CovarianceFilterType::MatrixDecoratedType * decorator = covarianceFilter->GetCovarianceMatrixOutput();
-  CovarianceFilterType::MatrixType    covarianceMatrix  = decorator->Get();
+  const CovarianceSampleFilterType::MatrixDecoratedType * decorator = covarianceFilter->GetCovarianceMatrixOutput();
+  CovarianceSampleFilterType::MatrixType    covarianceMatrix  = decorator->Get();
 
   std::cout << "Covariance matrix:   " << covarianceMatrix << std::endl;
 
   
-  typedef itk::Statistics::MeanFilter< ListSampleType > MeanFilterType;
-  MeanFilterType::Pointer meanFilter = MeanFilterType::New();
+  typedef itk::Statistics::MeanSampleFilter< ListSampleType > MeanSampleFilterType;
+  MeanSampleFilterType::Pointer meanFilter = MeanSampleFilterType::New();
   meanFilter->SetInput( sampleGeneratingFilter->GetOutput());
 
   try
@@ -166,13 +166,13 @@ int itkCovarianceFilterTest(int, char* [] )
     std::cerr << "Exception caught: " << excp << std::endl;
     }
 
-  MeanFilterType::MeasurementVectorType meanCalculatedUsingMeanFilter = meanFilter->GetMean();
+  MeanSampleFilterType::MeasurementVectorType meanCalculatedUsingMeanSampleFilter = meanFilter->GetMean();
  
-  if ( ( fabs( meanCalculatedUsingMeanFilter[0] - mean[0]) > epsilon )  || 
-       ( fabs( meanCalculatedUsingMeanFilter[1] - mean[1]) > epsilon)  || 
-       ( fabs( meanCalculatedUsingMeanFilter[2] - mean[2]) > epsilon) ) 
+  if ( ( fabs( meanCalculatedUsingMeanSampleFilter[0] - mean[0]) > epsilon )  || 
+       ( fabs( meanCalculatedUsingMeanSampleFilter[1] - mean[1]) > epsilon)  || 
+       ( fabs( meanCalculatedUsingMeanSampleFilter[2] - mean[2]) > epsilon) ) 
     {
-    std::cerr << "Mean calculated using the MeanFilter is different from\
+    std::cerr << "Mean calculated using the MeanSampleFilter is different from\
                  the once calculated using the covariance filter " << std::endl;
     return EXIT_FAILURE;
     }
