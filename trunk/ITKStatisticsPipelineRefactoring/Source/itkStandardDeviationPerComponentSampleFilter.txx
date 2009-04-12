@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkStandardDeviationPerComponentFilter.txx,v $
+  Module:    $RCSfile: itkStandardDeviationPerComponentSampleFilter.txx,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:54:54 $
   Version:   $Revision: 1.18 $
@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkStandardDeviationPerComponentFilter_txx
-#define __itkStandardDeviationPerComponentFilter_txx
+#ifndef __itkStandardDeviationPerComponentSampleFilter_txx
+#define __itkStandardDeviationPerComponentSampleFilter_txx
 
-#include "itkStandardDeviationPerComponentFilter.h"
+#include "itkStandardDeviationPerComponentSampleFilter.h"
 #include "itkMeasurementVectorTraits.h"
 #include "vnl/vnl_math.h"
 
@@ -25,8 +25,8 @@ namespace itk {
 namespace Statistics {
 
 template< class TSample >
-StandardDeviationPerComponentFilter< TSample >
-::StandardDeviationPerComponentFilter()  
+StandardDeviationPerComponentSampleFilter< TSample >
+::StandardDeviationPerComponentSampleFilter()  
 {
   this->ProcessObject::SetNumberOfRequiredInputs(1);
   this->ProcessObject::SetNumberOfRequiredOutputs(2);
@@ -42,14 +42,14 @@ StandardDeviationPerComponentFilter< TSample >
 }
 
 template< class TSample >
-StandardDeviationPerComponentFilter< TSample >
-::~StandardDeviationPerComponentFilter()  
+StandardDeviationPerComponentSampleFilter< TSample >
+::~StandardDeviationPerComponentSampleFilter()  
 {
 }
 
 template< class TSample >
 void
-StandardDeviationPerComponentFilter< TSample >
+StandardDeviationPerComponentSampleFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -57,7 +57,7 @@ StandardDeviationPerComponentFilter< TSample >
 
 template< class TSample >
 void
-StandardDeviationPerComponentFilter< TSample >
+StandardDeviationPerComponentSampleFilter< TSample >
 ::SetInput( const SampleType * sample )
 {
   this->ProcessObject::SetNthInput(0, const_cast< SampleType* >( sample ) );
@@ -65,7 +65,7 @@ StandardDeviationPerComponentFilter< TSample >
 
 template< class TSample >
 const TSample *
-StandardDeviationPerComponentFilter< TSample >
+StandardDeviationPerComponentSampleFilter< TSample >
 ::GetInput( ) const
 {
   if (this->GetNumberOfInputs() < 1)
@@ -78,8 +78,8 @@ StandardDeviationPerComponentFilter< TSample >
 }
 
 template< class TSample >
-typename StandardDeviationPerComponentFilter< TSample>::DataObjectPointer
-StandardDeviationPerComponentFilter< TSample >
+typename StandardDeviationPerComponentSampleFilter< TSample>::DataObjectPointer
+StandardDeviationPerComponentSampleFilter< TSample >
 ::MakeOutput(unsigned int index )
 {
   if ( index == 0 )
@@ -108,8 +108,8 @@ StandardDeviationPerComponentFilter< TSample >
 }
 
 template< class TSample >
-typename StandardDeviationPerComponentFilter< TSample >::MeasurementVectorSizeType 
-StandardDeviationPerComponentFilter< TSample >
+typename StandardDeviationPerComponentSampleFilter< TSample >::MeasurementVectorSizeType 
+StandardDeviationPerComponentSampleFilter< TSample >
 ::GetMeasurementVectorSize() const
 {
   const SampleType *input = this->GetInput();
@@ -135,7 +135,7 @@ StandardDeviationPerComponentFilter< TSample >
 
 template< class TSample >
 inline void
-StandardDeviationPerComponentFilter< TSample >
+StandardDeviationPerComponentSampleFilter< TSample >
 ::GenerateData() 
 {
   const SampleType *input = this->GetInput();
@@ -211,32 +211,32 @@ StandardDeviationPerComponentFilter< TSample >
 }
 
 template< class TSample >
-const typename StandardDeviationPerComponentFilter< TSample>::MeasurementVectorRealDecoratedType *
-StandardDeviationPerComponentFilter< TSample >
+const typename StandardDeviationPerComponentSampleFilter< TSample>::MeasurementVectorRealDecoratedType *
+StandardDeviationPerComponentSampleFilter< TSample >
 ::GetStandardDeviationPerComponentOutput() const
 {
   return static_cast<const MeasurementVectorRealDecoratedType *>(this->ProcessObject::GetOutput(0));
 }
 
 template< class TSample >
-const typename StandardDeviationPerComponentFilter< TSample>::MeasurementVectorRealType
-StandardDeviationPerComponentFilter< TSample >
+const typename StandardDeviationPerComponentSampleFilter< TSample>::MeasurementVectorRealType
+StandardDeviationPerComponentSampleFilter< TSample >
 ::GetStandardDeviationPerComponent() const 
 {
   return this->GetStandardDeviationPerComponentOutput()->Get();
 }
 
 template< class TSample >
-const typename StandardDeviationPerComponentFilter< TSample>::MeasurementVectorRealDecoratedType *
-StandardDeviationPerComponentFilter< TSample >
+const typename StandardDeviationPerComponentSampleFilter< TSample>::MeasurementVectorRealDecoratedType *
+StandardDeviationPerComponentSampleFilter< TSample >
 ::GetMeanPerComponentOutput() const
 {
   return static_cast<const MeasurementVectorRealDecoratedType *>(this->ProcessObject::GetOutput(1));
 }
 
 template< class TSample >
-const typename StandardDeviationPerComponentFilter< TSample>::MeasurementVectorRealType
-StandardDeviationPerComponentFilter< TSample >
+const typename StandardDeviationPerComponentSampleFilter< TSample>::MeasurementVectorRealType
+StandardDeviationPerComponentSampleFilter< TSample >
 ::GetMeanPerComponent() const 
 {
   return this->GetMeanPerComponentOutput()->Get();

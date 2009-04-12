@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkWeightedMeanFilter.txx,v $
+  Module:    $RCSfile: itkWeightedMeanSampleFilter.txx,v $
   Language:  C++
   Date:      $Date: 2006/08/14 15:40:56 $
   Version:   $Revision: 1.16 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkWeightedMeanFilter_txx
-#define __itkWeightedMeanFilter_txx
+#ifndef __itkWeightedMeanSampleFilter_txx
+#define __itkWeightedMeanSampleFilter_txx
 
 #include "itkMeasurementVectorTraits.h"
 #include "itkNumericTraits.h"
@@ -24,22 +24,22 @@ namespace itk {
 namespace Statistics {
 
 template< class TSample >
-WeightedMeanFilter< TSample >
-::WeightedMeanFilter()
+WeightedMeanSampleFilter< TSample >
+::WeightedMeanSampleFilter()
 {
 }
 
 
 template< class TSample >
-WeightedMeanFilter< TSample >
-::~WeightedMeanFilter()
+WeightedMeanSampleFilter< TSample >
+::~WeightedMeanSampleFilter()
 {
 }
 
 
 template< class TSample >
 void
-WeightedMeanFilter< TSample >
+WeightedMeanSampleFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -47,7 +47,7 @@ WeightedMeanFilter< TSample >
 
 template< class TSample >
 void
-WeightedMeanFilter< TSample >
+WeightedMeanSampleFilter< TSample >
 ::GenerateData() 
 {
   // if weighting function is specifed, use it to compute the mean
@@ -78,7 +78,7 @@ WeightedMeanFilter< TSample >
 
 template< class TSample >
 void
-WeightedMeanFilter< TSample >
+WeightedMeanSampleFilter< TSample >
 ::ComputeMeanWithWeights() 
 {
   const SampleType *input = this->GetInput();
@@ -138,7 +138,7 @@ WeightedMeanFilter< TSample >
 
 template< class TSample >
 void
-WeightedMeanFilter< TSample >
+WeightedMeanSampleFilter< TSample >
 ::ComputeMeanWithWeightingFunction() 
 {
   const SampleType *input = this->GetInput();

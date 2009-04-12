@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkWeightedMeanFilter.h,v $
+  Module:    $RCSfile: itkWeightedMeanSampleFilter.h,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:54:59 $
   Version:   $Revision: 1.11 $
@@ -15,8 +15,8 @@
 
 =========================================================================*/
 
-#ifndef __itkWeightedMeanFilter_h
-#define __itkWeightedMeanFilter_h
+#ifndef __itkWeightedMeanSampleFilter_h
+#define __itkWeightedMeanSampleFilter_h
 
 #include "itkMeanFilter.h"
 #include "itkFunctionBase.h"
@@ -25,7 +25,7 @@
 namespace itk { 
 namespace Statistics {
   
-/** \class WeightedMeanFilter
+/** \class WeightedMeanSampleFilter
  * \brief Given a sample where each measurement vector has
  * associated weight value, this filter computes the sample mean
  *
@@ -37,17 +37,17 @@ namespace Statistics {
  *
  */
 template< class TSample >
-class ITK_EXPORT WeightedMeanFilter : public MeanFilter< TSample >
+class ITK_EXPORT WeightedMeanSampleFilter : public MeanFilter< TSample >
 {
 public:
   /**Standard class typedefs. */
-  typedef WeightedMeanFilter                      Self;
+  typedef WeightedMeanSampleFilter                      Self;
   typedef MeanFilter< TSample >                   Superclass;
   typedef SmartPointer<Self>                      Pointer;
   typedef SmartPointer<const Self>                ConstPointer;
 
   /**Standard Macros */
-  itkTypeMacro(WeightedMeanFilter, MeanFilter);
+  itkTypeMacro(WeightedMeanSampleFilter, MeanFilter);
   itkNewMacro(Self);
 
   /** Traits derived from the base class */
@@ -77,8 +77,8 @@ public:
   itkSetDecoratedObjectInputMacro( WeightingFunction, WeightingFunctionType, 2 );
 
 protected:
-  WeightedMeanFilter();
-  virtual ~WeightedMeanFilter();
+  WeightedMeanSampleFilter();
+  virtual ~WeightedMeanSampleFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   void GenerateData();
@@ -90,7 +90,7 @@ protected:
   void ComputeMeanWithWeightingFunction();
 
 private:
-  WeightedMeanFilter(const Self&); //purposely not implemented
+  WeightedMeanSampleFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 }; // end of class
@@ -99,7 +99,7 @@ private:
 } // end of namespace itk 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkWeightedMeanFilter.txx"
+#include "itkWeightedMeanSampleFilter.txx"
 #endif
 
 #endif

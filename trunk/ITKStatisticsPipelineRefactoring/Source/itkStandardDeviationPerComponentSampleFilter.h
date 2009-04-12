@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkStandardDeviationPerComponentFilter.h,v $
+  Module:    $RCSfile: itkStandardDeviationPerComponentSampleFilter.h,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:54:54 $
   Version:   $Revision: 1.13 $
@@ -15,8 +15,8 @@
 
 =========================================================================*/
 
-#ifndef __itkStandardDeviationPerComponentFilter_h
-#define __itkStandardDeviationPerComponentFilter_h
+#ifndef __itkStandardDeviationPerComponentSampleFilter_h
+#define __itkStandardDeviationPerComponentSampleFilter_h
 
 #include "itkProcessObject.h"
 
@@ -28,7 +28,7 @@
 namespace itk { 
 namespace Statistics {
   
-/** \class StandardDeviationPerComponentFilter
+/** \class StandardDeviationPerComponentSampleFilter
  * \brief Calculates the covariance matrix of the target sample data.
  *
  * The filter calculates first the sample mean and use it in the covariance
@@ -45,19 +45,19 @@ namespace Statistics {
  */
 
 template< class TSample >
-class StandardDeviationPerComponentFilter :
+class StandardDeviationPerComponentSampleFilter :
     public ProcessObject
 {
 public:
   /** Standard class typedefs. */
-  typedef StandardDeviationPerComponentFilter         Self;
+  typedef StandardDeviationPerComponentSampleFilter         Self;
   typedef ProcessObject                               Superclass;
   typedef SmartPointer<Self>                          Pointer;
   typedef SmartPointer<const Self>                    ConstPointer;
   typedef TSample                                     SampleType;
 
   /** Standard Macros */
-  itkTypeMacro(StandardDeviationPerComponentFilter, ProcessObject);
+  itkTypeMacro(StandardDeviationPerComponentSampleFilter, ProcessObject);
   itkNewMacro(Self);
   
   /** Length of a measurement vector */
@@ -86,11 +86,11 @@ public:
   const MeasurementVectorRealDecoratedType* GetMeanPerComponentOutput() const;
 
 protected:
-  StandardDeviationPerComponentFilter(const Self&); //purposely not implemented
+  StandardDeviationPerComponentSampleFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  StandardDeviationPerComponentFilter();
-  virtual ~StandardDeviationPerComponentFilter();
+  StandardDeviationPerComponentSampleFilter();
+  virtual ~StandardDeviationPerComponentSampleFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** DataObject pointer */
@@ -110,7 +110,7 @@ private:
 } // end of namespace itk 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkStandardDeviationPerComponentFilter.txx"
+#include "itkStandardDeviationPerComponentSampleFilter.txx"
 #endif
 
 #endif
