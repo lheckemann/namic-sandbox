@@ -344,6 +344,9 @@ int itkGaussianDistributionTest(int, char* [] )
   std::cout << "InverseCDF(x,p) = " <<  distributionFunction->InverseCDF( x, parameters ) << std::endl;
   std::cout << "InverseCDF(x,dof) = " <<  distributionFunction->InverseCDF( x, dof ) << std::endl;
   std::cout << "InverseCDF(x,p) = " <<  distributionFunction->InverseCDF( x, parameters ) << std::endl;
+  std::cout << "EvaluateInverseCDF(x,p) = " <<  distributionFunction->EvaluateInverseCDF( x, parameters ) << std::endl;
+  std::cout << "EvaluateInverseCDF(x,dof) = " <<  distributionFunction->EvaluateInverseCDF( x, dof ) << std::endl;
+  std::cout << "EvaluateInverseCDF(x,m,v) = " << distributionFunction->EvaluateInverseCDF( x, mean1, variance1 ) << std::endl;
   std::cout << "InverseCDF(x,dof) = " <<  distributionFunction->InverseCDF( x, dof ) << std::endl;
  
   const unsigned int wrongNumberOfParameters =  distributionFunction->GetNumberOfParameters() * 42;
