@@ -519,11 +519,15 @@ int itkChiSquareDistributionTest(int, char* [] )
   std::cout << "EvaluateCDF(x,dof) = " << distributionFunction->EvaluateCDF( x, dof ) << std::endl;
   std::cout << "InverseCDF(x,p) = " <<  distributionFunction->InverseCDF( x, parameters ) << std::endl;
   std::cout << "InverseCDF(x,dof) = " <<  distributionFunction->InverseCDF( x, dof ) << std::endl;
+  std::cout << "GetMean() = " <<  distributionFunction->GetMean() << std::endl;
+  std::cout << "GetVariance() = " <<  distributionFunction->GetVariance() << std::endl;
     
 
   const unsigned int wrongNumberOfParameters =  distributionFunction->GetNumberOfParameters() * 42;
   DistributionType::ParametersType wrongParameters( wrongNumberOfParameters );
-  distributionFunction->SetParameters( wrongNumberOfParameters );
+  wrongParameters.Fill(1.0);
+
+  distributionFunction->SetParameters( wrongParameters );
 
   TRY_EXPECT_EXCEPTION( distributionFunction->GetMean() );
   TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
