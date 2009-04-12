@@ -361,6 +361,7 @@ int itkGaussianDistributionTest(int, char* [] )
   TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateCDF( x ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateCDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateInverseCDF( x ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateInverseCDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->CDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->InverseCDF( x, wrongParameters ) );
 
