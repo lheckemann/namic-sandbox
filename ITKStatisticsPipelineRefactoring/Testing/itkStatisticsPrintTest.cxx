@@ -36,10 +36,10 @@
 #include "itkScalarImageToCooccurrenceListSampleFilter.h"
 #include "itkHistogramToTextureFeaturesFilter.h"
 #include "itkScalarImageToTextureFeaturesFilter.h"
-#include "itkMeanFilter.h"
-#include "itkWeightedMeanFilter.h"
-#include "itkCovarianceFilter.h"
-#include "itkWeightedCovarianceFilter.h"
+#include "itkMeanSampleFilter.h"
+#include "itkWeightedMeanSampleFilter.h"
+#include "itkCovarianceSampleFilter.h"
+#include "itkWeightedCovarianceSampleFilter.h"
 #include "itkImageToListSampleAdaptor.h"
 #include "itkPointSetToListSampleAdaptor.h"
 #include "itkJointDomainImageToListSampleAdaptor.h"
@@ -138,11 +138,11 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Statistics::HistogramToTextureFeaturesFilter<
     HistogramType > HistogramToTextureFeaturesFilterType;
 
-  typedef itk::Statistics::MeanFilter< SampleType > MeanFilterType;
-  typedef itk::Statistics::WeightedMeanFilter< SampleType > WeightedMeanFilterType;
+  typedef itk::Statistics::MeanSampleFilter< SampleType > MeanSampleFilterType;
+  typedef itk::Statistics::WeightedMeanSampleFilter< SampleType > WeightedMeanSampleFilterType;
 
-  typedef itk::Statistics::CovarianceFilter< SampleType > CovarianceFilterType;
-  typedef itk::Statistics::WeightedCovarianceFilter< SampleType > WeightedCovarianceFilterType;
+  typedef itk::Statistics::CovarianceSampleFilter< SampleType > CovarianceSampleFilterType;
+  typedef itk::Statistics::WeightedCovarianceSampleFilter< SampleType > WeightedCovarianceSampleFilterType;
 
   typedef itk::Statistics::NeighborhoodSampler< SampleType > NeighborhoodSamplerType;
 
@@ -224,21 +224,21 @@ int itkStatisticsPrintTest(int , char* [])
     DistanceToCentroidMembershipFunctionType::New();
   std::cout << "----------DistanceToCentroidMembershipFunction " << DistanceToCentroidMembershipFunctionObj;
 
-  MeanFilterType::Pointer meanFilterObj = 
-    MeanFilterType::New();
+  MeanSampleFilterType::Pointer meanFilterObj = 
+    MeanSampleFilterType::New();
   std::cout << "----------Mean filter " << meanFilterObj;
 
-  WeightedMeanFilterType::Pointer weighedMeanFilterObj = 
-    WeightedMeanFilterType::New();
-  std::cout << "----------WeightedMean filter " << weighedMeanFilterObj;
+  WeightedMeanSampleFilterType::Pointer weighedMeanSampleFilterObj = 
+    WeightedMeanSampleFilterType::New();
+  std::cout << "----------WeightedMean filter " << weighedMeanSampleFilterObj;
 
-  CovarianceFilterType::Pointer covarianceFilterObj = 
-    CovarianceFilterType::New();
+  CovarianceSampleFilterType::Pointer covarianceFilterObj = 
+    CovarianceSampleFilterType::New();
   std::cout << "----------Covariance filter " << covarianceFilterObj;
 
-  WeightedCovarianceFilterType::Pointer weighedCovarianceFilterObj = 
-    WeightedCovarianceFilterType::New();
-  std::cout << "----------WeightedCovariance filter " << weighedCovarianceFilterObj;
+  WeightedCovarianceSampleFilterType::Pointer weighedCovarianceSampleFilterObj = 
+    WeightedCovarianceSampleFilterType::New();
+  std::cout << "----------WeightedCovariance filter " << weighedCovarianceSampleFilterObj;
 
   NeighborhoodSamplerType::Pointer neighborhoodSamplerObj = 
     NeighborhoodSamplerType::New();

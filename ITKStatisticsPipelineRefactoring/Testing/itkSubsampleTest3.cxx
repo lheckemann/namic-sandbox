@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeanFilterTest.cxx,v $
+  Module:    $RCSfile: itkMeanSampleFilterTest.cxx,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:55:14 $
   Version:   $Revision: 1.8 $
@@ -18,14 +18,14 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkMeanFilter.h"
+#include "itkMeanSampleFilter.h"
 #include "itkListSample.h"
 #include "itkSubsample.h"
 #include "itkFixedArray.h"
 
 int itkSubsampleTest3(int, char* [] ) 
 {
-  std::cout << "MeanFilter test \n \n";
+  std::cout << "MeanSampleFilter test \n \n";
   std::string failureMeassage= "";
 
   const unsigned int                  MeasurementVectorSize = 2;
@@ -65,7 +65,7 @@ int itkSubsampleTest3(int, char* [] )
   //Initialize the subsample with all the samples
   subsample->InitializeWithAllInstances();
 
-  typedef itk::Statistics::MeanFilter< SubsampleType > 
+  typedef itk::Statistics::MeanSampleFilter< SubsampleType > 
     FilterType;
 
   FilterType::Pointer filter = FilterType::New() ;

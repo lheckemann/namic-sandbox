@@ -20,8 +20,8 @@
 
 #include "itkMixtureModelComponentBase.h"
 #include "itkGaussianMembershipFunction.h"
-#include "itkWeightedMeanFilter.h"
-#include "itkWeightedCovarianceFilter.h"
+#include "itkWeightedMeanSampleFilter.h"
+#include "itkWeightedCovarianceSampleFilter.h"
 
 namespace itk { 
 namespace Statistics {
@@ -73,8 +73,8 @@ public:
   
   /** Types of the mean and the covariance calculator that will update
    *  this component's distribution parameters */
-  typedef WeightedMeanFilter< TSample >       MeanEstimatorType;
-  typedef WeightedCovarianceFilter< TSample > CovarianceEstimatorType;
+  typedef WeightedMeanSampleFilter< TSample >       MeanEstimatorType;
+  typedef WeightedCovarianceSampleFilter< TSample > CovarianceEstimatorType;
 
   /** Type of the mean vector */
   typedef typename MeanEstimatorType::OutputType MeanType;
