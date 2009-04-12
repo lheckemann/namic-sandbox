@@ -533,10 +533,10 @@ int itkChiSquareDistributionTest(int, char* [] )
   TRY_EXPECT_EXCEPTION( distributionFunction->CDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->InverseCDF( x, wrongParameters ) );
 
+  distributionFunction->SetParameters( wrongParameters );
   long newdof = 17;
   distributionFunction->SetDegreesOfFreedom( newdof );
   TEST_SET_GET_VALUE( newdof, distributionFunction->GetDegreesOfFreedom() ); 
-
 
   return status;
 }
