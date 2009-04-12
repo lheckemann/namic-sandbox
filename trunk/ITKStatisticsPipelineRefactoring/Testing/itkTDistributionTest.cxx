@@ -445,6 +445,8 @@ int itkTDistributionTest(int, char* [] )
   distributionFunction->SetParameters( wrongParameters );
   std::cout << "new set number of parameters = " << distributionFunction->GetParameters().Size() << std::endl;
 
+  TRY_EXPECT_EXCEPTION( distributionFunction->HasMean() );
+  TRY_EXPECT_EXCEPTION( distributionFunction->HasVariance() );
   TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
   TRY_EXPECT_EXCEPTION( distributionFunction->GetDegreesOfFreedom() );
   TRY_EXPECT_EXCEPTION( distributionFunction->PDF( x, wrongParameters ) );
@@ -452,6 +454,16 @@ int itkTDistributionTest(int, char* [] )
   TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->CDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->InverseCDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->PDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateCDF( x ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateCDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateInverseCDF( x ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateInverseCDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->CDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->InverseCDF( x, wrongParameters ) );
+
 
   long newdof = 17;
   distributionFunction->SetDegreesOfFreedom( newdof );
