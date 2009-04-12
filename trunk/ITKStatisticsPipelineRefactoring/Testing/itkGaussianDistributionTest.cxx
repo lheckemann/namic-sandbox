@@ -347,6 +347,21 @@ int itkGaussianDistributionTest(int, char* [] )
   distributionFunction->SetParameters( wrongNumberOfParameters );
 
   TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
+  TRY_EXPECT_EXCEPTION( distributionFunction->GetMean() );
+  TRY_EXPECT_EXCEPTION( distributionFunction->PDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->CDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->InverseCDF( x, wrongParameters ) );
+
+  double newMean = 17.0;
+  distributionFunction->SetMean( newMean );
+  TEST_SET_GET_VALUE( newMean, distributionFunction->GetMean() ); 
+
+  double newVariance = 42.0;
+  distributionFunction->SetVariance( newVariance );
+  TEST_SET_GET_VALUE( newVariance, distributionFunction->GetVariance() ); 
+
 
   return status;
 }
