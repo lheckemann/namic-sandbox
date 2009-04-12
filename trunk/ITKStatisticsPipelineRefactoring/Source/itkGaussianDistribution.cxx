@@ -53,6 +53,7 @@ GaussianDistribution
     {
     if (m_Parameters[0] != mean)
       {
+      m_Parameters[0] = mean;
       modified = true;
       }
     }
@@ -114,6 +115,7 @@ GaussianDistribution
     {
     if (m_Parameters[1] != variance)
       {
+      m_Parameters[1] = variance;
       modified = true;
       }
     }
