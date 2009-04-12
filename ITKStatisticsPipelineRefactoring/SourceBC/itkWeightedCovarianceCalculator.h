@@ -17,7 +17,7 @@
 #ifndef __itkWeightedCovarianceCalculator_h
 #define __itkWeightedCovarianceCalculator_h
 
-#include "itkWeightedCovarianceFilter.h"
+#include "itkWeightedCovarianceSampleFilter.h"
 
 namespace itk { 
 namespace Statistics {
@@ -38,17 +38,17 @@ namespace Statistics {
 
 template< class TSample >
 class WeightedCovarianceCalculator :
-      public WeightedCovarianceFilter< TSample >
+      public WeightedCovarianceSampleFilter< TSample >
 {
 public:
   /** Standard class typedefs. */
-  typedef WeightedCovarianceCalculator            Self;
-  typedef WeightedCovarianceFilter< TSample >     Superclass;
-  typedef SmartPointer<Self>                      Pointer;
-  typedef SmartPointer<const Self>                ConstPointer;
+  typedef WeightedCovarianceCalculator              Self;
+  typedef WeightedCovarianceSampleFilter< TSample > Superclass;
+  typedef SmartPointer<Self>                        Pointer;
+  typedef SmartPointer<const Self>                  ConstPointer;
 
   /** Standard Macros */
-  itkTypeMacro(WeightedCovarianceCalculator, WeightedCovarianceFilter);
+  itkTypeMacro(WeightedCovarianceCalculator, WeightedCovarianceSampleFilter);
   itkNewMacro(Self);
 
   typedef typename Superclass::MatrixType            MatrixType;

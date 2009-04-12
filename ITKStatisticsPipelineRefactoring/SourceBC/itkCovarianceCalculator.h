@@ -18,7 +18,7 @@
 #ifndef __itkCovarianceCalculator_h
 #define __itkCovarianceCalculator_h
 
-#include "itkCovarianceFilter.h"
+#include "itkCovarianceSampleFilter.h"
 #include "itkVariableSizeMatrix.h"
 
 namespace itk { 
@@ -49,19 +49,19 @@ namespace Statistics {
 
 template< class TSample >
 class CovarianceCalculator :
-    public CovarianceFilter< TSample >
+    public CovarianceSampleFilter< TSample >
 {
 public:
   /** Standard class typedefs. */
-  typedef CovarianceCalculator            Self;
-  typedef CovarianceFilter< TSample >     Superclass;
-  typedef SmartPointer<Self>              Pointer;
-  typedef SmartPointer<const Self>        ConstPointer;
+  typedef CovarianceCalculator              Self;
+  typedef CovarianceSampleFilter< TSample > Superclass;
+  typedef SmartPointer<Self>                Pointer;
+  typedef SmartPointer<const Self>          ConstPointer;
 
   typedef typename Superclass::MatrixType            MatrixType;
   typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
   /** Standard Macros */
-  itkTypeMacro(CovarianceCalculator, CovarianceFilter);
+  itkTypeMacro(CovarianceCalculator, CovarianceSampleFilter);
   itkNewMacro(Self);
   
   void SetInputSample( const TSample * sample ) 
