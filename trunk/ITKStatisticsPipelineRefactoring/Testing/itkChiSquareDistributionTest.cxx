@@ -525,18 +525,36 @@ int itkChiSquareDistributionTest(int, char* [] )
   DistributionType::ParametersType wrongParameters( wrongNumberOfParameters );
   distributionFunction->SetParameters( wrongNumberOfParameters );
 
+  TRY_EXPECT_EXCEPTION( distributionFunction->GetMean() );
   TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
   TRY_EXPECT_EXCEPTION( distributionFunction->GetDegreesOfFreedom() );
   TRY_EXPECT_EXCEPTION( distributionFunction->PDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->CDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateCDF( x ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateCDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->InverseCDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateInverseCDF( x ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluateInverseCDF( x, wrongParameters ) );
 
   distributionFunction->SetParameters( wrongParameters );
   long newdof = 17;
   distributionFunction->SetDegreesOfFreedom( newdof );
   TEST_SET_GET_VALUE( newdof, distributionFunction->GetDegreesOfFreedom() ); 
+
+  // Exercise a negative parameter
+  distributionFunction->CDF( -1.0, dof );
+
+  // Exercise print with a parameter array of zero elements.
+  DistributionType::ParametersType parameters0( 0 );
+  distributionFunction->SetParameters( parameters0 );
+  distributionFunction->Print( std::cout );
+
+  DistributionType::ParametersType parameters1( 1 );
+  parameters1[0] = 1.18;
+  distributionFunction->SetParameters( parameters1 );
+  TEST_SET_GET_VALUE( parameters1[0], distributionFunction->GetMean() ); 
 
   return status;
 }
