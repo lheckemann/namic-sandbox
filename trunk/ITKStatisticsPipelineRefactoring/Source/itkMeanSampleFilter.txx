@@ -29,9 +29,7 @@ MeanSampleFilter< TSample >
   this->ProcessObject::SetNumberOfRequiredInputs(1);
   this->ProcessObject::SetNumberOfRequiredOutputs(1);
 
-  typename MeasurementVectorDecoratedType::Pointer measurementVectorDecorator = 
-    static_cast< MeasurementVectorDecoratedType * >( this->MakeOutput(0).GetPointer() );
-  this->ProcessObject::SetNthOutput(0, measurementVectorDecorator.GetPointer());
+  this->ProcessObject::SetNthOutput(0, this->MakeOutput(0) );
 }
 
 
@@ -55,8 +53,7 @@ void
 MeanSampleFilter< TSample >
 ::SetInput( const SampleType * sample )
 {
-  this->ProcessObject::SetNthInput(0, 
-                                   const_cast< SampleType* >( sample ) );
+  this->ProcessObject::SetNthInput(0, const_cast< SampleType* >( sample ) );
 }
 
 template< class TSample >
@@ -69,8 +66,7 @@ MeanSampleFilter< TSample >
     return 0;
     }
 
-  return static_cast<const SampleType * >
-  (this->ProcessObject::GetInput(0) );
+  return static_cast<const SampleType * > (this->ProcessObject::GetInput(0) );
 }
 
 template< class TSample >

@@ -36,9 +36,7 @@ HistogramToTextureFeaturesFilter( void )
   // just decorators real types
   for (int i=0; i < 8; ++i)
     {
-    typename MeasurementObjectType::Pointer output
-      = static_cast<MeasurementObjectType*>(this->MakeOutput().GetPointer());
-    this->ProcessObject::SetNthOutput(i, output.GetPointer());
+    this->ProcessObject::SetNthOutput( i, this->MakeOutput() );
     }
 }
 

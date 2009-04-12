@@ -31,14 +31,8 @@ StandardDeviationPerComponentSampleFilter< TSample >
   this->ProcessObject::SetNumberOfRequiredInputs(1);
   this->ProcessObject::SetNumberOfRequiredOutputs(2);
 
-  typename MeasurementVectorRealDecoratedType::Pointer standardDeviation = 
-    static_cast< MeasurementVectorRealDecoratedType * >( this->MakeOutput(0).GetPointer() );
-
-  typename MeasurementVectorRealDecoratedType::Pointer mean = 
-    static_cast< MeasurementVectorRealDecoratedType * >( this->MakeOutput(1).GetPointer() );
-
-  this->ProcessObject::SetNthOutput(0, standardDeviation.GetPointer());
-  this->ProcessObject::SetNthOutput(1, mean.GetPointer());
+  this->ProcessObject::SetNthOutput( 0, this->MakeOutput(0) );
+  this->ProcessObject::SetNthOutput( 1, this->MakeOutput(1) );
 }
 
 template< class TSample >
