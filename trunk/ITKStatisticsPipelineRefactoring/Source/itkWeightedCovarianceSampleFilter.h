@@ -45,8 +45,8 @@ public:
   /** Standard class typedefs. */
   typedef WeightedCovarianceSampleFilter        Self;
   typedef CovarianceSampleFilter< TSample >     Superclass;
-  typedef SmartPointer<Self>              Pointer;
-  typedef SmartPointer<const Self>        ConstPointer;
+  typedef SmartPointer<Self>                    Pointer;
+  typedef SmartPointer<const Self>              ConstPointer;
 
   /** Standard Macros */
   itkTypeMacro(WeightedCovarianceSampleFilter, CovarianceSampleFilter);

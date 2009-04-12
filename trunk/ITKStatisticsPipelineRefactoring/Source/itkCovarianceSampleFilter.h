@@ -49,7 +49,7 @@ class CovarianceSampleFilter :
 {
 public:
   /** Standard class typedefs. */
-  typedef CovarianceSampleFilter                Self;
+  typedef CovarianceSampleFilter          Self;
   typedef ProcessObject                   Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;

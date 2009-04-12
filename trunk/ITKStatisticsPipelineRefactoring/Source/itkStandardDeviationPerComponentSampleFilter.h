@@ -50,7 +50,7 @@ class StandardDeviationPerComponentSampleFilter :
 {
 public:
   /** Standard class typedefs. */
-  typedef StandardDeviationPerComponentSampleFilter         Self;
+  typedef StandardDeviationPerComponentSampleFilter   Self;
   typedef ProcessObject                               Superclass;
   typedef SmartPointer<Self>                          Pointer;
   typedef SmartPointer<const Self>                    ConstPointer;

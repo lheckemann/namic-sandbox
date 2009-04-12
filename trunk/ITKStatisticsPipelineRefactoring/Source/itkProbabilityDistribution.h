@@ -95,8 +95,8 @@ public:
    * methods for setting parameters, i.e. SetDegreesOfFreedom(), etc. */
   virtual void SetParameters(const ParametersType& params)
     {
-      if ((params.GetSize() != m_Parameters.GetSize())
-          || (params != m_Parameters))
+    if ((params.GetSize() != m_Parameters.GetSize())
+        || (params != m_Parameters))
       {
       m_Parameters = params;
       this->Modified();
