@@ -190,7 +190,7 @@ int itkWeightedCentroidKdTreeGeneratorTest8(int argc , char * argv [] )
         }
       }
 
-    if( min_dist < result_dist )
+    if( vcl_fabs( min_dist - result_dist ) > vnl_math::eps )
       {
       std::cerr << "Problem found " << std::endl;
       std::cerr << "Query point " << queryPoint << std::endl;
@@ -198,6 +198,8 @@ int itkWeightedCentroidKdTreeGeneratorTest8(int argc , char * argv [] )
                 << " distance " << result_dist << std::endl;
       std::cerr << "Actual   closest point " << min_point
                 << " distance " << min_dist << std::endl;
+      std::cerr << "Difference = " << min_dist - result_dist
+                << std::endl;
       std::cerr << std::endl;
       std::cerr << "Test FAILED." << std::endl;
       numberOfFailedPoints++;
