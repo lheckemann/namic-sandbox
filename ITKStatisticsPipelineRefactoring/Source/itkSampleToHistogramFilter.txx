@@ -28,13 +28,9 @@ SampleToHistogramFilter< TSample, THistogram >
 ::SampleToHistogramFilter()
 {
   this->ProcessObject::SetNumberOfRequiredInputs( 1 );
-
-  // Create the output. We use static_cast<> here because we know the default
-  // output must be of type HistogramType
-  typename HistogramType::Pointer output
-    = static_cast<HistogramType*>(this->MakeOutput(0).GetPointer()); 
   this->ProcessObject::SetNumberOfRequiredOutputs(1);
-  this->ProcessObject::SetNthOutput(0, output.GetPointer());
+
+  this->ProcessObject::SetNthOutput( 0, this->MakeOutput(0) );
 
   const unsigned int minimumNumberOfComponents = 1;
 

@@ -31,7 +31,7 @@ ImageToListSampleFilter< TImage, TMaskImage >
   this->SetNumberOfRequiredInputs(1);
   this->SetNumberOfRequiredOutputs(1);
 
-  this->ProcessObject::SetNthOutput(0, this->MakeOutput(0).GetPointer() );
+  this->ProcessObject::SetNthOutput(0, this->MakeOutput(0) );
 }
 
 template < class TImage, class TMaskImage >

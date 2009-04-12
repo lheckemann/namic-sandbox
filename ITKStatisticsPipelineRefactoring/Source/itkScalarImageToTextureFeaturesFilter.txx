@@ -33,9 +33,7 @@ ScalarImageToTextureFeaturesFilter()
 
   for (int i=0; i < 2; ++i)
     {
-    typename FeatureValueVectorDataObjectType::Pointer output
-      = static_cast<FeatureValueVectorDataObjectType*>(this->MakeOutput().GetPointer());
-    this->ProcessObject::SetNthOutput(i, output.GetPointer());
+    this->ProcessObject::SetNthOutput( i, this->MakeOutput() );
     }
 
   m_GLCMGenerator = CooccurrenceMatrixFilterType::New();

@@ -31,15 +31,7 @@ SampleClassifierFilter< TSample >
   this->SetNumberOfRequiredInputs( 3 );
   this->SetNumberOfRequiredOutputs( 1 );
 
-  // Create the output. We use static_cast<> here because we know the default
-  // output must be of type MembershipSampleType
-  MembershipSampleObjectPointer membershipSample
-    = dynamic_cast<MembershipSampleType*>(this->MakeOutput(0).GetPointer()); 
-
-  this->ProcessObject::SetNthOutput(0, membershipSample.GetPointer());
-
-  /** Set sample in the output */
-  membershipSample->SetSample( this->GetInput() ); 
+  this->ProcessObject::SetNthOutput( 0, this->MakeOutput(0) ); 
 
   /** Initialize decision rule */
   m_DecisionRule = NULL;

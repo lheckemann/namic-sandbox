@@ -26,14 +26,9 @@ ScalarImageToCooccurrenceListSampleFilter< TImage >
 {
 
   this->SetNumberOfRequiredInputs(1);
-
-  // output must be of ImageType
-  typename SampleType::Pointer output
-    = static_cast<SampleType*>(this->MakeOutput(0).GetPointer()); 
   this->ProcessObject::SetNumberOfRequiredOutputs(1);
-  this->ProcessObject::SetNthOutput(0, output.GetPointer());
 
-  output->SetMeasurementVectorSize( MeasurementVectorSize );
+  this->ProcessObject::SetNthOutput( 0, this->MakeOutput(0) );
 }
 
 template < class TImage >
@@ -117,6 +112,11 @@ ScalarImageToCooccurrenceListSampleFilter< TImage >
 
   SampleType * output = 
     static_cast<SampleType*>(this->ProcessObject::GetOutput(0));
+
+  // constant for a coocurrence matrix.
+  const unsigned int measurementVectorSize = 2;
+
+  output->SetMeasurementVectorSize( measurementVectorSize );
 
   faceList = faceCalculator( input,
                              input->GetRequestedRegion(),
