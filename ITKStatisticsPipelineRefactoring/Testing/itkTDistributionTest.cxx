@@ -447,6 +447,11 @@ int itkTDistributionTest(int, char* [] )
 
   TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
   TRY_EXPECT_EXCEPTION( distributionFunction->GetDegreesOfFreedom() );
+  TRY_EXPECT_EXCEPTION( distributionFunction->PDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->EvaluatePDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->CDF( x, wrongParameters ) );
+  TRY_EXPECT_EXCEPTION( distributionFunction->InverseCDF( x, wrongParameters ) );
 
   long newdof = 17;
   distributionFunction->SetDegreesOfFreedom( newdof );
