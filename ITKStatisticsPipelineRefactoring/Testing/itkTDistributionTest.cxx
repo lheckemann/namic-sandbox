@@ -493,13 +493,11 @@ int itkTDistributionTest(int, char* [] )
 
   DistributionType::ParametersType parameters2( 2 );
   parameters2[0] = 3.0;
-
   distributionFunction->SetParameters( parameters2 );
   distributionFunction->SetDegreesOfFreedom( 16 );
 
   DistributionType::ParametersType parameters0( 0 );
-  parameters2[0] = 3.0;
-
+  distributionFunction->SetParameters( parameters0 );
   distributionFunction->Print( std::cout );
 
   return status;
