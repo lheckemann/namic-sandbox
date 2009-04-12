@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkCovarianceFilter.h,v $
+  Module:    $RCSfile: itkCovarianceSampleFilter.h,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:54:54 $
   Version:   $Revision: 1.13 $
@@ -15,8 +15,8 @@
 
 =========================================================================*/
 
-#ifndef __itkCovarianceFilter_h
-#define __itkCovarianceFilter_h
+#ifndef __itkCovarianceSampleFilter_h
+#define __itkCovarianceSampleFilter_h
 
 #include "itkProcessObject.h"
 
@@ -27,7 +27,7 @@
 namespace itk { 
 namespace Statistics {
   
-/** \class CovarianceFilter
+/** \class CovarianceSampleFilter
  * \brief Calculates the covariance matrix of the target sample data.
  *
  * The filter calculates first the sample mean and use it in the covariance
@@ -44,19 +44,19 @@ namespace Statistics {
  */
 
 template< class TSample >
-class CovarianceFilter :
+class CovarianceSampleFilter :
     public ProcessObject
 {
 public:
   /** Standard class typedefs. */
-  typedef CovarianceFilter                Self;
+  typedef CovarianceSampleFilter                Self;
   typedef ProcessObject                   Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;
   typedef TSample                         SampleType;
 
   /** Standard Macros */
-  itkTypeMacro(CovarianceFilter, ProcessObject);
+  itkTypeMacro(CovarianceSampleFilter, ProcessObject);
   itkNewMacro(Self);
   
   /** Length of a measurement vector */
@@ -91,11 +91,11 @@ public:
   const MeasurementVectorDecoratedType* GetMeanOutput() const;
 
 protected:
-  CovarianceFilter(const Self&); //purposely not implemented
+  CovarianceSampleFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  CovarianceFilter();
-  virtual ~CovarianceFilter();
+  CovarianceSampleFilter();
+  virtual ~CovarianceSampleFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** DataObject pointer */
@@ -114,7 +114,7 @@ private:
 } // end of namespace itk 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkCovarianceFilter.txx"
+#include "itkCovarianceSampleFilter.txx"
 #endif
 
 #endif

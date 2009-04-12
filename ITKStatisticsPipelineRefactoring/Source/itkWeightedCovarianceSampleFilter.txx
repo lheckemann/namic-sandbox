@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkWeightedCovarianceFilter.txx,v $
+  Module:    $RCSfile: itkWeightedCovarianceSampleFilter.txx,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:54:54 $
   Version:   $Revision: 1.18 $
@@ -14,29 +14,29 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkWeightedCovarianceFilter_txx
-#define __itkWeightedCovarianceFilter_txx
+#ifndef __itkWeightedCovarianceSampleFilter_txx
+#define __itkWeightedCovarianceSampleFilter_txx
 
 namespace itk { 
 namespace Statistics {
 
 template< class TSample >
-WeightedCovarianceFilter< TSample >
-::WeightedCovarianceFilter()  
+WeightedCovarianceSampleFilter< TSample >
+::WeightedCovarianceSampleFilter()  
 {
 }
 
 
 template< class TSample >
-WeightedCovarianceFilter< TSample >
-::~WeightedCovarianceFilter()  
+WeightedCovarianceSampleFilter< TSample >
+::~WeightedCovarianceSampleFilter()  
 {
 }
 
 
 template< class TSample >
 void
-WeightedCovarianceFilter< TSample >
+WeightedCovarianceSampleFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -44,7 +44,7 @@ WeightedCovarianceFilter< TSample >
 
 template< class TSample >
 inline void
-WeightedCovarianceFilter< TSample >
+WeightedCovarianceSampleFilter< TSample >
 ::GenerateData() 
 {
   // if weighting function is specifed, use it to compute the mean
@@ -74,7 +74,7 @@ WeightedCovarianceFilter< TSample >
 
 template< class TSample >
 inline void
-WeightedCovarianceFilter< TSample >
+WeightedCovarianceSampleFilter< TSample >
 ::ComputeCovarianceMatrixWithWeightingFunction() 
 {
   const SampleType *input = this->GetInput();
@@ -179,7 +179,7 @@ WeightedCovarianceFilter< TSample >
 
 template< class TSample >
 inline void
-WeightedCovarianceFilter< TSample >
+WeightedCovarianceSampleFilter< TSample >
 ::ComputeCovarianceMatrixWithWeights() 
 {
   const SampleType *input = this->GetInput();

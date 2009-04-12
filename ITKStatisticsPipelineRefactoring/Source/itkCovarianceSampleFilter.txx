@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkCovarianceFilter.txx,v $
+  Module:    $RCSfile: itkCovarianceSampleFilter.txx,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:54:54 $
   Version:   $Revision: 1.18 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkCovarianceFilter_txx
-#define __itkCovarianceFilter_txx
+#ifndef __itkCovarianceSampleFilter_txx
+#define __itkCovarianceSampleFilter_txx
 
 #include "itkMeasurementVectorTraits.h"
 
@@ -23,8 +23,8 @@ namespace itk {
 namespace Statistics {
 
 template< class TSample >
-CovarianceFilter< TSample >
-::CovarianceFilter()  
+CovarianceSampleFilter< TSample >
+::CovarianceSampleFilter()  
 {
   this->ProcessObject::SetNumberOfRequiredInputs(1);
   this->ProcessObject::SetNumberOfRequiredOutputs(2);
@@ -39,14 +39,14 @@ CovarianceFilter< TSample >
 }
 
 template< class TSample >
-CovarianceFilter< TSample >
-::~CovarianceFilter()  
+CovarianceSampleFilter< TSample >
+::~CovarianceSampleFilter()  
 {
 }
 
 template< class TSample >
 void
-CovarianceFilter< TSample >
+CovarianceSampleFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -54,7 +54,7 @@ CovarianceFilter< TSample >
 
 template< class TSample >
 void
-CovarianceFilter< TSample >
+CovarianceSampleFilter< TSample >
 ::SetInput( const SampleType * sample )
 {
   this->ProcessObject::SetNthInput(0, 
@@ -63,7 +63,7 @@ CovarianceFilter< TSample >
 
 template< class TSample >
 const TSample *
-CovarianceFilter< TSample >
+CovarianceSampleFilter< TSample >
 ::GetInput( ) const
 {
   if (this->GetNumberOfInputs() < 1)
@@ -76,8 +76,8 @@ CovarianceFilter< TSample >
 }
 
 template< class TSample >
-typename CovarianceFilter< TSample>::DataObjectPointer
-CovarianceFilter< TSample >
+typename CovarianceSampleFilter< TSample>::DataObjectPointer
+CovarianceSampleFilter< TSample >
 ::MakeOutput(unsigned int index )
 {
   MeasurementVectorSizeType measurementVectorSize = this->GetMeasurementVectorSize();
@@ -106,8 +106,8 @@ CovarianceFilter< TSample >
 }
 
 template< class TSample >
-typename CovarianceFilter< TSample >::MeasurementVectorSizeType 
-CovarianceFilter< TSample >
+typename CovarianceSampleFilter< TSample >::MeasurementVectorSizeType 
+CovarianceSampleFilter< TSample >
 ::GetMeasurementVectorSize() const
 {
   const SampleType *input = this->GetInput();
@@ -134,7 +134,7 @@ CovarianceFilter< TSample >
 
 template< class TSample >
 inline void
-CovarianceFilter< TSample >
+CovarianceSampleFilter< TSample >
 ::GenerateData() 
 {
   const SampleType *input = this->GetInput();
@@ -231,32 +231,32 @@ CovarianceFilter< TSample >
 }
 
 template< class TSample >
-const typename CovarianceFilter< TSample>::MatrixDecoratedType *
-CovarianceFilter< TSample >
+const typename CovarianceSampleFilter< TSample>::MatrixDecoratedType *
+CovarianceSampleFilter< TSample >
 ::GetCovarianceMatrixOutput() const
 {
   return static_cast<const MatrixDecoratedType *>(this->ProcessObject::GetOutput(0));
 }
 
 template< class TSample >
-const typename CovarianceFilter< TSample>::MatrixType
-CovarianceFilter< TSample >
+const typename CovarianceSampleFilter< TSample>::MatrixType
+CovarianceSampleFilter< TSample >
 ::GetCovarianceMatrix() const 
 {
   return this->GetCovarianceMatrixOutput()->Get();
 }
 
 template< class TSample >
-const typename CovarianceFilter< TSample>::MeasurementVectorDecoratedType *
-CovarianceFilter< TSample >
+const typename CovarianceSampleFilter< TSample>::MeasurementVectorDecoratedType *
+CovarianceSampleFilter< TSample >
 ::GetMeanOutput() const
 {
   return static_cast<const MeasurementVectorDecoratedType *>(this->ProcessObject::GetOutput(1));
 }
 
 template< class TSample >
-const typename CovarianceFilter< TSample>::MeasurementVectorType
-CovarianceFilter< TSample >
+const typename CovarianceSampleFilter< TSample>::MeasurementVectorType
+CovarianceSampleFilter< TSample >
 ::GetMean() const 
 {
   return this->GetMeanOutput()->Get();

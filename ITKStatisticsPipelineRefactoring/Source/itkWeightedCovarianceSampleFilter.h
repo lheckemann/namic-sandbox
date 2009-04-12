@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkWeightedCovarianceFilter.h,v $
+  Module:    $RCSfile: itkWeightedCovarianceSampleFilter.h,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:54:54 $
   Version:   $Revision: 1.13 $
@@ -15,8 +15,8 @@
 
 =========================================================================*/
 
-#ifndef __itkWeightedCovarianceFilter_h
-#define __itkWeightedCovarianceFilter_h
+#ifndef __itkWeightedCovarianceSampleFilter_h
+#define __itkWeightedCovarianceSampleFilter_h
 
 #include "itkFunctionBase.h"
 #include "itkCovarianceFilter.h"
@@ -25,7 +25,7 @@
 namespace itk { 
 namespace Statistics {
   
-/** \class WeightedCovarianceFilter
+/** \class WeightedCovarianceSampleFilter
  * \brief Calculates the covariance matrix of the target sample data.
  *  where each measurement vector has an associated weight value
  *  
@@ -38,18 +38,18 @@ namespace Statistics {
  */
 
 template< class TSample >
-class WeightedCovarianceFilter :
+class WeightedCovarianceSampleFilter :
     public CovarianceFilter< TSample >
 {
 public:
   /** Standard class typedefs. */
-  typedef WeightedCovarianceFilter        Self;
+  typedef WeightedCovarianceSampleFilter        Self;
   typedef CovarianceFilter< TSample >     Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;
 
   /** Standard Macros */
-  itkTypeMacro(WeightedCovarianceFilter, CovarianceFilter);
+  itkTypeMacro(WeightedCovarianceSampleFilter, CovarianceFilter);
   itkNewMacro(Self);
   
   /** Traits derived from the base class */
@@ -85,11 +85,11 @@ public:
   itkSetDecoratedObjectInputMacro( WeightingFunction, WeightingFunctionType, 2 );
 
 protected:
-  WeightedCovarianceFilter(const Self&); //purposely not implemented
+  WeightedCovarianceSampleFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  WeightedCovarianceFilter();
-  virtual ~WeightedCovarianceFilter();
+  WeightedCovarianceSampleFilter();
+  virtual ~WeightedCovarianceSampleFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   void GenerateData();
@@ -107,7 +107,7 @@ private:
 } // end of namespace itk 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkWeightedCovarianceFilter.txx"
+#include "itkWeightedCovarianceSampleFilter.txx"
 #endif
 
 #endif

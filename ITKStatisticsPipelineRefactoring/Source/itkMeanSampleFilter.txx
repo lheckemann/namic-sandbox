@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeanFilter.txx,v $
+  Module:    $RCSfile: itkMeanSampleFilter.txx,v $
   Language:  C++
   Date:      $Date: 2006/08/14 15:40:56 $
   Version:   $Revision: 1.16 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMeanFilter_txx
-#define __itkMeanFilter_txx
+#ifndef __itkMeanSampleFilter_txx
+#define __itkMeanSampleFilter_txx
 
 #include "itkMeasurementVectorTraits.h"
 
@@ -23,8 +23,8 @@ namespace itk {
 namespace Statistics {
 
 template< class TSample >
-MeanFilter< TSample >
-::MeanFilter()
+MeanSampleFilter< TSample >
+::MeanSampleFilter()
 {
   this->ProcessObject::SetNumberOfRequiredInputs(1);
   this->ProcessObject::SetNumberOfRequiredOutputs(1);
@@ -36,15 +36,15 @@ MeanFilter< TSample >
 
 
 template< class TSample >
-MeanFilter< TSample >
-::~MeanFilter()
+MeanSampleFilter< TSample >
+::~MeanSampleFilter()
 {
 }
 
 
 template< class TSample >
 void
-MeanFilter< TSample >
+MeanSampleFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -52,7 +52,7 @@ MeanFilter< TSample >
 
 template< class TSample >
 void
-MeanFilter< TSample >
+MeanSampleFilter< TSample >
 ::SetInput( const SampleType * sample )
 {
   this->ProcessObject::SetNthInput(0, 
@@ -61,7 +61,7 @@ MeanFilter< TSample >
 
 template< class TSample >
 const TSample *
-MeanFilter< TSample >
+MeanSampleFilter< TSample >
 ::GetInput( ) const
 {
   if (this->GetNumberOfInputs() < 1)
@@ -74,16 +74,16 @@ MeanFilter< TSample >
 }
 
 template< class TSample >
-typename MeanFilter< TSample>::DataObjectPointer
-MeanFilter< TSample >
+typename MeanSampleFilter< TSample>::DataObjectPointer
+MeanSampleFilter< TSample >
 ::MakeOutput(unsigned int itkNotUsed(idx))
 {
   return static_cast< DataObject * >(MeasurementVectorDecoratedType::New().GetPointer());
 }
 
 template< class TSample >
-const typename MeanFilter< TSample>::MeasurementVectorDecoratedType *
-MeanFilter< TSample >
+const typename MeanSampleFilter< TSample>::MeasurementVectorDecoratedType *
+MeanSampleFilter< TSample >
 ::GetOutput() const
 {
   return static_cast< const MeasurementVectorDecoratedType * >(
@@ -91,8 +91,8 @@ MeanFilter< TSample >
 }
 
 template< class TSample >
-const typename MeanFilter< TSample>::MeasurementVectorType 
-MeanFilter< TSample >
+const typename MeanSampleFilter< TSample>::MeasurementVectorType 
+MeanSampleFilter< TSample >
 ::GetMean() const
 {
   return this->GetOutput()->Get(); 
@@ -100,7 +100,7 @@ MeanFilter< TSample >
 
 template< class TSample >
 void
-MeanFilter< TSample >
+MeanSampleFilter< TSample >
 ::GenerateData() 
 {
   const SampleType *input = this->GetInput();

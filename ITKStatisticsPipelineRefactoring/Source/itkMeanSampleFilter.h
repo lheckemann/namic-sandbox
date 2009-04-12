@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeanFilter.h,v $
+  Module:    $RCSfile: itkMeanSampleFilter.h,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:54:59 $
   Version:   $Revision: 1.11 $
@@ -15,8 +15,8 @@
 
 =========================================================================*/
 
-#ifndef __itkMeanFilter_h
-#define __itkMeanFilter_h
+#ifndef __itkMeanSampleFilter_h
+#define __itkMeanSampleFilter_h
 
 #include "itkProcessObject.h"
 #include "itkArray.h"
@@ -26,7 +26,7 @@
 namespace itk { 
 namespace Statistics {
   
-/** \class MeanFilter
+/** \class MeanSampleFilter
  * \brief Given a sample, this filter computes the sample mean
  * 
  * The sample is plugged in using SetSample method. Then invoke 
@@ -44,18 +44,18 @@ namespace Statistics {
  */
 
 template< class TSample >
-class ITK_EXPORT MeanFilter : public ProcessObject
+class ITK_EXPORT MeanSampleFilter : public ProcessObject
 {
 public:
   /**Standard class typedefs. */
-  typedef MeanFilter                      Self;
+  typedef MeanSampleFilter                      Self;
   typedef ProcessObject                   Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;
   typedef TSample                         SampleType;
 
   /**Standard Macros */
-  itkTypeMacro(MeanFilter, ProcessObject);
+  itkTypeMacro(MeanSampleFilter, ProcessObject);
   itkNewMacro(Self);
 
   /** Length of a measurement vector */
@@ -78,8 +78,8 @@ public:
   const MeasurementVectorType            GetMean() const;
 
 protected:
-  MeanFilter();
-  virtual ~MeanFilter();
+  MeanSampleFilter();
+  virtual ~MeanSampleFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** DataObject pointer */
@@ -90,7 +90,7 @@ protected:
   void GenerateData();
 
 private:
-  MeanFilter(const Self&); //purposely not implemented
+  MeanSampleFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 }; // end of class
@@ -99,7 +99,7 @@ private:
 } // end of namespace itk 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMeanFilter.txx"
+#include "itkMeanSampleFilter.txx"
 #endif
 
 #endif
