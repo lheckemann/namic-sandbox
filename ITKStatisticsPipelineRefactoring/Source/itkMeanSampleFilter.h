@@ -48,7 +48,7 @@ class ITK_EXPORT MeanSampleFilter : public ProcessObject
 {
 public:
   /**Standard class typedefs. */
-  typedef MeanSampleFilter                      Self;
+  typedef MeanSampleFilter                Self;
   typedef ProcessObject                   Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;

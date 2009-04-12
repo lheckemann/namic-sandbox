@@ -41,8 +41,8 @@ class ITK_EXPORT WeightedMeanSampleFilter : public MeanSampleFilter< TSample >
 {
 public:
   /**Standard class typedefs. */
-  typedef WeightedMeanSampleFilter                      Self;
-  typedef MeanSampleFilter< TSample >                   Superclass;
+  typedef WeightedMeanSampleFilter                Self;
+  typedef MeanSampleFilter< TSample >             Superclass;
   typedef SmartPointer<Self>                      Pointer;
   typedef SmartPointer<const Self>                ConstPointer;
 
