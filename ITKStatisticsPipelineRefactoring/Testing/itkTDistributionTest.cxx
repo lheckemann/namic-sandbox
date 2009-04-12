@@ -445,7 +445,7 @@ int itkTDistributionTest(int, char* [] )
   distributionFunction->SetParameters( wrongParameters );
   std::cout << "new set number of parameters = " << distributionFunction->GetParameters().Size() << std::endl;
 
-  TRY_EXPECT_EXCEPTION( distributionFunction->HasMean() );
+  TRY_EXPECT_NO_EXCEPTION( distributionFunction->HasMean() );
   TRY_EXPECT_EXCEPTION( distributionFunction->HasVariance() );
   TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
   TRY_EXPECT_EXCEPTION( distributionFunction->GetDegreesOfFreedom() );
