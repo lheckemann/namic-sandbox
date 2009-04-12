@@ -439,15 +439,18 @@ int itkTDistributionTest(int, char* [] )
 
   const unsigned int wrongNumberOfParameters =  distributionFunction->GetNumberOfParameters() * 42;
   DistributionType::ParametersType wrongParameters( wrongNumberOfParameters );
-  distributionFunction->SetParameters( wrongNumberOfParameters );
+
+  std::cout << "new number of parameters = " << wrongParameters.Size() << std::endl;
+  std::cout << "current number of parameters = " << distributionFunction->GetParameters().Size() << std::endl;
+  distributionFunction->SetParameters( wrongParameters );
+  std::cout << "new set number of parameters = " << distributionFunction->GetParameters().Size() << std::endl;
 
   TRY_EXPECT_EXCEPTION( distributionFunction->GetVariance() );
+  TRY_EXPECT_EXCEPTION( distributionFunction->GetDegreesOfFreedom() );
 
   long newdof = 17;
   distributionFunction->SetDegreesOfFreedom( newdof );
   TEST_SET_GET_VALUE( newdof, distributionFunction->GetDegreesOfFreedom() ); 
-
-
 
   return status;
 }
