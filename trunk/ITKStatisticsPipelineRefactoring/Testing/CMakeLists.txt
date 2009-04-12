@@ -18,9 +18,9 @@ ADD_TEST(itkStatisticsHeaderTest ${STATISTICS_HEADER_TESTS})
 ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
 ADD_TEST(itkStatisticsTypesTest ${STATISTICS_TESTS} itkStatisticsTypesTest)
 
-ADD_TEST(itkCovarianceFilterTest ${STATISTICS_TESTS} itkCovarianceFilterTest)
-ADD_TEST(itkCovarianceFilterTest2 ${STATISTICS_TESTS} itkCovarianceFilterTest2)
-ADD_TEST(itkCovarianceFilterTest3 ${STATISTICS_TESTS} itkCovarianceFilterTest3)
+ADD_TEST(itkCovarianceSampleFilterTest ${STATISTICS_TESTS} itkCovarianceSampleFilterTest)
+ADD_TEST(itkCovarianceSampleFilterTest2 ${STATISTICS_TESTS} itkCovarianceSampleFilterTest2)
+ADD_TEST(itkCovarianceSampleFilterTest3 ${STATISTICS_TESTS} itkCovarianceSampleFilterTest3)
 ADD_TEST(itkHistogramToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkHistogramToTextureFeaturesFilterTest)
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkImageToHistogramFilterTest ${STATISTICS_TESTS} itkImageToHistogramFilterTest)
@@ -43,8 +43,8 @@ ADD_TEST(itkSampleToHistogramFilterTest5 ${STATISTICS_TESTS} itkSampleToHistogra
    )
 ADD_TEST(itkSampleToHistogramFilterTest6 ${STATISTICS_TESTS} itkSampleToHistogramFilterTest6)
 ADD_TEST(itkSampleToHistogramFilterTest7 ${STATISTICS_TESTS} itkSampleToHistogramFilterTest7)
-ADD_TEST(itkStandardDeviationPerComponentFilterTest ${STATISTICS_TESTS} itkStandardDeviationPerComponentFilterTest)
-ADD_TEST(itkMeanFilterTest ${STATISTICS_TESTS} itkMeanFilterTest)
+ADD_TEST(itkStandardDeviationPerComponentSampleFilterTest ${STATISTICS_TESTS} itkStandardDeviationPerComponentSampleFilterTest)
+ADD_TEST(itkMeanSampleFilterTest ${STATISTICS_TESTS} itkMeanSampleFilterTest)
 ADD_TEST(itkMeasurementVectorTraitsTest ${STATISTICS_TESTS} itkMeasurementVectorTraitsTest)
 ADD_TEST(itkMembershipSampleTest1 ${STATISTICS_TESTS} itkMembershipSampleTest1)
 ADD_TEST(itkMembershipSampleTest2 ${STATISTICS_TESTS} itkMembershipSampleTest2)
@@ -78,8 +78,8 @@ ADD_TEST(itkSubsampleTest2 ${STATISTICS_TESTS} itkSubsampleTest2)
 ADD_TEST(itkSubsampleTest3 ${STATISTICS_TESTS} itkSubsampleTest3)
 ADD_TEST(itkStatisticsAlgorithmTest ${STATISTICS_TESTS} itkStatisticsAlgorithmTest)
 ADD_TEST(itkStatisticsAlgorithmTest2 ${STATISTICS_TESTS} itkStatisticsAlgorithmTest2)
-ADD_TEST(itkWeightedMeanFilterTest ${STATISTICS_TESTS} itkWeightedMeanFilterTest)
-ADD_TEST(itkWeightedCovarianceFilterTest ${STATISTICS_TESTS} itkWeightedCovarianceFilterTest)
+ADD_TEST(itkWeightedMeanSampleFilterTest ${STATISTICS_TESTS} itkWeightedMeanSampleFilterTest)
+ADD_TEST(itkWeightedCovarianceSampleFilterTest ${STATISTICS_TESTS} itkWeightedCovarianceSampleFilterTest)
 ADD_TEST(itkImageToListSampleAdaptorTest ${STATISTICS_TESTS} itkImageToListSampleAdaptorTest)
 ADD_TEST(itkImageToListSampleAdaptorTest2 ${STATISTICS_TESTS} itkImageToListSampleAdaptorTest2)
 ADD_TEST(itkJointDomainImageToListSampleAdaptorTest ${STATISTICS_TESTS} itkJointDomainImageToListSampleAdaptorTest)
@@ -175,9 +175,9 @@ ADD_TEST(itkTDistributionTest ${STATISTICS_TESTS} itkTDistributionTest)
 
 
 SET(Statistics_SRCS
-  itkCovarianceFilterTest.cxx
-  itkCovarianceFilterTest2.cxx
-  itkCovarianceFilterTest3.cxx
+  itkCovarianceSampleFilterTest.cxx
+  itkCovarianceSampleFilterTest2.cxx
+  itkCovarianceSampleFilterTest3.cxx
   itkHistogramTest.cxx
   itkHistogramToTextureFeaturesFilterTest.cxx
   itkImageToHistogramFilterTest.cxx
@@ -193,8 +193,8 @@ SET(Statistics_SRCS
   itkSampleToHistogramFilterTest5.cxx
   itkSampleToHistogramFilterTest6.cxx
   itkSampleToHistogramFilterTest7.cxx
-  itkStandardDeviationPerComponentFilterTest.cxx
-  itkMeanFilterTest.cxx
+  itkStandardDeviationPerComponentSampleFilterTest.cxx
+  itkMeanSampleFilterTest.cxx
   itkMeasurementVectorTraitsTest.cxx
   itkMembershipSampleTest1.cxx
   itkMembershipSampleTest2.cxx
@@ -226,8 +226,8 @@ SET(Statistics_SRCS
   itkSubsampleTest.cxx
   itkSubsampleTest2.cxx
   itkSubsampleTest3.cxx
-  itkWeightedMeanFilterTest.cxx
-  itkWeightedCovarianceFilterTest.cxx
+  itkWeightedMeanSampleFilterTest.cxx
+  itkWeightedCovarianceSampleFilterTest.cxx
   itkImageToListSampleAdaptorTest.cxx
   itkImageToListSampleAdaptorTest2.cxx
   itkJointDomainImageToListSampleAdaptorTest.cxx

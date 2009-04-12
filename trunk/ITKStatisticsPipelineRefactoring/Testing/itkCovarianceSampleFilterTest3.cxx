@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkCovarianceFilterTest.cxx,v $
+  Module:    $RCSfile: itkCovarianceSampleFilterTest.cxx,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:55:14 $
   Version:   $Revision: 1.8 $
@@ -18,7 +18,7 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkCovarianceFilter.h"
+#include "itkCovarianceSampleFilter.h"
 #include "itkFixedArray.h"
 #include "itkHistogram.h"
 #include "itkMahalanobisDistanceMetric.h"
@@ -26,11 +26,11 @@
 namespace itk {
 namespace Statistics {
 template < class TSample >
-class MyCovarianceFilter : public CovarianceFilter< TSample >
+class MyCovarianceSampleFilter : public CovarianceSampleFilter< TSample >
 {
  public:
-  typedef MyCovarianceFilter                Self;
-  typedef CovarianceFilter<TSample>         Superclass;
+  typedef MyCovarianceSampleFilter                Self;
+  typedef CovarianceSampleFilter<TSample>         Superclass;
   typedef SmartPointer<Self>                Pointer;
   typedef SmartPointer<const Self>          ConstPointer;
   typedef TSample                           SampleType;
@@ -54,9 +54,9 @@ class MyCovarianceFilter : public CovarianceFilter< TSample >
 }
 }
 
-int itkCovarianceFilterTest3(int, char* [] ) 
+int itkCovarianceSampleFilterTest3(int, char* [] ) 
 {
-  std::cout << "CovarianceFilter test \n \n";
+  std::cout << "CovarianceSampleFilter test \n \n";
   std::string failureMeassage= "";
 
   typedef double                      MeasurementType;
@@ -139,7 +139,7 @@ int itkCovarianceFilterTest3(int, char* [] )
     }
 
 
-  typedef itk::Statistics::MyCovarianceFilter< SampleType > FilterType;
+  typedef itk::Statistics::MyCovarianceSampleFilter< SampleType > FilterType;
 
   FilterType::Pointer filter = FilterType::New() ;
 
