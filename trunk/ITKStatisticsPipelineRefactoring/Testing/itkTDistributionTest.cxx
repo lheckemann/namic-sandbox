@@ -464,10 +464,43 @@ int itkTDistributionTest(int, char* [] )
   TRY_EXPECT_EXCEPTION( distributionFunction->CDF( x, wrongParameters ) );
   TRY_EXPECT_EXCEPTION( distributionFunction->InverseCDF( x, wrongParameters ) );
 
+  DistributionType::ParametersType parameters1( 1 );
+  parameters1[0] = 3.0;
+
+  distributionFunction->SetParameters( parameters1 );
+
+  TRY_EXPECT_NO_EXCEPTION( distributionFunction->HasMean() );
+  TRY_EXPECT_NO_EXCEPTION( distributionFunction->HasVariance() );
+  TRY_EXPECT_NO_EXCEPTION( distributionFunction->GetMean() );
+  TRY_EXPECT_NO_EXCEPTION( distributionFunction->GetVariance() );
+
+  parameters1[0] = 1.5;
+
+  distributionFunction->SetParameters( parameters1 );
+
+  TRY_EXPECT_NO_EXCEPTION( distributionFunction->HasMean() );
+  TRY_EXPECT_NO_EXCEPTION( distributionFunction->HasVariance() );
+  TRY_EXPECT_NO_EXCEPTION( distributionFunction->GetMean() );
+  TRY_EXPECT_NO_EXCEPTION( distributionFunction->GetVariance() );
+
+  std::cout << "Exercise negative argument " << std::endl;
+  std::cout << "InverseCDF(x,p) = " <<  distributionFunction->InverseCDF( -1.0, dof ) << std::endl;
 
   long newdof = 17;
   distributionFunction->SetDegreesOfFreedom( newdof );
   TEST_SET_GET_VALUE( newdof, distributionFunction->GetDegreesOfFreedom() ); 
+
+
+  DistributionType::ParametersType parameters2( 2 );
+  parameters2[0] = 3.0;
+
+  distributionFunction->SetParameters( parameters2 );
+  distributionFunction->SetDegreesOfFreedom( 16 );
+
+  DistributionType::ParametersType parameters0( 0 );
+  parameters2[0] = 3.0;
+
+  distributionFunction->Print( std::cout );
 
   return status;
 }
