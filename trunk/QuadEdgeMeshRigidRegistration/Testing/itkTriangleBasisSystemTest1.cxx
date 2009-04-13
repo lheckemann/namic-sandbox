@@ -104,6 +104,27 @@ int main(int argc, char *argv[])
  
     }
 
+  TriangleBasisSystemType system1( triangleBasisSystem );
+
+  TriangleBasisSystemType system2 = triangleBasisSystem;
+
+  TriangleBasisSystemType system3;
+
+  system3 = triangleBasisSystem;
+
+  VectorType diff1 = system3.GetVector(0) - triangleBasisSystem.GetVector(0);
+  VectorType diff2 = system3.GetVector(1) - triangleBasisSystem.GetVector(1);
+
+  if( diff1.GetNorm() > vnl_math::eps || diff2.GetNorm() > vnl_math::eps )
+    {
+    std::cerr << "Error in operator=() " << std::endl;
+    return EXIT_FAILURE;
+    }
+  
+  TriangleBasisSystemType system4;
+
+  system4 = system3 = system2;
+
   std::cout << "Test passed." << std::endl;
 
   return EXIT_SUCCESS;
