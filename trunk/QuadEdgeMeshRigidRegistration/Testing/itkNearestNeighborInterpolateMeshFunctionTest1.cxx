@@ -94,6 +94,7 @@ int main(int argc, char* argv[] )
   interpolator->Initialize();
 
   std::cout << "Interpolator " << std::endl;
+  std::cout << "Name of class = " << interpolator->GetNameOfClass() << std::endl;
   interpolator->Print( std::cout );
 
   PointType  point;
