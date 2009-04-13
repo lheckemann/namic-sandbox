@@ -42,6 +42,7 @@ DistanceMetric< TVector >
     //otherwise initialize it to zero
     this->m_MeasurementVectorSize = 0;
     }
+  m_Origin.Fill(0.0);
 }
 
 template< class TVector >
