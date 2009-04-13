@@ -133,7 +133,7 @@ public:
 
     const MeasurementVectorType & GetMeasurementVector() const
       {
-      return (MeasurementVectorType&) m_Iter.Value();
+      return (const MeasurementVectorType&) m_Iter.Value();
       }
 
     InstanceIdentifier GetInstanceIdentifier() const
