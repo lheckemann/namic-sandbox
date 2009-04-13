@@ -108,7 +108,7 @@ int main( int argc, char * argv [] )
   typedef TransformBaseType::ParametersType         ParametersType;
 
   MetricType::Pointer  metric = MetricType::New();
-  registration->SetMetric( metric.GetPointer() ); 
+  registration->SetMetric( metric ); 
 
 
 //-----------------------------------------------------------
@@ -145,31 +145,19 @@ int main( int argc, char * argv [] )
   std::cout << metric << std::endl;
 
 //------------------------------------------------------------
-// Set up transform parameters
+// Set up optimizer
 //------------------------------------------------------------
-  const unsigned int numberOfTransformParameters = 
-     transform->GetNumberOfParameters();
 
-  ParametersType parameters( numberOfTransformParameters );
-
-  // initialize the offset/vector part
-  for( unsigned int k = 0; k < numberOfTransformParameters; k++ )
-    {
-    parameters[k]= 0.0f;
-    }
-
-  registration->SetInitialTransformParameters( parameters );
-
-  // Optimizer Type
   typedef itk::VersorTransformOptimizer         OptimizerType;
 
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
 
-  typedef  OptimizerType::ScalesType            ScalesType;
-  typedef OptimizerType::VersorType      VersorType;
+//------------------------------------------------------------
+// Set up transform parameters
+//------------------------------------------------------------
 
-  //OptimizerType::ParametersType simplexDelta( numberOfTransformParameters );
-  //simplexDelta.Fill( 0.1 );
+  typedef OptimizerType::ScalesType             ScalesType;
+  typedef TransformType::VersorType             VersorType;
 
   // We start with a null rotation
   VersorType::VectorType axis;
@@ -183,12 +171,13 @@ int main( int argc, char * argv [] )
   
   initialRotation.Set( axis, angle );
   
-  ParametersType  initialPosition( 3 );
-  initialPosition[0] = 0; //initialRotation.GetX();
-  initialPosition[1] = 0; //initialRotation.GetY();
-  initialPosition[2] = 0; //initialRotation.GetZ();
+  transform->SetRotation( initialRotation );
 
-  ScalesType    parametersScale( 3 );
+  registration->SetInitialTransformParameters( transform->GetParameters() );
+
+  const unsigned int numberOfTransformParameters = transform->GetNumberOfParameters();
+
+  ScalesType    parametersScale( numberOfTransformParameters );
   parametersScale[0] = 1.0;
   parametersScale[1] = 1.0;
   parametersScale[2] = 1.0;
@@ -199,8 +188,6 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetNumberOfIterations( 200 );
-  optimizer->SetInitialPosition( initialPosition );
-  optimizer->SetCostFunction( metric.GetPointer() );  
 
   // Create the Command observer and register it with the optimizer.
   //
