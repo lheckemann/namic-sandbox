@@ -181,11 +181,11 @@ int itkSubsampleTest2(int argc, char *argv[] )
   // Testing methods specific to Iterators
   {
   typedef CascadedSubsampleType::Iterator IteratorType;
-  IteratorType iter = subSample2->Begin();
-  IteratorType iter2 = subSample2->End();
+  IteratorType iter7 = subSample2->Begin();
+  IteratorType iter8 = subSample2->End();
 
-  iter2 = iter;
-  if( iter2 != iter )
+  iter8 = iter7;
+  if( iter8 != iter7 )
     {
     std::cerr << "Iterator operator=() failed" << std::endl;
     return EXIT_FAILURE;
@@ -211,15 +211,15 @@ int itkSubsampleTest2(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  IteratorType iter4( iter2 ); 
-  if( iter4 != iter2 )
+  IteratorType iter4( iter8 ); 
+  if( iter4 != iter8 )
     {
     std::cerr << "Iterator copy constructor failed" << std::endl;
     return EXIT_FAILURE;
     }
 
-  IteratorType iter5 = iter2; 
-  if( iter5 != iter2 )
+  IteratorType iter5 = iter8; 
+  if( iter5 != iter8 )
     {
     std::cerr << "Iterator operator= failed" << std::endl;
     return EXIT_FAILURE;
@@ -246,25 +246,25 @@ int itkSubsampleTest2(int argc, char *argv[] )
   // Testing methods specific to ConstIterators
   {
   typedef CascadedSubsampleType::ConstIterator ConstIteratorType;
-  ConstIteratorType iter = subSample2->Begin();
-  ConstIteratorType iter2 = subSample2->End();
+  ConstIteratorType iter11 = subSample2->Begin();
+  ConstIteratorType iter12 = subSample2->End();
 
-  iter2 = iter;
+  iter12 = iter11;
 
-  if( iter2 != iter )
+  if( iter12 != iter11 )
     {
     std::cerr << "ConstIterator operator!=() or operator=() failed" << std::endl;
     return EXIT_FAILURE;
     }
 
-  if( !( iter2 == iter ) )
+  if( !( iter12 == iter11 ) )
     {
     std::cerr << "ConstIterator operator==() failed" << std::endl;
     return EXIT_FAILURE;
     }
 
-  ConstIteratorType iter3( iter2 ); 
-  if( iter3 != iter2 )
+  ConstIteratorType iter3( iter12 ); 
+  if( iter3 != iter12 )
     {
     std::cerr << "ConstIterator copy constructor failed" << std::endl;
     return EXIT_FAILURE;

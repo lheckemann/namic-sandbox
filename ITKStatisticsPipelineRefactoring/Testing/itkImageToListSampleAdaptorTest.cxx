@@ -134,7 +134,7 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
   FloatImage::IndexType index;
   FloatImage::PixelType pixel;
 
-  ImageToListSampleAdaptorType::InstanceIdentifier id;
+  ImageToListSampleAdaptorType::InstanceIdentifier iid;
 
   for ( unsigned int i=0 ; i < size[2] ; i++ )
     for ( unsigned int j=0; j < size[1]; j++ )
@@ -145,8 +145,8 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
       index[2]=i;
 
       pixel = sample->GetImage()->GetPixel( index );
-      id = sample->GetImage()->ComputeOffset( index );
-      if ( sample->GetMeasurementVector(id)[0] != pixel )
+      iid = sample->GetImage()->ComputeOffset( index );
+      if ( sample->GetMeasurementVector(iid)[0] != pixel )
         {
         std::cerr << "Error in pixel value accessed using the adaptor" << std::endl;  
         return EXIT_FAILURE;
@@ -179,17 +179,17 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
     return EXIT_FAILURE;    
     }
 
-  ImageToListSampleAdaptorType::InstanceIdentifier id = 0;
+  ImageToListSampleAdaptorType::InstanceIdentifier iid2 = 0;
   while (s_iter != sample->End())
     {
-    if (sample->GetMeasurementVector(id) != 
+    if (sample->GetMeasurementVector(iid2) != 
         s_iter.GetMeasurementVector())
       {
       std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
                 << std::endl;
       return EXIT_FAILURE;
       }
-    if (id != s_iter.GetInstanceIdentifier())
+    if (iid2 != s_iter.GetInstanceIdentifier())
       {
       std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
                 << std::endl;
@@ -200,12 +200,12 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
       std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
       return EXIT_FAILURE;
       }
-    if (sample->GetFrequency(id) != 1)
+    if (sample->GetFrequency(iid2) != 1)
       {
       std::cerr << "GetFrequency (forward) failed" << std::endl;
       return EXIT_FAILURE;
       }
-    ++id;
+    ++iid2;
     ++s_iter;
     }
   
@@ -261,17 +261,17 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
     return EXIT_FAILURE;    
     }
   
-  ImageToListSampleAdaptorType::InstanceIdentifier id = 0;
+  ImageToListSampleAdaptorType::InstanceIdentifier iid3 = 0;
   while (s_iter != sample->End())
     {
-    if (sample->GetMeasurementVector(id) != 
+    if (sample->GetMeasurementVector(iid3) != 
         s_iter.GetMeasurementVector())
       {
       std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
                 << std::endl;
       return EXIT_FAILURE;
       }
-    if (id != s_iter.GetInstanceIdentifier())
+    if (iid3 != s_iter.GetInstanceIdentifier())
       {
       std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
                 << std::endl;
@@ -282,7 +282,7 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
       std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
       return EXIT_FAILURE;
       }
-    ++id;
+    ++iid3;
     ++s_iter;
     }
   
