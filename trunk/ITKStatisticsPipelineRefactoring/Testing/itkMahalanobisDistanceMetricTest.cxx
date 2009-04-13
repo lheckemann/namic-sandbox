@@ -79,6 +79,7 @@ int itkMahalanobisDistanceMetricTest(int, char* [] )
   //Test if we get the same result with identity covariance matrix set
   DistanceMetricType::CovarianceMatrixType   covarianceMatrix;
   covarianceMatrix.set_size( MeasurementVectorSize, MeasurementVectorSize );
+  covarianceMatrix.set_identity();
   distance->SetCovariance( covarianceMatrix );
 
   if( distance->GetCovariance() != covarianceMatrix )
