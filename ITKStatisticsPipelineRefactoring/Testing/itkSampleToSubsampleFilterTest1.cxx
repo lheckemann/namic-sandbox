@@ -117,9 +117,7 @@ int itkSampleToSubsampleFilterTest1(int, char* [] )
   // Exercise the GetNameOfClass() method in the 
   // SampleToSubsampleFilter:
   std::cout << "Classname  " << filter->GetNameOfClass() << std::endl;
-#ifndef __BORLANDC__
-  std::cout << "Superclass " << filter->Superclass::GetNameOfClass() << std::endl;
-#endif
+  std::cout << "Superclass " << filter->FilterType::Superclass::GetNameOfClass() << std::endl;
 
   std::cout << "Test Passed !" << std::endl;
   return EXIT_SUCCESS;
