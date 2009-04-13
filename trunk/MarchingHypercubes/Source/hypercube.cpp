@@ -1,3 +1,20 @@
+/*=========================================================================
+
+  Program:   Insight Segmentation & Registration Toolkit
+  Module:    $RCSfile: itkImage.h,v $
+  Language:  C++
+  Date:      $Date: 2008-09-15 17:38:11 $
+  Version:   $Revision: 1.148 $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+
 // hypercube.cpp : Defines the entry point for the console application.
 // program estimates hyper cube rotation group of vertex and edge permutations
 // edges defined by vertex pairs
@@ -10,9 +27,9 @@
 // in 4D the triangles form tetrahedral 3D hypersurfaces
 // the tesselated patterns consisting of a list of edges are rotated to generate a lookup table
 // for each configuration
-// author Harvey Cline, copyright Kitware Inc 2009
-// April 6, 2009 complete vertexrotation groups
-// April 13, 2009 complete edge permutations
+
+// author Harvey Cline, 
+
 
 #include "stdafx.h"
 #include <stdlib.h>
@@ -20,9 +37,10 @@
 #include <iostream>
 #include <fstream>
 #include "math.h"
+
 void permute(int *a, int *b, int *c, int length);
 void permuteEdges(int vertices, int A[16][16],int group[192][16]);
-using namespace std;
+
 int _tmain(int argc, _TCHAR* argv[])
 {
   int Faces3D[6][8],Faces4D[6][16];
@@ -61,7 +79,7 @@ int _tmain(int argc, _TCHAR* argv[])
   //input cube dimension
   //
 
-  cout<<"input cube dimension = ";
+  std::cout<<"input cube dimension = ";
   cin>>dimension;
 
   vertices = (int)pow(2.0,dimension);
@@ -69,14 +87,14 @@ int _tmain(int argc, _TCHAR* argv[])
   {
     edges = 1;
     rotations = 1;
-    cout<<"vertices = "<<vertices<<"  edges = "<<edges<<"  rotations = "<<rotations<<endl;
+    std::cout<<"vertices = "<<vertices<<"  edges = "<<edges<<"  rotations = "<<rotations<<std::endl;
   }
   
   if(dimension==2)
   {
     edges=4;
     rotations=4;
-    cout<<"vertices = "<<vertices<<"  edges = "<<edges<<"  rotations = "<<rotations<<endl;
+    std::cout<<"vertices = "<<vertices<<"  edges = "<<edges<<"  rotations = "<<rotations<<std::endl;
     //square
     for(i=0;i<vertices;i++)
     {
@@ -88,20 +106,20 @@ int _tmain(int argc, _TCHAR* argv[])
     //print permutations
     for(i=0;i<vertices;i++)
     {
-      cout<<i+1<<"\t";
+      std::cout<<i+1<<"\t";
       for(j=0;j<vertices;j++)
       {
         group2D[i][j]=Rotation2D[i][j];
-        cout<<group2D[i][j]<<",";
+        std::cout<<group2D[i][j]<<",";
       }
-      cout<<endl;
+      std::cout<<std::endl;
     }
   }//end 2D
   if(dimension==3)
   {
     edges=12;
     rotations=24;// cube
-    cout<<"vertices = "<<vertices<<"  edges = "<<edges<<"  rotations = "<<rotations<<endl;
+    std::cout<<"vertices = "<<vertices<<"  edges = "<<edges<<"  rotations = "<<rotations<<std::endl;
     //6 faces, the first 4 are a cycle
     for(i=0;i<8;i++)
     {
@@ -122,29 +140,29 @@ int _tmain(int argc, _TCHAR* argv[])
     permute(z3D,Rotation3D[2],Rotation3D[3],8);
     permute(z3D,Rotation3D[3],Rotation3D[0],8);
 
-    cout<<"faces"<<endl;
+    std::cout<<"faces"<<std::endl;
     for(i=0;i<6;i++)
     {
-      cout<<i+1<<"\t";
+      std::cout<<i+1<<"\t";
       for(j=0;j<8;j++)
       {
-        cout<<Faces3D[i][j]<<",";
+        std::cout<<Faces3D[i][j]<<",";
       }
-      cout<<endl;
+      std::cout<<std::endl;
     }
-    cout<<"rotations"<<endl;
+    std::cout<<"rotations"<<std::endl;
     for(i=0;i<4;i++)
     {
-      cout<<i+1<<"\t";
+      std::cout<<i+1<<"\t";
       for(j=0;j<8;j++)
       {
-        cout<<Rotation3D[i][j]<<",";
+        std::cout<<Rotation3D[i][j]<<",";
       }
-      cout<<endl;
+      std::cout<<std::endl;
     }
 
     //group = rotation X faces
-    cout<<"24 element 3D rotation group expressed as vertex permutations"<<endl;
+    std::cout<<"24 element 3D rotation group expressed as vertex permutations"<<std::endl;
     for(i=0;i<4;i++)
     {
       for(j=0;j<6;j++)
@@ -155,12 +173,12 @@ int _tmain(int argc, _TCHAR* argv[])
     }
     for(i=0;i<24;i++)
     {
-      cout<<i+1<<"\t";
+      std::cout<<i+1<<"\t";
       for(j=0;j<8;j++)
       {
-        cout<<group3D[i][j]<<",";
+        std::cout<<group3D[i][j]<<",";
       }
-      cout<<endl;
+      std::cout<<std::endl;
     }
   }//end 3D
 
@@ -168,7 +186,7 @@ int _tmain(int argc, _TCHAR* argv[])
   {
     edges=32;
     rotations=192;
-    cout<<"vertices = "<<vertices<<"  edges = "<<edges<<"  rotations = "<<rotations<<endl;
+    std::cout<<"vertices = "<<vertices<<"  edges = "<<edges<<"  rotations = "<<rotations<<std::endl;
     //hypercube
     //find the 24 element 4D cube rotation group
     //6 faces
@@ -191,30 +209,30 @@ int _tmain(int argc, _TCHAR* argv[])
     permute(z4D,Rotation4D[2],Rotation4D[3],16);
     permute(z4D,Rotation4D[3],Rotation4D[0],16);
 
-    cout<<"faces"<<endl;
+    std::cout<<"faces"<<std::endl;
     for(i=0;i<6;i++)
     {
-      cout<<i+1<<"\t";
+      std::cout<<i+1<<"\t";
       for(j=0;j<16;j++)
       {
-        cout<<Faces4D[i][j]<<",";
+        std::cout<<Faces4D[i][j]<<",";
       }
-      cout<<endl;
+      std::cout<<std::endl;
     }
-    cout<<"rotations"<<endl;
+    std::cout<<"rotations"<<std::endl;
     for(i=0;i<4;i++)
     {
-      cout<<i+1<<"\t";
+      std::cout<<i+1<<"\t";
       for(j=0;j<16;j++)
       {
-        cout<<Rotation4D[i][j]<<",";
+        std::cout<<Rotation4D[i][j]<<",";
       }
-      cout<<endl;
+      std::cout<<std::endl;
     }
     //
     //group = rotation X faces
     //
-    cout<<"24 group"<<endl;
+    std::cout<<"24 group"<<std::endl;
     for(i=0;i<4;i++)
     {
       for(j=0;j<6;j++)
@@ -225,12 +243,12 @@ int _tmain(int argc, _TCHAR* argv[])
     }
     for(i=0;i<24;i++)
     {
-      cout<<i+1<<"\t";
+      std::cout<<i+1<<"\t";
       for(j=0;j<16;j++)
       {
-        cout<<group4D[i][j]<<",";
+        std::cout<<group4D[i][j]<<",";
       }
-      cout<<endl;
+      std::cout<<std::endl;
     }
     //
     //8 cube rotations along an axis of eight fold symmetry
@@ -247,18 +265,18 @@ int _tmain(int argc, _TCHAR* argv[])
     permute(t4D,Cubes4D[6],Cubes4D[7],16);
     permute(t4D,Cubes4D[7],Cubes4D[0],16);
 
-    cout<<"cube rotation"<<endl;
+    std::cout<<"cube rotation"<<std::endl;
     for(i=0;i<8;i++)
     {
-      cout<<i+1<<"\t";
+      std::cout<<i+1<<"\t";
       for(j=0;j<16;j++)
       {
-        cout<<Cubes4D[i][j]<<",";
+        std::cout<<Cubes4D[i][j]<<",";
       }
-      cout<<endl;
+      std::cout<<std::endl;
     }
     //group = rotation X faces
-    cout<<"192 group"<<endl;
+    std::cout<<"192 group"<<std::endl;
     for(i=0;i<8;i++)
     {
       for(j=0;j<24;j++)
@@ -270,18 +288,18 @@ int _tmain(int argc, _TCHAR* argv[])
     //print permutations
     for(i=0;i<192;i++)
     {
-      cout<<i+1<<"\t";
+      std::cout<<i+1<<"\t";
       for(j=0;j<16;j++)
       {
-        cout<<group4D[i][j]<<",";
+        std::cout<<group4D[i][j]<<",";
       }
-      cout<<endl;
+      std::cout<<std::endl;
     }
     //
     //the 32 edges defined by a pair of vertices are permuted using the 4D rotation group
     //
-    cout<<"permuted edges defined by vertex pairs at end points= "<<edges<<endl;
-    cout<<"edge    1       x       y      z     t"<<endl;
+    std::cout<<"permuted edges defined by vertex pairs at end points= "<<edges<<std::endl;
+    std::cout<<"edge    1       x       y      z     t"<<std::endl;
     
     for(i=0;i<edges;i++)
     {
@@ -296,11 +314,11 @@ int _tmain(int argc, _TCHAR* argv[])
     }
     for(i=0;i<edges;i++)
     {
-      cout<<i+1<<"\t"<<edges4D[i][0]<<","<<edges4D[i][1]<<"\t"<<xEdges[i][0]<<","<<xEdges[i][1]<<"\t"
-        <<yEdges[i][0]<<","<<yEdges[i][1]<<"\t"<<zEdges[i][0]<<","<<zEdges[i][1]<<"\t"<<tEdges[i][0]<<","<<tEdges[i][1]<<endl;
+      std::cout<<i+1<<"\t"<<edges4D[i][0]<<","<<edges4D[i][1]<<"\t"<<xEdges[i][0]<<","<<xEdges[i][1]<<"\t"
+        <<yEdges[i][0]<<","<<yEdges[i][1]<<"\t"<<zEdges[i][0]<<","<<zEdges[i][1]<<"\t"<<tEdges[i][0]<<","<<tEdges[i][1]<<std::endl;
     }  
-    cout<<endl;
-    cout<<"edge permutaion generators x,y,z,t"<<endl;
+    std::cout<<std::endl;
+    std::cout<<"edge permutaion generators x,y,z,t"<<std::endl;
     for(i=0;i<edges;i++)
     {
       for(j=0;j<edges;j++)
@@ -309,12 +327,12 @@ int _tmain(int argc, _TCHAR* argv[])
         {
           if(xEdges[i][1]==edges4D[j][0]||xEdges[i][1]==edges4D[j][1])
           {
-            cout<<j+1<<",";
+            std::cout<<j+1<<",";
           }
         }
       }
     }
-    cout<<endl;
+    std::cout<<std::endl;
     for(i=0;i<edges;i++)
     {
       for(j=0;j<edges;j++)
@@ -323,12 +341,12 @@ int _tmain(int argc, _TCHAR* argv[])
         {
           if(yEdges[i][1]==edges4D[j][0]||yEdges[i][1]==edges4D[j][1])
           {
-            cout<<j+1<<",";
+            std::cout<<j+1<<",";
           }
         }
       }
     }
-    cout<<endl;
+    std::cout<<std::endl;
     for(i=0;i<edges;i++)
     {
       for(j=0;j<edges;j++)
@@ -337,12 +355,12 @@ int _tmain(int argc, _TCHAR* argv[])
         {
           if(zEdges[i][1]==edges4D[j][0]||zEdges[i][1]==edges4D[j][1])
           {
-            cout<<j+1<<",";
+            std::cout<<j+1<<",";
           }
         }
       }
     }
-    cout<<endl;
+    std::cout<<std::endl;
     for(i=0;i<edges;i++)
     {
       for(j=0;j<edges;j++)
@@ -351,14 +369,18 @@ int _tmain(int argc, _TCHAR* argv[])
         {
           if(tEdges[i][1]==edges4D[j][0]||tEdges[i][1]==edges4D[j][1])
           {
-            cout<<j+1<<",";
+            std::cout<<j+1<<",";
           }
         }
       }
     }
-    cout<<endl;
+    std::cout<<std::endl;
   }//end 4D
-  if(dimension == 0) cout<<"error: the dimension range is from one to four"<<endl;
+
+  if(dimension == 0) 
+    {
+    std::cout<<"error: the dimension range is from one to four"<<std::endl;
+    }
 
   //permuteEdges(vertices,A,group4D);
 
@@ -370,7 +392,7 @@ void permuteEdges(int vertices, int A[16][16],int group4D[192][16])
   int i,j,k;
   int edge[32];
   //int A[16][16];
-  cout<<"edge graph A"<<endl;
+  std::cout<<"edge graph A"<<std::endl;
   for(i=0;i<vertices;i++)
   {
     for(j=0;j<vertices;j++)
@@ -391,14 +413,14 @@ void permuteEdges(int vertices, int A[16][16],int group4D[192][16])
   {
     for(j=0;j<vertices;j++)
     {
-      cout<<A[i][j]<<",";
+      std::cout<<A[i][j]<<",";
     }
-    cout<<endl;
+    std::cout<<std::endl;
   }
   //
   //permute edges
   //
-  cout<<"permute edges by permuting vertices in edge graph"<<endl;
+  std::cout<<"permute edges by permuting vertices in edge graph"<<std::endl;
   for(k=0;k<192;k++)
   {
     for(i=0;i<vertices;i++)
@@ -417,9 +439,9 @@ void permuteEdges(int vertices, int A[16][16],int group4D[192][16])
 
     for(i=0;i<32;i++)
     {
-      cout<<edge[i]<<",";
+      std::cout<<edge[i]<<",";
     }
-    cout<<endl;
+    std::cout<<std::endl;
   }
 }
 void permute(int *a, int *b, int *c, int elements)
