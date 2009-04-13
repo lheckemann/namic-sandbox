@@ -439,7 +439,7 @@ int itkTDistributionTest(int, char* [] )
 
   const unsigned int wrongNumberOfParameters =  distributionFunction->GetNumberOfParameters() * 42;
   DistributionType::ParametersType wrongParameters( wrongNumberOfParameters );
-
+  wrongParameters.Fill(1.0);
   std::cout << "new number of parameters = " << wrongParameters.Size() << std::endl;
   std::cout << "current number of parameters = " << distributionFunction->GetParameters().Size() << std::endl;
   distributionFunction->SetParameters( wrongParameters );
