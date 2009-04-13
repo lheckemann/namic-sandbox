@@ -23,12 +23,12 @@
     {  \
     std::cout << "Trying " << #command << std::endl; \
     command;  \
-    std::cerr << "Failed to catch Expected exception" << std::endl;  \
+    std::cerr << "Failed to catch expected exception" << std::endl;  \
     return EXIT_FAILURE;  \
     }  \
   catch( itk::ExceptionObject & excp )  \
     {  \
-    std::cout << "Catched expected exception" << std::endl;  \
+    std::cout << "Caught expected exception" << std::endl;  \
     std::cout << excp << std::endl; \
     }  
 
