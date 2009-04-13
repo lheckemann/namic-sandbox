@@ -42,6 +42,8 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
 
+  this->m_ScalarInterpolator = InterpolatorType::New();
+
   this->m_MaximumNumberOfIterations = 50;
 }
 
@@ -101,6 +103,7 @@ GenerateData()
   this->AllocateInternalArrays();
   this->ComputeBasisSystemAtEveryNode();
   this->ComputeInitialArrayOfDestinationPoints();
+  this->InitializeInterpolators();
 
   this->RunIterations();
   
@@ -279,6 +282,16 @@ ComputeInitialArrayOfDestinationPoints()
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+InitializeInterpolators()
+{
+  this->m_ScalarInterpolator->SetInputMesh( this->m_MovingMesh );
+  this->m_ScalarInterpolator->Initialize();
+
+}
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 RunIterations()
 {
   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
@@ -326,17 +339,9 @@ ComputeMappedMovingValueAtEveryNode()
 
   ResampledMovingValuesContainerIterator  resampledArrayItr = this->m_ResampledMovingValuesContainer->Begin();
 
-  typedef LinearInterpolateMeshFunction< MovingMeshType >   InterpolatorType;
-
-  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-
-  interpolator->SetInputMesh( this->m_MovingMesh );
-
-  interpolator->Initialize(); // This step doesn't really need to be repeated...
-
   while( pointItr != pointEnd )
     {
-    resampledArrayItr.Value() = interpolator->Evaluate( pointItr.Value() );
+    resampledArrayItr.Value() = this->m_ScalarInterpolator->Evaluate( pointItr.Value() );
     ++pointItr;
     ++resampledArrayItr;
     }
