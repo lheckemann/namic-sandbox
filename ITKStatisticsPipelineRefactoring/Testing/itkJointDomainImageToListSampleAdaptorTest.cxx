@@ -151,7 +151,7 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
   ImageType::IndexType index;
   ImageType::PixelType pixel;
 
-  JointDomainImageToListSampleAdaptorType::InstanceIdentifier    id;
+  JointDomainImageToListSampleAdaptorType::InstanceIdentifier    iid;
   typedef JointDomainImageToListSampleAdaptorType::MeasurementVectorType MeasurementVectorType;
   JointDomainImageToListSampleAdaptorType::PointType             tempPoint;
   
@@ -177,9 +177,9 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
       measurementVector[4] = pixel[1];
       measurementVector[5] = pixel[2];
       
-      id = adaptor->GetImage()->ComputeOffset( index );
+      iid = adaptor->GetImage()->ComputeOffset( index );
 
-      MeasurementVectorType measurementVectorFromAdaptor = adaptor->GetMeasurementVector(id);      
+      MeasurementVectorType measurementVectorFromAdaptor = adaptor->GetMeasurementVector(iid);      
       for ( unsigned int m=0 ; m < 5 ; m ++ )
         {
         if ( measurementVectorFromAdaptor[m] != measurementVector[m] )
@@ -258,17 +258,17 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
     return EXIT_FAILURE;    
     }
 
-  JointDomainImageToListSampleAdaptorType::InstanceIdentifier id = 0;
+  JointDomainImageToListSampleAdaptorType::InstanceIdentifier iid2 = 0;
   while (s_iter != adaptor->End())
     {
-    if (adaptor->GetMeasurementVector(id) != 
+    if (adaptor->GetMeasurementVector(iid2) != 
         s_iter.GetMeasurementVector())
       {
       std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
                 << std::endl;
       return EXIT_FAILURE;
       }
-    if (id != s_iter.GetInstanceIdentifier())
+    if (iid2 != s_iter.GetInstanceIdentifier())
       {
       std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
                 << std::endl;
@@ -279,12 +279,12 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
       std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
       return EXIT_FAILURE;
       }
-    if (adaptor->GetFrequency(id) != 1)
+    if (adaptor->GetFrequency(iid2) != 1)
       {
       std::cerr << "GetFrequency (forward) failed" << std::endl;
       return EXIT_FAILURE;
       }
-    ++id;
+    ++iid2;
     ++s_iter;
     }
   
@@ -341,17 +341,17 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
     return EXIT_FAILURE;    
     }
  
-  JointDomainImageToListSampleAdaptorType::InstanceIdentifier id = 0;
+  JointDomainImageToListSampleAdaptorType::InstanceIdentifier iid3 = 0;
   while (s_iter != adaptor->End())
     {
-    if (adaptor->GetMeasurementVector(id) != 
+    if (adaptor->GetMeasurementVector(iid3) != 
         s_iter.GetMeasurementVector())
       {
       std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
                 << std::endl;
       return EXIT_FAILURE;
       }
-    if (id != s_iter.GetInstanceIdentifier())
+    if (iid3 != s_iter.GetInstanceIdentifier())
       {
       std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
                 << std::endl;
@@ -362,7 +362,7 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
       std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
       return EXIT_FAILURE;
       }
-    ++id;
+    ++iid3;
     ++s_iter;
     }
   
