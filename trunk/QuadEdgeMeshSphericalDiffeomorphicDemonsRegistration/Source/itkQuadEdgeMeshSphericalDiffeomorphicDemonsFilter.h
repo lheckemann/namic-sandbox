@@ -103,6 +103,7 @@ private:
   void AllocateInternalArrays();
   void ComputeBasisSystemAtEveryNode();
   void ComputeInitialArrayOfDestinationPoints();
+  void InitializeInterpolators();
 
   void RunIterations();
   void ComputeMappedMovingValueAtEveryNode();
@@ -143,6 +144,12 @@ private:
    * deformation field. */
   typename ResampledMovingValuesContainerType::Pointer          m_ResampledMovingValuesContainer;
 
+
+  /** Interpolator type for bringing scalar values from the Moving Mesh into the Fixed Mesh. */
+  typedef LinearInterpolateMeshFunction< MovingMeshType >       InterpolatorType;
+
+  /** Interpolator object that will bring scalar valurs from the Moving Mesh into the Fixed Mesh. */
+  typename InterpolatorType::Pointer                            m_ScalarInterpolator; 
 
   typedef NodeScalarGradientCalculator< 
     FixedMeshType, ResampledMovingValuesContainerType >         NodeScalarGradientCalculatorType;
