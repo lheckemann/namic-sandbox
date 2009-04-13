@@ -260,7 +260,7 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
   const FilterType::MembershipFunctionsWeightsArrayType  weightsArray = weightArrayObjects->Get();
 
   std::cout << "Estimator membership function Weight/proporation output: " << std::endl;
-  for(unsigned int i=0; i < weightsArray.Size(); i++ )
+  for(i=0; i < weightsArray.Size(); i++ )
     {
     std::cout << "Membership function: \t" << i << "\t" << weightsArray[i] << std::endl;
     }

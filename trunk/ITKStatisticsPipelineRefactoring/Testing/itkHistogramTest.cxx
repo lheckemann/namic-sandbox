@@ -583,14 +583,14 @@ int itkHistogramTest(int, char* [] )
   //
   {
   const double epsilon = 1e-6;
-  HistogramType::SizeType size = histogram->GetSize();
+  HistogramType::SizeType size2 = histogram->GetSize();
 
   HistogramType::BinMinContainerType binMinimums = histogram->GetMins();
 
   for( unsigned int dim = 0 ; dim < numberOfComponents; dim++ )
     {
     HistogramType::BinMinVectorType binDimensionMinimums = histogram->GetDimensionMins( dim );
-    for( unsigned int k = 0; k < size[dim]; k++ )
+    for( unsigned int k = 0; k < size2[dim]; k++ )
       {
       HistogramType::MeasurementType minA = binMinimums[dim][k];
       HistogramType::MeasurementType minB = binDimensionMinimums[k];
@@ -613,7 +613,7 @@ int itkHistogramTest(int, char* [] )
   for( unsigned int dim = 0 ; dim < numberOfComponents; dim++ )
     {
     HistogramType::BinMaxVectorType binDimensionMaximums = histogram->GetDimensionMaxs( dim );
-    for( unsigned int k = 0; k < size[dim]; k++ )
+    for( unsigned int k = 0; k < size2[dim]; k++ )
       {
       HistogramType::MeasurementType maxA = binMaximums[dim][k];
       HistogramType::MeasurementType maxB = binDimensionMaximums[k];
