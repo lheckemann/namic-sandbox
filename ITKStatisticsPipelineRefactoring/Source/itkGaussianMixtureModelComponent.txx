@@ -34,6 +34,8 @@ GaussianMixtureModelComponent< TSample >
   m_GaussianMembershipFunction = NativeMembershipFunctionType::New();
   this->SetMembershipFunction((MembershipFunctionType*)
                               m_GaussianMembershipFunction.GetPointer());
+  m_Mean.Fill(0.0);
+  m_Covariance.SetIdentity();
 }
 
 template< class TSample >
