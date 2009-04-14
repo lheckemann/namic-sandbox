@@ -78,13 +78,10 @@ int itkImageToListSampleFilterTest2(int, char* [] )
   typedef itk::ImageRegionIteratorWithIndex< MaskImageType > MaskIteratorType;
   MaskIteratorType mit( maskImage, regionMask );
   mit.GoToBegin();
-  unsigned int counter2=0;
-
   while( !mit.IsAtEnd() )
     {
     mit.Set((unsigned char)255);    
     ++mit; 
-    counter2++;
     }
 
   // Generate a list sample from "image" confined to the mask, "maskImage".

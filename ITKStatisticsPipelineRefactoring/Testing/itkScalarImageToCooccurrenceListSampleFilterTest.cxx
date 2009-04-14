@@ -25,7 +25,7 @@
 #include "itkScalarImageToCooccurrenceListSampleFilter.h"
 #include <vector>
 
-int itkScalarImageToCooccurrenceListSampleFilterTest( int argc, char * argv [] )
+int itkScalarImageToCooccurrenceListSampleFilterTest( int , char *[] )
 {
 //Data definitions 
   const unsigned int  IMGWIDTH         =  5;
