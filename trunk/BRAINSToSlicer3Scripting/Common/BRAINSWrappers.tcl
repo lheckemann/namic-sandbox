@@ -315,26 +315,25 @@ b2_proc_generator b2_load_image { { fileName - required }  {centered 0} {labelim
     set NodeName [file tail $fileName]_$::FileReaderIncrementUniqueIdCounter;
     incr ::FileReaderIncrementUniqueIdCounter;
   }
+  if { "${BRAINSScriptingMRMLisGUI}" == "true" } {
 # load_options is a bit masks defining how to treat the loaded image
-  set centered 0;
-  set orient 0;
-  set label 0;
-  set singleFile 0;
-  set loadingOptions [expr $label * 1 + $centered * 2 + $singleFile * 4 + $orient * 16];
-
-  set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume "$fileName" ${NodeName} ${loadingOptions} ]
-
-  set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
-  if { $volumeNode == "" } {
-    $this errorDialog "Could not load $fileName as a volume"
-    return -1
+    set centered 0;
+    set orient 0;
+    set label 0;
+    set singleFile 0;
+    set loadingOptions [expr $label * 1 + $centered * 2 + $singleFile * 4 + $orient * 16];
+    set fileList "";
+    set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume "$fileName" ${NodeName} ${loadingOptions} ${fileList} ]
   } else {
-    if { $label } {
-      $selNode SetReferenceActiveLabelVolumeID [$volumeNode GetID]
-    } else {
-      $selNode SetReferenceActiveVolumeID [$volumeNode GetID]
-    }
-    $::slicer3::ApplicationLogic PropagateVolumeSelection
+    set volumeNode [vtkMRMLScalarVolumeNode New]
+    set storageNode [vtkMRMLVolumeArchetypeStorageNode New]
+    $volumeNode SetName $name
+    $storageNode SetFileName $fileName
+    [ GetBatchMRMLScene ] AddNode $storageNode
+    [ GetBatchMRMLScene ] AddNode $volumeNode
+    $volumeNode SetAndObserveStorageNodeID [$storageNode GetID]
+    $storageNode ReadData $volumeNode
+    $storageNode Delete
   }
   if { [ llength $volumeNode ] == 0 } {
     puts "ERROR in reading file $fileName"
@@ -659,10 +658,9 @@ b2_proc_generator b2_save_histogram { { volumeNode - required }  {arugment2defau
 #Return    Upon successful completion, 0 is returned,
 #        otherwise an error status of -1 is returned
 b2_proc_generator b2_save_image { { ImageToSave - required } { outputFileName - required } } {
-    set VolumeStorageNode [ vtkMRMLVolumeArchetypeStorageNode New ]
-    $VolumeStorageNode SetFileName ${outputFileName}
-    $VolumeStorageNode WriteData ${ImageToSave}
-    $VolumeStorageNode Delete
+    set storageNode [ $ImageToSave GetStorageNode ]
+    $storageNode SetFileName ${outputFileName}
+    $storageNode WriteData ${ImageToSave}
 }
 
 #Usage  b2 save landmark <file-name> <filter-name>  <landmarkID> <filter-suffix= filter-suffix>
@@ -2618,7 +2616,7 @@ proc remove_trailing_ones_from_list { mylist } {
 #       returned, otherwise an error status of -1 is
 #       returned.
 b2_proc_generator b2_get_dims_image { { volumeNode - required } } {
-  set statusvalue [catch { [ $volumeNode GetImageData ] GetDimensions } dims ];
+  set statusvalue [catch { [string trim [ $volumeNode GetImageData ] GetDimensions ] } dims ];
   if { $statusvalue } then {
     puts "b2_get_dims_image failed";
     return -1;
@@ -2890,7 +2888,7 @@ b2_proc_generator b2_get_patient-id { { volumeNode - required }  {arugment2defau
 #       to the number of dimensions in the image.  If an error
 #       occurs, then the error status of -1 is returned.
 b2_proc_generator b2_get_res_image { { volumeNode - required } } {
-  set statusvalue [ catch { $volumeNode GetSpacing  } res ];
+  set statusvalue [ catch { [string trim [$volumeNode GetSpacing] ]  } res ];
   if { $statusvalue } then {
     puts "b2_get_res_image Failed";
     return -1;
