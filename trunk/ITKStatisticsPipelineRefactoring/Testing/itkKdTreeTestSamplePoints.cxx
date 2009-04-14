@@ -26,7 +26,7 @@
 #include "itkEuclideanDistanceMetric.h"
 #include <fstream>
 
-int itkKdTreeTestSamplePoints(int argc , char * argv [] )
+int itkKdTreeTestSamplePoints(int , char *[] )
 {
   typedef itk::Array< double > MeasurementVectorType ;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
@@ -86,8 +86,6 @@ int itkKdTreeTestSamplePoints(int argc , char * argv [] )
   MeasurementVectorType test_point( measurementVectorSize ) ;
   MeasurementVectorType min_point( measurementVectorSize ) ;
 
-  unsigned int numberOfFailedPoints1 = 0;
-
   //
   //  Check that for every point in the sample, its closest point is itself.
   //
@@ -125,7 +123,6 @@ int itkKdTreeTestSamplePoints(int argc , char * argv [] )
         std::cerr << "[" << tree->GetMeasurementVector( neighbors[i] )
                   << "] : "  
                   << distance << std::endl;
-        numberOfFailedPoints1++;
         }
       }
     }
