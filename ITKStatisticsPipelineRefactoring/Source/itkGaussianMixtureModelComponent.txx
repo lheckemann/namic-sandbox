@@ -198,13 +198,11 @@ GaussianMixtureModelComponent< TSample >
   typename TSample::ConstIterator iter = this->GetSample()->Begin();
   typename TSample::ConstIterator end =  this->GetSample()->End();
 
-  int measurementVectorIndex = 0;
   typename TSample::MeasurementVectorType measurements;
 
   while (iter != end)
     {
     measurements = iter.GetMeasurementVector(); 
-    ++measurementVectorIndex;
     ++iter;
     }
 

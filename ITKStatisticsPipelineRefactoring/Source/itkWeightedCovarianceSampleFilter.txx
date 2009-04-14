@@ -115,8 +115,6 @@ WeightedCovarianceSampleFilter< TSample >
   const  WeightingFunctionType * weightFunction = functionObject->Get();
 
   //Compute the mean first
-
-  unsigned int measurementVectorIndex = 0;
   while (iter != end)
     {
     measurements = iter.GetMeasurementVector();
@@ -159,7 +157,6 @@ WeightedCovarianceSampleFilter< TSample >
         }
       }
     ++iter;
-    ++measurementVectorIndex;
     }
 
   // fills the upper triangle using the lower triangle  
