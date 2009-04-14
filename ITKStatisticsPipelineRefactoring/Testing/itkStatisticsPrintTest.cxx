@@ -90,7 +90,7 @@ int itkStatisticsPrintTest(int , char* [])
     SampleType, ImageType, OutputImageType > ImageClassifierFilterType;
 
   typedef itk::Statistics::ImageToListSampleFilter< 
-    ImageType, ImageType > ImageToListSampleFilterType;
+    ImageType, ScalarImageType > ImageToListSampleFilterType;
 
   typedef itk::Statistics::ImageToListSampleAdaptor< 
     ImageType> ImageToListSampleAdaptorType;

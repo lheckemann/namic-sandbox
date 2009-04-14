@@ -24,6 +24,7 @@
 #include "itkFixedArray.h"
 #include "itkVector.h"
 #include "itkMeanSampleFilter.h"
+#include "itkNumericTraitsFixedArrayPixel.h"
 
 int itkCovarianceSampleFilterTest(int, char* [] ) 
 {
@@ -35,7 +36,8 @@ int itkCovarianceSampleFilterTest(int, char* [] )
   typedef float MeasurementType;
 
   typedef itk::FixedArray< MeasurementType, MeasurementVectorSize > MeasurementVectorType;
-  typedef itk::Image< MeasurementVectorType, 3 > ImageType;
+  typedef itk::Image< MeasurementVectorType, 3 >  ImageType;
+  typedef itk::Image< unsigned char, 3 >          MaskImageType;
 
   ImageType::Pointer image = ImageType::New();
   ImageType::RegionType region;
@@ -67,11 +69,9 @@ int itkCovarianceSampleFilterTest(int, char* [] )
     }
 
   // creates an ImageToListAdaptor object
-  typedef  itk::Statistics::ImageToListSampleFilter< ImageType, ImageType >
-                                     ImageToListSampleFilterType;
+  typedef  itk::Statistics::ImageToListSampleFilter< ImageType, MaskImageType > ImageToListSampleFilterType;
 
-  ImageToListSampleFilterType::Pointer sampleGeneratingFilter
-                            = ImageToListSampleFilterType::New();
+  ImageToListSampleFilterType::Pointer sampleGeneratingFilter = ImageToListSampleFilterType::New();
 
   sampleGeneratingFilter->SetInput( image );
 
@@ -86,7 +86,7 @@ int itkCovarianceSampleFilterTest(int, char* [] )
     }
 
   typedef ImageToListSampleFilterType::ListSampleType                 ListSampleType;
-  typedef itk::Statistics::CovarianceSampleFilter< ListSampleType >         CovarianceSampleFilterType;
+  typedef itk::Statistics::CovarianceSampleFilter< ListSampleType >   CovarianceSampleFilterType;
 
   CovarianceSampleFilterType::Pointer covarianceFilter = CovarianceSampleFilterType::New();
 
