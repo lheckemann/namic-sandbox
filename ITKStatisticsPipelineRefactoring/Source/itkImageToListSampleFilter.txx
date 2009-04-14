@@ -27,7 +27,7 @@ template < class TImage, class TMaskImage >
 ImageToListSampleFilter< TImage, TMaskImage >
 ::ImageToListSampleFilter()
 {
-  (void)(this->m_MaskValue); // FIXME: Bug here, marked by Valdrind: uninitialized variable when pixel type is a FixedArray.
+  this->m_MaskValue = itk::NumericTraits< MaskPixelType >::max();
   this->SetNumberOfRequiredInputs(1);
   this->SetNumberOfRequiredOutputs(1);
 
