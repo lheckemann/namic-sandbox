@@ -240,7 +240,7 @@ Histogram<TMeasurement, TFrequencyContainer >
 {
   this->Initialize(size);
 
-  float interval = 0.0;
+  float interval;
   for ( unsigned int i = 0; i < this->GetMeasurementVectorSize(); i++)
     {
     if( size[i] > 0 )

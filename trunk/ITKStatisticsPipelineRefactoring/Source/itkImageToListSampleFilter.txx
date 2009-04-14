@@ -116,7 +116,7 @@ ImageToListSampleFilter< TImage, TMaskImage >
     }
 
   MeasurementVectorType m;
-  unsigned int measurementVectorSize = 0;
+  unsigned int measurementVectorSize;
 
   if( !MeasurementVectorTraits::IsResizable( m ) )
     {
