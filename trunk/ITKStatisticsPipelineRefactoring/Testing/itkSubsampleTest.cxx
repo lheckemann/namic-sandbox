@@ -51,13 +51,15 @@ int itkSubsampleTest(int, char* [] )
   // creat a new image with array pixel type from the source
   typedef itk::FixedArray< FloatImage::PixelType, 1 > ArrayPixelType ;
   typedef itk::Image< ArrayPixelType, 3 > ArrayPixelImageType ;
+  typedef itk::Image< unsigned char, 3 >  MaskPixelImageType ;
+
   typedef itk::ScalarToArrayCastImageFilter< FloatImage, ArrayPixelImageType >
     ImageCastFilterType ;
   ImageCastFilterType::Pointer castFilter = ImageCastFilterType::New() ;
   castFilter->SetInput(source->GetOutput()) ;
   castFilter->Update();
 
-  typedef  itk::Statistics::ImageToListSampleFilter< ArrayPixelImageType >
+  typedef  itk::Statistics::ImageToListSampleFilter< ArrayPixelImageType, MaskPixelImageType >
     ImageToListSampleFilterType ;
 
   ImageToListSampleFilterType::Pointer filter = ImageToListSampleFilterType::New() ;

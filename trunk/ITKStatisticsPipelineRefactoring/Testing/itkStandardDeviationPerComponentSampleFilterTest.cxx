@@ -36,6 +36,7 @@ int itkStandardDeviationPerComponentSampleFilterTest(int, char* [] )
 
   typedef itk::FixedArray< MeasurementType, MeasurementVectorSize > MeasurementVectorType;
   typedef itk::Image< MeasurementVectorType, MeasurementVectorSize > ImageType;
+  typedef itk::Image< unsigned char, MeasurementVectorSize >         MaskImageType;
 
   ImageType::Pointer image = ImageType::New();
   ImageType::RegionType region;
@@ -69,7 +70,7 @@ int itkStandardDeviationPerComponentSampleFilterTest(int, char* [] )
     }
 
   // creates an ImageToListAdaptor object
-  typedef  itk::Statistics::ImageToListSampleFilter< ImageType, ImageType >
+  typedef  itk::Statistics::ImageToListSampleFilter< ImageType, MaskImageType >
                                      ImageToListSampleFilterType;
 
   ImageToListSampleFilterType::Pointer sampleGeneratingFilter
