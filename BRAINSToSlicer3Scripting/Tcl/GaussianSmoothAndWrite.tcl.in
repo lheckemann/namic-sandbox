@@ -33,9 +33,9 @@ proc runtest {} {
 #      close $ff
       if { $ret } {
             puts stderr $res
-            exit -1; #Failure
+#            exit -1; #Failure
       }
-      exit 0; #Success
+#      exit 0; #Success
 }
 
 update

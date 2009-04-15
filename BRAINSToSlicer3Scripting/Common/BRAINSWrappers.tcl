@@ -251,6 +251,16 @@ b2_proc_generator b2_gaussian_filter { { volumeNode - required } { RadiusFactor 
 ##Attach the image info
   ${outputVolumeNode} SetAndObserveImageData ${GFilterOutput}
   ${GFilter} Delete
+
+##Now make the gaussian smoothed image the active volume
+  if { $outputVolumeNode == "" } {
+    puts "Could not load $fileName as a volume"
+    return -1
+  } else {
+    set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+    $selNode SetReferenceActiveVolumeID [$outputVolumeNode GetID]
+    $::slicer3::ApplicationLogic PropagateVolumeSelection
+  }
   return ${outputVolumeNode}
 }
 
@@ -303,6 +313,7 @@ b2_proc_generator b2_load_histogram { { volumeNode - required }  {arugment2defau
   return -1;
 }
 
+
 #Usage  b2 load image  <<image-file1>
 #Description  Loads a small set of images for 1- or 3-color display.
 #<<image-file1> ...>  up to 5 (IPL_MAX_CHANNELS) of display information.
@@ -310,7 +321,9 @@ b2_proc_generator b2_load_histogram { { volumeNode - required }  {arugment2defau
 #Return  Upon successful completion a newly created image
 #       object identifier is returned,  otherwise an error
 #       status of -1 is returned.
-b2_proc_generator b2_load_image { { fileName - required }  {centered 0} {labelimage 0} {NodeName EmptyStringValue} } {
+b2_proc_generator b2_load_image { { TEMPfileName - required }  {centered 0} {labelimage 0} {NodeName "EmptyStringValue" } } {
+  global BRAINSScriptingMRMLisGUI;
+  set fileName [ file nativename ${TEMPfileName} ]; #Need to expand file name out to remove tilde and other relative pathing
   if { "${NodeName}" == "EmptyStringValue" } then {
     set NodeName [file tail $fileName]_$::FileReaderIncrementUniqueIdCounter;
     incr ::FileReaderIncrementUniqueIdCounter;
@@ -323,7 +336,20 @@ b2_proc_generator b2_load_image { { fileName - required }  {centered 0} {labelim
     set singleFile 0;
     set loadingOptions [expr $label * 1 + $centered * 2 + $singleFile * 4 + $orient * 16];
     set fileList "";
-    set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume "$fileName" ${NodeName} ${loadingOptions} ${fileList} ]
+    set volumeLogic [ GetBatchVolumesLogic ];
+    set volumeNode [ ${volumeLogic} AddArchetypeVolume "$fileName" ${NodeName} ${loadingOptions} ${fileList} ]
+    set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+    if { $volumeNode == "" } {
+      puts "Could not load $fileName as a volume"
+      return -1
+    } else {
+      if { $label } {
+        $selNode SetReferenceActiveLabelVolumeID [$volumeNode GetID]
+      } else {
+        $selNode SetReferenceActiveVolumeID [$volumeNode GetID]
+      }
+      $::slicer3::ApplicationLogic PropagateVolumeSelection
+    }
   } else {
     set volumeNode [vtkMRMLScalarVolumeNode New]
     set storageNode [vtkMRMLVolumeArchetypeStorageNode New]
@@ -335,10 +361,10 @@ b2_proc_generator b2_load_image { { fileName - required }  {centered 0} {labelim
     $storageNode ReadData $volumeNode
     $storageNode Delete
   }
-  if { [ llength $volumeNode ] == 0 } {
-    puts "ERROR in reading file $fileName"
-    return -1;
-  }
+#  if { [ llength $volumeNode ] == 0 } {
+#    puts "ERROR in reading file $fileName"
+#    return -1;
+#  }
   return ${volumeNode}
 }
 
@@ -2616,11 +2642,12 @@ proc remove_trailing_ones_from_list { mylist } {
 #       returned, otherwise an error status of -1 is
 #       returned.
 b2_proc_generator b2_get_dims_image { { volumeNode - required } } {
-  set statusvalue [catch { [string trim [ $volumeNode GetImageData ] GetDimensions ] } dims ];
-  if { $statusvalue } then {
-    puts "b2_get_dims_image failed";
-    return -1;
-  }
+#  set statusvalue [catch { [string trim [ $volumeNode GetImageData ] GetDimensions ] } dims ];
+  set dims [string trim [ [ $volumeNode GetImageData ] GetDimensions ] ];
+#  if { $statusvalue } then {
+#    puts "b2_get_dims_image failed";
+#    return -1;
+#  }
   return [ remove_trailing_ones_from_list $dims ];
 }
 
@@ -2888,11 +2915,12 @@ b2_proc_generator b2_get_patient-id { { volumeNode - required }  {arugment2defau
 #       to the number of dimensions in the image.  If an error
 #       occurs, then the error status of -1 is returned.
 b2_proc_generator b2_get_res_image { { volumeNode - required } } {
-  set statusvalue [ catch { [string trim [$volumeNode GetSpacing] ]  } res ];
-  if { $statusvalue } then {
-    puts "b2_get_res_image Failed";
-    return -1;
-  }
+#  set statusvalue [ catch { [string trim [$volumeNode GetSpacing] ]  } res ];
+  set res [string trim [$volumeNode GetSpacing] ];
+#  if { $statusvalue } then {
+#    puts "b2_get_res_image Failed";
+#    return -1;
+#  }
   #Need to get the real dims (i.e. trailing dimensions of 1 don't count) so that only that many resolutions are reported.
   set tempdims [b2_get_dims_image ${volumeNode} ]
   set trunc_res [ lrange $res 0 [ expr [ llength $tempdims ] - 1 ] ];
