@@ -63,10 +63,10 @@
 #define PATIENTINFERIOR  5
 #define PATIENTSUPERIOR  6
 
-#define DEFAULTTHRESHOLD 48000
+#define DEFAULTTHRESHOLD 1000
 #define DEFAULTINTENSITY 15000
-#define DEFAULTERODE     3
-#define DEFAULTDILATE    2
+#define DEFAULTERODE     1
+#define DEFAULTDILATE    1
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkRealTimeNeedleDetectionGUI);
@@ -87,7 +87,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   ROIpresent    = 0;
   showNeedle    = 0;
   scanPlane     = 0;
-  needleOrigin  = PATIENTLEFT; //if this default value gets changed, the initial value for pEntryPointButtonSet needs to get changed, too
+  needleOrigin  = PATIENTPOSTERIOR; //if this default value gets changed, the initial value for pEntryPointButtonSet needs to get changed, too
   
   //----------------------------------------------------------------
   // GUI widgets
@@ -133,7 +133,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   currentZImageRegionSize   = 256;
   needleDetectionThreshold  = DEFAULTTHRESHOLD;
   needleIntensity           = DEFAULTINTENSITY;
-  gaussVariance             = 0;                  // = LaplacianGaussian Filter does not get used
+  gaussVariance             = 1;                  
   imageDimensions[0]        = 256;
   imageDimensions[1]        = 256;
   imageDimensions[2]        = 1;
@@ -718,6 +718,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;
       double fovK = imageDimensions[2] * imageSpacing[2] / 2.0;  
       scalarSize = pImageData->GetScalarSize();
+      //TODO: Make outputImage rotate like inputimage
       orientOutputImage(fovI, fovJ, fovK);
       //TODO: Do I need to get the scalarType, too?
       if(ROIpresent)
@@ -795,42 +796,37 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
-      //TODO:write all images not only in tmp, but also in the output!
+      //TODO:write all images not only in tmp, but also in the output! Then they don't have to get processed twice
                  
-      if(gaussVariance)
-      {
-        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, true);  //makes the line white -> no inversion needed
-        pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, false); 
-        pImageProcessor->GetImage((void*) pImageRegionOutput1);
-        SetImageRegion(pImageData, pImageRegionOutput1, 1);  // write the region of interest after top/left in the MRI image received from the scanner
-        //TODO:DELETE pImageRegionOutput1!!        
-      }
-      else
-        pImageProcessor->Invert(false, true);        
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
+      pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, true);  //makes the line white -> no inversion needed
+      pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, false); 
+      pImageProcessor->GetImage((void*) pImageRegionOutput1);
+      SetImageRegion(pImageData, pImageRegionOutput1, 1);  // write the region of interest after top/left in the MRI image received from the scanner
+      //TODO:DELETE pImageRegionOutput1!!                
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
       
       pImageProcessor->DilateAndErode(true, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // 2 == dilate value, default: 3 == erode value
       pImageProcessor->DilateAndErode(true, false, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt());
       pImageProcessor->GetImage((void*) pImageRegionOutput2);
       SetImageRegion(pImageData, pImageRegionOutput2, 2);  // write the region of interest after top/right in the MRI image received from the scanner
       //TODO:DELETE pImageRegionOutput2!!        
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, true, 0, (int) needleDetectionThreshold, MAX);
       pImageProcessor->Threshold(true, false, 0, (int) needleDetectionThreshold, MAX);
       pImageProcessor->GetImage((void*) pImageRegionOutput3);
       SetImageRegion(pImageData, pImageRegionOutput3, 3);  // write the region of interest bottom/left in the MRI image received from the scanner
       //TODO:DELETE pImageRegionOutput3!!      
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Threshold.png",TMP);      
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Threshold.png",TMP);      
       
       pImageProcessor->BinaryThinning(true, true);  // needs inverted images, because it thins to a white line
       pImageProcessor->BinaryThinning(true, false);
       pImageProcessor->GetImage((void*) pImageRegionOutput4);
       SetImageRegion(pImageData, pImageRegionOutput4, 4);  // write the region of interest bottom/right in the MRI image received from the scanner
       //TODO:DELETE pImageRegionOutput4!!  
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Thinning.png",TMP);
+      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Thinning.png",TMP);
       
 //      pImageProcessor->SobelFilter(true, true, 1);     
   //    pImageProcessor->SobelFilter(true,true,1);
@@ -1065,7 +1061,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               buttonSetLabel->GetWidgetName() , this->pEntryPointButtonSet->GetWidgetName());
   
-  this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->SelectedStateOn();  //default, always needs to correspond to the member variable needleOrigin
+  this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->SelectedStateOn();  //default, always needs to correspond to the member variable needleOrigin
   this->pEntryPointButtonSet->EnabledOn();
   buttonSetFrame->Delete();
   
@@ -1159,10 +1155,10 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pGaussScale->SetLabelText("Gaussian Variance");
   this->pGaussScale->Create();
   this->pGaussScale->GetScale()->SetLength(180); 
-  this->pGaussScale->SetRange(0,10);
+  this->pGaussScale->SetRange(1,10);
   this->pGaussScale->SetResolution(1);
   //TODO:Steve can I constrict the values to integer?  -> floor?
-  this->pGaussScale->SetValue(0);  
+  this->pGaussScale->SetValue(1);  
   this->Script("pack %s -side left -padx 2 -pady 2", this->pGaussScale->GetWidgetName());  
   
   sliderFrame3->Delete();  
