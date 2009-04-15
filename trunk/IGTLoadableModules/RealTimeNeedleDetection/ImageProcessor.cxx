@@ -361,7 +361,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   double norm = sqrt(v[0]*v[0]+v[1]*v[1]);
   v[0] /= norm;
   v[1] /= norm; 
-  std::cout << " | | points: u=" << u[0] << "|" << u[1] << " v=" << v[0] << "|" << v[1] << std::endl;   
+  std::cout << " | | u=" << u[0] << "|" << u[1] << " v=" << v[0] << "|" << v[1] << std::endl;   
           
   //--------------------------------------------------------------------------------------------------
   //draw found line in mLocalOutputImage
@@ -423,41 +423,42 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
         points[1] = (u[1]+i*v[1]); // Y-coordinate of the first point of the needle in the image
         pixelIsNeedle = true;
         //TODO:get initial intensity right
-//        initialIntensity = 0;
-//        for(int j = -1; j < 2; ++j)
-//          for(int k = 0; k < 2; ++k)
-//          {
-//            if(needleEnteringDirection == ENTERINGRIGHT)
-//            {
-//              offsetIndex[0] = localIndex[0]+k;
-//              offsetIndex[1] = localIndex[1]+j;
-//            }
-//            else if(needleEnteringDirection == ENTERINGBOTTOM)
-//            {
-//              offsetIndex[0] = localIndex[0]+j;
-//              offsetIndex[1] = localIndex[1]+k;
-//            }
-//            initialIntensity += mLocalOutputImage->GetPixel(offsetIndex);
-//            std::cout << " | | intensities:" << mLocalOutputImage->GetPixel(offsetIndex) << std::endl;
-//          }
-//        initialIntensity /= 6;
-//        std::cout << " | | initial intensity:" << initialIntensity << std::endl;
+        initialIntensity = 0;
+        for(int j = -1; j < 2; ++j)
+          for(int k = -1; k < 1; ++k)
+          {
+            if(needleEnteringDirection == ENTERINGRIGHT)
+            {
+              offsetIndex[0] = localIndex[0]+k;
+              offsetIndex[1] = localIndex[1]+j;
+            }
+            else if(needleEnteringDirection == ENTERINGBOTTOM)
+            {
+              offsetIndex[0] = localIndex[0]+j;
+              offsetIndex[1] = localIndex[1]+k;
+            }
+            initialIntensity += mLocalOutputImage->GetPixel(offsetIndex);
+            std::cout << " | | " << offsetIndex[0] << "&" << offsetIndex[1] << "->";
+            std::cout << mLocalOutputImage->GetPixel(offsetIndex) << std::endl;
+          }
+        initialIntensity /= 6;
+        std::cout << " | | initial intensity:" << initialIntensity << std::endl;
       }
       else
       {        
-        for (int j = -1; j < 2; ++j) 
+        for (int j = -1; j < 2; ++j) //TODO: continue -> maybe use the average value from the beginning
         {
           if(needleEnteringDirection == ENTERINGRIGHT) 
             offsetIndex[1] = localIndex[1]+j; //Y-1, Y, Y+1
           else if(needleEnteringDirection == ENTERINGBOTTOM) 
             offsetIndex[0] = localIndex[0]+j;    //X-1, X, X+1    
             
-   //       std::cout << mLocalOutputImage->GetPixel(offsetIndex) << "|";
+          std::cout << " | | " << offsetIndex[0] << "&" << offsetIndex[1] << "->" << mLocalOutputImage->GetPixel(offsetIndex) << "|";
 
-          if(mLocalOutputImage->GetPixel(offsetIndex) < intensityThresh)
+          if(abs((int) (mLocalOutputImage->GetPixel(offsetIndex) - lastIntensity)) <= intensityThresh) 
             pixelIsNeedle = true;            
         }          
- //       std::cout << std::endl;
+        std::cout << std::endl;
       }
   
       if(pixelIsNeedle)  // if pixel still belongs to needle
@@ -475,7 +476,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
       }
       mLocalOutputImage->SetPixel(localIndex, 0);
     }
-    else if(length > 0) // needle exists and needle tip is outside of image region
+    else if(length > 0) // needle exists and needle tip is outside of theimage region
     {  
       std::cout << " | | needle tip outside" << std::endl;
       points[2] = (u[0]+i*v[0]);  // X-coordinate of the end of the needle
