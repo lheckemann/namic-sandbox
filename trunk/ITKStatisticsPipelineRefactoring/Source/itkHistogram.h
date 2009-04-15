@@ -310,6 +310,9 @@ public:
    * max - ((pp - p) / pb) * interval  */
   double Quantile(unsigned int dimension, double p) const;
 
+  /** Method to graft another histogram's output */
+  virtual void Graft( const DataObject * );
+
 protected:
   void PrintSelf(std::ostream& os, Indent indent) const;
 
