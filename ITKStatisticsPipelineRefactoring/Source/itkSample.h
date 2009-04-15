@@ -156,6 +156,17 @@ public:
   /** Get method for the length of the measurement vector */
   itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
 
+  /** Method to graft another sample */
+  virtual void Graft( const DataObject *thatObject )
+    {
+    this->Superclass::Graft(thatObject);
+
+    const Self *thatConst = dynamic_cast< const Self * >(thatObject);
+    if (thatConst)
+      {
+      this->SetMeasurementVectorSize(thatConst->GetMeasurementVectorSize());
+      }
+    }
   
 protected:
   Sample()

@@ -301,6 +301,7 @@ bool Histogram<TMeasurement, TFrequencyContainer >
     {
     tempMeasurement = measurement[dim];
     begin = 0;
+    std::cout << "m_Min[" << dim << " " << begin << " = " << m_Min[dim][begin] << " tempMeasurement= " << tempMeasurement << std::endl;
     if (tempMeasurement < m_Min[dim][begin])
       {
       // one of measurement is below the minimum
@@ -318,6 +319,7 @@ bool Histogram<TMeasurement, TFrequencyContainer >
       }
 
     end = m_Min[dim].size() - 1;
+  std::cout  << "m_Max[" << dim << " " << end << " = " << m_Max[dim][end] << " tempMeasurement= " << tempMeasurement << std::endl;
     if (tempMeasurement >= m_Max[dim][end])
       {
       // one of measurement is above the maximum
@@ -334,6 +336,7 @@ bool Histogram<TMeasurement, TFrequencyContainer >
         }
       }
 
+    std::cout << "HERE" << std::endl;
     // Binary search for the bin where this measurement could be
     mid = (end + 1) / 2;
     median = m_Min[dim][mid];
@@ -709,6 +712,28 @@ Histogram< TMeasurement, TFrequencyContainer >
      << std::endl;
 }
 
+template< class TMeasurement, class TFrequencyContainer >
+void 
+Histogram< TMeasurement, TFrequencyContainer >
+::Graft( const DataObject *thatObject )
+{
+  this->Superclass::Graft(thatObject);
+
+  const Self *thatConst = dynamic_cast< const Self * >(thatObject);
+  if (thatConst)
+    {
+    Self *that = const_cast< Self * >(thatConst); 
+    this->m_Size                  = that->m_Size;
+    this->m_OffsetTable           = that->m_OffsetTable;
+    this->m_FrequencyContainer    = that->m_FrequencyContainer;
+    this->m_NumberOfInstances     = that->m_NumberOfInstances;
+    this->m_Min                   = that->m_Min;
+    this->m_Max                   = that->m_Max;
+    this->m_TempMeasurementVector = that->m_TempMeasurementVector;
+    this->m_TempIndex             = that->m_TempIndex;
+    this->m_ClipBinsAtEnds        = that->m_ClipBinsAtEnds;
+    }
+}
 
 } // end of namespace Statistics 
 } // end of namespace itk 
