@@ -16,12 +16,12 @@ FIND_PROGRAM(SLICER3_EXEC Slicer3 ../Slicer3-build ../Slicer3-bin ../../Slicer3-
 
 SET(CMAKE_MODULE_PATH ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 
-OPTION(BRAINS_TESTING_DATA "Determine if extended BRAINS test suite data 1.2GB should be found" OFF)
+OPTION(BRAINS_TESTING_DATA "Determine if extended BRAINS test suite data 1.2GB should be found" ON)
 IF(BRAINS_TESTING_DATA)
 ## Needed to find the 1.2GB of BRAINS Regression data needed for extensive testing.
 FIND_PACKAGE(BrainsRegressionData)
     IF(NOT BrainsRegressionData_FOUND)
-      MESSAGE(FATAL_ERROR "Cannot test brains2 without the regressiontest tree.")
+      MESSAGE(FATAL_ERROR "Cannot test brains2 without the regressiontest tree. Data can be downloaded with \"svn co https://www.nitrc.org/svn/brainstestdata/trunk regressiontest\"")
 ENDIF(NOT BrainsRegressionData_FOUND)
 ENDIF(BRAINS_TESTING_DATA)
 

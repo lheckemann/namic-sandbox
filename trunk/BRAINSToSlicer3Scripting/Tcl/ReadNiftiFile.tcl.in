@@ -33,10 +33,10 @@ proc runtest {} {
 #      puts $ff $ret $res
 #      close $ff
       if { $ret } {
-            puts stderr $res
-            exit -1; #Failure
+            puts stderr "TestReadNiftiFile: FAILED: $res"
+##            exit -1; #Failure
       }
-      exit 0; #Success
+##      exit 0; #Success
 }
 
 update
