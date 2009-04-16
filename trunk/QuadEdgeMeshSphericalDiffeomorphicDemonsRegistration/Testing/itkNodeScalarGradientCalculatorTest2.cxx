@@ -210,8 +210,9 @@ int main( int argc, char *argv[] )
 
     std::cout << "  pointId " << pointId
               << "  analytical derivative at moving mesh  " 
-              << analyticalDerivative
-              << "  computed derivative fixed vertex values"
+              << analyticalDerivative << std::endl;
+    
+    std::cout << "  computed derivative fixed vertex values"
               << computedDerivative
               << std::endl;
 

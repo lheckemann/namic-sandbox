@@ -160,7 +160,7 @@ int main( int argc, char *argv[] )
 
   // It is not initialized correctly, we expect no exception
   TRY_EXPECT_NO_EXCEPTION( gradientCalculator->Compute(); );
-
+  
   try
     {
     gradientCalculator->Evaluate( 17 );
