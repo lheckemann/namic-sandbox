@@ -126,7 +126,7 @@ public:
   itkGetConstObjectMacro( BasisSystemList, BasisSystemListType );
 
   /** Evaluate at the specified input position */
-  virtual OutputType Evaluate( const InputType& input ) const;
+  virtual OutputType Evaluate( const InputType& input) const;
 
 protected:
   NodeScalarGradientCalculator();
