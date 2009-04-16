@@ -22,9 +22,7 @@
 #include "itkMesh.h"
 #include "itkTriangleBasisSystem.h"
 #include "itkTriangleListBasisSystemCalculator.h"
-#include "itkInterpolateMeshFunction.h"
 #include "itkLinearInterpolateMeshFunction.h"
-#include "itkPointLocator2.h"
 #include "itkTriangleHelper.h"
 
 namespace itk
@@ -143,7 +141,6 @@ private:
   typename TPointDataContainer::ConstPointer                   m_DataContainer;
   typename BasisSystemListType::ConstPointer                   m_BasisSystemList;
   typename DerivativeListType::Pointer                         m_DerivativeList;
-  typename InterpolatorType::Pointer                           m_Interpolator; 
   typename CoordRepListType::Pointer                           m_PointAreaAccumulatorList; 
   typename DerivativeListType::Pointer                         m_PointDerivativeAccumulatorList; 
 

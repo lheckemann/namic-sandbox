@@ -30,7 +30,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::NodeScalarGradientCalculator()
 {
   this->m_DerivativeList = DerivativeListType::New();
-  this->m_Interpolator = InterpolatorType::New();
   this->m_PointAreaAccumulatorList = CoordRepListType::New();
   this->m_PointDerivativeAccumulatorList = DerivativeListType::New();
 
@@ -81,9 +80,6 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Initialize( void )
 {
-  this->m_Interpolator->SetInputMesh( this->m_InputMesh );
-  this->m_Interpolator->Initialize();
-
   this->m_DerivativeList->Reserve( this->m_InputMesh->GetCells()->Size() );
   this->m_PointAreaAccumulatorList->Reserve( this->m_InputMesh->GetPoints()->Size() );
   this->m_PointDerivativeAccumulatorList->Reserve( this->m_InputMesh->GetPoints()->Size() );
@@ -167,7 +163,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     m_U12= basisSystemListIterator->Value().GetVector(0); 
     m_U32= basisSystemListIterator->Value().GetVector(1); 
  
-    this->m_Interpolator->GetDerivativeFromPixelsAndBasis(
+    InterpolatorType::GetDerivativeFromPixelsAndBasis(
       pixelValue[0], pixelValue[1], pixelValue[2], m_U12, m_U32, derivative);
 
     this->m_DerivativeList->push_back( derivative );
@@ -233,7 +229,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   os << indent << "Data Container = " << this->m_DataContainer.GetPointer() << std::endl;
   os << indent << "Basis System List = " << this->m_BasisSystemList.GetPointer() << std::endl;
   os << indent << "Derivative List = " << this->m_DerivativeList.GetPointer() << std::endl;
-  os << indent << "InterpolatorType = " << this->m_Interpolator.GetPointer() << std::endl;
   os << indent << "Point Area Accumulator = " << this->m_PointAreaAccumulatorList.GetPointer() << std::endl;
   os << indent << "Point Derivative Accumulator = " << this->m_PointDerivativeAccumulatorList.GetPointer() << std::endl;
 }
