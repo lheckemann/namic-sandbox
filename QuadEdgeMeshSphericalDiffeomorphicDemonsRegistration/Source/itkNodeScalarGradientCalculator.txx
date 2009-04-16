@@ -84,9 +84,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   this->m_Interpolator->SetInputMesh( this->m_InputMesh );
   this->m_Interpolator->Initialize();
 
-  //Michel: this is in constructor, no? this->m_DerivativeList = DerivativeListType::New();
   this->m_DerivativeList->Reserve( this->m_InputMesh->GetCells()->Size() );
-
   this->m_PointAreaAccumulatorList->Reserve( this->m_InputMesh->GetPoints()->Size() );
   this->m_PointDerivativeAccumulatorList->Reserve( this->m_InputMesh->GetPoints()->Size() );
 
@@ -101,8 +99,7 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Compute()
 {
-  DerivativeType derivative, oldDerivative, reallyOldDerivative; 
-  CoordRepType  area;
+  DerivativeType   derivative;
   
   this->VerifyInputs(); 
   this->Initialize(); 
@@ -114,7 +111,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 
   BasisSystemListIterator basisSystemListIterator;
   basisSystemListIterator = m_BasisSystemList->Begin();
-  typedef typename PointType::CoordRepType        CoordRepType;
   
   PointIterator pointIterator = this->m_InputMesh->GetPoints()->Begin();
   PointIterator pointEnd = this->m_InputMesh->GetPoints()->End();
@@ -125,15 +121,13 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     
     this->m_PointAreaAccumulatorList->SetElement(pointIterator.Index(), 0.0);
     pointIterator++; 
-
     }
 
-  int cellIndex=0; 
   // Look at all triangular cells, re-use the basis of each, and new scalar values.
-  PointType fixedPoint; 
-  PixelType pixelValue[3]; 
-  PointIdentifier pointIds[3];
-  while ( cellIterator != cellEnd )
+  const unsigned int numberOfVerticesInTriangle = 3;
+  PixelType pixelValue[numberOfVerticesInTriangle]; 
+  PointIdentifier pointIds[numberOfVerticesInTriangle];
+  while( cellIterator != cellEnd )
     {
     CellType* cellPointer = cellIterator.Value();
 
@@ -152,23 +146,19 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
       ++pointIdIterator;
       }
 
-    //Michel FIXME: does this change at all? If geometry stays the same,
-    //which it should, do this in initialization, and store both
-    //cell->area and point->accumulatedArea permanently. 
+    // Michel FIXME: does this change at all? If geometry stays the same,
+    // which it should, do this in initialization, and store both
+    // cell->area and point->accumulatedArea permanently. 
     
-    area =static_cast< CoordRepType >(
-       TriangleType::ComputeArea(m_InputMesh->GetPoint( pointIds[0]) ,
-                                 m_InputMesh->GetPoint( pointIds[1]) ,
-                                 m_InputMesh->GetPoint( pointIds[2])));
+    AreaType area = TriangleType::ComputeArea(
+      m_InputMesh->GetPoint( pointIds[0]) ,
+      m_InputMesh->GetPoint( pointIds[1]) ,
+      m_InputMesh->GetPoint( pointIds[2]) );
 
-    for (int i=0; i<3; i++)
+    // contribute to accumulated area around each point of triangle
+    for( unsigned int i=0; i < numberOfVerticesInTriangle; i++ )
       {
-      // contribute to accumulated area around each point of triangle
-      CoordRepType  accumulatedArea= this->m_PointAreaAccumulatorList->GetElement( pointIds[i] );
-
-      accumulatedArea += area;
-      
-      this->m_PointAreaAccumulatorList->SetElement(pointIds[i], accumulatedArea);
+      this->m_PointAreaAccumulatorList->ElementAt( pointIds[i] ) += area;
       }
 
     VectorType  m_U12;
@@ -183,25 +173,20 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     this->m_DerivativeList->push_back( derivative );
 
     
-    //Store at each vertex the value equal to triangle area x
-    //derivative. Later, area-based weighting will use the total value
-    //and divide by the sum of triangle areas about each vertex.
-    //Begin by weighting contribution to point of this triangle by its area.
+    // Store at each vertex the value equal to triangle area x
+    // derivative. Later, area-based weighting will use the total value
+    // and divide by the sum of triangle areas about each vertex.
+    // Begin by weighting contribution to point of this triangle by its area.
 
     derivative *= area;
 
-    for (int i=0; i<3; i++)
+    for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
       {
-      oldDerivative= this->m_PointDerivativeAccumulatorList->GetElement(pointIds[i]);
-
-      oldDerivative += derivative;  
-
-      this->m_PointDerivativeAccumulatorList->SetElement(pointIds[i], oldDerivative);
+      this->m_PointDerivativeAccumulatorList->ElementAt( pointIds[i] ) += derivative;
       }
 
     ++cellIterator;
     ++basisSystemListIterator;
-    ++cellIndex; 
     }
 
   pointIterator = this->m_InputMesh->GetPoints()->Begin();
@@ -210,23 +195,14 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   // Look at all vertices: consider the input edge of each, look at
   // all edges counter-clockwise from that input edge, and consider
   // face formed by consecutive edges. 
-  int pointIndex=0; 
   while ( pointIterator != pointEnd )
     {
-
-    fixedPoint.CastFrom( pointIterator.Value() );
-    derivative = this->m_PointDerivativeAccumulatorList->GetElement(pointIterator.Index());
-    area = this->m_PointAreaAccumulatorList->ElementAt(pointIterator.Index());
-
-    //Divide area-weighted derivative by total area assigned to
-    //each point, i.e.: total area of triangles surrounding it.
-     
-    derivative /= area; 
-
-    this->m_PointDerivativeAccumulatorList->SetElement(pointIterator.Index(), derivative);
+    // Divide area-weighted derivative by total area assigned to
+    // each point. That is: total area of triangles surrounding it.
+    this->m_PointDerivativeAccumulatorList->ElementAt( pointIterator.Index() ) /= 
+      this->m_PointAreaAccumulatorList->GetElement( pointIterator.Index() );
 
     pointIterator++;
-    pointIndex++; 
     }
 
 }
@@ -240,11 +216,7 @@ typename NodeScalarGradientCalculator<TInputMesh, TScalar>::OutputType
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Evaluate( const InputType& input  ) const 
 {
-  OutputType result;
-  
-  result= this->m_PointDerivativeAccumulatorList->GetElement(input);
-
-  return result;
+  return this->m_PointDerivativeAccumulatorList->ElementAt( input );
 }
 
 
@@ -257,6 +229,13 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf( os, indent );
+  os << indent << "Input mesh = " << this->m_InputMesh.GetPointer() << std::endl;
+  os << indent << "Data Container = " << this->m_DataContainer.GetPointer() << std::endl;
+  os << indent << "Basis System List = " << this->m_BasisSystemList.GetPointer() << std::endl;
+  os << indent << "Derivative List = " << this->m_DerivativeList.GetPointer() << std::endl;
+  os << indent << "InterpolatorType = " << this->m_Interpolator.GetPointer() << std::endl;
+  os << indent << "Point Area Accumulator = " << this->m_PointAreaAccumulatorList.GetPointer() << std::endl;
+  os << indent << "Point Derivative Accumulator = " << this->m_PointDerivativeAccumulatorList.GetPointer() << std::endl;
 }
 
 #include <iostream>

@@ -87,6 +87,7 @@ public:
   typedef typename CellTraits::PointIdIterator                              PointIdIterator;
 
   typedef TriangleHelper< PointType >                                       TriangleType;
+  typedef typename TriangleType::CoordRepType                               AreaType;
 
   typedef TriangleListBasisSystemCalculator< InputMeshType, TriangleBasisSystemType >
     TriangleListBasisSystemCalculatorType;
