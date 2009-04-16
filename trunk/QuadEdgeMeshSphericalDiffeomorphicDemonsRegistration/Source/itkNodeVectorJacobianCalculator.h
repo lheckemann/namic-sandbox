@@ -18,14 +18,11 @@
 #define __itkNodeVectorJacobianCalculator_h
 
 #include "itkFunctionBase.h"
-#include "itkVector.h"
 #include "itkMatrix.h"
 #include "itkMesh.h"
 #include "itkTriangleBasisSystem.h"
 #include "itkTriangleListBasisSystemCalculator.h"
-#include "itkInterpolateMeshFunction.h"
 #include "itkLinearInterpolateMeshFunction.h"
-#include "itkPointLocator2.h"
 #include "itkTriangleHelper.h"
 
 namespace itk
@@ -40,11 +37,11 @@ namespace itk
  * \ingroup MeshFunctions 
  * 
  * */
-template <class TInputMesh, class TVectorContainer = double>
+template <class TInputMesh, class TVectorContainer>
 class ITK_EXPORT NodeVectorJacobianCalculator :
   public FunctionBase< typename TInputMesh::PointIdentifier,
-     Matrix< 
-     typename NumericTraits< typename TVectorContainer::Element >::RealType, 
+    Matrix< 
+     typename TVectorContainer::Element::RealType, 
       ::itk::GetMeshDimension<TInputMesh>::PointDimension > ,
       ::itk::GetMeshDimension<TInputMesh>::PointDimension > >
 {
@@ -52,8 +49,8 @@ public:
   /** Standard class typedefs. */
   typedef NodeVectorJacobianCalculator                         Self;
   typedef FunctionBase< typename TInputMesh::PointIdentifier,
-      Matrix< 
-      typename NumericTraits< typename TVectorContainer::Element >::RealType,
+    Matrix< 
+     typename TVectorContainer::Element::RealType, 
       ::itk::GetMeshDimension<TInputMesh>::PointDimension >,
       ::itk::GetMeshDimension<TInputMesh>::PointDimension > >  Superclass;
   typedef SmartPointer<Self>                                   Pointer;
@@ -90,6 +87,7 @@ public:
   typedef typename CellTraits::PointIdIterator                              PointIdIterator;
 
   typedef TriangleHelper< PointType >                                       TriangleType;
+  typedef typename TriangleType::CoordRepType                               AreaType;
 
   typedef TriangleListBasisSystemCalculator< InputMeshType, TriangleBasisSystemType >
     TriangleListBasisSystemCalculatorType;
@@ -100,7 +98,7 @@ public:
   typedef PointLocator2< TInputMesh >                                       PointLocatorType;
   typedef typename PointLocatorType::Pointer                                PointLocatorPointer;
   typedef typename InterpolatorType::PointIdentifier                        PointIdentifier;
-      
+
   typedef typename InterpolatorType::RealType                               RealType;
   typedef typename InterpolatorType::JacobianType                           JacobianType;
   typedef VectorContainer<CellIdentifier, JacobianType>                     JacobianListType;
@@ -145,7 +143,6 @@ private:
   typename TVectorContainer::ConstPointer                      m_VectorContainer;
   typename BasisSystemListType::ConstPointer                   m_BasisSystemList;
   typename JacobianListType::Pointer                           m_JacobianList;
-  typename InterpolatorType::Pointer                           m_Interpolator; 
   typename CoordRepListType::Pointer                           m_PointAreaAccumulatorList; 
   typename JacobianListType::Pointer                           m_PointJacobianAccumulatorList; 
 
