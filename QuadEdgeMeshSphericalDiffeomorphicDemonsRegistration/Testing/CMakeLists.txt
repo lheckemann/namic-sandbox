@@ -38,6 +38,9 @@ TARGET_LINK_LIBRARIES(itkNodeScalarGradientCalculatorTest1 ITKQuadEdgeMesh ITKIO
 ADD_EXECUTABLE(itkNodeScalarGradientCalculatorTest2 itkNodeScalarGradientCalculatorTest2.cxx )
 TARGET_LINK_LIBRARIES(itkNodeScalarGradientCalculatorTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkNodeVectorJacobianCalculatorTest1 itkNodeVectorJacobianCalculatorTest1.cxx )
+TARGET_LINK_LIBRARIES(itkNodeVectorJacobianCalculatorTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkTriangleBasisSystemTest1 
   ${QuadEdgeMeshRigidRegistration}/Testing/itkTriangleBasisSystemTest1.cxx )
 TARGET_LINK_LIBRARIES(itkTriangleBasisSystemTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -105,6 +108,10 @@ ADD_TEST(itkNodeScalarGradientCalculatorTest1
 
 ADD_TEST(itkNodeScalarGradientCalculatorTest2
   ${CXX_TEST_PATH}/itkNodeScalarGradientCalculatorTest2
+  )
+
+ADD_TEST(itkNodeVectorJacobianCalculatorTest1
+  ${CXX_TEST_PATH}/itkNodeVectorJacobianCalculatorTest1
   )
 
 ADD_TEST(itkTriangleBasisSystemTest1

@@ -24,6 +24,7 @@
 #include "itkTriangleListBasisSystemCalculator.h"
 #include "itkLinearInterpolateMeshFunction.h"
 #include "itkTriangleHelper.h"
+#include "itkVectorContainer.h"
 
 namespace itk
 {
@@ -41,17 +42,17 @@ template <class TInputMesh, class TVectorContainer>
 class ITK_EXPORT NodeVectorJacobianCalculator :
   public FunctionBase< typename TInputMesh::PointIdentifier,
     Matrix< 
-     typename TVectorContainer::Element::RealType, 
-      ::itk::GetMeshDimension<TInputMesh>::PointDimension > ,
-      ::itk::GetMeshDimension<TInputMesh>::PointDimension > >
+     typename NumericTraits< typename TVectorContainer::Element::ValueType >::RealType, 
+     ::itk::GetMeshDimension<TInputMesh>::PointDimension,
+     ::itk::GetMeshDimension<TInputMesh>::PointDimension > >
 {
 public:
   /** Standard class typedefs. */
   typedef NodeVectorJacobianCalculator                         Self;
   typedef FunctionBase< typename TInputMesh::PointIdentifier,
     Matrix< 
-     typename TVectorContainer::Element::RealType, 
-      ::itk::GetMeshDimension<TInputMesh>::PointDimension >,
+     typename NumericTraits< typename TVectorContainer::Element::ValueType >::RealType, 
+      ::itk::GetMeshDimension<TInputMesh>::PointDimension,
       ::itk::GetMeshDimension<TInputMesh>::PointDimension > >  Superclass;
   typedef SmartPointer<Self>                                   Pointer;
   typedef SmartPointer<const Self>                             ConstPointer;
@@ -70,8 +71,6 @@ public:
   typedef TInputMesh                                                        InputMeshType;
   typedef typename InputMeshType::PointType                                 PointType;
   typedef typename PointType::VectorType                                    VectorType;
-  typedef typename InputMeshType::VectorContainer                           VectorContainer;
-  typedef typename VectorContainer::Iterator                                VectorIterator;
   typedef typename InputMeshType::PixelType                                 PixelType;
   typedef typename InputMeshType::PointsContainer                           PointsContainer;
   typedef typename PointsContainer::ConstIterator                           PointIterator;
@@ -100,7 +99,17 @@ public:
   typedef typename InterpolatorType::PointIdentifier                        PointIdentifier;
 
   typedef typename InterpolatorType::RealType                               RealType;
-  typedef typename InterpolatorType::JacobianType                           JacobianType;
+  typedef typename InterpolatorType::DerivativeType                         DerivativeType;
+
+  typedef typename TVectorContainer::Element                                ArrayType;
+  typedef typename ArrayType::ValueType                                     ArrayValueType; 
+  typedef typename NumericTraits< ArrayValueType >::RealType                JacobianComponentType;
+
+  typedef Matrix< 
+      JacobianComponentType,
+      itkGetStaticConstMacro(MeshDimension),
+      itkGetStaticConstMacro(MeshDimension) >                               JacobianType;
+
   typedef VectorContainer<CellIdentifier, JacobianType>                     JacobianListType;
       
   typedef typename PointType::CoordRepType                                  CoordRepType;
@@ -111,8 +120,8 @@ public:
   itkGetConstObjectMacro( InputMesh, InputMeshType );
 
   /** Set/Get the input mesh. */
-  itkSetConstObjectMacro( DataContainer, TVectorContainer );
-  itkGetConstObjectMacro( DataContainer, TVectorContainer );
+  itkSetConstObjectMacro( VectorContainer, TVectorContainer );
+  itkGetConstObjectMacro( VectorContainer, TVectorContainer );
 
   /** Definition of input type and output type. The input type is actually a
    * point identifier, while the output type is a gradient of the scalar values. */
