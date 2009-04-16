@@ -109,12 +109,12 @@ LinearInterpolateMeshFunction<TInputMesh>
 
 
 template <class TInputMesh>
-template <class ArrayType, class MatrixType>
+template <class TArray, class TMatrix>
 void
 LinearInterpolateMeshFunction<TInputMesh>
 ::GetJacobianFromVectorAndBasis(
-    const ArrayType & pixelArray1, const ArrayType & pixelArray2, const ArrayType & pixelArray3,
-    const VectorType & m_U12, const VectorType & m_U32, MatrixType & derivative)
+    const TArray & pixelArray1, const TArray & pixelArray2, const TArray & pixelArray3,
+    const VectorType & m_U12, const VectorType & m_U32, TMatrix & derivative)
 {
 }
 

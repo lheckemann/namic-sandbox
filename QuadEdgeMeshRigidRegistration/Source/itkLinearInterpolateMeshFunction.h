@@ -87,10 +87,10 @@ public:
     PixelType pixelValue1, PixelType pixelValue2, PixelType pixelValue3,
     const VectorType & m_U12, const VectorType & m_U32, DerivativeType & derivative);
 
-  template <class ArrayType, class MatrixType>
+  template <class TArray, class TMatrix>
   static void GetJacobianFromVectorAndBasis(
-    const ArrayType & pixelArray1, const ArrayType & pixelArray2, const ArrayType & pixelArray3,
-    const VectorType & m_U12, const VectorType & m_U32, MatrixType & derivative);
+    const TArray & pixelArray1, const TArray & pixelArray2, const TArray & pixelArray3,
+    const VectorType & m_U12, const VectorType & m_U32, TMatrix & derivative);
 
 protected:
   LinearInterpolateMeshFunction();
