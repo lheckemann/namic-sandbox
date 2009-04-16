@@ -90,7 +90,7 @@ public:
   template <class TArray, class TMatrix>
   static void GetJacobianFromVectorAndBasis(
     const TArray & pixelArray1, const TArray & pixelArray2, const TArray & pixelArray3,
-    const VectorType & m_U12, const VectorType & m_U32, TMatrix & derivative);
+    const VectorType & m_U12, const VectorType & m_U32, TMatrix & jacobian);
 
 protected:
   LinearInterpolateMeshFunction();
