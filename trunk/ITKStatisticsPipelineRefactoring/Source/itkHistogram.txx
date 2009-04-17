@@ -438,7 +438,7 @@ Histogram<TMeasurement, TFrequencyContainer >
     return m_Min[dimension][this->m_Size[dimension]-1];
     }
 
-  for ( int i=0; i < this->m_Size[dimension]; i++ )
+  for ( unsigned int i = 0; i < this->m_Size[dimension]; i++ )
     {
     if (  (value >= this->m_Min[dimension][i])
           && (value <  this->m_Max[dimension][i])  )
@@ -467,7 +467,7 @@ Histogram< TMeasurement, TFrequencyContainer >
     return m_Max[dimension][this->m_Size[dimension]-1];
     }
 
-  for ( int i = 0; i < this->m_Size[dimension]; i++ )
+  for ( unsigned int i = 0; i < this->m_Size[dimension]; i++ )
     {
     if (  (value >= this->m_Min[dimension][i])
           && (value <  this->m_Max[dimension][i])  )
