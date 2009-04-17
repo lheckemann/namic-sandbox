@@ -158,6 +158,8 @@ int itkHistogramTest(int, char* [] )
     whereFail = "GetSize()";
     }
 
+  // Query the bounds of the bin using the index of the bin.
+
   if ((lowerBound[0] + interval * 31) != histogram->GetBinMin(0,31))
     {
     pass = false;
@@ -170,6 +172,24 @@ int itkHistogramTest(int, char* [] )
     whereFail = "GetBinMax(Dimension, nthBin)";
     }
 
+  // Query the histogram bin extremes using a value within the bin
+  
+  if ((lowerBound[0] + interval * 31         ) != histogram->GetBinMinFromValue(0, lowerBound[0] + interval * 31.5 ) 
+   || (lowerBound[0]                         ) != histogram->GetBinMinFromValue(0, itk::NumericTraits< float >::min()   ) 
+   || (lowerBound[0] + interval * (size[0]-1)) != histogram->GetBinMinFromValue(0, itk::NumericTraits< float >::max() ) )
+    {
+    pass = false;
+    whereFail = "GetBinMinFromValue(Dimension, A Value Within The Nth Bin)";
+    }
+
+  if ((lowerBound[0] + interval * 32         ) != histogram->GetBinMaxFromValue(0, lowerBound[0] + interval * 31.5 ) 
+   || (lowerBound[0] + interval              ) != histogram->GetBinMaxFromValue(0, itk::NumericTraits< float >::min()   ) 
+   || (upperBound[0]                         ) != histogram->GetBinMaxFromValue(0, itk::NumericTraits< float >::max() ) )
+    {
+    pass = false;
+    whereFail = "GetBinMaxFromValue(Dimension, A Value Within The Nth Bin)";
+    }
+  
   for (id = 0; 
        id < static_cast< InstanceIdentifier >(totalSize);
        id++)
