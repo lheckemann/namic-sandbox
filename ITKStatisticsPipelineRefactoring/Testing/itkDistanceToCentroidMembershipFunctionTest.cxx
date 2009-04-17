@@ -111,6 +111,8 @@ int itkDistanceToCentroidMembershipFunctionTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
+  // Exercise the Clone method.
+  MembershipFunctionType::Pointer clonedFunction = function->Clone();
 
   return EXIT_SUCCESS;
 }
