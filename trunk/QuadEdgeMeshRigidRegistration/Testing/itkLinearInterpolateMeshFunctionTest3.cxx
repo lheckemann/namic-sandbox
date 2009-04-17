@@ -125,8 +125,10 @@ int main( int argc , char * argv [] )
   VectorType myScale;
   myScale.Fill( 1.0 );
   
+  const unsigned int numberOfSubdivisions = 4;
+
   mySphereMeshSource->SetCenter( myCenter );
-  mySphereMeshSource->SetResolution( 4.0 );
+  mySphereMeshSource->SetResolution( numberOfSubdivisions );
   mySphereMeshSource->SetScale( myScale );
   mySphereMeshSource->Modified();
   
