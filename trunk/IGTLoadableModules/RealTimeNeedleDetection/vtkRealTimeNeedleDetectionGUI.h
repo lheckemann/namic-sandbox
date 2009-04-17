@@ -96,7 +96,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
   void BuildGUIForGeneralParameters();
-  void BuildGUIForDebugParameters();
+  void BuildGUIForAdvancedParameters();
 
   //----------------------------------------------------------------
   // Update routines
