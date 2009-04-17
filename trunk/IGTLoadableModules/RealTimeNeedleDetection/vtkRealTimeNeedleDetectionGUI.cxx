@@ -842,7 +842,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, false); 
       pImageProcessor->GetImage((void*) pImageRegionOutput1);
       SetImageRegion(pImageData, pImageRegionOutput1, 1);  // write the region of interest after top/left in the MRI image received from the scanner
-      //TODO:DELETE pImageRegionOutput1!!        
+      delete [] pImageRegionOutput1;    
       if(debug == 2)        
         pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
       
@@ -850,7 +850,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->DilateAndErode(true, false, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt());
       pImageProcessor->GetImage((void*) pImageRegionOutput2);
       SetImageRegion(pImageData, pImageRegionOutput2, 2);  // write the region of interest after top/right in the MRI image received from the scanner
-      //TODO:DELETE pImageRegionOutput2!!     
+      delete [] pImageRegionOutput2;    
       if(debug == 2)   
         pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
       
@@ -858,7 +858,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->Threshold(true, false, 0, (int) needleDetectionThreshold, MAX);
       pImageProcessor->GetImage((void*) pImageRegionOutput3);
       SetImageRegion(pImageData, pImageRegionOutput3, 3);  // write the region of interest bottom/left in the MRI image received from the scanner
-      //TODO:DELETE pImageRegionOutput3!!   
+      delete [] pImageRegionOutput3;  
       if(debug == 2)   
         pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Threshold.png",TMP);      
       
@@ -866,7 +866,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->BinaryThinning(true, false);
       pImageProcessor->GetImage((void*) pImageRegionOutput4);
       SetImageRegion(pImageData, pImageRegionOutput4, 4);  // write the region of interest bottom/right in the MRI image received from the scanner
-      //TODO:DELETE pImageRegionOutput4!!  
+      delete [] pImageRegionOutput4; 
       if(debug == 2)
         pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Thinning.png",TMP);
       
