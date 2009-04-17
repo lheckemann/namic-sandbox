@@ -130,6 +130,9 @@ public:
   /** returns the total frequency for the 'd' dimension */
   TotalAbsoluteFrequencyType GetTotalFrequency() const;
 
+  /** Method to graft another sample */
+  virtual void Graft( const DataObject *thatObject );
+
   class ConstIterator
     {
     friend class MembershipSample;
@@ -292,9 +295,8 @@ private:
   UniqueClassLabelsType                 m_UniqueClassLabels;
   ClassLabelHolderType                  m_ClassLabelHolder;
   std::vector< ClassSamplePointer >     m_ClassSamples;
-
-  SampleConstPointer              m_Sample;
-  unsigned int                    m_NumberOfClasses;
+  SampleConstPointer                    m_Sample;
+  unsigned int                          m_NumberOfClasses;
 
 }; // end of class
 

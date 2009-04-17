@@ -219,7 +219,29 @@ Subsample< TSample >
     }
   return m_IdHolder[index];
 }
- 
+
+
+template< class TSample >
+void
+Subsample< TSample >
+::Graft( const DataObject *thatObject )
+{
+  this->Superclass::Graft(thatObject);
+
+  // Most of what follows is really a deep copy, rather than grafting of 
+  // output. Wish it were managed by pointers to bulk data. Sigh !
+  
+  const Self *thatConst = dynamic_cast< const Self * >(thatObject);
+  if (thatConst)
+    {
+    Self *that = const_cast< Self * >(thatConst); 
+    this->SetSample( that->GetSample() );
+    this->m_IdHolder          = that->m_IdHolder;
+    this->m_ActiveDimension   = that->m_ActiveDimension;
+    this->m_TotalFrequency    = that->m_TotalFrequency;
+    }
+}
+
 
 } // end of namespace Statistics 
 } // end of namespace itk

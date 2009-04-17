@@ -132,6 +132,21 @@ ListSample< TMeasurementVector >
 template< class TMeasurementVector >
 void 
 ListSample< TMeasurementVector >
+::Graft( const DataObject *thatObject )
+{
+  this->Superclass::Graft(thatObject);
+
+  const Self *thatConst = dynamic_cast< const Self * >(thatObject);
+  if (thatConst)
+    {
+    Self *that = const_cast< Self * >(thatConst); 
+    this->m_InternalContainer = that->m_InternalContainer;
+    }
+}
+
+template< class TMeasurementVector >
+void 
+ListSample< TMeasurementVector >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
