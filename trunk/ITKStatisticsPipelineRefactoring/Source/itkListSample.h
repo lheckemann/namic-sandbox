@@ -111,7 +111,9 @@ public:
    * the size of the sample. */
   TotalAbsoluteFrequencyType GetTotalFrequency() const;
 
-
+  /** Method to graft another sample */
+  virtual void Graft( const DataObject *thatObject );
+    
   /** \class ListSample::ConstIterator */
   class ConstIterator
     {

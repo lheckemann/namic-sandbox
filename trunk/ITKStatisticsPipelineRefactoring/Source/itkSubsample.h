@@ -111,6 +111,9 @@ public:
 
   AbsoluteFrequencyType GetFrequencyByIndex(unsigned int index) const;
 
+  /** Method to graft another sample */
+  virtual void Graft( const DataObject *thatObject );
+
   class ConstIterator
     {
     friend class Subsample;
