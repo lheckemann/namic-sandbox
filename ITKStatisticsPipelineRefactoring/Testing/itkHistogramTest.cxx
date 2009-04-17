@@ -189,6 +189,19 @@ int itkHistogramTest(int, char* [] )
     pass = false;
     whereFail = "GetBinMaxFromValue(Dimension, A Value Within The Nth Bin)";
     }
+
+  index.Fill(31);
+  if ((lowerBound[0] + interval * 31) != histogram->GetHistogramMinFromIndex(index)[0])
+    {
+    pass = false;
+    whereFail = "GetHistogramMinFromIndex(Dimension, nthBin)";
+    }
+
+  if ((lowerBound[0] + interval * 32) != histogram->GetHistogramMaxFromIndex(index)[0])
+    {
+    pass = false;
+    whereFail = "GetHistogramMaxFromIndex(Dimension, nthBin)";
+    }
   
   for (id = 0; 
        id < static_cast< InstanceIdentifier >(totalSize);
