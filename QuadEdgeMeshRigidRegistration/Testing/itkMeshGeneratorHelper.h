@@ -76,13 +76,15 @@ public:
   FixedVectorType fixedScale;
   fixedScale.Fill( 1.0 );
   
+  const unsigned int numberOfSubdivisions = 4;
+
   movingSphereMeshSource->SetCenter( movingCenter );
-  movingSphereMeshSource->SetResolution( 4.0 );
+  movingSphereMeshSource->SetResolution( numberOfSubdivisions );
   movingSphereMeshSource->SetScale( movingScale );
   movingSphereMeshSource->Modified();
 
   fixedShpereMeshSource->SetCenter( fixedCenter );
-  fixedShpereMeshSource->SetResolution( 4.0 );
+  fixedShpereMeshSource->SetResolution( numberOfSubdivisions );
   fixedShpereMeshSource->SetScale( fixedScale );
   fixedShpereMeshSource->Modified();
 
