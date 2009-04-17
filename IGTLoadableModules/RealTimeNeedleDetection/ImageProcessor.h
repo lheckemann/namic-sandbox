@@ -30,7 +30,6 @@
 #define TMP       2
 #define OUTPUT    3
 
-//TODO: maybe no need for floatImage? HoughTransform and Thinning need inverted images and they use Uchar inverted images
 //TODO: maybe no need for inputTmp and outputTmp variables for filter functions
 template <class InputPixelType>
 class InvertIntensityFunctor
@@ -70,7 +69,6 @@ public:
 
   ImageProcessor();
   //Conversion Functions
-  void changeEndian(unsigned short* data);
   FloatImageType::Pointer  RescaleUCharToFloat(UCharImageType::Pointer inputImage);
   FloatImageType::Pointer  RescaleUShortToFloat(UShortImageType::Pointer inputImage);
   UCharImageType::Pointer  RescaleFloatToUChar(FloatImageType::Pointer inputImage);
@@ -96,7 +94,7 @@ public:
   virtual ~ImageProcessor();
   
   private:
-  // TODO: I still have to do exception handling for local images -> What happens if inputImage not set? if Filter fails to create an outputImage?
+  // TODO: still need to do exception handling for local images -> What happens if inputImage not set? if Filter fails to create an outputImage?
   FloatImageType::Pointer mLocalInputImage;
   FloatImageType::Pointer mLocalTmp1;
   FloatImageType::Pointer mLocalTmp2;

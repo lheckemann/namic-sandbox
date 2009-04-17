@@ -25,15 +25,6 @@ ImageProcessor::~ImageProcessor()
  //TODO: delete properly 
 }
 
-//Change from little to big Endian | not used anymore
-void ImageProcessor::changeEndian(unsigned short* data)
-{
-  *data = ((*data&0x00ff)<<8)+((*data&0xff00)>>8);
-  *data = ((*data&0x0f0f)<<4)+((*data&0xf0f0)>>4);
-  *data = ((*data&0x3333)<<2)+((*data&0xcccc)>>2);
-  *data = ((*data&0x5555)<<1)+((*data&0xaaaa)>>1);  
-}
-
 //TODO:Steve Do those Smartpointers of the filters get deleted after returning from the function?
 ImageProcessor::FloatImageType::Pointer ImageProcessor::RescaleUCharToFloat(UCharImageType::Pointer inputImage)
 {

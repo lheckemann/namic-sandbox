@@ -55,7 +55,6 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
 
  private:
   vtkRealTimeNeedleDetectionGUI(const vtkRealTimeNeedleDetectionGUI& ); // Not implemented.
-  void ProcessImage(vtkImageData* pImageData, int i); // Function to evoke changes in the image in every itaration | not used anymore
   void GetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion);
   void SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion, int position);
   void orientOutputImage(double fovI, double fovJ, double fovK);
@@ -97,6 +96,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
   void BuildGUIForGeneralParameters();
+  void BuildGUIForDebugParameters();
 
   //----------------------------------------------------------------
   // Update routines
@@ -117,6 +117,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   //----------------------------------------------------------------
   vtkSlicerNodeSelectorWidget*  pVolumeSelector;
   vtkKWRadioButtonSet*          pEntryPointButtonSet;
+  vtkKWRadioButtonSet*          pDebugModeButtonSet;
   vtkKWScaleWithEntry*          pThresholdScale;
   vtkKWScaleWithEntry*          pIntensityScale;
   vtkKWScaleWithEntry*          pGaussScale;
@@ -136,7 +137,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   // MRML nodes
   //----------------------------------------------------------------
   vtkMRMLVolumeNode*          pSourceNode;          // MRML node, which Slicer received via OpenIGTLink from the Scanner
-  vtkMRMLVolumeNode*          pOutputNode;          // MRML node, which contains the processed image
+  vtkMRMLVolumeNode*          pOutputNode;          // MRML node, which contains the debug image
   vtkMRMLModelNode*           pNeedleModelNode;     // MRML node, which contains the displayable detected needle
   vtkMRMLLinearTransformNode* pNeedleTransformNode; // MRML node, which contains a transform of the detected needle
   vtkMRMLLinearTransformNode* pScanPlaneNormalNode; // MRML node, which contains a transform of the normal to the detected needle
@@ -147,13 +148,12 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkRealTimeNeedleDetectionLogic*  Logic;
   vtkCallbackCommand*               DataCallbackCommand;
   int                        CloseScene;    // TODO: Do I need that?
-  int                        started;       // flag whether to process the new image from the scanner
-  int                        ROIpresent;    // flag whether a MRMLROINode is present and the coordinate input has to be disabled
-  int                        showNeedle;    // flag whether to show the pNeedleNode in Slicer
-  //TODO: Do I really  need the scan plane?
-  int                        scanPlane;     // variable to indicate the scan plane: AXIAL, CORONAL, SAGITTAL
+  int                        debug;         // variable to indicate the debug mode 0: no pOutputNode/no images written to file, 1:pOutputNode/no images written to file, 2:pOutputNode/images written to file 
+  int                        started;       // flag whether to process the new image from the scanner or not
+  int                        ROIpresent;    // flag whether a MRMLROINode is present and the coordinate input has to be disabled or not
+  int                        showNeedle;    // flag whether to show the pNeedleNode in Slicer or not
   int                        needleOrigin;  // variable to indicate the direction the needle enters the image from 
-                                            // = LEFT, RIGHT, POSTERIOR, ANTERIOR, INFERIOR, SUPERIOR 
+                                            // = PATIENTLEFT, PATIENTRIGHT, PATIENTPOSTERIOR, PATIENTANTERIOR, PATIENTINFERIOR, PATIENTSUPERIOR 
   
   //----------------------------------------------------------------
   // Image Values
@@ -165,22 +165,15 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   int             imageRegionLower[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
   int             imageRegionUpper[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
   //TODO: Can I make the "imageRegion.." arrays local variables? 
-  //TODO: make the "current...bounds" arrays!! Maybe I do not need them anymore later on
-  int             currentXLowerBound;
-  int             currentXUpperBound;        
-  int             currentYLowerBound;     
-  int             currentYUpperBound;
-  int             currentZLowerBound;     
-  int             currentZUpperBound;
-  int             currentXImageRegionSize;
-  int             currentYImageRegionSize;
-  int             currentZImageRegionSize;
+  int             currentLowerBound[3];
+  int             currentUpperBound[3];        
+  int             currentImageRegionSize[3];
   int             imageDimensions[3]; // the number of cells on x, y and z axis
   double          imageSpacing[3];
   double          imageOrigin[3];
   int             scalarSize;         // 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
   unsigned long   lastModified;       // saves the time of the last change of the source image
-  void*           pImage;             // pointer to the image in pImageData
+  void*           pImage;             // pointer to the actual image in pImageData received via openIGTLink
   ImageProcessor* pImageProcessor;
 };
 
