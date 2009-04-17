@@ -83,10 +83,10 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void *> (this));
   this->DataCallbackCommand->SetCallback(vtkRealTimeNeedleDetectionGUI::DataCallback);
+  debug         = 2;                // 0: no pOutputNode/no images written to file, 1:pOutputNode/no images written to file, 2:pOutputNode/images written to file
   started       = 0;
   ROIpresent    = 0;
   showNeedle    = 0;
-  scanPlane     = 0;
   needleOrigin  = PATIENTPOSTERIOR; //if this default value gets changed, the initial value for pEntryPointButtonSet needs to get changed, too
   
   //----------------------------------------------------------------
@@ -107,6 +107,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->pYUpperEntry              = NULL;
   this->pZLowerEntry              = NULL;
   this->pZUpperEntry              = NULL;
+  this->pDebugModeButtonSet       = NULL;
   
   //--------------------------------------------------------------------
   // MRML nodes  
@@ -122,15 +123,15 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
    
   //----------------------------------------------------------------
   // Image Values - default  
-  currentXLowerBound        = 0;
-  currentXUpperBound        = 256;
-  currentYLowerBound        = 0;
-  currentYUpperBound        = 256;
-  currentZLowerBound        = 0;
-  currentZUpperBound        = 256;
-  currentXImageRegionSize   = 256;
-  currentYImageRegionSize   = 256;
-  currentZImageRegionSize   = 256;
+  currentLowerBound[0]        = 0;
+  currentUpperBound[0]        = 256;
+  currentLowerBound[1]        = 0;
+  currentUpperBound[1]        = 256;
+  currentLowerBound[2]        = 0;
+  currentUpperBound[2]        = 256;
+  currentImageRegionSize[0]   = 256;
+  currentImageRegionSize[1]   = 256;
+  currentImageRegionSize[2]   = 256;
   needleDetectionThreshold  = DEFAULTTHRESHOLD;
   needleIntensity           = DEFAULTINTENSITY;
   gaussVariance             = 1;                  
@@ -143,7 +144,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   imageOrigin[0]            = 0;
   imageOrigin[1]            = 0;
   imageOrigin[2]            = 0;
-  scalarSize                = 2;                      // scalarType 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
+  scalarSize                = 2;                      // scalarType 0,1 => sclarSize 0 | 2,3 (char) => 1 | 4,5 (short) => 2 | 6,7 => 4
   lastModified              = 0;
   pImage                    = NULL;
   pImageProcessor           = new ImageProcessor::ImageProcessor();  //TODO:move the new to starting the whole detection
@@ -248,6 +249,11 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
     this->pZUpperEntry->SetParent(NULL);
     this->pZUpperEntry->Delete();
   }
+  if(this->pDebugModeButtonSet)
+  {
+    this->pDebugModeButtonSet->SetParent(NULL);
+    this->pDebugModeButtonSet->Delete();
+  }
     
   //-----------------------------------------------------------------
   // Remove MRML nodes
@@ -338,6 +344,10 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pDebugModeButtonSet->GetWidget(0)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pDebugModeButtonSet->GetWidget(1)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pDebugModeButtonSet->GetWidget(2)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+    
 
   this->AddLogicObservers();
 }
@@ -347,8 +357,8 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
 {
   //----------------------------------------------------------------
   // MRML Observers
-  //this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
-  //this->MRMLObserverManager->RemoveObjectEvents(pNeedleModelNode);
+  this->MRMLObserverManager->RemoveObjectEvents(pSourceNode);
+  this->MRMLObserverManager->RemoveObjectEvents(pNeedleModelNode); 
   //TODO: Remove Observers of MRMLSceneEvents
   
   //----------------------------------------------------------------
@@ -369,6 +379,12 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
     this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
     this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
     this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+  }
+  if (this->pDebugModeButtonSet)
+  {
+    this->pDebugModeButtonSet->GetWidget(0)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pDebugModeButtonSet->GetWidget(1)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pDebugModeButtonSet->GetWidget(2)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
   }
   if(this->pStartButton)
     this->pStartButton->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
@@ -479,6 +495,27 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     std::cout << "NeedleOrientatoinButton is pressed." << std::endl;
     needleOrigin = PATIENTSUPERIOR; 
   }  
+  else if (this->pDebugModeButtonSet->GetWidget(0) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->pDebugModeButtonSet->GetWidget(0)->GetSelectedState() == 1)
+  { 
+    std::cout << "DebugModeButton is pressed. !!!!This mode does not work yet!!!!" << std::endl;
+    debug = 0;
+  }
+  else if (this->pDebugModeButtonSet->GetWidget(1) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->pDebugModeButtonSet->GetWidget(1)->GetSelectedState() == 1)
+  { 
+    std::cout << "DebugModeButton is pressed." << std::endl;
+    debug = 1;
+  }
+  else if (this->pDebugModeButtonSet->GetWidget(2) == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->pDebugModeButtonSet->GetWidget(2)->GetSelectedState() == 1)
+  { 
+    std::cout << "DebugModeButton is pressed." << std::endl;
+    debug = 2;
+  }
   
   else if(this->pStartButton == vtkKWPushButton::SafeDownCast(caller) && event == vtkKWPushButton::InvokedEvent)
   {
@@ -748,36 +785,36 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
 //          }          
         }         
       }
-      currentXLowerBound      = this->pXLowerEntry->GetValueAsInt();
-      currentXUpperBound      = this->pXUpperEntry->GetValueAsInt();
-      currentYLowerBound      = this->pYLowerEntry->GetValueAsInt();
-      currentYUpperBound      = this->pYUpperEntry->GetValueAsInt();  
-      currentZLowerBound      = this->pZLowerEntry->GetValueAsInt();
-      currentZUpperBound      = this->pZUpperEntry->GetValueAsInt(); 
-      currentXImageRegionSize = currentXUpperBound - currentXLowerBound;
-      currentYImageRegionSize = currentYUpperBound - currentYLowerBound;
-      currentZImageRegionSize = currentZUpperBound - currentZLowerBound; 
+      currentLowerBound[0]      = this->pXLowerEntry->GetValueAsInt();
+      currentUpperBound[0]      = this->pXUpperEntry->GetValueAsInt();
+      currentLowerBound[1]      = this->pYLowerEntry->GetValueAsInt();
+      currentUpperBound[1]      = this->pYUpperEntry->GetValueAsInt();  
+      currentLowerBound[2]      = this->pZLowerEntry->GetValueAsInt();
+      currentUpperBound[2]      = this->pZUpperEntry->GetValueAsInt(); 
+      currentImageRegionSize[0] = currentUpperBound[0] - currentLowerBound[0];
+      currentImageRegionSize[1] = currentUpperBound[1] - currentLowerBound[1];
+      currentImageRegionSize[2] = currentUpperBound[2] - currentLowerBound[2]; 
       
       //TODO:Do something (getMatrix?) to get the current plane of the slice for the sizing variables
       //if(axial, sagital or coronal)       
-      imageRegionSize[0]  = currentXImageRegionSize;
-      imageRegionLower[0] = currentXLowerBound;
-      imageRegionUpper[0] = currentXUpperBound;  
+      imageRegionSize[0]  = currentImageRegionSize[0];
+      imageRegionLower[0] = currentLowerBound[0];
+      imageRegionUpper[0] = currentUpperBound[0];  
       
       if((needleOrigin == PATIENTLEFT) || (needleOrigin == PATIENTPOSTERIOR))//TODO:!!!ATTENTION!!! This is only for testing!!!
       {
-        imageRegionSize[1]  = currentYImageRegionSize;
-        imageRegionLower[1] = currentYLowerBound;           
-        imageRegionUpper[1] = currentYUpperBound;        
+        imageRegionSize[1]  = currentImageRegionSize[1];
+        imageRegionLower[1] = currentLowerBound[1];           
+        imageRegionUpper[1] = currentUpperBound[1];        
       }
       else if(needleOrigin == PATIENTINFERIOR)
       {
-        imageRegionSize[1]  = currentZImageRegionSize;
-        imageRegionLower[1] = currentZLowerBound;           
-        imageRegionUpper[1] = currentZUpperBound;        
+        imageRegionSize[1]  = currentImageRegionSize[2];
+        imageRegionLower[1] = currentLowerBound[2];           
+        imageRegionUpper[1] = currentUpperBound[2];        
       }
             
-      double points[4]; // Array that contains 2 points of the needle transform (x1,y1,x2,y2)
+      double points[4]; // Array that contains 2 points of the needle (x1,y1,x2,y2) - shaft base and needle tip
                         // points[0],points[1] is the point of the needle entering the image
       points[0] = 0.0;
       points[1] = 0.0;
@@ -796,37 +833,42 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // Use the ImageProcessor to alter the region of interest and calculate the needle position
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
+      if(debug == 2)
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
       
-      //TODO:write all images not only in tmp, but also in the output! Then they don't have to get processed twice
+      //TODO:write all images also in the output in ImageProcessor class! Then they don't have to get processed twice to display the debug information in pOutputNode
                  
       pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, true);  //makes the line white -> no inversion needed
       pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, false); 
       pImageProcessor->GetImage((void*) pImageRegionOutput1);
       SetImageRegion(pImageData, pImageRegionOutput1, 1);  // write the region of interest after top/left in the MRI image received from the scanner
-      //TODO:DELETE pImageRegionOutput1!!                
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
+      //TODO:DELETE pImageRegionOutput1!!        
+      if(debug == 2)        
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
       
       pImageProcessor->DilateAndErode(true, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // 2 == dilate value, default: 3 == erode value
       pImageProcessor->DilateAndErode(true, false, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt());
       pImageProcessor->GetImage((void*) pImageRegionOutput2);
       SetImageRegion(pImageData, pImageRegionOutput2, 2);  // write the region of interest after top/right in the MRI image received from the scanner
-      //TODO:DELETE pImageRegionOutput2!!        
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
+      //TODO:DELETE pImageRegionOutput2!!     
+      if(debug == 2)   
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
       
       pImageProcessor->Threshold(true, true, 0, (int) needleDetectionThreshold, MAX);
       pImageProcessor->Threshold(true, false, 0, (int) needleDetectionThreshold, MAX);
       pImageProcessor->GetImage((void*) pImageRegionOutput3);
       SetImageRegion(pImageData, pImageRegionOutput3, 3);  // write the region of interest bottom/left in the MRI image received from the scanner
-      //TODO:DELETE pImageRegionOutput3!!      
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Threshold.png",TMP);      
+      //TODO:DELETE pImageRegionOutput3!!   
+      if(debug == 2)   
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Threshold.png",TMP);      
       
       pImageProcessor->BinaryThinning(true, true);  // needs inverted images, because it thins to a white line
       pImageProcessor->BinaryThinning(true, false);
       pImageProcessor->GetImage((void*) pImageRegionOutput4);
       SetImageRegion(pImageData, pImageRegionOutput4, 4);  // write the region of interest bottom/right in the MRI image received from the scanner
       //TODO:DELETE pImageRegionOutput4!!  
-      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Thinning.png",TMP);
+      if(debug == 2)
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Thinning.png",TMP);
       
 //      pImageProcessor->SobelFilter(true, true, 1);     
   //    pImageProcessor->SobelFilter(true,true,1);
@@ -859,7 +901,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
           break;
       } //end switch    
-//      pImageProcessor->Write("/projects/mrrobot/goerlitz/test/6-Output.png",OUTPUT);      
+//      if(debug == 2)
+//        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/6-Output.png",OUTPUT);      
 //      pImageProcessor->GetImage((void*) pImageRegionOutput4);
 //      SetImageRegion(pImageData, pImageRegionOutput4, 4);  // write the region of interest bottom/right in the MRI image received from the scanner
 //      //pImageRegionOutput->Delete();  //TODO:DELETE pImageRegion!!
@@ -973,6 +1016,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUI()
 
   BuildGUIForHelpFrame();
   BuildGUIForGeneralParameters();
+  BuildGUIForDebugParameters();
 }
 
 
@@ -992,6 +1036,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForHelpFrame ()
 //---------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
 {
+    //TODO: Delete all the vtkKWLabel objects in this function
   vtkKWWidget* page = this->UIPanel->GetPageWidget("RealTimeNeedleDetection");
   
   vtkSlicerModuleCollapsibleFrame* parentFrame = vtkSlicerModuleCollapsibleFrame::New();
@@ -1223,7 +1268,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   descriptionText->GetWidget()->SetWrapToWord();
   descriptionText->GetWidget()->QuickFormattingOn();
   descriptionText->SetText("Set the boundaries for the part of the image where the needle detection will start. They can be set manually or with an MRMLROINode. If a MRLMROINode exists, all the following values will be overriden." );
-  //Important that Read only after SetText otherwise it doesn't work
+  //Important that Readonly is called after SetText otherwise it doesn't work
   descriptionText->GetWidget()->ReadOnlyOn();
   this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4", descriptionText->GetWidgetName());
   descriptionText->Delete();
@@ -1318,6 +1363,65 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   UpdateGUI();
 }
 
+void vtkRealTimeNeedleDetectionGUI::BuildGUIForDebugParameters()
+{
+  vtkKWWidget* page = this->UIPanel->GetPageWidget("RealTimeNeedleDetection");
+  
+  vtkSlicerModuleCollapsibleFrame* parentFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  parentFrame->SetParent(page);
+  parentFrame->Create();
+  parentFrame->SetLabelText("debug parameters");
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               parentFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // control frame
+  vtkKWFrameWithLabel* controlFrame = vtkKWFrameWithLabel::New();
+  controlFrame->SetParent(parentFrame->GetFrame());
+  controlFrame->Create();
+  controlFrame->SetLabelText("Debug mode");
+  this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", controlFrame->GetWidgetName());
+  
+  // ------------------------------------------------------
+  // debug mode button set
+  vtkKWFrame *buttonSetFrame = vtkKWFrame::New();
+  buttonSetFrame->SetParent(controlFrame->GetFrame());
+  buttonSetFrame->Create();
+  this->Script ( "pack %s -fill both -expand true",  
+                buttonSetFrame->GetWidgetName());
+
+  vtkKWLabel *buttonSetLabel = vtkKWLabel::New();
+  buttonSetLabel->SetParent(buttonSetFrame);
+  buttonSetLabel->Create();
+  buttonSetLabel->SetWidth(15);
+  buttonSetLabel->SetText("Debug mode: ");
+
+  this->pDebugModeButtonSet = vtkKWRadioButtonSet::New();
+  this->pDebugModeButtonSet->SetParent(buttonSetFrame);
+  this->pDebugModeButtonSet->Create();
+  this->pDebugModeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(3);
+  this->pDebugModeButtonSet->UniformColumnsOn();
+  this->pDebugModeButtonSet->UniformRowsOn();  
+
+  this->pDebugModeButtonSet->AddWidget(0);
+  this->pDebugModeButtonSet->GetWidget(0)->SetText("No debug");
+  this->pDebugModeButtonSet->AddWidget(1);
+  this->pDebugModeButtonSet->GetWidget(1)->SetText("OutputImage in Slicer");
+  this->pDebugModeButtonSet->AddWidget(2);
+  this->pDebugModeButtonSet->GetWidget(2)->SetText("OutputImage in Slicer \n and images written to file");  
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              buttonSetLabel->GetWidgetName() , this->pDebugModeButtonSet->GetWidgetName());
+  
+  this->pDebugModeButtonSet->GetWidget(2)->SelectedStateOn();  
+  this->pDebugModeButtonSet->EnabledOn();
+  
+  buttonSetLabel->Delete();  
+  buttonSetFrame->Delete();
+  controlFrame->Delete();
+  parentFrame->Delete();
+}
+
 
 //----------------------------------------------------------------------------
 void vtkRealTimeNeedleDetectionGUI::UpdateAll()
@@ -1367,16 +1471,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
       this->pZUpperEntry->EnabledOn();
     }
   }
-}
-
-// Function to evoke changes in the image in every itaration | not used anymore
-void vtkRealTimeNeedleDetectionGUI::ProcessImage(vtkImageData* pImageData, int i)
-{
-  unsigned char* pImage = (unsigned char*) pImageData->GetScalarPointer();
-  for (int j = 50000; j< 50000+i*500; j++)
-    if((int) pImage[j] != 0)
-      pImage[j] = 0;    
-  std::cout << "Image processed" << std::endl;      
 }
 
 //-----------------------------------------------------------------------------
