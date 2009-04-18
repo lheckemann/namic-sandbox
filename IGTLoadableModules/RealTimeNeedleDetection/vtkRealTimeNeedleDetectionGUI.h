@@ -173,7 +173,6 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   double          imageOrigin[3];
   int             scalarSize;         // 0,1 = 0 | 2,3 (char) = 1 | 4,5 (short) = 2 | 6,7 = 4
   unsigned long   lastModified;       // saves the time of the last change of the source image
-  void*           pImage;             // pointer to the actual image in pImageData received via openIGTLink
   ImageProcessor* pImageProcessor;
 };
 

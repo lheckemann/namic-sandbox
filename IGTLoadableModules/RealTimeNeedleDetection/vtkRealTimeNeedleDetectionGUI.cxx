@@ -55,7 +55,7 @@
 #include "vtkCornerAnnotation.h"
 
 #define PI 3.1415926535897932384626433832795 
-//TODO: how do I access the math pi?
+
 #define PATIENTLEFT      1
 #define PATIENTRIGHT     2
 #define PATIENTPOSTERIOR 3
@@ -146,7 +146,6 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   imageOrigin[2]            = 0;
   scalarSize                = 2;                      // scalarType 0,1 => sclarSize 0 | 2,3 (char) => 1 | 4,5 (short) => 2 | 6,7 => 4
   lastModified              = 0;
-  pImage                    = NULL;
   pImageProcessor           = new ImageProcessor::ImageProcessor();  //TODO:move the new to starting the whole detection
   std::cout << "NeedleDetection constructed" << std::endl;
 }
@@ -275,7 +274,6 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   //----------------------------------------------------------------
   // Delete pointers
   //delete pImageProcessor; //TODO: Does not work properly yet
-  // TODO: delete pImage
   
   std::cout << "NeedleDetection destructed" << std::endl;
 }
