@@ -22,7 +22,6 @@ ImageProcessor::~ImageProcessor()
   if(mLocalTmp2)
     mLocalTmp2->Delete();
   std::cout << "ImageProcessor destructed" << std::endl;
- //TODO: delete properly 
 }
 
 //TODO:Steve Do those Smartpointers of the filters get deleted after returning from the function?
@@ -70,11 +69,10 @@ void ImageProcessor::SetImage(void* pImage, int xSize, int ySize, int scalarSize
 {
   mScalarSize = scalarSize;  
   mWhichTmp = 0; 
-  //TODO: I always create new local images and only delete them when the image processor gets deleted
-  mLocalInputImage = FloatImageType::New();
-  mLocalOutputImage = FloatImageType::New();
-  mLocalTmp1 = FloatImageType::New();
-  mLocalTmp2 = FloatImageType::New(); 
+  mLocalInputImage->FillBuffer(0);
+  mLocalOutputImage->FillBuffer(0);
+  mLocalTmp1->FillBuffer(0);
+  mLocalTmp2->FillBuffer(0); 
   double spacingFilterImage[2];
   spacingFilterImage[0] = spacing[0];
   spacingFilterImage[1] = spacing[1];
