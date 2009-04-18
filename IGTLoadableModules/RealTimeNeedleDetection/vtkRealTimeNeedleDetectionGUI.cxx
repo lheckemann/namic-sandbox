@@ -64,9 +64,11 @@
 #define PATIENTSUPERIOR  6
 
 #define DEFAULTTHRESHOLD 1000
-#define DEFAULTINTENSITY 15000
+#define DEFAULTINTENSITY 5000
 #define DEFAULTERODE     1
 #define DEFAULTDILATE    1
+
+//TODO: put everything in Logic class
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkRealTimeNeedleDetectionGUI);
@@ -146,7 +148,6 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   imageOrigin[2]            = 0;
   scalarSize                = 2;                      // scalarType 0,1 => sclarSize 0 | 2,3 (char) => 1 | 4,5 (short) => 2 | 6,7 => 4
   lastModified              = 0;
-  pImageProcessor           = new ImageProcessor::ImageProcessor();  //TODO:move the new to starting the whole detection
   std::cout << "NeedleDetection constructed" << std::endl;
 }
 
@@ -272,7 +273,7 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   this->SetModuleLogic(NULL);
   
   //----------------------------------------------------------------
-  // Delete pointers
+  // Delete Classes
   //delete pImageProcessor; //TODO: Does not work properly yet
   
   std::cout << "NeedleDetection destructed" << std::endl;
@@ -609,6 +610,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
         this->GetMRMLScene()->AddNode(pScanPlaneNormalNode);         
         std::cout << "ScanPlaneNormalNode added" << std::endl;
       }
+      
+      //------------------------------------------------------------------------------------------------
+      // Create the ImageProcessor Class which detects the needle in the image  
+      if(!pImageProcessor) // If the ImageProcessor doesn't exist yet -> make a new one
+        pImageProcessor = new ImageProcessor::ImageProcessor();  
       
       started = 1; // start checking for changes in pSourceNode to update pOutputNode     
       std::cerr << "Start checking for changes" << std::endl;
