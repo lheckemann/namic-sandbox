@@ -109,10 +109,10 @@ public:
   /** Set/Gets the initial proportion values. The size of proportion
    * vector should be same as the number of component (or classes) */
   void SetInitialProportions(ProportionVectorType &propotion);
-  ProportionVectorType* GetInitialProportions();
+  const ProportionVectorType& GetInitialProportions() const;
 
   /** Gets the result proportion values */
-  ProportionVectorType* GetProportions();
+  const ProportionVectorType& GetProportions() const;
 
   /** typedef for decorated array of proportion */
   typedef SimpleDataObjectDecorator<
@@ -128,7 +128,7 @@ public:
    * class parameters aren't converged, the optimization process
    * stops. */
   void SetMaximumIteration(int numberOfIterations);
-  int GetMaximumIteration();
+  int GetMaximumIteration() const;
 
   /** Gets the current iteration. */
   int GetCurrentIteration() 
@@ -140,7 +140,7 @@ public:
   int AddComponent(ComponentType* component);
 
   /** Gets the total number of classes currently plugged in. */
-  unsigned int GetNumberOfComponents();
+  unsigned int GetNumberOfComponents() const;
 
   /** Runs the optimization process. */
   void Update();
@@ -149,11 +149,11 @@ public:
   enum TERMINATION_CODE { CONVERGED = 0, NOT_CONVERGED = 1 };
 
   /** Gets the termination status */
-  TERMINATION_CODE GetTerminationCode();
+  TERMINATION_CODE GetTerminationCode() const;
 
   /** Gets the membership function specified by componentIndex
   argument. */
-  ComponentMembershipFunctionType* GetComponentMembershipFunction(int componentIndex);
+  ComponentMembershipFunctionType* GetComponentMembershipFunction(int componentIndex) const;
 
   /** Output Membership function vector containing the membership functions with
     * the final optimized paramters */
@@ -165,7 +165,7 @@ protected:
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   bool CalculateDensities();
-  double CalculateExpectation();
+  double CalculateExpectation() const;
   bool UpdateComponentParameters();
   bool UpdateProportions();
 
