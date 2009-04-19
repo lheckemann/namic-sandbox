@@ -172,7 +172,7 @@ int itkExpectationMaximizationMixtureModelEstimatorTest(int argc, char* argv[] )
       std::cout << "    Parameters:" << std::endl ;
       std::cout << "         " << (components[i])->GetFullParameters() << std::endl ;
       std::cout << "    Proportion: " ;
-      std::cout << "         " << (*estimator->GetProportions())[i] << std::endl ;
+      std::cout << "         " << (estimator->GetProportions())[i] << std::endl ;
       displacement = 0.0 ;
       for ( j = 0 ; j < DataSampleType::MeasurementVectorSize ;
            j++)
@@ -195,6 +195,8 @@ int itkExpectationMaximizationMixtureModelEstimatorTest(int argc, char* argv[] )
       std::cout << "Test failed." << std::endl;
       return EXIT_FAILURE;
     }
+
+  estimator->Print(std::cout);
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
