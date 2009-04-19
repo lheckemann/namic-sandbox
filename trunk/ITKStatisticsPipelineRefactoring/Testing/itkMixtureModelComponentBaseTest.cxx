@@ -22,6 +22,7 @@
 #include "itkMixtureModelComponentBase.h"
 #include "itkListSample.h"
 #include "itkObjectFactory.h"
+#include "itkTestingMacros.h"
 
 namespace itk {
 namespace Statistics {
@@ -70,8 +71,10 @@ int itkMixtureModelComponentBaseTest( int , char* [] )
   typedef itk::Statistics::MixtureModelComponentBaseTestHelper<SampleType>  ComponentType;
 
   ComponentType::Pointer component = ComponentType::New();
-
+  std::cout << "component->GetWeights(): " << component->GetWeights() << std::endl;;
   component->RunTests();
+
+  TRY_EXPECT_EXCEPTION( component->GetWeight(5) );
 
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
