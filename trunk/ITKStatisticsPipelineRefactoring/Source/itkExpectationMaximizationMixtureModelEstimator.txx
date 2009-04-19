@@ -32,6 +32,7 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
   m_MembershipFunctionsObject            = MembershipFunctionVectorObjectType::New();
   m_MembershipFunctionsWeightArrayObject =
                         MembershipFunctionsWeightsArrayObjectType::New();
+  m_Sample = 0;
 }
  
 template< class TSample >
@@ -40,6 +41,24 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
+  os << indent << "Maximum Iteration: "
+            << this->GetMaximumIteration() << std::endl;
+  os << indent << "Sample: "
+            << this->GetSample() << std::endl;
+  os << indent << "Number Of Components: "
+            << this->GetNumberOfComponents() << std::endl;
+  for (unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
+    {
+    os << indent << "Component Membership Function[" << i << "]: "
+       << this->GetComponentMembershipFunction(i) << std::endl;
+    }
+  os << indent << "Termination Code: "
+            << this->GetTerminationCode() << std::endl;
+  os << indent << "Initial Proportions: "
+            << this->GetInitialProportions() << std::endl;
+  os << indent << "Proportions: "
+            << this->GetProportions() << std::endl;
+  os << indent << "Calculated Expectation: " << this->CalculateExpectation() << std::endl;
 }
 
 
@@ -54,7 +73,7 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 template< class TSample >
 int
 ExpectationMaximizationMixtureModelEstimator< TSample >
-::GetMaximumIteration() 
+::GetMaximumIteration() const
 {
   return m_MaxIteration;
 }
@@ -68,19 +87,19 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 }
 
 template< class TSample >
-typename ExpectationMaximizationMixtureModelEstimator< TSample >::ProportionVectorType*
+const typename ExpectationMaximizationMixtureModelEstimator< TSample >::ProportionVectorType&
 ExpectationMaximizationMixtureModelEstimator< TSample >
-::GetInitialProportions() 
+::GetInitialProportions() const
 {
   return m_InitialProportions;
 }
 
 template< class TSample >
-typename ExpectationMaximizationMixtureModelEstimator< TSample >::ProportionVectorType*
+const typename ExpectationMaximizationMixtureModelEstimator< TSample >::ProportionVectorType&
 ExpectationMaximizationMixtureModelEstimator< TSample >
-::GetProportions() 
+::GetProportions() const
 {
-  return &m_Proportions;
+  return m_Proportions;
 }
 
 template< class TSample >
@@ -112,7 +131,7 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 template< class TSample >
 unsigned int
 ExpectationMaximizationMixtureModelEstimator< TSample >
-::GetNumberOfComponents()
+::GetNumberOfComponents() const
 {
   return m_ComponentVector.size();
 }
@@ -120,15 +139,15 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 template< class TSample >
 typename ExpectationMaximizationMixtureModelEstimator< TSample >::TERMINATION_CODE
 ExpectationMaximizationMixtureModelEstimator< TSample >
-::GetTerminationCode()
+::GetTerminationCode() const
 {
   return m_TerminationCode;
 }
 
 template< class TSample >
-typename ExpectationMaximizationMixtureModelEstimator< TSample >::ComponentMembershipFunctionType* 
+typename ExpectationMaximizationMixtureModelEstimator< TSample >::ComponentMembershipFunctionType*
 ExpectationMaximizationMixtureModelEstimator< TSample >
-::GetComponentMembershipFunction(int componentIndex)
+::GetComponentMembershipFunction(int componentIndex) const
 {
   return (m_ComponentVector[componentIndex])->GetMembershipFunction();
 }
@@ -218,25 +237,28 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 template< class TSample >
 double
 ExpectationMaximizationMixtureModelEstimator< TSample >
-::CalculateExpectation()
+::CalculateExpectation() const
 {
-  int componentIndex, measurementVectorIndex;
-  long size = m_Sample->Size();
-  double logProportion;
   double sum = 0.0;
-  double temp = 0.0;
-  for (componentIndex = 0; componentIndex < m_ComponentVector.size();
-       componentIndex++)
+  if (m_Sample)
     {
-    logProportion = vcl_log(m_Proportions[componentIndex]); 
-    for (measurementVectorIndex = 0; measurementVectorIndex < size;
-         measurementVectorIndex++)
+    unsigned int componentIndex, measurementVectorIndex;
+    unsigned long size = m_Sample->Size();
+    double logProportion;
+    double temp = 0.0;
+    for (componentIndex = 0; componentIndex < m_ComponentVector.size();
+         componentIndex++)
       {
-      temp = m_ComponentVector[componentIndex]->
-        GetWeight(measurementVectorIndex);
-      sum += temp * ( logProportion + 
-                 vcl_log(m_ComponentVector[componentIndex]->
-                      GetWeight(measurementVectorIndex) ) );
+      logProportion = vcl_log(m_Proportions[componentIndex]); 
+      for (measurementVectorIndex = 0; measurementVectorIndex < size;
+           measurementVectorIndex++)
+        {
+        temp = m_ComponentVector[componentIndex]->
+          GetWeight(measurementVectorIndex);
+        sum += temp * ( logProportion + 
+                        vcl_log(m_ComponentVector[componentIndex]->
+                                GetWeight(measurementVectorIndex) ) );
+        }
       }
     }
   return sum;
