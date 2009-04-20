@@ -446,6 +446,9 @@ Histogram<TMeasurement, TFrequencyContainer >
       return this->m_Min[dimension][i];
       }
     }
+
+  // We will never get here. This line is to avoid compiler warnings.
+  return this->m_Min[dimension][0]; 
 }
 
 template< class TMeasurement, class TFrequencyContainer >
@@ -475,6 +478,9 @@ Histogram< TMeasurement, TFrequencyContainer >
       return this->m_Max[dimension][i];
       }
     }
+
+  // We will never get here. This line is to avoid compiler warnings.
+  return this->m_Max[dimension][0]; 
 }
 
 template< class TMeasurement, class TFrequencyContainer >
