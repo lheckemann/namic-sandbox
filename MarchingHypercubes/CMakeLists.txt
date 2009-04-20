@@ -33,6 +33,14 @@ IF(WIN32)
   ENDIF(DISABLE_MSVC8_DEPRECATED_WARNINGS)
 ENDIF(WIN32)
 
+#-----------------------------------------------------------------------------
+# Configure the default ITK_BRAINWEB_DATA_ROOT for the location of ITK Data.
+# When this data is available, additional 3D tests are enabled.
+FIND_PATH(ITK_BRAINWEB_DATA_ROOT brainweb165a10f17.mha 
+  DOC "Directory with data taken from http://public.kitware.com/pub/itk/Data/BrainWeb/")
+MARK_AS_ADVANCED(ITK_BRAINWEB_DATA_ROOT)
+
+
 ADD_SUBDIRECTORY( Source )
 ADD_SUBDIRECTORY( Testing )
 ADD_SUBDIRECTORY( Examples )
