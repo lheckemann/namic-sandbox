@@ -1,11 +1,12 @@
+Find_PACKAGE(TCL)
+MARK_AS_ADVANCED(TCL_TCLSH)
+
 IF( NOT ITK_DISABLE_CXX_TESTING )
-IF(ITK_BINARY_DIR)
   IF(TCL_TCLSH)
     ADD_TEST(PrintSelf-Statistics ${TCL_TCLSH}
              ${ITK_SOURCE_DIR}/Utilities/Dart/PrintSelfCheck.tcl  
-             ${ITK_SOURCE_DIR}/Code/Numerics/Statistics)
+             ${StatisticsRefactoring_SOURCE_DIR}/Source)
   ENDIF(TCL_TCLSH)
-ENDIF(ITK_BINARY_DIR)
 
 SET(ITK_DATA_ROOT ${StatisticsRefactoring_SOURCE_DIR}/Testing/Data)
 SET(BASELINE ${StatisticsRefactoring_SOURCE_DIR}/Testing/Data/Baseline)
