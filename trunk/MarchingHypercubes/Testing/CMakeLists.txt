@@ -15,6 +15,9 @@ TARGET_LINK_LIBRARIES(DividingCubesFilterTest2 ITKIO ITKNumerics)
 ADD_EXECUTABLE(MarchingCubesImageToMeshFilterTest1 itkMarchingCubesImageToMeshFilterTest1.cxx)
 TARGET_LINK_LIBRARIES(MarchingCubesImageToMeshFilterTest1 ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(GenerateSyntheticSphere GenerateSyntheticSphere.cxx)
+TARGET_LINK_LIBRARIES(GenerateSyntheticSphere ITKIO ITKNumerics)
+
 ADD_TEST(DividingCubesTest1 
   ${CXX_TEST_PATH}/DividingCubesFilterTest1  
   ${ITK_BRAINWEB_DATA_ROOT}/brainweb165a10f17.mha
@@ -35,5 +38,10 @@ ADD_TEST(MarchingCubesImageToMeshFilterTest1
   ${ITK_BRAINWEB_DATA_ROOT}/brainweb165a10f17.mha
   ${TEMP}/MarchingCubesImageToMeshFilterTest1.vtk
   180.0  # Iso-value
+)
+
+ADD_TEST(GenerateSyntheticSphereTest1 
+  ${CXX_TEST_PATH}/GenerateSyntheticSphere 
+  ${TEMP}/SyntheticSphere.vtk
 )
 
