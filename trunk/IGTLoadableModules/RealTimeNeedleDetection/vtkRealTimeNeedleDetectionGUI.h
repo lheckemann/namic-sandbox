@@ -57,7 +57,6 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkRealTimeNeedleDetectionGUI(const vtkRealTimeNeedleDetectionGUI& ); // Not implemented.
   void GetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion);
   void SetImageRegion(vtkImageData* pImageData, unsigned char* pImageRegion, int position);
-  void orientOutputImage(double fovI, double fovJ, double fovK);
   void operator = (const vtkRealTimeNeedleDetectionGUI&); //Not implemented.
   void MakeNeedleModel();
   double diffclock(clock_t clock1,clock_t clock2);
