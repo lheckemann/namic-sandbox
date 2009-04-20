@@ -18,9 +18,14 @@ TARGET_LINK_LIBRARIES(MarchingCubesImageToMeshFilterTest1 ITKIO ITKNumerics)
 ADD_EXECUTABLE(GenerateSyntheticSphere GenerateSyntheticSphere.cxx)
 TARGET_LINK_LIBRARIES(GenerateSyntheticSphere ITKIO ITKNumerics)
 
+ADD_TEST(GenerateSyntheticSphereTest1 
+  ${CXX_TEST_PATH}/GenerateSyntheticSphere 
+  ${TEMP}/SyntheticSphere.vtk
+)
+
 ADD_TEST(DividingCubesTest1 
   ${CXX_TEST_PATH}/DividingCubesFilterTest1  
-  ${ITK_BRAINWEB_DATA_ROOT}/brainweb165a10f17.mha
+  ${TEMP}/SyntheticSphere.vtk
   ${TEMP}/DividingCubesTest1.vtk
   180.0  # Iso-value
   4 4 4  # Subdivision factors
@@ -28,20 +33,15 @@ ADD_TEST(DividingCubesTest1
 
 ADD_TEST(DividingCubesTest2 
   ${CXX_TEST_PATH}/DividingCubesFilterTest2 
-  ${ITK_BRAINWEB_DATA_ROOT}/brainweb165a10f17.mha
+  ${TEMP}/SyntheticSphere.vtk
   ${TEMP}/DividingCubesTest2.vtk
   180.0  # Iso-value
 )
 
 ADD_TEST(MarchingCubesImageToMeshFilterTest1 
   ${CXX_TEST_PATH}/MarchingCubesImageToMeshFilterTest1 
-  ${ITK_BRAINWEB_DATA_ROOT}/brainweb165a10f17.mha
+  ${TEMP}/SyntheticSphere.vtk
   ${TEMP}/MarchingCubesImageToMeshFilterTest1.vtk
   180.0  # Iso-value
-)
-
-ADD_TEST(GenerateSyntheticSphereTest1 
-  ${CXX_TEST_PATH}/GenerateSyntheticSphere 
-  ${TEMP}/SyntheticSphere.vtk
 )
 
