@@ -123,7 +123,7 @@ public:
    * functions provided by the user, otherwise an exception will be thrown at
    */
   itkSetMacro( NumberOfClasses, unsigned int );
-  itkGetMacro( NumberOfClasses, unsigned int );
+  itkGetConstMacro( NumberOfClasses, unsigned int );
 
   /** Set/Get the decision rule. */
   itkSetConstObjectMacro( DecisionRule, DecisionRuleType );

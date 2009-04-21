@@ -50,29 +50,28 @@ KdTreeBasedKmeansEstimator< TKdTree >
 
   
   os << indent << "Current Iteration: "
-     << m_CurrentIteration << std::endl;
+     << this->GetCurrentIteration() << std::endl;
   os << indent << "Maximum Iteration: "
-     << m_MaximumIteration << std::endl;
+     << this->GetMaximumIteration() << std::endl;
 
   os << indent << "Sum of Centroid Position Changes: "
-     << m_CentroidPositionChanges << std::endl;
+     << this->GetCentroidPositionChanges() << std::endl;
   os << indent << "Threshold for the Sum of Centroid Position Changes: "
-     << m_CentroidPositionChangesThreshold << std::endl;
+     << this->GetCentroidPositionChangesThreshold() << std::endl;
 
   os << indent << "Kd Tree:";
   if ( m_KdTree.IsNotNull() )
     {
-    os << m_KdTree << std::endl;
+    os << this->GetKdTree() << std::endl;
     }
   else
     {
     os << "not set." << std::endl;
     }
 
-  os << indent << "Distance Metric: " << m_DistanceMetric << std::endl;
-  os << indent << "Parameters: " << m_Parameters << std::endl;
-  os << indent << "Temp Vertex: " << m_TempVertex << std::endl;
-  os << indent << "MeasurementVectorSize: " << m_MeasurementVectorSize << std::endl;
+  os << indent << "Parameters: " << this->GetParameters() << std::endl;
+  os << indent << "MeasurementVectorSize: " << this->GetMeasurementVectorSize() << std::endl;
+  os << indent << "UseClusterLabels: " << this->GetUseClusterLabels() << std::endl;
 }
 
 

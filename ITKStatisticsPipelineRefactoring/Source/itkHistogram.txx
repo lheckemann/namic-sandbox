@@ -710,7 +710,7 @@ Histogram< TMeasurement, TFrequencyContainer >
     }
   os << std::endl;
   os << indent << "ClipBinsAtEnds: " <<  
-    itk::NumericTraits<bool>::PrintType( m_ClipBinsAtEnds ) << std::endl;
+    itk::NumericTraits<bool>::PrintType( this->GetClipBinsAtEnds() ) << std::endl;
   os << indent << "FrequencyContainerPointer: " << m_FrequencyContainer
      << std::endl;
 }

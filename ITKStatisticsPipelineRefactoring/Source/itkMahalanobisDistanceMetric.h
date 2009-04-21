@@ -104,10 +104,10 @@ public:
  
   /** Set/Get tolerance values */
   itkSetMacro( Epsilon, double );
-  itkGetMacro( Epsilon, double );
+  itkGetConstMacro( Epsilon, double );
 
   itkSetMacro( DoubleMax, double );
-  itkGetMacro( DoubleMax, double );
+  itkGetConstMacro( DoubleMax, double );
 
 protected:
   MahalanobisDistanceMetric(void);

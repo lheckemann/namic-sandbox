@@ -192,8 +192,10 @@ public:
 
   /** Method to set UsePixelContainer flag */
   itkSetMacro( UsePixelContainer, bool );
-  itkGetMacro( UsePixelContainer, bool );
+  itkGetConstMacro( UsePixelContainer, bool );
   itkBooleanMacro( UsePixelContainer );
+
+  //  void PrintSelf(std::ostream& os, Indent indent) const;  
 
   /** \class ListSample::ConstIterator */
   class ConstIterator

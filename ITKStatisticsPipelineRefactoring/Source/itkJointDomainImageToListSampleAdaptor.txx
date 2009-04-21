@@ -62,7 +62,7 @@ JointDomainImageToListSampleAdaptor< TImage>
 template < class TImage>
 void
 JointDomainImageToListSampleAdaptor< TImage>
-::PrintSelf(std::ostream& os, Indent indent) const
+::PrintSelf( std::ostream& os, Indent indent ) const
 {
   Superclass::PrintSelf(os,indent);
 
@@ -75,6 +75,8 @@ JointDomainImageToListSampleAdaptor< TImage>
     {
     os << "not set." << std::endl;
     }
+  os << indent << "UsePixelContainer: "
+     << this->GetUsePixelContainer() << std::endl;
 }
 
 template < class TImage>
