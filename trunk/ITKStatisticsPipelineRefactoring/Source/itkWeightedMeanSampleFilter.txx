@@ -43,6 +43,10 @@ WeightedMeanSampleFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
+  // m_Weights
+  os << indent << "Weights: " << this->GetWeightsInput() << std::endl;
+  // m_WeightingFunction
+  os << indent << "Weighting Function: " << this->GetWeightingFunctionInput() << std::endl;
 }
 
 template< class TSample >

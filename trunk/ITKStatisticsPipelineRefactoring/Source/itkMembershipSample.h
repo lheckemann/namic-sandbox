@@ -133,6 +133,8 @@ public:
   /** Method to graft another sample */
   virtual void Graft( const DataObject *thatObject );
 
+//  void PrintSelf(std::ostream& os, Indent indent) const;  
+
   class ConstIterator
     {
     friend class MembershipSample;

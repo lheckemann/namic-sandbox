@@ -165,7 +165,7 @@ public:
 
   /** Is set to false if the bins at edges of the histogram extend to
    *   +/- infinity. */
-  itkGetMacro(ClipBinsAtEnds, bool);
+  itkGetConstMacro(ClipBinsAtEnds, bool);
 
   /** Set to false to have the bins at edges of the histogram extend to
    *   +/- infinity. */

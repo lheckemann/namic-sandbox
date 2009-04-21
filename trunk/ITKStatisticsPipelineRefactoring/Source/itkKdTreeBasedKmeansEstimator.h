@@ -128,21 +128,21 @@ public:
 
   /** Set/Get maximum iteration limit. */
   itkSetMacro( MaximumIteration, int );
-  itkGetConstReferenceMacro( MaximumIteration, int ); 
+  itkGetConstMacro( MaximumIteration, int ); 
  
   /** Set/Get the termination threshold for the squared sum
    * of changes in centroid postions after one iteration */
   itkSetMacro( CentroidPositionChangesThreshold, double );   
-  itkGetConstReferenceMacro( CentroidPositionChangesThreshold, double );   
+  itkGetConstMacro( CentroidPositionChangesThreshold, double );   
   /** Set/Get the pointer to the KdTree */
   void SetKdTree(TKdTree* tree);
   const TKdTree* GetKdTree() const;
 
   /** Get the length of measurement vectors in the KdTree */
-  itkGetConstReferenceMacro( MeasurementVectorSize, MeasurementVectorSizeType );
+  itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
 
-  itkGetConstReferenceMacro( CurrentIteration, int);
-  itkGetConstReferenceMacro( CentroidPositionChanges, double);
+  itkGetConstMacro( CurrentIteration, int);
+  itkGetConstMacro( CentroidPositionChanges, double);
 
   /** Start optimization
    * Optimization will stop when it meets either of two termination conditions,
@@ -153,7 +153,7 @@ public:
   typedef itk::hash_map< InstanceIdentifier, unsigned int > ClusterLabelsType;
 
   itkSetMacro( UseClusterLabels, bool );
-  itkGetConstReferenceMacro( UseClusterLabels, bool );
+  itkGetConstMacro( UseClusterLabels, bool );
 
 protected:
   KdTreeBasedKmeansEstimator();

@@ -96,6 +96,8 @@ ImageToListSampleAdaptor< TImage>
     {
     os << "not set." << std::endl;
     }
+  os << indent << "UsePixelContainer: "
+     << this->GetUsePixelContainer() << std::endl;
 }
 
 template < class TImage>
