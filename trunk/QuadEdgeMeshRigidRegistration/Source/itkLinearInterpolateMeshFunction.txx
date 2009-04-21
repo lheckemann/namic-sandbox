@@ -107,7 +107,6 @@ LinearInterpolateMeshFunction<TInputMesh>
 }
 
 
-
 template <class TInputMesh>
 template <class TArray, class TMatrix>
 void
@@ -116,7 +115,21 @@ LinearInterpolateMeshFunction<TInputMesh>
     const TArray & pixelArray1, const TArray & pixelArray2, const TArray & pixelArray3,
     const VectorType & m_U12, const VectorType & m_U32, TMatrix & jacobian)
 {
+  DerivativeType derivative; 
 
+  for (int i=0; i<3; i++)
+    {
+    PixelType pixelValue1= pixelArray1[i];
+    PixelType pixelValue2= pixelArray2[i];
+    PixelType pixelValue3= pixelArray3[i];
+    
+    GetDerivativeFromPixelsAndBasis(pixelValue1, pixelValue2, pixelValue3, m_U12,
+                                          m_U32, derivative);
+    for (int j=0; j<3; j++)
+      {
+      jacobian[i][j]= derivative[j];
+      }
+    }
 }
 
 
