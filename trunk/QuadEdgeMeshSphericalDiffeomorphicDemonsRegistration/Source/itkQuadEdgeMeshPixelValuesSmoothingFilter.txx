@@ -45,27 +45,12 @@ void
 QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 ::GenerateData()
 {
-  OutputMeshPointer mesh;
-
-  OutputPointsContainerPointer temp = OutputPointsContainer::New();
-
-  temp->Reserve( this->GetInput()->GetNumberOfPoints() );
-
-  OutputPointsContainerPointer points;
-  OutputPointsContainerIterator it;
-  OutputPointType p, q, r;
-  OutputVectorType v;
-  OutputCoordType coeff, sum_coeff, den;
-  OutputQEType* qe;
-  OutputQEType* qe_it;
+  OutputMeshPointer outputMesh = this->GetOutput();
 
   if( this->m_MaximumNumberOfIterations == 0 )
     {
-    Superclass::GenerateData();
-    }
-  else
-    {
-    mesh = this->GetInput();
+    // Copy the input mesh into the output mesh.
+    this->Superclass::GenerateData();
     }
 
   for( unsigned int iter = 0; iter < m_MaximumNumberOfIterations; ++iter )
