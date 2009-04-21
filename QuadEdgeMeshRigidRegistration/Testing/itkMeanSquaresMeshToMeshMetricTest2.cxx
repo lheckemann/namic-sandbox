@@ -204,9 +204,6 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetNumberOfIterations( 1 );
-  optimizer->SetCurrentPosition( transform->GetParameters() );
-
-std::cout << "CURRENT = " << transform->GetParameters() << std::endl;
 
   // Create the Command observer and register it with the optimizer.
   //
