@@ -160,7 +160,7 @@ MembershipSample< TSample >
 {
   Superclass::PrintSelf(os,indent);
   os << indent << "Sample: " << m_Sample.GetPointer() << std::endl;
-  os << indent << "NumberOfClasses: " << m_NumberOfClasses << std::endl;
+  os << indent << "NumberOfClasses: " << this->GetNumberOfClasses() << std::endl;
 }
 
 

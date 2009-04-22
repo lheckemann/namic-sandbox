@@ -41,7 +41,7 @@ namespace Statistics {
   
  
 template< class TImageType >
-class ImageToHistogramFilter : public ProcessObject
+class ITK_EXPORT ImageToHistogramFilter : public ProcessObject
 {
 public:
   /** Standard typedefs */

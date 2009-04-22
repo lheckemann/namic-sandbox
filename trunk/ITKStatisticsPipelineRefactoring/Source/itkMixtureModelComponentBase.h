@@ -50,7 +50,7 @@ namespace Statistics {
  */
 
 template< class TSample >
-class MixtureModelComponentBase :
+class ITK_EXPORT MixtureModelComponentBase :
     public Object
 {
 public:

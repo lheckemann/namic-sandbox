@@ -95,7 +95,7 @@ public:
   void SetNumberOfClasses( unsigned int numberOfClasses );
 
   /** Gets the number of classes (class labels) */
-  itkGetMacro( NumberOfClasses, unsigned int );
+  itkGetConstMacro( NumberOfClasses, unsigned int );
 
   /** Adds an instance from the source sample to this container. The
    * first argument is the class label for that instance. The second

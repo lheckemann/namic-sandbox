@@ -106,7 +106,7 @@ namespace Statistics {
     
 template< class TImageType,
           class THistogramFrequencyContainer = DenseFrequencyContainer2 >
-class ScalarImageToTextureFeaturesFilter : public ProcessObject
+class ITK_EXPORT ScalarImageToTextureFeaturesFilter : public ProcessObject
 {
 public:
   /** Standard typedefs */
@@ -163,8 +163,8 @@ public:
   const ImageType* GetInput() const;
 
   /** Return the feature means and deviations.  */
-  itkGetObjectMacro(FeatureMeans, FeatureValueVector);
-  itkGetObjectMacro(FeatureStandardDeviations, FeatureValueVector);
+  itkGetConstReferenceObjectMacro(FeatureMeans, FeatureValueVector);
+  itkGetConstReferenceObjectMacro(FeatureStandardDeviations, FeatureValueVector);
       
   /** Set the desired feature set. Optional, for default value see above. */
   itkSetConstObjectMacro(RequestedFeatures, FeatureNameVector);
@@ -192,7 +192,7 @@ public:
       object. Optional; for default value see above. */
   void SetInsidePixelValue(PixelType InsidePixelValue);
 
-  itkGetMacro(FastCalculations, bool);
+  itkGetConstMacro(FastCalculations, bool);
   itkSetMacro(FastCalculations, bool);
   itkBooleanMacro(FastCalculations);
       

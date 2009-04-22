@@ -342,6 +342,11 @@ ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::
 PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
+  os << indent << "RequestedFeatures: " << this->GetRequestedFeatures() << std::endl;
+  os << indent << "FeatureStandardDeviations: " << this->GetFeatureStandardDeviations() << std::endl;
+  os << indent << "FastCalculations: " << this->GetFastCalculations() << std::endl;
+  os << indent << "Offsets: " << this->GetOffsets() << std::endl;
+  os << indent << "FeatureMeans: " << this->GetFeatureMeans() << std::endl;
 }
     
 } // end of namespace Statistics 

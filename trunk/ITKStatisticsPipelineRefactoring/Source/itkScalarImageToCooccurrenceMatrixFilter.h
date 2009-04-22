@@ -91,7 +91,7 @@ namespace Statistics {
 
 template< class TImageType,
           class THistogramFrequencyContainer = DenseFrequencyContainer2 >
-class ScalarImageToCooccurrenceMatrixFilter : public ProcessObject
+class ITK_EXPORT ScalarImageToCooccurrenceMatrixFilter : public ProcessObject
 {
 public:
   /** Standard typedefs */
@@ -136,17 +136,17 @@ public:
       
   /** Set number of histogram bins along each axis */
   itkSetMacro( NumberOfBinsPerAxis, unsigned int );
-  itkGetMacro( NumberOfBinsPerAxis, unsigned int );
+  itkGetConstMacro( NumberOfBinsPerAxis, unsigned int );
 
   /** Set the min and max (inclusive) pixel value that will be placed in the histogram */
   void SetPixelValueMinMax( PixelType min, PixelType max );
-  itkGetMacro(Min, PixelType);
-  itkGetMacro(Max, PixelType);
+  itkGetConstMacro(Min, PixelType);
+  itkGetConstMacro(Max, PixelType);
 
   /** Set the calculator to normalize the histogram (divide all bins by the 
     total frequency). Normalization is off by default. */
   itkSetMacro(Normalize, bool);
-  itkGetMacro(Normalize, bool);
+  itkGetConstMacro(Normalize, bool);
   itkBooleanMacro(Normalize);
 
   /** Method to set/get the image */
@@ -163,7 +163,7 @@ public:
   /** Set the pixel value of the mask that should be considered "inside" the 
     object. Defaults to one. */
   itkSetMacro( InsidePixelValue, PixelType );
-  itkGetMacro( InsidePixelValue, PixelType );
+  itkGetConstMacro( InsidePixelValue, PixelType );
 
 
 protected:

@@ -398,6 +398,12 @@ THistogramFrequencyContainer >::
 PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
+  os << indent << "Offsets: " << this->GetOffsets() << std::endl;
+  os << indent << "Min: " << this->GetMin() << std::endl;
+  os << indent << "Max: " << this->GetMax() << std::endl;
+  os << indent << "NumberOfBinsPerAxis: " << this->GetNumberOfBinsPerAxis() << std::endl;
+  os << indent << "Normalize: " << this->GetNormalize() << std::endl;
+  os << indent << "InsidePixelValue: " << this->GetInsidePixelValue() << std::endl;
 }
 
 } // end of namespace Statistics 
