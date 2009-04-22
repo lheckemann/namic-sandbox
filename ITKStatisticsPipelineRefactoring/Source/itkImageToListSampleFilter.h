@@ -105,7 +105,7 @@ public:
    * no mask has been specified all pixels will be added as measurement vectors
    * to the list sample. */
   itkSetMacro( MaskValue, MaskPixelType );
-  itkGetMacro( MaskValue, MaskPixelType );
+  itkGetConstMacro( MaskValue, MaskPixelType );
   
 protected:
   ImageToListSampleFilter();

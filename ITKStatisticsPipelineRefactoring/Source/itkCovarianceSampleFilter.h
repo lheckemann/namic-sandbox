@@ -44,7 +44,7 @@ namespace Statistics {
  */
 
 template< class TSample >
-class CovarianceSampleFilter :
+class ITK_EXPORT CovarianceSampleFilter :
     public ProcessObject
 {
 public:

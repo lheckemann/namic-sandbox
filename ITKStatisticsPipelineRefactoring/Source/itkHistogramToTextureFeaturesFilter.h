@@ -96,7 +96,7 @@ namespace Statistics {
 * Author: Zachary Pincus */
 
 template < class THistogram >
-class HistogramToTextureFeaturesFilter : public ProcessObject
+class ITK_EXPORT HistogramToTextureFeaturesFilter : public ProcessObject
 {
 public:
   /** Standard typedefs */
