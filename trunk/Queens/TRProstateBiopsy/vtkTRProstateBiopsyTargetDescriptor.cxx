@@ -23,8 +23,12 @@ vtkTRProstateBiopsyTargetDescriptor::vtkTRProstateBiopsyTargetDescriptor()
     this->NeedleType = "";
     this->NeedleOvershoot=0.0;
     this->TargetValidated = false;
+    this->FoR_STR = "";
     this->ValidationVolumeFoR_STR = "";
-    this->ComputedDistanceFromNeedle = 0.0;
+    this->OverallError = 0.0;
+    this->APError = 0.0;
+    this->LRError = 0.0;
+    this->ISError = 0.0;
     this->IsOutsideReach=true;
     this->RASLocation[0] = 0;
     this->RASLocation[1] = 0;
@@ -32,7 +36,8 @@ vtkTRProstateBiopsyTargetDescriptor::vtkTRProstateBiopsyTargetDescriptor()
     this->Hinge[0] = 0;
     this->Hinge[1] = 0;
     this->Hinge[2] = 0;
-    
+    this->NeedleListIndex = -1;
+    this->FiducialIndex = -1;
     //this->SetFilledPoint();
 }
 

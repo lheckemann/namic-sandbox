@@ -7,6 +7,12 @@
 #include "vtkSlicerApplicationLogic.h"
 #include "vtkMRMLFiducialListNode.h"
 
+#include "vtkMath.h"
+#include "vtkLineSource.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkRenderer.h"
+
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 
@@ -25,7 +31,7 @@
 #include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
 #include "vtkKWMessageDialog.h"
-
+#include "itkMetaDataObject.h"
 #include "vtkImageChangeInformation.h"
 
 #include <vtksys/ios/sstream>
@@ -92,6 +98,9 @@ vtkTRProstateBiopsyCalibrationStep::vtkTRProstateBiopsyCalibrationStep()
   this->Marker_4_CentroidFrame = NULL;
   this->Marker_4_CentroidLabel = NULL;
   this->Marker_4_Centroid = NULL;
+
+  this->Axes1Actor = vtkActor::New();  
+  this->Axes2Actor = vtkActor::New();  
 
   this->AxesAngle = NULL;
   this->AxesDistance = NULL;
@@ -1665,6 +1674,7 @@ void vtkTRProstateBiopsyCalibrationStep::RecordClick(double rasPoint[])
 
     // populate controls
     mrmlNode->GetCalibrationFiducialsList()->SetAllFiducialsVisibility(true);
+    this->ShowAxesIn3DView();
     this->PopulateSegmentationResults();
     this->PopulateRegistrationResults();
 
@@ -1673,4 +1683,233 @@ void vtkTRProstateBiopsyCalibrationStep::RecordClick(double rasPoint[])
 
   wizard_widget->SetErrorText(msg);
   wizard_widget->Update();
+}
+
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::SaveToExperimentFile(ostream &of)
+{
+  // reset parameters at MRML node
+   vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+
+  // parameters to be saved for calibration
+  // 1) FoR str
+  // 2) marker centroids (all 4)
+  // 3) I1, I2, v1, v2
+  // 4) axes angle degrees
+  // 5) axes distance mm
+  // 6) robot registration angle
+  
+  // 1) FoR str
+  // this information is in mrml scalar volume node
+  // get the mrml scalar volume node
+  vtkMRMLScalarVolumeNode *volNode = mrmlNode->GetCalibrationVolumeNode();
+
+  if (!volNode)
+    {
+    // error
+    return;
+    }
+  // remaining information to be had from the meta data dictionary     
+  const itk::MetaDataDictionary &volDictionary = volNode->GetMetaDataDictionary();
+  std::string tagValue;
+
+  // frame of reference uid
+  tagValue.clear(); itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );
+  of << " CalibrationVolumeFoRString=\"" ;
+  of << tagValue << " ";
+  of << "\" \n";
+
+  // 2) marker centroids  
+  double markerRAS[2];
+
+  mrmlNode->GetCalibrationMarker(1, markerRAS[0], markerRAS[1], markerRAS[2]);;  
+  of << " Marker_1=\"";
+  for(int i = 0; i < 3; i++)
+    of << markerRAS[i] << " ";
+  of << "\" \n";
+
+  mrmlNode->GetCalibrationMarker(2, markerRAS[0], markerRAS[1], markerRAS[2]);;  
+  of << " Marker_2=\"";
+  for(int i = 0; i < 3; i++)
+    of << markerRAS[i] << " ";
+  of << "\" \n";
+
+  mrmlNode->GetCalibrationMarker(3, markerRAS[0], markerRAS[1], markerRAS[2]);;  
+  of << " Marker_3=\"";
+  for(int i = 0; i < 3; i++)
+    of << markerRAS[i] << " ";
+  of << "\" \n";
+
+  mrmlNode->GetCalibrationMarker(4, markerRAS[0], markerRAS[1], markerRAS[2]);; 
+  of << " Marker_4=\"";
+  for(int i = 0; i < 3; i++)
+    of << markerRAS[i] << " ";
+  of << "\" \n";
+
+  // 3) I1, I2, v1, v2
+  double val[3];
+  mrmlNode->GetI1(val[0], val[1], val[2]);
+  of << " I1=\"";
+  for(int i = 0; i < 3; i++)
+    of << val[i] << " ";
+  of << "\" \n";
+
+  mrmlNode->GetI2(val[0], val[1], val[2]); 
+  of << " I2=\"";
+  for(int i = 0; i < 3; i++)
+    of << val[i] << " ";
+  of << "\" \n";
+
+  mrmlNode->Getv1(val[0], val[1], val[2]); 
+  of << " v1=\"";
+  for(int i = 0; i < 3; i++)
+    of << val[i] << " ";
+  of << "\" \n";
+
+  mrmlNode->Getv2(val[0], val[1], val[2]); 
+  of << " v2=\"";
+  for(int i = 0; i < 3; i++)
+    of << val[i] << " ";
+  of << "\" \n";
+
+
+  // 4) axes angle degrees
+  double angle;
+  angle = mrmlNode->GetAxesAngleDegrees();
+  of << " AxesAngle (degrees)=\"";  
+  of << angle << " ";
+  of << "\" \n";
+
+  // 5) axes distance
+  double distance;
+  distance = mrmlNode->GetAxesDistance();
+  of << " AxesDistance (mm)=\"";  
+  of << distance << " ";
+  of << "\" \n";
+
+
+  // 6) robot registration angle
+  angle = mrmlNode->GetRobotRegistrationAngleDegrees();
+  of << " RobotRegistrationAngle (degrees)=\"";  
+  of << angle << " ";
+  of << "\" \n";
+
+
+  
+}
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::LoadFromExperimentFile(istream &file)
+{
+}
+//--------------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::ShowAxesIn3DView()
+{
+  
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  if(!mrmlNode)
+      return;
+  
+  // get RAS points of start and end point of axis 1, and axis 2
+  // for the 3D viewer, the RAS coodinates are the world coordinates!!
+  // this makes things simpler
+  // render the needle as a thin pipe
+
+  // first axes line  
+  // start point is marker 1 centroid
+  double marker1RAS[3];
+  mrmlNode->GetCalibrationMarker(1, marker1RAS[0], marker1RAS[1], marker1RAS[2]);
+
+  // end point is marker 2 centroid
+  double marker2RAS[3];
+  mrmlNode->GetCalibrationMarker(2, marker2RAS[0], marker2RAS[1], marker2RAS[2]);
+
+  // form the axis 1 line
+  // set up the line actors
+  vtkLineSource *axis1Line = vtkLineSource::New();
+  axis1Line->SetResolution(100); 
+  axis1Line->SetPoint1(marker1RAS);
+  axis1Line->SetPoint2(marker2RAS);
+  axis1Line->Update();
+      
+  vtkPolyDataMapper *axis1Mapper = vtkPolyDataMapper::New();
+  axis1Mapper->SetInputConnection(axis1Line->GetOutputPort());
+  this->Axes1Actor->SetMapper(axis1Mapper);  
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->AddViewProp(this->Axes1Actor);
+
+
+  // 2nd axis line
+  // start point as marker 4 coordinate
+  double marker4RAS[3];
+  mrmlNode->GetCalibrationMarker(4, marker4RAS[0], marker4RAS[1], marker4RAS[2]);
+
+  // end point as overshot marker 3 coordinate
+  double marker3RAS[3];
+  mrmlNode->GetCalibrationMarker(3, marker3RAS[0], marker3RAS[1], marker3RAS[2]);
+
+  double axis2Vector[3];
+  axis2Vector[0] = marker3RAS[0] - marker4RAS[0];
+  axis2Vector[1] = marker3RAS[1] - marker4RAS[1];
+  axis2Vector[2] = marker3RAS[2] - marker4RAS[2];
+  vtkMath::Normalize(axis2Vector);
+
+  double overshoot = 100;
+
+  double axis2EndRAS[3];
+  axis2EndRAS[0] = marker3RAS[0] + overshoot*axis2Vector[0];
+  axis2EndRAS[1] = marker3RAS[1] + overshoot*axis2Vector[1];
+  axis2EndRAS[2] = marker3RAS[2] + overshoot*axis2Vector[2];
+  
+  // form the axis 2 line
+  // set up the line actors
+  vtkLineSource *axis2Line = vtkLineSource::New();
+  axis2Line->SetResolution(100); 
+  axis2Line->SetPoint1(axis2EndRAS);
+  axis2Line->SetPoint2(marker4RAS);
+  axis2Line->Update();
+      
+  vtkPolyDataMapper *axis2Mapper = vtkPolyDataMapper::New();
+  axis2Mapper->SetInputConnection(axis2Line->GetOutputPort());
+  this->Axes2Actor->SetMapper(axis2Mapper);  
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->AddViewProp(this->Axes2Actor);
+
+
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
+
+}
+
+//--------------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::HideAxesIn3DView()
+{
+   // should remove the overlay needle guide
+  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->GetRenderer()->GetActors();
+  if (collection->IsItemPresent(this->Axes1Actor))
+    {
+    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->GetRenderer()->RemoveActor(this->Axes1Actor);
+    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
+    }
+  if (collection->IsItemPresent(this->Axes2Actor))
+    {
+    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->GetRenderer()->RemoveActor(this->Axes2Actor);
+    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
+    }
+}
+//-------------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::HideUserInterface()
+{
+  this->Superclass::HideUserInterface();
+
+  this->HideAxesIn3DView();
+}
+//-------------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::Validate()
+{
+  this->Superclass::Validate();
+
+  this->HideAxesIn3DView();
 }

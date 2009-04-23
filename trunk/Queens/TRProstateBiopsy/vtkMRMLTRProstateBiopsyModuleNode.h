@@ -153,9 +153,10 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   vtkGetObjectMacro(CalibrationFiducialsList, vtkMRMLFiducialListNode);
   void SetCalibrationFiducialsList(vtkMRMLFiducialListNode *);
 
-  bool AddTargetToFiducialList(double targetRAS[3], unsigned int fiducialListIndex, unsigned int targetNr, unsigned int & fiducialIndex);
-  bool GetTargetFromFiducialList(unsigned int fiducialListIndex, unsigned int fiducialIndex, double &r, double &a, double &s);
+  bool AddTargetToFiducialList(double targetRAS[3], unsigned int fiducialListIndex, unsigned int targetNr, int & fiducialIndex);
+  bool GetTargetFromFiducialList(int fiducialListIndex, int fiducialIndex, double &r, double &a, double &s);
 
+  void SetFiducialColor(int fiducialListIndex, int fiducialIndex, bool selected);
   // Description:
   void GetCalibrationMarker(unsigned int markerNr, double &r, double &a, double &s);
   void SetCalibrationMarker(unsigned int markerNr, double markerRAS[3]);
@@ -238,10 +239,19 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   
   unsigned int AddTargetDescriptor(vtkTRProstateBiopsyTargetDescriptor *target);
   vtkTRProstateBiopsyTargetDescriptor *GetTargetDescriptorAtIndex(unsigned int index);
+  int GetTotalNumberOfTargets() { return this->TargetDescriptorsVector.size();};
 
   void SetupNeedlesList();
   void SetupTargetingFiducialsList();
   
+
+
+  int GetNumberOfOpenVolumes(){return this->VolumesList.size();};
+  vtkMRMLScalarVolumeNode *GetVolumeNodeAtIndex(int index);
+  char *GetDiskLocationOfVolumeAtIndex(int index);
+  char *GetTypeOfVolumeAtIndex(int index);
+  bool IsVolumeAtIndexActive(int index);
+  void AddVolumeInformationToList(vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type);
 
 protected:
   vtkMRMLTRProstateBiopsyModuleNode();
@@ -266,6 +276,14 @@ protected:
   std::vector<vtkTRProstateBiopsyTargetDescriptor *> TargetDescriptorsVector;
   //unsigned int NumberOfTargetingFiducialLists; this should be equal to number of needle types
   std::vector<std::string> TargetingFiducialsListsNames;
+  //keep track of all the volumes that were opened, maintain a list
+  typedef struct{
+      char *Type;
+      char *DiskLocation;
+      bool Active;
+      vtkMRMLScalarVolumeNode *VolumeNode;
+  }VolumeInformationStruct;
+  std::vector<VolumeInformationStruct *> VolumesList;
   //ETX
 
   void InitializeFiducialListNode();

@@ -81,7 +81,13 @@
 
 
 #include <vector>
+#include <sstream>
+#include <ctime>
+#include <io.h>
+#include <sys/types.h>  // For stat().
+#include <sys/stat.h>   // For stat().
 
+#include "itkMetaDataObject.h"
 //---------------------------------------------------------------------------
 vtkStandardNewMacro(vtkTRProstateBiopsyGUI);
 vtkCxxRevisionMacro(vtkTRProstateBiopsyGUI, "$Revision: 1.0 $");
@@ -1046,6 +1052,28 @@ void vtkTRProstateBiopsyGUI::SaveExperimentButtonCallback(const char *fileName)
     file.close();
 }
 
+//---------------------------------------------------------------------------
+void vtkTRProstateBiopsyGUI::SaveExperiment(ostream & of)
+{
+  // save the volume information
+  this->SaveVolumesToExperimentFile(of);
+
+  for (int phase = vtkTRProstateBiopsyLogic::WorkPhase::Calibration; phase < vtkTRProstateBiopsyLogic::WorkPhase::NumPhases; phase++)
+    {
+    this->WizardSteps[phase]->SaveToExperimentFile(of);
+    } 
+}
+//-----------------------------------------------------------------------------
+void vtkTRProstateBiopsyGUI::LoadExperiment(istream &file)
+{
+  // load the volumes
+  this->LoadVolumesAsInExperimentFile(file);
+
+  for (int phase = vtkTRProstateBiopsyLogic::WorkPhase::Calibration; phase < vtkTRProstateBiopsyLogic::WorkPhase::NumPhases; phase++)
+    {
+    this->WizardSteps[phase]->LoadFromExperimentFile(file);
+    }
+}
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyGUI::LoadExperimentButtonCallback(const char *fileName)
 {
@@ -1523,3 +1551,67 @@ int vtkTRProstateBiopsyGUI::ChangeWorkPhase(int phase, int fChangeWizard)
 }
 
 
+
+//----------------------------------------------------------------------------
+char *vtkTRProstateBiopsyGUI::CreateFileName()
+{
+    // create a folder for current date, if not already created
+    // get the system calendar time
+    std::time_t tt = std::time(0);
+    // convert it into tm struct
+    std::tm ttm = *std::localtime(&tt);
+    // extract the values for day, month, year
+    char dirName[9] = "";
+    sprintf(dirName, "%4d%2d%2d", ttm.tm_year, ttm.tm_mon+1, ttm.tm_mday);
+    if (access(dirName,0) ==0)
+        {
+        struct stat status;
+        stat( dirName, &status );
+        if ( status.st_mode & S_IFDIR )
+        {
+        // directory exists
+        }
+        else
+        {
+        //create directory
+        }
+        }
+    else
+        {
+        //create directory
+            ::CreateDirectory(dirName,NULL);
+        }
+
+    // after directory has been created
+    // create the file name
+    // extract time in hrs, mins, secs  
+
+
+    // generate the unique file name
+    // to take into account
+    // 1) student/trainee name
+    // 2) current time of experiment
+    // 3) trial number
+    //
+  return dirName;
+}
+
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyGUI::SaveVolumesToExperimentFile(ostream& of)
+{
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+  
+  this->GetLogic()->SaveVolumesToExperimentFile(of);  
+
+}
+
+
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyGUI::LoadVolumesAsInExperimentFile(istream &file)
+{
+}

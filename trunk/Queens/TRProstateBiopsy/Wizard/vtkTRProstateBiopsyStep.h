@@ -60,6 +60,9 @@ public:
   // Callbacks to capture mouse click on image
   virtual void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
 
+  virtual void SaveToExperimentFile(ostream & of);
+
+  virtual void LoadFromExperimentFile(istream &file);
 
 protected:
   vtkTRProstateBiopsyStep();

@@ -127,14 +127,45 @@ public:
 
     // Description
     // Set/get validation info: computed distance from the needle
-    void SetDistanceFromNeedle ( double distance){ this->ComputedDistanceFromNeedle = distance;}
-    double GetDistanceFromNeedle(){return this->ComputedDistanceFromNeedle;}
+    void SetOverallError ( double error){ this->OverallError = error;}
+    double GetOverallError(){return this->OverallError;}
+
+    // Description
+    // Set/get validation info: computed distance from the needle
+    void SetAPError ( double error){ this->APError = error;}
+    double GetAPError(){return this->APError;}
+
+    // Description
+    // Set/get validation info: computed distance from the needle
+    void SetLRError ( double error){ this->LRError = error;}
+    double GetLRError(){return this->LRError;}
+
+    // Description
+    // Set/get validation info: computed distance from the needle
+    void SetISError ( double error){ this->ISError = error;}
+    double GetISError(){return this->ISError;}
+
+    // Description
+    // Set/get MRML fiducial list related info
+    void SetNeedleIndex ( int needleIndex){ this->NeedleListIndex = needleIndex;}
+    int GetNeedleIndex(){return this->NeedleListIndex;}
+
+    // Description
+    // Set/get MRML fiducial list related info
+    void SetFiducialIndex ( int fiducialIndex){ this->FiducialIndex = fiducialIndex;}
+    int GetFiducialIndex(){return this->FiducialIndex;}
 
     //BTX
     // Description
     // Set/get validation info: Validation volume FoR string
     void SetNeedleConfirmationVolumeFoRStr(std::string foRStr){this->ValidationVolumeFoR_STR = foRStr;}
     std::string GetNeedleConfirmationVolumeFoRStr(){return this->ValidationVolumeFoR_STR;}
+
+     // Description
+    // Set/get FoR string
+    void SetFoRStr(std::string foRStr){this->FoR_STR = foRStr;}
+    std::string GetFoRStr(){return this->FoR_STR;}
+
     //ETX
 protected:
 
@@ -153,11 +184,20 @@ private:
     double Hinge[3];
     double RASLocation[3];
     //BTX
+    std::string FoR_STR;
     std::string ValidationVolumeFoR_STR; /// string identifier for the volume used for needle confirmation
     std::string NeedleType;
     //ETX
     bool TargetValidated;  ///< Indicates whether it was validated against needle insertion
-    double ComputedDistanceFromNeedle; /// < Calculated value
+    double OverallError; /// < Calculated value, ComputedDistanceFromNeedle
+    double APError;/// < Calculated value
+    double LRError;/// < Calculated value
+    double ISError;/// < Calculated value
+
+    // MRML fiducial management
+    // indices of fiducial lists
+    int NeedleListIndex; // index of which target fiducial list to use, as the fiducial lists are indexed by needle
+    int FiducialIndex; // which fiducial within the particular needle list
     
 
     vtkTRProstateBiopsyTargetDescriptor(const vtkTRProstateBiopsyTargetDescriptor&);

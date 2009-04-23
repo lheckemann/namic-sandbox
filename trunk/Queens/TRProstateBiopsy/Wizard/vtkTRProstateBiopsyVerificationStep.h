@@ -36,6 +36,11 @@ public:
   virtual void Reset();
 
 
+  void SaveToExperimentFile(ostream & of);
+
+  void LoadFromExperimentFile(istream &file);
+
+
 protected:
   vtkTRProstateBiopsyVerificationStep();
   ~vtkTRProstateBiopsyVerificationStep();
@@ -52,6 +57,32 @@ protected:
   void AddGUIObservers();
   void RemoveGUIObservers();
   void RecordClick(double rasPoint[3]);
+
+
+  void PopulateListWithTargets();
+  unsigned int PopulateListWithTargetDetails(unsigned int targetDescIndex);
+  void UpdateListWithErrorDetails(unsigned int rowIndex, double ovrErr, double isErr, double apErr, double lrErr);
+
+   // Description
+  // Callback on the load targeting volume button
+  void LoadVerificationVolumeButtonCallback(const char *fileName); 
+  
+  void ComputeTargetErrorCallback();
+  void TargetSelectedFromListCallback();
+  void TargetDeselectedFromListCallback();
+  // display information in the message box
+  void PopulateMessageBoxWithTargetInfo();
+
+    // bring target to view in all three views
+  void BringTargetToViewIn2DViews();
+
+  // change target color
+  void SetTargetFiducialColor(bool selected);
+
+  // Description:
+  // GUI callback  
+  static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
+
 
   // load targeting volume controls
   vtkKWFrame *LoadVolumeDialogFrame;
@@ -74,9 +105,9 @@ protected:
     RASLocationColumn = 2,
     ReachableColumn = 3,
     OverallErrorColumn = 4,
-    APErrorColumn = 5,
-    LRErrorColumn = 6,
-    ISErrorColumn = 7,
+    ISErrorColumn = 5,
+    APErrorColumn = 6,
+    LRErrorColumn = 7,
     NumberOfColumns = 8,
     };
   //ETX
@@ -86,9 +117,14 @@ protected:
   vtkKWText *Message;
   vtkKWPushButton *ComputeErrorButton;
 
-  
+  double NeedleClick1[3];
+  double NeedleClick2[3];
   bool ProcessingCallback;
   unsigned int ClickNumber;
+  bool AcquireClicks;
+
+  int LastSelectedTargetDescriptorIndex;
+  int CurrentSelectedTargetDescriptorIndex;
 
 
 private:

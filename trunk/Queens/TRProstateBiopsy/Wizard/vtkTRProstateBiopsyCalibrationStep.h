@@ -20,6 +20,7 @@ class vtkKWLoadSaveButton;
 
 class vtkSlicerInteractorStyle;
 class vtkMRMLVolumeNode;
+class vtkActor;
 
 class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyCalibrationStep :
   public vtkTRProstateBiopsyStep
@@ -31,6 +32,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void ShowUserInterface();
+  virtual void HideUserInterface();
+  virtual void Validate();
 
   // Description:
   // The Enter and Exit functions are not part of vtkKWWizardStep.
@@ -74,6 +77,10 @@ public:
   // Save calibration
   virtual void LoadCalibrationSettings(istream &file);
 
+  void SaveToExperimentFile(ostream & of);
+
+  void LoadFromExperimentFile(istream &file);
+
 
   /*static void MRMLCallback(vtkObject *caller, unsigned long event,
                            void *clientData, void *callData);
@@ -109,6 +116,8 @@ protected:
   void SegmentRegisterMarkers();
   void SegmentAxis(int nAxis);
 
+  void ShowAxesIn3DView();
+  void HideAxesIn3DView();
   // Description:
   // GUI callback  
   static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
@@ -171,6 +180,8 @@ protected:
   // axis distance
   vtkKWEntryWithLabel *AxesDistance;
 
+  vtkActor *Axes1Actor;
+  vtkActor *Axes2Actor;
 
   int ObserverCount;
   unsigned int ClickNumber;
