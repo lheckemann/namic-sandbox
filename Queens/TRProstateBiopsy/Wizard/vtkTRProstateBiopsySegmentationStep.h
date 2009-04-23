@@ -59,6 +59,12 @@ public:
   // Description
   // Callback on the input volume button
   void SeedVolumeButtonCallback(const char *fileName);
+
+
+  void SaveToExperimentFile(ostream & of);
+  
+  void LoadFromExperimentFile(istream &file);
+  
   
   /*static void MRMLCallback(vtkObject *caller, unsigned long event,
                            void *clientData, void *callData);

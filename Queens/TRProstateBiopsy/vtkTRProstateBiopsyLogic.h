@@ -146,7 +146,7 @@ public:
   bool RotatePoint(double H_before[3], double rotation_rad, double alpha_rad, double mainaxis[3], double I[3], /*out*/double H_after[3]);
 
   //BTX
-  bool AddTargetToNeedle(std::string needleType, double rasLocation[3], unsigned int & targetDescIndex, unsigned int & fiducialIndex);
+  bool AddTargetToNeedle(std::string needleType, double rasLocation[3], unsigned int & targetDescIndex);
   //ETX
   // Description:
   // Get USB optical encoder
@@ -164,6 +164,11 @@ public:
 
   void ReadConfigFile();
 
+  void SaveVolumesToExperimentFile(ostream& of);
+
+  //BTX
+  std::string GetFoRStrFromVolumeNode(vtkMRMLScalarVolumeNode *volNode);
+  //ETX
 
  private:
   

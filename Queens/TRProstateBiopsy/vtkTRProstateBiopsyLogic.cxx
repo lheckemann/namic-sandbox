@@ -39,6 +39,7 @@
 #include "vtkImageClip.h"
 #include "vtkPointData.h"
 #include "vtkMetaImageWriter.h"
+#include "itkMetaDataObject.h"
 
 #include <vnl/vnl_matrix.h>
 #include <vnl/algo/vnl_matrix_inverse.h>
@@ -294,9 +295,16 @@ vtkMRMLScalarVolumeNode *vtkTRProstateBiopsyLogic::AddCalibrationVolume(
   //vtkSetMRMLNodeMacro(this->CalibrationVolumeNode, volumeNode );
   this->TRProstateBiopsyModuleNode->SetCalibrationVolumeNode(volumeNode);
 
+  volumeNode->GetScalarVolumeDisplayNode()->SetAutoWindowLevel(true);
+
+  volumeNode->Modified();
+
   this->Modified();
 
   this->SetSliceViewFromVolume(app, volumeNode);
+
+  // set the information in the volumes list being maintained by the mrml node
+  this->TRProstateBiopsyModuleNode->AddVolumeInformationToList(volumeNode, fileName, "Calibration");
 
   return volumeNode;
 }
@@ -313,9 +321,17 @@ vtkMRMLScalarVolumeNode *vtkTRProstateBiopsyLogic::AddTargetingVolume(
 
 //  vtkSetMRMLNodeMacro(this->TargetingVolumeNode, volumeNode );
   this->TRProstateBiopsyModuleNode->SetTargetingVolumeNode(volumeNode);
+
+  volumeNode->GetScalarVolumeDisplayNode()->SetAutoWindowLevel(true);
+
+  volumeNode->Modified();
+
   this->Modified();
 
   this->SetSliceViewFromVolume(app, volumeNode);
+
+   // set the information in the volumes list being maintained by the mrml node
+  this->TRProstateBiopsyModuleNode->AddVolumeInformationToList(volumeNode, fileName, "Targeting");
 
   return volumeNode;
 }
@@ -333,9 +349,17 @@ vtkMRMLScalarVolumeNode *vtkTRProstateBiopsyLogic::AddVerificationVolume(
   //vtkSetMRMLNodeMacro(this->VerificationVolumeNode, volumeNode );
   this->TRProstateBiopsyModuleNode->SetVerificationVolumeNode(volumeNode);
 
+  volumeNode->GetScalarVolumeDisplayNode()->SetAutoWindowLevel(true);
+
+  volumeNode->Modified();
+
   this->Modified();
 
   this->SetSliceViewFromVolume(app, volumeNode);
+
+  // set the information in the volumes list being maintained by the mrml node
+  this->TRProstateBiopsyModuleNode->AddVolumeInformationToList(volumeNode, fileName, "Verification");
+
 
   return volumeNode;
 }
@@ -352,7 +376,7 @@ vtkMRMLScalarVolumeNode *vtkTRProstateBiopsyLogic::AddArchetypeVolume(
   vtkMRMLVolumeArchetypeStorageNode *storageNode =
     vtkMRMLVolumeArchetypeStorageNode::New();
 
-  // Do not attemp to automatically window-level the volume
+  
   displayNode->SetAutoWindowLevel(false);
   displayNode->SetInterpolate(true);
   
@@ -1878,7 +1902,7 @@ bool vtkTRProstateBiopsyLogic::RotatePoint(double H_before[3], double rotation_r
 
 
 //--------------------------------------------------------------------------------------
-bool vtkTRProstateBiopsyLogic::AddTargetToNeedle(std::string needleType, double rasLocation[3], unsigned int & targetDescIndex, unsigned int & fiducialIndex)
+bool vtkTRProstateBiopsyLogic::AddTargetToNeedle(std::string needleType, double rasLocation[3], unsigned int & targetDescIndex)
 {
   if (!this->GetTRProstateBiopsyModuleNode())
       return false;
@@ -1891,9 +1915,16 @@ bool vtkTRProstateBiopsyLogic::AddTargetToNeedle(std::string needleType, double 
         break;
     }
 
+  if (needleIndex >= this->GetTRProstateBiopsyModuleNode()->GetNumberOfNeedles())
+      return false;
+
   vtkTRProstateBiopsyTargetDescriptor *targetDesc = vtkTRProstateBiopsyTargetDescriptor::New();
   targetDesc->SetRASLocation(rasLocation[0], rasLocation[1], rasLocation[2]);
   targetDesc->SetNeedleType(this->GetTRProstateBiopsyModuleNode()->GetNeedleType(needleIndex),this->GetTRProstateBiopsyModuleNode()->GetNeedleUID(needleIndex), this->GetTRProstateBiopsyModuleNode()->GetNeedleDepth(needleIndex), this->GetTRProstateBiopsyModuleNode()->GetNeedleOvershoot(needleIndex));
+  targetDesc->SetNeedleIndex(needleIndex);
+  // record the FoR str
+  std::string FoR = this->GetFoRStrFromVolumeNode(this->GetTRProstateBiopsyModuleNode()->GetTargetingVolumeNode());
+  targetDesc->SetFoRStr(FoR);
 
   // 2) calculate targeting parameters for active needle, store in a target descriptor
   if(!this->FindTargetingParams(targetDesc))
@@ -1902,16 +1933,120 @@ bool vtkTRProstateBiopsyLogic::AddTargetToNeedle(std::string needleType, double 
     // to do
     return false;
     }
-  // 3) store the target descriptors in a list
+
+  int fiducialIndex = -1;
+
+   // 4) store the target descriptors in a list
   targetDescIndex = this->GetTRProstateBiopsyModuleNode()->AddTargetDescriptor(targetDesc);
-  // 4) add the target to targets FiducialListNode, searching which list to add to, knowing which needle list is being populated to?
+ 
+   // 3) add the target to targets FiducialListNode, searching which list to add to, knowing which needle list is being populated to?
   if (!this->GetTRProstateBiopsyModuleNode()->AddTargetToFiducialList(rasLocation, needleIndex, targetDescIndex+1, fiducialIndex))
   {
   // error
   // to do
   return false;
   }
+  
+  targetDesc->SetFiducialIndex(fiducialIndex);
+ 
   // 5) visual feedback of creation of the click
   
   return true;
+}
+//-------------------------------------------------------------------------------
+void vtkTRProstateBiopsyLogic::SaveVolumesToExperimentFile(ostream &of)
+{
+  // go through each item in the volume list, and use that information to write to file
+  int numberOfVolumes = this->GetTRProstateBiopsyModuleNode()->GetNumberOfOpenVolumes();
+
+  if (numberOfVolumes > 0)
+    {
+    for (int volNr = 0; volNr < numberOfVolumes; volNr++)
+      {
+      // for each volume write the following information to file
+      // following information needs to be written to the file
+      // 1) Volume Type
+      // 2) Volume location file path
+      // 3) Series number from dictionary
+      // 4) Series description from dictionary
+      // 5) FOR UID from dictionary
+      // 6) Origin from node
+      // 7) Pixel spacing from node
+     
+      // 1) volume type
+      char *volType = this->GetTRProstateBiopsyModuleNode()->GetTypeOfVolumeAtIndex(volNr);
+      of << " VolumeType=\"" ;
+      of << volType << " ";
+      of << "\" \n";
+
+      // 2) disk location of volume
+      char *diskLocation = this->GetTRProstateBiopsyModuleNode()->GetDiskLocationOfVolumeAtIndex(volNr);
+      of << " VolumeDiskLocation=\"" ;
+      of << diskLocation << " ";
+      of << "\" \n";
+
+      // get active or not
+
+      // get the mrml scalar volume node
+      vtkMRMLScalarVolumeNode *volNode = this->GetTRProstateBiopsyModuleNode()->GetVolumeNodeAtIndex(volNr);
+
+      if (!volNode)
+        {
+        // error
+        continue;
+        }
+      // remaining information to be had from the meta data dictionary     
+      const itk::MetaDataDictionary &volDictionary = volNode->GetMetaDataDictionary();
+      std::string tagValue;
+
+      // series number
+      tagValue.clear(); itk::ExposeMetaData<std::string>( volDictionary, "0020|0011", tagValue );
+      of << " VolumeSeriesNumber=\"" ;
+      of << tagValue << " ";
+      of << "\" \n";
+
+      // series description
+      tagValue.clear(); itk::ExposeMetaData<std::string>( volDictionary, "0008|103e", tagValue );
+      of << " VolumeSeriesDescription=\"" ;
+      of << tagValue << " ";
+      of << "\" \n";
+           
+      // frame of reference uid
+      tagValue.clear(); itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );
+      of << " VolumeFORUID=\"" ;
+      of << tagValue << " ";
+      of << "\" \n";
+
+      // origin
+      of << " VolumeOrigin=\"" ;
+      double origin[3];
+      volNode->GetOrigin(origin);
+      for(int i = 0; i < 3; i++)
+      of << origin[i] << " ";
+      of << "\" \n";
+          
+      // spacing
+      of << " VolumeSpacing=\"" ;
+      double spacing[3];
+      volNode->GetSpacing(spacing);
+      for(int i = 0; i < 3; i++)
+        of << spacing[i] << " ";
+        of << "\" \n";
+
+      }
+    }
+ 
+
+}
+//--------------------------------------------------------------------------------------
+std::string vtkTRProstateBiopsyLogic::GetFoRStrFromVolumeNode(vtkMRMLScalarVolumeNode *volNode)
+{
+  // remaining information to be had from the meta data dictionary     
+  const itk::MetaDataDictionary &volDictionary = volNode->GetMetaDataDictionary();
+  std::string tagValue; 
+
+  // frame of reference uid
+  tagValue.clear(); itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );
+  
+  return tagValue;
 }

@@ -10,6 +10,12 @@
 #include "vtkSlicerSliceLogic.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkMath.h"
+#include "vtkLineSource.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkRenderer.h"
+
+
 
 #include "vtkKWFrame.h"
 #include "vtkKWWizardWidget.h"
@@ -66,6 +72,9 @@ vtkTRProstateBiopsyTargetingStep::vtkTRProstateBiopsyTargetingStep()
 
   this->ProcessingCallback = false;
   this->LastSelectedTargetDescriptorIndex = -1;
+  this->CurrentSelectedTargetDescriptorIndex = -1;
+
+  this->NeedleActor = vtkActor::New();  
 }
 
 //----------------------------------------------------------------------------
@@ -153,6 +162,7 @@ void vtkTRProstateBiopsyTargetingStep::ShowUserInterface()
   if(!mrmlNode)
       return;
 
+  
   mrmlNode->GetCalibrationFiducialsList()->SetAllFiducialsVisibility(false);
 
   this->AddGUIObservers();
@@ -603,7 +613,7 @@ void vtkTRProstateBiopsyTargetingStep::ProcessImageClickEvents(vtkObject *caller
 
     vtkRenderWindowInteractor *rwi;
     vtkMatrix4x4 *matrix;    
-    
+    vtkMatrix4x4 *xyslice;
     // Note: at the moment, in calibrate step, listening only to clicks done in secondary monitor
     // because looking through secondary monitor mirror only can do calibration
 
@@ -614,6 +624,7 @@ void vtkTRProstateBiopsyTargetingStep::ProcessImageClickEvents(vtkObject *caller
       vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
       rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
       matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();    
+      xyslice = sliceGUI->GetLogic()->GetSliceNode()->GetXYToSlice();
       }
     else if ( (s == istyle1) )
       {
@@ -640,6 +651,7 @@ void vtkTRProstateBiopsyTargetingStep::ProcessImageClickEvents(vtkObject *caller
     matrix->MultiplyPoint(inPt, outPt); 
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
     this->RecordClick(ras);
+    xyslice->MultiplyPoint(inPt,outPt);
 
     this->ProcessingCallback = false;
     }
@@ -676,9 +688,8 @@ void vtkTRProstateBiopsyTargetingStep::RecordClick(double rasPoint[])
   // 5) visual feedback of creation of the click
   // all the above tasks taken care of the by the function below
   unsigned int targetDescIndex;
-  unsigned int fiducialIndex;
   std::string needleType = this->NeedleTypeMenuList->GetWidget()->GetValue();
-  if (!this->GetGUI()->GetLogic()->AddTargetToNeedle(needleType, rasPoint, targetDescIndex, fiducialIndex))
+  if (!this->GetGUI()->GetLogic()->AddTargetToNeedle(needleType, rasPoint, targetDescIndex))
     {
     // error message
     return;
@@ -687,11 +698,8 @@ void vtkTRProstateBiopsyTargetingStep::RecordClick(double rasPoint[])
   unsigned int listIndex = this->PopulateListWithTargetDetails(targetDescIndex);
   // resize the mapping array to correct size
   int numRows = this->TargetsMultiColumnList->GetWidget()->GetNumberOfRows();
-  this->TargetDescriptorIndicesIndexedByListIndex.resize(numRows);
-  TargetIndicesStruct *tempSt = new TargetIndicesStruct;
-  tempSt->TargetDescIndex = targetDescIndex;
-  tempSt->FiducialIndex = fiducialIndex;
-  this->TargetDescriptorIndicesIndexedByListIndex[listIndex] = tempSt;
+  this->TargetDescriptorIndicesIndexedByListIndex.resize(numRows);  
+  this->TargetDescriptorIndicesIndexedByListIndex[listIndex] = targetDescIndex;
 
 }
 //-----------------------------------------------------------------------------
@@ -764,7 +772,7 @@ void vtkTRProstateBiopsyTargetingStep::AddGUIObservers()
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyTargetingStep::RemoveGUIObservers()
 {
-  // 1) click on load calibration volume dialog
+  // 1) click on load targeting volume dialog
   if (this->LoadTargetingVolumeButton)
     {
     this->LoadTargetingVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
@@ -821,7 +829,7 @@ void vtkTRProstateBiopsyTargetingStep::TargetSelectedFromListCallback()
     {
     int rowIndex = this->TargetsMultiColumnList->GetWidget()->GetIndexOfFirstSelectedRow();
     // use row index to get information about the target
-    this->CurrentSelectedTargetDescriptorIndex = this->TargetDescriptorIndicesIndexedByListIndex[rowIndex]->TargetDescIndex;
+    this->CurrentSelectedTargetDescriptorIndex = this->TargetDescriptorIndicesIndexedByListIndex[rowIndex];
     this->LastSelectedTargetDescriptorIndex = this->CurrentSelectedTargetDescriptorIndex;   
     
     // things to do on selection
@@ -833,7 +841,7 @@ void vtkTRProstateBiopsyTargetingStep::TargetSelectedFromListCallback()
     this->DisplayTargetInfoInSecondaryWindow();
 
     // bring target to view in all three views
-    //this->BringTargetToViewIn2DViews();
+    this->BringTargetToViewIn2DViews();
 
     // change target color
     this->SetTargetFiducialColor(true);
@@ -857,8 +865,10 @@ void vtkTRProstateBiopsyTargetingStep::TargetDeselectedFromListCallback()
     // clear information in the message box
     // clear information in the secondary window    
     // change target color
+    this->SetTargetFiducialColor(false);
     // hide needle path in 2D views
     // hide needle path in 3D view
+    this->HideNeedleIn3DView();
     }
 }
 
@@ -887,66 +897,89 @@ void vtkTRProstateBiopsyTargetingStep::BringTargetToViewIn2DViews()
     {
     // set up the three 2D views
 
-    // since the slices may not be really orthogonal, they could be oblique
+    // the slices may not be really orthogonal, they could be oblique
     // we could directly call slice node -> JumpAllSlices (r, a, s), this brings target in view
     // in all slices, but with target fiducial at the center of the view, moving (disturbing) the image altogether
+    // for this function ->JumpSliceByOffsetting does the job
     
+    // get the point ras location of the target fiducial (P) that lies on the image plane
+    vtkTRProstateBiopsyTargetDescriptor *targetDesc = this->GetGUI()->GetMRMLNode()->GetTargetDescriptorAtIndex(this->CurrentSelectedTargetDescriptorIndex);    
+    double P[3];
+    targetDesc->GetRASLocation(P[0], P[1], P[2]);
+
+    // red slice node    
+    vtkSlicerSliceLogic *redSlice = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Red");    
+    redSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
+
+    // yellow slice node
+    vtkSlicerSliceLogic *yellowSlice = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Yellow");    
+    yellowSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
+
+    // green slice node
+    vtkSlicerSliceLogic *greenSlice = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Green");    
+    greenSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
+
+
+    /*
     // we rather want the image itself to stay sort of stationary, the r,a,s poitn where it is spacialy, just moving to the right slice
     // Given:
     // we have an oblique plane defined by our target point P (x0, y0, z0) and the normal vector (can be had from SliceToRAS matrix)
     // Point Q (x1, y1, y2) of current slice location which is on a parallel plane at the center of the slice
     // To find:
     // A point R (x2, y2, z2) lying on oblique, corresponding to point Q
-    // Solution: Point Q lies on the plane as well on line containing R in direction of its normal vector
-
-
-    // get the point ras location of the target fiducial (P) that lies on the image p
-    vtkTRProstateBiopsyTargetDescriptor *targetDesc = this->GetGUI()->GetMRMLNode()->GetTargetDescriptorAtIndex(this->CurrentSelectedTargetDescriptorIndex);    
-    double P[3];
-    targetDesc->GetRASLocation(P[0], P[1], P[2]);
+    // Solution: The angle between vector QP and normal is used to calculate the distance between current slice and target slice
 
     // get the normal vector of the plane, and also direction of the line
-    vtkSlicerSliceLogic *redSlice = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Red");    
     vtkMatrix4x4 *sliceToRAS = vtkMatrix4x4::New();
     sliceToRAS->DeepCopy(redSlice->GetSliceNode()->GetSliceToRAS());  
     double r1[3] = {sliceToRAS->GetElement(0, 0), sliceToRAS->GetElement(0, 1), sliceToRAS->GetElement(0, 2)};
     double r2[3] = {sliceToRAS->GetElement(1, 0), sliceToRAS->GetElement(1, 1), sliceToRAS->GetElement(1, 2)};
-    double normal[3];
+    double normal[3] = {sliceToRAS->GetElement(2, 0), sliceToRAS->GetElement(2, 1), sliceToRAS->GetElement(2, 2)};
     vtkMath::Cross(r1, r2, normal);
+    vtkMath::Normalize(normal);
     
-
-    /*
-    double rasDimensions[3], rasCenter[3], sliceCenter[3], sliceDimensions[3];
-    redSlice->GetVolumeRASBox (this->GetGUI()->GetMRMLNode()->GetTargetingVolumeNode(), rasDimensions, rasCenter);
-    redSlice->GetVolumeSliceDimensions(this->GetGUI()->GetMRMLNode()->GetTargetingVolumeNode(), sliceDimensions, sliceCenter);
-    */
+    
     double spacing[3];
     this->GetGUI()->GetMRMLNode()->GetTargetingVolumeNode()->GetSpacing(spacing);
-    //vtkMath::Do
-    //vtkMath::Normalize(normal);
     
+    double *sliceSpacing;
+    sliceSpacing = redSlice->GetVolumeSliceSpacing(this->GetGUI()->GetMRMLNode()->GetTargetingVolumeNode());
+
+    double rasCenter[3], rasDimensions[3];
+    redSlice->GetVolumeRASBox(this->GetGUI()->GetMRMLNode()->GetTargetingVolumeNode(), rasDimensions, rasCenter);
+
+    double sliceCenter[3], sliceDimensions[3];
+    redSlice->GetVolumeSliceDimensions(this->GetGUI()->GetMRMLNode()->GetTargetingVolumeNode(), sliceDimensions, sliceCenter);
+
+    // get two planes: one containing the origin, and one containing the target
+    // one containing the origin: ax + by + cz = d, compute d
+    // point rasCenter lies on the plane
+    // d = ax + by + cz
+    // intercept plane 1, 
+    double d = normal[0]*rasCenter[0] + normal[1]*rasCenter[1] + normal[2]*rasCenter[2];
+
+    // one containing the origin: ax + by + cz = e, compute e
+    // point target lies on the plane
+    // e = ax + by + cz
+    // intercept plane 1, 
+    double e = normal[0]*P[0] + normal[1]*P[1] + normal[2]*P[2];
+
+    // since we've already normalized the normal vector
+    double distance = fabs(d-e);
+
+
     
-    /*
-    double orthoNormal[3] = { 0.0, 0.0, 1.0};
 
-    double theta =  vtkMath::Pi() - acos(vtkMath::Dot(normal, orthoNormal));
+    double Q[3];    
+    //Q[0] = sliceToRAS->GetElement(0, 3);
+    //Q[1] = sliceToRAS->GetElement(1, 3);
+    //Q[2] = redSlice->GetSliceOffset();
+    //Q[2] = sliceToRAS->GetElement(2, 3);
 
-    double deg = vtkMath::DoubleRadiansToDegrees() * theta;
-
-    double r = P[0]* cos(theta);
-    double a = P[1]* cos(theta);
-    double s = P[2]* cos(theta);
-
-    s += 2.94;
-    */
-    double Q[3];
-    /*Q[0] = rasCenter[0];
+    // Let Q be the ras center
+    Q[0] = rasCenter[0];
     Q[1] = rasCenter[1];
-    Q[2] = rasCenter[2];*/
-
-    Q[0] = sliceToRAS->GetElement(0, 3);
-    Q[1] = sliceToRAS->GetElement(1, 3);
-    Q[2] = redSlice->GetSliceOffset();
+    Q[2] = rasCenter[2];
 
     // calculate vector QP
     double QP[3];
@@ -954,14 +987,16 @@ void vtkTRProstateBiopsyTargetingStep::BringTargetToViewIn2DViews()
     QP[1] = P[1] - Q[1];
     QP[2] = P[2] - Q[2];
 
-    /*double normal[3];
-    normal[0] = sliceToRAS->GetElement(2, 0);
-    normal[0] = sliceToRAS->GetElement(2, 1);
-    normal[0] = sliceToRAS->GetElement(2, 2);
-    */
+    double s = 0.0;
     if (Q[2] > P[2])
-        normal[2] = -normal[2];
+      {
+      normal[2] = -normal[2];
+      QP[0] = -QP[0];
+      QP[1] = -QP[1];
+      QP[2] = -QP[2];
+      }
     
+
     double vecMagnitude = sqrt(QP[0]*QP[0] + QP[1]*QP[1] + QP[2]*QP[2]);
     vtkMath::Normalize(normal);
     vtkMath::Normalize(QP);
@@ -971,50 +1006,35 @@ void vtkTRProstateBiopsyTargetingStep::BringTargetToViewIn2DViews()
 
     double distance = vecMagnitude * cos (angle);
 
-    double s = Q[2] + distance;
-
-    /*
-
-    // define plane containing P, and in direction of the normal vector of the form ax + by + cz + d = 0, where normal (a,b,c) and intercept d
-    // calculate d, making point P to lie on plane d = - (a*x0 + b*y0 + c*z0) 
-    double d = - (normal[0]* P[0] + normal[1]* P[1] + normal[2]* P[2]);
-    // define line in parameteric form x2 = x1 + a*t; y2 = y1 + b*t; z2 = z1 + c*t
-    // Point R(x2, y2, z2) lies on the plane and also the line
-    // substituing & solving for t = -(ax1 + by1 + cz1 + d)/(a*a + b*b + c*c)
-    double nom = - ( normal[0]* Q[0] + normal[1]* Q[1] + normal[2]* Q[2] + d);
-    double denom = normal[0]*normal[0] + normal[1]*normal[1] + normal[2]*normal[2];
-    double t = nom/denom;
-    double R[3];
-    R[0] = Q[0] + normal[0] * t;
-    R[1] = Q[1] + normal[1] * t;
-    R[2] = Q[2] + normal[2] * t;
+    s += Q[2] + distance;
+    //sliceToRAS->SetElement(2, 3, s);
+    //redSlice->GetSliceNode()->GetSliceToRAS()->DeepCopy(sliceToRAS);
+    //redSlice->GetSliceNode()->UpdateMatrices();
+    //redSlice->SetSliceOffset(s);
+    //redSlice->GetSliceNode()->JumpSlice(P[0], P[1], P[2]);
+    //redSlice->GetSliceNode()->JumpAllSlices(P[0], P[1], P[2]);
 
     */
-
-
-    //redSlice->GetSliceNode()->JumpSlice(sr, sa, ras[2]);
-    //sliceToRAS->SetElement(0, 3, sr);
-    //sliceToRAS->SetElement(1, 3, sa);
-    sliceToRAS->SetElement(2, 3, s);
-
-
-
-    redSlice->GetSliceNode()->GetSliceToRAS()->DeepCopy(sliceToRAS);
-    redSlice->GetSliceNode()->UpdateMatrices();
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->RequestRender();
-
-    sliceToRAS->Delete();
-    
-    
-
-    
-
 
     }
 }
 //--------------------------------------------------------------------------------
 void vtkTRProstateBiopsyTargetingStep::SetTargetFiducialColor(bool selected)
 {
+  // get the target descriptor
+  vtkTRProstateBiopsyTargetDescriptor *targetDesc = this->GetGUI()->GetMRMLNode()->GetTargetDescriptorAtIndex(this->CurrentSelectedTargetDescriptorIndex);
+
+  // locate the fiducial in the fiducial list
+  // get the needle index, and fiducial index to access the fiducial from MRML list
+  int needleIndex = targetDesc->GetNeedleIndex();
+  int fiducialIndex = targetDesc->GetFiducialIndex();
+
+  // set its color to selected or not selected
+  if (needleIndex != -1 && fiducialIndex != -1)
+    {
+    this->GetGUI()->GetMRMLNode()->SetFiducialColor(needleIndex, fiducialIndex, selected);
+    }
+  
 }
 //--------------------------------------------------------------------------------
 void vtkTRProstateBiopsyTargetingStep::ShowNeedlePathIn2DViews()
@@ -1022,5 +1042,242 @@ void vtkTRProstateBiopsyTargetingStep::ShowNeedlePathIn2DViews()
 }
 //--------------------------------------------------------------------------------
 void vtkTRProstateBiopsyTargetingStep::ShowNeedlePathIn3DView()
+{
+  // get the target descriptor
+  vtkTRProstateBiopsyTargetDescriptor *targetDesc = this->GetGUI()->GetMRMLNode()->GetTargetDescriptorAtIndex(this->CurrentSelectedTargetDescriptorIndex);   
+
+  // get RAS points of start and end point of needle
+  // for the 3D viewer, the RAS coodinates are the world coordinates!!
+  // this makes things simpler
+  // render the needle as a thin pipe
+
+  // start point is the target RAS
+  double targetRAS[3];
+  targetDesc->GetRASLocation(targetRAS[0], targetRAS[1], targetRAS[2]); 
+
+  double targetHingeRAS[3];
+  // note that hinge position as stored in the target descriptor is in lps coordinate system
+  targetDesc->GetHingePosition(targetHingeRAS[0], targetHingeRAS[1], targetHingeRAS[2]);
+  targetHingeRAS[0] = -targetHingeRAS[0];
+  targetHingeRAS[1] = -targetHingeRAS[1];
+
+  double needleVector[3];
+  needleVector[0] = targetRAS[0] - targetHingeRAS[0];
+  needleVector[1] = targetRAS[1] - targetHingeRAS[1];
+  needleVector[2] = targetRAS[2] - targetHingeRAS[2];
+  vtkMath::Normalize(needleVector);
+
+  double overshoot = targetDesc->GetNeedleTypeOvershoot();
+
+  double needleEndRAS[3];
+  needleEndRAS[0] = targetRAS[0] + overshoot*needleVector[0];
+  needleEndRAS[1] = targetRAS[1] + overshoot*needleVector[1];
+  needleEndRAS[2] = targetRAS[2] + overshoot*needleVector[2];
+  
+
+  // set up the line actors
+  vtkLineSource *needleLine = vtkLineSource::New();
+  needleLine->SetResolution(100); 
+  needleLine->SetPoint1(needleEndRAS);
+  needleLine->SetPoint2(targetHingeRAS);
+  needleLine->Update();
+      
+  vtkPolyDataMapper *needleMapper = vtkPolyDataMapper::New();
+  needleMapper->SetInputConnection(needleLine->GetOutputPort());
+
+  this->NeedleActor->SetMapper(needleMapper);  
+
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->AddViewProp(this->NeedleActor);
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
+
+}
+
+//--------------------------------------------------------------------------------
+void vtkTRProstateBiopsyTargetingStep::HideNeedleIn3DView()
+{
+   // should remove the overlay needle guide
+  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->GetRenderer()->GetActors();
+  if (collection->IsItemPresent(this->NeedleActor))
+    {
+    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->GetRenderer()->RemoveActor(this->NeedleActor);
+    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
+    }
+
+}
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyTargetingStep::SaveToExperimentFile(ostream &of)
+{
+   // reset parameters at MRML node
+   vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+
+  // for each target
+  // parameters to be saved for targeting
+  // 1) FoR str
+  // 2) Needle type
+  // 3) Needle depth
+  // 4) Needle overshoot
+  // 5) RAS location
+  // 6) Reachable
+  // 7) Axis rotation
+  // 8) Needle angle
+  // 9) DepthInCM
+  // 10) Validated
+  // 11) ValidationVolumeFoR str
+  // 12) Overall error
+  // 13) IS error
+  // 14) AP error
+  // 15) LR error
+ // read the information from the TargetDescriptorsVector
+  int totalTargets = mrmlNode->GetTotalNumberOfTargets();
+
+  if (totalTargets > 0)
+    {
+    for (int targetDescIndex = 0; targetDescIndex < totalTargets; targetDescIndex++)
+      {   
+      vtkTRProstateBiopsyTargetDescriptor *target = this->GetGUI()->GetMRMLNode()->GetTargetDescriptorAtIndex (targetDescIndex);
+      if ( target == NULL)
+        {
+        // error
+        continue;
+        }
+
+      // 1) FoR str
+      std::string str = target->GetFoRStr();
+      of << " FoR=\"" ;
+      of << str << " ";
+      of << "\" \n";
+    
+      // 2) Needle type
+      str = target->GetNeedleTypeString();
+      of << " NeedleType=\"" ;
+      of << str << " ";
+      of << "\" \n";
+
+      // 3) Needle depth
+      double depth = target->GetNeedleTypeDepth();
+      of << " NeedleTypeDepth=\"" ;
+      of << depth << " ";
+      of << "\" \n";
+
+      // 4) Needle overshoot
+      double overshoot = target->GetNeedleTypeOvershoot();
+      of << " NeedleTypeOvershoot=\"" ;
+      of << overshoot << " ";
+      of << "\" \n";
+
+      // 5) RAS location
+      double ras[3];
+      target->GetRASLocation(ras[0], ras[1], ras[2]);
+      of << " RAS=\"";
+      for(int i = 0; i < 3; i++)
+        of << ras[i] << " ";
+      of << "\" \n";
+
+      // 6) Reachable
+      of << " Reachable=\"" ;     
+      if(target->GetIsOutside())
+        {
+        of << "false" << " ";
+        }
+      else
+        {
+        of << "true" << " ";
+        }
+      of << "\" \n";
+
+      // 7) Axis rotation
+      double rotation = target->GetRotation();
+      of << " Rotation=\"" ;
+      of << rotation << " ";
+      of << "\" \n";
+
+      // 8) Needle angle
+      double needleAngle = target->GetNeedleAngle();
+      of << " NeedleAngle=\"" ;
+      of << needleAngle << " ";
+      of << "\" \n";
+
+      // 9) DepthInCM
+      double depthcm = target->GetDepthCM();
+      of << " Depth(cm)=\"" ;
+      of << depthcm << " ";
+      of << "\" \n";
+
+      // 10) Validated
+      of << " Validated=\"" ;     
+      if(target->GetTargetValidated())
+        {
+        of << "true" << " ";
+        of << "\" \n";
+        // 11) ValidationVolumeFoR str
+        str = target->GetNeedleConfirmationVolumeFoRStr();
+        of << " ValidationVolumeFoR=\"" ;
+        of << str << " ";
+        of << "\" \n";
+
+        // 12) Overall error
+        double err = target->GetOverallError();
+        of << " OverallError(mm)=\"" ;
+        of << err << " ";
+        of << "\" \n";
+
+        // 13) IS error
+        err = target->GetISError();
+        of << " ISError(mm)=\"" ;
+        of << err << " ";
+        of << "\" \n";
+
+        // 14) AP error
+        err = target->GetAPError();
+        of << " APError(mm)=\"" ;
+        of << err << " ";
+        of << "\" \n";
+
+        // 15) LR error
+        err = target->GetLRError();
+        of << " LRError(mm)=\"" ;
+        of << err << " ";
+        of << "\" \n";
+        }
+      else
+        {
+        of << "false" << " ";
+        of << "\" \n";
+        // 11) ValidationVolumeFoR str      
+        of << " ValidationVolumeFoR=\"" ;
+        of << "" << " ";
+        of << "\" \n";
+
+        // 12) Overall error        
+        of << " OverallError(mm)=\"" ;
+        of << "" << " ";
+        of << "\" \n";
+
+        // 13) IS error     
+        of << " ISError(mm)=\"" ;
+        of << "" << " ";
+        of << "\" \n";
+
+        // 14) AP error     
+        of << " APError(mm)=\"" ;
+        of << "" << " ";
+        of << "\" \n";
+
+        // 15) LR error     
+        of << " LRError(mm)=\"" ;
+        of << "" << " ";
+        of << "\" \n";
+        }  
+
+      }
+    }
+}
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyTargetingStep::LoadFromExperimentFile(istream &file)
 {
 }

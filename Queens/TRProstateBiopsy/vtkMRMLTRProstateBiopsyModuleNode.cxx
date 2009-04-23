@@ -28,6 +28,7 @@ Version:   $Revision: 1.2 $
 #include "vtkSlicerLogic.h"
 
 
+
 /*
 vtkCxxSetObjectMacro(vtkMRMLTRProstateBiopsyModuleNode, CalibrationFiducialListNode,
                      vtkMRMLFiducialListNode);
@@ -302,7 +303,7 @@ vtkTRProstateBiopsyTargetDescriptor *vtkMRMLTRProstateBiopsyModuleNode::GetTarge
     }
 }
 //-------------------------------------------------------------------------------
-bool vtkMRMLTRProstateBiopsyModuleNode::AddTargetToFiducialList(double targetRAS[3], unsigned int fiducialListIndex, unsigned int targetNr, unsigned int & fiducialIndex)
+bool vtkMRMLTRProstateBiopsyModuleNode::AddTargetToFiducialList(double targetRAS[3], unsigned int fiducialListIndex, unsigned int targetNr, int & fiducialIndex)
 {
   if (fiducialListIndex < this->NumberOfNeedles)
     {
@@ -326,11 +327,11 @@ bool vtkMRMLTRProstateBiopsyModuleNode::AddTargetToFiducialList(double targetRAS
   return false;
 }
 //-------------------------------------------------------------------------------
-bool vtkMRMLTRProstateBiopsyModuleNode::GetTargetFromFiducialList(unsigned int fiducialListIndex, unsigned int fiducialIndex, double &r, double &a, double &s)
+bool vtkMRMLTRProstateBiopsyModuleNode::GetTargetFromFiducialList(int fiducialListIndex, int fiducialIndex, double &r, double &a, double &s)
 {
-    if (fiducialListIndex < this->NumberOfNeedles)
+    if (fiducialListIndex < this->NumberOfNeedles && fiducialListIndex != -1)
       {
-      if (fiducialIndex < this->TargetingFiducialsListsVector.size())
+      if (fiducialIndex < this->TargetingFiducialsListsVector[fiducialListIndex]->GetNumberOfFiducials() && fiducialIndex != -1)
         {
         float *ras = new float[3];
         ras = this->TargetingFiducialsListsVector[fiducialListIndex]->GetNthFiducialXYZ(fiducialIndex);
@@ -344,6 +345,17 @@ bool vtkMRMLTRProstateBiopsyModuleNode::GetTargetFromFiducialList(unsigned int f
     
 }
 
+//-------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::SetFiducialColor(int fiducialListIndex, int fiducialIndex, bool selected)
+{
+  if (fiducialListIndex < this->NumberOfNeedles && fiducialListIndex != -1)
+      {
+      if (fiducialIndex < this->TargetingFiducialsListsVector[fiducialListIndex]->GetNumberOfFiducials() && fiducialIndex != -1)
+        {
+        this->TargetingFiducialsListsVector[fiducialListIndex]->SetNthFiducialSelected(fiducialIndex, selected);
+        }
+      }
+}
 //-------------------------------------------------------------------------------
 void vtkMRMLTRProstateBiopsyModuleNode::SetupNeedlesList()
 {
@@ -375,6 +387,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetupTargetingFiducialsList()
     targetFidList->SetName("TRProstateBiopsyFiducialList");
     targetFidList->SetDescription("Created by TR Prostate Biopsy Module");
     targetFidList->SetColor(0.5+i/10.0,0.7+i/10.0,0.3+i/10.0);
+    targetFidList->SetSelectedColor(1.0, 0.0, 0.0);
     targetFidList->SetGlyphType(vtkMRMLFiducialListNode::Sphere3D);
     targetFidList->SetOpacity(0.6);
     targetFidList->SetAllFiducialsVisibility(true);
@@ -521,4 +534,62 @@ unsigned int vtkMRMLTRProstateBiopsyModuleNode::GetNeedleUID(unsigned int needle
     {
     return 0;
     } 
+}
+//------------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode *vtkMRMLTRProstateBiopsyModuleNode::GetVolumeNodeAtIndex(int index)
+{
+  if (index >=0 && index < this->VolumesList.size())
+    {
+    return this->VolumesList[index]->VolumeNode;
+    }
+  else
+    {
+    return NULL;
+    }
+}
+//------------------------------------------------------------------------------
+char *vtkMRMLTRProstateBiopsyModuleNode::GetDiskLocationOfVolumeAtIndex(int index)
+{
+  if (index >=0 && index < this->VolumesList.size())
+    {
+    return this->VolumesList[index]->DiskLocation;
+    }
+  else
+    {
+    return NULL;
+    }
+}
+//------------------------------------------------------------------------------
+char *vtkMRMLTRProstateBiopsyModuleNode::GetTypeOfVolumeAtIndex(int index)
+{
+  if (index >=0 && index < this->VolumesList.size())
+    {
+    return this->VolumesList[index]->Type;
+    }
+  else
+    {
+    return NULL;
+    }
+}
+//------------------------------------------------------------------------------
+bool vtkMRMLTRProstateBiopsyModuleNode::IsVolumeAtIndexActive(int index)
+{
+  return false;
+}
+//------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::AddVolumeInformationToList(vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type)
+{
+  VolumeInformationStruct *volStruct = new VolumeInformationStruct;
+
+  volStruct->DiskLocation = new char[strlen(diskLocation)+1];
+  strcpy(volStruct->DiskLocation, diskLocation);
+
+  volStruct->Type = new char[strlen(type)+1];
+  strcpy(volStruct->Type, type);
+
+  volStruct->VolumeNode = volNode;
+
+  volStruct->Active = false;
+
+  this->VolumesList.push_back(volStruct);
 }

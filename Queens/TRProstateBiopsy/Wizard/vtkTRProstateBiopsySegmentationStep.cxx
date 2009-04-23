@@ -1072,3 +1072,11 @@ void vtkTRProstateBiopsySegmentationStep::RecordClick(double rasPoint[])
       return;
 
 }
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsySegmentationStep::SaveToExperimentFile(ostream &of)
+{
+}
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsySegmentationStep::LoadFromExperimentFile(istream &file)
+{
+}

@@ -16,6 +16,8 @@ class vtkKWMenuButton;
 class vtkKWMenuButtonWithLabel;
 class vtkKWMultiColumnList;
 class vtkKWMultiColumnListWithScrollbars;
+class vtkActor;
+
 class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyTargetingStep : public vtkTRProstateBiopsyStep
 {
 public:
@@ -34,7 +36,11 @@ public:
   // Reset
   virtual void Reset();
 
-  
+
+  void SaveToExperimentFile(ostream & of);
+
+  void LoadFromExperimentFile(istream &file);
+
 
 
 protected:
@@ -79,6 +85,8 @@ protected:
   // show needle path in 3D view
   void ShowNeedlePathIn3DView();
 
+  void HideNeedleIn3DView();
+
   // Description:
   // GUI callback  
   static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
@@ -119,12 +127,9 @@ protected:
     DepthColumn = 6,
     NumberOfColumns = 7,
     };
-  // a list indexed by row index, and the value is targetDesc index
-  typedef struct{
-      unsigned int TargetDescIndex;
-      unsigned int FiducialIndex;
-  }TargetIndicesStruct;
-  std::vector<TargetIndicesStruct*> TargetDescriptorIndicesIndexedByListIndex;
+  
+  // a list indexed by row index, and the value is targetDesc index  
+  std::vector<unsigned int> TargetDescriptorIndicesIndexedByListIndex;
   //ETX
 
   // delete button
@@ -132,6 +137,7 @@ protected:
   vtkKWText *Message;
   vtkKWPushButton *DeleteButton;
 
+  vtkActor *NeedleActor;
   
   bool ProcessingCallback;
 

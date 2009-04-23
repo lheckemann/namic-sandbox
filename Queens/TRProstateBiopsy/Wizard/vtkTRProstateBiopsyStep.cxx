@@ -116,3 +116,11 @@ void vtkTRProstateBiopsyStep::ProcessImageClickEvents(vtkObject *caller, unsigne
 {
   // has to be reimplemented in derived classes
 }
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyStep::SaveToExperimentFile(ostream &of)
+{
+}
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyStep::LoadFromExperimentFile(istream &file)
+{
+}

@@ -202,6 +202,13 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   bool TimerProcessing;
   void OpticalEncoderTimerEvent();
 
+  void SaveExperiment(ostream& of);
+  void LoadExperiment(istream &file);
+  void SaveVolumesToExperimentFile(ostream& of);
+  void LoadVolumesAsInExperimentFile(istream &file);
+
+  char *CreateFileName();
+
  private:
 
   vtkTRProstateBiopsyGUI(const vtkTRProstateBiopsyGUI&); // Not implemented.
