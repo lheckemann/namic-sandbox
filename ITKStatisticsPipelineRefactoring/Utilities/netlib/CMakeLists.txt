@@ -23,4 +23,10 @@ ADD_LIBRARY(ITKStatisticsNetlib
   d_mod.c  
  )
 
+IF(ITK_USE_SYSTEM_VXL)
+  TARGET_LINK_LIBRARIES( ITKStatisticsNetlib netlib )
+ELSE(ITK_USE_SYSTEM_VXL)
+  TARGET_LINK_LIBRARIES( ITKStatisticsNetlib itkv3p_netlib )
+ENDIF(ITK_USE_SYSTEM_VXL)
+
 
