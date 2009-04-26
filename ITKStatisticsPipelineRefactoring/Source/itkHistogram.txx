@@ -438,17 +438,18 @@ Histogram<TMeasurement, TFrequencyContainer >
     return m_Min[dimension][this->m_Size[dimension]-1];
     }
 
+  unsigned int binMinFromValue = 0;
+
   for ( unsigned int i = 0; i < this->m_Size[dimension]; i++ )
     {
     if (  (value >= this->m_Min[dimension][i])
           && (value <  this->m_Max[dimension][i])  )
       {
-      return this->m_Min[dimension][i];
+      binMinFromValue = i;
       }
     }
 
-  // We will never get here. This line is to avoid compiler warnings.
-  return this->m_Min[dimension][0]; 
+  return this->m_Min[dimension][binMinFromValue];
 }
 
 template< class TMeasurement, class TFrequencyContainer >
@@ -470,17 +471,18 @@ Histogram< TMeasurement, TFrequencyContainer >
     return m_Max[dimension][this->m_Size[dimension]-1];
     }
 
+  unsigned int binMaxFromValue = 0;
+
   for ( unsigned int i = 0; i < this->m_Size[dimension]; i++ )
     {
     if (  (value >= this->m_Min[dimension][i])
           && (value <  this->m_Max[dimension][i])  )
       {
-      return this->m_Max[dimension][i];
+      binMaxFromValue = i;
       }
     }
 
-  // We will never get here. This line is to avoid compiler warnings.
-  return this->m_Max[dimension][0]; 
+  return this->m_Max[dimension][binMaxFromValue];
 }
 
 template< class TMeasurement, class TFrequencyContainer >
