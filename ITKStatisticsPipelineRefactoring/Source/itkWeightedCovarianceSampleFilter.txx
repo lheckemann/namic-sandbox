@@ -24,6 +24,7 @@ template< class TSample >
 WeightedCovarianceSampleFilter< TSample >
 ::WeightedCovarianceSampleFilter()  
 {
+  this->ProcessObject::SetNthInput(1, NULL );
 }
 
 
