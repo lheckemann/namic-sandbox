@@ -118,6 +118,8 @@ ADD_TEST(itkNodeScalarGradientCalculatorTest2
 
 ADD_TEST(itkNodeVectorJacobianCalculatorTest1
   ${CXX_TEST_PATH}/itkNodeVectorJacobianCalculatorTest1
+  ${TEMP}/fixedMesh01.vtk
+  ${TEMP}/movingMesh01.vtk
   )
 
 ADD_TEST(itkNodeVectorJacobianCalculatorTest2
