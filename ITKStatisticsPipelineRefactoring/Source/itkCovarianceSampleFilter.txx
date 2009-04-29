@@ -52,8 +52,7 @@ void
 CovarianceSampleFilter< TSample >
 ::SetInput( const SampleType * sample )
 {
-  this->ProcessObject::SetNthInput(0, 
-                                   const_cast< SampleType* >( sample ) );
+  this->ProcessObject::SetNthInput(0, const_cast< SampleType* >( sample ) );
 }
 
 template< class TSample >
