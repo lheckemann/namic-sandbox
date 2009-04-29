@@ -17,7 +17,6 @@ PURPOSE.  See the above copyright notices for more information.
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
-#include "itkWin32Header.h"
 
 #include <fstream>
 
@@ -36,164 +35,156 @@ PURPOSE.  See the above copyright notices for more information.
 //Sample classifier test using Gaussian Mixture model and EM estimator
 int itkSampleClassifierFilterTest7(int argc, char* argv[] )
 {
-  namespace stat = itk::Statistics ;
-  typedef itk::PointSet< double, 2 > PointSetType ;
-  typedef stat::PointSetToListSampleAdaptor< PointSetType >
-    DataSampleType;
-  typedef stat::ExpectationMaximizationMixtureModelEstimator< DataSampleType >
-    EstimatorType ;
-  typedef stat::GaussianMixtureModelComponent< DataSampleType > 
-    ComponentType ;
+  typedef itk::PointSet< double, 2 > PointSetType;
+  typedef itk::Statistics::PointSetToListSampleAdaptor< PointSetType > DataSampleType;
+  typedef itk::Statistics::ExpectationMaximizationMixtureModelEstimator< DataSampleType > EstimatorType;
+  typedef itk::Statistics::GaussianMixtureModelComponent< DataSampleType > ComponentType;
 
   if (argc < 3)
     {
-      std::cout << "ERROR: Missing arguments.\t"  << argv[0]
-                << "Input_data_sample" << "\t" 
-                << "Target_data_sample"
-                << std::endl ;
-      return EXIT_FAILURE;
+    std::cout << "ERROR: Missing arguments.\t"  << argv[0]
+              << "Input_data_sample" << "\t" 
+              << "Target_data_sample"
+              << std::endl;
+    return EXIT_FAILURE;
     }
 
+  unsigned int i, j;
+  int dataSize = 2000;
+  int maximumIteration = 200;
+  typedef itk::Array< double > ParametersType;
+  double minStandardDeviation =28.54746;
+  unsigned int numberOfClasses = 2;
+  std::vector< ParametersType > trueParameters(numberOfClasses);
+  ParametersType params(6);
+  params[0] = 99.261;
+  params[1] = 100.078;
+  params[2] = 814.95741;
+  params[3] = 38.40308;
+  params[4] = 38.40308;
+  params[5] = 817.64446;
+  trueParameters[0] = params;
 
-  unsigned int i, j ;
-  int dataSize = 2000 ;
-  int maximumIteration = 200 ;
-  typedef itk::Array< double > ParametersType ;
-  double minStandardDeviation =28.54746 ;
-  unsigned int numberOfClasses = 2 ;
-  std::vector< ParametersType > trueParameters(numberOfClasses) ;
-  ParametersType params(6) ;
-  params[0] = 99.261 ;
-  params[1] = 100.078 ;
-  params[2] = 814.95741 ;
-  params[3] = 38.40308 ;
-  params[4] = 38.40308 ;
-  params[5] = 817.64446 ;
-  trueParameters[0] = params ;
-
-  params[0] = 200.1 ;
-  params[1] = 201.3 ;
-  params[2] = 859.785295 ;
-  params[3] = -3.617316 ;
-  params[4] = -3.617316 ;
-  params[5] = 848.991508 ;
-  trueParameters[1] = params ;
+  params[0] = 200.1;
+  params[1] = 201.3;
+  params[2] = 859.785295;
+  params[3] = -3.617316;
+  params[4] = -3.617316;
+  params[5] = 848.991508;
+  trueParameters[1] = params;
 
   // only the means are altered
-  std::vector< ParametersType > initialParameters(numberOfClasses) ;
-  params[0] = 80.0 ;
-  params[1] = 80.0 ;
-  params[2] = 814.95741 ;
-  params[3] = 38.40308 ;
-  params[4] = 38.40308 ;
-  params[5] = 817.64446 ;
-  initialParameters[0] = params ;
+  std::vector< ParametersType > initialParameters(numberOfClasses);
+  params[0] = 80.0;
+  params[1] = 80.0;
+  params[2] = 814.95741;
+  params[3] = 38.40308;
+  params[4] = 38.40308;
+  params[5] = 817.64446;
+  initialParameters[0] = params;
 
-  params[0] = 180.0 ;
-  params[1] = 180.0 ;
-  params[2] = 859.785295 ;
-  params[3] = -3.617316 ;
-  params[4] = -3.617316 ;
-  params[5] = 848.991508 ;
-  initialParameters[1] = params ;
+  params[0] = 180.0;
+  params[1] = 180.0;
+  params[2] = 859.785295;
+  params[3] = -3.617316;
+  params[4] = -3.617316;
+  params[5] = 848.991508;
+  initialParameters[1] = params;
 
-  itk::Array< double > trueProportions(numberOfClasses) ;
-  trueProportions[0] = 0.5 ;
-  trueProportions[1] = 0.5 ;
+  itk::Array< double > trueProportions(numberOfClasses);
+  trueProportions[0] = 0.5;
+  trueProportions[1] = 0.5;
 
-  itk::Array< double > initialProportions(numberOfClasses) ;
-  initialProportions[0] = 0.5 ;
-  initialProportions[1] = 0.5 ;
+  itk::Array< double > initialProportions(numberOfClasses);
+  initialProportions[0] = 0.5;
+  initialProportions[1] = 0.5;
 
   /* Loading point data */
-  PointSetType::Pointer pointSet = PointSetType::New() ;
-  PointSetType::PointsContainerPointer pointsContainer = 
-    PointSetType::PointsContainer::New() ;
-  pointsContainer->Reserve(dataSize) ;
-  pointSet->SetPoints(pointsContainer.GetPointer()) ;
+  PointSetType::Pointer pointSet = PointSetType::New();
+  PointSetType::PointsContainerPointer pointsContainer = PointSetType::PointsContainer::New();
+  pointsContainer->Reserve(dataSize);
+  pointSet->SetPoints(pointsContainer.GetPointer());
 
-  PointSetType::PointsContainerIterator p_iter = pointsContainer->Begin() ;
-  PointSetType::PointType point ;
+  PointSetType::PointsContainerIterator p_iter = pointsContainer->Begin();
+  PointSetType::PointType point;
   double temp;
 
-  char* dataFileName = argv[1] ;
+  char* dataFileName = argv[1];
   std::ifstream dataStream(dataFileName);
   if ( !dataStream )
     {
-      std::cout << "ERROR: fail to open the data file." << std::endl ;
-      return EXIT_FAILURE ;
+    std::cout << "ERROR: fail to open the data file." << std::endl;
+    return EXIT_FAILURE;
     }
 
   while (p_iter != pointsContainer->End())
     {
-      for ( i = 0 ; i < PointSetType::PointDimension ; i++)
-        {
-          dataStream >> temp ;
-          point[i] = temp ;
-        }
-      p_iter.Value() = point ;
-      ++p_iter ;
+    for ( i = 0; i < PointSetType::PointDimension; i++)
+      {
+      dataStream >> temp;
+      point[i] = temp;
+      }
+    p_iter.Value() = point;
+    ++p_iter;
     }
 
-  dataStream.close() ;
+  dataStream.close();
   
   /* Importing the point set to the sample */
-  DataSampleType::Pointer sample =
-    DataSampleType::New() ;
+  DataSampleType::Pointer sample = DataSampleType::New();
   
   sample->SetPointSet(pointSet.GetPointer());
 
   /* Preparing the gaussian mixture components */
-  typedef ComponentType::Pointer ComponentPointer ;
-  std::vector< ComponentPointer > components ;
-  for ( i = 0 ; i < numberOfClasses ; i++ )
+  typedef ComponentType::Pointer ComponentPointer;
+  std::vector< ComponentPointer > components;
+  for ( i = 0; i < numberOfClasses; i++ )
     {
-      components.push_back(ComponentType::New()) ;
-      (components[i])->SetSample(sample.GetPointer()) ;
-      (components[i])->SetParameters(initialParameters[i]) ;
+    components.push_back(ComponentType::New());
+    (components[i])->SetSample(sample.GetPointer());
+    (components[i])->SetParameters(initialParameters[i]);
     }
   
   /* Estimating */
-  EstimatorType::Pointer estimator = EstimatorType::New() ;
-  estimator->SetSample(sample.GetPointer()) ;
-  estimator->SetMaximumIteration(maximumIteration) ;
-  estimator->SetInitialProportions(initialProportions) ;
+  EstimatorType::Pointer estimator = EstimatorType::New();
+  estimator->SetSample(sample.GetPointer());
+  estimator->SetMaximumIteration(maximumIteration);
+  estimator->SetInitialProportions(initialProportions);
 
-  for ( i = 0 ; i < numberOfClasses ; i++)
+  for ( i = 0; i < numberOfClasses; i++)
     {
       estimator->AddComponent((ComponentType::Superclass*) 
-                              (components[i]).GetPointer()) ;
+                              (components[i]).GetPointer());
     }
 
-  estimator->Update() ;
+  estimator->Update();
 
   std::cout << "DEBUG: current iteration = " 
-            << estimator->GetCurrentIteration() << std::endl ;
+            << estimator->GetCurrentIteration() << std::endl;
 
-  bool passed = true ;
-  double displacement ;
-  for ( i = 0 ; i < numberOfClasses ; i++)
+  bool passed = true;
+  double displacement;
+  for ( i = 0; i < numberOfClasses; i++)
     {
-      std::cout << "Cluster[" << i << "]" << std::endl ;
-      std::cout << "    Parameters:" << std::endl ;
-      std::cout << "         " << (components[i])->GetFullParameters() << std::endl ;
-      std::cout << "    Proportion: " ;
-      std::cout << "         " << (estimator->GetProportions())[i] << std::endl ;
-      displacement = 0.0 ;
-      for ( j = 0 ; j < DataSampleType::MeasurementVectorSize ;
-           j++)
-        {
-          temp = (components[i])->GetFullParameters()[j] - trueParameters[i][j] ;
-          displacement += (temp * temp) ;
-        }
-      displacement = sqrt(displacement) ;
-      std::cout << "    Mean displacement: " << std::endl ;
-      std::cout << "        " << displacement 
-                << std::endl << std::endl ;
-      if ( displacement > (minStandardDeviation / 100.0) * 3 )
-        {
-          passed = false ;
-        }
+    std::cout << "Cluster[" << i << "]" << std::endl;
+    std::cout << "    Parameters:" << std::endl;
+    std::cout << "         " << (components[i])->GetFullParameters() << std::endl;
+    std::cout << "    Proportion: ";
+    std::cout << "         " << (estimator->GetProportions())[i] << std::endl;
+    displacement = 0.0;
+    for ( j = 0; j < DataSampleType::MeasurementVectorSize; j++)
+      {
+      temp = (components[i])->GetFullParameters()[j] - trueParameters[i][j];
+      displacement += (temp * temp);
+      }
+    displacement = sqrt(displacement);
+    std::cout << "    Mean displacement: " << std::endl;
+    std::cout << "        " << displacement 
+              << std::endl << std::endl;
+    if ( displacement > (minStandardDeviation / 100.0) * 3 )
+      {
+      passed = false;
+      }
     }
 
   //Set up a classifier
@@ -266,39 +257,38 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
     }
 
   char * targetFileName = argv[2];
-  std::ifstream dataTargetStream(targetFileName) ;
+  std::ifstream dataTargetStream(targetFileName);
   if ( !dataTargetStream )
     {
-      std::cout << "ERROR: fail to open the target data file." << std::endl ;
-      return EXIT_FAILURE ;
+    std::cout << "ERROR: fail to open the target data file." << std::endl;
+    return EXIT_FAILURE;
     }
 
   
-  PointSetType::Pointer pointSet2 = PointSetType::New() ;
+  PointSetType::Pointer pointSet2 = PointSetType::New();
   PointSetType::PointsContainerPointer pointsContainer2 = 
-    PointSetType::PointsContainer::New() ;
+    PointSetType::PointsContainer::New();
   dataSize=200;
-  pointsContainer2->Reserve(dataSize) ;
-  pointSet2->SetPoints(pointsContainer2.GetPointer()) ;
+  pointsContainer2->Reserve(dataSize);
+  pointSet2->SetPoints(pointsContainer2.GetPointer());
 
-  p_iter = pointsContainer2->Begin() ;
+  p_iter = pointsContainer2->Begin();
 
   while (p_iter != pointsContainer2->End())
     {
-      for ( i = 0 ; i < PointSetType::PointDimension ; i++)
-        {
-          dataTargetStream >> temp ;
-          point[i] = temp ;
-        }
-      p_iter.Value() = point ;
-      ++p_iter ;
+    for ( i = 0; i < PointSetType::PointDimension; i++)
+      {
+      dataTargetStream >> temp;
+      point[i] = temp;
+      }
+    p_iter.Value() = point;
+    ++p_iter;
     }
 
-  dataTargetStream.close() ;
+  dataTargetStream.close();
   
   /* Importing the point set to the sample */
-  DataSampleType::Pointer sampleTarget =
-    DataSampleType::New() ;
+  DataSampleType::Pointer sampleTarget = DataSampleType::New();
   
   sampleTarget->SetPointSet(pointSet2.GetPointer());
 
@@ -328,7 +318,7 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
   
   unsigned int numberOfSamplesPerClass = 100;
   if( sampleCounter > numberOfSamplesPerClass )
-   {
+    {
     if( iter.GetClassLabel() != class1 )
       {
       std::cerr << "Classification error: " << sampleCounter
@@ -341,8 +331,8 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
     ++sampleCounter;
     }
 
-   if( sampleCounter > numberOfSamplesPerClass )
-   {
+  if( sampleCounter > numberOfSamplesPerClass )
+    {
     if( iter.GetClassLabel() != class1 )
       {
       std::cerr << "Classification error: " << sampleCounter
@@ -364,10 +354,3 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-
-
-
-
-
