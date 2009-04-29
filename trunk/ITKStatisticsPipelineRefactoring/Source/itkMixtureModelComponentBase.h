@@ -112,16 +112,16 @@ public:
   bool AreParametersModified();
 
   /** sets the index-th weight with the "value" */
-  void SetWeight(int index, double value);
+  void SetWeight(unsigned int index, double value);
   
   /** returns the index-th weight */
-  double GetWeight(int index);
+  double GetWeight(unsigned int index) const;
 
   /** returns the membership score of the "measurements" vector */
   double Evaluate(MeasurementVectorType& measurements);
 
   /** returns the pointer to the weights array */
-  WeightArrayType* GetWeights();
+  itkGetConstReferenceMacro( Weights, WeightArrayType );
 
   virtual void Update();
   
@@ -130,10 +130,6 @@ protected:
   virtual ~MixtureModelComponentBase();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  /** allocates the weights array */
-  void CreateWeightArray();
-  /** deallocates the weights array */
-  void DeleteWeightArray();
   /** stores the pointer to the membership function.
    * subclasses use this funtion to store their membership function
    * object after dynamic creation */ 
@@ -148,10 +144,13 @@ private:
   double m_MinimalParametersChange;
 
   ParametersType m_Parameters;
+
   /** SmartPointer to the memberhip function - usually density function */
   MembershipFunctionType* m_MembershipFunction;
+
   /** weights array */
-  WeightArrayType* m_Weights;
+  WeightArrayType m_Weights;
+
   /** indicative flag of membership function's parameter changes */
   bool m_ParametersModified;
   

@@ -27,6 +27,7 @@ template< class TSample >
 WeightedMeanSampleFilter< TSample >
 ::WeightedMeanSampleFilter()
 {
+  this->ProcessObject::SetNthInput(1, NULL );
 }
 
 
