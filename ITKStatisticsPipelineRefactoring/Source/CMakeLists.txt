@@ -15,4 +15,4 @@ ADD_LIBRARY(ITKStatisticsNew
   itkChiSquareDistribution.cxx
  )
 
-TARGET_LINK_LIBRARIES(ITKStatisticsNew ITKCommon ITKStatisticsNetlib)
+TARGET_LINK_LIBRARIES(ITKStatisticsNew ITKCommon itkNetlibSlatec)
