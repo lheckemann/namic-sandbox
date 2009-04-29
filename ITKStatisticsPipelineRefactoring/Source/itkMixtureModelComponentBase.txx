@@ -28,7 +28,6 @@ MixtureModelComponentBase< TSample >
 {
   m_Sample = 0;
   m_MembershipFunction = 0;
-  m_Weights = 0;
   m_MinimalParametersChange = 1.0e-06;
   m_ParametersModified = true;
 }
@@ -37,7 +36,6 @@ template< class TSample >
 MixtureModelComponentBase< TSample >
 ::~MixtureModelComponentBase()
 {
-  this->DeleteWeightArray();
 }
 
 template< class TSample >
@@ -68,14 +66,7 @@ MixtureModelComponentBase< TSample >
     }
 
   os << indent << "Weights Array: ";
-  if ( m_Weights != 0 )
-    {
-    os << m_Weights << std::endl;
-    }
-  else
-    {
-    os << "not allocated yet." << std::endl;
-    }
+  os << m_Weights << std::endl;
   
   os << indent << "Parameters are modified: " << m_ParametersModified
      << std::endl;
@@ -87,7 +78,7 @@ MixtureModelComponentBase< TSample >
 ::SetSample(const TSample* sample)
 {
   m_Sample = sample;
-  this->CreateWeightArray();
+  m_Weights = WeightArrayType(m_Sample->Size());
 } 
 
 template< class TSample >
@@ -127,35 +118,6 @@ MixtureModelComponentBase< TSample >
 }
 
 template< class TSample >
-typename MixtureModelComponentBase< TSample >::WeightArrayType*
-MixtureModelComponentBase< TSample >
-::GetWeights()
-{
-  return m_Weights;
-}
-
-template< class TSample >
-void
-MixtureModelComponentBase< TSample >
-::CreateWeightArray()
-{
-  this->DeleteWeightArray();
-  m_Weights = new WeightArrayType(m_Sample->Size());
-}
-
-template< class TSample >
-void
-MixtureModelComponentBase< TSample >
-::DeleteWeightArray()
-{
-  if ( m_Weights != 0 )
-    {
-    delete m_Weights;
-    m_Weights = 0;
-    }
-}
-
-template< class TSample >
 void
 MixtureModelComponentBase< TSample >
 ::SetMembershipFunction(MembershipFunctionType* function)
@@ -182,11 +144,11 @@ MixtureModelComponentBase< TSample >
 template< class TSample >
 inline void
 MixtureModelComponentBase< TSample >
-::SetWeight(int index, double value)
+::SetWeight(unsigned int index, double value)
 {
-  if ( m_Weights != 0 )
+  if( index < m_Weights.size() )
     {
-    (*m_Weights)[index] = value;
+    (m_Weights)[index] = value;
     }
   else
     {
@@ -197,11 +159,11 @@ MixtureModelComponentBase< TSample >
 template< class TSample >
 inline double
 MixtureModelComponentBase< TSample >
-::GetWeight(int index)
+::GetWeight(unsigned int index) const
 {
-  if ( m_Weights != 0 )
+  if( index < m_Weights.Size() )
     {
-    return (*m_Weights)[index];
+    return m_Weights[index];
     }
   else
     {

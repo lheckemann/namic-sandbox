@@ -62,13 +62,9 @@ GaussianMixtureModelComponent< TSample >
   m_MeanEstimator->SetInput(sample);
   m_CovarianceEstimator->SetInput(sample);
 
-  WeightArrayType* weights = this->GetWeights();
-  m_MeanEstimator->SetWeights(*weights);
-  m_CovarianceEstimator->SetWeights(*weights);
   const MeasurementVectorSizeType measurementVectorLength = 
             sample->GetMeasurementVectorSize();
-  m_GaussianMembershipFunction->SetMeasurementVectorSize( 
-                                    measurementVectorLength );
+  m_GaussianMembershipFunction->SetMeasurementVectorSize( measurementVectorLength );
                                     
   MeasurementVectorTraits::SetLength( m_Mean, measurementVectorLength );
   m_Covariance.SetSize( measurementVectorLength, measurementVectorLength );
@@ -79,7 +75,7 @@ GaussianMixtureModelComponent< TSample >
   
   typename NativeMembershipFunctionType::MeanType mean;
   
-  ::itk::Statistics::MeasurementVectorTraits::SetLength( mean, measurementVectorLength);
+  MeasurementVectorTraits::SetLength( mean, measurementVectorLength);
   
   for( unsigned int i=0; i < measurementVectorLength; ++i )
     {
@@ -116,8 +112,8 @@ GaussianMixtureModelComponent< TSample >
     }
 
   typename NativeMembershipFunctionType::MeanType mean;
-  ::itk::Statistics::MeasurementVectorTraits::SetLength( mean,
-   measurementVectorSize);
+
+  MeasurementVectorTraits::SetLength( mean, measurementVectorSize);
 
   for( i=0; i < measurementVectorSize; ++i )
     {
@@ -193,7 +189,7 @@ GaussianMixtureModelComponent< TSample >
   
   this->AreParametersModified(false);
 
-  WeightArrayType* weights = this->GetWeights();
+  const WeightArrayType & weights = this->GetWeights();
 
   typename TSample::ConstIterator iter = this->GetSample()->Begin();
   typename TSample::ConstIterator end =  this->GetSample()->End();
@@ -206,9 +202,9 @@ GaussianMixtureModelComponent< TSample >
     ++iter;
     }
 
-  m_MeanEstimator->SetWeights(*weights);
+  m_MeanEstimator->SetWeights( weights );
   m_MeanEstimator->Update();
-  //-----------------------
+
 
   unsigned int i, j;
   double temp;
@@ -245,7 +241,7 @@ GaussianMixtureModelComponent< TSample >
     paramIndex = measurementVectorSize;
     }
 
-  m_CovarianceEstimator->SetWeights(*weights);
+  m_CovarianceEstimator->SetWeights( weights );
   m_CovarianceEstimator->Update();
   typename CovarianceEstimatorType::MatrixType covEstimate =
                       m_CovarianceEstimator->GetCovarianceMatrix(); 
@@ -289,8 +285,7 @@ GaussianMixtureModelComponent< TSample >
     }
 
   typename NativeMembershipFunctionType::MeanType mean;
-  ::itk::Statistics::MeasurementVectorTraits::SetLength( mean,
-   measurementVectorSize);
+  MeasurementVectorTraits::SetLength( mean, measurementVectorSize);
 
   for( i=0; i < measurementVectorSize; ++i )
     {
