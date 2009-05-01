@@ -50,19 +50,19 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   this->m_EdgeIndexToVertexIndex[0] = VertexPairType( 0, 0 );
 
   this->m_EdgeIndexToVertexIndex[1] = VertexPairType( 1, 2 );
-  this->m_EdgeIndexToVertexIndex[2] = VertexPairType( 1, 2 );
-  this->m_EdgeIndexToVertexIndex[3] = VertexPairType( 1, 2 );
-  this->m_EdgeIndexToVertexIndex[4] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[2] = VertexPairType( 1, 3 );
+  this->m_EdgeIndexToVertexIndex[3] = VertexPairType( 2, 4 );
+  this->m_EdgeIndexToVertexIndex[4] = VertexPairType( 3, 4 );
 
-  this->m_EdgeIndexToVertexIndex[5] = VertexPairType( 1, 2 );
-  this->m_EdgeIndexToVertexIndex[6] = VertexPairType( 1, 2 );
-  this->m_EdgeIndexToVertexIndex[7] = VertexPairType( 1, 2 );
-  this->m_EdgeIndexToVertexIndex[8] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[5] = VertexPairType( 1, 5 );
+  this->m_EdgeIndexToVertexIndex[6] = VertexPairType( 2, 6 );
+  this->m_EdgeIndexToVertexIndex[7] = VertexPairType( 3, 7 );
+  this->m_EdgeIndexToVertexIndex[8] = VertexPairType( 4, 8 );
 
-  this->m_EdgeIndexToVertexIndex[ 9] = VertexPairType( 1, 2 );
-  this->m_EdgeIndexToVertexIndex[10] = VertexPairType( 1, 2 );
-  this->m_EdgeIndexToVertexIndex[11] = VertexPairType( 1, 2 );
-  this->m_EdgeIndexToVertexIndex[12] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[ 9] = VertexPairType( 5, 6 );
+  this->m_EdgeIndexToVertexIndex[10] = VertexPairType( 5, 7 );
+  this->m_EdgeIndexToVertexIndex[11] = VertexPairType( 6, 8 );
+  this->m_EdgeIndexToVertexIndex[12] = VertexPairType( 7, 8 );
 }
 
 
