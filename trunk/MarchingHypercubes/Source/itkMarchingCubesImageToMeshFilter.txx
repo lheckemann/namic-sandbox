@@ -46,6 +46,23 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   this->m_GradientCalculator->UseImageDirectionOn();
 
   this->m_NumberOfPoints = NumericTraits< PointIdentifier >::Zero;
+
+  this->m_EdgeIndexToVertexIndex[0] = VertexPairType( 0, 0 );
+
+  this->m_EdgeIndexToVertexIndex[1] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[2] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[3] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[4] = VertexPairType( 1, 2 );
+
+  this->m_EdgeIndexToVertexIndex[5] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[6] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[7] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[8] = VertexPairType( 1, 2 );
+
+  this->m_EdgeIndexToVertexIndex[ 9] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[10] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[11] = VertexPairType( 1, 2 );
+  this->m_EdgeIndexToVertexIndex[12] = VertexPairType( 1, 2 );
 }
 
 

@@ -191,18 +191,35 @@ private:
 
   mutable TableIndexType                m_TableIndex;
 
-  struct
+  class VertexPairType
     {
+    public:
+       
+    VertexPairType()
+      {
+      Vertex1 = 0;
+      Vertex2 = 0;
+      }
+     
+    VertexPairType( unsigned int a, unsigned int b )
+      {
+      Vertex1 = a;
+      Vertex2 = b;
+      }
     unsigned int   Vertex1; 
     unsigned int   Vertex2; 
-    } VertexPairType;
+    };
 
-   VertexPairType                       m_EdgeIndexToVertexIndex[12];
+   // There are 13 entries in the table, but only 12 represent real
+   // edge pairs. This is done to be able to use "0" as the code for
+   // "no-edge".
+   VertexPairType                       m_EdgeIndexToVertexIndex[13];
 
-   struct
+   class ListOfTrianglesType
      {
+     public:
      unsigned int  Triangle[15];
-     } ListOfTrianglesType;
+     };
 
    ListOfTrianglesType                  m_CubeConfigurationCodeToListOfTriangle[256];
 };
