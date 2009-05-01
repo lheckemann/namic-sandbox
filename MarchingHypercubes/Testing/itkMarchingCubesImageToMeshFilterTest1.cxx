@@ -77,15 +77,15 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
-  FilterType::Pointer dividingCubesFilter = FilterType::New();
+  FilterType::Pointer marchingCubesFilter = FilterType::New();
 
-  dividingCubesFilter->SetInput( reader->GetOutput() );
+  marchingCubesFilter->SetInput( reader->GetOutput() );
 
-  dividingCubesFilter->SetSurfaceValue( atof( argv[3] ) );
+  marchingCubesFilter->SetSurfaceValue( atof( argv[3] ) );
 
   try
     {
-    dividingCubesFilter->Update();
+    marchingCubesFilter->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -94,12 +94,12 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
-  PointSetType::ConstPointer pointSet = dividingCubesFilter->GetOutput();
+  PointSetType::ConstPointer pointSet = marchingCubesFilter->GetOutput();
 
   //
   // Exercise the Print() method.
   //
-  dividingCubesFilter->Print( std::cout );
+  marchingCubesFilter->Print( std::cout );
 
   std::cout << pointSet->GetNumberOfPoints() << std::endl;
 
