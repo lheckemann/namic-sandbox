@@ -158,18 +158,18 @@ protected:
   typedef CentralDifferenceImageFunction< TInputImage, double >      GradientCalculatorType;
   typedef typename GradientCalculatorType::Pointer                   GradientCalculatorPointer;
   typedef typename GradientCalculatorType::OutputType                CovariantVectorType;
- 
+
+  // Type used for representing the index of the marching cubes table 
+  typedef unsigned char                                              TableIndexType;
+
   // Check whether the neighborhood is cut by the iso-hyper-surface
   bool IsSurfaceInside( const NeighborhoodIteratorType & walker );
- 
-  // Find cells in the subdivided image that are cut by the iso-hyper-surface
-  void FindIntersectingSubcells( const NeighborhoodIteratorType & walker );
  
   // Compute the gradients on each one of the voxels in a cell
   void ComputeCentralDifferences( const NeighborhoodIteratorType & cellRegionWalker );
 
-  // Subdivide the cell into sub-cells.
-  void SubdivideCell( const NeighborhoodIteratorType & cellRegionWalker );
+  // Find intersection of the surface along the edge using linear interpolation.
+  void InterpolateEdges( const NeighborhoodIteratorType & cellRegionWalker );
 
 private:
   MarchingCubesImageToMeshFilter(const Self&); //purposely not implemented
@@ -188,6 +188,23 @@ private:
   InterpolatorPointer                   m_Interpolator;
   SubdivideFactorArray                  m_SubdivideFactors;
   PointIdentifier                       m_NumberOfPoints;
+
+  mutable TableIndexType                m_TableIndex;
+
+  struct
+    {
+    unsigned int   Vertex1; 
+    unsigned int   Vertex2; 
+    } VertexPairType;
+
+   VertexPairType                       m_EdgeIndexToVertexIndex[12];
+
+   struct
+     {
+     unsigned int  Triangle[15];
+     } ListOfTrianglesType;
+
+   ListOfTrianglesType                  m_CubeConfigurationCodeToListOfTriangle[256];
 };
 
 } // end namespace itk
