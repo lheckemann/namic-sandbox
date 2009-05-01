@@ -63,6 +63,9 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   this->m_EdgeIndexToVertexIndex[10] = VertexPairType( 5, 7 );
   this->m_EdgeIndexToVertexIndex[11] = VertexPairType( 6, 8 );
   this->m_EdgeIndexToVertexIndex[12] = VertexPairType( 7, 8 );
+
+  // Populate the look up table here:
+  // this->m_CubeConfigurationCodeToListOfTriangle
 }
 
 
@@ -217,8 +220,8 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
     {
     if( this->IsSurfaceInside( cellRegionWalker ) )
       {
+      this->GenerateTriangles( cellRegionWalker );
       this->ComputeCentralDifferences( cellRegionWalker );
-      this->InterpolateEdges( cellRegionWalker );
       }
 
     ++cellRegionWalker;
@@ -232,10 +235,74 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
 template<class TInputImage, class TOutputMesh>
 void
 MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
-::InterpolateEdges( const NeighborhoodIteratorType & cellRegionWalker )
+::GenerateTriangles( const NeighborhoodIteratorType & cellRegionWalker )
 {
-    
+   const ListOfTrianglesType & listOfTrianglesAsEdges = 
+     this->m_CubeConfigurationCodeToListOfTriangle[ this->m_TableIndex ];
+
+   const unsigned int maximumNumberOfTrianglesPerCube = 5;
+   const unsigned int numberOfEdgesPerTriangle = 3;
+   const unsigned int numberOfEdgesPerConfiguration = 
+     numberOfEdgesPerTriangle * maximumNumberOfTrianglesPerCube;
+
+   DirectedPointType point1;
+   DirectedPointType point2; 
+   DirectedPointType point3; 
+
+   for( unsigned int i = 0; i < numberOfEdgesPerConfiguration; i += 3 )
+     {
+     if( listOfTrianglesAsEdges.Triangle[i] == 0 )
+       {
+       break;
+       }
+
+     const VertexTypeId edgeId1 = listOfTrianglesAsEdges.Triangle[ i ];
+     const VertexTypeId edgeId2 = listOfTrianglesAsEdges.Triangle[i+1];
+     const VertexTypeId edgeId3 = listOfTrianglesAsEdges.Triangle[i+2];
+
+     const VertexPairType & edge1 = this->m_EdgeIndexToVertexIndex[edgeId1];
+     const VertexPairType & edge2 = this->m_EdgeIndexToVertexIndex[edgeId2];
+     const VertexPairType & edge3 = this->m_EdgeIndexToVertexIndex[edgeId3];
+
+     // NOTE: This will generate duplicate coincident points.
+     this->InterpolateEdge( edge1, cellRegionWalker, point1 );
+     this->InterpolateEdge( edge2, cellRegionWalker, point2 );
+     this->InterpolateEdge( edge3, cellRegionWalker, point3 );
+
+     this->AddTriangleToOutputMesh( point1, point2, point3 );
+     }
 }
+
+
+/** Insert a triangle in the output mesh.
+ *  TODO: Think about how to avoid coincident points. */
+template<class TInputImage, class TOutputMesh>
+void
+MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
+::AddTriangleToOutputMesh(
+  const DirectedPointType & point1,
+  const DirectedPointType & point2,
+  const DirectedPointType & point3 )
+{
+   // Here : insert points and triangle cell into the output Mesh
+}
+
+
+
+/** Compute gradients on the voxels contained in the neighborhood. */
+template<class TInputImage, class TOutputMesh>
+void
+MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
+::InterpolateEdge( const VertexPairType & vertexPair, 
+  const NeighborhoodIteratorType & cellRegionWalker,
+  DirectedPointType & outputDirectedPoint )
+{
+   // TODO Here:
+   // * Get the two vertex physical coordinates
+   // * Compute Linear interpolation for the middle point coordinates
+   // * Interpolate gradients from the m_ListOfGradientsOnCell.
+}
+
 
 /** Compute gradients on the voxels contained in the neighborhood. */
 template<class TInputImage, class TOutputMesh>
