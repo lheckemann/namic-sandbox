@@ -159,18 +159,6 @@ protected:
   typedef typename GradientCalculatorType::Pointer                   GradientCalculatorPointer;
   typedef typename GradientCalculatorType::OutputType                CovariantVectorType;
 
-  // Type used for representing the index of the marching cubes table 
-  typedef unsigned char                                              TableIndexType;
-
-  // Check whether the neighborhood is cut by the iso-hyper-surface
-  bool IsSurfaceInside( const NeighborhoodIteratorType & walker );
- 
-  // Compute the gradients on each one of the voxels in a cell
-  void ComputeCentralDifferences( const NeighborhoodIteratorType & cellRegionWalker );
-
-  // Find intersection of the surface along the edge using linear interpolation.
-  void InterpolateEdges( const NeighborhoodIteratorType & cellRegionWalker );
-
 private:
   MarchingCubesImageToMeshFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
@@ -188,6 +176,9 @@ private:
   InterpolatorPointer                   m_Interpolator;
   SubdivideFactorArray                  m_SubdivideFactors;
   PointIdentifier                       m_NumberOfPoints;
+ 
+  // Type used for representing the index of the marching cubes table 
+  typedef unsigned char                                              TableIndexType;
 
   mutable TableIndexType                m_TableIndex;
 
@@ -215,13 +206,44 @@ private:
    // "no-edge".
    VertexPairType                       m_EdgeIndexToVertexIndex[13];
 
+   typedef unsigned int                 VertexTypeId;
+
    class ListOfTrianglesType
      {
      public:
-     unsigned int  Triangle[15];
+     VertexTypeId Triangle[15];
      };
 
    ListOfTrianglesType                  m_CubeConfigurationCodeToListOfTriangle[256];
+
+   class DirectedPointType
+     {
+     public:
+       MeshPointType     point; 
+       MeshPixelType     gradient;  // We assume that the Mesh pixel type is a CovariantVector.
+     };
+
+   void AddTriangleToOutputMesh( 
+     const DirectedPointType & point1, 
+     const DirectedPointType & point2, 
+     const DirectedPointType & point3 );
+
+  // Check whether the neighborhood is cut by the iso-hyper-surface
+  bool IsSurfaceInside( const NeighborhoodIteratorType & walker );
+ 
+  // Compute the gradients on each one of the voxels in a cell
+  void ComputeCentralDifferences( const NeighborhoodIteratorType & cellRegionWalker );
+
+  // Find intersection of the surface along the edge using linear interpolation.
+  void InterpolateEdge( 
+    const VertexPairType & vertexPair,
+    const NeighborhoodIteratorType & cellRegionWalker,
+    DirectedPointType & outputDirectedPoint );
+
+  // Generate triangles for current configuration
+  void GenerateTriangles( const NeighborhoodIteratorType & cellRegionWalker );
+
+
 };
 
 } // end namespace itk
