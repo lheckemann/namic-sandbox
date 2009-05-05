@@ -30,7 +30,7 @@
 #include <time.h> //TODO: take that out when done measuring
 
 class vtkKWPushButton;
-class vtkSlicerNodeSelectorWidget;  //TODO:Steve I needed to add this line to make the selector work. Why do I not need classes for the slider, etc widget?
+class vtkSlicerNodeSelectorWidget;  //TODO:Question for Steve I needed to add this line to make the selector work. Why do I not need classes for the slider, etc widget?
 
 class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public vtkSlicerModuleGUI
 {
@@ -129,8 +129,6 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   vtkKWEntry*           pXUpperEntry;
   vtkKWEntry*           pYLowerEntry;
   vtkKWEntry*           pYUpperEntry;
-  vtkKWEntry*           pZLowerEntry;
-  vtkKWEntry*           pZUpperEntry;
   
   //----------------------------------------------------------------
   // MRML nodes
@@ -151,8 +149,7 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   int                        started;       // flag whether to process the new image from the scanner or not
   int                        ROIpresent;    // flag whether a MRMLROINode is present and the coordinate input has to be disabled or not
   int                        showNeedle;    // flag whether to show the pNeedleNode in Slicer or not
-  int                        needleOrigin;  // variable to indicate the direction the needle enters the image from 
-                                            // = PATIENTLEFT, PATIENTRIGHT, PATIENTPOSTERIOR, PATIENTANTERIOR, PATIENTINFERIOR, PATIENTSUPERIOR 
+  int                        needleOrigin;  // variable to indicate the direction the needle enters the image from: TOP, RIGHT 
   
   //----------------------------------------------------------------
   // Image Values
@@ -163,7 +160,8 @@ class VTK_RealTimeNeedleDetection_EXPORT vtkRealTimeNeedleDetectionGUI : public 
   int             imageRegionSize[2];   //these are the current values for the 2D image region that gets processed in the ImageProcessor
   int             imageRegionLower[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
   int             imageRegionUpper[2];  //these are the current values for the 2D image region that gets processed in the ImageProcessor
-  //TODO: Can I make the "imageRegion.." arrays local variables? 
+  //TODO: Can I make the "imageRegion.." arrays local variables?
+  //TODO: Aren't 2 Dimensions enough? 
   int             currentLowerBound[3];
   int             currentUpperBound[3];        
   int             currentImageRegionSize[3];

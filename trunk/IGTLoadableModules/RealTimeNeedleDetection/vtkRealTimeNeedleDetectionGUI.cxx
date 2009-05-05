@@ -52,16 +52,16 @@
 #include "vtkKWRadioButtonSet.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 
+#include "vtkImageResample.h"
+#include "vtkImageReslice.h"
+
 #include "vtkCornerAnnotation.h"
 
 #define PI 3.1415926535897932384626433832795 
 
-#define PATIENTLEFT      1
-#define PATIENTRIGHT     2
-#define PATIENTPOSTERIOR 3
-#define PATIENTANTERIOR  4
-#define PATIENTINFERIOR  5
-#define PATIENTSUPERIOR  6
+#define TOP      1
+#define RIGHT     2
+
 
 #define DEFAULTTHRESHOLD 1000
 #define DEFAULTINTENSITY 5000
@@ -89,7 +89,7 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   started       = 0;
   ROIpresent    = 0;
   showNeedle    = 0;
-  needleOrigin  = PATIENTPOSTERIOR; //if this default value gets changed, the initial value for pEntryPointButtonSet needs to get changed, too
+  needleOrigin  = TOP; //if this default value gets changed, the initial value for pEntryPointButtonSet needs to get changed, too
   
   //----------------------------------------------------------------
   // GUI widgets
@@ -107,8 +107,6 @@ vtkRealTimeNeedleDetectionGUI::vtkRealTimeNeedleDetectionGUI()
   this->pXUpperEntry              = NULL;
   this->pYLowerEntry              = NULL;
   this->pYUpperEntry              = NULL;
-  this->pZLowerEntry              = NULL;
-  this->pZUpperEntry              = NULL;
   this->pDebugModeButtonSet       = NULL;
   
   //--------------------------------------------------------------------
@@ -239,16 +237,6 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
     this->pYUpperEntry->SetParent(NULL);
     this->pYUpperEntry->Delete();
   }
-  if(this->pZLowerEntry)
-  {
-    this->pZLowerEntry->SetParent(NULL);
-    this->pZLowerEntry->Delete();
-  }
-  if (this->pZUpperEntry)
-  {
-    this->pZUpperEntry->SetParent(NULL);
-    this->pZUpperEntry->Delete();
-  }
   if(this->pDebugModeButtonSet)
   {
     this->pDebugModeButtonSet->SetParent(NULL);
@@ -337,12 +325,8 @@ void vtkRealTimeNeedleDetectionGUI::AddGUIObservers ( )
   this->pStartButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pStopButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
-  this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pEntryPointButtonSet->GetWidget(TOP)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
+  this->pEntryPointButtonSet->GetWidget(RIGHT)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pDebugModeButtonSet->GetWidget(0)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pDebugModeButtonSet->GetWidget(1)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   this->pDebugModeButtonSet->GetWidget(2)->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand*) this->GUICallbackCommand);
@@ -372,12 +356,8 @@ void vtkRealTimeNeedleDetectionGUI::RemoveGUIObservers ( )
     this->pGaussScale->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand*) this->GUICallbackCommand);
   if (this->pEntryPointButtonSet)
   {
-    this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
-    this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(TOP)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
+    this->pEntryPointButtonSet->GetWidget(RIGHT)->RemoveObserver((vtkCommand*) this->GUICallbackCommand);
   }
   if (this->pDebugModeButtonSet)
   {
@@ -452,48 +432,20 @@ void vtkRealTimeNeedleDetectionGUI::ProcessGUIEvents(vtkObject* caller, unsigned
     gaussVariance = this->pGaussScale->GetValue();
   }
   
-  else if (this->pEntryPointButtonSet->GetWidget(PATIENTLEFT) == vtkKWRadioButton::SafeDownCast(caller)
+  else if (this->pEntryPointButtonSet->GetWidget(TOP) == vtkKWRadioButton::SafeDownCast(caller)
            && event == vtkKWRadioButton::SelectedStateChangedEvent
-           && this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->GetSelectedState() == 1)
+           && this->pEntryPointButtonSet->GetWidget(TOP)->GetSelectedState() == 1)
   { 
-    std::cout << "NeedleOrientatoinButton is pressed." << std::endl;
-    needleOrigin = PATIENTLEFT;
+    std::cout << "NeedleOrientationButton is pressed." << std::endl;
+    needleOrigin = TOP;
   }
-  else if (this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT) == vtkKWRadioButton::SafeDownCast(caller)
+  else if (this->pEntryPointButtonSet->GetWidget(RIGHT) == vtkKWRadioButton::SafeDownCast(caller)
            && event == vtkKWRadioButton::SelectedStateChangedEvent
-           && this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->GetSelectedState() == 1)
+           && this->pEntryPointButtonSet->GetWidget(RIGHT)->GetSelectedState() == 1)
   {
-    std::cout << "NeedleOrientatoinButton is pressed." << std::endl;
-    needleOrigin = PATIENTRIGHT; 
+    std::cout << "NeedleOrientationButton is pressed." << std::endl;
+    needleOrigin = RIGHT; 
   }
-  else if (this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR) == vtkKWRadioButton::SafeDownCast(caller)
-           && event == vtkKWRadioButton::SelectedStateChangedEvent
-           && this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->GetSelectedState() == 1)
-  {
-    std::cout << "NeedleOrientatoinButton is pressed." << std::endl;
-    needleOrigin = PATIENTPOSTERIOR; 
-  }
-  else if (this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR) == vtkKWRadioButton::SafeDownCast(caller)
-           && event == vtkKWRadioButton::SelectedStateChangedEvent
-           && this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->GetSelectedState() == 1)
-  {
-    std::cout << "NeedleOrientatoinButton is pressed." << std::endl;
-    needleOrigin = PATIENTANTERIOR; 
-  }
-  else if (this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR) == vtkKWRadioButton::SafeDownCast(caller)
-           && event == vtkKWRadioButton::SelectedStateChangedEvent
-           && this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->GetSelectedState() == 1)
-  {
-    std::cout << "NeedleOrientatoinButton is pressed." << std::endl;
-    needleOrigin = PATIENTINFERIOR; 
-  }
-  else if (this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR) == vtkKWRadioButton::SafeDownCast(caller)
-           && event == vtkKWRadioButton::SelectedStateChangedEvent
-           && this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->GetSelectedState() == 1)
-  {
-    std::cout << "NeedleOrientatoinButton is pressed." << std::endl;
-    needleOrigin = PATIENTSUPERIOR; 
-  }  
   else if (this->pDebugModeButtonSet->GetWidget(0) == vtkKWRadioButton::SafeDownCast(caller)
            && event == vtkKWRadioButton::SelectedStateChangedEvent
            && this->pDebugModeButtonSet->GetWidget(0)->GetSelectedState() == 1)
@@ -743,83 +695,55 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageData->GetDimensions(imageDimensions);
       pImageData->GetSpacing(imageSpacing);
       pImageData->GetOrigin(imageOrigin);
-      // the origin in slicer is always in the center of the imge: (Dimension*spacing = fov) / 2
+      // the origin in slicer is always in the center of the image: (Dimension*spacing = fov) / 2
       // the image received from OpenIGTLink needs to be shifted in every iteration
       double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
       double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;
       double fovK = imageDimensions[2] * imageSpacing[2] / 2.0;  
       scalarSize = pImageData->GetScalarSize();
       vtkMatrix4x4* imagePlaneOrientation = vtkMatrix4x4::New();       
-      pSourceNode->GetRASToIJKMatrix(imagePlaneOrientation);    
+      pSourceNode->GetRASToIJKMatrix(imagePlaneOrientation);         
       if(debug != 0)
         pOutputNode->SetRASToIJKMatrix(imagePlaneOrientation); //orient the Outputnode the same way as the input image
-      vtkMatrix4x4* matrixTransformToParentNeedle = pNeedleTransformNode->GetMatrixTransformToParent();
-      vtkTransform* transformToParentNeedle = vtkTransform::New();
-      transformToParentNeedle->SetMatrix(imagePlaneOrientation);
-      transformToParentNeedle->PreMultiply(); // = local coordinate system
-      transformToParentNeedle->RotateZ(-90);   // rotate the needle transform to have it pointing from right to left -> !!ATTENTION!! This has to be different for the real application
-      matrixTransformToParentNeedle->DeepCopy(transformToParentNeedle->GetMatrix()); //orient the needle transform initially like the inputImage -> will be at top left corner
       imagePlaneOrientation->Delete();
-      transformToParentNeedle->Delete();      
       //TODO: Do I need to get the scalarType, too?
-      if(ROIpresent)
-      {
-        std::cout << "MRLMROINode exists" << std::endl;
-        vtkCollection* collectionOfROINodes = this->GetMRMLScene()->GetNodesByName("MRMLROINode");
-        int nItems = collectionOfROINodes->GetNumberOfItems();
-        if(nItems > 0)
-        {
-          vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(collectionOfROINodes->GetItemAsObject(0));
-          double center[3];
-          double radius[3];
-                 
-          pROINode->GetRadiusXYZ(radius);
-          pROINode->GetXYZ(center);
-          this->pXLowerEntry->SetValueAsInt((int) ((-center[0]) - radius[0] + fovI)); // negative center point for the x-axis, because the ROIMRMLNode coordinates are in RAS (LR direction of X-axis), 
-          this->pXUpperEntry->SetValueAsInt((int) ((-center[0]) + radius[0] + fovI)); // but the slicer axial and coronal view, which are used as reference, switch the direction (RL direction of X-axis)
-          this->pYLowerEntry->SetValueAsInt((int) ((-center[1]) - radius[1] + fovJ)); // negative center point for the y-axis, because the ROIMRMLNode coordinates are in RAS (PA direction of Y-axis),
-          this->pYUpperEntry->SetValueAsInt((int) ((-center[1]) + radius[1] + fovJ)); // but the slicer axial and sagital view, which are used as reference, switch the direction (AP direction of Y-axis)
-          this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovK));
-          this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovK));
-          
-//          if(needleOrigin == PATIENTINFERIOR) //TODO:!!!ATTENTION!!! This is only for testing!!!
-//          {
-//            this->pZLowerEntry->SetValueAsInt((int) (center[2] - radius[2] + fovJ));  // !!!ATTTENTION!!! This should be fovK!!!
-//            this->pZUpperEntry->SetValueAsInt((int) (center[2] + radius[2] + fovJ));
-//          }          
-        }         
-      }
+//      if(ROIpresent)
+//      {
+//        std::cout << "MRLMROINode exists" << std::endl;
+//        vtkCollection* collectionOfROINodes = this->GetMRMLScene()->GetNodesByName("MRMLROINode");
+//        int nItems = collectionOfROINodes->GetNumberOfItems();
+//        if(nItems > 0)
+//        {
+//          vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(collectionOfROINodes->GetItemAsObject(0));
+//          double center[3];
+//          double radius[3];
+//                 
+//          pROINode->GetRadiusXYZ(radius);
+//          pROINode->GetXYZ(center);
+//          this->pXLowerEntry->SetValueAsInt((int) ((-center[0]) - radius[0] + fovI)); // negative center point for the x-axis, because the ROIMRMLNode coordinates are in RAS (LR direction of X-axis), 
+//          this->pXUpperEntry->SetValueAsInt((int) ((-center[0]) + radius[0] + fovI)); // but the slicer axial and coronal view, which are used as reference, switch the direction (RL direction of X-axis)
+//          this->pYLowerEntry->SetValueAsInt((int) ((-center[1]) - radius[1] + fovJ)); // negative center point for the y-axis, because the ROIMRMLNode coordinates are in RAS (PA direction of Y-axis),
+//          this->pYUpperEntry->SetValueAsInt((int) ((-center[1]) + radius[1] + fovJ)); // but the slicer axial and sagital view, which are used as reference, switch the direction (AP direction of Y-axis)    
+//        }         
+//      }
       currentLowerBound[0]      = this->pXLowerEntry->GetValueAsInt();
       currentUpperBound[0]      = this->pXUpperEntry->GetValueAsInt();
       currentLowerBound[1]      = this->pYLowerEntry->GetValueAsInt();
-      currentUpperBound[1]      = this->pYUpperEntry->GetValueAsInt();  
-      currentLowerBound[2]      = this->pZLowerEntry->GetValueAsInt();
-      currentUpperBound[2]      = this->pZUpperEntry->GetValueAsInt(); 
+      currentUpperBound[1]      = this->pYUpperEntry->GetValueAsInt();   
       currentImageRegionSize[0] = currentUpperBound[0] - currentLowerBound[0];
       currentImageRegionSize[1] = currentUpperBound[1] - currentLowerBound[1];
-      currentImageRegionSize[2] = currentUpperBound[2] - currentLowerBound[2]; 
-      
-      //TODO:Do something (getMatrix?) to get the current plane of the slice for the sizing variables
-      //if(axial, sagital or coronal)       
+              
       imageRegionSize[0]  = currentImageRegionSize[0];
       imageRegionLower[0] = currentLowerBound[0];
       imageRegionUpper[0] = currentUpperBound[0];  
-      
-      if((needleOrigin == PATIENTLEFT) || (needleOrigin == PATIENTPOSTERIOR))//TODO:!!!ATTENTION!!! This is only for testing!!!
-      {
-        imageRegionSize[1]  = currentImageRegionSize[1];
-        imageRegionLower[1] = currentLowerBound[1];           
-        imageRegionUpper[1] = currentUpperBound[1];        
-      }
-      else if(needleOrigin == PATIENTINFERIOR)
-      {
-        imageRegionSize[1]  = currentImageRegionSize[2];
-        imageRegionLower[1] = currentLowerBound[2];           
-        imageRegionUpper[1] = currentUpperBound[2];        
-      }
+      imageRegionSize[1]  = currentImageRegionSize[1];
+      imageRegionLower[1] = currentLowerBound[1];           
+      imageRegionUpper[1] = currentUpperBound[1];        
+
             
       double points[4]; // Array that contains 2 points of the needle (x1,y1,x2,y2) - shaft base and needle tip
-                        // points[0],points[1] is the point of the needle entering the image
+                        // (points[0],points[1]) is the point of the needle entering the image, presumably the needle shaft base
+                        // (points[2],points[3]) is the tip of the needle
       points[0] = 0.0;
       points[1] = 0.0;
       points[2] = 0.0;
@@ -838,8 +762,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // In the ImageProcessor ITK image segmentation/processing classse are used 
       pImageProcessor->SetImage((void*) pImageRegionInput, imageRegionSize[0], imageRegionSize[1], scalarSize, imageSpacing, imageOrigin);
       if(debug == 2)
-        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);
-                      
+        pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);                      
       pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, true);  //makes the line white -> no inversion needed later on
       if(debug != 0)
       {
@@ -849,8 +772,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         if(debug == 2)        
           pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
       }
-      delete [] pImageRegionOutput1;  
-      
+      delete [] pImageRegionOutput1;        
       pImageProcessor->DilateAndErode(true, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // 2 == dilate value, default: 3 == erode value
       if(debug != 0)
       {
@@ -860,8 +782,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         if(debug == 2)   
           pImageProcessor->Write("/projects/mrrobot/goerlitz/test/3-DilateAndErode.png",TMP);
       }
-      delete [] pImageRegionOutput2;
-      
+      delete [] pImageRegionOutput2;      
       pImageProcessor->Threshold(true, true, 0, (int) needleDetectionThreshold, MAX);
       if(debug != 0)
       {
@@ -871,8 +792,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         if(debug == 2)   
           pImageProcessor->Write("/projects/mrrobot/goerlitz/test/4-Threshold.png",TMP);      
       }
-      delete [] pImageRegionOutput3;
-      
+      delete [] pImageRegionOutput3;      
       pImageProcessor->BinaryThinning(true, true);  // needs inverted images, because it thins to a white line
       if(debug != 0)
       {      
@@ -883,32 +803,17 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
           pImageProcessor->Write("/projects/mrrobot/goerlitz/test/5-Thinning.png",TMP);
       }
       delete [] pImageRegionOutput4; 
-      
-//      pImageProcessor->SobelFilter(true, true, 1);     
-  //    pImageProcessor->SobelFilter(true,true,1);
-  //    pImageProcessor->Threshold(true,true,MAX,0,10000);
-  //    pImageProcessor->SobelEdgeDetection(false, true);
-  //    pImageProcessor->SobelEdgeDetection(true, false);
-       //pImageProcessor->GradientMagnitude(false,true);
-       //pImageProcessor->Threshold(false,true,0,0,20000);
-       //pImageProcessor->Threshold(true,true,MAX,18000,MAX);
-       //pImageProcessor->Threshold(true,true,MAX,0,1);
+
       switch (needleOrigin) 
       {
-        case PATIENTLEFT: 
-        {   
-          pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGRIGHT); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
-          break;
-        }
-        case PATIENTPOSTERIOR: 
+        case TOP: 
         {   
           pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
           break;
         }
-        case PATIENTINFERIOR:
-        {
-          //pImageProcessor->FlipTheImageAboutTheX-Axis;
-          pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGBOTTOM); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work 
+        case RIGHT: 
+        {   
+          pImageProcessor->HoughTransformation(true, points, needleIntensity, ENTERINGRIGHT); //Does not need inputTmpImage to be true, because without input true, the houghtransformation does not work          
           break;
         }
         default:
@@ -944,61 +849,49 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         //TODO: Take this out later on          //std::cout << atan2(-1,3)*180/PI << "|" << atan2(1,3)*180/PI << "|" << atan2(3,1)*180/PI << "|" << atan2(3,-1)*180/PI << "|" << std::endl;
         
         //-------------------------------------------------------------------------------------------
-        // make the needle transform fit the line detected in the image
-        double translationLR = 0;   //(X-axis)
-        double translationPA = 0;   //(Y-axis)
-        double translationIS = 0;   //(Z-axis)
-        
+        // make the needle transform fit the line detected in the image  
+        vtkMatrix4x4* imagePlaneOrientation = vtkMatrix4x4::New();         
+        pSourceNode->GetRASToIJKMatrix(imagePlaneOrientation);
+        //only the rotation of the new scan plane is needed | There is a displacement introduced by OpenIGTLink that should not be included
+        //There is also a bug somewhere -> matrix needs to be transposed TODO: comment more on this
+        imagePlaneOrientation->Element[0][3] = 0.0;
+        imagePlaneOrientation->Element[1][3] = 0.0;
+        imagePlaneOrientation->Element[2][3] = 0.0;
+        double tmp = 0.0;
+        tmp = imagePlaneOrientation->Element[0][1];
+        imagePlaneOrientation->Element[0][1] = imagePlaneOrientation->Element[1][0];
+        imagePlaneOrientation->Element[1][0] = tmp;
+        tmp = imagePlaneOrientation->Element[0][2];
+        imagePlaneOrientation->Element[0][2] = imagePlaneOrientation->Element[2][0];
+        imagePlaneOrientation->Element[2][0] = tmp;
+        tmp = imagePlaneOrientation->Element[1][2];
+        imagePlaneOrientation->Element[1][2] = imagePlaneOrientation->Element[2][1];
+        imagePlaneOrientation->Element[2][1] = tmp;
 
         vtkTransform* transform = vtkTransform::New();
-        transform->SetMatrix(pNeedleTransformNode->GetMatrixTransformToParent());
-        transform->PreMultiply(); // = local coordinate system
-        switch (needleOrigin) 
-        {
-          case PATIENTLEFT: //and axial! TODO: Take care of differences in scan plane
-          {              
-            transform->RotateZ(-angle);
-            translationLR = -points[2]; // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-            translationPA = -points[3]; // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
-            break;
-          }
-          case PATIENTPOSTERIOR: //and axial! TODO: Take care of differences in scan plane
-          {              
-            transform->RotateZ(angle);
-            translationLR = -points[2]; // negative because positive X-axis direction in RAS-coordinates points to the patient right, but in the slicer axial and coronal view it points to the patient left 
-            translationPA = -points[3]; // negative because positive Y-axis direction in RAS-coordinates points to the patient anterior, but in the slicer axial and sagital view it points to the patient posterior                
-            break;
-          }
-          case PATIENTINFERIOR:
-          {
-            transform->RotateX(90); // rotate to have the cylinder pointing from superior to inferior
-            break;
-          }
-          default:
-            std::cerr << "ERROR! needleOrigin has an unsupported value!" << std::endl;
-            break;
-        } //end switch   
-        transform->PostMultiply();  // = global coordinate system       
-        transform->Translate(translationLR, translationPA, translationIS);    
+        transform->SetMatrix(pNeedleTransformNode->GetMatrixTransformToParent());        
+        double translationI = 0;   //(X-axis)
+        double translationJ = 0;   //(Y-axis)
+        double translationK = 0;   //(Z-axis)  
+        translationI = points[2]-fovI;  
+        translationJ = points[3]-fovJ;        
+        transform->Identity();       
+        transform->PreMultiply(); // = local coordinate system   
+        transform->Translate(translationI, translationJ, translationK);    
+        transform->RotateZ(-90);   // needle direction from PATIENTLEFT to PATIENTRIGHT / RIGHT to LEFT in the image shown in reformat-mode
+        transform->RotateZ(angle);
+        transform->PostMultiply(); // = global coordinate system
+        transform->Concatenate(imagePlaneOrientation); //concatenate the transposed image plane orientation without the translation
             
         vtkMatrix4x4* matrixTransformToParentNeedle = pNeedleTransformNode->GetMatrixTransformToParent();
         matrixTransformToParentNeedle->DeepCopy(transform->GetMatrix()); // This calls the modified event
-        
-        transform->Translate(-translationLR, -translationPA, -translationIS);
+                
+        //TODO: the following stuff should not make any sense anymore -> change!
+        transform->Translate(-translationI, -translationJ, -translationK);
         transform->RotateZ(90); 
         vtkMatrix4x4* matrixTransformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
         matrixTransformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
         transform->Delete();
-           
-//        currentXLowerBound = (int) points[2] - 20;
-//        //currentYLowerBound = (int) points[3] - 10;
-//        currentXUpperBound = (int) points[0];        
-//        //currentYUpperBound = (int) points[1] + 10;
-//        std::cout << "bounds: " << currentXLowerBound << "|" << currentYLowerBound << "|" << currentXUpperBound << "|" <<  currentYUpperBound << std::endl;
-//        currentXImageRegionSize = currentXUpperBound - currentXLowerBound;
-//        currentYImageRegionSize = currentYUpperBound - currentYLowerBound;       
-     
-
       }  
       clock_t end = clock();
       cout << "               Time elapsed: " << double(diffclock(end,begin)) << " ms"<< endl << endl;  
@@ -1102,22 +995,14 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pEntryPointButtonSet->UniformColumnsOn();
   this->pEntryPointButtonSet->UniformRowsOn();  
 
-  this->pEntryPointButtonSet->AddWidget(PATIENTLEFT);
-  this->pEntryPointButtonSet->GetWidget(PATIENTLEFT)->SetText("Left");
-  this->pEntryPointButtonSet->AddWidget(PATIENTRIGHT);
-  this->pEntryPointButtonSet->GetWidget(PATIENTRIGHT)->SetText("Right");
-  this->pEntryPointButtonSet->AddWidget(PATIENTPOSTERIOR);
-  this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->SetText("Posterior");
-  this->pEntryPointButtonSet->AddWidget(PATIENTANTERIOR);
-  this->pEntryPointButtonSet->GetWidget(PATIENTANTERIOR)->SetText("Anterior");
-  this->pEntryPointButtonSet->AddWidget(PATIENTINFERIOR);
-  this->pEntryPointButtonSet->GetWidget(PATIENTINFERIOR)->SetText("Inferior");
-  this->pEntryPointButtonSet->AddWidget(PATIENTSUPERIOR);
-  this->pEntryPointButtonSet->GetWidget(PATIENTSUPERIOR)->SetText("Superior");  
+  this->pEntryPointButtonSet->AddWidget(TOP);
+  this->pEntryPointButtonSet->GetWidget(TOP)->SetText("Top");
+  this->pEntryPointButtonSet->AddWidget(RIGHT);
+  this->pEntryPointButtonSet->GetWidget(RIGHT)->SetText("Right");
   this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               buttonSetLabel->GetWidgetName() , this->pEntryPointButtonSet->GetWidgetName());
   
-  this->pEntryPointButtonSet->GetWidget(PATIENTPOSTERIOR)->SelectedStateOn();  //default, always needs to correspond to the member variable needleOrigin
+  this->pEntryPointButtonSet->GetWidget(TOP)->SelectedStateOn();  //default, always needs to correspond to the member variable needleOrigin
   this->pEntryPointButtonSet->EnabledOn();
   buttonSetFrame->Delete();
   
@@ -1193,7 +1078,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pIntensityScale->GetScale()->SetLength(180); 
   this->pIntensityScale->SetRange(0,MAX);
   this->pIntensityScale->SetResolution(10);
-  //TODO:Steve can I constrict the values to integer?  -> floor?
+  //TODO:Question for Steve can I constrict the values to integer?  -> floor?
   this->pIntensityScale->SetValue(DEFAULTINTENSITY);  
   this->Script("pack %s -side left -padx 2 -pady 2", this->pIntensityScale->GetWidgetName());  
   
@@ -1213,7 +1098,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pGaussScale->GetScale()->SetLength(180); 
   this->pGaussScale->SetRange(1,10);
   this->pGaussScale->SetResolution(1);
-  //TODO:Steve can I constrict the values to integer?  -> floor?
+  //TODO:Question for Steve can I constrict the values to integer?  -> floor?
   this->pGaussScale->SetValue(1);  
   this->Script("pack %s -side left -padx 2 -pady 2", this->pGaussScale->GetWidgetName());  
   
@@ -1270,7 +1155,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   descriptionFrame->SetParent(coordinatesFrame->GetFrame());
   descriptionFrame->Create();
   this->Script ( "pack %s -fill both -expand true", descriptionFrame->GetWidgetName());
-  vtkKWTextWithHyperlinksWithScrollbars* descriptionText = vtkKWTextWithHyperlinksWithScrollbars::New();  //TODO:Steve what should I use, if I only need text?
+  vtkKWTextWithHyperlinksWithScrollbars* descriptionText = vtkKWTextWithHyperlinksWithScrollbars::New();  //TODO:Question for Steve what should I use, if I only need text?
   descriptionText->SetParent(descriptionFrame);
   descriptionText->Create(); 
   descriptionText->SetHorizontalScrollbarVisibility(0);
@@ -1278,7 +1163,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   descriptionText->GetWidget()->SetReliefToFlat();
   descriptionText->GetWidget()->SetWrapToWord();
   descriptionText->GetWidget()->QuickFormattingOn();
-  descriptionText->SetText("Set the boundaries for the part of the image where the needle detection will start. They can be set manually or with an MRMLROINode. If a MRLMROINode exists, all the following values will be overriden." );
+  descriptionText->SetText("Set the boundaries for the part of the image where the needle detection will start." );
   //Important that ReadOnly is called after SetText otherwise it doesn't work
   descriptionText->GetWidget()->ReadOnlyOn();
   this->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4", descriptionText->GetWidgetName());
@@ -1293,7 +1178,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   xLabel->SetParent(xFrame);
   xLabel->Create();
   xLabel->SetWidth(25);
-  xLabel->SetText("Boundaries in LR-direction: ");
+  xLabel->SetText("Boundaries in I-direction: ");
 
   this->pXLowerEntry = vtkKWEntry::New();
   this->pXLowerEntry->SetParent(xFrame);
@@ -1322,7 +1207,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   yLabel->SetParent(yFrame);
   yLabel->Create();
   yLabel->SetWidth(25);
-  yLabel->SetText("Boundaries in PA-direction: ");
+  yLabel->SetText("Boundaries in J-direction: ");
 
   this->pYLowerEntry = vtkKWEntry::New();
   this->pYLowerEntry->SetParent(yFrame);
@@ -1339,34 +1224,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               yLabel->GetWidgetName(), this->pYLowerEntry->GetWidgetName(), this->pYUpperEntry->GetWidgetName());
   yLabel->Delete();
-  yFrame->Delete();
-  
-  vtkKWFrame* zFrame = vtkKWFrame::New();
-  zFrame->SetParent(coordinatesFrame->GetFrame());
-  zFrame->Create();
-  this->Script ("pack %s -fill both -expand true", zFrame->GetWidgetName());
-  vtkKWLabel* zLabel = vtkKWLabel::New();
-  zLabel->SetParent(zFrame);
-  zLabel->Create();
-  zLabel->SetWidth(25);
-  zLabel->SetText("Boundaries in IS-direction: ");
-
-  this->pZLowerEntry = vtkKWEntry::New();
-  this->pZLowerEntry->SetParent(zFrame);
-  this->pZLowerEntry->Create();
-  this->pZLowerEntry->SetWidth(7);
-  this->pZLowerEntry->SetValueAsInt(50);
-              
-  this->pZUpperEntry = vtkKWEntry::New();
-  this->pZUpperEntry->SetParent(zFrame);
-  this->pZUpperEntry->Create();
-  this->pZUpperEntry->SetWidth(7);
-  this->pZUpperEntry->SetValueAsInt(120);
-
-  this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
-              zLabel->GetWidgetName(), this->pZLowerEntry->GetWidgetName(), this->pZUpperEntry->GetWidgetName());
-  zLabel->Delete();
-  zFrame->Delete();
+  yFrame->Delete(); 
   
   coordinatesFrame->Delete();
   
@@ -1453,8 +1311,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
     this->pXUpperEntry->EnabledOff();
     this->pYLowerEntry->EnabledOff();
     this->pYUpperEntry->EnabledOff();
-    this->pZLowerEntry->EnabledOff();
-    this->pZUpperEntry->EnabledOff();
     this->pDebugModeButtonSet->EnabledOff();
   }
   else if(started == 0)
@@ -1470,8 +1326,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
       this->pXUpperEntry->EnabledOff();
       this->pYLowerEntry->EnabledOff();
       this->pYUpperEntry->EnabledOff();
-      this->pZLowerEntry->EnabledOff();
-      this->pZUpperEntry->EnabledOff();
     }
     else 
     {
@@ -1479,8 +1333,6 @@ void vtkRealTimeNeedleDetectionGUI::UpdateGUI()
       this->pXUpperEntry->EnabledOn();
       this->pYLowerEntry->EnabledOn();
       this->pYUpperEntry->EnabledOn();
-      this->pZLowerEntry->EnabledOn();
-      this->pZUpperEntry->EnabledOn();
     }
   }
 }
