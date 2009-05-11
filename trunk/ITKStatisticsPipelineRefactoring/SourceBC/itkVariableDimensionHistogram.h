@@ -69,11 +69,22 @@ public:
   typedef SmartPointer<Self>                             Pointer;
   typedef SmartPointer<const Self>                       ConstPointer;
 
+  typedef typename Superclass::SizeType                  SizeType;
+  typedef typename Superclass::MeasurementVectorType     MeasurementVectorType;
+
   /** Run-time type information (and related methods). */
   itkTypeMacro(VariableDimensionHistogram, Histogram);
 
   /** standard New() method support */
   itkNewMacro(Self);
+
+  virtual void Initialize(const SizeType &size,
+                          MeasurementVectorType& lowerBound,
+                          MeasurementVectorType& upperBound)
+    {
+    this->SetMeasurementVectorSize(lowerBound.GetSize());
+    Superclass::Initialize(size, lowerBound, upperBound);
+    }
 
 protected:
   VariableDimensionHistogram() {}
