@@ -112,6 +112,7 @@ public:
   /** Sets the number of measurement vectors that can be stored in a
    * terminal node. */
   void SetBucketSize(unsigned int size);
+  itkGetConstMacro(BucketSize, unsigned int);
 
   /** Returns the pointer to the generated k-d tree. */
   OutputPointer GetOutput()

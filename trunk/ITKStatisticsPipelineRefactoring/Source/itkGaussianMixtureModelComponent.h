@@ -88,6 +88,12 @@ public:
   /** Sets the component's distribution parameters. */
   void SetParameters(const ParametersType &parameters);
   
+  itkGetConstObjectMacro(GaussianMembershipFunction, NativeMembershipFunctionType);
+  itkGetConstObjectMacro(MeanEstimator, MeanEstimatorType);
+  itkGetConstObjectMacro(CovarianceEstimator, CovarianceEstimatorType);
+  itkGetConstMacro(Mean, typename MeanEstimatorType::MeasurementVectorType);
+  itkGetConstMacro(Covariance, typename CovarianceEstimatorType::MatrixType);
+
 protected:
   GaussianMixtureModelComponent();
   virtual ~GaussianMixtureModelComponent() {}

@@ -219,16 +219,16 @@ MahalanobisDistanceMetric< TVector >
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "Covariance:        " << std::endl;
-  os << this->GetCovariance() << std::endl;
-  os << indent << "Inverse covariance:        " << std::endl;
-  os << this->GetInverseCovariance() << std::endl;
-  os << indent << "Mean:        " << std::endl;
-  os << this->GetMean() << std::endl;
-  os << indent << "Epsilon:        " << std::endl;
-  os << this->GetEpsilon() << std::endl;
-  os << indent << "Double max:        " << std::endl;
-  os << this->GetDoubleMax() << std::endl;
+  os << indent << "Covariance:        "
+     << this->GetCovariance() << std::endl;
+  os << indent << "Inverse covariance:        "
+     << this->GetInverseCovariance() << std::endl;
+  os << indent << "Mean:        " 
+     << this->GetMean() << std::endl;
+  os << indent << "Epsilon:        "
+     << this->GetEpsilon() << std::endl;
+  os << indent << "Double max:        "
+     << this->GetDoubleMax() << std::endl;
 }
 } // end namespace Statistics
 } // end of namespace itk
