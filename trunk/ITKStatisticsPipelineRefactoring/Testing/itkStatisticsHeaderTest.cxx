@@ -28,7 +28,7 @@
 #include "itkProbabilityDistribution.h"
 #include "itkTDistribution.h"
 #include "itkListSample.h"
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 #include "itkSampleToHistogramFilter.h"
 #include "itkHistogramToTextureFeaturesFilter.h"
 #include "itkSample.h"

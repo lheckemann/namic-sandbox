@@ -18,7 +18,7 @@
 #pragma warning ( disable : 4786 )
 #endif
 // Insight classes
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 #include "vnl/vnl_math.h"
 
 #include "itkHistogramToTextureFeaturesFilter.h"
@@ -34,7 +34,7 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   // symmetric and normalized.
   //------------------------------------------------------
   typedef float MeasurementType;
-  typedef itk::Statistics::Histogram< MeasurementType > HistogramType;
+  typedef itk::Statistics::MeasurementHistogram< MeasurementType > HistogramType;
   HistogramType::Pointer histogram = HistogramType::New();
 
   const unsigned int measurementVectorSize = 2;
@@ -325,6 +325,7 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
     passed = false;
     }
     
+  filter->Print(std::cout);
   
   if( !passed )
     {
