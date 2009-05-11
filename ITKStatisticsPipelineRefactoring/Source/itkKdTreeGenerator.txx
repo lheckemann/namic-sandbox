@@ -47,9 +47,10 @@ KdTreeGenerator< TSample >
     os << "not set." << std::endl;
     }
 
-  os << indent << "Bucket Size: " << m_BucketSize << std::endl;
-  os << indent << "MeasurementVectorSize: " <<
-              m_MeasurementVectorSize << std::endl;
+  os << indent << "Bucket Size: " 
+     << this->GetBucketSize() << std::endl;
+  os << indent << "MeasurementVectorSize: "
+     << this->GetMeasurementVectorSize() << std::endl;
 }
 
 template< class TSample >

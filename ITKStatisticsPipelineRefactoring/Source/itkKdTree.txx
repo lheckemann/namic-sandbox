@@ -110,27 +110,28 @@ KdTree< TSample >
   Superclass::PrintSelf(os,indent);
   
   os << indent << "Input Sample: ";
-  if ( m_Sample != 0 )
+  if ( this->GetSample() != 0 )
     {
-    os << m_Sample << std::endl;
+    os << this->GetSample() << std::endl;
     }
   else
     {
     os << "not set." << std::endl;
     }
 
-  os << indent << "Bucket Size: " << m_BucketSize << std::endl;
+  os << indent << "Bucket Size: "
+     << this->GetBucketSize() << std::endl;
   os << indent << "Root Node: ";
-  if ( m_Root != 0 )
+  if ( this->GetRoot() != 0 )
     {
-    os << m_Root << std::endl;
+    os << this->GetRoot() << std::endl;
     }
   else
     {
     os << "not set." << std::endl;
     }
-  os << indent << "MeasurementVectorSize: " << 
-            m_MeasurementVectorSize << std::endl;
+  os << indent << "MeasurementVectorSize: "
+     << this->GetMeasurementVectorSize() << std::endl;
 }
 
 template< class TSample >

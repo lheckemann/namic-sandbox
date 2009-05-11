@@ -88,8 +88,10 @@ DistanceToCentroidMembershipFunction< TVector >
 {
   Superclass::PrintSelf(os,indent);
 
-  os << "Distance Metric: " << this->m_DistanceMetric.GetPointer() << std::endl;
-
+  os << indent << "Distance Metric: "
+     << this->m_DistanceMetric.GetPointer() << std::endl;
+  os << indent << "Centroid: "
+     << this->GetCentroid() << std::endl;
 }
 
 } // end namespace Statistics

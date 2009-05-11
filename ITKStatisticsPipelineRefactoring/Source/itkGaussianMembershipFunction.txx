@@ -37,12 +37,14 @@ GaussianMembershipFunction< TMeasurementVector >
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "Mean: " << m_Mean << std::endl;
-  os << indent << "Covariance: " << std::endl;
-  os << m_Covariance.GetVnlMatrix();
-  os << indent << "InverseCovariance: " << std::endl;
-  os << indent << m_InverseCovariance.GetVnlMatrix();
-  os << indent << "Prefactor: " << m_PreFactor << std::endl;
+  os << indent << "Mean: "
+     << this->GetMean() << std::endl;
+  os << indent << "Covariance: "
+     << this->GetCovariance() << std::endl;
+  os << indent << "InverseCovariance: "
+     << this->GetInverseCovariance() << std::endl;
+  os << indent << "PreFactor: "
+     << this->GetPreFactor() << std::endl;
 
 }
 

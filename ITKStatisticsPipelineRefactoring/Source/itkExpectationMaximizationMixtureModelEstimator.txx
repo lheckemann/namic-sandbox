@@ -145,7 +145,7 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 }
 
 template< class TSample >
-typename ExpectationMaximizationMixtureModelEstimator< TSample >::ComponentMembershipFunctionType*
+const typename ExpectationMaximizationMixtureModelEstimator< TSample >::ComponentMembershipFunctionType*
 ExpectationMaximizationMixtureModelEstimator< TSample >
 ::GetComponentMembershipFunction(int componentIndex) const
 {

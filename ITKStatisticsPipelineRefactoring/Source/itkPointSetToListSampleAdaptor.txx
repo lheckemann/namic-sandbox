@@ -40,6 +40,7 @@ PointSetToListSampleAdaptor< TPointSet >
   if ( m_PointSet.IsNotNull() )
     {
     os << m_PointSet << std::endl;
+    os << indent << "TotalFrequency: " << this->GetTotalFrequency() << std::endl;
     }
   else
     {

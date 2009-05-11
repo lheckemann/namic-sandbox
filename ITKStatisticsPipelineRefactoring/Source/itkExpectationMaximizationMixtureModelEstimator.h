@@ -153,7 +153,7 @@ public:
 
   /** Gets the membership function specified by componentIndex
   argument. */
-  ComponentMembershipFunctionType* GetComponentMembershipFunction(int componentIndex) const;
+  const ComponentMembershipFunctionType* GetComponentMembershipFunction(int componentIndex) const;
 
   /** Output Membership function vector containing the membership functions with
     * the final optimized paramters */

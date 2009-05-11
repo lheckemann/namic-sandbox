@@ -18,7 +18,7 @@
 #define __itkScalarImageToCooccurrenceMatrixFilter_h
 
 #include "itkImage.h"
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 #include "itkDenseFrequencyContainer2.h"
 #include "itkVectorContainer.h"
 #include "itkObject.h"
@@ -119,7 +119,7 @@ public:
 
   typedef typename NumericTraits<PixelType>::RealType     MeasurementType;
 
-  typedef Histogram< MeasurementType, THistogramFrequencyContainer >
+  typedef MeasurementHistogram< MeasurementType, THistogramFrequencyContainer >
                                                           HistogramType;
   typedef typename HistogramType::Pointer                 HistogramPointer;
   typedef typename HistogramType::ConstPointer            HistogramConstPointer;

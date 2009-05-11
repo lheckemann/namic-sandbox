@@ -17,7 +17,7 @@
 #ifndef __itkHistogramToTextureFeaturesFilter_h
 #define __itkHistogramToTextureFeaturesFilter_h
 
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 #include "itkMacro.h"
 #include "itkProcessObject.h"
 #include "itkSimpleDataObjectDecorator.h"

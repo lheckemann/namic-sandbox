@@ -21,7 +21,7 @@
 #include "itkImageToListSampleAdaptor.h"
 #include "itkSampleToHistogramFilter.h"
 #include "itkDenseFrequencyContainer2.h"
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 #include "itkObject.h"
 
 
@@ -64,7 +64,7 @@ public:
   typedef typename NumericTraits< ValueType >::RealType     ValueRealType;
   typedef DenseFrequencyContainer2                          FrequencyContainerType;
 
-  typedef Histogram< ValueRealType >                        HistogramType;
+  typedef MeasurementHistogram< ValueRealType >             HistogramType;
   typedef typename HistogramType::Pointer                   HistogramPointer;
   typedef typename HistogramType::ConstPointer              HistogramConstPointer;
   typedef typename HistogramType::SizeType                  HistogramSizeType;

@@ -45,6 +45,13 @@ CovarianceSampleFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
+
+  os << indent << "MeasurementVectorSize: "
+     << this->GetMeasurementVectorSize() << std::endl;
+  os << indent << "CovarianceMatrix: "
+     << this->GetCovarianceMatrix() << std::endl;
+  os << indent << "Mean: "
+     << this->GetMean() << std::endl;
 }
 
 template< class TSample >

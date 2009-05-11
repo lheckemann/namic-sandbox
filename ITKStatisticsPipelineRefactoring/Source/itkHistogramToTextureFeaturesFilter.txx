@@ -442,6 +442,22 @@ HistogramToTextureFeaturesFilter< THistogram >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
+  os << indent << "Energy: "
+     << this->GetEnergy() << std::endl;
+  os << indent << "Entropy: "
+     << this->GetEntropy() << std::endl;
+  os << indent << "Correlation: "
+     << this->GetCorrelation() << std::endl;
+  os << indent << "InverseDifferenceMoment: "
+     << this->GetInverseDifferenceMoment() << std::endl;
+  os << indent << "Inertia: "
+     << this->GetInertia() << std::endl;
+  os << indent << "ClusterShade: "
+     << this->GetClusterShade() << std::endl;
+  os << indent << "ClusterProminence: "
+     << this->GetClusterProminence() << std::endl;
+  os << indent << "HaralickCorrelation: "
+     << this->GetHaralickCorrelation() << std::endl;
 }
 
 } // end of namespace Statistics 
