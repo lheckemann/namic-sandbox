@@ -20,7 +20,7 @@
 
 #include "itkCovarianceSampleFilter.h"
 #include "itkFixedArray.h"
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 #include "itkMahalanobisDistanceMetric.h"
 
 namespace itk {
@@ -65,7 +65,7 @@ int itkCovarianceSampleFilterTest3(int, char* [] )
   typedef itk::FixedArray< 
     MeasurementType, MeasurementVectorSize >   MeasurementVectorType;
 
-  typedef itk::Statistics::Histogram< MeasurementType, 
+  typedef itk::Statistics::MeasurementHistogram< MeasurementType, 
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef HistogramType    SampleType; 

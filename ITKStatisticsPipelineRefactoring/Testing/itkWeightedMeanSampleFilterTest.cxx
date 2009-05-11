@@ -255,6 +255,7 @@ int itkWeightedMeanSampleFilterTest(int, char* [] )
     return EXIT_FAILURE;
     }
  
+  filter->Print(std::cout);
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
