@@ -17,7 +17,7 @@
 #ifndef __itkVariableDimensionHistogram_h
 #define __itkVariableDimensionHistogram_h
 
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 
 namespace itk {
 namespace Statistics {
@@ -59,13 +59,14 @@ namespace Statistics {
 template < class TMeasurement = float,
            class TFrequencyContainer = DenseFrequencyContainer2 >
 class ITK_EXPORT VariableDimensionHistogram 
-  : public Histogram < TMeasurement, TFrequencyContainer >
+  : public MeasurementHistogram < TMeasurement, TFrequencyContainer >
 {
 public:
 
   /** Standard typedefs */
   typedef VariableDimensionHistogram                     Self;
-  typedef Histogram< TMeasurement , TFrequencyContainer> Superclass;
+  typedef MeasurementHistogram< TMeasurement , TFrequencyContainer>
+                                                         Superclass;
   typedef SmartPointer<Self>                             Pointer;
   typedef SmartPointer<const Self>                       ConstPointer;
 
