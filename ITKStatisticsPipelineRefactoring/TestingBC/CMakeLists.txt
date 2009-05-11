@@ -14,11 +14,12 @@ ADD_TEST(itkCovarianceCalculatorBCTest ${STATISTICS_TESTS} itkCovarianceCalculat
 ADD_TEST(itkWeightedCovarianceCalculatorBCTest ${STATISTICS_TESTS} itkWeightedCovarianceCalculatorTest)
 ADD_TEST(itkWeightedMeanCalculatorBCTest ${STATISTICS_TESTS} itkWeightedMeanCalculatorTest)
 ADD_TEST(itkDenseFrequencyContainerBCTest ${STATISTICS_TESTS} itkDenseFrequencyContainerTest)
-ADD_TEST(itkKdTreeBasedKmeansEstimatorTest ${STATISTICS_TESTS} 
+ADD_TEST(itkKdTreeBasedKmeansEstimatorBCTest ${STATISTICS_TESTS} 
          itkKdTreeBasedKmeansEstimatorTest 
          ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat 
          1 28.54746 0.07)
-ADD_TEST(itkVariableDimensionHistogramTest ${STATISTICS_TESTS} itkVariableDimensionHistogramTest)
+ADD_TEST(itkVariableDimensionHistogramBCTest ${STATISTICS_TESTS} itkVariableDimensionHistogramTest)
+ADD_TEST(itkListSampleToHistogramFilterBCTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 
 SET(Statistics_SRCS
   itkMeanCalculatorTest.cxx
@@ -31,6 +32,7 @@ SET(Statistics_SRCS
   itkDenseFrequencyContainerTest.cxx
   itkHistogramTest.cxx
   itkVariableDimensionHistogramTest.cxx
+  itkListSampleToHistogramFilterTest.cxx
 )
 
 ADD_EXECUTABLE(itkStatisticsBCTests itkStatisticsBCTests.cxx ${Statistics_SRCS})
