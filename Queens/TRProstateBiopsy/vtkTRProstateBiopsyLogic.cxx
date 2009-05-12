@@ -51,9 +51,10 @@
 #include <vtksys/stl/string>
 #include <vtksys/SystemTools.hxx>
 
+/*
 vtkCxxRevisionMacro(vtkTRProstateBiopsyLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkTRProstateBiopsyLogic);
-
+*/
 
 //---------------------------------------------------------------------------
 const int vtkTRProstateBiopsyLogic::PhaseTransitionMatrix[vtkTRProstateBiopsyLogic::NumPhases][vtkTRProstateBiopsyLogic::NumPhases] =
@@ -74,6 +75,18 @@ const char *vtkTRProstateBiopsyLogic::WorkPhaseKey[vtkTRProstateBiopsyLogic::Num
   /* Tg */ TRPB_TARGETING   ,
   /* Ve */ TRPB_VERIFICATION,
   };
+//----------------------------------------------------------------------------
+vtkTRProstateBiopsyLogic* vtkTRProstateBiopsyLogic::New()
+{
+  // First try to create the object from the vtkObjectFactory
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkTRProstateBiopsyLogic");
+  if(ret)
+    {
+      return (vtkTRProstateBiopsyLogic*)ret;
+    }
+  // If the factory was unable to create the object, then create it here.
+  return new vtkTRProstateBiopsyLogic;
+}
 
 //---------------------------------------------------------------------------
 vtkTRProstateBiopsyLogic::vtkTRProstateBiopsyLogic()
@@ -872,9 +885,9 @@ void vtkTRProstateBiopsyLogic::SegmentAxis(int nAxis, double thresh[4], double f
                 coord[1] = marker_1_RAS[1];
                 coord[2] = marker_1_RAS[2];
                 this->CoordinatesVector.push_back(coord); // def1
-                coord[0] = marker_1_RAS[0];
-                coord[1] = marker_1_RAS[1];
-                coord[2] = marker_1_RAS[2];
+                coord[0] = marker_2_RAS[0];
+                coord[1] = marker_2_RAS[1];
+                coord[2] = marker_2_RAS[2];
                 this->CoordinatesVector.push_back(coord); // def2
                 RemoveOutliners(P1,v1, marker_1_RAS, marker_2_RAS);
     }
