@@ -25,6 +25,8 @@
 #include "vtkSlicerFiducialsLogic.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 
+#include "vtkKWTkUtilities.h"
+#include "vtkKWApplication.h"
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 #include "vtkTRProstateBiopsyStep.h"
@@ -89,9 +91,9 @@
 
 #include "itkMetaDataObject.h"
 //---------------------------------------------------------------------------
-vtkStandardNewMacro(vtkTRProstateBiopsyGUI);
+/*vtkStandardNewMacro(vtkTRProstateBiopsyGUI);
 vtkCxxRevisionMacro(vtkTRProstateBiopsyGUI, "$Revision: 1.0 $");
-
+*/
 //---------------------------------------------------------------------------
 
 
@@ -128,6 +130,18 @@ const char *vtkTRProstateBiopsyGUI::WorkPhaseStr[vtkTRProstateBiopsyLogic::NumPh
   /* Tg */ "Targeting",
   /* Ve */ "Verification",
   };
+//------------------------------------------------------------------------------
+vtkTRProstateBiopsyGUI* vtkTRProstateBiopsyGUI::New()
+{
+  // First try to create the object from the vtkObjectFactory
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkTRProstateBiopsyGUI");
+  if(ret)
+    {
+      return (vtkTRProstateBiopsyGUI*)ret;
+    }
+  // If the factory was unable to create the object, then create it here.
+  return new vtkTRProstateBiopsyGUI;
+}
 
 //---------------------------------------------------------------------------
 vtkTRProstateBiopsyGUI::vtkTRProstateBiopsyGUI()
@@ -147,6 +161,9 @@ vtkTRProstateBiopsyGUI::vtkTRProstateBiopsyGUI()
   //logic and mrml nodes
   this->Logic = NULL;
   this->MRMLNode = NULL;
+
+  this->OpticalTimerEventId = NULL;
+  this->TimerProcessing = false;
   
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData(reinterpret_cast<void *>(this));
@@ -228,6 +245,11 @@ vtkTRProstateBiopsyGUI::~vtkTRProstateBiopsyGUI()
 
   this->SetModuleLogic(NULL);  
   vtkSetMRMLNodeMacro(this->MRMLNode, NULL);
+
+  if (this->OpticalTimerEventId)
+    {
+    vtkKWTkUtilities::CancelTimerHandler(vtkKWApplication::GetMainInterp(), this->OpticalTimerEventId); 
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -352,11 +374,11 @@ void vtkTRProstateBiopsyGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
 
 //---------------------------------------------------------------------------
-void vtkTRProstateBiopsyGUI::Init()
+/*void vtkTRProstateBiopsyGUI::Init()
 {
 }
 
-
+*/
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyGUI::DataCallback(vtkObject *caller, 
         unsigned long eid, void *clientData, void *callData)
@@ -890,7 +912,13 @@ void vtkTRProstateBiopsyGUI::Enter()
   if (this->Logic->IsOpticalEncoderInitialized())
       {
       // start the timer event for connecting to and reading optical encoders
-      this->Script("after idle \"%s OpticalEncoderTimerEvent \"", this->GetTclName());
+      const char *tmpId = vtkKWTkUtilities::CreateTimerHandler(this->GetApplication()->GetMainInterp(),
+                                        500,
+                                        this,
+                                        "OpticalEncoderTimerEvent");
+      this->OpticalTimerEventId = new char[strlen(tmpId)+1];
+      strcpy(this->OpticalTimerEventId, tmpId);
+      //this->Script("after idle \"%s OpticalEncoderTimerEvent\"", this->GetTclName());
     
       // Note: the above call will call the OpticalEncoderTimerEvent function only once,
       // to maintain timer event, after 'delay' has to be called inside the function to make it recursive call
@@ -1039,8 +1067,13 @@ void vtkTRProstateBiopsyGUI::OpticalEncoderTimerEvent()
     }
 
   this->TimerProcessing = false;
-  // 500 msec timer call
-  this->Script ( "after 500 \"%s OpticalEncoderTimerEvent \"",  this->GetTclName() );
+  // start the timer event for connecting to and reading optical encoders
+      const char *tmpId = vtkKWTkUtilities::CreateTimerHandler(this->GetApplication()->GetMainInterp(),
+                                        500,
+                                        this,
+                                        "OpticalEncoderTimerEvent");
+      this->OpticalTimerEventId = new char[strlen(tmpId)+1];
+      strcpy(this->OpticalTimerEventId, tmpId);
 }
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyGUI::SaveExperimentButtonCallback(const char *fileName)

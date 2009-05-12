@@ -6,16 +6,19 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $RCSfile: $
-  Date:      $Date: $
-  Version:   $Revision: $
+  Module:    $RCSfile: vtkTRProstateBiopsyGUI.h $
+  Date:      $Date:  2008/11/06 17:56:51 $
+  Version:   $Revision: 1.1 $
 
 =========================================================================auto=*/
 
 #ifndef __vtkTRProstateBiopsyGUI_h
 #define __vtkTRProstateBiopsyGUI_h
 
+#include "vtkSlicerBaseGUIWin32Header.h"
 #include "vtkSlicerModuleGUI.h"
+
+#include "vtkMRMLScene.h"
 #include "vtkTRProstateBiopsy.h"
 #include "vtkTRProstateBiopsyLogic.h"
 
@@ -80,7 +83,7 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   // Description:    
   // Usual vtk class functions
   static vtkTRProstateBiopsyGUI* New();
-  vtkTypeRevisionMacro(vtkTRProstateBiopsyGUI, vtkSlicerModuleGUI);
+  vtkTypeMacro(vtkTRProstateBiopsyGUI, vtkSlicerModuleGUI);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:    
@@ -123,20 +126,36 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   // either the Logic, MRML or GUI.    
   virtual void ProcessLogicEvents(vtkObject *caller, unsigned long event,
                                   void *callData);
+
+  // Description:
+  // Class's mediator methods for processing events invoked by
+  // either the Logic, MRML or GUI.
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event,
                                 void *callData);
+
+  // Description:
+  // Class's mediator methods for processing events invoked by
+  // either the Logic, MRML or GUI.
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event,
                                  void *callData);
+
+  // Description:
+  // Class's mediator methods for processing events invoked by
+  // either the Logic, MRML or GUI.
   virtual void HandleMouseEvent(vtkSlicerInteractorStyle *style);
   
   // Description:
   // Describe behavior at module startup and exit.
   virtual void Enter();
+
+  // Description:
+  // Describe behavior at module startup and exit.
   virtual void Exit();
+
   
   // Description:
-  // Method called at module initialization.
-  void Init();
+  // Timer event to process data from optical encoders if connected  
+  virtual void OpticalEncoderTimerEvent();
 
   //BTX
   static void DataCallback(vtkObject *caller, unsigned long eid,
@@ -196,11 +215,12 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
 
   void UpdateAll();
 
+
  protected:
  
   // optical encoder timer related
   bool TimerProcessing;
-  void OpticalEncoderTimerEvent();
+  
 
   void SaveExperiment(ostream& of);
   void LoadExperiment(istream &file);
@@ -209,6 +229,7 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
 
   char *CreateFileName();
 
+  char *OpticalTimerEventId;
  private:
 
   vtkTRProstateBiopsyGUI(const vtkTRProstateBiopsyGUI&); // Not implemented.

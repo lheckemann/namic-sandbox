@@ -6,9 +6,9 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $RCSfile: vtkGradientAnisotropicDiffusionFilter.h,v $
-  Date:      $Date: 2006/01/06 17:56:51 $
-  Version:   $Revision: 1.6 $
+  Module:    $RCSfile: vtkTRProstateBiopsyModule.h,v $
+  Date:      $Date: 2008/11/06 17:56:51 $
+  Version:   $Revision: 1.1 $
 
 =========================================================================auto=*/
 
