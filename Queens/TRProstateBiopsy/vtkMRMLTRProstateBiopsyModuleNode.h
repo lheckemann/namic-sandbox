@@ -108,10 +108,11 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   //vtkGetStringMacro(CalibrationSliceNodeXML);
   //vtkSetStringMacro(CalibrationSliceNodeXML);
 
+  //BTX
   // Description:
   // Set/Get the number of needle types and TargetingFiducialsLists, because there could be more than one lists, depending on needle type
-  vtkGetMacro(NumberOfNeedles, unsigned int);
-  vtkSetMacro(NumberOfNeedles, unsigned int);
+  int GetNumberOfNeedles(){ return this->NeedlesVector.size();};
+  //ETX
 
   //BTX
   // Description:
@@ -214,14 +215,14 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   // Get Targeting Fiducials Lists names(used in the wizard steps)
   std::string GetTargetingFiducialsListName(unsigned int index)
     {
-    if (index < this->NumberOfNeedles)
+    if (index < this->NeedlesVector.size())
       return this->TargetingFiducialsListsNames[index];
     else
       return NULL;
     }; 
   void SetTargetingFiducialsListName(std::string listName, unsigned int index)
     {
-    if (index < this->NumberOfNeedles)
+    if (index < this->NeedlesVector.size())
       this->TargetingFiducialsListsNames[index] = listName; 
     }; 
   //ETX
@@ -230,7 +231,7 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   // Get MRML fiducial lists node for targeting fiducials lists
   vtkMRMLFiducialListNode *GetTargetingFiducialsList(unsigned int index)
     {
-    if (index < this->NumberOfNeedles)
+    if (index < this->NeedlesVector.size())
       return this->TargetingFiducialsListsVector[index];
     else
       return NULL;
@@ -241,7 +242,7 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   vtkTRProstateBiopsyTargetDescriptor *GetTargetDescriptorAtIndex(unsigned int index);
   int GetTotalNumberOfTargets() { return this->TargetDescriptorsVector.size();};
 
-  void SetupNeedlesList();
+  void SetupNeedlesList(int numberOfNeedles);
   void SetupTargetingFiducialsList();
   
 
@@ -300,7 +301,7 @@ protected:
     }NeedleDescriptorStruct;
 
   std::vector<NeedleDescriptorStruct *> NeedlesVector;
-  unsigned int NumberOfNeedles; 
+  //unsigned int NumberOfNeedles; 
   //ETX
    
   // common parameters  

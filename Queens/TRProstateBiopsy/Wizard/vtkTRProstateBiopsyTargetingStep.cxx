@@ -613,7 +613,7 @@ void vtkTRProstateBiopsyTargetingStep::ProcessImageClickEvents(vtkObject *caller
 
     vtkRenderWindowInteractor *rwi;
     vtkMatrix4x4 *matrix;    
-    vtkMatrix4x4 *xyslice;
+   
     // Note: at the moment, in calibrate step, listening only to clicks done in secondary monitor
     // because looking through secondary monitor mirror only can do calibration
 
@@ -624,7 +624,7 @@ void vtkTRProstateBiopsyTargetingStep::ProcessImageClickEvents(vtkObject *caller
       vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
       rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
       matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();    
-      xyslice = sliceGUI->GetLogic()->GetSliceNode()->GetXYToSlice();
+     
       }
     else if ( (s == istyle1) )
       {
@@ -651,7 +651,7 @@ void vtkTRProstateBiopsyTargetingStep::ProcessImageClickEvents(vtkObject *caller
     matrix->MultiplyPoint(inPt, outPt); 
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
     this->RecordClick(ras);
-    xyslice->MultiplyPoint(inPt,outPt);
+   
 
     this->ProcessingCallback = false;
     }
