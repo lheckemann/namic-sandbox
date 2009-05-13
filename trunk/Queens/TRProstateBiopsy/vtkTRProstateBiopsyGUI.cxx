@@ -1594,8 +1594,10 @@ char *vtkTRProstateBiopsyGUI::CreateFileName()
     // convert it into tm struct
     std::tm ttm = *std::localtime(&tt);
     // extract the values for day, month, year
-    char dirName[9] = "";
-    sprintf(dirName, "%4d%2d%2d", ttm.tm_year, ttm.tm_mon+1, ttm.tm_mday);
+    const unsigned int BUF_SIZE=20;
+    static char dirName[BUF_SIZE+1];
+    _snprintf(dirName, BUF_SIZE, "%4d%2d%2d", ttm.tm_year, ttm.tm_mon+1, ttm.tm_mday);
+    dirName[BUF_SIZE]=0; // make sure that string is null-terminated
     if (access(dirName,0) ==0)
         {
         struct stat status;
