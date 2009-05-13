@@ -87,9 +87,8 @@ vtkMRMLTRProstateBiopsyModuleNode::vtkMRMLTRProstateBiopsyModuleNode()
 
   this->HideFromEditors = true;
   
-  // initialize at least one needle
-  this->NumberOfNeedles = 1;
-  this->NeedlesVector.resize(this->NumberOfNeedles); 
+  // initialize at least one needle  
+  this->NeedlesVector.resize(1); 
   NeedleDescriptorStruct *needle = new NeedleDescriptorStruct;
   needle->Description = "Biopsy needle";
   needle->NeedleDepth = -13;
@@ -101,7 +100,7 @@ vtkMRMLTRProstateBiopsyModuleNode::vtkMRMLTRProstateBiopsyModuleNode()
   this->TargetingFiducialsListsNames.clear();
   this->TargetingFiducialsListsVector.clear();
   this->TargetDescriptorsVector.clear();
-  this->NeedlesVector.clear();
+  
   
 
   this->InitializeFiducialListNode();
@@ -132,7 +131,7 @@ vtkMRMLTRProstateBiopsyModuleNode::~vtkMRMLTRProstateBiopsyModuleNode()
 
   this->HideFromEditors = true;
   
-  this->NumberOfNeedles = 0;
+  
   this->TargetingFiducialsListsNames.clear();
   this->TargetingFiducialsListsVector.clear();
   this->TargetDescriptorsVector.clear();
@@ -249,7 +248,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::InitializeFiducialListNode()
     this->CalibrationFiducialsList->SetSymbolScale(5);
     this->CalibrationFiducialsList->SetTextScale(5);
 
-    this->NumberOfNeedles = 1;
+    
 
     
 
@@ -273,7 +272,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetVerificationVolumeNode(vtkMRMLScalarV
 //-------------------------------------------------------------------------------
 void vtkMRMLTRProstateBiopsyModuleNode::SetTargetingFiducialsList(vtkMRMLFiducialListNode *targetList, unsigned int index)
 {
-  if (index < this->NumberOfNeedles)
+  if (index < this->NeedlesVector.size())
     {   
     vtkSetMRMLNodeMacro(this->TargetingFiducialsListsVector[index], targetList);
     }
@@ -305,7 +304,7 @@ vtkTRProstateBiopsyTargetDescriptor *vtkMRMLTRProstateBiopsyModuleNode::GetTarge
 //-------------------------------------------------------------------------------
 bool vtkMRMLTRProstateBiopsyModuleNode::AddTargetToFiducialList(double targetRAS[3], unsigned int fiducialListIndex, unsigned int targetNr, int & fiducialIndex)
 {
-  if (fiducialListIndex < this->NumberOfNeedles)
+  if (fiducialListIndex < this->NeedlesVector.size())
     {
     std::string targetTypeName = this->TargetingFiducialsListsNames[fiducialListIndex];
     this->TargetingFiducialsListsVector[fiducialListIndex]->SetDisableModifiedEvent(1);
@@ -329,7 +328,7 @@ bool vtkMRMLTRProstateBiopsyModuleNode::AddTargetToFiducialList(double targetRAS
 //-------------------------------------------------------------------------------
 bool vtkMRMLTRProstateBiopsyModuleNode::GetTargetFromFiducialList(int fiducialListIndex, int fiducialIndex, double &r, double &a, double &s)
 {
-    if (fiducialListIndex < this->NumberOfNeedles && fiducialListIndex != -1)
+    if (fiducialListIndex < this->NeedlesVector.size() && fiducialListIndex != -1)
       {
       if (fiducialIndex < this->TargetingFiducialsListsVector[fiducialListIndex]->GetNumberOfFiducials() && fiducialIndex != -1)
         {
@@ -348,7 +347,7 @@ bool vtkMRMLTRProstateBiopsyModuleNode::GetTargetFromFiducialList(int fiducialLi
 //-------------------------------------------------------------------------------
 void vtkMRMLTRProstateBiopsyModuleNode::SetFiducialColor(int fiducialListIndex, int fiducialIndex, bool selected)
 {
-  if (fiducialListIndex < this->NumberOfNeedles && fiducialListIndex != -1)
+  if (fiducialListIndex < this->NeedlesVector.size() && fiducialListIndex != -1)
       {
       if (fiducialIndex < this->TargetingFiducialsListsVector[fiducialListIndex]->GetNumberOfFiducials() && fiducialIndex != -1)
         {
@@ -357,10 +356,11 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetFiducialColor(int fiducialListIndex, 
       }
 }
 //-------------------------------------------------------------------------------
-void vtkMRMLTRProstateBiopsyModuleNode::SetupNeedlesList()
+void vtkMRMLTRProstateBiopsyModuleNode::SetupNeedlesList(int numOfNeedles)
 {
-  this->NeedlesVector.resize(this->NumberOfNeedles); 
-  for (unsigned int i = 0; i < this->NumberOfNeedles; i++)
+  this->NeedlesVector.clear();
+  this->NeedlesVector.resize(numOfNeedles); 
+  for (unsigned int i = 0; i < this->NeedlesVector.size(); i++)
     {
     NeedleDescriptorStruct *needle = new NeedleDescriptorStruct;
     this->NeedlesVector[i] = needle;
@@ -371,13 +371,13 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetupNeedlesList()
 void vtkMRMLTRProstateBiopsyModuleNode::SetupTargetingFiducialsList()
 { 
    
-  this->TargetingFiducialsListsVector.resize(this->NumberOfNeedles);  
-  this->TargetingFiducialsListsNames.resize(this->NumberOfNeedles);  
+  this->TargetingFiducialsListsVector.resize(this->NeedlesVector.size());  
+  this->TargetingFiducialsListsNames.resize(this->NeedlesVector.size());  
 
   this->TargetingFiducialsListsVector.clear();
   this->TargetingFiducialsListsNames.clear();
 
-  for (unsigned int i = 0; i < this->NumberOfNeedles; i++)
+  for (unsigned int i = 0; i < this->NeedlesVector.size(); i++)
   {
     std::string needleType = this->NeedlesVector[i]->NeedleType;
     this->TargetingFiducialsListsNames.push_back(this->NeedlesVector[i]->NeedleType);   
@@ -438,7 +438,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::GetCalibrationMarker(unsigned int marker
 //------------------------------------------------------------------------------
 void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleType(unsigned int needleIndex, std::string type)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     this->NeedlesVector[needleIndex]->NeedleType = type;
     }
@@ -446,7 +446,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleType(unsigned int needleIndex, 
 //----------------------------------------------------------------------------
 std::string vtkMRMLTRProstateBiopsyModuleNode::GetNeedleType(unsigned int needleIndex)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     return this->NeedlesVector[needleIndex]->NeedleType;
     }
@@ -458,7 +458,7 @@ std::string vtkMRMLTRProstateBiopsyModuleNode::GetNeedleType(unsigned int needle
 //-----------------------------------------------------------------------------  
 void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleDescription(unsigned int needleIndex, std::string desc)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     this->NeedlesVector[needleIndex]->Description = desc;
     }
@@ -466,7 +466,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleDescription(unsigned int needle
 //-----------------------------------------------------------------------------
 std::string vtkMRMLTRProstateBiopsyModuleNode::GetNeedleDescription(unsigned int needleIndex)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     return this->NeedlesVector[needleIndex]->Description;
     }
@@ -478,7 +478,7 @@ std::string vtkMRMLTRProstateBiopsyModuleNode::GetNeedleDescription(unsigned int
 //------------------------------------------------------------------------------
 void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleDepth(unsigned int needleIndex, float depth)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     this->NeedlesVector[needleIndex]->NeedleDepth = depth;
     }
@@ -486,7 +486,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleDepth(unsigned int needleIndex,
 //------------------------------------------------------------------------------
 float vtkMRMLTRProstateBiopsyModuleNode::GetNeedleDepth(unsigned int needleIndex)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     return this->NeedlesVector[needleIndex]->NeedleDepth;
     }
@@ -498,7 +498,7 @@ float vtkMRMLTRProstateBiopsyModuleNode::GetNeedleDepth(unsigned int needleIndex
 //------------------------------------------------------------------------------
 void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleOvershoot(unsigned int needleIndex, float overshoot)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     this->NeedlesVector[needleIndex]->NeedleOvershoot = overshoot;
     }
@@ -506,7 +506,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleOvershoot(unsigned int needleIn
 //------------------------------------------------------------------------------
 float vtkMRMLTRProstateBiopsyModuleNode::GetNeedleOvershoot(unsigned int needleIndex)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     return this->NeedlesVector[needleIndex]->NeedleOvershoot;
     }
@@ -518,7 +518,7 @@ float vtkMRMLTRProstateBiopsyModuleNode::GetNeedleOvershoot(unsigned int needleI
 //------------------------------------------------------------------------------
 void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleUID(unsigned int needleIndex, unsigned int uid)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     this->NeedlesVector[needleIndex]->UniqueIdentifier = uid;
     }  
@@ -526,7 +526,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetNeedleUID(unsigned int needleIndex, u
 //------------------------------------------------------------------------------
 unsigned int vtkMRMLTRProstateBiopsyModuleNode::GetNeedleUID(unsigned int needleIndex)
 {
-  if (needleIndex < this->NumberOfNeedles)
+  if (needleIndex < this->NeedlesVector.size())
     {
     return this->NeedlesVector[needleIndex]->UniqueIdentifier;
     }

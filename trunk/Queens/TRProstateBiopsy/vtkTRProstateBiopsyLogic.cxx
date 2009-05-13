@@ -556,9 +556,8 @@ void vtkTRProstateBiopsyLogic::ReadConfigFile()
               std::stringstream ss;
               ss << attValue;
               int val;
-              ss >> val;
-              this->GetTRProstateBiopsyModuleNode()->SetNumberOfNeedles(val);
-              this->GetTRProstateBiopsyModuleNode()->SetupNeedlesList();
+              ss >> val;              
+              this->GetTRProstateBiopsyModuleNode()->SetupNeedlesList(val);
 
               if (val < 0)
                   break;
