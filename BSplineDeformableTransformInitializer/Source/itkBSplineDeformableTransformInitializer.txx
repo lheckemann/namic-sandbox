@@ -99,7 +99,7 @@ BSplineDeformableTransformInitializer<TTransform, TImage >
 
     // Shift by the number of extra grid cells required by
     // the BSpline order.
-    const double gridSupportShift =  - orderShift * gridSpacing[r];
+    const double gridSupportShift =  -1.0 * gridSpacing[r] * orderShift;
 
     // Combine both shifts. They are both aligned with the coordinate
     // system of the grid. Direction has not been considered so far.
