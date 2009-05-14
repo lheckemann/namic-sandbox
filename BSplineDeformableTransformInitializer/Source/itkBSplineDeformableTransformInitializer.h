@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -34,11 +34,11 @@ namespace itk
  * In the context of image registration, the image to be used are reference will
  * be the fixed image. The BSpline grid will use the fixed image as a base for
  * computing the grid spacing, orientation and origin, among other things.
- * 
- * 
+ *
+ *
  * \ingroup Transforms
  */
-template < class TTransform, class TImage > 
+template < class TTransform, class TImage >
 class ITK_EXPORT BSplineDeformableTransformInitializer : public Object
 {
 public:
@@ -47,7 +47,7 @@ public:
   typedef Object                                    Superclass;
   typedef SmartPointer<Self>                        Pointer;
   typedef SmartPointer<const Self>                  ConstPointer;
-    
+
   /** New macro for creation of through a Smart Pointer. */
   itkNewMacro( Self );
 
@@ -64,14 +64,14 @@ public:
 
 
   /** Dimension of parameters. */
-  itkStaticConstMacro(SpaceDimension, unsigned int, 
+  itkStaticConstMacro(SpaceDimension, unsigned int,
                       TransformType::InputSpaceDimension);
 
   /** Image Types to use in the initialization of the transform */
   typedef   TImage                             ImageType;
   typedef   typename ImageType::ConstPointer   ImagePointer;
 
-  
+
   /** Set the transform to be initialized */
   itkSetObjectMacro( Transform,   TransformType   );
 
@@ -80,7 +80,7 @@ public:
 
   /** Set the number of grid nodes that we want to place inside the image. This
    * method will override the settings of any previous call to
-   * SetNumberOfGridNodesInsideTheImage().*/
+   * SetNumberOfGridNodesInsideTheImage().  */
   itkSetMacro( GridSizeInsideTheImage,  TransformSizeType  );
 
   /** Set the number of grid nodes that we want to place inside the image. This
@@ -88,7 +88,7 @@ public:
    * you pass the number 5 as argument of this method, in a 3D space, then the
    * total number of grid nodes inside the image will be \$ 5 x 5 x 5 \$ .
    * This method will override the settings of any previous call to
-   * SetGridSizeInsideTheImage().*/
+   * SetGridSizeInsideTheImage().  */
   void SetNumberOfGridNodesInsideTheImage( unsigned int numberOfNodes )
     {
     this->m_GridSizeInsideTheImage.Fill( numberOfNodes );
