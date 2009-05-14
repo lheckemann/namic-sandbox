@@ -19,7 +19,6 @@
 #endif
 
 
-
 #include "itkImageFileReader.h" 
 #include "itkImageFileWriter.h" 
 
@@ -39,27 +38,27 @@
 class CommandProgressUpdate : public itk::Command 
 {
 public:
-  typedef  CommandProgressUpdate   Self;
+  typedef  CommandProgressUpdate    Self;
   typedef  itk::Command             Superclass;
-  typedef itk::SmartPointer<Self>  Pointer;
+  typedef itk::SmartPointer<Self>   Pointer;
   itkNewMacro( Self );
 protected:
   CommandProgressUpdate() {};
 public:
   void Execute(itk::Object *caller, const itk::EventObject & event)
     {
-      Execute( (const itk::Object *)caller, event);
+    Execute( (const itk::Object *)caller, event);
     }
 
   void Execute(const itk::Object * object, const itk::EventObject & event)
     {
-      const itk::ProcessObject * filter = 
-        dynamic_cast< const itk::ProcessObject * >( object );
-      if( ! itk::ProgressEvent().CheckEvent( &event ) )
-        {
-        return;
-        }
-      std::cout << filter->GetProgress() << std::endl;
+    const itk::ProcessObject * filter = 
+      dynamic_cast< const itk::ProcessObject * >( object );
+    if( ! itk::ProgressEvent().CheckEvent( &event ) )
+      {
+      return;
+      }
+    std::cout << filter->GetProgress() << std::endl;
     }
 };
 
@@ -79,14 +78,14 @@ int main( int argc, char * argv[] )
 
   const     unsigned int   ImageDimension = 2;
 
-  typedef   unsigned char  PixelType;
-  typedef   itk::Image< PixelType, ImageDimension >  FixedImageType;
-  typedef   itk::Image< PixelType, ImageDimension >  MovingImageType;
+  typedef   unsigned char                             PixelType;
+  typedef   itk::Image< PixelType, ImageDimension >   FixedImageType;
+  typedef   itk::Image< PixelType, ImageDimension >   MovingImageType;
 
-  typedef   itk::ImageFileReader< FixedImageType  >  FixedReaderType;
-  typedef   itk::ImageFileReader< MovingImageType >  MovingReaderType;
+  typedef   itk::ImageFileReader< FixedImageType  >   FixedReaderType;
+  typedef   itk::ImageFileReader< MovingImageType >   MovingReaderType;
 
-  typedef   itk::ImageFileWriter< MovingImageType >  MovingWriterType;
+  typedef   itk::ImageFileWriter< MovingImageType >   MovingWriterType;
 
 
   FixedReaderType::Pointer fixedReader = FixedReaderType::New();
@@ -146,9 +145,6 @@ int main( int argc, char * argv[] )
   movingWriter->SetInput( resampler->GetOutput() );
 
 
-
-
-
   const unsigned int SpaceDimension = ImageDimension;
   const unsigned int SplineOrder = 3;
   typedef double CoordinateRepType;
@@ -159,7 +155,6 @@ int main( int argc, char * argv[] )
                             SplineOrder >     TransformType;
   
   TransformType::Pointer bsplineTransform = TransformType::New();
-
 
 
   typedef itk::BSplineDeformableTransformInitializer<
@@ -204,21 +199,12 @@ int main( int argc, char * argv[] )
 
   infile.close();
 
-
-
-
-
   bsplineTransform->SetParameters( parameters );
 
+  CommandProgressUpdate::Pointer observer = CommandProgressUpdate::New();
 
-
-
-   CommandProgressUpdate::Pointer observer = CommandProgressUpdate::New();
-
-   resampler->AddObserver( itk::ProgressEvent(), observer );
+  resampler->AddObserver( itk::ProgressEvent(), observer );
   
-
-
   resampler->SetTransform( bsplineTransform );
   
   try
@@ -233,9 +219,9 @@ int main( int argc, char * argv[] )
     }
 
 
-  typedef itk::Point<  float, ImageDimension >  PointType;
-  typedef itk::Vector< float, ImageDimension >  VectorType;
-  typedef itk::Image< VectorType, ImageDimension >  DeformationFieldType;
+  typedef itk::Point<  float, ImageDimension >        PointType;
+  typedef itk::Vector< float, ImageDimension >        VectorType;
+  typedef itk::Image< VectorType, ImageDimension >    DeformationFieldType;
 
   DeformationFieldType::Pointer field = DeformationFieldType::New();
   field->SetRegions( fixedRegion );
@@ -266,7 +252,6 @@ int main( int argc, char * argv[] )
     }
 
 
-
   typedef itk::ImageFileWriter< DeformationFieldType >  FieldWriterType;
   FieldWriterType::Pointer fieldWriter = FieldWriterType::New();
 
@@ -289,4 +274,3 @@ int main( int argc, char * argv[] )
 
   return EXIT_SUCCESS;
 }
-
