@@ -58,13 +58,13 @@ BSplineDeformableTransformInitializer<TTransform, TImage >
 
   typedef typename TransformType::RegionType RegionType;
 
-  typename RegionType::SizeType   gridBorderSize;
+  typename RegionType::SizeType   numberOfGridNodesOutsideTheImageSupport;
   typename RegionType::SizeType   totalGridSize;
 
-  gridBorderSize.Fill( TransformType::SplineOrder );
+  numberOfGridNodesOutsideTheImageSupport.Fill( TransformType::SplineOrder );
 
   totalGridSize = this->m_GridSizeInsideTheImage;
-  totalGridSize += gridBorderSize;
+  totalGridSize += numberOfGridNodesOutsideTheImageSupport;
 
   RegionType gridRegion;
   gridRegion.SetSize( totalGridSize );
@@ -81,24 +81,40 @@ BSplineDeformableTransformInitializer<TTransform, TImage >
   typename ImageType::SizeType fixedImageSize = imageRegion.GetSize();
 
   SpacingType gridSpacing;
+  SpacingType gridOriginShift;
+
+  const unsigned int orderShift = TransformType::SplineOrder / 2;
 
   for( unsigned int r = 0; r < SpaceDimension; r++ )
     {
+    const unsigned int numberOfGridCells = this->m_GridSizeInsideTheImage[r] - 1;
+    const unsigned int numberOfImagePixels = fixedImageSize[r];
+
     gridSpacing[r] = imageSpacing[r] * 
-      static_cast<double>(fixedImageSize[r]  - 1)  / 
-      static_cast<double>(this->m_GridSizeInsideTheImage[r] - 1);
+      static_cast<double>(numberOfImagePixels)  / 
+      static_cast<double>(numberOfGridCells);
+
+    // Shift half image pixel to cover the image support
+    const double imageSupportShift = - imageSpacing[r] / 2.0;
+
+    // Shift by the number of extra grid cells required by
+    // the BSpline order.
+    const double gridSupportShift =  - orderShift * gridSpacing[r];
+
+    // Combine both shifts. They are both aligned with the coordinate
+    // system of the grid. Direction has not been considered so far.
+    gridOriginShift[r] = gridSupportShift + imageSupportShift;
     }
 
   typename ImageType::DirectionType gridDirection = this->m_Image->GetDirection();
-  SpacingType gridOriginOffset = gridDirection * gridSpacing;
+  SpacingType gridOriginOffset = gridDirection * gridOriginShift;
 
-  OriginType gridOrigin = imageOrigin - gridOriginOffset; 
+  OriginType gridOrigin = imageOrigin + gridOriginOffset; 
 
   this->m_Transform->SetGridRegion( gridRegion );
   this->m_Transform->SetGridOrigin( gridOrigin );
   this->m_Transform->SetGridSpacing( gridSpacing );
   this->m_Transform->SetGridDirection( gridDirection );
- 
 }
   
 
@@ -133,4 +149,4 @@ BSplineDeformableTransformInitializer<TTransform, TImage >
  
 }  // namespace itk
 
-#endif /* __itkBSplineDeformableTransformInitializer_txx */
+#endif
