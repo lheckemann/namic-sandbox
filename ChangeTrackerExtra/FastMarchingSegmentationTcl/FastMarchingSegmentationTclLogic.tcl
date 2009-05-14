@@ -138,23 +138,20 @@ proc FastMarchingSegmentationTclTestQuickModel {} {
   FastMarchingSegmentationTclAddQuickModel $sliceLogic
 }
 
-proc FastMarchingSegmentationTclInitializeFilter {this inputVolumeID inputFiducialsID} {
-  puts "Input volume id is $inputVolumeID"
+proc FastMarchingSegmentationTclInitializeFilter {this} {
 
   if { $::FastMarchingSegmentationTcl($this,fastMarchingFilter) != ""} {
-#    $::FastMarchingSegmentationTcl($this,fastMarchingFilter) Delete
+    $::FastMarchingSegmentationTcl($this,fastMarchingFilter) Delete
   }
 
   set ::FastMarchingSegmentationTcl($this,fastMarchingFilter) [vtkFastMarching New]
-  set ::FastMarchingSegmentationTcl($this,inputVolume) [[[$this GetLogic] GetMRMLScene] GetNodeByID $inputVolumeID]
-  set ::FastMarchingSegmentationTcl($this,outputVolume) [[[$this GetLogic] GetMRMLScene] GetNodeByID \
-    [[$::FastMarchingSegmentationTcl($this,volumeOutputSelect) GetSelected] GetID]]
-  set ::FastMarchingSegmentationTcl($this,inputFiducials) [[[$this GetLogic] GetMRMLScene] GetNodeByID $inputFiducialsID]
+  set ::FastMarchingSegmentationTcl($this,inputVolume) [ [[$this GetLogic] GetMRMLScene] \
+    GetNodeByID [[$::FastMarchingSegmentationTcl($this,inputSelector) \
+    GetSelected ] GetID] ]
   set inputVolume $::FastMarchingSegmentationTcl($this,inputVolume)
 
   FastMarchingSegmentationTclCreateLabelVolume $this
   set labelVolume $::FastMarchingSegmentationTcl($this,labelVolume)
-
 
   if { $inputVolume == ""} {
     puts "Something is wrong with the input volume"
@@ -175,7 +172,6 @@ proc FastMarchingSegmentationTclInitializeFilter {this inputVolumeID inputFiduci
   $cast SetInput $inputImageData
 
   $fmFilter SetOutput [$labelVolume GetImageData]
-  
 
   $::FastMarchingSegmentationTcl($this,fastMarchingFilter) SetInput [$cast GetOutput]
   
@@ -297,16 +293,21 @@ proc FastMarchingSegmentationTclCreateLabelVolume {this} {
   set scene [[$this GetLogic] GetMRMLScene]
 
   set volumesLogic [$::slicer3::VolumesGUI GetLogic]
-  set labelNode [$volumesLogic CreateLabelVolume $scene $volumeNode "FastMarchingOutput"]
+  set labelVolumeName [[$::FastMarchingSegmentationTcl($this,outputLabelText) GetWidget] GetValue]
+  set labelNode [$volumesLogic CreateLabelVolume $scene $volumeNode $labelVolumeName]
 
   # make the source node the active background, and the label node the active label
   set selectionNode [[[$this GetLogic] GetApplicationLogic]  GetSelectionNode]
   $selectionNode SetReferenceActiveVolumeID [$volumeNode GetID]
   $selectionNode SetReferenceActiveLabelVolumeID [$labelNode GetID]
-  [[$this GetLogic] GetApplicationLogic]  PropagateVolumeSelection
+  $selectionNode Modified
+#  [[$this GetLogic] GetApplicationLogic]  PropagateVolumeSelection
 
   set ::FastMarchingSegmentationTcl($this,labelVolume) $labelNode
   
+  set labelVolumeName [$labelNode GetName]
+  $::FastMarchingSegmentationTcl($this,currentOutputText) SetText "Current ouput volume: $labelVolumeName"
+
   # update the editor range to be the full range of the background image
   set range [[$volumeNode GetImageData] GetScalarRange]
   eval ::Labler::SetPaintRange $range
