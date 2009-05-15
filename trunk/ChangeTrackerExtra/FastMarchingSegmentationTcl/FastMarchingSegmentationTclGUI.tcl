@@ -14,10 +14,10 @@ proc FastMarchingSegmentationTclTearDownGUI {this} {
 
   # nodeSelector  ;# disabled for now
   set widgets {
-    runButton inputSelector inputLabelSelector outputLabelText
+    runButton inputSelector outputLabelText
     outputCreateButton currentOutputText
     fiducialsSelector segVolumeThumbWheel
-    timeScrollScale
+    timeScrollScale labelColorSpin
     initFrame outputVolumeFrame outputParametersFrame
   }
 
@@ -39,9 +39,8 @@ proc FastMarchingSegmentationTclTearDownGUI {this} {
 }
 
 proc FastMarchingSegmentationTclBuildGUI {this} {
-  load $::Slicer3_HOME/bin/libFastMarching.so
-  puts "Library loaded"
-  package require FastMarching
+  load $::Slicer3_HOME/bin/libPichonFastMarching.so
+  package require PichonFastMarching
 
   if { [info exists ::FastMarchingSegmentationTcl(singleton)] } {
     error "FastMarchingSegmentationTcl singleton already created"
@@ -70,8 +69,8 @@ proc FastMarchingSegmentationTclBuildGUI {this} {
   #
   # help frame
   #
-  set helptext "The FastMarchingSegmentationTcl performs segmentation using fast marching method with automatic estimation of region statistics. This module has been originally implemented by Eric Pichon in slicer2."
-  set abouttext "This work is supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details."
+  set helptext "This module performs segmentation using fast marching method with automatic estimation of region statistics. The core C++ classes were contributed by Eric Pichon in slicer2.\n\nIn order to benefit from this module, please use the following steps:\n(1) specify input scalar volume to be segmented\n(2) put fiducial seeds within the region you want to segment\n(3) specify the expected volume of the structure to be segmented. Note, overestimation of this volume is OK, because you will be able to adjust the actual volume once the segmentation is complete\n(4) specify the color for the segmentation, and create the output label volume\n(5) push \"Run\" button to segment\n(6) use volume control slider to adjust segmentation result."
+  set abouttext "This module was developed by Andriy Fedorov based on the original implementation of Eric Pichon in Slicer2.\nThis work was funded by Brain Science Foundation, and supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details."
   $this BuildHelpAndAboutFrame $pageWidget $helptext $abouttext
 
   #
@@ -118,7 +117,7 @@ proc FastMarchingSegmentationTclBuildGUI {this} {
   $select UpdateMenu
   $select SetLabelText "Input volume:"
   $select SetBalloonHelpString "The Source Volume to operate on"
-  pack [$select GetWidgetName] -side top -anchor e -fill x -padx 2 -pady 2 
+  pack [$select GetWidgetName] -side top -anchor e -padx 2 -pady 2 
 
   set ::FastMarchingSegmentationTcl($this,fiducialsSelector) [vtkSlicerNodeSelectorWidget New]
   set fiducials $::FastMarchingSegmentationTcl($this,fiducialsSelector)
@@ -128,9 +127,9 @@ proc FastMarchingSegmentationTclBuildGUI {this} {
   $fiducials SetNodeClass "vtkMRMLFiducialListNode" "" "" ""
   $fiducials SetMRMLScene [[$this GetLogic] GetMRMLScene]
   $fiducials UpdateMenu
-  $fiducials SetLabelText "Seeds:"
+  $fiducials SetLabelText "Input seeds:"
   $fiducials SetBalloonHelpString "List of fiducials to be used as seeds for segmentation"
-  pack [$fiducials GetWidgetName] -side top -anchor e -padx 2 -pady 2 -fill x
+  pack [$fiducials GetWidgetName] -side top -anchor e -padx 2 -pady 2
   
   set ::FastMarchingSegmentationTcl($this,segVolumeThumbWheel) [vtkKWThumbWheel New]
   set segvolume $::FastMarchingSegmentationTcl($this,segVolumeThumbWheel)
@@ -145,7 +144,7 @@ proc FastMarchingSegmentationTclBuildGUI {this} {
   $segvolume SetClampMinimumValue 0
   $segvolume SetValue 0
   [$segvolume GetLabel] SetText "Target segmented volume (mm^3):"
-  $segvolume SetBalloonHelpString "Maximum expected volume of the segmented structure"
+  $segvolume SetBalloonHelpString "Overestimate of the segmented structure volume"
   pack [$segvolume GetWidgetName] -side top -anchor e -padx 2 -pady 2 
 
   # Output volume definition
@@ -155,14 +154,24 @@ proc FastMarchingSegmentationTclBuildGUI {this} {
   $outName Create
   $outName SetText "Output label volume not defined!"
   pack [$outName GetWidgetName] -side top -anchor e -padx 2 -pady 2 
- 
+
+  set ::FastMarchingSegmentationTcl($this,labelColorSpin) [vtkKWSpinBoxWithLabel New]
+  set outColor $::FastMarchingSegmentationTcl($this,labelColorSpin)
+  $outColor SetParent [$outputVolumeFrame GetFrame]
+  $outColor SetLabelText "Output label value:"
+  $outColor Create
+  $outColor SetWidth 3
+  [$outColor GetWidget] SetValue 1.0
+  $outColor SetBalloonHelpString "Specify color for the output label"
+  pack [$outColor GetWidgetName] -side top -anchor e -padx 2 -pady 2 
   set ::FastMarchingSegmentationTcl($this,outputLabelText) [vtkKWEntryWithLabel New]
   set outLabelName $::FastMarchingSegmentationTcl($this,outputLabelText)
   $outLabelName SetParent [$outputVolumeFrame GetFrame]
   $outLabelName Create
-  $outLabelName SetLabelText "Output Segmented Volume:"
+  $outLabelName SetLabelText "Output volume name:"
   $outLabelName SetBalloonHelpString "Name of the output label volume"
   $outLabelName SetLabelPositionToLeft
+
 
   set ::FastMarchingSegmentationTcl($this,outputCreateButton) [vtkKWPushButton New]
   set outCreateButton $::FastMarchingSegmentationTcl($this,outputCreateButton)
@@ -177,7 +186,7 @@ proc FastMarchingSegmentationTclBuildGUI {this} {
 
   set ::FastMarchingSegmentationTcl($this,runButton) [vtkKWPushButton New]
   set run $::FastMarchingSegmentationTcl($this,runButton)
-  $run SetParent $pageWidget
+  $run SetParent $outputVolumeFrame
   $run Create
   $run SetText "Run Segmentation"
   $run EnabledOff
@@ -193,14 +202,14 @@ proc FastMarchingSegmentationTclBuildGUI {this} {
   $timescroll SetValue 1.0
   $timescroll SetResolution 0.001
   $timescroll SetLength 150
-  $timescroll SetLabelText "Timepoint:"
+  $timescroll SetLabelText "Actual volume of the segmented structure (mm^3):"
   $timescroll SetBalloonHelpString "Scroll back in segmentation process"
   $timescroll EnabledOff
   pack [$timescroll GetWidgetName] -side top -anchor e -padx 2 -pady 2
 
 
   set ::FastMarchingSegmentationTcl($this,cast) [vtkImageCast New]
-  set ::FastMarchingSegmentationTcl($this,fastMarchingFilter) [vtkFastMarching New]
+  set ::FastMarchingSegmentationTcl($this,fastMarchingFilter) [vtkPichonFastMarching New]
 }
 
 proc FastMarchingSegmentationTclAddGUIObservers {this} {
@@ -209,13 +218,13 @@ proc FastMarchingSegmentationTclAddGUIObservers {this} {
   $this AddObserverByNumber $::FastMarchingSegmentationTcl($this,inputSelector)  11000
   $this AddObserverByNumber $::FastMarchingSegmentationTcl($this,outputCreateButton)  10000
   $this AddObserverByNumber $::FastMarchingSegmentationTcl($this,fiducialsSelector)  11000
+  $this AddObserverByNumber $::FastMarchingSegmentationTcl($this,segVolumeThumbWheel)  10000
   
 #  $this AddMRMLObserverByNumber [[[$this GetLogic] GetApplicationLogic] GetSelectionNode] 31
     
 }
 
 proc FastMarchingSegmentationTclRemoveGUIObservers {this} {
-  $this RemoveObservers
 }
 
 proc FastMarchingSegmentationTclRemoveLogicObservers {this} {
@@ -230,15 +239,43 @@ proc FastMarchingSegmentationTclProcessLogicEvents {this caller event} {
 proc FastMarchingSegmentationTclProcessGUIEvents {this caller event} {
   
   if { $caller == $::FastMarchingSegmentationTcl($this,runButton) } {
-    FastMarchingSegmentationTclExpand $this 
+  
+    set inputFiducials [$::FastMarchingSegmentationTcl($this,fiducialsSelector) GetSelected]
+    if {$inputFiducials == ""} {
+      FastMarchingSegmentationTclErrorDialog $this "Please specify input fiducial list!"
+      return
+    }
+    if { [$inputFiducials GetNumberOfFiducials] == 0} {
+      FastMarchingSegmentationTclErrorDialog $this "Input fiducial list must be non-empty!"
+      return
+    } 
+    if { [$::FastMarchingSegmentationTcl($this,segVolumeThumbWheel) GetValue] == 0} {
+      FastMarchingSegmentationTclErrorDialog $this "Target segmentation volume cannot be 0!"
+      return
+    }
+    FastMarchingSegmentationTclExpand $this
+    $::FastMarchingSegmentationTcl($this,timeScrollScale) EnabledOn
+    $::FastMarchingSegmentationTcl($this,runButton) EnabledOff
+    set timescroll $::FastMarchingSegmentationTcl($this,timeScrollScale)
+    set segmentedVolume [$::FastMarchingSegmentationTcl($this,segVolumeThumbWheel) GetValue]
+    set knownpoints [$::FastMarchingSegmentationTcl($this,fastMarchingFilter) nKnownPoints]
+    $timescroll SetRange 0.0 $segmentedVolume
+    $timescroll SetValue $segmentedVolume
+    $timescroll SetResolution [ expr [expr double($segmentedVolume)] / [expr double($knownpoints)] ]
   } 
 
   if { $caller == $::FastMarchingSegmentationTcl($this,timeScrollScale) } {
-    FastMarchingSegmentationTclUpdateTime $this
+    FastMarchingSegmentationTclUpdateTime $this    
+  } 
+
+  if { $caller == $::FastMarchingSegmentationTcl($this,segVolumeThumbWheel) } {
   } 
 
   if {$caller == $::FastMarchingSegmentationTcl($this,inputSelector) } {
+    $::FastMarchingSegmentationTcl($this,currentOutputText) SetText "Output label volume not defined!"
     $::FastMarchingSegmentationTcl($this,outputCreateButton) EnabledOn
+    $::FastMarchingSegmentationTcl($this,timeScrollScale) EnabledOff
+    $::FastMarchingSegmentationTcl($this,runButton) EnabledOff
   }
 
   if {$caller == $::FastMarchingSegmentationTcl($this,fiducialsSelector) } {
@@ -246,6 +283,7 @@ proc FastMarchingSegmentationTclProcessGUIEvents {this caller event} {
 
   if {$caller == $::FastMarchingSegmentationTcl($this,outputCreateButton) } {
     FastMarchingSegmentationTclInitializeFilter $this
+    $::FastMarchingSegmentationTcl($this,runButton) EnabledOn
   }
 
 # FastMarchingSegmentationTclUpdateMRML $this
@@ -479,13 +517,14 @@ proc FastMarchingSegmentationTclApply {this} {
   set ::FastMarchingSegmentationTcl($this,processing) 0
 }
 
-#proc FastMarchingSegmentationTclInitializeFilter {this inputVolumeID} {
-#  puts "Input volume id is $inputVolumeID"
-#
-#  if { $::FastMarchingSegmentationTcl($this, fastMarchingFilter) } {
-#    $::FastMarchingSegmentationTcl($this,fastMarchingFilter) Delete
-#  }
-#
-#  set $::FastMarchingSegmentationTcl($this,fastMarchingFilter) [new vtkFastMarching]
-#  
-#}
+proc FastMarchingSegmentationTclErrorDialog {this errorText} {
+  set dialog [vtkKWMessageDialog New]
+  $dialog SetParent [$::slicer3::ApplicationGUI GetMainSlicerWindow]
+  $dialog SetMasterWindow [$::slicer3::ApplicationGUI GetMainSlicerWindow]
+  $dialog SetStyleToMessage
+  $dialog SetText $errorText
+  $dialog Create
+  $dialog Invoke
+  $dialog Delete
+}
+

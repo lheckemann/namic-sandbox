@@ -5,16 +5,11 @@
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   3D Slicer
-  Module:    $RCSfile: FMpdf.h,v $
-  Date:      $Date: 2006/01/06 17:57:39 $
-  Version:   $Revision: 1.13 $
-
 =========================================================================auto=*/
-#ifndef FMpdf_h
-#define FMpdf_h
+#ifndef PichonFastMarchingPDF_h
+#define PichonFastMarchingPDF_h
 
-#include "vtkFastMarchingWin32Header.h"
+#include "vtkPichonFastMarchingWin32Header.h"
 
 #ifdef _WIN32 // WINDOWS
 
@@ -52,7 +47,7 @@ of Intensity and Inhomogeneity
 
 */
 
-class VTK_FASTMARCHING_EXPORT vtkFMpdf : public vtkObject
+class VTK_PICHONFASTMARCHING_EXPORT vtkPichonFastMarchingPDF : public vtkObject
 {
 public:
 
@@ -60,11 +55,11 @@ public:
   double getSigma2( void ) { return sigma2; };
 
   
-  vtkFMpdf(){};
-  vtkFMpdf( int realizationMax );
-  ~vtkFMpdf();
+  vtkPichonFastMarchingPDF(){};
+  vtkPichonFastMarchingPDF( int realizationMax );
+  ~vtkPichonFastMarchingPDF();
 
-  static vtkFMpdf* New();
+  static vtkPichonFastMarchingPDF* New();
 
   void setMemory( int mem );
   void setUpdateRate( int rate );
@@ -85,7 +80,7 @@ public:
   void show( void );
 
   const char* GetClassName(void)
-    {return "vtkFMpdf"; };
+    {return "vtkPichonFastMarchingPDF"; };
 
 
   //BTX

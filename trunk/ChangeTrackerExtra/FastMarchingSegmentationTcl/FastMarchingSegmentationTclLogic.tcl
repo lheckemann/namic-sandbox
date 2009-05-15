@@ -144,7 +144,7 @@ proc FastMarchingSegmentationTclInitializeFilter {this} {
     $::FastMarchingSegmentationTcl($this,fastMarchingFilter) Delete
   }
 
-  set ::FastMarchingSegmentationTcl($this,fastMarchingFilter) [vtkFastMarching New]
+  set ::FastMarchingSegmentationTcl($this,fastMarchingFilter) [vtkPichonFastMarching New]
   set ::FastMarchingSegmentationTcl($this,inputVolume) [ [[$this GetLogic] GetMRMLScene] \
     GetNodeByID [[$::FastMarchingSegmentationTcl($this,inputSelector) \
     GetSelected ] GetID] ]
@@ -154,18 +154,15 @@ proc FastMarchingSegmentationTclInitializeFilter {this} {
   set labelVolume $::FastMarchingSegmentationTcl($this,labelVolume)
 
   if { $inputVolume == ""} {
-    puts "Something is wrong with the input volume"
+    ErrorDialog "Something is wrong with the input volume"
     return
   }
 
   set inputImageData [$inputVolume GetImageData]
   scan [$inputImageData GetScalarRange] "%f%f" rangeLow rangeHigh
   scan [$inputVolume GetSpacing] "%f%f%f" dx dy dz
-  puts "Input spacing: [$inputVolume GetSpacing]"
   set dim [$inputImageData GetWholeExtent]
 
-  puts "Input image range: $rangeLow to $rangeHigh"
-  
   set cast $::FastMarchingSegmentationTcl($this,cast) 
   set fmFilter $::FastMarchingSegmentationTcl($this,fastMarchingFilter)
   $cast SetOutputScalarTypeToShort
@@ -175,20 +172,15 @@ proc FastMarchingSegmentationTclInitializeFilter {this} {
 
   $::FastMarchingSegmentationTcl($this,fastMarchingFilter) SetInput [$cast GetOutput]
   
-  puts "Passing the following parameters: [expr [lindex \
-    $dim 1] + 1] [expr [lindex $dim 3] + 1] [expr [lindex $dim 5] + 1] [expr int($rangeHigh)] $dx $dy $dz"
-
   $fmFilter init [expr [lindex $dim 1] + 1] [expr [lindex $dim 3] + 1] \
     [expr [lindex $dim 5] + 1] [ expr int($rangeHigh)] $dx $dy $dz
 
   $fmFilter SetInput [$cast GetOutput]
   $fmFilter Modified
   $fmFilter Update
-  puts "fmFilter completed"
 
   $fmFilter setActiveLabel 1
   $fmFilter initNewExpansion
-  puts "New expansion inited"
 }
 
 proc ConversiontomL {this Voxels} {
@@ -218,33 +210,34 @@ proc ConversiontoVoxels {this mL} {
 }
 
 proc FastMarchingSegmentationTclExpand {this} {
-  set expectedVolumeValue [$::FastMarchingSegmentationTcl($this,expectedVolume) GetValue]
+  set expectedVolumeValue [$::FastMarchingSegmentationTcl($this,segVolumeThumbWheel) GetValue]
   set voxelnumber [ConversiontoVoxels $this $expectedVolumeValue]
   set fmFilter $::FastMarchingSegmentationTcl($this,fastMarchingFilter)
   $fmFilter setNPointsEvolution $voxelnumber
-  puts "Before calling Segment"
+  $fmFilter setActiveLabel [expr int([ [$::FastMarchingSegmentationTcl($this,labelColorSpin) GetWidget] GetValue]) ]
   FastMarchingSegmentationTclSegment $this
 }
 
 proc FastMarchingSegmentationTclSegment {this} {
   set fmFilter $::FastMarchingSegmentationTcl($this,fastMarchingFilter)
   set cast $::FastMarchingSegmentationTcl($this,cast)
-  set inputVolume $::FastMarchingSegmentationTcl($this,inputVolume)
-  set inputFiducials $::FastMarchingSegmentationTcl($this,inputFiducials)
+
+  set inputVolume [$::FastMarchingSegmentationTcl($this,inputSelector) GetSelected]
+  set inputFiducials [$::FastMarchingSegmentationTcl($this,fiducialsSelector) GetSelected]
+
   set labelVolume $::FastMarchingSegmentationTcl($this,labelVolume)
-  puts "Inside Segment"
+
   set ras2ijk [vtkMatrix4x4 New]
   $inputVolume GetRASToIJKMatrix $ras2ijk
-  puts "Here"
   
-  $fmFilter setRAStoIJKmatrix \
-    [$ras2ijk GetElement 0 1]  [$ras2ijk GetElement 0 2]  [$ras2ijk GetElement 0 3] [$ras2ijk GetElement 0 4] \
-    [$ras2ijk GetElement 1 1]  [$ras2ijk GetElement 1 2]  [$ras2ijk GetElement 1 3] [$ras2ijk GetElement 1 4] \
-    [$ras2ijk GetElement 2 1]  [$ras2ijk GetElement 2 2]  [$ras2ijk GetElement 2 3] [$ras2ijk GetElement 2 4] \
-    [$ras2ijk GetElement 3 1]  [$ras2ijk GetElement 3 2]  [$ras2ijk GetElement 3 3] [$ras2ijk GetElement 3 4];
-  puts "Here 2"
+#  $fmFilter setRAStoIJKmatrix \
+#    [$ras2ijk GetElement 0 1]  [$ras2ijk GetElement 0 2]  [$ras2ijk GetElement 0 3] [$ras2ijk GetElement 0 4] \
+#    [$ras2ijk GetElement 1 1]  [$ras2ijk GetElement 1 2]  [$ras2ijk GetElement 1 3] [$ras2ijk GetElement 1 4] \
+#    [$ras2ijk GetElement 2 1]  [$ras2ijk GetElement 2 2]  [$ras2ijk GetElement 2 3] [$ras2ijk GetElement 2 4] \
+#    [$ras2ijk GetElement 3 1]  [$ras2ijk GetElement 3 2]  [$ras2ijk GetElement 3 3] [$ras2ijk GetElement 3 4];
+#  puts "Here 2"
   set numFiducials [$inputFiducials GetNumberOfFiducials]
-  puts "Fiducial list has $numFiducials fiducials"
+#  puts "Fiducial list has $numFiducials fiducials"
   
   for {set i 0} {$i<$numFiducials} {incr i} {
     scan [$inputFiducials GetNthFiducialXYZ $i] "%f %f %f" fx fy fz
@@ -254,37 +247,30 @@ proc FastMarchingSegmentationTclSegment {this} {
       [expr int([expr [lindex $fIJK 2]])]
   }
 
-  puts "Fiducials initialized"
+  $ras2ijk Delete
+
   $cast SetInput [$inputVolume GetImageData]
   $fmFilter Modified
   $fmFilter SetInput [$cast GetOutput]
   $fmFilter SetOutput [$labelVolume GetImageData]
   $fmFilter Modified
-  puts "Before fm update"
   $fmFilter Update
-  puts "After fm update"
 
-  $fmFilter show 1
+  set requestedTime [$::FastMarchingSegmentationTcl($this,timeScrollScale) GetValue]
+  $fmFilter show 1.0
   $fmFilter Modified
   $fmFilter Update
-  puts "After show update"
-
-  vtkNRRDWriter fmwriter
-  fmwriter SetInput [$fmFilter GetOutput]
-  fmwriter SetFileName "/tmp/fm_output.nrrd"
-  fmwriter Write
-  fmwriter Delete
 }
 
 proc FastMarchingSegmentationTclUpdateTime {this} {
-  set requestedTime [$::FastMarchingSegmentationTcl($this,timeScroll) GetValue]
+  set requestedTime [$::FastMarchingSegmentationTcl($this,timeScrollScale) GetValue]
   set fmFilter $::FastMarchingSegmentationTcl($this,fastMarchingFilter)
   set labelVolume $::FastMarchingSegmentationTcl($this,labelVolume)
+  set scaleRange [$::FastMarchingSegmentationTcl($this,timeScrollScale) GetRange]
+  set requestedTime [expr $requestedTime / [lindex $scaleRange 1] ]
   $fmFilter show $requestedTime
   $fmFilter Modified
   $fmFilter Update
-  puts "After updating for time scroll"
-#  [[$this GetLogic] GetApplicationLogic]  PropagateVolumeSelection
   $labelVolume Modified
 }
 
@@ -301,7 +287,7 @@ proc FastMarchingSegmentationTclCreateLabelVolume {this} {
   $selectionNode SetReferenceActiveVolumeID [$volumeNode GetID]
   $selectionNode SetReferenceActiveLabelVolumeID [$labelNode GetID]
   $selectionNode Modified
-#  [[$this GetLogic] GetApplicationLogic]  PropagateVolumeSelection
+  [[$this GetLogic] GetApplicationLogic]  PropagateVolumeSelection
 
   set ::FastMarchingSegmentationTcl($this,labelVolume) $labelNode
   
