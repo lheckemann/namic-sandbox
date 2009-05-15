@@ -5,17 +5,12 @@
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   3D Slicer
-  Module:    $RCSfile: vtkFMpdf.cxx,v $
-  Date:      $Date: 2006/01/06 17:57:39 $
-  Version:   $Revision: 1.12 $
-
 =========================================================================auto=*/
-#include "vtkFMpdf.h"
+#include "vtkPichonFastMarchingPDF.h"
 #include <math.h>
 #include "vtkObjectFactory.h"
 
-vtkFMpdf::vtkFMpdf( int realizationMax )
+vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF( int realizationMax )
 {
   sigma2SmoothPDF=0.25;
 
@@ -25,7 +20,7 @@ vtkFMpdf::vtkFMpdf( int realizationMax )
   //  assert( bins!=NULL );
   if(!(bins!=NULL))
     {
-      vtkErrorMacro("Error in vtkFastMarching, vtkFMpdf::vtkFMpdf(...), not enough memory for allocation of 'bins'");
+      vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), not enough memory for allocation of 'bins'");
       return;
     }
 
@@ -33,7 +28,7 @@ vtkFMpdf::vtkFMpdf( int realizationMax )
   //  assert( smoothedBins!=NULL );
   if(!(smoothedBins!=NULL))
     {
-      vtkErrorMacro("Error in vtkFastMarching, vtkFMpdf::vtkFMpdf(...), not enough memory for allocation of 'smoothedBins'");
+      vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), not enough memory for allocation of 'smoothedBins'");
       return;
     }
 
@@ -41,7 +36,7 @@ vtkFMpdf::vtkFMpdf( int realizationMax )
   //  assert( coefGauss!=NULL );
   if(!(bins!=NULL))
     {
-      vtkErrorMacro("Error in vtkFastMarching, vtkFMpdf::vtkFMpdf(...), not enough memory for allocation of 'bins'");
+      vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), not enough memory for allocation of 'bins'");
       return;
     }
   
@@ -52,20 +47,20 @@ vtkFMpdf::vtkFMpdf( int realizationMax )
   updateRate=1000;
 }
 
-vtkFMpdf* vtkFMpdf::New()
+vtkPichonFastMarchingPDF* vtkPichonFastMarchingPDF::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkFMpdf");
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkPichonFastMarchingPDF");
   if(ret)
     {
-      return (vtkFMpdf*)ret;
+      return (vtkPichonFastMarchingPDF*)ret;
     }
 
   // If the factory was unable to create the object, then create it here.
-  return new vtkFMpdf;
+  return new vtkPichonFastMarchingPDF;
 }
 
-vtkFMpdf::~vtkFMpdf()
+vtkPichonFastMarchingPDF::~vtkPichonFastMarchingPDF()
 {
   reset(); // to empty the containers
 
@@ -74,7 +69,7 @@ vtkFMpdf::~vtkFMpdf()
   delete [] coefGauss;
 }
 
-void vtkFMpdf::reset( void )
+void vtkPichonFastMarchingPDF::reset( void )
 {
   counter=0;
 
@@ -93,16 +88,16 @@ void vtkFMpdf::reset( void )
   nRealInBins=0;
 }
 
-bool vtkFMpdf::willUseGaussian( void )
+bool vtkPichonFastMarchingPDF::willUseGaussian( void )
 {
   return nRealInBins<50*sqrt(sigma2);
 }
 
-double vtkFMpdf::value( int k )
+double vtkPichonFastMarchingPDF::value( int k )
 {
   if( !( (k>=0) && (k<=realizationMax) ) )
     {
-      vtkErrorMacro( "Error in vtkFMpdf::value(k)!" << endl
+      vtkErrorMacro( "Error in vtkPichonFastMarchingPDF::value(k)!" << endl
              << "k=" << k << " realizationMax=" 
              << realizationMax << endl );
 
@@ -117,17 +112,17 @@ double vtkFMpdf::value( int k )
   return valueGauss( k );
 }
 
-double vtkFMpdf::valueGauss( int k )
+double vtkPichonFastMarchingPDF::valueGauss( int k )
 {
   return 1.0/sqrt(2*M_PI*sigma2)*exp( -0.5*(double(k)-mean)*(double(k)-mean)/sigma2 );
 }
 
-double vtkFMpdf::valueHisto( int k )
+double vtkPichonFastMarchingPDF::valueHisto( int k )
 {
   return smoothedBins[k];
 }
 
-void vtkFMpdf::update( void )
+void vtkPichonFastMarchingPDF::update( void )
 {
   int r;
 
@@ -163,7 +158,7 @@ void vtkFMpdf::update( void )
   //assert( nRealInBins>0 );
   if(!( nRealInBins>0 ))
     {
-      vtkErrorMacro("Error in vtkFastMarching, vtkFMpdf::vtkFMpdf(...), !nRealInBins>0");
+      vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), !nRealInBins>0");
       return;
     }
 
@@ -203,12 +198,12 @@ void vtkFMpdf::update( void )
   }
 }
 
-void vtkFMpdf::addRealization( int k )
+void vtkPichonFastMarchingPDF::addRealization( int k )
 {
   //assert(finite(k)!=0);
   if(!(finite(k)!=0))
     {
-      vtkErrorMacro("Error in vtkFastMarching, vtkFMpdf::vtkFMpdf(...), !(finite(k)!=0)");
+      vtkErrorMacro("Error in vtkFastMarching, vtkPichonFastMarchingPDF::vtkPichonFastMarchingPDF(...), !(finite(k)!=0)");
       return;
     }
 
@@ -222,23 +217,23 @@ void vtkFMpdf::addRealization( int k )
   //   consideration  is more than half of our memory
   if( (updateRate!=-1) && 
       ( (counter%updateRate)==0 
-    || (memorySize!=-1) && (toBeAdded.size()>((unsigned int)(memorySize/2))) ) )
+    || ((memorySize!=-1) && (toBeAdded.size()>((unsigned int)(memorySize/2)))) ) )
     update();
 }
 
 /*
-bool vtkFMpdf::isUnlikelyGauss( double k )
+bool vtkPichonFastMarchingPDF::isUnlikelyGauss( double k )
 {
   return fabs( k-getMean() )>3.0*sqrt( getSigma2() );
 }
 
-bool vtkFMpdf::isUnlikelyBigGauss( double k )
+bool vtkPichonFastMarchingPDF::isUnlikelyBigGauss( double k )
 {
   return ( k-getMean() ) > ( 2.0*sqrt( getSigma2() ) );
 }
 */
 
-void vtkFMpdf::show( void )
+void vtkPichonFastMarchingPDF::show( void )
 {
   cout << "realizationMax=" << realizationMax << endl;
   cout << "nRealInBins=" <<  nRealInBins << endl;
@@ -251,12 +246,12 @@ void vtkFMpdf::show( void )
   cout << "---" << endl;
 }
 
-void vtkFMpdf::setMemory( int mem )
+void vtkPichonFastMarchingPDF::setMemory( int mem )
 {
   memorySize=mem;
 }
 
-void vtkFMpdf::setUpdateRate( int rate )
+void vtkPichonFastMarchingPDF::setUpdateRate( int rate )
 {
   updateRate=rate;
 

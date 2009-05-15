@@ -5,17 +5,12 @@
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   3D Slicer
-  Module:    $RCSfile: vtkFastMarching.h,v $
-  Date:      $Date: 2006/01/06 17:57:39 $
-  Version:   $Revision: 1.19 $
-
 =========================================================================auto=*/
-#ifndef __vtkFastMarching_h
-#define __vtkFastMarching_h
+#ifndef __vtkPichonFastMarching_h
+#define __vtkPichonFastMarching_h
 
-#include "vtkFastMarchingWin32Header.h"
-//#include "vtkFastMarchingConfigure.h"
+#include "vtkPichonFastMarchingWin32Header.h"
+//#include "vtkPichonFastMarchingConfigure.h"
 #include "vtkImageData.h"
 #include "vtkImageToImageFilter.h"
 
@@ -35,7 +30,7 @@
 
 //#endif
 
-#include "vtkFMpdf.h"
+#include "vtkPichonFastMarchingPDF.h"
 
 #define MAJOR_VERSION 3
 #define MINOR_VERSION 1
@@ -74,7 +69,7 @@ typedef std::vector<int> VecInt;
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
-class VTK_FASTMARCHING_EXPORT vtkFastMarching : public vtkImageToImageFilter
+class VTK_PICHONFASTMARCHING_EXPORT vtkPichonFastMarching : public vtkImageToImageFilter
 {
  private:
   bool somethingReallyWrong;
@@ -149,8 +144,8 @@ class VTK_FASTMARCHING_EXPORT vtkFastMarching : public vtkImageToImageFilter
   VecFMleaf tree;
   //  vector<FMleaf> tree;
 
-  vtkFMpdf *pdfIntensityIn;
-  vtkFMpdf *pdfInhomoIn;
+  vtkPichonFastMarchingPDF *pdfIntensityIn;
+  vtkPichonFastMarchingPDF *pdfInhomoIn;
 
   bool firstPassThroughShow;
 
@@ -184,23 +179,23 @@ class VTK_FASTMARCHING_EXPORT vtkFastMarching : public vtkImageToImageFilter
 
  public:
 
-  void vtkErrorWrapper( char* s)
+  void vtkErrorWrapper( const char* s)
     {
       vtkErrorMacro( << s );
     };
 
-  static vtkFastMarching *New();
+  static vtkPichonFastMarching *New();
 
-  vtkTypeMacro(vtkFastMarching,vtkImageToImageFilter);
+  vtkTypeMacro(vtkPichonFastMarching,vtkImageToImageFilter);
 
-  vtkFastMarching();
-  ~vtkFastMarching();
+  vtkPichonFastMarching();
+  ~vtkPichonFastMarching();
   void unInit( void );
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  //pb wrap  vtkFastMarching()(const vtkFastMarching&);
-  //pb wrap  void operator=(const vtkFastMarching&);
+  //pb wrap  vtkPichonFastMarching()(const vtkPichonFastMarching&);
+  //pb wrap  void operator=(const vtkPichonFastMarching&);
 
   void init(int dimX, int dimY, int dimZ, double depth, double dx, double dy, double dz);
 
@@ -209,6 +204,7 @@ class VTK_FASTMARCHING_EXPORT vtkFastMarching : public vtkImageToImageFilter
   void initNewExpansion( void );
 
   int nValidSeeds( void );
+  int nKnownPoints(void);
 
   void setNPointsEvolution( int n );
 
@@ -246,7 +242,7 @@ class VTK_FASTMARCHING_EXPORT vtkFastMarching : public vtkImageToImageFilter
   void ExecuteData(vtkDataObject *);
 
 
-  friend void vtkFastMarchingExecute(vtkFastMarching *self,
+  friend void vtkPichonFastMarchingExecute(vtkPichonFastMarching *self,
                      vtkImageData *inData, short *inPtr,
                      vtkImageData *outData, short *outPtr, 
                      int outExt[6]);
