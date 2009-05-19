@@ -24,8 +24,11 @@
 #include "itkListSample.h"
 #include "itkKdTree.h"
 #include "itkKdTreeGenerator.h"
-#include "itkEuclideanDistance.h"
+#ifdef ITK_USE_REVIEW_STATISTICS
+#include "itkPointSetToListSampleAdaptor.h"
+#else
 #include "itkPointSetToListAdaptor.h"
+#endif
 #include "itkTimeProbesCollectorBase.h"
 
 
@@ -76,7 +79,11 @@ int main(int argc, char *argv[])
   //
   // Adapt the Mesh to make it look like a ListSample
   //
+#ifdef ITK_USE_REVIEW_STATISTICS
+  typedef itk::Statistics::PointSetToListSampleAdaptor< MeshType > SampleType;
+#else
   typedef itk::Statistics::PointSetToListAdaptor< MeshType > SampleType;
+#endif
 
   SampleType::Pointer sample = SampleType::New();
 
