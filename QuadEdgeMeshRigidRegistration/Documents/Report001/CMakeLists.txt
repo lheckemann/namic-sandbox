@@ -27,7 +27,7 @@ SET(REPORT_SRCS
   QuadEdgeMeshRigidRegistration.tex
   times.sty
   picins.sty
-  ClassHierarchy.fig
+  InterpolatorsClassHierarchy.fig
   )
 
 #
