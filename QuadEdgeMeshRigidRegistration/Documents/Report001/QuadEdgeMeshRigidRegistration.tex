@@ -131,14 +131,14 @@ class, and implement a sequence of
 \item \code{itk::NearestNeighborInterpolateMeshFunction}
 \end{itemize}
 
-The diagram in Figure~\ref{fig:ClassHierarchy} presents the hierarchy of mesh
+The diagram in Figure~\ref{fig:InterpolatorsClassHierarchy} presents the hierarchy of mesh
 interpolators that are included in this contribution.
 
 \begin{figure}
 \center
 \includegraphics[width=0.7\textwidth]{InterpolatorsClassHierarchy.pdf}
-\itkcaption[Registration Class Hierarchy]{Hierarchy of new Registration Classes.}
-\label{fig:ClassHierarchy}
+\itkcaption[Interpolators Class Hierarchy]{Hierarchy of new Mesh Interpolator Classes.}
+\label{fig:InterpolatorsClassHierarchy}
 \end{figure}
 
 \subsection{Mesh Metrics}
@@ -155,6 +155,16 @@ an abstract base class and a concrete class, as follows:
 
 It is expected that variations of Mesh metrics will be added as siblings of the
 mean squares metric, just as variations of image metrics thrived in ITK.
+
+The diagram in Figure~\ref{fig:MetricsClassHierarchy} presents the hierarchy of mesh
+interpolators that are included in this contribution.
+
+\begin{figure}
+\center
+\includegraphics[width=0.7\textwidth]{MetricsClassHierarchy.pdf}
+\itkcaption[Metrics Class Hierarchy]{Hierarchy of new Mesh Metric Classes.}
+\label{fig:MetricsClassHierarchy}
+\end{figure}
 
 
 \end{document}

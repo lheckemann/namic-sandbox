@@ -28,6 +28,7 @@ SET(REPORT_SRCS
   times.sty
   picins.sty
   InterpolatorsClassHierarchy.fig
+  MetricsClassHierarchy.fig
   )
 
 #
