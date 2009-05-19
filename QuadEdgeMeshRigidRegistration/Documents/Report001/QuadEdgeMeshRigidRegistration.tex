@@ -110,11 +110,27 @@ Registration Framework in ITK.  In particular, we have the usual components
 \end{itemize}
 
 and we have the two objects to be registered, in this case Meshes instead of
-Images. The two main components that must be providded in order to support Mesh
+Images. The two main components that must be provided in order to support Mesh
 registration are Iterpolators and Metrics.
 
-The following diagram indicates the hierarchy of classes that are included 
-in this contribution.
+Mesh-based Interpolators are designed here following the same structure of the
+image interpolators. In particular, they derive from the \doxygen{Function}
+class, and implement a sequence of 
+
+\begin{itemize}
+\item \code{itk::MeshFunction}
+\item \code{itk::InterpolateMeshFunction}
+\end{itemize}
+
+ and finally, the siblings
+
+\begin{itemize}
+\item \code{itk::LinearInterpolateMeshFunction}
+\item \code{itk::itkNearestNeighborInterpolateMeshFunction}
+\end{itemize}
+
+The diagram in Figure~\ref{fig:ClassHierarchy} presents the hierarchy of mesh
+interpolators that are included in this contribution.
 
 \begin{figure}
 \center
