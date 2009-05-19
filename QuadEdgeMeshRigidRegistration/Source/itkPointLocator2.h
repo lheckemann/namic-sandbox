@@ -20,8 +20,11 @@
 #include "itkObject.h"
 #include "itkKdTree.h"
 #include "itkKdTreeGenerator.h"
-#include "itkEuclideanDistance.h"
+#ifdef ITK_USE_REVIEW_STATISTICS
+#include "itkPointSetToListSampleAdaptor.h"
+#else
 #include "itkPointSetToListAdaptor.h"
+#endif
 
 namespace itk
 {
@@ -57,7 +60,12 @@ public:
   typedef typename PointSetType::PointType      PointType;
 
   /** Type of the PointSet to List Adaptor. */
+#ifdef ITK_USE_REVIEW_STATISTICS
+  typedef itk::Statistics::PointSetToListSampleAdaptor< PointSetType >    SampleAdaptorType;
+#else
   typedef itk::Statistics::PointSetToListAdaptor< PointSetType >    SampleAdaptorType;
+#endif
+
   typedef typename SampleAdaptorType::Pointer                       SampleAdaptorPointer;
 
   /** Types fo the KdTreeGenerator */
