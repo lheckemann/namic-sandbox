@@ -88,7 +88,7 @@ The Insight Toolkit already provides methods for registering
 \begin{itemize}
 \item Image to Image
 \item PointSet to Image
-\item PointSet to Pointset
+\item PointSet to PointSet
 \end{itemize}
 
 but it lacks methods for registering one Mesh versus another Mesh.
@@ -113,6 +113,8 @@ and we have the two objects to be registered, in this case Meshes instead of
 Images. The two main components that must be provided in order to support Mesh
 registration are Iterpolators and Metrics.
 
+\subsection{Mesh Interpolators}
+
 Mesh-based Interpolators are designed here following the same structure of the
 image interpolators. In particular, they derive from the \doxygen{Function}
 class, and implement a sequence of 
@@ -126,7 +128,7 @@ class, and implement a sequence of
 
 \begin{itemize}
 \item \code{itk::LinearInterpolateMeshFunction}
-\item \code{itk::itkNearestNeighborInterpolateMeshFunction}
+\item \code{itk::NearestNeighborInterpolateMeshFunction}
 \end{itemize}
 
 The diagram in Figure~\ref{fig:ClassHierarchy} presents the hierarchy of mesh
@@ -138,5 +140,21 @@ interpolators that are included in this contribution.
 \itkcaption[Registration Class Hierarchy]{Hierarchy of new Registration Classes.}
 \label{fig:ClassHierarchy}
 \end{figure}
+
+\subsection{Mesh Metrics}
+
+Mesh metrics follow a similar structure to the existing image metrics in ITK.
+Their hierarchy starts with the \code{itk::MeshToMeshMetric} that derives from
+the existing ITK class \doxygen{SingleValuedCostFunction}. They currently comprise
+an abstract base class and a concrete class, as follows:
+
+\begin{itemize}
+\item \code{itk::MeshToMeshMetric}
+\item \code{itk::MeanSquaresMeshToMeshMetric}
+\end{itemize}
+
+It is expected that variations of Mesh metrics will be added as siblings of the
+mean squares metric, just as variations of image metrics thrived in ITK.
+
 
 \end{document}
