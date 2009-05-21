@@ -2,8 +2,8 @@
 # Add here command lines to build examples.
 #
 
-ADD_EXECUTABLE(MeanSquaresMeshToMeshMetricTest1 MeanSquaresMeshToMeshMetricTest1.cxx)
-TARGET_LINK_LIBRARIES(MeanSquaresMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKNumerics ITKIO) 
+ADD_EXECUTABLE(MeanSquaresMeshToMeshMetricRegistration1 MeanSquaresMeshToMeshMetricRegistration1.cxx)
+TARGET_LINK_LIBRARIES(MeanSquaresMeshToMeshMetricRegistration1 ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
 ADD_EXECUTABLE(ConvertFreeSurferBinarySurfaceToVTKSurface ConvertFreeSurferBinarySurfaceToVTKSurface.cxx)
 TARGET_LINK_LIBRARIES(ConvertFreeSurferBinarySurfaceToVTKSurface ITKQuadEdgeMesh ITKNumerics ITKIO) 
