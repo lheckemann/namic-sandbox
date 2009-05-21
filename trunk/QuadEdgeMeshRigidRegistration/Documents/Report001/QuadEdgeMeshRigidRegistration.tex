@@ -1,6 +1,15 @@
 \documentclass{InsightArticle}
 
 \usepackage[dvips]{graphicx}
+\usepackage{color}
+\usepackage{listings}
+
+\definecolor{listcomment}{rgb}{0.0,0.5,0.0}
+\definecolor{listkeyword}{rgb}{0.0,0.0,0.5}
+\definecolor{listnumbers}{gray}{0.65}
+\definecolor{listlightgray}{gray}{0.955}
+\definecolor{listwhite}{gray}{1.0}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -26,6 +35,25 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 %
 \newcommand{\IJhandlerIDnumber}{1338}
 
+\lstset{frame = tb,
+       framerule = 0.25pt,
+       float,
+       fontadjust,
+       backgroundcolor={\color{listlightgray}},
+       basicstyle = {\ttfamily\footnotesize},
+       keywordstyle = {\ttfamily\color{listkeyword}\textbf},
+       identifierstyle = {\ttfamily},
+       commentstyle = {\ttfamily\color{listcomment}\textit},
+       stringstyle = {\ttfamily},
+       showstringspaces = false,
+       showtabs = false,
+       numbers = left,
+       numbersep = 6pt,
+       numberstyle={\ttfamily\color{listnumbers}},
+       tabsize = 2,
+       language=[ANSI]C++,
+       floatplacement=!h
+       }
 
 \release{1.00}
 
@@ -256,5 +284,34 @@ In order to facilitate the use of data generated from FreeSurfer as input to
 the Mesh to Mesh registration framework we provide here a reader class that
 read FreeSurfer binary files and convert them into itkQuadEdgeMeshes.
 
+The minimalist use of the FreeSurferBinarySurfaceReader class is illustrated by
+the source code below.
+
+
+\begin{lstlisting}
+
+  #include "itkMesh.h"
+  #include "itkFreeSurferBinarySurfaceReader.h"
+
+  typedef itk::Mesh<float, 3>                 MeshType;
+  typedef itk::FreeSurferBinarySurfaceReader< MeshType >  ReaderType;
+
+  ReaderType::Pointer  surfaceReader = ReaderType::New();
+
+  surfaceReader->SetFileName("lh.pial");
+  surfaceReader->SetDataFileName("lh.curv.pial");
+  
+  surfaceReader->Update();
+
+  MeshType::ConstPointer mesh = surfaceReader->GetOutput();
+
+\end{lstlisting}
+
+Where 
+
+\begin{itemize}
+\item ``lh.pial'' is the file containing the geometry and topology of the mesh
+\item ``lh.curv.pial'' is the file containing the scalar field associated with points of the mesh
+\end{itemize}
 
 \end{document}
