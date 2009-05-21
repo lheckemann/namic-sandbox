@@ -166,5 +166,44 @@ interpolators that are included in this contribution.
 \label{fig:MetricsClassHierarchy}
 \end{figure}
 
+\subsection{Mesh Point Locator}
+
+One of the challenging aspects of implementing an interpolator in Meshes is the
+fact that given a point in space, it is not trivial to find the Mesh cell that
+contains this point in its domain. The method used here involves the use of a
+\code{PointLocator} class that internally constructs a Kd-Tree in order to provide
+a spatial classification of the Mesh points.
+
+When the registration method is mapping points from the Fixed Mesh into the
+Moving Mesh, this points are first mapped through the Transform and then they
+are passed to the interpolator's \code{Evaluate()} method. The first action of
+this method is to locate the points from the Moving Mesh that are closest to
+the point given as argument of Evaluate.
+
+The \code{PointLocator} class takes advantage of the \doxygen{KdTreeGenerator}
+and \doxygen{PointSetToListSampleAdaptor} classes provided by the ITK
+Statistics framework. The KdTree is constructed from the Moving Mesh during the
+initialization process of the interpolator, that is triggered by the
+Initialize() method of the Metric itself.
+
+\subsection{Triangle Basis System}
+
+The \code{TriangleBasisSystem} is an auxiliary class that holds a vector basis
+for a triangular cell of a Mesh. This vector basis is then used as a coordinate
+system in order to compute barycentric coordinates of points in a given cell.
+These barycentric coordinates are commonly used as weights for a linear
+interpolation of values assigned to the nodes of the triangular cell.
+
+In a Mesh of topological dimension M that is embedded in a N-Dimensional space,
+this class will contains M vector of N components each. This class is
+essentially a data container and it does not provide computational
+capabilities.
+
+\subsection{Triangle Basis System Calculator}
+
+The \code{TriangleBasisSystemCalculator} is an auxiliary class that computes
+the TriangleBasisSystem of a cell from an M-Dimensional Mesh embedded in a
+N-Dimensional space.  Given a set of N points, the calculator will compute the
+vectors of the basis.
 
 \end{document}
