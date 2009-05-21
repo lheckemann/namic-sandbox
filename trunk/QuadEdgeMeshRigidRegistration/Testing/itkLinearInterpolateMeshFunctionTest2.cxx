@@ -23,7 +23,6 @@
 #include "itkVector.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
-#include "itkDefaultStaticMeshTraits.h"
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkMeshToMeshRegistrationMethod.h"
 #include "itkLinearInterpolateMeshFunction.h"

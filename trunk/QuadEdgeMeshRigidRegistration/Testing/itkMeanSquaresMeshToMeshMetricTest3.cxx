@@ -22,7 +22,6 @@
 #include "itkVersorRigid3DTransform.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
-#include "itkDefaultStaticMeshTraits.h"
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkMeshToMeshRegistrationMethod.h"
 #include "itkNearestNeighborInterpolateMeshFunction.h"

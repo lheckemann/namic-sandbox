@@ -21,7 +21,6 @@
 
 
 #include "itkQuadEdgeMesh.h"
-#include "itkDefaultStaticMeshTraits.h"
 #include "itkMeshFunction.h"
 
 #include <iostream>

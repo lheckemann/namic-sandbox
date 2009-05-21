@@ -22,7 +22,6 @@
 
 #include "itkMesh.h"
 #include "itkFreeSurferBinarySurfaceReader.h"
-#include "itkDefaultStaticMeshTraits.h"
 #include "itkVTKPolyDataWriter.h"
 #include "itkTestingMacros.h"
 

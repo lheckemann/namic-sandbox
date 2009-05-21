@@ -22,7 +22,6 @@
 
 #include "itkQuadEdgeMesh.h"
 #include "itkFreeSurferBinarySurfaceReader.h"
-#include "itkDefaultStaticMeshTraits.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkNearestNeighborInterpolateMeshFunction.h"
 
