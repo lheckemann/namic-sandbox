@@ -4,3 +4,6 @@
 
 ADD_EXECUTABLE(MeanSquaresMeshToMeshMetricTest1 MeanSquaresMeshToMeshMetricTest1.cxx)
 TARGET_LINK_LIBRARIES(MeanSquaresMeshToMeshMetricTest1 ITKQuadEdgeMesh ITKNumerics ITKIO) 
+
+ADD_EXECUTABLE(ConvertFreeSurferBinarySurfaceToVTKSurface ConvertFreeSurferBinarySurfaceToVTKSurface.cxx)
+TARGET_LINK_LIBRARIES(ConvertFreeSurferBinarySurfaceToVTKSurface ITKQuadEdgeMesh ITKNumerics ITKIO) 
