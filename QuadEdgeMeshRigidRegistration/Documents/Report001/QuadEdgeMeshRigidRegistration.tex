@@ -161,7 +161,7 @@ interpolators that are included in this contribution.
 
 \begin{figure}
 \center
-\includegraphics[width=0.7\textwidth]{MetricsClassHierarchy.pdf}
+\includegraphics[width=0.35\textwidth]{MetricsClassHierarchy.pdf}
 \itkcaption[Metrics Class Hierarchy]{Hierarchy of new Mesh Metric Classes.}
 \label{fig:MetricsClassHierarchy}
 \end{figure}
@@ -180,11 +180,17 @@ are passed to the interpolator's \code{Evaluate()} method. The first action of
 this method is to locate the points from the Moving Mesh that are closest to
 the point given as argument of Evaluate.
 
-The \code{PointLocator} class takes advantage of the \doxygen{KdTreeGenerator}
-and \doxygen{PointSetToListSampleAdaptor} classes provided by the ITK
-Statistics framework. The KdTree is constructed from the Moving Mesh during the
-initialization process of the interpolator, that is triggered by the
-Initialize() method of the Metric itself.
+The \code{PointLocator} class takes advantage of the classes
+
+\begin{itemize}
+\item \doxygen{KdTreeGenerator}
+\item \doxygen{PointSetToListSampleAdaptor} 
+\end{itemize}
+
+that are already provided by the ITK Statistics framework. The KdTree is
+constructed from the Moving Mesh during the initialization process of the
+interpolator, that is triggered by the Initialize() method of the Metric
+itself.
 
 \subsection{Triangle Basis System}
 
@@ -205,5 +211,50 @@ The \code{TriangleBasisSystemCalculator} is an auxiliary class that computes
 the TriangleBasisSystem of a cell from an M-Dimensional Mesh embedded in a
 N-Dimensional space.  Given a set of N points, the calculator will compute the
 vectors of the basis.
+
+\subsection{Triangle List Basis System Calculator}
+
+The \code{TriangleListBasisSystemCalculator} is an auxiliary class that will
+compute the triangle basis systems for all the cells of an input mesh.
+
+Given that in the context of Mesh to Mesh registration, the triangle basis of
+all the cells have to be computed eventually it results more efficient to
+pre-compute these basis at the beginning of the process, instead of having them
+computed on-demand as the points are sampled.
+
+Note however that this is a design decision based on the assumption that users
+will deal most of the time with meshes that are not very large, and for which
+computation time is the main concern. If you are working with very large
+meshes, then it may be desirable to modify this code to avoid the memory
+allocation required for storing all the vector basis, and instead pay for the
+computation time of these vector set at every call of the interpolator
+\code{Evaluate()} method.
+
+\subsection{FreeSurfer Binary Surface Reader}
+
+FreeSurfer is and application developed by the Athinoula A. Martinos Center for
+Biomedical Imaging. Developement was supported in part by the National Center
+for Research Resources (P41-RR14075, R01 RR16594-01A1 and the NCRR BIRN
+Morphometric Project BIRN002, U24 RR021382), the National Institute for
+Neurological Disorders and Stroke (R01 NS052585-01), the National Institute of
+Biomedical Imaging and Bioengineering, as well as the Mental Illness and
+Neuroscience Discovery (MIND) Institute and is part of the National Alliance
+for Medical Image Computing (NA-MIC) funded by the National Institutes of
+Health through the NIH Roadmap for Medical Research, Grant U54 EB005149. 
+
+Although FreeSurfer binaries can be freely downloaded, the application is
+unfortunately not Open Source, and it uses is restricted to non-commercial
+applications.
+
+For details, see \url{http://surfer.nmr.mgh.harvard.edu/}.
+
+The application for which these Mesh registration classes were developed was
+the registration of brain surfaces that have been mapped to spheres. Surface 
+data of this type is available as part of the binary download of Freesurface.
+
+In order to facilitate the use of data generated from FreeSurfer as input to
+the Mesh to Mesh registration framework we provide here a reader class that
+read FreeSurfer binary files and convert them into itkQuadEdgeMeshes.
+
 
 \end{document}
