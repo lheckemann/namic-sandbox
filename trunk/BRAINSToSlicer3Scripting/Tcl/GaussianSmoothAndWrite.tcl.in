@@ -19,6 +19,23 @@ proc TestGaussianSmoothAndWrite {} {
   set outputGaussianFileName @B2COMMANDTEST_BINARY_DIR@/NewGaussianFile.nii.gz
   b2_save_image ${GaussianImage} ${outputGaussianFileName}
 
+#get dims of input image and write to the screen
+ set inputdims b2_get_dims_image ${inputimage}
+ puts "printing out info on input image"
+ puts "$inputdims"
+
+#get dims of input image and write to the screen
+ set gaussiandims b2_get_dims_image ${GaussianImage}
+ puts "printing out info on guassian image"
+ puts "$gaussiandims"
+
+ #  NEED TO FIND OUT HOW TO SET THE RESULTING IMAGES (inputimage, GaussianImage, and differenceImage) to be displayed in Slicer
+ #   Note!  A simple and correct way to compute an imageList is
+ #     <list $imageVar1 $imageVar2 ...>
+ #  <myList $inputimage $GaussianImage>
+ #b2_image_subtract(myList)
+
+
   ${inputImage} Delete
   ${GaussianImage} Delete
 }

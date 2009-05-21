@@ -16,6 +16,7 @@ proc userargs {_arglist _args} {
        lappend _initv $_d
      }
      3 {
+
        foreach {_n _d _e} $_a {break}
        if {$_d ne {-}} {
          lappend _init $_n
@@ -265,11 +266,6 @@ b2_proc_generator b2_gaussian_filter { { volumeNode - required } { RadiusFactor 
 }
 
 
-###############################################
-###############################################
-###############################################
-###############################################
-
 #Usage  b2 load blobs  <blob-file> <filter= filter-name> <filter-suffix= filter-suffix>
 #Description  This will load blobs that are the areas of
 #       significant activation in functional images. They have
@@ -321,7 +317,7 @@ b2_proc_generator b2_load_histogram { { volumeNode - required }  {arugment2defau
 #Return  Upon successful completion a newly created image
 #       object identifier is returned,  otherwise an error
 #       status of -1 is returned.
-b2_proc_generator b2_load_image { { TEMPfileName - required }  {centered 0} {labelimage 0} {NodeName "EmptyStringValue" } } {
+b2_proc_generator b2_load_image { { TEMPfileName - required } {NodeName "EmptyStringValue" } } {
   global BRAINSScriptingMRMLisGUI;
   set fileName [ file nativename ${TEMPfileName} ]; #Need to expand file name out to remove tilde and other relative pathing
   if { "${NodeName}" == "EmptyStringValue" } then {
@@ -2921,6 +2917,7 @@ b2_proc_generator b2_get_res_image { { volumeNode - required } } {
 #    puts "b2_get_res_image Failed";
 #    return -1;
 #  }
+  
   #Need to get the real dims (i.e. trailing dimensions of 1 don't count) so that only that many resolutions are reported.
   set tempdims [b2_get_dims_image ${volumeNode} ]
   set trunc_res [ lrange $res 0 [ expr [ llength $tempdims ] - 1 ] ];
@@ -3834,14 +3831,34 @@ b2_proc_generator b2_compute_effect-size_image { { volumeNode - required }  {aru
 #Return    Upon successful completion a newly created
 #        object identifier is returned,  otherwise
 #        an error status of -1 is returned.
-b2_proc_generator b2_divide_images { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
-#   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
-  if { $statusvalue } then {
-    puts "XXXX Failed";
-    return -1;
+b2_proc_generator b2_divide_images { { volumeNode1 - required }  { volumeNode2 - required } } {
+
+#place conditions to determine how what type of multiplication i.e. how many images etc, and which parameters to modify
+  set DIVIDE [vtkImageMathematics New]
+     $DIVIDE SetInput1 [$volumeNode1 GetImageData] 
+     $DIVIDE SetInput2 [$volumeNode2 GetImageData]
+     $DIVIDE SetOperationToDivide
+  $DIVIDE Update
+
+    set NewObjName "divideImage"
+    ##Clone the input information
+    set outputVolumeNode [ [ GetBatchVolumesLogic ] CloneVolume [ GetBatchMRMLScene ] ${volumeNode1} ${NewObjName} ]
+    ##Attach the image info
+    ${outputVolumeNode} SetAndObserveImageData [${DIVIDE} GetOutput]
+    ${DIVIDE} Delete
+
+##Now make the resulting divided image the active volume
+  if { $outputVolumeNode == "" } {
+    puts "Could not divide images $volumeNode1 and $volumeNode2"
+    return -1
+  } else {
+    set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+    $selNode SetReferenceActiveVolumeID [$outputVolumeNode GetID]
+    $::slicer3::ApplicationLogic PropagateVolumeSelection
   }
-  return -1;
+
+  return ${outputVolumeNode};
+
 }
 
 #Usage  b2 equal images <imageList> <data-type= type>
@@ -3891,6 +3908,7 @@ b2_proc_generator b2_equal_images { { volumeNode - required }  {arugment2default
 #       This method is part of a piecewise, transparent replacement script for
 #       'b2 resample worsley-PET ... brains-interp= True'
 #<imageID>  The filtered PET image WITH a transform chain set.
+
 #<data-type= >  Specifies the storage type for the resulting image.
 #       The default is Float-single. Valid types are:
 #           signed-8bit
@@ -4194,14 +4212,37 @@ b2_proc_generator b2_min_images { { volumeNode - required }  {arugment2defaultva
 #Return    Upon successful completion a newly created
 #        object identifier is returned,  otherwise
 #        an error status of -1 is returned.
-b2_proc_generator b2_multiply_images { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
-#   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
-  if { $statusvalue } then {
-    puts "XXXX Failed";
-    return -1;
+b2_proc_generator b2_multiply_images { { volumeNode1 - required }  { volumeNode2 - required } } {
+
+#place conditions to determine how what type of multiplication i.e. how many images etc, and which parameters to modify
+
+  set MULT [vtkImageMathematics New]
+     #set to first image to be added
+     $MULT SetInput1 [$volumeNode1 GetImageData] 
+     #set to first image to be added
+     $MULT SetInput2 [$volumeNode2 GetImageData]
+     #choose desired operation by specifying the corresponding method 
+     $MULT SetOperationToMultiply
+  $MULT Update
+
+    set NewObjName "multiplyImage"
+    ##Clone the input information
+    set outputVolumeNode [ [ GetBatchVolumesLogic ] CloneVolume [ GetBatchMRMLScene ] ${volumeNode1} ${NewObjName} ]
+    ##Attach the image info
+    ${outputVolumeNode} SetAndObserveImageData [${MULT} GetOutput]
+    ${MULT} Delete
+
+##Now make the multiplied image the active volume
+  if { $outputVolumeNode == "" } {
+    puts "Could not multiply images $volumeNode1 and $volumeNode2"
+    return -1
+  } else {
+    set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+    $selNode SetReferenceActiveVolumeID [$outputVolumeNode GetID]
+    $::slicer3::ApplicationLogic PropagateVolumeSelection
   }
-  return -1;
+
+  return ${outputVolumeNode};
 }
 
 #Usage  b2 pooled-stddev-conversion <variance-diff-image> <cardinality-image> <requests= keywordList> <data-type= type>
@@ -4470,14 +4511,44 @@ b2_proc_generator b2_itkGradientAnisotropicDiffusion { { volumeNode - required }
 #Return    Upon successful completion a newly created
 #        object identifier is returned,  otherwise
 #        an error status of -1 is returned.
-b2_proc_generator b2_itkGradientMagnitude { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
-#   Place body of command here.
+b2_proc_generator b2_itkGradientMagnitude_filter { { volumeNode - required } {Dimension 3} handleBoundaries } {
+
+  set GMFilter [ vtkImageGradientMagnitude  New ]
+  ${GMFilter} SetInput [ ${volumeNode} GetImageData ]
+  ${GMFilter} SetDimensionality ${Dimension}
+  if { [ info exists handleBoundaries ] } then {
+      puts "Boundaries being handled ${handleBoundaries}"
+      ${GMFilter} SetHandleBoundaries[ ${handleBoundaries} ]
+    }
+  ${GMFilter} Update
+  set GMFilterOutput [ ${GMFilter} GetOutput ]
+  set NewObjName "GradientMagnitudeObjectOutput"
+
+##Clone the input information
+  set outputVolumeNode [ [ GetBatchVolumesLogic ] CloneVolume [ GetBatchMRMLScene ] ${volumeNode} ${NewObjName} ]
+##Attach the image info
+  ${outputVolumeNode} SetAndObserveImageData ${GMFilterOutput}
+  ${GMFilter} Delete
+
+##Now make the gradient magnitude filtered image the active volume
+  if { $outputVolumeNode == "" } {
+    puts "Could not load $fileName as a volume"
+    return -1
+  } else {
+    set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+    $selNode SetReferenceActiveVolumeID [$outputVolumeNode GetID]
+    $::slicer3::ApplicationLogic PropagateVolumeSelection
+  }
+
+  return ${outputVolumeNode}
+
   set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
   if { $statusvalue } then {
     puts "XXXX Failed";
     return -1;
   }
-  return -1;
+
+
 }
 
 #Usage  b2 itkLargestRegionFilledMask <imageID> <LowerThreshold><UpperThreshold= threshold> <ClosingSize= a-small-integer>
@@ -4506,19 +4577,37 @@ b2_proc_generator b2_itkLargestRegionFilledMask { { volumeNode - required }  {ar
 #Description  This command will run the itk BasicFilter named itkMedianImageFilter
 #       that finds neighborhood medians out to a cubic radius in all dimensions.
 #
-#<imageID>  An identifier for an image
-#<radius>  If you have no idea, try 1 or 2.
+#<volumeNode>  An identifier for an image
+#<kernelSize>  default value is set to 3
 #Return    Upon successful completion a newly created
 #        object identifier is returned,  otherwise
 #        an error status of -1 is returned.
-b2_proc_generator b2_itkMedian { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
+b2_proc_generator b2_itkMedian { { volumeNode - required }  {kernelSize 3}  } {
 #   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
-  if { $statusvalue } then {
-    puts "XXXX Failed";
-    return -1;
+ set MFilter [ vtkImageMedian3D  New ]
+  ${MFilter} SetInput [ ${volumeNode} GetImageData ]
+  ${MFilter} SetKernelSize ${kernelSize} ${kernelSize} ${kernelSize}
+  ${MFilter} Update
+  set MFilterOutput [ ${MFilter} GetOutput ]
+
+set NewObjName "MedianObjectOutput"
+##Clone the input information
+  set outputVolumeNode [ [ GetBatchVolumesLogic ] CloneVolume [ GetBatchMRMLScene ] ${volumeNode} ${NewObjName} ]
+##Attach the image info
+  ${outputVolumeNode} SetAndObserveImageData ${MFilterOutput}
+  ${MFilter} Delete
+
+##Now make the median smoothed image the active volume
+  if { $outputVolumeNode == "" } {
+    puts "Couldnot complete median filter on volume"
+    return -1
+  } else {
+    set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+    $selNode SetReferenceActiveVolumeID [$outputVolumeNode GetID]
+    $::slicer3::ApplicationLogic PropagateVolumeSelection
   }
-  return -1;
+
+  return ${outputVolumeNode}
 }
 
 #Usage  b2 itkPermuteAxes <image> <mapX> <mapY> <mapZ>  <data-type= ...>
@@ -4759,36 +4848,45 @@ b2_proc_generator b2_subtract_from_constant { { volumeNode - required }  {arugme
 
 #Usage  b2 subtract images <imageList> <data-type= type>
 #Description  This command generates an image the difference of each
-#       voxel across all of the images.  The result is
-#       image1 - ... - imageN
-#<imageList>  A list of images used for the subtraction images
-#       operation. The length of the list must be greater than
-#       1 and less than or equal to 256
-#   Note!  A simple and correct way to compute an imageList is
-#     <list $imageVar1 $imageVar2 ...>
-#<data-type= >  Specifies the storage type for the resulting
-#       subtraction image. Valid types are:
-#           signed-8bit
-#           unsigned-8bit
-#           signed-16bit
-#           unsigned-16bit
-#           signed-32bit
-#           unsigned-32bit
-#           signed-64bit
-#           unsigned-64bit
-#           float-single
+#       voxel across two input images.  The result is
+#       volumeNode1 - volumeNode2
+#<volumeNode1>  first input image
+#
+#<volumeNode2>  second input image
+#
 #           float-double
 #Return    Upon successful completion a newly created
 #        object identifier is returned,  otherwise
 #        an error status of -1 is returned.
-b2_proc_generator b2_subtract_images { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
-#   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
-  if { $statusvalue } then {
-    puts "XXXX Failed";
-    return -1;
+b2_proc_generator b2_subtract_images { { volumeNode1 - required }  { volumeNode2 - required } } {
+
+  set SUBTRACT [vtkImageMathematics New]
+   #set to first element of volumeNode list
+   $SUBTRACT SetInput1 [$volumeNode1 GetImageData]
+   #set to second element of volumeNode list
+   $SUBTRACT SetInput2 [$volumeNode2 GetImageData]
+   $SUBTRACT SetOperationToSubtract
+  $SUBTRACT Update
+
+
+set NewObjName "subtractImage"
+##Clone the input information
+  set outputVolumeNode [ [ GetBatchVolumesLogic ] CloneVolume [ GetBatchMRMLScene ] ${volumeNode1} ${NewObjName} ]
+##Attach the image info
+  ${outputVolumeNode} SetAndObserveImageData [${SUBTRACT} GetOutput]
+  ${SUBTRACT} Delete
+
+##Now make the subtracted image the active volume
+  if { $outputVolumeNode == "" } {
+    puts "Could not subtract images $volumeNode1 and $volumeNode2"
+    return -1
+  } else {
+    set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+    $selNode SetReferenceActiveVolumeID [$outputVolumeNode GetID]
+    $::slicer3::ApplicationLogic PropagateVolumeSelection
   }
-  return -1;
+
+  return ${outputVolumeNode};
 }
 
 #Usage  b2 standardize-neighborhood image <image> <mask> <neighborhood-size>
@@ -4838,14 +4936,36 @@ b2_proc_generator b2_standardize-neighborhood_image { { volumeNode - required } 
 #Return    Upon successful completion a newly created
 #        object identifier is returned,  otherwise
 #        an error status of -1 is returned.
-b2_proc_generator b2_sum_images { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
-#   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
-  if { $statusvalue } then {
-    puts "XXXX Failed";
-    return -1;
+b2_proc_generator b2_sum_images { { volumeNode1 - required }  { volumeNode2 - required } } {
+
+  set SUM [vtkImageMathematics New]
+   #set to first image to be added
+   $SUM SetInput1 [$volumeNode1 GetImageData]
+   #set to second image to be added
+   $SUM SetInput2 [$volumeNode2 GetImageData]
+   $SUM SetOperationToAdd
+  $SUM Update
+
+
+set NewObjName "sumImage"
+##Clone the input information
+  set outputVolumeNode [ [ GetBatchVolumesLogic ] CloneVolume [ GetBatchMRMLScene ] ${volumeNode1} ${NewObjName} ]
+##Attach the image info
+  ${outputVolumeNode} SetAndObserveImageData [${SUM} GetOutput]
+  ${SUM} Delete
+
+##Now make the summed image the active volume
+  if { $outputVolumeNode == "" } {
+    puts "Could not add images $volumeNode1 and $volumeNode2"
+    return -1
+  } else {
+    set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+    $selNode SetReferenceActiveVolumeID [$outputVolumeNode GetID]
+    $::slicer3::ApplicationLogic PropagateVolumeSelection
   }
-  return -1;
+
+  return ${outputVolumeNode};
+
 }
 
 #Usage  b2 sum masks <mask-list>
@@ -6435,4 +6555,41 @@ b2_proc_generator b2_active_roi { { volumeNode - required }  {arugment2defaultva
     return -1;
   }
   return -1;
+}
+
+
+#Usage  b2 binaryImageTheshold filter
+#Description
+#
+#
+#Return binary image mask
+#
+b2_proc_generator b2_binaryImageTheshold_filter { { volumeNode - required } {lowerThreshold 45 } {upperThreshold 200} {insideValue 1} {outsideValue 0}} {
+
+ set ThFilter [ vtkImageThreshold  New ]
+  ${ThFilter} SetInput [ ${volumeNode} GetImageData ]
+  ${ThFilter} ThresholdBetween ${lowerThreshold} ${upperThreshold}
+  ${ThFilter} SetInValue ${insideValue}
+  ${ThFilter} SetOutValue ${outsideValue}
+  ${ThFilter} Update
+  set ThFilterOutput [ ${ThFilter} GetOutput ]
+
+set NewObjName "ThresholdObjectOutput"
+##Clone the input information
+  set outputVolumeNode [ [ GetBatchVolumesLogic ] CloneVolume [ GetBatchMRMLScene ] ${volumeNode} ${NewObjName} ]
+##Attach the image info
+  ${outputVolumeNode} SetAndObserveImageData ${ThFilterOutput}
+  ${ThFilter} Delete
+
+##Now make the binary threshold image the active volume
+  if { $outputVolumeNode == "" } {
+    puts "Couldnot complete binary image threshold filter on volume"
+    return -1
+  } else {
+    set selNode [$::slicer3::ApplicationLogic GetSelectionNode]
+    $selNode SetReferenceActiveVolumeID [$outputVolumeNode GetID]
+    $::slicer3::ApplicationLogic PropagateVolumeSelection
+  }
+
+  return ${outputVolumeNode}
 }
