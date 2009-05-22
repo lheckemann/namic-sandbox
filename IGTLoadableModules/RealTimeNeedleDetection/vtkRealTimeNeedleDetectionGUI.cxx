@@ -57,16 +57,17 @@
 
 #include "vtkCornerAnnotation.h"
 
-#define PI 3.1415926535897932384626433832795 
+#define PI 3.1415926535897932384626433832795 //TODO:access the math pi
 
-#define TOP      1
+#define TOP       1
 #define RIGHT     2
 
 
-#define DEFAULTTHRESHOLD 1000
-#define DEFAULTINTENSITY 5000
+#define DEFAULTTHRESHOLD 3500
+#define DEFAULTINTENSITY 10000
 #define DEFAULTERODE     1
-#define DEFAULTDILATE    1
+#define DEFAULTDILATE    2
+//MAX and MAXOUTPUT are defined in the ImageProcessor
 
 //TODO: put everything in Logic class
 
@@ -263,8 +264,7 @@ vtkRealTimeNeedleDetectionGUI::~vtkRealTimeNeedleDetectionGUI()
   //----------------------------------------------------------------
   // Delete Classes
   //delete pImageProcessor; //TODO: Does not work properly yet
-  
-  std::cout << "NeedleDetection destructed" << std::endl;
+  // std::cout << "NeedleDetection destructed" << std::endl;
 }
 
 //---------------------------------------------------------------------------
@@ -753,7 +753,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       //------------------------------------------------------------------------------------------------
       // Crop out the imageRegion specified by the boundaries for the imageRegion
       unsigned char* pImageRegionInput = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
-      GetImageRegion(pImageData, pImageRegionInput);
+      GetImageRegion(pImageData, pImageRegionInput);      
+      //4image regions for debugging purpose only
       unsigned char* pImageRegionOutput1 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
       unsigned char* pImageRegionOutput2 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize];
       unsigned char* pImageRegionOutput3 = new unsigned char[imageRegionSize[0]*imageRegionSize[1]*scalarSize]; 
@@ -766,13 +767,14 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       if(debug == 2)
         pImageProcessor->Write("/projects/mrrobot/goerlitz/test/1-Input.png",INPUT);                      
       pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, true);  //makes the line white -> no inversion needed later on
+      //from now on the intensities are inverted -> looking for a white line
       if(debug != 0)
       {
         pImageProcessor->LaplacianRecursiveGaussian(gaussVariance, false, false); 
         pImageProcessor->GetImage((void*) pImageRegionOutput1);
         SetImageRegion(pImageData, pImageRegionOutput1, 1);  // write the region of interest at the top/left in the MRI image received from the scanner
         if(debug == 2)        
-          pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-InvertORLaPlacianGaussian.png",TMP);
+          pImageProcessor->Write("/projects/mrrobot/goerlitz/test/2-LaPlacianGaussian.png",TMP);
       }
       delete [] pImageRegionOutput1;        
       pImageProcessor->DilateAndErode(true, true, this->pErodeEntry->GetValueAsInt(), this->pDilateEntry->GetValueAsInt()); // 2 == dilate value, default: 3 == erode value
@@ -788,7 +790,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       pImageProcessor->Threshold(true, true, 0, (int) needleDetectionThreshold, MAX);
       if(debug != 0)
       {
-        pImageProcessor->Threshold(true, false, 0, (int) needleDetectionThreshold, MAX);
+        pImageProcessor->Threshold(true, false, 0, (int) needleDetectionThreshold, -1); //parameters: outside value, keep values in between needleDetectionThreshold and MAX
+                                                                                         // works like a ThresholdBelow, since the second threshold is MAX
         pImageProcessor->GetImage((void*) pImageRegionOutput3);
         SetImageRegion(pImageData, pImageRegionOutput3, 3);  // write the region of interest at the bottom/left in the MRI image received from the scanner  
         if(debug == 2)   
@@ -896,10 +899,8 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         matrixTransformToParentNeedle->DeepCopy(transform->GetMatrix()); // This calls the modified event
                 
         //for driving the scan plane via OIGTLink a transform normal to the scan plane is needle 
-        transform->Translate(-translationI, -translationJ, -translationK);
-        transform->RotateZ(90); 
-        //vtkMatrix4x4* matrixTransformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
-        //matrixTransformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
+        vtkMatrix4x4* matrixTransformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
+        matrixTransformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
         transform->Delete();
       }  
       clock_t end = clock();
@@ -950,6 +951,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForHelpFrame ()
 void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
 {
     //TODO: Delete all the vtkKWLabel objects in this function
+    //TODO: Set Ballonhelp for everything
   vtkKWWidget* page = this->UIPanel->GetPageWidget("RealTimeNeedleDetection");
   
   vtkSlicerModuleCollapsibleFrame* parentFrame = vtkSlicerModuleCollapsibleFrame::New();
@@ -1016,6 +1018,26 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   buttonSetFrame->Delete();
   
   // ------------------------------------------------------
+  // gauss variance slider button  
+  vtkKWFrame* sliderFrame3 = vtkKWFrame::New();
+  sliderFrame3->SetParent(controlFrame->GetFrame());
+  sliderFrame3->Create();
+  this->Script("pack %s -fill both -expand true", sliderFrame3->GetWidgetName());
+  
+  this->pGaussScale = vtkKWScaleWithEntry::New();
+  this->pGaussScale->SetParent(sliderFrame3);
+  this->pGaussScale->SetLabelText("Gaussian Variance");
+  this->pGaussScale->Create();
+  this->pGaussScale->GetScale()->SetLength(180); 
+  this->pGaussScale->SetRange(1,10);
+  this->pGaussScale->SetResolution(1);
+  //TODO:constrict the values to integer  -> floor?
+  this->pGaussScale->SetValue(1);  
+  this->Script("pack %s -side left -padx 2 -pady 2", this->pGaussScale->GetWidgetName());  
+  
+  sliderFrame3->Delete();  
+  
+  // ------------------------------------------------------
   // Dilate and Erode Value Entry  
   vtkKWFrame* dilateErodeFrame = vtkKWFrame::New();
   dilateErodeFrame->SetParent(controlFrame->GetFrame());
@@ -1065,7 +1087,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pThresholdScale->SetLabelText("Threshold");
   this->pThresholdScale->Create();
   this->pThresholdScale->GetScale()->SetLength(180); 
-  this->pThresholdScale->SetRange(0,MAX);
+  this->pThresholdScale->SetRange(0,MAX/4);
   this->pThresholdScale->SetResolution(10);
   //TODO: constrict the values to integer?  -> floor?
   this->pThresholdScale->SetValue(DEFAULTTHRESHOLD);  
@@ -1092,27 +1114,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->Script("pack %s -side left -padx 2 -pady 2", this->pIntensityScale->GetWidgetName());  
   
   sliderFrame2->Delete();
-  
-  // ------------------------------------------------------
-  // gauss variance slider button  
-  vtkKWFrame* sliderFrame3 = vtkKWFrame::New();
-  sliderFrame3->SetParent(controlFrame->GetFrame());
-  sliderFrame3->Create();
-  this->Script("pack %s -fill both -expand true", sliderFrame3->GetWidgetName());
-  
-  this->pGaussScale = vtkKWScaleWithEntry::New();
-  this->pGaussScale->SetParent(sliderFrame3);
-  this->pGaussScale->SetLabelText("Gaussian Variance");
-  this->pGaussScale->Create();
-  this->pGaussScale->GetScale()->SetLength(180); 
-  this->pGaussScale->SetRange(1,10);
-  this->pGaussScale->SetResolution(1);
-  //TODO:constrict the values to integer  -> floor?
-  this->pGaussScale->SetValue(1);  
-  this->Script("pack %s -side left -padx 2 -pady 2", this->pGaussScale->GetWidgetName());  
-  
-  sliderFrame3->Delete();  
-  
+   
   // -----------------------------------------
   // push buttons
   vtkKWFrame* buttonFrame = vtkKWFrame::New();
@@ -1194,14 +1196,12 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pXLowerEntry->Create();
   this->pXLowerEntry->SetWidth(7);
   this->pXLowerEntry->SetValueAsInt(100);
-  //this->pXLowerEntry->SetValueAsInt(135);
               
   this->pXUpperEntry = vtkKWEntry::New();
   this->pXUpperEntry->SetParent(xFrame);
   this->pXUpperEntry->Create();
   this->pXUpperEntry->SetWidth(7);
   this->pXUpperEntry->SetValueAsInt(180);
-  //this->pXUpperEntry->SetValueAsInt(155);
 
   this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               xLabel->GetWidgetName(), this->pXLowerEntry->GetWidgetName(), this->pXUpperEntry->GetWidgetName());
@@ -1378,7 +1378,6 @@ void vtkRealTimeNeedleDetectionGUI::SetImageRegion(vtkImageData* pImageData, uns
       positionInMessageImage = 5*scalarSize + (i%(imageRegionSize[0]*scalarSize)) + (i/(imageRegionSize[0]*scalarSize))*imageDimensions[0]*scalarSize;
     else //the position of the region of interest is to the right
       positionInMessageImage = (imageDimensions[0]-5-imageRegionSize[0])*scalarSize + (i%(imageRegionSize[0]*scalarSize)) + (i/(imageRegionSize[0]*scalarSize))*imageDimensions[0]*scalarSize;    
-    //old command to get the exact position on the x-axis in the image:  positionInMessageImage = imageRegionLower[0]*scalarSize + (i%(imageRegionSize[0]*scalarSize)) + (i/(imageRegionSize[0]*scalarSize))*imageDimensions[0]*scalarSize;
       
     if(position == 1 || position == 2) //the position of the region of interest is above the original image
       pImage[positionInMessageImage+5*imageDimensions[0]*scalarSize] = pImageRegion[i];      

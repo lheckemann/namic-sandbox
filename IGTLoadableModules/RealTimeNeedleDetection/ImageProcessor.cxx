@@ -224,6 +224,7 @@ void ImageProcessor::GradientMagnitude(bool inputTmp, bool outputTmp)
   return;
 }
 
+//If threshold gets used with -1 and -2 as second parameter it works like ThresholdBelow and ThresholdAbove with respect to the outside value and the first threshold
 void ImageProcessor::Threshold(bool inputTmp, bool outputTmp, int outsideValue, int firstThresh, int secondThresh)
 { 
   itk::ThresholdImageFilter<FloatImageType>::Pointer

@@ -20,7 +20,7 @@
 #include "itkBinaryThinningImageFilter.h"             
 
 #define MAX       65335 // Maximum gray scale Intensity for FloatImageType and UShortImageType (=maximum of unsigned short)
-#define MAXOUTPUT 550   // Maximum gray scale Intensity for the output image
+#define MAXOUTPUT 550   // Maximum gray scale Intensity for the output image, makes the images appear closer to the original regarding intensity
 
 #define ENTERINGRIGHT  1
 #define ENTERINGBOTTOM 2
