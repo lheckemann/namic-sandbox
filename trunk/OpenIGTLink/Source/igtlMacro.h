@@ -497,7 +497,7 @@ static Pointer New(void) \
       igtlmsg << "Debug: In " __FILE__ ", line " << __LINE__ << "\n" \
              << this->GetNameOfClass() << " (" << this << "): " x  \
              << "\n\n"; \
-      std::cerr << igtlmsg; /*::igtl::OutputWindowDisplayDebugText(igtlmsg.str().c_str());*/} \
+      std::cerr << igtlmsg.str(); /*::igtl::OutputWindowDisplayDebugText(igtlmsg.str().c_str());*/} \
 }
 #endif
 
@@ -514,7 +514,7 @@ static Pointer New(void) \
       igtlmsg << "WARNING: In " __FILE__ ", line " << __LINE__ << "\n" \
              << this->GetNameOfClass() << " (" << this << "): " x  \
              << "\n\n"; \
-      std::cerr << igtlmsg; /*::igtl::OutputWindowDisplayWarningText(igtlmsg.str().c_str());*/} \
+      std::cerr << igtlmsg.str(); /*::igtl::OutputWindowDisplayWarningText(igtlmsg.str().c_str());*/} \
 }
 #endif
 
@@ -590,7 +590,7 @@ private:
   igtlmsg << "Debug: In " __FILE__ ", line " << __LINE__ << "\n" \
           << this->GetNameOfClass() << " (" << this << "): " x   \
           << "\n\n";                                             \
-  std::cerr << igtlmsg; /*::igtl::OutputWindowDisplayDebugText(igtlmsg.str().c_str());*/ \
+  std::cerr << igtlmsg.str(); /*::igtl::OutputWindowDisplayDebugText(igtlmsg.str().c_str());*/ \
 }
 
 #define igtlErrorMacro(x) \
@@ -599,10 +599,8 @@ private:
   igtlmsg << "Debug: In " __FILE__ ", line " << __LINE__ << "\n" \
           << this->GetNameOfClass() << " (" << this << "): " x   \
           << "\n\n";                                             \
-  std::cerr << igtlmsg; /*::igtl::OutputWindowDisplayDebugText(igtlmsg.str().c_str());*/ \
+  std::cerr << igtlmsg.str(); /*::igtl::OutputWindowDisplayDebugText(igtlmsg.str().c_str());*/ \
 }
-
-
 
 
 #ifdef IGTL_LEAN_AND_MEAN
@@ -613,7 +611,7 @@ private:
     { ::igtl::OStringStream igtlmsg; \
       igtlmsg << "WARNING: In " __FILE__ ", line " << __LINE__ << "\n" \
              x << "\n\n"; \
-      std::cerr << igtlmsg;/*::igtl::OutputWindowDisplayGenericOutputText(igtlmsg.str().c_str());*/} \
+      std::cerr << igtlmsg.str();/*::igtl::OutputWindowDisplayGenericOutputText(igtlmsg.str().c_str());*/} \
 }
 #endif
 

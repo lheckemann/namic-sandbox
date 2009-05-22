@@ -78,6 +78,11 @@ int main(int argc, char* argv[])
       
       // Receive generic header from the socket
       int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+      if (r == 0)
+        {
+        socket->CloseSocket();
+        exit(0);
+        }
       if (r != headerMsg->GetPackSize())
         {
         continue;
