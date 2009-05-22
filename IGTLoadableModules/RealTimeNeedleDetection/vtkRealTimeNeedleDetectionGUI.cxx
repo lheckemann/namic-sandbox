@@ -57,6 +57,8 @@
 
 #include "vtkCornerAnnotation.h"
 
+#include "igtlTimeStamp.h"
+
 #define PI 3.1415926535897932384626433832795 //TODO:access the math pi
 
 #define TOP       1
@@ -686,6 +688,11 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
     lastModified = this->pSourceNode->GetMTime(); // This prevents unnecessarily issued ImageDataModifiedEvents from beging processed 
     if((this->pSourceNode == vtkMRMLVolumeNode::SafeDownCast(caller)) && (event == vtkMRMLVolumeNode::ImageDataModifiedEvent))
     {
+      //igtlTime stamp for measuring the lag time
+//      igtl::TimeStamp::Pointer timeStamp = igtl::TimeStamp::New();
+//      timeStamp->GetTime();
+//      std::cout << "|||ArriveTime:" << timeStamp->GetTimeStamp() << endl;
+      
       clock_t begin = clock();
       
       //--------------------------------------------------------------------------------------
@@ -902,6 +909,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         vtkMatrix4x4* matrixTransformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
         matrixTransformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
         transform->Delete();
+        
+//        igtl::TimeStamp::Pointer timeStamp = igtl::TimeStamp::New();
+//        timeStamp->GetTime();
+//        std::cout << "|||SendTime:" << timeStamp->GetTimeStamp() << endl;        
       }  
       clock_t end = clock();
       cout << "               Time elapsed: " << double(diffclock(end,begin)) << " ms"<< endl << endl;  
