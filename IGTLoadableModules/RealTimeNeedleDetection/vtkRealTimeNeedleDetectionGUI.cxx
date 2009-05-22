@@ -699,7 +699,7 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
       // the image received from OpenIGTLink needs to be shifted in every iteration
       double fovI = imageDimensions[0] * imageSpacing[0] / 2.0;
       double fovJ = imageDimensions[1] * imageSpacing[1] / 2.0;
-      double fovK = imageDimensions[2] * imageSpacing[2] / 2.0;  
+      //double fovK = imageDimensions[2] * imageSpacing[2] / 2.0; -> is not used, because the reformatted image received from the MRI is only 2D  
       scalarSize = pImageData->GetScalarSize();
       vtkMatrix4x4* imagePlaneOrientation = vtkMatrix4x4::New();       
       pSourceNode->GetRASToIJKMatrix(imagePlaneOrientation);         
@@ -707,25 +707,27 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         pOutputNode->SetRASToIJKMatrix(imagePlaneOrientation); //orient the Outputnode the same way as the input image
       imagePlaneOrientation->Delete();
       //TODO: Do I need to get the scalarType, too?
-//      if(ROIpresent)
-//      {
-//        std::cout << "MRLMROINode exists" << std::endl;
-//        vtkCollection* collectionOfROINodes = this->GetMRMLScene()->GetNodesByName("MRMLROINode");
-//        int nItems = collectionOfROINodes->GetNumberOfItems();
-//        if(nItems > 0)
-//        {
-//          vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(collectionOfROINodes->GetItemAsObject(0));
-//          double center[3];
-//          double radius[3];
-//                 
-//          pROINode->GetRadiusXYZ(radius);
-//          pROINode->GetXYZ(center);
-//          this->pXLowerEntry->SetValueAsInt((int) ((-center[0]) - radius[0] + fovI)); // negative center point for the x-axis, because the ROIMRMLNode coordinates are in RAS (LR direction of X-axis), 
-//          this->pXUpperEntry->SetValueAsInt((int) ((-center[0]) + radius[0] + fovI)); // but the slicer axial and coronal view, which are used as reference, switch the direction (RL direction of X-axis)
-//          this->pYLowerEntry->SetValueAsInt((int) ((-center[1]) - radius[1] + fovJ)); // negative center point for the y-axis, because the ROIMRMLNode coordinates are in RAS (PA direction of Y-axis),
-//          this->pYUpperEntry->SetValueAsInt((int) ((-center[1]) + radius[1] + fovJ)); // but the slicer axial and sagital view, which are used as reference, switch the direction (AP direction of Y-axis)    
-//        }         
-//      }
+      if(ROIpresent)
+      {
+        std::cout << "MRLMROINode exists" << std::endl;
+        vtkCollection* collectionOfROINodes = this->GetMRMLScene()->GetNodesByName("MRMLROINode");
+        int nItems = collectionOfROINodes->GetNumberOfItems();
+        if(nItems > 0)
+        {
+          vtkMRMLROINode* pROINode = vtkMRMLROINode::SafeDownCast(collectionOfROINodes->GetItemAsObject(0));
+          double center[3];
+          double radius[3];
+                 
+          pROINode->GetRadiusXYZ(radius);
+          pROINode->GetXYZ(center);
+          this->pXLowerEntry->SetValueAsInt((int) ((-center[0]) - radius[0] + fovI)); // negative center point for the x-axis, because the ROIMRMLNode coordinates are in RAS (LR direction of X-axis), 
+          this->pXUpperEntry->SetValueAsInt((int) ((-center[0]) + radius[0] + fovI)); // but the slicer axial and coronal view, which are used as reference, switch the direction (RL direction of X-axis)
+          this->pYLowerEntry->SetValueAsInt((int) ((-center[1]) - radius[1] + fovJ)); // negative center point for the y-axis, because the ROIMRMLNode coordinates are in RAS (PA direction of Y-axis),
+          this->pYUpperEntry->SetValueAsInt((int) ((-center[1]) + radius[1] + fovJ)); // but the slicer axial and sagital view, which are used as reference, switch the direction (AP direction of Y-axis)    
+        }         
+      }
+      //TODO: take the ROI handling out!
+      
       currentLowerBound[0]      = this->pXLowerEntry->GetValueAsInt();
       currentUpperBound[0]      = this->pXUpperEntry->GetValueAsInt();
       currentLowerBound[1]      = this->pYLowerEntry->GetValueAsInt();
@@ -849,27 +851,10 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         //TODO: Take this out later on          //std::cout << atan2(-1,3)*180/PI << "|" << atan2(1,3)*180/PI << "|" << atan2(3,1)*180/PI << "|" << atan2(3,-1)*180/PI << "|" << std::endl;
         
         //-------------------------------------------------------------------------------------------
-        // make the needle transform fit the line detected in the image  
-        vtkMatrix4x4* imagePlaneOrientation = vtkMatrix4x4::New();         
-        pSourceNode->GetRASToIJKMatrix(imagePlaneOrientation);
-        //only the rotation of the new scan plane is needed | There is a displacement introduced by OpenIGTLink that should not be included
-        //There is also a bug somewhere -> matrix needs to be transposed TODO: comment more on this
-        imagePlaneOrientation->Element[0][3] = 0.0;
-        imagePlaneOrientation->Element[1][3] = 0.0;
-        imagePlaneOrientation->Element[2][3] = 0.0;
-        double tmp = 0.0;
-        tmp = imagePlaneOrientation->Element[0][1];
-        imagePlaneOrientation->Element[0][1] = imagePlaneOrientation->Element[1][0];
-        imagePlaneOrientation->Element[1][0] = tmp;
-        tmp = imagePlaneOrientation->Element[0][2];
-        imagePlaneOrientation->Element[0][2] = imagePlaneOrientation->Element[2][0];
-        imagePlaneOrientation->Element[2][0] = tmp;
-        tmp = imagePlaneOrientation->Element[1][2];
-        imagePlaneOrientation->Element[1][2] = imagePlaneOrientation->Element[2][1];
-        imagePlaneOrientation->Element[2][1] = tmp;
-
+        // make the needle transform fit the line detected in the image
+        //first: create a transform and align it with the needle found in the 2D image
         vtkTransform* transform = vtkTransform::New();
-        transform->SetMatrix(pNeedleTransformNode->GetMatrixTransformToParent());        
+        //transform->SetMatrix(pNeedleTransformNode->GetMatrixTransformToParent());   //TODO: take this out later      
         double translationI = 0;   //(X-axis)
         double translationJ = 0;   //(Y-axis)
         double translationK = 0;   //(Z-axis)  
@@ -880,17 +865,41 @@ void vtkRealTimeNeedleDetectionGUI::ProcessMRMLEvents(vtkObject* caller, unsigne
         transform->Translate(translationI, translationJ, translationK);    
         transform->RotateZ(-90);   // needle direction from PATIENTLEFT to PATIENTRIGHT / RIGHT to LEFT in the image shown in reformat-mode
         transform->RotateZ(angle);
+        
+        //second: rotate the transform according to the original 2D image orientation 
+        //        to align the transform with the found needle in 3D
+        vtkMatrix4x4* imagePlaneOrientation = vtkMatrix4x4::New();         
+        pSourceNode->GetRASToIJKMatrix(imagePlaneOrientation);
+        //only the rotation of the new scan plane is needed 
+        //There is a displacement introduced by OpenIGTLink due to different origin definitions that should not be included
+        imagePlaneOrientation->Element[0][3] = 0.0;
+        imagePlaneOrientation->Element[1][3] = 0.0;
+        imagePlaneOrientation->Element[2][3] = 0.0;
+            //There is also a bug in Slicer (or in this program?) that the rotation matrix are differently used for the image plane and the transform  
+            //The column and rows are switched and that is why the matrix gets transposed manually before applying it to the transform
+            //take these lines out when it is fixed
+            double tmp = 0.0;
+            tmp = imagePlaneOrientation->Element[0][1];
+            imagePlaneOrientation->Element[0][1] = imagePlaneOrientation->Element[1][0];
+            imagePlaneOrientation->Element[1][0] = tmp;
+            tmp = imagePlaneOrientation->Element[0][2];
+            imagePlaneOrientation->Element[0][2] = imagePlaneOrientation->Element[2][0];
+            imagePlaneOrientation->Element[2][0] = tmp;
+            tmp = imagePlaneOrientation->Element[1][2];
+            imagePlaneOrientation->Element[1][2] = imagePlaneOrientation->Element[2][1];
+            imagePlaneOrientation->Element[2][1] = tmp;
         transform->PostMultiply(); // = global coordinate system
         transform->Concatenate(imagePlaneOrientation); //concatenate the transposed image plane orientation without the translation
-            
+        
+        //write the newly oriented transform to pNeedleTransformNode   
         vtkMatrix4x4* matrixTransformToParentNeedle = pNeedleTransformNode->GetMatrixTransformToParent();
         matrixTransformToParentNeedle->DeepCopy(transform->GetMatrix()); // This calls the modified event
                 
-        //TODO: the following stuff should not make any sense anymore -> change!
+        //for driving the scan plane via OIGTLink a transform normal to the scan plane is needle 
         transform->Translate(-translationI, -translationJ, -translationK);
         transform->RotateZ(90); 
-        vtkMatrix4x4* matrixTransformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
-        matrixTransformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
+        //vtkMatrix4x4* matrixTransformToParentScanPlane = pScanPlaneNormalNode->GetMatrixTransformToParent();
+        //matrixTransformToParentScanPlane->DeepCopy(transform->GetMatrix()); // This calls the modified event
         transform->Delete();
       }  
       clock_t end = clock();
@@ -1078,7 +1087,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pIntensityScale->GetScale()->SetLength(180); 
   this->pIntensityScale->SetRange(0,MAX);
   this->pIntensityScale->SetResolution(10);
-  //TODO:Question for Steve can I constrict the values to integer?  -> floor?
+  //TODO: constrict the values to integer  -> floor?
   this->pIntensityScale->SetValue(DEFAULTINTENSITY);  
   this->Script("pack %s -side left -padx 2 -pady 2", this->pIntensityScale->GetWidgetName());  
   
@@ -1098,7 +1107,7 @@ void vtkRealTimeNeedleDetectionGUI::BuildGUIForGeneralParameters()
   this->pGaussScale->GetScale()->SetLength(180); 
   this->pGaussScale->SetRange(1,10);
   this->pGaussScale->SetResolution(1);
-  //TODO:Question for Steve can I constrict the values to integer?  -> floor?
+  //TODO:constrict the values to integer  -> floor?
   this->pGaussScale->SetValue(1);  
   this->Script("pack %s -side left -padx 2 -pady 2", this->pGaussScale->GetWidgetName());  
   
