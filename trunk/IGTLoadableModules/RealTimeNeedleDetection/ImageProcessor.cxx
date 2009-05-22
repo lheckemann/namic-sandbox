@@ -313,7 +313,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   InverterType::Pointer inverter = InverterType::New();
   HoughFilter::Pointer houghFilter = HoughFilter::New();
   double initialIntensity = -1; //average intensity of the first 6 pixels of the needle
-  double avgIntensity  = -1;  //average intensity of the pixels of the needle
+  double avgIntensity  = -1;  //"average" intensity of the needle pixels
   double lastIntensity = MAX; //intensity of last pixel examined | used to compare with the current pixel finding the end of the needle
   int  length          = 0;   //length of the found needle in pixels
     
@@ -331,8 +331,8 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
  
   //--------------------------------------------------------------------------------------------------
   // Get line from HoughTransformation
-  //TODO: really hard copy the image! | right now it is just reference copy -> mLocalInputImage changes, too
-  mLocalOutputImage = mLocalInputImage; // Output image = input image with line drawn into it
+  //TODO: really hard copy the image! | right now it is just a reference copy -> mLocalInputImage changes, too
+  mLocalOutputImage = mLocalInputImage; // Output image = input image with line drawn into it   //TODO: change the used image to mLocalInputImage, because I do not draw the line in the image anymore
   HoughFilter::LinesListType lines = houghFilter->GetLines(1);
   HoughFilter::LinesListType::const_iterator itLines = lines.begin();
 
@@ -353,7 +353,8 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   std::cout << " | | u=" << u[0] << "|" << u[1] << " v=" << v[0] << "|" << v[1] << std::endl;   
           
   //--------------------------------------------------------------------------------------------------
-  //draw found line in mLocalOutputImage
+  //follow the dark line in the original by comparing intensities
+  //TODO: This simply follows the straight line found by the hough transform -> make this follow a curved line by following the darkest spot
   FloatImageType::IndexType localIndex;
   FloatImageType::IndexType offsetIndex; // for checking adjacent pixels 
   itk::Size<2> size = mLocalOutputImage->GetLargestPossibleRegion().GetSize();
@@ -380,7 +381,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   u[0] -= multiplier * v[0];
   u[1] -= multiplier * v[1];  
   
-  //normalize the direction vector to negative y, because the needle enters from the bottom of the image
+  //normalize the direction vector to negative, because the needle enters from right or bottom and in the ITK coordinate system these are the highest values
   if(multiplier < 0.0) 
   {
     v[0] *= -1;
@@ -396,7 +397,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
   for(int i=0; i<=static_cast<int>(diag); i++)
   {
     
-    offsetIndex[0] = localIndex[0]=(long int)(u[0]+i*v[0]);
+    offsetIndex[0] = localIndex[0]=(long int)(u[0]+i*v[0])+1;
     offsetIndex[1] = localIndex[1]=(long int)(u[1]+i*v[1]);
 //    localIndex[0]=(long int)(u[0]+i*v[0])+1; // offset of 1 for the line, because it is detected a little too high for NeedleEntering == BOTTOM
 //    localIndex[1]=(long int)(u[1]+i*v[1])+1; // offset of 1 for the line, because it is detected a little too high for NeedleEntering == Left
@@ -411,7 +412,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
         points[0] = (u[0]+i*v[0]); // X-coordinate of the first point of the needle in the image
         points[1] = (u[1]+i*v[1]); // Y-coordinate of the first point of the needle in the image
         pixelIsNeedle = true;
-        //TODO:get initial intensity right
+        //TODO:use initial intensity or take it out again! It does not get used yet
         initialIntensity = 0;
         for(int j = -1; j < 2; ++j)
           for(int k = -1; k < 1; ++k)
@@ -435,7 +436,7 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
       }
       else
       {        
-        for (int j = -1; j < 2; ++j) //TODO: continue -> maybe use the average value from the beginning
+        for (int j = -1; j < 2; ++j) //TODO: maybe use the initial intensity
         {
           if(needleEnteringDirection == ENTERINGRIGHT) 
             offsetIndex[1] = localIndex[1]+j; //Y-1, Y, Y+1
@@ -444,26 +445,54 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
             
           std::cout << " | | " << offsetIndex[0] << "&" << offsetIndex[1] << "->" << mLocalOutputImage->GetPixel(offsetIndex) << "|";
 
-          if(abs((int) (mLocalOutputImage->GetPixel(offsetIndex) - lastIntensity)) <= intensityThresh) 
+          if(abs((int) (mLocalOutputImage->GetPixel(offsetIndex) - avgIntensity)) <= intensityThresh) 
             pixelIsNeedle = true;            
         }          
         std::cout << std::endl;
       }
-  
-      if(pixelIsNeedle)  // if pixel still belongs to needle
+      
+      if(!pixelIsNeedle) // if supposedly does not belong to the needle anymore
+      {        
+        //maybe it is the bright part that belongs to the lower part of the artifact -> then there follows a really dark part
+        float brightIntens = mLocalOutputImage->GetPixel(localIndex);
+        std::cout << " | | " << "brightIntens" << brightIntens << std::endl; 
+        for (int j = 2; j < 4; ++j) 
+        {
+          offsetIndex[0] = localIndex[0];
+          offsetIndex[1] = localIndex[1];
+          if(needleEnteringDirection == ENTERINGRIGHT) 
+            offsetIndex[0] = localIndex[0]-j; //X-2, X-3
+          else if(needleEnteringDirection == ENTERINGBOTTOM) 
+            offsetIndex[1] = localIndex[1]-j;    //Y-2, Y-3    
+            
+          std::cout << " | | " << offsetIndex[0] << "&" << offsetIndex[1] << "->" << mLocalOutputImage->GetPixel(offsetIndex) << std::endl;
+
+          if(mLocalOutputImage->GetPixel(offsetIndex) <= brightIntens/3)
+          {
+            //pixelIsNeedle = true;
+            i += 8;  // jump over the dark artifact
+            length += 8;
+            break;
+          }         
+        } 
+      }  
+      else  // if pixel still belongs to needle
       {
         length++;
         lastIntensity = mLocalOutputImage->GetPixel(localIndex);
         avgIntensity += mLocalOutputImage->GetPixel(localIndex);
-      }         
-      else // found the end of the needle
+        if(length>1) // do not devide by two for the first one
+          avgIntensity /= 2;
+      }  
+      
+      if(!pixelIsNeedle) // found the end of the needle       
       {  
         std::cout << " | | found the end of the needle" << std::endl;
         points[2] = (u[0]+i*v[0]);  // X-coordinate of the needle tip
         points[3] = (u[1]+i*v[1]);  // Y-coordinate of the needle tip
         break;
       }
-      mLocalOutputImage->SetPixel(localIndex, 0);
+      //mLocalOutputImage->SetPixel(localIndex, 0); makes the pixel black that is supposed to belong to the needle
     }
     else if(length > 0) // needle exists and needle tip is outside of theimage region
     {  
@@ -473,8 +502,8 @@ void ImageProcessor::HoughTransformation(bool inputTmp, double* points, double i
       break;
     }
   }
-  if(length != 0)
-    avgIntensity /= length; 
+//  if(length != 0)
+//    avgIntensity /= length; 
   std::cout << " | | end of houghtransform - avgIntensity: " << avgIntensity << std::endl;
   return;
 }
