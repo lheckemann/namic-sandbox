@@ -50,7 +50,14 @@ int main(int argc, char* argv[])
   // Prepare server socket
   igtl::ServerSocket::Pointer serverSocket;
   serverSocket = igtl::ServerSocket::New();
-  serverSocket->CreateServer(port);
+  int r = serverSocket->CreateServer(port);
+
+  if (r < 0)
+    {
+    std::cerr << "Cannot create a server socket." << std::endl;
+    exit(0);
+    }
+
 
   igtl::Socket::Pointer socket;
   
