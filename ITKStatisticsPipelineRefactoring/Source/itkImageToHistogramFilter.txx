@@ -128,11 +128,16 @@ ImageToHistogramFilter< TImage >
   Superclass::PrintSelf(os,indent);
   os << indent << "ImageToListSample adaptor = " << this->m_ImageToListAdaptor << std::endl;
   os << indent << "HistogramGenerator = " << this->m_HistogramGenerator << std::endl;
-  os << indent << "HistogramBinMinimum: " << this->GetHistogramBinMinimum() << std::endl;
-  os << indent << "HistogramBinMaximum: " << this->GetHistogramBinMaximum() << std::endl;
-  os << indent << "MarginalScale: " << this->GetMarginalScale() << std::endl;
-  os << indent << "AutoMinimumMaximum: " << this->GetAutoMinimumMaximum() << std::endl;
-  os << indent << "HistogramSize: " << this->GetHistogramSize() << std::endl;
+  // m_HistogramBinMinimum
+  os << indent << "HistogramBinMinimum: " << this->GetHistogramBinMinimumInput() << std::endl;
+  // m_HistogramBinMaximum
+  os << indent << "HistogramBinMaximum: " << this->GetHistogramBinMaximumInput() << std::endl;
+  // m_MarginalScale
+  os << indent << "MarginalScale: " << this->GetMarginalScaleInput() << std::endl;
+  // m_AutoMinimumMaximum
+  os << indent << "AutoMinimumMaximum: " << this->GetAutoMinimumMaximumInput() << std::endl;
+  // m_HistogramSize
+  os << indent << "HistogramSize: " << this->GetHistogramSizeInput() << std::endl;
 }
 
 

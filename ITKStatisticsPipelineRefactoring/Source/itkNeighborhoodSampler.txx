@@ -26,7 +26,6 @@ template< class TSample >
 NeighborhoodSampler< TSample >
 ::NeighborhoodSampler()
 {
-  this->SetRadius(1);
 }
 
 template< class TSample >
@@ -69,7 +68,8 @@ NeighborhoodSampler< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf(os,indent);
-  os << indent << "Radius: " << this->GetRadius() << std::endl;
+  // m_Radius
+  os << indent << "Radius: " << this->GetRadiusInput() << std::endl;
 }
 
 

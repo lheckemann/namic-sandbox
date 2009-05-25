@@ -89,14 +89,14 @@ PointSetToListSampleAdaptor< TPointSet >
 template < class TPointSet >
 inline const typename PointSetToListSampleAdaptor< TPointSet >::MeasurementVectorType & 
 PointSetToListSampleAdaptor< TPointSet >
-::GetMeasurementVector(const InstanceIdentifier &id) const
+::GetMeasurementVector(const InstanceIdentifier &identifier) const
 {
   if( m_PointSet.IsNull() )
     {
     itkExceptionMacro("Point set has not been set yet");
     }
 
-  m_PointSet->GetPoint(id, &m_TempPoint);
+  m_PointSet->GetPoint(identifier, &m_TempPoint);
   return (MeasurementVectorType&) m_TempPoint;
 }
 

@@ -87,7 +87,7 @@ public:
   typedef Array< TMeasurement >        ArrayType;
 
   /** Standard typedefs */
-  typedef MeasurementHistogram                    Self;
+  typedef MeasurementHistogram         Self;
   typedef Sample< ArrayType  >         Superclass;
   typedef SmartPointer<Self>           Pointer;
   typedef SmartPointer<const Self>     ConstPointer;
