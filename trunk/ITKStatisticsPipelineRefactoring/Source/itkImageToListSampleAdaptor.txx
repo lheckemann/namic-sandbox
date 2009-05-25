@@ -17,6 +17,8 @@
 #ifndef __itkImageToListSampleAdaptor_txx
 #define __itkImageToListSampleAdaptor_txx
 
+#include "itkImageToListSampleAdaptor.h"
+
 namespace itk { 
 namespace Statistics {
 

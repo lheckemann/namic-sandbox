@@ -112,16 +112,21 @@ SampleToHistogramFilter< TSample, THistogram >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
+  // m_AutoMinimumMaximum
   os << indent << "AutoMinimumMaximum: "
-     << this->GetAutoMinimumMaximum() << std::endl;
+     << this->GetAutoMinimumMaximumInput() << std::endl;
+  // m_MarginalScale
   os << indent << "MarginalScale: "
-     << this->GetMarginalScale() << std::endl;
+     << this->GetMarginalScaleInput() << std::endl;
+  // m_HistogramBinMinimum
   os << indent << "HistogramBinMinimum: "
-     << this->GetHistogramBinMinimum() << std::endl;
+     << this->GetHistogramBinMinimumInput() << std::endl;
+  // m_HistogramBinMaximum
   os << indent << "HistogramBinMaximum: "
-     << this->GetHistogramBinMaximum() << std::endl;
+     << this->GetHistogramBinMaximumInput() << std::endl;
+  // m_HistogramSize
   os << indent << "HistogramSize: "
-     << this->GetHistogramSize() << std::endl;
+     << this->GetHistogramSizeInput() << std::endl;
 }
 
 

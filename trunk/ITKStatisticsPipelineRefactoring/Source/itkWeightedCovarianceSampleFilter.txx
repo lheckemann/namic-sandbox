@@ -40,8 +40,10 @@ WeightedCovarianceSampleFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
-  os << indent << "Weights: " << this->GetWeights() << std::endl;
-  os << indent << "WeightingFunction: " << this->GetWeightingFunction() << std::endl;
+  // m_Weights
+  os << indent << "Weights: " << this->GetWeightsInput() << std::endl;
+  // m_WeightingFunction
+  os << indent << "WeightingFunction: " << this->GetWeightingFunctionInput() << std::endl;
 }
 
 template< class TSample >
