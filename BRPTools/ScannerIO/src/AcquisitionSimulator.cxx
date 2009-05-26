@@ -41,18 +41,79 @@ AcquisitionSimulator::AcquisitionSimulator()
     this->ScanPlaneBuffer.pop();
     }
 
-  this->CurrentMatrix[0][0] = 1.0;
+/*These lines changing the current matrix were inserted by Roland in 2009 for usage with the RealTimeNeedleDetection
+* They change the initial orientation matrix for the transmitted image
+* The currently uncommented part is the default: an axial view 
+*/
+//test for oblique  (translation +40X, +80Y | rotation +45X -> +30Y -> +80Z global)
+//  this->CurrentMatrix[0][0] = 0.150;
+//  this->CurrentMatrix[1][0] = 0.85;
+//  this->CurrentMatrix[2][0] = -0.5;
+//  this->CurrentMatrix[0][1] = -0.634;
+//  this->CurrentMatrix[1][1] = 0.470;
+//  this->CurrentMatrix[2][1] = 0.612;
+//  this->CurrentMatrix[0][2] = 0.757;
+//  this->CurrentMatrix[1][2] = 0.225;
+//  this->CurrentMatrix[2][2] = 0.61;
+//  this->CurrentMatrix[0][3] = 0.0;
+//  this->CurrentMatrix[1][3] = 0.0;
+//  this->CurrentMatrix[2][3] = 0.0;   
+    
+//identity
+//  this->CurrentMatrix[0][0] = 1.0;
+//  this->CurrentMatrix[1][0] = 0.0;
+//  this->CurrentMatrix[2][0] = 0.0;
+//  this->CurrentMatrix[0][1] = 0.0;
+//  this->CurrentMatrix[1][1] = 1.0;
+//  this->CurrentMatrix[2][1] = 0.0;
+//  this->CurrentMatrix[0][2] = 0.0;
+//  this->CurrentMatrix[1][2] = 0.0;
+//  this->CurrentMatrix[2][2] = 1.0;
+//  this->CurrentMatrix[0][3] = 0.0;
+//  this->CurrentMatrix[1][3] = 0.0;
+//  this->CurrentMatrix[2][3] = 0.0;
+
+//axial --> this is the default, because in Slicer the X-, and Y-axis are pointing to the other direction
+  this->CurrentMatrix[0][0] = -1.0;
   this->CurrentMatrix[1][0] = 0.0;
   this->CurrentMatrix[2][0] = 0.0;
   this->CurrentMatrix[0][1] = 0.0;
-  this->CurrentMatrix[1][1] = 1.0;
+  this->CurrentMatrix[1][1] = -1.0;
   this->CurrentMatrix[2][1] = 0.0;
   this->CurrentMatrix[0][2] = 0.0;
   this->CurrentMatrix[1][2] = 0.0;
   this->CurrentMatrix[2][2] = 1.0;
   this->CurrentMatrix[0][3] = 0.0;
-  this->CurrentMatrix[0][3] = 0.0;
-  this->CurrentMatrix[0][3] = 0.0;
+  this->CurrentMatrix[1][3] = 0.0;
+  this->CurrentMatrix[2][3] = 0.0;
+
+//sagital probably wrong
+//  this->CurrentMatrix[0][0] = 0.0;
+//  this->CurrentMatrix[1][0] = 1.0;
+//  this->CurrentMatrix[2][0] = 0.0;
+//  this->CurrentMatrix[0][1] = 0.0;
+//  this->CurrentMatrix[1][1] = 0.0;
+//  this->CurrentMatrix[2][1] = -1.0;
+//  this->CurrentMatrix[0][2] = -1.0;
+//  this->CurrentMatrix[1][2] = 0.0;
+//  this->CurrentMatrix[2][2] = 0.0;
+//  this->CurrentMatrix[0][3] = 0.0;
+//  this->CurrentMatrix[1][3] = 0.0;
+//  this->CurrentMatrix[2][3] = 0.0;
+
+//coronal (+180Degree z-axis and +90Degree x-axis)
+//  this->CurrentMatrix[0][0] = -1.0;
+//  this->CurrentMatrix[1][0] = 0.0;
+//  this->CurrentMatrix[2][0] = 0.0;
+//  this->CurrentMatrix[0][1] = 0.0;
+//  this->CurrentMatrix[1][1] = 0.0;
+//  this->CurrentMatrix[2][1] = -1.0;
+//  this->CurrentMatrix[0][2] = 0.0;
+//  this->CurrentMatrix[1][2] = -1.0;
+//  this->CurrentMatrix[2][2] = 0.0;
+//  this->CurrentMatrix[0][3] = 0.0;
+//  this->CurrentMatrix[1][3] = 0.0;
+//  this->CurrentMatrix[2][3] = 0.0;
 
 }
 
@@ -354,9 +415,9 @@ void AcquisitionSimulator::GetCurrentFrame(igtl::ImageMessage::Pointer& cf)
   char* srcPtr = (char*)currentVolumePtr->GetScalarPointer();
   char* dstPtr = (char*)this->CurrentFrame->GetScalarPointer();
 
-  int sizei    = dim[0];
-  int sizej    = dim[1];
-  int sizek    = dim[2];
+  int sizei    = dim[0]; 
+  int sizej    = dim[1];  
+  int sizek    = dim[2]; 
   int subsizei = this->SubVolumeDimension[0];
   int subsizej = this->SubVolumeDimension[1];
   int subsizek = this->SubVolumeDimension[2];
