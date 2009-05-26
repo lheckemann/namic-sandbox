@@ -1301,7 +1301,7 @@ int vtkFourDAnalysisLogic::RunCropping(vtkMRMLScalarVolumeNode* inputNode,
   //
   vtkCommandLineModuleGUI* cligui;
   vtkSlicerApplication* app = this->GetApplication();
-  cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Image Cropping"));
+  cligui = vtkCommandLineModuleGUI::SafeDownCast(app->GetModuleGUIByName ("Crop Images"));
 
   std::cerr << "RunCropping()" << std::endl;
 
