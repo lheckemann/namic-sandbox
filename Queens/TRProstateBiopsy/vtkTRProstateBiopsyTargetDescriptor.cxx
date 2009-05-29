@@ -1,17 +1,9 @@
 #include "vtkTRProstateBiopsyTargetDescriptor.h"
 #include "vtkObjectFactory.h"
 //----------------------------------------------------------------------------
-vtkTRProstateBiopsyTargetDescriptor* vtkTRProstateBiopsyTargetDescriptor::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkTRProstateBiopsyTargetDescriptor");
-  if(ret)
-    {
-      return (vtkTRProstateBiopsyTargetDescriptor*)ret;
-    }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkTRProstateBiopsyTargetDescriptor;
-}
+vtkStandardNewMacro(vtkTRProstateBiopsyTargetDescriptor);
+vtkCxxRevisionMacro(vtkTRProstateBiopsyTargetDescriptor, "$Revision: 1.0 $");
+//----------------------------------------------------------------------------
 /// Constructor
 vtkTRProstateBiopsyTargetDescriptor::vtkTRProstateBiopsyTargetDescriptor()
 {
@@ -33,9 +25,9 @@ vtkTRProstateBiopsyTargetDescriptor::vtkTRProstateBiopsyTargetDescriptor()
     this->RASLocation[0] = 0;
     this->RASLocation[1] = 0;
     this->RASLocation[2] = 0;
-    this->Hinge[0] = 0;
-    this->Hinge[1] = 0;
-    this->Hinge[2] = 0;
+    this->HingePosition[0] = 0;
+    this->HingePosition[1] = 0;
+    this->HingePosition[2] = 0;
     this->NeedleListIndex = -1;
     this->FiducialIndex = -1;
     //this->SetFilledPoint();
@@ -45,6 +37,18 @@ vtkTRProstateBiopsyTargetDescriptor::vtkTRProstateBiopsyTargetDescriptor()
 /// Destructor
 vtkTRProstateBiopsyTargetDescriptor::~vtkTRProstateBiopsyTargetDescriptor(void)
 {
+}
+
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyTargetDescriptor::PrintSelf(ostream& os, vtkIndent indent)
+{
+  
+  this->Superclass::PrintSelf(os,indent);
+
+  /*
+  os << indent << "PlanningVolumeRef:   " << 
+   (this->PlanningVolumeRef ? this->PlanningVolumeRef : "(none)") << "\n";
+ */
 }
 
 /*

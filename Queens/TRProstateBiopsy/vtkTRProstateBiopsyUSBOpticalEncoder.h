@@ -24,15 +24,20 @@
 #else /* _WIN32 */
 typedef int HANDLE;
 #endif /* _WIN32 */
+
+#include "vtkObject.h"
 #include "vtkTRProstateBiopsyWin32Header.h"
 
 
 class vtkTRProstateBiopsyGUI;
 
-class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyUSBOpticalEncoder
+class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyUSBOpticalEncoder :
+  public vtkObject
 {
 public:
     static vtkTRProstateBiopsyUSBOpticalEncoder *New();
+    vtkTypeRevisionMacro(vtkTRProstateBiopsyUSBOpticalEncoder,vtkObject);
+    void PrintSelf(ostream& os, vtkIndent indent);
 
     // Description: 
     // Get/Set GUI
@@ -74,10 +79,10 @@ protected:
 
     void LongToDevice(long val, unsigned char & b0, unsigned char & b1, unsigned char & b2, unsigned char & b3)
     {
-    b3= val & 0xFF;
-    b2=(val>>8) & 0xFF;
-    b1=(val>>16) & 0xFF;
-    b0=(val>>24) & 0xFF;
+    b3= static_cast<unsigned char>(val & 0xFF);
+    b2= static_cast<unsigned char>((val>>8) & 0xFF);
+    b1= static_cast<unsigned char>((val>>16) & 0xFF);
+    b0= static_cast<unsigned char>((val>>24) & 0xFF);
     }
     
     int GetModuleAddress(void); 

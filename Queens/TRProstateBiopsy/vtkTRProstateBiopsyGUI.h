@@ -44,6 +44,10 @@ class vtkIGTDataManager;
 class vtkIGTPat2ImgRegistration;
 class vtkSlicerInteractorStyle;
 
+class vtkTRProstateBiopsySecondaryMonitor;
+
+class vtkTRProstateBiopsyRobotWidget;
+
 #include "vtkTRProstateBiopsyLogic.h"
 
 // Description:    
@@ -107,6 +111,9 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   // Get wizard widget
   vtkGetObjectMacro(WizardWidget, vtkKWWizardWidget);
 
+  // Description: Get Secondary monitor
+  vtkGetObjectMacro (SecondaryMonitor, vtkTRProstateBiopsySecondaryMonitor);
+
   // Description:    
   // This method builds the IGTDemo module GUI
   virtual void BuildGUI();
@@ -167,6 +174,10 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   // Callback on the load experiment button
   void LoadExperimentButtonCallback(const char *fileName);
 
+  // Description:
+  // Delete Widgets
+  virtual void TearDownGUI();
+
   // Description
   // Callback on the save calibration button
   void SaveExperimentButtonCallback(const char *fileName);
@@ -185,7 +196,11 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   
   vtkKWWizardWidget *WizardWidget;
   vtkTRProstateBiopsyStep **WizardSteps;
-  
+
+  //----------------------------------------------------------------
+  // secondary monitor
+  vtkTRProstateBiopsySecondaryMonitor *SecondaryMonitor;
+
   //----------------------------------------------------------------
   // Logic Values
 
@@ -230,6 +245,11 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   char *CreateFileName();
 
   char *OpticalTimerEventId;
+
+  //BTX
+  vtkSmartPointer<vtkTRProstateBiopsyRobotWidget> PrimaryMonitorRobotViewerWidget;
+  //ETX
+
  private:
 
   vtkTRProstateBiopsyGUI(const vtkTRProstateBiopsyGUI&); // Not implemented.

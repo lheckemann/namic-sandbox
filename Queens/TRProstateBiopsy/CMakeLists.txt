@@ -17,10 +17,6 @@ endif(NOT Slicer3_SOURCE_DIR)
 # --------------------------------------------------------------------------
 # Include dirs
 
-# these dirs are not provided by find_package
-SET(Volumes_SOURCE_DIR "/data/dgobbi/NAMIC/Slicer3/Modules/Volumes")
-SET(Volumes_BINARY_DIR "/data/dgobbi/NAMIC/Slicer3bin/Modules/Volumes")
-
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
@@ -30,8 +26,6 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}/Segmentation
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
-  ${Volumes_SOURCE_DIR}
-  ${Volumes_BINARY_DIR}
 )
 
 # --------------------------------------------------------------------------
@@ -52,7 +46,11 @@ set(TRProstateBiopsy_SRCS
   vtkTRProstateBiopsyMath.cxx
   vtkTRProstateBiopsyUSBOpticalEncoder.cxx
   vtkTRProstateBiopsyTargetDescriptor.cxx
-  vtkMRMLTRProstateBiopsyModuleNode.cxx
+  vtkTRProstateBiopsyCalibrationAlgo.cxx
+  vtkTRProstateBiopsyConfigFile.cxx
+  vtkTRProstateBiopsyRobotWidget.cxx
+  vtkTRProstateBiopsyViewerWidget.cxx
+  vtkMRMLTRProstateBiopsyModuleNode.cxx    
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyCalibrationStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsySegmentationStep.cxx

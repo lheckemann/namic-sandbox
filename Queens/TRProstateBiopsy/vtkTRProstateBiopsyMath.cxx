@@ -147,9 +147,9 @@ void vtkTRProstateBiopsyMath::ComputePermutationFromOrientation(
 }
 
 //-------------------------------------------------------------------------
-double vtkTRProstateBiopsyMath::ComputeDistanceLinePoint(double x[3],
-                                                   double y[3],
-                                                   double z[3],double & apError, double & lrError, double & isError)
+double vtkTRProstateBiopsyMath::ComputeDistanceLinePoint(const double x[3],
+                                                   const double y[3],
+                                                   const double z[3],double & apError, double & lrError, double & isError)
 {
   double u[3];
   double v[3];

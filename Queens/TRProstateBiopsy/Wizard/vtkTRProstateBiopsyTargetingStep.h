@@ -16,7 +16,6 @@ class vtkKWMenuButton;
 class vtkKWMenuButtonWithLabel;
 class vtkKWMultiColumnList;
 class vtkKWMultiColumnListWithScrollbars;
-class vtkActor;
 
 class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyTargetingStep : public vtkTRProstateBiopsyStep
 {
@@ -41,6 +40,7 @@ public:
 
   void LoadFromExperimentFile(istream &file);
 
+  void UpdateGUI();
 
 
 protected:
@@ -67,8 +67,6 @@ protected:
   
   void TargetSelectedFromListCallback();
   void TargetDeselectedFromListCallback();
-  // display information in the message box
-  void PopulateMessageBoxWithTargetInfo();
 
   // display information in the secondary window
   void DisplayTargetInfoInSecondaryWindow();
@@ -78,14 +76,6 @@ protected:
 
   // change target color
   void SetTargetFiducialColor(bool selected);
-
-  // show needle path in 2D views
-  void ShowNeedlePathIn2DViews();
-
-  // show needle path in 3D view
-  void ShowNeedlePathIn3DView();
-
-  void HideNeedleIn3DView();
 
   // Description:
   // GUI callback  
@@ -137,8 +127,6 @@ protected:
   vtkKWText *Message;
   vtkKWPushButton *DeleteButton;
 
-  vtkActor *NeedleActor;
-  
   bool ProcessingCallback;
 
   int LastSelectedTargetDescriptorIndex;

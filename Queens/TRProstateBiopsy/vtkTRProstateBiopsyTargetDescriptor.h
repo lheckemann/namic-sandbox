@@ -22,14 +22,19 @@
 #include <stdio.h>
 #include <string>
 
+#include "vtkObject.h"
 #include "vtkTRProstateBiopsyWin32Header.h"
 
 
 
-class vtkTRProstateBiopsyTargetDescriptor{
+class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyTargetDescriptor :
+  public vtkObject
+{
 public:
 
-    static vtkTRProstateBiopsyTargetDescriptor *New();
+  static vtkTRProstateBiopsyTargetDescriptor *New();
+  vtkTypeRevisionMacro(vtkTRProstateBiopsyTargetDescriptor,vtkObject);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
     // Desciption
     // Save/load from ini file
@@ -38,25 +43,32 @@ public:
 
     // Description
     // Set/get Targeting parameter: rotation
-    void SetRotation(double r) { this->AxisRotation = r; }
-    double GetRotation(void) { return this->AxisRotation; }
+    vtkGetMacro(AxisRotation,double);
+    vtkSetMacro(AxisRotation,double);
 
     // Description
     // Set/get Targeting parameter: needle angle
-    void SetNeedleAngle(double a) { this->NeedleAngle = a; }
-    double GetNeedleAngle(void) { return this->NeedleAngle; }
+    vtkGetMacro(NeedleAngle,double);
+    vtkSetMacro(NeedleAngle,double);
 
     // Description
     // Set/get Targeting parameter: depth in centimeters
-    void SetDepthCM(double d) { this->DepthCM = d; }
-    double GetDepthCM(void) { return this->DepthCM; }
+    vtkGetMacro(DepthCM,double);
+    vtkSetMacro(DepthCM,double);
+
+    // Description
+    // Set/get Needle overshoot
+    vtkGetMacro(NeedleOvershoot,double);
+    vtkSetMacro(NeedleOvershoot,double);
+
 
     // Description
     // Set/get Targeting parameter: is reachable or not 
-    void SetIsOutside(bool out) { this->IsOutsideReach = out; }
-    bool GetIsOutside(void) { return this->IsOutsideReach; }
+    vtkGetMacro(IsOutsideReach,bool);
+    vtkSetMacro(IsOutsideReach,bool);
+
     //BTX
-    std::string GetReachableString()
+    std::string GetReachableString() const
         { 
             if (this->IsOutsideReach) 
                 return "No";
@@ -75,45 +87,26 @@ public:
         this->NeedleDepth = Depth;
         this->NeedleOvershoot = Overshoot;
     }
-    std::string GetNeedleTypeString(){ return this->NeedleType;}
-    int GetNeedleTypeUID(void) {return this->NeedleTypeUID; }
+    std::string GetNeedleTypeString() const { return this->NeedleType;};
+    vtkGetMacro(NeedleTypeUID, int);
     //ETX
     // Description
     // Set/get Targeting parameter: needle type depth
-    double GetNeedleTypeDepth(void) {return this->NeedleDepth; }
-    double GetNeedleTypeOvershoot(void) {return this->NeedleOvershoot; }
+    vtkGetMacro(NeedleDepth,double);
+    vtkSetMacro(NeedleDepth,double);
 
     // Description
-    // Set/get Targeting parameter: hinge position
-    void SetHingePosition(double x, double y, double z) 
-    { 
-        this->Hinge[0] = x; 
-        this->Hinge[1] = y; 
-        this->Hinge[2] = z; 
-    }
-    void GetHingePosition(double &x, double &y, double &z) 
-    { 
-        x = this->Hinge[0]; 
-        y = this->Hinge[1]; 
-        z = this->Hinge[2]; 
-    }
+    // Set/get Targeting parameter: hinge position (in RAS coordinate system)
+    vtkSetVector3Macro(HingePosition,double);
+    vtkGetVectorMacro(HingePosition,double,3);
 
     // Description
     // Set/get : ras location
-    void SetRASLocation(double x, double y, double z) 
-    { 
-        this->RASLocation[0] = x; 
-        this->RASLocation[1] = y; 
-        this->RASLocation[2] = z; 
-    }
-    void GetRASLocation(double &x, double &y, double &z) 
-    { 
-        x = this->RASLocation[0]; 
-        y = this->RASLocation[1]; 
-        z = this->RASLocation[2]; 
-    }
+    vtkSetVector3Macro(RASLocation,double);
+    vtkGetVectorMacro(RASLocation,double,3);
+
     //BTX
-    std::string GetRASLocationString()
+    std::string GetRASLocationString() const
     {
         char ras[50];
         sprintf(ras, "R %.1f, A %.1f, S %.1f", this->RASLocation[0], this->RASLocation[1], this->RASLocation[2]);
@@ -122,57 +115,52 @@ public:
     //ETX
     // Description
     // Set/get Validation info: is validated?   
-    void SetTargetValidated (bool valid) { this->TargetValidated = valid;}
-    bool GetTargetValidated(){return this->TargetValidated;}
+    vtkGetMacro(TargetValidated,bool);
+    vtkSetMacro(TargetValidated,bool);
 
     // Description
     // Set/get validation info: computed distance from the needle
-    void SetOverallError ( double error){ this->OverallError = error;}
-    double GetOverallError(){return this->OverallError;}
+    vtkGetMacro(OverallError,double);
+    vtkSetMacro(OverallError,double);
 
     // Description
     // Set/get validation info: computed distance from the needle
-    void SetAPError ( double error){ this->APError = error;}
-    double GetAPError(){return this->APError;}
+    vtkGetMacro(APError,double);
+    vtkSetMacro(APError,double);
 
     // Description
     // Set/get validation info: computed distance from the needle
-    void SetLRError ( double error){ this->LRError = error;}
-    double GetLRError(){return this->LRError;}
+    vtkGetMacro(LRError,double);
+    vtkSetMacro(LRError,double);
 
     // Description
     // Set/get validation info: computed distance from the needle
-    void SetISError ( double error){ this->ISError = error;}
-    double GetISError(){return this->ISError;}
+    vtkGetMacro(ISError,double);
+    vtkSetMacro(ISError,double);
 
     // Description
     // Set/get MRML fiducial list related info
-    void SetNeedleIndex ( int needleIndex){ this->NeedleListIndex = needleIndex;}
-    int GetNeedleIndex(){return this->NeedleListIndex;}
+    vtkGetMacro(NeedleListIndex,double);
+    vtkSetMacro(NeedleListIndex,double);
 
     // Description
     // Set/get MRML fiducial list related info
-    void SetFiducialIndex ( int fiducialIndex){ this->FiducialIndex = fiducialIndex;}
-    int GetFiducialIndex(){return this->FiducialIndex;}
+    vtkGetMacro(FiducialIndex,double);
+    vtkSetMacro(FiducialIndex,double);
 
     //BTX
     // Description
     // Set/get validation info: Validation volume FoR string
     void SetNeedleConfirmationVolumeFoRStr(std::string foRStr){this->ValidationVolumeFoR_STR = foRStr;}
-    std::string GetNeedleConfirmationVolumeFoRStr(){return this->ValidationVolumeFoR_STR;}
+    std::string GetNeedleConfirmationVolumeFoRStr() const {return this->ValidationVolumeFoR_STR;};
 
      // Description
     // Set/get FoR string
     void SetFoRStr(std::string foRStr){this->FoR_STR = foRStr;}
-    std::string GetFoRStr(){return this->FoR_STR;}
+    std::string GetFoRStr() const {return this->FoR_STR;};
 
     //ETX
-protected:
-
-    vtkTRProstateBiopsyTargetDescriptor(void);
-    ~vtkTRProstateBiopsyTargetDescriptor(void);
-    
-    
+        
 private:
     double AxisRotation;    ///< Calculated value: Axis rotation in degree
     double NeedleAngle;     ///< Calculated value: Needle angle in degree
@@ -181,7 +169,7 @@ private:
     double NeedleDepth; ///< Depth depending on needle type (biopsy, placement...)
     int NeedleTypeUID;          ///< Needle type ID for this target
     double NeedleOvershoot; ///< Overshooting
-    double Hinge[3];
+    double HingePosition[3];
     double RASLocation[3];
     //BTX
     std::string FoR_STR;
@@ -199,12 +187,11 @@ private:
     int NeedleListIndex; // index of which target fiducial list to use, as the fiducial lists are indexed by needle
     int FiducialIndex; // which fiducial within the particular needle list
     
+    vtkTRProstateBiopsyTargetDescriptor(void);
+    ~vtkTRProstateBiopsyTargetDescriptor(void);
 
-    vtkTRProstateBiopsyTargetDescriptor(const vtkTRProstateBiopsyTargetDescriptor&);
-    void operator=(const vtkTRProstateBiopsyTargetDescriptor&);
+    /*vtkTRProstateBiopsyTargetDescriptor(const vtkTRProstateBiopsyTargetDescriptor&);
+    void operator=(const vtkTRProstateBiopsyTargetDescriptor&);*/
 };
-
-
-
 
 #endif

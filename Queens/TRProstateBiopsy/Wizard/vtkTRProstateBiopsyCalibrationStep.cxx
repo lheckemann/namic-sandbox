@@ -34,6 +34,16 @@
 #include "itkMetaDataObject.h"
 #include "vtkImageChangeInformation.h"
 
+
+#include "vtkVolumeTextureMapper3D.h"
+#include "vtkPiecewiseFunction.h"
+#include "vtkFixedPointVolumeRayCastMapper.h"
+#include "vtkVolumeProperty.h"
+#include "vtkColorTransferFunction.h"
+#include "vtkPointData.h"
+
+#include "vtkTRProstateBiopsyCalibrationAlgo.h"
+
 #include <vtksys/ios/sstream>
 
 //----------------------------------------------------------------------------
@@ -44,273 +54,46 @@ vtkCxxRevisionMacro(vtkTRProstateBiopsyCalibrationStep, "$Revision: 1.1 $");
 vtkTRProstateBiopsyCalibrationStep::vtkTRProstateBiopsyCalibrationStep()
 {
   this->SetName("1/4. Calibration");
-  this->SetDescription("Perform robot calibration.");
+  this->SetDescription("Select a calibration volume, then click calibration markers.");
 
   this->WizardGUICallbackCommand->SetCallback(&vtkTRProstateBiopsyCalibrationStep::WizardGUICallback);
 
-  //this->MRMLCallbackCommand->SetCallback(
-    //&vtkTRProstateBiopsyCalibrationStep::MRMLCallback);
+  //this->MRMLCallbackCommand->SetCallback(&vtkTRProstateBiopsyCalibrationStep::MRMLCallback);
 
-  // load/reset controls
-  this->LoadResetFrame = NULL;
-  this->LoadCalibrationSettingsFileButton = NULL;
-  this->ResetCalibrationButton = NULL;
-
-  // load calibration volume dicom series
-  this->LoadVolumeDialogFrame  = NULL;
-  this->LoadCalibrationVolumeButton = NULL;
-
-  // save controls
-  this->SaveResegmentFrame = NULL;
-  this->SaveCalibrationSettingsFileButton = NULL;
-  this->ResegmentButton = NULL;
-
-
-  this->FiducialDimensionsFrame = NULL;
-  this->FiducialWidthSpinBox = NULL;
-  this->FiducialHeightSpinBox = NULL;
-  this->FiducialDepthSpinBox = NULL;
-
-  this->FiducialThresholdFrame = NULL;
-  for (int i = 0; i < 4; i++)
+  this->LoadVolumeDialogFrame=vtkSmartPointer<vtkKWFrame>::New();
+  this->LoadCalibrationVolumeButton=vtkSmartPointer<vtkKWLoadSaveButton>::New();
+  this->LoadCalibrationSettingsFileButton=vtkSmartPointer<vtkKWLoadSaveButton>::New();
+  this->SaveCalibrationSettingsFileButton=vtkSmartPointer<vtkKWLoadSaveButton>::New();
+  this->ResetCalibrationButton=vtkSmartPointer<vtkKWPushButton>::New();
+  this->ResegmentButton=vtkSmartPointer<vtkKWPushButton>::New();
+  this->LoadResetFrame=vtkSmartPointer<vtkKWFrame>::New();
+  this->ExportImportFrame=vtkSmartPointer<vtkKWFrame>::New();
+  this->FiducialPropertiesFrame=vtkSmartPointer<vtkKWFrameWithLabel>::New();
+  this->FiducialWidthSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
+  this->FiducialHeightSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
+  this->FiducialDepthSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
+  for (int i = 0; i < CALIB_MARKER_COUNT; i++)
     {
-    this->FiducialThresholdScale[i] = NULL;
+    this->FiducialThresholdScale[i]=vtkSmartPointer<vtkKWScaleWithEntry>::New();
     }
-
-  this->RadiusInitialAngleFrame = NULL;
-  this->RadiusSpinBox = NULL;
-  this->RadiusCheckButton = NULL;
-  this->InitialAngleSpinBox = NULL;
-
-  this->SegmentationResultsFrame = NULL;
-  this->Marker_1_CentroidFrame = NULL;
-  this->Marker_1_CentroidLabel = NULL;
-  this->Marker_1_Centroid = NULL;
-
-  this->Marker_2_CentroidFrame = NULL;
-  this->Marker_2_CentroidLabel = NULL;
-  this->Marker_2_Centroid = NULL;
-
-  this->Marker_3_CentroidFrame = NULL;
-  this->Marker_3_CentroidLabel = NULL;
-  this->Marker_3_Centroid = NULL;
-
-  this->Marker_4_CentroidFrame = NULL;
-  this->Marker_4_CentroidLabel = NULL;
-  this->Marker_4_Centroid = NULL;
-
-  this->Axes1Actor = vtkActor::New();  
-  this->Axes2Actor = vtkActor::New();  
-
-  this->AxesAngle = NULL;
-  this->AxesDistance = NULL;
+  this->RadiusSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
+  this->RadiusCheckButton=vtkSmartPointer<vtkKWCheckButton>::New();
+  this->InitialAngleSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
+  this->SegmentationResultsFrame=vtkSmartPointer<vtkKWFrameWithLabel>::New();
+  this->CalibrationResultsBox=vtkSmartPointer<vtkKWTextWithScrollbars>::New();
+  this->Axes1Actor=vtkSmartPointer<vtkActor>::New();
+  this->Axes2Actor=vtkSmartPointer<vtkActor>::New();
 
   this->ProcessingCallback = false;
-  this->ObserverCount = 0;
   this->ClickNumber = 0;
   this->AllMarkersAcquired = false;
 
+  CalibPointPreProcRendererList.resize(CALIB_MARKER_COUNT);
 }
 
 //----------------------------------------------------------------------------
 vtkTRProstateBiopsyCalibrationStep::~vtkTRProstateBiopsyCalibrationStep()
 {
-  // load/reset controls
-  if (this->LoadResetFrame)
-        {
-    this->LoadResetFrame->Delete();
-    this->LoadResetFrame = NULL;
-    }
-  if (this->LoadCalibrationSettingsFileButton)
-    {
-    this->LoadCalibrationSettingsFileButton->Delete();
-    this->LoadCalibrationSettingsFileButton = NULL;
-    }
-
-  if (this->ResetCalibrationButton)
-    {
-    this->ResetCalibrationButton->Delete();
-    this->ResetCalibrationButton = NULL;
-    }
-  
-  if (this->LoadVolumeDialogFrame)
-    {
-    this->LoadVolumeDialogFrame->Delete();
-    this->LoadVolumeDialogFrame = NULL;
-    }
-  if (this->LoadCalibrationVolumeButton)
-    {
-    this->LoadCalibrationVolumeButton->Delete();
-    this->LoadCalibrationVolumeButton = NULL;
-    }
-
-  
-
-  // save controls
-  if (this->SaveResegmentFrame)
-    {
-    this->SaveResegmentFrame->Delete();
-    this->SaveResegmentFrame = NULL;
-    }
-  if (this->SaveCalibrationSettingsFileButton)
-    {
-    this->SaveCalibrationSettingsFileButton->Delete();
-    this->SaveCalibrationSettingsFileButton = NULL;
-    }
-
-  if (this->ResegmentButton)
-    {
-    this->ResegmentButton->Delete();
-    this->ResegmentButton = NULL;
-    }
-
-   // pre-segment controls
-  if (this->FiducialDimensionsFrame)
-    {
-    this->FiducialDimensionsFrame->Delete();
-    this->FiducialDimensionsFrame = NULL;
-    }
-
-  if (this->FiducialWidthSpinBox)
-    {
-    this->FiducialWidthSpinBox->Delete();
-    this->FiducialWidthSpinBox = NULL;
-    }
-
-  if (this->FiducialHeightSpinBox)
-    {
-    this->FiducialHeightSpinBox->Delete();
-    this->FiducialHeightSpinBox = NULL;
-    }
-
-  if (this->FiducialDepthSpinBox)
-    {
-    this->FiducialDepthSpinBox->Delete();
-    this->FiducialDepthSpinBox = NULL;
-    }
-
-  if (this->FiducialThresholdFrame)
-    {
-    this->FiducialThresholdFrame->Delete();
-    this->FiducialThresholdFrame = NULL;
-    }
-
-  for (int i = 0; i < 4; i++)
-    {
-    if (this->FiducialThresholdScale[i])
-      {
-      this->FiducialThresholdScale[i]->Delete();
-      this->FiducialThresholdScale[i] = NULL;
-      }
-
-    }
-
-  if (this->RadiusInitialAngleFrame)
-    {
-    this->RadiusInitialAngleFrame->Delete();
-    this->RadiusInitialAngleFrame = NULL;
-    }
-  if (this->RadiusSpinBox)
-    {
-    this->RadiusSpinBox->Delete();
-    this->RadiusSpinBox = NULL;
-    }
-  if (this->RadiusCheckButton)
-    {
-    this->RadiusCheckButton->Delete();
-    this->RadiusCheckButton = NULL;
-    }
-  if (this->InitialAngleSpinBox)
-    {
-    this->InitialAngleSpinBox->Delete();
-    this->InitialAngleSpinBox = NULL;
-    }
-
-  // segmentation results controls
-  if (this->SegmentationResultsFrame)
-    {
-    this->SegmentationResultsFrame->Delete();
-    this->SegmentationResultsFrame = NULL;
-    }
-  if (this->Marker_1_CentroidFrame)
-    {
-    this->Marker_1_CentroidFrame->Delete();
-    this->Marker_1_CentroidFrame = NULL;
-    }
-  if (this->Marker_1_CentroidLabel)
-    {
-    this->Marker_1_CentroidLabel->Delete();
-    this->Marker_1_CentroidLabel = NULL;
-    }
-  if (this->Marker_1_Centroid)
-    {
-    this->Marker_1_Centroid->DeleteAllWidgets();
-    this->Marker_1_Centroid = NULL;
-    }
-  
-  if (this->Marker_2_CentroidFrame)
-    {
-    this->Marker_2_CentroidFrame->Delete();
-    this->Marker_2_CentroidFrame = NULL;
-    }
-  if (this->Marker_2_CentroidLabel)
-    {
-    this->Marker_2_CentroidLabel->Delete();
-    this->Marker_2_CentroidLabel = NULL;
-    }
-  if (this->Marker_2_Centroid)
-    {
-    this->Marker_2_Centroid->DeleteAllWidgets();
-    this->Marker_2_Centroid = NULL;
-    }
-
-
-  if (this->Marker_3_CentroidFrame)
-    {
-    this->Marker_3_CentroidFrame->Delete();
-    this->Marker_3_CentroidFrame = NULL;
-    }
-  if (this->Marker_3_CentroidLabel)
-    {
-    this->Marker_3_CentroidLabel->Delete();
-    this->Marker_3_CentroidLabel = NULL;
-    }
-  if (this->Marker_3_Centroid)
-    {
-    this->Marker_3_Centroid->DeleteAllWidgets();
-    this->Marker_3_Centroid = NULL;
-    }
-
-
-  if (this->Marker_4_CentroidFrame)
-    {
-    this->Marker_4_CentroidFrame->Delete();
-    this->Marker_4_CentroidFrame = NULL;
-    }
-  if (this->Marker_4_CentroidLabel)
-    {
-    this->Marker_4_CentroidLabel->Delete();
-    this->Marker_4_CentroidLabel = NULL;
-    }
-  if (this->Marker_4_Centroid)
-    {
-    this->Marker_4_Centroid->DeleteAllWidgets();
-    this->Marker_4_Centroid = NULL;
-    }
-
-  if (this->AxesAngle)
-    {
-    this->AxesAngle->Delete();
-    this->AxesAngle = NULL;
-    }
-  
-  if (this->AxesDistance)
-    {
-    this->AxesDistance->Delete();
-    this->AxesDistance = NULL;
-    }
-
-  
 }
 
 //----------------------------------------------------------------------------
@@ -325,91 +108,37 @@ void vtkTRProstateBiopsyCalibrationStep::ShowLoadResetControls()
   vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
   // first clear the components
-  this->ClearLoadResetControls();
-
+  //this->ClearLoadResetControls();
   
   // show load dialog box, and reset push button
     
   // Create the frame
-  if (!this->LoadResetFrame)
-    {
-    this->LoadResetFrame = vtkKWFrame::New();
-    }
   if (!this->LoadResetFrame->IsCreated())
     {
     this->LoadResetFrame->SetParent(parent);
     this->LoadResetFrame->Create();     
     }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->LoadResetFrame->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->LoadResetFrame->GetWidgetName());
 
-  // create the load file dialog button
-  if (!this->LoadCalibrationSettingsFileButton)
+  if (!this->InitialAngleSpinBox->IsCreated())
     {
-    this->LoadCalibrationSettingsFileButton = vtkKWLoadSaveButton::New();
+    this->InitialAngleSpinBox->SetParent(this->LoadResetFrame);
+    this->InitialAngleSpinBox->Create();
+    this->InitialAngleSpinBox->GetWidget()->SetWidth(11);
+    this->InitialAngleSpinBox->GetWidget()->SetRange(-180,180);
+    this->InitialAngleSpinBox->GetWidget()->SetIncrement(1);
+    this->InitialAngleSpinBox->GetWidget()->SetValue(0);
+    this->InitialAngleSpinBox->SetLabelText("Initial rotation angle");
+    //this->InitialAngleSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
     }
-  if (!this->LoadCalibrationSettingsFileButton->IsCreated())
-    {
-    this->LoadCalibrationSettingsFileButton->SetParent(this->LoadResetFrame);
-    this->LoadCalibrationSettingsFileButton->Create();
-    this->LoadCalibrationSettingsFileButton->SetBorderWidth(2);
-    this->LoadCalibrationSettingsFileButton->SetReliefToRaised();       
-    this->LoadCalibrationSettingsFileButton->SetHighlightThickness(2);
-    this->LoadCalibrationSettingsFileButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->LoadCalibrationSettingsFileButton->SetActiveBackgroundColor(1,1,1);
-    this->LoadCalibrationSettingsFileButton->SetText("Load calibration settings");
-    this->LoadCalibrationSettingsFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
-    this->LoadCalibrationSettingsFileButton->SetBalloonHelpString("Click to load a previous calibration file");
-    this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-    this->LoadCalibrationSettingsFileButton->TrimPathFromFileNameOff();
-    this->LoadCalibrationSettingsFileButton->SetMaximumFileNameLength(256);
-    this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
-    this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
-    }
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->LoadCalibrationSettingsFileButton->GetWidgetName());
-
-  // create the reset calib button
-  if(!this->ResetCalibrationButton)
-    {
-    this->ResetCalibrationButton = vtkKWPushButton::New();
-    }
-  if(!this->ResetCalibrationButton->IsCreated())
-    {
-    this->ResetCalibrationButton->SetParent(this->LoadResetFrame);
-    this->ResetCalibrationButton->SetText("Reset calibration");
-    this->ResetCalibrationButton->SetBorderWidth(2);
-    this->ResetCalibrationButton->SetReliefToRaised();      
-    this->ResetCalibrationButton->SetHighlightThickness(2);
-    this->ResetCalibrationButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->ResetCalibrationButton->SetActiveBackgroundColor(1,1,1);      
-    this->ResetCalibrationButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
-    this->ResetCalibrationButton->SetBalloonHelpString("Click to re-start the calibration, with new fiducial location guesses");
-    this->ResetCalibrationButton->Create();
-    }
-    
-  this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
-                    this->ResetCalibrationButton->GetWidgetName());
+  this->Script("pack %s -side top -anchor w -padx 2 -pady 2", this->InitialAngleSpinBox->GetWidgetName() );
   
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ClearLoadResetControls()
 {
-  if (this->LoadResetFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->LoadResetFrame->GetWidgetName());
-    }
-  if (this->LoadCalibrationSettingsFileButton)
-    {
-    this->Script("pack forget %s", 
-                    this->LoadCalibrationSettingsFileButton->GetWidgetName());
-    }
-  if (this->ResetCalibrationButton)
-    {
-    this->Script("pack forget %s", 
-                    this->ResetCalibrationButton->GetWidgetName());
-    }
+  this->Script("pack forget %s", this->LoadResetFrame->GetWidgetName());
+  this->Script("pack forget %s", this->InitialAngleSpinBox->GetWidgetName());
 }
 
 //----------------------------------------------------------------------------
@@ -418,24 +147,15 @@ void vtkTRProstateBiopsyCalibrationStep::ShowLoadVolumeControls()
   vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
   // first clear the components
-  this->ClearLoadVolumeControls();
+  //this->ClearLoadVolumeControls();
   
-  if (!this->LoadVolumeDialogFrame)
-    {
-    this->LoadVolumeDialogFrame = vtkKWFrame::New();
-    }
   if (!this->LoadVolumeDialogFrame->IsCreated())
     {
     this->LoadVolumeDialogFrame->SetParent(parent);
     this->LoadVolumeDialogFrame->Create();     
     }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->LoadVolumeDialogFrame->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->LoadVolumeDialogFrame->GetWidgetName());
   
-  if (!this->LoadCalibrationVolumeButton)
-    {
-     this->LoadCalibrationVolumeButton = vtkKWLoadSaveButton::New();
-    }
   if (!this->LoadCalibrationVolumeButton->IsCreated())
     {
     this->LoadCalibrationVolumeButton->SetParent(this->LoadVolumeDialogFrame);
@@ -446,29 +166,18 @@ void vtkTRProstateBiopsyCalibrationStep::ShowLoadVolumeControls()
     this->LoadCalibrationVolumeButton->SetBackgroundColor(0.85,0.85,0.85);
     this->LoadCalibrationVolumeButton->SetActiveBackgroundColor(1,1,1);        
     this->LoadCalibrationVolumeButton->SetText( "Browse for Calibration Volume DICOM Series");
-    this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->SetFileTypes("{ {DICOM Files} {*} }");
-    this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->SetFileTypes("{ {DICOM Files} {*} }");    
     this->LoadCalibrationVolumeButton->TrimPathFromFileNameOff();    
     this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode    
     //this->LoadCalibrationVolumeButton->GetWidget()->AddObserver(vtkKWPushButton::InvokedEvent, this->WizardGUICallbackCommand);
     }
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-               this->LoadCalibrationVolumeButton->GetWidgetName());
+  this->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->LoadCalibrationVolumeButton->GetWidgetName());
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ClearLoadVolumeControls()
 {
-   if (this->LoadVolumeDialogFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->LoadVolumeDialogFrame->GetWidgetName());
-    }
-  if (this->LoadCalibrationVolumeButton)
-    {
-    this->Script("pack forget %s", 
-                    this->LoadCalibrationVolumeButton->GetWidgetName());
-    }
-  
+  this->Script("pack forget %s", this->LoadVolumeDialogFrame->GetWidgetName());
+  this->Script("pack forget %s", this->LoadCalibrationVolumeButton->GetWidgetName());
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ShowFiducialSegmentParamsControls()
@@ -476,216 +185,108 @@ void vtkTRProstateBiopsyCalibrationStep::ShowFiducialSegmentParamsControls()
   vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
   // first clear the components
-  this->ClearFiducialSegmentParamsControls();
+  //this->ClearFiducialSegmentParamsControls();
 
-  if (!this->FiducialDimensionsFrame)
+  if (!this->FiducialPropertiesFrame->IsCreated())
     {
-    this->FiducialDimensionsFrame = vtkKWFrameWithLabel::New();
-    this->FiducialDimensionsFrame->SetParent(parent);
-    this->FiducialDimensionsFrame->Create();
-    this->FiducialDimensionsFrame->SetLabelText(
-                    "Approximate fiducial dimensions");
+    this->FiducialPropertiesFrame->SetParent(parent);
+    this->FiducialPropertiesFrame->Create();
+    this->FiducialPropertiesFrame->SetLabelText("Fiducial properties");
+    this->FiducialPropertiesFrame->CollapseFrame();    
     }
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->FiducialPropertiesFrame->GetWidgetName());
 
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-               this->FiducialDimensionsFrame->GetWidgetName());
-
-  if (!this->FiducialWidthSpinBox)
+  if (!this->FiducialWidthSpinBox->IsCreated())
     {
-    this->FiducialWidthSpinBox = vtkKWSpinBoxWithLabel::New();
-    this->FiducialWidthSpinBox->SetParent(
-                    this->FiducialDimensionsFrame->GetFrame());
+    this->FiducialWidthSpinBox->SetParent(this->FiducialPropertiesFrame->GetFrame());
     this->FiducialWidthSpinBox->Create();
     this->FiducialWidthSpinBox->GetWidget()->SetWidth(11);
     this->FiducialWidthSpinBox->GetWidget()->SetRange(0,100);
     this->FiducialWidthSpinBox->GetWidget()->SetIncrement(1);
     this->FiducialWidthSpinBox->GetWidget()->SetValue(8);
-    this->FiducialWidthSpinBox->SetLabelText("W");
+    this->FiducialWidthSpinBox->SetLabelText("Fiducial width");
     //this->FiducialWidthSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
     }
-
-  if (!this->FiducialHeightSpinBox)
+  if (!this->FiducialHeightSpinBox->IsCreated())
     {
-    this->FiducialHeightSpinBox = vtkKWSpinBoxWithLabel::New();
-    this->FiducialHeightSpinBox->SetParent(
-                    this->FiducialDimensionsFrame->GetFrame());
+    this->FiducialHeightSpinBox->SetParent(this->FiducialPropertiesFrame->GetFrame());
     this->FiducialHeightSpinBox->Create();
     this->FiducialHeightSpinBox->GetWidget()->SetWidth(11);
     this->FiducialHeightSpinBox->GetWidget()->SetRange(0,100);
     this->FiducialHeightSpinBox->GetWidget()->SetIncrement(1);
     this->FiducialHeightSpinBox->GetWidget()->SetValue(5);
-    this->FiducialHeightSpinBox->SetLabelText("H");
+    this->FiducialHeightSpinBox->SetLabelText("Fiducial height");
     //this->FiducialHeightSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
     }
-
-  if (!this->FiducialDepthSpinBox)
+  if (!this->FiducialDepthSpinBox->IsCreated())
     {
-    this->FiducialDepthSpinBox = vtkKWSpinBoxWithLabel::New();
-    this->FiducialDepthSpinBox->SetParent(
-                    this->FiducialDimensionsFrame->GetFrame());
+    this->FiducialDepthSpinBox->SetParent(this->FiducialPropertiesFrame->GetFrame());
     this->FiducialDepthSpinBox->Create();
     this->FiducialDepthSpinBox->GetWidget()->SetWidth(11);
     this->FiducialDepthSpinBox->GetWidget()->SetRange(0,100);
     this->FiducialDepthSpinBox->GetWidget()->SetIncrement(1);
     this->FiducialDepthSpinBox->GetWidget()->SetValue(5);
-    this->FiducialDepthSpinBox->SetLabelText("D");
+    this->FiducialDepthSpinBox->SetLabelText("Fiducial depth");
     //this->FiducialDepthSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
     }
-
-  this->Script("pack %s %s %s -side left -anchor w -padx 2 -pady 2", 
+  this->Script("pack %s %s %s -side top -anchor w -padx 2 -pady 2", 
                this->FiducialWidthSpinBox->GetWidgetName(),
                this->FiducialHeightSpinBox->GetWidgetName(),
                this->FiducialDepthSpinBox->GetWidgetName());
 
-  if (!this->FiducialThresholdFrame)
+  if (!this->RadiusSpinBox->IsCreated())
     {
-    this->FiducialThresholdFrame = vtkKWFrameWithLabel::New();
-    this->FiducialThresholdFrame->SetParent(parent);
-    this->FiducialThresholdFrame->Create();
-    this->FiducialThresholdFrame->SetLabelText("Fiducial thresholds");
-    //this->FiducialThresholdFrame->CollapseFrame();
+    this->RadiusSpinBox->SetParent(this->FiducialPropertiesFrame->GetFrame());
+    this->RadiusSpinBox->Create();
+    this->RadiusSpinBox->GetWidget()->SetWidth(11);
+    this->RadiusSpinBox->GetWidget()->SetRange(1,100);
+    this->RadiusSpinBox->GetWidget()->SetIncrement(1);
+    this->RadiusSpinBox->GetWidget()->SetValue(35);
+    this->RadiusSpinBox->SetLabelText("Fiducial radius");
+    //this->RadiusSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
     }
+  //this->Script("pack %s -side left -anchor w -padx 2 -pady 2", this->RadiusSpinBox->GetWidgetName());
+  this->Script("pack %s -side top -anchor w -padx 2 -pady 2", this->RadiusSpinBox->GetWidgetName());
 
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-               this->FiducialThresholdFrame->GetWidgetName());
-
-  for (int i = 0; i < 4; i++)
+  std::ostrstream ospack;
+  ospack << "pack";
+  for (int i = 0; i < CALIB_MARKER_COUNT; i++)
     {
-    if (!this->FiducialThresholdScale[i])
-      {
-      static const char *label[4] = {
-        "1", "2", "3", "4" };
-
-      this->FiducialThresholdScale[i] = vtkKWScaleWithEntry::New();
-      this->FiducialThresholdScale[i]->SetParent(
-        this->FiducialThresholdFrame->GetFrame());
+    if (!this->FiducialThresholdScale[i]->IsCreated())
+      {  
+      this->FiducialThresholdScale[i]->SetParent(this->FiducialPropertiesFrame->GetFrame());
       this->FiducialThresholdScale[i]->Create();
-      this->FiducialThresholdScale[i]->SetLabelText(label[i]);
+      std::ostrstream os;
+      os << "Threshold "<< i << std::ends;    
+      this->FiducialThresholdScale[i]->SetLabelText(os.str());
+      os.rdbuf()->freeze();
       this->FiducialThresholdScale[i]->SetWidth(3);
       this->FiducialThresholdScale[i]->SetLength(200);
       this->FiducialThresholdScale[i]->SetRange(0,100);
       this->FiducialThresholdScale[i]->SetResolution(1);
       this->FiducialThresholdScale[i]->SetValue(9);
-      //this->FiducialThresholdScale[i]->AddObserver(vtkKWScale::ScaleValueChangingEvent, this->WizardGUICallbackCommand);      
+      //this->FiducialThresholdScale[i]->AddObserver(vtkKWScale::ScaleValueChangingEvent, this->WizardGUICallbackCommand);            
       }
+    ospack << " " << this->FiducialThresholdScale[i]->GetWidgetName();
     }
-
-  this->Script("pack %s %s %s %s -side top -anchor w -padx 2 -pady 2", 
-               this->FiducialThresholdScale[0]->GetWidgetName(),
-               this->FiducialThresholdScale[1]->GetWidgetName(),
-               this->FiducialThresholdScale[2]->GetWidgetName(),
-               this->FiducialThresholdScale[3]->GetWidgetName() );
-
-  if (!this->RadiusInitialAngleFrame)
-    {
-    this->RadiusInitialAngleFrame = vtkKWFrameWithLabel::New();
-    this->RadiusInitialAngleFrame->SetParent(parent);
-    this->RadiusInitialAngleFrame->Create();
-    this->RadiusInitialAngleFrame->SetLabelText("Radius and Angle");
-    }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-               this->RadiusInitialAngleFrame->GetWidgetName());
-
-  if (!this->RadiusSpinBox)
-    {
-    this->RadiusSpinBox = vtkKWSpinBoxWithLabel::New();
-    this->RadiusSpinBox->SetParent(
-                    this->RadiusInitialAngleFrame->GetFrame());
-    this->RadiusSpinBox->Create();
-    this->RadiusSpinBox->GetWidget()->SetWidth(11);
-    this->RadiusSpinBox->GetWidget()->SetRange(0,100);
-    this->RadiusSpinBox->GetWidget()->SetIncrement(1);
-    this->RadiusSpinBox->GetWidget()->SetValue(35);
-    this->RadiusSpinBox->SetLabelText("Radius");
-    //this->RadiusSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
-    }
-
-  if (!this->RadiusCheckButton)
-    {
-    this->RadiusCheckButton = vtkKWCheckButton::New();
-    this->RadiusCheckButton->SetParent(
-                    this->RadiusInitialAngleFrame->GetFrame());
-    this->RadiusCheckButton->Create();
-    //this->RadiusCheckButton->AddObserver( vtkKWCheckButton::SelectedStateChangedEvent, this->WizardGUICallbackCommand);
-    }
-
-  if (!this->InitialAngleSpinBox)
-    {
-    this->InitialAngleSpinBox = vtkKWSpinBoxWithLabel::New();
-    this->InitialAngleSpinBox->SetParent(
-                    this->RadiusInitialAngleFrame->GetFrame());
-    this->InitialAngleSpinBox->Create();
-    this->InitialAngleSpinBox->GetWidget()->SetWidth(11);
-    this->InitialAngleSpinBox->GetWidget()->SetRange(0,100);
-    this->InitialAngleSpinBox->GetWidget()->SetIncrement(1);
-    this->InitialAngleSpinBox->GetWidget()->SetValue(0);
-    this->InitialAngleSpinBox->SetLabelText("    Initial angle");
-    //this->InitialAngleSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
-    }
-
-  this->Script("pack %s %s %s -side left -anchor w -padx 2 -pady 2", 
-               this->RadiusSpinBox->GetWidgetName(),
-               this->RadiusCheckButton->GetWidgetName(),
-               this->InitialAngleSpinBox->GetWidgetName() );
+  ospack << " -side top -anchor w -padx 2 -pady 2" << std::ends;
+  this->Script(ospack.str());
+  ospack.rdbuf()->freeze();
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ClearFiducialSegmentParamsControls()
 {
-  if (this->FiducialDimensionsFrame)
+  this->Script("pack forget %s", this->FiducialPropertiesFrame->GetWidgetName());
+  this->Script("pack forget %s", this->FiducialWidthSpinBox->GetWidgetName());
+  this->Script("pack forget %s", this->FiducialHeightSpinBox->GetWidgetName());
+  this->Script("pack forget %s", this->FiducialDepthSpinBox->GetWidgetName());  
+  for (int i = 0; i<CALIB_MARKER_COUNT; i++)
     {
-    this->Script("pack forget %s", 
-                    this->FiducialDimensionsFrame->GetWidgetName());
+    this->Script("pack forget %s", this->FiducialThresholdScale[i]->GetWidgetName());
     }
-  if (this->FiducialWidthSpinBox)
-    {
-    this->Script("pack forget %s", 
-                    this->FiducialWidthSpinBox->GetWidgetName());
-    }
-  if (this->FiducialHeightSpinBox)
-    {
-    this->Script("pack forget %s", 
-                    this->FiducialHeightSpinBox->GetWidgetName());
-    }
-  if (this->FiducialDepthSpinBox)
-    {
-    this->Script("pack forget %s", 
-                    this->FiducialDepthSpinBox->GetWidgetName());
-    }
-  if (this->FiducialThresholdFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->FiducialThresholdFrame->GetWidgetName());
-    }
-  for (int i = 0; i<4; i++)
-    {
-    if (this->FiducialThresholdScale[i])
-      {
-      this->Script("pack forget %s", 
-                    this->FiducialThresholdScale[i]->GetWidgetName());
-      }
-    }
-  if (this->RadiusInitialAngleFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->RadiusInitialAngleFrame->GetWidgetName());
-    }
-  if (this->RadiusSpinBox)
-    {
-    this->Script("pack forget %s", 
-                    this->RadiusSpinBox->GetWidgetName());
-    }
-  if (this->RadiusCheckButton)
-    {
-    this->Script("pack forget %s", 
-                    this->RadiusCheckButton->GetWidgetName());
-    }
-  if (this->InitialAngleSpinBox)
-    {
-    this->Script("pack forget %s", 
-                    this->InitialAngleSpinBox->GetWidgetName());
-    }
-
+  this->Script("pack forget %s", this->RadiusSpinBox->GetWidgetName());
+  this->Script("pack forget %s", this->RadiusCheckButton->GetWidgetName());
+  this->Script("pack forget %s", this->ResegmentButton->GetWidgetName());
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ShowFiducialSegmentationResultsControls()
@@ -693,391 +294,104 @@ void vtkTRProstateBiopsyCalibrationStep::ShowFiducialSegmentationResultsControls
   vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
    
   // first clear the translate components if they were created by previous mode
-  this->ClearFiducialSegmentationResultsControls();
+  //this->ClearFiducialSegmentationResultsControls();
 
   // Create the frame
-  if (!this->SegmentationResultsFrame)
-    {
-    this->SegmentationResultsFrame = vtkKWFrameWithLabel::New();
-    }
   if (!this->SegmentationResultsFrame->IsCreated())
     {
     this->SegmentationResultsFrame->SetParent(parent);
     this->SegmentationResultsFrame->Create();
     this->SegmentationResultsFrame->SetLabelText("Segmentation/registration results");
     this->SegmentationResultsFrame->SetBalloonHelpString("Results of segmentation and robot registration");
+    this->SegmentationResultsFrame->AllowFrameToCollapseOff();
     }
   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                     this->SegmentationResultsFrame->GetWidgetName());
 
-  // marker centroid controls
-
-  if (!this->Marker_1_CentroidFrame)
+  if(!this->CalibrationResultsBox->IsCreated())
     {
-    this->Marker_1_CentroidFrame = vtkKWFrame::New();
+    this->CalibrationResultsBox->SetParent(this->SegmentationResultsFrame->GetFrame());
+    this->CalibrationResultsBox->Create();
+    this->CalibrationResultsBox->SetHorizontalScrollbarVisibility(0);
+    this->CalibrationResultsBox->SetVerticalScrollbarVisibility( 1) ;
+    this->CalibrationResultsBox->GetWidget()->SetText("");      
+    this->CalibrationResultsBox->GetWidget()->SetBackgroundColor(0.7, 0.7, 0.95);
+    this->CalibrationResultsBox->SetHeight(6);
+    this->CalibrationResultsBox->GetWidget()->SetWrapToWord();
+    this->CalibrationResultsBox->GetWidget()->ReadOnlyOn();
+    this->CalibrationResultsBox->SetBorderWidth(2);
+    this->CalibrationResultsBox->SetReliefToGroove();
+    this->CalibrationResultsBox->GetWidget()->SetFont("times 12 bold");
+    //this->Message->SetForegroundColor(0.0, 1.0, 0.0);
     }
-  if (!this->Marker_1_CentroidFrame->IsCreated())
-    {
-    this->Marker_1_CentroidFrame->SetParent(this->SegmentationResultsFrame->GetFrame());
-    this->Marker_1_CentroidFrame->Create();
-    }
-    
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->Marker_1_CentroidFrame->GetWidgetName());
-
-  // label
-  if (!this->Marker_1_CentroidLabel)
-    { 
-    this->Marker_1_CentroidLabel = vtkKWLabel::New();
-    }
-  if (!this->Marker_1_CentroidLabel->IsCreated())
-    {
-    this->Marker_1_CentroidLabel->SetParent(this->Marker_1_CentroidFrame);
-    this->Marker_1_CentroidLabel->Create();
-    this->Marker_1_CentroidLabel->SetText("Marker 1 (centroid):     ");
-    this->Marker_1_CentroidLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-    }  
-    
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->Marker_1_CentroidLabel->GetWidgetName());
-    
-  if (!this->Marker_1_Centroid)
-    {
-    this->Marker_1_Centroid =  vtkKWEntrySet::New();  
-    }
-  if (!this->Marker_1_Centroid->IsCreated())
-    {
-    this->Marker_1_Centroid->SetParent(this->Marker_1_CentroidFrame);
-    this->Marker_1_Centroid->Create();
-    this->Marker_1_Centroid->SetBorderWidth(2);
-    this->Marker_1_Centroid->SetReliefToGroove();
-    this->Marker_1_Centroid->SetPackHorizontally(1);   
-    this->Marker_1_Centroid->SetMaximumNumberOfWidgetsInPackingDirection(3);
-    
-    for (int id = 0; id < 3; id++)
-      {
-      vtkKWEntry *entry = this->Marker_1_Centroid->AddWidget(id);
-      entry->SetWidth(7);
-      entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-      entry->ReadOnlyOn(); 
-      }
-    }
-
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->Marker_1_Centroid->GetWidgetName());
-
-  if (!this->Marker_2_CentroidFrame)
-    {
-    this->Marker_2_CentroidFrame = vtkKWFrame::New();
-    }
-  if (!this->Marker_2_CentroidFrame->IsCreated())
-    {
-    this->Marker_2_CentroidFrame->SetParent(this->SegmentationResultsFrame->GetFrame());
-    this->Marker_2_CentroidFrame->Create();
-    }
-    
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->Marker_2_CentroidFrame->GetWidgetName());
-
-  // label
-  if (!this->Marker_2_CentroidLabel)
-    { 
-    this->Marker_2_CentroidLabel = vtkKWLabel::New();
-    }
-  if (!this->Marker_2_CentroidLabel->IsCreated())
-    {
-    this->Marker_2_CentroidLabel->SetParent(this->Marker_2_CentroidFrame);
-    this->Marker_2_CentroidLabel->Create();
-    this->Marker_2_CentroidLabel->SetText("Marker 2 (centroid):     ");
-    this->Marker_2_CentroidLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-    }  
-    
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->Marker_2_CentroidLabel->GetWidgetName());
-    
-  if (!this->Marker_2_Centroid)
-    {
-    this->Marker_2_Centroid =  vtkKWEntrySet::New();  
-    }
-  if (!this->Marker_2_Centroid->IsCreated())
-    {
-    this->Marker_2_Centroid->SetParent(this->Marker_2_CentroidFrame);
-    this->Marker_2_Centroid->Create();
-    this->Marker_2_Centroid->SetBorderWidth(2);
-    this->Marker_2_Centroid->SetReliefToGroove();
-    this->Marker_2_Centroid->SetPackHorizontally(1);   
-    this->Marker_2_Centroid->SetMaximumNumberOfWidgetsInPackingDirection(3);
-    
-    for (int id = 0; id < 3; id++)
-      {
-      vtkKWEntry *entry = this->Marker_2_Centroid->AddWidget(id);
-      entry->SetWidth(7);
-      entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-      entry->ReadOnlyOn(); 
-      }
-    }
-
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->Marker_2_Centroid->GetWidgetName());
-
-  if (!this->Marker_3_CentroidFrame)
-    {
-    this->Marker_3_CentroidFrame = vtkKWFrame::New();
-    }
-  if (!this->Marker_3_CentroidFrame->IsCreated())
-    {
-    this->Marker_3_CentroidFrame->SetParent(this->SegmentationResultsFrame->GetFrame());
-    this->Marker_3_CentroidFrame->Create();
-    }
-    
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->Marker_3_CentroidFrame->GetWidgetName());
-
-  // label
-  if (!this->Marker_3_CentroidLabel)
-    { 
-    this->Marker_3_CentroidLabel = vtkKWLabel::New();
-    }
-  if (!this->Marker_3_CentroidLabel->IsCreated())
-    {
-    this->Marker_3_CentroidLabel->SetParent(this->Marker_3_CentroidFrame);
-    this->Marker_3_CentroidLabel->Create();
-    this->Marker_3_CentroidLabel->SetText("Marker 3 (centroid):     ");
-    this->Marker_3_CentroidLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-    }  
-    
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->Marker_3_CentroidLabel->GetWidgetName());
-    
-  if (!this->Marker_3_Centroid)
-    {
-    this->Marker_3_Centroid =  vtkKWEntrySet::New();  
-    }
-  if (!this->Marker_3_Centroid->IsCreated())
-    {
-    this->Marker_3_Centroid->SetParent(this->Marker_3_CentroidFrame);
-    this->Marker_3_Centroid->Create();
-    this->Marker_3_Centroid->SetBorderWidth(2);
-    this->Marker_3_Centroid->SetReliefToGroove();
-    this->Marker_3_Centroid->SetPackHorizontally(1);   
-    this->Marker_3_Centroid->SetMaximumNumberOfWidgetsInPackingDirection(3);
-    
-    for (int id = 0; id < 3; id++)
-      {
-      vtkKWEntry *entry = this->Marker_3_Centroid->AddWidget(id);
-      entry->SetWidth(7);
-      entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-      entry->ReadOnlyOn(); 
-      }
-    }
-
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->Marker_3_Centroid->GetWidgetName());
-
-  if (!this->Marker_4_CentroidFrame)
-    {
-    this->Marker_4_CentroidFrame = vtkKWFrame::New();
-    }
-  if (!this->Marker_4_CentroidFrame->IsCreated())
-    {
-    this->Marker_4_CentroidFrame->SetParent(this->SegmentationResultsFrame->GetFrame());
-    this->Marker_4_CentroidFrame->Create();
-    }
-    
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->Marker_4_CentroidFrame->GetWidgetName());
-
-  // label
-  if (!this->Marker_4_CentroidLabel)
-    { 
-    this->Marker_4_CentroidLabel = vtkKWLabel::New();
-    }
-  if (!this->Marker_4_CentroidLabel->IsCreated())
-    {
-    this->Marker_4_CentroidLabel->SetParent(this->Marker_4_CentroidFrame);
-    this->Marker_4_CentroidLabel->Create();
-    this->Marker_4_CentroidLabel->SetText("Marker 4 (centroid):     ");
-    this->Marker_4_CentroidLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-    }  
-    
-    this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->Marker_4_CentroidLabel->GetWidgetName());
-    
-  if (!this->Marker_4_Centroid)
-    {
-    this->Marker_4_Centroid =  vtkKWEntrySet::New();  
-    }
-  if (!this->Marker_4_Centroid->IsCreated())
-    {
-    this->Marker_4_Centroid->SetParent(this->Marker_4_CentroidFrame);
-    this->Marker_4_Centroid->Create();
-    this->Marker_4_Centroid->SetBorderWidth(2);
-    this->Marker_4_Centroid->SetReliefToGroove();
-    this->Marker_4_Centroid->SetPackHorizontally(1);   
-    this->Marker_4_Centroid->SetMaximumNumberOfWidgetsInPackingDirection(3);
-    
-    for (int id = 0; id < 3; id++)
-      {
-      vtkKWEntry *entry = this->Marker_4_Centroid->AddWidget(id);
-      entry->SetWidth(7);
-      entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-      entry->ReadOnlyOn(); 
-      }
-    }
-
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                this->Marker_4_Centroid->GetWidgetName());
-
-  // axes angle
-  if (!this->AxesAngle)
-    {
-    this->AxesAngle =  vtkKWEntryWithLabel::New();  
-    }
-  if (!this->AxesAngle->IsCreated())
-    {
-    this->AxesAngle->SetParent(this->SegmentationResultsFrame->GetFrame());
-    this->AxesAngle->Create();
-    this->AxesAngle->GetWidget()->SetRestrictValueToDouble();
-    this->AxesAngle->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->AxesAngle->SetLabelText("Axes angle(in degrees, should be 37):");
-    this->AxesAngle->GetWidget()->SetWidth(7);
-    this->AxesAngle->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
-    }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                    this->AxesAngle->GetWidgetName());
-  
-  // axes distance
-  if (!this->AxesDistance)
-    {
-    this->AxesDistance =  vtkKWEntryWithLabel::New();  
-    }
-  if (!this->AxesDistance->IsCreated())
-    {
-    this->AxesDistance->SetParent(this->SegmentationResultsFrame->GetFrame());
-    this->AxesDistance->Create();
-    this->AxesDistance->GetWidget()->SetRestrictValueToDouble();
-    this->AxesDistance->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
-    this->AxesDistance->SetLabelText("Axes distance(in mm, should be 0):");
-    this->AxesDistance->GetWidget()->SetWidth(7);
-    this->AxesDistance->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
-    }
-
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                    this->AxesDistance->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", this->CalibrationResultsBox->GetWidgetName());  
 
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ClearFiducialSegmentationResultsControls()
 {
-  if (this->SegmentationResultsFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->SegmentationResultsFrame->GetWidgetName());
-    }
-  if (this->Marker_1_CentroidFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_1_CentroidFrame->GetWidgetName());
-    }
-  if (this->Marker_1_CentroidLabel)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_1_CentroidLabel->GetWidgetName());
-    }
-  if (this->Marker_1_Centroid)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_1_Centroid->GetWidgetName());
-    }
-  if (this->Marker_2_CentroidFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_2_CentroidFrame->GetWidgetName());
-    }
-  if (this->Marker_2_CentroidLabel)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_2_CentroidLabel->GetWidgetName());
-    }
-  if (this->Marker_2_Centroid)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_2_Centroid->GetWidgetName());
-    }
-  if (this->Marker_3_CentroidFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_3_CentroidFrame->GetWidgetName());
-    }
-  if (this->Marker_3_CentroidLabel)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_3_CentroidLabel->GetWidgetName());
-    }
-  if (this->Marker_3_Centroid)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_3_Centroid->GetWidgetName());
-    }
-  if (this->Marker_4_CentroidFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_4_CentroidFrame->GetWidgetName());
-    }
-  if (this->Marker_4_CentroidLabel)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_4_CentroidLabel->GetWidgetName());
-    }
-  if (this->Marker_4_Centroid)
-    {
-    this->Script("pack forget %s", 
-                    this->Marker_4_Centroid->GetWidgetName());
-    }
-  if (this->AxesAngle)
-    {
-    this->Script("pack forget %s", 
-                    this->AxesAngle->GetWidgetName());
-    }
-  if (this->AxesDistance)
-    {
-    this->Script("pack forget %s", 
-                    this->AxesDistance->GetWidgetName());
-    }
-  
+  this->Script("pack forget %s", this->SegmentationResultsFrame->GetWidgetName());
+  this->Script("pack forget %s", this->CalibrationResultsBox->GetWidgetName());
 }
 //----------------------------------------------------------------------------
-void vtkTRProstateBiopsyCalibrationStep::ShowSaveResegmentControls()
+void vtkTRProstateBiopsyCalibrationStep::ShowExportImportControls()
 {
    vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
   // first clear the components if they created before for other mode
-  this->ClearSaveResegmentControls();
+  //this->ClearExportImportControls();
 
   // Create the frame
-  if (!this->SaveResegmentFrame)
+  if (!this->ExportImportFrame->IsCreated())
     {
-    this->SaveResegmentFrame = vtkKWFrame::New();
+    this->ExportImportFrame->SetParent(parent);
+    this->ExportImportFrame->Create();
     }
-  if (!this->SaveResegmentFrame->IsCreated())
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", this->ExportImportFrame->GetWidgetName());
+
+   // create the resegment button
+  if (!this->ResegmentButton->IsCreated())
     {
-    this->SaveResegmentFrame->SetParent(parent);
-    this->SaveResegmentFrame->Create();
+    this->ResegmentButton->SetParent(this->ExportImportFrame);
+    this->ResegmentButton->Create();
+    this->ResegmentButton->SetText("Re-segment");
+    this->ResegmentButton->SetBorderWidth(2);
+    this->ResegmentButton->SetReliefToRaised();      
+    this->ResegmentButton->SetHighlightThickness(2);
+    this->ResegmentButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->ResegmentButton->SetActiveBackgroundColor(1,1,1);      
+    this->ResegmentButton->SetBalloonHelpString("Click to re-segment the fiducials, with new parameters, but old fiducial location guesses. If you wish to give fiducial guesses again, press 'Reset calibration' button on top of the panel");
+    //this->ResegmentButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
+    this->ResegmentButton->SetEnabled(1);
+    }    
+  //this->Script("pack %s -side left -anchor nw -padx 2 -pady 4", this->ResegmentButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 0 -sticky ew -padx 2 -pady 4", this->ResegmentButton->GetWidgetName());
+
+  // create the reset calib button
+  if(!this->ResetCalibrationButton->IsCreated())
+    {
+    this->ResetCalibrationButton->SetParent(this->ExportImportFrame);
+    this->ResetCalibrationButton->Create();
+    this->ResetCalibrationButton->SetText("Reset calibration");
+    this->ResetCalibrationButton->SetBorderWidth(2);
+    this->ResetCalibrationButton->SetReliefToRaised();      
+    this->ResetCalibrationButton->SetHighlightThickness(2);
+    this->ResetCalibrationButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->ResetCalibrationButton->SetActiveBackgroundColor(1,1,1);      
+    //this->ResetCalibrationButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
+    this->ResetCalibrationButton->SetBalloonHelpString("Click to re-start the calibration, with new fiducial location guesses");    
     }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->SaveResegmentFrame->GetWidgetName());
+    
+  //this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", this->ResetCalibrationButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 1 -sticky ew -padx 2 -pady 4", this->ResetCalibrationButton->GetWidgetName());
+
 
   // create the save file dialog button
-  if (!this->SaveCalibrationSettingsFileButton)
-    {
-    this->SaveCalibrationSettingsFileButton = vtkKWLoadSaveButton::New();
-    }
   if (!this->SaveCalibrationSettingsFileButton->IsCreated())
     {
-    this->SaveCalibrationSettingsFileButton->SetParent(this->SaveResegmentFrame);
+    this->SaveCalibrationSettingsFileButton->SetParent(this->ExportImportFrame);
     this->SaveCalibrationSettingsFileButton->Create();
-    this->SaveCalibrationSettingsFileButton->SetText("Save calibration");
+    this->SaveCalibrationSettingsFileButton->SetText("Export calibration");
     this->SaveCalibrationSettingsFileButton->SetBorderWidth(2);
     this->SaveCalibrationSettingsFileButton->SetReliefToRaised();       
     this->SaveCalibrationSettingsFileButton->SetHighlightThickness(2);
@@ -1088,54 +402,40 @@ void vtkTRProstateBiopsyCalibrationStep::ShowSaveResegmentControls()
     this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode
     this->SaveCalibrationSettingsFileButton->TrimPathFromFileNameOff();
     this->SaveCalibrationSettingsFileButton->SetMaximumFileNameLength(256);
-    this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
-    this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");          
     }
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->SaveCalibrationSettingsFileButton->GetWidgetName());
+  //this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", this->SaveCalibrationSettingsFileButton->GetWidgetName());
+  this->Script("grid %s -row 1 -column 0 -sticky ew -padx 2 -pady 4", this->SaveCalibrationSettingsFileButton->GetWidgetName());
 
-   // create the resegment button
-  if (!this->ResegmentButton)
+  // create the load file dialog button
+  if (!this->LoadCalibrationSettingsFileButton->IsCreated())
     {
-    this->ResegmentButton = vtkKWPushButton::New();
+    this->LoadCalibrationSettingsFileButton->SetParent(this->ExportImportFrame);
+    this->LoadCalibrationSettingsFileButton->Create();
+    this->LoadCalibrationSettingsFileButton->SetBorderWidth(2);
+    this->LoadCalibrationSettingsFileButton->SetReliefToRaised();       
+    this->LoadCalibrationSettingsFileButton->SetHighlightThickness(2);
+    this->LoadCalibrationSettingsFileButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->LoadCalibrationSettingsFileButton->SetActiveBackgroundColor(1,1,1);
+    this->LoadCalibrationSettingsFileButton->SetText("Import calibration");
+    this->LoadCalibrationSettingsFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
+    this->LoadCalibrationSettingsFileButton->SetBalloonHelpString("Click to load a previous calibration file");
+    this->LoadCalibrationSettingsFileButton->TrimPathFromFileNameOff();
+    this->LoadCalibrationSettingsFileButton->SetMaximumFileNameLength(256);
+    this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
+    this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
     }
-  if (!this->ResegmentButton->IsCreated())
-    {
-    this->ResegmentButton->SetParent(this->SaveResegmentFrame);
-    this->ResegmentButton->SetText("Re-segment");
-    this->ResegmentButton->SetBorderWidth(2);
-    this->ResegmentButton->SetReliefToRaised();      
-    this->ResegmentButton->SetHighlightThickness(2);
-    this->ResegmentButton->SetBackgroundColor(0.85,0.85,0.85);
-    this->ResegmentButton->SetActiveBackgroundColor(1,1,1);      
-    this->ResegmentButton->SetBalloonHelpString("Click to re-segment the fiducials, with new parameters, but old fiducial location guesses. If you wish to give fiducial guesses again, press 'Reset calibration' button on top of the panel");
-    //this->ResegmentButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
-    this->ResegmentButton->Create();
-    this->ResegmentButton->SetEnabled(0);
-    }
-    
-  this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
-                    this->ResegmentButton->GetWidgetName());
+  //this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2", this->LoadCalibrationSettingsFileButton->GetWidgetName());
+  this->Script("grid %s -row 1 -column 1 -sticky ew -padx 2 -pady 4", this->LoadCalibrationSettingsFileButton->GetWidgetName());
 
 }
 //----------------------------------------------------------------------------
-void vtkTRProstateBiopsyCalibrationStep::ClearSaveResegmentControls()
+void vtkTRProstateBiopsyCalibrationStep::ClearExportImportControls()
 {
-  if (this->SaveResegmentFrame)
-    {
-    this->Script("pack forget %s", 
-                    this->SaveResegmentFrame->GetWidgetName());
-    }
-  if (this->SaveCalibrationSettingsFileButton)
-    {
-    this->Script("pack forget %s", 
-                    this->SaveCalibrationSettingsFileButton->GetWidgetName());
-    }
-  if (this->ResegmentButton)
-    {
-    this->Script("pack forget %s", 
-                    this->ResegmentButton->GetWidgetName());
-    }
+  this->Script("pack forget %s", this->ExportImportFrame->GetWidgetName());
+  this->Script("pack forget %s", this->SaveCalibrationSettingsFileButton->GetWidgetName());
+  this->Script("pack forget %s", this->LoadCalibrationSettingsFileButton->GetWidgetName());
+  this->Script("pack forget %s", this->ResetCalibrationButton->GetWidgetName());
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ShowUserInterface()
@@ -1151,144 +451,79 @@ void vtkTRProstateBiopsyCalibrationStep::ShowUserInterface()
 
   this->Superclass::ShowUserInterface();
 
-  // show load/reset calibration controls
-  this->ShowLoadResetControls();
-
-  // show load volume controls
   this->ShowLoadVolumeControls();
-
-  // show fiducial segmentation params controls
+  this->ShowLoadResetControls();  
   this->ShowFiducialSegmentParamsControls();
-
-  // show fiducial segmentation results controls
   this->ShowFiducialSegmentationResultsControls();
+  this->ShowExportImportControls();
 
-  // show save resegment controls
-  this->ShowSaveResegmentControls();
+  this->ShowAxesIn3DView(true);
+  this->ShowMarkerVolumesIn3DView(true);
 
   this->AddGUIObservers();
 
   // Activate additional details for entering this step
   //this->Enter();
 }
-//----------------------------------------------------------------------------------------
-void vtkTRProstateBiopsyCalibrationStep::PopulateSegmentationResults()
+//-------------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::HideUserInterface()
 {
-  double marker_1_RAS[3], marker_2_RAS[3], marker_3_RAS[3], marker_4_RAS[3] ;
+  // this method is never called
+  this->Superclass::HideUserInterface();
 
-  // marker 1
-  this->GetGUI()->GetMRMLNode()->GetCalibrationMarker(1, marker_1_RAS[0], marker_1_RAS[1], marker_1_RAS[2]); 
-
-  for (int i = 0; i < 3; i++)
-    this->Marker_1_Centroid->GetWidget(i)->SetValueAsDouble(marker_1_RAS[i]);
-
-  // marker 2
-  this->GetGUI()->GetMRMLNode()->GetCalibrationMarker(2, marker_2_RAS[0], marker_2_RAS[1], marker_2_RAS[2]); 
-  
-  for (int i = 0; i < 3; i++)
-    this->Marker_2_Centroid->GetWidget(i)->SetValueAsDouble(marker_2_RAS[i]);
-
-  // marker 3
-  this->GetGUI()->GetMRMLNode()->GetCalibrationMarker(3, marker_3_RAS[0], marker_3_RAS[1], marker_3_RAS[2]); 
-  
-  for (int i = 0; i < 3; i++)
-    this->Marker_3_Centroid->GetWidget(i)->SetValueAsDouble(marker_3_RAS[i]);
-
-  // marker 4
-  this->GetGUI()->GetMRMLNode()->GetCalibrationMarker(4, marker_4_RAS[0], marker_4_RAS[1], marker_4_RAS[2]); 
-
-  for (int i = 0; i < 3; i++)
-    this->Marker_4_Centroid->GetWidget(i)->SetValueAsDouble(marker_4_RAS[i]);
-
-
+  //this->Exit();
 }
 //----------------------------------------------------------------------------------------
-void vtkTRProstateBiopsyCalibrationStep::PopulateRegistrationResults()
+void vtkTRProstateBiopsyCalibrationStep::PopulateCalibrationResults()
 {
-  double angle, distance ;
+  std::ostrstream os;  
+  
+  const TRProstateBiopsyCalibrationData calibData=this->GetGUI()->GetMRMLNode()->GetCalibrationData();
 
-  // angle
-  angle = this->GetGUI()->GetMRMLNode()->GetAxesAngleDegrees(); 
-  this->AxesAngle->GetWidget()->SetValueAsDouble(angle);
+  if (calibData.CalibrationValid)
+    {
+    os << "Calibration results:"<<std::endl;
+    
+    os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
+    os << "  Axes angle: "<<calibData.AxesAngleDegrees<<" deg"<<std::endl;  
+    os << "  Axes distance: "<<calibData.AxesDistance<<" mm"<<std::endl;  
+    os << "  Initial rotation angle: "<<calibData.RobotRegistrationAngleDegrees<<" deg"<<std::endl;  
+    os << "Segmentation results:";
+    os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(2);
+    for (int i=0; i<CALIB_MARKER_COUNT; i++)
+      {
+      double r, a, s;
+      this->GetGUI()->GetMRMLNode()->GetCalibrationMarker(i, r, a, s);
+      os << std::endl << "  Marker "<<i+1<<": R="<<r<<" A="<<a<<" S="<<s;
+      }
+    }
+  else
+    {
+    os << "Not calibrated.";
+    }
 
-  // distance
-  distance = this->GetGUI()->GetMRMLNode()->GetAxesDistance(); 
-  this->AxesDistance->GetWidget()->SetValueAsDouble(distance);
-
+  os << std::ends;
+  this->CalibrationResultsBox->GetWidget()->SetText(os.str());
+  os.rdbuf()->freeze();
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::AddGUIObservers()
 {
   this->RemoveGUIObservers();
-
-  // add observers 
-  // 1) click on load calib settings button
-  if (this->LoadCalibrationSettingsFileButton)
-    {
-    this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-
-  // 2) click on save calib settings button
-  if (this->SaveCalibrationSettingsFileButton)
-    {
-    this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-
-  // 3) click on reset calib button
-  if (this->ResetCalibrationButton)
-    {
-    this->ResetCalibrationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-    }
-
-  // 4) click on resegment button
-  if (this->ResegmentButton)
-    {
-    this->ResegmentButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-    }
-
-  // 5) click on load calibration volume dialog
-  if (this->LoadCalibrationVolumeButton)
-    {
-    this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-
-  this->ObserverCount++;
-
+  this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+  this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+  this->ResetCalibrationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+  this->ResegmentButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+  this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::RemoveGUIObservers()
 {
-  // 1) click on load calib settings button
-  if (this->LoadCalibrationSettingsFileButton)
-    {
-    this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-
-  // 2) click on save calib settings button
-  if (this->SaveCalibrationSettingsFileButton)
-    {
-    this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-
-  // 3) click on reset calib button
-  if (this->ResetCalibrationButton)
-    {
-    this->ResetCalibrationButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-    }
-
-  // 4) click on resegment button
-  if (this->ResegmentButton)
-    {
-    this->ResegmentButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-    }
-
-  // 5) click on load calibration volume dialog
-  if (this->LoadCalibrationVolumeButton)
-    {
-    this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-    }
-
-  this->ObserverCount--;
+  this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+  this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+  this->ResetCalibrationButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+  this->ResegmentButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+  this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::Enter()
@@ -1299,8 +534,6 @@ void vtkTRProstateBiopsyCalibrationStep::Enter()
   vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>(
     this->GetGUI()->GetApplication());
   vtkTRProstateBiopsyLogic *logic = this->GetGUI()->GetLogic();
-//  logic->SetSliceViewFromVolume(app, logic->GetCalibrationVolumeNode());
-
 
   if (this->GetGUI()->GetLogic()->GetCalibrationSliceNodeXML())
     {
@@ -1376,6 +609,67 @@ void vtkTRProstateBiopsyCalibrationStep::WizardGUICallback( vtkObject *caller,
   self->ProcessGUIEvents(caller, eid, callData);
   //self->SetInGUICallbackFlag(0);
 }
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::UpdateMRML() 
+{
+  /*vtkMRMLChangeTrackerNode* node = this->GetGUI()->GetNode();
+  if (!node) 
+    return; 
+
+  if (this->VolumeMenuButton && this->VolumeMenuButton->GetSelected() ) 
+  {
+    node->SetScan1_Ref(this->VolumeMenuButton->GetSelected()->GetID());
+    vtkMRMLVolumeNode *VolNode = vtkMRMLVolumeNode::SafeDownCast(this->VolumeMenuButton->GetSelected());
+
+    if (!VolNode && !VolNode->GetStorageNode() && !VolNode->GetStorageNode()->GetFileName()) 
+      return;
+
+    if(!node->GetWorkingDir())
+      {
+      vtkSlicerApplication *application   = vtkSlicerApplication::SafeDownCast(this->GetGUI()->GetApplication());
+      std::string FilePath = application->GetTemporaryDirectory();
+      node->SetWorkingDir(FilePath.c_str());
+      }
+  }
+
+  if (this->SecondVolumeMenuButton && this->SecondVolumeMenuButton->GetSelected() ) {
+    node->SetScan2_Ref(this->SecondVolumeMenuButton->GetSelected()->GetID());
+  } 
+*/
+}
+
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::UpdateGUI() 
+{
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  if (!mrmlNode)
+  {
+    return;
+  }
+
+  PopulateCalibrationResults();
+
+  /*
+  vtkMRMLChangeTrackerNode* n = this->GetGUI()->GetNode();
+  if (!n) {
+    this->GetGUI()->UpdateNode();
+    n = this->GetGUI()->GetNode();
+  }
+
+  if (n != NULL &&  this->VolumeMenuButton)
+  {
+    
+    vtkSlicerApplicationGUI *applicationGUI = this->GetGUI()->GetApplicationGUI();
+    this->VolumeMenuButton->SetSelected(applicationGUI->GetMRMLScene()->GetNodeByID(n->GetScan1_Ref()));
+  }
+  if (n != NULL &&  this->SecondVolumeMenuButton)
+  {
+    vtkSlicerApplicationGUI *applicationGUI = this->GetGUI()->GetApplicationGUI();
+    this->SecondVolumeMenuButton->SetSelected(applicationGUI->GetMRMLScene()->GetNodeByID(n->GetScan2_Ref()));
+  }
+  */
+} 
 
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ProcessGUIEvents(vtkObject *caller,
@@ -1391,48 +685,46 @@ void vtkTRProstateBiopsyCalibrationStep::ProcessGUIEvents(vtkObject *caller,
   // load calib volume dialog button
   if (this->LoadCalibrationVolumeButton && this->LoadCalibrationVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {
-    const char *fileName = this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->GetFileName();
+    this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathCalibVol");
+    const char *fileName = this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->GetFileName();    
     if ( fileName ) 
       {
+      this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathCalibVol");
       // call the callback function
       this->LoadCalibrationVolumeButtonCallback(fileName);    
       } 
-   
     }
+
   // load calib dialog button
   if (this->LoadCalibrationSettingsFileButton && this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {
+    this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathCalibSettins");
     const char *fileName = this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
+      this->LoadCalibrationSettingsFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathCalibSettins");
       // call the callback function
       this->LoadCalibrationSettingsFileButtonCallback(fileName);    
-      }
-    
+      } 
     // reset the file browse button text
     this->LoadCalibrationSettingsFileButton->SetText ("Load calibration");
-   
     }
+
   // save calib dialog button
   if (this->SaveCalibrationSettingsFileButton && this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {
+    this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathCalibSettins");
     const char *fileName = this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
-      {
-      
-      // save the path to registry
-      this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("SavePath");
-        
+      {      
+      this->SaveCalibrationSettingsFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathCalibSettins");     
       // call the callback function
       this->SaveCalibrationSettingsFileButtonCallback(fileName);
-
-    
-      }
-    
+      } 
     // reset the file browse button text
-    this->SaveCalibrationSettingsFileButton->SetText ("Save calibration");
-   
+    this->SaveCalibrationSettingsFileButton->SetText ("Save calibration"); 
     }
+
   // reset calib button
   if (this->ResetCalibrationButton && this->ResetCalibrationButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
     {
@@ -1441,11 +733,8 @@ void vtkTRProstateBiopsyCalibrationStep::ProcessGUIEvents(vtkObject *caller,
   // resegment 
   if (this->ResegmentButton && this->ResegmentButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
     {
-    //this->Resegment();
+    this->Resegment();
     }
-  
-  
-  
 
 }
 
@@ -1454,8 +743,7 @@ void vtkTRProstateBiopsyCalibrationStep::ProcessGUIEvents(vtkObject *caller,
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::LoadCalibrationSettingsFileButtonCallback(const char *fileName)
 {
-    ifstream file(fileName);
-    
+    ifstream file(fileName);    
     this->LoadCalibrationSettings(file);
     file.close();
 }
@@ -1464,9 +752,7 @@ void vtkTRProstateBiopsyCalibrationStep::LoadCalibrationSettingsFileButtonCallba
 void vtkTRProstateBiopsyCalibrationStep::SaveCalibrationSettingsFileButtonCallback(const char *fileName)
 {
     ofstream file(fileName);
-
-    this->SaveCalibrationSettings(file);
-    
+    this->SaveCalibrationSettings(file);    
     file.close();
 }
 
@@ -1478,8 +764,7 @@ void vtkTRProstateBiopsyCalibrationStep::LoadCalibrationSettings(istream &file)
     {
     // TO DO: what to do on failure
     return;
-    }  
-  
+    }    
 }
 
 //-----------------------------------------------------------------------------
@@ -1492,7 +777,6 @@ void vtkTRProstateBiopsyCalibrationStep::SaveCalibrationSettings(ostream& of)
     // TO DO: what to do on failure
     return;
     }  
-
 }
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::LoadCalibrationVolumeButtonCallback(const char *fileName)
@@ -1510,7 +794,7 @@ void vtkTRProstateBiopsyCalibrationStep::LoadCalibrationVolumeButtonCallback(con
 
   vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>(this->GetGUI()->GetApplication());
 
-  vtkMRMLScalarVolumeNode *volumeNode = this->GetGUI()->GetLogic()->AddCalibrationVolume(app,fileString.c_str());
+  vtkMRMLScalarVolumeNode *volumeNode = this->GetGUI()->GetLogic()->AddVolumeToScene(app,fileString.c_str(), VOL_CALIBRATION);
         
   if (volumeNode)
     {
@@ -1533,8 +817,23 @@ void vtkTRProstateBiopsyCalibrationStep::LoadCalibrationVolumeButtonCallback(con
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::Reset()
 {
-    this->AllMarkersAcquired = false;
-    this->ClickNumber = 0;
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  mrmlNode->RemoveAllCalibrationMarkers();
+
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->RemoveViewProp(this->Axes1Actor);
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->RemoveViewProp(this->Axes2Actor);
+  
+  const TRProstateBiopsyCalibrationData calibData=this->GetGUI()->GetMRMLNode()->GetCalibrationData();
+  TRProstateBiopsyCalibrationData calibdataInvalidated=calibData;
+  calibdataInvalidated.CalibrationValid=false;
+  this->GetGUI()->GetMRMLNode()->SetCalibrationData(calibdataInvalidated);
+
+  //this->PopulateCalibrationResults();
+  this->AllMarkersAcquired = false;
+  this->ClickNumber = 0;
+
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+  wizard_widget->SetErrorText("");
 }
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
@@ -1613,76 +912,116 @@ void vtkTRProstateBiopsyCalibrationStep::ProcessImageClickEvents(vtkObject *call
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::RecordClick(double rasPoint[])
 {
-  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
   vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
   if(!mrmlNode)
-      return;
+  {
+    vtkErrorMacro("RecordClick: node is invalid");
+    return;
+  }
 
-  char *msg = new char[40];
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+  std::ostrstream os;
+  os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
+  os << "Clicked marker "<<this->ClickNumber<<" at "<<rasPoint[0]<<" "<<rasPoint[1]<<" "<<rasPoint[2]<< std::ends;
+  wizard_widget->SetErrorText(os.str());
+  os.rdbuf()->freeze();
+  wizard_widget->Update();
 
-  if (this->ClickNumber ==1)
-    {
-    sprintf(msg, "Clicked 1st marker at %3.1f %3.1f %3.1f", rasPoint[0], rasPoint[1], rasPoint[2]);
-    mrmlNode->SetCalibrationMarker(1, rasPoint);
+  if (this->ClickNumber>0 && this->ClickNumber<=CALIB_MARKER_COUNT)    {
+    mrmlNode->SetCalibrationMarker(this->ClickNumber-1, rasPoint);
     }
-  else if (this->ClickNumber == 2)
-    {
-    sprintf(msg, "Clicked 2nd marker at %3.1f %3.1f %3.1f", rasPoint[0], rasPoint[1], rasPoint[2]);
-    mrmlNode->SetCalibrationMarker(2, rasPoint);
-    }
-  else if (this->ClickNumber == 3)
-    {
-    sprintf(msg, "Clicked 3rd marker at %3.1f %3.1f %3.1f", rasPoint[0], rasPoint[1], rasPoint[2]);
-    mrmlNode->SetCalibrationMarker(3, rasPoint);
-    }
-  else if (this->ClickNumber == 4)
+  if (this->ClickNumber == CALIB_MARKER_COUNT)
     {
     this->ClickNumber = 0;
     this->AllMarkersAcquired = true;
-    sprintf(msg, "Clicked 4th marker at %3.1f %3.1f %3.1f", rasPoint[0], rasPoint[1], rasPoint[2]);
-    wizard_widget->SetErrorText(msg);
-    wizard_widget->Update();
-    mrmlNode->SetCalibrationMarker(4, rasPoint);
-    sprintf(msg, "Starting segmentation....");
-    wizard_widget->SetErrorText(msg);
-    wizard_widget->Update();
-
-    // gather information about thresholds
-    double thresh[4];
-    for (int i=0 ; i<4; i++)
-        thresh[i] = this->FiducialThresholdScale[i]->GetValue();
-    
-    // gather info about the fiducial dimenstions
-    double fidDims[3];
-    fidDims[0] = this->FiducialWidthSpinBox->GetWidget()->GetValue();
-    fidDims[1] = this->FiducialHeightSpinBox->GetWidget()->GetValue();
-    fidDims[2] = this->FiducialDepthSpinBox->GetWidget()->GetValue();
-
-    // gather info about initial radius, and initial angle
-    double radius = 0;
-    bool bUseRadius = false;
-    double initialAngle = 0;
-
-    radius = this->RadiusSpinBox->GetWidget()->GetValue();
-    bUseRadius = this->RadiusCheckButton->GetSelectedState();
-    initialAngle = this->InitialAngleSpinBox->GetWidget()->GetValue();
-
-    // start the segmentation/registration
-    this->GetGUI()->GetLogic()->SegmentRegisterMarkers(thresh, fidDims, radius, bUseRadius, initialAngle);
-
-    // populate controls
-    mrmlNode->GetCalibrationFiducialsList()->SetAllFiducialsVisibility(true);
-    this->ShowAxesIn3DView();
-    this->PopulateSegmentationResults();
-    this->PopulateRegistrationResults();
-
-    sprintf(msg, "Segmentation complete!"); 
+    this->Resegment();    
     }
 
-  wizard_widget->SetErrorText(msg);
+
+}
+//-----------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationStep::Resegment()
+{
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  if(!mrmlNode)
+  {
+    vtkErrorMacro("Resegment: node is invalid");
+    return;
+  }
+
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+  std::ostrstream os;
+
+  if (!this->AllMarkersAcquired)
+  {
+    os << "Please define all calibration markers." << std::ends;
+    wizard_widget->SetErrorText(os.str());
+    os.rdbuf()->freeze();
+    wizard_widget->Update();
+    return;
+  }
+
+  os << "Starting segmentation..." << std::ends;
+  wizard_widget->SetErrorText(os.str());
+  os.rdbuf()->freeze();
   wizard_widget->Update();
+
+  // gather information about thresholds
+  double thresh[4];
+  for (int i=0 ; i<4; i++)
+    thresh[i] = this->FiducialThresholdScale[i]->GetValue();
+
+  // gather info about the fiducial dimenstions
+  double fidDims[3];
+  fidDims[0] = this->FiducialWidthSpinBox->GetWidget()->GetValue();
+  fidDims[1] = this->FiducialHeightSpinBox->GetWidget()->GetValue();
+  fidDims[2] = this->FiducialDepthSpinBox->GetWidget()->GetValue();
+
+  // gather info about initial radius, and initial angle
+  double radius = 0;
+  bool bUseRadius = false;
+  double initialAngle = 0;
+
+  radius = this->RadiusSpinBox->GetWidget()->GetValue();
+  bUseRadius = this->RadiusCheckButton->GetSelectedState();
+  initialAngle = this->InitialAngleSpinBox->GetWidget()->GetValue();
+
+  // start the segmentation/registration
+  bool found[4]={false, false, false, false};
+  std::string calibResultDetails;
+  bool calibResult=this->GetGUI()->GetLogic()->SegmentRegisterMarkers(thresh, fidDims, radius, bUseRadius, initialAngle, calibResultDetails);
+  wizard_widget->SetErrorText(calibResultDetails.c_str());
+  wizard_widget->Update();
+
+  vtkMRMLVolumeNode* volumeNode = mrmlNode->GetCalibrationVolumeNode();
+  int i=0;
+  for (std::vector<CalibPointRenderer>::iterator it=CalibPointPreProcRendererList.begin(); it!=CalibPointPreProcRendererList.end(); ++it, ++i)
+  {
+      it->Update(this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer(), volumeNode, this->GetGUI()->GetLogic()->GetCalibMarkerPreProcOutput(i));
+  }
+
+  ShowMarkerVolumesIn3DView(true);
+
+  if (calibResult==true)
+  {
+    // calibration successful  
+    this->UpdateAxesIn3DView();
+    this->ShowAxesIn3DView(true);
+  }
+  else
+  {
+    // calibration failed
+    this->ShowAxesIn3DView(false);
+  }
+
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->RequestRender();
+
+  mrmlNode->GetCalibrationFiducialsListNode()->SetAllFiducialsVisibility(true);
+
+  // populate controls   
+  //this->PopulateCalibrationResults();
 }
 
 //----------------------------------------------------------------------------
@@ -1696,6 +1035,7 @@ void vtkTRProstateBiopsyCalibrationStep::SaveToExperimentFile(ostream &of)
     return;
     }  
 
+
   // parameters to be saved for calibration
   // 1) FoR str
   // 2) marker centroids (all 4)
@@ -1704,102 +1044,39 @@ void vtkTRProstateBiopsyCalibrationStep::SaveToExperimentFile(ostream &of)
   // 5) axes distance mm
   // 6) robot registration angle
   
-  // 1) FoR str
-  // this information is in mrml scalar volume node
-  // get the mrml scalar volume node
+  // FoR str (this information is in mrml scalar volume node as metadata)
+  // frame of reference uid
   vtkMRMLScalarVolumeNode *volNode = mrmlNode->GetCalibrationVolumeNode();
-
   if (!volNode)
     {
     // error
     return;
     }
-  // remaining information to be had from the meta data dictionary     
   const itk::MetaDataDictionary &volDictionary = volNode->GetMetaDataDictionary();
   std::string tagValue;
+  tagValue.clear();
+  itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );
+  of << " CalibrationVolumeFoRString=\"" << tagValue << "\" \n";
 
-  // frame of reference uid
-  tagValue.clear(); itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );
-  of << " CalibrationVolumeFoRString=\"" ;
-  of << tagValue << " ";
-  of << "\" \n";
+  // marker centroids
+  for (int i=0; i<CALIB_MARKER_COUNT; i++)
+  {
+    double markerRAS[3];
+    mrmlNode->GetCalibrationMarker(i, markerRAS[0], markerRAS[1], markerRAS[2]);
+    of << " Marker_"<<i<<"=\""<<markerRAS[0]<<" "<<markerRAS[1]<<" "<<markerRAS[2]<<"\" \n";
+  }
 
-  // 2) marker centroids  
-  double markerRAS[2];
+  const TRProstateBiopsyCalibrationData calibData=this->GetGUI()->GetMRMLNode()->GetCalibrationData();
 
-  mrmlNode->GetCalibrationMarker(1, markerRAS[0], markerRAS[1], markerRAS[2]);;  
-  of << " Marker_1=\"";
-  for(int i = 0; i < 3; i++)
-    of << markerRAS[i] << " ";
-  of << "\" \n";
+  // I1, I2, v1, v2
+  of << " I1=\""<<calibData.I1[0]<<" "<<calibData.I1[1]<<" "<<calibData.I1[2]<<"\" \n";
+  of << " I2=\""<<calibData.I2[0]<<" "<<calibData.I2[1]<<" "<<calibData.I2[2]<<"\" \n";
+  of << " v1=\""<<calibData.v1[0]<<" "<<calibData.v1[1]<<" "<<calibData.v1[2]<<"\" \n";
+  of << " v2=\""<<calibData.v2[0]<<" "<<calibData.v2[1]<<" "<<calibData.v2[2]<<"\" \n";
 
-  mrmlNode->GetCalibrationMarker(2, markerRAS[0], markerRAS[1], markerRAS[2]);;  
-  of << " Marker_2=\"";
-  for(int i = 0; i < 3; i++)
-    of << markerRAS[i] << " ";
-  of << "\" \n";
-
-  mrmlNode->GetCalibrationMarker(3, markerRAS[0], markerRAS[1], markerRAS[2]);;  
-  of << " Marker_3=\"";
-  for(int i = 0; i < 3; i++)
-    of << markerRAS[i] << " ";
-  of << "\" \n";
-
-  mrmlNode->GetCalibrationMarker(4, markerRAS[0], markerRAS[1], markerRAS[2]);; 
-  of << " Marker_4=\"";
-  for(int i = 0; i < 3; i++)
-    of << markerRAS[i] << " ";
-  of << "\" \n";
-
-  // 3) I1, I2, v1, v2
-  double val[3];
-  mrmlNode->GetI1(val[0], val[1], val[2]);
-  of << " I1=\"";
-  for(int i = 0; i < 3; i++)
-    of << val[i] << " ";
-  of << "\" \n";
-
-  mrmlNode->GetI2(val[0], val[1], val[2]); 
-  of << " I2=\"";
-  for(int i = 0; i < 3; i++)
-    of << val[i] << " ";
-  of << "\" \n";
-
-  mrmlNode->Getv1(val[0], val[1], val[2]); 
-  of << " v1=\"";
-  for(int i = 0; i < 3; i++)
-    of << val[i] << " ";
-  of << "\" \n";
-
-  mrmlNode->Getv2(val[0], val[1], val[2]); 
-  of << " v2=\"";
-  for(int i = 0; i < 3; i++)
-    of << val[i] << " ";
-  of << "\" \n";
-
-
-  // 4) axes angle degrees
-  double angle;
-  angle = mrmlNode->GetAxesAngleDegrees();
-  of << " AxesAngle (degrees)=\"";  
-  of << angle << " ";
-  of << "\" \n";
-
-  // 5) axes distance
-  double distance;
-  distance = mrmlNode->GetAxesDistance();
-  of << " AxesDistance (mm)=\"";  
-  of << distance << " ";
-  of << "\" \n";
-
-
-  // 6) robot registration angle
-  angle = mrmlNode->GetRobotRegistrationAngleDegrees();
-  of << " RobotRegistrationAngle (degrees)=\"";  
-  of << angle << " ";
-  of << "\" \n";
-
-
+  of << " AxesAngle (degrees)=\"" << calibData.AxesAngleDegrees << "\" \n";
+  of << " AxesDistance (mm)=\"" << calibData.AxesDistance <<"\" \n";
+  of << " RobotRegistrationAngle (degrees)=\"" << calibData.RobotRegistrationAngleDegrees<<"\" \n";
   
 }
 //----------------------------------------------------------------------------
@@ -1807,9 +1084,8 @@ void vtkTRProstateBiopsyCalibrationStep::LoadFromExperimentFile(istream &file)
 {
 }
 //--------------------------------------------------------------------------------
-void vtkTRProstateBiopsyCalibrationStep::ShowAxesIn3DView()
+void vtkTRProstateBiopsyCalibrationStep::UpdateAxesIn3DView()
 {
-  
   vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
   if(!mrmlNode)
@@ -1823,34 +1099,35 @@ void vtkTRProstateBiopsyCalibrationStep::ShowAxesIn3DView()
   // first axes line  
   // start point is marker 1 centroid
   double marker1RAS[3];
-  mrmlNode->GetCalibrationMarker(1, marker1RAS[0], marker1RAS[1], marker1RAS[2]);
+  mrmlNode->GetCalibrationMarker(0, marker1RAS[0], marker1RAS[1], marker1RAS[2]);
 
   // end point is marker 2 centroid
   double marker2RAS[3];
-  mrmlNode->GetCalibrationMarker(2, marker2RAS[0], marker2RAS[1], marker2RAS[2]);
+  mrmlNode->GetCalibrationMarker(1, marker2RAS[0], marker2RAS[1], marker2RAS[2]);
 
   // form the axis 1 line
   // set up the line actors
-  vtkLineSource *axis1Line = vtkLineSource::New();
+  vtkSmartPointer<vtkLineSource> axis1Line = vtkSmartPointer<vtkLineSource>::New();  
   axis1Line->SetResolution(100); 
   axis1Line->SetPoint1(marker1RAS);
   axis1Line->SetPoint2(marker2RAS);
   axis1Line->Update();
       
-  vtkPolyDataMapper *axis1Mapper = vtkPolyDataMapper::New();
+  vtkSmartPointer<vtkPolyDataMapper> axis1Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();  
   axis1Mapper->SetInputConnection(axis1Line->GetOutputPort());
   this->Axes1Actor->SetMapper(axis1Mapper);  
+  this->Axes1Actor->SetVisibility(true);
   this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->AddViewProp(this->Axes1Actor);
 
 
   // 2nd axis line
   // start point as marker 4 coordinate
   double marker4RAS[3];
-  mrmlNode->GetCalibrationMarker(4, marker4RAS[0], marker4RAS[1], marker4RAS[2]);
+  mrmlNode->GetCalibrationMarker(3, marker4RAS[0], marker4RAS[1], marker4RAS[2]);
 
   // end point as overshot marker 3 coordinate
   double marker3RAS[3];
-  mrmlNode->GetCalibrationMarker(3, marker3RAS[0], marker3RAS[1], marker3RAS[2]);
+  mrmlNode->GetCalibrationMarker(2, marker3RAS[0], marker3RAS[1], marker3RAS[2]);
 
   double axis2Vector[3];
   axis2Vector[0] = marker3RAS[0] - marker4RAS[0];
@@ -1867,49 +1144,158 @@ void vtkTRProstateBiopsyCalibrationStep::ShowAxesIn3DView()
   
   // form the axis 2 line
   // set up the line actors
-  vtkLineSource *axis2Line = vtkLineSource::New();
+  vtkSmartPointer<vtkLineSource> axis2Line = vtkSmartPointer<vtkLineSource>::New();  
   axis2Line->SetResolution(100); 
   axis2Line->SetPoint1(axis2EndRAS);
   axis2Line->SetPoint2(marker4RAS);
   axis2Line->Update();
       
-  vtkPolyDataMapper *axis2Mapper = vtkPolyDataMapper::New();
+  vtkSmartPointer<vtkPolyDataMapper> axis2Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();  
   axis2Mapper->SetInputConnection(axis2Line->GetOutputPort());
   this->Axes2Actor->SetMapper(axis2Mapper);  
+  this->Axes2Actor->SetVisibility(true);
   this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->AddViewProp(this->Axes2Actor);
 
-
   this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
-
 }
 
 //--------------------------------------------------------------------------------
-void vtkTRProstateBiopsyCalibrationStep::HideAxesIn3DView()
+void vtkTRProstateBiopsyCalibrationStep::ShowAxesIn3DView(bool show)
 {
-   // should remove the overlay needle guide
-  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->GetRenderer()->GetActors();
-  if (collection->IsItemPresent(this->Axes1Actor))
-    {
-    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->GetRenderer()->RemoveActor(this->Axes1Actor);
-    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
-    }
-  if (collection->IsItemPresent(this->Axes2Actor))
-    {
-    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->GetRenderer()->RemoveActor(this->Axes2Actor);
-    this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
-    }
-}
-//-------------------------------------------------------------------------------
-void vtkTRProstateBiopsyCalibrationStep::HideUserInterface()
-{
-  this->Superclass::HideUserInterface();
-
-  this->HideAxesIn3DView();
+  this->Axes1Actor->SetVisibility(show);
+  this->Axes2Actor->SetVisibility(show);
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
 }
 //-------------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationStep::Validate()
 {
   this->Superclass::Validate();
 
-  this->HideAxesIn3DView();
+  this->ShowAxesIn3DView(false);
+  this->ShowMarkerVolumesIn3DView(false);
+}
+
+ 
+CalibPointRenderer::CalibPointRenderer()
+{
+  this->Renderer = NULL;
+  this->Render_Image = NULL;
+  this->Render_Mapper = NULL;
+  this->Render_VolumeProperty = NULL;
+  this->Render_Volume = NULL;
+}
+
+CalibPointRenderer::~CalibPointRenderer()
+{
+  if (this->Renderer!=NULL && this->Render_Volume!=NULL)
+  {
+    if (this->Render_Volume->GetReferenceCount()>1)
+    {
+      // the object is still in the renderer, remove it now
+      this->Renderer->RemoveViewProp(this->Render_Volume);
+    }
+    this->Renderer=NULL;
+  }
+  if (this->Render_Volume) 
+  {
+    this->Render_Volume->Delete();
+    this->Render_Volume = NULL; 
+  }
+  if (this->Render_Mapper) 
+  {
+    this->Render_Mapper->Delete();
+    this->Render_Mapper = NULL;
+  }
+  if (this->Render_VolumeProperty) 
+  {
+    this->Render_VolumeProperty->Delete();
+    this->Render_VolumeProperty = NULL;
+  }
+  this->Render_Image = NULL;
+}
+
+vtkVolume* CalibPointRenderer::GetVolume() 
+{
+  return this->Render_Volume;
+}
+
+void CalibPointRenderer::Update(vtkKWRenderWidget *renderer, vtkMRMLVolumeNode *volumeNode, vtkImageData *imagedata)
+{ 
+  if (this->Render_Volume==NULL)
+  {
+    this->Render_Volume = vtkVolume::New();
+
+    //this->Render_Mapper = vtkFixedPointVolumeRayCastMapper::New(); // it may be needed if the software is used on an ancient graphics card
+    this->Render_Mapper = vtkVolumeTextureMapper3D::New();
+
+    this->Render_Volume->SetMapper(this->Render_Mapper);
+
+    this->Render_VolumeProperty = vtkVolumeProperty::New();
+    this->Render_VolumeProperty->SetShade(1);
+    this->Render_VolumeProperty->SetAmbient(0.3);
+    this->Render_VolumeProperty->SetDiffuse(0.6);
+    this->Render_VolumeProperty->SetSpecular(0.5);
+    this->Render_VolumeProperty->SetSpecularPower(40.0);
+    this->Render_VolumeProperty->SetInterpolationTypeToLinear();
+    this->Render_VolumeProperty->ShadeOn();
+    
+    this->Render_Volume->SetProperty(this->Render_VolumeProperty);
+  }
+
+  if (renderer!=this->Renderer)
+  {
+    if (this->Renderer!=0)
+    {
+       this->Renderer->RemoveViewProp(this->Render_Volume);
+       this->Renderer=0;
+    }
+    if (renderer!=0)
+    {
+      // assigne to a different renderer
+      int rfbef=this->Render_Volume->GetReferenceCount();
+      renderer->AddViewProp(this->Render_Volume);    
+      int rfaft=this->Render_Volume->GetReferenceCount();
+      this->Renderer=renderer;
+    }
+  }
+
+  if (volumeNode!=0 && imagedata!=0)
+  {
+    double* imgIntensityRange = imagedata->GetPointData()->GetScalars()->GetRange();
+    double imgIntensityUnit = (imgIntensityRange[1]-imgIntensityRange[0])* 0.01; // 1 unit is 1 percent of the intensity range    
+
+    double opacity=0.2;
+    vtkSmartPointer<vtkPiecewiseFunction> scalarOpacityTransferFunction = vtkSmartPointer<vtkPiecewiseFunction>::New();  
+    scalarOpacityTransferFunction->AddPoint(imgIntensityRange[0], 0.0);
+    scalarOpacityTransferFunction->AddPoint(imgIntensityRange[0]+1*imgIntensityUnit, 0.0);
+    scalarOpacityTransferFunction->AddPoint(imgIntensityRange[0]+5*imgIntensityUnit, opacity);
+    scalarOpacityTransferFunction->AddPoint(imgIntensityRange[1], opacity);
+
+    vtkSmartPointer<vtkColorTransferFunction> colorTransferFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+    colorTransferFunction->AddRGBPoint(imgIntensityRange[0], 0.8, 0.8, 0);
+    colorTransferFunction->AddRGBPoint(imgIntensityRange[1], 0.8, 0.8, 0);
+
+    this->Render_VolumeProperty->SetScalarOpacity(scalarOpacityTransferFunction);
+    this->Render_VolumeProperty->SetColor(colorTransferFunction);
+   
+    vtkSmartPointer<vtkMatrix4x4> orientationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();  
+    volumeNode->GetIJKToRASMatrix(orientationMatrix);
+    this->Render_Volume->PokeMatrix(orientationMatrix);
+
+    this->Render_Image = imagedata;
+    this->Render_Mapper->SetInput(this->Render_Image);
+  }
+}
+
+void vtkTRProstateBiopsyCalibrationStep::ShowMarkerVolumesIn3DView(bool show)
+{
+  for (std::vector<CalibPointRenderer>::iterator it=CalibPointPreProcRendererList.begin(); it!=CalibPointPreProcRendererList.end(); ++it)
+  {
+    vtkVolume *vol=it->GetVolume();
+    if (vol!=0)
+    {
+      vol->SetVisibility(show);
+    }
+  }
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->RequestRender();
 }

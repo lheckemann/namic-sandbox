@@ -1,17 +1,10 @@
 #include "vtkTRProstateBiopsyUSBOpticalEncoder.h"
 #include "vtkTRProstateBiopsyGUI.h"
+
 //----------------------------------------------------------------------------
-vtkTRProstateBiopsyUSBOpticalEncoder* vtkTRProstateBiopsyUSBOpticalEncoder::New()
-{
-  // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkTRProstateBiopsyUSBOpticalEncoder");
-  if(ret)
-    {
-      return (vtkTRProstateBiopsyUSBOpticalEncoder*)ret;
-    }
-  // If the factory was unable to create the object, then create it here.
-  return new vtkTRProstateBiopsyUSBOpticalEncoder;
-}
+vtkStandardNewMacro(vtkTRProstateBiopsyUSBOpticalEncoder);
+vtkCxxRevisionMacro(vtkTRProstateBiopsyUSBOpticalEncoder, "$Revision: 1.0 $");
+//------------------------------------------------------------------------------
 /// Constructor
 vtkTRProstateBiopsyUSBOpticalEncoder::vtkTRProstateBiopsyUSBOpticalEncoder(void)
 {
@@ -29,6 +22,10 @@ vtkTRProstateBiopsyUSBOpticalEncoder::~vtkTRProstateBiopsyUSBOpticalEncoder(void
     this->CloseUSBdevice();
 }
 
+void vtkTRProstateBiopsyUSBOpticalEncoder::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+}
 
 /// Tries to initialize the first USB device
 bool vtkTRProstateBiopsyUSBOpticalEncoder::OpenUSBdevice(void)
