@@ -39,7 +39,7 @@ public:
 
   // Description
   // Calculate distance between a line (defined by two points) and a point
-  static double ComputeDistanceLinePoint(double LinePoint1[3], double LinePoint2[3], double TargetPoint[3], double & apError, double & lrError, double & isError);
+  static double ComputeDistanceLinePoint(const double LinePoint1[3], const double LinePoint2[3], const double TargetPoint[3], double & apError, double & lrError, double & isError);
 
   //BTX
   static double VMagnitudeM( itk::Point<double,3> Point1, double Point2[3] );  

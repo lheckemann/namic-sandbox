@@ -54,6 +54,10 @@ public:
   virtual int CanGoToSelf();
   virtual void ShowUserInterface();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData) {};
+
+  virtual void UpdateMRML() {};
+  virtual void UpdateGUI() {};
+
   //virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
   
   // Description:

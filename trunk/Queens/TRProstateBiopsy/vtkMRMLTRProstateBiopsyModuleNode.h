@@ -25,17 +25,27 @@
 #include "vtkImageData.h"
 
 #include "vtkTRProstateBiopsyModule.h"
+#include "vtkTRProstateBiopsyCalibrationAlgo.h"
 
 class vtkImageData;
 class vtkMRMLLinearTransformNode;
 class vtkMRMLFiducialListNode;
 class vtkMRMLScalarVolumeNode;
-class vtkTRProstateBiopsyTargetDescriptor;
+//class vtkTRProstateBiopsyTargetDescriptor;
+#include "vtkTRProstateBiopsyTargetDescriptor.h"
 
+enum VolumeType
+{
+  VOL_GENERIC, // any other than the specific volumes 
+  VOL_CALIBRATION,
+  VOL_TARGETING,
+  VOL_VERIFICATION
+};
 
 class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtkMRMLNode
 {
   public:
+
   static vtkMRMLTRProstateBiopsyModuleNode *New();
   vtkTypeMacro(vtkMRMLTRProstateBiopsyModuleNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -58,7 +68,7 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
 
   // Description:
   // Get unique node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() {return "PS";};
+  virtual const char* GetNodeTagName() {return "TRProstateBiopsyModule";};
 
  
   // common:
@@ -151,8 +161,7 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
 
   // Description:
   // Get Calibration Fiducials (used in the wizard steps)
-  vtkGetObjectMacro(CalibrationFiducialsList, vtkMRMLFiducialListNode);
-  void SetCalibrationFiducialsList(vtkMRMLFiducialListNode *);
+  vtkGetObjectMacro(CalibrationFiducialsListNode, vtkMRMLFiducialListNode);
 
   bool AddTargetToFiducialList(double targetRAS[3], unsigned int fiducialListIndex, unsigned int targetNr, int & fiducialIndex);
   bool GetTargetFromFiducialList(int fiducialListIndex, int fiducialIndex, double &r, double &a, double &s);
@@ -161,54 +170,11 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   // Description:
   void GetCalibrationMarker(unsigned int markerNr, double &r, double &a, double &s);
   void SetCalibrationMarker(unsigned int markerNr, double markerRAS[3]);
+  void RemoveAllCalibrationMarkers();
 
-  // Description 
-  // storing registration results
-  // angle alpha between two axes in degrees
-  vtkSetMacro(AxesAngleDegrees, double);
-  vtkGetMacro(AxesAngleDegrees, double);
-
-  // Description 
-  // storing registration results
-  // registration angle in degrees
-  vtkSetMacro(RobotRegistrationAngleDegrees, double);
-  vtkGetMacro(RobotRegistrationAngleDegrees, double);
-
-  // Description 
-  // storing registration results
-  // axes distance
-  vtkSetMacro(AxesDistance, double);
-  vtkGetMacro(AxesDistance, double);
-
-  // Description 
-  // storing registration results
-  // I1
-  vtkSetVector3Macro(I1, double);
-  vtkGetVector3Macro(I1, double);
-
-  // Description 
-  // storing registration results
-  // I1
-  vtkSetVector3Macro(I2, double);
-  vtkGetVector3Macro(I2, double);
-
-  // Description 
-  // storing registration results
-  // I1
-  vtkSetVector3Macro(v1, double);
-  vtkGetVector3Macro(v1, double);
-
-  // Description 
-  // storing registration results
-  // I1
-  vtkSetVector3Macro(v2, double);
-  vtkGetVector3Macro(v2, double);
-
-  // Description 
-  // storing registration results
-  // axes distance
-  vtkSetMacro(FiducialSegmentationRegistrationComplete, bool);
-  vtkGetMacro(FiducialSegmentationRegistrationComplete, bool);
+  void ResetCalibrationData();
+  const TRProstateBiopsyCalibrationData& GetCalibrationData() { return this->CalibrationData; }
+  void SetCalibrationData(const TRProstateBiopsyCalibrationData& calibData) { this->CalibrationData=calibData; }
 
   //BTX
   // Description:
@@ -216,14 +182,9 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   std::string GetTargetingFiducialsListName(unsigned int index)
     {
     if (index < this->NeedlesVector.size())
-      return this->TargetingFiducialsListsNames[index];
+      return this->NeedlesVector[index].NeedleType;
     else
       return NULL;
-    }; 
-  void SetTargetingFiducialsListName(std::string listName, unsigned int index)
-    {
-    if (index < this->NeedlesVector.size())
-      this->TargetingFiducialsListsNames[index] = listName; 
     }; 
   //ETX
 
@@ -232,27 +193,25 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   vtkMRMLFiducialListNode *GetTargetingFiducialsList(unsigned int index)
     {
     if (index < this->NeedlesVector.size())
-      return this->TargetingFiducialsListsVector[index];
+      return this->NeedlesVector[index].TargetingFiducialsList;
     else
       return NULL;
     };  
-  void SetTargetingFiducialsList(vtkMRMLFiducialListNode *targetList, unsigned int index);
   
   unsigned int AddTargetDescriptor(vtkTRProstateBiopsyTargetDescriptor *target);
   vtkTRProstateBiopsyTargetDescriptor *GetTargetDescriptorAtIndex(unsigned int index);
   int GetTotalNumberOfTargets() { return this->TargetDescriptorsVector.size();};
-
-  void SetupNeedlesList(int numberOfNeedles);
-  void SetupTargetingFiducialsList();
-  
-
+  vtkGetMacro(CurrentTargetIndex, int);
+  int SetCurrentTargetIndex(int index);
 
   int GetNumberOfOpenVolumes(){return this->VolumesList.size();};
   vtkMRMLScalarVolumeNode *GetVolumeNodeAtIndex(int index);
-  char *GetDiskLocationOfVolumeAtIndex(int index);
-  char *GetTypeOfVolumeAtIndex(int index);
+  const char *GetDiskLocationOfVolumeAtIndex(int index);
+  const char *GetTypeOfVolumeAtIndex(int index);
   bool IsVolumeAtIndexActive(int index);
-  void AddVolumeInformationToList(vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type);
+  void AddVolumeInformationToList(vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type); 
+
+  bool GetRobotManipulatorTransform(vtkMatrix4x4* transform);
 
 protected:
   vtkMRMLTRProstateBiopsyModuleNode();
@@ -260,37 +219,16 @@ protected:
   vtkMRMLTRProstateBiopsyModuleNode(const vtkMRMLTRProstateBiopsyModuleNode&);
   void operator=(const vtkMRMLTRProstateBiopsyModuleNode&);
 
-  // registration results
-  double AxesDistance;
-  double RobotRegistrationAngleDegrees;
-  double AxesAngleDegrees;
-  double I1[3];
-  double I2[3]; 
-  double v1[3];
-  double v2[3];
-  bool FiducialSegmentationRegistrationComplete;
+  TRProstateBiopsyCalibrationData CalibrationData;
+
   // slicer's fiducial lists nodes for calibration and targeting
-  vtkMRMLFiducialListNode *CalibrationFiducialsList;
+  vtkMRMLFiducialListNode *CalibrationFiducialsListNode; // set using vtkSetMRMLNodeMacro
   //BTX
   // there could be more than one targeting fiducials list, depending on needle type
-  std::vector<vtkMRMLFiducialListNode *> TargetingFiducialsListsVector;
-  std::vector<vtkTRProstateBiopsyTargetDescriptor *> TargetDescriptorsVector;
-  //unsigned int NumberOfTargetingFiducialLists; this should be equal to number of needle types
-  std::vector<std::string> TargetingFiducialsListsNames;
-  //keep track of all the volumes that were opened, maintain a list
-  typedef struct{
-      char *Type;
-      char *DiskLocation;
-      bool Active;
-      vtkMRMLScalarVolumeNode *VolumeNode;
-  }VolumeInformationStruct;
-  std::vector<VolumeInformationStruct *> VolumesList;
-  //ETX
+  std::vector<vtkTRProstateBiopsyTargetDescriptor*> TargetDescriptorsVector;
 
-  void InitializeFiducialListNode();
+  int CurrentTargetIndex;
 
-  //BTX
-  // there could be more than one needles
   typedef struct 
     {
     std::string NeedleType;
@@ -298,21 +236,32 @@ protected:
     float NeedleOvershoot;
     std::string Description;
     unsigned int UniqueIdentifier;
-    }NeedleDescriptorStruct;
+    vtkMRMLFiducialListNode* TargetingFiducialsList;
+    } NeedleDescriptorStruct; // TargetingFiducialsListsNames;
 
-  std::vector<NeedleDescriptorStruct *> NeedlesVector;
-  //unsigned int NumberOfNeedles; 
+  std::vector<NeedleDescriptorStruct> NeedlesVector;
+
+  //keep track of all the volumes that were opened, maintain a list
+  typedef struct{
+    std::string Type;
+    std::string DiskLocation;
+    bool Active;
+    vtkMRMLScalarVolumeNode *VolumeNode;
+  } VolumeInformationStruct;
+  std::vector<VolumeInformationStruct> VolumesList;
+
   //ETX
-   
+
+  vtkMRMLScalarVolumeNode *CalibrationVolumeNode; // set using vtkSetMRMLNodeMacro
+  vtkMRMLScalarVolumeNode *TargetingVolumeNode; // set using vtkSetMRMLNodeMacro
+  vtkMRMLScalarVolumeNode *VerificationVolumeNode; // set using vtkSetMRMLNodeMacro
+
   // common parameters  
   char* VolumeInUse; 
   char* SegmentationOutputVolumeRef;
   char* SegmentationInputVolumeRef;
   char* SegmentationSeedVolumeRef;
   char* ExperimentSavePathInConfigFile;
-  vtkMRMLScalarVolumeNode *CalibrationVolumeNode;
-  vtkMRMLScalarVolumeNode *TargetingVolumeNode;
-  vtkMRMLScalarVolumeNode *VerificationVolumeNode;
 
 };
 

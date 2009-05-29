@@ -81,6 +81,11 @@
 #include "vtkCylinderSource.h"
 #include "vtkMRMLLinearTransformNode.h"
 
+#include "vtkTRProstateBiopsySecondaryMonitor.h"
+
+#include "vtkSlicerFiducialListWidget.h"
+
+#include "vtkTRProstateBiopsyRobotWidget.h"
 
 #include <vector>
 #include <sstream>
@@ -148,6 +153,8 @@ vtkTRProstateBiopsyGUI::vtkTRProstateBiopsyGUI()
 {
   ////slicerCerr("vtkTRProstateBiopsyGUI Constructor");
 
+  this->SecondaryMonitor = NULL;
+
    // gui elements
   this->VolumeSelector = vtkSlicerNodeSelectorWidget::New();
   this->TRNodeSelector = vtkSlicerNodeSelectorWidget::New();
@@ -176,7 +183,7 @@ vtkTRProstateBiopsyGUI::vtkTRProstateBiopsyGUI()
 
   //----------------------------------------------------------------  
   // Wizard Frame
-  
+
   this->WizardWidget = vtkKWWizardWidget::New();
   this->WizardSteps = new vtkTRProstateBiopsyStep*[vtkTRProstateBiopsyLogic::NumPhases];
   for (int i = 0; i < vtkTRProstateBiopsyLogic::NumPhases; i ++)
@@ -184,8 +191,14 @@ vtkTRProstateBiopsyGUI::vtkTRProstateBiopsyGUI()
     this->WizardSteps[i] = NULL;
     }
   
+  //----------------------------------------------------------------  
+  // Primary monitor viewer
+  this->PrimaryMonitorRobotViewerWidget=vtkSmartPointer<vtkTRProstateBiopsyRobotWidget>::New();
+
+  //----------------------------------------------------------------  
+  // Secondary monitor
   
-  
+  this->SecondaryMonitor = vtkTRProstateBiopsySecondaryMonitor::New();
 }
 
 //---------------------------------------------------------------------------
@@ -222,8 +235,6 @@ vtkTRProstateBiopsyGUI::~vtkTRProstateBiopsyGUI()
     this->SaveExperimentFileButton->Delete();
     this->SaveExperimentFileButton = NULL;
     }
-
-
   //----------------------------------------------------------------
   // Workphase Frame
 
@@ -242,14 +253,57 @@ vtkTRProstateBiopsyGUI::~vtkTRProstateBiopsyGUI()
     this->WizardWidget->Delete();
     this->WizardWidget = NULL;
     }
+  
+  for (int i = 0; i < vtkTRProstateBiopsyLogic::NumPhases; i ++)
+    {
+    if (this->WizardSteps[i]!=NULL)
+      {
+      this->WizardSteps[i]->SetGUI(NULL);
+      this->WizardSteps[i]->Delete();
+      this->WizardSteps[i]=0;
+      }
+    }
 
   this->SetModuleLogic(NULL);  
-  vtkSetMRMLNodeMacro(this->MRMLNode, NULL);
+
+  vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, NULL);
 
   if (this->OpticalTimerEventId)
     {
     vtkKWTkUtilities::CancelTimerHandler(vtkKWApplication::GetMainInterp(), this->OpticalTimerEventId); 
     }
+
+  //----------------------------------------------------------------  
+  // Secondary monitor
+  
+  if (this->SecondaryMonitor)
+    {
+    this->SecondaryMonitor->Withdraw();
+    this->SecondaryMonitor->SetApplication(NULL);
+    this->SecondaryMonitor->Delete();
+    this->SecondaryMonitor = NULL;
+    }
+}
+
+//---------------------------------------------------------------------------
+void vtkTRProstateBiopsyGUI::TearDownGUI() 
+{
+  if (this->SecondaryMonitor)
+    {  
+    this->SecondaryMonitor->Withdraw();
+    this->SecondaryMonitor->SetApplication(NULL);
+    }
+  for (int i = 0; i < vtkTRProstateBiopsyLogic::NumPhases; i ++)
+    {
+    if (this->WizardSteps[i]!=NULL)
+      {
+      this->WizardSteps[i]->SetGUI(NULL);
+      }
+    }
+
+  this->PrimaryMonitorRobotViewerWidget->SetApplication(NULL);
+  this->PrimaryMonitorRobotViewerWidget->SetMainViewerWidget(NULL);
+  this->PrimaryMonitorRobotViewerWidget->SetMRMLScene(NULL);
 }
 
 //---------------------------------------------------------------------------
@@ -331,7 +385,6 @@ void vtkTRProstateBiopsyGUI::AddGUIObservers()
   this->GetApplicationGUI()->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
   this->GetApplicationGUI()->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
 
-  
   this->VolumeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
 
   this->TRNodeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand ); 
@@ -353,10 +406,10 @@ void vtkTRProstateBiopsyGUI::AddGUIObservers()
     }
   
   // Wizard Frame
-
   this->WizardWidget->GetWizardWorkflow()->AddObserver( vtkKWWizardWorkflow::CurrentStateChangedEvent, static_cast<vtkCommand *>(this->GUICallbackCommand));
 
   this->AddLogicObservers();
+  
 }
 
 
@@ -460,42 +513,35 @@ void vtkTRProstateBiopsyGUI::ProcessGUIEvents(
   else if (this->LoadExperimentFileButton && this->LoadExperimentFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {
     // load calib dialog button
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathExperiment");
     const char *fileName = this->LoadExperimentFileButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
+      this->LoadExperimentFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathExperiment");     
       //this->CalibFilePath = std::string(this->LoadCalibrationFileButton->GetLoadSaveDialog()->GetLastPath());
       // indicates ok has been pressed with a file name
       //this->CalibFileName = std::string(fileName);
 
       // call the callback function
-      this->LoadExperimentButtonCallback(fileName);
-    
-      }
-    
+      this->LoadExperimentButtonCallback(fileName);    
+      }  
     // reset the file browse button text
     this->LoadExperimentFileButton->SetText ("Load experiment");
-   
     }  
   else if (this->SaveExperimentFileButton && this->SaveExperimentFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {    
     // save calib dialog button
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathExperiment");
     const char *fileName = this->SaveExperimentFileButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
-    
+      this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathExperiment");     
       std::string fullFileName = std::string(fileName) + ".xml";
-      // get the file name and file path
-      this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("OpenPath");
-        
       // call the callback function
       this->SaveExperimentButtonCallback(fullFileName.c_str());
-
-    
       }
-    
     // reset the file browse button text
     this->SaveExperimentFileButton->SetText ("Save experiment");
-   
     }  
   else if (vtkSlicerNodeSelectorWidget::SafeDownCast(caller) == this->VolumeSelector && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent && this->VolumeSelector->GetSelected() != NULL) 
     { 
@@ -522,10 +568,30 @@ void vtkTRProstateBiopsyGUI::ProcessGUIEvents(
 
 
 //---------------------------------------------------------------------------
-void vtkTRProstateBiopsyGUI::ProcessMRMLEvents(vtkObject *caller,
-    unsigned long event, void *callData)
+void vtkTRProstateBiopsyGUI::ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData)
 {
-    // Fill in
+  // if parameter node has been changed externally, update GUI widgets with new values
+  vtkMRMLTRProstateBiopsyModuleNode* node = vtkMRMLTRProstateBiopsyModuleNode::SafeDownCast(caller);
+  vtkMRMLLinearTransformNode *transformNode = vtkMRMLLinearTransformNode::SafeDownCast(caller);
+  vtkMRMLScalarVolumeDisplayNode *displayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(caller);
+
+  if (node != NULL && this->GetMRMLNode() == node ) 
+  {
+    this->UpdateGUI();
+  } 
+
+  //if (displayNode != NULL && this->GetMRMLNode()->GetTargetingVolumeNode()->GetScalarVolumeDisplayNode() == displayNode && event == vtkCommand::ModifiedEvent)
+  if (node != NULL && this->GetMRMLNode() == node && event == vtkCommand::ModifiedEvent)
+  {
+      
+  }
+
+  if (node != NULL && this->GetMRMLNode() == node && event == vtkCommand::ModifiedEvent)
+  {
+    int targetIndex=node->GetCurrentTargetIndex();
+    this->SecondaryMonitor->SetCurrentTarget(node->GetTargetDescriptorAtIndex(targetIndex));
+  }
+
 }
 
 //---------------------------------------------------------------------------
@@ -547,7 +613,7 @@ void vtkTRProstateBiopsyGUI::UpdateMRML ()
      // add MRMLFiducialListNode to the scene
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
     // one node for calibration fiducials list
-    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetCalibrationFiducialsList());
+    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetCalibrationFiducialsListNode());
     // as many nodes as there are targeting fiducials lists
     for (unsigned int i = 0; i < this->MRMLNode->GetNumberOfNeedles(); i++)
       {
@@ -755,18 +821,10 @@ void vtkTRProstateBiopsyGUI::UpdateGUI ()
   vtkMRMLTRProstateBiopsyModuleNode* n = this->GetMRMLNode();
   if (n != NULL)
     {
-    // set GUI widgest from parameter node
-    /*this->ConductanceScale->SetValue(n->GetConductance());
-    
-    this->TimeStepScale->SetValue(n->GetTimeStep());
-    
-    this->NumberOfIterationsScale->SetValue(n->GetNumberOfIterations());
-
-    this->UseImageSpacing->SetSelectedState(n->GetUseImageSpacing());*/
-    
-    // update in the mrml scene with latest transform that we have
-    // TODO:
-    //this->GetLogic()->GetMRMLScene()->UpdateNode();
+    for (int i = 0; i < vtkTRProstateBiopsyLogic::NumPhases; i++)
+      {
+      this->WizardSteps[i]->UpdateGUI();
+      }
     }
 }
 
@@ -779,6 +837,8 @@ void vtkTRProstateBiopsyGUI::UpdateAll()
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyGUI::Enter()
 {
+  // this method is called whenever the module is selected from the module list
+
   ////slicerCerr("vtkTRProstateBiopsyGUI::Enter();"); 
 
 
@@ -890,21 +950,25 @@ void vtkTRProstateBiopsyGUI::Enter()
     //read the config file
     this->GetLogic()->ReadConfigFile();
 
-    // set up fiducial lists
-    n->SetupTargetingFiducialsList();
-
     // one node for calibration fiducials list
-    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetCalibrationFiducialsList());
+    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetCalibrationFiducialsListNode());
     // as many nodes as there are targeting fiducials lists
     for (unsigned int i = 0; i < this->MRMLNode->GetNumberOfNeedles(); i++)
       {
       this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetTargetingFiducialsList(i));
       }
 
+    this->SecondaryMonitor->DisplayOnSecondaryMonitor();
 
-    }
+    // Display robot model in the main 3D viewer
+    
+    this->PrimaryMonitorRobotViewerWidget->SetApplication(this->GetApplication());
+    this->PrimaryMonitorRobotViewerWidget->SetMainViewerWidget(this->GetApplicationGUI()->GetViewerWidget());
+    this->PrimaryMonitorRobotViewerWidget->SetMRMLScene(this->GetMRMLScene());
+    this->PrimaryMonitorRobotViewerWidget->Create();
+    this->PrimaryMonitorRobotViewerWidget->UpdateFromMRML();
 
-  
+    } 
 
   // first try to open up communication at usb port with optical encoder for readout
   this->Logic->InitializeOpticalEncoder();
@@ -923,8 +987,7 @@ void vtkTRProstateBiopsyGUI::Enter()
       // Note: the above call will call the OpticalEncoderTimerEvent function only once,
       // to maintain timer event, after 'delay' has to be called inside the function to make it recursive call
       }
-
-    
+   
 }
 
 //---------------------------------------------------------------------------
@@ -1091,7 +1154,7 @@ void vtkTRProstateBiopsyGUI::SaveExperiment(ostream & of)
   // save the volume information
   this->SaveVolumesToExperimentFile(of);
 
-  for (int phase = vtkTRProstateBiopsyLogic::WorkPhase::Calibration; phase < vtkTRProstateBiopsyLogic::WorkPhase::NumPhases; phase++)
+  for (int phase = vtkTRProstateBiopsyLogic::Calibration; phase < vtkTRProstateBiopsyLogic::NumPhases; phase++)
     {
     this->WizardSteps[phase]->SaveToExperimentFile(of);
     } 
@@ -1102,7 +1165,7 @@ void vtkTRProstateBiopsyGUI::LoadExperiment(istream &file)
   // load the volumes
   this->LoadVolumesAsInExperimentFile(file);
 
-  for (int phase = vtkTRProstateBiopsyLogic::WorkPhase::Calibration; phase < vtkTRProstateBiopsyLogic::WorkPhase::NumPhases; phase++)
+  for (int phase = vtkTRProstateBiopsyLogic::Calibration; phase < vtkTRProstateBiopsyLogic::NumPhases; phase++)
     {
     this->WizardSteps[phase]->LoadFromExperimentFile(file);
     }
@@ -1117,6 +1180,7 @@ void vtkTRProstateBiopsyGUI::LoadExperimentButtonCallback(const char *fileName)
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyGUI::BuildGUI()
 {
+
   // ---
   // MODULE GUI FRAME 
   // create a page
@@ -1131,12 +1195,12 @@ void vtkTRProstateBiopsyGUI::BuildGUI()
 
   this->UIPanel->AddPage("TRProstateBiopsy", "TRProstateBiopsy", NULL);
   vtkKWWidget *modulePage =  this->UIPanel->GetPageWidget("TRProstateBiopsy");
-
+  
   // help page
   const char *help = "**Trans-Rectal Prostate Biopsy Module:** **Under Construction** This module provides an interface for using MRI to localize prostate biopsy targets and to perform the biopsies with an intra-rectal robot.";
-  const char *about = "This module was developed at Quee's University, Canada and is supported supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details.";
+  const char *about = "This module was developed at Queen's University, Canada and is supported supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details.";
   this->BuildHelpAndAboutFrame(modulePage, help, about);
-  vtkKWLabel *NACLabel = vtkKWLabel::New();
+  vtkKWLabel* NACLabel = vtkKWLabel::New();
   NACLabel->SetParent ( this->GetLogoFrame() );
   NACLabel->Create();
   NACLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetNACLogo() );
@@ -1166,16 +1230,21 @@ void vtkTRProstateBiopsyGUI::BuildGUI()
   NCIGTLabel->Delete();
   BIRNLabel->Delete();
 
-
   this->BuildGUIForWorkPhaseFrame();
   this->BuildGUIForModuleParamsVolumeAndExperimentFrame();
   this->BuildGUIForWizardFrame();
+
+  this->SecondaryMonitor->SetApplication(this->GetApplication());
+  this->SecondaryMonitor->Create();
+      
 }
 
 
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyGUI::BuildGUIForWizardFrame()
 {
+
+
   vtkKWWidget *page = this->UIPanel->GetPageWidget("TRProstateBiopsy");
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
 
@@ -1183,8 +1252,8 @@ void vtkTRProstateBiopsyGUI::BuildGUIForWizardFrame()
   // WIZARD FRAME         
   // ----------------------------------------------------------------
 
-  vtkSlicerModuleCollapsibleFrame *wizardFrame = 
-      vtkSlicerModuleCollapsibleFrame::New();
+  vtkSlicerModuleCollapsibleFrame* wizardFrame = vtkSlicerModuleCollapsibleFrame::New();
+
   wizardFrame->SetParent(page);
   wizardFrame->Create();
   wizardFrame->SetLabelText("Wizard");
@@ -1213,32 +1282,26 @@ void vtkTRProstateBiopsyGUI::BuildGUIForWizardFrame()
   // -----------------------------------------------------------------
   // Add the steps to the workflow
 
-  vtkKWWizardWorkflow *wizardWorkflow = 
-    this->WizardWidget->GetWizardWorkflow();
+  vtkKWWizardWorkflow *wizardWorkflow = this->WizardWidget->GetWizardWorkflow();
 
  
   // -----------------------------------------------------------------
   // Calibration step
 
-  
   if (!this->WizardSteps[vtkTRProstateBiopsyLogic::Calibration])
     {
     this->WizardSteps[vtkTRProstateBiopsyLogic::Calibration] = vtkTRProstateBiopsyCalibrationStep::New();
     }
   wizardWorkflow->AddStep(this->WizardSteps[vtkTRProstateBiopsyLogic::Calibration]);
-  
 
   // -----------------------------------------------------------------
   // Segmentation step
 
-  
   if (!this->WizardSteps[vtkTRProstateBiopsyLogic::Segmentation])
     {
     this->WizardSteps[vtkTRProstateBiopsyLogic::Segmentation] = vtkTRProstateBiopsySegmentationStep::New();
     }
   wizardWorkflow->AddNextStep(this->WizardSteps[vtkTRProstateBiopsyLogic::Segmentation]);
-
-
 
   // -----------------------------------------------------------------
   // Targeting step
@@ -1257,24 +1320,19 @@ void vtkTRProstateBiopsyGUI::BuildGUIForWizardFrame()
     this->WizardSteps[vtkTRProstateBiopsyLogic::Verification] = vtkTRProstateBiopsyVerificationStep::New();
     }
   wizardWorkflow->AddNextStep(this->WizardSteps[vtkTRProstateBiopsyLogic::Verification]);
+
   // -----------------------------------------------------------------
   // Set GUI/Logic to each step and add to workflow
 
   for (int i = 0; i < vtkTRProstateBiopsyLogic::NumPhases; i++)
     {
     this->WizardSteps[i]->SetGUI(this);
-    //this->WizardSteps[i]->SetLogic(this->Logic);
 
     // Set color for the wizard title:
-
     this->WizardSteps[i]->SetTitleBackgroundColor(0.8, 0.8, 1.0);
-    this->WizardSteps[i]->SetTitleBackgroundColor(WorkPhaseColor[i][0],
-                                                 WorkPhaseColor[i][1],
-                                                  WorkPhaseColor[i][2]);
-    
+    this->WizardSteps[i]->SetTitleBackgroundColor(WorkPhaseColor[i][0], WorkPhaseColor[i][1], WorkPhaseColor[i][2]);    
     }
-
-
+  
   // -----------------------------------------------------------------
   // Initial and finish step
 
@@ -1284,7 +1342,7 @@ void vtkTRProstateBiopsyGUI::BuildGUIForWizardFrame()
 
   // -----------------------------------------------------------------
   // Show the user interface
-  //this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
+  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
 }
 
 
@@ -1299,7 +1357,7 @@ void vtkTRProstateBiopsyGUI::BuildGUIForModuleParamsVolumeAndExperimentFrame()
   loadSaveExptFrame->SetParent(modulePage);
   loadSaveExptFrame->Create();
   loadSaveExptFrame->SetLabelText("Experiment frame");
-  loadSaveExptFrame->ExpandFrame();  
+  loadSaveExptFrame->CollapseFrame();  
   app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
               loadSaveExptFrame->GetWidgetName(), modulePage->GetWidgetName());
   
@@ -1577,7 +1635,7 @@ int vtkTRProstateBiopsyGUI::ChangeWorkPhase(int phase, int fChangeWizard)
         wizard->AttemptToGoToPreviousStep();
         }
       }
-    wizard->GetCurrentStep()->ShowUserInterface();
+//    wizard->GetCurrentStep()->ShowUserInterface();
     }
 
   return 1;

@@ -450,6 +450,7 @@ void vtkTRProstateBiopsySegmentationStep::ShowSegmentControls()
   if (!this->SegmentButton->IsCreated())
     {
     this->SegmentButton->SetParent(this->SegmentFrame);
+    this->SegmentButton->Create();
     this->SegmentButton->SetText("Segment");
     this->SegmentButton->SetBorderWidth(2);
     this->SegmentButton->SetReliefToRaised();      
@@ -457,7 +458,6 @@ void vtkTRProstateBiopsySegmentationStep::ShowSegmentControls()
     this->SegmentButton->SetBackgroundColor(0.85,0.85,0.85);
     this->SegmentButton->SetActiveBackgroundColor(1,1,1);      
     this->SegmentButton->SetBalloonHelpString("Click to start segmentation");
-    this->SegmentButton->Create();
     }
     
   this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
@@ -574,8 +574,6 @@ void vtkTRProstateBiopsySegmentationStep::Enter()
   vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>(
     this->GetGUI()->GetApplication());
   vtkTRProstateBiopsyLogic *logic = this->GetGUI()->GetLogic();
-//  logic->SetSliceViewFromVolume(app, logic->GetCalibrationVolumeNode());
-
 
   if (this->GetGUI()->GetLogic()->GetCalibrationSliceNodeXML())
     {
@@ -666,9 +664,11 @@ void vtkTRProstateBiopsySegmentationStep::ProcessGUIEvents(vtkObject *caller,
   // input volume dialog button
   if (this->InputVolumeButton && this->InputVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {
+    this->InputVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathVol");          
     const char *fileName = this->InputVolumeButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
+      this->InputVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathVol");
       // call the callback function
       this->InputVolumeButtonCallback(fileName);    
       } 
@@ -678,9 +678,11 @@ void vtkTRProstateBiopsySegmentationStep::ProcessGUIEvents(vtkObject *caller,
    // seed volume dialog button
   if (this->SeedVolumeButton && this->SeedVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {
+    this->SeedVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathVol");          
     const char *fileName = this->SeedVolumeButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
+      this->SeedVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathVol");
       // call the callback function
       this->SeedVolumeButtonCallback(fileName);    
       } 

@@ -12,6 +12,7 @@ class vtkKWScaleWithEntry;
 class vtkKWFrame;
 class vtkKWLabel;
 class vtkKWText;
+class vtkKWTextWithScrollbars;
 class vtkKWEntrySet;
 class vtkKWEntryWithLabel;
 class vtkKWFrameWithLabel;
@@ -21,6 +22,37 @@ class vtkKWLoadSaveButton;
 class vtkSlicerInteractorStyle;
 class vtkMRMLVolumeNode;
 class vtkActor;
+
+class vtkMRMLScalarVolumeNode;
+class vtkMRMLTRProstateBiopsyModuleNode;
+
+class vtkImageData;
+class vtkVolumeMapper;
+class vtkPiecewiseFunction;
+class vtkColorTransferFunction;
+class vtkVolumeProperty;
+class vtkVolume;
+class vtkMatrix4x4; 
+class vtkKWRenderWidget;
+
+#include "vtkSmartPointer.h"
+
+//BTX
+class CalibPointRenderer
+  {
+  public:
+    CalibPointRenderer();
+    virtual ~CalibPointRenderer();
+    void Update(vtkKWRenderWidget* renderer, vtkMRMLVolumeNode *volumeNode, vtkImageData *imagedata);
+    vtkVolume* GetVolume();
+  protected:
+    vtkImageData* Render_Image;
+    vtkVolumeMapper* Render_Mapper;
+    vtkVolumeProperty* Render_VolumeProperty;
+    vtkVolume* Render_Volume;
+    vtkKWRenderWidget* Renderer;
+  };
+//ETX
 
 class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyCalibrationStep :
   public vtkTRProstateBiopsyStep
@@ -34,6 +66,9 @@ public:
   virtual void ShowUserInterface();
   virtual void HideUserInterface();
   virtual void Validate();
+
+  virtual void UpdateMRML();
+  virtual void UpdateGUI();
 
   // Description:
   // The Enter and Exit functions are not part of vtkKWWizardStep.
@@ -83,9 +118,7 @@ public:
 
 
   /*static void MRMLCallback(vtkObject *caller, unsigned long event,
-                           void *clientData, void *callData);
-  virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event,
-                                 void *callData);*/
+                           void *clientData, void *callData);*/
 
 protected:
   vtkTRProstateBiopsyCalibrationStep();
@@ -104,90 +137,72 @@ protected:
   void ShowFiducialSegmentationResultsControls();
   void ClearFiducialSegmentationResultsControls();
 
-  void ShowSaveResegmentControls();
-  void ClearSaveResegmentControls();
+  void ShowExportImportControls();
+  void ClearExportImportControls();
 
-  void PopulateSegmentationResults();
-  void PopulateRegistrationResults();
+  void PopulateCalibrationResults();
 
   void AddGUIObservers();
   void RemoveGUIObservers();
   void RecordClick(double rasPoint[3]);
   void SegmentRegisterMarkers();
   void SegmentAxis(int nAxis);
+  void Resegment();
 
-  void ShowAxesIn3DView();
-  void HideAxesIn3DView();
+  void UpdateAxesIn3DView();
+  void ShowAxesIn3DView(bool show);
+
+  void ShowMarkerVolumesIn3DView(bool show);
+
   // Description:
   // GUI callback  
   static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
 
-  vtkKWFrame *LoadVolumeDialogFrame;
-  vtkKWLoadSaveButton *LoadCalibrationVolumeButton;
+  //BTX
+
+  vtkSmartPointer<vtkKWFrame> LoadVolumeDialogFrame;
+  vtkSmartPointer<vtkKWLoadSaveButton> LoadCalibrationVolumeButton;
 
   // 1)  button: open file dialog box
-  vtkKWLoadSaveButton *LoadCalibrationSettingsFileButton;
+  vtkSmartPointer<vtkKWLoadSaveButton> LoadCalibrationSettingsFileButton;
   // 2) button: save calib file dialog box
-  vtkKWLoadSaveButton *SaveCalibrationSettingsFileButton;
+  vtkSmartPointer<vtkKWLoadSaveButton> SaveCalibrationSettingsFileButton;
   // also display save path??
   // 3) reset push button, this will require segmentation from start i.e.
   // new specification of 4 clicks on fiducials
-  vtkKWPushButton *ResetCalibrationButton;
+  vtkSmartPointer<vtkKWPushButton> ResetCalibrationButton;
   // 4) Re-segment push button, this will not require new specification of 4 clicks, but this will
   // be used when Fiducials thresholds, initial angle, radius etc parameters are changed
-  vtkKWPushButton *ResegmentButton;
+  vtkSmartPointer<vtkKWPushButton> ResegmentButton;
   // also associated frames
-  vtkKWFrame *LoadResetFrame;
-  vtkKWFrame *SaveResegmentFrame;
+  vtkSmartPointer<vtkKWFrame> LoadResetFrame;
+  vtkSmartPointer<vtkKWFrame> ExportImportFrame;
 
+  vtkSmartPointer<vtkKWFrameWithLabel> FiducialPropertiesFrame;
+  vtkSmartPointer<vtkKWSpinBoxWithLabel> FiducialWidthSpinBox;
+  vtkSmartPointer<vtkKWSpinBoxWithLabel> FiducialHeightSpinBox;
+  vtkSmartPointer<vtkKWSpinBoxWithLabel> FiducialDepthSpinBox;
+  vtkSmartPointer<vtkKWScaleWithEntry> FiducialThresholdScale[4];
+  vtkSmartPointer<vtkKWSpinBoxWithLabel> RadiusSpinBox;
+  vtkSmartPointer<vtkKWCheckButton> RadiusCheckButton;
+  vtkSmartPointer<vtkKWSpinBoxWithLabel> InitialAngleSpinBox;
 
-  vtkKWFrameWithLabel *FiducialDimensionsFrame;
-  vtkKWSpinBoxWithLabel *FiducialWidthSpinBox;
-  vtkKWSpinBoxWithLabel *FiducialHeightSpinBox;
-  vtkKWSpinBoxWithLabel *FiducialDepthSpinBox;
+  vtkSmartPointer<vtkKWFrameWithLabel> SegmentationResultsFrame;
+  vtkSmartPointer<vtkKWTextWithScrollbars> CalibrationResultsBox;
 
-  vtkKWFrameWithLabel *FiducialThresholdFrame;
-  vtkKWScaleWithEntry *FiducialThresholdScale[4];
-  
-  vtkKWFrameWithLabel *RadiusInitialAngleFrame;
-  vtkKWSpinBoxWithLabel *RadiusSpinBox;
-  vtkKWCheckButton *RadiusCheckButton;
-  vtkKWSpinBoxWithLabel *InitialAngleSpinBox;
+  vtkSmartPointer<vtkActor> Axes1Actor;
+  vtkSmartPointer<vtkActor> Axes2Actor;
 
-  vtkKWFrameWithLabel *SegmentationResultsFrame;
- 
-  // marker/fiducial centroids
-  // information for the user
-  vtkKWFrame *Marker_1_CentroidFrame;
-  vtkKWLabel *Marker_1_CentroidLabel;
-  vtkKWEntrySet      *Marker_1_Centroid; // read only
+  //ETX
 
-  vtkKWFrame *Marker_2_CentroidFrame;
-  vtkKWLabel *Marker_2_CentroidLabel;
-  vtkKWEntrySet      *Marker_2_Centroid; // read only
-
-  vtkKWFrame *Marker_3_CentroidFrame;
-  vtkKWLabel *Marker_3_CentroidLabel;
-  vtkKWEntrySet      *Marker_3_Centroid; // read only
-
-  vtkKWFrame *Marker_4_CentroidFrame;
-  vtkKWLabel *Marker_4_CentroidLabel;
-  vtkKWEntrySet      *Marker_4_Centroid; // read only
-
-  // axis angle
-  vtkKWEntryWithLabel *AxesAngle;
-
-  // axis distance
-  vtkKWEntryWithLabel *AxesDistance;
-
-  vtkActor *Axes1Actor;
-  vtkActor *Axes2Actor;
-
-  int ObserverCount;
   unsigned int ClickNumber;
   bool ProcessingCallback;
   bool AllMarkersAcquired;
-  
+
+  //BTX
+  std::vector<CalibPointRenderer> CalibPointPreProcRendererList;
+  //ETX
+
 private:  
   vtkTRProstateBiopsyCalibrationStep(const vtkTRProstateBiopsyCalibrationStep&);
   void operator=(const vtkTRProstateBiopsyCalibrationStep&);

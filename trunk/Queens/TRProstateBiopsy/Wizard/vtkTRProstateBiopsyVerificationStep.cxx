@@ -25,6 +25,7 @@
 #include "vtkKWEntrySet.h"
 #include "vtkKWLoadSaveButton.h"
 #include "vtkKWText.h"
+#include "vtkKWTextWithScrollbars.h"
 #include "vtkKWPushButton.h"
 #include "vtkKWMenuButton.h"
 #include "vtkKWMenuButtonWithLabel.h"
@@ -432,9 +433,11 @@ void vtkTRProstateBiopsyVerificationStep::ProcessGUIEvents(vtkObject *caller,
   // load targeting volume dialog button
   if (this->LoadVerificationVolumeButton && this->LoadVerificationVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {
+    this->LoadVerificationVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathVol");          
     const char *fileName = this->LoadVerificationVolumeButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
+      this->LoadVerificationVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathVol");
       // call the callback function
       this->LoadVerificationVolumeButtonCallback(fileName);    
       } 
@@ -571,7 +574,7 @@ void vtkTRProstateBiopsyVerificationStep::RecordClick(double rasPoint[])
         double overallErr = 0;
         double apErr = 0; double lrErr = 0; double isErr = 0;
         double targetRAS[3];
-        targetDesc->GetRASLocation(targetRAS[0], targetRAS[1], targetRAS[2]);
+        targetDesc->GetRASLocation(targetRAS);
         overallErr = vtkTRProstateBiopsyMath::ComputeDistanceLinePoint(NeedleClick1, NeedleClick2, targetRAS, apErr, lrErr, isErr);
         
         // set the variable values in target descriptor
@@ -655,7 +658,7 @@ void vtkTRProstateBiopsyVerificationStep::LoadVerificationVolumeButtonCallback(c
 
   vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>(this->GetGUI()->GetApplication());
 
-  vtkMRMLScalarVolumeNode *volumeNode = this->GetGUI()->GetLogic()->AddVerificationVolume(app,fileString.c_str());
+  vtkMRMLScalarVolumeNode *volumeNode = this->GetGUI()->GetLogic()->AddVolumeToScene(app,fileString.c_str(), VOL_VERIFICATION);
         
   if (volumeNode)
     {
@@ -815,14 +818,14 @@ unsigned int vtkTRProstateBiopsyVerificationStep::PopulateListWithTargetDetails(
 
   // target location
   char rasStr[256] = "";
-  double r, a, s;
-  target->GetRASLocation(r, a, s);
-  sprintf(rasStr, "%.1f, %.1f, %.1f", r, a, s);
+  double ras[3];
+  target->GetRASLocation(ras);
+  sprintf(rasStr, "%.1f, %.1f, %.1f", ras[0], ras[1], ras[2]);
   this->TargetsMultiColumnList->GetWidget()->SetCellText(rowIndex, this->RASLocationColumn, rasStr);
 
   // reachable
   char reachableStr[30] = "Reachable";
-  if (target->GetIsOutside())
+  if (target->GetIsOutsideReach())
       strcpy(reachableStr, "Out of reach!!");
   this->TargetsMultiColumnList->GetWidget()->SetCellText(rowIndex, this->ReachableColumn, reachableStr);
 
@@ -881,7 +884,7 @@ void vtkTRProstateBiopsyVerificationStep::BringTargetToViewIn2DViews()
     // get the point ras location of the target fiducial (P) that lies on the image plane
     vtkTRProstateBiopsyTargetDescriptor *targetDesc = this->GetGUI()->GetMRMLNode()->GetTargetDescriptorAtIndex(this->CurrentSelectedTargetDescriptorIndex);    
     double P[3];
-    targetDesc->GetRASLocation(P[0], P[1], P[2]);
+    targetDesc->GetRASLocation(P);
 
     // get the normal vector of the plane, and also direction of the line
     vtkSlicerSliceLogic *redSlice = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Red");    
