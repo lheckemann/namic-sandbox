@@ -835,6 +835,7 @@ void vtkFourDAnalysisLogic::GetCurveAnalysisInfo(const char* script, vtkMRMLCurv
   // Get lists of input curves, initial parameters etc.
   pythonCmd += "curveNames           = caexec.GetInputCurveNames()\n";
   pythonCmd += "initialOptimParams   = caexec.GetInitialOptimParams()\n";
+  pythonCmd += "inputParameterNames  = caexec.GetInputParameterNames()\n";
   pythonCmd += "outputParameterNames = caexec.GetOutputParameterNames()\n";
 
   // Set lists
@@ -890,18 +891,22 @@ void vtkFourDAnalysisLogic::RunCurveFitting(const char* script, vtkMRMLCurveAnal
   // Get lists of input curves, initial parameters etc.
   pythonCmd += "curveNames           = caexec.GetInputCurveNames()\n";
   pythonCmd += "initialOptimParams   = caexec.GetInitialOptimParams()\n";
+  pythonCmd += "inputParameterNames  = caexec.GetInputParameterNames()\n";
   pythonCmd += "outputParameterNames = caexec.GetOutputParameterNames()\n";
   
   // Set lists
   pythonCmd += "initialParamDict = {}\n";
+  pythonCmd += "inputParamDict = {}\n";
   pythonCmd += "inputCurveDict = {}\n";
   pythonCmd += "for key, value in initialOptimParams.iteritems():\n";
   pythonCmd += "    initialParamDict[key] = curveNode.GetInitialOptimParameter(key)\n";
+  pythonCmd += "for key in inputParameterNames:\n";
+  pythonCmd += "    inputParamDict[key] = curveNode.GetInputParameter(key)\n";
   pythonCmd += "for key in curveNames:\n";
   pythonCmd += "    inputCurveDict[key]   = curveNode.GetInputData(key).ToArray()\n";
 
   // Run curve fitting
-  pythonCmd += "result = caexec.Execute(inputCurveDict, initialParamDict, targetCurve, outputCurve)\n";
+  pythonCmd += "result = caexec.Execute(inputCurveDict, initialParamDict, inputParamDict, targetCurve, outputCurve)\n";
 
   // Get results
   pythonCmd += "for key, value in result.iteritems():\n";
