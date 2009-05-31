@@ -106,7 +106,7 @@ int main( int argc, char * argv [] )
   typedef TransformBaseType::ParametersType         ParametersType;
 
   MetricType::Pointer  metric = MetricType::New();
-  registration->SetMetric( metric.GetPointer() ); 
+  registration->SetMetric( metric ); 
 
 
 //-----------------------------------------------------------
