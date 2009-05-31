@@ -65,15 +65,8 @@ public:
     itk::Array< double > position;
     std::cout << "  Iteration " << IterationCounter++ << "   ";
     std::cout << optimizer->GetValue() << "   ";
-    //std::cout << optimizer->GetCurrentPosition() << std::endl;
-    //
+    
     position = optimizer->GetCurrentPosition();
-    std::cout << "TOTO" << std::endl;
-    std::cout << "Size = " << position.Size() << std::endl;
-    std::cout << "PP0 = " << position[0] << std::endl;
-    std::cout << "PP1 = " << position[1] << std::endl;
-    std::cout << "PP2 = " << position[2] << std::endl;
-    std::cout << "PP  = " << position << std::endl;
     }
 
 private:
@@ -86,11 +79,6 @@ private:
 
 int main( int argc, char * argv [] )
 {
-  itk::Array< double > array(3);
-  array.Fill( 0.0 );
-  std::cout << array << std::endl;
-
-
   typedef itk::QuadEdgeMesh<float, 3>   MovingMeshType;
   typedef itk::QuadEdgeMesh<float, 3>   FixedMeshType;
 
