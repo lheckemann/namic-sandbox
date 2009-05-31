@@ -85,6 +85,10 @@ LinearInterpolateMeshFunction<TInputMesh>
     this->GetDerivativeFromPixelsAndBasis(
       pixelValue1, pixelValue2, pixelValue3, m_U12, m_U32, derivative); 
     }
+  else
+    {
+    derivative.Fill( NumericTraits< RealType >::Zero );
+    }
 }
 
 
