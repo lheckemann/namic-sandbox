@@ -69,9 +69,29 @@ MeshToMeshMetric<TFixedMesh,TMovingMesh>
     itkExceptionMacro(<<"MovingMesh is not present");
     }
 
+  if( !( m_MovingMesh->GetPoints() ) )
+    {
+    itkExceptionMacro(<<"MovingMesh does not have points");
+    }
+
+  if( !( m_MovingMesh->GetPointData() ) )
+    {
+    itkExceptionMacro(<<"MovingMesh does not have point data");
+    }
+
   if( !m_FixedMesh )
     {
     itkExceptionMacro(<<"FixedMesh is not present");
+    }
+
+  if( !( m_FixedMesh->GetPoints() ) )
+    {
+    itkExceptionMacro(<<"FixedMesh does not have points");
+    }
+
+  if( !( m_FixedMesh->GetPointData() ) )
+    {
+    itkExceptionMacro(<<"FixedMesh does not have point data");
     }
 
   // If the Mesh is provided by a source, update the source.
