@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
   chronometer.Stop("Reading");
 
-  MeshType::Pointer mesh = reader->GetOutput();
+  MeshType::ConstPointer mesh = reader->GetOutput();
 
   //
   // Instantiate the point locator
