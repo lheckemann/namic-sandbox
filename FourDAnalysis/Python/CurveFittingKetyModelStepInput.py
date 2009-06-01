@@ -39,13 +39,16 @@ from numpy import r_
 
 class CurveFittingKetyModelStepInput(CurveAnalysisBase):
 
+    duration = 1.0
+
     # ------------------------------
     # Constructor -- Set initial parameters
     def __init__(self):
-        self.OptimParamNameList = ['Ktrans', 've']
-        self.InitialOptimParam  = [0.1, 0.1] 
+        self.OptimParamNameList = ['Ktrans', 've', 'Cp0']
+        self.InitialOptimParam  = [0.1, 0.1, 1.0] 
         self.InputCurveNameList = ['AIF']
         self.InputParamNameList = ['Duration']
+        self.InputParam         = [1.0]
 
         # dummy 
         self.AifTime = r_[0:5]
@@ -66,6 +69,12 @@ class CurveFittingKetyModelStepInput(CurveAnalysisBase):
         return signal
        
     # ------------------------------
+    # Set input parameters
+    def SetInputParam(self, name, param):
+        if name == 'Duration':
+            self.duration = param;
+
+    # ------------------------------
     # Generate arteral input function from given data
     def SetInputCurve(self, name, curve):
         if name == 'AIF':
@@ -81,32 +90,35 @@ class CurveFittingKetyModelStepInput(CurveAnalysisBase):
         return y
 
     # ------------------------------
-    # Initialize parameters for optimization
-    def Initialize(self, x, param):
-        
-
-    # ------------------------------
     # Definition of the function
-    def Function(self, x, param):
-        Ktrans, ve = param
-        lst = range(len(x))
-        y = scipy.zeros(len(x))
-        for i in lst:
-            xx = x[i]
-            s = quadrature(lambda t: self.Aif(t) * scipy.exp(-Ktrans*(xx-t)/ve), 0.0, xx, tol=1.0e-03, vec_func=False)
-            #s = quadrature(lambda t: splev(t,self.Tck,der=0) * scipy.exp(-Ktrans*(xx-t)/ve), 0.0, xx, vec_func=False)
-            y[i] = Ktrans  * s[0]
+    def Function(self, t, param):
+        Ktrans, ve, Cp0 = param
+
+        # If step imput is assumed, the respons can be described as
+        #
+        #   y = (Ktrans * Cp0 / kep) * (1-exp(-kep*t))         (t < duration)   ... (1)
+        #   y = (Ktrans * cp0 / kep) * exp(-kep*(t-duration))  (t >= duration)  ... (2)
+
+        # To describe C(t) in one equasion, we introduce t_dush, which is
+        # defined by t_dash = t (t < duration) and t_dash = duration (t >= duration):
+        t_dash = scipy.less(t, self.duration)*t + scipy.greater_equal(t, self.duration)*self.duration
+
+        # Eq. (1) and (2) can be rewritten by:
+        kep = Ktrans / ve
+        y = (Ktrans*Cp0/kep)*(scipy.exp(kep*t_dash) - 1) * scipy.exp(-kep*t)
+
         return y
 
     # ------------------------------
     # Calculate the output parameters (called by GetOutputParam())
     def CalcOutputParamDict(self, param):
-        Ktrans, ve = param
+        Ktrans, ve, Cp0 = param
 
         dict = {}
         dict['Ktrans'] = Ktrans
         dict['ve']     = ve
         dict['kep']    = Ktrans / ve
+        dict['Cp0']    = Cp0
         
         return dict
 
