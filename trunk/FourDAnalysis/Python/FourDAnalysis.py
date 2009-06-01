@@ -102,6 +102,9 @@ class CurveAnalysisBase(object):
     def GetInputParam(slef):
         return self.InputParam
 
+    def SetInputParam(self, name, param):
+        return 0
+
     # ------------------------------
     # Output parameters
 
@@ -140,8 +143,6 @@ class CurveAnalysisBase(object):
     # Execute optimization
 
     def Execute(self):
-
-        self.Initialize()
 
         x      = self.TargetCurve[:, 0]
         y_meas = self.SignalToConcent(self.TargetCurve[:, 1])
@@ -240,24 +241,30 @@ class CurveAnalysisExecuter(object):
 
         exec('fitting = self.Module.' + self.ModuleName + '()')
 
-        # set input curves
+        # ------------------------------
+        # Set Curves
         for name, curve in inputCurvesDict.iteritems():
             fitting.SetInputCurve(name, curve)
 
-        # set initial optimization parameters
+        fitting.SetTargetCurve(targetCurve)
+
+        # ------------------------------
+        # Set initial optimization parameters
         nameList = fitting.GetOptimParamNameList()
         n = len(nameList)
         paramList = numpy.zeros(n)
         for i in range(n):
             paramList[i] = initialOptimParamDict[nameList[i]]
 
-        # set input parameters
-        
-
-
-        fitting.SetTargetCurve(targetCurve)
         fitting.SetInitialOptimParam(paramList)
 
+        # ------------------------------
+        # Set input parameters
+        for name, param, in inputParamDict.iteritems():
+            fitting.SetInputParam(name, param)
+
+        # ------------------------------
+        # Run optimization
         fitting.Execute()
         x = outputCurve[:, 0]
         y = fitting.GetFitCurve(x)
