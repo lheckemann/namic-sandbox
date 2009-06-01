@@ -56,17 +56,16 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event)
     {
-    OptimizerPointer optimizer = 
-      dynamic_cast< OptimizerPointer >( object );
+    OptimizerPointer optimizer = dynamic_cast< OptimizerPointer >( object );
+
     if( ! itk::IterationEvent().CheckEvent( &event ) )
       {
       return;
       }
-    itk::Array< double > position;
+
     std::cout << "  Iteration " << IterationCounter++ << "   ";
     std::cout << optimizer->GetValue() << "   ";
-    
-    position = optimizer->GetCurrentPosition();
+    std::cout << optimizer->GetCurrentPosition() << std::endl;
     }
 
 private:
@@ -190,7 +189,7 @@ int main( int argc, char * argv [] )
   optimizer->SetGradientMagnitudeTolerance( 1e-15 );
   optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
   optimizer->SetMinimumStepLength( 1e-9 );
-  optimizer->SetNumberOfIterations( 1 );
+  optimizer->SetNumberOfIterations( 200 );
 
   // Create the Command observer and register it with the optimizer.
   //
