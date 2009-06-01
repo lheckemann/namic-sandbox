@@ -19,15 +19,16 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkVersorTransform.h"
-#include "itkQuadEdgeMesh.h"
 #include "itkMeanSquaresMeshToMeshMetric.h"
 #include "itkMeshToMeshRegistrationMethod.h"
 #include "itkLinearInterpolateMeshFunction.h"
-#include "itkAmoebaOptimizer.h"
-#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
+#include "itkVersorTransformOptimizer.h"
+#include "itkVersorTransform.h"
+#include "itkQuadEdgeMesh.h"
+
 #include "itkCommand.h"
 #include "itkVTKPolyDataReader.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
 
 class CommandIterationUpdate : public itk::Command 
@@ -46,8 +47,8 @@ protected:
    }
 
 public:
-  typedef itk::AmoebaOptimizer     OptimizerType;
-  typedef   const OptimizerType   *    OptimizerPointer;
+  typedef itk::VersorTransformOptimizer  OptimizerType;
+  typedef   const OptimizerType   *      OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
     {
@@ -62,9 +63,10 @@ public:
       {
       return;
       }
-    std::cout << " CommandIterationUpdate new iteration  number   " << ++iterationCounter;
-    std::cout << "  cached value " << optimizer->GetCachedValue() << "   ";
-    std::cout << "  position " << optimizer->GetCachedCurrentPosition() << std::endl ; 
+
+    std::cout << " Iteration " << ++iterationCounter;
+    std::cout << "  Value " << optimizer->GetValue() << "   ";
+    std::cout << "  Position " << optimizer->GetCurrentPosition() << std::endl ; 
     }
 private:
 
@@ -113,10 +115,10 @@ int main( int argc, char * argv [] )
   FixedMeshType::ConstPointer  meshFixed  = fixedMeshReader->GetOutput();
   MovingMeshType::ConstPointer meshMoving = movingMeshReader->GetOutput();
 
-
   typedef itk::MeshToMeshRegistrationMethod< 
                                     FixedMeshType, 
                                     MovingMeshType >    RegistrationType;
+
   RegistrationType::Pointer   registration  = RegistrationType::New();
 
   typedef itk::MeanSquaresMeshToMeshMetric< FixedMeshType, 
@@ -126,8 +128,8 @@ int main( int argc, char * argv [] )
   typedef MetricType::TransformType                 TransformBaseType;
 
   MetricType::Pointer  metric = MetricType::New();
-  registration->SetMetric( metric.GetPointer() ); 
 
+  registration->SetMetric( metric ); 
 
   registration->SetFixedMesh( fixedMeshReader->GetOutput() );
   registration->SetMovingMesh( movingMeshReader->GetOutput() );
@@ -156,19 +158,24 @@ int main( int argc, char * argv [] )
 
   registration->SetInitialTransformParameters( parameters );
 
-  // Optimizer Type
-  typedef itk::AmoebaOptimizer         OptimizerType;
+
+  typedef itk::VersorTransformOptimizer     OptimizerType;
 
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
 
-  OptimizerType::ParametersType simplexDelta( numberOfTransformParameters );
-  simplexDelta.Fill( 0.1 );
+  typedef OptimizerType::ScalesType             ScalesType;
 
-  optimizer->AutomaticInitialSimplexOff();
-  optimizer->SetInitialSimplexDelta( simplexDelta );
-  optimizer->SetParametersConvergenceTolerance( 0.01 );
-  optimizer->SetFunctionConvergenceTolerance(0.001);
-  optimizer->SetMaximumNumberOfIterations( 200 );
+  ScalesType    parametersScale( numberOfTransformParameters );
+  parametersScale[0] = 1.0;
+  parametersScale[1] = 1.0;
+  parametersScale[2] = 1.0;
+
+  optimizer->MinimizeOn();
+  optimizer->SetScales( parametersScale );
+  optimizer->SetGradientMagnitudeTolerance( 1e-15 );
+  optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
+  optimizer->SetMinimumStepLength( 1e-9 );
+  optimizer->SetNumberOfIterations( 200 );
 
 
   registration->SetOptimizer( optimizer );
@@ -199,4 +206,3 @@ int main( int argc, char * argv [] )
   return EXIT_SUCCESS;
 
 }
-
