@@ -40,6 +40,9 @@ void
 PointLocator2<TMesh>
 ::Initialize()
 {
+  this->m_SampleAdaptor = SampleAdaptorType::New();
+  this->m_KdTreeGenerator = TreeGeneratorType::New();
+
   // Lack of const-correctness in the PointSetAdaptor should be fixed.
   this->m_SampleAdaptor->SetPointSet( 
     const_cast< PointSetType * >( this->m_PointSet.GetPointer() ) );
