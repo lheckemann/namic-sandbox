@@ -17,7 +17,7 @@
 
 #include "itkQuadEdgeMesh.h"
 #include "itkVTKPolyDataReader.h"
-#include "itkVTKPolyDataWriter.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkMeshToMeshMetric.h"
 #include "itkNearestNeighborInterpolateMeshFunction.h"
 #include "itkVersorTransform.h"
@@ -86,7 +86,8 @@ int main( int argc, char** argv )
   typedef itk::QuadEdgeMesh< Coord, 3 >                 MeshType;
   typedef MeshType::Pointer                             MeshPointer;
   typedef itk::VTKPolyDataReader< MeshType >            ReaderType;
-  typedef itk::VTKPolyDataWriter< MeshType >            WriterType;
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >  WriterType;
 
   ReaderType::Pointer readerFixed = ReaderType::New();
   readerFixed->SetFileName( argv[1] );
