@@ -54,6 +54,9 @@ class CurveAnalysisBase(object):
     #def __init__(self):
     #    ## OptimParamNameList and Initial Param should be set here
         
+    def Initialize(self):
+        return 0
+
     def Function(self, x, param):
         return 0
 
@@ -137,6 +140,9 @@ class CurveAnalysisBase(object):
     # Execute optimization
 
     def Execute(self):
+
+        self.Initialize()
+
         x      = self.TargetCurve[:, 0]
         y_meas = self.SignalToConcent(self.TargetCurve[:, 1])
 
@@ -244,6 +250,10 @@ class CurveAnalysisExecuter(object):
         paramList = numpy.zeros(n)
         for i in range(n):
             paramList[i] = initialOptimParamDict[nameList[i]]
+
+        # set input parameters
+        
+
 
         fitting.SetTargetCurve(targetCurve)
         fitting.SetInitialOptimParam(paramList)
