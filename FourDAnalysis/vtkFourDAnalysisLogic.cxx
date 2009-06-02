@@ -843,6 +843,8 @@ void vtkFourDAnalysisLogic::GetCurveAnalysisInfo(const char* script, vtkMRMLCurv
   pythonCmd += "    curveNode.AddInputDataName(key)\n";
   pythonCmd += "for key, value in initialOptimParams.iteritems():\n";
   pythonCmd += "    curveNode.SetInitialOptimParameter(key, value)\n";
+  pythonCmd += "for key in inputParameterNames:\n";
+  pythonCmd += "    curveNode.SetInputParameter(key, 0.0)\n";
   pythonCmd += "for key in outputParameterNames:\n";
   pythonCmd += "    curveNode.SetParameter(key, 0.0)\n";
 

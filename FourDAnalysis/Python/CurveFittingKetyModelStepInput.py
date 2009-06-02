@@ -44,8 +44,8 @@ class CurveFittingKetyModelStepInput(CurveAnalysisBase):
     # ------------------------------
     # Constructor -- Set initial parameters
     def __init__(self):
-        self.OptimParamNameList = ['Ktrans', 've', 'Cp0']
-        self.InitialOptimParam  = [0.1, 0.1, 1.0] 
+        self.OptimParamNameList = ['Ktrans', 've', 'Cp0', 'delay']
+        self.InitialOptimParam  = [0.1, 0.1, 1.0, 0.0] 
         self.InputCurveNameList = ['AIF']
         self.InputParamNameList = ['Duration']
         self.InputParam         = [1.0]
@@ -92,33 +92,38 @@ class CurveFittingKetyModelStepInput(CurveAnalysisBase):
     # ------------------------------
     # Definition of the function
     def Function(self, t, param):
-        Ktrans, ve, Cp0 = param
+        Ktrans, ve, Cp0, delay = param
 
         # If step imput is assumed, the respons can be described as
         #
         #   y = (Ktrans * Cp0 / kep) * (1-exp(-kep*t))         (t < duration)   ... (1)
         #   y = (Ktrans * cp0 / kep) * exp(-kep*(t-duration))  (t >= duration)  ... (2)
 
+        sys.stderr.write('t     : %s\n' % t )
+
+        t2 = scipy.greater_equal(t, delay) * t;
+
         # To describe C(t) in one equasion, we introduce t_dush, which is
         # defined by t_dash = t (t < duration) and t_dash = duration (t >= duration):
-        t_dash = scipy.less(t, self.duration)*t + scipy.greater_equal(t, self.duration)*self.duration
+        t_dash = scipy.less(t2, self.duration)*t + scipy.greater_equal(t2, self.duration)*self.duration
 
         # Eq. (1) and (2) can be rewritten by:
         kep = Ktrans / ve
-        y = (Ktrans*Cp0/kep)*(scipy.exp(kep*t_dash) - 1) * scipy.exp(-kep*t)
+        y = (Ktrans*Cp0/kep)*(scipy.exp(kep*t_dash) - 1) * scipy.exp(-kep*t2)
 
         return y
 
     # ------------------------------
     # Calculate the output parameters (called by GetOutputParam())
     def CalcOutputParamDict(self, param):
-        Ktrans, ve, Cp0 = param
+        Ktrans, ve, Cp0, delay = param
 
         dict = {}
         dict['Ktrans'] = Ktrans
         dict['ve']     = ve
         dict['kep']    = Ktrans / ve
         dict['Cp0']    = Cp0
+        dict['delay']  = delay
         
         return dict
 
