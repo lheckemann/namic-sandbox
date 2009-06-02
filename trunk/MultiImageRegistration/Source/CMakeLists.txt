@@ -49,3 +49,5 @@ TARGET_LINK_LIBRARIES(ComputeJacobianField ITKCommon ITKBasicFilters ITKIO ITKSt
 ADD_EXECUTABLE(ComputeDeformationFields ComputeDeformationFields.cxx )
 TARGET_LINK_LIBRARIES(ComputeDeformationFields ITKCommon ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(PriorGen SpatialPriorGenerator.cxx)
+TARGET_LINK_LIBRARIES(PriorGen ITKCommon ITKIO)
