@@ -58,8 +58,6 @@ LinearInterpolateMeshFunction<TInputMesh>
   this->Superclass::PrintSelf( os, indent );
 }
 
-#include <iostream>
-
 
 /**
  * Evaluate the mesh at a given point position.
