@@ -163,5 +163,33 @@ int main( int argc, char** argv )
   std::cout << metric->GetNameOfClass() << std::endl;
   metric->Print( std::cout );
 
+  //
+  // Exercising error management of metric verification for the presence of
+  // point coordinates and point data.
+  //
+  MeshType::PointDataContainer::Pointer pointData = meshFixed->GetPointData();
+  meshFixed->SetPointData( NULL );
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
+  meshFixed->SetPointData( pointData );
+  TRY_EXPECT_NO_EXCEPTION( metric->Initialize() );
+
+  MeshType::PointsContainer::Pointer points = meshFixed->GetPoints();
+  meshFixed->SetPoints( NULL );
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
+  meshFixed->SetPoints( points );
+  TRY_EXPECT_NO_EXCEPTION( metric->Initialize() );
+
+  pointData = meshMoving->GetPointData();
+  meshMoving->SetPointData( NULL );
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
+  meshMoving->SetPointData( pointData );
+  TRY_EXPECT_NO_EXCEPTION( metric->Initialize() );
+
+  points = meshMoving->GetPoints();
+  meshMoving->SetPoints( NULL );
+  TRY_EXPECT_EXCEPTION( metric->Initialize() );
+  meshMoving->SetPoints( points );
+  TRY_EXPECT_NO_EXCEPTION( metric->Initialize() );
+
   return EXIT_SUCCESS;
 }
