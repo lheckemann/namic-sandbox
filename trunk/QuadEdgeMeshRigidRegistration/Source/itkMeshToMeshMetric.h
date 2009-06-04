@@ -76,7 +76,8 @@ public:
   typedef typename FixedMeshType::PointDataContainer::ConstIterator     PointDataIterator;
 
   /**  Type of the Transform Base class */
-  typedef Transform<CoordinateRepresentationType, 
+  typedef typename NumericTraits< CoordinateRepresentationType >::RealType TransformComputationType;
+  typedef Transform<TransformComputationType, 
                     itkGetStaticConstMacro(MovingMeshDimension),
                     itkGetStaticConstMacro(FixedMeshDimension)> TransformType;
 

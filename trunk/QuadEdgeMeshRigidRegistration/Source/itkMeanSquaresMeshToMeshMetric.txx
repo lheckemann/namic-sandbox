@@ -66,6 +66,9 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
   this->SetTransformParameters( parameters );
 
+  typedef typename InterpolatorType::PointType InterpolationPointType;
+  InterpolationPointType pointToEvaluate;
+
   while( pointItr != pointEnd && pointDataItr != pointDataEnd )
     {
     InputPointType  inputPoint;
@@ -78,8 +81,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
       continue;
       }
 
-    OutputPointType transformedPoint = 
-      this->m_Transform->TransformPoint( inputPoint );
+    OutputPointType transformedPoint = this->m_Transform->TransformPoint( inputPoint );
 
     if( this->m_MovingMask && !this->m_MovingMask->IsInside( transformedPoint ) )
       {
@@ -90,7 +92,8 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     // FIXME: if( this->m_Interpolator->IsInsideSurface( transformedPoint ) )
       {
-      const RealDataType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
+      pointToEvaluate.CastFrom( transformedPoint );
+      const RealDataType movingValue  = this->m_Interpolator->Evaluate( pointToEvaluate );
       const RealDataType fixedValue   = pointDataItr.Value();
       const RealDataType diff = movingValue - fixedValue; 
       measure += diff * diff; 
@@ -149,6 +152,9 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   derivative = DerivativeType( ParametersDimension );
   derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
+  typedef typename InterpolatorType::PointType InterpolationPointType;
+  InterpolationPointType pointToEvaluate;
+
   while( pointItr != pointEnd && pointDataItr != pointDataEnd )
     {
     InputPointType  inputPoint;
@@ -172,7 +178,8 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     // FIXME:  if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
       {
-      const RealDataType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
+      pointToEvaluate.CastFrom( transformedPoint );
+      const RealDataType movingValue  = this->m_Interpolator->Evaluate( pointToEvaluate );
 
       const TransformJacobianType & jacobian =
         this->m_Transform->GetJacobian( inputPoint ); 
@@ -185,7 +192,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   
       DerivativeDataType gradient;
  
-      this->m_Interpolator->EvaluateDerivative( transformedPoint, gradient );
+      this->m_Interpolator->EvaluateDerivative( pointToEvaluate, gradient );
 
       for(unsigned int par=0; par<ParametersDimension; par++)
         {
@@ -251,6 +258,9 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
   derivative = DerivativeType( ParametersDimension );
   derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
+  typedef typename InterpolatorType::PointType InterpolationPointType;
+  InterpolationPointType pointToEvaluate;
+
   while( pointItr != pointEnd && pointDataItr != pointDataEnd )
     {
     InputPointType  inputPoint;
@@ -274,7 +284,8 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
     // FIXME:  if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
       {
-      const RealDataType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
+      pointToEvaluate.CastFrom( transformedPoint );
+      const RealDataType movingValue  = this->m_Interpolator->Evaluate( pointToEvaluate );
 
       const TransformJacobianType & jacobian =
         this->m_Transform->GetJacobian( inputPoint ); 
@@ -289,7 +300,7 @@ MeanSquaresMeshToMeshMetric<TFixedMesh,TMovingMesh>
 
       DerivativeDataType gradient;
  
-      this->m_Interpolator->EvaluateDerivative( transformedPoint, gradient );
+      this->m_Interpolator->EvaluateDerivative( pointToEvaluate, gradient );
 
       for(unsigned int par=0; par<ParametersDimension; par++)
         {

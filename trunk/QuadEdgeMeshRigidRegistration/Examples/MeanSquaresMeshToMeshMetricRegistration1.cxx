@@ -134,7 +134,7 @@ int main( int argc, char * argv [] )
   registration->SetMovingMesh( movingMeshReader->GetOutput() );
 
 
-  typedef itk::VersorTransform< FixedMeshType::CoordRepType >  TransformType;
+  typedef itk::VersorTransform< MetricType::TransformComputationType >  TransformType;
 
   TransformType::Pointer transform = TransformType::New();
 
