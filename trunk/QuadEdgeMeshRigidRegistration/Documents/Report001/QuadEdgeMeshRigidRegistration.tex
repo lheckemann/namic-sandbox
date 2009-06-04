@@ -326,7 +326,9 @@ into an itkQuadEdgeMesh, to then save the surface as a VTK legacy file.
 
 \section{How to Perform Registration}
 
-This section illustrates how to put together a Mesh to Mesh registration example. The code presented in this section is available in the subdirectory Examples, in the file
+This section illustrates how to put together a Mesh to Mesh registration
+example. The code presented in this section is available in the subdirectory
+Examples, in the file
 
 \begin{verbatim} 
 MeanSquaresMeshToMeshMetricRegistration1.cxx
@@ -563,6 +565,16 @@ Where the first three numbers after the MovingMesh.vtk parameter are the
 components of the rotation axis, and the last numeric parameter is the initial
 angle of rotation expressed in radians.
 
+
+\subsection{Print out the Registration Results}
+
+Naturally, after running the registration, we want to look at the final
+results. This is done by calling the \code{GetLastTransformParameters()} method
+as illustrated in the lines below.
+
+\begin{center}
+\lstinputlisting[linerange={211-217}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
