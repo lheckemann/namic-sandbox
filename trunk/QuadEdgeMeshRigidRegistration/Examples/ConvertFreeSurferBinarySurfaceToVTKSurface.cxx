@@ -19,9 +19,9 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkMesh.h"
+#include "itkQuadEdgeMesh.h"
 #include "itkFreeSurferBinarySurfaceReader.h"
-#include "itkVTKPolyDataWriter.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
 #include <iostream>
 
@@ -34,7 +34,7 @@ int main(int argc, char* argv[] )
     return EXIT_FAILURE;
     }
 
-  typedef itk::Mesh<float, 3>                 MeshType;
+  typedef itk::QuadEdgeMesh<float, 3>                     MeshType;
   typedef itk::FreeSurferBinarySurfaceReader< MeshType >  ReaderType;
 
   ReaderType::Pointer  surfaceReader = ReaderType::New();
@@ -42,7 +42,7 @@ int main(int argc, char* argv[] )
   surfaceReader->SetFileName(argv[1]);
   surfaceReader->SetDataFileName(argv[2]);
 
-  typedef itk::VTKPolyDataWriter<MeshType>   WriterType;
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MeshType >  WriterType;
 
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( surfaceReader->GetOutput()  );
