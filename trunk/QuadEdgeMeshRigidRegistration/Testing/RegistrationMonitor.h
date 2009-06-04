@@ -50,7 +50,7 @@ public:
   void SetFixedSurface( vtkPolyData* surface );
   void SetMovingSurface( vtkPolyData* surface );
 
-  void SetNumberOfIterationPerUpdate( unsigned int number );
+  void SetNumberOfIterationsPerUpdate( unsigned int number );
     
   void Observe( OptimizerType * optimizer, TransformType * transform );
 
@@ -84,7 +84,7 @@ private:
   TransformType::Pointer          ObservedTransform;
 
   unsigned int                    CurrentIterationNumber;
-  unsigned int                    NumberOfIterationPerUpdate;
+  unsigned int                    NumberOfIterationsPerUpdate;
 
   // These methods will only be called by the Observer
   void Update();

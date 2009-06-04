@@ -60,7 +60,7 @@ RegistrationMonitor::RegistrationMonitor()
     this, & Self::Update );
 
   this->CurrentIterationNumber = 0;
-  this->NumberOfIterationPerUpdate = 1;
+  this->NumberOfIterationsPerUpdate = 1;
 }
 
 /** Destructor */
@@ -175,9 +175,9 @@ void RegistrationMonitor::StartVisualization()
 
 /** Update the Visualization */
 void RegistrationMonitor
-::SetNumberOfIterationPerUpdate( unsigned int number )
+::SetNumberOfIterationsPerUpdate( unsigned int number )
 {
-  this->NumberOfIterationPerUpdate = number;
+  this->NumberOfIterationsPerUpdate = number;
 }
 
 /** Update the Visualization */
@@ -187,7 +187,7 @@ void RegistrationMonitor::Update()
   std::cout << "Iteration " << this->CurrentIterationNumber << std::endl;
   
   if( this->CurrentIterationNumber % 
-      this->NumberOfIterationPerUpdate )
+      this->NumberOfIterationsPerUpdate )
     {
     this->CurrentIterationNumber++;
     return;
