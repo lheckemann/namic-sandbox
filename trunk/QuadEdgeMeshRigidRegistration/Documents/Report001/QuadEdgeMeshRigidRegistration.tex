@@ -461,6 +461,87 @@ interpolator for meshes.
 \end{center}
 
 
+\subsection{Initializing Transform Parameters}
+
+In some registration processes, the user may have an idea of what could be a
+good initial Transform. It is very important to convey this information to the
+registration framework, because it sets the optimizer in a much better location
+for exploring the cost function (Metric).  In this particular case we take the
+initial values of the Transform from the command line parameters and use them
+to set the components of the rotation axis and the rotation angle. Then we get
+the parameters of the transform and pass them to the registration method.
+
+\begin{center}
+\lstinputlisting[linerange={156-169}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+\subsection{Setting the Optimizer}
+
+
+\subsubsection{Declaration}
+
+The VersorTransform parameters do not form a Vector space due to the fact that
+the addition operation is not equivalent to composition of rotation in the
+Versor space. For this reason we have to use here an Optimizer that is aware of
+this particularity of the space of rotations. Our choice is the
+\doxygen{VersorTransformOptimizer}. Here we instantiate the optimizer and
+connect it to the registration method.
+
+\begin{center}
+\lstinputlisting[linerange={172-176}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+\subsubsection{Transform Parameter Scaling}
+
+The parametric space in which the Optimizer explores the cost function (the
+Metric) is not necessarily isotropic.  Most ITK optimizers provide a mechanism
+for users to specify the different scales of the particular dimensions of the
+parametric space. In this specific case, however, the three components of the
+Versor are of similar scale, and therefore we can set all the scaling parameter
+values to the same number.
+
+\begin{center}
+\lstinputlisting[linerange={179-186}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+
+\subsubsection{Optimizer Parameters Fine Tunning}
+
+One of the most critical aspects of performing registration is to identify the
+values for the parameters of the optimizer. These parameters are the ones
+controlling the behavior of the optimizer as it explores the parametric space
+of the Transform. Inappropriate values of this parameters will lead to the
+optimizer getting trapped in local minima, or running for too many iterations,
+or not enough iterations.
+
+Unfortunately, the process of selecting Optimizer parameters is not an exact
+science and requires a systematic process of trial and error. This is where
+most of the effort of registration is spent by users.
+
+The following parameters turn out to be appropriate for registering the
+FixedMesh.vtk in the data directory with itself.
+
+\begin{center}
+\lstinputlisting[linerange={188-193}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+
+\subsubsection{Connecting the Observer to the Optimizer}
+
+The Command observer that we defined at the beginning of this example, is now
+connected to the Optimizer.  This will report the value of the Metric along
+with the parameters of the Transform at every iteration of the optimization.
+
+\begin{center}
+\lstinputlisting[linerange={196-197}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Insert the bibliography using BibTeX
