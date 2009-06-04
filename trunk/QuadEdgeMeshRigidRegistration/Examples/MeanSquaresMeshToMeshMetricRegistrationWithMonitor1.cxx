@@ -89,8 +89,9 @@ int main( int argc, char * argv [] )
 
   registration->SetMetric( metric ); 
 
-  registration->SetFixedMesh( fixedMeshReader->GetOutput() );
-  registration->SetMovingMesh( movingMeshReader->GetOutput() );
+
+  registration->SetFixedMesh( meshFixed );
+  registration->SetMovingMesh( meshMoving );
 
 
   typedef itk::VersorTransform< MetricType::TransformComputationType >  TransformType;
@@ -132,6 +133,9 @@ int main( int argc, char * argv [] )
 
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
 
+  registration->SetOptimizer( optimizer );
+
+
   typedef OptimizerType::ScalesType             ScalesType;
 
   ScalesType    parametersScale( numberOfTransformParameters );
@@ -139,16 +143,14 @@ int main( int argc, char * argv [] )
   parametersScale[1] = 1.0;
   parametersScale[2] = 1.0;
 
-  optimizer->MinimizeOn();
   optimizer->SetScales( parametersScale );
+
+  optimizer->MinimizeOn();
   optimizer->SetGradientMagnitudeTolerance( 1e-6 );
   optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
   optimizer->SetNumberOfIterations( 100 );
-
-
-  registration->SetOptimizer( optimizer );
 
 
   //
@@ -176,17 +178,14 @@ int main( int argc, char * argv [] )
   visualMonitor.Observe( optimizer.GetPointer(), transform.GetPointer() );
 
 
-  //
-  // Now trigger the registration process...
-  //
   try
     {
     registration->StartRegistration();
     }
   catch( itk::ExceptionObject & e )
     {
-    std::cout << "Metric initialization failed" << std::endl;
-    std::cout << "Reason " << e.GetDescription() << std::endl;
+    std::cerr << "Registration failed" << std::endl;
+    std::cout << "Reason " << e << std::endl;
     return EXIT_FAILURE;
     }
 
