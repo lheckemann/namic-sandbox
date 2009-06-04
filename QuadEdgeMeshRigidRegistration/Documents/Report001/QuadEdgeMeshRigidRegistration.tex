@@ -577,6 +577,87 @@ as illustrated in the lines below.
 \end{center}
 
 
+\section{Visually Monitoring the Registration Process}
+
+Following the behavior of the registration process is another one of the
+challenging aspects of performing registration. Often times it is frustrating
+for users to spend long hours running a registration process without having
+proper feedback on whether the optimizer is heading in the right direction in
+the parametric space.
+
+This section illustrates how to use a helper class that provides visual
+feedback as the iteration process is ongoing.
+
+The code can be found in the Examples directory, in the file
+
+\begin{verbatim} 
+MeanSquaresMeshToMeshMetricRegistrationWithMonitor1.cxx
+\end{verbatim} 
+
+This file is a slightly modified version of the example that we described in
+the previous section.
+
+
+\subsection{Including the Registration Monitor}
+
+The first difference between this example and the previous one is that here we
+replace the Command observer with a class called \code{RegistrationMonitor}.
+This new class provides visual feedback by using VTK classes to display a
+rendering of the surface as it is mapped by the Transform at every iteration of
+the registration process.
+
+The RegistrationMonitor class requires vtkPolyData types as inputs, therefore
+we redundantly load the meshes into vtkPolyData structures by using the
+vtkPolyDataReader class.
+
+We need to include the following headers
+
+\begin{center}
+\lstinputlisting[linerange={33-36}]{../../Examples/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1.cxx}
+\end{center}
+
+
+\subsection{Loading Surfaces into PolyData}
+
+In order to load the Fixed and Moving meshes into vtkPolyData classes we use
+two instances of the vtkPolyDataReader class. This is, unfortunately, a
+duplication of memory from the Meshes that we already read into itkMesh classes.
+
+\begin{center}
+\lstinputlisting[linerange={159-169}]{../../Examples/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1.cxx}
+\end{center}
+
+
+\subsection{Instantiating the Registration Monitor}
+
+We proceed now to instantiate the RegistrationMonitor, connect the surfaces to
+it, and set the parameters that define how often the visualization is going to
+be updated.
+
+\begin{center}
+\lstinputlisting[linerange={172-179}]{../../Examples/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1.cxx}
+\end{center}
+
+The most interesting line is the call to the
+\code{SetNumberOfIterationsPerUpdate} method. This method defines how many
+iterations of the optimizer should pass between refreshes of the surface
+rendering display. For the purpose of this example we render the surface at
+every iteration, hence the value ``1''. However, this has the disadvantage that
+we are probably spending more CPU cycles in performing rendering and
+visualization than in actually computing the registration.
+
+In a more realistic scenario, we probably should use a value of 10 or 50, to
+let the optimizer make more progress in the registration before we spend time
+in updating the surface rendering.
+
+The use of the RegistrationMonitor is mostly an scaffolding intended to assist
+the user as it is figuring out proper values for all the numeric parameters
+used in the registration process. Once you have identified good values for all
+these parameters you probably want to remove the RegistrationMonitor from the
+code, given that at that point it is not contributing much to bringing the
+registration to completion.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Insert the bibliography using BibTeX

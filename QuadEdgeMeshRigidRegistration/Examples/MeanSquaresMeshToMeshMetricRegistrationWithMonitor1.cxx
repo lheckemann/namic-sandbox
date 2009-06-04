@@ -156,8 +156,6 @@ int main( int argc, char * argv [] )
   //
   // Configuration of Visual Registration Monitor
   //
-  RegistrationMonitor visualMonitor;
-
   vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
     vtkSmartPointer< vtkPolyDataReader >::New();
 
@@ -169,6 +167,9 @@ int main( int argc, char * argv [] )
 
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
+
+
+  RegistrationMonitor visualMonitor;
 
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );

@@ -31,6 +31,7 @@ SET(REPORT_SRCS
   InterpolatorsClassHierarchy.fig
   MetricsClassHierarchy.fig
   ../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx
+  ../../Examples/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1.cxx
   )
 
 #
