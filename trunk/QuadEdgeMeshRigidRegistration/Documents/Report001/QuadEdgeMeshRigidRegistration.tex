@@ -57,7 +57,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \release{1.00}
 
-\author{Michel Audette$^{1}$, Luis Ibanez$^{1}$, Thomas Yeo$^{1}$, Polina Goland$^{2}$}
+\author{Luis Ibanez$^{1}$, Michel Audette$^{1}$, Thomas Yeo$^{2}$, Polina Goland$^{2}$}
 \authoraddress{$^{1}$Kitware Inc., Clifton Park, NY\\
                $^{2}$CSAIL MIT, Boston, MA}
 
@@ -322,6 +322,59 @@ ConvertFreeSurferBinarySurfaceToVTKSurface.cxx
 
 That, as the name indicates, can read a pair of FreeSurface files and read them
 into an itkQuadEdgeMesh, to then save the surface as a VTK legacy file.
+
+
+\section{How to Perform Registration}
+
+This section illustrates how to put together a Mesh to Mesh registration example. The code presented in this section is available in the subdirectory Examples, in the file
+
+\begin{verbatim} 
+MeanSquaresMeshToMeshMetricRegistration1.cxx
+\end{verbatim} 
+
+We start by including the headers of the main components of the registration framework
+
+\begin{itemize}
+\item Metric
+\item Transform
+\item RegistrationMethod
+\item Interpolator
+\item Mesh
+\end{itemize}
+
+\begin{center}
+\lstinputlisting[linerange={22-27}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+Then we include headers for auxiliary classes. In particular, 
+
+\begin{itemize}
+\item The Command class that will be used to observe the progress of the registration process via events.
+\item The Mesh reader that will load the meshes from files.
+\end{itemize}
+
+\begin{center}
+\lstinputlisting[linerange={29-30}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+The command observer class is defined in a very similar way to what you may
+have already seen in the image registration framework. The code would be almost
+identical to what is shown in the ITK Software Guide \cite{ITKSoftwareGuideSecondEdition}
+
+\begin{center}
+\lstinputlisting[linerange={33-74}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Insert the bibliography using BibTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{plain}
+\bibliography{InsightJournal}
 
 
 \end{document}
