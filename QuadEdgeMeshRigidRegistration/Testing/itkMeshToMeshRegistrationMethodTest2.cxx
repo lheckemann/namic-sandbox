@@ -216,7 +216,7 @@ int main( int argc, char * argv [] )
   
   TEST_SET_GET( optimizer, registrator->GetOptimizer() );
 
-  typedef itk::VersorTransform< MeshType::CoordRepType > TransformType;
+  typedef itk::VersorTransform< MetricType::TransformComputationType > TransformType;
   TransformType::Pointer transform = TransformType::New();
 
   registrator->SetTransform( transform );

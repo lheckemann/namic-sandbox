@@ -135,7 +135,7 @@ int main( int argc, char * argv [] )
 
   registrator->SetOptimizer( optimizer );
 
-  typedef itk::VersorTransform< MeshType::CoordRepType > TransformType;
+  typedef itk::VersorTransform< MetricType::TransformComputationType > TransformType;
   TransformType::Pointer transform = TransformType::New();
 
   registrator->SetTransform( transform );

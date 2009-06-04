@@ -117,7 +117,7 @@ int main( int argc, char** argv )
 
   TRY_EXPECT_EXCEPTION( metric->Initialize() );
 
-  typedef itk::VersorTransform< MeshType::CoordRepType > TransformType;
+  typedef itk::VersorTransform< MetricType::TransformComputationType > TransformType;
   TransformType::Pointer transform = TransformType::New();
 
   metric->SetTransform( transform );
