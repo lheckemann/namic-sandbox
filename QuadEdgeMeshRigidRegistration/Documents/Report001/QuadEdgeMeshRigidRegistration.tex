@@ -332,6 +332,8 @@ This section illustrates how to put together a Mesh to Mesh registration example
 MeanSquaresMeshToMeshMetricRegistration1.cxx
 \end{verbatim} 
 
+\subsection{Including Headers}
+
 We start by including the headers of the main components of the registration framework
 
 \begin{itemize}
@@ -357,6 +359,8 @@ Then we include headers for auxiliary classes. In particular,
 \lstinputlisting[linerange={29-30}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
 \end{center}
 
+\subsection{Defining a Command Observer}
+
 The command observer class is defined in a very similar way to what you may
 have already seen in the image registration framework. The code would be almost
 identical to what is shown in the ITK Software Guide \cite{ITKSoftwareGuideSecondEdition}
@@ -365,6 +369,96 @@ identical to what is shown in the ITK Software Guide \cite{ITKSoftwareGuideSecon
 \lstinputlisting[linerange={33-74}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
 \end{center}
 
+
+\subsection{Declaring the Mesh Types}
+
+The fundamental type used in the registration process is the Mesh. In this case
+we chose to use the \code{QuadEdgeMesh} because we are dealing with 2D
+manifolds embedded in a 3D space.
+
+\begin{center}
+\lstinputlisting[linerange={92-93}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+We are using here two Meshes of the same type, but in principle, we could have
+used two different mesh types, as long as their space dimension is the same.
+
+\subsection{Reading the Meshes from Files}
+
+Using the Mesh types as template parameters, we can instantiate the types of
+the mesh readers and proceed to load the meshes into memory. Note that this is
+optional, since you could be inserting the registration code into an
+application in which the Meshes are generated through means different from file
+reading.
+
+\begin{center}
+\lstinputlisting[linerange={95-113}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+Note that, as usual, the \code{Update()} methods are called inside a
+\code{try/catch} block in order to deal with potential Exceptions that may
+result from problems in the process of reading the Mesh files.
+
+After updating the readers we can extract the fixed and moving meshes and
+assign them to temporary variables.
+
+\begin{center}
+\lstinputlisting[linerange={115-116}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+\subsection{Declaring the Registration Method}
+
+We instantiate the registration method by using the Mesh types as template parameters
+
+\begin{center}
+\lstinputlisting[linerange={118-122}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+\subsection{Declaring the Metric}
+
+We instantiate the metric type by using the Mesh types as template parameters.
+The we construct one metric and connect it to the registration method.
+
+\begin{center}
+\lstinputlisting[linerange={124-130}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+\subsection{Connecting the input Meshes}
+
+The Fixed and Moving input meshes are connected to the registration method.
+Note that the order of this call is irrelevant, as long as it is done before
+calling the \code{StartRegistration()} method.
+
+\begin{center}
+\lstinputlisting[linerange={133-134}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+\subsection{Declaring the Transform}
+
+Here we use the \doxygen{VersorTransform} because we only expect to apply
+rotations to the spherical meshes. The template parameter of the Transform is
+the type that will be used internally for performing computations. We get this
+type as a trait from the Metric type, which in turn defined this trait based on
+the NumericTraits of the Mesh's coordinate representation type.
+
+\begin{center}
+\lstinputlisting[linerange={137-141}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+\subsection{Declaring the Interpolator}
+
+As we map points from the Fixed mesh into the Moving mesh, most of these points
+will land in the middle of the moving mesh cells. For this reason, we need an
+interpolator in order to compute the values of the Moving mesh scalar field and
+its derivatives at those locations. Here we select to use the linear
+interpolator for meshes.
+
+\begin{center}
+\lstinputlisting[linerange={144-148}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
