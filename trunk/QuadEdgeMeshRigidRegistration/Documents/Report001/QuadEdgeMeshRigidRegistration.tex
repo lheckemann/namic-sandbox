@@ -57,7 +57,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \release{1.00}
 
-\author{Luis Ibanez$^{1}$, Michel Audette$^{1}$, Thomas Yeo$^{2}$, Polina Goland$^{2}$}
+\author{Luis Ibanez$^{1}$, Michel Audette$^{1}$, Thomas Yeo$^{2}$, Polina Golland$^{2}$}
 \authoraddress{$^{1}$Kitware Inc., Clifton Park, NY\\
                $^{2}$CSAIL MIT, Boston, MA}
 
@@ -124,6 +124,9 @@ but it lacks methods for registering one Mesh versus another Mesh.
 In this paper we contribute new classes that can be used for performing
 registration between two spherical meshes, although not all of of the classes
 in this contribution are restricted to be used on spherical meshes.
+
+This paper is the first of a series related to implementing support for
+deformable registration of Meshes according the method described in \cite{Yeo2008}.
 
 \section{Overview}
 
@@ -282,7 +285,8 @@ data of this type is available as part of the binary download of Freesurface.
 
 In order to facilitate the use of data generated from FreeSurfer as input to
 the Mesh to Mesh registration framework we provide here a reader class that
-read FreeSurfer binary files and convert them into itkQuadEdgeMeshes.
+read FreeSurfer binary files and convert them into
+itkQuadEdgeMeshe\cite{Gouaillard2007}.
 
 The minimalist use of the FreeSurferBinarySurfaceReader class is illustrated by
 the source code below.
@@ -376,7 +380,8 @@ identical to what is shown in the ITK Software Guide \cite{ITKSoftwareGuideSecon
 
 The fundamental type used in the registration process is the Mesh. In this case
 we chose to use the \code{QuadEdgeMesh} because we are dealing with 2D
-manifolds embedded in a 3D space.
+manifolds embedded in a 3D space. For details on the design and implementation
+of QuadEdgeMeshes please see \cite{Gouaillard2007}.
 
 \begin{center}
 \lstinputlisting[linerange={92-93}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
