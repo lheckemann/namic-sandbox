@@ -85,7 +85,8 @@ int main( int argc, char * argv [] )
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
-    std::cerr << "inputFixedMesh inputMovingMesh " << std::endl;
+    std::cerr << "inputFixedMesh inputMovingMesh ";
+    std::cerr << "axisX axisY axisZ angle " << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -125,8 +126,6 @@ int main( int argc, char * argv [] )
                                             MovingMeshType >   
                                             MetricType;
 
-  typedef MetricType::TransformType                 TransformBaseType;
-
   MetricType::Pointer  metric = MetricType::New();
 
   registration->SetMetric( metric ); 
@@ -151,10 +150,21 @@ int main( int argc, char * argv [] )
   const unsigned int numberOfTransformParameters = 
      transform->GetNumberOfParameters();
 
-  typedef TransformBaseType::ParametersType         ParametersType;
+  typedef TransformType::ParametersType         ParametersType;
   ParametersType parameters( numberOfTransformParameters );
 
-  parameters.Fill( 0.0 );
+  TransformType::AxisType  axis;
+  TransformType::AngleType angle;
+
+  axis[0] = atof( argv[3] );
+  axis[1] = atof( argv[4] );
+  axis[2] = atof( argv[5] );
+
+  angle = atof( argv[6] );
+
+  transform->SetRotation( axis, angle );
+  
+  parameters = transform->GetParameters();
 
   registration->SetInitialTransformParameters( parameters );
 
