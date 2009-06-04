@@ -141,10 +141,11 @@ int main( int argc, char * argv [] )
 
   optimizer->MinimizeOn();
   optimizer->SetScales( parametersScale );
-  optimizer->SetGradientMagnitudeTolerance( 1e-15 );
-  optimizer->SetMaximumStepLength( 0.1745 ); // About 10 degrees
+  optimizer->SetGradientMagnitudeTolerance( 1e-6 );
+  optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
-  optimizer->SetNumberOfIterations( 200 );
+  optimizer->SetRelaxationFactor( 0.9 );
+  optimizer->SetNumberOfIterations( 100 );
 
 
   registration->SetOptimizer( optimizer );
