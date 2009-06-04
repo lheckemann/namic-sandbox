@@ -541,6 +541,29 @@ with the parameters of the Transform at every iteration of the optimization.
 \end{center}
 
 
+\subsection{Running the Registration}
+
+We are finally ready for running the registration. This is done by calling the
+\code{StartRegistration} method. We place this call inside a \code{try/catch}
+block in order to be able to manage any potential Exception that may be thrown
+as a result of an internal error during the registration process.
+
+\begin{center}
+\lstinputlisting[linerange={199-208}]{../../Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx}
+\end{center}
+
+
+The command line used for running the registration is
+
+\begin{verbatim} 
+MeanSquaresMeshToMeshMetricRegistration1  FixedMesh.vtk MovingMesh.vtk 0.0 0.0 1.0 0.1
+\end{verbatim} 
+
+Where the first three numbers after the MovingMesh.vtk parameter are the
+components of the rotation axis, and the last numeric parameter is the initial
+angle of rotation expressed in radians.
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
