@@ -61,7 +61,7 @@ vtkSecondaryWindowGUI::vtkSecondaryWindowGUI ( )
   this->TestButton21 = NULL;
   this->TestButton22 = NULL;
 
-  this->SecondaryMonitor = NULL;
+  this->SecondaryViewerWindow = NULL;
 
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -89,12 +89,12 @@ vtkSecondaryWindowGUI::~vtkSecondaryWindowGUI ( )
   //----------------------------------------------------------------
   // Remove GUI widgets
 
-  if (this->SecondaryMonitor)
+  if (this->SecondaryViewerWindow)
     {
-    this->SecondaryMonitor->Withdraw();
-    this->SecondaryMonitor->SetApplication(NULL);
-    this->SecondaryMonitor->Delete();
-    this->SecondaryMonitor = NULL;
+    this->SecondaryViewerWindow->Withdraw();
+    this->SecondaryViewerWindow->SetApplication(NULL);
+    this->SecondaryViewerWindow->Delete();
+    this->SecondaryViewerWindow = NULL;
     }
 
   if (this->TestButton11)
@@ -148,7 +148,7 @@ void vtkSecondaryWindowGUI::Enter()
     ProcessTimerEvents();
     }
 
-  this->SecondaryMonitor->DisplayOnSecondaryMonitor();
+  this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
 
 }
 
@@ -162,10 +162,10 @@ void vtkSecondaryWindowGUI::Exit ( )
 //---------------------------------------------------------------------------
 void vtkSecondaryWindowGUI::TearDownGUI() 
 {
-  if (this->SecondaryMonitor)
+  if (this->SecondaryViewerWindow)
     {  
-    this->SecondaryMonitor->Withdraw();
-    this->SecondaryMonitor->SetApplication(NULL);
+    this->SecondaryViewerWindow->Withdraw();
+    this->SecondaryViewerWindow->SetApplication(NULL);
     }
 
   /*
@@ -395,9 +395,9 @@ void vtkSecondaryWindowGUI::BuildGUI ( )
   BuildGUIForTestFrame1();
   BuildGUIForTestFrame2();
 
-  this->SecondaryMonitor = vtkSlicerSecondaryMonitor::New();
-  this->SecondaryMonitor->SetApplication(this->GetApplication());
-  this->SecondaryMonitor->Create();
+  this->SecondaryViewerWindow = vtkSlicerSecondaryViewerWindow::New();
+  this->SecondaryViewerWindow->SetApplication(this->GetApplication());
+  this->SecondaryViewerWindow->Create();
 
 }
 
