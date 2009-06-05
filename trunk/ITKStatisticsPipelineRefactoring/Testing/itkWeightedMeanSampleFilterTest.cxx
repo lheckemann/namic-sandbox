@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeanSampleFilterTest.cxx,v $
+  Module:    $RCSfile: itkWeightedMeanSampleFilterTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/07/26 15:55:14 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009-05-12 14:30:19 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -34,13 +34,16 @@ class WeightedMeanTestFunction :
 public:
   /** Standard class typedefs. */
   typedef WeightedMeanTestFunction Self;
+
   typedef itk::FunctionBase< MeasurementVectorType, double > Superclass;
+  
   typedef itk::SmartPointer<Self> Pointer;
+  
   typedef itk::SmartPointer<const Self> ConstPointer;
   
   /** Standard macros. */
   itkTypeMacro(WeightedMeanTestFunction, FunctionBase);
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
 
   /** Input type */
   typedef MeasurementVectorType InputType;
@@ -50,25 +53,25 @@ public:
 
   /**Evaluate at the specified input position */
   OutputType Evaluate( const InputType& input ) const 
-  {
-    MeasurementVectorType measurements ;
+    {
+    MeasurementVectorType measurements;
     // set the weight factor of the measurment 
     // vector with valuev[2, 2] to 0.5.
-    measurements.Fill(2.0f) ;
+    measurements.Fill(2.0f);
     if ( input != measurements )
       {
-        return 0.5 ;
+      return 0.5;
       }
     else
       {
-        return 1.0 ;
+      return 1.0;
       }
-  }
+    }
 
 protected:
   WeightedMeanTestFunction() {}
   ~WeightedMeanTestFunction() {}
-} ; // end of class
+}; // end of class
 
 
 int itkWeightedMeanSampleFilterTest(int, char* [] ) 
@@ -76,7 +79,7 @@ int itkWeightedMeanSampleFilterTest(int, char* [] )
   std::cout << "WeightedMeanSampleFilter test \n \n";
 
   const unsigned int                  numberOfMeasurementVectors = 5;
-  unsigned int                        counter = 0;
+  unsigned int                        counter;
 
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >             MeasurementVectorType;
@@ -106,7 +109,7 @@ int itkWeightedMeanSampleFilterTest(int, char* [] )
   typedef itk::Statistics::WeightedMeanSampleFilter< SampleType > 
     FilterType;
 
-  FilterType::Pointer filter = FilterType::New() ;
+  FilterType::Pointer filter = FilterType::New();
 
   std::cout << filter->GetNameOfClass() << std::endl;
   filter->Print(std::cout);
@@ -123,7 +126,7 @@ int itkWeightedMeanSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
   std::cerr << "Exception caught: " << excp << std::endl;
-  }    
+  }
 
   if ( filter->GetInput() != NULL )
     {
@@ -143,9 +146,9 @@ int itkWeightedMeanSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
  
-  const FilterType::MeasurementVectorDecoratedType * decorator = filter->GetOutput() ;
+  const FilterType::MeasurementVectorDecoratedType * decorator = filter->GetOutput();
   FilterType::MeasurementVectorType    meanOutput  = decorator->Get();
 
   FilterType::MeasurementVectorType mean;
@@ -178,9 +181,9 @@ int itkWeightedMeanSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
  
-  decorator = filter->GetOutput() ;
+  decorator = filter->GetOutput();
   meanOutput  = decorator->Get();
 
   mean[0] = 2.0;
@@ -207,9 +210,9 @@ int itkWeightedMeanSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
  
-  decorator = filter->GetOutput() ;
+  decorator = filter->GetOutput();
   meanOutput  = decorator->Get();
 
   mean[0] = 1.7777778;
@@ -237,9 +240,9 @@ int itkWeightedMeanSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
  
-  decorator = filter->GetOutput() ;
+  decorator = filter->GetOutput();
   meanOutput  = decorator->Get();
 
   mean[0] = 2.0;
@@ -255,10 +258,6 @@ int itkWeightedMeanSampleFilterTest(int, char* [] )
     return EXIT_FAILURE;
     }
  
-  filter->Print(std::cout);
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

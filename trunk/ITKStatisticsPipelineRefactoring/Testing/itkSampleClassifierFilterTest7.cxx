@@ -1,10 +1,10 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkExpectationMaximizationMixtureModelEstimatorTest.cxx,v $
+Module:    $RCSfile: itkSampleClassifierFilterTest7.cxx,v $
 Language:  C++
-Date:      $Date: 2005/02/08 03:18:41 $
-Version:   $Revision: 1.8 $
+Date:      $Date: 2009-05-02 05:44:03 $
+Version:   $Revision: 1.1 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -347,8 +347,8 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
 
   if( !passed )
     {
-      std::cout << "Test failed." << std::endl;
-      return EXIT_FAILURE;
+    std::cout << "Test failed." << std::endl;
+    return EXIT_FAILURE;
     }
 
   std::cout << "Test passed." << std::endl;

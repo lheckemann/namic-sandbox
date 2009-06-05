@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageToListSampleFilterTest.cxx,v $
+  Module:    $RCSfile: itkImageToListSampleFilterTest2.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/01/15 18:38:35 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009-05-02 05:44:02 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -33,6 +33,7 @@ int itkImageToListSampleFilterTest2(int, char* [] )
 
   const unsigned int ImageDimension = 3;
   typedef itk::Image< PixelType, ImageDimension > ImageType;
+
   typedef itk::Image< unsigned char, ImageDimension > MaskImageType;
 
   ImageType::Pointer image = ImageType::New();
@@ -80,7 +81,7 @@ int itkImageToListSampleFilterTest2(int, char* [] )
   mit.GoToBegin();
   while( !mit.IsAtEnd() )
     {
-    mit.Set((unsigned char)255);    
+    mit.Set((unsigned char)255);
     ++mit; 
     }
 
@@ -129,4 +130,3 @@ int itkImageToListSampleFilterTest2(int, char* [] )
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
 }
-

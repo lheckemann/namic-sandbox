@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkTDistributionTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2007-02-24 17:53:01 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009-05-10 12:57:42 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -419,9 +419,10 @@ int itkTDistributionTest(int, char* [] )
         
 
   DistributionType::ParametersType parameters( distributionFunction->GetNumberOfParameters() );
-  parameters[0] = 1.0;
+  parameters[0] = 5.0;
+  distributionFunction->SetParameters(parameters);
 
-  long dof = 2;
+  long dof = 5;
 
   std::cout << "Variance() = " <<  distributionFunction->GetVariance() << std::endl;
   std::cout << "PDF(x,p) = " <<  distributionFunction->PDF( x, parameters ) << std::endl;

@@ -1,10 +1,10 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkListSampleTest.cxx,v $
+Module:    $RCSfile: itkSampleClassifierFilterTest6.cxx,v $
 Language:  C++
-Date:      $Date: 2007/04/06 15:26:57 $
-Version:   $Revision: 1.12 $
+Date:      $Date: 2009-05-08 16:31:07 $
+Version:   $Revision: 1.2 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -30,7 +30,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 
 //run sample classifer using std::vector type measurment vector
-int itkSampleClassifierFilterTest6(int argc, char *argv[] )
+int itkSampleClassifierFilterTest6( int, char * [] )
 {
 
   const unsigned int numberOfComponents = 1;
@@ -43,8 +43,8 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
 
   typedef itk::Statistics::SampleClassifierFilter< SampleType > FilterType;
 
-  typedef itk::Statistics::WeightedCentroidKdTreeGenerator< SampleType > GeneratorType ;
-  typedef itk::Statistics::KdTreeBasedKmeansEstimator< GeneratorType::KdTreeType > EstimatorType ;
+  typedef itk::Statistics::WeightedCentroidKdTreeGenerator< SampleType > GeneratorType;
+  typedef itk::Statistics::KdTreeBasedKmeansEstimator< GeneratorType::KdTreeType > EstimatorType;
  
   //Generate a sample list
   SampleType::Pointer sample = SampleType::New();
@@ -71,7 +71,7 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
   unsigned int numberOfSampleEachClass = 10;
 
   //Add sample from the first gaussian
-  for ( unsigned int i = 0 ; i < numberOfSampleEachClass ; ++i )
+  for ( unsigned int i = 0; i < numberOfSampleEachClass; ++i )
     {
     mv[0] = (normalGenerator->GetVariate() * standardDeviation ) + mean;
     sample->PushBack( mv );
@@ -80,7 +80,7 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
   //Add samples from the second gaussian
   mean = mean2[0];
   standardDeviation = 0.1; 
-  for ( unsigned int i = 0 ; i < numberOfSampleEachClass ; ++i )
+  for ( unsigned int i = 0; i < numberOfSampleEachClass; ++i )
     {
     mv[0] = (normalGenerator->GetVariate() * standardDeviation ) + mean;
     sample->PushBack( mv );
@@ -93,25 +93,25 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
   ClassLabelVectorObjectType::Pointer  classLabelsObject = ClassLabelVectorObjectType::New();
 
   /* Creating k-d tree */
-  GeneratorType::Pointer generator = GeneratorType::New() ;
-  generator->SetSample(sample.GetPointer()) ;
+  GeneratorType::Pointer generator = GeneratorType::New();
+  generator->SetSample(sample.GetPointer());
   unsigned int bucketSize = 1;
-  generator->SetBucketSize(bucketSize) ;
-  generator->GenerateData() ;
+  generator->SetBucketSize(bucketSize);
+  generator->GenerateData();
 
   /* Searching kmeans */
-  EstimatorType::Pointer estimator = EstimatorType::New() ;
+  EstimatorType::Pointer estimator = EstimatorType::New();
  
   itk::Array< double > initialMeans(2); 
   initialMeans[0] = 5;
   initialMeans[1] = 70;
-  estimator->SetParameters(initialMeans) ;
+  estimator->SetParameters(initialMeans);
   unsigned int maximumIteration = 100;
-  estimator->SetMaximumIteration(maximumIteration) ;
-  estimator->SetKdTree(generator->GetOutput()) ;
-  estimator->SetCentroidPositionChangesThreshold(0.0) ;
-  estimator->StartOptimization() ;
-  EstimatorType::ParametersType estimatedMeans = estimator->GetParameters() ;
+  estimator->SetMaximumIteration(maximumIteration);
+  estimator->SetKdTree(generator->GetOutput());
+  estimator->SetCentroidPositionChangesThreshold(0.0);
+  estimator->StartOptimization();
+  EstimatorType::ParametersType estimatedMeans = estimator->GetParameters();
 
   // Add class labels
   ClassLabelVectorType & classLabelVector  = classLabelsObject->Get();
@@ -214,6 +214,3 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

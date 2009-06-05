@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkGaussianDistributionTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2007-02-24 17:53:01 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009-05-10 15:05:41 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -326,7 +326,8 @@ int itkGaussianDistributionTest(int, char* [] )
   DistributionType::ParametersType parameters( distributionFunction->GetNumberOfParameters() );
   parameters[0] = mean1;
   parameters[1] = variance1;
-
+  distributionFunction->SetParameters(parameters);
+  x = .1;
   std::cout << "Parameters = " << parameters << std::endl;
   std::cout << "Variance() = " <<  distributionFunction->GetVariance() << std::endl;
   std::cout << "PDF(x,p) = " <<  distributionFunction->PDF( x, parameters ) << std::endl;
@@ -336,9 +337,22 @@ int itkGaussianDistributionTest(int, char* [] )
   std::cout << "CDF(x,p) = " <<  distributionFunction->CDF( x, parameters ) << std::endl;
   std::cout << "EvaluateCDF(x,p) = " << distributionFunction->EvaluateCDF( x, parameters ) << std::endl;
   std::cout << "InverseCDF(x,p) = " <<  distributionFunction->InverseCDF( x, parameters ) << std::endl;
-  std::cout << "InverseCDF(x,p) = " <<  distributionFunction->InverseCDF( x, parameters ) << std::endl;
+  std::cout << "InverseCDF(x,mean,variance) = " <<  distributionFunction->InverseCDF( x, mean1, variance1 ) << std::endl;
+  std::cout << "EvaluateInverseCDF(x) = " <<  distributionFunction->EvaluateInverseCDF( x ) << std::endl;
   std::cout << "EvaluateInverseCDF(x,p) = " <<  distributionFunction->EvaluateInverseCDF( x, parameters ) << std::endl;
   std::cout << "EvaluateInverseCDF(x,m,v) = " << distributionFunction->EvaluateInverseCDF( x, mean1, variance1 ) << std::endl;
+
+  std::cout << "InverseCDF(10.0,p) = " <<  distributionFunction->InverseCDF( 10.0, parameters ) << std::endl;
+  std::cout << "InverseCDF(10.0,mean,variance) = " <<  distributionFunction->InverseCDF( 10.0, mean1, variance1 ) << std::endl;
+  std::cout << "EvaluateInverseCDF(10.0) = " <<  distributionFunction->EvaluateInverseCDF( 10.0 ) << std::endl;
+  std::cout << "EvaluateInverseCDF(10.0,p) = " <<  distributionFunction->EvaluateInverseCDF( 10.0, parameters ) << std::endl;
+  std::cout << "EvaluateInverseCDF(10.0,m,v) = " << distributionFunction->EvaluateInverseCDF( 10.0, mean1, variance1 ) << std::endl;
+
+  std::cout << "InverseCDF(-10.0,p) = " <<  distributionFunction->InverseCDF( -10.0, parameters ) << std::endl;
+  std::cout << "InverseCDF(-10.0,mean,variance) = " <<  distributionFunction->InverseCDF( -10.0, mean1, variance1 ) << std::endl;
+  std::cout << "EvaluateInverseCDF(-10.0) = " <<  distributionFunction->EvaluateInverseCDF( -10.0 ) << std::endl;
+  std::cout << "EvaluateInverseCDF(-10.0,p) = " <<  distributionFunction->EvaluateInverseCDF( -10.0, parameters ) << std::endl;
+  std::cout << "EvaluateInverseCDF(-10.0,m,v) = " << distributionFunction->EvaluateInverseCDF( -10.0, mean1, variance1 ) << std::endl;
  
   const unsigned int wrongNumberOfParameters =  distributionFunction->GetNumberOfParameters() * 42;
   DistributionType::ParametersType wrongParameters( wrongNumberOfParameters );

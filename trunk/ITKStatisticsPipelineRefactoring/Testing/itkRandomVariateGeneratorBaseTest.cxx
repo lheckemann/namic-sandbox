@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageToListSampleAdaptorTest.cxx,v $
+  Module:    $RCSfile: itkRandomVariateGeneratorBaseTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/01/15 18:38:35 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009-05-02 05:44:02 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -70,4 +70,3 @@ int itkRandomVariateGeneratorBaseTest( int , char* [] )
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
 }
-

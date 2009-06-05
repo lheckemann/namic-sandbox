@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkStatisticsTests.cxx,v $
+  Module:    $RCSfile: itkStatisticsTypesTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/02/24 17:53:01 $
-  Version:   $Revision: 1.31 $
+  Date:      $Date: 2009-05-02 14:56:00 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -21,7 +21,7 @@
 #include "itkMeasurementVectorTraits.h" 
 
 #define declareType( _x ) \
-  typedef itk::Statistics::MeasurementVectorTraits::_x  _x; \
+  typedef itk::Statistics::MeasurementVectorTraits::_x _x; \
   std::cout << #_x << " = " << sizeof( _x ) << " bytes "; \
   if( itk::NumericTraits< _x >::is_integer ) \
     { \
@@ -44,5 +44,3 @@ int itkStatisticsTypesTest(int, char * [])
 
   return EXIT_SUCCESS;
 }
-
-

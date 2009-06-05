@@ -1,10 +1,10 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkListSampleTest.cxx,v $
+Module:    $RCSfile: itkSampleClassifierFilterTest2.cxx,v $
 Language:  C++
-Date:      $Date: 2007/04/06 15:26:57 $
-Version:   $Revision: 1.12 $
+Date:      $Date: 2009-05-08 16:31:07 $
+Version:   $Revision: 1.2 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -28,7 +28,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 
 //Test if the SampleClassifier filter labels observations correctly
-int itkSampleClassifierFilterTest2(int argc, char *argv[] )
+int itkSampleClassifierFilterTest2( int, char * [] )
 {
 
   const unsigned int numberOfComponents = 1;
@@ -36,9 +36,8 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
 
   const unsigned int numberOfClasses = 2;
 
-  typedef itk::Array< MeasurementType > MeasurementVectorType;
-  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
-
+  typedef itk::Array< MeasurementType >                         MeasurementVectorType;
+  typedef itk::Statistics::ListSample< MeasurementVectorType >  SampleType;
   typedef itk::Statistics::SampleClassifierFilter< SampleType > FilterType;
 
   FilterType::Pointer filter = FilterType::New();
@@ -136,7 +135,7 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   double mean = mean1[0];
   double standardDeviation = vcl_sqrt(covariance1[0][0]);
   unsigned int numberOfSampleEachClass = 10;
-  for ( unsigned int i = 0 ; i < numberOfSampleEachClass ; ++i )
+  for ( unsigned int i = 0; i < numberOfSampleEachClass; ++i )
     {
     mv[0] = (normalGenerator->GetVariate() * standardDeviation ) + mean;
     sample->PushBack( mv );
@@ -145,7 +144,7 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   //Add samples for the second gaussian
   mean = mean2[0];
   standardDeviation = vcl_sqrt(covariance1[0][0]);
-  for ( unsigned int i = 0 ; i < numberOfSampleEachClass ; ++i )
+  for ( unsigned int i = 0; i < numberOfSampleEachClass; ++i )
     {
     mv[0] = (normalGenerator->GetVariate() * standardDeviation ) + mean;
     sample->PushBack( mv );
@@ -197,6 +196,3 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

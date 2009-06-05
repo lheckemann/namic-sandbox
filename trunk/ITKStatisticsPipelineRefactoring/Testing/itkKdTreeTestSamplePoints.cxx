@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkKdTreeTest1.cxx,v $
+  Module:    $RCSfile: itkKdTreeTestSamplePoints.cxx,v $
   Language:  C++
-  Date:      $Date: 2008-04-30 16:22:07 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009-05-02 05:44:02 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -28,63 +28,63 @@
 
 int itkKdTreeTestSamplePoints(int , char *[] )
 {
-  typedef itk::Array< double > MeasurementVectorType ;
-  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
+  typedef itk::Array< double > MeasurementVectorType;
+  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
   const SampleType::MeasurementVectorSizeType measurementVectorSize = 2;
 
-  SampleType::Pointer sample = SampleType::New() ;
+  SampleType::Pointer sample = SampleType::New();
   sample->SetMeasurementVectorSize( measurementVectorSize );
 
   const unsigned int numberOfDataPoints = 5; 
-  MeasurementVectorType mv( measurementVectorSize ) ;
+  MeasurementVectorType mv( measurementVectorSize );
   mv[0] = 0.0342;
   mv[1] = 0.5175;
-  sample->PushBack( mv ) ;
+  sample->PushBack( mv );
 
-  MeasurementVectorType mv2( measurementVectorSize ) ;
+  MeasurementVectorType mv2( measurementVectorSize );
   mv2[0] = 0.9650;
   mv2[1] = -0.9379;
-  sample->PushBack( mv2 ) ;
+  sample->PushBack( mv2 );
 
-  MeasurementVectorType mv3( measurementVectorSize ) ;
+  MeasurementVectorType mv3( measurementVectorSize );
   mv3[0] = -0.0471;
   mv3[1] = 0.8177;
-  sample->PushBack( mv3 ) ;
+  sample->PushBack( mv3 );
 
-  MeasurementVectorType mv4( measurementVectorSize ) ;
+  MeasurementVectorType mv4( measurementVectorSize );
   mv4[0] = 0.4737;
   mv4[1] = -1.0447;
-  sample->PushBack( mv4 ) ;
+  sample->PushBack( mv4 );
 
-  MeasurementVectorType mv5( measurementVectorSize ) ;
+  MeasurementVectorType mv5( measurementVectorSize );
   mv5[0] = -0.6307;
   mv5[1] = -2.7600;
-  sample->PushBack( mv5 ) ;
+  sample->PushBack( mv5 );
 
-  typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType ;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
+  typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType;
+  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
 
   const unsigned int bucketSize = 1; 
 
-  treeGenerator->SetSample( sample ) ;
+  treeGenerator->SetSample( sample );
   treeGenerator->SetBucketSize( bucketSize );
-  treeGenerator->Update() ;
+  treeGenerator->Update();
 
-  typedef TreeGeneratorType::KdTreeType TreeType ;
-  typedef TreeType::NearestNeighbors NeighborsType ;
-  typedef TreeType::KdTreeNodeType NodeType ;
+  typedef TreeGeneratorType::KdTreeType TreeType;
+  typedef TreeType::NearestNeighbors    NeighborsType;
+  typedef TreeType::KdTreeNodeType      NodeType;
 
-  TreeType::Pointer tree = treeGenerator->GetOutput() ;
+  TreeType::Pointer tree = treeGenerator->GetOutput();
 
-  MeasurementVectorType queryPoint( measurementVectorSize ) ;
+  MeasurementVectorType queryPoint( measurementVectorSize );
 
-  unsigned int numberOfNeighbors = 1 ;
-  TreeType::InstanceIdentifierVectorType neighbors ;
+  unsigned int numberOfNeighbors = 1;
+  TreeType::InstanceIdentifierVectorType neighbors;
 
-  MeasurementVectorType result( measurementVectorSize ) ;
-  MeasurementVectorType test_point( measurementVectorSize ) ;
-  MeasurementVectorType min_point( measurementVectorSize ) ;
+  MeasurementVectorType result( measurementVectorSize );
+  MeasurementVectorType test_point( measurementVectorSize );
+  MeasurementVectorType min_point( measurementVectorSize );
 
   //
   //  Check that for every point in the sample, its closest point is itself.
@@ -94,22 +94,22 @@ int itkKdTreeTestSamplePoints(int , char *[] )
 
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
 
-  OriginType origin( measurementVectorSize ) ;
+  OriginType origin( measurementVectorSize );
   for( unsigned int k = 0; k < sample->Size(); k++ )
     {
     
     queryPoint = sample->GetMeasurementVector(k);
 
-    for ( unsigned int i = 0 ; i < sample->GetMeasurementVectorSize() ; ++i )
+    for ( unsigned int i = 0; i < sample->GetMeasurementVectorSize(); ++i )
       {
       origin[i] = queryPoint[i];
       }
 
     distanceMetric->SetOrigin( origin );
     
-    tree->Search( queryPoint, numberOfNeighbors, neighbors ) ; 
+    tree->Search( queryPoint, numberOfNeighbors, neighbors ); 
     
-    for ( unsigned int i = 0 ; i < numberOfNeighbors ; ++i )
+    for ( unsigned int i = 0; i < numberOfNeighbors; ++i )
       {
       const double distance = 
         distanceMetric->Evaluate( tree->GetMeasurementVector( neighbors[i] ));
@@ -127,76 +127,76 @@ int itkKdTreeTestSamplePoints(int , char *[] )
       }
     }
 
-    double min_dist = itk::NumericTraits< double >::max();
+  double min_dist = itk::NumericTraits< double >::max();
 
-    /*
-    queryPoint[0] = 1.16651; 
-    queryPoint[1] = 0.16395;
-    */
+  /*
+  queryPoint[0] = 1.16651; 
+  queryPoint[1] = 0.16395;
+  */
 
-    /*
-    queryPoint[0] = 1.0; 
-    queryPoint[1] = 0.12;
-    */
+  /*
+  queryPoint[0] = 1.0; 
+  queryPoint[1] = 0.12;
+  */
 
-    queryPoint[0] = 1.0; 
-    queryPoint[1] = 0.1;
+  queryPoint[0] = 1.0; 
+  queryPoint[1] = 0.1;
 
 
-    tree->Search( queryPoint, numberOfNeighbors, neighbors ) ;
+  tree->Search( queryPoint, numberOfNeighbors, neighbors );
 
-    //
-    // The first neighbor should be the closest point.
-    //
-    result = tree->GetMeasurementVector( neighbors[0] );
+  //
+  // The first neighbor should be the closest point.
+  //
+  result = tree->GetMeasurementVector( neighbors[0] );
 
-    // 
-    // Compute the distance to the "presumed" nearest neighbor
-    //
-    double result_dist = sqrt(
-          (result[0] - queryPoint[0]) *
-          (result[0] - queryPoint[0]) +
-          (result[1] - queryPoint[1]) *
-          (result[1] - queryPoint[1])
-          );
+  // 
+  // Compute the distance to the "presumed" nearest neighbor
+  //
+  double result_dist = sqrt(
+        (result[0] - queryPoint[0]) *
+        (result[0] - queryPoint[0]) +
+        (result[1] - queryPoint[1]) *
+        (result[1] - queryPoint[1])
+        );
 
-    //
-    // Compute the distance to all other points, to verify
-    // whether the first neighbor was the closest one or not.
-    //
-    for( unsigned int i = 0 ; i < numberOfDataPoints; ++i )
+  //
+  // Compute the distance to all other points, to verify
+  // whether the first neighbor was the closest one or not.
+  //
+  for( unsigned int i = 0; i < numberOfDataPoints; ++i )
+    {
+    test_point = tree->GetMeasurementVector( i );
+
+    std::cout << "Compute distance with: " << test_point;
+
+    const double dist = sqrt(
+        (test_point[0] - queryPoint[0]) *
+        (test_point[0] - queryPoint[0]) +
+        (test_point[1] - queryPoint[1]) *
+        (test_point[1] - queryPoint[1])
+        );
+
+    std::cout << "\t" << dist << std::endl; 
+
+    if( dist < min_dist )
       {
-      test_point = tree->GetMeasurementVector( i );
-
-      std::cout << "Compute distance with: " << test_point;
-
-      const double dist = sqrt(
-          (test_point[0] - queryPoint[0]) *
-          (test_point[0] - queryPoint[0]) +
-          (test_point[1] - queryPoint[1]) *
-          (test_point[1] - queryPoint[1])
-          );
-
-      std::cout << "\t" << dist << std::endl; 
-
-      if( dist < min_dist )
-        {
-        min_dist = dist;
-        min_point = test_point;
-        }
+      min_dist = dist;
+      min_point = test_point;
       }
+    }
 
-    if( min_dist < result_dist )
-      {
-      std::cerr << "Problem found " << std::endl;
-      std::cerr << "Query point " << queryPoint << std::endl;
-      std::cerr << "Reported closest point " << result
-                << " distance " << result_dist << std::endl;
-      std::cerr << "Actual   closest point " << min_point
-                << " distance " << min_dist << std::endl;
-      std::cerr << std::endl;
-      std::cerr << "Test FAILED." << std::endl;
-      }
+  if( min_dist < result_dist )
+    {
+    std::cerr << "Problem found " << std::endl;
+    std::cerr << "Query point " << queryPoint << std::endl;
+    std::cerr << "Reported closest point " << result
+              << " distance " << result_dist << std::endl;
+    std::cerr << "Actual   closest point " << min_point
+              << " distance " << min_dist << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "Test FAILED." << std::endl;
+    }
 
   //
   // Plot out the tree structure to the console in the format used by Graphviz dot

@@ -1,10 +1,10 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkSampleTest.cxx,v $
+Module:    $RCSfile: itkSampleToHistogramFilterTest5.cxx,v $
 Language:  C++
-Date:      $Date: 2007/04/06 15:26:57 $
-Version:   $Revision: 1.12 $
+Date:      $Date: 2009-05-02 05:44:03 $
+Version:   $Revision: 1.1 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -20,7 +20,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include "itkRGBPixel.h"
 #include "itkListSample.h"
-#include "itkMeasurementHistogram.h"
+#include "itkHistogram.h"
 #include "itkSampleToHistogramFilter.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkImageFileReader.h"
@@ -60,7 +60,7 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
    
   typedef ImageToListSampleFilterType::ListSampleType  SampleType;
 
-  typedef itk::Statistics::MeasurementHistogram< HMeasurementType,
+  typedef itk::Statistics::Histogram< HMeasurementType,
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef itk::Statistics::SampleToHistogramFilter<
@@ -100,7 +100,6 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
     }
 
 
-
   const HistogramType * histogram = filter->GetOutput();
 
   if( histogram->Size() != 0 )
@@ -136,7 +135,6 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
     std::cerr << " but it actually is " << histogram->Size() << std::endl;
     return EXIT_FAILURE;
     }
-
 
 
   HistogramType::ConstIterator histogramItr = histogram->Begin();
@@ -175,6 +173,3 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

@@ -1,9 +1,9 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageTest.cxx,v $
+  Module:    $RCSfile: itkMahalanobisDistanceMetricTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/04/11 13:52:36 $
+  Date:      $Date: 2009-05-12 14:30:11 $
   Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
@@ -241,12 +241,11 @@ int itkMahalanobisDistanceMetricTest(int, char* [] )
   measurementSingleComponent3[0] = 1.5;
   measurementSingleComponent3[1] = 2.5;
 
-  trueValue = 1.0;
-  distanceComputed = distance->Evaluate( measurementSingleComponent, measurementSingleComponent2 );
+  distance->Evaluate( measurementSingleComponent, measurementSingleComponent2 );
 
   try
     {
-    distanceComputed = distance->Evaluate( measurementSingleComponent, measurementSingleComponent3 );
+    distance->Evaluate( measurementSingleComponent, measurementSingleComponent3 );
     std::cerr << "Attempting to compute distance between unequal size measurement vectors" 
               << "Exception should have been thrown: " << std::endl;
     return EXIT_FAILURE;

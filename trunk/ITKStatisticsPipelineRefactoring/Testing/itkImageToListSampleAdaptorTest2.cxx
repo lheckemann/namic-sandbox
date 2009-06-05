@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageToListSampleAdaptorTest.cxx,v $
+  Module:    $RCSfile: itkImageToListSampleAdaptorTest2.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/01/15 18:38:35 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009-05-02 05:44:02 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -72,7 +72,7 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
 
   ImageToListSampleAdaptorType::InstanceIdentifier id;
 
-  for ( unsigned int i=0 ; i < size[2] ; i++ )
+  for ( unsigned int i=0; i < size[2]; i++ )
     for ( unsigned int j=0; j < size[1]; j++ )
       for ( unsigned int k=0; k < size[0]; k++ )  
       {
@@ -167,7 +167,7 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
 
   VariableLengthImageToListSampleAdaptorType::InstanceIdentifier vId;
 
-  for ( unsigned int i=0 ; i < size[2] ; i++ )
+  for ( unsigned int i=0; i < size[2]; i++ )
     {
     for ( unsigned int j=0; j < size[1]; j++ )
       {
@@ -245,7 +245,7 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
 
   RGBImageToListSampleAdaptorType::InstanceIdentifier rgbId;
 
-  for ( unsigned int i=0 ; i < size[2] ; i++ )
+  for ( unsigned int i=0; i < size[2]; i++ )
     {
     for ( unsigned int j=0; j < size[1]; j++ )
       {
@@ -269,9 +269,6 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
       }
     }
  
-
-
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
 }
-

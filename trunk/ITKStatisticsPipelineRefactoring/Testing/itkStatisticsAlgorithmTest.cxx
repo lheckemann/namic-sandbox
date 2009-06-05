@@ -1,10 +1,10 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkListSampleTest.cxx,v $
+Module:    $RCSfile: itkStatisticsAlgorithmTest.cxx,v $
 Language:  C++
-Date:      $Date: 2007/04/06 15:26:57 $
-Version:   $Revision: 1.12 $
+Date:      $Date: 2009-05-08 16:31:08 $
+Version:   $Revision: 1.2 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -23,7 +23,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkListSample.h"
 #include "itkStatisticsAlgorithm.h"
 
-int itkStatisticsAlgorithmTest(int argc, char *argv[] ) 
+int itkStatisticsAlgorithmTest( int, char * [] ) 
 {
   std::cout << "StatisticsAlgorithm Test \n \n"; 
 
@@ -158,6 +158,3 @@ int itkStatisticsAlgorithmTest(int argc, char *argv[] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

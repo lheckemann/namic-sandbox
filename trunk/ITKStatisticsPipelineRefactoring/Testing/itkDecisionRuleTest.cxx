@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageTest.cxx,v $
+  Module:    $RCSfile: itkDecisionRuleTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/04/11 13:52:36 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009-05-02 05:44:01 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -38,24 +38,24 @@ public:
   itkTypeMacro(MyDecisionRule, DecisionRule);
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
  
   /** Evaluate membership score */
   unsigned int Evaluate(const MembershipVectorType &scoreVector) const
     {
-    double max = scoreVector[0] ;
+    double max = scoreVector[0];
     
-    unsigned int maxIndex = 0 ;
-    unsigned int i ;
-    for (i = 1 ; i < scoreVector.size() ; i++)
+    unsigned int maxIndex = 0;
+    unsigned int i;
+    for (i = 1; i < scoreVector.size(); i++)
       {
       if (scoreVector[i] > max) 
         {
-        max = scoreVector[i] ;
-        maxIndex = i ;
+        max = scoreVector[i];
+        maxIndex = i;
         }
       }
-    return maxIndex ;
+    return maxIndex;
     } 
 };
 
@@ -93,8 +93,8 @@ int itkDecisionRuleTest(int, char* [] )
   // return index ( 2) 
   if( decisionRule->Evaluate( membershipScoreVector ) != 2 )
     {
-      std::cerr << "Decision rule computation is incorrect!" << std::endl;
-      return EXIT_FAILURE;
+    std::cerr << "Decision rule computation is incorrect!" << std::endl;
+    return EXIT_FAILURE;
     } 
 
   return EXIT_SUCCESS;

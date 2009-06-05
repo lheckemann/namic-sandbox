@@ -3,8 +3,8 @@
 Program:   Insight Segmentation & Registration Toolkit
 Module:    $RCSfile: itkListSampleTest.cxx,v $
 Language:  C++
-Date:      $Date: 2007/04/06 15:26:57 $
-Version:   $Revision: 1.12 $
+Date:      $Date: 2009-05-02 05:44:02 $
+Version:   $Revision: 1.1 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -30,7 +30,7 @@ int itkListSampleTest(int argc, char *argv[] )
     std::cerr << "itkListSampleTest LengthOfMeasurementVector" << std::endl;
     }
     
-  typedef itk::Array< float > MeasurementVectorType;
+  typedef itk::Array< float >                                  MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
   SampleType::MeasurementVectorSizeType measurementVectorSize = atoi(argv[1]);
@@ -52,7 +52,7 @@ int itkListSampleTest(int argc, char *argv[] )
     {
     for (unsigned int j = 0; j < measurementVectorSize; j++ )
       {
-      mv[j] = rand() / (RAND_MAX+1.0) ;
+      mv[j] = rand() / (RAND_MAX+1.0);
       }
     sample->PushBack(mv);
     }
@@ -123,152 +123,152 @@ int itkListSampleTest(int argc, char *argv[] )
   
   // frequency
   if (sample->GetTotalFrequency() != sampleSize)
-  {
+    {
     std::cerr << "GetTotalFrequency failed" << std::endl;
     return EXIT_FAILURE;
-  }
+    }
 
   //
   // iterator tests
   //
   std::cerr << "Iterators..." << std::endl;
-  {
-  // forward iterator
-  typedef SampleType::Iterator IteratorType;
-  
-  IteratorType s_iter = sample->Begin();
-  
-  // copy constructor
-  IteratorType bs_iter(s_iter);
-  if (bs_iter != s_iter)
     {
-    std::cerr << "Iterator::Copy Constructor failed" << std::endl;
-    return EXIT_FAILURE;    
-    }
-  
-  // assignment operator 
-  IteratorType assignment_iter( bs_iter );
-  assignment_iter = s_iter;
-  if (assignment_iter != s_iter)
-    {
-    std::cerr << "Iterator::assignment operator failed" << std::endl;
-    return EXIT_FAILURE;    
+    // forward iterator
+    typedef SampleType::Iterator IteratorType;
+    
+    IteratorType s_iter = sample->Begin();
+    
+    // copy constructor
+    IteratorType bs_iter(s_iter);
+    if (bs_iter != s_iter)
+      {
+      std::cerr << "Iterator::Copy Constructor failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    
+    // assignment operator 
+    IteratorType assignment_iter( bs_iter );
+    assignment_iter = s_iter;
+    if (assignment_iter != s_iter)
+      {
+      std::cerr << "Iterator::assignment operator failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    SampleType::InstanceIdentifier id = 0;
+    while (s_iter != sample->End())
+      {
+      if (sample->GetMeasurementVector(id) != 
+          s_iter.GetMeasurementVector())
+        {
+        std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
+                  << std::endl;
+        return EXIT_FAILURE;
+        }
+      if (id != s_iter.GetInstanceIdentifier())
+        {
+        std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
+                  << std::endl;
+        return EXIT_FAILURE;
+        }
+      if (s_iter.GetFrequency() != 1)
+        {
+        std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
+        return EXIT_FAILURE;
+        }
+      if (sample->GetFrequency(id) != 1)
+        {
+        std::cerr << "GetFrequency (forward) failed" << std::endl;
+        return EXIT_FAILURE;
+        }
+      ++id;
+      ++s_iter;
+      }
+    
+    if (s_iter != sample->End())
+      {
+      std::cerr << "Iterator::End (forward) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    
     }
 
-  SampleType::InstanceIdentifier id = 0;
-  while (s_iter != sample->End())
-    {
-    if (sample->GetMeasurementVector(id) != 
-        s_iter.GetMeasurementVector())
-      {
-      std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
-                << std::endl;
-      return EXIT_FAILURE;
-      }
-    if (id != s_iter.GetInstanceIdentifier())
-      {
-      std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
-                << std::endl;
-      return EXIT_FAILURE;
-      }
-    if (s_iter.GetFrequency() != 1)
-      {
-      std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
-      return EXIT_FAILURE;
-      }
-    if (sample->GetFrequency(id) != 1)
-      {
-      std::cerr << "GetFrequency (forward) failed" << std::endl;
-      return EXIT_FAILURE;
-      }
-    ++id;
-    ++s_iter;
-    }
-  
-  if (s_iter != sample->End())
-    {
-    std::cerr << "Iterator::End (forward) failed" << std::endl;
-    return EXIT_FAILURE;    
-    }
-  
-  }
-
-// ConstIterator test
+  // ConstIterator test
   std::cerr << "Const Iterators..." << std::endl;
-  {
-  // forward iterator
-  typedef SampleType::ConstIterator  ConstIteratorType;
-  
-  ConstIteratorType s_iter = sample->Begin();
-  
-  // copy constructor
-  ConstIteratorType bs_iter(s_iter);
-  if (bs_iter != s_iter)
     {
-    std::cerr << "Iterator::Copy Constructor (from const) failed" 
-              << std::endl;
-    return EXIT_FAILURE;    
-    }
-
-  // assignment operator
-  ConstIteratorType assignment_iter( bs_iter );
-  assignment_iter = s_iter;
-  if (assignment_iter != s_iter)
-    {
-    std::cerr << "Const Iterator::operator= () failed" 
-              << std::endl;
-    return EXIT_FAILURE;    
-    }
-
-  // copy from non-const iterator
-  SampleType::Iterator nonconst_iter = sample->Begin();
-  SampleType::ConstIterator s2_iter(nonconst_iter);
-  if (s2_iter != s_iter)
-    {
-    std::cerr << "Iterator::Copy Constructor (from non-const) failed" 
-              << std::endl;
-    return EXIT_FAILURE;    
-    }
-  // assignment from non-const iterator
-  s2_iter = nonconst_iter;
-  if (s2_iter != s_iter)
-    {
-    std::cerr << "Iterator::assignment (from non-const) failed" << std::endl;
-    return EXIT_FAILURE;    
-    }
-  
-  SampleType::InstanceIdentifier id = 0;
-  while (s_iter != sample->End())
-    {
-    if (sample->GetMeasurementVector(id) != 
-        s_iter.GetMeasurementVector())
+    // forward iterator
+    typedef SampleType::ConstIterator  ConstIteratorType;
+    
+    ConstIteratorType s_iter = sample->Begin();
+    
+    // copy constructor
+    ConstIteratorType bs_iter(s_iter);
+    if (bs_iter != s_iter)
       {
-      std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
+      std::cerr << "Iterator::Copy Constructor (from const) failed" 
                 << std::endl;
       return EXIT_FAILURE;
       }
-    if (id != s_iter.GetInstanceIdentifier())
+
+    // assignment operator
+    ConstIteratorType assignment_iter( bs_iter );
+    assignment_iter = s_iter;
+    if (assignment_iter != s_iter)
       {
-      std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
+      std::cerr << "Const Iterator::operator= () failed" 
                 << std::endl;
       return EXIT_FAILURE;
       }
-    if (s_iter.GetFrequency() != 1)
+
+    // copy from non-const iterator
+    SampleType::Iterator nonconst_iter = sample->Begin();
+    SampleType::ConstIterator s2_iter(nonconst_iter);
+    if (s2_iter != s_iter)
       {
-      std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
+      std::cerr << "Iterator::Copy Constructor (from non-const) failed" 
+                << std::endl;
       return EXIT_FAILURE;
       }
-    ++id;
-    ++s_iter;
+    // assignment from non-const iterator
+    s2_iter = nonconst_iter;
+    if (s2_iter != s_iter)
+      {
+      std::cerr << "Iterator::assignment (from non-const) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    
+    SampleType::InstanceIdentifier id = 0;
+    while (s_iter != sample->End())
+      {
+      if (sample->GetMeasurementVector(id) != 
+          s_iter.GetMeasurementVector())
+        {
+        std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
+                  << std::endl;
+        return EXIT_FAILURE;
+        }
+      if (id != s_iter.GetInstanceIdentifier())
+        {
+        std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
+                  << std::endl;
+        return EXIT_FAILURE;
+        }
+      if (s_iter.GetFrequency() != 1)
+        {
+        std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
+        return EXIT_FAILURE;
+        }
+      ++id;
+      ++s_iter;
+      }
+    
+    if (s_iter != sample->End())
+      {
+      std::cerr << "Iterator::End (forward) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    
     }
-  
-  if (s_iter != sample->End())
-    {
-    std::cerr << "Iterator::End (forward) failed" << std::endl;
-    return EXIT_FAILURE;    
-    }
-  
-  }
 
 
   //
@@ -278,14 +278,14 @@ int itkListSampleTest(int argc, char *argv[] )
   if (sample->Size() != 0)
     {
     std::cerr << "Clear() failed" << std::endl;
-    return EXIT_FAILURE;          
+    return EXIT_FAILURE;
     }
 
   sample->Resize(sampleSize);
   if (sample->Size() != sampleSize)
     {
     std::cerr << "Resize() failed" << std::endl;
-    return EXIT_FAILURE;          
+    return EXIT_FAILURE;
     }
   
 
@@ -398,161 +398,161 @@ int itkListSampleTest(int argc, char *argv[] )
 
 
   // Testing methods specific to Iterators
-  {
-  typedef SampleType::Iterator IteratorType;
-  IteratorType iter = sample->Begin();
-  IteratorType iter2 = sample->Begin();
-
-  iter2 = iter;
-  if( iter2 != iter )
     {
-    std::cerr << "Iterator operator=() failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+    typedef SampleType::Iterator IteratorType;
+    IteratorType iter = sample->Begin();
+    IteratorType iter2 = sample->Begin();
 
-  IteratorType iter3 = sample->Begin();
-  if( iter3 != sample->Begin() )
-    {
-    std::cerr << "Iterator constructor from sample failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  unsigned int counter = 0;
-  while( iter3 != sample->End() )
-    {
-    ++iter3;
-    counter++;
-    }
-
-  if( counter != sample->Size() )
-    {
-    std::cerr << "Iterator walk failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  IteratorType iter4( iter2 ); 
-  if( iter4 != iter2 )
-    {
-    std::cerr << "Iterator copy constructor failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  IteratorType iter5 = iter2; 
-  if( iter5 != iter2 )
-    {
-    std::cerr << "Iterator operator= failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  IteratorType iter6( sample );
-  for(unsigned int kk=0; kk<7; kk++ )
-    {
-    ++iter6;
-    }
-
-  if( iter6.GetInstanceIdentifier() != 7 )
-    {
-    std::cerr << "Iterator Constructor with instance identifier 7 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  }
-
-  // Testing methods specific to ConstIterators
-  {
-  typedef SampleType::ConstIterator ConstIteratorType;
-  ConstIteratorType iter = sample->Begin();
-  ConstIteratorType iter2 = sample->End();
-
-  iter2 = iter;
-
-  if( iter2 != iter )
-    {
-    std::cerr << "ConstIterator operator!=() or operator=() failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  if( !( iter2 == iter ) )
-    {
-    std::cerr << "ConstIterator operator==() failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  ConstIteratorType iter3( iter2 ); 
-  if( iter3 != iter2 )
-    {
-    std::cerr << "ConstIterator copy constructor failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  const SampleType * constSample = sample.GetPointer();
-
-  ConstIteratorType iter4( constSample->Begin() ); 
-  ConstIteratorType iter5( sample->Begin() );
-  if( iter4 != iter5 )
-    {
-    std::cerr << "Constructor from const container Begin() differs from non-const Begin() " << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  ConstIteratorType iter6( constSample ); 
-  ConstIteratorType iter7( sample );
-  if( iter6 != iter7 )
-    {
-    std::cerr << "ConstIterator Constructor from const container differs from non-const container" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  ConstIteratorType iter8( sample );
-  if( iter8.GetInstanceIdentifier() != 0 )
-    {
-    std::cerr << "Constructor with instance identifier 0 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  
-  ConstIteratorType iter9( sample );
-  for(unsigned int kk=0; kk<7; kk++ )
-    {
-    ++iter9;
-    }
-  
-  std::cout << "Instance identifier = " << iter9.GetInstanceIdentifier() << std::endl;
-  MeasurementVectorType vector9a = iter9.GetMeasurementVector();
-  MeasurementVectorType vector9b = sample->GetMeasurementVector( 7 );
-  for( unsigned int kitr =0; kitr < measurementVectorSize; kitr++ )
-    {
-    if( vnl_math_abs( vector9b[kitr] - vector9a[kitr] ) )
+    iter2 = iter;
+    if( iter2 != iter )
       {
-      std::cerr << "Constructor with container followed by increments failed" << std::endl;
-      std::cerr << "Expected " << vector9b << std::endl;
-      std::cerr << "Received " << vector9a << std::endl;
+      std::cerr << "Iterator operator=() failed" << std::endl;
       return EXIT_FAILURE;
       }
+
+    IteratorType iter3 = sample->Begin();
+    if( iter3 != sample->Begin() )
+      {
+      std::cerr << "Iterator constructor from sample failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    unsigned int counter = 0;
+    while( iter3 != sample->End() )
+      {
+      ++iter3;
+      counter++;
+      }
+
+    if( counter != sample->Size() )
+      {
+      std::cerr << "Iterator walk failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    IteratorType iter4( iter2 ); 
+    if( iter4 != iter2 )
+      {
+      std::cerr << "Iterator copy constructor failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    IteratorType iter5 = iter2; 
+    if( iter5 != iter2 )
+      {
+      std::cerr << "Iterator operator= failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    IteratorType iter6( sample );
+    for(unsigned int kk=0; kk<7; kk++ )
+      {
+      ++iter6;
+      }
+
+    if( iter6.GetInstanceIdentifier() != 7 )
+      {
+      std::cerr << "Iterator Constructor with instance identifier 7 failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
     }
 
-  unsigned int counter = 0;
-  ConstIteratorType iter10( constSample );
-  if( iter10 != constSample->Begin() )
+  // Testing methods specific to ConstIterators
     {
-    std::cerr << "ConstIterator constructor from sample failed" << std::endl;
-    return EXIT_FAILURE;
+    typedef SampleType::ConstIterator ConstIteratorType;
+    ConstIteratorType iter = sample->Begin();
+    ConstIteratorType iter2 = sample->End();
+
+    iter2 = iter;
+
+    if( iter2 != iter )
+      {
+      std::cerr << "ConstIterator operator!=() or operator=() failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    if( !( iter2 == iter ) )
+      {
+      std::cerr << "ConstIterator operator==() failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    ConstIteratorType iter3( iter2 ); 
+    if( iter3 != iter2 )
+      {
+      std::cerr << "ConstIterator copy constructor failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    const SampleType * constSample = sample.GetPointer();
+
+    ConstIteratorType iter4( constSample->Begin() ); 
+    ConstIteratorType iter5( sample->Begin() );
+    if( iter4 != iter5 )
+      {
+      std::cerr << "Constructor from const container Begin() differs from non-const Begin() " << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    ConstIteratorType iter6( constSample ); 
+    ConstIteratorType iter7( sample );
+    if( iter6 != iter7 )
+      {
+      std::cerr << "ConstIterator Constructor from const container differs from non-const container" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    ConstIteratorType iter8( sample );
+    if( iter8.GetInstanceIdentifier() != 0 )
+      {
+      std::cerr << "Constructor with instance identifier 0 failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    
+    ConstIteratorType iter9( sample );
+    for(unsigned int kk=0; kk<7; kk++ )
+      {
+      ++iter9;
+      }
+    
+    std::cout << "Instance identifier = " << iter9.GetInstanceIdentifier() << std::endl;
+    MeasurementVectorType vector9a = iter9.GetMeasurementVector();
+    MeasurementVectorType vector9b = sample->GetMeasurementVector( 7 );
+    for( unsigned int kitr =0; kitr < measurementVectorSize; kitr++ )
+      {
+      if( vnl_math_abs( vector9b[kitr] - vector9a[kitr] ) )
+        {
+        std::cerr << "Constructor with container followed by increments failed" << std::endl;
+        std::cerr << "Expected " << vector9b << std::endl;
+        std::cerr << "Received " << vector9a << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+
+    unsigned int counter = 0;
+    ConstIteratorType iter10( constSample );
+    if( iter10 != constSample->Begin() )
+      {
+      std::cerr << "ConstIterator constructor from sample failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+
+    while( iter10 != constSample->End() )
+      {
+      ++iter10;
+      counter++;
+      }
+
+    if( counter != constSample->Size() )
+      {
+      std::cerr << "Iterator walk failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
     }
-
-
-  while( iter10 != constSample->End() )
-    {
-    ++iter10;
-    counter++;
-    }
-
-  if( counter != constSample->Size() )
-    {
-    std::cerr << "Iterator walk failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  }
   
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;

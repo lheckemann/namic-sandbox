@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkKdTreeTest2.cxx,v $
   Language:  C++
-  Date:      $Date: 2008-04-27 12:59:36 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009-05-02 05:44:02 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -77,8 +77,8 @@ int itkKdTreeTest2( int argc, char * argv [] )
   treeGenerator->Update();
 
   typedef TreeGeneratorType::KdTreeType TreeType;
-  typedef TreeType::NearestNeighbors NeighborsType;
-  typedef TreeType::KdTreeNodeType NodeType;
+  typedef TreeType::NearestNeighbors    NeighborsType;
+  typedef TreeType::KdTreeNodeType      NodeType;
 
   bool testFailed = false;
 
@@ -101,7 +101,7 @@ int itkKdTreeTest2( int argc, char * argv [] )
     
     queryPoint = sample->GetMeasurementVector(k);
 
-    for ( unsigned int i = 0 ; i < sample->GetMeasurementVectorSize() ; ++i )
+    for ( unsigned int i = 0; i < sample->GetMeasurementVectorSize(); ++i )
       {
       origin[i] = queryPoint[i];
       }
@@ -115,14 +115,14 @@ int itkKdTreeTest2( int argc, char * argv [] )
     unsigned int numberOfNeighbors = 1;
     TreeType::InstanceIdentifierVectorType neighbors;
     
-    tree->Search( queryPoint, numberOfNeighbors, neighbors ) ; 
+    tree->Search( queryPoint, numberOfNeighbors, neighbors ); 
     
     std::cout << "kd-tree knn search result:" << std::endl 
               << "query point = [" << queryPoint << "]" << std::endl
               << "k = " << numberOfNeighbors << std::endl;
     std::cout << "measurement vector : distance" << std::endl;
 
-    for ( unsigned int i = 0 ; i < numberOfNeighbors ; ++i )
+    for ( unsigned int i = 0; i < numberOfNeighbors; ++i )
       {
       const double distance = 
         distanceMetric->Evaluate( tree->GetMeasurementVector( neighbors[i] ));

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkStatisticsTests.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/02/24 17:53:01 $
-  Version:   $Revision: 1.31 $
+  Date:      $Date: 2009-05-02 05:44:03 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -129,4 +129,3 @@ void RegisterTests()
   REGISTER_TEST(itkGaussianDistributionTest);
   REGISTER_TEST(itkTDistributionTest);
 }
-

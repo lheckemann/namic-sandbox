@@ -1,9 +1,9 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageTest.cxx,v $
+  Module:    $RCSfile: itkMaximumRatioDecisionRuleTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/04/11 13:52:36 $
+  Date:      $Date: 2009-05-12 14:30:11 $
   Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
@@ -38,26 +38,26 @@ int itkMaximumRatioDecisionRuleTest(int, char* [] )
   
   double membershipScore1;
   membershipScore1 = 0.1;
-  membershipScoreVector.push_back( membershipScore1 );  
+  membershipScoreVector.push_back( membershipScore1 );
 
   double membershipScore2;
   membershipScore2 = 0.5;
-  membershipScoreVector.push_back( membershipScore2 );  
+  membershipScoreVector.push_back( membershipScore2 );
 
   double membershipScore3;
   membershipScore3 = 1.9;
-  membershipScoreVector.push_back( membershipScore3 );  
+  membershipScoreVector.push_back( membershipScore3 );
 
   //add discriminantscore with a value of zero
   double membershipScore4;
   membershipScore4 = 0.0;
-  membershipScoreVector.push_back( membershipScore4 );  
+  membershipScoreVector.push_back( membershipScore4 );
 
 
   unsigned int  decisionValue;
   try
     {
-    decisionValue = decisionRule->Evaluate( membershipScoreVector);
+    decisionRule->Evaluate( membershipScoreVector);
     std::cerr << "An exception should have been thrown since a priori"
               << " probability is not set yet " << std::endl;
     return EXIT_FAILURE;
@@ -85,7 +85,7 @@ int itkMaximumRatioDecisionRuleTest(int, char* [] )
   //Evalue the membershipScore vector instantiated above ( 3 classes )
   try
     {
-    decisionValue = decisionRule->Evaluate( membershipScoreVector);
+    decisionRule->Evaluate( membershipScoreVector);
     std::cerr << "An exception should have been thrown since the membership" 
               << " score vector size doesn't match with the apriori vector" << std::endl;
     return EXIT_FAILURE;
@@ -125,10 +125,9 @@ int itkMaximumRatioDecisionRuleTest(int, char* [] )
   //Check if the computed decision value is correct 
   if( decisionValue != 2 )
     {
-      std::cerr << "Decision rule computation is incorrect!" << std::endl;
-      return EXIT_FAILURE;
+    std::cerr << "Decision rule computation is incorrect!" << std::endl;
+    return EXIT_FAILURE;
     } 
-
  
   return EXIT_SUCCESS;
 }

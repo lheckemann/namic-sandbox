@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeanSampleFilterTest.cxx,v $
+  Module:    $RCSfile: itkSubsampleTest3.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/07/26 15:55:14 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009-05-12 14:30:17 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -30,7 +30,7 @@ int itkSubsampleTest3(int, char* [] )
 
   const unsigned int                  MeasurementVectorSize = 2;
   const unsigned int                  numberOfMeasurementVectors = 5;
-  unsigned int                        counter = 0;
+  unsigned int                        counter;
 
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >             MeasurementVectorType;
@@ -56,11 +56,11 @@ int itkSubsampleTest3(int, char* [] )
     counter++;
     }
 
-  typedef itk::Statistics::Subsample< SampleType >  SubsampleType ;
+  typedef itk::Statistics::Subsample< SampleType >  SubsampleType;
 
-  SubsampleType::Pointer subsample = SubsampleType::New() ;
+  SubsampleType::Pointer subsample = SubsampleType::New();
 
-  subsample->SetSample( sample ) ;
+  subsample->SetSample( sample );
 
   //Initialize the subsample with all the samples
   subsample->InitializeWithAllInstances();
@@ -68,7 +68,7 @@ int itkSubsampleTest3(int, char* [] )
   typedef itk::Statistics::MeanSampleFilter< SubsampleType > 
     FilterType;
 
-  FilterType::Pointer filter = FilterType::New() ;
+  FilterType::Pointer filter = FilterType::New();
 
   filter->SetInput( subsample );
 
@@ -79,9 +79,9 @@ int itkSubsampleTest3(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
  
-  const FilterType::MeasurementVectorDecoratedType * decorator = filter->GetOutput() ;
+  const FilterType::MeasurementVectorDecoratedType * decorator = filter->GetOutput();
   FilterType::MeasurementVectorType    meanOutput  = decorator->Get();
 
   FilterType::MeasurementVectorType mean;
@@ -105,12 +105,12 @@ int itkSubsampleTest3(int, char* [] )
   subsample->Clear();
 
   // add only the first half of instances of the sample
-  for (SampleType::InstanceIdentifier id = 0 ; 
+  for (SampleType::InstanceIdentifier id = 0; 
        id < static_cast< SampleType::InstanceIdentifier >
-         (sample->Size() / 2) ;
+         (sample->Size() / 2);
        id++)
     {
-    subsample->AddInstance(id) ;
+    subsample->AddInstance(id);
     }
 
   std::cout << "Subsample size: " << subsample->Size() << std::endl;
@@ -122,7 +122,7 @@ int itkSubsampleTest3(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
 
   decorator   = filter->GetOutput(); 
   meanOutput  = decorator->Get();
@@ -142,6 +142,3 @@ int itkSubsampleTest3(int, char* [] )
 
   return EXIT_SUCCESS;
 }
-
-
-

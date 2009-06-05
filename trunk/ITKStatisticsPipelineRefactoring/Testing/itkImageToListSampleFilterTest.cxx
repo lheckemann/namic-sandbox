@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkImageToListSampleFilterTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/01/15 18:38:35 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009-05-02 05:44:02 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -90,7 +90,7 @@ static MaskImageType::Pointer CreateMaskImage()
   it.GoToBegin();
   while (!it.IsAtEnd())
     {
-    it.Set((unsigned char)255);    
+    it.Set((unsigned char)255);
     ++it; 
     }
   return image;
@@ -233,4 +233,3 @@ int itkImageToListSampleFilterTest(int, char* [] )
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
 }
-

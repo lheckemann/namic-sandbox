@@ -1,10 +1,10 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkListSampleTest.cxx,v $
+Module:    $RCSfile: itkSampleClassifierFilterTest1.cxx,v $
 Language:  C++
-Date:      $Date: 2007/04/06 15:26:57 $
-Version:   $Revision: 1.12 $
+Date:      $Date: 2009-05-08 16:31:06 $
+Version:   $Revision: 1.2 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -33,7 +33,7 @@ PURPOSE.  See the above copyright notices for more information.
 // ADD MinimumDecisionRule
 // Run that classification.  
 
-int itkSampleClassifierFilterTest1(int argc, char *argv[] )
+int itkSampleClassifierFilterTest1( int, char * [] )
 {
 
   const unsigned int numberOfComponents = 3;
@@ -235,6 +235,3 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

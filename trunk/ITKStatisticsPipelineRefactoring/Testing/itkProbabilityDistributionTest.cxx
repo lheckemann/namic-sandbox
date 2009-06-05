@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkGaussianDistributionTest.cxx,v $
+  Module:    $RCSfile: itkProbabilityDistributionTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2007-02-24 17:53:01 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009-05-08 16:31:06 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -41,8 +41,8 @@ public:
   virtual double EvaluatePDF(double , const ParametersType&) const { return 42.0; }
   virtual double EvaluateCDF(double ) const { return 42.0; }
   virtual double EvaluateCDF(double , const ParametersType&) const { return 42.0; }
-  virtual double EvaluateInverseCDF(double p) const  { return 42.0; }
-  virtual double EvaluateInverseCDF(double p, const ParametersType&) const  { return 42.0; }
+  virtual double EvaluateInverseCDF(double ) const  { return 42.0; }
+  virtual double EvaluateInverseCDF(double , const ParametersType&) const  { return 42.0; }
   virtual bool HasMean() const { return true; }
   virtual bool HasVariance() const { return true; }
   virtual double GetMean() const { return 42.0; }
