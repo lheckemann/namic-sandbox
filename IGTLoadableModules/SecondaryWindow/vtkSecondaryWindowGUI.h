@@ -24,7 +24,7 @@
 #include "vtkSlicerInteractorStyle.h"
 
 #include "vtkSecondaryWindowLogic.h"
-#include "vtkSlicerSecondaryMonitor.h"
+#include "vtkSlicerSecondaryViewerWindow.h"
 
 class vtkKWPushButton;
 
@@ -125,7 +125,7 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
   vtkKWPushButton* TestButton21;
   vtkKWPushButton* TestButton22;
 
-  vtkSlicerSecondaryMonitor* SecondaryMonitor;
+  vtkSlicerSecondaryViewerWindow* SecondaryViewerWindow;
 
   //----------------------------------------------------------------
   // Logic Values

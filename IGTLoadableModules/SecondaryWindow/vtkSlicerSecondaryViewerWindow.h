@@ -1,5 +1,5 @@
-#ifndef __vtkSlicerSecondaryMonitor_h
-#define __vtkSlicerSecondaryMonitor_h
+#ifndef __vtkSlicerSecondaryViewerWindow_h
+#define __vtkSlicerSecondaryViewerWindow_h
 
 
 
@@ -19,12 +19,12 @@
 #include "vtkKWTopLevel.h"
 #include "vtkSmartPointer.h"
 
-class VTK_SecondaryWindow_EXPORT vtkSlicerSecondaryMonitor : 
+class VTK_SecondaryWindow_EXPORT vtkSlicerSecondaryViewerWindow : 
   public vtkKWTopLevel
 {
 public:
-  static vtkSlicerSecondaryMonitor *New();  
-  vtkTypeRevisionMacro(vtkSlicerSecondaryMonitor,vtkKWTopLevel);
+  static vtkSlicerSecondaryViewerWindow *New();  
+  vtkTypeRevisionMacro(vtkSlicerSecondaryViewerWindow,vtkKWTopLevel);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   void DisplayOnSecondaryMonitor();
@@ -36,8 +36,8 @@ protected:
   void UpdateSecondaryMonitorPoisition();
   virtual void CreateWidget();
 
-  vtkSlicerSecondaryMonitor();
-  ~vtkSlicerSecondaryMonitor();  
+  vtkSlicerSecondaryViewerWindow();
+  ~vtkSlicerSecondaryViewerWindow();  
 
   vtkKWFrame* MainFrame;
 
@@ -55,8 +55,8 @@ protected:
   //ETX
 
 private:
-  vtkSlicerSecondaryMonitor(const vtkSlicerSecondaryMonitor&);
-  void operator=(const vtkSlicerSecondaryMonitor&);
+  vtkSlicerSecondaryViewerWindow(const vtkSlicerSecondaryViewerWindow&);
+  void operator=(const vtkSlicerSecondaryViewerWindow&);
 };
 
 #endif
