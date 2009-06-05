@@ -693,12 +693,11 @@ void vtkTRProstateBiopsyVerificationStep::TargetSelectedFromListCallback()
     this->LastSelectedTargetDescriptorIndex = this->CurrentSelectedTargetDescriptorIndex;   
     
     // things to do on selection
-    
+
+    int oldModify=this->GetGUI()->GetMRMLNode()->StartModify();
+
     // display information in the message box
     this->PopulateMessageBoxWithTargetInfo();
-
-    // display information in the secondary window
-//    this->DisplayTargetInfoInSecondaryWindow();
 
     // bring target to view in all three views
     this->BringTargetToViewIn2DViews();
@@ -706,7 +705,7 @@ void vtkTRProstateBiopsyVerificationStep::TargetSelectedFromListCallback()
     // change target color
     this->SetTargetFiducialColor(true);
 
- 
+    this->GetGUI()->GetMRMLNode()->EndModify(oldModify);
 
     }
 

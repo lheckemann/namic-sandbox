@@ -68,9 +68,6 @@ protected:
   void TargetSelectedFromListCallback();
   void TargetDeselectedFromListCallback();
 
-  // display information in the secondary window
-  void DisplayTargetInfoInSecondaryWindow();
-
   // bring target to view in all three views
   void BringTargetToViewIn2DViews();
 

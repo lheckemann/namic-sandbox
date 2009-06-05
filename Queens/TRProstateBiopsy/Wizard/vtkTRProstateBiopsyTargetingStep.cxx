@@ -825,19 +825,14 @@ void vtkTRProstateBiopsyTargetingStep::TargetSelectedFromListCallback()
     this->CurrentSelectedTargetDescriptorIndex = this->TargetDescriptorIndicesIndexedByListIndex[rowIndex];
     this->LastSelectedTargetDescriptorIndex = this->CurrentSelectedTargetDescriptorIndex;   
     
-    // things to do on selection
-    
+    // things to do on selection  
+    int oldModify=this->GetGUI()->GetMRMLNode()->StartModify();
     this->GetGUI()->GetMRMLNode()->SetCurrentTargetIndex(this->CurrentSelectedTargetDescriptorIndex);
-
-    // display information in the secondary window
-    this->DisplayTargetInfoInSecondaryWindow();
-
     // bring target to view in all three views
     this->BringTargetToViewIn2DViews();
-
     // change target color
     this->SetTargetFiducialColor(true);
-    
+    this->GetGUI()->GetMRMLNode()->EndModify(oldModify);
     }
 
 }
@@ -889,10 +884,6 @@ void vtkTRProstateBiopsyTargetingStep::UpdateGUI()
       this->Message->SetText("");
     }
   }
-}
-//--------------------------------------------------------------------------------
-void vtkTRProstateBiopsyTargetingStep::DisplayTargetInfoInSecondaryWindow()
-{
 }
 //--------------------------------------------------------------------------------
 void vtkTRProstateBiopsyTargetingStep::BringTargetToViewIn2DViews()

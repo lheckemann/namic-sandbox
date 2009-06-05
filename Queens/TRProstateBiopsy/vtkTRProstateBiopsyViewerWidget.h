@@ -82,6 +82,8 @@ public:
   // Actually do a render (don't wait for idle)
   void Render();
 
+  virtual void ResetCamera();
+
 protected:
 
   vtkTRProstateBiopsyViewerWidget();

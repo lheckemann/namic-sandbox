@@ -225,19 +225,19 @@ void vtkTRProstateBiopsySecondaryMonitor::CreateWidget()
 void vtkTRProstateBiopsySecondaryMonitor::DisplayOnSecondaryMonitor()
 {
   //-- display
-  this->DeIconify();
-  this->Raise();
 
   this->UpdateSecondaryMonitorPoisition();
-
   this->SetPosition(this->SecondaryMonitorPosition[0], this->SecondaryMonitorPosition[1]);
   this->SetSize(this->SecondaryMonitorSize[0], this->SecondaryMonitorSize[1]);
-
   if (this->MultipleMonitorsAvailable)
   {
     this->HideDecorationOn();
   }
 
+  this->DeIconify();
+  this->Raise();
+
+  this->ViewerWidget->ResetCamera( );
 }
 
 
