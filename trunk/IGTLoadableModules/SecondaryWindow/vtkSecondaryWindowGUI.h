@@ -97,8 +97,7 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForTestFrame1();
-  void BuildGUIForTestFrame2();
+  void BuildGUIForWindowConfigurationFrame();
 
   //----------------------------------------------------------------
   // Update routines
@@ -122,8 +121,6 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
 
   vtkKWPushButton* TestButton11;
   vtkKWPushButton* TestButton12;
-  vtkKWPushButton* TestButton21;
-  vtkKWPushButton* TestButton22;
 
   vtkSlicerSecondaryViewerWindow* SecondaryViewerWindow;
 

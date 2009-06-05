@@ -58,8 +58,6 @@ vtkSecondaryWindowGUI::vtkSecondaryWindowGUI ( )
   // GUI widgets
   this->TestButton11 = NULL;
   this->TestButton12 = NULL;
-  this->TestButton21 = NULL;
-  this->TestButton22 = NULL;
 
   this->SecondaryViewerWindow = NULL;
 
@@ -109,18 +107,6 @@ vtkSecondaryWindowGUI::~vtkSecondaryWindowGUI ( )
     this->TestButton12->Delete();
     }
 
-  if (this->TestButton21)
-    {
-    this->TestButton21->SetParent(NULL);
-    this->TestButton21->Delete();
-    }
-
-  if (this->TestButton22)
-    {
-    this->TestButton22->SetParent(NULL);
-    this->TestButton22->Delete();
-    }
-
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -162,11 +148,6 @@ void vtkSecondaryWindowGUI::Exit ( )
 //---------------------------------------------------------------------------
 void vtkSecondaryWindowGUI::TearDownGUI() 
 {
-  if (this->SecondaryViewerWindow)
-    {  
-    this->SecondaryViewerWindow->Withdraw();
-    this->SecondaryViewerWindow->SetApplication(NULL);
-    }
 
   /*
   this->PrimaryMonitorRobotViewerWidget->SetApplication(NULL);
@@ -207,18 +188,6 @@ void vtkSecondaryWindowGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->TestButton21)
-    {
-    this->TestButton21
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->TestButton22)
-    {
-    this->TestButton22
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
 
   this->RemoveLogicObservers();
 
@@ -252,10 +221,6 @@ void vtkSecondaryWindowGUI::AddGUIObservers ( )
   this->TestButton11
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->TestButton12
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton21
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton22
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
@@ -312,24 +277,21 @@ void vtkSecondaryWindowGUI::ProcessGUIEvents(vtkObject *caller,
   if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent)
     {
-    std::cerr << "TestButton11 is pressed." << std::endl;
+    if (this->SecondaryViewerWindow)
+      {  
+      this->SecondaryViewerWindow->Withdraw();
+      this->SecondaryViewerWindow->SetApplication(NULL);
+      }
     }
   else if (this->TestButton12 == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    std::cerr << "TestButton12 is pressed." << std::endl;
+    if (this->SecondaryViewerWindow)
+      {  
+      this->SecondaryViewerWindow->Withdraw();
+      this->SecondaryViewerWindow->SetApplication(NULL);
+      }
     }
-  else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton21 is pressed." << std::endl;
-    }
-  else if (this->TestButton22 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton22 is pressed." << std::endl;
-    }
-
 } 
 
 
@@ -392,8 +354,7 @@ void vtkSecondaryWindowGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "SecondaryWindow", "SecondaryWindow", NULL );
 
   BuildGUIForHelpFrame();
-  BuildGUIForTestFrame1();
-  BuildGUIForTestFrame2();
+  BuildGUIForWindowConfigurationFrame();
 
   this->SecondaryViewerWindow = vtkSlicerSecondaryViewerWindow::New();
   this->SecondaryViewerWindow->SetApplication(this->GetApplication());
@@ -417,7 +378,7 @@ void vtkSecondaryWindowGUI::BuildGUIForHelpFrame ()
 
 
 //---------------------------------------------------------------------------
-void vtkSecondaryWindowGUI::BuildGUIForTestFrame1()
+void vtkSecondaryWindowGUI::BuildGUIForWindowConfigurationFrame()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
@@ -427,7 +388,7 @@ void vtkSecondaryWindowGUI::BuildGUIForTestFrame1()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 1");
+  conBrowsFrame->SetLabelText("Secondary Window Configuration");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
@@ -435,26 +396,25 @@ void vtkSecondaryWindowGUI::BuildGUIForTestFrame1()
   // -----------------------------------------
   // Test child frame
 
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
+  vtkKWFrame *switchframe = vtkKWFrame::New();
+  switchframe->SetParent(conBrowsFrame->GetFrame());
+  switchframe->Create();
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
+                 switchframe->GetWidgetName() );
 
   // -----------------------------------------
   // Test push button
 
   this->TestButton11 = vtkKWPushButton::New ( );
-  this->TestButton11->SetParent ( frame->GetFrame() );
+  this->TestButton11->SetParent ( switchframe );
   this->TestButton11->Create ( );
-  this->TestButton11->SetText ("Test 11");
+  this->TestButton11->SetText ("ON");
   this->TestButton11->SetWidth (12);
 
   this->TestButton12 = vtkKWPushButton::New ( );
-  this->TestButton12->SetParent ( frame->GetFrame() );
+  this->TestButton12->SetParent ( switchframe );
   this->TestButton12->Create ( );
-  this->TestButton12->SetText ("Tset 12");
+  this->TestButton12->SetText ("OFF");
   this->TestButton12->SetWidth (12);
 
   this->Script("pack %s %s -side left -padx 2 -pady 2", 
@@ -462,58 +422,8 @@ void vtkSecondaryWindowGUI::BuildGUIForTestFrame1()
                this->TestButton12->GetWidgetName());
 
   conBrowsFrame->Delete();
-  frame->Delete();
+  switchframe->Delete();
 
-}
-
-
-//---------------------------------------------------------------------------
-void vtkSecondaryWindowGUI::BuildGUIForTestFrame2 ()
-{
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("SecondaryWindow");
-  
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
-
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 2");
-  //conBrowsFrame->CollapseFrame();
-  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
-
-  // -----------------------------------------
-  // Test child frame
-
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
-  
-  // -----------------------------------------
-  // Test push button
-
-  this->TestButton21 = vtkKWPushButton::New ( );
-  this->TestButton21->SetParent ( frame->GetFrame() );
-  this->TestButton21->Create ( );
-  this->TestButton21->SetText ("Test 21");
-  this->TestButton21->SetWidth (12);
-
-  this->TestButton22 = vtkKWPushButton::New ( );
-  this->TestButton22->SetParent ( frame->GetFrame() );
-  this->TestButton22->Create ( );
-  this->TestButton22->SetText ("Tset 22");
-  this->TestButton22->SetWidth (12);
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton21->GetWidgetName(),
-               this->TestButton22->GetWidgetName());
-
-
-  conBrowsFrame->Delete();
-  frame->Delete();
 }
 
 

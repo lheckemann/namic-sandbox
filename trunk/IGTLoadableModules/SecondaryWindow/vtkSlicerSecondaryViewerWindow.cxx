@@ -159,7 +159,7 @@ void vtkSlicerSecondaryViewerWindow::CreateWidget()
 
   //this->SetParent (this->GetApplicationGUI()->GetMainSlicerWindow());
 
-  this->SetTitle ("TRProstateBiopsy planning");
+  this->SetTitle ("3D Slicer -- Secondary Window");
   this->SetSize (450, 100);
   this->Withdraw();
   //this->SetDeleteWindowProtocolCommand ( this, "DestroySecondaryMonitorWindow");
