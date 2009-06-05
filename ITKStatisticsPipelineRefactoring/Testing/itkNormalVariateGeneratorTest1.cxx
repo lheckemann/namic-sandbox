@@ -1,9 +1,9 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageToListSampleAdaptorTest.cxx,v $
+  Module:    $RCSfile: itkNormalVariateGeneratorTest1.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/01/15 18:38:35 $
+  Date:      $Date: 2009-05-08 16:31:06 $
   Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
@@ -22,7 +22,7 @@
 #include "itkFixedArray.h"
 #include "itkNormalVariateGenerator.h"
 
-int itkNormalVariateGeneratorTest1(int argc, char* argv[] ) 
+int itkNormalVariateGeneratorTest1( int, char * [] ) 
 {
   typedef itk::Statistics::NormalVariateGenerator NormalGeneratorType;
 
@@ -42,7 +42,7 @@ int itkNormalVariateGeneratorTest1(int argc, char* argv[] )
   for( unsigned int i=0; i<numberOfSamples; i++ )
     {
     const double value = normalGenerator->GetVariate();
-    sum  += value;
+    sum += value;
     sum2 += value * value; 
     }
 
@@ -62,4 +62,3 @@ int itkNormalVariateGeneratorTest1(int argc, char* argv[] )
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
 }
-

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkKdTreeTest1.cxx,v $
   Language:  C++
-  Date:      $Date: 2008-04-30 16:22:07 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2009-05-02 05:44:02 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -42,50 +42,50 @@ int itkKdTreeTest1(int argc , char * argv [] )
   NumberGeneratorType::Pointer randomNumberGenerator = NumberGeneratorType::New();
   randomNumberGenerator->Initialize();
   
-  typedef itk::Array< double > MeasurementVectorType ;
-  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
+  typedef itk::Array< double > MeasurementVectorType;
+  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
   const SampleType::MeasurementVectorSizeType measurementVectorSize = 2;
 
-  SampleType::Pointer sample = SampleType::New() ;
+  SampleType::Pointer sample = SampleType::New();
   sample->SetMeasurementVectorSize( measurementVectorSize );
 
   // 
   // Generate a sample of random points
   //
   const unsigned int numberOfDataPoints = atoi( argv[1] );
-  MeasurementVectorType mv( measurementVectorSize ) ;
-  for (unsigned int i = 0 ; i < numberOfDataPoints ; ++i )
+  MeasurementVectorType mv( measurementVectorSize );
+  for (unsigned int i = 0; i < numberOfDataPoints; ++i )
     {
     mv[0] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
     mv[1] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
-    sample->PushBack( mv ) ;
+    sample->PushBack( mv );
     std::cout << "Add measurement vector: " << mv << std::endl;
     }
 
-  typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType ;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
+  typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType;
+  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
 
   const unsigned int bucketSize = atoi( argv[3] );
 
-  treeGenerator->SetSample( sample ) ;
+  treeGenerator->SetSample( sample );
   treeGenerator->SetBucketSize( bucketSize );
-  treeGenerator->Update() ;
+  treeGenerator->Update();
 
-  typedef TreeGeneratorType::KdTreeType TreeType ;
-  typedef TreeType::NearestNeighbors NeighborsType ;
-  typedef TreeType::KdTreeNodeType NodeType ;
+  typedef TreeGeneratorType::KdTreeType TreeType;
+  typedef TreeType::NearestNeighbors    NeighborsType;
+  typedef TreeType::KdTreeNodeType      NodeType;
 
-  TreeType::Pointer tree = treeGenerator->GetOutput() ;
+  TreeType::Pointer tree = treeGenerator->GetOutput();
 
-  MeasurementVectorType queryPoint( measurementVectorSize ) ;
+  MeasurementVectorType queryPoint( measurementVectorSize );
 
-  unsigned int numberOfNeighbors = 1 ;
-  TreeType::InstanceIdentifierVectorType neighbors ;
+  unsigned int numberOfNeighbors = 1;
+  TreeType::InstanceIdentifierVectorType neighbors;
 
-  MeasurementVectorType result( measurementVectorSize ) ;
-  MeasurementVectorType test_point( measurementVectorSize ) ;
-  MeasurementVectorType min_point( measurementVectorSize ) ;
+  MeasurementVectorType result( measurementVectorSize );
+  MeasurementVectorType test_point( measurementVectorSize );
+  MeasurementVectorType min_point( measurementVectorSize );
 
   unsigned int numberOfFailedPoints1 = 0;
 
@@ -95,26 +95,27 @@ int itkKdTreeTest1(int argc , char * argv [] )
   //  Check that for every point in the sample, its closest point is itself.
   //
   typedef itk::Statistics::EuclideanDistanceMetric< MeasurementVectorType > DistanceMetricType;
+
   typedef DistanceMetricType::OriginType OriginType;
 
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
 
-  OriginType origin( measurementVectorSize ) ;
+  OriginType origin( measurementVectorSize );
   for( unsigned int k = 0; k < sample->Size(); k++ )
     {
     
     queryPoint = sample->GetMeasurementVector(k);
 
-    for ( unsigned int i = 0 ; i < sample->GetMeasurementVectorSize() ; ++i )
+    for ( unsigned int i = 0; i < sample->GetMeasurementVectorSize(); ++i )
       {
       origin[i] = queryPoint[i];
       }
 
     distanceMetric->SetOrigin( origin );
     
-    tree->Search( queryPoint, numberOfNeighbors, neighbors ) ; 
+    tree->Search( queryPoint, numberOfNeighbors, neighbors ); 
     
-    for ( unsigned int i = 0 ; i < numberOfNeighbors ; ++i )
+    for ( unsigned int i = 0; i < numberOfNeighbors; ++i )
       {
       const double distance = 
         distanceMetric->Evaluate( tree->GetMeasurementVector( neighbors[i] ));
@@ -139,7 +140,7 @@ int itkKdTreeTest1(int argc , char * argv [] )
   // Generate a second sample of random points
   // and use them to query the tree
   //
-  for (unsigned int j = 0 ; j < numberOfTestPoints ; ++j )
+  for (unsigned int j = 0; j < numberOfTestPoints; ++j )
     {
 
     double min_dist = itk::NumericTraits< double >::max();
@@ -147,7 +148,7 @@ int itkKdTreeTest1(int argc , char * argv [] )
     queryPoint[0] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
     queryPoint[1] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
 
-    tree->Search( queryPoint, numberOfNeighbors, neighbors ) ;
+    tree->Search( queryPoint, numberOfNeighbors, neighbors );
 
     //
     // The first neighbor should be the closest point.
@@ -168,7 +169,7 @@ int itkKdTreeTest1(int argc , char * argv [] )
     // Compute the distance to all other points, to verify
     // whether the first neighbor was the closest one or not.
     //
-    for( unsigned int i = 0 ; i < numberOfDataPoints; ++i )
+    for( unsigned int i = 0; i < numberOfDataPoints; ++i )
       {
       test_point = tree->GetMeasurementVector( i );
 

@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkStatisticsAlgorithmTest.cxx,v $
+  Module:    $RCSfile: itkStatisticsAlgorithmTest2.cxx,v $
   Language:  C++
-  Date:      $Date: 2008-04-27 13:07:20 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2009-05-02 05:44:03 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -26,16 +26,18 @@
 #include <vector>
 #include <algorithm>
 
-typedef itk::FixedArray< int, 3 > PixelType;
+typedef itk::FixedArray< int, 3 >  PixelType;
 typedef itk::Image< PixelType, 3 > ImageType;
+
 typedef itk::Statistics::ImageToListSampleAdaptor< ImageType > SampleType;
-typedef itk::Statistics::Subsample< SampleType > SubsampleType;
+typedef itk::Statistics::Subsample< SampleType >               SubsampleType;
+
 const unsigned int testDimension = 1;
 
 void resetData(::itk::Image<PixelType, 3>::Pointer image,  std::vector<int> &refVector)
 {
   ImageType::IndexType index;
-  ImageType::SizeType size;
+  ImageType::SizeType  size;
   size = image->GetLargestPossibleRegion().GetSize();
 
   unsigned long x;
@@ -120,7 +122,7 @@ int itkStatisticsAlgorithmTest2(int, char* [] )
   region.SetIndex(index);
 
   image->SetLargestPossibleRegion(region);
-  image->SetBufferedRegion(region) ;
+  image->SetBufferedRegion(region);
   image->Allocate();
 
   // creates an ImageToListSampleAdaptor object
@@ -196,4 +198,3 @@ int itkStatisticsAlgorithmTest2(int, char* [] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-

@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: ImageHistogram3.cxx,v $
+  Module:    $RCSfile: itkImageToHistogramFilterTest2.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/05/07 20:12:37 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009-05-02 05:44:01 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -94,12 +94,7 @@ int itkImageToHistogramFilterTest2( int argc, char * argv [] )
 
   histogramFilter->SetHistogramSize( size );
 
-
-
-
-
   histogramFilter->SetMarginalScale( 10.0 );
-
 
   histogramFilter->SetInput(  reader->GetOutput()  );
 

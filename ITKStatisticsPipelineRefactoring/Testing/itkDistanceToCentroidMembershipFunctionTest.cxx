@@ -1,9 +1,9 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageTest.cxx,v $
+  Module:    $RCSfile: itkDistanceToCentroidMembershipFunctionTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/04/11 13:52:36 $
+  Date:      $Date: 2009-05-07 22:26:15 $
   Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
@@ -33,8 +33,10 @@ int itkDistanceToCentroidMembershipFunctionTest(int, char* [] )
 
   typedef itk::Statistics::DistanceToCentroidMembershipFunction< 
     MeasurementVectorType >   MembershipFunctionType;
+  typedef itk::Statistics::MembershipFunctionBase< MeasurementVectorType > BaseType;
 
   MembershipFunctionType::Pointer function = MembershipFunctionType::New();
+  
   std::cout << function->GetNameOfClass() << std::endl;
 
 

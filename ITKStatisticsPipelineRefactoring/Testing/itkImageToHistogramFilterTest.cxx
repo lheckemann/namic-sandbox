@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageToHistogramGeneratorTest.cxx,v $
+  Module:    $RCSfile: itkImageToHistogramFilterTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/02/08 03:18:41 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009-05-02 05:44:01 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -398,5 +398,3 @@ int itkImageToHistogramFilterTest( int , char * [] )
   return EXIT_SUCCESS;
   
 }
-
-

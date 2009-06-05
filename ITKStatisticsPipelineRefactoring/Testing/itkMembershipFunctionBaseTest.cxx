@@ -1,9 +1,9 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageTest.cxx,v $
+  Module:    $RCSfile: itkMembershipFunctionBaseTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/04/11 13:52:36 $
+  Date:      $Date: 2009-05-08 16:31:06 $
   Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
@@ -32,25 +32,28 @@ class MyMembershipFunctionBase : public MembershipFunctionBase< TMeasurementVect
 public:
   /** Standard class typedef. */
   typedef MyMembershipFunctionBase  Self;
+
   typedef MembershipFunctionBase< TMeasurementVector > Superclass;
+  
   typedef SmartPointer< Self > Pointer;
+  
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Standard macros */
   itkTypeMacro(MyMembershipFunctionBase, MembershipFunctionBase);
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
  
   /** Evaluate membership score */
-  double Evaluate(const TMeasurementVector &x) const
+  double Evaluate(const TMeasurementVector & ) const
     {
     double score;
     score = 1;
     return score;
     } 
 
-   typename MembershipFunctionBase< TMeasurementVector >::Pointer Clone() 
+  typename MembershipFunctionBase< TMeasurementVector >::Pointer Clone() 
     {
     Pointer memberFunction = MyMembershipFunctionBase< TMeasurementVector >::New();
     return memberFunction.GetPointer();

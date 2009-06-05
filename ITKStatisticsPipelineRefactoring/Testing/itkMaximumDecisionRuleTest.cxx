@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageTest.cxx,v $
+  Module:    $RCSfile: itkMaximumDecisionRuleTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/04/11 13:52:36 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009-05-02 05:44:02 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -38,22 +38,22 @@ int itkMaximumDecisionRuleTest(int, char* [] )
   
   double membershipScore1;
   membershipScore1 = 0.1;
-  membershipScoreVector.push_back( membershipScore1 );  
+  membershipScoreVector.push_back( membershipScore1 );
 
   double membershipScore2;
   membershipScore2 = 0.5;
-  membershipScoreVector.push_back( membershipScore2 );  
+  membershipScoreVector.push_back( membershipScore2 );
 
   double membershipScore3;
   membershipScore3 = 1.9;
-  membershipScoreVector.push_back( membershipScore3 );  
+  membershipScoreVector.push_back( membershipScore3 );
 
   // the maximum score is the third component. The decision rule should
   // return index ( 2) 
   if( decisionRule->Evaluate( membershipScoreVector ) != 2 )
     {
-      std::cerr << "Decision rule computation is incorrect!" << std::endl;
-      return EXIT_FAILURE;
+    std::cerr << "Decision rule computation is incorrect!" << std::endl;
+    return EXIT_FAILURE;
     } 
 
   return EXIT_SUCCESS;

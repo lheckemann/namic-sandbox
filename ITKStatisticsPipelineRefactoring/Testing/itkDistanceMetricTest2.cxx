@@ -1,9 +1,9 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageTest.cxx,v $
+  Module:    $RCSfile: itkDistanceMetricTest2.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/04/11 13:52:36 $
+  Date:      $Date: 2009-05-08 16:31:06 $
   Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
@@ -30,26 +30,26 @@ class MyDistanceMetric : public DistanceMetric< TMeasurementVector >
 {
 public:
   /** Standard class typedef. */
-  typedef MyDistanceMetric  Self;
+  typedef MyDistanceMetric                     Self;
   typedef DistanceMetric< TMeasurementVector > Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef SmartPointer< Self >                 Pointer;
+  typedef SmartPointer<const Self>             ConstPointer;
 
   /** Standard macros */
   itkTypeMacro(MyDistanceMetric, DistanceMetric);
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
  
   /** Evaluate membership score */
-  double Evaluate(const TMeasurementVector &x) const
+  double Evaluate(const TMeasurementVector & ) const
     {
     double score;
     score = 1;
     return score;
     } 
 
-  double Evaluate(const TMeasurementVector &x, const TMeasurementVector &y) const
+  double Evaluate(const TMeasurementVector &, const TMeasurementVector & ) const
     {
     double score;
     score = 1;
@@ -119,8 +119,6 @@ int itkDistanceMetricTest2(int, char* [] )
     {
     std::cerr << "Exception thrown: " << excpt << std::endl;
     }
-
-
 
   return EXIT_SUCCESS;
 }

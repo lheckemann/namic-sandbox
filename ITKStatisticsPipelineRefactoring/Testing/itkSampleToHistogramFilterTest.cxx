@@ -1,10 +1,10 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkSampleTest.cxx,v $
+Module:    $RCSfile: itkSampleToHistogramFilterTest.cxx,v $
 Language:  C++
-Date:      $Date: 2007/04/06 15:26:57 $
-Version:   $Revision: 1.12 $
+Date:      $Date: 2009-05-08 16:31:07 $
+Version:   $Revision: 1.2 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -20,19 +20,20 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include "itkArray.h"
 #include "itkListSample.h"
-#include "itkMeasurementHistogram.h"
+#include "itkHistogram.h"
 #include "itkSampleToHistogramFilter.h"
 
-int itkSampleToHistogramFilterTest(int argc, char *argv[] )
+int itkSampleToHistogramFilterTest( int , char * [] )
 {
 
   const unsigned int numberOfComponents = 3;
   typedef float      MeasurementType;
 
   typedef itk::Array< MeasurementType > MeasurementVectorType;
+
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
-  typedef itk::Statistics::MeasurementHistogram< MeasurementType,
+  typedef itk::Statistics::Histogram< MeasurementType,
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef itk::Statistics::SampleToHistogramFilter<
@@ -795,6 +796,3 @@ int itkSampleToHistogramFilterTest(int argc, char *argv[] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

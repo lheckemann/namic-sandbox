@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkCovarianceSampleFilterTest.cxx,v $
+  Module:    $RCSfile: itkCovarianceSampleFilterTest3.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/07/26 15:55:14 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009-05-02 05:44:01 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -20,7 +20,7 @@
 
 #include "itkCovarianceSampleFilter.h"
 #include "itkFixedArray.h"
-#include "itkMeasurementHistogram.h"
+#include "itkHistogram.h"
 #include "itkMahalanobisDistanceMetric.h"
 
 namespace itk {
@@ -28,12 +28,12 @@ namespace Statistics {
 template < class TSample >
 class MyCovarianceSampleFilter : public CovarianceSampleFilter< TSample >
 {
- public:
+public:
   typedef MyCovarianceSampleFilter                Self;
   typedef CovarianceSampleFilter<TSample>         Superclass;
-  typedef SmartPointer<Self>                Pointer;
-  typedef SmartPointer<const Self>          ConstPointer;
-  typedef TSample                           SampleType;
+  typedef SmartPointer<Self>                      Pointer;
+  typedef SmartPointer<const Self>                ConstPointer;
+  typedef TSample                                 SampleType;
 
   itkNewMacro(Self);
 
@@ -65,7 +65,7 @@ int itkCovarianceSampleFilterTest3(int, char* [] )
   typedef itk::FixedArray< 
     MeasurementType, MeasurementVectorSize >   MeasurementVectorType;
 
-  typedef itk::Statistics::MeasurementHistogram< MeasurementType, 
+  typedef itk::Statistics::Histogram< MeasurementType, 
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef HistogramType    SampleType; 
@@ -141,7 +141,7 @@ int itkCovarianceSampleFilterTest3(int, char* [] )
 
   typedef itk::Statistics::MyCovarianceSampleFilter< SampleType > FilterType;
 
-  FilterType::Pointer filter = FilterType::New() ;
+  FilterType::Pointer filter = FilterType::New();
 
 
   //test if exception is thrown if a derived class tries to create
@@ -166,9 +166,9 @@ int itkCovarianceSampleFilterTest3(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
  
-  const FilterType::MatrixDecoratedType * decorator = filter->GetCovarianceMatrixOutput() ;
+  const FilterType::MatrixDecoratedType * decorator = filter->GetCovarianceMatrixOutput();
   FilterType::MatrixType    covarianceOutput  = decorator->Get();
 
   FilterType::MeasurementVectorType    meanOutput = filter->GetMean();
@@ -208,4 +208,3 @@ int itkCovarianceSampleFilterTest3(int, char* [] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-

@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkCovarianceSampleFilterTest.cxx,v $
+  Module:    $RCSfile: itkCovarianceSampleFilterTest2.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/07/26 15:55:14 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009-05-12 14:30:10 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -29,7 +29,7 @@ int itkCovarianceSampleFilterTest2(int, char* [] )
 
   const unsigned int                  MeasurementVectorSize = 3;
   const unsigned int                  numberOfMeasurementVectors = 3;
-  unsigned int                        counter = 0;
+  unsigned int                        counter;
 
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >             MeasurementVectorType;
@@ -60,7 +60,7 @@ int itkCovarianceSampleFilterTest2(int, char* [] )
 
   typedef FilterType::MatrixType          CovarianceMatrixType;
 
-  FilterType::Pointer filter = FilterType::New() ;
+  FilterType::Pointer filter = FilterType::New();
 
   filter->SetInput( sample );
 
@@ -71,16 +71,16 @@ int itkCovarianceSampleFilterTest2(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
 
   std::cout << "Mean: " << filter->GetMean() << std::endl;
  
-  const FilterType::MatrixDecoratedType * decorator = filter->GetCovarianceMatrixOutput() ;
+  const FilterType::MatrixDecoratedType * decorator = filter->GetCovarianceMatrixOutput();
   FilterType::MatrixType    covarianceOutput  = decorator->Get();
 
   std::cout << "Covariance Matrix: " << covarianceOutput << std::endl;
 
-  const FilterType::MeasurementVectorDecoratedType * meanDecorator  = filter->GetMeanOutput() ;
+  const FilterType::MeasurementVectorDecoratedType * meanDecorator  = filter->GetMeanOutput();
   FilterType::MeasurementVectorType    mean = meanDecorator->Get();
  
   //Check the results
@@ -162,7 +162,7 @@ int itkCovarianceSampleFilterTest2(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
  
   std::cout << "Mean: " << filter->GetMean() << std::endl;
   std::cout << "Covariance Matrix: " << filter->GetCovarianceMatrix() << std::endl;
@@ -199,14 +199,16 @@ int itkCovarianceSampleFilterTest2(int, char* [] )
   matrixExpected2[2][2] = 0.333333;
 
   for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
-  {
-  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
-  if ( fabs( matrixExpected2[i][j] - matrix[i][j] ) > epsilon )
     {
-    std::cerr << "Computed covariance matrix value is incorrect" << std::endl;
-    return EXIT_FAILURE;
+    for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
+      {
+      if ( fabs( matrixExpected2[i][j] - matrix[i][j] ) > epsilon )
+        {
+        std::cerr << "Computed covariance matrix value is incorrect" << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
     }
-  }
 
 
   SampleType::Pointer sample3 = SampleType::New();
@@ -250,7 +252,7 @@ int itkCovarianceSampleFilterTest2(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
  
 
   mean = filter->GetMean();
@@ -301,6 +303,3 @@ int itkCovarianceSampleFilterTest2(int, char* [] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

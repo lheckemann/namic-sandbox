@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkHistogramTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/08/24 15:16:13 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009-05-02 05:44:01 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -17,7 +17,7 @@
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
-#include "itkMeasurementHistogram.h"
+#include "itkHistogram.h"
 
 #include "itkDenseFrequencyContainer2.h"
 
@@ -31,7 +31,7 @@ int itkHistogramTest(int, char* [] )
   const unsigned int numberOfComponents = 3;
 
   // create a histogram with 3 components measurement vectors
-  typedef itk::Statistics::MeasurementHistogram< MeasurementType, 
+  typedef itk::Statistics::Histogram< MeasurementType, 
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
   HistogramType::Pointer histogram = HistogramType::New();
 
@@ -250,7 +250,7 @@ int itkHistogramTest(int, char* [] )
 
 
   // Histogram with SparseFrequencyContainer2
-  typedef itk::Statistics::MeasurementHistogram< MeasurementType,
+  typedef itk::Statistics::Histogram< MeasurementType,
     itk::Statistics::SparseFrequencyContainer2 > SparseHistogramType;
   SparseHistogramType::Pointer sparseHistogram = SparseHistogramType::New();
 
@@ -614,188 +614,188 @@ int itkHistogramTest(int, char* [] )
   //
   // Exercise GetMin / GetMax methods
   //
-  {
-  const double epsilon = 1e-6;
-  HistogramType::SizeType size2 = histogram->GetSize();
-
-  HistogramType::BinMinContainerType binMinimums = histogram->GetMins();
-
-  for( unsigned int dim = 0 ; dim < numberOfComponents; dim++ )
     {
-    HistogramType::BinMinVectorType binDimensionMinimums = histogram->GetDimensionMins( dim );
-    for( unsigned int k = 0; k < size2[dim]; k++ )
+    const double epsilon = 1e-6;
+    HistogramType::SizeType size2 = histogram->GetSize();
+
+    HistogramType::BinMinContainerType binMinimums = histogram->GetMins();
+
+    for( unsigned int dim = 0; dim < numberOfComponents; dim++ )
       {
-      HistogramType::MeasurementType minA = binMinimums[dim][k];
-      HistogramType::MeasurementType minB = binDimensionMinimums[k];
-      HistogramType::MeasurementType minC = histogram->GetBinMin( dim, k );
-      if( ( vnl_math_abs( minA - minB ) > epsilon ) ||
-          ( vnl_math_abs( minA - minC ) > epsilon )    )
+      HistogramType::BinMinVectorType binDimensionMinimums = histogram->GetDimensionMins( dim );
+      for( unsigned int k = 0; k < size2[dim]; k++ )
         {
-        std::cerr << "Error in Get Bin Mins methods" << std::endl;
-        std::cerr << "dim = " << dim << " k = " << k << std::endl;
-        std::cerr << "GetMins()          = " << minA << std::endl;
-        std::cerr << "GetDimensionMins() = " << minB << std::endl;
-        std::cerr << "GetMin()           = " << minC << std::endl;
-        return EXIT_FAILURE;
+        HistogramType::MeasurementType minA = binMinimums[dim][k];
+        HistogramType::MeasurementType minB = binDimensionMinimums[k];
+        HistogramType::MeasurementType minC = histogram->GetBinMin( dim, k );
+        if( ( vnl_math_abs( minA - minB ) > epsilon ) ||
+            ( vnl_math_abs( minA - minC ) > epsilon )    )
+          {
+          std::cerr << "Error in Get Bin Mins methods" << std::endl;
+          std::cerr << "dim = " << dim << " k = " << k << std::endl;
+          std::cerr << "GetMins()          = " << minA << std::endl;
+          std::cerr << "GetDimensionMins() = " << minB << std::endl;
+          std::cerr << "GetMin()           = " << minC << std::endl;
+          return EXIT_FAILURE;
+          }
+        }
+      }
+
+    HistogramType::BinMaxContainerType binMaximums = histogram->GetMaxs();
+
+    for( unsigned int dim = 0; dim < numberOfComponents; dim++ )
+      {
+      HistogramType::BinMaxVectorType binDimensionMaximums = histogram->GetDimensionMaxs( dim );
+      for( unsigned int k = 0; k < size2[dim]; k++ )
+        {
+        HistogramType::MeasurementType maxA = binMaximums[dim][k];
+        HistogramType::MeasurementType maxB = binDimensionMaximums[k];
+        HistogramType::MeasurementType maxC = histogram->GetBinMax( dim, k );
+        if( ( vnl_math_abs( maxA - maxB ) > epsilon ) ||
+            ( vnl_math_abs( maxA - maxC ) > epsilon )    )
+          {
+          std::cerr << "Error in Get Bin Maxs methods" << std::endl;
+          std::cerr << "dim = " << dim << " k = " << k << std::endl;
+          std::cerr << "GetMaxs()          = " << maxA << std::endl;
+          std::cerr << "GetDimensionMaxs() = " << maxB << std::endl;
+          std::cerr << "GetMax()           = " << maxC << std::endl;
+          return EXIT_FAILURE;
+          }
         }
       }
     }
-
-  HistogramType::BinMaxContainerType binMaximums = histogram->GetMaxs();
-
-  for( unsigned int dim = 0 ; dim < numberOfComponents; dim++ )
-    {
-    HistogramType::BinMaxVectorType binDimensionMaximums = histogram->GetDimensionMaxs( dim );
-    for( unsigned int k = 0; k < size2[dim]; k++ )
-      {
-      HistogramType::MeasurementType maxA = binMaximums[dim][k];
-      HistogramType::MeasurementType maxB = binDimensionMaximums[k];
-      HistogramType::MeasurementType maxC = histogram->GetBinMax( dim, k );
-      if( ( vnl_math_abs( maxA - maxB ) > epsilon ) ||
-          ( vnl_math_abs( maxA - maxC ) > epsilon )    )
-        {
-        std::cerr << "Error in Get Bin Maxs methods" << std::endl;
-        std::cerr << "dim = " << dim << " k = " << k << std::endl;
-        std::cerr << "GetMaxs()          = " << maxA << std::endl;
-        std::cerr << "GetDimensionMaxs() = " << maxB << std::endl;
-        std::cerr << "GetMax()           = " << maxC << std::endl;
-        return EXIT_FAILURE;
-        }
-      }
-    }
-  }
 
 
   // Testing methods specific to Iterators
-  {
-  typedef HistogramType::Iterator IteratorType;
-  IteratorType iter = histogram->Begin();
-  IteratorType iter2 = histogram->End();
-
-  iter2 = iter;
-  if( iter2 != iter )
     {
-    std::cerr << "Iterator operator=() failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+    typedef HistogramType::Iterator IteratorType;
+    IteratorType iter = histogram->Begin();
+    IteratorType iter2 = histogram->End();
 
-  IteratorType iter3( histogram );
-  if( iter3 != histogram->Begin() )
-    {
-    std::cerr << "Iterator constructor from histogram failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+    iter2 = iter;
+    if( iter2 != iter )
+      {
+      std::cerr << "Iterator operator=() failed" << std::endl;
+      return EXIT_FAILURE;
+      }
 
-  unsigned int counter = 0;
-  while( iter3 != histogram->End() )
-    {
-    ++iter3;
-    counter++;
-    }
+    IteratorType iter3( histogram );
+    if( iter3 != histogram->Begin() )
+      {
+      std::cerr << "Iterator constructor from histogram failed" << std::endl;
+      return EXIT_FAILURE;
+      }
 
-  if( counter != histogram->Size() )
-    {
-    std::cerr << "Iterator walk failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+    unsigned int counter = 0;
+    while( iter3 != histogram->End() )
+      {
+      ++iter3;
+      counter++;
+      }
 
-  IteratorType iter4( iter2 ); 
-  if( iter4 != iter2 )
-    {
-    std::cerr << "Iterator copy constructor failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+    if( counter != histogram->Size() )
+      {
+      std::cerr << "Iterator walk failed" << std::endl;
+      return EXIT_FAILURE;
+      }
 
-  IteratorType iter5 = iter2; 
-  if( iter5 != iter2 )
-    {
-    std::cerr << "Iterator operator= failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+    IteratorType iter4( iter2 ); 
+    if( iter4 != iter2 )
+      {
+      std::cerr << "Iterator copy constructor failed" << std::endl;
+      return EXIT_FAILURE;
+      }
 
-  IteratorType iter6( 7, histogram );
-  if( iter6.GetInstanceIdentifier() != 7 )
-    {
-    std::cerr << "Iterator Constructor with instance identifier 7 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+    IteratorType iter5 = iter2; 
+    if( iter5 != iter2 )
+      {
+      std::cerr << "Iterator operator= failed" << std::endl;
+      return EXIT_FAILURE;
+      }
 
-  }
+    IteratorType iter6( 7, histogram );
+    if( iter6.GetInstanceIdentifier() != 7 )
+      {
+      std::cerr << "Iterator Constructor with instance identifier 7 failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    }
 
   // Testing methods specific to ConstIterators
-  {
-  typedef HistogramType::ConstIterator ConstIteratorType;
-  ConstIteratorType iter = histogram->Begin();
-  ConstIteratorType iter2 = histogram->End();
-
-  iter2 = iter;
-
-  if( iter2 != iter )
     {
-    std::cerr << "ConstIterator operator!=() or operator=() failed" << std::endl;
-    return EXIT_FAILURE;
+    typedef HistogramType::ConstIterator ConstIteratorType;
+    ConstIteratorType iter = histogram->Begin();
+    ConstIteratorType iter2 = histogram->End();
+
+    iter2 = iter;
+
+    if( iter2 != iter )
+      {
+      std::cerr << "ConstIterator operator!=() or operator=() failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    if( !( iter2 == iter ) )
+      {
+      std::cerr << "ConstIterator operator==() failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    ConstIteratorType iter3( iter2 ); 
+    if( iter3 != iter2 )
+      {
+      std::cerr << "ConstIterator copy constructor failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    const HistogramType * constHistogram = histogram.GetPointer();
+
+    ConstIteratorType iter4( constHistogram->Begin() ); 
+    ConstIteratorType iter5( histogram->Begin() );
+    if( iter4 != iter5 )
+      {
+      std::cerr << "Constructor from const container Begin() differs from non-const Begin() " << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    ConstIteratorType iter6( constHistogram ); 
+    ConstIteratorType iter7( histogram );
+    if( iter6 != iter7 )
+      {
+      std::cerr << "ConstIterator Constructor from const container differs from non-const container" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    ConstIteratorType iter8( histogram );
+    if( iter8.GetInstanceIdentifier() != 0 )
+      {
+      std::cerr << "Constructor with instance identifier 0 failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    unsigned int counter = 0;
+    ConstIteratorType iter10( constHistogram );
+    if( iter10 != constHistogram->Begin() )
+      {
+      std::cerr << "ConstIterator constructor from histogram failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+
+    while( iter10 != constHistogram->End() )
+      {
+      ++iter10;
+      counter++;
+      }
+
+    if( counter != constHistogram->Size() )
+      {
+      std::cerr << "Iterator walk failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+
     }
-
-  if( !( iter2 == iter ) )
-    {
-    std::cerr << "ConstIterator operator==() failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  ConstIteratorType iter3( iter2 ); 
-  if( iter3 != iter2 )
-    {
-    std::cerr << "ConstIterator copy constructor failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  const HistogramType * constHistogram = histogram.GetPointer();
-
-  ConstIteratorType iter4( constHistogram->Begin() ); 
-  ConstIteratorType iter5( histogram->Begin() );
-  if( iter4 != iter5 )
-    {
-    std::cerr << "Constructor from const container Begin() differs from non-const Begin() " << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  ConstIteratorType iter6( constHistogram ); 
-  ConstIteratorType iter7( histogram );
-  if( iter6 != iter7 )
-    {
-    std::cerr << "ConstIterator Constructor from const container differs from non-const container" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  ConstIteratorType iter8( histogram );
-  if( iter8.GetInstanceIdentifier() != 0 )
-    {
-    std::cerr << "Constructor with instance identifier 0 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  unsigned int counter = 0;
-  ConstIteratorType iter10( constHistogram );
-  if( iter10 != constHistogram->Begin() )
-    {
-    std::cerr << "ConstIterator constructor from histogram failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-
-  while( iter10 != constHistogram->End() )
-    {
-    ++iter10;
-    counter++;
-    }
-
-  if( counter != constHistogram->Size() )
-    {
-    std::cerr << "Iterator walk failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  }
   
   // Exercise Print() method
   histogram->Print( std::cout );

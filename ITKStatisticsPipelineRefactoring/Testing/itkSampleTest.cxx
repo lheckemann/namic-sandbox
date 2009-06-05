@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageTest.cxx,v $
+  Module:    $RCSfile: itkSampleTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/04/11 13:52:36 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009-05-02 05:44:03 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -32,19 +32,25 @@ class MySample : public Sample< TMeasurementVector >
 public:
   /** Standard class typedef. */
   typedef MySample  Self;
+
   typedef Sample< TMeasurementVector > Superclass;
+  
   typedef SmartPointer< Self > Pointer;
+  
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Standard macros */
   itkTypeMacro(MySample, Sample);
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
  
   typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
+
   typedef typename Superclass::TotalAbsoluteFrequencyType TotalAbsoluteFrequencyType;
+  
   typedef typename Superclass::AbsoluteFrequencyType AbsoluteFrequencyType;
+  
   typedef typename Superclass::InstanceIdentifier InstanceIdentifier;
 
   /** Get the size of the sample (number of measurements) */
@@ -55,11 +61,10 @@ public:
 
   /** Get the measurement associated with a particular
    * InstanceIdentifier. */
-  virtual const MeasurementVectorType & 
-    GetMeasurementVector(InstanceIdentifier id) const
-      { 
-      return m_Values[id];
-      }
+  virtual const MeasurementVectorType & GetMeasurementVector(InstanceIdentifier id) const
+    { 
+    return m_Values[id];
+    }
 
   /** Get the frequency of a measurement specified by instance
    * identifier. */
@@ -89,16 +94,16 @@ public:
     os << indent << m_Frequencies.size() << std::endl;
     }
 
-  void AddMeasurementVector( 
-    const MeasurementVectorType & measure, AbsoluteFrequencyType frequency )
-      {
-      m_Values.push_back( measure );
-      m_Frequencies.push_back( frequency );
-      }
+  void AddMeasurementVector( const MeasurementVectorType & measure, AbsoluteFrequencyType frequency )
+    {
+    m_Values.push_back( measure );
+    m_Frequencies.push_back( frequency );
+    }
 
 private:
 
   std::vector< TMeasurementVector >  m_Values;
+
   std::vector< AbsoluteFrequencyType >       m_Frequencies;
 
 };

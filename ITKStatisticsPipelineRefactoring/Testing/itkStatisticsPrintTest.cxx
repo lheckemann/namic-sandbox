@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkStatisticsPrintTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/08/24 15:16:21 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009-05-02 05:44:03 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -24,7 +24,7 @@
 
 // #include "itkSample.h"   // abstract class
 // #include "itkSampleToSubsampleFilter.h"   // abstract class
-#include "itkMeasurementHistogram.h"
+#include "itkHistogram.h"
 #include "itkListSample.h"
 #include "itkSubsample.h"
 #include "itkSampleClassifierFilter.h"
@@ -66,19 +66,18 @@ int itkStatisticsPrintTest(int , char* [])
 {
   typedef float TMeasurementType;
   typedef float FrequencyType;
+
   typedef itk::FixedArray< TMeasurementType, 2 >  TMeasurementVectorType;
   typedef itk::Image< TMeasurementVectorType, 3 > ImageType;
   typedef itk::Image< unsigned char, 3>           ScalarImageType;
   typedef itk::PointSet< TMeasurementType, 2 >    PointSetType;
   typedef itk::Image< unsigned long , 3 >         OutputImageType;
 
-  typedef itk::Statistics::ListSample< TMeasurementVectorType >
-    SampleType;
+  typedef itk::Statistics::ListSample< TMeasurementVectorType > SampleType;
 
-  typedef itk::Statistics::Subsample< SampleType >
-    SubSampleType;
+  typedef itk::Statistics::Subsample< SampleType > SubSampleType;
 
-  typedef itk::Statistics::MeasurementHistogram< TMeasurementType > HistogramType ;
+  typedef itk::Statistics::Histogram< TMeasurementType > HistogramType;
 
   typedef itk::Statistics::SampleToHistogramFilter< 
     SampleType, HistogramType > SampleToHistogramFilterType;
@@ -107,14 +106,12 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Statistics::ScalarImageToTextureFeaturesFilter< 
     ScalarImageType > ScalarImageToTextureFeaturesFilterType;
 
-  typedef itk::Statistics::MembershipSample< SampleType >
-    MembershipSampleType;
+  typedef itk::Statistics::MembershipSample< SampleType > MembershipSampleType;
 
-  typedef itk::Statistics::MembershipFunctionBase< TMeasurementVectorType >
-    MembershipFunctionBaseType;
+  typedef itk::Statistics::MembershipFunctionBase< TMeasurementVectorType > MembershipFunctionBaseType;
  
-  typedef itk::Statistics::DistanceToCentroidMembershipFunction< TMeasurementVectorType >
-    DistanceToCentroidMembershipFunctionType;
+  typedef itk::Statistics::DistanceToCentroidMembershipFunction< 
+            TMeasurementVectorType > DistanceToCentroidMembershipFunctionType;
  
   typedef itk::Statistics::DistanceMetric< TMeasurementVectorType >
     DistanceType;
@@ -139,9 +136,11 @@ int itkStatisticsPrintTest(int , char* [])
     HistogramType > HistogramToTextureFeaturesFilterType;
 
   typedef itk::Statistics::MeanSampleFilter< SampleType > MeanSampleFilterType;
+  
   typedef itk::Statistics::WeightedMeanSampleFilter< SampleType > WeightedMeanSampleFilterType;
 
   typedef itk::Statistics::CovarianceSampleFilter< SampleType > CovarianceSampleFilterType;
+  
   typedef itk::Statistics::WeightedCovarianceSampleFilter< SampleType > WeightedCovarianceSampleFilterType;
 
   typedef itk::Statistics::NeighborhoodSampler< SampleType > NeighborhoodSamplerType;
@@ -149,11 +148,13 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Statistics::PointSetToListSampleAdaptor< PointSetType > PointSetToListSampleAdaptorType;
 
   typedef itk::Statistics::DenseFrequencyContainer2 DenseFrequencyContainer2Type;
+  
   typedef itk::Statistics::SparseFrequencyContainer2 SparseFrequencyContainer2Type;
 
   typedef itk::Statistics::ExpectationMaximizationMixtureModelEstimator< SampleType > EMEstimatorType;
 
   typedef itk::Statistics::WeightedCentroidKdTreeGenerator< SampleType >  TreeGeneratorType;
+  
   typedef itk::Statistics::KdTreeBasedKmeansEstimator< TreeGeneratorType::KdTreeType >  KdTreeBasedKMeansEstimatorType;
   
   SampleType::Pointer sampleObj = SampleType::New();
@@ -254,35 +255,35 @@ int itkStatisticsPrintTest(int , char* [])
 
   EuclideanDistanceMetricType::Pointer euclideanDistance=
     EuclideanDistanceMetricType::New();
-  std::cout << "----------EuclideanDistanceMetricType " << euclideanDistance ;
+  std::cout << "----------EuclideanDistanceMetricType " << euclideanDistance;
 
   EuclideanSquareDistanceMetricType::Pointer euclideanSquareDistance=
     EuclideanSquareDistanceMetricType::New();
-  std::cout << "----------EuclideanSquareDistanceMetricType " << euclideanSquareDistance ;
+  std::cout << "----------EuclideanSquareDistanceMetricType " << euclideanSquareDistance;
  
   MahalanobisDistanceMetricType::Pointer mahalanobisDistance=
     MahalanobisDistanceMetricType::New();
-  std::cout << "----------MahalanobisDistanceMetricType " << mahalanobisDistance ;
+  std::cout << "----------MahalanobisDistanceMetricType " << mahalanobisDistance;
 
   ManhattanDistanceMetricType::Pointer manhattanDistance=
     ManhattanDistanceMetricType::New();
-  std::cout << "----------ManhattanDistanceMetricType " << manhattanDistance ;
+  std::cout << "----------ManhattanDistanceMetricType " << manhattanDistance;
 
   MaximumDecisionRuleType::Pointer maximumDecsion=
     MaximumDecisionRuleType::New();
-  std::cout << "----------MaximumDecisionRuleType " << maximumDecsion ;
+  std::cout << "----------MaximumDecisionRuleType " << maximumDecsion;
 
   MinimumDecisionRuleType::Pointer minimumDecsion=
     MinimumDecisionRuleType::New();
-  std::cout << "----------MinimumDecisionRuleType " << minimumDecsion ;
+  std::cout << "----------MinimumDecisionRuleType " << minimumDecsion;
 
   ImageClassifierFilterType::Pointer classifierFilter=
    ImageClassifierFilterType::New();
-  std::cout << "----------ImageClassifierFilterType " << classifierFilter ;
+  std::cout << "----------ImageClassifierFilterType " << classifierFilter;
  
   EMEstimatorType::Pointer emEstimator=
    EMEstimatorType::New();
-  std::cout << "----------EMEstimatorType " << emEstimator ;
+  std::cout << "----------EMEstimatorType " << emEstimator;
 
   KdTreeBasedKMeansEstimatorType::Pointer kdTreeBasedEstimator=
    KdTreeBasedKMeansEstimatorType::New();

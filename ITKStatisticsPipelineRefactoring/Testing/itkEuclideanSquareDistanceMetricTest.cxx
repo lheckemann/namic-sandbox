@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageTest.cxx,v $
+  Module:    $RCSfile: itkEuclideanSquareDistanceMetricTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/04/11 13:52:36 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009-05-02 05:44:01 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.

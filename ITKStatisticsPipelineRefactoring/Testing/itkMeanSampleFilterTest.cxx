@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkMeanSampleFilterTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/07/26 15:55:14 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009-05-12 14:30:15 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -30,7 +30,7 @@ int itkMeanSampleFilterTest(int, char* [] )
 
   const unsigned int                  MeasurementVectorSize = 2;
   const unsigned int                  numberOfMeasurementVectors = 5;
-  unsigned int                        counter = 0;
+  unsigned int                        counter;
 
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >             MeasurementVectorType;
@@ -59,7 +59,7 @@ int itkMeanSampleFilterTest(int, char* [] )
   typedef itk::Statistics::MeanSampleFilter< SampleType > 
     FilterType;
 
-  FilterType::Pointer filter = FilterType::New() ;
+  FilterType::Pointer filter = FilterType::New();
 
   std::cout << filter->GetNameOfClass() << std::endl;
   filter->Print(std::cout);
@@ -76,7 +76,7 @@ int itkMeanSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
 
   if ( filter->GetInput() != NULL )
     {
@@ -95,9 +95,9 @@ int itkMeanSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
  
-  const FilterType::MeasurementVectorDecoratedType * decorator = filter->GetOutput() ;
+  const FilterType::MeasurementVectorDecoratedType * decorator = filter->GetOutput();
   FilterType::MeasurementVectorType    meanOutput  = decorator->Get();
 
   FilterType::MeasurementVectorType mean;
@@ -106,14 +106,14 @@ int itkMeanSampleFilterTest(int, char* [] )
   mean[1] = 2.0;
 
   std::cout << meanOutput[0] << " " << mean[0] << " "  
-            << meanOutput[1] << " " << mean[1] << " " << std::endl;  
+            << meanOutput[1] << " " << mean[1] << " " << std::endl;
 
   FilterType::MeasurementVectorType::ValueType    epsilon = 1e-6; 
 
   if ( ( fabs( meanOutput[0] - mean[0]) > epsilon )  || 
        ( fabs( meanOutput[1] - mean[1]) > epsilon ))
     {
-    pass = false ;
+    pass = false;
     failureMeassage = "The result is not what is expected";
     }
  
@@ -126,6 +126,3 @@ int itkMeanSampleFilterTest(int, char* [] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

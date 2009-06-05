@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkHistogramToTextureFeaturesFilterTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2004/06/25 11:54:23 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2009-05-02 05:44:01 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -18,7 +18,7 @@
 #pragma warning ( disable : 4786 )
 #endif
 // Insight classes
-#include "itkMeasurementHistogram.h"
+#include "itkHistogram.h"
 #include "vnl/vnl_math.h"
 
 #include "itkHistogramToTextureFeaturesFilter.h"
@@ -33,8 +33,8 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   // Create a simple test histogram. The histogram must be
   // symmetric and normalized.
   //------------------------------------------------------
-  typedef float MeasurementType;
-  typedef itk::Statistics::MeasurementHistogram< MeasurementType > HistogramType;
+  typedef float                                         MeasurementType;
+  typedef itk::Statistics::Histogram< MeasurementType > HistogramType;
   HistogramType::Pointer histogram = HistogramType::New();
 
   const unsigned int measurementVectorSize = 2;
@@ -123,7 +123,7 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
 
   if ( filter->GetInput() != NULL )
     {
@@ -325,7 +325,6 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
     passed = false;
     }
     
-  filter->Print(std::cout);
   
   if( !passed )
     {
@@ -338,4 +337,3 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
     return EXIT_SUCCESS;
     }
 }
-

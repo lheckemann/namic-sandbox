@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageToListSampleAdaptorTest.cxx,v $
+  Module:    $RCSfile: itkImageClassifierFilterTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/01/15 18:38:35 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2009-05-02 05:44:01 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -50,6 +50,7 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
   typedef itk::Image< InputPixelType, ImageDimension > InputImageType;
 
   typedef unsigned char OutputPixelType;
+
   typedef itk::Image< OutputPixelType, ImageDimension > OutputImageType;
   
   //Generate an image with pixel intensities generated from two normal
@@ -78,7 +79,7 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
   InputImageType::IndexType index;
   unsigned int halfSize = size[1]/2;
 
-  for(unsigned int y = 0; y < halfSize ; y++ )
+  for(unsigned int y = 0; y < halfSize; y++ )
     {
     index[1] = y;
     for(unsigned int x = 0; x < size[0]; x++ )
@@ -111,16 +112,16 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
   //Instantiate an image to list sample adaptor to pass the sample list
   //to EM estimator
   typedef  itk::Statistics::ImageToListSampleAdaptor< InputImageType >
-    ImageToListSampleAdaptorType ;
+    ImageToListSampleAdaptorType;
 
-  ImageToListSampleAdaptorType::Pointer sample = ImageToListSampleAdaptorType::New() ;
+  ImageToListSampleAdaptorType::Pointer sample = ImageToListSampleAdaptorType::New();
   sample->SetImage( image );
 
   //Use EM estimator to estimate gaussian membership functions
   typedef itk::Statistics::ExpectationMaximizationMixtureModelEstimator< ImageToListSampleAdaptorType >
-    EstimatorType ;
+    EstimatorType;
   typedef itk::Statistics::GaussianMixtureModelComponent< ImageToListSampleAdaptorType > 
-    ComponentType ;
+    ComponentType;
 
   /* Preparing the gaussian mixture components */
   typedef itk::Array < double > ParametersType;
@@ -134,43 +135,43 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
   params[1] = 10.0;
   initialParameters[1] = params;
 
-  typedef ComponentType::Pointer ComponentPointer ;
-  std::vector< ComponentPointer > components ;
-  for (unsigned int i = 0 ; i < numberOfClasses ; i++ )
+  typedef ComponentType::Pointer ComponentPointer;
+  std::vector< ComponentPointer > components;
+  for (unsigned int i = 0; i < numberOfClasses; i++ )
     {
-      components.push_back(ComponentType::New()) ;
-      (components[i])->SetSample(sample.GetPointer()) ;
-      (components[i])->SetParameters(initialParameters[i]) ;
+      components.push_back(ComponentType::New());
+      (components[i])->SetSample(sample.GetPointer());
+      (components[i])->SetParameters(initialParameters[i]);
     }
   
   /* Estimating */
-  EstimatorType::Pointer estimator = EstimatorType::New() ;
-  estimator->SetSample(sample.GetPointer()) ;
+  EstimatorType::Pointer estimator = EstimatorType::New();
+  estimator->SetSample(sample.GetPointer());
 
   int maximumIteration = 200;
-  estimator->SetMaximumIteration(maximumIteration) ;
+  estimator->SetMaximumIteration(maximumIteration);
 
-  itk::Array< double > initialProportions(numberOfClasses) ;
-  initialProportions[0] = 0.5 ;
-  initialProportions[1] = 0.5 ;
+  itk::Array< double > initialProportions(numberOfClasses);
+  initialProportions[0] = 0.5;
+  initialProportions[1] = 0.5;
 
-  estimator->SetInitialProportions(initialProportions) ;
+  estimator->SetInitialProportions(initialProportions);
 
-  for (unsigned int i = 0 ; i < numberOfClasses ; i++)
+  for (unsigned int i = 0; i < numberOfClasses; i++)
     {
       estimator->AddComponent((ComponentType::Superclass*) 
-                              (components[i]).GetPointer()) ;
+                              (components[i]).GetPointer());
     }
 
-  estimator->Update() ;
+  estimator->Update();
 
-  for (unsigned int i = 0 ; i < numberOfClasses ; i++)
+  for (unsigned int i = 0; i < numberOfClasses; i++)
     {
-      std::cout << "Cluster[" << i << "]" << std::endl ;
-      std::cout << "    Parameters:" << std::endl ;
-      std::cout << "         " << (components[i])->GetFullParameters() << std::endl ;
-      std::cout << "    Proportion: " ;
-      std::cout << "         " << (estimator->GetProportions())[i] << std::endl ;
+      std::cout << "Cluster[" << i << "]" << std::endl;
+      std::cout << "    Parameters:" << std::endl;
+      std::cout << "         " << (components[i])->GetFullParameters() << std::endl;
+      std::cout << "    Proportion: ";
+      std::cout << "         " << (estimator->GetProportions())[i] << std::endl;
     }
 
 
@@ -305,4 +306,3 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
 }
-

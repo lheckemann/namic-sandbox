@@ -1,10 +1,10 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkSampleTest.cxx,v $
+Module:    $RCSfile: itkSampleToHistogramFilterTest6.cxx,v $
 Language:  C++
-Date:      $Date: 2007/04/06 15:26:57 $
-Version:   $Revision: 1.12 $
+Date:      $Date: 2009-05-08 16:31:08 $
+Version:   $Revision: 1.2 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -20,10 +20,10 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include "itkArray.h"
 #include "itkListSample.h"
-#include "itkMeasurementHistogram.h"
+#include "itkHistogram.h"
 #include "itkSampleToHistogramFilter.h"
 
-int itkSampleToHistogramFilterTest6(int argc, char *argv[] )
+int itkSampleToHistogramFilterTest6( int, char * [] )
 {
 
   const unsigned int numberOfComponents = 3;
@@ -42,7 +42,7 @@ int itkSampleToHistogramFilterTest6(int argc, char *argv[] )
   typedef itk::Array< VMeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
-  typedef itk::Statistics::MeasurementHistogram< HMeasurementType,
+  typedef itk::Statistics::Histogram< HMeasurementType,
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef itk::Statistics::SampleToHistogramFilter<
@@ -148,7 +148,6 @@ int itkSampleToHistogramFilterTest6(int argc, char *argv[] )
     }
 
 
-
   HistogramType::ConstIterator histogramItr = histogram->Begin();
   HistogramType::ConstIterator histogramEnd = histogram->End();
 
@@ -188,11 +187,6 @@ int itkSampleToHistogramFilterTest6(int argc, char *argv[] )
     }
 
 
-
-
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-

@@ -1,9 +1,9 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: tkWeightedCentroidKdTreeGeneratorTest1.cxx,v $
+  Module:    $RCSfile: itkWeightedCentroidKdTreeGeneratorTest8.cxx,v $
   Language:  C++
-  Date:      $Date: 2008-04-28 16:40:00 $
+  Date:      $Date: 2009-05-22 17:42:38 $
   Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
@@ -45,48 +45,52 @@ int itkWeightedCentroidKdTreeGeneratorTest8(int argc , char * argv [] )
   
   const unsigned int measurementVectorSize = 2;
 
-  typedef itk::FixedArray< double, measurementVectorSize> MeasurementVectorType ;
-  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
+  typedef itk::FixedArray< double, measurementVectorSize> MeasurementVectorType;
 
-  SampleType::Pointer sample = SampleType::New() ;
+  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
+
+  SampleType::Pointer sample = SampleType::New();
 
   // 
   // Generate a sample of random points
   //
   const unsigned int numberOfDataPoints = atoi( argv[1] );
   MeasurementVectorType mv;
-  for (unsigned int i = 0 ; i < numberOfDataPoints ; ++i )
+  for (unsigned int i = 0; i < numberOfDataPoints; ++i )
     {
     mv[0] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
     mv[1] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
-    sample->PushBack( mv ) ;
+    sample->PushBack( mv );
     }
 
-  typedef itk::Statistics::WeightedCentroidKdTreeGenerator< SampleType > TreeGeneratorType ;
-  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
+  typedef itk::Statistics::WeightedCentroidKdTreeGenerator< SampleType > TreeGeneratorType;
+  TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
   std::cout << treeGenerator->GetNameOfClass() << std::endl;
   treeGenerator->Print( std::cout );
 
   const unsigned int bucketSize = atoi( argv[3] );
 
-  treeGenerator->SetSample( sample ) ;
+  treeGenerator->SetSample( sample );
   treeGenerator->SetBucketSize( bucketSize );
-  treeGenerator->Update() ;
+  treeGenerator->Update();
 
-  typedef TreeGeneratorType::KdTreeType TreeType ;
-  typedef TreeType::NearestNeighbors NeighborsType ;
-  typedef TreeType::KdTreeNodeType NodeType ;
+  typedef TreeGeneratorType::KdTreeType TreeType;
 
-  TreeType::Pointer tree = treeGenerator->GetOutput() ;
+  typedef TreeType::NearestNeighbors NeighborsType;
+
+  typedef TreeType::KdTreeNodeType NodeType;
+
+  TreeType::Pointer tree = treeGenerator->GetOutput();
 
   MeasurementVectorType queryPoint;
 
-  unsigned int numberOfNeighbors = 1 ;
-  TreeType::InstanceIdentifierVectorType neighbors ;
+  unsigned int numberOfNeighbors = 1;
+  TreeType::InstanceIdentifierVectorType neighbors;
 
   MeasurementVectorType result;
   MeasurementVectorType test_point;
   MeasurementVectorType min_point;
+  min_point.Fill(0.0);
 
   unsigned int numberOfFailedPoints = 0;
 
@@ -106,16 +110,16 @@ int itkWeightedCentroidKdTreeGeneratorTest8(int argc , char * argv [] )
     
     queryPoint = sample->GetMeasurementVector(k);
 
-    for ( unsigned int i = 0 ; i < sample->GetMeasurementVectorSize() ; ++i )
+    for ( unsigned int i = 0; i < sample->GetMeasurementVectorSize(); ++i )
       {
       origin[i] = queryPoint[i];
       }
 
     distanceMetric->SetOrigin( origin );
     
-    tree->Search( queryPoint, numberOfNeighbors, neighbors ) ; 
+    tree->Search( queryPoint, numberOfNeighbors, neighbors ); 
     
-    for ( unsigned int i = 0 ; i < numberOfNeighbors ; ++i )
+    for ( unsigned int i = 0; i < numberOfNeighbors; ++i )
       {
       const double distance = 
         distanceMetric->Evaluate( tree->GetMeasurementVector( neighbors[i] ));
@@ -143,7 +147,7 @@ int itkWeightedCentroidKdTreeGeneratorTest8(int argc , char * argv [] )
   // Generate a second sample of random points
   // and use them to query the tree
   //
-  for (unsigned int j = 0 ; j < numberOfTestPoints ; ++j )
+  for (unsigned int j = 0; j < numberOfTestPoints; ++j )
     {
 
     double min_dist = itk::NumericTraits< double >::max();
@@ -151,7 +155,7 @@ int itkWeightedCentroidKdTreeGeneratorTest8(int argc , char * argv [] )
     queryPoint[0] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
     queryPoint[1] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
 
-    tree->Search( queryPoint, numberOfNeighbors, neighbors ) ;
+    tree->Search( queryPoint, numberOfNeighbors, neighbors );
 
     //
     // The first neighbor should be the closest point.
@@ -172,7 +176,7 @@ int itkWeightedCentroidKdTreeGeneratorTest8(int argc , char * argv [] )
     // Compute the distance to all other points, to verify
     // whether the first neighbor was the closest one or not.
     //
-    for( unsigned int i = 0 ; i < numberOfDataPoints; ++i )
+    for( unsigned int i = 0; i < numberOfDataPoints; ++i )
       {
       test_point = tree->GetMeasurementVector( i );
 

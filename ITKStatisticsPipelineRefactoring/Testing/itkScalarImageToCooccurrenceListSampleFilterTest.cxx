@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkScalarImageToCooccurrenceListSampleFilterTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/07/26 15:55:12 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009-05-02 05:44:03 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -27,7 +27,7 @@
 
 int itkScalarImageToCooccurrenceListSampleFilterTest( int , char *[] )
 {
-//Data definitions 
+  //Data definitions 
   const unsigned int  IMGWIDTH         =  5;
   const unsigned int  IMGHEIGHT        =  5;
   const unsigned int  NDIMENSION       =  2;
@@ -102,7 +102,7 @@ int itkScalarImageToCooccurrenceListSampleFilterTest( int , char *[] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cout << "Expected exception caught: " << excp << std::endl;
-    }    
+    }
 
   filter->ResetPipeline();
 
@@ -272,5 +272,3 @@ int itkScalarImageToCooccurrenceListSampleFilterTest( int , char *[] )
   return EXIT_SUCCESS;
   
 }
-
-

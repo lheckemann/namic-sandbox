@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkWeightedCovarianceSampleFilterTest.cxx,v $
   Language:  C++
-  Date:      $Date: 2005/07/26 15:55:14 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2009-05-08 16:31:08 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -35,9 +35,11 @@ namespace Statistics {
 template < class TSample >
 class MyWeightedCovarianceSampleFilter : public WeightedCovarianceSampleFilter< TSample >
 {
- public:
+public:
   typedef MyWeightedCovarianceSampleFilter           Self;
+
   typedef WeightedCovarianceSampleFilter<TSample>     Superclass;
+  
   typedef SmartPointer<Self>                   Pointer;
   typedef SmartPointer<const Self>             ConstPointer;
   typedef TSample                              SampleType;
@@ -61,15 +63,19 @@ class WeightedCovarianceTestFunction :
   public itk::FunctionBase< MeasurementVectorType, double >
 {
 public:
+
   /** Standard class typedefs. */
   typedef WeightedCovarianceTestFunction Self;
+  
   typedef itk::FunctionBase< MeasurementVectorType, double > Superclass;
+  
   typedef itk::SmartPointer<Self> Pointer;
+  
   typedef itk::SmartPointer<const Self> ConstPointer;
   
   /** Standard macros. */
   itkTypeMacro(WeightedCovarianceTestFunction, FunctionBase);
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
 
   /** Input type */
   typedef MeasurementVectorType InputType;
@@ -78,19 +84,18 @@ public:
   typedef double OutputType;
 
   /**Evaluate at the specified input position */
-  OutputType Evaluate( const InputType& input ) const 
-  {
-    MeasurementVectorType measurements ;
+  OutputType Evaluate( const InputType & itkNotUsed( input ) ) const 
+    {
+    MeasurementVectorType measurements;
     // set the weight factor of the measurment 
     // vector with valuev[2, 2] to 0.5.
-    return 1.0 ;
-  }
+    return 1.0;
+    }
 
 protected:
   WeightedCovarianceTestFunction() {}
   ~WeightedCovarianceTestFunction() {}
-} ; // end of class
-
+}; // end of class
 
 
 int itkWeightedCovarianceSampleFilterTest(int, char* [] ) 
@@ -105,7 +110,7 @@ int itkWeightedCovarianceSampleFilterTest(int, char* [] )
 
   typedef FilterType::MatrixType                 CovarianceMatrixType; 
 
-  FilterType::Pointer filter = FilterType::New() ;
+  FilterType::Pointer filter = FilterType::New();
 
   MeasurementVectorType               measure;
   
@@ -153,7 +158,7 @@ int itkWeightedCovarianceSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cout << "Expected exception caught: " << excp << std::endl;
-    }    
+    }
 
   if ( filter->GetInput() != NULL )
     {
@@ -187,7 +192,7 @@ int itkWeightedCovarianceSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cout << "Expected exception caught: " << excp << std::endl;
-    }    
+    }
 
   MeasurementVectorType  mean = filter->GetMean();
   CovarianceMatrixType matrix = filter->GetCovarianceMatrix();
@@ -252,7 +257,7 @@ int itkWeightedCovarianceSampleFilterTest(int, char* [] )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
     return EXIT_FAILURE;
-    }    
+    }
 
 
   mean = filter->GetMean();
@@ -274,27 +279,29 @@ int itkWeightedCovarianceSampleFilterTest(int, char* [] )
       }
     }
 
- CovarianceMatrixType  matrixExpected( MeasurementVectorSize, MeasurementVectorSize );
-
- matrixExpected[0][0] = 0.025;
- matrixExpected[0][1] = 0.0075;
- matrixExpected[0][2] = 0.00175;
-
- matrixExpected[1][0] = 0.0075;
- matrixExpected[1][1] = 0.0070;
- matrixExpected[1][2] = 0.00135;
-
- matrixExpected[2][0] = 0.00175;
- matrixExpected[2][1] = 0.00135;
- matrixExpected[2][2] = 0.00043;
-
- for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
-  {
-  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
-    if ( fabs( matrixExpected[i][j] - matrix[i][j] ) > epsilon )
+  CovarianceMatrixType  matrixExpected( MeasurementVectorSize, MeasurementVectorSize );
+ 
+  matrixExpected[0][0] = 0.025;
+  matrixExpected[0][1] = 0.0075;
+  matrixExpected[0][2] = 0.00175;
+ 
+  matrixExpected[1][0] = 0.0075;
+  matrixExpected[1][1] = 0.0070;
+  matrixExpected[1][2] = 0.00135;
+ 
+  matrixExpected[2][0] = 0.00175;
+  matrixExpected[2][1] = 0.00135;
+  matrixExpected[2][2] = 0.00043;
+ 
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+    {
+    for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
       {
-      std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
-      return EXIT_FAILURE;
+      if ( fabs( matrixExpected[i][j] - matrix[i][j] ) > epsilon )
+        {
+        std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+        return EXIT_FAILURE;
+        }
       }
     }
 
@@ -308,7 +315,7 @@ int itkWeightedCovarianceSampleFilterTest(int, char* [] )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
     return EXIT_FAILURE;
-    }    
+    }
  
   mean = filter->GetMean();
   matrix = filter->GetCovarianceMatrix();
@@ -326,12 +333,14 @@ int itkWeightedCovarianceSampleFilterTest(int, char* [] )
     }
 
   for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
-   {
-  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
-    if ( fabs( matrixExpected[i][j] - matrix[i][j] ) > epsilon )
+    {
+    for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
       {
-      std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
-      return EXIT_FAILURE;
+      if ( fabs( matrixExpected[i][j] - matrix[i][j] ) > epsilon )
+        {
+        std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+        return EXIT_FAILURE;
+        }
       }
     }
 
@@ -348,7 +357,7 @@ int itkWeightedCovarianceSampleFilterTest(int, char* [] )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
     return EXIT_FAILURE;
-    }    
+    }
 
   mean = filter->GetMean();
   matrix = filter->GetCovarianceMatrix();
@@ -366,18 +375,17 @@ int itkWeightedCovarianceSampleFilterTest(int, char* [] )
     }
 
   for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
-   {
-  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
-    if ( fabs( matrixExpected[i][j] - matrix[i][j] ) > epsilon )
+    {
+    for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
       {
-      std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
-      return EXIT_FAILURE;
+      if ( fabs( matrixExpected[i][j] - matrix[i][j] ) > epsilon )
+        {
+        std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+        return EXIT_FAILURE;
+        }
       }
     }
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-
