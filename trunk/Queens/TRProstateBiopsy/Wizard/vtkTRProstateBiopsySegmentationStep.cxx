@@ -981,6 +981,7 @@ void vtkTRProstateBiopsySegmentationStep::SegmentYiRandomWalkMethod()
   memcpy(output->GetScalarPointer(), caster->GetOutput()->GetBufferPointer(),
          caster->GetOutput()->GetBufferedRegion().GetNumberOfPixels() * sizeof(short));
   outVolume->SetAndObserveImageData(output);
+  outVolume->SetLabelMap(1);
   output->Delete();
   outVolume->SetModifiedSinceRead(1);
 

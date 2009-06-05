@@ -6,6 +6,10 @@
 #include "cVolume.h"
 #include "cVolOp.h"
 
+static const double LABEL_UNMARKED=1.0;
+static const double LABEL_BACKGROUND=0.0;
+static const double LABEL_OBJECT=2.0;
+
 randomWalkSeg::randomWalkSeg() 
 {
   _beta = 0.1;
@@ -112,7 +116,7 @@ void randomWalkSeg::getIndexMapping()
             {
               double l = _seedVol->getVoxel(ix, iy, iz);
 
-              if (l != 0.0)
+              if (l != LABEL_UNMARKED)
                 {
                   _indexMapping->setVoxel(ix, iy, iz, countMarkedVoxel++);
                 }
@@ -146,7 +150,7 @@ int randomWalkSeg::get_num_unseeded_voxels()
         {
           for (int iz = 0; iz <= nz-1; ++iz)
             {
-              if (_seedVol->getVoxel(ix, iy, iz) == 0.0)
+              if (_seedVol->getVoxel(ix, iy, iz) == LABEL_UNMARKED)
                 {
                   ++_numUnmarkedVox;
                 }
@@ -270,7 +274,7 @@ void randomWalkSeg::getRhs()
             {
               double l = _seedVol->getVoxel(ix, iy, iz);
 
-              if (l == 2.0) // 2.0 indicates foreground
+              if (l == LABEL_OBJECT) // 2.0 indicates foreground
                 {
                   int idx = _indexMapping->getVoxel(ix, iy, iz);
                   // idx should < numMarkedVoxel
@@ -339,17 +343,17 @@ cVolume* randomWalkSeg::get_potential_volume()
             {
               double l = _seedVol->getVoxel(ix, iy, iz);
 
-              if (l == 1.0)
+              if (l == LABEL_BACKGROUND)
                 {
                   potential_vol->setVoxel(ix, iy, iz, 0.0);
                 }
           
-              if (l == 2.0)
+              if (l == LABEL_OBJECT)
                 {
                   potential_vol->setVoxel(ix, iy, iz, 1.0);
                 }
           
-              if (l == 0)
+              if (l == LABEL_UNMARKED)
                 {
                   int idx = _indexMapping->getVoxel(ix, iy, iz);
                   // idx should >= numMarkedVoxel
@@ -571,7 +575,7 @@ vnl_vector<double>* randomWalkSeg::set_init_potential_vector()
                 {
                   double l = _seedVol->getVoxel(ix, iy, iz);
 
-                  if (l == 0)
+                  if (l == LABEL_UNMARKED)
                     {
                       int idx = _indexMapping->getVoxel(ix, iy, iz);
                       // idx should >= numMarkedPixel

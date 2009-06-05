@@ -348,17 +348,21 @@ bool vtkMRMLTRProstateBiopsyModuleNode::AddTargetToFiducialList(double targetRAS
 
   int modifyOld=this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->StartModify();
   fiducialIndex = this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->AddFiducialWithXYZ(targetRAS[0], targetRAS[1], targetRAS[2], false);
+  bool success=false;
   if (fiducialIndex==-1)
   {
-    this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->EndModify(modifyOld);
-    return false;
+    success=false;
   }
-  std::ostrstream os;
-  os << targetTypeName << "_" << targetNr << std::ends;
-  this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->SetNthFiducialLabelText(fiducialIndex, os.str());
-  this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->SetNthFiducialID(fiducialIndex, os.str());
-  os.rdbuf()->freeze();
-  this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->SetNthFiducialVisibility(fiducialIndex, true);    
+  else
+  {
+    std::ostrstream os;
+    os << targetTypeName << "_" << targetNr << std::ends;
+    this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->SetNthFiducialLabelText(fiducialIndex, os.str());
+    this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->SetNthFiducialID(fiducialIndex, os.str());
+    os.rdbuf()->freeze();
+    this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->SetNthFiducialVisibility(fiducialIndex, true);    
+    success=true;
+  }
   this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->EndModify(modifyOld);
   // StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
   this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL);
@@ -395,6 +399,8 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetFiducialColor(int fiducialListIndex, 
         }
       }
   this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->EndModify(oldModify);
+  // StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
+  this->NeedlesVector[fiducialListIndex].TargetingFiducialsList->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL);
 }
 
 //------------------------------------------------------------------------------

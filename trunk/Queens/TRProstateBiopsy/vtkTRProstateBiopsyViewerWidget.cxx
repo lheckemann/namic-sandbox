@@ -268,58 +268,21 @@ void vtkTRProstateBiopsyViewerWidget::UpdateCameraNode()
     {
     return;
     }
-  // find an active camera
-  // or any camera if none is active
-  //vtkMRMLCameraNode *node = NULL;
-  
-  /*
-  std::vector<vtkMRMLNode *> cnodes;
-  int nnodes = this->MRMLScene->GetNodesByClass("vtkMRMLCameraNode", cnodes);
-  for (int n=0; n<nnodes; n++)
-    {
-    node = vtkMRMLCameraNode::SafeDownCast (cnodes[n]);
-    if (node->GetActive())
-      {
-      break;
-      }
-    }
-
-  if ( this->CameraNode != NULL && node != NULL && this->CameraNode != node)
-    {
-    // local CameraNode is out of sync with the scene
-    this->SetAndObserveCameraNode (NULL);
-    }
-  if ( this->CameraNode != NULL && this->MRMLScene->GetNodeByID(this->CameraNode->GetID()) == NULL)
-    {
-    // local node not in the scene
-    this->SetAndObserveCameraNode (NULL);
-    }
-  if ( this->CameraNode == NULL )
-    {
-    if ( node == NULL )
-      {
-      // no camera in the scene and local
-      // create an active camera
-      node = vtkMRMLCameraNode::New();
-      node->SetActive(1);
-      this->MRMLScene->AddNode(node);
-      node->Delete();
-      }
-    this->SetAndObserveCameraNode (node);
-    }
- */
 
     if ( this->CameraNode == NULL )
     {
-      // no camera in the scene and local
-      // create an active camera
+      // always create a new camera for this widget, don't use already existing camera nodes in the scene (they are used by the main Slicer viewer widget)
       vtkMRMLCameraNode *node = vtkMRMLCameraNode::New();
       node->SetActive(0);
-      this->MRMLScene->AddNode(node);
-      this->SetAndObserveCameraNode (node);
+      this->MRMLScene->AddNode(node);      
+      node->GetCamera()->ParallelProjectionOn();
+      this->SetAndObserveCameraNode (node);      
       node->Delete();
     }
 
+  // force parallel projection
+  // sizes on the 2D slices and in the 3D space are more consistent if we use parallel projection
+  this->CameraNode->GetCamera()->ParallelProjectionOn();
 
   vtkRenderWindowInteractor *rwi = this->MainViewer->GetRenderWindowInteractor();
   if (rwi)
@@ -337,7 +300,9 @@ void vtkTRProstateBiopsyViewerWidget::UpdateCameraNode()
         }
       }
     }
+
   this->MainViewer->GetRenderer()->SetActiveCamera(this->CameraNode->GetCamera());
+
 }
 
 
@@ -456,7 +421,7 @@ void vtkTRProstateBiopsyViewerWidget::CreateWidget ( )
 
   // Set the viewer's minimum dimension to be the modifiedState as that for
   // the three main Slice viewers.
-  this->MainViewer->GetRenderer()->GetActiveCamera()->ParallelProjectionOff();
+  this->MainViewer->GetRenderer()->GetActiveCamera()->ParallelProjectionOn();
   if ( this->GetApplication() != NULL )
     {
     vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();      
@@ -479,6 +444,12 @@ void vtkTRProstateBiopsyViewerWidget::CreateWidget ( )
   this->CreateClipSlices();
 
   this->CreateAxis();
+
+  if (!this->MainViewer->GetRenderer()->GetActiveCamera()->GetParallelProjection())
+  {
+    // sizes on the 2D slices and in the 3D space are more consistent if we use parallel projection
+    this->MainViewer->GetRenderer()->GetActiveCamera()->ParallelProjectionOn();
+  }
 
   //this->PackWidget ( );
   this->MainViewer->ResetCamera ( );
@@ -616,4 +587,15 @@ void vtkTRProstateBiopsyViewerWidget::Render()
   //this->MainViewer->RenderStateOff();
   this->MainViewer->SetRenderState(currentRenderState);
   this->SetRenderPending(0);
+}
+
+
+void vtkTRProstateBiopsyViewerWidget::ResetCamera()
+{
+  if (!this->MainViewer)
+  {
+    vtkErrorMacro("ResetCamera: MainViewer is invalid");
+    return;
+  }
+  this->MainViewer->ResetCamera();
 }
