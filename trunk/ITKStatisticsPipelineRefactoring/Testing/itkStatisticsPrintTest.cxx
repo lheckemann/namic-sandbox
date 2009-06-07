@@ -24,7 +24,7 @@
 
 // #include "itkSample.h"   // abstract class
 // #include "itkSampleToSubsampleFilter.h"   // abstract class
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 #include "itkListSample.h"
 #include "itkSubsample.h"
 #include "itkSampleClassifierFilter.h"
@@ -77,7 +77,7 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::Subsample< SampleType > SubSampleType;
 
-  typedef itk::Statistics::Histogram< TMeasurementType > HistogramType;
+  typedef itk::Statistics::MeasurementHistogram< TMeasurementType > HistogramType;
 
   typedef itk::Statistics::SampleToHistogramFilter< 
     SampleType, HistogramType > SampleToHistogramFilterType;
