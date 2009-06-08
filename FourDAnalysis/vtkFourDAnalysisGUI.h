@@ -157,7 +157,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   
   int TimerFlag;
-  int TimerInterval;
+  int TimerInterval;  // ms
 
   //----------------------------------------------------------------
   // GUI widgets
@@ -185,6 +185,10 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 
   vtkKWScaleWithEntry* ForegroundVolumeSelectorScale;
   vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
+
+  vtkKWPushButton*     AutoPlayOnButton;
+  vtkKWPushButton*     AutoPlayOffButton;
+  vtkKWEntry*          AutoPlayIntervalEntry;
 
   // -----------------------------------------
   // Intensity Curve
@@ -275,6 +279,14 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   double  Level;
   double  ThresholdUpper;
   double  ThresholdLower;
+
+
+  // Auto play functions
+
+  int     AutoPlay;
+  int     AutoPlayInterval;        // interval = TimerInterval * AutoPlayInterval; 
+  int     AutoPlayIntervalCounter;
+
 
   //BTX
   typedef std::vector<int> WindowLevelUpdateStatusType;

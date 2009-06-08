@@ -104,6 +104,10 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
 
   this->IntensityCurves = vtkIntensityCurves::New();
   this->FittedCurve     = vtkDoubleArray::New();
+
+  this->AutoPlay                = 0;
+  this->AutoPlayInterval        = 10;
+  this->AutoPlayIntervalCounter = 0;
   
   //----------------------------------------------------------------
   // GUI widgets
@@ -120,6 +124,9 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   // Frame control
   this->ForegroundVolumeSelectorScale = NULL;
   this->BackgroundVolumeSelectorScale = NULL;
+  this->AutoPlayOnButton              = NULL;
+  this->AutoPlayOffButton             = NULL;
+  this->AutoPlayIntervalEntry         = NULL;
 
   // Curve fitting / parameter map
   this->AcqTimeEntry        = NULL;
@@ -143,7 +150,6 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   //this->ScriptSelectButton  = NULL;
   this->RunScriptButton = NULL;
   this->ResultParameterList = NULL;
-
 
   this->MapIMinSpinBox     = NULL;
   this->MapIMaxSpinBox     = NULL;
@@ -181,7 +187,7 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
 
 
   //----------------------------------------------------------------
-  // Locator  (MRML)
+  // Time
   this->TimerFlag = 0;
 
   //Default parameters for Affine Registration
@@ -260,6 +266,21 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     {
     this->BackgroundVolumeSelectorScale->SetParent(NULL);
     this->BackgroundVolumeSelectorScale->Delete();
+    }
+  if (this->AutoPlayOnButton)
+    {
+    this->AutoPlayOnButton->SetParent(NULL);
+    this->AutoPlayOnButton->Delete();
+    }
+  if (this->AutoPlayOffButton)
+    {
+    this->AutoPlayOffButton->SetParent(NULL);
+    this->AutoPlayOffButton->Delete();
+    }
+  if (this->AutoPlayIntervalEntry)
+    {
+    this->AutoPlayIntervalEntry->SetParent(NULL);
+    this->AutoPlayIntervalEntry->Delete();
     }
   if (this->WindowLevelRange)
     {
@@ -554,6 +575,21 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->BackgroundVolumeSelectorScale
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->AutoPlayOnButton)
+    {
+    this->AutoPlayOnButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AutoPlayOffButton)
+    {
+    this->AutoPlayOffButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AutoPlayIntervalEntry)
+    {
+    this->AutoPlayIntervalEntry
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->WindowLevelRange)
     {
     this->WindowLevelRange
@@ -839,6 +875,21 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     {
     this->BackgroundVolumeSelectorScale
       ->AddObserver(vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AutoPlayOnButton)
+    {
+    this->AutoPlayOnButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AutoPlayOffButton)
+    {
+    this->AutoPlayOffButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AutoPlayIntervalEntry)
+    {
+    this->AutoPlayIntervalEntry
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->WindowLevelRange)
     {
@@ -1190,6 +1241,27 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       {
       SetBackground(bundleNode->GetID(), volume);
       }
+    }
+  if (this->AutoPlayOnButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    // NOTE: interval = TimerInterval * AutoPlayInterval; 
+    double interval_s = this->AutoPlayIntervalEntry->GetValueAsDouble();
+    this->AutoPlay                = 1;
+    this->AutoPlayInterval        = (int) (interval_s * 1000.0 / (double)this->TimerInterval);  
+    this->AutoPlayIntervalCounter = 0;
+    }
+  if (this->AutoPlayOffButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    this->AutoPlay                = 0;
+    }
+  if (this->AutoPlayIntervalEntry == vtkKWEntry::SafeDownCast(caller)
+      && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    // NOTE: interval = TimerInterval * AutoPlayInterval; 
+    double interval_s = this->AutoPlayIntervalEntry->GetValueAsDouble();
+    this->AutoPlayInterval = (int) (interval_s * 1000.0 / (double)this->TimerInterval);
     }
   else if (this->WindowLevelRange == vtkKWRange::SafeDownCast(caller)
       && event == vtkKWRange::RangeValueChangingEvent)
@@ -1634,6 +1706,32 @@ void vtkFourDAnalysisGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
+    if (this->AutoPlay)
+      {
+      this->AutoPlayIntervalCounter ++;
+      if (this->AutoPlayInterval != 0 &&
+          this->AutoPlayIntervalCounter % this->AutoPlayInterval == 0)
+        {
+        double range[2];
+        this->AutoPlayIntervalCounter = 0;
+        this->BackgroundVolumeSelectorScale->GetRange(range);
+        double current = this->BackgroundVolumeSelectorScale->GetValue();
+        current += 1;
+        if (current > range[1])
+          {
+          current = 0.0;
+          }
+        this->BackgroundVolumeSelectorScale->SetValue((double)current);
+
+        int volume = (int)current;
+        vtkMRML4DBundleNode *bundleNode = 
+          vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+        if (bundleNode)
+          {
+          SetBackground(bundleNode->GetID(), volume);
+          }
+        }
+      }
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
@@ -1814,7 +1912,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Foreground child frame
+  // Frame Control
 
   vtkKWFrameWithLabel *fframe = vtkKWFrameWithLabel::New();
   fframe->SetParent(conBrowsFrame->GetFrame());
@@ -1852,6 +1950,43 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
   this->Script("pack %s %s -side top -fill x -padx 2 -pady 2", 
                this->ForegroundVolumeSelectorScale->GetWidgetName(),
                this->BackgroundVolumeSelectorScale->GetWidgetName());
+
+  vtkKWFrame *apframe = vtkKWFrame::New();
+  apframe->SetParent(fframe->GetFrame());
+  apframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 apframe->GetWidgetName() );
+
+  this->AutoPlayOnButton = vtkKWPushButton::New ( );
+  this->AutoPlayOnButton->SetParent ( apframe );
+  this->AutoPlayOnButton->Create ( );
+  this->AutoPlayOnButton->SetText ("Play");
+  this->AutoPlayOnButton->SetWidth (10);
+  
+  this->AutoPlayOffButton = vtkKWPushButton::New ( );
+  this->AutoPlayOffButton->SetParent ( apframe );
+  this->AutoPlayOffButton->Create ( );
+  this->AutoPlayOffButton->SetText ("Stop");
+  this->AutoPlayOffButton->SetWidth (10);
+
+  this->AutoPlayIntervalEntry = vtkKWEntry::New ( );
+  this->AutoPlayIntervalEntry->SetParent( apframe );
+  this->AutoPlayIntervalEntry->Create();
+  this->AutoPlayIntervalEntry->SetWidth(8);
+  this->AutoPlayIntervalEntry->SetRestrictValueToDouble();
+  this->AutoPlayIntervalEntry->SetValueAsDouble(1.0);
+
+  vtkKWLabel *frlabel = vtkKWLabel::New();
+  frlabel->SetParent( apframe );
+  frlabel->Create();
+  frlabel->SetText(" s / frame");
+
+  this->Script("pack %s %s %s %s -side left -fill x -padx 2 -pady 2", 
+               this->AutoPlayOnButton->GetWidgetName(),
+               this->AutoPlayOffButton->GetWidgetName(),
+               this->AutoPlayIntervalEntry->GetWidgetName(),
+               frlabel->GetWidgetName() );
+
 
   // -----------------------------------------
   // Contrast control
@@ -2861,7 +2996,7 @@ void vtkFourDAnalysisGUI::SelectActive4DBundle(vtkMRML4DBundleNode* bundleNode)
     }
 
   // Registration
-    this->RegistrationFixedImageIndexSpinBox->SetRange(0, n);
+  this->RegistrationFixedImageIndexSpinBox->SetRange(0, n);
   this->RegistrationStartIndexSpinBox->SetRange(0, n);
   this->RegistrationEndIndexSpinBox->SetRange(0, n);
 
