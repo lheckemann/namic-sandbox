@@ -119,8 +119,8 @@ class VTK_SecondaryWindow_EXPORT vtkSecondaryWindowGUI : public vtkSlicerModuleG
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkKWPushButton* TestButton11;
-  vtkKWPushButton* TestButton12;
+  vtkKWPushButton* ShowSecondaryWindowButton;
+  vtkKWPushButton* HideSecondaryWindowButton;
 
   vtkSlicerSecondaryViewerWindow* SecondaryViewerWindow;
 

@@ -56,8 +56,8 @@ vtkSecondaryWindowGUI::vtkSecondaryWindowGUI ( )
   
   //----------------------------------------------------------------
   // GUI widgets
-  this->TestButton11 = NULL;
-  this->TestButton12 = NULL;
+  this->ShowSecondaryWindowButton = NULL;
+  this->HideSecondaryWindowButton = NULL;
 
   this->SecondaryViewerWindow = NULL;
 
@@ -95,16 +95,16 @@ vtkSecondaryWindowGUI::~vtkSecondaryWindowGUI ( )
     this->SecondaryViewerWindow = NULL;
     }
 
-  if (this->TestButton11)
+  if (this->ShowSecondaryWindowButton)
     {
-    this->TestButton11->SetParent(NULL);
-    this->TestButton11->Delete();
+    this->ShowSecondaryWindowButton->SetParent(NULL);
+    this->ShowSecondaryWindowButton->Delete();
     }
 
-  if (this->TestButton12)
+  if (this->HideSecondaryWindowButton)
     {
-    this->TestButton12->SetParent(NULL);
-    this->TestButton12->Delete();
+    this->HideSecondaryWindowButton->SetParent(NULL);
+    this->HideSecondaryWindowButton->Delete();
     }
 
   //----------------------------------------------------------------
@@ -134,8 +134,6 @@ void vtkSecondaryWindowGUI::Enter()
     ProcessTimerEvents();
     }
 
-  this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
-
 }
 
 
@@ -148,16 +146,12 @@ void vtkSecondaryWindowGUI::Exit ( )
 //---------------------------------------------------------------------------
 void vtkSecondaryWindowGUI::TearDownGUI() 
 {
-
   /*
   this->PrimaryMonitorRobotViewerWidget->SetApplication(NULL);
   this->PrimaryMonitorRobotViewerWidget->SetMainViewerWidget(NULL);
   this->PrimaryMonitorRobotViewerWidget->SetMRMLScene(NULL);
   */
 }
-
-
-//---------------------------------------------------------------------------
 
 
 
@@ -176,15 +170,15 @@ void vtkSecondaryWindowGUI::RemoveGUIObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  if (this->TestButton11)
+  if (this->ShowSecondaryWindowButton)
     {
-    this->TestButton11
+    this->ShowSecondaryWindowButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->TestButton12)
+  if (this->HideSecondaryWindowButton)
     {
-    this->TestButton12
+    this->HideSecondaryWindowButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
@@ -218,9 +212,9 @@ void vtkSecondaryWindowGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
-  this->TestButton11
+  this->ShowSecondaryWindowButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton12
+  this->HideSecondaryWindowButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   this->AddLogicObservers();
@@ -274,27 +268,26 @@ void vtkSecondaryWindowGUI::ProcessGUIEvents(vtkObject *caller,
     }
 
   
-  if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
+  if (this->ShowSecondaryWindowButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent)
     {
     if (this->SecondaryViewerWindow)
       {  
-      this->SecondaryViewerWindow->Withdraw();
-      this->SecondaryViewerWindow->SetApplication(NULL);
+      this->SecondaryViewerWindow->DisplayOnSecondaryMonitor();
       }
     }
-  else if (this->TestButton12 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
+  else if (this->HideSecondaryWindowButton == vtkKWPushButton::SafeDownCast(caller)
+           && event == vtkKWPushButton::InvokedEvent)
     {
     if (this->SecondaryViewerWindow)
       {  
       this->SecondaryViewerWindow->Withdraw();
-      this->SecondaryViewerWindow->SetApplication(NULL);
       }
     }
 } 
 
 
+//---------------------------------------------------------------------------
 void vtkSecondaryWindowGUI::DataCallback(vtkObject *caller, 
                                      unsigned long eid, void *clientData, void *callData)
 {
@@ -394,7 +387,7 @@ void vtkSecondaryWindowGUI::BuildGUIForWindowConfigurationFrame()
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Test child frame
+  // Secondary Window child frame
 
   vtkKWFrame *switchframe = vtkKWFrame::New();
   switchframe->SetParent(conBrowsFrame->GetFrame());
@@ -403,23 +396,23 @@ void vtkSecondaryWindowGUI::BuildGUIForWindowConfigurationFrame()
                  switchframe->GetWidgetName() );
 
   // -----------------------------------------
-  // Test push button
+  // Push buttons
 
-  this->TestButton11 = vtkKWPushButton::New ( );
-  this->TestButton11->SetParent ( switchframe );
-  this->TestButton11->Create ( );
-  this->TestButton11->SetText ("ON");
-  this->TestButton11->SetWidth (12);
+  this->ShowSecondaryWindowButton = vtkKWPushButton::New ( );
+  this->ShowSecondaryWindowButton->SetParent ( switchframe );
+  this->ShowSecondaryWindowButton->Create ( );
+  this->ShowSecondaryWindowButton->SetText ("ON");
+  this->ShowSecondaryWindowButton->SetWidth (12);
 
-  this->TestButton12 = vtkKWPushButton::New ( );
-  this->TestButton12->SetParent ( switchframe );
-  this->TestButton12->Create ( );
-  this->TestButton12->SetText ("OFF");
-  this->TestButton12->SetWidth (12);
+  this->HideSecondaryWindowButton = vtkKWPushButton::New ( );
+  this->HideSecondaryWindowButton->SetParent ( switchframe );
+  this->HideSecondaryWindowButton->Create ( );
+  this->HideSecondaryWindowButton->SetText ("OFF");
+  this->HideSecondaryWindowButton->SetWidth (12);
 
   this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton11->GetWidgetName(),
-               this->TestButton12->GetWidgetName());
+               this->ShowSecondaryWindowButton->GetWidgetName(),
+               this->HideSecondaryWindowButton->GetWidgetName());
 
   conBrowsFrame->Delete();
   switchframe->Delete();
