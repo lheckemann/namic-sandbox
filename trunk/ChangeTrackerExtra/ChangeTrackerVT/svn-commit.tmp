@@ -1,0 +1,6 @@
+BUG: add a check to prevent layout reset to FourUp on Slicer startup
+--This line, and those below, will be ignored--
+
+M    vtkChangeTrackerGUI.cxx
+M    vtkChangeTrackerGUI.h
+M    Wizard/vtkChangeTrackerFirstScanStep.cxx
