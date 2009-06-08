@@ -99,13 +99,15 @@ class CurveFittingKetyModelStepInput(CurveAnalysisBase):
         #   y = (Ktrans * Cp0 / kep) * (1-exp(-kep*t))         (t < duration)   ... (1)
         #   y = (Ktrans * cp0 / kep) * exp(-kep*(t-duration))  (t >= duration)  ... (2)
 
-        sys.stderr.write('t     : %s\n' % t )
+        #sys.stderr.write('t     : %s\n' % t )
 
-        t2 = scipy.greater_equal(t, delay) * t;
+
+        # Calculate shifted time
+        t2 = scipy.greater_equal(t, delay) * (t - delay);
 
         # To describe C(t) in one equasion, we introduce t_dush, which is
         # defined by t_dash = t (t < duration) and t_dash = duration (t >= duration):
-        t_dash = scipy.less(t2, self.duration)*t + scipy.greater_equal(t2, self.duration)*self.duration
+        t_dash = scipy.less(t2, self.duration)*t2 + scipy.greater_equal(t2, self.duration)*self.duration
 
         # Eq. (1) and (2) can be rewritten by:
         kep = Ktrans / ve
