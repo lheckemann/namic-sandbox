@@ -561,7 +561,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   const DirectedPointType & point2,
   const DirectedPointType & point3 )
 {
-  std::cout<<"Running AddTriangleToOutputMesh"<<std::endl;
   PointsContainer    * pointsContainer  = this->GetOutput()->GetPoints();
   PointDataContainer * normalsContainer = this->GetOutput()->GetPointData();
   
@@ -587,16 +586,11 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
 
 //Sophie's code (verified)  
 
-  //quick fix "-1" right solution: shift numbers in list of vertices (at the top)
   unsigned int v1 = vertexPair.Vertex1;
   unsigned int v2 = vertexPair.Vertex2;
 
-//GetIndex not the method to use - find the right one to iterate through active nodes
-//create member variable of size 8 array - type PixelType, populate in IsInsideSurface function. can access using v1 and v2
-//array of 8 elements - type IndexType - fill in IsInsideSurface and get index value from new array 
-
-  IndexType index1 = cellRegionWalker.GetIndex(v1);
-  IndexType index2 = cellRegionWalker.GetIndex(v2);
+  IndexType index1 = m_IndexTypeArray[v1];
+  IndexType index2 = m_IndexTypeArray[v2];
 
   const InputImageType * inputImage = 
   static_cast< const InputImageType * > ( this->ProcessObject::GetInput(0) );
@@ -614,10 +608,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   //static_cast = typecasting in templates
   RealPixelType intensity1 = static_cast< RealPixelType >( m_PixelTypeArray[v1] );
   RealPixelType intensity2 = static_cast< RealPixelType >( m_PixelTypeArray[v2] );
-  //RealPixelType intensity1 = static_cast< RealPixelType >( cellRegionWalker.GetElement(v1) );
-  //RealPixelType intensity2 = static_cast< RealPixelType >( cellRegionWalker.GetElement(v2) );
-
-  
 
   //does the computation for Linear Interpolation for the middle pt coords
   double alpha = ( m_SurfaceValue - intensity1 ) / ( intensity2 - intensity1 );
@@ -675,16 +665,17 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
 
   //Sophie's counter
   int i = 0;  
-   
+  IndexType cornerIndex = cellRegionWalker.GetIndex();
   
   // Check for pixel values above and below the iso-surface value.
   while( pixelIterator != cellRegionWalker.End() )
     {
     //sophie lines
     
-    
+        
     this->m_PixelTypeArray[i] = pixelIterator.Get();
-    this->m_IndexTypeArray[i] = cellRegionWalker.GetIndex(i);
+    this->m_IndexTypeArray[i] = cornerIndex + pixelIterator.GetNeighborhoodOffset();
+    
     i++;
     //end sophie code
     
