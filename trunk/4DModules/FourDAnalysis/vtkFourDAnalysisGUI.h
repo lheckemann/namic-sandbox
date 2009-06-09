@@ -29,12 +29,12 @@
 #include "vtkSlicerNodeSelectorWidget.h"
 
 #include "vtkKWMultiColumnListWithScrollbars.h"
+#include "vtkKWLoadSaveButtonWithLabel.h"
 
 #include <map>
 
 class vtkKWScaleWithEntry;
 class vtkKWPushButton;
-class vtkKWLoadSaveButtonWithLabel;
 class vtkKWPiecewiseFunctionEditor;
 class vtkKWMenuButton;
 class vtkKWSpinBox;
@@ -117,13 +117,10 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForLoadFrame(int show);
   void BuildGUIForActiveBundleSelectorFrame();
   void BuildGUIForFrameControlFrame(int show);
   void BuildGUIForFunctionViewer(int show);
   //void BuildGUIForMapGenerator(int show);
-  void BuildGUIForCroppingFrame(int show);
-  void BuildGUIForRegistrationFrame(int show);
 
   //----------------------------------------------------------------
   // Update routines
@@ -164,15 +161,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   vtkKWProgressDialog *ProgressDialog;
-
-  // -----------------------------------------
-  // Load / Save / Active frame
-  vtkKWLoadSaveButtonWithLabel* SelectInputDirectoryButton;
-  vtkKWPushButton*              LoadImageButton;
-  vtkKWMenuButton*              SaveSeriesMenu;
-  vtkKWLoadSaveButtonWithLabel* SelectOutputDirectoryButton;
-  vtkKWPushButton*              SaveImageButton;
-  vtkKWMenuButton*              ActiveSeriesMenu;
 
   // -----------------------------------------
   // Active 4D Bundle selector
@@ -227,47 +215,10 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWSpinBox*    MapKMinSpinBox;
   vtkKWSpinBox*    MapKMaxSpinBox;
 
-  // -----------------------------------------
-  // 4D Cropping
-
-  vtkKWPushButton* StartCroppingButton;
-  vtkKWSpinBox*    CropIMinSpinBox;
-  vtkKWSpinBox*    CropIMaxSpinBox;
-  vtkKWSpinBox*    CropJMinSpinBox;
-  vtkKWSpinBox*    CropJMaxSpinBox;
-  vtkKWSpinBox*    CropKMinSpinBox;
-  vtkKWSpinBox*    CropKMaxSpinBox;
-
-  // -----------------------------------------
-  // 4D Registration
-
-  vtkKWMenuButton* InputSeriesMenu;
-  vtkKWMenuButton* OutputSeriesMenu;
-  vtkKWSpinBox*    RegistrationFixedImageIndexSpinBox;
-  vtkKWSpinBox*    RegistrationStartIndexSpinBox;
-  vtkKWSpinBox*    RegistrationEndIndexSpinBox;
-  vtkKWPushButton* StartRegistrationButton;
-
-  vtkKWEntryWithLabel* AffineIterationsEntry; 
-  vtkKWEntryWithLabel* AffineSamplesEntry;    
-  vtkKWEntryWithLabel* AffineHistgramBinEntry;
-  vtkKWEntryWithLabel* AffineTranslationEntry;
-
-  vtkKWEntryWithLabel* IterationsEntry;
-  vtkKWEntryWithLabel* GridSizeEntry;
-  vtkKWEntryWithLabel* HistogramBinsEntry;
-  vtkKWEntryWithLabel* SpatialSamplesEntry;
-
-
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
 
-  //BTX
-  vtkFourDAnalysisLogic::RegistrationParametersType DefaultAffineRegistrationParam;
-  vtkFourDAnalysisLogic::RegistrationParametersType DefaultRegistrationParam;
-  //ETX
-  
   vtkFourDAnalysisLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;

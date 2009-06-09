@@ -89,8 +89,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   } CurveDataSetType;
 
   typedef std::map<std::string, CurveDataSetType> CurveCacheType;
-
-  typedef std::map<std::string, std::string> RegistrationParametersType;
   //ETX
 
  public:
@@ -123,14 +121,12 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
                                             const char* nodeName);
   int         GetNumberOfFrames();
   const char* GetFrameNodeID(int index);
-  const char* GetRegisteredFrameNodeID(int index);
 
   int  SaveIntensityCurves(vtkIntensityCurves* curves, const char* fileNamePrefix);
   int  SaveCurve(vtkDoubleArray* curve, const char* fileNamePrefix);
 
   void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
   vtkSlicerApplication* GetApplication() { return this->Application; };
-  //int  RunSeriesRegistration(int sIndex, int eIndex, int kIndex, RegistrationParametersType& param);
 
   int GenerateBundleFrames(vtkMRML4DBundleNode* inputBundleNode,
                            vtkMRML4DBundleNode* outputBundleNode);
@@ -142,14 +138,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
                             const char* outputNodeNamePrefix,
                             int start, int end,
                             int imin, int imax, int jmin, int jmax, int kmin, int kmax);
-
-  int RunSeriesCropping(const char* inputBundleNodeID,
-                        int imin, int imax, int jmin, int jmax, int kmin, int kmax);
-  int RunSeriesRegistration(int sIndex, int eIndex, int kIndex, 
-                            const char* inputBundleNodeID,
-                            const char* outputBundleNodeID,
-                            RegistrationParametersType& affineParam,
-                            RegistrationParametersType& deformableParam);
 
 
  protected:
@@ -167,29 +155,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
 
-
-  //----------------------------------------------------------------
-  // Registration
-  //----------------------------------------------------------------
-
-  int   RunCropping(vtkMRMLScalarVolumeNode* inputNode,
-                    vtkMRMLScalarVolumeNode* outputNode,
-                    int imin, int imax, int jmin, int jmax, int kmin, int kmax);
-  //BTX
-  int RunAffineRegistration(vtkMRML4DBundleNode* bundleNode,
-                            vtkMRMLScalarVolumeNode* fixedNode,
-                            vtkMRMLScalarVolumeNode* movingNode,
-                            vtkMRMLLinearTransformNode* outputTransformNode,
-                            vtkMRMLScalarVolumeNode* outputNode,
-                            RegistrationParametersType& param);
-  
-  int RunDeformableRegistration(vtkMRML4DBundleNode* bundleNode,
-                                vtkMRMLLinearTransformNode* initialTransformNode,
-                                vtkMRMLScalarVolumeNode* fixedNode,
-                                vtkMRMLScalarVolumeNode* movingNode,
-                                vtkMRMLScalarVolumeNode* outputNode,
-                                RegistrationParametersType& param);
-  //ETX
 
   vtkSlicerApplication *Application;
   vtkCallbackCommand *DataCallbackCommand;
