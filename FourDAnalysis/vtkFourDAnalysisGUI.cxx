@@ -105,7 +105,8 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->IntensityCurves = vtkIntensityCurves::New();
   this->FittedCurve     = vtkDoubleArray::New();
 
-  this->AutoPlay                = 0;
+  this->AutoPlayFG              = 0;
+  this->AutoPlayBG              = 0;
   this->AutoPlayInterval        = 10;
   this->AutoPlayIntervalCounter = 0;
   
@@ -124,8 +125,8 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   // Frame control
   this->ForegroundVolumeSelectorScale = NULL;
   this->BackgroundVolumeSelectorScale = NULL;
-  this->AutoPlayOnButton              = NULL;
-  this->AutoPlayOffButton             = NULL;
+  this->AutoPlayFGButton              = NULL;
+  this->AutoPlayBGButton              = NULL;
   this->AutoPlayIntervalEntry         = NULL;
 
   // Curve fitting / parameter map
@@ -267,15 +268,15 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->BackgroundVolumeSelectorScale->SetParent(NULL);
     this->BackgroundVolumeSelectorScale->Delete();
     }
-  if (this->AutoPlayOnButton)
+  if (this->AutoPlayFGButton)
     {
-    this->AutoPlayOnButton->SetParent(NULL);
-    this->AutoPlayOnButton->Delete();
+    this->AutoPlayFGButton->SetParent(NULL);
+    this->AutoPlayFGButton->Delete();
     }
-  if (this->AutoPlayOffButton)
+  if (this->AutoPlayBGButton)
     {
-    this->AutoPlayOffButton->SetParent(NULL);
-    this->AutoPlayOffButton->Delete();
+    this->AutoPlayBGButton->SetParent(NULL);
+    this->AutoPlayBGButton->Delete();
     }
   if (this->AutoPlayIntervalEntry)
     {
@@ -575,14 +576,14 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->BackgroundVolumeSelectorScale
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  if (this->AutoPlayOnButton)
+  if (this->AutoPlayFGButton)
     {
-    this->AutoPlayOnButton
+    this->AutoPlayFGButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  if (this->AutoPlayOffButton)
+  if (this->AutoPlayBGButton)
     {
-    this->AutoPlayOffButton
+    this->AutoPlayBGButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->AutoPlayIntervalEntry)
@@ -876,14 +877,14 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->BackgroundVolumeSelectorScale
       ->AddObserver(vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/, (vtkCommand *)this->GUICallbackCommand);
     }
-  if (this->AutoPlayOnButton)
+  if (this->AutoPlayFGButton)
     {
-    this->AutoPlayOnButton
+    this->AutoPlayFGButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-  if (this->AutoPlayOffButton)
+  if (this->AutoPlayBGButton)
     {
-    this->AutoPlayOffButton
+    this->AutoPlayBGButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->AutoPlayIntervalEntry)
@@ -1242,19 +1243,45 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       SetBackground(bundleNode->GetID(), volume);
       }
     }
-  if (this->AutoPlayOnButton == vtkKWPushButton::SafeDownCast(caller)
+  if (this->AutoPlayFGButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    // NOTE: interval = TimerInterval * AutoPlayInterval; 
-    double interval_s = this->AutoPlayIntervalEntry->GetValueAsDouble();
-    this->AutoPlay                = 1;
-    this->AutoPlayInterval        = (int) (interval_s * 1000.0 / (double)this->TimerInterval);  
-    this->AutoPlayIntervalCounter = 0;
+    if (!this->AutoPlayFG)
+      {
+      // NOTE: interval = TimerInterval * AutoPlayInterval; 
+      double interval_s = this->AutoPlayIntervalEntry->GetValueAsDouble();
+      this->AutoPlayFG              = 1;
+      this->AutoPlayInterval        = (int) (interval_s * 1000.0 / (double)this->TimerInterval);  
+      this->AutoPlayIntervalCounter = 0;
+      this->AutoPlayFGButton->SetText ("| |");
+      this->AutoPlayFGButton->Modified();
+      }
+    else
+      {
+      this->AutoPlayFG              = 0;
+      this->AutoPlayFGButton->SetText (" > ");
+      this->AutoPlayFGButton->Modified();
+      }
     }
-  if (this->AutoPlayOffButton == vtkKWPushButton::SafeDownCast(caller)
+  if (this->AutoPlayBGButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    this->AutoPlay                = 0;
+    if (!this->AutoPlayBG)
+      {
+      // NOTE: interval = TimerInterval * AutoPlayInterval; 
+      double interval_s = this->AutoPlayIntervalEntry->GetValueAsDouble();
+      this->AutoPlayBG              = 1;
+      this->AutoPlayInterval        = (int) (interval_s * 1000.0 / (double)this->TimerInterval);  
+      this->AutoPlayIntervalCounter = 0;
+      this->AutoPlayBGButton->SetText ("| |");
+      this->AutoPlayBGButton->Modified();
+      }
+    else
+      {
+      this->AutoPlayBG              = 0;
+      this->AutoPlayBGButton->SetText (" > ");
+      this->AutoPlayBGButton->Modified();
+      }
     }
   if (this->AutoPlayIntervalEntry == vtkKWEntry::SafeDownCast(caller)
       && event == vtkKWEntry::EntryValueChangedEvent)
@@ -1706,29 +1733,54 @@ void vtkFourDAnalysisGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
-    if (this->AutoPlay)
+    if (this->AutoPlayFG || this->AutoPlayBG)
       {
       this->AutoPlayIntervalCounter ++;
       if (this->AutoPlayInterval != 0 &&
           this->AutoPlayIntervalCounter % this->AutoPlayInterval == 0)
         {
+        double current;
         double range[2];
+        int    volume;
         this->AutoPlayIntervalCounter = 0;
-        this->BackgroundVolumeSelectorScale->GetRange(range);
-        double current = this->BackgroundVolumeSelectorScale->GetValue();
-        current += 1;
-        if (current > range[1])
+          
+        // increment the frame id for foreground
+        if (this->AutoPlayFG)
           {
-          current = 0.0;
+          this->ForegroundVolumeSelectorScale->GetRange(range);
+          current = this->ForegroundVolumeSelectorScale->GetValue();
+          current += 1;
+          if (current > range[1])
+            {
+            current = 0.0;
+            }
+          this->ForegroundVolumeSelectorScale->SetValue((double)current);
+          volume = (int)current;
+          vtkMRML4DBundleNode *bundleNode = 
+            vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+          if (bundleNode)
+            {
+            SetForeground(bundleNode->GetID(), volume);
+            }
           }
-        this->BackgroundVolumeSelectorScale->SetValue((double)current);
-
-        int volume = (int)current;
-        vtkMRML4DBundleNode *bundleNode = 
-          vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
-        if (bundleNode)
+        // increment the frame id for foreground
+        if (this->AutoPlayBG)
           {
-          SetBackground(bundleNode->GetID(), volume);
+          this->BackgroundVolumeSelectorScale->GetRange(range);
+          current = this->BackgroundVolumeSelectorScale->GetValue();
+          current += 1;
+          if (current > range[1])
+            {
+            current = 0.0;
+            }
+          this->BackgroundVolumeSelectorScale->SetValue((double)current);
+          volume = (int)current;
+          vtkMRML4DBundleNode *bundleNode = 
+            vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+          if (bundleNode)
+            {
+            SetBackground(bundleNode->GetID(), volume);
+            }
           }
         }
       }
@@ -1921,34 +1973,66 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  fframe->GetWidgetName() );
   
-  vtkKWFrame *sframe = vtkKWFrame::New();
-  sframe->SetParent(fframe->GetFrame());
-  sframe->Create();
+  //vtkKWFrame *sframe = vtkKWFrame::New();
+  //sframe->SetParent(fframe->GetFrame());
+  //sframe->Create();
+  //this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+  //               sframe->GetWidgetName() );
+
+  vtkKWFrame *fgframe = vtkKWFrame::New();
+  fgframe->SetParent(fframe->GetFrame());
+  fgframe->Create();
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 sframe->GetWidgetName() );
+                 fgframe->GetWidgetName() );
 
   this->ForegroundVolumeSelectorScale = vtkKWScaleWithEntry::New();
-  this->ForegroundVolumeSelectorScale->SetParent(sframe);
+  this->ForegroundVolumeSelectorScale->SetParent(fgframe);
   this->ForegroundVolumeSelectorScale->Create();
   this->ForegroundVolumeSelectorScale->SetEntryPosition(vtkKWScaleWithEntry::EntryPositionRight);
   this->ForegroundVolumeSelectorScale->SetOrientationToHorizontal();
   this->ForegroundVolumeSelectorScale->SetLabelText("FG");
   this->ForegroundVolumeSelectorScale->SetRange(0.0, 100.0);
   this->ForegroundVolumeSelectorScale->SetResolution(1.0);
-  this->ForegroundVolumeSelectorScale->SetWidth(30);
+  this->ForegroundVolumeSelectorScale->ExpandEntryOff();
+  //this->ForegroundVolumeSelectorScale->SetWidth(30);
+
+  this->AutoPlayFGButton = vtkKWPushButton::New ( );
+  this->AutoPlayFGButton->SetParent ( fgframe );
+  this->AutoPlayFGButton->Create ( );
+  this->AutoPlayFGButton->SetText (" > ");
+  this->AutoPlayFGButton->SetWidth (2);
+
+  this->Script("pack %s -side right -fill x -padx 2 -pady 2", 
+               this->AutoPlayFGButton->GetWidgetName());
+  this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
+               this->ForegroundVolumeSelectorScale->GetWidgetName());
+
+  vtkKWFrame *bgframe = vtkKWFrame::New();
+  bgframe->SetParent(fframe->GetFrame());
+  bgframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 bgframe->GetWidgetName() );
 
   this->BackgroundVolumeSelectorScale = vtkKWScaleWithEntry::New();
-  this->BackgroundVolumeSelectorScale->SetParent(sframe);
+  this->BackgroundVolumeSelectorScale->SetParent(bgframe);
   this->BackgroundVolumeSelectorScale->Create();
   this->BackgroundVolumeSelectorScale->SetEntryPosition(vtkKWScaleWithEntry::EntryPositionRight);
   this->BackgroundVolumeSelectorScale->SetOrientationToHorizontal();
   this->BackgroundVolumeSelectorScale->SetLabelText("BG");
   this->BackgroundVolumeSelectorScale->SetRange(0.0, 100.0);
   this->BackgroundVolumeSelectorScale->SetResolution(1.0);
-  this->BackgroundVolumeSelectorScale->SetWidth(30);
+  this->BackgroundVolumeSelectorScale->ExpandEntryOff();
+  //this->BackgroundVolumeSelectorScale->SetWidth(30);
   
-  this->Script("pack %s %s -side top -fill x -padx 2 -pady 2", 
-               this->ForegroundVolumeSelectorScale->GetWidgetName(),
+  this->AutoPlayBGButton = vtkKWPushButton::New ( );
+  this->AutoPlayBGButton->SetParent ( bgframe );
+  this->AutoPlayBGButton->Create ( );
+  this->AutoPlayBGButton->SetText (" > ");
+  this->AutoPlayBGButton->SetWidth (2);
+
+  this->Script("pack %s -side right -fill x -padx 2 -pady 2", 
+               this->AutoPlayBGButton->GetWidgetName());
+  this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
                this->BackgroundVolumeSelectorScale->GetWidgetName());
 
   vtkKWFrame *apframe = vtkKWFrame::New();
@@ -1956,18 +2040,11 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
   apframe->Create();
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  apframe->GetWidgetName() );
-
-  this->AutoPlayOnButton = vtkKWPushButton::New ( );
-  this->AutoPlayOnButton->SetParent ( apframe );
-  this->AutoPlayOnButton->Create ( );
-  this->AutoPlayOnButton->SetText ("Play");
-  this->AutoPlayOnButton->SetWidth (10);
   
-  this->AutoPlayOffButton = vtkKWPushButton::New ( );
-  this->AutoPlayOffButton->SetParent ( apframe );
-  this->AutoPlayOffButton->Create ( );
-  this->AutoPlayOffButton->SetText ("Stop");
-  this->AutoPlayOffButton->SetWidth (10);
+  vtkKWLabel *frlabel1 = vtkKWLabel::New();
+  frlabel1->SetParent( apframe );
+  frlabel1->Create();
+  frlabel1->SetText("Interval: ");
 
   this->AutoPlayIntervalEntry = vtkKWEntry::New ( );
   this->AutoPlayIntervalEntry->SetParent( apframe );
@@ -1976,17 +2053,15 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
   this->AutoPlayIntervalEntry->SetRestrictValueToDouble();
   this->AutoPlayIntervalEntry->SetValueAsDouble(1.0);
 
-  vtkKWLabel *frlabel = vtkKWLabel::New();
-  frlabel->SetParent( apframe );
-  frlabel->Create();
-  frlabel->SetText(" s / frame");
+  vtkKWLabel *frlabel2 = vtkKWLabel::New();
+  frlabel2->SetParent( apframe );
+  frlabel2->Create();
+  frlabel2->SetText(" s ");
 
-  this->Script("pack %s %s %s %s -side left -fill x -padx 2 -pady 2", 
-               this->AutoPlayOnButton->GetWidgetName(),
-               this->AutoPlayOffButton->GetWidgetName(),
+  this->Script("pack %s %s %s -side left -fill x -padx 2 -pady 2", 
+               frlabel1->GetWidgetName(),
                this->AutoPlayIntervalEntry->GetWidgetName(),
-               frlabel->GetWidgetName() );
-
+               frlabel2->GetWidgetName() );
 
   // -----------------------------------------
   // Contrast control
@@ -2054,7 +2129,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
 
   conBrowsFrame->Delete();
   fframe->Delete();
-  sframe->Delete();
+  //sframe->Delete();
 
 }
 
