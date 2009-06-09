@@ -124,6 +124,11 @@ public:
   typedef typename InputImageType::RegionType             RegionType;
   typedef typename InputImageType::SizeType               SizeType;
   typedef typename InputImageType::IndexType              IndexType;
+  //SOPHIE'S CODE
+  typedef typename InputImageType::PixelType              PixelTypeArray[8];
+  typedef typename InputImageType::IndexType              IndexTypeArray[8];
+  //END SOPHIE'S CODE
+
   typedef ContinuousIndex<float,InputImageDimension>      ContinuousIndexType;
 
   typedef typename NumericTraits< 
@@ -138,6 +143,8 @@ public:
 
   /** accept the input image */
   virtual void SetInput( const InputImageType * inputImage );
+
+  
 
 
 protected:
@@ -176,6 +183,8 @@ private:
   InterpolatorPointer                   m_Interpolator;
   SubdivideFactorArray                  m_SubdivideFactors;
   PointIdentifier                       m_NumberOfPoints;
+  PixelTypeArray                        m_PixelTypeArray;
+  IndexTypeArray                        m_IndexTypeArray;
  
   // Type used for representing the index of the marching cubes table 
   typedef unsigned char                                              TableIndexType;
@@ -215,6 +224,8 @@ private:
      };
 
    ListOfTrianglesType                  m_CubeConfigurationCodeToListOfTriangle[256];
+
+  
 
    class DirectedPointType
      {
