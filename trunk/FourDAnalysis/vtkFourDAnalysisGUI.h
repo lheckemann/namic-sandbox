@@ -186,8 +186,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkKWScaleWithEntry* ForegroundVolumeSelectorScale;
   vtkKWScaleWithEntry* BackgroundVolumeSelectorScale;
 
-  vtkKWPushButton*     AutoPlayOnButton;
-  vtkKWPushButton*     AutoPlayOffButton;
+  vtkKWPushButton*     AutoPlayFGButton;
+  vtkKWPushButton*     AutoPlayBGButton;
   vtkKWEntry*          AutoPlayIntervalEntry;
 
   // -----------------------------------------
@@ -283,7 +283,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 
   // Auto play functions
 
-  int     AutoPlay;
+  int     AutoPlayFG;
+  int     AutoPlayBG;
   int     AutoPlayInterval;        // interval = TimerInterval * AutoPlayInterval; 
   int     AutoPlayIntervalCounter;
 
