@@ -109,9 +109,6 @@ int main( int argc, char * argv[] )
   writer->SetInput( pointSet );
   writer->SetFileName( argv[2] );
   writer->Write();
-  
-  int i;
-  std::cin>>i;
 
   return EXIT_SUCCESS;
 }
