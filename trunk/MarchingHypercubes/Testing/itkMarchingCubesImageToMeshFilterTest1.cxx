@@ -38,7 +38,7 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
   
-  typedef   unsigned short  ImagePixelType;
+  typedef   signed short  ImagePixelType;
   const     unsigned int   ImageDimension = 3;
   const     unsigned int   TopologicalDimension = 1;
 
@@ -110,6 +110,9 @@ int main( int argc, char * argv[] )
   writer->SetFileName( argv[2] );
   writer->Write();
   
+  int i;
+  std::cin>>i;
+
   return EXIT_SUCCESS;
 }
 

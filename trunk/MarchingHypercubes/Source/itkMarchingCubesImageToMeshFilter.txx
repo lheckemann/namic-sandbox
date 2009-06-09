@@ -20,6 +20,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include "itkMarchingCubesImageToMeshFilter.h"
 #include "itkNumericTraits.h"
+//#include <iostream.h>
 
 namespace itk
 {
@@ -48,7 +49,22 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   this->m_NumberOfPoints = NumericTraits< PointIdentifier >::Zero;
 
   this->m_EdgeIndexToVertexIndex[0] = VertexPairType( 0, 0 );
+  
+  this->m_EdgeIndexToVertexIndex[1] = VertexPairType( 0, 1 );
+  this->m_EdgeIndexToVertexIndex[2] = VertexPairType( 0, 2 );
+  this->m_EdgeIndexToVertexIndex[3] = VertexPairType( 1, 3 );
+  this->m_EdgeIndexToVertexIndex[4] = VertexPairType( 2, 3 );
 
+  this->m_EdgeIndexToVertexIndex[5] = VertexPairType( 0, 4 );
+  this->m_EdgeIndexToVertexIndex[6] = VertexPairType( 1, 5 );
+  this->m_EdgeIndexToVertexIndex[7] = VertexPairType( 2, 6 );
+  this->m_EdgeIndexToVertexIndex[8] = VertexPairType( 3, 7 );
+
+  this->m_EdgeIndexToVertexIndex[ 9] = VertexPairType( 4, 5 );
+  this->m_EdgeIndexToVertexIndex[10] = VertexPairType( 4, 6 );
+  this->m_EdgeIndexToVertexIndex[11] = VertexPairType( 5, 7 );
+  this->m_EdgeIndexToVertexIndex[12] = VertexPairType( 6, 7 );
+/*
   this->m_EdgeIndexToVertexIndex[1] = VertexPairType( 1, 2 );
   this->m_EdgeIndexToVertexIndex[2] = VertexPairType( 1, 3 );
   this->m_EdgeIndexToVertexIndex[3] = VertexPairType( 2, 4 );
@@ -63,11 +79,274 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   this->m_EdgeIndexToVertexIndex[10] = VertexPairType( 5, 7 );
   this->m_EdgeIndexToVertexIndex[11] = VertexPairType( 6, 8 );
   this->m_EdgeIndexToVertexIndex[12] = VertexPairType( 7, 8 );
+*/
+
 
   // Populate the look up table here:
-  // this->m_CubeConfigurationCodeToListOfTriangle
+  ListOfTrianglesType marchingCubesLookupTable[256]=
+     {{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {5,1,2,0,0,0,0,0,0,0,0,0,0,0,0},
+    {1,6,3,0,0,0,0,0,0,0,0,0,0,0,0},
+    {5,6,3,5,3,2,0,0,0,0,0,0,0,0,0},
+    {2,4,7,0,0,0,0,0,0,0,0,0,0,0,0},
+    {1,4,7,1,7,5,0,0,0,0,0,0,0,0,0},
+    {2,4,7,3,1,6,0,0,0,0,0,0,0,0,0},
+    {3,4,7,3,7,5,3,5,6,0,0,0,0,0,0},
+    {3,8,4,0,0,0,0,0,0,0,0,0,0,0,0},
+    {1,2,5,4,3,8,0,0,0,0,0,0,0,0,0},
+    {6,8,4,6,4,1,0,0,0,0,0,0,0,0,0},
+    {4,2,5,4,5,6,4,6,8,0,0,0,0,0,0},
+    {2,3,8,2,8,7,0,0,0,0,0,0,0,0,0},
+    {1,3,8,1,8,7,1,7,5,0,0,0,0,0,0},
+    {2,1,6,2,6,8,2,8,7,0,0,0,0,0,0},
+    {7,5,6,7,6,8,0,0,0,0,0,0,0,0,0},
+    {10,9,5,0,0,0,0,0,0,0,0,0,0,0,0},
+    {9,1,2,9,2,10,0,0,0,0,0,0,0,0,0},
+    {9,5,10,1,6,3,0,0,0,0,0,0,0,0,0},
+    {9,6,3,9,3,2,9,2,10,0,0,0,0,0,0},
+    {5,10,9,7,2,4,0,0,0,0,0,0,0,0,0},
+    {7,10,9,7,9,1,7,1,4,0,0,0,0,0,0},
+    {9,5,10,1,6,3,7,2,4,0,0,0,0,0,0},
+    {9,6,3,9,3,4,9,4,10,4,7,10,0,0,0},
+    {8,4,3,5,10,9,0,0,0,0,0,0,0,0,0},
+    {4,3,8,1,2,10,1,10,9,0,0,0,0,0,0},
+    {9,5,10,1,6,8,1,8,4,0,0,0,0,0,0},
+    {9,6,8,9,8,4,9,4,10,4,2,10,0,0,0},
+    {5,10,9,7,2,3,7,3,8,0,0,0,0,0,0},
+    {7,10,9,7,9,1,7,1,8,1,3,8,0,0,0},
+    {2,1,6,2,6,8,2,8,7,9,5,10,0,0,0},
+    {9,6,8,9,8,7,9,7,10,0,0,0,0,0,0},
+    {9,11,6,0,0,0,0,0,0,0,0,0,0,0,0},
+    {5,1,2,6,9,11,0,0,0,0,0,0,0,0,0},
+    {1,9,11,1,11,3,0,0,0,0,0,0,0,0,0},
+    {5,9,11,5,11,3,5,3,2,0,0,0,0,0,0},
+    {11,6,9,2,4,7,0,0,0,0,0,0,0,0,0},
+    {6,9,11,5,1,4,5,4,7,0,0,0,0,0,0},
+    {2,4,7,3,1,9,3,9,11,0,0,0,0,0,0},
+    {5,9,11,5,11,3,5,3,7,3,4,7,0,0,0},
+    {3,8,4,11,6,9,0,0,0,0,0,0,0,0,0},
+    {5,1,2,6,9,11,4,3,8,0,0,0,0,0,0},
+    {11,8,4,11,4,1,11,1,9,0,0,0,0,0,0},
+    {5,9,11,5,11,8,5,8,2,8,4,2,0,0,0},
+    {11,6,9,3,8,7,3,7,2,0,0,0,0,0,0},
+    {1,3,8,1,8,7,1,7,5,11,6,9,0,0,0},
+    {11,8,7,11,7,2,11,2,9,2,1,9,0,0,0},
+    {11,8,7,11,7,5,11,5,9,0,0,0,0,0,0},
+    {10,11,6,10,6,5,0,0,0,0,0,0,0,0,0},
+    {6,1,2,6,2,10,6,10,11,0,0,0,0,0,0},
+    {1,5,10,1,10,11,1,11,3,0,0,0,0,0,0},
+    {2,10,11,2,11,3,0,0,0,0,0,0,0,0,0},
+    {7,2,4,5,10,11,5,11,6,0,0,0,0,0,0},
+    {6,1,4,6,4,7,6,7,11,7,10,11,0,0,0},
+    {1,5,10,1,10,11,1,11,3,7,2,4,0,0,0},
+    {7,10,11,7,11,3,7,3,4,0,0,0,0,0,0},
+    {3,8,4,11,6,5,11,5,10,0,0,0,0,0,0},
+    {6,1,2,6,2,10,6,10,11,4,3,8,0,0,0},
+    {1,5,10,1,10,11,1,11,4,11,8,4,0,0,0},
+    {4,2,10,4,10,11,4,11,8,0,0,0,0,0,0},
+    {6,5,10,6,10,11,2,3,8,2,8,7,0,0,0},
+    {1,3,8,1,8,7,1,7,6,7,10,6,10,11,6},
+    {1,5,10,1,10,11,1,11,2,11,8,2,8,7,2},
+    {8,7,10,8,10,11,0,0,0,0,0,0,0,0,0},
+    {10,7,12,0,0,0,0,0,0,0,0,0,0,0,0},
+    {10,7,12,2,5,1,0,0,0,0,0,0,0,0,0},
+    {3,1,6,10,7,12,0,0,0,0,0,0,0,0,0},
+    {10,7,12,2,5,6,2,6,3,0,0,0,0,0,0},
+    {4,12,10,4,10,2,0,0,0,0,0,0,0,0,0},
+    {10,5,1,10,1,4,10,4,12,0,0,0,0,0,0},
+    {3,1,6,2,4,12,2,12,10,0,0,0,0,0,0},
+    {3,4,12,3,12,10,3,10,6,10,5,6,0,0,0},
+    {7,12,10,8,4,3,0,0,0,0,0,0,0,0,0},
+    {1,2,5,4,3,8,10,7,12,0,0,0,0,0,0},
+    {7,12,10,8,4,1,8,1,6,0,0,0,0,0,0},
+    {4,2,5,4,5,6,4,6,8,10,7,12,0,0,0},
+    {8,12,10,8,10,2,8,2,3,0,0,0,0,0,0},
+    {1,3,8,1,8,12,1,12,5,12,10,5,0,0,0},
+    {2,1,6,2,6,8,2,8,10,8,12,10,0,0,0},
+    {10,5,6,10,6,8,10,8,12,0,0,0,0,0,0},
+    {5,7,12,5,12,9,0,0,0,0,0,0,0,0,0},
+    {2,7,12,2,12,9,2,9,1,0,0,0,0,0,0},
+    {1,6,3,9,5,7,9,7,12,0,0,0,0,0,0},
+    {2,7,12,2,12,9,2,9,3,9,6,3,0,0,0},
+    {5,2,4,5,4,12,5,12,9,0,0,0,0,0,0},
+    {12,9,1,12,1,4,0,0,0,0,0,0,0,0,0},
+    {5,2,4,5,4,12,5,12,9,3,1,6,0,0,0},
+    {3,4,12,3,12,9,3,9,6,0,0,0,0,0,0},
+    {8,4,3,7,12,9,7,9,5,0,0,0,0,0,0},
+    {2,7,12,2,12,9,2,9,1,8,4,3,0,0,0},
+    {4,1,6,4,6,8,5,7,12,5,12,9,0,0,0},
+    {2,7,12,2,12,9,2,9,4,9,6,4,6,8,4},
+    {8,12,9,8,9,5,8,5,3,5,2,3,0,0,0},
+    {8,12,9,8,9,1,8,1,3,0,0,0,0,0,0},
+    {2,1,6,2,6,8,2,8,5,8,12,5,12,9,5},
+    {12,9,6,12,6,8,0,0,0,0,0,0,0,0,0},
+    {12,10,7,9,11,6,0,0,0,0,0,0,0,0,0},
+    {12,10,7,9,11,6,2,5,1,0,0,0,0,0,0},
+    {12,10,7,9,11,3,9,3,1,0,0,0,0,0,0},
+    {5,9,11,5,11,3,5,3,2,12,10,7,0,0,0},
+    {9,11,6,12,10,2,12,2,4,0,0,0,0,0,0},
+    {10,5,1,10,1,4,10,4,12,6,9,11,0,0,0},
+    {1,9,11,1,11,3,10,2,4,10,4,12,0,0,0},
+    {5,9,11,5,11,3,5,3,10,3,4,10,4,12,10},
+    {3,8,4,11,6,9,7,12,10,0,0,0,0,0,0},
+    {2,5,1,10,7,12,9,11,6,3,8,4,0,0,0},
+    {11,8,4,11,4,1,11,1,9,7,12,10,0,0,0},
+    {11,8,4,11,4,2,11,2,9,2,5,9,10,7,12},
+    {8,12,10,8,10,2,8,2,3,9,11,6,0,0,0},
+    {8,12,10,8,10,5,8,5,3,5,1,3,6,9,11},
+    {8,12,10,8,10,2,8,2,11,2,1,11,1,9,11},
+    {8,12,10,8,10,5,8,5,11,5,9,11,0,0,0},
+    {12,11,6,12,6,5,12,5,7,0,0,0,0,0,0},
+    {12,11,6,12,6,1,12,1,7,1,2,7,0,0,0},
+    {12,11,3,12,3,1,12,1,7,1,5,7,0,0,0},
+    {12,11,3,12,3,2,12,2,7,0,0,0,0,0,0},
+    {5,2,4,5,4,12,5,12,6,12,11,6,0,0,0},
+    {6,1,4,6,4,12,6,12,11,0,0,0,0,0,0},
+    {5,2,4,5,4,12,5,12,1,12,11,1,11,3,1},
+    {4,12,11,4,11,3,0,0,0,0,0,0,0,0,0},
+    {12,11,6,12,6,5,12,5,7,3,8,4,0,0,0},
+    {2,7,12,2,12,11,2,11,1,11,6,1,3,8,4},
+    {11,8,4,11,4,1,11,1,12,1,5,12,5,7,12},
+    {2,7,12,2,12,11,2,11,4,11,8,4,0,0,0},
+    {12,11,6,12,6,5,12,5,8,5,2,8,2,3,8},
+    {12,11,6,12,6,1,12,1,8,1,3,8,0,0,0},
+    {1,5,2,8,12,11,0,0,0,0,0,0,0,0,0},
+    {8,12,11,0,0,0,0,0,0,0,0,0,0,0,0},
+    {8,11,12,0,0,0,0,0,0,0,0,0,0,0,0},
+    {2,5,1,11,12,8,0,0,0,0,0,0,0,0,0},
+    {6,3,1,8,11,12,0,0,0,0,0,0,0,0,0},
+    {8,11,12,6,3,2,6,2,5,0,0,0,0,0,0},
+    {4,7,2,12,8,11,0,0,0,0,0,0,0,0,0},
+    {12,8,11,4,7,5,4,5,1,0,0,0,0,0,0},
+    {6,3,1,8,11,12,2,4,7,0,0,0,0,0,0},
+    {3,4,7,3,7,5,3,5,6,12,8,11,0,0,0},
+    {3,11,12,3,12,4,0,0,0,0,0,0,0,0,0},
+    {1,2,5,4,3,11,4,11,12,0,0,0,0,0,0},
+    {6,11,12,6,12,4,6,4,1,0,0,0,0,0,0},
+    {4,2,5,4,5,6,4,6,12,6,11,12,0,0,0},
+    {12,7,2,12,2,3,12,3,11,0,0,0,0,0,0},
+    {1,3,11,1,11,12,1,12,5,12,7,5,0,0,0},
+    {6,11,12,6,12,7,6,7,1,7,2,1,0,0,0},
+    {12,7,5,12,5,6,12,6,11,0,0,0,0,0,0},
+    {10,9,5,11,12,8,0,0,0,0,0,0,0,0,0},
+    {11,12,8,10,9,1,10,1,2,0,0,0,0,0,0},
+    {10,9,5,11,12,8,1,6,3,0,0,0,0,0,0},
+    {9,6,3,9,3,2,9,2,10,8,11,12,0,0,0},
+    {5,10,9,7,2,4,11,12,8,0,0,0,0,0,0},
+    {7,10,9,7,9,1,7,1,4,11,12,8,0,0,0},
+    {11,12,8,10,9,5,7,2,4,3,1,6,0,0,0},
+    {3,4,7,3,7,10,3,10,6,10,9,6,11,12,8},
+    {10,9,5,11,12,4,11,4,3,0,0,0,0,0,0},
+    {12,4,3,12,3,11,2,10,9,2,9,1,0,0,0},
+    {6,11,12,6,12,4,6,4,1,10,9,5,0,0,0},
+    {6,11,12,6,12,4,6,4,9,4,2,9,2,10,9},
+    {12,7,2,12,2,3,12,3,11,5,10,9,0,0,0},
+    {7,10,9,7,9,1,7,1,12,1,3,12,3,11,12},
+    {6,11,12,6,12,7,6,7,1,7,2,1,5,10,9},
+    {7,10,9,7,9,6,7,6,12,6,11,12,0,0,0},
+    {8,6,9,8,9,12,0,0,0,0,0,0,0,0,0},
+    {5,1,2,6,9,12,6,12,8,0,0,0,0,0,0},
+    {8,3,1,8,1,9,8,9,12,0,0,0,0,0,0},
+    {5,9,12,5,12,8,5,8,2,8,3,2,0,0,0},
+    {4,7,2,12,8,6,12,6,9,0,0,0,0,0,0},
+    {7,5,1,7,1,4,9,12,8,9,8,6,0,0,0},
+    {8,3,1,8,1,9,8,9,12,2,4,7,0,0,0},
+    {3,4,7,3,7,5,3,5,8,5,9,8,9,12,8},
+    {3,6,9,3,9,12,3,12,4,0,0,0,0,0,0},
+    {3,6,9,3,9,12,3,12,4,5,1,2,0,0,0},
+    {4,1,9,4,9,12,0,0,0,0,0,0,0,0,0},
+    {5,9,12,5,12,4,5,4,2,0,0,0,0,0,0},
+    {3,6,9,3,9,12,3,12,2,12,7,2,0,0,0},
+    {3,6,9,3,9,12,3,12,1,12,7,1,7,5,1},
+    {2,1,9,2,9,12,2,12,7,0,0,0,0,0,0},
+    {7,5,9,7,9,12,0,0,0,0,0,0,0,0,0},
+    {10,12,8,10,8,6,10,6,5,0,0,0,0,0,0},
+    {10,12,8,10,8,6,10,6,2,6,1,2,0,0,0},
+    {10,12,8,10,8,3,10,3,5,3,1,5,0,0,0},
+    {8,3,2,8,2,10,8,10,12,0,0,0,0,0,0},
+    {10,12,8,10,8,6,10,6,5,4,7,2,0,0,0},
+    {10,12,8,10,8,6,10,6,7,6,1,7,1,4,7},
+    {10,12,8,10,8,3,10,3,5,3,1,5,2,4,7},
+    {3,4,7,3,7,10,3,10,8,10,12,8,0,0,0},
+    {3,6,5,3,5,10,3,10,4,10,12,4,0,0,0},
+    {6,1,2,6,2,10,6,10,3,10,12,3,12,4,3},
+    {10,12,4,10,4,1,10,1,5,0,0,0,0,0,0},
+    {12,4,2,12,2,10,0,0,0,0,0,0,0,0,0},
+    {12,7,2,12,2,3,12,3,10,3,6,10,6,5,10},
+    {7,10,12,3,6,1,0,0,0,0,0,0,0,0,0},
+    {12,7,2,12,2,1,12,1,10,1,5,10,0,0,0},
+    {12,7,10,0,0,0,0,0,0,0,0,0,0,0,0},
+    {7,8,11,7,11,10,0,0,0,0,0,0,0,0,0},
+    {2,5,1,10,7,8,10,8,11,0,0,0,0,0,0},
+    {6,3,1,8,11,10,8,10,7,0,0,0,0,0,0},
+    {11,10,7,11,7,8,5,6,3,5,3,2,0,0,0},
+    {4,8,11,4,11,10,4,10,2,0,0,0,0,0,0},
+    {10,5,1,10,1,4,10,4,11,4,8,11,0,0,0},
+    {4,8,11,4,11,10,4,10,2,6,3,1,0,0,0},
+    {4,8,11,4,11,10,4,10,3,10,5,3,5,6,3},
+    {7,4,3,7,3,11,7,11,10,0,0,0,0,0,0},
+    {7,4,3,7,3,11,7,11,10,1,2,5,0,0,0},
+    {6,11,10,6,10,7,6,7,1,7,4,1,0,0,0},
+    {4,2,5,4,5,6,4,6,7,6,11,7,11,10,7},
+    {10,2,3,10,3,11,0,0,0,0,0,0,0,0,0},
+    {1,3,11,1,11,10,1,10,5,0,0,0,0,0,0},
+    {6,11,10,6,10,2,6,2,1,0,0,0,0,0,0},
+    {11,10,5,11,5,6,0,0,0,0,0,0,0,0,0},
+    {11,9,5,11,5,7,11,7,8,0,0,0,0,0,0},
+    {2,7,8,2,8,11,2,11,1,11,9,1,0,0,0},
+    {11,9,5,11,5,7,11,7,8,1,6,3,0,0,0},
+    {9,6,3,9,3,2,9,2,11,2,7,11,7,8,11},
+    {5,2,4,5,4,8,5,8,9,8,11,9,0,0,0},
+    {11,9,1,11,1,4,11,4,8,0,0,0,0,0,0},
+    {11,9,5,11,5,2,11,2,8,2,4,8,3,1,6},
+    {4,8,11,4,11,9,4,9,3,9,6,3,0,0,0},
+    {7,4,3,7,3,11,7,11,5,11,9,5,0,0,0},
+    {7,4,3,7,3,11,7,11,2,11,9,2,9,1,2},
+    {11,9,5,11,5,7,11,7,6,7,4,6,4,1,6},
+    {4,2,7,11,9,6,0,0,0,0,0,0,0,0,0},
+    {5,2,3,5,3,11,5,11,9,0,0,0,0,0,0},
+    {9,1,3,9,3,11,0,0,0,0,0,0,0,0,0},
+    {11,9,5,11,5,2,11,2,6,2,1,6,0,0,0},
+    {11,9,6,0,0,0,0,0,0,0,0,0,0,0,0},
+    {9,10,7,9,7,8,9,8,6,0,0,0,0,0,0},
+    {9,10,7,9,7,8,9,8,6,2,5,1,0,0,0},
+    {8,3,1,8,1,9,8,9,7,9,10,7,0,0,0},
+    {9,10,7,9,7,8,9,8,5,8,3,5,3,2,5},
+    {4,8,6,4,6,9,4,9,2,9,10,2,0,0,0},
+    {10,5,1,10,1,4,10,4,9,4,8,9,8,6,9},
+    {8,3,1,8,1,9,8,9,4,9,10,4,10,2,4},
+    {8,3,4,10,5,9,0,0,0,0,0,0,0,0,0},
+    {3,6,9,3,9,10,3,10,4,10,7,4,0,0,0},
+    {3,6,9,3,9,10,3,10,4,10,7,4,2,5,1},
+    {7,4,1,7,1,9,7,9,10,0,0,0,0,0,0},
+    {4,2,5,4,5,9,4,9,7,9,10,7,0,0,0},
+    {9,10,2,9,2,3,9,3,6,0,0,0,0,0,0},
+    {10,5,1,10,1,3,10,3,9,3,6,9,0,0,0},
+    {10,2,1,10,1,9,0,0,0,0,0,0,0,0,0},
+    {10,5,9,0,0,0,0,0,0,0,0,0,0,0,0},
+    {5,7,8,5,8,6,0,0,0,0,0,0,0,0,0},
+    {2,7,8,2,8,6,2,6,1,0,0,0,0,0,0},
+    {1,5,7,1,7,8,1,8,3,0,0,0,0,0,0},
+    {3,2,7,3,7,8,0,0,0,0,0,0,0,0,0},
+    {4,8,6,4,6,5,4,5,2,0,0,0,0,0,0},
+    {8,6,1,8,1,4,0,0,0,0,0,0,0,0,0},
+    {5,2,4,5,4,8,5,8,1,8,3,1,0,0,0},
+    {3,4,8,0,0,0,0,0,0,0,0,0,0,0,0},
+    {3,6,5,3,5,7,3,7,4,0,0,0,0,0,0},
+    {6,1,2,6,2,7,6,7,3,7,4,3,0,0,0},
+    {5,7,4,5,4,1,0,0,0,0,0,0,0,0,0},
+    {4,2,7,0,0,0,0,0,0,0,0,0,0,0,0},
+    {6,5,2,6,2,3,0,0,0,0,0,0,0,0,0},
+    {3,6,1,0,0,0,0,0,0,0,0,0,0,0,0},
+    {5,2,1,0,0,0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}}; 
+      
+  for(int i = 0 ; i < 256 ; i++ )
+    {
+    this->m_CubeConfigurationCodeToListOfTriangle[i] = marchingCubesLookupTable[i];
+    }
+      
 }
-
 
 // Destructor
 template<class TInputImage, class TOutputMesh>
@@ -76,7 +355,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
 {
   
 }
-
 
 template<class TInputImage, class TOutputMesh>
 void
@@ -161,7 +439,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
 
   cellRegionWalker.GoToBegin();
 
-  
   typename NeighborhoodIteratorType::OffsetType offset;
         
   offset[0] = 0;
@@ -284,7 +561,17 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   const DirectedPointType & point2,
   const DirectedPointType & point3 )
 {
-   // Here : insert points and triangle cell into the output Mesh
+  std::cout<<"Running AddTriangleToOutputMesh"<<std::endl;
+  PointsContainer    * pointsContainer  = this->GetOutput()->GetPoints();
+  PointDataContainer * normalsContainer = this->GetOutput()->GetPointData();
+  
+  // Insert the point in the output mesh.
+  pointsContainer->InsertElement(  this->m_NumberOfPoints++, point1.point );
+    pointsContainer->InsertElement(  this->m_NumberOfPoints++, point2.point ); 
+    pointsContainer->InsertElement(  this->m_NumberOfPoints++, point3.point );
+   
+  // Here : insert triangle cell into the output Mesh
+  
 }
 
 
@@ -297,6 +584,48 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   const NeighborhoodIteratorType & cellRegionWalker,
   DirectedPointType & outputDirectedPoint )
 {
+
+//Sophie's code (verified)  
+
+  //quick fix "-1" right solution: shift numbers in list of vertices (at the top)
+  unsigned int v1 = vertexPair.Vertex1;
+  unsigned int v2 = vertexPair.Vertex2;
+
+//GetIndex not the method to use - find the right one to iterate through active nodes
+//create member variable of size 8 array - type PixelType, populate in IsInsideSurface function. can access using v1 and v2
+//array of 8 elements - type IndexType - fill in IsInsideSurface and get index value from new array 
+
+  IndexType index1 = cellRegionWalker.GetIndex(v1);
+  IndexType index2 = cellRegionWalker.GetIndex(v2);
+
+  const InputImageType * inputImage = 
+  static_cast< const InputImageType * > ( this->ProcessObject::GetInput(0) );
+
+  typename InputImageType::PointType point1;
+  typename InputImageType::PointType point2;
+  
+  inputImage->TransformIndexToPhysicalPoint( index1,point1 );
+  inputImage->TransformIndexToPhysicalPoint( index2,point2 );
+
+  //typename tells compiler its type
+  typedef typename InputImageType::PixelType PixelType;
+  typedef typename NumericTraits< PixelType >::RealType RealPixelType;
+
+  //static_cast = typecasting in templates
+  RealPixelType intensity1 = static_cast< RealPixelType >( m_PixelTypeArray[v1] );
+  RealPixelType intensity2 = static_cast< RealPixelType >( m_PixelTypeArray[v2] );
+  //RealPixelType intensity1 = static_cast< RealPixelType >( cellRegionWalker.GetElement(v1) );
+  //RealPixelType intensity2 = static_cast< RealPixelType >( cellRegionWalker.GetElement(v2) );
+
+  
+
+  //does the computation for Linear Interpolation for the middle pt coords
+  double alpha = ( m_SurfaceValue - intensity1 ) / ( intensity2 - intensity1 );
+  typename InputImageType::PointType Q;
+
+  Q.SetToBarycentricCombination( point2, point1, alpha );  
+  
+  outputDirectedPoint.point = Q;
    // TODO Here:
    // * Get the two vertex physical coordinates
    // * Compute Linear interpolation for the middle point coordinates
@@ -336,15 +665,32 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   bool foundSmallerValue = false;
 
   TableIndexType tableIndex = itk::NumericTraits< TableIndexType >::Zero;
+  TableIndexType currentNode = 1;
 
+  typedef typename InputImageType::PixelType PixelType;
+  typedef typename NumericTraits< PixelType >::RealType RealPixelType;
+ 
+  
   typename NeighborhoodIteratorType::ConstIterator pixelIterator = cellRegionWalker.Begin();
 
+  //Sophie's counter
+  int i = 0;  
+   
+  
   // Check for pixel values above and below the iso-surface value.
   while( pixelIterator != cellRegionWalker.End() )
     {
+    //sophie lines
+    
+    
+    this->m_PixelTypeArray[i] = pixelIterator.Get();
+    this->m_IndexTypeArray[i] = cellRegionWalker.GetIndex(i);
+    i++;
+    //end sophie code
+    
     if( pixelIterator.Get() >= this->m_SurfaceValue )
       {
-      tableIndex |= 1;
+      tableIndex |= currentNode;
       foundLargerValue = true;
       }
     else
@@ -354,10 +700,13 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
         foundSmallerValue = true;
         }
       }
-    tableIndex <<= 1;
+    currentNode <<= 1;
+  
+  
+    
     ++pixelIterator;
     }
-
+    
   this->m_TableIndex = tableIndex;
 
   const bool surfaceIsInside = foundSmallerValue && foundLargerValue;
