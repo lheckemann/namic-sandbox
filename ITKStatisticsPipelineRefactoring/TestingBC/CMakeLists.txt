@@ -21,6 +21,9 @@ ADD_TEST(itkKdTreeBasedKmeansEstimatorBCTest ${STATISTICS_TESTS}
 ADD_TEST(itkVariableDimensionHistogramBCTest ${STATISTICS_TESTS} itkVariableDimensionHistogramTest)
 ADD_TEST(itkListSampleToHistogramFilterBCTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 
+ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
+
+
 SET(Statistics_SRCS
   itkMeanCalculatorTest.cxx
   itkScalarImageTextureCalculatorTest.cxx
