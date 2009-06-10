@@ -82,7 +82,12 @@ void vtkChangeTrackerSegmentationStep::ShowUserInterface()
   int intMin, intMax;
 
   if (node) { 
-    vtkMRMLVolumeNode *volumeNode = vtkMRMLVolumeNode::SafeDownCast(node->GetScene()->GetNodeByID(node->GetScan1_SuperSampleRef()));
+    vtkMRMLVolumeNode *volumeNode = NULL;
+    if(node->GetScan1_SuperSampleInputSegmRef())
+      volumeNode = vtkMRMLVolumeNode::SafeDownCast(node->GetScene()->GetNodeByID(node->GetScan1_SuperSampleInputSegmRef()));
+    else
+      volumeNode = vtkMRMLVolumeNode::SafeDownCast(node->GetScene()->GetNodeByID(node->GetScan1_SuperSampleRef()));
+
     if (volumeNode) {
       vtkSlicerApplicationLogic *applicationLogic = this->GetGUI()->GetLogic()->GetApplicationLogic();
       applicationLogic->GetSelectionNode()->SetActiveVolumeID(volumeNode->GetID());
@@ -227,7 +232,12 @@ void vtkChangeTrackerSegmentationStep::PreSegmentScan1Define() {
   // ---------------------------------
   vtkMRMLChangeTrackerNode* Node      =  this->GetGUI()->GetNode();
   if (!Node) return;
-  vtkMRMLVolumeNode *volumeNode = vtkMRMLVolumeNode::SafeDownCast(Node->GetScene()->GetNodeByID(Node->GetScan1_SuperSampleRef()));
+  vtkMRMLVolumeNode *volumeNode = NULL;
+  if(Node->GetScan1_SuperSampleInputSegmRef())
+    volumeNode = vtkMRMLVolumeNode::SafeDownCast(Node->GetScene()->GetNodeByID(Node->GetScan1_SuperSampleInputSegmRef()));
+  else
+    volumeNode = vtkMRMLVolumeNode::SafeDownCast(Node->GetScene()->GetNodeByID(Node->GetScan1_SuperSampleRef()));
+
   if (!volumeNode) return;
   //vtkMRMLVolumeNode *spgrNode = vtkMRMLVolumeNode::SafeDownCast(Node->GetScene()->GetNodeByID(Node->GetScan1_Ref()));
   // if (!spgrNode) return;

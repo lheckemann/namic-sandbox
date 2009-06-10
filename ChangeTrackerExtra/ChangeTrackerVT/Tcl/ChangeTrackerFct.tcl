@@ -36,7 +36,7 @@ namespace eval ChangeTrackerTcl {
       # -------------------------------------
       # Define Interface Parameters 
       # -------------------------------------
-      set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+      set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
       set NODE [$GUI  GetNode]
       if {$NODE == ""} {return }
 
@@ -181,7 +181,7 @@ namespace eval ChangeTrackerTcl {
       # -------------------------------------
       # Define Interface Parameters 
       # -------------------------------------
-      set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+      set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
       set NODE [$GUI  GetNode]
       if {$NODE == ""} {return }
 
@@ -206,7 +206,7 @@ namespace eval ChangeTrackerTcl {
         # -------------------------------------
         # Define Interfrace Parameters 
         # -------------------------------------
-        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
         set NODE [$GUI  GetNode]
 
         if {$NODE == ""} {return $NODE}
@@ -353,7 +353,7 @@ namespace eval ChangeTrackerTcl {
        # -------------------------------------
        # Define Interfrace Parameters 
        # -------------------------------------
-       set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+       set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
        set NODE [$GUI  GetNode]
        if {$NODE == ""} {return $NODE}
        set SCENE [$NODE GetScene]
@@ -374,7 +374,7 @@ namespace eval ChangeTrackerTcl {
         # -------------------------------------
         # Define Interface Parameters 
         # -------------------------------------
-        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
         set NODE [$GUI  GetNode]
         if {$NODE == ""} {return }
 
@@ -481,7 +481,7 @@ namespace eval ChangeTrackerTcl {
         # -------------------------------------
         # Define Interface Parameters 
         # -------------------------------------
-        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
         set NODE [$GUI  GetNode]
         if {$NODE == ""} {return }
 
@@ -504,7 +504,7 @@ namespace eval ChangeTrackerTcl {
         # -------------------------------------
         # Define Interfrace Parameters 
         # -------------------------------------
-        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
         set NODE [$GUI  GetNode]
         if {$NODE == ""} {return 0}
 
@@ -857,7 +857,7 @@ namespace eval ChangeTrackerTcl {
         # -------------------------------------
         # Define Interfrace Parameters 
         # -------------------------------------
-        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
         set NODE [$GUI  GetNode]
         if {$NODE == ""} {return 0}
 
@@ -877,7 +877,7 @@ namespace eval ChangeTrackerTcl {
         # -------------------------------------
         # Define Interface Parameters 
         # -------------------------------------
-        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
         set NODE [$GUI  GetNode]
         if {$NODE == ""} {return $NODE}
 
@@ -1222,7 +1222,7 @@ namespace eval ChangeTrackerTcl {
 
   # -------------------------------------------------------------
   proc SaveVolumeFileName {VolNode} {
-      set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+      set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
       set NODE [$GUI  GetNode]
       if {$NODE == ""} {return ""}
       set WORK_DIR [$NODE GetWorkingDir]
@@ -1251,7 +1251,7 @@ namespace eval ChangeTrackerTcl {
        # -------------------------------------
        # Define Interfrace Parameters 
        # -------------------------------------
-       set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+       set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
        set NODE [$GUI  GetNode]
        if {$NODE == ""} {return 0}
  
@@ -1460,7 +1460,7 @@ namespace eval ChangeTrackerTcl {
    # -------------------------------------
         # Define Interfrace Parameters 
         # -------------------------------------
-        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+        set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
         set NODE [$GUI  GetNode]
         if {$NODE == ""} {return 0}
         set SCENE [$NODE GetScene]
@@ -1476,11 +1476,11 @@ namespace eval ChangeTrackerTcl {
     }
 
   proc Print { TEXT } {
-      # set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"]
+      # set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"]
       # set LOGIC [$GUI GetLogic]
       # $LOGIC PrintText "$TEXT"
       # return
-      if { [catch { set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"] }] }  {
+      if { [catch { set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"] }] }  {
         puts "$TEXT" 
       } else {
         set LOGIC [$GUI GetLogic]
@@ -1490,7 +1490,7 @@ namespace eval ChangeTrackerTcl {
 
   proc VolumeWriter {fileName Output } {
     
-    # if {[catch {set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTracker"] } ]} { return }
+    # if {[catch {set GUI  [$::slicer3::Application GetModuleGUIByName "ChangeTrackerVT"] } ]} { return }
     # if {[catch {set NODE [$GUI  GetNode]}]} { return }
     # set DIR [$NODE GetWorkingDir] 
     set DIR  /data/local/Slicer3TestData/blub 

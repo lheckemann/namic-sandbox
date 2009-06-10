@@ -16,6 +16,7 @@ class vtkImageRectangularSource;
 class vtkMRMLROINode;
 class vtkObserverManager;
 class vtkSlicerROIDisplayWidget;
+class vtkSlicerNodeSelectorWidget;
 
 class VTK_CHANGETRACKER_EXPORT vtkChangeTrackerROIStep : public vtkChangeTrackerStep
 {
