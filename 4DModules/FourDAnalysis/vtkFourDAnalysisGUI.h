@@ -46,6 +46,8 @@ class vtkKWRange;
 class vtkIntensityCurves;
 class vtkKWCheckButtonWithLabel;
 
+//class vtkFourDImageGUI;
+
 class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 {
  public:
@@ -120,7 +122,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void BuildGUIForActiveBundleSelectorFrame();
   void BuildGUIForFrameControlFrame(int show);
   void BuildGUIForFunctionViewer(int show);
-  //void BuildGUIForMapGenerator(int show);
+  void BuildGUIForCurveFitting(int show);
+  void BuildGUIForMapGenerator(int show);
 
   //----------------------------------------------------------------
   // Update routines
@@ -222,6 +225,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkFourDAnalysisLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;
+
+  //vtkFourDImageGUI* FourDImageGUI;
 
   double  RangeLower;
   double  RangeUpper;

@@ -105,11 +105,6 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->IntensityCurves = vtkIntensityCurves::New();
   this->FittedCurve     = vtkDoubleArray::New();
 
-  this->AutoPlayFG              = 0;
-  this->AutoPlayBG              = 0;
-  this->AutoPlayInterval        = 10;
-  this->AutoPlayIntervalCounter = 0;
-  
   //----------------------------------------------------------------
   // GUI widgets
   this->ProgressDialog = NULL;
@@ -119,9 +114,6 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   // Frame control
   this->ForegroundVolumeSelectorScale = NULL;
   this->BackgroundVolumeSelectorScale = NULL;
-  this->AutoPlayFGButton              = NULL;
-  this->AutoPlayBGButton              = NULL;
-  this->AutoPlayIntervalEntry         = NULL;
 
   // Curve fitting / parameter map
   this->AcqTimeEntry        = NULL;
@@ -198,21 +190,6 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     {
     this->BackgroundVolumeSelectorScale->SetParent(NULL);
     this->BackgroundVolumeSelectorScale->Delete();
-    }
-  if (this->AutoPlayFGButton)
-    {
-    this->AutoPlayFGButton->SetParent(NULL);
-    this->AutoPlayFGButton->Delete();
-    }
-  if (this->AutoPlayBGButton)
-    {
-    this->AutoPlayBGButton->SetParent(NULL);
-    this->AutoPlayBGButton->Delete();
-    }
-  if (this->AutoPlayIntervalEntry)
-    {
-    this->AutoPlayIntervalEntry->SetParent(NULL);
-    this->AutoPlayIntervalEntry->Delete();
     }
   if (this->WindowLevelRange)
     {
@@ -300,20 +277,6 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     this->MapOutputVolumePrefixEntry->SetParent(NULL);
     this->MapOutputVolumePrefixEntry->Delete();
     }
-  /*
-  if (this->MapOutputSelector)
-    {
-    this->MapOutputSelector->SetParent(NULL);
-    this->MapOutputSelector->Delete();
-    }
-  */
-  /*
-  if (this->MapOutputVolumeMenu)
-    {
-    this->MapOutputVolumeMenu->SetParent(NULL);
-    this->MapOutputVolumeMenu->Delete();
-    }
-  */
   if (this->RunScriptButton)
     {
     this->RunScriptButton->SetParent(NULL);
@@ -388,6 +351,12 @@ void vtkFourDAnalysisGUI::Enter()
   vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
   scene->RegisterNodeClass(curveNode);
   curveNode->Delete();
+
+  //this->FourDImageGUI = 
+  //  vtkFourDImageGUI::SafeDownCast(vtkSlicerApplication::SafeDownCast(this->GetApplication())
+  //                                 ->GetModuleGUIByName("4D Image"));
+
+
 }
 
 
@@ -427,21 +396,6 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
   if (this->BackgroundVolumeSelectorScale)
     {
     this->BackgroundVolumeSelectorScale
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->AutoPlayFGButton)
-    {
-    this->AutoPlayFGButton
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->AutoPlayBGButton)
-    {
-    this->AutoPlayBGButton
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->AutoPlayIntervalEntry)
-    {
-    this->AutoPlayIntervalEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->WindowLevelRange)
@@ -541,20 +495,6 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
     this->MapOutputVolumePrefixEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-  /*
-  if (this->MapOutputSelector)
-    {
-    this->MapOutputSelector
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  */
-  /*
-  if (this->MapOutputVolumeMenu)
-    {
-    this->MapOutputVolumeMenu->GetMenu()
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-  */
   if (this->RunScriptButton)
     {
     this->RunScriptButton
@@ -610,21 +550,6 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     {
     this->BackgroundVolumeSelectorScale
       ->AddObserver(vtkKWScale::ScaleValueChangingEvent /*vtkKWScale::ScaleValueChangedEvent*/, (vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->AutoPlayFGButton)
-    {
-    this->AutoPlayFGButton
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->AutoPlayBGButton)
-    {
-    this->AutoPlayBGButton
-      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->AutoPlayIntervalEntry)
-    {
-    this->AutoPlayIntervalEntry
-      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
   if (this->WindowLevelRange)
     {
@@ -697,20 +622,6 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->MapOutputVolumePrefixEntry
       ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-  /*
-  if (this->MapOutputSelector)
-    {
-    this->MapOutputSelector->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-                                          (vtkCommand *) this->GUICallbackCommand);
-    }
-  */
-  /*
-  if (this->MapOutputVolumeMenu)
-    {
-    this->MapOutputVolumeMenu->GetMenu()
-      ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-    }
-  */
   if (this->RunScriptButton)
     {
     this->RunScriptButton
@@ -825,53 +736,6 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       {
       SetBackground(bundleNode->GetID(), volume);
       }
-    }
-  if (this->AutoPlayFGButton == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    if (!this->AutoPlayFG)
-      {
-      // NOTE: interval = TimerInterval * AutoPlayInterval; 
-      double interval_s = this->AutoPlayIntervalEntry->GetValueAsDouble();
-      this->AutoPlayFG              = 1;
-      this->AutoPlayInterval        = (int) (interval_s * 1000.0 / (double)this->TimerInterval);  
-      this->AutoPlayIntervalCounter = 0;
-      this->AutoPlayFGButton->SetText ("| |");
-      this->AutoPlayFGButton->Modified();
-      }
-    else
-      {
-      this->AutoPlayFG              = 0;
-      this->AutoPlayFGButton->SetText (" > ");
-      this->AutoPlayFGButton->Modified();
-      }
-    }
-  if (this->AutoPlayBGButton == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    if (!this->AutoPlayBG)
-      {
-      // NOTE: interval = TimerInterval * AutoPlayInterval; 
-      double interval_s = this->AutoPlayIntervalEntry->GetValueAsDouble();
-      this->AutoPlayBG              = 1;
-      this->AutoPlayInterval        = (int) (interval_s * 1000.0 / (double)this->TimerInterval);  
-      this->AutoPlayIntervalCounter = 0;
-      this->AutoPlayBGButton->SetText ("| |");
-      this->AutoPlayBGButton->Modified();
-      }
-    else
-      {
-      this->AutoPlayBG              = 0;
-      this->AutoPlayBGButton->SetText (" > ");
-      this->AutoPlayBGButton->Modified();
-      }
-    }
-  if (this->AutoPlayIntervalEntry == vtkKWEntry::SafeDownCast(caller)
-      && event == vtkKWEntry::EntryValueChangedEvent)
-    {
-    // NOTE: interval = TimerInterval * AutoPlayInterval; 
-    double interval_s = this->AutoPlayIntervalEntry->GetValueAsDouble();
-    this->AutoPlayInterval = (int) (interval_s * 1000.0 / (double)this->TimerInterval);
     }
   else if (this->WindowLevelRange == vtkKWRange::SafeDownCast(caller)
       && event == vtkKWRange::RangeValueChangingEvent)
@@ -1174,57 +1038,6 @@ void vtkFourDAnalysisGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
-    if (this->AutoPlayFG || this->AutoPlayBG)
-      {
-      this->AutoPlayIntervalCounter ++;
-      if (this->AutoPlayInterval != 0 &&
-          this->AutoPlayIntervalCounter % this->AutoPlayInterval == 0)
-        {
-        double current;
-        double range[2];
-        int    volume;
-        this->AutoPlayIntervalCounter = 0;
-          
-        // increment the frame id for foreground
-        if (this->AutoPlayFG)
-          {
-          this->ForegroundVolumeSelectorScale->GetRange(range);
-          current = this->ForegroundVolumeSelectorScale->GetValue();
-          current += 1;
-          if (current > range[1])
-            {
-            current = 0.0;
-            }
-          this->ForegroundVolumeSelectorScale->SetValue((double)current);
-          volume = (int)current;
-          vtkMRML4DBundleNode *bundleNode = 
-            vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
-          if (bundleNode)
-            {
-            SetForeground(bundleNode->GetID(), volume);
-            }
-          }
-        // increment the frame id for foreground
-        if (this->AutoPlayBG)
-          {
-          this->BackgroundVolumeSelectorScale->GetRange(range);
-          current = this->BackgroundVolumeSelectorScale->GetValue();
-          current += 1;
-          if (current > range[1])
-            {
-            current = 0.0;
-            }
-          this->BackgroundVolumeSelectorScale->SetValue((double)current);
-          volume = (int)current;
-          vtkMRML4DBundleNode *bundleNode = 
-            vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
-          if (bundleNode)
-            {
-            SetBackground(bundleNode->GetID(), volume);
-            }
-          }
-        }
-      }
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
@@ -1246,6 +1059,8 @@ void vtkFourDAnalysisGUI::BuildGUI ( )
   BuildGUIForActiveBundleSelectorFrame();
   BuildGUIForFrameControlFrame(0);
   BuildGUIForFunctionViewer(0);
+  BuildGUIForCurveFitting(0);
+  BuildGUIForMapGenerator(0);
 
 }
 
@@ -1347,14 +1162,6 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
   this->ForegroundVolumeSelectorScale->ExpandEntryOff();
   //this->ForegroundVolumeSelectorScale->SetWidth(30);
 
-  this->AutoPlayFGButton = vtkKWPushButton::New ( );
-  this->AutoPlayFGButton->SetParent ( fgframe );
-  this->AutoPlayFGButton->Create ( );
-  this->AutoPlayFGButton->SetText (" > ");
-  this->AutoPlayFGButton->SetWidth (2);
-
-  this->Script("pack %s -side right -fill x -padx 2 -pady 2", 
-               this->AutoPlayFGButton->GetWidgetName());
   this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
                this->ForegroundVolumeSelectorScale->GetWidgetName());
 
@@ -1375,14 +1182,6 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
   this->BackgroundVolumeSelectorScale->ExpandEntryOff();
   //this->BackgroundVolumeSelectorScale->SetWidth(30);
   
-  this->AutoPlayBGButton = vtkKWPushButton::New ( );
-  this->AutoPlayBGButton->SetParent ( bgframe );
-  this->AutoPlayBGButton->Create ( );
-  this->AutoPlayBGButton->SetText (" > ");
-  this->AutoPlayBGButton->SetWidth (2);
-
-  this->Script("pack %s -side right -fill x -padx 2 -pady 2", 
-               this->AutoPlayBGButton->GetWidgetName());
   this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
                this->BackgroundVolumeSelectorScale->GetWidgetName());
 
@@ -1392,28 +1191,6 @@ void vtkFourDAnalysisGUI::BuildGUIForFrameControlFrame(int show)
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  apframe->GetWidgetName() );
   
-  vtkKWLabel *frlabel1 = vtkKWLabel::New();
-  frlabel1->SetParent( apframe );
-  frlabel1->Create();
-  frlabel1->SetText("Interval: ");
-
-  this->AutoPlayIntervalEntry = vtkKWEntry::New ( );
-  this->AutoPlayIntervalEntry->SetParent( apframe );
-  this->AutoPlayIntervalEntry->Create();
-  this->AutoPlayIntervalEntry->SetWidth(8);
-  this->AutoPlayIntervalEntry->SetRestrictValueToDouble();
-  this->AutoPlayIntervalEntry->SetValueAsDouble(1.0);
-
-  vtkKWLabel *frlabel2 = vtkKWLabel::New();
-  frlabel2->SetParent( apframe );
-  frlabel2->Create();
-  frlabel2->SetText(" s ");
-
-  this->Script("pack %s %s %s -side left -fill x -padx 2 -pady 2", 
-               frlabel1->GetWidgetName(),
-               this->AutoPlayIntervalEntry->GetWidgetName(),
-               frlabel2->GetWidgetName() );
-
   // -----------------------------------------
   // Contrast control
 
@@ -1612,6 +1389,28 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
                this->ErrorBarCheckButton->GetWidgetName());
 
   frame->Delete();
+  conBrowsFrame->Delete();
+
+}
+
+
+//----------------------------------------------------------------------------
+void vtkFourDAnalysisGUI::BuildGUIForCurveFitting(int show)
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("FourDAnalysis");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Curve Fitting");
+  if (!show)
+    {
+    conBrowsFrame->CollapseFrame();
+    }
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
   // Curve fitting Setting frame
@@ -1619,7 +1418,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   vtkKWFrameWithLabel *cframe = vtkKWFrameWithLabel::New();
   cframe->SetParent(conBrowsFrame->GetFrame());
   cframe->Create();
-  cframe->SetLabelText ("Curve Fitting Configuration");
+  cframe->SetLabelText ("Configurations / Initial Parameters");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  cframe->GetWidgetName() );
 
@@ -1695,14 +1494,13 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
                  this->InitialParameterList->GetWidgetName() );
 
 
-
   // -----------------------------------------
-  // Single curve fitting
+  // Curve fitting
   
   vtkKWFrameWithLabel *oframe = vtkKWFrameWithLabel::New();
   oframe->SetParent(conBrowsFrame->GetFrame());
   oframe->Create();
-  oframe->SetLabelText ("Curve Fitting");
+  oframe->SetLabelText ("Results");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  oframe->GetWidgetName() );
 
@@ -1762,17 +1560,39 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  this->ResultParameterList->GetWidgetName() );
   
-  oframe->Delete();
-  fittingLabelLabel->Delete();
 
 
+
+  conBrowsFrame->Delete();
+}
+
+
+//----------------------------------------------------------------------------
+void vtkFourDAnalysisGUI::BuildGUIForMapGenerator(int show)
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("FourDAnalysis");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Curve Fitting");
+  if (!show)
+    {
+    conBrowsFrame->CollapseFrame();
+    }
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  
   // -----------------------------------------
-  // Parameter Map
+  // Map Generator
 
   vtkKWFrameWithLabel *dframe = vtkKWFrameWithLabel::New();
   dframe->SetParent(conBrowsFrame->GetFrame());
   dframe->Create();
-  dframe->SetLabelText ("Generate Map");
+  dframe->SetLabelText ("Configurations / Input parameters");
   this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                 dframe->GetWidgetName() );
 
@@ -1959,6 +1779,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
 //----------------------------------------------------------------------------
 void vtkFourDAnalysisGUI::UpdateAll()
 {
+  
 }
 
 
