@@ -136,6 +136,11 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   void SetWindowLevelForCurrentFrame();
   void UpdateSeriesSelectorMenus();
 
+  //----------------------------------------------------------------
+  // Other utility functions
+  //----------------------------------------------------------------
+  const char* GetActive4DBundleNodeID();
+
 
  protected:
   
@@ -243,6 +248,7 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   //ETX
   
   WindowLevelUpdateStatusType WindowLevelUpdateStatus;
+
   NodeIDListType MaskNodeIDList;
   NodeIDListType BundleNodeIDList;
 
