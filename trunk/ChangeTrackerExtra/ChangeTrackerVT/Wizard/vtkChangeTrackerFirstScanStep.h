@@ -35,6 +35,7 @@ protected:
   ~vtkChangeTrackerFirstScanStep();
 
   vtkSlicerNodeSelectorWidget *SecondVolumeMenuButton;
+  vtkSlicerNodeSelectorWidget *InputSegmSelector;
 
   static void WizardGUICallback(vtkObject *caller, unsigned long eid, void *clientData, void *callData );
   void ProcessGUIEvents(vtkObject *caller, void *callData);

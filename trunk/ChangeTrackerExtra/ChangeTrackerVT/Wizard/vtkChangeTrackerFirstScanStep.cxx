@@ -27,6 +27,7 @@ vtkChangeTrackerFirstScanStep::vtkChangeTrackerFirstScanStep()
   this->SetDescription("Select first and second scan of patient");
   this->WizardGUICallbackCommand->SetCallback(vtkChangeTrackerFirstScanStep::WizardGUICallback);
   this->SecondVolumeMenuButton = NULL;
+  this->InputSegmSelector = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -36,6 +37,12 @@ vtkChangeTrackerFirstScanStep::~vtkChangeTrackerFirstScanStep() {
    this->SecondVolumeMenuButton->SetParent(NULL);
    this->SecondVolumeMenuButton->Delete();
    this->SecondVolumeMenuButton = NULL;
+   }
+ 
+ if(this->InputSegmSelector)
+   {
+   this->InputSegmSelector->Delete();
+   this->InputSegmSelector = NULL;
    }
 }
 
@@ -143,6 +150,20 @@ void vtkChangeTrackerFirstScanStep::ShowUserInterface()
     // look at GrayscaleSelector vtkSlicerVolumeMathGUI::AddGUIObservers
   }
   this->Script( "pack %s %s -side top -anchor nw -fill x -padx 0 -pady 2",  this->VolumeMenuButton->GetWidgetName(), this->SecondVolumeMenuButton->GetWidgetName());
+
+  if (!this->InputSegmSelector) {
+    this->InputSegmSelector = vtkSlicerNodeSelectorWidget::New();
+    this->InputSegmSelector->SetParent(this->Frame->GetFrame());
+    this->InputSegmSelector->Create();
+    this->InputSegmSelector->SetWidth(CHANGETRACKER_MENU_BUTTON_WIDTH*2);
+    this->InputSegmSelector->SetNodeClass("vtkMRMLScalarVolumeNode", "LabelMap", "1", NULL);
+    this->InputSegmSelector->NewNodeEnabledOff();
+    this->InputSegmSelector->SetMRMLScene(this->GetGUI()->GetLogic()->GetMRMLScene());
+    this->InputSegmSelector->SetLabelText("Segmentation of the 1st scan");
+    this->InputSegmSelector->SetBalloonHelpString("Specify segmentation of the first time-point. If not available, leave as \"Node\"");
+  }
+
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 0", this->InputSegmSelector->GetWidgetName());
 
   this->AddGUIObservers();
   this->UpdateGUI();
@@ -254,6 +275,19 @@ void vtkChangeTrackerFirstScanStep::TransitionCallback(int Flag)
      }
      wizard_widget->GetCancelButton()->EnabledOff();
    }
+
+
+  // check if segmentation selector has been initialized
+  vtkMRMLChangeTrackerNode *node = this->GetGUI()->GetNode();
+  vtkMRMLScalarVolumeNode *segmNode = 
+    vtkMRMLScalarVolumeNode::SafeDownCast(this->InputSegmSelector->GetSelected());
+
+  if(segmNode)
+    {
+    std::cerr << "1st scan segmentation node id: " << segmNode->GetID() << std::endl;
+    node->SetScan1_InputSegmRef(segmNode->GetID());
+    }
+
 }
 
 //----------------------------------------------------------------------------

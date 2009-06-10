@@ -299,13 +299,22 @@ void vtkChangeTrackerLogic::DeleteSuperSample(int ScanNum) {
   // cout <<  "vtkChangeTrackerLogic::DeleteSuperSample " << endl;
    // Delete old attached node first 
   vtkMRMLVolumeNode* currentNode = NULL; 
-  if (ScanNum ==1) {
+  switch(ScanNum){
+  case 1:
     currentNode =  vtkMRMLVolumeNode::SafeDownCast(this->ChangeTrackerNode->GetScene()->GetNodeByID(this->ChangeTrackerNode->GetScan1_SuperSampleRef()));
     this->ChangeTrackerNode->SetScan1_SuperSampleRef(NULL);
-  } else {
+    break;
+  case 2:
     currentNode =  vtkMRMLVolumeNode::SafeDownCast(this->ChangeTrackerNode->GetScene()->GetNodeByID(this->ChangeTrackerNode->GetScan2_SuperSampleRef()));
     this->ChangeTrackerNode->SetScan2_SuperSampleRef(NULL);
-  } 
+    break;
+  case 0:
+    currentNode =  vtkMRMLVolumeNode::SafeDownCast(this->ChangeTrackerNode->GetScene()->GetNodeByID(this->ChangeTrackerNode->GetScan1_SuperSampleInputSegmRef()));
+    this->ChangeTrackerNode->SetScan1_SuperSampleInputSegmRef(NULL);
+    break;
+  default:
+    return;
+  }
   if (currentNode) { 
     this->ChangeTrackerNode->GetScene()->RemoveNode(currentNode); 
   } 
@@ -327,7 +336,7 @@ double vtkChangeTrackerLogic::DefineSuperSampleSize(const double inputSpacing[3]
     return SuperSampleSpacing;
 }
 
-int vtkChangeTrackerLogic::CreateSuperSampleFct(vtkImageData *input, const int ROIMin[3], const int ROIMax[3], const double SuperSampleSpacing, vtkImageData *output) {
+int vtkChangeTrackerLogic::CreateSuperSampleFct(vtkImageData *input, const int ROIMin[3], const int ROIMax[3], const double SuperSampleSpacing, vtkImageData *output, bool LinearInterpolation) {
   if (SuperSampleSpacing <= 0.0) return 1;
   // ---------------------------------
   // Just focus on region of interest
@@ -346,7 +355,10 @@ int vtkChangeTrackerLogic::CreateSuperSampleFct(vtkImageData *input, const int R
   // Now perform super sampling 
   vtkImageResample *ROISuperSample = vtkImageResample::New(); 
      ROISuperSample->SetDimensionality(3);
-     ROISuperSample->SetInterpolationModeToLinear();
+     if(LinearInterpolation)
+       ROISuperSample->SetInterpolationModeToLinear();
+     else
+       ROISuperSample->SetInterpolationModeToNearestNeighbor();
      ROISuperSample->SetInput(ROIExtent->GetOutput());
      ROISuperSample->SetAxisOutputSpacing(0,SuperSampleSpacing);
      ROISuperSample->SetAxisOutputSpacing(1,SuperSampleSpacing);
@@ -370,12 +382,23 @@ vtkMRMLScalarVolumeNode* vtkChangeTrackerLogic::CreateSuperSample(int ScanNum) {
   if (!this->ChangeTrackerNode)  return NULL;
 
   vtkMRMLVolumeNode* volumeNode = NULL;
-  if (ScanNum > 1)  {
+  bool LinearInterpolation = true;
+  switch(ScanNum){
+  case 0:
+    volumeNode = vtkMRMLVolumeNode::SafeDownCast(
+      this->ChangeTrackerNode->GetScene()->GetNodeByID(this->ChangeTrackerNode->GetScan1_InputSegmRef()));
+    LinearInterpolation = 0;
+    break;
+  case 2:
     volumeNode = vtkMRMLVolumeNode::SafeDownCast(
       this->ChangeTrackerNode->GetScene()->GetNodeByID(this->ChangeTrackerNode->GetScan2_GlobalRef()));
-  } else {
+    break;
+  case 1:
     volumeNode = vtkMRMLVolumeNode::SafeDownCast(
       this->ChangeTrackerNode->GetScene()->GetNodeByID(this->ChangeTrackerNode->GetScan1_Ref()));
+    break;
+  default: vtkErrorMacro(<< "Internal error: unknown image requested for supersampling");
+           return NULL;
   }
 
   // make sure the input image is valid!
@@ -411,7 +434,7 @@ vtkMRMLScalarVolumeNode* vtkChangeTrackerLogic::CreateSuperSample(int ScanNum) {
   ROISuperSampleInput->Update();
 
   vtkImageData *ROISuperSampleOutput = vtkImageData::New();
-  if (this->CreateSuperSampleFct(ROISuperSampleInput->GetOutput(), ROIMin, ROIMax, SuperSampleSpacing, ROISuperSampleOutput)) {
+  if (this->CreateSuperSampleFct(ROISuperSampleInput->GetOutput(), ROIMin, ROIMax, SuperSampleSpacing, ROISuperSampleOutput, LinearInterpolation)) {
     ROISuperSampleInput->Delete();
     ROISuperSampleOutput->Delete();
     return NULL;
@@ -440,12 +463,30 @@ vtkMRMLScalarVolumeNode* vtkChangeTrackerLogic::CreateSuperSample(int ScanNum) {
   // ---------------------------------
   // Now return results and clean up 
   char VolumeOutputName[255];
-  if (ScanNum > 1) 
-    sprintf(VolumeOutputName, "%s_VOI_GlobalReg_SuperSampled", this->GetInputScanName(1));
-  else 
-    sprintf(VolumeOutputName, "%s_VOI_SuperSampled", this->GetInputScanName(0));
+  switch(ScanNum){
+    case 2:
+      sprintf(VolumeOutputName, "%s_VOI_GlobalReg_SuperSampled", this->GetInputScanName(1));
+      break;
+    case 1:
+      sprintf(VolumeOutputName, "%s_VOI_SuperSampled", this->GetInputScanName(0));
+      break;
+    case 0:
+      sprintf(VolumeOutputName, "Scan1Segmented_VOI_SuperSampled");
+      break;
+    }
 
-  vtkMRMLScalarVolumeNode *VolumeOutputNode = this->CreateVolumeNode(volumeNode,VolumeOutputName);
+  vtkMRMLScalarVolumeNode *VolumeOutputNode;
+  if(LinearInterpolation)
+    VolumeOutputNode = this->CreateVolumeNode(volumeNode,VolumeOutputName);
+  else
+    {
+//    vtkSlicerApplication *application = vtkSlicerApplication::SafeDownCast(this->GetGUI()->GetApplication()); 
+    vtkSlicerVolumesLogic *volumesLogic  
+      = (vtkSlicerVolumesGUI::SafeDownCast(vtkSlicerApplication::GetInstance()->GetModuleGUIByName("Volumes")))->GetLogic();
+    vtkMRMLScene *scene = this->ChangeTrackerNode->GetScene();
+    VolumeOutputNode = volumesLogic->CreateLabelVolume(scene, volumeNode, VolumeOutputName);
+    }
+
   VolumeOutputNode->SetAndObserveImageData(ROISuperSampleFinal);
   VolumeOutputNode->SetSpacing(SuperSampleSpacing,SuperSampleSpacing,SuperSampleSpacing);  
   VolumeOutputNode->SetOrigin(newRASOrigin[0],newRASOrigin[1],newRASOrigin[2]);

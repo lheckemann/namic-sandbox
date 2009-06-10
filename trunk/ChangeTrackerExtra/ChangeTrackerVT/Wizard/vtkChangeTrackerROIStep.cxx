@@ -26,6 +26,7 @@
 #include "vtkVolumeTextureMapper3D.h"
 #include "vtkPiecewiseFunction.h"
 #include "vtkSlicerROIDisplayWidget.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkChangeTrackerROIStep);
@@ -68,6 +69,7 @@ vtkChangeTrackerROIStep::vtkChangeTrackerROIStep()
   this->roiWidget = NULL;
   this->roiUpdateGuard = false;
   this->FrameROIIJK = NULL;
+
 }
 
 //----------------------------------------------------------------------------
@@ -173,6 +175,7 @@ vtkChangeTrackerROIStep::~vtkChangeTrackerROIStep()
     this->roiWidget->Delete();
     this->roiWidget = NULL;
     }
+
 }
 
 void vtkChangeTrackerROIStep::DeleteSuperSampleNode() 
@@ -316,6 +319,7 @@ void vtkChangeTrackerROIStep::ShowUserInterface()
 
   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 0", this->FrameROI->GetWidgetName());
   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 0", this->FrameROIIJK->GetWidgetName());
+
 
   if (!this->ButtonsShow) {
     this->ButtonsShow = vtkKWPushButton::New();
@@ -1131,6 +1135,17 @@ void vtkChangeTrackerROIStep::TransitionCallback()
          roiNode->SetVisibility(0);
        ResetROIRender();
 
+       // check if need to resample input segmentation
+       if(Node->GetScan1_InputSegmRef())
+         {
+         vtkMRMLScalarVolumeNode *outputSegmNode = this->GetGUI()->GetLogic()->CreateSuperSample(0);
+
+         this->GetGUI()->GetLogic()->DeleteSuperSample(0);
+         Node->SetScan1_SuperSampleInputSegmRef(outputSegmNode->GetID());
+//         outputSegmNode->GetDisplayNode()->SetAndObserveColorNodeID("vtkMRMLColorTableNodeLabels");
+//         outputSegmNode->LabelMapOn();
+         }
+
        this->GUI->GetWizardWidget()->GetWizardWorkflow()->AttemptToGoToNextStep();
      } else {
        vtkKWMessageDialog::PopupMessage(this->GUI->GetApplication(), 
@@ -1147,6 +1162,7 @@ void vtkChangeTrackerROIStep::TransitionCallback()
                                       "Please define VOI correctly before proceeding", 
                                       vtkKWMessageDialog::ErrorIcon);
    }
+
 }
 
 

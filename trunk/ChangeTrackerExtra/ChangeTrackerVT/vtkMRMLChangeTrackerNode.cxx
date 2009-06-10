@@ -61,6 +61,9 @@ vtkMRMLChangeTrackerNode::vtkMRMLChangeTrackerNode()
    this->Scan2_Ref = NULL;
    this->Scan1_SuperSampleRef = NULL;
    this->Scan1_SegmentRef = NULL;
+   this->Scan1_InputSegmRef = NULL;
+   this->Scan1_SuperSampleInputSegmRef = NULL;
+
    this->WorkingDir= NULL;
 
    // this->ROIMin[0] = this->ROIMin[1] = this->ROIMin[2] = this->ROIMax[0] = this->ROIMax[1] = this->ROIMax[2] = -1;
@@ -110,6 +113,8 @@ vtkMRMLChangeTrackerNode::~vtkMRMLChangeTrackerNode()
    this->SetScan2_Ref( NULL );
    this->SetScan1_SuperSampleRef( NULL);
    this->SetScan1_SegmentRef(NULL);
+   this->SetScan1_InputSegmRef(NULL);
+   this->SetScan1_SuperSampleInputSegmRef(NULL);
    this->SetWorkingDir(NULL);
    this->SetScan2_GlobalRef(NULL);
    this->SetScan2_SuperSampleRef(NULL);
