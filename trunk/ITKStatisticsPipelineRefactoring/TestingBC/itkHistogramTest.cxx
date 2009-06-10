@@ -20,7 +20,6 @@
 #include "itkHistogram.h"
 
 #include "itkDenseFrequencyContainer.h"
-#include "itkSparseFrequencyContainer.h"
 
 int itkHistogramTest(int, char* [] ) 
 {
@@ -31,7 +30,7 @@ int itkHistogramTest(int, char* [] )
   typedef unsigned int MeasurementType ;
 
   // creats a histogram with 3 components measurement vectors
-  typedef itk::Statistics::Histogram< MeasurementType, itk::Statistics::DenseFrequencyContainer > HistogramType ;
+  typedef itk::Statistics::Histogram< MeasurementType, 3, itk::Statistics::DenseFrequencyContainer > HistogramType ;
   HistogramType::Pointer histogram = HistogramType::New() ;
 
   const int NUM_BINS=64;
@@ -146,8 +145,8 @@ int itkHistogramTest(int, char* [] )
 
 
   // Histogram with SparseFrequencyContainer
-  typedef itk::Statistics::Histogram< MeasurementType, 
-    itk::Statistics::SparseFrequencyContainer > SparseHistogramType ;
+  typedef itk::Statistics::Histogram< MeasurementType, 3, 
+    itk::Statistics::SparseFrequencyContainer2 > SparseHistogramType ;
   SparseHistogramType::Pointer sparseHistogram = SparseHistogramType::New() ;
 
   // initializes a 64 x 64 x 64 histogram with equal size interval
