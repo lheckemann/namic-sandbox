@@ -6,7 +6,7 @@
 #include <string>
 
 
-//void changeSeedValue(DoubleImageType::Pointer seedImage);
+void getSeedVolume(cVolume *vol);
 
 
 int main( int argc, char * argv [] )
@@ -23,49 +23,23 @@ int main( int argc, char * argv [] )
   double t1, t2;
   t1 = clock();
 
-
-  typedef itk::ImageFileReader< DoubleImageType > DoubleImageFileReader;
-
   std::cout<<"reading volume...."<<std::flush;  
-  DoubleImageFileReader::Pointer reader = DoubleImageFileReader::New();
-  reader->SetFileName( argv[1] );
-  try 
-    {
-      reader->Update();
-    }
-  catch ( itk::ExceptionObject &err)   
-    {   
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      exit(-1);
-    }
-  DoubleImageType::Pointer inputImage = reader->GetOutput();
+  cVolume *vol = op.volreadDouble( argv[1] );
+  //cVolume *volSmth = op.gheSmooth( vol, 10);
+  // op.volwriteDouble( "smth.nrrd", vol );
+  //delete vol; vol = 0;
   std::cout<<"done\n";
 
-
-
   std::cout<<"reading seed...."<<std::flush;
-  DoubleImageFileReader::Pointer seedReader = DoubleImageFileReader::New();
-  seedReader->SetFileName( argv[2] );
-  try 
-    {
-      seedReader->Update();
-    }
-  catch ( itk::ExceptionObject &err)   
-    {   
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      exit(-1);
-    }
-  DoubleImageType::Pointer seedImage = seedReader->GetOutput();
-  //  changeSeedValue(seedImage);
+  cVolume *seedVol = op.volreadDouble( argv[2] );
+  //  getSeedVolume(seedVol);
   std::cout<<"done\n"<<std::flush;
 
   randomWalkSeg rw;
 
   //  rw.setVol(volSmth);
-  rw.setInput(inputImage);
-  rw.setSeedImage(seedImage);
+  rw.setVol(vol);
+  rw.setSeedVol(seedVol);
 
   int numIter = 1000;
   rw.set_solver_num_iter(numIter);
@@ -82,26 +56,27 @@ int main( int argc, char * argv [] )
   std::cout<<"done\n"<<std::flush;
 
   std::cout<<"smoothing result potential volume...."<<std::flush;
-  DoubleImageType::Pointer potential_image = rw.getOutputImage();
+  cVolume *potential_volume = rw.get_output();
+  cVolume* potential_volume_smth = op.medianFilter(  potential_volume, 3, 3, 3);
+  delete potential_volume; potential_volume = 0;
+  std::cout<<"done\n"<<std::flush;
 
   std::cout<<"writing result volume...."<<std::flush;
+//   int finaln = (potential_volume_smth->getSizeX())*(potential_volume_smth->getSizeY())*(potential_volume_smth->getSizeZ());
+//   for (int i = 0; i <= finaln-1; ++i)
+//     {
+//       potential_volume_smth->setVoxel(i, 200*potential_volume_smth->getVoxel(i));
+//     }
+
+  double thld = 0.5;
+  cVolume *bin = op.hardThreshold(potential_volume_smth, thld);
+  delete potential_volume_smth; potential_volume_smth = 0;
 
 
+  bin->setSpacing(vol->getSpacingX(), vol->getSpacingY(), vol->getSpacingZ() );
 
-  typedef itk::ImageFileWriter< DoubleImageType > DoubleImageWriterType;
-  DoubleImageWriterType::Pointer writer = DoubleImageWriterType::New();
-  writer->SetFileName( argv[4] );
-  writer->SetInput( potential_image );
-  try 
-    { 
-      writer->Update(); 
-    } 
-  catch( itk::ExceptionObject & err ) 
-    { 
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      exit(-1);
-    } 
+  op.volwriteDouble( argv[4], bin );
+  delete bin; bin = 0;
   std::cout<<"done\n"<<std::flush;
 
   t2 = clock();
@@ -110,34 +85,40 @@ int main( int argc, char * argv [] )
   // end timing
   ////////////////////////////////////////////////////////////
 
+  //delete volSmth; volSmth = 0;
+  delete seedVol; seedVol = 0;
+
 
   return 0;
 }
 
 
-// void changeSeedValue(DoubleImageType::Pointer seedImage)
-// {
-//   /*
-//     0 --> 1
-//     1 --> 0
-//     2 --> 2
-//    */
+void getSeedVolume(cVolume *vol)
+{
+  /*
+    0 --> 1
+    1 --> 0
+    2 --> 2
+   */
 
-//   typedef itk::ImageRegionIterator< DoubleImageType > DoubleImageIteratorType;
-//   DoubleImageIteratorType seedImageIt( seedImage, seedImage->GetLargestPossibleRegion() );
+  size_t nx = vol->getSizeX();
+  size_t ny = vol->getSizeY();
+  size_t nz = vol->getSizeZ();
 
-//   for (seedImageIt.GoToBegin(); !seedImageIt.IsAtEnd(); ++seedImageIt)
-//     {
-//       double v = seedImageIt.Get();
+  size_t n = nx*ny*nz;
 
-//       if ( 0.9999 <= v && v <= 1.00001 )
-//         {
-//           seedImageIt.Set(0);
-//         }
+  for (size_t i = 0; i < n; ++i)
+    {
+      double v = (*vol)[i];
 
-//       if ( -0.0001 <= v && v <= 0.00001 )
-//         {
-//           seedImageIt.Set(1);
-//         }
-//     }
-// }
+      if ( 0.9999 <= v && v <= 1.00001 )
+        {
+          (*vol)[i] = 0;
+        }
+
+      if ( -0.0001 <= v && v <= 0.00001 )
+        {
+          (*vol)[i] = 1;
+        }
+    }
+}
