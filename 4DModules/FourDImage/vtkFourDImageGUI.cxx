@@ -2180,3 +2180,17 @@ void vtkFourDImageGUI::UpdateSeriesSelectorMenus()
 }
 
 
+////----------------------------------------------------------------------------
+//const char* vtkFourDImageGUI::GetActive4DBundleNodeID()
+//{
+//  vtkMRML4DBundleNode *bundleNode = 
+//    vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+//  if (bundleNode)
+//    {
+//    return bundleNode->GetID();
+//    }
+//  else
+//    {
+//    return NULL:
+//    }
+//}
