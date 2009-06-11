@@ -2,3 +2,6 @@
 ADD_EXECUTABLE(ShapeDetectionLevelSetFilter ShapeDetectionLevelSetFilter.cxx)
 TARGET_LINK_LIBRARIES(ShapeDetectionLevelSetFilter ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(DicomSeriesReadImageWrite2 DicomSeriesReadImageWrite2.cxx)
+TARGET_LINK_LIBRARIES(DicomSeriesReadImageWrite2 ITKBasicFilters ITKIO)
+
