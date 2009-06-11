@@ -21,6 +21,13 @@ ADD_TEST(DicomToMeta64
 ADD_TEST(ShapeDetection58
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
   ${TEMP}/58_MRI_Dataset.mhd
+  ${TEMP}/58_MRI_DatasetMask.mhd
+  1.5  # Sigma in mm
+  -1.0 # Alpha
+   4.0 # Beta
+  15.0 # Initial radius in mm
+  143  174  24   # Indexes for seed 1
+  112.5  81  24  # Indexes for seed 2 
   )
   
 
