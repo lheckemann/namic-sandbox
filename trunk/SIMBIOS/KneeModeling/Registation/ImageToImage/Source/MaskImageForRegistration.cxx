@@ -30,10 +30,10 @@
 int main( int argc, char * argv[] )
 {
 
-  if( argc < 3 )
+  if( argc < 4 )
     {
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputImageFile outputImageFile " << std::endl;  
+    std::cerr << " inputImageFile inputMaskImage outputMaskedImageFile " << std::endl;  
     return EXIT_FAILURE;
     }
 
@@ -113,7 +113,7 @@ int main( int argc, char * argv[] )
 
   writer->SetInput( masker->GetOutput() );
 
-  writer->SetFileName( argv[2] );
+  writer->SetFileName( argv[3] );
   writer->UseCompressionOn();
 
   try

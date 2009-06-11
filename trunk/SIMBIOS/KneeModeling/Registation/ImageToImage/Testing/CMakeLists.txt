@@ -32,4 +32,10 @@ ADD_TEST(ShapeDetection58
   135  178.5  35.4688  # Seed 4
   )
   
+ADD_TEST(Masking58
+  ${CXX_TEST_PATH}/MaskImageForRegistration
+  ${TEMP}/58_MRI_Dataset.mhd
+  ${TEMP}/58_MRI_DatasetMask.mhd
+  ${TEMP}/58_MRI_DatasetMasked.mhd
+  ) 
 
