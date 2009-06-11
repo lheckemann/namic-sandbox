@@ -25,7 +25,7 @@ ADD_TEST(ShapeDetection58
    0.7 # Sigma in mm
   -1.0 # Alpha
    5.0 # Beta
-  15.0 # Initial radius in mm
+  25.0 # Initial radius in mm
   119  85.5  19.2188   # Seed 1
   119  79  46.0938     # Seed 2
   99  50  33.9062      # Seed 3
