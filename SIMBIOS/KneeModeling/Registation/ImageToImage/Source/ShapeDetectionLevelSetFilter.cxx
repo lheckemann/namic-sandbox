@@ -233,7 +233,7 @@ int main( int argc, char *argv[] )
 
 
   shapeDetection->SetMaximumRMSError( 0.01 );
-  shapeDetection->SetNumberOfIterations( 100 );
+  shapeDetection->SetNumberOfIterations( 300 );
   
 
   try
