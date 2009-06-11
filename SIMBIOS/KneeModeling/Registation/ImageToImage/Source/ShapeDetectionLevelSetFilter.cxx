@@ -45,20 +45,19 @@ int main( int argc, char *argv[] )
 
   typedef   float           InternalPixelType;
   const     unsigned int    Dimension = 3;
+
   typedef itk::Image< InternalPixelType, Dimension >  InternalImageType;
 
 
-  typedef unsigned char                            OutputPixelType;
+  typedef unsigned char     OutputPixelType;
   typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
 
 
+  typedef itk::BinaryThresholdImageFilter< 
+    InternalImageType, OutputImageType > ThresholdingFilterType;
 
-  typedef itk::BinaryThresholdImageFilter< InternalImageType, OutputImageType >
-    ThresholdingFilterType;
   ThresholdingFilterType::Pointer thresholder = ThresholdingFilterType::New();
                         
-
-
   thresholder->SetLowerThreshold( -1000.0 );
   thresholder->SetUpperThreshold(     0.0 );
 
@@ -66,8 +65,6 @@ int main( int argc, char *argv[] )
   thresholder->SetInsideValue(  255 );
 
 
-  // We instantiate reader and writer types in the following lines.
-  //
   typedef  itk::ImageFileReader< InternalImageType > ReaderType;
   typedef  itk::ImageFileWriter<  OutputImageType  > WriterType;
 
@@ -77,15 +74,11 @@ int main( int argc, char *argv[] )
   reader->SetFileName( argv[1] );
   writer->SetFileName( argv[2] );
 
-
   typedef   itk::CurvatureAnisotropicDiffusionImageFilter< 
                                InternalImageType, 
                                InternalImageType >  SmoothingFilterType;
 
-
-
   SmoothingFilterType::Pointer smoothing = SmoothingFilterType::New();
-
 
 
   typedef   itk::GradientMagnitudeRecursiveGaussianImageFilter< 
@@ -101,27 +94,20 @@ int main( int argc, char *argv[] )
   GradientFilterType::Pointer  gradientMagnitude = GradientFilterType::New();
   SigmoidFilterType::Pointer sigmoid = SigmoidFilterType::New();
 
-
-
   sigmoid->SetOutputMinimum(  0.0  );
   sigmoid->SetOutputMaximum(  1.0  );
-
 
 
   typedef  itk::FastMarchingImageFilter< InternalImageType, InternalImageType >
     FastMarchingFilterType;
 
-
-
   FastMarchingFilterType::Pointer  fastMarching = FastMarchingFilterType::New();
-
 
 
   typedef  itk::ShapeDetectionLevelSetImageFilter< InternalImageType, 
                               InternalImageType >    ShapeDetectionFilterType;
-  ShapeDetectionFilterType::Pointer 
-    shapeDetection = ShapeDetectionFilterType::New();
 
+  ShapeDetectionFilterType::Pointer shapeDetection = ShapeDetectionFilterType::New();
 
 
   smoothing->SetInput( reader->GetOutput() );
@@ -129,6 +115,7 @@ int main( int argc, char *argv[] )
   sigmoid->SetInput( gradientMagnitude->GetOutput() );
   
   shapeDetection->SetInput( fastMarching->GetOutput() );
+
   shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
 
   thresholder->SetInput( shapeDetection->GetOutput() );
@@ -136,25 +123,19 @@ int main( int argc, char *argv[] )
   writer->SetInput( thresholder->GetOutput() );
 
 
-
   smoothing->SetTimeStep( 0.125 );
   smoothing->SetNumberOfIterations(  5 );
   smoothing->SetConductanceParameter( 9.0 );
 
-
-
-  const double sigma = atof( argv[6] );
+  const double sigma = atof( argv[3] );
 
   gradientMagnitude->SetSigma(  sigma  );
 
-
-
-  const double alpha =  atof( argv[7] );
-  const double beta  =  atof( argv[8] );
+  const double alpha =  atof( argv[4] );
+  const double beta  =  atof( argv[5] );
 
   sigmoid->SetAlpha( alpha );
   sigmoid->SetBeta(  beta  );
-
   
 
   typedef FastMarchingFilterType::NodeContainer           NodeContainer;
@@ -162,50 +143,51 @@ int main( int argc, char *argv[] )
   NodeContainer::Pointer seeds = NodeContainer::New();
   
 
+  const double initialDistance = atof( argv[6] );
+
+
   InternalImageType::IndexType  seedPosition;
   
-  seedPosition[0] = atoi( argv[3] );
-  seedPosition[1] = atoi( argv[4] );
+  seedPosition[0] = atoi( argv[6] );
+  seedPosition[1] = atoi( argv[7] );
+  seedPosition[2] = atoi( argv[8] );
 
-
-
-  const double initialDistance = atof( argv[5] );
 
   NodeType node;
   const double seedValue = - initialDistance;
   
+  seeds->Initialize();
+
   node.SetValue( seedValue );
   node.SetIndex( seedPosition );
 
-
-
-  seeds->Initialize();
   seeds->InsertElement( 0, node );
 
+  seedPosition[0] = atoi( argv[9] );
+  seedPosition[1] = atoi( argv[10] );
+  seedPosition[2] = atoi( argv[11] );
+
+  node.SetValue( seedValue );
+  node.SetIndex( seedPosition );
+
+  seeds->InsertElement( 1, node );
 
 
+  fastMarching->SetInput( sigmoid->GetOutput() );
   fastMarching->SetTrialPoints(  seeds  );
-
-
-
-  fastMarching->SetSpeedConstant( 1.0 );
-
 
   fastMarching->SetOutputSize( reader->GetOutput()->GetBufferedRegion().GetSize() );
 
 
-
-  const double curvatureScaling   = atof( argv[  9 ] ); 
-  const double propagationScaling = atof( argv[ 10 ] ); 
+  const double curvatureScaling   = 1.0;
+  const double propagationScaling = 1.0;
 
   shapeDetection->SetPropagationScaling(  propagationScaling );
   shapeDetection->SetCurvatureScaling( curvatureScaling ); 
 
 
-
-  shapeDetection->SetMaximumRMSError( 0.02 );
-  shapeDetection->SetNumberOfIterations( 800 );
-
+  shapeDetection->SetMaximumRMSError( 0.01 );
+  shapeDetection->SetNumberOfIterations( 300 );
   
 
   try
