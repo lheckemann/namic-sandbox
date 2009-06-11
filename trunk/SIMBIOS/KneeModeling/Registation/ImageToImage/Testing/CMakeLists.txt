@@ -18,4 +18,9 @@ ADD_TEST(DicomToMeta64
   ${TEMP}/64_MRI_Dataset.mhd
   )
 
+ADD_TEST(ShapeDetection58
+  ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
+  ${TEMP}/58_MRI_Dataset.mhd
+  )
+  
 
