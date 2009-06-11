@@ -214,8 +214,8 @@ int main( int argc, char *argv[] )
   thresholder2->SetLowerThreshold( -initialDistance * 2.0 );
   thresholder2->SetUpperThreshold( 0.0 );
 
-  thresholder2->SetOutsideValue(  -4.0  );
-  thresholder2->SetInsideValue(    4.0 );
+  thresholder2->SetOutsideValue(   4.0  );
+  thresholder2->SetInsideValue(   -4.0 );
 
   thresholder2->SetInput( fastMarching->GetOutput() );
   shapeDetection->SetInput( thresholder2->GetOutput() );
@@ -233,7 +233,7 @@ int main( int argc, char *argv[] )
 
 
   shapeDetection->SetMaximumRMSError( 0.01 );
-  shapeDetection->SetNumberOfIterations( 3 );
+  shapeDetection->SetNumberOfIterations( 100 );
   
 
   try
