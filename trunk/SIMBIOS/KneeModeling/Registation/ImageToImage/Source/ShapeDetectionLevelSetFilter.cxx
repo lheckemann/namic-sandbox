@@ -67,9 +67,12 @@ int main( int argc, char *argv[] )
 
   typedef  itk::ImageFileReader< InternalImageType > ReaderType;
   typedef  itk::ImageFileWriter<  OutputImageType  > WriterType;
+  typedef  itk::ImageFileWriter< InternalImageType > InternalWriterType;
 
   ReaderType::Pointer reader = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
+
+  InternalWriterType::Pointer internalWriter = InternalWriterType::New();
 
   reader->SetFileName( argv[1] );
   writer->SetFileName( argv[2] );
@@ -137,6 +140,9 @@ int main( int argc, char *argv[] )
   sigmoid->SetAlpha( alpha );
   sigmoid->SetBeta(  beta  );
   
+  internalWriter->SetInput( sigmoid->GetOutput() );
+  internalWriter->SetFileName("Sigmoid.mhd");
+  internalWriter->Update();
 
   typedef FastMarchingFilterType::NodeContainer           NodeContainer;
   typedef FastMarchingFilterType::NodeType                NodeType;
