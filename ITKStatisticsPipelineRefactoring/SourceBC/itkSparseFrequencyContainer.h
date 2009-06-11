@@ -17,7 +17,7 @@
 #ifndef __itkSparseFrequencyContainer_h
 #define __itkSparseFrequencyContainer_h
 
-#include "itkSparseFrequencyContainer2.h"
+#include "itkSparseFrequencyCOntainer2.h"
 
 namespace itk { 
 namespace Statistics {
@@ -43,8 +43,30 @@ public:
   itkTypeMacro(SparseFrequencyContainer, SparseFrequencyContainer2);
   itkNewMacro(Self);
 
+  /** instance idenfitifer alias */
+  typedef unsigned long InstanceIdentifier;
+
+  /** Frequency type alias */
+  typedef Superclass::AbsoluteFrequencyType FrequencyType;
+  
+  /** Total frequency type */
+  typedef Superclass::TotalAbsoluteFrequencyType TotalFrequencyType;
+
+  /** Internal storage class typedefs */
+  typedef Superclass::FrequencyContainerType    FrequencyContainerType;
+
+  typedef FrequencyContainerType::const_iterator 
+          FrequencyContainerConstIterator;   
+
+  /** Method to get the frequency of a bin from the histogram. It will return
+   * zero when the Id is out of bounds.  */
+  FrequencyType GetFrequency(const InstanceIdentifier id) const
+    {
+    return Superclass::GetFrequency(id);
+    }
+
 protected:
-  SparseFrequencyContainer(){};
+  SparseFrequencyContainer() {}
   virtual ~SparseFrequencyContainer() {}
 
 private:

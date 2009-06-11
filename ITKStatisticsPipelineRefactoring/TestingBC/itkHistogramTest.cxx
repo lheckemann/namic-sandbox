@@ -20,6 +20,7 @@
 #include "itkHistogram.h"
 
 #include "itkDenseFrequencyContainer.h"
+#include "itkSparseFrequencyContainer.h"
 
 int itkHistogramTest(int, char* [] ) 
 {
@@ -146,7 +147,7 @@ int itkHistogramTest(int, char* [] )
 
   // Histogram with SparseFrequencyContainer
   typedef itk::Statistics::Histogram< MeasurementType, 3, 
-    itk::Statistics::SparseFrequencyContainer2 > SparseHistogramType ;
+    itk::Statistics::SparseFrequencyContainer > SparseHistogramType ;
   SparseHistogramType::Pointer sparseHistogram = SparseHistogramType::New() ;
 
   // initializes a 64 x 64 x 64 histogram with equal size interval

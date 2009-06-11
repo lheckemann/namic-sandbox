@@ -462,12 +462,13 @@ protected:
   // The number of bins for each dimension
   SizeType m_Size;
 
+  typedef std::vector< InstanceIdentifier >   OffsetTableType;
+  OffsetTableType                             m_OffsetTable;
+
 private:
   MeasurementHistogram(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  typedef std::vector< InstanceIdentifier >   OffsetTableType;
-  OffsetTableType                             m_OffsetTable;
   FrequencyContainerPointer                   m_FrequencyContainer;
   unsigned int                                m_NumberOfInstances;
 

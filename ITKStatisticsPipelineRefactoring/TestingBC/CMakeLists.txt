@@ -23,6 +23,13 @@ ADD_TEST(itkListSampleToHistogramFilterBCTest ${STATISTICS_TESTS} itkListSampleT
 
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 
+ADD_TEST(itkChiSquareDistributionTest ${STATISTICS_TESTS}
+  itkChiSquareDistributionTest
+  )
+ADD_TEST(itkGaussianDistributionTest ${STATISTICS_TESTS}
+  itkGaussianDistributionTest
+  )
+ADD_TEST(itkTDistributionTest ${STATISTICS_TESTS} itkTDistributionTest)
 
 SET(Statistics_SRCS
   itkMeanCalculatorTest.cxx
@@ -36,6 +43,9 @@ SET(Statistics_SRCS
   itkHistogramTest.cxx
   itkVariableDimensionHistogramTest.cxx
   itkListSampleToHistogramFilterTest.cxx
+  itkChiSquareDistributionTest.cxx
+  itkGaussianDistributionTest.cxx
+  itkTDistributionTest.cxx
 )
 
 ADD_EXECUTABLE(itkStatisticsBCTests itkStatisticsBCTests.cxx ${Statistics_SRCS})
