@@ -220,6 +220,11 @@ int main( int argc, char *argv[] )
   thresholder2->SetInput( fastMarching->GetOutput() );
   shapeDetection->SetInput( thresholder2->GetOutput() );
 
+  internalWriter->SetInput( thresholder2->GetOutput() );
+  internalWriter->SetFileName( "ShapeDetectionInput.mhd" );
+  internalWriter->Update();
+
+
   const double curvatureScaling   = 1.0;
   const double propagationScaling = 1.0;
 
@@ -228,7 +233,7 @@ int main( int argc, char *argv[] )
 
 
   shapeDetection->SetMaximumRMSError( 0.01 );
-  shapeDetection->SetNumberOfIterations( 300 );
+  shapeDetection->SetNumberOfIterations( 3 );
   
 
   try
@@ -240,6 +245,10 @@ int main( int argc, char *argv[] )
     std::cerr << "Exception caught !" << std::endl;
     std::cerr << excep << std::endl;
     }
+
+  internalWriter->SetInput( shapeDetection->GetOutput() );
+  internalWriter->SetFileName( "ShapeDetection.mhd" );
+  internalWriter->Update();
 
   // Print out some useful information 
   std::cout << std::endl;
