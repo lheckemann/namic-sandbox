@@ -31,13 +31,15 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 13 )
+  if( argc < 19 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " inputImage  outputImage";
     std::cerr << " Sigma SigmoidAlpha SigmoidBeta ";
     std::cerr << " InitialRadiusDistance";
+    std::cerr << " seedX seedY seedZ";
+    std::cerr << " seedX seedY seedZ";
     std::cerr << " seedX seedY seedZ";
     std::cerr << " seedX seedY seedZ";
     std::cerr << std::endl;
@@ -142,11 +144,6 @@ int main( int argc, char *argv[] )
   sigmoid->SetAlpha( alpha );
   sigmoid->SetBeta(  beta  );
   
-  internalWriter->SetInput( sigmoid->GetOutput() );
-  internalWriter->SetFileName("Sigmoid.mhd");
-  internalWriter->Update();
-
-return EXIT_SUCCESS;
 
   typedef FastMarchingFilterType::NodeContainer           NodeContainer;
   typedef FastMarchingFilterType::NodeType                NodeType;
@@ -182,12 +179,35 @@ return EXIT_SUCCESS;
 
   seeds->InsertElement( 1, node );
 
+  seedPosition[0] = atoi( argv[13] );
+  seedPosition[1] = atoi( argv[14] );
+  seedPosition[2] = atoi( argv[15] );
+
+  node.SetValue( seedValue );
+  node.SetIndex( seedPosition );
+
+  seeds->InsertElement( 2, node );
+
+  seedPosition[0] = atoi( argv[16] );
+  seedPosition[1] = atoi( argv[17] );
+  seedPosition[2] = atoi( argv[18] );
+
+  node.SetValue( seedValue );
+  node.SetIndex( seedPosition );
+
+  seeds->InsertElement( 3, node );
+
 
   fastMarching->SetInput( sigmoid->GetOutput() );
   fastMarching->SetTrialPoints(  seeds  );
 
   fastMarching->SetOutputSize( reader->GetOutput()->GetBufferedRegion().GetSize() );
 
+  internalWriter->SetInput( fastMarching->GetOutput() );
+  internalWriter->SetFileName("fastMarching.mhd");
+  internalWriter->Update();
+
+return EXIT_SUCCESS;
 
   const double curvatureScaling   = 1.0;
   const double propagationScaling = 1.0;

@@ -26,8 +26,10 @@ ADD_TEST(ShapeDetection58
   -1.0 # Alpha
    5.0 # Beta
   15.0 # Initial radius in mm
-  143  174  24   # Indexes for seed 1
-  112.5  81  24  # Indexes for seed 2 
+  119  85.5  19.2188   # Seed 1
+  119  79  46.0938     # Seed 2
+  99  50  33.9062      # Seed 3
+  135  178.5  35.4688  # Seed 4
   )
   
 
