@@ -1,0 +1,4 @@
+
+ADD_EXECUTABLE(ShapeDetectionLevelSetFilter ShapeDetectionLevelSetFilter.cxx)
+TARGET_LINK_LIBRARIES(ShapeDetectionLevelSetFilter ITKBasicFilters ITKIO)
+
