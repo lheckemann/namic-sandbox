@@ -27,6 +27,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 ::Histogram()
 {
+  this->SetMeasurementVectorSize(VMeasurementVectorSize);
 }
 
 template< class TMeasurement, unsigned int VMeasurementVectorSize,
