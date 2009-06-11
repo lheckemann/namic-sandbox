@@ -733,7 +733,6 @@ namespace eval ChangeTrackerTcl {
          ChangeTracker(FinalROIBinGlobal) SetOperationToMultiply  
          ChangeTracker(FinalROIBinGlobal) Update
     
-
          $AnalysisGrowthROI DeepCopy [ChangeTracker(FinalROIBinGlobal)  GetOutput] 
 
          ChangeTracker(FinalROIDist) SetInput $Scan1Segment
@@ -771,13 +770,24 @@ namespace eval ChangeTrackerTcl {
      # the background in one scan is much darker than the in the other scan 
      # than if we do not threshold we get too many false positive 
      
+
+     # AF: in the case when segmentation of the 1st scan is done by means
+     # other than thresholding, we cannot use this method. For now, this is a
+     # hack -- check if the range is small, and if yes, this means there is
+     # external segmentation, and we use
+     # FIXME
+     set rangeOK [expr ($ThresholdMax-$ThresholdMin)>10 ]
      if {$ChangeTrackerTcl::newIntensityAnalysis} {
-        set SCAN_MIN  [expr $ThresholdMin - $FinalThreshold ] 
-        set SCAN_MAX  [expr $ThresholdMax + $FinalThreshold ] 
-        IntensityThresholding_DataFct $Scan1Data $SCAN_MIN $SCAN_MAX $AnalysisScan1ByLower $AnalysisScan1Range 
-        IntensityThresholding_DataFct $Scan2Data $SCAN_MIN $SCAN_MAX $AnalysisScan2ByLower $AnalysisScan2Range 
-        # Now we subtract the images from each other to determine residuum
-        Analysis_Intensity_SubtractVolume $AnalysisScanSubtract [$AnalysisScan1Range GetOutput] [$AnalysisScan2Range GetOutput] $AnalysisScanSubtractSmooth
+       if {$rangeOK} {
+         set SCAN_MIN  [expr $ThresholdMin - $FinalThreshold ] 
+         set SCAN_MAX  [expr $ThresholdMax + $FinalThreshold ] 
+         IntensityThresholding_DataFct $Scan1Data $SCAN_MIN $SCAN_MAX $AnalysisScan1ByLower $AnalysisScan1Range 
+         IntensityThresholding_DataFct $Scan2Data $SCAN_MIN $SCAN_MAX $AnalysisScan2ByLower $AnalysisScan2Range 
+         # Now we subtract the images from each other to determine residuum
+         Analysis_Intensity_SubtractVolume $AnalysisScanSubtract [$AnalysisScan1Range GetOutput] [$AnalysisScan2Range GetOutput] $AnalysisScanSubtractSmooth
+       } else {
+        Analysis_Intensity_SubtractVolume $AnalysisScanSubtract $Scan1Data  $Scan2Data $AnalysisScanSubtractSmooth
+       }
      } else {
         Analysis_Intensity_SubtractVolume $AnalysisScanSubtract $Scan1Data  $Scan2Data $AnalysisScanSubtractSmooth
      }   
