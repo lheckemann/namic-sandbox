@@ -12,4 +12,10 @@ ADD_TEST(DicomToMeta58
   ${TEMP}/58_MRI_Dataset.mhd
   )
 
+ADD_TEST(DicomToMeta64
+  ${CXX_TEST_PATH}/DicomSeriesReadImageWrite
+  ${KNEE_DATA_DIR}/64_MRI_Dataset
+  ${TEMP}/64_MRI_Dataset.mhd
+  )
+
 
