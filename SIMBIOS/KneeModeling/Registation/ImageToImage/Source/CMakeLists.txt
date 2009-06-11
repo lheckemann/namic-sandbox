@@ -5,3 +5,6 @@ TARGET_LINK_LIBRARIES(ShapeDetectionLevelSetFilter ITKBasicFilters ITKIO)
 ADD_EXECUTABLE(DicomSeriesReadImageWrite DicomSeriesReadImageWrite2.cxx)
 TARGET_LINK_LIBRARIES(DicomSeriesReadImageWrite ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(MaskImageForRegistration MaskImageForRegistration.cxx)
+TARGET_LINK_LIBRARIES(MaskImageForRegistration ITKBasicFilters ITKIO)
+
