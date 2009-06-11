@@ -31,15 +31,17 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 11 )
+  if( argc < 13 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " inputImage  outputImage";
-    std::cerr << " seedX seedY InitialDistance";
     std::cerr << " Sigma SigmoidAlpha SigmoidBeta ";
-    std::cerr << " curvatureScaling propagationScaling" << std::endl;
-    return 1;
+    std::cerr << " InitialRadiusDistance";
+    std::cerr << " seedX seedY seedZ";
+    std::cerr << " seedX seedY seedZ";
+    std::cerr << std::endl;
+    return EXIT_FAILURE;
     }
 
 
@@ -144,6 +146,8 @@ int main( int argc, char *argv[] )
   internalWriter->SetFileName("Sigmoid.mhd");
   internalWriter->Update();
 
+return EXIT_SUCCESS;
+
   typedef FastMarchingFilterType::NodeContainer           NodeContainer;
   typedef FastMarchingFilterType::NodeType                NodeType;
   NodeContainer::Pointer seeds = NodeContainer::New();
@@ -154,9 +158,9 @@ int main( int argc, char *argv[] )
 
   InternalImageType::IndexType  seedPosition;
   
-  seedPosition[0] = atoi( argv[6] );
-  seedPosition[1] = atoi( argv[7] );
-  seedPosition[2] = atoi( argv[8] );
+  seedPosition[0] = atoi( argv[7] );
+  seedPosition[1] = atoi( argv[8] );
+  seedPosition[2] = atoi( argv[9] );
 
 
   NodeType node;
@@ -169,9 +173,9 @@ int main( int argc, char *argv[] )
 
   seeds->InsertElement( 0, node );
 
-  seedPosition[0] = atoi( argv[9] );
-  seedPosition[1] = atoi( argv[10] );
-  seedPosition[2] = atoi( argv[11] );
+  seedPosition[0] = atoi( argv[10] );
+  seedPosition[1] = atoi( argv[11] );
+  seedPosition[2] = atoi( argv[12] );
 
   node.SetValue( seedValue );
   node.SetIndex( seedPosition );
