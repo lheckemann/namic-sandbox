@@ -121,7 +121,6 @@ int main( int argc, char *argv[] )
   gradientMagnitude->SetInput( smoothing->GetOutput() );
   sigmoid->SetInput( gradientMagnitude->GetOutput() );
   
-  shapeDetection->SetInput( fastMarching->GetOutput() );
 
   shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
 
@@ -207,7 +206,18 @@ int main( int argc, char *argv[] )
   internalWriter->SetFileName("fastMarching.mhd");
   internalWriter->Update();
 
-return EXIT_SUCCESS;
+  typedef itk::BinaryThresholdImageFilter< 
+    InternalImageType, InternalImageType > InternalThresholdingFilterType;
+
+  InternalThresholdingFilterType::Pointer thresholder2 = InternalThresholdingFilterType::New();
+                        
+  thresholder2->SetLowerThreshold( -initialDistance * 2.0 );
+  thresholder2->SetUpperThreshold( 0.0 );
+
+  thresholder2->SetOutsideValue(  -4.0  );
+  thresholder2->SetInsideValue(    4.0 );
+
+  shapeDetection->SetInput( thresholder2->GetOutput() );
 
   const double curvatureScaling   = 1.0;
   const double propagationScaling = 1.0;
