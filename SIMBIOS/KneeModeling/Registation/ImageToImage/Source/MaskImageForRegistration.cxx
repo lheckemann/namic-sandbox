@@ -20,7 +20,6 @@
 
 #include "itkBinaryBallStructuringElement.h" 
 #include "itkBinaryDilateImageFilter.h"
-#include "itkImageMaskSpatialObject.h"
 #include "itkMaskImageFilter.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -48,8 +47,8 @@ int main( int argc, char * argv[] )
   typedef itk::Image< OutputPixelType, Dimension >   OutputImageType;
 
   typedef itk::ImageFileReader< InputImageType >   ReaderType;
-  typedef itk::ImageFileWriter< OutputImageType >  WriterType;
   typedef itk::ImageFileReader< MaskImageType >    MaskReaderType;
+  typedef itk::ImageFileWriter< OutputImageType >  WriterType;
 
   typedef itk::BinaryBallStructuringElement< 
                       MaskPixelType,
