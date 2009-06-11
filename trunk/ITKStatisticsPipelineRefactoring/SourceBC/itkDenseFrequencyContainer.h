@@ -23,7 +23,7 @@ namespace itk {
 namespace Statistics {
 
 /** \class DenseFrequencyContainer 
- *  \brief this class is a container for frequencies of bins in an histogram.
+ *  \brief his class is a container for frequencies of bins in an histogram.
  *
  * This class uses the ValarrayImageContainer class to store
  * frequencies. If the histogram has many zero frequency bins. 
@@ -44,19 +44,31 @@ public:
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(DenseFrequencyContainer, DenseFrequencyContainer);
+  itkTypeMacro(DenseFrequencyContainer, DenseFrequencyContainer2);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
+  /** InstanceIdenfitifer type alias */
+  typedef unsigned long InstanceIdentifier;
+
+  /** Frequency type alias */
+  typedef Superclass::AbsoluteFrequencyType FrequencyType;
+  
+  /** Total frequency type */
+  typedef Superclass::TotalAbsoluteFrequencyType TotalFrequencyType;
+
+  /** Internal storage class typedefs */
+  typedef Superclass::FrequencyContainerType    FrequencyContainerType;
+  typedef Superclass::FrequencyContainerPointer FrequencyContainerPointer;
+
 protected:
-  DenseFrequencyContainer(){};
-  virtual ~DenseFrequencyContainer() {}
+  DenseFrequencyContainer () {}
+  virtual ~DenseFrequencyContainer () {}
 
 private:
   DenseFrequencyContainer(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-
 }; // end of class
 
 } // end of namespace Statistics
