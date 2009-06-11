@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>
+    Segmentation
+  </category>
+  <title>
+    Prostate Segmentation
+  </title>
+  <description>
+    This filter creates a binary image that separates the prostate from other tissues on MRI images.
+  </description>
+  <version>1.0</version>
+  <documentation-url>
+    http://wiki.na-mic.org/Wiki/index.php/DBP2:JHU:Roadmap
+  </documentation-url>
+  <license></license>
+  <contributor>
+    Yi Gao, Andras Lasso
+  </contributor>
+  <acknowledgements>
+    This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NA-MIC Driving Biological Problems (DBP) Core 3.2.
+  </acknowledgements>
+
+  <parameters advanced="true">
+    <label>Segmentation Parameters</label>
+    <description>Parameters for the prostate segmentation</description>
+    <double>
+      <name>beta</name>
+      <longflag>beta</longflag>
+      <flag>b</flag>
+      <description>to be completed</description>
+      <label>Beta</label>
+      <default>0.001</default>
+      <constraints>
+        <minimum>0.0001</minimum>
+        <maximum>1.0</maximum>
+        <step>0.001</step>
+      </constraints>
+    </double>
+  </parameters>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>originalImageFileName</name>
+      <label>Original Image</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Original image to be segmented</description>
+    </image>
+    <image>
+      <name>seedImageFileName</name>
+      <label>Seed Image</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description>Seed image that contains seed and background voxels</description>
+    </image>
+    <image>
+      <name>segmentedImageFileName</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description>Segmented image</description>
+    </image>
+  </parameters>
+
+</executable>

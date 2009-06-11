@@ -1,3 +1,5 @@
+#include "ProstateSegCLP.h"
+
 #include "randomWalkSeg.h"
 #include "cVolOp.h"
 
@@ -10,11 +12,7 @@ void getSeedVolume(cVolume *vol);
 
 int main( int argc, char * argv [] )
 {
-  if (argc != 5)
-    {
-      std::cerr<<"Usage:\n"<<argv[0]<<" inputVol inputSeedVol beta outputVol\n";
-      exit(-1);
-    }
+   PARSE_ARGS; 
 
   cVolOp op;
 
@@ -23,14 +21,14 @@ int main( int argc, char * argv [] )
   t1 = clock();
 
   std::cout<<"reading volume...."<<std::flush;  
-  cVolume *vol = op.volreadDouble( argv[1] );
+  cVolume *vol = op.volreadDouble( originalImageFileName.c_str() );
   //cVolume *volSmth = op.gheSmooth( vol, 10);
   // op.volwriteDouble( "smth.nrrd", vol );
   //delete vol; vol = 0;
   std::cout<<"done\n";
 
   std::cout<<"reading seed...."<<std::flush;
-  cVolume *seedVol = op.volreadDouble( argv[2] );
+  cVolume *seedVol = op.volreadDouble( seedImageFileName.c_str() );
   //  getSeedVolume(seedVol);
   std::cout<<"done\n"<<std::flush;
 
@@ -46,8 +44,7 @@ int main( int argc, char * argv [] )
   double solverErrTol = 1e-8;
   rw.set_solver_err_tol(solverErrTol);
 
-  double rw_beta = atof(argv[3]);
-  rw.setBeta(rw_beta);
+  rw.setBeta(beta);
   // std::cout<<"beta value is "<<rw_beta<<std::endl<<std::flush;
 
   std::cout<<"computing result...."<<std::flush;
@@ -74,7 +71,7 @@ int main( int argc, char * argv [] )
 
   bin->setSpacing(vol->getSpacingX(), vol->getSpacingY(), vol->getSpacingZ() );
 
-  op.volwriteDouble( argv[4], bin );
+  op.volwriteDouble( segmentedImageFileName.c_str(), bin );
   delete bin; bin = 0;
   std::cout<<"done\n"<<std::flush;
 
@@ -88,7 +85,7 @@ int main( int argc, char * argv [] )
   delete seedVol; seedVol = 0;
 
 
-  return 0;
+  return EXIT_SUCCESS ;
 }
 
 
