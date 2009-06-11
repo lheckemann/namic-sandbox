@@ -217,6 +217,7 @@ int main( int argc, char *argv[] )
   thresholder2->SetOutsideValue(  -4.0  );
   thresholder2->SetInsideValue(    4.0 );
 
+  thresholder2->SetInput( fastMarching->GetOutput() );
   shapeDetection->SetInput( thresholder2->GetOutput() );
 
   const double curvatureScaling   = 1.0;
