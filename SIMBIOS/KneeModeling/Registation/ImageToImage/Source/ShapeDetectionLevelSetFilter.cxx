@@ -43,11 +43,9 @@ int main( int argc, char *argv[] )
     }
 
 
-
   typedef   float           InternalPixelType;
-  const     unsigned int    Dimension = 2;
+  const     unsigned int    Dimension = 3;
   typedef itk::Image< InternalPixelType, Dimension >  InternalImageType;
-
 
 
   typedef unsigned char                            OutputPixelType;
@@ -78,13 +76,6 @@ int main( int argc, char *argv[] )
 
   reader->SetFileName( argv[1] );
   writer->SetFileName( argv[2] );
-
-
-  //  The RescaleIntensityImageFilter type is declared below. This filter will
-  //  renormalize image before sending them to writers.
-  //
-  typedef itk::RescaleIntensityImageFilter<InternalImageType, OutputImageType>
-    CastFilterType;
 
 
   typedef   itk::CurvatureAnisotropicDiffusionImageFilter< 
@@ -200,54 +191,7 @@ int main( int argc, char *argv[] )
   fastMarching->SetSpeedConstant( 1.0 );
 
 
-  //  Here we configure all the writers required to see the intermediate
-  //  outputs of the pipeline. This is added here only for
-  //  pedagogical/debugging purposes. These intermediate output are normaly
-  //  not required. Only the output of the final thresholding filter should
-  //  be relevant.  Observing intermediate output is helpful in the process
-  //  of fine tuning the parameters of filters in the pipeline.
-  //
-  CastFilterType::Pointer caster1 = CastFilterType::New();
-  CastFilterType::Pointer caster2 = CastFilterType::New();
-  CastFilterType::Pointer caster3 = CastFilterType::New();
-  CastFilterType::Pointer caster4 = CastFilterType::New();
-
-  WriterType::Pointer writer1 = WriterType::New();
-  WriterType::Pointer writer2 = WriterType::New();
-  WriterType::Pointer writer3 = WriterType::New();
-  WriterType::Pointer writer4 = WriterType::New();
-
-  caster1->SetInput( smoothing->GetOutput() );
-  writer1->SetInput( caster1->GetOutput() );
-  writer1->SetFileName("ShapeDetectionLevelSetFilterOutput1.png");
-  caster1->SetOutputMinimum(   0 );
-  caster1->SetOutputMaximum( 255 );
-  writer1->Update();
-
-  caster2->SetInput( gradientMagnitude->GetOutput() );
-  writer2->SetInput( caster2->GetOutput() );
-  writer2->SetFileName("ShapeDetectionLevelSetFilterOutput2.png");
-  caster2->SetOutputMinimum(   0 );
-  caster2->SetOutputMaximum( 255 );
-  writer2->Update();
-
-  caster3->SetInput( sigmoid->GetOutput() );
-  writer3->SetInput( caster3->GetOutput() );
-  writer3->SetFileName("ShapeDetectionLevelSetFilterOutput3.png");
-  caster3->SetOutputMinimum(   0 );
-  caster3->SetOutputMaximum( 255 );
-  writer3->Update();
-
-  caster4->SetInput( fastMarching->GetOutput() );
-  writer4->SetInput( caster4->GetOutput() );
-  writer4->SetFileName("ShapeDetectionLevelSetFilterOutput4.png");
-  caster4->SetOutputMinimum(   0 );
-  caster4->SetOutputMaximum( 255 );
-  
-
-
-  fastMarching->SetOutputSize( 
-           reader->GetOutput()->GetBufferedRegion().GetSize() );
+  fastMarching->SetOutputSize( reader->GetOutput()->GetBufferedRegion().GetSize() );
 
 
 
@@ -282,28 +226,5 @@ int main( int argc, char *argv[] )
   std::cout << "No. elpased iterations: " << shapeDetection->GetElapsedIterations() << std::endl;
   std::cout << "RMS change: " << shapeDetection->GetRMSChange() << std::endl;
 
-  writer4->Update();
-
-
-
-  typedef itk::ImageFileWriter< InternalImageType > InternalWriterType;
-
-  InternalWriterType::Pointer mapWriter = InternalWriterType::New();
-  mapWriter->SetInput( fastMarching->GetOutput() );
-  mapWriter->SetFileName("ShapeDetectionLevelSetFilterOutput4.mha");
-  mapWriter->Update();
-
-  InternalWriterType::Pointer speedWriter = InternalWriterType::New();
-  speedWriter->SetInput( sigmoid->GetOutput() );
-  speedWriter->SetFileName("ShapeDetectionLevelSetFilterOutput3.mha");
-  speedWriter->Update();
-
-  InternalWriterType::Pointer gradientWriter = InternalWriterType::New();
-  gradientWriter->SetInput( gradientMagnitude->GetOutput() );
-  gradientWriter->SetFileName("ShapeDetectionLevelSetFilterOutput2.mha");
-  gradientWriter->Update();
-
-
-
-  return 0;
+  return EXIT_SUCCESS;
 }
