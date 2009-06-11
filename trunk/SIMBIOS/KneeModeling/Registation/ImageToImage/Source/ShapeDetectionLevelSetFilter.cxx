@@ -123,7 +123,7 @@ int main( int argc, char *argv[] )
   writer->SetInput( thresholder->GetOutput() );
 
 
-  smoothing->SetTimeStep( 0.125 );
+  smoothing->SetTimeStep( 0.01 );
   smoothing->SetNumberOfIterations(  5 );
   smoothing->SetConductanceParameter( 9.0 );
 
