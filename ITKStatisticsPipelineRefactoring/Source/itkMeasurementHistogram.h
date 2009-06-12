@@ -455,15 +455,16 @@ public:
     return ConstIterator(m_OffsetTable[this->GetMeasurementVectorSize()], this);
     }
 
+public:
+  typedef std::vector< InstanceIdentifier >   OffsetTableType;
+  OffsetTableType                             m_OffsetTable;
+
 protected:
   MeasurementHistogram();
   virtual ~MeasurementHistogram() {}
 
   // The number of bins for each dimension
   SizeType m_Size;
-
-  typedef std::vector< InstanceIdentifier >   OffsetTableType;
-  OffsetTableType                             m_OffsetTable;
 
 private:
   MeasurementHistogram(const Self&); //purposely not implemented
