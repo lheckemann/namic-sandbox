@@ -36,7 +36,7 @@ void
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 ::Initialize(const SizeType &size)
 {
-  typename Superclass::SizeType newSize;
+  typename Superclass::SizeType newSize(VMeasurementVectorSize);
   for (unsigned int i = 0; i < VMeasurementVectorSize; i++)
     {
     newSize[i] = size[i];
@@ -51,21 +51,22 @@ Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 ::Initialize(const SizeType &size, MeasurementVectorType& lowerBound,
              MeasurementVectorType& upperBound)
 {
-  typename Superclass::SizeType newSize;
+  typename Superclass::SizeType newSize(VMeasurementVectorSize);
   for (unsigned int i = 0; i < VMeasurementVectorSize; i++)
     {
     newSize[i] = size[i];
     }
-  typename Superclass::MeasurementVectorType newLowerBound;
+  typename Superclass::MeasurementVectorType newLowerBound(VMeasurementVectorSize);
   for (unsigned int i = 0; i < VMeasurementVectorSize; i++)
     {
     newLowerBound[i] = lowerBound[i];
     }
-  typename Superclass::MeasurementVectorType newUpperBound;
+  typename Superclass::MeasurementVectorType newUpperBound(VMeasurementVectorSize);
   for (unsigned int i = 0; i < VMeasurementVectorSize; i++)
     {
     newUpperBound[i] = upperBound[i];
     }
+  std::cout << "newSize, newLowerbound, newUpperbound: " << newSize << "," << newLowerBound << "," << newUpperBound << std::endl;
   Superclass::Initialize(newSize, newLowerBound, newUpperBound);  
 }
 
@@ -76,7 +77,7 @@ inline const typename Histogram< TMeasurement, VMeasurementVectorSize,
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
 ::GetMeasurementVector(const IndexType &index) const
 {
-  typename Superclass::IndexType newIndex;
+  typename Superclass::IndexType newIndex(VMeasurementVectorSize);
   for (unsigned int i = 0; i < VMeasurementVectorSize; i++)
     {
     newIndex[i] = index[i];
@@ -150,18 +151,20 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
 bool Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 ::GetIndex(const MeasurementVectorType & measurement,IndexType & index ) const
 {
-  typename Superclass::IndexType newIndex;
-  for (unsigned int dim = 0; dim < VMeasurementVectorSize; dim++)
-    {
-    newIndex[dim] = index[dim];
-    }
-
   typename Superclass::MeasurementVectorType newMeasurement(VMeasurementVectorSize);
   for (unsigned int dim = 0; dim < VMeasurementVectorSize; dim++)
     {
     newMeasurement[dim] = measurement[dim];
     }
-  return Superclass::GetIndex(newMeasurement,newIndex );
+  typename Superclass::IndexType newIndex(VMeasurementVectorSize);
+
+  bool result = Superclass::GetIndex(newMeasurement,newIndex );
+  for (unsigned int dim = 0; dim < VMeasurementVectorSize; dim++)
+    {
+    index[dim] = newIndex[dim];
+    }
+
+  return result;
 }
 
 template< class TMeasurement, unsigned int VMeasurementVectorSize,
@@ -170,7 +173,7 @@ inline const typename Histogram<TMeasurement, VMeasurementVectorSize, TFrequency
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 ::GetIndex(const InstanceIdentifier &id)  const
 {
-  Superclass::IndexType newIndex = Superclass::GetIndex(id);
+  typename Superclass::IndexType newIndex = Superclass::GetIndex(id);
 
   for (unsigned int dim = 0; dim < VMeasurementVectorSize; dim++)
     {
@@ -185,7 +188,7 @@ inline bool
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 ::IsIndexOutOfBounds(const IndexType &index) const
 {
-  typename Superclass::IndexType newIndex;
+  typename Superclass::IndexType newIndex(VMeasurementVectorSize);
 
   for (unsigned int dim = 0; dim < VMeasurementVectorSize; dim++)
     {
@@ -201,7 +204,7 @@ inline typename Histogram<TMeasurement, VMeasurementVectorSize,
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 ::GetInstanceIdentifier(const IndexType &index) const
 {
-  typename Superclass::IndexType newIndex;
+  typename Superclass::IndexType newIndex(VMeasurementVectorSize);
   for (unsigned int i = 0; i < VMeasurementVectorSize; i++)
     {
     newIndex[i] = index[i];
