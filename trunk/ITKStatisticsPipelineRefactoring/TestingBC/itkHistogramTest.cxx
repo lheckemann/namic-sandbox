@@ -45,7 +45,7 @@ int itkHistogramTest(int, char* [] )
   HistogramType::MeasurementVectorType upperBound ;
   lowerBound.Fill(LOWERBOUND) ;
   upperBound.Fill(UPPERBOUND) ;
-  std::cout << "size, lowerbound, upperbound: " << size << "," << lowerBound << "," << upperBound << std::endl;
+
   histogram->Initialize(size, lowerBound, upperBound ) ;
   histogram->SetToZero();
   double interval = 
@@ -63,19 +63,16 @@ int itkHistogramTest(int, char* [] )
     {
     measurements.Fill(fillValues[testiter]) ;
     index.Fill(knownFillLocation[testiter]) ;
-    std::cout << "measurements: " << measurements << std::endl;
     if(histogram->GetIndex(measurements,ind))
       {
       if(index != ind)
         {
-        std::cout << "index " << index << " !=  histogram->GetIndex(measurements,ind) " << ind << std::endl;
         pass = false ;
         whereFail = "GetIndex(MeasurementVectorType&)";
         }
       }
     else
       {
-      std::cout << "index " << index << " !=  histogram->GetIndex(measurements,ind) " << ind << std::endl;
       pass = false ;
       whereFail = "GetIndex(MeasurementVectorType&)";
       }
