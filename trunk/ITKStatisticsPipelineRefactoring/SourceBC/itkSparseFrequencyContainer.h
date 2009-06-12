@@ -17,7 +17,7 @@
 #ifndef __itkSparseFrequencyContainer_h
 #define __itkSparseFrequencyContainer_h
 
-#include "itkSparseFrequencyCOntainer2.h"
+#include "itkSparseFrequencyContainer2.h"
 
 namespace itk { 
 namespace Statistics {
