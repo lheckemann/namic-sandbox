@@ -283,7 +283,6 @@ public:
     Iterator(const ConstIterator & it);
     ConstIterator& operator=(const ConstIterator& it);
 
-    private:
     }; // end of iterator class
 
 
@@ -295,7 +294,7 @@ public:
 
   Iterator  End()
     {
-    return Iterator(m_OffsetTable[this->GetMeasurementVectorSize()], this);
+      return Iterator(Superclass::m_OffsetTable[this->GetMeasurementVectorSize()], this);
     }
 
   ConstIterator  Begin() const
@@ -306,7 +305,7 @@ public:
 
   ConstIterator End() const
     {
-    return ConstIterator(m_OffsetTable[this->GetMeasurementVectorSize()], this);
+      return ConstIterator(Superclass::m_OffsetTable[this->GetMeasurementVectorSize()], this);
     }
 
 protected:
