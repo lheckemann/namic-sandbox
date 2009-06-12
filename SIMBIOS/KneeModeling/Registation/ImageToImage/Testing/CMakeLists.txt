@@ -39,3 +39,24 @@ ADD_TEST(Masking58
   ${TEMP}/58_MRI_DatasetMasked.mhd
   ) 
 
+ADD_TEST(ShapeDetection64
+  ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
+  ${TEMP}/64_MRI_Dataset.mhd
+  ${TEMP}/64_MRI_DatasetMask.mhd
+   0.7 # Sigma in mm
+  -1.0 # Alpha
+   5.0 # Beta
+  25.0 # Initial radius in mm
+  119  85.5  19.2188   # Seed 1  FIXME
+  119  79  46.0938     # Seed 2  FIXME
+  99  50  33.9062      # Seed 3  FIXME
+  135  178.5  35.4688  # Seed 4  FIXME
+  )
+  
+ADD_TEST(Masking64
+  ${CXX_TEST_PATH}/MaskImageForRegistration
+  ${TEMP}/64_MRI_Dataset.mhd
+  ${TEMP}/64_MRI_DatasetMask.mhd
+  ${TEMP}/64_MRI_DatasetMasked.mhd
+  ) 
+
