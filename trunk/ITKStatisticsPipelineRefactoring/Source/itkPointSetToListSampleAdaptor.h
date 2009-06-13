@@ -184,7 +184,7 @@ public:
 
     friend class PointSetToListSampleAdaptor;
 
-    public:
+  public:
 
     Iterator(Self * adaptor):ConstIterator(adaptor)
       {
@@ -216,7 +216,6 @@ public:
       {
       }
 
-    private:
     };
 
 

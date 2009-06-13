@@ -278,7 +278,7 @@ public:
 
     friend class JointDomainImageToListSampleAdaptor;
 
-    public:
+  public:
 
     Iterator(Self * adaptor):ConstIterator(adaptor)
       {
@@ -309,7 +309,6 @@ public:
       {
       }
 
-    private:
     };
 
 
