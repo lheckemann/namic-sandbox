@@ -62,11 +62,11 @@ public:
 
   void GenerateData()
     {
+    this->SetHistogramSize(m_Histogram->GetSize());
+    Superclass::GenerateData();
     HistogramType * outputHistogram = 
       static_cast<HistogramType*>(this->ProcessObject::GetOutput(0));
-    outputHistogram->SetMeasurementVectorSize( m_Histogram->GetMeasurementVectorSize () );
-    outputHistogram->Initialize( m_Histogram->GetSize () );
-    Superclass::GenerateData();
+    m_Histogram->Graft(outputHistogram);
     }
 protected:
   ListSampleToHistogramFilter(){}
