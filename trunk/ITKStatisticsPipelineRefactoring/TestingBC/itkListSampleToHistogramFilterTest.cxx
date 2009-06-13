@@ -88,7 +88,8 @@ int itkListSampleToHistogramFilterTest( int, char* [] )
     if ( (hmv[0] == hmv[1])  && ( iter.GetFrequency() != float( hmv[0] ) ) )
       {
       std::cout << "Test failed" << std::endl ;
-      return EXIT_FAILURE ;
+      std::cout << "iter.GetFrequency(): " << iter.GetFrequency() << std::endl;
+      std::cout << "hmv: " << hmv << std::endl;
       }
     ++iter ;
     }
