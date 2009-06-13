@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
+  Program:   Commandline Module for Image Cropping
   Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Applications/CLI/Crop.cxx $
   Language:  C++
   Date:      $Date: 2006-12-20 16:00:24 -0500 (Wed, 20 Dec 2006) $
@@ -27,7 +27,9 @@
 #include "itkImageFileWriter.h"
 
 #include "itkSize.h"
-#include "itkExtractImageFilter.h"
+#include "itkCropImageFilter.h"
+#include "itkShiftScaleImageFilter.h"
+#include "itkMetaDataObject.h"
 
 #include "itkPluginUtilities.h"
 #include "CropCLP.h"
@@ -49,47 +51,63 @@ template<class T> int DoIt( int argc, char * argv[], T )
   typedef itk::Size<3> SizeType;
   typedef itk::Index<3> IndexType;
 
-  typedef itk::ExtractImageFilter<
+  typedef itk::CropImageFilter<
     InputImageType, OutputImageType >  FilterType;
-
-  typename ReaderType::Pointer reader1 = ReaderType::New();
-  itk::PluginFilterWatcher watchReader1(reader1, "Read Volume 1",
+  typename ReaderType::Pointer reader = ReaderType::New();
+  itk::PluginFilterWatcher watchReader(reader, "Read Volume 1",
                                         CLPProcessInformation);
-  
+  reader->SetFileName( inputVolume1.c_str() );
+  reader->Update();
+
   typename FilterType::InputImageRegionType region;
-  SizeType  size = {iMaxValue-iMinValue, jMaxValue-jMinValue, kMaxValue-kMinValue};
-  IndexType index = {iMinValue, jMinValue, kMinValue};
-  //SizeType sizeL = {iMinValue, jMinValue, kMinValue};
-  //SizeType sizeU = {iMaxValue, jMaxValue, kMaxValue};
-
-  reader1->SetFileName( inputVolume1.c_str() );
-
   typename FilterType::Pointer filter = FilterType::New();
-  /*
-  filter->SetLowerBoundaryCropSize (sizeL);
-  filter->SetUpperBoundaryCropSize (sizeU);
-  filter->UpdateLargestPossibleRegion();
-  */
-  region.SetIndex(index);
-  region.SetSize(size);
-  filter->SetExtractionRegion(region);
-
   itk::PluginFilterWatcher watchFilter(filter,
                                        "Crop images",
                                        CLPProcessInformation);
 
-  filter->SetInput( 0, reader1->GetOutput() );
+  typename InputImageType::SizeType size = reader->GetOutput()->
+    GetLargestPossibleRegion().GetSize();
+  SizeType  sizeL = {iMinValue-1, jMinValue-1, kMinValue-1};
+  SizeType  sizeU = {size[0] - iMaxValue, size[1] - jMaxValue, size[2] - kMaxValue};
+
+  filter->SetInput( 0, reader->GetOutput() );
+  filter->SetLowerBoundaryCropSize (sizeL);
+  filter->SetUpperBoundaryCropSize (sizeU);
+  filter->UpdateLargestPossibleRegion();
+  filter->Update();
+
+  typename OutputImageType::Pointer       outputImage = OutputImageType::New();
+  typename OutputImageType::SpacingType   spacing     = reader->GetOutput()->GetSpacing();
+  typename OutputImageType::PointType     inputOrigin = reader->GetOutput()->GetOrigin();
+  typename OutputImageType::DirectionType dir         = reader->GetOutput()->GetDirection();
+
+  // shift the image
+  double outputOrigin[3];
+  double si = (double)sizeL[0] * spacing[0];
+  double sj = (double)sizeL[1] * spacing[1];
+  double sk = (double)sizeL[2] * spacing[2];
+
+  // apply the orientation matrix
+  outputOrigin[0] = inputOrigin[0] + si*dir[0][0] + sj*dir[0][1] + sk*dir[0][2];
+  outputOrigin[1] = inputOrigin[1] + si*dir[1][0] + sj*dir[1][1] + sk*dir[1][2];
+  outputOrigin[2] = inputOrigin[2] + si*dir[2][0] + sj*dir[2][1] + sk*dir[2][2];
+
+  outputImage = filter->GetOutput();
+  outputImage->SetSpacing(spacing);
+  outputImage->SetOrigin(outputOrigin);
+  outputImage->Update();
 
   typename WriterType::Pointer writer = WriterType::New();
   itk::PluginFilterWatcher watchWriter(writer,
                                        "Write Volume",
                                        CLPProcessInformation);
   writer->SetFileName( outputVolume.c_str() );
-  writer->SetInput( filter->GetOutput() );
+  writer->SetInput( outputImage );
   writer->Update();
 
   return EXIT_SUCCESS;
 }
+
 
 int main( int argc, char * argv[] )
 {
