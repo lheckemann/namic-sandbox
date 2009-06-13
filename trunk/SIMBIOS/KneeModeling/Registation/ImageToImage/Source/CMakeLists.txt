@@ -8,3 +8,14 @@ TARGET_LINK_LIBRARIES(DicomSeriesReadImageWrite ITKBasicFilters ITKIO)
 ADD_EXECUTABLE(MaskImageForRegistration MaskImageForRegistration.cxx)
 TARGET_LINK_LIBRARIES(MaskImageForRegistration ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(ImageRegistrationRigid ImageRegistrationRigid.cxx vtkKWImage.cxx vtkRegistrationMonitor.cxx)
+TARGET_LINK_LIBRARIES(ImageRegistrationRigid
+  ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
+  vtkRendering vtkFiltering vtkIO vtkHybrid
+  )
+
+ADD_EXECUTABLE(ImageRegistrationAffine ImageRegistrationAffine.cxx vtkKWImage.cxx vtkRegistrationMonitor.cxx)
+TARGET_LINK_LIBRARIES(ImageRegistrationAffine 
+  ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
+  vtkRendering vtkFiltering vtkIO vtkHybrid
+  )
