@@ -46,6 +46,8 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  const unsigned int numberOfParametersBeforeSeedPoints = 6;
+
 
   typedef   float           InternalPixelType;
   const     unsigned int    Dimension = 3;
@@ -153,48 +155,32 @@ int main( int argc, char *argv[] )
 
 
   InternalImageType::IndexType  seedPosition;
-  
-  seedPosition[0] = atoi( argv[7] );
-  seedPosition[1] = atoi( argv[8] );
-  seedPosition[2] = atoi( argv[9] );
-
 
   NodeType node;
   const double seedValue = - initialDistance;
   
+  node.SetValue( seedValue );
+
   seeds->Initialize();
 
-  node.SetValue( seedValue );
-  node.SetIndex( seedPosition );
+ 
+  const unsigned int numberOfSeedPoints =
+    ( argc - numberOfParametersBeforeSeedPoints - 1 ) / 3;
 
-  seeds->InsertElement( 0, node );
 
-  seedPosition[0] = atoi( argv[10] );
-  seedPosition[1] = atoi( argv[11] );
-  seedPosition[2] = atoi( argv[12] );
+  for( unsigned int seedId = 0; seedId < numberOfSeedPoints; seedId++ )
+    {
+    const unsigned int sp = numberOfParametersBeforeSeedPoints + 1 + 3*seedId;
+    seedPosition[0] = atoi( argv[sp  ] );
+    seedPosition[1] = atoi( argv[sp+1] );
+    seedPosition[2] = atoi( argv[sp+2] );
 
-  node.SetValue( seedValue );
-  node.SetIndex( seedPosition );
+    node.SetIndex( seedPosition );
 
-  seeds->InsertElement( 1, node );
+    seeds->InsertElement( seedId, node );
 
-  seedPosition[0] = atoi( argv[13] );
-  seedPosition[1] = atoi( argv[14] );
-  seedPosition[2] = atoi( argv[15] );
-
-  node.SetValue( seedValue );
-  node.SetIndex( seedPosition );
-
-  seeds->InsertElement( 2, node );
-
-  seedPosition[0] = atoi( argv[16] );
-  seedPosition[1] = atoi( argv[17] );
-  seedPosition[2] = atoi( argv[18] );
-
-  node.SetValue( seedValue );
-  node.SetIndex( seedPosition );
-
-  seeds->InsertElement( 3, node );
+    std::cout << "Seed " << seedId << " = " << seedPosition << std::endl;
+    }
 
 
   fastMarching->SetInput( sigmoid->GetOutput() );
