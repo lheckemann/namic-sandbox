@@ -20,7 +20,7 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include "itkArray.h"
 #include "itkListSample.h"
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 #include "itkSampleToHistogramFilter.h"
 
 int itkSampleToHistogramFilterTest2( int , char * [] )
@@ -32,7 +32,7 @@ int itkSampleToHistogramFilterTest2( int , char * [] )
   typedef itk::Array< MeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
-  typedef itk::Statistics::Histogram< MeasurementType,
+  typedef itk::Statistics::MeasurementHistogram< MeasurementType,
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef itk::Statistics::SampleToHistogramFilter<

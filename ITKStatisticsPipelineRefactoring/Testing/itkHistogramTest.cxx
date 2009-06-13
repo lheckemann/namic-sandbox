@@ -17,7 +17,7 @@
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
-#include "itkHistogram.h"
+#include "itkMeasurementHistogram.h"
 
 #include "itkDenseFrequencyContainer2.h"
 
@@ -31,7 +31,7 @@ int itkHistogramTest(int, char* [] )
   const unsigned int numberOfComponents = 3;
 
   // create a histogram with 3 components measurement vectors
-  typedef itk::Statistics::Histogram< MeasurementType, 
+  typedef itk::Statistics::MeasurementHistogram< MeasurementType, 
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
   HistogramType::Pointer histogram = HistogramType::New();
 
@@ -250,7 +250,7 @@ int itkHistogramTest(int, char* [] )
 
 
   // Histogram with SparseFrequencyContainer2
-  typedef itk::Statistics::Histogram< MeasurementType,
+  typedef itk::Statistics::MeasurementHistogram< MeasurementType,
     itk::Statistics::SparseFrequencyContainer2 > SparseHistogramType;
   SparseHistogramType::Pointer sparseHistogram = SparseHistogramType::New();
 
