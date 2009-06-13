@@ -200,7 +200,7 @@ public:
 
     friend class ListSample;
 
-    public:
+  public:
 
     Iterator(Self * sample):ConstIterator(sample)
       {
@@ -232,7 +232,6 @@ public:
       {
       }
 
-    private:
     };
 
 

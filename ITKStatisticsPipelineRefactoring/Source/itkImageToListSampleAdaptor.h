@@ -205,7 +205,7 @@ public:
 
     friend class ImageToListSampleAdaptor;
 
-    public:
+  public:
 
     Iterator(Self * adaptor):ConstIterator(adaptor)
       {
@@ -237,7 +237,6 @@ public:
       {
       }
 
-    private:
     };
 
 
