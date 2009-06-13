@@ -29,6 +29,52 @@
 #include "itkImage.h"
 
 
+
+class CommandIterationUpdate : public itk::Command 
+{
+public:
+  typedef  CommandIterationUpdate   Self;
+  typedef  itk::Command             Superclass;
+  typedef itk::SmartPointer<Self>   Pointer;
+
+  itkNewMacro( Self );
+
+protected:
+  CommandIterationUpdate() {};
+
+public:
+
+  typedef   float           InputPixelType;
+  typedef   float           InternalPixelType;
+
+  typedef itk::Image< InputPixelType, 3 >     InputImageType;
+  typedef itk::Image< InternalPixelType, 3 >  InternalImageType;
+
+  typedef itk::ShapeDetectionLevelSetImageFilter< 
+    InternalImageType, InputImageType > ThresholdSegmentationLevelSetImageFilterType;
+
+  void Execute(itk::Object *caller, const itk::EventObject & event)
+    {
+    Execute( (const itk::Object *)caller, event);
+    }
+
+  void Execute(const itk::Object * object, const itk::EventObject & event)
+    {
+    const ThresholdSegmentationLevelSetImageFilterType * filter = 
+      dynamic_cast< const ThresholdSegmentationLevelSetImageFilterType * >( object );
+
+    if( ! itk::IterationEvent().CheckEvent( &event ) )
+      {
+      return;
+      }
+    std::cout << filter->GetElapsedIterations() << "  ";
+    std::cout << filter->GetRMSChange() << std::endl;
+  }
+   
+};
+
+
+
 int main( int argc, char *argv[] )
 {
   if( argc < 19 )
@@ -218,9 +264,14 @@ int main( int argc, char *argv[] )
   shapeDetection->SetCurvatureScaling( curvatureScaling ); 
 
 
-  shapeDetection->SetMaximumRMSError( 0.01 );
+  shapeDetection->SetMaximumRMSError( 0.0001 );
   shapeDetection->SetNumberOfIterations( 300 );
   
+
+  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+
+  shapeDetection->AddObserver( itk::IterationEvent(), observer );
+
 
   try
     {
@@ -238,10 +289,10 @@ int main( int argc, char *argv[] )
 
   // Print out some useful information 
   std::cout << std::endl;
-  std::cout << "Max. no. iterations: " << shapeDetection->GetNumberOfIterations() << std::endl;
-  std::cout << "Max. RMS error: " << shapeDetection->GetMaximumRMSError() << std::endl;
+  std::cout << "Maximum number of iterations: " << shapeDetection->GetNumberOfIterations() << std::endl;
+  std::cout << "Maximum RMS error: " << shapeDetection->GetMaximumRMSError() << std::endl;
   std::cout << std::endl;
-  std::cout << "No. elpased iterations: " << shapeDetection->GetElapsedIterations() << std::endl;
+  std::cout << "Number of elapsed iterations: " << shapeDetection->GetElapsedIterations() << std::endl;
   std::cout << "RMS change: " << shapeDetection->GetRMSChange() << std::endl;
 
   return EXIT_SUCCESS;
