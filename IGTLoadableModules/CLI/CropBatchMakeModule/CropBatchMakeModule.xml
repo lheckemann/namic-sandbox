@@ -16,13 +16,13 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
-    <image>
-      <name>inputVolume1</name>
+    <directory>
+      <name>inputVolume1_Directory</name>
       <label>Input Volume 1</label>
       <channel>input</channel>
       <index>0</index>
       <description>Input volume 1</description>
-    </image>
+    </directory>
 
     <integer>
       <name>iMinValue</name>
@@ -73,13 +73,68 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <default>256</default>
     </integer>
 
-    <image>
+    <file>
       <name>outputVolume</name>
       <label>Output Volume</label>
       <channel>output</channel>
       <index>1</index>
       <description>Volume1 + Volume2</description>
-    </image>
+    </file>
+  </parameters>
+
+  <parameters advanced="true">
+    <label>BatchMake</label>
+    <description>BatchMake specific parameters</description>
+    
+    <string-enumeration>
+      <name>RunningMode_Grid</name>
+      <longflag>runningMode_Grid</longflag>
+      <description>Running Mode: Where the module shall be executed? On your local machine or on a grid?</description>
+      <label>Running Mode</label>
+      <default>local</default>
+      <element>local</element>
+      <element>condor</element>
+    </string-enumeration>
+    <directory>
+      <name>InputDirectory_Grid</name>
+      <label>Grid input directory</label>
+      <longflag>inputDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the input data are. Necessary if dealing with relative input paths.</description>
+    </directory>
+    <directory>
+      <name>OutputDirectory_Grid</name>
+      <label>Grid output directory</label>
+      <longflag>outputDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the output data are. Necessary if dealing with relative output paths.</description>
+    </directory>
+    <directory>
+      <name>ExecutableDirectory_Grid</name>
+      <label>Grid executable directory</label>
+      <longflag>executableDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the executables are.</description>
+    </directory>
+    <directory>
+      <name>WorkingDirectory_Grid</name>
+      <label>Grid working directory</label>
+      <longflag>workingDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the condor scripts are written.</description>
+    </directory>
+    <string-enumeration>
+      <name>TransferFile_Grid</name>
+      <longflag>transferFile_Grid</longflag>
+      <description>Type of files that shall be transfered by the grid</description>
+      <label>Transfer File</label>
+      <default>NONE</default>
+      <element>NONE</element>
+      <element>EXECUTABLE</element>
+      <element>INPUT_FILES</element>
+      <element>OUTPUT_FILES</element>
+      <element>ALL</element>
+    </string-enumeration>
   </parameters>
 
 </executable>
