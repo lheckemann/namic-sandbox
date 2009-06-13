@@ -29,16 +29,17 @@ void RegisterTests()
 {
   vnl_sample_reseed(8775070);
   REGISTER_TEST(itkChiSquareDistributionTest);
-  REGISTER_TEST(itkGaussianDistributionTest);
-  REGISTER_TEST(itkTDistributionTest);
-  REGISTER_TEST(itkMeanCalculatorTest);
-  REGISTER_TEST(itkWeightedMeanCalculatorTest);
-  REGISTER_TEST(itkScalarImageTextureCalculatorTest);
   REGISTER_TEST(itkCovarianceCalculatorTest);
-  REGISTER_TEST(itkWeightedCovarianceCalculatorTest);
   REGISTER_TEST(itkDenseFrequencyContainerTest);
-  REGISTER_TEST(itkKdTreeBasedKmeansEstimatorTest);
+  REGISTER_TEST(itkGaussianDensityFunctionTest);
+  REGISTER_TEST(itkGaussianDistributionTest);
   REGISTER_TEST(itkHistogramTest);
-  REGISTER_TEST(itkVariableDimensionHistogramTest);
+  REGISTER_TEST(itkKdTreeBasedKmeansEstimatorTest);
   REGISTER_TEST(itkListSampleToHistogramFilterTest);
+  REGISTER_TEST(itkMeanCalculatorTest);
+  REGISTER_TEST(itkScalarImageTextureCalculatorTest);
+  REGISTER_TEST(itkTDistributionTest);
+  REGISTER_TEST(itkVariableDimensionHistogramTest);
+  REGISTER_TEST(itkWeightedCovarianceCalculatorTest);
+  REGISTER_TEST(itkWeightedMeanCalculatorTest);
 }
