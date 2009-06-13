@@ -1,3 +1,5 @@
+INCLUDE_REGULAR_EXPRESSION("^.*$")
+
 INCLUDE_DIRECTORIES( BEFORE
   ${StatisticsRefactoring_SOURCE_DIR}/SourceBC
   )
@@ -21,31 +23,34 @@ ADD_TEST(itkKdTreeBasedKmeansEstimatorBCTest ${STATISTICS_TESTS}
 ADD_TEST(itkVariableDimensionHistogramBCTest ${STATISTICS_TESTS} itkVariableDimensionHistogramTest)
 ADD_TEST(itkListSampleToHistogramFilterBCTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 
-ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
+ADD_TEST(itkHistogramBCTest ${STATISTICS_TESTS} itkHistogramTest)
 
-ADD_TEST(itkChiSquareDistributionTest ${STATISTICS_TESTS}
+ADD_TEST(itkChiSquareDistributionBCTest ${STATISTICS_TESTS}
   itkChiSquareDistributionTest
   )
-ADD_TEST(itkGaussianDistributionTest ${STATISTICS_TESTS}
+ADD_TEST(itkGaussianDistributionBCTest ${STATISTICS_TESTS}
   itkGaussianDistributionTest
   )
-ADD_TEST(itkTDistributionTest ${STATISTICS_TESTS} itkTDistributionTest)
+ADD_TEST(itkTDistributionBCTest ${STATISTICS_TESTS} itkTDistributionTest)
+
+ADD_TEST(itkGaussianDensityFunctionBCTest ${STATISTICS_TESTS} itkGaussianDensityFunctionTest)
 
 SET(Statistics_SRCS
+  itkChiSquareDistributionTest.cxx
+  itkCovarianceCalculatorTest.cxx
+  itkDenseFrequencyContainerTest.cxx
+  itkGaussianDistributionTest.cxx
+  itkGaussianDensityFunctionTest.cxx
+  itkHistogramTest.cxx
+  itkKdTreeBasedKmeansEstimatorTest.cxx
+  itkKdTreeGeneratorTest.cxx
+  itkListSampleToHistogramFilterTest.cxx
   itkMeanCalculatorTest.cxx
   itkScalarImageTextureCalculatorTest.cxx
-  itkCovarianceCalculatorTest.cxx
+  itkTDistributionTest.cxx
+  itkVariableDimensionHistogramTest.cxx
   itkWeightedCovarianceCalculatorTest.cxx
   itkWeightedMeanCalculatorTest.cxx
-  itkKdTreeGeneratorTest.cxx
-  itkKdTreeBasedKmeansEstimatorTest.cxx
-  itkDenseFrequencyContainerTest.cxx
-  itkHistogramTest.cxx
-  itkVariableDimensionHistogramTest.cxx
-  itkListSampleToHistogramFilterTest.cxx
-  itkChiSquareDistributionTest.cxx
-  itkGaussianDistributionTest.cxx
-  itkTDistributionTest.cxx
 )
 
 ADD_EXECUTABLE(itkStatisticsBCTests itkStatisticsBCTests.cxx ${Statistics_SRCS})
