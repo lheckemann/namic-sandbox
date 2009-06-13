@@ -47,10 +47,12 @@ ADD_TEST(ShapeDetection64
   -1.0 # Alpha
    5.0 # Beta
   25.0 # Initial radius in mm
-  119  85.5  19.2188   # Seed 1  FIXME
-  119  79  46.0938     # Seed 2  FIXME
-  99  50  33.9062      # Seed 3  FIXME
-  135  178.5  35.4688  # Seed 4  FIXME
+  134  24.0645  25.4849  # Seed points
+  165  72.6517  41.4443
+  165  78.6106  14.1212
+  165  217.726  29.0779
+  165  162.263  35.5953
+  165  160.888  17.2963
   )
   
 ADD_TEST(Masking64
