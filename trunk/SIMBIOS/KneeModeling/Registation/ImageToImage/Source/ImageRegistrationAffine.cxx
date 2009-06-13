@@ -230,8 +230,8 @@ int main( int argc, char *argv[] )
   fixedContour->SetInput( fixedKWImage->GetVTKImage() );
   movingContour->SetInput( movingKWImage->GetVTKImage() );
 
-  fixedContour->SetValue(  0, 200.0 ); // level for iso-contour
-  movingContour->SetValue( 0, 200.0 ); // level for iso-contour
+  fixedContour->SetValue(  0, 0.0 ); // level for iso-contour
+  movingContour->SetValue( 0, 0.0 ); // level for iso-contour
 
   monitor.SetFixedSurface( fixedContour->GetOutput() );
   monitor.SetMovingSurface( movingContour->GetOutput() );

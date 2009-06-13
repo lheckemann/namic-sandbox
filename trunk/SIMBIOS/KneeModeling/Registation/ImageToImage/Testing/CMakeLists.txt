@@ -62,3 +62,26 @@ ADD_TEST(Masking64
   ${TEMP}/64_MRI_DatasetMasked.mhd
   ) 
 
+ADD_TEST(RegistrationRigid_64_58
+  ${EXECUTABLE_OUTPUT_PATH}/ImageRegistrationRigid
+  ${TEMP}/64_MRI_DatasetMasked.mhd
+  ${TEMP}/58_MRI_DatasetMasked.mhd
+  ${TEMP}/RegisteredRigid_58_64.mhd
+  ${TEMP}/DifferenceAfterRigidRegistration.mhd
+  ${TEMP}/RigidRegistrationScreenshots
+  ${TEMP}/initialRigidTransform_64_58.txt
+  ${TEMP}/finalRigidTransform_64_58.txt
+  )
+
+ADD_TEST(RegistrationAffine_64_58
+  ${EXECUTABLE_OUTPUT_PATH}/ImageRegistrationAffine
+  ${TEMP}/64_MRI_DatasetMasked.mhd
+  ${TEMP}/58_MRI_DatasetMasked.mhd
+  ${TEMP}/finalRigidTransform_64_58.txt
+  ${TEMP}/RegisteredAffine_58_64.mhd
+  ${TEMP}/DifferenceAfterAffineRegistration.mhd
+  ${TEMP}/AffineRegistrationScreenshots
+  ${TEMP}/initialAffineTransform_64_58.txt
+  ${TEMP}/finalAffineTransform_64_58.txt
+  )
+
