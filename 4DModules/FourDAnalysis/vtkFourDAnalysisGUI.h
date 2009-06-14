@@ -92,6 +92,9 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   virtual void Exit ( );
   void PrintSelf (ostream& os, vtkIndent indent );
 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "4D"; }
+
   //----------------------------------------------------------------
   // Observer Management
   //----------------------------------------------------------------
