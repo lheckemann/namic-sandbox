@@ -55,7 +55,7 @@ if(BatchMake_DIR)
     endif(WIN32)
 
     # Configure a header
-    configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/../GenericBatchMakeModule/BatchMakeModuleConfig.h.in"
+    configure_file( "${Slicer3_SOURCE_DIR}/Applications/CLI/BatchMakeApplications/GenericBatchMakeModule/BatchMakeModuleConfig.h.in"
       "${CMAKE_CURRENT_BINARY_DIR}/BatchMakeModuleConfig.h")
 
   endif(Slicer3_BINARY_DIR)
