@@ -114,6 +114,10 @@ public:
   /** Gets the result proportion values */
   const ProportionVectorType& GetProportions() const;
 
+  /** Statistics BC */
+  ProportionVectorType* GetInitialProportions() {return &m_InitialProportions;}
+  ProportionVectorType* GetProportions(){return &m_Proportions;}
+
   /** typedef for decorated array of proportion */
   typedef SimpleDataObjectDecorator<
   ProportionVectorType>                 MembershipFunctionsWeightsArrayObjectType;
