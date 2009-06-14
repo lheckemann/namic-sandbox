@@ -86,6 +86,9 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   virtual void Exit ( );
   void PrintSelf (ostream& os, vtkIndent indent );
 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "4D"; }
+
   //----------------------------------------------------------------
   // Observer Management
   //----------------------------------------------------------------
@@ -116,8 +119,6 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   void BuildGUIForLoadFrame(int show);
   void BuildGUIForActiveBundleSelectorFrame();
   void BuildGUIForFrameControlFrame(int show);
-  void BuildGUIForCroppingFrame(int show);
-  void BuildGUIForRegistrationFrame(int show);
 
   //----------------------------------------------------------------
   // Update routines
@@ -181,38 +182,6 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   vtkKWPushButton*     AutoPlayFGButton;
   vtkKWPushButton*     AutoPlayBGButton;
   vtkKWEntry*          AutoPlayIntervalEntry;
-
-  // -----------------------------------------
-  // 4D Cropping
-
-  vtkKWPushButton* StartCroppingButton;
-  vtkKWSpinBox*    CropIMinSpinBox;
-  vtkKWSpinBox*    CropIMaxSpinBox;
-  vtkKWSpinBox*    CropJMinSpinBox;
-  vtkKWSpinBox*    CropJMaxSpinBox;
-  vtkKWSpinBox*    CropKMinSpinBox;
-  vtkKWSpinBox*    CropKMaxSpinBox;
-
-  // -----------------------------------------
-  // 4D Registration
-
-  vtkKWMenuButton* InputSeriesMenu;
-  vtkKWMenuButton* OutputSeriesMenu;
-  vtkKWSpinBox*    RegistrationFixedImageIndexSpinBox;
-  vtkKWSpinBox*    RegistrationStartIndexSpinBox;
-  vtkKWSpinBox*    RegistrationEndIndexSpinBox;
-  vtkKWPushButton* StartRegistrationButton;
-
-  vtkKWEntryWithLabel* AffineIterationsEntry; 
-  vtkKWEntryWithLabel* AffineSamplesEntry;    
-  vtkKWEntryWithLabel* AffineHistgramBinEntry;
-  vtkKWEntryWithLabel* AffineTranslationEntry;
-
-  vtkKWEntryWithLabel* IterationsEntry;
-  vtkKWEntryWithLabel* GridSizeEntry;
-  vtkKWEntryWithLabel* HistogramBinsEntry;
-  vtkKWEntryWithLabel* SpatialSamplesEntry;
-
 
   //----------------------------------------------------------------
   // Logic Values

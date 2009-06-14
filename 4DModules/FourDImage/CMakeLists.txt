@@ -23,8 +23,6 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
-  ${CommandLineModule_SOURCE_DIR}
-  ${CommandLineModule_BINARY_DIR}
   ${Volumes_SOURCE_DIR}
   ${Volumes_BINARY_DIR}
   )
@@ -81,10 +79,18 @@ add_library(${lib_name}
 
 slicer3_set_modules_output_path(${lib_name})
 
+find_library( VolumesLib Volumes ${Slicer3_DIR}/${Slicer3_INSTALL_MODULES_BIN_DIR} )
+if ( ${VolumesLib} MATCHES "NOTFOUND" )
+   set ( VolumesLib Volumes )
+endif ( ${VolumesLib} MATCHES "NOTFOUND" )
+
 target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
+  ${ITK_LIBRARIES}
+  ${CLP_MODULE}
+  ${VolumesLib}
   )
 
 install(TARGETS ${lib_name}
