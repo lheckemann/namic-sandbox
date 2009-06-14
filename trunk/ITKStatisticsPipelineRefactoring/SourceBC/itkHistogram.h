@@ -67,6 +67,13 @@ public:
 
   typedef HistogramPrivateMeasurementVector< TMeasurement, VMeasurementVectorSize > MeasurementVectorType;
 
+  /** Typedef for the length of each measurement vector */
+  typedef unsigned int  MeasurementVectorSizeType;
+
+  /** Dimension of a measurement vector */
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+                      VMeasurementVectorSize);
+
   /** Run-time type information (and related methods). */
   itkTypeMacro(Histogram, MeasurementHistogram);
 
