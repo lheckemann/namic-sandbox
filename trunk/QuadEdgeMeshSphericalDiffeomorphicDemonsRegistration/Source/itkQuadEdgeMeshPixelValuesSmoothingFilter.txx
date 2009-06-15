@@ -18,6 +18,7 @@
 #define __itkQuadEdgeMeshPixelValuesSmoothingFilter_txx
 
 #include "itkQuadEdgeMeshPixelValuesSmoothingFilter.h"
+#include "itkProgressReporter.h"
 
 namespace itk
 {
@@ -53,8 +54,11 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
     this->Superclass::GenerateData();
     }
 
-  for( unsigned int iter = 0; iter < m_MaximumNumberOfIterations; ++iter )
+  ProgressReporter progress(this, 0, this->m_MaximumNumberOfIterations);
+
+  for( unsigned int iter = 0; iter < this->m_MaximumNumberOfIterations; ++iter )
     {
+    progress.CompletedPixel();  // potential exception thrown here
     }
 }
 
