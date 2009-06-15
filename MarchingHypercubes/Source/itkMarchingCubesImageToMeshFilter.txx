@@ -572,6 +572,8 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   typename TriangleType::CellAutoPointer cellpointer;
   cellpointer.TakeOwnership( new TriangleType );
 
+  // TODO  Insert here use of the Point locator.
+
   // Insert the point in the output mesh.
   pointsContainer->InsertElement(  this->m_NumberOfPoints, directedPoint1.point );
   pointDataContainer->InsertElement(  this->m_NumberOfPoints, directedPoint1.gradient );
