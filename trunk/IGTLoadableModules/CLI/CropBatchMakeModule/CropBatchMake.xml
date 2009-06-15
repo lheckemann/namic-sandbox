@@ -31,6 +31,26 @@
       <description>Input volume Directory</description>
     </string>
 
+    <directory>
+      <name>outputVolume_Directory</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description>Volume1 + Volume2</description>
+    </directory>
+    <string>
+      <name>outputVolume_Mask</name>
+      <label>Output Volume Suffix</label>
+      <default>${inputVolume1}-cropped.nrrd</default>
+      <longflag>outputVolume_Mask</longflag>
+      <description>Suffix for output volumes file name</description>
+    </string>
+  </parameters>
+
+  <parameters>
+    <label>Size Parameters</label>
+    <description>Cropping size parameters</description>
+
     <integer>
       <name>iMinValue</name>
       <longflag>--iMinValue</longflag>
@@ -79,21 +99,6 @@
       <label>Upper (k)</label>
       <default>256</default>
     </integer>
-
-    <directory>
-      <name>outputVolume_Directory</name>
-      <label>Output Volume</label>
-      <channel>output</channel>
-      <index>1</index>
-      <description>Volume1 + Volume2</description>
-    </directory>
-    <string>
-      <name>outputVolume_Mask</name>
-      <label>Output Volume Suffix</label>
-      <default>${inputVolume1}-cropped.nrrd</default>
-      <longflag>outputVolume_Mask</longflag>
-      <description>Suffix for output volumes file name</description>
-    </string>
 
   </parameters>
 
