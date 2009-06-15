@@ -18,6 +18,31 @@ ADD_TEST(DicomToMeta64
   ${TEMP}/64_MRI_Dataset.mhd
   )
 
+ADD_TEST(ShapeDetection47
+  ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
+  ${KNEE_DATA_DIR}/PFP47_mri.nhdr
+  ${TEMP}/47_MRI_DatasetMask.mhd
+   0.7 # Sigma in mm
+  -1.0 # Alpha
+   5.0 # Beta
+  25.0 # Initial radius in mm
+  142  34.3778  31.4447 # Seeds
+  150  101.071  30.1554
+  174  106.113  43.4066
+  174  106.342  15.6865
+  181  233.54  28.2931
+  181  195.266  38.8224
+  181  196.412  20.4856
+  181  196.87  20.4856
+  )
+ 
+ADD_TEST(Masking47
+  ${CXX_TEST_PATH}/MaskImageForRegistration
+  ${TEMP}/47_MRI_Dataset.mhd
+  ${TEMP}/47_MRI_DatasetMask.mhd
+  ${TEMP}/47_MRI_DatasetMasked.mhd
+  ) 
+
 ADD_TEST(ShapeDetection58
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
   ${TEMP}/58_MRI_Dataset.mhd
@@ -62,26 +87,33 @@ ADD_TEST(Masking64
   ${TEMP}/64_MRI_DatasetMasked.mhd
   ) 
 
-ADD_TEST(RegistrationRigid_64_58
+MACRO(REGISTER DATASET1 DATASET2)
+
+ADD_TEST(RegistrationRigid_${DATASET1}_${DATASET2}
   ${EXECUTABLE_OUTPUT_PATH}/ImageRegistrationRigid
-  ${TEMP}/64_MRI_DatasetMasked.mhd
-  ${TEMP}/58_MRI_DatasetMasked.mhd
-  ${TEMP}/RegisteredRigid_58_64.mhd
+  ${TEMP}/${DATASET1}_MRI_DatasetMasked.mhd
+  ${TEMP}/${DATASET2}_MRI_DatasetMasked.mhd
+  ${TEMP}/RegisteredRigid_${DATASET2}_${DATASET1}.mhd
   ${TEMP}/DifferenceAfterRigidRegistration.mhd
   ${TEMP}/RigidRegistrationScreenshots
-  ${TEMP}/initialRigidTransform_64_58.txt
-  ${TEMP}/finalRigidTransform_64_58.txt
+  ${TEMP}/initialRigidTransform_${DATASET1}_${DATASET2}.txt
+  ${TEMP}/finalRigidTransform_${DATASET1}_${DATASET2}.txt
   )
 
-ADD_TEST(RegistrationAffine_64_58
+ADD_TEST(RegistrationAffine_${DATASET1}_${DATASET2}
   ${EXECUTABLE_OUTPUT_PATH}/ImageRegistrationAffine
-  ${TEMP}/64_MRI_DatasetMasked.mhd
-  ${TEMP}/58_MRI_DatasetMasked.mhd
-  ${TEMP}/finalRigidTransform_64_58.txt
-  ${TEMP}/RegisteredAffine_58_64.mhd
+  ${TEMP}/${DATASET1}_MRI_DatasetMasked.mhd
+  ${TEMP}/${DATASET2}_MRI_DatasetMasked.mhd
+  ${TEMP}/finalRigidTransform_${DATASET1}_${DATASET2}.txt
+  ${TEMP}/RegisteredAffine_${DATASET2}_${DATASET1}.mhd
   ${TEMP}/DifferenceAfterAffineRegistration.mhd
   ${TEMP}/AffineRegistrationScreenshots
-  ${TEMP}/initialAffineTransform_64_58.txt
-  ${TEMP}/finalAffineTransform_64_58.txt
+  ${TEMP}/initialAffineTransform_${DATASET1}_${DATASET2}.txt
+  ${TEMP}/finalAffineTransform_${DATASET1}_${DATASET2}.txt
   )
+
+ENDMACRO(REGISTER)
+
+REGISTER( 64 58 )
+REGISTER( 47 58 )
 
