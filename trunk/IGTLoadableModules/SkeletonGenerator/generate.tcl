@@ -33,6 +33,9 @@ for {set i 0} {$i < $argc} {incr i} {
         "--dir=*" {
             set ::GENERATOR(WDIR) [string range $a 6 end]
         }
+        #"--steps=*" {
+        #    set ::GENERATOR(STEPS) [string range $a 8 end]
+        #}
         "--help" {
             Usage
             exit 1
@@ -95,22 +98,29 @@ close $fd
 
 set repModName "s/\\$\\$\{MODULE_NAME\}\\$\\$/$::GENERATOR(NAME)/g"
 
-foreach src $files {
-    regsub -all "$template/*" $src "" srcfilename
+if { $::GENERATOR(TYPE) != "wizard" } {
 
-    #set srcfilename [string trimright $srcfilename ".in"]
-    set srcfilename [string range $srcfilename 0 [expr [string length $srcfilename] - 4]]
+    foreach src $files {
+        regsub -all "$template/*" $src "" srcfilename
 
-    if { $srcfilename == "CMakeLists.txt" } {
-        set dst "$targetdir/$srcfilename"
-    } else {
-        set dstfilename "vtk$::GENERATOR(NAME)$srcfilename"
-        set dst "$targetdir/$dstfilename"
+        #set srcfilename [string trimright $srcfilename ".in"]
+        set srcfilename [string range $srcfilename 0 [expr [string length $srcfilename] - 4]]
+
+        if { $srcfilename == "CMakeLists.txt" } {
+            set dst "$targetdir/$srcfilename"
+        } else {
+           set dstfilename "vtk$::GENERATOR(NAME)$srcfilename"
+           set dst "$targetdir/$dstfilename"
+        }
+
+        exec sed $repModName $src > $dst
+
     }
+} else {   ## wizard template
+    
+    puts "Wizard skeleton is currently not supported."
 
-    exec sed $repModName $src > $dst
-
-}
+}    
 
 
 
