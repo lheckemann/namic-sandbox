@@ -50,6 +50,7 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   this->m_GradientCalculator->UseImageDirectionOn();
 
   this->m_NumberOfPoints = NumericTraits< PointIdentifier >::Zero;
+  this->m_NumberOfCells = NumericTraits< CellIdentifier >::Zero;
 
   this->m_EdgeIndexToVertexIndex[0] = VertexPairType( 0, 0 );
   
@@ -393,6 +394,7 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   normalsContainer->Initialize();
 
   this->m_NumberOfPoints = NumericTraits< PointIdentifier >::Zero;
+  this->m_NumberOfCells = NumericTraits< CellIdentifier >::Zero;
 
   outputPointSet->SetPoints( pointsContainer );
   outputPointSet->SetPointData( normalsContainer );
@@ -563,8 +565,9 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   const DirectedPointType & directedPoint2,
   const DirectedPointType & directedPoint3 )
 {
-  PointsContainer    * pointsContainer  = this->GetOutput()->GetPoints();
-  PointDataContainer * pointDataContainer  = this->GetOutput()->GetPointData();
+  OutputMeshType     * mesh = this->GetOutput();
+  PointsContainer    * pointsContainer  = mesh->GetPoints();
+  PointDataContainer * pointDataContainer  = mesh->GetPointData();
   
   typename TriangleType::CellAutoPointer cellpointer;
   cellpointer.TakeOwnership( new TriangleType );
@@ -581,6 +584,8 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   pointsContainer->InsertElement(  this->m_NumberOfPoints, directedPoint3.point );
   pointDataContainer->InsertElement(  this->m_NumberOfPoints, directedPoint3.gradient );
   cellpointer->SetPointId( 2, this->m_NumberOfPoints++ );
+
+  mesh->SetCell( this->m_NumberOfCells++, cellpointer );
 }
 
 /** Compute gradients on the voxels contained in the neighborhood. */
