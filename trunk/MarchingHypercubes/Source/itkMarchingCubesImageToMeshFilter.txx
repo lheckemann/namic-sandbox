@@ -574,7 +574,7 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
    // Here : insert triangle cell into the output Mesh
   
   //Sophie Code
-  CellType::CellAutoPointer cellpointer;
+  typename CellType::CellAutoPointer cellpointer;
   cellpointer.TakeOwnership( new TriangleType );
   cellpointer->SetPoint( point1.point );
   cellpointer->SetPoint( point2.point );
@@ -583,10 +583,11 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   OutputMeshType * mesh = this->GetOutput();
   mesh->SetCell( normalsContainer++, cellpointer);
   
-  /*OutputMeshType * outputMeshType = this->GetPoints();
+  /* OutputMeshType * outputMeshType = this->GetPoints();
   outputMeshType->InsertElement( this->mNumberOfPoints++, point1.point);
   outputMeshType->InsertElement( this->mNumberOfPoints++, point2.point);
   outputMeshType->InsertElement( this->mNumberOfPoints++, point3.point);
+  */
   //End sophie code
 }
 
