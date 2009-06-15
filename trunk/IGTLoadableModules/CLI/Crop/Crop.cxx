@@ -27,7 +27,11 @@
 #include "itkImageFileWriter.h"
 
 #include "itkSize.h"
-#include "itkCropImageFilter.h"
+
+// NOTE: We use ExtractImageFilter instead of CropImageFilter,
+// since CropImageFilter does not allow to spcify 0 for any element
+// in the size parameter for upper and lower boundary cropping.
+#include "itkExtractImageFilter.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkMetaDataObject.h"
 
@@ -51,29 +55,32 @@ template<class T> int DoIt( int argc, char * argv[], T )
   typedef itk::Size<3> SizeType;
   typedef itk::Index<3> IndexType;
 
-  typedef itk::CropImageFilter<
-    InputImageType, OutputImageType >  FilterType;
+  //typedef itk::CropImageFilter<
+  typedef itk::ExtractImageFilter<
+       InputImageType, OutputImageType >  FilterType;
   typename ReaderType::Pointer reader = ReaderType::New();
   itk::PluginFilterWatcher watchReader(reader, "Read Volume 1",
                                         CLPProcessInformation);
   reader->SetFileName( inputVolume1.c_str() );
   reader->Update();
 
-  typename FilterType::InputImageRegionType region;
   typename FilterType::Pointer filter = FilterType::New();
   itk::PluginFilterWatcher watchFilter(filter,
                                        "Crop images",
                                        CLPProcessInformation);
 
-  typename InputImageType::SizeType size = reader->GetOutput()->
-    GetLargestPossibleRegion().GetSize();
-  SizeType  sizeL = {iMinValue-1, jMinValue-1, kMinValue-1};
-  SizeType  sizeU = {size[0] - iMaxValue, size[1] - jMaxValue, size[2] - kMaxValue};
+  //typename InputImageType::SizeType size = reader->GetOutput()->
+  //  GetLargestPossibleRegion().GetSize();
+  SizeType  size = {iMaxValue-iMinValue, jMaxValue-jMinValue, kMaxValue-kMinValue};
+  IndexType index = {iMinValue, jMinValue, kMinValue};
 
   filter->SetInput( 0, reader->GetOutput() );
-  filter->SetLowerBoundaryCropSize (sizeL);
-  filter->SetUpperBoundaryCropSize (sizeU);
-  filter->UpdateLargestPossibleRegion();
+
+  typename FilterType::InputImageRegionType region;
+  region.SetIndex(index);
+  region.SetSize(size);
+
+  filter->SetExtractionRegion(region);
   filter->Update();
 
   typename OutputImageType::Pointer       outputImage = OutputImageType::New();
@@ -83,9 +90,9 @@ template<class T> int DoIt( int argc, char * argv[], T )
 
   // shift the image
   double outputOrigin[3];
-  double si = (double)sizeL[0] * spacing[0];
-  double sj = (double)sizeL[1] * spacing[1];
-  double sk = (double)sizeL[2] * spacing[2];
+  double si = (double)index[0] * spacing[0];
+  double sj = (double)index[1] * spacing[1];
+  double sk = (double)index[2] * spacing[2];
 
   // apply the orientation matrix
   outputOrigin[0] = inputOrigin[0] + si*dir[0][0] + sj*dir[0][1] + sk*dir[0][2];
