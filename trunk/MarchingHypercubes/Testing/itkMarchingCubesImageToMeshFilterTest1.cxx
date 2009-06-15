@@ -1,4 +1,4 @@
-*=========================================================================
+/*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkDividingCubesFilterTest1.cxx,v $
