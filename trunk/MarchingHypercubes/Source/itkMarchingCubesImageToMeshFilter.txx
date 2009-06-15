@@ -35,6 +35,8 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
 {
   this->SetNumberOfRequiredInputs(1);
 
+  this->m_PointLocator       = PointLocatorType::New();
+
   this->m_SurfaceValue = 
     ( NumericTraits< InputPixelRealType >::max() - 
       NumericTraits< InputPixelRealType >::NonpositiveMin() ) / 2.0;

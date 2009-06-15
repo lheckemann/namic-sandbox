@@ -181,6 +181,8 @@ private:
   typedef LinearInterpolateImageFunction< InputImageType >        InterpolatorType;
   typedef typename ResampleFilterType::Pointer                    ResampleFilterPointer;
   typedef typename InterpolatorType::Pointer                      InterpolatorPointer;
+  typedef PointLocator< OutputMeshType >                          PointLocatorType;
+  typedef typename PointLocatorType::Pointer                      PointLocatorPointer;
   
   InputPixelRealType                    m_SurfaceValue;
   std::vector< CovariantVectorType >    m_ListOfGradientsOnCell;
@@ -192,6 +194,8 @@ private:
   CellIdentifier                        m_NumberOfCells;
   PixelTypeArray                        m_PixelTypeArray;
   IndexTypeArray                        m_IndexTypeArray;
+
+  PointLocatorPointer                   m_PointLocator;
  
   // Type used for representing the index of the marching cubes table 
   typedef unsigned char                                              TableIndexType;
