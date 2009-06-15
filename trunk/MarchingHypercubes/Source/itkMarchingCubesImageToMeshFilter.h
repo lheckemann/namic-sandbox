@@ -103,6 +103,7 @@ public:
   typedef typename OutputMeshType::MeshTraits         MeshTraits;
   typedef typename OutputMeshType::PointType          MeshPointType;
   typedef typename OutputMeshType::PointIdentifier    PointIdentifier;
+  typedef typename OutputMeshType::CellIdentifier     CellIdentifier;
   typedef typename MeshTraits::PixelType              MeshPixelType;  
 
   /** Some convenient typedefs. */
@@ -111,6 +112,7 @@ public:
   typedef typename OutputMeshType::PointDataContainer     PointDataContainer;
   typedef typename PointsContainer::Pointer               PointsContainerPointer;
   typedef typename PointDataContainer::Pointer            PointDataContainerPointer;
+  typedef typename OutputMeshType::CellsContainer         CellsContainer;
   
   /** Dimension of the input image */
   itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension );
@@ -129,9 +131,7 @@ public:
   //SOPHIE'S CODE
   typedef typename InputImageType::PixelType              PixelTypeArray[8];
   typedef typename InputImageType::IndexType              IndexTypeArray[8];
-  typedef typename itk::Mesh< InputPixelType, 3 >
-                                                          MeshType;
-  typedef typename MeshType::CellType                     CellType;
+  typedef typename OutputMeshType::CellType               CellType;
   typedef typename itk::TriangleCell< CellType >          TriangleType;
   //END SOPHIE'S CODE
 
@@ -189,6 +189,7 @@ private:
   InterpolatorPointer                   m_Interpolator;
   SubdivideFactorArray                  m_SubdivideFactors;
   PointIdentifier                       m_NumberOfPoints;
+  CellIdentifier                        m_NumberOfCells;
   PixelTypeArray                        m_PixelTypeArray;
   IndexTypeArray                        m_IndexTypeArray;
  
