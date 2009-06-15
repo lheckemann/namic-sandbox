@@ -20,6 +20,9 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include "itkMarchingCubesImageToMeshFilter.h"
 #include "itkNumericTraits.h"
+//sophie's include:
+
+
 //#include <iostream.h>
 
 namespace itk
@@ -550,7 +553,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
      }
 }
 
-
 /** Insert a triangle in the output mesh.
  *  TODO: Think about how to avoid coincident points. */
 template<class TInputImage, class TOutputMesh>
@@ -566,14 +568,27 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   
   // Insert the point in the output mesh.
   pointsContainer->InsertElement(  this->m_NumberOfPoints++, point1.point );
-    pointsContainer->InsertElement(  this->m_NumberOfPoints++, point2.point ); 
-    pointsContainer->InsertElement(  this->m_NumberOfPoints++, point3.point );
-   
-  // Here : insert triangle cell into the output Mesh
+  pointsContainer->InsertElement(  this->m_NumberOfPoints++, point2.point ); 
+  pointsContainer->InsertElement(  this->m_NumberOfPoints++, point3.point );
   
+   // Here : insert triangle cell into the output Mesh
+  
+  //Sophie Code
+  CellType::CellAutoPointer cellpointer;
+  cellpointer.TakeOwnership( new TriangleType );
+  cellpointer->SetPoint( point1.point );
+  cellpointer->SetPoint( point2.point );
+  cellpointer->SetPoint( point3.point );
+  
+  OutputMeshType * mesh = this->GetOutput();
+  mesh->SetCell( normalsContainer++, cellpointer);
+  
+  /*OutputMeshType * outputMeshType = this->GetPoints();
+  outputMeshType->InsertElement( this->mNumberOfPoints++, point1.point);
+  outputMeshType->InsertElement( this->mNumberOfPoints++, point2.point);
+  outputMeshType->InsertElement( this->mNumberOfPoints++, point3.point);
+  //End sophie code
 }
-
-
 
 /** Compute gradients on the voxels contained in the neighborhood. */
 template<class TInputImage, class TOutputMesh>
@@ -583,8 +598,7 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   const NeighborhoodIteratorType & cellRegionWalker,
   DirectedPointType & outputDirectedPoint )
 {
-
-//Sophie's code (verified)  
+  //Sophie's code (verified)  
 
   unsigned int v1 = vertexPair.Vertex1;
   unsigned int v2 = vertexPair.Vertex2;
@@ -621,7 +635,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
    // * Compute Linear interpolation for the middle point coordinates
    // * Interpolate gradients from the m_ListOfGradientsOnCell.
 }
-
 
 /** Compute gradients on the voxels contained in the neighborhood. */
 template<class TInputImage, class TOutputMesh>
@@ -671,8 +684,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   while( pixelIterator != cellRegionWalker.End() )
     {
     //sophie lines
-    
-        
     this->m_PixelTypeArray[i] = pixelIterator.Get();
     this->m_IndexTypeArray[i] = cornerIndex + pixelIterator.GetNeighborhoodOffset();
     
@@ -692,9 +703,7 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
         }
       }
     currentNode <<= 1;
-  
-  
-    
+ 
     ++pixelIterator;
     }
     

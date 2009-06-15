@@ -28,7 +28,9 @@
 #include "itkResampleImageFilter.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkShapedNeighborhoodIterator.h"
-
+//Sophie's includes
+#include "itkMesh.h"
+#include "itkTriangleCell.h"
 
 namespace itk
 {
@@ -127,6 +129,10 @@ public:
   //SOPHIE'S CODE
   typedef typename InputImageType::PixelType              PixelTypeArray[8];
   typedef typename InputImageType::IndexType              IndexTypeArray[8];
+  typedef typename itk::Mesh< InputPixelType, 3 >
+                                                          MeshType;
+  typedef typename MeshType::CellType                     CellType;
+  typedef typename itk::TriangleCell< CellType >          TriangleType;
   //END SOPHIE'S CODE
 
   typedef ContinuousIndex<float,InputImageDimension>      ContinuousIndexType;
@@ -225,7 +231,7 @@ private:
 
    ListOfTrianglesType                  m_CubeConfigurationCodeToListOfTriangle[256];
 
-  
+
 
    class DirectedPointType
      {

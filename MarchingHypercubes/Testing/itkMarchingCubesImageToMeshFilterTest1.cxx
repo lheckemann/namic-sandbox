@@ -1,7 +1,7 @@
-/*=========================================================================
+*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMarchingCubesImageToMeshFilterTest1.cxx,v $
+  Module:    $RCSfile: itkDividingCubesFilterTest1.cxx,v $
   Language:  C++
   Date:      $Date: 2008-11-21 20:00:48 $
   Version:   $Revision: 1.8 $
@@ -19,7 +19,7 @@
 #endif
 
 #include "itkImageFileReader.h" 
-#include "itkMarchingCubesImageToMeshFilter.h"
+#include "itkDividingCubesFilter.h"
 #include "itkImage.h"
 #include "itkPointSet.h"
 #include "itkMesh.h"
@@ -30,15 +30,16 @@
 int main( int argc, char * argv[] )
 {
   
-  if( argc < 4 )
+  if( argc < 7 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputImage outputFile.vtk  isoSurfaceValue ";
+  std::cerr << " inputImage outputFile.vtk  isoSurfaceValue ";
+  std::cerr << "subdivisionFactorX subdivisionFactorY subdivisionFactorZ" << std::endl;
     return EXIT_FAILURE;
     }
   
-  typedef   signed short  ImagePixelType;
+  typedef   unsigned short  ImagePixelType;
   const     unsigned int   ImageDimension = 3;
   const     unsigned int   TopologicalDimension = 1;
 
@@ -58,7 +59,7 @@ int main( int argc, char * argv[] )
 
   typedef   itk::Mesh< NormalType, ImageDimension, PointSetTraits >    PointSetType;
 
-  typedef   itk::MarchingCubesImageToMeshFilter< ImageType, PointSetType > FilterType;
+  typedef   itk::DividingCubesFilter< ImageType, PointSetType > FilterType;
 
   typedef   itk::ImageFileReader< ImageType  >        ReaderType;
 
@@ -77,15 +78,23 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
-  FilterType::Pointer marchingCubesFilter = FilterType::New();
+  FilterType::Pointer dividingCubesFilter = FilterType::New();
 
-  marchingCubesFilter->SetInput( reader->GetOutput() );
+  dividingCubesFilter->SetInput( reader->GetOutput() );
 
-  marchingCubesFilter->SetSurfaceValue( atof( argv[3] ) );
+  dividingCubesFilter->SetSurfaceValue( atof( argv[3] ) );
+
+  FilterType::SubdivideFactorArray  factors;
+
+  factors[0] = atoi( argv[4] );
+  factors[1] = atoi( argv[5] );
+  factors[2] = atoi( argv[6] );
+
+  dividingCubesFilter->SetSubdivideFactors( factors );
 
   try
     {
-    marchingCubesFilter->Update();
+    dividingCubesFilter->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -94,12 +103,12 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
-  PointSetType::ConstPointer pointSet = marchingCubesFilter->GetOutput();
+  PointSetType::ConstPointer pointSet = dividingCubesFilter->GetOutput();
 
   //
   // Exercise the Print() method.
   //
-  marchingCubesFilter->Print( std::cout );
+  dividingCubesFilter->Print( std::cout );
 
   std::cout << pointSet->GetNumberOfPoints() << std::endl;
 
@@ -109,7 +118,7 @@ int main( int argc, char * argv[] )
   writer->SetInput( pointSet );
   writer->SetFileName( argv[2] );
   writer->Write();
-
+  
   return EXIT_SUCCESS;
 }
 
