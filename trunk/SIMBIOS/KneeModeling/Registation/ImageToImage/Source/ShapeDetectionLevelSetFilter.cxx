@@ -77,17 +77,14 @@ public:
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 19 )
+  if( argc < 10 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " inputImage  outputImage";
     std::cerr << " Sigma SigmoidAlpha SigmoidBeta ";
     std::cerr << " InitialRadiusDistance";
-    std::cerr << " seedX seedY seedZ";
-    std::cerr << " seedX seedY seedZ";
-    std::cerr << " seedX seedY seedZ";
-    std::cerr << " seedX seedY seedZ";
+    std::cerr << " [seedX seedY seedZ]*";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
