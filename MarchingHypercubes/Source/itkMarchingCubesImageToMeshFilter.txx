@@ -559,36 +559,28 @@ template<class TInputImage, class TOutputMesh>
 void
 MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
 ::AddTriangleToOutputMesh(
-  const DirectedPointType & point1,
-  const DirectedPointType & point2,
-  const DirectedPointType & point3 )
+  const DirectedPointType & directedPoint1,
+  const DirectedPointType & directedPoint2,
+  const DirectedPointType & directedPoint3 )
 {
   PointsContainer    * pointsContainer  = this->GetOutput()->GetPoints();
-  PointDataContainer * normalsContainer = this->GetOutput()->GetPointData();
+  PointDataContainer * pointDataContainer  = this->GetOutput()->GetPointData();
   
-  // Insert the point in the output mesh.
-  pointsContainer->InsertElement(  this->m_NumberOfPoints++, point1.point );
-  pointsContainer->InsertElement(  this->m_NumberOfPoints++, point2.point ); 
-  pointsContainer->InsertElement(  this->m_NumberOfPoints++, point3.point );
-  
-   // Here : insert triangle cell into the output Mesh
-  
-  //Sophie Code
-  typename CellType::CellAutoPointer cellpointer;
+  typename TriangleType::CellAutoPointer cellpointer;
   cellpointer.TakeOwnership( new TriangleType );
-  cellpointer->SetPoint( point1.point );
-  cellpointer->SetPoint( point2.point );
-  cellpointer->SetPoint( point3.point );
-  
-  OutputMeshType * mesh = this->GetOutput();
-  mesh->SetCell( normalsContainer++, cellpointer);
-  
-  /* OutputMeshType * outputMeshType = this->GetPoints();
-  outputMeshType->InsertElement( this->mNumberOfPoints++, point1.point);
-  outputMeshType->InsertElement( this->mNumberOfPoints++, point2.point);
-  outputMeshType->InsertElement( this->mNumberOfPoints++, point3.point);
-  */
-  //End sophie code
+
+  // Insert the point in the output mesh.
+  pointsContainer->InsertElement(  this->m_NumberOfPoints, directedPoint1.point );
+  pointDataContainer->InsertElement(  this->m_NumberOfPoints, directedPoint1.gradient );
+  cellpointer->SetPointId( 0, this->m_NumberOfPoints++ );
+
+  pointsContainer->InsertElement(  this->m_NumberOfPoints, directedPoint2.point ); 
+  pointDataContainer->InsertElement(  this->m_NumberOfPoints, directedPoint2.gradient );
+  cellpointer->SetPointId( 1, this->m_NumberOfPoints++ );
+
+  pointsContainer->InsertElement(  this->m_NumberOfPoints, directedPoint3.point );
+  pointDataContainer->InsertElement(  this->m_NumberOfPoints, directedPoint3.gradient );
+  cellpointer->SetPointId( 2, this->m_NumberOfPoints++ );
 }
 
 /** Compute gradients on the voxels contained in the neighborhood. */
