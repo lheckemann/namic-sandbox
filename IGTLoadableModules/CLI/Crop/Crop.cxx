@@ -71,8 +71,15 @@ template<class T> int DoIt( int argc, char * argv[], T )
 
   //typename InputImageType::SizeType size = reader->GetOutput()->
   //  GetLargestPossibleRegion().GetSize();
-  SizeType  size = {iMaxValue-iMinValue, jMaxValue-jMinValue, kMaxValue-kMinValue};
-  IndexType index = {iMinValue, jMinValue, kMinValue};
+  SizeType  size;
+  size[0] = iMaxValue-iMinValue;
+  size[1] = jMaxValue-jMinValue;
+  size[2] = kMaxValue-kMinValue;
+
+  IndexType index;
+  index[0] = iMinValue;
+  index[1] = jMinValue;
+  index[2] = kMinValue;
 
   filter->SetInput( 0, reader->GetOutput() );
 
