@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Filtering.Arithmetic</category>
-  <title>Crop Images</title>
+  <category>Batch Processing</category>
+  <title>Crop Images BatchMake</title>
   <description>
-Crop image.
-</description>
+    Crop image.
+  </description>
   <version>0.1.0.$Revision: 2104 $(alpha)</version>
   <documentation-url></documentation-url>
   <license></license>
   <contributor>Junichi Tokuda</contributor>
-<acknowledgements>
-This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
-</acknowledgements>
+  <acknowledgements>
+    This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+  </acknowledgements>
 
   <parameters>
     <label>IO</label>
@@ -21,8 +21,15 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <label>Input Volume 1</label>
       <channel>input</channel>
       <index>0</index>
-      <description>Input volume 1</description>
+      <description>Input volume Directory</description>
     </directory>
+    <string>
+      <name>inputVolume1_Mask</name>
+      <label>Input Volume 1 Mask</label>
+      <longflag>inputVolume1_Mask</longflag>
+      <default>*.nrrd</default>
+      <description>Input volume Directory</description>
+    </string>
 
     <integer>
       <name>iMinValue</name>
@@ -73,13 +80,21 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <default>256</default>
     </integer>
 
-    <file>
-      <name>outputVolume</name>
+    <directory>
+      <name>outputVolume_Directory</name>
       <label>Output Volume</label>
       <channel>output</channel>
       <index>1</index>
       <description>Volume1 + Volume2</description>
-    </file>
+    </directory>
+    <string>
+      <name>outputVolume_Mask</name>
+      <label>Output Volume Suffix</label>
+      <default>${inputVolume1}-cropped.nrrd</default>
+      <longflag>outputVolume_Mask</longflag>
+      <description>Suffix for output volumes file name</description>
+    </string>
+
   </parameters>
 
   <parameters advanced="true">

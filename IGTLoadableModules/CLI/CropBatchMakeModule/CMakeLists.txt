@@ -55,7 +55,7 @@ if(BatchMake_DIR)
     endif(WIN32)
 
     # Configure a header
-    configure_file( "${Slicer3_SOURCE_DIR}/Applications/CLI/BatchMakeApplications/GenericBatchMakeModule/BatchMakeModuleConfig.h.in"
+    configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/../GenericBatchMakeModule/BatchMakeModuleConfig.h.in"
       "${CMAKE_CURRENT_BINARY_DIR}/BatchMakeModuleConfig.h")
 
   endif(Slicer3_BINARY_DIR)
@@ -90,6 +90,10 @@ if(BatchMake_DIR)
 
     set(RUNTIME_SUPPORT_FILES 
       "${CMAKE_CURRENT_SOURCE_DIR}/${Slicer3BatchModule}.xml" )
+#      "${BatchMake_WRAPPED_APPLICATION_DIR}/bmSliceExtractor.bmm"
+#      "${BatchMake_WRAPPED_APPLICATION_DIR}/bmGridSend.bmm"
+#      "${BatchMake_WRAPPED_APPLICATION_DIR}/bmGridStore.bmm"
+#      "${BatchMake_WRAPPED_APPLICATION_DIR}/${Slicer3ExeModule}.bmm")
     install(FILES ${RUNTIME_SUPPORT_FILES} 
       DESTINATION ${Slicer3_INSTALL_PLUGINS_SHARE_DIR}/${PROJECT_NAME})
 
