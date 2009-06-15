@@ -18,6 +18,27 @@ ADD_TEST(DicomToMeta64
   ${TEMP}/64_MRI_Dataset.mhd
   )
 
+ADD_TEST(ShapeDetection39
+  ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
+  ${KNEE_DATA_DIR}/PFP39_mri.nhdr
+  ${TEMP}/39_MRI_DatasetMask.mhd
+   0.7 # Sigma in mm
+  -1.0 # Alpha
+   5.0 # Beta
+  25.0 # Initial radius in mm
+  168  228.956  36.3871
+  168  175.327  41.2578
+  168  178.306  25.5712
+  )
+ 
+ADD_TEST(Masking39
+  ${CXX_TEST_PATH}/MaskImageForRegistration
+  ${TEMP}/39_MRI_Dataset.mhd
+  ${TEMP}/39_MRI_DatasetMask.mhd
+  ${TEMP}/39_MRI_DatasetMasked.mhd
+  ) 
+
+
 ADD_TEST(ShapeDetection47
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
   ${KNEE_DATA_DIR}/PFP47_mri.nhdr
@@ -116,4 +137,5 @@ ENDMACRO(REGISTER)
 
 REGISTER( 64 58 )
 REGISTER( 47 58 )
+REGISTER( 64 39 )
 
