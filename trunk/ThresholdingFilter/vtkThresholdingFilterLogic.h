@@ -56,7 +56,10 @@ class VTK_ThresholdingFilter_EXPORT vtkThresholdingFilterLogic : public vtkSlice
     }
 
   // The method that creates and runs VTK or ITK pipeline
-  void ApplyPreview(double red,double yellow,double green);
+  void ApplyPreview(double red,double yellow,double green,vtkImageData* image);
+  
+  void SliceProcess(vtkTransform* xyToijk,double dim0,double dim1);
+  
   void Apply();
   
   void Preview();
@@ -97,6 +100,7 @@ protected:
   vtkImageData* CORONAL;
   
   vtkImageData* STORAGE;
+  vtkImageData* PREVIEW;
   
   //double oldPosition[3];
     
