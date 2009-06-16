@@ -53,6 +53,17 @@
 #include "Example2.h"
 
 
+// 
+//
+//   Most of this code was copied from the CUDA SDK example
+//
+//   sdk/projects/dct8x8
+//
+//
+//
+
+
+
 /**
 **************************************************************************
 *  Memory allocator, returns aligned format frame with 32bpp float pixels.
