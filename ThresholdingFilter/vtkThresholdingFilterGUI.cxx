@@ -25,6 +25,7 @@ Version:   $Revision: 1.2 $
 #include "vtkKWWidget.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationLogic.h"
+#include "vtkSlicerSliceLogic.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 #include "vtkKWScaleWithEntry.h"
 #include "vtkKWEntryWithLabel.h"
@@ -45,6 +46,9 @@ Version:   $Revision: 1.2 $
 #include "vtkSlicerSliceControllerWidget.h"
 #include "vtkSlicerSlicesControlGUI.h"
 #include "vtkKWScale.h"
+
+#include "vtkMRMLSliceNode.h"
+#include "vtkSlicerSliceGUI.h"
 
 //------------------------------------------------------------------------------
 vtkThresholdingFilterGUI* vtkThresholdingFilterGUI::New()
@@ -388,29 +392,270 @@ void vtkThresholdingFilterGUI::ProcessGUIEvents ( vtkObject *caller,
     double oldSliceSetting[3];
     oldSliceSetting[0] = double(applicationGUI->GetMainSliceGUI("Red")->GetSliceController()->GetOffsetScale()->GetValue());
     oldSliceSetting[1] = double(applicationGUI->GetMainSliceGUI("Yellow")->GetSliceController()->GetOffsetScale()->GetValue());
-    oldSliceSetting[2] = double(applicationGUI->GetMainSliceGUI("Green")->GetSliceController()->GetOffsetScale()->GetValue()); 
+    oldSliceSetting[2] = double(applicationGUI->GetMainSliceGUI("Green")->GetSliceController()->GetOffsetScale()->GetValue());
+    
+    double oldSliceSetting2[3];
+    oldSliceSetting2[0] = double(applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetSliceOffset());
+    oldSliceSetting2[1] = double(applicationGUI->GetApplicationLogic()->GetSliceLogic("Yellow")->GetSliceOffset());
+    oldSliceSetting2[2] = double(applicationGUI->GetApplicationLogic()->GetSliceLogic("Green")->GetSliceOffset());
+    
+    // GET DATA FROM SLICES
+    
+    vtkImageData* image = vtkImageData::New(); 
+    image->DeepCopy( applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetBackgroundLayer()->GetSlice()->GetOutput());//GetReslice()->GetOutput());
+    vtkMRMLVolumeNode *backgroundNode = NULL;
+    
+    backgroundNode = applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetLayerVolumeNode (0);//->GetImageData()->GetDimensions();
+    //applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetLayerVolumeNode (0)->GetXYToIJK(xyToijk);
+    int* dims = applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetLayerVolumeNode (0)->GetImageData()->GetDimensions();
+    
+    vtkMatrix4x4* xyToras = vtkMatrix4x4::New();
+    //backgroundNode->GetRASToIJKMatrix(xyToijk);
+    //vtkImageData* image2 = applicationGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetImageData();
+    //applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetBackgroundLayer()->GetVolumeNode();
+    image->UpdateInformation();
+    double bounds[6];
+    image->GetBounds(bounds);
+    /*std::cout<<"RESLICE BOUNDS" << std::endl;
+    std::cout<<"bound 1: "<< bounds[0] << "to: "<< bounds[1] << std::endl;
+    std::cout<<"bound 2: "<< bounds[2] << "to: "<< bounds[3] << std::endl;
+    std::cout<<"bound 3: "<< bounds[4] << "to: "<< bounds[5] << std::endl;
+    */
+   int extent[6];
+   image->GetWholeExtent(extent);
+    /*
+  std::cout<<"NODE DIMS"<<std::endl;
+  std::cout<<"0: "<< dims[0]<<std::endl;
+  std::cout<<"1: "<< dims[1]<< std::endl;
+  std::cout<<"2: "<< dims[2]<< std::endl;
+  */
+  
+    //vtkMRMLVolumeNode *backgroundNode = NULL;
+    //backgroundNode = applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetLayerVolumeNode (0);
+    //vtkImageData* image2 = backgroundNode->GetImageData();
+    //double bounds[3];
+    double center[3];
+    //applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->FitSliceToVolume(backgroundNode,50,50);
+    
+    vtkMRMLSliceNode *RedSliceNode = vtkMRMLSliceNode::New();
+    vtkSlicerSliceGUI *sgui = NULL;
+    double fov, fovX, fovY;
+    
+    fovX = RedSliceNode->GetFieldOfView()[0];
+    fovY = RedSliceNode->GetFieldOfView()[1];
+    /*
+    std::cout<<"FOV RED" << std::endl;
+    std::cout<<"X: "<< fovX << std::endl;
+    std::cout<<"Y: "<< fovY << std::endl;
+    */
+    /*int *windowSize =
+              applicationGUI->GetMainSliceGUI("Red")->GetOrientationString();//->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetRenderWindow()->GetSize();
+             */
+             
+    double xyPt[4];
+    xyPt[0] = 10;
+    xyPt[1] = 10;
+    xyPt[2] = 0;
+    xyPt[3] = 1;
+    
+    vtkTransform* xyToijk = vtkTransform::New();
+    xyToijk = applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetBackgroundLayer()->GetXYToIJKTransform();
+    
+    double ijkPt[3];
+    xyToijk->MultiplyPoint(xyPt,ijkPt);
+    /*std::cout<<"XY TO IJK MATRIX" << std::endl;
+    std::cout<< xyToijk[0] <<std::endl;
+    
+    std::cout<<"IN LOGIC IJK"<<std::endl;
+    std::cout<<"i: "<< ijkPt[0] <<std::endl;
+    std::cout<<"j: "<< ijkPt[1] <<std::endl;
+    std::cout<<"k: "<< ijkPt[2] <<std::endl;*/
+    
+    vtkMRMLVolumeNode *vnode = applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetBackgroundLayer()->GetVolumeNode();
+    
+    vtkMRMLSliceNode *snode = applicationGUI->GetMainSliceGUI("Red")->GetSliceNode();
+    xyToras = snode->GetXYToRAS();
+    int active = snode->GetActiveSlice();
+    /*std::cout<<"ACTIVE SLICE" << std::endl;
+    std::cout<< "Nb: "<< active <<std::endl;
+    */
+    // XY TO RAS MATRIX
+    /*std::cout<<"XY TO RAS MATRIX" << std::endl;
+    std::cout<< xyToras[0] <<std::endl;*/
+    
+    double rasPt[3];
+    xyToras->MultiplyPoint(xyPt,rasPt);
+  /*
+  std::cout<<"IN LOGIC RAS"<<std::endl;
+  std::cout<<"RED: "<< rasPt[0] <<std::endl;
+  std::cout<<"YEL: "<< rasPt[1] <<std::endl;
+  std::cout<<"GRE: "<< rasPt[2] <<std::endl;*/
+    
+    unsigned int dimensions[3];
+    snode->GetDimensions(dimensions);
+    /*std::cout<<"DIMENSIONS"<<std::endl;
+    std::cout<<"1: "<<dimensions[0] <<std::endl;
+    std::cout<<"2: "<<dimensions[1] <<std::endl;
+    std::cout<<"3: "<<dimensions[2] <<std::endl;*/
+    /*<< xyToras[1] << xyToras[2] <<std::endl;
+    std::cout<< xyToras[3] << xyToras[4] << xyToras[5] <<std::endl;
+    std::cout<< xyToras[6] << xyToras[7] << xyToras[8] <<std::endl;*/
+    /*
+    applicationGUI->GetApplicationLogic()->GetSliceLogic("Green")->GetSliceOffset();
+    
+    std::cout<<"ORIENTATION" << std::endl;
+    //std::cout<<"VALUE: "<< applicationGUI->GetMainSliceGUI("Red")->GetOrientationString() << std::endl;
+    std::cout<<"VALUE: "<< snode->GetOrientationString() << std::endl;
+    
+    double XY1[4];
+    XY1[0] = 0;
+    XY1[1] = 0;
+    XY1[2] = 0;
+    XY1[3] = 1;
+    double IJK1[3];
+    
+    xyToijk->MultiplyPoint(XY1,IJK1);
+    
+    std::cout<<"IN LOGIC IJK"<<std::endl;
+    std::cout<<"I1: "<< IJK1[0] <<std::endl;
+    std::cout<<"J1: "<< IJK1[1] <<std::endl;
+    std::cout<<"K1: "<< IJK1[2] <<std::endl;
+    
+    double XY2[4];
+    XY2[0] = dimensions[0];
+    XY2[1] = 0;
+    XY2[2] = 0;
+    XY2[3] = 1;
+    double IJK2[3];
+    
+    xyToijk->MultiplyPoint(XY2,IJK2);
+    
+    std::cout<<"IN LOGIC IJK"<<std::endl;
+    std::cout<<"I2: "<< IJK2[0] <<std::endl;
+    std::cout<<"J2: "<< IJK2[1] <<std::endl;
+    std::cout<<"K2: "<< IJK2[2] <<std::endl;
+    
+    double XY3[4];
+    XY3[0] = 0;
+    XY3[1] = dimensions[1];
+    XY3[2] = 0;
+    XY3[3] = 1;
+    double IJK3[3];
+    
+    xyToijk->MultiplyPoint(XY3,IJK3);
+    
+    std::cout<<"IN LOGIC IJK"<<std::endl;
+    std::cout<<"I3: "<< IJK3[0] <<std::endl;
+    std::cout<<"J3: "<< IJK3[1] <<std::endl;
+    std::cout<<"K3: "<< IJK3[2] <<std::endl;
+    
+    double XY4[4];
+    XY4[0] = dimensions[0];
+    XY4[1] = dimensions[1];
+    XY4[2] = 0;
+    XY4[3] = 1;
+    double IJK4[3];
+    
+    xyToijk->MultiplyPoint(XY4,IJK4);
+    
+    std::cout<<"IN LOGIC IJK"<<std::endl;
+    std::cout<<"I4: "<< IJK4[0] <<std::endl;
+    std::cout<<"J4: "<< IJK4[1] <<std::endl;
+    std::cout<<"K4: "<< IJK4[2] <<std::endl;
+    */
+    this->Logic->SliceProcess(xyToijk,dimensions[0],dimensions[1]);
+    /*
+    int xyz[3];
+    int x, y;
+   // vtkSlicerInteractorStyle *RedEvents = GetRedSliceEvents();
+    /*
+    vtkMRMLSliceNode *snode = applicationGUI->GetMainSliceGUI("Red")->GetSliceNode();
+  
+    vtkRenderWindowInteractor *iren = applicationGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
+    int *windowSize = iren->GetRenderWindow()->GetSize();
+
+    double tx = x / (double) windowSize[0];
+    double ty = (windowSize[1] - y) / (double) windowSize[1];
+  
+    vtkRenderer *ren = iren->FindPokedRenderer(x, y);
+    int *origin = ren->GetOrigin();
+  
+    xyz[0] = x - origin[0];
+    xyz[1] = y - origin[1];
+    xyz[2] = static_cast<int> ( floor(ty*snode->GetLayoutGridRows())
+                              *snode->GetLayoutGridColumns()
+                              + floor(tx*snode->GetLayoutGridColumns()) );
+    
+    
+    */
+    
+    
+    
+    //sgui = applicationGUI->GetMainSliceGUI("Red");
+    //sliceNode->GetFieldOfView()[2]
+    /*applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetVolumeSliceDimensions(backgroundNode,bounds,center);
+    std::cout<<"RED BOUNDS" << std::endl;
+    std::cout<<"bound 1: "<< bounds[0] << std::endl;
+    std::cout<<"bound 2: "<< bounds[1] << std::endl;
+    std::cout<<"bound 3: "<< bounds[2] << std::endl;
+    std::cout<<"RED CENTER" << std::endl;
+    std::cout<<"center 1: "<< center[0] << std::endl;
+    std::cout<<"center 2: "<< center[1] << std::endl;
+    std::cout<<"center 3: "<< center[2] << std::endl;*/
+    //GetLowestVolumeSliceBounds(bounds)
+    //GetBackgroundSliceBounds
+    /*std::cout<<"RED BOUNDS" << std::endl;
+    std::cout<<"1: "<< bounds[0] <<" to: " << bounds[1] << std::endl;
+    std::cout<<"2: "<< bounds[2] <<" to: " << bounds[3] << std::endl;
+    std::cout<<"3: "<< bounds[4] <<" to: " << bounds[5] << std::endl;
+    */
+    //applicationGUI->GetApplicationLogic()->GetSliceLogic("Red")->GetVolumeRASBox
+    
+    
+    //vtkKWEntryWithLabel* val;
+    //val = applicationGUI->RedFOVEntry->GetWidget()->GetValueAsDouble();
+    /*vtkSlicerSlicesControlGUI* test = vtkSlicerSlicesControlGUI::New();*/
+    //val = test->GetRedFOVEntry();//->GetWidget()->GetValueAsDouble();
+    
+    //std::cout<<"FOV RED" << std::endl;
+    //std::cout<<"content: "<< val->GetLabelText() << std::endl;
+    
+    //vtkSlicerApplicationLogic *applicationLogic = this->Logic->GetApplicationLogic();
+    
+    //applicationLogic->GetSelectionNode()->SetReferenceActiveVolumeID(this->ThresholdingFilterNode->GetOutputVolumeRef());
+    //applicationLogic->PropagateVolumeSelection();
+    //vtkSlicerSliceLogic::GetSliceOffset()
+     
     //applicationGUI->GetMainSliceGUI("Red")->GetSliceController()->FitSliceToBackground(1);
-    /*std::cout<<"FOREGROUND VOLUME ID" << std::endl;
-    std::cout<<"ID RED: "<< applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->GetForegroundVolumeID() << std::endl;
-    std::cout<<"ID YEL: "<< applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->GetForegroundVolumeID() << std::endl;
-    std::cout<<"ID GRE: "<< applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->GetForegroundVolumeID() << std::endl;*/
+   /* std::cout<<"FROM GUI" << std::endl;
+    std::cout<<"ID RED: "<< oldSliceSetting[0] << std::endl;
+    std::cout<<"ID YEL: "<< oldSliceSetting[1] << std::endl;
+    std::cout<<"ID GRE: "<< oldSliceSetting[2] << std::endl;
+    
+    std::cout<<"FROM LOGIC" << std::endl;
+    std::cout<<"ID RED: "<< oldSliceSetting2[0] << std::endl;
+    std::cout<<"ID YEL: "<< oldSliceSetting2[1] << std::endl;
+    std::cout<<"ID GRE: "<< oldSliceSetting2[2] << std::endl;*/
   /*
     std::cout<<"Slices positions RAS" << std::endl;
     std::cout<<"RED: "<< oldSliceSetting[0] << std::endl;
     std::cout<<"YEL: "<< oldSliceSetting[1] << std::endl;
     std::cout<<"GRE: "<< oldSliceSetting[2] << std::endl;
     */
-    vtkMRMLScalarVolumeNode *inVolume = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ThresholdingFilterNode->GetInputVolumeRef()));
-    int* dim  = inVolume->GetImageData()->GetDimensions(); 
+    /*vtkMRMLScalarVolumeNode *inVolume = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ThresholdingFilterNode->GetInputVolumeRef()));
+    vtkIdType* inc  = inVolume->GetImageData()->GetIncrements(); */
+    //vtkIdType inc[3];
+   /* std::cout<<"INCS"<<std::endl;
+    std::cout<<"0: "<< inc[0] <<std::endl;
+    std::cout<<"1: "<< inc[1] <<std::endl;
+    std::cout<<"2: "<< inc[2] <<std::endl;
+    */
+   // this->Logic->ApplyPreview(oldSliceSetting2[0],oldSliceSetting2[1],oldSliceSetting2[2],image);
+
+    //applicationGUI->GetMainSliceGUI("Green")->GetSliceViewer()->SetImageData(image);//RequestRender();
+    //applicationGUI->GetMainSliceGUI("Green")->GetSliceViewer()->RequestRender();
     
-    std::cout<<"DIMS"<<std::endl;
-    std::cout<<"0: "<< dim[0] <<std::endl;
-    std::cout<<"1: "<< dim[1] <<std::endl;
-    std::cout<<"2: "<< dim[2] <<std::endl;
-    
-    this->Logic->ApplyPreview(oldSliceSetting[0],oldSliceSetting[1],oldSliceSetting[2]);
-    
-    this->UpdateGUI();
+    //this->UpdateGUI();
       /*    vtkSlicerApplicationGUI *applicationGUI     = this->GetApplicationGUI();
 
       double oldSliceSetting;
