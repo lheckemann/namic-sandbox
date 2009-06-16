@@ -21,12 +21,14 @@
 #ifndef __vtkMRML4DBundleNode_h
 #define __vtkMRML4DBundleNode_h
 
+#include "vtkFourDImageWin32Header.h"
+
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
 
 class vtkMRMLStorageNode;
 
-class VTK_MRML_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformNode
+class VTK_FourDImage_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformNode
 {
   public:
   static vtkMRML4DBundleNode *New();
