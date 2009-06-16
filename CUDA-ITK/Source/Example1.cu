@@ -1,3 +1,6 @@
+//
+//  link to cudart.lib
+//
 
 #define SIZE 2048
 
@@ -27,7 +30,22 @@ int main()
 
   cudaError_t err;
 
-  err = cudaMalloc((void**)&GPUVector1, SIZE*sizeof(float));
-  err = cudaMalloc((void**)&GPUVector2, SIZE*sizeof(float));
+  unsigned int totalSize = SIZE* sizeof(float);
+
+  err = cudaMalloc((void**)&GPUVector1, totalSize );
+  err = cudaMalloc((void**)&GPUVector2, totalSize );
+  err = cudaMalloc((void**)&GPUOutputVector, totalSize );
+
+  cudaMemcpy(GPUVector1, HostVector1, totalSize , cudaMemcpyHostToDevice);
+  cudaMemcpy(GPUVector2, HostVector2, totalSize , cudaMemcpyHostToDevice);
+
+
+  dim3 BlockDim(128,1,1);
+  dim3 GidDim(DIVUP(SIZE, BlockDim.x),1,1);
+
+  VectorAddKernel<<<GridDim,BlockDim>>(GPUVector1,GPUVector2,GPUOutputVector,SIZE);
+
+  cudaMemory( HostOutputVector, GPUOutputVector, 
+
 
 }
