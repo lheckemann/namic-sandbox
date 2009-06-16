@@ -1,10 +1,22 @@
+/*=========================================================================
+
+  Program:   Insight Segmentation & Registration Toolkit
+  Module:    $RCSfile: itkImage.h,v $
+  Language:  C++
+  Date:      $Date: 2009-02-05 19:04:56 $
+  Version:   $Revision: 1.150 $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+
 #include <stdio.h>
 
-//
-//  link to cudart.lib
-//
-//  This file should be compiled by the "nvcc" compiler.
-//
 
 #define SIZE 2048
 #define DIVUP(a,b) ( a % b ) == 0 ? (a/b): (a/b) + 1;
