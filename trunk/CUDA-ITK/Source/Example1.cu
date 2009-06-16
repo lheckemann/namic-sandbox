@@ -5,7 +5,7 @@
 //
 
 #define SIZE 2048
-#define DIVUP(a,b) ( a % b) == 0 ? (a/b): (a/b) + 1;
+#define DIVUP(a,b) ( a % b ) == 0 ? (a/b): (a/b) + 1;
 
 __global__ void VectorAddKernel( float * Vector1, float * Vector2, float * Output, int size)
 {
@@ -55,9 +55,11 @@ int main()
   // multi-processors.
   dim3 BlockDim(128,1,1);
 
+  // 
   // Size of the grid of multi-processors that will be used for processing
   // the total amount of data.
-  dim3 GridDim(DIVUP(SIZE, BlockDim.x),1,1);
+  //
+  dim3 GridDim( DIVUP(SIZE, BlockDim.x) , 1 , 1 );
   // 17 blocks = 2050 / 128
 
 
