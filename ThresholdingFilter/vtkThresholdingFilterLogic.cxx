@@ -320,9 +320,17 @@ void vtkThresholdingFilterLogic::SliceProcess(vtkTransform* xyToijk,double dim0,
     vtkErrorMacro("No storage volume found with id= " << this->ThresholdingFilterNode->GetStorageVolumeRef());
     return;
     }
+    
+ // create Mask volume for processing
+  vtkMRMLScalarVolumeNode *maskVolume =  vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ThresholdingFilterNode->GetMaskVolumeRef()));
+  if (maskVolume == NULL)
+    {
+    vtkErrorMacro("No mask volume found with id= " << this->ThresholdingFilterNode->GetMaskVolumeRef());
+    return;
+    }
 
  // create output volume for preview
-  vtkMRMLScalarVolumeNode *outVolume =  vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ThresholdingFilterNode->GetStorageVolumeRef()));
+  vtkMRMLScalarVolumeNode *outVolume =  vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ThresholdingFilterNode->GetOutputVolumeRef()));
   if (outVolume == NULL)
     {
     vtkErrorMacro("No output volume found with id= " << this->ThresholdingFilterNode->GetOutputVolumeRef());
@@ -343,7 +351,6 @@ void vtkThresholdingFilterLogic::SliceProcess(vtkTransform* xyToijk,double dim0,
   outVolume->SetAndObserveTransformNodeID(inVolume->GetTransformNodeID());
 
   outVolume->SetName(name.c_str());
-  
   
   this->STORAGE = vtkImageData::New(); 
   this->PREVIEW = vtkImageData::New(); 
