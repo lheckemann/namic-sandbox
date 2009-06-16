@@ -28,9 +28,8 @@ template< class TInputMesh, class TOutputMesh >
 QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 ::QuadEdgeMeshPixelValuesSmoothingFilter()
 {
-  this->m_CoefficientsMethod = 0;
-  this->m_MaximumNumberOfIterations = 1;
-  this->m_RelaxationFactor = static_cast< RelaxationFactorType >( 1.0 );
+  this->m_Lambda = 1.0;
+  this->m_MaximumNumberOfIterations = 10;
 }
 
 

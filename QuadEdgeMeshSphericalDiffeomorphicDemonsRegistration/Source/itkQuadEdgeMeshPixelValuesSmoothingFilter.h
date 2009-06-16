@@ -38,6 +38,8 @@ namespace itk
  * smooths the point positions while leaving unchanged the pixel values
  * associated with the points.
  *
+ * \ingroup MeshFilters
+ *
  */
 template< class TInputMesh, class TOutputMesh >
 class QuadEdgeMeshPixelValuesSmoothingFilter :
@@ -58,6 +60,7 @@ public:
 
   typedef TInputMesh                                       InputMeshType;
   typedef typename InputMeshType::Pointer                  InputMeshPointer;
+  typedef typename InputMeshType::PixelType                InputPixelType;
 
   typedef TOutputMesh                                      OutputMeshType;
   typedef typename OutputMeshType::Pointer                 OutputMeshPointer;
@@ -73,29 +76,49 @@ public:
   typedef typename OutputMeshType::PointsContainerIterator OutputPointsContainerIterator;
   typedef typename OutputMeshType::CellsContainerPointer   OutputCellsContainerPointer;
   typedef typename OutputMeshType::CellsContainerIterator  OutputCellsContainerIterator;
-
-  typedef typename NumericTraits< OutputCoordType >::RealType   RelaxationFactorType;
+  typedef typename OutputMeshType::PixelType               OutputPixelType;
 
   itkStaticConstMacro( PointDimension, unsigned int, OutputMeshType::PointDimension );
 
-  typedef MatrixCoefficients< OutputMeshType >                CoefficientsComputation;
-
-  void SetCoefficientsMethod( CoefficientsComputation* iMethod )
-    { m_CoefficientsMethod = iMethod; }
-
+  /** The smoothing filter will run iteratively until reaching this maximum
+   * number of iterations. Emprical observartions indicate that ten iterations
+   * are enough for typical deformation fields, but of course this would depend
+   * on the process that you used for generating your deformation field. 
+   */
   itkSetMacro( MaximumNumberOfIterations, unsigned long );
   itkGetMacro( MaximumNumberOfIterations, unsigned long );
 
-  itkSetMacro( RelaxationFactor, RelaxationFactorType );
-  itkGetMacro( RelaxationFactor, RelaxationFactorType );
+  /** Factor that controls the degree of Smoothing. Large values of Lambda
+   * result is stronger smoothing.  The Lambda factor is used to compute the
+   * weights of the smoothing kernel as
+   *
+   * \f$
+   * \frac{ \exp( \frac{-1}{2 \lambda} }{ 1 + \abs{ N_i } \exp( \frac{-1}{2 \lambda} }
+   * \f$
+   *
+   * where \f$ N_i \f$ is the number of neighbor nodes around node \f$ i \f$.
+   *
+   * The default value of Lambda is 1.0.
+   *
+   */
+  itkSetMacro( Lambda, double );
+  itkGetMacro( Lambda, double );
 
 protected:
   QuadEdgeMeshPixelValuesSmoothingFilter();
   ~QuadEdgeMeshPixelValuesSmoothingFilter();
 
-  CoefficientsComputation* m_CoefficientsMethod;
-
   void GenerateData();
+
+  /** This method applies parallel transport to a pixel value. The typical use
+   * case of this method is to manage spherical meshes whose pixel types are
+   * vectors. The process of parallel transport makes possible to bring the pixel
+   * values of neighbor nodes to a central node where their weighted average can 
+   * be computed.
+   */
+  void ParalelTransport( 
+    const InputPixelType & inputPixelValue, 
+    InputPixelType & transportedPixelValue ) const;
 
 private:
 
@@ -103,7 +126,7 @@ private:
   void operator=( const Self& ); //purposely not implemented
 
   unsigned long             m_MaximumNumberOfIterations;
-  RelaxationFactorType      m_RelaxationFactor;
+  double                    m_Lambda;
 };
 
 }
