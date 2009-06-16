@@ -12,7 +12,7 @@ MACRO(PREPAREMASK DATASETID )
 ADD_TEST(ShapeDetection${DATASETID}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
   ${KNEE_DATA_DIR}/${DATASETID}.mhd
-  ${TEMP}/1_Mask.mhd
+  ${TEMP}/${DATASETID}_Mask.mhd
    0.7 # Sigma in mm
   -1.0 # Alpha
    5.0 # Beta
@@ -63,5 +63,5 @@ PREPAREMASK( 56 )
 PREPAREMASK( 58 )
 PREPAREMASK( 64 )
 
-REGISTER( 1 56 )
+REGISTER( 64 42 )
 
