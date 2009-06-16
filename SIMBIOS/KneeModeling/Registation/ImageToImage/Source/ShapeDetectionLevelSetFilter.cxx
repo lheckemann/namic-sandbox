@@ -208,25 +208,29 @@ int main( int argc, char *argv[] )
 
   std::ifstream inputSeedsFile;
 
+  std::cout << "Opening seeds file " << argv[7] << std::endl;
   inputSeedsFile.open( argv[7] );
 
-  inputSeedsFile >> seedPosition[0] ;
-  inputSeedsFile >> seedPosition[1] ;
-  inputSeedsFile >> seedPosition[2] ;
+  float seedX;
+  float seedY;
+  float seedZ;
+
+  inputSeedsFile >> seedX >> seedY >> seedZ;
 
   while( ! inputSeedsFile.eof() )
     {
+    seedPosition[0] = seedX;
+    seedPosition[1] = seedY;
+    seedPosition[2] = seedZ;
 
     node.SetIndex( seedPosition );
 
     seeds->InsertElement( numberOfSeedPoints, node );
 
-    std::cout << "Seed " << numberOfSeedPoints << " = " << seedPosition << std::endl;
+    std::cout << "Seed " << numberOfSeedPoints << seedX << " " << seedY << " " << seedZ << " = " << seedPosition << std::endl;
     numberOfSeedPoints++;
 
-    inputSeedsFile >> seedPosition[0] ;
-    inputSeedsFile >> seedPosition[1] ;
-    inputSeedsFile >> seedPosition[2] ;
+    inputSeedsFile >> seedX >> seedY >> seedZ;
     }
 
   inputSeedsFile.close();
