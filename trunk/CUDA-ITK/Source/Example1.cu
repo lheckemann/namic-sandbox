@@ -5,11 +5,16 @@
 //
 
 #define SIZE 2048
+#define DIVUP(a,b) ( a % b) == 0 ? (a/b): (a/b) + 1;
 
-__global__ void VectorAddKernel( float * Vector1, float * Vector2, float * Octput)
+__global__ void VectorAddKernel( float * Vector1, float * Vector2, float * Output, int size)
 {
   int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  Output[idx] = Vector1[idx] + Vector2[idx];
+
+  if( idx < size )
+    {
+    Output[idx] = Vector1[idx] + Vector2[idx];
+    }
 }
 
 int main()
