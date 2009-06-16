@@ -43,11 +43,24 @@ int main()
 
 
   dim3 BlockDim(128,1,1);
-  dim3 GidDim(DIVUP(SIZE, BlockDim.x),1,1);
+  dim3 GridDim(DIVUP(SIZE, BlockDim.x),1,1);
 
+
+  // This call is asynchronous
   VectorAddKernel<<<GridDim,BlockDim>>(GPUVector1,GPUVector2,GPUOutputVector,SIZE);
 
-  err = cudaMemory( HostOutputVector, GPUOutputVector, 
+
+  //
+  // Do other stuff here...
+  // 
+
+
+  //
+  // This call will wait until the GPU is done
+  // cudaThreadSynchronize();
+  //
+
+  err = cudaMemory( HostOutputVector, GPUOutputVector, totalSize, cudaMemcpyDeviceToHost);
 
   err = cudaFree( GPUVector1 );  
   err = cudaFree( GPUVector2 );  
