@@ -77,20 +77,17 @@ public:
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 10 )
+  if( argc < 8 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " inputImage  outputImage";
     std::cerr << " Sigma SigmoidAlpha SigmoidBeta ";
     std::cerr << " InitialRadiusDistance";
-    std::cerr << " [seedX seedY seedZ]*";
+    std::cerr << " InputSeedsFile";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
-
-  const unsigned int numberOfParametersBeforeSeedPoints = 6;
-
 
   typedef   float           InternalPixelType;
   const     unsigned int    Dimension = 3;
@@ -207,24 +204,32 @@ int main( int argc, char *argv[] )
   seeds->Initialize();
 
  
-  const unsigned int numberOfSeedPoints =
-    ( argc - numberOfParametersBeforeSeedPoints - 1 ) / 3;
+  unsigned int numberOfSeedPoints = 0;
 
+  std::ifstream inputSeedsFile;
 
-  for( unsigned int seedId = 0; seedId < numberOfSeedPoints; seedId++ )
+  inputSeedsFile.open( argv[7] );
+
+  inputSeedsFile >> seedPosition[0] ;
+  inputSeedsFile >> seedPosition[1] ;
+  inputSeedsFile >> seedPosition[2] ;
+
+  while( ! inputSeedsFile.eof() )
     {
-    const unsigned int sp = numberOfParametersBeforeSeedPoints + 1 + 3*seedId;
-    seedPosition[0] = atoi( argv[sp  ] );
-    seedPosition[1] = atoi( argv[sp+1] );
-    seedPosition[2] = atoi( argv[sp+2] );
 
     node.SetIndex( seedPosition );
 
-    seeds->InsertElement( seedId, node );
+    seeds->InsertElement( numberOfSeedPoints, node );
 
-    std::cout << "Seed " << seedId << " = " << seedPosition << std::endl;
+    std::cout << "Seed " << numberOfSeedPoints << " = " << seedPosition << std::endl;
+    numberOfSeedPoints++;
+
+    inputSeedsFile >> seedPosition[0] ;
+    inputSeedsFile >> seedPosition[1] ;
+    inputSeedsFile >> seedPosition[2] ;
     }
 
+  inputSeedsFile.close();
 
   fastMarching->SetInput( sigmoid->GetOutput() );
   fastMarching->SetTrialPoints(  seeds  );
