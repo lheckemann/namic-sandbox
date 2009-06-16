@@ -16,8 +16,6 @@ Version:   $Revision: $
 #include <iostream>
 #include <sstream>
 
-#include <inttypes.h>
-
 #include "vtkObjectFactory.h"
 #include "vtkCallbackCommand.h"
 #include "vtkLinearTransform.h"
@@ -255,6 +253,7 @@ int vtkMRML4DBundleNode::AddFrame(const char* nodeID)
 {
   this->FrameNodeIDList.push_back(std::string(nodeID));
   this->Modified();
+  return 1;
 }
 
 
@@ -344,6 +343,7 @@ vtkMRMLNode* vtkMRML4DBundleNode::GetFrameNode(int i)
 int vtkMRML4DBundleNode::SetDisplayBufferNodeID(int bufferIndex, const char* nodeID)
 {
   this->DisplayBufferNodeIDList[bufferIndex] = nodeID;
+  return 1;
 }
 
 
