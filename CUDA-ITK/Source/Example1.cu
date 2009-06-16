@@ -1,6 +1,8 @@
 //
 //  link to cudart.lib
 //
+//  This file should be compiled by the "nvcc" compiler.
+//
 
 #define SIZE 2048
 
@@ -45,7 +47,14 @@ int main()
 
   VectorAddKernel<<<GridDim,BlockDim>>(GPUVector1,GPUVector2,GPUOutputVector,SIZE);
 
-  cudaMemory( HostOutputVector, GPUOutputVector, 
+  err = cudaMemory( HostOutputVector, GPUOutputVector, 
 
+  err = cudaFree( GPUVector1 );  
+  err = cudaFree( GPUVector2 );  
+  err = cudaFree( GPUOutputVector );  
 
+  for(int i=0; i<SIZE; i++)
+    {
+    printf("%8.3f\n",HostOutputVector[i]);
+    }
 }
