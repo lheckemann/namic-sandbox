@@ -20,7 +20,17 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE INTERNAL "Where to put t
 
 SET(CMAKE_MODULE_PATH ${ITK_SOURCE_DIR}/CMake)
 
-FIND_PACKAGE( Cuda )
+INCLUDE(${CMAKE_SOURCE_DIR}/CMake/cuda/FindCuda.cmake)
+
+CUDA_INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR} 
+                          ${FOUND_CUT_INCLUDE}
+                          ${FOUND_CUDA_NVCC_INCLUDE}
+
+CONFIGURE_FILE(
+  ${CudaSupport_SOURCE_DIR}/CudappSupportConfigure.h.in 
+  ${CudaSupport_BINARY_DIR}/CudappSupportConfigure.h
+)
+
 
 INCLUDE(CTest)
 
