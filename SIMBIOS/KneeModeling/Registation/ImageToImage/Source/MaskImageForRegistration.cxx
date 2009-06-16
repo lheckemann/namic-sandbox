@@ -104,7 +104,7 @@ int main( int argc, char * argv[] )
   masker->SetInput1( reader->GetOutput() );
   masker->SetInput2( dilater->GetOutput() );
 
-  const OutputPixelType outsideValue = -5;  // Purposely outside of the range of MRI
+  const OutputPixelType outsideValue = 100;  // Purposely outside of the range of MRI
 
   masker->SetOutsideValue( outsideValue );
 
