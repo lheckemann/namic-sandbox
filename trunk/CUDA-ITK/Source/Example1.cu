@@ -41,12 +41,28 @@ int main()
   cudaMemcpy(GPUVector1, HostVector1, totalSize , cudaMemcpyHostToDevice);
   cudaMemcpy(GPUVector2, HostVector2, totalSize , cudaMemcpyHostToDevice);
 
+  //
+  // Define here the strategy for defining the distribution of the problem
+  //
 
+
+  // Size of the data block that will be passed to each one of the streaming
+  // multi-processors.
   dim3 BlockDim(128,1,1);
+
+  // Size of the grid of multi-processors that will be used for processing
+  // the total amount of data.
   dim3 GridDim(DIVUP(SIZE, BlockDim.x),1,1);
+  // 17 blocks = 2050 / 128
 
 
-  // This call is asynchronous
+
+  //
+  // This call is asynchronous.
+  //
+  // Kernels have a timeout of 5 seconds... if the kernel runs for more than 5 seconds
+  // The operating system (Microsoft Windows) will consider that the display crashed.
+  //
   VectorAddKernel<<<GridDim,BlockDim>>(GPUVector1,GPUVector2,GPUOutputVector,SIZE);
 
 
