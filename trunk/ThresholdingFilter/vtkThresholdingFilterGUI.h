@@ -118,6 +118,8 @@ protected:
   vtkSlicerNodeSelectorWidget* OutVolumeSelector;
   vtkSlicerNodeSelectorWidget* GADNodeSelector;
   vtkSlicerNodeSelectorWidget* StorageVolumeSelector;
+  vtkSlicerNodeSelectorWidget* MaskVolumeSelector;
+  
   vtkKWPushButton* ApplyButton;
   vtkKWPushButton* CatchButton;
   

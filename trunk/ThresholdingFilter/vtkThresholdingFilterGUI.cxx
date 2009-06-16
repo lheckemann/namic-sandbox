@@ -73,6 +73,8 @@ vtkThresholdingFilterGUI::vtkThresholdingFilterGUI()
   this->VolumeSelector = vtkSlicerNodeSelectorWidget::New();
   this->OutVolumeSelector = vtkSlicerNodeSelectorWidget::New();
   this->StorageVolumeSelector = vtkSlicerNodeSelectorWidget::New();
+  this->MaskVolumeSelector = vtkSlicerNodeSelectorWidget::New();
+  
   this->GADNodeSelector = vtkSlicerNodeSelectorWidget::New();
   this->ApplyButton = vtkKWPushButton::New();
   this->CatchButton = vtkKWPushButton::New();
@@ -209,6 +211,12 @@ vtkThresholdingFilterGUI::~vtkThresholdingFilterGUI()
         this->StorageVolumeSelector->Delete();
         this->StorageVolumeSelector = NULL;
     }
+   if ( this->MaskVolumeSelector ) {
+        this->MaskVolumeSelector->SetParent(NULL);
+        this->MaskVolumeSelector->Delete();
+        this->MaskVolumeSelector = NULL;
+    } 
+   
     if ( this->GADNodeSelector ) {
         this->GADNodeSelector->SetParent(NULL);
         this->GADNodeSelector->Delete();
@@ -281,6 +289,8 @@ void vtkThresholdingFilterGUI::AddGUIObservers ( )
   
   this->StorageVolumeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );  
 
+  this->MaskVolumeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand ); 
+
   this->GADNodeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );  
 
   this->ApplyButton->AddObserver (vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
@@ -304,6 +314,8 @@ void vtkThresholdingFilterGUI::RemoveGUIObservers ( )
   this->ConductanceScale->RemoveObservers (vtkKWScale::ScaleValueChangingEvent, (vtkCommand *)this->GUICallbackCommand );
 
   this->VolumeSelector->RemoveObservers (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );  
+
+  this->MaskVolumeSelector->RemoveObservers (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
 
   this->OutVolumeSelector->RemoveObservers (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
   
@@ -354,6 +366,12 @@ void vtkThresholdingFilterGUI::ProcessGUIEvents ( vtkObject *caller,
     }
   else if (selector == this->OutVolumeSelector && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent  &&
     this->OutVolumeSelector->GetSelected() != NULL) 
+    { 
+    this->UpdateMRML(); 
+    this->UpdateGUI();
+    }
+  else if (selector == this->MaskVolumeSelector && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent  &&
+    this->MaskVolumeSelector->GetSelected() != NULL) 
     { 
     this->UpdateMRML(); 
     this->UpdateGUI();
@@ -736,6 +754,10 @@ void vtkThresholdingFilterGUI::UpdateMRML ()
     {
     n->SetStorageVolumeRef(this->StorageVolumeSelector->GetSelected()->GetID());
     }
+  if (this->MaskVolumeSelector->GetSelected() != NULL)
+    {
+    n->SetMaskVolumeRef(this->MaskVolumeSelector->GetSelected()->GetID());
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -878,6 +900,19 @@ void vtkThresholdingFilterGUI::BuildGUI ( )
   this->StorageVolumeSelector->SetBalloonHelpString("select an output volume from the current mrml scene.");
   app->Script("pack %s -side top -anchor e -padx 20 -pady 4", 
                 this->StorageVolumeSelector->GetWidgetName());
+                
+  this->MaskVolumeSelector->SetNodeClass("vtkMRMLScalarVolumeNode", NULL, NULL, "GADVolumeMask");
+  this->MaskVolumeSelector->SetNewNodeEnabled(1);
+  this->MaskVolumeSelector->SetParent( moduleFrame->GetFrame() );
+  this->MaskVolumeSelector->Create();
+  this->MaskVolumeSelector->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->MaskVolumeSelector->UpdateMenu();
+
+  this->MaskVolumeSelector->SetBorderWidth(2);
+  this->MaskVolumeSelector->SetLabelText( "Mask Volume: ");
+  this->MaskVolumeSelector->SetBalloonHelpString("select an output volume from the current mrml scene.");
+  app->Script("pack %s -side top -anchor e -padx 20 -pady 4", 
+                this->MaskVolumeSelector->GetWidgetName());
 ////////////////////////////////////////////////////////////////////////////////////////////  
   
   this->Notebook->SetParent(moduleFrame->GetFrame());

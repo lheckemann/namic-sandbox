@@ -74,6 +74,8 @@ vtkMRMLThresholdingFilterNode::vtkMRMLThresholdingFilterNode()
    this->InputVolumeRef = NULL;
    this->OutputVolumeRef = NULL;
    this->StorageVolumeRef = NULL;
+   this->MaskVolumeRef = NULL;
+   
    this->HideFromEditors = true;
 }
 
@@ -83,6 +85,7 @@ vtkMRMLThresholdingFilterNode::~vtkMRMLThresholdingFilterNode()
    this->SetInputVolumeRef( NULL );
    this->SetOutputVolumeRef( NULL );
    this->SetStorageVolumeRef(NULL);
+   this->SetMaskVolumeRef(NULL);
 }
 
 //----------------------------------------------------------------------------
@@ -157,6 +160,14 @@ void vtkMRMLThresholdingFilterNode::WriteXML(ostream& of, int nIndent)
       {
       ss << this->StorageVolumeRef;
       of << indent << " StorageVolumeRef=\"" << ss.str() << "\"";
+      }
+  }
+  {
+    std::stringstream ss;
+    if ( this->MaskVolumeRef )
+      {
+      ss << this->MaskVolumeRef;
+      of << indent << " MaskVolumeRef=\"" << ss.str() << "\"";
       }
   }
   {
@@ -238,6 +249,11 @@ void vtkMRMLThresholdingFilterNode::ReadXMLAttributes(const char** atts)
       this->SetStorageVolumeRef(attValue);
       this->Scene->AddReferencedNodeID(this->StorageVolumeRef, this);
       }
+     if (!strcmp(attName, "MaskVolumeRef"))
+      {
+      this->SetMaskVolumeRef(attValue);
+      this->Scene->AddReferencedNodeID(this->MaskVolumeRef, this);
+      }
     else if (!strcmp(attName, "Sagittal1"))
       {
       std::stringstream ss;
@@ -282,6 +298,7 @@ void vtkMRMLThresholdingFilterNode::Copy(vtkMRMLNode *anode)
   this->SetInputVolumeRef(node->InputVolumeRef);
   this->SetOutputVolumeRef(node->OutputVolumeRef);
   this->SetStorageVolumeRef(node->StorageVolumeRef);
+  this->SetMaskVolumeRef(node->MaskVolumeRef);
 
 }
 
@@ -315,6 +332,8 @@ void vtkMRMLThresholdingFilterNode::PrintSelf(ostream& os, vtkIndent indent)
    (this->OutputVolumeRef ? this->OutputVolumeRef : "(none)") << "\n";
   os << indent << "StorageVolumeRef:   " << 
    (this->StorageVolumeRef ? this->StorageVolumeRef : "(none)") << "\n";
+   os << indent << "MaskVolumeRef:   " << 
+   (this->MaskVolumeRef ? this->MaskVolumeRef : "(none)") << "\n";
 }
 
 //----------------------------------------------------------------------------
@@ -331,5 +350,9 @@ void vtkMRMLThresholdingFilterNode::UpdateReferenceID(const char *oldID, const c
   if (!strcmp(oldID, this->StorageVolumeRef))
     {
     this->SetStorageVolumeRef(newID);
+    }
+  if (!strcmp(oldID, this->MaskVolumeRef))
+    {
+    this->SetMaskVolumeRef(newID);
     }
 }

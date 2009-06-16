@@ -112,6 +112,9 @@ class VTK_ThresholdingFilter_EXPORT vtkMRMLThresholdingFilterNode : public vtkMR
   
   vtkGetStringMacro(StorageVolumeRef);
   vtkSetStringMacro(StorageVolumeRef);
+  
+  vtkGetStringMacro(MaskVolumeRef);
+  vtkSetStringMacro(MaskVolumeRef);
 
 
   // Description:
@@ -130,6 +133,7 @@ protected:
   char* InputVolumeRef;
   char* OutputVolumeRef;
   char* StorageVolumeRef;
+  char* MaskVolumeRef;
   
   double Sagittal1;
   double Position2;
