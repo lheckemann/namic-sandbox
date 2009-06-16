@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 //
 //  link to cudart.lib
 //
@@ -59,7 +61,8 @@ int main()
   // Size of the grid of multi-processors that will be used for processing
   // the total amount of data.
   //
-  dim3 GridDim( DIVUP(SIZE, BlockDim.x) , 1 , 1 );
+  int numberOfProcessors = DIVUP(SIZE, BlockDim.x);
+  dim3 GridDim( numberOfProcessors, 1 , 1 );
   // 17 blocks = 2050 / 128
 
 
@@ -70,7 +73,7 @@ int main()
   // Kernels have a timeout of 5 seconds... if the kernel runs for more than 5 seconds
   // The operating system (Microsoft Windows) will consider that the display crashed.
   //
-  VectorAddKernel<<<GridDim,BlockDim>>(GPUVector1,GPUVector2,GPUOutputVector,SIZE);
+  VectorAddKernel<<<GridDim,BlockDim>>>(GPUVector1,GPUVector2,GPUOutputVector,SIZE);
 
 
   //
@@ -83,7 +86,7 @@ int main()
   // cudaThreadSynchronize();
   //
 
-  err = cudaMemory( HostOutputVector, GPUOutputVector, totalSize, cudaMemcpyDeviceToHost);
+  err = cudaMemcpy( HostOutputVector, GPUOutputVector, totalSize, cudaMemcpyDeviceToHost);
 
   err = cudaFree( GPUVector1 );  
   err = cudaFree( GPUVector2 );  
@@ -92,5 +95,10 @@ int main()
   for(int i=0; i<SIZE; i++)
     {
     printf("%8.3f\n",HostOutputVector[i]);
+    }
+
+  if( err )
+    {
+    printf("err %d", err );
     }
 }
