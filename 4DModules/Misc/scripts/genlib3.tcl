@@ -673,7 +673,7 @@ if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE
         } else {
           set platform LINUX
         }
-
+       
         # Build lapack
 
         cd $::Slicer3_LIB/netlib
