@@ -266,19 +266,38 @@ QuadEdgeMeshVTKPolyDataReader<TOutputMesh>
         {
         itkExceptionMacro("Unexpected end-of-file while trying to read POINT_DATA.");
         }
-      }
 
-    double pointData;
+      // Read the scalar data
+      double pointData;
 
-    for( int pid=0; pid < numberOfPoints; pid++ )
-      {
-      if (inputFile.eof())
+      for( int pid=0; pid < numberOfPoints; pid++ )
         {
-        itkExceptionMacro("Unexpected end-of-file while trying to read POINT_DATA." << "Failed while trying to reading point data for id: " << pid);
+        if (inputFile.eof())
+          {
+          itkExceptionMacro("Unexpected end-of-file while trying to read POINT_DATA." << "Failed while trying to reading point data for id: " << pid);
+          }
+        inputFile >> pointData;
+        outputMesh->SetPointData( pid, pointData );
         }
-      inputFile >> pointData;
-      outputMesh->SetPointData( pid, pointData );
       }
+
+    if( line.find("VECTORS") != std::string::npos )
+      {
+      // Read the vector data
+      typename OutputMeshType::PixelType pointData;
+
+      for( int pid=0; pid < numberOfPoints; pid++ )
+        {
+        if (inputFile.eof())
+          {
+          itkExceptionMacro("Unexpected end-of-file while trying to read POINT_DATA." << "Failed while trying to reading point data for id: " << pid);
+          }
+        inputFile >> pointData;
+        outputMesh->SetPointData( pid, pointData );
+        }
+      }
+
+
     }
 
   inputFile.close();

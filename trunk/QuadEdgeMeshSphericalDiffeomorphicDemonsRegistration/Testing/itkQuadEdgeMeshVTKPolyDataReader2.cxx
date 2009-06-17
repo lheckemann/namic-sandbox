@@ -22,6 +22,7 @@
 #include "itkMeshWriterHelper2.h"
 #include "itkQuadEdgeMeshVTKPolyDataReader.h"
 #include "itkTestingMacros.h"
+#include "itksys/SystemTools.hxx"
 
 int main( int argc, char *argv[] )
 {
@@ -55,6 +56,13 @@ int main( int argc, char *argv[] )
     }
 
   itk::MeshWriterHelper2< MeshType >::WriteMeshToFile( reader->GetOutput(), argv[2] );
+
+  if( itksys::SystemTools::FilesDiffer( argv[1], argv[2] ) )
+    {
+    std::cerr << "Output file differs from input file" << std::endl;
+    std::cerr << "This may indicate an error in the Reader or the Writer" << std::endl;
+    return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
 }
