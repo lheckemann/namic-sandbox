@@ -18,6 +18,7 @@
 #include "vtkSlicerVolumesGUI.h"
 #include "vtkKWProgressGauge.h"
 #include "vtkImageMedian3D.h"
+#include "vtkImageAccumulate.h"
 //#include "vtkSlicerApplication.h"
 
 // CommandLineModule support
@@ -366,13 +367,20 @@ int vtkChangeTrackerLogic::CreateSuperSampleFct(vtkImageData *input, const int R
      ROISuperSample->ReleaseDataFlagOff();
   ROISuperSample->Update();
 
+  vtkImageCast *cast = vtkImageCast::New();
+  cast->SetOutputScalarTypeToShort();
+  cast->SetInput(ROISuperSample->GetOutput());
+  cast->Update();
+
   // ---------------------------------
   // Clean up 
-  output->DeepCopy(ROISuperSample->GetOutput());
+//  output->DeepCopy(ROISuperSample->GetOutput());
+  output->DeepCopy(cast->GetOutput());
 
   ROISuperSample->Delete();
   ROIExtent->Delete();
   ROI->Delete();
+  cast->Delete();
   return 0;
 }
 
@@ -640,6 +648,13 @@ int vtkChangeTrackerLogic::AnalyzeGrowth(vtkSlicerApplication *app) {
 
 
   if (this->ChangeTrackerNode->GetAnalysis_Intensity_Flag()) { 
+
+    // If input segmentation is provided, the thresholds are not set. 
+    // The temporary solution will be to set thresholds based on the
+    // min/max intensities in the segmented area.
+    if(this->ChangeTrackerNode->GetScan1_InputSegmRef())
+      SetThresholdsFromSegmentation();
+
     if (!atoi(app->Script("::ChangeTrackerTcl::IntensityThresholding_GUI 1"))) 
       return ERR_OTHER; 
     std::cerr << "IntensityThresholding 1" << std::endl;
@@ -828,6 +843,8 @@ void vtkChangeTrackerLogic::MeassureGrowth(int SegmentThreshMin, int SegmentThre
   }
   int IntensityMin = SegmentThreshMin - (int) this->Analysis_Intensity_Threshold ;
   int IntensityMax = SegmentThreshMax + (int) this->Analysis_Intensity_Threshold ;
+
+//  std::cerr << "Intensity range: " << IntensityMin << " - " << IntensityMax << std::endl;
 
   // Biasing results - this is a hack right now 
   // Used in in journal publication - for some reason the pipeline favors shrinkage over growth 
@@ -1217,5 +1234,54 @@ char* vtkChangeTrackerLogic::GetInputScanName(int scan){
    else
      volumeNode = vtkMRMLVolumeNode::SafeDownCast(this->ChangeTrackerNode->GetScene()->GetNodeByID(this->ChangeTrackerNode->GetScan2_Ref()));
    return volumeNode->GetName();
+}
+
+void vtkChangeTrackerLogic::SetThresholdsFromSegmentation(){
+  vtkMRMLVolumeNode *scan1_segm = vtkMRMLVolumeNode::SafeDownCast(
+    this->ChangeTrackerNode->GetScene()->GetNodeByID(this->ChangeTrackerNode->GetScan1_SegmentRef()));
+  vtkMRMLVolumeNode *scan1 = vtkMRMLVolumeNode::SafeDownCast(
+    this->ChangeTrackerNode->GetScene()->GetNodeByID(this->ChangeTrackerNode->GetScan1_SuperSampleRef()));
+  vtkImageData *image = scan1->GetImageData();
+  vtkImageData *mask = scan1_segm->GetImageData();
+
+  std::cerr << "Input image scalar type: " << image->GetScalarType() << std::endl;
+  std::cerr << "Input mask scalar type: " << mask->GetScalarType() << std::endl;
+
+  vtkImageMathematics* mult = vtkImageMathematics::New();
+  vtkImageThreshold* thresh = vtkImageThreshold::New();
+  thresh->SetInput(mask);
+  thresh->ThresholdByLower(1);
+  thresh->SetInValue(1);
+  thresh->SetOutValue(0);
+  mult->SetInput(0, image);
+  mult->SetInput(1, thresh->GetOutput());
+  mult->SetOperationToMultiply();
+
+  vtkImageCast *cast = vtkImageCast::New();
+  cast->SetInput(mult->GetOutput());
+  cast->SetOutputScalarTypeToShort();
+  
+
+  vtkImageAccumulate* hist = vtkImageAccumulate::New();
+  hist->SetInput(cast->GetOutput());
+  hist->Update();
+
+  double max = hist->GetMax()[0];
+  hist->SetComponentOrigin(0.,0.,0.);
+  hist->SetComponentExtent(0.,max,0.,0.,0.,0.);
+  hist->SetComponentSpacing(1.,0.,0.);
+  hist->IgnoreZeroOn();
+  hist->Update();
+
+  std::cerr << "Histogram min: " << hist->GetMin()[0] << std::endl;
+  std::cerr << "Histogram max: " << hist->GetMax()[0] << std::endl;
+
+  this->ChangeTrackerNode->SetSegmentThresholdMin(hist->GetMin()[0]);
+  this->ChangeTrackerNode->SetSegmentThresholdMax(hist->GetMax()[0]);
+
+  mult->Delete();
+  thresh->Delete();
+  hist->Delete();
+  cast->Delete();
 }
 // AF <<<

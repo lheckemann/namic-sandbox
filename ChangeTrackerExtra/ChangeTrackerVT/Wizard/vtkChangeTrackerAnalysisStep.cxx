@@ -11,6 +11,7 @@
 #include "vtkKWLabel.h"
 #include "vtkKWEntry.h"
 #include "vtkKWScale.h"
+#include "vtkKWThumbWheel.h"
 #include "vtkSlicerApplicationLogic.h"
 #include "vtkChangeTrackerLogic.h"
 #include "vtkSlicerSliceControllerWidget.h"
@@ -68,6 +69,8 @@ vtkChangeTrackerAnalysisStep::vtkChangeTrackerAnalysisStep()
   this->SensitivityLow = NULL;
   this->SensitivityMedium = NULL;
   this->SensitivityHigh = NULL;
+
+  this->SensitivityScale = NULL;
 
 }
 
@@ -215,6 +218,11 @@ vtkChangeTrackerAnalysisStep::~vtkChangeTrackerAnalysisStep()
       this->DeformableMeassureLabel = NULL;
     }
 
+ if(this->SensitivityScale)
+   {
+   this->SensitivityScale->Delete();
+   this->SensitivityScale = NULL;
+   }
 }
 
 //----------------------------------------------------------------------------
@@ -254,6 +262,12 @@ void vtkChangeTrackerAnalysisStep::AddGUIObservers()
   if (this->SensitivityLow && !this->SensitivityLow->HasObserver(vtkKWPushButton::InvokedEvent, this->WizardGUICallbackCommand))
     {
       this->SensitivityLow->AddObserver(vtkKWPushButton::InvokedEvent, this->WizardGUICallbackCommand);
+    }
+
+  if ( this->SensitivityScale && 
+      !this->SensitivityScale->HasObserver(vtkKWThumbWheel::ThumbWheelValueChangedEvent,this->WizardGUICallbackCommand))
+    {
+    this->SensitivityScale->AddObserver(vtkKWThumbWheel::ThumbWheelValueChangedEvent, this->WizardGUICallbackCommand);
     }
 }
 
@@ -295,6 +309,11 @@ void vtkChangeTrackerAnalysisStep::RemoveGUIObservers()
     {
       this->SensitivityHigh->RemoveObservers( vtkKWPushButton::InvokedEvent, this->WizardGUICallbackCommand);
     }
+  if (this->SensitivityScale)
+    {
+    this->SensitivityScale->RemoveObservers(vtkKWThumbWheel::ThumbWheelValueChangedEvent, 
+                                             this->WizardGUICallbackCommand);
+    }
 }
 
 void vtkChangeTrackerAnalysisStep::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
@@ -311,14 +330,24 @@ void vtkChangeTrackerAnalysisStep::ProcessGUIEvents(vtkObject *caller, unsigned 
 
   // cout << "vtkChangeTrackerAnalysisStep::ProcessGUIEvents" << endl;
 
-  if (event != vtkKWPushButton::InvokedEvent) return;
+  if ( (event != vtkKWPushButton::InvokedEvent) &&
+       (event != vtkKWThumbWheel::ThumbWheelValueChangedEvent) )
+    return;
 
   vtkKWPushButton *button = vtkKWPushButton::SafeDownCast(caller);
+  vtkKWThumbWheel *scale = vtkKWThumbWheel::SafeDownCast(caller);
   //if (this->ButtonsSnapshot && (button == this->ButtonsSnapshot)) 
   //{ 
   //    this->TakeScreenshot(); 
   //    return;
   //}
+
+  if((this->SensitivityScale && (scale == this->SensitivityScale)))
+    {
+    std::cerr << "Sensitivity value is now " << scale->GetValue() << std::endl;
+    SensitivityChangedCallback(scale->GetValue());
+    return;
+    }
 
   if ((this->ButtonsAnalysis && (button == this->ButtonsAnalysis)) || 
       (this->ButtonsSave && (button == this->ButtonsSave)))
@@ -576,37 +605,35 @@ void vtkChangeTrackerAnalysisStep::ShowUserInterface()
   this->Script("pack %s %s %s -side left -anchor nw -fill x -padx 0 -pady 0", this->SensitivityLow->GetWidgetName(), this->SensitivityMedium->GetWidgetName(), this->SensitivityHigh->GetWidgetName());
 
 
-  // if (!this->SensitivityRadio)
-  //   {
-  //   this->SensitivityRadio = vtkKWThumbWheel::New();
-  //   }
-  // 
-  // if (!this->SensitivityScale->IsCreated())
-  // {
-  //   this->SensitivityScale->SetParent(this->Frame->GetFrame());
-  //   this->SensitivityScale->Create();
-  //   this->SensitivityScale->SetRange(0.0,1.0);
-  //   this->SensitivityScale->SetMinimumValue(0.0);
-  //   this->SensitivityScale->ClampMinimumValueOn(); 
-  //   this->SensitivityScale->SetMaximumValue(1.0);
-  //   this->SensitivityScale->ClampMaximumValueOn(); 
-  //   this->SensitivityScale->SetResolution(0.75);
-  //   this->SensitivityScale->SetLinearThreshold(1);
-  //   this->SensitivityScale->SetThumbWheelSize (CHANGETRACKER_WIDGETS_SLIDER_WIDTH,CHANGETRACKER_WIDGETS_SLIDER_HEIGHT);
-  //   this->SensitivityScale->DisplayEntryOn();
-  //   this->SensitivityScale->DisplayLabelOn();
-  //   this->SensitivityScale->GetLabel()->SetText("Sensitivity");
-  //   this->SensitivityScale->SetCommand(this,"SensitivityChangedCallback");
-  //   this->SensitivitySale->DisplayEntryAndLabelOnTopOff(); 
-  //   this->SensitivityScale->SetBalloonHelpString("The further the wheel is turned to the right the more robust the result");
-  // 
-  //   // this->SensitivityScale->GetEntry()->SetCommandTriggerToAnyChange();
-  // }
+  if (!this->SensitivityScale)
+  {
+    this->SensitivityScale = vtkKWThumbWheel::New();
+  }
+  if (!this->SensitivityScale->IsCreated())
+  {
+    this->SensitivityScale->SetParent(this->Frame->GetFrame());
+    this->SensitivityScale->Create();
+    this->SensitivityScale->SetRange(0.0,1.0);
+    this->SensitivityScale->SetMinimumValue(0.0);
+    this->SensitivityScale->ClampMinimumValueOn(); 
+    this->SensitivityScale->SetMaximumValue(1.0);
+    this->SensitivityScale->ClampMaximumValueOn(); 
+    this->SensitivityScale->SetResolution(0.5);
+    this->SensitivityScale->SetLinearThreshold(1);
+    this->SensitivityScale->SetThumbWheelSize (CHANGETRACKER_WIDGETS_SLIDER_WIDTH,CHANGETRACKER_WIDGETS_SLIDER_HEIGHT);
+    this->SensitivityScale->DisplayEntryOn();
+    this->SensitivityScale->DisplayLabelOn();
+    this->SensitivityScale->GetLabel()->SetText("Sensitivity");
+    this->SensitivityScale->DisplayEntryAndLabelOnTopOff(); 
+    this->SensitivityScale->SetBalloonHelpString("The further the wheel is turned to the right the more robust the result");
+    this->SensitivityScale->SetValue(node->GetAnalysis_Intensity_Sensitivity());
+    // this->SensitivityScale->GetEntry()->SetCommandTriggerToAnyChange();
+  }
 
   // Initial value 
   // vtkMRMLChangeTrackerNode *mrmlNode = this->GetGUI()->GetNode();
   // if (mrmlNode) this->SensitivityScale->SetValue(mrmlNode->GetAnalysis_Intensity_Sensitivity());
-  // this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->SensitivityScale->GetWidgetName());
+  this->Script( "pack %s -side top -anchor nw -padx 2 -pady 2", this->SensitivityScale->GetWidgetName());
 
 
   if (!this->FrameIntensity)
@@ -953,6 +980,7 @@ void vtkChangeTrackerAnalysisStep::SensitivityChangedCallback(int flag)
   if (!this->SensitivityMedium || !this->SensitivityLow ||  !this->SensitivityHigh || !mrmlNode || !this->IntensityResultVoxel || !this->IntensityResultVolume || !mrmlNode->GetAnalysis_Intensity_Flag()) return;
 
   double senValue = mrmlNode->GetAnalysis_Intensity_Sensitivity();
+  this->SensitivityScale->SetValue(senValue);
   // original values   int senValueList[3] = {0.1, 0.6, 1.0};
   double senValueList[3] = {0.9, 0.96, 0.99};
 
@@ -993,6 +1021,50 @@ void vtkChangeTrackerAnalysisStep::SensitivityChangedCallback(int flag)
     this->SensitivityMedium->SelectedStateOff();
   }
   
+  vtkSlicerApplication::SafeDownCast(this->GetGUI()->GetApplication())->Script("::ChangeTrackerTcl::Analysis_Intensity_UpdateThreshold_GUI"); 
+  double Shrinkage,Growth;
+  this->GetGUI()->GetLogic()->MeassureGrowth(Shrinkage, Growth);
+  double Total = Growth + Shrinkage;
+  // show here 
+  // cout << "Growth " << Growth << " " << this->SensitivityScale->GetValue() << endl;
+  char TEXT[1024];
+
+  std::string CMD = "::ChangeTrackerTcl::RonsWishFlag";
+  int RonsWishFlag = atoi(this->Script(CMD.c_str()));
+
+
+  if (RonsWishFlag) {
+    sprintf(TEXT,"%.3f mm%c\n%.3f mm%c\n%.3f mm%c", -Shrinkage*mrmlNode->GetSuperSampled_VoxelVolume(),179,Growth*mrmlNode->GetSuperSampled_VoxelVolume(),179, Total*mrmlNode->GetSuperSampled_VoxelVolume(),179);
+  } else {
+    sprintf(TEXT,"%.3f mm%c", Total*mrmlNode->GetSuperSampled_VoxelVolume(),179);
+  }
+    this->IntensityResultVolume->SetText(TEXT);
+
+  if (RonsWishFlag) {
+     sprintf(TEXT,"(%d Voxels)\n(%d Voxels)\n(%d Voxels)", int(-Shrinkage*mrmlNode->GetSuperSampled_RatioNewOldSpacing()),int(Growth*mrmlNode->GetSuperSampled_RatioNewOldSpacing()),int(Total*mrmlNode->GetSuperSampled_RatioNewOldSpacing()));
+  } else {
+     sprintf(TEXT,"(%d Voxels)", int(Total*mrmlNode->GetSuperSampled_RatioNewOldSpacing()));
+  }
+
+  this->IntensityResultVoxel->SetText(TEXT);
+  // Show updated results 
+  vtkMRMLVolumeNode *analysisNode = vtkMRMLVolumeNode::SafeDownCast(mrmlNode->GetScene()->GetNodeByID(mrmlNode->GetAnalysis_Intensity_Ref()));
+  if (analysisNode) analysisNode->Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkChangeTrackerAnalysisStep::SensitivityChangedCallback(double senValue)
+{
+  cout << "vtkChangeTrackerAnalysisStep::SensitivityChangedCallback(" << senValue << ")" << endl;
+  // Sensitivity has changed because of user interaction
+  vtkMRMLChangeTrackerNode *mrmlNode = this->GetGUI()->GetNode();
+
+  mrmlNode->SetAnalysis_Intensity_Sensitivity(senValue);
+
+  this->SensitivityLow->SelectedStateOff();
+  this->SensitivityMedium->SelectedStateOff();
+  this->SensitivityHigh->SelectedStateOff();
+
   vtkSlicerApplication::SafeDownCast(this->GetGUI()->GetApplication())->Script("::ChangeTrackerTcl::Analysis_Intensity_UpdateThreshold_GUI"); 
   double Shrinkage,Growth;
   this->GetGUI()->GetLogic()->MeassureGrowth(Shrinkage, Growth);
