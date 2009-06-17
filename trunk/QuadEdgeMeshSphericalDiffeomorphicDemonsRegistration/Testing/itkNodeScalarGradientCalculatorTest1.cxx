@@ -20,7 +20,7 @@
 
 #include "itkNodeScalarGradientCalculator.h"
 #include "itkQuadEdgeMesh.h"
-#include "itkVTKPolyDataReader.h"
+#include "itkQuadEdgeMeshVTKPolyDataReader.h"
 #include "itkMeshGeneratorHelper.h"
 #include "itkCovariantVector.h"
 #include "itkTestingMacros.h"
@@ -55,8 +55,8 @@ int main( int argc, char *argv[] )
   std::cout << gradientCalculator->GetNameOfClass() << std::endl;
   gradientCalculator->Print( std::cout );
 
-  typedef itk::VTKPolyDataReader< FixedMeshType >         FixedReaderType;
-  typedef itk::VTKPolyDataReader< MovingMeshType >        MovingReaderType;
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< FixedMeshType >         FixedReaderType;
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< MovingMeshType >        MovingReaderType;
 
   FixedReaderType::Pointer fixedReader = FixedReaderType::New();
   fixedReader->SetFileName( argv[1] );

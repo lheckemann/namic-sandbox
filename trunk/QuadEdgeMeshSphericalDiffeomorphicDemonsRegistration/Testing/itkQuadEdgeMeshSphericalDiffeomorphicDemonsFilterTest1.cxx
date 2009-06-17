@@ -20,7 +20,7 @@
 
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkQuadEdgeMesh.h"
-#include "itkVTKPolyDataReader.h"
+#include "itkQuadEdgeMeshVTKPolyDataReader.h"
 #include "itkMeshGeneratorHelper.h"
 #include "itkMeshWriterHelper1.h"
 #include "itkTestingMacros.h"
@@ -52,8 +52,8 @@ int main( int argc, char *argv[] )
   std::cout << demonsFilter->GetNameOfClass() << std::endl;
   demonsFilter->Print( std::cout );
 
-  typedef itk::VTKPolyDataReader< FixedMeshType >         FixedReaderType;
-  typedef itk::VTKPolyDataReader< MovingMeshType >        MovingReaderType;
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< FixedMeshType >   FixedReaderType;
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< MovingMeshType >  MovingReaderType;
 
   FixedReaderType::Pointer fixedReader = FixedReaderType::New();
   fixedReader->SetFileName( argv[1] );
