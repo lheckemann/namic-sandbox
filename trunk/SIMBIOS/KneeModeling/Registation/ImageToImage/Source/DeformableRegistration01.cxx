@@ -323,7 +323,9 @@ int main( int argc, char *argv[] )
   // Regulating the number of samples in the Metric is equivalent to performing
   // multi-resolution registration because it is indeed a sub-sampling of the
   // image.
-  metric->SetNumberOfSpatialSamples( 10000L );
+  unsigned long numberOfSamples = 10000L;
+  std::cout << "Number of Samples = " << numberOfSamples << std::endl;
+  metric->SetNumberOfSpatialSamples( numberOfSamples );
 
   //
   // Create the Command observer and register it with the optimizer.
@@ -395,7 +397,9 @@ int main( int argc, char *argv[] )
   // Regulating the number of samples in the Metric is equivalent to performing
   // multi-resolution registration because it is indeed a sub-sampling of the
   // image.
-  metric->SetNumberOfSpatialSamples( 50000L );
+  numberOfSamples = 50000L;
+  std::cout << "Number of Samples = " << numberOfSamples << std::endl;
+  metric->SetNumberOfSpatialSamples( numberOfSamples );
 
 
   std::cout << "Starting Affine Registration " << std::endl;
@@ -520,7 +524,9 @@ int main( int argc, char *argv[] )
   // Regulating the number of samples in the Metric is equivalent to performing
   // multi-resolution registration because it is indeed a sub-sampling of the
   // image.
-  metric->SetNumberOfSpatialSamples( numberOfBSplineParameters * 100 );
+  numberOfSamples = numberOfBSplineParameters * 100;
+  std::cout << "Number of Samples = " << numberOfSamples << std::endl;
+  metric->SetNumberOfSpatialSamples( numberOfSamples );
 
 
 
@@ -656,9 +662,9 @@ int main( int argc, char *argv[] )
   // Regulating the number of samples in the Metric is equivalent to performing
   // multi-resolution registration because it is indeed a sub-sampling of the
   // image.
-  const unsigned long numberOfSamples = 
+  numberOfSamples = 
      static_cast<unsigned long>(
-       vcl_sqrt( static_cast<double>( numberOfBSplineParameters ) * 100.0 *
+       vcl_sqrt( static_cast<double>( numberOfBSplineParameters ) *
                  static_cast<double>( numberOfPixels ) ) );
 
   std::cout << "Number of Samples = " << numberOfSamples << std::endl;
