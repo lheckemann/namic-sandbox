@@ -77,9 +77,18 @@ static void GenerateMesh( MeshPointer & mesh )
 
   mesh = sphereMeshSource->GetOutput();
 
-  typedef typename MeshType::PointDataContainer::Iterator PointDataIterator;
-  PointDataIterator pixelIterator = mesh->GetPointData()->Begin();
-  PointDataIterator pixelEnd      = mesh->GetPointData()->End();
+  typedef typename MeshType::PointDataContainer     PointDataContainer;
+
+  typename PointDataContainer::Pointer pointData = PointDataContainer::New();
+
+  typedef typename PointDataContainer::Iterator     PointDataIterator;
+
+  pointData->Reserve( mesh->GetNumberOfPoints() );
+
+  mesh->SetPointData( pointData );
+
+  PointDataIterator pixelIterator = pointData->Begin();
+  PointDataIterator pixelEnd      = pointData->End();
 
   typedef typename MeshType::PointsContainer::Iterator     PointIterator;
   PointIterator pointIterator = mesh->GetPoints()->Begin();
