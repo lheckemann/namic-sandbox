@@ -5,7 +5,17 @@
 #include <iostream>
 
 
-bool isPosDef(mtx* A)
+SpdEqSolver::SpdEqSolver()
+{
+  _progressCallback=NULL;
+}
+
+
+SpdEqSolver::~SpdEqSolver()
+{
+}
+
+bool SpdEqSolver::isPosDef(mtx* A)
 {
   vnl_symmetric_eigensystem<elementType> eig(*A);
 
@@ -21,7 +31,7 @@ bool isPosDef(mtx* A)
   return true;
 }
 
-bool isPosDef(spMtx* A)
+bool SpdEqSolver::isPosDef(spMtx* A)
 {
   vnl_sparse_symmetric_eigensystem eig;
   eig.CalculateNPairs((*A), 1);
@@ -39,7 +49,7 @@ bool isPosDef(spMtx* A)
 }
 
 
-int solveSpdEq(mtx* A, vec* b, vec* x, int numIter, elementType tol)
+int SpdEqSolver::solveSpdEq(mtx* A, vec* b, vec* x, int numIter, elementType tol)
 {
 //   if (!isPosDef(A))
 //     {
@@ -49,7 +59,9 @@ int solveSpdEq(mtx* A, vec* b, vec* x, int numIter, elementType tol)
 
   vec r = (*b) - (*A)*(*x);
   vec p = r;
-  
+
+  reportProgress(0);
+
   if (numIter == -1)
     {
       numIter = b->size();
@@ -69,6 +81,7 @@ int solveSpdEq(mtx* A, vec* b, vec* x, int numIter, elementType tol)
       r -= alpha*Ap;
       if (inner_product(r, r) < tol)
         {
+          reportProgress(100);
           return i;
         }
 
@@ -77,13 +90,16 @@ int solveSpdEq(mtx* A, vec* b, vec* x, int numIter, elementType tol)
       elementType beta = -inner_product(p, Ar)/(pAp + DBL_MIN);
 
       p = r + beta*p;
+      
+      reportProgress(i*100/numIter);
     }
 
+  reportProgress(100);
   return numIter;
 }
 
 
-int solveSpdEq(spMtx* A, vec* b, vec* x, int numIter, elementType tol)
+int SpdEqSolver::solveSpdEq(spMtx* A, vec* b, vec* x, int numIter, elementType tol)
 {
 //   std::cout<<"in sparse matrix solver!\n"<<std::flush;
 //   std::cout<<"numIter = "<<numIter<<"\n"<<std::flush;
@@ -98,6 +114,7 @@ int solveSpdEq(spMtx* A, vec* b, vec* x, int numIter, elementType tol)
 //   std::cout<<"max element of *b = "<<b->max_value()<<std::endl<<std::flush;
 //   std::cout<<"b is zero?"<<b->is_zero()<<std::endl<<std::flush;
 
+  reportProgress(0);
 
   vec Ax;
   A->pre_mult(*x, Ax);
@@ -133,6 +150,7 @@ int solveSpdEq(spMtx* A, vec* b, vec* x, int numIter, elementType tol)
       if (inner_product(r, r) < tol)
         {
           //          std::cout<<"<r, r> = "<<inner_product(r, r)<<std::endl<<std::flush;
+          reportProgress(100);
           return i;
         }
 
@@ -142,8 +160,22 @@ int solveSpdEq(spMtx* A, vec* b, vec* x, int numIter, elementType tol)
       elementType beta = -inner_product(p, Ar)/(pAp + DBL_MIN);
 
       p = r + beta*p;
+      reportProgress(i*100/numIter);
     }
 
+  reportProgress(100);
   return numIter;
 }
 
+void SpdEqSolver::setProgressCallback(PROGRESS_CALLBACK_TYPE progressCallback)
+{
+  _progressCallback=progressCallback;
+}
+
+void SpdEqSolver::reportProgress(int percentComplete)
+{
+  if (_progressCallback!=NULL)
+  {
+    (*_progressCallback)(percentComplete);
+  }
+}

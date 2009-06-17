@@ -13,10 +13,10 @@ randomWalkSeg::randomWalkSeg()
   _vol = 0;
   _seedVol = 0;
   _init_potential_vol = 0;
-  // in seed Im, the pixel value is label:
-  // 0: un-marked
-  // 1: background
-  // 2: object
+
+  _labelUnmarked=0;
+  _labelBackground=1;
+  _labelObject=2;
 
   _indexMapping = 0;
 
@@ -29,6 +29,8 @@ randomWalkSeg::randomWalkSeg()
   CG_solver_err_tolerance = 1e-6;
 
   _data_updated = false;
+
+  _progressCallback=NULL;
 }
 
 randomWalkSeg::~randomWalkSeg() 
@@ -56,6 +58,12 @@ randomWalkSeg::~randomWalkSeg()
     }
 }
 
+void randomWalkSeg::setLabelValues(double background, double unmarked, double object)
+{
+  _labelBackground=background;
+  _labelUnmarked=unmarked;
+  _labelObject=object;
+}
 
 void randomWalkSeg::setVol(cVolume *vol)
 {
@@ -100,7 +108,7 @@ void randomWalkSeg::getIndexMapping()
   int numMarkedVoxel = n - numUnmarkedVox;
 
 
-  _indexMapping = new cVolume(nx, ny, nz);
+  _indexMapping = new cVolume(_seedVol); // this initializes volume size and position
   _indexMapping->setAllVoxels(-1);
 
   int countUnmarkedVoxel = numMarkedVoxel;
@@ -114,7 +122,7 @@ void randomWalkSeg::getIndexMapping()
             {
               double l = _seedVol->getVoxel(ix, iy, iz);
 
-              if (0.00001 <= l || -0.00001 >= l)
+              if (l != _labelUnmarked)
                 {
                   if (countMarkedVoxel >= n)
                     {
@@ -161,9 +169,7 @@ int randomWalkSeg::get_num_unseeded_voxels()
         {
           for (int iz = 0; iz <= nz-1; ++iz)
             {
-              double l = _seedVol->getVoxel(ix, iy, iz);
-
-              if (0.00001 >= l && -0.00001 <= l)
+              if (_seedVol->getVoxel(ix, iy, iz) == _labelUnmarked)
                 {
                   ++_numUnmarkedVox;
                 }
@@ -289,7 +295,7 @@ void randomWalkSeg::getRhs()
             {
               double l = _seedVol->getVoxel(ix, iy, iz);
 
-              if (1.999999 <= l && l <= 2.000001) // 2.0 indicates foreground
+              if (l == _labelObject) // 2.0 indicates foreground
                 {
                   int idx = _indexMapping->getVoxel(ix, iy, iz);
                   // idx should < numMarkedVoxel
@@ -332,7 +338,9 @@ void randomWalkSeg::get_potential_vector()
 
   //  std::cout<<"_rhs is zero? "<<_rhs->is_zero()<<std::endl<<std::flush;
 
-  int it_num = solveSpdEq(_Lu, _rhs, _potential, num_iter_eq_CG_solver, CG_solver_err_tolerance);
+  SpdEqSolver solver;
+  solver.setProgressCallback(_progressCallback);
+  int it_num = solver.solveSpdEq(_Lu, _rhs, _potential, num_iter_eq_CG_solver, CG_solver_err_tolerance);
   std::cout<<"\t\t\t ran "<<it_num<<" iterations\n"<<std::flush;
 }
 
@@ -363,17 +371,15 @@ cVolume* randomWalkSeg::get_potential_volume()
             {
               double l = _seedVol->getVoxel(ix, iy, iz);
 
-              if (0.9999999 <= l && 1.00001 >= l)
+              if (l == _labelBackground)
                 {
                   potential_vol->setVoxel(ix, iy, iz, 0.0);
                 }
-          
-              if (1.9999999 <= l && 2.00001 >= l)
+              else if (l == _labelObject)
                 {
                   potential_vol->setVoxel(ix, iy, iz, 1.0);
                 }
-          
-              if (0.00001 >= l && -0.00001 <= l)
+              else if (l == _labelUnmarked)
                 {
                   int idx = _indexMapping->getVoxel(ix, iy, iz);
                   // idx should >= numMarkedVoxel
@@ -399,21 +405,26 @@ void randomWalkSeg::generate_data()
   if (_vol && _seedVol)
     {
       get_num_unseeded_voxels();
+      reportProgress(10);
 
       //std::cout<<"get index mapping....";
       getIndexMapping();
+      reportProgress(20);
       //std::cout<<"done\n";
 
       //std::cout<<"get Lu and B....";
       getLuB();
+      reportProgress(30);
       //std::cout<<"done\n";
 
       //std::cout<<"get right hand side....";  
       getRhs();
+      reportProgress(40);
       //std::cout<<"done\n";
 
       //std::cout<<"CG for result....";  
       get_potential_vector();
+      reportProgress(50);
       //std::cout<<"done\n";
     }
 
@@ -595,7 +606,7 @@ vnl_vector<double>* randomWalkSeg::set_init_potential_vector()
                 {
                   double l = _seedVol->getVoxel(ix, iy, iz);
 
-                  if (l <= 0.000001 && l >= -0.00001)
+                  if (l == _labelUnmarked)
                     {
                       int idx = _indexMapping->getVoxel(ix, iy, iz);
                       // idx should >= numMarkedPixel
@@ -621,4 +632,17 @@ void randomWalkSeg::set_solver_num_iter(int n)
 void randomWalkSeg::set_solver_err_tol(double tol)
 {
   CG_solver_err_tolerance = tol; 
+}
+
+void randomWalkSeg::setProgressCallback(PROGRESS_CALLBACK_TYPE progressCallback)
+{
+  _progressCallback=progressCallback;
+}
+
+void randomWalkSeg::reportProgress(int percentComplete)
+{
+  if (_progressCallback!=NULL)
+  {
+    (*_progressCallback)(percentComplete);
+  }
 }
