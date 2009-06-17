@@ -246,8 +246,9 @@ int main( int argc, char *argv[] )
   //
   MaskType::Pointer  spatialObjectMask = MaskType::New();
   spatialObjectMask->SetImage( maskReader->GetOutput() );
-  metric->SetFixedImageMask( spatialObjectMask );
-
+  //
+  //   metric->SetFixedImageMask( spatialObjectMask );  // NOT USING THE FIXED IMAGE MASK
+  //
 
   if( argc > 7 )
     {
