@@ -34,8 +34,8 @@ MACRO(REGISTER DATASET1 DATASET2)
 
 ADD_TEST(RegistrationRigid_${DATASET1}_${DATASET2}
   ${EXECUTABLE_OUTPUT_PATH}/ImageRegistrationRigid
-  ${TEMP}/${DATASET1}_MRI_DatasetMasked.mhd
-  ${TEMP}/${DATASET2}_MRI_DatasetMasked.mhd
+  ${TEMP}/${DATASET1}_Masked.mhd
+  ${TEMP}/${DATASET2}_Masked.mhd
   ${TEMP}/RegisteredRigid_${DATASET2}_${DATASET1}.mhd
   ${TEMP}/DifferenceAfterRigidRegistration.mhd
   ${TEMP}/RigidRegistrationScreenshots
@@ -45,8 +45,8 @@ ADD_TEST(RegistrationRigid_${DATASET1}_${DATASET2}
 
 ADD_TEST(RegistrationAffine_${DATASET1}_${DATASET2}
   ${EXECUTABLE_OUTPUT_PATH}/ImageRegistrationAffine
-  ${TEMP}/${DATASET1}_MRI_DatasetMasked.mhd
-  ${TEMP}/${DATASET2}_MRI_DatasetMasked.mhd
+  ${TEMP}/${DATASET1}_Masked.mhd
+  ${TEMP}/${DATASET2}_Masked.mhd
   ${TEMP}/finalRigidTransform_${DATASET1}_${DATASET2}.txt
   ${TEMP}/RegisteredAffine_${DATASET2}_${DATASET1}.mhd
   ${TEMP}/DifferenceAfterAffineRegistration.mhd
@@ -54,6 +54,24 @@ ADD_TEST(RegistrationAffine_${DATASET1}_${DATASET2}
   ${TEMP}/initialAffineTransform_${DATASET1}_${DATASET2}.txt
   ${TEMP}/finalAffineTransform_${DATASET1}_${DATASET2}.txt
   )
+
+ADD_TEST(RegistrationBSpline_${DATASET1}_${DATASET2}
+  ${EXECUTABLE_OUTPUT_PATH}/DeformableRegistration01
+  ${TEMP}/${DATASET1}_Masked.mhd
+  ${TEMP}/${DATASET2}_Masked.mhd
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceAfter.mhd
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceBefore.mhd
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DeformationField.mhd
+  1    # Use explicit PDF derivatives
+  1    # Cache BSpline weights
+  ${TEMP}/finalBSplineTransform_${DATASET1}_${DATASET2}.txt
+   5   # Number of BSpline nodes in coarse grid
+  10   # Number of BSpline nodes in coarse grid
+  1.0  # Initial step length
+  200  # Number of iterations
+  )
+
 
 ENDMACRO(REGISTER)
 
