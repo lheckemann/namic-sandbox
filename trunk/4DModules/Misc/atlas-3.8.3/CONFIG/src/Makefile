@@ -369,8 +369,8 @@ install : $(INCINSTdir) $(LIBINSTdir) $(INCINSTdir)/atlas
 	$(MAKE) -f Make.top install_lib INSTdir=$(LIBINSTdir)
 
 confclean:
-	rm -f *core* *.o config?.out
+	rm -rf *core* *.o config?.out
 clean :
-	rm -f *.o x* config?.out *core*
+	rm -rf *.o x* config?.out *core*
 cleanall:
 	$(MAKE) -f Make.top clean
