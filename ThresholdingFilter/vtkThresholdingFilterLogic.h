@@ -101,6 +101,7 @@ protected:
   
   vtkImageData* STORAGE;
   vtkImageData* PREVIEW;
+  vtkImageData* MASK;
   
   //double oldPosition[3];
     

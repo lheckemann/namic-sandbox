@@ -592,7 +592,7 @@ std::cout<<"DIRECTIONS"<<std::endl;
 std::cout<<"FIRST: "<< evolution[0] <<std::endl;
 std::cout<<"SECOND: "<< evolution[1] <<std::endl;
 
-// POPULATE THE CORRESPONDING ARRAY 
+// POPULATE THE CORRESPONDING ARRAY AND MASK
 
     int wholeExtent[6];
 
@@ -604,85 +604,104 @@ std::cout<<"SECOND: "<< evolution[1] <<std::endl;
     this->STORAGE->SetWholeExtent( wholeExtent );  
     this->STORAGE->SetNumberOfScalarComponents(1);  
     this->STORAGE->SetOrigin(0.0,0.0,0.0); 
-
-
     this->STORAGE->SetDimensions(size[0],size[1],1);    
     this->STORAGE->AllocateScalars();
   
     vtkDataArray* outStorage=this->STORAGE->GetPointData()->GetScalars();  
+    
+    this->MASK = vtkImageData::New();
+    this->MASK->SetWholeExtent( wholeExtent );  
+    this->MASK->SetNumberOfScalarComponents(1);  
+    this->MASK->SetOrigin(0.0,0.0,0.0); 
+    this->MASK->SetDimensions(size[0],size[1],1);    
+    this->MASK->AllocateScalars();
+  
+    vtkDataArray* outMask=this->MASK->GetPointData()->GetScalars();
 
 // ARRAY EXTRACTION
 
 if(pos[0]==0 && pos[1] == 1){
 if(evolution[0] == 0 && evolution[1] == 0){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)     {
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]-j,originIJK[1]-i,originIJK[2],0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]-j,originIJK[1]-i,originIJK[2],0));
+}}}
 if(evolution[0] == 0 && evolution[1] == 1){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)    { 
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]-j,originIJK[1]+i,originIJK[2],0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]-j,originIJK[1]+i,originIJK[2],0));
+}}}
 if(evolution[0] == 1 && evolution[1] == 0){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)    { 
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]+j,originIJK[1]-i,originIJK[2],0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]+j,originIJK[1]-i,originIJK[2],0));
+}}}
 if(evolution[0] == 1 && evolution[1] == 1){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++) {    
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]+j,originIJK[1]+i,originIJK[2],0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]+j,originIJK[1]+i,originIJK[2],0));
+}}}
 
 }
 if(pos[0]==1 && pos[1] == 2){
 if(evolution[0] == 0 && evolution[1] == 0){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)  {   
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0],originIJK[1]-j,originIJK[2]-i,0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0],originIJK[1]-j,originIJK[2]-i,0));
+}}}
 if(evolution[0] == 0 && evolution[1] == 1){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++) {    
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0],originIJK[1]-j,originIJK[2]+i,0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0],originIJK[1]-j,originIJK[2]+i,0));
+}}}
 if(evolution[0] == 1 && evolution[1] == 0){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)    { 
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0],originIJK[1]+j,originIJK[2]-i,0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0],originIJK[1]+j,originIJK[2]-i,0));
+}}}
 if(evolution[0] == 1 && evolution[1] == 1){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)    { 
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0],originIJK[1]+j,originIJK[2]+i,0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0],originIJK[1]+j,originIJK[2]+i,0));
+}}}
 }
 
 if(pos[0]==0 && pos[1] == 2){
 if(evolution[0] == 0 && evolution[1] == 0){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)   {  
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]-j,originIJK[1],originIJK[2]-i,0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]-j,originIJK[1],originIJK[2]-i,0));
+}}}
 if(evolution[0] == 0 && evolution[1] == 1){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)   {  
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]-j,originIJK[1],originIJK[2]+i,0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]-j,originIJK[1],originIJK[2]+i,0));
+}}}
 if(evolution[0] == 1 && evolution[1] == 0){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)   {  
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]+j,originIJK[1],originIJK[2]-i,0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]+j,originIJK[1],originIJK[2]-i,0));
+}}}
 if(evolution[0] == 1 && evolution[1] == 1){
-for (int j=0;j<size[0];j++) 
-for (int i=0;i<size[1];i++)     
+for (int j=0;j<size[0];j++) {
+for (int i=0;i<size[1];i++)   {  
 outStorage->SetComponent(i*(size[0])+j,0,inVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]+j,originIJK[1],originIJK[2]+i,0));
-}
+outMask->SetComponent(i*(size[0])+j,0,maskVolume->GetImageData()->GetScalarComponentAsDouble(originIJK[0]+j,originIJK[1],originIJK[2]+i,0));
+}}}
 }
 
-outVolume->SetAndObserveImageData(this->STORAGE);
+outVolume->SetAndObserveImageData(this->MASK);
 outVolume->SetModifiedSinceRead(1);
 
 // PROCESS THE SLICE
@@ -696,7 +715,10 @@ outVolume->SetModifiedSinceRead(1);
   typedef itk::ImageFileReader< InputImageType >  ReaderType;
 
   ReaderType::Pointer  reader = ReaderType::New();
+  
+// CREATION OF THE ITK IMAGES
 
+// FOR THE SLICE TO BE PROCESSED
   vtkImageCast* VtkCaster = vtkImageCast::New();
   VtkCaster->SetInput(this->STORAGE);
 
@@ -710,7 +732,24 @@ VTK2ITKConnectorFilterType;
 VTK2ITKConnectorFilterType::New();
         VTK2ITKconnector->SetInput( VtkCaster->GetOutput() );
         VTK2ITKconnector->Update();
-                              
+        
+// FOR THE MASK TO BE USED
+
+  vtkImageCast* VtkCasterM = vtkImageCast::New();
+  VtkCasterM->SetInput(this->MASK);
+
+  VtkCasterM->SetOutputScalarTypeToFloat(); 
+  VtkCasterM->Modified();
+  VtkCasterM->UpdateWholeExtent();
+  
+    typedef itk::VTKImageToImageFilter< InternalImageType > VTK2ITKConnectorFilterTypeM;
+        VTK2ITKConnectorFilterTypeM::Pointer VTK2ITKconnectorM = VTK2ITKConnectorFilterTypeM::New();
+        VTK2ITKconnectorM->SetInput( VtkCasterM->GetOutput() );
+        VTK2ITKconnectorM->Update();
+                     
+                     
+//PROCESSING    
+     
   typedef itk::ShrinkImageFilter<InputImageType, InputImageType> ShrinkerType;
   ShrinkerType::Pointer shrinker = ShrinkerType::New();
   shrinker->SetInput( VTK2ITKconnector->GetOutput() );
@@ -722,13 +761,13 @@ VTK2ITKConnectorFilterType::New();
                
   mFilterType::Pointer mfilter = mFilterType::New();  
 
-  mfilter->SetInput( VTK2ITKconnector->GetOutput() );
+  mfilter->SetInput( VTK2ITKconnectorM->GetOutput() );
     
-  mfilter->SetLowerThreshold(this->ThresholdingFilterNode->GetConductance());
+  mfilter->SetLowerThreshold(1);
   mfilter->SetOutsideValue(0);
   mfilter->SetInsideValue(1);  
 
-  MaskImageType::Pointer maskImage = NULL;
+   MaskImageType::Pointer maskImage = NULL;
   
   maskImage = mfilter->GetOutput();
 
