@@ -20,8 +20,8 @@
 
 #include "itkQuadEdgeMeshPixelValuesSmoothingFilter.h"
 #include "itkQuadEdgeMesh.h"
+#include "itkMeshGeneratorHelper2.h"  // for mesh writer
 #include "itkVTKPolyDataReader.h"
-#include "itkMeshGeneratorHelper.h"
 #include "itkTestingMacros.h"
 #include "itkFilterWatcher.h"
 
