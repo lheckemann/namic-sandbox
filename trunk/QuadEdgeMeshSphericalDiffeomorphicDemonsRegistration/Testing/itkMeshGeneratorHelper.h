@@ -24,7 +24,6 @@
 
 #include "itkQuadEdgeMesh.h"
 #include "itkRegularSphereMeshSource.h"
-#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
 
 namespace itk
@@ -164,31 +163,6 @@ static void GenerateMeshes(
 
 }
 
-};
-
-
-template <class TMesh >
-class MeshWriterHelper 
-{
-public:
-static void WriteMeshToFile( const TMesh * mesh, const char * filename )
-  {
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< TMesh >   WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetInput( mesh );
-  writer->SetFileName( filename );
-
-  try
-    {
-    writer->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during writer Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return;
-    }
-  }
 };
 
 }

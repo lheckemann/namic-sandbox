@@ -19,6 +19,7 @@
 #endif
 
 #include "itkMeshGeneratorHelper2.h"
+#include "itkMeshWriterHelper2.h"
 
 int main( int argc, char *argv[] )
 {
@@ -41,7 +42,7 @@ int main( int argc, char *argv[] )
 
   GeneratorType::GenerateMesh( mesh );
 
-  itk::MeshWriterHelper< MeshType >::WriteMeshToFile( mesh, argv[1] );
+  itk::MeshWriterHelper2< MeshType >::WriteMeshToFile( mesh, argv[1] );
 
   return EXIT_SUCCESS;
 }
