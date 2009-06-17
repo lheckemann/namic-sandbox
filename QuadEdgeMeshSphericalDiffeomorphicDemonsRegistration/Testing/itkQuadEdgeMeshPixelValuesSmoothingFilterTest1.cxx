@@ -81,6 +81,15 @@ int main( int argc, char *argv[] )
   filter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
   TEST_SET_GET_VALUE( maximumNumberOfIterations, filter->GetMaximumNumberOfIterations() );
 
+  double lambda = 2.0;
+  filter->SetLambda( lambda );
+  TEST_SET_GET_VALUE( lambda, filter->GetLambda() );
+
+  lambda = 3.0;
+  filter->SetLambda( lambda );
+  TEST_SET_GET_VALUE( lambda, filter->GetLambda() );
+
+
   FilterWatcher watcher( filter, "Smoothing Filter");
 
   try
