@@ -39,6 +39,16 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 {
 }
 
+template< class TInputMesh, class TOutputMesh >
+void
+QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
+::ParalelTransport( const InputPixelType & inputPixelValue, 
+    InputPixelType & transportedPixelValue ) const
+{
+  // FIXME: temporary implementation, to be replaced with real parallel
+  // transport.
+  transportedPixelValue = inputPixelValue;
+}
 
 template< class TInputMesh, class TOutputMesh >
 void
@@ -53,10 +63,37 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
     this->Superclass::GenerateData();
     }
 
+
   ProgressReporter progress(this, 0, this->m_MaximumNumberOfIterations);
+
 
   for( unsigned int iter = 0; iter < this->m_MaximumNumberOfIterations; ++iter )
     {
+    
+    //
+    // Visit all nodes of the Mesh 
+    //
+    typedef typename OutputPointDataContainer::ConstIterator OutputPointDataIterator;
+    OutputPointDataIterator pixelIterator = outputMesh->GetPointData()->Begin();
+    OutputPointDataIterator pixelEnd      = outputMesh->GetPointData()->End();
+
+    typedef typename OutputPointsContainer::Iterator     PointIterator;
+    PointIterator pointIterator = outputMesh->GetPoints()->Begin();
+    PointIterator pointEnd      = outputMesh->GetPoints()->End();
+
+    const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
+
+    while( pixelIterator != pixelEnd  && pointIterator != pointEnd ) 
+      {
+     
+      //
+      //  Parallel transport all its neigbors
+      // 
+      pointIterator.Value() = pointIterator.Value() + pixelIterator.Value();
+      ++pixelIterator;
+      ++pointIterator;
+      }
+
     progress.CompletedPixel();  // potential exception thrown here
     }
 }

@@ -61,6 +61,7 @@ public:
   typedef TInputMesh                                       InputMeshType;
   typedef typename InputMeshType::Pointer                  InputMeshPointer;
   typedef typename InputMeshType::PixelType                InputPixelType;
+  typedef typename InputMeshType::PointDataContainer       InputPointDataContainer;
 
   typedef TOutputMesh                                      OutputMeshType;
   typedef typename OutputMeshType::Pointer                 OutputMeshPointer;
@@ -76,6 +77,7 @@ public:
   typedef typename OutputMeshType::PointsContainerIterator OutputPointsContainerIterator;
   typedef typename OutputMeshType::CellsContainerPointer   OutputCellsContainerPointer;
   typedef typename OutputMeshType::CellsContainerIterator  OutputCellsContainerIterator;
+  typedef typename OutputMeshType::PointDataContainer      OutputPointDataContainer;
   typedef typename OutputMeshType::PixelType               OutputPixelType;
 
   itkStaticConstMacro( PointDimension, unsigned int, OutputMeshType::PointDimension );
