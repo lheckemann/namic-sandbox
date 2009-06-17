@@ -652,7 +652,7 @@ if {  [BuildThis $::PYTHON_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [stri
 
 if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE_SCIPY } {
 
-    # This part follows the instraction available at http://www.scipy.org/Installing_SciPy/Linux
+    # This part follows the instruction available at http://www.scipy.org/Installing_SciPy/Linux
 
     file mkdir $::Slicer3_LIB/netlib
     file mkdir $::Slicer3_LIB/netlib-build
@@ -690,7 +690,6 @@ if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE
         # of the results of the CPU throttling probe (see ATLAS/INSTALL.txt
         # for detail)
         if { $isLinux && $::tcl_platform(machine) == "x86_64" } {
-        #if {$::GENLIB(bitness) == "64"} {
           runcmd $::Slicer3_LIB/netlib/ATLAS/configure -b 64 -Fa alg -fPIC --with-netlib-lapack=$::Slicer3_LIB/netlib/lapack/lapack_$platform.a -Si cputhrchk 0
         } else {
           runcmd $::Slicer3_LIB/netlib/ATLAS/configure -Fa alg -fPIC --with-netlib-lapack=$::Slicer3_LIB/netlib/lapack/lapack_$platform.a -Si cputhrchk 0
