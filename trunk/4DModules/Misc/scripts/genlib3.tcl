@@ -239,7 +239,7 @@ if { $::Slicer3_LIB == "" } {
 # - use it to set your local environment and then your change won't 
 #   be overwritten when this file is updated
 #
-set localvarsfile $Slicer3_HOME/slicer_variables.tcl
+set localvarsfile $Slicer3_HOME/slicer_variables3.tcl
 catch {set localvarsfile [file normalize $localvarsfile]}
 if { [file exists $localvarsfile] } {
     puts "Sourcing $localvarsfile"
@@ -644,17 +644,13 @@ if {  [BuildThis $::PYTHON_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [stri
 
         }
     }
-} else {
-    set ::env(LD_LIBRARY_PATH) $Slicer3_LIB/tcl-build/lib:$Slicer3_LIB/python-build/lib:$::env(LD_LIBRARY_PATH)
 }
-
-
 
 ################################################################################
 # Get and build netlib (blas and lapack)
 #
 
-if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE_SCIPY} {
+if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE_SCIPY } {
 
     # This part follows the instraction available at http://www.scipy.org/Installing_SciPy/Linux
 
@@ -668,7 +664,7 @@ if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE
         # generate paltform tag  
         if { $isDarwin } {
           set platform DARWIN
-        } elseif { $isLinux && $::tcl_platform(machine) == "x86_64" } {
+        } elseif { $isLinux && $::GENLIB(bitness) == "64" } {
           set platform LINUX64
         } else {
           set platform LINUX
@@ -680,8 +676,7 @@ if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE
         runcmd $::SVN co $::LAPACK_TAG lapack
         runcmd $::SVN co $::NETLIB_INC_TAG netlib_make_inc
 
-        set lapack_make_inc_file "lapack_make.inc.$::FORTRAN_COMPILER.$platform"
-        file copy -force lapack_make_inc/lapack_make.inc.$::FORTRAN_COMPILER.$platform lapack/make.inc
+        file copy -force $::Slicer3_LIB/netlib/netlib_make_inc/lapack_make.inc.$::FORTRAN_COMPILER.$platform $::Slicer3_LIB/netlib/lapack/make.inc
         cd lapack/SRC
         runcmd make
 
@@ -690,12 +685,15 @@ if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE
         runcmd $::SVN co $::ATLAS_TAG ATLAS
         file mkdir $::Slicer3_LIB/netlib-build/ATLAS-build
         cd $::Slicer3_LIB/netlib-build/ATLAS-build
+
+        # NOTE: For ATLAS, we force the configure to continue regardless
+        # of the results of the CPU throttling probe (see ATLAS/INSTALL.txt
+        # for detail)
         if {$::GENLIB(bitness) == "64"} {
-          set blasoptions "-b 64 -Fa alg -fPIC"
+          runcmd $::Slicer3_LIB/netlib/ATLAS/configure -b 64 -Fa alg -fPIC --with-netlib-lapack=$::Slicer3_LIB/netlib/lapack/lapack_$platform.a -Si cputhrchk 0
         } else {
-          set blasoptions "-Fa alg -fPIC"
+          runcmd $::Slicer3_LIB/netlib/ATLAS/configure -Fa alg -fPIC --with-netlib-lapack=$::Slicer3_LIB/netlib/lapack/lapack_$platform.a -Si cputhrchk 0
         }
-        runcmd $::Slicer3_LIB/netlib-build/ATLAS/configure $blasoptions --with-netlib-lapack=$::Slicer3_LIB/netlib/lapack/lapack_$platform.a
         runcmd make
     }
 }
