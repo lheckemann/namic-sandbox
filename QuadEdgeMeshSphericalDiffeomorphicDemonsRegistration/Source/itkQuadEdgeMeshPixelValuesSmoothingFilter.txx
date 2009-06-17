@@ -30,6 +30,7 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 {
   this->m_Lambda = 1.0;
   this->m_MaximumNumberOfIterations = 10;
+  this->m_SphereCenter.Fill( 0.0 );
 }
 
 
@@ -48,6 +49,9 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
   // FIXME: temporary implementation, to be replaced with real parallel
   // transport.
   transportedPixelValue = inputPixelValue;
+
+  this->m_SphereCenter;
+
 }
 
 template< class TInputMesh, class TOutputMesh >
@@ -81,7 +85,14 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
     PointIterator pointIterator = outputMesh->GetPoints()->Begin();
     PointIterator pointEnd      = outputMesh->GetPoints()->End();
 
+    typedef typename OutputMeshType::QEPrimal    EdgeType;
+
     const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
+
+    for( unsigned int pointId = 0; pointId < numberOfPoints; pointId++ )
+      {
+      EdgeType * edge1 = outputMesh->FindEdge( pointId );
+      }
 
     while( pixelIterator != pixelEnd  && pointIterator != pointEnd ) 
       {
