@@ -2,19 +2,17 @@
 
 #include "spdEqSolver.h"
 
-
 class randomWalkSeg
 {
 public:
+
+  typedef void (*PROGRESS_CALLBACK_TYPE)(int percentComplete);
+
   randomWalkSeg();
   ~randomWalkSeg();
 
   cVolume *_vol;
   cVolume *_seedVol;
-  // in seed Vol, the voxel value is label:
-  // 0: un-marked
-  // 1: background
-  // 2: object
 
   cVolume *_init_potential_vol;
 
@@ -28,10 +26,18 @@ public:
   void setVol(cVolume *vol);
   void setSeedVol(cVolume *vol);
 
+  // Set label values in seed Vol
+  //  background: surely not an object point (default: 1)
+  //  unmarked: may be an object point or a background point (default: 0)
+  //  object: surely an object point (default: 2)
+  void setLabelValues(double background, double unmarked, double object);
+
   void set_init_potential_volume(cVolume *vol);
 
   void set_solver_num_iter(int n);
   void set_solver_err_tol(double tol);
+
+  void setProgressCallback(PROGRESS_CALLBACK_TYPE progressCallback);
 
   int _numUnmarkedVox;
 
@@ -76,4 +82,12 @@ protected:
 
   int num_iter_eq_CG_solver;
   double CG_solver_err_tolerance;
+
+  double _labelBackground;
+  double _labelUnmarked;
+  double _labelObject;
+
+  void reportProgress(int percentComplete);
+
+  PROGRESS_CALLBACK_TYPE _progressCallback;
 };

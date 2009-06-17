@@ -6,9 +6,31 @@
 #include <ctime>
 #include <string>
 
-
-void getSeedVolume(cVolume *vol);
-
+// Description:
+// This function gives progress feedback to slicer.
+//  percentComplete=0 means 0% complete
+//  percentComplete=100 means 100% complete
+void progress_callback(int percentComplete)
+{
+  /*
+  // TODO: report these information as well to Slicer
+        std::cout << "<filter-start>"
+                  << std::endl;
+        std::cout << "<filter-name>"
+                  << (this->Watcher->GetProcess()
+                      ? this->Watcher->GetProcess()->GetClassName() : "None")
+                  << "</filter-name>"
+                  << std::endl;
+        std::cout << "<filter-comment>"
+                  << " \"" << this->Watcher->GetComment() << "\" "
+                  << "</filter-comment>"
+                  << std::endl;
+        std::cout << "</filter-start>"
+                  << std::endl;
+        std::cout << std::flush;
+  */
+  std::cout << "<filter-progress>" << double(percentComplete)/100.0 << "</filter-progress>" << std::endl;
+}
 
 int main( int argc, char * argv [] )
 {
@@ -22,19 +44,15 @@ int main( int argc, char * argv [] )
 
   std::cout<<"reading volume...."<<std::flush;  
   cVolume *vol = op.volreadDouble( originalImageFileName.c_str() );
-  //cVolume *volSmth = op.gheSmooth( vol, 10);
-  // op.volwriteDouble( "smth.nrrd", vol );
-  //delete vol; vol = 0;
   std::cout<<"done\n";
 
   std::cout<<"reading seed...."<<std::flush;
-  cVolume *seedVol = op.volreadDouble( seedImageFileName.c_str() );
-  //  getSeedVolume(seedVol);
+  cVolume *seedVol = op.volreadDouble( seedImageFileName.c_str() );  
   std::cout<<"done\n"<<std::flush;
 
   randomWalkSeg rw;
-
-  //  rw.setVol(volSmth);
+  rw.setLabelValues(1.0/*background*/, 0.0 /*unmarked*/, 2.0 /*object*/);
+  rw.setProgressCallback(&progress_callback);
   rw.setVol(vol);
   rw.setSeedVol(seedVol);
 
@@ -54,20 +72,15 @@ int main( int argc, char * argv [] )
   std::cout<<"smoothing result potential volume...."<<std::flush;
   cVolume *potential_volume = rw.get_output();
   cVolume* potential_volume_smth = op.medianFilter(  potential_volume, 3, 3, 3);
+  //cVolume* potential_volume_smth = potential_volume;
   delete potential_volume; potential_volume = 0;
   std::cout<<"done\n"<<std::flush;
 
   std::cout<<"writing result volume...."<<std::flush;
-//   int finaln = (potential_volume_smth->getSizeX())*(potential_volume_smth->getSizeY())*(potential_volume_smth->getSizeZ());
-//   for (int i = 0; i <= finaln-1; ++i)
-//     {
-//       potential_volume_smth->setVoxel(i, 200*potential_volume_smth->getVoxel(i));
-//     }
 
   double thld = 0.5;
   cVolume *bin = op.hardThreshold(potential_volume_smth, thld);
   delete potential_volume_smth; potential_volume_smth = 0;
-
 
   bin->setSpacing(vol->getSpacingX(), vol->getSpacingY(), vol->getSpacingZ() );
 
@@ -77,7 +90,7 @@ int main( int argc, char * argv [] )
 
   t2 = clock();
   t1 = (t2 - t1)/CLOCKS_PER_SEC;
-  std::cout<<"New Ellapsed time = "<<t1<<std::endl<<std::flush;
+  std::cout<<"New Elapsed time = "<<t1<<std::endl<<std::flush;
   // end timing
   ////////////////////////////////////////////////////////////
 
@@ -86,35 +99,4 @@ int main( int argc, char * argv [] )
 
 
   return EXIT_SUCCESS ;
-}
-
-
-void getSeedVolume(cVolume *vol)
-{
-  /*
-    0 --> 1
-    1 --> 0
-    2 --> 2
-   */
-
-  size_t nx = vol->getSizeX();
-  size_t ny = vol->getSizeY();
-  size_t nz = vol->getSizeZ();
-
-  size_t n = nx*ny*nz;
-
-  for (size_t i = 0; i < n; ++i)
-    {
-      double v = (*vol)[i];
-
-      if ( 0.9999 <= v && v <= 1.00001 )
-        {
-          (*vol)[i] = 0;
-        }
-
-      if ( -0.0001 <= v && v <= 0.00001 )
-        {
-          (*vol)[i] = 1;
-        }
-    }
 }

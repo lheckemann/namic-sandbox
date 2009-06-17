@@ -12,6 +12,19 @@ SET(ProstateSeg_SRCS
   randomWalkSeg.cxx
 )
 
+# On Windows add also header files to the project
+# (required for object browsing in the Microsoft Visual C++ IDE) 
+IF (WIN32)
+  IF (NOT CYGWIN)
+    SET(ProstateSeg_SRCS ${ProstateSeg_SRCS}
+      cVolOp.h
+      cVolume.h
+      randomWalkSeg.h
+      spdEqSolver.h 
+  )
+  ENDIF (NOT CYGWIN)
+ENDIF(WIN32)
+
 SET(ProstateSeg_LIBS
   ITKCommon
   ITKBasicFilters
