@@ -77,7 +77,7 @@ static void GenerateMesh( MeshPointer & mesh )
 
   mesh = sphereMeshSource->GetOutput();
 
-  typedef typename MeshType::PointDataContainer::ConstIterator PointDataIterator;
+  typedef typename MeshType::PointDataContainer::Iterator PointDataIterator;
   PointDataIterator pixelIterator = mesh->GetPointData()->Begin();
   PointDataIterator pixelEnd      = mesh->GetPointData()->End();
 
@@ -91,6 +91,14 @@ static void GenerateMesh( MeshPointer & mesh )
   while( pixelIterator != pixelEnd  && pointIterator != pointEnd ) 
     {
     const PointType & point = pointIterator.Value();
+    const double x = point[0];
+    const double y = point[1];
+    const double z = point[2];
+    const double w = vcl_sqrt( x*x + y*y );
+    const double phi   = atan2( y, x );
+    const double theta = atan2( z, w );
+    vector[0] = vcl_sin( 2 * phi );
+    vector[1] = vcl_sin( theta );
     pixelIterator.Value() = vector;
     ++pixelIterator;
     ++pointIterator;
