@@ -19,3 +19,7 @@ TARGET_LINK_LIBRARIES(ImageRegistrationAffine
   ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
   vtkRendering vtkFiltering vtkIO vtkHybrid
   )
+
+ADD_EXECUTABLE(DeformableRegistration01 DeformableRegistration01.cxx)
+TARGET_LINK_LIBRARIES(DeformableRegistration01 ITKBasicFilters ITKIO)
+
