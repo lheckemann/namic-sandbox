@@ -9,6 +9,7 @@ class vtkKWFrameWithLabel;
 class vtkKWPushButton;
 class vtkKWFrame;
 class vtkKWLoadSaveButtonWithLabel;
+class vtkKWThumbWheel;
 
 class VTK_CHANGETRACKER_EXPORT vtkChangeTrackerAnalysisStep : public vtkChangeTrackerStep
 {
@@ -24,6 +25,7 @@ public:
   // Description:
   // Callbacks.
   virtual void SensitivityChangedCallback(int value);
+  virtual void SensitivityChangedCallback(double value);
 
   void ResetPipelineCallback();
   // Kilian Work here tomorrow 
@@ -69,6 +71,8 @@ protected:
   vtkKWPushButton           *ButtonsSnapshot;
   vtkKWPushButton           *ButtonsSave;
   vtkKWLabel                *ButtonsInfo;
+
+  vtkKWThumbWheel           *SensitivityScale;
 
   static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData );
 
