@@ -1002,11 +1002,6 @@ namespace eval ChangeTrackerTcl {
       compThrROIDis ConsiderAnisotropyOff
      compThrROIDis  Update
 
-    set dtWriter [vtkNRRDWriter New]
-    $dtWriter SetInput [compThrROIDis GetOutput]
-    $dtWriter SetFileName "/tmp/ct_dt.nrrd"
-    $dtWriter Update
-
     # Compute region of interest
     catch { compThrROIBin Delete}
     vtkImageThreshold compThrROIBin

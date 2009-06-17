@@ -106,6 +106,11 @@ void vtkChangeTrackerSegmentationStep::ShowUserInterface()
       intMax = 0;      
   }
 
+  vtkSlicerApplicationGUI *applicationGUI = this->GetGUI()->GetApplicationGUI();
+  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetBackgroundVolumeID(node->GetScan1_SuperSampleRef());
+  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetBackgroundVolumeID(node->GetScan1_SuperSampleRef());
+  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetBackgroundVolumeID(node->GetScan1_SuperSampleRef());
+
   //  cout << "What h" << endl;
   // ----------------------------------------
   // Build GUI 
