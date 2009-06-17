@@ -29,6 +29,12 @@ TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest1 ITKQuadEdgeMesh ITKIO ITKNumer
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest2 itkMeshGeneratorHelperTest2.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkQuadEdgeMeshVTKPolyDataReader1 itkQuadEdgeMeshVTKPolyDataReader1.cxx )
+TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVTKPolyDataReader1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkQuadEdgeMeshVTKPolyDataReader2 itkQuadEdgeMeshVTKPolyDataReader2.cxx )
+TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVTKPolyDataReader2 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -102,6 +108,19 @@ ADD_TEST(itkMeshGeneratorHelperTest2
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest2
   ${TEMP}/meshWithVectors.vtk
   )
+
+ADD_TEST(itkQuadEdgeMeshVTKPolyDataReader1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshVTKPolyDataReader1
+  ${TEMP}/fixedMesh01.vtk
+  ${TEMP}/fixedMesh01verification.vtk
+  )
+
+ADD_TEST(itkQuadEdgeMeshVTKPolyDataReader2
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshVTKPolyDataReader2
+  ${TEMP}/meshWithVectors.vtk
+  ${TEMP}/meshWithVectorsVerification.vtk
+  )
+
 
 ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
