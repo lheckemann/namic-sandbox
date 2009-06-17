@@ -241,7 +241,7 @@ QuadEdgeMeshVTKPolyDataReader<TOutputMesh>
 
     itkDebugMacro("POINT_DATA line" << line );
 
-    // Skip two lines
+    // The following line should be SCALARS or VECTORS
     if (!inputFile.eof())
       {
       std::getline( inputFile, line );
@@ -250,13 +250,22 @@ QuadEdgeMeshVTKPolyDataReader<TOutputMesh>
       {
       itkExceptionMacro("Unexpected end-of-file while trying to read POINT_DATA.");
       }
-    if (!inputFile.eof())
+
+    if( line.find("SCALARS") != std::string::npos )
       {
-      std::getline( inputFile, line );
-      }
-    else
-      {
-      itkExceptionMacro("Unexpected end-of-file while trying to read POINT_DATA.");
+      // Skip the following line, since it should contain the LOOKUP_TABLE string
+      if (!inputFile.eof())
+        {
+        std::getline( inputFile, line );
+        if( line.find("LOOKUP_TABLE") == std::string::npos )
+          {
+          itkExceptionMacro("Expected LOOKUP_TABLE after SCALARS but didn't find it");
+          }
+        }
+      else
+        {
+        itkExceptionMacro("Unexpected end-of-file while trying to read POINT_DATA.");
+        }
       }
 
     double pointData;
