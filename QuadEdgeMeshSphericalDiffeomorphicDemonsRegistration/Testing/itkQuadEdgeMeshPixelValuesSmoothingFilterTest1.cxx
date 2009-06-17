@@ -20,7 +20,7 @@
 
 #include "itkQuadEdgeMeshPixelValuesSmoothingFilter.h"
 #include "itkQuadEdgeMesh.h"
-#include "itkMeshGeneratorHelper2.h"  // for mesh writer
+#include "itkMeshWriterHelper2.h"
 #include "itkVTKPolyDataReader.h"
 #include "itkTestingMacros.h"
 #include "itkFilterWatcher.h"
@@ -103,7 +103,7 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  itk::MeshWriterHelper< OutputMeshType >::WriteMeshToFile( filter->GetOutput(), argv[2] );
+  itk::MeshWriterHelper2< OutputMeshType >::WriteMeshToFile( filter->GetOutput(), argv[2] );
 
   return EXIT_SUCCESS;
 }

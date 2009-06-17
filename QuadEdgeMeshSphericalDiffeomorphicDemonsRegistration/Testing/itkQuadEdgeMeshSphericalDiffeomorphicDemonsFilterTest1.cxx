@@ -22,6 +22,7 @@
 #include "itkQuadEdgeMesh.h"
 #include "itkVTKPolyDataReader.h"
 #include "itkMeshGeneratorHelper.h"
+#include "itkMeshWriterHelper1.h"
 #include "itkTestingMacros.h"
 #include "itkFilterWatcher.h"
 
@@ -108,7 +109,7 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  itk::MeshWriterHelper<RegisteredMeshType>::WriteMeshToFile( demonsFilter->GetOutput(), argv[3] );
+  itk::MeshWriterHelper1<RegisteredMeshType>::WriteMeshToFile( demonsFilter->GetOutput(), argv[3] );
 
   typedef DemonsFilterType::DestinationPointContainerType    DestinationPointContainerType;
   typedef DestinationPointContainerType::ConstPointer        DestinationPointContainerConstPointer;

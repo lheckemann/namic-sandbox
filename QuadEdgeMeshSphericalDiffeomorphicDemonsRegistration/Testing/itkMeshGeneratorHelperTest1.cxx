@@ -19,6 +19,7 @@
 #endif
 
 #include "itkMeshGeneratorHelper.h"
+#include "itkMeshWriterHelper1.h"
 
 int main( int argc, char *argv[] )
 {
@@ -43,8 +44,8 @@ int main( int argc, char *argv[] )
 
   GeneratorType::GenerateMeshes( fixedMesh, movingMesh );
 
-  itk::MeshWriterHelper<FixedMeshType >::WriteMeshToFile( fixedMesh, argv[1] );
-  itk::MeshWriterHelper<MovingMeshType>::WriteMeshToFile( movingMesh, argv[2] );
+  itk::MeshWriterHelper1<FixedMeshType >::WriteMeshToFile( fixedMesh, argv[1] );
+  itk::MeshWriterHelper1<MovingMeshType>::WriteMeshToFile( movingMesh, argv[2] );
 
   return EXIT_SUCCESS;
 }
