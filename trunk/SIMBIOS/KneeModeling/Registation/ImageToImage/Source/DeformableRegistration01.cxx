@@ -30,7 +30,7 @@
 #include "itkImageRegistrationMethod.h"
 #include "itkMattesMutualInformationImageToImageMetric.h"
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkOrientedImage.h"
+#include "itkImage.h"
 
 #include "itkTimeProbesCollectorBase.h"
 
@@ -67,6 +67,7 @@
 #include "itkCastImageFilter.h"
 #include "itkSquaredDifferenceImageFilter.h"
 
+#include "itkImageMaskSpatialObject.h"
 
 #include "itkTransformFileReader.h"
 
@@ -109,11 +110,11 @@ public:
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 4 )
+  if( argc < 5 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " fixedImageFile  movingImageFile outputImagefile  ";
+    std::cerr << " fixedImageFile  movingImageFile fixedImageMask outputImagefile  ";
     std::cerr << " [differenceOutputfile] [differenceBeforeRegistration] ";
     std::cerr << " [deformationField] ";
     std::cerr << " [useExplicitPDFderivatives ] [useCachingBSplineWeights ] ";
@@ -128,9 +129,10 @@ int main( int argc, char *argv[] )
   const    unsigned int    ImageDimension = 3;
   typedef  signed short    PixelType;
 
-  typedef itk::OrientedImage< PixelType, ImageDimension >  FixedImageType;
-  typedef itk::OrientedImage< PixelType, ImageDimension >  MovingImageType;
+  typedef itk::Image< PixelType, ImageDimension >  FixedImageType;
+  typedef itk::Image< PixelType, ImageDimension >  MovingImageType;
 
+  typedef itk::ImageMaskSpatialObject< ImageDimension >   MaskType;
 
   const unsigned int SpaceDimension = ImageDimension;
 
@@ -178,6 +180,17 @@ int main( int argc, char *argv[] )
   registration->SetInterpolator(  interpolator  );
 
 
+  typedef itk::Image< unsigned char, ImageDimension >   ImageMaskType;
+
+  typedef itk::ImageFileReader< ImageMaskType >    MaskReaderType;
+
+  MaskReaderType::Pointer  maskReader = MaskReaderType::New();
+
+  maskReader->SetFileName( argv[3] );
+
+  MaskType::Pointer  spatialObjectMask = MaskType::New();
+  spatialObjectMask->SetImage( maskReader->GetOutput() );
+  metric->SetFixedImageMask( spatialObjectMask );
 
   // Auxiliary identity transform.
   typedef itk::IdentityTransform<double,SpaceDimension> IdentityTransformType;
@@ -238,7 +251,7 @@ int main( int argc, char *argv[] )
     // computing the derivatives of the joint PDF with respect to the Transform
     // parameters, or doing it by progressively accumulating contributions from
     // each bin in the joint PDF.
-    metric->SetUseExplicitPDFDerivatives( atoi( argv[7] ) );
+    metric->SetUseExplicitPDFDerivatives( atoi( argv[8] ) );
     }
 
   if( argc > 8 )
@@ -248,7 +261,7 @@ int main( int argc, char *argv[] )
     // make the algorithm run faster but it will have a cost on the amount of memory
     // that needs to be allocated. This option is only relevant when using the 
     // BSplineDeformableTransform.
-    metric->SetUseCachingOfBSplineWeights( atoi( argv[8] ) );
+    metric->SetUseCachingOfBSplineWeights( atoi( argv[9] ) );
     }
 
 
@@ -411,7 +424,7 @@ int main( int argc, char *argv[] )
 
   if( argc > 10 )
     {
-    numberOfGridNodesInOneDimensionCoarse = atoi( argv[10] );
+    numberOfGridNodesInOneDimensionCoarse = atoi( argv[11] );
     }
 
 
@@ -486,13 +499,13 @@ int main( int argc, char *argv[] )
   // Optionally, get the step length from the command line arguments
   if( argc > 11 )
     {
-    optimizer->SetMaximumStepLength( atof( argv[12] ) );
+    optimizer->SetMaximumStepLength( atof( argv[13] ) );
     }
 
   // Optionally, get the number of iterations from the command line arguments
   if( argc > 12 )
     {
-    optimizer->SetNumberOfIterations( atoi( argv[13] ) );
+    optimizer->SetNumberOfIterations( atoi( argv[14] ) );
     }
 
 
@@ -538,7 +551,7 @@ int main( int argc, char *argv[] )
 
   if( argc > 11 )
     {
-    numberOfGridNodesInOneDimensionFine = atoi( argv[11] );
+    numberOfGridNodesInOneDimensionFine = atoi( argv[12] );
     }
 
   RegionType::SizeType   gridHighSizeOnImage;
@@ -641,10 +654,11 @@ int main( int argc, char *argv[] )
   // image.
   const unsigned long numberOfSamples = 
      static_cast<unsigned long>(
-       vcl_sqrt( static_cast<double>( numberOfBSplineParameters ) *
+       vcl_sqrt( static_cast<double>( numberOfBSplineParameters ) * 1000.0 *
                  static_cast<double>( numberOfPixels ) ) );
 
-  metric->SetNumberOfSpatialSamples( numberOfBSplineParameters * 1000 );
+  std::cout << "Number of Samples = " << numberOfSamples << std::endl;
+  metric->SetNumberOfSpatialSamples( numberOfSamples );
 
 
   try 
@@ -708,7 +722,7 @@ int main( int argc, char *argv[] )
   CastFilterType::Pointer  caster =  CastFilterType::New();
 
 
-  writer->SetFileName( argv[3] );
+  writer->SetFileName( argv[4] );
 
 
   caster->SetInput( resample->GetOutput() );
@@ -747,7 +761,7 @@ int main( int argc, char *argv[] )
     {
     difference->SetInput1( fixedImageReader->GetOutput() );
     difference->SetInput2( resample->GetOutput() );
-    writer2->SetFileName( argv[4] );
+    writer2->SetFileName( argv[5] );
 
     std::cout << "Writing difference image after registration...";
 
@@ -770,7 +784,7 @@ int main( int argc, char *argv[] )
   // fixed and moving image before registration.
   if( argc > 5 )
     {
-    writer2->SetFileName( argv[5] );
+    writer2->SetFileName( argv[6] );
     difference->SetInput1( fixedImageReader->GetOutput() );
     resample->SetTransform( identityTransform );
 
@@ -833,7 +847,7 @@ int main( int argc, char *argv[] )
 
     fieldWriter->SetInput( field );
 
-    fieldWriter->SetFileName( argv[6] );
+    fieldWriter->SetFileName( argv[7] );
 
     std::cout << "Writing deformation field ...";
 
@@ -856,7 +870,7 @@ int main( int argc, char *argv[] )
     {
     std::cout << "Writing transform parameter file ...";
     std::ofstream parametersFile;
-    parametersFile.open( argv[9] );
+    parametersFile.open( argv[10] );
     parametersFile << finalParameters << std::endl;
     parametersFile.close();
     std::cout << " Done!" << std::endl;
