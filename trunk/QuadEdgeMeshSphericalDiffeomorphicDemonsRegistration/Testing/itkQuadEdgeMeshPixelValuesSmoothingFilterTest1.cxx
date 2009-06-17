@@ -35,8 +35,8 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
   
-  typedef float      MeshPixelType;
   const unsigned int Dimension = 3;
+  typedef itk::Vector< float, Dimension >   MeshPixelType;
 
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   InputMeshType;
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   OutputMeshType;

@@ -19,6 +19,8 @@
 #define __itkQuadEdgeMeshVectorDataVTKPolyDataWriter_txx
 
 #include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
+#include "itkMeasurementVectorTraits.h"
+
 
 namespace itk
 {
@@ -117,33 +119,38 @@ QuadEdgeMeshVectorDataVTKPolyDataWriter<TMesh>
     std::ofstream outputFile( this->m_FileName.c_str(), std::ios_base::app );
 
     outputFile <<"POINT_DATA " <<this->m_Input->GetNumberOfPoints() <<std::endl;
-    outputFile <<"SCALARS ";
+    outputFile <<"VECTORS ";
 
     if( m_PointDataName != "" )
       {
-      outputFile <<m_PointDataName <<" " <<m_PointDataName <<std::endl;
+      outputFile << m_PointDataName << " double" <<std::endl;
       }
     else
       {
-      outputFile <<"double double"<<std::endl;
+      outputFile <<"vectors double"<<std::endl;
       }
 
-    outputFile <<"LOOKUP_TABLE default" <<std::endl; 
+    typedef typename MeshType::PixelType   PixelType;
 
     unsigned long k = 0;
 
     PointDataContainerIterator c_it = pointdata->Begin();
 
+    const unsigned int vectorSize = MeasurementVectorTraits::GetLength( c_it.Value() );
+
     while(  c_it != pointdata->End() )
       {
-      outputFile <<c_it.Value() <<" ";
-      if( k % 3 == 0 )
+      for( unsigned int j = 0; j < vectorSize; j++ )
         {
-        outputFile <<std::endl;
+        outputFile << static_cast< double >( c_it.Value()[j] ) << " ";
+        ++k;
+        if( k % 3 == 0 )
+          {
+          outputFile << std::endl;
+          }
         }
 
       ++c_it;
-      ++k;
       }
 
     outputFile << std::endl;
