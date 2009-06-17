@@ -37,10 +37,10 @@ class QuadEdgeMeshVTKPolyDataReader : public MeshSource<TOutputMesh>
 {
 public:
   /** Standard "Self" typedef. */
-  typedef QuadEdgeMeshVTKPolyDataReader         Self;
-  typedef MeshSource<TOutputMesh>   Superclass;
-  typedef SmartPointer<Self>        Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
+  typedef QuadEdgeMeshVTKPolyDataReader   Self;
+  typedef MeshSource<TOutputMesh>         Superclass;
+  typedef SmartPointer<Self>              Pointer;
+  typedef SmartPointer<const Self>        ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
