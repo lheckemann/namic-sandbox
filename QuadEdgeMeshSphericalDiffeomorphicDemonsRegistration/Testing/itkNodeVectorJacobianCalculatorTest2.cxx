@@ -20,7 +20,6 @@
 
 #include "itkNodeVectorJacobianCalculator.h"
 #include "itkQuadEdgeMesh.h"
-#include "itkVTKPolyDataReader.h"
 #include "itkCovariantVector.h"
 #include "itkTestingMacros.h"
 #include "itkTriangleBasisSystem.h"

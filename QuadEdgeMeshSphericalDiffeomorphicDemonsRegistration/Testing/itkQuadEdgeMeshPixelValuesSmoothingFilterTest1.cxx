@@ -21,7 +21,7 @@
 #include "itkQuadEdgeMeshPixelValuesSmoothingFilter.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkMeshWriterHelper2.h"
-#include "itkVTKPolyDataReader.h"
+#include "itkQuadEdgeMeshVTKPolyDataReader.h"
 #include "itkTestingMacros.h"
 #include "itkFilterWatcher.h"
 
@@ -49,7 +49,7 @@ int main( int argc, char *argv[] )
   std::cout << filter->GetNameOfClass() << std::endl;
   filter->Print( std::cout );
 
-  typedef itk::VTKPolyDataReader< InputMeshType >         ReaderType;
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< InputMeshType > ReaderType;
 
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );

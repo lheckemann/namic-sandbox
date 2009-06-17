@@ -20,7 +20,6 @@
 
 #include "itkNodeScalarGradientCalculator.h"
 #include "itkQuadEdgeMesh.h"
-#include "itkVTKPolyDataReader.h"
 #include "itkMeshGeneratorHelper.h"
 #include "itkCovariantVector.h"
 #include "itkTestingMacros.h"
