@@ -660,11 +660,11 @@ if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE
     if { $isWindows } {
         # windows binary already checked out
     } else {
-
         # generate paltform tag  
         if { $isDarwin } {
           set platform DARWIN
-        } elseif { $isLinux && $::GENLIB(bitness) == "64" } {
+        } elseif { $isLinux && $::tcl_platform(machine) == "x86_64" } {
+        #} elseif { $isLinux && $::GENLIB(bitness) == "64" } {
           set platform LINUX64
         } else {
           set platform LINUX
@@ -689,7 +689,8 @@ if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE
         # NOTE: For ATLAS, we force the configure to continue regardless
         # of the results of the CPU throttling probe (see ATLAS/INSTALL.txt
         # for detail)
-        if {$::GENLIB(bitness) == "64"} {
+        if { $isLinux && $::tcl_platform(machine) == "x86_64" } {
+        #if {$::GENLIB(bitness) == "64"} {
           runcmd $::Slicer3_LIB/netlib/ATLAS/configure -b 64 -Fa alg -fPIC --with-netlib-lapack=$::Slicer3_LIB/netlib/lapack/lapack_$platform.a -Si cputhrchk 0
         } else {
           runcmd $::Slicer3_LIB/netlib/ATLAS/configure -Fa alg -fPIC --with-netlib-lapack=$::Slicer3_LIB/netlib/lapack/lapack_$platform.a -Si cputhrchk 0
