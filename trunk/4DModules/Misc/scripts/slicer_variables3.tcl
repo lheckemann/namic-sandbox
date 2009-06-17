@@ -79,10 +79,11 @@ set ::KWWidgets_TAG "Slicer-3-4"
 set ::VTK_TAG "VTK-5-2"
 set ::ITK_TAG ITK-3-10
 set ::PYTHON_TAG "http://svn.python.org/projects/python/branches/release25-maint"
-set ::BLAS_TAG http://svn.slicer.org/Slicer3-lib-mirrors/trunk/netlib/BLAS
+#set ::BLAS_TAG http://svn.slicer.org/Slicer3-lib-mirrors/trunk/netlib/BLAS
 #set ::LAPACK_TAG http://svn.slicer.org/Slicer3-lib-mirrors/trunk/netlib/lapack-3.1.1
 set ::LAPACK_TAG http://svn.na-mic.org/NAMICSandBox/trunk/4DModules/Misc/lapack-3.1.1
-set ::ATLAS_TAG  http://svn.na-mic.org/NAMICSandBox/trunk/4DModules/Misc/atlas-3.8.3
+set ::ATLAS_TAG http://svn.na-mic.org/NAMICSandBox/trunk/4DModules/Misc/atlas-3.8.3
+set ::NETLIB_INC_TAG http://svn.na-mic.org/NAMICSandBox/trunk/4DModules/Misc/netlib_make_inc
 #set ::NUMPY_TAG "http://svn.scipy.org/svn/numpy/trunk"
 set ::NUMPY_TAG "http://svn.scipy.org/svn/numpy/branches/1.2.x"
 #set ::SCIPY_TAG "http://svn.scipy.org/svn/scipy/trunk"
