@@ -57,8 +57,8 @@ ADD_TEST(RegistrationAffine_${DATASET1}_${DATASET2}
 
 ADD_TEST(RegistrationBSpline_${DATASET1}_${DATASET2}
   ${EXECUTABLE_OUTPUT_PATH}/DeformableRegistration01
-  ${KNEE_DATA_DIR}/${DATASET1}.mhd
-  ${KNEE_DATA_DIR}/${DATASET2}.mhd
+  ${TEMP}/${DATASET1}_Masked.mhd
+  ${TEMP}/${DATASET2}_Masked.mhd
   ${TEMP}/${DATASET1}_Mask.mhd
   ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}.mhd
   ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceAfter.mhd
@@ -70,7 +70,7 @@ ADD_TEST(RegistrationBSpline_${DATASET1}_${DATASET2}
    5   # Number of BSpline nodes in coarse grid
   10   # Number of BSpline nodes in coarse grid
   1.0  # Initial step length
-  200  # Number of iterations
+  100  # Number of iterations
   )
 
 
