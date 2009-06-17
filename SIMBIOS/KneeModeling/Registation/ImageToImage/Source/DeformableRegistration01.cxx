@@ -188,10 +188,6 @@ int main( int argc, char *argv[] )
 
   maskReader->SetFileName( argv[3] );
 
-  MaskType::Pointer  spatialObjectMask = MaskType::New();
-  spatialObjectMask->SetImage( maskReader->GetOutput() );
-  metric->SetFixedImageMask( spatialObjectMask );
-
   // Auxiliary identity transform.
   typedef itk::IdentityTransform<double,SpaceDimension> IdentityTransformType;
   IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
@@ -213,6 +209,7 @@ int main( int argc, char *argv[] )
     {
     fixedImageReader->Update();
     movingImageReader->Update();
+    maskReader->Update();
     }
   catch( itk::ExceptionObject & err ) 
     { 
@@ -243,6 +240,13 @@ int main( int argc, char *argv[] )
   const unsigned int numberOfPixels = fixedRegion.GetNumberOfPixels();
 
   metric->ReinitializeSeed( 76926294 );
+
+  //
+  // Connect the Fixed Image Mask
+  //
+  MaskType::Pointer  spatialObjectMask = MaskType::New();
+  spatialObjectMask->SetImage( maskReader->GetOutput() );
+  metric->SetFixedImageMask( spatialObjectMask );
 
 
   if( argc > 7 )
