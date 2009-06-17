@@ -26,6 +26,9 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest1 itkMeshGeneratorHelperTest1.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkMeshGeneratorHelperTest2 itkMeshGeneratorHelperTest2.cxx )
+TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -93,6 +96,11 @@ ADD_TEST(itkMeshGeneratorHelperTest1
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest1
   ${TEMP}/fixedMesh01.vtk
   ${TEMP}/movingMesh01.vtk
+  )
+
+ADD_TEST(itkMeshGeneratorHelperTest2
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest2
+  ${TEMP}/meshWithVectors.vtk
   )
 
 ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
