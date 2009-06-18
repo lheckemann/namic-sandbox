@@ -96,10 +96,6 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
-for(unsigned int i=0; i<argc; i++)
-  {
-  std::cout << i << " " << argv[i] << std::endl;
-  }
 
   MovingReaderType::Pointer movingReader = MovingReaderType::New();
   MovingWriterType::Pointer movingWriter = MovingWriterType::New();
