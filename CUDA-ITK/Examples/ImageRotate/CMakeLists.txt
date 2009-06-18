@@ -4,9 +4,17 @@ INCLUDE_DIRECTORIES(
   ${CUDA_CUT_INCLUDE_DIR}
   )
 
+IF(WIN32)
 CUDA_ADD_EXECUTABLE(ImageRotate 
   ImageRotate.cu
   ImageUtils.cpp
   SimpleCudaGLWindow.cpp
   main.cpp
   )
+ELSE(WIN32)
+CUDA_ADD_EXECUTABLE(ImageRotate 
+  ImageRotate.cu
+  ImageUtils.cpp
+  main.cpp
+  )
+ENDIF(WIN32)

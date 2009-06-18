@@ -1,8 +1,11 @@
 #include <stdio.h>
-#include <conio.h>
 
 #include "ImageUtils.h"
+
+#ifdef WIN32
+#include <conio.h>
 #include "SimpleCudaGLWindow.h"
+#endif
 
 extern "C" cudaError_t RotateImage(cudaArray * imageArray, uchar4 * out_image, int width, int height, size_t out_pitch, float angle);
 extern "C" cudaError_t convertBGRtoRGBA(unsigned char * pGPUtemp,uchar4 * pGPUImage, int width, int height, size_t out_pitch);
@@ -40,11 +43,13 @@ int main(int argc, char ** argv)
     return(-1);
   }
 
+#ifdef WIN32
   // Create an window to draw the image
   SimpleCudaGLWindow wnd;
   wnd.CreateCudaGLWindow(50,50,width,height,"Image Rotate Example");
   wnd.SetVSync(true);
   wnd.Flip = true; // using .BMP, so need to flip
+#endif
 
   
   // Create a temporary image for the GBR 3-byte per pixel image we are starting with.
@@ -77,13 +82,16 @@ int main(int argc, char ** argv)
   
   // We are done setting up.  Now lets rotate the image in a loop
   printf("Press any key to quit...\n");
+
+
   float angle = 0;
   while(!_kbhit())
   {
-
     c_err = RotateImage(inputArray,p_GPUImage,width,height,pitch,angle);
+#ifdef WIN32
     wnd.DrawImage((unsigned char *)p_GPUImage,width,height,pitch,GL_RGBA,GL_UNSIGNED_BYTE);
     wnd.CheckWindowsMessages(); // keep the window alive
+#endif
     angle += 1.0f;
   }
   
