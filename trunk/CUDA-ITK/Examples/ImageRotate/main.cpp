@@ -2,9 +2,18 @@
 
 #include "ImageUtils.h"
 
+
+// From CUDA
+#include "driver_types.h"
+#include "vector_types.h"
+#include "cuda_runtime_api.h"
+
+
 #ifdef WIN32
 #include <conio.h>
 #include "SimpleCudaGLWindow.h"
+#else
+#include <stdlib.h>
 #endif
 
 extern "C" cudaError_t RotateImage(cudaArray * imageArray, uchar4 * out_image, int width, int height, size_t out_pitch, float angle);
@@ -74,7 +83,9 @@ int main(int argc, char ** argv)
   // Use a CUDA Array to store the input image
   cudaArray * inputArray;
   // The channel format descriptor tells the hardware how to interpret the pixel data, in this case a 4-channel,4-byte 
-  cudaChannelFormatDesc uchar4_desc = cudaCreateChannelDesc<uchar4>();  
+  // cudaChannelFormatDesc uchar4_desc = cudaCreateChannelDesc();  // FIXME : Compilation error here
+  cudaChannelFormatDesc uchar4_desc;
+
   c_err = cudaMallocArray(&inputArray,&uchar4_desc,width,height);
 
   // Now copy the RGBA image to a cudaArray for texturing. Since the source image is now in an array, p_GPUImage can be used for destination
@@ -85,16 +96,23 @@ int main(int argc, char ** argv)
 
 
   float angle = 0;
+
+#ifdef WIN32
   while(!_kbhit())
   {
     c_err = RotateImage(inputArray,p_GPUImage,width,height,pitch,angle);
-#ifdef WIN32
     wnd.DrawImage((unsigned char *)p_GPUImage,width,height,pitch,GL_RGBA,GL_UNSIGNED_BYTE);
     wnd.CheckWindowsMessages(); // keep the window alive
-#endif
     angle += 1.0f;
   }
-  
+#else
+  for(unsigned int i=0; i<180; i++)
+  {
+    c_err = RotateImage(inputArray,p_GPUImage,width,height,pitch,angle);
+    angle += 1.0f;
+  }
+#endif
+ 
   // Free the memory we have used
   free(p_CPUImageGBR);
   cudaFree(p_GPUtemp);
