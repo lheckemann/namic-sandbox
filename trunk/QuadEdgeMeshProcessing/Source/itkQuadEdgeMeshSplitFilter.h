@@ -1,3 +1,4 @@
+
 #ifndef __itkQuadEdgeMeshSplitFilter_h
 #define __itkQuadEdgeMeshSplitFilter_h
 
