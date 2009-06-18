@@ -119,7 +119,8 @@ int main( int argc, char *argv[] )
     std::cerr << " [differenceOutputfile] [differenceBeforeRegistration] ";
     std::cerr << " [deformationField] ";
     std::cerr << " [useExplicitPDFderivatives ] [useCachingBSplineWeights ] ";
-    std::cerr << " [filenameForFinalTransformParameters] ";
+    std::cerr << " [filenameForFinalAffineTransform] ";
+    std::cerr << " [filenameForFinalBSplineTransform] ";
     std::cerr << " [numberOfGridNodesInsideImageInOneDimensionCoarse] ";
     std::cerr << " [numberOfGridNodesInsideImageInOneDimensionFine] ";
     std::cerr << " [maximumStepLength] [maximumNumberOfIterations]";
