@@ -4,9 +4,17 @@ INCLUDE_DIRECTORIES(
   ${CUDA_CUT_INCLUDE_DIR}
   )
 
-CUDA_ADD_EXECUTABLE(BrightnessContrast 
-  BrightnessContrast.cu
-  ImageUtils.cpp
-  SimpleCudaGLWindow.cpp
-  main.cpp
-  )
+IF(WIN32)
+  CUDA_ADD_EXECUTABLE(BrightnessContrast 
+    BrightnessContrast.cu
+    ImageUtils.cpp
+    SimpleCudaGLWindow.cpp
+    main.cpp
+    )
+ELSE(WIN32)
+  CUDA_ADD_EXECUTABLE(BrightnessContrast 
+    BrightnessContrast.cu
+    ImageUtils.cpp
+    main.cpp
+    )
+ENDIF(WIN32)
