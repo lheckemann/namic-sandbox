@@ -73,6 +73,14 @@ ADD_TEST(RegistrationBSpline_${DATASET1}_${DATASET2}
   100  # Number of iterations
   )
 
+ADD_TEST(BSplineResampleImage_${DATASET1}_${DATASET2}
+  ${EXECUTABLE_OUTPUT_PATH}/BSplineResampleImage
+  ${KNEE_DATA_DIR}/${DATASET1}.mhd
+  ${KNEE_DATA_DIR}/${DATASET2}.mhd
+  ${TEMP}/finalBSplineTransform_${DATASET1}_${DATASET2}.txt
+  ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DeformationField2.mhd
+  )
 
 ENDMACRO(REGISTER)
 

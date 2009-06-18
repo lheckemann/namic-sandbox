@@ -70,6 +70,7 @@
 #include "itkImageMaskSpatialObject.h"
 
 #include "itkTransformFileReader.h"
+#include "itkTransformFileWriter.h"
 
 //  The following section of code implements a Command observer
 //  used to monitor the evolution of the registration process.
@@ -880,10 +881,11 @@ int main( int argc, char *argv[] )
   if( argc > 9 )
     {
     std::cout << "Writing transform parameter file ...";
-    std::ofstream parametersFile;
-    parametersFile.open( argv[10] );
-    parametersFile << finalParameters << std::endl;
-    parametersFile.close();
+    typedef itk::TransformFileWriter     TransformWriterType;
+    TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+    transformWriter->SetFileName( argv[10] );
+    transformWriter->SetInput( bsplineTransformFine );
+    transformWriter->Update();
     std::cout << " Done!" << std::endl;
     }
 
