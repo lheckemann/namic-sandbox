@@ -37,9 +37,12 @@
 #pragma warning(disable : 4996) // disable warnings with stdio
 #include <cuda_runtime.h>
 #include "ImageUtils.h"
-#include "SimpleCudaGLWindow.h"
 #include <stdio.h>
+
+#ifdef WIN32
 #include <conio.h>
+#include "SimpleCudaGLWindow.h"
+#endif
 
 // Declaration of the AdjustBrightnessContract function in "BrightnessContrast.cu"
 extern "C" cudaError_t AdjustBrightnessContrast(unsigned char * image, int width, int height, 
@@ -100,6 +103,7 @@ int main(int argc, char ** argv)
   
   printf("\n Drawing Original Image...");
 
+#ifdef WIN32
   // Create an OpenGL window to display the image.  
   SimpleCudaGLWindow wnd;
   wnd.CreateCudaGLWindow(50,50,640,480,"Brightness Contrast Adjust");
@@ -107,23 +111,30 @@ int main(int argc, char ** argv)
 
   // Lets display the image before the conversion
   wnd.DrawImage(p_GPUimage,width,height,pitch,GL_LUMINANCE,GL_UNSIGNED_BYTE);
-  
 
   printf("\nPress ENTER to perform conversion\n");
   while(!_kbhit())
+    {
     wnd.CheckWindowsMessages();
+    }
+
   _getch();
+#endif
 
   // Now call the function in ContrastBrightness.cu which performs the adjustment on the GPU
   AdjustBrightnessContrast(p_GPUimage, width, height, (int)pitch, brightness, contrast);
 
+#ifdef WIN32
   // Draw the output image
   wnd.DrawImage(p_GPUimage,width,height,pitch,GL_LUMINANCE,GL_UNSIGNED_BYTE);
   
   printf("\nPress Enter to Close...\n");
   while(!_kbhit())
+    {
     wnd.CheckWindowsMessages();
-  
+    }
+#endif
+
   // Free the CPU and GPU memory
   //int * s = (int*)malloc(10);
   delete p_CPUImage;
