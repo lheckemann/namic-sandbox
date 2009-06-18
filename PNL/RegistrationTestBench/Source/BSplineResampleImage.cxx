@@ -22,7 +22,8 @@
 #include "itkImageFileWriter.h" 
 #include "itkImage.h"
 #include "itkResampleImageFilter.h"
-#include "itkLinearInterpolateImageFunction.h"
+#include "itkWindowedSincInterpolateImageFunction.h"
+#include "itkConstantBoundaryCondition.h"
 #include "itkBSplineDeformableTransform.h"
 #include "itkTransformFileReader.h"
 
@@ -112,8 +113,18 @@ int main( int argc, char * argv[] )
 
   FilterType::Pointer resampler = FilterType::New();
 
-  typedef itk::LinearInterpolateImageFunction< 
-                       MovingImageType, double >  InterpolatorType;
+  const unsigned int WindowRadius = 2;
+
+  typedef double CoordRepType;
+
+  typedef itk::Function::HammingWindowFunction< WindowRadius >  WindowFunctionType;
+
+  typedef itk::ConstantBoundaryCondition< MovingImageType >  BoundaryConditionType;
+
+  typedef itk::WindowedSincInterpolateImageFunction< 
+    MovingImageType, WindowRadius,
+    WindowFunctionType,
+    BoundaryConditionType, CoordRepType           > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
