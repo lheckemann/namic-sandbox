@@ -1,8 +1,11 @@
 
 #include <stdio.h>
+#include "ImageUtils.h"
+
+#ifdef WIN32
 #include <conio.h>
 #include "SimpleCudaGLWindow.h"
-#include "ImageUtils.h"
+#endif
 
 
 extern "C" cudaError_t Convolution3x3(unsigned char * src, unsigned char * dest, int width, int height, size_t pitch);
@@ -40,11 +43,13 @@ int main(int argc, char ** argv)
     return(-1);
   }
 
+#ifdef WIN32
   // Create an window to draw the image
   SimpleCudaGLWindow wnd;
   wnd.CreateCudaGLWindow(50,50,width,height,"Image Convolution Example");
   wnd.SetVSync(true);
   wnd.Flip = true; // using .BMP, so need to flip
+#endif
 
   // Allocate Memory on the GPU for both CPU & GPU images
   unsigned char * p_srcImage;
@@ -59,22 +64,30 @@ int main(int argc, char ** argv)
   // Draw the image before the convolution
   wnd.DrawImage(p_srcImage,width,height,(int)image_pitch,GL_LUMINANCE,GL_UNSIGNED_BYTE);
   
+#ifdef WIN32
   printf("Press Enter to Perform Convolution...\n");
   while(!_kbhit())
+    {
     wnd.CheckWindowsMessages(); // keep the window alive
+    }
   _getch();
+#endif
 
   // We are done setting up.  Now it's time to call our convolution function
   Convolution3x3(p_srcImage,p_outputImage,width,height,image_pitch);
     
+
+#ifdef WIN32
   // Finally draw our output image
 
   wnd.DrawImage(p_outputImage,width,height,(int)image_pitch,GL_LUMINANCE,GL_UNSIGNED_BYTE);
   
   printf("Press any key to quit\n");
   while(!_kbhit())
+    {
     wnd.CheckWindowsMessages();
-
+    }
+#endif
 
   // Free memory
   cudaFree(p_outputImage);
