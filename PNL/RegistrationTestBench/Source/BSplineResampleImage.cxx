@@ -64,7 +64,8 @@ int main( int argc, char * argv[] )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << "fixedImage movingImage transformFile ";
+    std::cerr << "fixedImage movingImage ";
+    std::cerr << "affineTransformFile bsplineTransformFile ";
     std::cerr << "deformedMovingImage" << std::endl;
     std::cerr << "[deformationField]" << std::endl;
     return EXIT_FAILURE;
@@ -102,7 +103,7 @@ int main( int argc, char * argv[] )
   MovingWriterType::Pointer movingWriter = MovingWriterType::New();
 
   movingReader->SetFileName( argv[2] );
-  movingWriter->SetFileName( argv[4] );
+  movingWriter->SetFileName( argv[5] );
 
 
   FixedImageType::ConstPointer fixedImage = fixedReader->GetOutput();
@@ -153,6 +154,10 @@ int main( int argc, char * argv[] )
   const unsigned int SplineOrder = 3;
   typedef double CoordinateRepType;
 
+  typedef itk::AffineTransform< double, SpaceDimension > AffineTransformType;
+
+  AffineTransformType::Pointer  affineTransform = AffineTransformType::New();
+
   typedef itk::BSplineDeformableTransform<
                             CoordinateRepType,
                             SpaceDimension,
@@ -162,9 +167,45 @@ int main( int argc, char * argv[] )
 
   typedef itk::TransformFileReader     TransformReaderType;
 
+  {
   TransformReaderType::Pointer transformReader = TransformReaderType::New();
 
+  std::cout << "Reading Affine transform from " << argv[3] << std::endl;
+
   transformReader->SetFileName( argv[3] );
+  transformReader->Update();
+
+  typedef TransformReaderType::TransformListType * TransformListType;
+
+  TransformListType transforms = transformReader->GetTransformList();
+
+  TransformReaderType::TransformListType::const_iterator titr = transforms->begin();
+
+  if( !strcmp((*titr)->GetNameOfClass(),"AffineTransform") )
+    {
+    affineTransform = dynamic_cast< AffineTransformType * >( titr->GetPointer() );
+  
+    if( !affineTransform )
+      {
+      std::cerr << "Error reading Affine Transform" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+  else
+    {
+    std::cerr << "Input file does not contain an Affine Transform" << std::endl;
+    std::cerr << "Transform type is: " << (*titr)->GetNameOfClass() << std::endl;
+    return EXIT_FAILURE;
+    }
+  }
+
+
+  {
+  TransformReaderType::Pointer transformReader = TransformReaderType::New();
+
+  std::cout << "Reading BSpline transform from " << argv[4] << std::endl;
+
+  transformReader->SetFileName( argv[4] );
   transformReader->Update();
 
   typedef TransformReaderType::TransformListType * TransformListType;
@@ -179,16 +220,19 @@ int main( int argc, char * argv[] )
   
     if( !bsplineTransform )
       {
-      std::cerr << "Error reading Transform" << std::endl;
+      std::cerr << "Error reading BSpline Transform" << std::endl;
       return EXIT_FAILURE;
       }
     }
   else
     {
     std::cerr << "Input file does not contain a BSpline Transform" << std::endl;
+    std::cerr << "Transform type is: " << (*titr)->GetNameOfClass() << std::endl;
     return EXIT_FAILURE;
     }
+  }
 
+  bsplineTransform->SetBulkTransform( affineTransform );
 
   CommandProgressUpdate::Pointer observer = CommandProgressUpdate::New();
 
@@ -247,9 +291,9 @@ int main( int argc, char * argv[] )
 
   fieldWriter->SetInput( field );
 
-  if( argc >= 6 )
+  if( argc >= 7 )
     {
-    fieldWriter->SetFileName( argv[5] );
+    fieldWriter->SetFileName( argv[6] );
     try
       {
       fieldWriter->Update();
