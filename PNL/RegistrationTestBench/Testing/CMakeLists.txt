@@ -37,13 +37,19 @@ ENDMACRO(REGISTER_IMAGES)
 
 
 
+
+#
+#  Note that the REGISTER_IMAGES macro expects filenames
+#  without extension. It internally assumes .nrrd.
+#
+
 REGISTER_IMAGES( T2-DWI
   01053-dwi-filt-Ed-Basline-masked
   01053-t2w-realign-masked
   )
 
 REGISTER_IMAGES( T2-DTI
-  01053-DTI-baseline.nrrd
-  01031-t2w.nrrd
+  01053-DTI-baseline
+  01031-t2w
   )
 
