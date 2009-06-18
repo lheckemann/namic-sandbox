@@ -70,7 +70,7 @@ ADD_TEST(RegistrationBSpline_${DATASET1}_${DATASET2}
    5   # Number of BSpline nodes in coarse grid
   10   # Number of BSpline nodes in coarse grid
   1.0  # Initial step length
-  100  # Number of iterations
+  200  # Number of iterations
   )
 
 ADD_TEST(BSplineResampleImage_${DATASET1}_${DATASET2}
