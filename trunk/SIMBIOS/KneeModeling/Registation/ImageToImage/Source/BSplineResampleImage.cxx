@@ -157,12 +157,14 @@ int main( int argc, char * argv[] )
 
   typedef itk::TransformFileReader     TransformReaderType;
 
+  {
   TransformReaderType::Pointer transformReader = TransformReaderType::New();
+
+  std::cout << "Reading Affine transform from " << argv[3] << std::endl;
 
   transformReader->SetFileName( argv[3] );
   transformReader->Update();
 
-  {
   typedef TransformReaderType::TransformListType * TransformListType;
 
   TransformListType transforms = transformReader->GetTransformList();
@@ -182,15 +184,20 @@ int main( int argc, char * argv[] )
   else
     {
     std::cerr << "Input file does not contain an Affine Transform" << std::endl;
+    std::cerr << "Transform type is: " << (*titr)->GetNameOfClass() << std::endl;
     return EXIT_FAILURE;
     }
   }
 
 
+  {
+  TransformReaderType::Pointer transformReader = TransformReaderType::New();
+
+  std::cout << "Reading BSpline transform from " << argv[4] << std::endl;
+
   transformReader->SetFileName( argv[4] );
   transformReader->Update();
 
-  {
   typedef TransformReaderType::TransformListType * TransformListType;
 
   TransformListType transforms = transformReader->GetTransformList();
@@ -210,6 +217,7 @@ int main( int argc, char * argv[] )
   else
     {
     std::cerr << "Input file does not contain a BSpline Transform" << std::endl;
+    std::cerr << "Transform type is: " << (*titr)->GetNameOfClass() << std::endl;
     return EXIT_FAILURE;
     }
   }
