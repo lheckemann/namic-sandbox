@@ -2,9 +2,16 @@
 #include <stdio.h>
 #include "ImageUtils.h"
 
+// From CUDA
+#include "driver_types.h"
+#include "cuda_runtime_api.h"
+
+
 #ifdef WIN32
 #include <conio.h>
 #include "SimpleCudaGLWindow.h"
+#else
+#include <stdlib.h>  // for free
 #endif
 
 
@@ -61,10 +68,11 @@ int main(int argc, char ** argv)
   // copy the source image from the CPU to the GPU
   cudaMemcpy2D(p_srcImage,image_pitch,p_CPUImage,width,width,height,cudaMemcpyHostToDevice);
   
+
+#ifdef WIN32
   // Draw the image before the convolution
   wnd.DrawImage(p_srcImage,width,height,(int)image_pitch,GL_LUMINANCE,GL_UNSIGNED_BYTE);
   
-#ifdef WIN32
   printf("Press Enter to Perform Convolution...\n");
   while(!_kbhit())
     {
