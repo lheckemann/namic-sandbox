@@ -117,7 +117,8 @@ int main( int argc, char *argv[] )
     std::cerr << " [differenceOutputfile] [differenceBeforeRegistration] ";
     std::cerr << " [deformationField] ";
     std::cerr << " [useExplicitPDFderivatives ] [useCachingBSplineWeights ] ";
-    std::cerr << " [filenameForFinalTransformParameters] ";
+    std::cerr << " [filenameForFinalAffineTransform] ";
+    std::cerr << " [filenameForFinalBSplineTransform] ";
     std::cerr << " [numberOfGridNodesInsideImageInOneDimensionCoarse] ";
     std::cerr << " [numberOfGridNodesInsideImageInOneDimensionFine] ";
     std::cerr << " [maximumStepLength] [maximumNumberOfIterations]";
@@ -412,7 +413,7 @@ int main( int argc, char *argv[] )
 
   if( argc > 10 )
     {
-    numberOfGridNodesInOneDimensionCoarse = atoi( argv[10] );
+    numberOfGridNodesInOneDimensionCoarse = atoi( argv[11] );
     }
 
 
@@ -487,13 +488,13 @@ int main( int argc, char *argv[] )
   // Optionally, get the step length from the command line arguments
   if( argc > 11 )
     {
-    optimizer->SetMaximumStepLength( atof( argv[12] ) );
+    optimizer->SetMaximumStepLength( atof( argv[13] ) );
     }
 
   // Optionally, get the number of iterations from the command line arguments
   if( argc > 12 )
     {
-    optimizer->SetNumberOfIterations( atoi( argv[13] ) );
+    optimizer->SetNumberOfIterations( atoi( argv[14] ) );
     }
 
 
@@ -544,7 +545,7 @@ int main( int argc, char *argv[] )
 
   if( argc > 11 )
     {
-    numberOfGridNodesInOneDimensionFine = atoi( argv[11] );
+    numberOfGridNodesInOneDimensionFine = atoi( argv[12] );
     }
 
   RegionType::SizeType   gridHighSizeOnImage;
@@ -862,13 +863,25 @@ int main( int argc, char *argv[] )
     std::cout << " Done!" << std::endl;
     }
 
-  // Optionally, save the transform parameters in a file
-  if( argc > 9 )
+  // Optionally, save the Affine transform in a file
+  if( argc > 8 )
     {
     std::cout << "Writing transform parameter file ...";
     typedef itk::TransformFileWriter     TransformWriterType;
     TransformWriterType::Pointer transformWriter = TransformWriterType::New();
     transformWriter->SetFileName( argv[9] );
+    transformWriter->SetInput( affineTransform );
+    transformWriter->Update();
+    std::cout << " Done!" << std::endl;
+    }
+
+  // Optionally, save the BSpline transform in a file
+  if( argc > 9 )
+    {
+    std::cout << "Writing transform parameter file ...";
+    typedef itk::TransformFileWriter     TransformWriterType;
+    TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+    transformWriter->SetFileName( argv[10] );
     transformWriter->SetInput( bsplineTransformFine );
     transformWriter->Update();
     std::cout << " Done!" << std::endl;
