@@ -434,7 +434,7 @@ int main( int argc, char *argv[] )
 
   if( argc > 10 )
     {
-    numberOfGridNodesInOneDimensionCoarse = atoi( argv[11] );
+    numberOfGridNodesInOneDimensionCoarse = atoi( argv[12] );
     }
 
 
@@ -509,13 +509,13 @@ int main( int argc, char *argv[] )
   // Optionally, get the step length from the command line arguments
   if( argc > 11 )
     {
-    optimizer->SetMaximumStepLength( atof( argv[13] ) );
+    optimizer->SetMaximumStepLength( atof( argv[14] ) );
     }
 
   // Optionally, get the number of iterations from the command line arguments
   if( argc > 12 )
     {
-    optimizer->SetNumberOfIterations( atoi( argv[14] ) );
+    optimizer->SetNumberOfIterations( atoi( argv[15] ) );
     }
 
 
@@ -566,7 +566,7 @@ int main( int argc, char *argv[] )
 
   if( argc > 11 )
     {
-    numberOfGridNodesInOneDimensionFine = atoi( argv[12] );
+    numberOfGridNodesInOneDimensionFine = atoi( argv[13] );
     }
 
   RegionType::SizeType   gridHighSizeOnImage;
@@ -884,17 +884,30 @@ int main( int argc, char *argv[] )
     std::cout << " Done!" << std::endl;
     }
 
-  // Optionally, save the transform parameters in a file
+  // Optionally, save the Affine transform in a file
   if( argc > 9 )
     {
     std::cout << "Writing transform parameter file ...";
     typedef itk::TransformFileWriter     TransformWriterType;
     TransformWriterType::Pointer transformWriter = TransformWriterType::New();
     transformWriter->SetFileName( argv[10] );
+    transformWriter->SetInput( affineTransform );
+    transformWriter->Update();
+    std::cout << " Done!" << std::endl;
+    }
+
+  // Optionally, save the BSpline transform in a file
+  if( argc > 10 )
+    {
+    std::cout << "Writing transform parameter file ...";
+    typedef itk::TransformFileWriter     TransformWriterType;
+    TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+    transformWriter->SetFileName( argv[11] );
     transformWriter->SetInput( bsplineTransformFine );
     transformWriter->Update();
     std::cout << " Done!" << std::endl;
     }
+
 
   return EXIT_SUCCESS;
 }
