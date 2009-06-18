@@ -325,7 +325,7 @@ int main( int argc, char *argv[] )
   // Regulating the number of samples in the Metric is equivalent to performing
   // multi-resolution registration because it is indeed a sub-sampling of the
   // image.
-  unsigned long numberOfSamples = 10000L;
+  unsigned long numberOfSamples = numberOfPixels / 100;
   std::cout << "Number of Samples = " << numberOfSamples << std::endl;
   metric->SetNumberOfSpatialSamples( numberOfSamples );
 
@@ -399,7 +399,7 @@ int main( int argc, char *argv[] )
   // Regulating the number of samples in the Metric is equivalent to performing
   // multi-resolution registration because it is indeed a sub-sampling of the
   // image.
-  numberOfSamples = 50000L;
+  numberOfSamples = numberOfPixels / 20;
   std::cout << "Number of Samples = " << numberOfSamples << std::endl;
   metric->SetNumberOfSpatialSamples( numberOfSamples );
 
@@ -526,7 +526,10 @@ int main( int argc, char *argv[] )
   // Regulating the number of samples in the Metric is equivalent to performing
   // multi-resolution registration because it is indeed a sub-sampling of the
   // image.
-  numberOfSamples = numberOfBSplineParameters * 100;
+  if( numberOfSamples < numberOfBSplineParameters * 100 )
+    {
+    numberOfSamples = numberOfBSplineParameters * 100;
+    }
   std::cout << "Number of Samples = " << numberOfSamples << std::endl;
   metric->SetNumberOfSpatialSamples( numberOfSamples );
 
@@ -664,11 +667,15 @@ int main( int argc, char *argv[] )
   // Regulating the number of samples in the Metric is equivalent to performing
   // multi-resolution registration because it is indeed a sub-sampling of the
   // image.
-  numberOfSamples = 
+  unsigned long fineNumberOfSamples = 
      static_cast<unsigned long>(
        vcl_sqrt( static_cast<double>( numberOfBSplineParameters ) *
                  static_cast<double>( numberOfPixels ) ) );
 
+  if( numberOfSamples < fineNumberOfSamples )
+    {
+    numberOfSamples = fineNumberOfSamples;
+    }
   std::cout << "Number of Samples = " << numberOfSamples << std::endl;
   metric->SetNumberOfSpatialSamples( numberOfSamples );
 
