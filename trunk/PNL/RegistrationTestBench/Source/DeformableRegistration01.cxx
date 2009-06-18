@@ -67,8 +67,6 @@
 #include "itkCastImageFilter.h"
 #include "itkSquaredDifferenceImageFilter.h"
 
-#include "itkImageMaskSpatialObject.h"
-
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 
@@ -115,7 +113,7 @@ int main( int argc, char *argv[] )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " fixedImageFile  movingImageFile fixedImageMask outputImagefile  ";
+    std::cerr << " fixedImageFile  movingImageFile outputImagefile  ";
     std::cerr << " [differenceOutputfile] [differenceBeforeRegistration] ";
     std::cerr << " [deformationField] ";
     std::cerr << " [useExplicitPDFderivatives ] [useCachingBSplineWeights ] ";
@@ -132,8 +130,6 @@ int main( int argc, char *argv[] )
 
   typedef itk::Image< PixelType, ImageDimension >  FixedImageType;
   typedef itk::Image< PixelType, ImageDimension >  MovingImageType;
-
-  typedef itk::ImageMaskSpatialObject< ImageDimension >   MaskType;
 
   const unsigned int SpaceDimension = ImageDimension;
 
@@ -181,14 +177,6 @@ int main( int argc, char *argv[] )
   registration->SetInterpolator(  interpolator  );
 
 
-  typedef itk::Image< unsigned char, ImageDimension >   ImageMaskType;
-
-  typedef itk::ImageFileReader< ImageMaskType >    MaskReaderType;
-
-  MaskReaderType::Pointer  maskReader = MaskReaderType::New();
-
-  maskReader->SetFileName( argv[3] );
-
   // Auxiliary identity transform.
   typedef itk::IdentityTransform<double,SpaceDimension> IdentityTransformType;
   IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
@@ -210,7 +198,6 @@ int main( int argc, char *argv[] )
     {
     fixedImageReader->Update();
     movingImageReader->Update();
-    maskReader->Update();
     }
   catch( itk::ExceptionObject & err ) 
     { 
@@ -242,22 +229,13 @@ int main( int argc, char *argv[] )
 
   metric->ReinitializeSeed( 76926294 );
 
-  //
-  // Connect the Fixed Image Mask
-  //
-  MaskType::Pointer  spatialObjectMask = MaskType::New();
-  spatialObjectMask->SetImage( maskReader->GetOutput() );
-  //
-  //   metric->SetFixedImageMask( spatialObjectMask );  // NOT USING THE FIXED IMAGE MASK
-  //
-
   if( argc > 7 )
     {
     // Define whether to calculate the metric derivative by explicitly
     // computing the derivatives of the joint PDF with respect to the Transform
     // parameters, or doing it by progressively accumulating contributions from
     // each bin in the joint PDF.
-    metric->SetUseExplicitPDFDerivatives( atoi( argv[8] ) );
+    metric->SetUseExplicitPDFDerivatives( atoi( argv[7] ) );
     }
 
   if( argc > 8 )
@@ -267,7 +245,7 @@ int main( int argc, char *argv[] )
     // make the algorithm run faster but it will have a cost on the amount of memory
     // that needs to be allocated. This option is only relevant when using the 
     // BSplineDeformableTransform.
-    metric->SetUseCachingOfBSplineWeights( atoi( argv[9] ) );
+    metric->SetUseCachingOfBSplineWeights( atoi( argv[8] ) );
     }
 
 
@@ -434,7 +412,7 @@ int main( int argc, char *argv[] )
 
   if( argc > 10 )
     {
-    numberOfGridNodesInOneDimensionCoarse = atoi( argv[11] );
+    numberOfGridNodesInOneDimensionCoarse = atoi( argv[10] );
     }
 
 
@@ -509,13 +487,13 @@ int main( int argc, char *argv[] )
   // Optionally, get the step length from the command line arguments
   if( argc > 11 )
     {
-    optimizer->SetMaximumStepLength( atof( argv[13] ) );
+    optimizer->SetMaximumStepLength( atof( argv[12] ) );
     }
 
   // Optionally, get the number of iterations from the command line arguments
   if( argc > 12 )
     {
-    optimizer->SetNumberOfIterations( atoi( argv[14] ) );
+    optimizer->SetNumberOfIterations( atoi( argv[13] ) );
     }
 
 
@@ -566,7 +544,7 @@ int main( int argc, char *argv[] )
 
   if( argc > 11 )
     {
-    numberOfGridNodesInOneDimensionFine = atoi( argv[12] );
+    numberOfGridNodesInOneDimensionFine = atoi( argv[11] );
     }
 
   RegionType::SizeType   gridHighSizeOnImage;
@@ -741,7 +719,7 @@ int main( int argc, char *argv[] )
   CastFilterType::Pointer  caster =  CastFilterType::New();
 
 
-  writer->SetFileName( argv[4] );
+  writer->SetFileName( argv[3] );
 
 
   caster->SetInput( resample->GetOutput() );
@@ -780,7 +758,7 @@ int main( int argc, char *argv[] )
     {
     difference->SetInput1( fixedImageReader->GetOutput() );
     difference->SetInput2( resample->GetOutput() );
-    writer2->SetFileName( argv[5] );
+    writer2->SetFileName( argv[4] );
 
     std::cout << "Writing difference image after registration...";
 
@@ -803,7 +781,7 @@ int main( int argc, char *argv[] )
   // fixed and moving image before registration.
   if( argc > 5 )
     {
-    writer2->SetFileName( argv[6] );
+    writer2->SetFileName( argv[5] );
     difference->SetInput1( fixedImageReader->GetOutput() );
     resample->SetTransform( identityTransform );
 
@@ -866,7 +844,7 @@ int main( int argc, char *argv[] )
 
     fieldWriter->SetInput( field );
 
-    fieldWriter->SetFileName( argv[7] );
+    fieldWriter->SetFileName( argv[6] );
 
     std::cout << "Writing deformation field ...";
 
@@ -890,7 +868,7 @@ int main( int argc, char *argv[] )
     std::cout << "Writing transform parameter file ...";
     typedef itk::TransformFileWriter     TransformWriterType;
     TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-    transformWriter->SetFileName( argv[10] );
+    transformWriter->SetFileName( argv[9] );
     transformWriter->SetInput( bsplineTransformFine );
     transformWriter->Update();
     std::cout << " Done!" << std::endl;
