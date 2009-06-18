@@ -108,15 +108,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   typedef short PixelValueType;
   typedef itk::OrientedImage< PixelValueType, 3 > VolumeType;
   typedef itk::ImageSeriesReader< VolumeType > ReaderType;
-  int CreateFileListFromDir(const char* path,
-                            std::vector<ReaderType::FileNamesContainer>& fileNamesContainerList);
   //ETX
-  vtkMRML4DBundleNode* LoadImagesFromDir(const char* path, const char* bundleNodeName,
-                                         double& rangeLower, double& rangeUpper);
-  int SaveImagesToDir(const char* path, const char* bundleID, const char* prefix, const char* suffix);
 
-  vtkMRMLScalarVolumeNode* AddDisplayBufferNode(vtkMRML4DBundleNode* bundleNode, 
-                                                int index);
   vtkMRMLScalarVolumeNode* AddMapVolumeNode(vtkMRML4DBundleNode* bundleNode,
                                             const char* nodeName);
   int         GetNumberOfFrames();
@@ -127,9 +120,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
 
   void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
   vtkSlicerApplication* GetApplication() { return this->Application; };
-
-  int GenerateBundleFrames(vtkMRML4DBundleNode* inputBundleNode,
-                           vtkMRML4DBundleNode* outputBundleNode);
 
   void GetCurveAnalysisInfo(const char* script, vtkMRMLCurveAnalysisNode* curveNode);
   void RunCurveFitting(const char* script, vtkMRMLCurveAnalysisNode* curveNode);
