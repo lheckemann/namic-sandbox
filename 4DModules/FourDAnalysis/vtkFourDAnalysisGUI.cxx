@@ -105,6 +105,8 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->IntensityCurves = vtkIntensityCurves::New();
   this->FittedCurve     = vtkDoubleArray::New();
 
+  this->Script = NULL;
+
   //----------------------------------------------------------------
   // GUI widgets
   this->ProgressDialog = NULL;
@@ -806,12 +808,13 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
     this->GetMRMLScene()->AddNode(curveNode);
 
-    const char* script = this->CurveScriptSelectButton->GetWidget()->GetFileName();
-    //if (this->Script)
-    //  {
-    //  this->Script->Delete();
-    //  }
-    //this->Sceript->SetScript(this->CurveScriptSelectButton->GetWidget()->GetFileName(););
+    //const char* script = this->CurveScriptSelectButton->GetWidget()->GetFileName();
+    if (this->Script)
+      {
+      this->Script->Delete();
+      }
+    this->Script = vtkCurveAnalysisPythonScript::New();
+    this->Script->SetScript(this->CurveScriptSelectButton->GetWidget()->GetFileName());
 
     this->GetLogic()->GetCurveAnalysisInfo(script, curveNode);
     UpdateInitialParameterList(curveNode);
