@@ -110,7 +110,7 @@ void vtkMRMLCurveAnalysisNode::SetInputData(const char* name, vtkDoubleArray* da
 //----------------------------------------------------------------------------
 vtkDoubleArray* vtkMRMLCurveAnalysisNode::GetInputData(const char* name)
 {
-  InputDataMapType::iterator iter;
+  ArrayMapType::iterator iter;
   iter = this->InputData.find(name);
   if (iter != this->InputData.end())
     {
@@ -125,7 +125,7 @@ vtkDoubleArray* vtkMRMLCurveAnalysisNode::GetInputData(const char* name)
 //----------------------------------------------------------------------------
 vtkStringArray* vtkMRMLCurveAnalysisNode::GetInputDataNameArray()
 {
-  InputDataMapType::iterator iter;
+  ArrayMapType::iterator iter;
   vtkStringArray* array = vtkStringArray::New();
 
   for (iter = this->InputData.begin(); iter != this->InputData.end(); iter ++)
@@ -153,7 +153,7 @@ void vtkMRMLCurveAnalysisNode::SetInitialOptimParameter(const char* name, double
 //----------------------------------------------------------------------------
 double vtkMRMLCurveAnalysisNode::GetInitialOptimParameter(const char* name)
 {
-  InitialOptimParameterMapType::iterator iter;
+  ValueMapType::iterator iter;
   iter = this->InitialOptimParameters.find(name);
   if (iter != this->InitialOptimParameters.end())
     {
@@ -169,7 +169,7 @@ double vtkMRMLCurveAnalysisNode::GetInitialOptimParameter(const char* name)
 //----------------------------------------------------------------------------
 vtkStringArray* vtkMRMLCurveAnalysisNode::GetInitialOptimParameterNameArray()
 {
-  InitialOptimParameterMapType::iterator iter;
+  ValueMapType::iterator iter;
   vtkStringArray* array = vtkStringArray::New();
 
   for (iter = this->InitialOptimParameters.begin(); iter != this->InitialOptimParameters.end(); iter ++)
@@ -198,7 +198,7 @@ void vtkMRMLCurveAnalysisNode::SetInputParameter(const char *name, const double 
 //----------------------------------------------------------------------------
 double vtkMRMLCurveAnalysisNode::GetInputParameter(const char* name)
 {
-  InputParameterMapType::iterator iter;
+  ValueMapType::iterator iter;
   iter = this->InputParameters.find(name);
   if (iter != this->InputParameters.end())
     {
@@ -214,7 +214,7 @@ double vtkMRMLCurveAnalysisNode::GetInputParameter(const char* name)
 //----------------------------------------------------------------------------
 vtkStringArray* vtkMRMLCurveAnalysisNode::GetInputParameterNameArray()
 {
-  InputParameterMapType::iterator iter;
+  ValueMapType::iterator iter;
   vtkStringArray* array = vtkStringArray::New();
   
   for (iter = this->InputParameters.begin(); iter != this->InputParameters.end(); iter ++)
@@ -244,7 +244,7 @@ void vtkMRMLCurveAnalysisNode::SetParameter(const char *name, const double value
 //----------------------------------------------------------------------------
 double vtkMRMLCurveAnalysisNode::GetParameter(const char* name)
 {
-  OutputParameterMapType::iterator iter;
+  ValueMapType::iterator iter;
   iter = this->OutputParameters.find(name);
   if (iter != this->OutputParameters.end())
     {
@@ -260,7 +260,7 @@ double vtkMRMLCurveAnalysisNode::GetParameter(const char* name)
 //----------------------------------------------------------------------------
 vtkStringArray* vtkMRMLCurveAnalysisNode::GetParameterNameArray()
 {
-  OutputParameterMapType::iterator iter;
+  ValueMapType::iterator iter;
   vtkStringArray* array = vtkStringArray::New();
 
   for (iter = this->OutputParameters.begin(); iter != this->OutputParameters.end(); iter ++)
