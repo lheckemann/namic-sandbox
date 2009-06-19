@@ -13,47 +13,58 @@
 =========================================================================auto=*/
 
 #include "vtkObjectFactory.h"
-#include "vtkCurveAnalysisPythonInterfaces.h"
+#include "vtkCurveAnalysisPythonInterface.h"
 
 #include "vtkDoubleArray.h"
 #include "vtkMRML4DBundleNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
 
-vtkStandardNewMacro(vtkCurveAnalysisPythonInterfaces);
-vtkCxxRevisionMacro(vtkCurveAnalysisPythonInterfaces, "$Revision: $");
+#include "vtkSlicerApplication.h"
+#include "vtkSlicerConfigure.h" /* Slicer3_USE_* */
+
+#ifdef Slicer3_USE_PYTHON
+#include <Python.h>
+#endif
+
+vtkStandardNewMacro(vtkCurveAnalysisPythonInterface);
+vtkCxxRevisionMacro(vtkCurveAnalysisPythonInterface, "$Revision: $");
 
 //---------------------------------------------------------------------------
-vtkCurveAnalysisPythonInterfaces::vtkCurveAnalysisPythonInterfaces()
+vtkCurveAnalysisPythonInterface::vtkCurveAnalysisPythonInterface()
 {
   this->ScriptName = "";
 }
 
 
 //---------------------------------------------------------------------------
-vtkCurveAnalysisPythonInterfaces::~vtkCurveAnalysisPythonInterfaces()
+vtkCurveAnalysisPythonInterface::~vtkCurveAnalysisPythonInterface()
 {
 }
 
 
 //---------------------------------------------------------------------------
-void vtkCurveAnalysisPythonInterfaces::PrintSelf(ostream& os, vtkIndent indent)
+void vtkCurveAnalysisPythonInterface::PrintSelf(ostream& os, vtkIndent indent)
 {
 }
 
 
 //---------------------------------------------------------------------------
-int vtkCurveAnalysisPythonInterfaces::SetScript(const char* script)
+int vtkCurveAnalysisPythonInterface::SetScript(const char* script)
 {
-  this->ScriptName = filename;
+  this->ScriptName = script;
 }
 
 
 //---------------------------------------------------------------------------
-int vtkCurveAnalysisPythonInterfaces::GetInfo(vtkMRMLCurveAnalysisNode* curveNode)
+int vtkCurveAnalysisPythonInterface::GetInfo(vtkMRMLCurveAnalysisNode* curveNode)
 {
   //NOTE: this function creates vtkMRMLCurveAnalysisNode and obtain necessary parameters
   // (e.g. list of input curves and initial parameters) for the curve fitting.
 
+  std::cerr << "int vtkCurveAnalysisPythonInterface::GetInfo(vtkMRMLCurveAnalysisNode* curveNode)" << std::endl;
+
+#ifdef Slicer3_USE_PYTHON
+  std::cerr << "int vtkCurveAnalysisPythonInterface::GetInfo(vtkMRMLCurveAnalysisNode* curveNode) -- 2" << std::endl;
   PyObject* v;
   std::string pythonCmd;
 
@@ -108,12 +119,17 @@ int vtkCurveAnalysisPythonInterfaces::GetInfo(vtkMRMLCurveAnalysisNode* curveNod
     {
       PyErr_Clear();
     }
+
+#endif // Slicer3_USE_PYTHON
 }
 
 
 //---------------------------------------------------------------------------
-int vtkCurveAnalysisPythonInterfaces::Run(vtkMRMLCurveAnalysisNode* curveNode)
+int vtkCurveAnalysisPythonInterface::Run(vtkMRMLCurveAnalysisNode* curveNode)
 {
+
+#ifdef Slicer3_USE_PYTHON
+
   PyObject* v;
   std::string pythonCmd;
 
@@ -137,7 +153,7 @@ int vtkCurveAnalysisPythonInterfaces::Run(vtkMRMLCurveAnalysisNode* curveNode)
   pythonCmd += "targetCurve  = curveNode.GetSourceData().ToArray()\n";
   pythonCmd += "outputCurve = curveNode.GetFittedData().ToArray()\n";
   pythonCmd += "caexec = fda.CurveAnalysisExecuter('";
-  pythonCmd += this->Scriptname.c_str();
+  pythonCmd += this->ScriptName.c_str();
   pythonCmd += "')\n";
 
   // Get lists of input curves, initial parameters etc.
@@ -174,4 +190,5 @@ int vtkCurveAnalysisPythonInterfaces::Run(vtkMRMLCurveAnalysisNode* curveNode)
       PyErr_Clear();
     }
 
+#endif // Slicer3_USE_PYTHON
 }

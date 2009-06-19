@@ -12,8 +12,8 @@
 
 =========================================================================auto=*/
 
-#ifndef __vtkCurveAnalysisPythonInterfaces_h
-#define __vtkCurveAnalysisPythonInterfaces_h
+#ifndef __vtkCurveAnalysisPythonInterface_h
+#define __vtkCurveAnalysisPythonInterface_h
 
 
 #include "vtkObject.h"
@@ -21,12 +21,12 @@
 
 #include "vtkMRMLCurveAnalysisNode.h"
 
-class VTK_FourDAnalysis_EXPORT vtkCurveAnalysisPythonInterfaces : public vtkObject
+class VTK_FourDAnalysis_EXPORT vtkCurveAnalysisPythonInterface : public vtkObject
 {
  public:
 
-  static vtkCurveAnalysisPythonInterfaces *New();
-  vtkTypeRevisionMacro(vtkCurveAnalysisPythonInterfaces, vtkObject);
+  static vtkCurveAnalysisPythonInterface *New();
+  vtkTypeRevisionMacro(vtkCurveAnalysisPythonInterface, vtkObject);
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -35,16 +35,16 @@ class VTK_FourDAnalysis_EXPORT vtkCurveAnalysisPythonInterfaces : public vtkObje
   int Run(vtkMRMLCurveAnalysisNode* curveNode);
 
  protected:
-  vtkCurveAnalysisPythonInterfaces();
-  virtual ~vtkCurveAnalysisPythonInterfaces();
+  vtkCurveAnalysisPythonInterface();
+  virtual ~vtkCurveAnalysisPythonInterface();
 
  private:
 
-  // BTX
-  std::string ScriptFileName;
+  //BTX
+  std::string ScriptName;
   //ETX
 
 };
 
 
-#endif //__vtkCurveAnalysisPythonInterfaces_h
+#endif //__vtkCurveAnalysisPythonInterface_h
