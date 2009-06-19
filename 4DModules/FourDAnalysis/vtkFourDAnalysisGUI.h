@@ -127,6 +127,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void BuildGUIForActiveBundleSelectorFrame();
   void BuildGUIForFrameControlFrame(int show);
   void BuildGUIForFunctionViewer(int show);
+  void BuildGUIForScriptSetting(int show);
   void BuildGUIForCurveFitting(int show);
   void BuildGUIForMapGenerator(int show);
 
