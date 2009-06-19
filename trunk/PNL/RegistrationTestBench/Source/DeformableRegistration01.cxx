@@ -730,6 +730,7 @@ int main( int argc, char *argv[] )
 
   try
     {
+    writer->UseCompressionOn();
     writer->Update();
     }
   catch( itk::ExceptionObject & err ) 
@@ -765,6 +766,7 @@ int main( int argc, char *argv[] )
 
     try
       {
+      writer2->UseCompressionOn();
       writer2->Update();
       }
     catch( itk::ExceptionObject & err ) 
@@ -790,6 +792,7 @@ int main( int argc, char *argv[] )
 
     try
       {
+      writer2->UseCompressionOn();
       writer2->Update();
       }
     catch( itk::ExceptionObject & err ) 
@@ -851,6 +854,7 @@ int main( int argc, char *argv[] )
 
     try
       {
+      fieldWriter->UseCompressionOn();
       fieldWriter->Update();
       }
     catch( itk::ExceptionObject & excp )
