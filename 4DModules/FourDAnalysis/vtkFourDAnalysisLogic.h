@@ -162,6 +162,9 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   CurveCacheType CurveCache;  // CurveCache[<4d bundle name>][<label number>].<member of CurveDataType>
   //ETX
 
+  //vtkCurveAnalysisPythonScript* Script;
+
+
 };
 
 #endif

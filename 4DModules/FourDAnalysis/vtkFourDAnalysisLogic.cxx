@@ -285,6 +285,8 @@ int vtkFourDAnalysisLogic::SaveCurve(vtkDoubleArray* curve, const char* fileName
     }
 
   fout.close();
+  
+  return 1;
 }
 
 

@@ -807,6 +807,12 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     this->GetMRMLScene()->AddNode(curveNode);
 
     const char* script = this->CurveScriptSelectButton->GetWidget()->GetFileName();
+    //if (this->Script)
+    //  {
+    //  this->Script->Delete();
+    //  }
+    //this->Sceript->SetScript(this->CurveScriptSelectButton->GetWidget()->GetFileName(););
+
     this->GetLogic()->GetCurveAnalysisInfo(script, curveNode);
     UpdateInitialParameterList(curveNode);
 
