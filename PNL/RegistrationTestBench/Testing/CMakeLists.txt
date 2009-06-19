@@ -5,16 +5,16 @@ SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
 
 FIND_PATH(PNL_BRAIN_DATA_DIR README.txt)
 
-MACRO(REGISTER_IMAGES CASEID DATASET1 DATASET2 )
+MACRO(REGISTER_IMAGES CASEID DATASET1 EXTENSION1 DATASET2 EXTENSION2)
 
 ADD_TEST(RegistrationBSpline_${CASEID}
   ${EXECUTABLE_OUTPUT_PATH}/DeformableRegistration01
-  ${PNL_BRAIN_DATA_DIR}/${DATASET1}.nrrd
-  ${PNL_BRAIN_DATA_DIR}/${DATASET2}.nrrd
-  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}.mhd
-  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceAfter.mhd
-  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceBefore.mhd
-  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DeformationField.mhd
+  ${PNL_BRAIN_DATA_DIR}/${DATASET1}.${EXTENSION1}
+  ${PNL_BRAIN_DATA_DIR}/${DATASET2}.${EXTENSION2}
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}.mha
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceAfter.mha
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceBefore.mha
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DeformationField.mha
   1    # Use explicit PDF derivatives
   1    # Cache BSpline weights
   ${TEMP}/finalAffineTransform_${DATASET1}_${DATASET2}.txt
@@ -27,12 +27,12 @@ ADD_TEST(RegistrationBSpline_${CASEID}
 
 ADD_TEST(BSplineResampleImage_${CASEID}
   ${EXECUTABLE_OUTPUT_PATH}/BSplineResampleImage
-  ${PNL_BRAIN_DATA_DIR}/${DATASET1}.nrrd
-  ${PNL_BRAIN_DATA_DIR}/${DATASET2}.nrrd
+  ${PNL_BRAIN_DATA_DIR}/${DATASET1}.${EXTENSION1}
+  ${PNL_BRAIN_DATA_DIR}/${DATASET2}.${EXTENSION2}
   ${TEMP}/finalAffineTransform_${DATASET1}_${DATASET2}.txt
   ${TEMP}/finalBSplineTransform_${DATASET1}_${DATASET2}.txt
-  ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}.mhd
-  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DeformationField2.mhd
+  ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}.mha
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DeformationField2.mha
   )
 
 ENDMACRO(REGISTER_IMAGES)
@@ -46,12 +46,26 @@ ENDMACRO(REGISTER_IMAGES)
 #
 
 REGISTER_IMAGES( T2-DWI
-  01053-dwi-filt-Ed-Basline-masked
-  01053-t2w-realign-masked
+  01053-dwi-filt-Ed-Basline-masked  nrrd
+  01053-t2w-realign-masked          nrrd
   )
 
-REGISTER_IMAGES( T2-DTI
-  01053-DTI-baseline
-  01031-t2w
+REGISTER_IMAGES( T2-T2
+  01053-t2w   nrrd
+  01031-t2w   nrrd
   )
+
+#
+# cross verification
+#
+REGISTER_IMAGES( T2-T2-Back
+  01031-t2w   nrrd
+  01031-t2w_BSplineTo_01053-t2w  mha
+  )
+
+REGISTER_IMAGES( T1-T2
+  01053-t1w   nrrd
+  01031-t2w   nrrd
+  )
+
 
