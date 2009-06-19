@@ -121,8 +121,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
   vtkSlicerApplication* GetApplication() { return this->Application; };
 
-  void GetCurveAnalysisInfo(const char* script, vtkMRMLCurveAnalysisNode* curveNode);
-  void RunCurveFitting(const char* script, vtkMRMLCurveAnalysisNode* curveNode);
   void GenerateParameterMap(const char* script,
                             vtkMRML4DBundleNode* bundleNode, 
                             const char* outputNodeNamePrefix,

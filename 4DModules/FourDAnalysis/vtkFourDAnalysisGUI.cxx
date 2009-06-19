@@ -48,6 +48,7 @@
 #include "vtkKWCheckButtonWithLabel.h"
 
 #include "vtkKWProgressDialog.h"
+#include "vtkKWMessageDialog.h"
 
 #include "vtkKWLoadSaveButton.h"
 #include "vtkKWLoadSaveButtonWithLabel.h"
@@ -63,23 +64,8 @@
 #include "vtkMRMLCurveAnalysisNode.h"
 
 #include "vtkCurveAnalysisPythonInterface.h"
-
 #ifdef Slicer3_USE_PYTHON
-//// If debug, Python wants pythonxx_d.lib, so fake it out
-//#ifdef _DEBUG
-//#undef _DEBUG
-//#include <Python.h>
-//#define _DEBUG
-//#else
 #include <Python.h>
-//#endif
-
-//extern "C" {
-//  void init_mytkinter( Tcl_Interp* );
-//  void init_slicer(void );
-//}
-//#include "vtkTclUtil.h"
-//
 #endif
 
 
@@ -832,7 +818,22 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     int label = labels->GetValue(n);
 
     // Get the path to the script
-    const char* script = this->CurveScriptSelectButton->GetWidget()->GetFileName();
+    //const char* script = this->CurveScriptSelectButton->GetWidget()->GetFileName();
+    if (!this->CurveAnalysisScript)
+      {
+      vtkErrorMacro("Script is not selected.");
+      return;
+      /*
+      vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
+      dialog->SetParent ( this->GetApplicationGUI()->GetMainSlicerWindow() );
+      dialog->SetStyleToMessage();
+      std::string msg = std::string("Please select Python script for curve analysis");
+      dialog->SetText(msg.c_str());
+      dialog->Create ( );
+      dialog->Invoke();
+      dialog->Delete();
+      */
+      }
 
     vtkDoubleArray* curve = this->IntensityCurves->GetCurve(label);
     if (curve)
@@ -841,7 +842,8 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       vtkMRMLCurveAnalysisNode* curveNode = vtkMRMLCurveAnalysisNode::New();
       this->GetMRMLScene()->AddNode(curveNode);
 
-      this->GetLogic()->GetCurveAnalysisInfo(script, curveNode);
+      //this->GetLogic()->GetCurveAnalysisInfo(script, curveNode);
+      this->CurveAnalysisScript->GetInfo(curveNode);
 
       // Prepare vtkDoubleArray to pass the source cueve data
       vtkDoubleArray* srcCurve = vtkDoubleArray::New();
@@ -879,7 +881,8 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       curveNode->SetFittedData(fittedCurve);
 
       // Call Logic to excecute the curve fitting script
-      this->GetLogic()->RunCurveFitting(script, curveNode);
+      //this->GetLogic()->RunCurveFitting(script, curveNode);
+      this->CurveAnalysisScript->Run(curveNode);
 
       // Display result parameters
       UpdateOutputParameterList(curveNode);
@@ -1588,7 +1591,7 @@ void vtkFourDAnalysisGUI::BuildGUIForMapGenerator(int show)
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Curve Fitting");
+  conBrowsFrame->SetLabelText("Parameter Map");
   if (!show)
     {
     conBrowsFrame->CollapseFrame();
