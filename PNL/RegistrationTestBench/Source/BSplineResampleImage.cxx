@@ -243,6 +243,7 @@ int main( int argc, char * argv[] )
   
   try
     {
+    movingWriter->UseCompressionOn();
     movingWriter->Update();
     }
   catch( itk::ExceptionObject & excp )
@@ -296,6 +297,7 @@ int main( int argc, char * argv[] )
     fieldWriter->SetFileName( argv[6] );
     try
       {
+      fieldWriter->UseCompressionOn();
       fieldWriter->Update();
       }
     catch( itk::ExceptionObject & excp )
