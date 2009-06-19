@@ -62,6 +62,7 @@
 #include "vtkMRML4DBundleNode.h"
 #include "vtkMRMLCurveAnalysisNode.h"
 
+#include "vtkCurveAnalysisPythonInterface.h"
 
 #ifdef Slicer3_USE_PYTHON
 //// If debug, Python wants pythonxx_d.lib, so fake it out
@@ -105,7 +106,7 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->IntensityCurves = vtkIntensityCurves::New();
   this->FittedCurve     = vtkDoubleArray::New();
 
-  this->Script = NULL;
+  this->CurveAnalysisScript = NULL;
 
   //----------------------------------------------------------------
   // GUI widgets
@@ -809,14 +810,15 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     this->GetMRMLScene()->AddNode(curveNode);
 
     //const char* script = this->CurveScriptSelectButton->GetWidget()->GetFileName();
-    if (this->Script)
+    if (this->CurveAnalysisScript)
       {
-      this->Script->Delete();
+      this->CurveAnalysisScript->Delete();
       }
-    this->Script = vtkCurveAnalysisPythonScript::New();
-    this->Script->SetScript(this->CurveScriptSelectButton->GetWidget()->GetFileName());
+    this->CurveAnalysisScript = vtkCurveAnalysisPythonInterface::New();
+    this->CurveAnalysisScript->SetScript(this->CurveScriptSelectButton->GetWidget()->GetFileName());
+    //this->GetLogic()->GetCurveAnalysisInfo(script, curveNode);
+    this->CurveAnalysisScript->GetInfo(curveNode);
 
-    this->GetLogic()->GetCurveAnalysisInfo(script, curveNode);
     UpdateInitialParameterList(curveNode);
 
     this->GetMRMLScene()->RemoveNode(curveNode);

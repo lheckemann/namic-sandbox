@@ -59,6 +59,7 @@ set(FourDAnalysis_SRCS
   vtkKWPlotGraph.cxx
   vtkIntensityCurves.cxx
   vtkMRMLCurveAnalysisNode.cxx
+  vtkCurveAnalysisPythonInterface.cxx
 )
 
 

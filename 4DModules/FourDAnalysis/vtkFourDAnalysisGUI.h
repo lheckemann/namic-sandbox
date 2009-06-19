@@ -45,6 +45,8 @@ class vtkKWRadioButton;
 class vtkKWRange;
 class vtkIntensityCurves;
 class vtkKWCheckButtonWithLabel;
+class vtkCurveAnalysisPythonInterface;
+
 
 //class vtkFourDImageGUI;
 
@@ -261,6 +263,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
 
   vtkIntensityCurves* IntensityCurves;
   vtkDoubleArray*     FittedCurve;
+
+  vtkCurveAnalysisPythonInterface* CurveAnalysisScript;
 
 };
 
