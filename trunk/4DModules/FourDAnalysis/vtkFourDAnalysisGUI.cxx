@@ -1073,6 +1073,7 @@ void vtkFourDAnalysisGUI::BuildGUI ( )
   BuildGUIForActiveBundleSelectorFrame();
   BuildGUIForFrameControlFrame(0);
   BuildGUIForFunctionViewer(0);
+  BuildGUIForScriptSetting(0);
   BuildGUIForCurveFitting(0);
   BuildGUIForMapGenerator(0);
 
@@ -1286,7 +1287,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Curve Fitting / Parameter Map");
+  conBrowsFrame->SetLabelText("Intensity Plot");
   if (!show)
     {
     conBrowsFrame->CollapseFrame();
@@ -1409,7 +1410,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
 
 
 //----------------------------------------------------------------------------
-void vtkFourDAnalysisGUI::BuildGUIForCurveFitting(int show)
+void vtkFourDAnalysisGUI::BuildGUIForScriptSetting(int show)
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("FourDAnalysis");
@@ -1418,7 +1419,7 @@ void vtkFourDAnalysisGUI::BuildGUIForCurveFitting(int show)
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Curve Fitting");
+  conBrowsFrame->SetLabelText("Script / Parameters");
   if (!show)
     {
     conBrowsFrame->CollapseFrame();
@@ -1450,41 +1451,54 @@ void vtkFourDAnalysisGUI::BuildGUIForCurveFitting(int show)
   this->CurveScriptSelectButton = vtkKWLoadSaveButtonWithLabel::New();
   this->CurveScriptSelectButton->SetParent(scriptframe);
   this->CurveScriptSelectButton->Create();
-  this->CurveScriptSelectButton->SetWidth(50);
-  this->CurveScriptSelectButton->GetWidget()->SetText ("Load");
+  //this->CurveScriptSelectButton->SetWidth(50);
+  this->CurveScriptSelectButton->GetWidget()->SetText ("Script Path");
   this->CurveScriptSelectButton->GetWidget()->GetLoadSaveDialog()->SaveDialogOff();
 
+  this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
+               this->CurveScriptSelectButton->GetWidgetName());
+  this->Script("pack %s -side right -anchor w -padx 2 -pady 2", 
+               scriptLabel->GetWidgetName());
+
+  scriptLabel->Delete();
+  scriptframe->Delete();
+
+  vtkKWFrame *rangeframe = vtkKWFrame::New();
+  rangeframe->SetParent(cframe->GetFrame());
+  rangeframe->Create();
+  this->Script ("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                rangeframe->GetWidgetName() );
+
   vtkKWLabel *startLabel = vtkKWLabel::New();
-  startLabel->SetParent(scriptframe);
+  startLabel->SetParent(rangeframe);
   startLabel->Create();
   startLabel->SetText("From:");
   
   this->CurveFittingStartIndexSpinBox = vtkKWSpinBox::New();
-  this->CurveFittingStartIndexSpinBox->SetParent(scriptframe);
+  this->CurveFittingStartIndexSpinBox->SetParent(rangeframe);
   this->CurveFittingStartIndexSpinBox->Create();
   this->CurveFittingStartIndexSpinBox->SetWidth(3);
 
   vtkKWLabel *endLabel = vtkKWLabel::New();
-  endLabel->SetParent(scriptframe);
+  endLabel->SetParent(rangeframe);
   endLabel->Create();
   endLabel->SetText("to:");
 
   this->CurveFittingEndIndexSpinBox = vtkKWSpinBox::New();
-  this->CurveFittingEndIndexSpinBox->SetParent(scriptframe);
+  this->CurveFittingEndIndexSpinBox->SetParent(rangeframe);
   this->CurveFittingEndIndexSpinBox->Create();
   this->CurveFittingEndIndexSpinBox->SetWidth(3);
 
-  this->Script("pack %s %s %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
-               scriptLabel->GetWidgetName(),
-               this->CurveScriptSelectButton->GetWidgetName(),
+  this->Script("pack %s %s %s %s -side left -fill x -expand y -anchor w -padx 2 -pady 2",
                startLabel->GetWidgetName(),
                this->CurveFittingStartIndexSpinBox->GetWidgetName(),
                endLabel->GetWidgetName(),
                this->CurveFittingEndIndexSpinBox->GetWidgetName());
 
-  scriptLabel->Delete();
-  scriptframe->Delete();
-
+  startLabel->Delete();
+  endLabel->Delete();
+  rangeframe->Delete();
+  
   this->InitialParameterList = vtkKWMultiColumnListWithScrollbars::New();
   this->InitialParameterList->SetParent(cframe->GetFrame());
   this->InitialParameterList->Create();
@@ -1507,6 +1521,28 @@ void vtkFourDAnalysisGUI::BuildGUIForCurveFitting(int show)
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  this->InitialParameterList->GetWidgetName() );
 
+
+  
+}
+
+
+//----------------------------------------------------------------------------
+void vtkFourDAnalysisGUI::BuildGUIForCurveFitting(int show)
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("FourDAnalysis");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Curve Fitting");
+  if (!show)
+    {
+    conBrowsFrame->CollapseFrame();
+    }
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
   // Curve fitting
