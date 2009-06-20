@@ -5,12 +5,12 @@ SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
 
 FIND_PATH(PNL_BRAIN_DATA_DIR README.txt)
 
-MACRO(REGISTER_IMAGES CASEID DATASET1 EXTENSION1 DATASET2 EXTENSION2)
+MACRO(REGISTER_IMAGES CASEID DIR1 DATASET1 EXTENSION1 DIR2 DATASET2 EXTENSION2)
 
 ADD_TEST(RegistrationBSpline_${CASEID}
   ${EXECUTABLE_OUTPUT_PATH}/DeformableRegistration01
-  ${PNL_BRAIN_DATA_DIR}/${DATASET1}.${EXTENSION1}
-  ${PNL_BRAIN_DATA_DIR}/${DATASET2}.${EXTENSION2}
+  ${DIR1}/${DATASET1}.${EXTENSION1}
+  ${DIR2}/${DATASET2}.${EXTENSION2}
   ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}.mha
   ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceAfter.mha
   ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceBefore.mha
@@ -27,8 +27,8 @@ ADD_TEST(RegistrationBSpline_${CASEID}
 
 ADD_TEST(BSplineResampleImage_${CASEID}
   ${EXECUTABLE_OUTPUT_PATH}/BSplineResampleImage
-  ${PNL_BRAIN_DATA_DIR}/${DATASET1}.${EXTENSION1}
-  ${PNL_BRAIN_DATA_DIR}/${DATASET2}.${EXTENSION2}
+  ${DIR1}/${DATASET1}.${EXTENSION1}
+  ${DIR2}/${DATASET2}.${EXTENSION2}
   ${TEMP}/finalAffineTransform_${DATASET1}_${DATASET2}.txt
   ${TEMP}/finalBSplineTransform_${DATASET1}_${DATASET2}.txt
   ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}.mha
@@ -46,26 +46,26 @@ ENDMACRO(REGISTER_IMAGES)
 #
 
 REGISTER_IMAGES( T2-DWI
-  01053-dwi-filt-Ed-Basline-masked  nrrd
-  01053-t2w-realign-masked          nrrd
+  ${PNL_BRAIN_DATA_DIR}  01053-dwi-filt-Ed-Basline-masked  nrrd
+  ${PNL_BRAIN_DATA_DIR}  01053-t2w-realign-masked          nrrd
   )
 
 REGISTER_IMAGES( T2-T2
-  01053-t2w   nrrd
-  01031-t2w   nrrd
+  ${PNL_BRAIN_DATA_DIR}  01053-t2w   nrrd
+  ${PNL_BRAIN_DATA_DIR}  01031-t2w   nrrd
   )
 
 #
 # cross verification
 #
 REGISTER_IMAGES( T2-T2-Back
-  01031-t2w   nrrd
-  01031-t2w_BSplineTo_01053-t2w  mha
+  ${PNL_BRAIN_DATA_DIR}  01031-t2w   nrrd
+  ${TEMP}  01031-t2w_BSplineTo_01053-t2w  mha
   )
 
 REGISTER_IMAGES( T1-T2
-  01053-t1w   nrrd
-  01031-t2w   nrrd
+  ${PNL_BRAIN_DATA_DIR}  01053-t1w   nrrd
+  ${PNL_BRAIN_DATA_DIR}  01031-t2w   nrrd
   )
 
 
