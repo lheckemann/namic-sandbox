@@ -71,8 +71,8 @@ TriangleListBasisSystemCalculator<TMesh, TBasisSystem>
 
   basisCalculator->SetInputMesh( this->m_InputMesh );
 
-  CellsContainerIterator cellIterator = this->m_InputMesh->GetCells()->Begin();
-  CellsContainerIterator cellEnd = this->m_InputMesh->GetCells()->End();
+  CellsContainerConstIterator cellIterator = this->m_InputMesh->GetCells()->Begin();
+  CellsContainerConstIterator cellEnd = this->m_InputMesh->GetCells()->End();
 
   TBasisSystem triangleBasisSystem;
 

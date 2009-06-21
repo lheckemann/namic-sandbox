@@ -65,7 +65,9 @@ public:
   typedef typename MeshType::CellType                   CellType;
   typedef typename PointType::VectorType                VectorType;
   typedef typename MeshType::ConstPointer               MeshConstPointer;
-  typedef typename MeshType::CellsContainerIterator     CellsContainerIterator;
+  typedef typename MeshType::CellsContainer             CellsContainer;
+  typedef typename CellsContainer::Iterator             CellsContainerIterator;
+  typedef typename CellsContainer::ConstIterator        CellsContainerConstIterator;
 
 
   /** Set/Get the input mesh. */
