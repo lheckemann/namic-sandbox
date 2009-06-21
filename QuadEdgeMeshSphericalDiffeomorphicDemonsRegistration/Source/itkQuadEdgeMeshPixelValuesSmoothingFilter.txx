@@ -71,11 +71,15 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
   std::cout << "angl = " << angle << std::endl;
 
   OutputVectorType vdst2 = versor.Transform( vsrc );
+  std::cout << std::endl;
+  std::cout << "vdst = " << vdst << std::endl;
   std::cout << "vdst2 = " << vdst2 << std::endl;
 
   std::cout << std::endl << std::endl;
 
-  transportedPixelValue = vdst2;
+  transportedPixelValue = versor.Transform( inputPixelValue );
+  std::cout << "inputPixelValue = " << inputPixelValue << std::endl;
+  std::cout << "transportedPixelValue = " << transportedPixelValue << std::endl;
 }
 
 template< class TInputMesh, class TOutputMesh >
@@ -113,7 +117,7 @@ std::cout << "Mesh after copying " << std::endl;
 
   if( pointData.IsNull() )
     {
-    itkExceptionMacro("Mesh has NULL PointData");
+    itkExceptionMacro("Output Mesh has NULL PointData");
     }
 
 
