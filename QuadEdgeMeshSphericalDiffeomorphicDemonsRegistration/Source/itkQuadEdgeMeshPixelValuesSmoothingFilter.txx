@@ -83,20 +83,26 @@ void
 QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 ::GenerateData()
 {
+std::cout << "QuadEdgeMeshPixelValuesSmoothingFilter::GenerateData() " << std::endl;
+std::cout << "Number of Iterations " << this->m_MaximumNumberOfIterations << std::endl;
+
+std::cout << "Input Mesh " << std::endl;
+this->GetInput()->Print( std::cout );
+
+  // Copy the input mesh into the output mesh.
+  this->CopyInputMeshToOutputMesh();
+
   OutputMeshPointer outputMesh = this->GetOutput();
 
-  if( this->m_MaximumNumberOfIterations == 0 )
-    {
-    // Copy the input mesh into the output mesh.
-    this->Superclass::GenerateData();
-    }
-
+std::cout << "Mesh after copying " << std::endl;
+  outputMesh->Print( std::cout );
 
   ProgressReporter progress(this, 0, this->m_MaximumNumberOfIterations);
 
 
   for( unsigned int iter = 0; iter < this->m_MaximumNumberOfIterations; ++iter )
     {
+std::cout << " Smoothing Iteration " << iter << std::endl;
     
     //
     // Visit all nodes of the Mesh 
@@ -116,6 +122,8 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
     typedef typename OutputMeshType::QEPrimal    EdgeType;
 
     const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
+
+std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
 
     for( unsigned int pointId = 0; pointId < numberOfPoints; pointId++ )
       {
