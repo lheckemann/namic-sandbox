@@ -63,22 +63,23 @@ public:
   typedef typename InputMeshType::PixelType                InputPixelType;
   typedef typename InputMeshType::PointDataContainer       InputPointDataContainer;
 
-  typedef TOutputMesh                                      OutputMeshType;
-  typedef typename OutputMeshType::Pointer                 OutputMeshPointer;
-  typedef typename OutputMeshType::EdgeCellType            OutputEdgeCellType;
-  typedef typename OutputMeshType::PolygonCellType         OutputPolygonCellType;
-  typedef typename OutputMeshType::QEType                  OutputQEType;
-  typedef typename OutputMeshType::PointIdentifier         OutputPointIdentifier;
-  typedef typename OutputMeshType::PointType               OutputPointType;
-  typedef typename OutputPointType::VectorType             OutputVectorType;
-  typedef typename OutputPointType::CoordRepType           OutputCoordType;
-  typedef typename OutputMeshType::PointsContainer         OutputPointsContainer;
-  typedef typename OutputMeshType::PointsContainerPointer  OutputPointsContainerPointer;
-  typedef typename OutputMeshType::PointsContainerIterator OutputPointsContainerIterator;
-  typedef typename OutputMeshType::CellsContainerPointer   OutputCellsContainerPointer;
-  typedef typename OutputMeshType::CellsContainerIterator  OutputCellsContainerIterator;
-  typedef typename OutputMeshType::PointDataContainer      OutputPointDataContainer;
-  typedef typename OutputMeshType::PixelType               OutputPixelType;
+  typedef TOutputMesh                                        OutputMeshType;
+  typedef typename OutputMeshType::Pointer                   OutputMeshPointer;
+  typedef typename OutputMeshType::EdgeCellType              OutputEdgeCellType;
+  typedef typename OutputMeshType::PolygonCellType           OutputPolygonCellType;
+  typedef typename OutputMeshType::QEType                    OutputQEType;
+  typedef typename OutputMeshType::PointIdentifier           OutputPointIdentifier;
+  typedef typename OutputMeshType::PointType                 OutputPointType;
+  typedef typename OutputPointType::VectorType               OutputVectorType;
+  typedef typename OutputPointType::CoordRepType             OutputCoordType;
+  typedef typename OutputMeshType::PointsContainer           OutputPointsContainer;
+  typedef typename OutputMeshType::PointsContainerPointer    OutputPointsContainerPointer;
+  typedef typename OutputMeshType::PointsContainerIterator   OutputPointsContainerIterator;
+  typedef typename OutputMeshType::CellsContainerPointer     OutputCellsContainerPointer;
+  typedef typename OutputMeshType::CellsContainerIterator    OutputCellsContainerIterator;
+  typedef typename OutputMeshType::PointDataContainer        OutputPointDataContainer;
+  typedef typename OutputMeshType::PointDataContainerPointer OutputPointDataContainerPointer;
+  typedef typename OutputMeshType::PixelType                 OutputPixelType;
 
   itkStaticConstMacro( PointDimension, unsigned int, OutputMeshType::PointDimension );
 
@@ -102,6 +103,10 @@ public:
    *
    * The default value of Lambda is 1.0.
    *
+   * The filter assumes that the neighbor nodes of any given nodes are located
+   * at similar distances, and therefore uses the same weight for each one of
+   * the neighbor values when computing their weighted average.
+   *
    */
   itkSetMacro( Lambda, double );
   itkGetMacro( Lambda, double );
@@ -109,11 +114,21 @@ public:
   /** Set Sphere Center.  The implementation of this filter assumes that the
    * Mesh surface has a spherical geometry (not only spherical topology). With
    * this method you can specify the coordinates of the center of the sphere
-   * represented by the Mesh. This will be used in the ocmputation of parallel
+   * represented by the Mesh. This will be used in the computation of parallel
    * transport for vector field values associated with nodes.
    */
   itkSetMacro( SphereCenter, OutputPointType );
   itkGetConstMacro( SphereCenter, OutputPointType );
+
+  /** Set Sphere Radius.  The implementation of this filter assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the radius of the sphere. This will be used in
+   * the computation of parallel transport for vector field values associated
+   * with nodes.
+   */
+  itkSetMacro( SphereRadius, double );
+  itkGetConstMacro( SphereRadius, double );
+
 
 protected:
   QuadEdgeMeshPixelValuesSmoothingFilter();
@@ -128,6 +143,7 @@ protected:
    * be computed.
    */
   void ParalelTransport( 
+    const OutputPointType src, const OutputPointType dst,
     const InputPixelType & inputPixelValue, 
     InputPixelType & transportedPixelValue ) const;
 
@@ -140,6 +156,8 @@ private:
   double                    m_Lambda;
 
   OutputPointType           m_SphereCenter;
+
+  double                    m_SphereRadius;
 };
 
 }
