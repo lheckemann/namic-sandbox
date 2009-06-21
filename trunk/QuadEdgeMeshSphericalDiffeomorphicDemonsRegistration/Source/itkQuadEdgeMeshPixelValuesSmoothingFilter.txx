@@ -97,6 +97,26 @@ this->GetInput()->Print( std::cout );
 std::cout << "Mesh after copying " << std::endl;
   outputMesh->Print( std::cout );
 
+  //
+  // Visit all nodes of the Mesh 
+  //
+  typedef typename OutputPointDataContainer::ConstIterator OutputPointDataIterator;
+
+  OutputPointsContainerPointer points = outputMesh->GetPoints();
+
+  if( points.IsNull() )
+    {
+    itkExceptionMacro("Mesh has NULL PointData");
+    }
+
+  OutputPointDataContainerPointer pointData = outputMesh->GetPointData();
+
+  if( pointData.IsNull() )
+    {
+    itkExceptionMacro("Mesh has NULL PointData");
+    }
+
+
   ProgressReporter progress(this, 0, this->m_MaximumNumberOfIterations);
 
 
@@ -104,21 +124,6 @@ std::cout << "Mesh after copying " << std::endl;
     {
 std::cout << " Smoothing Iteration " << iter << std::endl;
     
-    //
-    // Visit all nodes of the Mesh 
-    //
-    typedef typename OutputPointDataContainer::ConstIterator OutputPointDataIterator;
-
-    OutputPointsContainerPointer points = outputMesh->GetPoints();
-    OutputPointDataContainerPointer pointData = outputMesh->GetPointData();
-
-    OutputPointDataIterator pixelIterator = outputMesh->GetPointData()->Begin();
-    OutputPointDataIterator pixelEnd      = outputMesh->GetPointData()->End();
-
-    typedef typename OutputPointsContainer::Iterator     PointIterator;
-    PointIterator pointIterator = points->Begin();
-    PointIterator pointEnd      = points->End();
-
     typedef typename OutputMeshType::QEPrimal    EdgeType;
 
     const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
