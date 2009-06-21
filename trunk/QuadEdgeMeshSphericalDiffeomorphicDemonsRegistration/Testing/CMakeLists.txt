@@ -155,8 +155,8 @@ ADD_TEST(itkNodeVectorJacobianCalculatorTest2
 
 ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
-  ${TEMP}/fixedMesh01.vtk
-  ${TEMP}/fixedMesh01Smoothed.vtk
+  ${TEMP}/meshWithVectors.vtk
+  ${TEMP}/meshWithVectorsSmoothed.vtk
   )
 
 ADD_TEST(itkTriangleBasisSystemTest1
