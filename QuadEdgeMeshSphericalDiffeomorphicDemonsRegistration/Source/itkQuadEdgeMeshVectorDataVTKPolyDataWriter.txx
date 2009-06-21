@@ -60,7 +60,7 @@ void
 QuadEdgeMeshVectorDataVTKPolyDataWriter<TMesh> 
 ::WriteCellData()
 {
-  CellDataContainerPointer celldata = this->m_Input->GetCellData();
+  CellDataContainerConstPointer celldata = this->m_Input->GetCellData();
 
   if( celldata )
     {
@@ -84,12 +84,12 @@ QuadEdgeMeshVectorDataVTKPolyDataWriter<TMesh>
 
       unsigned long k(0);
 
-      CellsContainerPointer cells = this->m_Input->GetCells();
-      CellsContainerIterator it = cells->Begin();
+      CellsContainerConstPointer cells = this->m_Input->GetCells();
+      CellsContainerConstIterator it = cells->Begin();
 
-      for( CellDataContainerIterator c_it = celldata->Begin();
-          c_it != celldata->End();
-          ++c_it, ++it )
+      CellDataContainerConstIterator c_it = celldata->Begin();
+
+      while( c_it != celldata->End() )
         {
         CellType* cellPointer = it.Value();
         if( cellPointer->GetType() != 1 )
@@ -100,6 +100,8 @@ QuadEdgeMeshVectorDataVTKPolyDataWriter<TMesh>
             outputFile <<std::endl;
             }
           }
+        ++c_it;
+        ++it;
         }
       outputFile <<std::endl;
       outputFile.close();
