@@ -51,8 +51,8 @@ REGISTER_IMAGES( T2-DWI
   )
 
 REGISTER_IMAGES( T2-T2
-  ${PNL_BRAIN_DATA_DIR}  01053-t2w   nrrd
-  ${PNL_BRAIN_DATA_DIR}  01031-t2w   nrrd
+  ${PNL_BRAIN_DATA_DIR}  01053-t2w-realign-masked   nrrd
+  ${PNL_BRAIN_DATA_DIR}  01031-t2w                  nrrd
   )
 
 #
@@ -64,8 +64,8 @@ REGISTER_IMAGES( T2-T2-Back
   )
 
 REGISTER_IMAGES( T1-T2
-  ${PNL_BRAIN_DATA_DIR}  01053-t1w   nrrd
-  ${PNL_BRAIN_DATA_DIR}  01031-t2w   nrrd
+  ${PNL_BRAIN_DATA_DIR}  01053-t1w-realign      nrrd
+  ${PNL_BRAIN_DATA_DIR}  01031-t2w              nrrd
   )
 
 
