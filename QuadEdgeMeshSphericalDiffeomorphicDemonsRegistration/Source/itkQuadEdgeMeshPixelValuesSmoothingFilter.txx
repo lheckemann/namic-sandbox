@@ -19,6 +19,7 @@
 
 #include "itkQuadEdgeMeshPixelValuesSmoothingFilter.h"
 #include "itkProgressReporter.h"
+#include "itkVersor.h"
 
 namespace itk
 {
@@ -31,6 +32,7 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
   this->m_Lambda = 1.0;
   this->m_MaximumNumberOfIterations = 10;
   this->m_SphereCenter.Fill( 0.0 );
+  this->m_SphereRadius = 1.0;
 }
 
 
@@ -43,15 +45,37 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 template< class TInputMesh, class TOutputMesh >
 void
 QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
-::ParalelTransport( const InputPixelType & inputPixelValue, 
+::ParalelTransport( 
+    const OutputPointType src, const OutputPointType dst,
+    const InputPixelType & inputPixelValue, 
     InputPixelType & transportedPixelValue ) const
 {
-  // FIXME: temporary implementation, to be replaced with real parallel
-  // transport.
-  transportedPixelValue = inputPixelValue;
+  OutputVectorType vsrc = src - this->m_SphereCenter;
+  OutputVectorType vdst = dst - this->m_SphereCenter;
 
-  this->m_SphereCenter;
+  OutputVectorType axis = CrossProduct( vsrc, vdst );
 
+  double sinus   = axis.GetNorm();
+  double cosinus = vsrc * vdst;
+
+  double angle = atan2( sinus, cosinus );
+  
+  typedef Versor< double > VersorType;
+
+  VersorType versor;
+  versor.Set( axis, angle );
+
+  std::cout << "vsrc = " << vsrc << std::endl;
+  std::cout << "vdst = " << vdst << std::endl;
+  std::cout << "axis = " << axis << std::endl;
+  std::cout << "angl = " << angle << std::endl;
+
+  OutputVectorType vdst2 = versor.Transform( vsrc );
+  std::cout << "vdst2 = " << vdst2 << std::endl;
+
+  std::cout << std::endl << std::endl;
+
+  transportedPixelValue = vdst2;
 }
 
 template< class TInputMesh, class TOutputMesh >
@@ -78,12 +102,16 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
     // Visit all nodes of the Mesh 
     //
     typedef typename OutputPointDataContainer::ConstIterator OutputPointDataIterator;
+
+    OutputPointsContainerPointer points = outputMesh->GetPoints();
+    OutputPointDataContainerPointer pointData = outputMesh->GetPointData();
+
     OutputPointDataIterator pixelIterator = outputMesh->GetPointData()->Begin();
     OutputPointDataIterator pixelEnd      = outputMesh->GetPointData()->End();
 
     typedef typename OutputPointsContainer::Iterator     PointIterator;
-    PointIterator pointIterator = outputMesh->GetPoints()->Begin();
-    PointIterator pointEnd      = outputMesh->GetPoints()->End();
+    PointIterator pointIterator = points->Begin();
+    PointIterator pointEnd      = points->End();
 
     typedef typename OutputMeshType::QEPrimal    EdgeType;
 
@@ -91,18 +119,22 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 
     for( unsigned int pointId = 0; pointId < numberOfPoints; pointId++ )
       {
+std::cout << "Smoothing point " << pointId << std::endl;
       EdgeType * edge1 = outputMesh->FindEdge( pointId );
-      }
 
-    while( pixelIterator != pixelEnd  && pointIterator != pointEnd ) 
-      {
-     
-      //
-      //  Parallel transport all its neigbors
-      // 
-      pointIterator.Value() = pointIterator.Value() + pixelIterator.Value();
-      ++pixelIterator;
-      ++pointIterator;
+      OutputPointIdentifier pointId2 = edge1->GetDestination();
+
+      const OutputPointType & point0 = points->GetElement( pointId );
+      const OutputPointType & point2 = points->GetElement( pointId2 );
+
+      const OutputPixelType & pixelValue2 = pointData->GetElement( pointId2 );
+      OutputPixelType transportedPixelValue;
+
+      this->ParalelTransport( point2, point0, pixelValue2, transportedPixelValue );
+
+      std::cout << "source      pixel = " << pixelValue2 << std::endl;
+      std::cout << "destination pixel = " << transportedPixelValue << std::endl;
+
       }
 
     progress.CompletedPixel();  // potential exception thrown here
