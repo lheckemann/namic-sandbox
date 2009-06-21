@@ -81,7 +81,9 @@ public:
 
   typedef typename InputMeshType::CellType                                  CellType;
   typedef typename InputMeshType::CellTraits                                CellTraits;
-  typedef typename InputMeshType::CellsContainerIterator                    CellsContainerIterator;
+  typedef typename InputMeshType::CellsContainer                            CellsContainer;
+  typedef typename CellsContainer::Iterator                                 CellsContainerIterator;
+  typedef typename CellsContainer::ConstIterator                            CellsContainerConstIterator;
   typedef typename CellTraits::PointIdIterator                              PointIdIterator;
 
   typedef TriangleHelper< PointType >                                       TriangleType;

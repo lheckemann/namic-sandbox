@@ -102,8 +102,8 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
 
   // Start with gradient computation for each triangle. Uses linear interpolator.
 
-  CellsContainerIterator cellIterator = this->m_InputMesh->GetCells()->Begin();
-  CellsContainerIterator cellEnd = this->m_InputMesh->GetCells()->End();
+  CellsContainerConstIterator cellIterator = this->m_InputMesh->GetCells()->Begin();
+  CellsContainerConstIterator cellEnd = this->m_InputMesh->GetCells()->End();
 
   BasisSystemListIterator basisSystemListIterator;
   basisSystemListIterator = m_BasisSystemList->Begin();
