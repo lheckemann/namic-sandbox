@@ -181,24 +181,32 @@ ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectors.vtk
   ${TEMP}/meshWithVectorsSmoothed.vtk
+  1.0   # Lambda
+  10    # Iterations
   )
 
 ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest2
   ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectorsIC1.vtk
   ${TEMP}/meshWithVectorsIC1Smoothed.vtk
+  1.0   # Lambda
+  10    # Iterations
   )
 
 ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest3
   ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectorsIC4.vtk
   ${TEMP}/meshWithVectorsIC4Smoothed.vtk
+  1.0   # Lambda
+  10    # Iterations
   )
 
 ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest4
   ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectorsIC7.vtk
   ${TEMP}/meshWithVectorsIC7Smoothed.vtk
+  1.0   # Lambda
+  10    # Iterations
   )
 
 

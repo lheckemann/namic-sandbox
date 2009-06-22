@@ -27,11 +27,11 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 3 )
+  if( argc < 5 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputMeshFile  outputMeshfile " << std::endl;
+    std::cerr << " inputMeshFile  outputMeshfile lambda iterations" << std::endl;
     return EXIT_FAILURE;
     }
   
@@ -91,6 +91,9 @@ int main( int argc, char *argv[] )
 
 
   FilterWatcher watcher( filter, "Smoothing Filter");
+
+  filter->SetLambda( atof( argv[3] ) );
+  filter->SetMaximumNumberOfIterations( atoi( argv[4] ) );
 
   try
     {
