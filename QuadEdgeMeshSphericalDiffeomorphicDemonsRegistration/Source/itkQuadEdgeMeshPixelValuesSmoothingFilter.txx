@@ -116,6 +116,10 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 
     std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
 
+    OutputPointDataContainerPointer newPointDataContainer = OutputPointDataContainer::New();
+
+    newPointDataContainer->Reserve( pointData->Size() );
+
     OutputPixelType transportedPixelValue;
 
     typedef typename NumericTraits< OutputPixelType >::AccumulateType AccumulatePixelType;
@@ -166,7 +170,12 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
         smoothedPixelValue[k] = pixelSum[k] * normalizationFactor;
         }
 
+      newPointDataContainer->SetElement( pointId, smoothedPixelValue );
       }
+
+    outputMesh->SetPointData( newPointDataContainer );
+
+    pointData = newPointDataContainer;
 
     progress.CompletedPixel();  // potential exception thrown here
     }
