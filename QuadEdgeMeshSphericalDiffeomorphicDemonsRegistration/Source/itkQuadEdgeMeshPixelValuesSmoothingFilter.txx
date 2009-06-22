@@ -20,6 +20,7 @@
 #include "itkQuadEdgeMeshPixelValuesSmoothingFilter.h"
 #include "itkProgressReporter.h"
 #include "itkVersor.h"
+#include "itkNumericTraitsVectorPixel.h"
 
 namespace itk
 {
@@ -42,6 +43,7 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 {
 }
 
+
 template< class TInputMesh, class TOutputMesh >
 void
 QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
@@ -55,10 +57,10 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 
   OutputVectorType axis = CrossProduct( vsrc, vdst );
 
-  double sinus   = axis.GetNorm();
-  double cosinus = vsrc * vdst;
+  const double scaledSinus   = axis.GetNorm();
+  const double scaledCosinus = vsrc * vdst;
 
-  double angle = atan2( sinus, cosinus );
+  double angle = vcl_atan2( scaledSinus, scaledCosinus );
   
   typedef Versor< double > VersorType;
 
@@ -66,9 +68,8 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
   versor.Set( axis, angle );
 
   transportedPixelValue = versor.Transform( inputPixelValue );
-  std::cout << "inputPixelValue = " << inputPixelValue << std::endl;
-  std::cout << "transportedPixelValue = " << transportedPixelValue << std::endl;
 }
+
 
 template< class TInputMesh, class TOutputMesh >
 void
@@ -99,37 +100,71 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
     itkExceptionMacro("Output Mesh has NULL PointData");
     }
 
+  const double weightFactor = vcl_exp( - 1.0 / ( 2.0 * this->m_Lambda ) );
 
   ProgressReporter progress(this, 0, this->m_MaximumNumberOfIterations);
 
+  OutputPixelType smoothedPixelValue;
 
   for( unsigned int iter = 0; iter < this->m_MaximumNumberOfIterations; ++iter )
     {
-std::cout << " Smoothing Iteration " << iter << std::endl;
+    std::cout << " Smoothing Iteration " << iter << std::endl;
     
     typedef typename OutputMeshType::QEPrimal    EdgeType;
 
     const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
 
-std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
+    std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
+
+    OutputPixelType transportedPixelValue;
+
+    typedef typename NumericTraits< OutputPixelType >::AccumulateType AccumulatePixelType;
 
     for( unsigned int pointId = 0; pointId < numberOfPoints; pointId++ )
       {
-std::cout << "Smoothing point " << pointId << std::endl;
-      EdgeType * edge1 = outputMesh->FindEdge( pointId );
+      std::cout << "Smoothing point " << pointId << std::endl;
 
-      OutputPointIdentifier pointId2 = edge1->GetDestination();
+      const OutputPointType & centralPoint = points->GetElement( pointId );
+      const OutputPixelType & centralPixelValue = pointData->GetElement( pointId );
 
-      const OutputPointType & point0 = points->GetElement( pointId );
-      const OutputPointType & point2 = points->GetElement( pointId2 );
+      const EdgeType * edgeToFirstNeighborPoint = outputMesh->FindEdge( pointId );
+      const EdgeType * edgeToNeighborPoint = edgeToFirstNeighborPoint;
 
-      const OutputPixelType & pixelValue2 = pointData->GetElement( pointId2 );
-      OutputPixelType transportedPixelValue;
+      AccumulatePixelType pixelSum;
+  
+      for( unsigned int k = 0; k < PointDimension; k++ )
+        {
+        pixelSum[k] = centralPixelValue[k];
+        }
 
-      this->ParalelTransport( point2, point0, pixelValue2, transportedPixelValue );
+      unsigned int numberOfNeighbors = 0;
 
-      std::cout << "source      pixel = " << pixelValue2 << std::endl;
-      std::cout << "destination pixel = " << transportedPixelValue << std::endl;
+      do
+        {
+        const OutputPointIdentifier neighborPointId = edgeToNeighborPoint->GetDestination();
+        const OutputPointType & neighborPoint = points->GetElement( neighborPointId );
+        const OutputPixelType & neighborPixelValue = pointData->GetElement( neighborPointId );
+
+        this->ParalelTransport( neighborPoint, centralPoint, neighborPixelValue, transportedPixelValue );
+
+        for( unsigned int k = 0; k < PointDimension; k++ )
+          {
+          pixelSum[k] += weightFactor * transportedPixelValue[k];
+          }
+
+        numberOfNeighbors++;
+
+        edgeToNeighborPoint = edgeToNeighborPoint->GetOnext();
+        }
+      while( edgeToNeighborPoint != edgeToFirstNeighborPoint );
+
+      const double normalizationFactor = 1.0 / ( 1.0 + numberOfNeighbors * weightFactor );
+
+
+      for( unsigned int k = 0; k < PointDimension; k++ )
+        {
+        smoothedPixelValue[k] = pixelSum[k] * normalizationFactor;
+        }
 
       }
 
