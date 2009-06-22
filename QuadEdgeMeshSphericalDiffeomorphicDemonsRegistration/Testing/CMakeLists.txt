@@ -29,6 +29,9 @@ TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest1 ITKQuadEdgeMesh ITKIO ITKNumer
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest2 itkMeshGeneratorHelperTest2.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkMeshGeneratorHelperTest3 itkMeshGeneratorHelperTest3.cxx )
+TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest3 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkQuadEdgeMeshVTKPolyDataReader1 itkQuadEdgeMeshVTKPolyDataReader1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVTKPolyDataReader1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -107,6 +110,11 @@ ADD_TEST(itkMeshGeneratorHelperTest1
 ADD_TEST(itkMeshGeneratorHelperTest2
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest2
   ${TEMP}/meshWithVectors.vtk
+  )
+
+ADD_TEST(itkMeshGeneratorHelperTest3
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
+  ${TEMP}/meshWithVectors3.vtk
   )
 
 ADD_TEST(itkQuadEdgeMeshVTKPolyDataReader1
