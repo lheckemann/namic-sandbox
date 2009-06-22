@@ -106,15 +106,15 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 
   OutputPixelType smoothedPixelValue;
 
+  const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
+
+  std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
+
   for( unsigned int iter = 0; iter < this->m_MaximumNumberOfIterations; ++iter )
     {
     std::cout << " Smoothing Iteration " << iter << std::endl;
     
     typedef typename OutputMeshType::QEPrimal    EdgeType;
-
-    const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
-
-    std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
 
     OutputPointDataContainerPointer newPointDataContainer = OutputPointDataContainer::New();
 
@@ -126,8 +126,6 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 
     for( unsigned int pointId = 0; pointId < numberOfPoints; pointId++ )
       {
-      std::cout << "Smoothing point " << pointId << std::endl;
-
       const OutputPointType & centralPoint = points->GetElement( pointId );
       const OutputPixelType & centralPixelValue = pointData->GetElement( pointId );
 
