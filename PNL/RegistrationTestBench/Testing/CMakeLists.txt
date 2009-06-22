@@ -60,7 +60,7 @@ REGISTER_IMAGES( T2-T2
 #
 REGISTER_IMAGES( T2-T2-Back
   ${PNL_BRAIN_DATA_DIR}  01031-t2w   nrrd
-  ${TEMP}  01031-t2w_BSplineTo_01053-t2w  mha
+  ${TEMP}  01031-t2w_BSplineTo_01053-t2w-realign-masked  mha
   )
 
 REGISTER_IMAGES( T1-T2
