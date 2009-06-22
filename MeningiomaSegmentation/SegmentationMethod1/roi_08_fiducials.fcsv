@@ -1,0 +1,20 @@
+# Fiducial List file /home/andrey/local/src/NAMICSandBox/MeningiomaSegmentation/Input/SegmentationMethod1/roi_08_fiducials.fcsv
+# name = roi_08_fiducials
+# numPoints = 3
+# symbolScale = 5
+# symbolType = 11
+# visibility = 1
+# textScale = 4.5
+# color = 0.4,1,1
+# selectedColor = 1,0.5,0.5
+# opacity = 1
+# ambient = 0
+# diffuse = 1
+# specular = 0
+# power = 1
+# locked = 0
+# numberingScheme = 0
+# columns = label,x,y,z,sel,vis
+roi_08_fiducials-P,-45.4229,17.4127,-31.5,1,1
+roi_08_fiducials-P1,-50.0182,21.1242,-33.6,1,1
+roi_08_fiducials-P2,-50.9019,14.7615,-35,1,1

@@ -1,0 +1,23 @@
+The images in the Data directory contain volumes of interest with meningiomas, and
+the binary segmentation of tumor in each image. The volumes were supersampled 2:1 
+in each dimension from the original data spacing. Linear interpolation was used for 
+grayscale data, and nearest neighbor interpolation -- for segmentations.
+
+If you want to contribute a segmentation result, please create a new uniquely-named 
+directory, and save the segmentation results together with a README file,
+which would hopefully include the following sections:
+
+  ** Method: how did you perform segmentation?
+  ** Parameters: how can your result be reproduced?
+  ** Results: where are the segmentation results saved?
+  ** Execution time: how long did it take to run your method? 
+  ** Parameter selection: How difficult was to find the parameters that you
+  used to achieve the segmentation result? Did you use the default parameters? 
+  ** Platform: what are the characteristics of your machine, is your code optimized? (rough estimate is ok)
+  ** Contact
+
+See the SegmentationMethod1 directory for an example of such description and
+segmentation results.
+
+Please contact Andriy Fedorov (fedorov AV bwh DOT harvard DOT edu) with
+questions or comments.
