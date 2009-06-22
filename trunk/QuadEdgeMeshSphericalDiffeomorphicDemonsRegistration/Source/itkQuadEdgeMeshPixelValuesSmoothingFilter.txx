@@ -65,18 +65,6 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
   VersorType versor;
   versor.Set( axis, angle );
 
-  std::cout << "vsrc = " << vsrc << std::endl;
-  std::cout << "vdst = " << vdst << std::endl;
-  std::cout << "axis = " << axis << std::endl;
-  std::cout << "angl = " << angle << std::endl;
-
-  OutputVectorType vdst2 = versor.Transform( vsrc );
-  std::cout << std::endl;
-  std::cout << "vdst = " << vdst << std::endl;
-  std::cout << "vdst2 = " << vdst2 << std::endl;
-
-  std::cout << std::endl << std::endl;
-
   transportedPixelValue = versor.Transform( inputPixelValue );
   std::cout << "inputPixelValue = " << inputPixelValue << std::endl;
   std::cout << "transportedPixelValue = " << transportedPixelValue << std::endl;
@@ -87,19 +75,10 @@ void
 QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 ::GenerateData()
 {
-std::cout << "QuadEdgeMeshPixelValuesSmoothingFilter::GenerateData() " << std::endl;
-std::cout << "Number of Iterations " << this->m_MaximumNumberOfIterations << std::endl;
-
-std::cout << "Input Mesh " << std::endl;
-this->GetInput()->Print( std::cout );
-
   // Copy the input mesh into the output mesh.
   this->CopyInputMeshToOutputMesh();
 
   OutputMeshPointer outputMesh = this->GetOutput();
-
-std::cout << "Mesh after copying " << std::endl;
-  outputMesh->Print( std::cout );
 
   //
   // Visit all nodes of the Mesh 
