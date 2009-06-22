@@ -43,7 +43,7 @@ public:
   typedef TMesh                    MeshType;
   typedef typename TMesh::Pointer  MeshPointer;
 
-static void GenerateMesh( MeshPointer & mesh )
+static void GenerateMesh( MeshPointer & mesh, unsigned int resolution, double scale )
   {
   typedef itk::RegularSphereMeshSource< MeshType >  SphereMeshSourceType;
 
@@ -56,12 +56,12 @@ static void GenerateMesh( MeshPointer & mesh )
   PointType center; 
   center.Fill( 0.0 );
 
-  VectorType scale;
-  scale.Fill( 1.0 );
+  VectorType scaleVector;
+  scaleVector.Fill( scale );
   
   sphereMeshSource->SetCenter( center );
-  sphereMeshSource->SetScale( scale );
-  sphereMeshSource->SetResolution( 1 );
+  sphereMeshSource->SetScale( scaleVector );
+  sphereMeshSource->SetResolution( resolution );
 
   try
     {
@@ -101,7 +101,7 @@ static void GenerateMesh( MeshPointer & mesh )
   // 
   // Now set the only non-null vector at the Pole.
   //
-  vector[2] = 1.0;
+  vector[0] = scale / 10.0;  // Set only its X component.
   pointData->SetElement( 0, vector );
   }
 

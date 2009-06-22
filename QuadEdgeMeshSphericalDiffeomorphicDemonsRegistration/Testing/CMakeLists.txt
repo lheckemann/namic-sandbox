@@ -114,7 +114,23 @@ ADD_TEST(itkMeshGeneratorHelperTest2
 
 ADD_TEST(itkMeshGeneratorHelperTest3
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
-  ${TEMP}/meshWithVectors3.vtk
+  ${TEMP}/meshWithVectorsIC1.vtk
+  1      # resolution
+  100.0  # Scale (radius)
+  )
+
+ADD_TEST(itkMeshGeneratorHelperTest4
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
+  ${TEMP}/meshWithVectorsIC4.vtk
+  4      # resolution
+  100.0  # Scale (radius)
+  )
+
+ADD_TEST(itkMeshGeneratorHelperTest5
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
+  ${TEMP}/meshWithVectorsIC7.vtk
+  7      # resolution
+  100.0  # Scale (radius)
   )
 
 ADD_TEST(itkQuadEdgeMeshVTKPolyDataReader1
@@ -166,6 +182,25 @@ ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectors.vtk
   ${TEMP}/meshWithVectorsSmoothed.vtk
   )
+
+ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest2
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
+  ${TEMP}/meshWithVectorsIC1.vtk
+  ${TEMP}/meshWithVectorsIC1Smoothed.vtk
+  )
+
+ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest3
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
+  ${TEMP}/meshWithVectorsIC4.vtk
+  ${TEMP}/meshWithVectorsIC4Smoothed.vtk
+  )
+
+ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest4
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
+  ${TEMP}/meshWithVectorsIC7.vtk
+  ${TEMP}/meshWithVectorsIC7Smoothed.vtk
+  )
+
 
 ADD_TEST(itkTriangleBasisSystemTest1
   ${CXX_TEST_PATH}/itkTriangleBasisSystemTest1
