@@ -24,7 +24,7 @@ cVolume *cVolOp::volread( const char* filename )
   typedef itk::Image< itkVoxelType, itkVolDimension > itkVolumeType;
   typedef itk::ImageFileReader< itkVolumeType > itkVolReaderType;
 
-  itkVolReaderType::Pointer reader = itkVolReaderType::New();
+  typename itkVolReaderType::Pointer reader = itkVolReaderType::New();
   reader->SetFileName( filename );
   try 
     {
@@ -37,14 +37,14 @@ cVolume *cVolOp::volread( const char* filename )
       exit(-1);
     }
 
-  itkVolumeType::Pointer itkVolume = reader->GetOutput();
-  itkVolumeType::RegionType inputRegion = itkVolume->GetLargestPossibleRegion();
-  itkVolumeType::SizeType sizeThe = inputRegion.GetSize(); 
+  typename itkVolumeType::Pointer itkVolume = reader->GetOutput();
+  typename itkVolumeType::RegionType inputRegion = itkVolume->GetLargestPossibleRegion();
+  typename itkVolumeType::SizeType sizeThe = inputRegion.GetSize(); 
         
   int x = sizeThe[0], y = sizeThe[1], z = sizeThe[2];
 
-  const itkVolumeType::SpacingType& spacing = itkVolume->GetSpacing();
-  const itk::ImageBase<3>::PointType origin=itkVolume->GetOrigin();
+  const typename itkVolumeType::SpacingType& spacing = itkVolume->GetSpacing();
+  const typename itk::ImageBase<3>::PointType origin=itkVolume->GetOrigin();
   
   //  std::cout<<"Spacing is: "<<spacing[0]<<"\t"<<spacing[1]<<"\t"<<spacing[2]<<std::endl;
         
@@ -100,27 +100,27 @@ void cVolOp::volwrite( const char* filename, cVolume *volume )
   int x = volume->getSizeX(), y = volume->getSizeY(), z = volume->getSizeZ();
   //  std::cout<<"output:      "<< x<<"\t"<< y<<"\t"<< z<<std::endl;
                 
-  itkVolumeType::IndexType start;
+  typename itkVolumeType::IndexType start;
   start[0] = 0; // first index on X
   start[1] = 0; // first index on Y
   start[2] = 0; // first index on Z
         
-  itkVolumeType::SizeType size;
+  typename itkVolumeType::SizeType size;
   size[0] = x; // size aint X
   size[1] = y; // size aint Y
   size[2] = z; // size aint Z
         
-  itkVolumeType::RegionType outputRegion;
+  typename itkVolumeType::RegionType outputRegion;
   outputRegion.SetSize( size );
   outputRegion.SetIndex( start );
 
-  itkVolumeType::Pointer outputVolume = itkVolumeType::New();   
+  typename itkVolumeType::Pointer outputVolume = itkVolumeType::New();   
   outputVolume->SetRegions( outputRegion );
   //  outputVolume->SetSpacing(volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingY());
   double sp[] = {volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingZ()};
   outputVolume->SetSpacing(sp);
 
-  itk::ImageBase<3>::PointType origin;
+  typename itk::ImageBase<3>::PointType origin;
   origin[0]=volume->getOriginX();
   origin[1]=volume->getOriginY();
   origin[2]=volume->getOriginZ();
@@ -138,7 +138,7 @@ void cVolOp::volwrite( const char* filename, cVolume *volume )
 
   typedef itk::ImageFileWriter< itkVolumeType > itkVolWriterType;
   
-  itkVolWriterType::Pointer writer = itkVolWriterType::New();
+  typename itkVolWriterType::Pointer writer = itkVolWriterType::New();
   writer->SetFileName( filename );
   writer->SetInput( outputVolume );
     
