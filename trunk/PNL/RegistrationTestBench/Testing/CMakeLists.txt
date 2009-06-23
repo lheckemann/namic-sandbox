@@ -81,6 +81,11 @@ REGISTER_IMAGES( T1-T2
   ${PNL_BRAIN_DATA_DIR}  01031-t2w              nrrd
   )
 
+REGISTER_IMAGES( T1-T1
+  ${PNL_BRAIN_DATA_DIR}  01053-t1w              nrrd
+  ${PNL_BRAIN_DATA_DIR}  01031-t1w              nrrd
+  )
+
 
 #
 # Other parameters from 
