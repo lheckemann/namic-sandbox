@@ -59,7 +59,7 @@ int main( int argc, char * argv [] )
   int numIter = 1000;
   rw.set_solver_num_iter(numIter);
 
-  double solverErrTol = 1e-8;
+  double solverErrTol = 1e-5;
   rw.set_solver_err_tol(solverErrTol);
 
   rw.setBeta(beta);
