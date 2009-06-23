@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Segmentation</category>
+  <title>Fuzzy Tissue Classification</title>
+  <description>
+    Tissue classification with bias field correction using fuzzy c-means
+</description>
+  <version>3.0</version>
+  <documentation-url>http://www.slicer.org</documentation-url>
+  <license>slicer3</license>
+  <contributor>Xiaodong Tao</contributor>
+<acknowledgements>
+This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+</acknowledgements>
+<parameters>
+  <label>IO</label>
+  <description>Input/output parameters</description>
+  <image>
+    <name>inputVolume</name>
+    <label>Input Volume</label>
+    <channel>input</channel>
+    <index>0</index>
+    <description>Input T1 Image.</description>
+  </image>
+
+  <image>
+    <name>maskVolume</name>
+    <label>Input mask</label>
+    <channel>input</channel>
+    <index>1</index>
+    <description>Only voxels inside the mask are classified</description>
+  </image>
+
+
+  <image type="label">
+    <name>brainLabel</name>
+    <label>Brain Mask</label>
+    <channel>output</channel>
+    <index>2</index>
+    <description>Output brain mask map.</description>
+  </image>
+
+  <image>
+    <name>biasFieldFile</name>
+    <label>Bias Field</label>
+    <channel>output</channel>
+    <index>3</index>
+    <description>Estimated bias field</description>
+  </image>
+</parameters>
+
+<parameters>
+  <label>Tissue classification Parameters</label>
+  <description>Parameters used for tissue classification.</description>
+  <integer>
+    <name>nClasses</name>
+    <flag>-c</flag>
+    <longflag>--class</longflag>
+    <description>Number of classes</description>
+    <label>NumberOfClasses</label>
+    <default>3</default>
+  </integer> 
+
+  <integer>
+    <name>nBiasOption</name>
+    <flag>-b</flag>
+    <longflag>--biasoption</longflag>
+    <description>Option for bias correction (0: no bias correction; 1: global linear; 2: global quadratic; 3: region based linear; 4: region based quadratic)</description>
+    <label>BiasOption</label>
+    <default>0</default>
+    <constraints>
+      <minimum>0</minimum>
+      <maximum>4</maximum>
+    </constraints>
+  </integer>
+
+</parameters>
+</executable>
