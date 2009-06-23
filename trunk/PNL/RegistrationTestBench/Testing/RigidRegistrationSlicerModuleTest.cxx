@@ -238,7 +238,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   // NOTE: Testing mode can only be invoked from Command line interface: the
   // "TestingMode" parameter is "hidden" in GUI.
   //
-  bool TestingMode = true;
+  bool TestingMode = false;
 
   std::string InitialTransform;
 
@@ -724,8 +724,8 @@ template<class T> int DoIt( int argc, char * argv[], const T& targ)
     
     switch (componentType)
       {
-      case itk::ImageIOBase::CHAR:
-      case itk::ImageIOBase::UCHAR:
+//     case itk::ImageIOBase::CHAR:
+//     case itk::ImageIOBase::UCHAR:
       case itk::ImageIOBase::SHORT:
         return DoIt2( argc, argv, targ, static_cast<short>(0));
         break;
@@ -733,19 +733,19 @@ template<class T> int DoIt( int argc, char * argv[], const T& targ)
       case itk::ImageIOBase::INT:
         return DoIt2( argc, argv, targ, static_cast<int>(0));
         break;
-      case itk::ImageIOBase::UINT:
-      case itk::ImageIOBase::ULONG:
-        return DoIt2( argc, argv, targ, static_cast<unsigned long>(0));
-        break;
-      case itk::ImageIOBase::LONG:
-        return DoIt2( argc, argv, targ, static_cast<long>(0));
-        break;
-      case itk::ImageIOBase::FLOAT:
-        return DoIt2( argc, argv, targ, static_cast<float>(0));
-        break;
-      case itk::ImageIOBase::DOUBLE:
-        return DoIt2( argc, argv, targ, static_cast<float>(0));
-        break;
+ //    case itk::ImageIOBase::UINT:
+ //    case itk::ImageIOBase::ULONG:
+ //      return DoIt2( argc, argv, targ, static_cast<unsigned long>(0));
+ //      break;
+ //    case itk::ImageIOBase::LONG:
+ //      return DoIt2( argc, argv, targ, static_cast<long>(0));
+ //      break;
+ //    case itk::ImageIOBase::FLOAT:
+ //      return DoIt2( argc, argv, targ, static_cast<float>(0));
+ //      break;
+ //    case itk::ImageIOBase::DOUBLE:
+ //      return DoIt2( argc, argv, targ, static_cast<float>(0));
+ //      break;
       case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
       default:
         std::cout << "unknown component type" << std::endl;
@@ -784,28 +784,28 @@ int main( int argc, char * argv[] )
     
     switch (componentType)
       {
-      case itk::ImageIOBase::CHAR:
-      case itk::ImageIOBase::UCHAR:
-      case itk::ImageIOBase::SHORT:
-        return DoIt( argc, argv, static_cast<short>(0));
-        break;
+ //    case itk::ImageIOBase::CHAR:
+ //    case itk::ImageIOBase::UCHAR:
+       case itk::ImageIOBase::SHORT:
+         return DoIt( argc, argv, static_cast<short>(0));
+         break;
       case itk::ImageIOBase::USHORT:
       case itk::ImageIOBase::INT:
         return DoIt( argc, argv, static_cast<int>(0));
         break;
-      case itk::ImageIOBase::UINT:
-      case itk::ImageIOBase::ULONG:
-        return DoIt( argc, argv, static_cast<unsigned long>(0));
-        break;
-      case itk::ImageIOBase::LONG:
-        return DoIt( argc, argv, static_cast<long>(0));
-        break;
-      case itk::ImageIOBase::FLOAT:
-        return DoIt( argc, argv, static_cast<float>(0));
-        break;
-      case itk::ImageIOBase::DOUBLE:
-        return DoIt( argc, argv, static_cast<float>(0));
-        break;
+ //   case itk::ImageIOBase::UINT:
+ //   case itk::ImageIOBase::ULONG:
+ //     return DoIt( argc, argv, static_cast<unsigned long>(0));
+ //     break;
+  //   case itk::ImageIOBase::LONG:
+  //     return DoIt( argc, argv, static_cast<long>(0));
+  //     break;
+  //   case itk::ImageIOBase::FLOAT:
+  //     return DoIt( argc, argv, static_cast<float>(0));
+  //     break;
+  //   case itk::ImageIOBase::DOUBLE:
+  //     return DoIt( argc, argv, static_cast<float>(0));
+  //     break;
       case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
       default:
         std::cout << "unknown component type" << std::endl;
