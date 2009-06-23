@@ -29,6 +29,19 @@ ADD_TEST(Masking${DATASETID}
 
 ENDMACRO(PREPAREMASK)
 
+MACRO(DEFORM DATASETID )
+
+ADD_TEST(Deform_${DATASETID}
+  ${CXX_TEST_PATH}/BSplineWarping
+  ${PROJECT_SOURCE_DIR}/Testing/BSplineDeformationCoefficients01.txt
+  ${TEMP}/${DATASETID}_Masked.mhd
+  ${TEMP}/${DATASETID}_Masked.mhd
+  ${TEMP}/${DATASETID}_Masked_Deformed.mhd
+  ${TEMP}/${DATASETID}_Masked_Deformed_DeformationField.mhd
+  ) 
+
+ENDMACRO(DEFORM)
+
 
 MACRO(REGISTER DATASET1 DATASET2)
 
@@ -97,6 +110,8 @@ PREPAREMASK( 42 )
 PREPAREMASK( 56 )
 PREPAREMASK( 58 )
 PREPAREMASK( 64 )
+
+DEFORM( 42 )
 
 REGISTER( 64 42 )
 
