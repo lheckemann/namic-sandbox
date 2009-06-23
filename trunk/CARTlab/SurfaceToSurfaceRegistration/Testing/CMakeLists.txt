@@ -1,1 +1,12 @@
 
+ADD_EXECUTABLE(SurfaceToSurfaceRegistrationTest1 SurfaceToSurfaceRegistrationTest1.cxx)
+TARGET_LINK_LIBRARIES(SurfaceToSurfaceRegistrationTest1
+ ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(TriangleMeshToSimplexMeshFilterTest1 TriangleMeshToSimplexMeshFilterTest1.cxx)
+TARGET_LINK_LIBRARIES(TriangleMeshToSimplexMeshFilterTest1
+ ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(TriangleMeshToSimplexMeshFilterTest2 TriangleMeshToSimplexMeshFilterTest2.cxx)
+TARGET_LINK_LIBRARIES(TriangleMeshToSimplexMeshFilterTest2
+ ITKQuadEdgeMesh ITKIO ITKNumerics)
