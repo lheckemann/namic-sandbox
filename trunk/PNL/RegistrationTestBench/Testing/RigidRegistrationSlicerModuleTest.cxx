@@ -545,7 +545,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   metric->SetNumberOfHistogramBins ( HistogramBins );
   metric->SetNumberOfSpatialSamples( SpatialSamples );
   metric->ReinitializeSeed(123);
-  metric->SetNumberOfThreads( atoi( argv[17] ) );
   
   // Create the interpolator
   //
@@ -561,6 +560,8 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   registration->SetInterpolator ( interpolator );
   registration->SetFixedImage ( orientFixed->GetOutput() );
   registration->SetMovingImage ( orientMoving->GetOutput() );
+  registration->SetNumberOfThreads( atoi( argv[17] ) );
+
 /*
 typename FixedWriterType::Pointer fixedWriter2 = FixedWriterType::New();
 fixedWriter2->SetFileName ( "/tmp/reginput-fixed.nrrd" );
