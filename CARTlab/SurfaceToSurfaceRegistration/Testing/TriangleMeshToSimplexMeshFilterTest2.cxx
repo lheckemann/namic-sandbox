@@ -32,7 +32,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkDefaultDynamicMeshTraits.h"
 #include "itkTimeProbe.h"
 
-int itkTriangleMeshToSimplexMeshFilter2Test(int , char *[] )
+int main(int , char *[] )
 { 
   
   // Declare the type of the input and output mesh
