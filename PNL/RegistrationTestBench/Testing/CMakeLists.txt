@@ -8,6 +8,11 @@ FIND_PATH(SLICER_SOURCE_DIR CMakeLists.txt)
 
 SET(SLICER_TESTING_DATA ${SLICER_SOURCE_DIR}/Testing/Data/Input)
 
+INCLUDE_DIRECTORIES( 
+  ${SLICER_SOURCE_DIR}/Base/CLI
+  ${SLICER_SOURCE_DIR}/Libs/ModuleDescriptionParser/
+ )
+
 ADD_EXECUTABLE(RigidRegistrationSlicerModuleTest RigidRegistrationSlicerModuleTest.cxx)
 TARGET_LINK_LIBRARIES(RigidRegistrationSlicerModuleTest 
   ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
