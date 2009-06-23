@@ -4,6 +4,14 @@ SET(TEST_DATA_ROOT ${CMAKE_SOURCE_DIR})
 SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
 
 FIND_PATH(PNL_BRAIN_DATA_DIR README.txt)
+FIND_PATH(SLICER_SOURCE_DIR CMakeLists.txt)
+
+SET(SLICER_TESTING_DATA ${SLICER_SOURCE_DIR}/Testing/Data/Input)
+
+ADD_EXECUTABLE(RigidRegistrationSlicerModuleTest RigidRegistrationSlicerModuleTest.cxx)
+TARGET_LINK_LIBRARIES(RigidRegistrationSlicerModuleTest 
+  ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
+  )
 
 MACRO(REGISTER_IMAGES CASEID DIR1 DATASET1 EXTENSION1 DIR2 DATASET2 EXTENSION2)
 
@@ -68,4 +76,22 @@ REGISTER_IMAGES( T1-T2
   ${PNL_BRAIN_DATA_DIR}  01031-t2w              nrrd
   )
 
+
+#
+# Other parameters from 
+# http://www.na-mic.org/Wiki/index.php/Summer2009:Registration_reproducibility_in_Slicer
+#
+ADD_TEST( RigidRegistrationSlicerModuleTest01
+  ${EXECUTABLE_OUTPUT_PATH}/RigidRegistrationSlicerModuleTest
+  ${SLICER_TESTING_DATA}/MRMeningioma0.nrrd   #  fixed image
+  ${SLICER_TESTING_DATA}/MRMeningioma1.nrrd   #  moving image
+  0   #  fixedsmoothingfactor
+  0   #  movingsmoothingfactor
+  30  #  histogrambins
+  10000  # spatialsamples
+  100  100  50  20  # iterations 
+  0.01  0.005  0.0005  0.0002 # learningrate 
+  100 # translationscale 
+  ${TEMP}/RigidRegistrationTransform-CLI.txt  # outputtransform 
+  )
 

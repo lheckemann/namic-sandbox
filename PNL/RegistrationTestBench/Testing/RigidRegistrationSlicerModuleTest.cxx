@@ -16,8 +16,6 @@
 
 #include <iostream>
 
-#include "RigidRegistrationCLP.h"
-
 #include "itkOrientedImage.h"
 #include "itkOrientImageFilter.h"
 #include "itkImageFileReader.h"
@@ -34,8 +32,6 @@
 #include "itkAffineTransform.h"
 #include "itkResampleImageFilter.h"
 #include "itkBinomialBlurImageFilter.h"
-
-#include "itkPluginUtilities.h"
 
 #include "itkTimeProbesCollectorBase.h"
 
@@ -148,7 +144,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   //
   // Command line processing
   //
-  PARSE_ARGS;
 
   const    unsigned int  ImageDimension = 3;
   typedef  T1  FixedPixelType; //##
@@ -185,7 +180,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   //
   //
   typename FixedFileReaderType::Pointer fixedReader = FixedFileReaderType::New();
-  fixedReader->SetFileName ( FixedImageFileName.c_str() );
+  fixedReader->SetFileName ( argv[1] );
 
   try
     {
@@ -201,7 +196,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
     }
 
   typename MovingFileReaderType::Pointer movingReader = MovingFileReaderType::New();
-  movingReader->SetFileName ( MovingImageFileName.c_str() );
+  movingReader->SetFileName ( argv[2] );
 
   try
     {
@@ -240,6 +235,9 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   //
   // NOTE: Testing mode can only be invoked from Command line interface: the
   // "TestingMode" parameter is "hidden" in GUI.
+  //
+  bool TestingMode = true;
+
   typename TransformType::Pointer groundTruthTransform = NULL;
   typename MovingImageType::Pointer movingImageTestingMode = NULL;
   if(TestingMode)
