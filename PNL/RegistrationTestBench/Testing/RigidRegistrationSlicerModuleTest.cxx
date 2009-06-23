@@ -545,6 +545,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   metric->SetNumberOfHistogramBins ( HistogramBins );
   metric->SetNumberOfSpatialSamples( SpatialSamples );
   metric->ReinitializeSeed(123);
+  metric->SetNumberOfThreads( atoi( argv[17] ) );
   
   // Create the interpolator
   //
@@ -766,7 +767,6 @@ template<class T> int DoIt( int argc, char * argv[], const T& targ)
 
 int main( int argc, char * argv[] )
 {
-  
   // this line is here to be able to see the full output on the dashboard even
   // when the test succeeds (to see the reproducibility error measure)
   // std::cout << std::endl << "ctest needs: CTEST_FULL_OUTPUT" << std::endl;
