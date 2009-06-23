@@ -98,5 +98,6 @@ ADD_TEST( RigidRegistrationSlicerModuleTest01
   0.01  0.005  0.0005  0.0002 # learningrate 
   100 # translationscale 
   ${TEMP}/RigidRegistrationTransform-CLI.txt  # outputtransform 
+  1  # number of threads
   )
 
