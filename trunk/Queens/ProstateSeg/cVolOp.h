@@ -18,12 +18,15 @@ public:
   // IO
 
   // read
+  template <class VoxelType> cVolume* volread( const char* filename );
   cVolume *volreadUchar( const char* filename );
   cVolume *volreadDouble( const char* filename );
   cVolume *volreadUshort( const char* filename );
   cVolume *volreadShort( const char* filename );
+  
 
   // write
+  template <class VoxelType> void volwrite( const char* filename, cVolume *volume );
   void volwriteUchar( const char* filename, cVolume *volume );
   void volwriteDouble( const char* filename, cVolume *volume );
   void volwriteUshort( const char* filename, cVolume *volume );

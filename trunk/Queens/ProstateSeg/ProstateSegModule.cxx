@@ -83,8 +83,10 @@ int main( int argc, char * argv [] )
   delete potential_volume_smth; potential_volume_smth = 0;
 
   bin->setSpacing(vol->getSpacingX(), vol->getSpacingY(), vol->getSpacingZ() );
+  bin->setOrigin(vol->getOriginX(), vol->getOriginY(), vol->getOriginZ() );
 
-  op.volwriteDouble( segmentedImageFileName.c_str(), bin );
+
+  op.volwriteUchar( segmentedImageFileName.c_str(), bin );
   delete bin; bin = 0;
   std::cout<<"done\n"<<std::flush;
 

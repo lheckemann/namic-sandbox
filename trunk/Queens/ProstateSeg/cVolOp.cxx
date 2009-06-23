@@ -17,10 +17,10 @@ cVolOp::cVolOp()
 /*
   IO read
  */
-
-cVolume *cVolOp::volreadDouble( const char* filename )
+template <class VoxelType>
+cVolume *cVolOp::volread( const char* filename )
 {
-  typedef double itkVoxelType;
+  typedef VoxelType itkVoxelType;
   typedef itk::Image< itkVoxelType, itkVolDimension > itkVolumeType;
   typedef itk::ImageFileReader< itkVolumeType > itkVolReaderType;
 
@@ -44,10 +44,11 @@ cVolume *cVolOp::volreadDouble( const char* filename )
   int x = sizeThe[0], y = sizeThe[1], z = sizeThe[2];
 
   const itkVolumeType::SpacingType& spacing = itkVolume->GetSpacing();
+  const itk::ImageBase<3>::PointType origin=itkVolume->GetOrigin();
   
   //  std::cout<<"Spacing is: "<<spacing[0]<<"\t"<<spacing[1]<<"\t"<<spacing[2]<<std::endl;
         
-  cVolume *volume = new cVolume(x, y, z, spacing[0], spacing[1], spacing[2]);// initialize the volume according to the size
+  cVolume *volume = new cVolume(x, y, z, spacing[0], spacing[1], spacing[2], origin[0], origin[1], origin[2]);// initialize the volume according to the size
 
   typedef itk::ImageRegionConstIterator< itkVolumeType > itkVolConstIteratorType;
   itkVolConstIteratorType inputIt( itkVolume, inputRegion );
@@ -62,144 +63,26 @@ cVolume *cVolOp::volreadDouble( const char* filename )
     }
 
   return volume;
+}
+
+cVolume *cVolOp::volreadDouble( const char* filename )
+{
+  return volread<double>(filename);
 }
 
 cVolume *cVolOp::volreadUshort( const char* filename )
 {
-  typedef unsigned short itkVoxelType;
-  typedef itk::Image< itkVoxelType, itkVolDimension > itkVolumeType;
-  typedef itk::ImageFileReader< itkVolumeType > itkVolReaderType;
-
-  itkVolReaderType::Pointer reader = itkVolReaderType::New();
-  reader->SetFileName( filename );
-  try 
-    {
-      reader->Update();
-    }
-  catch ( itk::ExceptionObject &err)   
-    {   
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      exit(-1);
-    }
-
-  itkVolumeType::Pointer itkVolume = reader->GetOutput();
-  itkVolumeType::RegionType inputRegion = itkVolume->GetLargestPossibleRegion();
-  itkVolumeType::SizeType sizeThe = inputRegion.GetSize(); 
-        
-  int x = sizeThe[0], y = sizeThe[1], z = sizeThe[2];
-
-  const itkVolumeType::SpacingType& spacing = itkVolume->GetSpacing();
-  
-  //  std::cout<<"Spacing is: "<<spacing[0]<<"\t"<<spacing[1]<<"\t"<<spacing[2]<<std::endl;
-        
-  cVolume *volume = new cVolume(x, y, z, spacing[0], spacing[1], spacing[2]);// initialize the volume according to the size
-
-  typedef itk::ImageRegionConstIterator< itkVolumeType > itkVolConstIteratorType;
-  itkVolConstIteratorType inputIt( itkVolume, inputRegion );
-  inputIt.GoToBegin();
-
-  for (int it = 0; it < x*y*z; ++it, ++inputIt) 
-    {
-      double a = inputIt.Get();
-      volume->setVoxel(it, a );
-      //      std::cerr<<a<<'\t';
-      //      volume->setVoxel(it, static_cast<voxelType>( inputIt.Get() ) );
-    }
-
-  return volume;
+  return volread<unsigned short>(filename);
 }
 
 cVolume *cVolOp::volreadShort( const char* filename )
 {
-  typedef short itkVoxelType;
-  typedef itk::Image< itkVoxelType, itkVolDimension > itkVolumeType;
-  typedef itk::ImageFileReader< itkVolumeType > itkVolReaderType;
-
-  itkVolReaderType::Pointer reader = itkVolReaderType::New();
-  reader->SetFileName( filename );
-  try 
-    {
-      reader->Update();
-    }
-  catch ( itk::ExceptionObject &err)   
-    {   
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      exit(-1);
-    }
-
-  itkVolumeType::Pointer itkVolume = reader->GetOutput();
-  itkVolumeType::RegionType inputRegion = itkVolume->GetLargestPossibleRegion();
-  itkVolumeType::SizeType sizeThe = inputRegion.GetSize(); 
-        
-  int x = sizeThe[0], y = sizeThe[1], z = sizeThe[2];
-
-  const itkVolumeType::SpacingType& spacing = itkVolume->GetSpacing();
-  
-  //  std::cout<<"Spacing is: "<<spacing[0]<<"\t"<<spacing[1]<<"\t"<<spacing[2]<<std::endl;
-        
-  cVolume *volume = new cVolume(x, y, z, spacing[0], spacing[1], spacing[2]);// initialize the volume according to the size
-
-  typedef itk::ImageRegionConstIterator< itkVolumeType > itkVolConstIteratorType;
-  itkVolConstIteratorType inputIt( itkVolume, inputRegion );
-  inputIt.GoToBegin();
-
-  for (int it = 0; it < x*y*z; ++it, ++inputIt) 
-    {
-      double a = inputIt.Get();
-      volume->setVoxel(it, a );
-      //      std::cerr<<a<<'\t';
-      //      volume->setVoxel(it, static_cast<voxelType>( inputIt.Get() ) );
-    }
-
-  return volume;
+  return volread<short>(filename);
 }
 
 cVolume *cVolOp::volreadUchar( const char* filename )
 {
-  typedef unsigned char itkVoxelType;
-  typedef itk::Image< itkVoxelType, itkVolDimension > itkVolumeType;
-  typedef itk::ImageFileReader< itkVolumeType > itkVolReaderType;
-
-  itkVolReaderType::Pointer reader = itkVolReaderType::New();
-  reader->SetFileName( filename );
-  try 
-    {
-      reader->Update();
-    }
-  catch ( itk::ExceptionObject &err)   
-    {   
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      exit(-1);
-    }
-
-  itkVolumeType::Pointer itkVolume = reader->GetOutput();
-  itkVolumeType::RegionType inputRegion = itkVolume->GetLargestPossibleRegion();
-  itkVolumeType::SizeType sizeThe = inputRegion.GetSize(); 
-        
-  int x = sizeThe[0], y = sizeThe[1], z = sizeThe[2];
-
-  const itkVolumeType::SpacingType& spacing = itkVolume->GetSpacing();
-  
-  //  std::cout<<"Spacing is: "<<spacing[0]<<"\t"<<spacing[1]<<"\t"<<spacing[2]<<std::endl;
-        
-  cVolume *volume = new cVolume(x, y, z, spacing[0], spacing[1], spacing[2]);// initialize the volume according to the size
-
-  typedef itk::ImageRegionConstIterator< itkVolumeType > itkVolConstIteratorType;
-  itkVolConstIteratorType inputIt( itkVolume, inputRegion );
-  inputIt.GoToBegin();
-
-  for (int it = 0; it < x*y*z; ++it, ++inputIt) 
-    {
-      double a = inputIt.Get();
-      volume->setVoxel(it, a );
-      //      std::cerr<<a<<'\t';
-      //      volume->setVoxel(it, static_cast<voxelType>( inputIt.Get() ) );
-    }
-
-  return volume;
+  return volread<unsigned char>(filename);
 }
 
 
@@ -207,9 +90,11 @@ cVolume *cVolOp::volreadUchar( const char* filename )
   IO write
  */
 
-void cVolOp::volwriteDouble( const char* filename, cVolume *volume )
+template <class VoxelType>
+void cVolOp::volwrite( const char* filename, cVolume *volume )
+
 {
-  typedef double itkVoxelType;
+  typedef VoxelType itkVoxelType;
   typedef itk::Image< itkVoxelType, itkVolDimension > itkVolumeType;
 
   int x = volume->getSizeX(), y = volume->getSizeY(), z = volume->getSizeZ();
@@ -234,6 +119,12 @@ void cVolOp::volwriteDouble( const char* filename, cVolume *volume )
   //  outputVolume->SetSpacing(volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingY());
   double sp[] = {volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingZ()};
   outputVolume->SetSpacing(sp);
+
+  itk::ImageBase<3>::PointType origin;
+  origin[0]=volume->getOriginX();
+  origin[1]=volume->getOriginY();
+  origin[2]=volume->getOriginZ();
+  outputVolume->SetOrigin(origin);
   outputVolume->Allocate();  
   
   typedef itk::ImageRegionIterator< itkVolumeType > itkVolIteratorType;
@@ -265,181 +156,25 @@ void cVolOp::volwriteDouble( const char* filename, cVolume *volume )
   return;
 }
 
-
+void cVolOp::volwriteDouble( const char* filename, cVolume *volume )
+{
+  volwrite<double>(filename, volume);
+}
     
 void cVolOp::volwriteUchar( const char* filename, cVolume *volume )
 {
-  typedef unsigned char itkVoxelType;
-  typedef itk::Image< itkVoxelType, itkVolDimension > itkVolumeType;
-
-  int x = volume->getSizeX(), y = volume->getSizeY(), z = volume->getSizeZ();
-  //  std::cout<<"output:      "<< x<<"\t"<< y<<"\t"<< z<<std::endl;
-                
-  itkVolumeType::IndexType start;
-  start[0] = 0; // first index on X
-  start[1] = 0; // first index on Y
-  start[2] = 0; // first index on Z
-        
-  itkVolumeType::SizeType size;
-  size[0] = x; // size aint X
-  size[1] = y; // size aint Y
-  size[2] = z; // size aint Z
-        
-  itkVolumeType::RegionType outputRegion;
-  outputRegion.SetSize( size );
-  outputRegion.SetIndex( start );
-
-  itkVolumeType::Pointer outputVolume = itkVolumeType::New();   
-  outputVolume->SetRegions( outputRegion );
-  //  outputVolume->SetSpacing(volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingY());
-  double sp[] = {volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingZ()};
-  outputVolume->SetSpacing(sp);
-  outputVolume->Allocate();  
-  
-  typedef itk::ImageRegionIterator< itkVolumeType > itkVolIteratorType;
-  itkVolIteratorType outputIt( outputVolume, outputRegion );
-  outputIt.GoToBegin();
-
-  for (int it = 0; it < x*y*z; ++it, ++outputIt)  
-    {
-      outputIt.Set( static_cast<itkVoxelType>( volume->getVoxel(it)) );      
-    }
-
-  typedef itk::ImageFileWriter< itkVolumeType > itkVolWriterType;
-  
-  itkVolWriterType::Pointer writer = itkVolWriterType::New();
-  writer->SetFileName( filename );
-  writer->SetInput( outputVolume );
-    
-  try 
-    { 
-      writer->Update(); 
-    } 
-  catch( itk::ExceptionObject & err ) 
-    { 
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      exit(-1);
-    } 
-
-  return;
+  volwrite<unsigned char>(filename, volume);
 }
 
 
 void cVolOp::volwriteUshort( const char* filename, cVolume *volume )
 {
-  typedef unsigned short itkVoxelType;
-  typedef itk::Image< itkVoxelType, itkVolDimension > itkVolumeType;
-
-  int x = volume->getSizeX(), y = volume->getSizeY(), z = volume->getSizeZ();
-  //  std::cout<<"output:      "<< x<<"\t"<< y<<"\t"<< z<<std::endl;
-                
-  itkVolumeType::IndexType start;
-  start[0] = 0; // first index on X
-  start[1] = 0; // first index on Y
-  start[2] = 0; // first index on Z
-        
-  itkVolumeType::SizeType size;
-  size[0] = x; // size aint X
-  size[1] = y; // size aint Y
-  size[2] = z; // size aint Z
-        
-  itkVolumeType::RegionType outputRegion;
-  outputRegion.SetSize( size );
-  outputRegion.SetIndex( start );
-
-  itkVolumeType::Pointer outputVolume = itkVolumeType::New();   
-  outputVolume->SetRegions( outputRegion );
-  //  outputVolume->SetSpacing(volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingY());
-  double sp[] = {volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingZ()};
-  outputVolume->SetSpacing(sp);
-  outputVolume->Allocate();  
-  
-  typedef itk::ImageRegionIterator< itkVolumeType > itkVolIteratorType;
-  itkVolIteratorType outputIt( outputVolume, outputRegion );
-  outputIt.GoToBegin();
-
-  for (int it = 0; it < x*y*z; ++it, ++outputIt)  
-    {
-      outputIt.Set( static_cast<itkVoxelType>( volume->getVoxel(it)) );      
-    }
-
-  typedef itk::ImageFileWriter< itkVolumeType > itkVolWriterType;
-  
-  itkVolWriterType::Pointer writer = itkVolWriterType::New();
-  writer->SetFileName( filename );
-  writer->SetInput( outputVolume );
-    
-  try 
-    { 
-      writer->Update(); 
-    } 
-  catch( itk::ExceptionObject & err ) 
-    { 
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      exit(-1);
-    } 
-
-  return;
+  volwrite<unsigned short>(filename, volume);
 }
 
 void cVolOp::volwriteShort( const char* filename, cVolume *volume )
 {
-  typedef short itkVoxelType;
-  typedef itk::Image< itkVoxelType, itkVolDimension > itkVolumeType;
-
-  int x = volume->getSizeX(), y = volume->getSizeY(), z = volume->getSizeZ();
-  //  std::cout<<"output:      "<< x<<"\t"<< y<<"\t"<< z<<std::endl;
-                
-  itkVolumeType::IndexType start;
-  start[0] = 0; // first index on X
-  start[1] = 0; // first index on Y
-  start[2] = 0; // first index on Z
-        
-  itkVolumeType::SizeType size;
-  size[0] = x; // size aint X
-  size[1] = y; // size aint Y
-  size[2] = z; // size aint Z
-        
-  itkVolumeType::RegionType outputRegion;
-  outputRegion.SetSize( size );
-  outputRegion.SetIndex( start );
-
-  itkVolumeType::Pointer outputVolume = itkVolumeType::New();   
-  outputVolume->SetRegions( outputRegion );
-  //  outputVolume->SetSpacing(volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingY());
-  double sp[] = {volume->getSpacingX(), volume->getSpacingY(), volume->getSpacingZ()};
-  outputVolume->SetSpacing(sp);
-  outputVolume->Allocate();  
-  
-  typedef itk::ImageRegionIterator< itkVolumeType > itkVolIteratorType;
-  itkVolIteratorType outputIt( outputVolume, outputRegion );
-  outputIt.GoToBegin();
-
-  for (int it = 0; it < x*y*z; ++it, ++outputIt)  
-    {
-      outputIt.Set( static_cast<itkVoxelType>( volume->getVoxel(it)) );      
-    }
-
-  typedef itk::ImageFileWriter< itkVolumeType > itkVolWriterType;
-  
-  itkVolWriterType::Pointer writer = itkVolWriterType::New();
-  writer->SetFileName( filename );
-  writer->SetInput( outputVolume );
-    
-  try 
-    { 
-      writer->Update(); 
-    } 
-  catch( itk::ExceptionObject & err ) 
-    { 
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      exit(-1);
-    } 
-
-  return;
+  volwrite<short>(filename, volume);
 }
 
 
@@ -576,7 +311,8 @@ cVolume *cVolOp::itkVolume2cVolume( itkInternalVolumeType::Pointer itkVol )
   //  std::cout<< x<<"\t"<< y<<"\t"<< z<<std::endl;
   const itkInternalVolumeType::SpacingType& spacing = itkVol->GetSpacing();
   
-  cVolume *volume = new cVolume(x, y, z, spacing[0], spacing[1], spacing[2]);
+  const itk::ImageBase<3>::PointType origin=itkVol->GetOrigin();
+  cVolume *volume = new cVolume(x, y, z, spacing[0], spacing[1], spacing[2], origin[0], origin[1], origin[2]);
 
   itkVolumeInternalConstIteratorType inputIt( itkVol, theRegion );
   inputIt.GoToBegin();
