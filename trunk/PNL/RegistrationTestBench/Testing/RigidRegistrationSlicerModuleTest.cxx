@@ -598,7 +598,7 @@ movingWriter2->Write();
 
   transform->SetParameters ( registration->GetLastTransformParameters() );
 
-  std::string OutputTransform;
+  std::string OutputTransform = argv[16];
 
   if (OutputTransform != "")
     {
