@@ -103,7 +103,7 @@ int SpdEqSolver::solveSpdEq(mtx* A, vec* b, vec* x, int numIter, elementType tol
 
 /* Jacobi Preconditioned CG */
 /*============================================================*/
-int solveSpdEq(spMtx* A, vec* b, vec* x, int numIter, elementType tol)
+int SpdEqSolver::solveSpdEq(spMtx* A, vec* b, vec* x, int numIter, elementType tol)
 {
   reportProgress(0);
 
@@ -165,7 +165,7 @@ int solveSpdEq(spMtx* A, vec* b, vec* x, int numIter, elementType tol)
           return i;
         }
 
-      for (unsigned long i = 0; i < N; ++i)
+      for (unsigned long id = 0; id < N; ++id)
         {
           z[i] = r[i]*Cinv[i];
         }
