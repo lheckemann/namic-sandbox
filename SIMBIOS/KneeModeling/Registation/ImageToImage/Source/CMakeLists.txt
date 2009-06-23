@@ -30,3 +30,8 @@ TARGET_LINK_LIBRARIES(BSplineResampleImage
   ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
   )
 
+ADD_EXECUTABLE(MeanSquaresImageMetric MeanSquaresImageMetric.cxx)
+TARGET_LINK_LIBRARIES(MeanSquaresImageMetric
+  ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
+  )
+
