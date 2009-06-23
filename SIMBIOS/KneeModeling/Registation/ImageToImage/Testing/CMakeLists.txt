@@ -101,6 +101,8 @@ ADD_TEST(EvaluateMetric_${DATASET1}_${DATASET2}
   ${EXECUTABLE_OUTPUT_PATH}/MeanSquaresImageMetric
   ${KNEE_DATA_DIR}/${DATASET1}.mhd
   ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DeformationField2.mhd
+  ${DATASET2}_To_${DATASET1} 
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_MeanSquaresMetric.txt
   )
 
 ENDMACRO(REGISTER)
