@@ -14,9 +14,21 @@ INCLUDE_DIRECTORIES(
  )
 
 ADD_EXECUTABLE(RigidRegistrationSlicerModuleTest RigidRegistrationSlicerModuleTest.cxx)
-TARGET_LINK_LIBRARIES(RigidRegistrationSlicerModuleTest 
+TARGET_LINK_LIBRARIES(RigidRegistrationSlicerModuleTest
   ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
   )
+
+ADD_EXECUTABLE(RigidRegistrationSlicerModuleTestLibDriver RigidRegistrationSlicerModuleTestLibDriver.cxx)
+TARGET_LINK_LIBRARIES(RigidRegistrationSlicerModuleTestLibDriver 
+  ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
+  RigidRegistrationSlicerModuleTestLib
+  )
+
+ADD_LIBRARY(RigidRegistrationSlicerModuleTestLib SHARED RigidRegistrationSlicerModuleTestLib.cxx)
+TARGET_LINK_LIBRARIES(RigidRegistrationSlicerModuleTestLib
+  ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
+  )
+
 
 MACRO(REGISTER_IMAGES CASEID DIR1 DATASET1 EXTENSION1 DIR2 DATASET2 EXTENSION2)
 
