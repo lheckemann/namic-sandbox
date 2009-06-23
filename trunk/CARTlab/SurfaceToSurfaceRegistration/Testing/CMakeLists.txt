@@ -14,3 +14,7 @@ TARGET_LINK_LIBRARIES(TriangleMeshToSimplexMeshFilterTest2
 ADD_EXECUTABLE(TriangleMeshToSimplexMeshFilterTest3 TriangleMeshToSimplexMeshFilterTest3.cxx)
 TARGET_LINK_LIBRARIES(TriangleMeshToSimplexMeshFilterTest3
  ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(MeshGeneratorHelperTest1 MeshGeneratorHelperTest1.cxx)
+TARGET_LINK_LIBRARIES(MeshGeneratorHelperTest1
+ ITKQuadEdgeMesh ITKIO ITKNumerics)
