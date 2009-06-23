@@ -69,19 +69,37 @@ int main( int argc, char * argv [] )
   rw.update();
   std::cout<<"done\n"<<std::flush;
 
-  std::cout<<"smoothing result potential volume...."<<std::flush;
   cVolume *potential_volume = rw.get_output();
+
+  /* ==================================================
+     median smooth and threshold   */
+
+  std::cout<<"smoothing result potential volume...."<<std::flush;
   cVolume* potential_volume_smth = op.medianFilter(  potential_volume, 3, 3, 3);
-  //cVolume* potential_volume_smth = potential_volume;
   delete potential_volume; potential_volume = 0;
   std::cout<<"done\n"<<std::flush;
 
-  std::cout<<"writing result volume...."<<std::flush;
-
   double thld = 0.5;
+
   cVolume *bin = op.hardThreshold(potential_volume_smth, thld);
   delete potential_volume_smth; potential_volume_smth = 0;
+  /* median smooth and threshold   
+     ==================================================  */
 
+
+
+//   /*==================================================
+//     threshold 
+//    */
+//   double thld = 0.5;
+
+//   cVolume *bin = op.hardThreshold(potential_volume, thld);
+//   delete potential_volume; potential_volume = 0;
+//   /* threshold   
+//      ==================================================  */
+
+
+  std::cout<<"writing result volume...."<<std::flush;
   bin->setSpacing(vol->getSpacingX(), vol->getSpacingY(), vol->getSpacingZ() );
   bin->setOrigin(vol->getOriginX(), vol->getOriginY(), vol->getOriginZ() );
 
