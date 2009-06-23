@@ -20,19 +20,19 @@ cVolume::~cVolume()
 cVolume::cVolume(int N)
 {
   _voxel = 0; 
-  initiateVol(N, N, N, 1.0, 1.0, 1.0);
+  initiateVol(N, N, N, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0);
 }
 
 cVolume::cVolume(int x, int y, int z)
 {
   _voxel = 0; 
-  initiateVol(x, y, z, 1.0, 1.0, 1.0);
+  initiateVol(x, y, z, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0);
 }
 
-cVolume::cVolume(int x, int y, int z, double spX, double spY, double spZ)
+cVolume::cVolume(int x, int y, int z, double spX, double spY, double spZ, double origX, double origY, double origZ)
 {
   _voxel = 0; 
-  initiateVol(x, y, z, spX, spY, spZ);
+  initiateVol(x, y, z, spX, spY, spZ, origX, origY, origZ);
 }
 
 cVolume::cVolume(const cVolume *oriVol)
@@ -122,7 +122,7 @@ int cVolume::getSizeZ()
 // }
 
 
-void cVolume::initiateVol(int x, int y, int z, double spX, double spY, double spZ)
+void cVolume::initiateVol(int x, int y, int z, double spX, double spY, double spZ, double origX, double origY, double origZ)
 {
   _volDimension = 3;
 
@@ -133,6 +133,10 @@ void cVolume::initiateVol(int x, int y, int z, double spX, double spY, double sp
   _spaceX = spX;
   _spaceY = spY;
   _spaceZ = spZ;
+
+  _originX = origX;
+  _originY = origY;
+  _originZ = origZ;
 
   _voxel = new voxelType[x*y*z];
   //  memset(_voxel, 0, sizeof(voxelType)*x*y);
@@ -155,6 +159,10 @@ void cVolume::initiateVol(const cVolume *oriVol)
   _spaceX = oriVol->_spaceX;
   _spaceY = oriVol->_spaceY;
   _spaceZ = oriVol->_spaceZ;
+
+  _originX = oriVol->_originX;
+  _originY = oriVol->_originY;
+  _originZ = oriVol->_originZ;
 
   int n = _sizeX*_sizeY*_sizeZ;
   for (int i = 0; i <= n-1 ; ++i)
@@ -326,6 +334,44 @@ double cVolume::getSpacingZ()
     }  
 }
 
+double cVolume::getOriginX()
+{
+  if ( _voxel )
+    {
+      return _originX;
+    }
+  else
+    {
+      std::cerr<<"not initiated, exiting..."<<std::endl;
+      exit(-1);
+    }  
+}
+
+double cVolume::getOriginY()
+{
+  if ( _voxel )
+    {
+      return _originY;
+    }
+  else
+    {
+      std::cerr<<"not initiated, exiting..."<<std::endl;
+      exit(-1);
+    }  
+}
+
+double cVolume::getOriginZ()
+{
+  if ( _voxel )
+    {
+      return _originZ;
+    }
+  else
+    {
+      std::cerr<<"not initiated, exiting..."<<std::endl;
+      exit(-1);
+    }  
+}
 
 void cVolume::getSpacing(double &spX, double &spY, double &spZ)
 {
@@ -350,6 +396,21 @@ void cVolume::setSpacing(double spX, double spY, double spZ)
       _spaceX = spX;
       _spaceY = spY;
       _spaceZ = spZ;
+    }
+  else
+    {
+      std::cerr<<"not initiated, exiting..."<<std::endl;
+      exit(-1);
+    }
+}
+
+void cVolume::setOrigin(double ox, double oy, double oz)
+{
+  if ( _voxel )
+    {
+      _originX = ox;
+      _originY = oy;
+      _originZ = oz;
     }
   else
     {

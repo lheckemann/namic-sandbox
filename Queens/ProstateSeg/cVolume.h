@@ -56,18 +56,19 @@ protected:
 
   int _sizeX, _sizeY, _sizeZ;
   double _spaceX, _spaceY, _spaceZ;
+  double _originX, _originY, _originZ;
 
   int _volDimension;
 
   //  void initiateIm(int x, int y);
-  void initiateVol(int x, int y, int z, double spX, double spY, double spZ);
+  void initiateVol(int x, int y, int z, double spX, double spY, double spZ, double orgX, double orgY, double orgZ);
   void initiateVol(const cVolume* oriVol);  
 
 public:
   cVolume();
   cVolume(int N);
   cVolume(int x, int y, int z);
-  cVolume(int x, int y, int z, double spX, double spY, double spZ);
+  cVolume(int x, int y, int z, double spX, double spY, double spZ, double orgX, double orgY, double orgZ);
   cVolume(const cVolume* oriVol);
   ~cVolume();
 
@@ -91,6 +92,11 @@ public:
   //  double *getSpacing(); allocate the double *sp = new double[3] inside fn or not?
   void getSpacing(double &spX, double &spY, double &spZ);
   void setSpacing(double spX, double spY, double spZ);
+
+  double getOriginX();
+  double getOriginY();
+  double getOriginZ();
+  void setOrigin(double ox, double oy, double oz);
 
   
   inline void setVoxel(int x, int y, int z, voxelType val)
