@@ -202,6 +202,13 @@ vtkFourDImageGUI::~vtkFourDImageGUI ( )
     this->ThresholdRange->Delete();
     }
 
+  // Icons
+  if (this->Icons)
+    {
+    this->Icons->Delete();
+    }
+
+
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -448,7 +455,7 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
     const char* bundleName = this->SelectInputDirectoryButton->GetWidget()->GetText();
     this->GetLogic()->AddObserver(vtkFourDImageLogic::ProgressDialogEvent, 
                                   this->LogicCallbackCommand);
-    vtkMRML4DBundleNode* newNode = this->GetLogic()->LoadImagesFromDir(path, bundleName, this->RangeLower, this->RangeUpper);
+    vtkMRML4DBundleNode* newNode = this->GetLogic()->LoadImagesFromDir(path, bundleName);
 
     this->GetLogic()->RemoveObservers(vtkFourDImageLogic::ProgressDialogEvent,
                                       this->LogicCallbackCommand);
@@ -523,13 +530,13 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
       this->AutoPlayFG              = 1;
       this->AutoPlayInterval        = (int) (interval_s * 1000.0 / (double)this->TimerInterval);  
       this->AutoPlayIntervalCounter = 0;
-      this->AutoPlayFGButton->SetText ("| |");
+      this->AutoPlayFGButton->SetImageToIcon(this->Icons->GetPauseIcon());
       this->AutoPlayFGButton->Modified();
       }
     else
       {
       this->AutoPlayFG              = 0;
-      this->AutoPlayFGButton->SetText (" > ");
+      this->AutoPlayFGButton->SetImageToIcon(this->Icons->GetPlayIcon());
       this->AutoPlayFGButton->Modified();
       }
     }
@@ -543,13 +550,13 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
       this->AutoPlayBG              = 1;
       this->AutoPlayInterval        = (int) (interval_s * 1000.0 / (double)this->TimerInterval);  
       this->AutoPlayIntervalCounter = 0;
-      this->AutoPlayBGButton->SetText ("| |");
+      this->AutoPlayBGButton->SetImageToIcon(this->Icons->GetPauseIcon());
       this->AutoPlayBGButton->Modified();
       }
     else
       {
       this->AutoPlayBG              = 0;
-      this->AutoPlayBGButton->SetText (" > ");
+      this->AutoPlayBGButton->SetImageToIcon(this->Icons->GetPlayIcon());
       this->AutoPlayBGButton->Modified();
       }
     }
@@ -728,6 +735,8 @@ void vtkFourDImageGUI::BuildGUI ( )
   // create a page
   this->UIPanel->AddPage ( "FourDImage", "FourDImage", NULL );
 
+  this->Icons = vtkFourDImageIcons::New();
+
   BuildGUIForHelpFrame();
   BuildGUIForLoadFrame(1);
   BuildGUIForActiveBundleSelectorFrame();
@@ -769,7 +778,7 @@ void vtkFourDImageGUI::BuildGUIForHelpFrame ()
   const char *help = 
     "**The 4D Analysis Module** helps you to load, view and analyze a series of 3D images (4D image),"
     "such as perfusion MRI, DCE MRI, and fMRI. "
-    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:OpenIGTLinkIF</a> for details.";
+    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:FourDAnalysis</a> for details.";
   const char *about =
     "This project is directed by Hiroto Hatabu, MD, PhD (BWH)."
     "The module is designed and implemented by Junichi Tokuda, PhD (BWH), under supports from"
@@ -922,10 +931,10 @@ void vtkFourDImageGUI::BuildGUIForFrameControlFrame(int show)
   this->AutoPlayFGButton = vtkKWPushButton::New ( );
   this->AutoPlayFGButton->SetParent ( fgframe );
   this->AutoPlayFGButton->Create ( );
-  this->AutoPlayFGButton->SetText (" > ");
-  this->AutoPlayFGButton->SetWidth (2);
+  this->AutoPlayFGButton->SetImageToIcon(this->Icons->GetPlayIcon());
+  //this->AutoPlayFGButton->SetWidth (10);
 
-  this->Script("pack %s -side right -fill x -padx 2 -pady 2", 
+  this->Script("pack %s -side right -anchor w -padx 2 -pady 2", 
                this->AutoPlayFGButton->GetWidgetName());
   this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
                this->ForegroundVolumeSelectorScale->GetWidgetName());
@@ -950,10 +959,10 @@ void vtkFourDImageGUI::BuildGUIForFrameControlFrame(int show)
   this->AutoPlayBGButton = vtkKWPushButton::New ( );
   this->AutoPlayBGButton->SetParent ( bgframe );
   this->AutoPlayBGButton->Create ( );
-  this->AutoPlayBGButton->SetText (" > ");
-  this->AutoPlayBGButton->SetWidth (2);
+  this->AutoPlayBGButton->SetImageToIcon(this->Icons->GetPlayIcon());
+  //this->AutoPlayBGButton->SetWidth (10);
 
-  this->Script("pack %s -side right -fill x -padx 2 -pady 2", 
+  this->Script("pack %s -side right -anchor w -padx 2 -pady 2", 
                this->AutoPlayBGButton->GetWidgetName());
   this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
                this->BackgroundVolumeSelectorScale->GetWidgetName());
@@ -1078,6 +1087,11 @@ void vtkFourDImageGUI::SelectActive4DBundle(vtkMRML4DBundleNode* bundleNode)
   this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
   bundleNode->SwitchDisplayBuffer(0, volume);
   bundleNode->SwitchDisplayBuffer(1, volume);
+
+  this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
+  this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
+  SetForeground(bundleNode->GetID(), 0);
+  SetBackground(bundleNode->GetID(), 0);
   
 }
 
@@ -1106,7 +1120,7 @@ void vtkFourDImageGUI::SetForeground(const char* bundleID, int index)
 
   if (volNode)
     {
-    //std::cerr << "volume node name  = " <<  volNode->GetName() << std::endl;
+    std::cerr << "volume node name  = " <<  volNode->GetName() << std::endl;
     nnodes = this->GetMRMLScene()->GetNumberOfNodesByClass ( "vtkMRMLSliceCompositeNode");
     for ( i=0; i<nnodes; i++)
       {
@@ -1177,10 +1191,12 @@ void vtkFourDImageGUI::SetWindowLevelForCurrentFrame()
       vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(fgNode->GetDisplayNode());
       if (displayNode)
         {
-        //double r[2];
-        //fgNode->GetImageData()->GetScalarRange(r);
-        double lower = this->RangeLower;
-        double upper = this->RangeUpper;
+        double r[2];
+        fgNode->GetImageData()->GetScalarRange(r);
+        //double lower = this->RangeLower;
+        //double upper = this->RangeUpper;
+        double lower = r[0];
+        double upper = r[1];
         double range = upper - lower;
         double thLower = lower + range * this->ThresholdLower;
         double thUpper = lower + range * this->ThresholdUpper;
@@ -1208,10 +1224,12 @@ void vtkFourDImageGUI::SetWindowLevelForCurrentFrame()
       vtkMRMLScalarVolumeDisplayNode* displayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(bgNode->GetDisplayNode());
       if (displayNode)
         {
-        //double r[2];
-        //bgNode->GetImageData()->GetScalarRange(r);
-        double lower = this->RangeLower;
-        double upper = this->RangeUpper;
+        double r[2];
+        bgNode->GetImageData()->GetScalarRange(r);
+        //double lower = this->RangeLower;
+        //double upper = this->RangeUpper;
+        double lower = r[0];
+        double upper = r[1];
         double range = upper - lower;
         double thLower = lower + range * this->ThresholdLower;
         double thUpper = lower + range * this->ThresholdUpper;

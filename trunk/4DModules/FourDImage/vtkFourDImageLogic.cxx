@@ -270,11 +270,11 @@ int vtkFourDImageLogic::CreateFileListFromDir(const char* path,
 
 
 //---------------------------------------------------------------------------
-vtkMRML4DBundleNode* vtkFourDImageLogic::LoadImagesFromDir(const char* path, const char* bundleNodeName,
-                                                          double& rangeLower,
-                                                          double& rangeUpper)
+vtkMRML4DBundleNode* vtkFourDImageLogic::LoadImagesFromDir(const char* path, const char* bundleNodeName)
 {
   StatusMessageType statusMessage;
+  double rangeLower;
+  double rangeUpper;
   
   std::cerr << "loading from " << path << std::endl;
 
@@ -482,8 +482,8 @@ vtkMRMLScalarVolumeNode* vtkFourDImageLogic::AddDisplayBufferNode(vtkMRML4DBundl
   sprintf(nodeName, "%s_Display%d", bundleNode->GetName(), index);
   volumeNode->SetName(nodeName);
   
-  double rangeLower;
-  double rangeUpper;
+  double rangeLower = 0.0;
+  double rangeUpper = 0.0;
 
   double range[2];
   volumeNode->GetImageData()->GetScalarRange(range);
