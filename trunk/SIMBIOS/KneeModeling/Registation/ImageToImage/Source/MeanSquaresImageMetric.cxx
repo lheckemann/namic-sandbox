@@ -28,10 +28,10 @@
 
 int main( int argc, char * argv[] )
 {
-  if( argc < 3 )
+  if( argc < 5 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  fixedImage  movingImage" << std::endl;
+    std::cerr << argv[0] << "  fixedImage  movingImage identifier outputFile" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -106,7 +106,17 @@ int main( int argc, char * argv[] )
 
   const double value = metric->GetValue( displacement );
 
-  std::cout << "MeanSquaresMetric = " << value << std::endl;
+
+  std::string identifier = argv[3];
+
+  std::cout << "MeanSquaresMetric " << identifier << " = " << value << std::endl;
+
+  std::ofstream outputFile;
+  outputFile.open( argv[4] );
+
+  outputFile << identifier << " = " << value << std::endl;
+
+  outputFile.close();
 
   return EXIT_SUCCESS;
 }
