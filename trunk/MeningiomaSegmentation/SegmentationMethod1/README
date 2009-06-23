@@ -10,7 +10,7 @@ input / seeds / output label / target segmentation volume / output segmentation 
 roi_01_2x / roi_01_fiducials / roi_01_segmented / 50 mL / 10.214 mL
 roi_02_2x / roi_02_fiducials / roi_02_segmented / 50 mL / 14.255 mL
 roi_04_2x / roi_04_fiducials / roi_04_segmented / 50 mL / 3.0509 mL
-roi_08_2x / roi_08_fiducials / roi_08_segmented / 50 mL / 0.1714 mL
+roi_08_2x / roi_08_fiducials / roi_08_segmented / 50 mL / 0.2228 mL
 
  *** Execution time: under 1 minute for each dataset 
 

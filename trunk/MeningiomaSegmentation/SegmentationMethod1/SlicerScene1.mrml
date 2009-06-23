@@ -8,55 +8,27 @@
 <View
  id="vtkMRMLViewNode1" name="vtkMRMLViewNode1" hideFromEditors="true" selectable="true" selected="false" active="false" fieldOfView="200" letterSize="0.05" boxVisible="true" fiducialsVisible="true" fiducialLabelsVisible="true" axisLabelsVisible="true" backgroundColor="0.70196 0.70196 0.90588" animationMode="Off" viewAxisMode="LookFrom" spinDegrees="2" spinMs="5" spinDirection="YawLeft" rotateDegrees="5" rockLength="200" rockCount="0" stereoType="NoStereo" renderMode="Perspective"></View>
 <Camera
- id="vtkMRMLCameraNode1" name="vtkMRMLCameraNode1" hideFromEditors="true" selectable="true" selected="false" position="70.7421 -1.80256 33.7822" focalPoint="0 0 0" viewUp="0.382634 0.503925 -0.774371" parallelProjection="false" parallelScale="1" active="false"></Camera>
+ id="vtkMRMLCameraNode1" name="vtkMRMLCameraNode1" hideFromEditors="true" selectable="true" selected="false" position="0 500 0" focalPoint="0 0 0" viewUp="0 0 1" parallelProjection="false" parallelScale="1" active="false"></Camera>
 <TGParameters
  id="vtkMRMLChangeTrackerNode1" name="vtkMRMLChangeTrackerNode1" hideFromEditors="true" selectable="true" selected="false" ROIMin="-1 -1 -1" ROIMax="-1 -1 -1" SegmentThresholdMin="-1" SegmentThresholdMax="-1" Analysis_Intensity_Flag="0" Analysis_Deformable_Flag="0" UseITK="1"></TGParameters>
 <VolumeRenderingSelection
  id="vtkMRMLVolumeRenderingSelectionNode1" name="vtkMRMLVolumeRenderingSelectionNode1" hideFromEditors="true" selectable="true" selected="false" activeVolumeID="NULL" activeVolumeRenderingID="NULL"></VolumeRenderingSelection>
+<Slice
+ id="vtkMRMLSliceNode1" name="Green" hideFromEditors="true" selectable="true" selected="false" fieldOfView="63.8858 36.4 0.46875" dimensions="430 245 1" activeSlice="0" layoutGridRows="1" layoutGridColumns="1" sliceToRAS="-1 0 0 -53.9065 0 0 1 15.4685 0 1 0 -24.5 0 0 0 1" layoutName="Green" orientation="Coronal" jumpMode="1" sliceVisibility="false" widgetVisibility="false" useLabelOutline="false" sliceSpacingMode="0" prescribedSliceSpacing="1 1 1"></Slice>
+<SliceComposite
+ id="vtkMRMLSliceCompositeNode1" name="vtkMRMLSliceCompositeNode1" hideFromEditors="true" selectable="true" selected="false" backgroundVolumeID="vtkMRMLScalarVolumeNode4" foregroundVolumeID="" labelVolumeID="vtkMRMLScalarVolumeNode8" compositing="0" labelOpacity="1" linkedControl="0" foregroundGrid="0" backgroundGrid="0" labelGrid="1" fiducialVisibility="1" fiducialLabelVisibility="1" sliceIntersectionVisibility="0" layoutName="Green" annotationMode="All" doPropagateVolumeSelection="1"></SliceComposite>
+<Slice
+ id="vtkMRMLSliceNode2" name="Red" hideFromEditors="true" selectable="true" selected="false" fieldOfView="65.4833 43.125 0.7" dimensions="864 569 1" activeSlice="0" layoutGridRows="1" layoutGridColumns="1" sliceToRAS="-1 0 -0 -53.9065 0 1 0 15.4685 -0 0 1 -29.4 0 -0 0 1" layoutName="Red" orientation="Axial" jumpMode="1" sliceVisibility="false" widgetVisibility="false" useLabelOutline="false" sliceSpacingMode="0" prescribedSliceSpacing="1 1 1"></Slice>
+<SliceComposite
+ id="vtkMRMLSliceCompositeNode2" name="vtkMRMLSliceCompositeNode2" hideFromEditors="true" selectable="true" selected="false" backgroundVolumeID="vtkMRMLScalarVolumeNode4" foregroundVolumeID="" labelVolumeID="vtkMRMLScalarVolumeNode8" compositing="0" labelOpacity="1" linkedControl="0" foregroundGrid="0" backgroundGrid="0" labelGrid="1" fiducialVisibility="1" fiducialLabelVisibility="1" sliceIntersectionVisibility="0" layoutName="Red" annotationMode="All" doPropagateVolumeSelection="1"></SliceComposite>
+<Slice
+ id="vtkMRMLSliceNode3" name="Yellow" hideFromEditors="true" selectable="true" selected="false" fieldOfView="63.8858 36.4 0.46875" dimensions="430 245 1" activeSlice="0" layoutGridRows="1" layoutGridColumns="1" sliceToRAS="0 0 1 -53.9065 -1 0 0 15.4685 0 1 0 -24.5 0 0 0 1" layoutName="Yellow" orientation="Sagittal" jumpMode="1" sliceVisibility="false" widgetVisibility="false" useLabelOutline="false" sliceSpacingMode="0" prescribedSliceSpacing="1 1 1"></Slice>
+<SliceComposite
+ id="vtkMRMLSliceCompositeNode3" name="vtkMRMLSliceCompositeNode3" hideFromEditors="true" selectable="true" selected="false" backgroundVolumeID="vtkMRMLScalarVolumeNode4" foregroundVolumeID="" labelVolumeID="vtkMRMLScalarVolumeNode8" compositing="0" labelOpacity="1" linkedControl="0" foregroundGrid="0" backgroundGrid="0" labelGrid="1" fiducialVisibility="1" fiducialLabelVisibility="1" sliceIntersectionVisibility="0" layoutName="Yellow" annotationMode="All" doPropagateVolumeSelection="1"></SliceComposite>
 <Crosshair
- id="vtkMRMLCrosshairNode1" name="vtkMRMLCrosshairNode1" hideFromEditors="true" selectable="true" selected="false" crosshairMode="NoCrosshair" crosshairBehavior="Normal" crosshairThickness="Fine" crosshairRAS="-51.5628 15.4685 -28.7"></Crosshair>
-<Slice
- id="vtkMRMLSliceNode1" name="Green" hideFromEditors="true" selectable="true" selected="false" fieldOfView="63.8858 36.4 0.46875" dimensions="430 245 1" activeSlice="0" layoutGridRows="1" layoutGridColumns="1" sliceToRAS="-1 -0 0 -53.9065 -0 -0 1 15.4685 0 1 0 -24.5 -0 0 -0 1" layoutName="Green" orientation="Coronal" jumpMode="1" sliceVisibility="false" widgetVisibility="false" useLabelOutline="true" sliceSpacingMode="0" prescribedSliceSpacing="1 1 1"></Slice>
-<Slice
- id="vtkMRMLSliceNode2" name="Red" hideFromEditors="true" selectable="true" selected="false" fieldOfView="75.999 43.125 0.7" dimensions="430 244 1" activeSlice="0" layoutGridRows="1" layoutGridColumns="1" sliceToRAS="-1 0 -0 -53.9065 0 1 0 15.4685 -0 0 1 -28.7 0 -0 0 1" layoutName="Red" orientation="Axial" jumpMode="1" sliceVisibility="false" widgetVisibility="false" useLabelOutline="true" sliceSpacingMode="0" prescribedSliceSpacing="1 1 1"></Slice>
-<Slice
- id="vtkMRMLSliceNode3" name="Yellow" hideFromEditors="true" selectable="true" selected="false" fieldOfView="63.8858 36.4 0.46875" dimensions="430 245 1" activeSlice="0" layoutGridRows="1" layoutGridColumns="1" sliceToRAS="-0 0 1 -51.5628 -1 -0 0 15.4685 -0 1 -0 -24.5 0 -0 0 1" layoutName="Yellow" orientation="Sagittal" jumpMode="1" sliceVisibility="false" widgetVisibility="false" useLabelOutline="true" sliceSpacingMode="0" prescribedSliceSpacing="1 1 1"></Slice>
-<SliceComposite
- id="vtkMRMLSliceCompositeNode3" name="vtkMRMLSliceCompositeNode3" hideFromEditors="true" selectable="true" selected="false" backgroundVolumeID="vtkMRMLScalarVolumeNode4" foregroundVolumeID="" labelVolumeID="vtkMRMLScalarVolumeNode8" compositing="0" labelOpacity="1" linkedControl="1" foregroundGrid="0" backgroundGrid="0" labelGrid="1" fiducialVisibility="1" fiducialLabelVisibility="1" sliceIntersectionVisibility="0" layoutName="Yellow" annotationMode="All" doPropagateVolumeSelection="1"></SliceComposite>
-<SliceComposite
- id="vtkMRMLSliceCompositeNode2" name="vtkMRMLSliceCompositeNode2" hideFromEditors="true" selectable="true" selected="false" backgroundVolumeID="vtkMRMLScalarVolumeNode4" foregroundVolumeID="" labelVolumeID="vtkMRMLScalarVolumeNode8" compositing="0" labelOpacity="1" linkedControl="1" foregroundGrid="0" backgroundGrid="0" labelGrid="1" fiducialVisibility="1" fiducialLabelVisibility="1" sliceIntersectionVisibility="0" layoutName="Red" annotationMode="All" doPropagateVolumeSelection="1"></SliceComposite>
-<SliceComposite
- id="vtkMRMLSliceCompositeNode1" name="vtkMRMLSliceCompositeNode1" hideFromEditors="true" selectable="true" selected="false" backgroundVolumeID="vtkMRMLScalarVolumeNode4" foregroundVolumeID="" labelVolumeID="vtkMRMLScalarVolumeNode8" compositing="0" labelOpacity="1" linkedControl="1" foregroundGrid="0" backgroundGrid="0" labelGrid="1" fiducialVisibility="1" fiducialLabelVisibility="1" sliceIntersectionVisibility="0" layoutName="Green" annotationMode="All" doPropagateVolumeSelection="1"></SliceComposite>
+ id="vtkMRMLCrosshairNode1" name="vtkMRMLCrosshairNode1" hideFromEditors="true" selectable="true" selected="false" crosshairMode="NoCrosshair" crosshairBehavior="Normal" crosshairThickness="Fine" crosshairRAS="-53.9067 15.4685 -29.4"></Crosshair>
 <ScriptedModule
  id="vtkMRMLScriptedModuleNode1" name="vtkMRMLScriptedModuleNode1" hideFromEditors="true" selectable="true" selected="false" ModuleName ="Editor" parameter0= "label 1"></ScriptedModule>
-<FiducialList
- id="vtkMRMLFiducialListNode1" name="roi_01_fiducials" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLFiducialListStorageNode1" userTags="" symbolScale="5" symbolType="11" textScale="4.5" visibility="1" color="0.4 1 1" selectedcolor="1 0.5 0.5" ambient="0" diffuse="1" specular="0" power="1" locked="0" numberingScheme="0" opacity="1" fiducials="
-id roi_01_fiducials-P32 labeltext roi_01_fiducials-P3 xyz -40.4896 28.8471 -28 orientationwxyz 0 0 0 1 selected 1 visibility 1
-id roi_01_fiducials-P42 labeltext roi_01_fiducials-P4 xyz -37.996 19.3261 -28 orientationwxyz 0 0 0 1 selected 1 visibility 1
-id roi_01_fiducials-P52 labeltext roi_01_fiducials-P5 xyz -26.888 17.2858 -28 orientationwxyz 0 0 0 1 selected 1 visibility 1"></FiducialList>
-<FiducialListStorage
- id="vtkMRMLFiducialListStorageNode1" name="vtkMRMLFiducialListStorageNode1" hideFromEditors="true" selectable="true" selected="false" fileName="roi_01_fiducials.fcsv" useCompression="1" readState="0" writeState="0"></FiducialListStorage>
-<FiducialList
- id="vtkMRMLFiducialListNode2" name="roi_02_fiducials" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLFiducialListStorageNode2" userTags="" symbolScale="5" symbolType="11" textScale="4.5" visibility="1" color="0.4 1 1" selectedcolor="1 0.5 0.5" ambient="0" diffuse="1" specular="0" power="1" locked="0" numberingScheme="0" opacity="1" fiducials="
-id roi_02_fiducials-P8 labeltext roi_02_fiducials-P xyz -6.49746 35.6133 28 orientationwxyz 0 0 0 1 selected 1 visibility 1
-id roi_02_fiducials-P13 labeltext roi_02_fiducials-P1 xyz -10.09 26.315 28 orientationwxyz 0 0 0 1 selected 1 visibility 1
-id roi_02_fiducials-P23 labeltext roi_02_fiducials-P2 xyz 1.1102 22.9339 28 orientationwxyz 0 0 0 1 selected 1 visibility 1"></FiducialList>
-<FiducialListStorage
- id="vtkMRMLFiducialListStorageNode2" name="vtkMRMLFiducialListStorageNode2" hideFromEditors="true" selectable="true" selected="false" fileName="roi_02_fiducials.fcsv" useCompression="1" readState="0" writeState="0"></FiducialListStorage>
-<FiducialList
- id="vtkMRMLFiducialListNode3" name="roi_04_fiducials" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLFiducialListStorageNode3" userTags="" symbolScale="5" symbolType="11" textScale="4.5" visibility="1" color="0.4 1 1" selectedcolor="1 0.5 0.5" ambient="0" diffuse="1" specular="0" power="1" locked="0" numberingScheme="0" opacity="1" fiducials="
-id roi_04_fiducials-P8 labeltext roi_04_fiducials-P xyz -33.4775 -14.5815 47.4 orientationwxyz 0 0 0 1 selected 1 visibility 1
-id roi_04_fiducials-P13 labeltext roi_04_fiducials-P1 xyz -37.3773 -19.8261 47.4 orientationwxyz 0 0 0 1 selected 1 visibility 1
-id roi_04_fiducials-P23 labeltext roi_04_fiducials-P2 xyz -30.6535 -21.7087 47.4 orientationwxyz 0 0 0 1 selected 1 visibility 1"></FiducialList>
-<FiducialListStorage
- id="vtkMRMLFiducialListStorageNode3" name="vtkMRMLFiducialListStorageNode3" hideFromEditors="true" selectable="true" selected="false" fileName="roi_04_fiducials.fcsv" useCompression="1" readState="0" writeState="0"></FiducialListStorage>
-<FiducialList
- id="vtkMRMLFiducialListNode4" name="roi_08_fiducials" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLFiducialListStorageNode4" userTags="" symbolScale="5" symbolType="11" textScale="4.5" visibility="1" color="0.4 1 1" selectedcolor="1 0.5 0.5" ambient="0" diffuse="1" specular="0" power="1" locked="0" numberingScheme="0" opacity="1" fiducials="
-id roi_08_fiducials-P8 labeltext roi_08_fiducials-P xyz -45.4229 17.4127 -31.5 orientationwxyz 0 0 0 1 selected 1 visibility 1
-id roi_08_fiducials-P13 labeltext roi_08_fiducials-P1 xyz -50.0182 21.1242 -33.6 orientationwxyz 0 0 0 1 selected 1 visibility 1
-id roi_08_fiducials-P23 labeltext roi_08_fiducials-P2 xyz -50.9019 14.7615 -35 orientationwxyz 0 0 0 1 selected 1 visibility 1"></FiducialList>
-<FiducialListStorage
- id="vtkMRMLFiducialListStorageNode4" name="vtkMRMLFiducialListStorageNode4" hideFromEditors="true" selectable="true" selected="false" fileName="roi_08_fiducials.fcsv" useCompression="1" readState="0" writeState="0"></FiducialListStorage>
 <VolumeArchetypeStorage
  id="vtkMRMLVolumeArchetypeStorageNode1" name="vtkMRMLVolumeArchetypeStorageNode1" hideFromEditors="true" selectable="true" selected="false" fileName="../Data/roi_01_2x.nrrd" useCompression="1" readState="0" writeState="0" centerImage="0" singleFile="0" UseOrientationFromFile="1"></VolumeArchetypeStorage>
 <Volume
@@ -81,12 +53,40 @@ id roi_08_fiducials-P23 labeltext roi_08_fiducials-P2 xyz -50.9019 14.7615 -35 o
  id="vtkMRMLScalarVolumeNode4" name="roi_08_2x" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLVolumeArchetypeStorageNode4" userTags="" displayNodeRef="vtkMRMLScalarVolumeDisplayNode4" ijkToRASDirections="-1   -0   0 -0   -1   0 0 -0 1 " spacing="0.46875 0.46875 0.7" origin="-29.5315 37.031 -42.7" labelMap="0"></Volume>
 <VolumeDisplay
  id="vtkMRMLScalarVolumeDisplayNode4" name="vtkMRMLScalarVolumeDisplayNode4" hideFromEditors="true" selectable="true" selected="false" color="0.5 0.5 0.5" selectedColor="1 0 0" selectedAmbient="0.4" ambient="0" diffuse="1" selectedSpecular="0.5" specular="0" power="1" opacity="1" visibility="true" clipping="false" sliceIntersectionVisibility="false" backfaceCulling="true" scalarVisibility="false" vectorVisibility="false" tensorVisibility="false" autoScalarRange="true" scalarRange="0 100" colorNodeRef="vtkMRMLColorTableNodeGrey"  window="160" level="101" upperThreshold="32767" lowerThreshold="-32768" interpolate="1" autoWindowLevel="1" applyThreshold="0" autoThreshold="0"></VolumeDisplay>
+<FiducialList
+ id="vtkMRMLFiducialListNode1" name="roi_01_fiducials" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLFiducialListStorageNode1" userTags="" symbolScale="5" symbolType="11" textScale="4.5" visibility="1" color="0.4 1 1" selectedcolor="1 0.5 0.5" ambient="0" diffuse="1" specular="0" power="1" locked="0" numberingScheme="0" opacity="1" fiducials="
+id roi_01_fiducials-P31 labeltext roi_01_fiducials-P3 xyz -40.4896 28.8471 -28 orientationwxyz 0 0 0 1 selected 1 visibility 1
+id roi_01_fiducials-P41 labeltext roi_01_fiducials-P4 xyz -37.996 19.3261 -28 orientationwxyz 0 0 0 1 selected 1 visibility 1
+id roi_01_fiducials-P51 labeltext roi_01_fiducials-P5 xyz -26.888 17.2858 -28 orientationwxyz 0 0 0 1 selected 1 visibility 1"></FiducialList>
+<FiducialListStorage
+ id="vtkMRMLFiducialListStorageNode1" name="vtkMRMLFiducialListStorageNode1" hideFromEditors="true" selectable="true" selected="false" fileName="roi_01_fiducials.fcsv" useCompression="1" readState="0" writeState="0"></FiducialListStorage>
+<FiducialList
+ id="vtkMRMLFiducialListNode2" name="roi_02_fiducials" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLFiducialListStorageNode2" userTags="" symbolScale="5" symbolType="11" textScale="4.5" visibility="1" color="0.4 1 1" selectedcolor="1 0.5 0.5" ambient="0" diffuse="1" specular="0" power="1" locked="0" numberingScheme="0" opacity="1" fiducials="
+id roi_02_fiducials-P3 labeltext roi_02_fiducials-P xyz -6.49746 35.6133 28 orientationwxyz 0 0 0 1 selected 1 visibility 1
+id roi_02_fiducials-P11 labeltext roi_02_fiducials-P1 xyz -10.09 26.315 28 orientationwxyz 0 0 0 1 selected 1 visibility 1
+id roi_02_fiducials-P21 labeltext roi_02_fiducials-P2 xyz 1.1102 22.9339 28 orientationwxyz 0 0 0 1 selected 1 visibility 1"></FiducialList>
+<FiducialListStorage
+ id="vtkMRMLFiducialListStorageNode2" name="vtkMRMLFiducialListStorageNode2" hideFromEditors="true" selectable="true" selected="false" fileName="roi_02_fiducials.fcsv" useCompression="1" readState="0" writeState="0"></FiducialListStorage>
+<FiducialList
+ id="vtkMRMLFiducialListNode3" name="roi_04_fiducials" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLFiducialListStorageNode3" userTags="" symbolScale="5" symbolType="11" textScale="4.5" visibility="1" color="0.4 1 1" selectedcolor="1 0.5 0.5" ambient="0" diffuse="1" specular="0" power="1" locked="0" numberingScheme="0" opacity="1" fiducials="
+id roi_04_fiducials-P3 labeltext roi_04_fiducials-P xyz -33.4775 -14.5815 47.4 orientationwxyz 0 0 0 1 selected 1 visibility 1
+id roi_04_fiducials-P11 labeltext roi_04_fiducials-P1 xyz -37.3773 -19.8261 47.4 orientationwxyz 0 0 0 1 selected 1 visibility 1
+id roi_04_fiducials-P21 labeltext roi_04_fiducials-P2 xyz -30.6535 -21.7087 47.4 orientationwxyz 0 0 0 1 selected 1 visibility 1"></FiducialList>
+<FiducialListStorage
+ id="vtkMRMLFiducialListStorageNode3" name="vtkMRMLFiducialListStorageNode3" hideFromEditors="true" selectable="true" selected="false" fileName="roi_04_fiducials.fcsv" useCompression="1" readState="0" writeState="0"></FiducialListStorage>
+<FiducialList
+ id="vtkMRMLFiducialListNode4" name="roi_08_fiducials" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLFiducialListStorageNode4" userTags="" symbolScale="5" symbolType="11" textScale="4.5" visibility="1" color="0.4 1 1" selectedcolor="1 0.5 0.5" ambient="0" diffuse="1" specular="0" power="1" locked="0" numberingScheme="0" opacity="1" fiducials="
+id roi_08_fiducials-P3 labeltext roi_08_fiducials-P xyz -45.4229 17.4127 -31.5 orientationwxyz 0 0 0 1 selected 1 visibility 1
+id roi_08_fiducials-P11 labeltext roi_08_fiducials-P1 xyz -50.0182 21.1242 -33.6 orientationwxyz 0 0 0 1 selected 1 visibility 1
+id roi_08_fiducials-P21 labeltext roi_08_fiducials-P2 xyz -50.9019 14.7615 -35 orientationwxyz 0 0 0 1 selected 1 visibility 1"></FiducialList>
+<FiducialListStorage
+ id="vtkMRMLFiducialListStorageNode4" name="vtkMRMLFiducialListStorageNode4" hideFromEditors="true" selectable="true" selected="false" fileName="roi_08_fiducials.fcsv" useCompression="1" readState="0" writeState="0"></FiducialListStorage>
 <Volume
  id="vtkMRMLScalarVolumeNode5" name="roi_01_segmented" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLVolumeArchetypeStorageNode5" userTags="" displayNodeRef="vtkMRMLLabelMapVolumeDisplayNode1" ijkToRASDirections="-1   0   0 0   -1   0 0 0 1 " spacing="0.46875 0.46875 0.7" origin="-3.2815 50.156 -55.3" labelMap="1"></Volume>
-<VolumeArchetypeStorage
- id="vtkMRMLVolumeArchetypeStorageNode5" name="vtkMRMLVolumeArchetypeStorageNode5" hideFromEditors="true" selectable="true" selected="false" fileName="FastMarchingLabel3.nrrd" fileListMember0="FastMarchingLabel3.nrrd" useCompression="1" readState="0" writeState="4" centerImage="0" singleFile="0" UseOrientationFromFile="1"></VolumeArchetypeStorage>
 <LabelMapVolumeDisplay
  id="vtkMRMLLabelMapVolumeDisplayNode1" name="vtkMRMLLabelMapVolumeDisplayNode1" hideFromEditors="true" selectable="true" selected="false" color="0.5 0.5 0.5" selectedColor="1 0 0" selectedAmbient="0.4" ambient="0" diffuse="1" selectedSpecular="0.5" specular="0" power="1" opacity="1" visibility="true" clipping="false" sliceIntersectionVisibility="false" backfaceCulling="true" scalarVisibility="false" vectorVisibility="false" tensorVisibility="false" autoScalarRange="true" scalarRange="0 100" colorNodeRef="vtkMRMLColorTableNodeLabels" ></LabelMapVolumeDisplay>
+<VolumeArchetypeStorage
+ id="vtkMRMLVolumeArchetypeStorageNode5" name="vtkMRMLVolumeArchetypeStorageNode5" hideFromEditors="true" selectable="true" selected="false" fileName="roi_01_segmented.nrrd" fileListMember0="roi_01_segmented.nrrd" useCompression="1" readState="0" writeState="4" centerImage="0" singleFile="0" UseOrientationFromFile="1"></VolumeArchetypeStorage>
 <Volume
  id="vtkMRMLScalarVolumeNode6" name="roi_02_segmented" hideFromEditors="false" selectable="true" selected="false" storageNodeRef="vtkMRMLVolumeArchetypeStorageNode6" userTags="" displayNodeRef="vtkMRMLLabelMapVolumeDisplayNode2" ijkToRASDirections="-1   0   0 0   -1   0 0 0 1 " spacing="0.46875 0.46875 0.7" origin="22.9685 54.8435 0.7" labelMap="1"></Volume>
 <LabelMapVolumeDisplay
