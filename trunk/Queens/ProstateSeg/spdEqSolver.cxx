@@ -167,7 +167,7 @@ int SpdEqSolver::solveSpdEq(spMtx* A, vec* b, vec* x, int numIter, elementType t
 
       for (unsigned long id = 0; id < N; ++id)
         {
-          z[i] = r[i]*Cinv[i];
+          z[id] = r[id]*Cinv[id];
         }
 
       elementType beta \
