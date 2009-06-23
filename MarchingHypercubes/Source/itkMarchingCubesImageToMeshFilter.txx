@@ -17,13 +17,8 @@ PURPOSE.  See the above copyright notices for more information.
 #ifndef __itkMarchingCubesImageToMeshFilter_txx
 #define __itkMarchingCubesImageToMeshFilter_txx
 
-
 #include "itkMarchingCubesImageToMeshFilter.h"
 #include "itkNumericTraits.h"
-//sophie's include:
-
-
-//#include <iostream.h>
 
 namespace itk
 {
@@ -509,7 +504,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
       }
 
     ++cellRegionWalker;
-
     progress.CompletedPixel();
     }
 }
@@ -566,16 +560,24 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   const DirectedPointType & directedPoint1,
   const DirectedPointType & directedPoint2,
   const DirectedPointType & directedPoint3 )
-{
-  OutputMeshType     * mesh = this->GetOutput();
-  PointsContainer    * pointsContainer  = mesh->GetPoints();
-  PointDataContainer * pointDataContainer  = mesh->GetPointData();
-  
+  {  
   typename TriangleType::CellAutoPointer cellpointer;
   cellpointer.TakeOwnership( new TriangleType );
+  
+  PointLocatorType::InstanceIdentifierVectorType        list;
+  //radius
+  double radius = 1.0;
 
   // TODO  Insert here use of the Point locator.
-
+  this->m_PointLocator->Search(directedPoint1.point,radius,list);
+  this->m_PointLocator->Search(directedPoint2.point,radius,list);
+  this->m_PointLocator->Search(directedPoint3.point,radius,list);
+  
+  IfPointIsGreaterThanToleranceReplaceIndexAndInsertIntoMesh(directedPoint1, list, cellpointer);
+  IfPointIsGreaterThanToleranceReplaceIndexAndInsertIntoMesh(directedPoint2, list, cellpointer);
+  IfPointIsGreaterThanToleranceReplaceIndexAndInsertIntoMesh(directedPoint3, list, cellpointer);
+  
+/*
   // Insert the point in the output mesh.
   pointsContainer->InsertElement(  this->m_NumberOfPoints, directedPoint1.point );
   pointDataContainer->InsertElement(  this->m_NumberOfPoints, directedPoint1.gradient );
@@ -588,9 +590,48 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   pointsContainer->InsertElement(  this->m_NumberOfPoints, directedPoint3.point );
   pointDataContainer->InsertElement(  this->m_NumberOfPoints, directedPoint3.gradient );
   cellpointer->SetPointId( 2, this->m_NumberOfPoints++ );
-
-  mesh->SetCell( this->m_NumberOfCells++, cellpointer );
+*/ 
+  
 }
+
+template<class TInputImage, class TOutputMesh>
+void
+MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
+::IfPointIsGreaterThanToleranceReplaceIndexAndInsertIntoMesh(
+  const DirectedPointType pointIndex, 
+  const InstanceIdentifierVectorType & list, 
+  CellAutoPointer & cellpointer)
+  {
+  OutputMeshType     * mesh = this->GetOutput();
+  PointsContainer    * pointsContainer  = mesh->GetPoints();
+  PointDataContainer * pointDataContainer  = mesh->GetPointData();
+
+  OutputMeshType::PointType p = pointsContainer->GetElement(list[0]);
+  
+  //closest point
+  double distance = p.EuclideanDistanceTo(pointIndex.point);
+  
+  const double tolerance = 1e-10;  // FIXME compute based on image spacing
+  
+  if( distance > tolerance )
+    {
+    // This is a new point
+    pointsContainer->InsertElement(  this->m_NumberOfPoints, pointIndex.point);
+    pointDataContainer->InsertElement(  this->m_NumberOfPoints, pointIndex.gradient );
+    cellpointer->SetPointId( 0, this->m_NumberOfPoints++ );
+    }
+  else
+    {
+    // This is a repeated point
+    // use list[0] as the index to insert in the new triangle cell
+
+    pointsContainer->InsertElement(  this->m_NumberOfPoints, pointsContainer->GetElement( list[0]) );
+    pointDataContainer->InsertElement(  this->m_NumberOfPoints, pointDataContainer->GetElement( list[0] ) );
+    cellpointer->SetPointId( 0, list[0] );
+    
+    }
+   mesh->SetCell( this->m_NumberOfCells++, cellpointer ); 
+  }
 
 /** Compute gradients on the voxels contained in the neighborhood. */
 template<class TInputImage, class TOutputMesh>
@@ -600,8 +641,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   const NeighborhoodIteratorType & cellRegionWalker,
   DirectedPointType & outputDirectedPoint )
 {
-  //Sophie's code (verified)  
-
   unsigned int v1 = vertexPair.Vertex1;
   unsigned int v2 = vertexPair.Vertex2;
 
@@ -674,11 +713,9 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
 
   typedef typename InputImageType::PixelType PixelType;
   typedef typename NumericTraits< PixelType >::RealType RealPixelType;
- 
-  
+   
   typename NeighborhoodIteratorType::ConstIterator pixelIterator = cellRegionWalker.Begin();
 
-  //Sophie's counter
   int i = 0;  
   IndexType cornerIndex = cellRegionWalker.GetIndex();
   
