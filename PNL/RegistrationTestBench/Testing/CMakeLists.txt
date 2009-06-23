@@ -86,7 +86,8 @@ REGISTER_IMAGES( T1-T2
 # Other parameters from 
 # http://www.na-mic.org/Wiki/index.php/Summer2009:Registration_reproducibility_in_Slicer
 #
-ADD_TEST( RigidRegistrationSlicerModuleTest01
+MACRO(REGISTRATION_THREADS_TEST NTHREADS)
+ADD_TEST( RigidRegSlicerModuleTest_${NTHREADS}
   ${EXECUTABLE_OUTPUT_PATH}/RigidRegistrationSlicerModuleTest
   ${SLICER_TESTING_DATA}/MRMeningioma0.nrrd   #  fixed image
   ${SLICER_TESTING_DATA}/MRMeningioma1.nrrd   #  moving image
@@ -97,7 +98,16 @@ ADD_TEST( RigidRegistrationSlicerModuleTest01
   100  100  50  20  # iterations 
   0.01  0.005  0.0005  0.0002 # learningrate 
   100 # translationscale 
-  ${TEMP}/RigidRegistrationTransform-CLI.txt  # outputtransform 
-  1  # number of threads
+  ${TEMP}/RigidRegistrationTransform-CLI_${NTHREADS}.txt  # outputtransform 
+  ${NTHREADS}  # number of threads
   )
+ENDMACRO(REGISTRATION_THREADS_TEST)
+
+
+REGISTRATION_THREADS_TEST( 1 )
+REGISTRATION_THREADS_TEST( 2 )
+REGISTRATION_THREADS_TEST( 3 )
+REGISTRATION_THREADS_TEST( 4 )
+REGISTRATION_THREADS_TEST( 5 )
+REGISTRATION_THREADS_TEST( 6 )
 
