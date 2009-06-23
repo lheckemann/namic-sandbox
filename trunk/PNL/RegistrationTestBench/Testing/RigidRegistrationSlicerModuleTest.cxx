@@ -14,6 +14,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "itkPluginUtilities.h"
+
 #include <iostream>
 
 #include "itkOrientedImage.h"
@@ -238,6 +240,8 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   //
   bool TestingMode = true;
 
+  std::string InitialTransform;
+
   typename TransformType::Pointer groundTruthTransform = NULL;
   typename MovingImageType::Pointer movingImageTestingMode = NULL;
   if(TestingMode)
@@ -332,9 +336,11 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   // transform forthe original un-reoriented data. 
   
   typename FixedOrientFilterType::Pointer orientFixed = FixedOrientFilterType::New();//##
-  itk::PluginFilterWatcher watchOrientFixed(orientFixed,   "Orient Fixed Image",  CLPProcessInformation,  1.0/5.0, 0.0);
+//  itk::PluginFilterWatcher watchOrientFixed(orientFixed,   "Orient Fixed Image",  CLPProcessInformation,  1.0/5.0, 0.0);
   orientFixed->UseImageDirectionOn();
   orientFixed->SetDesiredCoordinateOrientationToAxial();
+
+  const double FixedImageSmoothingFactor = atof( argv[3] );
 
   if (FixedImageSmoothingFactor != 0)
     {
@@ -342,7 +348,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
     typename BinomialFixedType::Pointer BinomialFixed = BinomialFixedType::New();
     BinomialFixed->SetInput(   fixedReader -> GetOutput() );
     BinomialFixed->SetRepetitions( FixedImageSmoothingFactor * 2);
-    itk::PluginFilterWatcher watchfilter(BinomialFixed , "Binomial Filter Fixed",  CLPProcessInformation, 1.0/5.0, 1.0/5.0);
+    // itk::PluginFilterWatcher watchfilter(BinomialFixed , "Binomial Filter Fixed",  CLPProcessInformation, 1.0/5.0, 1.0/5.0);
     BinomialFixed->Update();  
     orientFixed->SetInput (BinomialFixed->GetOutput());
     }
@@ -355,17 +361,19 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   collector.Stop( "Orient fixed volume" );
   
   typename MovingOrientFilterType::Pointer orientMoving = MovingOrientFilterType::New();//##
-  itk::PluginFilterWatcher watchOrientMoving(orientMoving,  "Orient Moving Image", CLPProcessInformation,  1.0/5.0, 2.0/5.0);
+  // itk::PluginFilterWatcher watchOrientMoving(orientMoving,  "Orient Moving Image", CLPProcessInformation,  1.0/5.0, 2.0/5.0);
   orientMoving->UseImageDirectionOn();
   orientMoving->SetDesiredCoordinateOrientationToAxial();
   
+  const double MovingImageSmoothingFactor = atof( argv[4] );
+
   if (MovingImageSmoothingFactor != 0)
     {
     typedef itk::BinomialBlurImageFilter< MovingImageType,  MovingImageType > BinomialMovingType;
     typename BinomialMovingType::Pointer BinomialMoving = BinomialMovingType::New();
     BinomialMoving->SetInput(   movingReader -> GetOutput() );
     BinomialMoving->SetRepetitions( MovingImageSmoothingFactor * 2);
-    itk::PluginFilterWatcher watchfilter(BinomialMoving , "Binomial Filter Moving",  CLPProcessInformation, 1.0/5.0, 3.0/5.0);
+    // itk::PluginFilterWatcher watchfilter(BinomialMoving , "Binomial Filter Moving",  CLPProcessInformation, 1.0/5.0, 3.0/5.0);
     BinomialMoving->Update();  
     orientMoving->SetInput(BinomialMoving -> GetOutput());
     }
@@ -401,6 +409,21 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   //
   //
   ScheduleCommand::Pointer Schedule = ScheduleCommand::New();
+
+  std::vector<int> Iterations;
+  std::vector<double> LearningRate;
+
+  Iterations.push_back( atoi( argv[ 7] ) );
+  Iterations.push_back( atoi( argv[ 8] ) );
+  Iterations.push_back( atoi( argv[ 9] ) );
+  Iterations.push_back( atoi( argv[10] ) );
+
+  LearningRate.push_back( atof( argv[11] ) );
+  LearningRate.push_back( atof( argv[12] ) );
+  LearningRate.push_back( atof( argv[13] ) );
+  LearningRate.push_back( atof( argv[14] ) );
+
+
   Schedule->SetSchedule ( Iterations, LearningRate );
 
   int sum = 0;
@@ -417,6 +440,9 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   typename TransformType::Pointer transform = TransformType::New();
   typedef OptimizerType::ScalesType OptimizerScalesType;
   OptimizerScalesType scales( transform->GetNumberOfParameters() );
+
+  const double TranslationScale = atof( argv[15] );
+
   scales.Fill ( 1.0 );
   for( unsigned j = 4; j < 7; j++ )
     {
@@ -512,6 +538,9 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
 
   // Set up the metric
   //
+  const unsigned int HistogramBins = atoi( argv[5] );
+  const unsigned int SpatialSamples = atoi( argv[6] );
+
   typename MetricType::Pointer  metric        = MetricType::New();
   metric->SetNumberOfHistogramBins ( HistogramBins );
   metric->SetNumberOfSpatialSamples( SpatialSamples );
@@ -547,10 +576,10 @@ movingWriter2->Write();
   
   try
     {
-    itk::PluginFilterWatcher watchRegistration(registration,
-                                               "Registering",
-                                               CLPProcessInformation,
-                                               1.0/5.0, 4.0/5.0);
+//   itk::PluginFilterWatcher watchRegistration(registration,
+//                                              "Registering",
+//                                              CLPProcessInformation,
+//                                              1.0/5.0, 4.0/5.0);
     collector.Start( "Register" );
     registration->Update();     
     collector.Stop( "Register" );
@@ -568,6 +597,8 @@ movingWriter2->Write();
 
 
   transform->SetParameters ( registration->GetLastTransformParameters() );
+
+  std::string OutputTransform;
 
   if (OutputTransform != "")
     {
@@ -591,14 +622,16 @@ movingWriter2->Write();
   // Resample to the original coordinate frame (not the reoriented
   // axial coordinate frame) of the fixed image
   //
+  std::string  ResampledImageFileName;
+
   if (ResampledImageFileName != "")
     {
     typename ResampleType::Pointer resample = ResampleType::New();
     typename ResampleInterpolatorType::Pointer Interpolator = ResampleInterpolatorType::New();
-    itk::PluginFilterWatcher watchResample(resample,
-                                           "Resample",
-                                           CLPProcessInformation,
-                                           1.0/5.0, 4.0/5.0);
+    // itk::PluginFilterWatcher watchResample(resample,
+    //                                        "Resample",
+    //                                        CLPProcessInformation,
+    //                                        1.0/5.0, 4.0/5.0);
     
     resample->SetInput ( movingReader->GetOutput() ); 
     resample->SetTransform ( transform );
@@ -678,10 +711,10 @@ movingWriter2->Write();
 template<class T> int DoIt( int argc, char * argv[], const T& targ)
 {
   
-  PARSE_ARGS;
-
   itk::ImageIOBase::IOPixelType pixelType;
   itk::ImageIOBase::IOComponentType componentType;
+
+  std::string MovingImageFileName = argv[2];
 
   try
     {
@@ -734,14 +767,14 @@ template<class T> int DoIt( int argc, char * argv[], const T& targ)
 int main( int argc, char * argv[] )
 {
   
-  PARSE_ARGS;
-
   // this line is here to be able to see the full output on the dashboard even
   // when the test succeeds (to see the reproducibility error measure)
-  std::cout << std::endl << "ctest needs: CTEST_FULL_OUTPUT" << std::endl;
+  // std::cout << std::endl << "ctest needs: CTEST_FULL_OUTPUT" << std::endl;
 
   itk::ImageIOBase::IOPixelType pixelType;
   itk::ImageIOBase::IOComponentType componentType;
+
+  std::string FixedImageFileName = argv[1];
 
   try
     {
