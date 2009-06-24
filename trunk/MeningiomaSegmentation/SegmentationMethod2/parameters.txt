@@ -1,0 +1,14 @@
+# ITK-SNAP Snake Parameters File
+AdvectionSpeedExponent = 0
+AdvectionWeight = 0
+AutomaticTimeStep = 1
+Clamp = 1
+CurvatureSpeedExponent = -1
+CurvatureWeight = 3
+Ground = 5
+LaplacianSpeedExponent = 0
+LaplacianWeight = 0
+PropagationWeight = 1
+SnakeType = RegionCompetition
+SolverAlgorithm = ParallelSparseField
+TimeStepFactor = 1
