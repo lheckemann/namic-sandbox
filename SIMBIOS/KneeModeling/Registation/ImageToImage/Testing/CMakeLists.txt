@@ -109,7 +109,8 @@ ADD_TEST(ExtractSlice_${DATASET1}_${DATASET2}
   ${EXECUTABLE_OUTPUT_PATH}/ExtractSlice
   ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}.mhd
   ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}_Slice.png
-  30 # Z Slice number
+  2  # Z orientation
+  30 # Slice number
   )
 
 ENDMACRO(REGISTER)
