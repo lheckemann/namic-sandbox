@@ -124,6 +124,13 @@ class VTK_FourDImage_EXPORT vtkFourDImageLogic : public vtkSlicerModuleLogic
   int GenerateBundleFrames(vtkMRML4DBundleNode* inputBundleNode,
                            vtkMRML4DBundleNode* outputBundleNode);
 
+
+  //----------------------------------------------------------------
+  // Editor functions
+  //----------------------------------------------------------------
+  //void AddFrame(const char* bundleID, int index, const char* nodeID);
+  //void DeleteFrame();
+
  protected:
   
   vtkFourDImageLogic();

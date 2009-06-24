@@ -31,6 +31,15 @@ class vtkMRMLStorageNode;
 class VTK_FourDImage_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformNode
 {
   public:
+
+  //BTX
+  typedef struct {
+    unsigned int second;
+    unsigned int nanosecond;
+  } TimeStamp;
+  //ETX
+
+  public:
   static vtkMRML4DBundleNode *New();
   vtkTypeMacro(vtkMRML4DBundleNode,vtkMRMLLinearTransformNode);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -69,14 +78,15 @@ class VTK_FourDImage_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformN
     };
 
   int GetNumberOfFrames();
-  int InsertFrame(int i, const char* nodeID);
-  int AddFrame(const char* nodeID);
+  int InsertFrame(int i, const char* nodeID, TimeStamp* ts = NULL);
+  int AddFrame(const char* nodeID, TimeStamp* ts = NULL);
   int RemoveFrame(int i);              // Delete a frame by index number (not remove from the scene)
   int RemoveFrame(const char* nodeID); // Delete a frame by node ID (not remove from the scene)
   void RemoveAllFrames();
 
   vtkMRMLNode* GetFrameNode(int i);
 
+  int          GetTimeStamp(int i, TimeStamp* ts);
   int          SetDisplayBufferNodeID(int bufferIndex, const char* nodeID);
   vtkMRMLNode* GetDisplayBufferNode(int bufferIndex);
   void         SwitchDisplayBuffer(int bufferIndex, int i);
@@ -89,10 +99,12 @@ protected:
 
   //BTX
   typedef std::vector<std::string> NodeIDListType;
+  typedef std::vector<TimeStamp> TimeStampListType;
 
-  NodeIDListType   FrameNodeIDList;
-  NodeIDListType   TransformNodeIDList;
-  NodeIDListType   DisplayBufferNodeIDList;
+  NodeIDListType    FrameNodeIDList;
+  //NodeIDListType    TransformNodeIDList;
+  NodeIDListType    DisplayBufferNodeIDList;
+  TimeStampListType TimeStampList;
   //ETX
 
 };
