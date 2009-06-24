@@ -37,7 +37,6 @@
 
 #include "itkTimeProbesCollectorBase.h"
 
-#define TESTMODE_ERROR_TOLERANCE 0.1
 
 // Use an anonymous namespace to keep class types and function names
 // from colliding when module is used as shared object module.  Every
@@ -91,13 +90,6 @@ class ScheduleCommand : public itk::Command
         std::cout << "Iteration: " << optimizer->GetCurrentIteration()
                   << " LearningRate: " << optimizer->GetLearningRate()
                   << std::endl;
-//         std::cout << "<filter-comment>"
-//                   << "Iteration: "
-//                   << optimizer->GetCurrentIteration() << ", "
-//                   << " Switching LearningRate: "
-//                   << optimizer->GetLearningRate() << " "
-//                   << "</filter-comment>"
-//                   << std::endl;
         }
       }
     }
@@ -110,7 +102,6 @@ class ScheduleCommand : public itk::Command
     itk::GradientDescentOptimizer* optimizer = (itk::GradientDescentOptimizer*)(const_cast<itk::Object *>(caller));
 
     std::cout << optimizer->GetCurrentIteration() << "   ";
-    //std::cout << optimizer->GetCurrentStepLength() << "   ";
     std::cout << optimizer->GetValue() << std::endl;
     if (m_Registration)
       {
@@ -139,7 +130,6 @@ class ScheduleCommand : public itk::Command
   ~ScheduleCommand() {}
 };
         
-//typedef itk::OrientedImage<signed short, 3> Volume;
 
 template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, const T2& )
 {
@@ -172,8 +162,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   typedef itk::ImageFileWriter<FixedImageType> FixedWriterType;//##
   typedef itk::ContinuousIndex<double, 3> ContinuousIndexType;
 
-  //bool DoInitializeTransform = false;
-  //int RandomSeed = 1234567;
 
   // Add a time probe
   itk::TimeProbesCollectorBase collector;
@@ -213,37 +201,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
     return EXIT_FAILURE;
     }
 
-    /*
-    typename FixedWriterType::Pointer fixedWriter = FixedWriterType::New();
-    fixedWriter->SetFileName ( "/tmp/fixed.nrrd" );
-    fixedWriter->SetInput ( fixedReader->GetOutput() );
-    fixedWriter->Write();
-
-    typename WriterType::Pointer movingWriter = WriterType::New();
-    movingWriter->SetFileName ( "/tmp/moving.nrrd" );
-    movingWriter->SetInput ( movingReader->GetOutput() );
-    movingWriter->Write();
-    */
-
-  // This was added by Fedorov:
-  // In testing mode, the initial transform is assumed to be derived by
-  // registering the provided input with the same parameters on *some*
-  // platform. The testing mode is essentially testing *reproducibility*, not
-  // correctness of the registration.
-  //
-  // The measure of reproducibility used is the error vector for a (0,0,0)
-  // image index subject to the input transform vs. the recovered transform.
-  // This measure is caclulated and reported after registration.
-  //
-  // NOTE: Testing mode can only be invoked from Command line interface: the
-  // "TestingMode" parameter is "hidden" in GUI.
-  //
-  bool TestingMode = false;
-
-  std::string InitialTransform;
-
-  typename TransformType::Pointer groundTruthTransform = NULL;
-  typename MovingImageType::Pointer movingImageTestingMode = NULL;
 
   //user decide if the input images need to be smoothed
 
@@ -260,7 +217,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   // transform forthe original un-reoriented data. 
   
   typename FixedOrientFilterType::Pointer orientFixed = FixedOrientFilterType::New();//##
-//  itk::PluginFilterWatcher watchOrientFixed(orientFixed,   "Orient Fixed Image",  CLPProcessInformation,  1.0/5.0, 0.0);
   orientFixed->UseImageDirectionOn();
   orientFixed->SetDesiredCoordinateOrientationToAxial();
 
@@ -272,7 +228,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
     typename BinomialFixedType::Pointer BinomialFixed = BinomialFixedType::New();
     BinomialFixed->SetInput(   fixedReader -> GetOutput() );
     BinomialFixed->SetRepetitions( FixedImageSmoothingFactor * 2);
-    // itk::PluginFilterWatcher watchfilter(BinomialFixed , "Binomial Filter Fixed",  CLPProcessInformation, 1.0/5.0, 1.0/5.0);
     BinomialFixed->Update();  
     orientFixed->SetInput (BinomialFixed->GetOutput());
     }
@@ -285,7 +240,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   collector.Stop( "Orient fixed volume" );
   
   typename MovingOrientFilterType::Pointer orientMoving = MovingOrientFilterType::New();//##
-  // itk::PluginFilterWatcher watchOrientMoving(orientMoving,  "Orient Moving Image", CLPProcessInformation,  1.0/5.0, 2.0/5.0);
   orientMoving->UseImageDirectionOn();
   orientMoving->SetDesiredCoordinateOrientationToAxial();
   
@@ -297,7 +251,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
     typename BinomialMovingType::Pointer BinomialMoving = BinomialMovingType::New();
     BinomialMoving->SetInput(   movingReader -> GetOutput() );
     BinomialMoving->SetRepetitions( MovingImageSmoothingFactor * 2);
-    // itk::PluginFilterWatcher watchfilter(BinomialMoving , "Binomial Filter Moving",  CLPProcessInformation, 1.0/5.0, 3.0/5.0);
     BinomialMoving->Update();  
     orientMoving->SetInput(BinomialMoving -> GetOutput());
     }
@@ -414,26 +367,11 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   registration->SetMovingImage ( orientMoving->GetOutput() );
   registration->SetNumberOfThreads( atoi( argv[17] ) );
 
-/*
-typename FixedWriterType::Pointer fixedWriter2 = FixedWriterType::New();
-fixedWriter2->SetFileName ( "/tmp/reginput-fixed.nrrd" );
-fixedWriter2->SetInput ( orientFixed->GetOutput() );
-fixedWriter2->Write();
-
-typename WriterType::Pointer movingWriter2 = WriterType::New();
-movingWriter2->SetFileName ( "/tmp/reginput-moving.nrrd" );
-movingWriter2->SetInput ( orientMoving->GetOutput() );
-movingWriter2->Write();
-*/
   // Force an iteration event to trigger a progress event
   Schedule->SetRegistration( registration );
   
   try
     {
-//   itk::PluginFilterWatcher watchRegistration(registration,
-//                                              "Registering",
-//                                              CLPProcessInformation,
-//                                              1.0/5.0, 4.0/5.0);
     collector.Start( "Register" );
     registration->Update();     
     collector.Stop( "Register" );
@@ -473,91 +411,10 @@ movingWriter2->Write();
       }
     }
 
-  // Resample to the original coordinate frame (not the reoriented
-  // axial coordinate frame) of the fixed image
-  //
-  std::string  ResampledImageFileName;
-
-  if (ResampledImageFileName != "")
-    {
-    typename ResampleType::Pointer resample = ResampleType::New();
-    typename ResampleInterpolatorType::Pointer Interpolator = ResampleInterpolatorType::New();
-    // itk::PluginFilterWatcher watchResample(resample,
-    //                                        "Resample",
-    //                                        CLPProcessInformation,
-    //                                        1.0/5.0, 4.0/5.0);
-    
-    resample->SetInput ( movingReader->GetOutput() ); 
-    resample->SetTransform ( transform );
-    resample->SetInterpolator ( Interpolator );
-
-    // Set the output sampling based on the fixed image.
-    // ResampleImageFilter needs an image of the same type as the
-    // moving image.
-    typename MovingImageType::Pointer fixedInformation = MovingImageType::New();
-    fixedInformation->CopyInformation( fixedReader->GetOutput() );
-    resample->SetOutputParametersFromImage ( fixedInformation );
-
-    collector.Start( "Resample" );
-    resample->Update();
-    collector.Stop( "Resample" );
-    
-    typename WriterType::Pointer resampledWriter = WriterType::New();
-    resampledWriter->SetFileName ( ResampledImageFileName.c_str() );
-    resampledWriter->SetInput ( resample->GetOutput() );
-    try
-      {
-      collector.Start( "Write volume" );
-      resampledWriter->Write();
-      collector.Stop( "Write volume" );
-      }
-    catch( itk::ExceptionObject & err )
-      { 
-      std::cerr << err << std::endl;
-      std::cerr << err << std::endl;
-      return EXIT_FAILURE;
-      }
-    }
-  
   // Report the time taken by the registration
   collector.Report();
 
-  // In testing mode, take the image corner, and compute the error as the
-  // difference between the locations of points after transforming with the
-  // recovered transform and the ground truth transform.
-  if(TestingMode)
-    {
-    // estimate the error of registration at index (0,0,0)
-    ContinuousIndexType testIndex;
-    typename TransformType::InputPointType testPoint;
-    typename TransformType::OutputVectorType errorVector;
-
-    testIndex[0] = 0.;
-    testIndex[1] = 0.;
-    testIndex[2] = 0.;
-    
-    orientFixed->GetOutput()->TransformContinuousIndexToPhysicalPoint(testIndex, testPoint);
-    typename TransformType::OutputPointType groundTruthPoint, recoveredPoint;
-    groundTruthPoint = groundTruthTransform->TransformPoint(testPoint);
-    recoveredPoint = transform->TransformPoint(testPoint);
-    errorVector[0] = groundTruthPoint[0]-recoveredPoint[0];
-    errorVector[1] = groundTruthPoint[1]-recoveredPoint[1];
-    errorVector[2] = groundTruthPoint[2]-recoveredPoint[2];
-    std::cout << "Magnitude of error vector: " << errorVector.GetNorm() << std::endl;
-
-    if(errorVector.GetNorm() > TESTMODE_ERROR_TOLERANCE)
-      {
-      std::cerr << "Registration error in testing mode exceeds threshold " << 
-        TESTMODE_ERROR_TOLERANCE << std::endl;
-
-      std::cerr << "Recovered transform: " << std::endl;
-      transform->Print(std::cerr);
-
-      return EXIT_FAILURE;
-      }
-    }
-
-  
+ 
   return EXIT_SUCCESS ;
 }
   
