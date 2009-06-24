@@ -23,7 +23,6 @@
 #include "itkImageFileWriter.h"
 #include "itkTransformFileWriter.h"
 
-#include "itkGradientDescentOptimizer.h"
 #include "itkQuaternionRigidTransformGradientDescentOptimizer.h"
 #include "itkImageRegistrationMethod.h"
 #include "itkLinearInterpolateImageFunction.h"
