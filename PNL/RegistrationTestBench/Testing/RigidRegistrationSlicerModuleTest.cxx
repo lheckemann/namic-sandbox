@@ -202,67 +202,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
     }
 
 
-  //user decide if the input images need to be smoothed
-
-  // Reorient to axials to avoid issues with registration metrics not
-  // transforming image gradients with the image orientation in
-  // calculating the derivative of metric wrt transformation
-  // parameters.
-  //
-  // Forcing image to be axials avoids this problem. Note, that
-  // reorientation only affects the internal mapping from index to
-  // physical coordinates.  The reoriented data spans the same
-  // physical space as the original data.  Thus, the registration
-  // transform calculated on the reoriented data is also the
-  // transform forthe original un-reoriented data. 
-  
-  typename FixedOrientFilterType::Pointer orientFixed = FixedOrientFilterType::New();//##
-  orientFixed->UseImageDirectionOn();
-  orientFixed->SetDesiredCoordinateOrientationToAxial();
-
-  const double FixedImageSmoothingFactor = atof( argv[3] );
-
-  if (FixedImageSmoothingFactor != 0)
-    {
-    typedef itk::BinomialBlurImageFilter<FixedImageType, FixedImageType > BinomialFixedType;
-    typename BinomialFixedType::Pointer BinomialFixed = BinomialFixedType::New();
-    BinomialFixed->SetInput(   fixedReader -> GetOutput() );
-    BinomialFixed->SetRepetitions( FixedImageSmoothingFactor * 2);
-    BinomialFixed->Update();  
-    orientFixed->SetInput (BinomialFixed->GetOutput());
-    }
-  else 
-    {
-    orientFixed->SetInput (fixedReader->GetOutput());
-    }
-  collector.Start( "Orient fixed volume" );
-  orientFixed->Update();
-  collector.Stop( "Orient fixed volume" );
-  
-  typename MovingOrientFilterType::Pointer orientMoving = MovingOrientFilterType::New();//##
-  orientMoving->UseImageDirectionOn();
-  orientMoving->SetDesiredCoordinateOrientationToAxial();
-  
-  const double MovingImageSmoothingFactor = atof( argv[4] );
-
-  if (MovingImageSmoothingFactor != 0)
-    {
-    typedef itk::BinomialBlurImageFilter< MovingImageType,  MovingImageType > BinomialMovingType;
-    typename BinomialMovingType::Pointer BinomialMoving = BinomialMovingType::New();
-    BinomialMoving->SetInput(   movingReader -> GetOutput() );
-    BinomialMoving->SetRepetitions( MovingImageSmoothingFactor * 2);
-    BinomialMoving->Update();  
-    orientMoving->SetInput(BinomialMoving -> GetOutput());
-    }
-  else 
-    {
-    orientMoving->SetInput (movingReader->GetOutput());
-    }
-  
-  collector.Start( "Orient moving volume" );
-  orientMoving->Update();
-  collector.Stop( "Orient moving volume" );
-
   // if an initial transform was specified, read it
   typedef itk::TransformFileReader TransformReaderType;
   TransformReaderType::Pointer initialTransform;
@@ -318,24 +257,24 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   //
   //
   typename TransformType::InputPointType centerFixed;
-  typename FixedImageType::RegionType::SizeType sizeFixed = orientFixed->GetOutput()->GetLargestPossibleRegion().GetSize();
+  typename FixedImageType::RegionType::SizeType sizeFixed = fixedReader->GetOutput()->GetLargestPossibleRegion().GetSize();
   // Find the center
   ContinuousIndexType indexFixed;
   for ( unsigned j = 0; j < 3; j++ )
     {
     indexFixed[j] = (sizeFixed[j]-1) / 2.0;
     }
-  orientFixed->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
+  fixedReader->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
 
   typename TransformType::InputPointType centerMoving;
-  typename MovingImageType::RegionType::SizeType sizeMoving = orientMoving->GetOutput()->GetLargestPossibleRegion().GetSize();
+  typename MovingImageType::RegionType::SizeType sizeMoving = movingReader->GetOutput()->GetLargestPossibleRegion().GetSize();
   // Find the center
   ContinuousIndexType indexMoving;
   for ( unsigned j = 0; j < 3; j++ )
     {
     indexMoving[j] = (sizeMoving[j]-1) / 2.0;
     }
-  orientMoving->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
+  movingReader->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
 
   transform->SetCenter( centerFixed );
   transform->Translate(centerMoving-centerFixed);
@@ -363,8 +302,8 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   registration->SetMetric ( metric );
   registration->SetOptimizer ( optimizer );
   registration->SetInterpolator ( interpolator );
-  registration->SetFixedImage ( orientFixed->GetOutput() );
-  registration->SetMovingImage ( orientMoving->GetOutput() );
+  registration->SetFixedImage ( fixedReader->GetOutput() );
+  registration->SetMovingImage ( movingReader->GetOutput() );
   registration->SetNumberOfThreads( atoi( argv[17] ) );
 
   // Force an iteration event to trigger a progress event
