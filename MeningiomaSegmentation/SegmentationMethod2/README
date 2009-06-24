@@ -1,0 +1,18 @@
+ *** Method
+
+Segmented with itk-SNAP 1.8
+
+ *** Parameters (bubble center and radius / 
+ Preprocessing parameters -- default settings
+ Intuitive parameters: Curvature force: 1.00, Balloon force: 0.9, step size 10
+ Mathematical settings: alpha=1.0, beta different
+roi_01_2x C 61 59 39, R=4.2, beta=3, ~1000 iterations, 
+roi_02_2x C 57 55 39, R=6.4, beta=3
+roi_04_2x C 37 35 30, R=4, beta=3
+roi_08_2x C 38 42 16, R=1.8, beta=1
+
+ *** Execution time: under 1 minute for each dataset
+ *** Parameter selection: Suggested by Yi Gao, about 10 minutes (?)
+ *** Platform: same as SegmentationMethod1
+
+
