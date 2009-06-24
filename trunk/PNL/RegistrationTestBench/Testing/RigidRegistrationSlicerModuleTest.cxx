@@ -38,11 +38,6 @@
 #include "itkTimeProbesCollectorBase.h"
 
 
-// Use an anonymous namespace to keep class types and function names
-// from colliding when module is used as shared object module.  Every
-// thing should be in an anonymous namespace except for the module
-// entry point, e.g. main()
-//
 namespace {
 
 
@@ -163,20 +158,12 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   typedef itk::ContinuousIndex<double, 3> ContinuousIndexType;
 
 
-  // Add a time probe
-  itk::TimeProbesCollectorBase collector;
-
-  // Read the fixed and moving volumes
-  //
-  //
   typename FixedFileReaderType::Pointer fixedReader = FixedFileReaderType::New();
   fixedReader->SetFileName ( argv[1] );
 
   try
     {
-    collector.Start( "Read fixed volume" );
     fixedReader->Update();
-    collector.Stop( "Read fixed volume" );
     }
   catch( itk::ExceptionObject & err )
     {
@@ -190,9 +177,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
 
   try
     {
-    collector.Start( "Read moving volume" );
     movingReader->Update();
-    collector.Stop( "Read moving volume" );
     }
   catch( itk::ExceptionObject & err )
     {
@@ -215,15 +200,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   std::vector<double> LearningRate;
 
   Iterations.push_back( atoi( argv[ 7] ) );
-  Iterations.push_back( atoi( argv[ 8] ) );
-  Iterations.push_back( atoi( argv[ 9] ) );
-  Iterations.push_back( atoi( argv[10] ) );
-
   LearningRate.push_back( atof( argv[11] ) );
-  LearningRate.push_back( atof( argv[12] ) );
-  LearningRate.push_back( atof( argv[13] ) );
-  LearningRate.push_back( atof( argv[14] ) );
-
 
   Schedule->SetSchedule ( Iterations, LearningRate );
 
@@ -311,9 +288,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   
   try
     {
-    collector.Start( "Register" );
     registration->Update();     
-    collector.Stop( "Register" );
     } 
   catch( itk::ExceptionObject & err )
     {
@@ -350,10 +325,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
       }
     }
 
-  // Report the time taken by the registration
-  collector.Report();
-
- 
   return EXIT_SUCCESS ;
 }
   
@@ -369,42 +340,10 @@ template<class T> int DoIt( int argc, char * argv[], const T& targ)
   try
     {
     itk::GetImageType (MovingImageFileName, pixelType, componentType);
-
-    // This filter handles all types
-    
-    switch (componentType)
-      {
-//     case itk::ImageIOBase::CHAR:
-//     case itk::ImageIOBase::UCHAR:
-      case itk::ImageIOBase::SHORT:
-        return DoIt2( argc, argv, targ, static_cast<short>(0));
-        break;
-      case itk::ImageIOBase::USHORT:
-      case itk::ImageIOBase::INT:
-        return DoIt2( argc, argv, targ, static_cast<int>(0));
-        break;
- //    case itk::ImageIOBase::UINT:
- //    case itk::ImageIOBase::ULONG:
- //      return DoIt2( argc, argv, targ, static_cast<unsigned long>(0));
- //      break;
- //    case itk::ImageIOBase::LONG:
- //      return DoIt2( argc, argv, targ, static_cast<long>(0));
- //      break;
- //    case itk::ImageIOBase::FLOAT:
- //      return DoIt2( argc, argv, targ, static_cast<float>(0));
- //      break;
- //    case itk::ImageIOBase::DOUBLE:
- //      return DoIt2( argc, argv, targ, static_cast<float>(0));
- //      break;
-      case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-      default:
-        std::cout << "unknown component type" << std::endl;
-        break;
-      }
+    return DoIt2( argc, argv, targ, static_cast<short>(0));
     }
   catch( itk::ExceptionObject &excep)
     {
-    std::cerr << argv[0] << ": exception caught !" << std::endl;
     std::cerr << excep << std::endl;
     return EXIT_FAILURE;
     }
@@ -416,10 +355,6 @@ template<class T> int DoIt( int argc, char * argv[], const T& targ)
 
 int main( int argc, char * argv[] )
 {
-  // this line is here to be able to see the full output on the dashboard even
-  // when the test succeeds (to see the reproducibility error measure)
-  // std::cout << std::endl << "ctest needs: CTEST_FULL_OUTPUT" << std::endl;
-
   itk::ImageIOBase::IOPixelType pixelType;
   itk::ImageIOBase::IOComponentType componentType;
 
@@ -429,41 +364,10 @@ int main( int argc, char * argv[] )
     {
     itk::GetImageType (FixedImageFileName, pixelType, componentType);
 
-    // This filter handles all types
-    
-    switch (componentType)
-      {
- //    case itk::ImageIOBase::CHAR:
- //    case itk::ImageIOBase::UCHAR:
-       case itk::ImageIOBase::SHORT:
-         return DoIt( argc, argv, static_cast<short>(0));
-         break;
-      case itk::ImageIOBase::USHORT:
-      case itk::ImageIOBase::INT:
-        return DoIt( argc, argv, static_cast<int>(0));
-        break;
- //   case itk::ImageIOBase::UINT:
- //   case itk::ImageIOBase::ULONG:
- //     return DoIt( argc, argv, static_cast<unsigned long>(0));
- //     break;
-  //   case itk::ImageIOBase::LONG:
-  //     return DoIt( argc, argv, static_cast<long>(0));
-  //     break;
-  //   case itk::ImageIOBase::FLOAT:
-  //     return DoIt( argc, argv, static_cast<float>(0));
-  //     break;
-  //   case itk::ImageIOBase::DOUBLE:
-  //     return DoIt( argc, argv, static_cast<float>(0));
-  //     break;
-      case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
-      default:
-        std::cout << "unknown component type" << std::endl;
-        break;
-      }
+    return DoIt( argc, argv, static_cast<short>(0));
     }
   catch( itk::ExceptionObject &excep)
     {
-    std::cerr << argv[0] << ": exception caught !" << std::endl;
     std::cerr << excep << std::endl;
     return EXIT_FAILURE;
     }
