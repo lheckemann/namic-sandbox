@@ -18,11 +18,9 @@
 
 #include <iostream>
 
-#include "itkOrientedImage.h"
-#include "itkOrientImageFilter.h"
+#include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 
 #include "itkGradientDescentOptimizer.h"
@@ -31,9 +29,8 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkMattesMutualInformationImageToImageMetric.h"
 #include "itkQuaternionRigidTransform.h"
-#include "itkAffineTransform.h"
-#include "itkResampleImageFilter.h"
-#include "itkBinomialBlurImageFilter.h"
+
+#include "itkCenteredTransformInitializer.h"
 
 #include "itkTimeProbesCollectorBase.h"
 
@@ -128,31 +125,25 @@ class ScheduleCommand : public itk::Command
 
 template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, const T2& )
 {
-  //
-  // Command line processing
-  //
-
   const    unsigned int  ImageDimension = 3;
   typedef  T1  FixedPixelType; //##
-  typedef itk::OrientedImage<FixedPixelType, ImageDimension> FixedImageType;//##
+  typedef itk::Image<FixedPixelType, ImageDimension> FixedImageType;//##
 
   typedef itk::ImageFileReader<FixedImageType> FixedFileReaderType;//##
-  typedef itk::OrientImageFilter<FixedImageType,FixedImageType> FixedOrientFilterType;//##
 
   typedef  T2  MovingPixelType;//##
-  typedef itk::OrientedImage<MovingPixelType, ImageDimension> MovingImageType;//##
+  typedef itk::Image<MovingPixelType, ImageDimension> MovingImageType;//##
 
   typedef itk::ImageFileReader<MovingImageType> MovingFileReaderType;//##
-  typedef itk::OrientImageFilter<MovingImageType,MovingImageType> MovingOrientFilterType;//##
   
   typedef itk::MattesMutualInformationImageToImageMetric<FixedImageType, MovingImageType>    MetricType; //##
+
   typedef itk::QuaternionRigidTransformGradientDescentOptimizer  OptimizerType;    
   typedef itk::LinearInterpolateImageFunction<MovingImageType, double>  InterpolatorType;//##
   typedef itk::ImageRegistrationMethod<FixedImageType,MovingImageType>  RegistrationType;//##
   typedef itk::QuaternionRigidTransform<double> TransformType;
   typedef OptimizerType::ScalesType OptimizerScalesType;
-  typedef itk::ResampleImageFilter<MovingImageType,MovingImageType> ResampleType;//##
-  typedef itk::LinearInterpolateImageFunction<MovingImageType, double> ResampleInterpolatorType;//##
+
   typedef itk::ImageFileWriter<MovingImageType> WriterType;//##
   typedef itk::ImageFileWriter<FixedImageType> FixedWriterType;//##
   typedef itk::ContinuousIndex<double, 3> ContinuousIndexType;
@@ -187,13 +178,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
     }
 
 
-  // if an initial transform was specified, read it
-  typedef itk::TransformFileReader TransformReaderType;
-  TransformReaderType::Pointer initialTransform;
-
-  // Set up the optimizer
-  //
-  //
   ScheduleCommand::Pointer Schedule = ScheduleCommand::New();
 
   std::vector<int> Iterations;
@@ -233,29 +217,17 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   // Initialize the transform
   //
   //
-  typename TransformType::InputPointType centerFixed;
-  typename FixedImageType::RegionType::SizeType sizeFixed = fixedReader->GetOutput()->GetLargestPossibleRegion().GetSize();
-  // Find the center
-  ContinuousIndexType indexFixed;
-  for ( unsigned j = 0; j < 3; j++ )
-    {
-    indexFixed[j] = (sizeFixed[j]-1) / 2.0;
-    }
-  fixedReader->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
+  typedef itk::CenteredTransformInitializer< TransformType, 
+                                             FixedImageType, 
+                                             MovingImageType 
+                                                 >  TransformInitializerType;
 
-  typename TransformType::InputPointType centerMoving;
-  typename MovingImageType::RegionType::SizeType sizeMoving = movingReader->GetOutput()->GetLargestPossibleRegion().GetSize();
-  // Find the center
-  ContinuousIndexType indexMoving;
-  for ( unsigned j = 0; j < 3; j++ )
-    {
-    indexMoving[j] = (sizeMoving[j]-1) / 2.0;
-    }
-  movingReader->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
+  typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
+  initializer->SetTransform(   transform );
+  initializer->SetFixedImage(  fixedReader->GetOutput() );
+  initializer->SetMovingImage( movingReader->GetOutput() );
+  initializer->GeometryOn();
 
-  transform->SetCenter( centerFixed );
-  transform->Translate(centerMoving-centerFixed);
-  std::cout << "Centering transform: "; transform->Print( std::cout );
 
   // Set up the metric
   //
