@@ -54,7 +54,7 @@ vtkCxxRevisionMacro(vtkTRProstateBiopsyCalibrationStep, "$Revision: 1.1 $");
 vtkTRProstateBiopsyCalibrationStep::vtkTRProstateBiopsyCalibrationStep()
 {
   this->SetName("1/4. Calibration");
-  this->SetDescription("Select a calibration volume, then click calibration markers.");
+  this->SetDescription("Select a calibration volume, select a marker, then click on Compute error button.");
 
   this->WizardGUICallbackCommand->SetCallback(&vtkTRProstateBiopsyCalibrationStep::WizardGUICallback);
 
