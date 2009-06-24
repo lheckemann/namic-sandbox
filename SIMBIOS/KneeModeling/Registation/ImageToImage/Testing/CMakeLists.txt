@@ -107,8 +107,8 @@ ADD_TEST(EvaluateMetric_${DATASET1}_${DATASET2}
 
 ADD_TEST(ExtractSlice_${DATASET1}_${DATASET2}
   ${EXECUTABLE_OUTPUT_PATH}/ExtractSlice
-  ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}.mhd
-  ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}_Slice.png
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceAfter.mhd
+  ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_DifferenceAfter_Slice.png
   2  # Z orientation
   30 # Slice number
   )
