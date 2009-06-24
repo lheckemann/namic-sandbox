@@ -348,8 +348,8 @@ void vtkTRProstateBiopsyVerificationStep::ShowMessageAndErrorControls()
   if(!this->ComputeErrorButton->IsCreated())
     {
     this->ComputeErrorButton->SetParent(this->MsgAndErrorFrame);
-    this->ComputeErrorButton->SetText("CopmuteError");
-    this->ComputeErrorButton->SetBalloonHelpString("Compute error");
+    this->ComputeErrorButton->SetText("Compute error");
+    this->ComputeErrorButton->SetBalloonHelpString("Compute error for the selected marker");
     this->ComputeErrorButton->Create();
     }
     
@@ -468,14 +468,11 @@ void vtkTRProstateBiopsyVerificationStep::ProcessImageClickEvents(vtkObject *cal
 
   
   // first identify if the step is pertinent, i.e. current step of wizard workflow is actually calibration step
-
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
   if (!wizard_widget || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this)
     {
     return;
     }
-
  
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
@@ -543,14 +540,11 @@ void vtkTRProstateBiopsyVerificationStep::RecordClick(double rasPoint[])
 {
   if (this->AcquireClicks)
     {
+    
     vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
-    char *msg = new char[40];
-      
-    sprintf(msg, "Clicked 1st marker at %3.1f %3.1f %3.1f", rasPoint[0], rasPoint[1], rasPoint[2]);
-      
-    wizard_widget->SetErrorText(msg);
-    wizard_widget->Update();
+    std::ostrstream os;
+    os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
+    os << "Clicked point "<<this->ClickNumber<<" at "<<rasPoint[0]<<" "<<rasPoint[1]<<" "<<rasPoint[2];
 
 
     if (this->ClickNumber ==1)
@@ -559,9 +553,12 @@ void vtkTRProstateBiopsyVerificationStep::RecordClick(double rasPoint[])
         this->NeedleClick1[0] = rasPoint[0];
         this->NeedleClick1[1] = rasPoint[1];
         this->NeedleClick1[2] = rasPoint[2];
+        os << " Please click an other point along the needle trajectory to compute the error.";
         }
-    else if (this->ClickNumber == 2)
+    else if (this->ClickNumber > 1)
         {
+        os << " The error is computed.";
+
         // calculate the errors for the particular target
         // second click on the needle
         this->NeedleClick2[0] = rasPoint[0];
@@ -588,6 +585,11 @@ void vtkTRProstateBiopsyVerificationStep::RecordClick(double rasPoint[])
         this->ClickNumber = 0;
         this->AcquireClicks = false;
         }
+
+    os << std::ends;
+    wizard_widget->SetErrorText(os.str());
+    os.rdbuf()->freeze();
+    wizard_widget->Update();
 
     }
 }
@@ -641,6 +643,10 @@ void vtkTRProstateBiopsyVerificationStep::RemoveGUIObservers()
 void vtkTRProstateBiopsyVerificationStep::ComputeTargetErrorCallback()
 {
   this->AcquireClicks = true;
+  this->ClickNumber=0;
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+  wizard_widget->SetErrorText("Please click 2 points along trajectory of the selected needle");
+  wizard_widget->Update();
 }
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyVerificationStep::LoadVerificationVolumeButtonCallback(const char *fileName)
