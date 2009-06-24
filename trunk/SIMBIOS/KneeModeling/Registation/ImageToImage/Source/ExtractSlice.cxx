@@ -60,10 +60,10 @@ int main( int argc, char ** argv )
   reader->SetFileName( inputFilename  );
   writer->SetFileName( outputFilename );
 
-  typedef itk::ExtractImageFilter< InputImageType, OutputImageType > ExtractFilterType;
+  typedef itk::ExtractImageFilter< InputImageType, SliceImageType > ExtractFilterType;
   ExtractFilterType::Pointer extractor = ExtractFilterType::New();
 
-  typedef itk::RescaleIntensityImageFilter< InputImageType, OutputImageType > RescaleFilterType;
+  typedef itk::RescaleIntensityImageFilter< SliceImageType, OutputImageType > RescaleFilterType;
   RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
 
   reader->Update();
