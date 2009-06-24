@@ -103,6 +103,14 @@ vtkFourDImageGUI::vtkFourDImageGUI ( )
   this->AutoPlayBGButton              = NULL;
   this->AutoPlayIntervalEntry         = NULL;
 
+  // Frame editor
+  this->FrameList            = NULL;
+  this->RemoveFrameButton    = NULL;
+  this->FrameMoveUpButton    = NULL;
+  this->FrameMoveDownButton  = NULL;
+  this->AddFrameNodeSelector = NULL;
+  this->AddFrameNodeButton   = NULL;
+
 
   //----------------------------------------------------------------
   // Time
@@ -200,6 +208,38 @@ vtkFourDImageGUI::~vtkFourDImageGUI ( )
     {
     this->ThresholdRange->SetParent(NULL);
     this->ThresholdRange->Delete();
+    }
+
+  // Frame editor
+  if (this->FrameList)
+    {
+    this->FrameList->SetParent(NULL);
+    this->FrameList->Delete();
+    }
+  if (this->RemoveFrameButton)
+    {
+    this->RemoveFrameButton->SetParent(NULL);
+    this->RemoveFrameButton->Delete();
+    }
+  if (this->FrameMoveUpButton)
+    {
+    this->FrameMoveUpButton->SetParent(NULL);
+    this->FrameMoveUpButton->Delete();
+    }
+  if (this->FrameMoveDownButton)
+    {
+    this->FrameMoveDownButton->SetParent(NULL);
+    this->FrameMoveDownButton->Delete();
+    }
+  if (this->AddFrameNodeSelector)
+    {
+    this->AddFrameNodeSelector->SetParent(NULL);
+    this->AddFrameNodeSelector->Delete();
+    }
+  if (this->AddFrameNodeButton)
+    {
+    this->AddFrameNodeButton->SetParent(NULL);
+    this->AddFrameNodeButton->Delete();
     }
 
   // Icons
@@ -318,6 +358,31 @@ void vtkFourDImageGUI::RemoveGUIObservers ( )
     this->ThresholdRange
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->RemoveFrameButton)
+    {
+    this->RemoveFrameButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->FrameMoveUpButton)
+    {
+    this->FrameMoveUpButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->FrameMoveDownButton)
+    {
+    this->FrameMoveDownButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AddFrameNodeSelector)
+    {
+    this->AddFrameNodeSelector
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AddFrameNodeButton)
+    {
+    this->AddFrameNodeButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   this->RemoveLogicObservers();
 
@@ -399,6 +464,33 @@ void vtkFourDImageGUI::AddGUIObservers ( )
     this->ThresholdRange
       ->AddObserver(vtkKWRange::RangeValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->RemoveFrameButton)
+    {
+    this->RemoveFrameButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->FrameMoveUpButton)
+    {
+    this->FrameMoveUpButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->FrameMoveDownButton)
+    {
+    this->FrameMoveDownButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->AddFrameNodeSelector)
+    {
+    this->AddFrameNodeSelector
+      ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+                    (vtkCommand *)this->GUICallbackCommand );
+    }
+  if (this->AddFrameNodeButton)
+    {
+    this->AddFrameNodeButton
+      ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->AddLogicObservers();
 
 }
@@ -585,6 +677,79 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
     this->ThresholdLower  = thlow; 
     SetWindowLevelForCurrentFrame();
     }
+
+  if (this->FrameMoveUpButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    vtkMRML4DBundleNode *bundleNode = 
+      vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+    int selected = this->FrameList->GetWidget()->GetIndexOfFirstSelectedRow();
+
+    if (selected > 0)
+      {
+      vtkMRMLNode* node = bundleNode->GetFrameNode(selected);
+      bundleNode->RemoveFrame(selected);
+      bundleNode->InsertFrame(selected-1, node->GetID());
+      }
+    UpdateFrameList(bundleNode->GetID(), selected-1);
+    }
+  if (this->FrameMoveDownButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    vtkMRML4DBundleNode *bundleNode =
+      vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+    int selected = this->FrameList->GetWidget()->GetIndexOfFirstSelectedRow();
+    int nframe = bundleNode->GetNumberOfFrames();
+
+    if (selected < nframe-1)
+      {
+      vtkMRMLNode* node = bundleNode->GetFrameNode(selected);
+      bundleNode->RemoveFrame(selected);
+      bundleNode->InsertFrame(selected+1, node->GetID());
+      }
+    UpdateFrameList(bundleNode->GetID(), selected+1);
+    }
+  if (this->RemoveFrameButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    vtkMRML4DBundleNode *bundleNode =
+      vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+    int selected = this->FrameList->GetWidget()->GetIndexOfFirstSelectedRow();
+    int nframe = bundleNode->GetNumberOfFrames();
+    if (selected < nframe-1)
+      {
+      bundleNode->RemoveFrame(selected);
+      }
+    UpdateFrameList(bundleNode->GetID(), selected-1);
+    }
+  if (this->AddFrameNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
+    {
+    }
+
+  if (this->AddFrameNodeButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    vtkMRML4DBundleNode *bundleNode = 
+      vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+
+    int selectedColumn = this->FrameList->GetWidget()->GetIndexOfFirstSelectedRow();
+
+    vtkMRMLNode  *selectedVolumeNode = 
+      vtkMRMLScalarVolumeNode::SafeDownCast(this->AddFrameNodeSelector->GetSelected());
+    int nframe = bundleNode->GetNumberOfFrames();
+
+    if (selectedColumn < nframe)
+      {
+      bundleNode->InsertFrame(selectedColumn, selectedVolumeNode->GetID());
+      }
+    else if (selectedColumn = nframe)
+      {
+      bundleNode->AddFrame(selectedVolumeNode->GetID());
+      }
+
+    UpdateFrameList(bundleNode->GetID());
+    }
 } 
 
 
@@ -741,6 +906,7 @@ void vtkFourDImageGUI::BuildGUI ( )
   BuildGUIForLoadFrame(1);
   BuildGUIForActiveBundleSelectorFrame();
   BuildGUIForFrameControlFrame(0);
+  BuildGUIForFrameFrameEditor(0);
 }
 
 
@@ -1065,6 +1231,122 @@ void vtkFourDImageGUI::BuildGUIForFrameControlFrame(int show)
 
 }
 
+//----------------------------------------------------------------------------
+void vtkFourDImageGUI::BuildGUIForFrameFrameEditor(int show)
+{
+
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("FourDImage");
+  
+  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  conBrowsFrame->SetParent(page);
+  conBrowsFrame->Create();
+  conBrowsFrame->SetLabelText("Frame Editor");
+  if (!show)
+    {
+    conBrowsFrame->CollapseFrame();
+    }
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Frame Editor
+
+  vtkKWFrameWithLabel *listframe = vtkKWFrameWithLabel::New();
+  listframe->SetParent(conBrowsFrame->GetFrame());
+  listframe->Create();
+  listframe->SetLabelText ("Frame list");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 listframe->GetWidgetName() );
+  
+  this->FrameList = vtkKWMultiColumnListWithScrollbars::New();
+  this->FrameList->SetParent(listframe->GetFrame());
+  this->FrameList->Create();
+  this->FrameList->GetWidget()->SetHeight(10);
+  this->FrameList->GetWidget()->SetSelectionTypeToRow();
+  this->FrameList->GetWidget()->SetSelectionModeToSingle();
+  this->FrameList->GetWidget()->MovableRowsOff();
+  this->FrameList->GetWidget()->MovableColumnsOff();
+  this->FrameList->GetWidget()->AddColumn("Frame #");
+  this->FrameList->GetWidget()->AddColumn("Node name");
+  this->FrameList->GetWidget()->AddColumn("Time stamp");
+  this->FrameList->GetWidget()->SetColumnWidth(0, 10);
+  this->FrameList->GetWidget()->SetColumnWidth(1, 20);
+  this->FrameList->GetWidget()->SetColumnWidth(2, 10);
+  this->FrameList->GetWidget()->SetColumnAlignmentToLeft(1);
+  this->FrameList->GetWidget()->ColumnEditableOff(0);
+  this->FrameList->GetWidget()->ColumnEditableOn(1);
+  this->FrameList->GetWidget()->SetSelectionTypeToRow();
+  this->FrameList->GetWidget()->SetSelectionModeToSingle();
+  this->FrameList->GetWidget()->MovableRowsOff();
+  this->FrameList->GetWidget()->MovableColumnsOff();
+
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 this->FrameList->GetWidgetName() );
+
+  vtkKWFrame *moveframe = vtkKWFrame::New();
+  moveframe->SetParent(listframe->GetFrame());
+  moveframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 moveframe->GetWidgetName() );
+
+  this->FrameMoveUpButton = vtkKWPushButton::New ( );
+  this->FrameMoveUpButton->SetParent ( moveframe );
+  this->FrameMoveUpButton->Create ( );
+  this->FrameMoveUpButton->SetText ("Move up");
+  this->FrameMoveUpButton->SetWidth (9);
+
+  this->FrameMoveDownButton = vtkKWPushButton::New ( );
+  this->FrameMoveDownButton->SetParent ( moveframe );
+  this->FrameMoveDownButton->Create ( );
+  this->FrameMoveDownButton->SetText ("Move down");
+  this->FrameMoveDownButton->SetWidth (9);
+
+  this->RemoveFrameButton = vtkKWPushButton::New ( );
+  this->RemoveFrameButton->SetParent ( moveframe );
+  this->RemoveFrameButton->Create ( );
+  this->RemoveFrameButton->SetText ("Remove");
+  this->RemoveFrameButton->SetWidth (9);
+
+  this->Script("pack %s %s %s -side left -fill x -expand y -padx 2 -pady 2", 
+               this->FrameMoveUpButton->GetWidgetName(),
+               this->FrameMoveDownButton->GetWidgetName(),
+               this->RemoveFrameButton->GetWidgetName());
+
+  vtkKWFrame *addframe = vtkKWFrame::New();
+  addframe->SetParent(listframe->GetFrame());
+  addframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 addframe->GetWidgetName() );
+  
+  this->AddFrameNodeSelector = vtkSlicerNodeSelectorWidget::New();
+  this->AddFrameNodeSelector->SetParent(addframe);
+  this->AddFrameNodeSelector->Create();
+  this->AddFrameNodeSelector->SetNodeClass("vtkMRMLScalarVolumeNode", NULL, NULL, NULL);
+  this->AddFrameNodeSelector->SetMRMLScene(this->GetMRMLScene());
+  this->AddFrameNodeSelector->SetBorderWidth(2);
+  this->AddFrameNodeSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+  this->AddFrameNodeSelector->GetWidget()->GetWidget()->SetWidth(24);
+  this->AddFrameNodeSelector->SetLabelText( "Add node : ");
+  this->AddFrameNodeSelector->SetBalloonHelpString("Select a volume to add from the current scene.");
+  
+  this->AddFrameNodeButton = vtkKWPushButton::New ( );
+  this->AddFrameNodeButton->SetParent ( addframe );
+  this->AddFrameNodeButton->Create ( );
+  this->AddFrameNodeButton->SetText ("Add");
+  this->AddFrameNodeButton->SetWidth (5);
+
+  this->Script("pack %s -side right -anchor w -padx 2 -pady 2",
+               this->AddFrameNodeButton->GetWidgetName());
+  this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
+               this->AddFrameNodeSelector->GetWidgetName());
+
+  moveframe->Delete();
+  addframe->Delete();
+
+}
+
 
 //----------------------------------------------------------------------------
 void vtkFourDImageGUI::UpdateAll()
@@ -1088,10 +1370,10 @@ void vtkFourDImageGUI::SelectActive4DBundle(vtkMRML4DBundleNode* bundleNode)
   bundleNode->SwitchDisplayBuffer(0, volume);
   bundleNode->SwitchDisplayBuffer(1, volume);
 
-  this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
-  this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
   SetForeground(bundleNode->GetID(), 0);
   SetBackground(bundleNode->GetID(), 0);
+
+  UpdateFrameList(bundleNode->GetID());
   
 }
 
@@ -1272,6 +1554,66 @@ void vtkFourDImageGUI::UpdateSeriesSelectorMenus()
     this->BundleNodeIDList.push_back((*niter)->GetID());
     names.push_back((*niter)->GetName());
     }
+
+}
+
+
+//----------------------------------------------------------------------------
+void vtkFourDImageGUI::UpdateFrameList(const char* bundleID, int selectColumn)
+{
+  int selected;
+  if (selectColumn < 0)
+    {
+    selected = this->FrameList->GetWidget()->GetIndexOfFirstSelectedRow();
+    }
+  else
+    {
+    selected = selectColumn;
+    }
+
+  vtkMRML4DBundleNode* bundleNode 
+    = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+
+  if (!bundleNode)
+    {
+    return;
+    }
+  
+  if (!this->FrameList)
+    {
+    return;
+    }
+
+  int numFrames = bundleNode->GetNumberOfFrames();
+  this->FrameList->GetWidget()->DeleteAllRows();
+  this->FrameList->GetWidget()->AddRows(bundleNode->GetNumberOfFrames());
+
+  char str[256];
+  for (int i = 0; i < numFrames; i ++)
+    {
+    vtkMRMLVolumeNode* volNode = vtkMRMLVolumeNode::SafeDownCast(bundleNode->GetFrameNode(i));
+    this->FrameList->GetWidget()->SetCellTextAsInt(i, 0, i);
+    this->FrameList->GetWidget()->SetCellText(i, 1, volNode->GetName());
+    vtkMRML4DBundleNode::TimeStamp ts;
+    bundleNode->GetTimeStamp(i, &ts);
+    double tm = (double)ts.second + (double)ts.nanosecond / 1000000000.0;
+    sprintf(str, "%f", tm);
+    this->FrameList->GetWidget()->SetCellText(i, 2, str);
+    }
+  if (selected < 0)
+    {
+    selected = 0;
+    }
+  else if (selected >= numFrames)
+    {
+    selected = numFrames-1;
+    }
+  this->FrameList->GetWidget()->SelectRow(selected);
+  
+  // frame control
+  int n = bundleNode->GetNumberOfFrames();
+  this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
+  this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
 
 }
 

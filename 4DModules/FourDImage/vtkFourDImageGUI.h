@@ -121,6 +121,7 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   void BuildGUIForLoadFrame(int show);
   void BuildGUIForActiveBundleSelectorFrame();
   void BuildGUIForFrameControlFrame(int show);
+  void BuildGUIForFrameFrameEditor(int show);
 
   //----------------------------------------------------------------
   // Update routines
@@ -138,6 +139,13 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   void SetBackground(const char* bundleID, int index);
   void SetWindowLevelForCurrentFrame();
   void UpdateSeriesSelectorMenus();
+
+  //----------------------------------------------------------------
+  // Editor
+  //----------------------------------------------------------------
+  
+  void UpdateFrameList(const char* bundleID, int selectColumn=-1);
+
 
   //----------------------------------------------------------------
   // Other utility functions
@@ -188,6 +196,16 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   vtkKWPushButton*     AutoPlayFGButton;
   vtkKWPushButton*     AutoPlayBGButton;
   vtkKWEntry*          AutoPlayIntervalEntry;
+
+  // -----------------------------------------
+  // Frame editor
+  vtkKWMultiColumnListWithScrollbars* FrameList;
+  vtkKWPushButton*                    FrameMoveUpButton;
+  vtkKWPushButton*                    FrameMoveDownButton;
+  vtkKWPushButton*                    RemoveFrameButton;
+  vtkSlicerNodeSelectorWidget*        AddFrameNodeSelector;
+  vtkKWPushButton*                    AddFrameNodeButton;
+
 
   //----------------------------------------------------------------
   // Logic Values
