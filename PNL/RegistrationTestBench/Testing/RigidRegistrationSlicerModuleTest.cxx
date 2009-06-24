@@ -244,82 +244,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
 
   typename TransformType::Pointer groundTruthTransform = NULL;
   typename MovingImageType::Pointer movingImageTestingMode = NULL;
-  if(TestingMode)
-    {
-    typedef itk::TransformFileReader TransformReaderType;
-    TransformReaderType::Pointer groundTruthTransformReader;
-    groundTruthTransform = TransformType::New();
-
-    if (InitialTransform != "")
-      {
-      groundTruthTransformReader = TransformReaderType::New();
-      groundTruthTransformReader->SetFileName( InitialTransform );
-      try
-        {
-        groundTruthTransformReader->Update();
-        }
-      catch (itk::ExceptionObject &err)
-        {
-        std::cerr << err << std::endl;
-        return EXIT_FAILURE ;
-        }
-      if(groundTruthTransformReader->GetTransformList()->size() == 0)
-        {
-        std::cerr << "Non-empty transform should be specified in Testing Mode" << std::endl;
-        return EXIT_FAILURE;
-        }
-      }
-    else
-      {
-      std::cerr << "Transform must be specified in TestingMode!" << std::endl;
-      return EXIT_FAILURE;
-      }
-    
-    TransformReaderType::TransformType::Pointer initial
-      = *(groundTruthTransformReader->GetTransformList()->begin());
-
-    // most likely, the transform coming in is a subclass of
-    // MatrixOffsetTransformBase 
-    typedef itk::MatrixOffsetTransformBase<double,3,3> DoubleMatrixOffsetType;
-    typedef itk::MatrixOffsetTransformBase<float,3,3> FloatMatrixOffsetType;
-
-    DoubleMatrixOffsetType::Pointer da
-      = dynamic_cast<DoubleMatrixOffsetType*>(initial.GetPointer());
-    FloatMatrixOffsetType::Pointer fa
-      = dynamic_cast<FloatMatrixOffsetType*>(initial.GetPointer());
-
-    if (da)
-      {
-      vnl_svd<double> svd(da->GetMatrix().GetVnlMatrix());
-
-      groundTruthTransform->SetMatrix( svd.U() * vnl_transpose(svd.V()) );
-      groundTruthTransform->SetOffset( da->GetOffset() );
-      }
-    else if (fa)
-      {
-      vnl_matrix<double> t(3,3);
-      for (int i=0; i < 3; ++i)
-        {
-        for (int j=0; j <3; ++j)
-          {
-          t.put(i, j, fa->GetMatrix().GetVnlMatrix().get(i, j));
-          }
-        }
-
-      vnl_svd<double> svd( t );
-
-      groundTruthTransform->SetMatrix( svd.U() * vnl_transpose(svd.V()) );
-      groundTruthTransform->SetOffset( fa->GetOffset() );
-      }
-    else
-      {
-      std::cout << "Initial transform is an unsupported type.\n";
-      return EXIT_FAILURE;
-      }
-
-    std::cout << "Testing mode ground truth transform: "; 
-    groundTruthTransform->Print ( std::cout );
-    }
 
   //user decide if the input images need to be smoothed
 
@@ -389,21 +313,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   // if an initial transform was specified, read it
   typedef itk::TransformFileReader TransformReaderType;
   TransformReaderType::Pointer initialTransform;
-
-  if (InitialTransform != "" && !TestingMode)
-    {
-    initialTransform= TransformReaderType::New();
-    initialTransform->SetFileName( InitialTransform );
-    try
-      {
-      initialTransform->Update();
-      }
-    catch (itk::ExceptionObject &err)
-      {
-      std::cerr << err << std::endl;
-      return EXIT_FAILURE ;
-      }
-    }
 
   // Set up the optimizer
   //
@@ -478,63 +387,6 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   transform->SetCenter( centerFixed );
   transform->Translate(centerMoving-centerFixed);
   std::cout << "Centering transform: "; transform->Print( std::cout );
-
-
-  // If an initial transformation was provided, then grab the rigid
-  // part and use it instead of the the centering transform.
-  // (Should this be instead of the centering transform or composed
-  // with the centering transform?
-  //
-  if(!TestingMode)
-    {
-    if (InitialTransform != ""
-      && initialTransform->GetTransformList()->size() != 0)
-      {
-      TransformReaderType::TransformType::Pointer initial
-        = *(initialTransform->GetTransformList()->begin());
-
-      // most likely, the transform coming in is a subclass of
-      // MatrixOffsetTransformBase 
-      typedef itk::MatrixOffsetTransformBase<double,3,3> DoubleMatrixOffsetType;
-      typedef itk::MatrixOffsetTransformBase<float,3,3> FloatMatrixOffsetType;
-
-      DoubleMatrixOffsetType::Pointer da
-        = dynamic_cast<DoubleMatrixOffsetType*>(initial.GetPointer());
-      FloatMatrixOffsetType::Pointer fa
-        = dynamic_cast<FloatMatrixOffsetType*>(initial.GetPointer());
-
-      if (da)
-        {
-        vnl_svd<double> svd(da->GetMatrix().GetVnlMatrix());
-
-        transform->SetMatrix( svd.U() * vnl_transpose(svd.V()) );
-        transform->SetOffset( da->GetOffset() );
-        }
-      else if (fa)
-        {
-        vnl_matrix<double> t(3,3);
-        for (int i=0; i < 3; ++i)
-          {
-          for (int j=0; j <3; ++j)
-            {
-            t.put(i, j, fa->GetMatrix().GetVnlMatrix().get(i, j));
-            }
-          }
-
-        vnl_svd<double> svd( t );
-
-        transform->SetMatrix( svd.U() * vnl_transpose(svd.V()) );
-        transform->SetOffset( fa->GetOffset() );
-        }
-      else
-        {
-        std::cout << "Initial transform is an unsupported type.\n";
-        }
-
-      std::cout << "Initial transform: "; transform->Print ( std::cout );
-      }
-    }
-
 
   // Set up the metric
   //
