@@ -105,6 +105,13 @@ ADD_TEST(EvaluateMetric_${DATASET1}_${DATASET2}
   ${TEMP}/${DATASET2}_BSplineTo_${DATASET1}_MeanSquaresMetric.txt
   )
 
+ADD_TEST(ExtractSlice_${DATASET1}_${DATASET2}
+  ${EXECUTABLE_OUTPUT_PATH}/ExtractSlice
+  ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_RegisteredTo_${DATASET1}_Slice.png
+  30 # Z Slice number
+  )
+
 ENDMACRO(REGISTER)
 
 PREPAREMASK( 1 )
