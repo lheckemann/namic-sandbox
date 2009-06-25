@@ -39,7 +39,7 @@
 
 #include "TissueClassificationCLP.h"
 
-typedef itk::OrientedImage<unsigned short, 3> ImageType;
+typedef itk::OrientedImage<float, 3> ImageType;
 typedef itk::ImageFileReader< ImageType  > ImageReaderType;
 
 int main (int argc, char* argv[])
@@ -114,14 +114,14 @@ int main (int argc, char* argv[])
         assignedLabel = k;
         }
       }
-    if (assignedLabel >=0)
+    if (assignedLabel >=0 && mLabel > 0)
       {
       it.Set( assignedLabel+1 );
       }
     }
 
   itk::ImageFileWriter<ImageType>::Pointer wlabel = itk::ImageFileWriter<ImageType>::New();
-  wlabel->SetInput( classifier->GetOutput() );
+  wlabel->SetInput( label );
   wlabel->SetFileName( brainLabel.c_str() );
 
   try
@@ -149,6 +149,16 @@ int main (int argc, char* argv[])
     return EXIT_FAILURE;
     }
 
+
+  wlabel->SetInput( classifier->GetOutput(0) );
+  wlabel->SetFileName( "mem0.mha" );
+  wlabel->Update();
+  wlabel->SetInput( classifier->GetOutput(1) );
+  wlabel->SetFileName( "mem1.mha" );
+  wlabel->Update();
+  wlabel->SetInput( classifier->GetOutput(2) );
+  wlabel->SetFileName( "mem2.mha" );
+  wlabel->Update();
 
   return EXIT_SUCCESS;
 }

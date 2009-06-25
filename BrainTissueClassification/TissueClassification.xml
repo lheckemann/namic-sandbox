@@ -34,7 +34,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
 
   <image type="label">
     <name>brainLabel</name>
-    <label>Brain Mask</label>
+    <label>Hard Segmentation</label>
     <channel>output</channel>
     <index>2</index>
     <description>Output brain mask map.</description>
