@@ -684,8 +684,9 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
     vtkMRML4DBundleNode *bundleNode = 
       vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
     int selected = this->FrameList->GetWidget()->GetIndexOfFirstSelectedRow();
+    int nframe = bundleNode->GetNumberOfFrames();
 
-    if (selected > 0)
+    if (selected > 0 && selected < nframe)
       {
       vtkMRMLNode* node = bundleNode->GetFrameNode(selected);
       bundleNode->RemoveFrame(selected);
@@ -701,7 +702,7 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
     int selected = this->FrameList->GetWidget()->GetIndexOfFirstSelectedRow();
     int nframe = bundleNode->GetNumberOfFrames();
 
-    if (selected < nframe-1)
+    if (selected < nframe-1 && selected >= 0)
       {
       vtkMRMLNode* node = bundleNode->GetFrameNode(selected);
       bundleNode->RemoveFrame(selected);
@@ -716,7 +717,7 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
       vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
     int selected = this->FrameList->GetWidget()->GetIndexOfFirstSelectedRow();
     int nframe = bundleNode->GetNumberOfFrames();
-    if (selected < nframe-1)
+    if (selected < nframe && selected >= 0)
       {
       bundleNode->RemoveFrame(selected);
       }
@@ -817,6 +818,7 @@ void vtkFourDImageGUI::ProcessMRMLEvents ( vtkObject *caller,
     }
   else if (event == vtkMRMLScene::SceneCloseEvent)
     {
+    UpdateFrameList(NULL);
     }
   /*
   else if (event == vtkMRMLVolumeNode::ImageDataModifiedEvent)
@@ -1571,6 +1573,11 @@ void vtkFourDImageGUI::UpdateFrameList(const char* bundleID, int selectColumn)
     selected = selectColumn;
     }
 
+  if (bundleID == NULL)
+    {
+    this->FrameList->GetWidget()->DeleteAllRows();
+    }
+
   vtkMRML4DBundleNode* bundleNode 
     = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
 
@@ -1584,10 +1591,24 @@ void vtkFourDImageGUI::UpdateFrameList(const char* bundleID, int selectColumn)
     return;
     }
 
+  // Adjust number of rows
+  // The last one row is for adding a new frame at the end of the list
   int numFrames = bundleNode->GetNumberOfFrames();
-  this->FrameList->GetWidget()->DeleteAllRows();
-  this->FrameList->GetWidget()->AddRows(bundleNode->GetNumberOfFrames());
+  int numRows = this->FrameList->GetWidget()->GetNumberOfRows();
+  if (numRows < numFrames+1)
+    {
+    this->FrameList->GetWidget()->AddRows(numFrames+1 - numRows);
+    }
+  else if (numRows > numFrames+1)
+    {
+    int ndel = numRows - (numFrames+1);
+    for (int i = 0; i < ndel; i ++)
+      {
+      this->FrameList->GetWidget()->DeleteRow(0);
+      }
+    }
 
+  // Show info
   char str[256];
   for (int i = 0; i < numFrames; i ++)
     {
@@ -1600,6 +1621,12 @@ void vtkFourDImageGUI::UpdateFrameList(const char* bundleID, int selectColumn)
     sprintf(str, "%f", tm);
     this->FrameList->GetWidget()->SetCellText(i, 2, str);
     }
+
+  // The last one row ("new" row)
+  this->FrameList->GetWidget()->SetCellText(numFrames, 0, "---");
+  this->FrameList->GetWidget()->SetCellText(numFrames, 1, "(New)");
+  this->FrameList->GetWidget()->SetCellText(numFrames, 2, "---");
+
   if (selected < 0)
     {
     selected = 0;
@@ -1608,9 +1635,10 @@ void vtkFourDImageGUI::UpdateFrameList(const char* bundleID, int selectColumn)
     {
     selected = numFrames-1;
     }
+  this->FrameList->GetWidget()->ClearSelection();
   this->FrameList->GetWidget()->SelectRow(selected);
   
-  // frame control
+  // Update frame control
   int n = bundleNode->GetNumberOfFrames();
   this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
   this->BackgroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
