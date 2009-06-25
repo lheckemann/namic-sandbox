@@ -1,4 +1,4 @@
-PROJECT(BrainTissueClassification)
+PROJECT(TissueClassification)
 
 cmake_minimum_required(VERSION 2.4)
 
@@ -20,8 +20,8 @@ IF (Slicer3_FOUND)
   add_executable(${CLP} ${${CLP}_SOURCE})
   target_link_libraries (${CLP} ITKCommon ITKNumerics ITKNrrdIO ITKIO ITKStatistics vtkIO vtkCommon vtkFiltering vtkGraphics vtkRendering)
 
-  slicer3_set_plugins_output_path(BrainTissueClassification)
-  slicer3_install_plugins(BrainTissueClassification)
+  slicer3_set_plugins_output_path(TissueClassification)
+  slicer3_install_plugins(TissueClassification)
 
 ELSE (Slicer3_FOUND)
 
