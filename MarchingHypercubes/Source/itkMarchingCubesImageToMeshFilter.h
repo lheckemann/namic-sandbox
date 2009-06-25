@@ -43,11 +43,9 @@ namespace itk
  * surface value.  It can be used to integrate a region-based segmentation
  * method and a deformable model into one hybrid framework. 
  *
- * \par To construct a mesh
- we need to construct elements in a voxel and
+ * \par To construct a mesh we need to construct elements in a voxel and
  * combine those elements later to form the final mesh. Before going through
- * every voxel in the 3D volume
- we first determine those cells with a mixture
+ * every voxel in the 3D volume we first determine those cells with a mixture
  * of voxel vertices both greater and less than  the surface value that
  * contribute to the 3D PointSet.
  *
@@ -57,76 +55,52 @@ namespace itk
  * greater and less than  the surface value The center coordiantes of these
  * cubes and corresponding interpolated normalized gradient vectors are an
  * element in the 3D mesh. The surface is defined by surface cube center
- * coordinates x
- y
- z
-  and the surface normal components nx
- ny
- nz estimated
+ * coordinates x, y, z and the surface normal components nx, ny, nz estimated
  * by trilinear interploation of the gradient vectors followed by
  * normalization. We then merge all these mesh elements into one 3D mesh.
  * 
  * \par PARAMETERS The SurfaceValue parameter is used to identify the object in
- * the 3D image. In most applications
- pixels in the object region are greater
- * than the SurfaceValue ssigned to "1"
- so the default value of ObjectValue is
+ * the 3D image. In most applications pixels in the object region are greater
+ * than the SurfaceValue ssigned to "1" so the default value of ObjectValue is
  * set to "1"
- *
  * This implementation of the algorithm is an improvement over the reference
  * paper below in the following aspects:
  *
  * 1) Surface points are computed accurately by using floating point math
-
  *    as opposed to the integer math used in the reference.
  *
  * 2) The resample image filter is used instead of point by point interpolation
  *    to compute the subcell intensity values.
  *
  * \par REFERENCE
- * H. Cine
- W. Lorensen
- S. Ludke
- B. Teeter
- C. Crawford
- "Two algorithms for
+ * H. Cine, W. Lorensen, S. Ludke, B. Teeter, C. Crawford, "Two algorithms for
  * three-dimensional reconstruction of tomograms" Medical Physics 15 (3) 320
  * (1988) 
  * 
- * William E. Lorensen and Harvey E. Cline
- "Marching Cubes: A High Resolution 3D
- * Surface Construction Algorithm"
- Computer Graphics (Proceedings of SIGGRAPH
- * 1987)
- Vol. 21
- No. 4
- pp. 163-169.
+ * William E. Lorensen and Harvey E. Cline "Marching Cubes: A High Resolution 3D
+ * Surface Construction Algorithm" Computer Graphics (Proceedings of SIGGRAPH
+ * 1987) Vol. 21 No. 4 pp. 163-169.
  * 
  * \par INPUT
  * The input should be a 3D image and surface value. 
  * 
  **/
 
-template <class TInputImage
- class TOutputPointSet>
-class ITK_EXPORT MarchingCubesImageToMeshFilter : public ImageToMeshFilter< TInputImage
- TOutputPointSet >
+template <class TInputImage, class TOutputPointSet>
+class ITK_EXPORT MarchingCubesImageToMeshFilter : public ImageToMeshFilter< TInputImage, TOutputPointSet >
 {
 public:
   /** Standard "Self" typedef. */
   typedef MarchingCubesImageToMeshFilter       Self;
   typedef ImageToMeshFilter< 
-    TInputImage
- TOutputPointSet >             Superclass;
-  typedef SmartPointer<Self>                   Pointer;
-  typedef SmartPointer<const Self>             ConstPointer;
+      TInputImage, TOutputPointSet >           Superclass;
+  typedef SmartPointer<Self>                   Pointer;  typedef SmartPointer<const Self>             ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);  
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(MarchingCubesImageToMeshFilter
- ImageToMeshFilter);
+  itkTypeMacro(MarchingCubesImageToMeshFilter, ImageToMeshFilter);
 
   /** Hold on to the type information specified by the template parameters. */
   typedef TOutputPointSet                             OutputMeshType;
@@ -143,13 +117,9 @@ public:
   typedef typename PointsContainer::Pointer               PointsContainerPointer;
   typedef typename PointDataContainer::Pointer            PointDataContainerPointer;
   typedef typename OutputMeshType::CellsContainer         CellsContainer;
-
-
   
   /** Dimension of the input image */
-  itkStaticConstMacro(InputImageDimension
- unsigned int
- TInputImage::ImageDimension );
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension );
 
   /** Input Image Type Definition. */
   typedef TInputImage                                     InputImageType;
@@ -167,50 +137,40 @@ public:
   typedef typename InputImageType::IndexType              IndexTypeArray[8];
   typedef typename OutputMeshType::CellType               CellType;
   typedef typename itk::TriangleCell< CellType >          TriangleType;
+
   typedef typename TriangleType::CellAutoPointer          CellAutoPointer;
   typedef PointLocator2< OutputMeshType >                         PointLocatorType;
   typedef typename PointLocatorType::Pointer                      PointLocatorPointer;
   typedef typename PointLocatorType::InstanceIdentifierVectorType InstanceIdentifierVectorType;
   //END SOPHIE'S CODE
 
-  typedef ContinuousIndex<float
-InputImageDimension>      ContinuousIndexType;
-
-  typedef typename NumericTraits< 
-    InputPixelType >::RealType                     InputPixelRealType;
-     
-  typedef ImageRegionConstIterator< InputImageType > InputImageIterator;
+  typedef ContinuousIndex<float, InputImageDimension>               ContinuousIndexType;
+  typedef typename NumericTraits< InputPixelType >::RealType       InputPixelRealType;
+  typedef ImageRegionConstIterator< InputImageType >               InputImageIterator;
   
   /** Array of integers that define the resolution of the subdivision */
-  typedef FixedArray< unsigned int
- InputImageDimension >         SubdivideFactorArray;
-
-  itkSetMacro( SurfaceValue
- InputPixelRealType );
+  typedef FixedArray< unsigned int, InputImageDimension >           SubdivideFactorArray;
+  itkSetMacro( SurfaceValue, InputPixelRealType );
 
   /** accept the input image */
   virtual void SetInput( const InputImageType * inputImage );
 
-  
-
 protected:
   MarchingCubesImageToMeshFilter();
   ~MarchingCubesImageToMeshFilter();
-  void PrintSelf(std::ostream& os
- Indent indent) const;
+  void PrintSelf(std::ostream& os, Indent indent) const;
 
   void GenerateData();
   virtual void GenerateOutputInformation(){}; // do nothing
   
   // Types related to the Neighborhood iterator.
-  typedef NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType> FaceCalculatorType;
-  typedef typename FaceCalculatorType::FaceListType                           FaceListType;
-  typedef typename FaceListType::iterator                                     FaceIterator;
-  typedef ConstShapedNeighborhoodIterator<InputImageType>                     NeighborhoodIteratorType;
+  typedef NeighborhoodAlgorithm::ImageBoundaryFacesCalculator< InputImageType > FaceCalculatorType;
+  typedef typename FaceCalculatorType::FaceListType                             FaceListType;
+  typedef typename FaceListType::iterator                                       FaceIterator;
+  typedef ConstShapedNeighborhoodIterator< InputImageType >                     NeighborhoodIteratorType;
 
   // Typedef related to computation of gradients
-  typedef CentralDifferenceImageFunction< TInputImage
- double >      GradientCalculatorType;
+  typedef CentralDifferenceImageFunction< TInputImage, double >      GradientCalculatorType;
   typedef typename GradientCalculatorType::Pointer                   GradientCalculatorPointer;
   typedef typename GradientCalculatorType::OutputType                CovariantVectorType;
 
@@ -219,8 +179,7 @@ private:
   void operator=(const Self&); //purposely not implemented
 
   typedef typename InputImageType::SizeType                       InputImageSizeType;
-  typedef ResampleImageFilter< InputImageType
- InputImageType >   ResampleFilterType;
+  typedef ResampleImageFilter< InputImageType, InputImageType >   ResampleFilterType;
   typedef LinearInterpolateImageFunction< InputImageType >        InterpolatorType;
   typedef typename ResampleFilterType::Pointer                    ResampleFilterPointer;
   typedef typename InterpolatorType::Pointer                      InterpolatorPointer;
@@ -240,9 +199,8 @@ private:
   PointLocatorPointer                   m_PointLocator;
  
   // Type used for representing the index of the marching cubes table 
-  typedef unsigned char                                              TableIndexType;
-
-  mutable TableIndexType                m_TableIndex;
+  typedef unsigned char                TableIndexType;
+  mutable TableIndexType               m_TableIndex;
 
   class VertexPairType
     {
@@ -254,8 +212,7 @@ private:
       Vertex2 = 0;
       }
      
-    VertexPairType( unsigned int a
- unsigned int b )
+    VertexPairType( unsigned int a, unsigned int b )
       {
       Vertex1 = a;
       Vertex2 = b;
@@ -264,8 +221,7 @@ private:
     unsigned int   Vertex2; 
     };
 
-   // There are 13 entries in the table
- but only 12 represent real
+   // There are 13 entries in the table, but only 12 represent real
    // edge pairs. This is done to be able to use "0" as the code for
    // "no-edge".
    VertexPairType                       m_EdgeIndexToVertexIndex[13];
@@ -277,7 +233,6 @@ private:
     public:
     VertexTypeId Triangle[15];
     };
-  
   ListOfTrianglesType                  m_CubeConfigurationCodeToListOfTriangle[256];
 
   class DirectedPointType
@@ -287,34 +242,29 @@ private:
       MeshPixelType     gradient;  // We assume that the Mesh pixel type is a CovariantVector.
     };
 
-  void AddTriangleToOutputMesh( 
-    const DirectedPointType & point1
- 
-    const DirectedPointType & point2
- 
-    const DirectedPointType & point3 );
+  void AddTriangleToOutputMesh(
+  const DirectedPointType & point1,
+  const DirectedPointType & point2,
+  const DirectedPointType & point3 );
 
   // Checks if new point to be inserted is close enough to an existing point that it can replace that point and inserted the point into mesh.
  
   void IfPointIsGreaterThanToleranceReplaceIndexAndInsertIntoMesh(
-    DirectedPointType pointIndex
- 
-    const InstanceIdentifierVectorType & list
- 
+    DirectedPointType pointIndex, 
+    const InstanceIdentifierVectorType & list, 
     CellAutoPointer & cellpointer);
  
-  // Check whether the neighborhood is cut by the iso-hyper-surface
+  // Check whether the neighborhood is cut by the iso-hyper-surface  
   bool IsSurfaceInside( const NeighborhoodIteratorType & walker );
  
   // Compute the gradients on each one of the voxels in a cell
   void ComputeCentralDifferences( const NeighborhoodIteratorType & cellRegionWalker );
 
+
+
   // Find intersection of the surface along the edge using linear interpolation.
-  void InterpolateEdge( 
-    const VertexPairType & vertexPair
-
-    const NeighborhoodIteratorType & cellRegionWalker
-
+  void InterpolateEdge( const VertexPairType & vertexPair,
+    const NeighborhoodIteratorType & cellRegionWalker,
     DirectedPointType & outputDirectedPoint );
 
   // Generate triangles for current configuration
