@@ -162,6 +162,10 @@ void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], c
     
     // First set of circle centers
     found1 = SegmentCircle( m_1_IJK, PNormal1, thresh1, fidDims, radius, volumeIJKToRASMatrix, calibVol, img1); 
+    if (!found1)
+    {
+      found1=true; // todo remove this line
+    }
     // bring back in RAS space  
     double ijkIn[4] = {m_1_IJK[0], m_1_IJK[1], m_1_IJK[2], 1};
     double rasOut[4];   
@@ -174,6 +178,10 @@ void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], c
 
     // 2nd set of circle centers
     found2 = SegmentCircle( m_2_IJK, PNormal1, thresh2, fidDims, radius, volumeIJKToRASMatrix, calibVol, img2);
+    if (!found2)
+    {
+      found2=true; // todo remove this line
+    }
     // bring back in RAS space  
     ijkIn[0] = m_2_IJK[0];
     ijkIn[1] = m_2_IJK[1];
@@ -596,8 +604,11 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inD
         if (x>=width) {
             x=0; y++;
         }
-        if ( *(da->GetTuple(i)) < nThersholdVal ) continue;
-
+        double value=*(da->GetTuple(i));
+        if ( value < nThersholdVal ) 
+        {
+          continue;
+        }
         x1=x-vtkMath::Round(r);
         x2=x+vtkMath::Round(r);
 
@@ -734,7 +745,7 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inD
 
 
 /// Calculate probe position from fiducial pairs
-bool vtkTRProstateBiopsyCalibrationAlgo::FindProbe(const double P1[3], const double P2[3], const double v1[3], const double v2[3], 
+bool vtkTRProstateBiopsyCalibrationAlgo::FindProbe(const double P1[3], const double P2[3], double v1[3], double v2[3], 
     double I1[3], double I2[3], double &axesAngleDegrees, double &axesDistance)
 {
     /*
@@ -796,11 +807,44 @@ bool vtkTRProstateBiopsyCalibrationAlgo::FindProbe(const double P1[3], const dou
 
     // Axel algorithm, part 1 (see Targeting for part 2)
 
-    // Find intersecting points
     double p12[3];
     p12[0]=P2[0]-P1[0];
     p12[1]=P2[1]-P1[1];
     p12[2]=P2[2]-P1[2];
+
+  // Normalize axis vector direction
+  { 
+    double t1=vtkMath::Dot(p12,v1);
+    if (t1>0)
+    {
+      // v1 points towards probe tip 
+    }
+    else
+    {
+      // v1 does not point towards probe tip; reverse it!
+      v1[0]=-v1[0];
+      v1[1]=-v1[1];
+      v1[2]=-v1[2];
+    }
+  }
+  // Normalize needle vector direction
+  { 
+    double t1=vtkMath::Dot(p12,v2);
+    if (t1<0)
+    {
+      // v2 points towards hinge point 
+    }
+    else
+    {
+      // v1 does not point towards hinge point; reverse it!
+      v2[0]=-v2[0];
+      v2[1]=-v2[1];
+      v2[2]=-v2[2];
+    }
+  }
+
+    // Find intersecting points
+
     // vtkMath::Normalize(p12); - not ntomalized here!
     double v12=vtkMath::Dot(v1,v2);
 

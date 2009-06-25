@@ -93,7 +93,7 @@ protected:
   bool SegmentCircle(float originToBeChanged[3],const double normal[3],  double thresh, const double fidDims[3], double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, vtkImageData *preprocOutput=NULL);
   bool CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double *gx, double *gy, double *gz, int nVotedNeeded, bool lDebug);
   void RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3]);
-  bool FindProbe(const double P1[3], const double P2[3], const double v1[3], const double v2[3], 
+  bool FindProbe(const double P1[3], const double P2[3], double v1[3], double v2[3], 
     double I1[3], double I2[3], double &axesAngleDegrees, double &axesDistance);
   //BTX
   void Linefinder(double P_[3], double v_[3], std::vector<itk::Point<double,3> > CoordVector);

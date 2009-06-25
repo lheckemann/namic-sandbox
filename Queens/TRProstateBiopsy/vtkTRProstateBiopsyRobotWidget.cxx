@@ -464,8 +464,8 @@ void vtkTRProstateBiopsyRobotWidget::RobotWidget::UpdateRobotManipulatorPosition
     return;
   }
 
-  double point1Manip[4]={-100,0,0 ,1}; // hinge point
-  double point2Manip[4]={200,0,0 ,1}; // robot base point
+  double point1Manip[4]={-100,0,0 ,1}; // robot tip point
+  double point2Manip[4]={400,0,0 ,1}; // robot base point
   
   double point1Ras[4]={0,0,0 ,1};
   double point2Ras[4]={0,0,0 ,1};

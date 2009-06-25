@@ -257,13 +257,13 @@ void vtkTRProstateBiopsyCalibrationStep::ShowFiducialSegmentParamsControls()
       this->FiducialThresholdScale[i]->SetParent(this->FiducialPropertiesFrame->GetFrame());
       this->FiducialThresholdScale[i]->Create();
       std::ostrstream os;
-      os << "Threshold "<< i << std::ends;    
+      os << "Threshold "<< i+1 << std::ends;    
       this->FiducialThresholdScale[i]->SetLabelText(os.str());
       os.rdbuf()->freeze();
       this->FiducialThresholdScale[i]->SetWidth(3);
       this->FiducialThresholdScale[i]->SetLength(200);
       this->FiducialThresholdScale[i]->SetRange(0,100);
-      this->FiducialThresholdScale[i]->SetResolution(1);
+      this->FiducialThresholdScale[i]->SetResolution(0.5);
       this->FiducialThresholdScale[i]->SetValue(9);
       //this->FiducialThresholdScale[i]->AddObserver(vtkKWScale::ScaleValueChangingEvent, this->WizardGUICallbackCommand);            
       }
@@ -971,8 +971,9 @@ void vtkTRProstateBiopsyCalibrationStep::Resegment()
   // gather information about thresholds
   double thresh[4];
   for (int i=0 ; i<4; i++)
+  {
     thresh[i] = this->FiducialThresholdScale[i]->GetValue();
-
+  }
   // gather info about the fiducial dimenstions
   double fidDims[3];
   fidDims[0] = this->FiducialWidthSpinBox->GetWidget()->GetValue();
@@ -997,9 +998,10 @@ void vtkTRProstateBiopsyCalibrationStep::Resegment()
 
   vtkMRMLVolumeNode* volumeNode = mrmlNode->GetCalibrationVolumeNode();
   int i=0;
-  for (std::vector<CalibPointRenderer>::iterator it=CalibPointPreProcRendererList.begin(); it!=CalibPointPreProcRendererList.end(); ++it, ++i)
+  for (std::vector<CalibPointRenderer>::iterator it=CalibPointPreProcRendererList.begin(); it!=CalibPointPreProcRendererList.end(); ++it)
   {
       it->Update(this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer(), volumeNode, this->GetGUI()->GetLogic()->GetCalibMarkerPreProcOutput(i));
+      ++i;  
   }
 
   ShowMarkerVolumesIn3DView(true);
