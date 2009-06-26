@@ -15,17 +15,17 @@ CPU board
   Motorola MCP820 (500MHz MPC7410 processor)
 CPCI board
   AVAL-DATA ACP-560 D/A     4Ch
-  AVAL-DATA ACP-550 A/D     4Ch  
+  AVAL-DATA ACP-550 A/D     4Ch
   AVAL-DATA ACP-420 Counter 4Ch
 
 <2.Files>
   main.cpp               // main function
   main.h
   robot.cpp              // for controlling robot
-  robot.h                
+  robot.h
   frame.cpp              // including kinematics models
-  frame.h 
-  driver.cpp             // for management board driver 
+  frame.h
+  driver.cpp             // for management board driver
   driver.h
   joint.cpp              // joint control (PID cotrol)
   joint.h
@@ -35,7 +35,7 @@ CPCI board
   SlicerInterface.h
   PNTM_interface.cpp     //interface for communicating robot by using OpenIGTLink
   PNTM_interface.h
-  sockUDP.cpp            // UDP/IP socket 
+  sockUDP.cpp            // UDP/IP socket
   sockUDP.h
   keyConsole.cpp         // key board
   keyConsole.h

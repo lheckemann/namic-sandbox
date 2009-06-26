@@ -1,84 +1,113 @@
-/***************************************************************************
- * FileName      : robot.cpp
- * Created       : 2007/11/1
- * LastModified  : 2007/
+/******************************************************************************
+ * FileName      : Robot.cpp
+ * Created       : 2008/11/1
+ * LastModified  : 2009/
  * Author        : Hiroaki KOZUKA
- * Aim           : Main program for a slave Robot Control
+ * Aim           : Main program for a slave Robot Contol
  *                 robot class
  * OS            : VxWorks 5.5.1
- ***************************************************************************/
-#include "robot.h"
-#define sq(x) ((x) * (x))
+ *****************************************************************************/
+#include "Robot.h"
 
-using namespace std;
+//-----------------------------------------------------------------------------
+//
+Robot::Robot(int jNum){
+  cout<<"Init Robot..."<<endl;
 
-STATE_MACHINE ROBOT::flag;
+  SInfo.Event = E_PRGM_START;
+  SInfo.State = S_PRGM_ENTRANCE;
+  SInfo.State_1 = S_PRGM_ENTRANCE;
 
-//Initialize
-ROBOT::ROBOT():driver(),IF_manager(){
-  cout<<"Initialaze robot class..."<<endl;
-  
-  for(int jID=0; jID<jNum; jID++){
-    joint[jID] = new JOINT(driver, jID);
-  }
-  TF = new FRAME(360);
-  
-  timingSem = semBCreate(SEM_Q_FIFO,SEM_EMPTY);
-  timeLimit = wdCreate();
-  
-  flag.event = E_UNKNOWN;
-  flag.state = S_PRGM_ENTRANCE;
-  flag.state_1 = S_PRGM_ENTRANCE;
-  time = 0;
-  stateSWFlag = 0;
+  JointNum = jNum;
+  Dr = NULL;
 
+
+  destAngle = new double[JointNum];
+  curAngle = new double[JointNum];
+  Angle_0 = new double[JointNum];
+
+  memset(destAngle, 0, sizeof(double)*JointNum);
+  memset(curAngle, 0, sizeof(double)*JointNum);
+  memset(&destPee, 0, sizeof(Coord_6DoF));
+  memset(&destPee_1, 0, sizeof(Coord_6DoF));
+
+  Jt = new JointBase*[JointNum];
+  for(int j=0;j<jNum; j++ )
+    Jt[j] = NULL;
+
+  Dr = new Driver(JointNum);
+  IFM.SetJointNum(jNum);
+
+  timingSem = semBCreate(SEM_Q_FIFO, SEM_EMPTY);
+
+  //task (thread)
   kernelTimeSlice(1);
-  taskSpawn("tTiming", 90, VX_FP_TASK, 20000, (FUNCPTR)timing,
-        (int)&timingSem,0,0,0,0,0,0,0,0,0);
-  
+  taskSpawn( "tTiming", 90, VX_FP_TASK, 20000, (FUNCPTR)Timing,
+             (int)&timingSem,0,0,0,0,0,0,0,0,0 );
+
   cout<<"Robot done."<<endl;
-  
-  robotMain();
 }
 
-ROBOT::~ROBOT(){
-    for(int jID=0; jID<jNum; jID++){
-    delete joint[jID];
-  }
-  delete TF;
-  wdDelete(timeLimit);
-  semDelete(timingSem);
-  taskDelete(taskNameToId("tTiming"));
-  //logMsg("End Robot class.\n",0,0,0,0,0,0);
-  cout<<"End Robot class."<<endl;
+//-----------------------------------------------------------------------------
+//
+Robot::~Robot(){
+
+  delete [] destAngle;
+  delete [] curAngle;
+  delete [] Angle_0;
+
+  delete [] Jt;
+  delete Dr;
+  taskDelete( taskNameToId("tTiming"));
+
+  cout<<"End Robot."<<endl;
 }
 
-//Setting end efector to origin 
+
+//
+double
+Robot::TimeGet(){
+  UINT32 tbu, tbl;
+  vxTimeBaseGet(&tbu, &tbl);
+  return (tbu * 4294967296.0 + tbl)/25000000.0;
+}
+
+
+
+//-----------------------------------------------------------------------------
+//
 void
-ROBOT::originSet(){
-    driver.stop();
-  for(int i=0; i<jNum; i++)
-    joint[i]->angleSet(0);
-   driver.angleReadWrite(0);
+Robot::SetJoint(int jID, JointBase* ptr){
+  Jt[jID] = ptr;
+  Jt[jID]->SetIFM(&IFM);
 }
 
-//! Control Joint
+//-----------------------------------------------------------------------------
+//
 void
-ROBOT::jointControl(double* destjAngle, double* curjAngle, JOINT_DATA* jData){
-    driver.angleReadWrite(1);
-    for(int jID=0; jID<jNum;jID++){
-    jData[jID] = joint[jID]->angleControl(destjAngle[jID]);
-        curjAngle[jID] = jData[jID].angle;
-    }
-    
-    driver.speedWrite();
-    //send IF_manager
-    
+Robot::SetFrameInv(FrameBase* ptr){
+  FrmI = ptr;
 }
 
+//-----------------------------------------------------------------------------
+//
+void
+Robot::SetFrameFor(FrameBase* ptr){
+  FrmF = ptr;
+}
+
+//-----------------------------------------------------------------------------
+//
+Driver*
+Robot::DrPtr(){
+  return Dr;
+}
+
+
+//-----------------------------------------------------------------------------
 // Routine for the internal system clock
 void
-ROBOT::timing (void* sem){
+Robot::Timing (void* sem){
   SEM_ID* timing = (SEM_ID*)sem;
   sysClkRateSet( 1000 ); // default clock rate is 60 defined in configAll.h
   do {
@@ -87,208 +116,276 @@ ROBOT::timing (void* sem){
   } while(true);
 }
 
-// display data
+//-----------------------------------------------------------------------------
+//
 void
-ROBOT::dataDisp(int Ts){
-  if( time%(Ts*1000) == 0 ){
-    cout<<"t= "<<time/1000<<flush;
-    cout<<" dPx= "<<(int)destPee.x<<flush;
-    cout<<" Py= "<<(int)destPee.y<<flush;
-    cout<<" Pz= "<<(int)destPee.z<<flush;
-    cout<<" dm1= "<<(int)destAngle[0]<<flush;
-    cout<<" m2= "<<(int)destAngle[1]<<flush;
-    cout<<" m3= "<<(int)destAngle[2]<<flush;
-    cout<<" cm1= "<<(int)curAngle[0]<<flush;
-    cout<<" m2= "<<(int)curAngle[1]<<flush;
-    cout<<" m3= "<<(int)curAngle[2]<<endl;
-  }
-}
-
-
-// for symmetle bilateral control
-void
-ROBOT::bilateralErrCaluculate(EE_POSITION* dest, EE_POSITION* cur, EE_POSITION*  err){
-  err->x = dest->x - cur->x;
-  err->y = dest->y - cur->y;
-  err->z = dest->z - cur->z;
-  err->alpha = 0; // dest->alpha - cur->alpha;
-  err->beta = 0;  // dest->beta  - cur->beta;
-  err->gamma = 0; // dest->gamma - cur->gamma;
-}
-
-
-void
-ROBOT::armDataCalculate(EE_POSITION* Pee, ARM_DATA* armData){
-  //
-  armData->Pee_P.x = Pee->x;
-  armData->Pee_P.y = Pee->y;
-  armData->Pee_P.z = Pee->z;
-  armData->Pee_D.x = armData->Pee_P.x - armData->Pee_P.x_;
-  armData->Pee_D.y = armData->Pee_P.y - armData->Pee_P.y_;
-  armData->Pee_D.z = armData->Pee_P.z - armData->Pee_P.z_;
-  armData->Pee_P.x_ = armData->Pee_P.x;
-  armData->Pee_P.y_ = armData->Pee_P.y;
-  armData->Pee_P.z_ = armData->Pee_P.z;
-  //   
-}
-
-void
-ROBOT::stateTransition(){
-  STATE state   = flag.state;
-  STATE state_1 = flag.state_1;
-  state_1 = state;
+Robot::StateTransition(StateInfo& S){
   // read event
-  EVENT event = IF_manager.eventRead(state);
+  STATE state = S.State;
+  STATE state_1 = S.State;
+  EVENT event = GetEvent();
+  static bool stateSWFlag = 0;
+
   //
   if( event == E_PRGM_EXIT ){
     state = S_PRGM_EXIT;
-    cout<<"<event>: exit"<<endl;
+//    cout<<"exit"<<endl;
   }
   else if( event == E_EMERGENCY_0 ){
     state = S_EMERGENCY_0;
-    cout<<"<event>: emg"<<endl;
+//    cout<<"emg"<<endl;
   }
   else if( event == E_PRGM_START
-       && ( state == S_PRGM_ENTRANCE || state ==  S_EMERGENCY_0 ) ){
-    state =  S_CTRL_STOP;//S->CTRL_READY;
-    cout<<"<event>: prgm_start"<<endl;
+           && ( state == S_PRGM_ENTRANCE || state == S_EMERGENCY_0 ) ){
+    state =  S_CTRL_READY;
+//    cout<<"prgm_start"<<endl;
   }
-  else if( event == E_CTRL_STOP_START
-       && ( state == S_CTRL_READY || state ==  S_EMERGENCY_0 ) ){
+  else if( (event == E_INIT)
+           && ( state == S_CTRL_READY || state ==  S_EMERGENCY_0 ) ){
+    state = S_INIT;
+//    cout<<"init_prgm"<<endl;
+  }
+  else if( (event == E_CTRL_STOP_START)
+           && ( state == S_INIT || state ==  S_EMERGENCY_0 ) ){
     state = S_CTRL_STOP;
-    cout<<"<event>: ctrl_stop_start"<<endl;
+//    cout<<"ctrl_stop_start"<<endl;
   }
   else if( event == E_CTRL_STOP_STOP
-       && ( state == S_CTRL_STOP ||  state == S_EMERGENCY_0 ) ){
+           && ( state == S_CTRL_STOP ||  state == S_EMERGENCY_0 ) ){
     state = S_CTRL_READY;
-    cout<<"<event>: ctrl_stop_stop"<<endl;
+//    cout<<"ctrl_stop_stop"<<endl;
   }
-  else if( (event == E_CTRL_RUN_START || event == E_PRGM_START)
-       && state == S_CTRL_STOP ){
+  else if( (event == E_CTRL_RUN_START)
+           && state == S_CTRL_STOP ){
     state = S_CTRL_RUN;
-    cout<<"<event>: ctrl_run"<<endl;
+//    cout<<"ctrl_run"<<endl;
   }
   else if( event == E_CTRL_RUN_STOP
-       && ( state == S_CTRL_RUN || state == S_EMERGENCY_0 ) ){
+           && ( state == S_CTRL_RUN || state == S_EMERGENCY_0 ) ){
     state = S_CTRL_STOP;
-    cout<<"<event>: ctrl_stop"<<endl;
+//    cout<<"ctrl_stop"<<endl;
   }
-  
+
   if( state != state_1 ){
-    flag.event = event;
-    flag.state = state;
-    flag.state_1 = state_1;
-    cout<<"state:"<<state<<" state_1:"<<state_1<<" event:"<<event<<endl;
-    stateSWFlag = 1;
+    S.State = state;
+    S.State_1 = state_1;
+    S.Event = event;
+//    cout<<"state:"<<state<<" state_1:"<<state_1<<" event:"<<event<<endl;
+    stateSWFlag = true;
   }
-  else if(state == state_1 &&  stateSWFlag == 1){
-    flag.event = event;
-    flag.state = state;
-    flag.state_1 = state_1;
-    stateSWFlag = 0;
+  else {
+    if(stateSWFlag){
+      S.State = state;
+      S.State_1 = state_1;
+      S.Event = event;
+      stateSWFlag = false;
+    }
+    else{
+      stateSWFlag = false;
+    }
   }
-  else{
-    stateSWFlag = 0;
+  SetState(S.State);
+}
+
+//-----------------------------------------------------------------------------
+//Setting end efector to origin
+void
+Robot::SetAngOrigin(int jID, double angle){
+  Angle_0[jID] = angle;
+}
+
+//-----------------------------------------------------------------------------
+//
+void
+Robot::SetPosOrigin(double x,double y, double z,
+                    double alpha,double beta,double gamma ){
+  destPee_0.x = x;
+  destPee_0.y = y;
+  destPee_0.z = z;
+
+  destPee_0.alpha = alpha;
+  destPee_0.beta  = beta;
+  destPee_0.gamma = gamma;
+
+}
+
+//-----------------------------------------------------------------------------
+//
+void
+Robot::Init(StateInfo& S){
+  Dr->TorqueZero();
+  destPee.x = destPee_1.x = destPee_0.x;
+  destPee.y = destPee_1.y = destPee_0.y;
+  destPee.z = destPee_1.z = destPee_0.z;
+
+  destPee.alpha = destPee_1.alpha = destPee_0.alpha;
+  destPee.beta  = destPee_1.beta  = destPee_0.beta;
+  destPee.gamma = destPee_1.gamma = destPee_0.gamma;
+
+  for(int i=0; i<JointNum; i++){
+    destAngle[i] = Angle_0[i];
+    Jt[i]->SetAngle(destAngle[i]);
   }
+  Dr->WriteAngle();
+}
+
+//-----------------------------------------------------------------------------
+//
+void
+Robot::Exit(){
+  Dr->TorqueZero();
 }
 
 void
-ROBOT::init(){
-  dx = dy = dz = 0;
-  
-  destPee_1.x = 0;
-  destPee_1.y = 0;
-  destPee_1.z = -72.613;
-  
-  destPee.x = destPee.y = destPee.z = 0;
-  destPee.alpha = destPee.beta = destPee.gamma = 0;
-  
-  for(int i=0; i<jNum; i++){
-    destAngle[i] = 0;
-  }
-  
-  originSet();
-}
+Robot::GetDestPosition( StateInfo& S, Coord_6DoF& Pee, Coord_6DoF& Pee_1){
+  static double dx = 0;
+  static double dy = 0;
+  static double dz = 0;
+  static double alpha = 0;
+  static double beta = 0;
+  static double gamma = 0;
 
-void
-ROBOT::destDataGet(int state, int state_1 , unsigned long ctrlTime){
+  if( S.State == S_CTRL_RUN && (S.State_1 == S_CTRL_STOP) ){
+    dx = Pee.x - Pee_1.x;
+    dy = Pee.y - Pee_1.y;
+    dz = Pee.z - Pee_1.z;
+    alpha  = Pee.alpha - Pee_1.alpha;
+    beta   = Pee.beta  - Pee_1.beta;
+    gamma  = Pee.gamma - Pee_1.gamma;
 
-  if( state == S_CTRL_RUN && state_1 == S_CTRL_STOP){
-    IF_manager.destEEPositionGet(0, &destPee);
-    dx = destPee.x - destPee_1.x;
-    dy = destPee.y - destPee_1.y;
-    dz = destPee.z - destPee_1.z;
-    destPee.x -= dx;
-    destPee.y -= dy;
-    destPee.z -= dz;
-    cout<<"ON"<<endl;
+//    cout<<"<"<<ROBOT_NAME<<">: ON "<<dz<<" "<<Pee_1.z<<" "<<Pee.z<<endl;
+    Pee.x -= dx;
+    Pee.y -= dy;
+    Pee.z -= dz;
+    Pee.alpha -= alpha;
+    Pee.beta -= beta;
+    Pee.gamma -= gamma;
+
   }
-  else if( state == S_CTRL_RUN && state_1 ==  S_CTRL_RUN){
-    IF_manager.destEEPositionGet(0, &destPee);
-    destPee.x -= dx;
-    destPee.y -= dy;
-    destPee.z -= dz;
+  else if( S.State == S_CTRL_RUN && S.State_1 ==  S_CTRL_RUN){
+    Pee.x -= dx;
+    Pee.y -= dy;
+    Pee.z -= dz;
+    Pee.alpha -= alpha;
+    Pee.beta -= beta;
+    Pee.gamma -= gamma;
+//    if(Time%10 == 0)
+//      cout<<"ON: "<<Pee.x<<endl;
   }
-  else if( state == S_CTRL_STOP && state_1 == S_CTRL_RUN){
-    IF_manager.destEEPositionGet(0, &destPee);
-    destPee_1.x = destPee.x -= dx;
-    destPee_1.y = destPee.y -= dy;
-    destPee_1.z = destPee.z -= dz;
-    cout<<"OFF"<<endl;
+  else if( S.State == S_CTRL_STOP && S.State_1 == S_CTRL_RUN){
+    Pee_1.x = Pee.x -= dx;
+    Pee_1.y = Pee.y -= dy;
+    Pee_1.z = Pee.z -= dz;
+    Pee_1.alpha = Pee.alpha -= alpha;
+    Pee_1.beta  = Pee.beta  -= beta;
+    Pee_1.gamma = Pee.gamma -= gamma;
+    cout<<"<"<<ROBOT_NAME<<">: OFF "<<dx<<endl;
   }
-  else if( state == S_CTRL_STOP && state_1 == S_CTRL_STOP){
-    IF_manager.destEEPositionGet(0, &destPee);
-    destPee.x = destPee_1.x;
-    destPee.y = destPee_1.y;
-    destPee.z = destPee_1.z;
+  else if( S.State == S_CTRL_STOP &&
+           ( S.State_1 == S_CTRL_STOP || S.State_1== S_INIT) ){
+    Pee = Pee_1;
   }
-  else if( state == S_EMERGENCY_0 ){
+  else if( S.State == S_EMERGENCY_0 ){
     //
   }
 }
 
-
-//Main loop in the bobot
+//-----------------------------------------------------------------------------
+//
 void
-ROBOT::armCtrl(int state, int state_1 ){
-  
-  destDataGet(state, state_1, time);
-  TF->calculateInvKinematics(&destPee, destAngle);
-  jointControl(destAngle, curAngle, curJoint);
-  dataDisp(1);
-  if(time%100 == 0)
-    IF_manager.EEPositionSend(&destPee);
+Robot::Control( StateInfo& S ){
+  static Coord_6DoF curPee;
+
+  Dr->ReadAngle();
+//  IFM.ReceiveData(destPee);
+//  this->GetDestPosition(S, destPee, destPee_1);
+
+  static const double omega = 0.1;
+  static const double a = 10.0;
+  static const double aa = 20.0*PI/180.0;
+  static long long time = 0;
+
+  if( S.State == S_CTRL_RUN ){
+    time++;
+//    destPee.x = a*sin(2.0*PI*omega*(double)time/1000.0);
+//    destPee.y = a*sin(2.0*PI*omega*(double)time/1000.0);
+//    destPee.z = a*cos(2.0*PI*omega*2.0*(double)time/1000.0) + destPee_0.z - a;
+
+    destAngle[0] = aa*sin(2.0*PI*omega*(double)time/1000.0);
+    destAngle[1] = aa*sin(2.0*PI*omega*(double)time/1000.0);
+    destAngle[2] = 0.0;
+
+    if( time%1000 == 0 ){
+      cout<<"<jawa>: "<<"t:"<<time/1000<<" "<<destAngle[0]*180/PI<<" "<<curPee.x<<endl;
+        //<<" "<<destPee.x<<" Py:"<<destPee.y<<" Pz:"<<destPee.z<<endl;
+    }
+  }
+//  FrmI->InvKinematics(destPee, JointNum, destAngle);
+
+  for(int j=0; j<JointNum; j++){
+    curAngle[j]= Dr->GetAngle(j);
+    Jt[j]->CtrlAngle(destAngle[j]);
+  }
+
+  FrmF->Kinematics(JointNum, destAngle, curPee);
+
+  IFM.SendDataTf(curPee);
+  IFM.SendData(destPee);
+  IFM.SendcurData(curPee);
+  IFM.SendDestAngle(destAngle);
+  IFM.SendCurAngle(curAngle);
+  IFM.SendTime();
+
+  Dr->WriteTorque();
 }
 
+//-----------------------------------------------------------------------------
+//
 void
-ROBOT::timeOutErr(unsigned long long t){
-  cout<<"ERR_TIME_OUT:"<<t<<endl;
-}
+Robot::RobotMain(void* ptr){
+  Robot* Rt = (Robot*)ptr;
+  Rt->Dr->TorqueZero();
+  double dt = 0;
+  double tt = 0;
 
-void
-ROBOT::robotMain(){
-  driver.stop();
-  init();
+  WDOG_ID TimeLimit = wdCreate();
+
   do{
-    //for real time
-    semTake(timingSem, WAIT_FOREVER);
-    wdStart(timeLimit, sysClkRateGet()/1000, (FUNCPTR)timeOutErr, time);
-    //read
-    stateTransition();
-    
-    if( flag.state == S_EMERGENCY_0 || flag.state == S_CTRL_STOP || flag.state == S_CTRL_RUN ){
-      armCtrl( flag.state, flag.state_1 );
+    semTake(Rt->timingSem, WAIT_FOREVER);
+    wdStart(TimeLimit, 1, (FUNCPTR)TimeErr, 0 );
+    tt = Rt->TimeGet();
+
+    Rt->IFM.ReceiveData();
+
+    Rt->StateTransition(Rt->SInfo);
+
+    if(Rt->SInfo.State == S_INIT){
+      Rt->Init(Rt->SInfo);
     }
-    else if( flag.state == S_CTRL_READY ){        
-      if(time%1000 == 0)
-        cout<<"t= "<<time/1000<<endl;
+    else if( Rt->SInfo.State == S_CTRL_STOP || Rt->SInfo.State == S_CTRL_RUN){
+      Rt->Control(Rt->SInfo);
     }
-    
-    if(time == 0xFFFFFFFF)
-      time = 0;
-    else
-      time++;
-    wdCancel(timeLimit);
-  }while(flag.state != S_PRGM_EXIT);
-  driver.stop();
+
+    Rt->IFM.SendTime_T( dt*1000000000.0 );
+
+    Rt->IFM.SendData();
+
+    Rt->CountUpTime();
+
+    dt = Rt->TimeGet() - tt;
+
+    wdCancel(TimeLimit);
+  }while(Rt->SInfo.State != S_PRGM_EXIT);
+
+  wdDelete(TimeLimit);
+  Rt->Exit();
+
 }
+
+void
+Robot::TimeErr(unsigned long long T){
+  cout<<"Time out:"<<T<<endl;
+}
+
+
+
