@@ -1,0 +1,21 @@
+ *** Method
+
+These results were obtained by running lsSeg method with the default
+parameters. Two-step segmentation -- feature map generation followed by
+geodesic level set segmentation.
+
+ *** Parameters
+
+Only initial seed was specified.
+
+ITK did not preserve the origin and spacing in the images, so they cannot be
+overlapped with the input data in Slicer.
+
+ *** Execution time
+
+Depends on the front propagation extent. Case 08 is the slowest and worst
+because of non-round shape of the tumor.
+
+ *** Platform
+
+Same as method 1
