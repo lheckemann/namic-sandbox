@@ -46,6 +46,7 @@
 #include "vtkKWCanvas.h"
 #include "vtkKWRange.h"
 #include "vtkKWCheckButtonWithLabel.h"
+#include "vtkKWRadioButtonSetWithLabel.h"
 
 #include "vtkKWProgressDialog.h"
 
@@ -83,7 +84,7 @@ vtkFourDImageGUI::vtkFourDImageGUI ( )
   this->AutoPlayBG              = 0;
   this->AutoPlayInterval        = 10;
   this->AutoPlayIntervalCounter = 0;
-  
+
   //----------------------------------------------------------------
   // GUI widgets
   this->ProgressDialog = NULL;
@@ -104,13 +105,14 @@ vtkFourDImageGUI::vtkFourDImageGUI ( )
   this->AutoPlayIntervalEntry         = NULL;
 
   // Frame editor
-  this->FrameList            = NULL;
-  this->RemoveFrameButton    = NULL;
-  this->FrameMoveUpButton    = NULL;
-  this->FrameMoveDownButton  = NULL;
-  this->AddFrameNodeSelector = NULL;
-  this->AddFrameNodeButton   = NULL;
-
+  this->FrameList                = NULL;
+  this->RemoveFrameButton        = NULL;
+  this->FrameMoveUpButton        = NULL;
+  this->FrameMoveDownButton      = NULL;
+  this->AddFrameNodeSelector     = NULL;
+  this->AddFrameNodeButton       = NULL;
+  this->TimeStampMethodButtonSet = NULL;
+  this->TimeStepEntry            = NULL;
 
   //----------------------------------------------------------------
   // Time
@@ -241,13 +243,22 @@ vtkFourDImageGUI::~vtkFourDImageGUI ( )
     this->AddFrameNodeButton->SetParent(NULL);
     this->AddFrameNodeButton->Delete();
     }
+  if (this->TimeStampMethodButtonSet)
+    {
+    this->TimeStampMethodButtonSet->SetParent(NULL);
+    this->TimeStampMethodButtonSet->Delete();
+    }
+  if (this->TimeStepEntry)
+    {
+    this->TimeStepEntry->SetParent(NULL);
+    this->TimeStepEntry->Delete();
+    }
 
   // Icons
   if (this->Icons)
     {
     this->Icons->Delete();
     }
-
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -383,6 +394,18 @@ void vtkFourDImageGUI::RemoveGUIObservers ( )
     this->AddFrameNodeButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  if (TimeStampMethodButtonSet)
+    {
+    TimeStampMethodButtonSet->GetWidget()->GetWidget(0)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    TimeStampMethodButtonSet->GetWidget()->GetWidget(1)
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->TimeStepEntry)
+    {
+    this->TimeStepEntry
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   this->RemoveLogicObservers();
 
@@ -490,6 +513,18 @@ void vtkFourDImageGUI::AddGUIObservers ( )
     this->AddFrameNodeButton
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->TimeStampMethodButtonSet)
+    {
+    this->TimeStampMethodButtonSet->GetWidget()->GetWidget(0)
+      ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    this->TimeStampMethodButtonSet->GetWidget()->GetWidget(1)
+      ->AddObserver(vtkKWRadioButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->TimeStepEntry)
+    {
+    this->TimeStepEntry
+      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
 
   this->AddLogicObservers();
 
@@ -552,7 +587,7 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
     this->GetLogic()->RemoveObservers(vtkFourDImageLogic::ProgressDialogEvent,
                                       this->LogicCallbackCommand);
 
-    UpdateSeriesSelectorMenus();
+    //UpdateSeriesSelectorMenus();
 
     vtkMRML4DBundleNode *bundleNode = 
       vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
@@ -692,6 +727,7 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
       bundleNode->RemoveFrame(selected);
       bundleNode->InsertFrame(selected-1, node->GetID());
       }
+    UpdateTimeStamp(bundleNode->GetID());
     UpdateFrameList(bundleNode->GetID(), selected-1);
     }
   if (this->FrameMoveDownButton == vtkKWPushButton::SafeDownCast(caller)
@@ -708,6 +744,7 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
       bundleNode->RemoveFrame(selected);
       bundleNode->InsertFrame(selected+1, node->GetID());
       }
+    UpdateTimeStamp(bundleNode->GetID());
     UpdateFrameList(bundleNode->GetID(), selected+1);
     }
   if (this->RemoveFrameButton == vtkKWPushButton::SafeDownCast(caller)
@@ -721,6 +758,7 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
       {
       bundleNode->RemoveFrame(selected);
       }
+    UpdateTimeStamp(bundleNode->GetID());
     UpdateFrameList(bundleNode->GetID(), selected-1);
     }
   if (this->AddFrameNodeSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
@@ -748,9 +786,53 @@ void vtkFourDImageGUI::ProcessGUIEvents(vtkObject *caller,
       {
       bundleNode->AddFrame(selectedVolumeNode->GetID());
       }
-
+    UpdateTimeStamp(bundleNode->GetID());
     UpdateFrameList(bundleNode->GetID());
+
     }
+
+  else if (this->TimeStampMethodButtonSet->GetWidget()->GetWidget(0)
+           == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->TimeStampMethodButtonSet->GetWidget()->GetWidget(0)->GetSelectedState() == 1)
+    {
+    this->TimeStepEntry->EnabledOn();
+    vtkMRML4DBundleNode *bundleNode = 
+      vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+    if (bundleNode)
+      {
+      UpdateTimeStamp(bundleNode->GetID());
+      UpdateFrameList(bundleNode->GetID());
+      }
+    }
+
+  else if (this->TimeStampMethodButtonSet->GetWidget()->GetWidget(1)
+           == vtkKWRadioButton::SafeDownCast(caller)
+           && event == vtkKWRadioButton::SelectedStateChangedEvent
+           && this->TimeStampMethodButtonSet->GetWidget()->GetWidget(1)->GetSelectedState() == 1)
+    {
+    this->TimeStepEntry->EnabledOff();
+    vtkMRML4DBundleNode *bundleNode = 
+      vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+    if (bundleNode)
+      {
+      UpdateTimeStamp(bundleNode->GetID());
+      UpdateFrameList(bundleNode->GetID());
+      }
+    }
+
+  if (this->TimeStepEntry == vtkKWEntry::SafeDownCast(caller)
+      && event ==  vtkKWEntry::EntryValueChangedEvent)
+    {
+    if (this->TimeStampMethodButtonSet->GetWidget()->GetWidget(0)->GetSelectedState() == 1)
+      {
+      vtkMRML4DBundleNode *bundleNode = 
+        vtkMRML4DBundleNode::SafeDownCast(this->Active4DBundleSelectorWidget->GetSelected());
+      UpdateTimeStamp(bundleNode->GetID());
+      UpdateFrameList(bundleNode->GetID());
+      }
+    }
+
 } 
 
 
@@ -814,7 +896,7 @@ void vtkFourDImageGUI::ProcessMRMLEvents ( vtkObject *caller,
 {
   if (event == vtkMRMLScene::NodeAddedEvent)
     {
-    UpdateSeriesSelectorMenus();
+    //UpdateSeriesSelectorMenus();
     }
   else if (event == vtkMRMLScene::SceneCloseEvent)
     {
@@ -1278,11 +1360,11 @@ void vtkFourDImageGUI::BuildGUIForFrameFrameEditor(int show)
   this->FrameList->GetWidget()->SetColumnWidth(2, 10);
   this->FrameList->GetWidget()->SetColumnAlignmentToLeft(1);
   this->FrameList->GetWidget()->ColumnEditableOff(0);
-  this->FrameList->GetWidget()->ColumnEditableOn(1);
   this->FrameList->GetWidget()->SetSelectionTypeToRow();
   this->FrameList->GetWidget()->SetSelectionModeToSingle();
   this->FrameList->GetWidget()->MovableRowsOff();
   this->FrameList->GetWidget()->MovableColumnsOff();
+  this->FrameList->GetWidget()->ColumnEditableOn(2);
 
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  this->FrameList->GetWidgetName() );
@@ -1344,8 +1426,63 @@ void vtkFourDImageGUI::BuildGUIForFrameFrameEditor(int show)
   this->Script("pack %s -side right -fill x -expand y -padx 2 -pady 2", 
                this->AddFrameNodeSelector->GetWidgetName());
 
+  vtkKWFrame *tsframe = vtkKWFrame::New();
+  tsframe->SetParent(listframe->GetFrame());
+  tsframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 tsframe->GetWidgetName() );
+
+  this->TimeStampMethodButtonSet = vtkKWRadioButtonSetWithLabel::New ( );
+  this->TimeStampMethodButtonSet->SetParent ( tsframe );
+  this->TimeStampMethodButtonSet->Create ( );
+  this->TimeStampMethodButtonSet->SetLabelText ("Time step:");
+  this->TimeStampMethodButtonSet->GetWidget()->PackHorizontallyOn ( );
+  
+  vtkKWRadioButton* bt0 = this->TimeStampMethodButtonSet->GetWidget()->AddWidget(0);
+  vtkKWRadioButton* bt1 = this->TimeStampMethodButtonSet->GetWidget()->AddWidget(1);
+
+  bt0->SetText("Uniform");
+  bt0->SelectedStateOn();
+  bt1->SetText("Non-uniform");
+
+  this->Script("pack %s -side left -fill x -expand y -padx 2 -pady 2", 
+               this->TimeStampMethodButtonSet->GetWidgetName());
+
+  vtkKWFrame *tseframe = vtkKWFrame::New();
+  tseframe->SetParent(listframe->GetFrame());
+  tseframe->Create();
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 tseframe->GetWidgetName() );
+
+  vtkKWLabel *tslabell = vtkKWLabel::New();
+  tslabell->SetParent(tseframe);
+  tslabell->Create();
+  tslabell->SetText("Step:");
+  
+  this->TimeStepEntry = vtkKWEntry::New();
+  this->TimeStepEntry->SetParent(tseframe);
+  this->TimeStepEntry->SetRestrictValueToInteger();
+  this->TimeStepEntry->Create();
+  this->TimeStepEntry->SetWidth(8);
+  this->TimeStepEntry->SetRestrictValueToInteger();
+  this->TimeStepEntry->SetValueAsInt(0);
+  
+  vtkKWLabel *tslabelr = vtkKWLabel::New();
+  tslabelr->SetParent(tseframe);
+  tslabelr->Create();
+  tslabelr->SetText("ms");
+
+  this->Script("pack %s %s %s -side right -anchor w -padx 2 -pady 2",
+               tslabelr->GetWidgetName(),
+               this->TimeStepEntry->GetWidgetName(),
+               tslabell->GetWidgetName());
+
   moveframe->Delete();
   addframe->Delete();
+  tsframe->Delete();
+  tseframe->Delete();
+  tslabell->Delete();
+  tslabelr->Delete();
 
 }
 
@@ -1539,25 +1676,25 @@ void vtkFourDImageGUI::SetWindowLevelForCurrentFrame()
 
 
 //----------------------------------------------------------------------------
-void vtkFourDImageGUI::UpdateSeriesSelectorMenus()
-{
-
-  // generate a list of 4D Bundles
-  std::vector<vtkMRMLNode*> nodes;
-  std::vector<std::string>  names;
-
-  this->GetApplicationLogic()->GetMRMLScene()->GetNodesByClass("vtkMRML4DBundleNode", nodes);
-
-  this->BundleNodeIDList.clear();
-  names.clear();
-  std::vector<vtkMRMLNode*>::iterator niter;
-  for (niter = nodes.begin(); niter != nodes.end(); niter ++)
-    {
-    this->BundleNodeIDList.push_back((*niter)->GetID());
-    names.push_back((*niter)->GetName());
-    }
-
-}
+//void vtkFourDImageGUI::UpdateSeriesSelectorMenus()
+//{
+//
+//  // generate a list of 4D Bundles
+//  std::vector<vtkMRMLNode*> nodes;
+//  std::vector<std::string>  names;
+//
+//  this->GetApplicationLogic()->GetMRMLScene()->GetNodesByClass("vtkMRML4DBundleNode", nodes);
+//
+//  this->BundleNodeIDList.clear();
+//  names.clear();
+//  std::vector<vtkMRMLNode*>::iterator niter;
+//  for (niter = nodes.begin(); niter != nodes.end(); niter ++)
+//    {
+//    this->BundleNodeIDList.push_back((*niter)->GetID());
+//    names.push_back((*niter)->GetName());
+//    }
+//
+//}
 
 
 //----------------------------------------------------------------------------
@@ -1638,6 +1775,9 @@ void vtkFourDImageGUI::UpdateFrameList(const char* bundleID, int selectColumn)
   this->FrameList->GetWidget()->ClearSelection();
   this->FrameList->GetWidget()->SelectRow(selected);
   
+  // Make sure that the 3rd column is editable
+  this->FrameList->GetWidget()->ColumnEditableOn(2);
+
   // Update frame control
   int n = bundleNode->GetNumberOfFrames();
   this->ForegroundVolumeSelectorScale->SetRange(0.0, (double) n-1);
@@ -1645,6 +1785,41 @@ void vtkFourDImageGUI::UpdateFrameList(const char* bundleID, int selectColumn)
 
 }
 
+//----------------------------------------------------------------------------
+void vtkFourDImageGUI::UpdateTimeStamp(const char* bundleID)
+{
+  // int step = 1000000000;  // ns
+  int step_s  = this->TimeStepEntry->GetValueAsInt() / 1000;    // ms -> s
+  int step_ns = (this->TimeStepEntry->GetValueAsInt() % 1000) * 1000000; // ms -> ns
+
+  // Get 4D bundle node
+  vtkMRML4DBundleNode* bundleNode 
+    = vtkMRML4DBundleNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(bundleID));
+  int numFrames = bundleNode->GetNumberOfFrames();
+
+  // Get the method
+  bool fUniform = this->TimeStampMethodButtonSet->GetWidget()->GetWidget(0)->GetSelectedState();
+
+  if (fUniform == 1)    // uniform time-stamp distribution
+    {
+    vtkMRML4DBundleNode::TimeStamp ts;
+    ts.second = 0;
+    ts.nanosecond = 0;
+
+    for (int i = 0; i < numFrames; i ++)
+      {
+      bundleNode->SetTimeStamp(i, &ts);
+
+      ts.nanosecond += step_ns;
+      ts.second     += step_s + ts.nanosecond / 1000000000;
+      ts.nanosecond %= 1000000000;
+      
+      }
+    }
+  else    // non-uniform time-stamp distribution (under development)
+    {
+    }
+}
 
 //----------------------------------------------------------------------------
 const char* vtkFourDImageGUI::GetActive4DBundleNodeID()
