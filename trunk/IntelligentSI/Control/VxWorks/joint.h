@@ -1,72 +1,86 @@
-/***************************************************************************
- * FileName      : joint.h
- * Created       : 2007/08/23
- * LastModified  : 2007/08/27
+/*****************************************************************************
+ * FileName      : Joint.h
+ * Created       : 2008/11/2
+ * LastModified  : 2008/11/
  * Author        : Hiroaki KOZUKA
  * Aim           : Joint class for a motor control
- ***************************************************************************/
+ ****************************************************************************/
 #ifndef JOINT__H
 #define JOINT__H
 
-#include <vxWorks.h>
-#include <taskLib.h>
-#include <kernelLib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <semLib.h>
-#include <sysLib.h>
-#include <usrLib.h>
-#include <msgQLib.h>
-#include <logLib.h>
-#include <intLib.h>
-#include <ioLib.h>
-#include <pipeDrv.h>
-#include <vxLib.h>
 #include <iomanip>
 #include <math.h>
-#include <memLib.h>
-#include <string.h>
 #include <iostream.h>
-#include <strstream.h>
-#include <fstream.h>
-#include "drv/pci/pciConfigLib.h"
-#include "mcpx800.h"
-#include "/usr/local/tornado.ppc/target/config/mcp820/config.h"
 
-#include "driver.h"
-#include "common.h"
+#include "Common.h"
+#include "JointBase.h"
 
+//namespace occs{
 
-class JOINT{
- private:
-  static const int jNum = 3;
-  PID_DATA PID;
-  static const PID_DEFAULT_DATA PID_D[jNum] = {
-    {0.4, 20, 0.002},
-    {0.4, 20, 0.002},
-    {0.4, 20, 0.002},
-/*      //for tool
-    {0.13, 15, 0.0012},
-    {0.13, 15, 0.0012},
-    {0.01, 4, 0},//{0.25, 4, 0.0015},
-*/
-  };
-  JOINT_DATA jData;
-  int  jID;
+/// driver class
+class Driver;
+class InterfaceManager;
+
+/// joint(position) control using PID
+class Joint : public JointBase {
+private:
+  /// Driver class pointer
+  Driver* drv;
+
+  /// Joint ID
+  int jID;
+
+  /// Gear radio
+  double SpeedRadio;
+
+  /// Current angle
   double curAngle;
-  double speed;
-  double PIDCalculate(double destValue, double curValue);
-  void jointDataCalculate();
- public:
-  DRIVER& deviceDriver;
-  ~JOINT();
-  JOINT(DRIVER& driver,int jid);
-  void angleSet(double angle);
-  void speedSet(double speed);
-  void jointDataShow(JOINT_DATA* jData);
-  JOINT_DATA angleControl(double destAngle);
-  double ctrlForce();
+
+  /// Joint torque
+  double Torque;
+
+  /// PID parameter
+  double Kp, Ti, Td, Ts;
+
+  /// PID value
+  double e, dy, y_, e_, yd, yd_, ie;
+
+  /// PD controller
+  /// \param dest Destination data
+  /// \param cur Current data (Feedback value)
+  /// \return Output data
+  double PDController(double dest, double cur);
+
+  double LowPassF_FOL(double data);
+public:
+  /// A constructor
+  /// \param d Driver class pointer
+  /// \param id Joint ID
+  Joint(Driver* d,  int id);
+
+  /// A destructor
+  ~Joint();
+
+  /// Set control parameter
+  /// \param kp
+  /// \param ti if ti=0 -> not use
+  /// \param td
+  void SetCtrlParam(double kp, double ti, double td);
+
+  ///
+  void SetConst(double);
+
+  /// Set a joint angle
+  /// \param angle A joint angle
+  void SetAngle(double angle);
+
+  /// Control angle
+  /// \param destAngle Destination a joint angle
+  /// \return Current a joint angle
+  double CtrlAngle(double destAngle);
 };
 
-#endif JOINT__H
+//} // End of namespace occs
+
+#endif // JOINT__H
 

@@ -10,90 +10,153 @@
 #ifndef ROBOT__H
 #define ROBOT__H
 
-#include <vxWorks.h>
-#include <iostream.h>
-#include <strstream.h>
-#include <fstream.h>
-#include <iomanip.h>
-#include <taskLib.h>
-#include <kernelLib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <semLib.h>
-#include <sysLib.h>
-#include <usrLib.h>
-#include <msgQLib.h>
-#include <logLib.h>
-#include <intLib.h>
-#include "ioLib.h"
-#include "pipeDrv.h"
-#include <vxLib.h>
-#include <math.h>
-#include <memLib.h>
-#include <string.h>
-#include <wdLib.h>
-#include <tickLib.h>
+#include "Common.h"
+#include "Driver.h"
+#include "InterfaceManager.h"
+#include "JointBase.h"
+#include "FrameBase.h"
+#include "occo.h"
 
-#include "drv/pci/pciConfigLib.h"
-#include "mcpx800.h"
-#include "/usr/local/tornado.ppc/target/config/mcp820/config.h"
+/// Robot control main class
+class Robot : public occo{
+private:
+  /// Joint base class pointer
+  JointBase** Jt;
 
-#include "common.h"
-#include "IFmanager.h"
-#include "driver.h"
-#include "joint.h"
-#include "save.h"
-#include "frame.h"
+  /// Frame base class pointer
+  FrameBase* FrmI;
 
+  /// Frame base class pointer
+  FrameBase* FrmF;
 
-class ROBOT{
- private:
-    static STATE_MACHINE flag;
-    static const int jNum = 3;
+  /// Driver class
+  Driver* Dr;
 
-  WDOG_ID timeLimit;
+  /// Interface manager class pointer
+  InterfaceManager IFM;
+
+#ifdef OS__VXWORKS
+  /// Semaphore
   SEM_ID timingSem;
-  unsigned long long time;
-  double destAngle[3];
-  double curAngle[3]; 
-  double dx, dy, dz;
-  int stateSWFlag;
-    
-    //inner class
-  DRIVER driver;
-  IF_MANAGER IF_manager;
-  SAVE* save;
-  JOINT* joint[jNum];
-  FRAME* TF;
-    
-    //inner struct    
-  JOINT_DATA curJoint[jNum];
-  EE_POSITION destPee;
-  EE_POSITION destPee_1;
-  EE_POSITION curPee;
-  EE_POSITION errPee;
-  ARM_DATA curArm1;
 
-    //
-  static void timing(void* sem);
-  
-  void stateTransition();
-    void originSet();
-  void destDataGet(int state, int state_1 , unsigned long ctrlTime);
-    void jointControl(double* jAngle, double* curjAngle, JOINT_DATA* jData);
-    void invKinematicCalculate(EE_POSITION* destPee, double* jAngle);
-    void kinematicCalculate(double* angle, EE_POSITION* Pee);
-    void armDataCalculate(EE_POSITION* Pee, ARM_DATA* armData);
-    void degCompute(double* angle, double endtime, double Ts, double A, int mode);
-    void dataDisp(int Ts);
-    void bilateralErrCaluculate(EE_POSITION* dest, EE_POSITION* cur, EE_POSITION*  err);
-  void armCtrl(int state, int state_1);
-  static void timeOutErr(unsigned long long);
-  void init();
-  void robotMain();
- public:
-    ROBOT();
-    ~ROBOT();
+  /// Task create timing for real time handle
+  /// \param sem SEM_ID(Semaphore ID)
+  static void Timing (void* sem);
+
+  static void TimeErr(unsigned long long T);
+#else
+  /// Semaphore
+  SEM_ID timingSem;
+
+  /// Task create timing for real time handle
+  /// \param sem SEM_ID(Semaphore ID)
+  static void Timing (void* sem);
+#endif
+
+  /// Number of joint
+  int JointNum;
+
+  /// Destination end effector position
+  Coord_6DoF destPee;
+
+  /// Destination end effecotr position
+  Coord_6DoF destPee_1;
+
+  /// Origin end effector position
+  Coord_6DoF destPee_0;
+
+  /// Destination joint angles
+  double* destAngle;
+
+  /// Current joint angles
+  double* curAngle;
+
+  /// Origin joint angles
+  double* Angle_0;
+
+  /// Struct for state information
+  struct StateInfo{
+    EVENT Event;   ///< Event
+    STATE State;   ///< State
+    STATE State_1; ///< State
+  };
+
+  /// Struct for state information
+  StateInfo SInfo;
+
+  /// state transition
+  /// \param S State information
+  void StateTransition(StateInfo& S);
+
+  /// Get destination end effector position
+  /// \param T Time [ms]
+  /// \param S State information
+  /// \param destPee destination end efector position
+  /// \param destPee_1 destination end efector position
+  void GetDestPosition(StateInfo& S, Coord_6DoF& Pee, Coord_6DoF& Pee_1);
+
+  /// initialize
+  /// \param T Time [ms]
+  /// \param S State information
+  void Init( StateInfo& S);
+
+  /// Exit
+  void Exit();
+
+  /// Robot robot control
+  /// \param T Time [ms]
+  /// \param S State information
+  void Control(StateInfo& S);
+
+public:
+  /// A constructor
+  /// \param Number of joint
+  Robot(int jNum);
+
+  /// A destructor
+  ~Robot();
+
+  /// Set Joint
+  /// \param jID Joint ID
+  /// \param ptr Joint class pointer
+  void SetJoint(int jID, JointBase* ptr);
+
+  /// Set Frame
+  /// \param ptr Frame class pointer
+  void SetFrameInv(FrameBase* ptr);
+
+  /// Set Frame
+  /// \param ptr Frame class pointer
+  void SetFrameFor(FrameBase* ptr);
+
+  /// Get driver class pointer
+  /// \return Driver class pointer
+  Driver* DrPtr();
+
+  /// Get interface manager classs pointer
+  /// \return Interface manager classs pointer
+  InterfaceManager* IFMPtr();
+
+  /// Robot main function
+  static void RobotMain( void* ptr );
+
+  /// Set origin angle
+  /// \param jID Joint ID
+  /// \param angle Joint angle
+  void SetAngOrigin(int jID, double angle);
+
+  /// Set origin end effector position
+  /// \param x Coordinate x
+  /// \param y Coordinate y
+  /// \param z Coordinate z
+  /// \param alpha Lotation alpha
+  /// \param beta Lotation beta
+  /// \param gamma Lotation gamma
+  void SetPosOrigin(double x,double y, double z,
+                    double alpha,double beta,double gamma );
+
+
+  double TimeGet();
 };
 
-#endif ROBOT__H
+#endif // ROBOT__H

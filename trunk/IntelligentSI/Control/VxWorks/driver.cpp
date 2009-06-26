@@ -1,143 +1,133 @@
-/***************************************************************************
- * FileName      : driver.cpp
- * Created       : 2007/08/27
- * LastModified  : 2007/10/
- * Author        : hiroaki KOZUKA
- * Aim           : driver class for a bode control
- * OS            : VxWorks 5.5.1
- ***************************************************************************/
-#include "driver.h"
 
-#if defined VX__DRIVER
-//driver
-//ACP420* ACP420::m_Instance = NULL;
-//ACP550* ACP550::m_Instance = NULL;
-//ACP560* ACP560::m_Instance = NULL;
-#endif
+#include "Driver.h"
+#include "Device.h"
+#include "InterfaceManager.h"
 
-const HARDWARE_DATA_ DRIVER::HW[jNum];
+using namespace std;
 
-DRIVER::DRIVER(){
-    //logMsg("Initialaze Driver Class...\n",0,0,0,0,0,0);
-    cout<<"Initialaze Driver Class..."<<endl;
-   
-#if defined VX__DRIVER
-  // initialize Counter(ACP420), A/D(ACp550), D/A(ACp560)
-    CNT_D = ACP420::getInstance();
-    AD_D = ACP550::getInstance();
-    DA_D = ACP560::getInstance();
-#elif defined ART__DRIVER
-  
-#endif
+//-----------------------------------------------------------------------------
+//
+Driver::Driver(int jNum){
+  cout<<"Init Driver..."<<flush;
+
+  JointNum = jNum;
+  for(int type=0; type<DVC_TYPE_NUM; type++){
+    J2D[type] = new int[JointNum];
+    J2DT[type] = new int[JointNum];
+    memset(&J2D[type][0], 0, sizeof(int)*JointNum);
+    memset(&J2DT[type][0], 0, sizeof(int)*JointNum);
+    Dvc[type] = NULL;
+  }
+
+  cout<<"done."<<endl;
 }
 
-DRIVER::~DRIVER(){
-#if defined VX__DRIVER
-    //delete board driver
-  ACP420::m_Instance = NULL;
-  ACP550::m_Instance = NULL;
-  ACP560::m_Instance = NULL;
-    delete CNT_D;
-    delete AD_D;
-    delete DA_D;
-#elif defined ART__DRIVER
-  
-#endif
-    //logMsg("End Driver class.\n",0,0,0,0,0,0);
-    cout<<"End Driver class."<<endl;
+//-----------------------------------------------------------------------------
+//
+Driver::~Driver(){
+  for(int type=0; type<DVC_TYPE_NUM; type++){
+    delete [] J2D[type];
+    delete [] J2DT[type];
+
+    if( Dvc[type] != NULL )
+      delete [] Dvc[type];
+  }
+
 }
 
+//-----------------------------------------------------------------------------
+//
+void
+Driver::SetDID(int jid, DeviceType type, int dvcTag, int did){
+  J2D[type][jid] = did;
+  J2DT[type][jid] = dvcTag;
+}
+
+//-----------------------------------------------------------------------------
+//
+int
+Driver::DID(DeviceType type, int jid){
+  return J2D[type][jid];
+}
+
+//-----------------------------------------------------------------------------
+//
+int
+Driver::DTg(DeviceType type, int jid){
+  return J2DT[type][jid];
+}
+
+
+//-----------------------------------------------------------------------------
+//
+void
+Driver::SetDeviceNum(DeviceType type, int num){
+  Dvc[type] = new DeviceBase*[num];
+  DvcNum[type] = num;
+}
+
+//-----------------------------------------------------------------------------
+//
+void
+Driver::SetDevice(DeviceType type, int id, DeviceBase* ptr){
+  Dvc[type][id] = ptr;
+}
+
+//-----------------------------------------------------------------------------
+//
+void
+Driver::WriteTorque(){
+  for(int id=0; id<DvcNum[ACTUATOR]; id++)
+    Dvc[ACTUATOR][id]->Write();
+}
+
+//-----------------------------------------------------------------------------
+//
+void
+Driver::ReadAngle(){
+  for(int id=0; id<DvcNum[ANGLE_SENSOR]; id++)
+    Dvc[ANGLE_SENSOR][id]->Read();
+}
+
+//-----------------------------------------------------------------------------
+//
+void
+Driver::WriteAngle(){
+  for(int id=0; id<DvcNum[ANGLE_SENSOR]; id++)
+    Dvc[ANGLE_SENSOR][id]->Write();
+}
+
+//-----------------------------------------------------------------------------
+//
+void
+Driver::SetAngle(int jid, double angle){
+  Dvc[ANGLE_SENSOR][ J2DT[ANGLE_SENSOR][jid] ]->Set( J2D[ANGLE_SENSOR][jid],
+                                                     angle );
+}
+
+//-----------------------------------------------------------------------------
+//
+void
+Driver::SetTorque(int jid, double torque){
+  Dvc[ACTUATOR][ J2DT[ACTUATOR][jid] ]->Set( J2D[ACTUATOR][jid], torque );
+}
+
+//-----------------------------------------------------------------------------
+//
 double
-DRIVER::directionDataShow(int jid){
-     return ( HW[jid].direction );
+Driver::GetAngle(int jid){
+  return Dvc[ANGLE_SENSOR][ J2DT[ANGLE_SENSOR][jid] ] ->
+         Get( J2D[ANGLE_SENSOR][jid] );
 }
 
-double
-DRIVER::angleGet(int jid){
-    return(rAngle[jid]);
-}
-
+//-----------------------------------------------------------------------------
+//
 void
-DRIVER::angleSet(int jid, double setAngle){
-   wAngle[jid] = setAngle;
-}
-
-void
-DRIVER::angleReadWrite(int R_W){
-    long EncData[jNum];
-    if(R_W == 0){
-        for(int jID=0; jID<jNum; jID++){
-            EncData[jID] = (long)(wAngle[jID] * (HW[jID].pulseNum*4) / HW[jID].revl_linear);
-        }
-#if defined VX__DRIVER
-        CNT_D->Write(0, EncData, sizeof(long)*4 );
-#elif defined ART__DRIVER
-    
-#endif
-    }
-    else if(R_W == 1){
-#if defined VX__DRIVER
-        CNT_D->Read(0, EncData, sizeof(long)*4 );
-#elif defined ART__DRIVER
-    
-#endif
-        for(int jID=0; jID < jNum; jID++){
-            rAngle[jID] = HW[jID]. revl_linear*(double)EncData[jID]/(HW[jID].pulseNum*4);
-        }
-    }
-}
-
-void
-DRIVER::speedSet(int jid, double speedData){
-    wVolt[jid] = converSpeed2Volt( jid, speedData);
-}
-
-void
-DRIVER::speedWrite(){
-#if defined VX__DRIVER
-    DA_D->Output(0, wVolt[0], wVolt[1],  wVolt[2], 0);
-  //DA_D->Output(0, 0, 0, 0, 0);
-#elif defined ART__DRIVER
-  
-#endif
-}
-
-double
-DRIVER::converSpeed2Volt(int jid, double speed){
-    //Conversion from speed to volt
-    double volt = HW[jid].speedtoVolt*speed;
-    
-    //Regulation volt
-    if( volt > HW[jid].maxVolt )
-  volt = HW[jid].maxVolt;
-    else if( volt < HW[jid].minVolt )
-  volt = HW[jid].minVolt;
-    else if((volt < HW[jid].maxVolt*0.01 ) && (volt > HW[jid].minVolt * 0.01) )
-  volt = HW[jid].Vo;
-    
-    return(volt);
-}
-
-void
-DRIVER::angleZeroSet(){
-    long EncData[jNum];
-    for(int jID=0; jID<jNum; jID++){
-  EncData[jID] = 0;
-    }
-#if defined VX__DRIVER
-    CNT_D->Write(0, EncData , sizeof(long)*4);
-#elif defined ART__DRIVER
-  
-#endif
-}
-
-void
-DRIVER::stop(){
-#if defined VX__DRIVER
-    DA_D->Output(0,0,0,0,0);
-#elif defined ART__DRIVER
-  
-#endif
+Driver::TorqueZero(){
+  for(int jid=0; jid<JointNum; jid++){
+    this->SetTorque( jid, 0);
+  }
+  this->WriteTorque();
 }
 
 

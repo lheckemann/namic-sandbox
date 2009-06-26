@@ -1,88 +1,111 @@
-/***************************************************************************
- * FileName      : driver.h
- * Created       : 2007/08/23
- * LastModified  : 2007/10/
- * Author        : Hiroaki KOZUKA
- * Aim           : driver class for a motor control
- ***************************************************************************/
 
 #ifndef DRIVER__H
 #define DRIVER__H
 
-#include <vxWorks.h>
-#include <taskLib.h>
-#include <kernelLib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <semLib.h>
-#include <sysLib.h>
-#include <usrLib.h>
-#include <msgQLib.h>
-#include <logLib.h>
-#include <intLib.h>
-#include "ioLib.h"
-#include "pipeDrv.h"
-#include <vxLib.h>
-#include <iomanip>
-#include <math.h>
-#include <memLib.h>
-#include <string.h>
-#include <iostream.h>
-#include <strstream.h>
-#include <fstream.h>
-#include "drv/pci/pciConfigLib.h"
-#include "mcpx800.h"
-#include "/usr/local/tornado.ppc/target/config/mcp820/config.h"
+#include <iostream>
 
-#define VX__DRIVER
-//#define ART__DRIVER
+#include "Common.h"
+#include "occo.h"
 
-#if defined VX__DRIVER
-#include "acp420.h"
-#include "acp550.h"
-#include "acp560.h"
-#elif defined ART__DRIVER
-    
-#endif
+class DeviceBase;
+class InterfaceManager;
 
-#include "common.h"
+/// This class manageme device and board driver transaction.
+class Driver : public occo {
+private:
+  /// Number of joint
+  int JointNum;
+  Driver* DRV;
+  InterfaceManager* IFM;
 
-class DRIVER{
- private:
-#if defined VX__DRIVER
-  ACP420 *CNT_D;
-  ACP550 *AD_D;
-  ACP560 *DA_D;
-#elif defined ART__DRIVER
-  
-#endif
-  static const int jNum = 3;
-  static const HARDWARE_DATA_ HW[jNum] ={
-    {10, -10, 0, 1, revl, minus, 67548},
-    {10, -10, 0, 1, revl, minus, 67548},
-    {10, -10, 0, 1, revl, plus, 23552},
+public:
+  /// Device type
+  enum DeviceType{
+    ANGLE_SENSOR=0, ///< Encoder, potentiometer, and so on
+    ACTUATOR,       ///< Motor
+    SWITCH,         ///< Switch
+    DVC_TYPE_NUM    ///< Number of device type
   };
-  
-  double rAngle[jNum]; //! Output Enc data
-  double wAngle[jNum]; //! Input Enc data
-  double rForce[jNum]; //! A/D volt data
-  double wVolt[jNum];  //! D/A volt data
- public:
-  DRIVER();
-  ~DRIVER();
-  void angleReadWrite(int R_W);
-  void speedWrite();
-  void stop();
-  void angleZeroSet();
-  double converSpeed2Volt(int jid, double volt);
-  double angleGet(int jid);
-  //double getForce(int jid);
-  void speedSet(int jid ,double speedData );
-  void angleSet(int jid, double setAngle);
-  double directionDataShow(int jid);
+
+private:
+  /// Number of each device
+  int DvcNum[DVC_TYPE_NUM];
+
+  /// Transfer Joint ID to device ID
+  int* J2D[DVC_TYPE_NUM];
+
+  /// Transfer Joint ID to device tag
+  int* J2DT[DVC_TYPE_NUM];
+
+  /// Device pointer
+  DeviceBase** Dvc[DVC_TYPE_NUM];
+
+public:
+  /// A constructor
+  /// \param jNum Number of Joint
+  Driver(int jNum);
+
+  /// A destructor
+  ~Driver();
+
+  /// Set Device ID
+  /// \param jid Joint ID
+  /// \param type Decivetype
+  /// \param dvcTag Decive Tag
+  /// \param did Device ID
+  void SetDID(int jid, DeviceType type, int dvcTag, int did);
+
+  /// Get Device ID
+  /// \param type Decivetype
+  /// \param jid Joint ID
+  /// \return Device ID
+  int DID(DeviceType type, int jid);
+
+  /// Get Device Tag
+  /// \param type Decivetype
+  /// \param jid Joint ID
+  /// \return Device ID
+  int DTg(DeviceType type, int jid);
+  /// Write joint torque to board.
+  void WriteTorque();
+
+  /// Read joint angle from board
+  void ReadAngle();
+
+  /// Write joint angle to board
+  void WriteAngle();
+
+  /// Set each joint anlge
+  /// \param jid Joint ID
+  /// \param angle Joint angle
+  void SetAngle(int jid, double angle);
+
+  /// Get each joint angle
+  /// \param jid Joint ID
+  /// \return Joint angle
+  double GetAngle(int jid);
+
+  /// Set each joint torque
+  /// \param jid Joint ID
+  /// \param torque Joint Toruqe
+  void SetTorque(int jid, double torque);
+
+  /// Set number of device
+  /// \param type Device type
+  /// \param num Number of device
+  void SetDeviceNum(DeviceType type, int num);
+
+  /// Set device
+  /// \param type Device type
+  /// \param id Device ID
+  /// \param ptr Device class pointer
+  void SetDevice(DeviceType type, int id, DeviceBase* ptr);
+
+  /// Set toruqe zero
+  void TorqueZero();
+
 };
 
 
-
-#endif DRIVER__H
+#endif //DRIVER__H
 
