@@ -1285,7 +1285,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   typedef itk::Statistics::ScalarImageToListAdaptor< InputImageType >   AdaptorType;
   AdaptorType::Pointer adaptor = AdaptorType::New();
   adaptor->SetImage (image);
-  typedef InputImageType::PixelType  HistogramMeasurementType;
+  typedef typename InputImageType::PixelType  HistogramMeasurementType;
   typedef itk::Statistics::ListSampleToHistogramGenerator< 
                 AdaptorType, HistogramMeasurementType> GeneratorType;
   GeneratorType::Pointer generator = GeneratorType::New();
