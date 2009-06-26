@@ -1762,7 +1762,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
         size[2] = grid_z;
 
         //setup grid center
-        ImageType::IndexType grid_center;
+        typename InputImageType::IndexType grid_center;
         grid_center[0] = start_x + grid_x / 2;
         grid_center[1] = start_y + grid_y / 2;
         grid_center[2] = start_z + grid_z / 2;
@@ -1777,8 +1777,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
         image_grid[i]->Allocate();
 
         //copy image pixel values into image_grid[i].
-        typedef itk::ImageRegionConstIterator < ImageType > ConstIteratorType;
-        typedef itk::ImageRegionIterator < ImageType > IteratorType;
+        typedef itk::ImageRegionConstIterator < InputImageType > ConstIteratorType;
+        typedef itk::ImageRegionIterator < InputImageType > IteratorType;
         ConstIteratorType it (image, region);
         IteratorType itg (image_grid[i], image_grid[i]->GetRequestedRegion());
 
@@ -1794,7 +1794,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
           //int itgy = idxg[1];
           //int itgz = idxg[2];
 
-          ImageType::PixelType pixel = it.Get();
+          typename InputImageType::PixelType pixel = it.Get();
           itg.Set (pixel);
           if (pixel > max_pixel)
             max_pixel = pixel;
@@ -1825,8 +1825,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vcl_printf ("    compute_gain_from_grids(): \n");
 
   int i;
-  typedef itk::ImageRegionIterator < ImageType > IteratorType;
-  typedef itk::ImageRegionIteratorWithIndex < ImageType > IndexIteratorType;  
+  typedef itk::ImageRegionIterator < InputImageType > IteratorType;
+  typedef itk::ImageRegionIteratorWithIndex < InputImageType > IndexIteratorType;  
 
   //Compute the global mean pixel value.
   //Use only non-background pixels!!
@@ -1837,7 +1837,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     IndexIteratorType iit (gain_field_g_grid[i], gain_field_g_grid[i]->GetRequestedRegion());
     for (iit.GoToBegin(); !iit.IsAtEnd(); ++iit) {
       //Skip if this pixel is in background.
-      ImageType::IndexType idx = iit.GetIndex();
+      typename InputImageType::IndexType idx = iit.GetIndex();
       yit.SetIndex (idx);
       if (yit.Get() <= bg_thresh)
         continue;
@@ -1864,7 +1864,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
       iit.Set (pixel);
 
       //update gain_field_g[]
-      ImageType::IndexType idx = iit.GetIndex();
+      typename InputImageType::IndexType idx = iit.GetIndex();
       git.SetIndex (idx);
       double value = git.Get();      
       //Update global gain field 
@@ -1889,14 +1889,14 @@ void FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vcl_printf ("    update_gain_to_image():\n");
 
   //Both use gain_field's region.
-  typedef itk::ImageRegionConstIteratorWithIndex < ImageType > ConstIndexIteratorType;
-  typedef itk::ImageRegionIterator < ImageType > IteratorType;
+  typedef itk::ImageRegionConstIteratorWithIndex < InputImageType > ConstIndexIteratorType;
+  typedef itk::ImageRegionIterator < InputImageType > IteratorType;
   ConstIndexIteratorType itg (gain_field, gain_field->GetRequestedRegion());
   IteratorType it (image, gain_field->GetRequestedRegion());
 
   for (itg.GoToBegin(), it.GoToBegin(); !itg.IsAtEnd(); ++itg, ++it) {
-    ImageType::PixelType gain = itg.Get();
-    ImageType::PixelType pixel = it.Get();
+    typename InputImageType::PixelType gain = itg.Get();
+    typename InputImageType::PixelType pixel = it.Get();
 
     ///Debug
     ///ImageType::IndexType idxg = itg.GetIndex();
@@ -1950,14 +1950,14 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                       const float bg_thresh,
                       InputImagePointer& gain_field_g)
 {
-  typedef itk::ImageRegionConstIterator < ImageType > ConstIteratorType;
-  typedef itk::ImageRegionIterator < ImageType > IteratorType;
+  typedef itk::ImageRegionConstIterator < InputImageType > ConstIteratorType;
+  typedef itk::ImageRegionIterator < InputImageType > IteratorType;
   //both use gain_field's region.
   ConstIteratorType it (image, image->GetRequestedRegion());
   IteratorType itg (gain_field_g, image->GetRequestedRegion());
   
   for (it.GoToBegin(), itg.GoToBegin(); !it.IsAtEnd(); ++it, ++itg) {
-    ImageType::PixelType pixel = it.Get();    
+    typename InputImageType::PixelType pixel = it.Get();    
     if (pixel <= bg_thresh)
       itg.Set (0);
   }
