@@ -87,6 +87,7 @@ class VTK_FourDImage_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformN
   vtkMRMLNode* GetFrameNode(int i);
 
   int          GetTimeStamp(int i, TimeStamp* ts);
+  int          SetTimeStamp(int i, TimeStamp* ts);
   int          SetDisplayBufferNodeID(int bufferIndex, const char* nodeID);
   vtkMRMLNode* GetDisplayBufferNode(int bufferIndex);
   void         SwitchDisplayBuffer(int bufferIndex, int i);

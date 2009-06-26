@@ -43,6 +43,8 @@ class vtkKWRadioButtonSet;
 class vtkKWRadioButton;
 class vtkKWRange;
 class vtkKWCheckButtonWithLabel;
+class vtkKWRadioButtonSetWithLabel;
+class vtkKWEntry;
 
 class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
 {
@@ -138,14 +140,14 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   void SetForeground(const char* bundleID, int index);
   void SetBackground(const char* bundleID, int index);
   void SetWindowLevelForCurrentFrame();
-  void UpdateSeriesSelectorMenus();
+  //void UpdateSeriesSelectorMenus();
 
   //----------------------------------------------------------------
   // Editor
   //----------------------------------------------------------------
   
   void UpdateFrameList(const char* bundleID, int selectColumn=-1);
-
+  void UpdateTimeStamp(const char* bundleID);
 
   //----------------------------------------------------------------
   // Other utility functions
@@ -205,7 +207,8 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   vtkKWPushButton*                    RemoveFrameButton;
   vtkSlicerNodeSelectorWidget*        AddFrameNodeSelector;
   vtkKWPushButton*                    AddFrameNodeButton;
-
+  vtkKWRadioButtonSetWithLabel*       TimeStampMethodButtonSet;
+  vtkKWEntry*                         TimeStepEntry;
 
   //----------------------------------------------------------------
   // Logic Values

@@ -411,6 +411,22 @@ int vtkMRML4DBundleNode::GetTimeStamp(int i, TimeStamp* ts)
 
 
 //----------------------------------------------------------------------------
+int vtkMRML4DBundleNode::SetTimeStamp(int i, TimeStamp* ts)
+{
+  if (i < 0 || i >= this->FrameNodeIDList.size())
+    {
+    return 0;
+    }
+  
+  TimeStamp& times = this->TimeStampList[i];
+  times.second     = ts->second;
+  times.nanosecond = ts->nanosecond;
+
+  return 1;
+}
+
+
+//----------------------------------------------------------------------------
 int vtkMRML4DBundleNode::SetDisplayBufferNodeID(int bufferIndex, const char* nodeID)
 {
   this->DisplayBufferNodeIDList[bufferIndex] = nodeID;
