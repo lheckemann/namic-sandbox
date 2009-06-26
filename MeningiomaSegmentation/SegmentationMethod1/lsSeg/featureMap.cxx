@@ -3,7 +3,7 @@
 
 int main( int argc, char *argv[] )
 {
-  if( 5 != argc )
+  if( 3 != argc )
     {
       std::cerr << "Missing Parameters " << std::endl;
       std::cerr << "Usage: " << argv[0];

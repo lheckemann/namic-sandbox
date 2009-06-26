@@ -3,19 +3,15 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 6 )
+  int ctrX;
+  int ctrY;
+  int ctrZ;
+  if( argc == 6 )
     {
-      std::cerr << "Missing Parameters " << std::endl;
-      std::cerr << "Usage: " << argv[0];
-      std::cerr << " inputImage  outputImage";
-      std::cerr << " seedX seedY seedZ"<< std::endl;
-      return 1;
-    }
-
-
-  int ctrX = atoi(argv[3]);
-  int ctrY = atoi(argv[4]);
-  int ctrZ = atoi(argv[5]);
+      ctrX = atoi(argv[3]);
+      ctrY = atoi(argv[4]);
+      ctrZ = atoi(argv[5]);
+   }
 
   /* 
      10. read in the feature image: 0 contour slow region, 1, contour fast region
@@ -27,7 +23,14 @@ int main( int argc, char *argv[] )
   reader->Update();
 
   InternalImageType::Pointer inputImage = reader->GetOutput();
-
+  if(argc < 6)
+    {
+    InternalImageType::SizeType inputSize;
+    inputSize = inputImage->GetLargestPossibleRegion().GetSize();
+    ctrX = inputSize[0]/2;
+    ctrY = inputSize[1]/2;
+    ctrZ = inputSize[2]/2;
+    }
 
 
   /*
