@@ -970,7 +970,8 @@ void vtkTRProstateBiopsyCalibrationStep::Resegment()
 
   // gather information about thresholds
   double thresh[4];
-  for (int i=0 ; i<4; i++)
+  int i=0;
+  for (i=0 ; i<4; i++)
   {
     thresh[i] = this->FiducialThresholdScale[i]->GetValue();
   }
@@ -997,7 +998,7 @@ void vtkTRProstateBiopsyCalibrationStep::Resegment()
   wizard_widget->Update();
 
   vtkMRMLVolumeNode* volumeNode = mrmlNode->GetCalibrationVolumeNode();
-  int i=0;
+  i=0;
   for (std::vector<CalibPointRenderer>::iterator it=CalibPointPreProcRendererList.begin(); it!=CalibPointPreProcRendererList.end(); ++it)
   {
       it->Update(this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer(), volumeNode, this->GetGUI()->GetLogic()->GetCalibMarkerPreProcOutput(i));
@@ -1100,19 +1101,34 @@ void vtkTRProstateBiopsyCalibrationStep::UpdateAxesIn3DView()
 
   // first axes line  
   // start point is marker 1 centroid
-  double marker1RAS[3];
-  mrmlNode->GetCalibrationMarker(0, marker1RAS[0], marker1RAS[1], marker1RAS[2]);
+  //double marker1RAS[3];
+  //mrmlNode->GetCalibrationMarker(0, marker1RAS[0], marker1RAS[1], marker1RAS[2]);
 
   // end point is marker 2 centroid
-  double marker2RAS[3];
-  mrmlNode->GetCalibrationMarker(1, marker2RAS[0], marker2RAS[1], marker2RAS[2]);
+  //double marker2RAS[3];
+  //mrmlNode->GetCalibrationMarker(1, marker2RAS[0], marker2RAS[1], marker2RAS[2]);
+
+  const TRProstateBiopsyCalibrationData calibData=mrmlNode->GetCalibrationData();
 
   // form the axis 1 line
   // set up the line actors
   vtkSmartPointer<vtkLineSource> axis1Line = vtkSmartPointer<vtkLineSource>::New();  
   axis1Line->SetResolution(100); 
-  axis1Line->SetPoint1(marker1RAS);
-  axis1Line->SetPoint2(marker2RAS);
+
+  //axis1Line->SetPoint1(marker1RAS);
+  //axis1Line->SetPoint2(marker2RAS);
+  
+  double needle1[3];
+  double needle2[3];
+  for (int i=0; i<3; i++)
+  {
+    needle1[i]=calibData.I2[i]-100*calibData.v2[i];
+    needle2[i]=calibData.I2[i]+200*calibData.v2[i];
+  }
+
+  axis1Line->SetPoint1(needle1);
+  axis1Line->SetPoint2(needle2);
+
   axis1Line->Update();
       
   vtkSmartPointer<vtkPolyDataMapper> axis1Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();  
@@ -1123,6 +1139,7 @@ void vtkTRProstateBiopsyCalibrationStep::UpdateAxesIn3DView()
 
 
   // 2nd axis line
+  /*
   // start point as marker 4 coordinate
   double marker4RAS[3];
   mrmlNode->GetCalibrationMarker(3, marker4RAS[0], marker4RAS[1], marker4RAS[2]);
@@ -1143,13 +1160,25 @@ void vtkTRProstateBiopsyCalibrationStep::UpdateAxesIn3DView()
   axis2EndRAS[0] = marker3RAS[0] + overshoot*axis2Vector[0];
   axis2EndRAS[1] = marker3RAS[1] + overshoot*axis2Vector[1];
   axis2EndRAS[2] = marker3RAS[2] + overshoot*axis2Vector[2];
-  
+  */
   // form the axis 2 line
   // set up the line actors
   vtkSmartPointer<vtkLineSource> axis2Line = vtkSmartPointer<vtkLineSource>::New();  
   axis2Line->SetResolution(100); 
-  axis2Line->SetPoint1(axis2EndRAS);
-  axis2Line->SetPoint2(marker4RAS);
+  //axis2Line->SetPoint1(axis2EndRAS);
+  //axis2Line->SetPoint2(marker4RAS);
+
+  double robotaxis1[3];
+  double robotaxis2[3];
+  for (int i=0; i<3; i++)
+  {
+    robotaxis1[i]=calibData.I1[i]-100*calibData.v1[i];
+    robotaxis2[i]=calibData.I1[i]+200*calibData.v1[i];
+  }
+
+  axis2Line->SetPoint1(robotaxis1);
+  axis2Line->SetPoint2(robotaxis2);
+
   axis2Line->Update();
       
   vtkSmartPointer<vtkPolyDataMapper> axis2Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();  

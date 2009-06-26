@@ -91,7 +91,8 @@ protected:
     double thresh1, double thresh2, const double fidDims[3], double radius, double initialAngle, 
     double P1[3], double v1[3], double finalPos1[3], double finalPos2[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2);
   bool SegmentCircle(float originToBeChanged[3],const double normal[3],  double thresh, const double fidDims[3], double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, vtkImageData *preprocOutput=NULL);
-  bool CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double *gx, double *gy, double *gz, int nVotedNeeded, bool lDebug);
+  bool CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double &gx, double &gy, double &gz, int nVotedNeeded, bool lDebug);  
+  bool CalculateCircleCenterMean(vtkImageData *inData, double nRadius, double threshold, double &gx, double &gy, double &gz);  
   void RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3]);
   bool FindProbe(const double P1[3], const double P2[3], double v1[3], double v2[3], 
     double I1[3], double I2[3], double &axesAngleDegrees, double &axesDistance);
