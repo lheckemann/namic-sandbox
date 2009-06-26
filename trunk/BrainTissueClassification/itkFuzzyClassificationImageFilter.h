@@ -204,13 +204,6 @@ void centroid_quadratic_fit (const vcl_vector<typename InputImageType::IndexType
                              const vnl_matrix<double>& B, 
                              vcl_vector<float>& centroid_vn_grid);
 
-bool test_1st_convergence (const vnl_matrix<double>& B);
-
-bool test_2nd_convergence (const vnl_matrix<double>& B);
-  
-void BinaryClosingImage (InputImagePointer& image, const int radius);
-void BinaryOpenningImage (InputImagePointer& image, const int radius);
-
 void compute_histogram (InputImagePointer& image, 
                         vcl_vector<float>& histVector,
                         vcl_vector<float>& binMax,
@@ -219,26 +212,10 @@ void compute_histogram (InputImagePointer& image,
 
 void HistogramEqualization (InputImagePointer& image);
 
-void BinaryMedianFilter (InputImagePointer& image, const int radius);
-
-void SmoothImage (InputImagePointer& image, const float sigma);
-
-void gradient_anisotropic_smooth (InputImagePointer& image,
-                                  const int iter,
-                                  const float time_step,
-                                  const int conductance);
-
-//mask the input image by the mask image.
-void compute_mask_img (InputImagePointer& image, 
-                       InputImagePointer& img_mask, 
-                       InputImagePointer& result);
-
 bool detect_bnd_box (InputImagePointer& image, 
                      const float bg_thresh, 
                      int& xmin, int& ymin, int& zmin, 
                      int& xmax, int& ymax, int& zmax);
-
-float compute_max_pixel (InputImagePointer& image);
 
 void compute_grid_imgs (InputImagePointer& image, 
                         const int xmin, const int ymin, const int zmin, 
@@ -261,8 +238,6 @@ double compute_diff_norm (const vcl_vector<vcl_vector<float> >& centroid_v_grid,
 void mask_gain_field (InputImagePointer& image, 
                       const float bg_thresh,
                       InputImagePointer& gain_field_g);
-
-void flip_values (vcl_vector<float>& numbers);
 
 };
 

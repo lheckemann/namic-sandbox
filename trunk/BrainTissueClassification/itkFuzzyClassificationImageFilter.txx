@@ -1270,141 +1270,6 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   }
 }
 
-//: should use the max/mean pixel value or use Euclidean norm 
-//  before/after correction to test convergence!!
-//
-template <class TInputImage, class TOutputImage>
-bool
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::test_1st_convergence (const vnl_matrix<double>& B)
-{
-  vcl_printf ("test_1st_convergence():\n");
-  //double pixel = B(0,0) + B(1,0)*x_1 + B(2,0)*x_2 + B(3,0)*x_3;
-  const float B_1st_thresh = 0.1f;
-
-  if (B(1,0) > B_1st_thresh) {
-    vcl_printf ("  B(1,0) %f > thresh %.2f.\n", B(1,0), B_1st_thresh);
-    return false;
-  }
-  if (B(2,0) > B_1st_thresh) {
-    vcl_printf ("  B(2,0) %f > thresh %.2f.\n", B(2,0), B_1st_thresh);
-    return false;
-  }
-  if (B(3,0) > B_1st_thresh) {
-    vcl_printf ("  B(3,0) %f > thresh %.2f.\n", B(3,0), B_1st_thresh);
-    return false;
-  }
-
-  return true;
-}
-
-template <class TInputImage, class TOutputImage>
-bool
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::test_2nd_convergence (const vnl_matrix<double>& B)
-{
-  vcl_printf ("test_2nd_convergence():\n");
-
-  if (test_1st_convergence (B) == false)
-    return false;
-
-  //double pixel = B(0,0) + B(1,0)*x_1 + B(2,0)*x_2 + B(3,0)*x_3 +
-  //               B(4,0)*x_1*x_2 + B(5,0)*x_1*x_3 + B(6,0)*x_2*x_3 +
-  //               B(7,0)*x_1*x_1 + B(8,0)*x_2*x_2 + B(9,0)*x_3*x_3;
-  const float B_2nd_thresh = 0.01f;
-
-  if (B(4,0) > B_2nd_thresh)
-    return false;
-  if (B(5,0) > B_2nd_thresh)
-    return false;
-  if (B(6,0) > B_2nd_thresh)
-    return false;
-  if (B(7,0) > B_2nd_thresh)
-    return false;
-  if (B(8,0) > B_2nd_thresh)
-    return false;
-  if (B(9,0) > B_2nd_thresh)
-    return false;
-
-  return false;
-}
-
-
-
-template <class TInputImage, class TOutputImage>
-void
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::BinaryClosingImage (InputImagePointer& image, const int radius)
-{
-  vcl_printf ("BinaryClosingImage(): \n");
-
-  typename InputImageType::PixelType background = 0;
-  typename InputImageType::PixelType foreground = 1;
-
-  typedef itk::BinaryBallStructuringElement < float,3 > StructuringElementType;
-
-  typedef itk::BinaryErodeImageFilter< InputImageType, InputImageType, StructuringElementType >  ErodeFilterType;
-
-  typedef itk::BinaryDilateImageFilter< InputImageType, InputImageType, StructuringElementType >  DilateFilterType;
-
-  ErodeFilterType::Pointer  erode  = ErodeFilterType::New();
-  DilateFilterType::Pointer dilate = DilateFilterType::New();
-
-  StructuringElementType  structuringElement;
-  structuringElement.SetRadius( radius );  
-  structuringElement.CreateStructuringElement();
-
-  erode->SetKernel(  structuringElement );
-  dilate->SetKernel( structuringElement );
-
-  erode->SetErodeValue( foreground );
-  dilate->SetDilateValue( foreground );
-
-  dilate -> SetInput( image );
-  erode -> SetInput ( dilate -> GetOutput() );
-  erode -> Update ( );
-  image = erode -> GetOutput ( );
-  vcl_printf ("\t done.\n\n");
-}
-
-template <class TInputImage, class TOutputImage>
-void 
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::BinaryOpenningImage (InputImagePointer& image, const int radius)
-{
-  vcl_printf ("BinaryOpenningImage(): \n");
-
-  typename InputImageType::PixelType background = 0;
-  typename InputImageType::PixelType foreground = 1;
-
-  typedef itk::BinaryBallStructuringElement<float,3> StructuringElementType;
-
-  typedef itk::BinaryErodeImageFilter< InputImageType, InputImageType, 
-                  StructuringElementType > ErodeFilterType;
-
-  typedef itk::BinaryDilateImageFilter< InputImageType, InputImageType, 
-                  StructuringElementType > DilateFilterType;
-
-  ErodeFilterType::Pointer  eroder  = ErodeFilterType::New();
-  DilateFilterType::Pointer dilater = DilateFilterType::New();
-
-  StructuringElementType  structuringElement;
-  structuringElement.SetRadius( radius );  
-  structuringElement.CreateStructuringElement();
-
-  eroder->SetKernel(  structuringElement );
-  dilater->SetKernel( structuringElement );
-
-  eroder->SetErodeValue( foreground );
-  dilater->SetDilateValue( foreground );
-
-  eroder -> SetInput( image );
-  dilater -> SetInput ( eroder -> GetOutput() );
-  dilater -> Update ( );
-  image = dilater -> GetOutput ( );
-  vcl_printf ("\t done.\n\n");
-}
-
 
 template <class TInputImage, class TOutputImage>
 void
@@ -1532,88 +1397,6 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
 
 template <class TInputImage, class TOutputImage>
-void
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::BinaryMedianFilter (InputImagePointer& image, const int radius)
-{
-  vcl_printf ("BinaryMedianFilter(): \n");
-  typedef itk::MedianImageFilter<InputImageType, InputImageType >  FilterType;
-
-  FilterType::Pointer filter = FilterType::New();
-
-  typename InputImageType::SizeType indexRadius;
-  for (int k = 0; k < 3; k++)
-    indexRadius[k] = radius;
-
-  filter->SetRadius( indexRadius );
-
-  filter -> SetInput( image );
-  filter -> Update ( );
-  image = filter -> GetOutput ( );
-  vcl_printf ("\t done.\n\n");
-}
-
-template <class TInputImage, class TOutputImage>
-void 
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::SmoothImage (InputImagePointer& image, const float sigma)
-{
-  vcl_printf ("SmoothImage(): sigma = %f\n", sigma);
-  typedef itk::DiscreteGaussianImageFilter<
-              InputImageType, InputImageType >  FilterType;
-  FilterType::Pointer filter = FilterType::New();
-  filter->SetInput (image);
-  filter->SetVariance (sigma*sigma);
-  filter->SetMaximumKernelWidth (sigma*5); //sigma*5
-  filter->Update();
-  image = filter->GetOutput();
-  vcl_printf ("\t done.\n\n");
-}
-
-template <class TInputImage, class TOutputImage>
-void 
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::gradient_anisotropic_smooth (InputImagePointer& image,
-                                  const int iter,
-                                  const float time_step,
-                                  const int conductance)
-{  
-  vcl_printf ("GradientAnisotropicSmooth(): iter %d, time_step %f, conductance %d.\n",
-              iter, time_step, conductance);
-  typedef itk::GradientAnisotropicDiffusionImageFilter< 
-                InputImageType, InputImageType >  FilterType;
-  FilterType::Pointer filter = FilterType::New();
-  filter->SetInput (image);
-  filter->SetNumberOfIterations (iter);   
-  filter->SetTimeStep (time_step);
-  filter->SetConductanceParameter (conductance);   
-  filter->Update();
-  image = filter->GetOutput();
-  vcl_printf ("\t done.\n\n");
-}
-
-template <class TInputImage, class TOutputImage>
-void
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::compute_mask_img (InputImagePointer& image, 
-                       InputImagePointer& img_mask, 
-                       InputImagePointer& result)
-{
-  typedef itk::ImageRegionIterator< InputImageType > IteratorType;
-  typedef itk::ImageRegionConstIterator< InputImageType > ConstIteratorType8;
-
-  IteratorType it (image, image->GetRequestedRegion());
-  ConstIteratorType8 itm (img_mask, img_mask->GetRequestedRegion());
-
-  for (it.GoToBegin(), itm.GoToBegin(); !it.IsAtEnd(); ++it, ++itm) {    
-    unsigned char mask_j = itm.Get();
-    if (mask_j == 0) {
-      it.Set (0);
-    }
-  }
-}
-
-template <class TInputImage, class TOutputImage>
 bool
 FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::detect_bnd_box (InputImagePointer& image, 
@@ -1667,28 +1450,6 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vcl_printf ("      (%d, %d, %d) - (%d, %d, %d).\n\n",
               xmin, ymin, zmin, xmax, ymax, zmax);
   return true;
-}
-
-template <class TInputImage, class TOutputImage>
-float
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::compute_max_pixel (InputImagePointer& image)
-{
-  vcl_printf ("    compute_max_pixel():");
-
-  typedef itk::ImageRegionIterator <InputImageType> IteratorType;
-  IteratorType it (image, image->GetRequestedRegion());
-  assert (it.GetIndex().GetIndexDimension() == 3);
-
-  float max = -itk::NumericTraits<float>::min();
-  for (it.GoToBegin(); !it.IsAtEnd(); ++it) {
-    float pixel = it.Get();
-    if (pixel > max)
-      max = pixel;
-  }
-
-  vcl_printf ("      max_pixel: %f\n", max);
-  return max;
 }
 
 template <class TInputImage, class TOutputImage>
@@ -1961,15 +1722,6 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     if (pixel <= bg_thresh)
       itg.Set (0);
   }
-}
-
-template <class TInputImage, class TOutputImage>
-void
-FuzzyClassificationImageFilter<TInputImage, TOutputImage>
-::flip_values (vcl_vector<float>& numbers)
-{
-  for (unsigned int i=0; i<numbers.size(); i++)
-    numbers[i] = - numbers[i];
 }
 
 } // end namespace itk
