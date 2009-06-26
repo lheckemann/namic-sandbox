@@ -460,7 +460,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
         centroid_v[k] = 0;
       else {
         vcl_printf ("  Error: divide by 0!\n");
-        centroid_v[k] = itk::NumericTraits<float>::Max();
+        centroid_v[k] = itk::NumericTraits<float>::min();
       }
     }
     else {
@@ -1341,13 +1341,11 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   typename InputImageType::PixelType background = 0;
   typename InputImageType::PixelType foreground = 1;
 
-  typedef itk::BinaryBallStructuringElement<float,3> StructuringElementType;
+  typedef itk::BinaryBallStructuringElement < float,3 > StructuringElementType;
 
-  typedef itk::BinaryErodeImageFilter< InputImageType, InputImageType,
-                            StructuringElementType >  ErodeFilterType;
+  typedef itk::BinaryErodeImageFilter< InputImageType, InputImageType, StructuringElementType >  ErodeFilterType;
 
-  typedef itk::BinaryDilateImageFilter< InputImageType, InputImageType, 
-                            StructuringElementType >  DilateFilterType;
+  typedef itk::BinaryDilateImageFilter< InputImageType, InputImageType, StructuringElementType >  DilateFilterType;
 
   ErodeFilterType::Pointer  erode  = ErodeFilterType::New();
   DilateFilterType::Pointer dilate = DilateFilterType::New();
@@ -1682,7 +1680,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   IteratorType it (image, image->GetRequestedRegion());
   assert (it.GetIndex().GetIndexDimension() == 3);
 
-  float max = -itk::NumericTraits<float>::Max();
+  float max = -itk::NumericTraits<float>::min();
   for (it.GoToBegin(); !it.IsAtEnd(); ++it) {
     float pixel = it.Get();
     if (pixel > max)
@@ -1784,7 +1782,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
         ConstIteratorType it (image, region);
         IteratorType itg (image_grid[i], image_grid[i]->GetRequestedRegion());
 
-        float max_pixel = -itk::NumericTraits<float>::Max();
+        float max_pixel = -itk::NumericTraits<float>::min();
         for (it.GoToBegin(), itg.GoToBegin(); !it.IsAtEnd(); ++it, ++itg) {
           //debug:
           //ImageType::IndexType idx = it.GetIndex();
@@ -1854,8 +1852,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   
   IteratorType git (gain_field_g, gain_field_g->GetRequestedRegion());
-  float max = -itk::NumericTraits<float>::Max();
-  float min = itk::NumericTraits<float>::Max();
+  float max = -itk::NumericTraits<float>::min();
+  float min = itk::NumericTraits<float>::min();
 
   for (i=0; i<gain_field_g_grid.size(); i++) {
     IndexIteratorType iit (gain_field_g_grid[i], gain_field_g_grid[i]->GetRequestedRegion());
