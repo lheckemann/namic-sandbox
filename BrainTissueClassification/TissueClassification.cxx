@@ -103,23 +103,38 @@ int main (int argc, char* argv[])
   for (it.GoToBegin(); !it.IsAtEnd(); ++it)
     {
     ImageType::IndexType idx = it.GetIndex();
-    ImageType::PixelType mLabel = 0;
-    int assignedLabel = -1;
-    for (int k = 0; k < nClasses; k++)
+    ImageType::PointType pt;
+    image->TransformIndexToPhysicalPoint( idx, pt );
+    mask->TransformPhysicalPointToIndex( pt, idx );
+    //if ( !mask->GetLargestPossibleRegion().IsInside(idx) )
+    //{
+    //  it.Set( 0 );
+    //  continue;
+    //}
+    //else if ( mask->GetPixel(idx) == 0 )
+    //{
+    //  it.Set( 0 );
+    //  continue;
+    //}
+    //else
+    //{
+      ImageType::PixelType mLabel = 0;
+      int assignedLabel = -1;
+      for (int k = 0; k < nClasses; k++)
       {
-      ImageType::PixelType p = classifier->GetOutput(k)->GetPixel(idx);
-      if (p > mLabel)
+        ImageType::PixelType p = classifier->GetOutput(k)->GetPixel(idx);
+        if (p > mLabel)
         {
-        mLabel = p;
-        assignedLabel = k;
+          mLabel = p;
+          assignedLabel = k;
         }
       }
-    if (assignedLabel >=0 && mLabel > 0)
+      if (assignedLabel >=0 && mLabel > 0.25)
       {
-      it.Set( assignedLabel+1 );
+        it.Set( assignedLabel+1 );
       }
-    }
-
+    //}
+  }
   itk::ImageFileWriter<ImageType>::Pointer wlabel = itk::ImageFileWriter<ImageType>::New();
   wlabel->SetInput( label );
   wlabel->SetFileName( brainLabel.c_str() );
