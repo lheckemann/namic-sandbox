@@ -28,13 +28,26 @@
       <name>beta</name>
       <longflag>beta</longflag>
       <flag>b</flag>
-      <description>to be completed</description>
+      <description>Control the influence of the image contents on the segmentation. If beta=0 it means that the image does not have any influence on the segmentation results. The higher the beta value, the stronger the image content restrains the diffusion.</description>
       <label>Beta</label>
       <default>0.001</default>
       <constraints>
-        <minimum>0.0001</minimum>
-        <maximum>1.0</maximum>
+        <minimum>0.0</minimum>
+        <maximum>10000.0</maximum>
         <step>0.001</step>
+      </constraints>
+    </double>
+    <double>
+      <name>threshold</name>
+      <longflag>threshold</longflag>
+      <flag>t</flag>
+      <description>Control the segmentation threshold. Increase value to grow the segmented area.</description>
+      <label>Threshold</label>
+      <default>0.5</default>
+      <constraints>
+        <minimum>0.0</minimum>
+        <maximum>1.0</maximum>
+        <step>0.01</step>
       </constraints>
     </double>
   </parameters>

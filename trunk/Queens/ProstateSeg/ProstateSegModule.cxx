@@ -79,7 +79,7 @@ int main( int argc, char * argv [] )
   delete potential_volume; potential_volume = 0;
   std::cout<<"done\n"<<std::flush;
 
-  double thld = 0.5;
+  double thld = threshold;
 
   cVolume *bin = op.hardThreshold(potential_volume_smth, thld);
   delete potential_volume_smth; potential_volume_smth = 0;
