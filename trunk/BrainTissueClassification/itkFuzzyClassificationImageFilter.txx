@@ -172,7 +172,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   itk::ImageRegionIteratorWithIndex<InputImageType> itg(gain_field_g, gain_field_g->GetLargestPossibleRegion());
   for (itg.GoToBegin(); !itg.IsAtEnd(); ++itg)
   {
-    InputImageType::IndexType idx = itg.GetIndex();
+    typename InputImageType::IndexType idx = itg.GetIndex();
     this->m_BiasField->SetPixel( idx, itg.Get() );
   }
 
@@ -460,7 +460,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
         centroid_v[k] = 0;
       else {
         vcl_printf ("  Error: divide by 0!\n");
-        centroid_v[k] = FLT_MAX;
+        centroid_v[k] = itk::NumericTraits<float>::Max();
       }
     }
     else {
@@ -1338,15 +1338,15 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 {
   vcl_printf ("BinaryClosingImage(): \n");
 
-  ImageType::PixelType background = 0;
-  ImageType::PixelType foreground = 1;
+  typename InputImageType::PixelType background = 0;
+  typename InputImageType::PixelType foreground = 1;
 
   typedef itk::BinaryBallStructuringElement<float,3> StructuringElementType;
 
-  typedef itk::BinaryErodeImageFilter< ImageType, ImageType,
+  typedef itk::BinaryErodeImageFilter< InputImageType, InputImageType,
                             StructuringElementType >  ErodeFilterType;
 
-  typedef itk::BinaryDilateImageFilter< ImageType, ImageType, 
+  typedef itk::BinaryDilateImageFilter< InputImageType, InputImageType, 
                             StructuringElementType >  DilateFilterType;
 
   ErodeFilterType::Pointer  erode  = ErodeFilterType::New();
@@ -1376,15 +1376,15 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 {
   vcl_printf ("BinaryOpenningImage(): \n");
 
-  ImageType::PixelType background = 0;
-  ImageType::PixelType foreground = 1;
+  typename InputImageType::PixelType background = 0;
+  typename InputImageType::PixelType foreground = 1;
 
   typedef itk::BinaryBallStructuringElement<float,3> StructuringElementType;
 
-  typedef itk::BinaryErodeImageFilter< ImageType, ImageType, 
+  typedef itk::BinaryErodeImageFilter< InputImageType, InputImageType, 
                   StructuringElementType > ErodeFilterType;
 
-  typedef itk::BinaryDilateImageFilter< ImageType, ImageType, 
+  typedef itk::BinaryDilateImageFilter< InputImageType, InputImageType, 
                   StructuringElementType > DilateFilterType;
 
   ErodeFilterType::Pointer  eroder  = ErodeFilterType::New();
@@ -1419,10 +1419,10 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 {
   vcl_printf ("compute_histogram(): \n");
 
-  typedef itk::Statistics::ScalarImageToListAdaptor< ImageType >   AdaptorType;
+  typedef itk::Statistics::ScalarImageToListAdaptor< InputImageType >   AdaptorType;
   AdaptorType::Pointer adaptor = AdaptorType::New();
   adaptor->SetImage (image);
-  typedef ImageType::PixelType  HistogramMeasurementType;
+  typedef InputImageType::PixelType  HistogramMeasurementType;
   typedef itk::Statistics::ListSampleToHistogramGenerator< 
                 AdaptorType, HistogramMeasurementType> GeneratorType;
   GeneratorType::Pointer generator = GeneratorType::New();
@@ -1431,13 +1431,13 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   // let the program decide the number of bins 
   // using the maximum and minimum intensity values
   if (nBin == 0) {
-    typedef itk::ImageRegionIterator< ImageType > IteratorType;
+    typedef itk::ImageRegionIterator< InputImageType > IteratorType;
     IteratorType it (image, image->GetLargestPossibleRegion());
-    ImageType::PixelType bMin = it.Get();
-    ImageType::PixelType bMax = it.Get();
+    typename InputImageType::PixelType bMin = it.Get();
+    typename InputImageType::PixelType bMax = it.Get();
 
     for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
-      ImageType::PixelType d = it.Get();
+      typename InputImageType::PixelType d = it.Get();
       if (bMin > d ) {
         bMin = d;
       }
@@ -1485,15 +1485,15 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 {
   vcl_printf ("HistogramEqualization(): \n");
 
-  typedef itk::ImageRegionIterator< ImageType > IteratorType;
+  typedef itk::ImageRegionIterator< InputImageType > IteratorType;
 
   IteratorType it(  image, image->GetLargestPossibleRegion()  );
 
-  ImageType::PixelType bMin = it.Get();
-  ImageType::PixelType bMax = it.Get();
+  typename InputImageType::PixelType bMin = it.Get();
+  typename InputImageType::PixelType bMax = it.Get();
 
   for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
-    ImageType::PixelType d = it.Get();
+    typename InputImageType::PixelType d = it.Get();
     if (bMin > d ) {
       bMin = d;
     }
@@ -1523,7 +1523,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   bMax = (bMax-bMin)/(nBin-1);
 
   for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
-    ImageType::PixelType d = it.Get();
+    typename InputImageType::PixelType d = it.Get();
     // now bMax is the width of the bins
     int idx = (d-bMin)/bMax; 
     it.Set(intensityMap[idx]);
@@ -1539,11 +1539,11 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::BinaryMedianFilter (InputImagePointer& image, const int radius)
 {
   vcl_printf ("BinaryMedianFilter(): \n");
-  typedef itk::MedianImageFilter<ImageType, ImageType >  FilterType;
+  typedef itk::MedianImageFilter<InputImageType, InputImageType >  FilterType;
 
   FilterType::Pointer filter = FilterType::New();
 
-  ImageType::SizeType indexRadius;
+  typename InputImageType::SizeType indexRadius;
   for (int k = 0; k < 3; k++)
     indexRadius[k] = radius;
 
@@ -1562,7 +1562,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 {
   vcl_printf ("SmoothImage(): sigma = %f\n", sigma);
   typedef itk::DiscreteGaussianImageFilter<
-              ImageType, ImageType >  FilterType;
+              InputImageType, InputImageType >  FilterType;
   FilterType::Pointer filter = FilterType::New();
   filter->SetInput (image);
   filter->SetVariance (sigma*sigma);
@@ -1583,7 +1583,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vcl_printf ("GradientAnisotropicSmooth(): iter %d, time_step %f, conductance %d.\n",
               iter, time_step, conductance);
   typedef itk::GradientAnisotropicDiffusionImageFilter< 
-                ImageType, ImageType >  FilterType;
+                InputImageType, InputImageType >  FilterType;
   FilterType::Pointer filter = FilterType::New();
   filter->SetInput (image);
   filter->SetNumberOfIterations (iter);   
@@ -1601,8 +1601,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                        InputImagePointer& img_mask, 
                        InputImagePointer& result)
 {
-  typedef itk::ImageRegionIterator< ImageType > IteratorType;
-  typedef itk::ImageRegionConstIterator< Image8Type > ConstIteratorType8;
+  typedef itk::ImageRegionIterator< InputImageType > IteratorType;
+  typedef itk::ImageRegionConstIterator< InputImageType > ConstIteratorType8;
 
   IteratorType it (image, image->GetRequestedRegion());
   ConstIteratorType8 itm (img_mask, img_mask->GetRequestedRegion());
@@ -1625,7 +1625,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 {
   vcl_printf ("    detect_bnd_box(): bg_thresh %f.\n", bg_thresh);
 
-  typedef itk::ImageRegionIteratorWithIndex < ImageType > IndexedIteratorType;
+  typedef itk::ImageRegionIteratorWithIndex < InputImageType > IndexedIteratorType;
   IndexedIteratorType iit (image, image->GetRequestedRegion());
   assert (iit.GetIndex().GetIndexDimension() == 3);
 
@@ -1640,7 +1640,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     if (iit.Get() <= bg_thresh)
       continue;
 
-    ImageType::IndexType idx = iit.GetIndex();
+    typename InputImageType::IndexType idx = iit.GetIndex();
     int x = idx[0];
     int y = idx[1];
     int z = idx[2];
@@ -1678,11 +1678,11 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 {
   vcl_printf ("    compute_max_pixel():");
 
-  typedef itk::ImageRegionIterator <ImageType> IteratorType;
+  typedef itk::ImageRegionIterator <InputImageType> IteratorType;
   IteratorType it (image, image->GetRequestedRegion());
   assert (it.GetIndex().GetIndexDimension() == 3);
 
-  float max = -FLT_MAX;
+  float max = -itk::NumericTraits<float>::Max();
   for (it.GoToBegin(); !it.IsAtEnd(); ++it) {
     float pixel = it.Get();
     if (pixel > max)
@@ -1726,9 +1726,9 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vcl_printf ("      last slice, column, row grid size: %d * %d * %d.\n", 
               grid_size_last_x, grid_size_last_y, grid_size_last_z);
     
-  ImageType::RegionType region;
-  ImageType::IndexType index;
-  ImageType::SizeType  size;
+  typename InputImageType::RegionType region;
+  typename InputImageType::IndexType index;
+  typename InputImageType::SizeType  size;
 
   image_grid.resize (total_grids);
   int i = 0;
@@ -1751,7 +1751,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
           grid_z = grid_size_last_z;
 
         //create image_grid[i] with size grid_x * grid_y * grid_z.
-        image_grid[i] = ImageType::New();
+        image_grid[i] = InputImageType::New();
 
         //setup grid index
         index[0] = start_x; // first index on X
@@ -1784,7 +1784,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
         ConstIteratorType it (image, region);
         IteratorType itg (image_grid[i], image_grid[i]->GetRequestedRegion());
 
-        float max_pixel = -FLT_MAX;
+        float max_pixel = -itk::NumericTraits<float>::Max();
         for (it.GoToBegin(), itg.GoToBegin(); !it.IsAtEnd(); ++it, ++itg) {
           //debug:
           //ImageType::IndexType idx = it.GetIndex();
@@ -1854,8 +1854,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   
   IteratorType git (gain_field_g, gain_field_g->GetRequestedRegion());
-  float max = -FLT_MAX;
-  float min = FLT_MAX;
+  float max = -itk::NumericTraits<float>::Max();
+  float min = itk::NumericTraits<float>::Max();
 
   for (i=0; i<gain_field_g_grid.size(); i++) {
     IndexIteratorType iit (gain_field_g_grid[i], gain_field_g_grid[i]->GetRequestedRegion());
