@@ -11,6 +11,11 @@
   Version:   $Revision: $
 
 =========================================================================auto=*/
+
+static const int CIRCLE_VOTE_NEEDED=18;
+static bool REQUIRE_MARKER_DETECTION=false;
+static bool USE_MARKER_MEAN_DETECTION=false;
+
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
 #include "vtkTRProstateBiopsyCalibrationAlgo.h"
@@ -33,6 +38,9 @@
 #include "vtkTRProstateBiopsyTargetDescriptor.h"
 
 #include <algorithm>
+
+#include "vtkImageCast.h"
+#include "vtkTIFFWriter.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkTRProstateBiopsyCalibrationAlgo);
@@ -164,7 +172,10 @@ void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], c
     found1 = SegmentCircle( m_1_IJK, PNormal1, thresh1, fidDims, radius, volumeIJKToRASMatrix, calibVol, img1); 
     if (!found1)
     {
-      found1=true; // todo remove this line
+      if (!REQUIRE_MARKER_DETECTION)
+      {
+        found1=true;
+      }
     }
     // bring back in RAS space  
     double ijkIn[4] = {m_1_IJK[0], m_1_IJK[1], m_1_IJK[2], 1};
@@ -180,7 +191,10 @@ void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], c
     found2 = SegmentCircle( m_2_IJK, PNormal1, thresh2, fidDims, radius, volumeIJKToRASMatrix, calibVol, img2);
     if (!found2)
     {
-      found2=true; // todo remove this line
+      if (!REQUIRE_MARKER_DETECTION)
+      {
+        found2=true;
+      }
     }
     // bring back in RAS space  
     ijkIn[0] = m_2_IJK[0];
@@ -453,7 +467,6 @@ bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3
     vtkImageData *inData = imageReslicer->GetOutput();
     double *origin = inData->GetOrigin();   
     int *extent = inData->GetWholeExtent();
-
     
     // The resliced volume is 3D, but with Z1=0 and Z2=0
     int comp=inData->GetNumberOfScalarComponents();
@@ -464,7 +477,6 @@ bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3
     int height=abs(extent[2]-extent[3])+1;
     int tempStorageSize = width*height;
     unsigned int *tempStorage = new unsigned int[tempStorageSize+8];
-    double ix, iy, iz;
 
     // It will be used for counting the circle centers (optimization)
     
@@ -477,8 +489,36 @@ bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3
         nTotalSlices++;
         bool lCircleFound;
 
+    {
+      // dump the slice image (fr debug only)
+
+    vtkImageCast *cast=vtkImageCast::New();
+    cast->SetInput(inData);
+    cast->SetOutputScalarTypeToUnsignedShort();
+    cast->ClampOverflowOn();
+    cast->Update();
+
+    vtkTIFFWriter *writer = vtkTIFFWriter::New();
+    writer->SetCompressionToNoCompression();
+    writer->SetFileName("c:\\reslicedmarker.tif");
+    writer->SetInput(cast->GetOutput());
+    writer->Write();
+    writer->Delete();
+
+    cast->Delete();
+    }
+
         // if returns false, the center was not found (not enough votes?)
-        lCircleFound = CalculateCircleCenter(inData, tempStorage, tempStorageSize,  nThreshold, 2*radius/10.0, &ix, &iy, &iz, 18, true);
+        double ix, iy, iz;
+        if (USE_MARKER_MEAN_DETECTION)
+        {
+          lCircleFound = CalculateCircleCenterMean(inData, 2*radius/10.0, nThreshold, ix, iy, iz);
+        }
+        else
+        {
+          lCircleFound = CalculateCircleCenter(inData, tempStorage, tempStorageSize,  nThreshold, 2*radius/10.0, ix, iy, iz, CIRCLE_VOTE_NEEDED, true);
+        }
+        
 
         if (lCircleFound) {
             double scanner[3];
@@ -559,7 +599,7 @@ bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3
 /// \brief Calculates the circle center.
 /// Assumes spacingX == spacingY (for the circle)
 /// Assumes 2D inData
-bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double *gx, double *gy, double *gz, int nVotedNeeded, bool lDebug)
+bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double &gx, double &gy, double &gz, int nVotedNeeded, bool lDebug)
 {/// \todo Make all calculations floating point!
     
     // "0" the Temporal data storage
@@ -674,7 +714,7 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inD
     int meannr=0;
     for (int i=0;i<tempStorageSize;i++) {
         if (tempStorage[i]==max) {
-            meanx+=x;
+              meanx+=x;
             meany+=y;
             meannr++;
         }
@@ -689,13 +729,13 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inD
     //assert(meannr>0);
 
     // Get the mean of the centers
-    *gx=meanx/meannr;
-    *gy=meany/meannr;
-    *gz=extent[4];
+    gx=meanx/meannr;
+    gy=meany/meannr;
+    gz=extent[4];
     //assert(extent[4]==extent[5]); // 2D
 
-    *gx-=( (width-1)  /2.0 );
-    *gy-=( (height-1) /2.0 ); 
+    gx-=( (width-1)  /2.0 );
+    gy-=( (height-1) /2.0 ); 
 
     // debug
     x=y=0;
@@ -742,7 +782,68 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inD
     return true;
 }
 
+bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenterMean(vtkImageData *inData, double nRadius, double threshold, double &gx, double &gy, double &gz)
+{
+    // spacing should not be 0!
+    double spacing[3];
+    inData->GetSpacing(spacing);
 
+    if ( this->DoubleEqual(spacing[0],0.0) || this->DoubleEqual(spacing[1],0.0) || this->DoubleEqual(spacing[2],0.0) )  {
+        return false;
+    }
+
+    // assume spacingY==spacingY -  depends on vtkImageReslicer settings!
+    
+
+    // convert mm to pixel
+    double r = nRadius/fabs(spacing[0]);
+
+    // Calculate width & height
+    int *extent = inData->GetWholeExtent();
+    int width = abs(extent[0]-extent[1])+1;
+    int height = abs(extent[2]-extent[3])+1;
+ 
+    // Increment circle centers (possibile centers are also on a circle)
+    vtkDataArray * da = inData->GetPointData()->GetScalars();
+
+    double sumx=0;
+    double sumy=0;
+    double sumweight=0;
+
+    // Cumulate circle centers
+    int x=0;
+    int y=0;
+    for (int i=0;i<width*height;i++) 
+    {
+        x++;
+        if (x>=width) 
+        {
+            x=0; y++;
+        }
+        double value=*(da->GetTuple(i));
+        if (value>threshold)
+        {
+           sumx+=x*value;
+          sumy+=y*value;
+          sumweight+=value;
+        }
+    }
+    
+    if (sumweight<threshold*10+1) 
+    {
+        return false;
+    }
+
+    // Get the mean of the centers
+    gx=sumx/sumweight;
+    gy=sumy/sumweight;
+    gz=extent[4];
+
+    gx-=( (width-1)  /2.0 );
+    gy-=( (height-1) /2.0 ); 
+
+    return true;
+}
 
 /// Calculate probe position from fiducial pairs
 bool vtkTRProstateBiopsyCalibrationAlgo::FindProbe(const double P1[3], const double P2[3], double v1[3], double v2[3], 

@@ -507,8 +507,15 @@ void vtkTRProstateBiopsyRobotWidget::RobotWidget::SetupRobotManipulatorActor()
   sheathTube->SetNumberOfSides(20);
   sheathTube->CappingOn();
 
+  vtkSmartPointer<vtkTubeFilter> sheathCenterlineTube=vtkSmartPointer<vtkTubeFilter>::New();
+  sheathCenterlineTube->SetInputConnection(RobotManipulatorSheathLine->GetOutputPort());
+  sheathCenterlineTube->SetRadius(1.0);
+  sheathCenterlineTube->SetNumberOfSides(8);
+  sheathCenterlineTube->CappingOn();
+
   vtkSmartPointer<vtkAppendPolyData> apd = vtkSmartPointer<vtkAppendPolyData>::New();
   apd->AddInputConnection(sheathTube->GetOutputPort());
+  //apd->AddInputConnection(sheathCenterlineTube->GetOutputPort());
   apd->Update();
 
   double color[3]={1.0, 1.0, 0.0};
