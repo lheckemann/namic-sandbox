@@ -6,20 +6,20 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $RCSfile: vtkMRML4DBundleNode.h,v $
+  Module:    $RCSfile: vtkMRMLTimeSeriesBundleNode.h,v $
   Date:      $Date: 2006/03/19 17:12:29 $
   Version:   $Revision: 1.13 $
 
 =========================================================================auto=*/
-// .NAME vtkMRML4DBundleNode - MRML node for representing 
+// .NAME vtkMRMLTimeSeriesBundleNode - MRML node for representing 
 // a linear transformation to the parent node
 // .SECTION Description
 // MRML node for representing 
 // a linear transformation to the parent node in the form vtkMatrix4x4
 // MatrixTransformToParent
 
-#ifndef __vtkMRML4DBundleNode_h
-#define __vtkMRML4DBundleNode_h
+#ifndef __vtkMRMLTimeSeriesBundleNode_h
+#define __vtkMRMLTimeSeriesBundleNode_h
 
 #include "vtkFourDImageWin32Header.h"
 
@@ -28,7 +28,7 @@
 
 class vtkMRMLStorageNode;
 
-class VTK_FourDImage_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformNode
+class VTK_FourDImage_EXPORT vtkMRMLTimeSeriesBundleNode : public vtkMRMLLinearTransformNode
 {
   public:
 
@@ -40,8 +40,8 @@ class VTK_FourDImage_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformN
   //ETX
 
   public:
-  static vtkMRML4DBundleNode *New();
-  vtkTypeMacro(vtkMRML4DBundleNode,vtkMRMLLinearTransformNode);
+  static vtkMRMLTimeSeriesBundleNode *New();
+  vtkTypeMacro(vtkMRMLTimeSeriesBundleNode,vtkMRMLLinearTransformNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual vtkMRMLNode* CreateNodeInstance();
@@ -93,10 +93,10 @@ class VTK_FourDImage_EXPORT vtkMRML4DBundleNode : public vtkMRMLLinearTransformN
   void         SwitchDisplayBuffer(int bufferIndex, int i);
 
 protected:
-  vtkMRML4DBundleNode();
-  ~vtkMRML4DBundleNode();
-  vtkMRML4DBundleNode(const vtkMRML4DBundleNode&);
-  void operator=(const vtkMRML4DBundleNode&);
+  vtkMRMLTimeSeriesBundleNode();
+  ~vtkMRMLTimeSeriesBundleNode();
+  vtkMRMLTimeSeriesBundleNode(const vtkMRMLTimeSeriesBundleNode&);
+  void operator=(const vtkMRMLTimeSeriesBundleNode&);
 
   //BTX
   typedef std::vector<std::string> NodeIDListType;

@@ -130,7 +130,7 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   void UpdateAll();
-  void SelectActive4DBundle(vtkMRML4DBundleNode* bundleNode);
+  void SelectActiveTimeSeriesBundle(vtkMRMLTimeSeriesBundleNode* bundleNode);
 
 
   //----------------------------------------------------------------
@@ -152,7 +152,7 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Other utility functions
   //----------------------------------------------------------------
-  const char* GetActive4DBundleNodeID();
+  const char* GetActiveTimeSeriesBundleNodeID();
 
 
  protected:
@@ -185,7 +185,7 @@ class VTK_FourDImage_EXPORT vtkFourDImageGUI : public vtkSlicerModuleGUI
 
   // -----------------------------------------
   // Active 4D Bundle selector
-  vtkSlicerNodeSelectorWidget*  Active4DBundleSelectorWidget;
+  vtkSlicerNodeSelectorWidget*  ActiveTimeSeriesBundleSelectorWidget;
 
   // -----------------------------------------
   // Frame control
