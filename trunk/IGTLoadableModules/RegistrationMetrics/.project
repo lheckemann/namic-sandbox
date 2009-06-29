@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>RegistrationMetrics</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+	</buildSpec>
+	<natures>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>CTlabel.nrrd</name>
+			<type>1</type>
+			<location>/projects/prostate/elhawary/Projects/CT-CryoAblation/Registration/MetricsCode/CommandLineModule/v3/RegistrationMetrics/CTlabel.nrrd</location>
+		</link>
+		<link>
+			<name>MRlabel.nrrd</name>
+			<type>1</type>
+			<location>/projects/prostate/elhawary/Projects/CT-CryoAblation/Registration/MetricsCode/CommandLineModule/v3/RegistrationMetrics/MRlabel.nrrd</location>
+		</link>
+		<link>
+			<name>deformedLabel.nrrd</name>
+			<type>1</type>
+			<location>/projects/prostate/elhawary/Projects/CT-CryoAblation/Registration/MetricsCode/CommandLineModule/v3/RegistrationMetrics/deformedLabel.nrrd</location>
+		</link>
+	</linkedResources>
+</projectDescription>
