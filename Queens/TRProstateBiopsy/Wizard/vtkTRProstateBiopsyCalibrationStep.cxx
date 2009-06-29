@@ -41,6 +41,11 @@
 #include "vtkVolumeProperty.h"
 #include "vtkColorTransferFunction.h"
 #include "vtkPointData.h"
+#include "vtkAppendPolyData.h"
+#include "vtkActor.h"
+#include "vtkSphereSource.h"
+#include "vtkGlyph3D.h"
+#include "vtkPoints.h"
 
 #include "vtkTRProstateBiopsyCalibrationAlgo.h"
 
@@ -83,6 +88,8 @@ vtkTRProstateBiopsyCalibrationStep::vtkTRProstateBiopsyCalibrationStep()
   this->CalibrationResultsBox=vtkSmartPointer<vtkKWTextWithScrollbars>::New();
   this->Axes1Actor=vtkSmartPointer<vtkActor>::New();
   this->Axes2Actor=vtkSmartPointer<vtkActor>::New();
+
+  this->AxesCenterPointsActor=vtkSmartPointer<vtkActor>::New();
 
   this->ProcessingCallback = false;
   this->ClickNumber = 0;
@@ -822,6 +829,8 @@ void vtkTRProstateBiopsyCalibrationStep::Reset()
 
   this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->RemoveViewProp(this->Axes1Actor);
   this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->RemoveViewProp(this->Axes2Actor);
+
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->RemoveViewProp(this->AxesCenterPointsActor);
   
   const TRProstateBiopsyCalibrationData calibData=this->GetGUI()->GetMRMLNode()->GetCalibrationData();
   TRProstateBiopsyCalibrationData calibdataInvalidated=calibData;
@@ -1137,7 +1146,6 @@ void vtkTRProstateBiopsyCalibrationStep::UpdateAxesIn3DView()
   this->Axes1Actor->SetVisibility(true);
   this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->AddViewProp(this->Axes1Actor);
 
-
   // 2nd axis line
   /*
   // start point as marker 4 coordinate
@@ -1186,6 +1194,31 @@ void vtkTRProstateBiopsyCalibrationStep::UpdateAxesIn3DView()
   this->Axes2Actor->SetMapper(axis2Mapper);  
   this->Axes2Actor->SetVisibility(true);
   this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->AddViewProp(this->Axes2Actor);
+
+
+  vtkPoints *points = vtkPoints::New();
+  vtkTRProstateBiopsyLogic *logic = this->GetGUI()->GetLogic();
+  logic->GetCalibrationAxisCenterpoints(points,0);
+  logic->GetCalibrationAxisCenterpoints(points,1);
+
+  vtkPolyData *pointspoly = vtkPolyData::New();
+  pointspoly->SetPoints(points);
+  
+  vtkSphereSource *glyph = vtkSphereSource::New();
+  vtkGlyph3D *glypher = vtkGlyph3D::New();
+  glypher->SetInput(pointspoly);
+  glypher->SetSourceConnection(glyph->GetOutputPort());
+  glypher->SetScaleFactor(0.25);
+
+  //TODO: check why it is not displayed???
+
+  vtkPolyDataMapper *pointsMapper = vtkPolyDataMapper::New();
+  pointsMapper->SetInputConnection(glypher->GetOutputPort());
+  
+  this->AxesCenterPointsActor->SetMapper(pointsMapper);
+  
+  this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->AddViewProp(this->AxesCenterPointsActor);
+
 
   this->GetGUI()->GetApplicationGUI()->GetViewerWidget()->GetMainViewer()->Render();
 }

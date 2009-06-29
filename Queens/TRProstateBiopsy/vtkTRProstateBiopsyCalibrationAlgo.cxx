@@ -49,7 +49,6 @@ vtkCxxRevisionMacro(vtkTRProstateBiopsyCalibrationAlgo, "$Revision: 1.0 $");
 
 vtkTRProstateBiopsyCalibrationAlgo::vtkTRProstateBiopsyCalibrationAlgo()
 {
-  this->CoordinatesVector.clear();
   CalibMarkerPreProcOutput.resize(CALIB_MARKER_COUNT);
   for (int i=0; i<CALIB_MARKER_COUNT; i++)
     {
@@ -86,11 +85,11 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalibrateFromImage(const TRProstateBiop
   double P1[3], v1[3];
   this->SegmentAxis(input.MarkerInitialPositions[0], input.MarkerInitialPositions[1], input.VolumeIJKToRASMatrix, input.VolumeImageData,
     input.MarkerSegmentationThreshold[0], input.MarkerSegmentationThreshold[1], input.MarkerDimensions, input.MarkerRadius, input.RobotInitialAngle,
-    P1, v1, output.MarkerPositions[0], output.MarkerPositions[1], output.MarkerFound[0], output.MarkerFound[1], CalibMarkerPreProcOutput[0], CalibMarkerPreProcOutput[1]);
+    P1, v1, output.MarkerPositions[0], output.MarkerPositions[1], output.MarkerFound[0], output.MarkerFound[1], CalibMarkerPreProcOutput[0], CalibMarkerPreProcOutput[1], &CoordinatesVectorAxis1);
   double P2[3], v2[3];
   this->SegmentAxis(input.MarkerInitialPositions[2], input.MarkerInitialPositions[3], input.VolumeIJKToRASMatrix, input.VolumeImageData,
     input.MarkerSegmentationThreshold[2], input.MarkerSegmentationThreshold[3], input.MarkerDimensions, input.MarkerRadius, input.RobotInitialAngle,
-    P2, v2, output.MarkerPositions[2], output.MarkerPositions[3], output.MarkerFound[2], output.MarkerFound[3], CalibMarkerPreProcOutput[2], CalibMarkerPreProcOutput[3]);
+    P2, v2, output.MarkerPositions[2], output.MarkerPositions[3], output.MarkerFound[2], output.MarkerFound[3], CalibMarkerPreProcOutput[2], CalibMarkerPreProcOutput[3], &CoordinatesVectorAxis2);
 
   for (int i=0; i<CALIB_MARKER_COUNT; i++)
   {
@@ -129,7 +128,7 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalibrateFromImage(const TRProstateBiop
 //--------------------------------------------------------------------------------------
 void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], const double initPos2[3], vtkMatrix4x4 *volumeIJKToRASMatrix, vtkImageData* calibVol,
     double thresh1, double thresh2, const double fidDims[3], double radius, double initialAngle, 
-    double P1[3], double v1[3], double finalPos1[3], double finalPos2[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2)
+    double P1[3], double v1[3], double finalPos1[3], double finalPos2[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2, std::vector<typename PointType> *CoordinatesVectorAxis)
 {
     /// \todo Show resliced object in a window, like ITK-SNAP
 
@@ -165,11 +164,10 @@ void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], c
     P1[0]=P1[1]=P1[2]=0.0;
     v1[0]=v1[1]=v1[2]=0.0;
     
-    // /* Automatic segmentation
-    this->CoordinatesVector.clear();
+    // /* Automatic segmentation    //std::vector<PointType> CoordinatesVector; // contains the candidate marker centerpoint positions
     
     // First set of circle centers
-    found1 = SegmentCircle( m_1_IJK, PNormal1, thresh1, fidDims, radius, volumeIJKToRASMatrix, calibVol, img1); 
+    found1 = SegmentCircle( m_1_IJK, PNormal1, thresh1, fidDims, radius, volumeIJKToRASMatrix, calibVol, *CoordinatesVectorAxis, img1); 
     if (!found1)
     {
       if (!REQUIRE_MARKER_DETECTION)
@@ -188,7 +186,7 @@ void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], c
     }
 
     // 2nd set of circle centers
-    found2 = SegmentCircle( m_2_IJK, PNormal1, thresh2, fidDims, radius, volumeIJKToRASMatrix, calibVol, img2);
+    found2 = SegmentCircle( m_2_IJK, PNormal1, thresh2, fidDims, radius, volumeIJKToRASMatrix, calibVol, *CoordinatesVectorAxis, img2);
     if (!found2)
     {
       if (!REQUIRE_MARKER_DETECTION)
@@ -215,10 +213,10 @@ void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], c
 
   // :TODO: check the followings, it seems that it manipulates only the init position
 
-    int vecSize = this->CoordinatesVector.size();
+    int vecSize = CoordinatesVectorAxis->size();
 
     // Use CoordVector to find the line 
-    this->RemoveOutliners(P1,v1, initPos1, initPos2);
+    this->RemoveOutliners(P1,v1, initPos1, initPos2, *CoordinatesVectorAxis);
 
     // we did not find anything, so take the clicked points (too bad)
     if ( this->DoubleEqual(v1[0],0.0) && this->DoubleEqual(v1[1],0.0) && this->DoubleEqual(v1[2],0.0) ) {
@@ -228,23 +226,21 @@ void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], c
                 coord[0] = initPos1[0];
                 coord[1] = initPos1[1];
                 coord[2] = initPos1[2];
-                this->CoordinatesVector.push_back(coord); // def1
+                CoordinatesVectorAxis->push_back(coord); // def1
 
                 coord[0] = initPos2[0];
                 coord[1] = initPos2[1];
                 coord[2] = initPos2[2];
-                this->CoordinatesVector.push_back(coord); // def2
+                CoordinatesVectorAxis->push_back(coord); // def2
 
-                RemoveOutliners(P1,v1, initPos1, initPos2);
+                RemoveOutliners(P1,v1, initPos1, initPos2, *CoordinatesVectorAxis);
     }
     
-    // Coordinates can be freed
-    this->CoordinatesVector.clear();
     // End Automatic segmentation */
 }
 //--------------------------------------------------------------------------------------
 bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3],const double normal[3],  double thresh, const double fidDims[3], 
-  double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, vtkImageData *preprocOutput/*=NULL*/)
+  double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, std::vector<PointType> &CoordinatesVector, vtkImageData *preprocOutput/*=NULL*/)
 {
     vtkSmartPointer<vtkMatrix4x4> rasToIJK = vtkSmartPointer<vtkMatrix4x4>::New();
     vtkMatrix4x4::Invert(ijkToRAS, rasToIJK);
@@ -547,7 +543,7 @@ bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3
             coord[0] = rasOut[0];
             coord[1] = rasOut[1];
             coord[2] = rasOut[2];
-            this->CoordinatesVector.push_back(coord);
+            CoordinatesVector.push_back(coord);
 
             //ShowSegmentedCenter(scanner[0],scanner[1],scanner[2]);
         } // if Circle center found
@@ -994,7 +990,7 @@ struct PointTooFar
 };
 
 /// Remove outlaying points
-void vtkTRProstateBiopsyCalibrationAlgo::RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3])
+void vtkTRProstateBiopsyCalibrationAlgo::RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3], std::vector<typename PointType> &CoordinatesVector)
 {
     // Initial threshold to disregard center points, which are too far away from initial line.
     double outlier_thres_initial=4;
@@ -1003,7 +999,7 @@ void vtkTRProstateBiopsyCalibrationAlgo::RemoveOutliners(double P_[3], double v_
     double outlier_thres=.5;
 
     
-    std::vector<itk::Point<double,3> > CoordVectorCopy (this->CoordinatesVector);
+    std::vector<itk::Point<double,3> > CoordVectorCopy (CoordinatesVector);
     
 
     
@@ -1374,4 +1370,35 @@ bool vtkTRProstateBiopsyCalibrationAlgo::DoubleEqual(double val1, double val2)
 vtkImageData* vtkTRProstateBiopsyCalibrationAlgo::GetCalibMarkerPreProcOutput(int i)
 {
   return this->CalibMarkerPreProcOutput[i];
+}
+
+//----------------------------------------------------------------------------
+void vtkTRProstateBiopsyCalibrationAlgo::GetAxisCenterpoints(vtkPoints *points, int i)
+{
+  if (points==NULL)
+  {
+    // TODO: log error
+    return;
+  }
+
+  std::vector<PointType> *coords;
+  if (i==0)
+  {
+    coords=&CoordinatesVectorAxis1;
+  }
+  else if (i==1)
+  {
+    coords=&CoordinatesVectorAxis2;
+  }
+  std::vector<PointType>::iterator it = coords->begin();
+  int ii=0;
+  while (it != coords->end()) 
+  {
+    double x=(*it)[0];
+    double y=(*it)[1];
+    double z=(*it)[2];
+    points->InsertPoint(ii,x,y,z);
+    it++;
+    ii++;
+  }  
 }
