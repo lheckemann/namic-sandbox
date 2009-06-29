@@ -22,9 +22,9 @@
 #include "itkMarchingCubesImageToMeshFilter.h"
 #include "itkImage.h"
 #include "itkPointSet.h"
-#include "itkMesh.h"
+#include "itkQuadEdgeMesh.h"
 #include "itkDefaultDynamicMeshTraits.h"
-#include "itkVTKPolyDataWriter.h"
+#include "itkQuadEdgeMeshVTKPolyDataReader.h"
 
 
 int main( int argc, char * argv[] )
@@ -56,7 +56,7 @@ int main( int argc, char * argv[] )
     NormalType, ImageDimension, 
     TopologicalDimension, PointCoordinateRepresentation >  PointSetTraits;
 
-  typedef   itk::Mesh< NormalType, ImageDimension, PointSetTraits >    PointSetType;
+  typedef   itk::QuadEdgeMesh< NormalType, ImageDimension, PointSetTraits >    PointSetType;
 
   typedef   itk::MarchingCubesImageToMeshFilter< ImageType, PointSetType > FilterType;
 
@@ -103,7 +103,7 @@ int main( int argc, char * argv[] )
 
   std::cout << pointSet->GetNumberOfPoints() << std::endl;
 
-  typedef itk::VTKPolyDataWriter< PointSetType >   WriterType;
+  typedef itk::QuadEdgeMeshVectorDataVTKPolyDataWriter< PointSetType >   WriterType;
 
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( pointSet );
