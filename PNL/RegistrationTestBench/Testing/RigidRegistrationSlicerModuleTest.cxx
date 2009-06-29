@@ -93,7 +93,8 @@ class ScheduleCommand : public itk::Command
     itk::GradientDescentOptimizer* optimizer = (itk::GradientDescentOptimizer*)(const_cast<itk::Object *>(caller));
 
     std::cout << optimizer->GetCurrentIteration() << "   ";
-    std::cout << optimizer->GetValue() << std::endl;
+    std::cout << optimizer->GetValue() << "  :  ";
+    std::cout << optimizer->GetCurrentPosition() << std::endl;
     if (m_Registration)
       {
       // for our purposes, an iteration even is a progress event
@@ -182,8 +183,8 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   std::vector<int> Iterations;
   std::vector<double> LearningRate;
 
-  Iterations.push_back( atoi( argv[ 7] ) );
-  LearningRate.push_back( atof( argv[11] ) );
+  Iterations.push_back( atoi( argv[5] ) );
+  LearningRate.push_back( atof( argv[6] ) );
 
   Schedule->SetSchedule ( Iterations, LearningRate );
 
@@ -202,7 +203,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   typedef OptimizerType::ScalesType OptimizerScalesType;
   OptimizerScalesType scales( transform->GetNumberOfParameters() );
 
-  const double TranslationScale = atof( argv[15] );
+  const double TranslationScale = atof( argv[7] );
 
   scales.Fill ( 1.0 );
   for( unsigned j = 4; j < 7; j++ )
@@ -230,8 +231,8 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
 
   // Set up the metric
   //
-  const unsigned int HistogramBins = atoi( argv[5] );
-  const unsigned int SpatialSamples = atoi( argv[6] );
+  const unsigned int HistogramBins = atoi( argv[3] );
+  const unsigned int SpatialSamples = atoi( argv[4] );
 
   typename MetricType::Pointer  metric        = MetricType::New();
   metric->SetNumberOfHistogramBins ( HistogramBins );
@@ -252,7 +253,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
   registration->SetInterpolator ( interpolator );
   registration->SetFixedImage ( fixedReader->GetOutput() );
   registration->SetMovingImage ( movingReader->GetOutput() );
-  registration->SetNumberOfThreads( atoi( argv[17] ) );
+  registration->SetNumberOfThreads( atoi( argv[9] ) );
 
   // Force an iteration event to trigger a progress event
   Schedule->SetRegistration( registration );
@@ -275,7 +276,7 @@ template<class T1, class T2> int DoIt2( int argc, char * argv[], const T1&, cons
 
   transform->SetParameters ( registration->GetLastTransformParameters() );
 
-  std::string OutputTransform = argv[16];
+  std::string OutputTransform = argv[8];
 
   if (OutputTransform != "")
     {
