@@ -9,6 +9,7 @@
 //the HD at each point of the contour. The code is part of a command line module for Slicer3
 //********************************************************************************
 
+#include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkCannyEdgeDetectionImageFilter.h"
 #include "itkCastImageFilter.h"
@@ -31,7 +32,7 @@ int main(int argc, char** argv){
   //Define pixel type, dimension of the input images, image type and reader type
   typedef unsigned char  PixelType;
   const unsigned int     Dimension = 3;
-  typedef itk::Image< PixelType, Dimension > CharImageType;
+  typedef itk::OrientedImage< PixelType, Dimension > CharImageType;
   typedef itk::ImageFileReader< CharImageType > ReaderType;
 
   //Instantiate an imagefile reader and specify filename
@@ -98,7 +99,7 @@ int main(int argc, char** argv){
   //To use the Canny Edge detector we must cast the image to float
   //Create templates for float pixel and image type
   typedef float    FloatPixelType;
-  typedef itk::Image< FloatPixelType, Dimension > FloatImageType;
+  typedef itk::OrientedImage< FloatPixelType, Dimension > FloatImageType;
 
   //Cast the image to FloatImageType
   typedef itk::CastImageFilter< CharImageType, FloatImageType > CastToFloatFilterType;
@@ -265,12 +266,15 @@ int main(int argc, char** argv){
     region.SetIndex( reader1->GetOutput()->GetLargestPossibleRegion().GetIndex() );
     region.SetSize( reader1->GetOutput()->GetLargestPossibleRegion().GetSize() );
     outputDistMap->SetSpacing( reader1->GetOutput()->GetSpacing() );
+    outputDistMap->SetOrigin( reader1->GetOutput()->GetOrigin() );
+    outputDistMap->SetDirection( reader1->GetOutput()->GetDirection() );
     }
   else
     {
     region.SetIndex( reader2->GetOutput()->GetLargestPossibleRegion().GetIndex() );
     region.SetSize( reader2->GetOutput()->GetLargestPossibleRegion().GetSize() );
-    outputDistMap->SetSpacing( reader2->GetOutput()->GetSpacing() );
+    outputDistMap->SetOrigin( reader2->GetOutput()->GetOrigin() );
+    outputDistMap->SetDirection( reader2->GetOutput()->GetDirection() );
     }
   outputDistMap->SetRegions( region );
   outputDistMap->Allocate();
