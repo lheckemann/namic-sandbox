@@ -112,12 +112,10 @@ ADD_TEST( RigidRegSlicerModuleTest_${NTHREADS}
   ${EXECUTABLE_OUTPUT_PATH}/RigidRegistrationSlicerModuleTest
   ${SLICER_TESTING_DATA}/MRMeningioma0.nrrd   #  fixed image
   ${SLICER_TESTING_DATA}/MRMeningioma1.nrrd   #  moving image
-  0   #  fixedsmoothingfactor
-  0   #  movingsmoothingfactor
-  30  #  histogrambins
-  10000  # spatialsamples
-  100  100  50  20  # iterations 
-  0.01  0.005  0.0005  0.0002 # learningrate 
+  10  #  histogrambins
+  10  #  spatialsamples
+  5   #  iterations 
+  0.01  # learningrate 
   100 # translationscale 
   ${TEMP}/RigidRegistrationTransform-CLI_${NTHREADS}.txt  # outputtransform 
   ${NTHREADS}  # number of threads
