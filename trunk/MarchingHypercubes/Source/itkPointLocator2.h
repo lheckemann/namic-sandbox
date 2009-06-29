@@ -74,6 +74,7 @@ public:
   typedef typename TreeGeneratorType::KdTreeType                    TreeType;
   typedef typename TreeType::ConstPointer                           TreeConstPointer;
   typedef typename TreeType::InstanceIdentifierVectorType           InstanceIdentifierVectorType;
+  typedef typename TreeType::InstanceIdentifier                     InstanceIdentifierType;
 
 
   /** Connect the PointSet as input */
@@ -93,6 +94,9 @@ public:
   void Search(const PointType &query,
               double radius,
               InstanceIdentifierVectorType& result) const;
+
+  /** Insert new point */
+  void InsertNewPoint(const PointType &newPoint, InstanceIdentifierType pointId);
 
 protected:
   PointLocator2();

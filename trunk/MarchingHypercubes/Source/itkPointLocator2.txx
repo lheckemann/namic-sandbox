@@ -72,6 +72,14 @@ PointLocator2<TMesh>
 template <class TMesh>
 void
 PointLocator2<TMesh>
+::InsertNewPoint(const PointType &newPoint, InstanceIdentifierType pointId)
+{
+    // TODO: for Luis to implement
+}
+
+template <class TMesh>
+void
+PointLocator2<TMesh>
 ::Search(const PointType &query,
          double radius,
          InstanceIdentifierVectorType& result) const
