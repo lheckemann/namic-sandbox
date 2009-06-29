@@ -83,6 +83,16 @@ public:
 
   itkGetMacro(NumberOfClasses, int);
 
+  const std::vector<float>& GetClassCentroid()
+  {
+    return this->m_ClassCentroid;
+  }
+
+  const std::vector<float>& GetClassStandardDeviation()
+  {
+    return this->m_ClassStandardDeviation;
+  }
+
   /** Set/Get methods for bias correction option */
   itkSetMacro(BiasCorrectionOption, int);
   itkGetMacro(BiasCorrectionOption, int);
@@ -108,7 +118,10 @@ private:
   int m_NumberOfClasses;
   int m_BiasCorrectionOption;
   OutputImagePointer m_BiasField;
-  InputImagePointer m_ImageMask;
+  InputImagePointer  m_ImageMask;
+  std::vector<float> m_ClassCentroid;
+  std::vector<float> m_ClassStandardDeviation;
+
 
 
 private:

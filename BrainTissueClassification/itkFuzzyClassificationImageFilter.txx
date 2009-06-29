@@ -44,6 +44,9 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   typename TOutputImage::Pointer output = TOutputImage::New();
   this->ProcessObject::SetNumberOfOutputs( m_NumberOfClasses );
   this->ProcessObject::SetNthOutput(1, output.GetPointer());
+
+  this->m_ClassCentroid.resize( m_NumberOfClasses );
+  this->m_ClassStandardDeviation.resize( m_NumberOfClasses );
 }
 
 
@@ -75,6 +78,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::GenerateData( )
 {
   itkDebugMacro(<<"Actually executing");
+
+  this->m_ClassStandardDeviation.resize( m_NumberOfClasses );
 
   // Get the input and output pointers
   InputImageConstPointer  inputPtr  = this->GetInput();
@@ -150,7 +155,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                        0, this->m_BiasCorrectionOption, 
                        0.8, 0.8,
                        0.01, gain_field_g,
-                       mem_fun_u, mem_fun_un, centroid_v);
+                       mem_fun_u, mem_fun_un, this->m_ClassCentroid);
     }
   else 
     {
@@ -159,9 +164,33 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                             0.8, 0.8,
                             0.01, 3,
                             gain_field_g,
-                            mem_fun_u, mem_fun_un, centroid_v);
+                            mem_fun_u, mem_fun_un, this->m_ClassCentroid);
     
     }
+
+  // mask out output
+  if (m_ImageMask)
+  {
+    for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+    {
+      typename InputImageType::IndexType idx = it.GetIndex();
+      typename InputImageType::PointType pt;
+      img->TransformIndexToPhysicalPoint( idx, pt );
+      m_ImageMask->TransformPhysicalPointToIndex( pt, idx );
+      if ( m_ImageMask->GetLargestPossibleRegion().IsInside(idx) )
+      {
+        if (m_ImageMask->GetPixel(idx) != 0)
+        {
+          continue;
+        }
+      }
+      idx = it.GetIndex();
+      for (int k = 0; k < this->m_NumberOfClasses; k++)
+      {
+        mem_fun_u[k]->SetPixel( idx, 0 );
+      }
+    }
+  }
 
   // copy bias field;
   this->m_BiasField = InputImageType::New();
@@ -199,6 +228,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
       itcpy.Set( mem_fun_u[k]->GetPixel( itcpy.GetIndex() ) );
     }
   }
+
+
 }
 
 
@@ -255,6 +286,41 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     iter++;
   }
   while (conv == false);
+
+  itk::ImageRegionIteratorWithIndex<InputImageType> it( img_y, img_y->GetLargestPossibleRegion() );
+  std::vector <float> count( this->m_NumberOfClasses );
+  for (int k = 0; k < this->m_NumberOfClasses; k++)
+  {
+    this->m_ClassStandardDeviation[k] = 0;
+    count[k] = 0;
+  }
+
+  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+  {
+    typename InputImageType::IndexType idx = it.GetIndex();
+    float p = static_cast<float>( it.Get() );
+
+    for (int k = 0; k < this->m_NumberOfClasses; k++)
+    {
+      if (mem_fun_u[k]->GetPixel(idx) <= 0.5)
+      {
+        continue;
+      }
+      else
+      {
+        count[k] += 1.0;
+        p -= this->m_ClassCentroid[k];
+        this->m_ClassStandardDeviation[k] += (p*p);
+      }
+    }
+  }
+
+  for (int k = 0; k < this->m_NumberOfClasses; k++)
+  {
+    this->m_ClassStandardDeviation[k] /= (count[k]-1);
+    this->m_ClassStandardDeviation[k] = sqrt( this->m_ClassStandardDeviation[k] );
+  }
+
 }
 
 //===================================================================
