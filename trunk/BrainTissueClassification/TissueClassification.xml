@@ -23,7 +23,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
     <description>Input T1 Image.</description>
   </image>
 
-  <image>
+  <image type="label">
     <name>maskVolume</name>
     <label>Input mask</label>
     <channel>input</channel>
