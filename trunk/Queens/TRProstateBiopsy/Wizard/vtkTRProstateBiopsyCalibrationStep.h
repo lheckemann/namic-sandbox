@@ -192,6 +192,7 @@ protected:
 
   vtkSmartPointer<vtkActor> Axes1Actor;
   vtkSmartPointer<vtkActor> Axes2Actor;
+  vtkSmartPointer<vtkActor> AxesCenterPointsActor;  
 
   //ETX
 

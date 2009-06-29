@@ -25,6 +25,7 @@ class vtkMatrix4x4;
 class vtkImageData;
 class vtkTRProstateBiopsyTargetDescriptor;
 class vtkMRMLTRProstateBiopsyModuleNode;
+class vtkPoints;
 
 #include <vector>
 #include "itkPoint.h"
@@ -67,11 +68,14 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyCalibrationAlgo :
   public vtkObject
 {
 public:
+
   static vtkTRProstateBiopsyCalibrationAlgo *New();
   vtkTypeRevisionMacro(vtkTRProstateBiopsyCalibrationAlgo,vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   //BTX
+  typedef itk::Point<double, 3> PointType;
+
   // Description
   // ... TODO: to be completed
   bool CalibrateFromImage(const TRProstateBiopsyCalibrationFromImageInput &input, TRProstateBiopsyCalibrationFromImageOutput &output);  
@@ -80,6 +84,7 @@ public:
   bool FindTargetingParams(vtkMRMLTRProstateBiopsyModuleNode* node, vtkTRProstateBiopsyTargetDescriptor *target);
 
   vtkImageData *GetCalibMarkerPreProcOutput(int i);
+  void GetAxisCenterpoints(vtkPoints *points, int i);
 
   const TRProstateBiopsyCalibrationData& GetCalibrationData() { return this->CalibrationData; }
 
@@ -87,13 +92,17 @@ protected:
 
   bool RotatePoint(double H_before[3], double rotation_rad, double alpha_rad, double mainaxis[3], double I[3], /*out*/double H_after[3]);
 
+  //BTX
   void SegmentAxis(const double initPos1[3], const double initPos2[3], vtkMatrix4x4 *volumeIJKToRASMatrix, vtkImageData* calibVol,
     double thresh1, double thresh2, const double fidDims[3], double radius, double initialAngle, 
-    double P1[3], double v1[3], double finalPos1[3], double finalPos2[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2);
-  bool SegmentCircle(float originToBeChanged[3],const double normal[3],  double thresh, const double fidDims[3], double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, vtkImageData *preprocOutput=NULL);
+    double P1[3], double v1[3], double finalPos1[3], double finalPos2[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2, std::vector<typename PointType> *CoordinatesVectorAxis);
+  bool SegmentCircle(float originToBeChanged[3],const double normal[3],  double thresh, const double fidDims[3], double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, std::vector<PointType> &CoordinatesVector, vtkImageData *preprocOutput=NULL);
+  //ETX
   bool CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double &gx, double &gy, double &gz, int nVotedNeeded, bool lDebug);  
   bool CalculateCircleCenterMean(vtkImageData *inData, double nRadius, double threshold, double &gx, double &gy, double &gz);  
-  void RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3]);
+  //BTX
+  void RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3], std::vector<typename PointType> &CoordinatesVector);
+  //ETX
   bool FindProbe(const double P1[3], const double P2[3], double v1[3], double v2[3], 
     double I1[3], double I2[3], double &axesAngleDegrees, double &axesDistance);
   //BTX
@@ -106,8 +115,8 @@ protected:
   virtual ~vtkTRProstateBiopsyCalibrationAlgo();
 
   //BTX
-  //typedef itk::Point<double, 3> PointType;
-  std::vector<itk::Point<double,3> > CoordinatesVector;
+  std::vector<PointType> CoordinatesVectorAxis1;
+  std::vector<PointType> CoordinatesVectorAxis2;
   std::vector<vtkImageData*> CalibMarkerPreProcOutput;
   //ETX
 
