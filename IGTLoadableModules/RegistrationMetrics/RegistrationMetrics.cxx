@@ -22,11 +22,9 @@
 #include <string>
 #include <vector>
 
-
 int main(int argc, char** argv){
 
   PARSE_ARGS;
-
   //--------------------------------------------------------------------------------
   //Read in images from Slicer3
   //--------------------------------------------------------------------------------
@@ -266,15 +264,16 @@ int main(int argc, char** argv){
     {
     region.SetIndex( reader1->GetOutput()->GetLargestPossibleRegion().GetIndex() );
     region.SetSize( reader1->GetOutput()->GetLargestPossibleRegion().GetSize() );
+    outputDistMap->SetSpacing( reader1->GetOutput()->GetSpacing() );
     }
   else
     {
     region.SetIndex( reader2->GetOutput()->GetLargestPossibleRegion().GetIndex() );
     region.SetSize( reader2->GetOutput()->GetLargestPossibleRegion().GetSize() );
+    outputDistMap->SetSpacing( reader2->GetOutput()->GetSpacing() );
     }
   outputDistMap->SetRegions( region );
   outputDistMap->Allocate();
-
 
   //Instantiate and define colorMap iterator
   typedef itk::ImageRegionIterator<FloatImageType> IterFloatType;
