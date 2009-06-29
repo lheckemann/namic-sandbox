@@ -21,6 +21,7 @@ INCLUDE(CTest)
 
 INCLUDE_DIRECTORIES(
   ${PROJECT_SOURCE_DIR}/Source
+  ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration/Source
   )
 
 # Disable MSVC 8 warnings
