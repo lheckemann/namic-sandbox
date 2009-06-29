@@ -275,6 +275,7 @@ int main(int argc, char** argv){
   outputDistMap->SetRegions( region );
   outputDistMap->Allocate();
 
+
   //Instantiate and define colorMap iterator
   typedef itk::ImageRegionIterator<FloatImageType> IterFloatType;
   IterFloatType Iter5( outputDistMap, outputDistMap->GetLargestPossibleRegion() );
