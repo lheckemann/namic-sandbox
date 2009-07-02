@@ -31,10 +31,13 @@
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
 #include "vtkKWEvent.h"
-
 #include "vtkKWPushButton.h"
+#include "vtkKWEntry.h"
 
+#include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkMatrix4x4.h"
 #include "vtkCornerAnnotation.h"
+#include "vtkMRMLNode.h"
 
 
 //---------------------------------------------------------------------------
@@ -56,8 +59,9 @@ vtkEMNeuroGUI::vtkEMNeuroGUI ( )
   
   //----------------------------------------------------------------
   // GUI widgets
-  this->TestButton11 = NULL;
-  this->TestButton12 = NULL;
+  this->NodeSelectorMenu = NULL;
+  this->GetTransfer = NULL;
+  this->numPointsEntry = NULL;
   this->TestButton21 = NULL;
   this->TestButton22 = NULL;
   
@@ -87,16 +91,22 @@ vtkEMNeuroGUI::~vtkEMNeuroGUI ( )
   //----------------------------------------------------------------
   // Remove GUI widgets
 
-  if (this->TestButton11)
+  if (this->NodeSelectorMenu)
     {
-    this->TestButton11->SetParent(NULL);
-    this->TestButton11->Delete();
+    this->NodeSelectorMenu->SetParent(NULL);
+    this->NodeSelectorMenu->Delete();
     }
 
-  if (this->TestButton12)
+  if (this->numPointsEntry)
     {
-    this->TestButton12->SetParent(NULL);
-    this->TestButton12->Delete();
+    this->numPointsEntry->SetParent(NULL);
+    this->numPointsEntry->Delete();
+    }
+
+  if (this->GetTransfer)
+    {
+    this->GetTransfer->SetParent(NULL);
+    this->GetTransfer->Delete();
     }
 
   if (this->TestButton21)
@@ -163,15 +173,21 @@ void vtkEMNeuroGUI::RemoveGUIObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  if (this->TestButton11)
+  if (this->NodeSelectorMenu)
     {
-    this->TestButton11
+    this->NodeSelectorMenu
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->TestButton12)
+  if (this->numPointsEntry)
     {
-    this->TestButton12
+    this->numPointsEntry
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->GetTransfer)
+    {
+    this->GetTransfer
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
@@ -217,9 +233,11 @@ void vtkEMNeuroGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
-  this->TestButton11
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton12
+  this->NodeSelectorMenu
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->numPointsEntry
+     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->GetTransfer
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->TestButton21
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -276,16 +294,28 @@ void vtkEMNeuroGUI::ProcessGUIEvents(vtkObject *caller,
     return;
     }
 
-  
-  if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
-      && event == vtkKWPushButton::InvokedEvent)
+  if (this->NodeSelectorMenu == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
-    std::cerr << "TestButton11 is pressed." << std::endl;
+    std::cerr << "Node Selector is pressed." << std::endl;
     }
-  else if (this->TestButton12 == vtkKWPushButton::SafeDownCast(caller)
+  else if (this->numPointsEntry == vtkKWEntry::SafeDownCast(caller)
+      && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    std::cerr << "numPoints has been modified." << std::endl;
+    }
+  else if (this->GetTransfer == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    std::cerr << "TestButton12 is pressed." << std::endl;
+    std::cerr << "GetTransfer is pressed." << std::endl;
+    //Observe selected node
+    vtkMRMLNode* node = this->NodeSelectorMenu->GetSelected();
+    vtkIntArray* nodeEvents = vtkIntArray::New();
+    nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    vtkMRMLNode* nullNode = NULL;
+    vtkSetAndObserveMRMLNodeEventsMacro(nullNode, node, nodeEvents);
+    nodeEvents->Delete();
+    this->Logic->ProcessMatrix(this->NodeSelectorMenu->GetSelected());
     }
   else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
@@ -329,7 +359,18 @@ void vtkEMNeuroGUI::ProcessLogicEvents ( vtkObject *caller,
 void vtkEMNeuroGUI::ProcessMRMLEvents ( vtkObject *caller,
                                             unsigned long event, void *callData )
 {
-  // Fill in
+  // Detect if something has happened in the MRML scene
+  if (caller != NULL)
+    {
+    std::cerr<<"MRML event called" << std::endl;
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    if (node == NodeSelectorMenu->GetSelected())
+      {
+      std::cerr << "Selected Node has been updated" << std::endl;
+      node->Print(std::cerr);
+      }
+    //else remove observer on node
+    }
 
   if (event == vtkMRMLScene::SceneCloseEvent)
     {
@@ -360,7 +401,7 @@ void vtkEMNeuroGUI::BuildGUI ( )
   this->UIPanel->AddPage ( "EMNeuro", "EMNeuro", NULL );
 
   BuildGUIForHelpFrame();
-  BuildGUIForTestFrame1();
+  BuildGUIForCalibrationFrame();
   BuildGUIForTestFrame2();
 
 }
@@ -379,53 +420,101 @@ void vtkEMNeuroGUI::BuildGUIForHelpFrame ()
   this->BuildHelpAndAboutFrame (page, help, about);
 }
 
-
 //---------------------------------------------------------------------------
-void vtkEMNeuroGUI::BuildGUIForTestFrame1()
+void vtkEMNeuroGUI::BuildGUIForCalibrationFrame()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("EMNeuro");
   
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+  vtkSlicerModuleCollapsibleFrame *calibrationFrame = vtkSlicerModuleCollapsibleFrame::New();
 
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 1");
-  //conBrowsFrame->CollapseFrame();
+  calibrationFrame->SetParent(page);
+  calibrationFrame->Create();
+  calibrationFrame->SetLabelText("Pivot Calibration");
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+               calibrationFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Test child frame
+  // Calibration Options Frame
 
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
+  frame->SetParent(calibrationFrame->GetFrame());
   frame->Create();
-  frame->SetLabelText ("Test child frame");
+  frame->SetLabelText ("Calibration Options");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
 
-  // -----------------------------------------
-  // Test push button
+  //Node Selector Menu
+  vtkKWFrame *nodeFrame = vtkKWFrame::New();
+  nodeFrame->SetParent(frame->GetFrame());
+  nodeFrame->Create();
+  //nodeFrame->SetWidth(20);
+  app->Script ( "pack %s -fill both -expand true",
+                nodeFrame->GetWidgetName());
 
-  this->TestButton11 = vtkKWPushButton::New ( );
-  this->TestButton11->SetParent ( frame->GetFrame() );
-  this->TestButton11->Create ( );
-  this->TestButton11->SetText ("Test 11");
-  this->TestButton11->SetWidth (12);
+  this->NodeSelectorMenu = vtkSlicerNodeSelectorWidget::New();
+  this->NodeSelectorMenu->SetParent(nodeFrame);
+  this->NodeSelectorMenu->Create();
+  this->NodeSelectorMenu->SetWidth(15);
+  this->NodeSelectorMenu->SetNewNodeEnabled(0);
+  this->NodeSelectorMenu->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, NULL);
+  this->NodeSelectorMenu->NoneEnabledOn();
+  this->NodeSelectorMenu->SetShowHidden(1);
+  this->NodeSelectorMenu->Create();
+  this->NodeSelectorMenu->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->NodeSelectorMenu->UpdateMenu();
+  this->NodeSelectorMenu->SetBorderWidth(0);
+  this->NodeSelectorMenu->SetLabelText( "Select Transform");
+  this->NodeSelectorMenu->SetBalloonHelpString("Select a trasnform from the Scene");
 
-  this->TestButton12 = vtkKWPushButton::New ( );
-  this->TestButton12->SetParent ( frame->GetFrame() );
-  this->TestButton12->Create ( );
-  this->TestButton12->SetText ("Tset 12");
-  this->TestButton12->SetWidth (12);
+  this->Script("pack %s -side left -padx 2 -pady 2",
+               this->NodeSelectorMenu->GetWidgetName());
 
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton11->GetWidgetName(),
-               this->TestButton12->GetWidgetName());
+  //Number of points for calibration entry
+  vtkKWFrame* pointsFrame = vtkKWFrame::New();
+  pointsFrame->SetParent(frame->GetFrame());
+  pointsFrame->Create();
+  this->Script ( "pack %s -fill both -expand true",
+                 pointsFrame->GetWidgetName());
 
-  conBrowsFrame->Delete();
+  vtkKWLabel* pointsLabel = vtkKWLabel::New();
+  pointsLabel->SetParent(pointsFrame);
+  pointsLabel->Create();
+  pointsLabel->SetWidth(15);
+  pointsLabel->SetText("Number of Points: ");
+
+  this->numPointsEntry = vtkKWEntry::New();
+  this->numPointsEntry->SetParent(pointsFrame);
+  this->numPointsEntry->SetRestrictValueToInteger();
+  this->numPointsEntry->Create();
+  this->numPointsEntry->SetWidth(8);
+
+  this->Script ( "pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+                 pointsLabel->GetWidgetName(),
+                 this->numPointsEntry->GetWidgetName());
+
+  //Calibration button
+  vtkKWFrame* startCalibrationFrame = vtkKWFrame::New();
+  startCalibrationFrame->SetParent(calibrationFrame->GetFrame());
+  startCalibrationFrame->Create();
+  this->Script ( "pack %s -fill both -expand true",
+                 startCalibrationFrame->GetWidgetName());
+
+  this->GetTransfer = vtkKWPushButton::New ( );
+  this->GetTransfer->SetParent ( startCalibrationFrame );
+  this->GetTransfer->Create ( );
+  this->GetTransfer->SetText ("Get Transfer");
+  this->GetTransfer->SetWidth (15);
+  this->Script ( "pack %s -side left -expand true",
+                 GetTransfer->GetWidgetName());
+
+  //Delete widget pointers
+  calibrationFrame->Delete();
+  nodeFrame->Delete();
+  pointsFrame->Delete();
+  pointsLabel->Delete();
+  startCalibrationFrame->Delete();
   frame->Delete();
 
 }

@@ -26,6 +26,8 @@
 #include "vtkEMNeuroLogic.h"
 
 class vtkKWPushButton;
+class vtkSlicerNodeSelectorWidget;
+class vtkKWEntry;
 
 class VTK_EMNeuro_EXPORT vtkEMNeuroGUI : public vtkSlicerModuleGUI
 {
@@ -93,7 +95,7 @@ class VTK_EMNeuro_EXPORT vtkEMNeuroGUI : public vtkSlicerModuleGUI
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForTestFrame1();
+  void BuildGUIForCalibrationFrame();
   void BuildGUIForTestFrame2();
 
   //----------------------------------------------------------------
@@ -116,8 +118,9 @@ class VTK_EMNeuro_EXPORT vtkEMNeuroGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkKWPushButton* TestButton11;
-  vtkKWPushButton* TestButton12;
+  vtkSlicerNodeSelectorWidget* NodeSelectorMenu;
+  vtkKWEntry* numPointsEntry;
+  vtkKWPushButton* GetTransfer;
   vtkKWPushButton* TestButton21;
   vtkKWPushButton* TestButton22;
 
