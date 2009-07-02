@@ -19,6 +19,7 @@
 #include "vtkSlicerApplicationGUI.h"
 
 #include "vtkEMNeuroLogic.h"
+#include "vtkMRMLNode.h"
 
 vtkCxxRevisionMacro(vtkEMNeuroLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkEMNeuroLogic);
@@ -74,7 +75,17 @@ void vtkEMNeuroLogic::UpdateAll()
 
 }
 
+//---------------------------------------------------------------------------
+void vtkEMNeuroLogic::ProcessMatrix(vtkMRMLNode* node)
+{
+  //Check to see if Node passed is empty
+  if (node != NULL)
+    {
+    node->Print(std::cerr);
+    std::cerr << "Matrix processed" << std::endl;
+    }
 
+}
 
 
 

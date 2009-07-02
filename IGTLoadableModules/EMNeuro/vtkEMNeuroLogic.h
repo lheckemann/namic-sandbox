@@ -48,6 +48,7 @@ class VTK_EMNeuro_EXPORT vtkEMNeuroLogic : public vtkSlicerModuleLogic
   
   vtkTypeRevisionMacro(vtkEMNeuroLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
+  void ProcessMatrix(vtkMRMLNode*);
 
  protected:
   
