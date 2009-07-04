@@ -22,6 +22,8 @@
 #include "igtlImageMessage.h"
 #include "igtlServerSocket.h"
 
+
+
 int GetTestImage(igtl::ImageMessage::Pointer& msg, const char* dir, int i);
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
 
@@ -45,6 +47,7 @@ int main(int argc, char* argv[])
   double fps      = atof(argv[2]);
   int    interval = (int) (1000.0 / fps);
   char*  filedir  = argv[3];
+
 
   //------------------------------------------------------------
   // Prepare server socket
