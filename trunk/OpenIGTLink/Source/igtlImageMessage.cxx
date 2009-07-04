@@ -40,6 +40,11 @@ ImageMessage::ImageMessage():
         }
     }
 
+  matrix[3][0] = 0.0;
+  matrix[3][1] = 0.0;
+  matrix[3][2] = 0.0;
+  matrix[3][3] = 1.0;
+
   endian        = ENDIAN_BIG;
   dataType      = DTYPE_SCALAR;
   coordinate    = COORDINATE_RAS;
@@ -288,15 +293,22 @@ void ImageMessage::SetMatrix(Matrix4x4& mat)
   matrix[0][0] = mat[0][0];
   matrix[1][0] = mat[1][0];
   matrix[2][0] = mat[2][0];
+  matrix[3][0] = mat[3][0];
+
   matrix[0][1] = mat[0][1];
   matrix[1][1] = mat[1][1];
   matrix[2][1] = mat[2][1];
+  matrix[3][1] = mat[3][1];
+
   matrix[0][2] = mat[0][2];
   matrix[1][2] = mat[1][2];
   matrix[2][2] = mat[2][2];
+  matrix[3][2] = mat[3][2];
+
   matrix[0][3] = mat[0][3];
   matrix[1][3] = mat[1][3];
   matrix[2][3] = mat[2][3];
+  matrix[3][3] = mat[3][3];
 }
 
 void ImageMessage::GetMatrix(Matrix4x4& mat)
@@ -304,15 +316,22 @@ void ImageMessage::GetMatrix(Matrix4x4& mat)
   mat[0][0] = matrix[0][0];
   mat[1][0] = matrix[1][0];
   mat[2][0] = matrix[2][0];
+  mat[3][0] = matrix[3][0];
+
   mat[0][1] = matrix[0][1];
   mat[1][1] = matrix[1][1];
   mat[2][1] = matrix[2][1];
+  mat[3][1] = matrix[3][1];
+
   mat[0][2] = matrix[0][2];
   mat[1][2] = matrix[1][2];
   mat[2][2] = matrix[2][2];
+  mat[3][2] = matrix[3][2];
+
   mat[0][3] = matrix[0][3];
   mat[1][3] = matrix[1][3];
   mat[2][3] = matrix[2][3];
+  mat[3][3] = matrix[3][3];
 }
 
 void ImageMessage::AllocateScalars()
