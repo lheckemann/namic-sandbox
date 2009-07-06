@@ -16,6 +16,8 @@
 #define __vtkPivotCalibration_h
 
 #include "vtkPivotCalibrationAlgorithm.h"
+#include "vtkMRMLNode.h"
+#include <vector>
 
 /** PivotCalibration
  *
@@ -90,15 +92,16 @@ private:
 
   //transformations used for pivot calibration
   std::vector< PivotCalibrationAlgorithm::TransformType > m_Transforms;
-  //tracker used for pivot calibration
-  Tracker::Pointer      m_TmpTracker;
-  Tracker::Pointer      m_Tracker;
+  //MRML node which contains tracking information
+  vtkMRMLNode* transformNode;
   //number of transformation we want to acquire
-  unsigned int m_TmpRequiredNumberOfTransformations;
   unsigned int m_RequiredNumberOfTransformations;
+  //Flags indicating errors
+  bool bInitializeError;
+  bool bComputationError;
 
-           //the object that actually does all the work
-  PivotCalibrationAlgorithm::Pointer m_PivotCalibrationAlgorithm;
+  //the object that actually does all the work
+  PivotCalibrationAlgorithm* m_PivotCalibrationAlgorithm;
 };
 
 #endif //__vtkPivotCalibration_h
