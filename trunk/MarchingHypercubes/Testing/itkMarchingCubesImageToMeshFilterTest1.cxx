@@ -56,7 +56,7 @@ int main( int argc, char * argv[] )
     NormalType, ImageDimension, 
     TopologicalDimension, PointCoordinateRepresentation >  PointSetTraits;
 
-  typedef   itk::QuadEdgeMesh< NormalType, ImageDimension, PointSetTraits >    PointSetType;
+  typedef   itk::QuadEdgeMesh< NormalType, ImageDimension >    PointSetType;
 
   typedef   itk::MarchingCubesImageToMeshFilter< ImageType, PointSetType > FilterType;
 
