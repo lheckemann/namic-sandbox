@@ -15,8 +15,8 @@ SET(LABEL_IMAGE ${CMAKE_SOURCE_DIR}/images/cthead1-label.png)
 INCLUDE(IJMacros.txt)
 
 #The following lines are required to use Dart
-ENABLE_TESTING()
-INCLUDE(Dart)
+INCLUDE(CTest)
+
 FIND_PROGRAM(ITK_TEST_DRIVER itkTestDriver)
 SET(TEST_COMMAND ${ITK_TEST_DRIVER} --add-before-env PATH ${CMAKE_BINARY_DIR})
 
