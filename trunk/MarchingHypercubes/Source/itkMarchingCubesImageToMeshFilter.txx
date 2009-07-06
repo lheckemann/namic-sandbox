@@ -624,7 +624,6 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
     {
     // This is a repeated point
     // use list[0] as the index to insert in the new triangle cell
-
     pointsContainer->InsertElement(  this->m_NumberOfPoints, pointsContainer->GetElement( list[0]) );
     pointDataContainer->InsertElement(  this->m_NumberOfPoints, pointDataContainer->GetElement( list[0] ) );
     cellpointer->SetPointId( 0, list[0] );
