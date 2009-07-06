@@ -56,7 +56,7 @@ vtkEMNeuroGUI::vtkEMNeuroGUI ( )
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkEMNeuroGUI::DataCallback);
-  
+
   //----------------------------------------------------------------
   // GUI widgets
   this->NodeSelectorMenu = NULL;
@@ -64,7 +64,7 @@ vtkEMNeuroGUI::vtkEMNeuroGUI ( )
   this->numPointsEntry = NULL;
   this->TestButton21 = NULL;
   this->TestButton22 = NULL;
-  
+
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
@@ -140,7 +140,7 @@ void vtkEMNeuroGUI::Enter()
 {
   // Fill in
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  
+
   if (this->TimerFlag == 0)
     {
     this->TimerFlag = 1;
@@ -223,7 +223,7 @@ void vtkEMNeuroGUI::AddGUIObservers ( )
   //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
-  
+
   if (this->GetMRMLScene() != NULL)
     {
     this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
@@ -265,7 +265,7 @@ void vtkEMNeuroGUI::RemoveLogicObservers ( )
 //---------------------------------------------------------------------------
 void vtkEMNeuroGUI::AddLogicObservers ( )
 {
-  this->RemoveLogicObservers();  
+  this->RemoveLogicObservers();
 
   if (this->GetLogic())
     {
@@ -328,10 +328,10 @@ void vtkEMNeuroGUI::ProcessGUIEvents(vtkObject *caller,
     std::cerr << "TestButton22 is pressed." << std::endl;
     }
 
-} 
+}
 
 
-void vtkEMNeuroGUI::DataCallback(vtkObject *caller, 
+void vtkEMNeuroGUI::DataCallback(vtkObject *caller,
                                      unsigned long eid, void *clientData, void *callData)
 {
   vtkEMNeuroGUI *self = reinterpret_cast<vtkEMNeuroGUI *>(clientData);
@@ -369,6 +369,7 @@ void vtkEMNeuroGUI::ProcessMRMLEvents ( vtkObject *caller,
       std::cerr << "Selected Node has been updated" << std::endl;
       node->Print(std::cerr);
       }
+    //GetMatrixTransformtoParent()
     //else remove observer on node
     }
 
@@ -384,9 +385,9 @@ void vtkEMNeuroGUI::ProcessTimerEvents()
   if (this->TimerFlag)
     {
     // update timer
-    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
+    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(),
                                          this->TimerInterval,
-                                         this, "ProcessTimerEvents");        
+                                         this, "ProcessTimerEvents");
     }
 }
 
@@ -396,7 +397,7 @@ void vtkEMNeuroGUI::BuildGUI ( )
 {
 
   // ---
-  // MODULE GUI FRAME 
+  // MODULE GUI FRAME
   // create a page
   this->UIPanel->AddPage ( "EMNeuro", "EMNeuro", NULL );
 
@@ -410,7 +411,7 @@ void vtkEMNeuroGUI::BuildGUI ( )
 void vtkEMNeuroGUI::BuildGUIForHelpFrame ()
 {
   // Define your help text here.
-  const char *help = 
+  const char *help =
     "See "
     "<a>http://www.slicer.org/slicerWiki/index.php/Modules:EMNeuro</a> for details.";
   const char *about =
@@ -426,7 +427,7 @@ void vtkEMNeuroGUI::BuildGUIForCalibrationFrame()
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("EMNeuro");
-  
+
   vtkSlicerModuleCollapsibleFrame *calibrationFrame = vtkSlicerModuleCollapsibleFrame::New();
 
   calibrationFrame->SetParent(page);
@@ -525,7 +526,7 @@ void vtkEMNeuroGUI::BuildGUIForTestFrame2 ()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
   vtkKWWidget *page = this->UIPanel->GetPageWidget ("EMNeuro");
-  
+
   vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
 
   conBrowsFrame->SetParent(page);
@@ -544,7 +545,7 @@ void vtkEMNeuroGUI::BuildGUIForTestFrame2 ()
   frame->SetLabelText ("Test child frame");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
-  
+
   // -----------------------------------------
   // Test push button
 
@@ -560,7 +561,7 @@ void vtkEMNeuroGUI::BuildGUIForTestFrame2 ()
   this->TestButton22->SetText ("Tset 22");
   this->TestButton22->SetWidth (12);
 
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
+  this->Script("pack %s %s -side left -padx 2 -pady 2",
                this->TestButton21->GetWidgetName(),
                this->TestButton22->GetWidgetName());
 
