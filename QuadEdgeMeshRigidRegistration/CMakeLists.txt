@@ -25,15 +25,18 @@ IF(${ITK_VERSION_MINOR} LESS 12 )
 ENDIF(${ITK_VERSION_MINOR} LESS 12 )
 
 
-FIND_PACKAGE(VTK REQUIRED)
-INCLUDE(${VTK_USE_FILE})
+OPTION(QuadEdgeMeshRigidRegistration_USE_VTK "Use VTK (The Visualization Toolkit) (some applications need this)" OFF)
+IF(QuadEdgeMeshRigidRegistration_USE_VTK)
+  FIND_PACKAGE(VTK REQUIRED)
+  INCLUDE(${VTK_USE_FILE})
+ENDIF(QuadEdgeMeshRigidRegistration_USE_VTK)
+
 
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables") 
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
 
 INCLUDE(${PROJECT_SOURCE_DIR}/Utilities/KWStyle/KWStyle.cmake)
 
-ENABLE_TESTING()
 INCLUDE(CTest)
 
 INCLUDE_DIRECTORIES(
