@@ -564,7 +564,8 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   typename TriangleType::CellAutoPointer cellpointer;
   cellpointer.TakeOwnership( new TriangleType );
   
-  PointLocatorType::InstanceIdentifierVectorType        list;
+  typename PointLocatorType::InstanceIdentifierVectorType        list;
+
   //radius
   double radius = 1.0;
 
@@ -606,7 +607,7 @@ MarchingCubesImageToMeshFilter<TInputImage,TOutputMesh>
   PointsContainer    * pointsContainer  = mesh->GetPoints();
   PointDataContainer * pointDataContainer  = mesh->GetPointData();
 
-  OutputMeshType::PointType p = pointsContainer->GetElement(list[0]);
+  typename OutputMeshType::PointType p = pointsContainer->GetElement(list[0]);
   
   //closest point
   double distance = p.EuclideanDistanceTo(pointIndex.point);
