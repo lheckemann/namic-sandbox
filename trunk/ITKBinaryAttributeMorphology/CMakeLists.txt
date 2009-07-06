@@ -1,3 +1,10 @@
+
+# This is the root ITK CMakeLists file.
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+IF(COMMAND CMAKE_POLICY)
+  CMAKE_POLICY(SET CMP0003 NEW)
+ENDIF(COMMAND CMAKE_POLICY)
+
 #Change PROJECT_NAME to the name of your project
 PROJECT(binaryAttributeMorphology)
 
