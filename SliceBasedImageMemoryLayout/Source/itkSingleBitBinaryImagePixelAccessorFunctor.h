@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkDefaultSliceContiguousPixelAccessorFunctor.h,v $
+  Module:    $RCSfile: itkSingleBitBinaryImagePixelAccessorFunctor.h,v $
   Language:  C++
   Date:      $Date$
   Version:   $Revision$
@@ -14,12 +14,12 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkDefaultSliceContiguousPixelAccessorFunctor_h
-#define __itkDefaultSliceContiguousPixelAccessorFunctor_h
+#ifndef __itkSingleBitBinaryImagePixelAccessorFunctor_h
+#define __itkSingleBitBinaryImagePixelAccessorFunctor_h
 
 namespace itk
 {
-/** \class DefaultSliceContiguousPixelAccessorFunctor
+/** \class SingleBitBinaryImagePixelAccessorFunctor
  * \brief Provides accessor interfaces to Access pixels and is meant to be
  * used by iterators.
  *
@@ -27,17 +27,16 @@ namespace itk
  * used by the neighborhood iterators.
  *
  * The pixel accessor is set with the SetPixelAccessor method. This accessor is 
- * meant to be used only for SliceContiguousImage and not for Image. Prior to use,
- * this slices must be set. TODO:
+ * meant to be used only for SparseImage and not for Image.
  *
- * \sa DefaultSliceContiguousPixelAccessor
+ * \sa SingleBitBinaryImagePixelAccessor
  * \sa DefaultPixelAccessor
  * \sa DefaultPixelAccessorFunctor
  *
  * \ingroup ImageAdaptors
  */
 template <class TImageType >
-class ITK_EXPORT DefaultSliceContiguousPixelAccessorFunctor
+class ITK_EXPORT SingleBitBinaryImagePixelAccessorFunctor
 {
 public:
 
@@ -51,30 +50,30 @@ public:
    * The type PixelAccessorType is obtained from the ImageType over which the iterators
    * are templated.
    * */
-  inline void SetPixelAccessor( PixelAccessorType& accessor ) 
+  inline void SetPixelAccessor( PixelAccessorType& accessor )
     {
     m_PixelAccessor = accessor;
     }
 
   /** Set the pointer index to the start of the buffer. */
-  inline void SetBegin( const InternalPixelType * begin ) // NOTE: begin is always 0
+  inline void SetBegin( const InternalPixelType * begin )
     { this->m_Begin = const_cast< InternalPixelType * >( begin ); }
 
   /** Set output using the value in input */
   inline void Set( InternalPixelType & output, const ExternalPixelType &input ) const
     {
-    m_PixelAccessor.Set( output, input, (&output)-m_Begin ); // NOTE: begin is always 0
+    m_PixelAccessor.Set( output, input, (&output)-m_Begin );
     }
 
   /** Get the value from input */
   inline ExternalPixelType Get( const InternalPixelType &input ) const
     {
-    return m_PixelAccessor.Get( input, (&input)-m_Begin ); // NOTE: begin is always 0
+    return m_PixelAccessor.Get( input, (&input)-m_Begin );
     }
 
 private:
-  PixelAccessorType m_PixelAccessor; // The pixel accessor
-  InternalPixelType *m_Begin; // Begin of the buffer, always 0
+  PixelAccessorType m_PixelAccessor;
+  InternalPixelType *m_Begin;
 };
 
 }

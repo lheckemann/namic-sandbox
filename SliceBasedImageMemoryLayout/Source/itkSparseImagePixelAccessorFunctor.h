@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkDefaultSliceContiguousPixelAccessorFunctor.h,v $
+  Module:    $RCSfile: itkSparseImagePixelAccessorFunctor.h,v $
   Language:  C++
   Date:      $Date$
   Version:   $Revision$
@@ -14,12 +14,12 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkDefaultSliceContiguousPixelAccessorFunctor_h
-#define __itkDefaultSliceContiguousPixelAccessorFunctor_h
+#ifndef __itkSparseImagePixelAccessorFunctor_h
+#define __itkSparseImagePixelAccessorFunctor_h
 
 namespace itk
 {
-/** \class DefaultSliceContiguousPixelAccessorFunctor
+/** \class SparseImagePixelAccessorFunctor
  * \brief Provides accessor interfaces to Access pixels and is meant to be
  * used by iterators.
  *
@@ -27,8 +27,7 @@ namespace itk
  * used by the neighborhood iterators.
  *
  * The pixel accessor is set with the SetPixelAccessor method. This accessor is 
- * meant to be used only for SliceContiguousImage and not for Image. Prior to use,
- * this slices must be set. TODO:
+ * meant to be used only for SparseImage and not for Image.
  *
  * \sa DefaultSliceContiguousPixelAccessor
  * \sa DefaultPixelAccessor
@@ -37,7 +36,7 @@ namespace itk
  * \ingroup ImageAdaptors
  */
 template <class TImageType >
-class ITK_EXPORT DefaultSliceContiguousPixelAccessorFunctor
+class ITK_EXPORT SparseImagePixelAccessorFunctor
 {
 public:
 
