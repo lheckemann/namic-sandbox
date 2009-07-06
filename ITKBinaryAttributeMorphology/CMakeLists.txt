@@ -1,4 +1,3 @@
-
 # This is the root ITK CMakeLists file.
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 IF(COMMAND CMAKE_POLICY)
@@ -7,9 +6,6 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 #Change PROJECT_NAME to the name of your project
 PROJECT(binaryAttributeMorphology)
-
-# required to avoid warnings while running cmake
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4.2)
 
 # cpack stuff
 INCLUDE(CPack)
