@@ -34,6 +34,11 @@ FOREACH(Package ${Required_Packages})
   LOADPACKAGE(${Package})
 ENDFOREACH(Package)
 
+
+INCLUDE_DIRECTORIES(
+  ${PROJECT_SOURCE_DIR}/Source
+  )
+
 #Set any libraries that your project depends on.
 #examples: ITKCommon, VTKRendering, etc
 SET(Libraries
