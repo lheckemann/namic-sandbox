@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkSliceContiguousImage.txx,v $
+  Module:    $RCSfile: itkSparseImage.txx,v $
   Language:  C++
   Date:      $Date$
   Version:   $Revision$
@@ -17,37 +17,36 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkSliceContiguousImage_txx
-#define _itkSliceContiguousImage_txx
+#ifndef _itkSparseImage_txx
+#define _itkSparseImage_txx
 
-#include "itkSliceContiguousImage.h"
+#include "itkSparseImage.h"
 #include "itkProcessObject.h"
 
 namespace itk
 {
 
-template<class TPixel>
-SliceContiguousImage<TPixel>
-::SliceContiguousImage()
+template<class TPixel, unsigned int VImageDimension>
+SparseImage<TPixel, VImageDimension>
+::SparseImage()
 {
   m_Container = PixelContainer::New();
 }
 
 
-template<class TPixel>
+template<class TPixel, unsigned int VImageDimension>
 void
-SliceContiguousImage<TPixel>
+SparseImage<TPixel, VImageDimension>
 ::Allocate()
 {
-  ComputeOffsetTable();
-  SizeType size = GetLargestPossibleRegion().GetSize();
-  m_Container->Reserve( size[2], size[0]*size[1] );
+  this->ComputeOffsetTable();
+  m_Container->Reserve( );
 }
 
 
-template<class TPixel>
-void 
-SliceContiguousImage<TPixel>
+template<class TPixel, unsigned int VImageDimension>
+void
+SparseImage<TPixel, VImageDimension>
 ::Initialize()
 {
   //
@@ -65,27 +64,19 @@ SliceContiguousImage<TPixel>
 }
 
 
-template<class TPixel>
-void 
-SliceContiguousImage<TPixel>
+template<class TPixel, unsigned int VImageDimension>
+void
+SparseImage<TPixel, VImageDimension>
 ::FillBuffer(const PixelType& value)
 {
-  typename PixelContainer::SliceArrayType *slices = m_Container->GetSlices();
-  SizeType size = this->GetLargestPossibleRegion().GetSize();
-  unsigned long sizeOfSlice = size[0] * size[1];
-  for ( unsigned int i=0; i<size[2]; i++ )
-    {
-    for ( unsigned int j=0; j<sizeOfSlice; j++ )
-      {
-      slices->operator[](i)[j] = value;
-      }
-    }
+  m_FillBufferValue = value;
+  m_Container->GetPixelMap()->clear();
 }
 
 
-template<class TPixel>
+template<class TPixel, unsigned int VImageDimension>
 void
-SliceContiguousImage<TPixel>
+SparseImage<TPixel, VImageDimension>
 ::SetPixelContainer(PixelContainer *container)
 {
    if (m_Container != container)
@@ -96,9 +87,9 @@ SliceContiguousImage<TPixel>
 }
 
 
-template<class TPixel>
-void 
-SliceContiguousImage<TPixel>
+template<class TPixel, unsigned int VImageDimension>
+void
+SparseImage<TPixel, VImageDimension>
 ::Graft(const DataObject *data)
 {
   // call the superclass' implementation
@@ -136,9 +127,9 @@ SliceContiguousImage<TPixel>
 }
 
 
-template<class TPixel>
-void 
-SliceContiguousImage<TPixel>
+template<class TPixel, unsigned int VImageDimension>
+void
+SparseImage<TPixel, VImageDimension>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);

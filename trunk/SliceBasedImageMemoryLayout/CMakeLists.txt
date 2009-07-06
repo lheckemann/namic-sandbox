@@ -1,10 +1,7 @@
 # This project is designed to be built outside the Insight source tree.
-PROJECT(SliceContiguousImage)
+PROJECT(AlternativeMemoryModels)
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
-# IF(COMMAND CMAKE_POLICY)
-#   CMAKE_POLICY(SET CMP0003 NEW)
-# ENDIF(COMMAND CMAKE_POLICY)
 
 # Find ITK.
 FIND_PACKAGE(ITK REQUIRED)
@@ -12,10 +9,13 @@ INCLUDE(${ITK_USE_FILE})
 
 INCLUDE_DIRECTORIES(
   BEFORE
-  ${SliceContiguousImage_SOURCE_DIR}/Source
-  ${SliceContiguousImage_SOURCE_DIR}/Testing
+  ${AlternativeMemoryModels_SOURCE_DIR}/Source
+  ${AlternativeMemoryModels_SOURCE_DIR}/Testing
   )
 
-ADD_SUBDIRECTORY( Source )
-ADD_SUBDIRECTORY( Testing )
-
+ADD_SUBDIRECTORY(Source)
+OPTION(BUILD_TESTING "Build the Testing directory." ON)
+IF(BUILD_TESTING)
+  ENABLE_TESTING()
+  SUBDIRS(Testing)
+ENDIF(BUILD_TESTING)

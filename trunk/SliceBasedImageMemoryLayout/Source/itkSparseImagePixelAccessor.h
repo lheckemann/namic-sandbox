@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkDefaultSliceContiguousPixelAccessor.h,v $
+  Module:    $RCSfile: itkSparseImagePixelAccessor.h,v $
   Language:  C++
   Date:      $Date$
   Version:   $Revision$
@@ -14,84 +14,82 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkDefaultSliceContiguousPixelAccessor_h
-#define __itkDefaultSliceContiguousPixelAccessor_h
+#ifndef __itkSparseImagePixelAccessor_h
+#define __itkSparseImagePixelAccessor_h
 
 #include "itkMacro.h"
 
 namespace itk
 {
 
-/** \class DefaultSliceContiguousPixelAccessor
+/** \class SparseImagePixelAccessor
  * \brief Give access to partial aspects of a type
  *
- * DefaultSliceContiguousPixelAccessor is specifically meant to provide SliceContiguousImage
+ * SparseImagePixelAccessor is specifically meant to provide SparseImage
  * with the same \c DefaultPixelAccessor interface that
  * DefaultPixelAccessor provides to Image.
  *
- * DefaultSliceContiguousPixelAccessor is templated over an internal type and an
+ * SparseImagePixelAccessor is templated over an internal type and an
  * external type representation. This class encapsulates a
  * customized convertion between the internal and external
  * type representations.
  *
- * \sa DefaultSliceContiguousPixelAccessor
+ * \sa SparseImagePixelAccessor
  * \sa DefaultPixelAccessor
  * \sa DefaultPixelAccessorFunctor
  *
  * \ingroup ImageAdaptors
  */
-template <class TType, class TSize >
-class ITK_EXPORT DefaultSliceContiguousPixelAccessor
+template <class TType, class TPixelMapType>
+class ITK_EXPORT SparseImagePixelAccessor
 {
 public:
 
  /** External typedef. It defines the external aspect
    * that this class will exhibit. */
-  typedef TType ExternalType ;
+  typedef TType ExternalType;
 
   /** Internal typedef. It defines the internal real
    * representation of data. */
-  typedef TType InternalType ;
+  typedef TType InternalType;
 
-  /** Typedef for slices array. */
-  typedef std::vector< TType * > SliceArrayType;
-
-  /** Typedef for image size. */
-  typedef TSize SizeType;
+  /** Typedef for pixel map. */
+  typedef TPixelMapType PixelMapType;
 
   /** Set output using the value in input */
   inline void Set(InternalType & output, const ExternalType & input, const unsigned long offset ) const
     {
-      const unsigned long slice = offset / m_SizeOfSlice;
-      const unsigned long sliceOffset = offset % m_SizeOfSlice;
-      InternalType *truePixel = (m_Slices->operator[](slice) + sliceOffset);
-      *truePixel = input;
+    m_PixelMap->operator[](offset) = input;
     }
 
   /** Get the value from input */
   inline ExternalType Get( const InternalType & begin, const unsigned long offset ) const
     {
-      const unsigned long slice = offset / m_SizeOfSlice;
-      const unsigned long sliceOffset = offset % m_SizeOfSlice;
-      return *(m_Slices->operator[](slice) + sliceOffset);
+    typename PixelMapType::const_iterator it = m_PixelMap->find( offset );
+    if ( it == m_PixelMap->end() )
+      {
+      return m_FillBufferValue;
+      }
+    else
+      {
+      return m_PixelMap->operator[](offset);
+      }
     }
 
-  DefaultSliceContiguousPixelAccessor() {}
+  SparseImagePixelAccessor() {}
 
    /** Constructor to initialize slices and image size at construction time */
-   DefaultSliceContiguousPixelAccessor( SliceArrayType* slices, SizeType size )
+   SparseImagePixelAccessor( PixelMapType* pixelMap, TType fillBufferValue )
      {
-     m_Slices = slices;
-     m_Size = size;
-     m_SizeOfSlice = size[0] * size[1]; // Pre-compute for speed
+     m_PixelMap = pixelMap;
+     m_FillBufferValue = fillBufferValue;
      }
 
-  virtual ~DefaultSliceContiguousPixelAccessor() {};
+  virtual ~SparseImagePixelAccessor() {};
 
 private:
-  SliceArrayType* m_Slices;
-  SizeType m_Size;
-  unsigned long m_SizeOfSlice;
+  PixelMapType* m_PixelMap;
+  InternalType m_FillBufferValue;
 };
 
 } // end namespace itk

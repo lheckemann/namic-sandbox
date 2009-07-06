@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkSliceContiguousImage.txx,v $
+  Module:    $RCSfile: itkSingleBitBinaryImage.txx,v $
   Language:  C++
   Date:      $Date$
   Version:   $Revision$
@@ -17,37 +17,41 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkSliceContiguousImage_txx
-#define _itkSliceContiguousImage_txx
+#ifndef __itkSingleBitBinaryImage_txx
+#define __itkSingleBitBinaryImage_txx
 
-#include "itkSliceContiguousImage.h"
+#include "itkSingleBitBinaryImage.h"
 #include "itkProcessObject.h"
 
 namespace itk
 {
 
-template<class TPixel>
-SliceContiguousImage<TPixel>
-::SliceContiguousImage()
+template<unsigned int VImageDimension>
+SingleBitBinaryImage<VImageDimension>
+::SingleBitBinaryImage()
 {
-  m_Container = PixelContainer::New();
+  m_Buffer = PixelContainer::New();
 }
 
 
-template<class TPixel>
+template<unsigned int VImageDimension>
 void
-SliceContiguousImage<TPixel>
+SingleBitBinaryImage<VImageDimension>
 ::Allocate()
 {
-  ComputeOffsetTable();
-  SizeType size = GetLargestPossibleRegion().GetSize();
-  m_Container->Reserve( size[2], size[0]*size[1] );
+  unsigned long num;
+
+  this->ComputeOffsetTable();
+  num = this->GetOffsetTable()[VImageDimension];
+  num = ( num % 32 == 0) ? num / 32 : (num / 32) + 1;
+
+  m_Buffer->Reserve(num);
 }
 
 
-template<class TPixel>
-void 
-SliceContiguousImage<TPixel>
+template<unsigned int VImageDimension>
+void
+SingleBitBinaryImage<VImageDimension>
 ::Initialize()
 {
   //
@@ -58,47 +62,45 @@ SliceContiguousImage<TPixel>
   // Call the superclass which should initialize the BufferedRegion ivar.
   Superclass::Initialize();
 
-  // Replace the handle to the container. This is the safest thing to do,
+  // Replace the handle to the buffer. This is the safest thing to do,
   // since the same container can be shared by multiple images (e.g.
   // Grafted outputs and in place filters).
-  m_Container = PixelContainer::New();
+  m_Buffer = PixelContainer::New();
 }
 
 
-template<class TPixel>
+template<unsigned int VImageDimension>
 void 
-SliceContiguousImage<TPixel>
-::FillBuffer(const PixelType& value)
+SingleBitBinaryImage<VImageDimension>
+::FillBuffer (const PixelType& value)
 {
-  typename PixelContainer::SliceArrayType *slices = m_Container->GetSlices();
-  SizeType size = this->GetLargestPossibleRegion().GetSize();
-  unsigned long sizeOfSlice = size[0] * size[1];
-  for ( unsigned int i=0; i<size[2]; i++ )
+  InternalPixelType fillValue = value ?
+    NumericTraits<InternalPixelType>::max() :
+    NumericTraits<InternalPixelType>::Zero;
+
+  for(unsigned int i=0; i<m_Buffer->Size(); i++)
     {
-    for ( unsigned int j=0; j<sizeOfSlice; j++ )
-      {
-      slices->operator[](i)[j] = value;
-      }
+    (*m_Buffer)[i] = fillValue;
     }
 }
 
 
-template<class TPixel>
+template<unsigned int VImageDimension>
 void
-SliceContiguousImage<TPixel>
+SingleBitBinaryImage<VImageDimension>
 ::SetPixelContainer(PixelContainer *container)
 {
-   if (m_Container != container)
-     {
-     m_Container = container;
-     this->Modified();
-     }
+  if (m_Buffer != container)
+    {
+    m_Buffer = container;
+    this->Modified();
+    }
 }
 
 
-template<class TPixel>
-void 
-SliceContiguousImage<TPixel>
+template<unsigned int VImageDimension>
+void
+SingleBitBinaryImage<VImageDimension>
 ::Graft(const DataObject *data)
 {
   // call the superclass' implementation
@@ -106,29 +108,28 @@ SliceContiguousImage<TPixel>
 
   if ( data )
     {
-    // Attempt to cast data to an Image
-    const Self *imgData;
+    // Attempt to cast data to an SingleBitBinaryImage
+    const Self * imgData;
 
     try
       {
-      imgData = dynamic_cast< const Self *>( data );
+      imgData = dynamic_cast<const Self *>( data );
       }
     catch( ... )
       {
       return;
       }
 
-    // Copy from SliceContiguousImage< TPixel, dim >
     if ( imgData )
       {
       // Now copy anything remaining that is needed
-      this->SetPixelContainer( const_cast< PixelContainer *>
-                                    (imgData->GetPixelContainer()) );
+      this->SetPixelContainer( const_cast< PixelContainer * >
+                                  (imgData->GetPixelContainer()) );
       }
-    else 
+    else
       {
       // pointer could not be cast back down
-      itkExceptionMacro( << "itk::SliceContiguousImage::Graft() cannot cast "
+      itkExceptionMacro( << "itk::SingleBitBinaryImage::Graft() cannot cast "
                          << typeid(data).name() << " to "
                          << typeid(const Self *).name() );
       }
@@ -136,15 +137,16 @@ SliceContiguousImage<TPixel>
 }
 
 
-template<class TPixel>
-void 
-SliceContiguousImage<TPixel>
+template<unsigned int VImageDimension>
+void
+SingleBitBinaryImage<VImageDimension>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
   os << indent << "PixelContainer: " << std::endl;
-  m_Container->Print(os, indent.GetNextIndent());
-// m_Origin and m_Spacing are printed in the Superclass
+  m_Buffer->Print(os, indent.GetNextIndent());
+
+  // m_Origin and m_Spacing are printed in the Superclass
 }
 
 } // end namespace itk

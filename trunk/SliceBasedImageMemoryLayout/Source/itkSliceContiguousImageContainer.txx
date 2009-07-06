@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImportSliceContiguousImageContainer.txx,v $
+  Module:    $RCSfile: itkSliceContiguousImageContainer.txx,v $
   Language:  C++
   Date:      $Date$
   Version:   $Revision$
@@ -17,17 +17,17 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkImportSliceContiguousImageContainer_txx
-#define _itkImportSliceContiguousImageContainer_txx
+#ifndef _itkSliceContiguousImageContainer_txx
+#define _itkSliceContiguousImageContainer_txx
 
-#include "itkImportSliceContiguousImageContainer.h"
+#include "itkSliceContiguousImageContainer.h"
 
 namespace itk
 {
 
 template <typename TElementIdentifier, typename TElement>
-ImportSliceContiguousImageContainer<TElementIdentifier , TElement>
-::ImportSliceContiguousImageContainer()
+SliceContiguousImageContainer<TElementIdentifier , TElement>
+::SliceContiguousImageContainer()
 {
   m_ContainerManageMemory = true;
   m_Capacity = 0;
@@ -37,8 +37,8 @@ ImportSliceContiguousImageContainer<TElementIdentifier , TElement>
 
 
 template <typename TElementIdentifier, typename TElement>
-ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
-::~ImportSliceContiguousImageContainer()
+SliceContiguousImageContainer< TElementIdentifier , TElement >
+::~SliceContiguousImageContainer()
 {
   if( m_ContainerManageMemory )
     {
@@ -61,7 +61,7 @@ ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
  */
 template <typename TElementIdentifier, typename TElement>
 void
-ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
+SliceContiguousImageContainer< TElementIdentifier , TElement >
 ::Reserve(ElementIdentifier numberOfSlices, ElementIdentifier sizeOfSlice)
 {
   if ( m_SlicesArray.size() > 0 )
@@ -135,7 +135,7 @@ ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
  */
 template <typename TElementIdentifier, typename TElement>
 void
-ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
+SliceContiguousImageContainer< TElementIdentifier , TElement >
 ::Squeeze(void)
 {
   if ( m_SlicesArray.size() > 0 )
@@ -165,7 +165,7 @@ ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
  */
 template <typename TElementIdentifier, typename TElement>
 void
-ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
+SliceContiguousImageContainer< TElementIdentifier , TElement >
 ::Initialize(void)
 {
   if ( m_SlicesArray.size() > 0 )
@@ -193,7 +193,7 @@ ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
 
 template <typename TElementIdentifier, typename TElement>
 void
-ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
+SliceContiguousImageContainer< TElementIdentifier , TElement >
 ::SetImportPointersForSlices(SliceArrayType& slices,
                              TElementIdentifier sizeOfSlice,
                              bool LetContainerManageMemory)
@@ -227,9 +227,9 @@ ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
 
 
 template <typename TElementIdentifier, typename TElement>
-typename ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
+typename SliceContiguousImageContainer< TElementIdentifier , TElement >
 ::SliceArrayType
-ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
+SliceContiguousImageContainer< TElementIdentifier , TElement >
 ::AllocateSlices(ElementIdentifier numberOfSlices, ElementIdentifier sizeOfSlice) const
 {
   // Encapsulate all image memory allocation here to throw an
@@ -265,7 +265,7 @@ ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
 
 template <typename TElementIdentifier, typename TElement>
 void
-ImportSliceContiguousImageContainer< TElementIdentifier , TElement >
+SliceContiguousImageContainer< TElementIdentifier , TElement >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);

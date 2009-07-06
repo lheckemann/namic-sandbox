@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImportSliceContiguousImageContainer,v $
+  Module:    $RCSfile: itkSliceContiguousImageContainer,v $
   Language:  C++
   Date:      $Date$
   Version:   $Revision$
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkImportSliceContiguousImageContainer_h
-#define __itkImportSliceContiguousImageContainer_h
+#ifndef __itkSliceContiguousImageContainer_h
+#define __itkSliceContiguousImageContainer_h
 
 #include "itkObject.h"
 #include "itkObjectFactory.h"
@@ -24,7 +24,7 @@
 namespace itk
 {
 
-/** \class ImportSliceContiguousImageContainer
+/** \class SliceContiguousImageContainer
  *  TODO:
  *
  * \ingroup ImageObjects
@@ -32,11 +32,11 @@ namespace itk
  */
   
 template <typename TElementIdentifier, typename TElement>
-class ImportSliceContiguousImageContainer:  public Object
+class SliceContiguousImageContainer:  public Object
 {
 public:
   /** Standard class typedefs. */
-  typedef ImportSliceContiguousImageContainer Self;
+  typedef SliceContiguousImageContainer Self;
   typedef Object Superclass;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
@@ -50,7 +50,7 @@ public:
   itkNewMacro(Self);
   
   /** Standard part of every itk Object. */
-  itkTypeMacro(ImportSliceContiguousImageContainer, Object);
+  itkTypeMacro(SliceContiguousImageContainer, Object);
 
   /** Copy the slice arrays from which the image is imported.
    *  If "LetContainerManageMemory" is false, then the application retains
@@ -116,8 +116,8 @@ public:
   itkBooleanMacro(ContainerManageMemory);
 
 protected:
-  ImportSliceContiguousImageContainer();
-  virtual ~ImportSliceContiguousImageContainer();
+  SliceContiguousImageContainer();
+  virtual ~SliceContiguousImageContainer();
 
   /** PrintSelf routine. Normally this is a protected internal method. It is
    * made public here so that Image can call this method.  Users should not
@@ -128,7 +128,7 @@ protected:
                                         ElementIdentifier sizeOfSlice) const;
 
 private:
-  ImportSliceContiguousImageContainer(const Self&); //purposely not implemented
+  SliceContiguousImageContainer(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   SliceArrayType       m_SlicesArray;
@@ -142,17 +142,17 @@ private:
 } // end namespace itk
 
 // Define instantiation macro for this template.
-#define ITK_TEMPLATE_ImportSliceContiguousImageContainer(_, EXPORT, x, y) namespace itk { \
-  _(2(class EXPORT ImportSliceContiguousImageContainer< ITK_TEMPLATE_2 x >)) \
-  namespace Templates { typedef ImportSliceContiguousImageContainer< ITK_TEMPLATE_2 x > ImportSliceContiguousImageContainer##y; } \
+#define ITK_TEMPLATE_SliceContiguousImageContainer(_, EXPORT, x, y) namespace itk { \
+  _(2(class EXPORT SliceContiguousImageContainer< ITK_TEMPLATE_2 x >)) \
+  namespace Templates { typedef SliceContiguousImageContainer< ITK_TEMPLATE_2 x > SliceContiguousImageContainer##y; } \
   }
 
 #if ITK_TEMPLATE_EXPLICIT
-# include "Templates/ImportSliceContiguousImageContainer+-.h"
+# include "Templates/SliceContiguousImageContainer+-.h"
 #endif
 
 #if ITK_TEMPLATE_TXX
-# include "itkImportSliceContiguousImageContainer.txx"
+# include "itkSliceContiguousImageContainer.txx"
 #endif
 
 #endif

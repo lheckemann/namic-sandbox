@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkDefaultSliceContiguousPixelAccessor.h,v $
+  Module:    $RCSfile: itkSliceContiguousImagePixelAccessor.h,v $
   Language:  C++
   Date:      $Date$
   Version:   $Revision$
@@ -14,34 +14,34 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkDefaultSliceContiguousPixelAccessor_h
-#define __itkDefaultSliceContiguousPixelAccessor_h
+#ifndef __itkSliceContiguousImagePixelAccessor_h
+#define __itkSliceContiguousImagePixelAccessor_h
 
 #include "itkMacro.h"
 
 namespace itk
 {
 
-/** \class DefaultSliceContiguousPixelAccessor
+/** \class SliceContiguousImagePixelAccessor
  * \brief Give access to partial aspects of a type
  *
- * DefaultSliceContiguousPixelAccessor is specifically meant to provide SliceContiguousImage
+ * SliceContiguousImagePixelAccessor is specifically meant to provide SliceContiguousImage
  * with the same \c DefaultPixelAccessor interface that
  * DefaultPixelAccessor provides to Image.
  *
- * DefaultSliceContiguousPixelAccessor is templated over an internal type and an
+ * SliceContiguousImagePixelAccessor is templated over an internal type and an
  * external type representation. This class encapsulates a
  * customized convertion between the internal and external
  * type representations.
  *
- * \sa DefaultSliceContiguousPixelAccessor
+ * \sa SliceContiguousImagePixelAccessor
  * \sa DefaultPixelAccessor
  * \sa DefaultPixelAccessorFunctor
  *
  * \ingroup ImageAdaptors
  */
 template <class TType, class TSize >
-class ITK_EXPORT DefaultSliceContiguousPixelAccessor
+class ITK_EXPORT SliceContiguousImagePixelAccessor
 {
 public:
 
@@ -76,17 +76,17 @@ public:
       return *(m_Slices->operator[](slice) + sliceOffset);
     }
 
-  DefaultSliceContiguousPixelAccessor() {}
+  SliceContiguousImagePixelAccessor() {}
 
    /** Constructor to initialize slices and image size at construction time */
-   DefaultSliceContiguousPixelAccessor( SliceArrayType* slices, SizeType size )
+   SliceContiguousImagePixelAccessor( SliceArrayType* slices, SizeType size )
      {
      m_Slices = slices;
      m_Size = size;
      m_SizeOfSlice = size[0] * size[1]; // Pre-compute for speed
      }
 
-  virtual ~DefaultSliceContiguousPixelAccessor() {};
+  virtual ~SliceContiguousImagePixelAccessor() {};
 
 private:
   SliceArrayType* m_Slices;
