@@ -18,6 +18,10 @@
 #define __itkPointLocator2_txx
 #include "itkPointLocator2.h"
 
+//sophie's includes
+#include "itkQuadEdgeMesh.h"
+#include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
+
 namespace itk
 {
 
@@ -74,7 +78,12 @@ void
 PointLocator2<TMesh>
 ::InsertNewPoint(const PointType &newPoint, InstanceIdentifierType pointId)
 {
-    // TODO: for Luis to implement
+  // TODO: implement
+  double tolerance = 1e-10;// FIXME: inplement tolerance radius
+  this->m_tree->Search( newPoint, tolerance, 0);
+    
+  //typedef itk::QuadEdgeMeshVectorDataTKPolyDataWriter< 
+  //IfPointIsGreaterThanToleranceReplaceIndexAndInsertIntoMesh
 }
 
 template <class TMesh>
