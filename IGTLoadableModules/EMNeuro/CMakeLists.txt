@@ -49,6 +49,7 @@ install(FILES
 set(EMNeuro_SRCS 
   vtkEMNeuroLogic.cxx
   vtkEMNeuroGUI.cxx
+  vtkPivotCalibration.cxx
 )
 
 

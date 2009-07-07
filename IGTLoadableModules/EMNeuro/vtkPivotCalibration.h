@@ -45,6 +45,7 @@ public:
   static vtkPivotCalibration* New();
   vtkTypeRevisionMacro(vtkPivotCalibration, vtkObject);
 
+  /** Print the object information in a stream. */
   void PrintSelf(ostream& os, vtkIndent indent);
 
   /** This method sets the number of transformations required for performing
@@ -56,7 +57,7 @@ public:
   /* This method is part of the data acquisition before the actual calibration
    * process. We add a transform to the vector which stores the data
    */
-  void AcquireTransform();
+  //void AcquireTransform();
 
   /** This method performs the data acquisition and calibration. It generates
    *  several events: CalibrationSuccessEvent, CalibrationFailureEvent,
@@ -66,53 +67,50 @@ public:
    *  fact that acquisition of tracking data has started, data was acquired
    *  (contains the percentage out of the required tracking data), and that the
    *  acquisition is done. */
-  void RequestComputeCalibration();
+  //void RequestComputeCalibration();
 
   /** This method is used to request the calibration transformation.
    *  The method should only be invoked after a successful calibration.
    *  It generates two events: CoordinateSystemTransformToEvent, and
    *  TransformNotAvailableEvent, respectively denoting that a calibration
    *  transform is and isn't available. */
-  void RequestCalibrationTransform();
+  //void RequestCalibrationTransform();
 
   /** This method is used to request the pivot point, given in the coordinate
    *  system in which the user supplied transforms were given. It generates two
    *  events: PointEvent, and InvalidRequestErrorEvent, respectively denoting
    *  that the pivot point is and isn't available. */
-  void RequestPivotPoint();
+  //void RequestPivotPoint();
 
   /** This method is used to request the Root Mean Square Error (RMSE) of the
    *  overdetermined equation system used to perform pivot calibration. It
    *  generates two events: DoubleTypeEvent, and InvalidRequestErrorEvent,
    *  respectively denoting that the RMSE is and isn't available.
    *  \sa PivotCalibrationAlgorithm */
-  void RequestCalibrationRMSE();
+  //void RequestCalibrationRMSE();
 
 protected:
 
   vtkPivotCalibration ( void );
   virtual ~vtkPivotCalibration ( void );
 
-  /** Print the object information in a stream. */
-  void PrintSelf( std::ostream& os, itk::Indent indent ) const;
-
 private:
-
+//BTX
   //maximal number of retries when acquiring tracking data before
   //it is considered an error
-  static const unsigned int MAXIMAL_RETRIES;
+  //static const unsigned int MAXIMAL_RETRIES;
 
   //transformations used for pivot calibration
   //std::vector< PivotCalibrationAlgorithm::TransformType > m_Transforms;
-  std::vector< vtkMatrix4x4* > m_Transforms;
+  //std::vector< vtkMatrix4x4* > m_Transforms;
   //MRML node which contains tracking information
-  vtkMRMLNode* transformNode;
+  //vtkMRMLNode* transformNode;
   //number of transformation we want to acquire
-  unsigned int m_RequiredNumberOfTransformations;
+  //unsigned int m_RequiredNumberOfTransformations;
   //Flags indicating errors
-  bool bInitializeError;
-  bool bComputationError;
-
+  //bool bInitializeError;
+  //bool bComputationError;
+//ETX
   //the object that actually does all the work
   //PivotCalibrationAlgorithm* m_PivotCalibrationAlgorithm;
 };
