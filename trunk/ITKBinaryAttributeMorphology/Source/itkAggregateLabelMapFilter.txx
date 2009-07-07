@@ -67,5 +67,13 @@ AggregateLabelMapFilter<TImage>
     }
 }
 
+template <class TImage>
+void
+AggregateLabelMapFilter<TImage>
+::PrintSelf(std::ostream& os, Indent indent) const
+{
+  this->Superclass::PrintSelf(os, indent);
+}
+
 }// end namespace itk
 #endif
