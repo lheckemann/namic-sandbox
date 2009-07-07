@@ -38,6 +38,7 @@
 #include "vtkMatrix4x4.h"
 #include "vtkCornerAnnotation.h"
 #include "vtkMRMLNode.h"
+#include "vtkPivotCalibration.h"
 
 
 //---------------------------------------------------------------------------
@@ -315,7 +316,10 @@ void vtkEMNeuroGUI::ProcessGUIEvents(vtkObject *caller,
     vtkMRMLNode* nullNode = NULL;
     vtkSetAndObserveMRMLNodeEventsMacro(nullNode, node, nodeEvents);
     nodeEvents->Delete();
-    this->Logic->ProcessMatrix(this->NodeSelectorMenu->GetSelected());
+    //Initialize Pivot Calibration
+    vtkPivotCalibration* pc = vtkPivotCalibration::New();
+    std::cerr << "Created object successfully" << std::endl;
+    //pc->Initialize(100, node);
     }
   else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
@@ -362,12 +366,13 @@ void vtkEMNeuroGUI::ProcessMRMLEvents ( vtkObject *caller,
   // Detect if something has happened in the MRML scene
   if (caller != NULL)
     {
-    std::cerr<<"MRML event called" << std::endl;
+    std::cerr<< "MRML event called" << std::endl;
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
     if (node == NodeSelectorMenu->GetSelected())
       {
       std::cerr << "Selected Node has been updated" << std::endl;
       node->Print(std::cerr);
+      //PivotCalibration::AcquireTransform();
       }
     //GetMatrixTransformtoParent()
     //else remove observer on node
