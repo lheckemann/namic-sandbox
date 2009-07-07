@@ -13,32 +13,41 @@
 =========================================================================*/
 
 #include "vtkPivotCalibration.h"
+#include "vtkObjectFactory.h"
 
-PivotCalibration::PivotCalibration()
+vtkStandardNewMacro(vtkPivotCalibration);
+vtkCxxRevisionMacro(vtkPivotCalibration, "$Revision: 8267 $");
+
+//-------------------------------------------------------------------------
+
+vtkPivotCalibration::vtkPivotCalibration()
 {
   //instantiate the class that performs the pivot calibration computation
-  this->m_PivotCalibrationAlgorithm = PivotCalibrationAlgorithm::New();
+  //this->m_PivotCalibrationAlgorithm = PivotCalibrationAlgorithm::New();
+  std::cerr << "Got tot he constructor" << std::endl;
   bInitializeError = true;
   bComputationError = true;
 }
 
-PivotCalibration::~PivotCalibration()
+//------------------------------------------------------------------------
+vtkPivotCalibration::~vtkPivotCalibration()
 {
 
 }
 
 void
-PivotCalibration::RequestInitialize( unsigned int n,
+vtkPivotCalibration::Initialize( unsigned int n,
                                     vtkMRMLNode* node )
 {
   //Initialize the transform data node and number of transforms
   if (node != NULL)
     {
-    this->TransformNode = node;
+    this->transformNode = node;
     this->m_RequiredNumberOfTransformations = n;
     this->m_Transforms.clear();
     this->m_PivotCalibrationAlgorithm->RequestResetCalibration();
     bInitializeError = false;
+    std::cerr << "Calibration successfully initialized." << std::endl;
     }
   else
     {
@@ -48,50 +57,79 @@ PivotCalibration::RequestInitialize( unsigned int n,
 }
 
 void
-PivotCalibration::RequestComputeCalibration()
+vtkPivotCalibration::AcquireTransform()
+{
+//Make sure initialized is true
+  if( this->m_Transforms.size() == this->m_RequiredNumberOfTransformations )
+    {
+    //got all the transformations we need for calibration
+    // Instead of removing the observer, we set the callback function to empty
+    // because that the tracker is running on a separate thread, when the
+    // tracker update event evoke the observer callback, it will crash the
+    // application if the observer is being removed by another thread.Thus it is
+    // safer to  set the observer callback to an empty function
+    //this->m_TrackerTool->RemoveObserver( this->m_AcquireTransformObserverID );
+    /*this->m_TransformAcquiredObserver->SetCallbackFunction(this,
+                                             & PivotCalibration::EmptyCallBack);
+    //this->m_TrackerTool->RemoveObserver( this->m_TransformToTrackerObserverID );
+
+    this->InvokeEvent( DataAcquisitionEndEvent() );
+    //actually perform the calibration
+    this->m_PivotCalibrationAlgorithm->RequestResetCalibration();
+    this->m_PivotCalibrationAlgorithm->RequestAddTransforms(this->m_Transforms);
+    this->m_PivotCalibrationAlgorithm->RequestComputeCalibration();
+    //check if the calibration computation failed
+    if( this->m_ErrorObserver->ErrorOccured() )
+      {
+      this->m_ErrorObserver->GetErrorMessage(
+                                          this->m_ReasonForCalibrationFailure );
+      this->m_ErrorObserver->ClearError();
+      igstkPushInputMacro( Failed );
+      }
+    else
+      {
+      igstkPushInputMacro( Succeeded );
+      }
+    this->m_StateMachine.ProcessInputs();*/
+    }
+  else  //transform was updated, we need to retrieve it
+    {
+    this->m_Transforms.push_back(this->transformNode->GetTransformToParent());
+    }
+}
+
+
+void
+vtkPivotCalibration::RequestComputeCalibration()
 {
   //Start the computation of the calibration
   //Make sure error flag is false
   this->m_Transforms.clear();
   //this->m_ReasonForCalibrationFailure.clear();
-
-  //Add an observer to the tracking node
-  vtkIntArray* nodeEvents = vtkIntArray::New();
-  nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-  vtkMRMLNode* nullNode = NULL;
-  vtkSetAndObserveMRMLNodeEventsMacro(nullNode, node, nodeEvents);
-  nodeEvents->Delete();
-
-
-  this->m_TransformAcquiredObserver->SetCallbackFunction( this,
-                                                          &PivotCalibration::AcquireTransformsAndCalibrate );
-  this->m_TransformToTrackerObserverID =
-  this->m_TrackerTool->AddObserver( CoordinateSystemTransformToEvent() ,
-                                                  this->m_TransformObserver );
 }
 
 void
-PivotCalibration::RequestCalibrationTransform()
+vtkPivotCalibration::RequestCalibrationTransform()
 {
   //Output transform
   //Make sure computation error is off
 }
 
 void
-PivotCalibration::RequestPivotPoint()
+vtkPivotCalibration::RequestPivotPoint()
 {
   //Output pivot point
   //Make sure computation error is off
 }
 
 void
-PivotCalibration::RequestCalibrationRMSE()
+vtkPivotCalibration::RequestCalibrationRMSE()
 {
   //Output RMS error
   //Make sure computation error is off
 }
 
-void
+/*void
 PivotCalibration::ComputeCalibrationProcessing()
 {
   this->m_Transforms.clear();
@@ -268,4 +306,4 @@ PivotCalibration::ErrorObserver::Execute(itk::Object *caller,
 {
   const itk::Object * constCaller = caller;
   this->Execute(constCaller, event);
-}
+}*/
