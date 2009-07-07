@@ -16,7 +16,7 @@
 #include "vtkObjectFactory.h"
 
 vtkStandardNewMacro(vtkPivotCalibration);
-vtkCxxRevisionMacro(vtkPivotCalibration, "$Revision: 8267 $");
+vtkCxxRevisionMacro(vtkPivotCalibration, "$Revision: 1.0 $");
 
 //-------------------------------------------------------------------------
 
@@ -24,9 +24,9 @@ vtkPivotCalibration::vtkPivotCalibration()
 {
   //instantiate the class that performs the pivot calibration computation
   //this->m_PivotCalibrationAlgorithm = PivotCalibrationAlgorithm::New();
-  std::cerr << "Got tot he constructor" << std::endl;
-  bInitializeError = true;
-  bComputationError = true;
+  std::cerr << "Got to the constructor" << std::endl;
+  //this->bInitializeError = true;
+  //this->bComputationError = true;
 }
 
 //------------------------------------------------------------------------
@@ -35,7 +35,8 @@ vtkPivotCalibration::~vtkPivotCalibration()
 
 }
 
-void
+//------------------------------------------------------------------------
+/*void
 vtkPivotCalibration::Initialize( unsigned int n,
                                     vtkMRMLNode* node )
 {
@@ -45,7 +46,7 @@ vtkPivotCalibration::Initialize( unsigned int n,
     this->transformNode = node;
     this->m_RequiredNumberOfTransformations = n;
     this->m_Transforms.clear();
-    this->m_PivotCalibrationAlgorithm->RequestResetCalibration();
+    //this->m_PivotCalibrationAlgorithm->RequestResetCalibration();
     bInitializeError = false;
     std::cerr << "Calibration successfully initialized." << std::endl;
     }
@@ -54,9 +55,10 @@ vtkPivotCalibration::Initialize( unsigned int n,
     std::cerr << "Tool transform node does not exist" << std::endl;
     bInitializeError = true;
     }
-}
+}*/
 
-void
+//--------------------------------------------------------------------------
+/*void
 vtkPivotCalibration::AcquireTransform()
 {
 //Make sure initialized is true
@@ -90,14 +92,15 @@ vtkPivotCalibration::AcquireTransform()
       {
       igstkPushInputMacro( Succeeded );
       }
-    this->m_StateMachine.ProcessInputs();*/
+    this->m_StateMachine.ProcessInputs();
     }
   else  //transform was updated, we need to retrieve it
     {
-    this->m_Transforms.push_back(this->transformNode->GetTransformToParent());
+    //this->m_Transforms.push_back(this->transformNode->GetTransformToParent());
     }
 }
 
+//--------------------------------------------------------------------------------
 
 void
 vtkPivotCalibration::RequestComputeCalibration()
