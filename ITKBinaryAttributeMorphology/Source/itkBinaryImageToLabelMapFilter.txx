@@ -29,6 +29,18 @@
 
 namespace itk
 {
+
+template< class TInputImage, class TOutputImage >
+BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
+::BinaryImageToLabelMapFilter()
+{
+  this->m_FullyConnected = false;
+  this->m_NumberOfObjects = 0;
+  this->m_OutputBackgroundValue = NumericTraits<OutputPixelType>::NonpositiveMin();
+  this->m_InputForegroundValue = NumericTraits<InputPixelType>::max();
+}
+
+
 template< class TInputImage, class TOutputImage >
 void
 BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
@@ -64,24 +76,25 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
   typename TOutputImage::Pointer output = this->GetOutput();
   typename TInputImage::ConstPointer input = this->GetInput();
 
-  output->SetBackgroundValue( m_BackgroundValue );
+  output->SetBackgroundValue( this->m_OutputBackgroundValue );
 
   long nbOfThreads = this->GetNumberOfThreads();
   if( itk::MultiThreader::GetGlobalMaximumNumberOfThreads() != 0 )
     {
     nbOfThreads = std::min( this->GetNumberOfThreads(), itk::MultiThreader::GetGlobalMaximumNumberOfThreads() );
     }
+
   // number of threads can be constrained by the region size, so call the SplitRequestedRegion
   // to get the real number of threads which will be used
   typename TOutputImage::RegionType splitRegion;  // dummy region - just to call the following method
   nbOfThreads = this->SplitRequestedRegion(0, nbOfThreads, splitRegion);
-  // std::cout << "nbOfThreads: " << nbOfThreads << std::endl;
 
   // set up the vars used in the threads
-  m_NumberOfLabels.clear();
-  m_NumberOfLabels.resize( nbOfThreads, 0 );
-  m_Barrier = Barrier::New();
-  m_Barrier->Initialize( nbOfThreads );
+  this->m_NumberOfLabels.clear();
+  this->m_NumberOfLabels.resize( nbOfThreads, 0 );
+  this->m_Barrier = Barrier::New();
+  this->m_Barrier->Initialize( nbOfThreads );
+
   long pixelcount = output->GetRequestedRegion().GetNumberOfPixels();
   long xsize = output->GetRequestedRegion().GetSize()[0];
   long linecount = pixelcount/xsize;
@@ -99,7 +112,7 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
   typename TOutputImage::Pointer output = this->GetOutput();
   typename TInputImage::ConstPointer input = this->GetInput();
 
-  long nbOfThreads = m_NumberOfLabels.size();
+  long nbOfThreads = this->m_NumberOfLabels.size();
 
   // create a line iterator
   typedef itk::ImageLinearConstIteratorWithIndex<InputImageType>
@@ -132,7 +145,7 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
   long firstLineIdForThread = RegionType( outputRegionIdx, outputRegionSize ).GetNumberOfPixels() / xsizeForThread;
   long lineId = firstLineIdForThread;
 
-  OffsetVec LineOffsets;
+  OffsetVectorType LineOffsets;
   SetupLineOffsets(LineOffsets);
 
   long nbOfLabels = 0;
@@ -146,7 +159,7 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
       {
       InputPixelType PVal = inLineIt.Get();
       //std::cout << inLineIt.GetIndex() << std::endl;
-      if (PVal == m_ForegroundValue)
+      if (PVal == this->m_InputForegroundValue)
         {
         // We've hit the start of a run
         runLength thisRun;
@@ -157,7 +170,7 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
         ++length;
         ++inLineIt;
         while( !inLineIt.IsAtEndOfLine()
-          && inLineIt.Get() == m_ForegroundValue )
+          && inLineIt.Get() == this->m_InputForegroundValue )
           {
           ++length;
           ++inLineIt;
@@ -179,7 +192,7 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
     progress.CompletedPixel();
     }
 
-  m_NumberOfLabels[threadId] = nbOfLabels;
+  this->m_NumberOfLabels[threadId] = nbOfLabels;
 
   // wait for the other threads to complete that part
   this->Wait();
@@ -188,7 +201,7 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
   nbOfLabels = 0;
   for( int i=0; i<nbOfThreads; i++ )
     {
-    nbOfLabels += m_NumberOfLabels[i];
+    nbOfLabels += this->m_NumberOfLabels[i];
     }
   
   if( threadId == 0 )
@@ -241,22 +254,22 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
     {
     if( !m_LineMap[ThisIdx].empty() )
       {
-      for (OffsetVec::const_iterator I = LineOffsets.begin();
-           I != LineOffsets.end(); ++I)
+      OffsetVectorType::const_iterator I = LineOffsets.begin();
+      while( I != LineOffsets.end() )
         {
         long NeighIdx = ThisIdx + (*I);
         // check if the neighbor is in the map
         if ( NeighIdx >= 0 && NeighIdx < linecount && !m_LineMap[NeighIdx].empty() ) 
           {
           // Now check whether they are really neighbors
-          bool areNeighbors
-            = CheckNeighbors(m_LineMap[ThisIdx][0].where, m_LineMap[NeighIdx][0].where);
+          bool areNeighbors = CheckNeighbors(m_LineMap[ThisIdx][0].where, m_LineMap[NeighIdx][0].where);
           if (areNeighbors)
             {
             // Compare the two lines
             CompareLines(m_LineMap[ThisIdx], m_LineMap[NeighIdx]);
             }
           }
+        ++I;
         }
       }
     }
@@ -274,8 +287,8 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
         {
         if( !m_LineMap[ThisIdx].empty() )
           {
-          for (OffsetVec::const_iterator I = LineOffsets.begin();
-              I != LineOffsets.end(); ++I)
+          OffsetVectorType::const_iterator I = LineOffsets.begin();
+          while( I != LineOffsets.end() )
             {
             long NeighIdx = ThisIdx + (*I);
             // check if the neighbor is in the map
@@ -290,6 +303,7 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
                 CompareLines(m_LineMap[ThisIdx], m_LineMap[NeighIdx]);
                 }
               }
+            ++I;
             }
           }
         }
@@ -348,8 +362,9 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
     progress.CompletedPixel();
     }
 
-  m_NumberOfLabels.clear();
-  m_Barrier = NULL;
+  this->m_NumberOfLabels.clear();
+  this->m_Barrier = NULL;
+
   m_LineMap.clear();
 }
 
@@ -357,7 +372,7 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
 template< class TInputImage, class TOutputImage >
 void
 BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
-::SetupLineOffsets(OffsetVec &LineOffsets)
+::SetupLineOffsets( OffsetVectorType &LineOffsets)
 {
   // Create a neighborhood so that we can generate a table of offsets
   // to "previous" line indexes
@@ -542,15 +557,15 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
 ::CreateConsecutive()
 {
   m_Consecutive = UnionFindType(m_UnionFind.size());
-  m_Consecutive[m_BackgroundValue] = m_BackgroundValue;
+  m_Consecutive[this->m_OutputBackgroundValue] = this->m_OutputBackgroundValue;
   unsigned long int CLab = 0;
   unsigned long int count = 0;
-  for (unsigned long int I = 1; I < m_UnionFind.size(); I++)
+  for( unsigned long int I = 1; I < m_UnionFind.size(); I++ )
     {
     unsigned long int L = m_UnionFind[I];
-    if (L == I) 
+    if( L == I ) 
       {
-      if( CLab == m_BackgroundValue )
+      if( CLab == this->m_OutputBackgroundValue )
         {
         ++CLab;
         }
@@ -591,7 +606,6 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
     {
     m_UnionFind[E1] = E2;
     }
-
 }
 
 template< class TInputImage, class TOutputImage >
@@ -602,8 +616,10 @@ BinaryImageToLabelMapFilter< TInputImage, TOutputImage >
   Superclass::PrintSelf(os,indent);
 
   os << indent << "FullyConnected: "  << m_FullyConnected << std::endl;
-  os << indent << "ForegroundValue: "  << static_cast<typename NumericTraits<InputPixelType>::PrintType>(m_ForegroundValue) << std::endl;
-  os << indent << "BackgroundValue: "  << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(m_BackgroundValue) << std::endl;
+  os << indent << "InputForegroundValue: "
+     << static_cast<typename NumericTraits<InputPixelType>::PrintType>(this->m_InputForegroundValue) << std::endl;
+  os << indent << "OutputBackgroundValue: "
+     << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(this->m_OutputBackgroundValue) << std::endl;
 }
 
 } // end namespace itk
