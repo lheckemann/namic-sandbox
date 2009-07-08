@@ -23,14 +23,19 @@
 namespace itk {
 
 /** \class LabelMapToBinaryImageFilter
- * \brief Convert a LabelMap to a binary image
+ * \brief Convert a LabelMap to a binary image.
  *
  * LabelMapToBinaryImageFilter to a binary image. All the objects in the image
- * are used as foreground.
- * The background values of the original binary image can be restored by passing this image
- * to the filter with the SetBackgroundImage() method.
+ * are used as foreground.  The background values of the original binary image
+ * can be restored by passing this image to the filter with the
+ * SetBackgroundImage() method.
  *
- * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
+ *
+ * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction,
+ * INRA de Jouy-en-Josas, France.
  *
  * \sa LabelMapToLabelImageFilter, LabelMapMaskImageFilter
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters
@@ -62,31 +67,28 @@ public:
   typedef typename OutputImageType::IndexType      IndexType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
   /** Standard New method. */
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(LabelMapToBinaryImageFilter, 
-               ImageToImageFilter);
+  itkTypeMacro(LabelMapToBinaryImageFilter, ImageToImageFilter);
 
   /**
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
-  itkSetMacro(BackgroundValue, OutputImagePixelType);
-  itkGetConstMacro(BackgroundValue, OutputImagePixelType);
+  itkSetMacro(OutputBackgroundValue, OutputImagePixelType);
+  itkGetConstMacro(OutputBackgroundValue, OutputImagePixelType);
 
   /**
    * Set/Get the value used as "foreground" in the output image.
    * Defaults to NumericTraits<PixelType>::max().
    */
-  itkSetMacro(ForegroundValue, OutputImagePixelType);
-  itkGetConstMacro(ForegroundValue, OutputImagePixelType);
+  itkSetMacro(OutputForegroundValue, OutputImagePixelType);
+  itkGetConstMacro(OutputForegroundValue, OutputImagePixelType);
 
    /** Set/Get the background image top be used to restore the background values */
   void SetBackgroundImage( const OutputImageType *input)
@@ -130,15 +132,16 @@ protected:
 
   virtual void ThreadedGenerateData( LabelObjectType * labelObject );
   
+  void PrintSelf(std::ostream& os, Indent indent) const;
 
 private:
   LabelMapToBinaryImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
-  OutputImagePixelType      m_BackgroundValue;
-  OutputImagePixelType      m_ForegroundValue;
+  OutputImagePixelType          m_OutputBackgroundValue;
+  OutputImagePixelType          m_OutputForegroundValue;
 
-  typename Barrier::Pointer m_Barrier;
+  typename Barrier::Pointer     m_Barrier;
 
 }; // end of class
 
