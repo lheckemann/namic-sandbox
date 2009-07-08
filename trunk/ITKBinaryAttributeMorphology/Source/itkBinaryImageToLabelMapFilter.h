@@ -31,7 +31,8 @@ namespace itk
 
 /**
  * \class BinaryImageToLabelMapFilter
- * \brief Label the connected components in a binary image and produce a collection of label objects
+ * \brief Label the connected components in a binary image and produce a
+ * collection of label objects.
  *
  * BinaryImageToLabelMapFilter labels the objects in a binary image.
  * Each distinct object is assigned a unique label. 
@@ -39,12 +40,17 @@ namespace itk
  * that are reached earlier by a raster order scan have a lower
  * label.
  *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
+ *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * \sa ConnectedComponentImageFilter, LabelImageToLabelMapFilter, LabelMap
  */
 
-template <class TInputImage, class TOutputImage=LabelMap< LabelObject< unsigned long, TInputImage::ImageDimension > > >
+template <class TInputImage, 
+  class TOutputImage=LabelMap< LabelObject< unsigned long, TInputImage::ImageDimension > > >
 class ITK_EXPORT BinaryImageToLabelMapFilter : 
     public ImageToImageFilter< TInputImage, TOutputImage > 
 {
@@ -52,8 +58,20 @@ public:
   /**
    * Standard "Self" & Superclass typedef.
    */
-  typedef BinaryImageToLabelMapFilter                     Self;
-  typedef ImageToImageFilter< TInputImage, TOutputImage > Superclass;
+  typedef BinaryImageToLabelMapFilter                       Self;
+  typedef ImageToImageFilter< TInputImage, TOutputImage >   Superclass;
+  typedef SmartPointer<Self>                                Pointer;
+  typedef SmartPointer<const Self>                          ConstPointer;
+  
+  /**
+   * Method for creation through the object factory.
+   */
+  itkNewMacro(Self);
+
+  /**
+   * Run-time type information (and related methods)
+   */
+  itkTypeMacro(BinaryImageToLabelMapFilter, ImageToImageFilter);
 
   /**
    * Types from the Superclass
@@ -66,12 +84,9 @@ public:
    */
   typedef typename TOutputImage::PixelType         OutputPixelType;
   typedef typename TInputImage::PixelType          InputPixelType;
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
   
   /**
    * Image typedef support
@@ -90,22 +105,6 @@ public:
 
   typedef std::list<IndexType>              ListType;
 
-  /** 
-   * Smart pointer typedef support 
-   */
-  typedef SmartPointer<Self>        Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
-  
-  /**
-   * Run-time type information (and related methods)
-   */
-  itkTypeMacro(BinaryImageToLabelMapFilter, ImageToImageFilter);
-  
-  /**
-   * Method for creation through the object factory.
-   */
-  itkNewMacro(Self);
-
   /**
    * Set/Get whether the connected components are defined strictly by
    * face connectivity or by face+edge+vertex connectivity.  Default is
@@ -117,36 +116,33 @@ public:
   itkBooleanMacro(FullyConnected);
   
   // only set after completion
-  itkGetConstReferenceMacro(ObjectCount, unsigned long);
+  itkGetConstReferenceMacro( NumberOfObjects, unsigned long);
 
+  /**
+   * Set/Get the value used as "background" in the output image.
+   * Defaults to NumericTraits<OutputPixelType>::NonpositiveMin().
+   */
+  itkSetMacro(OutputBackgroundValue, OutputPixelType);
+  itkGetConstMacro(OutputBackgroundValue, OutputPixelType);
+
+  /**
+   * Set/Get the value to be consider "foreground" in the input image.
+   * Defaults to NumericTraits<InputPixelType>::max().
+   */
+  itkSetMacro(InputForegroundValue, InputPixelType);
+  itkGetConstMacro(InputForegroundValue, InputPixelType);
+
+
+#ifdef ITK_USE_CONCEPT_CHECKING
   // Concept checking -- input and output dimensions must be the same
   itkConceptMacro(SameDimension,
     (Concept::SameDimension<itkGetStaticConstMacro(InputImageDimension),
        itkGetStaticConstMacro(OutputImageDimension)>));
+#endif
 
-
-  /**
-   * Set/Get the value used as "background" in the output image.
-   * Defaults to NumericTraits<PixelType>::NonpositiveMin().
-   */
-  itkSetMacro(BackgroundValue, OutputPixelType);
-  itkGetConstMacro(BackgroundValue, OutputPixelType);
-
-  /**
-   * Set/Get the value used as "foreground" in the output image.
-   * Defaults to NumericTraits<PixelType>::max().
-   */
-  itkSetMacro(ForegroundValue, InputPixelType);
-  itkGetConstMacro(ForegroundValue, InputPixelType);
 
 protected:
-  BinaryImageToLabelMapFilter() 
-    {
-    m_FullyConnected = false;
-    m_ObjectCount = 0;
-    m_BackgroundValue = NumericTraits<OutputPixelType>::NonpositiveMin();
-    m_ForegroundValue = NumericTraits<InputPixelType>::max();
-    }
+  BinaryImageToLabelMapFilter();
   virtual ~BinaryImageToLabelMapFilter() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
@@ -168,16 +164,10 @@ protected:
    * \sa ProcessObject::EnlargeOutputRequestedRegion() */
   void EnlargeOutputRequestedRegion(DataObject *itkNotUsed(output));
 
-  bool m_FullyConnected;
-  
 private:
   BinaryImageToLabelMapFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  OutputPixelType  m_BackgroundValue;
-  InputPixelType   m_ForegroundValue;
-
-  unsigned long    m_ObjectCount;
   // some additional types
   typedef typename TOutputImage::RegionType::SizeType OutSizeType;
 
@@ -196,7 +186,7 @@ private:
   // the map storing lines
   typedef std::vector<lineEncoding> LineMapType;
   
-  typedef std::vector<long> OffsetVec;
+  typedef std::vector<long>         OffsetVectorType;
 
   // the types to support union-find operations
   typedef std::vector<unsigned long int> UnionFindType;
@@ -207,6 +197,7 @@ private:
     {
     m_UnionFind = UnionFindType(size + 1);
     }
+
   void InsertSet(const unsigned long int label);
   unsigned long int LookupSet(const unsigned long int label);
   void LinkLabels(const unsigned long int lab1, const unsigned long int lab2);
@@ -220,7 +211,7 @@ private:
   void FillOutput(const LineMapType &LineMap,
                   ProgressReporter &progress);
 
-  void SetupLineOffsets(OffsetVec &LineOffsets);
+  void SetupLineOffsets( OffsetVectorType & LineOffsets );
 
   void Wait()
     {
@@ -231,11 +222,19 @@ private:
       }
     }
 
-  typename std::vector< long > m_NumberOfLabels;
-  typename std::vector< long > m_FirstLineIdToJoin;
-  typename Barrier::Pointer    m_Barrier;
+  OutputPixelType                   m_OutputBackgroundValue;
+  InputPixelType                    m_InputForegroundValue;
+
+  unsigned long                     m_NumberOfObjects;
+
+  bool                              m_FullyConnected;
+  
+  typename std::vector< long >      m_NumberOfLabels;
+  typename std::vector< long >      m_FirstLineIdToJoin;
+  typename Barrier::Pointer         m_Barrier;
+
 #if !defined(CABLE_CONFIGURATION)
-  LineMapType                  m_LineMap;
+  LineMapType                       m_LineMap;
 #endif
 };
   
