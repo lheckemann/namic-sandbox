@@ -23,7 +23,11 @@
 
 namespace itk {
 /** \class ChangeLabelLabelMapFilter
- * \brief TODO
+ * \brief Allows the Labels on a Label Map to be modified.
+ *
+ * This filter takes a label map as input and visits all existing labels, checking to see if they
+ * differ from the input label map. If the labels are different, the filter updates the label. If the
+ * label for a label object does not exist, the filter places a new label object in the label map.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -36,7 +40,7 @@ class ITK_EXPORT ChangeLabelLabelMapFilter :
 {
 public:
   /** Standard class typedefs. */
-  typedef ChangeLabelLabelMapFilter    Self;
+  typedef ChangeLabelLabelMapFilter     Self;
   typedef InPlaceLabelMapFilter<TImage> Superclass;
   typedef SmartPointer<Self>            Pointer;
   typedef SmartPointer<const Self>      ConstPointer;
@@ -50,15 +54,13 @@ public:
   typedef typename ImageType::LabelObjectType LabelObjectType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
 
   /** Standard New method. */
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(ChangeLabelLabelMapFilter, 
-               InPlaceLabelMapFilter);
+  itkTypeMacro(ChangeLabelLabelMapFilter, InPlaceLabelMapFilter);
   
   typedef typename std::map< PixelType, PixelType > ChangeMapType;
 
@@ -76,37 +78,13 @@ public:
 
   /**
    */
-  void SetChangeMap( const ChangeMapType & changeMap )
-    {
-    if( m_ChangeMap != changeMap )
-      {
-      m_ChangeMap = changeMap;
-      this->Modified();
-      }
-    }
-  const ChangeMapType & GetChangeMap() const
-    {
-    return m_ChangeMap;
-    }
+  void SetChangeMap( const ChangeMapType & changeMap );
+    
+  const ChangeMapType& GetChangeMap() const;
+    
+  void SetChange( const PixelType & oldLabel, const PixelType & newLabel );
   
-  void SetChange( const PixelType & oldLabel, const PixelType & newLabel )
-    {
-    if( m_ChangeMap.find( oldLabel ) == m_ChangeMap.end() || m_ChangeMap[ oldLabel ] != newLabel )
-      {
-      m_ChangeMap[ oldLabel ] = newLabel;
-      this->Modified();
-      }
-    }
-  
-  void ClearChangeMap()
-    {
-    if( !m_ChangeMap.empty() )
-      {
-      m_ChangeMap.clear();
-      this->Modified();
-      }
-    }
-
+  void ClearChangeMap();
 
 protected:
   ChangeLabelLabelMapFilter();

@@ -30,6 +30,49 @@ ChangeLabelLabelMapFilter<TImage>
 {
 }
 
+template <class TImage>
+void
+ChangeLabelLabelMapFilter<TImage>
+::SetChangeMap( const ChangeMapType & changeMap )
+{
+  if( m_ChangeMap != changeMap )
+    {
+    m_ChangeMap = changeMap;
+    this->Modified();
+    }
+}
+
+template <class TImage>
+const ChangeMapType&
+ChangeLabelLabelMapFilter<TImage>
+::GetChangeMap()
+{
+  return m_ChangeMap;
+}
+
+template <class TImage>
+void
+ChangeLabelLabelMapFilter<TImage>
+::SetChange( const PixelType & oldLabel, const PixelType & newLabel )
+{
+  if( m_ChangeMap.find( oldLabel ) == m_ChangeMap.end() || m_ChangeMap[ oldLabel ] != newLabel )
+    {
+    m_ChangeMap[ oldLabel ] = newLabel;
+    this->Modified();
+    }
+}
+
+template <class TImage>
+void
+ChangeLabelLabelMapFilter<TImage>
+::ClearChangeMap()
+{
+  if( !m_ChangeMap.empty() )
+    {
+    m_ChangeMap.clear();
+    this->Modified();
+    }
+}
 
 template <class TImage>
 void
@@ -46,7 +89,7 @@ ChangeLabelLabelMapFilter<TImage>
   ProgressReporter progress( this, 0, 1 );
   // TODO: report the progress
 
-  // first remove the ones to change and store them elsewhere to process them later
+  // first remove the ones to change and store them elsewhere to process later
   VectorType labelObjects;
   for( typename ChangeMapType::iterator it = m_ChangeMap.begin();
     it != m_ChangeMap.end();
@@ -73,7 +116,7 @@ ChangeLabelLabelMapFilter<TImage>
     output->SetBackgroundValue( label );
     }
 
-  // and put back the objects in the map, with the updated label
+  // and put the objects back in the map, with the updated label
   for( typename VectorType::iterator it = labelObjects.begin();
     it != labelObjects.end();
     it++ )
@@ -82,7 +125,7 @@ ChangeLabelLabelMapFilter<TImage>
     PixelType label = m_ChangeMap[ lo->GetLabel() ];
     if( label == output->GetBackgroundValue() )
       {
-      // just don't put that object in the label map - it is no in the background
+      // just don't put that object in the label map - it is not in the background
       }
     else if( output->HasLabel( label ) )
       {
@@ -116,10 +159,8 @@ void
 ChangeLabelLabelMapFilter<TImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
-  Superclass::PrintSelf(os,indent);
-  
-  // TODO: print the change map?
-
+  this->Superclass::PrintSelf(os, indent);
+  os << m_ChangeMap; 
 }
 
 }// end namespace itk
