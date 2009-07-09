@@ -160,7 +160,7 @@ ChangeLabelLabelMapFilter<TImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf(os, indent);
-  os << m_ChangeMap; 
+  os << indent << m_ChangeMap << std::endl; 
 }
 
 }// end namespace itk
