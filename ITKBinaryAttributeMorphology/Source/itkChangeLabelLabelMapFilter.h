@@ -23,9 +23,14 @@
 
 namespace itk {
 /** \class ChangeLabelLabelMapFilter
- * \brief Allows the Labels on a Label Map to be modified.
+ * \brief  Replace the label Ids of selected LabelObjects with new label Ids
  *
- * This filter takes a label map as input and visits all existing labels, checking to see if they
+ * This filter takes as input a label map and a list of pairs of Label Ids, to
+ * produce as output a new label map where the label Ids have been replaced
+ * according to the pairs in the list.
+ *
+ *
+ * as input and visits all existing labels, checking to see if they
  * differ from the input label map. If the labels are different, the filter updates the label. If the
  * label for a label object does not exist, the filter places a new label object in the label map.
  *
@@ -120,7 +125,7 @@ protected:
   
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  ChangeMapType          m_ChangeMap;
+  ChangeMapType          m_MapOfLabelToBeReplaced;
 
 private:
   ChangeLabelLabelMapFilter(const Self&); //purposely not implemented
