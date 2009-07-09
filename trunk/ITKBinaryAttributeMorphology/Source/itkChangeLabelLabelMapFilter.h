@@ -78,13 +78,37 @@ public:
 
   /**
    */
-  void SetChangeMap( const ChangeMapType & changeMap );
-    
-  const ChangeMapType& GetChangeMap() const;
-    
-  void SetChange( const PixelType & oldLabel, const PixelType & newLabel );
+  void SetChangeMap( const ChangeMapType & changeMap )
+    {
+    if( m_ChangeMap != changeMap )
+      {
+      m_ChangeMap = changeMap;
+      this->Modified();
+      }
+    }
+  const ChangeMapType & GetChangeMap() const
+    {
+    return m_ChangeMap;
+    }
   
-  void ClearChangeMap();
+  void SetChange( const PixelType & oldLabel, const PixelType & newLabel )
+    {
+    if( m_ChangeMap.find( oldLabel ) == m_ChangeMap.end() || m_ChangeMap[ oldLabel ] != newLabel )
+      {
+      m_ChangeMap[ oldLabel ] = newLabel;
+      this->Modified();
+      }
+    }
+  
+  void ClearChangeMap()
+    {
+    if( !m_ChangeMap.empty() )
+      {
+      m_ChangeMap.clear();
+      this->Modified();
+      }
+    }
+
 
 protected:
   ChangeLabelLabelMapFilter();
