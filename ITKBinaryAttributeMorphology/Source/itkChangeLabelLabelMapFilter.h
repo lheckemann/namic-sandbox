@@ -83,36 +83,13 @@ public:
 
   /**
    */
-  void SetChangeMap( const ChangeMapType & changeMap )
-    {
-    if( m_ChangeMap != changeMap )
-      {
-      m_ChangeMap = changeMap;
-      this->Modified();
-      }
-    }
+  void SetChangeMap( const ChangeMapType & changeMap );
+
   const ChangeMapType & GetChangeMap() const
-    {
-    return m_ChangeMap;
-    }
   
-  void SetChange( const PixelType & oldLabel, const PixelType & newLabel )
-    {
-    if( m_ChangeMap.find( oldLabel ) == m_ChangeMap.end() || m_ChangeMap[ oldLabel ] != newLabel )
-      {
-      m_ChangeMap[ oldLabel ] = newLabel;
-      this->Modified();
-      }
-    }
+  void SetChange( const PixelType & oldLabel, const PixelType & newLabel );
   
-  void ClearChangeMap()
-    {
-    if( !m_ChangeMap.empty() )
-      {
-      m_ChangeMap.clear();
-      this->Modified();
-      }
-    }
+  void ClearChangeMap();
 
 
 protected:
