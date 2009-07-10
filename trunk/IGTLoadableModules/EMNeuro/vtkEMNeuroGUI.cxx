@@ -61,7 +61,7 @@ vtkEMNeuroGUI::vtkEMNeuroGUI ( )
   //----------------------------------------------------------------
   // GUI widgets
   this->NodeSelectorMenu = NULL;
-  this->GetTransfer = NULL;
+  this->StartCalibrateButton = NULL;
   this->numPointsEntry = NULL;
   this->TestButton21 = NULL;
   this->TestButton22 = NULL;
@@ -69,6 +69,10 @@ vtkEMNeuroGUI::vtkEMNeuroGUI ( )
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
+
+  //----------------------------------------------------------------
+  // Variables
+  this->pivot = vtkPivotCalibration::New();
 
 }
 
@@ -104,10 +108,10 @@ vtkEMNeuroGUI::~vtkEMNeuroGUI ( )
     this->numPointsEntry->Delete();
     }
 
-  if (this->GetTransfer)
+  if (this->StartCalibrateButton)
     {
-    this->GetTransfer->SetParent(NULL);
-    this->GetTransfer->Delete();
+    this->StartCalibrateButton->SetParent(NULL);
+    this->StartCalibrateButton->Delete();
     }
 
   if (this->TestButton21)
@@ -186,9 +190,9 @@ void vtkEMNeuroGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->GetTransfer)
+  if (this->StartCalibrateButton)
     {
-    this->GetTransfer
+    this->StartCalibrateButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
@@ -238,7 +242,7 @@ void vtkEMNeuroGUI::AddGUIObservers ( )
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->numPointsEntry
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->GetTransfer
+  this->StartCalibrateButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->TestButton21
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -305,21 +309,23 @@ void vtkEMNeuroGUI::ProcessGUIEvents(vtkObject *caller,
     {
     std::cerr << "numPoints has been modified." << std::endl;
     }
-  else if (this->GetTransfer == vtkKWPushButton::SafeDownCast(caller)
+  else if (this->StartCalibrateButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    std::cerr << "GetTransfer is pressed." << std::endl;
-    //Observe selected node
-    vtkMRMLNode* node = this->NodeSelectorMenu->GetSelected();
-    vtkIntArray* nodeEvents = vtkIntArray::New();
-    nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-    vtkMRMLNode* nullNode = NULL;
-    vtkSetAndObserveMRMLNodeEventsMacro(nullNode, node, nodeEvents);
-    nodeEvents->Delete();
-    //Initialize Pivot Calibration
-    vtkPivotCalibration* pc = vtkPivotCalibration::New();
-    std::cerr << "Created object successfully" << std::endl;
-    //pc->Initialize(100, node);
+    std::cerr << "StartCalibrateButton is pressed." << std::endl;
+    //Check if node has been selected
+    if (this->NodeSelectorMenu->GetSelected())
+      {
+      //Observe selected node
+      vtkMRMLNode* node = this->NodeSelectorMenu->GetSelected();
+      vtkIntArray* nodeEvents = vtkIntArray::New();
+      nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+      vtkMRMLNode* nullNode = NULL;
+      vtkSetAndObserveMRMLNodeEventsMacro(nullNode, node, nodeEvents);
+      nodeEvents->Delete();
+      //Initialize Pivot Calibration
+      pivot->Initialize(10, node);
+      }
     }
   else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
@@ -368,14 +374,20 @@ void vtkEMNeuroGUI::ProcessMRMLEvents ( vtkObject *caller,
     {
     std::cerr<< "MRML event called" << std::endl;
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+
+    //Check to see if calibration node has been updated
     if (node == NodeSelectorMenu->GetSelected())
       {
-      std::cerr << "Selected Node has been updated" << std::endl;
+      //Print node in terminal and send node to calibration vector
+      std::cerr << "Calibration Node has been updated" << std::endl;
       node->Print(std::cerr);
-      //PivotCalibration::AcquireTransform();
+      pivot->AcquireTransform();
       }
+    else
+      {
     //GetMatrixTransformtoParent()
     //else remove observer on node
+      }
     }
 
   if (event == vtkMRMLScene::SceneCloseEvent)
@@ -507,13 +519,13 @@ void vtkEMNeuroGUI::BuildGUIForCalibrationFrame()
   this->Script ( "pack %s -fill both -expand true",
                  startCalibrationFrame->GetWidgetName());
 
-  this->GetTransfer = vtkKWPushButton::New ( );
-  this->GetTransfer->SetParent ( startCalibrationFrame );
-  this->GetTransfer->Create ( );
-  this->GetTransfer->SetText ("Get Transfer");
-  this->GetTransfer->SetWidth (15);
+  this->StartCalibrateButton = vtkKWPushButton::New ( );
+  this->StartCalibrateButton->SetParent ( startCalibrationFrame );
+  this->StartCalibrateButton->Create ( );
+  this->StartCalibrateButton->SetText ("Get Transfer");
+  this->StartCalibrateButton->SetWidth (15);
   this->Script ( "pack %s -side left -expand true",
-                 GetTransfer->GetWidgetName());
+                 StartCalibrateButton->GetWidgetName());
 
   //Delete widget pointers
   calibrationFrame->Delete();

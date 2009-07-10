@@ -15,10 +15,10 @@
 #ifndef __vtkPivotCalibration_h
 #define __vtkPivotCalibration_h
 
-//#include "vtkPivotCalibrationAlgorithm.h"
+#include "vtkPivotCalibrationAlgorithm.h"
 #include "vtkEMNeuroWin32Header.h"
 #include "vtkObject.h"
-#include "vtkMRMLNode.h"
+#include "vtkMRMLLinearTransformNode.h"
 #include "vtkMatrix4x4.h"
 #include <vector>
 
@@ -45,11 +45,8 @@ public:
   static vtkPivotCalibration* New();
   vtkTypeRevisionMacro(vtkPivotCalibration, vtkObject);
 
-  /** Print the object information in a stream. */
-  void PrintSelf(ostream& os, vtkIndent indent);
-
   /** This method sets the number of transformations required for performing
-   *  the pivot calibration and the tracker information.
+   *  the pivot calibration and the tracker MRML node information.
    *  It is assumed that the tracker is already in tracking mode and that the
    *  tool is connected to the given port and channel. */
   void Initialize( unsigned int n, vtkMRMLNode* node );
@@ -57,7 +54,7 @@ public:
   /* This method is part of the data acquisition before the actual calibration
    * process. We add a transform to the vector which stores the data
    */
-  //void AcquireTransform();
+  void AcquireTransform();
 
   /** This method performs the data acquisition and calibration. It generates
    *  several events: CalibrationSuccessEvent, CalibrationFailureEvent,
@@ -67,7 +64,7 @@ public:
    *  fact that acquisition of tracking data has started, data was acquired
    *  (contains the percentage out of the required tracking data), and that the
    *  acquisition is done. */
-  //void RequestComputeCalibration();
+  //void ComputeCalibration();
 
   /** This method is used to request the calibration transformation.
    *  The method should only be invoked after a successful calibration.
@@ -101,18 +98,17 @@ private:
   //static const unsigned int MAXIMAL_RETRIES;
 
   //transformations used for pivot calibration
-  //std::vector< PivotCalibrationAlgorithm::TransformType > m_Transforms;
-  //std::vector< vtkMatrix4x4* > m_Transforms;
-  //MRML node which contains tracking information
-  //vtkMRMLNode* transformNode;
-  //number of transformation we want to acquire
-  //unsigned int m_RequiredNumberOfTransformations;
+  std::vector< vtkMatrix4x4* > m_Transforms;
+  vtkMRMLLinearTransformNode* transformNode;        //MRML node which contains tracking information
+  unsigned int m_RequiredNumberOfTransformations;   //number of transformation we want to acquire
+  vtkMatrix4x4* m_CalibrationTransform;
+
   //Flags indicating errors
-  //bool bInitializeError;
-  //bool bComputationError;
+  bool bInitializeError;
+  bool bComputationError;
 //ETX
   //the object that actually does all the work
-  //PivotCalibrationAlgorithm* m_PivotCalibrationAlgorithm;
+  vtkPivotCalibrationAlgorithm* m_PivotCalibrationAlgorithm;
 };
 
 #endif //__vtkPivotCalibration_h
