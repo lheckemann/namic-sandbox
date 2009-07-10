@@ -28,6 +28,7 @@
 class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkKWEntry;
+class vtkPivotCalibration;
 
 class VTK_EMNeuro_EXPORT vtkEMNeuroGUI : public vtkSlicerModuleGUI
 {
@@ -56,6 +57,7 @@ class VTK_EMNeuro_EXPORT vtkEMNeuroGUI : public vtkSlicerModuleGUI
  private:
   vtkEMNeuroGUI ( const vtkEMNeuroGUI& ); // Not implemented.
   void operator = ( const vtkEMNeuroGUI& ); //Not implemented.
+
 
  public:
   //----------------------------------------------------------------
@@ -108,6 +110,11 @@ class VTK_EMNeuro_EXPORT vtkEMNeuroGUI : public vtkSlicerModuleGUI
  protected:
 
   //----------------------------------------------------------------
+  // Variables
+  //----------------------------------------------------------------
+  vtkPivotCalibration* pivot;
+
+  //----------------------------------------------------------------
   // Timer
   //----------------------------------------------------------------
 
@@ -120,7 +127,7 @@ class VTK_EMNeuro_EXPORT vtkEMNeuroGUI : public vtkSlicerModuleGUI
 
   vtkSlicerNodeSelectorWidget* NodeSelectorMenu;
   vtkKWEntry* numPointsEntry;
-  vtkKWPushButton* GetTransfer;
+  vtkKWPushButton* StartCalibrateButton;
   vtkKWPushButton* TestButton21;
   vtkKWPushButton* TestButton22;
 

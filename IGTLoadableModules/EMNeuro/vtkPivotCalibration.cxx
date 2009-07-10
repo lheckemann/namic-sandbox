@@ -15,6 +15,8 @@
 #include "vtkPivotCalibration.h"
 #include "vtkObjectFactory.h"
 
+#include "vtkMatrix4x4.h"
+
 vtkStandardNewMacro(vtkPivotCalibration);
 vtkCxxRevisionMacro(vtkPivotCalibration, "$Revision: 1.0 $");
 
@@ -23,27 +25,24 @@ vtkCxxRevisionMacro(vtkPivotCalibration, "$Revision: 1.0 $");
 vtkPivotCalibration::vtkPivotCalibration()
 {
   //instantiate the class that performs the pivot calibration computation
-  //this->m_PivotCalibrationAlgorithm = PivotCalibrationAlgorithm::New();
-  std::cerr << "Got to the constructor" << std::endl;
-  //this->bInitializeError = true;
-  //this->bComputationError = true;
+  this->m_PivotCalibrationAlgorithm = vtkPivotCalibrationAlgorithm::New();
+  this->bInitializeError = true;
+  this->bComputationError = true;
 }
 
 //------------------------------------------------------------------------
 vtkPivotCalibration::~vtkPivotCalibration()
 {
-
+//Destroy contents of vector
 }
 
 //------------------------------------------------------------------------
-/*void
-vtkPivotCalibration::Initialize( unsigned int n,
-                                    vtkMRMLNode* node )
+void vtkPivotCalibration::Initialize( unsigned int n,vtkMRMLNode* node )
 {
   //Initialize the transform data node and number of transforms
   if (node != NULL)
     {
-    this->transformNode = node;
+    this->transformNode = static_cast<vtkMRMLLinearTransformNode*> (node);
     this->m_RequiredNumberOfTransformations = n;
     this->m_Transforms.clear();
     //this->m_PivotCalibrationAlgorithm->RequestResetCalibration();
@@ -55,54 +54,50 @@ vtkPivotCalibration::Initialize( unsigned int n,
     std::cerr << "Tool transform node does not exist" << std::endl;
     bInitializeError = true;
     }
-}*/
+}
 
 //--------------------------------------------------------------------------
-/*void
-vtkPivotCalibration::AcquireTransform()
+void vtkPivotCalibration::AcquireTransform()
 {
-//Make sure initialized is true
-  if( this->m_Transforms.size() == this->m_RequiredNumberOfTransformations )
+  if (!bInitializeError)
     {
-    //got all the transformations we need for calibration
-    // Instead of removing the observer, we set the callback function to empty
-    // because that the tracker is running on a separate thread, when the
-    // tracker update event evoke the observer callback, it will crash the
-    // application if the observer is being removed by another thread.Thus it is
-    // safer to  set the observer callback to an empty function
-    //this->m_TrackerTool->RemoveObserver( this->m_AcquireTransformObserverID );
-    /*this->m_TransformAcquiredObserver->SetCallbackFunction(this,
-                                             & PivotCalibration::EmptyCallBack);
-    //this->m_TrackerTool->RemoveObserver( this->m_TransformToTrackerObserverID );
+    if( this->m_Transforms.size() == this->m_RequiredNumberOfTransformations )
+      {
+      //got all the transformations we need for calibration
+      std::cerr << "Finished filling the vector" << std::endl;
 
-    this->InvokeEvent( DataAcquisitionEndEvent() );
-    //actually perform the calibration
-    this->m_PivotCalibrationAlgorithm->RequestResetCalibration();
-    this->m_PivotCalibrationAlgorithm->RequestAddTransforms(this->m_Transforms);
-    this->m_PivotCalibrationAlgorithm->RequestComputeCalibration();
-    //check if the calibration computation failed
-    if( this->m_ErrorObserver->ErrorOccured() )
-      {
-      this->m_ErrorObserver->GetErrorMessage(
-                                          this->m_ReasonForCalibrationFailure );
-      this->m_ErrorObserver->ClearError();
-      igstkPushInputMacro( Failed );
+      //remove observer from the node
+
+      //actually perform the calibration
+      this->m_PivotCalibrationAlgorithm->ResetCalibration();
+      this->m_PivotCalibrationAlgorithm->AddTransformsVector(this->m_Transforms);
+      this->m_PivotCalibrationAlgorithm->ComputeCalibration();
+      //check if the calibration computation failed
+      if( this->m_PivotCalibrationAlgorithm->GetErrorStatus() )
+        {
+        this->bComputationError = true;
+        }
+      else
+        {
+        this->bComputationError = false;
+        //Print out results onto the screen
+        this->m_CalibrationTransform = vtkMatrix4x4::New();
+        this->m_PivotCalibrationAlgorithm->GetCalibrationTransform(this->m_CalibrationTransform);
+        }
       }
-    else
+    else  //transform was updated, we need to retrieve it
       {
-      igstkPushInputMacro( Succeeded );
+      vtkMatrix4x4* mat = vtkMatrix4x4::New();
+      this->transformNode->GetMatrixTransformToWorld(mat);
+      this->m_Transforms.push_back(mat);
+      std::cerr << "Number of transforms stacked: " << this->m_Transforms.size() << std::endl;
       }
-    this->m_StateMachine.ProcessInputs();
-    }
-  else  //transform was updated, we need to retrieve it
-    {
-    //this->m_Transforms.push_back(this->transformNode->GetTransformToParent());
     }
 }
 
 //--------------------------------------------------------------------------------
 
-void
+/*void
 vtkPivotCalibration::RequestComputeCalibration()
 {
   //Start the computation of the calibration
