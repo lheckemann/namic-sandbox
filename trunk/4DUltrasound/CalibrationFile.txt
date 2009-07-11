@@ -10,7 +10,7 @@
 #---------------------------------------
 #Image Dimensions - Dimensions of captured images in pixels 
 #----------------
-#                   Format: NUM_OF_COLS(X)  NUM_OF_ROWS(Y)
+#Format: NUM_OF_COLS(X)  NUM_OF_ROWS(Y)
 # =========> !!!! VERY IMPORTANT: ASPECT RATIO MUST BE 4:3 !!!! <==========
 #
 #Examples
@@ -28,7 +28,7 @@
 #                run
 #                Format: TOP BOTTOM LEFT RIGHT
 #
-#Examples
+#Examples for Sonosite Titan Ultrasound Machine
 #-------------------
 #1.) No margins: 0 0 0 0
 #2.) 320 x 240 Pixel 7.3 cm Ultrasound Scan Depth: 16 18 40 30
