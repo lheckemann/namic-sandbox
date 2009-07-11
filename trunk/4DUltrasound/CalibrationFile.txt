@@ -40,15 +40,18 @@
 
 
 #-------------------------------------------------------------------------------
-#Calibration matrices
-#--------------------
-#Offset tracker-ultrasound device x y z [mm]
+#Tracked Ultrasound Calibration
+#------------------------------
+#Offset tip of tracker sensor to center of phased array of US transducer:
+# x y z [mm]
 #0 -14.2875 36.5125
+#Definition:
 0 -14.2875 39
 
 
 #---------------------------------------
-#Adjust obliqueness of tracker to US
+#Obliqueness tip of tracker sensor to center of phased array of US transducer:
+#Definition:
 0.933580  -0.358368  0 0
 0.358368   0.933580  0 0
 0          0         1 0
