@@ -38,8 +38,8 @@ TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVTKPolyDataReader1 ITKQuadEdgeMesh ITKIO IT
 ADD_EXECUTABLE(itkQuadEdgeMeshVTKPolyDataReader2 itkQuadEdgeMeshVTKPolyDataReader2.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVTKPolyDataReader2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
-ADD_EXECUTABLE(itkQuadEdgeMeshPixelValuesSmoothingFilterTest1 itkQuadEdgeMeshPixelValuesSmoothingFilterTest1.cxx)
-TARGET_LINK_LIBRARIES(itkQuadEdgeMeshPixelValuesSmoothingFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+ADD_EXECUTABLE(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1 itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1.cxx)
+TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 
 ###################
@@ -94,32 +94,32 @@ ADD_TEST(itkQuadEdgeMeshVTKPolyDataReader2
   ${TEMP}/meshWithVectorsVerification.vtk
   )
 
-ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
+ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectors.vtk
   ${TEMP}/meshWithVectorsSmoothed.vtk
   1.0   # Lambda
   10    # Iterations
   )
 
-ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest2
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
+ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest2
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectorsIC1.vtk
   ${TEMP}/meshWithVectorsIC1Smoothed.vtk
   1.0   # Lambda
   10    # Iterations
   )
 
-ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest3
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
+ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest3
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectorsIC4.vtk
   ${TEMP}/meshWithVectorsIC4Smoothed.vtk
   1.0   # Lambda
   10    # Iterations
   )
 
-ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest4
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
+ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest4
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectorsIC7.vtk
   ${TEMP}/meshWithVectorsIC7Smoothed.vtk
   1.0   # Lambda
