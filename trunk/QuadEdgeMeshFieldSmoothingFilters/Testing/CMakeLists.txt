@@ -41,6 +41,8 @@ TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVTKPolyDataReader2 ITKQuadEdgeMesh ITKIO IT
 ADD_EXECUTABLE(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1 itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1.cxx)
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkQuadEdgeMeshScalarPixelValuesSmoothingFilterTest1 itkQuadEdgeMeshScalarPixelValuesSmoothingFilterTest1.cxx)
+TARGET_LINK_LIBRARIES(itkQuadEdgeMeshScalarPixelValuesSmoothingFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ###################
 ###################
@@ -92,6 +94,14 @@ ADD_TEST(itkQuadEdgeMeshVTKPolyDataReader2
   ${CXX_TEST_PATH}/itkQuadEdgeMeshVTKPolyDataReader2
   ${TEMP}/meshWithVectors.vtk
   ${TEMP}/meshWithVectorsVerification.vtk
+  )
+
+ADD_TEST(ScalarSmoothingFilterTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshScalarPixelValuesSmoothingFilterTest1
+  ${TEMP}/fixedMesh01.vtk
+  ${TEMP}/fixedMesh01Smoothed.vtk
+  1.0   # Lambda
+  10    # Iterations
   )
 
 ADD_TEST(VectorSmoothingFilterTest1
