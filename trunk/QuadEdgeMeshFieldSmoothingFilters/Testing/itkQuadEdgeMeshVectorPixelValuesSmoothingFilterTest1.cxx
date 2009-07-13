@@ -89,24 +89,39 @@ int main( int argc, char *argv[] )
   filter->SetLambda( lambda );
   TEST_SET_GET_VALUE( lambda, filter->GetLambda() );
 
-
   FilterWatcher watcher( filter, "Smoothing Filter");
 
   filter->SetLambda( atof( argv[3] ) );
   filter->SetMaximumNumberOfIterations( atoi( argv[4] ) );
 
-  try
-    {
-    filter->Update( );
-    }
-  catch( itk::ExceptionObject & exp )
-    {
-    std::cerr << "Exception thrown while running the Smoothing filter " << std::endl;
-    std::cerr << exp << std::endl;
-    return EXIT_FAILURE;
-    }
+  TRY_EXPECT_NO_EXCEPTION( filter->Update( ) );
 
   itk::MeshWriterHelper2< OutputMeshType >::WriteMeshToFile( filter->GetOutput(), argv[2] );
+
+  InputMeshType::Pointer inputMesh = reader->GetOutput();
+  inputMesh->DisconnectPipeline();
+  
+//  reader = NULL; // Destroy the reader
+
+  InputMeshType::PointsContainerPointer points = inputMesh->GetPoints();
+  InputMeshType::PointDataContainerPointer pointsData = inputMesh->GetPointData();
+
+  inputMesh->SetPointData( NULL );
+
+  TRY_EXPECT_EXCEPTION( filter->Update( ) );
+  
+  inputMesh->SetPointData( pointsData );
+
+  TRY_EXPECT_NO_EXCEPTION( filter->Update( ) );
+
+  inputMesh->SetPoints( NULL );
+
+  TRY_EXPECT_EXCEPTION( filter->Update( ) );
+  
+  inputMesh->SetPoints( points );
+
+  TRY_EXPECT_NO_EXCEPTION( filter->Update( ) );
+
 
   return EXIT_SUCCESS;
 }
