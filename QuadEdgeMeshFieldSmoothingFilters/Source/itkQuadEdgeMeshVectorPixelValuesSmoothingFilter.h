@@ -25,7 +25,7 @@ namespace itk
 
 /**
  * \class QuadEdgeMeshVectorPixelValuesSmoothingFilter
- * \brief This filter smooths the pixel values associated with points.
+ * \brief This filter smooths vector pixel values associated with points.
  *
  * This filter was based on the filter provided by 
  * Arnaud Gelas, Alex Gouaillard and Sean Megason in their Insight Journal paper
@@ -38,6 +38,21 @@ namespace itk
  * smooths the point positions while leaving unchanged the pixel values
  * associated with the points.
  *
+ * This filter expects the PixelType to be of Vector type, where the Vectors
+ * will have the same number of components as the space dimension. Vectors will
+ * be averaged among neighbors by first performing parallel transport to the 
+ * central node and then using a weighted sum. The smoothing process is performed
+ * for a user-specified number of iterations.
+ *
+ * A full description of this filter is available in the TMI paper:
+ *
+ * "Spherical Demons: Fast Diffeomorphic Landmark-Free Surface Registration"
+ *
+ * by
+ *       B.T. Thomas Yeo, Mert R. Sabuncu, Tom Vercauteren, 
+ *       Nicholas Ayache, Bruce Fischl, Polina Golland.
+ *
+ * \sa QuadEdgeMeshScalarPixelValuesSmoothingFilter
  * \ingroup MeshFilters
  *
  */
