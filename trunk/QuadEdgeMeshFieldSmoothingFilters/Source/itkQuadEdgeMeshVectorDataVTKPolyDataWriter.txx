@@ -132,8 +132,6 @@ QuadEdgeMeshVectorDataVTKPolyDataWriter<TMesh>
       outputFile <<"vectors double"<<std::endl;
       }
 
-    typedef typename MeshType::PixelType   PixelType;
-
     unsigned long k = 0;
 
     PointDataContainerIterator c_it = pointdata->Begin();
