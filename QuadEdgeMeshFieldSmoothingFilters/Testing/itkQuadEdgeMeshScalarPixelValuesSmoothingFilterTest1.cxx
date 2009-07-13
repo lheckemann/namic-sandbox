@@ -20,7 +20,7 @@
 
 #include "itkQuadEdgeMeshScalarPixelValuesSmoothingFilter.h"
 #include "itkQuadEdgeMesh.h"
-#include "itkMeshWriterHelper2.h"
+#include "itkMeshWriterHelper1.h"
 #include "itkQuadEdgeMeshVTKPolyDataReader.h"
 #include "itkTestingMacros.h"
 #include "itkFilterWatcher.h"
@@ -96,7 +96,7 @@ int main( int argc, char *argv[] )
 
   TRY_EXPECT_NO_EXCEPTION( filter->Update( ) );
 
-  itk::MeshWriterHelper2< OutputMeshType >::WriteMeshToFile( filter->GetOutput(), argv[2] );
+  itk::MeshWriterHelper1< OutputMeshType >::WriteMeshToFile( filter->GetOutput(), argv[2] );
 
   InputMeshType::Pointer inputMesh = reader->GetOutput();
   inputMesh->DisconnectPipeline();
