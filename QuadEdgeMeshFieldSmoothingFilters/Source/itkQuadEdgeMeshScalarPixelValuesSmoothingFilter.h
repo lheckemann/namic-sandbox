@@ -124,24 +124,6 @@ public:
   itkSetMacro( Lambda, double );
   itkGetMacro( Lambda, double );
 
-  /** Set Sphere Center.  The implementation of this filter assumes that the
-   * Mesh surface has a spherical geometry (not only spherical topology). With
-   * this method you can specify the coordinates of the center of the sphere
-   * represented by the Mesh. This will be used in the computation of parallel
-   * transport for vector field values associated with nodes.
-   */
-  itkSetMacro( SphereCenter, OutputPointType );
-  itkGetConstMacro( SphereCenter, OutputPointType );
-
-  /** Set Sphere Radius.  The implementation of this filter assumes that the
-   * Mesh surface has a spherical geometry (not only spherical topology). With
-   * this method you can specify the radius of the sphere. This will be used in
-   * the computation of parallel transport for vector field values associated
-   * with nodes.
-   */
-  itkSetMacro( SphereRadius, double );
-  itkGetConstMacro( SphereRadius, double );
-
 
 protected:
   QuadEdgeMeshScalarPixelValuesSmoothingFilter();
@@ -156,8 +138,6 @@ private:
 
   unsigned long             m_MaximumNumberOfIterations;
   double                    m_Lambda;
-  OutputPointType           m_SphereCenter;
-  double                    m_SphereRadius;
 };
 
 }
