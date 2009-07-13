@@ -32,8 +32,6 @@ QuadEdgeMeshScalarPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 {
   this->m_Lambda = 1.0;
   this->m_MaximumNumberOfIterations = 10;
-  this->m_SphereCenter.Fill( 0.0 );
-  this->m_SphereRadius = 1.0;
 }
 
 
