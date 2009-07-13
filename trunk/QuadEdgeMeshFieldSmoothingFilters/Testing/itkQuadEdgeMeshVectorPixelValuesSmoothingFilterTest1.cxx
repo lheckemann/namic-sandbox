@@ -98,10 +98,11 @@ int main( int argc, char *argv[] )
 
   itk::MeshWriterHelper2< OutputMeshType >::WriteMeshToFile( filter->GetOutput(), argv[2] );
 
+#ifdef TEST_EXCEPTIONS
   InputMeshType::Pointer inputMesh = reader->GetOutput();
   inputMesh->DisconnectPipeline();
   
-//  reader = NULL; // Destroy the reader
+  reader = NULL; // Destroy the reader
 
   InputMeshType::PointsContainerPointer points = inputMesh->GetPoints();
   InputMeshType::PointDataContainerPointer pointsData = inputMesh->GetPointData();
@@ -121,6 +122,7 @@ int main( int argc, char *argv[] )
   inputMesh->SetPoints( points );
 
   TRY_EXPECT_NO_EXCEPTION( filter->Update( ) );
+#endif
 
 
   return EXIT_SUCCESS;
