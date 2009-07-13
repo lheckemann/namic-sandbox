@@ -94,7 +94,7 @@ ADD_TEST(itkQuadEdgeMeshVTKPolyDataReader2
   ${TEMP}/meshWithVectorsVerification.vtk
   )
 
-ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
+ADD_TEST(VectorSmoothingFilterTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectors.vtk
   ${TEMP}/meshWithVectorsSmoothed.vtk
@@ -102,7 +102,7 @@ ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
   10    # Iterations
   )
 
-ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest2
+ADD_TEST(VectorSmoothingFilterTest2
   ${CXX_TEST_PATH}/itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectorsIC1.vtk
   ${TEMP}/meshWithVectorsIC1Smoothed.vtk
@@ -110,7 +110,7 @@ ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest2
   10    # Iterations
   )
 
-ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest3
+ADD_TEST(VectorSmoothingFilterTest3
   ${CXX_TEST_PATH}/itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectorsIC4.vtk
   ${TEMP}/meshWithVectorsIC4Smoothed.vtk
@@ -118,7 +118,7 @@ ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest3
   10    # Iterations
   )
 
-ADD_TEST(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest4
+ADD_TEST(VectorSmoothingFilterTest4
   ${CXX_TEST_PATH}/itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1
   ${TEMP}/meshWithVectorsIC7.vtk
   ${TEMP}/meshWithVectorsIC7Smoothed.vtk
