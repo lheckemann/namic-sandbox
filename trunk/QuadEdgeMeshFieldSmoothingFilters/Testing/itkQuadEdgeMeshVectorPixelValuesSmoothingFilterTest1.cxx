@@ -18,7 +18,7 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkQuadEdgeMeshPixelValuesSmoothingFilter.h"
+#include "itkQuadEdgeMeshVectorPixelValuesSmoothingFilter.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkMeshWriterHelper2.h"
 #include "itkQuadEdgeMeshVTKPolyDataReader.h"
@@ -41,7 +41,7 @@ int main( int argc, char *argv[] )
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   InputMeshType;
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   OutputMeshType;
 
-  typedef itk::QuadEdgeMeshPixelValuesSmoothingFilter<
+  typedef itk::QuadEdgeMeshVectorPixelValuesSmoothingFilter<
     InputMeshType, OutputMeshType >                       FilterType;
 
   FilterType::Pointer filter = FilterType::New();

@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkQuadEdgeMeshPixelValuesSmoothingFilter_h
-#define __itkQuadEdgeMeshPixelValuesSmoothingFilter_h
+#ifndef __itkQuadEdgeMeshVectorPixelValuesSmoothingFilter_h
+#define __itkQuadEdgeMeshVectorPixelValuesSmoothingFilter_h
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
 #include "itkQuadEdgeMeshParamMatrixCoefficients.h"
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- * \class QuadEdgeMeshPixelValuesSmoothingFilter
+ * \class QuadEdgeMeshVectorPixelValuesSmoothingFilter
  * \brief This filter smooths the pixel values associated with points.
  *
  * This filter was based on the filter provided by 
@@ -42,18 +42,18 @@ namespace itk
  *
  */
 template< class TInputMesh, class TOutputMesh >
-class QuadEdgeMeshPixelValuesSmoothingFilter :
+class QuadEdgeMeshVectorPixelValuesSmoothingFilter :
   public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 {
 public:
-  typedef QuadEdgeMeshPixelValuesSmoothingFilter        Self;
+  typedef QuadEdgeMeshVectorPixelValuesSmoothingFilter  Self;
   typedef QuadEdgeMeshToQuadEdgeMeshFilter< 
     TInputMesh, TOutputMesh >                           Superclass;
   typedef SmartPointer< Self >                          Pointer;
   typedef SmartPointer< const Self >                    ConstPointer;
 
   /** Run-time type information (and related methods).   */
-  itkTypeMacro( QuadEdgeMeshPixelValuesSmoothingFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
+  itkTypeMacro( QuadEdgeMeshVectorPixelValuesSmoothingFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
@@ -131,8 +131,8 @@ public:
 
 
 protected:
-  QuadEdgeMeshPixelValuesSmoothingFilter();
-  ~QuadEdgeMeshPixelValuesSmoothingFilter();
+  QuadEdgeMeshVectorPixelValuesSmoothingFilter();
+  ~QuadEdgeMeshVectorPixelValuesSmoothingFilter();
 
   void GenerateData();
 
@@ -149,7 +149,7 @@ protected:
 
 private:
 
-  QuadEdgeMeshPixelValuesSmoothingFilter( const Self& ); //purposely not implemented
+  QuadEdgeMeshVectorPixelValuesSmoothingFilter( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
   unsigned long             m_MaximumNumberOfIterations;
@@ -163,7 +163,7 @@ private:
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkQuadEdgeMeshPixelValuesSmoothingFilter.txx"
+#include "itkQuadEdgeMeshVectorPixelValuesSmoothingFilter.txx"
 #endif
 
 #endif

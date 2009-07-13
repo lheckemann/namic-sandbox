@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkQuadEdgeMeshPixelValuesSmoothingFilter_txx
-#define __itkQuadEdgeMeshPixelValuesSmoothingFilter_txx
+#ifndef __itkQuadEdgeMeshVectorPixelValuesSmoothingFilter_txx
+#define __itkQuadEdgeMeshVectorPixelValuesSmoothingFilter_txx
 
-#include "itkQuadEdgeMeshPixelValuesSmoothingFilter.h"
+#include "itkQuadEdgeMeshVectorPixelValuesSmoothingFilter.h"
 #include "itkProgressReporter.h"
 #include "itkVersor.h"
 #include "itkNumericTraitsVectorPixel.h"
@@ -27,8 +27,8 @@ namespace itk
 
 
 template< class TInputMesh, class TOutputMesh >
-QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
-::QuadEdgeMeshPixelValuesSmoothingFilter()
+QuadEdgeMeshVectorPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
+::QuadEdgeMeshVectorPixelValuesSmoothingFilter()
 {
   this->m_Lambda = 1.0;
   this->m_MaximumNumberOfIterations = 10;
@@ -38,15 +38,15 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 
 
 template< class TInputMesh, class TOutputMesh >
-QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
-::~QuadEdgeMeshPixelValuesSmoothingFilter()
+QuadEdgeMeshVectorPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
+::~QuadEdgeMeshVectorPixelValuesSmoothingFilter()
 {
 }
 
 
 template< class TInputMesh, class TOutputMesh >
 void
-QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
+QuadEdgeMeshVectorPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 ::ParalelTransport( 
     const OutputPointType src, const OutputPointType dst,
     const InputPixelType & inputPixelValue, 
@@ -73,7 +73,7 @@ QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 
 template< class TInputMesh, class TOutputMesh >
 void
-QuadEdgeMeshPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
+QuadEdgeMeshVectorPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 ::GenerateData()
 {
   // Copy the input mesh into the output mesh.
