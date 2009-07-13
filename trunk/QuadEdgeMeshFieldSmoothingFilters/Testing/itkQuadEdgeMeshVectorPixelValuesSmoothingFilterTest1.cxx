@@ -89,6 +89,31 @@ int main( int argc, char *argv[] )
   filter->SetLambda( lambda );
   TEST_SET_GET_VALUE( lambda, filter->GetLambda() );
 
+  FilterType::OutputPointType center1;
+  center1.Fill( 17.0 );
+  filter->SetSphereCenter( center1 );
+  TEST_SET_GET_VALUE( center1, filter->GetSphereCenter() );
+
+  FilterType::OutputPointType center2;
+  center2.Fill( 31.0 );
+  filter->SetSphereCenter( center2 );
+  TEST_SET_GET_VALUE( center2, filter->GetSphereCenter() );
+
+  const double radius1 = 19.0;
+  filter->SetSphereRadius( radius1 );
+  TEST_SET_GET_VALUE( radius1, filter->GetSphereRadius() );
+
+  const double radius2 = 29.0;
+  filter->SetSphereRadius( radius2 );
+  TEST_SET_GET_VALUE( radius2, filter->GetSphereRadius() );
+
+
+  FilterType::OutputPointType center0;
+  center0.Fill( 0.0 );
+
+  filter->SetSphereCenter( center0 );
+  filter->SetSphereRadius( 100.0 );
+
   FilterWatcher watcher( filter, "Smoothing Filter");
 
   filter->SetLambda( atof( argv[3] ) );
