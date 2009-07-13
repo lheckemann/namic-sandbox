@@ -1,9 +1,9 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMeshToMeshRegistrationMethod.txx,v $
+  Module:    $RCSfile: itkTestingMacros.h,v $
   Language:  C++
-  Date:      $Date: 2003-11-08 17:58:32 $
+  Date:      $Date: 2009-05-09 17:40:20 $
   Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
@@ -23,12 +23,12 @@
     {  \
     std::cout << "Trying " << #command << std::endl; \
     command;  \
-    std::cerr << "Failed to catch Expected exception" << std::endl;  \
+    std::cerr << "Failed to catch expected exception" << std::endl;  \
     return EXIT_FAILURE;  \
     }  \
   catch( itk::ExceptionObject & excp )  \
     {  \
-    std::cout << "Catched expected exception" << std::endl;  \
+    std::cout << "Caught expected exception" << std::endl;  \
     std::cout << excp << std::endl; \
     }  
 
@@ -50,6 +50,8 @@
   if( variable.GetPointer() != command )   \
     {   \
     std::cerr << "Error in " << #command << std::endl; \
+    std::cerr << "Expected " << variable.GetPointer() << std::endl; \
+    std::cerr << "but got  " << command << std::endl; \
     return EXIT_FAILURE; \
     }
 
@@ -58,6 +60,8 @@
   if( variable != command )   \
     {   \
     std::cerr << "Error in " << #command << std::endl; \
+    std::cerr << "Expected " << variable << std::endl; \
+    std::cerr << "but got  " << command << std::endl; \
     return EXIT_FAILURE; \
     }
 
