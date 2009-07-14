@@ -20,7 +20,7 @@
 
 #include "itkQuadEdgeMeshScalarPixelValuesSmoothingFilter.h"
 #include "itkQuadEdgeMeshVTKPolyDataReader.h"
-#include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkQuadEdgeMesh.h"
 
 int main( int argc, char *argv[] )
@@ -39,31 +39,43 @@ int main( int argc, char *argv[] )
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   InputMeshType;
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   OutputMeshType;
 
-  typedef itk::QuadEdgeMeshScalarPixelValuesSmoothingFilter<
-    InputMeshType, OutputMeshType >                       FilterType;
-
-  FilterType::Pointer filter = FilterType::New();
-
   typedef itk::QuadEdgeMeshVTKPolyDataReader< InputMeshType > ReaderType;
 
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
 
-  try
-    {
-    reader->Update( );
-    }
-  catch( itk::ExceptionObject & exp )
-    {
-    std::cerr << "Exception thrown while reading the input file " << std::endl;
-    std::cerr << exp << std::endl;
-    return EXIT_FAILURE;
-    }
+
+  typedef itk::QuadEdgeMeshScalarPixelValuesSmoothingFilter<
+    InputMeshType, OutputMeshType >                       FilterType;
+
+  FilterType::Pointer filter = FilterType::New();
+
+  const double lambda = atof( argv[3] );
+  const unsigned int numberOfIterations = atoi( argv[4] );
+
+  filter->SetLambda( lambda );
+  filter->SetMaximumNumberOfIterations( numberOfIterations );
+
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< OutputMeshType >   WriterType;
+  WriterType::Pointer writer = WriterType::New();
 
   filter->SetInput( reader->GetOutput() );
+  writer->SetInput( filter->GetOutput() );
 
-  filter->SetLambda( atof( argv[3] ) );
-  filter->SetMaximumNumberOfIterations( atoi( argv[4] ) );
+  filter->Update();
+
+  writer->SetFileName( argv[2] );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
 }
