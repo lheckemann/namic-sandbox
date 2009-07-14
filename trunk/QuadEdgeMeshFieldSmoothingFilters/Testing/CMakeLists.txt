@@ -47,6 +47,15 @@ TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVectorPixelValuesSmoothingFilterTest1 ITKQu
 ADD_EXECUTABLE(itkQuadEdgeMeshScalarPixelValuesSmoothingFilterTest1 itkQuadEdgeMeshScalarPixelValuesSmoothingFilterTest1.cxx)
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshScalarPixelValuesSmoothingFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+IF(USE_VTK)
+
+  ADD_EXECUTABLE(MeshRenderHelper  MeshRenderHelper.cxx)
+  TARGET_LINK_LIBRARIES(MeshRenderHelper 
+    vtkRendering vtkFiltering vtkIO vtkHybrid
+    ) 
+
+ENDIF(USE_VTK)
+
 ###################
 ###################
 #
@@ -160,3 +169,15 @@ ADD_TEST(VectorSmoothingFilterTest4
   10    # Iterations
   )
 
+
+IF(USE_VTK)
+
+ADD_TEST(RenderScalarMesh
+  ${CXX_TEST_PATH}/MeshRenderHelper
+  ${TEMP}/meshWithVectorsIC7.vtk
+  ${TEMP}/meshWithVectorsIC7Smoothed.vtk
+  1.0   # Lambda
+  10    # Iterations
+  )
+
+ENDIF(USE_VTK)
