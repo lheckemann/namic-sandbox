@@ -121,11 +121,12 @@ to ensure the consistency of the orientation all over the surface.
 Most of the filters available for this type of surface representation act upon
 the geometry and topology of the Meshes. However, the Meshes are also capable
 of carrying data associated with their nodes and therefore there is a need for
-filters that process such associated data. The collection of data associated to
-every node of a Mesh is usually called a ``Field''. In the Insight Toolkit we
-have commonly referred to it as ``PixelData'' which is a bit less intuitive.
-Following the first terminology, in this report we refer to the point data as
-``Field''.
+filters that process such associated data. The collection of values associated
+with every node of a Mesh is usually called a ``Field''. In the Insight Toolkit
+we have commonly referred to it as ``PixelData'' which is a bit less intuitive
+but more software-oriented.  Following the first terminology, in this report we
+refer to the point data as a ``Field''. This terminology is used in the
+Visualization Toolkit \textbf{VTK} as well.
 
 In this paper we contribute new classes that can be used for smoothing the
 values of field data over the surface of the Mesh. The Field data can be Scalar
@@ -147,8 +148,12 @@ of a Mesh. The Meshes are expected to be of type \doxygen{QuadEdgeMesh}.
 The basic algorithm implemented in these classes is described in
 \cite{Yeo2008}.  In summary the process involve visiting all the node of the
 Mesh, and for each one of them, computing a new scalar value by using a
-weighted average of the scalar values of the immediate neighbors. A simply
-scheme of two-weights is used.  The weight associated to the central value is:
+weighted average of the scalar values of the immediate neighbors.
+
+\subsubsection{Weighted Average}
+
+A simply scheme of two-weights is used.  The weight associated to the central
+value is:
 
 \begin{equation}
 \frac{ 1 }{ 1 + \left| N_i \right|  \exp{ \left( -\frac{1}{2\lambda} \right) } }
@@ -165,14 +170,13 @@ Where $N_i$ is the number of neighbors of this i-th node, and $\lambda$ is a
 user-provided constant that applies to the entire mesh.
 
 This process of local weighted average is applied on all the nodes and this is
-done in iteratively until reaching a use-provided number of iterations.
+done in iteratively until reaching a use-provided number of iterations.  The
+effect of the $\lambda$ parameter is such that the field data is smoothed more
+when the values of $\lambda$ are large. Typical values of $\lambda$ are in the
+range $[0.10,10.0]$, although they are not restricted to that range at all.
 
-The effect of the $\lambda$ parameter is such that the field data is smoothed
-more when the values of $\lambda$ are large. Typical values of $\lambda$ are in
-the range $[0.1,8.0]$, although they are not restricted to that range at all.
-
-As an illustration, Table\ref{tab:LambdaValueEffect} present the values of the
-central node and its neighbors for different values of $\lambda$, on the
+As an illustration, Table\ref{tab:LambdaValueEffect} presents the weight values
+of the central node and its neighbors for different values of $\lambda$, on the
 typical case of a neighborhood of six nodes.
 
 \begin{table}
@@ -209,36 +213,90 @@ computing the weighted-average of neighbors in a node with six neighbors.
 
 As the table shows, for small values of $\lambda$, for example, less than
 $0.1$, the weight of the central pixels dominates the computation, and
-therefore very f8w smoothing is applied. On the other hand, for values of
-$\lambda$ above $8.0$ the weights of central value is almost the same as the
+therefore a subtle smoothing is applied. On the other hand, for values of
+$\lambda$ above $10.0$ the weights of central value is almost the same as the
 weight of any of the neighbors which make the filter behave as a iterative
 average filter and produce a stronger smoothing effect.
 
+
+\subsubsection{Iterations}
+
+The smoothing filter does not have a stopping criteria based on convergence. It
+simply runs as many iterations as specified by the user. It is the user's
+responsibility to choose how many iterations must be run.
+
+
 \subsection{Smoothing Scalars}
 
-In this section we describe the smoothing of Field data for the case of Scalar
-values. This is suitable for a \code{QuadEdgeMesh} whose \code{PixelType} has a
+Smoothing of Meshes with a Scalars field is implemented in the filter
+
+\begin{center}
+\code{itk::QuadEdgeMeshScalarPixelValuesSmoothingFilter}
+\end{center}
+
+This filter is suitable for a \code{QuadEdgeMesh} whose \code{PixelType} has a
 single component. Typical examples will use \code{float} or \code{double} as
 pixel types.
 
-The global use of the filter requires that the user 
+The global use of the filter requires the user to
 
 \begin{itemize}
-\item Connects an input \code{QuadEdgeMesh} of Pixel Scalar type
-\item Sets the values of the $\lambda$ parameter
-\item Sets the number of iterations.
+\item Connect an input \code{QuadEdgeMesh} of Pixel Scalar type
+\item Set the values of the $\lambda$ parameter
+\item Set the number of iterations.
 \end{itemize}
+
 
 \subsection{Smoothing Vectors}
 
-In this section we describe the smoothing of Field data for the case of Vector
-values. This is suitable for a \code{QuadEdgeMesh} whose \code{PixelType} has a
-three component. The geometrical implementation of the smoothing process is
-very specific to Vectors and will not be appropriate for arbitrary arrays that
-are not representing a geometrical Vector in space. For example, this method
-will not be appropriate for a Mesh whose pixel data are RGB color triplets.
+Smoothing of Meshes with a Vector field is implemented in the filter
+
+\begin{center}
+\code{itk::QuadEdgeMeshVectorPixelValuesSmoothingFilter}
+\end{center}
+
+This filter is suitable for a \code{QuadEdgeMesh} whose \code{PixelType} has a
+exactly three component. The geometrical implementation of the smoothing
+process is very specific to Vectors and will not be appropriate for arbitrary
+arrays that are not representing a geometrical Vector in space. For example,
+this method will not be appropriate for a Mesh whose pixel data are RGB color
+triplets.
+
+The particularity of this filter is that before the weighted average of the
+Vectors is computed, each one of the vectors from neighbor nodes is
+parallel-transported to the central node. The reason for doing this is that
+vectors located at different points in the mesh are not comparable specially
+when the mesh has non-zero curvature. The process of Parallel-Transform is
+performed under the assumption that the surface has a Spherical geometry.
+Therefore, this filter is only appropriate for Spherical surfaces.
+
+Parallel Transport from point $p_1$ to point $p_2$ of the surface is
+implemented by sliding the Vector along the greatest circle that connects
+points $p_1$ and $p_2$. The filter expects the user to provide the coordinates
+of the Sphere center as well as its radius. No verification if performed on
+these values.
+
+In summary, in order to use this filter, the user should 
+
+\begin{itemize}
+\item Connect an input \code{QuadEdgeMesh} of Vector Scalar type
+\item Set the values of the $\lambda$ parameter
+\item Set the number of iterations.
+\item Set the coordinates of the Sphere center
+\item Set the Sphere radius
+\end{itemize}
 
 
+\subsection{How to Use the Filters}
+
+This section illustrates the minimum operations required for running these two
+filters. The code shown here is available in the Examples directory of the code
+that accompanies this paper. You can download the entire set of files from the
+Insight Journal web site.
+
+\subsubsection{Scalar Mesh}
+
+\subsubsection{Vector Mesh}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
