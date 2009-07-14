@@ -32,6 +32,9 @@ TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest2 ITKQuadEdgeMesh ITKIO ITKNumer
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest3 itkMeshGeneratorHelperTest3.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest3 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkMeshGeneratorHelperTest4 itkMeshGeneratorHelperTest4.cxx )
+TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest4 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkQuadEdgeMeshVTKPolyDataReader1 itkQuadEdgeMeshVTKPolyDataReader1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVTKPolyDataReader1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -63,23 +66,44 @@ ADD_TEST(itkMeshGeneratorHelperTest2
   ${TEMP}/meshWithVectors.vtk
   )
 
-ADD_TEST(itkMeshGeneratorHelperTest3
+ADD_TEST(itkMeshGeneratorHelperTest3a
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
   ${TEMP}/meshWithVectorsIC1.vtk
   1      # resolution
   100.0  # Scale (radius)
   )
 
-ADD_TEST(itkMeshGeneratorHelperTest4
+ADD_TEST(itkMeshGeneratorHelperTest3b
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
   ${TEMP}/meshWithVectorsIC4.vtk
   4      # resolution
   100.0  # Scale (radius)
   )
 
-ADD_TEST(itkMeshGeneratorHelperTest5
+ADD_TEST(itkMeshGeneratorHelperTest3c
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
   ${TEMP}/meshWithVectorsIC7.vtk
+  7      # resolution
+  100.0  # Scale (radius)
+  )
+
+ADD_TEST(itkMeshGeneratorHelperTest4a
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest4
+  ${TEMP}/meshWithScalarsIC1.vtk
+  1      # resolution
+  100.0  # Scale (radius)
+  )
+
+ADD_TEST(itkMeshGeneratorHelperTest4b
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest4
+  ${TEMP}/meshWithScalarsIC4.vtk
+  4      # resolution
+  100.0  # Scale (radius)
+  )
+
+ADD_TEST(itkMeshGeneratorHelperTest4c
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest4
+  ${TEMP}/meshWithScalarsIC7.vtk
   7      # resolution
   100.0  # Scale (radius)
   )
