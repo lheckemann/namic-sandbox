@@ -40,11 +40,11 @@
 int main( int argc, char* argv[] )
 {
 
-  if ( argc < 1 )
+  if ( argc < 3 )
     {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << " InputScalarMesh ";
-    std::cerr << " [OutputPNGScreenshot1 OutputPNGScreenshot2]" << std::endl;
+    std::cerr << " OutputPNGScreenshot" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -60,12 +60,11 @@ int main( int argc, char* argv[] )
   vtkRenderWindow * renWin = vtkRenderWindow::New();
   vtkRenderWindowInteractor * iren = vtkRenderWindowInteractor::New();
 
-  renWin->SetSize( 1024, 512 );
+  renWin->SetSize( 512, 512 );
   renWin->AddRenderer(renderer);
   iren->SetRenderWindow(renWin);
     
-  // Set the background to dark gray RGB: 84,89,109
-  renderer->SetBackground(0.329, 0.349, 0.427);
+  renderer->SetBackground( 1.0, 1.0, 1.0 );
 
   vtkPolyDataMapper * polyMapper = vtkPolyDataMapper::New();
   vtkActor          * polyActor  = vtkActor::New();
@@ -81,14 +80,13 @@ int main( int argc, char* argv[] )
 
   
   polyMapper->SetLookupTable( lookUpTable );
-  polyMapper->SetScalarRange( 0.0, 5.0 );
+  polyMapper->SetScalarRange( 0.0, 10.0 );
 
 
   vtkProperty * property = vtkProperty::New();
   property->SetAmbient(0.1);
   property->SetDiffuse(0.8);
   property->SetSpecular(0.1);
-  property->SetColor( 1.0, 1.0, 0.8 );
   property->SetLineWidth(2.0);
   property->SetRepresentationToSurface();
 
@@ -108,6 +106,8 @@ int main( int argc, char* argv[] )
 
   double cameraPosition[3];
 
+  double zoomFactor = 1.5;
+
 
   if( argc <= 2 )
     {
@@ -123,7 +123,7 @@ int main( int argc, char* argv[] )
     camera->SetViewUp( 0, 1, 0 );
     camera->SetParallelProjection( true );
     renderer->ResetCamera();
-    camera->Zoom(2.0);
+    camera->Zoom( zoomFactor );
     renWin->Render();
     iren->Start();
     }
@@ -137,56 +137,21 @@ int main( int argc, char* argv[] )
     vtkCamera * camera = renderer->GetActiveCamera();
 
     cameraPosition[0] = centerOfPolydata[0] + 100.0;
-    cameraPosition[1] = centerOfPolydata[1];
-    cameraPosition[2] = centerOfPolydata[2];
+    cameraPosition[1] = centerOfPolydata[1] + 30.0;
+    cameraPosition[2] = centerOfPolydata[2] + 30.0;
 
     camera->SetPosition ( cameraPosition );
     camera->SetFocalPoint ( centerOfPolydata );
     camera->SetViewUp( 0, 1, 0 );
     camera->SetParallelProjection( true );
     renderer->ResetCamera();
-    camera->Zoom(2.0);
+    camera->Zoom( zoomFactor );
 
     windowToImageFilter->SetInput( renWin );
     windowToImageFilter->Update();
 
     screenShotWriter->SetInput( windowToImageFilter->GetOutput() );
     screenShotWriter->SetFileName( argv[2] );
-    
-    renWin->Render();
-    screenShotWriter->Write();
-
-    screenShotWriter->SetInput( NULL );
-    windowToImageFilter->SetInput( NULL );
-
-    windowToImageFilter->Delete();
-    screenShotWriter->Delete();
-    }
-
-  if ( argc > 3 ) 
-    {
-    vtkWindowToImageFilter * windowToImageFilter = vtkWindowToImageFilter::New();
-
-    vtkPNGWriter * screenShotWriter = vtkPNGWriter::New();
-
-    vtkCamera * camera = renderer->GetActiveCamera();
-
-    cameraPosition[0] = centerOfPolydata[0];
-    cameraPosition[1] = centerOfPolydata[1] + 100.0;
-    cameraPosition[2] = centerOfPolydata[2];
-
-    camera->SetPosition ( cameraPosition );
-    camera->SetFocalPoint ( centerOfPolydata );
-    camera->SetViewUp( 1, 0, 0 );
-    camera->SetParallelProjection( true );
-    renderer->ResetCamera();
-    camera->Zoom(2.0);
-
-    windowToImageFilter->SetInput( renWin );
-    windowToImageFilter->Update();
-
-    screenShotWriter->SetInput( windowToImageFilter->GetOutput() );
-    screenShotWriter->SetFileName( argv[3] );
     
     renWin->Render();
     screenShotWriter->Write();
