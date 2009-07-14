@@ -28,6 +28,7 @@
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkLookupTable.h"
+#include "vtkColorTransferFunction.h"
 #include "vtkContourFilter.h"
 #include "vtkPolyDataReader.h"
 #include "vtkProperty.h"
@@ -73,13 +74,24 @@ int main( int argc, char* argv[] )
   polyMapper->SetInput( surface );
   polyMapper->ScalarVisibilityOn();
   polyMapper->SetScalarModeToUsePointData();
+  polyMapper->SetColorModeToMapScalars();
 
+/*
   vtkLookupTable * lookUpTable = vtkLookupTable::New();
   lookUpTable->SetScaleToLinear();
+  lookUpTable->SetNumberOfColors( 256 );
   lookUpTable->SetHueRange(0.667,0.0);
+  lookUpTable->Build();
+*/
+
+  vtkColorTransferFunction * colorFunction = vtkColorTransferFunction::New();
+  colorFunction->SetScaleToLinear();
+  colorFunction->SetColorSpaceToHSV();
+  colorFunction->Build();
 
   
-  polyMapper->SetLookupTable( lookUpTable );
+//  polyMapper->SetLookupTable( lookUpTable );
+  polyMapper->SetLookupTable( colorFunction );
   polyMapper->SetScalarRange( 0.0, 10.0 );
 
 
@@ -115,8 +127,8 @@ int main( int argc, char* argv[] )
     vtkCamera * camera = renderer->GetActiveCamera();
 
     cameraPosition[0] = centerOfPolydata[0] + 100.0;
-    cameraPosition[1] = centerOfPolydata[1];
-    cameraPosition[2] = centerOfPolydata[2];
+    cameraPosition[1] = centerOfPolydata[1] - 30.0;
+    cameraPosition[2] = centerOfPolydata[2] - 30.0;
 
     camera->SetPosition ( cameraPosition );
     camera->SetFocalPoint ( centerOfPolydata );
@@ -137,8 +149,8 @@ int main( int argc, char* argv[] )
     vtkCamera * camera = renderer->GetActiveCamera();
 
     cameraPosition[0] = centerOfPolydata[0] + 100.0;
-    cameraPosition[1] = centerOfPolydata[1] + 30.0;
-    cameraPosition[2] = centerOfPolydata[2] + 30.0;
+    cameraPosition[1] = centerOfPolydata[1] - 30.0;
+    cameraPosition[2] = centerOfPolydata[2] - 30.0;
 
     camera->SetPosition ( cameraPosition );
     camera->SetFocalPoint ( centerOfPolydata );
@@ -167,7 +179,8 @@ int main( int argc, char* argv[] )
   // Release all VTK components
   polyActor->Delete();
   property->Delete();
-  lookUpTable->Delete();
+//  lookUpTable->Delete();
+  colorFunction->Delete();
   polyMapper->Delete();
   renWin->Delete();
   renderer->Delete();
