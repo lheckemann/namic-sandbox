@@ -174,10 +174,9 @@ IF(USE_VTK)
 
 ADD_TEST(RenderScalarMesh
   ${CXX_TEST_PATH}/MeshRenderHelper
-  ${TEMP}/meshWithVectorsIC7.vtk
-  ${TEMP}/meshWithVectorsIC7Smoothed.vtk
-  1.0   # Lambda
-  10    # Iterations
+  ${TEMP}/meshWithScalarsIC1.vtk
+  ${TEMP}/meshWithScalarsIC1Screenshot1.png
+  ${TEMP}/meshWithScalarsIC1Screenshot2.png
   )
 
 ENDIF(USE_VTK)
