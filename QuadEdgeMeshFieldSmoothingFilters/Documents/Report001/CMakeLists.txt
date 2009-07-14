@@ -1,4 +1,4 @@
-PROJECT(QuadEdgeMeshFieldSmoothingFiltersReport)
+PROJECT(QuadEdgeMeshFieldSmoothingFiltersReport001)
 
 FIND_PACKAGE(LATEX)
 
