@@ -35,6 +35,7 @@
 #include "vtkDataSet.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkPNGWriter.h"
+#include "vtkScalarBarActor.h"
 
 #include "vtksys/SystemTools.hxx"
 
@@ -77,22 +78,32 @@ int main( int argc, char* argv[] )
   polyMapper->SetColorModeToMapScalars();
 
   vtkLookupTable * lookUpTable = vtkLookupTable::New();
-  lookUpTable->SetScaleToLinear();
+//  lookUpTable->SetScaleToLinear();
+  lookUpTable->SetRampToLinear();
   lookUpTable->SetNumberOfColors( 256 );
   lookUpTable->SetHueRange(0.667,0.0);
+  lookUpTable->SetRange(0.0,10.0);
   lookUpTable->Build();
 
   vtkColorTransferFunction * colorFunction = vtkColorTransferFunction::New();
-  colorFunction->AddHSVPoint( 0.0, 0.667, 1.0, 1.0);
-  colorFunction->AddHSVPoint(10.0, 0.000, 1.0, 1.0);
   colorFunction->SetColorSpaceToHSV();
-  colorFunction->SetScaleToLinear();
-  colorFunction->Build();
+  colorFunction->AddRGBPoint( 0.0, 0.0, 0.0, 1.0 );
+  colorFunction->AddRGBPoint( 1.0, 1.0, 0.0, 0.0 );
 
+/*  colorFunction->AddHSVPoint( 0.0, 0.667, 1.0, 1.0);
+  colorFunction->AddHSVPoint( 0.5, 0.333, 1.0, 0.0);
+  colorFunction->AddHSVPoint( 1.0, 0.000, 1.0, 1.0);
+*/
   
-//  polyMapper->SetLookupTable( lookUpTable );
-  polyMapper->SetLookupTable( colorFunction );
+  polyMapper->SetLookupTable( lookUpTable );
+//  polyMapper->SetLookupTable( colorFunction );
   polyMapper->SetScalarRange( 0.0, 10.0 );
+
+
+  vtkScalarBarActor * scalarBarActor = vtkScalarBarActor::New();
+  scalarBarActor->SetTitle("Density");
+  scalarBarActor->SetLookupTable( lookUpTable );
+  renderer->AddActor2D(scalarBarActor);
 
 
   vtkProperty * property = vtkProperty::New();
