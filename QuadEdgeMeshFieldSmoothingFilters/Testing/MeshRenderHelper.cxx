@@ -41,11 +41,11 @@
 int main( int argc, char* argv[] )
 {
 
-  if ( argc < 3 )
+  if ( argc < 2 )
     {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << " InputScalarMesh ";
-    std::cerr << " OutputPNGScreenshot" << std::endl;
+    std::cerr << " [OutputPNGScreenshot]" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -76,17 +76,17 @@ int main( int argc, char* argv[] )
   polyMapper->SetScalarModeToUsePointData();
   polyMapper->SetColorModeToMapScalars();
 
-/*
   vtkLookupTable * lookUpTable = vtkLookupTable::New();
   lookUpTable->SetScaleToLinear();
   lookUpTable->SetNumberOfColors( 256 );
   lookUpTable->SetHueRange(0.667,0.0);
   lookUpTable->Build();
-*/
 
   vtkColorTransferFunction * colorFunction = vtkColorTransferFunction::New();
-  colorFunction->SetScaleToLinear();
+  colorFunction->AddHSVPoint( 0.0, 0.667, 1.0, 1.0);
+  colorFunction->AddHSVPoint(10.0, 0.000, 1.0, 1.0);
   colorFunction->SetColorSpaceToHSV();
+  colorFunction->SetScaleToLinear();
   colorFunction->Build();
 
   
@@ -179,7 +179,7 @@ int main( int argc, char* argv[] )
   // Release all VTK components
   polyActor->Delete();
   property->Delete();
-//  lookUpTable->Delete();
+  lookUpTable->Delete();
   colorFunction->Delete();
   polyMapper->Delete();
   renWin->Delete();
