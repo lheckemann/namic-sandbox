@@ -14,7 +14,8 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE INTERNAL "Where to put t
 INCLUDE(${PROJECT_SOURCE_DIR}/Utilities/KWStyle/KWStyle.cmake)
 
 OPTION(USE_VTK "Use VTK rendering" OFF)
-OPTION(GENERATE_PAPER_SCREENSHOTS "Use VTK rendering" OFF)
+OPTION(GENERATE_PAPER_SCREENSHOTS "Generate VTK screenshots for the report" OFF)
+OPTION(GENERATE_REPORT "Generate the PDF report from latex files, source code examples and result screenshots" OFF)
 
 IF(USE_VTK)
   FIND_PACKAGE(VTK REQUIRED)
@@ -43,4 +44,7 @@ ENDIF(WIN32)
 ADD_SUBDIRECTORY( Source )
 ADD_SUBDIRECTORY( Testing )
 ADD_SUBDIRECTORY( Examples )
-ADD_SUBDIRECTORY( Documents )
+
+IF(GENERATE_REPORT)
+  ADD_SUBDIRECTORY( Documents )
+ENDIF(GENERATE_REPORT)
