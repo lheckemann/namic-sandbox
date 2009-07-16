@@ -36,6 +36,7 @@
 #include "vtkWindowToImageFilter.h"
 #include "vtkPNGWriter.h"
 #include "vtkScalarBarActor.h"
+#include "vtkInteractorStyleTrackballCamera.h"
 
 #include "vtksys/SystemTools.hxx"
 
@@ -78,7 +79,6 @@ int main( int argc, char* argv[] )
   polyMapper->SetColorModeToMapScalars();
 
   vtkLookupTable * lookUpTable = vtkLookupTable::New();
-//  lookUpTable->SetScaleToLinear();
   lookUpTable->SetRampToLinear();
   lookUpTable->SetNumberOfColors( 256 );
   lookUpTable->SetHueRange(0.667,0.0);
@@ -116,6 +116,9 @@ int main( int argc, char* argv[] )
   polyActor->SetProperty( property );
 
   renderer->AddActor( polyActor );
+
+  vtkInteractorStyleTrackballCamera * interactorStyle = vtkInteractorStyleTrackballCamera::New();
+  iren->SetInteractorStyle( interactorStyle );
 
 
   double bounds[6];
@@ -192,7 +195,9 @@ int main( int argc, char* argv[] )
   property->Delete();
   lookUpTable->Delete();
   colorFunction->Delete();
+  scalarBarActor->Delete();
   polyMapper->Delete();
+  interactorStyle->Delete();
   renWin->Delete();
   renderer->Delete();
   iren->Delete();
