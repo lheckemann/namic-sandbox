@@ -409,6 +409,41 @@ number of iterations equal to 1,2 and 5 respectively.}
 
 \subsubsection{Source Code Example}
 
+In order to use this filter we should start by including headers for the
+smoothing filter, the reader and writer types and the QuadEdgeMesh itself.
+
+\begin{center}
+\lstinputlisting[linerange={21-24}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\end{center}
+
+Then we declare the specific instantiations of each one of these types. Note that the
+pixel type used for the QuadEdgeMesh is a scalar type in this case.
+
+\begin{center}
+\lstinputlisting[linerange={36-40}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\end{center}
+
+We declare the type of the smoothing filter, and construct and instance of it. 
+
+\begin{center}
+\lstinputlisting[linerange={48-51}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\end{center}
+
+Then we set its parameters: lambda and number of iterations.
+
+\begin{center}
+\lstinputlisting[linerange={53-57}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\end{center}
+
+Typical pipeline connections are set by calling SetInput() and GetOutput() methods.
+In this case we simply read the mesh and write its smoothed version.
+
+\begin{center}
+\lstinputlisting[linerange={63-66}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\end{center}
+
+
+
 \subsubsection{Results}
 
 
