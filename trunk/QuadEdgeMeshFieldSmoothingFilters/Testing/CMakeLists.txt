@@ -170,12 +170,34 @@ ADD_TEST(VectorSmoothingFilterTest4
   )
 
 
-IF(USE_VTK)
+MACRO(SMOOTH_AND_RENDER INPUTID OUTPUTSUFIX LAMBDA NUMITER)
 
-ADD_TEST(RenderScalarMesh
-  ${CXX_TEST_PATH}/MeshRenderHelper
-  ${TEMP}/meshWithScalarsIC1.vtk
-  ${TEMP}/meshWithScalarsIC1Screenshot.png
-  )
+  ADD_TEST(Smooth${OUTPUTSUFIX}
+    ${CXX_TEST_PATH}/SmoothingMeshWithScalars
+    ${TEMP}/meshWithScalars${INPUTID}.vtk
+    ${TEMP}/meshWithScalars${INPUTID}${OUTPUTSUFIX}.vtk
+    ${LAMBDA}
+    ${NUMITER}
+    )
 
-ENDIF(USE_VTK)
+  ADD_TEST(Render${OUTPUTSUFIX}
+    ${CXX_TEST_PATH}/MeshRenderHelper
+    ${TEMP}/meshWithScalars${INPUTID}${OUTPUTSUFIX}.vtk
+    ${TEMP}/meshWithScalars${INPUTID}${OUTPUTSUFIX}.png
+    )
+
+ENDMACRO(SMOOTH_AND_RENDER)
+
+IF(GENERATE_PAPER_SCREENSHOTS)
+  IF(USE_VTK)
+
+    SMOOTH_AND_RENDER( IC1 _02_01 0.2 1 )
+    SMOOTH_AND_RENDER( IC1 _04_01 0.4 1 )
+    SMOOTH_AND_RENDER( IC1 _08_01 0.8 1 )
+    SMOOTH_AND_RENDER( IC1 _10_01 1.0 1 )
+    SMOOTH_AND_RENDER( IC1 _20_01 2.0 1 )
+    SMOOTH_AND_RENDER( IC1 _40_01 4.0 1 )
+
+  ENDIF(USE_VTK)
+ENDIF(GENERATE_PAPER_SCREENSHOTS)
+
