@@ -45,10 +45,10 @@
 int main( int argc, char* argv[] )
 {
 
-  if ( argc < 2 )
+  if ( argc < 3 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " InputScalarMesh ";
+    std::cerr << argv[0] << " InputScalarMesh vectorScaleFactor ";
     std::cerr << " [OutputPNGScreenshot]" << std::endl;
     return EXIT_FAILURE;
     }
@@ -78,7 +78,7 @@ int main( int argc, char* argv[] )
 
   vtkGlyph3D * glypher = vtkGlyph3D::New();
   glypher->SetInput( surface );
-  glypher->SetScaleFactor( 20.0 );
+  glypher->SetScaleFactor( atof( argv[2] ) );
   glypher->SetScaleModeToScaleByVector();
   glypher->SetColorModeToColorByVector();
 
@@ -156,7 +156,7 @@ int main( int argc, char* argv[] )
   double zoomFactor = 1.5;
 
 
-  if( argc <= 2 )
+  if( argc <= 3 )
     {
     // Bring up the render window and begin interaction.
     vtkCamera * camera = renderer->GetActiveCamera();
@@ -175,7 +175,7 @@ int main( int argc, char* argv[] )
     iren->Start();
     }
 
-  if ( argc > 2 ) 
+  if ( argc > 3 ) 
     {
     vtkWindowToImageFilter * windowToImageFilter = vtkWindowToImageFilter::New();
 
@@ -198,7 +198,7 @@ int main( int argc, char* argv[] )
     windowToImageFilter->Update();
 
     screenShotWriter->SetInput( windowToImageFilter->GetOutput() );
-    screenShotWriter->SetFileName( argv[2] );
+    screenShotWriter->SetFileName( argv[3] );
     
     renWin->Render();
     screenShotWriter->Write();
