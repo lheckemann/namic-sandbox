@@ -621,6 +621,13 @@ coordinates. The figures show how the smoothing filter propagates the Vector
 across the surface, producing smaller vectors that are parallel-transported
 from the original single non-null vector.
 
+Figure~\ref{fig:VectorIC4StrongSmoothings} presents the results of running the
+Vector smoothing for a lambda value of 1.0, and longer number of iterations. In
+this figure we can observe how the vectors are parallel-transported as their
+values propagate to neighbor nodes through the iterations of the filter.
+
+\clearpage
+
 \begin{figure}
 \center
 \includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_02_1.png}
@@ -678,6 +685,20 @@ number of iterations equal to 1,2 and 5 respectively.}
 \end{figure}
 
 \clearpage
+
+\begin{figure}
+\center
+\includegraphics[width=0.32\textwidth]{meshWithVectorsIC4_10_20.png}
+\includegraphics[width=0.32\textwidth]{meshWithVectorsIC4_10_40.png}
+\includegraphics[width=0.32\textwidth]{meshWithVectorsIC4_10_80.png}
+\itkcaption[Vector IC4 Strong Smoothings]{Results of running the Smoothing
+filter in an IC4 surface for a lambda value of 1.0 and number of iterations
+(from left to right): 20, 40 and 80. The vectors are scaled by a factor of x400
+to make them visible.}
+\label{fig:VectorIC4StrongSmoothings}
+\end{figure}
+
+
 
 
 
