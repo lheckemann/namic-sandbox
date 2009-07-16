@@ -298,7 +298,16 @@ Insight Journal web site.
 
 The diagram in Figure~\ref{fig:ScalarIC1Smoothings} presents the results of
 running the smoothing filters for multiple values of lambda and multiple
-iterations.
+iterations on a surface generated from the Icosahedron after one subdivision
+(IC1).
+
+The diagram in Figure~\ref{fig:ScalarIC4Smoothings} presents the results of
+running the smoothing filters for multiple values of lambda and multiple
+iterations on a surface generated from the Icosahedron after four subdivision
+(IC4).
+
+In both cases, the initial surface has all its point values set to zero except
+for a single node that is set to the value 10.0.
 
 \begin{figure}
 \center
@@ -326,6 +335,34 @@ left to right each column was executed with lambda values 0.2, 0.4, 0.8, 1.0,
 2.0 and 4.0 respectively. From top to bottom each row was executed with a
 number of iterations equal to 1,2 and 5 respectively.}
 \label{fig:ScalarIC1Smoothings}
+\end{figure}
+
+\begin{figure}
+\center
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_02_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_04_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_08_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_10_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_20_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_40_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_02_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_04_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_08_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_10_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_20_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_40_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_02_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_04_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_08_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_10_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_20_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithScalarsIC4_40_5.png}
+\itkcaption[Scalar IC4 Smoothings]{Results of running the Smoothing filter in
+an IC4 surface for multiple values of lambda and number of iterations. From
+left to right each column was executed with lambda values 0.2, 0.4, 0.8, 1.0,
+2.0 and 4.0 respectively. From top to bottom each row was executed with a
+number of iterations equal to 1,2 and 5 respectively.}
+\label{fig:ScalarIC4Smoothings}
 \end{figure}
 
 
