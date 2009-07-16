@@ -38,10 +38,10 @@ void IGTLCommon_EXPORT QuaternionToMatrix(float* q, Matrix4x4& m)
   float mod = sqrt(q[0]*q[0]+q[1]*q[1]+q[2]*q[2]+q[3]*q[3]);
 
   // convert to the matrix
-  const float x = q[0] / mod;
-  const float y = q[1] / mod; 
-  const float z = q[2] / mod; 
-  const float w = q[3] / mod;
+  const float w = q[0] / mod;
+  const float x = q[1] / mod; 
+  const float y = q[2] / mod; 
+  const float z = q[3] / mod;
   
   const float xx = x * x * 2.0;
   const float xy = x * y * 2.0;
