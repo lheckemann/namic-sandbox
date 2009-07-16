@@ -79,6 +79,8 @@ int main( int argc, char* argv[] )
   vtkGlyph3D * glypher = vtkGlyph3D::New();
   glypher->SetInput( surface );
   glypher->SetScaleFactor( 20.0 );
+  glypher->SetScaleModeToScaleByVector();
+  glypher->SetColorModeToColorByVector();
 
   vtkArrowSource * arrowSource = vtkArrowSource::New();
   glypher->SetSource( arrowSource->GetOutput() );
