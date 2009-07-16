@@ -57,8 +57,11 @@ int main( int argc, char *argv[] )
   filter->SetSphereCenter( sphereCenter );
   filter->SetSphereRadius( sphereRadius );
 
-  filter->SetLambda( atof( argv[3] ) );
-  filter->SetMaximumNumberOfIterations( atoi( argv[4] ) );
+  const double lambdaValue = atof( argv[3] );
+  const unsigned int numberOfIterations = atoi( argv[4] );
+
+  filter->SetLambda( lambdaValue );
+  filter->SetMaximumNumberOfIterations( numberOfIterations );
 
   typedef itk::QuadEdgeMeshVectorDataVTKPolyDataWriter< OutputMeshType >   WriterType;
 
