@@ -287,14 +287,52 @@ In summary, in order to use this filter, the user should
 \end{itemize}
 
 
-\subsection{How to Use the Filters}
+\section{How to Use the Filters}
 
 This section illustrates the minimum operations required for running these two
 filters. The code shown here is available in the Examples directory of the code
 that accompanies this paper. You can download the entire set of files from the
 Insight Journal web site.
 
-\subsubsection{Scalar Mesh}
+\subsection{Scalar Mesh}
+
+\subsubsection{Source Code Example}
+
+In order to use this filter we should start by including headers for the
+smoothing filter, the reader and writer types and the QuadEdgeMesh itself.
+
+\begin{center}
+\lstinputlisting[linerange={21-24}]{../../Examples/SmoothingMeshWithScalars.cxx}
+\end{center}
+
+Then we declare the specific instantiations of each one of these types. Note that the
+pixel type used for the QuadEdgeMesh is a scalar type in this case.
+
+\begin{center}
+\lstinputlisting[linerange={36-40}]{../../Examples/SmoothingMeshWithScalars.cxx}
+\end{center}
+
+We declare the type of the smoothing filter, and construct and instance of it. 
+
+\begin{center}
+\lstinputlisting[linerange={48-51}]{../../Examples/SmoothingMeshWithScalars.cxx}
+\end{center}
+
+Then we set its parameters: lambda and number of iterations.
+
+\begin{center}
+\lstinputlisting[linerange={53-57}]{../../Examples/SmoothingMeshWithScalars.cxx}
+\end{center}
+
+Typical pipeline connections are set by calling SetInput() and GetOutput() methods.
+In this case we simply read the mesh and write its smoothed version.
+
+\begin{center}
+\lstinputlisting[linerange={63-66}]{../../Examples/SmoothingMeshWithScalars.cxx}
+\end{center}
+
+
+\subsubsection{Results}
 
 The diagram in Figure~\ref{fig:ScalarIC1Smoothings} presents the results of
 running the smoothing filters for multiple values of lambda and multiple
@@ -366,7 +404,13 @@ number of iterations equal to 1,2 and 5 respectively.}
 \end{figure}
 
 
-\subsubsection{Vector Mesh}
+\subsection{Vector Mesh}
+
+\subsubsection{Source Code Example}
+
+\subsubsection{Results}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
