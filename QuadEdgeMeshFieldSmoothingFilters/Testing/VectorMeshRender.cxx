@@ -33,6 +33,8 @@
 #include "vtkPolyDataReader.h"
 #include "vtkProperty.h"
 #include "vtkDataSet.h"
+#include "vtkGlyph3D.h"
+#include "vtkArrowSource.h"
 #include "vtkWindowToImageFilter.h"
 #include "vtkPNGWriter.h"
 #include "vtkScalarBarActor.h"
@@ -69,14 +71,29 @@ int main( int argc, char* argv[] )
     
   renderer->SetBackground( 1.0, 1.0, 1.0 );
 
-  vtkPolyDataMapper * polyMapper = vtkPolyDataMapper::New();
-  vtkActor          * polyActor  = vtkActor::New();
+  vtkPolyDataMapper * polyMapper1 = vtkPolyDataMapper::New();
+  vtkPolyDataMapper * polyMapper2 = vtkPolyDataMapper::New();
+  vtkActor          * polyActor1  = vtkActor::New();
+  vtkActor          * polyActor2  = vtkActor::New();
 
-  polyActor->SetMapper( polyMapper );
-  polyMapper->SetInput( surface );
-  polyMapper->ScalarVisibilityOn();
-  polyMapper->SetScalarModeToUsePointData();
-  polyMapper->SetColorModeToMapScalars();
+  vtkGlyph3D * glypher = vtkGlyph3D::New();
+  glypher->SetInput( surface );
+  glypher->SetScaleFactor( 20.0 );
+
+  vtkArrowSource * arrowSource = vtkArrowSource::New();
+  glypher->SetSource( arrowSource->GetOutput() );
+
+  polyActor1->SetMapper( polyMapper1 );
+  polyMapper1->SetInput( surface );
+  polyMapper1->ScalarVisibilityOn();
+  polyMapper1->SetScalarModeToUsePointData();
+  polyMapper1->SetColorModeToMapScalars();
+
+  polyActor2->SetMapper( polyMapper2 );
+  polyMapper2->SetInput( glypher->GetOutput() );
+  polyMapper2->ScalarVisibilityOn();
+  polyMapper2->SetScalarModeToUsePointData();
+  polyMapper2->SetColorModeToMapScalars();
 
   vtkLookupTable * lookUpTable = vtkLookupTable::New();
   lookUpTable->SetRampToLinear();
@@ -95,9 +112,9 @@ int main( int argc, char* argv[] )
   colorFunction->AddHSVPoint( 1.0, 0.000, 1.0, 1.0);
 */
   
-  polyMapper->SetLookupTable( lookUpTable );
-//  polyMapper->SetLookupTable( colorFunction );
-  polyMapper->SetScalarRange( 0.0, 10.0 );
+  polyMapper1->SetLookupTable( lookUpTable );
+//  polyMapper1->SetLookupTable( colorFunction );
+  polyMapper1->SetScalarRange( 0.0, 10.0 );
 
 
   vtkScalarBarActor * scalarBarActor = vtkScalarBarActor::New();
@@ -113,9 +130,11 @@ int main( int argc, char* argv[] )
   property->SetLineWidth(2.0);
   property->SetRepresentationToSurface();
 
-  polyActor->SetProperty( property );
+  polyActor1->SetProperty( property );
+  polyActor2->SetProperty( property );
 
-  renderer->AddActor( polyActor );
+  renderer->AddActor( polyActor1 );
+  renderer->AddActor( polyActor2 );
 
   vtkInteractorStyleTrackballCamera * interactorStyle = vtkInteractorStyleTrackballCamera::New();
   iren->SetInteractorStyle( interactorStyle );
@@ -191,12 +210,16 @@ int main( int argc, char* argv[] )
 
 
   // Release all VTK components
-  polyActor->Delete();
+  glypher->Delete();
+  arrowSource->Delete();
+  polyActor1->Delete();
+  polyActor2->Delete();
   property->Delete();
   lookUpTable->Delete();
   colorFunction->Delete();
   scalarBarActor->Delete();
-  polyMapper->Delete();
+  polyMapper1->Delete();
+  polyMapper2->Delete();
   interactorStyle->Delete();
   renWin->Delete();
   renderer->Delete();
