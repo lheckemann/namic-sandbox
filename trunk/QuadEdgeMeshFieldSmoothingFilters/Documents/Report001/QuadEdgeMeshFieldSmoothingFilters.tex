@@ -299,7 +299,8 @@ Insight Journal web site.
 \subsubsection{Source Code Example}
 
 In order to use this filter we should start by including headers for the
-smoothing filter, the reader and writer types and the QuadEdgeMesh itself.
+smoothing filter, the reader and writer types and the \doxygen{QuadEdgeMesh}
+itself.
 
 \begin{center}
 \lstinputlisting[linerange={21-24}]{../../Examples/SmoothingMeshWithScalars.cxx}
@@ -410,14 +411,20 @@ number of iterations equal to 1,2 and 5 respectively.}
 \subsubsection{Source Code Example}
 
 In order to use this filter we should start by including headers for the
-smoothing filter, the reader and writer types and the QuadEdgeMesh itself.
+smoothing filter, the reader and writer types and the \doxygen{QuadEdgeMesh}
+itself.  Note that a different version of the PolyData writer class is needed
+here in order to manage writing of meshes whose pixel types are vectors.
 
 \begin{center}
 \lstinputlisting[linerange={21-24}]{../../Examples/SmoothingMeshWithVectors.cxx}
 \end{center}
 
-Then we declare the specific instantiations of each one of these types. Note that the
-pixel type used for the QuadEdgeMesh is a scalar type in this case.
+Then we declare the specific instantiations of each one of these types. Note
+that the pixel type used for the QuadEdgeMesh is a Vector type in this case.
+The \doxygen{Vector} class has a very specific meaning in ITK. It is the class
+that represents the Geometrical concept of the subtraction between to points in
+space. This is particularly important for the operation of parallel transport
+that is performed internally as part of the execution of this smoothing filter.
 
 \begin{center}
 \lstinputlisting[linerange={36-40}]{../../Examples/SmoothingMeshWithVectors.cxx}
@@ -426,22 +433,47 @@ pixel type used for the QuadEdgeMesh is a scalar type in this case.
 We declare the type of the smoothing filter, and construct and instance of it. 
 
 \begin{center}
-\lstinputlisting[linerange={48-51}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\lstinputlisting[linerange={42-45}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\end{center}
+
+The filter expects an input surface with a spherical geometry. The user must
+provide the center and radius of this spherical mesh surface by calling the
+methods \code{SetSphereCenter()} and \code{SetSphereRadius()}. \footnote{
+\textbf{Implementation Note:} This filter could have computed and estimation of
+the radius and the location of the sphere center, but such estimation would
+require a non-negligible amount of computation time. It may still be desirable
+to have such implementation as one possible mode of operation for the filter.}
+
+\begin{center}
+\lstinputlisting[linerange={53-57}]{../../Examples/SmoothingMeshWithVectors.cxx}
 \end{center}
 
 Then we set its parameters: lambda and number of iterations.
 
 \begin{center}
-\lstinputlisting[linerange={53-57}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\lstinputlisting[linerange={60-64}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\end{center}
+
+The type of the mesh writer that is capable of managing vectors as point data, is 
+defined and one instance is created.
+
+\begin{center}
+\lstinputlisting[linerange={66-69}]{../../Examples/SmoothingMeshWithVectors.cxx}
 \end{center}
 
 Typical pipeline connections are set by calling SetInput() and GetOutput() methods.
 In this case we simply read the mesh and write its smoothed version.
 
 \begin{center}
-\lstinputlisting[linerange={63-66}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\lstinputlisting[linerange={71-72}]{../../Examples/SmoothingMeshWithVectors.cxx}
 \end{center}
 
+and the execution of the pipeline is triggered by calling the \code{Update()} method 
+on the filter at the end of the pipeline. In this case, the writer.
+
+\begin{center}
+\lstinputlisting[linerange={76-84}]{../../Examples/SmoothingMeshWithVectors.cxx}
+\end{center}
 
 
 \subsubsection{Results}
