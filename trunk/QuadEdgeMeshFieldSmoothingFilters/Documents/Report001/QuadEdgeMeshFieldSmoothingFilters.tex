@@ -478,6 +478,82 @@ on the filter at the end of the pipeline. In this case, the writer.
 
 \subsubsection{Results}
 
+The diagram in Figure~\ref{fig:VectorIC1Smoothings} presents the results of
+running the smoothing filters for multiple values of lambda and multiple
+iterations on a surface generated from the Icosahedron after one subdivision
+(IC1).
+
+The diagram in Figure~\ref{fig:VectorIC4Smoothings} presents the results of
+running the smoothing filters for multiple values of lambda and multiple
+iterations on a surface generated from the Icosahedron after four subdivision
+(IC4).
+
+In both cases, the initial surface has all its point values set to Vectors of
+three components, with all their components set to zero, except for a single
+node that has an axis aligned vector with a magnitude equal to 10. The radius
+of the sphere is equal to 100.0, and it is centered at the origin of
+coordinates. The figures show how the smoothing filter propagates the Vector
+across the surface, producing smaller vectors that are parallel-transported
+from the original single non-null vector.
+
+\begin{figure}
+\center
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_02_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_04_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_08_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_10_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_20_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_40_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_02_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_04_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_08_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_10_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_20_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_40_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_02_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_04_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_08_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_10_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_20_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC1_40_5.png}
+\itkcaption[Vector IC1 Smoothings]{Results of running the Smoothing filter in
+an IC1 surface for multiple values of lambda and number of iterations. From
+left to right each column was executed with lambda values 0.2, 0.4, 0.8, 1.0,
+2.0 and 4.0 respectively. From top to bottom each row was executed with a
+number of iterations equal to 1,2 and 5 respectively.}
+\label{fig:VectorIC1Smoothings}
+\end{figure}
+
+\begin{figure}
+\center
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_02_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_04_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_08_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_10_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_20_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_40_1.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_02_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_04_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_08_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_10_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_20_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_40_2.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_02_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_04_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_08_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_10_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_20_5.png}
+\includegraphics[width=0.15\textwidth]{meshWithVectorsIC4_40_5.png}
+\itkcaption[Vector IC4 Smoothings]{Results of running the Smoothing filter in
+an IC4 surface for multiple values of lambda and number of iterations. From
+left to right each column was executed with lambda values 0.2, 0.4, 0.8, 1.0,
+2.0 and 4.0 respectively. From top to bottom each row was executed with a
+number of iterations equal to 1,2 and 5 respectively.}
+\label{fig:VectorIC4Smoothings}
+\end{figure}
+
+\clearpage
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
