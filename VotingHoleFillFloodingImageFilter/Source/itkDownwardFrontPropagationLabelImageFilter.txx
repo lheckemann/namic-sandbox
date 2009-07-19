@@ -42,7 +42,6 @@ DownwardFrontPropagationLabelImageFilter<TInputImage, TFeatureImage, TOutputImag
   InputSizeType  ballManhattanRadius;
   ballManhattanRadius.Fill( 1 );
   this->SetRadius( ballManhattanRadius );
-  this->InitializeNeighborhood();
 }
 
 /**
