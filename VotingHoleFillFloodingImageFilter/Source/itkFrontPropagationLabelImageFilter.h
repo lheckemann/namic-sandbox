@@ -34,7 +34,7 @@ namespace itk
  *
  * \ingroup RegionGrowingSegmentation 
  */
-template <class TInputImage, class TInputFeatureImage, class TOutputImage>
+template <class TInputImage, class TOutputImage>
 class ITK_EXPORT FrontPropagationLabelImageFilter:
     public InPlaceImageFilter<TInputImage,TOutputImage>
 {
@@ -66,9 +66,6 @@ public:
   typedef typename OutputImageType::PixelType             OutputImagePixelType; 
   
 
-  typedef TInputFeatureImage                              FeatureImageType;
-  typedef typename FeatureImageType::PixelType            InputFeaturePixelType;
-  
   /** Image dimension constants */
   itkStaticConstMacro(InputImageDimension,  unsigned int, TInputImage::ImageDimension);
   itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
@@ -88,9 +85,6 @@ public:
   /** Returned the number of pixels changed in total. */
   itkGetMacro( TotalNumberOfPixelsChanged, unsigned int );
 
-  /** Set the image to be segmented */
-  void SetFeatureImage( const FeatureImageType * imageToSegment );
-
   /** Set/Get the value associated with the Background. */
   itkSetMacro(BackgroundValue, InputImagePixelType);
   itkGetConstReferenceMacro(BackgroundValue, InputImagePixelType);
@@ -98,10 +92,6 @@ public:
   /** Set/Get the value associated with the Foreground. */
   itkSetMacro(ForegroundValue, InputImagePixelType);
   itkGetConstReferenceMacro(ForegroundValue, InputImagePixelType);
-
-  /** Set the lower threshold to reach in the feature image */
-  itkSetMacro( LowerThreshold, InputFeaturePixelType );
-  itkGetMacro( LowerThreshold, InputFeaturePixelType );
 
   /** Majority threshold. It is the number of pixels over 50% that will decide
    * whether an OFF pixel will become ON or not. For example, if the
@@ -141,7 +131,7 @@ protected:
   
   void PrintSelf ( std::ostream& os, Indent indent ) const;
 
-  void AllocateOutputImageWorkingMemory();
+  virtual void AllocateOutputImageWorkingMemory();
 
   void InitializeNeighborhood();
 
@@ -153,16 +143,17 @@ protected:
 
   unsigned int GetNeighborhoodSize() const;
 
+  typedef std::vector< OffsetValueType >   NeighborOffsetArrayType;
+
+  const OutputImageType * GetOutputImage() const;
+
+  itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
+
+  itkGetConstReferenceMacro( NeighborBufferOffset, NeighborOffsetArrayType );
+
 private:
   FrontPropagationLabelImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-
-  typedef enum 
-    {
-    DescendingFront,
-    FillingHoles,
-    RemovingIsolated
-    }  OperationMode;
 
   typedef unsigned int                   LabelType;
 
@@ -175,20 +166,11 @@ private:
 
   void ClearSecondSeedArray();
 
-  bool TestForAcceptingCurrentPixel() const;
-
-  bool TestForDescendingFront() const;
-  bool TestQuorumForBirth() const;
-  bool TestQuorumForSurvival() const;
- 
-  void SetOperationModeToDescendingFront();
-  void SetOperationModeToFillingHoles();
-  void SetOperationModeToRemovingIsolated();
+  virtual bool TestForAcceptingCurrentPixel() const;
 
   void PutCurrentPixelNeighborsIntoSeedArray();
 
   itkSetMacro( CurrentPixelIndex, IndexType );
-  itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
 
   typedef std::vector<IndexType>    SeedArrayType;
 
@@ -225,8 +207,6 @@ private:
   //
   OffsetValueType                   m_OffsetTable[ InputImageDimension + 1 ]; 
   
-  typedef std::vector< OffsetValueType >   NeighborOffsetArrayType;
-
   NeighborOffsetArrayType           m_NeighborBufferOffset;
 
 
@@ -234,7 +214,6 @@ private:
   // Helper cache variables 
   //
   const InputImageType *            m_InputImage;
-  const FeatureImageType *          m_FeatureImage;
   OutputImageType *                 m_OutputImage;
 
   typedef itk::Image< unsigned char, InputImageDimension >  SeedMaskImageType;
@@ -255,11 +234,6 @@ private:
   unsigned int              m_MajorityThreshold; 
   unsigned int              m_BirthThreshold;
   unsigned int              m_SurvivalThreshold;
-
-  InputFeaturePixelType     m_LowerThreshold;
-
-  OperationMode             m_CurrentOperationMode;
-
 };
 
 } // end namespace itk

@@ -28,6 +28,11 @@ ADD_EXECUTABLE(itkFrontPropagationLabelImageFilterTest1
 TARGET_LINK_LIBRARIES(itkFrontPropagationLabelImageFilterTest1 ITKIO)
 
 
+ADD_EXECUTABLE(itkDownwardFrontPropagationLabelImageFilterTest1
+  itkDownwardFrontPropagationLabelImageFilterTest1.cxx)
+
+TARGET_LINK_LIBRARIES(itkDownwardFrontPropagationLabelImageFilterTest1 ITKIO)
+
 
 ADD_TEST(itkThresholdTest1
   ${EXECUTABLE_OUTPUT_PATH}/itkBinaryThresholdImageFilterTest1
