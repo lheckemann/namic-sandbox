@@ -51,16 +51,9 @@ public:
   itkTypeMacro(DownwardFrontPropagationLabelImageFilter, FrontPropagationLabelImageFilter);
 
   typedef typename Superclass::InputImageType             InputImageType;
-  typedef typename InputImageType::Pointer                InputImagePointer;
-  typedef typename InputImageType::ConstPointer           InputImageConstPointer;
-  typedef typename InputImageType::RegionType             InputImageRegionType; 
-  typedef typename InputImageType::PixelType              InputImagePixelType; 
-  typedef typename InputImageType::IndexType              IndexType;
   typedef typename InputImageType::OffsetValueType        OffsetValueType;
   
   typedef typename Superclass::OutputImageType            OutputImageType;
-  typedef typename OutputImageType::Pointer               OutputImagePointer;
-  typedef typename OutputImageType::RegionType            OutputImageRegionType; 
   typedef typename OutputImageType::PixelType             OutputImagePixelType; 
   
   typedef typename Superclass::InputSizeType              InputSizeType;
@@ -69,10 +62,6 @@ public:
   typedef TInputFeatureImage                              FeatureImageType;
   typedef typename FeatureImageType::PixelType            InputFeaturePixelType;
   
-  /** Image dimension constants */
-  itkStaticConstMacro(InputImageDimension,  unsigned int, TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
-
   /** Set the image to be segmented */
   void SetFeatureImage( const FeatureImageType * imageToSegment );
 
@@ -82,12 +71,7 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputImagePixelType>));
-  itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputImagePixelType>));
-  itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
-  itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
-  itkConceptMacro(IntConvertibleToInputCheck, (Concept::Convertible<int, InputImagePixelType>));
-  itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputImagePixelType>));
+  itkConceptMacro(FeatureLessThanComparableCheck, (Concept::LessThanComparable<InputFeaturePixelType>));
   /** End concept checking */
 #endif
 
