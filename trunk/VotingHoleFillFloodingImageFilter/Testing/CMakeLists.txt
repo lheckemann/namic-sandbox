@@ -22,6 +22,13 @@ ADD_EXECUTABLE(itkEndorseFrontPropagationImageFilterTest1
 
 TARGET_LINK_LIBRARIES(itkEndorseFrontPropagationImageFilterTest1 ITKIO)
 
+ADD_EXECUTABLE(itkFrontPropagationLabelImageFilterTest1
+  itkFrontPropagationLabelImageFilterTest1.cxx)
+
+TARGET_LINK_LIBRARIES(itkFrontPropagationLabelImageFilterTest1 ITKIO)
+
+
+
 ADD_TEST(itkThresholdTest1
   ${EXECUTABLE_OUTPUT_PATH}/itkBinaryThresholdImageFilterTest1
   ${PROJECT_SOURCE_DIR}/Data/BrainProtonDensitySlice.png
@@ -62,4 +69,15 @@ SET_TESTS_PROPERTIES( itkVotingTest1 PROPERTIES DEPENDS itkThresholdTest1)
 SET_TESTS_PROPERTIES( itkVotingTest2 PROPERTIES DEPENDS itkThresholdTest1)
 SET_TESTS_PROPERTIES( itkVotingTest2 PROPERTIES DEPENDS itkVotingTest1)
 SET_TESTS_PROPERTIES( itkEndorseTest1 PROPERTIES DEPENDS itkThresholdTest1)
+
+ADD_TEST(itkFrontPropagationLabelImageFilterTest1 
+  ${EXECUTABLE_OUTPUT_PATH}/itkFrontPropagationLabelImageFilterTest1
+  ${TEMP}/BrainProtonDensitySliceThresholded1.png
+  ${PROJECT_SOURCE_DIR}/Data/BrainProtonDensitySlice.png
+  ${TEMP}/BrainProtonDensitySliceThresholded1Endorsed1.png
+  2 2 
+  120.0
+  100
+  )
+
 
