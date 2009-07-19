@@ -404,6 +404,15 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 
 
 template <class TInputImage, class TOutputImage>
+const typename  FrontPropagationLabelImageFilter<TInputImage, TOutputImage>::NeighborOffsetArrayType & 
+FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
+::GetNeighborBufferOffset() const
+{
+  return this->m_NeighborBufferOffset;
+}
+
+
+template <class TInputImage, class TOutputImage>
 void 
 FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 ::PutCurrentPixelNeighborsIntoSeedArray()
