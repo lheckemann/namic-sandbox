@@ -19,18 +19,18 @@
 #endif
 
 #include "itkImage.h"
-#include "itkFrontPropagationLabelImageFilter.h"
+#include "itkDownwardFrontPropagationLabelImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 4 )
+  if( argc < 6 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputLabelImage outputLabelImage";
-    std::cerr << " maximumNumberOfIterations ";
+    std::cerr << " inputLabelImage inputImage outputLabelImage";
+    std::cerr << " maximumNumberOfIterations lowerThresholdValue";
     std::cerr << std::endl;
     return 1;
     }
@@ -43,8 +43,8 @@ int main( int argc, char *argv[] )
   typedef itk::Image< InputPixelType, Dimension >     InputImageType;
   typedef itk::Image< MaskPixelType, Dimension >      MaskImageType;
 
-  typedef itk::FrontPropagationLabelImageFilter< 
-    MaskImageType, MaskImageType >    ImageFilterType;
+  typedef itk::DownwardFrontPropagationLabelImageFilter< 
+    MaskImageType, InputImageType, MaskImageType >    ImageFilterType;
 
 
   typedef  itk::ImageFileReader< InputImageType > InputReaderType;
@@ -54,18 +54,22 @@ int main( int argc, char *argv[] )
                         
   typedef  itk::ImageFileWriter<  OutputImageType  > WriterType;
 
+  InputReaderType::Pointer inputReader = InputReaderType::New();
   MaskReaderType::Pointer  maskReader  = MaskReaderType::New();
 
   WriterType::Pointer writer = WriterType::New();
 
   maskReader->SetFileName( argv[1] );
+  inputReader->SetFileName( argv[2] );
 
   ImageFilterType::Pointer floodFilter = ImageFilterType::New();
 
-  const unsigned int maximumNumberOfIterations = atoi( argv[3] );
+  const unsigned int maximumNumberOfIterations = atoi( argv[4] );
+  const signed short lowerThreshold = atoi( argv[5] );
 
   floodFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
   floodFilter->SetMajorityThreshold( 1 );
+  floodFilter->SetLowerThreshold( lowerThreshold );
   floodFilter->InPlaceOn();
 
   InputImageType::SizeType  ballManhattanRadius;
@@ -73,12 +77,13 @@ int main( int argc, char *argv[] )
   floodFilter->SetRadius( ballManhattanRadius );
 
   floodFilter->SetInput( maskReader->GetOutput() );
+  floodFilter->SetFeatureImage( inputReader->GetOutput() );
 
   writer->SetInput( floodFilter->GetOutput() );
  
   writer->UseCompressionOn();
 
-  writer->SetFileName( argv[2] );
+  writer->SetFileName( argv[3] );
 
   try
     {
