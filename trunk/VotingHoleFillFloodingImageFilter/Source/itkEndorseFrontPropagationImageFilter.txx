@@ -393,11 +393,11 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
   //
   // Find the location of the current pixel in the image memory buffer
   //
-  const OffsetValueType offset = this->m_OutputImage->ComputeOffset( this->GetCurrentPixelIndex() );
+  const OffsetValueType linearOffset = this->m_OutputImage->ComputeOffset( this->GetCurrentPixelIndex() );
 
   const InputImagePixelType * buffer = this->m_OutputImage->GetBufferPointer();
 
-  const InputImagePixelType * currentPixelPointer = buffer + offset;
+  const InputImagePixelType * currentPixelPointer = buffer + linearOffset;
 
 
   const unsigned int neighborhoodSize = this->m_Neighborhood.Size();
