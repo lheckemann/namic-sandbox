@@ -149,7 +149,7 @@ protected:
 
   itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
 
-  itkGetConstReferenceMacro( NeighborBufferOffset, NeighborOffsetArrayType );
+  const NeighborOffsetArrayType & GetNeighborBufferOffset() const;
 
 private:
   FrontPropagationLabelImageFilter(const Self&); //purposely not implemented
