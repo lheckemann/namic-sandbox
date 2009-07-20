@@ -139,6 +139,7 @@ protected:
   void ComputeArrayOfNeighborhoodBufferOffsets();
 
   void FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
+  void FindAllPixelsInTheBoundaryAndAddThemAsSeeds2();
 
   void IterateFrontPropagations();
 

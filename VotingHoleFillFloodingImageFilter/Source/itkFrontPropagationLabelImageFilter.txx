@@ -200,13 +200,16 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
   this->m_InternalRegion = *fit;
 
   // Mark all the pixels in the boundary of the seed image as visited
-  typedef itk::ImageRegionExclusionIteratorWithIndex< 
-    SeedMaskImageType > ExclusionIteratorType;
+  typedef itk::ImageRegionExclusionIteratorWithIndex< SeedMaskImageType > ExclusionIteratorType;
   ExclusionIteratorType exIt( this->m_SeedsMask, region );
+
   exIt.SetExclusionRegion( this->m_InternalRegion );
-  for (exIt.GoToBegin(); !exIt.IsAtEnd(); ++exIt)
+  exIt.GoToBegin();
+
+  while( !exIt.IsAtEnd() )
     {
     exIt.Set( 255 );
+    ++exIt;
     }
 
   bit = ConstNeighborhoodIterator<InputImageType>( radius, inputImage, this->m_InternalRegion );
@@ -284,6 +287,119 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 }
 
 
+template <class TInputImage, class TOutputImage>
+void 
+FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
+::FindAllPixelsInTheBoundaryAndAddThemAsSeeds2()
+{
+  const InputImageType * inputImage = this->GetInput();
+
+  OutputImageRegionType region =  inputImage->GetRequestedRegion();
+
+  ConstNeighborhoodIterator< InputImageType >   bit;
+  ImageRegionIterator< OutputImageType >        itr;
+  ImageRegionIterator< SeedMaskImageType >      mtr;
+  
+  const InputSizeType & radius = this->GetRadius();
+
+  // Find the data-set boundary "faces"
+  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList;
+  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType> bC;
+  faceList = bC(inputImage, region, radius);
+
+  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType::iterator fit;
+
+  // Process only the internal face
+  fit = faceList.begin();
+  
+  this->m_InternalRegion = *fit;
+
+  // Mark all the pixels in the boundary of the seed image as visited
+  typedef itk::ImageRegionExclusionIteratorWithIndex< SeedMaskImageType > ExclusionIteratorType;
+  ExclusionIteratorType exIt( this->m_SeedsMask, region );
+
+  exIt.SetExclusionRegion( this->m_InternalRegion );
+  exIt.GoToBegin();
+
+  while( !exIt.IsAtEnd() )
+    {
+    exIt.Set( 255 );
+    ++exIt;
+    }
+
+  bit = ConstNeighborhoodIterator<InputImageType>( radius, inputImage, this->m_InternalRegion );
+  itr  = ImageRegionIterator<OutputImageType>(    this->m_OutputImage, this->m_InternalRegion );
+  mtr  = ImageRegionIterator<SeedMaskImageType>(  this->m_SeedsMask,   this->m_InternalRegion );
+
+  bit.GoToBegin();
+  itr.GoToBegin();
+  mtr.GoToBegin();
+  
+  unsigned int neighborhoodSize = bit.Size();
+
+  const InputImagePixelType backgroundValue = this->GetBackgroundValue();
+  
+  this->m_SeedArrayMap1.clear();
+  this->m_SeedArrayMap2.clear();
+  this->m_SeedsNewValuesMap.clear();
+
+  while ( ! bit.IsAtEnd() )
+    {
+    const InputImagePixelType value = bit.GetCenterPixel();
+
+    if( value != backgroundValue )
+      {
+      itr.Set( value );
+      mtr.Set( 255 );
+
+      if( this->m_NumberOfPixels.find(value) == this->m_NumberOfPixels.end() )
+        {
+        this->m_NumberOfPixels[value] = NumericTraits<SizeValueType>::One;
+        }
+      this->m_NumberOfPixels[value]++;  
+
+      // Search for foreground pixels in the neighborhood
+      for (unsigned int i = 0; i < neighborhoodSize; ++i)
+        {
+        const InputImagePixelType neighborValue = bit.GetPixel(i);
+
+        if( neighborValue != backgroundValue )
+          {
+          if( neighborValue != value )
+            {
+            // If we don't have a container for that label, then create one.
+            if( this->m_SeedArrayMap1.find(neighborValue) == this->m_SeedArrayMap1.end() )
+              {
+              this->m_SeedArrayMap1[neighborValue] = new SeedArrayType;
+              this->m_SeedArrayMap2[neighborValue] = new SeedArrayType;
+              }
+            this->m_SeedArrayMap1[neighborValue]->push_back( bit.GetIndex() );
+            }
+          }
+        }
+      }   
+    else
+      {
+      itr.Set( backgroundValue );
+      mtr.Set( 0 );
+      }
+      
+    ++bit;
+    ++itr;
+    ++mtr;
+    }
+
+
+  SeedArrayMapIterator sitr = this->m_SeedArrayMap1.begin();
+
+  while( sitr != this->m_SeedArrayMap1.end() )
+    {
+    const LabelType label = sitr->first;
+    this->m_SeedsNewValuesMap[label] = SeedNewValuesArrayType();
+    this->m_SeedsNewValuesMap[label].reserve( this->m_SeedArrayMap1[label]->size() ); 
+    ++sitr;
+    }
+}
 template <class TInputImage, class TOutputImage>
 void 
 FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
