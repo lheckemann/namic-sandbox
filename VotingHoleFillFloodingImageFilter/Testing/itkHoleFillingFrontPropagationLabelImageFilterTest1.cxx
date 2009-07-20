@@ -35,30 +35,26 @@ int main( int argc, char *argv[] )
     return 1;
     }
 
-  typedef   signed short    InputPixelType;
-  typedef   unsigned char   MaskPixelType;
-
+  typedef   unsigned char   PixelType;
   const     unsigned int    Dimension = 3;
 
-  typedef itk::Image< InputPixelType, Dimension >     InputImageType;
-  typedef itk::Image< MaskPixelType, Dimension >      MaskImageType;
+  typedef itk::Image< PixelType, Dimension >      ImageType;
 
   typedef itk::HoleFillingFrontPropagationLabelImageFilter< 
-    MaskImageType, MaskImageType >    ImageFilterType;
+    ImageType, ImageType >    ImageFilterType;
 
 
-  typedef  itk::ImageFileReader< InputImageType > InputReaderType;
-  typedef  itk::ImageFileReader< MaskImageType >  MaskReaderType;
+  typedef  itk::ImageFileReader< ImageType >  ReaderType;
 
   typedef ImageFilterType::OutputImageType        OutputImageType;
                         
   typedef  itk::ImageFileWriter<  OutputImageType  > WriterType;
 
-  MaskReaderType::Pointer  maskReader  = MaskReaderType::New();
+  ReaderType::Pointer  reader  = ReaderType::New();
 
   WriterType::Pointer writer = WriterType::New();
 
-  maskReader->SetFileName( argv[1] );
+  reader->SetFileName( argv[1] );
 
   ImageFilterType::Pointer floodFilter = ImageFilterType::New();
 
@@ -68,11 +64,11 @@ int main( int argc, char *argv[] )
   floodFilter->SetMajorityThreshold( 1 );
   floodFilter->InPlaceOn();
 
-  InputImageType::SizeType  ballManhattanRadius;
+  ImageType::SizeType  ballManhattanRadius;
   ballManhattanRadius.Fill( 2 );
   floodFilter->SetRadius( ballManhattanRadius );
 
-  floodFilter->SetInput( maskReader->GetOutput() );
+  floodFilter->SetInput( reader->GetOutput() );
 
   writer->SetInput( floodFilter->GetOutput() );
  
