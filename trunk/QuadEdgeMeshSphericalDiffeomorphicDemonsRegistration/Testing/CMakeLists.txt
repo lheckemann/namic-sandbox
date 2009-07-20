@@ -14,6 +14,8 @@ FIND_PATH(FREESURFER_DIR
 
 INCLUDE_DIRECTORIES(
   ${PROJECT_SOURCE_DIR}/Testing
+  ${QuadEdgeMeshFieldSmoothingFilters}/Source
+  ${QuadEdgeMeshFieldSmoothingFilters}/Testing
   )
 
 #######################
