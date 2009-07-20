@@ -99,7 +99,6 @@ private:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter( const Self& );
   void operator = ( const Self& );
 
-  void AllocateOutputMesh();
   void AllocateInternalArrays();
   void ComputeBasisSystemAtEveryNode();
   void ComputeInitialArrayOfDestinationPoints();

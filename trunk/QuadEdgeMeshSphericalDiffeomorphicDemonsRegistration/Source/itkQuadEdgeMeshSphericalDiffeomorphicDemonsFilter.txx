@@ -99,84 +99,12 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GenerateData()
 {
-  this->AllocateOutputMesh();
+  this->CopyInputMeshToOutputMesh();
   this->AllocateInternalArrays();
   this->ComputeBasisSystemAtEveryNode();
   this->ComputeInitialArrayOfDestinationPoints();
   this->InitializeInterpolators();
-
   this->RunIterations();
-  
-  OutputMeshPointer output = this->GetOutput( 0 );
-}
-
-
-template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void
-QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
-AllocateOutputMesh()
-{
-  FixedMeshConstPointer in = this->GetInput();
-  OutputMeshPointer out = this->GetOutput();
- 
-  typedef typename FixedMeshType::PointsContainerConstIterator
-    InputPointsContainerConstIterator;
-
-  typedef typename OutputMeshType::PointType        OutputPointType;
-
-  typedef typename FixedMeshType::CellsContainerConstIterator
-    InputCellsContainerConstIterator;
-
-  typedef typename FixedMeshType::EdgeCellType      InputEdgeCellType;
-  typedef typename FixedMeshType::PolygonCellType   InputPolygonCellType;
-  typedef typename FixedMeshType::PointIdList       InputPointIdList;
-
-  typedef typename FixedMeshType::CellTraits        InputCellTraits;
-  typedef typename InputCellTraits::PointIdInternalIterator
-    InputPointsIdInternalIterator;
-
-  // Copy points
-  InputPointsContainerConstIterator inIt = in->GetPoints()->Begin();
-  while( inIt != in->GetPoints()->End() )
-    {
-    OutputPointType pOut;
-    pOut.CastFrom( inIt.Value() );
-    out->SetPoint( inIt.Index(), pOut );
-    inIt++;
-    } 
-
-  // Copy Edge Cells
-  InputCellsContainerConstIterator ecIt = in->GetEdgeCells()->Begin();
-  while( ecIt != in->GetEdgeCells()->End() )
-    {
-    InputEdgeCellType* pe = dynamic_cast< InputEdgeCellType* >( ecIt.Value());
-    if( pe )
-      {
-      out->AddEdgeWithSecurePointList( pe->GetQEGeom()->GetOrigin(),
-                                       pe->GetQEGeom()->GetDestination() );
-      }
-    ecIt++;
-    }
-
-
-  // Copy cells
-  InputCellsContainerConstIterator cIt = in->GetCells()->Begin();
-  while( cIt != in->GetCells()->End() )
-    {
-    InputPolygonCellType * pe = dynamic_cast< InputPolygonCellType* >( cIt.Value());
-    if( pe )
-      {
-      InputPointIdList points;
-      InputPointsIdInternalIterator pit = pe->InternalPointIdsBegin();
-      while( pit != pe->InternalPointIdsEnd( ) )
-        {
-        points.push_back( ( *pit ) );
-        ++pit;
-        }
-      out->AddFaceWithSecurePointList( points, false );
-      }
-    cIt++;
-    }
 }
 
 
