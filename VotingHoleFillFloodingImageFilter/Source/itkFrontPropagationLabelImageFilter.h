@@ -201,8 +201,10 @@ private:
   SizeValueType                     m_TotalNumberOfPixelsChanged;
   SizeValueType                     m_TotalNumberOfPixelsChangedInLastIteration;
   
-  typedef std::map<LabelType, SizeValueType >  NumberOfPixelsChangedArrayMapType;
-  NumberOfPixelsChangedArrayMapType m_NumberOfPixelsChangedInLastIteration;
+  typedef std::map<LabelType, SizeValueType >  NumberOfPixelsArrayMapType;
+
+  NumberOfPixelsArrayMapType        m_NumberOfPixels;
+  NumberOfPixelsArrayMapType        m_NumberOfPixelsChangedInLastIteration;
 
   IndexType                         m_CurrentPixelIndex;
 
