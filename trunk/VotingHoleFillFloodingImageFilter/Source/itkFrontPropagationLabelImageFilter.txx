@@ -227,10 +227,18 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 
   while ( ! bit.IsAtEnd() )
     {
-    if( bit.GetCenterPixel() != backgroundValue )
+    const InputImagePixelType value = bit.GetCenterPixel();
+
+    if( value != backgroundValue )
       {
-      itr.Set( bit.GetCenterPixel() );
+      itr.Set( value );
       mtr.Set( 255 );
+
+      if( this->m_NumberOfPixels.find(value) == this->m_NumberOfPixels.end() )
+        {
+        this->m_NumberOfPixels[value] = NumericTraits<SizeValueType>::One;
+        }
+      this->m_NumberOfPixels[value]++;  
       }
     else
       {
@@ -240,7 +248,7 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
       // Search for foreground pixels in the neighborhood
       for (unsigned int i = 0; i < neighborhoodSize; ++i)
         {
-        InputImagePixelType value = bit.GetPixel(i);
+        const InputImagePixelType value = bit.GetPixel(i);
 
         if( value != backgroundValue )
           {
