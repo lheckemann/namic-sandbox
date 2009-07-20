@@ -18,7 +18,7 @@
 #define __itkConsolidationLabelImageFilter_h
 
 #include "itkImage.h"
-#include "itkInPlaceImageFilter.h"
+#include "itkFrontPropagationLabelImageFilter.h"
 
 #include <vector>
 
@@ -27,29 +27,31 @@ namespace itk
 
 /** \class ConsolidationLabelImageFilter 
  *
- * \brief Perform front-propagation of labels based on user-provided rules.
+ * \brief Consolidate small label regions into larger ones based on their
+ * common boundaries.
  * 
- * The algorithm visits all pixels, identifies label boundaries and propagate
- * them according to a user-provided rule.
+ * The algorithm visits all pixels in the boundary of a label, counts how many
+ * of them belong to another label and according to that number decides whether
+ * this labels should be consolidated with one of its neighbors.
  *
  * \ingroup RegionGrowingSegmentation 
  */
 template <class TInputImage, class TOutputImage>
 class ITK_EXPORT ConsolidationLabelImageFilter:
-    public InPlaceImageFilter<TInputImage,TOutputImage>
+    public FrontPropagationLabelImageFilter<TInputImage,TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef ConsolidationLabelImageFilter                Self;
-  typedef InPlaceImageFilter<TInputImage,TOutputImage>    Superclass;
-  typedef SmartPointer<Self>                              Pointer;
-  typedef SmartPointer<const Self>                        ConstPointer;
+  typedef ConsolidationLabelImageFilter                                 Self;
+  typedef FrontPropagationLabelImageFilter<TInputImage,TOutputImage>    Superclass;
+  typedef SmartPointer<Self>                                            Pointer;
+  typedef SmartPointer<const Self>                                      ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods).  */
-  itkTypeMacro(ConsolidationLabelImageFilter, InPlaceImageFilter);
+  itkTypeMacro(ConsolidationLabelImageFilter, FrontPropagationLabelImageFilter);
 
   typedef typename Superclass::InputImageType             InputImageType;
   typedef typename InputImageType::Pointer                InputImagePointer;
@@ -71,48 +73,6 @@ public:
   itkStaticConstMacro(InputImageDimension,  unsigned int, TInputImage::ImageDimension);
   itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
-  /** Set/Get the radius of the neighborhood used to compute the median. */
-  itkSetMacro(Radius, InputSizeType);
-  itkGetConstReferenceMacro(Radius, InputSizeType);
- 
-  /** Set/Get the maximum number of iterations that will be applied to the
-   * propagating front */
-  itkSetMacro( MaximumNumberOfIterations, unsigned int );
-  itkGetMacro( MaximumNumberOfIterations, unsigned int );
-
-  /** Returned the number of iterations used so far. */
-  itkGetMacro( CurrentIterationNumber, unsigned int );
-
-  /** Returned the number of pixels changed in total. */
-  itkGetMacro( TotalNumberOfPixelsChanged, unsigned int );
-
-  /** Set/Get the value associated with the Background. */
-  itkSetMacro(BackgroundValue, InputImagePixelType);
-  itkGetConstReferenceMacro(BackgroundValue, InputImagePixelType);
-
-  /** Set/Get the value associated with the Foreground. */
-  itkSetMacro(ForegroundValue, InputImagePixelType);
-  itkGetConstReferenceMacro(ForegroundValue, InputImagePixelType);
-
-  /** Majority threshold. It is the number of pixels over 50% that will decide
-   * whether an OFF pixel will become ON or not. For example, if the
-   * neighborhood of a pixel has 124 pixels (excluding itself), the 50% will be
-   * 62, and if you set upd a Majority threshold of 5, that means that the
-   * filter will require 67 or more neighbor pixels to be ON in order to switch
-   * the current OFF pixel to ON. The default value is 1. */ 
-  itkGetConstReferenceMacro( MajorityThreshold, unsigned int );
-  itkSetMacro( MajorityThreshold, unsigned int );
-
-  /** Birth threshold. Pixels that are OFF will turn ON when the number of
-   * neighbors ON is larger than the value defined in this threshold. */
-  itkGetConstReferenceMacro(BirthThreshold, unsigned int);
-  itkSetMacro(BirthThreshold, unsigned int);
-
-  /** Survival threshold. Pixels that are ON will turn OFF when the number of
-   * neighbors ON is smaller than the value defined in this survival threshold. */
-  itkGetConstReferenceMacro(SurvivalThreshold, unsigned int);
-  itkSetMacro(SurvivalThreshold, unsigned int);
-
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputImagePixelType>));
@@ -132,115 +92,10 @@ protected:
   
   void PrintSelf ( std::ostream& os, Indent indent ) const;
 
-  virtual void AllocateOutputImageWorkingMemory();
-
-  void InitializeNeighborhood();
-
-  void ComputeArrayOfNeighborhoodBufferOffsets();
-
-  void FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
-
-  void IterateFrontPropagations();
-
-  unsigned int GetNeighborhoodSize() const;
-
-  typedef std::vector< OffsetValueType >   NeighborOffsetArrayType;
-
-  const OutputImageType * GetOutputImage() const;
-
-  itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
-
-  const NeighborOffsetArrayType & GetNeighborBufferOffset() const;
-
 private:
   ConsolidationLabelImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  typedef unsigned int                   LabelType;
-
-  void VisitAllSeedsAndTransitionTheirState();
-  void VisitAllSeedsAndTransitionTheirState(LabelType label);
-
-  void PasteNewSeedValuesToOutputImage( LabelType label );
-
-  void SwapSeedArrays();
-
-  void ClearSecondSeedArray();
-
-  virtual bool TestForAcceptingCurrentPixel() const;
-
-  void PutCurrentPixelNeighborsIntoSeedArray();
-
-  itkSetMacro( CurrentPixelIndex, IndexType );
-
-  typedef std::vector<IndexType>    SeedArrayType;
-
-  SeedArrayType *                   m_SeedArray1;
-  SeedArrayType *                   m_SeedArray2;
-
-  typedef std::map<LabelType,SeedArrayType *>  SeedArrayMapType;
-
-  SeedArrayMapType                  m_SeedArrayMap1;
-  SeedArrayMapType                  m_SeedArrayMap2;
-
-  typedef typename SeedArrayMapType::iterator  SeedArrayMapIterator;
-
-  InputImageRegionType              m_InternalRegion;
-  
-  typedef std::vector<OutputImagePixelType>   SeedNewValuesArrayType;
-
-  SeedNewValuesArrayType            m_SeedsNewValues;
-
-  typedef std::map<LabelType,SeedNewValuesArrayType >  SeedNewValuesArrayMapType;
-
-  SeedNewValuesArrayMapType         m_SeedsNewValuesMap;
-
-  unsigned int                      m_CurrentIterationNumber;
-  unsigned int                      m_MaximumNumberOfIterations;
-
-  SizeValueType                     m_TotalNumberOfPixelsChanged;
-  SizeValueType                     m_TotalNumberOfPixelsChangedInLastIteration;
-  
-  typedef std::map<LabelType, SizeValueType >  NumberOfPixelsArrayMapType;
-
-  NumberOfPixelsArrayMapType        m_NumberOfPixels;
-  NumberOfPixelsArrayMapType        m_NumberOfPixelsChangedInLastIteration;
-
-  IndexType                         m_CurrentPixelIndex;
-
-  //
-  // Variables used for addressing the Neighbors.
-  // This could be factorized into a helper class.
-  //
-  OffsetValueType                   m_OffsetTable[ InputImageDimension + 1 ]; 
-  
-  NeighborOffsetArrayType           m_NeighborBufferOffset;
-
-
-  //
-  // Helper cache variables 
-  //
-  const InputImageType *            m_InputImage;
-  OutputImageType *                 m_OutputImage;
-
-  typedef itk::Image< unsigned char, InputImageDimension >  SeedMaskImageType;
-  typedef typename SeedMaskImageType::Pointer               SeedMaskImagePointer;
-
-  SeedMaskImagePointer              m_SeedsMask;
-
-  typedef itk::Neighborhood< InputImagePixelType, InputImageDimension >  NeighborhoodType;
-
-  InputSizeType             m_Radius;
-
-  InputImagePixelType       m_ForegroundValue;
-
-  InputImagePixelType       m_BackgroundValue;
-
-  NeighborhoodType          m_Neighborhood;
-
-  unsigned int              m_MajorityThreshold; 
-  unsigned int              m_BirthThreshold;
-  unsigned int              m_SurvivalThreshold;
 };
 
 } // end namespace itk
