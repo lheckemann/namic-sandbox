@@ -338,6 +338,7 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
       {
       this->m_SeedsNewValuesMap[label].push_back( label );
       this->PutCurrentPixelNeighborsIntoSeedArray();
+      this->m_NumberOfPixels[label]++;
       this->m_NumberOfPixelsChangedInLastIteration[label]++;
       }
     else
