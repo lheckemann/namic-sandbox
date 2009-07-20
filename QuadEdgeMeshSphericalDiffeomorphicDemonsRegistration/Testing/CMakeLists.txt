@@ -3,6 +3,7 @@ SET(TEST_DATA_ROOT ${CMAKE_SOURCE_DIR}/Data)
 SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
 
 SET(QuadEdgeMeshRigidRegistration ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshRigidRegistration)
+SET(QuadEdgeMeshFieldSmoothingFilters ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshFieldSmoothingFilters)
 
 FIND_PATH(FREESURFER_DIR
   SetUpFreeSurfer.sh
@@ -23,20 +24,17 @@ INCLUDE_DIRECTORIES(
 #######################
 #######################
 
-ADD_EXECUTABLE(itkMeshGeneratorHelperTest1 itkMeshGeneratorHelperTest1.cxx )
+ADD_EXECUTABLE(itkMeshGeneratorHelperTest1 
+  ${QuadEdgeMeshFieldSmoothingFilters}/Testing/itkMeshGeneratorHelperTest1.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
-ADD_EXECUTABLE(itkMeshGeneratorHelperTest2 itkMeshGeneratorHelperTest2.cxx )
+ADD_EXECUTABLE(itkMeshGeneratorHelperTest2
+  ${QuadEdgeMeshFieldSmoothingFilters}/Testing/itkMeshGeneratorHelperTest2.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
-ADD_EXECUTABLE(itkMeshGeneratorHelperTest3 itkMeshGeneratorHelperTest3.cxx )
+ADD_EXECUTABLE(itkMeshGeneratorHelperTest3
+  ${QuadEdgeMeshFieldSmoothingFilters}/Testing/itkMeshGeneratorHelperTest2.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest3 ITKQuadEdgeMesh ITKIO ITKNumerics)
-
-ADD_EXECUTABLE(itkQuadEdgeMeshVTKPolyDataReader1 itkQuadEdgeMeshVTKPolyDataReader1.cxx )
-TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVTKPolyDataReader1 ITKQuadEdgeMesh ITKIO ITKNumerics)
-
-ADD_EXECUTABLE(itkQuadEdgeMeshVTKPolyDataReader2 itkQuadEdgeMeshVTKPolyDataReader2.cxx )
-TARGET_LINK_LIBRARIES(itkQuadEdgeMeshVTKPolyDataReader2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -55,9 +53,6 @@ TARGET_LINK_LIBRARIES(itkNodeVectorJacobianCalculatorTest1 ITKQuadEdgeMesh ITKIO
 
 ADD_EXECUTABLE(itkNodeVectorJacobianCalculatorTest2 itkNodeVectorJacobianCalculatorTest2.cxx )
 TARGET_LINK_LIBRARIES(itkNodeVectorJacobianCalculatorTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
-
-ADD_EXECUTABLE(itkQuadEdgeMeshPixelValuesSmoothingFilterTest1 itkQuadEdgeMeshPixelValuesSmoothingFilterTest1.cxx)
-TARGET_LINK_LIBRARIES(itkQuadEdgeMeshPixelValuesSmoothingFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkTriangleBasisSystemTest1 
   ${QuadEdgeMeshRigidRegistration}/Testing/itkTriangleBasisSystemTest1.cxx )
@@ -133,19 +128,6 @@ ADD_TEST(itkMeshGeneratorHelperTest5
   100.0  # Scale (radius)
   )
 
-ADD_TEST(itkQuadEdgeMeshVTKPolyDataReader1
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshVTKPolyDataReader1
-  ${TEMP}/fixedMesh01.vtk
-  ${TEMP}/fixedMesh01verification.vtk
-  )
-
-ADD_TEST(itkQuadEdgeMeshVTKPolyDataReader2
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshVTKPolyDataReader2
-  ${TEMP}/meshWithVectors.vtk
-  ${TEMP}/meshWithVectorsVerification.vtk
-  )
-
-
 ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
   ${TEMP}/fixedMesh01.vtk
@@ -176,39 +158,6 @@ ADD_TEST(itkNodeVectorJacobianCalculatorTest1
 ADD_TEST(itkNodeVectorJacobianCalculatorTest2
   ${CXX_TEST_PATH}/itkNodeVectorJacobianCalculatorTest2
   )
-
-ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
-  ${TEMP}/meshWithVectors.vtk
-  ${TEMP}/meshWithVectorsSmoothed.vtk
-  1.0   # Lambda
-  10    # Iterations
-  )
-
-ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest2
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
-  ${TEMP}/meshWithVectorsIC1.vtk
-  ${TEMP}/meshWithVectorsIC1Smoothed.vtk
-  1.0   # Lambda
-  10    # Iterations
-  )
-
-ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest3
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
-  ${TEMP}/meshWithVectorsIC4.vtk
-  ${TEMP}/meshWithVectorsIC4Smoothed.vtk
-  1.0   # Lambda
-  10    # Iterations
-  )
-
-ADD_TEST(itkQuadEdgeMeshPixelValuesSmoothingFilterTest4
-  ${CXX_TEST_PATH}/itkQuadEdgeMeshPixelValuesSmoothingFilterTest1
-  ${TEMP}/meshWithVectorsIC7.vtk
-  ${TEMP}/meshWithVectorsIC7Smoothed.vtk
-  1.0   # Lambda
-  10    # Iterations
-  )
-
 
 ADD_TEST(itkTriangleBasisSystemTest1
   ${CXX_TEST_PATH}/itkTriangleBasisSystemTest1
