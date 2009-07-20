@@ -38,8 +38,7 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
   this->m_MaximumNumberOfIterations = 10;
   this->m_CurrentIterationNumber = 0;
 
-  this->m_NumberOfPixelsChangedInLastIteration = 0;
-  this->m_TotalNumberOfPixelsChanged = 0;
+  this->m_TotalNumberOfPixelsChanged = NumericTraits<SizeValueType>::Zero;
 
   this->m_SeedArray1 = NULL;
   this->m_SeedArray2 = NULL;
@@ -118,14 +117,15 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 ::IterateFrontPropagations()
 {
   this->m_CurrentIterationNumber = 0;
-  this->m_TotalNumberOfPixelsChanged = 0;
-  this->m_NumberOfPixelsChangedInLastIteration = 0;
+  this->m_TotalNumberOfPixelsChanged = NumericTraits<SizeValueType>::Zero;
 
   // Progress reporting
   ProgressReporter progress(this, 0, m_MaximumNumberOfIterations);
   
   while( this->m_CurrentIterationNumber < this->m_MaximumNumberOfIterations ) 
     {
+    this->m_TotalNumberOfPixelsChangedInLastIteration = NumericTraits<SizeValueType>::Zero;
+
     this->VisitAllSeedsAndTransitionTheirState();
     this->m_CurrentIterationNumber++;
 
@@ -133,7 +133,7 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 
     this->InvokeEvent( IterationEvent() );
     
-    if( this->m_NumberOfPixelsChangedInLastIteration ==  0 )
+    if( this->m_TotalNumberOfPixelsChangedInLastIteration ==  NumericTraits<SizeValueType>::Zero )
       {
       break;
       }
@@ -249,6 +249,8 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
             {
             this->m_SeedArrayMap1[value] = new SeedArrayType;
             this->m_SeedArrayMap2[value] = new SeedArrayType;
+            // Initialized to non-zero in order to force at least one cycle to happen
+            this->m_NumberOfPixelsChangedInLastIteration[value] = NumericTraits<SizeValueType>::One;
             }
 
           this->m_SeedArrayMap1[value]->push_back( bit.GetIndex() );
@@ -285,15 +287,18 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 
    while( sitr1 != this->m_SeedArrayMap1.end() )
     {
-    this->m_SeedArray1 = sitr1->second;
-    this->m_SeedArray2 = sitr2->second;
-
     const LabelType label = sitr1->first;
 
-    this->VisitAllSeedsAndTransitionTheirState( label );
+    if( this->m_NumberOfPixelsChangedInLastIteration[label] > NumericTraits<SizeValueType>::Zero )
+      {
+      this->m_SeedArray1 = sitr1->second;
+      this->m_SeedArray2 = sitr2->second;
 
-    sitr1->second = this->m_SeedArray1;
-    sitr2->second = this->m_SeedArray2;
+      this->VisitAllSeedsAndTransitionTheirState( label );
+
+      sitr1->second = this->m_SeedArray1;
+      sitr2->second = this->m_SeedArray2;
+      }
 
     ++sitr1;
     ++sitr2;
@@ -307,6 +312,8 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 ::VisitAllSeedsAndTransitionTheirState(LabelType label)
 {
   this->SetForegroundValue( label );
+
+  this->m_NumberOfPixelsChangedInLastIteration[label] = NumericTraits<SizeValueType>::Zero;
 
   typedef typename SeedArrayType::const_iterator   SeedIterator;
 
@@ -323,7 +330,7 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
       {
       this->m_SeedsNewValuesMap[label].push_back( label );
       this->PutCurrentPixelNeighborsIntoSeedArray();
-      this->m_NumberOfPixelsChangedInLastIteration++;
+      this->m_NumberOfPixelsChangedInLastIteration[label]++;
       }
     else
       {
@@ -337,7 +344,8 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 
   this->PasteNewSeedValuesToOutputImage(label);
    
-  this->m_TotalNumberOfPixelsChanged += this->m_NumberOfPixelsChangedInLastIteration;
+  this->m_TotalNumberOfPixelsChanged += this->m_NumberOfPixelsChangedInLastIteration[label];
+  this->m_TotalNumberOfPixelsChangedInLastIteration += this->m_NumberOfPixelsChangedInLastIteration[label];
 
   // Now that the values have been copied to the output image, we can empty the
   // array in preparation for the next iteration
