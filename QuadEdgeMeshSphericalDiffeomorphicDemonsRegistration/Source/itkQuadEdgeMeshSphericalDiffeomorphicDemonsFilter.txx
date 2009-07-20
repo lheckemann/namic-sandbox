@@ -105,6 +105,8 @@ GenerateData()
   this->ComputeInitialArrayOfDestinationPoints();
   this->InitializeInterpolators();
   this->RunIterations();
+  this->ComputeMappedMovingValueAtEveryNode();
+  this->AssignResampledMovingValuesToOutputMesh();
 }
 
 
@@ -315,6 +317,27 @@ SmoothDeformationField()
 {
 }
 
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+AssignResampledMovingValuesToOutputMesh()
+{
+  OutputMeshPointer out = this->GetOutput();
+
+  typedef typename OutputPointDataContainer::Pointer      OutputPointDataContainerPointer;
+  OutputPointDataContainerPointer outputPointData = out->GetPointData();
+
+  typedef typename ResampledMovingValuesContainerType::ConstIterator  ResampledMovingValuesContainerIterator;
+
+  ResampledMovingValuesContainerIterator  resampledArrayItr = this->m_ResampledMovingValuesContainer->Begin();
+  ResampledMovingValuesContainerIterator  resampledArrayEnd = this->m_ResampledMovingValuesContainer->End();
+
+  while( resampledArrayItr != resampledArrayEnd )
+    {
+    outputPointData->SetElement( resampledArrayItr.Index(), resampledArrayItr.Value() );
+    resampledArrayItr++;
+    } 
+}
 
 }
 
