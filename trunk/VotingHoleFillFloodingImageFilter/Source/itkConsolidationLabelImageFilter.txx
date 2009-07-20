@@ -67,9 +67,34 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
   this->AllocateOutputImageWorkingMemory();
   this->InitializeNeighborhood();
   this->FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
-  // Add here the BOUNDARY COUNTING 
+  this->ComputeLabelAffinities();
 }
 
+
+template <class TInputImage, class TOutputImage>
+void 
+ConsolidationLabelImageFilter<TInputImage, TOutputImage>
+::ComputeLabelAffinities()
+{
+ const SeedArrayMapType & seedArrayMap = this->GetSeedArrayMap1();
+ SeedArrayMapConstIterator sitr1 = seedArrayMap.begin();
+
+ while( sitr1 != seedArrayMap.end() )
+  {
+  const InputImagePixelType label = sitr1->first;
+  this->ComputeLabelAffinities( label );
+  ++sitr1;
+  }
+}
+
+
+template <class TInputImage, class TOutputImage>
+void 
+ConsolidationLabelImageFilter<TInputImage, TOutputImage>
+::ComputeLabelAffinities( InputImagePixelType label )
+{
+  std::cout << "ComputeLabelAffinities( " << label << " ) " << std::endl;
+}
 
 } // end namespace itk
 

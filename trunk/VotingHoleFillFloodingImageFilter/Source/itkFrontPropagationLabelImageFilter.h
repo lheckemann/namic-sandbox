@@ -152,11 +152,18 @@ protected:
 
   const NeighborOffsetArrayType & GetNeighborBufferOffset() const;
 
+  typedef unsigned int              LabelType;
+  typedef std::vector<IndexType>    SeedArrayType;
+
+  typedef std::map<LabelType,SeedArrayType *>        SeedArrayMapType;
+  typedef typename SeedArrayMapType::iterator        SeedArrayMapIterator;
+  typedef typename SeedArrayMapType::const_iterator  SeedArrayMapConstIterator;
+
+  itkGetConstReferenceMacro( SeedArrayMap1, SeedArrayMapType );
+
 private:
   FrontPropagationLabelImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-
-  typedef unsigned int                   LabelType;
 
   void VisitAllSeedsAndTransitionTheirState();
   void VisitAllSeedsAndTransitionTheirState(LabelType label);
@@ -173,17 +180,11 @@ private:
 
   itkSetMacro( CurrentPixelIndex, IndexType );
 
-  typedef std::vector<IndexType>    SeedArrayType;
-
   SeedArrayType *                   m_SeedArray1;
   SeedArrayType *                   m_SeedArray2;
 
-  typedef std::map<LabelType,SeedArrayType *>  SeedArrayMapType;
-
   SeedArrayMapType                  m_SeedArrayMap1;
   SeedArrayMapType                  m_SeedArrayMap2;
-
-  typedef typename SeedArrayMapType::iterator  SeedArrayMapIterator;
 
   InputImageRegionType              m_InternalRegion;
   

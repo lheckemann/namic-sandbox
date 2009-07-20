@@ -88,14 +88,20 @@ protected:
   ConsolidationLabelImageFilter();
   ~ConsolidationLabelImageFilter();
 
-  void GenerateData();
+  virtual void GenerateData();
   
-  void PrintSelf ( std::ostream& os, Indent indent ) const;
+  virtual void PrintSelf ( std::ostream& os, Indent indent ) const;
 
 private:
   ConsolidationLabelImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
+  typedef typename Superclass::SeedArrayMapType           SeedArrayMapType;
+  typedef typename Superclass::SeedArrayMapIterator       SeedArrayMapIterator;
+  typedef typename Superclass::SeedArrayMapConstIterator  SeedArrayMapConstIterator; 
+
+  virtual void ComputeLabelAffinities();
+  virtual void ComputeLabelAffinities( InputImagePixelType label );
 };
 
 } // end namespace itk
