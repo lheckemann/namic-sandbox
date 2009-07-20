@@ -81,9 +81,21 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
 
  while( sitr1 != seedArrayMap.end() )
   {
-  const InputImagePixelType label = sitr1->first;
-  this->ComputeLabelAffinities( label );
+  this->ComputeLabelAffinities( sitr1->first, sitr1->second );
   ++sitr1;
+
+  const LabelType label = sitr1->first;
+  typedef typename NumericTraits<InputImagePixelType>::PrintType PrintType;
+  std::cout << std::endl;
+  std::cout << "Histogram for Label= " << static_cast<PrintType>( label ) << std::endl;
+  const NumberOfPixelsArrayMapType & currentLabelHistogram = this->m_NeigborLabelsHistogram[label];
+
+  typename NumberOfPixelsArrayMapType::const_iterator currentLabelHistogramItr = currentLabelHistogram.begin();
+  while( currentLabelHistogramItr != currentLabelHistogram.end() )
+    {
+    std::cout << "Label = " << currentLabelHistogramItr->first << " = " << currentLabelHistogramItr->second << std::endl;
+    ++currentLabelHistogramItr;
+    }
   }
 }
 
@@ -91,10 +103,49 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void 
 ConsolidationLabelImageFilter<TInputImage, TOutputImage>
-::ComputeLabelAffinities( InputImagePixelType label )
+::ComputeLabelAffinities( InputImagePixelType label, const SeedArrayType * seedArray )
 {
-  std::cout << "ComputeLabelAffinities( " << label << " ) " << std::endl;
+  typedef typename NumericTraits<InputImagePixelType>::PrintType PrintType;
+  std::cout << "ComputeLabelAffinities( " << static_cast<PrintType>( label ) << " ) " << std::endl;
+
+  //
+  //  If there is no histogram for this label yet, create one.
+  //
+  if( this->m_NeigborLabelsHistogram.find(label) == this->m_NeigborLabelsHistogram.end() )
+    {
+    this->m_NeigborLabelsHistogram[label] = NumberOfPixelsArrayMapType();
+    }
+
+  NumberOfPixelsArrayMapType & currentLabelHistogram = this->m_NeigborLabelsHistogram[label];
+
+  const OutputImageType * outputImage = this->GetOutputImage();
+  const OutputImagePixelType backgroundValue = this->GetBackgroundValue();
+
+  typedef typename SeedArrayType::const_iterator   SeedIterator;
+
+  SeedIterator seedItr = seedArray->begin();
+
+  while( seedItr != seedArray->end() )
+    {
+    const OutputImagePixelType pixelValue = outputImage->GetPixel( *seedItr );
+
+    if( pixelValue != backgroundValue )
+      {
+      //
+      // If the current label doesn't exist, create one
+      //
+      if( currentLabelHistogram.find(pixelValue) == currentLabelHistogram.end() )
+        {
+        currentLabelHistogram[pixelValue] = NumericTraits<SizeValueType>::Zero;
+        }
+
+      currentLabelHistogram[pixelValue]++;
+      }
+
+    ++seedItr;
+    }
 }
+
 
 } // end namespace itk
 
