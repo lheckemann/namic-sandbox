@@ -53,8 +53,9 @@ public:
   typedef typename  MovingMeshType::ConstPointer    MovingMeshConstPointer;
 
   /** Output types. */
-  typedef TOutputMesh                               OutputMeshType;
-  typedef typename  OutputMeshType::Pointer         OutputMeshPointer;
+  typedef TOutputMesh                                     OutputMeshType;
+  typedef typename  OutputMeshType::Pointer               OutputMeshPointer;
+  typedef typename  Superclass::OutputPointDataContainer  OutputPointDataContainer;
  
   /** Declaration of internal types, some of which are exposed for monitoring purposes */
   typedef typename PointType::VectorType                        VectorType;
@@ -109,6 +110,7 @@ private:
   void ComputeGradientsOfMappedMovingValueAtEveryNode();
   void ComputeDeformationFieldUpdate();
   void SmoothDeformationField();
+  void AssignResampledMovingValuesToOutputMesh();
 
   MovingMeshConstPointer                m_MovingMesh;
   FixedMeshConstPointer                 m_FixedMesh;
