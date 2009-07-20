@@ -69,7 +69,7 @@ int main( int argc, char *argv[] )
   floodFilter->InPlaceOn();
 
   InputImageType::SizeType  ballManhattanRadius;
-  ballManhattanRadius.Fill( 1 );
+  ballManhattanRadius.Fill( 2 );
   floodFilter->SetRadius( ballManhattanRadius );
 
   floodFilter->SetInput( maskReader->GetOutput() );

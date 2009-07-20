@@ -35,6 +35,10 @@ template <class TInputImage, class TOutputImage>
 HoleFillingFrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 ::HoleFillingFrontPropagationLabelImageFilter()
 {
+  InputSizeType  ballManhattanRadius;
+  ballManhattanRadius.Fill( 2 );
+  this->SetRadius( ballManhattanRadius );
+
   this->SetMajorityThreshold( 1 );
 }
 
@@ -77,10 +81,6 @@ void
 HoleFillingFrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 ::ComputeBirthThreshold()
 {
-  InputSizeType  ballManhattanRadius;
-  ballManhattanRadius.Fill( 2 );
-  this->SetRadius( ballManhattanRadius );
-
   this->InitializeNeighborhood();
 
   const unsigned int neighborhoodSize = this->GetNeighborhoodSize();
