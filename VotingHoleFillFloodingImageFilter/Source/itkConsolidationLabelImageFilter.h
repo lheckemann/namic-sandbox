@@ -96,12 +96,18 @@ private:
   ConsolidationLabelImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  typedef typename Superclass::SeedArrayMapType           SeedArrayMapType;
-  typedef typename Superclass::SeedArrayMapIterator       SeedArrayMapIterator;
-  typedef typename Superclass::SeedArrayMapConstIterator  SeedArrayMapConstIterator; 
+  typedef typename Superclass::LabelType                    LabelType; 
+  typedef typename Superclass::SeedArrayType                SeedArrayType;
+  typedef typename Superclass::SeedArrayMapType             SeedArrayMapType;
+  typedef typename Superclass::SeedArrayMapIterator         SeedArrayMapIterator;
+  typedef typename Superclass::SeedArrayMapConstIterator    SeedArrayMapConstIterator; 
+  typedef typename Superclass::NumberOfPixelsArrayMapType   NumberOfPixelsArrayMapType; 
 
   virtual void ComputeLabelAffinities();
-  virtual void ComputeLabelAffinities( InputImagePixelType label );
+  virtual void ComputeLabelAffinities( InputImagePixelType label, const SeedArrayType * seedArray );
+
+  typedef std::map<LabelType, NumberOfPixelsArrayMapType >   NeighborLabelsDistributionType;
+  NeighborLabelsDistributionType      m_NeigborLabelsHistogram;
 };
 
 } // end namespace itk

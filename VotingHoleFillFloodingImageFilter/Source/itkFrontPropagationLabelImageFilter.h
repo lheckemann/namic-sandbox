@@ -158,6 +158,8 @@ protected:
   typedef std::map<LabelType,SeedArrayType *>        SeedArrayMapType;
   typedef typename SeedArrayMapType::iterator        SeedArrayMapIterator;
   typedef typename SeedArrayMapType::const_iterator  SeedArrayMapConstIterator;
+  typedef std::map<LabelType, SizeValueType >        NumberOfPixelsArrayMapType;
+
 
   itkGetConstReferenceMacro( SeedArrayMap1, SeedArrayMapType );
 
@@ -202,8 +204,6 @@ private:
   SizeValueType                     m_TotalNumberOfPixelsChanged;
   SizeValueType                     m_TotalNumberOfPixelsChangedInLastIteration;
   
-  typedef std::map<LabelType, SizeValueType >  NumberOfPixelsArrayMapType;
-
   NumberOfPixelsArrayMapType        m_NumberOfPixels;
   NumberOfPixelsArrayMapType        m_NumberOfPixelsChangedInLastIteration;
 
