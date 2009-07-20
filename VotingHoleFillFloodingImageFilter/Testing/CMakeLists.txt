@@ -40,6 +40,11 @@ ADD_EXECUTABLE(itkHoleFillingFrontPropagationLabelImageFilterTest1
 TARGET_LINK_LIBRARIES(itkHoleFillingFrontPropagationLabelImageFilterTest1 ITKIO)
 
 
+ADD_EXECUTABLE(itkConsolidationLabelImageFilterTest1
+  itkConsolidationLabelImageFilterTest1.cxx)
+
+TARGET_LINK_LIBRARIES(itkConsolidationLabelImageFilterTest1 ITKIO)
+
 ADD_TEST(itkThresholdTest1
   ${EXECUTABLE_OUTPUT_PATH}/itkBinaryThresholdImageFilterTest1
   ${PROJECT_SOURCE_DIR}/Data/BrainProtonDensitySlice.png
