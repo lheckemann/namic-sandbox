@@ -18,12 +18,6 @@
 #define __itkConsolidationLabelImageFilter_txx
 
 #include "itkConsolidationLabelImageFilter.h"
-#include "itkConstNeighborhoodIterator.h"
-#include "itkImageRegionIterator.h"
-#include "itkImageRegionExclusionIteratorWithIndex.h"
-#include "itkNeighborhoodAlgorithm.h"
-#include "itkOffset.h"
-#include "itkProgressReporter.h"
 
 namespace itk
 {
@@ -66,7 +60,7 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
 {
   this->AllocateOutputImageWorkingMemory();
   this->InitializeNeighborhood();
-  this->FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
+  this->FindAllPixelsInTheBoundaryAndAddThemAsSeeds2();
   this->ComputeLabelAffinities();
 }
 
@@ -82,11 +76,9 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
  while( sitr1 != seedArrayMap.end() )
   {
   this->ComputeLabelAffinities( sitr1->first, sitr1->second );
-  ++sitr1;
 
   const LabelType label = sitr1->first;
   typedef typename NumericTraits<InputImagePixelType>::PrintType PrintType;
-  std::cout << std::endl;
   std::cout << "Histogram for Label= " << static_cast<PrintType>( label ) << std::endl;
   const NumberOfPixelsArrayMapType & currentLabelHistogram = this->m_NeigborLabelsHistogram[label];
 
@@ -96,6 +88,9 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
     std::cout << "Label = " << currentLabelHistogramItr->first << " = " << currentLabelHistogramItr->second << std::endl;
     ++currentLabelHistogramItr;
     }
+  std::cout << std::endl;
+
+  ++sitr1;
   }
 }
 
