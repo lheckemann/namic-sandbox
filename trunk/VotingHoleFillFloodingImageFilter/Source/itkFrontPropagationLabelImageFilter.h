@@ -59,6 +59,7 @@ public:
   typedef typename InputImageType::IndexType              IndexType;
   typedef typename InputImageType::SizeType               InputSizeType;
   typedef typename InputImageType::OffsetValueType        OffsetValueType;
+  typedef typename InputImageType::SizeValueType          SizeValueType;
   
   typedef typename Superclass::OutputImageType            OutputImageType;
   typedef typename OutputImageType::Pointer               OutputImagePointer;
@@ -196,9 +197,13 @@ private:
 
   unsigned int                      m_CurrentIterationNumber;
   unsigned int                      m_MaximumNumberOfIterations;
-  unsigned int                      m_NumberOfPixelsChangedInLastIteration;
-  unsigned int                      m_TotalNumberOfPixelsChanged;
+
+  SizeValueType                     m_TotalNumberOfPixelsChanged;
+  SizeValueType                     m_TotalNumberOfPixelsChangedInLastIteration;
   
+  typedef std::map<LabelType, SizeValueType >  NumberOfPixelsChangedArrayMapType;
+  NumberOfPixelsChangedArrayMapType m_NumberOfPixelsChangedInLastIteration;
+
   IndexType                         m_CurrentPixelIndex;
 
   //
