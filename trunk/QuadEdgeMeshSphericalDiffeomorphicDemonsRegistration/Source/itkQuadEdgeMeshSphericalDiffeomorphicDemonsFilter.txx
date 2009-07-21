@@ -254,6 +254,8 @@ ComputeGradientsOfMappedMovingValueAtEveryNode()
 
   this->m_NodeScalarGradientCalculator->SetBasisSystemList( 
     this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
+
+  this->m_NodeScalarGradientCalculator->Compute();
 }
 
 
