@@ -80,10 +80,9 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Initialize( void )
 {
-  this->m_DerivativeList->Reserve( this->m_InputMesh->GetCells()->Size() );
-  this->m_PointAreaAccumulatorList->Reserve( this->m_InputMesh->GetPoints()->Size() );
-  this->m_PointDerivativeAccumulatorList->Reserve( this->m_InputMesh->GetPoints()->Size() );
-
+  this->m_DerivativeList->Reserve( this->m_InputMesh->GetNumberOfCells() );
+  this->m_PointAreaAccumulatorList->Reserve( this->m_InputMesh->GetNumberOfPoints() );
+  this->m_PointDerivativeAccumulatorList->Reserve( this->m_InputMesh->GetNumberOfPoints() );
 }
 
 
@@ -101,15 +100,19 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   this->Initialize(); 
 
   // Start with gradient computation for each triangle. Uses linear interpolator.
+  const CellsContainer * cells =  this->m_InputMesh->GetCells();
 
-  CellsContainerConstIterator cellIterator = this->m_InputMesh->GetCells()->Begin();
-  CellsContainerConstIterator cellEnd = this->m_InputMesh->GetCells()->End();
+  CellsContainerConstIterator cellIterator = cells->Begin();
+  CellsContainerConstIterator cellEnd = cells->End();
 
   BasisSystemListIterator basisSystemListIterator;
   basisSystemListIterator = m_BasisSystemList->Begin();
   
-  PointIterator pointIterator = this->m_InputMesh->GetPoints()->Begin();
-  PointIterator pointEnd = this->m_InputMesh->GetPoints()->End();
+  const PointsContainer * points = this->m_InputMesh->GetPoints();
+
+  PointIterator pointIterator = points->Begin();
+  PointIterator pointEnd = points->End();
+
   while( pointIterator != pointEnd )
     {
     derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
@@ -123,6 +126,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   const unsigned int numberOfVerticesInTriangle = 3;
   PixelType pixelValue[numberOfVerticesInTriangle]; 
   PointIdentifier pointIds[numberOfVerticesInTriangle];
+
   while( cellIterator != cellEnd )
     {
     CellType* cellPointer = cellIterator.Value();
