@@ -83,11 +83,30 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
   const NumberOfPixelsArrayMapType & currentLabelHistogram = this->m_NeigborLabelsHistogram[label];
 
   typename NumberOfPixelsArrayMapType::const_iterator currentLabelHistogramItr = currentLabelHistogram.begin();
+
+  SizeValueType totalCount = NumericTraits< SizeValueType >::Zero;
+  SizeValueType maximumCount = currentLabelHistogramItr->second;
+  LabelType     labelWithMaximumCount = currentLabelHistogramItr->first;
+
   while( currentLabelHistogramItr != currentLabelHistogram.end() )
     {
-    std::cout << "Label = " << currentLabelHistogramItr->first << " = " << currentLabelHistogramItr->second << std::endl;
+    const SizeValueType numberOfNeighborsAtThisLabel = currentLabelHistogramItr->second;
+    totalCount += numberOfNeighborsAtThisLabel;
+    if( maximumCount < numberOfNeighborsAtThisLabel )
+      {
+      maximumCount = numberOfNeighborsAtThisLabel;
+      labelWithMaximumCount = currentLabelHistogramItr->first;
+      }
+    std::cout << "Label = " << currentLabelHistogramItr->first << " = " << numberOfNeighborsAtThisLabel << std::endl;
     ++currentLabelHistogramItr;
     }
+
+  const double affinityValue = static_cast< double >( maximumCount ) / static_cast< double >( totalCount );
+
+  std::cout << "Label with Maximum Count = " << labelWithMaximumCount << "  count = " << maximumCount;
+  std::cout << " totalCount= " << totalCount << std::endl;
+  std::cout << "Label " << label << " : " << labelWithMaximumCount << " Affinity = " << affinityValue << std::endl;
+
   std::cout << std::endl;
 
   ++sitr1;
