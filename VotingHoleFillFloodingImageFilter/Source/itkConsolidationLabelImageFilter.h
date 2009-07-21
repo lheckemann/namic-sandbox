@@ -115,7 +115,6 @@ private:
   virtual void ComputeLabelAffinities( InputImagePixelType label, const SeedArrayType * seedArray );
   virtual void ComputeLargestAffinity( InputImagePixelType label );
   virtual void ConsolidateRegionsWithAffinitiesOverThreshold();
-  virtual void ConsolidateLabels( InputImagePixelType labelA, InputImagePixelType labelB );
 
   typedef std::map<LabelType, NumberOfPixelsArrayMapType >  NeighborLabelsDistributionType;
   typedef std::map<LabelType, double >                      AffinityMapType;
