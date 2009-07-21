@@ -20,6 +20,7 @@
 
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkLinearInterpolateMeshFunction.h"
+#include "itkProgressReporter.h"
 
 namespace itk
 {
@@ -224,6 +225,9 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 RunIterations()
 {
+  // Report the progress
+  ProgressReporter progress( this, 0, this->m_MaximumNumberOfIterations );
+  
   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
     {
     this->ComputeMappedMovingValueAtEveryNode();
@@ -232,9 +236,7 @@ RunIterations()
     this->SmoothDeformationField();
 
     // Report progress via Events
-    const float progress = (float)i / (float)(this->m_MaximumNumberOfIterations);
-    this->UpdateProgress( progress );
-    this->InvokeEvent( IterationEvent() );
+    progress.CompletedPixel();
     }
 }
 
@@ -315,7 +317,9 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 SmoothDeformationField()
 {
+  // Introduce the code from the Smoothing filter
 }
+
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void 
@@ -326,6 +330,10 @@ AssignResampledMovingValuesToOutputMesh()
 
   typedef typename OutputPointDataContainer::Pointer      OutputPointDataContainerPointer;
   OutputPointDataContainerPointer outputPointData = out->GetPointData();
+
+  const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
+
+  outputPointData->Reserve( numberOfNodes );
 
   typedef typename ResampledMovingValuesContainerType::ConstIterator  ResampledMovingValuesContainerIterator;
 
