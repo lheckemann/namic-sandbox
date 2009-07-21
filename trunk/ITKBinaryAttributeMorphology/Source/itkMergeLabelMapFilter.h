@@ -23,6 +23,10 @@ namespace itk {
 /** \class MergeLabelMapFilter
  * \brief TODO
  *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
+ *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * \sa ShapeLabelObject, RelabelComponentImageFilter
@@ -34,7 +38,7 @@ class ITK_EXPORT MergeLabelMapFilter :
 {
 public:
   /** Standard class typedefs. */
-  typedef MergeLabelMapFilter    Self;
+  typedef MergeLabelMapFilter           Self;
   typedef InPlaceLabelMapFilter<TImage> Superclass;
   typedef SmartPointer<Self>            Pointer;
   typedef SmartPointer<const Self>      ConstPointer;
@@ -48,8 +52,7 @@ public:
   typedef typename ImageType::LabelObjectType LabelObjectType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
 
   /** Standard New method. */
   itkNewMacro(Self);
@@ -76,12 +79,8 @@ public:
     STRICT = 3,
   } MethodChoice;
 
-
-  /**
-   */
   itkSetMacro( Method, int );
   itkGetConstReferenceMacro( Method, int );
-
 
 protected:
   MergeLabelMapFilter();
@@ -91,11 +90,16 @@ protected:
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  int          m_Method;
+  int         m_Method;
 
 private:
   MergeLabelMapFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+  
+  void KeepMethod();
+  void StrictMethod();
+  void AggregateMethod();
+  void PackMethod();
 
 }; // end of class
 
