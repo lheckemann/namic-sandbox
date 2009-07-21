@@ -36,7 +36,7 @@ int main( int argc, char *argv[] )
     }
 
   typedef   signed short    InputPixelType;
-  typedef   unsigned char   MaskPixelType;
+  typedef   unsigned short  MaskPixelType;
 
   const     unsigned int    Dimension = 3;
 
