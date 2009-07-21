@@ -99,6 +99,18 @@ FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
 }
 
 
+/**
+ * Get Output Image
+ */
+template <class TInputImage, class TOutputImage>
+typename FrontPropagationLabelImageFilter<TInputImage, TOutputImage>::OutputImageType *
+FrontPropagationLabelImageFilter<TInputImage, TOutputImage>
+::GetOutputImage()
+{
+  return this->m_OutputImage;
+}
+
+
 template <class TInputImage, class TOutputImage>
 void 
 FrontPropagationLabelImageFilter<TInputImage, TOutputImage>

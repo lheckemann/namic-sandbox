@@ -147,6 +147,7 @@ protected:
 
   typedef std::vector< OffsetValueType >   NeighborOffsetArrayType;
 
+  OutputImageType * GetOutputImage();
   const OutputImageType * GetOutputImage() const;
 
   itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
