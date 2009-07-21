@@ -174,34 +174,30 @@ void
 ConsolidationLabelImageFilter<TInputImage, TOutputImage>
 ::ConsolidateRegionsWithAffinitiesOverThreshold()
 {
-  typename AffinityMapType::const_iterator affinityItr = this->m_AffinityValue.begin();
+  OutputImageType * outputImage = this->GetOutputImage();
 
-  while( affinityItr != this->m_AffinityValue.end() )
+  typedef ImageRegionIterator< OutputImageType >  OutputImageIterator;
+  OutputImageIterator otr( outputImage, outputImage->GetBufferedRegion() );
+
+  otr.GoToBegin();
+
+  typedef typename AffinityLabelMapType::const_iterator  AffinityLabelMapIterator;
+  AffinityLabelMapIterator labelTableEnd = this->m_LabelChangeTable.end();
+
+  while( !otr.IsAtEnd() )
     {
-    InputImagePixelType labelA = affinityItr->first;
+    const OutputImagePixelType label = otr.Get();
+    AffinityLabelMapIterator labelTableItr = this->m_LabelChangeTable.find( label );
 
-    if( affinityItr->second > this->m_AffinityThreshold )
+    if( labelTableItr != labelTableEnd )
       {
-      const InputImagePixelType labelB = this->m_LabelWithHigestAffinity[labelA];
-      this->ConsolidateLabels( labelA, labelB );
+      otr.Set( labelTableItr->second );
       }
-    ++affinityItr;
+
+    ++otr;
     }
 }
 
-
-template <class TInputImage, class TOutputImage>
-void 
-ConsolidationLabelImageFilter<TInputImage, TOutputImage>
-::ConsolidateLabels( InputImagePixelType labelA, InputImagePixelType labelB )
-{
-  std::cout << "Consolidating ";
-  std::cout << static_cast< typename NumericTraits< InputImagePixelType >::PrintType >( labelA );
-  std::cout << " with ";
-  std::cout << static_cast< typename NumericTraits< InputImagePixelType >::PrintType >( labelB );
-  std::cout << " affinity = " << this->m_AffinityValue[labelA];
-  std::cout << std::endl;
-}
 
 } // end namespace itk
 
