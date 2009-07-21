@@ -57,23 +57,23 @@ int main( int argc, char *argv[] )
 
   reader->SetFileName( argv[1] );
 
-  ImageFilterType::Pointer floodFilter = ImageFilterType::New();
+  ImageFilterType::Pointer consolidateFilter = ImageFilterType::New();
 
   const double affinityThreshold = atof( argv[3] );
   const unsigned int maximumNumberOfIterations = atoi( argv[4] );
 
-  floodFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
-  floodFilter->SetMajorityThreshold( 1 );
-  floodFilter->SetAffinityThreshold( affinityThreshold );
-  floodFilter->InPlaceOn();
+  consolidateFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+  consolidateFilter->SetMajorityThreshold( 1 );
+  consolidateFilter->SetAffinityThreshold( affinityThreshold );
+  consolidateFilter->InPlaceOn();
 
   LabelImageType::SizeType  ballManhattanRadius;
   ballManhattanRadius.Fill( 2 );
-  floodFilter->SetRadius( ballManhattanRadius );
+  consolidateFilter->SetRadius( ballManhattanRadius );
 
-  floodFilter->SetInput( reader->GetOutput() );
+  consolidateFilter->SetInput( reader->GetOutput() );
 
-  writer->SetInput( floodFilter->GetOutput() );
+  writer->SetInput( consolidateFilter->GetOutput() );
  
   writer->UseCompressionOn();
 
@@ -90,10 +90,10 @@ int main( int argc, char *argv[] )
     }
 
   std::cout << "Number of iterations used = ";
-  std::cout << floodFilter->GetCurrentIterationNumber() << std::endl;
+  std::cout << consolidateFilter->GetCurrentIterationNumber() << std::endl;
 
   std::cout << "Number of pixels changed = ";
-  std::cout << floodFilter->GetTotalNumberOfPixelsChanged() << std::endl;
+  std::cout << consolidateFilter->GetTotalNumberOfPixelsChanged() << std::endl;
 
   return EXIT_SUCCESS;
 }
