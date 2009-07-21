@@ -124,6 +124,7 @@ private:
   NeighborLabelsDistributionType      m_NeigborLabelsHistogram;
   AffinityMapType                     m_AffinityValue;
   AffinityLabelMapType                m_LabelWithHigestAffinity;
+  AffinityLabelMapType                m_LabelChangeTable;
   double                              m_AffinityThreshold;
 };
 
