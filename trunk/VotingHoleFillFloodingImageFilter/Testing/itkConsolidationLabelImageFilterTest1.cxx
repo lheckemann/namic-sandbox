@@ -25,18 +25,18 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 4 )
+  if( argc < 5 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " inputLabelImage outputLabelImage";
+    std::cerr << " affinityThreshold ";
     std::cerr << " maximumNumberOfIterations ";
     std::cerr << std::endl;
     return 1;
     }
 
   typedef   unsigned char   LabelPixelType;
-
   const     unsigned int    Dimension = 3;
 
   typedef itk::Image< LabelPixelType, Dimension >      LabelImageType;
@@ -59,10 +59,12 @@ int main( int argc, char *argv[] )
 
   ImageFilterType::Pointer floodFilter = ImageFilterType::New();
 
-  const unsigned int maximumNumberOfIterations = atoi( argv[3] );
+  const double affinityThreshold = atof( argv[3] );
+  const unsigned int maximumNumberOfIterations = atoi( argv[4] );
 
   floodFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
   floodFilter->SetMajorityThreshold( 1 );
+  floodFilter->SetAffinityThreshold( affinityThreshold );
   floodFilter->InPlaceOn();
 
   LabelImageType::SizeType  ballManhattanRadius;
