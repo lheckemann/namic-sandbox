@@ -36,7 +36,7 @@ int main( int argc, char *argv[] )
     return 1;
     }
 
-  typedef   unsigned char   LabelPixelType;
+  typedef   unsigned short  LabelPixelType;
   const     unsigned int    Dimension = 3;
 
   typedef itk::Image< LabelPixelType, Dimension >      LabelImageType;
