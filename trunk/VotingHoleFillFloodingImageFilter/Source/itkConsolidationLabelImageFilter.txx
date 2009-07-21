@@ -79,7 +79,6 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
 
   const LabelType label = sitr1->first;
   typedef typename NumericTraits<InputImagePixelType>::PrintType PrintType;
-  std::cout << "Histogram for Label= " << static_cast<PrintType>( label ) << std::endl;
   const NumberOfPixelsArrayMapType & currentLabelHistogram = this->m_NeigborLabelsHistogram[label];
 
   typename NumberOfPixelsArrayMapType::const_iterator currentLabelHistogramItr = currentLabelHistogram.begin();
@@ -97,17 +96,12 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
       maximumCount = numberOfNeighborsAtThisLabel;
       labelWithMaximumCount = currentLabelHistogramItr->first;
       }
-    std::cout << "Label = " << currentLabelHistogramItr->first << " = " << numberOfNeighborsAtThisLabel << std::endl;
     ++currentLabelHistogramItr;
     }
 
   const double affinityValue = static_cast< double >( maximumCount ) / static_cast< double >( totalCount );
 
-  std::cout << "Label with Maximum Count = " << labelWithMaximumCount << "  count = " << maximumCount;
-  std::cout << " totalCount= " << totalCount << std::endl;
-  std::cout << "Label " << label << " : " << labelWithMaximumCount << " Affinity = " << affinityValue << std::endl;
-
-  std::cout << std::endl;
+  std::cout << "Labels " << label << " : " << labelWithMaximumCount << " Affinity = " << affinityValue << std::endl;
 
   ++sitr1;
   }
@@ -120,7 +114,6 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
 ::ComputeLabelAffinities( InputImagePixelType label, const SeedArrayType * seedArray )
 {
   typedef typename NumericTraits<InputImagePixelType>::PrintType PrintType;
-  std::cout << "ComputeLabelAffinities( " << static_cast<PrintType>( label ) << " ) " << std::endl;
 
   //
   //  If there is no histogram for this label yet, create one.
