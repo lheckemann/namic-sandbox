@@ -73,6 +73,14 @@ public:
   itkStaticConstMacro(InputImageDimension,  unsigned int, TInputImage::ImageDimension);
   itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
+  /** Set/Get Affinity Threshold value. This is the value that will define
+   * whether a region should consolidate with another one. If region A affinity
+   * for region B is larger than AffinityThreshold then region A will be
+   * consolidated with region B.
+   */
+  itkSetMacro( AffinityThreshold, double );
+  itkGetMacro( AffinityThreshold, double );
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputImagePixelType>));
@@ -105,9 +113,12 @@ private:
 
   virtual void ComputeLabelAffinities();
   virtual void ComputeLabelAffinities( InputImagePixelType label, const SeedArrayType * seedArray );
+  virtual void ComputeLargestAffinity( InputImagePixelType label, const SeedArrayType * seedArray );
 
   typedef std::map<LabelType, NumberOfPixelsArrayMapType >   NeighborLabelsDistributionType;
   NeighborLabelsDistributionType      m_NeigborLabelsHistogram;
+
+  double                              m_AffinityThreshold;
 };
 
 } // end namespace itk
