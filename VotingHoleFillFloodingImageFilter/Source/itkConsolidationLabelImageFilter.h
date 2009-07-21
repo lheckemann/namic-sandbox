@@ -113,7 +113,7 @@ private:
 
   virtual void ComputeLabelAffinities();
   virtual void ComputeLabelAffinities( InputImagePixelType label, const SeedArrayType * seedArray );
-  virtual void ComputeLargestAffinity( InputImagePixelType label, const SeedArrayType * seedArray );
+  virtual void ComputeLargestAffinity( InputImagePixelType label );
 
   typedef std::map<LabelType, NumberOfPixelsArrayMapType >   NeighborLabelsDistributionType;
   NeighborLabelsDistributionType      m_NeigborLabelsHistogram;
