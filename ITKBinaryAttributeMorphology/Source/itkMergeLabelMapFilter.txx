@@ -31,7 +31,6 @@ MergeLabelMapFilter<TImage>
   m_Method = KEEP;
 }
 
-
 template <class TImage>
 void
 MergeLabelMapFilter<TImage>
@@ -44,19 +43,33 @@ MergeLabelMapFilter<TImage>
 
   ProgressReporter progress( this, 0, 1 );
   // TODO: really report the progress
-  
+
+  KeepMethod();
+  StrictMethod();
+  AggregateMethod();
+  PackMethod();
+} 
+
+template <class TImage>
+void
+MergeLabelMapFilter<TImage>
+::KeepMethod()
+{
+}
+ 
   typedef typename ImageType::LabelObjectContainerType LabelObjectContainerType;
 
   if( m_Method == KEEP )
     {
     typedef typename std::deque< typename LabelObjectType::Pointer > VectorType;
     VectorType labelObjects;
-    for( unsigned int i=1; i<this->GetNumberOfInputs(); i++ )
+    for( unsigned int i=1; i < this->GetNumberOfInputs(); i++ )
       {
+            
       const LabelObjectContainerType & otherLabelObjects = this->GetInput(i)->GetLabelObjectContainer();
-      for( typename LabelObjectContainerType::const_iterator it2 = otherLabelObjects.begin();
-        it2 != otherLabelObjects.end();
-        it2++ )
+      typename LabelObjectContainerType::const_iterator it2 = otherLabelObjects.begin();
+      while( it2 != otherLabelObjects.end() )
+      {
         {
         const LabelObjectType * lo = it2->second;
         typename LabelObjectType::Pointer newLo = LabelObjectType::New();
@@ -69,13 +82,14 @@ MergeLabelMapFilter<TImage>
           }
         else
           {
-          // store the label object to readd it later with another label
+          // store the label object to read it later with another label
           labelObjects.push_back( newLo );
           }
         
         // go to the next label
-        // progress.CompletedPixel();
+        progress.CompletedPixel();
         }
+        it2++;
       }
       
     // add the other label objects, with a different label
@@ -113,7 +127,7 @@ MergeLabelMapFilter<TImage>
           }
         
         // go to the next label
-        // progress.CompletedPixel();
+        progress.CompletedPixel();
         }
       }
     }
@@ -155,7 +169,7 @@ MergeLabelMapFilter<TImage>
           }
         
         // go to the next label
-        // progress.CompletedPixel();
+        progress.CompletedPixel();
         }
       }
     }
@@ -174,7 +188,7 @@ MergeLabelMapFilter<TImage>
       output->PushLabelObject( it->second );
       
       // go to the next label
-      // progress.CompletedPixel();
+      progress.CompletedPixel();
       }
 
     // now, the next images
@@ -191,7 +205,7 @@ MergeLabelMapFilter<TImage>
         output->PushLabelObject( newLo );
         
         // go to the next label
-        // progress.CompletedPixel();
+        progress.CompletedPixel();
         }
       }
     }
