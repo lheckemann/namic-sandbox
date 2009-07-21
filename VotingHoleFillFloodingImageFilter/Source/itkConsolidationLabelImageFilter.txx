@@ -62,6 +62,7 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
   this->InitializeNeighborhood();
   this->FindAllPixelsInTheBoundaryAndAddThemAsSeeds2();
   this->ComputeLabelAffinities();
+  this->ConsolidateRegionsWithAffinitiesOverThreshold();
 }
 
 
@@ -157,6 +158,44 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
 
   std::cout << "Labels " << static_cast< typename NumericTraits< InputImagePixelType >::PrintType >( label );
   std::cout << " : " << labelWithMaximumCount << " Affinity = " << affinityValue << std::endl;
+
+  this->m_AffinityValue[label] = affinityValue;
+  this->m_LabelWithHigestAffinity[label] = labelWithMaximumCount;
+}
+
+
+template <class TInputImage, class TOutputImage>
+void 
+ConsolidationLabelImageFilter<TInputImage, TOutputImage>
+::ConsolidateRegionsWithAffinitiesOverThreshold()
+{
+  typename AffinityMapType::const_iterator affinityItr = this->m_AffinityValue.begin();
+
+  while( affinityItr != this->m_AffinityValue.end() )
+    {
+    InputImagePixelType labelA = affinityItr->first;
+
+    if( affinityItr->second > this->m_AffinityThreshold )
+      {
+      const InputImagePixelType labelB = this->m_LabelWithHigestAffinity[labelA];
+      this->ConsolidateLabels( labelA, labelB );
+      }
+    ++affinityItr;
+    }
+}
+
+
+template <class TInputImage, class TOutputImage>
+void 
+ConsolidationLabelImageFilter<TInputImage, TOutputImage>
+::ConsolidateLabels( InputImagePixelType labelA, InputImagePixelType labelB )
+{
+  std::cout << "Consolidating ";
+  std::cout << static_cast< typename NumericTraits< InputImagePixelType >::PrintType >( labelA );
+  std::cout << " with ";
+  std::cout << static_cast< typename NumericTraits< InputImagePixelType >::PrintType >( labelB );
+  std::cout << " affinity = " << this->m_AffinityValue[labelA];
+  std::cout << std::endl;
 }
 
 } // end namespace itk
