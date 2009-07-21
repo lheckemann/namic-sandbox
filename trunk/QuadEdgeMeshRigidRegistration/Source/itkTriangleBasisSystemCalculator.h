@@ -65,11 +65,23 @@ public:
   itkSetConstObjectMacro( InputMesh, MeshType );
   itkGetConstObjectMacro( InputMesh, MeshType );
 
-  /** Compute the basis system at the triangular cell of the Mesh that is
-   * identified by cellIndex. */
-  void CalculateTriangle( unsigned int cellIndex, TBasisSystem & bs ) const; 
+  /** Compute the basis system and its orthogonal at the triangular cell of the
+   * Mesh that is identified by cellIndex. */
+  void CalculateTriangle( unsigned int cellIndex, TBasisSystem & bs, TBasisSystem & orthogonalSystem ) const;
+
+  /** Compute the basis system and its orthogonal given the coordinates of
+   * three points. */
   void CalculateBasis(PointType pt1, PointType pt2, PointType pt3,
-                      TBasisSystem & bs ) const; 
+                      TBasisSystem & basisSystem, TBasisSystem & orthogonalSystem ) const;
+
+  /** Compute the basis system at the triangular cell of the
+   * Mesh that is identified by cellIndex. */
+  void CalculateTriangle( unsigned int cellIndex, TBasisSystem & bs ) const;
+
+  /** Compute the basis system given the coordinates of three points. */
+  void CalculateBasis(PointType pt1, PointType pt2, PointType pt3,
+                      TBasisSystem & basisSystem ) const;
+
 protected:
   TriangleBasisSystemCalculator();
   virtual ~TriangleBasisSystemCalculator();

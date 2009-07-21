@@ -19,8 +19,6 @@
 
 #include "itkVector.h"
 #include "itkQuadEdgeMesh.h"
-#include "itkTriangleBasisSystem.h"
-#include "itkTriangleBasisSystemCalculator.h"
 #include "itkLinearInterpolateMeshFunction.h"
 #include "itkTriangleCell.h"
 
@@ -34,6 +32,7 @@ template <class TInputMesh>
 LinearInterpolateMeshFunction<TInputMesh>
 ::LinearInterpolateMeshFunction()
 {
+  this->m_TriangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
 }
 
 
@@ -125,8 +124,9 @@ LinearInterpolateMeshFunction<TInputMesh>
     PixelType pixelValue2= pixelArray2[i];
     PixelType pixelValue3= pixelArray3[i];
     
-    GetDerivativeFromPixelsAndBasis(pixelValue1, pixelValue2, pixelValue3, m_U12,
-                                          m_U32, derivative);
+    GetDerivativeFromPixelsAndBasis(
+      pixelValue1, pixelValue2, pixelValue3, m_U12, m_U32, derivative);
+
     for (int j=0; j<3; j++)
       {
       jacobian[i][j]= derivative[j];
@@ -247,16 +247,17 @@ LinearInterpolateMeshFunction<TInputMesh>
   PointType pt2 = points->GetElement( pointIds[1] );
   PointType pt3 = points->GetElement( pointIds[2] );
 
-  const unsigned int SurfaceDimension = 2; 
-  typedef TriangleBasisSystem< VectorType, SurfaceDimension>  TriangleBasisSystemType;
   TriangleBasisSystemType triangleBasisSystem;
+  TriangleBasisSystemType orthogonalBasisSytem;
 
-  typedef TriangleBasisSystemCalculator< TInputMesh, TriangleBasisSystemType >  TriangleBasisSystemCalculatorType;
-  typename TriangleBasisSystemCalculatorType::Pointer triangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
+  this->m_TriangleBasisSystemCalculator->CalculateBasis( 
+    pt1, pt2, pt3, triangleBasisSystem, orthogonalBasisSytem );
 
-  triangleBasisSystemCalculator->CalculateBasis( pt1, pt2, pt3, triangleBasisSystem );
-  m_U12= triangleBasisSystem.GetVector(0); 
-  m_U32= triangleBasisSystem.GetVector(1); 
+  m_U12 = triangleBasisSystem.GetVector(0); 
+  m_U32 = triangleBasisSystem.GetVector(1); 
+
+  m_V12 = orthogonalBasisSytem.GetVector(0); 
+  m_V32 = orthogonalBasisSytem.GetVector(1); 
 
   //
   // Project point to plane, by using the dual vector base
@@ -288,7 +289,8 @@ LinearInterpolateMeshFunction<TInputMesh>
   // Test if the projected point is inside the cell.
   //
   // Zero with epsilon
-  const double zwe = -NumericTraits<double>::min();
+  //
+  const double zwe = -1e-6;
 
   bool isInside = false;
 

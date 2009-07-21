@@ -18,6 +18,8 @@
 #define __itkLinearInterpolateMeshFunction_h
 
 #include "itkInterpolateMeshFunction.h"
+#include "itkTriangleBasisSystem.h"
+#include "itkTriangleBasisSystemCalculator.h"
 
 namespace itk
 {
@@ -85,12 +87,12 @@ public:
 
   static void GetDerivativeFromPixelsAndBasis(
     PixelType pixelValue1, PixelType pixelValue2, PixelType pixelValue3,
-    const VectorType & m_U12, const VectorType & m_U32, DerivativeType & derivative);
+    const VectorType & u12, const VectorType & u32, DerivativeType & derivative);
 
   template <class TArray, class TMatrix>
   static void GetJacobianFromVectorAndBasis(
     const TArray & pixelArray1, const TArray & pixelArray2, const TArray & pixelArray3,
-    const VectorType & m_U12, const VectorType & m_U32, TMatrix & jacobian);
+    const VectorType & u12, const VectorType & u32, TMatrix & jacobian);
 
 protected:
   LinearInterpolateMeshFunction();
@@ -116,6 +118,13 @@ private:
   mutable VectorType  m_U32;
 
   mutable RealType m_InterpolationWeights[MeshDimension];
+
+  itkStaticConstMacro( SurfaceDimension, unsigned int, 2 );
+
+  typedef TriangleBasisSystem< VectorType, SurfaceDimension>                    TriangleBasisSystemType;
+  typedef TriangleBasisSystemCalculator< TInputMesh, TriangleBasisSystemType >  TriangleBasisSystemCalculatorType;
+
+  typename TriangleBasisSystemCalculatorType::Pointer m_TriangleBasisSystemCalculator;
 };
 
 } // end namespace itk
