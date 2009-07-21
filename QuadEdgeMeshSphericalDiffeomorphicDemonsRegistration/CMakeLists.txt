@@ -13,7 +13,6 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE INTERNAL "Where to put t
 
 INCLUDE(${PROJECT_SOURCE_DIR}/Utilities/KWStyle/KWStyle.cmake)
 
-ENABLE_TESTING()
 INCLUDE(CTest)
 
 INCLUDE_DIRECTORIES(
@@ -21,6 +20,8 @@ INCLUDE_DIRECTORIES(
   ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshRigidRegistration/Source
   ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshRigidRegistration/Testing
   )
+
+OPTION(BUILD_REPORTS "Generate articles for the Insight Journal" OFF)
 
 # Disable MSVC 8 warnings
 IF(WIN32)
@@ -35,4 +36,7 @@ ENDIF(WIN32)
 ADD_SUBDIRECTORY( Source )
 ADD_SUBDIRECTORY( Testing )
 ADD_SUBDIRECTORY( Examples )
-ADD_SUBDIRECTORY( Documents )
+
+IF( BUILD_REPORTS )
+  ADD_SUBDIRECTORY( Documents )
+ENDIF( BUILD_REPORTS )
