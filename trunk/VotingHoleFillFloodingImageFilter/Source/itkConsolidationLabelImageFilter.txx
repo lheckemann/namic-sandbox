@@ -161,6 +161,11 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
 
   this->m_AffinityValue[label] = affinityValue;
   this->m_LabelWithHigestAffinity[label] = labelWithMaximumCount;
+
+  if( affinityValue > this->m_AffinityThreshold )
+    {
+    this->m_LabelChangeTable[label] = labelWithMaximumCount;
+    }
 }
 
 
