@@ -38,6 +38,10 @@ ADD_EXECUTABLE(itkMeshGeneratorHelperTest3
   ${QuadEdgeMeshFieldSmoothingFilters}/Testing/itkMeshGeneratorHelperTest2.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest3 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkMeshGeneratorHelperTest4
+  ${QuadEdgeMeshFieldSmoothingFilters}/Testing/itkMeshGeneratorHelperTest4.cxx )
+TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest4 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -130,7 +134,28 @@ ADD_TEST(itkMeshGeneratorHelperTest5
   100.0  # Scale (radius)
   )
 
+ADD_TEST(itkMeshGeneratorHelperTest6
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest4
+  ${TEMP}/meshWithScalarsIC1.vtk
+  1      # resolution
+  100.0  # Scale (radius)
+  )
+
+ADD_TEST(itkMeshGeneratorHelperTest7
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest4
+  ${TEMP}/meshWithScalarsIC4.vtk
+  4      # resolution
+  100.0  # Scale (radius)
+  )
+
 ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+  ${TEMP}/meshWithScalarsIC1.vtk
+  ${TEMP}/meshWithScalarsIC1.vtk
+  ${TEMP}/meshWithScalarsIC1RegisteredToItself.vtk
+  )
+
+ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest2
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
   ${TEMP}/fixedMesh01.vtk
   ${TEMP}/movingMesh01.vtk
