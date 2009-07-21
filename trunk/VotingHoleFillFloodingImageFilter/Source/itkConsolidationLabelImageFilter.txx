@@ -76,7 +76,7 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
  while( sitr1 != seedArrayMap.end() )
   {
   this->ComputeLabelAffinities( sitr1->first, sitr1->second );
-  this->ComputeLargestAffinity( sitr1->first, sitr1->second );
+  this->ComputeLargestAffinity( sitr1->first );
   ++sitr1;
   }
 }
@@ -130,7 +130,7 @@ ConsolidationLabelImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void 
 ConsolidationLabelImageFilter<TInputImage, TOutputImage>
-::ComputeLargestAffinity( InputImagePixelType label, const SeedArrayType * seedArray )
+::ComputeLargestAffinity( InputImagePixelType label )
 {
   typedef typename NumericTraits<InputImagePixelType>::PrintType PrintType;
   const NumberOfPixelsArrayMapType & currentLabelHistogram = this->m_NeigborLabelsHistogram[label];
