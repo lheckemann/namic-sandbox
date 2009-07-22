@@ -129,6 +129,26 @@ public:
   /** Evaluate at the specified input position */
   virtual OutputType Evaluate( const InputType& input) const;
 
+  /** Set Sphere Center.  The implementation of this class assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the coordinates of the center of the sphere
+   * represented by the Mesh. This will be used in the computation of parallel
+   * transport for vector values associated with nodes.
+   */
+  itkSetMacro( SphereCenter, PointType );
+  itkGetConstMacro( SphereCenter, PointType );
+
+  /** Set Sphere Radius.  The implementation of this class assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the radius of the sphere. This will be used in
+   * the computation of parallel transport for vector values associated
+   * with nodes.
+   */
+  itkSetMacro( SphereRadius, double );
+  itkGetConstMacro( SphereRadius, double );
+
+
+
 protected:
   NodeScalarGradientCalculator();
   ~NodeScalarGradientCalculator();
@@ -152,6 +172,13 @@ private:
   /** Initialize internal variables. */
   virtual void Initialize( void );
 
+  /** Parallel-transport for gradient vectors. This is equivalent to sliding them along
+   * the great circle that connects sourcePoint with destinationPoint.  */
+  void ParalelTransport( const PointType sourcePoint, const PointType destinationPoint,
+    const DerivativeType & inputVector, DerivativeType & transportedVector ) const;
+
+  PointType       m_SphereCenter;
+  double          m_SphereRadius;
 };
 
 } // end namespace itk

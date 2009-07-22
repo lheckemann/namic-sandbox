@@ -18,6 +18,7 @@
 #define __itkNodeScalarGradientCalculator_txx
 
 #include "itkNodeScalarGradientCalculator.h"
+#include "itkVersor.h"
 
 namespace itk
 {
@@ -33,6 +34,8 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   this->m_PointAreaAccumulatorList = CoordRepListType::New();
   this->m_PointDerivativeAccumulatorList = DerivativeListType::New();
 
+  this->m_SphereCenter.Fill( 0.0 );
+  this->m_SphereRadius = 1.0;
 }
 
 
@@ -94,8 +97,6 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Compute()
 {
-  DerivativeType   derivative;
-  
   this->VerifyInputs(); 
   this->Initialize(); 
 
@@ -113,24 +114,35 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   PointIterator pointIterator = points->Begin();
   PointIterator pointEnd = points->End();
 
+  //
+  // Set all derivatives and area accumulators to Null vectors.
+  //
+  DerivativeType   derivative;
+  derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
+
+  DerivativeType   parallelTransportedDerivative;
+
   while( pointIterator != pointEnd )
     {
-    derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
-    this->m_PointDerivativeAccumulatorList->SetElement(pointIterator.Index(), derivative);
-    
+    this->m_PointDerivativeAccumulatorList->SetElement( pointIterator.Index(), derivative);
     this->m_PointAreaAccumulatorList->SetElement(pointIterator.Index(), 0.0);
     pointIterator++; 
     }
 
+  //
   // Look at all triangular cells, re-use the basis of each, and new scalar values.
+  //
   const unsigned int numberOfVerticesInTriangle = 3;
   PixelType pixelValue[numberOfVerticesInTriangle]; 
   PointIdentifier pointIds[numberOfVerticesInTriangle];
+  PointType point[numberOfVerticesInTriangle];
+
+std::cout << std::endl;
+std::cout << " NodeScalarGradientCalculator::Compute() " << std::endl;
 
   while( cellIterator != cellEnd )
     {
     CellType* cellPointer = cellIterator.Value();
-
 
     // Consider current cell. Iterate through its points. 
 
@@ -140,22 +152,26 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     unsigned int i=0; 
     while( pointIdIterator != pointIdEnd )
       {
-      pointIds[i]= *pointIdIterator; 
-      pixelValue[i]= this->m_DataContainer->GetElement( pointIds[i] ); 
+      const PointIdentifier pointId = *pointIdIterator; 
+      pointIds[i]= pointId;
+      pixelValue[i]= this->m_DataContainer->GetElement( pointId ); 
+      point[i] = m_InputMesh->GetPoint( pointId );
       i++;
       ++pointIdIterator;
       }
 
-    // Michel FIXME: does this change at all? If geometry stays the same,
+
+    //
+    // FIXME: does this change at all? If geometry stays the same,
     // which it should, do this in initialization, and store both
     // cell->area and point->accumulatedArea permanently. 
-    
-    AreaType area = TriangleType::ComputeArea(
-      m_InputMesh->GetPoint( pointIds[0]) ,
-      m_InputMesh->GetPoint( pointIds[1]) ,
-      m_InputMesh->GetPoint( pointIds[2]) );
+    //
+    const AreaType area = TriangleType::ComputeArea( point[0], point[1], point[3] );
 
+
+    //
     // contribute to accumulated area around each point of triangle
+    //
     for( unsigned int i=0; i < numberOfVerticesInTriangle; i++ )
       {
       this->m_PointAreaAccumulatorList->ElementAt( pointIds[i] ) += area;
@@ -170,6 +186,10 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     InterpolatorType::GetDerivativeFromPixelsAndBasis(
       pixelValue[0], pixelValue[1], pixelValue[2], m_U12, m_U32, derivative);
 
+
+    // 
+    // Store the derivative for that cell.
+    //
     this->m_DerivativeList->push_back( derivative );
 
     
@@ -180,17 +200,44 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 
     derivative *= area;
 
+    //
+    //  Compute the coordinates of the point at the center of the cell.
+    //
+    const double equalWeight = 1.0 / 3.0;
+    PointType cellCenter;
+    cellCenter.SetToBarycentricCombination(
+      point[0], point[1], point[2], equalWeight, equalWeight );
+
+    VectorType vectorToCenter = cellCenter - this->m_SphereCenter;
+    vectorToCenter *= this->m_SphereRadius / vectorToCenter.GetNorm();
+
+    const PointType cellCenterProjectedInSphere = this->m_SphereCenter + vectorToCenter;
+    
+
     for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
       {
-      this->m_PointDerivativeAccumulatorList->ElementAt( pointIds[i] ) += derivative;
+      // 
+      // Parallel transport the derivative vector to each neighbor point
+      //
+      this->ParalelTransport( cellCenterProjectedInSphere, point[i], 
+        derivative, parallelTransportedDerivative );
+
+std::cout << std::endl;
+std::cout << " PointID " << pointIds[i] << std::endl;
+std::cout << " derivative= " << derivative << " parallelTransportedDerivative= " << parallelTransportedDerivative << std::endl;
+
+      //
+      // then accumulate them there.
+      //
+      this->m_PointDerivativeAccumulatorList->ElementAt( pointIds[i] ) += parallelTransportedDerivative;
       }
 
     ++cellIterator;
     ++basisSystemListIterator;
     }
 
-  pointIterator = this->m_InputMesh->GetPoints()->Begin();
-  pointEnd = this->m_InputMesh->GetPoints()->End();
+  pointIterator = points->Begin();
+  pointEnd = points->End();
 
   // Look at all vertices: consider the input edge of each, look at
   // all edges counter-clockwise from that input edge, and consider
@@ -202,9 +249,36 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     this->m_PointDerivativeAccumulatorList->ElementAt( pointIterator.Index() ) /= 
       this->m_PointAreaAccumulatorList->GetElement( pointIterator.Index() );
 
+std::cout << "Point " << pointIterator.Index() << " derivative = " << this->m_PointDerivativeAccumulatorList->ElementAt( pointIterator.Index() ) << std::endl;
+
     pointIterator++;
     }
+}
 
+template <class TInputMesh, class TScalar >
+void
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::ParalelTransport( 
+    const PointType src, const PointType dst,
+    const DerivativeType & inputVector, 
+    DerivativeType & transportedVector ) const
+{
+  VectorType vsrc = src - this->m_SphereCenter;
+  VectorType vdst = dst - this->m_SphereCenter;
+
+  VectorType axis = CrossProduct( vsrc, vdst );
+
+  const double scaledSinus   = axis.GetNorm();
+  const double scaledCosinus = vsrc * vdst;
+
+  double angle = vcl_atan2( scaledSinus, scaledCosinus );
+  
+  typedef Versor< double > VersorType;
+
+  VersorType versor;
+  versor.Set( axis, angle );
+
+  transportedVector = versor.Transform( inputVector );
 }
 
 
