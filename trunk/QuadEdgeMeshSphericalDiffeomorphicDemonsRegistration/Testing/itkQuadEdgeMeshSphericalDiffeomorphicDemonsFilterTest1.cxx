@@ -96,6 +96,32 @@ int main( int argc, char *argv[] )
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
   TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
 
+  DemonsFilterType::PointType center1;
+  center1.Fill( 17.0 );
+  demonsFilter->SetSphereCenter( center1 );
+  TEST_SET_GET_VALUE( center1, demonsFilter->GetSphereCenter() );
+
+  DemonsFilterType::PointType center2;
+  center2.Fill( 31.0 );
+  demonsFilter->SetSphereCenter( center2 );
+  TEST_SET_GET_VALUE( center2, demonsFilter->GetSphereCenter() );
+
+  const double radius1 = 19.0;
+  demonsFilter->SetSphereRadius( radius1 );
+  TEST_SET_GET_VALUE( radius1, demonsFilter->GetSphereRadius() );
+
+  const double radius2 = 29.0;
+  demonsFilter->SetSphereRadius( radius2 );
+  TEST_SET_GET_VALUE( radius2, demonsFilter->GetSphereRadius() );
+
+
+  DemonsFilterType::PointType center0;
+  center0.Fill( 0.0 );
+
+  demonsFilter->SetSphereCenter( center0 );
+  demonsFilter->SetSphereRadius( 100.0 );
+
+
   FilterWatcher watcher( demonsFilter, "Demons Filter");
 
   try
