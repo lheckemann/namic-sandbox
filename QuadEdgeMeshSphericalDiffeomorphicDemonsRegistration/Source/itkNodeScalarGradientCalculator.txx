@@ -137,9 +137,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   PointIdentifier pointIds[numberOfVerticesInTriangle];
   PointType point[numberOfVerticesInTriangle];
 
-std::cout << std::endl;
-std::cout << " NodeScalarGradientCalculator::Compute() " << std::endl;
-
   while( cellIterator != cellEnd )
     {
     CellType* cellPointer = cellIterator.Value();
@@ -186,20 +183,6 @@ std::cout << " NodeScalarGradientCalculator::Compute() " << std::endl;
     InterpolatorType::GetDerivativeFromPixelsAndBasis(
       pixelValue[0], pixelValue[1], pixelValue[2], m_U12, m_U32, derivative);
 
-
-    // 
-    // Store the derivative for that cell.
-    //
-    this->m_DerivativeList->push_back( derivative );
-
-    
-    // Store at each vertex the value equal to triangle area x
-    // derivative. Later, area-based weighting will use the total value
-    // and divide by the sum of triangle areas about each vertex.
-    // Begin by weighting contribution to point of this triangle by its area.
-
-    derivative *= area;
-
     //
     //  Compute the coordinates of the point at the center of the cell.
     //
@@ -212,7 +195,37 @@ std::cout << " NodeScalarGradientCalculator::Compute() " << std::endl;
     vectorToCenter *= this->m_SphereRadius / vectorToCenter.GetNorm();
 
     const PointType cellCenterProjectedInSphere = this->m_SphereCenter + vectorToCenter;
+ 
+    //
+    // Project derivative in the plane tangent to the sphere at the projected
+    // point of the center cell
+    //
+    VectorType vectorToCenterNormalized = vectorToCenter;
+    vectorToCenterNormalized.Normalize();
+
+    const double radialComponent = derivative * vectorToCenterNormalized;
+
+    DerivativeType  projectedDerivative;
+    for( unsigned int k = 0; k < MeshDimension; k++ )
+      {
+      projectedDerivative[k] = derivative[k] - vectorToCenterNormalized[k] * radialComponent;
+      }
+        
+
+    // 
+    // Store the derivative for that cell.
+    //
+    this->m_DerivativeList->push_back( projectedDerivative );
+
     
+    // Store at each vertex the value equal to triangle area x
+    // derivative. Later, area-based weighting will use the total value
+    // and divide by the sum of triangle areas about each vertex.
+    // Begin by weighting contribution to point of this triangle by its area.
+
+    projectedDerivative *= area;
+
+   
 
     for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
       {
@@ -220,11 +233,7 @@ std::cout << " NodeScalarGradientCalculator::Compute() " << std::endl;
       // Parallel transport the derivative vector to each neighbor point
       //
       this->ParalelTransport( cellCenterProjectedInSphere, point[i], 
-        derivative, parallelTransportedDerivative );
-
-std::cout << std::endl;
-std::cout << " PointID " << pointIds[i] << std::endl;
-std::cout << " derivative= " << derivative << " parallelTransportedDerivative= " << parallelTransportedDerivative << std::endl;
+        projectedDerivative, parallelTransportedDerivative );
 
       //
       // then accumulate them there.
@@ -248,8 +257,6 @@ std::cout << " derivative= " << derivative << " parallelTransportedDerivative= "
     // each point. That is: total area of triangles surrounding it.
     this->m_PointDerivativeAccumulatorList->ElementAt( pointIterator.Index() ) /= 
       this->m_PointAreaAccumulatorList->GetElement( pointIterator.Index() );
-
-std::cout << "Point " << pointIterator.Index() << " derivative = " << this->m_PointDerivativeAccumulatorList->ElementAt( pointIterator.Index() ) << std::endl;
 
     pointIterator++;
     }
