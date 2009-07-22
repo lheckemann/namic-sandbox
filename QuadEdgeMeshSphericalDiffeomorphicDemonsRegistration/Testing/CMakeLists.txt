@@ -102,110 +102,110 @@ TARGET_LINK_LIBRARIES(itkPointLocator2Test1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 ###################
 ###################
 
-ADD_TEST(itkMeshGeneratorHelperTest1
+ADD_TEST(MeshGeneratorHelperTest1
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest1
   ${TEMP}/fixedMesh01.vtk
   ${TEMP}/movingMesh01.vtk
   )
 
-ADD_TEST(itkMeshGeneratorHelperTest2
+ADD_TEST(MeshGeneratorHelperTest2
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest2
   ${TEMP}/meshWithVectors.vtk
   )
 
-ADD_TEST(itkMeshGeneratorHelperTest3
+ADD_TEST(MeshGeneratorHelperTest3
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
   ${TEMP}/meshWithVectorsIC1.vtk
   1      # resolution
   100.0  # Scale (radius)
   )
 
-ADD_TEST(itkMeshGeneratorHelperTest4
+ADD_TEST(MeshGeneratorHelperTest4
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
   ${TEMP}/meshWithVectorsIC4.vtk
   4      # resolution
   100.0  # Scale (radius)
   )
 
-ADD_TEST(itkMeshGeneratorHelperTest5
+ADD_TEST(MeshGeneratorHelperTest5
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest3
   ${TEMP}/meshWithVectorsIC7.vtk
   7      # resolution
   100.0  # Scale (radius)
   )
 
-ADD_TEST(itkMeshGeneratorHelperTest6
+ADD_TEST(MeshGeneratorHelperTest6
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest4
   ${TEMP}/meshWithScalarsIC1.vtk
   1      # resolution
   100.0  # Scale (radius)
   )
 
-ADD_TEST(itkMeshGeneratorHelperTest7
+ADD_TEST(MeshGeneratorHelperTest7
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest4
   ${TEMP}/meshWithScalarsIC4.vtk
   4      # resolution
   100.0  # Scale (radius)
   )
 
-ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+ADD_TEST(DemonsFilterTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
   ${TEMP}/meshWithScalarsIC1.vtk
   ${TEMP}/meshWithScalarsIC1.vtk
   ${TEMP}/meshWithScalarsIC1RegisteredToItself.vtk
   )
 
-ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest2
+ADD_TEST(DemonsFilterTest2
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
   ${TEMP}/meshWithScalarsIC4.vtk
   ${TEMP}/meshWithScalarsIC4.vtk
   ${TEMP}/meshWithScalarsIC4RegisteredToItself.vtk
   )
 
-ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest3
+ADD_TEST(DemonsFilterTest3
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
   ${TEMP}/fixedMesh01.vtk
   ${TEMP}/movingMesh01.vtk
   ${TEMP}/movingMesh01RegisteredToFixedMesh01.vtk
   )
 
-ADD_TEST(itkVersorOperationsTest1
+ADD_TEST(VersorOperationsTest1
   ${CXX_TEST_PATH}/itkVersorOperationsTest1
   )
 
-ADD_TEST(itkNodeScalarGradientCalculatorTest1
+ADD_TEST(NodeScalarGradientCalculatorTest1
   ${CXX_TEST_PATH}/itkNodeScalarGradientCalculatorTest1
   ${TEMP}/fixedMesh01.vtk
   ${TEMP}/movingMesh01.vtk
   )
 
-ADD_TEST(itkNodeScalarGradientCalculatorTest2
+ADD_TEST(NodeScalarGradientCalculatorTest2
   ${CXX_TEST_PATH}/itkNodeScalarGradientCalculatorTest2
   )
 
-ADD_TEST(itkNodeVectorJacobianCalculatorTest1
+ADD_TEST(NodeVectorJacobianCalculatorTest1
   ${CXX_TEST_PATH}/itkNodeVectorJacobianCalculatorTest1
   ${TEMP}/fixedMesh01.vtk
   ${TEMP}/movingMesh01.vtk
   )
 
-ADD_TEST(itkNodeVectorJacobianCalculatorTest2
+ADD_TEST(NodeVectorJacobianCalculatorTest2
   ${CXX_TEST_PATH}/itkNodeVectorJacobianCalculatorTest2
   )
 
-ADD_TEST(itkTriangleBasisSystemTest1
+ADD_TEST(TriangleBasisSystemTest1
   ${CXX_TEST_PATH}/itkTriangleBasisSystemTest1
  )
 
-ADD_TEST(itkTriangleListBasisSystemCalculatorTest1
+ADD_TEST(TriangleListBasisSystemCalculatorTest1
   ${CXX_TEST_PATH}/itkTriangleListBasisSystemCalculatorTest1
  )
 
-ADD_TEST(itkTriangleBasisSystemCalculatorTest1
+ADD_TEST(TriangleBasisSystemCalculatorTest1
   ${CXX_TEST_PATH}/itkTriangleBasisSystemCalculatorTest1
  )
 
-ADD_TEST(itkPointLocator2Test1
+ADD_TEST(PointLocator2Test1
   ${CXX_TEST_PATH}/itkPointLocator2Test1
   ${TEMP}/itkFreeSurferBinarySurfaceReaderTest2.vtk
   )
