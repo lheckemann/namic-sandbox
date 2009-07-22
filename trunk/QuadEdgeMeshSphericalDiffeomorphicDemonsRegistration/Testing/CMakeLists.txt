@@ -157,6 +157,13 @@ ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
 
 ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest2
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+  ${TEMP}/meshWithScalarsIC4.vtk
+  ${TEMP}/meshWithScalarsIC4.vtk
+  ${TEMP}/meshWithScalarsIC4RegisteredToItself.vtk
+  )
+
+ADD_TEST(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest3
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
   ${TEMP}/fixedMesh01.vtk
   ${TEMP}/movingMesh01.vtk
   ${TEMP}/movingMesh01RegisteredToFixedMesh01.vtk
