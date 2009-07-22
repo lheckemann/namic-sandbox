@@ -90,6 +90,25 @@ public:
   itkSetMacro( MaximumNumberOfIterations, unsigned int );
   itkGetMacro( MaximumNumberOfIterations, unsigned int );
 
+  /** Set Sphere Center.  The implementation of this filter assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the coordinates of the center of the sphere
+   * represented by the Mesh. This will be used in the computation of parallel
+   * transport for vector values associated with nodes.
+   */
+  itkSetMacro( SphereCenter, PointType );
+  itkGetConstMacro( SphereCenter, PointType );
+
+  /** Set Sphere Radius.  The implementation of this filter assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the radius of the sphere. This will be used in
+   * the computation of parallel transport for vector values associated
+   * with nodes.
+   */
+  itkSetMacro( SphereRadius, double );
+  itkGetConstMacro( SphereRadius, double );
+
+
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -159,6 +178,16 @@ private:
    * values at every node of the Fixed mesh with respect to the coordinate system
    * of that node in the fixed mesh. */
   typename NodeScalarGradientCalculatorType::Pointer            m_NodeScalarGradientCalculator; 
+
+  /** Center of spherical mesh. We assume that both the Fixed and
+   * Moving meshes have spherical geometry and that they share the same
+   * center and radius. */
+  PointType       m_SphereCenter;
+
+  /** Radius of spherical mesh. We assume that both the Fixed and
+   * Moving meshes have spherical geometry and that they share the same
+   * center and radius. */
+  double          m_SphereRadius;
 };
 
 }

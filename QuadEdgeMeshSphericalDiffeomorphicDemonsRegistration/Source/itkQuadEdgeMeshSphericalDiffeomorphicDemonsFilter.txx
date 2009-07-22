@@ -46,6 +46,9 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_ScalarInterpolator = InterpolatorType::New();
 
   this->m_MaximumNumberOfIterations = 50;
+
+  this->m_SphereCenter.Fill( 0.0 );
+  this->m_SphereRadius = 1.0;
 }
 
 
@@ -228,7 +231,7 @@ RunIterations()
   // Report the progress
   ProgressReporter progress( this, 0, this->m_MaximumNumberOfIterations );
   
-  for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
+//   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
     {
     this->ComputeMappedMovingValueAtEveryNode();
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
@@ -254,6 +257,9 @@ ComputeGradientsOfMappedMovingValueAtEveryNode()
 
   this->m_NodeScalarGradientCalculator->SetBasisSystemList( 
     this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
+
+  this->m_NodeScalarGradientCalculator->SetSphereCenter( this->m_SphereCenter );
+  this->m_NodeScalarGradientCalculator->SetSphereRadius( this->m_SphereRadius );
 
   this->m_NodeScalarGradientCalculator->Compute();
 }
