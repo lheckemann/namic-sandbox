@@ -58,8 +58,7 @@ public:
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(MergeLabelMapFilter, 
-               InPlaceLabelMapFilter);
+  itkTypeMacro(MergeLabelMapFilter, InPlaceLabelMapFilter);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -90,16 +89,20 @@ protected:
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  int         m_Method;
+  typedef typename ImageType::LabelObjectContainerType    LabelObjectContainerType;
+  typedef typename LabelObjectType::LineContainerType     LineContainerType;
+  typedef typename LineContainerType::const_iterator      LineContainerIterator;
+
+  MethodChoice         m_Method;
 
 private:
   MergeLabelMapFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
-  void KeepMethod();
-  void StrictMethod();
-  void AggregateMethod();
-  void PackMethod();
+  void MergeWithKeep();
+  void MergeWithAggregate();
+  void MergeWithPack();
+  void MergeWithStrict();
 
 }; // end of class
 
