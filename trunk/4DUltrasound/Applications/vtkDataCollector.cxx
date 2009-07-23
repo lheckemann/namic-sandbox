@@ -123,7 +123,7 @@ vtkDataCollector::vtkDataCollector()
   #ifdef USE_ULTRASOUND_DEVICE
     char* devicename = "/dev/video";
     this->SetVideoDevice(devicename);
-    this->SetVideoChannel(DEFAULT_VIDEO_CHANNEL); 
+    this->SetVideoChannel(DEFAULT_VIDEO_CHANNEL);
     this->SetVideoMode(DEFAULT_VIDEO_MODE); //NTSC
     this->VideoSource = vtkV4L2VideoSource::New();
   #else
@@ -145,10 +145,10 @@ vtkDataCollector::vtkDataCollector()
 
   this->Tagger = vtkTaggedImageFilter::New();
 
-  this->TrackerDeviceEnabled = false;  
+  this->TrackerDeviceEnabled = false;
   this->trackerSimulator = vtkTrackerSimulator::New();
   this->NDItracker = NULL;
-  
+
   this->DataProcessor = NULL;
 
   this->PlayerThreader = vtkMultiThreader::New();;
@@ -159,28 +159,28 @@ vtkDataCollector::vtkDataCollector()
 
   this->StartUpTime = vtkTimerLog::GetUniversalTime();
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
-  
+
   this->TrackerOffset[0] = 0; //mm
   this->TrackerOffset[1] = -10; //mm
   this->TrackerOffset[2] = 30; //mm
-  
+
   this->ImageMargin[0] = 0;
   this->ImageMargin[1] = 0;
   this->ImageMargin[2] = 0;
   this->ImageMargin[3] = 0;
-  
+
   this->SystemOffset[0] = 0;
   this->SystemOffset[1] = 0;
   this->SystemOffset[2] = 300;
-  
+
   this->TransformationFactorMmToPixel = 1;
-  
+
   this->ObliquenessAdjustmentMatrix = vtkMatrix4x4::New();
   this->ObliquenessAdjustmentMatrix->Identity();
-  
+
   this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
   this->CoordinateTransformationMatrix->Identity();
-  
+
   this->FixedVolumeProperties.Frame = NULL;
   this->FixedVolumeProperties.Matrix = NULL;
   this->FixedVolumeProperties.Spacing[0] = 1;
@@ -196,7 +196,7 @@ vtkDataCollector::vtkDataCollector()
   this->FixedVolumeProperties.VolumeExtent[3] = -1;
   this->FixedVolumeProperties.VolumeExtent[4] = -1;
   this->FixedVolumeProperties.VolumeExtent[5] = -1;
-  
+
   this->DynamicVolumeSize = false;
   this->VolumeInitialized = false;
 }
@@ -211,12 +211,12 @@ vtkDataCollector::vtkDataCollector()
 vtkDataCollector::~vtkDataCollector()
 {
   this->StopCollecting();
-  
+
   if(!this->TrackerDeviceEnabled && this->trackerSimulator != NULL)
     {
     this->trackerSimulator->Delete();
     }
-  
+
   this->VideoSource->ReleaseSystemResources();
   this->VideoSource->Delete();
   this->Tagger->Delete();
@@ -258,7 +258,7 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     #endif
     return -1;
     }
-  
+
   if(this->calibReader != NULL)
     {
     this->calibReader->SetFileName(this->CalibrationFileName);
@@ -280,12 +280,12 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
       this->MaximumVolumeSize[2] = this->calibReader->GetMaximumVolumeSize()[2];
       }
     this->TransformationFactorMmToPixel =  this->calibReader->GetTransformationFactorMmToPixel();
-    
+
     this->calibReader->GetTrackerOffset(this->TrackerOffset);
-    
+
     this->ObliquenessAdjustmentMatrix = this->calibReader->GetObliquenessAdjustmentMatrix();
     this->CoordinateTransformationMatrix = this->calibReader->GetCoordinateTransformationMatrix();
-    
+
     }
   else
     {
@@ -294,7 +294,7 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     #endif
     return -1;
     }
-  
+
   int *imSize = this->calibReader->GetImageSize();
   this->VideoSource->SetFrameSize(imSize[0], imSize[1], 1);
 
@@ -310,17 +310,17 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
 
   double imageOrigin[3] = {0 ,0, 0};//Images are not shifted
   this->VideoSource->SetDataOrigin(imageOrigin);
-  
+
   double *imageSpacing = this->calibReader->GetImageSpacing();
   this->VideoSource->SetDataSpacing(imageSpacing);
 
   //
   // Setting up the synchronization filter
-  this->Tagger->SetVideoSource(this->VideoSource);  
+  this->Tagger->SetVideoSource(this->VideoSource);
 
   if(this->TrackerDeviceEnabled)
     {
-    
+
     this->NDItracker = tracker;
     this->tool = this->NDItracker->GetTool(0);
     this->tool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) );
@@ -331,11 +331,11 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     this->tool->GetBuffer()->SetBufferSize((int) (this->FrameBufferSize * CERTUS_UPDATE_RATE / this->FrameRate * FUDGE_FACTOR + 0.5) );
     this->trackerSimulator->StartTracking();
     }
-  
+
 
   this->Tagger->SetTrackerTool(this->tool);
   this->Tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
-  
+
   this->Tagger->Initialize();
   #ifdef USE_ULTRASOUND_DEVICE
   this->VideoSource->Record();
@@ -458,7 +458,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
         self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data processor stopped processing -> Stop collecting" << endl;
       #endif
       self->StopCollecting();
-      
+
       cout << "====================================================" << endl << endl
            << "--- 4D Ultrasound stopped working ---" << endl << endl
            << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<< endl;
@@ -468,25 +468,25 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
       if(!self->GetDataProcessor()->IsDataBufferFull())
         {
         struct DataStruct dataStruct;
-        
+
         dataStruct.TimeStamp = self->GetUpTime();
-        
+
         //Grab new frame--------------------------------------------------------
         self->GetVideoSource()->Grab();
-        
+
         //Get Tracking Matrix for new frame-------------------------------------
         dataStruct.Matrix = vtkMatrix4x4::New();
         self->GetTagger()->Update();
         dataStruct.Matrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
-  
+
         //Set Spacing of new frame----------------------------------------------
         self->GetTagger()->GetOutput()->GetSpacing(dataStruct.Spacing);
-        
+
 //        #ifdef DEBUG_MATRICES
 //        self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
 //        dataStruct.Matrix->Print(self->GetLogStream());
 //        #endif
-        
+
         //Data Processing and error checking------------------------------------
         if(self->IsTrackerDeviceEnabled())
           {
@@ -496,7 +496,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
             dataStruct.Matrix->Delete();
             }
           }
-        
+
         if(!skip && -1 == self->CalculateVolumeProperties(&dataStruct))
           {
           #ifdef DEBUGCOLLECTOR
@@ -504,8 +504,8 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           #endif
           skip = true;
           }
-          
-        if(!skip && dataStruct.VolumeExtent[1] * dataStruct.VolumeExtent[3] * dataStruct.VolumeExtent[5] 
+
+        if(!skip && dataStruct.VolumeExtent[1] * dataStruct.VolumeExtent[3] * dataStruct.VolumeExtent[5]
                     > self->GetMaximumVolumeSize())
           {
           #ifdef DEBUGCOLLECTOR
@@ -513,9 +513,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           #endif
           skip = true;
           }
-        
-        
-          
+
         if(!skip)
           {
           //Get new frame-------------------------------------------------------
@@ -524,25 +522,25 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
 //          self->DuplicateFrame(self->GetTagger()->GetOutput(), dataStruct.Frame);
           self->ExtractImage(self->GetTagger()->GetOutput(), dataStruct.Frame);
           #ifdef SHRINK
-            
+
           mask->SetInput(dataStruct.Frame);
           mask->SetShrinkFactors(self->GetShrinkFactor()[0], self->GetShrinkFactor()[1], self->GetShrinkFactor()[2]);
           mask->Update();
-          
+
           dataStruct.Frame->Delete();
           dataStruct.Frame = vtkImageData::New();
-          
+
           self->DuplicateFrame(mask->GetOutput(), dataStruct.Frame);
           dataStruct.Frame->SetSpacing(dataStruct.Spacing);
           #endif
-          
+
           #ifdef DEBUG_IMAGES
           writer->SetInput(dataStruct.Frame);
           sprintf(filename,"./Output/output%03d.bmp",frame);
           writer->SetFileName(filename);
           writer->Update();
           #endif //DEBUG_IMAGES
-    
+
           //Forward frame + matrix to data sender-------------------------------
           if(-1 == self->GetDataProcessor()->NewData(dataStruct))
             {
@@ -574,7 +572,7 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
   while(vtkThreadSleep(data, startTime + frame/rate));
 
   mask->Delete();
-  
+
 return NULL;
 }
 
@@ -593,7 +591,7 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
       this->LogStream << this->GetUpTime() << " |C-ERROR: Can not start tracking; Data collector not initialized";
     #endif
     return -1;
-    
+
     }
 
   if (!this->Collecting)
@@ -656,7 +654,7 @@ int vtkDataCollector::StopCollecting()
     this->PlayerThreader->TerminateThread(this->PlayerThreadId);
     this->PlayerThreadId = -1;
     this->Collecting = false;
-    
+
     if(this->TrackerDeviceEnabled)
       {
 //      this->NDItracker->StopTracking();
@@ -670,11 +668,11 @@ int vtkDataCollector::StopCollecting()
       {
       cout << "Stop collecting" << endl;
       }
-    
+
     #ifdef DEBUGCOLLECTOR
       this->LogStream << this->GetUpTime() << " |C-INFO: Data collector stopped collecting"<< endl;
     #endif
-    
+
     }
 
   return 0;
@@ -696,65 +694,65 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
     #endif
     return -1;
     }
-  
+
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix Original Matrix:"<< endl;
 //    pDataStruct->Matrix->Print(this->LogStream);
 //  #endif
-  
+
   //----------------------------------------------------------------------------
   //Calibrate tracker Matrix----------------------------------------------------
   vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
   double stretchFactor = 4.0 / 5.0 * 9.0 / 10.0 * 1.08;
-    
+
   //Adjust Obliqueness----------------------------------------------------------
   oldMatrix->DeepCopy(pDataStruct->Matrix);
   vtkMatrix4x4::Multiply4x4(oldMatrix, this->ObliquenessAdjustmentMatrix, pDataStruct->Matrix);
-  
+
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix Obliqueness adjusted:"<< endl;
 //    pDataStruct->Matrix->Print(this->LogStream);
 //  #endif
-  
+
  //Transform coordinate System-------------------------------------------------
   oldMatrix->DeepCopy(pDataStruct->Matrix);
   vtkMatrix4x4::Multiply4x4(oldMatrix, this->CoordinateTransformationMatrix, pDataStruct->Matrix);
-  
+
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix coordinate system transformed:"<< endl;
 //    pDataStruct->Matrix->Print(this->LogStream);
 //  #endif
-  
+
   //Strech coordinate to make them fit to slicer coordinates i.g. 1 unit == 1 mm in slicer
   pDataStruct->Matrix->Element[0][3] *= stretchFactor;
   pDataStruct->Matrix->Element[1][3] *= stretchFactor;
   pDataStruct->Matrix->Element[2][3] *= stretchFactor;
-  
+
   //Apply Offset----------------------------------------------------------------
   double xOffset = -1 * (this->clipRectangle[2] + 1)  / 2;
   double yOffset = -1 * (this->clipRectangle[3] + 1  + this->TrackerOffset[2]);
   double zOffset = this->TrackerOffset[1];
-  
+
   double xAxis[3] = {pDataStruct->Matrix->Element[0][0], pDataStruct->Matrix->Element[1][0], pDataStruct->Matrix->Element[2][0]};
   double yAxis[3] = {pDataStruct->Matrix->Element[0][1], pDataStruct->Matrix->Element[1][1], pDataStruct->Matrix->Element[2][1]};
   double zAxis[3] = {pDataStruct->Matrix->Element[0][2], pDataStruct->Matrix->Element[1][2], pDataStruct->Matrix->Element[2][2]};
-  
+
   //Shift Frame according to offset
   //X-Offset
   pDataStruct->Matrix->Element[0][3] += (xAxis[0] * xOffset);
   pDataStruct->Matrix->Element[1][3] += (xAxis[1] * xOffset);
   pDataStruct->Matrix->Element[2][3] += (xAxis[2] * xOffset);
-  
+
   //Y-Offset
   pDataStruct->Matrix->Element[0][3] += (yAxis[0] * yOffset);
   pDataStruct->Matrix->Element[1][3] += (yAxis[1] * yOffset);
   pDataStruct->Matrix->Element[2][3] += (yAxis[2] * yOffset);
-  
+
   //Z-Offset
   pDataStruct->Matrix->Element[0][3] += (zAxis[0] * zOffset);
   pDataStruct->Matrix->Element[1][3] += (zAxis[1] * zOffset);
   pDataStruct->Matrix->Element[2][3] += (zAxis[2] * zOffset);
-  
+
   #ifdef HIGH_DEFINITION
   pDataStruct->Matrix->Element[0][3] *= this->TransformationFactorMmToPixel;
   pDataStruct->Matrix->Element[1][3] *= this->TransformationFactorMmToPixel;
@@ -764,15 +762,15 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   pDataStruct->Matrix->Element[0][3] += (this->GetSystemOffset()[0] * stretchFactor);
   pDataStruct->Matrix->Element[1][3] += (this->GetSystemOffset()[1] * stretchFactor);
   pDataStruct->Matrix->Element[2][3] += (this->GetSystemOffset()[2] * stretchFactor);
-  
-  
+
+
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;
 //    pDataStruct->Matrix->Print(this->LogStream);
 //  #endif
-    
+
   oldMatrix->Delete();
-  
+
   return 0;
 }
 
@@ -855,18 +853,18 @@ int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extra
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime()  << " |C-INFO: Extract Image " << endl;
 //  #endif
-    
+
   int x, y, z;
   int ScalarComponents = 1;
-  
+
   int topMargin    = this->calibReader->GetImageMargin()[0];
   int bottomMargin = this->calibReader->GetImageMargin()[1];
   int leftMargin   = this->calibReader->GetImageMargin()[2];
   int rightMargin  = this->calibReader->GetImageMargin()[3];
-  
+
   int width = (int)(this->calibReader->GetImageSize()[0] - leftMargin - rightMargin);
   int height = (int)(this->calibReader->GetImageSize()[1] - topMargin - bottomMargin);
-  
+
   //Create extracted image
   extract->SetExtent(0, width -1, 0, height - 1, 0, 0);
   extract->SetSpacing(original->GetSpacing());
@@ -883,7 +881,7 @@ int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extra
   int yStart = topMargin;
   int yEnd   = original->GetExtent()[3] - bottomMargin;
 
-  
+
   // Get increments to march through data
   original->GetContinuousIncrements(original->GetExtent(), inIncX, inIncY, inIncZ);
   extract->GetContinuousIncrements(extract->GetExtent(), outIncX, outIncY, outIncZ);
@@ -907,14 +905,14 @@ int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extra
     for(y = yStart; y <= yEnd; ++y)
       {
       pDataOriginal += spaceBeforeXStart;
-      
+
       memcpy(pDataExtract, pDataOriginal, rowLength);
       pDataExtract += rowLength;
       pDataOriginal += rowLength;
       counter += rowLength;
-  
+
       pDataOriginal += spaceAfterXEnd;
-  
+
       pDataExtract += outIncY;
       pDataOriginal += inIncY;
       }
@@ -923,7 +921,7 @@ int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extra
     {
     throw;
     }
-  
+
   if(counter != 0)
     {
 //    #ifdef DEBUGPROCESSOR
@@ -959,7 +957,7 @@ bool vtkDataCollector::IsTrackerDeviceEnabled()
  * int vtkDataCollector::EnableTrackerTool()
  *
  * Enable tracker device
- * 
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  4.February 2009
  *
@@ -975,10 +973,10 @@ int vtkDataCollector::EnableTrackerTool()
       this->LogStream << this->GetUpTime() << " |C-ERROR: Collector already initializes cannot start tracker device" << endl;
     #endif
     return -1;
-    }  
-  this->TrackerDeviceEnabled = true;  
+    }
+  this->TrackerDeviceEnabled = true;
   this->trackerSimulator->Delete();
-  
+
   return 0;
 }
 
@@ -986,12 +984,12 @@ int vtkDataCollector::EnableTrackerTool()
  * bool vtkDataCollector::IsIdentityMatrix(vtkMatrix4x4 * matrix)
  *
  * Check if matrix "matrix" is identity matrix
- * 
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  4.February 2009
  *
  *  @Param: vtkMatrix4x4 * matrix
- * 
+ *
  *  @Return:  true if identity matrix
  *            false if not identity matrix
  *
@@ -1002,17 +1000,17 @@ bool vtkDataCollector::IsIdentityMatrix(vtkMatrix4x4 * matrix)
      && matrix->Element[0][1] == 0
      && matrix->Element[0][2] == 0
      && matrix->Element[0][3] == 0
-  
+
      && matrix->Element[1][0] == 0
      && matrix->Element[1][1] == 1
      && matrix->Element[1][2] == 0
      && matrix->Element[1][3] == 0
-  
+
      && matrix->Element[2][0] == 0
      && matrix->Element[2][1] == 0
      && matrix->Element[2][2] == 1
      && matrix->Element[2][3] == 0
-  
+
      && matrix->Element[3][0] == 0
      && matrix->Element[3][1] == 0
      && matrix->Element[3][2] == 0
@@ -1031,12 +1029,12 @@ bool vtkDataCollector::IsIdentityMatrix(vtkMatrix4x4 * matrix)
  * bool vtkDataCollector::IsMatrixEmpty(vtkMatrix4x4 * matrix)
  *
  * Check if matrix "matrix" is identity matrix
- * 
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  13.February 2009
  *
  *  @Param: vtkMatrix4x4 * matrix
- * 
+ *
  *  @Return:  true if matrix is empty
  *            false if not matrix is not empty
  *
@@ -1047,17 +1045,17 @@ bool vtkDataCollector::IsMatrixEmpty(vtkMatrix4x4 * matrix)
      && matrix->Element[0][1] == 0
      && matrix->Element[0][2] == 0
      && matrix->Element[0][3] == 0
-  
+
      && matrix->Element[1][0] == 0
      && matrix->Element[1][1] == 0
      && matrix->Element[1][2] == 0
      && matrix->Element[1][3] == 0
-  
+
      && matrix->Element[2][0] == 0
      && matrix->Element[2][1] == 0
      && matrix->Element[2][2] == 0
      && matrix->Element[2][3] == 0
-  
+
      && matrix->Element[3][0] == 0
      && matrix->Element[3][1] == 0
      && matrix->Element[3][2] == 0
@@ -1077,12 +1075,12 @@ bool vtkDataCollector::IsMatrixEmpty(vtkMatrix4x4 * matrix)
  *
  * Calculates the normal of a plane. The plane was parallel to the x and y axis
  * but is transformed according to given transformation matrix
- * 
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  13.February 2009
  *
  *  @Param: struct DataStruct dataStruct
- * 
+ *
  *  @Return:  0 on success
  *           -1 on failure or if volume is too big
  *
@@ -1096,13 +1094,13 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
     #endif
     return -1;
     }
-  
+
 //  if(!this->DynamicVolumeSize && this->VolumeInitialized)
 //    {
 //    pDataStruct->Origin[0] = this->FixedVolumeProperties.Origin[0];
 //    pDataStruct->Origin[1] = this->FixedVolumeProperties.Origin[1];
 //    pDataStruct->Origin[2] = this->FixedVolumeProperties.Origin[2];
-//    
+//
 //    pDataStruct->VolumeExtent[0] = this->FixedVolumeProperties.VolumeExtent[0];
 //    pDataStruct->VolumeExtent[1] = this->FixedVolumeProperties.VolumeExtent[1];
 //    pDataStruct->VolumeExtent[2] = this->FixedVolumeProperties.VolumeExtent[2];
@@ -1111,12 +1109,12 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
 //    pDataStruct->VolumeExtent[5] = this->FixedVolumeProperties.VolumeExtent[5];
 //    return 0;
 //    }
-  
+
   double maxX, maxY, maxZ;
   double minX, minY, minZ;
   double xOrigin, yOrigin, zOrigin;
   double xmin, xmax, ymin, ymax;
-  
+
   xmin = this->clipRectangle[0], ymin = this->clipRectangle[1],
   xmax = this->clipRectangle[2], ymax = this->clipRectangle[3];
 
@@ -1125,13 +1123,13 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
     { xmin, ymax, 0, 1},
     { xmax, ymin, 0, 1},
     { xmax, ymax, 0, 1} };
-  
+
   double transformedPt[4];
-  
+
   maxX = maxY = maxZ = -1 * numeric_limits<double>::max();
-  
+
   minX = minY = minZ = numeric_limits<double>::max();
-  
+
   // Determine dimensions of reconstructed volume
   for(int j=0; j < 4; j++)
     {
@@ -1143,58 +1141,58 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
     maxY = max(transformedPt[1], maxY);
     maxZ = max(transformedPt[2], maxZ);
     }
-  
+
   minX = floor(minX);
   minY = floor(minY);
   minZ = floor(minZ);
-  
+
   maxX = floor(maxX);
   maxY = floor(maxY);
   maxZ = floor(maxZ);
-  
+
   xOrigin = minX;
   yOrigin = minY;
   zOrigin = minZ;
-    
+
 //  if(!this->DynamicVolumeSize)
 //    {
 //    xOrigin = xOrigin + (int)((maxX - minX)) - this->MaximumVolumeSize[0] / 2;
 //    yOrigin = yOrigin + (int)((maxY - minY)) - this->MaximumVolumeSize[1] / 2;
 //    zOrigin = zOrigin + (int)((maxZ - minZ)) - this->MaximumVolumeSize[2] / 2;
-//    
+//
 //    minX = 0;
 //    minY = 0;
 //    minZ = 0;
-//    
+//
 //    maxX = this->MaximumVolumeSize[0] - 1;
 //    maxY = this->MaximumVolumeSize[1] - 1;
 //    maxZ = this->MaximumVolumeSize[2] - 1;
-//    
+//
 //    this->FixedVolumeProperties.Origin[0] = xOrigin;
 //    this->FixedVolumeProperties.Origin[1] = yOrigin;
 //    this->FixedVolumeProperties.Origin[2] = zOrigin;
-//    
+//
 //    this->FixedVolumeProperties.VolumeExtent[0] = 0;
 //    this->FixedVolumeProperties.VolumeExtent[1] = (int) maxX;
 //    this->FixedVolumeProperties.VolumeExtent[2] = 0;
 //    this->FixedVolumeProperties.VolumeExtent[3] = (int) maxY;
 //    this->FixedVolumeProperties.VolumeExtent[4] = 0;
 //    this->FixedVolumeProperties.VolumeExtent[5] = (int) maxZ;
-//    
+//
 //    this->VolumeInitialized = true;
 //    }
-    
+
   pDataStruct->Origin[0] = xOrigin;
   pDataStruct->Origin[1] = yOrigin;
   pDataStruct->Origin[2] = zOrigin;
-  
+
   pDataStruct->VolumeExtent[0] = 0;
   pDataStruct->VolumeExtent[1] = (int)((maxX - minX));
   pDataStruct->VolumeExtent[2] = 0;
   pDataStruct->VolumeExtent[3] = (int)((maxY - minY));
   pDataStruct->VolumeExtent[4] = 0;
   pDataStruct->VolumeExtent[5] = (int)((maxZ - minZ));
-  
+
   #ifdef DEBUGCOLLECTOR
   this->LogStream << this->GetUpTime() << " |C-INFO: Volume Properties of new Frame: " << endl;
   if(this->DynamicVolumeSize)
@@ -1204,7 +1202,7 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
                this->LogStream << "         |        Origin: " << pDataStruct->Origin[0]<<"| "<< pDataStruct->Origin[1] <<"| "<<  pDataStruct->Origin[2]<< endl
                                << "         |        Extent:  "<< pDataStruct->VolumeExtent[0]<<"-"<<pDataStruct->VolumeExtent[1] <<" | "<< pDataStruct->VolumeExtent[2]<<"-"<< pDataStruct->VolumeExtent[3] <<" | "<< pDataStruct->VolumeExtent[4]<<"-"<< pDataStruct->VolumeExtent[5]<<" "<<endl;
   #endif
-    
+
   return 0;
 }
 
@@ -1213,13 +1211,13 @@ int vtkDataCollector::CalculateVolumeProperties(struct DataStruct* pDataStruct)
  *
  * Calculates the normal of a plane. The plane was parallel to the x and y axis
  * but is transformed according to given transformation matrix
- * 
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  13.February 2009
  *
  *  @Param: struct DataStruct dataStruct
  *  @Param: double* normal
- * 
+ *
  *  @Return:  0 on success
  *           -1 on failure
  *
@@ -1233,22 +1231,22 @@ int vtkDataCollector::CalculateNormal(struct DataStruct dataStruct, double* norm
     #endif
     return -1;
     }
-  
+
   double imCorners[4][4]= {
     { 0, 0, 0, 1},
     { 0, 1, 0, 1},
     { 1, 0, 0, 1},
     { 1, 1, 0, 1} };
-  
+
   double transformedPt[4];
   double minXminY[3], maxXminY[3], minXmaxY[3], maxXmaxY[3];
-  
+
   //Calculate 2 vectors within the plane---------------------------------------
   dataStruct.Matrix->MultiplyPoint(imCorners[0],transformedPt);
   minXminY[0] = transformedPt[0];
   minXminY[1] = transformedPt[1];
   minXminY[2] = transformedPt[2];
-  
+
   dataStruct.Matrix->MultiplyPoint(imCorners[1],transformedPt);
   maxXminY[0] = transformedPt[0];
   maxXminY[1] = transformedPt[1];
@@ -1258,7 +1256,7 @@ int vtkDataCollector::CalculateNormal(struct DataStruct dataStruct, double* norm
   minXmaxY[0] = transformedPt[0];
   minXmaxY[1] = transformedPt[1];
   minXmaxY[2] = transformedPt[2];
-  
+
   double vector1[3];
   vector1[0] = minXmaxY[0] - minXminY[0];
   vector1[1] = minXmaxY[1] - minXminY[1];
@@ -1268,22 +1266,22 @@ int vtkDataCollector::CalculateNormal(struct DataStruct dataStruct, double* norm
   vector2[0] = maxXminY[0] - minXminY[0];
   vector2[1] = maxXminY[1] - minXminY[1];
   vector2[2] = maxXminY[2] - minXminY[2];
-  
+
   //Calculate normal------------------------------------------------------------
   normal[0] = vector1[1] * vector2[2] - vector1[2] * vector2[1];
   normal[1] = vector1[2] * vector2[0] - vector1[0] * vector2[2];
   normal[2] = vector1[0] * vector2[1] - vector1[1] * vector2[0];
-  
+
   //Normalize-------------------------------------------------------------------
   double length = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
   normal[0] /= length;
   normal[1] /= length;
   normal[2] /= length;
-  
+
   #ifdef DEBUGCOLLECTOR
     this->GetLogStream() << this->GetUpTime() << " |C-INFO: Normal Vector is: "<< normal[0] << "|" << normal[1] << "|" << normal[2] << endl;
   #endif
-  
+
 return 0;
 }
 
@@ -1291,7 +1289,7 @@ return 0;
  * double vtkDataCollector::GetMaximumVolumeSize()
  *
  * Returns the maximum volume size the system can handle
- * 
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  13.February 2009
  *
@@ -1301,7 +1299,7 @@ return 0;
 double vtkDataCollector::GetMaximumVolumeSize()
 {
   double retVal;
-  
+
   if(DEFAULT_MAXIMUM_VOLUME_SIZE == this->MaximumVolumeSize[0])
     {//Nothing was specified
     double xMin = this->clipRectangle[0], yMin = this->clipRectangle[1],
@@ -1309,18 +1307,18 @@ double vtkDataCollector::GetMaximumVolumeSize()
     double width = xMax - xMin;
     double height = yMax - yMin;
     double depth = width;
-    
+
     retVal = width * height * depth * depth;
     }
   else
     {
     retVal = this->MaximumVolumeSize[0] * this->MaximumVolumeSize[1] * this->MaximumVolumeSize[2];
     }
-  
+
 //  #ifdef DEBUGCOLLECTOR
 //    this->GetLogStream() << this->GetUpTime() << " |C-INFO: Maximum volume size: "<< retVal << endl;
 //  #endif
-  
+
 }
 
 /******************************************************************************
