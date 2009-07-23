@@ -30,7 +30,6 @@ template <class TInputMesh, class TScalar>
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::NodeScalarGradientCalculator()
 {
-  this->m_DerivativeList = DerivativeListType::New();
   this->m_AreaList = AreaListType::New();
   this->m_PointAreaAccumulatorList = CoordRepListType::New();
   this->m_PointDerivativeAccumulatorList = DerivativeListType::New();
@@ -98,12 +97,10 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::AllocateInternalContainers()
 {
-  this->m_DerivativeList->Reserve( this->m_InputMesh->GetNumberOfCells() );
   this->m_AreaList->Reserve( this->m_InputMesh->GetNumberOfCells() );
   this->m_PointAreaAccumulatorList->Reserve( this->m_InputMesh->GetNumberOfPoints() );
   this->m_PointDerivativeAccumulatorList->Reserve( this->m_InputMesh->GetNumberOfPoints() );
 
-  this->m_DerivativeList->Squeeze();
   this->m_AreaList->Squeeze();
   this->m_PointAreaAccumulatorList->Squeeze();
   this->m_PointDerivativeAccumulatorList->Squeeze();
@@ -223,13 +220,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
       projectedDerivative[k] = derivative[k] - vectorToCenterNormalized[k] * radialComponent;
       }
         
-
-    // 
-    // Store the derivative for that cell.
-    //
-    this->m_DerivativeList->push_back( projectedDerivative );
-
-    
     // Store at each vertex the value equal to triangle area x
     // derivative. Later, area-based weighting will use the total value
     // and divide by the sum of triangle areas about each vertex.
@@ -384,7 +374,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   os << indent << "Input mesh = " << this->m_InputMesh.GetPointer() << std::endl;
   os << indent << "Data Container = " << this->m_DataContainer.GetPointer() << std::endl;
   os << indent << "Basis System List = " << this->m_BasisSystemList.GetPointer() << std::endl;
-  os << indent << "Derivative List = " << this->m_DerivativeList.GetPointer() << std::endl;
   os << indent << "Point Area Accumulator = " << this->m_PointAreaAccumulatorList.GetPointer() << std::endl;
   os << indent << "Point Derivative Accumulator = " << this->m_PointDerivativeAccumulatorList.GetPointer() << std::endl;
 }
