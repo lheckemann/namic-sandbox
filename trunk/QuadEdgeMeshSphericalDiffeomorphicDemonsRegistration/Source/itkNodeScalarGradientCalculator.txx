@@ -241,23 +241,19 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::SetContainersToNullValues()
 {
-  const PointsContainer * points = this->m_InputMesh->GetPoints();
+  DerivativeListIterator derivativeItr = this->m_PointDerivativeAccumulatorList->Begin();
+  DerivativeListIterator derivativeEnd = this->m_PointDerivativeAccumulatorList->End();
+  AreaListIterator  areaItr = this->m_PointAreaAccumulatorList->Begin();
 
-  PointIterator pointIterator = points->Begin();
-  PointIterator pointEnd = points->End();
-
-  //
-  // Set all derivatives and area accumulators to Null vectors.
-  //
   DerivativeType   nullDerivative;
   nullDerivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
-  while( pointIterator != pointEnd )
+  while( derivativeItr != derivativeEnd )
     {
-    const PointIdentifier pointId = pointIterator.Index();
-    this->m_PointDerivativeAccumulatorList->SetElement( pointId, nullDerivative);
-    this->m_PointAreaAccumulatorList->SetElement( pointId, 0.0 );
-    ++pointIterator; 
+    derivativeItr.Value() = nullDerivative;
+    areaItr.Value() = NumericTraits< AreaType >::Zero;
+    ++derivativeItr;
+    ++areaItr;
     }
 }
 
@@ -315,22 +311,16 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::NormalizeDerivativesByTotalArea()
 {
-  const PointsContainer * points = this->m_InputMesh->GetPoints();
+  DerivativeListIterator derivativeItr = this->m_PointDerivativeAccumulatorList->Begin();
+  DerivativeListIterator derivativeEnd = this->m_PointDerivativeAccumulatorList->End();
+  AreaListConstIterator  areaItr = this->m_PointAreaAccumulatorList->Begin();
 
-  PointIterator pointIterator = points->Begin();
-  PointIterator pointEnd = points->End();
-
-  // Look at all vertices: consider the input edge of each, look at
-  // all edges counter-clockwise from that input edge, and consider
-  // face formed by consecutive edges. 
-  while ( pointIterator != pointEnd )
+  while( derivativeItr != derivativeEnd )
     {
-    // Divide area-weighted derivative by total area assigned to
-    // each point. That is: total area of triangles surrounding it.
-    this->m_PointDerivativeAccumulatorList->ElementAt( pointIterator.Index() ) /= 
-      this->m_PointAreaAccumulatorList->GetElement( pointIterator.Index() );
-
-    pointIterator++;
+    derivativeItr.Value()  /=  areaItr.Value();
+std::cout << "Point " << derivativeItr.Index() << " derivative = " << derivativeItr.Value() << std::endl;
+    ++derivativeItr;
+    ++areaItr;
     }
 }
 

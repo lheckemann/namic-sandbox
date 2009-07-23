@@ -105,6 +105,8 @@ public:
   typedef typename InterpolatorType::RealType                               RealType;
   typedef typename InterpolatorType::DerivativeType                         DerivativeType;
   typedef VectorContainer<PointIdentifier, DerivativeType>                  DerivativeListType;
+  typedef typename DerivativeListType::Iterator                             DerivativeListIterator;
+  typedef typename DerivativeListType::ConstIterator                        DerivativeListConstIterator;
       
   typedef typename PointType::CoordRepType                                  CoordRepType;
   typedef VectorContainer<PointIdentifier, CoordRepType>                    CoordRepListType; 
