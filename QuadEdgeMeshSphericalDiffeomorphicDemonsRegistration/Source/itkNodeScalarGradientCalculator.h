@@ -88,6 +88,9 @@ public:
 
   typedef TriangleHelper< PointType >                                       TriangleType;
   typedef typename TriangleType::CoordRepType                               AreaType;
+  typedef VectorContainer<CellIdentifier, AreaType >                        AreaListType;
+  typedef typename AreaListType::Iterator                                   AreaListIterator;
+  typedef typename AreaListType::ConstIterator                              AreaListConstIterator;
 
   typedef TriangleListBasisSystemCalculator< InputMeshType, TriangleBasisSystemType >
     TriangleListBasisSystemCalculatorType;
@@ -119,7 +122,22 @@ public:
   typedef typename Superclass::OutputType                 OutputType;
   typedef typename Superclass::InputType                  InputType;
 
-  /** Compute the values at every node. */
+  /** Initialize internal variables. This method MUST be called first, before
+   * calling the Compute() method. In a normal usage, the Initialize() method
+   * will be called once ant the beginning, and then it will be followed by
+   * multiple calls to the Compute() method.
+   *
+   * \sa Compute
+   */
+  virtual void Initialize( void );
+
+  /** Compute the values at all the nodes. The Initialize() method MUST be
+   * called first. In a normal usage, the Initialize() method will be called
+   * once ant the beginning, and then it will be followed by multiple calls to
+   * the Compute() method.
+   *
+   * \sa Initialize
+   */
   virtual void Compute();  
 
   /** Set/Get list of basis systems at every cell. */
@@ -159,23 +177,33 @@ private:
   NodeScalarGradientCalculator( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
-  typename InputMeshType::ConstPointer                         m_InputMesh;
-  typename TPointDataContainer::ConstPointer                   m_DataContainer;
-  typename BasisSystemListType::ConstPointer                   m_BasisSystemList;
-  typename DerivativeListType::Pointer                         m_DerivativeList;
-  typename CoordRepListType::Pointer                           m_PointAreaAccumulatorList; 
-  typename DerivativeListType::Pointer                         m_PointDerivativeAccumulatorList; 
+  typename InputMeshType::ConstPointer                 m_InputMesh;
+  typename TPointDataContainer::ConstPointer           m_DataContainer;
+  typename BasisSystemListType::ConstPointer           m_BasisSystemList;
+  typename DerivativeListType::Pointer                 m_DerivativeList;
+  typename AreaListType::Pointer                       m_AreaList;
+  typename CoordRepListType::Pointer                   m_PointAreaAccumulatorList; 
+  typename DerivativeListType::Pointer                 m_PointDerivativeAccumulatorList; 
 
   /** Check that all necessary inputs are connected. */
   virtual void VerifyInputs( void ) const;
 
-  /** Initialize internal variables. */
-  virtual void Initialize( void );
+  /** Allocate memory for all the internal containers. This method is called
+   * only once during the initialization of the calculator. It doesn't need to be
+   * called again unless the number of cells or number of points in the input
+   * mesh change. */
+  void AllocateInternalContainers();
 
   /** Parallel-transport for gradient vectors. This is equivalent to sliding them along
    * the great circle that connects sourcePoint with destinationPoint.  */
   void ParalelTransport( const PointType sourcePoint, const PointType destinationPoint,
     const DerivativeType & inputVector, DerivativeType & transportedVector ) const;
+
+  /** Divide the cumulated derivatives by the cumulated areas */
+  void NormalizeDerivativesByTotalArea();
+
+  /** Compute the area in all cells and store it in a container */
+  void ComputeAreaForAllCells();
 
   PointType       m_SphereCenter;
   double          m_SphereRadius;
