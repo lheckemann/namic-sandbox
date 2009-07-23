@@ -26,6 +26,8 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}/Segmentation
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
+  ${Volumes_SOURCE_DIR}
+  ${Volumes_BINARY_DIR}
 )
 
 # --------------------------------------------------------------------------
@@ -106,6 +108,7 @@ target_link_libraries(${LIB_NAME}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
   ${ITK_LIBRARIES}
+  Volumes
   )
 
 slicer3_install_modules(${LIB_NAME})

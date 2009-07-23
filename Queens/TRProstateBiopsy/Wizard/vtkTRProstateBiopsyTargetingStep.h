@@ -16,6 +16,8 @@ class vtkKWMenuButton;
 class vtkKWMenuButtonWithLabel;
 class vtkKWMultiColumnList;
 class vtkKWMultiColumnListWithScrollbars;
+class vtkMRMLScalarVolumeNode;
+class vtkImageData;
 
 class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyTargetingStep : public vtkTRProstateBiopsyStep
 {
@@ -58,6 +60,10 @@ protected:
 
   void ShowMessageAndDeleteControls();
   void ClearMessageAndDeleteControls();
+
+  int ShowCoverage();
+  void CoverageMapRemove();
+  void CoverageMapUpdate();
 
   unsigned int PopulateListWithTargetDetails(unsigned int targetDescIndex);
 
@@ -128,6 +134,10 @@ protected:
 
   int LastSelectedTargetDescriptorIndex;
   int CurrentSelectedTargetDescriptorIndex;
+
+  vtkMRMLScalarVolumeNode* CoverageLabelMapNode;
+  vtkImageData* CoverageLabelMapImage;
+  int CoverageHideFlag;
 
 private:
   vtkTRProstateBiopsyTargetingStep(const vtkTRProstateBiopsyTargetingStep&);

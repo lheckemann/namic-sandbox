@@ -95,6 +95,7 @@ public:
   bool SegmentRegisterMarkers(double thresh[4], double fidDims[3], double radius, bool bUseRadius, double initialAngle, std::string &resultDetails);
   void GetCalibrationAxisCenterpoints(vtkPoints *points, int ii) { return this->CalibrationAlgo->GetAxisCenterpoints(points, ii); };
   bool AddTargetToNeedle(std::string needleType, double rasLocation[3], unsigned int & targetDescIndex);
+  bool IsTargetReachable(int needleIndex, double rasLocation[3]);
   //ETX
   
   // Description:

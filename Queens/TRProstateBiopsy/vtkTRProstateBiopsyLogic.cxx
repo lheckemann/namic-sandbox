@@ -527,6 +527,45 @@ bool vtkTRProstateBiopsyLogic::AddTargetToNeedle(std::string needleType, double 
   
   return true;
 }
+//--------------------------------------------------------------------------------------
+bool vtkTRProstateBiopsyLogic::IsTargetReachable(int needleIndex, double rasLocation[3])
+{
+
+  if (!this->TRProstateBiopsyModuleNode)
+      return false;
+
+  static vtkTRProstateBiopsyTargetDescriptor *targetDesc=NULL;
+  if (targetDesc==NULL)
+  {
+    targetDesc=vtkTRProstateBiopsyTargetDescriptor::New();
+  }
+  //vtkSmartPointer<vtkTRProstateBiopsyTargetDescriptor> targetDesc=vtkSmartPointer<vtkTRProstateBiopsyTargetDescriptor>::New();
+
+  targetDesc->SetRASLocation(rasLocation[0], rasLocation[1], rasLocation[2]);
+  
+  targetDesc->SetNeedleType(this->TRProstateBiopsyModuleNode->GetNeedleType(needleIndex),this->TRProstateBiopsyModuleNode->GetNeedleUID(needleIndex), this->TRProstateBiopsyModuleNode->GetNeedleDepth(needleIndex), this->TRProstateBiopsyModuleNode->GetNeedleOvershoot(needleIndex));
+
+  targetDesc->SetNeedleListIndex(needleIndex);
+
+  // record the FoR str
+//  std::string FoR = this->GetFoRStrFromVolumeNode(this->TRProstateBiopsyModuleNode->GetTargetingVolumeNode());
+//  targetDesc->SetFoRStr(FoR);
+
+  // 2) calculate targeting parameters for active needle, store in a target descriptor
+  if(!this->CalibrationAlgo->FindTargetingParams(this->TRProstateBiopsyModuleNode,targetDesc))
+    {
+    // error message
+    // to do
+    return false;
+    }
+
+  if (targetDesc->GetIsOutsideReach())
+  {
+    return false;
+  }
+
+  return true;
+}
 //-------------------------------------------------------------------------------
 void vtkTRProstateBiopsyLogic::SaveVolumesToExperimentFile(ostream &of)
 {
@@ -613,6 +652,12 @@ void vtkTRProstateBiopsyLogic::SaveVolumesToExperimentFile(ostream &of)
 //--------------------------------------------------------------------------------------
 std::string vtkTRProstateBiopsyLogic::GetFoRStrFromVolumeNode(vtkMRMLScalarVolumeNode *volNode)
 {
+  if (volNode==NULL)
+  {
+    vtkErrorMacro("Cannot get FoR, VolumeNode is undefined");
+    return std::string("");
+  }
+
   // remaining information to be had from the meta data dictionary     
   const itk::MetaDataDictionary &volDictionary = volNode->GetMetaDataDictionary();
   std::string tagValue; 
