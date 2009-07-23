@@ -1,7 +1,6 @@
 /*=========================================================================
 
 Module:    $RCSfile: vtkDataSender.cxx,v $
-Author:  Jonathan Boisvert, Queens School Of Computing
 Authors: Jan Gumprecht, Haiying Liu, Nobuhiko Hata, Harvard Medical School
 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
@@ -19,10 +18,6 @@ are met:
    notice, this list of conditions and the following disclaimer in
    the documentation and/or other materials provided with the
    distribution.
-
- * Neither the name of Queen's University nor the names of any
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
 
  * Neither the name of Harvard Medical School nor the names of any
    contributors may be used to endorse or promote products derived
@@ -121,9 +116,9 @@ vtkDataSender::vtkDataSender()
 
   this->lastFrameRateUpdate = 0;
   this->UpDateCounter = 0;
-  
+
   this->TransformationFactorMmToPixel =  10;
-  
+
   this->Statistics.fpsCounter = 0;
   this->Statistics.meanFPS = 0;
   this->Statistics.maxFPS = -1;
@@ -160,9 +155,7 @@ vtkDataSender::~vtkDataSender()
     this->TryToDeleteData(index);
     }
   this->IndexLock->Delete();
-  
 }
-
 
 //----------------------------------------------------------------------------
 void vtkDataSender::PrintSelf(ostream& os, vtkIndent indent)
@@ -483,7 +476,7 @@ int vtkDataSender::StopSending()
   #ifdef  DEBUGSENDER
     this->LogStream <<  this->GetUpTime() << " |S-INFO: Data Sender stopped sending" << endl;
   #endif
-  
+
   return 0;
 
 }
@@ -504,7 +497,7 @@ int vtkDataSender::PrepareImageMessage(int index,
   #ifdef  DEBUGSENDER
     this->LogStream <<  this->GetUpTime() << " |S-INFO: Acquire lock for index: " << index << endl;
   #endif
-  
+
   if(-1 == this->LockIndex(index, DATASENDER))
     {
     int i = 0;
@@ -520,9 +513,9 @@ int vtkDataSender::PrepareImageMessage(int index,
       }
     while(-1 == this->LockIndex(index, DATASENDER));
     }
-  
+
   //Get Data
-  
+
   vtkImageData * frame = this->sendDataBuffer[index].ImageData;
   vtkMatrix4x4 * matrix = this->sendDataBuffer[index].Matrix;
 
@@ -531,7 +524,7 @@ int vtkDataSender::PrepareImageMessage(int index,
     //Get property of frame
     frame->GetDimensions(frameProperties.Size);
 //    frame->GetSpacing(frameProperties.Spacing);
-    
+
     #ifdef HIGH_DEFINITION
     frameProperties.Spacing[0] = 1 / this->TransformationFactorMmToPixel;
     frameProperties.Spacing[1] = 1 / this->TransformationFactorMmToPixel;
@@ -550,12 +543,12 @@ int vtkDataSender::PrepareImageMessage(int index,
     frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
     frameProperties.Origin[2] = (float) frame->GetOrigin()[2];
     #endif
-    
+
     frameProperties.ScalarType = frame->GetScalarType();
     frameProperties.SubVolumeSize[0] = frameProperties.Size[0];
     frameProperties.SubVolumeSize[1] = frameProperties.Size[1];
     frameProperties.SubVolumeSize[2] = frameProperties.Size[2];
-    
+
     frameProperties.Set = true;
 //    }
 
@@ -576,7 +569,7 @@ int vtkDataSender::PrepareImageMessage(int index,
   unsigned char * pFrame = (unsigned char*) frame->GetScalarPointer();
 
   int scalarComponents = frame->GetNumberOfScalarComponents();
-  
+
   #ifdef  DEBUGSENDER
     int counter = 0;
     double copyStart = this->GetUpTime();
@@ -597,7 +590,7 @@ int vtkDataSender::PrepareImageMessage(int index,
 //    #endif
 //    }
 
-  
+
   igtl::Matrix4x4 igtlMatrix;
 
   //Copy matrix to output buffer
@@ -622,7 +615,7 @@ int vtkDataSender::PrepareImageMessage(int index,
   igtlMatrix[3][2] = matrix->Element[3][2];
   igtlMatrix[3][3] = matrix->Element[3][3];
   #else
-  
+
   igtlMatrix[0][0] = matrix->Element[0][0];
   igtlMatrix[0][1] = matrix->Element[0][1];
   igtlMatrix[0][2] = matrix->Element[0][2];
@@ -644,7 +637,7 @@ int vtkDataSender::PrepareImageMessage(int index,
   #endif
 
   this->ReleaseLock(DATASENDER);
-  
+
 //  for(int i = 0; i < 4; ++i)
 //    {
 //    for(int j = 0; j < 4; ++j)
@@ -668,40 +661,40 @@ int vtkDataSender::PrepareImageMessage(int index,
 //    matrix->Print(this->LogStream);
 //  #endif
 
-    
+
   imageMessage->SetMatrix(igtlMatrix);
 
   imageMessage->Pack();// Pack (serialize)
-  
+
     //Statistics----------------------------------------------------------------
     this->Statistics.volumeCounter++;
     this->Statistics.meanVolumeSize[0] += frameProperties.Size[0];
     this->Statistics.meanVolumeSize[1] += frameProperties.Size[1];
     this->Statistics.meanVolumeSize[2] += frameProperties.Size[2];
-    
+
     double volumeSize = frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2];
-    
+
     if(volumeSize > this->Statistics.maxVolumeSize[0] * this->Statistics.maxVolumeSize[1] * this->Statistics.maxVolumeSize[2])
       {
       this->Statistics.maxVolumeSize[0] = frameProperties.Size[0];
       this->Statistics.maxVolumeSize[1] = frameProperties.Size[1];
       this->Statistics.maxVolumeSize[2] = frameProperties.Size[2];
       }
-    
+
     if(volumeSize < this->Statistics.minVolumeSize[0] * this->Statistics.minVolumeSize[1] * this->Statistics.minVolumeSize[2])
       {
       this->Statistics.minVolumeSize[0] = frameProperties.Size[0];
       this->Statistics.minVolumeSize[1] = frameProperties.Size[1];
       this->Statistics.minVolumeSize[2] = frameProperties.Size[2];
       }
-    
+
     #ifdef  DEBUGSENDER
       this->LogStream <<  this->GetUpTime() << " |S-INFO: Statistics" << endl
                                    << "           |        Mean Volume Dimensions: " << this->Statistics.meanVolumeSize[0] / this->Statistics.volumeCounter << " | " << this->Statistics.meanVolumeSize[1] / this->Statistics.volumeCounter << " | " << this->Statistics.meanVolumeSize[2] / this->Statistics.volumeCounter << endl
                                    << "           |        Max Volume Dimensions: " << this->Statistics.maxVolumeSize[0] << " | " << this->Statistics.maxVolumeSize[1] << " | " << this->Statistics.maxVolumeSize[2] << endl
                                    << "           |        Min Volume Dimensions: " << this->Statistics.minVolumeSize[0] << " | " << this->Statistics.minVolumeSize[1] << " | " << this->Statistics.minVolumeSize[2] << endl;
     #endif
-      
+
   return 0;
 
 }
@@ -722,7 +715,7 @@ int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer& message)
       {
       #ifdef  DEBUGSENDER
         this->LogStream <<  this->GetUpTime() << " |S-INFO: Message successfully send to OpenIGTLink Server "<< endl
-                        << "         | Send time: " << this->GetUpTime() - sendTime << "| "  << endl;        
+                        << "         | Send time: " << this->GetUpTime() - sendTime << "| "  << endl;
       #endif
       if(Verbose)
         {
@@ -810,17 +803,17 @@ int vtkDataSender::TryToDeleteData(int index)
     {
     #ifdef  DEBUGSENDER
       this->LogStream <<  this->GetUpTime() << " |S-WARNING: Could not delete data at index:" << index << " lock by: ";
-      
+
       if( this->sendDataBuffer[index].SenderLock > 0)
         {
         this->LogStream << "DataSender ";
         }
-      
+
       if(this->sendDataBuffer[index].ProcessorLock > 0)
         {
         this->LogStream << "DataProcessor";
         }
-      
+
       this->LogStream << endl;
     #endif
     }
@@ -968,7 +961,7 @@ void vtkDataSender::UpdateFrameRate(double sendTime)
       cout << "\b\b\b\b\b" << std::flush;
       cout << setw(5) << setprecision(2) << fps;
       cout << "\a" <<std::flush;
-        
+
       this->UpDateCounter = 0;
       this->Statistics.fpsCounter++;
       this->Statistics.meanFPS += fps;
@@ -983,7 +976,7 @@ void vtkDataSender::UpdateFrameRate(double sendTime)
       #ifdef  DEBUGSENDER
         this->LogStream <<  this->GetUpTime() << " |S-INFO: Current frame rate " << fps << endl
                                     << "           |        Mean FPS: " << this->Statistics.meanFPS / this->Statistics.fpsCounter << " Max FPS: "<< this->Statistics.maxFPS << " Min FPS: "<< this->Statistics.minFPS << endl;
-        
+
       #endif
       }
     else
@@ -1004,7 +997,7 @@ void vtkDataSender::UpdateFrameRate(double sendTime)
  *
  *  @Param: int index - index to lock
  *  @Param: int requester - Thread who wants to lock the index
- * 
+ *
  *  @Param: 0 on success
  *         -1 on failure
  *
@@ -1024,7 +1017,7 @@ int vtkDataSender::LockIndex(int index, int requester)
       #ifdef  DEBUGSENDER
         this->LogStream <<  this->GetUpTime() << " |S-INFO: Sender locked index:" << index << endl;
       #endif
-      this->IndexLockedByDataSender = index;    
+      this->IndexLockedByDataSender = index;
       }
     }
   else if(requester == DATAPROCESSOR)
@@ -1038,7 +1031,7 @@ int vtkDataSender::LockIndex(int index, int requester)
       #ifdef DEBUGSENDER
         this->LogStream <<  this->GetUpTime() << " |S-INFO: Processor locked index:" << index << endl;
       #endif
-      this->IndexLockedByDataProcessor = index;    
+      this->IndexLockedByDataProcessor = index;
       }
     }
   else
@@ -1049,7 +1042,7 @@ int vtkDataSender::LockIndex(int index, int requester)
     retVal = -1;
     }
   this->IndexLock->Unlock();
-  
+
   return retVal;
 }
 
@@ -1063,7 +1056,7 @@ int vtkDataSender::LockIndex(int index, int requester)
  *
  *  @Param: int index - index to lock
  *  @Param: int requester - Thread who wants to lock the index
- * 
+ *
  *  @Param: 0 on success
  *         -1 on failure
  *
@@ -1094,7 +1087,7 @@ int vtkDataSender::ReleaseLock(int requester)
     retVal = -1;
     }
   this->IndexLock->Unlock();
-  
+
   return retVal;
 }
 
