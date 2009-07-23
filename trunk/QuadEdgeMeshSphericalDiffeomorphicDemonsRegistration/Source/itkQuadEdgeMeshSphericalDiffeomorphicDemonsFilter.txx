@@ -261,6 +261,7 @@ ComputeGradientsOfMappedMovingValueAtEveryNode()
   this->m_NodeScalarGradientCalculator->SetSphereCenter( this->m_SphereCenter );
   this->m_NodeScalarGradientCalculator->SetSphereRadius( this->m_SphereRadius );
 
+  this->m_NodeScalarGradientCalculator->Initialize();
   this->m_NodeScalarGradientCalculator->Compute();
 }
 

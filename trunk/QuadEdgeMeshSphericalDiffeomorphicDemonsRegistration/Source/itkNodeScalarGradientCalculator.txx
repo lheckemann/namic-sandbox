@@ -31,6 +31,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::NodeScalarGradientCalculator()
 {
   this->m_DerivativeList = DerivativeListType::New();
+  this->m_AreaList = AreaListType::New();
   this->m_PointAreaAccumulatorList = CoordRepListType::New();
   this->m_PointDerivativeAccumulatorList = DerivativeListType::New();
 
@@ -55,7 +56,21 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 template <class TInputMesh, class TScalar >
 void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
-::VerifyInputs( ) const
+::Initialize() 
+{
+  this->VerifyInputs();
+  this->AllocateInternalContainers();
+  this->ComputeAreaForAllCells();
+}
+
+
+/**
+ * Check inputs
+ */
+template <class TInputMesh, class TScalar >
+void
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::VerifyInputs() const
 {
 
   if( this->m_InputMesh.IsNull() ) 
@@ -76,16 +91,22 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 
 
 /**
- * Initialize internal variables
+ * Allocate internal Containers
  */
 template <class TInputMesh, class TScalar >
 void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
-::Initialize( void )
+::AllocateInternalContainers()
 {
   this->m_DerivativeList->Reserve( this->m_InputMesh->GetNumberOfCells() );
+  this->m_AreaList->Reserve( this->m_InputMesh->GetNumberOfCells() );
   this->m_PointAreaAccumulatorList->Reserve( this->m_InputMesh->GetNumberOfPoints() );
   this->m_PointDerivativeAccumulatorList->Reserve( this->m_InputMesh->GetNumberOfPoints() );
+
+  this->m_DerivativeList->Squeeze();
+  this->m_AreaList->Squeeze();
+  this->m_PointAreaAccumulatorList->Squeeze();
+  this->m_PointDerivativeAccumulatorList->Squeeze();
 }
 
 
@@ -97,14 +118,12 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Compute()
 {
-  this->VerifyInputs(); 
-  this->Initialize(); 
-
-  // Start with gradient computation for each triangle. Uses linear interpolator.
   const CellsContainer * cells =  this->m_InputMesh->GetCells();
 
   CellsContainerConstIterator cellIterator = cells->Begin();
   CellsContainerConstIterator cellEnd = cells->End();
+
+  AreaListConstIterator areaIterator = this->m_AreaList->Begin();
 
   BasisSystemListIterator basisSystemListIterator;
   basisSystemListIterator = m_BasisSystemList->Begin();
@@ -139,7 +158,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 
   while( cellIterator != cellEnd )
     {
-    CellType* cellPointer = cellIterator.Value();
+    CellType * cellPointer = cellIterator.Value();
 
     // Consider current cell. Iterate through its points. 
 
@@ -157,14 +176,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
       ++pointIdIterator;
       }
 
-
-    //
-    // FIXME: does this change at all? If geometry stays the same,
-    // which it should, do this in initialization, and store both
-    // cell->area and point->accumulatedArea permanently. 
-    //
-    const AreaType area = TriangleType::ComputeArea( point[0], point[1], point[3] );
-
+    const AreaType area = areaIterator.Value();
 
     //
     // contribute to accumulated area around each point of triangle
@@ -225,8 +237,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 
     projectedDerivative *= area;
 
-   
-
     for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
       {
       // 
@@ -242,11 +252,71 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
       }
 
     ++cellIterator;
+    ++areaIterator;
     ++basisSystemListIterator;
     }
 
-  pointIterator = points->Begin();
-  pointEnd = points->End();
+  this->NormalizeDerivativesByTotalArea();
+}
+
+
+/**
+ * Compute the area of each cell and store them in a container
+ */
+template <class TInputMesh, class TScalar >
+void
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::ComputeAreaForAllCells()
+{
+  const CellsContainer * cells =  this->m_InputMesh->GetCells();
+
+  const unsigned int numberOfVerticesInTriangle = 3;
+  PointType point[numberOfVerticesInTriangle];
+
+  AreaListIterator areaIterator = this->m_AreaList->Begin();
+
+  CellsContainerConstIterator cellIterator = cells->Begin();
+  CellsContainerConstIterator cellEnd = cells->End();
+
+  while( cellIterator != cellEnd )
+    {
+    CellType * cellPointer = cellIterator.Value();
+
+    // Consider current cell. Iterate through its points. 
+    PointIdIterator pointIdIterator = cellPointer->PointIdsBegin();
+    PointIdIterator pointIdEnd = cellPointer->PointIdsEnd();
+
+    unsigned int i=0; 
+    while( pointIdIterator != pointIdEnd )
+      {
+      const PointIdentifier pointId = *pointIdIterator; 
+      point[i] = m_InputMesh->GetPoint( pointId );
+      i++;
+      ++pointIdIterator;
+      }
+
+    const AreaType area = TriangleType::ComputeArea( point[0], point[1], point[3] );
+
+    areaIterator.Value() = area;
+
+    ++cellIterator;
+    ++areaIterator;
+    }
+}
+
+
+/**
+ * Compute the function
+ */
+template <class TInputMesh, class TScalar >
+void
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::NormalizeDerivativesByTotalArea()
+{
+  const PointsContainer * points = this->m_InputMesh->GetPoints();
+
+  PointIterator pointIterator = points->Begin();
+  PointIterator pointEnd = points->End();
 
   // Look at all vertices: consider the input edge of each, look at
   // all edges counter-clockwise from that input edge, and consider
@@ -261,6 +331,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     pointIterator++;
     }
 }
+
 
 template <class TInputMesh, class TScalar >
 void
@@ -295,7 +366,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 template <class TInputMesh, class TScalar >
 typename NodeScalarGradientCalculator<TInputMesh, TScalar>::OutputType
 NodeScalarGradientCalculator<TInputMesh, TScalar>
-::Evaluate( const InputType& input  ) const 
+::Evaluate( const InputType & input  ) const 
 {
   return this->m_PointDerivativeAccumulatorList->ElementAt( input );
 }
