@@ -115,6 +115,8 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::Compute()
 {
+  this->SetContainersToNullValues();
+
   const CellsContainer * cells =  this->m_InputMesh->GetCells();
 
   CellsContainerConstIterator cellIterator = cells->Begin();
@@ -122,28 +124,10 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 
   AreaListConstIterator areaIterator = this->m_AreaList->Begin();
 
-  BasisSystemListIterator basisSystemListIterator;
-  basisSystemListIterator = m_BasisSystemList->Begin();
+  BasisSystemListIterator basisSystemListIterator = m_BasisSystemList->Begin();
   
-  const PointsContainer * points = this->m_InputMesh->GetPoints();
-
-  PointIterator pointIterator = points->Begin();
-  PointIterator pointEnd = points->End();
-
-  //
-  // Set all derivatives and area accumulators to Null vectors.
-  //
   DerivativeType   derivative;
-  derivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
-
   DerivativeType   parallelTransportedDerivative;
-
-  while( pointIterator != pointEnd )
-    {
-    this->m_PointDerivativeAccumulatorList->SetElement( pointIterator.Index(), derivative);
-    this->m_PointAreaAccumulatorList->SetElement(pointIterator.Index(), 0.0);
-    pointIterator++; 
-    }
 
   //
   // Look at all triangular cells, re-use the basis of each, and new scalar values.
@@ -168,7 +152,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
       const PointIdentifier pointId = *pointIdIterator; 
       pointIds[i]= pointId;
       pixelValue[i]= this->m_DataContainer->GetElement( pointId ); 
-      point[i] = m_InputMesh->GetPoint( pointId );
+      point[i] = this->m_InputMesh->GetPoint( pointId );
       i++;
       ++pointIdIterator;
       }
@@ -183,14 +167,13 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
       this->m_PointAreaAccumulatorList->ElementAt( pointIds[i] ) += area;
       }
 
-    VectorType  m_U12;
-    VectorType  m_U32;
+    const TriangleBasisSystemType & basisSystem = basisSystemListIterator.Value();
 
-    m_U12= basisSystemListIterator->Value().GetVector(0); 
-    m_U32= basisSystemListIterator->Value().GetVector(1); 
+    const VectorType & u12= basisSystem.GetVector(0); 
+    const VectorType & u32= basisSystem.GetVector(1); 
  
     InterpolatorType::GetDerivativeFromPixelsAndBasis(
-      pixelValue[0], pixelValue[1], pixelValue[2], m_U12, m_U32, derivative);
+      pixelValue[0], pixelValue[1], pixelValue[2], u12, u32, derivative);
 
     //
     //  Compute the coordinates of the point at the center of the cell.
@@ -247,6 +230,35 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     }
 
   this->NormalizeDerivativesByTotalArea();
+}
+
+
+/**
+ * Initialize several containers with null values in all their elements.
+ */
+template <class TInputMesh, class TScalar >
+void
+NodeScalarGradientCalculator<TInputMesh, TScalar>
+::SetContainersToNullValues()
+{
+  const PointsContainer * points = this->m_InputMesh->GetPoints();
+
+  PointIterator pointIterator = points->Begin();
+  PointIterator pointEnd = points->End();
+
+  //
+  // Set all derivatives and area accumulators to Null vectors.
+  //
+  DerivativeType   nullDerivative;
+  nullDerivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
+
+  while( pointIterator != pointEnd )
+    {
+    const PointIdentifier pointId = pointIterator.Index();
+    this->m_PointDerivativeAccumulatorList->SetElement( pointId, nullDerivative);
+    this->m_PointAreaAccumulatorList->SetElement( pointId, 0.0 );
+    ++pointIterator; 
+    }
 }
 
 
