@@ -204,6 +204,10 @@ private:
   /** Compute the area in all cells and store it in a container */
   void ComputeAreaForAllCells();
 
+  /** Fill the values of several containers with null values. This is done as
+   * initialization before we start accumulating values in them. */
+  void SetContainersToNullValues();
+
   PointType       m_SphereCenter;
   double          m_SphereRadius;
 };
