@@ -315,8 +315,10 @@ ComputeDeformationFieldUpdate()
     Gn(1,0) =  point[2];
     Gn(2,0) = -point[1];
     Gn(2,1) =  point[0];
-    }
 
+    typedef typename NodeScalarGradientCalculatorType::DerivativeType  DerivativeType; 
+    DerivativeType derivative = this->m_NodeScalarGradientCalculator->Evaluate( pointId );
+    }
 }
 
 
