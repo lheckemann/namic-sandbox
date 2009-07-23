@@ -104,7 +104,7 @@ public:
 
   typedef typename InterpolatorType::RealType                               RealType;
   typedef typename InterpolatorType::DerivativeType                         DerivativeType;
-  typedef VectorContainer<CellIdentifier, DerivativeType>                   DerivativeListType;
+  typedef VectorContainer<PointIdentifier, DerivativeType>                  DerivativeListType;
       
   typedef typename PointType::CoordRepType                                  CoordRepType;
   typedef VectorContainer<PointIdentifier, CoordRepType>                    CoordRepListType; 
@@ -180,7 +180,6 @@ private:
   typename InputMeshType::ConstPointer                 m_InputMesh;
   typename TPointDataContainer::ConstPointer           m_DataContainer;
   typename BasisSystemListType::ConstPointer           m_BasisSystemList;
-  typename DerivativeListType::Pointer                 m_DerivativeList;
   typename AreaListType::Pointer                       m_AreaList;
   typename CoordRepListType::Pointer                   m_PointAreaAccumulatorList; 
   typename DerivativeListType::Pointer                 m_PointDerivativeAccumulatorList; 
