@@ -8,6 +8,7 @@
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkSlicerSliceLogic.h"
 #include "vtkMRMLSliceNode.h"
+#include "vtkSlicerVolumesGUI.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWWizardWidget.h"
@@ -66,6 +67,9 @@ vtkTRProstateBiopsyTargetingStep::vtkTRProstateBiopsyTargetingStep()
   this->LastSelectedTargetDescriptorIndex = -1;
   this->CurrentSelectedTargetDescriptorIndex = -1;
 
+  CoverageLabelMapNode=NULL;
+  CoverageLabelMapImage=NULL;
+  CoverageHideFlag=1;
 }
 
 //----------------------------------------------------------------------------
@@ -562,6 +566,12 @@ void vtkTRProstateBiopsyTargetingStep::ProcessGUIEvents(vtkObject *caller,
     {
     this->TargetSelectedFromListCallback();
     }
+
+  // show coverage dialog button
+   if (this->RASManualEntryButton && this->RASManualEntryButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+    {
+      this->ShowCoverage();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -758,9 +768,10 @@ void vtkTRProstateBiopsyTargetingStep::AddGUIObservers()
     {
     this->TargetsMultiColumnList->GetWidget()->AddObserver(vtkKWMultiColumnList::SelectionChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
     }
-
-
-
+  if (this->RASManualEntryButton)
+    {
+    this->RASManualEntryButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }  
 }
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyTargetingStep::RemoveGUIObservers()
@@ -1115,4 +1126,179 @@ void vtkTRProstateBiopsyTargetingStep::SaveToExperimentFile(ostream &of)
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyTargetingStep::LoadFromExperimentFile(istream &file)
 {
+}
+
+// return:
+//  0=error
+//----------------------------------------------------------------------------
+int vtkTRProstateBiopsyTargetingStep::ShowCoverage() 
+{
+  // -----
+  // Initialize
+  /*if (!this->ROICheck()) {
+    vtkKWMessageDialog::PopupMessage(this->GUI->GetApplication(), 
+                                     this->GUI->GetApplicationGUI()->GetMainSlicerWindow(),
+                                     "Change Tracker", 
+                                     "Please define VOI correctly before pressing button", 
+                                     vtkKWMessageDialog::ErrorIcon);
+    return 0;
+  }*/
+
+//create volume in the calibration phase
+//make it independent from the calibration volume (make it larger, but lower resolution)
+
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if(!mrmlNode)
+  {
+      return 0;
+  }
+  
+  vtkMRMLVolumeNode* volumeNode = mrmlNode->GetTargetingVolumeNode();
+  if (!volumeNode) 
+  {
+    return 0;
+  }
+
+  int* dimensions = volumeNode->GetImageData()->GetDimensions();
+
+  if (this->CoverageLabelMapNode || this->CoverageLabelMapImage)
+  {
+    this->CoverageMapRemove(); 
+  }
+
+  // -----
+  // Define LabelMap 
+  
+  this->CoverageLabelMapImage=vtkImageData::New();
+
+  double scaleFactor[3]={10,10,3};
+
+  {
+    this->CoverageLabelMapImage->SetSpacing(volumeNode->GetImageData()->GetSpacing()); // spacing change will be taken into account at the volume node
+    this->CoverageLabelMapImage->SetOrigin(volumeNode->GetImageData()->GetOrigin());
+
+    int *dimensions=volumeNode->GetImageData()->GetDimensions();
+    this->CoverageLabelMapImage->SetDimensions(dimensions[0]/scaleFactor[0],dimensions[1]/scaleFactor[1],dimensions[2]/scaleFactor[2]);  
+    
+    int* extent=volumeNode->GetImageData()->GetWholeExtent();
+    this->CoverageLabelMapImage->SetWholeExtent(
+      extent[0]/scaleFactor[0],extent[1]/scaleFactor[0],
+      extent[2]/scaleFactor[1],extent[3]/scaleFactor[1],
+      extent[4]/scaleFactor[2],extent[5]/scaleFactor[2]
+      );
+
+    this->CoverageLabelMapImage->SetScalarTypeToUnsignedChar();
+
+    this->CoverageLabelMapImage->AllocateScalars();
+  }
+
+  // Show map in Slicer 3 
+  vtkSlicerApplication *application   = vtkSlicerApplication::SafeDownCast(this->GetApplication());
+  vtkSlicerApplicationGUI *applicationGUI = this->GetGUI()->GetApplicationGUI();
+
+  vtkSlicerVolumesGUI  *volumesGUI    = vtkSlicerVolumesGUI::SafeDownCast(application->GetModuleGUIByName("Volumes")); 
+
+  vtkSlicerVolumesLogic *volumesLogic = volumesGUI->GetLogic();
+  vtkMRMLScene* mrmlScene           =  mrmlNode->GetScene(); 
+  this->CoverageLabelMapNode = volumesLogic->CreateLabelVolume(mrmlScene,volumeNode, "TRPBCoverage");
+
+  {
+    double spacing[3];
+    CoverageLabelMapNode->GetSpacing(spacing);  
+    spacing[0]*=scaleFactor[0];
+    spacing[1]*=scaleFactor[1];
+    spacing[2]*=scaleFactor[2];
+    CoverageLabelMapNode->SetSpacing(spacing);
+  }
+
+  this->CoverageLabelMapNode->SetAndObserveImageData(this->CoverageLabelMapImage);
+
+  // Reset to original slice location 
+  double oldSliceSetting[3];
+  oldSliceSetting[0] = double(applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset());
+  oldSliceSetting[1] = double(applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceOffset());
+  oldSliceSetting[2] = double(applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceOffset());
+
+  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(this->CoverageLabelMapNode->GetID());
+  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(this->CoverageLabelMapNode->GetID());
+  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(this->CoverageLabelMapNode->GetID());
+
+  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
+  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
+  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
+
+  // Reset to original slice location 
+  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->SetSliceOffset(oldSliceSetting[0]);
+  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->SetSliceOffset(oldSliceSetting[1]);
+  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->SetSliceOffset(oldSliceSetting[2]);
+
+  this->CoverageMapUpdate();
+
+  return 1;
+}
+
+void vtkTRProstateBiopsyTargetingStep::CoverageMapRemove() 
+{ 
+  if (this->CoverageLabelMapNode && this->GetGUI()) 
+  { 
+    this->GetGUI()->GetMRMLScene()->RemoveNode(this->CoverageLabelMapNode);
+  }
+  this->CoverageLabelMapNode = NULL;
+
+  if (this->CoverageLabelMapImage) { 
+    this->CoverageLabelMapImage->Delete();
+    this->CoverageLabelMapImage = NULL;
+  }
+}
+
+void vtkTRProstateBiopsyTargetingStep::CoverageMapUpdate()
+{
+  if (this->CoverageLabelMapNode==NULL || this->CoverageLabelMapImage==NULL)
+  {
+    vtkWarningMacro("CoverageMapUpdate failed, the map is not initialized");
+    return;
+  }
+
+//  std::string needleType = this->NeedleTypeMenuList->GetWidget()->GetValue();
+  
+  double *origin=CoverageLabelMapNode->GetOrigin();
+  double *spacing=CoverageLabelMapNode->GetSpacing();
+
+  double rasPoint[3];
+  int extent[6];
+  CoverageLabelMapImage->GetWholeExtent(extent);
+
+  /*for (int z=extent[4]; z<=extent[5]; z++)
+  {
+    for (int y=extent[2]; y<=extent[3]; y++)
+    {
+      for (int x=extent[0]; x<=extent[1]; x++)
+      {
+        CoverageLabelMapImage->SetScalarComponentFromFloat(x, y, z, 0, 0);
+      }
+    }
+  }*/
+
+  for (int z=extent[4]; z<=extent[5]; z++)
+  {
+    for (int y=extent[2]; y<=extent[3]; y++)
+    {
+      for (int x=extent[0]; x<=extent[1]; x++)
+      {
+       
+        rasPoint[0]=origin[0]-x*spacing[0];
+        rasPoint[1]=origin[1]-y*spacing[1];
+        rasPoint[2]=origin[2]+z*spacing[2];
+        
+        float value=0;
+        if (this->GetGUI()->GetLogic()->IsTargetReachable(/*needleType, */rasPoint))
+        {
+          value=1;
+        }
+
+        CoverageLabelMapImage->SetScalarComponentFromFloat(x, y, z, 0, value);
+      }
+    }
+  }
+
 }
