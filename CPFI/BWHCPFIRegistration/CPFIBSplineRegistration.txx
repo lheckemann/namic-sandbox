@@ -12,10 +12,12 @@
 #include "itkImageFileWriter.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
+#include "itkExtractImageFilter.h"
 
 #include "itkPluginUtilities.h"
 
 #include "itkTimeProbesCollectorBase.h"
+
 
 
 
@@ -32,17 +34,21 @@ public:
     PARSE_ARGS;
 
     // typedefs
+    const unsigned int FileImageDimension = 3;
     const unsigned int ImageDimension = N;
     typedef  T  PixelType;
     typedef  T  OutputPixelType;
+    typedef typename itk::OrientedImage< PixelType, FileImageDimension >   FileInputImageType;
     typedef typename itk::OrientedImage< PixelType, ImageDimension >       InputImageType;
     typedef typename itk::OrientedImage< OutputPixelType, ImageDimension > OutputImageType;
 
-    typedef typename itk::ImageFileReader< InputImageType > FixedImageReaderType;
-    typedef typename itk::ImageFileReader< InputImageType > MovingImageReaderType;
+    typedef typename itk::ImageFileReader< FileInputImageType > FixedImageReaderType;
+    typedef typename itk::ImageFileReader< FileInputImageType > MovingImageReaderType;
     typedef typename itk::ImageFileWriter< OutputImageType >  WriterType;
 
-    typedef typename itk::OrientImageFilter<InputImageType,InputImageType> OrientFilterType;
+    typedef typename itk::OrientImageFilter<FileInputImageType,FileInputImageType> OrientFilterType;
+    typedef typename itk::ExtractImageFilter<FileInputImageType, InputImageType>   ExtractFilterType;
+
     typedef typename itk::ResampleImageFilter< 
                               InputImageType, 
                               OutputImageType >    ResampleFilterType;
@@ -124,7 +130,6 @@ public:
     // transform forthe original un-reoriented data. 
     //
 
-    /*
     typename OrientFilterType::Pointer fixedOrient = OrientFilterType::New();
     typename OrientFilterType::Pointer movingOrient = OrientFilterType::New();
   
@@ -135,12 +140,10 @@ public:
     movingOrient->UseImageDirectionOn();
     movingOrient->SetDesiredCoordinateOrientationToAxial();
     movingOrient->SetInput (movingImageReader->GetOutput());
-    */
 
     // Add a time probe
     itk::TimeProbesCollectorBase collector;
 
-    /*
     collector.Start( "Read fixed volume" );
     itk::PluginFilterWatcher watchOrientFixed(fixedOrient,
                                               "Orient Fixed Image",
@@ -156,23 +159,45 @@ public:
                                               1.0/3.0, 1.0/3.0);
     movingOrient->Update();
     collector.Stop( "Read moving volume" );
-    */
 
-    itk::PluginFilterWatcher watchFixed(fixedImageReader,
-                                        "Read Fixed Volume",
-                                        CLPProcessInformation,
-                                        1.0/3.0, 0.0);
-    collector.Start( "Read fixed volume" );
-    fixedImageReader->Update();
-    collector.Stop( "Read fixed volume" );
+    typename InputImageType::Pointer fixedImage;
+    typename InputImageType::Pointer movingImage;
 
-    itk::PluginFilterWatcher watchMoving(movingImageReader,
-                                         "Read Moving Volume",
-                                         CLPProcessInformation,
-                                         1.0/3.0, 0.0);
-    collector.Start( "Read moving volume" );
-    movingImageReader->Update();
-    collector.Stop( "Read moving volume" );
+    typename ExtractFilterType::Pointer fixedExtract;
+    typename ExtractFilterType::Pointer movingExtract;
+
+
+    // Extract filter to collapse image dimension
+    fixedExtract = ExtractFilterType::New();
+    movingExtract = ExtractFilterType::New();
+    
+    fixedExtract->SetInput(fixedOrient->GetOutput());
+    movingExtract->SetInput(movingOrient->GetOutput());
+    
+    typename ExtractFilterType::InputImageRegionType region
+      = fixedOrient->GetOutput()->GetLargestPossibleRegion();
+    
+    if (ImageDimension < FileImageDimension)
+      {
+      typedef itk::Size<FileImageDimension> SizeType;
+      SizeType size = region.GetSize();
+      for (unsigned int i = 0; i < FileImageDimension; i ++)
+        {
+        if (size[i] == 1)
+          {
+          size[0] = 0; // collapse this dimension
+          break;
+          }
+        }
+      region.SetSize(size);
+      }
+    
+    fixedExtract->SetExtractionRegion(region);
+    movingExtract->SetExtractionRegion(region);
+    
+    fixedImage  = fixedExtract->GetOutput();
+    movingImage = movingExtract->GetOutput();
+
   
     // Setup BSpline deformation
     //
@@ -192,12 +217,13 @@ public:
   
     //SpacingType spacing = fixedOrient->GetOutput()->GetSpacing();
     //OriginType origin = fixedOrient->GetOutput()->GetOrigin();;
-    SpacingType spacing = fixedImageReader->GetOutput()->GetSpacing();
-    OriginType origin = fixedImageReader->GetOutput()->GetOrigin();;
+    SpacingType spacing = fixedImage->GetSpacing();
+    OriginType origin   = fixedImage->GetOrigin();;
   
     typename InputImageType::RegionType fixedRegion =
       //fixedOrient->GetOutput()->GetLargestPossibleRegion();
-      fixedImageReader->GetOutput()->GetLargestPossibleRegion();
+      fixedImage->GetLargestPossibleRegion();
+    
     typename InputImageType::SizeType fixedImageSize =
       fixedRegion.GetSize();
   
@@ -227,7 +253,7 @@ public:
     //
     typename TransformType::InputPointType centerFixed;
     //typename InputImageType::RegionType::SizeType sizeFixed = fixedOrient->GetOutput()->GetLargestPossibleRegion().GetSize();
-    typename InputImageType::RegionType::SizeType sizeFixed = fixedImageReader->GetOutput()->GetLargestPossibleRegion().GetSize();
+    typename InputImageType::RegionType::SizeType sizeFixed = fixedImage->GetLargestPossibleRegion().GetSize();
     // Find the center
     ContinuousIndexType indexFixed;
     for ( unsigned j = 0; j < 3; j++ )
@@ -235,11 +261,13 @@ public:
       indexFixed[j] = (sizeFixed[j]-1) / 2.0;
       }
     //fixedOrient->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
-    fixedImageReader->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
+    fixedImage->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
+
   
     typename TransformType::InputPointType centerMoving;
     //typename InputImageType::RegionType::SizeType sizeMoving = movingOrient->GetOutput()->GetLargestPossibleRegion().GetSize();
-    typename InputImageType::RegionType::SizeType sizeMoving = movingImageReader->GetOutput()->GetLargestPossibleRegion().GetSize();
+    typename InputImageType::RegionType::SizeType sizeMoving = movingImage->GetLargestPossibleRegion().GetSize();
+
     // Find the center
     ContinuousIndexType indexMoving;
     for ( unsigned j = 0; j < 3; j++ )
@@ -247,7 +275,7 @@ public:
       indexMoving[j] = (sizeMoving[j]-1) / 2.0;
       }
     //movingOrient->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
-    movingImageReader->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
+    movingImage->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
 
 
     // JT: for motion correction, we don't need centring.
@@ -341,9 +369,9 @@ public:
     //
     //
     //registration->SetFixedImage  ( fixedOrient->GetOutput()  );
-    registration->SetFixedImage  ( fixedImageReader->GetOutput()  );
+    registration->SetFixedImage  ( fixedImage  );
     //registration->SetMovingImage ( movingOrient->GetOutput() );
-    registration->SetMovingImage ( movingImageReader->GetOutput() );
+    registration->SetMovingImage ( movingImage );
     registration->SetMetric      ( metric       );
     registration->SetOptimizer   ( optimizer    );
     registration->SetInterpolator( interpolator );
@@ -406,9 +434,11 @@ public:
         1.0/3.0, 2.0/3.0);
       
       resample->SetTransform        ( transform );
-      resample->SetInput            ( movingImageReader->GetOutput() );
+      //resample->SetInput            ( movingOrient->GetOutput() );
+      resample->SetInput            ( movingImage );
       resample->SetDefaultPixelValue( DefaultPixelValue );
-      resample->SetOutputParametersFromImage ( fixedImageReader->GetOutput() );
+      //resample->SetOutputParametersFromImage ( fixedOrient->GetOutput() );
+      resample->SetOutputParametersFromImage ( fixedImage );
       
       collector.Start( "Resample" );
       resample->Update();
