@@ -123,6 +123,8 @@ public:
     // transform calculated on the reoriented data is also the
     // transform forthe original un-reoriented data. 
     //
+
+    /*
     typename OrientFilterType::Pointer fixedOrient = OrientFilterType::New();
     typename OrientFilterType::Pointer movingOrient = OrientFilterType::New();
   
@@ -133,10 +135,12 @@ public:
     movingOrient->UseImageDirectionOn();
     movingOrient->SetDesiredCoordinateOrientationToAxial();
     movingOrient->SetInput (movingImageReader->GetOutput());
-  
+    */
+
     // Add a time probe
     itk::TimeProbesCollectorBase collector;
-  
+
+    /*
     collector.Start( "Read fixed volume" );
     itk::PluginFilterWatcher watchOrientFixed(fixedOrient,
                                               "Orient Fixed Image",
@@ -152,7 +156,23 @@ public:
                                               1.0/3.0, 1.0/3.0);
     movingOrient->Update();
     collector.Stop( "Read moving volume" );
-  
+    */
+
+    itk::PluginFilterWatcher watchFixed(fixedImageReader,
+                                        "Read Fixed Volume",
+                                        CLPProcessInformation,
+                                        1.0/3.0, 0.0);
+    collector.Start( "Read fixed volume" );
+    fixedImageReader->Update();
+    collector.Stop( "Read fixed volume" );
+
+    itk::PluginFilterWatcher watchMoving(movingImageReader,
+                                         "Read Moving Volume",
+                                         CLPProcessInformation,
+                                         1.0/3.0, 0.0);
+    collector.Start( "Read moving volume" );
+    movingImageReader->Update();
+    collector.Stop( "Read moving volume" );
   
     // Setup BSpline deformation
     //
@@ -170,11 +190,14 @@ public:
   
     bsplineRegion.SetSize( totalGridSize );
   
-    SpacingType spacing = fixedOrient->GetOutput()->GetSpacing();
-    OriginType origin = fixedOrient->GetOutput()->GetOrigin();;
+    //SpacingType spacing = fixedOrient->GetOutput()->GetSpacing();
+    //OriginType origin = fixedOrient->GetOutput()->GetOrigin();;
+    SpacingType spacing = fixedImageReader->GetOutput()->GetSpacing();
+    OriginType origin = fixedImageReader->GetOutput()->GetOrigin();;
   
     typename InputImageType::RegionType fixedRegion =
-      fixedOrient->GetOutput()->GetLargestPossibleRegion();
+      //fixedOrient->GetOutput()->GetLargestPossibleRegion();
+      fixedImageReader->GetOutput()->GetLargestPossibleRegion();
     typename InputImageType::SizeType fixedImageSize =
       fixedRegion.GetSize();
   
@@ -203,25 +226,32 @@ public:
     //
     //
     typename TransformType::InputPointType centerFixed;
-    typename InputImageType::RegionType::SizeType sizeFixed = fixedOrient->GetOutput()->GetLargestPossibleRegion().GetSize();
+    //typename InputImageType::RegionType::SizeType sizeFixed = fixedOrient->GetOutput()->GetLargestPossibleRegion().GetSize();
+    typename InputImageType::RegionType::SizeType sizeFixed = fixedImageReader->GetOutput()->GetLargestPossibleRegion().GetSize();
     // Find the center
     ContinuousIndexType indexFixed;
     for ( unsigned j = 0; j < 3; j++ )
       {
       indexFixed[j] = (sizeFixed[j]-1) / 2.0;
       }
-    fixedOrient->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
+    //fixedOrient->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
+    fixedImageReader->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
   
     typename TransformType::InputPointType centerMoving;
-    typename InputImageType::RegionType::SizeType sizeMoving = movingOrient->GetOutput()->GetLargestPossibleRegion().GetSize();
+    //typename InputImageType::RegionType::SizeType sizeMoving = movingOrient->GetOutput()->GetLargestPossibleRegion().GetSize();
+    typename InputImageType::RegionType::SizeType sizeMoving = movingImageReader->GetOutput()->GetLargestPossibleRegion().GetSize();
     // Find the center
     ContinuousIndexType indexMoving;
     for ( unsigned j = 0; j < 3; j++ )
       {
       indexMoving[j] = (sizeMoving[j]-1) / 2.0;
       }
-    movingOrient->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
-  
+    //movingOrient->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
+    movingImageReader->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
+
+
+    // JT: for motion correction, we don't need centring.
+    /*
     typename AffineTransformType::Pointer centeringTransform;
     centeringTransform = AffineTransformType::New();
   
@@ -231,6 +261,7 @@ public:
     std::cout << "Centering transform: "; centeringTransform->Print( std::cout );
   
     transform->SetBulkTransform( centeringTransform );
+    */
   
     // If an initial transformation was provided, then use it instead.
     //
@@ -309,8 +340,10 @@ public:
     // Registration
     //
     //
-    registration->SetFixedImage  ( fixedOrient->GetOutput()  );
-    registration->SetMovingImage ( movingOrient->GetOutput() );
+    //registration->SetFixedImage  ( fixedOrient->GetOutput()  );
+    registration->SetFixedImage  ( fixedImageReader->GetOutput()  );
+    //registration->SetMovingImage ( movingOrient->GetOutput() );
+    registration->SetMovingImage ( movingImageReader->GetOutput() );
     registration->SetMetric      ( metric       );
     registration->SetOptimizer   ( optimizer    );
     registration->SetInterpolator( interpolator );

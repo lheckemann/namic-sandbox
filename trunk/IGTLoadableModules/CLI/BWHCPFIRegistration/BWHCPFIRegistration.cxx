@@ -59,7 +59,7 @@ int main( int argc, char * argv[] )
           }
         else // Dimensions == 2
           {
-          CPFIBSplineRegistration<short, 3> registration;
+          CPFIBSplineRegistration<short, 2> registration;
           return registration.DoIt(argc, argv);
           }
         break;
@@ -77,7 +77,7 @@ int main( int argc, char * argv[] )
           }
         else // Dimensions == 2
           {
-          CPFIBSplineRegistration<float, 3> registration;
+          CPFIBSplineRegistration<float, 2> registration;
           return registration.DoIt(argc, argv);
           }
         break;
