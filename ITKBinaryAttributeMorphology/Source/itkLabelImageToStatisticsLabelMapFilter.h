@@ -27,7 +27,14 @@
 namespace itk {
 
 /** \class LabelImageToStatisticsLabelMapFilter
- * \brief a convenient class to convert a label image to a label map and valuate the statistics attributes at once
+ * \brief Converts a label image to a label map and valuate the statistics attributes
+ *
+ * A convenient class that converts a label image to a label map and valuates the statistics
+ * attributes at once.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -65,12 +72,9 @@ public:
   typedef typename FeatureImageType::PixelType       FeatureImagePixelType;
 
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro( InputImageDimension, unsigned int, TInputImage::ImageDimension );
+  itkStaticConstMacro( OutputImageDimension, unsigned int, TInputImage::ImageDimension );
+  itkStaticConstMacro( ImageDimension, unsigned int, TInputImage::ImageDimension );
 
   typedef typename itk::LabelImageToLabelMapFilter< InputImageType, OutputImageType > LabelizerType;
   typedef typename itk::StatisticsLabelMapFilter< OutputImageType, FeatureImageType > LabelObjectValuatorType;
@@ -79,8 +83,7 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(LabelImageToStatisticsLabelMapFilter, 
-               ImageToImageFilter);
+  itkTypeMacro( LabelImageToStatisticsLabelMapFilter, ImageToImageFilter );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -97,46 +100,46 @@ public:
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
-  itkSetMacro(BackgroundValue, OutputImagePixelType);
-  itkGetConstMacro(BackgroundValue, OutputImagePixelType);
+  itkSetMacro (BackgroundValue, OutputImagePixelType );
+  itkGetConstMacro( BackgroundValue, OutputImagePixelType );
 
   /**
-   * Set/Get whether the maximum Feret diameter should be computed or not. The
-   * defaut value is false, because of the high computation time required.
+   * Set/Get whether the maximum Feret diameter should be computed or not.
+   * Default value is false because of the high computation time required.
    */
-  itkSetMacro(ComputeFeretDiameter, bool);
-  itkGetConstReferenceMacro(ComputeFeretDiameter, bool);
-  itkBooleanMacro(ComputeFeretDiameter);
+  itkSetMacro( ComputeFeretDiameter, bool );
+  itkGetConstReferenceMacro( ComputeFeretDiameter, bool );
+  itkBooleanMacro( ComputeFeretDiameter );
 
   /**
-   * Set/Get whether the perimeter should be computed or not. The defaut value
-   * is false, because of the high computation time required.
+   * Set/Get whether the perimeter should be computed or not.
+   * Default value is false because of the high computation time required.
    */
-  itkSetMacro(ComputePerimeter, bool);
-  itkGetConstReferenceMacro(ComputePerimeter, bool);
-  itkBooleanMacro(ComputePerimeter);
+  itkSetMacro( ComputePerimeter, bool );
+  itkGetConstReferenceMacro( ComputePerimeter, bool );
+  itkBooleanMacro( ComputePerimeter );
 
    /** Set the feature image */
-  void SetFeatureImage(TFeatureImage *input)
+  void SetFeatureImage( TFeatureImage *input )
     {
     // Process object is not const-correct so the const casting is required.
-    this->SetNthInput( 1, const_cast<TFeatureImage *>(input) );
+    this->SetNthInput( 1, const_cast<TFeatureImage *>( input ) );
     }
 
   /** Get the feature image */
   FeatureImageType * GetFeatureImage()
     {
-    return static_cast<FeatureImageType*>(const_cast<DataObject *>(this->ProcessObject::GetInput(1)));
+    return static_cast<FeatureImageType*>( const_cast<DataObject *>(this->ProcessObject::GetInput( 1 ) )) ;
     }
 
    /** Set the input image */
-  void SetInput1(InputImageType *input)
+  void SetInput1( InputImageType *input )
     {
     this->SetInput( input );
     }
 
   /** Set the feature image */
-  void SetInput2(FeatureImageType *input)
+  void SetInput2( FeatureImageType *input )
     {
     this->SetFeatureImage( input );
     }
@@ -147,34 +150,33 @@ public:
    * compared to the other attributes, this option is useful to reduce the memory usage
    * when the histogram is not required.
    */
-  itkSetMacro(ComputeHistogram, bool);
-  itkGetConstReferenceMacro(ComputeHistogram, bool);
-  itkBooleanMacro(ComputeHistogram);
+  itkSetMacro( ComputeHistogram, bool );
+  itkGetConstReferenceMacro( ComputeHistogram, bool );
+  itkBooleanMacro( ComputeHistogram );
 
   /**
    * Set/Get the number of bins in the histogram. Note that the histogram is used
    * to compute the median value, and that this option may have an effect on the
    * value of the median.
    */
-  itkSetMacro(NumberOfBins, unsigned int);
-  itkGetConstReferenceMacro(NumberOfBins, unsigned int);
+  itkSetMacro( NumberOfBins, unsigned int );
+  itkGetConstReferenceMacro( NumberOfBins, unsigned int );
 
 
 protected:
   LabelImageToStatisticsLabelMapFilter();
   ~LabelImageToStatisticsLabelMapFilter() {};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const;
 
-  /** LabelImageToStatisticsLabelMapFilter needs the entire input be
-   * available. Thus, it needs to provide an implementation of
-   * GenerateInputRequestedRegion(). */
+  /** LabelImageToStatisticsLabelMapFilter needs the entire input be available.
+   * Thus, it needs to provide an implementation of GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();
 
   /** LabelImageToStatisticsLabelMapFilter will produce the entire output. */
-  void EnlargeOutputRequestedRegion(DataObject *itkNotUsed(output));
+  void EnlargeOutputRequestedRegion( DataObject *itkNotUsed(output ) );
   
-  /** Single-threaded version of GenerateData.  This filter delegates
-   * to GrayscaleGeodesicErodeImageFilter. */
+  /** Single-threaded version of GenerateData.
+   * This filter delegates to GrayscaleGeodesicErodeImageFilter. */
   void GenerateData();
   
 

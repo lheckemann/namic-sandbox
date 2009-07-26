@@ -21,10 +21,14 @@
 
 namespace itk {
 /** \class StatisticsLabelMapFilter
- * \brief The valuator class for the ShapeLabelObject
+ * \brief The valuator class for ShapeLabelObject
  *
  * StatisticsCollectionImageFilter can be used to set the attributes values
  * of the StatisticsLabelObject in a LabelMap.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -58,15 +62,13 @@ public:
   typedef typename FeatureImageType::PixelType       FeatureImagePixelType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
 
   /** Standard New method. */
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(StatisticsLabelMapFilter, 
-               ShapeLabelMapFilter);
+  itkTypeMacro(StatisticsLabelMapFilter, ShapeLabelMapFilter);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */

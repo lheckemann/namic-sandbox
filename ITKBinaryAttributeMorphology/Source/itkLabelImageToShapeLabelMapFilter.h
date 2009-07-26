@@ -27,7 +27,14 @@
 namespace itk {
 
 /** \class LabelImageToShapeLabelMapFilter
- * \brief a convenient class to convert a label image to a label map and valuate the shape attributes at once
+ * \brief Converts a label image to a label map and valuates the shape attributes
+ *  
+ *  A convenient class that converts a label image to a label map and valuates the shape attribute at once.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ *
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -60,22 +67,19 @@ public:
   typedef typename OutputImageType::LabelObjectType LabelObjectType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
-  typedef typename itk::LabelImageToLabelMapFilter< InputImageType, OutputImageType > LabelizerType;
+  typedef typename itk::LabelImageToLabelMapFilter< InputImageType, OutputImageType > 
+                                                               LabelizerType;
   typedef typename itk::ShapeLabelMapFilter< OutputImageType > LabelObjectValuatorType;
 
   /** Standard New method. */
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(LabelImageToShapeLabelMapFilter, 
-               ImageToImageFilter);
+  itkTypeMacro(LabelImageToShapeLabelMapFilter, ImageToImageFilter);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -96,16 +100,16 @@ public:
   itkGetConstMacro(BackgroundValue, OutputImagePixelType);
 
   /**
-   * Set/Get whether the maximum Feret diameter should be computed or not. The
-   * defaut value is false, because of the high computation time required.
+   * Set/Get whether the maximum Feret diameter should be computed or not. 
+   * Default value is false, because of the high computation time required.
    */
   itkSetMacro(ComputeFeretDiameter, bool);
   itkGetConstReferenceMacro(ComputeFeretDiameter, bool);
   itkBooleanMacro(ComputeFeretDiameter);
 
   /**
-   * Set/Get whether the perimeter should be computed or not. The defaut value
-   * is false, because of the high computation time required.
+   * Set/Get whether the perimeter should be computed or not.
+   * Default value is false, because of the high computation time required.
    */
   itkSetMacro(ComputePerimeter, bool);
   itkGetConstReferenceMacro(ComputePerimeter, bool);
@@ -116,16 +120,15 @@ protected:
   ~LabelImageToShapeLabelMapFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  /** LabelImageToShapeLabelMapFilter needs the entire input be
-   * available. Thus, it needs to provide an implementation of
-   * GenerateInputRequestedRegion(). */
+  /** LabelImageToShapeLabelMapFilter needs the entire input be available.
+   * Thus, it needs to provide an implementation of GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();
 
   /** LabelImageToShapeLabelMapFilter will produce the entire output. */
   void EnlargeOutputRequestedRegion(DataObject *itkNotUsed(output));
   
-  /** Single-threaded version of GenerateData.  This filter delegates
-   * to GrayscaleGeodesicErodeImageFilter. */
+  /** Single-threaded version of GenerateData.
+   * This filter delegates to GrayscaleGeodesicErodeImageFilter. */
   void GenerateData();
   
 

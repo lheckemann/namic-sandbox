@@ -30,6 +30,7 @@ ShapeKeepNObjectsLabelMapFilter<TImage>
   m_ReverseOrdering = false;
   m_NumberOfObjects = 1;
   m_Attribute = LabelObjectType::SIZE;
+
   // create the output image for the removed objects
   this->SetNumberOfRequiredOutputs(2);
   this->SetNthOutput(1, static_cast<TImage*>(this->MakeOutput(1).GetPointer()));
@@ -116,12 +117,12 @@ ShapeKeepNObjectsLabelMapFilter<TImage>
   // get the label objects in a vector, so they can be sorted
   VectorType labelObjects;
   labelObjects.reserve( labelObjectContainer.size() );
-  for( typename LabelObjectContainerType::const_iterator it = labelObjectContainer.begin();
-    it != labelObjectContainer.end();
-    it++ )
+  typename LabelObjectContainerType::const_iterator it = labelObjectContainer.begin();
+  while( it != labelObjectContainer.end() )
     {
     labelObjects.push_back( it->second );
     progress.CompletedPixel();
+    it++;
     }
 
   // instantiate the comparator and sort the vector
@@ -138,7 +139,7 @@ ShapeKeepNObjectsLabelMapFilter<TImage>
       Functor::LabelObjectComparator< LabelObjectType, TAttributeAccessor > comparator;
       std::nth_element( labelObjects.begin(), end, labelObjects.end(), comparator );
       }
-//   progress.CompletedPixel();
+    progress.CompletedPixel();
   
     // and remove the last objects of the map
     for( typename VectorType::const_iterator it = end;
@@ -156,13 +157,13 @@ ShapeKeepNObjectsLabelMapFilter<TImage>
 template <class TImage>
 void
 ShapeKeepNObjectsLabelMapFilter<TImage>
-::PrintSelf(std::ostream& os, Indent indent) const
+::PrintSelf( std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
 
   os << indent << "ReverseOrdering: "  << m_ReverseOrdering << std::endl;
   os << indent << "NumberOfObjects: "  << m_NumberOfObjects << std::endl;
-  os << indent << "Attribute: "  << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ")" << std::endl;
+  os << indent << "Attribute: "  << LabelObjectType::GetNameFromAttribute( m_Attribute ) << " (" << m_Attribute << ")" << std::endl;
 }
 
 }// end namespace itk

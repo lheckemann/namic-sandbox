@@ -42,7 +42,7 @@ BinaryImageToShapeLabelMapFilter<TInputImage, TOutputImage>
   // call the superclass' implementation of this method
   Superclass::GenerateInputRequestedRegion();
   
-  // We need all the input.
+  // We need all the inputs.
   InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if( input )
     {

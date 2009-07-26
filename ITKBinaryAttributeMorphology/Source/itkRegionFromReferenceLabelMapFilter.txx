@@ -21,10 +21,8 @@
 #define __itkRegionFromReferenceLabelMapFilter_txx
 #include "itkRegionFromReferenceLabelMapFilter.h"
 
-
 namespace itk
 {
-
 
 template <class TInputImage>
 void 
@@ -32,9 +30,25 @@ RegionFromReferenceLabelMapFilter<TInputImage>
 ::GenerateOutputInformation()
 {
   Superclass::GenerateOutputInformation();
+
   this->SetRegion( this->GetReferenceImage()->GetLargestPossibleRegion() );
   this->GetOutput()->SetLargestPossibleRegion( this->GetRegion() );
 }
+
+
+template <class TInputImage>
+void
+RegionFromReferenceLabelMapFilter<TInputImage>
+::SetReferenceImage ( const ReferenceImageType *image )
+{
+  itkDebugMacro("setting input ReferenceImage to " << image);
+  if( image != static_cast<const ReferenceImageType *>(this->GetInput( 1 )) )
+    {
+    this->ProcessObject::SetNthInput(1, const_cast< ReferenceImageType *>( image ) );
+    this->Modified();
+    }
+}
+
 
 
 template <class TInputImage>
@@ -43,8 +57,10 @@ RegionFromReferenceLabelMapFilter<TInputImage>
 ::GetReferenceImage() const
 {
   Self * surrogate = const_cast< Self * >( this );
-  const ReferenceImageType * referenceImage = 
-    static_cast<const ReferenceImageType *>(surrogate->ProcessObject::GetInput(1));
+
+  ImageType input = surrogate->ProcessObject::GetInput(1);
+
+  const ReferenceImageType * referenceImage = static_cast<const ReferenceImageType *>( input );
   return referenceImage;
 }
 

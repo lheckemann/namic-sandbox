@@ -27,7 +27,13 @@
 namespace itk {
 
 /** \class BinaryImageToStatisticsLabelMapFilter
- * \brief a convenient class to convert a binary image to a label map and valuate the statistics attributes at once
+ * \brief Converts a binary image to a label map and valuate the statistics attributes.
+ * 
+ * A convenient class that converts a binary image to a label map and valuates the shape attribute at once.
+ * 
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -65,32 +71,28 @@ public:
   typedef typename FeatureImageType::PixelType       FeatureImagePixelType;
 
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro( InputImageDimension, unsigned int, TInputImage::ImageDimension );
+  itkStaticConstMacro( OutputImageDimension, unsigned int, TInputImage::ImageDimension );
+  itkStaticConstMacro( ImageDimension, unsigned int, TInputImage::ImageDimension );
 
   typedef typename itk::BinaryImageToLabelMapFilter< InputImageType, OutputImageType > LabelizerType;
   typedef typename itk::StatisticsLabelMapFilter< OutputImageType, FeatureImageType >  LabelObjectValuatorType;
 
   /** Standard New method. */
-  itkNewMacro(Self);  
+  itkNewMacro( Self );  
 
   /** Runtime information support. */
-  itkTypeMacro(BinaryImageToStatisticsLabelMapFilter, 
-               ImageToImageFilter);
+  itkTypeMacro( BinaryImageToStatisticsLabelMapFilter, ImageToImageFilter );
 
   /**
-   * Set/Get whether the connected components are defined strictly by
-   * face connectivity or by face+edge+vertex connectivity.  Default is
-   * FullyConnectedOff.  For objects that are 1 pixel wide, use
-   * FullyConnectedOn.
+   * Set/Get whether the connected components are defined strictly by face connectivity or by 
+   * face + edge + vertex connectivity.
+   * Default is FullyConnectedOff. 
+   * For objects that are 1 pixel wide, use FullyConnectedOn.
    */
-  itkSetMacro(FullyConnected, bool);
-  itkGetConstReferenceMacro(FullyConnected, bool);
-  itkBooleanMacro(FullyConnected);
+  itkSetMacro( FullyConnected, bool );
+  itkGetConstReferenceMacro( FullyConnected, bool );
+  itkBooleanMacro( FullyConnected );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -107,43 +109,43 @@ public:
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
-  itkSetMacro(BackgroundValue, OutputImagePixelType);
-  itkGetConstMacro(BackgroundValue, OutputImagePixelType);
+  itkSetMacro( BackgroundValue, OutputImagePixelType );
+  itkGetConstMacro( BackgroundValue, OutputImagePixelType );
 
   /**
    * Set/Get the value used as "foreground" in the output image.
    * Defaults to NumericTraits<PixelType>::max().
    */
-  itkSetMacro(ForegroundValue, InputImagePixelType);
-  itkGetConstMacro(ForegroundValue, InputImagePixelType);
+  itkSetMacro( ForegroundValue, InputImagePixelType );
+  itkGetConstMacro( ForegroundValue, InputImagePixelType );
 
   /**
-   * Set/Get whether the maximum Feret diameter should be computed or not. The
-   * defaut value is false, because of the high computation time required.
+   * Set/Get whether the maximum Feret diameter should be computed or not.
+   * Default value is false because of the high computation time required.
    */
-  itkSetMacro(ComputeFeretDiameter, bool);
-  itkGetConstReferenceMacro(ComputeFeretDiameter, bool);
-  itkBooleanMacro(ComputeFeretDiameter);
+  itkSetMacro( ComputeFeretDiameter, bool );
+  itkGetConstReferenceMacro( ComputeFeretDiameter, bool );
+  itkBooleanMacro( ComputeFeretDiameter );
 
   /**
-   * Set/Get whether the perimeter should be computed or not. The defaut value
-   * is false, because of the high computation time required.
+   * Set/Get whether the perimeter should be computed or not. 
+   * Default value is false because of the high computation time required.
    */
-  itkSetMacro(ComputePerimeter, bool);
-  itkGetConstReferenceMacro(ComputePerimeter, bool);
-  itkBooleanMacro(ComputePerimeter);
+  itkSetMacro( ComputePerimeter, boo l);
+  itkGetConstReferenceMacro ( ComputePerimeter, bool );
+  itkBooleanMacro( ComputePerimeter );
 
    /** Set the feature image */
   void SetFeatureImage(const TFeatureImage *input)
     {
     // Process object is not const-correct so the const casting is required.
-    this->SetNthInput( 1, const_cast<TFeatureImage *>(input) );
+    this->SetNthInput( 1, const_cast<TFeatureImage *>( input) );
     }
 
   /** Get the feature image */
   FeatureImageType * GetFeatureImage()
     {
-    return static_cast<FeatureImageType*>(const_cast<DataObject *>(this->ProcessObject::GetInput(1)));
+    return static_cast<FeatureImageType*>( const_cast<DataObject *>( this->ProcessObject::GetInput( 1 ) ) );
     }
 
    /** Set the input image */
@@ -164,40 +166,39 @@ public:
    * compared to the other attributes, this option is useful to reduce the memory usage
    * when the histogram is not required.
    */
-  itkSetMacro(ComputeHistogram, bool);
-  itkGetConstReferenceMacro(ComputeHistogram, bool);
-  itkBooleanMacro(ComputeHistogram);
+  itkSetMacro( ComputeHistogram, bool );
+  itkGetConstReferenceMacro( ComputeHistogram, bool );
+  itkBooleanMacro( ComputeHistogram );
 
   /**
    * Set/Get the number of bins in the histogram. Note that the histogram is used
    * to compute the median value, and that this option may have an effect on the
    * value of the median.
    */
-  itkSetMacro(NumberOfBins, unsigned int);
-  itkGetConstReferenceMacro(NumberOfBins, unsigned int);
+  itkSetMacro( NumberOfBins, unsigned int );
+  itkGetConstReferenceMacro( NumberOfBins, unsigned int );
 
 
 protected:
   BinaryImageToStatisticsLabelMapFilter();
   ~BinaryImageToStatisticsLabelMapFilter() {};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const;
 
-  /** BinaryImageToStatisticsLabelMapFilter needs the entire input be
-   * available. Thus, it needs to provide an implementation of
-   * GenerateInputRequestedRegion(). */
+  /** BinaryImageToStatisticsLabelMapFilter needs the entire input be available.
+   * Thus, it needs to provide an implementation of GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();
 
   /** BinaryImageToStatisticsLabelMapFilter will produce the entire output. */
-  void EnlargeOutputRequestedRegion(DataObject *itkNotUsed(output));
+  void EnlargeOutputRequestedRegion( DataObject *itkNotUsed( output ) );
   
-  /** Single-threaded version of GenerateData.  This filter delegates
-   * to GrayscaleGeodesicErodeImageFilter. */
+  /** Single-threaded version of GenerateData.
+   * This filter delegates to GrayscaleGeodesicErodeImageFilter. */
   void GenerateData();
   
 
 private:
-  BinaryImageToStatisticsLabelMapFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  BinaryImageToStatisticsLabelMapFilter( const Self& ); //purposely not implemented
+  void operator=( const Self& ); //purposely not implemented
 
   bool                 m_FullyConnected;
   OutputImagePixelType m_BackgroundValue;

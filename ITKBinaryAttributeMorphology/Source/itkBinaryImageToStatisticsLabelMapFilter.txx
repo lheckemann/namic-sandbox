@@ -42,10 +42,10 @@ void
 BinaryImageToStatisticsLabelMapFilter<TInputImage, TFeatureImage, TOutputImage>
 ::GenerateInputRequestedRegion()
 {
-  // call the superclass' implementation of this method
+  // Call the superclass' implementation of this method
   Superclass::GenerateInputRequestedRegion();
   
-  // We need all the input.
+  // We need all the inputs
   InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
   if( input )
     {
