@@ -21,11 +21,14 @@
 
 namespace itk {
 /** \class ShapeKeepNObjectsLabelMapFilter
- * \brief keep N objects according to their shape attributes
+ * \brief Keep N objects according to their shape attributes.
  *
- * ShapeKeepNObjectsLabelMapFilter keep the N objects in a label collection image
- * with the highest (or lowest) attribute value. The attributes are the ones
- * of the ShapeLabelObject.
+ * The ShapeKeepNObjectsLabelMapFilter keeps N objects in a label collection image with the
+ * highest (or lowest) attribute value. The attributes values are those of the ShapeLabelObject.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -54,15 +57,13 @@ public:
   typedef typename LabelObjectType::AttributeType AttributeType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
 
   /** Standard New method. */
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(ShapeKeepNObjectsLabelMapFilter, 
-               InPlaceLabelMapFilter);
+  itkTypeMacro(ShapeKeepNObjectsLabelMapFilter, InPlaceLabelMapFilter);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -96,6 +97,7 @@ public:
    */
   itkGetConstMacro( Attribute, AttributeType );
   itkSetMacro( Attribute, AttributeType );
+
   void SetAttribute( const std::string & s )
     {
     this->SetAttribute( LabelObjectType::GetAttributeFromName( s ) );

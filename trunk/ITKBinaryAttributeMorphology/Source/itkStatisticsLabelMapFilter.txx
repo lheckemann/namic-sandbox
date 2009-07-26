@@ -204,7 +204,6 @@ StatisticsLabelMapFilter<TImage, TFeatureImage>
     vnl_diag_matrix<double> pm = eigen.D;
     for(unsigned int i=0; i<ImageDimension; i++)
       {
-  //    principalMoments[i] = 4 * vcl_sqrt( pm(i,i) );
       principalMoments[i] = pm(i,i);
       }
     principalAxes = eigen.V.transpose();
@@ -232,7 +231,6 @@ StatisticsLabelMapFilter<TImage, TFeatureImage>
       }
     else if( principalMoments[0] != 0 )
       {
-  //    elongation = principalMoments[ImageDimension-1] / principalMoments[0];
       elongation = vcl_sqrt(principalMoments[ImageDimension-1] / principalMoments[ImageDimension-2]);
       flatness = vcl_sqrt(principalMoments[1] / principalMoments[0]);
       }

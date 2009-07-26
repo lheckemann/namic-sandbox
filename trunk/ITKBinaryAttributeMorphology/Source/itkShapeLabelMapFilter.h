@@ -23,27 +23,34 @@
 #define PI 3.14159265358979323846
 
 namespace itk {
+
 /** \class ShapeLabelMapFilter
  * \brief The valuator class for the ShapeLabelObject
  *
- * ShapeLabelMapFilter can be used to set the attributes values
- * of the ShapeLabelObject in a LabelMap.
+ * ShapeLabelMapFilter can be used to set the attributes values of the ShapeLabelObject
+ * in a LabelMap.
  *
- * ShapeLabelMapFilter take an optional parameter, used only to optimize
+ * ShapeLabelMapFilter takes an optional parameter, used only to optimize
  * the computation time and the memory usage when the perimeter or the feret diameter
- * are used: the exact copy of the input LabelMap but stored in an Image.
- * It can be set with SetLabelImage(). It is cleared at the end of the computation, and
- * so must be reset before running Update() again. It is not part of the pipeline management
- * design, to let the subclasses of ShapeLabelMapFilter use the
- * pipeline desing to specify a really required input.
+ * is used: the exact copy of the input LabelMap is stored in an Image.
+ * It can be set with SetLabelImage(). It is cleared at the end of the computation, so
+ * must be reset before running Update() again. It is not part of the pipeline management
+ * design, to let the subclasses of ShapeLabelMapFilter use the pipeline design to 
+ * specify truly required inputs.
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
+ *
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters
  */
+
 template<class TImage, class TLabelImage=Image< typename TImage::PixelType, TImage::ImageDimension > >
 class ITK_EXPORT ShapeLabelMapFilter : 
-    public InPlaceLabelMapFilter<TImage>
+public
+InPlaceLabelMapFilter<TImage>
 {
 public:
   /** Standard class typedefs. */
@@ -69,8 +76,7 @@ public:
   typedef typename LabelImageType::PixelType       LabelPixelType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension );
 
   typedef LabelPerimeterEstimationCalculator< LabelImageType > PerimeterCalculatorType;
 
@@ -78,8 +84,7 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(ShapeLabelMapFilter, 
-               InPlaceLabelMapFilter);
+  itkTypeMacro(ShapeLabelMapFilter, InPlaceLabelMapFilter );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -93,20 +98,20 @@ public:
 #endif
 
   /**
-   * Set/Get whether the maximum Feret diameter should be computed or not. The
-   * defaut value is false, because of the high computation time required.
+   * Set/Get whether the maximum Feret diameter should be computed or not.
+   * Default value is false because of the high computation time required.
    */
-  itkSetMacro(ComputeFeretDiameter, bool);
-  itkGetConstReferenceMacro(ComputeFeretDiameter, bool);
-  itkBooleanMacro(ComputeFeretDiameter);
+  itkSetMacro( ComputeFeretDiameter, bool );
+  itkGetConstReferenceMacro( ComputeFeretDiameter, bool );
+  itkBooleanMacro( ComputeFeretDiameter );
 
   /**
-   * Set/Get whether the perimeter should be computed or not. The defaut value
-   * is false, because of the high computation time required.
+   * Set/Get whether the perimeter should be computed or not.
+   * Default value is false because of the high computation time required.
    */
-  itkSetMacro(ComputePerimeter, bool);
-  itkGetConstReferenceMacro(ComputePerimeter, bool);
-  itkBooleanMacro(ComputePerimeter);
+  itkSetMacro( ComputePerimeter, bool );
+  itkGetConstReferenceMacro( ComputePerimeter, bool );
+  itkBooleanMacro( ComputePerimeter );
 
 
   /** Set the label image */
@@ -118,19 +123,14 @@ public:
   /** */
   static long factorial( long n );
 
-  /** */
   static long doubleFactorial( long n );
 
-  /** */
   static double gammaN2p1( long n );
 
-  /** */
   static double hyperSphereVolume( double radius );
 
-  /** */
   static double hyperSpherePerimeter( double radius );
 
-  /** */
   static double hyperSphereRadiusFromVolume( double volume );
 
 

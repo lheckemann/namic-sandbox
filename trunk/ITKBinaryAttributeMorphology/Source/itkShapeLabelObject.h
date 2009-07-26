@@ -24,6 +24,21 @@
 namespace itk
 {
 
+/** \class ShapeLabelObject
+ * \brief TODO
+ *
+ *
+ *
+ * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
+ *
+ *
+ * \ingroup TODO 
+ */
+
 
 namespace Functor {
 
@@ -460,8 +475,6 @@ public:
 
   typedef Vector< double, ImageDimension > VectorType;
 
-/*  itkGetConstMacro( Region, RegionType );
-  itkSetMacro( Region, RegionType );*/
   const RegionType & GetRegion() const
     {
     return m_Region;
@@ -472,8 +485,6 @@ public:
     m_Region = v;
     }
 
-//   itkGetConstMacro( PhysicalSize, double );
-//   itkSetMacro( PhysicalSize, double );
   const double & GetPhysicalSize() const
     {
     return m_PhysicalSize;
@@ -484,8 +495,6 @@ public:
     m_PhysicalSize = v;
     }
 
-//   itkGetConstMacro( Size, unsigned long );
-//   itkSetMacro( Size, unsigned long );
   const unsigned long & GetSize() const
     {
     return m_Size;
@@ -496,8 +505,6 @@ public:
     m_Size = v;
     }
 
-//   itkGetConstMacro( Centroid, CentroidType );
-//   itkSetMacro( Centroid, CentroidType );
   const CentroidType & GetCentroid() const
     {
     return m_Centroid;
@@ -508,8 +515,6 @@ public:
     m_Centroid = centroid;
     }
 
-//   itkGetConstMacro( RegionElongation, double );
-//   itkSetMacro( RegionElongation, double );
   const double & GetRegionElongation() const
     {
     return m_RegionElongation;
@@ -520,8 +525,6 @@ public:
     m_RegionElongation = v;
     }
 
-//   itkGetConstMacro( SizeRegionRatio, double );
-//   itkSetMacro( SizeRegionRatio, double );
   const double & GetSizeRegionRatio() const
     {
     return m_SizeRegionRatio;
@@ -532,8 +535,6 @@ public:
     m_SizeRegionRatio = v;
     }
 
-//   itkGetConstMacro( SizeOnBorder, bool );
-//   itkSetMacro( SizeOnBorder, bool );
   const unsigned long & GetSizeOnBorder() const
     {
     return m_SizeOnBorder;
@@ -544,8 +545,6 @@ public:
     m_SizeOnBorder = v;
     }
 
-//   itkGetConstMacro( PhysicalSizeOnBorder, double );
-//   itkSetMacro( PhysicalSizeOnBorder, double );
   const double & GetPhysicalSizeOnBorder() const
     {
     return m_PhysicalSizeOnBorder;
@@ -556,8 +555,6 @@ public:
     m_PhysicalSizeOnBorder = v;
     }
 
-//   itkGetConstMacro( FeretDiameter, double );
-//   itkSetMacro( FeretDiameter, double );
   const double & GetFeretDiameter() const
     {
     return m_FeretDiameter;
@@ -568,8 +565,6 @@ public:
     m_FeretDiameter = v;
     }
 
-//   itkGetConstMacro( BinaryPrincipalMoments, VectorType );
-//   itkSetMacro( BinaryPrincipalMoments, VectorType );
   const VectorType & GetBinaryPrincipalMoments() const
     {
     return m_BinaryPrincipalMoments;
@@ -580,8 +575,6 @@ public:
     m_BinaryPrincipalMoments = v;
     }
 
-//   itkGetConstMacro( BinaryPrincipalAxes, MatrixType );
-//   itkSetMacro( BinaryPrincipalAxes, MatrixType );
   const MatrixType & GetBinaryPrincipalAxes() const
     {
     return m_BinaryPrincipalAxes;
@@ -592,8 +585,6 @@ public:
     m_BinaryPrincipalAxes = v;
     }
 
-//   itkGetConstMacro( BinaryElongation, double );
-//   itkSetMacro( BinaryElongation, double );
   const double & GetBinaryElongation() const
     {
     return m_BinaryElongation;
@@ -604,8 +595,6 @@ public:
     m_BinaryElongation = v;
     }
 
-//   itkGetConstMacro( Perimeter, double );
-//   itkSetMacro( Perimeter, double );
   const double & GetPerimeter() const
     {
     return m_Perimeter;
@@ -616,8 +605,6 @@ public:
     m_Perimeter = v;
     }
 
-//   itkGetConstMacro( Roundness, double );
-//   itkSetMacro( Roundness, double );
   const double & GetRoundness() const
     {
     return m_Roundness;
@@ -628,8 +615,6 @@ public:
     m_Roundness = v;
     }
 
-//   itkGetConstMacro( EquivalentRadius, double );
-//   itkSetMacro( EquivalentRadius, double );
   const double & GetEquivalentRadius() const
     {
     return m_EquivalentRadius;
@@ -640,8 +625,6 @@ public:
     m_EquivalentRadius = v;
     }
 
-//   itkGetConstMacro( EquivalentPerimeter, double );
-//   itkSetMacro( EquivalentPerimeter, double );
   const double & GetEquivalentPerimeter() const
     {
     return m_EquivalentPerimeter;
@@ -652,8 +635,6 @@ public:
     m_EquivalentPerimeter = v;
     }
 
-//   itkGetConstMacro( EquivalentEllipsoidSize, VectorType );
-//   itkSetMacro( EquivalentEllipsoidSize, VectorType );
   const VectorType & GetEquivalentEllipsoidSize() const
     {
     return m_EquivalentEllipsoidSize;
@@ -664,8 +645,6 @@ public:
     m_EquivalentEllipsoidSize = v;
     }
 
-//   itkGetConstMacro( BinaryFlatness, double );
-//   itkSetMacro( BinaryFlatness, double );
   const double & GetBinaryFlatness() const
     {
     return m_BinaryFlatness;
@@ -677,7 +656,7 @@ public:
     }
 
 
-// some helper methods - not really required, but really useful!
+  // some helper methods - not really required, but really useful!
 
   /** Affine transform for mapping to and from principal axis */
   typedef AffineTransform<double,itkGetStaticConstMacro(ImageDimension)> AffineTransformType;

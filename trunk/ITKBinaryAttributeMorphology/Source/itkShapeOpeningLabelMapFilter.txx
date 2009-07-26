@@ -30,9 +30,10 @@ ShapeOpeningLabelMapFilter<TImage>
   m_Lambda = NumericTraits< double >::Zero;
   m_ReverseOrdering = false;
   m_Attribute = LabelObjectType::SIZE;
+  
   // create the output image for the removed objects
   this->SetNumberOfRequiredOutputs(2);
-  this->SetNthOutput(1, static_cast<TImage*>(this->MakeOutput(1).GetPointer()));
+  this->SetNthOutput( 1, static_cast<TImage*>( this->MakeOutput(1).GetPointer() ) );
 }
 
 
@@ -148,7 +149,7 @@ ShapeOpeningLabelMapFilter<TImage>
 
   os << indent << "ReverseOrdering: "  << m_ReverseOrdering << std::endl;
   os << indent << "Lambda: "  << m_Lambda << std::endl;
-  os << indent << "Attribute: "  << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ")" << std::endl;
+  os << indent << "Attribute: "  << LabelObjectType::GetNameFromAttribute( m_Attribute ) << " (" << m_Attribute << ")" << std::endl;
 }
 
 }// end namespace itk
