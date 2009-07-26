@@ -13,6 +13,8 @@
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 #include "itkExtractImageFilter.h"
+#include "itkTileImageFilter.h"
+#include "itkFlipImageFilter.h"
 
 #include "itkPluginUtilities.h"
 
@@ -39,20 +41,23 @@ public:
     typedef  T  PixelType;
     typedef  T  OutputPixelType;
     typedef typename itk::OrientedImage< PixelType, FileImageDimension >   FileInputImageType;
+    typedef typename itk::OrientedImage< PixelType, FileImageDimension >   FileOutputImageType;
     typedef typename itk::OrientedImage< PixelType, ImageDimension >       InputImageType;
     typedef typename itk::OrientedImage< OutputPixelType, ImageDimension > OutputImageType;
 
     typedef typename itk::ImageFileReader< FileInputImageType > FixedImageReaderType;
     typedef typename itk::ImageFileReader< FileInputImageType > MovingImageReaderType;
-    typedef typename itk::ImageFileWriter< OutputImageType >  WriterType;
+    typedef typename itk::ImageFileWriter< FileOutputImageType >  WriterType;
 
     typedef typename itk::OrientImageFilter<FileInputImageType,FileInputImageType> OrientFilterType;
-    typedef typename itk::ExtractImageFilter<FileInputImageType, InputImageType>   ExtractFilterType;
+    typedef typename itk::ExtractImageFilter<FileInputImageType, InputImageType>   InputExtractFilterType;
 
     typedef typename itk::ResampleImageFilter< 
                               InputImageType, 
                               OutputImageType >    ResampleFilterType;
-  
+
+    typedef typename itk::TileImageFilter<OutputImageType, FileOutputImageType> OutputPasteFilterType;
+      
     const unsigned int SpaceDimension = ImageDimension;
     const unsigned int SplineOrder = 3;
     typedef double CoordinateRepType;
@@ -62,7 +67,7 @@ public:
                               CoordinateRepType,
                               SpaceDimension,
                               SplineOrder >     TransformType;
-    typedef typename itk::AffineTransform<CoordinateRepType> AffineTransformType;
+    typedef typename itk::AffineTransform<CoordinateRepType, ImageDimension> AffineTransformType;
     typedef typename itk::LBFGSBOptimizer       OptimizerType;
     typedef typename itk::MattesMutualInformationImageToImageMetric< 
                                       InputImageType, 
@@ -159,23 +164,24 @@ public:
                                               1.0/3.0, 1.0/3.0);
     movingOrient->Update();
     collector.Stop( "Read moving volume" );
-
+    
     typename InputImageType::Pointer fixedImage;
     typename InputImageType::Pointer movingImage;
 
-    typename ExtractFilterType::Pointer fixedExtract;
-    typename ExtractFilterType::Pointer movingExtract;
+    typename InputExtractFilterType::Pointer fixedExtract;
+    typename InputExtractFilterType::Pointer movingExtract;
 
-
-    // Extract filter to collapse image dimension
-    fixedExtract = ExtractFilterType::New();
-    movingExtract = ExtractFilterType::New();
+    // Extract filter to collapse image dimension (3D->2D in case of 2D registration)
+    fixedExtract  = InputExtractFilterType::New();
+    movingExtract = InputExtractFilterType::New();
     
     fixedExtract->SetInput(fixedOrient->GetOutput());
     movingExtract->SetInput(movingOrient->GetOutput());
     
-    typename ExtractFilterType::InputImageRegionType region
+    typename InputExtractFilterType::InputImageRegionType region
       = fixedOrient->GetOutput()->GetLargestPossibleRegion();
+
+    int collapseDim = 0;
     
     if (ImageDimension < FileImageDimension)
       {
@@ -185,18 +191,24 @@ public:
         {
         if (size[i] == 1)
           {
-          size[0] = 0; // collapse this dimension
+          collapseDim = i;
           break;
           }
         }
+      size[collapseDim] = 0; // collapse this dimension
       region.SetSize(size);
       }
     
     fixedExtract->SetExtractionRegion(region);
     movingExtract->SetExtractionRegion(region);
+    fixedExtract->Update();
+    movingExtract->Update();
     
     fixedImage  = fixedExtract->GetOutput();
     movingImage = movingExtract->GetOutput();
+
+    //fixedImage  = fixedOrient->GetOutput();
+    //movingImage = movingOrient->GetOutput();
 
   
     // Setup BSpline deformation
@@ -215,13 +227,11 @@ public:
   
     bsplineRegion.SetSize( totalGridSize );
   
-    //SpacingType spacing = fixedOrient->GetOutput()->GetSpacing();
-    //OriginType origin = fixedOrient->GetOutput()->GetOrigin();;
     SpacingType spacing = fixedImage->GetSpacing();
     OriginType origin   = fixedImage->GetOrigin();;
-  
+
+
     typename InputImageType::RegionType fixedRegion =
-      //fixedOrient->GetOutput()->GetLargestPossibleRegion();
       fixedImage->GetLargestPossibleRegion();
     
     typename InputImageType::SizeType fixedImageSize =
@@ -234,6 +244,9 @@ public:
       origin[r]  -=  spacing[r]; 
       }
   
+
+    std::cerr << "spacing = " << spacing << std::endl;
+
     transform->SetGridSpacing ( spacing );
     transform->SetGridOrigin  ( origin );
     transform->SetGridRegion  ( bsplineRegion );
@@ -252,20 +265,18 @@ public:
     //
     //
     typename TransformType::InputPointType centerFixed;
-    //typename InputImageType::RegionType::SizeType sizeFixed = fixedOrient->GetOutput()->GetLargestPossibleRegion().GetSize();
-    typename InputImageType::RegionType::SizeType sizeFixed = fixedImage->GetLargestPossibleRegion().GetSize();
+    typename InputImageType::RegionType::SizeType sizeFixed 
+      = fixedImage->GetLargestPossibleRegion().GetSize();
     // Find the center
     ContinuousIndexType indexFixed;
     for ( unsigned j = 0; j < 3; j++ )
       {
       indexFixed[j] = (sizeFixed[j]-1) / 2.0;
       }
-    //fixedOrient->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
     fixedImage->TransformContinuousIndexToPhysicalPoint ( indexFixed, centerFixed );
 
   
     typename TransformType::InputPointType centerMoving;
-    //typename InputImageType::RegionType::SizeType sizeMoving = movingOrient->GetOutput()->GetLargestPossibleRegion().GetSize();
     typename InputImageType::RegionType::SizeType sizeMoving = movingImage->GetLargestPossibleRegion().GetSize();
 
     // Find the center
@@ -274,12 +285,8 @@ public:
       {
       indexMoving[j] = (sizeMoving[j]-1) / 2.0;
       }
-    //movingOrient->GetOutput()->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
     movingImage->TransformContinuousIndexToPhysicalPoint ( indexMoving, centerMoving );
 
-
-    // JT: for motion correction, we don't need centring.
-    /*
     typename AffineTransformType::Pointer centeringTransform;
     centeringTransform = AffineTransformType::New();
   
@@ -289,7 +296,7 @@ public:
     std::cout << "Centering transform: "; centeringTransform->Print( std::cout );
   
     transform->SetBulkTransform( centeringTransform );
-    */
+
   
     // If an initial transformation was provided, then use it instead.
     //
@@ -368,9 +375,7 @@ public:
     // Registration
     //
     //
-    //registration->SetFixedImage  ( fixedOrient->GetOutput()  );
     registration->SetFixedImage  ( fixedImage  );
-    //registration->SetMovingImage ( movingOrient->GetOutput() );
     registration->SetMovingImage ( movingImage );
     registration->SetMetric      ( metric       );
     registration->SetOptimizer   ( optimizer    );
@@ -433,20 +438,67 @@ public:
         CLPProcessInformation,
         1.0/3.0, 2.0/3.0);
       
-      resample->SetTransform        ( transform );
-      //resample->SetInput            ( movingOrient->GetOutput() );
-      resample->SetInput            ( movingImage );
+      resample->SetTransform( transform );
+      resample->SetInput( movingImage );
       resample->SetDefaultPixelValue( DefaultPixelValue );
-      //resample->SetOutputParametersFromImage ( fixedOrient->GetOutput() );
       resample->SetOutputParametersFromImage ( fixedImage );
       
       collector.Start( "Resample" );
       resample->Update();
       collector.Stop( "Resample" );
-  
+
+      // convert 2D image to 3D, if 2D registration is performed
+      typename OutputPasteFilterType::Pointer outputPaste = OutputPasteFilterType::New();
+      typename OutputPasteFilterType::LayoutArrayType layout;
+      if (ImageDimension == 2)
+        {
+        layout[0] = 1;
+        layout[1] = 1;
+        layout[2] = 0;
+        }
+      else // 3D
+        {
+        layout[0] = 1;
+        layout[1] = 1;
+        layout[2] = 1;
+        }
+      outputPaste->SetLayout(layout);
+      outputPaste->SetInput(resample->GetOutput());
+      outputPaste->Update();
+
       typename WriterType::Pointer      writer =  WriterType::New();
-      writer->SetFileName( ResampledImageFileName.c_str() );
-      writer->SetInput( resample->GetOutput()   );
+
+      if (ImageDimension == 2)
+        {
+        // Flip axis
+        typedef typename itk::FlipImageFilter< FileOutputImageType > FlipFilterType;
+        typename FlipFilterType::Pointer outputFlip = FlipFilterType::New();
+        typename FlipFilterType::FlipAxesArrayType flipAxes;
+        flipAxes[0] = 0; flipAxes[1] = 1; flipAxes[2] = 0; // is this OK??????
+        outputFlip->SetFlipAxes(flipAxes);
+        outputFlip->SetInput(outputPaste->GetOutput());
+        outputFlip->Update();
+        
+        
+        // Set origin and direction
+        typename FileOutputImageType::Pointer outputImage = FileOutputImageType::New();
+        outputImage = outputFlip->GetOutput();
+        outputImage->Update();
+        
+        outputImage->SetOrigin(fixedImageReader->GetOutput()->GetOrigin());
+        typename FileOutputImageType::DirectionType direction;
+        direction = fixedImageReader->GetOutput()->GetDirection();
+        outputImage->SetDirection(direction);
+        outputImage->Update();
+        
+        writer->SetFileName( ResampledImageFileName.c_str() );
+        writer->SetInput( outputImage   );
+        }
+      else
+        {
+        writer->SetFileName( ResampledImageFileName.c_str() );
+        writer->SetInput( outputPaste->GetOutput()   );
+        }
   
       try
         {
