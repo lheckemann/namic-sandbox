@@ -29,11 +29,15 @@
 namespace itk {
 
 /** \class LabelShapeOpeningImageFilter
- * \brief remove the objects according to the value of their shape attribute
+ * \brief Remove object based on the value of their shape attribute
  *
- * LabelShapeOpeningImageFilter removes the objects in a labeled image
+ * The LabelShapeOpeningImageFilter removes the objects in a labeled image
  * with an attribute value smaller or greater than a threshold called Lambda.
  * The attributes are the ones of the ShapeLabelObject.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -64,12 +68,9 @@ public:
   typedef typename OutputImageType::PixelType      OutputImagePixelType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   typedef ShapeLabelObject<InputImagePixelType, ImageDimension>                     LabelObjectType;
   typedef typename itk::LabelMap< LabelObjectType >                                 LabelMapType;
@@ -83,8 +84,7 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(LabelShapeOpeningImageFilter, 
-               ImageToImageFilter);
+  itkTypeMacro( LabelShapeOpeningImageFilter, ImageToImageFilter );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -101,14 +101,14 @@ public:
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
-  itkSetMacro(BackgroundValue, OutputImagePixelType);
-  itkGetConstMacro(BackgroundValue, OutputImagePixelType);
+  itkSetMacro( BackgroundValue, OutputImagePixelType );
+  itkGetConstMacro(BackgroundValue, OutputImagePixelType );
 
   /**
    * Set/Get the threshold used to keep or remove the objects.
    */
-  itkGetConstMacro(Lambda, double);
-  itkSetMacro(Lambda, double);
+  itkGetConstMacro( Lambda, double );
+  itkSetMacro( Lambda, double );
 
   /**
    * Set/Get the ordering of the objects. By default, the objects with
@@ -121,8 +121,8 @@ public:
   itkBooleanMacro( ReverseOrdering );
 
   /**
-   * Set/Get the attribute to use to select the object to remove. The default
-   * is "Size".
+   * Set/Get the attribute to use to select the object to remove.
+   * Default is "Size".
    */
   itkGetConstMacro( Attribute, AttributeType );
   itkSetMacro( Attribute, AttributeType );
@@ -137,7 +137,7 @@ protected:
   ~LabelShapeOpeningImageFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  /** LabelShapeOpeningImageFilter needs the entire input be
+  /** LabelShapeOpeningImageFilter needs the entire input to be
    * available. Thus, it needs to provide an implementation of
    * GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();

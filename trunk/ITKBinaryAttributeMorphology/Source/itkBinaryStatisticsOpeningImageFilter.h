@@ -29,11 +29,15 @@
 namespace itk {
 
 /** \class BinaryStatisticsOpeningImageFilter
- * \brief remove the objects according to the value of their statistics attribute
+ * \brief Remove objects based on the value of their statistics attribute.
  *
- * BinaryStatisticsOpeningImageFilter removes the objects in a binary image
+ * BinaryStatisticsOpeningImageFilter removes objects in a binary image
  * with an attribute value smaller or greater than a threshold called Lambda.
- * The attributes are the ones of the StatisticsLabelObject.
+ * The attributes are those of the StatisticsLabelObject.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -69,12 +73,9 @@ public:
   typedef typename FeatureImageType::PixelType       FeatureImagePixelType;
 
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro( InputImageDimension, unsigned int, TInputImage::ImageDimension );
+  itkStaticConstMacro( OutputImageDimension, unsigned int, TInputImage::ImageDimension );
+  itkStaticConstMacro( ImageDimension, unsigned int, TInputImage::ImageDimension );
 
   typedef StatisticsLabelObject<unsigned long, ImageDimension>                       LabelObjectType;
   typedef typename itk::LabelMap< LabelObjectType >                                  LabelMapType;
@@ -85,11 +86,10 @@ public:
   typedef typename itk::LabelMapToBinaryImageFilter< LabelMapType, OutputImageType > BinarizerType;
 
   /** Standard New method. */
-  itkNewMacro(Self);
+  itkNewMacro( Self );
 
   /** Runtime information support. */
-  itkTypeMacro(BinaryStatisticsOpeningImageFilter, 
-               ImageToImageFilter);
+  itkTypeMacro( BinaryStatisticsOpeningImageFilter, ImageToImageFilter );
 
   /**
    * Set/Get whether the connected components are defined strictly by
@@ -97,9 +97,9 @@ public:
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
-  itkSetMacro(FullyConnected, bool);
-  itkGetConstReferenceMacro(FullyConnected, bool);
-  itkBooleanMacro(FullyConnected);
+  itkSetMacro( FullyConnected, bool );
+  itkGetConstReferenceMacro( FullyConnected, bool );
+  itkBooleanMacro( FullyConnected );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -116,26 +116,26 @@ public:
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
-  itkSetMacro(BackgroundValue, OutputImagePixelType);
-  itkGetConstMacro(BackgroundValue, OutputImagePixelType);
+  itkSetMacro( BackgroundValue, OutputImagePixelType );
+  itkGetConstMacro( BackgroundValue, OutputImagePixelType );
 
   /**
    * Set/Get the value used as "foreground" in the output image.
    * Defaults to NumericTraits<PixelType>::max().
    */
-  itkSetMacro(ForegroundValue, OutputImagePixelType);
-  itkGetConstMacro(ForegroundValue, OutputImagePixelType);
+  itkSetMacro( ForegroundValue, OutputImagePixelType );
+  itkGetConstMacro( ForegroundValue, OutputImagePixelType );
 
   /**
    * Set/Get the threshold used to keep or remove the objects.
    */
-  itkGetConstMacro(Lambda, double);
-  itkSetMacro(Lambda, double);
+  itkGetConstMacro( Lambda, double );
+  itkSetMacro( Lambda, double );
 
   /**
-   * Set/Get the ordering of the objects. By default, the objects with
+   * Set/Get the ordering of the objects. By default, objects with
    * an attribute value smaller than Lamba are removed. Turning ReverseOrdering
-   * to true make this filter remove the object with an attribute value greater
+   * to true makes this filter remove the object with an attribute value greater
    * than Lambda instead.
    */
   itkGetConstMacro( ReverseOrdering, bool );
@@ -143,8 +143,8 @@ public:
   itkBooleanMacro( ReverseOrdering );
 
  /**
-   * Set/Get the attribute to use to select the object to remove. The default
-   * is "Mean".
+   * Set/Get the attribute to use to select the object to remove.
+   * Default is "Mean".
    */
   itkGetConstMacro( Attribute, AttributeType );
   itkSetMacro( Attribute, AttributeType );
@@ -155,7 +155,7 @@ public:
 
 
    /** Set the feature image */
-  void SetFeatureImage(TFeatureImage *input)
+  void SetFeatureImage( TFeatureImage *input )
     {
     // Process object is not const-correct so the const casting is required.
     this->SetNthInput( 1, const_cast<TFeatureImage *>(input) );
@@ -164,17 +164,17 @@ public:
   /** Get the feature image */
   FeatureImageType * GetFeatureImage()
     {
-    return static_cast<FeatureImageType*>(const_cast<DataObject *>(this->ProcessObject::GetInput(1)));
+    return static_cast<FeatureImageType*>( const_cast<DataObject *>( this->ProcessObject::GetInput(1) ) );
     }
 
    /** Set the input image */
-  void SetInput1(InputImageType *input)
+  void SetInput1( InputImageType *input )
     {
     this->SetInput( input );
     }
 
   /** Set the feature image */
-  void SetInput2(FeatureImageType *input)
+  void SetInput2( FeatureImageType *input )
     {
     this->SetFeatureImage( input );
     }
@@ -182,15 +182,14 @@ public:
 protected:
   BinaryStatisticsOpeningImageFilter();
   ~BinaryStatisticsOpeningImageFilter() {};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const;
 
-  /** BinaryStatisticsOpeningImageFilter needs the entire input be
-   * available. Thus, it needs to provide an implementation of
-   * GenerateInputRequestedRegion(). */
+  /** BinaryStatisticsOpeningImageFilter needs the entire input be available.
+   * Thus, it needs to provide an implementation of GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();
 
   /** BinaryStatisticsOpeningImageFilter will produce the entire output. */
-  void EnlargeOutputRequestedRegion(DataObject *itkNotUsed(output));
+  void EnlargeOutputRequestedRegion( DataObject *itkNotUsed(output) );
   
   /** Single-threaded version of GenerateData.  This filter delegates
    * to GrayscaleGeodesicErodeImageFilter. */
@@ -198,8 +197,8 @@ protected:
   
 
 private:
-  BinaryStatisticsOpeningImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  BinaryStatisticsOpeningImageFilter( const Self& ); //purposely not implemented
+  void operator=( const Self& ); //purposely not implemented
 
   bool                 m_FullyConnected;
   OutputImagePixelType m_BackgroundValue;

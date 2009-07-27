@@ -29,11 +29,15 @@
 namespace itk {
 
 /** \class LabelShapeKeepNObjectsImageFilter
- * \brief keep N objects according to their shape attributes
+ * \brief Keep N objects according to their shape attributes.
  *
- * LabelShapeKeepNObjectsImageFilter keep the N objects in a labeled image
- * with the highest (or lowest) attribute value. The attributes are the ones
+ * The LabelShapeKeepNObjectsImageFilter keeps the N objects in a labeled image
+ * with the highest (or lowest) attribute value. The attributes are those
  * of the ShapeLabelObject.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -64,12 +68,9 @@ public:
   typedef typename OutputImageType::PixelType      OutputImagePixelType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   typedef ShapeLabelObject<InputImagePixelType, ImageDimension>                     LabelObjectType;
   typedef typename itk::LabelMap< LabelObjectType >                                 LabelMapType;
@@ -80,11 +81,10 @@ public:
   typedef typename itk::LabelMapToLabelImageFilter< LabelMapType, OutputImageType > BinarizerType;
 
   /** Standard New method. */
-  itkNewMacro(Self);  
+  itkNewMacro( Self );  
 
   /** Runtime information support. */
-  itkTypeMacro(LabelShapeKeepNObjectsImageFilter, 
-               ImageToImageFilter);
+  itkTypeMacro( LabelShapeKeepNObjectsImageFilter, ImageToImageFilter );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -101,27 +101,27 @@ public:
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
-  itkSetMacro(BackgroundValue, OutputImagePixelType);
-  itkGetConstMacro(BackgroundValue, OutputImagePixelType);
+  itkSetMacro( BackgroundValue, OutputImagePixelType );
+  itkGetConstMacro( BackgroundValue, OutputImagePixelType );
 
   /**
    * Set/Get the number of objects to keep
    */
-  itkGetConstMacro(NumberOfObjects, unsigned long);
-  itkSetMacro(NumberOfObjects, unsigned long);
+  itkGetConstMacro( NumberOfObjects, unsigned long );
+  itkSetMacro( NumberOfObjects, unsigned long );
 
   /**
    * Set/Get the ordering of the objects. By default, the ones with the
-   * highest value are kept. Turming ReverseOrdering to true make this filter
-   * keep the objects with the smallest values
+   * highest value are kept. Turning ReverseOrdering to true make this filter
+   * keep objects with the smallest values.
    */
   itkGetConstMacro( ReverseOrdering, bool );
   itkSetMacro( ReverseOrdering, bool );
   itkBooleanMacro( ReverseOrdering );
 
   /**
-   * Set/Get the attribute to use to select the object to keep. The default
-   * is "Size".
+   * Set/Get the attribute to use to select the object to keep.
+   * Default is "Size".
    */
   itkGetConstMacro( Attribute, AttributeType );
   itkSetMacro( Attribute, AttributeType );
@@ -134,23 +134,23 @@ public:
 protected:
   LabelShapeKeepNObjectsImageFilter();
   ~LabelShapeKeepNObjectsImageFilter() {};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const;
 
-  /** LabelShapeKeepNObjectsImageFilter needs the entire input be
+  /** LabelShapeKeepNObjectsImageFilter needs the entire input to be
    * available. Thus, it needs to provide an implementation of
    * GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();
 
   /** LabelShapeKeepNObjectsImageFilter will produce the entire output. */
-  void EnlargeOutputRequestedRegion(DataObject *itkNotUsed(output));
+  void EnlargeOutputRequestedRegion(DataObject *itkNotUsed( output ) );
   
   /** Single-threaded version of GenerateData.  This filter delegates
    * to GrayscaleGeodesicErodeImageFilter. */
   void GenerateData();
   
 private:
-  LabelShapeKeepNObjectsImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  LabelShapeKeepNObjectsImageFilter( const Self&); //purposely not implemented
+  void operator=( const Self& ); //purposely not implemented
 
   OutputImagePixelType m_BackgroundValue;
   unsigned long        m_NumberOfObjects;

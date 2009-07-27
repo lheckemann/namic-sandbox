@@ -21,11 +21,15 @@
 
 namespace itk {
 /** \class ShapeUniqueLabelMapFilter
- * \brief remove the objects according to the value of their shape attribute
+ * \brief Remove objects according to the value of their shape attribute.
  *
- * ShapeUniqueLabelMapFilter removes the objects in a label collection image
+ * The ShapeUniqueLabelMapFilter removes the objects in a label collection image
  * with an attribute value smaller or greater than a threshold called Lambda.
  * The attributes are the ones of the ShapeLabelObject.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -38,7 +42,7 @@ class ITK_EXPORT ShapeUniqueLabelMapFilter :
 {
 public:
   /** Standard class typedefs. */
-  typedef ShapeUniqueLabelMapFilter    Self;
+  typedef ShapeUniqueLabelMapFilter     Self;
   typedef InPlaceLabelMapFilter<TImage> Superclass;
   typedef SmartPointer<Self>            Pointer;
   typedef SmartPointer<const Self>      ConstPointer;
@@ -54,15 +58,13 @@ public:
   typedef typename LabelObjectType::AttributeType AttributeType;
 
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
 
   /** Standard New method. */
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(ShapeUniqueLabelMapFilter, 
-               InPlaceLabelMapFilter);
+  itkTypeMacro(ShapeUniqueLabelMapFilter, InPlaceLabelMapFilter);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -76,9 +78,9 @@ public:
 #endif
 
   /**
-   * Set/Get the ordering of the objects. By default, the objects with
-   * an attribute value smaller than Lamba are removed. Turning ReverseOrdering
-   * to true make this filter remove the object with an attribute value greater
+   * Set/Get the ordering of the objects. By default, objects with an attribute
+   * value smaller than Lamba are removed. Turning ReverseOrdering
+   * to true make this filter remove objects with an attribute value greater
    * than Lambda instead.
    */
   itkGetConstMacro( ReverseOrdering, bool );
@@ -86,8 +88,8 @@ public:
   itkBooleanMacro( ReverseOrdering );
   
   /**
-   * Set/Get the attribute to use to select the object to remove. The default
-   * is "Size".
+   * Set/Get the attribute to use to select the object to remove. 
+   * Default is "Size".
    */
   itkGetConstMacro( Attribute, AttributeType );
   itkSetMacro( Attribute, AttributeType );

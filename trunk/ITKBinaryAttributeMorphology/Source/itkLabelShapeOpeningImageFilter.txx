@@ -38,7 +38,7 @@ void
 LabelShapeOpeningImageFilter<TInputImage>
 ::GenerateInputRequestedRegion()
 {
-  // call the superclass' implementation of this method
+  // Call the superclass' implementation of this method
   Superclass::GenerateInputRequestedRegion();
   
   // We need all the input.
@@ -53,7 +53,7 @@ LabelShapeOpeningImageFilter<TInputImage>
 template<class TInputImage>
 void 
 LabelShapeOpeningImageFilter<TInputImage>
-::EnlargeOutputRequestedRegion(DataObject *)
+::EnlargeOutputRequestedRegion( DataObject * )
 {
   this->GetOutput()
     ->SetRequestedRegion( this->GetOutput()->GetLargestPossibleRegion() );
@@ -76,7 +76,7 @@ LabelShapeOpeningImageFilter<TInputImage>
   labelizer->SetInput( this->GetInput() );
   labelizer->SetBackgroundValue( m_BackgroundValue );
   labelizer->SetNumberOfThreads( this->GetNumberOfThreads() );
-  progress->RegisterInternalFilter(labelizer, .3f);
+  progress->RegisterInternalFilter( labelizer, .3f );
   
   typename LabelObjectValuatorType::Pointer valuator = LabelObjectValuatorType::New();
   valuator->SetInput( labelizer->GetOutput() );
@@ -98,12 +98,12 @@ LabelShapeOpeningImageFilter<TInputImage>
   opening->SetReverseOrdering( m_ReverseOrdering );
   opening->SetAttribute( m_Attribute );
   opening->SetNumberOfThreads( this->GetNumberOfThreads() );
-  progress->RegisterInternalFilter(opening, .2f);
+  progress->RegisterInternalFilter( opening, .2f );
   
   typename BinarizerType::Pointer binarizer = BinarizerType::New();
   binarizer->SetInput( opening->GetOutput() );
   binarizer->SetNumberOfThreads( this->GetNumberOfThreads() );
-  progress->RegisterInternalFilter(binarizer, .2f);  
+  progress->RegisterInternalFilter( binarizer, .2f );
 
   binarizer->GraftOutput( this->GetOutput() );
   binarizer->Update();
@@ -114,14 +114,14 @@ LabelShapeOpeningImageFilter<TInputImage>
 template<class TInputImage>
 void
 LabelShapeOpeningImageFilter<TInputImage>
-::PrintSelf(std::ostream &os, Indent indent) const
+::PrintSelf( std::ostream &os, Indent indent ) const
 {
   Superclass::PrintSelf(os, indent);
 
   os << indent << "BackgroundValue: "  << static_cast<typename NumericTraits<OutputImagePixelType>::PrintType>(m_BackgroundValue) << std::endl;
   os << indent << "Lambda: "  << m_Lambda << std::endl;
   os << indent << "ReverseOrdering: "  << m_ReverseOrdering << std::endl;
-  os << indent << "Attribute: "  << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ")" << std::endl;
+  os << indent << "Attribute: "  << LabelObjectType::GetNameFromAttribute( m_Attribute ) << " (" << m_Attribute << ")" << std::endl;
 }
   
 }// end namespace itk

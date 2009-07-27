@@ -133,21 +133,22 @@ ShapeRelabelLabelMapFilter<TImage>
   typedef typename ImageType::LabelObjectType LabelObjectType;
   output->ClearLabels();
   unsigned int label = 0;
-  for( typename VectorType::const_iterator it = labelObjects.begin();
-    it != labelObjects.end();
-    it++ )
+  typename VectorType::const_iterator it = labelObjects.begin();
+  while( it != labelObjects.end() )
     {
     // avoid the background label if it is used
     if( label == output->GetBackgroundValue() )
       {
       label++;
       }
-    (*it)->SetLabel( label );
+    ( *it )->SetLabel( label );
     output->AddLabelObject( *it );
     
-    // go to the nex label
+    // go to the next label
     label++;
     progress.CompletedPixel();
+
+    it++;
     }
 }
 

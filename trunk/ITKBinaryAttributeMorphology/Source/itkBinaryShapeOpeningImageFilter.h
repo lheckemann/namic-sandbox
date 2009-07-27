@@ -29,11 +29,15 @@
 namespace itk {
 
 /** \class BinaryShapeOpeningImageFilter
- * \brief remove the objects according to the value of their shape attribute
+ * \brief Remove objects based on the value of their shape attribute.
  *
- * BinaryShapeOpeningImageFilter removes the objects in a binary image
+ * The BinaryShapeOpeningImageFilter removes the objects in a binary image
  * with an attribute value smaller or greater than a threshold called Lambda.
- * The attributes are the ones of the ShapeLabelObject.
+ * The attributes are those of the ShapeLabelObject.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -64,12 +68,9 @@ public:
   typedef typename OutputImageType::PixelType      OutputImagePixelType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   typedef ShapeLabelObject<unsigned long, ImageDimension>                            LabelObjectType;
   typedef typename itk::LabelMap< LabelObjectType >                                  LabelMapType;
@@ -83,18 +84,17 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(BinaryShapeOpeningImageFilter, 
-               ImageToImageFilter);
+  itkTypeMacro(BinaryShapeOpeningImageFilter, ImageToImageFilter );
 
   /**
    * Set/Get whether the connected components are defined strictly by
-   * face connectivity or by face+edge+vertex connectivity.  Default is
-   * FullyConnectedOff.  For objects that are 1 pixel wide, use
-   * FullyConnectedOn.
+   * face connectivity or by face+edge+vertex connectivity.
+   * Default is FullyConnectedOff.
+   * For objects that are 1 pixel wide, use FullyConnectedOn.
    */
-  itkSetMacro(FullyConnected, bool);
-  itkGetConstReferenceMacro(FullyConnected, bool);
-  itkBooleanMacro(FullyConnected);
+  itkSetMacro( FullyConnected, bool );
+  itkGetConstReferenceMacro( FullyConnected, bool );
+  itkBooleanMacro( FullyConnected );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -111,26 +111,26 @@ public:
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
-  itkSetMacro(BackgroundValue, OutputImagePixelType);
-  itkGetConstMacro(BackgroundValue, OutputImagePixelType);
+  itkSetMacro( BackgroundValue, OutputImagePixelType );
+  itkGetConstMacro( BackgroundValue, OutputImagePixelType );
 
   /**
    * Set/Get the value used as "foreground" in the output image.
    * Defaults to NumericTraits<PixelType>::max().
    */
-  itkSetMacro(ForegroundValue, OutputImagePixelType);
-  itkGetConstMacro(ForegroundValue, OutputImagePixelType);
+  itkSetMacro( ForegroundValue, OutputImagePixelType );
+  itkGetConstMacro( ForegroundValue, OutputImagePixelType);
 
   /**
    * Set/Get the threshold used to keep or remove the objects.
    */
-  itkGetConstMacro(Lambda, double);
-  itkSetMacro(Lambda, double);
+  itkGetConstMacro( Lambda, double );
+  itkSetMacro( Lambda, double );
 
   /**
    * Set/Get the ordering of the objects. By default, the objects with
    * an attribute value smaller than Lamba are removed. Turning ReverseOrdering
-   * to true make this filter remove the object with an attribute value greater
+   * to true make this filter remove objects with an attribute value greater
    * than Lambda instead.
    */
   itkGetConstMacro( ReverseOrdering, bool );
@@ -138,8 +138,8 @@ public:
   itkBooleanMacro( ReverseOrdering );
 
   /**
-   * Set/Get the attribute to use to select the object to remove. The default
-   * is "Size".
+   * Set/Get the attribute to use to select the object to remove.
+   * Default is "Size".
    */
   itkGetConstMacro( Attribute, AttributeType );
   itkSetMacro( Attribute, AttributeType );
@@ -152,15 +152,14 @@ public:
 protected:
   BinaryShapeOpeningImageFilter();
   ~BinaryShapeOpeningImageFilter() {};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const;
 
-  /** BinaryShapeOpeningImageFilter needs the entire input be
-   * available. Thus, it needs to provide an implementation of
-   * GenerateInputRequestedRegion(). */
+  /** BinaryShapeOpeningImageFilter needs the entire input to be available.
+   * Thus, it needs to provide an implementation of GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();
 
   /** BinaryShapeOpeningImageFilter will produce the entire output. */
-  void EnlargeOutputRequestedRegion(DataObject *itkNotUsed(output));
+  void EnlargeOutputRequestedRegion( DataObject *itkNotUsed(output) );
   
   /** Single-threaded version of GenerateData.  This filter delegates
    * to GrayscaleGeodesicErodeImageFilter. */
@@ -168,8 +167,8 @@ protected:
   
 
 private:
-  BinaryShapeOpeningImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  BinaryShapeOpeningImageFilter( const Self& ); //purposely not implemented
+  void operator=( const Self& ); //purposely not implemented
 
   bool                 m_FullyConnected;
   OutputImagePixelType m_BackgroundValue;

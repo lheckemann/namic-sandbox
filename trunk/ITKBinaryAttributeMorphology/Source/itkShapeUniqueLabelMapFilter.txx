@@ -94,12 +94,12 @@ ShapeUniqueLabelMapFilter<TImage>
 template <class TImage>
 void
 ShapeUniqueLabelMapFilter<TImage>
-::PrintSelf(std::ostream &os, Indent indent) const
+::PrintSelf( std::ostream &os, Indent indent ) const
 {
-  Superclass::PrintSelf(os, indent);
+  Superclass::PrintSelf( os, indent );
 
   os << indent << "ReverseOrdering: "  << m_ReverseOrdering << std::endl;
-  os << indent << "Attribute: "  << LabelObjectType::GetNameFromAttribute(m_Attribute) << " (" << m_Attribute << ")" << std::endl;
+  os << indent << "Attribute: "  << LabelObjectType::GetNameFromAttribute( m_Attribute ) << " (" << m_Attribute << ")" << std::endl;
 }
 
 }// end namespace itk
