@@ -95,6 +95,7 @@ ShapeLabelMapFilter<TImage, TLabelImage>
   // Compute the max the index on the border of the image
   IndexType borderMin = output->GetLargestPossibleRegion().GetIndex();
   IndexType borderMax = borderMin;
+  for( int i=0; i<ImageDimension; i++ )
     {
     borderMax[i] += output->GetLargestPossibleRegion().GetSize()[i] - 1;
     }
