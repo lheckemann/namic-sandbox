@@ -29,10 +29,14 @@
 namespace itk {
 
 /** \class ShapeRelabelImageFilter
- * \brief relabel objects according to their shape attributes
+ * \brief Relabel objects based on their shape attributes.
  *
- * ShapeRelabelImageFilter relabel a labeled image according to the shape attributes of
+ * The ShapeRelabelImageFilter relabels a labeled image based on the shape attributes of
  * the objects. The label produced are always consecutives.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -63,12 +67,9 @@ public:
   typedef typename OutputImageType::PixelType      OutputImagePixelType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   typedef ShapeLabelObject<InputImagePixelType, ImageDimension>                     LabelObjectType;
   typedef typename itk::LabelMap< LabelObjectType >                                 LabelMapType;
@@ -82,8 +83,7 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(ShapeRelabelImageFilter, 
-               ImageToImageFilter);
+  itkTypeMacro(ShapeRelabelImageFilter, ImageToImageFilter);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -126,9 +126,9 @@ public:
 protected:
   ShapeRelabelImageFilter();
   ~ShapeRelabelImageFilter() {};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const;
 
-  /** ShapeRelabelImageFilter needs the entire input be
+  /** ShapeRelabelImageFilter needs the entire input to be
    * available. Thus, it needs to provide an implementation of
    * GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();
@@ -141,8 +141,8 @@ protected:
   void GenerateData();
 
 private:
-  ShapeRelabelImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  ShapeRelabelImageFilter( const Self& ); //purposely not implemented
+  void operator=( const Self& ); //purposely not implemented
 
   OutputImagePixelType m_BackgroundValue;
   bool                 m_ReverseOrdering;

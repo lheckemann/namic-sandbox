@@ -21,10 +21,14 @@
 
 namespace itk {
 /** \class ShapeRelabelLabelMapFilter
- * \brief relabel objects according to their shape attributes
+ * \brief Relabels objects according to their shape attributes.
  *
- * ShapeRelabelImageFilter relabel a label collection image according to the shape attributes of
+ * The ShapeRelabelImageFilter relabels a label collection image according to the shape attributes of
  * the objects. The label produced are always consecutives.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -53,15 +57,13 @@ public:
   typedef typename LabelObjectType::AttributeType AttributeType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
 
   /** Standard New method. */
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(ShapeRelabelLabelMapFilter, 
-               InPlaceLabelMapFilter);
+  itkTypeMacro(ShapeRelabelLabelMapFilter, InPlaceLabelMapFilter);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -76,15 +78,16 @@ public:
 
   /**
    * Set/Get the order of labeling of the objects. By default, the objects with
-   * the highest attribute values are labeled first. Set ReverseOrdering to true
-   * make the one with the smallest attributes be labeled first.
+   * the highest attribute values are labeled first. Setting ReverseOrdering to true
+   * causes the object with the smallest attributes to be labeled first.
    */
   itkSetMacro( ReverseOrdering, bool );
   itkGetConstReferenceMacro( ReverseOrdering, bool );
   itkBooleanMacro( ReverseOrdering );
 
   /**
-   * Set/Get the attribute to use. Default is "Size".
+   * Set/Get the attribute to use.
+   * Default is "Size".
    */
   itkGetConstMacro( Attribute, AttributeType );
   itkSetMacro( Attribute, AttributeType );

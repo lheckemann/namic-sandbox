@@ -39,7 +39,7 @@ void
 BinaryShapeKeepNObjectsImageFilter<TInputImage>
 ::GenerateInputRequestedRegion()
 {
-  // call the superclass' implementation of this method
+  // Call the superclass' implementation of this method
   Superclass::GenerateInputRequestedRegion();
   
   // We need all the input.
@@ -54,7 +54,7 @@ BinaryShapeKeepNObjectsImageFilter<TInputImage>
 template<class TInputImage>
 void 
 BinaryShapeKeepNObjectsImageFilter<TInputImage>
-::EnlargeOutputRequestedRegion(DataObject *)
+::EnlargeOutputRequestedRegion( DataObject * )
 {
   this->GetOutput()
     ->SetRequestedRegion( this->GetOutput()->GetLargestPossibleRegion() );
@@ -68,7 +68,7 @@ BinaryShapeKeepNObjectsImageFilter<TInputImage>
 {
   // Create a process accumulator for tracking the progress of this minipipeline
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
-  progress->SetMiniPipelineFilter(this);
+  progress->SetMiniPipelineFilter( this );
 
   // Allocate the output
   this->AllocateOutputs();

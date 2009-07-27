@@ -30,7 +30,7 @@ StatisticsKeepNObjectsLabelMapFilter<TImage>
   this->m_Attribute = LabelObjectType::MEAN;
   // create the output image for the removed objects
   this->SetNumberOfRequiredOutputs(2);
-  this->SetNthOutput(1, static_cast<TImage*>(this->MakeOutput(1).GetPointer()));
+  this->SetNthOutput( 1, static_cast<TImage*>(this->MakeOutput(1).GetPointer() ) );
 }
 
 
@@ -105,12 +105,12 @@ StatisticsKeepNObjectsLabelMapFilter<TImage>
   // get the label objects in a vector, so they can be sorted
   VectorType labelObjects;
   labelObjects.reserve( labelObjectContainer.size() );
-  for( typename LabelObjectContainerType::const_iterator it = labelObjectContainer.begin();
-    it != labelObjectContainer.end();
-    it++ )
+  typename LabelObjectContainerType::const_iterator it = labelObjectContainer.begin();
+   while(it != labelObjectContainer.end() )
     {
     labelObjects.push_back( it->second );
     progress.CompletedPixel();
+    it++;
     }
 
   // instantiate the comparator and sort the vector
@@ -127,16 +127,16 @@ StatisticsKeepNObjectsLabelMapFilter<TImage>
       Functor::LabelObjectComparator< LabelObjectType, TAttributeAccessor > comparator;
       std::nth_element( labelObjects.begin(), end, labelObjects.end(), comparator );
       }
-//   progress.CompletedPixel();
+    progress.CompletedPixel();
   
     // and remove the last objects of the map
-    for( typename VectorType::const_iterator it = end;
-      it != labelObjects.end();
-      it++ )
+    typename VectorType::const_iterator it = end;
+    while( it != labelObjects.end() )
       {
       output2->AddLabelObject( *it );
       output->RemoveLabelObject( *it );
       progress.CompletedPixel();
+      it++;
       }
     }
 }

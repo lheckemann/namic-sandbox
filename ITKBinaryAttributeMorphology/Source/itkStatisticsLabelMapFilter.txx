@@ -263,7 +263,7 @@ StatisticsLabelMapFilter<TImage, TFeatureImage>
   labelObject->SetCenterOfGravity( centerOfGravity );
   labelObject->SetPrincipalAxes( principalAxes );
   labelObject->SetPrincipalMoments( principalMoments );
-//  labelObject->SetCentralMoments( centralMoments );
+  //  labelObject->SetCentralMoments( centralMoments );
   labelObject->SetSkewness( skewness );
   labelObject->SetKurtosis( kurtosis );
   labelObject->SetElongation( elongation );

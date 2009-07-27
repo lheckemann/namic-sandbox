@@ -361,7 +361,7 @@ public:
     else if( s == "Sum" )
       {
       return SUM;
-       }
+      }
     else if( s == "Sigma" )
       {
       return SIGMA;
@@ -386,7 +386,7 @@ public:
       {
       return CENTER_OF_GRAVITY;
       }
-/*    else if( s == "CentralMoments" )
+    /*else if( s == "CentralMoments" )
       {
       return CENTRAL_MOMENTS;
       }*/
@@ -510,7 +510,7 @@ public:
     m_MaximumIndex = src->m_MaximumIndex;
     m_MinimumIndex = src->m_MinimumIndex;
     m_CenterOfGravity = src->m_CenterOfGravity;
-//    m_CentralMoments = src->m_CentralMoments;
+    //m_CentralMoments = src->m_CentralMoments;
     m_PrincipalMoments = src->m_PrincipalMoments;
     m_PrincipalAxes = src->m_PrincipalAxes;
     m_Kurtosis = src->m_Kurtosis;
@@ -520,8 +520,8 @@ public:
     m_Flatness = src->m_Flatness;
     }
 
-//   itkGetConstMacro( Minimum, double );
-//   itkSetMacro( Minimum, double );
+    //itkGetConstMacro( Minimum, double );
+    //itkSetMacro( Minimum, double );
   const double & GetMinimum() const
     {
     return m_Minimum;
@@ -532,8 +532,8 @@ public:
     m_Minimum = v;
     }
 
-//   itkGetConstMacro( Maximum, double );
-//   itkSetMacro( Maximum, double );
+    //itkGetConstMacro( Maximum, double );
+    //itkSetMacro( Maximum, double );
   const double & GetMaximum() const
     {
     return m_Maximum;
@@ -544,8 +544,8 @@ public:
     m_Maximum = v;
     }
 
-//   itkGetConstMacro( Mean, double );
-//   itkSetMacro( Mean, double );
+    //itkGetConstMacro( Mean, double );
+    //itkSetMacro( Mean, double );
   const double & GetMean() const
     {
     return m_Mean;
@@ -556,8 +556,8 @@ public:
     m_Mean = v;
     }
 
-//   itkGetConstMacro( Sum, double );
-//   itkSetMacro( Sum, double );
+    //   itkGetConstMacro( Sum, double );
+   //   itkSetMacro( Sum, double );
   const double & GetSum() const
     {
     return m_Sum;
@@ -568,8 +568,8 @@ public:
     m_Sum = v;
     }
 
-//   itkGetConstMacro( Sigma, double );
-//   itkSetMacro( Sigma, double );
+    //   itkGetConstMacro( Sigma, double );
+    //   itkSetMacro( Sigma, double );
   const double & GetSigma() const
     {
     return m_Sigma;
@@ -580,8 +580,8 @@ public:
     m_Sigma = v;
     }
 
-//   itkGetConstMacro( Variance, double );
-//   itkSetMacro( Variance, double );
+    //   itkGetConstMacro( Variance, double );
+    //   itkSetMacro( Variance, double );
   const double & GetVariance() const
     {
     return m_Variance;
@@ -592,8 +592,8 @@ public:
     m_Variance = v;
     }
 
-//   itkGetConstMacro( Median, double );
-//   itkSetMacro( Median, double );
+    //   itkGetConstMacro( Median, double );
+    //   itkSetMacro( Median, double );
   const double & GetMedian() const
     {
     return m_Median;
@@ -604,8 +604,8 @@ public:
     m_Median = v;
     }
 
-//   itkGetConstMacro( MaximumIndex, IndexType );
-//   itkSetMacro( MaximumIndex, IndexType );
+    //   itkGetConstMacro( MaximumIndex, IndexType );
+    //   itkSetMacro( MaximumIndex, IndexType );
   const IndexType & GetMaximumIndex() const
     {
     return m_MaximumIndex;
@@ -616,8 +616,8 @@ public:
     m_MaximumIndex = v;
     }
 
-//   itkGetConstMacro( MinimumIndex, IndexType );
-//   itkSetMacro( MinimumIndex, IndexType );
+    //   itkGetConstMacro( MinimumIndex, IndexType );
+    //   itkSetMacro( MinimumIndex, IndexType );
   const IndexType & GetMinimumIndex() const
     {
     return m_MinimumIndex;
@@ -628,8 +628,8 @@ public:
     m_MinimumIndex = v;
     }
 
-//   itkGetConstMacro( CenterOfGravity, PointType );
-//   itkSetMacro( CenterOfGravity, PointType );
+    //   itkGetConstMacro( CenterOfGravity, PointType );
+    //   itkSetMacro( CenterOfGravity, PointType );
   const PointType & GetCenterOfGravity() const
     {
     return m_CenterOfGravity;
@@ -640,20 +640,20 @@ public:
     m_CenterOfGravity = v;
     }
 
-//   itkGetConstMacro( CentralMoments, MatrixType );
-//   itkSetMacro( CentralMoments, MatrixType );
-/*  const MatrixType & GetCentralMoments() const
-    {
-    return m_CentralMoments;
-    }
+    //   itkGetConstMacro( CentralMoments, MatrixType );
+    //   itkSetMacro( CentralMoments, MatrixType );
+    /*  const MatrixType & GetCentralMoments() const
+        {
+        return m_CentralMoments;
+        }
 
-  void SetCentralMoments( const MatrixType & v )
-    {
-    m_CentralMoments = v;
-    }*/
+      void SetCentralMoments( const MatrixType & v )
+        {
+        m_CentralMoments = v;
+        }*/
 
-//   itkGetConstMacro( PrincipalMoments, VectorType );
-//   itkSetMacro( PrincipalMoments, VectorType );
+    //   itkGetConstMacro( PrincipalMoments, VectorType );
+    //   itkSetMacro( PrincipalMoments, VectorType );
   const VectorType & GetPrincipalMoments() const
     {
     return m_PrincipalMoments;
@@ -664,8 +664,8 @@ public:
     m_PrincipalMoments = v;
     }
 
-//   itkGetConstMacro( PrincipalAxes, MatrixType );
-//   itkSetMacro( PrincipalAxes, MatrixType );
+    //   itkGetConstMacro( PrincipalAxes, MatrixType );
+    //   itkSetMacro( PrincipalAxes, MatrixType );
   const MatrixType & GetPrincipalAxes() const
     {
     return m_PrincipalAxes;
@@ -676,8 +676,8 @@ public:
     m_PrincipalAxes = v;
     }
 
-//   itkGetConstMacro( Skewness, double );
-//   itkSetMacro( Skewness, double );
+    //   itkGetConstMacro( Skewness, double );
+    //   itkSetMacro( Skewness, double );
   const double & GetSkewness() const
     {
     return m_Skewness;
@@ -688,8 +688,8 @@ public:
     m_Skewness = v;
     }
 
-//   itkGetConstMacro( Kurtosis, double );
-//   itkSetMacro( Kurtosis, double );
+    //   itkGetConstMacro( Kurtosis, double );
+    //   itkSetMacro( Kurtosis, double );
   const double & GetKurtosis() const
     {
     return m_Kurtosis;
@@ -700,8 +700,8 @@ public:
     m_Kurtosis = v;
     }
 
-//   itkGetConstMacro( Elongation, double );
-//   itkSetMacro( Elongation, double );
+    //   itkGetConstMacro( Elongation, double );
+    //   itkSetMacro( Elongation, double );
   const double & GetElongation() const
     {
     return m_Elongation;
@@ -712,8 +712,8 @@ public:
     m_Elongation = v;
     }
 
-//   itkGetConstMacro( Histogram, double );
-//   itkSetMacro( Histogram, double );
+    //   itkGetConstMacro( Histogram, double );
+    //   itkSetMacro( Histogram, double );
   const HistogramType * GetHistogram() const
     {
     return m_Histogram;
@@ -724,8 +724,8 @@ public:
     m_Histogram = v;
     }
 
-//   itkGetConstMacro( Flatness, double );
-//   itkSetMacro( Flatness, double );
+    //   itkGetConstMacro( Flatness, double );
+    //   itkSetMacro( Flatness, double );
   const double & GetFlatness() const
     {
     return m_Flatness;
@@ -737,7 +737,7 @@ public:
     }
 
 
-// some helper methods - not really required, but really useful!
+    // some helper methods - not really required, but really useful!
 
   /** Affine transform for mapping to and from principal axis */
   typedef AffineTransform<double,itkGetStaticConstMacro(ImageDimension)> AffineTransformType;
@@ -808,7 +808,7 @@ protected:
     m_MaximumIndex.Fill(0);
     m_MinimumIndex.Fill(0);
     m_CenterOfGravity.Fill(0);
-//    m_CentralMoments.Fill(0);
+    //    m_CentralMoments.Fill(0);
     m_PrincipalMoments.Fill(0);
     m_PrincipalAxes.Fill(0);
     m_Kurtosis = 0;
@@ -833,7 +833,7 @@ protected:
     os << indent << "MaximumIndex: " << m_MaximumIndex << std::endl;
     os << indent << "MinimumIndex: " << m_MinimumIndex << std::endl;
     os << indent << "CenterOfGravity: " << m_CenterOfGravity << std::endl;
-//    os << indent << "CentralMoments: " << std::endl << m_CentralMoments;
+    //    os << indent << "CentralMoments: " << std::endl << m_CentralMoments;
     os << indent << "PrincipalMoments: " << m_PrincipalMoments << std::endl;
     os << indent << "PrincipalAxes: " << std::endl << m_PrincipalAxes;
     os << indent << "Skewness: " << m_Skewness << std::endl;
@@ -865,7 +865,7 @@ private:
   IndexType                            m_MaximumIndex;
   IndexType                            m_MinimumIndex;
   PointType                            m_CenterOfGravity;
-//  MatrixType m_CentralMoments;
+  //  MatrixType m_CentralMoments;
   VectorType                           m_PrincipalMoments;
   MatrixType                           m_PrincipalAxes;
   double                               m_Skewness;

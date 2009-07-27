@@ -29,11 +29,15 @@
 namespace itk {
 
 /** \class BinaryShapeKeepNObjectsImageFilter
- * \brief keep N objects according to their shape attributes
+ * \brief Keep N objects based on their shape attributes.
  *
- * BinaryShapeKeepNObjectsImageFilter keep the N objects in a binary image
- * with the highest (or lowest) attribute value. The attributes are the ones
+ * The BinaryShapeKeepNObjectsImageFilter keep the N objects in a binary image
+ * with the highest (or lowest) attribute value. The attributes are those
  * of the ShapeLabelObject.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -64,12 +68,9 @@ public:
   typedef typename OutputImageType::PixelType      OutputImagePixelType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   typedef ShapeLabelObject<unsigned long, ImageDimension>                            LabelObjectType;
   typedef typename itk::LabelMap< LabelObjectType >                                  LabelMapType;
@@ -88,9 +89,9 @@ public:
 
   /**
    * Set/Get whether the connected components are defined strictly by
-   * face connectivity or by face+edge+vertex connectivity.  Default is
-   * FullyConnectedOff.  For objects that are 1 pixel wide, use
-   * FullyConnectedOn.
+   * face connectivity or by face+edge+vertex connectivity. 
+   * Default is FullyConnectedOff.
+   * For objects that are 1 pixel wide, use FullyConnectedOn.
    */
   itkSetMacro(FullyConnected, bool);
   itkGetConstReferenceMacro(FullyConnected, bool);
@@ -137,8 +138,8 @@ public:
   itkBooleanMacro( ReverseOrdering );
 
   /**
-   * Set/Get the attribute to use to select the object to keep. The default
-   * is "Size".
+   * Set/Get the attribute to use to select the object to keep.
+   * Default is "Size".
    */
   itkGetConstMacro( Attribute, AttributeType );
   itkSetMacro( Attribute, AttributeType );
@@ -152,7 +153,7 @@ protected:
   ~BinaryShapeKeepNObjectsImageFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  /** BinaryShapeKeepNObjectsImageFilter needs the entire input be
+  /** BinaryShapeKeepNObjectsImageFilter needs the entire input to be
    * available. Thus, it needs to provide an implementation of
    * GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();

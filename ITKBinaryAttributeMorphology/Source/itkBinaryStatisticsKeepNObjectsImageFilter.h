@@ -29,11 +29,15 @@
 namespace itk {
 
 /** \class BinaryStatisticsKeepNObjectsImageFilter
- * \brief keep N objects according to their statistics attributes
+ * \brief Keep N objects according to their statistics attributes.
  *
- * BinaryStatisticsKeepNObjectsImageFilter keep the N objects in a binary image
+ * The BinaryStatisticsKeepNObjectsImageFilter keeps N objects in a binary image
  * with the highest (or lowest) attribute value. The attributes are the ones
  * of the StatisticsLabelObject.
+ *
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
  *
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
@@ -69,12 +73,9 @@ public:
   typedef typename FeatureImageType::PixelType       FeatureImagePixelType;
 
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   typedef StatisticsLabelObject<unsigned long, ImageDimension>                       LabelObjectType;
   typedef typename itk::LabelMap< LabelObjectType >                                  LabelMapType;
@@ -85,11 +86,10 @@ public:
   typedef typename itk::LabelMapToBinaryImageFilter< LabelMapType, OutputImageType > BinarizerType;
 
   /** Standard New method. */
-  itkNewMacro(Self);  
+  itkNewMacro( Self );
 
   /** Runtime information support. */
-  itkTypeMacro(BinaryStatisticsKeepNObjectsImageFilter, 
-               ImageToImageFilter);
+  itkTypeMacro( BinaryStatisticsKeepNObjectsImageFilter, ImageToImageFilter );
 
   /**
    * Set/Get whether the connected components are defined strictly by
@@ -97,9 +97,9 @@ public:
    * FullyConnectedOff.  For objects that are 1 pixel wide, use
    * FullyConnectedOn.
    */
-  itkSetMacro(FullyConnected, bool);
-  itkGetConstReferenceMacro(FullyConnected, bool);
-  itkBooleanMacro(FullyConnected);
+  itkSetMacro( FullyConnected, bool );
+  itkGetConstReferenceMacro( FullyConnected, bool );
+  itkBooleanMacro( FullyConnected );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -116,25 +116,25 @@ public:
    * Set/Get the value used as "background" in the output image.
    * Defaults to NumericTraits<PixelType>::NonpositiveMin().
    */
-  itkSetMacro(BackgroundValue, OutputImagePixelType);
-  itkGetConstMacro(BackgroundValue, OutputImagePixelType);
+  itkSetMacro( BackgroundValue, OutputImagePixelType );
+  itkGetConstMacro( BackgroundValue, OutputImagePixelType );
 
   /**
    * Set/Get the value used as "foreground" in the output image.
    * Defaults to NumericTraits<PixelType>::max().
    */
-  itkSetMacro(ForegroundValue, OutputImagePixelType);
-  itkGetConstMacro(ForegroundValue, OutputImagePixelType);
+  itkSetMacro( ForegroundValue, OutputImagePixelType );
+  itkGetConstMacro( ForegroundValue, OutputImagePixelType );
 
   /**
    * Set/Get the number of objects to keep
    */
-  itkGetConstMacro(NumberOfObjects, unsigned long);
-  itkSetMacro(NumberOfObjects, unsigned long);
+  itkGetConstMacro( NumberOfObjects, unsigned long );
+  itkSetMacro( NumberOfObjects, unsigned long );
 
   /**
    * Set/Get the ordering of the objects. By default, the ones with the
-   * highest value are kept. Turming ReverseOrdering to true make this filter
+   * highest value are kept. Turning ReverseOrdering to true makes this filter
    * keep the objects with the smallest values
    */
   itkGetConstMacro( ReverseOrdering, bool );
@@ -142,8 +142,8 @@ public:
   itkBooleanMacro( ReverseOrdering );
 
   /**
-   * Set/Get the attribute to use to select the object to keep. The default
-   * is "Mean".
+   * Set/Get the attribute to use to select the object to keep.
+   * Default is "Mean".
    */
   itkGetConstMacro( Attribute, AttributeType );
   itkSetMacro( Attribute, AttributeType );
@@ -154,7 +154,7 @@ public:
 
 
    /** Set the feature image */
-  void SetFeatureImage(TFeatureImage *input)
+  void SetFeatureImage( TFeatureImage *input )
     {
     // Process object is not const-correct so the const casting is required.
     this->SetNthInput( 1, const_cast<TFeatureImage *>(input) );
@@ -163,17 +163,17 @@ public:
   /** Get the feature image */
   FeatureImageType * GetFeatureImage()
     {
-    return static_cast<FeatureImageType*>(const_cast<DataObject *>(this->ProcessObject::GetInput(1)));
+    return static_cast<FeatureImageType*>( const_cast<DataObject *>(this->ProcessObject::GetInput(1 ) ) );
     }
 
    /** Set the input image */
-  void SetInput1(InputImageType *input)
+  void SetInput1( InputImageType *input )
     {
     this->SetInput( input );
     }
 
   /** Set the feature image */
-  void SetInput2(FeatureImageType *input)
+  void SetInput2( FeatureImageType *input )
     {
     this->SetFeatureImage( input );
     }
@@ -183,7 +183,7 @@ protected:
   ~BinaryStatisticsKeepNObjectsImageFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  /** BinaryStatisticsKeepNObjectsImageFilter needs the entire input be
+  /** BinaryStatisticsKeepNObjectsImageFilter needs the entire input to be
    * available. Thus, it needs to provide an implementation of
    * GenerateInputRequestedRegion(). */
   void GenerateInputRequestedRegion();

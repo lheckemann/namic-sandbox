@@ -43,7 +43,7 @@ BinaryShapeOpeningImageFilter<TInputImage>
   Superclass::GenerateInputRequestedRegion();
   
   // We need all the input.
-  InputImagePointer input = const_cast<InputImageType *>(this->GetInput());
+  InputImagePointer input = const_cast<InputImageType *>( this->GetInput() );
   if( input )
     {
     input->SetRequestedRegion( input->GetLargestPossibleRegion() );
@@ -68,7 +68,7 @@ BinaryShapeOpeningImageFilter<TInputImage>
 {
   // Create a process accumulator for tracking the progress of this minipipeline
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
-  progress->SetMiniPipelineFilter(this);
+  progress->SetMiniPipelineFilter( this );
 
   // Allocate the output
   this->AllocateOutputs();
