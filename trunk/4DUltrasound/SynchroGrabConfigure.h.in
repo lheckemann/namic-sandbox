@@ -16,19 +16,19 @@
 #define DATASENDER 3
 
 //Data Collector
-#define ERRORCOLLECTOR
-#define DEBUGCOLLECTOR
-#define TIMINGCOLLECTOR
+//#define ERRORCOLLECTOR
+//#define DEBUGCOLLECTOR
+//#define TIMINGCOLLECTOR
 
 //Data Processor
 #define ERRORPROCESSOR
 #define DEBUGPROCESSOR
-#define TIMINGPROCESSOR
+//#define TIMINGPROCESSOR
 
 //Data Sender
 #define ERRORSENDER
 #define DEBUGSENDER
-#define TIMINGSENDER
+//#define TIMINGSENDER
 
 //Instrument Tracker
 //#define ERROR_INST_TRACKER
@@ -36,6 +36,6 @@
 //#define TIMING_INST_TRACKER
 
 //Calibration File Reader
-#define DEBUG_CALIBRATIONFILE_READER
+//#define DEBUG_CALIBRATIONFILE_READER
 
 //#define HIGH_DEFINITION
