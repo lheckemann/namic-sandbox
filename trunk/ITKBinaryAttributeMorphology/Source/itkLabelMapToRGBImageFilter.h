@@ -66,17 +66,14 @@ public:
   typedef typename Functor::LabelToRGBFunctor< InputImagePixelType, OutputImagePixelType > FunctorType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro( InputImageDimension, unsigned int, TInputImage::ImageDimension );
+  itkStaticConstMacro( OutputImageDimension, unsigned int, TOutputImage::ImageDimension );
 
   /** Standard New method. */
-  itkNewMacro(Self);  
+  itkNewMacro( Self );  
 
   /** Runtime information support. */
-  itkTypeMacro(LabelMapToRGBImageFilter, 
-               ImageToImageFilter);
+  itkTypeMacro( LabelMapToRGBImageFilter, ImageToImageFilter );
 
 protected:
   LabelMapToRGBImageFilter();
@@ -87,8 +84,8 @@ protected:
   virtual void ThreadedGenerateData( LabelObjectType * labelObject );  
 
 private:
-  LabelMapToRGBImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  LabelMapToRGBImageFilter( const Self& ); //purposely not implemented
+  void operator=( const Self& ); //purposely not implemented
 
 }; // end of class
 

@@ -65,7 +65,7 @@ LabelMapToRGBImageFilter<TInputImage, TOutputImage>
     {
     IndexType idx = lit->GetIndex();
     unsigned long length = lit->GetLength();
-    for( unsigned int i=0; i<length; i++)
+    for( unsigned int i = 0; i < length; i++)
       {
       this->GetOutput()->SetPixel( idx, function( label ) );
       idx[0]++;
