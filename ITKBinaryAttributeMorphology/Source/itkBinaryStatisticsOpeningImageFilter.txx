@@ -40,7 +40,7 @@ void
 BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>
 ::GenerateInputRequestedRegion()
 {
-  // call the superclass' implementation of this method
+  // Call the superclass' implementation of this method
   Superclass::GenerateInputRequestedRegion();
   
   // We need all the input.
@@ -80,7 +80,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>
   labelizer->SetBackgroundValue( m_BackgroundValue );
   labelizer->SetFullyConnected( m_FullyConnected );
   labelizer->SetNumberOfThreads( this->GetNumberOfThreads() );
-  progress->RegisterInternalFilter(labelizer, .3f);
+  progress->RegisterInternalFilter( labelizer, .3f );
   
   typename LabelObjectValuatorType::Pointer valuator = LabelObjectValuatorType::New();
   valuator->SetInput( labelizer->GetOutput() );
@@ -95,7 +95,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>
     {
     valuator->SetComputeFeretDiameter( true );
     }
-  progress->RegisterInternalFilter(valuator, .3f);
+  progress->RegisterInternalFilter( valuator, .3f );
   
   typename OpeningType::Pointer opening = OpeningType::New();
   opening->SetInput( valuator->GetOutput() );
@@ -103,7 +103,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>
   opening->SetReverseOrdering( m_ReverseOrdering );
   opening->SetAttribute( m_Attribute );
   opening->SetNumberOfThreads( this->GetNumberOfThreads() );
-  progress->RegisterInternalFilter(opening, .2f);
+  progress->RegisterInternalFilter( opening, .2f );
   
   typename BinarizerType::Pointer binarizer = BinarizerType::New();
   binarizer->SetInput( opening->GetOutput() );
@@ -111,7 +111,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>
   binarizer->SetBackgroundValue( m_BackgroundValue );
   binarizer->SetBackgroundImage( this->GetInput() );
   binarizer->SetNumberOfThreads( this->GetNumberOfThreads() );
-  progress->RegisterInternalFilter(binarizer, .2f);  
+  progress->RegisterInternalFilter( binarizer, .2f );
 
   binarizer->GraftOutput( this->GetOutput() );
   binarizer->Update();
@@ -122,7 +122,7 @@ BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>
 template<class TInputImage, class TFeatureImage>
 void
 BinaryStatisticsOpeningImageFilter<TInputImage, TFeatureImage>
-::PrintSelf(std::ostream &os, Indent indent) const
+::PrintSelf( std::ostream &os, Indent indent ) const
 {
   Superclass::PrintSelf(os, indent);
 

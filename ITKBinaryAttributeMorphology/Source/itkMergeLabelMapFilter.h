@@ -96,8 +96,8 @@ protected:
   MethodChoice         m_Method;
 
 private:
-  MergeLabelMapFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  MergeLabelMapFilter( const Self& ); //purposely not implemented
+  void operator=( const Self& ); //purposely not implemented
   
   void MergeWithKeep();
   void MergeWithAggregate();
