@@ -19,6 +19,7 @@
 
 #include "itkShapeUniqueLabelMapFilter.h"
 #include "itkLabelMapUtilities.h"
+#include "itkShapeLabelObjectAccessors.h"
 
 
 namespace itk {
