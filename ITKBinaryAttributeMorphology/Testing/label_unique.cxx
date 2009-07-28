@@ -19,11 +19,10 @@ int main(int argc, char * argv[])
   if( argc != 4 )
     {
     std::cerr << "usage: " << argv[0] << " input output reverse" << std::endl;
-    // std::cerr << "  : " << std::endl;
-    exit(1);
+    return EXIT_FAILURE;
     }
 
-  const int dim = 2;
+  const unsigned int dim = 2;
   
   typedef itk::Image< unsigned char, dim > ImageType;
 
@@ -71,6 +70,6 @@ int main(int argc, char * argv[])
   writer->SetFileName( argv[2] );
   writer->Update();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 

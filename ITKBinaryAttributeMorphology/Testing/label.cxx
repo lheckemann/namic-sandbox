@@ -33,8 +33,8 @@ int main(int argc, char * argv[])
   I2LType::Pointer i2l = I2LType::New();
   i2l->SetInput( reader->GetOutput() );
   i2l->SetFullyConnected( atoi(argv[3]) );
-  i2l->SetForegroundValue( atoi(argv[4]) );
-  i2l->SetBackgroundValue( atoi(argv[5]) );
+  i2l->SetInputForegroundValue( atoi(argv[4]) );
+  i2l->SetOutputBackgroundValue( atoi(argv[5]) );
 //   i2l->Update();
 //   i2l->GetOutput()->PrintLabelObjects();
 

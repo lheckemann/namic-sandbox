@@ -18,6 +18,7 @@
 #define __itkAttributeLabelObject_h
 
 #include "itkLabelObject.h"
+#include "itkLabelMap.h"
 
 namespace itk
 {

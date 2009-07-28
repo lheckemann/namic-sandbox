@@ -18,6 +18,7 @@
 #define __itkShapeKeepNObjectsLabelMapFilter_txx
 
 #include "itkShapeKeepNObjectsLabelMapFilter.h"
+#include "itkLabelObjectAccessors.h"
 #include "itkProgressReporter.h"
 
 

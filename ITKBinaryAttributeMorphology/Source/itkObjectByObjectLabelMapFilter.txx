@@ -163,8 +163,8 @@ ObjectByObjectLabelMapFilter<TInputImage, TOutputImage, TInputFilter, TOutputFil
   m_LI2LM->SetInput( m_OutputFilter->GetOutput() );
   m_BI2LM->SetInput( m_OutputFilter->GetOutput() );
 
-  m_LM2BI->SetForegroundValue( m_InternalForegroundValue );
-  m_BI2LM->SetForegroundValue( m_InternalForegroundValue );
+  m_LM2BI->SetOutputForegroundValue( m_InternalForegroundValue );
+  m_BI2LM->SetInputForegroundValue( m_InternalForegroundValue );
 
   // initialize the progress reporter
   ProgressReporter progress( this, 0, this->GetLabelMap()->GetNumberOfLabelObjects() );

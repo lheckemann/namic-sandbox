@@ -75,8 +75,8 @@ BinaryImageToShapeLabelMapFilter<TInputImage, TOutputImage>
   
   typename LabelizerType::Pointer labelizer = LabelizerType::New();
   labelizer->SetInput( this->GetInput() );
-  labelizer->SetForegroundValue( m_ForegroundValue );
-  labelizer->SetBackgroundValue( m_BackgroundValue );
+  labelizer->SetInputForegroundValue( m_ForegroundValue );
+  labelizer->SetOutputBackgroundValue( m_BackgroundValue );
   labelizer->SetFullyConnected( m_FullyConnected );
   labelizer->SetNumberOfThreads( this->GetNumberOfThreads() );
   progress->RegisterInternalFilter(labelizer, .5f);

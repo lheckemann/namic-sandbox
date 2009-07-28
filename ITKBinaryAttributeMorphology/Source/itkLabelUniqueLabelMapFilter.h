@@ -52,7 +52,6 @@ public:
   typedef typename ImageType::IndexType       IndexType;
   
   typedef typename Superclass::AttributeAccessorType AttributeAccessorType;
-  typedef typename Superclass::AttributeValueType    AttributeValueType;
   
   /** ImageDimension constants */
   itkStaticConstMacro(ImageDimension, unsigned int,
@@ -62,8 +61,7 @@ public:
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(LabelUniqueLabelMapFilter, 
-               AttributeUniqueLabelMapFilter);
+  itkTypeMacro(LabelUniqueLabelMapFilter, AttributeUniqueLabelMapFilter);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */

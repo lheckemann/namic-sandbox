@@ -49,6 +49,7 @@ int main(int argc, char * argv[])
   writer->SetInput( reconstruction->GetOutput() );
   writer->SetFileName( argv[2] );
   writer->Update();
-  return 0;
+
+  return EXIT_SUCCESS;
 }
 

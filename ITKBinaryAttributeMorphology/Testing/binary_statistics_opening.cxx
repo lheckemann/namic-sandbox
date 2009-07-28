@@ -11,11 +11,10 @@ int main(int argc, char * argv[])
   if( argc != 10 )
     {
     std::cerr << "usage: " << argv[0] << " input input output foreground background lambda reverseOrdering connectivity attribute" << std::endl;
-    // std::cerr << "  : " << std::endl;
-    exit(1);
+    return EXIT_FAILURE;
     }
 
-  const int dim = 3;
+  const unsigned int dim = 3;
   
   typedef itk::Image< unsigned char, dim > IType;
 
@@ -43,6 +42,6 @@ int main(int argc, char * argv[])
   writer->SetInput( opening->GetOutput() );
   writer->SetFileName( argv[3] );
   writer->Update();
-  return 0;
-}
 
+  return EXIT_SUCCESS;
+}

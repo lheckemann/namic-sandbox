@@ -18,6 +18,7 @@
 #define __itkShapeLabelObject_h
 
 #include "itkLabelObject.h"
+#include "itkLabelMap.h"
 #include "itkAffineTransform.h"
 #include "itkMatrix.h"
 
