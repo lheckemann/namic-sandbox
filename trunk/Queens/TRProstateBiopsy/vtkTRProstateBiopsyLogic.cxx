@@ -564,6 +564,12 @@ bool vtkTRProstateBiopsyLogic::IsTargetReachable(int needleIndex, double rasLoca
     return false;
   }
 
+  if (targetDesc->GetDepthCM()>15.0 /*:TODO: read max needle length from config file*/)
+  {
+    return false;
+  }
+
+
   return true;
 }
 //-------------------------------------------------------------------------------
