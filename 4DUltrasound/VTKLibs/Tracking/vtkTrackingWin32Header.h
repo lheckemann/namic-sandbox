@@ -17,7 +17,8 @@
 #ifndef __vtkTrackingWin32Header_h
 #define __vtkTrackingWin32Header_h
 
-#include <QueensOpenIGTLibsConfigure.h>
+//#include <QueensOpenIGTLibsConfigure.h>
+#include <igtlConfigure.h>
 
 #if defined(WIN32) && !defined(QUEENSOPENIGT_STATIC)
 #if defined(vtkOpenIGTTracking_EXPORTS)
