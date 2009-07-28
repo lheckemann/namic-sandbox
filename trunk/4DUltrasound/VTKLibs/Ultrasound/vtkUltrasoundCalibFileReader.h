@@ -132,6 +132,20 @@ public:
   
   vtkGetMacro(CoordinateTransformationMatrix, vtkMatrix4x4*);
   
+  vtkGetStringMacro(VideoSource);
+
+  vtkGetMacro(VideoChannel, int);
+
+  vtkGetMacro(VideoMode, int);
+
+  vtkGetMacro(FramesPerSecond, int);
+
+  vtkGetStringMacro(OpenIGTLinkServer);
+
+  vtkGetMacro(OpenIGTLinkServerPortUltrasound, int);
+
+  vtkGetMacro(OpenIGTLinkServerPortTrackedInstrument, int);
+
 protected:
   vtkUltrasoundCalibFileReader();
   ~vtkUltrasoundCalibFileReader();
@@ -140,36 +154,58 @@ protected:
   int OpenCalibFile();
   void CloseCalibFile();
   void Init();
-  void ReadText();
+  void ReadText(std::vector<char, std::allocator<char> >& text);
   void ReadComments();
   void ReadNumbers(vtkstd::vector<double> & numbers);
   void ReadBlankLines();
   void Calculate();
+
+  //File stream for error logging
+  ofstream LogStream;
+
   // The input file's name.
   char* FileName;
   
   // Whether there was an error reading the XML.
   int ReadError;
-  
+
+  //Image Settings
   int ImageSize[3];
   int ImageDimensions;
-  double ImageSpacing[3];  
+  int ImageMargin[4];
+
+  //Calibration Matrices
+  double TrackerOffset[3];
+  vtkMatrix4x4 *ObliquenessAdjustmentMatrix;
+  vtkMatrix4x4 *CoordinateTransformationMatrix;
+  double SystemOffset[3];
+
+  //System Settings
+  double MaximumVolumeSize[3];
+  char *VideoSource;
+  int VideoChannel;
+  int VideoMode;
+  int DelayFactor;
+
+  //Ultrasound Settings
+  int FramesPerSecond;
+  double UltrasoundScanDepth;
+  double UltrasoundScanFanHeight;
+
+  //Instrument Settings
+  int InstrumentTrackingRate;
+
+  //OpenIGTLink Settings
+  char *OpenIGTLinkServer;
+  int OpenIGTLinkServerPortUltrasound;
+  int OpenIGTLinkServerPortTrackedInstrument;
+
+  double ImageSpacing[3];
   double ImageOrigin[3];
   double ClipRectangle[4];
   static const double DefaultClipPixels[4];
-  ofstream LogStream;
-  int ImageMargin[4];
-  double UltrasoundScanDepth;
-  double UltrasoundScanFanHeight;
   int ShrinkFactor[3];
-  double SystemOffset[3];
-  double MaximumVolumeSize[3];
-  int DelayFactor;
   double TransformationFactorMmToPixel;
-  double TrackerOffset[3];
-  
-  vtkMatrix4x4 *ObliquenessAdjustmentMatrix;
-  vtkMatrix4x4 *CoordinateTransformationMatrix;
   
   vtkMatrix4x4 *HomogeneousMatrix;
   vtkMatrix4x4 *CalibrationMatrix;

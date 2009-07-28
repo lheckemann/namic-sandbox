@@ -215,6 +215,7 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   this->Init();
   
   vtkstd::vector<double> numbers;
+  vtkstd::vector<char> text;
   //Read leading comments-------------------------------------------------------
   this->ReadBlankLines();
   this->ReadComments();
@@ -234,6 +235,9 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
     this->ImageSize[0] = int(numbers.at(0));
     this->ImageSize[1] = int(numbers.at(1));
     this->ImageSize[2] = 0;
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Image size is " << this->ImageSize[0] << "| "<< this->ImageSize[1]<< "| "<< this->ImageSize[2] << endl;
+    #endif
     }
   else
     {
@@ -404,8 +408,34 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   
   //Read video device name
   this->ReadComments();
-  this->ReadNumbers(numbers);
+  text.clear();
+  this->ReadText(text);
   
+  if (text.size() >= 1)
+    {
+
+    this->VideoSource = new char[text.size() + 1];
+    char * pVideoSource = VideoSource;
+
+    for(int i = 0 ; i < text.size(); i++)
+      {
+      const char* tmp = &(text.at(i));
+      strcpy(pVideoSource, tmp);
+      pVideoSource++;
+      }
+
+    strcpy(pVideoSource, "\0");
+
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Video source is " << this->VideoSource<< endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read video source" << endl;
+    return -1;
+    }
+
   this->ReadBlankLines();
   
   //Read Video Channel
@@ -413,6 +443,21 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   numbers.clear();
   this->ReadNumbers(numbers);
   
+  if (numbers.size() == 1)
+      {
+      this->VideoChannel = int(numbers.at(0));
+
+      #ifdef DEBUG_CALIBRATIONFILE_READER
+      this->LogStream << "CF-INFO: Video Channel is " << this->VideoChannel << endl;
+      #endif
+
+      }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read video channel" << endl;
+    return -1;
+    }
+
   this->ReadBlankLines();
   
   //Read Video Mode
@@ -420,6 +465,21 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   numbers.clear();
   this->ReadNumbers(numbers);
   
+  if (numbers.size() == 1)
+      {
+      this->VideoMode = int(numbers.at(0));
+
+      #ifdef DEBUG_CALIBRATIONFILE_READER
+      this->LogStream << "CF-INFO: Video Mode is " << this->VideoMode << endl;
+      #endif
+
+      }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read video mode" << endl;
+    return -1;
+    }
+
   this->ReadBlankLines();
   
   //Read Delay Factor
@@ -453,6 +513,21 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   numbers.clear();
   this->ReadNumbers(numbers);
   
+  if (numbers.size() == 1)
+      {
+      this->FramesPerSecond = int(numbers.at(0));
+
+      #ifdef DEBUG_CALIBRATIONFILE_READER
+      this->LogStream << "CF-INFO: Frames per Second is " << this->FramesPerSecond << endl;
+      #endif
+
+      }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read video channel" << endl;
+    return -1;
+    }
+
   this->ReadBlankLines();
   
   //Read Ultrasound Scan depth
@@ -505,6 +580,19 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   numbers.clear();
   this->ReadNumbers(numbers);
   
+  if(numbers.size() == 1)
+    {
+    this->InstrumentTrackingRate = int(numbers.at(0));
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Instrument tracking rate is " << this->InstrumentTrackingRate << endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read instrument tracking rate" << endl;
+    return -1;
+    }
+
   this->ReadBlankLines();
     
   //----------------------------------------------------------------------------
@@ -514,9 +602,36 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   
   //OpenIGTLinkServer
   this->ReadComments();
-  numbers.clear();
-  this->ReadNumbers(numbers);
+  text.clear();
+  this->ReadText(text);
   
+
+  if (text.size() >= 1)
+    {
+
+    this->OpenIGTLinkServer = new char[text.size() + 1];
+
+    char * pOpenIGTLinkServer = OpenIGTLinkServer;
+
+    for(int i = 0 ; i < text.size(); i++)
+      {
+      const char* tmp = &(text.at(i));
+      strcpy(pOpenIGTLinkServer, tmp);
+      pOpenIGTLinkServer++;
+      }
+
+      strcpy(pOpenIGTLinkServer, "\0");
+
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: OpenIGTLink Server is " << this->OpenIGTLinkServer<< endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read OpenIGTLink Server" << endl;
+    return -1;
+    }
+
   this->ReadBlankLines();
 
   //OpenIGTLinkPort US Tracker
@@ -524,12 +639,38 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   numbers.clear();
   this->ReadNumbers(numbers);
   
+  if(numbers.size() == 1)
+    {
+    this->OpenIGTLinkServerPortUltrasound = int(numbers.at(0));
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: OpenIGTLink server port for 3D ultrasound reconstruction is " << this->OpenIGTLinkServerPortUltrasound << endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read OpenIGTLink server port for ultrasound" << endl;
+    return -1;
+    }
+
   this->ReadBlankLines();
   
   //OpenIGTLinkPort Instrument Tracker
   this->ReadComments();
   numbers.clear();
   this->ReadNumbers(numbers);
+
+  if(numbers.size() == 1)
+    {
+    this->OpenIGTLinkServerPortTrackedInstrument = int(numbers.at(0));
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: OpenIGTLink server port for instrument tracking is " << this->OpenIGTLinkServerPortTrackedInstrument << endl;
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read OpenIGTLink server port for instrument tracking" << endl;
+    return -1;
+    }
   
   //----------------------------------------------------------------------------
   //End of reading section do calculations
@@ -561,14 +702,18 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
 //  this->ShrinkFactor[1] = 1;//Y
   #endif
   
+  #ifdef DEBUG_CALIBRATIONFILE_READER
   this->LogStream << "CF-INFO: Shrinkfactor is: " << this->ShrinkFactor[0] << " | " << this->ShrinkFactor[1] << " | " << this->ShrinkFactor[2]<< endl;
+  #endif
   
   this->ClipRectangle[0] = 0;
   this->ClipRectangle[1] = 0;
   this->ClipRectangle[2] = (this->ImageSize[0] - this->ImageMargin[2] - this->ImageMargin[3] -1) / this->ShrinkFactor[0];
   this->ClipRectangle[3] = (this->ImageSize[1] - this->ImageMargin[0] - this->ImageMargin[1] -1) / this->ShrinkFactor[1];
 
+  #ifdef DEBUG_CALIBRATIONFILE_READER
   this->LogStream << "CF-INFO: ClipRectangle is: " << this->ClipRectangle[0] << " - " << this->ClipRectangle[1] << " | " << this->ClipRectangle[2] <<" - " << this->ClipRectangle[3] << endl;
+  #endif
   
   #ifdef HIGH_DEFINITION
 //  this->ImageSpacing[0] = 0.25;
@@ -589,6 +734,7 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   // close the file stream
   this->CloseCalibFile();
   
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -681,12 +827,12 @@ void vtkUltrasoundCalibFileReader::ReadNumbers(vtkstd::vector<double> & numbers)
     const char *token = curLine.data();
     for ( unsigned int index = 0; index < curLine.length(); ) /* loop through each character on the line */         
       {            
-    /* search for delimiters */            
-    size_t len = strcspn(token, "\t \n");
-    if (len >0)
-      numbers.push_back(atof(token));
-    token += len + 1;
-    index += len + 1;
+      /* search for delimiters */
+      size_t len = strcspn(token, "\t \n");
+      if (len >0)
+        numbers.push_back(atof(token));
+      token += len + 1;
+      index += len + 1;
       }
     this->LinesIterator++;
     curLine = *this->LinesIterator;
@@ -696,26 +842,29 @@ void vtkUltrasoundCalibFileReader::ReadNumbers(vtkstd::vector<double> & numbers)
 }
 
 //----------------------------------------------------------------------------
-void vtkUltrasoundCalibFileReader::ReadText()
+void vtkUltrasoundCalibFileReader::ReadText(std::vector<char, std::allocator<char> >& text)
 {
-  /*
-        """Read text until comment line or blank line.
-        """
-        text = []
-        while lines and lines[0].strip() != "" and lines[0][0] != '#':
-            text.append(lines[0])
-            # remove the first line from the list
-            del lines[0]
-        return text
-    */
+
   if (this->LinesIterator != this->Lines.end())
     {
-  vtkstd::string curLine = *this->LinesIterator;
-  while (!curLine.empty() && (curLine.c_str()[0] != '#') )
-    {
-    this->LinesIterator++;
-    curLine = *this->LinesIterator;
-    }
+    vtkstd::string curLine = *this->LinesIterator;
+    while (!curLine.empty() && (curLine.c_str()[0] != '#') )
+      {
+       const char *token = curLine.data();
+       for ( unsigned int index = 0; index < curLine.length(); ) /* loop through each character on the line */
+         {
+         /* search for delimiters */
+         size_t len = strcspn(token, "\t \n");
+         if (len > 0)
+           {
+           text.push_back(*token);
+           }
+         token++;
+         index++;
+         }
+      this->LinesIterator++;
+      curLine = *this->LinesIterator;
+      }
     }
 }
 
