@@ -28,7 +28,11 @@ include_directories(
   ${Slicer3_Base_INCLUDE_DIRS}
   ${Volumes_SOURCE_DIR}
   ${Volumes_BINARY_DIR}
+  ${Slicer3_DIR}/../Slicer3/Modules/Volumes
+  ${Slicer3_DIR}/Modules/Volumes 
 )
+
+LINK_DIRECTORIES( ${LINK_DIRECTORIES} ${Slicer3_DIR}/lib/Slicer3/Modules )
 
 # --------------------------------------------------------------------------
 # Configure include file

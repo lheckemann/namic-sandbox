@@ -1268,7 +1268,7 @@ void vtkTRProstateBiopsyTargetingStep::CoverageMapUpdate()
   int extent[6];
   CoverageLabelMapImage->GetWholeExtent(extent);
 
-  /*for (int z=extent[4]; z<=extent[5]; z++)
+  for (int z=extent[4]; z<=extent[5]; z++)
   {
     for (int y=extent[2]; y<=extent[3]; y++)
     {
@@ -1277,21 +1277,23 @@ void vtkTRProstateBiopsyTargetingStep::CoverageMapUpdate()
         CoverageLabelMapImage->SetScalarComponentFromFloat(x, y, z, 0, 0);
       }
     }
-  }*/
+  }
 
-  for (int z=extent[4]; z<=extent[5]; z++)
+  float value=0;
+  // +1 and < instead of <= is used to leave a black boundary around the image
+  for (int z=extent[4]+1; z<extent[5]; z++)
   {
-    for (int y=extent[2]; y<=extent[3]; y++)
+    for (int y=extent[2]+1; y<extent[3]; y++)
     {
-      for (int x=extent[0]; x<=extent[1]; x++)
+      for (int x=extent[0]+1; x<extent[1]; x++)
       {
        
         rasPoint[0]=origin[0]-x*spacing[0];
         rasPoint[1]=origin[1]-y*spacing[1];
         rasPoint[2]=origin[2]+z*spacing[2];
         
-        float value=0;
-        if (this->GetGUI()->GetLogic()->IsTargetReachable(/*needleType, */rasPoint))
+        value=0;
+        if (this->GetGUI()->GetLogic()->IsTargetReachable(0, rasPoint))
         {
           value=1;
         }
@@ -1301,4 +1303,7 @@ void vtkTRProstateBiopsyTargetingStep::CoverageMapUpdate()
     }
   }
 
+  this->CoverageLabelMapImage->Update();
+  this->CoverageLabelMapNode->Modified();
+  
 }
