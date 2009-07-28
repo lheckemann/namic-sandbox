@@ -106,7 +106,7 @@ ShapeRelabelLabelMapFilter<TImage>
 
   ProgressReporter progress( this, 0, 2 * labelObjectContainer.size() );
 
-  // get the label objects in a vector, so they can be sorted
+  // Get the label objects in a vector, so they can be sorted
   VectorType labelObjects;
   labelObjects.reserve( labelObjectContainer.size() );
   for( typename LabelObjectContainerType::const_iterator it = labelObjectContainer.begin();
@@ -117,7 +117,7 @@ ShapeRelabelLabelMapFilter<TImage>
     progress.CompletedPixel();
     }
 
-  // instantiate the comparator and sort the vector
+  // Instantiate the comparator and sort the vector
   if( m_ReverseOrdering )
     {
     Functor::LabelObjectReverseComparator< LabelObjectType, TAttributeAccessor > comparator;
@@ -128,7 +128,7 @@ ShapeRelabelLabelMapFilter<TImage>
     Functor::LabelObjectComparator< LabelObjectType, TAttributeAccessor > comparator;
     std::sort( labelObjects.begin(), labelObjects.end(), comparator );
     }
-//   progress.CompletedPixel();
+  //   progress.CompletedPixel();
   
   // and put back the objects in the map
   typedef typename ImageType::LabelObjectType LabelObjectType;
@@ -137,7 +137,7 @@ ShapeRelabelLabelMapFilter<TImage>
   typename VectorType::const_iterator it = labelObjects.begin();
   while( it != labelObjects.end() )
     {
-    // avoid the background label if it is used
+    // Avoid the background label if it is used
     if( label == output->GetBackgroundValue() )
       {
       label++;
@@ -145,7 +145,7 @@ ShapeRelabelLabelMapFilter<TImage>
     ( *it )->SetLabel( label );
     output->AddLabelObject( *it );
     
-    // go to the next label
+    // Go to the next label
     label++;
     progress.CompletedPixel();
 
