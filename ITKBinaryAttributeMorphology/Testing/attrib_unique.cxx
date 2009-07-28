@@ -8,6 +8,7 @@
 #include "itkObjectByObjectLabelMapFilter.h"
 #include "itkAttributeUniqueLabelMapFilter.h"
 #include "itkLabelMapToLabelImageFilter.h"
+#include "itkShapeLabelObjectAccessors.h"
 
 #include "itkBinaryDilateImageFilter.h"
 #include "itkFlatStructuringElement.h"

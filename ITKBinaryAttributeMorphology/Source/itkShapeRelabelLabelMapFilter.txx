@@ -20,6 +20,7 @@
 #include "itkShapeRelabelLabelMapFilter.h"
 #include "itkProgressReporter.h"
 #include "itkLabelObjectAccessors.h"
+#include "itkShapeLabelObjectAccessors.h"
 
 
 namespace itk {
