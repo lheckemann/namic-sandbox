@@ -63,7 +63,7 @@ int main(int argc, char * argv[])
   writer->SetFileName( argv[2] );
   
   writer->UseCompressionOn();
-  TRY_EXPECT_NO_EXCEPTIONS( writer->Update() );
+  TRY_EXPECT_NO_EXCEPTION( writer->Update() );
 
   return EXIT_SUCCESS;
 }
