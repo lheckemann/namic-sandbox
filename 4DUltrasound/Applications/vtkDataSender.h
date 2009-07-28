@@ -60,6 +60,8 @@ class igtlImageMessage;
 class igtlOSUtil;
 #include "igtlClientSocket.h"
 
+class vtkUltrasoundCalibFileReader;
+
 class vtkMultiThreader;
 class vtkMatrix4x4;
 class vtkMutexLock;
@@ -101,6 +103,9 @@ public:
 
   vtkSetMacro(Verbose, bool);
   vtkGetMacro(Verbose, bool);
+
+  vtkSetStringMacro(CalibrationFileName);
+  vtkGetStringMacro(CalibrationFileName);
 
   vtkSetStringMacro(OIGTLServer);
   vtkGetStringMacro(OIGTLServer);
@@ -147,6 +152,8 @@ public:
   int LockIndex(int index, int requester);
   int ReleaseLock(int requester);
 
+  int Initialize();
+
 protected:
   vtkDataSender();
   ~vtkDataSender();
@@ -154,6 +161,10 @@ protected:
   bool Verbose;
   double StartUpTime;
   ofstream LogStream;
+
+  bool Initialized;
+  char *CalibrationFileName;
+  vtkUltrasoundCalibFileReader *calibReader;
 
   int ServerPort;
   char *OIGTLServer;

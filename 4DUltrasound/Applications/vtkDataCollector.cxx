@@ -47,7 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 //#define REMOVE_ALPHA_CHANNEL
 #define DEBUG_IMAGES //Write tagger output to HDD
-//#define DEBUG_MATRICES //Prints tagger matrices to stdout
+#define DEBUG_MATRICES //Prints tagger matrices to stdout
 #define SHRINK
 
 //#include <windows.h>
@@ -110,7 +110,7 @@ vtkDataCollector::vtkDataCollector()
 {
   this->Verbose = false;
   this->FrameRate = DEFAULT_FPS;
-  this->UltrasoundScanDepth = DEFAULT_ULTRASOUND_SCANDEPTH; //Unit: mm
+  //this->UltrasoundScanDepth = DEFAULT_ULTRASOUND_SCANDEPTH; //Unit: mm
 
   this->FrameBufferSize = 100;
   this->MaximumVolumeSize[0] = DEFAULT_MAXIMUM_VOLUME_SIZE;
@@ -285,6 +285,14 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
 
     this->ObliquenessAdjustmentMatrix = this->calibReader->GetObliquenessAdjustmentMatrix();
     this->CoordinateTransformationMatrix = this->calibReader->GetCoordinateTransformationMatrix();
+
+    //Video Source Settings
+    this->SetVideoDevice(this->calibReader->GetVideoSource());
+    this->SetVideoChannel(this->calibReader->GetVideoChannel());
+    this->SetVideoMode(this->calibReader->GetVideoMode());
+
+    //Ultrasound Settings
+    this->SetFrameRate(this->calibReader->GetFramesPerSecond());
 
     }
   else
@@ -482,10 +490,12 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
         //Set Spacing of new frame----------------------------------------------
         self->GetTagger()->GetOutput()->GetSpacing(dataStruct.Spacing);
 
-//        #ifdef DEBUG_MATRICES
-//        self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
-//        dataStruct.Matrix->Print(self->GetLogStream());
-//        #endif
+
+        #ifdef DEBUG_MATRICES
+        self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
+        dataStruct.Matrix->Print(self->GetLogStream());
+        #endif
+
 
         //Data Processing and error checking------------------------------------
         if(self->IsTrackerDeviceEnabled())
@@ -762,7 +772,6 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
   pDataStruct->Matrix->Element[0][3] += (this->GetSystemOffset()[0] * stretchFactor);
   pDataStruct->Matrix->Element[1][3] += (this->GetSystemOffset()[1] * stretchFactor);
   pDataStruct->Matrix->Element[2][3] += (this->GetSystemOffset()[2] * stretchFactor);
-
 
 //  #ifdef DEBUGCOLLECTOR
 //    this->LogStream << this->GetUpTime() << " |C-INFO: Process Matrix offset applied:"<< endl;

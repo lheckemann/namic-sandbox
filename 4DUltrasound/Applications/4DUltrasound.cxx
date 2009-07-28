@@ -1,262 +1,287 @@
-/*=========================================================================
-Module:  $RCSfile: SynchroGrab.cxx,v $
-Author:  Jonathan Boisvert, Queens School Of Computing
-Author:  Jan Gumprecht, Nobuhiko Hata, Harvard Medical School
+ /*=========================================================================
+ Module:  $RCSfile: SynchroGrab.cxx,v $
+ Author:  Jonathan Boisvert, Queens School Of Computing
+ Author:  Jan Gumprecht, Nobuhiko Hata, Harvard Medical School
 
-Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
-All rights reserved.
+ Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
+ All rights reserved.
 
-Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
+ Copyright (c) 2008, Brigham and Women's Hospital, Boston, MA
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions
-are met:
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
 
- * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
+  * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
 
- * Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in
-   the documentation and/or other materials provided with the
-   distribution.
+  * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the
+    distribution.
 
- * Neither the name of Queen's University nor the names of any
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission.
+  * Neither the name of Queen's University nor the names of any
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
 
- * Neither the name of Harvard Medical School nor the names of any
-   contributors may be used to endorse or promote products derived
-   from this software without specific prior written permission
+  * Neither the name of Harvard Medical School nor the names of any
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-POSSIBILITY OF SUCH DAMAGE.
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
 
-=========================================================================*/
+ =========================================================================*/
 
-//
-// This command line application let you reconstruct 3D ultrasound volume
-// based on the images collected with a tracked probe.
-//
-// The application first connects to a sonix RP machine during an image
-// acquisition session.  Then, it also connects to a Certus which is used to
-// track the position and orientation of the ultrasound probe.  The tion
-// information (relation between the ultrasound image space and the dynamic reference
-// object tracked by the Certus) have to be specified in a configuration file.
-// Once a predefined number of frames have been recorded, the application
-// creates the 3D volume and exists.
-//
-#include "vtkFileOutputWindow.h"
-#include "vtkImageData.h"
-#include "vtkTimerLog.h"
+ //
+ // This command line application let you reconstruct 3D ultrasound volume
+ // based on the images collected with a tracked probe.
+ //
+ // The application first connects to a sonix RP machine during an image
+ // acquisition session.  Then, it also connects to a Certus which is used to
+ // track the position and orientation of the ultrasound probe.  The tion
+ // information (relation between the ultrasound image space and the dynamic reference
+ // object tracked by the Certus) have to be specified in a configuration file.
+ // Once a predefined number of frames have been recorded, the application
+ // creates the 3D volume and exists.
+ //
+ #include "vtkFileOutputWindow.h"
+ #include "vtkImageData.h"
+ #include "vtkTimerLog.h"
 
-#include "vtkDataCollector.h"
-#include "vtkDataProcessor.h"
-#include "vtkDataSender.h"
-#include "vtkInstrumentTracker.h"
-#include "vtkNDITracker.h"
+ #include "vtkDataCollector.h"
+ #include "vtkDataProcessor.h"
+ #include "vtkDataSender.h"
+ #include "vtkInstrumentTracker.h"
+ #include "vtkNDITracker.h"
 
-using namespace std;
+//ERROR DEFINITION
 
-void printSplashScreen();
-void printUsage();
-bool parseCommandLineArguments(int argc, char **argv,
-                               vtkDataCollector *collector,
-                               vtkDataProcessor* processor,
-                               vtkDataSender *sender,
-                               vtkInstrumentTracker *instrumentTracker);
-void goodByeScreen();
-void goodByeInput();
-static inline void vtkSleep(double duration);
+#define ERROR_NO_TRACKER_FOUND 1
+#define ERROR_DATA_COLLECTOR_NOT_INITIALIZED 2
+#define ERROR_DATA_SENDER_NOT_INITIALIZED 3
+#define ERROR_NO_CONNECTION_TO_OPENIGTLINKSERVER 4
+#define ERROR_DATA_SENDER_DOES_NOT_WORK 5
+#define ERROR_DATA_PROCESSOR_DOES_NOT_WORK 6
+#define ERROR_DATA_COLLECTOR_DOES_NOT_WORK 7
+#define ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK 8
 
-/******************************************************************************
- *
- * MAIN
- *
- ******************************************************************************/
-int main(int argc, char **argv)
-{
-  int terminate = 0;
-  ofstream logStream;
-  char* logFile = "./logFile.txt";
 
-  vtkDataCollector *collector = vtkDataCollector::New();
-  vtkDataProcessor *processor = vtkDataProcessor::New();
-  vtkDataSender *sender = vtkDataSender::New();
-  
-  vtkInstrumentTracker *instrumentTracker =   vtkInstrumentTracker::New();
+ using namespace std;
 
-  vtkNDITracker * tracker = vtkNDITracker::New();
-  
-  //Fix StartUp time
-  double startTime = vtkTimerLog::GetUniversalTime();
-  collector->SetStartUpTime(startTime);
-  processor->SetStartUpTime(startTime);
-  sender->SetStartUpTime(startTime);
-  instrumentTracker->SetStartUpTime(startTime);
+ void printSplashScreen();
+ void printUsage();
+ bool parseCommandLineArguments(int argc, char **argv,
+ vtkDataCollector *collector,
+ vtkDataProcessor* processor,
+ vtkDataSender *sender,
+ vtkInstrumentTracker *instrumentTracker);
+ void goodByeScreen();
+ void goodByeInput();
+ void printErrorCodes(int terminate);
+ static inline void vtkSleep(double duration);
 
-  printSplashScreen();
+ /******************************************************************************
+  *
+  * MAIN
+  *
+  ******************************************************************************/
+ int main(int argc, char **argv)
+ {
+   int terminate = 0;
+   ofstream logStream;
+   char* logFile = "./logFile.txt";
 
-  //Read command line arguments
-  bool successParsingCommandLine = parseCommandLineArguments(argc, argv, collector, processor, sender, instrumentTracker);
-  if(!successParsingCommandLine)
-    {
-    cerr << "ERROR: Could parse commandline arguments" << endl << endl;
-    goodByeScreen();
-    goodByeInput();
-    }
-  else
-    {
-    //Log Stream Preparation
-    logStream.precision(0);
-    logStream.setf(ios::fixed,ios::floatfield);
-    logStream.open(logFile, ios::out);
-    collector->SetLogStream(logStream);
-    processor->SetLogStream(logStream);
-    sender->SetLogStream(logStream);
-    instrumentTracker->SetLogStream(logStream);
+   vtkDataCollector *collector = vtkDataCollector::New();
+   vtkDataProcessor *processor = vtkDataProcessor::New();
+   vtkDataSender *sender = vtkDataSender::New();
 
-    cout << "--- Started ---" << endl << endl;
+   vtkInstrumentTracker *instrumentTracker =   vtkInstrumentTracker::New();
 
-    //redirect vtk errors to a file
-    vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
-    errOut->SetFileName("vtkError.txt");
-    vtkOutputWindow::SetInstance(errOut);
+   vtkNDITracker * tracker = vtkNDITracker::New();
 
-    cout << "Hardware Initialization: " << std::flush;
-    cout << '\a' << std::flush;
-    for(int i = 0; i < 11; i++)
-      {
-      vtkSleep(0.2);
-      
-      cout << 10 - i << " " << std::flush;
-      }
-    cout << endl;
+   //Fix StartUp time
+   double startTime = vtkTimerLog::GetUniversalTime();
+   collector->SetStartUpTime(startTime);
+   processor->SetStartUpTime(startTime);
+   sender->SetStartUpTime(startTime);
+   instrumentTracker->SetStartUpTime(startTime);
 
-    //cout << "Start Recording" << endl;
-    cout << '\a' << std::flush;
-    vtkSleep(0.2);
-    cout << '\a' << std::flush;
-    
-    if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
-      {
-      
-      if(tracker->Probe() != 1)
-        {
-        cerr << "ERROR: Tracking system not found" << endl;
-        terminate += 1;
-        }
-      else 
-        {
-        tracker->StartTracking();
-        }
-      }
-    
-    //Configure collector
+   printSplashScreen();
+
+   //Read command line arguments
+   bool successParsingCommandLine = parseCommandLineArguments(argc, argv, collector, processor, sender, instrumentTracker);
+   if(!successParsingCommandLine)
+     {
+     cerr << "ERROR: Could parse commandline arguments" << endl << endl;
+     goodByeScreen();
+     goodByeInput();
+     }
+   else
+     {
+     //Log Stream Preparation
+     logStream.precision(0);
+     logStream.setf(ios::fixed,ios::floatfield);
+     logStream.open(logFile, ios::out);
+     collector->SetLogStream(logStream);
+     processor->SetLogStream(logStream);
+     sender->SetLogStream(logStream);
+     instrumentTracker->SetLogStream(logStream);
+
+     cout << "--- Started ---" << endl << endl;
+
+     //redirect vtk errors to a file
+     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
+     errOut->SetFileName("vtkError.txt");
+     vtkOutputWindow::SetInstance(errOut);
+
+     cout << "Hardware Initialization: " << std::flush;
+     cout << '\a' << std::flush;
+     for(int i = 0; i < 11; i++)
+       {
+       vtkSleep(0.2);
+
+       cout << 10 - i << " " << std::flush;
+       }
+     cout << endl;
+
+     //cout << "Start Recording" << endl;
+     cout << '\a' << std::flush;
+     vtkSleep(0.2);
+     cout << '\a' << std::flush;
+
+     if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
+       {
+
+       if(tracker->Probe() != 1)
+         {
+         cerr << "ERROR: Tracking system not found" << endl;
+         terminate += ERROR_NO_TRACKER_FOUND;
+         }
+       else 
+         {
+         tracker->StartTracking();
+         }
+       }
+
+     //Initialize collector
+     if(terminate == 0)
+       {
+       if(collector->GetTrackerDeviceEnabled())
+         {
+         if(collector->Initialize(tracker) != 0)
+           {
+           cerr << "ERROR: Could not initialize DataCollector" << endl;
+           terminate += ERROR_DATA_COLLECTOR_NOT_INITIALIZED;
+           }
+         }
+       else
+         {
+         if(collector->Initialize(NULL) != 0)
+           {
+           cerr << "ERROR: Could not initialize DataCollector" << endl;
+           terminate += ERROR_DATA_COLLECTOR_NOT_INITIALIZED;
+           }
+         }
+       }
+
+     //Configure collector
     if(terminate == 0)
       {
-      if(collector->GetTrackerDeviceEnabled())
+      if(sender->Initialize() != 0)
         {
-        if(collector->Initialize(tracker) != 0)
-          {
-            cerr << "ERROR: Could not initialize DataCollector" << endl;
-            terminate += 2;
-          }
-        }
-      else
-        {
-        if(collector->Initialize(NULL) != 0)
-          {
-            cerr << "ERROR: Could not initialize DataCollector" << endl;
-            terminate += 2;
-          }
-        }
-      }
-      
-    // Connect Sender to OpenIGTLink Server
-    if(terminate == 0)
-      {
-      if(sender->ConnectToServer() != 0)
-        {
-        terminate += 4;
+        cerr << "ERROR: Could not initialize DataSender" << endl;
+        terminate += ERROR_DATA_SENDER_NOT_INITIALIZED;
         }
       }
 
-    //Start Send Thread
-    if(terminate == 0)
-      {
-      if(sender->StartSending() != 0)
-        {
-        terminate += 8;
-        }
-      }
+     // Connect Sender to OpenIGTLink Server
+     if(terminate == 0)
+       {
+       if(sender->ConnectToServer() != 0)
+         {
+         terminate += ERROR_NO_CONNECTION_TO_OPENIGTLINKSERVER;
+         }
+       }
 
-    //Start Send Thread
-    if(terminate == 0)
-      {
-      if(processor->StartProcessing(sender) != 0)
-        {
-        terminate += 16;
-        }
-      }
-    
-    //Colleced video frames and tracking matrices and forward them to the sender
-    if(terminate == 0)
-      {
-      if(collector->StartCollecting(processor) != 0)
-        {
-        terminate += 32;
-        }
-      }
-    
-    goodByeScreen();
+     //Start Send Thread
+     if(terminate == 0)
+       {
+       if(sender->StartSending() != 0)
+         {
+         terminate += ERROR_DATA_SENDER_DOES_NOT_WORK;
+         }
+       }
 
-    //Colleced instrument tracking matrices and forward them to the OpenIGTLink server
-    if(terminate == 0)
-      {
-      if(instrumentTracker->GetTrackingEnabled())
-        {
-        if(-1 != instrumentTracker->ConnectToServer())
-          {
-          if(-1 == instrumentTracker->StartTracking(tracker))
-            {
-            terminate += 64;
-            }
-          }
-        else
-          {
-          terminate += 64;
-          }
-        }
-      else if(instrumentTracker->GetSimulationEnabled())
-        {
-        if(-1 != instrumentTracker->ConnectToServer())
-          {
-          if(-1 == instrumentTracker->StartTracking(NULL))
-            {
-            terminate += 64;
-            }
-          }
-        else
-          {
-          terminate += 64;
-          }
-        }
-      }
+     //Start Send Thread
+     if(terminate == 0)
+       {
+       if(processor->StartProcessing(sender) != 0)
+         {
+         terminate += ERROR_DATA_PROCESSOR_DOES_NOT_WORK;
+         }
+       }
+
+     //Colleced video frames and tracking matrices and forward them to the sender
+     if(terminate == 0)
+       {
+       if(collector->StartCollecting(processor) != 0)
+         {
+         terminate += ERROR_DATA_COLLECTOR_DOES_NOT_WORK;
+         }
+       }
+
+//     goodByeScreen();
+
+     //Collected instrument tracking matrices and forward them to the OpenIGTLink server
+     if(terminate == 0)
+       {
+       if(instrumentTracker->GetTrackingEnabled())
+         {
+         if(-1 != instrumentTracker->ConnectToServer())
+           {
+           if(-1 == instrumentTracker->StartTracking(tracker))
+             {
+             terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
+             }
+           }
+         else
+           {
+           terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
+           }
+         }
+         else if(instrumentTracker->GetSimulationEnabled())
+         {
+         if(-1 != instrumentTracker->ConnectToServer())
+           {
+           if(-1 == instrumentTracker->StartTracking(NULL))
+             {
+             terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
+             }
+           }
+         else
+           {
+           terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
+           }
+         }
+       }
 
     //Wait for user input to terminate 4D-Ultrasound
     if(terminate != 0)
       {
-      cerr << "ERROR occured while starting 4DUltrasound | Error-Code: " << terminate << endl;
+      cerr << "ERROR occurred while starting 4DUltrasound" << endl
+      << endl;
+      printErrorCodes(terminate);
       }
     
     goodByeInput();
@@ -352,23 +377,23 @@ void printUsage()
          << "--track-ultrasound or -tu:              Enable ultrasound tracking"<< endl
          << "--track-instrument or -ti:              Enable instrument tracking" << endl
          << "--simulate-instrument or -si:           Simulate instrument"<< endl
-         << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<< endl
-         << "                                        (default: 'localhost')" << endl
-         << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<< endl
-         << "                                        server (default: 18944)" << endl
-         << "--frames-per-second xxx or -fps xxx:    Number of frames per second for"<< endl
-         << "                                        the ultrasound data collection"<< endl
-         << "                                        (default: 10)" << endl
-         << "--video-source xxx or -vs xxx:          Set video source "<< endl
-         << "                                        (default: '/dev/video0')"<< endl
-         << "--video-source-channel xxx or -vsc xxx: Set video source channel"<< endl
-         << "                                        (default: 3)" << endl
-         << "--video-mode xxx or -vm xxx:            Set video mode; "<< endl
-         << "                                        Options: NTSC, PAL "<< endl
-         << "                                        (default: NTSC)" << endl
-         << "--scan-depth xxx or -sd xxx:            Set depth of ultrasound "<< endl
-         << "                                        scan in Millimeter"<< endl
-         << "                                        (default: 70mm)" << endl
+//         << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<< endl
+//         << "                                        (default: 'localhost')" << endl
+//         << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<< endl
+//         << "                                        server (default: 18944)" << endl
+//         << "--frames-per-second xxx or -fps xxx:    Number of frames per second for"<< endl
+//         << "                                        the ultrasound data collection"<< endl
+//         << "                                        (default: 10)" << endl
+//         << "--video-source xxx or -vs xxx:          Set video source "<< endl
+//         << "                                        (default: '/dev/video0')"<< endl
+//         << "--video-source-channel xxx or -vsc xxx: Set video source channel"<< endl
+//         << "                                        (default: 3)" << endl
+//         << "--video-mode xxx or -vm xxx:            Set video mode; "<< endl
+//         << "                                        Options: NTSC, PAL "<< endl
+//         << "                                        (default: NTSC)" << endl
+//         << "--scan-depth xxx or -sd xxx:            Set depth of ultrasound "<< endl
+//         << "                                        scan in Millimeter"<< endl
+//         << "                                        (default: 70mm)" << endl
          << "--verbose or -v:                        Print more information" << endl
          << endl
          << "--------------------------------------------------------------------------------"
@@ -399,6 +424,7 @@ bool parseCommandLineArguments(int argc, char **argv,
          {
          collector->SetCalibrationFileName(argv[++i]);
          processor->SetCalibrationFileName(argv[i]);
+         sender->SetCalibrationFileName(argv[i]);
          instrumentTracker->SetCalibrationFileName(argv[i]);
          calibrationFileSpecified = true;
          }
@@ -465,164 +491,164 @@ bool parseCommandLineArguments(int argc, char **argv,
           {
           collector->EnableTrackerTool();
           }
-        //OpenIGTLink Server
-        else if(currentArg == "--oigtl-server" || currentArg == "-os")
-          {
-          if( i < argc - 1)
-             {
-             sender->SetOIGTLServer(argv[++i]);
-             instrumentTracker->SetOIGTLServer(argv[i]);
-             }
-          else
-            {
-            printUsage();
-            cout << "ERROR: OpenIGTLink Server not specified" << endl;
-            return false;
-            }
-          }
-        //OpenIGTLink Port at Server
-        else if(currentArg == "--oigtl-port" || currentArg == "-op")
-          {
-          if( i < argc - 1)
-            {
-            sender->SetServerPort(atoi(argv[++i]));
-            instrumentTracker->SetServerPort(atoi(argv[i]));
-            }
-          else
-            {
-            printUsage();
-            cout << "ERROR: OpenIGTLink Port not specified" << endl;
-            return false;
-            }
-          }
-        // Framerate of Ultrasound device
-        else if(currentArg == "--frames-per-second" || currentArg == "-fps")
-          {
-          if( i < argc - 1)
-            {
-              double fps = atof(argv[++i]);
-
-            if(fps <= 0)
-              {
-              cout << "ERROR: Framerate must be greater than 0 and not: " << fps << endl;
-              return false;
-              }
-            collector->SetFrameRate(fps);
-            processor->SetProcessPeriod(1/(fps * 1.5));
-            sender   ->SetSendPeriod(1/(fps * 1.5));
-            }
-          else
-            {
-            printUsage();
-            cout << "ERROR: Frames per second not specified" << endl;
-            return false;
-            }
-          }
-        //Video Source
-        else if(currentArg == "--video-source" || currentArg == "-vs")
-           {
-           if( i < argc - 1)
-             {
-             collector->SetVideoDevice(argv[++i]);
-             }
-           else
-             {
-             printUsage();
-             cout << "ERROR: Video source not specified" << endl;
-             return false;
-             }
-           }
-        //Video Source channel
-        else if(currentArg == "--video-source-channel" || currentArg == "-vsc")
-           {
-           if( i < argc - 1)
-             {
-             collector->SetVideoChannel(atoi(argv[++i]));
-             }
-           else
-             {
-             printUsage();
-             cout << "ERROR: Video source channel not specified" << endl;
-             return false;
-             }
-           }
+//        //OpenIGTLink Server
+//        else if(currentArg == "--oigtl-server" || currentArg == "-os")
+//          {
+//          if( i < argc - 1)
+//             {
+//             sender->SetOIGTLServer(argv[++i]);
+//             instrumentTracker->SetOIGTLServer(argv[i]);
+//             }
+//          else
+//            {
+//            printUsage();
+//            cout << "ERROR: OpenIGTLink Server not specified" << endl;
+//            return false;
+//            }
+//          }
+//        //OpenIGTLink Port at Server
+//        else if(currentArg == "--oigtl-port" || currentArg == "-op")
+//          {
+//          if( i < argc - 1)
+//            {
+//            sender->SetServerPort(atoi(argv[++i]));
+//            instrumentTracker->SetServerPort(atoi(argv[i]));
+//            }
+//          else
+//            {
+//            printUsage();
+//            cout << "ERROR: OpenIGTLink Port not specified" << endl;
+//            return false;
+//            }
+//          }
+//        // Framerate of Ultrasound device
+//        else if(currentArg == "--frames-per-second" || currentArg == "-fps")
+//          {
+//          if( i < argc - 1)
+//            {
+//              double fps = atof(argv[++i]);
+//
+//            if(fps <= 0)
+//              {
+//              cout << "ERROR: Framerate must be greater than 0 and not: " << fps << endl;
+//              return false;
+//              }
+//            collector->SetFrameRate(fps);
+//            processor->SetProcessPeriod(1/(fps * 1.5));
+//            sender   ->SetSendPeriod(1/(fps * 1.5));
+//            }
+//          else
+//            {
+//            printUsage();
+//            cout << "ERROR: Frames per second not specified" << endl;
+//            return false;
+//            }
+//          }
+//        //Video Source
+//        else if(currentArg == "--video-source" || currentArg == "-vs")
+//           {
+//           if( i < argc - 1)
+//             {
+//             collector->SetVideoDevice(argv[++i]);
+//             }
+//           else
+//             {
+//             printUsage();
+//             cout << "ERROR: Video source not specified" << endl;
+//             return false;
+//             }
+//           }
+//        //Video Source channel
+//        else if(currentArg == "--video-source-channel" || currentArg == "-vsc")
+//           {
+//           if( i < argc - 1)
+//             {
+//             collector->SetVideoChannel(atoi(argv[++i]));
+//             }
+//           else
+//             {
+//             printUsage();
+//             cout << "ERROR: Video source channel not specified" << endl;
+//             return false;
+//             }
+//           }
         //Video Mode
-        else if(currentArg == "--video-mode" || currentArg == "-vm")
-           {
-           if( i < argc - 1)
-             {
-             string videoMode (argv[++i]);
-  
-             if(videoMode == "NTSC")
-               {
-               collector->SetVideoMode(1);
-               }
-             else if(videoMode == "PAL")
-               {
-               collector->SetVideoMode(2);
-               }
-             else
-               {
-               cout << "ERROR: False video mode: " << videoMode  << endl
-                    << "       Available video modes: NTSC and PAL" << endl;
-               return false;
-               }
-             }
-           else
-             {
-             printUsage();
-             cout << "ERROR: Video mode not specified" << endl;
-             return false;
-             }
-           }
-        else if(currentArg == "--scan-depth" || currentArg == "-sd")
-          {
-          if( i < argc - 1)
-            {
-            double scanDepth  = atof(argv[++i]);
-
-            if(scanDepth <= 0)
-              {
-              cout << "ERROR: Scan Depth must be greater than 0 and not: " << scanDepth << endl;
-              return false;
-              }
-            collector->SetUltrasoundScanDepth(scanDepth);
-            }
-          else
-            {
-            printUsage();
-            cout << "ERROR: Scand depth not specified" << endl;
-            return false;
-            }
-          }
-        else if(currentArg == "--delay-factor" || currentArg == "-df")
-          {
-          if( i < argc - 1)
-            {
-            processor->SetDelayFactor(atof(argv[++i]));
-            }
-          else
-            {
-            printUsage();
-            cout << "ERROR: Delay factor size not specified" << endl;
-            return false;
-            }
-          }
-        else if(currentArg == "--system-offset" || currentArg == "-so")
-          {
-          if( i < argc - 3)
-            {
-            double systemOffset[3] = {atof(argv[++i]), atof(argv[++i]), atof(argv[++i])};
-            collector->SetSystemOffset(systemOffset[0], systemOffset[1], systemOffset[2]);
-            instrumentTracker->SetSystemOffset(systemOffset[0], systemOffset[1], systemOffset[2]);
-            }
-          else
-            {
-            printUsage();
-            cout << "ERROR: System offset not specified" << endl;
-            return false;
-            }
-          }
+//        else if(currentArg == "--video-mode" || currentArg == "-vm")
+//           {
+//           if( i < argc - 1)
+//             {
+//             string videoMode (argv[++i]);
+//
+//             if(videoMode == "NTSC")
+//               {
+//               collector->SetVideoMode(1);
+//               }
+//             else if(videoMode == "PAL")
+//               {
+//               collector->SetVideoMode(2);
+//               }
+//             else
+//               {
+//               cout << "ERROR: False video mode: " << videoMode  << endl
+//                    << "       Available video modes: NTSC and PAL" << endl;
+//               return false;
+//               }
+//             }
+//           else
+//             {
+//             printUsage();
+//             cout << "ERROR: Video mode not specified" << endl;
+//             return false;
+//             }
+//           }
+//        else if(currentArg == "--scan-depth" || currentArg == "-sd")
+//          {
+//          if( i < argc - 1)
+//            {
+//            double scanDepth  = atof(argv[++i]);
+//
+//            if(scanDepth <= 0)
+//              {
+//              cout << "ERROR: Scan Depth must be greater than 0 and not: " << scanDepth << endl;
+//              return false;
+//              }
+//            collector->SetUltrasoundScanDepth(scanDepth);
+//            }
+//          else
+//            {
+//            printUsage();
+//            cout << "ERROR: Scand depth not specified" << endl;
+//            return false;
+//            }
+//          }
+//        else if(currentArg == "--delay-factor" || currentArg == "-df")
+//          {
+//          if( i < argc - 1)
+//            {
+//            processor->SetDelayFactor(atof(argv[++i]));
+//            }
+//          else
+//            {
+//            printUsage();
+//            cout << "ERROR: Delay factor size not specified" << endl;
+//            return false;
+//            }
+//          }
+//        else if(currentArg == "--system-offset" || currentArg == "-so")
+//          {
+//          if( i < argc - 3)
+//            {
+//            double systemOffset[3] = {atof(argv[++i]), atof(argv[++i]), atof(argv[++i])};
+//            collector->SetSystemOffset(systemOffset[0], systemOffset[1], systemOffset[2]);
+//            instrumentTracker->SetSystemOffset(systemOffset[0], systemOffset[1], systemOffset[2]);
+//            }
+//          else
+//            {
+//            printUsage();
+//            cout << "ERROR: System offset not specified" << endl;
+//            return false;
+//            }
+//          }
         else if(currentArg == "--verbose" || currentArg == "-v")
           {
           collector->SetVerbose(true);
@@ -664,6 +690,30 @@ void goodByeInput()
        << endl
        << "Bye Bye..." << endl <<endl << endl;
 
+}
+
+void printErrorCodes(int terminate) {
+
+  switch(terminate)
+    {
+    case ERROR_NO_TRACKER_FOUND: cerr <<"No tracking system found" << endl;
+         break;
+    case ERROR_DATA_COLLECTOR_NOT_INITIALIZED: cerr << "Can not initialize data collection" << endl;
+         break;
+    case ERROR_DATA_SENDER_NOT_INITIALIZED: cerr << "Can not initialize data forwarding to visualization software" << endl;
+             break;
+    case ERROR_NO_CONNECTION_TO_OPENIGTLINKSERVER: cerr << "Can not connect to OpenIGTLink Server" << endl;
+         break;
+    case ERROR_DATA_SENDER_DOES_NOT_WORK: cerr << "Can not start to send data to visualization software" << endl;
+         break;
+    case ERROR_DATA_PROCESSOR_DOES_NOT_WORK: cerr << "Can not start to process data, i.e. to do volume reconstruction" << endl;
+         break;
+    case ERROR_DATA_COLLECTOR_DOES_NOT_WORK: cerr << "Can not start to collect data" << endl;
+         break;
+    case ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK: cerr << "Can not track instrument" << endl;
+         break;
+    default: cerr << "Wrong Error Code. Code " << terminate << " does not exist" << endl;
+    }
 }
 
 /******************************************************************************
