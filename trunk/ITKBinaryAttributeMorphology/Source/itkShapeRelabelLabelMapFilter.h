@@ -57,13 +57,13 @@ public:
   typedef typename LabelObjectType::AttributeType AttributeType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
+  itkStaticConstMacro( ImageDimension, unsigned int, TImage::ImageDimension );
 
   /** Standard New method. */
-  itkNewMacro(Self);
+  itkNewMacro( Self );
 
   /** Runtime information support. */
-  itkTypeMacro(ShapeRelabelLabelMapFilter, InPlaceLabelMapFilter);
+  itkTypeMacro( ShapeRelabelLabelMapFilter, InPlaceLabelMapFilter );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */

@@ -52,7 +52,7 @@ ShapeRelabelImageFilter<TInputImage>
 template<class TInputImage>
 void 
 ShapeRelabelImageFilter<TInputImage>
-::EnlargeOutputRequestedRegion(DataObject *)
+::EnlargeOutputRequestedRegion( DataObject * )
 {
   this->GetOutput()
     ->SetRequestedRegion( this->GetOutput()->GetLargestPossibleRegion() );
@@ -112,7 +112,7 @@ ShapeRelabelImageFilter<TInputImage>
 template<class TInputImage>
 void
 ShapeRelabelImageFilter<TInputImage>
-::PrintSelf(std::ostream &os, Indent indent) const
+::PrintSelf( std::ostream &os, Indent indent ) const
 {
   Superclass::PrintSelf(os, indent);
 
