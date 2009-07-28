@@ -332,6 +332,7 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
         //If frame is too old skip it
         if(!self->IsDataExpired(currentIndex))
           {
+          //Check and Update Volume=============================================
           sectionTime = self->GetUpTime();
           if(-1 != self->CheckandUpdateVolume(currentIndex, lastDataSenderIndex))//Check if volume must be expanded
             {
@@ -339,12 +340,15 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
               self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Check and Update DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
             #endif
 
+            //Reconstruct Volume================================================
             sectionTime = self->GetUpTime();
             if(-1 != self->ReconstructVolume(currentIndex))
               {
               #ifdef  TIMINGPROCESSOR
                 self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume Reconstruction DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
               #endif
+
+              //Forward Data====================================================
               sectionTime = self->GetUpTime();
               lastDataSenderIndex = self->ForwardData(self->GetReconstructor()->GetOutput());
               #ifdef  TIMINGPROCESSOR
@@ -362,8 +366,7 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
             else
               {
               #ifdef  DEBUGPROCESSOR
-  //              self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
-                cout <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+                self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
               #endif
               self->ResetOldVolume(lastDataSenderIndex);
               errors++;
@@ -706,10 +709,10 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
 
     #ifdef  DEBUGPROCESSOR
     this->LogStream << this->GetUpTime()  << " |P-INFO: Old Volume: Origin: "<< oldOrigin[0]<<"| "<< oldOrigin[1]<<"| "<<  oldOrigin[2]<< endl
-                            << "         |             Extent:  "<< oldExtent[0]<<"-"<<oldExtent[1] <<" | "<< oldExtent[2]<<"-"<< oldExtent[3]
+                            << "          |             Extent:  "<< oldExtent[0]<<"-"<<oldExtent[1] <<" | "<< oldExtent[2]<<"-"<< oldExtent[3]
                                                        <<" | "<< oldExtent[4]<<"-"<< oldExtent[5]<<" "<<endl
-                            << "         | New Volume: Origin: "<< newOrigin[0]<<"| "<<newOrigin[1] <<"| "<< newOrigin[2]<<"" << endl
-                            << "         |             Extent:  "<< newExtent[0]<<"-"<<newExtent[1] <<" | "<< newExtent[2]<<"-"<< newExtent[3]
+                            << "          | New Volume: Origin: "<< newOrigin[0]<<"| "<<newOrigin[1] <<"| "<< newOrigin[2]<<"" << endl
+                            << "          |             Extent:  "<< newExtent[0]<<"-"<<newExtent[1] <<" | "<< newExtent[2]<<"-"<< newExtent[3]
                                                        <<" | "<< newExtent[4]<<"-"<< newExtent[5]<<" "<<endl;
     #endif
     }
@@ -741,7 +744,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
           if(dataSenderIndex == -2)
             {
             this->LogStream << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
-            cout << this->GetUpTime()  << " |P-INFO: Create initial volume" << " | "  << endl;
             }
           else
             {
@@ -1534,6 +1536,11 @@ void vtkDataProcessor::ResetOldVolume(int dataSenderIndex)
 {
   this->oldVolume = NULL;
   this->DataSender->UnlockData(dataSenderIndex, DATAPROCESSOR);
+
+  #ifdef DEBUGPROCESSOR
+    this->LogStream << this->GetUpTime()  << " |P-INFO: Try to delete data in sender buffer at Index: " << dataSenderIndex << endl;
+  #endif
+
   this->DataSender->TryToDeleteData(dataSenderIndex);
 }
 

@@ -66,6 +66,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkTaggedImageFilter.h"
 #include "vtkTransform.h"
 #include "vtkVideoSourceSimulator.h"
+#include "vtkUltrasoundCalibFileReader.h"
 
 #include "igtlImageMessage.h"
 #include "igtlMath.h"
@@ -83,10 +84,13 @@ vtkStandardNewMacro(vtkDataSender);
 //----------------------------------------------------------------------------
 vtkDataSender::vtkDataSender()
 {
+  this->Initialized = false;
+  this->CalibrationFileName = NULL;
+  this->calibReader = vtkUltrasoundCalibFileReader::New();
+
   this->ServerPort = 18944;
   this->OIGTLServer = NULL;
   this->SetOIGTLServer("localhost");
-//  this->SetOIGTLServer("172.223.221.194");
   this->SendPeriod = 1 /(30 * 1.5);
 
   this->socket = NULL;
@@ -146,6 +150,8 @@ vtkDataSender::~vtkDataSender()
   this->StopSending();
   this->CloseServerConnection();
 
+  this->calibReader->Delete();
+
   //Delete all buffer objects
   while(!this->IsSendDataBufferEmpty())
     {
@@ -163,6 +169,43 @@ void vtkDataSender::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 
 }
+
+int vtkDataSender::Initialize()
+{
+
+  if(this->Initialized)
+    {
+    return 0;
+    }
+
+  if(this->calibReader != NULL)
+   {
+   this->calibReader->SetFileName(this->CalibrationFileName);
+   if(-1 == this->calibReader->ReadCalibFile())
+     {
+     #ifdef ERRORCOLLECTOR
+     this->GetLogStream() << this->GetUpTime() << " |S-ERROR: Can not read calibration file => Stop initialization" << endl;
+     #endif
+     return -1;
+     }
+
+   this->SetOIGTLServer(this->calibReader->GetOpenIGTLinkServer());
+
+   this->SetServerPort(this->calibReader->GetOpenIGTLinkServerPortUltrasound ());
+
+   }
+  else
+    {
+    #ifdef ERRORCOLLECTOR
+      this->LogStream << this->GetUpTime() << " |S-ERROR: Calibration file reader not specified" << endl;
+    #endif
+    return -1;
+    }
+
+  this->Initialized = true;
+  return 0;
+}
+
 
 //----------------------------------------------------------------------------
 int vtkDataSender::ConnectToServer()

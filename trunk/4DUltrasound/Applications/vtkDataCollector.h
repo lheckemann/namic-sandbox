@@ -99,8 +99,8 @@ public:
   vtkGetMacro(FrameRate, double);
 
   //Depth of the Ultrasound scan in Millimeter
-  vtkSetMacro(UltrasoundScanDepth, double);
-  vtkGetMacro(UltrasoundScanDepth, double);
+  //vtkSetMacro(UltrasoundScanDepth, double);
+  //vtkGetMacro(UltrasoundScanDepth, double);
 
   vtkSetMacro(FrameBufferSize, int);
   vtkGetMacro(FrameBufferSize, int);
@@ -177,7 +177,7 @@ protected:
   vtkMatrix4x4 *CoordinateTransformationMatrix;
 
   int ImageMargin[4];
-  double UltrasoundScanDepth;
+  //double UltrasoundScanDepth;
   int ShrinkFactor[3];
   double TransformationFactorMmToPixel;
 
