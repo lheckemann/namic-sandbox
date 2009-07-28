@@ -136,7 +136,6 @@ protected:
   int CurrentSelectedTargetDescriptorIndex;
 
   vtkMRMLScalarVolumeNode* CoverageLabelMapNode;
-  vtkImageData* CoverageLabelMapImage;
   int CoverageHideFlag;
 
 private:
