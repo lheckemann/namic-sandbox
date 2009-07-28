@@ -13,6 +13,16 @@ PROJECT (QUEENSOPENIGT)
 INCLUDE (${QUEENSOPENIGT_SOURCE_DIR}/CMakeOptions.cmake)
 
 #
+# Try to find OpenIGTLink and include its settings (otherwise complain)
+#
+FIND_PACKAGE(OpenIGTLink REQUIRED)
+INCLUDE(${OpenIGTLink_USE_FILE})
+
+FIND_PATH(OPENIGTLINKSOURCE REQUIRED)
+INCLUDE_DIRECTORIES(${OPENIGTLINKSOURCE_INCLUDE_DIR}/Source
+                    ${OPENIGTLINKSOURCE_INCLUDE_DIR}/Source/igtlutil)
+
+#
 # Avoid dev warnings in CMake 2.6
 #
 
@@ -37,6 +47,7 @@ OPTION(USE_ULTRASOUND_DEVICE "Use Ultrasound Device." OFF)
 OPTION(BUILD_SHARED_LIBS "Build shared libraries." OFF)
 SET(QUEENSOPENIGT_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
+
 #
 # Here is where the sub-directories for the QueensOpenIGT classes are.
 #
@@ -56,18 +67,19 @@ INCLUDE_DIRECTORIES(
   ${QUEENSOPENIGT_SOURCE_DIR}/VTKLibs/Ultrasound
   ${QUEENSOPENIGT_SOURCE_DIR}/VTKLibs/Tracking
   ${QUEENSOPENIGT_SOURCE_DIR}/Utilities/ndicapi
-  ${QUEENSOPENIGT_SOURCE_DIR}/Utilities/igtl
-  ${QUEENSOPENIGT_SOURCE_DIR}/Utilities/igtl/igtlutils
+  #${QUEENSOPENIGT_SOURCE_DIR}/Utilities/igtl
+  #${QUEENSOPENIGT_SOURCE_DIR}/Utilities/igtl/igtlutils
 )
+
 
 #
 # Common configuration settings
 #
 
-CONFIGURE_FILE(
-  ${QUEENSOPENIGT_SOURCE_DIR}/QueensOpenIGTLibsConfigure.h.in
-  ${QUEENSOPENIGT_BINARY_DIR}/QueensOpenIGTLibsConfigure.h
-)
+#CONFIGURE_FILE(
+#  ${QUEENSOPENIGT_SOURCE_DIR}/QueensOpenIGTLibsConfigure.h.in
+#  ${QUEENSOPENIGT_BINARY_DIR}/QueensOpenIGTLibsConfigure.h
+#)
 
 CONFIGURE_FILE(
   ${QUEENSOPENIGT_SOURCE_DIR}/SynchroGrabConfigure.h.in
@@ -77,11 +89,11 @@ CONFIGURE_FILE(
 
 ##################
 
-CONFIGURE_FILE(${QUEENSOPENIGT_SOURCE_DIR}/igtlConfigure.h.in 
-  ${QUEENSOPENIGT_BINARY_DIR}/igtlConfigure.h)
+#CONFIGURE_FILE(${QUEENSOPENIGT_SOURCE_DIR}/igtlConfigure.h.in 
+#  ${QUEENSOPENIGT_BINARY_DIR}/igtlConfigure.h)
 
-CONFIGURE_FILE(${QUEENSOPENIGT_SOURCE_DIR}/igtl_typeconfig.h.in 
-  ${QUEENSOPENIGT_BINARY_DIR}/igtl_typeconfig.h)
+#CONFIGURE_FILE(${QUEENSOPENIGT_SOURCE_DIR}/igtl_typeconfig.h.in 
+#  ${QUEENSOPENIGT_BINARY_DIR}/igtl_typeconfig.h)
   
 ###########
 

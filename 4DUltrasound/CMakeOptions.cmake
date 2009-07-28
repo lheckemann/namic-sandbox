@@ -12,6 +12,7 @@ MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 #
 FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
+#INCLUDE(/home/ultrasound/workspace/3DSlicer/Slicer3-lib/VTK-build/VTKConfig.cmake)
 
 #
 # Build shared libs ?
