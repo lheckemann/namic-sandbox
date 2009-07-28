@@ -77,11 +77,6 @@
 #x y z
 400 400 400
 
-#===============================================================================
-#Everything below this line is not supported yet
-#===============================================================================
-#*******************************************************************************
-#xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 #Video Device Name
 /dev/video
 
