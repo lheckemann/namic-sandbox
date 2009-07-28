@@ -1159,51 +1159,40 @@ int vtkTRProstateBiopsyTargetingStep::ShowCoverage()
     return 0;
   }
 
-  int* dimensions = volumeNode->GetImageData()->GetDimensions();
-
   if (this->CoverageLabelMapNode)
   {
     this->CoverageMapRemove(); 
   }
 
+  if (!mrmlNode->GetCalibrationData().CalibrationValid)
+  {
+    // there is no valid calibration, so no coverage information is available
+    return 0;
+  }
+
   // -----
   // Define LabelMap 
-  
+
+  int coverageMapSizeMm=500;
+  int coverageMapResolutionMm=5;
+
   vtkSmartPointer<vtkImageData> coverageLabelMapImage=vtkSmartPointer<vtkImageData>::New();
 
-  double scaleFactor[3]={10,10,3};
-
-  {
-    coverageLabelMapImage->SetSpacing(volumeNode->GetImageData()->GetSpacing()); // spacing change will be taken into account at the volume node
-    coverageLabelMapImage->SetOrigin(volumeNode->GetImageData()->GetOrigin());
-
-    int *dimensions=volumeNode->GetImageData()->GetDimensions();
-    coverageLabelMapImage->SetDimensions(dimensions[0]/scaleFactor[0],dimensions[1]/scaleFactor[1],dimensions[2]/scaleFactor[2]);  
-    
-    int* extent=volumeNode->GetImageData()->GetWholeExtent();
-    coverageLabelMapImage->SetWholeExtent(
-      extent[0]/scaleFactor[0],extent[1]/scaleFactor[0],
-      extent[2]/scaleFactor[1],extent[3]/scaleFactor[1],
-      extent[4]/scaleFactor[2],extent[5]/scaleFactor[2]
-      );
-
-    coverageLabelMapImage->SetScalarType(VTK_SHORT);
-
-    coverageLabelMapImage->AllocateScalars();
-  }
+  int dim=coverageMapSizeMm/coverageMapResolutionMm;
+  coverageLabelMapImage->SetDimensions(dim, dim, dim);    
+  coverageLabelMapImage->SetWholeExtent(0,dim-1,0,dim-1,0,dim-1);
+  coverageLabelMapImage->SetScalarType(VTK_SHORT);
+  coverageLabelMapImage->AllocateScalars();
 
   // Show map in Slicer 3 
   vtkSlicerApplication *application   = vtkSlicerApplication::SafeDownCast(this->GetApplication());
   vtkSlicerApplicationGUI *applicationGUI = this->GetGUI()->GetApplicationGUI();
-
   vtkSlicerVolumesGUI  *volumesGUI    = vtkSlicerVolumesGUI::SafeDownCast(application->GetModuleGUIByName("Volumes")); 
-
   vtkSlicerVolumesLogic *volumesLogic = volumesGUI->GetLogic();
-  vtkMRMLScene* mrmlScene           =  mrmlNode->GetScene(); 
+  vtkMRMLScene* mrmlScene =  mrmlNode->GetScene(); 
 
   // create a display node
   vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> labelDisplayNode  = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
-
   mrmlScene->AddNode(labelDisplayNode);
 
   // create a volume node as copy of source volume
@@ -1211,6 +1200,34 @@ int vtkTRProstateBiopsyTargetingStep::ShowCoverage()
   
   int modifiedSinceRead = volumeNode->GetModifiedSinceRead();
   this->CoverageLabelMapNode->CopyWithScene(volumeNode);
+
+  {
+    // Get the calibration volume centerpoint in RAS coordinates
+
+    double rasPoint[4]={0,0,0,1}; // centerpoint position in RAS coorindates
+    double ijkPoint[4]={0,0,0,1}; // centerpoint position in IJK coorindates
+    int extent[6];
+    volumeNode->GetImageData()->GetWholeExtent(extent);
+
+    ijkPoint[0]=(extent[0]+extent[1])/2;
+    ijkPoint[1]=(extent[2]+extent[3])/2;
+    ijkPoint[2]=(extent[4]+extent[5])/2;
+
+    vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
+    volumeNode->GetIJKToRASMatrix(ijkToRas);
+
+    ijkToRas->MultiplyPoint(ijkPoint, rasPoint);
+    
+    // Set coverage volume size and position
+
+    this->CoverageLabelMapNode->SetOrigin(
+      rasPoint[0]-coverageMapSizeMm/2,
+      rasPoint[1]-coverageMapSizeMm/2,
+      rasPoint[2]-coverageMapSizeMm/2);
+    this->CoverageLabelMapNode->SetSpacing(coverageMapResolutionMm,coverageMapResolutionMm,coverageMapResolutionMm);
+    ijkToRas->Identity();
+    this->CoverageLabelMapNode->SetIJKToRASDirectionMatrix(ijkToRas);
+  }
   
   this->CoverageLabelMapNode->SetAndObserveStorageNodeID(NULL);
   this->CoverageLabelMapNode->SetModifiedSinceRead(1);
@@ -1228,15 +1245,6 @@ int vtkTRProstateBiopsyTargetingStep::ShowCoverage()
 
   // add the label volume to the scene
   mrmlScene->AddNode(this->CoverageLabelMapNode);
-
-  {
-    double spacing[3];
-    CoverageLabelMapNode->GetSpacing(spacing);  
-    spacing[0]*=scaleFactor[0];
-    spacing[1]*=scaleFactor[1];
-    spacing[2]*=scaleFactor[2];
-    CoverageLabelMapNode->SetSpacing(spacing);
-  }
 
   // Reset to original slice location 
   double oldSliceSetting[3];
@@ -1300,19 +1308,10 @@ void vtkTRProstateBiopsyTargetingStep::CoverageMapUpdate()
   int extent[6];
   coverageImage->GetWholeExtent(extent);
 
-  for (int z=extent[4]; z<=extent[5]; z++)
-  {
-    for (int y=extent[2]; y<=extent[3]; y++)
-    {
-      for (int x=extent[0]; x<=extent[1]; x++)
-      {
-        coverageImage->SetScalarComponentFromFloat(x, y, z, 0, 0);
-      }
-    }
-  }
-
   vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
   this->CoverageLabelMapNode->GetIJKToRASMatrix(ijkToRas);
+
+  vtkTRProstateBiopsyLogic *logic=this->GetGUI()->GetLogic();
 
   float value=0;  
   for (int z=extent[4]; z<=extent[5]; z++)
@@ -1334,7 +1333,7 @@ void vtkTRProstateBiopsyTargetingStep::CoverageMapUpdate()
           // it is not a boundary voxel
           // (we leave a black boundary around the image to ensure that
           // contouring of the coverage area results in a closed surface)
-          if (this->GetGUI()->GetLogic()->IsTargetReachable(0, rasPoint))
+          if (logic->IsTargetReachable(0, rasPoint)) //:TODO: check if it is OK to always use needle 0
           {
             value=1;
           }
