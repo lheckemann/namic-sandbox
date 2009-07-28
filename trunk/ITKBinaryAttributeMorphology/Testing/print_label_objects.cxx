@@ -4,15 +4,14 @@
 
 int main(int argc, char * argv[])
 {
-  const int dim = 2;
+  const unsigned int dim = 2;
   typedef unsigned char PixelType;
   typedef itk::Image< PixelType, dim >    ImageType;
   
   if( argc != 4)
     {
     std::cerr << "usage: " << argv[0] << " input featureImg foreground" << std::endl;
-    // std::cerr << "  : " << std::endl;
-    exit(1);
+    return EXIT_FAILURE;
     }
 
   // read the input image
@@ -37,6 +36,6 @@ int main(int argc, char * argv[])
 
   converter->GetOutput()->PrintLabelObjects();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 

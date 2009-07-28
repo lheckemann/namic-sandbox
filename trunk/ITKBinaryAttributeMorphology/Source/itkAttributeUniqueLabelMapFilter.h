@@ -49,8 +49,7 @@ public:
   typedef typename ImageType::IndexType       IndexType;
   typedef typename ImageType::LabelObjectType LabelObjectType;
   
-  typedef TAttributeAccessor                                 AttributeAccessorType;
-  typedef typename AttributeAccessorType::AttributeValueType AttributeValueType;
+  typedef TAttributeAccessor                  AttributeAccessorType;
 
   typedef typename LabelObjectType::LineType  LineType;
   

@@ -94,8 +94,8 @@ BinaryReconstructionByErosionImageFilter<TInputImage>
   
   typename LabelizerType::Pointer labelizer = LabelizerType::New();
   labelizer->SetInput( notMask->GetOutput() );
-  labelizer->SetForegroundValue( m_ForegroundValue );
-  labelizer->SetBackgroundValue( m_BackgroundValue );
+  labelizer->SetInputForegroundValue( m_ForegroundValue );
+  labelizer->SetOutputBackgroundValue( m_BackgroundValue );
   labelizer->SetFullyConnected( m_FullyConnected );
   labelizer->SetNumberOfThreads( this->GetNumberOfThreads() );
   progress->RegisterInternalFilter(labelizer, .2f);

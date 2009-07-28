@@ -75,8 +75,8 @@ BinaryShapeOpeningImageFilter<TInputImage>
   
   typename LabelizerType::Pointer labelizer = LabelizerType::New();
   labelizer->SetInput( this->GetInput() );
-  labelizer->SetForegroundValue( m_ForegroundValue );
-  labelizer->SetBackgroundValue( m_BackgroundValue );
+  labelizer->SetInputForegroundValue( m_ForegroundValue );
+  labelizer->SetOutputBackgroundValue( m_BackgroundValue );
   labelizer->SetFullyConnected( m_FullyConnected );
   labelizer->SetNumberOfThreads( this->GetNumberOfThreads() );
   progress->RegisterInternalFilter(labelizer, .3f);
@@ -104,8 +104,8 @@ BinaryShapeOpeningImageFilter<TInputImage>
   
   typename BinarizerType::Pointer binarizer = BinarizerType::New();
   binarizer->SetInput( opening->GetOutput() );
-  binarizer->SetForegroundValue( m_ForegroundValue );
-  binarizer->SetBackgroundValue( m_BackgroundValue );
+  binarizer->SetOutputForegroundValue( m_ForegroundValue );
+  binarizer->SetOutputBackgroundValue( m_BackgroundValue );
   binarizer->SetBackgroundImage( this->GetInput() );
   binarizer->SetNumberOfThreads( this->GetNumberOfThreads() );
   progress->RegisterInternalFilter(binarizer, .2f);  

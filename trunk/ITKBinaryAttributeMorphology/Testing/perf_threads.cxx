@@ -26,7 +26,7 @@ int main(int, char * argv[])
   typedef itk::BinaryImageToLabelMapFilter< ImageType, LabelCollectionType > ConverterType;
   ConverterType::Pointer converter = ConverterType::New();
   converter->SetInput( reader->GetOutput() );
-  converter->SetForegroundValue( 200 );
+  converter->SetInputForegroundValue( 200 );
   
   converter->Update();
   

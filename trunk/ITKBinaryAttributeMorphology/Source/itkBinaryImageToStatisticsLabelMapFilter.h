@@ -131,7 +131,7 @@ public:
    * Set/Get whether the perimeter should be computed or not. 
    * Default value is false because of the high computation time required.
    */
-  itkSetMacro( ComputePerimeter, boo l);
+  itkSetMacro( ComputePerimeter, bool);
   itkGetConstReferenceMacro ( ComputePerimeter, bool );
   itkBooleanMacro( ComputePerimeter );
 

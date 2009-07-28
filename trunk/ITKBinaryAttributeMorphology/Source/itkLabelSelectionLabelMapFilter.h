@@ -19,6 +19,7 @@
 
 #include "itkAttributeSelectionLabelMapFilter.h"
 #include "itkLabelObject.h"
+#include "itkLabelObjectAccessors.h"
 #include <set>
 
 
