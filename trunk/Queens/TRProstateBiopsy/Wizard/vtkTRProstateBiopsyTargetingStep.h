@@ -61,9 +61,7 @@ protected:
   void ShowMessageAndDeleteControls();
   void ClearMessageAndDeleteControls();
 
-  int ShowCoverage();
-  void CoverageMapRemove();
-  void CoverageMapUpdate();
+  void ShowCoverage();
 
   unsigned int PopulateListWithTargetDetails(unsigned int targetDescIndex);
 
@@ -98,6 +96,7 @@ protected:
   vtkKWLabel *RASManualEntryLabel;
   vtkKWEntrySet      *RASManualEntry; // read only
   vtkKWPushButton *RASManualEntryButton;
+  vtkKWPushButton *AddCoverageButton;  
 
   vtkKWFrame *ListFrame;
   // needle type list
@@ -134,9 +133,6 @@ protected:
 
   int LastSelectedTargetDescriptorIndex;
   int CurrentSelectedTargetDescriptorIndex;
-
-  vtkMRMLScalarVolumeNode* CoverageLabelMapNode;
-  int CoverageHideFlag;
 
 private:
   vtkTRProstateBiopsyTargetingStep(const vtkTRProstateBiopsyTargetingStep&);

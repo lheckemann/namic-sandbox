@@ -122,6 +122,8 @@ public:
 
   vtkImageData* GetCalibMarkerPreProcOutput(int i);
 
+  int ShowCoverage(vtkSlicerApplication *app);
+
 protected:
 
   // Description:
@@ -155,6 +157,10 @@ protected:
   void SetSliceViewFromVolume(vtkSlicerApplication *app, vtkMRMLVolumeNode *volumeNode);
 
   static const int PhaseTransitionMatrix[NumPhases][NumPhases];
+
+  int CreateCoverageVolume();
+  void DeleteCoverageVolume();
+  int UpdateCoverageVolumeImage();
   
   int   CurrentPhase;
   int   PrevPhase;
@@ -177,7 +183,7 @@ protected:
 
   vtkCallbackCommand *DataCallbackCommand;
 
-  vtkMRMLTRProstateBiopsyModuleNode* TRProstateBiopsyModuleNode;
+  vtkMRMLTRProstateBiopsyModuleNode* TRProstateBiopsyModuleNode;  
 
 };
 

@@ -9,7 +9,6 @@
 #include "vtkSlicerSliceLogic.h"
 #include "vtkMRMLSliceNode.h"
 #include "vtkSlicerVolumesGUI.h"
-#include "vtkMRMLLabelMapVolumeDisplayNode.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWWizardWidget.h"
@@ -51,6 +50,8 @@ vtkTRProstateBiopsyTargetingStep::vtkTRProstateBiopsyTargetingStep()
   this->RASManualEntryLabel = NULL;
   this->RASManualEntry = NULL; 
   this->RASManualEntryButton = NULL;
+  
+  this->AddCoverageButton = NULL;
 
   // multi-column list to display target, params, etc
   // this needle will display targets corresponding to the needle type selected
@@ -68,8 +69,6 @@ vtkTRProstateBiopsyTargetingStep::vtkTRProstateBiopsyTargetingStep()
   this->LastSelectedTargetDescriptorIndex = -1;
   this->CurrentSelectedTargetDescriptorIndex = -1;
 
-  CoverageLabelMapNode=NULL;
-  CoverageHideFlag=1;
 }
 
 //----------------------------------------------------------------------------
@@ -104,6 +103,11 @@ vtkTRProstateBiopsyTargetingStep::~vtkTRProstateBiopsyTargetingStep()
     {
     this->RASManualEntryButton->Delete();
     this->RASManualEntryButton = NULL;
+    }
+  if (this->AddCoverageButton)
+    {
+    this->AddCoverageButton->Delete();
+    this->AddCoverageButton = NULL;
     }
   if (this->ListFrame)
     {
@@ -246,6 +250,23 @@ void vtkTRProstateBiopsyTargetingStep::ShowManualAddTargetControls()
   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                 this->RASManualEntryFrame->GetWidgetName());
 
+
+// create the push button for coverage area display
+  if(!this->AddCoverageButton)
+    {
+    this->AddCoverageButton = vtkKWPushButton::New();
+    }
+  if(!this->AddCoverageButton->IsCreated())
+    {
+    this->AddCoverageButton->SetParent(this->RASManualEntryFrame);
+    this->AddCoverageButton->SetText("Show coverage area");
+    this->AddCoverageButton->SetBalloonHelpString("Click to display coverage area of the robot as a label map");
+    this->AddCoverageButton->Create();
+    }
+    
+  this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
+                    this->AddCoverageButton->GetWidgetName());
+
   // label
   if (!this->RASManualEntryLabel)
     { 
@@ -294,13 +315,13 @@ void vtkTRProstateBiopsyTargetingStep::ShowManualAddTargetControls()
   if(!this->RASManualEntryButton->IsCreated())
     {
     this->RASManualEntryButton->SetParent(this->RASManualEntryFrame);
-    this->RASManualEntryButton->SetText("Add");
+    this->RASManualEntryButton->SetText("Add target");
     this->RASManualEntryButton->SetBalloonHelpString("Click to add a target at RAS location mentioned in left entries");
     this->RASManualEntryButton->Create();
     }
     
   this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
-                    this->RASManualEntryButton->GetWidgetName());
+                    this->RASManualEntryButton->GetWidgetName()); 
 
 }
 //----------------------------------------------------------------------------
@@ -326,7 +347,11 @@ void vtkTRProstateBiopsyTargetingStep::ClearManualAddTargetControls()
     this->Script("pack forget %s", 
                     this->RASManualEntryButton->GetWidgetName());
     }
-  
+  if (this->AddCoverageButton)
+    {
+    this->Script("pack forget %s", 
+                    this->AddCoverageButton->GetWidgetName());
+    }  
 }
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyTargetingStep::ShowNeedleTypeAndTargetsListControls()
@@ -568,7 +593,7 @@ void vtkTRProstateBiopsyTargetingStep::ProcessGUIEvents(vtkObject *caller,
     }
 
   // show coverage dialog button
-   if (this->RASManualEntryButton && this->RASManualEntryButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+   if (this->AddCoverageButton && this->AddCoverageButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
     {
       this->ShowCoverage();
     }
@@ -772,6 +797,10 @@ void vtkTRProstateBiopsyTargetingStep::AddGUIObservers()
     {
     this->RASManualEntryButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
     }  
+  if (this->AddCoverageButton)
+    {
+    this->AddCoverageButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }  
 }
 //-----------------------------------------------------------------------------
 void vtkTRProstateBiopsyTargetingStep::RemoveGUIObservers()
@@ -785,6 +814,10 @@ void vtkTRProstateBiopsyTargetingStep::RemoveGUIObservers()
     {
     this->TargetsMultiColumnList->GetWidget()->RemoveObservers(vtkKWMultiColumnList::SelectionChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
     }
+  if (this->AddCoverageButton)
+    {
+    this->AddCoverageButton->RemoveObserver((vtkCommand *)this->WizardGUICallbackCommand);
+    }  
 }
 
 //-----------------------------------------------------------------------------
@@ -1131,220 +1164,13 @@ void vtkTRProstateBiopsyTargetingStep::LoadFromExperimentFile(istream &file)
 // return:
 //  0=error
 //----------------------------------------------------------------------------
-int vtkTRProstateBiopsyTargetingStep::ShowCoverage() 
+void vtkTRProstateBiopsyTargetingStep::ShowCoverage() 
 {
-  // -----
-  // Initialize
-  /*if (!this->ROICheck()) {
-    vtkKWMessageDialog::PopupMessage(this->GUI->GetApplication(), 
-                                     this->GUI->GetApplicationGUI()->GetMainSlicerWindow(),
-                                     "Change Tracker", 
-                                     "Please define VOI correctly before pressing button", 
-                                     vtkKWMessageDialog::ErrorIcon);
-    return 0;
-  }*/
-
-//create volume in the calibration phase
-//make it independent from the calibration volume (make it larger, but lower resolution)
-
-  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if(!mrmlNode)
-  {
-      return 0;
-  }
-  
-  vtkMRMLVolumeNode* volumeNode = mrmlNode->GetCalibrationVolumeNode();
-  if (!volumeNode) 
-  {
-    return 0;
-  }
-
-  if (this->CoverageLabelMapNode)
-  {
-    this->CoverageMapRemove(); 
-  }
-
-  if (!mrmlNode->GetCalibrationData().CalibrationValid)
-  {
-    // there is no valid calibration, so no coverage information is available
-    return 0;
-  }
-
-  // -----
-  // Define LabelMap 
-
-  int coverageMapSizeMm=500;
-  int coverageMapResolutionMm=5;
-
-  vtkSmartPointer<vtkImageData> coverageLabelMapImage=vtkSmartPointer<vtkImageData>::New();
-
-  int dim=coverageMapSizeMm/coverageMapResolutionMm;
-  coverageLabelMapImage->SetDimensions(dim, dim, dim);    
-  coverageLabelMapImage->SetWholeExtent(0,dim-1,0,dim-1,0,dim-1);
-  coverageLabelMapImage->SetScalarType(VTK_SHORT);
-  coverageLabelMapImage->AllocateScalars();
-
-  // Show map in Slicer 3 
-  vtkSlicerApplication *application   = vtkSlicerApplication::SafeDownCast(this->GetApplication());
-  vtkSlicerApplicationGUI *applicationGUI = this->GetGUI()->GetApplicationGUI();
-  vtkSlicerVolumesGUI  *volumesGUI    = vtkSlicerVolumesGUI::SafeDownCast(application->GetModuleGUIByName("Volumes")); 
-  vtkSlicerVolumesLogic *volumesLogic = volumesGUI->GetLogic();
-  vtkMRMLScene* mrmlScene =  mrmlNode->GetScene(); 
-
-  // create a display node
-  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> labelDisplayNode  = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
-  mrmlScene->AddNode(labelDisplayNode);
-
-  // create a volume node as copy of source volume
-  this->CoverageLabelMapNode = vtkMRMLScalarVolumeNode::New();
-  
-  int modifiedSinceRead = volumeNode->GetModifiedSinceRead();
-  this->CoverageLabelMapNode->CopyWithScene(volumeNode);
-
-  {
-    // Get the calibration volume centerpoint in RAS coordinates
-
-    double rasPoint[4]={0,0,0,1}; // centerpoint position in RAS coorindates
-    double ijkPoint[4]={0,0,0,1}; // centerpoint position in IJK coorindates
-    int extent[6];
-    volumeNode->GetImageData()->GetWholeExtent(extent);
-
-    ijkPoint[0]=(extent[0]+extent[1])/2;
-    ijkPoint[1]=(extent[2]+extent[3])/2;
-    ijkPoint[2]=(extent[4]+extent[5])/2;
-
-    vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
-    volumeNode->GetIJKToRASMatrix(ijkToRas);
-
-    ijkToRas->MultiplyPoint(ijkPoint, rasPoint);
-    
-    // Set coverage volume size and position
-
-    this->CoverageLabelMapNode->SetOrigin(
-      rasPoint[0]-coverageMapSizeMm/2,
-      rasPoint[1]-coverageMapSizeMm/2,
-      rasPoint[2]-coverageMapSizeMm/2);
-    this->CoverageLabelMapNode->SetSpacing(coverageMapResolutionMm,coverageMapResolutionMm,coverageMapResolutionMm);
-    ijkToRas->Identity();
-    this->CoverageLabelMapNode->SetIJKToRASDirectionMatrix(ijkToRas);
-  }
-  
-  this->CoverageLabelMapNode->SetAndObserveStorageNodeID(NULL);
-  this->CoverageLabelMapNode->SetModifiedSinceRead(1);
-  this->CoverageLabelMapNode->SetLabelMap(1);
-  
-  // restore modifiedSinceRead value since copy cause Modify on image data.
-  volumeNode->SetModifiedSinceRead(modifiedSinceRead);
-
-  // set the display node to have a label map lookup table
-  labelDisplayNode->SetAndObserveColorNodeID ("vtkMRMLColorTableNodeLabels");
-  this->CoverageLabelMapNode->SetName("TRPBCoverage");
-  this->CoverageLabelMapNode->SetAndObserveDisplayNodeID( labelDisplayNode->GetID() );
-
-  this->CoverageLabelMapNode->SetAndObserveImageData(coverageLabelMapImage);
-
-  // add the label volume to the scene
-  mrmlScene->AddNode(this->CoverageLabelMapNode);
-
-  // Reset to original slice location 
-  double oldSliceSetting[3];
-  oldSliceSetting[0] = double(applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset());
-  oldSliceSetting[1] = double(applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceOffset());
-  oldSliceSetting[2] = double(applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceOffset());
-
-  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(this->CoverageLabelMapNode->GetID());
-  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(this->CoverageLabelMapNode->GetID());
-  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(this->CoverageLabelMapNode->GetID());
-
-  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
-  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
-  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
-
-  // Reset to original slice location 
-  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->SetSliceOffset(oldSliceSetting[0]);
-  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->SetSliceOffset(oldSliceSetting[1]);
-  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->SetSliceOffset(oldSliceSetting[2]);
-
-  this->CoverageMapUpdate();
-
-  return 1;
-}
-
-void vtkTRProstateBiopsyTargetingStep::CoverageMapRemove() 
-{ 
-  if (this->CoverageLabelMapNode!=NULL)
-  {
-    this->CoverageLabelMapNode->SetAndObserveImageData(NULL); // remove image data
-    if (this->GetGUI()!=NULL) 
-    { 
-      this->GetGUI()->GetMRMLScene()->RemoveNode(this->CoverageLabelMapNode);
-    }
-    this->CoverageLabelMapNode->Delete();
-    this->CoverageLabelMapNode = NULL;
-  }
-}
-
-void vtkTRProstateBiopsyTargetingStep::CoverageMapUpdate()
-{
-  if (this->CoverageLabelMapNode==NULL)
-  {
-    vtkWarningMacro("CoverageMapUpdate failed, the map is not initialized");
-    return;
-  }
-  vtkImageData *coverageImage=this->CoverageLabelMapNode->GetImageData();
-  if (coverageImage==NULL)
-  {
-    vtkWarningMacro("CoverageMapUpdate failed, the map is not initialized");
-    return;
-  }
-
-//  std::string needleType = this->NeedleTypeMenuList->GetWidget()->GetValue();
-  
-  double *origin=coverageImage->GetOrigin();
-  double *spacing=coverageImage->GetSpacing();
-
-  double rasPoint[4]={0,0,0,1};
-  double ijkPoint[4]={0,0,0,1};
-  int extent[6];
-  coverageImage->GetWholeExtent(extent);
-
-  vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
-  this->CoverageLabelMapNode->GetIJKToRASMatrix(ijkToRas);
-
   vtkTRProstateBiopsyLogic *logic=this->GetGUI()->GetLogic();
-
-  float value=0;  
-  for (int z=extent[4]; z<=extent[5]; z++)
+  if (!logic)
   {
-    ijkPoint[2]=z;
-    for (int y=extent[2]; y<=extent[3]; y++)
-    {
-      ijkPoint[1]=y;
-      for (int x=extent[0]; x<=extent[1]; x++)
-      {         
-        ijkPoint[0]=x;           
-        ijkToRas->MultiplyPoint(ijkPoint, rasPoint);
-        
-        value=0;
-        if (z!=extent[4] && z!=extent[5] && 
-          y!=extent[2] && y!=extent[3] &&
-          x!=extent[0] && x!=extent[1])
-        {
-          // it is not a boundary voxel
-          // (we leave a black boundary around the image to ensure that
-          // contouring of the coverage area results in a closed surface)
-          if (logic->IsTargetReachable(0, rasPoint)) //:TODO: check if it is OK to always use needle 0
-          {
-            value=1;
-          }
-        }
-
-        coverageImage->SetScalarComponentFromFloat(x, y, z, 0, value);
-      }
-    }
+    vtkErrorMacro("Invalid logic object");
+    return;
   }
-
-  coverageImage->Update();
-  this->CoverageLabelMapNode->Modified();
-  
+  logic->ShowCoverage(vtkSlicerApplication::SafeDownCast(this->GetApplication()));
 }

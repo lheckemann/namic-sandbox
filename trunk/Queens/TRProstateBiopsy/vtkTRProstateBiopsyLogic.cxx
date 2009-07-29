@@ -24,6 +24,8 @@
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkSmartPointer.h"
+#include "vtkMRMLLabelMapVolumeDisplayNode.h"
 
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationLogic.h"
@@ -54,6 +56,9 @@ static const char TRPB_CALIBRATION[]="CALIBRATION";
 static const char TRPB_TARGETING[]="TARGETING";
 static const char TRPB_SEGMENTATION[]="SEGMENTATION";
 static const char TRPB_VERIFICATION[]="VERIFICATION";
+
+const int COVERAGE_MAP_SIZE_MM=500;
+const int COVERAGE_MAP_RESOLUTION_MM=5;
 
 /*
 vtkCxxRevisionMacro(vtkTRProstateBiopsyLogic, "$Revision: 1.9.12.1 $");
@@ -786,3 +791,238 @@ bool vtkTRProstateBiopsyLogic::SegmentRegisterMarkers(double thresh[4], double f
   return success;
 }
 
+// Recreate, update coverage volume
+// Add the volume and a display node to the scene
+// return 0 if failed
+//----------------------------------------------------------------------------
+int vtkTRProstateBiopsyLogic::ShowCoverage(vtkSlicerApplication *app) 
+{
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->TRProstateBiopsyModuleNode;
+  if(!mrmlNode)
+  {
+      return 0;
+  }
+  
+  vtkMRMLScalarVolumeNode* coverageVolumeNode=mrmlNode->GetCoverageVolumeNode();
+  if (coverageVolumeNode!=NULL)
+  {
+    DeleteCoverageVolume();
+  }
+
+  if (!mrmlNode->GetCalibrationData().CalibrationValid)
+  {
+    // there is no valid calibration, so no coverage information is available
+    return 0;
+  }
+
+  if (CreateCoverageVolume()==0)
+  {
+    return 0;
+  }
+
+  coverageVolumeNode=mrmlNode->GetCoverageVolumeNode();
+  if (coverageVolumeNode==NULL)
+  {
+    // the volume node should have been created by now
+    return 0;
+  }
+
+  // Create display node
+  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> labelDisplayNode  = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+  labelDisplayNode->SetAndObserveColorNodeID ("vtkMRMLColorTableNodeLabels"); // set the display node to have a label map lookup table
+  this->GetMRMLScene()->AddNode(labelDisplayNode);
+  coverageVolumeNode->SetAndObserveDisplayNodeID( labelDisplayNode->GetID() );  
+
+  // add the label volume to the scene
+  this->GetMRMLScene()->AddNode(coverageVolumeNode);
+
+  vtkSlicerApplicationGUI *applicationGUI = app->GetApplicationGUI();
+
+  // Reset to original slice location 
+  double oldSliceSetting[3];
+  oldSliceSetting[0] = double(applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset());
+  oldSliceSetting[1] = double(applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceOffset());
+  oldSliceSetting[2] = double(applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceOffset());
+
+  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(coverageVolumeNode->GetID());
+  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(coverageVolumeNode->GetID());
+  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(coverageVolumeNode->GetID());
+
+  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
+  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
+  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
+
+  // Reset to original slice location 
+  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->SetSliceOffset(oldSliceSetting[0]);
+  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->SetSliceOffset(oldSliceSetting[1]);
+  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->SetSliceOffset(oldSliceSetting[2]);
+
+  return 1;
+}
+
+// Create and initialize coverage volume (stored in the main MRML node)
+// return 0 if failed
+int vtkTRProstateBiopsyLogic::CreateCoverageVolume()
+{
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->TRProstateBiopsyModuleNode;
+  if(!mrmlNode)
+  {
+      return 0;
+  }
+
+  vtkMRMLVolumeNode* volumeNode = mrmlNode->GetCalibrationVolumeNode();
+  if (!volumeNode) 
+  {
+    return 0;
+  }
+
+  // Create volume node (as copy of calibration volume)
+  vtkSmartPointer<vtkMRMLScalarVolumeNode> coverageVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();  
+  mrmlNode->SetCoverageVolumeNode(coverageVolumeNode);   // Add ref to main MRML node
+  
+  int modifiedSinceRead = volumeNode->GetModifiedSinceRead();
+  coverageVolumeNode->CopyWithScene(volumeNode);
+  coverageVolumeNode->SetName("TRPBCoverage");
+
+  // Create image data
+  vtkSmartPointer<vtkImageData> coverageLabelMapImage=vtkSmartPointer<vtkImageData>::New();
+  int dim=COVERAGE_MAP_SIZE_MM/COVERAGE_MAP_RESOLUTION_MM;
+  coverageLabelMapImage->SetDimensions(dim, dim, dim);    
+  coverageLabelMapImage->SetWholeExtent(0,dim-1,0,dim-1,0,dim-1);
+  coverageLabelMapImage->SetScalarType(VTK_SHORT);
+  coverageLabelMapImage->AllocateScalars();
+  coverageVolumeNode->SetAndObserveImageData(coverageLabelMapImage);
+
+  // Get the calibration volume centerpoint in RAS coordinates
+  double rasCenterPoint[4]={0,0,0,1}; // centerpoint position in RAS coorindates
+  {   
+    int extent[6];
+    volumeNode->GetImageData()->GetWholeExtent(extent);
+
+    double ijkCenterPoint[4]={0,0,0,1}; // centerpoint position in IJK coorindates
+    ijkCenterPoint[0]=(extent[0]+extent[1])/2;
+    ijkCenterPoint[1]=(extent[2]+extent[3])/2;
+    ijkCenterPoint[2]=(extent[4]+extent[5])/2;
+
+    vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
+    volumeNode->GetIJKToRASMatrix(ijkToRas);
+
+    ijkToRas->MultiplyPoint(ijkCenterPoint, rasCenterPoint);
+  }
+   
+  // Set coverage volume size and position
+  coverageVolumeNode->SetOrigin(rasCenterPoint[0]-COVERAGE_MAP_SIZE_MM/2, rasCenterPoint[1]-COVERAGE_MAP_SIZE_MM/2, rasCenterPoint[2]-COVERAGE_MAP_SIZE_MM/2);
+  coverageVolumeNode->SetSpacing(COVERAGE_MAP_RESOLUTION_MM,COVERAGE_MAP_RESOLUTION_MM,COVERAGE_MAP_RESOLUTION_MM);
+  vtkSmartPointer<vtkMatrix4x4> ijkToRasDirectionMatrix=vtkSmartPointer<vtkMatrix4x4>::New();
+  ijkToRasDirectionMatrix->Identity();
+  coverageVolumeNode->SetIJKToRASDirectionMatrix(ijkToRasDirectionMatrix);
+  
+  coverageVolumeNode->SetAndObserveStorageNodeID(NULL);
+  coverageVolumeNode->SetModifiedSinceRead(1);
+  coverageVolumeNode->SetLabelMap(1);
+  
+  // Restore modifiedSinceRead value since copy cause Modify on image data.
+  volumeNode->SetModifiedSinceRead(modifiedSinceRead);
+
+  return UpdateCoverageVolumeImage();
+}
+
+// Update the coverage volume label map image
+// return 0 if failed
+int vtkTRProstateBiopsyLogic::UpdateCoverageVolumeImage()
+{
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->TRProstateBiopsyModuleNode;
+  if(mrmlNode==NULL)
+  {
+      return 0;
+  }
+  vtkMRMLVolumeNode* coverageVolumeNode = mrmlNode->GetCoverageVolumeNode();
+  if (coverageVolumeNode==NULL)
+  {
+    vtkWarningMacro("CoverageMapUpdate failed, the map is not initialized");
+    return 0;
+  }
+  vtkImageData *coverageImage=coverageVolumeNode->GetImageData();
+  if (coverageImage==NULL)
+  {
+    vtkWarningMacro("CoverageMapUpdate failed, the map is not initialized");
+    return 0;
+  }
+
+//  std::string needleType = this->NeedleTypeMenuList->GetWidget()->GetValue();
+  
+  double *origin=coverageImage->GetOrigin();
+  double *spacing=coverageImage->GetSpacing();
+
+  double rasPoint[4]={0,0,0,1};
+  double ijkPoint[4]={0,0,0,1};
+  int extent[6];
+  coverageImage->GetWholeExtent(extent);
+
+  vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
+  coverageVolumeNode->GetIJKToRASMatrix(ijkToRas);
+
+  float value=0;  
+  for (int z=extent[4]; z<=extent[5]; z++)
+  {
+    ijkPoint[2]=z;
+    for (int y=extent[2]; y<=extent[3]; y++)
+    {
+      ijkPoint[1]=y;
+      for (int x=extent[0]; x<=extent[1]; x++)
+      {         
+        ijkPoint[0]=x;           
+        ijkToRas->MultiplyPoint(ijkPoint, rasPoint);
+        
+        value=0;
+        if (z!=extent[4] && z!=extent[5] && 
+          y!=extent[2] && y!=extent[3] &&
+          x!=extent[0] && x!=extent[1])
+        {
+          // it is not a boundary voxel
+          // (we leave a black boundary around the image to ensure that
+          // contouring of the coverage area results in a closed surface)
+          if (IsTargetReachable(0, rasPoint)) //:TODO: check if it is OK to always use needle 0
+          {
+            value=1;
+          }
+        }
+
+        coverageImage->SetScalarComponentFromFloat(x, y, z, 0, value);
+      }
+    }
+  }
+
+  coverageImage->Update();
+  coverageVolumeNode->Modified();
+  
+  return 1;
+}
+
+// Remove coverage volume and display node from the scene and from the main MRML node
+void vtkTRProstateBiopsyLogic::DeleteCoverageVolume() 
+{
+  vtkMRMLTRProstateBiopsyModuleNode *mrmlNode = this->TRProstateBiopsyModuleNode;
+  if(mrmlNode==NULL)
+  {
+      return;
+  }
+  vtkMRMLVolumeNode* coverageVolumeNode = mrmlNode->GetCoverageVolumeNode();
+  if(coverageVolumeNode==NULL)
+  {
+      return;
+  }
+  
+  // remove node from scene
+  vtkMRMLScene *scene=this->GetMRMLScene();
+  if (scene!=NULL)
+  { 
+    scene->RemoveNode(coverageVolumeNode);
+  }
+  
+  // delete image data
+  coverageVolumeNode->SetAndObserveImageData(NULL);
+  
+  // delete volume node
+  mrmlNode->SetCoverageVolumeNode(NULL);
+}
