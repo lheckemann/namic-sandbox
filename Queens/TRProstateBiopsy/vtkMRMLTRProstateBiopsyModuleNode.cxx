@@ -69,6 +69,7 @@ vtkMRMLTRProstateBiopsyModuleNode::vtkMRMLTRProstateBiopsyModuleNode()
   this->CalibrationVolumeNode = NULL;
   this->TargetingVolumeNode = NULL;
   this->VerificationVolumeNode = NULL;
+  this->CoverageVolumeNode = NULL;
   this->VolumeInUse = NULL;
   this->SegmentationOutputVolumeRef = NULL;
   this->SegmentationInputVolumeRef = NULL;
@@ -133,12 +134,14 @@ vtkMRMLTRProstateBiopsyModuleNode::~vtkMRMLTRProstateBiopsyModuleNode()
   this->SetCalibrationVolumeNode(NULL);
   this->SetTargetingVolumeNode(NULL);
   this->SetVerificationVolumeNode(NULL);
+  this->SetCoverageVolumeNode(NULL);
   this->SetExperimentSavePathInConfigFile(NULL);
   
 
   this->CalibrationVolumeNode = NULL;
   this->TargetingVolumeNode = NULL;
   this->VerificationVolumeNode = NULL;
+  this->CoverageVolumeNode = NULL;
 
   this->HideFromEditors = true;
   
@@ -266,6 +269,7 @@ void vtkMRMLTRProstateBiopsyModuleNode::Copy(vtkMRMLNode *anode)
   this->SetCalibrationVolumeNode(node->GetCalibrationVolumeNode());
   this->SetTargetingVolumeNode(node->GetTargetingVolumeNode());
   this->SetVerificationVolumeNode(node->GetVerificationVolumeNode());
+  this->SetCoverageVolumeNode(node->GetCoverageVolumeNode());  
 }
 
 //----------------------------------------------------------------------------
@@ -304,6 +308,12 @@ void vtkMRMLTRProstateBiopsyModuleNode::SetVerificationVolumeNode(vtkMRMLScalarV
 {
   vtkSetMRMLNodeMacro(this->VerificationVolumeNode, verifVolNode);
 }
+//-------------------------------------------------------------------------------
+void vtkMRMLTRProstateBiopsyModuleNode::SetCoverageVolumeNode(vtkMRMLScalarVolumeNode *coverageVolNode)
+{
+  vtkSetMRMLNodeMacro(this->CoverageVolumeNode, coverageVolNode);
+}
+
 //-------------------------------------------------------------------------------
 unsigned int vtkMRMLTRProstateBiopsyModuleNode::AddTargetDescriptor(vtkTRProstateBiopsyTargetDescriptor* target)
 {

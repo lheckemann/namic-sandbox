@@ -39,7 +39,8 @@ enum VolumeType
   VOL_GENERIC, // any other than the specific volumes 
   VOL_CALIBRATION,
   VOL_TARGETING,
-  VOL_VERIFICATION
+  VOL_VERIFICATION,
+  VOL_COVERAGE
 };
 
 class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtkMRMLNode
@@ -113,6 +114,10 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkMRMLTRProstateBiopsyModuleNode : public vtk
   vtkGetObjectMacro(VerificationVolumeNode, vtkMRMLScalarVolumeNode);
   void SetVerificationVolumeNode(vtkMRMLScalarVolumeNode *);
 
+  // Description:
+  // Get Coverage Area Volume.
+  vtkGetObjectMacro(CoverageVolumeNode, vtkMRMLScalarVolumeNode);
+  void SetCoverageVolumeNode(vtkMRMLScalarVolumeNode *);
 
   // State of the MRML slice nodes for calibration.
   //vtkGetStringMacro(CalibrationSliceNodeXML);
@@ -255,6 +260,7 @@ protected:
   vtkMRMLScalarVolumeNode *CalibrationVolumeNode; // set using vtkSetMRMLNodeMacro
   vtkMRMLScalarVolumeNode *TargetingVolumeNode; // set using vtkSetMRMLNodeMacro
   vtkMRMLScalarVolumeNode *VerificationVolumeNode; // set using vtkSetMRMLNodeMacro
+  vtkMRMLScalarVolumeNode* CoverageVolumeNode; // set using vtkSetMRMLNodeMacro
 
   // common parameters  
   char* VolumeInUse; 
