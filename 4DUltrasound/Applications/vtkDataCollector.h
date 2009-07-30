@@ -135,6 +135,9 @@ public:
   vtkSetMacro(DynamicVolumeSize, bool);
   vtkGetMacro(DynamicVolumeSize, bool);
   
+  vtkSetStringMacro(FileName);
+  vtkGetStringMacro(FileName);
+
   int Initialize(vtkNDITracker* tracker);
   int StartCollecting(vtkDataProcessor * processor);
   int StopCollecting();
@@ -148,6 +151,7 @@ public:
   bool IsMatrixEmpty(vtkMatrix4x4 * matrix);
   int CalculateNormal(struct DataStruct DataStruct, double* normal);
   int CalculateVolumeProperties(struct DataStruct* pDataStruct);
+  int GrabOneImage();
 
 protected:
   vtkDataCollector();
@@ -202,6 +206,7 @@ protected:
 
   bool Collecting;
   bool Initialized;
+  char* FileName;
 
 private:
 
