@@ -20,11 +20,11 @@
 #include "vtkCommand.h"
 
 #include "vtkObserverManager.h"
+#include "vtkMRMLProstateNavManagerNode.h"
 
 class vtkProstateNavGUI;
 class vtkProstateNavLogic;
 class vtkMRMLScene;
-
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavStep : public vtkKWWizardStep
 {
@@ -33,12 +33,35 @@ public:
   vtkTypeRevisionMacro(vtkProstateNavStep,vtkKWWizardStep);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  virtual void Register(vtkObject *o) { Superclass::Register(o); };
+  virtual void UnRegister(vtkObjectBase *o) { Superclass::UnRegister(o); };
+
   // Description: 
   // Get/Set GUI
   vtkGetObjectMacro(GUI, vtkProstateNavGUI);
   vtkGetObjectMacro(Logic, vtkProstateNavLogic);
+
   virtual void SetGUI(vtkProstateNavGUI*);
   virtual void SetLogic(vtkProstateNavLogic*);
+
+  vtkSetObjectMacro(ProstateNavManager, vtkMRMLProstateNavManagerNode);
+  vtkGetObjectMacro(ProstateNavManager, vtkMRMLProstateNavManagerNode);
+
+  vtkSetMacro(TotalSteps, int);
+  vtkGetMacro(TotalSteps, int);
+  vtkSetMacro(StepNumber, int);
+  vtkGetMacro(StepNumber, int);
+
+  void SetTitle(const char* title) {
+    this->Title = title;
+  }
+
+  const char* GetTitle() {
+    return this->Title.c_str();
+  }
+
+  void UpdateName();
+
 
   void SetInMRMLCallbackFlag (int flag) {
     this->InMRMLCallbackFlag = flag;
@@ -59,10 +82,27 @@ public:
       }
     }
 
+  void SetAndObserveMRMLSceneEvents ( vtkMRMLScene *mrml, vtkIntArray *events )
+    {
+    vtkObject *oldValue = this->MRMLScene;
+    this->MRMLObserverManager->SetAndObserveObjectEvents ( vtkObjectPointer( &this->MRMLScene), mrml, events );
+    if ( oldValue != this->MRMLScene )
+      {
+      this->InvokeEvent (vtkCommand::ModifiedEvent);
+      }
+    }
+
+
   void SetTitleBackgroundColor (double r, double g, double b) {
     this->TitleBackgroundColor[0] = r;
     this->TitleBackgroundColor[1] = g;
     this->TitleBackgroundColor[2] = b;
+  };
+
+  void GetTitleBackgroundColor (double* r, double* g, double* b) {
+    *r = this->TitleBackgroundColor[0];
+    *g = this->TitleBackgroundColor[1];
+    *b = this->TitleBackgroundColor[2];
   };
 
   // Description:
@@ -84,6 +124,8 @@ protected:
 
   static void MRMLCallback(vtkObject *caller,
                            unsigned long eid, void *clientData, void *callData );
+
+protected:
   
   double TitleBackgroundColor[3];
 
@@ -96,9 +138,16 @@ protected:
 
   vtkCallbackCommand *GUICallbackCommand;
   vtkCallbackCommand *MRMLCallbackCommand;
-
   vtkObserverManager *MRMLObserverManager;
 
+  vtkMRMLProstateNavManagerNode* ProstateNavManager;
+
+  //BTX
+  std::string Title;
+  //ETX
+  
+  int TotalSteps;     // Total number of steps in the wizard
+  int StepNumber;     // Step number for this step.
 
 private:
   vtkProstateNavStep(const vtkProstateNavStep&);

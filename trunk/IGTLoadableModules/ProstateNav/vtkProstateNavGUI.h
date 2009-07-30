@@ -22,8 +22,6 @@
 #include "vtkSlicerModuleGUI.h"
 #include "vtkProstateNavLogic.h"
 
-#include "vtkIGTDataManager.h"
-#include "vtkIGTPat2ImgRegistration.h"
 #include "vtkCallbackCommand.h"
 #include "vtkSlicerInteractorStyle.h"
 
@@ -46,13 +44,21 @@ class vtkKWWizardWidget;
 class vtkProstateNavStep;
 
 class vtkTransform;
+class vtkIGTLToMRMLCoordinate;
+class vtkIGTLToMRMLBrpRobotCommand;
 
+class vtkMRMLProstateNavManagerNode;
+ 
 // Description:    
 // This class implements Slicer's Volumes GUI
 //
 class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
 {
  public:
+  
+  virtual void Register(vtkObject *o) { Superclass::Register(o); };
+  virtual void UnRegister(vtkObject *o) { Superclass::UnRegister(o); };
+
   //BTX
   enum {
     SLICE_PLANE_RED    = 0,
@@ -66,9 +72,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
     SLICE_RTIMAGE_INPLANE   = 3
   };
   
-  static const double WorkPhaseColor[vtkProstateNavLogic::NumPhases][3];
-  static const double WorkPhaseColorActive[vtkProstateNavLogic::NumPhases][3];
-  static const double WorkPhaseColorDisabled[vtkProstateNavLogic::NumPhases][3];
   static const char* WorkPhaseStr[vtkProstateNavLogic::NumPhases];
   //ETX
   
@@ -104,6 +107,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // Description:    
   // This method builds the IGTDemo module GUI
   virtual void BuildGUI ( );
+
+  // Description:    
+  // This method builds the IGTDemo module GUI
+  virtual void TearDownGUI ( );
   
   // Description:
   // Add/Remove observers on widgets in the GUI
@@ -112,7 +119,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
 
   void AddLogicObservers ( );
   void RemoveLogicObservers ( );
-  
+
+  // Description: 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "IGT"; }
   
   // Description:
   // Class's mediator methods for processing events invoked by
@@ -157,62 +167,17 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // Wizard Frame
   
   vtkKWWizardWidget *WizardWidget;
-  vtkProstateNavStep **WizardSteps;
   
-  //----------------------------------------------------------------
-  // Visualization Control Frame
-
-  vtkKWCheckButton *FreezeImageCheckButton;
-  vtkKWPushButton  *SetLocatorModeButton;
-  vtkKWPushButton  *SetUserModeButton;
-
-  vtkKWMenuButton  *RedSliceMenu;
-  vtkKWMenuButton  *YellowSliceMenu;
-  vtkKWMenuButton  *GreenSliceMenu;
-  vtkKWCheckButton *ImagingControlCheckButton;
-  vtkKWMenuButton  *ImagingMenu;
-  
-  vtkKWPushButton  *StartScanButton;
-  vtkKWPushButton  *StopScanButton;
-
-  vtkKWCheckButton *LocatorCheckButton;
-  
-  // Module logic and mrml pointers
-
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
 
   vtkProstateNavLogic *Logic;
 
-  vtkIGTDataManager *DataManager;
-  vtkIGTPat2ImgRegistration *Pat2ImgReg;
   vtkCallbackCommand *DataCallbackCommand;
-
-  // Access the slice windows
-  vtkSlicerSliceLogic *Logic0;
-  vtkSlicerSliceLogic *Logic1;
-  vtkSlicerSliceLogic *Logic2;
-  vtkMRMLSliceNode *SliceNode0;
-  vtkMRMLSliceNode *SliceNode1;
-  vtkMRMLSliceNode *SliceNode2;
-  vtkSlicerSliceControllerWidget *Control0;
-  vtkSlicerSliceControllerWidget *Control1;
-  vtkSlicerSliceControllerWidget *Control2;
-
-  //BTX
-  std::string LocatorModelID;
-  std::string LocatorModelID_new;
-  //ETX
-  
-  int NeedOrientationUpdate0;
-  int NeedOrientationUpdate1;
-  int NeedOrientationUpdate2;
-  
-  //int NeedRealtimeImageUpdate;
-  int FreezeOrientationUpdate;
-
-  int RealtimeImageOrient;
+  vtkIGTLToMRMLCoordinate* CoordinateConverter;
+  vtkIGTLToMRMLBrpRobotCommand* CommandConverter;
+ 
 
   //----------------------------------------------------------------
   // Target Fiducials
@@ -222,16 +187,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   vtkMRMLFiducialListNode *FiducialListNode;
 
   void UpdateAll();
-  /*
-  void UpdateLocator(vtkTransform *, vtkTransform *);
-  void UpdateSliceDisplay(float nx, float ny, float nz, 
-                          float tx, float ty, float tz, 
-                          float px, float py, float pz);
-
-  void UpdateLocator();
-  void UpdateSliceDisplay();
-  */
-
   void UpdateDeviceStatus();
   
  private:
@@ -243,13 +198,14 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   void BuildGUIForWizardFrame();
   void BuildGUIForHelpFrame();
   void BuildGUIForDeviceFrame();
-  void BuildGUIForVisualizationControlFrame();
   
   int  ChangeWorkPhase(int phase, int fChangeWizard=0);
-  void ChangeSlicePlaneDriver(int slice, const char* driver);
-
 
   int Entered;
+
+
+  vtkMRMLProstateNavManagerNode* ProstateNavManager;
+
   
 };
 

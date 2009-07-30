@@ -12,8 +12,8 @@
 
 ==========================================================================*/
 
-#ifndef __vtkProstateNavConfigurationStep_h
-#define __vtkProstateNavConfigurationStep_h
+#ifndef __vtkProstateNavStepSetUp_h
+#define __vtkProstateNavStepSetUp_h
 
 #include "vtkProstateNavStep.h"
 #include "vtkCommand.h"
@@ -24,40 +24,36 @@ class vtkKWEntry;
 class vtkKWCheckButton;
 class vtkKWPushButton;
 class vtkKWLabel;
+class vtkSlicerNodeSelectorWidget;
 
-class VTK_PROSTATENAV_EXPORT vtkProstateNavConfigurationStep :
+class VTK_PROSTATENAV_EXPORT vtkProstateNavStepSetUp :
   public vtkProstateNavStep
 {
 public:
-  static vtkProstateNavConfigurationStep *New();
-  vtkTypeRevisionMacro(vtkProstateNavConfigurationStep,vtkProstateNavStep);
+  static vtkProstateNavStepSetUp *New();
+  vtkTypeRevisionMacro(vtkProstateNavStepSetUp,vtkProstateNavStep);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void ShowUserInterface();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
 
 protected:
-  vtkProstateNavConfigurationStep();
-  ~vtkProstateNavConfigurationStep();
+  vtkProstateNavStepSetUp();
+  ~vtkProstateNavStepSetUp();
 
   // GUI Widgets
-  vtkKWFrame *RobotFrame;
-  vtkKWLabel *RobotLabel1;
-  vtkKWLabel *RobotLabel2;
-  vtkKWEntry *RobotAddressEntry;
-  vtkKWEntry *RobotPortEntry;
-  vtkKWPushButton *RobotConnectButton;
-  
-  vtkKWFrame *ScannerFrame;
-  vtkKWLabel *ScannerLabel1;
-  vtkKWLabel *ScannerLabel2;
-  vtkKWEntry *ScannerAddressEntry;
-  vtkKWEntry *ScannerPortEntry;
-  vtkKWPushButton *ScannerConnectButton;
-  
+  vtkSlicerNodeSelectorWidget* TargetPlanFiducialSelector;
+  vtkSlicerNodeSelectorWidget* TargetCompletedFiducialSelector;
+
+  vtkSlicerNodeSelectorWidget* RobotConnectorSelector;
+  vtkSlicerNodeSelectorWidget* ScannerConnectorSelector;
+
+  vtkKWFrame *FiducialFrame;
+  vtkKWFrame *ConnectorFrame;
+
 private:
-  vtkProstateNavConfigurationStep(const vtkProstateNavConfigurationStep&);
-  void operator=(const vtkProstateNavConfigurationStep&);
+  vtkProstateNavStepSetUp(const vtkProstateNavStepSetUp&);
+  void operator=(const vtkProstateNavStepSetUp&);
 };
 
 #endif
