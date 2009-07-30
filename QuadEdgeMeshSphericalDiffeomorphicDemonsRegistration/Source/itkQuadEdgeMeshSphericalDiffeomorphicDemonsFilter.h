@@ -63,6 +63,7 @@ public:
   typedef typename FixedMeshType::PointIdentifier               PointIdentifier;
   typedef VectorContainer< PointIdentifier, BasisSystemType >   BasisSystemContainerType;
   typedef typename BasisSystemContainerType::Pointer            BasisSystemContainerPointer;
+  typedef typename BasisSystemContainerType::Iterator           BasisSystemContainerIterator;
   typedef VectorContainer< PointIdentifier, PointType >         DestinationPointContainerType;
   typedef typename DestinationPointContainerType::Pointer       DestinationPointContainerPointer;
   typedef typename DestinationPointContainerType::Iterator      DestinationPointIterator;
