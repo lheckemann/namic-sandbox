@@ -21,13 +21,13 @@
 //#define TIMINGCOLLECTOR
 
 //Data Processor
-#define ERRORPROCESSOR
-#define DEBUGPROCESSOR
+//#define ERRORPROCESSOR
+//#define DEBUGPROCESSOR
 //#define TIMINGPROCESSOR
 
 //Data Sender
-#define ERRORSENDER
-#define DEBUGSENDER
+//#define ERRORSENDER
+//#define DEBUGSENDER
 //#define TIMINGSENDER
 
 //Instrument Tracker
