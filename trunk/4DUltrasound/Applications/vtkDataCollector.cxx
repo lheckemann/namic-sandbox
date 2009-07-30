@@ -503,7 +503,6 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           if(-1 == self->ProcessMatrix(&dataStruct))
             {//Tracker matrix is unusable
             skip = true;
-            dataStruct.Matrix->Delete();
             }
           }
 
@@ -572,9 +571,10 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           #ifdef DEBUGCOLLECTOR
             self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Tracker sends unusable matrices" << endl;
           #endif
-          }//Check if Processor has buffer space available
+          dataStruct.Matrix->Delete();
+          }
         skip = false;
-        }
+        }//Check if Processor has buffer space available
       }//Check if Processor stopped processing
 
     frame++;
@@ -659,6 +659,11 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
  * ****************************************************************************/
 int vtkDataCollector::StopCollecting()
 {
+  if(NULL != this->DataProcessor)
+    {
+    this->DataProcessor->StopProcessing();
+    }
+
   if (this->Collecting)
     {
     this->PlayerThreader->TerminateThread(this->PlayerThreadId);
@@ -1331,7 +1336,7 @@ double vtkDataCollector::GetMaximumVolumeSize()
 }
 
 /******************************************************************************
- * void vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * duplicate)
+ * int vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * duplicate)
  *
  *  Duplicates Image inData to Image outData
  *
@@ -1353,4 +1358,36 @@ int vtkDataCollector::DuplicateFrame(vtkImageData * original, vtkImageData * dup
     {
     return -1;
     }
+}
+
+/******************************************************************************
+ * int vtkDataCollector::GrabOneImage()
+ *
+ *  Grabs one image and stores it on the HDD at the specified directory
+ *  and with the specified name
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  30.July 2009
+ *
+ * ****************************************************************************/
+int vtkDataCollector::GrabOneImage()
+{
+  vtkBMPWriter *writer = vtkBMPWriter::New();
+  char filename[256];
+
+  for (int i = 0; i < 10; ++i)
+    {
+    this->GetVideoSource()->Grab();
+    vtkSleep(0.2);
+    }
+  this->GetVideoSource()->FastForward();
+
+  writer->SetInput(this->GetTagger()->GetOutput());
+  sprintf(filename,this->GetFileName());
+  writer->SetFileName(filename);
+  writer->Update();
+
+  writer->Delete();
+
+  return 0;
 }
