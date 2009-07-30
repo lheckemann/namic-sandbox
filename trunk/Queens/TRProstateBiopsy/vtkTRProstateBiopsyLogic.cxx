@@ -719,7 +719,7 @@ void vtkTRProstateBiopsyLogic::ReadConfigFile()
   configFile->ReadConfigFile(this->TRProstateBiopsyModuleNode);
 }
 
-bool vtkTRProstateBiopsyLogic::SegmentRegisterMarkers(double thresh[4], double fidDims[3], double radius, bool bUseRadius, double initialAngle, std::string &resultDetails)
+bool vtkTRProstateBiopsyLogic::SegmentRegisterMarkers(double thresh[4], double fidDimsMm[3], double radiusMm, bool bUseRadius, double initialAngle, std::string &resultDetails)
 {
   TRProstateBiopsyCalibrationFromImageInput in;
 
@@ -730,9 +730,9 @@ bool vtkTRProstateBiopsyLogic::SegmentRegisterMarkers(double thresh[4], double f
   }
   for (int i=0; i<3; i++)
   {
-    in.MarkerDimensions[i]=fidDims[i];
+    in.MarkerDimensionsMm[i]=fidDimsMm[i];
   }
-  in.MarkerRadius=radius;
+  in.MarkerRadiusMm=radiusMm;
   in.RobotInitialAngle=initialAngle;
   vtkMRMLScalarVolumeNode *calibVol = this->TRProstateBiopsyModuleNode->GetCalibrationVolumeNode();
   if (calibVol==0)
@@ -744,7 +744,6 @@ bool vtkTRProstateBiopsyLogic::SegmentRegisterMarkers(double thresh[4], double f
   vtkSmartPointer<vtkMatrix4x4> ijkToRAS = vtkSmartPointer<vtkMatrix4x4>::New(); 
   calibVol->GetIJKToRASMatrix(ijkToRAS);
   in.VolumeIJKToRASMatrix=ijkToRAS;
-  calibVol->GetSpacing(in.VolumeSpacing);  
   in.VolumeImageData=calibVol->GetImageData();
 
   TRProstateBiopsyCalibrationFromImageOutput res;
