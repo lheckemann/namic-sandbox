@@ -299,16 +299,22 @@ ComputeDeformationFieldUpdate()
 
   DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
 
-  typedef vnl_matrix_fixed<double,3,3>  VnlMatrixType;
-  typedef vnl_vector_fixed<double,3>    VnlVectorType;
+  BasisSystemContainerIterator basisItr = this->m_BasisSystemAtNode->Begin();
 
-  VnlMatrixType Gn;
-  VnlMatrixType Gn2;
-  VnlMatrixType m2;
-  VnlMatrixType Gn2Bn2;
+  typedef vnl_matrix_fixed<double,3,3>  VnlMatrix33Type;
+  typedef vnl_vector_fixed<double,3>    VnlVector3Type;
+  typedef vnl_matrix_fixed<double,3,2>  VnlMatrix32Type;
+  typedef vnl_matrix_fixed<double,2,3>  VnlMatrix23Type;
 
-  VnlVectorType Bn;
-  VnlVectorType Gn2Bn;
+  VnlMatrix33Type Gn;
+  VnlMatrix33Type Gn2;
+  VnlMatrix33Type m2;
+  VnlMatrix33Type Gn2Bn2;
+
+  VnlVector3Type Bn;
+  VnlVector3Type Gn2Bn;
+
+  VnlMatrix32Type Qn;
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
@@ -332,9 +338,17 @@ ComputeDeformationFieldUpdate()
     DerivativeType derivative = this->m_NodeScalarGradientCalculator->Evaluate( pointId );
 
     const PointType & destinationPoint = dstPointItr.Value();
+
+    const BasisSystemType & basis = basisItr.Value();
+    const VectorType & v0 = basis.GetVector(0);
+    const VectorType & v1 = basis.GetVector(1);
+
+    
     for( unsigned int i = 0; i < 3; i++ )
       {
       Bn[i] = destinationPoint[i];
+      Qn(0,i) = v0[i];
+      Qn(1,i) = v1[i];
       }
 
     for( unsigned int r = 0; r < 3; r++ )
@@ -348,6 +362,9 @@ ComputeDeformationFieldUpdate()
     Gn2Bn = Gn2 * Bn; 
 
     Gn2Bn2 = outer_product( Gn2Bn, Gn2Bn );
+  
+    ++dstPointItr;
+    ++basisItr;
     }
 }
 
