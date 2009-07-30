@@ -37,11 +37,10 @@ struct TRProstateBiopsyCalibrationFromImageInput
 {
   double MarkerInitialPositions[CALIB_MARKER_COUNT][3]; // in RAS coordinates
   double MarkerSegmentationThreshold[CALIB_MARKER_COUNT];
-  double MarkerDimensions[3];
-  double MarkerRadius;
+  double MarkerDimensionsMm[3];
+  double MarkerRadiusMm;
   double RobotInitialAngle;
   vtkMatrix4x4 *VolumeIJKToRASMatrix;
-  double VolumeSpacing[3];
   vtkImageData *VolumeImageData;
 };
 //ETX
@@ -94,12 +93,13 @@ protected:
 
   //BTX
   void SegmentAxis(const double initPos1[3], const double initPos2[3], vtkMatrix4x4 *volumeIJKToRASMatrix, vtkImageData* calibVol,
-    double thresh1, double thresh2, const double fidDims[3], double radius, double initialAngle, 
+    double thresh1, double thresh2, const double fidDimsMm[3], double radius, double initialAngle, 
     double P1[3], double v1[3], double finalPos1[3], double finalPos2[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2, std::vector<typename PointType> *CoordinatesVectorAxis);
-  bool SegmentCircle(float originToBeChanged[3],const double normal[3],  double thresh, const double fidDims[3], double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, std::vector<PointType> &CoordinatesVector, vtkImageData *preprocOutput=NULL);
+  // thresh: 0..100, binary threshold value (0 corresponds to min voxel value; 100 corresponds to max voxel value in the image)
+  bool SegmentCircle(double markerCenterGuessRas[3],const double normalRas[3],  double thresh, const double fidDimsMm[3], double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, std::vector<PointType> &CoordinatesVector, vtkImageData *preprocOutput=NULL);
   //ETX
-  bool CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double &gx, double &gy, double &gz, int nVotedNeeded, bool lDebug);  
-  bool CalculateCircleCenterMean(vtkImageData *inData, double nRadius, double threshold, double &gx, double &gy, double &gz);  
+  bool CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double &gx, double &gy, int nVotedNeeded, bool lDebug);  
+  bool CalculateCircleCenterMean(vtkImageData *inData, double nRadius, double threshold, double &gx, double &gy);  
   //BTX
   void RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3], std::vector<typename PointType> &CoordinatesVector);
   //ETX

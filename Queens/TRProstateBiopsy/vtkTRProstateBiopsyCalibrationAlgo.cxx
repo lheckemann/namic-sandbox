@@ -13,8 +13,10 @@
 =========================================================================auto=*/
 
 static const int CIRCLE_VOTE_NEEDED=18;
-static bool REQUIRE_MARKER_DETECTION=false;
-static bool USE_MARKER_MEAN_DETECTION=false;
+static const bool REQUIRE_MARKER_DETECTION=false;
+static const bool USE_MARKER_MEAN_DETECTION=false;
+static const bool WRITE_DEBUG_IMAGES=false;
+static const char DEBUG_IMAGE_PATH[]="c:\\";
 
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
@@ -84,11 +86,11 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalibrateFromImage(const TRProstateBiop
   }
   double P1[3], v1[3];
   this->SegmentAxis(input.MarkerInitialPositions[0], input.MarkerInitialPositions[1], input.VolumeIJKToRASMatrix, input.VolumeImageData,
-    input.MarkerSegmentationThreshold[0], input.MarkerSegmentationThreshold[1], input.MarkerDimensions, input.MarkerRadius, input.RobotInitialAngle,
+    input.MarkerSegmentationThreshold[0], input.MarkerSegmentationThreshold[1], input.MarkerDimensionsMm, input.MarkerRadiusMm, input.RobotInitialAngle,
     P1, v1, output.MarkerPositions[0], output.MarkerPositions[1], output.MarkerFound[0], output.MarkerFound[1], CalibMarkerPreProcOutput[0], CalibMarkerPreProcOutput[1], &CoordinatesVectorAxis1);
   double P2[3], v2[3];
   this->SegmentAxis(input.MarkerInitialPositions[2], input.MarkerInitialPositions[3], input.VolumeIJKToRASMatrix, input.VolumeImageData,
-    input.MarkerSegmentationThreshold[2], input.MarkerSegmentationThreshold[3], input.MarkerDimensions, input.MarkerRadius, input.RobotInitialAngle,
+    input.MarkerSegmentationThreshold[2], input.MarkerSegmentationThreshold[3], input.MarkerDimensionsMm, input.MarkerRadiusMm, input.RobotInitialAngle,
     P2, v2, output.MarkerPositions[2], output.MarkerPositions[3], output.MarkerFound[2], output.MarkerFound[3], CalibMarkerPreProcOutput[2], CalibMarkerPreProcOutput[3], &CoordinatesVectorAxis2);
 
   for (int i=0; i<CALIB_MARKER_COUNT; i++)
@@ -126,176 +128,174 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalibrateFromImage(const TRProstateBiop
   }
 }
 //--------------------------------------------------------------------------------------
-void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1[3], const double initPos2[3], vtkMatrix4x4 *volumeIJKToRASMatrix, vtkImageData* calibVol,
-    double thresh1, double thresh2, const double fidDims[3], double radius, double initialAngle, 
-    double P1[3], double v1[3], double finalPos1[3], double finalPos2[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2, std::vector<typename PointType> *CoordinatesVectorAxis)
+void vtkTRProstateBiopsyCalibrationAlgo::SegmentAxis(const double initPos1Ras[3], const double initPos2Ras[3], vtkMatrix4x4 *volumeIJKToRASMatrix, vtkImageData* calibVol,
+    double thresh1, double thresh2, const double fidDimsMm[3], double radiusMm, double initialAngle, 
+    double P1[3], double v1[3], double finalPos1Ras[3], double finalPos2Ras[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2, std::vector<typename PointType> *CoordinatesVectorAxis)
 {
-    /// \todo Show resliced object in a window, like ITK-SNAP
+  /// \todo Show resliced object in a window, like ITK-SNAP
 
-    double PNormal1[3]; 
+  // Slice plane normal
+  double PNormal1Ras[3]={ initPos1Ras[0]-initPos2Ras[0],
+    initPos1Ras[1]-initPos2Ras[1],
+    initPos1Ras[2]-initPos2Ras[2]};  
 
-    vtkSmartPointer<vtkMatrix4x4> rasToIJK = vtkSmartPointer<vtkMatrix4x4>::New();
-    vtkMatrix4x4::Invert(volumeIJKToRASMatrix, rasToIJK);
+  if ( vtkMath::Norm(PNormal1Ras)<0.1 /*mm*/ )
+  {
+    vtkWarningMacro("Markers are coincidental");       
+    PNormal1Ras[0]=0.0;
+    PNormal1Ras[1]=0.0;
+    PNormal1Ras[2]=1.0;
+  }
+  vtkMath::Normalize(PNormal1Ras);
 
-    double rasIn[4] = {initPos1[0], initPos1[1], initPos1[2], 1};
-    double ijkOut[4];   
-    rasToIJK->MultiplyPoint(rasIn, ijkOut);
-    float m_1_IJK[3] = {ijkOut[0], ijkOut[1], ijkOut[2]};
-    
-    rasIn[0] = initPos2[0];
-    rasIn[1] = initPos2[1];
-    rasIn[2] = initPos2[2];
+  // /* Automatic segmentation    //std::vector<PointType> CoordinatesVector; // contains the candidate marker centerpoint positions
 
-    rasToIJK->MultiplyPoint(rasIn, ijkOut);
-    float m_2_IJK[3] = {ijkOut[0], ijkOut[1], ijkOut[2]};
+  // First set of circle centers
+  for (int i=0; i<3; i++)
+  {
+    finalPos1Ras[i] = initPos1Ras[i];
+    finalPos2Ras[i] = initPos2Ras[i];
+  }
 
-    // slice plane 1 normal
-    PNormal1[0] = m_1_IJK[0] - m_2_IJK[0];
-    PNormal1[1] = m_1_IJK[1] - m_2_IJK[1];
-    PNormal1[2] = m_1_IJK[2] - m_2_IJK[2];
-    vtkMath::Normalize(PNormal1);
-
-    // Marker 1 and Marker 2 are coincidental points? It should not happen!
-    if ( this->DoubleEqual(PNormal1[0],0.0) && this->DoubleEqual(PNormal1[1],0.0) && this->DoubleEqual(PNormal1[2],0.0) ) {     
-        PNormal1[2]=1.0;
-    }
-
-    // empty
-    P1[0]=P1[1]=P1[2]=0.0;
-    v1[0]=v1[1]=v1[2]=0.0;
-    
-    // /* Automatic segmentation    //std::vector<PointType> CoordinatesVector; // contains the candidate marker centerpoint positions
-    
-    // First set of circle centers
-    found1 = SegmentCircle( m_1_IJK, PNormal1, thresh1, fidDims, radius, volumeIJKToRASMatrix, calibVol, *CoordinatesVectorAxis, img1); 
-    if (!found1)
+  found1 = SegmentCircle(finalPos1Ras, PNormal1Ras, thresh1, fidDimsMm, radiusMm, volumeIJKToRASMatrix, calibVol, *CoordinatesVectorAxis, img1); 
+  if (!found1)
+  {
+    if (!REQUIRE_MARKER_DETECTION)
     {
-      if (!REQUIRE_MARKER_DETECTION)
-      {
-        found1=true;
-      }
+      found1=true;
     }
-    // bring back in RAS space  
-    double ijkIn[4] = {m_1_IJK[0], m_1_IJK[1], m_1_IJK[2], 1};
-    double rasOut[4];   
-    volumeIJKToRASMatrix->MultiplyPoint(ijkIn, rasOut);
+  } 
 
-    for (int i=0; i<3; i++)
+  // 2nd set of circle centers
+  found2 = SegmentCircle( finalPos2Ras, PNormal1Ras, thresh2, fidDimsMm, radiusMm, volumeIJKToRASMatrix, calibVol, *CoordinatesVectorAxis, img2);
+  if (!found2)
+  {
+    if (!REQUIRE_MARKER_DETECTION)
     {
-      finalPos1[i] = rasOut[i];
+      found2=true;
     }
+  }
 
-    // 2nd set of circle centers
-    found2 = SegmentCircle( m_2_IJK, PNormal1, thresh2, fidDims, radius, volumeIJKToRASMatrix, calibVol, *CoordinatesVectorAxis, img2);
-    if (!found2)
-    {
-      if (!REQUIRE_MARKER_DETECTION)
-      {
-        found2=true;
-      }
-    }
-    // bring back in RAS space  
-    ijkIn[0] = m_2_IJK[0];
-    ijkIn[1] = m_2_IJK[1];
-    ijkIn[2] = m_2_IJK[2];
-    volumeIJKToRASMatrix->MultiplyPoint(ijkIn, rasOut);
-
-    for (int i=0; i<3; i++)
-    {
-      finalPos2[i] = rasOut[i];
-    }
-
-    if (!found1 || !found2)
-    {
-      // calib marker not found
-      return;
-    }
+  if (!found1 || !found2)
+  {
+    // calib marker not found
+    return;
+  }
 
   // :TODO: check the followings, it seems that it manipulates only the init position
 
-    int vecSize = CoordinatesVectorAxis->size();
+  int vecSize = CoordinatesVectorAxis->size(); // :TODO: remove, for debugging only
 
-    // Use CoordVector to find the line 
-    this->RemoveOutliners(P1,v1, initPos1, initPos2, *CoordinatesVectorAxis);
+  // Use CoordVector to find the line 
+  for (int i=0; i<3; i++)
+  {
+    P1[i]=0;
+    v1[i]=0;
+  }
+  this->RemoveOutliners(P1,v1, initPos1Ras, initPos2Ras, *CoordinatesVectorAxis);
 
-    // we did not find anything, so take the clicked points (too bad)
-    if ( this->DoubleEqual(v1[0],0.0) && this->DoubleEqual(v1[1],0.0) && this->DoubleEqual(v1[2],0.0) ) {
-                // CoordVector.clear(); // otherwise it will throw out badly \todo new alg?
-                itk::Point<double,3> coord;
-            
-                coord[0] = initPos1[0];
-                coord[1] = initPos1[1];
-                coord[2] = initPos1[2];
-                CoordinatesVectorAxis->push_back(coord); // def1
+  // we did not find anything, so take the clicked points (too bad)
+  if (vtkMath::Norm(v1)<0.001) 
+  {
+    // CoordVector.clear(); // otherwise it will throw out badly \todo new alg?
+    itk::Point<double,3> coord;
 
-                coord[0] = initPos2[0];
-                coord[1] = initPos2[1];
-                coord[2] = initPos2[2];
-                CoordinatesVectorAxis->push_back(coord); // def2
+    coord[0] = initPos1Ras[0];
+    coord[1] = initPos1Ras[1];
+    coord[2] = initPos1Ras[2];
+    CoordinatesVectorAxis->push_back(coord); // def1
 
-                RemoveOutliners(P1,v1, initPos1, initPos2, *CoordinatesVectorAxis);
-    }
-    
-    // End Automatic segmentation */
+    coord[0] = initPos2Ras[0];
+    coord[1] = initPos2Ras[1];
+    coord[2] = initPos2Ras[2];
+    CoordinatesVectorAxis->push_back(coord); // def2
+
+    RemoveOutliners(P1,v1, initPos1Ras, initPos2Ras, *CoordinatesVectorAxis);
+  }
+
+  // End Automatic segmentation */
 }
 //--------------------------------------------------------------------------------------
-bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3],const double normal[3],  double thresh, const double fidDims[3], 
-  double radius, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, std::vector<PointType> &CoordinatesVector, vtkImageData *preprocOutput/*=NULL*/)
+bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(double markerCenterGuess_RAS[3],const double normal_RAS[3],  double thresh, const double fidDimsMm[3], 
+  double radiusMm, vtkMatrix4x4 *ijkToRAS, vtkImageData *calibVol, std::vector<PointType> &CoordinatesVector, vtkImageData *preprocOutput/*=NULL*/)
 {
+
+  // :TODO: resample image with a uniform spacing or at least take into account the real spacing information when performing the slice extraction
+  // it may make a difference if the volume is strongly non-isotropic
+
     vtkSmartPointer<vtkMatrix4x4> rasToIJK = vtkSmartPointer<vtkMatrix4x4>::New();
     vtkMatrix4x4::Invert(ijkToRAS, rasToIJK);
     
-    double spacing[3];
-    calibVol->GetSpacing(spacing);
+    // Do not use spacing and origin information in the imagedata (they are all stored in the volume node, by an IJK to RAS matrix)
 
-    // voi filter
+    // Compute VOI extents (the VOI shall contain the whole fiducial in all possible orientations and should fit within the volume)
+    int voiExtent_IJK[6]={0,0,0,0,0,0};
+    double spacing[3]={0,0,0};
+    {  
+      // get volume spacing      
+      {
+        int col;
+        for (col=0; col<3; col++) 
+        {
+          double len =0;
+          int row;
+          for (row=0; row<3; row++) 
+          {
+            len += ijkToRAS->GetElement(row, col) * ijkToRAS->GetElement(row, col);
+          }
+          spacing[col] = sqrt(len);
+        }
+      }
+    
+      double voiCenter_RAS[4]={markerCenterGuess_RAS[0],markerCenterGuess_RAS[1],markerCenterGuess_RAS[2],1};
+      double voiCenter_IJK[4]={0,0,0,1};
+      rasToIJK->MultiplyPoint(voiCenter_RAS, voiCenter_IJK);
+      for (int i=0; i<3; i++)
+      {
+        // 2*maxFidDimMm to make sure that the whole fiducial fits into the VOI in any orientation
+        voiExtent_IJK[i*2]=voiCenter_IJK[i]-2*fidDimsMm[i]/spacing[i]; 
+        voiExtent_IJK[i*2+1]=voiCenter_IJK[i]+2*fidDimsMm[i]/spacing[i];
+      }
+      // Limit VOI to volume extent
+      int volumeExtent_IJK[6]={0,0,0,0,0,0};
+      calibVol->GetExtent(volumeExtent_IJK);
+      for (int i=0; i<3; i++)
+      {
+        if (voiExtent_IJK[i*2]<volumeExtent_IJK[i*2])
+        {
+          voiExtent_IJK[i*2]=volumeExtent_IJK[i*2];
+        }
+        if (voiExtent_IJK[i*2]>volumeExtent_IJK[i*2+1])
+        {
+          voiExtent_IJK[i*2]=volumeExtent_IJK[i*2+1];
+        }
+        if (voiExtent_IJK[i*2+1]<volumeExtent_IJK[i*2])
+        {
+          voiExtent_IJK[i*2+1]=volumeExtent_IJK[i*2];
+        }
+        if (voiExtent_IJK[i*2+1]>volumeExtent_IJK[i*2+1])
+        {
+          voiExtent_IJK[i*2+1]=volumeExtent_IJK[i*2+1];
+        }
+      }
+    }
+    
+    // extract voi
     vtkSmartPointer<vtkImageClip> voiFilter = vtkSmartPointer<vtkImageClip>::New();
+    voiFilter->SetInput(calibVol);  
+    voiFilter->SetOutputWholeExtent(voiExtent_IJK);
 
     // median filter
     vtkSmartPointer<vtkImageMedian3D> medianFilter = vtkSmartPointer<vtkImageMedian3D>::New();
+    medianFilter->SetInputConnection(voiFilter->GetOutputPort());
+    medianFilter->SetKernelSize(3,3,3); //:TODO: check if it is spacing independent or not
 
     // threshold filter
     vtkSmartPointer<vtkImageThreshold> thresholdFilter = vtkSmartPointer<vtkImageThreshold>::New();
-
-    int x1, x2, y1, y2, z1, z2;
-    double w = fidDims[0]/spacing[0];
-    double h = fidDims[1]/spacing[1];
-    double d = fidDims[2]/spacing[2];
-
-    double maxSize;
-    if (w>h) 
-        maxSize=w; 
-    else 
-        maxSize=h;
-
-    if (d>maxSize) 
-        maxSize=d;
-    
-    maxSize = maxSize*2; // double: circle radius
-
-    // VOI in Volume Data Space
-    x1 = markerCenterGuess[0] - maxSize;
-    x2 = markerCenterGuess[0] + maxSize;
-    y1 = markerCenterGuess[1] - maxSize;
-    y2 = markerCenterGuess[1] + maxSize;
-    z1 = markerCenterGuess[2] - maxSize;
-    z2 = markerCenterGuess[2] + maxSize;
-
-    // extract voi
-    voiFilter->SetInput(calibVol);  
-    voiFilter->SetOutputWholeExtent(x1,x2,y1,y2,z1,z2);
-    voiFilter->Update();
-
-    // median filter
-    medianFilter->SetInput(voiFilter->GetOutput());
-    medianFilter->SetKernelSize(3,3,3);
-    medianFilter->Update();
-
-    // threshold filter
+    thresholdFilter->SetInputConnection(medianFilter->GetOutputPort());
     double range[2];
     calibVol->GetScalarRange(range);        
     double nThreshold = (range[1]-range[0])* (thresh/100.0) + range[0];
-    thresholdFilter->SetInput(medianFilter->GetOutput());
     thresholdFilter->ThresholdByUpper(nThreshold);  
     thresholdFilter->SetOutValue(range[0]);
     thresholdFilter->SetInValue(range[1]);
@@ -304,277 +304,196 @@ bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3
     // the output voi to use
     vtkImageData *binaryVOI = thresholdFilter->GetOutput();
 
+    // Copy the preprocessed image output for display purposes
     if (preprocOutput!=0)
     {
       preprocOutput->DeepCopy(binaryVOI);
+      
+      if (WRITE_DEBUG_IMAGES)
+      {
+        vtkMetaImageWriter *writer = vtkMetaImageWriter::New();        
+        std::ostrstream os;            
+        os << DEBUG_IMAGE_PATH << "CalibMarkerVoi.mha" << std::ends;
+        writer->SetFileName(os.str());
+        os.rdbuf()->freeze();
+        writer->SetInput(binaryVOI);
+        writer->Write();
+        writer->Delete();
+      }
+      
     }
 
-
-    /*
-    // write the image to see if it is correct
-    vtkMetaImageWriter *writer = vtkMetaImageWriter::New();
-    writer->SetFileName("VOI.mha");
-    writer->SetInput(binaryVOI);
-    writer->Write();
-    writer->Delete();
-*/
-
-
-    // number of slices generated from this dataset (Volume Of Interest)
-    int nTotalSlices = 0;
-    
-    double Pv1[3];
-    double PPoint1[3];
-
-    // Point 1: anywhere along the axis
-    if ( fabs(normal[0])<fabs(normal[1])) {
-        PPoint1[0]=1; PPoint1[1]=0; PPoint1[2]=0;
-    } else {
-        PPoint1[0]=0; PPoint1[1]=1; PPoint1[2]=0;
-    }
-    vtkMath::Normalize(PPoint1);
-    vtkMath::Cross(normal, PPoint1, Pv1);
-    vtkMath::Normalize(Pv1);
-
-    // Point 2: perpendicular to P1
-    double Pv2[3];
-    vtkMath::Cross(normal, Pv1, Pv2);
-    vtkMath::Normalize(Pv2);
-
-    
-    // origin
-    double Dorigin[3];
-    Dorigin[0] = 0.0;
-    Dorigin[1] = 0.0;
-    Dorigin[2] = 0.0;
-
-    // Data spacing
-    double *Dspacing = binaryVOI->GetSpacing();
-
-    // Otherwise things will get complicated!
-    double spacingX= 1.0;
-    double spacingY= 1.0;
-
-    // Data extent
-    int *Dextent = binaryVOI->GetExtent();
-    double DextentDbl[6];
-    DextentDbl[0]=Dextent[0]; DextentDbl[1]=Dextent[1]; DextentDbl[2]=Dextent[2];
-    DextentDbl[3]=Dextent[3]; DextentDbl[4]=Dextent[4]; DextentDbl[5]=Dextent[5];
-
-    // slice plane origin: Starts from the clicked coordinate
-    double POrigin[3];
-    POrigin[0] = markerCenterGuess[0]; // Marker position --> POrigin
-    POrigin[1] = markerCenterGuess[1];
-    POrigin[2] = markerCenterGuess[2];
-
-    double DPointOrigin[3];
-    DPointOrigin[0]=(POrigin[0]-Dorigin[0])/spacing[0];
-    DPointOrigin[1]=(POrigin[1]-Dorigin[1])/spacing[1];
-    DPointOrigin[2]=(POrigin[2]-Dorigin[2])/spacing[2];
-    
-    // bounds checking max error
-    double delta[3];
-    delta[0]=delta[1]=delta[2]=0.001;
-
-
-    // slicing steps
-    double slicingSteps[3];
-    slicingSteps[0] = normal[0]; // todo calculate from spacing!
-    slicingSteps[1] = normal[1];
-    slicingSteps[2] = normal[2];
-
-    bool lHadSteps=false; // debug
-
-    // Go back to the first Origin in the VOI
-    while (vtkMath::PointIsWithinBounds(DPointOrigin, DextentDbl, delta) ) 
+    // Define a coordinate system (planeX_RAS, planeY_RAS, planeNormal_RAS) with one axis parallel to the planeNormal_RAS vector
+    double planeX_RAS[4]={0,0,0, 0/*vector*/};
+    double planeY_RAS[4]={0,0,0, 0/*vector*/};
+    double planeNormal_RAS[4]={normal_RAS[0],normal_RAS[1],normal_RAS[2], 0/*vector*/};
     {
-        POrigin[0]=POrigin[0]-slicingSteps[0];
-        POrigin[1]=POrigin[1]-slicingSteps[1];
-        POrigin[2]=POrigin[2]-slicingSteps[2];
-        DPointOrigin[0]=(POrigin[0]-Dorigin[0])/spacing[0];
-        DPointOrigin[1]=(POrigin[1]-Dorigin[1])/spacing[1];
-        DPointOrigin[2]=(POrigin[2]-Dorigin[2])/spacing[2];
-        lHadSteps=true;
+      double point1_RAS[4]={1,0,0,1}; // Any vector
+      if (fabs(planeNormal_RAS[0])>fabs(planeNormal_RAS[1]))
+      {
+        // to make sure that it is not parallel to the planeNormal_RAS vector
+        point1_RAS[0]=0;
+        point1_RAS[1]=1;
+        point1_RAS[2]=0;
+      }
+      // planeX_RAS is perpendicular to planeNormal_RAS
+      vtkMath::Cross(planeNormal_RAS, point1_RAS, planeX_RAS);
+      vtkMath::Normalize(planeX_RAS);
+
+      // planeY_RAS is perpendicular to planeNormal_RAS and planeX_RAS
+      vtkMath::Cross(planeNormal_RAS, planeX_RAS, planeY_RAS);
+      vtkMath::Normalize(planeY_RAS);
     }
-    /// \todo if (!lHadSteps) write 'nothing found!'; - it should never happen!
+    
+    // slice plane origin (in RAS): Starts from the clicked coordinate
+    double planeOrigin_RAS[4]={0,0,0,1};
+    planeOrigin_RAS[0] = markerCenterGuess_RAS[0]; // Marker position --> planeOrigin_RAS
+    planeOrigin_RAS[1] = markerCenterGuess_RAS[1];
+    planeOrigin_RAS[2] = markerCenterGuess_RAS[2];
+
+    // bounds checking max error
+    double delta[4]={0.1,0.1,0.1,1};
+
+    // slicing steps (the planeNormal_RAS is in RAS cooordinates and it is normalized, so step size will be 1mm)
+    double slicingSteps_RAS[4] = {planeNormal_RAS[0], planeNormal_RAS[1], planeNormal_RAS[2], 1};
+
+    // Search for the first slice in normal direction, along the line intersecting the markerCenterGuess
+/*    int voiExtent_IJK[6]={0,0,0,0,0,0};
+    binaryVOI->GetExtent(voiExtent_IJK);*/
+    double voiExtentDouble_IJK[6]={voiExtent_IJK[0],voiExtent_IJK[1],voiExtent_IJK[2],voiExtent_IJK[3],voiExtent_IJK[4],voiExtent_IJK[5]};
+    double planeOrigin_IJK[4]={0,0,0,1};
+    do
+    {
+      planeOrigin_RAS[0]-=slicingSteps_RAS[0];
+      planeOrigin_RAS[1]-=slicingSteps_RAS[1];
+      planeOrigin_RAS[2]-=slicingSteps_RAS[2];        
+      rasToIJK->MultiplyPoint(planeOrigin_RAS, planeOrigin_IJK);
+    }
+    while (vtkMath::PointIsWithinBounds(planeOrigin_IJK, voiExtentDouble_IJK, delta));
 
     // Too much, one step forward (no longer within bounds)
-    POrigin[0]=POrigin[0]+slicingSteps[0];
-    POrigin[1]=POrigin[1]+slicingSteps[1];
-    POrigin[2]=POrigin[2]+slicingSteps[2];
-    DPointOrigin[0]=(POrigin[0]-Dorigin[0])/spacing[0];
-    DPointOrigin[1]=(POrigin[1]-Dorigin[1])/spacing[1];
-    DPointOrigin[2]=(POrigin[2]-Dorigin[2])/spacing[2];
+    planeOrigin_RAS[0]+=slicingSteps_RAS[0];
+    planeOrigin_RAS[1]+=slicingSteps_RAS[1];
+    planeOrigin_RAS[2]+=slicingSteps_RAS[2];
 
-    // Reslicing axes: Rotate, translate & scale
-    vtkSmartPointer<vtkMatrix4x4> ResliceAxes = vtkSmartPointer<vtkMatrix4x4>::New();    
-    ResliceAxes->Identity();
-
-    // reslicing axes rotation (rotate & translate)
-    vtkSmartPointer<vtkMatrix4x4> ResliceAxesRotate = vtkSmartPointer<vtkMatrix4x4>::New();  
-    ResliceAxesRotate->Identity();
-
-    // Direction cosines
-    for (int i=0; i<3; i++) {
-        ResliceAxesRotate->SetElement(0,i,Pv1[i]);
-        ResliceAxesRotate->SetElement(1,i,Pv2[i]);
-        ResliceAxesRotate->SetElement(2,i,normal[i]);
-    }
-    ResliceAxesRotate->Transpose();
-
-    // debug: Determinant is 1.0
-    if ( !this->DoubleEqual(ResliceAxesRotate->Determinant(), 1.0) )
-        return false;
-
-    // Magnify 3x3x1
-    vtkSmartPointer<vtkMatrix4x4> ResliceAxesScale = vtkSmartPointer<vtkMatrix4x4>::New();  
-    ResliceAxesScale->Identity();
-    ResliceAxesScale->SetElement(0,0,1.0/2.0);
-    ResliceAxesScale->SetElement(1,1,1.0/2.0);
-
-    // Final matrix
-    vtkMatrix4x4::Multiply4x4( ResliceAxesRotate, ResliceAxesScale, ResliceAxes );
-    ResliceAxes->SetElement(0,3,POrigin[0]);
-    ResliceAxes->SetElement(1,3,POrigin[1]);
-    ResliceAxes->SetElement(2,3,POrigin[2]);
-    ResliceAxes->Modified(); // Will not work without this!
-
-    // Affine transformation for point conversion
-    vtkSmartPointer<vtkTransform> ResliceTransform = vtkSmartPointer<vtkTransform>::New();   
-    ResliceTransform->SetMatrix(ResliceAxes);
-
-    // Create slicer object
+    // Create slicer extractor
     vtkSmartPointer<vtkImageReslice> imageReslicer = vtkSmartPointer<vtkImageReslice>::New();    
     imageReslicer->SetInput(binaryVOI);
-    imageReslicer->SetResliceAxes(ResliceAxes);
     imageReslicer->SetOutputDimensionality(2);
+
+    double planeX_IJK[4]={0,0,0,1};
+    double planeY_IJK[4]={0,0,0,1};
+    double normal_IJK[4]={0,0,0,1};
+    rasToIJK->MultiplyPoint(planeX_RAS, planeX_IJK);
+    rasToIJK->MultiplyPoint(planeY_RAS, planeY_IJK);
+    rasToIJK->MultiplyPoint(planeNormal_RAS, normal_IJK);
+    imageReslicer->SetResliceAxesDirectionCosines(planeX_IJK, planeY_IJK, normal_IJK);   
 
     // Output parameters
     // Gobbi: I _always_ call SetOutputOrigin, SetOutputExtent, and SetOutputSpacing
-    imageReslicer->SetOutputSpacing(spacingX,spacingY,1);
+    imageReslicer->SetOutputSpacing(1,1,1);
     int dispsize = 2.0*16; /// \todo - make the "16" a variable!
     imageReslicer->SetOutputOrigin(-(dispsize/2), -(dispsize/2), 0);
     imageReslicer->SetOutputExtent(0,dispsize,0,dispsize,0,0);
-    imageReslicer->SetBackgroundColor( 0.0, 0.0, 0.0, 0.0 );
+    imageReslicer->SetBackgroundColor( range[0], range[0], range[0], range[0] );
     imageReslicer->SetInterpolationModeToCubic();
     imageReslicer->Update();
 
     // Origin and spacing of the resliced image
-    vtkImageData *inData = imageReslicer->GetOutput();
-    double *origin = inData->GetOrigin();   
-    int *extent = inData->GetWholeExtent();
-    
-    // The resliced volume is 3D, but with Z1=0 and Z2=0
-    int comp=inData->GetNumberOfScalarComponents();
-    
-    
-    // width and height used _only_ to allocate memory
-    int width=abs(extent[0]-extent[1])+1;
-    int height=abs(extent[2]-extent[3])+1;
-    int tempStorageSize = width*height;
-    unsigned int *tempStorage = new unsigned int[tempStorageSize+8];
+    vtkImageData *planeImageData = imageReslicer->GetOutput();
 
-    // It will be used for counting the circle centers (optimization)
+    // Temporary storage will be used for counting the circle centers (optimization)
+    int tempStorageSize = 0;
+    {
+      int *planeExtent = planeImageData->GetWholeExtent();
+      int width=abs(planeExtent[0]-planeExtent[1])+1;
+      int height=abs(planeExtent[2]-planeExtent[3])+1;
+      tempStorageSize = width*height;      
+    }
+    unsigned int *tempStorage = new unsigned int[tempStorageSize+8];;
     
     // Looking for mean center along the resliced planes
     double meanx=0.0, meany=0.0, meanz=0.0;
     int meanNr=0;
 
-    // For every every slice
-    while (vtkMath::PointIsWithinBounds(DPointOrigin, DextentDbl, delta) ) {
-        nTotalSlices++;
-        bool lCircleFound;
+    // number of slices generated from this dataset (Volume Of Interest)
+    int nTotalSlices = 0;
 
-    {
-      // dump the slice image (fr debug only)
+    // For every every slice    
+    rasToIJK->MultiplyPoint(planeOrigin_RAS, planeOrigin_IJK);
+    while (vtkMath::PointIsWithinBounds(planeOrigin_IJK, voiExtentDouble_IJK, delta) )     
+    {   
+      nTotalSlices++;
 
-    vtkImageCast *cast=vtkImageCast::New();
-    cast->SetInput(inData);
-    cast->SetOutputScalarTypeToUnsignedShort();
-    cast->ClampOverflowOn();
-    cast->Update();
+      imageReslicer->SetResliceAxesOrigin(planeOrigin_IJK);  
+      imageReslicer->Update();
 
-    vtkTIFFWriter *writer = vtkTIFFWriter::New();
-    writer->SetCompressionToNoCompression();
-    writer->SetFileName("c:\\reslicedmarker.tif");
-    writer->SetInput(cast->GetOutput());
-    writer->Write();
-    writer->Delete();
+      if (WRITE_DEBUG_IMAGES)
+      {
+        // dump the slice image (for debug only)
+        vtkImageCast *cast=vtkImageCast::New();
+        cast->SetInput(planeImageData);
+        cast->SetOutputScalarTypeToUnsignedShort();
+        cast->ClampOverflowOn();
+        cast->Update();
+        vtkTIFFWriter *writer = vtkTIFFWriter::New();
+        writer->SetCompressionToNoCompression();
+        std::ostrstream os;            
+        os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(2);
+        os << DEBUG_IMAGE_PATH << "CalibMarkerSlice_" << nTotalSlices << ".tif" << std::ends;
+        writer->SetFileName(os.str());
+        os.rdbuf()->freeze();
+        writer->SetInput(cast->GetOutput());
+        writer->Write();
+        writer->Delete();
+        cast->Delete();
+      }
 
-    cast->Delete();
-    }
+      // if returns false, the center was not found (not enough votes?)
+      bool lCircleFound;
+      double ix, iy;
+      if (USE_MARKER_MEAN_DETECTION)
+      {
+        lCircleFound = CalculateCircleCenterMean(planeImageData, 2*radiusMm/10.0, nThreshold, ix, iy);
+      }
+      else
+      {
+        lCircleFound = CalculateCircleCenter(planeImageData, tempStorage, tempStorageSize,  nThreshold, 2*radiusMm/10.0, ix, iy, CIRCLE_VOTE_NEEDED, true);
+      }
 
-        // if returns false, the center was not found (not enough votes?)
-        double ix, iy, iz;
-        if (USE_MARKER_MEAN_DETECTION)
-        {
-          lCircleFound = CalculateCircleCenterMean(inData, 2*radius/10.0, nThreshold, ix, iy, iz);
-        }
-        else
-        {
-          lCircleFound = CalculateCircleCenter(inData, tempStorage, tempStorageSize,  nThreshold, 2*radius/10.0, ix, iy, iz, CIRCLE_VOTE_NEEDED, true);
-        }
+      if (lCircleFound) 
+      {
         
+        double pos_slice[4]={ix, iy, 0, 1};
+        double pos_IJK[4]={0,0,0,1};
+        imageReslicer->GetResliceAxes()->MultiplyPoint(pos_slice, pos_IJK);                  
 
-        if (lCircleFound) {
-            double scanner[3];
+        double pos_RAS[4]={0,0,0,1};
+        ijkToRAS->MultiplyPoint(pos_IJK, pos_RAS);
 
-            double pos[3];
-            pos[0]=ix;
-            pos[1]=iy;
-            pos[2]=iz;
+        // Mean circle center - for visualization only
+        meanx += pos_RAS[0];
+        meany += pos_RAS[1];
+        meanz += pos_RAS[2];
+        meanNr++;
 
-            // ResliceDataCoord -> Data Point
-            ResliceTransform->TransformPoint(pos, scanner);
+        // Collect circle centers into CoordVector
+        itk::Point<double,3> coord;
+        coord[0] = pos_RAS[0];
+        coord[1] = pos_RAS[1];
+        coord[2] = pos_RAS[2];
+        CoordinatesVector.push_back(coord);
 
-            // Mean circle center - for visualization only
-            meanx += scanner[0];
-            meany += scanner[1];
-            meanz += scanner[2];
-            meanNr++;
+        //ShowSegmentedCenter(scanner[0],scanner[1],scanner[2]);
+      }
 
-            // Data Point --> World (Scanner coord)
-            double ijkIn[4] = {scanner[0], scanner[1], scanner[2], 1};
-            double rasOut[4];   
-            ijkToRAS->MultiplyPoint(ijkIn, rasOut);
+      // planeOrigin_RAS: move along the normal (get next slice)
+      planeOrigin_RAS[0]+=slicingSteps_RAS[0];
+      planeOrigin_RAS[1]+=slicingSteps_RAS[1];
+      planeOrigin_RAS[2]+=slicingSteps_RAS[2];
 
-            // Collect circle centers into CoordVector
-            itk::Point<double,3> coord;
-            coord[0] = rasOut[0];
-            coord[1] = rasOut[1];
-            coord[2] = rasOut[2];
-            CoordinatesVector.push_back(coord);
+      rasToIJK->MultiplyPoint(planeOrigin_RAS, planeOrigin_IJK);
 
-            //ShowSegmentedCenter(scanner[0],scanner[1],scanner[2]);
-        } // if Circle center found
-
-        // POrigin: move along the normal (get next slice)
-        POrigin[0]=POrigin[0]+slicingSteps[0];
-        POrigin[1]=POrigin[1]+slicingSteps[1];
-        POrigin[2]=POrigin[2]+slicingSteps[2];
-        DPointOrigin[0]=(POrigin[0]-Dorigin[0])/spacing[0];
-        DPointOrigin[1]=(POrigin[1]-Dorigin[1])/spacing[1];
-        DPointOrigin[2]=(POrigin[2]-Dorigin[2])/spacing[2];
-
-
-        // The new reslicing axes
-        ResliceAxesRotate->SetElement(0,3,0);
-        ResliceAxesRotate->SetElement(1,3,0);
-        ResliceAxesRotate->SetElement(2,3,0);
-        vtkMatrix4x4::Multiply4x4( ResliceAxesRotate, ResliceAxesScale, ResliceAxes );
-        ResliceAxes->SetElement(0,3,POrigin[0]);
-        ResliceAxes->SetElement(1,3,POrigin[1]);
-        ResliceAxes->SetElement(2,3,POrigin[2]);
-        ResliceAxes->Modified();
-
-        // ResliceTransform: new reslicing matrix
-        ResliceTransform->SetMatrix(ResliceAxes);
-
-        // ImageReslice: new reslicing matrix
-        imageReslicer->SetResliceAxes(ResliceAxes);
-
-        // Do it! (Reslice)
-        imageReslicer->Update();
     } // while(all slices)
 
     delete[] tempStorage;
@@ -582,9 +501,9 @@ bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3
     
     // Return value: compute mean value of circle centers (for visualisation only)
     if (meanNr>0) {     
-        markerCenterGuess[0]=meanx/meanNr;
-        markerCenterGuess[1]=meany/meanNr;
-        markerCenterGuess[2]=meanz/meanNr;      
+        markerCenterGuess_RAS[0]=meanx/meanNr;
+        markerCenterGuess_RAS[1]=meany/meanNr;
+        markerCenterGuess_RAS[2]=meanz/meanNr;      
         return true; // done, we found at least 1 center
     }
     return false; // failed, no Circle center found
@@ -594,8 +513,8 @@ bool vtkTRProstateBiopsyCalibrationAlgo::SegmentCircle(float markerCenterGuess[3
 //------------------------------------------------------------------------------------------------------------
 /// \brief Calculates the circle center.
 /// Assumes spacingX == spacingY (for the circle)
-/// Assumes 2D inData
-bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadius, double &gx, double &gy, double &gz, int nVotedNeeded, bool lDebug)
+/// Assumes 2D planeImageData
+bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *planeImageData, unsigned int *tempStorage, int tempStorageSize, double nThersholdVal, double nRadiusMm, double &gx, double &gy, int nVotedNeeded, bool lDebug)
 {/// \todo Make all calculations floating point!
     
     // "0" the Temporal data storage
@@ -603,7 +522,7 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inD
     
     // spacing should not be 0!
     double spacing[3];
-    inData->GetSpacing(spacing);
+    planeImageData->GetSpacing(spacing);
 
     if ( this->DoubleEqual(spacing[0],0.0) || this->DoubleEqual(spacing[1],0.0) || this->DoubleEqual(spacing[2],0.0) )  {
         return false;
@@ -613,17 +532,17 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inD
     
 
     // convert mm to pixel
-    double r = nRadius/fabs(spacing[0]);
+    double r = nRadiusMm/fabs(spacing[0]);
 
     // Calculate width & height
-    int *extent = inData->GetWholeExtent();
+    int *extent = planeImageData->GetWholeExtent();
     int width = abs(extent[0]-extent[1])+1;
     int height = abs(extent[2]-extent[3])+1;
     //assert( width*height <= tempStorageSize );
     tempStorageSize=width*height;
 
     // Increment circle centers (possibile centers are also on a circle)
-    vtkDataArray * da = inData->GetPointData()->GetScalars();
+    vtkDataArray * da = planeImageData->GetPointData()->GetScalars();
 
     double r_exp=r*r; // r^2
     double x_exp;     // x^2
@@ -727,7 +646,7 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inD
     // Get the mean of the centers
     gx=meanx/meannr;
     gy=meany/meannr;
-    gz=extent[4];
+
     //assert(extent[4]==extent[5]); // 2D
 
     gx-=( (width-1)  /2.0 );
@@ -778,11 +697,11 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenter(vtkImageData *inD
     return true;
 }
 
-bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenterMean(vtkImageData *inData, double nRadius, double threshold, double &gx, double &gy, double &gz)
+bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenterMean(vtkImageData *planeImageData, double nRadiusMm, double threshold, double &gx, double &gy)
 {
     // spacing should not be 0!
     double spacing[3];
-    inData->GetSpacing(spacing);
+    planeImageData->GetSpacing(spacing);
 
     if ( this->DoubleEqual(spacing[0],0.0) || this->DoubleEqual(spacing[1],0.0) || this->DoubleEqual(spacing[2],0.0) )  {
         return false;
@@ -792,15 +711,15 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenterMean(vtkImageData 
     
 
     // convert mm to pixel
-    double r = nRadius/fabs(spacing[0]);
+    double r = nRadiusMm/fabs(spacing[0]);
 
     // Calculate width & height
-    int *extent = inData->GetWholeExtent();
+    int *extent = planeImageData->GetWholeExtent();
     int width = abs(extent[0]-extent[1])+1;
     int height = abs(extent[2]-extent[3])+1;
  
     // Increment circle centers (possibile centers are also on a circle)
-    vtkDataArray * da = inData->GetPointData()->GetScalars();
+    vtkDataArray * da = planeImageData->GetPointData()->GetScalars();
 
     double sumx=0;
     double sumy=0;
@@ -833,7 +752,6 @@ bool vtkTRProstateBiopsyCalibrationAlgo::CalculateCircleCenterMean(vtkImageData 
     // Get the mean of the centers
     gx=sumx/sumweight;
     gy=sumy/sumweight;
-    gz=extent[4];
 
     gx-=( (width-1)  /2.0 );
     gy-=( (height-1) /2.0 ); 
