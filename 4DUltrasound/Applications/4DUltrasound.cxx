@@ -77,204 +77,214 @@
 #define ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK 8
 
 
- using namespace std;
+using namespace std;
 
- void printSplashScreen();
- void printUsage();
- bool parseCommandLineArguments(int argc, char **argv,
- vtkDataCollector *collector,
- vtkDataProcessor* processor,
- vtkDataSender *sender,
- vtkInstrumentTracker *instrumentTracker);
- void goodByeScreen();
- void goodByeInput();
- void printErrorCodes(int terminate);
- static inline void vtkSleep(double duration);
+void printSplashScreen();
+void printUsage();
+int parseCommandLineArguments(int argc, char **argv,
+vtkDataCollector *collector,
+vtkDataProcessor* processor,
+vtkDataSender *sender,
+vtkInstrumentTracker *instrumentTracker);
+void goodByeScreen();
+void goodByeInput();
+void printErrorCodes(int terminate);
+static inline void vtkSleep(double duration);
 
- /******************************************************************************
-  *
-  * MAIN
-  *
-  ******************************************************************************/
- int main(int argc, char **argv)
- {
-   int terminate = 0;
-   ofstream logStream;
-   char* logFile = "./logFile.txt";
+/******************************************************************************
+*
+* MAIN
+*
+******************************************************************************/
+int main(int argc, char **argv)
+{
+  int terminate = 0;
+  ofstream logStream;
+  char* logFile = "./logFile.txt";
+  bool grabOneImage = false;
 
-   vtkDataCollector *collector = vtkDataCollector::New();
-   vtkDataProcessor *processor = vtkDataProcessor::New();
-   vtkDataSender *sender = vtkDataSender::New();
+  vtkDataCollector *collector = vtkDataCollector::New();
+  vtkDataProcessor *processor = vtkDataProcessor::New();
+  vtkDataSender *sender = vtkDataSender::New();
 
-   vtkInstrumentTracker *instrumentTracker =   vtkInstrumentTracker::New();
+  vtkInstrumentTracker *instrumentTracker =   vtkInstrumentTracker::New();
 
-   vtkNDITracker * tracker = vtkNDITracker::New();
+  vtkNDITracker * tracker = vtkNDITracker::New();
 
-   //Fix StartUp time
-   double startTime = vtkTimerLog::GetUniversalTime();
-   collector->SetStartUpTime(startTime);
-   processor->SetStartUpTime(startTime);
-   sender->SetStartUpTime(startTime);
-   instrumentTracker->SetStartUpTime(startTime);
+  //Fix StartUp time
+  double startTime = vtkTimerLog::GetUniversalTime();
+  collector->SetStartUpTime(startTime);
+  processor->SetStartUpTime(startTime);
+  sender->SetStartUpTime(startTime);
+  instrumentTracker->SetStartUpTime(startTime);
 
-   printSplashScreen();
+  printSplashScreen();
 
-   //Read command line arguments
-   bool successParsingCommandLine = parseCommandLineArguments(argc, argv, collector, processor, sender, instrumentTracker);
-   if(!successParsingCommandLine)
-     {
-     cerr << "ERROR: Could parse commandline arguments" << endl << endl;
-     goodByeScreen();
-     goodByeInput();
-     }
-   else
-     {
-     //Log Stream Preparation
-     logStream.precision(0);
-     logStream.setf(ios::fixed,ios::floatfield);
-     logStream.open(logFile, ios::out);
-     collector->SetLogStream(logStream);
-     processor->SetLogStream(logStream);
-     sender->SetLogStream(logStream);
-     instrumentTracker->SetLogStream(logStream);
+  //Read command line arguments
+  int successParsingCommandLine = parseCommandLineArguments(argc, argv, collector, processor, sender, instrumentTracker);
+  if(-1 == successParsingCommandLine)
+   {
+   cerr << "ERROR: Could parse commandline arguments" << endl << endl;
+   goodByeScreen();
+   goodByeInput();
+   }
+  else
+    {
+    //Log Stream Preparation for error logging----------------------------------
+    logStream.precision(0);
+    logStream.setf(ios::fixed,ios::floatfield);
+    logStream.open(logFile, ios::out);
+    collector->SetLogStream(logStream);
+    processor->SetLogStream(logStream);
+    sender->SetLogStream(logStream);
+    instrumentTracker->SetLogStream(logStream);
 
-     cout << "--- Started ---" << endl << endl;
+    //Print start process for the user------------------------------------------
+    cout << "--- Started ---" << endl << endl;
 
-     //redirect vtk errors to a file
-     vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
-     errOut->SetFileName("vtkError.txt");
-     vtkOutputWindow::SetInstance(errOut);
+    //redirect vtk errors to a file
+    vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
+    errOut->SetFileName("vtkError.txt");
+    vtkOutputWindow::SetInstance(errOut);
 
-     cout << "Hardware Initialization: " << std::flush;
-     cout << '\a' << std::flush;
-     for(int i = 0; i < 11; i++)
-       {
-       vtkSleep(0.2);
-
-       cout << 10 - i << " " << std::flush;
-       }
-     cout << endl;
-
-     //cout << "Start Recording" << endl;
-     cout << '\a' << std::flush;
-     vtkSleep(0.2);
-     cout << '\a' << std::flush;
-
-     if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
-       {
-
-       if(tracker->Probe() != 1)
-         {
-         cerr << "ERROR: Tracking system not found" << endl;
-         terminate += ERROR_NO_TRACKER_FOUND;
-         }
-       else 
-         {
-         tracker->StartTracking();
-         }
-       }
-
-     //Initialize collector
-     if(terminate == 0)
-       {
-       if(collector->GetTrackerDeviceEnabled())
-         {
-         if(collector->Initialize(tracker) != 0)
-           {
-           cerr << "ERROR: Could not initialize DataCollector" << endl;
-           terminate += ERROR_DATA_COLLECTOR_NOT_INITIALIZED;
-           }
-         }
-       else
-         {
-         if(collector->Initialize(NULL) != 0)
-           {
-           cerr << "ERROR: Could not initialize DataCollector" << endl;
-           terminate += ERROR_DATA_COLLECTOR_NOT_INITIALIZED;
-           }
-         }
-       }
-
-     //Configure collector
-    if(terminate == 0)
+    cout << "Hardware Initialization: " << std::flush;
+    cout << '\a' << std::flush;
+    for(int i = 0; i < 11; i++)
       {
-      if(sender->Initialize() != 0)
+      vtkSleep(0.2);
+
+      cout << 10 - i << " " << std::flush;
+      }
+    cout << endl;
+
+    //cout << "Start Recording" << endl;
+    cout << '\a' << std::flush;
+    vtkSleep(0.2);
+    cout << '\a' << std::flush;
+
+    if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
+      {
+      if(tracker->Probe() != 1)//Test tracker
         {
-        cerr << "ERROR: Could not initialize DataSender" << endl;
-        terminate += ERROR_DATA_SENDER_NOT_INITIALIZED;
+        cerr << "ERROR: Tracking system not found" << endl;
+        terminate += ERROR_NO_TRACKER_FOUND;
+        }
+      else
+        {
+        tracker->StartTracking();
         }
       }
 
-     // Connect Sender to OpenIGTLink Server
-     if(terminate == 0)
+  //Initialize collector
+  if(terminate == 0)
+    {
+    if(collector->GetTrackerDeviceEnabled())
+     {
+     if(collector->Initialize(tracker) != 0)
        {
-       if(sender->ConnectToServer() != 0)
-         {
-         terminate += ERROR_NO_CONNECTION_TO_OPENIGTLINKSERVER;
-         }
+       cerr << "ERROR: Could not initialize DataCollector" << endl;
+       terminate += ERROR_DATA_COLLECTOR_NOT_INITIALIZED;
        }
+     }
+    else
+      {
+      if(collector->Initialize(NULL) != 0)
+        {
+        cerr << "ERROR: Could not initialize DataCollector" << endl;
+        terminate += ERROR_DATA_COLLECTOR_NOT_INITIALIZED;
+        }
+      }
+    }
 
-     //Start Send Thread
-     if(terminate == 0)
-       {
-       if(sender->StartSending() != 0)
+  //If requested by CLP grab one frame from the frame grabber and terminate
+  if(1 == successParsingCommandLine)
+    {
+    collector->GrabOneImage();
+    cout << "Image successfully grabbed to " << collector->GetFileName() << endl;
+    }
+  else
+    {
+      //Configure collector
+      if(terminate == 0)
+        {
+        if(sender->Initialize() != 0)
+          {
+          cerr << "ERROR: Could not initialize DataSender" << endl;
+          terminate += ERROR_DATA_SENDER_NOT_INITIALIZED;
+          }
+        }
+
+       // Connect Sender to OpenIGTLink Server
+       if(terminate == 0)
          {
-         terminate += ERROR_DATA_SENDER_DOES_NOT_WORK;
-         }
-       }
-
-     //Start Send Thread
-     if(terminate == 0)
-       {
-       if(processor->StartProcessing(sender) != 0)
-         {
-         terminate += ERROR_DATA_PROCESSOR_DOES_NOT_WORK;
-         }
-       }
-
-     //Colleced video frames and tracking matrices and forward them to the sender
-     if(terminate == 0)
-       {
-       if(collector->StartCollecting(processor) != 0)
-         {
-         terminate += ERROR_DATA_COLLECTOR_DOES_NOT_WORK;
-         }
-       }
-
-//     goodByeScreen();
-
-     //Collected instrument tracking matrices and forward them to the OpenIGTLink server
-     if(terminate == 0)
-       {
-       if(instrumentTracker->GetTrackingEnabled())
-         {
-         if(-1 != instrumentTracker->ConnectToServer())
+         if(sender->ConnectToServer() != 0)
            {
-           if(-1 == instrumentTracker->StartTracking(tracker))
+           terminate += ERROR_NO_CONNECTION_TO_OPENIGTLINKSERVER;
+           }
+         }
+
+       //Start Send Thread
+       if(terminate == 0)
+         {
+         if(sender->StartSending() != 0)
+           {
+           terminate += ERROR_DATA_SENDER_DOES_NOT_WORK;
+           }
+         }
+
+       //Start Send Thread
+       if(terminate == 0)
+         {
+         if(processor->StartProcessing(sender) != 0)
+           {
+           terminate += ERROR_DATA_PROCESSOR_DOES_NOT_WORK;
+           }
+         }
+
+       //Collect video frames and tracking matrices and forward them to the sender
+       if(terminate == 0)
+         {
+         if(collector->StartCollecting(processor) != 0)
+           {
+           terminate += ERROR_DATA_COLLECTOR_DOES_NOT_WORK;
+           }
+         }
+
+  //     goodByeScreen();
+
+       //Collected instrument tracking matrices and forward them to the OpenIGTLink server
+       if(terminate == 0)
+         {
+         if(instrumentTracker->GetTrackingEnabled())
+           {
+           if(-1 != instrumentTracker->ConnectToServer())
+             {
+             if(-1 == instrumentTracker->StartTracking(tracker))
+               {
+               terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
+               }
+             }
+           else
              {
              terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
              }
            }
-         else
+           else if(instrumentTracker->GetSimulationEnabled())
            {
-           terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
-           }
-         }
-         else if(instrumentTracker->GetSimulationEnabled())
-         {
-         if(-1 != instrumentTracker->ConnectToServer())
-           {
-           if(-1 == instrumentTracker->StartTracking(NULL))
+           if(-1 != instrumentTracker->ConnectToServer())
+             {
+             if(-1 == instrumentTracker->StartTracking(NULL))
+               {
+               terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
+               }
+             }
+           else
              {
              terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
              }
            }
-         else
-           {
-           terminate += ERROR_INSTRUMENT_TRACKING_DOES_NOT_WORK;
-           }
          }
-       }
+       }//GrabOneImage
 
     //Wait for user input to terminate 4D-Ultrasound
     if(terminate != 0)
@@ -284,16 +294,18 @@
       printErrorCodes(terminate);
       }
     
+    goodByeScreen();
     goodByeInput();
 
     //Stop Collecting
     collector->StopCollecting();
 
     //Stop Processing
-    processor->StopProcessing();
+//    processor->StopProcessing();
 
     //Stop Sending
-    sender->StopSending();
+//    sender->StopSending();
+
     //Close Sever Connection
     sender->CloseServerConnection();      
 
@@ -331,7 +343,15 @@
   
 }//End Main
 
-//------------------------------------------------------------------------------
+/******************************************************************************
+ *  void printSplashScreen()
+ *
+ *  Print the splash screen
+ *
+ *  @author: Jan Gumprecht
+ *  @date:   20. Januar 2009
+ *
+ * ****************************************************************************/
 void printSplashScreen()
 {
 
@@ -342,14 +362,21 @@ void printSplashScreen()
        <<"*                                                                 *" << endl
        <<"* Author: Jan Gumprecht                                           *" << endl
        <<"*         Brigham and Women's Hospital                            *" << endl
-       <<"* Date:   Jan 2009                                                *" << endl
+       <<"* Date:   Aug 2009                                                *" << endl
        <<"*                                                                 *" << endl
        <<"*******************************************************************" << endl;
 
 }
 
-
-//------------------------------------------------------------------------------
+/******************************************************************************
+ *  void printUsage()
+ *
+ *  Print Description of the software as well as its command line parameters
+ *
+ *  @author: Jan Gumprecht
+ *  @date:   20. Januar 2009
+ *
+ * ****************************************************************************/
 void printUsage()
 {
     cout << endl
@@ -363,7 +390,8 @@ void printUsage()
          << "ultrasound device and tracking information from a tracker device." << endl
          << "The images and the tracking information are combined to a 3D volume image."<<endl
          << "The reconstructed volume is send to an OpenIGTLink server of choice," <<endl
-         << " e.g. 3DSlicer at the end." << endl;
+         << "e.g. 3DSlicer at the end. Additionally it is possible to track a" << endl
+         << "surgical instrument." << endl;
     cout << endl
          << "--------------------------------------------------------------------------------"
          << endl;
@@ -377,6 +405,8 @@ void printUsage()
          << "--track-ultrasound or -tu:              Enable ultrasound tracking"<< endl
          << "--track-instrument or -ti:              Enable instrument tracking" << endl
          << "--simulate-instrument or -si:           Simulate instrument"<< endl
+         << "--grab-one-frame xxx or -gof xxx        Grabs one ultrasound frame and "
+         << "                                        saves it as the specified file"
 //         << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<< endl
 //         << "                                        (default: 'localhost')" << endl
 //         << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<< endl
@@ -400,18 +430,35 @@ void printUsage()
          << endl << endl;
 }
 
-//------------------------------------------------------------------------------
-//
-// Parse the command line options.
-//
-bool parseCommandLineArguments(int argc, char **argv,
+/******************************************************************************
+ *  int parseCommandLineArguments(int argc, char **argv,
+ *                             vtkDataCollector *collector,
+ *                             vtkDataProcessor *processor,
+ *                             vtkDataSender *sender,
+ *                             vtkInstrumentTracker *instrumentTracker)
+ *
+ *  Parse the command line parameters (CLPs) and check, if possible, for errors
+ *
+ *  @author: Jan Gumprecht
+ *  @date:   20. Januar 2009
+ *
+ *  @param: int argc - Number of CLPs
+ *  @param: char **argv - CLPs
+ *  @param: vtkDataCollector *collector - Instance of the "Data Collector"
+ *  @param: vtkDataProcessor *processor - Instance of the "Data Processor"
+ *  @param: vtkDataSender *sender - Instance of the "Data Sender"
+ *  @param: vtkInstrumentTracker *instrumentTracker - Instance of the
+ *                                                    "Instrument Tracker"
+ *
+ * ****************************************************************************/
+int parseCommandLineArguments(int argc, char **argv,
                                vtkDataCollector *collector,
                                vtkDataProcessor *processor,
                                vtkDataSender *sender,
                                vtkInstrumentTracker *instrumentTracker)
 {
     // needs to be supplied
-    bool calibrationFileSpecified = false;
+    int retVal = -1;
     
     int i = 1;
     
@@ -426,14 +473,14 @@ bool parseCommandLineArguments(int argc, char **argv,
          processor->SetCalibrationFileName(argv[i]);
          sender->SetCalibrationFileName(argv[i]);
          instrumentTracker->SetCalibrationFileName(argv[i]);
-         calibrationFileSpecified = true;
+         retVal = 0;
          }
        }
     else
       {
       printUsage();
       cerr << "ERROR: The first parameter must be the calibration file" << endl;
-      return false;
+      return -1;
       }
 
     for(i = 3; i < argc; i++)
@@ -456,7 +503,7 @@ bool parseCommandLineArguments(int argc, char **argv,
             {
             printUsage();
             cerr << "ERROR: Volume reconstruction must be enabled before dynamic volume size option is avaliable" << endl;
-            return false;
+            return -1;
             }
           }
         //Track operting instrument
@@ -470,7 +517,7 @@ bool parseCommandLineArguments(int argc, char **argv,
             {
             printUsage();
             cout << "ERROR: Instrument can either be simulated or tracked NOT BOTH" << endl;
-            return false;
+            return -1;
             }
           }
         else if(currentArg == "--simulate-instrument" || currentArg == "-si")
@@ -483,7 +530,7 @@ bool parseCommandLineArguments(int argc, char **argv,
             {
             printUsage();
             cout << "ERROR: Instrument can either be simulated or tracked NOT BOTH" << endl;
-            return false;
+            return -1;
             }
           }
         //Track ultrasound
@@ -503,7 +550,7 @@ bool parseCommandLineArguments(int argc, char **argv,
 //            {
 //            printUsage();
 //            cout << "ERROR: OpenIGTLink Server not specified" << endl;
-//            return false;
+//            return -1;
 //            }
 //          }
 //        //OpenIGTLink Port at Server
@@ -518,7 +565,7 @@ bool parseCommandLineArguments(int argc, char **argv,
 //            {
 //            printUsage();
 //            cout << "ERROR: OpenIGTLink Port not specified" << endl;
-//            return false;
+//            return -1;
 //            }
 //          }
 //        // Framerate of Ultrasound device
@@ -531,7 +578,7 @@ bool parseCommandLineArguments(int argc, char **argv,
 //            if(fps <= 0)
 //              {
 //              cout << "ERROR: Framerate must be greater than 0 and not: " << fps << endl;
-//              return false;
+//              return -1;
 //              }
 //            collector->SetFrameRate(fps);
 //            processor->SetProcessPeriod(1/(fps * 1.5));
@@ -541,7 +588,7 @@ bool parseCommandLineArguments(int argc, char **argv,
 //            {
 //            printUsage();
 //            cout << "ERROR: Frames per second not specified" << endl;
-//            return false;
+//            return -1;
 //            }
 //          }
 //        //Video Source
@@ -555,7 +602,7 @@ bool parseCommandLineArguments(int argc, char **argv,
 //             {
 //             printUsage();
 //             cout << "ERROR: Video source not specified" << endl;
-//             return false;
+//             return -1;
 //             }
 //           }
 //        //Video Source channel
@@ -569,7 +616,7 @@ bool parseCommandLineArguments(int argc, char **argv,
 //             {
 //             printUsage();
 //             cout << "ERROR: Video source channel not specified" << endl;
-//             return false;
+//             return -1;
 //             }
 //           }
         //Video Mode
@@ -591,14 +638,14 @@ bool parseCommandLineArguments(int argc, char **argv,
 //               {
 //               cout << "ERROR: False video mode: " << videoMode  << endl
 //                    << "       Available video modes: NTSC and PAL" << endl;
-//               return false;
+//               return -1;
 //               }
 //             }
 //           else
 //             {
 //             printUsage();
 //             cout << "ERROR: Video mode not specified" << endl;
-//             return false;
+//             return -1;
 //             }
 //           }
 //        else if(currentArg == "--scan-depth" || currentArg == "-sd")
@@ -610,7 +657,7 @@ bool parseCommandLineArguments(int argc, char **argv,
 //            if(scanDepth <= 0)
 //              {
 //              cout << "ERROR: Scan Depth must be greater than 0 and not: " << scanDepth << endl;
-//              return false;
+//              return -1;
 //              }
 //            collector->SetUltrasoundScanDepth(scanDepth);
 //            }
@@ -618,7 +665,7 @@ bool parseCommandLineArguments(int argc, char **argv,
 //            {
 //            printUsage();
 //            cout << "ERROR: Scand depth not specified" << endl;
-//            return false;
+//            return -1;
 //            }
 //          }
 //        else if(currentArg == "--delay-factor" || currentArg == "-df")
@@ -631,7 +678,7 @@ bool parseCommandLineArguments(int argc, char **argv,
 //            {
 //            printUsage();
 //            cout << "ERROR: Delay factor size not specified" << endl;
-//            return false;
+//            return -1;
 //            }
 //          }
 //        else if(currentArg == "--system-offset" || currentArg == "-so")
@@ -646,27 +693,49 @@ bool parseCommandLineArguments(int argc, char **argv,
 //            {
 //            printUsage();
 //            cout << "ERROR: System offset not specified" << endl;
-//            return false;
+//            return -1;
 //            }
 //          }
+        else if(currentArg == "--grab-one-frame" || currentArg == "-gof")
+          {
+          if( i < argc - 1)
+            {
+            collector->SetFileName(argv[++i]);
+            return 1;
+            }
+          else
+            {
+            printUsage();
+            cout << "ERROR: No Filename for the grabbed image specified" << endl;
+            return -1;
+            }
+          }
         else if(currentArg == "--verbose" || currentArg == "-v")
           {
           collector->SetVerbose(true);
           sender->SetVerbose(true);
           processor->SetVerbose(true);
           instrumentTracker->SetVerbose(true);
-          }       
+          }
         else
            {
            printUsage();
            cout << "ERROR: Unrecognized command: '" << argv[i] <<"'" << endl;
-           return false;
+           return -1;
            }
       }
-    return calibrationFileSpecified;
+    return retVal;
 }
 
-//------------------------------------------------------------------------------
+/******************************************************************************
+ *  void goodByeScreen()
+ *
+ *  Print request to terminate the software
+ *
+ *  @author: Jan Gumprecht
+ *  @date:   20. Januar 2009
+ *
+ * ****************************************************************************/
 void goodByeScreen()
 {
 
@@ -674,6 +743,15 @@ void goodByeScreen()
  cout << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<<endl;
 }
 
+/******************************************************************************
+ *  void goodByeInput()
+ *
+ *  Wait for termination signal and print good bye screen
+ *
+ *  @author: Jan Gumprecht
+ *  @date:   20. Januar 2009
+ *
+ * ****************************************************************************/
 void goodByeInput()
 {
  string input;
@@ -692,11 +770,26 @@ void goodByeInput()
 
 }
 
-void printErrorCodes(int terminate) {
+
+/******************************************************************************
+ *  void printErrorCodes(int terminate)
+ *
+ *  Prints Error message for the specified code
+ *
+ *  @author: Jan Gumprecht
+ *  @date:   27. July 2009
+ *
+ *  @Param: terminate - errorcode of the message to print
+ *
+ * ****************************************************************************/
+void printErrorCodes(int terminate)
+{
 
   switch(terminate)
     {
-    case ERROR_NO_TRACKER_FOUND: cerr <<"No tracking system found" << endl;
+    case ERROR_NO_TRACKER_FOUND: cerr <<"No tracking system found" <<endl
+                                      <<"(It needs two tries to recognize the tracker "<< endl
+                                      <<"after the tracking hardware was connected to the computer)" << endl;
          break;
     case ERROR_DATA_COLLECTOR_NOT_INITIALIZED: cerr << "Can not initialize data collection" << endl;
          break;
