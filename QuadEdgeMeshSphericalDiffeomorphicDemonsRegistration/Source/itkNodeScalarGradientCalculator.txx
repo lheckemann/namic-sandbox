@@ -318,7 +318,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
   while( derivativeItr != derivativeEnd )
     {
     derivativeItr.Value()  /=  areaItr.Value();
-std::cout << "Point " << derivativeItr.Index() << " derivative = " << derivativeItr.Value() << std::endl;
     ++derivativeItr;
     ++areaItr;
     }
