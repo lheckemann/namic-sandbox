@@ -305,8 +305,10 @@ ComputeDeformationFieldUpdate()
   VnlMatrixType Gn;
   VnlMatrixType Gn2;
   VnlMatrixType m2;
+  VnlMatrixType Gn2Bn2;
 
   VnlVectorType Bn;
+  VnlVectorType Gn2Bn;
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
@@ -343,6 +345,9 @@ ComputeDeformationFieldUpdate()
         }
       }
     
+    Gn2Bn = Gn2 * Bn; 
+
+    Gn2Bn2 = outer_product( Gn2Bn, Gn2Bn );
     }
 }
 
