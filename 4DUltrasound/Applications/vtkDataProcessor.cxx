@@ -43,10 +43,6 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define NOMINMAX
 //#define REMOVE_ALPHA_CHANNEL
-#define DEBUG_IMAGES //Write tagger output to HDD
-//#define DEBUG_MATRICES //Prints tagger matrices to stdout
-#define MERGE
-#define NEWMERGE
 
 //#include <windows.h>
 
@@ -99,7 +95,7 @@ vtkDataProcessor::vtkDataProcessor()
   this->Verbose = false;
   this->VolumeReconstructionEnabled = false;
   this->Processing = false;
-  this->ProcessPeriod = 1 /(30 * 1.5);
+  this->ProcessPeriod = 1 / 30;
   this->UltraSoundTrackingEnabled = false;
   this->MaximumVolumeSize[0] = DEFAULT_MAXIMUM_VOLUME_SIZE;
   this->MaximumVolumeSize[1] = DEFAULT_MAXIMUM_VOLUME_SIZE;
@@ -304,109 +300,110 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
       #endif
       self->StopProcessing();
       }
-    else if(self->GetDataSender()->IsSendDataBufferFull())
-      {
-      #ifdef DEBUGPROCESSOR
-        self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Data sender is too slow -> wait" << endl;
-      #endif
-      }
     else
       {
-      if(dataAvailable || !self->IsDataBufferEmpty())
-        {//New data to process available
-        loopTime = self->GetUpTime();
-        currentIndex = self->GetHeadOfDataBuffer();
-
-  //      if(currentIndex == 52)
-  //        {
-  //        cout << "53" << endl;
-  //        }
-
-        #ifdef  TIMINGPROCESSOR
-          self->GetLogStream() <<  self->GetUpTime() << " |-------------------------------------" << endl;
-          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Processor Thread found new data with index:" << currentIndex
-                               << " | L:" << self->GetUpTime() - loopTime << endl
-                               << "        | BufferSize: " << self->GetBufferSize() << endl;
-
+      if(self->GetDataSender()->IsSendDataBufferFull())
+        {
+        #ifdef DEBUGPROCESSOR
+          self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Data sender is too slow -> wait" << endl;
         #endif
-        //If frame is too old skip it
-        if(!self->IsDataExpired(currentIndex))
-          {
-          //Check and Update Volume=============================================
-          sectionTime = self->GetUpTime();
-          if(-1 != self->CheckandUpdateVolume(currentIndex, lastDataSenderIndex))//Check if volume must be expanded
-            {
-            #ifdef  TIMINGPROCESSOR
-              self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Check and Update DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
-            #endif
+        }
+      else
+        {
+        if(dataAvailable || !self->IsDataBufferEmpty())
+          {//New data to process available
+          loopTime = self->GetUpTime();
+          currentIndex = self->GetHeadOfDataBuffer();
 
-            //Reconstruct Volume================================================
+          #ifdef  TIMINGPROCESSOR
+            self->GetLogStream() <<  self->GetUpTime() << " |-------------------------------------" << endl;
+            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Processor Thread found new data with index:" << currentIndex
+                                 << " | L:" << self->GetUpTime() - loopTime << endl
+                                 << "        | BufferSize: " << self->GetBufferSize() << endl;
+
+          #endif
+          //If frame is too old skip it
+          if(!self->IsDataExpired(currentIndex))
+            {
+            //Check and Update Volume=============================================
             sectionTime = self->GetUpTime();
-            if(-1 != self->ReconstructVolume(currentIndex))
+            if(-1 != self->CheckandUpdateVolume(currentIndex, lastDataSenderIndex))//Check if volume must be expanded
               {
               #ifdef  TIMINGPROCESSOR
-                self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume Reconstruction DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+                self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Check and Update DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
               #endif
 
-              //Forward Data====================================================
+              //Reconstruct Volume================================================
               sectionTime = self->GetUpTime();
-              lastDataSenderIndex = self->ForwardData(self->GetReconstructor()->GetOutput());
-              #ifdef  TIMINGPROCESSOR
-                self->GetLogStream() << self->GetUpTime() << " |P-INFO: Volume forwarding DONE" << endl
-                                                 << "          | Last data sender index: " << lastDataSenderIndex
-                                                          << " | S: " << self->GetUpTime() - sectionTime
-                                                          << " | L:" << self->GetUpTime() - loopTime
-                                                          << " | FPS: " << 1 / (self->GetUpTime() - loopTime) << endl;
-              #endif
-              if(lastDataSenderIndex == -1)
+              if(-1 != self->ReconstructVolume(currentIndex))
                 {
+                #ifdef  TIMINGPROCESSOR
+                  self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Volume Reconstruction DONE" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+                #endif
+
+                //Forward Data====================================================
+                sectionTime = self->GetUpTime();
+                lastDataSenderIndex = self->ForwardData(self->GetReconstructor()->GetOutput());
+                #ifdef  TIMINGPROCESSOR
+                  self->GetLogStream() << self->GetUpTime() << " |P-INFO: Volume forwarding DONE" << endl
+                                                   << "          | Last data sender index: " << lastDataSenderIndex
+                                                            << " | S: " << self->GetUpTime() - sectionTime
+                                                            << " | L:" << self->GetUpTime() - loopTime
+                                                            << " | FPS: " << 1 / (self->GetUpTime() - loopTime) << endl;
+                #endif
+                if(lastDataSenderIndex < 0)
+                  {
+                  errors++;
+                  }
+                }
+              else
+                {
+                #ifdef  DEBUGPROCESSOR
+                  self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+                  cerr <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+                #endif
+  //              self->ResetOldVolume(lastDataSenderIndex);
                 errors++;
                 }
               }
-            else
-              {
-              #ifdef  DEBUGPROCESSOR
-                self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
-              #endif
-              self->ResetOldVolume(lastDataSenderIndex);
-              errors++;
-              }
+  //          else
+  //            {
+  //            lastDataSenderIndex = -2;
+  //            }
             }
           else
             {
-            lastDataSenderIndex = -2;
+            #ifdef  DEBUGPROCESSOR
+               self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Data too old for reconstruction (Index: "<< currentIndex << " )" << endl;
+               cout <<  self->GetUpTime() << " |P-WARNING: Data too old for reconstruction (Index: "<< currentIndex << " )" << endl;
+            #endif
             }
+            self->DeleteData(currentIndex);
           }
-        else
+        dataAvailable = !self->IsDataBufferEmpty();
+
+        if(errors > 50)
           {
-          #ifdef  DEBUGPROCESSOR
-             self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Data too old for reconstruction (Index: "<< currentIndex << " )" << endl;
-             cout <<  self->GetUpTime() << " |P-WARNING: Data too old for reconstruction (Index: "<< currentIndex << " )" << endl;
+          #ifdef ERRORPROCESSOR
+          self->GetLogStream() <<  self->GetUpTime() << " |P-ERROR: too many errors ( " << errors << " ) occured terminate data processor" << endl;
           #endif
+          self->ResetOldVolume(lastDataSenderIndex); //Delete unnecessary data
+  //        self->ResetOldVolume(-1); //Delete copy of last reconstructed volume if necessary
+          self->StopProcessing();
+          self->GetDataSender()->StopSending();
           }
-        self->DeleteData(currentIndex);
-        }
-      dataAvailable = !self->IsDataBufferEmpty();
 
-      if(errors > 50)
-        {
-        #ifdef ERRORPROCESSOR
-        self->GetLogStream() <<  self->GetUpTime() << " |P-ERROR: too many errors ( " << errors << " ) occured terminate data processor" << endl;
+        #ifdef  DEBUGPROCESSOR
+          if(dataAvailable)
+            {
+            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor wont't sleep" << " | " << self->GetUpTime()<< endl;
+            }
+          else
+            {
+            self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor sleeps now" << " | " << self->GetUpTime()<< endl;
+            }
         #endif
-        self->StopProcessing();
-        self->GetDataSender()->StopSending();
         }
-
-      #ifdef  DEBUGPROCESSOR
-        if(dataAvailable)
-          {
-          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor wont't sleep" << " | " << self->GetUpTime()<< endl;
-          }
-        else
-          {
-          self->GetLogStream() <<  self->GetUpTime() << " |P-INFO: Data Processor sleeps now" << " | " << self->GetUpTime()<< endl;
-          }
-      #endif
       }//Check if sender stopped sending
     }
   while(vtkThreadSleep(data, vtkTimerLog::GetUniversalTime() + processPeriod, dataAvailable));
@@ -493,6 +490,11 @@ int vtkDataProcessor::StartProcessing(vtkDataSender * sender)
  * ****************************************************************************/
 int vtkDataProcessor::StopProcessing()
 {
+  if(NULL != this->DataSender)
+    {
+    this->DataSender->StopSending();
+    }
+
   if(this->Processing)
     {//Stop thread
         this->PlayerThreader->TerminateThread(this->PlayerThreadId);
@@ -561,6 +563,8 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
       this->MaximumVolumeSize[2] = this->calibReader->GetMaximumVolumeSize()[2];
       }
 
+    this->ProcessPeriod = 1 / this->calibReader->GetFramesPerSecond();
+
     if(this->DelayFactor == DEFAULT_DELAY_FACTOR)
       {
       this->DelayFactor = this->calibReader->GetDelayFactor();
@@ -604,13 +608,13 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
   int retVal = 0;
   bool expansionPossible = true;
 
-  if(!this->DynamicVolumeSize && this->VolumeInitialized && dataSenderIndex == -2)
-    {
-    #ifdef  WARNINGPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-WARNING: Data sender index reset" <<endl;
-    #endif
-    dataSenderIndex = -2;
-    }
+//  if(!this->DynamicVolumeSize && this->VolumeInitialized && dataSenderIndex == -2)
+//    {
+//    #ifdef  WARNINGPROCESSOR
+//      this->LogStream << this->GetUpTime()  << " |P-WARNING: Data sender index reset" <<endl;
+//    #endif
+//    dataSenderIndex = -2;
+//    }
 
   if(!this->VolumeReconstructionEnabled)
     {
@@ -620,12 +624,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     return -1;
     }
 
-//  if(!this->DynamicVolumeSize && this->VolumeInitialized)
-//    {
-//    this->ResetOldVolume(dataSenderIndex);
-//    return 0;
-//    }
-
   if(this->IsIndexAvailable(index)  || index < 0 || index >= this->dataBufferSize)
     {
     #ifdef  ERRORPROCESSOR
@@ -634,13 +632,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     return -1;
     }
 
-  if((dataSenderIndex > this->DataSender->GetSendDataBufferSize() || dataSenderIndex < 0) && this->oldVolume == NULL)
-    {
-    #ifdef  DEBUGPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-WARNING: Data sender index ( " << dataSenderIndex <<" )invalid no expansion possible: " <<endl;
-    #endif
-    expansionPossible = false;
-    }
 
   //Read New Data---------------------------------------------------------------
   this->DataBufferLock->Lock();
@@ -722,21 +713,39 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
                         * (newExtent[3] - newExtent[2] + 1)
                         * (newExtent[5] - newExtent[4] + 1);
 
-  if((extentChanged || originChanged) && !expansionPossible)
+//    //Check if volume reconstruction is possible
+//    if((dataSenderIndex > this->DataSender->GetSendDataBufferSize() || dataSenderIndex < 0) && this->oldVolume == NULL)
+//  //  if(this->oldVolume == NULL)
+//      {
+//      #ifdef  DEBUGPROCESSOR
+//        this->LogStream << this->GetUpTime()  << " |P-WARNING: Data sender index ( " << dataSenderIndex <<" ) invalid no expansion possible: " <<endl;
+//      #endif
+//      expansionPossible = false;
+//      }
+
+//  if((extentChanged || originChanged) && !expansionPossible)
+  if(volumeSize > this->GetMaximumVolumeSize() || ((extentChanged || originChanged) && this->oldVolume == NULL))
     {
-    if(!this->DynamicVolumeSize && volumeSize <= this->GetMaximumVolumeSize())
+    retVal = -1;
+
+    #ifdef  ERRORPROCESSOR
+    if(volumeSize > this->GetMaximumVolumeSize())
       {
-      #ifdef  ERRORPROCESSOR
-        this->LogStream << this->GetUpTime()  << " |P-ERROR: Expansion not possible since data sender index is invalid" <<endl;
-        cout << this->GetUpTime()  << " |P-ERROR: Expansion not possible since data sender index "<< dataSenderIndex << "is invalid" <<endl;
-      #endif
-      retVal = -1;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Expansion necessary but not possible since boundary box of inserted frame ("<<volumeSize<< ") is bigger than maxi vol size:" << this->GetMaximumVolumeSize() <<endl;
+      cout << this->GetUpTime() << " |P-ERROR: Expansion necessary but not possible since boundary box of inserted frame ("<<volumeSize<< ") is bigger than maxi vol size:" << this->GetMaximumVolumeSize() <<endl;
       }
+
+    if((extentChanged || originChanged) && this->oldVolume == NULL)
+      {
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Expansion necessary but not possible since no oldVolume exists" <<endl;
+      cout << this->GetUpTime() << " |P-ERROR: Expansion necessary but not possible since no oldVolume exists" << endl;
+      }
+     #endif
     }
   else
     {
-    if(volumeSize <= this->GetMaximumVolumeSize())
-      {
+//    if(volumeSize <= this->GetMaximumVolumeSize())//include in 716
+//      {
       //Check if volume properties have changed
       if(dataSenderIndex == -2 || (originChanged || extentChanged))
         {
@@ -768,12 +777,8 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     //      this->DecreaseLifeTimeOfReconstructor(1);
 
 
-
-    #ifdef MERGE
-        if(originChanged || extentChanged || this->VolumeInitialized)
-    #else
-        if(false)
-    #endif
+        if((originChanged || extentChanged) && this->VolumeInitialized && this->oldVolume != NULL)
+        //check if old volume available vs. this->volume initialized
           {
           #ifdef  DEBUGPROCESSOR
             this->LogStream << this->GetUpTime()  << " |P-INFO: Expand volume | DataSenderIndex: "<< dataSenderIndex << endl;
@@ -784,7 +789,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
           #endif
 
           //Lock data
-          if(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR))
+          if(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR) && dataSenderIndex != -1)
             {
             int i = 0;
             do
@@ -796,22 +801,24 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
                 #endif
                 }
               vtkSleep(0.01);
-              } //Wait for Lock
+              } //Wait for Lock to be available
             while(-1 == this->DataSender->LockIndex(dataSenderIndex, DATAPROCESSOR));
             }
 
-          if(this->oldVolume == NULL)
-            {
-            if(this->DynamicVolumeSize)
-              {
-              #ifdef  ERRORPROCESSOR
-                this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
-              #endif
-              retVal = -1;
-              }
-            }
+//          if(this->oldVolume == NULL) //include in line 766
+//            {
+//            if(this->DynamicVolumeSize)
+//              {
+//              #ifdef  ERRORPROCESSOR
+//                this->LogStream << this->GetUpTime()  << " |P-ERROR: No oldVolume available => can not expand volume" << endl;
+//              #endif
+//              retVal = -1;
+//              }
+//            }
+
           //Copy Old Volume at correct position into new volume
-          else if(this->MergeVolumes(Reconstructor->GetOutput(),newOrigin,newExtent,
+//          else
+            if(this->MergeVolumes(Reconstructor->GetOutput(),newOrigin,newExtent,
                                      this->oldVolume, oldOrigin,oldExtent,
                                      this->Reconstructor->GetOutput()->GetNumberOfScalarComponents())
                   == -1)
@@ -822,23 +829,22 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
             #endif
             retVal = -1;
             }
-          this->DataSender->ReleaseLock(DATAPROCESSOR);
-          }
-
+          if(dataSenderIndex != -1)
+            {
+            this->DataSender->ReleaseLock(DATAPROCESSOR);
+            }
+          }//Merge
         this->VolumeInitialized = true;
         }
-      }// Check size of new volume
-    else
-      {
-      if(!this->DynamicVolumeSize)
-        {
-        #ifdef  ERRORPROCESSOR
-          this->LogStream << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
-          cout << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
-        #endif
-        retVal = -1;
-        }
-      }
+//      }// Check size of new volume
+//    else
+//      {
+//      #ifdef  ERRORPROCESSOR
+//      this->LogStream << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
+//      cout << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
+//      #endif
+//      retVal = -1;
+//      }
     }
   this->ResetOldVolume(dataSenderIndex);
 
@@ -875,6 +881,7 @@ int vtkDataProcessor::ReconstructVolume(int index)
     #endif
     return -1;
     }
+
     this->DataBufferLock->Lock();
     this->Reconstructor->SetSliceAxes(this->dataBuffer[index].Matrix); //Set current trackingmatrix
     this->Reconstructor->SetSlice(this->dataBuffer[index].Frame);
@@ -1003,9 +1010,11 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
 
   //Forward data to sender------------------------------------------------------
   int retval = this->DataSender->NewData(volumeToForward, matrix);
+
+  //Save tmp reference to volume for volume expansion
   this->oldVolume = volumeToForward;
 
-  if(retval != -1)
+  if(retval != -1 && retval <= this->DataSender->GetSendDataBufferSize())
     {
     #ifdef DEBUGPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-INFO: Volume forwarded to data sender " << " | Copytime: " << this->GetUpTime() -  copyTime << endl
@@ -1019,6 +1028,7 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
     #ifdef ERRORPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-ERROR: Could not forward volume to data sender" << " | " << endl;
     #endif
+    retval = -1;
     }
 
   return retval;
@@ -1042,14 +1052,23 @@ int vtkDataProcessor::AddNewDataToBuffer(int index, struct DataStruct dataStruct
 {
 
   this->DataBufferLock->Lock();
-  if(this->dataBuffer.find(index) != this->dataBuffer.end())
+  if(index < 0 || index >= this->dataBufferSize)
     {
     #ifdef ERRORPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-ERROR: data buffer already has data at index: " << index << endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: tried to add data to data buffer at invalid index: " << index << endl;
     #endif
     this->DataBufferLock->Unlock();
     return -1;
     }
+
+  if(this->dataBuffer.find(index) != this->dataBuffer.end())
+      {
+      #ifdef ERRORPROCESSOR
+        this->LogStream << this->GetUpTime()  << " |P-ERROR: data buffer already has data at index: " << index << endl;
+      #endif
+      this->DataBufferLock->Unlock();
+      return -1;
+      }
 
   this->dataBuffer[index] = dataStruct;
   this->DataBufferLock->Unlock();
@@ -1398,7 +1417,7 @@ int vtkDataProcessor::DeleteData(int index)
       }
 
     #ifdef DEBUGPROCESSOR
-      this->LogStream << this->GetUpTime()  << " |P-INFO: Delete data at Index: " << index << endl;
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Deleted data at Index: " << index << endl;
     #endif
     }
 
@@ -1534,14 +1553,33 @@ ofstream& vtkDataProcessor::GetLogStream()
  * ****************************************************************************/
 void vtkDataProcessor::ResetOldVolume(int dataSenderIndex)
 {
-  this->oldVolume = NULL;
-  this->DataSender->UnlockData(dataSenderIndex, DATAPROCESSOR);
+  if(dataSenderIndex != -1 )
+    {
+    this->oldVolume = NULL;
+    this->DataSender->UnlockData(dataSenderIndex, DATAPROCESSOR);
 
-  #ifdef DEBUGPROCESSOR
-    this->LogStream << this->GetUpTime()  << " |P-INFO: Try to delete data in sender buffer at Index: " << dataSenderIndex << endl;
-  #endif
+    #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Try to delete data in sender buffer at Index: " << dataSenderIndex << endl;
+    #endif
 
-  this->DataSender->TryToDeleteData(dataSenderIndex);
+    this->DataSender->TryToDeleteData(dataSenderIndex);
+    }
+  else
+    {
+    if(NULL != this->oldVolume)
+      {
+      #ifdef ERRORPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Data sender index ( " << dataSenderIndex << " ) invalid -> Delete Old Volume: "<< endl;
+      #endif
+      this->oldVolume->Delete();
+      }
+    else
+      {
+      #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: Data sender index ( " << dataSenderIndex << " ) invalid and no volume to delete: "<< endl;
+      #endif
+      }
+    }
 }
 
 /******************************************************************************
