@@ -371,7 +371,7 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
 
       //Prepare new data
       sectionTime = self->GetUpTime();
-      if(self->PrepareImageMessage(currentIndex, imageMessage) != -1)
+      if(-1 != self->PrepareImageMessage(currentIndex, imageMessage))
         {
         #ifdef TIMINGSENDER
         self->GetLogStream() << self->GetUpTime() <<" |S-INFO: Message Prepared" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
@@ -392,6 +392,10 @@ static void *vtkDataSenderThread(vtkMultiThreader::ThreadInfo *data)
 
       //Delete sended data (Remove Index from new data buffer + free maps from data
       errors += self->UnlockData(currentIndex, DATASENDER);
+
+      #ifdef  DEBUGSENDER
+      self->GetLogStream() <<  self->GetUpTime() << " |S-INFO: Try to delete data at "<< currentIndex << endl;
+      #endif
       errors += self->TryToDeleteData(currentIndex);
 
       if(errors <= - ERRORTOLERANCE)
@@ -431,12 +435,18 @@ bool vtkDataSender::IsSendDataBufferEmpty()
 //----------------------------------------------------------------------------
 bool vtkDataSender::IsSendDataBufferFull()
 {
-  if(this->sendDataQueue.size() >= this->SendDataBufferSize)
+  if(this->sendDataQueue.size() + 1 >= this->SendDataBufferSize)
     {
+    #ifdef  DEBUGSENDER
+    this->GetLogStream() << this->GetUpTime() <<" |S-INFO: Send Buffer full: " << this->sendDataQueue.size() + 1 << " of "<< this->SendDataBufferSize << " used."<< endl;
+    #endif
     return true;
     }
   else
     {
+    #ifdef  DEBUGSENDER
+    this->GetLogStream() << this->GetUpTime() <<" |S-INFO: Send Buffer NOT full: " << this->sendDataQueue.size() + 1 << " of "<< this->SendDataBufferSize << " used."<< endl;
+    #endif
     return false;
     }
 }
@@ -799,7 +809,10 @@ int vtkDataSender::AddDatatoBuffer(int index, vtkImageData* imageData, vtkMatrix
   if(!this->IsIndexAvailable(index))
     {
     #ifdef  ERRORSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer already has data at index: " << index << endl;
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Send Data Buffer already has data at index: " << index << endl
+                                     << "        |        Available Indices are: ";
+      this->PrintAvailableIndices();
+      this->LogStream << endl;
     #endif
     return -1;
     }
@@ -832,20 +845,48 @@ int vtkDataSender::TryToDeleteData(int index)
 
   if(this->sendDataBuffer[index].SenderLock <= 0 && this->sendDataBuffer[index].ProcessorLock <= 0)
     {
-    this->sendDataBuffer[index].ImageData->Delete();
-    this->sendDataBuffer[index].Matrix->Delete();
+
+    //Delete Image Frame
+    if(NULL != this->sendDataBuffer[index].ImageData)
+      {
+      this->sendDataBuffer[index].ImageData->Delete();
+      }
+    else
+      {
+      #ifdef  ERRORSENDER
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Not image to delete in Send Data Buffer at index: " << index << endl;
+      #endif
+      }
+
+    //Delete Matrix
+    if(NULL != this->sendDataBuffer[index].Matrix)
+      {
+      this->sendDataBuffer[index].Matrix->Delete();
+      }
+    else
+      {
+      #ifdef  ERRORSENDER
+      this->LogStream <<  this->GetUpTime() << " |S-ERROR: Not matrix to delete in Send Data Buffer at index: " << index << endl;
+      #endif
+      }
+
+    //Free Index
     if(1 != this->sendDataBuffer.erase(index))
       {
       assert(true);
       }
+
     #ifdef  DEBUGSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-INFO: Deleted data in Send Data Buffer at index: " << index << endl;
+      this->LogStream <<  this->GetUpTime() << " |S-INFO: Deleted data in Send Data Buffer at index: " << index << endl
+                                     << "        |        Available Indices are: ";
+      this->PrintAvailableIndices();
+      this->LogStream << endl;
     #endif
     }
   else
     {
     #ifdef  DEBUGSENDER
-      this->LogStream <<  this->GetUpTime() << " |S-WARNING: Could not delete data at index:" << index << " lock by: ";
+      this->LogStream <<  this->GetUpTime() << " |S-WARNING: Could not delete data at index:" << index << " locked by: ";
 
       if( this->sendDataBuffer[index].SenderLock > 0)
         {
@@ -894,10 +935,16 @@ int vtkDataSender::UnlockData(int index, int lock)
   if(lock == DATASENDER)
     {
     this->sendDataBuffer[index].SenderLock--;
+    #ifdef  DEBUGSENDER
+    this->LogStream <<  this->GetUpTime() << " |S-INFO: Data Sender released data lock" << endl;
+    #endif
     }
   else if(lock == DATAPROCESSOR)
     {
     this->sendDataBuffer[index].ProcessorLock--;
+    #ifdef  DEBUGSENDER
+    this->LogStream <<  this->GetUpTime() << " |S-INFO: Data Processor released data lock" << endl;
+    #endif
     }
   else
     {
@@ -1134,3 +1181,29 @@ int vtkDataSender::ReleaseLock(int requester)
   return retVal;
 }
 
+/******************************************************************************
+ * void vtkDataSender::PrintAvailableIndices()
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  29.July 2009
+ *
+ *
+ * ****************************************************************************/
+void vtkDataSender::PrintAvailableIndices()
+{
+  for (int i = 0 ; i < this->GetSendDataBufferSize() ; ++i)
+    {
+    if(this->IsIndexAvailable(i))
+      {
+      this->LogStream << i;
+      if(i < this->GetSendDataBufferSize() -1 )
+        {
+        this->LogStream << ", ";
+        }
+      else
+        {
+        this->LogStream << " ";
+        }
+      }
+    }
+}
