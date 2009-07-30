@@ -33,7 +33,7 @@ int main(int argc, char * argv[])
   typedef itk::BinaryImageToShapeLabelMapFilter< ImageType, LabelMapType > ConverterType;
   ConverterType::Pointer converter = ConverterType::New();
   converter->SetInput( reader->GetOutput() );
-  converter->SetForegroundValue( atoi(argv[2]) );
+  converter->SetInputForegroundValue( atoi(argv[2]) );
 
   // update the shape filter, so its output will be up to date
   converter->Update();
