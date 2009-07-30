@@ -199,8 +199,6 @@ ComputeInitialArrayOfDestinationPoints()
 
   PointsIterator srcPointItr = points->Begin();
 
-  typedef typename DestinationPointContainerType::Iterator  DestinationPointIterator;
-
   DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
   DestinationPointIterator dstPointEnd = this->m_DestinationPoints->End();
 
@@ -299,7 +297,16 @@ ComputeDeformationFieldUpdate()
   typedef typename TFixedMesh::PointsContainer    PointsContainer;
   const PointsContainer * points = this->m_FixedMesh->GetPoints();
 
-  vnl_matrix<double> Gn(3,3);
+  DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
+
+  typedef vnl_matrix_fixed<double,3,3>  VnlMatrixType;
+  typedef vnl_vector_fixed<double,3>    VnlVectorType;
+
+  VnlMatrixType Gn;
+  VnlMatrixType Gn2;
+  VnlMatrixType m2;
+
+  VnlVectorType Bn;
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
@@ -317,8 +324,25 @@ ComputeDeformationFieldUpdate()
     Gn(2,0) = -point[1];
     Gn(2,1) =  point[0];
 
+    Gn2 = Gn * Gn;
+
     typedef typename NodeScalarGradientCalculatorType::DerivativeType  DerivativeType; 
     DerivativeType derivative = this->m_NodeScalarGradientCalculator->Evaluate( pointId );
+
+    const PointType & destinationPoint = dstPointItr.Value();
+    for( unsigned int i = 0; i < 3; i++ )
+      {
+      Bn[i] = destinationPoint[i];
+      }
+
+    for( unsigned int r = 0; r < 3; r++ )
+      {
+      for( unsigned int c = 0; c < 3; c++ )
+        {
+        m2(r,c) = derivative[r] * derivative[c];
+        }
+      }
+    
     }
 }
 

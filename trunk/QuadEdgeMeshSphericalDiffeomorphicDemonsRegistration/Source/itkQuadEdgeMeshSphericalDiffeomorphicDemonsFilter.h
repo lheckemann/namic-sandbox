@@ -65,6 +65,8 @@ public:
   typedef typename BasisSystemContainerType::Pointer            BasisSystemContainerPointer;
   typedef VectorContainer< PointIdentifier, PointType >         DestinationPointContainerType;
   typedef typename DestinationPointContainerType::Pointer       DestinationPointContainerPointer;
+  typedef typename DestinationPointContainerType::Iterator      DestinationPointIterator;
+
 
   /** Set/Get the Fixed mesh. */
   void SetFixedMesh( const FixedMeshType * fixedMesh );
