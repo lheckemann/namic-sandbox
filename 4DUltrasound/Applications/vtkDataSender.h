@@ -132,6 +132,7 @@ public:
   bool IsSendDataBufferEmpty();
   bool IsSendDataBufferFull();
   int IncrementBufferIndex(int increment);
+  void PrintAvailableIndices();
 
   int ConnectToServer();
   int CloseServerConnection();
