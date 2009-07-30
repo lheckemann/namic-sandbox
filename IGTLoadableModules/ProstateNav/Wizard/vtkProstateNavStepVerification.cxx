@@ -12,7 +12,7 @@
 
 ==========================================================================*/
 
-#include "vtkProstateNavScanControlStep.h"
+#include "vtkProstateNavStepVerification.h"
 
 #include "vtkProstateNavGUI.h"
 #include "vtkProstateNavLogic.h"
@@ -31,13 +31,14 @@
 #include "vtkMRMLSelectionNode.h"
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkProstateNavScanControlStep);
-vtkCxxRevisionMacro(vtkProstateNavScanControlStep, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkProstateNavStepVerification);
+vtkCxxRevisionMacro(vtkProstateNavStepVerification, "$Revision: 1.1 $");
 
 //----------------------------------------------------------------------------
-vtkProstateNavScanControlStep::vtkProstateNavScanControlStep()
+vtkProstateNavStepVerification::vtkProstateNavStepVerification()
 {
-  this->SetName("2/5. Set Scanner Parameters");
+  //this->SetName("Set Scanner Parameters");
+  this->SetTitle("Set Scanner Parameters");
   this->SetDescription("Operate the MRI scanner.");
 
   this->TargetListFrame  = NULL;
@@ -55,13 +56,48 @@ vtkProstateNavScanControlStep::vtkProstateNavScanControlStep()
 }
 
 //----------------------------------------------------------------------------
-vtkProstateNavScanControlStep::~vtkProstateNavScanControlStep()
+vtkProstateNavStepVerification::~vtkProstateNavStepVerification()
 {
-  
+  if (this->TargetListFrame)
+    {
+    this->TargetListFrame->SetParent(NULL);
+    this->TargetListFrame->Delete();
+    this->TargetListFrame = NULL;
+    }
+  if (this->MultiColumnList)
+    {
+    this->MultiColumnList->SetParent(NULL);
+    this->MultiColumnList->Delete();
+    this->MultiColumnList = NULL;
+    }
+  if (this->TargetControlFrame)
+    {
+    this->TargetControlFrame->SetParent(NULL);
+    this->TargetControlFrame->Delete();
+    this->TargetControlFrame = NULL;
+    }
+  if (this->AddButton)
+    {
+    this->AddButton->SetParent(NULL);
+    this->AddButton->Delete();
+    this->AddButton = NULL;
+    }
+  if (this->RemoveButton)
+    {
+    this->RemoveButton->SetParent(NULL);
+    this->RemoveButton->Delete();
+    this->RemoveButton = NULL;
+    }
+  if (this->RemoveAllButton)
+    {
+    this->RemoveAllButton->SetParent(NULL);
+    this->RemoveAllButton->Delete();
+    this->RemoveAllButton = NULL;
+    }
 }
 
 //----------------------------------------------------------------------------
-void vtkProstateNavScanControlStep::ShowUserInterface()
+void vtkProstateNavStepVerification::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
 
@@ -193,13 +229,13 @@ void vtkProstateNavScanControlStep::ShowUserInterface()
 }
 
 //----------------------------------------------------------------------------
-void vtkProstateNavScanControlStep::PrintSelf(ostream& os, vtkIndent indent)
+void vtkProstateNavStepVerification::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-void vtkProstateNavScanControlStep::ProcessGUIEvents(vtkObject *caller,
+void vtkProstateNavStepVerification::ProcessGUIEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
 
@@ -237,7 +273,7 @@ void vtkProstateNavScanControlStep::ProcessGUIEvents(vtkObject *caller,
 
     // get the row that was last selected
     int numRows = this->MultiColumnList->GetWidget()->GetNumberOfSelectedRows();
-    std::cerr << "vtkProstateNavScanControlStep::ProcessGUIEvent():  Remove fiducial " << numRows << std::endl;
+    std::cerr << "vtkProstateNavStepVerification::ProcessGUIEvent():  Remove fiducial " << numRows << std::endl;
 
     if (numRows == 1)
       {
@@ -263,15 +299,19 @@ void vtkProstateNavScanControlStep::ProcessGUIEvents(vtkObject *caller,
 
 
 //----------------------------------------------------------------------------
-void vtkProstateNavScanControlStep::ProcessMRMLEvents(vtkObject *caller,
+void vtkProstateNavStepVerification::ProcessMRMLEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
+  if (!this->GetGUI())
+    {
+    return;
+    }
+
   vtkMRMLSelectionNode *selnode;
   if (this->GetGUI()->GetApplicationLogic())
     {
     selnode = this->GetGUI()->GetApplicationLogic()->GetSelectionNode();
     }
-
 
   // -----------------------------------------------------------------
   // Update MRML Observer
@@ -332,7 +372,7 @@ void vtkProstateNavScanControlStep::ProcessMRMLEvents(vtkObject *caller,
     {
     SetGUIFromList(this->GetGUI()->GetFiducialListNode());
     }
-  
+ 
   // -----------------------------------------------------------------
   // Display Modified Event
 
@@ -345,21 +385,21 @@ void vtkProstateNavScanControlStep::ProcessMRMLEvents(vtkObject *caller,
 }
 
 //----------------------------------------------------------------------------
-void vtkProstateNavScanControlStep::UpdateMRMLObserver(vtkMRMLSelectionNode* selnode)
+void vtkProstateNavStepVerification::UpdateMRMLObserver(vtkMRMLSelectionNode* selnode)
 {
 
-  std::cerr << "vtkProstateNavScanControlStep::UpdateMRMLObserver()" << std::endl;
+//  std::cerr << "vtkProstateNavStepVerification::UpdateMRMLObserver()" << std::endl;
 
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkSlicerFiducialsGUI *fidGUI
-    = (vtkSlicerFiducialsGUI*) app->GetModuleGUIByName("Fiducials");
+//  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+//  vtkSlicerFiducialsGUI *fidGUI
+//    = (vtkSlicerFiducialsGUI*) app->GetModuleGUIByName("Fiducials");
 
   vtkMRMLFiducialListNode* fidlist = 
     vtkMRMLFiducialListNode::SafeDownCast(this->MRMLScene
                                           ->GetNodeByID(this->GetGUI()->GetFiducialListNodeID()));
   if (selnode != NULL)
     {
-    std::cerr << "selnode != 0;" << std::endl;
+//    std::cerr << "selnode != 0;" << std::endl;
     // is the active fid list id out of synch with our selection?
     vtkIntArray *events = vtkIntArray::New();
     events->InsertNextValue(vtkCommand::ModifiedEvent);
@@ -367,7 +407,7 @@ void vtkProstateNavScanControlStep::UpdateMRMLObserver(vtkMRMLSelectionNode* sel
     events->InsertNextValue(vtkMRMLFiducialListNode::FiducialModifiedEvent);
 
     vtkObject *oldNode = (fidlist);
-    vtkObject *pNode   = this->GetGUI()->GetFiducialListNode();
+//    vtkObject *pNode   = this->GetGUI()->GetFiducialListNode();
     this->MRMLObserverManager
       ->SetAndObserveObjectEvents(vtkObjectPointer(&(fidlist)),(fidlist),(events));
     if ( oldNode != (fidlist) )
@@ -375,12 +415,14 @@ void vtkProstateNavScanControlStep::UpdateMRMLObserver(vtkMRMLSelectionNode* sel
       this->GetGUI()->SetFiducialListNode(fidlist);
       this->InvokeEvent (vtkCommand::ModifiedEvent);
       } 
+    events->Delete();
     }
+
 }
 
 
 //---------------------------------------------------------------------------
-void vtkProstateNavScanControlStep::OnMultiColumnListUpdate(int row, int col, char * str)
+void vtkProstateNavStepVerification::OnMultiColumnListUpdate(int row, int col, char * str)
 {
 
   vtkMRMLFiducialListNode* fidList = this->GetGUI()->GetFiducialListNode();
@@ -455,7 +497,7 @@ void vtkProstateNavScanControlStep::OnMultiColumnListUpdate(int row, int col, ch
 
 
 //---------------------------------------------------------------------------
-void vtkProstateNavScanControlStep::OnMultiColumnListSelectionChanged()
+void vtkProstateNavStepVerification::OnMultiColumnListSelectionChanged()
 {
 
   vtkMRMLFiducialListNode* fidList = this->GetGUI()->GetFiducialListNode();
@@ -484,7 +526,7 @@ void vtkProstateNavScanControlStep::OnMultiColumnListSelectionChanged()
 
 
 //----------------------------------------------------------------------------
-void vtkProstateNavScanControlStep::SetGUIFromList(vtkMRMLFiducialListNode * activeFiducialListNode)
+void vtkProstateNavStepVerification::SetGUIFromList(vtkMRMLFiducialListNode * activeFiducialListNode)
 {
 
   if (activeFiducialListNode == NULL)    //clear out the list box

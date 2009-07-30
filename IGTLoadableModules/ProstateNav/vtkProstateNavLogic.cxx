@@ -38,44 +38,12 @@
 
 #include "vtkProstateNavGUI.h"
 
-// for communication with robot and scanner
-#include "BRPTPRInterface.h"
-
 vtkCxxRevisionMacro(vtkProstateNavLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkProstateNavLogic);
 
 //---------------------------------------------------------------------------
-const int vtkProstateNavLogic::PhaseTransitionMatrix[vtkProstateNavLogic::NumPhases][vtkProstateNavLogic::NumPhases] =
-  {
-               /*     next workphase     */
-      /*    */ /* St  Pl  Cl  Tg  Mn  Em */
-      /* St */ {  1,  1,  0,  0,  0,  1  },
-      /* Pl */ {  1,  1,  1,  0,  0,  1  },
-      /* Cl */ {  1,  1,  1,  1,  1,  1  },
-      /* Tg */ {  1,  1,  1,  1,  1,  1  },
-      /* Mn */ {  1,  1,  1,  1,  1,  1  },
-      /* Em */ {  1,  1,  1,  1,  1,  1  },
-  };
-
-//---------------------------------------------------------------------------
-const char *vtkProstateNavLogic::WorkPhaseKey[vtkProstateNavLogic::NumPhases] =
-  { /* define in BRPTPRInterface.h */
-  /* Su */ BRPTPR_START_UP   ,
-  /* Pl */ BRPTPR_PLANNING   ,
-  /* Cl */ BRPTPR_CALIBRATION,
-  /* Tg */ BRPTPR_TARGETING  ,
-  /* Mn */ BRPTPR_MANUAL     ,
-  /* Em */ BRPTPR_EMERGENCY  ,
-  };
-
-//---------------------------------------------------------------------------
 vtkProstateNavLogic::vtkProstateNavLogic()
 {
-  this->CurrentPhase         = StartUp;
-  this->PrevPhase            = StartUp;
-  this->PhaseComplete        = false;
-  this->PhaseTransitionCheck = true;
-  
   this->RobotWorkPhase       = -1;
   this->ScannerWorkPhase     = -1;
   
@@ -134,7 +102,7 @@ int vtkProstateNavLogic::Enter()
   this->GetMRMLScene()->RegisterNodeClass( linxnode );
   linxnode->Delete();
   
-  std::cerr << "checking IsA() .." << std::endl;
+//  std::cerr << "checking IsA() .." << std::endl;
   if (linxnode->IsA("vtkMRMLBrpRobotCommandNode"))
     {
     std::cerr << "OK" << std::endl;
@@ -197,85 +165,22 @@ int vtkProstateNavLogic::Enter()
   vtkMRMLModelNode*  modelNode =
     vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID.c_str()));
   
-  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
-  displayNode->SetVisibility(0);
-  modelNode->Modified();
-  this->MRMLScene->Modified();
+  if (modelNode)
+    {
+    vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+    displayNode->SetVisibility(0);
+    modelNode->Modified();
+    this->MRMLScene->Modified();
 
-  modelNode->SetAndObserveTransformNodeID(this->ZFrameTransformNodeID.c_str());
+    modelNode->SetAndObserveTransformNodeID(this->ZFrameTransformNodeID.c_str());
+    }
 
-
-  std::cerr << "Robot = " <<  this->RobotCommandNodeID << std::endl;
-  std::cerr << "Target = " <<  this->RobotTargetNodeID  << std::endl;
-  std::cerr << "ZFrame = " <<  this->ZFrameModelNodeID  << std::endl;
+//  std::cerr << "Robot = " <<  this->RobotCommandNodeID << std::endl;
+//  std::cerr << "Target = " <<  this->RobotTargetNodeID  << std::endl;
+//  std::cerr << "ZFrame = " <<  this->ZFrameModelNodeID  << std::endl;
 
 
   return 1;
-}
-
-
-//---------------------------------------------------------------------------
-int vtkProstateNavLogic::SwitchWorkPhase(int newwp)
-{
-  if (IsPhaseTransitable(newwp))
-    {
-    this->PrevPhase     = this->CurrentPhase;
-    this->CurrentPhase  = newwp;
-    this->PhaseComplete = false;
-
-    char* command = NULL;
-    switch(this->CurrentPhase)
-      {
-      case StartUp:
-        this->TimerOn = 0;
-        command = "START_UP";
-        break;
-      case Planning:
-        this->TimerOn = 0;
-        command = "PLANNING";
-        break;
-      case Calibration:
-        this->TimerOn = 0;
-        command = "CALIBRATION";
-        break;
-      case Targeting:
-        command = "TARGETING";
-        if (!this->TimerOn)
-          {
-          this->TimerOn = 1;
-          vtkKWTkUtilities::CreateTimerHandler(this->GetGUI()->GetApplication(), 200, this, "TimerHandler");
-          }
-        break;
-      case Manual:
-        command = "MANUAL";
-        if (!this->TimerOn)
-          {
-          this->TimerOn = 1;
-          vtkKWTkUtilities::CreateTimerHandler(this->GetGUI()->GetApplication(), 200, this, "TimerHandler");
-          }
-        break;
-      case Emergency:
-        this->TimerOn = 0;
-        command = "EMERGENCY";
-        break;
-      default:
-        break;
-      }
-    if (command)
-      {
-      vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID(this->RobotCommandNodeID.c_str());
-      vtkMRMLBrpRobotCommandNode* cnode = vtkMRMLBrpRobotCommandNode::SafeDownCast(node);
-      if (cnode)
-        {
-        cnode->PushOutgoingCommand(command);
-        cnode->InvokeEvent(vtkCommand::ModifiedEvent);
-        }
-
-      }
-
-    return 1;
-    }
-  return 0;
 }
 
 
@@ -292,34 +197,11 @@ void vtkProstateNavLogic::TimerHandler()
       cnode->PushOutgoingCommand("GET_COORDINA");
       cnode->InvokeEvent(vtkCommand::ModifiedEvent);
       }
-    std::cerr << "void vtkProstateNavLogic::TimerHandler() is called" << std::endl;
+//    std::cerr << "void vtkProstateNavLogic::TimerHandler() is called" << std::endl;
     vtkKWTkUtilities::CreateTimerHandler(this->GetGUI()->GetApplication(), 200, this, "TimerHandler");
     }
 }
 
-
-//---------------------------------------------------------------------------
-int vtkProstateNavLogic::IsPhaseTransitable(int nextwp)
-{
-  if (nextwp < 0 || nextwp > NumPhases)
-    {
-    return 0;
-    }
-  
-  if (PhaseTransitionCheck == 0)
-    {
-    return 1;
-    }
-  
-  if (PhaseComplete)
-    {
-    return PhaseTransitionMatrix[CurrentPhase][nextwp];
-    }
-  else
-    {
-    return PhaseTransitionMatrix[PrevPhase][nextwp];
-    }
-}
 
 //---------------------------------------------------------------------------
 int vtkProstateNavLogic::ConnectTracker(const char* filename)
@@ -381,6 +263,7 @@ int  vtkProstateNavLogic::RobotMoveTo()
   cnode->PushOutgoingCommand("MOVE_TO");
   cnode->InvokeEvent(vtkCommand::ModifiedEvent);
   
+  return 1;
 }
 
 //---------------------------------------------------------------------------
@@ -399,6 +282,8 @@ int vtkProstateNavLogic::SendZFrame()
   cnode->SetZFrameTransformNodeID(this->ZFrameTransformNodeID.c_str());
   cnode->PushOutgoingCommand("SET_Z_FRAME");
   cnode->InvokeEvent(vtkCommand::ModifiedEvent);
+
+  return 1;
   
 }
 
@@ -421,20 +306,6 @@ int vtkProstateNavLogic::ScanStop()
 
   return 1;
 }
-
-//---------------------------------------------------------------------------
-int vtkProstateNavLogic::WorkPhaseStringToID(const char* string)
-{
-  for (int i = 0; i < vtkProstateNavLogic::NumPhases; i ++)
-    {
-    if (strcmp(vtkProstateNavLogic::WorkPhaseKey[i], string) == 0)
-      {
-      return i;
-      }
-    }
-  return -1; // Nothing found.
-}
-
 
 
 //----------------------------------------------------------------------------

@@ -16,8 +16,8 @@
 
 #include "igtlCoordinateMessage.h"
 
-#include "igtl_header.h"
-#include "igtl_position.h"
+#include "igtlutil/igtl_header.h"
+#include "igtlutil/igtl_position.h"
 
 #include <string.h>
 
@@ -27,7 +27,7 @@ CoordinateMessage::CoordinateMessage():
   MessageBase()
 {
   Init();
-  m_DefaultBodyType  = "COORDINATE";
+  m_DefaultBodyType  = "COORDINATES";
 }
 
 
@@ -269,8 +269,8 @@ int CoordinateMessage::UnpackBody()
   this->m_Quaternion[2] = p->quaternion[2];
   this->m_Quaternion[3] = p->quaternion[3];
 
-  if (this->GetPackSize() >= IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE
-      +sizeof(igtlFloat32)*4)
+  if (this->GetPackSize() >= static_cast<int>(IGTL_HEADER_SIZE+IGTL_POSITION_MESSAGE_DEFAULT_SIZE
+      +sizeof(igtlFloat32)*4))
     {
     unsigned char* off = (unsigned char*) this->m_Body;
     off += sizeof(igtl_position);
@@ -285,7 +285,7 @@ int CoordinateMessage::UnpackBody()
       memcpy((void*)this->m_Offset, (void*)tmp, sizeof(igtl_float32)*3);
       
       off += sizeof(igtl_float32)*3;
-      igtlUint32 tmp2;
+      igtlUint32 tmp2 = 0;
       memcpy((void*)tmp2, (void*)(off), sizeof(igtl_float32));
       this->m_Insertion = BYTE_SWAP_INT32(tmp2);
       }

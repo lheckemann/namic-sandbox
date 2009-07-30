@@ -43,7 +43,8 @@ vtkCxxRevisionMacro(vtkProstateNavTargetingStep, "$Revision: 1.1 $");
 //----------------------------------------------------------------------------
 vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
 {
-  this->SetName("4/5. Targeting");
+  //this->SetName("Targeting");
+  this->SetTitle("Targeting");
   this->SetDescription("Set target points.");
 
   this->MainFrame          = NULL;
@@ -66,6 +67,54 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
 //----------------------------------------------------------------------------
 vtkProstateNavTargetingStep::~vtkProstateNavTargetingStep()
 {
+  if (this->MainFrame)
+    {
+    this->MainFrame->SetParent(NULL);
+    this->MainFrame->Delete();
+    this->MainFrame = NULL;
+    }
+  if (this->TargetListFrame)
+    {
+    this->TargetListFrame->SetParent(NULL);
+    this->TargetListFrame->Delete();
+    this->TargetListFrame = NULL;
+    }
+  if (this->TargetControlFrame)
+    {
+    this->TargetControlFrame->SetParent(NULL);
+    this->TargetControlFrame->Delete();
+    this->TargetControlFrame = NULL;
+    }
+  if (this->MultiColumnList)
+    {
+    this->MultiColumnList->SetParent(NULL);
+    this->MultiColumnList->Delete();
+    this->MultiColumnList = NULL;
+    }
+  if (this->NeedlePositionMatrix)
+    {
+    this->NeedlePositionMatrix->SetParent(NULL);
+    this->NeedlePositionMatrix->Delete();
+    this->NeedlePositionMatrix = NULL;
+    }
+  if (this->NeedleOrientationMatrix)
+    {
+    this->NeedleOrientationMatrix->SetParent(NULL);
+    this->NeedleOrientationMatrix->Delete();
+    this->NeedleOrientationMatrix = NULL;
+    }
+  if (this->MoveButton)
+    {
+    this->MoveButton->SetParent(NULL);
+    this->MoveButton->Delete();
+    this->MoveButton = NULL;
+    }
+  if (this->StopButton)
+    {
+    this->StopButton->SetParent(NULL);
+    this->StopButton->Delete();
+    this->StopButton = NULL;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -75,7 +124,6 @@ void vtkProstateNavTargetingStep::ShowUserInterface()
 
   vtkKWWizardWidget *wizardWidget = this->GetGUI()->GetWizardWidget();
   vtkKWWidget *parent = wizardWidget->GetClientArea();
-
 
   // -----------------------------------------------------------------
   // Target List Frame
@@ -216,25 +264,27 @@ void vtkProstateNavTargetingStep::ShowUserInterface()
                this->StopButton->GetWidgetName());
 
   // -----------------------------------------------------------------
-  // MRML Event Observer
-  //
+  // MRML Event Observers
 
-  if (this->GetGUI()->GetFiducialListNodeID())
+  UpdateMRMLObserver();
+
+  if (this->GetProstateNavManager() && this->GetGUI())
     {
-    this->MRMLScene->SaveStateForUndo(this->GetGUI()->GetFiducialListNode());
-
-    vtkMRMLSelectionNode *selnode = NULL;
-    if (this->GetGUI()->GetApplicationLogic())
+    vtkSlicerApplication *app = (vtkSlicerApplication *)(this->GetGUI()->GetApplication());
+    vtkSlicerFiducialsGUI* fidGUI 
+      = vtkSlicerFiducialsGUI::SafeDownCast ( app->GetModuleGUIByName ("Fiducials"));
+    
+    if (fidGUI)
       {
-      selnode = this->GetGUI()->GetApplicationLogic()->GetSelectionNode();
+      vtkMRMLFiducialListNode* fidNode = this->GetProstateNavManager()->GetTargetPlanList();
+      if (fidNode)
+        {
+        fidGUI->Enter();
+        fidGUI->SetFiducialListNodeID (fidNode->GetID());
+        }
       }
-    this->UpdateMRMLObserver(selnode);
-    this->SetGUIFromList(this->GetGUI()->GetFiducialListNode());
     }
-  else
-    {
-    vtkErrorMacro ("ShowUserInterface(): Cannot find FiducialListNodeID for Prostate Module." );
-    }
+  
 }
 
 
@@ -289,19 +339,28 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
         matrix->SetElement(1, 0, igtlmatrix[1][0]);
         matrix->SetElement(2, 0, igtlmatrix[2][0]);
         matrix->SetElement(3, 0, igtlmatrix[3][0]);
+
         matrix->SetElement(0, 1, igtlmatrix[0][1]);
         matrix->SetElement(1, 1, igtlmatrix[1][1]);
         matrix->SetElement(2, 1, igtlmatrix[2][1]);
         matrix->SetElement(3, 1, igtlmatrix[3][1]);
+
         matrix->SetElement(0, 2, igtlmatrix[0][2]);
         matrix->SetElement(1, 2, igtlmatrix[1][2]);
         matrix->SetElement(2, 2, igtlmatrix[2][2]);
         matrix->SetElement(3, 2, igtlmatrix[3][2]);
+
         matrix->SetElement(0, 3, igtlmatrix[0][3]);
         matrix->SetElement(1, 3, igtlmatrix[1][3]);
         matrix->SetElement(2, 3, igtlmatrix[2][3]);
         matrix->SetElement(3, 3, igtlmatrix[3][3]);
         
+
+        std::cerr << "TARGETPOISITION = "
+                  << igtlmatrix[0][3] << ", "
+                  << igtlmatrix[1][3] << ", "
+                  << igtlmatrix[2][3] << std::endl;
+
         vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
         transformToParent->DeepCopy(matrix);
         this->Logic->RobotMoveTo();
@@ -315,6 +374,7 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
   else if (this->StopButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
+
     }           
 
 }
@@ -324,35 +384,6 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
 void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
-  std::cerr << "vtkProstateNavTargetingStep::ProcessMRMLEvents() is called. " << std::cerr;
-
-  vtkMRMLSelectionNode *selnode;
-  if (this->GetGUI()->GetApplicationLogic())
-    {
-    selnode = this->GetGUI()->GetApplicationLogic()->GetSelectionNode();
-    }
-
-  // -----------------------------------------------------------------
-  // Update MRML Observer
-
-  if (selnode != NULL 
-      && vtkMRMLSelectionNode::SafeDownCast(caller) == selnode
-      && event == vtkCommand::ModifiedEvent)
-    {
-
-    if (selnode->GetActiveFiducialListID() != NULL &&
-        this->GetGUI()->GetFiducialListNodeID() != NULL)
-      {
-      if (strcmp(selnode->GetActiveFiducialListID(),
-                 this->GetGUI()->GetFiducialListNodeID()) != 0)
-        {
-        if (!selnode->GetActiveFiducialListID())
-          {
-          this->UpdateMRMLObserver(selnode);
-          }
-        }
-      }
-    }
 
   vtkMRMLFiducialListNode *node = vtkMRMLFiducialListNode::SafeDownCast(caller);
   if (!node)
@@ -363,64 +394,85 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
   // -----------------------------------------------------------------
   // Modified Event
 
-  if (node == this->GetGUI()->GetFiducialListNode() && event == vtkCommand::ModifiedEvent)
+  if (node == this->GetProstateNavManager()->GetTargetPlanList()
+      && event == vtkCommand::ModifiedEvent)
     {
-    SetGUIFromList(this->GetGUI()->GetFiducialListNode());
+    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanList());
+    }
+
+  // -----------------------------------------------------------------
+  // Node Added Event : when a fiducial is added to the list
+
+  if (node == this->GetProstateNavManager()->GetTargetPlanList()
+      && event == vtkMRMLScene::NodeAddedEvent)
+    {
+    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanList());
     }
 
   // -----------------------------------------------------------------
   // Fiducial Modified Event
 
-  else if (node == this->GetGUI()->GetFiducialListNode() 
+  else if (node == this->GetProstateNavManager()->GetTargetPlanList()
            && event == vtkMRMLFiducialListNode::FiducialModifiedEvent)
     {
-    SetGUIFromList(this->GetGUI()->GetFiducialListNode());
+    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanList());
     }
   
   // -----------------------------------------------------------------
   // Display Modified Event
-
-  else if (node == this->GetGUI()->GetFiducialListNode()
+  
+  else if (node == this->GetProstateNavManager()->GetTargetPlanList()
            && event == vtkMRMLFiducialListNode::DisplayModifiedEvent)
     {
-    SetGUIFromList(this->GetGUI()->GetFiducialListNode());
+    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanList());
     }
-
+  
 }
 
 
 //----------------------------------------------------------------------------
-void vtkProstateNavTargetingStep::UpdateMRMLObserver(vtkMRMLSelectionNode* selnode)
+void vtkProstateNavTargetingStep::UpdateMRMLObserver()
 {
 
-  std::cerr << "vtkProstateNavTargetingStep::UpdateMRMLObserver()" << std::endl;
-
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkSlicerFiducialsGUI *fidGUI
-    = (vtkSlicerFiducialsGUI*) app->GetModuleGUIByName("Fiducials");
-
-  vtkMRMLFiducialListNode* fidlist = 
-    vtkMRMLFiducialListNode::SafeDownCast(this->MRMLScene
-                                          ->GetNodeByID(this->GetGUI()->GetFiducialListNodeID()));
-  if (selnode != NULL)
+  if (this->GetProstateNavManager())
     {
-    std::cerr << "selnode != 0;" << std::endl;
-    // is the active fid list id out of synch with our selection?
-    vtkIntArray *events = vtkIntArray::New();
-    events->InsertNextValue(vtkCommand::ModifiedEvent);
-    events->InsertNextValue(vtkMRMLFiducialListNode::DisplayModifiedEvent);
-    events->InsertNextValue(vtkMRMLFiducialListNode::FiducialModifiedEvent);
 
-    vtkObject *oldNode = (fidlist);
-    vtkObject *pNode   = this->GetGUI()->GetFiducialListNode();
-    this->MRMLObserverManager
-      ->SetAndObserveObjectEvents(vtkObjectPointer(&(fidlist)),(fidlist),(events));
-    if ( oldNode != (fidlist) )
+    vtkMRMLFiducialListNode* plan      = this->GetProstateNavManager()->GetTargetPlanList();
+    vtkMRMLFiducialListNode* completed = this->GetProstateNavManager()->GetTargetCompletedList();
+
+    if (plan && completed)
       {
-      this->GetGUI()->SetFiducialListNode(fidlist);
-      this->InvokeEvent (vtkCommand::ModifiedEvent);
-      } 
+      
+      vtkIntArray *events = vtkIntArray::New();
+      events->InsertNextValue(vtkCommand::ModifiedEvent);
+      events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+      events->InsertNextValue(vtkMRMLFiducialListNode::DisplayModifiedEvent);
+      events->InsertNextValue(vtkMRMLFiducialListNode::FiducialModifiedEvent);
+      
+      // Set and observe target plan list
+      vtkObject *oldNode = (plan);
+      this->MRMLObserverManager
+        ->SetAndObserveObjectEvents(vtkObjectPointer(&(plan)),(plan),(events));
+      if ( oldNode != (plan) )
+        {
+        this->GetProstateNavManager()->SetAndObserveTargetPlanList(plan);
+        this->InvokeEvent (vtkCommand::ModifiedEvent);
+        } 
+
+      // Set and observe completed target list
+      vtkObject *oldNode2 = (completed);
+      this->MRMLObserverManager
+        ->SetAndObserveObjectEvents(vtkObjectPointer(&(completed)),(completed),(events));
+      if ( oldNode2 != (completed) )
+        {
+        this->GetProstateNavManager()->SetAndObserveTargetPlanList(completed);
+        this->InvokeEvent (vtkCommand::ModifiedEvent);
+        } 
+
+      events->Delete();
+      }
     }
+
 }
 
 
@@ -428,7 +480,7 @@ void vtkProstateNavTargetingStep::UpdateMRMLObserver(vtkMRMLSelectionNode* selno
 void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char * str)
 {
 
-  vtkMRMLFiducialListNode* fidList = this->GetGUI()->GetFiducialListNode();
+  vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanList();
 
   if (fidList == NULL)
     {
@@ -503,7 +555,7 @@ void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char
 void vtkProstateNavTargetingStep::OnMultiColumnListSelectionChanged()
 {
 
-  vtkMRMLFiducialListNode* fidList = this->GetGUI()->GetFiducialListNode();
+  vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanList();
 
   if (fidList == NULL)
     {

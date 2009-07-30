@@ -31,7 +31,8 @@ vtkCxxRevisionMacro(vtkProstateNavManualControlStep, "$Revision: 1.1 $");
 //----------------------------------------------------------------------------
 vtkProstateNavManualControlStep::vtkProstateNavManualControlStep()
 {
-  this->SetName("5/5. Manual Control");
+  //this->SetName("Manual Control");
+  this->SetTitle("Manual Control");
   this->SetDescription("Insert the needle.");
 
   this->MainFrame = NULL;
@@ -48,6 +49,54 @@ vtkProstateNavManualControlStep::vtkProstateNavManualControlStep()
 //----------------------------------------------------------------------------
 vtkProstateNavManualControlStep::~vtkProstateNavManualControlStep()
 {
+  if (this->MainFrame)
+    {
+    this->MainFrame->SetParent(NULL);
+    this->MainFrame->Delete();
+    this->MainFrame = NULL;
+    }
+  if (this->ControlFrame)
+    {
+    this->ControlFrame->SetParent(NULL);
+    this->ControlFrame->Delete();
+    this->ControlFrame = NULL;
+    }
+  if (this->PRScale)
+    {
+    this->PRScale->SetParent(NULL);
+    this->PRScale->Delete();
+    this->PRScale = NULL;
+    }
+  if (this->PAScale)
+    {
+    this->PAScale->SetParent(NULL);
+    this->PAScale->Delete();
+    this->PAScale = NULL;
+    }
+  if (this->PSScale)
+    {
+    this->PSScale->SetParent(NULL);
+    this->PSScale->Delete();
+    this->PSScale = NULL;
+    }
+  if (this->NRScale)
+    {
+    this->NRScale->SetParent(NULL);
+    this->NRScale->Delete();
+    this->NRScale = NULL;
+    }
+  if (this->NAScale)
+    {
+    this->NAScale->SetParent(NULL);
+    this->NAScale->Delete();
+    this->NAScale = NULL;
+    }
+  if (this->NSScale)
+    {
+    this->NSScale->SetParent(NULL);
+    this->NSScale->Delete();
+    this->NSScale = NULL;
+    }
 }
 
 //----------------------------------------------------------------------------
