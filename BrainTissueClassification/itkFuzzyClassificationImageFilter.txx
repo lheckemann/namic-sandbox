@@ -256,7 +256,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   bool conv;
   int iter = 0;
   do {
-    vcl_printf ("\nIteration %d:\n", iter);
+    // // vcl_printf ("\nIteration %d:\n", iter);
     //1) Compute new membership functions u1[], u2[], u3[].
     compute_new_mem_fun_u (centroid_v, gain_field_g, img_y, bg_thresh, mem_fun_u);
 
@@ -333,9 +333,9 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                             const float low_th, const float high_th,
                             vcl_vector<float>& centroid_v)
 {
-  vcl_printf ("\ncompute_init_centroid():\n");
-  vcl_printf ("  n_class %d, n_bin %d, low_t %f, high_t %f.\n",
-              n_class, n_bin, low_th, high_th);
+  // vcl_printf ("\ncompute_init_centroid():\n");
+  // vcl_printf ("  n_class %d, n_bin %d, low_t %f, high_t %f.\n",
+  //            n_class, n_bin, low_th, high_th);
 
   // Exclude pixels whose intensity is outside the range [low_th, high_th]
   // from computation. The range is divided into n_bin bins to computer the kernal 
@@ -408,8 +408,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
       break;
   }
 
-  vcl_printf ("  centroid_v: C0 %f,   C1 %f,   C2 %f.\n\n", 
-              centroid_v[0], centroid_v[1], centroid_v[2]);
+  // vcl_printf ("  centroid_v: C0 %f,   C1 %f,   C2 %f.\n\n", 
+  //            centroid_v[0], centroid_v[1], centroid_v[2]);
 }
 
 // Compute new membership functions u1[], u2[], u3[].
@@ -422,7 +422,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                             const float bg_thresh,
                             vcl_vector<InputImagePointer>& mem_fun_u)
 {
-  vcl_printf ("  compute_new_mem_fun_u(): \n");
+  // vcl_printf ("  compute_new_mem_fun_u(): \n");
 
   const int n_class = mem_fun_u.size();
   
@@ -493,7 +493,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                             InputImagePointer& img_y, 
                             vcl_vector<float>& centroid_v)
 {
-  vcl_printf ("  compute_new_centroids(): ");
+  // vcl_printf ("  compute_new_centroids(): ");
   const int n_class = mem_fun_u.size();
 
   for (int k = 0; k < n_class; k++) {
@@ -525,7 +525,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
       if (numerator == 0)
         centroid_v[k] = 0;
       else {
-        vcl_printf ("  Error: divide by 0!\n");
+        // vcl_printf ("  Error: divide by 0!\n");
         centroid_v[k] = itk::NumericTraits<float>::min();
       }
     }
@@ -533,8 +533,8 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
       centroid_v[k] = numerator / denominator;
     }
   }
-  vcl_printf ("C0 %f,   C1 %f,   C2 %f.\n", 
-              centroid_v[0], centroid_v[1], centroid_v[2]);
+  // vcl_printf ("C0 %f,   C1 %f,   C2 %f.\n", 
+  //            centroid_v[0], centroid_v[1], centroid_v[2]);
 }
 
 // Compute a new gain field g[]:
@@ -550,10 +550,10 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                              const float gain_th)
 {
   assert (gain_fit_option == 1 || gain_fit_option == 2);
-  vcl_printf ("  compute_new_gain_field():\n");
-  vcl_printf ("    %s fitting, gain_th %f.\n",
-              (gain_fit_option==1) ? "linear" : "quadratic", 
-              gain_th);
+  // vcl_printf ("  compute_new_gain_field():\n");
+  // vcl_printf ("    %s fitting, gain_th %f.\n",
+  //            (gain_fit_option==1) ? "linear" : "quadratic", 
+  //            gain_th);
 
   //Quadratic regression fiting to get the parameter B
   vnl_matrix<double> B;
@@ -578,7 +578,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                        const vcl_vector<InputImagePointer>& mem_fun_un, 
                        const float conv_thresh)
 {
-  vcl_printf ("  test_convergence(): ");
+  // vcl_printf ("  test_convergence(): ");
 
   const int n_class = mem_fun_u.size();
   float max_value = 0;
@@ -603,7 +603,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     }    
   }
 
-  vcl_printf ("max_value %f (conv_th %f).\n", max_value, conv_thresh);
+  // vcl_printf ("max_value %f (conv_th %f).\n", max_value, conv_thresh);
 
   if (max_value < conv_thresh)
     return true;
@@ -634,7 +634,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                             const float thresh,
                             vnl_matrix<double>& B)
 {
-  vcl_printf ("    img_regression_linear(): \n");
+  // vcl_printf ("    img_regression_linear(): \n");
   int i;
 
   //Put image intensity into y[].
@@ -654,7 +654,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     if (pixel > thresh)
       SZ++;
   }
-  vcl_printf ("      # pixels > thresh (%f) = %d\n", thresh, SZ);
+  // vcl_printf ("      # pixels > thresh (%f) = %d\n", thresh, SZ);
   
   vnl_matrix<double> y (SZ,1);
   vnl_matrix<double> x1 (SZ,1);
@@ -700,7 +700,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   //b = inv(x'*x) * (x'*y);
   B = Xt_X_inv * Xt_y;
   
-  vcl_printf ("B: \n");
+  // vcl_printf ("B: \n");
   vcl_cerr << B;
 }
 
@@ -711,7 +711,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::compute_linear_fit_img (const vnl_matrix<double>& B, 
                              InputImagePointer& fit_image)
 {
-  vcl_printf ("    compute_linear_fit_img(): \n");
+  // vcl_printf ("    compute_linear_fit_img(): \n");
 
   //Traverse through the fit_image and compute a new quadratic value via B.
   //Image coordinates into x1[], x2[], x3[].
@@ -737,7 +737,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                                const float thresh,
                                vnl_matrix<double>& B)
 {
-  vcl_printf ("    img_regression_quadratic(): \n");
+  // vcl_printf ("    img_regression_quadratic(): \n");
   int i;
 
   //Put image intensity into y[].
@@ -756,7 +756,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     if (pixel > thresh)
       SZ++;
   }
-  vcl_printf ("      # pixels > thresh (%f) = %d\n", thresh, SZ);
+  // vcl_printf ("      # pixels > thresh (%f) = %d\n", thresh, SZ);
 
   vnl_matrix<double> y (SZ,1);
   vnl_matrix<double> x1 (SZ,1);
@@ -836,7 +836,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   x2x2.clear();
   x3x3.clear();
 
-  ///vcl_printf ("X: \n");
+  ///// vcl_printf ("X: \n");
   ///vcl_cerr << X;
 
   vnl_matrix<double> Xt = X.transpose();
@@ -851,7 +851,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   //b = inv(x'*x) * (x'*y);
   B = Xt_X_inv * Xt_y;
   
-  vcl_printf ("B: \n");
+  // vcl_printf ("B: \n");
   vcl_cerr << B;
 }
 
@@ -862,7 +862,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::compute_quadratic_fit_img (const vnl_matrix<double>& B,
                                 InputImagePointer& fit_image)
 {
-  vcl_printf ("    compute_quadratic_fit_img(): \n");
+  // vcl_printf ("    compute_quadratic_fit_img(): \n");
 
   //Traverse through the fit_image and compute a new quadratic value via B.
   //Image coordinates into x1[], x2[], x3[].
@@ -963,9 +963,9 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vnl_matrix<double> B;
 
   do {
-    vcl_printf ("\n============================================================\n");
-    vcl_printf ("\nGrid Regression Iteration %d:\n", iter);
-    vcl_printf ("\n============================================================\n");
+    // vcl_printf ("\n============================================================\n");
+    // vcl_printf ("\nGrid Regression Iteration %d:\n", iter);
+    // vcl_printf ("\n============================================================\n");
 
     //Run the AFCM segmentation in each block.
     //Assume each block contains sufficient GM and WM.
@@ -984,16 +984,16 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                          conv_thresh, gain_field_g_grid[i],
                          mem_fun_u_grid[i], mem_fun_un_grid[i], centroid_v_grid[i]);
 
-      vcl_printf ("\n==============================\n");
-      vcl_printf ("Iter %d Grid %d : ", iter, i);
-      vcl_printf ("  C0 %f, C1 %f, C2 %f.\n", 
-                  centroid_v_grid[i][0], centroid_v_grid[i][1], centroid_v_grid[i][2]);
-      vcl_printf ("==============================\n");
+      // vcl_printf ("\n==============================\n");
+      // vcl_printf ("Iter %d Grid %d : ", iter, i);
+      // vcl_printf ("  C0 %f, C1 %f, C2 %f.\n", 
+      //            centroid_v_grid[i][0], centroid_v_grid[i][1], centroid_v_grid[i][2]);
+      // vcl_printf ("==============================\n");
     }
 
-    vcl_printf ("\n============================================================\n");
-    vcl_printf ("  Start gain field fitting (regression) for iter %d.\n", iter);
-    vcl_printf ("============================================================\n");
+    // vcl_printf ("\n============================================================\n");
+    // vcl_printf ("  Start gain field fitting (regression) for iter %d.\n", iter);
+    // vcl_printf ("============================================================\n");
     //Linear or quadratic regression on the WM of the nxnxn grids, 
     //with value at the center of each block.
     //WM is the centroid_v_grid[i][2].
@@ -1021,12 +1021,12 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
     //Compute difference norm of the fitting.
     SSD = compute_diff_norm (centroid_v_grid, centroid_vn_grid);
-    vcl_printf ("\n\n  Iter %d: SSD_old %4.0f, SSD %4.0f.\n", iter, SSD_old, SSD);
+    // vcl_printf ("\n\n  Iter %d: SSD_old %4.0f, SSD %4.0f.\n", iter, SSD_old, SSD);
 
     //Test convergence: 
     SSD_history.push_back (SSD);
     if (SSD >= SSD_old) {
-      vcl_printf ("\n SSD > SSD_old, converges, stop iteration.\n");
+      // vcl_printf ("\n SSD > SSD_old, converges, stop iteration.\n");
       conv = true;
     }
     else {
@@ -1056,15 +1056,15 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   }
   while (conv == false);
 
-  vcl_printf ("\n==============================================================================\n");
-  vcl_printf ("  Summary for grid division gain field correction:\n");
-  vcl_printf ("    %s fitting: totally %d iteration(s).\n", 
-              (gain_fit_option==3) ? "Linear" : "Quadratic",
-              SSD_history.size());
-  vcl_printf ("    SSD in iterations: ");
-  for (unsigned int i=0; i<SSD_history.size(); i++)
-    vcl_printf ("%4.0f ", SSD_history[i]);
-  vcl_printf ("\n==============================================================================\n");
+  // vcl_printf ("\n==============================================================================\n");
+  // vcl_printf ("  Summary for grid division gain field correction:\n");
+  // vcl_printf ("    %s fitting: totally %d iteration(s).\n", 
+  //            (gain_fit_option==3) ? "Linear" : "Quadratic",
+  //            SSD_history.size());
+  // vcl_printf ("    SSD in iterations: ");
+  // for (unsigned int i=0; i<SSD_history.size(); i++)
+  //   vcl_printf ("%4.0f ", SSD_history[i]);
+  //   vcl_printf ("\n==============================================================================\n");
   
   //Compute the final img_y[] from the gain_field_g[].
   update_gain_to_image (gain_field_g, img_y);
@@ -1097,7 +1097,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                           const vcl_vector<typename InputImageType::IndexType>& grid_center_index,
                           vnl_matrix<double>& B)
 {
-  vcl_printf ("    grid_regression_linear(): \n");
+  // vcl_printf ("    grid_regression_linear(): \n");
   int i;
 
   //Put centroid_v_grid[2] into y[] (only use the WM for now).
@@ -1106,15 +1106,15 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   assert (centroid_v_grid.size() == grid_center_index.size());
 
   //Determine the total number of qualified inputs.
-  vcl_printf ("      WM centroid(s): ");
+  // vcl_printf ("      WM centroid(s): ");
   int SZ = 0;
   for (i=0; i<centroid_v_grid.size(); i++) {
-    vcl_printf ("%.2f ", centroid_v_grid[i][2]);
+    // vcl_printf ("%.2f ", centroid_v_grid[i][2]);
     if (centroid_v_grid[i][2] >= 0) {
       SZ++;
     }
   }
-  vcl_printf ("\n      Total # WM centroid(s) used = %d.\n", SZ);
+  // vcl_printf ("\n      Total # WM centroid(s) used = %d.\n", SZ);
   
   vnl_matrix<double> y (SZ,1);
   vnl_matrix<double> x1 (SZ,1);
@@ -1160,7 +1160,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   //b = inv(x'*x) * (x'*y);
   B = Xt_X_inv * Xt_y;
   
-  vcl_printf ("B: \n");
+  // vcl_printf ("B: \n");
   vcl_cerr << B;
 }
 
@@ -1171,7 +1171,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                              const vcl_vector<typename InputImageType::IndexType>& grid_center_index,
                              vnl_matrix<double>& B)
 {
-  vcl_printf ("    grid_regression_quadratic(): \n");
+  // vcl_printf ("    grid_regression_quadratic(): \n");
   int i;
 
   //Put centroid_v_grid[2] into y[] (only use the WM for now).
@@ -1180,15 +1180,15 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   assert (centroid_v_grid.size() == grid_center_index.size());
   
   //Determine the total number of qualified inputs.
-  vcl_printf ("      WM centroid(s): ");
+  // vcl_printf ("      WM centroid(s): ");
   int SZ = 0;
   for (i=0; i<centroid_v_grid.size(); i++) {
-    vcl_printf ("%.2f ", centroid_v_grid[i][2]);
+    // vcl_printf ("%.2f ", centroid_v_grid[i][2]);
     if (centroid_v_grid[i][2] >= 0) {
       SZ++;
     }
   }
-  vcl_printf ("\n      Total # WM centroid(s) used = %d.\n", SZ);
+  // vcl_printf ("\n      Total # WM centroid(s) used = %d.\n", SZ);
 
   vnl_matrix<double> y (SZ,1);
   vnl_matrix<double> x1 (SZ,1);
@@ -1269,7 +1269,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   x2x2.clear();
   x3x3.clear();
 
-  ///vcl_printf ("X: \n");
+  ///// vcl_printf ("X: \n");
   ///vcl_cerr << X;
 
   vnl_matrix<double> Xt = X.transpose();
@@ -1284,7 +1284,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   //b = inv(x'*x) * (x'*y);
   B = Xt_X_inv * Xt_y;
   
-  vcl_printf ("B: \n");
+  // vcl_printf ("B: \n");
   vcl_cerr << B;
 }
 
@@ -1297,7 +1297,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                           const vnl_matrix<double>& B, 
                           vcl_vector<float>& centroid_vn_grid)
 {  
-  vcl_printf ("    centroid_linear_fit(): \n");
+  // vcl_printf ("    centroid_linear_fit(): \n");
   assert (B.rows() == 4);
   assert (grid_center_index.size() == centroid_vn_grid.size());
 
@@ -1319,7 +1319,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                           const vnl_matrix<double>& B, 
                           vcl_vector<float>& centroid_vn_grid)
 {
-  vcl_printf ("    centroid_quadratic_fit(): \n");
+  // vcl_printf ("    centroid_quadratic_fit(): \n");
   assert (B.rows() == 10);
   assert (grid_center_index.size() == centroid_vn_grid.size());
 
@@ -1346,7 +1346,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                         vcl_vector<float>& binMin,
                         int& nBin)
 {
-  vcl_printf ("compute_histogram(): \n");
+  // vcl_printf ("compute_histogram(): \n");
 
   typedef itk::Statistics::ScalarImageToListAdaptor< InputImageType >   AdaptorType;
   AdaptorType::Pointer adaptor = AdaptorType::New();
@@ -1392,7 +1392,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   binMax.clear();
   binMin.clear();
 
-  ///debug: vcl_printf ("\n");
+  ///debug: // vcl_printf ("\n");
   for (int k = 0; k < hs; k++) {
     float hist_v = histogram->GetFrequency(k, 0);
     float bin_min = histogram->GetBinMin(0, k);
@@ -1400,11 +1400,11 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     binMin.push_back (bin_min);
     binMax.push_back (bin_max);
     histVector.push_back (hist_v);
-    ///vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
+    ///// vcl_printf ("h(%.1f,%.1f)=%.0f ", bin_min, bin_max, hist_v);
     ///if (k % 3 == 0)
-      ///vcl_printf ("\n");
+      ///// vcl_printf ("\n");
   }
-  ///vcl_printf ("\t done.\n");
+  ///// vcl_printf ("\t done.\n");
 }
 
 template <class TInputImage, class TOutputImage>
@@ -1412,7 +1412,7 @@ void
 FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::HistogramEqualization (InputImagePointer& image)
 {
-  vcl_printf ("HistogramEqualization(): \n");
+  // vcl_printf ("HistogramEqualization(): \n");
 
   typedef itk::ImageRegionIterator< InputImageType > IteratorType;
 
@@ -1458,7 +1458,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     it.Set(intensityMap[idx]);
   }
 
-  vcl_printf ("\t done.\n\n");
+  // vcl_printf ("\t done.\n\n");
 }
 
 
@@ -1470,7 +1470,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                      int& xmin, int& ymin, int& zmin, 
                      int& xmax, int& ymax, int& zmax)
 {
-  vcl_printf ("    detect_bnd_box(): bg_thresh %f.\n", bg_thresh);
+  // vcl_printf ("    detect_bnd_box(): bg_thresh %f.\n", bg_thresh);
 
   typedef itk::ImageRegionIteratorWithIndex < InputImageType > IndexedIteratorType;
   IndexedIteratorType iit (image, image->GetRequestedRegion());
@@ -1509,12 +1509,12 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   if (xmin == INT_MAX || ymin == INT_MAX || zmin == INT_MAX ||
       xmax == INT_MIN || ymax == INT_MIN || zmax == INT_MIN) {
     //error: no pixel with intensity > bf_thresh.
-    vcl_printf ("Error: no pixel with intensity > bf_thresh!\n");
+    // vcl_printf ("Error: no pixel with intensity > bf_thresh!\n");
     return false;
   }
 
-  vcl_printf ("      (%d, %d, %d) - (%d, %d, %d).\n\n",
-              xmin, ymin, zmin, xmax, ymax, zmax);
+  // vcl_printf ("      (%d, %d, %d) - (%d, %d, %d).\n\n",
+  //            xmin, ymin, zmin, xmax, ymax, zmax);
   return true;
 }
 
@@ -1528,28 +1528,28 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                         vcl_vector<InputImagePointer>& image_grid,
                         vcl_vector<typename InputImageType::IndexType>& grid_center_index)
 {
-  vcl_printf ("    compute_grid_imgs(): %d * %d * %d grids.\n", 
-              n_grid, n_grid, n_grid);
+  // vcl_printf ("    compute_grid_imgs(): %d * %d * %d grids.\n", 
+  //            n_grid, n_grid, n_grid);
 
   const int total_grids = n_grid * n_grid * n_grid;
 
   const int total_size_x = xmax-xmin+1;
   const int total_size_y = ymax-ymin+1;
   const int total_size_z = zmax-zmin+1;
-  vcl_printf ("      size of region in interest: %d * %d * %d.\n", 
-              total_size_x, total_size_y, total_size_z);
+  // vcl_printf ("      size of region in interest: %d * %d * %d.\n", 
+  //            total_size_x, total_size_y, total_size_z);
 
   const int grid_size_x = vcl_ceil (double(total_size_x) / n_grid);
   const int grid_size_y = vcl_ceil (double(total_size_y) / n_grid);
   const int grid_size_z = vcl_ceil (double(total_size_z) / n_grid);
-  vcl_printf ("      regular grid size: %d * %d * %d.\n", 
-              grid_size_x, grid_size_y, grid_size_z);
+  // vcl_printf ("      regular grid size: %d * %d * %d.\n", 
+  //            grid_size_x, grid_size_y, grid_size_z);
 
   const int grid_size_last_x = total_size_x - grid_size_x * (n_grid-1);
   const int grid_size_last_y = total_size_y - grid_size_y * (n_grid-1);
   const int grid_size_last_z = total_size_z - grid_size_z * (n_grid-1);
-  vcl_printf ("      last slice, column, row grid size: %d * %d * %d.\n", 
-              grid_size_last_x, grid_size_last_y, grid_size_last_z);
+  // vcl_printf ("      last slice, column, row grid size: %d * %d * %d.\n", 
+  //            grid_size_last_x, grid_size_last_y, grid_size_last_z);
     
   typename InputImageType::RegionType region;
   typename InputImageType::IndexType index;
@@ -1627,9 +1627,9 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
             max_pixel = pixel;
         }
 
-        vcl_printf ("      grid %d [%d * %d * %d] max_pixel %f, center (%d, %d, %d).\n", 
-                    i, grid_x, grid_y, grid_z, max_pixel,
-                    grid_center[0], grid_center[1], grid_center[2]);
+        // vcl_printf ("      grid %d [%d * %d * %d] max_pixel %f, center (%d, %d, %d).\n", 
+        //            i, grid_x, grid_y, grid_z, max_pixel,
+        //            grid_center[0], grid_center[1], grid_center[2]);
 
         ///debug: write image_grid[i] to file for further examination.
         ///save_img8 ("grid.mhd", image_grid[i]);
@@ -1649,7 +1649,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                               InputImagePointer& gain_field_g)
 {
   //Given a set of fitting images, compute a new gain field image.
-  vcl_printf ("    compute_gain_from_grids(): \n");
+  // vcl_printf ("    compute_gain_from_grids(): \n");
 
   int i;
   typedef itk::ImageRegionIterator < InputImageType > IteratorType;
@@ -1675,7 +1675,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     }
   }    
   double mean = sum / count;
-  vcl_printf ("      %d non-background pixels, intensity mean = %f\n", count, mean);
+  // vcl_printf ("      %d non-background pixels, intensity mean = %f\n", count, mean);
 
   
   IteratorType git (gain_field_g, gain_field_g->GetRequestedRegion());
@@ -1705,7 +1705,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     }
   }
 
-  vcl_printf ("      min / max of g[]: %f / %f.\n", min, max);
+  // vcl_printf ("      min / max of g[]: %f / %f.\n", min, max);
 }
 
 template <class TInputImage, class TOutputImage>
@@ -1713,7 +1713,7 @@ void FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::update_gain_to_image (InputImagePointer& gain_field, 
                            InputImagePointer& image)
 {
-  vcl_printf ("    update_gain_to_image():\n");
+  // vcl_printf ("    update_gain_to_image():\n");
 
   //Both use gain_field's region.
   typedef itk::ImageRegionConstIteratorWithIndex < InputImageType > ConstIndexIteratorType;
@@ -1728,7 +1728,7 @@ void FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     ///Debug
     ///ImageType::IndexType idxg = itg.GetIndex();
     ///if (idxg[0]==97 && idxg[1]==87 && idxg[2]==33) {
-    ///  vcl_printf ("\n  pixel = %f, gain (%d, %d, %d) = %f.", 
+    ///  // vcl_printf ("\n  pixel = %f, gain (%d, %d, %d) = %f.", 
     ///              pixel, idxg[0], idxg[1], idxg[2], gain);
     ///}
 
@@ -1744,19 +1744,19 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::compute_diff_norm (const vcl_vector<vcl_vector<float> >& centroid_v_grid, 
                           const vcl_vector<float>& centroid_vn_grid)
 {
-  vcl_printf ("    compute_diff_norm(): \n");
+  // vcl_printf ("    compute_diff_norm(): \n");
 
   //print centroid_v_grid[] for the WM.
-  vcl_printf ("      centroid_v_grid[%d]:  ", centroid_v_grid.size());
+  // vcl_printf ("      centroid_v_grid[%d]:  ", centroid_v_grid.size());
   for (int i=0; i<centroid_v_grid.size(); i++) {
     assert (centroid_v_grid[i].size() == 3);
-    vcl_printf ("%4.0f ", centroid_v_grid[i][2]);
+    // vcl_printf ("%4.0f ", centroid_v_grid[i][2]);
   }
 
   //print centroid_vn_grid
-  vcl_printf ("\n      centroid_vn_grid[%d]: ", centroid_vn_grid.size());
+  // vcl_printf ("\n      centroid_vn_grid[%d]: ", centroid_vn_grid.size());
   for (int i=0; i<centroid_vn_grid.size(); i++) {
-    vcl_printf ("%4.0f ", centroid_vn_grid[i]);
+    // vcl_printf ("%4.0f ", centroid_vn_grid[i]);
   }
 
   //Compute SSD.
