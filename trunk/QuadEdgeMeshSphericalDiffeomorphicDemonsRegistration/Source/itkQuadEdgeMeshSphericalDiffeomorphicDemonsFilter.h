@@ -72,6 +72,7 @@ public:
   typedef VectorContainer< PointIdentifier, PointType >         DestinationPointContainerType;
   typedef typename DestinationPointContainerType::Pointer       DestinationPointContainerPointer;
   typedef typename DestinationPointContainerType::Iterator      DestinationPointIterator;
+  typedef typename DestinationPointContainerType::ConstIterator DestinationPointConstIterator;
 
 
   /** Set/Get the Fixed mesh. */
@@ -143,6 +144,9 @@ private:
   void ComputeDeformationFieldUpdate();
   void SmoothDeformationField();
   void AssignResampledMovingValuesToOutputMesh();
+  const PointType & ComputeDeformationByScalingAndSquaring( 
+    const VectorType & V, const PointType & X ) const;
+  void SwapOldAndNewDestinationPointContainers();
 
   MovingMeshConstPointer                m_MovingMesh;
   FixedMeshConstPointer                 m_FixedMesh;
@@ -155,6 +159,7 @@ private:
    * Mesh.  This array represents both the deformation field c(xn) and its
    * smoothed version, the field s(xn) as defined in.  */
   DestinationPointContainerPointer      m_DestinationPoints;
+  DestinationPointContainerPointer      m_DestinationPointsSwap;
 
   /** Maximum number of iterations that the filter will be allowed to run. */
   unsigned int                          m_MaximumNumberOfIterations;
