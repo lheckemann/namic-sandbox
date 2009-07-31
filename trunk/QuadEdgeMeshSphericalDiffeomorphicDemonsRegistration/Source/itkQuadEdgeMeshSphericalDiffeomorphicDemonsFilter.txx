@@ -49,6 +49,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_SphereCenter.Fill( 0.0 );
   this->m_SphereRadius = 1.0;
+  this->m_Gamma = 1.0;
 }
 
 
