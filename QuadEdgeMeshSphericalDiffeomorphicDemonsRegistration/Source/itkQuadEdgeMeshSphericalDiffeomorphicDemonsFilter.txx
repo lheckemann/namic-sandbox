@@ -331,6 +331,7 @@ ComputeDeformationFieldUpdate()
   VnlVector3Type Gn2Bn;
   VnlVector2Type QnTmn;
   VnlVector3Type IntensitySlope;
+  VnlVector3Type Vn;
 
   GI22.set_identity();
   GI22 *= this->m_Gamma;
@@ -400,7 +401,7 @@ ComputeDeformationFieldUpdate()
 
     IntensitySlope = Qn * QnTGn2Bn2m2QnGI22I * QnTmn;
 
-    IntensitySlope * ( Fv - Mv );
+    Vn = IntensitySlope * ( Fv - Mv );
 
     ++dstPointItr;
     ++basisItr;
