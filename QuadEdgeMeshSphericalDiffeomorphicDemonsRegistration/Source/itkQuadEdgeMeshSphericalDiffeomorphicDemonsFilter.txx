@@ -36,6 +36,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_BasisSystemAtNode = BasisSystemContainerType::New();
   this->m_DestinationPoints = DestinationPointContainerType::New();
+  this->m_DestinationPointsSwap = DestinationPointContainerType::New();
 
   this->m_TriangleListBasisSystemCalculator = TriangleListBasisSystemCalculatorType::New(); 
   
@@ -133,6 +134,9 @@ AllocateInternalArrays()
 
   this->m_DestinationPoints = DestinationPointContainerType::New();
   this->m_DestinationPoints->Reserve( numberOfNodes );
+
+  this->m_DestinationPointsSwap = DestinationPointContainerType::New();
+  this->m_DestinationPointsSwap->Reserve( numberOfNodes );
 
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
   this->m_ResampledMovingValuesContainer->Reserve( numberOfNodes );
@@ -301,7 +305,8 @@ ComputeDeformationFieldUpdate()
 
   FixedPointDataConstIterator fixedPointDataItr = pointData->Begin();
 
-  DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
+  DestinationPointConstIterator dstPointItr = this->m_DestinationPoints->Begin();
+  DestinationPointIterator dstPointItr2 = this->m_DestinationPointsSwap->Begin();
 
   BasisSystemContainerIterator basisItr = this->m_BasisSystemAtNode->Begin();
 
@@ -314,6 +319,7 @@ ComputeDeformationFieldUpdate()
   typedef vnl_matrix_fixed<double,3,2>  VnlMatrix32Type;
   typedef vnl_matrix_fixed<double,2,3>  VnlMatrix23Type;
   typedef vnl_matrix_fixed<double,2,2>  VnlMatrix22Type;
+  typedef Vector<double, 3>             DoubleVectorType;
 
   VnlMatrix33Type Gn;
   VnlMatrix33Type Gn2;
@@ -332,7 +338,8 @@ ComputeDeformationFieldUpdate()
   VnlVector3Type Gn2Bn;
   VnlVector2Type QnTmn;
   VnlVector3Type IntensitySlope;
-  VnlVector3Type Vn;
+  DoubleVectorType Vn;
+
 
   GI22.set_identity();
   GI22 *= this->m_Gamma;
@@ -402,14 +409,34 @@ ComputeDeformationFieldUpdate()
 
     IntensitySlope = Qn * QnTGn2Bn2m2QnGI22I * QnTmn;
 
-    Vn = IntensitySlope * ( Fv - Mv );
+    Vn.SetVnlVector( IntensitySlope * ( Fv - Mv ) );
+
+    dstPointItr2.Value() = this->ComputeDeformationByScalingAndSquaring( Vn, point );
+
+    //
+    // FIXME: Now use scaling and squaring in order to compute Exp(Vn)
+    //        Then compose Exp(Vn) with the array of destination points.
+    //
 
     ++dstPointItr;
+    ++dstPointItr2;
     ++basisItr;
     ++resampledArrayItr;
     ++fixedPointDataItr;
     ++pointItr;
     }
+  this->SwapOldAndNewDestinationPointContainers();
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+SwapOldAndNewDestinationPointContainers()
+{
+  DestinationPointContainerPointer temp = this->m_DestinationPoints;
+  this->m_DestinationPoints = this->m_DestinationPointsSwap;
+  this->m_DestinationPointsSwap = temp;
 }
 
 
@@ -418,7 +445,19 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 SmoothDeformationField()
 {
-  // Introduce the code from the Smoothing filter
+  //
+  // FIXME: Introduce here the code from the Smoothing filter
+  //
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+const typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::PointType &
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeDeformationByScalingAndSquaring( const VectorType & Vn, const PointType & sourcePoint ) const
+{
+  static PointType destinationPoint;
+  return destinationPoint;
 }
 
 
