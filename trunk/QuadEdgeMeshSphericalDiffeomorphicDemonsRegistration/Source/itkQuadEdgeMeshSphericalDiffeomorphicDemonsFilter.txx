@@ -305,16 +305,24 @@ ComputeDeformationFieldUpdate()
   typedef vnl_vector_fixed<double,3>    VnlVector3Type;
   typedef vnl_matrix_fixed<double,3,2>  VnlMatrix32Type;
   typedef vnl_matrix_fixed<double,2,3>  VnlMatrix23Type;
+  typedef vnl_matrix_fixed<double,2,2>  VnlMatrix22Type;
 
   VnlMatrix33Type Gn;
   VnlMatrix33Type Gn2;
   VnlMatrix33Type m2;
+  VnlMatrix32Type Qn;
+  VnlMatrix23Type QnT;
+  VnlMatrix22Type GI22;
   VnlMatrix33Type Gn2Bn2;
+  VnlMatrix33Type Gn2Bn2m2;
+  VnlMatrix22Type QnTGn2Bn2m2Qn;
+  VnlMatrix22Type QnTGn2Bn2m2QnGI22;
 
   VnlVector3Type Bn;
   VnlVector3Type Gn2Bn;
 
-  VnlMatrix32Type Qn;
+  GI22.set_identity();
+  GI22 *= this->m_Gamma;
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
@@ -347,8 +355,8 @@ ComputeDeformationFieldUpdate()
     for( unsigned int i = 0; i < 3; i++ )
       {
       Bn[i] = destinationPoint[i];
-      Qn(0,i) = v0[i];
-      Qn(1,i) = v1[i];
+      Qn(0,i) = QnT(i,0) = v0[i];
+      Qn(1,i) = QnT(i,1) = v1[i];
       }
 
     for( unsigned int r = 0; r < 3; r++ )
@@ -362,7 +370,17 @@ ComputeDeformationFieldUpdate()
     Gn2Bn = Gn2 * Bn; 
 
     Gn2Bn2 = outer_product( Gn2Bn, Gn2Bn );
-  
+
+    //
+    // The general form of this addition would involve two weights,
+    // representing the variance of each term at this node.
+    //
+    Gn2Bn2m2 = m2 + Gn2Bn2; 
+
+    QnTGn2Bn2m2Qn = QnT * Gn2Bn2m2 * Qn;
+    
+    QnTGn2Bn2m2QnGI22 = QnTGn2Bn2m2Qn + GI22;
+
     ++dstPointItr;
     ++basisItr;
     }

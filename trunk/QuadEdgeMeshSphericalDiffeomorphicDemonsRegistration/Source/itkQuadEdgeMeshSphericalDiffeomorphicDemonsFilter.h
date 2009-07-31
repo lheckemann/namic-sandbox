@@ -111,6 +111,11 @@ public:
   itkSetMacro( SphereRadius, double );
   itkGetConstMacro( SphereRadius, double );
 
+ 
+  /** Set/Get the value of the regularization constant used in the computation
+   * of the deformation field update. */
+  itkSetMacro( Gamma, double );
+  itkGetConstMacro( Gamma, double );
 
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -191,6 +196,11 @@ private:
    * Moving meshes have spherical geometry and that they share the same
    * center and radius. */
   double          m_SphereRadius;
+
+
+  /** Regularization constant used during the update of the deformation field. */
+  double          m_Gamma;
+
 };
 
 }
