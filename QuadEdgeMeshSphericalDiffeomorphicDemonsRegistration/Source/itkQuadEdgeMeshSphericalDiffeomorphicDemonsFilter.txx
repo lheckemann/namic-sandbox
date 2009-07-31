@@ -274,8 +274,6 @@ ComputeMappedMovingValueAtEveryNode()
   DestinationPointIterator pointItr = this->m_DestinationPoints->Begin();
   DestinationPointIterator pointEnd = this->m_DestinationPoints->End();
 
-  typedef typename ResampledMovingValuesContainerType::Iterator  ResampledMovingValuesContainerIterator;
-
   ResampledMovingValuesContainerIterator  resampledArrayItr = this->m_ResampledMovingValuesContainer->Begin();
 
   while( pointItr != pointEnd )
@@ -294,12 +292,20 @@ ComputeDeformationFieldUpdate()
 {
   const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
 
-  typedef typename TFixedMesh::PointsContainer    PointsContainer;
-  const PointsContainer * points = this->m_FixedMesh->GetPoints();
+  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+
+  FixedPointsConstIterator pointItr = points->Begin();
+
+  const FixedPointDataContainer * pointData = this->m_FixedMesh->GetPointData();
+
+  FixedPointDataConstIterator fixedPointDataItr = pointData->Begin();
 
   DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
 
   BasisSystemContainerIterator basisItr = this->m_BasisSystemAtNode->Begin();
+
+  ResampledMovingValuesContainerIterator  resampledArrayItr =
+    this->m_ResampledMovingValuesContainer->Begin();
 
   typedef vnl_matrix_fixed<double,3,3>  VnlMatrix33Type;
   typedef vnl_vector_fixed<double,2>    VnlVector2Type;
@@ -331,7 +337,7 @@ ComputeDeformationFieldUpdate()
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
-    const PointType point = points->GetElement( pointId );
+    const PointType & point = pointItr.Value();
 
     Gn(0,0) = 0.0;
     Gn(1,1) = 0.0;
@@ -355,7 +361,8 @@ ComputeDeformationFieldUpdate()
     const BasisSystemType & basis = basisItr.Value();
     const VectorType & v0 = basis.GetVector(0);
     const VectorType & v1 = basis.GetVector(1);
-
+    const MovingPixelRealType Mv = resampledArrayItr.Value();
+    const FixedPixelRealType Fv = fixedPointDataItr.Value();
     
     for( unsigned int i = 0; i < 3; i++ )
       {
@@ -393,8 +400,13 @@ ComputeDeformationFieldUpdate()
 
     IntensitySlope = Qn * QnTGn2Bn2m2QnGI22I * QnTmn;
 
+    IntensitySlope * ( Fv - Mv );
+
     ++dstPointItr;
     ++basisItr;
+    ++resampledArrayItr;
+    ++fixedPointDataItr;
+    ++pointItr;
     }
 }
 
@@ -415,7 +427,6 @@ AssignResampledMovingValuesToOutputMesh()
 {
   OutputMeshPointer out = this->GetOutput();
 
-  typedef typename OutputPointDataContainer::Pointer      OutputPointDataContainerPointer;
   OutputPointDataContainerPointer outputPointData = out->GetPointData();
 
   const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
