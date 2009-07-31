@@ -302,6 +302,7 @@ ComputeDeformationFieldUpdate()
   BasisSystemContainerIterator basisItr = this->m_BasisSystemAtNode->Begin();
 
   typedef vnl_matrix_fixed<double,3,3>  VnlMatrix33Type;
+  typedef vnl_vector_fixed<double,2>    VnlVector2Type;
   typedef vnl_vector_fixed<double,3>    VnlVector3Type;
   typedef vnl_matrix_fixed<double,3,2>  VnlMatrix32Type;
   typedef vnl_matrix_fixed<double,2,3>  VnlMatrix23Type;
@@ -317,9 +318,13 @@ ComputeDeformationFieldUpdate()
   VnlMatrix33Type Gn2Bn2m2;
   VnlMatrix22Type QnTGn2Bn2m2Qn;
   VnlMatrix22Type QnTGn2Bn2m2QnGI22;
+  VnlMatrix22Type QnTGn2Bn2m2QnGI22I;
 
   VnlVector3Type Bn;
+  VnlVector3Type mn;
   VnlVector3Type Gn2Bn;
+  VnlVector2Type QnTmn;
+  VnlVector3Type IntensitySlope;
 
   GI22.set_identity();
   GI22 *= this->m_Gamma;
@@ -354,16 +359,17 @@ ComputeDeformationFieldUpdate()
     
     for( unsigned int i = 0; i < 3; i++ )
       {
-      Bn[i] = destinationPoint[i];
+      Bn[i] = destinationPoint[i]; // FIXME
       Qn(0,i) = QnT(i,0) = v0[i];
       Qn(1,i) = QnT(i,1) = v1[i];
+      mn[i] = derivative[i];
       }
 
     for( unsigned int r = 0; r < 3; r++ )
       {
       for( unsigned int c = 0; c < 3; c++ )
         {
-        m2(r,c) = derivative[r] * derivative[c];
+        m2(r,c) = mn[r] * mn[c];
         }
       }
     
@@ -380,6 +386,12 @@ ComputeDeformationFieldUpdate()
     QnTGn2Bn2m2Qn = QnT * Gn2Bn2m2 * Qn;
     
     QnTGn2Bn2m2QnGI22 = QnTGn2Bn2m2Qn + GI22;
+
+    QnTGn2Bn2m2QnGI22I = vnl_matrix_inverse< double >( QnTGn2Bn2m2QnGI22 );
+
+    QnTmn = QnT * mn;
+
+    IntensitySlope = Qn * QnTGn2Bn2m2QnGI22I * QnTmn;
 
     ++dstPointItr;
     ++basisItr;
