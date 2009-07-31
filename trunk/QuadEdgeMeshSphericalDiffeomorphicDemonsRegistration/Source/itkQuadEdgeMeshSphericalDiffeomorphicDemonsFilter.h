@@ -46,16 +46,21 @@ public:
   itkTypeMacro( QuadEdgeMeshSphericalDiffeomorphicDemonsFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
   
   /** Input types. */
-  typedef TFixedMesh                                FixedMeshType;
-  typedef TMovingMesh                               MovingMeshType;
-  typedef typename  FixedMeshType::ConstPointer     FixedMeshConstPointer;
-  typedef typename  FixedMeshType::PointType        PointType;
-  typedef typename  MovingMeshType::ConstPointer    MovingMeshConstPointer;
+  typedef TFixedMesh                                        FixedMeshType;
+  typedef TMovingMesh                                       MovingMeshType;
+  typedef typename  FixedMeshType::ConstPointer             FixedMeshConstPointer;
+  typedef typename  FixedMeshType::PointType                PointType;
+  typedef typename  FixedMeshType::PointsContainer          FixedPointsContainer;
+  typedef typename  FixedPointsContainer::ConstIterator     FixedPointsConstIterator;
+  typedef typename  FixedMeshType::PointDataContainer       FixedPointDataContainer;
+  typedef typename  FixedPointDataContainer::ConstIterator  FixedPointDataConstIterator;
+  typedef typename  MovingMeshType::ConstPointer            MovingMeshConstPointer;
 
   /** Output types. */
-  typedef TOutputMesh                                     OutputMeshType;
-  typedef typename  OutputMeshType::Pointer               OutputMeshPointer;
-  typedef typename  Superclass::OutputPointDataContainer  OutputPointDataContainer;
+  typedef TOutputMesh                                       OutputMeshType;
+  typedef typename  OutputMeshType::Pointer                 OutputMeshPointer;
+  typedef typename  Superclass::OutputPointDataContainer    OutputPointDataContainer;
+  typedef typename OutputPointDataContainer::Pointer        OutputPointDataContainerPointer;
  
   /** Declaration of internal types, some of which are exposed for monitoring purposes */
   typedef typename PointType::VectorType                        VectorType;
@@ -166,6 +171,10 @@ private:
   typedef typename NumericTraits< MovingPixelType >::RealType   MovingPixelRealType;
   typedef VectorContainer< 
     PointIdentifier, MovingPixelRealType >                      ResampledMovingValuesContainerType;
+  typedef typename ResampledMovingValuesContainerType::Iterator ResampledMovingValuesContainerIterator;
+
+  typedef typename FixedMeshType::PixelType                     FixedPixelType;
+  typedef typename NumericTraits< FixedPixelType >::RealType    FixedPixelRealType;
 
   /** Container that stores values resampled from the Moving mesh field at the
    * coordinates resulting from mapping the fixed mesh nodes through the current
