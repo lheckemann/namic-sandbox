@@ -50,7 +50,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(LinearInterpolateMeshFunction, MeshFunction);
+  itkTypeMacro(LinearInterpolateMeshFunction, InterpolateMeshFunction);
 
   /** OutputType typedef support. */
   typedef typename Superclass::OutputType OutputType;
