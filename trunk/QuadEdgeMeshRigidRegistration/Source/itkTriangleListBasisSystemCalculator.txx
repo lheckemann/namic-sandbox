@@ -71,17 +71,19 @@ TriangleListBasisSystemCalculator<TMesh, TBasisSystem>
 
   basisCalculator->SetInputMesh( this->m_InputMesh );
 
-  CellsContainerConstIterator cellIterator = this->m_InputMesh->GetCells()->Begin();
-  CellsContainerConstIterator cellEnd = this->m_InputMesh->GetCells()->End();
+  typename CellsContainer::ConstPointer cells = this->m_InputMesh->GetCells();
+  CellsContainerConstIterator cellIterator = cells->Begin();
+  CellsContainerConstIterator cellEnd = cells->End();
 
   TBasisSystem triangleBasisSystem;
 
-  unsigned int cellIndex=0; 
   while( cellIterator != cellEnd )
     {
+    const CellIdentifier cellIndex = cellIterator.Index();
     basisCalculator->CalculateTriangle( cellIndex, this->m_BasisSystemList->ElementAt(cellIndex) );
+
+    const TBasisSystem & basis = this->m_BasisSystemList->ElementAt(cellIndex);
     ++cellIterator;
-    ++cellIndex;
     }
 }
 
