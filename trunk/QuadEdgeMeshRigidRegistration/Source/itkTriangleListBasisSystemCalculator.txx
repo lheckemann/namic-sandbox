@@ -81,8 +81,6 @@ TriangleListBasisSystemCalculator<TMesh, TBasisSystem>
     {
     const CellIdentifier cellIndex = cellIterator.Index();
     basisCalculator->CalculateTriangle( cellIndex, this->m_BasisSystemList->ElementAt(cellIndex) );
-
-    const TBasisSystem & basis = this->m_BasisSystemList->ElementAt(cellIndex);
     ++cellIterator;
     }
 }
