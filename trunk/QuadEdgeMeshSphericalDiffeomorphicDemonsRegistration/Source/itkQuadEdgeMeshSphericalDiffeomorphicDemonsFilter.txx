@@ -44,7 +44,9 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
 
-  this->m_ScalarInterpolator = InterpolatorType::New();
+  this->m_ScalarInterpolator = ScalarInterpolatorType::New();
+
+  this->m_DeformationInterpolator = DeformationInterpolatorType::New();
 
   this->m_MaximumNumberOfIterations = 50;
 
@@ -232,6 +234,8 @@ InitializeInterpolators()
   this->m_ScalarInterpolator->SetInputMesh( this->m_MovingMesh );
   this->m_ScalarInterpolator->Initialize();
 
+  this->m_DeformationInterpolator->SetInputMesh( this->m_FixedMesh );
+  this->m_DeformationInterpolator->Initialize();
 }
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
@@ -242,7 +246,7 @@ RunIterations()
   // Report the progress
   ProgressReporter progress( this, 0, this->m_MaximumNumberOfIterations );
   
-//   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
+  for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
     {
     this->ComputeMappedMovingValueAtEveryNode();
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
@@ -361,7 +365,7 @@ ComputeVelocityField()
     {
     const PointType & point = pointItr.Value();
 
-    Gn(0,0) = 0.0;     // NOTE: Here we must take the m_SphereRadius into account.
+    Gn(0,0) = 0.0;     // NOTE: FIXME Here we must take the m_SphereRadius into account.
     Gn(1,1) = 0.0;
     Gn(2,2) = 0.0;
 
@@ -463,8 +467,8 @@ ComputeDeformationByScalingAndSquaring()
 
     while( oldDisplacementItr != oldDisplacementEnd )
       { 
-      newDisplacementItr.Value() =
-        this->InterpolateDestinationFieldAtPoint( this->m_DisplacementField, oldDisplacementItr.Value() );
+      this->InterpolateDestinationFieldAtPoint( 
+        this->m_DisplacementField, oldDisplacementItr.Value(), newDisplacementItr.Value() );
 
       ++newDisplacementItr;
       ++oldDisplacementItr;
@@ -487,8 +491,8 @@ ComposeDeformationUpdateWithPreviousDeformation()
 
   while( displacementItr != displacementEnd )
     { 
-    newDestinationPointItr.Value() = 
-      this->InterpolateDestinationFieldAtPoint( this->m_DestinationPoints, displacementItr.Value() );
+    this->InterpolateDestinationFieldAtPoint( 
+      this->m_DestinationPoints, displacementItr.Value(), newDestinationPointItr.Value() ); 
 
     ++newDestinationPointItr;
     ++displacementItr;
@@ -499,16 +503,24 @@ ComposeDeformationUpdateWithPreviousDeformation()
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::PointType
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
-InterpolateDestinationFieldAtPoint( 
-  const DestinationPointContainerType * destinationField, const PointType & point )
+InterpolateDestinationFieldAtPoint( const DestinationPointContainerType * destinationField, 
+  const PointType & point, PointType & interpolatedDestinationPoint )
 {
-  PointType interpolatedDestinationPoint;
+  this->m_DeformationInterpolator->Evaluate( destinationField, point, interpolatedDestinationPoint );
+  this->ProjectPointToSphereSurface( interpolatedDestinationPoint );
+}
 
-  interpolatedDestinationPoint.Fill( 0 ); // by now...  FIXME
-  
-  return interpolatedDestinationPoint;
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ProjectPointToSphereSurface( PointType & point ) const
+{
+  VectorType vectorToCenter( point - this->m_SphereCenter );
+  vectorToCenter *= this->m_SphereRadius / vectorToCenter.GetNorm();
+  point = this->m_SphereCenter + vectorToCenter;
 }
 
 
