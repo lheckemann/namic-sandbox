@@ -107,6 +107,8 @@ protected:
 
   virtual bool FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
 
+  const RealType & GetInterpolationWeight( unsigned int ) const;
+
 private:
   LinearInterpolateMeshFunction( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
