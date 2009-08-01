@@ -308,6 +308,12 @@ LinearInterpolateMeshFunction<TInputMesh>
     isInside = true;
     }
 
+  //
+  // FIXME: It should now do also the chain rule with the jacobian of how the
+  // point projected on the triangle will change as the point in the sphere
+  // surfaces changes.
+  //
+
   return isInside;
 }
  
