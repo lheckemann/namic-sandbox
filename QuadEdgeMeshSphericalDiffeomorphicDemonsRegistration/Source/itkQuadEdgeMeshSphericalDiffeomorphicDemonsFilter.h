@@ -20,6 +20,7 @@
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
 #include "itkNodeScalarGradientCalculator.h"
+#include "itkLinearInterpolateDeformationFieldMeshFunction.h"
 #include "itkTriangleListBasisSystemCalculator.h"
 #include "itkTriangleBasisSystem.h"
 #include "itkVectorContainer.h"
@@ -150,8 +151,11 @@ private:
   void SwapOldAndNewDestinationPointContainers();
   void SwapOldAndNewDisplacementFieldContainers();
 
-  PointType InterpolateDestinationFieldAtPoint( 
-    const DestinationPointContainerType * destinationField, const PointType & point );
+  virtual void InterpolateDestinationFieldAtPoint( 
+    const DestinationPointContainerType * destinationField, const PointType & point,
+    PointType & interpolatedDestinationPoint );
+
+  virtual void ProjectPointToSphereSurface( PointType & point ) const;
 
   MovingMeshConstPointer                m_MovingMesh;
   FixedMeshConstPointer                 m_FixedMesh;
@@ -197,10 +201,16 @@ private:
 
 
   /** Interpolator type for bringing scalar values from the Moving Mesh into the Fixed Mesh. */
-  typedef LinearInterpolateMeshFunction< MovingMeshType >       InterpolatorType;
+  typedef LinearInterpolateMeshFunction< MovingMeshType >       ScalarInterpolatorType;
 
-  /** Interpolator object that will bring scalar valurs from the Moving Mesh into the Fixed Mesh. */
-  typename InterpolatorType::Pointer                            m_ScalarInterpolator; 
+  /** Interpolator object that will bring scalar values from the Moving Mesh into the Fixed Mesh. */
+  typename ScalarInterpolatorType::Pointer                      m_ScalarInterpolator; 
+
+  /** Interpolator for the deformation field values on the grid of the Fixed mesh. */
+  typedef LinearInterpolateDeformationFieldMeshFunction< FixedMeshType > DeformationInterpolatorType;
+
+  /** Interpolator object that will compute deformation destination points on the fixed mesh grid. */
+  typename DeformationInterpolatorType::Pointer                 m_DeformationInterpolator; 
 
   typedef NodeScalarGradientCalculator< 
     FixedMeshType, ResampledMovingValuesContainerType >         NodeScalarGradientCalculatorType;
