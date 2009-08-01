@@ -317,7 +317,18 @@ LinearInterpolateMeshFunction<TInputMesh>
   return isInside;
 }
  
-
+/**
+ * Return interpolate weight values. This is provided as a convenience for
+ * derived classes. 
+ */
+template <class TInputMesh>
+const typename LinearInterpolateMeshFunction<TInputMesh>::RealType &
+LinearInterpolateMeshFunction<TInputMesh>
+::GetInterpolationWeight( unsigned int index ) const
+{
+  return this->m_InterpolationWeights[index];
+}
+ 
 } // end namespace itk
 
 #endif
