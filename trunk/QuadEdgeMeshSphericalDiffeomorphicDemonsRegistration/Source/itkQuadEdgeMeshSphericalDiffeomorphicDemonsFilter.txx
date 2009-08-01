@@ -51,6 +51,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_SphereCenter.Fill( 0.0 );
   this->m_SphereRadius = 1.0;
   this->m_Gamma = 1.0;
+  this->m_ScalingAndSquaringNumberOfIterations = 6;
 }
 
 
@@ -110,6 +111,7 @@ GenerateData()
   this->ComputeBasisSystemAtEveryNode();
   this->ComputeInitialArrayOfDestinationPoints();
   this->InitializeInterpolators();
+  this->ComputeScalingAndSquaringNumberOfIterations();
   this->RunIterations();
   this->ComputeMappedMovingValueAtEveryNode();
   this->AssignResampledMovingValuesToOutputMesh();
@@ -137,6 +139,12 @@ AllocateInternalArrays()
 
   this->m_DestinationPointsSwap = DestinationPointContainerType::New();
   this->m_DestinationPointsSwap->Reserve( numberOfNodes );
+
+  this->m_DisplacementField = DestinationPointContainerType::New();
+  this->m_DisplacementField->Reserve( numberOfNodes );
+
+  this->m_DisplacementFieldSwap = DestinationPointContainerType::New();
+  this->m_DisplacementFieldSwap->Reserve( numberOfNodes );
 
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
   this->m_ResampledMovingValuesContainer->Reserve( numberOfNodes );
@@ -238,7 +246,9 @@ RunIterations()
     {
     this->ComputeMappedMovingValueAtEveryNode();
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
-    this->ComputeDeformationFieldUpdate();
+    this->ComputeVelocityField();
+    this->ComputeDeformationByScalingAndSquaring();
+    this->ComposeDeformationUpdateWithPreviousDeformation();
     this->SmoothDeformationField();
 
     // Report progress via Events
@@ -293,7 +303,7 @@ ComputeMappedMovingValueAtEveryNode()
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
-ComputeDeformationFieldUpdate()
+ComputeVelocityField()
 {
   const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
 
@@ -306,12 +316,15 @@ ComputeDeformationFieldUpdate()
   FixedPointDataConstIterator fixedPointDataItr = pointData->Begin();
 
   DestinationPointConstIterator dstPointItr = this->m_DestinationPoints->Begin();
-  DestinationPointIterator dstPointItr2 = this->m_DestinationPointsSwap->Begin();
+
+  DestinationPointIterator displacementItr = this->m_DisplacementField->Begin();
 
   BasisSystemContainerIterator basisItr = this->m_BasisSystemAtNode->Begin();
 
   ResampledMovingValuesContainerIterator  resampledArrayItr =
     this->m_ResampledMovingValuesContainer->Begin();
+
+  const double scalingFactor = 1.0 / ( 1 << this->m_ScalingAndSquaringNumberOfIterations );
 
   typedef vnl_matrix_fixed<double,3,3>  VnlMatrix33Type;
   typedef vnl_vector_fixed<double,2>    VnlVector2Type;
@@ -348,7 +361,7 @@ ComputeDeformationFieldUpdate()
     {
     const PointType & point = pointItr.Value();
 
-    Gn(0,0) = 0.0;
+    Gn(0,0) = 0.0;     // NOTE: Here we must take the m_SphereRadius into account.
     Gn(1,1) = 0.0;
     Gn(2,2) = 0.0;
 
@@ -375,7 +388,7 @@ ComputeDeformationFieldUpdate()
     
     for( unsigned int i = 0; i < 3; i++ )
       {
-      Bn[i] = destinationPoint[i]; // FIXME
+      Bn[i] = destinationPoint[i]; // FIXME This should be the Jacobian of the Destination points.
       Qn(0,i) = QnT(i,0) = v0[i];
       Qn(1,i) = QnT(i,1) = v1[i];
       mn[i] = derivative[i];
@@ -411,21 +424,102 @@ ComputeDeformationFieldUpdate()
 
     Vn.SetVnlVector( IntensitySlope * ( Fv - Mv ) );
 
-    dstPointItr2.Value() = this->ComputeDeformationByScalingAndSquaring( Vn, point );
-
-    //
-    // FIXME: Now use scaling and squaring in order to compute Exp(Vn)
-    //        Then compose Exp(Vn) with the array of destination points.
-    //
+    displacementItr.Value() = point +  Vn * scalingFactor;
 
     ++dstPointItr;
-    ++dstPointItr2;
+    ++displacementItr;
     ++basisItr;
     ++resampledArrayItr;
     ++fixedPointDataItr;
     ++pointItr;
     }
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeScalingAndSquaringNumberOfIterations()
+{
+  //
+  // How to compute N:  Largest velocity vector Vn  magnitude  / 2^(N-2) < 1/2 vertex distance
+  // Take smallest 
+  //
+  this->m_ScalingAndSquaringNumberOfIterations = 6; // Temporarily...
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeDeformationByScalingAndSquaring()
+{
+  for( unsigned int i = 0; i < this->m_ScalingAndSquaringNumberOfIterations; i++ )
+    {
+    DestinationPointConstIterator oldDisplacementItr = this->m_DisplacementField->Begin();
+    DestinationPointConstIterator oldDisplacementEnd = this->m_DisplacementField->End();
+
+    DestinationPointIterator newDisplacementItr = this->m_DisplacementFieldSwap->Begin();
+
+    while( oldDisplacementItr != oldDisplacementEnd )
+      { 
+      newDisplacementItr.Value() =
+        this->InterpolateDestinationFieldAtPoint( this->m_DisplacementField, oldDisplacementItr.Value() );
+
+      ++newDisplacementItr;
+      ++oldDisplacementItr;
+      }
+
+    this->SwapOldAndNewDisplacementFieldContainers();
+    }
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComposeDeformationUpdateWithPreviousDeformation()
+{
+  DestinationPointConstIterator displacementItr = this->m_DisplacementField->Begin();
+  DestinationPointConstIterator displacementEnd = this->m_DisplacementField->End();
+
+  DestinationPointIterator newDestinationPointItr = this->m_DestinationPointsSwap->Begin();
+
+  while( displacementItr != displacementEnd )
+    { 
+    newDestinationPointItr.Value() = 
+      this->InterpolateDestinationFieldAtPoint( this->m_DestinationPoints, displacementItr.Value() );
+
+    ++newDestinationPointItr;
+    ++displacementItr;
+    }
+
   this->SwapOldAndNewDestinationPointContainers();
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::PointType
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+InterpolateDestinationFieldAtPoint( 
+  const DestinationPointContainerType * destinationField, const PointType & point )
+{
+  PointType interpolatedDestinationPoint;
+
+  interpolatedDestinationPoint.Fill( 0 ); // by now...  FIXME
+  
+  return interpolatedDestinationPoint;
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+SwapOldAndNewDisplacementFieldContainers()
+{
+  DestinationPointContainerPointer temp = this->m_DisplacementField;
+  this->m_DisplacementField = this->m_DisplacementFieldSwap;
+  this->m_DisplacementFieldSwap = temp;
 }
 
 
@@ -448,16 +542,13 @@ SmoothDeformationField()
   //
   // FIXME: Introduce here the code from the Smoothing filter
   //
-}
-
-
-template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-const typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::PointType &
-QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
-ComputeDeformationByScalingAndSquaring( const VectorType & Vn, const PointType & sourcePoint ) const
-{
-  static PointType destinationPoint;
-  return destinationPoint;
+  //   Convert C field into tangent vectors using Gn2,
+  //
+  //   Smooth all the vectors....
+  //
+  //   Convert vectors to destination points. --->  this is S.
+  //
+  //
 }
 
 

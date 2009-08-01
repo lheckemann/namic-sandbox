@@ -141,12 +141,17 @@ private:
   void RunIterations();
   void ComputeMappedMovingValueAtEveryNode();
   void ComputeGradientsOfMappedMovingValueAtEveryNode();
-  void ComputeDeformationFieldUpdate();
+  void ComputeVelocityField();
   void SmoothDeformationField();
   void AssignResampledMovingValuesToOutputMesh();
-  const PointType & ComputeDeformationByScalingAndSquaring( 
-    const VectorType & V, const PointType & X ) const;
+  void ComputeScalingAndSquaringNumberOfIterations();
+  void ComputeDeformationByScalingAndSquaring();
+  void ComposeDeformationUpdateWithPreviousDeformation();
   void SwapOldAndNewDestinationPointContainers();
+  void SwapOldAndNewDisplacementFieldContainers();
+
+  PointType InterpolateDestinationFieldAtPoint( 
+    const DestinationPointContainerType * destinationField, const PointType & point );
 
   MovingMeshConstPointer                m_MovingMesh;
   FixedMeshConstPointer                 m_FixedMesh;
@@ -161,6 +166,11 @@ private:
   DestinationPointContainerPointer      m_DestinationPoints;
   DestinationPointContainerPointer      m_DestinationPointsSwap;
 
+  /** Auxiliary array for computing the Exponential of the velocity field
+   * via the Scaling and Squaring method.  */
+  DestinationPointContainerPointer      m_DisplacementField;
+  DestinationPointContainerPointer      m_DisplacementFieldSwap;
+
   /** Maximum number of iterations that the filter will be allowed to run. */
   unsigned int                          m_MaximumNumberOfIterations;
 
@@ -172,11 +182,10 @@ private:
 
   /** Types definitions for the container of values resampled from the Moving
    * mesh into the coordinates of the Fixed mesh nodes. */ 
-  typedef typename MovingMeshType::PixelType                    MovingPixelType;
-  typedef typename NumericTraits< MovingPixelType >::RealType   MovingPixelRealType;
-  typedef VectorContainer< 
-    PointIdentifier, MovingPixelRealType >                      ResampledMovingValuesContainerType;
-  typedef typename ResampledMovingValuesContainerType::Iterator ResampledMovingValuesContainerIterator;
+  typedef typename MovingMeshType::PixelType                      MovingPixelType;
+  typedef typename NumericTraits< MovingPixelType >::RealType     MovingPixelRealType;
+  typedef VectorContainer< PointIdentifier, MovingPixelRealType > ResampledMovingValuesContainerType;
+  typedef typename ResampledMovingValuesContainerType::Iterator   ResampledMovingValuesContainerIterator;
 
   typedef typename FixedMeshType::PixelType                     FixedPixelType;
   typedef typename NumericTraits< FixedPixelType >::RealType    FixedPixelRealType;
@@ -214,6 +223,9 @@ private:
 
   /** Regularization constant used during the update of the deformation field. */
   double          m_Gamma;
+
+  /** Number of iterations to be applied in the Scaling and Squaring method. */
+  unsigned int    m_ScalingAndSquaringNumberOfIterations;
 
 };
 
