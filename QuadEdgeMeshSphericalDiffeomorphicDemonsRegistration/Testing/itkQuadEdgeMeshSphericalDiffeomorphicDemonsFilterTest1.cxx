@@ -28,12 +28,12 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 4 )
+  if( argc < 5 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " fixedMeshFile  movingMeshFile ";
-    std::cerr << " outputMeshfile " << std::endl;
+    std::cerr << " outputMeshfile numberOfIterations" << std::endl;
     return EXIT_FAILURE;
     }
   
@@ -96,7 +96,7 @@ int main( int argc, char *argv[] )
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
   TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
 
-  maximumNumberOfIterations = 1;
+  maximumNumberOfIterations = atoi( argv[4] );
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
 
   DemonsFilterType::PointType center1;
