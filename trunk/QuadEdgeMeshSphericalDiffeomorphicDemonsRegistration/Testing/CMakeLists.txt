@@ -153,6 +153,7 @@ ADD_TEST(DemonsFilterTest1
   ${TEMP}/meshWithScalarsIC1.vtk
   ${TEMP}/meshWithScalarsIC1.vtk
   ${TEMP}/meshWithScalarsIC1RegisteredToItself.vtk
+  1   # maximum number of iterations
   )
 
 ADD_TEST(DemonsFilterTest2
@@ -160,6 +161,7 @@ ADD_TEST(DemonsFilterTest2
   ${TEMP}/meshWithScalarsIC4.vtk
   ${TEMP}/meshWithScalarsIC4.vtk
   ${TEMP}/meshWithScalarsIC4RegisteredToItself.vtk
+  1   # maximum number of iterations
   )
 
 ADD_TEST(DemonsFilterTest3
@@ -167,6 +169,7 @@ ADD_TEST(DemonsFilterTest3
   ${TEMP}/fixedMesh01.vtk
   ${TEMP}/movingMesh01.vtk
   ${TEMP}/movingMesh01RegisteredToFixedMesh01.vtk
+  1   # maximum number of iterations
   )
 
 ADD_TEST(DemonsFilterTest4
@@ -174,6 +177,7 @@ ADD_TEST(DemonsFilterTest4
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
   ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1.vtk
+  10   # maximum number of iterations
   )
 
 
