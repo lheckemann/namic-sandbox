@@ -96,6 +96,9 @@ int main( int argc, char *argv[] )
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
   TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
 
+  maximumNumberOfIterations = 1;
+  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+
   DemonsFilterType::PointType center1;
   center1.Fill( 17.0 );
   demonsFilter->SetSphereCenter( center1 );
