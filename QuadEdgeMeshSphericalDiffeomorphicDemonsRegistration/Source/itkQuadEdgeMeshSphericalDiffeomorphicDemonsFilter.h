@@ -151,6 +151,8 @@ private:
   void SwapOldAndNewDestinationPointContainers();
   void SwapOldAndNewDisplacementFieldContainers();
 
+  void PrintOutDeformationVectors();
+
   virtual void InterpolateDestinationFieldAtPoint( 
     const DestinationPointContainerType * destinationField, const PointType & point,
     PointType & interpolatedDestinationPoint );
