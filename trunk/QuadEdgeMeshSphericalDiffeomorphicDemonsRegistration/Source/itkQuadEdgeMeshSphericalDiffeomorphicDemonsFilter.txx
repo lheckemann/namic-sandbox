@@ -117,6 +117,7 @@ GenerateData()
   this->RunIterations();
   this->ComputeMappedMovingValueAtEveryNode();
   this->AssignResampledMovingValuesToOutputMesh();
+  this->PrintOutDeformationVectors();
 }
 
 
@@ -207,12 +208,9 @@ ComputeInitialArrayOfDestinationPoints()
   // This should be modified if we ever take an initial deformation field
   // as an input.
   //
-  typedef typename TFixedMesh::PointsContainer        PointsContainer;
-  typedef typename PointsContainer::ConstIterator     PointsIterator;
+  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
 
-  const PointsContainer * points = this->m_FixedMesh->GetPoints();
-
-  PointsIterator srcPointItr = points->Begin();
+  FixedPointsConstIterator srcPointItr = points->Begin();
 
   DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
   DestinationPointIterator dstPointEnd = this->m_DestinationPoints->End();
@@ -298,6 +296,7 @@ ComputeMappedMovingValueAtEveryNode()
   while( pointItr != pointEnd )
     {
     resampledArrayItr.Value() = this->m_ScalarInterpolator->Evaluate( pointItr.Value() );
+
     ++pointItr;
     ++resampledArrayItr;
     }
@@ -587,6 +586,30 @@ AssignResampledMovingValuesToOutputMesh()
     outputPointData->SetElement( resampledArrayItr.Index(), resampledArrayItr.Value() );
     resampledArrayItr++;
     } 
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+PrintOutDeformationVectors()
+{
+  std::cout << std::endl;
+  std::cout << "Deformation Vectors at every node " <<  std::endl;
+  DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
+  DestinationPointIterator dstPointEnd = this->m_DestinationPoints->End();
+
+  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+  FixedPointsConstIterator srcPointItr = points->Begin();
+
+  while( dstPointItr != dstPointEnd )
+    {
+    std::cout <<  dstPointItr.Value() - srcPointItr.Value() << std::endl;
+
+    ++dstPointItr;
+    ++srcPointItr;
+    }
+  std::cout << std::endl;
 }
 
 }
