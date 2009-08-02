@@ -42,6 +42,8 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   
   this->m_NodeScalarGradientCalculator = NodeScalarGradientCalculatorType::New(); 
 
+  this->m_NodeVectorJacobianCalculator = NodeVectorJacobianCalculatorType::New(); 
+
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
 
   this->m_ScalarInterpolator = ScalarInterpolatorType::New();
@@ -310,6 +312,18 @@ ComputeGradientsOfMappedMovingValueAtEveryNode()
 
   this->m_NodeScalarGradientCalculator->Initialize();
   this->m_NodeScalarGradientCalculator->Compute();
+
+  this->m_NodeVectorJacobianCalculator->SetInputMesh( this->m_FixedMesh );
+  this->m_NodeVectorJacobianCalculator->SetVectorContainer( this->m_DestinationPoints );
+
+  this->m_NodeVectorJacobianCalculator->SetBasisSystemList( 
+    this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
+
+  this->m_NodeVectorJacobianCalculator->SetSphereCenter( this->m_SphereCenter );
+  this->m_NodeVectorJacobianCalculator->SetSphereRadius( this->m_SphereRadius );
+
+  this->m_NodeVectorJacobianCalculator->Initialize();
+  this->m_NodeVectorJacobianCalculator->Compute();
 }
 
 
@@ -350,8 +364,6 @@ ComputeVelocityField()
 
   FixedPointDataConstIterator fixedPointDataItr = pointData->Begin();
 
-  DestinationPointConstIterator dstPointItr = this->m_DestinationPoints->Begin();
-
   BasisSystemContainerIterator basisItr = this->m_BasisSystemAtNode->Begin();
 
   NodeSigmaContainerConstIterator sigmaItr = this->m_FixedNodesSigmas->Begin();
@@ -380,16 +392,19 @@ ComputeVelocityField()
   VnlMatrix22Type QnTGn2Bn2m2Qn;
   VnlMatrix22Type QnTGn2Bn2m2QnGI22;
   VnlMatrix22Type QnTGn2Bn2m2QnGI22I;
+  VnlMatrix33Type Bn;
+  VnlMatrix33Type Gn2Bn;
 
-  VnlVector3Type Bn;
   VnlVector3Type mn;
-  VnlVector3Type Gn2Bn;
   VnlVector2Type QnTmn;
   VnlVector3Type IntensitySlope;
   VelocityVectorType Vn;
 
   VectorType vectorToCenter;
 
+  typedef typename NodeVectorJacobianCalculatorType::OutputType   JacobianType;
+
+  JacobianType destinationJacobian;
 
   GammaI22.set_identity();
   GammaI22 *= this->m_Gamma;
@@ -421,7 +436,7 @@ ComputeVelocityField()
     typedef typename NodeScalarGradientCalculatorType::DerivativeType  DerivativeType; 
     DerivativeType derivative = this->m_NodeScalarGradientCalculator->Evaluate( pointId );
 
-    const PointType & destinationPoint = dstPointItr.Value();
+    destinationJacobian = this->m_NodeVectorJacobianCalculator->Evaluate( pointId );
 
     const BasisSystemType & basis = basisItr.Value();
     const VectorType & v0 = basis.GetVector(0);
@@ -431,7 +446,6 @@ ComputeVelocityField()
     
     for( unsigned int i = 0; i < 3; i++ )
       {
-      Bn[i] = destinationPoint[i]; // FIXME This should be the Jacobian of the Destination points.
       Qn(i,0) = v0[i];
       Qn(i,1) = v1[i];
       QnT(0,i) = v0[i];
@@ -444,12 +458,13 @@ ComputeVelocityField()
       for( unsigned int c = 0; c < 3; c++ )
         {
         mn2(r,c) = mn[r] * mn[c];
+        Bn(r,c) = destinationJacobian(r,c);  // FIXME : Check for potential transposition here...
         }
       }
     
     Gn2Bn = Gn2 * Bn; 
 
-    Gn2Bn2 = outer_product( Gn2Bn, Gn2Bn );
+    Gn2Bn2 = Gn2Bn * Gn2Bn;
 
     //
     // The general form of this addition would involve two weights,
@@ -473,7 +488,6 @@ ComputeVelocityField()
 
     velocityItr.Value() = Vn;
 
-    ++dstPointItr;
     ++velocityItr;
     ++sigmaItr;
     ++basisItr;

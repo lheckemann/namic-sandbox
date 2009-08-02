@@ -251,7 +251,7 @@ private:
    * at every node of the Fixed mesh with respect to the coordinate system
    * of that node in the fixed mesh. */
   typedef NodeVectorJacobianCalculator< 
-    FixedMeshType, DestinationPointContainerType >         NodeVectorJacobianCalculatorType;
+    FixedMeshType, DestinationPointContainerType >              NodeVectorJacobianCalculatorType;
   typename NodeVectorJacobianCalculatorType::Pointer            m_NodeVectorJacobianCalculator; 
 
 
