@@ -241,12 +241,14 @@ void
 NodeScalarGradientCalculator<TInputMesh, TScalar>
 ::SetContainersToNullValues()
 {
+  typedef typename DerivativeType::ValueType    DerivativeValueType;
+
+  DerivativeType   nullDerivative;
+  nullDerivative.Fill( NumericTraits< DerivativeValueType >::Zero );
+
   DerivativeListIterator derivativeItr = this->m_PointDerivativeAccumulatorList->Begin();
   DerivativeListIterator derivativeEnd = this->m_PointDerivativeAccumulatorList->End();
   AreaListIterator  areaItr = this->m_PointAreaAccumulatorList->Begin();
-
-  DerivativeType   nullDerivative;
-  nullDerivative.Fill( NumericTraits<ITK_TYPENAME DerivativeType::ValueType>::Zero );
 
   while( derivativeItr != derivativeEnd )
     {
