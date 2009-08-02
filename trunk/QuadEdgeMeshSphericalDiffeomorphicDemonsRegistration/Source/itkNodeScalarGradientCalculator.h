@@ -19,7 +19,6 @@
 
 #include "itkFunctionBase.h"
 #include "itkCovariantVector.h"
-#include "itkMesh.h"
 #include "itkTriangleBasisSystem.h"
 #include "itkTriangleListBasisSystemCalculator.h"
 #include "itkLinearInterpolateMeshFunction.h"
