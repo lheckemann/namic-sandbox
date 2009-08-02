@@ -497,13 +497,41 @@ ComputeShortestEdgeLength()
 {
   double shortestLength = NumericTraits< double >::max();
 
+  typedef typename FixedMeshType::QEPrimal    EdgeType;
+
   const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+
   FixedPointsConstIterator pointItr = points->Begin();
   FixedPointsConstIterator pointEnd = points->End();
 
   while( pointItr != pointEnd )
     {
-// FIXME...
+    EdgeType * edge1 = this->m_FixedMesh->FindEdge( pointItr.Index() );
+
+    EdgeType * temp1 = NULL;
+    EdgeType * temp2 = edge1;
+
+    const PointType & point = pointItr.Value();
+
+    do
+      {
+      temp1 = temp2;
+      temp2 = temp1->GetOnext();
+
+      const PointIdentifier neighborPointId = temp1->GetDestination();
+
+      const PointType & neighborPoint = points->GetElement( neighborPointId );
+
+      const double distance = point.EuclideanDistanceTo( neighborPoint );
+
+      if( distance < shortestLength )
+        {
+        shortestLength = distance;
+        }
+
+      }
+    while( temp2 != edge1 );
+
     ++pointItr;
     }
 
