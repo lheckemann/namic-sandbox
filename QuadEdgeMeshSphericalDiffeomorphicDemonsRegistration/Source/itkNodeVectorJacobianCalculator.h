@@ -18,9 +18,6 @@
 #define __itkNodeVectorJacobianCalculator_h
 
 #include "itkFunctionBase.h"
-#include "itkMatrix.h"
-#include "itkMesh.h"
-#include "itkTriangleBasisSystem.h"
 #include "itkTriangleListBasisSystemCalculator.h"
 #include "itkLinearInterpolateMeshFunction.h"
 #include "itkTriangleHelper.h"
@@ -87,8 +84,8 @@ public:
   typedef typename CellsContainer::ConstIterator                            CellsContainerConstIterator;
   typedef typename CellTraits::PointIdIterator                              PointIdIterator;
 
-  typedef TriangleHelper< PointType >                                       TriangleType;
-  typedef typename TriangleType::CoordRepType                               AreaType;
+  typedef TriangleHelper< PointType >                                       TriangleHelperType;
+  typedef typename TriangleHelperType::CoordRepType                         AreaType;
   typedef VectorContainer<CellIdentifier, AreaType >                        AreaListType;
   typedef typename AreaListType::Iterator                                   AreaListIterator;
   typedef typename AreaListType::ConstIterator                              AreaListConstIterator;
