@@ -247,6 +247,7 @@ vtkProstateNavStep* vtkMRMLProstateNavManagerNode::GetStepPage(int i)
 void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavStep* page)
 {
 
+  std::cerr << "void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavStep* page) start" << std::endl;
   // Add to the list
   StepInfoType step;
 
@@ -274,6 +275,8 @@ void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavS
     this->StepList[i].page->UpdateName();
     this->StepList[i].page->SetProstateNavManager(this);
     }
+
+  std::cerr << "void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavStep* page) end" << std::endl;
 
 }
 
@@ -545,6 +548,7 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotConnector(vtkMRMLIGTLConne
     this->Modified();
     }
 
+  
 }
 
 
@@ -621,7 +625,7 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotTarget(vtkMRMLLinearTransf
     {
     this->Modified();
     }
-
+  
 }
 
 
