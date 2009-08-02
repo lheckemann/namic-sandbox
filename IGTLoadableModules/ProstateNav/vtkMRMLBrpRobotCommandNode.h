@@ -26,10 +26,6 @@
 #include "vtkMRML.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLNode.h"
-//#include "vtkMRMLBrpRobotCommandDisplayNode.h"
-//#include "vtkMRMLBrpRobotCommandLineDisplayNode.h"
-//#include "vtkMRMLBrpRobotCommandTubeDisplayNode.h"
-//#include "vtkMRMLBrpRobotCommandGlyphDisplayNode.h"
 
 #include <string>
 #include <queue>

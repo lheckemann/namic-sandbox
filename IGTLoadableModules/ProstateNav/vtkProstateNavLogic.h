@@ -82,9 +82,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   int  Enter();
   void TimerHandler();
   
-  int  ConnectTracker(const char* filename);
-  int  DisconnectTracker();
-  
   int  RobotStop();
   int  RobotMoveTo(float px, float py, float pz,
                    float nx, float ny, float nz,

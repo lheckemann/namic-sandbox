@@ -200,6 +200,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   void BuildGUIForDeviceFrame();
   
   int  ChangeWorkPhase(int phase, int fChangeWizard=0);
+  const char* AddZFrameModel(const char* nodeName);
 
   int Entered;
 
