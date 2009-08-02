@@ -177,7 +177,7 @@ ADD_TEST(DemonsFilterTest4
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
   ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1.vtk
-  10   # maximum number of iterations
+  3000   # maximum number of iterations
   )
 
 
