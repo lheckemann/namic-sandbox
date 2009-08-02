@@ -57,7 +57,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_SigmaX = 1.0;
 
   this->m_ShortestEdgeLength = 1.0;
-  this->m_ScalingAndSquaringNumberOfIterations = 10;
+  this->m_ScalingAndSquaringNumberOfIterations = 2;
 }
 
 
@@ -119,7 +119,6 @@ GenerateData()
   this->ComputeShortestEdgeLength();
   this->ComputeInitialArrayOfDestinationPoints();
   this->InitializeInterpolators();
-  this->ComputeScalingAndSquaringNumberOfIterations();
   this->RunIterations();
   this->PrintOutDeformationVectors();
   this->ComputeMappedMovingValueAtEveryNode();
@@ -281,6 +280,7 @@ RunIterations()
     this->ComputeMappedMovingValueAtEveryNode();
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
     this->ComputeVelocityField();
+    this->ComputeScalingAndSquaringNumberOfIterations();
     this->ComputeDeformationByScalingAndSquaring();
     this->ComposeDeformationUpdateWithPreviousDeformation();
     this->SmoothDeformationField();
@@ -374,7 +374,7 @@ ComputeVelocityField()
   VnlMatrix33Type mn2;
   VnlMatrix32Type Qn;
   VnlMatrix23Type QnT;
-  VnlMatrix22Type GI22;
+  VnlMatrix22Type GammaI22;
   VnlMatrix33Type Gn2Bn2;
   VnlMatrix33Type Gn2Bn2m2;
   VnlMatrix22Type QnTGn2Bn2m2Qn;
@@ -388,25 +388,33 @@ ComputeVelocityField()
   VnlVector3Type IntensitySlope;
   VelocityVectorType Vn;
 
+  VectorType vectorToCenter;
 
-  GI22.set_identity();
-  GI22 *= this->m_Gamma;
+
+  GammaI22.set_identity();
+  GammaI22 *= this->m_Gamma;
+
+  const double sigmaX2 = this->m_SigmaX * this->m_SigmaX;
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
     const PointType & point = pointItr.Value();
 
-    Gn(0,0) = 0.0;     // NOTE: FIXME Here we must take the m_SphereRadius into account.
+    vectorToCenter = point - this->m_SphereCenter;
+
+    vectorToCenter.Normalize();
+
+    Gn(0,0) = 0.0;
     Gn(1,1) = 0.0;
     Gn(2,2) = 0.0;
 
-    Gn(0,1) = -point[2];
-    Gn(0,2) =  point[1];
-    Gn(1,2) = -point[0];
+    Gn(0,1) = -vectorToCenter[2];
+    Gn(0,2) =  vectorToCenter[1];
+    Gn(1,2) = -vectorToCenter[0];
 
-    Gn(1,0) =  point[2];
-    Gn(2,0) = -point[1];
-    Gn(2,1) =  point[0];
+    Gn(1,0) =  vectorToCenter[2];
+    Gn(2,0) = -vectorToCenter[1];
+    Gn(2,1) =  vectorToCenter[0];
 
     Gn2 = Gn * Gn;
 
@@ -447,11 +455,13 @@ ComputeVelocityField()
     // The general form of this addition would involve two weights,
     // representing the variance of each term at this node.
     //
-    Gn2Bn2m2 = mn2 / sigmaItr.Value(); //   TEMPORARILY: FIXME:  + Gn2Bn2 / this->m_SigmaX; 
+    const double sigmaN2 = sigmaItr.Value() * sigmaItr.Value();
+
+    Gn2Bn2m2 = mn2 / sigmaN2; //   TEMPORARILY: FIXME:  + Gn2Bn2 / sigmaX2;
 
     QnTGn2Bn2m2Qn = QnT * Gn2Bn2m2 * Qn;
     
-    QnTGn2Bn2m2QnGI22 = QnTGn2Bn2m2Qn + GI22;
+    QnTGn2Bn2m2QnGI22 = QnTGn2Bn2m2Qn + GammaI22;
 
     QnTGn2Bn2m2QnGI22I = vnl_matrix_inverse< double >( QnTGn2Bn2m2QnGI22 );
 
@@ -464,6 +474,7 @@ ComputeVelocityField()
     velocityItr.Value() = Vn;
 
     ++dstPointItr;
+    ++velocityItr;
     ++sigmaItr;
     ++basisItr;
     ++resampledArrayItr;
@@ -485,16 +496,22 @@ ComputeScalingAndSquaringNumberOfIterations()
 
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
-  int iterations = static_cast< int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
-  
-std::cout << "iterations= " << iterations << std::endl;
-
-  if( iterations < 0 )
+  if( ratio < 1.0 )
     {
-    iterations = 0;
+    this->m_ScalingAndSquaringNumberOfIterations = 10;
+    }
+  else
+    {
+    int iterations = static_cast< int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
+    
+    if( iterations < 10 )
+      {
+      iterations = 10;
+      }
+
+    this->m_ScalingAndSquaringNumberOfIterations = iterations;
     }
 
-  this->m_ScalingAndSquaringNumberOfIterations = iterations;
 std::cout << " m_ScalingAndSquaringNumberOfIterations = " << m_ScalingAndSquaringNumberOfIterations << std::endl;
 }
 
@@ -579,7 +596,10 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeDeformationByScalingAndSquaring()
 {
-  const double scalingFactor = 1.0 / ( 1 << this->m_ScalingAndSquaringNumberOfIterations );
+  unsigned long powerOfTwo = 1;
+  powerOfTwo <<= this->m_ScalingAndSquaringNumberOfIterations;
+  const double scalingFactor = 1.0 / powerOfTwo;
+std::cout << "ComputeDeformationByScalingAndSquaring() scalingFactor = " << scalingFactor << std::endl;
 
   DestinationPointIterator displacementItr = this->m_DisplacementField->Begin();
   DestinationPointIterator displacementEnd = this->m_DisplacementField->End();
@@ -593,11 +613,11 @@ ComputeDeformationByScalingAndSquaring()
   while( displacementItr != displacementEnd )
     {
     displacementItr.Value() = pointItr.Value() +  velocityItr.Value() * scalingFactor;
+std::cout << "pointId " << pointItr.Index() << " point = " <<   pointItr.Value() << " displacementItr = " <<  displacementItr.Value() << "velocity= " <<  velocityItr.Value() << std::endl;
     ++displacementItr;
     ++pointItr;
     ++velocityItr;
     }
-
 
   for( unsigned int i = 0; i < this->m_ScalingAndSquaringNumberOfIterations; i++ )
     {
@@ -606,10 +626,21 @@ ComputeDeformationByScalingAndSquaring()
 
     DestinationPointIterator newDisplacementItr = this->m_DisplacementFieldSwap->Begin();
 
+    PointType newDisplacement;
+
     while( oldDisplacementItr != oldDisplacementEnd )
       { 
       this->InterpolateDestinationFieldAtPoint( 
-        this->m_DisplacementField, oldDisplacementItr.Value(), newDisplacementItr.Value() );
+        this->m_DisplacementField, oldDisplacementItr.Value(), newDisplacement );
+
+      newDisplacementItr.Value() = newDisplacement;
+
+// DEBUG
+if( oldDisplacementItr == this->m_DisplacementField->Begin() )
+  {
+std::cout << i << " oldDisplacement " << oldDisplacementItr.Value() << " newDisplacement = " << newDisplacementItr.Value() << std::endl;
+  }
+// DEBUG
 
       ++newDisplacementItr;
       ++oldDisplacementItr;
@@ -630,10 +661,14 @@ ComposeDeformationUpdateWithPreviousDeformation()
 
   DestinationPointIterator newDestinationPointItr = this->m_DestinationPointsSwap->Begin();
 
+  PointType destinationPoint;
+
   while( displacementItr != displacementEnd )
     { 
     this->InterpolateDestinationFieldAtPoint( 
-      this->m_DestinationPoints, displacementItr.Value(), newDestinationPointItr.Value() ); 
+      this->m_DestinationPoints, displacementItr.Value(), destinationPoint );
+
+    newDestinationPointItr.Value() = destinationPoint; 
 
     ++newDestinationPointItr;
     ++displacementItr;
@@ -696,6 +731,8 @@ SmoothDeformationField()
   // FIXME: Introduce here the code from the Smoothing filter
   //
   //   Convert C field into tangent vectors using Gn2,
+  //
+  //   Remember to divide the product by m_SphereRadius in order to get vectors that are the exponential map.
   //
   //   Smooth all the vectors....
   //
