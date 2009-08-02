@@ -182,7 +182,7 @@ bool
 LinearInterpolateMeshFunction<TInputMesh>
 ::FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const
 {
-  const unsigned int numberOfNeighbors = 3;
+  const unsigned int numberOfNeighbors = 1;
 
   this->Search( point, numberOfNeighbors, pointIds );
 
@@ -290,9 +290,13 @@ LinearInterpolateMeshFunction<TInputMesh>
   //
   // Zero with epsilon
   //
-  const double zwe = -1e-6;
+  const double zwe = -1e-4;
 
   bool isInside = false;
+
+  m_InterpolationWeights[0] = b1;
+  m_InterpolationWeights[1] = b2;
+  m_InterpolationWeights[2] = b3;
 
   //
   // Since the three barycentric coordinates are interdependent
@@ -302,14 +306,12 @@ LinearInterpolateMeshFunction<TInputMesh>
   if( ( b1 >= zwe ) && ( b2 >= zwe ) && ( b3 >= zwe ) )
     {
     // The points is inside this triangle 
-    m_InterpolationWeights[0] = b1;
-    m_InterpolationWeights[1] = b2;
-    m_InterpolationWeights[2] = b3;
     isInside = true;
     }
 
+
   //
-  // FIXME: It should now do also the chain rule with the jacobian of how the
+  // FIXME: It should now do also the chain rule with the Jacobian of how the
   // point projected on the triangle will change as the point in the sphere
   // surfaces changes.
   //
