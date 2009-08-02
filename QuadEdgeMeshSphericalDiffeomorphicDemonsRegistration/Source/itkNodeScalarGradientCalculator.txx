@@ -172,8 +172,6 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     const VectorType & u12= basisSystem.GetVector(0); 
     const VectorType & u32= basisSystem.GetVector(1); 
  
-    InterpolatorType::GetDerivativeFromPixelsAndBasis(
-      pixelValue[0], pixelValue[1], pixelValue[2], u12, u32, derivative);
 
     //
     //  Compute the coordinates of the point at the center of the cell.
@@ -195,6 +193,9 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     VectorType vectorToCenterNormalized = vectorToCenter;
     vectorToCenterNormalized.Normalize();
 
+    InterpolatorType::GetDerivativeFromPixelsAndBasis(
+      pixelValue[0], pixelValue[1], pixelValue[2], u12, u32, derivative);
+
     const double radialComponent = derivative * vectorToCenterNormalized;
 
     DerivativeType  projectedDerivative;
@@ -202,7 +203,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
       {
       projectedDerivative[k] = derivative[k] - vectorToCenterNormalized[k] * radialComponent;
       }
-        
+
     // Store at each vertex the value equal to triangle area x
     // derivative. Later, area-based weighting will use the total value
     // and divide by the sum of triangle areas about each vertex.
