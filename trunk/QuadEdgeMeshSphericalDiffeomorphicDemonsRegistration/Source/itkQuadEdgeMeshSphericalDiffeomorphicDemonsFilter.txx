@@ -56,6 +56,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_SigmaX = 1.0;
 
+  this->m_ShortestEdgeLength = 1.0;
   this->m_ScalingAndSquaringNumberOfIterations = 10;
 }
 
@@ -115,6 +116,7 @@ GenerateData()
   this->AllocateInternalArrays();
   this->InitializeFixedNodesSigmas();
   this->ComputeBasisSystemAtEveryNode();
+  this->ComputeShortestEdgeLength();
   this->ComputeInitialArrayOfDestinationPoints();
   this->InitializeInterpolators();
   this->ComputeScalingAndSquaringNumberOfIterations();
@@ -156,6 +158,8 @@ AllocateInternalArrays()
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
   this->m_ResampledMovingValuesContainer->Reserve( numberOfNodes );
 
+  this->m_VelocityField = VelocityVectorContainer::New();
+  this->m_VelocityField->Reserve( numberOfNodes );
 }
 
 
@@ -348,16 +352,14 @@ ComputeVelocityField()
 
   DestinationPointConstIterator dstPointItr = this->m_DestinationPoints->Begin();
 
-  DestinationPointIterator displacementItr = this->m_DisplacementField->Begin();
-
   BasisSystemContainerIterator basisItr = this->m_BasisSystemAtNode->Begin();
 
   NodeSigmaContainerConstIterator sigmaItr = this->m_FixedNodesSigmas->Begin();
 
+  VelocityVectorIterator velocityItr = this->m_VelocityField->Begin();
+
   ResampledMovingValuesContainerIterator  resampledArrayItr =
     this->m_ResampledMovingValuesContainer->Begin();
-
-  const double scalingFactor = 1.0 / ( 1 << this->m_ScalingAndSquaringNumberOfIterations );
 
   typedef vnl_matrix_fixed<double,3,3>  VnlMatrix33Type;
   typedef vnl_vector_fixed<double,2>    VnlVector2Type;
@@ -384,7 +386,7 @@ ComputeVelocityField()
   VnlVector3Type Gn2Bn;
   VnlVector2Type QnTmn;
   VnlVector3Type IntensitySlope;
-  DoubleVectorType Vn;
+  VelocityVectorType Vn;
 
 
   GI22.set_identity();
@@ -459,10 +461,9 @@ ComputeVelocityField()
 
     Vn.SetVnlVector( IntensitySlope * ( Fv - Mv ) );
 
-    displacementItr.Value() = point +  Vn * scalingFactor;
+    velocityItr.Value() = Vn;
 
     ++dstPointItr;
-    ++displacementItr;
     ++sigmaItr;
     ++basisItr;
     ++resampledArrayItr;
@@ -478,10 +479,61 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 ComputeScalingAndSquaringNumberOfIterations()
 {
   //
-  // How to compute N:  Largest velocity vector Vn  magnitude  / 2^(N-2) < 1/2 vertex distance
-  // Take smallest 
+  // Largest velocity vector Vn  magnitude  / 2^(N-2) < 1/2 Vertex distance
   //
-  this->m_ScalingAndSquaringNumberOfIterations = 10; // FIXME Temporarily...
+  const double largestVelocityMagnitude = this->ComputeLargestVelocityMagnitude();
+
+  const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
+
+  this->m_ScalingAndSquaringNumberOfIterations =
+    static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeShortestEdgeLength()
+{
+  double shortestLength = NumericTraits< double >::max();
+
+  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+  FixedPointsConstIterator pointItr = points->Begin();
+  FixedPointsConstIterator pointEnd = points->End();
+
+  while( pointItr != pointEnd )
+    {
+// FIXME...
+    ++pointItr;
+    }
+
+  this->m_ShortestEdgeLength = shortestLength;
+}
+
+ 
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+double
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComputeLargestVelocityMagnitude() const
+{
+  double largestVelocityMagnitude = NumericTraits< double >::Zero;
+
+  VelocityVectorConstIterator velocityItr = this->m_VelocityField->Begin();
+  VelocityVectorConstIterator velocityEnd = this->m_VelocityField->End();
+
+  while( velocityItr != velocityEnd )
+    { 
+    const double velocityMagnitude = velocityItr.Value().GetNorm();
+
+    if( velocityMagnitude > largestVelocityMagnitude )
+      {
+      largestVelocityMagnitude = velocityMagnitude;
+      }
+
+    ++velocityItr;
+    }
+
+  return largestVelocityMagnitude;
 }
 
 
@@ -490,6 +542,26 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeDeformationByScalingAndSquaring()
 {
+  const double scalingFactor = 1.0 / ( 1 << this->m_ScalingAndSquaringNumberOfIterations );
+
+  DestinationPointIterator displacementItr = this->m_DisplacementField->Begin();
+  DestinationPointIterator displacementEnd = this->m_DisplacementField->End();
+
+  VelocityVectorConstIterator velocityItr = this->m_VelocityField->Begin();
+
+  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+
+  FixedPointsConstIterator pointItr = points->Begin();
+
+  while( displacementItr != displacementEnd )
+    {
+    displacementItr.Value() = pointItr.Value() +  velocityItr.Value() * scalingFactor;
+    ++displacementItr;
+    ++pointItr;
+    ++velocityItr;
+    }
+
+
   for( unsigned int i = 0; i < this->m_ScalingAndSquaringNumberOfIterations; i++ )
     {
     DestinationPointConstIterator oldDisplacementItr = this->m_DisplacementField->Begin();

@@ -80,6 +80,13 @@ public:
   typedef typename NodeSigmaContainerType::ConstPointer         NodeSigmaContainerConstPointer;
   typedef typename NodeSigmaContainerType::ConstIterator        NodeSigmaContainerConstIterator;
 
+  typedef Vector<double, 3>                                       VelocityVectorType;
+  typedef VectorContainer< PointIdentifier, VelocityVectorType >  VelocityVectorContainer;
+  typedef typename VelocityVectorContainer::Pointer               VelocityVectorPointer;
+  typedef typename VelocityVectorContainer::Iterator              VelocityVectorIterator;
+  typedef typename VelocityVectorContainer::ConstPointer          VelocityVectorConstPointer;
+  typedef typename VelocityVectorContainer::ConstIterator         VelocityVectorConstIterator;
+
 
   /** Set/Get the Fixed mesh. */
   void SetFixedMesh( const FixedMeshType * fixedMesh );
@@ -163,6 +170,8 @@ private:
   void SmoothDeformationField();
   void AssignResampledMovingValuesToOutputMesh();
   void ComputeScalingAndSquaringNumberOfIterations();
+  void ComputeShortestEdgeLength();
+  double ComputeLargestVelocityMagnitude() const;
   void ComputeDeformationByScalingAndSquaring();
   void ComposeDeformationUpdateWithPreviousDeformation();
   void SwapOldAndNewDestinationPointContainers();
@@ -249,7 +258,6 @@ private:
    * center and radius. */
   double          m_SphereRadius;
 
-
   /** Regularization constant used during the update of the deformation field. */
   double          m_Gamma;
 
@@ -258,11 +266,18 @@ private:
    * will result in large deformations. */
   double          m_SigmaX;
 
+  /** Shortest edge length in the input fixed mesh. This is used for computing
+   * the number of iterations required in the squaring and scaling method. */
+  double          m_ShortestEdgeLength;
+
   /** Number of iterations to be applied in the Scaling and Squaring method. */
   unsigned int    m_ScalingAndSquaringNumberOfIterations;
 
   /** Container of Sigma values associated to each node of the Fixed mesh. */
   NodeSigmaContainerConstPointer    m_FixedNodesSigmas;
+
+  /** Container of velocity field vectors. */
+  VelocityVectorPointer             m_VelocityField;
 
 };
 
