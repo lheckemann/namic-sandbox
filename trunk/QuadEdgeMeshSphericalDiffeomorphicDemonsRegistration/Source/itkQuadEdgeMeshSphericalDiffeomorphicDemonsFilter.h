@@ -74,6 +74,11 @@ public:
   typedef typename DestinationPointContainerType::Pointer       DestinationPointContainerPointer;
   typedef typename DestinationPointContainerType::Iterator      DestinationPointIterator;
   typedef typename DestinationPointContainerType::ConstIterator DestinationPointConstIterator;
+  typedef VectorContainer< PointIdentifier, double >            NodeSigmaContainerType;
+  typedef typename NodeSigmaContainerType::Pointer              NodeSigmaContainerPointer;
+  typedef typename NodeSigmaContainerType::Iterator             NodeSigmaContainerIterator;
+  typedef typename NodeSigmaContainerType::ConstPointer         NodeSigmaContainerConstPointer;
+  typedef typename NodeSigmaContainerType::ConstIterator        NodeSigmaContainerConstIterator;
 
 
   /** Set/Get the Fixed mesh. */
@@ -118,11 +123,22 @@ public:
   itkSetMacro( SphereRadius, double );
   itkGetConstMacro( SphereRadius, double );
 
- 
   /** Set/Get the value of the regularization constant used in the computation
    * of the deformation field update. */
   itkSetMacro( Gamma, double );
   itkGetConstMacro( Gamma, double );
+
+  /** Set/Get the value of the weight used in the contribution of the Jacobian
+   * to the Levenberg Marquardt term during the computation of the velocity
+   * field. */
+  itkSetMacro( SigmaX, double );
+  itkGetConstMacro( SigmaX, double );
+
+  /** Set/Get the container of sigma values to be associated with each node of
+   * the fixed mesh. This sigma value represents the expected variability of
+   * scalar values at this node of the mesh. */
+  itkSetConstObjectMacro( FixedNodesSigmas, NodeSigmaContainerType );
+  itkGetConstObjectMacro( FixedNodesSigmas, NodeSigmaContainerType );
 
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -135,6 +151,7 @@ private:
   void operator = ( const Self& );
 
   void AllocateInternalArrays();
+  void InitializeFixedNodesSigmas();
   void ComputeBasisSystemAtEveryNode();
   void ComputeInitialArrayOfDestinationPoints();
   void InitializeInterpolators();
@@ -236,8 +253,16 @@ private:
   /** Regularization constant used during the update of the deformation field. */
   double          m_Gamma;
 
+  /** This term controls the contribution of the Jacobian in the Levenberg
+   * Marquardt term that computes the velocity field. Large values of SigmaX
+   * will result in large deformations. */
+  double          m_SigmaX;
+
   /** Number of iterations to be applied in the Scaling and Squaring method. */
   unsigned int    m_ScalingAndSquaringNumberOfIterations;
+
+  /** Container of Sigma values associated to each node of the Fixed mesh. */
+  NodeSigmaContainerConstPointer    m_FixedNodesSigmas;
 
 };
 

@@ -53,7 +53,10 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_SphereCenter.Fill( 0.0 );
   this->m_SphereRadius = 1.0;
   this->m_Gamma = 1.0;
-  this->m_ScalingAndSquaringNumberOfIterations = 6;
+
+  this->m_SigmaX = 1.0;
+
+  this->m_ScalingAndSquaringNumberOfIterations = 10;
 }
 
 
@@ -110,14 +113,15 @@ GenerateData()
 {
   this->CopyInputMeshToOutputMesh();
   this->AllocateInternalArrays();
+  this->InitializeFixedNodesSigmas();
   this->ComputeBasisSystemAtEveryNode();
   this->ComputeInitialArrayOfDestinationPoints();
   this->InitializeInterpolators();
   this->ComputeScalingAndSquaringNumberOfIterations();
   this->RunIterations();
+  this->PrintOutDeformationVectors();
   this->ComputeMappedMovingValueAtEveryNode();
   this->AssignResampledMovingValuesToOutputMesh();
-  this->PrintOutDeformationVectors();
 }
 
 
@@ -151,6 +155,30 @@ AllocateInternalArrays()
 
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
   this->m_ResampledMovingValuesContainer->Reserve( numberOfNodes );
+
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+InitializeFixedNodesSigmas()
+{
+  const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
+
+  if( this->m_FixedNodesSigmas.IsNull() || this->m_FixedNodesSigmas->Size() != numberOfNodes )
+    {
+    NodeSigmaContainerPointer sigmas = NodeSigmaContainerType::New();
+    sigmas->Reserve( numberOfNodes );
+    NodeSigmaContainerIterator sigmaItr = sigmas->Begin();
+    NodeSigmaContainerIterator sigmaEnd = sigmas->End();
+    while( sigmaItr != sigmaEnd )
+      {
+      sigmaItr.Value() = 1.0;
+      ++sigmaItr;
+      }
+    this->SetFixedNodesSigmas( sigmas );
+    }
 }
 
 
@@ -324,6 +352,8 @@ ComputeVelocityField()
 
   BasisSystemContainerIterator basisItr = this->m_BasisSystemAtNode->Begin();
 
+  NodeSigmaContainerConstIterator sigmaItr = this->m_FixedNodesSigmas->Begin();
+
   ResampledMovingValuesContainerIterator  resampledArrayItr =
     this->m_ResampledMovingValuesContainer->Begin();
 
@@ -339,7 +369,7 @@ ComputeVelocityField()
 
   VnlMatrix33Type Gn;
   VnlMatrix33Type Gn2;
-  VnlMatrix33Type m2;
+  VnlMatrix33Type mn2;
   VnlMatrix32Type Qn;
   VnlMatrix23Type QnT;
   VnlMatrix22Type GI22;
@@ -392,8 +422,10 @@ ComputeVelocityField()
     for( unsigned int i = 0; i < 3; i++ )
       {
       Bn[i] = destinationPoint[i]; // FIXME This should be the Jacobian of the Destination points.
-      Qn(0,i) = QnT(i,0) = v0[i];
-      Qn(1,i) = QnT(i,1) = v1[i];
+      Qn(i,0) = v0[i];
+      Qn(i,1) = v1[i];
+      QnT(0,i) = v0[i];
+      QnT(1,i) = v1[i];
       mn[i] = derivative[i];
       }
 
@@ -401,7 +433,7 @@ ComputeVelocityField()
       {
       for( unsigned int c = 0; c < 3; c++ )
         {
-        m2(r,c) = mn[r] * mn[c];
+        mn2(r,c) = mn[r] * mn[c];
         }
       }
     
@@ -413,7 +445,7 @@ ComputeVelocityField()
     // The general form of this addition would involve two weights,
     // representing the variance of each term at this node.
     //
-    Gn2Bn2m2 = m2 + Gn2Bn2; 
+    Gn2Bn2m2 = mn2 / sigmaItr.Value(); //   TEMPORARILY: FIXME:  + Gn2Bn2 / this->m_SigmaX; 
 
     QnTGn2Bn2m2Qn = QnT * Gn2Bn2m2 * Qn;
     
@@ -431,6 +463,7 @@ ComputeVelocityField()
 
     ++dstPointItr;
     ++displacementItr;
+    ++sigmaItr;
     ++basisItr;
     ++resampledArrayItr;
     ++fixedPointDataItr;
@@ -448,7 +481,7 @@ ComputeScalingAndSquaringNumberOfIterations()
   // How to compute N:  Largest velocity vector Vn  magnitude  / 2^(N-2) < 1/2 vertex distance
   // Take smallest 
   //
-  this->m_ScalingAndSquaringNumberOfIterations = 6; // Temporarily...
+  this->m_ScalingAndSquaringNumberOfIterations = 10; // FIXME Temporarily...
 }
 
 
@@ -487,11 +520,17 @@ ComposeDeformationUpdateWithPreviousDeformation()
   DestinationPointConstIterator displacementEnd = this->m_DisplacementField->End();
 
   DestinationPointIterator newDestinationPointItr = this->m_DestinationPointsSwap->Begin();
-
+  DestinationPointIterator oldDestinationPointItr = this->m_DestinationPoints->Begin(); // DEBUG
+std::cout << "ComposeDeformationUpdateWithPreviousDeformation() " << std::endl;
   while( displacementItr != displacementEnd )
     { 
     this->InterpolateDestinationFieldAtPoint( 
       this->m_DestinationPoints, displacementItr.Value(), newDestinationPointItr.Value() ); 
+
+std::cout << oldDestinationPointItr.Value() << " : "  << displacementItr.Value() << " : " << newDestinationPointItr.Value() << std::endl;
+// DEBUG
+newDestinationPointItr.Value() = displacementItr.Value(); // FIXME : this line should be removed.
+// DEBUG
 
     ++newDestinationPointItr;
     ++displacementItr;
