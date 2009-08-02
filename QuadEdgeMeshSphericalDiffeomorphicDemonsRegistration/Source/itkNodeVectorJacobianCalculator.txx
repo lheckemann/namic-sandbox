@@ -126,15 +126,21 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
 
   BasisSystemListIterator basisSystemListIterator = m_BasisSystemList->Begin();
   
-  JacobianType   jacobian;
-  
+  const unsigned int numberOfVerticesInTriangle = 3;
+
+  DerivativeType  derivative;
+  DerivativeType  parallelTransportedDerivative[numberOfVerticesInTriangle];
+
+  JacobianType    projectedJacobian;
+  DerivativeType  projectedDerivative[numberOfVerticesInTriangle];
 
   //
   // Look at all triangular cells, re-use the basis of each, and new scalar values.
   //
-  const unsigned int numberOfVerticesInTriangle = 3;
   ArrayType pixelValue[numberOfVerticesInTriangle]; 
   PointIdentifier pointIds[numberOfVerticesInTriangle];
+  PointType point[numberOfVerticesInTriangle];
+
   while( cellIterator != cellEnd )
     {
     CellType * cellPointer = cellIterator.Value();
@@ -150,6 +156,7 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
       const PointIdentifier pointId = *pointIdIterator; 
       pointIds[i]= pointId;
       pixelValue[i]= this->m_VectorContainer->GetElement( pointId ); 
+      point[i] = this->m_InputMesh->GetPoint( pointId );
       i++;
       ++pointIdIterator;
       }
@@ -170,22 +177,72 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
     const VectorType & u32= basisSystem.GetVector(1); 
  
 
+    //
+    //  Compute the coordinates of the point at the center of the cell.
+    //
+    const double equalWeight = 1.0 / 3.0;
+    PointType cellCenter;
+    cellCenter.SetToBarycentricCombination(
+      point[0], point[1], point[2], equalWeight, equalWeight );
+
+    VectorType vectorToCenter = cellCenter - this->m_SphereCenter;
+    vectorToCenter *= this->m_SphereRadius / vectorToCenter.GetNorm();
+
+    const PointType cellCenterProjectedInSphere = this->m_SphereCenter + vectorToCenter;
  
-    InterpolatorType::GetJacobianFromVectorAndBasis(
-      pixelValue[0], pixelValue[1], pixelValue[2], u12, u32, jacobian);
+    //
+    // Project derivative in the plane tangent to the sphere at the projected
+    // point of the center cell
+    //
+    VectorType vectorToCenterNormalized = vectorToCenter;
+    vectorToCenterNormalized.Normalize();
 
-
-    
-    // Store at each vertex the value equal to triangle area x
-    // jacobian. Later, area-based weighting will use the total value
-    // and divide by the sum of triangle areas about each vertex.
-    // Begin by weighting contribution to point of this triangle by its area.
-
-    jacobian *= area;
 
     for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
       {
-      this->m_PointJacobianAccumulatorList->ElementAt( pointIds[i] ) += jacobian;
+      ArrayValueType pixelValue1 = pixelValue[0][i];
+      ArrayValueType pixelValue2 = pixelValue[1][i];
+      ArrayValueType pixelValue3 = pixelValue[2][i];
+      
+      InterpolatorType::GetDerivativeFromPixelsAndBasis(
+        pixelValue1, pixelValue2, pixelValue3, u12, u32, derivative );
+
+      const double radialComponent = derivative * vectorToCenterNormalized;
+
+      for( unsigned int k = 0; k < MeshDimension; k++ )
+        {
+        projectedDerivative[i][k] = derivative[k] - vectorToCenterNormalized[k] * radialComponent;
+        }
+
+      projectedDerivative[i] *= area;
+      }
+
+    // Store at each vertex the value equal to triangle area x
+    // Jacobian. Later, area-based weighting will use the total value
+    // and divide by the sum of triangle areas about each vertex.
+    // Begin by weighting contribution to point of this triangle by its area.
+
+    for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
+      {
+
+      for( unsigned int k = 0 ; k < MeshDimension; k++ )
+        {
+        // 
+        // Parallel transport the derivative vector to each neighbor point
+        //
+        this->ParalelTransport( cellCenterProjectedInSphere, point[i], 
+          projectedDerivative[k], parallelTransportedDerivative[k] );
+
+        for( unsigned int h = 0; h < MeshDimension; h++ )
+          {
+          projectedJacobian[k][h] = parallelTransportedDerivative[k][h];
+          }
+        }
+
+      //
+      // then accumulate them there.
+      //
+      this->m_PointJacobianAccumulatorList->ElementAt( pointIds[i] ) += projectedJacobian;
       }
 
     ++cellIterator;
