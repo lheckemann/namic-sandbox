@@ -28,12 +28,12 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 5 )
+  if( argc < 7 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " fixedMeshFile  movingMeshFile ";
-    std::cerr << " outputMeshfile numberOfIterations" << std::endl;
+    std::cerr << " outputMeshfile gamma sigmaX numberOfIterations" << std::endl;
     return EXIT_FAILURE;
     }
   
@@ -96,7 +96,7 @@ int main( int argc, char *argv[] )
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
   TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
 
-  maximumNumberOfIterations = atoi( argv[4] );
+  maximumNumberOfIterations = atoi( argv[6] );
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
 
   DemonsFilterType::PointType center1;
@@ -123,6 +123,28 @@ int main( int argc, char *argv[] )
 
   demonsFilter->SetSphereCenter( center0 );
   demonsFilter->SetSphereRadius( 100.0 );
+
+  const double gamma1 = 2.0;
+  demonsFilter->SetGamma( gamma1 );
+  TEST_SET_GET_VALUE( gamma1, demonsFilter->GetGamma() );
+
+  const double gamma2 = 3.0;
+  demonsFilter->SetGamma( gamma2 );
+  TEST_SET_GET_VALUE( gamma2, demonsFilter->GetGamma() );
+
+  const double gamma = atof( argv[4] );
+  demonsFilter->SetGamma( gamma );
+
+  const double sigmaX1 = 2.0;
+  demonsFilter->SetSigmaX( sigmaX1 );
+  TEST_SET_GET_VALUE( sigmaX1, demonsFilter->GetSigmaX() );
+
+  const double sigmaX2 = 3.0;
+  demonsFilter->SetSigmaX( sigmaX2 );
+  TEST_SET_GET_VALUE( sigmaX2, demonsFilter->GetSigmaX() );
+
+  const double sigmaX = atof( argv[5] );
+  demonsFilter->SetSigmaX( sigmaX );
 
 
   FilterWatcher watcher( demonsFilter, "Demons Filter");
