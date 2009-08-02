@@ -511,8 +511,6 @@ ComputeScalingAndSquaringNumberOfIterations()
 
     this->m_ScalingAndSquaringNumberOfIterations = iterations;
     }
-
-std::cout << " m_ScalingAndSquaringNumberOfIterations = " << m_ScalingAndSquaringNumberOfIterations << std::endl;
 }
 
 
@@ -598,8 +596,8 @@ ComputeDeformationByScalingAndSquaring()
 {
   unsigned long powerOfTwo = 1;
   powerOfTwo <<= this->m_ScalingAndSquaringNumberOfIterations;
+
   const double scalingFactor = 1.0 / powerOfTwo;
-std::cout << "ComputeDeformationByScalingAndSquaring() scalingFactor = " << scalingFactor << std::endl;
 
   DestinationPointIterator displacementItr = this->m_DisplacementField->Begin();
   DestinationPointIterator displacementEnd = this->m_DisplacementField->End();
@@ -613,7 +611,7 @@ std::cout << "ComputeDeformationByScalingAndSquaring() scalingFactor = " << scal
   while( displacementItr != displacementEnd )
     {
     displacementItr.Value() = pointItr.Value() +  velocityItr.Value() * scalingFactor;
-std::cout << "pointId " << pointItr.Index() << " point = " <<   pointItr.Value() << " displacementItr = " <<  displacementItr.Value() << "velocity= " <<  velocityItr.Value() << std::endl;
+
     ++displacementItr;
     ++pointItr;
     ++velocityItr;
@@ -626,21 +624,11 @@ std::cout << "pointId " << pointItr.Index() << " point = " <<   pointItr.Value()
 
     DestinationPointIterator newDisplacementItr = this->m_DisplacementFieldSwap->Begin();
 
-    PointType newDisplacement;
-
     while( oldDisplacementItr != oldDisplacementEnd )
       { 
-      this->InterpolateDestinationFieldAtPoint( 
-        this->m_DisplacementField, oldDisplacementItr.Value(), newDisplacement );
-
-      newDisplacementItr.Value() = newDisplacement;
-
-// DEBUG
-if( oldDisplacementItr == this->m_DisplacementField->Begin() )
-  {
-std::cout << i << " oldDisplacement " << oldDisplacementItr.Value() << " newDisplacement = " << newDisplacementItr.Value() << std::endl;
-  }
-// DEBUG
+      newDisplacementItr.Value() = 
+        this->InterpolateDestinationFieldAtPoint( 
+          this->m_DisplacementField, oldDisplacementItr.Value() );
 
       ++newDisplacementItr;
       ++oldDisplacementItr;
@@ -661,14 +649,12 @@ ComposeDeformationUpdateWithPreviousDeformation()
 
   DestinationPointIterator newDestinationPointItr = this->m_DestinationPointsSwap->Begin();
 
-  PointType destinationPoint;
-
   while( displacementItr != displacementEnd )
     { 
-    this->InterpolateDestinationFieldAtPoint( 
-      this->m_DestinationPoints, displacementItr.Value(), destinationPoint );
+    newDestinationPointItr.Value() =
+      this->InterpolateDestinationFieldAtPoint( 
+        this->m_DestinationPoints, displacementItr.Value() );
 
-    newDestinationPointItr.Value() = destinationPoint; 
 
     ++newDestinationPointItr;
     ++displacementItr;
@@ -679,13 +665,15 @@ ComposeDeformationUpdateWithPreviousDeformation()
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void
+typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::PointType
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 InterpolateDestinationFieldAtPoint( const DestinationPointContainerType * destinationField, 
-  const PointType & point, PointType & interpolatedDestinationPoint )
+  const PointType & point )
 {
+  PointType interpolatedDestinationPoint;
   this->m_DeformationInterpolator->Evaluate( destinationField, point, interpolatedDestinationPoint );
   this->ProjectPointToSphereSurface( interpolatedDestinationPoint );
+  return interpolatedDestinationPoint;
 }
 
 
