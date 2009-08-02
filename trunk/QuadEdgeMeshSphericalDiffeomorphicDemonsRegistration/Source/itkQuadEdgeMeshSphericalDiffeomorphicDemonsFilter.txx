@@ -520,17 +520,11 @@ ComposeDeformationUpdateWithPreviousDeformation()
   DestinationPointConstIterator displacementEnd = this->m_DisplacementField->End();
 
   DestinationPointIterator newDestinationPointItr = this->m_DestinationPointsSwap->Begin();
-  DestinationPointIterator oldDestinationPointItr = this->m_DestinationPoints->Begin(); // DEBUG
-std::cout << "ComposeDeformationUpdateWithPreviousDeformation() " << std::endl;
+
   while( displacementItr != displacementEnd )
     { 
     this->InterpolateDestinationFieldAtPoint( 
       this->m_DestinationPoints, displacementItr.Value(), newDestinationPointItr.Value() ); 
-
-std::cout << oldDestinationPointItr.Value() << " : "  << displacementItr.Value() << " : " << newDestinationPointItr.Value() << std::endl;
-// DEBUG
-newDestinationPointItr.Value() = displacementItr.Value(); // FIXME : this line should be removed.
-// DEBUG
 
     ++newDestinationPointItr;
     ++displacementItr;
