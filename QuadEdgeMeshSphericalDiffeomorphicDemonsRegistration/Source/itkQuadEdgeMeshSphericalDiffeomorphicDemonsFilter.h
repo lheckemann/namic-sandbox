@@ -179,9 +179,8 @@ private:
 
   void PrintOutDeformationVectors();
 
-  virtual void InterpolateDestinationFieldAtPoint( 
-    const DestinationPointContainerType * destinationField, const PointType & point,
-    PointType & interpolatedDestinationPoint );
+  virtual PointType InterpolateDestinationFieldAtPoint( 
+    const DestinationPointContainerType * destinationField, const PointType & point );
 
   virtual void ProjectPointToSphereSurface( PointType & point ) const;
 
