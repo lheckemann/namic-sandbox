@@ -20,6 +20,7 @@
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
 #include "itkNodeScalarGradientCalculator.h"
+#include "itkNodeVectorJacobianCalculator.h"
 #include "itkLinearInterpolateDeformationFieldMeshFunction.h"
 #include "itkTriangleListBasisSystemCalculator.h"
 #include "itkTriangleBasisSystem.h"
@@ -239,13 +240,20 @@ private:
   /** Interpolator object that will compute deformation destination points on the fixed mesh grid. */
   typename DeformationInterpolatorType::Pointer                 m_DeformationInterpolator; 
 
-  typedef NodeScalarGradientCalculator< 
-    FixedMeshType, ResampledMovingValuesContainerType >         NodeScalarGradientCalculatorType;
-
   /** Helper class that will compute the gradient of resampled Moving mesh
    * values at every node of the Fixed mesh with respect to the coordinate system
    * of that node in the fixed mesh. */
+  typedef NodeScalarGradientCalculator< 
+    FixedMeshType, ResampledMovingValuesContainerType >         NodeScalarGradientCalculatorType;
   typename NodeScalarGradientCalculatorType::Pointer            m_NodeScalarGradientCalculator; 
+
+  /** Helper class that will compute the Jacobian of destination points 
+   * at every node of the Fixed mesh with respect to the coordinate system
+   * of that node in the fixed mesh. */
+  typedef NodeVectorJacobianCalculator< 
+    FixedMeshType, DestinationPointContainerType >         NodeVectorJacobianCalculatorType;
+  typename NodeVectorJacobianCalculatorType::Pointer            m_NodeVectorJacobianCalculator; 
+
 
   /** Center of spherical mesh. We assume that both the Fixed and
    * Moving meshes have spherical geometry and that they share the same
