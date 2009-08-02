@@ -30,9 +30,12 @@ vtkCxxSetObjectMacro(vtkProstateNavStep,Logic,vtkProstateNavLogic);
 //----------------------------------------------------------------------------
 vtkProstateNavStep::vtkProstateNavStep()
 {
+
+  std::cerr << "vtkProstateNavStep::vtkProstateNavStep() start" << std::endl;
   this->GUI = NULL;
   this->Logic = NULL;
   this->MRMLScene = NULL;
+  this->ProstateNavManager = NULL;
 
   this->GUICallbackCommand = vtkCallbackCommand::New();
   this->GUICallbackCommand->SetClientData( reinterpret_cast<void *>(this) );
@@ -50,6 +53,7 @@ vtkProstateNavStep::vtkProstateNavStep()
   this->InGUICallbackFlag = 0;
   this->InMRMLCallbackFlag = 0;
 
+  std::cerr << "vtkProstateNavStep::vtkProstateNavStep() end" << std::endl;
 }
 
 //----------------------------------------------------------------------------
