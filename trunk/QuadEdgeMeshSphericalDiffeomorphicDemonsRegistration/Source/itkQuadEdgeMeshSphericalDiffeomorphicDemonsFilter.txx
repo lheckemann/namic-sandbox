@@ -56,7 +56,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_SphereRadius = 1.0;
   this->m_Gamma = 1.0;
 
-  this->m_SigmaX = 1.0;
+  this->m_SigmaX = 10000.0;
 
   this->m_ShortestEdgeLength = 1.0;
   this->m_ScalingAndSquaringNumberOfIterations = 2;
@@ -392,7 +392,7 @@ ComputeVelocityField()
   VnlMatrix22Type QnTGn2Bn2m2Qn;
   VnlMatrix22Type QnTGn2Bn2m2QnGI22;
   VnlMatrix22Type QnTGn2Bn2m2QnGI22I;
-  VnlMatrix33Type Bn;
+  VnlMatrix33Type BnT;
   VnlMatrix33Type Gn2Bn;
 
   VnlVector3Type mn;
@@ -458,13 +458,13 @@ ComputeVelocityField()
       for( unsigned int c = 0; c < 3; c++ )
         {
         mn2(r,c) = mn[r] * mn[c];
-        Bn(r,c) = destinationJacobian(r,c);  // FIXME : Check for potential transposition here...
+        BnT(r,c) = destinationJacobian(c,r);  // FIXME : Check for potential transposition here...
         }
       }
     
-    Gn2Bn = Gn2 * Bn; 
+    Gn2Bn = Gn2 * BnT; 
 
-    Gn2Bn2 = Gn2Bn * Gn2Bn;
+    Gn2Bn2 = Gn2Bn.transpose() * Gn2Bn;
 
     //
     // The general form of this addition would involve two weights,
@@ -472,7 +472,7 @@ ComputeVelocityField()
     //
     const double sigmaN2 = sigmaItr.Value() * sigmaItr.Value();
 
-    Gn2Bn2m2 = mn2 / sigmaN2; //   TEMPORARILY: FIXME:  + Gn2Bn2 / sigmaX2;
+    Gn2Bn2m2 = mn2 / sigmaN2 + Gn2Bn2 / sigmaX2;
 
     QnTGn2Bn2m2Qn = QnT * Gn2Bn2m2 * Qn;
     
