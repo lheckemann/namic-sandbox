@@ -56,7 +56,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_SphereRadius = 1.0;
   this->m_Gamma = 1.0;
 
-  this->m_SigmaX = 10000.0;
+  this->m_SigmaX = 1.0;
 
   this->m_ShortestEdgeLength = 1.0;
   this->m_ScalingAndSquaringNumberOfIterations = 2;
