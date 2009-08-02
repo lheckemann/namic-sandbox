@@ -485,15 +485,17 @@ ComputeScalingAndSquaringNumberOfIterations()
 
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
-  if( ratio > 1.0 )
+  int iterations = static_cast< int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
+  
+std::cout << "iterations= " << iterations << std::endl;
+
+  if( iterations < 0 )
     {
-    this->m_ScalingAndSquaringNumberOfIterations =
-      static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
+    iterations = 0;
     }
-  else
-    {
-    this->m_ScalingAndSquaringNumberOfIterations = 2;
-    }
+
+  this->m_ScalingAndSquaringNumberOfIterations = iterations;
+std::cout << " m_ScalingAndSquaringNumberOfIterations = " << m_ScalingAndSquaringNumberOfIterations << std::endl;
 }
 
 
