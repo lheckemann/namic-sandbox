@@ -89,6 +89,9 @@ public:
 
   typedef TriangleHelper< PointType >                                       TriangleType;
   typedef typename TriangleType::CoordRepType                               AreaType;
+  typedef VectorContainer<CellIdentifier, AreaType >                        AreaListType;
+  typedef typename AreaListType::Iterator                                   AreaListIterator;
+  typedef typename AreaListType::ConstIterator                              AreaListConstIterator;
 
   typedef TriangleListBasisSystemCalculator< InputMeshType, TriangleBasisSystemType >
     TriangleListBasisSystemCalculatorType;
@@ -130,7 +133,22 @@ public:
   typedef typename Superclass::OutputType                 OutputType;
   typedef typename Superclass::InputType                  InputType;
 
-  /** Compute the values at every node. */
+  /** Initialize internal variables. This method MUST be called first, before
+   * calling the Compute() method. In a normal usage, the Initialize() method
+   * will be called once ant the beginning, and then it will be followed by
+   * multiple calls to the Compute() method.
+   *
+   * \sa Compute
+   */
+  virtual void Initialize( void );
+
+  /** Compute the values at all the nodes. The Initialize() method MUST be
+   * called first. In a normal usage, the Initialize() method will be called
+   * once ant the beginning, and then it will be followed by multiple calls to
+   * the Compute() method.
+   *
+   * \sa Initialize
+   */
   virtual void Compute();  
 
   /** Set/Get list of basis systems at every cell. */
@@ -139,6 +157,26 @@ public:
 
   /** Evaluate at the specified input position */
   virtual OutputType Evaluate( const InputType& input) const;
+
+  /** Set Sphere Center.  The implementation of this class assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the coordinates of the center of the sphere
+   * represented by the Mesh. This will be used in the computation of parallel
+   * transport for vector values associated with nodes.
+   */
+  itkSetMacro( SphereCenter, PointType );
+  itkGetConstMacro( SphereCenter, PointType );
+
+  /** Set Sphere Radius.  The implementation of this class assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the radius of the sphere. This will be used in
+   * the computation of parallel transport for vector values associated
+   * with nodes.
+   */
+  itkSetMacro( SphereRadius, double );
+  itkGetConstMacro( SphereRadius, double );
+
+
 
 protected:
   NodeVectorJacobianCalculator();
@@ -153,16 +191,38 @@ private:
   typename InputMeshType::ConstPointer                         m_InputMesh;
   typename TVectorContainer::ConstPointer                      m_VectorContainer;
   typename BasisSystemListType::ConstPointer                   m_BasisSystemList;
-  typename JacobianListType::Pointer                           m_JacobianList;
+  typename AreaListType::Pointer                               m_AreaList;
   typename CoordRepListType::Pointer                           m_PointAreaAccumulatorList; 
   typename JacobianListType::Pointer                           m_PointJacobianAccumulatorList; 
+
+  typedef  typename JacobianListType::Iterator                 JacobianListIterator;
 
   /** Check that all necessary inputs are connected. */
   virtual void VerifyInputs( void ) const;
 
-  /** Initialize internal variables. */
-  virtual void Initialize( void );
+  /** Allocate memory for all the internal containers. This method is called
+   * only once during the initialization of the calculator. It doesn't need to be
+   * called again unless the number of cells or number of points in the input
+   * mesh change. */
+  void AllocateInternalContainers();
 
+  /** Parallel-transport for gradient vectors. This is equivalent to sliding them along
+   * the great circle that connects sourcePoint with destinationPoint.  */
+  void ParalelTransport( const PointType sourcePoint, const PointType destinationPoint,
+    const DerivativeType & inputVector, DerivativeType & transportedVector ) const;
+
+  /** Divide the cumulated derivatives by the cumulated areas */
+  void NormalizeDerivativesByTotalArea();
+
+  /** Compute the area in all cells and store it in a container */
+  void ComputeAreaForAllCells();
+
+  /** Fill the values of several containers with null values. This is done as
+   * initialization before we start accumulating values in them. */
+  void SetContainersToNullValues();
+
+  PointType       m_SphereCenter;
+  double          m_SphereRadius;
 };
 
 } // end namespace itk
