@@ -23,6 +23,9 @@
 
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkMRMLBrpRobotCommandNode.h"
+#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLModelNode.h"
 
 class vtkProstateNavStep;
 
@@ -57,6 +60,13 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   vtkGetObjectMacro ( RobotConnector, vtkMRMLIGTLConnectorNode );
   vtkGetObjectMacro ( ScannerConnector, vtkMRMLIGTLConnectorNode );
+
+  vtkGetObjectMacro ( RobotCommand, vtkMRMLBrpRobotCommandNode );
+  vtkGetObjectMacro ( RobotTarget, vtkMRMLLinearTransformNode );
+  vtkGetObjectMacro ( ZFrameTransform, vtkMRMLLinearTransformNode );
+
+  vtkGetObjectMacro ( ZFrameModel, vtkMRMLModelNode );
+  vtkSetObjectMacro ( ZFrameModel, vtkMRMLModelNode );
 
   //----------------------------------------------------------------
   // Standard methods for MRML nodes
@@ -190,7 +200,23 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Set and start observing OpenIGTLink connector for scanner
   void SetAndObserveScannerConnector(vtkMRMLIGTLConnectorNode* ptr);
 
+  //----------------------------------------------------------------
+  // Commands
+  //----------------------------------------------------------------
 
+  // Description:
+  // Set and start observing OpenIGTLink connector for scanner
+  void SetAndObserveRobotCommand(vtkMRMLBrpRobotCommandNode* ptr);
+
+  // Description:
+  // Set and start observing target for robot 
+  void SetAndObserveRobotTarget(vtkMRMLLinearTransformNode* ptr);
+
+  // Description:
+  // Set and start observing Z-frame transform
+  void SetAndObserveZFrameTransform(vtkMRMLLinearTransformNode* ptr);
+
+  
  protected:
   //----------------------------------------------------------------
   // Constructor and destroctor
@@ -226,7 +252,13 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 
   vtkMRMLIGTLConnectorNode* RobotConnector;
   vtkMRMLIGTLConnectorNode* ScannerConnector;
+
+  vtkMRMLBrpRobotCommandNode* RobotCommand;
+  vtkMRMLLinearTransformNode* RobotTarget;
+  vtkMRMLLinearTransformNode* ZFrameTransform;
+  vtkMRMLModelNode* ZFrameModel;
   
+
 };
 
 #endif

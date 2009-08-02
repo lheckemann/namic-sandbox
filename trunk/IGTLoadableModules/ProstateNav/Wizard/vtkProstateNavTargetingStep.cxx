@@ -322,9 +322,11 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
       orientation[2] = (float) matrix->GetElementValueAsDouble(0, 2);
       orientation[3] = (float) matrix->GetElementValueAsDouble(0, 3);
 
-      vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->
-        GetNodeByID(this->GetLogic()->GetRobotTargetNodeID());
-      vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+      //vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->
+      //  GetNodeByID(this->GetLogic()->GetRobotTargetNodeID());
+      //vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+      vtkMRMLLinearTransformNode* transformNode = this->GetProstateNavManager()->GetRobotTarget();
+
       if (transformNode)
         {
         vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
@@ -363,6 +365,8 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
 
         vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
         transformToParent->DeepCopy(matrix);
+
+        // Send move to command 
         this->Logic->RobotMoveTo();
         }
       }

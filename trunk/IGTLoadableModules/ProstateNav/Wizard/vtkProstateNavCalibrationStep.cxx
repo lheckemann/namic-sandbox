@@ -46,6 +46,8 @@
 
 #include "vtkZFrameRobotToImageRegistration.h"
 
+#include "vtkMRMLBrpRobotCommandNode.h"
+
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavCalibrationStep);
@@ -217,10 +219,11 @@ void vtkProstateNavCalibrationStep::ProcessGUIEvents(vtkObject *caller,
 void vtkProstateNavCalibrationStep::ShowZFrameModel()
 {
 
-  vtkMRMLModelNode*  modelNode =
-    //vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID.c_str()));
-    vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->GetLogic()->GetZFrameModelNodeID()));
+  //vtkMRMLModelNode*  modelNode =
+  //  //vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID.c_str()));
+  //  vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->GetLogic()->GetZFrameModelNodeID()));
 
+  vtkMRMLModelNode*  modelNode = this->GetProstateNavManager()->GetZFrameModel();
   vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
   displayNode->SetVisibility(1);
   modelNode->Modified();
@@ -500,16 +503,37 @@ void vtkProstateNavCalibrationStep::PerformZFrameCalibration(const char* filenam
       vtkZFrameRobotToImageRegistration* registration = vtkZFrameRobotToImageRegistration::New();
       registration->SetFiducialVolume(volumeNode);
 
-      vtkMRMLNode* node = this->MRMLScene->GetNodeByID(this->GetLogic()->GetZFrameTransformNodeID());
-      vtkMRMLLinearTransformNode* transformNode;
-      if (node != NULL)
+      //vtkMRMLNode* node = this->MRMLScene->GetNodeByID(this->GetLogic()->GetZFrameTransformNodeID());
+      //vtkMRMLLinearTransformNode* transformNode;
+      //if (node != NULL)
+      //  {
+      //  transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+      //  registration->SetRobotToImageTransform(transformNode);
+      //
+      //  registration->DoRegistration();
+      //
+      //  this->GetLogic()->SendZFrame();
+      //  }
+      //else
+      //  {
+      //  std::cerr << "Couldn't find zframe transform node" << std::endl;
+      //  }
+      vtkMRMLLinearTransformNode* transformNode = this->GetProstateNavManager()->GetZFrameTransform();
+      if (transformNode != NULL)
         {
-        transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
         registration->SetRobotToImageTransform(transformNode);
-
         registration->DoRegistration();
+        //this->GetLogic()->SendZFrame();
 
-        this->GetLogic()->SendZFrame();
+        std::cerr << "Sending Z-frame Data" << std::endl;
+        vtkMRMLBrpRobotCommandNode* cnode = this->GetProstateNavManager()->GetRobotCommand();
+        if (!cnode)
+          {
+            return;
+          }
+        cnode->SetZFrameTransformNodeID(transformNode->GetID());
+        cnode->PushOutgoingCommand("SET_Z_FRAME");
+        cnode->InvokeEvent(vtkCommand::ModifiedEvent);
         }
       else
         {

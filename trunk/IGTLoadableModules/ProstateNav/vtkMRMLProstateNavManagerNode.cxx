@@ -473,8 +473,6 @@ int vtkMRMLProstateNavManagerNode::IsTransitionable(int step_to)
 void vtkMRMLProstateNavManagerNode::SetAndObserveTargetPlanList(vtkMRMLFiducialListNode* ptr)
 {
 
-  vtkMRMLFiducialListNode *oldList = this->TargetPlanList;
-
   if (this->TargetPlanList != NULL)
     {
     vtkEventBroker::GetInstance()->RemoveObservations(
@@ -500,8 +498,6 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveTargetPlanList(vtkMRMLFiducialL
 //----------------------------------------------------------------------------
 void vtkMRMLProstateNavManagerNode::SetAndObserveTargetCompletedList(vtkMRMLFiducialListNode* ptr)
 {
-
-  vtkMRMLFiducialListNode *oldList = this->TargetCompletedList;
 
   if (this->TargetCompletedList != NULL)
     {
@@ -530,8 +526,6 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveTargetCompletedList(vtkMRMLFidu
 void vtkMRMLProstateNavManagerNode::SetAndObserveRobotConnector(vtkMRMLIGTLConnectorNode* ptr)
 {
 
-  vtkMRMLIGTLConnectorNode *oldList = this->RobotConnector;
-
   if (this->RobotConnector != NULL)
     {
     vtkEventBroker::GetInstance()->RemoveObservations(
@@ -558,8 +552,6 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotConnector(vtkMRMLIGTLConne
 void vtkMRMLProstateNavManagerNode::SetAndObserveScannerConnector(vtkMRMLIGTLConnectorNode* ptr)
 {
 
-  vtkMRMLIGTLConnectorNode *oldList = this->ScannerConnector;
-
   if (this->ScannerConnector != NULL)
     {
     vtkEventBroker::GetInstance()->RemoveObservations(
@@ -580,3 +572,83 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveScannerConnector(vtkMRMLIGTLCon
     }
 
 }
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLProstateNavManagerNode::SetAndObserveRobotCommand(vtkMRMLBrpRobotCommandNode* ptr)
+{
+
+  if (this->RobotCommand != NULL)
+    {
+    vtkEventBroker::GetInstance()->RemoveObservations(
+      this->RobotCommand, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    }
+
+  this->RobotCommand = ptr;
+
+  if (ptr != NULL)
+    {
+    vtkEventBroker::GetInstance()->AddObservation(
+      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    }
+
+  if ( this->RobotCommand != ptr )
+    {
+    this->Modified();
+    }
+
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLProstateNavManagerNode::SetAndObserveRobotTarget(vtkMRMLLinearTransformNode* ptr)
+{
+
+  if (this->RobotTarget != NULL)
+    {
+    vtkEventBroker::GetInstance()->RemoveObservations(
+      this->RobotTarget, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    }
+
+  this->RobotTarget = ptr;
+
+  if (ptr != NULL)
+    {
+    vtkEventBroker::GetInstance()->AddObservation(
+      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    }
+
+  if ( this->RobotTarget != ptr )
+    {
+    this->Modified();
+    }
+
+}
+
+
+//----------------------------------------------------------------------------
+void vtkMRMLProstateNavManagerNode::SetAndObserveZFrameTransform(vtkMRMLLinearTransformNode* ptr)
+
+{
+
+  if (this->ZFrameTransform != NULL)
+    {
+    vtkEventBroker::GetInstance()->RemoveObservations(
+      this->ZFrameTransform, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    }
+
+  this->ZFrameTransform = ptr;
+
+  if (ptr != NULL)
+    {
+    vtkEventBroker::GetInstance()->AddObservation(
+      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    }
+
+  if ( this->ZFrameTransform != ptr )
+    {
+    this->Modified();
+    }
+
+}
+
+

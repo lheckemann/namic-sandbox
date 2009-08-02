@@ -161,6 +161,7 @@ int vtkProstateNavLogic::Enter()
   ztnode->Delete();
 
   // ZFrame
+  // This part should be moved to Robot Display Node.
   this->ZFrameModelNodeID = AddZFrameModel("ZFrame");
   vtkMRMLModelNode*  modelNode =
     vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID.c_str()));
@@ -200,22 +201,6 @@ void vtkProstateNavLogic::TimerHandler()
 //    std::cerr << "void vtkProstateNavLogic::TimerHandler() is called" << std::endl;
     vtkKWTkUtilities::CreateTimerHandler(this->GetGUI()->GetApplication(), 200, this, "TimerHandler");
     }
-}
-
-
-//---------------------------------------------------------------------------
-int vtkProstateNavLogic::ConnectTracker(const char* filename)
-{
-
-    return 1;
-}
-
-
-//---------------------------------------------------------------------------
-int vtkProstateNavLogic::DisconnectTracker()
-{
-
-    return 1;
 }
 
 
@@ -266,6 +251,7 @@ int  vtkProstateNavLogic::RobotMoveTo()
   return 1;
 }
 
+
 //---------------------------------------------------------------------------
 int vtkProstateNavLogic::SendZFrame()
 {
@@ -286,6 +272,7 @@ int vtkProstateNavLogic::SendZFrame()
   return 1;
   
 }
+
 
 //---------------------------------------------------------------------------
 int vtkProstateNavLogic::ScanStart()
@@ -504,4 +491,3 @@ const char* vtkProstateNavLogic::AddZFrameModel(const char* nodeName)
   return rstr.c_str();
 
 }
-
