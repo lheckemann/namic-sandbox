@@ -145,12 +145,18 @@ vtkDataSender::~vtkDataSender()
   int index;
 
   this->SetOIGTLServer(NULL);
-  this->PlayerThreader->Delete();
+  if(this->PlayerThreader)
+    {
+    this->PlayerThreader->Delete();
+    }
 
   this->StopSending();
   this->CloseServerConnection();
 
-  this->calibReader->Delete();
+  if(this->calibReader)
+    {
+    this->calibReader->Delete();
+    }
 
   //Delete all buffer objects
   while(!this->IsSendDataBufferEmpty())
@@ -160,7 +166,10 @@ vtkDataSender::~vtkDataSender()
     this->UnlockData(index, DATAPROCESSOR);
     this->TryToDeleteData(index);
     }
-  this->IndexLock->Delete();
+  if(this->IndexLock)
+    {
+    this->IndexLock->Delete();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -847,9 +856,10 @@ int vtkDataSender::TryToDeleteData(int index)
     {
 
     //Delete Image Frame
-    if(NULL != this->sendDataBuffer[index].ImageData)
+    if(this->sendDataBuffer[index].ImageData)
       {
       this->sendDataBuffer[index].ImageData->Delete();
+      this->sendDataBuffer[index].ImageData = NULL;
       }
     else
       {
@@ -862,6 +872,7 @@ int vtkDataSender::TryToDeleteData(int index)
     if(NULL != this->sendDataBuffer[index].Matrix)
       {
       this->sendDataBuffer[index].Matrix->Delete();
+      this->sendDataBuffer[index].Matrix = NULL;
       }
     else
       {
@@ -1207,3 +1218,4 @@ void vtkDataSender::PrintAvailableIndices()
       }
     }
 }
+
