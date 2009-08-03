@@ -804,8 +804,6 @@ SmoothTangentVectorField()
 
   for( unsigned int iter = 0; iter < this->m_MaximumNumberOfSmoothingIterations; ++iter )
     {
-    std::cout << " Smoothing Iteration " << iter << std::endl;
-    
     typedef typename OutputMeshType::QEPrimal    EdgeType;
 
     TangentVectorIterator tangentItr = this->m_TangentVectorField->Begin();
