@@ -122,7 +122,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // each time the new step is added by AddNewStep() fucntion.
   // The matrix should  be defined after all steps are added to the
   // manager class.
-  void AddNewStep(const char* name, vtkProstateNavStep* page);
+  void AddNewStep(const char* name, vtkProstateNavStep* page, const char* wpcommand);
+  void AddNewStep(const char* name, vtkProstateNavStep* page) { AddNewStep(name, page, ""); };
   
   // Description:
   // Clear the step
@@ -238,6 +239,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   typedef struct {
     std::string         name;
     vtkProstateNavStep* page;
+    std::string         wpcommand;  // Workphase command name
   } StepInfoType;
   std::vector<StepInfoType>         StepList;
 

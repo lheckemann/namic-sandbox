@@ -244,15 +244,16 @@ vtkProstateNavStep* vtkMRMLProstateNavManagerNode::GetStepPage(int i)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavStep* page)
+void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavStep* page, const char* wpcommand)
 {
 
   std::cerr << "void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavStep* page) start" << std::endl;
   // Add to the list
   StepInfoType step;
 
-  step.name  = name;
-  step.page  = page;
+  step.name      = name;
+  step.page      = page;
+  step.wpcommand = wpcommand;
 
   this->StepList.push_back(step);
   
@@ -317,6 +318,12 @@ int vtkMRMLProstateNavManagerNode::SwitchStep(int i)
       {
       this->PreviousStep = this->CurrentStep;
       this->CurrentStep = i;
+      if (this->RobotCommand && this->StepList[i].wpcommand.length() > 0)
+        {
+        const char* command = this->StepList[i].wpcommand.c_str();
+        this->RobotCommand->PushOutgoingCommand(command);
+        this->RobotCommand->InvokeEvent(vtkCommand::ModifiedEvent);
+        }
       return 1;
       }
     else
