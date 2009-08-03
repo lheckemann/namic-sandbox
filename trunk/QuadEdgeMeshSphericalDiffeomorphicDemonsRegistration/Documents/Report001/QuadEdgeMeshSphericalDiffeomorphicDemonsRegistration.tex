@@ -15,7 +15,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 ]{hyperref}
 
 
-\title{Rotational Registration of Spherical Surfaces Represented as QuadEdge Meshes}
+\title{Spherical Demons Registration\\ of Spherical Surfaces}
 
 
 % 
@@ -29,7 +29,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \release{1.00}
 
-\author{Michel Audette$^{1}$, Luis Ibanez$^{1}$, Thomas Yeo$^{1}$, Polina Goland$^{2}$}
+\author{Luis Ibanez$^{1}$, Michel Audette$^{1}$, Thomas Yeo$^{1}$, Polina Goland$^{2}$}
 \authoraddress{$^{1}$Kitware Inc., Clifton Park, NY\\
                $^{2}$CSAIL MIT, Boston, MA}
 
@@ -69,9 +69,12 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 \begin{abstract}
 \noindent
 This document describes a contribution to the Insight Toolkit intended to
-support the process of registering two Meshes.  The methods included here are
-restricted to Meshes with a Spherical geometry and topology, and with scalar
-values associated to their nodes.
+support the process of performing deformable registration on two Meshes. The
+method implemented here is restricted to Meshes with a Spherical geometry and
+topology, and with scalar values associated to their nodes. The code described
+here is an implementation of the paper ``\emph{Spherical Demons: Fast
+Diffeomorphic Landmark-Free Surface Registration}'' by Yeo, Sabuncu,
+Vercauteren, Ayache, Fischl and Golland~\cite{Yeo2008,Yeo2009}.
 
 This paper is accompanied with the source code, input data, parameters and
 output data that we used for validating the algorithm described in this paper.
@@ -83,44 +86,103 @@ facilitate \textbf{reproducibility} of the reported results.
 
 \section{Introduction}
 
-The Insight Toolkit already provides methods for registering
+The method described in this paper is the Mesh equivalent of the Demons
+Deformable registration method implemented for images that is currently
+available in the Insight Toolkit.
+
+For example
 
 \begin{itemize}
-\item Image to Image
-\item PointSet to Image
-\item PointSet to Pointset
+\item \doxygen{DemonsRegistrationFilter}
+\item \doxygen{FastSymmetricForcesDemonsRegistrationFunction}
+\item \doxygen{DiffeomorphicDemonsRegistrationFilter}
 \end{itemize}
 
-but it lacks methods for registering one Mesh versus another Mesh.
+The method implemented here is restricted to the case of two Meshes with
+spherical geometry and topology, with scalar values associated to their nodes.
+The registration operates on the scalar values, not on the geometry of the mesh
+surface.
 
-In this paper we contribute new classes that can be used for performing
-registration between two spherical meshes, although not all of of the classes
-in this contribution are restricted to be used on spherical meshes.
+This contribution is the third on a series of papers related to improving
+support for mesh registration in the Insight Toolkit. Previous papers have
+covered the topics of rigid registration on Meshes and iterative smoothing of
+meshes with scalar and vector field
+values~\cite{MeshSmoothingIJ2009,MeshRigidRegistrationIJ2009} 
 
-\section{Overview}
+\section{How to Build}
 
-The design of these classes follows very closely the one of the Image
-Registration Framework in ITK.  In particular, we have the usual components
+This contribution includes
 
 \begin{itemize}
-\item Optimizer
-\item Metric
-\item Transform
-\item Interpolator
+\item Source code of the Spherical Diffeomorphic Demons filter
+\item Tests for the filter
+\item Examples on how to use the filter
+\item All the LaTeX source files of this paper
 \end{itemize}
 
-and we have the two objects to be registered, in this case Meshes instead of
-Images. The two main components that must be providded in order to support Mesh
-registration are Iterpolators and Metrics.
+\subsection{Building Executables and Tests}
 
-The following diagram indicates the hierarchy of classes that are included 
-in this contribution.
+In order to build the whole, it is enough to configure the directory with
+CMake. As usual, an out-of-source build is the recommended method.
 
-\begin{figure}
-\center
-\includegraphics[width=0.7\textwidth]{ClassHierarchy.pdf}
-\itkcaption[Registration Class Hierarchy]{Hierarchy of new Registration Classes.}
-\label{fig:ClassHierarchy}
-\end{figure}
+In a Linux environment it should be enough to do the following:
+
+\begin{itemize}
+\item \code{ccmake  SOURCE\_DIRECTORY}
+\item \code{make}
+\item \code{ctest}
+\end{itemize}
+
+Where SOURCE\_DIRECTORY is the directory where you have expanded the source
+code that accompanies this paper.
+
+This will configure the project, build the executables, and run the tests and
+examples. 
+
+
+\subsection{Building this Report}
+
+In order to build this report you can do
+
+\begin{itemize}
+\item \code{ccmake SOURCE\_DIRECTORY}
+\item Turn ON the CMake variable
+\begin{itemize}
+\item \code{BUILD\_REPORTS}
+\end{itemize}
+\item \code{make}
+\end{itemize}
+
+This should produce a PDF file in the binary directory, under the subdirectory
+\code{Documents/Report001}.
+
+\section{How to Use the Filter}
+
+This section illustrates the minimum operations required for running these two
+filters. The code shown here is available in the Examples directory of the code
+that accompanies this paper. You can download the entire set of files from the
+Insight Journal web site.
+
+\subsection{Scalar Mesh}
+
+\subsubsection{Source Code Example}
+
+In order to use this filter we should start by including headers for the
+smoothing filter, the reader and writer types and the \doxygen{QuadEdgeMesh}
+itself.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Insert the bibliography using BibTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{plain}
+\bibliography{InsightJournal}
+
+
 
 \end{document}
