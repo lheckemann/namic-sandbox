@@ -174,7 +174,6 @@ public:
   itkGetConstMacro( SphereRadius, double );
 
 
-
 protected:
   NodeVectorJacobianCalculator();
   ~NodeVectorJacobianCalculator();
