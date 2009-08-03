@@ -46,8 +46,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 //#define REMOVE_ALPHA_CHANNEL
-#define DEBUG_IMAGES //Write tagger output to HDD
-#define DEBUG_MATRICES //Prints tagger matrices to stdout
+//#define DEBUG_IMAGES //Write tagger output to HDD
+//#define DEBUG_MATRICES //Prints tagger matrices to stdout
 #define SHRINK
 
 //#include <windows.h>
@@ -130,19 +130,6 @@ vtkDataCollector::vtkDataCollector()
    this->VideoSource = vtkVideoSourceSimulator::New();
   #endif //USE_ULTRASOUND_DEVICE
 
-//#ifdef USE_ULTRASOUND_DEVICE
-//  char* devicename = "/dev/video";
-//  this->SetVideoDevice(devicename);
-//  this->SetVideoChannel(3); //S-Video at Hauppauge Impact VCB Modell 558
-//  this->SetVideoMode(1); //NTSC
-//#endif
-
-#ifdef USE_ULTRASOUND_DEVICE
-  this->VideoSource = vtkV4L2VideoSource::New();
-#else
-  this->VideoSource = vtkVideoSourceSimulator::New();
-#endif //USE_ULTRASOUND_DEVICE
-
   this->Tagger = vtkTaggedImageFilter::New();
 
   this->TrackerDeviceEnabled = false;
@@ -212,17 +199,40 @@ vtkDataCollector::~vtkDataCollector()
 {
   this->StopCollecting();
 
-  if(!this->TrackerDeviceEnabled && this->trackerSimulator != NULL)
+  if(this->trackerSimulator)
     {
     this->trackerSimulator->Delete();
     }
 
   this->VideoSource->ReleaseSystemResources();
-  this->VideoSource->Delete();
-  this->Tagger->Delete();
-  this->calibReader->Delete();
+
+  if(this->VideoSource)
+    {
+    this->VideoSource->Delete();
+    }
+  if(this->Tagger)
+    {
+    this->Tagger->Delete();
+    }
+  if(this->calibReader)
+    {
+    this->calibReader->Delete();
+    }
+  if(this->PlayerThreader)
+    {
+    this->PlayerThreader->Delete();
+    }
+
   this->SetCalibrationFileName(NULL);
-  this->PlayerThreader->Delete();
+
+  if(this->ObliquenessAdjustmentMatrix)
+    {
+    this->ObliquenessAdjustmentMatrix->Delete();
+    }
+  if(this->CoordinateTransformationMatrix)
+    {
+    this->CoordinateTransformationMatrix->Delete();
+    }
 }
 
 /******************************************************************************
@@ -467,15 +477,18 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
       #endif
       self->StopCollecting();
 
-      cout << "====================================================" << endl << endl
-           << "--- 4D Ultrasound stopped working ---" << endl << endl
-           << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<< endl;
+      //cout << "====================================================" << endl << endl
+      //     << "--- 4D Ultrasound stopped working ---" << endl << endl
+      //     << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<< endl;
       }
     else
       {//Check if data buffer of data processor already is full-----------------
       if(!self->GetDataProcessor()->IsDataBufferFull())
         {
         struct DataStruct dataStruct;
+        dataStruct.Frame = NULL;
+        dataStruct.Matrix = NULL;
+
 
         dataStruct.TimeStamp = self->GetUpTime();
 
@@ -514,11 +527,12 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           skip = true;
           }
 
-        if(!skip && dataStruct.VolumeExtent[1] * dataStruct.VolumeExtent[3] * dataStruct.VolumeExtent[5]
-                    > self->GetMaximumVolumeSize())
+        double volumeSize = dataStruct.VolumeExtent[1] * dataStruct.VolumeExtent[3] * dataStruct.VolumeExtent[5];
+
+        if(!skip && (volumeSize > self->GetMaximumVolumeSize() || volumeSize <= 0 ))
           {
           #ifdef DEBUGCOLLECTOR
-          self->GetLogStream() << self->GetUpTime() << " |C-ERROR: Volume of new frame is too big"<< endl;
+          self->GetLogStream() << self->GetUpTime() << " |C-ERROR: Volume of new frame is too big or could not be calculated: "<< volumeSize << endl;
           #endif
           skip = true;
           }
@@ -536,7 +550,11 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           mask->SetShrinkFactors(self->GetShrinkFactor()[0], self->GetShrinkFactor()[1], self->GetShrinkFactor()[2]);
           mask->Update();
 
-          dataStruct.Frame->Delete();
+          if(dataStruct.Frame)
+            {
+            dataStruct.Frame->Delete();
+            dataStruct.Frame = NULL;
+            }
           dataStruct.Frame = vtkImageData::New();
 
           self->DuplicateFrame(mask->GetOutput(), dataStruct.Frame);
@@ -556,8 +574,16 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
             #ifdef DEBUGCOLLECTOR
             self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
             #endif
-            dataStruct.Matrix->Delete();
-            dataStruct.Frame->Delete();
+            if(dataStruct.Matrix)
+              {
+              dataStruct.Matrix->Delete();
+              dataStruct.Matrix = NULL;
+              }
+            if(dataStruct.Frame)
+              {
+              dataStruct.Frame->Delete();
+              dataStruct.Frame = NULL;
+              }
             }
           else
             {
@@ -571,7 +597,11 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           #ifdef DEBUGCOLLECTOR
             self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Tracker sends unusable matrices" << endl;
           #endif
-          dataStruct.Matrix->Delete();
+          if(dataStruct.Matrix)
+            {
+            dataStruct.Matrix->Delete();
+            dataStruct.Matrix = NULL;
+            }
           }
         skip = false;
         }//Check if Processor has buffer space available
@@ -581,7 +611,19 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
     }
   while(vtkThreadSleep(data, startTime + frame/rate));
 
-  mask->Delete();
+  if(mask)
+    {
+    mask->Delete();
+    mask = NULL;
+    }
+
+  #ifdef DEBUG_IMAGES
+  if(writer)
+    {
+    writer->Delete()
+    writer = NULL;
+    }
+  #endif
 
 return NULL;
 }
@@ -659,7 +701,7 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
  * ****************************************************************************/
 int vtkDataCollector::StopCollecting()
 {
-  if(NULL != this->DataProcessor)
+  if(this->DataProcessor)
     {
     this->DataProcessor->StopProcessing();
     }
@@ -783,7 +825,11 @@ int vtkDataCollector::ProcessMatrix(struct DataStruct *pDataStruct)
 //    pDataStruct->Matrix->Print(this->LogStream);
 //  #endif
 
-  oldMatrix->Delete();
+  if(oldMatrix)
+    {
+    oldMatrix->Delete();
+    oldMatrix = NULL;
+    }
 
   return 0;
 }
@@ -989,7 +1035,11 @@ int vtkDataCollector::EnableTrackerTool()
     return -1;
     }
   this->TrackerDeviceEnabled = true;
-  this->trackerSimulator->Delete();
+  if(this->trackerSimulator)
+    {
+    this->trackerSimulator->Delete();
+    this->trackerSimulator = NULL;
+    }
 
   return 0;
 }
@@ -1387,7 +1437,11 @@ int vtkDataCollector::GrabOneImage()
   writer->SetFileName(filename);
   writer->Update();
 
-  writer->Delete();
+  if(writer)
+    {
+    writer->Delete();
+    writer = NULL;
+    }
 
   return 0;
 }
