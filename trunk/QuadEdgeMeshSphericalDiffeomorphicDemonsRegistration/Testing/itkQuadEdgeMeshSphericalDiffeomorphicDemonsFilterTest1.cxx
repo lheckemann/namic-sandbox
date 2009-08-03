@@ -28,12 +28,14 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 7 )
+  if( argc < 9 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " fixedMeshFile  movingMeshFile ";
-    std::cerr << " outputMeshfile gamma sigmaX numberOfIterations" << std::endl;
+    std::cerr << " outputMeshfile gamma sigmaX ";
+    std::cerr << " lambda smoothingIterations ";
+    std::cerr << " numberOfIterations" << std::endl;
     return EXIT_FAILURE;
     }
   
@@ -88,17 +90,6 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  unsigned int maximumNumberOfIterations = 10;
-  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
-  TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
-
-  maximumNumberOfIterations = 15;
-  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
-  TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
-
-  maximumNumberOfIterations = atoi( argv[6] );
-  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
-
   DemonsFilterType::PointType center1;
   center1.Fill( 17.0 );
   demonsFilter->SetSphereCenter( center1 );
@@ -124,6 +115,7 @@ int main( int argc, char *argv[] )
   demonsFilter->SetSphereCenter( center0 );
   demonsFilter->SetSphereRadius( 100.0 );
 
+
   const double gamma1 = 2.0;
   demonsFilter->SetGamma( gamma1 );
   TEST_SET_GET_VALUE( gamma1, demonsFilter->GetGamma() );
@@ -135,6 +127,7 @@ int main( int argc, char *argv[] )
   const double gamma = atof( argv[4] );
   demonsFilter->SetGamma( gamma );
 
+
   const double sigmaX1 = 2.0;
   demonsFilter->SetSigmaX( sigmaX1 );
   TEST_SET_GET_VALUE( sigmaX1, demonsFilter->GetSigmaX() );
@@ -145,6 +138,42 @@ int main( int argc, char *argv[] )
 
   const double sigmaX = atof( argv[5] );
   demonsFilter->SetSigmaX( sigmaX );
+
+
+  const double lambda1 = 2.0;
+  demonsFilter->SetLambda( lambda1 );
+  TEST_SET_GET_VALUE( lambda1, demonsFilter->GetLambda() );
+
+  const double lambda2 = 3.0;
+  demonsFilter->SetLambda( lambda2 );
+  TEST_SET_GET_VALUE( lambda2, demonsFilter->GetLambda() );
+
+  const double lambda = atof( argv[6] );
+  demonsFilter->SetLambda( lambda );
+
+
+  unsigned int maximumNumberOfSmoothingIterations = 10;
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
+  TEST_SET_GET_VALUE( maximumNumberOfSmoothingIterations, demonsFilter->GetMaximumNumberOfSmoothingIterations() );
+
+  maximumNumberOfSmoothingIterations = 15;
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
+  TEST_SET_GET_VALUE( maximumNumberOfSmoothingIterations, demonsFilter->GetMaximumNumberOfSmoothingIterations() );
+
+  maximumNumberOfSmoothingIterations = atoi( argv[7] );
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
+
+
+  unsigned int maximumNumberOfIterations = 10;
+  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+  TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
+
+  maximumNumberOfIterations = 15;
+  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+  TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
+
+  maximumNumberOfIterations = atoi( argv[8] );
+  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
 
 
   FilterWatcher watcher( demonsFilter, "Demons Filter");

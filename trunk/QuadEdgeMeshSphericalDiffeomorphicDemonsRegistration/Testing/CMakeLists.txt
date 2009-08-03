@@ -155,6 +155,8 @@ ADD_TEST(DemonsFilterTest1
   ${TEMP}/meshWithScalarsIC1RegisteredToItself.vtk
   1.0    # Gamma
   1.0    # SigmaX
+  1.0    # Lambda
+  1      # Smoothing Iterations
   1      # maximum number of iterations
   )
 
@@ -165,6 +167,8 @@ ADD_TEST(DemonsFilterTest2
   ${TEMP}/meshWithScalarsIC4RegisteredToItself.vtk
   1.0    # Gamma
   1.0    # SigmaX
+  1.0    # Lambda
+  1      # Smoothing Iterations
   1      # maximum number of iterations
   )
 
@@ -175,6 +179,8 @@ ADD_TEST(DemonsFilterTest3
   ${TEMP}/movingMesh01RegisteredToFixedMesh01.vtk
   1.0    # Gamma
   1.0    # SigmaX
+  1.0    # Lambda
+  1      # Smoothing Iterations
   1      # maximum number of iterations
   )
 
@@ -185,6 +191,8 @@ ADD_TEST(DemonsFilterTest4
   ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1.vtk
   1.0    # Gamma
   1.0    # SigmaX
+  1.0    # Lambda
+  1      # Smoothing Iterations
   3000   # maximum number of iterations
   )
 
