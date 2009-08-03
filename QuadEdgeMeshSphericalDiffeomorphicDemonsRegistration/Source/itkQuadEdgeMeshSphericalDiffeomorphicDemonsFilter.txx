@@ -787,9 +787,39 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ConvertTangentVectorFieldToDeformationField()
 {
-  //
-  //   Convert vectors to destination points. --->  this is S.
-  //
+  TangentVectorIterator tangentItr = this->m_TangentVectorField->Begin();
+  TangentVectorIterator tangentEnd = this->m_TangentVectorField->End();
+
+  DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
+
+  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+
+  FixedPointsConstIterator pointItr = points->Begin();
+
+  typedef Versor< double >   VersorType;
+  VersorType versor;
+
+  while( tangentItr != tangentEnd )
+    {
+    VectorType vectorToCenter( pointItr.Value() - this->m_SphereCenter );
+
+    vectorToCenter.Normalize();
+
+    const VectorType & tangent = tangentItr.Value();
+
+    const double sinTheta = tangent.GetNorm();
+    const double theta = vcl_asin( sinTheta );
+
+    const VectorType axis = CrossProduct( vectorToCenter, tangent );
+
+    versor.Set( axis, theta );
+
+    dstPointItr.Value() = versor.Transform( pointItr.Value() );
+
+    ++dstPointItr;
+    ++tangentItr;
+    ++pointItr;
+    }
 }
 
 
