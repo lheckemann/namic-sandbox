@@ -27,7 +27,7 @@ SET(REPORT_SRCS
   QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration.tex
   times.sty
   picins.sty
-  ClassHierarchy.fig
+  ../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx
   )
 
 SET(THIS_BINARY_DIR 

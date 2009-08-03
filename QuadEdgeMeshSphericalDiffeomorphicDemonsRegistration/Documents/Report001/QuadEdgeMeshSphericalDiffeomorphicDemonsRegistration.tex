@@ -1,6 +1,15 @@
 \documentclass{InsightArticle}
 
 \usepackage[dvips]{graphicx}
+\usepackage{color}
+\usepackage{listings}
+
+\definecolor{listcomment}{rgb}{0.0,0.5,0.0}
+\definecolor{listkeyword}{rgb}{0.0,0.0,0.5}
+\definecolor{listnumbers}{gray}{0.65}
+\definecolor{listlightgray}{gray}{0.955}
+\definecolor{listwhite}{gray}{1.0}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -25,6 +34,27 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % the actual handle number that you get assigned.
 %
 \newcommand{\IJhandlerIDnumber}{1338}
+
+\lstset{frame = tb,
+       framerule = 0.25pt,
+       float,
+       fontadjust,
+       backgroundcolor={\color{listlightgray}},
+       basicstyle = {\ttfamily\footnotesize},
+       keywordstyle = {\ttfamily\color{listkeyword}\textbf},
+       identifierstyle = {\ttfamily},
+       commentstyle = {\ttfamily\color{listcomment}\textit},
+       stringstyle = {\ttfamily},
+       showstringspaces = false,
+       showtabs = false,
+       numbers = left,
+       numbersep = 6pt,
+       numberstyle={\ttfamily\color{listnumbers}},
+       tabsize = 2,
+       language=[ANSI]C++,
+       floatplacement=!h
+       }
+
 
 
 \release{1.00}
@@ -170,6 +200,11 @@ Insight Journal web site.
 In order to use this filter we should start by including headers for the
 smoothing filter, the reader and writer types and the \doxygen{QuadEdgeMesh}
 itself.
+
+\begin{center}
+\lstinputlisting[linerange={53-57}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
+
 
 
 
