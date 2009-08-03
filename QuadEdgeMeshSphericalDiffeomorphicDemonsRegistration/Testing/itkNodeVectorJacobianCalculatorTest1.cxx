@@ -81,7 +81,7 @@ int main( int argc, char *argv[] )
 
 
   //Have not properly initialized gradientCalculator yet...
-  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Initialize(); );
 
   //First item needed: triangle basis list.
   const unsigned int SurfaceDimension = 2;
@@ -104,7 +104,7 @@ int main( int argc, char *argv[] )
   std::cout << "test 3 \n";
 
   //Still have not properly initialized gradientCalculator yet... 2 to go
-  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Initialize(); );
 
   gradientCalculator->SetInputMesh( triangleListBasisSystemCalculator->GetInputMesh() );
 
@@ -117,7 +117,7 @@ int main( int argc, char *argv[] )
   std::cout << "test 2 \n";
 
   //Still have not properly initialized gradientCalculator yet... 1 to go
-  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Initialize(); );
 
   typedef FixedMeshType::PointsContainer    FixedPointContainerType;
 
@@ -143,7 +143,7 @@ int main( int argc, char *argv[] )
      gradientCalculator->GetVectorContainer() << "\n";
   
   //Have still not properly initialized gradientCalculator yet...
-  TRY_EXPECT_EXCEPTION( gradientCalculator->Compute(); );
+  TRY_EXPECT_EXCEPTION( gradientCalculator->Initialize(); );
 
   gradientCalculator->SetBasisSystemList( triangleListBasisSystemCalculator->GetBasisSystemList() );
 
@@ -157,9 +157,12 @@ int main( int argc, char *argv[] )
      gradientCalculator->GetVectorContainer() << "\n";
   
 
-  // It is not initialized correctly, we expect no exception
-  TRY_EXPECT_NO_EXCEPTION( gradientCalculator->Compute(); );
+  // It is initialized correctly, we expect no exception
+  TRY_EXPECT_NO_EXCEPTION( gradientCalculator->Initialize(); );
   
+  // Now that Initialize() has been called successfully, we can call Compute(). */
+  TRY_EXPECT_NO_EXCEPTION( gradientCalculator->Compute(); );
+
   try
     {
     gradientCalculator->Evaluate( 17 );
