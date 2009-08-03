@@ -225,7 +225,7 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
     for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
       {
 
-      for( unsigned int k = 0 ; k < MeshDimension; k++ )
+      for( unsigned int k = 0; k < MeshDimension; k++ )
         {
         // 
         // Parallel transport the derivative vector to each neighbor point
@@ -340,7 +340,7 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
 
   while( jacobianItr != jacobianEnd )
     {
-    jacobianItr.Value()  /=  areaItr.Value();
+    jacobianItr.Value() /= areaItr.Value();
     ++jacobianItr;
     ++areaItr;
     }

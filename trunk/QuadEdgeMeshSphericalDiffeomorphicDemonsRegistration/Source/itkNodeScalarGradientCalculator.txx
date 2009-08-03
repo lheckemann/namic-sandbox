@@ -320,7 +320,7 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 
   while( derivativeItr != derivativeEnd )
     {
-    derivativeItr.Value()  /=  areaItr.Value();
+    derivativeItr.Value() /= areaItr.Value();
     ++derivativeItr;
     ++areaItr;
     }

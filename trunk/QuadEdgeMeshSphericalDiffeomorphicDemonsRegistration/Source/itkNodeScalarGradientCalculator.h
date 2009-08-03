@@ -167,7 +167,6 @@ public:
   itkGetConstMacro( SphereRadius, double );
 
 
-
 protected:
   NodeScalarGradientCalculator();
   ~NodeScalarGradientCalculator();
