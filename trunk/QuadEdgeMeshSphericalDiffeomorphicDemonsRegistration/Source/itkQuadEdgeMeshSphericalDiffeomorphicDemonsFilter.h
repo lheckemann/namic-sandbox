@@ -88,6 +88,12 @@ public:
   typedef typename VelocityVectorContainer::ConstPointer          VelocityVectorConstPointer;
   typedef typename VelocityVectorContainer::ConstIterator         VelocityVectorConstIterator;
 
+  typedef Vector<double, 3>                                       TangentVectorType;
+  typedef VectorContainer< PointIdentifier, TangentVectorType >   TangentVectorContainer;
+  typedef typename TangentVectorContainer::Pointer                TangentVectorPointer;
+  typedef typename TangentVectorContainer::Iterator               TangentVectorIterator;
+  typedef typename TangentVectorContainer::ConstPointer           TangentVectorConstPointer;
+  typedef typename TangentVectorContainer::ConstIterator          TangentVectorConstIterator;
 
   /** Set/Get the Fixed mesh. */
   void SetFixedMesh( const FixedMeshType * fixedMesh );
@@ -169,6 +175,9 @@ private:
   void ComputeGradientsOfMappedMovingValueAtEveryNode();
   void ComputeVelocityField();
   void SmoothDeformationField();
+  void ConvertDeformationFieldToTangentVectorField();
+  void SmoothTangentVectorField();
+  void ConvertTangentVectorFieldToDeformationField();
   void AssignResampledMovingValuesToOutputMesh();
   void ComputeScalingAndSquaringNumberOfIterations();
   void ComputeShortestEdgeLength();
@@ -285,6 +294,9 @@ private:
 
   /** Container of velocity field vectors. */
   VelocityVectorPointer             m_VelocityField;
+
+  /** Container of tangent vectors used to smooth the deformation field. */
+  TangentVectorPointer              m_TangentVectorField;
 
 };
 

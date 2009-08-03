@@ -161,6 +161,9 @@ AllocateInternalArrays()
 
   this->m_VelocityField = VelocityVectorContainer::New();
   this->m_VelocityField->Reserve( numberOfNodes );
+
+  this->m_TangentVectorField = TangentVectorContainer::New();
+  this->m_TangentVectorField->Reserve( numberOfNodes );
 }
 
 
@@ -413,9 +416,7 @@ ComputeVelocityField()
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
-    const PointType & point = pointItr.Value();
-
-    vectorToCenter = point - this->m_SphereCenter;
+    vectorToCenter = pointItr.Value() - this->m_SphereCenter;
 
     vectorToCenter.Normalize();
 
@@ -729,17 +730,65 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 SmoothDeformationField()
 {
-  //
-  // FIXME: Introduce here the code from the Smoothing filter
-  //
-  //   Convert C field into tangent vectors using Gn2,
-  //
-  //   Remember to divide the product by m_SphereRadius in order to get vectors that are the exponential map.
+  this->ConvertDeformationFieldToTangentVectorField();
+  this->SmoothTangentVectorField();
+  this->ConvertTangentVectorFieldToDeformationField();
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ConvertDeformationFieldToTangentVectorField()
+{
+  DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
+  DestinationPointIterator dstPointEnd = this->m_DestinationPoints->End();
+
+  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+
+  FixedPointsConstIterator pointItr = points->Begin();
+
+  TangentVectorIterator tangentItr = this->m_TangentVectorField->Begin();
+
+  const double factor = -1.0 / this->m_SphereRadius;
+
+  while( dstPointItr != dstPointEnd )
+    {
+    VectorType vectorToCenter( pointItr.Value() - this->m_SphereCenter );
+
+    vectorToCenter.Normalize();
+
+    tangentItr.Value() =
+      CrossProduct( vectorToCenter, 
+        CrossProduct( vectorToCenter, dstPointItr.Value().GetVectorFromOrigin() ) );
+
+    tangentItr.Value() *= factor;
+
+    ++dstPointItr;
+    ++tangentItr;
+    ++pointItr;
+    }
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+SmoothTangentVectorField()
+{
   //
   //   Smooth all the vectors....
   //
-  //   Convert vectors to destination points. --->  this is S.
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ConvertTangentVectorFieldToDeformationField()
+{
   //
+  //   Convert vectors to destination points. --->  this is S.
   //
 }
 
