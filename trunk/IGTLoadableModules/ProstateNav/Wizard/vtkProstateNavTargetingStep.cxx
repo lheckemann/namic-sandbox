@@ -367,7 +367,14 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
         transformToParent->DeepCopy(matrix);
 
         // Send move to command 
-        this->Logic->RobotMoveTo();
+        vtkMRMLBrpRobotCommandNode* cnode = this->GetProstateNavManager()->GetRobotCommand();
+        if (cnode)
+          {
+          cnode->SetTargetTransformNodeID(transformNode->GetID());
+          cnode->PushOutgoingCommand("MOVE_TO");
+          cnode->InvokeEvent(vtkCommand::ModifiedEvent);
+          }
+
         }
       }
     }
