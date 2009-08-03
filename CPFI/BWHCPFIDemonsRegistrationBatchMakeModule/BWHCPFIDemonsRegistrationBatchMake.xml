@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Batch Processing</category>
+  <title>Diffeomorphic Demons Algorithm modified for BWH CPFI (BatchMake)</title>
+  <description>Algorithm developed by Tom Vercauteren </description>
+  <version> 1.0</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor> Tom Vercauteren, Ender Konukoglu, Kilian Pohl</contributor>
+  <acknowledgements>INRIA rocks</acknowledgements>
+  <parameters advanced="true">
+    <label>BatchMake</label>
+    <description>BatchMake specific parameters</description>
+    <string-enumeration>
+      <name>RunningMode_Grid</name>
+      <longflag>runningMode_Grid</longflag>
+      <description>Running Mode: Where the module shall be executed? On your local machine or on a grid?</description>
+      <label>Running Mode</label>
+      <default>local</default>
+      <element>local</element>
+      <element>condor</element>
+    </string-enumeration>
+    <directory>
+      <name>InputDirectory_Grid</name>
+      <label>Grid input directory</label>
+      <longflag>inputDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the input data are. Necessary if dealing with relative input paths.</description>
+    </directory>
+    <directory>
+      <name>OutputDirectory_Grid</name>
+      <label>Grid output directory</label>
+      <longflag>outputDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the output data are. Necessary if dealing with relative output paths.</description>
+    </directory>
+    <directory>
+      <name>ExecutableDirectory_Grid</name>
+      <label>Grid executable directory</label>
+      <longflag>executableDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the executables are.</description>
+    </directory>
+    <directory>
+      <name>WorkingDirectory_Grid</name>
+      <label>Grid working directory</label>
+      <longflag>workingDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the condor scripts are written.</description>
+    </directory>
+    <string-enumeration>
+      <name>TransferFile_Grid</name>
+      <longflag>transferFile_Grid</longflag>
+      <description>Type of files that shall be transfered by the grid</description>
+      <label>Transfer File</label>
+      <default>NONE</default>
+      <element>NONE</element>
+      <element>EXECUTABLE</element>
+      <element>INPUT_FILES</element>
+      <element>OUTPUT_FILES</element>
+      <element>ALL</element>
+    </string-enumeration>
+  </parameters>
+  <parameters>
+    <label>Input/Output</label>
+    <description>Input/output parameters</description>
+
+    <integer>
+      <name>Dimension</name>
+      <flag>d</flag>
+      <longflag>dimension</longflag>
+      <description>Image dimension</description>
+      <label>Dimension</label>
+      <default>3</default>
+      <constraints>
+        <minimum>2</minimum>
+        <maximum>3</maximum>
+        <step>1</step>
+      </constraints>
+    </integer>
+
+    <file>
+      <name>demonsTargetVolume</name>
+      <label>Fixed Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Target volume</description>
+    </file>
+
+    <directory>
+      <name>demonsMovingVolume_Directory</name>
+      <label>Moving Volume</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description>Target volume</description>
+    </directory>
+    <string>
+      <name>demonsMovingVolume_Mask</name>
+      <label>Moving Image Mask</label>
+      <longflag>demonsMovingVolume_Mask</longflag>
+      <description>The transform goes from the fixed image's space into the moving image's space</description>
+      <default>*.nrrd</default>
+    </string>
+
+    <!-- <image type="vector" hidden="true"> -->
+    <directory type="vector">
+      <name>demonsDeformationVolume_Directory</name>
+      <label>Deformation Field</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description>Deformation Field</description>
+    </directory>
+    <string>
+      <name>demonsDeformationVolume_Mask</name>
+      <label>Deformation Field Mask</label>
+      <longflag>demonsDeformationVolume_Mask</longflag>
+      <description>Vector field</description>
+      <default>Deformation-${demonsMovingVolume}</default>
+    </string>
+
+    <directory>
+      <name>demonsResampledVolume_Directory</name>
+      <label>Resampled Volume</label>
+      <channel>output</channel>
+      <index>3</index>
+      <description>Resampled Volume - NOTE: output volume will be oriented as axial and may not match input orientations.</description>
+    </directory>
+    <string>
+      <name>demonsResampledVolume_Mask</name>
+      <label>Resampled Volume Mask</label>
+      <longflag>demonsResampledVolume_Mask</longflag>
+      <description>Resampled volume image mask</description>
+      <default>Resampled-${demonsMovingVolume}</default>
+    </string>
+
+</parameters>
+
+<parameters>
+   <label>Registration Parameters </label>
+   <description>Parameters of the Diffeomorphic Algorithm </description>
+   <integer>
+     <name>levels</name>
+     <flag>n</flag>
+     <longflag>num_levels</longflag>
+     <description>Number of Hierarchical Levels</description> 
+     <label>Levels</label>
+     <default>3</default>
+   </integer>  
+   <integer-vector>
+     <name>iteration</name>
+     <flag>i</flag>
+     <longflag>num_iterations</longflag>
+     <description>Number of Iterations per Level</description> 
+     <label>Iterations</label>
+     <default>20,20,20</default>
+   </integer-vector>  
+   <double>
+     <name>smoothing</name>
+     <flag>s</flag>
+     <longflag>def_field_sigma</longflag>
+     <description>Standard deviation of the smoothing (Sigma)</description> 
+     <label>Smoothing</label>
+     <default>3.0</default>
+   </double>  
+   <double>
+     <name>smoothingUp</name>
+     <flag>g</flag>
+     <longflag>up_field_sigma</longflag>
+     <description>Smoothing sigma for the update field at each iteration</description>
+     <label>Update field smoothing</label>
+     <default>0.0</default>
+   </double>
+   <double>
+     <name>maxStepLength</name>
+     <flag>l</flag>
+     <longflag>max_step_length</longflag>
+     <description>Maximum length of an update vector (0: no restriction)</description>
+     <label>Max Step Length</label>
+     <default>2.0</default>
+     </double>
+   <boolean>
+     <name>normalization</name>
+     <flag>e</flag>
+     <longflag>use_histogram_matching</longflag>
+     <description>Intensity Normalization</description> 
+     <label>Intensity Normalization</label>
+     <default>false</default>
+   </boolean>  
+   <boolean>
+     <name>turnOffDiffeomorph</name>
+     <flag>a</flag>
+     <longflag>use_vanilla_dem</longflag>
+     <description>Run vanilla demons algorithm</description> 
+     <label>Turn off Diffeomorphism</label>
+     <default>false</default>
+   </boolean>  
+   <integer-enumeration>
+     <name>gradientType</name>
+     <flag>t</flag>
+     <longflag>gradient_type</longflag>
+     <description>Type of gradient used for computing the demons force (0 is symmetrized, 1 is fixed image, 2 is moving image)</description>
+     <default>0</default>
+     <label>Gradient Type</label>
+     <element>0</element>
+     <element>1</element>
+     <element>2</element>
+   </integer-enumeration>
+   <boolean>
+     <name>verbose</name>
+     <flag>v</flag>
+     <longflag>verbose</longflag>
+     <description></description> 
+     <label>Verbose</label>
+     <default>false</default>
+   </boolean>  
+</parameters>
+</executable>
+
+
