@@ -802,7 +802,7 @@ SmoothTangentVectorField()
 
   const unsigned int PointDimension = PointType::Dimension;
 
-  for( unsigned int iter = 0; iter < this->m_MaximumNumberOfIterations; ++iter )
+  for( unsigned int iter = 0; iter < this->m_MaximumNumberOfSmoothingIterations; ++iter )
     {
     std::cout << " Smoothing Iteration " << iter << std::endl;
     
