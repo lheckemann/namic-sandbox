@@ -121,9 +121,15 @@ vtkInstrumentTracker::vtkInstrumentTracker()
  * ****************************************************************************/
 vtkInstrumentTracker::~vtkInstrumentTracker()
 {
-  this->calibReader->Delete();
+  if(this->calibReader)
+    {
+    this->calibReader->Delete();
+    }
 
-  this->PlayerThreader->Delete();
+  if(this->PlayerThreader)
+    {
+    this->PlayerThreader->Delete();
+    }
 
   if(this->Tracking)
     {
@@ -430,9 +436,18 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
     }
   while(vtkThreadSleep(data, startTime + frame/rate));
 
-  trackerMatrix->Delete();
-  oldMatrix->Delete();
-  adjustMatrix->Delete();
+  if(trackerMatrix)
+    {
+    trackerMatrix->Delete();
+    }
+  if(oldMatrix)
+    {
+    oldMatrix->Delete();
+    }
+  if(adjustMatrix)
+    {
+    adjustMatrix->Delete();
+    }
 return NULL;
 }
 
