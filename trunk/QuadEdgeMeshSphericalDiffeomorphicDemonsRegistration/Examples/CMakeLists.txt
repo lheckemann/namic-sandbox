@@ -15,11 +15,11 @@ ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
 TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
  ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
-ADD_TEST(DemonsFilterExample1
+ADD_TEST(DemonsExample1
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
-  ${TEMP}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.vtk
+  ${TEMP}/MeshDemonsFilter1.vtk
   1.0    # Gamma
   1.0    # SigmaX
   1.0    # Lambda
