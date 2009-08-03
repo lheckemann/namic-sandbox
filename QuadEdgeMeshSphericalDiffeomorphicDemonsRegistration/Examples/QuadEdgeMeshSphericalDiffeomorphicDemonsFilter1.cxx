@@ -108,7 +108,7 @@ int main( int argc, char *argv[] )
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   WriterType;
 
   WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[2] );
+  writer->SetFileName( argv[3] );
   writer->SetInput( demonsFilter->GetOutput() );
 
 
