@@ -951,6 +951,8 @@ AssignResampledMovingValuesToOutputMesh()
 
   outputPointData->Reserve( numberOfNodes );
 
+  OutputPointDataContainerIterator outputDataItr = outputPointData->Begin();
+
   typedef typename ResampledMovingValuesContainerType::ConstIterator  ResampledMovingValuesContainerIterator;
 
   ResampledMovingValuesContainerIterator  resampledArrayItr = this->m_ResampledMovingValuesContainer->Begin();
@@ -958,8 +960,10 @@ AssignResampledMovingValuesToOutputMesh()
 
   while( resampledArrayItr != resampledArrayEnd )
     {
-    outputPointData->SetElement( resampledArrayItr.Index(), resampledArrayItr.Value() );
-    resampledArrayItr++;
+    outputDataItr.Value() = resampledArrayItr.Value();
+
+    ++outputDataItr;
+    ++resampledArrayItr;
     } 
 }
 

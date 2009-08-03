@@ -63,6 +63,7 @@ public:
   typedef typename  OutputMeshType::Pointer                 OutputMeshPointer;
   typedef typename  Superclass::OutputPointDataContainer    OutputPointDataContainer;
   typedef typename OutputPointDataContainer::Pointer        OutputPointDataContainerPointer;
+  typedef typename OutputPointDataContainer::Iterator       OutputPointDataContainerIterator;
  
   /** Declaration of internal types, some of which are exposed for monitoring purposes */
   typedef typename PointType::VectorType                        VectorType;
