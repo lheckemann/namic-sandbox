@@ -215,6 +215,7 @@ private:
   void ComposeDeformationUpdateWithPreviousDeformation();
   void SwapOldAndNewDestinationPointContainers();
   void SwapOldAndNewDisplacementFieldContainers();
+  void SwapOldAndNewTangetFieldContainers();
 
   void ParalelTransport( 
     const PointType sourcePoint, const PointType destinationPoint,
@@ -337,6 +338,7 @@ private:
 
   /** Container of tangent vectors used to smooth the deformation field. */
   TangentVectorPointer              m_TangentVectorField;
+  TangentVectorPointer              m_TangentVectorFieldSwap;
 
 };
 
