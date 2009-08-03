@@ -142,19 +142,37 @@ vtkDataProcessor::~vtkDataProcessor()
   this->StopProcessing();
   if(VolumeReconstructionEnabled)
     {
-    this->Reconstructor->Delete();
-
     //Delete all buffer objects
     while(!this->IsDataBufferEmpty())
       {
       this->DeleteData(this->GetHeadOfDataBuffer());
       }
-
     }
 
-  this->PlayerThreader->Delete();
+  if(this->Reconstructor)
+    {
+    this->Reconstructor->Delete();
+    }
 
-  this->calibReader->Delete();
+  if(this->DataBufferLock)
+    {
+  this->DataBufferLock->Delete();
+    }
+
+  if(this->DataBufferIndexQueueLock)
+    {
+    this->DataBufferIndexQueueLock->Delete();
+    }
+
+  if(this->PlayerThreader)
+    {
+    this->PlayerThreader->Delete();
+    }
+  if(this->calibReader)
+    {
+    this->calibReader->Delete();
+    }
+
   this->SetCalibrationFileName(NULL);
 }
 /******************************************************************************
@@ -299,6 +317,7 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
       self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Data sender stopped sending -> stop processing" << endl;
       #endif
       self->StopProcessing();
+      dataAvailable = true; //To check immediately if we received a termination signal
       }
     else
       {
@@ -575,7 +594,11 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
 
   if(!flag && this->VolumeReconstructionEnabled)
     {//Turn of volume reconstruction
-    this->Reconstructor->Delete();
+    if(this->Reconstructor)
+      {
+      this->Reconstructor->Delete();
+      this->Reconstructor = NULL;
+      }
     }
 
   this->VolumeReconstructionEnabled = flag;
@@ -724,7 +747,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
 //      }
 
 //  if((extentChanged || originChanged) && !expansionPossible)
-  if(volumeSize > this->GetMaximumVolumeSize() || ((extentChanged || originChanged) && this->oldVolume == NULL))
+  if(volumeSize > this->GetMaximumVolumeSize() || volumeSize <= 0 || ((extentChanged || originChanged) && this->oldVolume == NULL))
     {
     retVal = -1;
 
@@ -735,6 +758,11 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
       cout << this->GetUpTime() << " |P-ERROR: Expansion necessary but not possible since boundary box of inserted frame ("<<volumeSize<< ") is bigger than maxi vol size:" << this->GetMaximumVolumeSize() <<endl;
       }
 
+    if( volumeSize <= 0)
+      {
+    this->LogStream << this->GetUpTime()  << " |P-ERROR: Ceck and Update aborted since volumeSize could not be computed "<<endl;
+          cout << this->GetUpTime() << " |P-ERROR: Ceck and Update aborted since volumeSize could not be computed " <<endl;
+      }
     if((extentChanged || originChanged) && this->oldVolume == NULL)
       {
       this->LogStream << this->GetUpTime()  << " |P-ERROR: Expansion necessary but not possible since no oldVolume exists" <<endl;
@@ -948,7 +976,11 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
 
   vtkImageData * reconstructedVolume = extract->GetOutput();
 
-  extract->Delete();
+  if(extract)
+    {
+    extract->Delete();
+    extract = NULL;
+    }
 
 #else
   vtkImageData * reconstructedVolume = image;
@@ -986,8 +1018,16 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
 
   vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, matrix);
 
-  adjustMatrix->Delete();
-  oldMatrix->Delete();
+  if(adjustMatrix)
+    {
+    adjustMatrix->Delete();
+    adjustMatrix = NULL;
+    }
+  if(oldMatrix)
+    {
+    oldMatrix->Delete();
+    oldMatrix = NULL;
+    }
 
   double xOrigin = reconstructedVolume->GetOrigin()[0];
   double yOrigin = reconstructedVolume->GetOrigin()[1];
@@ -1394,9 +1434,10 @@ int vtkDataProcessor::DeleteData(int index)
   this->DataBufferLock->Lock();
   if(this->VolumeReconstructionEnabled)
     {//If not enabled memory is freed at the data sender
-    if(NULL != this->dataBuffer[index].Frame)
+    if(this->dataBuffer[index].Frame)
       {
       this->dataBuffer[index].Frame->Delete();
+      this->dataBuffer[index].Frame = NULL;
       }
     else
       {
@@ -1405,9 +1446,10 @@ int vtkDataProcessor::DeleteData(int index)
       #endif
       }
 
-    if(NULL != this->dataBuffer[index].Matrix)
+    if(this->dataBuffer[index].Matrix)
       {
       this->dataBuffer[index].Matrix->Delete();
+      this->dataBuffer[index].Matrix = NULL;
       }
     else
       {
@@ -1566,12 +1608,14 @@ void vtkDataProcessor::ResetOldVolume(int dataSenderIndex)
     }
   else
     {
-    if(NULL != this->oldVolume)
+    if(this->oldVolume)
       {
       #ifdef ERRORPROCESSOR
       this->LogStream << this->GetUpTime()  << " |P-ERROR: Data sender index ( " << dataSenderIndex << " ) invalid -> Delete Old Volume: "<< endl;
       #endif
       this->oldVolume->Delete();
+      this->oldVolume = NULL;
+
       }
     else
       {
