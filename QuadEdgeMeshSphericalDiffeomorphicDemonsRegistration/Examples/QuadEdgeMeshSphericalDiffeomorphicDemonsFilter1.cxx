@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: ImageRegistration8.cxx,v $
+  Module:    $RCSfile: QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx,v $
   Language:  C++
   Date:      $Date: 2008-03-10 19:46:31 $
   Version:   $Revision: 1.37 $
