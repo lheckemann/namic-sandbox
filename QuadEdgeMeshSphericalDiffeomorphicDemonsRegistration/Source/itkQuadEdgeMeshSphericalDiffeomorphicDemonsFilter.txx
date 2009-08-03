@@ -59,7 +59,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_SigmaX = 1.0;
 
   this->m_Lambda = 1.0;
-  this->m_MaximumNumberOfSmoothingIterations = 10;
+  this->m_MaximumNumberOfSmoothingIterations = 1;
 
   this->m_ShortestEdgeLength = 1.0;
   this->m_ScalingAndSquaringNumberOfIterations = 2;
@@ -167,6 +167,9 @@ AllocateInternalArrays()
 
   this->m_TangentVectorField = TangentVectorContainer::New();
   this->m_TangentVectorField->Reserve( numberOfNodes );
+
+  this->m_TangentVectorFieldSwap = TangentVectorContainer::New();
+  this->m_TangentVectorFieldSwap->Reserve( numberOfNodes );
 }
 
 
@@ -731,6 +734,17 @@ SwapOldAndNewDestinationPointContainers()
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+SwapOldAndNewTangetFieldContainers()
+{
+  TangentVectorPointer temp = this->m_TangentVectorField;
+  this->m_TangentVectorField = this->m_TangentVectorFieldSwap;
+  this->m_TangentVectorFieldSwap = temp;
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 SmoothDeformationField()
 {
   this->ConvertDeformationFieldToTangentVectorField();
@@ -779,9 +793,84 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 SmoothTangentVectorField()
 {
-  //
-  //   Smooth all the vectors....
-  //
+  const double weightFactor = vcl_exp( - 1.0 / ( 2.0 * this->m_Lambda ) );
+
+  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+
+  TangentVectorType smoothedVector;
+  TangentVectorType transportedTangentVector;
+
+  const unsigned int PointDimension = PointType::Dimension;
+
+  for( unsigned int iter = 0; iter < this->m_MaximumNumberOfIterations; ++iter )
+    {
+    std::cout << " Smoothing Iteration " << iter << std::endl;
+    
+    typedef typename OutputMeshType::QEPrimal    EdgeType;
+
+    TangentVectorIterator tangentItr = this->m_TangentVectorField->Begin();
+    TangentVectorIterator tangentEnd = this->m_TangentVectorField->End();
+
+    TangentVectorIterator smoothedTangentItr = this->m_TangentVectorFieldSwap->Begin();
+
+    FixedPointsConstIterator pointItr = points->Begin();
+
+    typedef typename NumericTraits< TangentVectorType >::AccumulateType AccumulatePixelType;
+
+    while( tangentItr != tangentEnd )
+      {
+      const TangentVectorType & centralTangentVector = tangentItr.Value();
+
+      const EdgeType * edgeToFirstNeighborPoint = this->m_FixedMesh->FindEdge( tangentItr.Index() );
+      const EdgeType * edgeToNeighborPoint = edgeToFirstNeighborPoint;
+
+      AccumulatePixelType tangentVectorSum;
+  
+      for( unsigned int k = 0; k < PointDimension; k++ )
+        {
+        tangentVectorSum[k] = centralTangentVector[k];
+        }
+
+      unsigned int numberOfNeighbors = 0;
+
+      do
+        {
+        const PointIdentifier neighborPointId = edgeToNeighborPoint->GetDestination();
+        const PointType & neighborPoint = points->GetElement( neighborPointId );
+        const TangentVectorType & neighborTangentVector = 
+          this->m_TangentVectorField->GetElement( neighborPointId );
+
+        this->ParalelTransport( neighborPoint, pointItr.Value(), 
+          neighborTangentVector, transportedTangentVector );
+
+        for( unsigned int k = 0; k < PointDimension; k++ )
+          {
+          tangentVectorSum[k] += weightFactor * transportedTangentVector[k];
+          }
+
+        numberOfNeighbors++;
+
+        edgeToNeighborPoint = edgeToNeighborPoint->GetOnext();
+        }
+      while( edgeToNeighborPoint != edgeToFirstNeighborPoint );
+
+      const double normalizationFactor = 1.0 / ( 1.0 + numberOfNeighbors * weightFactor );
+
+
+      for( unsigned int k = 0; k < PointDimension; k++ )
+        {
+        smoothedVector[k] = tangentVectorSum[k] * normalizationFactor;
+        }
+
+      smoothedTangentItr.Value() = smoothedVector;
+
+      ++tangentItr;
+      ++smoothedTangentItr;
+      ++pointItr;
+      }
+
+    this->SwapOldAndNewTangetFieldContainers();
+    }
 }
 
 
