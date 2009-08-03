@@ -262,6 +262,9 @@ int main( int argc, char *argv[] )
      jacobianCalculator->GetVectorContainer() << "\n";
   
   // It is not initialized correctly, we expect no exception
+  TRY_EXPECT_NO_EXCEPTION( jacobianCalculator->Initialize(); );
+
+  // Now that Initialize() has been called successfully, we can call Compute(). */
   TRY_EXPECT_NO_EXCEPTION( jacobianCalculator->Compute(); );
 
   pointIterator = fixedMesh->GetPoints()->Begin();
