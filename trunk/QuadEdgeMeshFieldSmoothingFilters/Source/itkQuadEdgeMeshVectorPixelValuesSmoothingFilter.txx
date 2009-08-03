@@ -48,12 +48,12 @@ template< class TInputMesh, class TOutputMesh >
 void
 QuadEdgeMeshVectorPixelValuesSmoothingFilter< TInputMesh, TOutputMesh >
 ::ParalelTransport( 
-    const OutputPointType src, const OutputPointType dst,
+    const OutputPointType sourcePoint, const OutputPointType destinationPoint,
     const InputPixelType & inputPixelValue, 
     InputPixelType & transportedPixelValue ) const
 {
-  OutputVectorType vsrc = src - this->m_SphereCenter;
-  OutputVectorType vdst = dst - this->m_SphereCenter;
+  OutputVectorType vsrc = sourcePoint - this->m_SphereCenter;
+  OutputVectorType vdst = destinationPoint - this->m_SphereCenter;
 
   OutputVectorType axis = CrossProduct( vsrc, vdst );
 
