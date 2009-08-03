@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Batch Processing</category>
+  <title>Multiply Images Batch Make</title>
+  <description>
+Multiplies two images. Although all image types are supported on input, only sugned types are produced.
+</description>
+  <version>0.1.0.$Revision: 2104 $(alpha)</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor>Bill Lorensen / Modified by Junichi  Tokuda</contributor>
+<acknowledgements>
+This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+</acknowledgements>
+
+  <parameters advanced="true">
+    <label>BatchMake</label>
+    <description>BatchMake specific parameters</description>
+    <string-enumeration>
+      <name>RunningMode_Grid</name>
+      <longflag>runningMode_Grid</longflag>
+      <description>Running Mode: Where the module shall be executed? On your local machine or on a grid?</description>
+      <label>Running Mode</label>
+      <default>local</default>
+      <element>local</element>
+      <element>condor</element>
+    </string-enumeration>
+    <directory>
+      <name>InputDirectory_Grid</name>
+      <label>Grid input directory</label>
+      <longflag>inputDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the input data are. Necessary if dealing with relative input paths.</description>
+    </directory>
+    <directory>
+      <name>OutputDirectory_Grid</name>
+      <label>Grid output directory</label>
+      <longflag>outputDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the output data are. Necessary if dealing with relative output paths.</description>
+    </directory>
+    <directory>
+      <name>ExecutableDirectory_Grid</name>
+      <label>Grid executable directory</label>
+      <longflag>executableDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the executables are.</description>
+    </directory>
+    <directory>
+      <name>WorkingDirectory_Grid</name>
+      <label>Grid working directory</label>
+      <longflag>workingDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the condor scripts are written.</description>
+    </directory>
+    <string-enumeration>
+      <name>TransferFile_Grid</name>
+      <longflag>transferFile_Grid</longflag>
+      <description>Type of files that shall be transfered by the grid</description>
+      <label>Transfer File</label>
+      <default>NONE</default>
+      <element>NONE</element>
+      <element>EXECUTABLE</element>
+      <element>INPUT_FILES</element>
+      <element>OUTPUT_FILES</element>
+      <element>ALL</element>
+    </string-enumeration>
+  </parameters>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <file>
+      <name>inputVolume1</name>
+      <label>Input Volume 1</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input volume 1</description>
+    </file>
+
+    <directory>
+      <name>inputVolume2_Directory</name>
+      <label>Input Volume 2 Directory</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description>Input volume 2</description>
+    </directory>
+    <string>
+      <name>inputVolume2_Mask</name>
+      <label>Moving Image Mask</label>
+      <longflag>inputVolume2_Mask</longflag>
+      <description>Input volume 2 mask</description>
+      <default>*.nrrd</default>
+    </string>
+
+    <directory>
+      <name>outputVolume_Directory</name>
+      <label>Output Volume Directory</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description>Volume1 * Volume2</description>
+    </directory>
+    <string>
+      <name>outputVolume_Mask</name>
+      <label>Output Image Mask</label>
+      <longflag>outputVolume_Mask</longflag>
+      <description>Output volume mask</description>
+      <default>Multiply-${inputVolume2}</default>
+    </string>
+
+
+  </parameters>
+
+</executable>
