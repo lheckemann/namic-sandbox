@@ -28,33 +28,29 @@
       <name>demonsTargetVolume</name>
       <label>Fixed Image</label>
       <channel>input</channel>
-      <flag>f</flag>
-      <longflag>fixed_image</longflag>
-      <description>Target Volume Number</description> 
+      <index>0</index>
       <description>Target volume</description>
     </image>
     <image>
       <name>demonsMovingVolume</name>
-      <flag>m</flag>
       <label>Moving Image</label>
-      <longflag>moving_image</longflag>
       <channel>input</channel>
+      <index>1</index>
       <description>Target volume</description>
     </image>
-    <image type="vector" hidden="true">
+    <!-- <image type="vector" hidden="true"> -->
+    <image type="vector">
       <name>demonsDeformationVolume</name>
-      <flag>O</flag>
-      <longflag>output_field</longflag>
       <label>Deformation Field</label>
       <channel>output</channel>
+      <index>2</index>
       <description>Deformation Field</description>
     </image>
     <image>
       <name>demonsResampledVolume</name>
       <label>Output Volume</label>
-      <flag>o</flag>
-      <longflag>output_image</longflag>
       <channel>output</channel>
+      <index>3</index>
       <description>Resampled Volume - NOTE: output volume will be oriented as axial and may not match input orientations.</description>
     </image>
 </parameters>
