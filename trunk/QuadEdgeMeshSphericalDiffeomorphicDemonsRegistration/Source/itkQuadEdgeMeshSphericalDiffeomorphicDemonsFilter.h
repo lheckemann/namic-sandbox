@@ -154,6 +154,35 @@ public:
   itkSetConstObjectMacro( FixedNodesSigmas, NodeSigmaContainerType );
   itkGetConstObjectMacro( FixedNodesSigmas, NodeSigmaContainerType );
 
+  /** The smoothing filter will run iteratively until reaching this maximum
+   * number of iterations. Emprical observartions indicate that ten iterations
+   * are enough for typical deformation fields, but of course this would depend
+   * on the process that you used for generating your deformation field. 
+   */
+  itkSetMacro( MaximumNumberOfSmoothingIterations, unsigned int );
+  itkGetMacro( MaximumNumberOfSmoothingIterations, unsigned int );
+
+  /** Factor that controls the degree of Smoothing. Large values of Lambda
+   * result is stronger smoothing.  The Lambda factor is used to compute the
+   * weights of the smoothing kernel as
+   *
+   * \f$
+   * \frac{ \exp( \frac{-1}{2 \lambda} }{ 1 + \abs{ N_i } \exp( \frac{-1}{2 \lambda} }
+   * \f$
+   *
+   * where \f$ N_i \f$ is the number of neighbor nodes around node \f$ i \f$.
+   *
+   * The default value of Lambda is 1.0.
+   *
+   * The filter assumes that the neighbor nodes of any given nodes are located
+   * at similar distances, and therefore uses the same weight for each one of
+   * the neighbor values when computing their weighted average.
+   *
+   */
+  itkSetMacro( Lambda, double );
+  itkGetMacro( Lambda, double );
+
+
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -187,6 +216,11 @@ private:
   void SwapOldAndNewDestinationPointContainers();
   void SwapOldAndNewDisplacementFieldContainers();
 
+  void ParalelTransport( 
+    const PointType sourcePoint, const PointType destinationPoint,
+    const TangentVectorType & inputVector, 
+    TangentVectorType & transportedVector ) const;
+
   void PrintOutDeformationVectors();
 
   virtual PointType InterpolateDestinationFieldAtPoint( 
@@ -214,6 +248,12 @@ private:
 
   /** Maximum number of iterations that the filter will be allowed to run. */
   unsigned int                          m_MaximumNumberOfIterations;
+
+  /** Maximum number of iterations that will be used for smoothing the tangent field. */
+  unsigned int                         m_MaximumNumberOfSmoothingIterations;
+
+  /** Coefficient that controls the degree of smoothing applied to the tangent field. */
+  double                                m_Lambda;
 
   typedef TriangleListBasisSystemCalculator< 
     FixedMeshType, BasisSystemType > TriangleListBasisSystemCalculatorType;

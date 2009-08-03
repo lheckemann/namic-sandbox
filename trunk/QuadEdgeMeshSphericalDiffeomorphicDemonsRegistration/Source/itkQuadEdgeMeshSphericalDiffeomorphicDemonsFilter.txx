@@ -58,6 +58,9 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_SigmaX = 1.0;
 
+  this->m_Lambda = 1.0;
+  this->m_MaximumNumberOfSmoothingIterations = 10;
+
   this->m_ShortestEdgeLength = 1.0;
   this->m_ScalingAndSquaringNumberOfIterations = 2;
 }
@@ -779,6 +782,31 @@ SmoothTangentVectorField()
   //
   //   Smooth all the vectors....
   //
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ParalelTransport( const PointType sourcePoint, const PointType destinationPoint,
+  const TangentVectorType & inputVector, TangentVectorType & transportedVector ) const
+{
+  VectorType vsrc = sourcePoint - this->m_SphereCenter;
+  VectorType vdst = destinationPoint - this->m_SphereCenter;
+
+  VectorType axis = CrossProduct( vsrc, vdst );
+
+  const double scaledSinus   = axis.GetNorm();
+  const double scaledCosinus = vsrc * vdst;
+
+  double angle = vcl_atan2( scaledSinus, scaledCosinus );
+  
+  typedef Versor< double > VersorType;
+
+  VersorType versor;
+  versor.Set( axis, angle );
+
+  transportedVector = versor.Transform( inputVector );
 }
 
 
