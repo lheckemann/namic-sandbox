@@ -193,17 +193,35 @@ filters. The code shown here is available in the Examples directory of the code
 that accompanies this paper. You can download the entire set of files from the
 Insight Journal web site.
 
-\subsection{Scalar Mesh}
+It is assumed that you would have already performed Rigid registration between
+the two meshes before you attempt to perform Deformable registration using the
+filter described below.
 
-\subsubsection{Source Code Example}
 
-In order to use this filter we should start by including headers for the
-smoothing filter, the reader and writer types and the \doxygen{QuadEdgeMesh}
+\subsection{Basic Registration Example}
+
+In order to use this filter we should start by including headers for the Demons
+registration filter, the reader and writer types and the \doxygen{QuadEdgeMesh}
 itself.
 
 \begin{center}
-\lstinputlisting[linerange={53-57}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\lstinputlisting[linerange={21-24}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
 \end{center}
+
+The Scalar type associated with the nodes in the mesh, and the mesh dimension
+are defined in order to declare the Mesh type
+
+\begin{center}
+\lstinputlisting[linerange={39-44}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
+
+We declare the type of the registration filter and instantiate it.
+
+
+\begin{center}
+\lstinputlisting[linerange={46-49}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
+
 
 
 
