@@ -170,7 +170,10 @@ int main( int argc, char *argv[] )
   std::cout << "test 1 gradientCalculator->GetDataContainer() " <<
      gradientCalculator->GetDataContainer() << "\n";
   
-  // It is not initialized correctly, we expect no exception
+  // It is initialized correctly, we expect no exception
+  TRY_EXPECT_NO_EXCEPTION( gradientCalculator->Initialize(); );
+
+  // Now that Initialize() has been called successfully, we can call Compute(). */
   TRY_EXPECT_NO_EXCEPTION( gradientCalculator->Compute(); );
 
   pointIterator = fixedMesh->GetPoints()->Begin();
