@@ -135,23 +135,23 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
 
   vtkProstateNavStepSetUp* setupStep = vtkProstateNavStepSetUp::New();
   setupStep->SetTitleBackgroundColor(205.0/255.0, 200.0/255.0, 177.0/255.0);
-  this->ProstateNavManager->AddNewStep("Set Up", setupStep);
+  this->ProstateNavManager->AddNewStep("Set Up", setupStep, "START_UP");
 
   vtkProstateNavCalibrationStep* calibrationStep = vtkProstateNavCalibrationStep::New();
   calibrationStep->SetTitleBackgroundColor(193.0/255.0, 115.0/255.0, 80.0/255.0);
-  this->ProstateNavManager->AddNewStep("Calibration", calibrationStep);
+  this->ProstateNavManager->AddNewStep("Calibration", calibrationStep, "CALIBRATION");
 
   vtkProstateNavTargetingStep* targetingStep = vtkProstateNavTargetingStep::New();
   targetingStep->SetTitleBackgroundColor(138.0/255.0, 165.0/255.0, 111.0/255.0);
-  this->ProstateNavManager->AddNewStep("Targeting", targetingStep);
+  this->ProstateNavManager->AddNewStep("Targeting", targetingStep, "TARGETING");
 
   vtkProstateNavManualControlStep* manualStep = vtkProstateNavManualControlStep::New();
   manualStep->SetTitleBackgroundColor(179.0/255.0, 179.0/255.0, 230.0/255.0);
-  this->ProstateNavManager->AddNewStep("Manual", manualStep);
+  this->ProstateNavManager->AddNewStep("Manual", manualStep, "MANUAL");
 
   vtkProstateNavStepVerification* verificationStep = vtkProstateNavStepVerification::New();
   verificationStep->SetTitleBackgroundColor(179.0/255.0, 145.0/255.0, 105.0/255.0);
-  this->ProstateNavManager->AddNewStep("Verification", verificationStep);
+  this->ProstateNavManager->AddNewStep("Verification", verificationStep, "PLANNING"); // currently VERIFICATION is not a part of BRP
 
 
   this->ProstateNavManager->AllowAllTransitions();
@@ -496,6 +496,28 @@ void vtkProstateNavGUI::Init()
     {
     this->ProstateNavManager->GetStepPage(i)->SetAndObserveMRMLScene(this->GetMRMLScene());
     }
+
+  // -----------------------------------------
+  // Register new MRML node type
+
+  vtkMRMLBrpRobotCommandNode *rnode = vtkMRMLBrpRobotCommandNode::New(); 
+  this->GetMRMLScene()->RegisterNodeClass( rnode );
+  rnode->Delete();
+  //if (linxnode->IsA("vtkMRMLBrpRobotCommandNode"))
+  //  {
+  //  std::cerr << "OK" << std::endl;
+  //  }
+  //else
+  //  {
+  //  std::cerr << "NOT OK" << std::endl;
+  //  }
+  //
+  //std::vector<vtkMRMLNode*> nodes;
+  //this->GetMRMLScene()->GetNodesByClass("vtkMRMLBrpRobotCommandNode", nodes);
+
+
+
+
 }
 
 
@@ -555,15 +577,10 @@ void vtkProstateNavGUI::Enter()
                                         ->GetModuleGUIByName("OpenIGTLink IF"));
     if (igtlGUI)
       {
-      if (!this->CoordinateConverter)
-        {
-        this->CoordinateConverter = vtkIGTLToMRMLCoordinate::New();
-        }
-      if (!this->CommandConverter)
-        {
-        this->CommandConverter = vtkIGTLToMRMLBrpRobotCommand::New();
-        }
-      igtlGUI->GetLogic()->RegisterMessageConverter(this->CoordinateConverter);
+      igtlGUI->Enter();
+      this->CoordinateConverter = vtkIGTLToMRMLCoordinate::New();
+      this->CommandConverter = vtkIGTLToMRMLBrpRobotCommand::New();
+      //igtlGUI->GetLogic()->RegisterMessageConverter(this->CoordinateConverter);
       igtlGUI->GetLogic()->RegisterMessageConverter(this->CommandConverter);
       }
     
@@ -613,7 +630,6 @@ void vtkProstateNavGUI::Enter()
     this->GetMRMLScene()->AddNode(ztnode);
     //this->ZFrameTransformNodeID = ztnode->GetID();
     this->ProstateNavManager->SetAndObserveZFrameTransform(ztnode);
-    ztnode->Delete();
     
     // ZFrame
     // This part should be moved to Robot Display Node.
@@ -627,9 +643,11 @@ void vtkProstateNavGUI::Enter()
         displayNode->SetVisibility(0);
         modelNode->Modified();
         this->MRMLScene->Modified();
-        //modelNode->SetAndObserveTransformNodeID(this->ZFrameTransformNodeID.c_str());
+        modelNode->SetAndObserveTransformNodeID(ztnode->GetID());
         this->ProstateNavManager->SetZFrameModel(modelNode);
       }
+
+    ztnode->Delete();
     
     this->Entered = 1;
     }

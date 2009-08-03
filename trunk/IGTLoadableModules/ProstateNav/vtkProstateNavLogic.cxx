@@ -98,23 +98,6 @@ void vtkProstateNavLogic::UpdateAll()
 int vtkProstateNavLogic::Enter()
 {
 
-  vtkMRMLBrpRobotCommandNode *linxnode = vtkMRMLBrpRobotCommandNode::New(); 
-  this->GetMRMLScene()->RegisterNodeClass( linxnode );
-  linxnode->Delete();
-  
-//  std::cerr << "checking IsA() .." << std::endl;
-  if (linxnode->IsA("vtkMRMLBrpRobotCommandNode"))
-    {
-    std::cerr << "OK" << std::endl;
-    }
-  else
-    {
-    std::cerr << "NOT OK" << std::endl;
-    }
-
-  std::vector<vtkMRMLNode*> nodes;
-  this->GetMRMLScene()->GetNodesByClass("vtkMRMLBrpRobotCommandNode", nodes);
-
   // Command node
   vtkMRMLBrpRobotCommandNode* node = vtkMRMLBrpRobotCommandNode::New();
   node->SetName("BRPRobotCommand");
