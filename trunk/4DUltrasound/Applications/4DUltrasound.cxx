@@ -333,14 +333,32 @@ int main(int argc, char **argv)
            << "---           ERRORCODE: "<< terminate <<"             ---" << endl << endl;
       }
     logStream.close();
-    errOut->Delete();
+    if(errOut)
+      {
+      errOut->Delete();
+      }
     }
-  instrumentTracker->Delete();
-  collector->Delete();
-  processor->Delete();
-  sender->Delete();
-  tracker->Delete();
-  
+
+  if(instrumentTracker)
+    {
+    instrumentTracker->Delete();
+    }
+  if(collector)
+    {
+    collector->Delete();
+    }
+  if(processor)
+    {
+    processor->Delete();
+    }
+  if(sender)
+    {
+    sender->Delete();
+    }
+  if(tracker)
+    {
+    tracker->Delete();
+    }
 }//End Main
 
 /******************************************************************************
