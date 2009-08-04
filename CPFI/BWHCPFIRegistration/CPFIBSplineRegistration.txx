@@ -97,8 +97,8 @@ public:
     typename FixedImageReaderType::Pointer  fixedImageReader  = FixedImageReaderType::New();
     typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
   
-    fixedImageReader->SetFileName(  FixedImageFileName.c_str() );
-    movingImageReader->SetFileName( MovingImageFileName.c_str() );
+    fixedImageReader->SetFileName(  fixedImageFileName.c_str() );
+    movingImageReader->SetFileName( movingImageFileName.c_str() );
   
     // If an initial transform was specified, read it
     //
@@ -405,13 +405,13 @@ public:
     std::cout << "Final parameters: " << finalParameters[50] << std::endl;
     transform->SetParameters      ( finalParameters );
   
-    if (OutputTransform != "")
+    if (outputTransform != "")
       {
       typedef itk::TransformFileWriter TransformWriterType;
       TransformWriterType::Pointer outputTransformWriter;
   
       outputTransformWriter= TransformWriterType::New();
-      outputTransformWriter->SetFileName( OutputTransform );
+      outputTransformWriter->SetFileName( outputTransform );
       outputTransformWriter->SetInput( transform );
       outputTransformWriter->AddTransform( transform->GetBulkTransform() );
       try
@@ -428,7 +428,7 @@ public:
     // Resample to the original coordinate frame (not the reoriented
     // axial coordinate frame) of the fixed image
     //
-    if (ResampledImageFileName != "")
+    if (resampledImageFileName != "")
       {
       typename ResampleFilterType::Pointer resample = ResampleFilterType::New();
       
@@ -491,12 +491,12 @@ public:
         outputImage->SetDirection(direction);
         outputImage->Update();
         
-        writer->SetFileName( ResampledImageFileName.c_str() );
+        writer->SetFileName( resampledImageFileName.c_str() );
         writer->SetInput( outputImage   );
         }
       else
         {
-        writer->SetFileName( ResampledImageFileName.c_str() );
+        writer->SetFileName( resampledImageFileName.c_str() );
         writer->SetInput( outputPaste->GetOutput()   );
         }
   
