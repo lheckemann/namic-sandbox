@@ -97,7 +97,7 @@ int main( int argc, char* argv[] )
   
   polyMapper->SetLookupTable( lookUpTable );
 //  polyMapper->SetLookupTable( colorFunction );
-  polyMapper->SetScalarRange( 0.0, 10.0 );
+  polyMapper->SetScalarRange( 0.0, 1.0 );
 
 
   vtkScalarBarActor * scalarBarActor = vtkScalarBarActor::New();
@@ -140,9 +140,9 @@ int main( int argc, char* argv[] )
     // Bring up the render window and begin interaction.
     vtkCamera * camera = renderer->GetActiveCamera();
 
-    cameraPosition[0] = centerOfPolydata[0] + 100.0;
-    cameraPosition[1] = centerOfPolydata[1] - 30.0;
-    cameraPosition[2] = centerOfPolydata[2] - 30.0;
+    cameraPosition[0] = centerOfPolydata[0] + 200.0;
+    cameraPosition[1] = centerOfPolydata[1] - 100.0;
+    cameraPosition[2] = centerOfPolydata[2] + 500.0;
 
     camera->SetPosition ( cameraPosition );
     camera->SetFocalPoint ( centerOfPolydata );
@@ -162,9 +162,9 @@ int main( int argc, char* argv[] )
 
     vtkCamera * camera = renderer->GetActiveCamera();
 
-    cameraPosition[0] = centerOfPolydata[0] + 100.0;
-    cameraPosition[1] = centerOfPolydata[1] - 30.0;
-    cameraPosition[2] = centerOfPolydata[2] - 30.0;
+    cameraPosition[0] = centerOfPolydata[0] + 200.0;
+    cameraPosition[1] = centerOfPolydata[1] - 100.0;
+    cameraPosition[2] = centerOfPolydata[2] + 500.0;
 
     camera->SetPosition ( cameraPosition );
     camera->SetFocalPoint ( centerOfPolydata );
