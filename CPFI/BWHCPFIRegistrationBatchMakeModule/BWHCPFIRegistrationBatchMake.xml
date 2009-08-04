@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Batch Processing</category>
+  <title>BWHCPFI BSpline registration Batch Make</title>
+  <description>Registers two images together using BSpline transform and mutual information. Extended for 2D-2D registration</description>
+  <version>0.1.0.$Revision: 8595 $(alpha)</version>
+  <documentation-url>http://www.slicer.org/slicerWiki/index.php/Modules:DeformableB-SplineRegistration-Documentation-3.4</documentation-url>
+  <license></license>
+  <contributor>Junichi Tokuda</contributor>
+  <acknowledgements>
+    The module is based on Bill Lorensen's BSpline Registration module. This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+  </acknowledgements>
+
+  <parameters advanced="true">
+    <label>BatchMake</label>
+    <description>BatchMake specific parameters</description>
+    <string-enumeration>
+      <name>RunningMode_Grid</name>
+      <longflag>runningMode_Grid</longflag>
+      <description>Running Mode: Where the module shall be executed? On your local machine or on a grid?</description>
+      <label>Running Mode</label>
+      <default>local</default>
+      <element>local</element>
+      <element>condor</element>
+    </string-enumeration>
+    <directory>
+      <name>InputDirectory_Grid</name>
+      <label>Grid input directory</label>
+      <longflag>inputDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the input data are. Necessary if dealing with relative input paths.</description>
+    </directory>
+    <directory>
+      <name>OutputDirectory_Grid</name>
+      <label>Grid output directory</label>
+      <longflag>outputDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the output data are. Necessary if dealing with relative output paths.</description>
+    </directory>
+    <directory>
+      <name>ExecutableDirectory_Grid</name>
+      <label>Grid executable directory</label>
+      <longflag>executableDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the executables are.</description>
+    </directory>
+    <directory>
+      <name>WorkingDirectory_Grid</name>
+      <label>Grid working directory</label>
+      <longflag>workingDirectory_Grid</longflag>
+      <default></default>
+      <description>Directory where the condor scripts are written.</description>
+    </directory>
+    <string-enumeration>
+      <name>TransferFile_Grid</name>
+      <longflag>transferFile_Grid</longflag>
+      <description>Type of files that shall be transfered by the grid</description>
+      <label>Transfer File</label>
+      <default>NONE</default>
+      <element>NONE</element>
+      <element>EXECUTABLE</element>
+      <element>INPUT_FILES</element>
+      <element>OUTPUT_FILES</element>
+      <element>ALL</element>
+    </string-enumeration>
+  </parameters>
+
+  <parameters>
+    <label>Registration Parameters</label>
+    <description>Parameters used for registration</description>
+    <integer>
+      <name>Dimension</name>
+      <flag>n</flag>
+      <longflag>dimension</longflag>
+      <description>Image dimension</description>
+      <label>Dimension</label>
+      <default>3</default>
+      <constraints>
+        <minimum>2</minimum>
+        <maximum>3</maximum>
+        <step>1</step>
+      </constraints>
+    </integer>
+
+    <integer>
+      <name>Iterations</name>
+      <flag>i</flag>
+      <longflag>iterations</longflag>
+      <description>Number of iterations</description>
+      <label>Iterations</label>
+      <default>20</default>
+    </integer>
+
+    <integer>
+      <name>gridSize</name>
+      <flag>g</flag>
+      <longflag>gridSize</longflag>
+      <description>Number of grid points on interior of the fixed image. Larger grid sizes allow for finer registrations.</description>
+      <label>Grid Size</label>
+      <default>5</default>
+      <constraints>
+        <minimum>3</minimum>
+        <maximum>20</maximum>
+        <step>1</step>
+      </constraints>
+    </integer>
+    <integer>
+      <name>HistogramBins</name>
+      <flag>b</flag>
+      <longflag>histogrambins</longflag>
+      <description>Number of histogram bins to use for Mattes Mutual Information. Reduce the number of bins if a deformable registration fails. If the number of bins is too large, the estimated PDFs will be a field of impulses and will inhibit reliable registration estimation.</description>
+      <label>Histogram Bins</label>
+      <default>100</default>
+      <constraints>
+        <minimum>1</minimum>
+        <maximum>500</maximum>
+        <step>5</step>
+      </constraints>
+    </integer>
+
+    <integer>
+      <name>SpatialSamples</name>
+      <flag>s</flag>
+      <longflag>spatialsamples</longflag>
+      <description>Number of spatial samples to use in estimating Mattes Mutual Information. Larger values yield more accurate PDFs and improved registration quality.</description>
+      <label>Spatial Samples</label>
+      <default>50000</default>
+      <constraints>
+        <minimum>1000</minimum>
+        <maximum>500000</maximum>
+        <step>1000</step>
+      </constraints>
+    </integer>
+
+    <boolean>
+      <name>ConstrainDeformation</name>
+      <longflag>constrain</longflag>
+      <description>Constrain the deformation to the amount specified in Maximum Deformation</description>
+      <label>Constrain Deformation</label>
+      <default>false</default>
+    </boolean>
+
+    <float>
+      <name>MaximumDeformation</name>
+      <flag>m</flag>
+      <longflag>maximumDeformation</longflag>
+      <description>If Constrain Deformation is checked, limit the deformation to this amount.</description>
+      <label>Maximum Deformation</label>
+      <default>1</default>
+    </float>
+
+    <integer>
+      <name>DefaultPixelValue</name>
+      <flag>d</flag>
+      <longflag>default</longflag>
+      <description>Default pixel value used if resampling a pixel outside of the volume.</description>
+      <label>Default Pixel Value</label>
+      <default>0</default>
+    </integer>
+
+  </parameters>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+
+    <transform fileExtensions=".txt" type="linear">
+      <name>InitialTransform</name>
+      <longflag>initialtransform</longflag>
+      <description>Initial transform for aligning the fixed and moving image. Maps positions in the fixed coordinate frame to positions in the moving coordinate frame. This transform should be an affine or rigid transform.  It is used an a bulk transform for the BSpline. Optional.</description>
+      <label>Initial transform</label>
+      <channel>input</channel>
+    </transform>
+    
+    <file>
+      <name>fixedImageFileName</name>
+      <label>Fixed Image</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Fixed image to which to register</description>
+    </file>
+
+    <directory>
+      <name>movingImageFileName_Directory</name>
+      <label>Moving Image Directory</label>
+      <channel>input</channel>
+      <index>1</index>
+      <description>Moving image directory</description>
+    </directory>
+    <string>
+      <name>movingImageFileName_Mask</name>
+      <label>Moving Image Mask</label>
+      <longflag>movingImageFileName_Mask</longflag>
+      <default>*.nrrd</default>
+      <description>Moving image mask</description>
+    </string>
+
+    <directory type="bspline" reference="movingImageFileName">
+      <name>outputTransform_Directory</name>
+      <description>Transform calculated that aligns the fixed and moving image. Maps positions from the fixed coordinate frame to the moving coordinate frame. Optional (specify an output transform or an output volume or both).</description>
+      <label>Output Transform Directory</label>
+      <channel>output</channel>
+      <index>2</index>
+    </directory>
+    <string>
+      <name>outputTransform_Mask</name>
+      <label>Output Transform Mask</label>
+      <longflag>outputTransform_Mask</longflag>
+      <description>Output transform mask</description>
+      <default>Transform-${movingImageFileName}.txt</default>
+    </string>
+
+    <directory>
+      <name>resampledImageFileName_Directory</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <description>Resampled moving image to fixed image coordinate frame. Optional (specify an output transform or an output volume or both).</description>
+      <index>3</index>
+    </directory>
+    <string>
+      <name>resampledImageFileName_Mask</name>
+      <label>Resampled Image Mask</label>
+      <longflag>resampledImageFileName_Mask</longflag>
+      <description>Resampled image mask</description>
+      <default>Resampled-${movingImageFileName}</default>
+    </string>
+    
+  </parameters>
+  
+</executable>
