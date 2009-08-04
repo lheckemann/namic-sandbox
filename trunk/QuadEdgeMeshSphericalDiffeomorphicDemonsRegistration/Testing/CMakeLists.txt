@@ -345,6 +345,13 @@ IF(USE_VTK)
       ${TEMP}/movingMeshWithScalarsGaussianIC4.png
       )
 
+    ADD_TEST(ScalarRenderTest3
+      ${CXX_TEST_PATH}/ScalarMeshRender
+      ${TEMP}/registeredMeshWithScalarsGaussianIC4.vtk
+      ${TEMP}/registeredMeshWithScalarsGaussianIC4.png
+      )
+
+
     ADD_TEST(VectorRenderTest1
       ${CXX_TEST_PATH}/VectorMeshRender
       ${TEMP}/meshWithVectorsIC4e.vtk
