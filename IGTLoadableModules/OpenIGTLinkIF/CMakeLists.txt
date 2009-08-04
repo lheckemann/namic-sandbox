@@ -17,15 +17,6 @@ endif(NOT Slicer3_SOURCE_DIR)
 
 
 # --------------------------------------------------------------------------
-# Find Open IGT Link
-
-if(NOT OpenIGTLink_SOURCE_DIR)
-  find_package(OpenIGTLink REQUIRED)
-  include(${OpenIGTLink_USE_FILE})
-endif(NOT OpenIGTLink_SOURCE_DIR)
-
-
-# --------------------------------------------------------------------------
 # Include dirs
 
 include_directories(
@@ -48,14 +39,26 @@ file(GLOB headers
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   )
 
+install(FILES 
+  ${headers} 
+  "${CMAKE_CURRENT_BINARY_DIR}/vtkOpenIGTLinkIFConfigure.h"
+  DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
+  )
+
+
 # --------------------------------------------------------------------------
 # Sources
 
 set(OpenIGTLinkIF_SRCS 
   vtkOpenIGTLinkIFLogic.cxx
   vtkOpenIGTLinkIFGUI.cxx
-  vtkIGTLConnector.cxx
+  #vtkIGTLConnector.cxx
   vtkIGTLCircularBuffer.cxx
+  vtkIGTLToMRMLBase.cxx
+  vtkIGTLToMRMLLinearTransform.cxx
+  vtkIGTLToMRMLImage.cxx
+  vtkIGTLToMRMLPosition.cxx
+  vtkMRMLIGTLConnectorNode.cxx
 )
 
 # --------------------------------------------------------------------------
@@ -80,6 +83,8 @@ add_library(${lib_name}
   ${OpenIGTLinkIF_SRCS} 
   ${OpenIGTLinkIF_TCL_SRCS}
   )
+slicer3_set_modules_output_path(${lib_name})
+
 
 target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
@@ -88,11 +93,5 @@ target_link_libraries(${lib_name}
   ${ITK_LIBRARIES}
   ${OpenIGTLink_LIBRARIES}
   )
+slicer3_install_modules(${lib_name})
 
-install(TARGETS ${lib_name}
-  RUNTIME DESTINATION ${Slicer3_INSTALL_MODULES_BIN_DIR} COMPONENT RuntimeLibraries 
-  LIBRARY DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT RuntimeLibraries
-  ARCHIVE DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT Development
-  )
-
-  
