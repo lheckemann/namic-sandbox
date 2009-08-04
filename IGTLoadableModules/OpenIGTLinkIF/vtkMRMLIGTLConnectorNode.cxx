@@ -87,7 +87,8 @@ vtkMRMLIGTLConnectorNode::vtkMRMLIGTLConnectorNode()
   this->IGTLNameToConverterMap.clear();
   this->MRMLIDToConverterMap.clear();
 
-  this->MRMLNodeList.clear();
+  this->OutgoingMRMLNodeList.clear();
+  this->IncomingMRMLNodeList.clear();
 
   this->LastID = -1;
 }
@@ -251,13 +252,14 @@ void vtkMRMLIGTLConnectorNode::Copy(vtkMRMLNode *anode)
 }
 
 
+//----------------------------------------------------------------------------
 void vtkMRMLIGTLConnectorNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   std::cerr << "vtkMRMLIGTLConnectorNode::ProcessMRMLEvents( )" << std::endl;
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
   MRMLNodeListType::iterator iter;
-  for (iter = this->MRMLNodeList.begin(); iter != this->MRMLNodeList.end(); iter ++)
+  for (iter = this->OutgoingMRMLNodeList.begin(); iter != this->OutgoingMRMLNodeList.end(); iter ++)
     {
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
     if (node == *iter)
@@ -921,7 +923,7 @@ void vtkMRMLIGTLConnectorNode::UnregisterMessageConverter(vtkIGTLToMRMLBase* con
 
 
 //---------------------------------------------------------------------------
-int vtkMRMLIGTLConnectorNode::RegisterMRMLNode(vtkMRMLNode* node)
+int vtkMRMLIGTLConnectorNode::RegisterOutgoingMRMLNode(vtkMRMLNode* node)
 {
 
   if (!node)
@@ -931,14 +933,14 @@ int vtkMRMLIGTLConnectorNode::RegisterMRMLNode(vtkMRMLNode* node)
 
   // Check if the node has already been reagistered.
   MRMLNodeListType::iterator iter;
-  for (iter = this->MRMLNodeList.begin(); iter != this->MRMLNodeList.end(); iter ++)
+  for (iter = this->OutgoingMRMLNodeList.begin(); iter != this->OutgoingMRMLNodeList.end(); iter ++)
     {
     if (*iter == node) // the node has been already registered.
       {
       // TODO: should unregister other types of events here!!!
       vtkEventBroker::GetInstance()
         ->RemoveObservations(*iter, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-      this->MRMLNodeList.erase(iter);
+      this->OutgoingMRMLNodeList.erase(iter);
       break;
       }
     }
@@ -952,7 +954,7 @@ int vtkMRMLIGTLConnectorNode::RegisterMRMLNode(vtkMRMLNode* node)
     }
 
   this->MRMLIDToConverterMap[node->GetID()] = converter;    
-  this->MRMLNodeList.push_back(node);
+  this->OutgoingMRMLNodeList.push_back(node);
   
   // TODO: should register other types of events here!!!
   vtkEventBroker::GetInstance()
@@ -966,17 +968,22 @@ int vtkMRMLIGTLConnectorNode::RegisterMRMLNode(vtkMRMLNode* node)
 
 
 //---------------------------------------------------------------------------
-void vtkMRMLIGTLConnectorNode::UnregisterMRMLNode(vtkMRMLNode* node)
+void vtkMRMLIGTLConnectorNode::UnregisterOutgoingMRMLNode(vtkMRMLNode* node)
 {
+  if (!node)
+    {
+    return;
+    }
+
   // Check if the node has already been reagistered.
   MRMLNodeListType::iterator iter;
-  for (iter = this->MRMLNodeList.begin(); iter != this->MRMLNodeList.end(); iter ++)
+  for (iter = this->OutgoingMRMLNodeList.begin(); iter != this->OutgoingMRMLNodeList.end(); iter ++)
     {
     if (*iter == node) // the node has been already registered.
       {
       vtkEventBroker::GetInstance()
         ->RemoveObservations(*iter, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-      this->MRMLNodeList.erase(iter);
+      this->OutgoingMRMLNodeList.erase(iter);
 
       // Search converter from MRMLIDToConverterMap
       MessageConverterMapType::iterator iter = this->MRMLIDToConverterMap.find(node->GetID());
@@ -987,6 +994,54 @@ void vtkMRMLIGTLConnectorNode::UnregisterMRMLNode(vtkMRMLNode* node)
       break;
       }
     }
+}
+
+
+//---------------------------------------------------------------------------
+int vtkMRMLIGTLConnectorNode::RegisterIncomingMRMLNode(vtkMRMLNode* node)
+{
+
+  if (!node)
+    {
+    return 0;
+    }
+
+  // Check if the node has already been reagistered.
+  MRMLNodeListType::iterator iter;
+  for (iter = this->IncomingMRMLNodeList.begin(); iter != this->IncomingMRMLNodeList.end(); iter ++)
+    {
+    if (*iter == node) // the node has been already registered.
+      {
+      this->IncomingMRMLNodeList.erase(iter);
+      break;
+      }
+    }
+  this->IncomingMRMLNodeList.push_back(node);
+  this->Modified();
+
+  return 1;
+}
+
+
+//---------------------------------------------------------------------------
+void vtkMRMLIGTLConnectorNode::UnregisterIncomingMRMLNode(vtkMRMLNode* node)
+{
+
+  if (!node)
+    {
+    return;
+    }
+
+  // Check if the node has already been reagistered.
+  MRMLNodeListType::iterator iter;
+  for (iter = this->IncomingMRMLNodeList.begin(); iter != this->IncomingMRMLNodeList.end(); iter ++)
+    {
+    if (*iter == node) // the node has been already registered.
+      {
+      this->IncomingMRMLNodeList.erase(iter);
+      }
+    }
+  
 }
 
 

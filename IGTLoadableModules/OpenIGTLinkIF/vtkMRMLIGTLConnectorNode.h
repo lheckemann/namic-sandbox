@@ -220,12 +220,22 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
   void UnregisterMessageConverter(vtkIGTLToMRMLBase* converter);
   
   // Description:
-  // Set and start observing MRML node for data export.
-  int RegisterMRMLNode(vtkMRMLNode* node);
+  // Set and start observing MRML node for outgoing data.
+  int RegisterOutgoingMRMLNode(vtkMRMLNode* node);
 
   // Description:
-  // Stop observing MRML node for data export.
-  void UnregisterMRMLNode(vtkMRMLNode* node);
+  // Stop observing and remove MRML node for outgoing data.
+  void UnregisterOutgoingMRMLNode(vtkMRMLNode* node);
+
+  // Description:
+  // Register MRML node for incoming data.
+  int RegisterIncomingMRMLNode(vtkMRMLNode* node);
+
+  // Description:
+  // Unregister MRML node for incoming data.
+  void UnregisterIncomingMRMLNode(vtkMRMLNode* node);
+
+
 
  private:
 
@@ -287,7 +297,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
   MessageConverterMapType    MRMLIDToConverterMap;
 
   // List of nodes that this connector node is observing.
-  MRMLNodeListType          MRMLNodeList;
+  MRMLNodeListType          OutgoingMRMLNodeList;
+  MRMLNodeListType          IncomingMRMLNodeList;
   
   
 };
