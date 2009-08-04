@@ -96,6 +96,21 @@ ADD_EXECUTABLE(itkPointLocator2Test1
 TARGET_LINK_LIBRARIES(itkPointLocator2Test1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 
+IF(USE_VTK)
+
+  ADD_EXECUTABLE(ScalarMeshRender  ScalarMeshRender.cxx)
+  TARGET_LINK_LIBRARIES(ScalarMeshRender 
+    vtkRendering vtkFiltering vtkIO vtkHybrid
+    ) 
+
+  ADD_EXECUTABLE(VectorMeshRender  VectorMeshRender.cxx)
+  TARGET_LINK_LIBRARIES(VectorMeshRender 
+    vtkRendering vtkFiltering vtkIO vtkHybrid
+    ) 
+
+ENDIF(USE_VTK)
+
+
 
 ###################
 ###################
@@ -221,13 +236,12 @@ ADD_TEST(DemonsFilterTest5
   ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
   ${TEMP}/movingMeshWithScalarsGaussianIC4.vtk
   ${TEMP}/registeredMeshWithScalarsGaussianIC4.vtk
-  1.0    # Gamma
-  1.0    # SigmaX
-  1.0    # Lambda
-  1      # Smoothing Iterations
-  300    # maximum number of iterations
+  0.01     # Gamma
+  100.0    # SigmaX
+  1.0      # Lambda
+  2        # Smoothing Iterations
+  20000    # maximum number of iterations
   )
-
 
 ADD_TEST(VersorOperationsTest1
   ${CXX_TEST_PATH}/itkVersorOperationsTest1
@@ -314,4 +328,30 @@ ADD_TEST(itkLinearInterpolateMeshFunctionTest1
   )
 
 ENDIF( FREESURFER_DIR )
+
+
+IF(USE_VTK)
+  IF(GENERATE_PAPER_SCREENSHOTS)
+
+    ADD_TEST(ScalarRenderTest1
+      ${CXX_TEST_PATH}/ScalarMeshRender
+      ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
+      ${TEMP}/fixedMeshWithScalarsGaussianIC4.png
+      )
+
+    ADD_TEST(ScalarRenderTest2
+      ${CXX_TEST_PATH}/ScalarMeshRender
+      ${TEMP}/movingMeshWithScalarsGaussianIC4.vtk
+      ${TEMP}/movingMeshWithScalarsGaussianIC4.png
+      )
+
+    ADD_TEST(VectorRenderTest1
+      ${CXX_TEST_PATH}/VectorMeshRender
+      ${TEMP}/meshWithVectorsIC4e.vtk
+      1   # vector scale factor
+      ${TEMP}/meshWithVectorsIC4e.png
+      )
+
+  ENDIF(GENERATE_PAPER_SCREENSHOTS)
+ENDIF(USE_VTK)
 
