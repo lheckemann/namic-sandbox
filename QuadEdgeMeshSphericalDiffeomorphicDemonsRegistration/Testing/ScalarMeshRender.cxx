@@ -82,7 +82,7 @@ int main( int argc, char* argv[] )
   lookUpTable->SetRampToLinear();
   lookUpTable->SetNumberOfColors( 256 );
   lookUpTable->SetHueRange(0.667,0.0);
-  lookUpTable->SetRange(0.0,10.0);
+  lookUpTable->SetRange(0.0,1.0);
   lookUpTable->Build();
 
   vtkColorTransferFunction * colorFunction = vtkColorTransferFunction::New();
