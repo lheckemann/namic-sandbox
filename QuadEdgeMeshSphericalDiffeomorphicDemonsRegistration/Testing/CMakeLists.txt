@@ -218,8 +218,8 @@ ADD_TEST(DemonsFilterTest4
 
 ADD_TEST(DemonsFilterTest5
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
-  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsGaussianIC4.vtk
-  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/movingMeshWithScalarsGaussianIC4.vtk
   ${TEMP}/registeredMeshWithScalarsGaussianIC4.vtk
   1.0    # Gamma
   1.0    # SigmaX
