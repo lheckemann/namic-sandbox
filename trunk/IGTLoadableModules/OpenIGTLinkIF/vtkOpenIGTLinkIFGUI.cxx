@@ -6,9 +6,9 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $HeadURL: $
-  Date:      $Date: $
-  Version:   $Revision: $
+  Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFGUI.cxx $
+  Date:      $Date: 2009-07-28 11:56:56 -0400 (Tue, 28 Jul 2009) $
+  Version:   $Revision: 10061 $
 
 ==========================================================================*/
 
@@ -54,13 +54,16 @@
 #include "vtkKWOptions.h"
 #include "vtkKWComboBox.h"
 
+#include "vtkKWTreeWithScrollbars.h"
+#include "vtkKWTree.h"
+
 #include "vtkKWTkUtilities.h"
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkCornerAnnotation.h"
 
 #include "vtkStringArray.h"
-
+#include "vtkSlicerNodeSelectorWidget.h"
 
 // for Realtime Image
 #include "vtkImageChangeInformation.h"
@@ -68,27 +71,27 @@
 
 #include "vtkMRMLLinearTransformNode.h"
 
-#include "vtkIGTLConnector.h"
+#include "vtkMRMLIGTLConnectorNode.h"
 
 #include <vector>
 #include <sstream>
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkOpenIGTLinkIFGUI );
-vtkCxxRevisionMacro ( vtkOpenIGTLinkIFGUI, "$Revision: 1.0 $");
+vtkCxxRevisionMacro ( vtkOpenIGTLinkIFGUI, "$Revision: 10061 $");
 //---------------------------------------------------------------------------
 
 
 //---------------------------------------------------------------------------
 // Labels
-const char *vtkOpenIGTLinkIFGUI::ConnectorTypeStr[vtkIGTLConnector::NUM_TYPE] = 
+const char *vtkOpenIGTLinkIFGUI::ConnectorTypeStr[vtkMRMLIGTLConnectorNode::NUM_TYPE] = 
 {
   "?", // TYPE_NOT_DEFINED
   "S", // TYPE_SERVER
   "C", // TYPE_CLIENT
 };
 
-const char *vtkOpenIGTLinkIFGUI::ConnectorStatusStr[vtkIGTLConnector::NUM_STATE] = 
+const char *vtkOpenIGTLinkIFGUI::ConnectorStatusStr[vtkMRMLIGTLConnectorNode::NUM_STATE] = 
 {
   "OFF",       // OFF
   "WAIT",      // WAIT_CONNECTION
@@ -114,6 +117,10 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   this->SliceNode1 = NULL; 
   this->SliceNode2 = NULL; 
   
+  this->UpdateConnectorListFlag          = 0;
+  this->UpdateConnectorPropertyFrameFlag = 0;
+  this->UpdateIOConfigTreeFlag           = 0;
+
   //----------------------------------------------------------------
   // Workphase Frame
   
@@ -129,11 +136,14 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   this->ConnectorAddressEntry = NULL;
   this->ConnectorPortEntry = NULL;
 
-  this->EnableAdvancedSettingButton = NULL;
-  this->AddDeviceNameButton = NULL;
-  this->DeleteDeviceNameButton = NULL;
+  //----------------------------------------------------------------
+  // Data I/O Configuration frame
 
-  this->CurrentMrmlNodeListID = -1;
+  this->IOConfigTree = NULL;
+  this->EnableAdvancedSettingButton = NULL;
+  this->IOConfigContextMenu = NULL;
+
+  this->CurrentMrmlNodeListIndex = -1;
   this->CurrentNodeListAvailable.clear();
   this->CurrentNodeListSelected.clear();
 
@@ -141,28 +151,28 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   //----------------------------------------------------------------
   // Visualization Control Frame
   
-  this->FreezeImageCheckButton = NULL;
-  this->ObliqueCheckButton     = NULL;
-  this->SetLocatorModeButton   = NULL;
-  this->SetUserModeButton      = NULL;
-  this->RedSliceMenu           = NULL;
-  this->YellowSliceMenu        = NULL;
-  this->GreenSliceMenu         = NULL;
-
-  this->StartScanButton        = NULL;
-  this->StopScanButton         = NULL;
-
-  this->FreezeImageCheckButton = NULL;
-  this->LocatorCheckButton     = NULL;
-
-  this->ImagingMenu            = NULL;
+  this->FreezeImageCheckButton      = NULL;
+  this->ObliqueCheckButton          = NULL;
+  this->SetLocatorModeButton        = NULL;
+  this->SetUserModeButton           = NULL;
+  this->RedSliceMenu                = NULL;
+  this->YellowSliceMenu             = NULL;
+  this->GreenSliceMenu              = NULL;
+  this->LocatorCheckButton          = NULL;
+  this->LocatorSourceSelectorWidget = NULL;
+  //this->RealTimeImageSourceMenu     = NULL;
+  this->ImageSourceSelectorWidget   = NULL;
+  this->ImagingMenu                 = NULL;
 
 
   //----------------------------------------------------------------
   // Locator  (MRML)
-  this->CloseScene             = false;
-
+  this->CloseScene              = false;
   this->TimerFlag = 0;
+  this->ConnectorNodeList.clear();
+  this->IOConfigTreeConnectorList.clear();
+  this->IOConfigTreeIOList.clear();
+  this->IOConfigTreeNodeList.clear();
 
 }
 
@@ -172,7 +182,7 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
 
   if (this->DataManager)
     {
-    // If we don't set the scence to NULL for DataManager,
+    // If we don't set the scene to NULL for DataManager,
     // Slicer will report a lot leak when it is closed.
     this->DataManager->SetMRMLScene(NULL);
     this->DataManager->Delete();
@@ -186,11 +196,12 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
     this->DataCallbackCommand->Delete();
     }
 
-  this->RemoveGUIObservers();
-
-
-  //----------------------------------------------------------------
-  // Workphase Frame
+  // If Logic is NULL, then we only instatiated the class and never used
+  // it, e.g. --ignore_module
+  if (this->Logic)
+    {
+    this->RemoveGUIObservers();
+    }
 
   this->SetModuleLogic ( NULL );
 
@@ -198,6 +209,11 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
   //----------------------------------------------------------------
   // Visualization Control Frame
 
+  if (this->EnableAdvancedSettingButton)
+    {
+    this->EnableAdvancedSettingButton->SetParent(NULL );
+    this->EnableAdvancedSettingButton->Delete ( );
+    }
   if (this->FreezeImageCheckButton)
     {
     this->FreezeImageCheckButton->SetParent(NULL );
@@ -240,39 +256,102 @@ vtkOpenIGTLinkIFGUI::~vtkOpenIGTLinkIFGUI ( )
     this->GreenSliceMenu->Delete ( );
     }
 
-  /*
-  if (this->StartScanButton)
-    {
-    this->StartScanButton->SetParent(NULL);
-    this->StartScanButton->Delete();
-    }
-
-  if (this->StopScanButton)
-    {
-    this->StopScanButton->SetParent(NULL);
-    this->StopScanButton->Delete();
-    }
-
   if ( this->ImagingMenu )
     {
     this->ImagingMenu->SetParent(NULL);
     this->ImagingMenu->Delete();
     }
-  */
+
 
   this->IsSliceOrientationAdded = false;
 
+  //----------------------------------------------------------------
+  // Connector List Frame
+
+  if ( this->ConnectorList )
+    {
+    this->ConnectorList->SetParent(NULL);
+    this->ConnectorList->Delete();
+    }
+
+  if ( this->ConnectorTypeButtonSet )
+    {
+    this->ConnectorTypeButtonSet->SetParent(NULL);
+    this->ConnectorTypeButtonSet->Delete();
+    }
+
+  if ( this->ConnectorNameEntry )
+    {
+    this->ConnectorNameEntry->SetParent(NULL);
+    this->ConnectorNameEntry->Delete();
+    }
+
+  if ( this->AddConnectorButton )
+    {
+    this->AddConnectorButton->SetParent(NULL);
+    this->AddConnectorButton->Delete();
+    }
+
+  if ( this->DeleteConnectorButton )
+    {
+    this->DeleteConnectorButton->SetParent(NULL);
+    this->DeleteConnectorButton->Delete();
+    }
+
+  if ( this->ConnectorStatusCheckButton )
+    {
+    this->ConnectorStatusCheckButton->SetParent(NULL);
+    this->ConnectorStatusCheckButton->Delete();
+    }
+
+  if ( this->ConnectorAddressEntry )
+    {
+    this->ConnectorAddressEntry->SetParent(NULL);
+    this->ConnectorAddressEntry->Delete();
+    }
+
+  if ( this->ConnectorPortEntry )
+    {
+    this->ConnectorPortEntry->SetParent(NULL);
+    this->ConnectorPortEntry->Delete();
+    }
 
   //----------------------------------------------------------------
   // Etc Frame
 
-
+  if (this->LocatorSourceSelectorWidget)
+    {
+    this->LocatorSourceSelectorWidget->SetParent(NULL);
+    this->LocatorSourceSelectorWidget->Delete();
+    }
   if (this->LocatorCheckButton)
     {
     this->LocatorCheckButton->SetParent(NULL );
     this->LocatorCheckButton->Delete ( );
     }
 
+  if (this->ImageSourceSelectorWidget)
+    {
+    this->ImageSourceSelectorWidget->SetParent(NULL);
+    this->ImageSourceSelectorWidget->Delete();
+    }
+  //if (this->RealTimeImageSourceMenu)
+  //  {
+  //  this->RealTimeImageSourceMenu->SetParent(NULL );
+  //  this->RealTimeImageSourceMenu->Delete ( );
+  //  }
+
+  if (this->IOConfigContextMenu)
+    {
+    this->IOConfigContextMenu->SetParent(NULL);
+    this->IOConfigContextMenu->Delete();
+    }
+
+  if (this->IOConfigTree)
+    {
+    this->IOConfigTree->SetParent(NULL);
+    this->IOConfigTree->Delete();
+    }
 }
 
 
@@ -294,17 +373,26 @@ void vtkOpenIGTLinkIFGUI::RemoveGUIObservers ( )
 {
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
-  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
-    ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
-    ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
-    ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  if ( appGUI && appGUI->GetMainSliceGUI("Red") )
+    {
+    appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
+      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if ( appGUI && appGUI->GetMainSliceGUI("Yellow") )
+    {
+    appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
+      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if ( appGUI && appGUI->GetMainSliceGUI("Yellow") )
+    {
+    appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
+      ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   //----------------------------------------------------------------
   // Connector Browser Frame
 
-  if (this->ConnectorList->GetWidget())
+  if (this->ConnectorList && this->ConnectorList->GetWidget())
     {
     this->ConnectorList->GetWidget()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
@@ -355,35 +443,67 @@ void vtkOpenIGTLinkIFGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  //----------------------------------------------------------------
+  // Data I/O Configuration frame
+
+  if (this->IOConfigTree)
+    {
+    this->IOConfigTree->GetWidget()
+      ->RemoveObservers(vtkKWTree::SelectionChangedEvent, 
+                        (vtkCommand *)this->GUICallbackCommand);  
+    this->IOConfigTree->GetWidget()
+      ->RemoveObservers(vtkKWTree::RightClickOnNodeEvent, 
+                        (vtkCommand *)this->GUICallbackCommand);  
+    }
+
   if (this->EnableAdvancedSettingButton)
     {
     this->EnableAdvancedSettingButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->AddDeviceNameButton)
-    {
-    this->AddDeviceNameButton
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  if (this->DeleteDeviceNameButton)
-    {
-    this->DeleteDeviceNameButton
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-  
-  if (this->MrmlNodeList->GetWidget())
-    {
-    this->MrmlNodeList->GetWidget()
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
-
   //----------------------------------------------------------------
   // Visualization Control Frame
 
+  if (this->LocatorCheckButton)
+    {
+    this->LocatorCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
+    }
+
+  if (this->LocatorSourceSelectorWidget)
+    {
+    this->LocatorSourceSelectorWidget
+      ->RemoveObservers(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+                        (vtkCommand *)this->GUICallbackCommand );
+    }
+
+  if (this->ImageSourceSelectorWidget)
+    {
+    this->ImageSourceSelectorWidget
+      ->RemoveObservers(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+                        (vtkCommand *)this->GUICallbackCommand );
+    }
+  //if (this->RealTimeImageSourceMenu)
+  //  {
+  //  this->RealTimeImageSourceMenu->GetMenu()
+  //    ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+  //  }
+
+  if (this->RedSliceMenu)
+    {
+    this->RedSliceMenu->GetMenu()
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->YellowSliceMenu)
+    {
+    this->YellowSliceMenu->GetMenu()
+      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
+    }
+  if (this->GreenSliceMenu)
+    {
+    this->GreenSliceMenu->GetMenu()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->FreezeImageCheckButton)
     {
     this->FreezeImageCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
@@ -403,26 +523,6 @@ void vtkOpenIGTLinkIFGUI::RemoveGUIObservers ( )
     this->SetUserModeButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
     }
 
-  if (this->LocatorCheckButton)
-    {
-    this->LocatorCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
-    }
-
-  if (this->RedSliceMenu)
-    {
-    this->RedSliceMenu->GetMenu()
-      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
-    }
-  if (this->YellowSliceMenu)
-    {
-    this->YellowSliceMenu->GetMenu()
-      ->RemoveObserver((vtkCommand*)this->GUICallbackCommand);
-    }
-  if (this->GreenSliceMenu)
-    {
-    this->GreenSliceMenu->GetMenu()
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
   if (this->ImagingMenu)
     {
     this->ImagingMenu->GetMenu()
@@ -436,7 +536,7 @@ void vtkOpenIGTLinkIFGUI::RemoveGUIObservers ( )
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::RemoveLogicObservers ( )
 {
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   if (this->GetLogic())
     {
     this->GetLogic()->RemoveObservers(vtkCommand::ModifiedEvent,
@@ -459,8 +559,9 @@ void vtkOpenIGTLinkIFGUI::AddGUIObservers ( )
   // MRML
 
   vtkIntArray* events = vtkIntArray::New();
-  //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::NewSceneEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
   
   if (this->GetMRMLScene() != NULL)
@@ -511,26 +612,40 @@ void vtkOpenIGTLinkIFGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ConnectorPortEntry
     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  //----------------------------------------------------------------
+  // Data I/O Configuration frame
+  this->IOConfigTree->GetWidget()
+    ->AddObserver(vtkKWTree::SelectionChangedEvent, 
+                  (vtkCommand *)this->GUICallbackCommand );
+
+  this->IOConfigTree->GetWidget()
+    ->AddObserver(vtkKWTree::RightClickOnNodeEvent, 
+                  (vtkCommand *)this->GUICallbackCommand);
   
   this->EnableAdvancedSettingButton
     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
 
-  this->AddDeviceNameButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->DeleteDeviceNameButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-  // Advanced Settings
-  this->MrmlNodeList->GetWidget()->
-    AddObserver(vtkKWMultiColumnList::SelectionChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-
   //----------------------------------------------------------------
   // Visualization Control Frame
 
-
   this->LocatorCheckButton
     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->LocatorSourceSelectorWidget
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+                  (vtkCommand *)this->GUICallbackCommand );
+  this->LocatorSourceSelectorWidget
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NewNodeEvent,
+                  (vtkCommand *)this->GUICallbackCommand );
+
+  this->ImageSourceSelectorWidget
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+                  (vtkCommand *)this->GUICallbackCommand );
+  this->ImageSourceSelectorWidget
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NewNodeEvent,
+                  (vtkCommand *)this->GUICallbackCommand );
+  //this->RealTimeImageSourceMenu->GetMenu()
+  //  ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
 
   this->RedSliceMenu->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -547,16 +662,6 @@ void vtkOpenIGTLinkIFGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->SetUserModeButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-  /*
-  this->StartScanButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->StopScanButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->ImagingMenu->GetMenu()
-    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  */
-
 
 
   //----------------------------------------------------------------
@@ -618,40 +723,6 @@ void vtkOpenIGTLinkIFGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
     {
     anno = appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
     }
-  if (anno)
-    {
-    const char *rasText = anno->GetText(1);
-    if ( rasText != NULL )
-      {
-      std::string ras = std::string(rasText);
-        
-      // remove "R:," "A:," and "S:" from the string
-      int loc = ras.find("R:", 0);
-      if ( loc != std::string::npos ) 
-        {
-        ras = ras.replace(loc, 2, "");
-        }
-      loc = ras.find("A:", 0);
-      if ( loc != std::string::npos ) 
-        {
-        ras = ras.replace(loc, 2, "");
-        }
-      loc = ras.find("S:", 0);
-      if ( loc != std::string::npos ) 
-        {
-        ras = ras.replace(loc, 2, "");
-        }
-      
-      // remove "\n" from the string
-      int found = ras.find("\n", 0);
-      while ( found != std::string::npos )
-        {
-        ras = ras.replace(found, 1, " ");
-        found = ras.find("\n", 0);
-        }
-      
-      }
-    }
 }
 
 
@@ -677,46 +748,69 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     {
     int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
     UpdateConnectorPropertyFrame(selected);
-    UpdateMrmlNodeListFrame(selected);
+    UpdateIOConfigTree();
     }
 
   else if (this->AddConnectorButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
-    this->GetLogic()->AddConnector();
+    vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::New();
+    int restrectDeviceName = (this->EnableAdvancedSettingButton->GetSelectedState())? 1:0;
+
+    this->GetMRMLScene()->AddNode(connector);
+    connector->SetRestrictDeviceName(restrectDeviceName);
+    connector->Modified();
+
     UpdateConnectorList(UPDATE_ALL);
     int select = this->ConnectorList->GetWidget()->GetNumberOfRows() - 1;
     this->ConnectorList->GetWidget()->SelectSingleRow(select);
     UpdateConnectorPropertyFrame(select);
-    UpdateMrmlNodeListFrame(select);
+    UpdateIOConfigTree();
+    connector->Delete();
     }
 
   else if (this->DeleteConnectorButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
     int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
-    this->GetLogic()->DeleteConnector(selected);
-    UpdateConnectorList(UPDATE_ALL);
-    int nrow = this->ConnectorList->GetWidget()->GetNumberOfRows();
-    if (selected >= nrow)
+    if (selected >= 0 && selected < (int)this->ConnectorNodeList.size())
       {
-      selected = nrow - 1;
+      vtkMRMLIGTLConnectorNode* cnode 
+        = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ConnectorNodeList[selected]));
+      if (cnode)
+        {
+        cnode->Stop();
+        this->GetMRMLScene()->RemoveNode(cnode);
+        this->GetMRMLScene()->Modified();
+        //this->GetLogic()->RemoveConnectorFromList(cnode);
+
+        UpdateConnectorList(UPDATE_ALL);
+        int nrow = this->ConnectorList->GetWidget()->GetNumberOfRows();
+        if (selected >= nrow)
+          {
+          selected = nrow - 1;
+          }
+        this->ConnectorList->GetWidget()->SelectSingleRow(selected);
+        UpdateConnectorList(UPDATE_ALL);
+        UpdateConnectorPropertyFrame(selected);
+        UpdateIOConfigTree();
+        }
       }
-    this->ConnectorList->GetWidget()->SelectSingleRow(selected);
-    UpdateConnectorList(UPDATE_ALL);
-    UpdateConnectorPropertyFrame(selected);
-    UpdateMrmlNodeListFrame(selected);
     }
-  
   else if (this->ConnectorNameEntry == vtkKWEntry::SafeDownCast(caller)
            && event == vtkKWEntry::EntryValueChangedEvent)
     {
     int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
-    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(selected);
-    if (connector)
+
+    if (selected >= 0 && selected < (int)this->ConnectorNodeList.size())
       {
-      connector->SetName(this->ConnectorNameEntry->GetValue());
-      UpdateConnectorList(UPDATE_SELECTED_ONLY);
+      vtkMRMLIGTLConnectorNode* connector
+        = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ConnectorNodeList[selected]));
+      if (connector)
+        {
+        connector->SetName(this->ConnectorNameEntry->GetValue());
+        UpdateConnectorList(UPDATE_SELECTED_ONLY);
+        }
       }
     }
 
@@ -725,13 +819,17 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
            && this->ConnectorTypeButtonSet->GetWidget(0)->GetSelectedState() == 1)
     {
     int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
-    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(selected);
-    if (connector)
+    if (selected >= 0 && selected < (int)this->ConnectorNodeList.size())
       {
-      connector->SetType(vtkIGTLConnector::TYPE_SERVER);
-      UpdateConnectorList(UPDATE_SELECTED_ONLY);
-      UpdateConnectorPropertyFrame(selected);
-      UpdateMrmlNodeListFrame(selected);
+      vtkMRMLIGTLConnectorNode* connector
+        = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ConnectorNodeList[selected]));
+      if (connector)
+        {
+        connector->SetType(vtkMRMLIGTLConnectorNode::TYPE_SERVER);
+        UpdateConnectorList(UPDATE_SELECTED_ONLY);
+        UpdateConnectorPropertyFrame(selected);
+        UpdateIOConfigTree();
+        }
       }
     }
 
@@ -740,13 +838,17 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
            && this->ConnectorTypeButtonSet->GetWidget(1)->GetSelectedState() == 1)
     {
     int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
-    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(selected);
-    if (connector)
+    if (selected >= 0 && selected < (int)this->ConnectorNodeList.size())
       {
-      connector->SetType(vtkIGTLConnector::TYPE_CLIENT);
-      UpdateConnectorList(UPDATE_SELECTED_ONLY);
-      UpdateConnectorPropertyFrame(selected);
-      UpdateMrmlNodeListFrame(selected);
+      vtkMRMLIGTLConnectorNode* connector
+        = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ConnectorNodeList[selected]));
+      if (connector)
+        {
+        connector->SetType(vtkMRMLIGTLConnectorNode::TYPE_CLIENT);
+        UpdateConnectorList(UPDATE_SELECTED_ONLY);
+        UpdateConnectorPropertyFrame(selected);
+        UpdateIOConfigTree();
+        }
       }
     }
 
@@ -754,24 +856,26 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWCheckButton::SelectedStateChangedEvent )
     {
     int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
-    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(selected);
-    if (connector)
+    if (selected >= 0 && selected < (int)this->ConnectorNodeList.size())
       {
-      if (this->ConnectorStatusCheckButton->GetSelectedState()) // Activated
+      vtkMRMLIGTLConnectorNode* connector
+        = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ConnectorNodeList[selected]));
+      if (connector)
         {
-        //vtkErrorMacro("Starting Connector...........");
-        connector->Start();
-        UpdateConnectorList(UPDATE_SELECTED_ONLY);
-        UpdateConnectorPropertyFrame(selected);
-        UpdateMrmlNodeListFrame(selected);
-        }
-      else  // Deactivated
-        {
-        connector->Stop();
-        //vtkErrorMacro("Connector Stopped...........");
-        UpdateConnectorList(UPDATE_SELECTED_ONLY);
-        UpdateConnectorPropertyFrame(selected);
-        UpdateMrmlNodeListFrame(selected);
+        if (this->ConnectorStatusCheckButton->GetSelectedState()) // Activated
+          {
+          connector->Start();
+          UpdateConnectorList(UPDATE_SELECTED_ONLY);
+          UpdateConnectorPropertyFrame(selected);
+          UpdateIOConfigTree();
+          }
+        else  // Deactivated
+          {
+          connector->Stop();
+          UpdateConnectorList(UPDATE_SELECTED_ONLY);
+          UpdateConnectorPropertyFrame(selected);
+          UpdateIOConfigTree();
+          }
         }
       }
     }
@@ -780,10 +884,14 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWEntry::EntryValueChangedEvent)
     {
     int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
-    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(selected);
-    if (connector)
+    if (selected >= 0 && selected < (int)this->ConnectorNodeList.size())
       {
-      connector->SetServerHostname(this->ConnectorAddressEntry->GetValue());
+      vtkMRMLIGTLConnectorNode* connector
+        = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ConnectorNodeList[selected]));
+      if (connector)
+        {
+        connector->SetServerHostname(this->ConnectorAddressEntry->GetValue());
+        }
       }
     UpdateConnectorList(UPDATE_SELECTED_ONLY);
     }
@@ -792,10 +900,14 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWEntry::EntryValueChangedEvent)
     {
     int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
-    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(selected);
-    if (connector)
+    if (selected >= 0 && selected < (int)this->ConnectorNodeList.size())
       {
-      connector->SetServerPort(this->ConnectorPortEntry->GetValueAsInt());
+      vtkMRMLIGTLConnectorNode* connector
+        = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ConnectorNodeList[selected]));
+      if (connector)
+        {
+        connector->SetServerPort(this->ConnectorPortEntry->GetValueAsInt());
+        }
       }
     UpdateConnectorList(UPDATE_SELECTED_ONLY);
     }
@@ -813,40 +925,9 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       }
     }
 
-  else if (this->AddDeviceNameButton == vtkKWPushButton::SafeDownCast(caller)
-           && event == vtkKWPushButton::InvokedEvent)
+  else if (event == vtkKWTree::RightClickOnNodeEvent)
     {
-    int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
-    this->GetLogic()->AddDeviceToConnector(selected, "Unspecified", "Unspecified", 0);
-    //UpdateConnectorPropertyFrame(selected);
-    UpdateMrmlNodeListFrame(selected);
-    }
-
-  else if (this->DeleteDeviceNameButton == vtkKWPushButton::SafeDownCast(caller)
-           && event == vtkKWPushButton::InvokedEvent)
-    {
-    //this->GetLogic()->AddConnector();
-    //int select = this->ConnectorList->GetWidget()->GetNumberOfRows() - 1;
-    //this->ConnectorList->GetWidget()->SelectSingleRow(select);
-    //UpdateConnectorPropertyFrame(select);
-    //UpdateMrmlNodeListFrame(select);
-    }
-
-
-  else if (this->MrmlNodeList->GetWidget() == vtkKWMultiColumnList::SafeDownCast(caller)
-           && event == vtkKWMultiColumnList::SelectionChangedEvent)
-    {
-      
-    int col;
-    int row;
-    this->MrmlNodeList->GetWidget()->GetSelectedCells(&row, &col);
-    this->MrmlNodeList->GetWidget()->GetSelectedCells(&row, &col);
-    /*
-
-      this->MrmlNodeList->GetWidget()->SetCellEditWindowToEntry(0,0);
-      this->MrmlNodeList->GetWidget()->SetCellEditable(0, 0, 1);
-      this->MrmlNodeList->GetWidget()->EditCell(0, 0);
-    */
+    IOConfigTreeContextMenu((const char*)callData);
     }
 
 
@@ -862,11 +943,13 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       {
       if (checked)
         {
-        this->GetLogic()->SetVisibilityOfLocatorModel("IGTLocator", 1);
+        //this->GetLogic()->SetVisibilityOfLocatorModel("IGTLocator", 1);
+        this->GetLogic()->EnableLocatorDriver(1);
         }
       else
         {
-        this->GetLogic()->SetVisibilityOfLocatorModel("IGTLocator", 0);
+        //this->GetLogic()->SetVisibilityOfLocatorModel("IGTLocator", 0);
+        this->GetLogic()->EnableLocatorDriver(0);
         }
       }
     else
@@ -874,10 +957,44 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       this->CloseScene = false;
       }
     }
+  else if (this->LocatorSourceSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+           && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
+    {
+    vtkMRMLLinearTransformNode* node = 
+      vtkMRMLLinearTransformNode::SafeDownCast(this->LocatorSourceSelectorWidget->GetSelected());
+    this->GetLogic()->SetLocatorDriver(node->GetID());
+    }
+  else if (this->LocatorSourceSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+           && event == vtkSlicerNodeSelectorWidget::NewNodeEvent) 
+    {
+    vtkMRMLLinearTransformNode* node = 
+      vtkMRMLLinearTransformNode::SafeDownCast(this->LocatorSourceSelectorWidget->GetSelected());
+    this->GetLogic()->SetLocatorDriver(node->GetID());
+    }
+  //else if (this->RealTimeImageSourceMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
+  //         && event == vtkKWMenu::MenuItemInvokedEvent)
+  //  {
+  //  int selected = this->RealTimeImageSourceMenu->GetMenu()->GetIndexOfSelectedItem();
+  //  this->GetLogic()->SetRealTimeImageSource(this->RealTimeImageSourceList[selected].nodeID.c_str());
+  //  }
+  else if (this->ImageSourceSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+           && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
+    {
+    vtkMRMLScalarVolumeNode* node = 
+      vtkMRMLScalarVolumeNode::SafeDownCast(this->ImageSourceSelectorWidget->GetSelected());
+    this->GetLogic()->SetRealTimeImageSource(node->GetID());
+    }
+  else if (this->ImageSourceSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+           && event == vtkSlicerNodeSelectorWidget::NewNodeEvent) 
+    {
+    vtkMRMLScalarVolumeNode* node = 
+      vtkMRMLScalarVolumeNode::SafeDownCast(this->ImageSourceSelectorWidget->GetSelected());
+    this->GetLogic()->SetRealTimeImageSource(node->GetID());
+    }
 
   else if (this->RedSliceMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent)
-    {
+   {
     const char* selected = this->RedSliceMenu->GetValue();
     ChangeSlicePlaneDriver(vtkOpenIGTLinkIFGUI::SLICE_PLANE_RED, selected);
     }
@@ -940,49 +1057,6 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
       }
     }
 
-  /*
-  else if (this->ImagingMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
-           && event == vtkKWMenu::MenuItemInvokedEvent )
-    {
-      
-    const char* selected = this->ImagingMenu->GetValue();
-    if (strcmp(selected, "None") == 0)
-      {
-      //this->RealtimeImageOrient = vtkOpenIGTLinkIFGUI::SLICE_RTIMAGE_NONE;
-      //this->GetLogic()->SetRealtimeImageOrient(vtkOpenIGTLinkIFLogic::SLICE_RTIMAGE_NONE);
-      }
-    else if (strcmp(selected, "Perpendicular") == 0)
-      {
-      //this->RealtimeImageOrient = vtkOpenIGTLinkIFGUI::SLICE_RTIMAGE_PERP;
-      //this->GetLogic()->SetRealtimeImageOrient(vtkOpenIGTLinkIFLogic::SLICE_RTIMAGE_PERP);
-      }
-    else if (strcmp(selected, "In-plane 90") == 0)
-      {
-      //this->RealtimeImageOrient = vtkOpenIGTLinkIFGUI::SLICE_RTIMAGE_INPLANE90;
-      //this->GetLogic()->SetRealtimeImageOrient(vtkOpenIGTLinkIFLogic::SLICE_RTIMAGE_INPLANE90);
-      }
-    else //if ( strcmp(selected, "In-plane") == 0 )
-      {
-      //this->RealtimeImageOrient = vtkOpenIGTLinkIFGUI::SLICE_RTIMAGE_INPLANE;
-      //this->GetLogic()->SetRealtimeImageOrient(vtkOpenIGTLinkIFLogic::SLICE_RTIMAGE_INPLANE);
-      }
-    
-    }
-  */
-
-  /*
-  else if (this->StartScanButton == vtkKWPushButton::SafeDownCast(caller) 
-           && event == vtkKWPushButton::InvokedEvent)
-    {
-    //this->Logic->ScanStart();
-    }
-  else if (this->StopScanButton == vtkKWPushButton::SafeDownCast(caller) 
-           && event == vtkKWPushButton::InvokedEvent)
-    {
-    //this->Logic->ScanStop();
-    }
-  */
-
   //----------------------------------------------------------------
   // Etc Frame
 
@@ -993,7 +1067,21 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
 
 void vtkOpenIGTLinkIFGUI::Init()
 {
+  
+  //----------------------------------------------------------------
+  // Set MRML Scene to the data manager
+
   this->DataManager->SetMRMLScene(this->GetMRMLScene());
+  
+  //----------------------------------------------------------------
+  // Register MRML node
+
+  vtkMRMLScene* scene = this->GetMRMLScene();
+
+  vtkMRMLIGTLConnectorNode* connectorNode = vtkMRMLIGTLConnectorNode::New();
+  scene->RegisterNodeClass(connectorNode);
+  connectorNode->Delete();
+
 }
 
 
@@ -1027,18 +1115,201 @@ void vtkOpenIGTLinkIFGUI::ProcessLogicEvents ( vtkObject *caller,
 void vtkOpenIGTLinkIFGUI::ProcessMRMLEvents ( vtkObject *caller,
                                             unsigned long event, void *callData )
 {
-  // Fill in
+  // -----------------------------------------
+  // Adding a new node
+  if (event == vtkMRMLScene::NodeAddedEvent)
+    {
+    vtkObject* obj = (vtkObject*)callData;
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(obj);
+    if (node)
+      {
+      vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+      
+      // -----------------------------------------
+      // If the new node is an IGTL connector
+      if (cnode && strcmp(cnode->GetNodeTagName(), "IGTLConnector") == 0)
+        {
+        vtkMRMLNode *nnode = NULL; // TODO: is this OK?
+        vtkIntArray* nodeEvents = vtkIntArray::New();
+        nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::ConnectedEvent);
+        nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::DisconnectedEvent);
+        nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::ActivatedEvent);
+        nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::DeactivatedEvent);
+        nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::ReceiveEvent);
+        nodeEvents->InsertNextValue(vtkCommand::ModifiedEvent);
+        vtkSetAndObserveMRMLNodeEventsMacro(nnode,cnode,nodeEvents);
+        nnode->Delete();
+        nodeEvents->Delete();
+        
+        // obtain the list of connectors in the scene
+        UpdateConnectorNodeList();
 
-  if (event == vtkMRMLScene::SceneCloseEvent)
+        //this->GetLogic()->AddConnectorToList(cnode);
+
+        this->UpdateConnectorListFlag          = 1;
+        this->UpdateConnectorPropertyFrameFlag = 1;
+        this->UpdateIOConfigTreeFlag           = 1;
+        
+        }
+      else
+        {
+        //UpdateRealTimeImageSourceMenu();
+        }
+      }
+    }
+  
+  // -----------------------------------------
+  // New scene
+  else if (event == vtkMRMLScene::NewSceneEvent)
+    {
+    std::vector<vtkMRMLNode*> nodes;
+    const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+    this->GetMRMLScene()->GetNodesByClass(className, nodes);
+
+    this->ConnectorNodeList.clear();
+    std::vector<vtkMRMLNode*>::iterator iter;
+    for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+      {
+      vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
+      vtkMRMLNode *nnode = NULL; // TODO: is this OK?
+      vtkIntArray* nodeEvents = vtkIntArray::New();
+      nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::ConnectedEvent);
+      nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::DisconnectedEvent);
+      nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::ActivatedEvent);
+      nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::DeactivatedEvent);
+      nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::ReceiveEvent);
+      nodeEvents->InsertNextValue(vtkCommand::ModifiedEvent);
+      vtkSetAndObserveMRMLNodeEventsMacro(nnode,cnode,nodeEvents);
+      nnode->Delete();
+      nodeEvents->Delete();
+
+      }      
+    UpdateConnectorNodeList();
+    
+    this->UpdateConnectorListFlag          = 1;
+    this->UpdateConnectorPropertyFrameFlag = 1;
+    this->UpdateIOConfigTreeFlag           = 1;
+    }
+  
+  // -----------------------------------------
+  // Removing a node
+  else if (event == vtkMRMLScene::NodeRemovedEvent)
+    {
+    vtkObject* obj = (vtkObject*)callData;
+    vtkMRMLIGTLConnectorNode* node = vtkMRMLIGTLConnectorNode::SafeDownCast(obj);
+    if (node)
+      {
+      if (strcmp(node->GetNodeTagName(), "IGTLConnector") == 0)
+        {
+        // obtain the list of connectors in the scene
+        UpdateConnectorNodeList();
+        
+        this->UpdateConnectorListFlag          = 1;
+        this->UpdateConnectorPropertyFrameFlag = 1;
+        this->UpdateIOConfigTreeFlag           = 1;
+        
+        node->Stop(); // should do this in the node class?
+        }
+      
+      //UpdateRealTimeImageSourceMenu();
+      }
+    }
+  
+  
+  // -----------------------------------------
+  // Connector node events
+  else if (event == vtkMRMLIGTLConnectorNode::ConnectedEvent)
+    {
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    if (node)
+      {
+      //vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+
+      this->UpdateConnectorListFlag          = 1;
+      this->UpdateConnectorPropertyFrameFlag = 1;
+      this->UpdateIOConfigTreeFlag           = 1;
+      }
+    }
+  else if (event == vtkMRMLIGTLConnectorNode::DisconnectedEvent)
+    {
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    if (node)
+      {
+      //vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+
+      this->UpdateConnectorListFlag          = 1;
+      this->UpdateConnectorPropertyFrameFlag = 1;
+      this->UpdateIOConfigTreeFlag           = 1;
+      }
+    }
+  else if (event == vtkMRMLIGTLConnectorNode::ActivatedEvent)
+    {
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    if (node)
+      {
+      //vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+
+      this->UpdateConnectorListFlag          = 1;
+      this->UpdateConnectorPropertyFrameFlag = 1;
+      this->UpdateIOConfigTreeFlag           = 1;
+      }
+    }
+  else if (event == vtkMRMLIGTLConnectorNode::DeactivatedEvent)
+    {
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    if (node)
+      {
+      //vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+      this->UpdateConnectorListFlag          = 1;
+      this->UpdateConnectorPropertyFrameFlag = 1;
+      this->UpdateIOConfigTreeFlag           = 1;
+      }
+    }
+  else if (event == vtkMRMLIGTLConnectorNode::ReceiveEvent)
+    {
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    if (node)
+      {
+      //vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+      }
+    }
+  else if (event == vtkMRMLIGTLConnectorNode::NewDeviceEvent)
+    {
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    if (node)
+      {
+      //vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+      this->UpdateIOConfigTreeFlag           = 1;
+      }
+    }
+  else if (event == vtkCommand::ModifiedEvent)
+    {
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    if (node)
+      {
+      //vtkMRMLIGTLConnectorNode* cnode = vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+      this->UpdateConnectorListFlag          = 1;
+      this->UpdateConnectorPropertyFrameFlag = 1;
+      this->UpdateIOConfigTreeFlag           = 1;
+      }
+    }
+
+  // -----------------------------------------
+  // Closing the scene
+  else if (event == vtkMRMLScene::SceneCloseEvent)
     {
     if (this->LocatorCheckButton != NULL && this->LocatorCheckButton->GetSelectedState())
       {
       this->CloseScene = true;
       this->LocatorCheckButton->SelectedStateOff();
       }
+
+    this->ConnectorNodeList.clear();
+    this->UpdateConnectorListFlag          = 1;
+    this->UpdateConnectorPropertyFrameFlag = 1;
+    this->UpdateIOConfigTreeFlag           = 1;
     }
 }
-
 
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::ProcessTimerEvents()
@@ -1046,22 +1317,30 @@ void vtkOpenIGTLinkIFGUI::ProcessTimerEvents()
   if (this->TimerFlag)
     {
     // -----------------------------------------
-    // Check connector status
-
-    if (this->GetLogic()->CheckConnectorsStatusUpdates())
+    // Update connector list, property frame and IO config tree
+    if (this->UpdateConnectorListFlag)
       {
-      int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
-      UpdateConnectorList(UPDATE_STATUS_ALL);
-      UpdateConnectorPropertyFrame(selected);
-      UpdateMrmlNodeListFrame(selected);
+      this->UpdateConnectorListFlag = 0;
+      //UpdateConnectorList(UPDATE_STATUS_ALL);
+      UpdateConnectorList(UPDATE_ALL);
       }
 
+    if (this->UpdateConnectorPropertyFrameFlag)
+      {
+      this->UpdateConnectorPropertyFrameFlag = 0;
+      int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
+      UpdateConnectorPropertyFrame(selected);
+      }
+
+    if (this->UpdateIOConfigTreeFlag)
+      {
+      this->UpdateIOConfigTreeFlag = 0;
+      UpdateIOConfigTree();
+      }
 
     // -----------------------------------------
     // Check incomming new data
-
     this->GetLogic()->ImportFromCircularBuffers();
-
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
                                          this, "ProcessTimerEvents");        
@@ -1139,59 +1418,37 @@ void vtkOpenIGTLinkIFGUI::BuildGUI ( )
   // ---
   // MODULE GUI FRAME 
   // create a page
-  this->UIPanel->AddPage ( "OpenIGTLink", "OpenIGTLink", NULL );
+  this->UIPanel->AddPage ( "OpenIGTLinkIF", "OpenIGTLinkIF", NULL );
 
   BuildGUIForHelpFrame();
   BuildGUIForConnectorBrowserFrame();
+  BuildGUIForIOConfig();
   BuildGUIForVisualizationControlFrame();
 
   UpdateConnectorPropertyFrame(-1);
-  UpdateMrmlNodeListFrame(-1);
+  UpdateIOConfigTree();
 }
 
 
 void vtkOpenIGTLinkIFGUI::BuildGUIForHelpFrame ()
 {
 
-  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "OpenIGTLink" );
-
-  // Define your help text here.
-  const char *help = 
-    "The **OpenIGTLink Module** helps you to manage OpenIGTLink connections:"
-    " OpenIGTLink is an open network protocol for communication among software / hardware "
-    " for image-guided therapy, e.g. robot-navigation and imager-viewer connections."
-    " The information of the OpenIGTLink protocol can be found at http://wiki.na-mic.org/Wiki/index.php/OpenIGTLink ."
-    " The module is designed and implemented by Junichi Tokuda for Brigham and Women's Hospital."
-    " This work is supported by NCIGT, NA-MIC and BRP Prostate robot project.";
-
   // ----------------------------------------------------------------
   // HELP FRAME         
   // ----------------------------------------------------------------
-  vtkSlicerModuleCollapsibleFrame *OpenIGTLinkHelpFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-  OpenIGTLinkHelpFrame->SetParent ( page );
-  OpenIGTLinkHelpFrame->Create ( );
-  OpenIGTLinkHelpFrame->CollapseFrame ( );
-  OpenIGTLinkHelpFrame->SetLabelText ("Help");
-  app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-                OpenIGTLinkHelpFrame->GetWidgetName(), page->GetWidgetName());
-    
-  // configure the parent classes help text widget
-  this->HelpText->SetParent ( OpenIGTLinkHelpFrame->GetFrame() );
-  this->HelpText->Create ( );
-  this->HelpText->SetHorizontalScrollbarVisibility ( 0 );
-  this->HelpText->SetVerticalScrollbarVisibility ( 1 );
-  this->HelpText->GetWidget()->SetText ( help );
-  this->HelpText->GetWidget()->SetReliefToFlat ( );
-  this->HelpText->GetWidget()->SetWrapToWord ( );
-  this->HelpText->GetWidget()->ReadOnlyOn ( );
-  this->HelpText->GetWidget()->QuickFormattingOn ( );
-  this->HelpText->GetWidget()->SetBalloonHelpString ( "" );
-  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4",
-                this->HelpText->GetWidgetName ( ) );
 
-  OpenIGTLinkHelpFrame->Delete();
+  // Define your help text here.
+  const char *help = 
+    "**The OpenIGTLink Interface Module** helps you to manage OpenIGTLink connections:"
+    "OpenIGTLink is an open network protocol for communication among software / hardware "
+    "for image-guided therapy. See "
+    "<a>http://www.slicer.org/slicerWiki/index.php/Modules:OpenIGTLinkIF</a> for details.";
+  const char *about =
+    "The module is designed and implemented by Junichi Tokuda for Brigham and Women's Hospital."
+    "This work is supported by NCIGT, NA-MIC and BRP \"Enabling Technologies for MRI-Guided Prostate Intervention\" project.";
+
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "OpenIGTLinkIF" );
+  this->BuildHelpAndAboutFrame (page, help, about);
 
 }
 
@@ -1199,16 +1456,18 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForHelpFrame ()
 void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("OpenIGTLink");
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("OpenIGTLinkIF");
   
   vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Connector Browser");
+  conBrowsFrame->SetLabelText("Connectors");
   conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+
+  conBrowsFrame->Delete();
 
   // -----------------------------------------
   // Connector List Frame
@@ -1219,6 +1478,9 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   listFrame->SetLabelText ("Connectors");
   app->Script ( "pack %s -fill both -expand true",  
                 listFrame->GetWidgetName());
+
+  listFrame->Delete();
+
 
   this->ConnectorList = vtkKWMultiColumnListWithScrollbars::New();
   this->ConnectorList->SetParent(listFrame->GetFrame());
@@ -1250,6 +1512,8 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   vtkKWFrame *listButtonsFrame = vtkKWFrame::New();
   listButtonsFrame->SetParent(listFrame->GetFrame());
   listButtonsFrame->Create();
+
+  listButtonsFrame->Delete();
 
   app->Script ("pack %s %s -fill both -expand true",  
                //app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
@@ -1299,9 +1563,12 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   this->ConnectorNameEntry->Create();
   this->ConnectorNameEntry->SetWidth(18);
 
+
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               nameLabel->GetWidgetName() , this->ConnectorNameEntry->GetWidgetName());
   
+  nameLabel->Delete();
+  nameFrame->Delete();
 
   // Connector Property -- Connector type (server or client)
   vtkKWFrame *typeFrame = vtkKWFrame::New();
@@ -1332,6 +1599,8 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               typeLabel->GetWidgetName() , this->ConnectorTypeButtonSet->GetWidgetName());
 
+  typeFrame->Delete();
+
   // Connector Property -- Connector type (server or client)
   vtkKWFrame *statusFrame = vtkKWFrame::New();
   statusFrame->SetParent(controlFrame->GetFrame());
@@ -1354,6 +1623,9 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               statusLabel->GetWidgetName() , this->ConnectorStatusCheckButton->GetWidgetName());
 
+  statusFrame->Delete();
+  statusLabel->Delete();
+
   vtkKWFrame *addressFrame = vtkKWFrame::New();
   addressFrame->SetParent(controlFrame->GetFrame());
   addressFrame->Create();
@@ -1374,6 +1646,8 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               addressLabel->GetWidgetName() , this->ConnectorAddressEntry->GetWidgetName());
   
+  addressFrame->Delete();
+  addressLabel->Delete();
 
   vtkKWFrame *portFrame = vtkKWFrame::New();
   portFrame->SetParent(controlFrame->GetFrame());
@@ -1396,16 +1670,67 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               portLabel->GetWidgetName() , this->ConnectorPortEntry->GetWidgetName());
 
+  portFrame->Delete();
+  portLabel->Delete();
+  typeLabel->Delete();
+  controlFrame->Delete();
+}
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFGUI::BuildGUIForIOConfig()
+{
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("OpenIGTLinkIF");
+  
+  vtkSlicerModuleCollapsibleFrame *ioConfigFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  ioConfigFrame->SetParent(page);
+  ioConfigFrame->Create();
+  ioConfigFrame->SetLabelText("Data I/O Configurations");
+  ioConfigFrame->CollapseFrame();
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               ioConfigFrame->GetWidgetName(), page->GetWidgetName());
+
+  ioConfigFrame->Delete();
 
   // -----------------------------------------
-  // Advanced Setting Frame
+  // Data I/O Configurations
 
   vtkKWFrameWithLabel *advancedSettingFrame = vtkKWFrameWithLabel::New();
-  advancedSettingFrame->SetParent(conBrowsFrame->GetFrame());
+  advancedSettingFrame->SetParent(ioConfigFrame->GetFrame());
   advancedSettingFrame->Create();
-  advancedSettingFrame->SetLabelText ("Advanced Settings");
+  advancedSettingFrame->SetLabelText ("Data I/O Settings");
   app->Script ( "pack %s -fill both -expand true",  
                 advancedSettingFrame->GetWidgetName());
+
+  vtkKWFrame *treeFrame = vtkKWFrame::New();
+  treeFrame->SetParent(advancedSettingFrame->GetFrame());
+  treeFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                treeFrame  ->GetWidgetName());
+
+  this->IOConfigTree = vtkKWTreeWithScrollbars::New() ;
+  this->IOConfigTree->SetParent ( treeFrame );
+  this->IOConfigTree->VerticalScrollbarVisibilityOn();
+  this->IOConfigTree->HorizontalScrollbarVisibilityOff();
+  //this->IOConfigTree->ResizeButtonsVisibilityOn();
+  this->IOConfigTree->Create ( );
+  this->IOConfigTree->SetBalloonHelpString("MRML Tree");
+  ///  this->IOConfigTree->SetBorderWidth(2);
+  //this->IOConfigTree->SetReliefToGroove();
+  this->Script ( "pack %s -side top -anchor nw -expand y -fill both -padx 2 -pady 2",
+                 this->IOConfigTree->GetWidgetName());
+
+  vtkKWTree *tree = this->IOConfigTree->GetWidget();
+  tree->SelectionFillOn();
+  tree->SetSelectionModeToMultiple ();
+/*  tree->SetNodeParentChangedCommand(this, "NodeParentChangedCallback");*/
+  tree->EnableReparentingOn();
+  tree->SetSelectionModeToSingle();
+  tree->SetHeight(11);
+
+  this->UpdateIOConfigTree();
+
 
   vtkKWFrame *enableASFrame = vtkKWFrame::New();
   enableASFrame->SetParent(advancedSettingFrame->GetFrame());
@@ -1428,84 +1753,10 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               enableASLabel->GetWidgetName() , this->EnableAdvancedSettingButton->GetWidgetName());
 
-  this->MrmlNodeList = vtkKWMultiColumnListWithScrollbars::New();
-  this->MrmlNodeList->SetParent(advancedSettingFrame->GetFrame());
-  this->MrmlNodeList->Create();
-  this->MrmlNodeList->SetHeight(1);
-  this->MrmlNodeList->GetWidget()->SetSelectionTypeToRow();
-  //this->MrmlNodeList->GetWidget()->SetSelectionTypeToCell();
-  this->MrmlNodeList->GetWidget()->SetSelectionModeToSingle();
-  this->MrmlNodeList->GetWidget()->MovableRowsOff();
-  this->MrmlNodeList->GetWidget()->MovableColumnsOff();
-  //this->MrmlNodeList->GetWidget()->SetReliefToFlat();
-
-  const char* mrmllistlabels[] =
-    { "Name (Type)", "IO"};
-  const int mrmllistwidths[] = 
-    { 30, 10};
-
-  for (int col = 0; col < 2; col ++)
-    {
-    this->MrmlNodeList->GetWidget()->AddColumn(mrmllistlabels[col]);
-    this->MrmlNodeList->GetWidget()->SetColumnWidth(col, mrmllistwidths[col]);
-    this->MrmlNodeList->GetWidget()->SetColumnAlignmentToLeft(col);
-
-    this->MrmlNodeList->GetWidget()->SetColumnLabelAlignmentToLeft(col);
-    this->MrmlNodeList->GetWidget()->SetColumnFormatCommandToEmptyOutput(col);
-    this->MrmlNodeList->GetWidget()->SetColumnAlignmentToCenter(col);
-    //this->MrmlNodeList->GetWidget()->ColumnEditableOff(col);
-    //this->ConnectorList->GetWidget()->SetColumnEditWindowToEntry(col);
-    //this->ConnectorList->GetWidget()->ColumnEditableOn(col);
-    }
-
-  // device type is not editable at this moment.
-  //this->MrmlNodeList->GetWidget()->ColumnEditableOff(1);
-
-  //this->MrmlNodeList->GetWidget()->SetColumnEditWindowToCheckButton(0);
-
-  
-  //  vtkKWFrame *listButtonsFrame = vtkKWFrame::New();
-  //  listButtonsFrame->SetParent(listFrame->GetFrame());
-  //  listButtonsFrame->Create();
-  //
-  //  app->Script ("pack %s %s -fill both -expand true",  
-  //               //app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
-  //               this->ConnectorList->GetWidgetName(), listButtonsFrame->GetWidgetName());
-
-
-  vtkKWFrame *deviceNameListButtonsFrame = vtkKWFrame::New();
-  deviceNameListButtonsFrame->SetParent(advancedSettingFrame->GetFrame());
-  deviceNameListButtonsFrame->Create();
-
-  app->Script ("pack %s %s %s -fill both -expand true",  
-               //app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
-               enableASFrame->GetWidgetName(),
-               this->MrmlNodeList->GetWidgetName(), 
-               deviceNameListButtonsFrame->GetWidgetName());
-
-  this->AddDeviceNameButton = vtkKWPushButton::New();
-  this->AddDeviceNameButton->SetParent(deviceNameListButtonsFrame);
-  this->AddDeviceNameButton->Create();
-  this->AddDeviceNameButton->SetText( "Add" );
-  this->AddDeviceNameButton->SetWidth (6);
-
-  this->DeleteDeviceNameButton = vtkKWPushButton::New();
-  this->DeleteDeviceNameButton->SetParent(deviceNameListButtonsFrame);
-  this->DeleteDeviceNameButton->Create();
-  this->DeleteDeviceNameButton->SetText( "Delete" );
-  this->DeleteDeviceNameButton->SetWidth (6);
-
-  /*
-  this->EditDeviceNameButton = vtkKWPushButton::New();
-  this->EditDeviceNameButton->SetParent(deviceNameListButtonsFrame);
-  this->EditDeviceNameButton->Create();
-  this->EditDeviceNameButton->SetText( "Edit" );
-  this->EditDeviceNameButton->SetWidth (6);
-  */
-
-  app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
-               this->AddDeviceNameButton->GetWidgetName(), this->DeleteDeviceNameButton->GetWidgetName());
-
+  enableASFrame->Delete();
+  enableASLabel->Delete();
+  advancedSettingFrame->Delete();
+  treeFrame->Delete();
 }
 
 
@@ -1513,7 +1764,7 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
 void vtkOpenIGTLinkIFGUI::BuildGUIForVisualizationControlFrame ()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("OpenIGTLink");
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("OpenIGTLinkIF");
   
   vtkSlicerModuleCollapsibleFrame *visCtrlFrame = vtkSlicerModuleCollapsibleFrame::New();
   visCtrlFrame->SetParent(page);
@@ -1532,7 +1783,35 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForVisualizationControlFrame ()
   displayFrame->SetLabelText("Locator Display");
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
                displayFrame->GetWidgetName());
-  
+
+  vtkKWFrame *nodeFrame = vtkKWFrame::New();
+  nodeFrame->SetParent(displayFrame->GetFrame());
+  nodeFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                nodeFrame->GetWidgetName());
+
+  //vtkKWLabel *nodeLabel = vtkKWLabel::New();
+  //nodeLabel->SetParent(nodeFrame);
+  //nodeLabel->Create();
+  ////nodeLabel->SetWidth(20);
+  //nodeLabel->SetText("Locator source: ");
+
+  this->LocatorSourceSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
+  this->LocatorSourceSelectorWidget->SetParent(nodeFrame);
+  this->LocatorSourceSelectorWidget->Create();
+  this->LocatorSourceSelectorWidget->SetNodeClass("vtkMRMLLinearTransformNode", NULL,
+                                                  NULL, "LinearTransform");
+  this->LocatorSourceSelectorWidget->SetNewNodeEnabled(1);
+  this->LocatorSourceSelectorWidget->SetMRMLScene(this->GetMRMLScene());
+  this->LocatorSourceSelectorWidget->SetBorderWidth(2);
+  this->LocatorSourceSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+  this->LocatorSourceSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
+  this->LocatorSourceSelectorWidget->SetLabelText( "Locator source: ");
+  this->LocatorSourceSelectorWidget->SetBalloonHelpString("Select a volume from the current scene.");
+
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
+               this->LocatorSourceSelectorWidget->GetWidgetName());
+
   this->LocatorCheckButton = vtkKWCheckButton::New();
   this->LocatorCheckButton->SetParent(displayFrame->GetFrame());
   this->LocatorCheckButton->Create();
@@ -1541,11 +1820,10 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForVisualizationControlFrame ()
   
   this->Script("pack %s -side left -anchor w -padx 2 -pady 2", 
                this->LocatorCheckButton->GetWidgetName());
-  
+
 
   // -----------------------------------------
   // Driver frame: Locator can drive slices 
-
 
   vtkKWFrameWithLabel *driverFrame = vtkKWFrameWithLabel::New();
   driverFrame->SetParent(visCtrlFrame->GetFrame());
@@ -1554,6 +1832,46 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForVisualizationControlFrame ()
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
                driverFrame->GetWidgetName());
   
+  // Source frame
+  vtkKWFrame *imageSourceFrame = vtkKWFrame::New();
+  imageSourceFrame->SetParent(driverFrame->GetFrame());
+  imageSourceFrame->Create();
+  app->Script("pack %s -side top -anchor nw -fill x -pady 1 -in %s",
+              imageSourceFrame->GetWidgetName(),
+              driverFrame->GetFrame()->GetWidgetName());
+  
+  //vtkKWLabel *imageSourceLabel = vtkKWLabel::New();
+  //imageSourceLabel->SetParent(imageSourceFrame);
+  //imageSourceLabel->Create();
+  ////nodeLabel->SetWidth(20);
+  //imageSourceLabel->SetText("RT image source: ");
+
+  this->ImageSourceSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
+  this->ImageSourceSelectorWidget->SetParent(imageSourceFrame);
+  this->ImageSourceSelectorWidget->Create();
+  this->ImageSourceSelectorWidget->SetNodeClass("vtkMRMLScalarVolumeNode", NULL,
+                                                NULL, "Volume");
+  this->ImageSourceSelectorWidget->SetMRMLScene(this->GetMRMLScene());
+  this->ImageSourceSelectorWidget->SetBorderWidth(2);
+  this->ImageSourceSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+  this->ImageSourceSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
+  this->ImageSourceSelectorWidget->SetNoneEnabled(1);
+  this->ImageSourceSelectorWidget->SetNewNodeEnabled(0);
+  this->ImageSourceSelectorWidget->SetLabelText( "Locator source: ");
+  this->ImageSourceSelectorWidget->SetBalloonHelpString("Select a volume from the current scene.");
+
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
+               this->ImageSourceSelectorWidget->GetWidgetName());
+
+  //this->RealTimeImageSourceMenu = vtkKWMenuButton::New();
+  //this->RealTimeImageSourceMenu->SetParent(imageSourceFrame);
+  //this->RealTimeImageSourceMenu->Create();
+  //this->RealTimeImageSourceMenu->SetWidth(20);
+  //UpdateRealTimeImageSourceMenu();
+  //
+  //app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+  //            imageSourceLabel->GetWidgetName() , this->RealTimeImageSourceMenu->GetWidgetName());
+
   // slice frame
   vtkKWFrame *sliceFrame = vtkKWFrame::New();
   sliceFrame->SetParent(driverFrame->GetFrame());
@@ -1646,60 +1964,14 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForVisualizationControlFrame ()
                this->FreezeImageCheckButton->GetWidgetName(),
                this->ObliqueCheckButton->GetWidgetName());
 
-
-  // -----------------------------------------
-  // Real-time imaging: Scanner controled
-
-  /*
-  vtkKWFrameWithLabel *rtImageFrame = vtkKWFrameWithLabel::New ( );
-  rtImageFrame->SetParent(visCtrlFrame->GetFrame());
-  rtImageFrame->Create();
-  rtImageFrame->SetLabelText("Real-time Imaging");
-  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
-               rtImageFrame->GetWidgetName());
-
-  // Scan start/stop frame
-  vtkKWFrame *scanFrame = vtkKWFrame::New();
-  scanFrame->SetParent (rtImageFrame->GetFrame());
-  scanFrame->Create();
-  app->Script("pack %s -side top -anchor nw -fill x -pady 1 -in %s",
-              scanFrame->GetWidgetName(),
-              rtImageFrame->GetFrame()->GetWidgetName());
-  
-  this->StartScanButton = vtkKWPushButton::New();
-  this->StartScanButton->SetParent(scanFrame);
-  this->StartScanButton->Create();
-  this->StartScanButton->SetText("Start Scan");
-  this->StartScanButton->SetWidth(12);
-  
-  this->StopScanButton = vtkKWPushButton::New();
-  this->StopScanButton->SetParent(scanFrame);
-  this->StopScanButton->Create();
-  this->StopScanButton->SetText("Stop Scan");
-  this->StopScanButton->SetWidth(12);
-
-  this->ImagingMenu = vtkKWMenuButton::New();
-  this->ImagingMenu->SetParent(scanFrame);
-  this->ImagingMenu->Create();
-  this->ImagingMenu->SetWidth(10);
-  this->ImagingMenu->GetMenu()->AddRadioButton ("None");
-  this->ImagingMenu->GetMenu()->AddRadioButton ("Perpendicular");
-  this->ImagingMenu->GetMenu()->AddRadioButton ("In-plane 90");
-  this->ImagingMenu->GetMenu()->AddRadioButton ("In-plane");
-  this->ImagingMenu->SetValue("None");
-
-  this->Script("pack %s %s %s -side left -anchor w -padx 2 -pady 2", 
-               StartScanButton->GetWidgetName(),
-               StopScanButton->GetWidgetName(),
-               ImagingMenu->GetWidgetName());
-
-  */
-  displayFrame->Delete();
-  driverFrame->Delete();
+  nodeFrame->Delete();
   modeFrame->Delete();
   sliceFrame->Delete();
   visCtrlFrame->Delete();
-
+  driverFrame->Delete();
+  imageSourceFrame->Delete();
+  //imageSourceLabel->Delete();
+  displayFrame->Delete();
 }
 
 
@@ -1716,6 +1988,129 @@ void vtkOpenIGTLinkIFGUI::UpdateAll()
 }
 
 
+//----------------------------------------------------------------------------
+void vtkOpenIGTLinkIFGUI::IOConfigTreeContextMenu(const char *callData)
+{
+
+  if (!this->IOConfigContextMenu)
+    {
+    this->IOConfigContextMenu = vtkKWMenu::New();
+    }
+  if (!this->IOConfigContextMenu->IsCreated())
+    {
+    this->IOConfigContextMenu->SetParent(this->IOConfigTree->GetWidget());
+    this->IOConfigContextMenu->Create();
+    }
+  this->IOConfigContextMenu->DeleteAllItems();
+  
+  int px, py;
+  vtkKWTkUtilities::GetMousePointerCoordinates(this->IOConfigTree->GetWidget(), &px, &py);
+  
+  std::string conID;
+  int devID;
+  int io;
+
+  int type = this->IsIOConfigTreeLeafSelected(callData, conID, &devID, &io);
+  if (type != 0)
+    {
+    this->IOConfigTree->GetWidget()->ClearSelection();
+    this->IOConfigTree->GetWidget()->SelectNode((const char *)callData);
+
+    AddIOConfigContextMenuItem(type, conID.c_str(), devID, io);
+    }
+
+  this->IOConfigContextMenu->PopUp(px, py);
+
+}
+
+
+//----------------------------------------------------------------------------
+int vtkOpenIGTLinkIFGUI::IsIOConfigTreeLeafSelected(const char* callData, std::string& conID, int* devID, int* io)
+  // 0: none                       : do nothing
+  // NODE_CONNECTOR: connector     : do nothing
+  // NODE_IO:        I/O           : show add node menu
+  // NODE_DEVICE:    device node   : show delete menu
+{
+  IOConfigNodeInfoListType::iterator iter;
+
+  // search connector node list
+  for (iter = this->IOConfigTreeConnectorList.begin(); iter != this->IOConfigTreeConnectorList.end(); iter ++)
+    {
+    if (iter->nodeName == callData)
+      {
+      conID = iter->connectorID;
+      return NODE_CONNECTOR;
+      }
+    }
+
+  // search connector i/o node list
+  for (iter = this->IOConfigTreeIOList.begin(); iter != this->IOConfigTreeIOList.end(); iter ++)
+    {
+    if (iter->nodeName == callData)
+      {
+      conID = iter->connectorID;
+      *io = iter->io;
+      return NODE_IO;
+      }
+    }
+
+  // search device node list
+  for (iter = this->IOConfigTreeNodeList.begin(); iter != this->IOConfigTreeNodeList.end(); iter ++)
+    {
+    if (iter->nodeName == callData)
+      {
+      conID = iter->connectorID;
+      *devID = iter->deviceID;
+      *io    = iter->io;
+      return NODE_DEVICE;
+      }
+    }
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+void vtkOpenIGTLinkIFGUI::AddIOConfigContextMenuItem(int type, const char* conID, int devID, int io)
+{
+  char command[125];
+  char label[125];
+
+  if (type == NODE_IO)
+    {
+    this->GetLogic()->GetDeviceNamesFromMrml(this->CurrentNodeListAvailable);
+    vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType::iterator iter;
+    for (iter = this->CurrentNodeListAvailable.begin(); iter != this->CurrentNodeListAvailable.end(); iter ++)
+      {
+      sprintf(command, "AddNodeCallback %s %d {%s} {%s}", conID, io, iter->name.c_str(), iter->type.c_str());
+      sprintf(label, "Add %s (%s)", iter->name.c_str(), iter->type.c_str());
+      this->IOConfigContextMenu->AddCommand(label, this, command);
+      }
+    }
+  else if (type == NODE_DEVICE)
+    {
+    sprintf(command, "DeleteNodeCallback %s %d %d", conID, io, devID);
+    this->IOConfigContextMenu->AddCommand("Delete this node", this, command);
+    }
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFGUI::AddNodeCallback(const char* conID, int io, const char* name, const char* type)
+{
+  this->GetLogic()->AddDeviceToConnector(conID, name, type, io);
+  UpdateIOConfigTree();
+}
+
+
+//----------------------------------------------------------------------------
+void vtkOpenIGTLinkIFGUI::DeleteNodeCallback(const char* conID, int io, int devID)
+{
+  this->GetLogic()->DeleteDeviceFromConnector(conID, devID, io);
+  UpdateIOConfigTree();
+}
+
+
+//----------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::ChangeSlicePlaneDriver(int slice, const char* driver)
 {
 
@@ -1726,17 +2121,20 @@ void vtkOpenIGTLinkIFGUI::ChangeSlicePlaneDriver(int slice, const char* driver)
       {
       this->SliceNode0->SetOrientationToAxial();
       //this->SliceDriver0 = vtkOpenIGTLinkIFGUI::SLICE_DRIVER_USER;
-      this->GetLogic()->SetSliceDriver0(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER);
+      //this->GetLogic()->SetSliceDriver0(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER);
+      this->GetLogic()->SetSliceDriver(0, vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER);
       }
     else if (strcmp(driver, "Locator") == 0)
       {
       //this->SliceDriver0 = vtkOpenIGTLinkIFGUI::SLICE_DRIVER_LOCATOR;
-      this->GetLogic()->SetSliceDriver0(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_LOCATOR);
+      //this->GetLogic()->SetSliceDriver0(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_LOCATOR);
+      this->GetLogic()->SetSliceDriver(0, vtkOpenIGTLinkIFLogic::SLICE_DRIVER_LOCATOR);
       }
     else if (strcmp(driver, "RT Image") == 0)
       {
       //this->SliceDriver0 = vtkOpenIGTLinkIFGUI::SLICE_DRIVER_RTIMAGE;
-      this->GetLogic()->SetSliceDriver0(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_RTIMAGE);
+      //this->GetLogic()->SetSliceDriver0(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_RTIMAGE);
+      this->GetLogic()->SetSliceDriver(0, vtkOpenIGTLinkIFLogic::SLICE_DRIVER_RTIMAGE);
       }
     }
   else if (slice == vtkOpenIGTLinkIFGUI::SLICE_PLANE_YELLOW)
@@ -1746,17 +2144,20 @@ void vtkOpenIGTLinkIFGUI::ChangeSlicePlaneDriver(int slice, const char* driver)
       {
       this->SliceNode1->SetOrientationToSagittal();
       //this->SliceDriver1 = vtkOpenIGTLinkIFGUI::SLICE_DRIVER_USER;
-      this->GetLogic()->SetSliceDriver1(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER);
+      //this->GetLogic()->SetSliceDriver1(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER);
+      this->GetLogic()->SetSliceDriver(1, vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER);
       }
     else if (strcmp(driver, "Locator") == 0)
       {
       //this->SliceDriver1 = vtkOpenIGTLinkIFGUI::SLICE_DRIVER_LOCATOR;
-      this->GetLogic()->SetSliceDriver1(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_LOCATOR);
+      //this->GetLogic()->SetSliceDriver1(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_LOCATOR);
+      this->GetLogic()->SetSliceDriver(1, vtkOpenIGTLinkIFLogic::SLICE_DRIVER_LOCATOR);
       }
     else if (strcmp(driver, "RT Image") == 0)
       {
       //this->SliceDriver1 = vtkOpenIGTLinkIFGUI::SLICE_DRIVER_RTIMAGE;
-      this->GetLogic()->SetSliceDriver1(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_RTIMAGE);
+      //this->GetLogic()->SetSliceDriver1(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_RTIMAGE);
+      this->GetLogic()->SetSliceDriver(1, vtkOpenIGTLinkIFLogic::SLICE_DRIVER_RTIMAGE);
       }
     }
   else //if ( slice == vtkOpenIGTLinkIFGUI::SLICE_PLANE_GREEN )
@@ -1766,26 +2167,183 @@ void vtkOpenIGTLinkIFGUI::ChangeSlicePlaneDriver(int slice, const char* driver)
       {
       this->SliceNode2->SetOrientationToCoronal();
       //this->SliceDriver2 = vtkOpenIGTLinkIFGUI::SLICE_DRIVER_USER;
-      this->GetLogic()->SetSliceDriver2(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER);
+      //this->GetLogic()->SetSliceDriver2(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER);
+      this->GetLogic()->SetSliceDriver(2, vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER);
       }
     else if (strcmp(driver, "Locator") == 0)
       {
       //this->SliceDriver2 = vtkOpenIGTLinkIFGUI::SLICE_DRIVER_LOCATOR;
-      this->GetLogic()->SetSliceDriver2(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_LOCATOR);
+      //this->GetLogic()->SetSliceDriver2(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_LOCATOR);
+      this->GetLogic()->SetSliceDriver(2, vtkOpenIGTLinkIFLogic::SLICE_DRIVER_LOCATOR);
       }
     else if (strcmp(driver, "RT Image") == 0)
       {
       //this->SliceDriver2 = vtkOpenIGTLinkIFGUI::SLICE_DRIVER_RTIMAGE;
-      this->GetLogic()->SetSliceDriver2(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_RTIMAGE);
+      //this->GetLogic()->SetSliceDriver2(vtkOpenIGTLinkIFLogic::SLICE_DRIVER_RTIMAGE);
+      this->GetLogic()->SetSliceDriver(2, vtkOpenIGTLinkIFLogic::SLICE_DRIVER_RTIMAGE);
       }
     }
 
 }
 
 
+////---------------------------------------------------------------------------
+//void vtkOpenIGTLinkIFGUI::UpdateRealTimeImageSourceMenu()
+//{
+//
+//  if (!this->RealTimeImageSourceMenu)
+//    {
+//    return;
+//    }
+//  this->GetLogic()->GetDeviceNamesFromMrml(this->RealTimeImageSourceList, "Volume");
+//  vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType::iterator iter;
+//  this->RealTimeImageSourceMenu->GetMenu()->DeleteAllItems();
+//  for (iter = this->RealTimeImageSourceList.begin();
+//       iter != this->RealTimeImageSourceList.end();
+//       iter ++)
+//    {
+//    char str[256];
+//    sprintf(str, "%s (%s)", iter->name.c_str(), iter->type.c_str());
+//    this->RealTimeImageSourceMenu->GetMenu()->AddRadioButton(str);
+//    }
+//  
+//}
+
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFGUI::UpdateIOConfigTree()
+{
+
+  vtksys_stl::string selected_node(this->IOConfigTree->GetWidget()->GetSelection());
+  this->IOConfigTree->GetWidget()->DeleteAllNodes();
+
+  //vtkMRMLScene *scene = this->GetMRMLScene();
+  //vtkMRMLNode *node = NULL;
+
+  // create Root node
+  vtkKWTree *tree = this->IOConfigTree->GetWidget();
+  tree->AddNode(NULL, "OpenIGTLinkIF", "OpenIGTLink Interface");
+  const char* rootNode = "OpenIGTLinkIF";
+
+  this->IOConfigTreeConnectorList.clear();
+  this->IOConfigTreeIOList.clear();
+  this->IOConfigTreeNodeList.clear();
+
+  std::vector<vtkMRMLNode*> nodes;
+  nodes.clear();
+  
+  if (this->GetMRMLScene())
+    {
+    const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+    if ( className != NULL )
+      {
+      this->GetMRMLScene()->GetNodesByClass(className, nodes);
+      }
+    }
+
+  std::vector<vtkMRMLNode*>::iterator iter;
+  for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+    {
+    vtkMRMLIGTLConnectorNode* con = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
+    if (con)
+      {
+      char conNode[32];
+      char conInNode[32];
+      char conOutNode[32];
+      char conDeviceNode[128];
+      char conDeviceNodeName[128];
+      IOConfigNodeInfoType nodeInfo;
+
+      const char* id = con->GetID();
+      sprintf(conNode, "%s", id);
+      tree->AddNode(rootNode, conNode, con->GetName());
+      nodeInfo.nodeName = conNode;
+      nodeInfo.deviceID = -1;
+      nodeInfo.connectorID = id;
+      nodeInfo.io = vtkMRMLIGTLConnectorNode::IO_UNSPECIFIED;
+      this->IOConfigTreeConnectorList.push_back(nodeInfo);
+
+      sprintf(conInNode, "%s/in", id);
+      tree->AddNode(conNode,  conInNode, "IN");
+      nodeInfo.nodeName = conInNode;
+      nodeInfo.deviceID = -1;
+      nodeInfo.connectorID = id;
+      nodeInfo.io = vtkMRMLIGTLConnectorNode::IO_INCOMING;
+      this->IOConfigTreeIOList.push_back(nodeInfo);
+
+      sprintf(conOutNode, "%s/out", id);
+      tree->AddNode(conNode,  conOutNode, "OUT");
+      nodeInfo.nodeName = conOutNode;
+      nodeInfo.deviceID = -1;
+      nodeInfo.connectorID = id;
+      nodeInfo.io = vtkMRMLIGTLConnectorNode::IO_OUTGOING;
+      this->IOConfigTreeIOList.push_back(nodeInfo);
+
+      // Incoming devices
+      vtkMRMLIGTLConnectorNode::DeviceIDSetType* inDeviceSet = con->GetIncomingDevice();
+      vtkMRMLIGTLConnectorNode::DeviceIDSetType::iterator iter_in;
+      for (iter_in = inDeviceSet->begin(); iter_in != inDeviceSet->end(); iter_in ++)
+        {
+        vtkMRMLIGTLConnectorNode::DeviceInfoType* info = con->GetDeviceInfo(*iter_in);
+        sprintf(conDeviceNode, "%s/in/%s_%s", id, info->name.c_str(), info->type.c_str());
+        sprintf(conDeviceNodeName, "%s (%s)", info->name.c_str(), info->type.c_str());
+        tree->AddNode(conInNode, conDeviceNode, conDeviceNodeName);
+
+        nodeInfo.nodeName = conDeviceNode;
+        nodeInfo.deviceID = *iter_in;
+        nodeInfo.connectorID = id;
+        nodeInfo.io = vtkMRMLIGTLConnectorNode::IO_INCOMING;
+        this->IOConfigTreeNodeList.push_back(nodeInfo);
+        }
+
+      // Outgoing Devices
+      vtkMRMLIGTLConnectorNode::DeviceIDSetType* outDeviceSet = con->GetOutgoingDevice();
+      vtkMRMLIGTLConnectorNode::DeviceIDSetType::iterator iter_out;
+      for (iter_out = outDeviceSet->begin(); iter_out != outDeviceSet->end(); iter_out ++)
+        {
+        vtkMRMLIGTLConnectorNode::DeviceInfoType* info = con->GetDeviceInfo(*iter_out);
+        sprintf(conDeviceNode, "%s/out/%s_%s", id, info->name.c_str(), info->type.c_str());
+        sprintf(conDeviceNodeName, "%s (%s)", info->name.c_str(), info->type.c_str());
+        tree->AddNode(conOutNode, conDeviceNode, conDeviceNodeName);
+
+        nodeInfo.nodeName = conDeviceNode;
+        nodeInfo.deviceID = *iter_out;
+        nodeInfo.connectorID = id;
+        nodeInfo.io = vtkMRMLIGTLConnectorNode::IO_OUTGOING;
+        this->IOConfigTreeNodeList.push_back(nodeInfo);
+        }
+
+      }
+    }
+
+  // check that the selected node is still in the tree
+  if (this->IOConfigTree->GetWidget()->HasNode(selected_node.c_str()))
+    {
+    this->IOConfigTree->GetWidget()->SelectNode(selected_node.c_str());
+    }
+  else
+    {
+    if (selected_node != "")
+      {
+      vtkWarningMacro("Selected node no longer in tree: " << selected_node.c_str());
+      }
+    }
+  // At this point you probably want to reset the MRML node inspector fields
+  // in case nothing in the tree is selected anymore (here, we delete all nodes
+  // each time, so nothing will be selected, but it's not a bad thing to 
+  // try to save the old selection, or just update the tree in a smarter
+  // way).
+  
+  this->IOConfigTree->GetWidget()->OpenFirstNode ();
+
+  //this->UpdateNodeInspector(this->GetSelectedNodeInTree());
+
+}
+
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
 {
+  // Update Connector List in "Connectors"
   if (this->ConnectorList == NULL)
     {
     return;
@@ -1793,16 +2351,19 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
 
   //----------------------------------------------------------------
   // Change number of rows (UPDATE_ALL only)
+
   if (updateLevel >= UPDATE_ALL)
     {
+
     // Adjust number of rows
     int numRows = this->ConnectorList->GetWidget()->GetNumberOfRows();
-    int numConnectors = this->GetLogic()->GetNumberOfConnectors();
+    int numConnectors = this->ConnectorNodeList.size();
+
     if (numRows < numConnectors)
       {
       this->ConnectorList->GetWidget()->AddRows(numConnectors-numRows);
       }
-    else
+    else if (numRows > numConnectors)
       {
       int ndel = numRows-numConnectors;
       for (int i = 0; i < ndel; i ++)
@@ -1812,7 +2373,9 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
       }
     }
 
-  int numItems = this->GetLogic()->GetNumberOfConnectors();
+
+  //int numItems = this->GetLogic()->GetNumberOfConnectors();
+  int numItems = this->ConnectorNodeList.size();
 
   //----------------------------------------------------------------
   // Update rows (UPDATE_ALL, UPDATE_PROPERTIES_ALL and UPDATE_SELECTED_ONLY)
@@ -1834,42 +2397,45 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
       updateRows.push_back(this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow());
       }
     }
-      
-  // update each row
+
   std::vector<int>::iterator iter;
   for (iter = updateRows.begin(); iter != updateRows.end(); iter ++)
     {
     int i = *iter;
-    vtkIGTLConnector* connector = this->GetLogic()->GetConnector(i);
-    if (connector)
+    if (i >= 0 && i < (int)this->ConnectorNodeList.size())
       {
-      // Connector Name
-      this->ConnectorList->GetWidget()
-        ->SetCellText(i,0, connector->GetName());
-          
-      // Connector Type
-      this->ConnectorList->GetWidget()
-        ->SetCellText(i,1, vtkOpenIGTLinkIFGUI::ConnectorTypeStr[connector->GetType()]);
-
-      // Connector Status
-      this->ConnectorList->GetWidget()
-        ->SetCellText(i,2, vtkOpenIGTLinkIFGUI::ConnectorStatusStr[connector->GetState()]);
-          
-      // Server and port information
-      std::ostringstream ss;
-      if (connector->GetType() == vtkIGTLConnector::TYPE_SERVER)
+      vtkMRMLIGTLConnectorNode* connector
+        = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ConnectorNodeList[i]));
+      if (connector)
         {
-        ss << "--.--.--.--" << ":" << connector->GetServerPort();
+        // Connector Name
+        this->ConnectorList->GetWidget()
+          ->SetCellText(i,0, connector->GetName());
+        
+        // Connector Type
+        this->ConnectorList->GetWidget()
+          ->SetCellText(i,1, vtkOpenIGTLinkIFGUI::ConnectorTypeStr[connector->GetType()]);
+        
+        // Connector Status
+        this->ConnectorList->GetWidget()
+          ->SetCellText(i,2, vtkOpenIGTLinkIFGUI::ConnectorStatusStr[connector->GetState()]);
+        
+        // Server and port information
+        std::ostringstream ss;
+        if (connector->GetType() == vtkMRMLIGTLConnectorNode::TYPE_SERVER)
+          {
+          ss << "--.--.--.--" << ":" << connector->GetServerPort();
+          }
+        else if (connector->GetType() == vtkMRMLIGTLConnectorNode::TYPE_CLIENT)
+          {
+          ss << connector->GetServerHostname() << ":" << connector->GetServerPort();
+          }
+        else
+          {
+          ss << "--.--.--.--" << ":" << "--";
+          }
+        this->ConnectorList->GetWidget()->SetCellText(i, 3, ss.str().c_str());
         }
-      else if (connector->GetType() == vtkIGTLConnector::TYPE_CLIENT)
-        {
-        ss << connector->GetServerHostname() << ":" << connector->GetServerPort();
-        }
-      else
-        {
-        ss << "--.--.--.--" << ":" << "--";
-        }
-      this->ConnectorList->GetWidget()->SetCellText(i, 3, ss.str().c_str());
       }
     }
 
@@ -1879,11 +2445,17 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
     {
     for (int i = 0; i < numItems; i ++)
       {
-      vtkIGTLConnector* connector = this->GetLogic()->GetConnector(i);
-      if (connector)
+      if (i >= 0 && i < (int)this->ConnectorNodeList.size())
         {
-        this->ConnectorList->GetWidget()
-          ->SetCellText(i,2, ConnectorStatusStr[connector->GetState()]);
+        vtkMRMLIGTLConnectorNode* connector
+          = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()
+                                                   ->GetNodeByID(this->ConnectorNodeList[i]));
+        if (connector)
+          {
+          this->ConnectorList->GetWidget()
+            ->SetCellText(i,2, ConnectorStatusStr[connector->GetState()]);
+          
+          }
         }
       }
     }
@@ -1893,10 +2465,9 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
 {
-
   // if i < 0, all fields are deactivated.
-  int numRows = this->ConnectorList->GetWidget()->GetNumberOfRows();
   
+  int numRows = this->ConnectorList->GetWidget()->GetNumberOfRows();
   if (i >= 0 && i >= numRows)
     {
     return;
@@ -1935,14 +2506,26 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     return;
     }
 
-
   //----------------------------------------------------------------
   // A connector is selected on the list
 
-  vtkIGTLConnector* connector = this->GetLogic()->GetConnector(i);
+  if (i < 0 || i >= (int)this->ConnectorNodeList.size())
+    {
+    return;
+    }
+
+  vtkMRMLIGTLConnectorNode* connector
+    = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ConnectorNodeList[i]));
+
+  if (connector == NULL)  // if the connector has already beeen removed
+    {
+    UpdateConnectorNodeList();
+    UpdateConnectorPropertyFrame(i);
+    return;
+    }
 
   // Check if the connector is active
-  bool activeFlag = (connector->GetState() != vtkIGTLConnector::STATE_OFF);
+  bool activeFlag = (connector->GetState() != vtkMRMLIGTLConnectorNode::STATE_OFF);
 
   // Connection Name entry
   this->ConnectorNameEntry->SetValue(connector->GetName());
@@ -1957,12 +2540,12 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
   this->ConnectorNameEntry->UpdateEnableState();
 
   // Connection Type (server or client)
-  if (connector->GetType() == vtkIGTLConnector::TYPE_SERVER)
+  if (connector->GetType() == vtkMRMLIGTLConnectorNode::TYPE_SERVER)
     {
     this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOn();
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOff();
     }
-  else if (connector->GetType() == vtkIGTLConnector::TYPE_CLIENT)
+  else if (connector->GetType() == vtkMRMLIGTLConnectorNode::TYPE_CLIENT)
     {
     this->ConnectorTypeButtonSet->GetWidget(0)->SelectedStateOff();
     this->ConnectorTypeButtonSet->GetWidget(1)->SelectedStateOn();
@@ -1983,9 +2566,8 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
 
   this->ConnectorTypeButtonSet->UpdateEnableState();
 
-
   // Connection Status
-  if (connector->GetState() == vtkIGTLConnector::STATE_OFF)
+  if (connector->GetState() == vtkMRMLIGTLConnectorNode::STATE_OFF)
     {
     this->ConnectorStatusCheckButton->SelectedStateOff();
     }
@@ -1994,7 +2576,7 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
     this->ConnectorStatusCheckButton->SelectedStateOn();
     }
 
-  if (connector->GetType() == vtkIGTLConnector::TYPE_NOT_DEFINED)  
+  if (connector->GetType() == vtkMRMLIGTLConnectorNode::TYPE_NOT_DEFINED)  
     {
     this->ConnectorStatusCheckButton->EnabledOff();
     }
@@ -2006,7 +2588,7 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
 
 
   // Connection Server Address entry
-  if (connector->GetType() == vtkIGTLConnector::TYPE_SERVER)
+  if (connector->GetType() == vtkMRMLIGTLConnectorNode::TYPE_SERVER)
     {
     this->ConnectorAddressEntry->SetValue("--.--.--.--");
     this->ConnectorAddressEntry->EnabledOff();
@@ -2039,130 +2621,23 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorPropertyFrame(int i)
 
 }
 
+
+
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
-{
-  // if the connector has already chosen
-  if (con == this->CurrentMrmlNodeListID)
-    {
-    // nothing to do
-    }
-  else
-    {
-    this->MrmlNodeList->GetWidget()->DeleteAllRows();
-    }
-
-  vtkIGTLConnector* connector = this->GetLogic()->GetConnector(con);
-  if (connector == NULL)
-    {
-    // failed to get connector class
-    return;
-    }
-
-  this->CurrentNodeListSelected.clear();
-
-  // Get Device List for incoming data
-  vtkIGTLConnector::DeviceNameList* incoming = connector->GetIncomingDeviceList();
-  vtkIGTLConnector::DeviceNameList* outgoing = connector->GetOutgoingDeviceList();
-  vtkIGTLConnector::DeviceNameList* unspecified = connector->GetUnspecifiedDeviceList();
-  vtkIGTLConnector::DeviceNameList::iterator iter;
-
-  // Set number of rows in the table
-  int totalrows = incoming->size() + outgoing->size() + unspecified->size();
-  int numRows = this->ConnectorList->GetWidget()->GetNumberOfRows();
-
-  this->MrmlNodeList->GetWidget()->AddRows(totalrows);
-
-
-  // Get list of node names from MRML scene
-  this->GetLogic()->GetDeviceNamesFromMrml(this->CurrentNodeListAvailable);
-  vtkStringArray* deviceNames = vtkStringArray::New();
-
-  for (int i = 0; i < this->CurrentNodeListAvailable.size(); i ++)
-    {
-    char str[256];
-    sprintf(str, "%s (%s)", this->CurrentNodeListAvailable[i].name.c_str(), this->CurrentNodeListAvailable[i].type.c_str());
-    deviceNames->InsertValue(i, str);
-    }
-  
-  // Add rows to the node list table.
-  int row = 0;
-  for (row = 0; row < totalrows; row ++) // First create unspecified rows
-    {
-    const char* typeStrs[] = {"TRANSFORM", "IMAGE", "POSITION"};
-    const char* ioStrs[]   = {"--", "IN", "OUT"};
-
-    char command[256];
-
-    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValuesAsArray(row, 0, deviceNames);
-    sprintf(command, "OnMrmlNodeListChanged %d 0", row);
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetCommand(this, command);
-
-    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 1, 3, ioStrs);
-    sprintf(command, "OnMrmlNodeListChanged %d 1", row);
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetCommand(this, command);
-
-    //this->MrmlNodeList->GetWidget()->SetCellEditable(row, 0, 1);
-
-    }
-  
-  deviceNames->Delete();
-
-  this->CurrentNodeListSelected.resize(totalrows);
-
-  row = 0;
-  char item[256];
-  for (iter = incoming->begin(); iter != incoming->end(); iter ++)
-    {
-    sprintf(item, "%s (%s)", iter->first.c_str(), iter->second.c_str());
-
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetValue(item);
-    //this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue(iter->second.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue("IN");
-
-    this->CurrentNodeListSelected[row].name = std::string(iter->first.c_str());
-    this->CurrentNodeListSelected[row].type = std::string(iter->second.c_str());
-    this->CurrentNodeListSelected[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_IN;//std::string("IN");
-
-    row ++;
-    }
-
-  for (iter = outgoing->begin(); iter != outgoing->end(); iter ++)
-    {
-    sprintf(item, "%s (%s)", iter->first.c_str(), iter->second.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetValue(item);
-    //this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue(iter->second.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue("OUT");
-
-    this->CurrentNodeListSelected[row].name = std::string(iter->first.c_str());
-    this->CurrentNodeListSelected[row].type = std::string(iter->second.c_str());
-    this->CurrentNodeListSelected[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_OUT; //std::string("OUT");
-
-    row ++;
-    }
-
-  for (iter = unspecified->begin(); iter != unspecified->end(); iter ++)
-    {
-    sprintf(item, "%s (%s)", iter->first.c_str(), iter->second.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetValue(item);
-    //this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue(iter->second.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue("--");
-
-    this->CurrentNodeListSelected[row].name = std::string(iter->first.c_str());
-    this->CurrentNodeListSelected[row].type = std::string(iter->first.c_str());
-    this->CurrentNodeListSelected[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_UNSPEC; //std::string("--");
-
-    row ++;
-    }
-
-  this->CurrentMrmlNodeListID = con;
-  
-}
-
 int vtkOpenIGTLinkIFGUI::OnMrmlNodeListChanged(int row, int col, const char* item)
 {
+  if (this->CurrentMrmlNodeListIndex < 0 ||
+      this->CurrentMrmlNodeListIndex >= (int)this->ConnectorNodeList.size())
+    {
+    return 0;
+    }
+    
+  vtkMRMLIGTLConnectorNode* connector
+    = vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()
+                                             ->GetNodeByID(this->ConnectorNodeList[this->CurrentMrmlNodeListIndex]));
 
-  vtkIGTLConnector* connector = this->GetLogic()->GetConnector(this->CurrentMrmlNodeListID);
+  const char* conID = connector->GetID();
+
   if (connector == NULL)
     {
     // failed to get connector class
@@ -2172,7 +2647,7 @@ int vtkOpenIGTLinkIFGUI::OnMrmlNodeListChanged(int row, int col, const char* ite
   // -----------------------------------------
   // Get original node info at (row, col)
 
-  vtkIGTLConnector::DeviceNameList* list;
+  //vtkMRMLIGTLConnectorNode::DeviceNameList* list;
   std::string& origName = this->CurrentNodeListSelected[row].name;
   std::string& origType = this->CurrentNodeListSelected[row].type;
   int origIo            = this->CurrentNodeListSelected[row].io;
@@ -2184,8 +2659,7 @@ int vtkOpenIGTLinkIFGUI::OnMrmlNodeListChanged(int row, int col, const char* ite
     {
     // Get current node info at (row, col)
     int index = this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->GetValueIndex(item);
-    std::cerr << "INDEX == " << index << std::endl;
-    if (index < 0 || index >= this->CurrentNodeListAvailable.size())
+    if (index < 0 || index >= (int)this->CurrentNodeListAvailable.size())
       {
       // invalid index
       return 0;
@@ -2195,9 +2669,8 @@ int vtkOpenIGTLinkIFGUI::OnMrmlNodeListChanged(int row, int col, const char* ite
     
     if (origName != currName || origType != currType)
       {
-      std::cerr << "node name or type is changed" << std::endl;
-      this->GetLogic()->DeleteDeviceFromConnector(this->CurrentMrmlNodeListID, origName.c_str(), origType.c_str(), origIo);
-      this->GetLogic()->AddDeviceToConnector(this->CurrentMrmlNodeListID, currName.c_str(), currType.c_str(), origIo);
+      this->GetLogic()->DeleteDeviceFromConnector(conID, origName.c_str(), origType.c_str(), origIo);
+      this->GetLogic()->AddDeviceToConnector(conID, currName.c_str(), currType.c_str(), origIo);
       this->CurrentNodeListSelected[row].name = currName;
       this->CurrentNodeListSelected[row].type = currType;
       }
@@ -2206,22 +2679,48 @@ int vtkOpenIGTLinkIFGUI::OnMrmlNodeListChanged(int row, int col, const char* ite
     {
     // Get curretn IO (in integer)
     const char* iostr[] = {"--", "IN", "OUT"}; // refer vtkOpenIGTLinkIFLogic::DEVICE_* 
-    int currIo;
+    int currIo = 0;
     for (currIo = 0; currIo < 3; currIo ++)
       {
-      if (strcmp(item, iostr[currIo]) == 0)
+      if (strcmp(iostr[currIo], item) == 0)
+        {
         break;
+        }
       }
 
     if (currIo != origIo)
       {
-      this->GetLogic()->DeleteDeviceFromConnector(this->CurrentMrmlNodeListID,
+      this->GetLogic()->DeleteDeviceFromConnector(conID,
                                                   origName.c_str(), origType.c_str(), origIo);
-      this->GetLogic()->AddDeviceToConnector(this->CurrentMrmlNodeListID,
+      this->GetLogic()->AddDeviceToConnector(conID,
                                              origName.c_str(), origType.c_str(), currIo);
       this->CurrentNodeListSelected[row].io = currIo;
       }
     }
-    
+
   return 1;
+}
+
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFGUI::UpdateConnectorNodeList()
+{
+  // obtain the list of connectors in the scene
+
+  std::vector<vtkMRMLNode*> nodes;
+  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+  this->GetMRMLScene()->GetNodesByClass(className, nodes);
+  
+  this->ConnectorNodeList.clear();
+  std::vector<vtkMRMLNode*>::iterator iter;
+  for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+    {
+    vtkMRMLIGTLConnectorNode* ptr = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
+    if (ptr)
+      {
+      this->ConnectorNodeList.push_back(ptr->GetID());
+      }
+    }
+
+  return;
 }

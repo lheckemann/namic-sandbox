@@ -6,14 +6,16 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $HeadURL: $
-  Date:      $Date: $
-  Version:   $Revision: $
+  Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFLogic.cxx $
+  Date:      $Date: 2009-07-23 13:37:07 -0400 (Thu, 23 Jul 2009) $
+  Version:   $Revision: 10009 $
 
 ==========================================================================*/
 
 #include "vtkObjectFactory.h"
 #include "vtkCallbackCommand.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkTransform.h"
 
 #include "vtkOpenIGTLinkIFLogic.h"
 
@@ -31,28 +33,33 @@
 
 #include "vtkMultiThreader.h"
 
-#include "vtkIGTLConnector.h"
+#include "vtkMRMLIGTLConnectorNode.h"
 #include "vtkIGTLCircularBuffer.h"
 
-//#include "igtl_header.h"
-//#include "igtl_image.h"
-//#include "igtl_transform.h"
-
-vtkCxxRevisionMacro(vtkOpenIGTLinkIFLogic, "$Revision: 1.9.12.1 $");
+vtkCxxRevisionMacro(vtkOpenIGTLinkIFLogic, "$Revision: 10009 $");
 vtkStandardNewMacro(vtkOpenIGTLinkIFLogic);
 
 //---------------------------------------------------------------------------
 vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
 {
-
-  this->SliceDriver[0] = vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER;
-  this->SliceDriver[1] = vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER;
-  this->SliceDriver[2] = vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER;
+  // initialize slice driver information
+  for (int i = 0; i < 3; i ++)
+    {
+    this->SliceDriver[i] = vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER;
+    }
+  this->LocatorDriverFlag = 0;
+  //this->LocatorDriver = NULL;
+  this->LocatorDriverNodeID = "";
+  this->RealTimeImageSourceNodeID = "";
 
   // If the following code doesn't work, slice nodes should be obtained from application GUI
   this->SliceNode[0] = NULL;
   this->SliceNode[1] = NULL;
   this->SliceNode[2] = NULL;
+
+  this->SliceOrientation[0] = SLICE_RTIMAGE_PERP;
+  this->SliceOrientation[1] = SLICE_RTIMAGE_INPLANE;
+  this->SliceOrientation[2] = SLICE_RTIMAGE_INPLANE90;
 
   this->NeedRealtimeImageUpdate0 = 0;
   this->NeedRealtimeImageUpdate1 = 0;
@@ -65,18 +72,25 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkOpenIGTLinkIFLogic::DataCallback);
 
-  this->ConnectorList.clear();
-  this->ConnectorPrevStateList.clear();
-
   this->EnableOblique = false;
   this->FreezePlane   = false;
 
   this->Initialized   = 0;
   this->RestrictDeviceName = 0;
   
-  this->SliceOrientation[0] = SLICE_RTIMAGE_PERP;
-  this->SliceOrientation[1] = SLICE_RTIMAGE_INPLANE90;
-  this->SliceOrientation[2] = SLICE_RTIMAGE_INPLANE;
+  this->MessageConverterList.clear();
+
+  //this->OutTransformMsg = igtl::TransformMessage::New();
+  //this->OutImageMsg = igtl::ImageMessage::New();
+
+
+  // register default data types
+  this->LinearTransformConverter = vtkIGTLToMRMLLinearTransform::New();
+  this->ImageConverter           = vtkIGTLToMRMLImage::New();
+  this->PositionConverter        = vtkIGTLToMRMLPosition::New();
+  RegisterMessageConverter(this->LinearTransformConverter);
+  RegisterMessageConverter(this->ImageConverter);
+  RegisterMessageConverter(this->PositionConverter);
 
 }
 
@@ -84,6 +98,24 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
 //---------------------------------------------------------------------------
 vtkOpenIGTLinkIFLogic::~vtkOpenIGTLinkIFLogic()
 {
+  if (this->LinearTransformConverter)
+    {
+    UnregisterMessageConverter(this->LinearTransformConverter);
+    this->LinearTransformConverter->Delete();
+    }
+
+  if (this->ImageConverter)
+    {
+    UnregisterMessageConverter(this->ImageConverter);
+    this->ImageConverter->Delete();
+    }
+
+  if (this->PositionConverter)
+    {
+    UnregisterMessageConverter(this->PositionConverter);
+
+    this->PositionConverter->Delete();
+    }
 
   if (this->DataCallbackCommand)
     {
@@ -126,17 +158,6 @@ int vtkOpenIGTLinkIFLogic::Initialize()
     events->Delete();
     this->Initialized = 1;
 
-#ifdef BRP_DEVELOPMENT
-
-    this->AddServerConnector("Robot", 18945);
-    AddDeviceToConnector(GetNumberOfConnectors()-1, "Robot",   "TRANSFORM", DEVICE_IN);
-
-    this->AddServerConnector("Scanner", 18944);
-    AddDeviceToConnector(GetNumberOfConnectors()-1, "Robot",   "TRANSFORM", DEVICE_OUT);
-    AddDeviceToConnector(GetNumberOfConnectors()-1, "Scanner", "IMAGE", DEVICE_IN);
-
-#endif //BRP_DEVELOPMENT
-
     }
 
   return 1;
@@ -162,392 +183,356 @@ void vtkOpenIGTLinkIFLogic::UpdateAll()
 
 
 //---------------------------------------------------------------------------
-int vtkOpenIGTLinkIFLogic::CheckConnectorsStatusUpdates()
-{
-
-  //----------------------------------------------------------------
-  // Find state change in the connectors
-
-  int nCon = GetNumberOfConnectors();
-  int updated = 0;
-
-  for (int i = 0; i < nCon; i ++)
-    {
-    if (this->ConnectorPrevStateList[i] != this->ConnectorList[i]->GetState())
-      {
-      updated = 1;
-      this->ConnectorPrevStateList[i] = this->ConnectorList[i]->GetState();
-      }
-    }
-
-  return updated;
-
-}
-
-
-
-//---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::AddConnector()
-{
-  this->AddConnector("connector");
-}
-
-
-//---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::AddConnector(const char* name)
-{
-  vtkIGTLConnector* connector = vtkIGTLConnector::New();
-  connector->SetName(name);
-  this->ConnectorList.push_back(connector);
-  this->ConnectorPrevStateList.push_back(-1);
-  connector->SetRestrictDeviceName(this->RestrictDeviceName);
-}
-
-
-//---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::AddServerConnector(const char* name, int port)
-{
-  vtkIGTLConnector* connector = vtkIGTLConnector::New();
-  connector->SetName(name);
-  connector->SetType(vtkIGTLConnector::TYPE_SERVER);
-  connector->SetServerPort(port);
-  this->ConnectorList.push_back(connector);
-  this->ConnectorPrevStateList.push_back(-1);
-  connector->SetRestrictDeviceName(this->RestrictDeviceName);
-}
-
-
-//---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::AddClientConnector(const char* name, const char* svrHostName, int port)
-{
-  vtkIGTLConnector* connector = vtkIGTLConnector::New();
-  connector->SetName(name);
-  connector->SetType(vtkIGTLConnector::TYPE_CLIENT);
-  connector->SetServerPort(port);
-  connector->SetServerHostname(svrHostName);
-  this->ConnectorList.push_back(connector);
-  this->ConnectorPrevStateList.push_back(-1);
-  connector->SetRestrictDeviceName(this->RestrictDeviceName);
-}
-
-
-//---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::DeleteConnector(int id)
-{
-  if (id >= 0 && id < this->ConnectorList.size())
-    {
-    this->ConnectorList[id]->Stop();
-    this->ConnectorList[id]->Delete();
-    this->ConnectorList.erase(this->ConnectorList.begin() + id);
-    this->ConnectorPrevStateList.erase(this->ConnectorPrevStateList.begin() + id);
-    }
-}
-
-//---------------------------------------------------------------------------
 int vtkOpenIGTLinkIFLogic::GetNumberOfConnectors()
 {
-  return this->ConnectorList.size();
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  if (!scene)
+    {
+    return 0;
+    }
+
+  std::vector<vtkMRMLNode*> nodes;
+  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+  scene->GetNodesByClass(className, nodes);
+
+  return nodes.size();
 }
 
-vtkIGTLConnector* vtkOpenIGTLinkIFLogic::GetConnector(int id)
+
+//---------------------------------------------------------------------------
+vtkMRMLIGTLConnectorNode* vtkOpenIGTLinkIFLogic::GetConnector(const char* conID)
 {
-  if (id >= 0 && id < GetNumberOfConnectors())
+
+  vtkMRMLNode* node = this->GetMRMLScene()->GetNodeByID(conID);
+  if (node)
     {
-    return this->ConnectorList[id];
+    vtkMRMLIGTLConnectorNode* conNode = vtkMRMLIGTLConnectorNode::SafeDownCast(node);
+    return conNode;
     }
   else
     {
     return NULL;
     }
+
 }
 
 
 //---------------------------------------------------------------------------
-vtkMRMLVolumeNode* vtkOpenIGTLinkIFLogic::AddVolumeNode(const char* volumeNodeName)
+int vtkOpenIGTLinkIFLogic::RegisterDeviceEvent(vtkMRMLIGTLConnectorNode* con, const char* deviceName, const char* deviceType)
 {
-
-  //vtkErrorMacro("AddVolumeNode(): called.");
-
-  vtkMRMLVolumeNode *volumeNode = NULL;
-
-  if (volumeNode == NULL)  // if real-time volume node has not been created
+  if (con == NULL)
     {
-
-    //vtkMRMLVolumeDisplayNode *displayNode = NULL;
-    vtkMRMLScalarVolumeDisplayNode *displayNode = NULL;
-    vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
-    vtkImageData* image = vtkImageData::New();
-
-    float fov = 256.0;
-    image->SetDimensions(256, 256, 1);
-    image->SetExtent(0, 255, 0, 255, 0, 0 );
-    image->SetSpacing( fov/256, fov/256, 10 );
-    image->SetOrigin( -fov/2, -fov/2, -0.0 );
-    image->SetScalarTypeToShort();
-    image->AllocateScalars();
-        
-    short* dest = (short*) image->GetScalarPointer();
-    if (dest)
-      {
-      memset(dest, 0x00, 256*256*sizeof(short));
-      image->Update();
-      }
-        
-    /*
-      vtkSlicerSliceLayerLogic *reslice = vtkSlicerSliceLayerLogic::New();
-      reslice->SetUseReslice(0);
-    */
-    scalarNode->SetAndObserveImageData(image);
-
-        
-    /* Based on the code in vtkSlicerVolumeLogic::AddHeaderVolume() */
-    //displayNode = vtkMRMLVolumeDisplayNode::New();
-    displayNode = vtkMRMLScalarVolumeDisplayNode::New();
-    scalarNode->SetLabelMap(0);
-    volumeNode = scalarNode;
-        
-    if (volumeNode != NULL)
-      {
-      volumeNode->SetName(volumeNodeName);
-      this->GetMRMLScene()->SaveStateForUndo();
-            
-      vtkDebugMacro("Setting scene info");
-      volumeNode->SetScene(this->GetMRMLScene());
-      displayNode->SetScene(this->GetMRMLScene());
-            
-            
-      double range[2];
-      vtkDebugMacro("Set basic display info");
-      volumeNode->GetImageData()->GetScalarRange(range);
-      range[0] = 0.0;
-      range[1] = 256.0;
-      displayNode->SetLowerThreshold(range[0]);
-      displayNode->SetUpperThreshold(range[1]);
-      displayNode->SetWindow(range[1] - range[0]);
-      displayNode->SetLevel(0.5 * (range[1] - range[0]) );
-            
-      vtkDebugMacro("Adding node..");
-      this->GetMRMLScene()->AddNode(displayNode);
-            
-      //displayNode->SetDefaultColorMap();
-      vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
-      displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
-      //colorLogic->Delete();
-            
-      volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-            
-      vtkDebugMacro("Name vol node "<<volumeNode->GetClassName());
-      vtkDebugMacro("Display node "<<displayNode->GetClassName());
-            
-      this->GetMRMLScene()->AddNode(volumeNode);
-      vtkDebugMacro("Node added to scene");
-      }
-
-    //scalarNode->Delete();
-    /*
-      if (displayNode)
-      {
-      displayNode->Delete();
-      }
-    */
-
+    return 0;
     }
-  return volumeNode;
-}
 
-
-//---------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkOpenIGTLinkIFLogic::AddTransformNode(const char* nodeName)
-{
+  //// check if the connector exists in the table
+  if (con->GetID() == NULL)
+    {
+    return 0;
+    }
   
-  vtkMRMLLinearTransformNode *transformNode = vtkMRMLLinearTransformNode::New();
-  transformNode->SetName(nodeName);
-  transformNode->SetDescription("Created by Open IGT Link Module");
-
-  vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
-  matrix->Identity();
-  transformNode->ApplyTransform(matrix);
-  //transformNode->SetAndObserveMatrixTransformToParent(matrix);
-  matrix->Delete();
-  
-  this->GetMRMLScene()->AddNode(transformNode);  
-
-  return transformNode;
-}
-
-
-//---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::RegisterDeviceEvent(vtkIGTLConnector* con, const char* deviceName, const char* deviceType)
-{
+  // find converter
+  vtkIGTLToMRMLBase* converter = GetConverterByDeviceType(deviceType);
+  if (converter == NULL)
+    {
+    return 0;
+    }
 
   // check if the device name exists in the MRML tree
+  vtkMRMLNode* srcNode = NULL;   // Event Source MRML node 
   vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(deviceName);
   int nItems = collection->GetNumberOfItems();
-
-  vtkMRMLNode* srcNode = NULL;   // Event Source MRML node 
-
-  if (nItems > 0) // if nodes with the same name as the device name are found in the MRML tree
+  for (int i = 0; i < nItems; i ++)
     {
-    if (strcmp(deviceType, "TRANSFORM") == 0)
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
+    if (converter->GetMRMLName() && strcmp(node->GetNodeTagName(), converter->GetMRMLName()) == 0)
       {
-      for (int i = 0; i < nItems; i ++)
-        {
-        vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
-        if (strcmp(node->GetNodeTagName(), "LinearTransform") == 0)
-          {
-          srcNode = node;
-          }
-        }
-      }
-    if (strcmp(deviceType, "IMAGE") == 0)
-      {
-      for (int i = 0; i < nItems; i ++)
-        {
-        vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
-        if (strcmp(node->GetNodeTagName(), "Volume") == 0)
-          {
-          srcNode = node;
-          }
-        }
-      }
-    }
-  if (nItems == 0 || srcNode == NULL) // if not
-    {
-    if (strcmp(deviceType, "TRANSFORM") == 0)
-      {
-      srcNode = AddTransformNode(deviceName);
-      }
-    else if (strcmp(deviceType, "IMAGE") == 0)
-      {
-      srcNode = AddVolumeNode(deviceName);
+      srcNode = node;
+      break;
       }
     }
   
-  // check if the connector exists in the table
+  if (srcNode == NULL) // couldn't find a device with the specified name and type.
+    {
+    srcNode = converter->CreateNewNode(this->GetMRMLScene(), deviceName);
+    }
 
-  ConnectorListType* list = &MRMLEventConnectorTable[srcNode];
+  // check if events have already been registered
+  ConnectorListType* list = &MRMLEventConnectorMap[srcNode];
   ConnectorListType::iterator iter;
   int found = 0;
   for (iter = list->begin(); iter != list->end(); iter ++)
     {
-    if (*iter == con)
+    if (*iter == con->GetID())
       {
       found = 1;
+      break;
       }
     }
-
-  if (!found)  // register as a MRML Node Event
+  if (found) // the events has already been registered
     {
-    //std::cerr << "NODE REGISTERED............................." << std::endl;
-    vtkIntArray* nodeEvents = vtkIntArray::New();
-    //nodeEvents->InsertNextValue(vtkCommand::ModifiedEvent);
-    if (strcmp(deviceType, "TRANSFORM") == 0)
-      {
-      nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-      }
-    else if (strcmp(deviceType, "IMAGE") == 0)
-      {
-      nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
-          // NOTE: it hasn't been tested yet.
-      }
-
-    vtkMRMLLinearTransformNode *node = NULL;
+    return 0;
+    }
+  
+  // register events
+  vtkIntArray* nodeEvents = converter->GetNodeEvents();
+  if (nodeEvents)
+    {
+    vtkMRMLNode *node = NULL; // TODO: is this OK?
     vtkSetAndObserveMRMLNodeEventsMacro(node,srcNode,nodeEvents);
-
-
-    // NOTE: node should be stored somewhere to stop event monitoring after deleting the MRML node.
-
-
-    nodeEvents->Delete();
-
-    list->push_back(con);
     }
 
+  // TODO: node should be stored somewhere to stop event monitoring after deleting the MRML node.
+  nodeEvents->Delete();
+  list->push_back(con->GetID());
+
+  return 1;
 }
 
+
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::UnRegisterDeviceEvent(vtkIGTLConnector* con, const char* deviceName, const char* deviceType)
+int vtkOpenIGTLinkIFLogic::UnregisterDeviceEvent(vtkMRMLIGTLConnectorNode* con, const char* deviceName, const char* deviceType)
 {
+  if (con == NULL)
+    {
+    return 0;
+    }
+
+  // check if the connector exists in the table
+  if (con->GetID() == NULL)
+    {
+    return 0;
+    }
 
   // check if the device name exists in the MRML tree
+  vtkMRMLNode* srcNode = NULL;   // Event Source MRML node 
   vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(deviceName);
   int nItems = collection->GetNumberOfItems();
-
-  vtkMRMLNode* srcNode = NULL;   // Event Source MRML node 
-
-  if (nItems > 0) // if nodes with the same name as the device name are found in the MRML tree
+  for (int i = 0; i < nItems; i ++)
     {
-    if (strcmp(deviceType, "TRANSFORM") == 0)
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
+    if (strcmp(node->GetNodeTagName(), deviceType) == 0)
       {
-      for (int i = 0; i < nItems; i ++)
-        {
-        vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
-        if (strcmp(node->GetNodeTagName(), "LinearTransform") == 0)
-          {
-          srcNode = node;
-          }
-        }
-      }
-    if (strcmp(deviceType, "IMAGE") == 0)
-      {
-      for (int i = 0; i < nItems; i ++)
-        {
-        vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
-        if (strcmp(node->GetNodeTagName(), "Volume") == 0)
-          {
-          srcNode = node;
-          }
-        }
+      srcNode = node;
+      break;
       }
     }
 
-  if (nItems == 0 || srcNode == NULL) // not found
+  if (srcNode == NULL) // not found
     {
-    return;
+    return 0;
     }
 
   this->MRMLObserverManager->RemoveObjectEvents(srcNode);
 
-}
+  // unregister from event connector map
+  ConnectorListType* list = &MRMLEventConnectorMap[srcNode];
+  ConnectorListType::iterator iter;
+  for (iter = list->begin(); iter != list->end(); iter ++)
+    {
+    if (*iter == con->GetID())
+      {
+      list->erase(iter);
+      }
+    }
 
+  return 1;
+}
 
 
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers()
 {
-  ConnectorListType::iterator iter;
+  //ConnectorMapType::iterator cmiter;
+  std::vector<vtkMRMLNode*> nodes;
+  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+  this->GetMRMLScene()->GetNodesByClass(className, nodes);
 
-  for (iter = this->ConnectorList.begin(); iter != this->ConnectorList.end(); iter ++)
+  std::vector<vtkMRMLNode*>::iterator iter;
+  
+  //for (cmiter = this->ConnectorMap.begin(); cmiter != this->ConnectorMap.end(); cmiter ++)
+  for (iter = nodes.begin(); iter != nodes.end(); iter ++)
     {
-    vtkIGTLConnector::NameListType nameList;
-    (*iter)->GetUpdatedBuffersList(nameList);
-    vtkIGTLConnector::NameListType::iterator nameIter;
+    vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
+    if (connector == NULL)
+      {
+      continue;
+      }
+
+    vtkMRMLIGTLConnectorNode::NameListType nameList;
+    //cmiter->second->GetUpdatedBuffersList(nameList);
+    connector->GetUpdatedBuffersList(nameList);
+
+    vtkMRMLIGTLConnectorNode::NameListType::iterator nameIter;
     for (nameIter = nameList.begin(); nameIter != nameList.end(); nameIter ++)
       {
-      //vtkErrorMacro("vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers(): Import Image from : " << *nameIter);
-      vtkIGTLCircularBuffer* circBuffer = (*iter)->GetCircularBuffer(*nameIter);
+      //vtkIGTLCircularBuffer* circBuffer = cmiter->second->GetCircularBuffer(*nameIter);
+      vtkIGTLCircularBuffer* circBuffer = connector->GetCircularBuffer(*nameIter);
       circBuffer->StartPull();
-      
-      igtl::MessageBase::Pointer buffer = circBuffer->GetPullBuffer();
 
-      //const char* type = circBuffer->PullDeviceType();
-      //vtkErrorMacro("vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers(): TYPE = " << type);
-      if (strcmp(buffer->GetDeviceType(), "IMAGE") == 0)
+      igtl::MessageBase::Pointer buffer = circBuffer->GetPullBuffer();
+      MessageConverterListType::iterator iter;
+      for (iter = this->MessageConverterList.begin();
+           iter != this->MessageConverterList.end();
+           iter ++)
         {
-        UpdateMRMLScalarVolumeNode(buffer);
-        //UpdateMRMLScalarVolumeNode((*nameIter).c_str(), buffer->PullSize(), buffer->PullData());
+        vtkMRMLNode* node = NULL;
+        if ((*iter)->GetIGTLName() && strcmp(buffer->GetDeviceType(), (*iter)->GetIGTLName()) == 0)
+          {
+          vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
+          vtkCollection* collection = scene->GetNodesByName(buffer->GetDeviceName());
+          int nCol = collection->GetNumberOfItems();
+          if (nCol == 0)
+            {
+            node = (*iter)->CreateNewNode(this->GetMRMLScene(), buffer->GetDeviceName());
+            }
+          else
+            {
+            int found = -1;
+            // if the same name is found in the scene, check the type
+            for (int i = 0; i < nCol; i ++)
+              {
+              node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
+              // check if the node type is same
+              if ((*iter)->GetMRMLName() && strcmp(node->GetNodeTagName(), (*iter)->GetMRMLName()) == 0)
+                {
+                found = i;
+                i = nCol; // loop end
+                }
+              }
+            if (found == -1) // if the same type is not found
+              {
+              node = (*iter)->CreateNewNode(this->GetMRMLScene(), buffer->GetDeviceName());
+              }
+            }
+          (*iter)->IGTLToMRML(buffer, node);
+          node->Modified();
+          //int devID = cmiter->second->GetDeviceID(buffer->GetDeviceName(), (*iter)->GetIGTLName());
+          //if (devID >= 0)
+          //  {
+          //  PostImportProcess(cmiter->first, devID, node);
+          //  }
+          }
         }
-      else if (strcmp(buffer->GetDeviceType(), "TRANSFORM") == 0)
-        {
-        UpdateMRMLLinearTransformNode(buffer);
-        //UpdateMRMLLinearTransformNode((*nameIter).c_str(), buffer->PullSize(), buffer->PullData());
-        }
+
       circBuffer->EndPull();
       }
-      
     }
 }
 
+
+//---------------------------------------------------------------------------
+int vtkOpenIGTLinkIFLogic::SetLocatorDriver(const char* nodeID)
+{
+  vtkMRMLLinearTransformNode* node =
+    vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+
+  if (node && strcmp(node->GetNodeTagName(), "LinearTransform") == 0)
+    {
+    this->LocatorDriverNodeID = nodeID;
+    if (this->LocatorDriverFlag)
+      {
+      EnableLocatorDriver(1);
+      }
+    return 1;
+    }
+
+  return 0;
+}
+
+
+//---------------------------------------------------------------------------
+int vtkOpenIGTLinkIFLogic::EnableLocatorDriver(int sw)
+{
+  if (sw == 1)  // turn on
+    {
+    this->LocatorDriverFlag = 1;
+    vtkMRMLModelNode* mnode = 
+      SetVisibilityOfLocatorModel("IGTLLocator", 1);
+    vtkMRMLLinearTransformNode *tnode = 
+      vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->LocatorDriverNodeID));
+    if (!tnode)
+      {
+      return 0;
+      }
+    mnode->SetAndObserveTransformNodeID(tnode->GetID());
+    mnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+    }
+  else  // turn off
+    {
+    this->LocatorDriverFlag = 0;
+    //vtkMRMLModelNode* mnode = 
+    //  SetVisibilityOfLocatorModel("IGTLLocator", 0);
+    //mnode->SetAndObserveTransformNodeID(NULL);
+    SetVisibilityOfLocatorModel("IGTLLocator", 0);
+    }
+  return 1;
+
+}
+
+
+//---------------------------------------------------------------------------
+int vtkOpenIGTLinkIFLogic::SetRealTimeImageSource(const char* nodeID)
+{
+  vtkMRMLVolumeNode* volNode =
+    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+
+  if (volNode && strcmp(volNode->GetNodeTagName(), "Volume") == 0)
+    {
+    // register the volume node in event observer
+    vtkMRMLNode *node = NULL; // TODO: is this OK?
+    vtkIntArray* nodeEvents = vtkIntArray::New();
+    nodeEvents->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
+    vtkSetAndObserveMRMLNodeEventsMacro(node,volNode,nodeEvents);
+    nodeEvents->Delete();
+    this->RealTimeImageSourceNodeID = nodeID;
+    return 1;
+    }
+
+  return 0;
+  
+}
+
+
+//---------------------------------------------------------------------------
+int vtkOpenIGTLinkIFLogic::SetSliceDriver(int index, int v)
+{
+  if (index < 0 || index >= 3)
+    {
+    return 0;
+    }
+
+  this->SliceDriver[index] = v;
+  if (v == SLICE_DRIVER_LOCATOR)
+    {
+    vtkMRMLLinearTransformNode* transNode =
+      vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->LocatorDriverNodeID));
+    if (transNode)
+      {
+      vtkMRMLNode *node = NULL; // TODO: is this OK?
+      vtkIntArray* nodeEvents = vtkIntArray::New();
+      nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+      vtkSetAndObserveMRMLNodeEventsMacro(node,transNode,nodeEvents);
+      nodeEvents->Delete();
+      }
+    transNode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+    }
+
+  return 1;
+}
+
+
+//---------------------------------------------------------------------------
+int vtkOpenIGTLinkIFLogic::GetSliceDriver(int index)
+{
+  if (index < 0 || index >= 3)
+    {
+    return -1;
+    }
+
+  return this->SliceDriver[index];
+    
+}
 
 //---------------------------------------------------------------------------
 int vtkOpenIGTLinkIFLogic::SetRestrictDeviceName(int f)
@@ -556,10 +541,19 @@ int vtkOpenIGTLinkIFLogic::SetRestrictDeviceName(int f)
   if (f != 0) f = 1; // make sure that f is either 0 or 1.
   this->RestrictDeviceName = f;
 
-  ConnectorListType::iterator iter;
-  for (iter = this->ConnectorList.begin(); iter != this->ConnectorList.end(); iter ++)
+  std::vector<vtkMRMLNode*> nodes;
+  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+  this->GetMRMLScene()->GetNodesByClass(className, nodes);
+
+  std::vector<vtkMRMLNode*>::iterator iter;
+  
+  for (iter = nodes.begin(); iter != nodes.end(); iter ++)
     {
-    (*iter)->SetRestrictDeviceName(f);
+    vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
+    if (connector)
+      {
+      connector->SetRestrictDeviceName(f);
+      }
     }
 
   return this->RestrictDeviceName;
@@ -567,42 +561,54 @@ int vtkOpenIGTLinkIFLogic::SetRestrictDeviceName(int f)
 
 
 //---------------------------------------------------------------------------
-int  vtkOpenIGTLinkIFLogic::AddDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io)
-// io -- DEVICE_IN : incoming, DEVICE_OUT: outgoing
+int  vtkOpenIGTLinkIFLogic::AddDeviceToConnector(const char* conID, const char* deviceName, const char* deviceType, int io)
+// io -- vtkMRMLIGTLConnectorNode::IO_INCOMING : incoming, vtkMRMLIGTLConnectorNode::IO_OUTGOING: outgoing
 {
 
-  vtkIGTLConnector* connector = GetConnector(id);
+  vtkMRMLIGTLConnectorNode* connector = GetConnector(conID);
 
   if (connector)
     {
-    vtkIGTLConnector::DeviceNameList* devList;
-
-    if (io == DEVICE_IN)             // incoming
+    if (io == vtkMRMLIGTLConnectorNode::IO_INCOMING)
       {
-      devList = connector->GetIncomingDeviceList();
+      connector->RegisterNewDevice(deviceName, deviceType, vtkMRMLIGTLConnectorNode::IO_INCOMING);
       }
-    else if (io == DEVICE_OUT)       // outgoing
+    else if (io == vtkMRMLIGTLConnectorNode::IO_OUTGOING)
       {
-      devList = connector->GetOutgoingDeviceList();
-      }
-    else //if (io == DEVICE_UNSPEC)  // unspecified
-      {
-      devList = connector->GetUnspecifiedDeviceList();
-      }
-
-    if ((*devList)[std::string(deviceName)] != deviceType)
-      {
-      (*devList)[std::string(deviceName)] = std::string(deviceType);
-      if (io == DEVICE_OUT)
-        {
-        //std::cerr << "registering device : " << deviceName << ", " << deviceType << std::endl;
-        RegisterDeviceEvent(connector,deviceName, deviceType);
-        }
-      return 1;
+      connector->RegisterNewDevice(deviceName, deviceType, vtkMRMLIGTLConnectorNode::IO_OUTGOING);
+      RegisterDeviceEvent(connector,deviceName, deviceType);
       }
     else
       {
-      return 0;
+      connector->RegisterNewDevice(deviceName, deviceType);
+      }
+    return 1;
+    }
+  else
+    {
+    return 0;
+    }
+  
+  return 1;
+
+}
+
+
+//---------------------------------------------------------------------------
+int  vtkOpenIGTLinkIFLogic::DeleteDeviceFromConnector(const char* conID, const char* deviceName, const char* deviceType, int io)
+{
+  vtkMRMLIGTLConnectorNode* connector = GetConnector(conID);
+
+  if (connector)
+    {
+    int devid = connector->GetDeviceID(deviceName, deviceType);
+    if (devid >= 0) // the device is found in the list
+      {
+      if (io == vtkMRMLIGTLConnectorNode::IO_OUTGOING)
+        {
+        UnregisterDeviceEvent(connector, deviceName, deviceType);
+        }
+      connector->UnregisterDevice(deviceName, deviceType, io);
       }
     }
 
@@ -610,555 +616,200 @@ int  vtkOpenIGTLinkIFLogic::AddDeviceToConnector(int id, const char* deviceName,
 
 }
 
+
 //---------------------------------------------------------------------------
-int  vtkOpenIGTLinkIFLogic::DeleteDeviceFromConnector(int id, const char* deviceName, const char* deviceType, int io)
+int vtkOpenIGTLinkIFLogic::DeleteDeviceFromConnector(const char* conID, int devID, int io)
 {
-  vtkIGTLConnector* connector = GetConnector(id);
+  vtkMRMLIGTLConnectorNode* connector = GetConnector(conID);
 
-  if (connector)
+  vtkMRMLIGTLConnectorNode::DeviceInfoType* devInfo = connector->GetDeviceInfo(devID);
+  if (devInfo)
     {
-    vtkIGTLConnector::DeviceNameList* devList;
-    
-    if (io == DEVICE_IN)             // incoming
-      {
-      devList = connector->GetIncomingDeviceList();
-      }
-    else if (io == DEVICE_OUT)       // outgoing
-      {
-      devList = connector->GetOutgoingDeviceList();
-      }
-    else //if (io == DEVICE_UNSPEC)  // unspecified
-      {
-      devList = connector->GetUnspecifiedDeviceList();
-      }
-
-    // find the device name from the list
-    vtkIGTLConnector::DeviceNameList::iterator iter; 
-    iter = devList->find(std::string(deviceName));
-    if (iter != devList->end()) // TODO: check device type here 
-      {
-      UnRegisterDeviceEvent(connector, deviceName, deviceType);
-      devList->erase(iter);
-      }
+    DeleteDeviceFromConnector(conID, devInfo->name.c_str(), devInfo->type.c_str(), io);
     }
-
   return 1;
 
 }
 
+
 //---------------------------------------------------------------------------
-int  vtkOpenIGTLinkIFLogic::SetDeviceType(int id, const char* deviceName, const char* deviceType, int io)
+int vtkOpenIGTLinkIFLogic::RegisterMessageConverter(vtkIGTLToMRMLBase* converter)
 {
-  vtkIGTLConnector* connector = GetConnector(id);
-
-  if (connector)
+  if (converter == NULL)
     {
-    vtkIGTLConnector::DeviceNameList* devList;
-    
-    if (io == DEVICE_IN)             // incoming
-      {
-      devList = connector->GetIncomingDeviceList();
-      }
-    else if (io == DEVICE_OUT)       // outgoing
-      {
-      devList = connector->GetOutgoingDeviceList();
-      }
-    else //if (io == DEVICE_UNSPEC)  // unspecified
-      {
-      devList = connector->GetUnspecifiedDeviceList();
-      }
-
-    // find the device name from the list
-    vtkIGTLConnector::DeviceNameList::iterator iter; 
-    iter = devList->find(std::string(deviceName));
-    if (iter != devList->end()) // TODO: check device type here 
-      {
-      const char* origDeviceType = iter->second.c_str();
-      if (io == DEVICE_OUT)
-        {
-        UnRegisterDeviceEvent(connector, deviceName, origDeviceType); 
-        }
-      
-      iter->second = std::string(deviceType);
-
-      if (io == DEVICE_OUT)
-        {
-        RegisterDeviceEvent(connector, deviceName, deviceType);
-        }
-      }
+    return 0;
     }
 
-  return 1;
+  // Search the list and check if the same converter has already been registered.
+  int found = 0;
 
+  MessageConverterListType::iterator iter;
+  for (iter = this->MessageConverterList.begin();
+       iter != this->MessageConverterList.end();
+       iter ++)
+    {
+    if ((converter->GetIGTLName() && strcmp(converter->GetIGTLName(), (*iter)->GetIGTLName()) == 0) &&
+        (converter->GetMRMLName() && strcmp(converter->GetMRMLName(), (*iter)->GetMRMLName()) == 0))
+      {
+      found = 1;
+      }
+    }
+  if (found)
+    {
+    return 0;
+    }
+  
+  if (converter->GetIGTLName() || converter->GetMRMLName())
+    {
+    this->MessageConverterList.push_back(converter);
+    return 1;
+    }
+  else
+    {
+    return 0;
+    }
+}
+
+
+//---------------------------------------------------------------------------
+int vtkOpenIGTLinkIFLogic::UnregisterMessageConverter(vtkIGTLToMRMLBase* converter)
+{
+  if (converter == NULL)
+    {
+    return 0;
+    }
+
+  this->MessageConverterList.remove(converter);
+  return 1;
 }
 
 
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long event, void * callData)
 {
-  //std::cerr << "void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents() is called" << std::endl;
-
   if (caller != NULL)
     {
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
-    ConnectorListType* list = &MRMLEventConnectorTable[node];
-    ConnectorListType::iterator iter;
 
-    for (iter = list->begin(); iter != list->end(); iter ++)
+    //---------------------------------------------------------------------------
+    // Outgoing data
+    // TODO: should check the type of the node here
+    ConnectorListType* list = &MRMLEventConnectorMap[node];
+    ConnectorListType::iterator cliter;
+    for (cliter = list->begin(); cliter != list->end(); cliter ++)
       {
-      vtkIGTLConnector* connector = *iter;
+      vtkMRMLIGTLConnectorNode* connector = 
+        vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(*cliter));
+      if (connector == NULL)
+        {
+        return;
+        }
 
-      //std::cerr << "void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents() Connector: "
-      //<< connector->GetName() << std::endl;
+      MessageConverterListType::iterator iter;
+      for (iter = this->MessageConverterList.begin();
+           iter != this->MessageConverterList.end();
+           iter ++)
+        {
+        if ((*iter)->GetMRMLName() && strcmp(node->GetNodeTagName(), (*iter)->GetMRMLName()) == 0)
+          {
+          // check if the name-type combination is on the list
+          if (connector->GetDeviceID(node->GetName(), (*iter)->GetIGTLName()) >= 0)
+            {
+            int size;
+            void* igtlMsg;
+            (*iter)->MRMLToIGTL(event, node, &size, &igtlMsg);
+            int r = connector->SendData(size, (unsigned char*)igtlMsg);
+            if (r == 0)
+              {
+              // TODO: error handling
+              //std::cerr << "ERROR: send data." << std::endl;
+              }
+            }
+          }
+        } // for (iter)
+      } // for (cliter)
 
-      // NOTE: should add more strict device name and device type check here.
+    //---------------------------------------------------------------------------
+    // Slice Driven by Locator
+    if (node && strcmp(node->GetID(), this->LocatorDriverNodeID.c_str()) == 0)
+      {
+      vtkMatrix4x4* transform = NULL;
+      for (int i = 0; i < 3; i ++)
+        {
+        if (this->SliceDriver[i] == SLICE_DRIVER_LOCATOR)
+          {
+          if (!transform)
+            {
+            vtkMRMLLinearTransformNode* transNode =    
+              vtkMRMLLinearTransformNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->LocatorDriverNodeID));
+            if (transNode)
+              {
+              transform = transNode->GetMatrixTransformToParent();
+              }
+            }
+          if (transform)
+            {
+            UpdateSliceNode(i, transform);
+            }
+          }
+        }
+      }
+
       
-      if (strcmp(node->GetNodeTagName(), "LinearTransform") == 0)
+    //---------------------------------------------------------------------------
+    // Slice Driven by Real-time image
+    if (strcmp(node->GetID(), this->RealTimeImageSourceNodeID.c_str()) == 0)
+      {
+      for (int i = 0; i < 3; i ++)
         {
-        vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
-        vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
-
-        igtl::TransformMessage::Pointer transMsg;
-        transMsg = igtl::TransformMessage::New();
-        transMsg->SetDeviceName(node->GetName());
-
-        igtl::Matrix4x4 igtlmatrix;
-
-        igtlmatrix[0][0]  = matrix->GetElement(0, 0);
-        igtlmatrix[1][0]  = matrix->GetElement(1, 0);
-        igtlmatrix[2][0]  = matrix->GetElement(2, 0);
-        igtlmatrix[3][0]  = matrix->GetElement(3, 0);
-
-        igtlmatrix[0][1]  = matrix->GetElement(0, 1);
-        igtlmatrix[1][1]  = matrix->GetElement(1, 1);
-        igtlmatrix[2][1]  = matrix->GetElement(2, 1);
-        igtlmatrix[3][1]  = matrix->GetElement(3, 1);
-
-        igtlmatrix[0][2]  = matrix->GetElement(0, 2);
-        igtlmatrix[1][2]  = matrix->GetElement(1, 2);
-        igtlmatrix[2][2]  = matrix->GetElement(2, 2);
-        igtlmatrix[3][2]  = matrix->GetElement(3, 2);
-
-        igtlmatrix[0][3]  = matrix->GetElement(0, 3);
-        igtlmatrix[1][3]  = matrix->GetElement(1, 3);
-        igtlmatrix[2][3]  = matrix->GetElement(2, 3);
-        igtlmatrix[3][3]  = matrix->GetElement(3, 3);
-
-        transMsg->SetMatrix(igtlmatrix);
-        transMsg->Pack();
-
-        /*
-        // build message body
-        igtl_float32 transform[12];
-
-        transform[0]  = matrix->GetElement(0, 0);
-        transform[1]  = matrix->GetElement(1, 0);
-        transform[2]  = matrix->GetElement(2, 0);
-        transform[3]  = matrix->GetElement(0, 1);
-        transform[4]  = matrix->GetElement(1, 1);
-        transform[5]  = matrix->GetElement(2, 1);
-        transform[6]  = matrix->GetElement(0, 2);
-        transform[7]  = matrix->GetElement(1, 2);
-        transform[8]  = matrix->GetElement(2, 2);
-        transform[9]  = matrix->GetElement(0, 3);
-        transform[10] = matrix->GetElement(1, 3);
-        transform[11] = matrix->GetElement(2, 3);
-
-        // build header
-        igtl_header header;
-        igtl_uint64 crc = crc64(0, 0, 0LL); // initial crc
-
-        header.version   = IGTL_HEADER_VERSION;
-        header.timestamp = 0;
-        header.body_size = IGTL_TRANSFORM_SIZE;
-        header.crc       = crc64((unsigned char*)transform, IGTL_TRANSFORM_SIZE, crc);
-        strncpy(header.name, "TRANSFORM", 12);
-        strncpy(header.device_name, node->GetName(), 20);
-
-        igtl_transform_convert_byte_order(transform);
-        igtl_header_convert_byte_order(&header);
-        */
-
-        int r; 
-        r = connector->SendData(transMsg->GetPackSize(), (unsigned char*)transMsg->GetPackPointer());
-        /*
-        r = connector->SendData(IGTL_HEADER_SIZE, (unsigned char*) &header);
-        r = connector->SendData(IGTL_TRANSFORM_SIZE, (unsigned char*) transform);
-        */
-        
-        }
-      else if (strcmp(node->GetNodeTagName(), "Volume") == 0)
-        {
-        //igtl_header header;
-        
-        //connector->SendData();
+        if (this->SliceDriver[i] == SLICE_DRIVER_RTIMAGE)
+          {
+          UpdateSliceNodeByImage(i);
+          }
         }
       }
     }
-
 }
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::UpdateMRMLScalarVolumeNode(igtl::MessageBase::Pointer ptr)
+vtkIGTLToMRMLBase* vtkOpenIGTLinkIFLogic::GetConverterByDeviceType(const char* deviceType)
 {
-  //vtkErrorMacro("vtkIGTLConnector::UpdateMRMLScalarVolumeNode()  is called  ");
+  vtkIGTLToMRMLBase* converter = NULL;
 
-  // Create a message buffer to receive transform data
-  igtl::ImageMessage::Pointer imgMsg;
-  imgMsg = igtl::ImageMessage::New();
-  imgMsg->Copy(ptr);
-
-  // Deserialize the transform data
-  // If you want to skip CRC check, call Unpack() without argument.
-  int c = imgMsg->Unpack(1);
-
-  if (c & igtl::MessageHeader::UNPACK_BODY == 0) // if CRC check fails
+  MessageConverterListType::iterator iter;
+  for (iter = this->MessageConverterList.begin();
+       iter != this->MessageConverterList.end();
+       iter ++)
     {
-    return;
-    }
-
-  // Retrive the image data
-  int   size[3];          // image dimension
-  float spacing[3];       // spacing (mm/pixel)
-  int   svsize[3];        // sub-volume size
-  int   svoffset[3];      // sub-volume offset
-  int   scalarType;       // scalar type
-  igtl::Matrix4x4 matrix; // Image origin and orientation matrix
-
-  scalarType = imgMsg->GetScalarType();
-  imgMsg->GetDimensions(size);
-  imgMsg->GetSpacing(spacing);
-  imgMsg->GetSubVolume(svsize, svoffset);
-  imgMsg->GetMatrix(matrix);
-
-  float tx = matrix[0][0];
-  float ty = matrix[1][0];
-  float tz = matrix[2][0];
-  float sx = matrix[0][1];
-  float sy = matrix[1][1];
-  float sz = matrix[2][1];
-  float nx = matrix[0][2];
-  float ny = matrix[1][2];
-  float nz = matrix[2][2];
-  float px = matrix[0][3];
-  float py = matrix[1][3];
-  float pz = matrix[2][3];
-
-  /*
-  vtkErrorMacro("matrix = ");
-  vtkErrorMacro( << tx << ", " << ty << ", " << tz);
-  vtkErrorMacro( << sx << ", " << sy << ", " << sz);
-  vtkErrorMacro( << nx << ", " << ny << ", " << nz);
-  vtkErrorMacro( << px << ", " << py << ", " << pz);
-  */
-  
-  vtkMRMLScalarVolumeNode* volumeNode;
-  vtkImageData* imageData;
-  
-  vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
-  vtkCollection* collection = scene->GetNodesByName(imgMsg->GetDeviceName());
-  
-  if (collection->GetNumberOfItems() == 0)
-    {
-    volumeNode = vtkMRMLScalarVolumeNode::New();
-    volumeNode->SetName(imgMsg->GetDeviceName());
-    volumeNode->SetDescription("Received by OpenIGTLink");
-    
-    imageData = vtkImageData::New();
-    
-    imageData->SetDimensions(size[0], size[1], size[2]);
-    imageData->SetNumberOfScalarComponents(1);
-    
-    // Scalar type
-    //  TBD: Long might not be 32-bit in some platform.
-    switch (scalarType)
+    if ((*iter)->GetConverterType() == vtkIGTLToMRMLBase::TYPE_NORMAL)
       {
-      case igtl::ImageMessage::TYPE_INT8:
-        imageData->SetScalarTypeToChar();
-        break;
-      case igtl::ImageMessage::TYPE_UINT8:
-        imageData->SetScalarTypeToUnsignedChar();
-        break;
-      case igtl::ImageMessage::TYPE_INT16:
-        imageData->SetScalarTypeToShort();
-        break;
-      case igtl::ImageMessage::TYPE_UINT16:
-        imageData->SetScalarTypeToUnsignedShort();
-        break;
-      case igtl::ImageMessage::TYPE_INT32:
-        imageData->SetScalarTypeToUnsignedLong();
-        break;
-      case igtl::ImageMessage::TYPE_UINT32:
-        imageData->SetScalarTypeToUnsignedLong();
-        break;
-      case igtl::ImageMessage::TYPE_FLOAT32:
-        imageData->SetScalarTypeToFloat();
-        break;
-      case igtl::ImageMessage::TYPE_FLOAT64:
-        imageData->SetScalarTypeToDouble();
-        break;
-      default:
-        //vtkErrorMacro ("Invalid Scalar Type\n");
-        break;
-    }
-
-    imageData->AllocateScalars();
-    volumeNode->SetAndObserveImageData(imageData);
-    imageData->Delete();
-    
-    scene->AddNode(volumeNode);
-    this->GetApplicationLogic()->GetSelectionNode()->SetReferenceActiveVolumeID(volumeNode->GetID());
-    this->GetApplicationLogic()->PropagateVolumeSelection();
-    
-    }
-  else
-    {
-    vtkCollection* collection = scene->GetNodesByName(imgMsg->GetDeviceName());
-    volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(collection->GetItemAsObject(0));
-    }
-  
-  // Get vtk image from MRML node
-  imageData = volumeNode->GetImageData();
-
-
-  // TODO:
-  // It should be checked here if the dimension of vtkImageData
-  // and arrived data is same.
-
-  //vtkErrorMacro("IGTL image size = " << bytes);
-  if (imgMsg->GetImageSize() == imgMsg->GetSubVolumeImageSize())
-    {
-    // In case that volume size == sub-volume size,
-    // image is read directly to the memory area of vtkImageData
-    // for better performance. 
-    memcpy(imageData->GetScalarPointer(),
-           imgMsg->GetScalarPointer(), imgMsg->GetSubVolumeImageSize());
-    }
-  else
-    {
-    // In case of volume size != sub-volume size,
-    // image is loaded into ImageReadBuffer, then copied to
-    // the memory area of vtkImageData.
-    
-    // Check scalar size
-    int scalarSize = imgMsg->GetScalarSize();
-    
-    char* imgPtr = (char*) imageData->GetScalarPointer();
-    char* bufPtr = (char*) imgMsg->GetScalarPointer();
-    int sizei = size[0];
-    int sizej = size[1];
-    int sizek = size[2];
-    int subsizei = svsize[0];
-    
-    int bg_i = svoffset[0];
-    int ed_i = bg_i + svsize[0];
-    int bg_j = svoffset[1];
-    int ed_j = bg_j + svsize[1];
-    int bg_k = svoffset[2];
-    int ed_k = bg_k + svsize[2];
-    
-    for (int k = bg_k; k < ed_k; k ++)
-      {
-      for (int j = bg_j; j < ed_j; j ++)
+      if (strcmp((*iter)->GetIGTLName(), deviceType) == 0)
         {
-        memcpy(&imgPtr[(sizei*sizej*k + sizei*j + bg_i)*scalarSize],
-               bufPtr, subsizei*scalarSize);
-        bufPtr += subsizei*scalarSize;
+        converter = *iter;
+        break;
         }
       }
-    }
-  
-  // normalize
-  float psi = sqrt(tx*tx + ty*ty + tz*tz);
-  float psj = sqrt(sx*sx + sy*sy + sz*sz);
-  float psk = sqrt(nx*nx + ny*ny + nz*nz);
-  float ntx = tx / psi;
-  float nty = ty / psi;
-  float ntz = tz / psi;
-  float nsx = sx / psj;
-  float nsy = sy / psj;
-  float nsz = sz / psj;
-  float nnx = nx / psk;
-  float nny = ny / psk;
-  float nnz = nz / psk;
-  
-  float hfovi = psi * size[0] / 2.0;
-  float hfovj = psj * size[1] / 2.0;
-  //float hfovk = psk * imgheader->size[2] / 2.0;
-  float hfovk = 0;
-
-  float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
-  float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
-  float cz = ntz * hfovi + nsz * hfovj + nnz * hfovk;
-
-  px = px - cx;
-  py = py - cy;
-  pz = pz - cz;
-
-
-  // set volume orientation
-  vtkMatrix4x4* rtimgTransform = vtkMatrix4x4::New();
-  rtimgTransform->Identity();
-  rtimgTransform->SetElement(0, 0, tx);
-  rtimgTransform->SetElement(1, 0, ty);
-  rtimgTransform->SetElement(2, 0, tz);
-  
-  rtimgTransform->SetElement(0, 1, sx);
-  rtimgTransform->SetElement(1, 1, sy);
-  rtimgTransform->SetElement(2, 1, sz);
-  
-  rtimgTransform->SetElement(0, 2, nx);
-  rtimgTransform->SetElement(1, 2, ny);
-  rtimgTransform->SetElement(2, 2, nz);
-
-  rtimgTransform->SetElement(0, 3, px);
-  rtimgTransform->SetElement(1, 3, py);
-  rtimgTransform->SetElement(2, 3, pz);
-
-
-  rtimgTransform->Invert();
-  volumeNode->SetRASToIJKMatrix(rtimgTransform);
-  volumeNode->Modified();
-
-//  if (lps) { // LPS coordinate
-//    vtkMatrix4x4* lpsToRas = vtkMatrix4x4::New();
-//    lpsToRas->Identity();
-//    lpsToRas->SetElement(-1, 0,  0);
-//    lpsToRas->SetElement(0, -1,  0);
-//    lpsToRas->SetElement(0,  0,  1);
-//    lpsToRas->Multiply4x4(lpsToRas, rtimgTransform, rtimgTransform);
-//    lpsToRas->Delete();
-//  }
-
-  px = px + cx;
-  py = py + cy;
-  pz = pz + cz;
-
-  //volumeNode->SetAndObserveImageData(imageData);
-
-  //----------------------------------------------------------------
-  // Slice Orientation
-  //----------------------------------------------------------------
-
-  for (int i = 0; i < 3; i ++)
-    {
-    if (this->SliceDriver[i] == SLICE_DRIVER_RTIMAGE)
+    else
       {
-      UpdateSliceNode(i, nx, ny, nz, tx, ty, tz, px, py, pz);
-      }
-    else if (this->SliceDriver[i] == SLICE_DRIVER_LOCATOR)
-      {
-      UpdateSliceNodeByTransformNode(i, "Tracker");
-      }
-    }
-}
-
-
-//---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::UpdateMRMLLinearTransformNode(igtl::MessageBase::Pointer ptr)
-{
-  //vtkErrorMacro("vtkIGTLConnector::UpdateMRMLLinearTransformNode()  is called  ");
-
-  // Create a message buffer to receive transform data
-  igtl::TransformMessage::Pointer transMsg;
-  transMsg = igtl::TransformMessage::New();
-
-  transMsg->Copy(ptr);  // !! TODO: copy makes performance issue.
-
-  // Deserialize the transform data
-  // If you want to skip CRC check, call Unpack() without argument.
-  int c = transMsg->Unpack(1);
-
-  vtkMRMLLinearTransformNode* transformNode;
-  vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
-  vtkCollection* collection = scene->GetNodesByName(transMsg->GetDeviceName());
-
-  if (collection->GetNumberOfItems() == 0)
-    {
-    transformNode = vtkMRMLLinearTransformNode::New();
-    transformNode->SetName(transMsg->GetDeviceName());
-    transformNode->SetDescription("Received by OpenIGTLink");
-    
-    vtkMatrix4x4* transform = vtkMatrix4x4::New();
-    transform->Identity();
-    //transformNode->SetAndObserveImageData(transform);
-    transformNode->ApplyTransform(transform);
-    transform->Delete();
-    
-    scene->AddNode(transformNode);
-    }
-  else
-    {
-    vtkCollection* collection = scene->GetNodesByName(transMsg->GetDeviceName());
-    transformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
-    }
-  
-  igtl::Matrix4x4 matrix;
-  transMsg->GetMatrix(matrix);
-
-  float tx = matrix[0][0];
-  float ty = matrix[1][0];
-  float tz = matrix[2][0];
-  float sx = matrix[0][1];
-  float sy = matrix[1][1];
-  float sz = matrix[2][1];
-  float nx = matrix[0][2];
-  float ny = matrix[1][2];
-  float nz = matrix[2][2];
-  float px = matrix[0][3];
-  float py = matrix[1][3];
-  float pz = matrix[2][3];
-
-  //vtkErrorMacro("matrix = ");
-  //vtkErrorMacro( << tx << ", " << ty << ", " << tz);
-  //vtkErrorMacro( << sx << ", " << sy << ", " << sz);
-  //vtkErrorMacro( << nx << ", " << ny << ", " << nz);
-  //vtkErrorMacro( << px << ", " << py << ", " << pz);
-  
-  // set volume orientation
-  vtkMatrix4x4* transform = vtkMatrix4x4::New();
-  vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
-
-  transform->Identity();
-  transform->SetElement(0, 0, tx);
-  transform->SetElement(1, 0, ty);
-  transform->SetElement(2, 0, tz);
-
-  transform->SetElement(0, 1, sx);
-  transform->SetElement(1, 1, sy);
-  transform->SetElement(2, 1, sz);
-
-  transform->SetElement(0, 2, nx);
-  transform->SetElement(1, 2, ny);
-  transform->SetElement(2, 2, nz);
-
-  transform->SetElement(0, 3, px);
-  transform->SetElement(1, 3, py);
-  transform->SetElement(2, 3, pz);
-
-  transformToParent->DeepCopy(transform);
-  transform->Delete();
-
-  if (strcmp(transMsg->GetDeviceName(), "Tracker") == 0)
-    {
-    for (int i = 0; i < 3; i ++)
-      {
-      if (this->SliceDriver[i] == SLICE_DRIVER_LOCATOR)
+      int n = (*iter)->GetNumberOfIGTLNames();
+      for (int i = 0; i < n; i ++)
         {
-        UpdateSliceNodeByTransformNode(i, "Tracker");
+        if (strcmp((*iter)->GetIGTLName(i), deviceType) == 0)
+          {
+          converter = *iter;
+          break;
+          }
         }
       }
     }
 
+  return converter;
 }
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
-                                         float nx, float ny, float nz,
-                                         float tx, float ty, float tz,
-                                         float px, float py, float pz)
+void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber, vtkMatrix4x4* transform)
 {
 
   // NOTES: In Slicer3 ver. 3.2 and higher, a slice orientation information in
@@ -1174,12 +825,27 @@ void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
 
   CheckSliceNode();
 
+  float tx = transform->GetElement(0, 0);
+  float ty = transform->GetElement(1, 0);
+  float tz = transform->GetElement(2, 0);
+  /*
+  float sx = transform->GetElement(0, 1);
+  float sy = transform->GetElement(1, 1);
+  float sz = transform->GetElement(2, 1);
+  */
+  float nx = transform->GetElement(0, 2);
+  float ny = transform->GetElement(1, 2);
+  float nz = transform->GetElement(2, 2);
+  float px = transform->GetElement(0, 3);
+  float py = transform->GetElement(1, 3);
+  float pz = transform->GetElement(2, 3);
+
   if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Axial") == 0)
     {
     if (this->EnableOblique) // perpendicular
       {
-      this->SliceOrientation[sliceNodeNumber] = SLICE_RTIMAGE_PERP;
-      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+      //this->SliceOrientation[sliceNodeNumber] = SLICE_RTIMAGE_PERP;
+      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeNumber);
       }
     else
       {
@@ -1191,8 +857,8 @@ void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
     {
     if (this->EnableOblique) // In-Plane
       {
-      this->SliceOrientation[sliceNodeNumber] = SLICE_RTIMAGE_INPLANE;
-      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+      //this->SliceOrientation[sliceNodeNumber] = SLICE_RTIMAGE_INPLANE;
+      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeNumber);
       }
     else
       {
@@ -1204,8 +870,8 @@ void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
     {
     if (this->EnableOblique)  // In-Plane 90
       {
-      this->SliceOrientation[sliceNodeNumber] = SLICE_RTIMAGE_INPLANE90;
-      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+       //this->SliceOrientation[sliceNodeNumber] = SLICE_RTIMAGE_INPLANE90;
+      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, sliceNodeNumber);
       }
     else
       {
@@ -1220,15 +886,15 @@ void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
       {
       if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_PERP)
         {
-        this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+        this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
         }
       else if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_INPLANE)
         {
-        this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+        this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
         }
       else if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_INPLANE90)
         {
-        this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+        this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
         }
       }
     else
@@ -1239,11 +905,11 @@ void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
         }
       else if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_INPLANE)
         {
-        this->SliceNode[sliceNodeNumber]->SetOrientationToCoronal();
+        this->SliceNode[sliceNodeNumber]->SetOrientationToSagittal();
         }
       else if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_INPLANE90)
         {
-        this->SliceNode[sliceNodeNumber]->SetOrientationToSagittal();
+        this->SliceNode[sliceNodeNumber]->SetOrientationToCoronal();
         }
 
       this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
@@ -1255,69 +921,109 @@ void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
 
 
 //---------------------------------------------------------------------------
-int vtkOpenIGTLinkIFLogic::UpdateSliceNodeByTransformNode(int sliceNodeNumber, const char* nodeName)
+void vtkOpenIGTLinkIFLogic::UpdateSliceNodeByImage(int sliceNodeNumber)
 {
 
-  if (this->FreezePlane)
+  vtkMRMLVolumeNode* volumeNode =
+    vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->RealTimeImageSourceNodeID));
+
+  if (volumeNode == NULL)
     {
-    return 1;
+    return;
     }
 
-  vtkMRMLLinearTransformNode* transformNode;
-  vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
-  vtkCollection* collection = scene->GetNodesByName(nodeName);
+  vtkMatrix4x4* rtimgTransform = vtkMatrix4x4::New();
+  //volumeNode->GetRASToIJKMatrix(rtimgTransform);
+  volumeNode->GetIJKToRASMatrix(rtimgTransform);
+  //rtimgTransform->Invert();
+  
+  float tx = rtimgTransform->GetElement(0, 0);
+  float ty = rtimgTransform->GetElement(1, 0);
+  float tz = rtimgTransform->GetElement(2, 0);
+  float sx = rtimgTransform->GetElement(0, 1);
+  float sy = rtimgTransform->GetElement(1, 1);
+  float sz = rtimgTransform->GetElement(2, 1);
+  float nx = rtimgTransform->GetElement(0, 2);
+  float ny = rtimgTransform->GetElement(1, 2);
+  float nz = rtimgTransform->GetElement(2, 2);
+  float px = rtimgTransform->GetElement(0, 3);
+  float py = rtimgTransform->GetElement(1, 3);
+  float pz = rtimgTransform->GetElement(2, 3);
 
-  if (collection != NULL && collection->GetNumberOfItems() == 0)
-    {
-    // the node name does not exist in the MRML tree
-    return 0;
-    }
+  vtkImageData* imageData;
+  imageData = volumeNode->GetImageData();
+  int size[3];
+  imageData->GetDimensions(size);
+  
+  // normalize
+  float psi = sqrt(tx*tx + ty*ty + tz*tz);
+  float psj = sqrt(sx*sx + sy*sy + sz*sz);
+  float psk = sqrt(nx*nx + ny*ny + nz*nz);
+  float ntx = tx / psi;
+  float nty = ty / psi;
+  float ntz = tz / psi;
+  float nsx = sx / psj;
+  float nsy = sy / psj;
+  float nsz = sz / psj;
+  float nnx = nx / psk;
+  float nny = ny / psk;
+  float nnz = nz / psk;
 
-  transformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
+  // Shift the center
+  // NOTE: The center of the image should be shifted due to different
+  // definitions of image origin between VTK (Slicer) and OpenIGTLink;
+  // OpenIGTLink image has its origin at the center, while VTK image
+  // has one at the corner.
 
-  vtkMatrix4x4* transform;
-  //transform = transformNode->GetMatrixTransformToParent();
-  transform = transformNode->GetMatrixTransformToParent();
+  float hfovi = psi * size[0] / 2.0;
+  float hfovj = psj * size[1] / 2.0;
+  //float hfovk = psk * imgheader->size[2] / 2.0;
+  float hfovk = 0;
 
-  if (transform)
-    {
-    // set volume orientation
-    float tx = transform->GetElement(0, 0);
-    float ty = transform->GetElement(1, 0);
-    float tz = transform->GetElement(2, 0);
-    float sx = transform->GetElement(0, 1);
-    float sy = transform->GetElement(1, 1);
-    float sz = transform->GetElement(2, 1);
-    float nx = transform->GetElement(0, 2);
-    float ny = transform->GetElement(1, 2);
-    float nz = transform->GetElement(2, 2);
-    float px = transform->GetElement(0, 3);
-    float py = transform->GetElement(1, 3);
-    float pz = transform->GetElement(2, 3);
+  float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
+  float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
+  float cz = ntz * hfovi + nsz * hfovj + nnz * hfovk;
 
-    UpdateSliceNode(sliceNodeNumber, nx, ny, nz, tx, ty, tz, px, py, pz);
+  rtimgTransform->SetElement(0, 0, ntx);
+  rtimgTransform->SetElement(1, 0, nty);
+  rtimgTransform->SetElement(2, 0, ntz);
+  rtimgTransform->SetElement(0, 1, nsx);
+  rtimgTransform->SetElement(1, 1, nsy);
+  rtimgTransform->SetElement(2, 1, nsz);
+  rtimgTransform->SetElement(0, 2, nnx);
+  rtimgTransform->SetElement(1, 2, nny);
+  rtimgTransform->SetElement(2, 2, nnz);
+  rtimgTransform->SetElement(0, 3, px + cx);
+  rtimgTransform->SetElement(1, 3, py + cy);
+  rtimgTransform->SetElement(2, 3, pz + cz);
+  
+  UpdateSliceNode(sliceNodeNumber, rtimgTransform);
 
-    }
+  rtimgTransform->Delete();
+  //volumeNode->Delete();
 
-  return 1;
-
-}
+} 
 
 
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::CheckSliceNode()
 {
-
-  for (int i = 0; i < 3; i ++)
-    {
-    if (this->SliceNode[i] == NULL)
-      {
-      char nodename[36];
-      sprintf(nodename, "vtkMRMLSliceNode%d", i+1);
-      this->SliceNode[i] = vtkMRMLSliceNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodename));
-      }
-    }
   
+  if (this->SliceNode[0] == NULL)
+    {
+    this->SliceNode[0] = this->GetApplicationLogic()
+      ->GetSliceLogic("Red")->GetSliceNode();
+    }
+  if (this->SliceNode[1] == NULL)
+    {
+    this->SliceNode[1] = this->GetApplicationLogic()
+      ->GetSliceLogic("Yellow")->GetSliceNode();
+    }
+  if (this->SliceNode[2] == NULL)
+    {
+    this->SliceNode[2] = this->GetApplicationLogic()
+      ->GetSliceLogic("Green")->GetSliceNode();
+    }
 }
 
 
@@ -1378,8 +1084,18 @@ vtkMRMLModelNode* vtkOpenIGTLinkIFLogic::AddLocatorModel(const char* nodeName, d
   vtkCylinderSource *cylinder = vtkCylinderSource::New();
   cylinder->SetRadius(1.5);
   cylinder->SetHeight(100);
-  cylinder->SetCenter(0, 50, 0);
+  cylinder->SetCenter(0, 0, 0);
   cylinder->Update();
+
+  // Rotate cylinder
+  vtkTransformPolyDataFilter *tfilter = vtkTransformPolyDataFilter::New();
+  vtkTransform* trans =   vtkTransform::New();
+  trans->RotateX(90.0);
+  trans->Translate(0.0, -50.0, 0.0);
+  trans->Update();
+  tfilter->SetInput(cylinder->GetOutput());
+  tfilter->SetTransform(trans);
+  tfilter->Update();
   
   // Sphere represents the locator tip 
   vtkSphereSource *sphere = vtkSphereSource::New();
@@ -1389,7 +1105,8 @@ vtkMRMLModelNode* vtkOpenIGTLinkIFLogic::AddLocatorModel(const char* nodeName, d
   
   vtkAppendPolyData *apd = vtkAppendPolyData::New();
   apd->AddInput(sphere->GetOutput());
-  apd->AddInput(cylinder->GetOutput());
+  //apd->AddInput(cylinder->GetOutput());
+  apd->AddInput(tfilter->GetOutput());
   apd->Update();
   
   locatorModel->SetAndObservePolyData(apd->GetOutput());
@@ -1401,6 +1118,8 @@ vtkMRMLModelNode* vtkOpenIGTLinkIFLogic::AddLocatorModel(const char* nodeName, d
   locatorDisp->SetPolyData(locatorModel->GetPolyData());
   locatorDisp->SetColor(color);
   
+  trans->Delete();
+  tfilter->Delete();
   cylinder->Delete();
   sphere->Delete();
   apd->Delete();
@@ -1418,57 +1137,77 @@ void vtkOpenIGTLinkIFLogic::ProcCommand(const char* nodeName, int size, unsigned
 }
 
 //---------------------------------------------------------------------------
-//void vtkOpenIGTLinkIFLogic::GetDeviceNamesFromMrml(std::vector<char*> &list)
 void vtkOpenIGTLinkIFLogic::GetDeviceNamesFromMrml(IGTLMrmlNodeListType &list)
 {
+
   list.clear();
 
-  char* deviceTypeNames[] = {
-    "TRANSFORM",
-    "IMAGE",
-  };
-
-  char* classNames[] = 
+  MessageConverterListType::iterator mcliter;
+  for (mcliter = this->MessageConverterList.begin();
+       mcliter != this->MessageConverterList.end();
+       mcliter ++)
     {
-      "vtkMRMLLinearTransformNode",
-      "vtkMRMLVolumeNode"
-    };
-
-  for (int i = 0; i < 2; i ++)
-    {
-    std::vector<vtkMRMLNode*> nodes;
-    this->GetMRMLScene()->GetNodesByClass(classNames[i], nodes);
-    std::vector<vtkMRMLNode*>::iterator iter;
-    for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+    if ((*mcliter)->GetMRMLName())
       {
-      IGTLMrmlNodeInfoType nodeInfo;
-      nodeInfo.name = (*iter)->GetName();
-      nodeInfo.type = deviceTypeNames[i];
-      nodeInfo.io   = DEVICE_UNSPEC;
-      list.push_back(nodeInfo);
+      std::string className = this->GetMRMLScene()->GetClassNameByTag((*mcliter)->GetMRMLName());
+      std::string deviceTypeName;
+      if ((*mcliter)->GetIGTLName() != NULL)
+        {
+        deviceTypeName = (*mcliter)->GetIGTLName();
+        }
+      else
+        {
+        deviceTypeName = (*mcliter)->GetMRMLName();
+        }
+      std::vector<vtkMRMLNode*> nodes;
+      this->GetApplicationLogic()->GetMRMLScene()->GetNodesByClass(className.c_str(), nodes);
+      std::vector<vtkMRMLNode*>::iterator iter;
+      for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+        {
+        IGTLMrmlNodeInfoType nodeInfo;
+        nodeInfo.name = (*iter)->GetName();
+        nodeInfo.type = deviceTypeName.c_str();
+        nodeInfo.io   = vtkMRMLIGTLConnectorNode::IO_UNSPECIFIED;
+        nodeInfo.nodeID = (*iter)->GetID();
+        list.push_back(nodeInfo);
+        }
       }
     }
-  
+
 }
 
-/*
+
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::GetDeviceTypes(std::vector<char*> &list)
+void vtkOpenIGTLinkIFLogic::GetDeviceNamesFromMrml(IGTLMrmlNodeListType &list, const char* mrmlTagName)
 {
-  char* deviceTypes[] = {
-    "TRANSFORM",
-    "IMAGE",
-  };
 
   list.clear();
-  
-  for (int i = 0; i < 2; i ++)
-    {
-    list.push_back(deviceTypes[i]);
-    }
-}
 
-*/
+  MessageConverterListType::iterator mcliter;
+  for (mcliter = this->MessageConverterList.begin();
+       mcliter != this->MessageConverterList.end();
+       mcliter ++)
+    {
+    if ((*mcliter)->GetMRMLName() && strcmp(mrmlTagName, (*mcliter)->GetMRMLName()) == 0)
+      {
+      const char* className = this->GetMRMLScene()->GetClassNameByTag(mrmlTagName);
+      const char* deviceTypeName = (*mcliter)->GetIGTLName();
+      std::vector<vtkMRMLNode*> nodes;
+      this->GetMRMLScene()->GetNodesByClass(className, nodes);
+      std::vector<vtkMRMLNode*>::iterator iter;
+      for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+        {
+        IGTLMrmlNodeInfoType nodeInfo;
+        nodeInfo.name = (*iter)->GetName();
+        nodeInfo.type = deviceTypeName;
+        nodeInfo.io   = vtkMRMLIGTLConnectorNode::IO_UNSPECIFIED;
+        nodeInfo.nodeID = (*iter)->GetID();
+        list.push_back(nodeInfo);
+        }
+      }
+    }
+
+}
 
 
 

@@ -6,9 +6,9 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $HeadURL: $
-  Date:      $Date: $
-  Version:   $Revision: $
+  Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFLogic.h $
+  Date:      $Date: 2009-07-23 13:37:07 -0400 (Thu, 23 Jul 2009) $
+  Version:   $Revision: 10009 $
 
 ==========================================================================*/
 
@@ -37,26 +37,18 @@
 #include "igtlImageMessage.h"
 #include "igtlTransformMessage.h"
 
-// switch to activate testing code for development  -- J.T. 06.17.2008
-//#define BRP_DEVELOPMENT      1
+#include "vtkIGTLToMRMLBase.h"
+#include "vtkIGTLToMRMLLinearTransform.h"
+#include "vtkIGTLToMRMLImage.h"
+#include "vtkIGTLToMRMLPosition.h"
 
-class vtkIGTLConnector;
+class vtkMRMLIGTLConnectorNode;
 
 
 class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLogic 
 {
  public:
   //BTX
-  enum WorkPhase {
-    StartUp = 0,
-    Planning,
-    Calibration,
-    Targeting,
-    Manual,
-    Emergency,
-    NumPhases,
-  };
-
   enum {
     SLICE_DRIVER_USER    = 0,
     SLICE_DRIVER_LOCATOR = 1,
@@ -76,12 +68,17 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
     //SliceUpdateEvent        = 50002,
   };
 
-  enum {    // Device IO
-    DEVICE_UNSPEC           = 0,  // unspecified
-    DEVICE_IN               = 1,  // incoming
-    DEVICE_OUT              = 2   // outgoing
-  };
+  typedef struct {
+    std::string name;
+    std::string type;
+    int io;
+    std::string nodeID;
+  } IGTLMrmlNodeInfoType;
 
+  typedef std::vector<IGTLMrmlNodeInfoType>         IGTLMrmlNodeListType;
+  typedef std::vector<std::string>                  ConnectorListType;
+  typedef std::map<vtkMRMLNode*, ConnectorListType> MRMLNodeAndConnectorMapType;
+  typedef std::list<vtkIGTLToMRMLBase*>             MessageConverterListType;
   //ETX
   
   // Work phase keywords used in NaviTrack (defined in BRPTPRInterface.h)
@@ -102,15 +99,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   vtkSetMacro ( NeedUpdateLocator,       bool );
   vtkGetMacro ( NeedUpdateLocator,       bool );
 
-  void SetSliceDriver0(int v) { this->SliceDriver[0] = v; };
-  void SetSliceDriver1(int v) { this->SliceDriver[1] = v; };
-  void SetSliceDriver2(int v) { this->SliceDriver[2] = v; };
-  int  SetSliceDriver0() { return this->SliceDriver[0]; };
-  int  SetSliceDriver1() { return this->SliceDriver[1]; };
-  int  SetSliceDriver2() { return this->SliceDriver[2]; };
-
   vtkGetMacro ( Connection,              bool );
-
   vtkSetMacro ( EnableOblique,           bool );
   vtkGetMacro ( EnableOblique,           bool );
   vtkSetMacro ( FreezePlane,             bool );
@@ -132,45 +121,32 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   // Connector Management
   //----------------------------------------------------------------
 
-  // Add connector
-  void AddConnector();
-  void AddConnector(const char* name);
-  void AddServerConnector(const char* name, int port);
-  void AddClientConnector(const char* name, const char* svrHostName, int port);
-
-  // Delete connector
-  void DeleteConnector(int id);
-
-  int  GetNumberOfConnectors();
-  vtkIGTLConnector* GetConnector(int id);
-  int  CheckConnectorsStatusUpdates();
-  //int  ReadCircularBuffers();
-
-  void ImportFromCircularBuffers();
-
-  // Device Name management          // io -- 0: unspecified, 1: incoming, 2: outgoing
+  // Access connectors
+  int                       GetNumberOfConnectors();
+  vtkMRMLIGTLConnectorNode* GetConnector(const char* conID);
+  void                      ImportFromCircularBuffers();
+  
+  // Device Name management
   int  SetRestrictDeviceName(int f);
-  int  AddDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io);
-  int  DeleteDeviceFromConnector(int id, const char* deviceName, const char* deviceType, int io);
-  int  SetDeviceType(int id, const char* deviceName, const char* deviceType, int io);
-
+  int  AddDeviceToConnector(const char* conID, const char* deviceName, const char* deviceType, int io);
+  int  DeleteDeviceFromConnector(const char* conID, const char* deviceName, const char* deviceType, int io);
+  int  DeleteDeviceFromConnector(const char* conID, int devID, int io);
 
   //----------------------------------------------------------------
   // MRML Management
   //----------------------------------------------------------------
-
+  int  RegisterMessageConverter(vtkIGTLToMRMLBase* converter);
+  int  UnregisterMessageConverter(vtkIGTLToMRMLBase* converter);
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
+  vtkIGTLToMRMLBase* GetConverterByDeviceType(const char* deviceType);
 
-  //BTX
-  void UpdateMRMLScalarVolumeNode(igtl::MessageBase::Pointer ptr);
-  void UpdateMRMLLinearTransformNode(igtl::MessageBase::Pointer ptr);
-  //ETX
-  
-  void UpdateSliceNode(int sliceNodeNumber,
-                       float nx, float ny, float nz,
-                       float tx, float ty, float tz,
-                       float px, float py, float pz);
-  int  UpdateSliceNodeByTransformNode(int sliceNodeNumber, const char* nodeName);
+  int  SetLocatorDriver(const char* nodeID);
+  int  EnableLocatorDriver(int i);
+  int  SetRealTimeImageSource(const char* nodeID);
+  int  SetSliceDriver(int index, int v);
+  int  GetSliceDriver(int index);
+  void UpdateSliceNode(int sliceNodeNumber, vtkMatrix4x4* transform);
+  void UpdateSliceNodeByImage(int sliceNodeNuber);
   void CheckSliceNode();
 
   vtkMRMLModelNode* SetVisibilityOfLocatorModel(const char* nodeName, int v);
@@ -179,15 +155,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   void ProcCommand(const char* nodeName, int size, unsigned char* data);
 
   //BTX
-  typedef struct {
-    std::string name;
-    std::string type;
-    int io;
-  } IGTLMrmlNodeInfoType;
-
-  typedef std::vector<IGTLMrmlNodeInfoType> IGTLMrmlNodeListType;
-  
   void GetDeviceNamesFromMrml(IGTLMrmlNodeListType &list);
+  void GetDeviceNamesFromMrml(IGTLMrmlNodeListType &list, const char* mrmlTagName);
   //void GetDeviceTypes(std::vector<char*> &list);
   //ETX
 
@@ -209,16 +178,14 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   void UpdateSliceDisplay();
   void UpdateLocator();
 
-  vtkMRMLVolumeNode*          AddVolumeNode(const char*);
-  vtkMRMLLinearTransformNode* AddTransformNode(const char*);
-  void                        RegisterDeviceEvent(vtkIGTLConnector* con,
-                                                  const char* deviceName,
-                                                  const char* deviceType);
-  void                        UnRegisterDeviceEvent(vtkIGTLConnector* con,
-                                                    const char* deviceName,
-                                                    const char* deviceType);
+  int  RegisterDeviceEvent(vtkMRMLIGTLConnectorNode* con,
+                           const char* deviceName,
+                           const char* deviceType);
+  int  UnregisterDeviceEvent(vtkMRMLIGTLConnectorNode* con,
+                             const char* deviceName,
+                             const char* deviceType);
+  void UnregisterDeviceEvent(const char* conID, int devID);
   vtkCallbackCommand *DataCallbackCommand;
-
 
  private:
 
@@ -229,16 +196,20 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   //----------------------------------------------------------------
 
   //BTX
-  typedef std::vector<vtkIGTLConnector*> ConnectorListType;
-  ConnectorListType              ConnectorList;
-  std::vector<int>               ConnectorPrevStateList;
-
-  typedef std::map<vtkMRMLNode*, ConnectorListType> MRMLNodeAndConnectorTable;
-  MRMLNodeAndConnectorTable      MRMLEventConnectorTable;
-
+  //ConnectorMapType              ConnectorMap;
+  MRMLNodeAndConnectorMapType   MRMLEventConnectorMap;  // will be moved to connector node.
+  MessageConverterListType      MessageConverterList;
   //ETX
 
+  //int LastConnectorID;
   int RestrictDeviceName;
+
+  //----------------------------------------------------------------
+  // IGTL-MRML converters
+  //----------------------------------------------------------------
+  vtkIGTLToMRMLLinearTransform* LinearTransformConverter;
+  vtkIGTLToMRMLImage*           ImageConverter;
+  vtkIGTLToMRMLPosition*        PositionConverter;
 
   //----------------------------------------------------------------
   // Monitor Timer
@@ -246,7 +217,15 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
 
   int MonitorFlag;
   int MonitorInterval;
-  
+
+  //----------------------------------------------------------------
+  // Massage classes
+  //----------------------------------------------------------------
+
+  //BTX
+  igtl::TransformMessage::Pointer OutTransformMsg;
+  igtl::ImageMessage::Pointer OutImageMsg;
+  //ETX
 
   //----------------------------------------------------------------
   // Real-time image
@@ -261,10 +240,20 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   vtkMRMLSliceNode *SliceNode[3];
 
   int   SliceDriver[3];
+  int   SliceDriverConnectorID[3]; // will be obsolete
+  int   SliceDriverDeviceID[3];    // will be obsolete
+
+  //BTX
+  std::string   SliceDriverNodeID[3];
+  std::string   LocatorDriverNodeID;
+  std::string   RealTimeImageSourceNodeID;
+  //ETX
+  //vtkMRMLNode* SliceDriverNode[3];
+  //vtkMRMLNode* LocatorDriver;
+  int   LocatorDriverFlag;
   
   bool  ImagingControl;
   bool  NeedUpdateLocator;
-
   bool  EnableOblique;
   bool  FreezePlane;
 
@@ -274,8 +263,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
 
   int   SliceOrientation[3];
   
-
-
   //----------------------------------------------------------------
   // Locator
   //----------------------------------------------------------------

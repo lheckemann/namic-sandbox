@@ -6,9 +6,9 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $HeadURL: $
-  Date:      $Date: $
-  Version:   $Revision: $
+  Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkIGTLCircularBuffer.cxx $
+  Date:      $Date: 2009-01-05 13:28:20 -0500 (Mon, 05 Jan 2009) $
+  Version:   $Revision: 8267 $
 
 ==========================================================================*/
 
@@ -23,13 +23,12 @@
 #include "igtlMessageBase.h"
 
 vtkStandardNewMacro(vtkIGTLCircularBuffer);
-vtkCxxRevisionMacro(vtkIGTLCircularBuffer, "$Revision: 1.0 $");
+vtkCxxRevisionMacro(vtkIGTLCircularBuffer, "$Revision: 8267 $");
 
 
 //---------------------------------------------------------------------------
 vtkIGTLCircularBuffer::vtkIGTLCircularBuffer()
 {
-
   this->Mutex = vtkMutexLock::New();
   this->Mutex->Lock();
   // Allocate Circular buffer for the new device
@@ -40,16 +39,12 @@ vtkIGTLCircularBuffer::vtkIGTLCircularBuffer()
     this->DeviceType[i] = "";
     this->Size[i]       = 0;
     this->Data[i]       = NULL;
-
-    
     this->Messages[i] = igtl::MessageBase::New();
     this->Messages[i]->InitPack();
-
     }
 
   this->UpdateFlag = 0;
   this->Mutex->Unlock();
-
 }
 
 

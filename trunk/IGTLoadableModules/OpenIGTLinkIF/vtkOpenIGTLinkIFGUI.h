@@ -6,9 +6,9 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $HeadURL: $
-  Date:      $Date: $
-  Version:   $Revision: $
+  Module:    $HeadURL: http://svn.slicer.org/Slicer3/trunk/Modules/OpenIGTLinkIF/vtkOpenIGTLinkIFGUI.h $
+  Date:      $Date: 2009-07-23 13:37:07 -0400 (Thu, 23 Jul 2009) $
+  Version:   $Revision: 10009 $
 
 ==========================================================================*/
 
@@ -21,7 +21,7 @@
 
 #include "vtkSlicerModuleGUI.h"
 #include "vtkOpenIGTLinkIFLogic.h"
-#include "vtkIGTLConnector.h"
+#include "vtkMRMLIGTLConnectorNode.h"
 
 #include "vtkIGTDataManager.h"
 #include "vtkIGTPat2ImgRegistration.h"
@@ -29,6 +29,7 @@
 #include "vtkSlicerInteractorStyle.h"
 
 #include <string>
+#include <vector>
 
 class vtkKWPushButton;
 class vtkKWPushButtonSet;
@@ -44,6 +45,8 @@ class vtkKWEntryWithLabel;
 class vtkKWLoadSaveButtonWithLabel;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkKWWizardWidget;
+class vtkKWTreeWithScrollbars;
+class vtkSlicerNodeSelectorWidget;
 
 class vtkTransform;
 
@@ -52,6 +55,10 @@ class vtkTransform;
 //
 class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
 {
+
+  //----------------------------------------------------------------
+  // Type defines
+  //----------------------------------------------------------------
  public:
   //BTX
   enum {
@@ -74,11 +81,30 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
     UPDATE_PROPERTY_ALL    = 2,  // Update all properties for all items
     UPDATE_ALL             = 3,  // Update whole list (incl. changed number of items)
   };
-  
-  static const char* ConnectorTypeStr[vtkIGTLConnector::NUM_TYPE];
-  static const char* ConnectorStatusStr[vtkIGTLConnector::NUM_STATE];
+
+  enum {
+    NODE_NONE      = 0,
+    NODE_CONNECTOR = 1,
+    NODE_IO        = 2,
+    NODE_DEVICE    = 3
+  };
+
+  static const char* ConnectorTypeStr[vtkMRMLIGTLConnectorNode::NUM_TYPE];
+  static const char* ConnectorStatusStr[vtkMRMLIGTLConnectorNode::NUM_STATE];
+
+  typedef struct {
+    std::string nodeName;
+    int         deviceID;
+    std::string connectorID;
+    int         io;
+  } IOConfigNodeInfoType;
+
+  typedef std::list<IOConfigNodeInfoType> IOConfigNodeInfoListType;
   //ETX
 
+  //----------------------------------------------------------------
+  // Access functions
+  //----------------------------------------------------------------
  public:
   // Description:    
   // Usual vtk class functions
@@ -86,6 +112,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   vtkTypeRevisionMacro ( vtkOpenIGTLinkIFGUI, vtkSlicerModuleGUI );
   void PrintSelf (ostream& os, vtkIndent indent );
   
+  // Description: 
+  // Get the categorization of the module.
+  const char *GetCategory() const { return "IGT"; }
+
   //SendDATANavitrack
   // Description:    
   // Get methods on class members (no Set methods required)
@@ -108,50 +138,94 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   vtkGetObjectMacro ( FiducialListNode, vtkMRMLFiducialListNode );
   vtkSetObjectMacro ( FiducialListNode, vtkMRMLFiducialListNode );
 
+  //----------------------------------------------------------------
+  // Event handlers
+  //----------------------------------------------------------------
+ public:
   // Description:    
   // This method builds the IGTDemo module GUI
   virtual void BuildGUI ( );
+
+ private:
+  void BuildGUIForWizardFrame();
+  void BuildGUIForHelpFrame();
+  void BuildGUIForConnectorBrowserFrame();
+  void BuildGUIForIOConfig();
+  void BuildGUIForDeviceFrame();
+  void BuildGUIForVisualizationControlFrame();
   
+  //----------------------------------------------------------------
+  // Event handlers
+  //----------------------------------------------------------------
+ public:
   // Description:
-  // Add/Remove observers on widgets in the GUI
+  // Add/Remove observers and even handlers
   virtual void AddGUIObservers ( );
   virtual void RemoveGUIObservers ( );
-
-  void AddLogicObservers ( );
-  void RemoveLogicObservers ( );
+  void         AddLogicObservers ( );
+  void         RemoveLogicObservers ( );
+  virtual void AddNodeCallback(const char* conID, int io, const char* name, const char* type);
+  virtual void DeleteNodeCallback(const char* conID, int io, int devID);
 
   // Description:
   // Class's mediator methods for processing events invoked by
   // either the Logic, MRML or GUI.    
+
   virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
-
-  void ProcessTimerEvents();
-
-  void HandleMouseEvent(vtkSlicerInteractorStyle *style);
+  virtual int  OnMrmlNodeListChanged(int row, int col, const char* item);
+  void         ProcessTimerEvents();
+  void         HandleMouseEvent(vtkSlicerInteractorStyle *style);
+  //BTX
+  static void  DataCallback(vtkObject *caller, 
+                           unsigned long eid, void *clientData, void *callData);
+  //ETX
   
+ public:
   // Description:
   // Describe behavior at module startup and exit.
   virtual void Enter ( );
   virtual void Exit ( );
-  
   void Init();
 
-  //BTX
-  static void DataCallback(vtkObject *caller, 
-                           unsigned long eid, void *clientData, void *callData);
+  void UpdateAll();
   
-  //ETX
-  
+  //----------------------------------------------------------------
+  // Constructor / Destructor
+  //----------------------------------------------------------------
  protected:
   vtkOpenIGTLinkIFGUI ( );
   virtual ~vtkOpenIGTLinkIFGUI ( );
+
+  //----------------------------------------------------------------
+  // Operators
+  //----------------------------------------------------------------
+ private:
+  vtkOpenIGTLinkIFGUI ( const vtkOpenIGTLinkIFGUI& ); // Not implemented.
+  void operator = ( const vtkOpenIGTLinkIFGUI& ); //Not implemented.
   
+  //----------------------------------------------------------------
+  // Dynamic GUIs
+  //----------------------------------------------------------------
+ private:
+  void IOConfigTreeContextMenu(const char *callData);
+  //BTX
+  int  IsIOConfigTreeLeafSelected(const char* callData, std::string& conID, int* devID, int* io);
+  //ETX
+  void AddIOConfigContextMenuItem(int type, const char* conID, int devID, int io);
+  void ChangeSlicePlaneDriver(int slice, const char* driver);
+  void SetLocatorSource(int selected);
+  //void UpdateRealTimeImageSourceMenu();
+  void UpdateIOConfigTree();
+  void UpdateConnectorList(int updateLevel);
+  void UpdateConnectorPropertyFrame(int i);
+  void UpdateConnectorNodeList();
+
+ private:
   //----------------------------------------------------------------
   // Timer
   //----------------------------------------------------------------
-  
   int TimerFlag;
   int TimerInterval;
 
@@ -163,20 +237,21 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   // Connector Browser Frame
 
   vtkKWMultiColumnListWithScrollbars* ConnectorList;
-  vtkKWPushButton* AddConnectorButton;
-  vtkKWPushButton* DeleteConnectorButton;
-
+  vtkKWPushButton*     AddConnectorButton;
+  vtkKWPushButton*     DeleteConnectorButton;
   vtkKWEntry*          ConnectorNameEntry;
   vtkKWRadioButtonSet* ConnectorTypeButtonSet;
   vtkKWCheckButton*    ConnectorStatusCheckButton;
   vtkKWEntry*          ConnectorAddressEntry;
   vtkKWEntry*          ConnectorPortEntry;
 
-  vtkKWCheckButton*    EnableAdvancedSettingButton;
-  vtkKWMultiColumnListWithScrollbars* MrmlNodeList;
+  //----------------------------------------------------------------
+  // Data I/O Configuration frame
 
-  vtkKWPushButton* AddDeviceNameButton;
-  vtkKWPushButton* DeleteDeviceNameButton;  
+  vtkKWCheckButton*    EnableAdvancedSettingButton;
+  vtkKWTreeWithScrollbars* IOConfigTree;
+  vtkKWMenu *IOConfigContextMenu;
+  vtkKWMultiColumnListWithScrollbars* MrmlNodeList;
 
   //----------------------------------------------------------------
   // Visualization Control Frame
@@ -191,15 +266,13 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   vtkKWMenuButton  *GreenSliceMenu;
   vtkKWCheckButton *ImagingControlCheckButton;
   vtkKWMenuButton  *ImagingMenu;
-  
-  vtkKWPushButton  *StartScanButton;
-  vtkKWPushButton  *StopScanButton;
+
+  //vtkKWMenuButton  *RealTimeImageSourceMenu;
+  vtkSlicerNodeSelectorWidget *ImageSourceSelectorWidget;
+  vtkSlicerNodeSelectorWidget *LocatorSourceSelectorWidget;
 
   vtkKWCheckButton *LocatorCheckButton;
-
   bool              IsSliceOrientationAdded;
-
-  
   // Module logic and mrml pointers
 
   //----------------------------------------------------------------
@@ -216,14 +289,11 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   vtkMRMLSliceNode *SliceNode0;
   vtkMRMLSliceNode *SliceNode1;
   vtkMRMLSliceNode *SliceNode2;
-  /*
-  vtkSlicerSliceLogic *Logic0;
-  vtkSlicerSliceLogic *Logic1;
-  vtkSlicerSliceLogic *Logic2;
-  vtkSlicerSliceControllerWidget *Control0;
-  vtkSlicerSliceControllerWidget *Control1;
-  vtkSlicerSliceControllerWidget *Control2;
-  */
+
+  // GUI Update flags
+  int UpdateConnectorListFlag;
+  int UpdateConnectorPropertyFrameFlag;
+  int UpdateIOConfigTreeFlag;
 
   //BTX
   std::string LocatorModelID;
@@ -232,15 +302,28 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   
   //int RealtimeImageOrient;
 
-
   //----------------------------------------------------------------
   // Connector and MRML Node list management
   //----------------------------------------------------------------
 
-  int   CurrentMrmlNodeListID;  // raw number
+  //ConnectorIDListType ConnectorIDList;
+  //BTX
+  // List of connector node
+  std::vector<std::string> ConnectorNodeList;
+  //ETX
+
+  //int   CurrentMrmlNodeListID;  // row number
+  int   CurrentMrmlNodeListIndex; // row number
   //BTX
   vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType CurrentNodeListAvailable;
   vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType CurrentNodeListSelected;
+  vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType LocatorSourceList;
+  vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType RealTimeImageSourceList;
+
+  IOConfigNodeInfoListType IOConfigTreeConnectorList;
+  IOConfigNodeInfoListType IOConfigTreeIOList;
+  IOConfigNodeInfoListType IOConfigTreeNodeList;
+
   //ETX
 
   //----------------------------------------------------------------
@@ -250,7 +333,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   //vtkMRMLModelNode           *LocatorModel;
   int                        CloseScene;
 
-
   //----------------------------------------------------------------
   // Target Fiducials
   //----------------------------------------------------------------
@@ -258,32 +340,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   char *FiducialListNodeID;
   vtkMRMLFiducialListNode *FiducialListNode;
 
-  void UpdateAll();
-
- private:
-
-  vtkOpenIGTLinkIFGUI ( const vtkOpenIGTLinkIFGUI& ); // Not implemented.
-  void operator = ( const vtkOpenIGTLinkIFGUI& ); //Not implemented.
-  
-  void BuildGUIForWizardFrame();
-  void BuildGUIForConnectorBrowserFrame ();
-  void BuildGUIForHelpFrame();
-  void BuildGUIForDeviceFrame();
-  void BuildGUIForVisualizationControlFrame();
-  
-  int  ChangeWorkPhase(int phase, int fChangeWizard=0);
-  void ChangeSlicePlaneDriver(int slice, const char* driver);
-
-
-  //----------------------------------------------------------------
-  // Connector List and Properties control
-  //----------------------------------------------------------------
-
-  void UpdateConnectorList(int updateLevel);
-  void UpdateConnectorPropertyFrame(int i);
-  void UpdateMrmlNodeListFrame(int con);
- public:
-  virtual int OnMrmlNodeListChanged(int row, int col, const char* item);
 };
 
 
