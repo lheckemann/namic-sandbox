@@ -263,7 +263,80 @@ filter type.
 \lstinputlisting[linerange={75-75}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
 \end{center}
 
+As described in~\cite{Yeo2008,Yeo2009} the demons filter has a set of
+parameters that control the behavior of the deformation field. The main
+parameters are
 
+\begin{itemize}
+\item Gamma
+\item SigmaX
+\item Number of Iterations
+\item Lambda
+\item Number of Smoothing Iterations
+\end{itemize}
+
+The parameter Gamma is the coefficient that multiplies the $2x2$ identity
+matrix in the Levenberg Marquardt modification of the Newton method. This
+parameter adds stability to the solver. The larger this value is, the smaller
+the deformations will be.
+
+The parameter SigmaX is used to divide the Jacobian matrix term in the
+computation of the velocity field. The larger this parameter is, the larger
+will be the deformations of the resulting field.
+
+The ``Number of Iterations'' parameter corresponds to the main iterative loop
+of the solver that computes updates of the velocity field and that compose them
+with the current deformation. The total computation time of the filter will be
+linearly proportional to this value.
+
+The Lambda parameter is used in the smoothing of the deformation field. It
+affects the weights that will be used when computing the weighted average of
+the first ring of neighbors at every node. The effect of the Lambda value has
+been discussed in~\cite{MeshSmoothingIJ2009}. For small values of $\lambda$,
+for example, less than $0.1$, the weight of the central pixels dominates the
+computation, and therefore a subtle smoothing is applied. On the other hand,
+for values of $\lambda$ above $10.0$ the weights of central value is almost the
+same as the weight of any of the neighbors which make the filter behave as a
+iterative average filter and produce a stronger smoothing effect.
+
+The ``Number of Smoothing Iterations'' parameter is also discussed in
+~\cite{MeshSmoothingIJ2009}. The smoothing is performed iteratively by visiting
+all the nodes and computing a weighted average of the first ring neighbors. The
+more iterations are applied, the stronger the smoothing will be.
+
+These parameters described above are set with the methods
+
+\begin{itemize}
+\item \code{SetGamma()}
+\item \code{SetSigmaX()}
+\item \code{SetMaximumNumberOfIterations()}
+\item \code{SetLambda()}
+\item \code{SetMaximumNumberOfSmoothingIterations()}
+\end{itemize}
+
+As shown in the following code
+
+\begin{center}
+\lstinputlisting[linerange={87-92}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
+
+The execution of the filter can be triggered by calling the \code{Update()}
+method. This should typically be done inside a \code{try/catch} block, since it
+is possible that error conditions may generate exceptions.
+
+
+\begin{center}
+\lstinputlisting[linerange={95-103}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
+
+Finally, the result of mapping the values of the Moving mesh onto the geometry
+of the Fixed mesh by using the deformation field that maps points from the
+Fixed Mesh into points of the Moving Mesh is obtained as the Output of the filter,
+and can be passed to a Mesh Writer.
+
+\begin{center}
+\lstinputlisting[linerange={106-121}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
 
 
 
