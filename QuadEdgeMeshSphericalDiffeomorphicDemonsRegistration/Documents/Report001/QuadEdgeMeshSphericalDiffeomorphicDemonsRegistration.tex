@@ -397,6 +397,12 @@ resampledMesh.vtk  1.0 1.0 1.0 1 300
 
 \section{Results}
 
+Figure~\ref{fig:InputMeshes} illustrates the two meshes passes as input to this
+test. Both meshes have radius of 100.0 units and are centered at the origin of
+coordinates. The scalar function on the surface of the mesh is a Gaussian of
+the angle $\phi$ scaled by a constant. In the case of the Fixed Mesh on the
+left, the constant used was $3.0$ while in the case of the Moving Mesh a
+constant of $2.0$ was used.
 
 \begin{figure}
 \center
@@ -404,9 +410,21 @@ resampledMesh.vtk  1.0 1.0 1.0 1 300
 \includegraphics[width=0.45\textwidth]{movingMeshWithScalarsGaussianIC4.png}
 \itkcaption[Input Meshes]{Fixed Mesh (left) and Moving Mesh (right) passed as
 input to the Demons filter.}
- \label{fig:inputMeshes}
+\label{fig:InputMeshes}
 \end{figure}
 
+
+\begin{figure}
+\center
+\includegraphics[width=0.45\textwidth]{registeredMeshWithScalarsGaussianIC4.png}
+\includegraphics[width=0.45\textwidth]{meshWithVectorsIC4e.png}
+\itkcaption[Output Meshes]{Registered Mesh (left) and Deformation field (right)
+produced as output by the Demons filter.}
+\label{fig:OutputMeshes}
+\end{figure}
+
+
+\clearpage
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
