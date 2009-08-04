@@ -22,8 +22,15 @@
 namespace itk {
 
 /** \class LabelPerimeterEstimationCalculator
- * \brief TODO
+ * \brief Estimates the perimeter of a label object. 
  *
+ * The LabelPerimeterEstimationCalculator takes a label object and calculates
+ * an estimated perimeter based on pixels' and their neighbors. 
+ * 
+ * This implementation was taken from the Insight Journal paper:
+ * http://hdl.handle.net/1926/584  or 
+ * http://www.insight-journal.org/browse/publication/176
+ * 
  * \author Gaetan Lehmann. Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas, France.
  *
  * \sa 
@@ -53,15 +60,13 @@ public:
   typedef typename std::map< InputImagePixelType, double > PerimetersType;
   
   /** ImageDimension constants */
-  itkStaticConstMacro(ImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
+  itkStaticConstMacro(ImageDimension, unsigned int, TInputImage::ImageDimension);
 
   /** Standard New method. */
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(LabelPerimeterEstimationCalculator, 
-               Object);
+  itkTypeMacro(LabelPerimeterEstimationCalculator, Object);
   
   /**
    * Set/Get whether the connected components are defined strictly by
