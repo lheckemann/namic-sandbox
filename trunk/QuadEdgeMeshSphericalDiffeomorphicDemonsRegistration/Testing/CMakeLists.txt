@@ -153,9 +153,18 @@ ADD_TEST(MeshGeneratorHelperTest7
 
 ADD_TEST(MeshGeneratorHelperTest8
   ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest5
-  ${TEMP}/meshWithScalarsGaussianIC4.vtk
+  ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
   4      # resolution
   100.0  # Scale (radius)
+  3.0    # Phi multiplier
+  )
+
+ADD_TEST(MeshGeneratorHelperTest9
+  ${CXX_TEST_PATH}/itkMeshGeneratorHelperTest5
+  ${TEMP}/movingMeshWithScalarsGaussianIC4.vtk
+  4      # resolution
+  100.0  # Scale (radius)
+  2.0    # Phi multiplier
   )
 
 
@@ -205,6 +214,18 @@ ADD_TEST(DemonsFilterTest4
   1.0    # Lambda
   1      # Smoothing Iterations
   3000   # maximum number of iterations
+  )
+
+ADD_TEST(DemonsFilterTest5
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsGaussianIC4.vtk
+  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/registeredMeshWithScalarsGaussianIC4.vtk
+  1.0    # Gamma
+  1.0    # SigmaX
+  1.0    # Lambda
+  1      # Smoothing Iterations
+  300    # maximum number of iterations
   )
 
 

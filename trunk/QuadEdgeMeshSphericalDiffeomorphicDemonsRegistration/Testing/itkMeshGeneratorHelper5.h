@@ -43,7 +43,7 @@ public:
   typedef TMesh                    MeshType;
   typedef typename TMesh::Pointer  MeshPointer;
 
-static void GenerateMesh( MeshPointer & mesh, unsigned int resolution, double scale )
+static void GenerateMesh( MeshPointer & mesh, unsigned int resolution, double scale, double factor )
   {
   typedef itk::RegularSphereMeshSource< MeshType >  SphereMeshSourceType;
 
@@ -108,7 +108,9 @@ static void GenerateMesh( MeshPointer & mesh, unsigned int resolution, double sc
 
     const double phi = vcl_atan2( xy, z );
 
-    pixelIterator.Value() = phi;
+    const double Gx = phi * factor;
+
+    pixelIterator.Value() = vcl_exp( - Gx * Gx );
 
     ++pointItr;
     ++pixelIterator;
