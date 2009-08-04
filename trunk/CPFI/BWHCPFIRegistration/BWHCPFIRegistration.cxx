@@ -42,7 +42,7 @@ int main( int argc, char * argv[] )
 
   try
     {
-    itk::GetImageType (FixedImageFileName, pixelType, componentType);
+    itk::GetImageType (fixedImageFileName, pixelType, componentType);
 
     // This filter handles all types
 
