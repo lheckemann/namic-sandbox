@@ -23,11 +23,11 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 4 )
+  if( argc < 5 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " outputMeshFile resolution scale ";
+    std::cerr << " outputMeshFile resolution scale factor ";
     return EXIT_FAILURE;
     }
   
@@ -42,8 +42,9 @@ int main( int argc, char *argv[] )
 
   const unsigned int resolution = atoi( argv[2] );
   const double scale = atof( argv[3] );
+  const double factor = atof( argv[4] );
 
-  GeneratorType::GenerateMesh( mesh, resolution, scale );
+  GeneratorType::GenerateMesh( mesh, resolution, scale, factor );
 
   itk::MeshWriterHelper1< MeshType >::WriteMeshToFile( mesh, argv[1] );
 
