@@ -79,6 +79,31 @@ int main( int argc, char *argv[] )
 
   std::cout << "test 4 \n";
 
+  GradientCalculatorType::PointType center1;
+  center1.Fill( 17.0 );
+  gradientCalculator->SetSphereCenter( center1 );
+  TEST_SET_GET_VALUE( center1, gradientCalculator->GetSphereCenter() );
+
+  GradientCalculatorType::PointType center2;
+  center2.Fill( 31.0 );
+  gradientCalculator->SetSphereCenter( center2 );
+  TEST_SET_GET_VALUE( center2, gradientCalculator->GetSphereCenter() );
+
+  const double radius1 = 19.0;
+  gradientCalculator->SetSphereRadius( radius1 );
+  TEST_SET_GET_VALUE( radius1, gradientCalculator->GetSphereRadius() );
+
+  const double radius2 = 29.0;
+  gradientCalculator->SetSphereRadius( radius2 );
+  TEST_SET_GET_VALUE( radius2, gradientCalculator->GetSphereRadius() );
+
+
+  GradientCalculatorType::PointType center0;
+  center0.Fill( 0.0 );
+
+  gradientCalculator->SetSphereCenter( center0 );
+  gradientCalculator->SetSphereRadius( 100.0 );
+
 
   //Have not properly initialized gradientCalculator yet...
   TRY_EXPECT_EXCEPTION( gradientCalculator->Initialize(); );
