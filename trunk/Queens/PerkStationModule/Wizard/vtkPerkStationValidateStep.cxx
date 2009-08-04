@@ -547,7 +547,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
   vtkMatrix4x4 *matrix;
   vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
 
-  if ((s == istyle0) && (event == vtkCommand::LeftButtonPressEvent))
+  if ( ((s == istyle0) || (s == istyleSecondary))&& (event == vtkCommand::LeftButtonPressEvent))
     {
     ++this->ClickNumber;
     if (s == istyle0)

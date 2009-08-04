@@ -108,6 +108,13 @@ vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
    this->UserPlanInsertionDepth = 0;
    this->ActualPlanInsertionDepth = 0;
 
+   this->TrackerToPhantomMatrix = vtkMatrix4x4::New();
+   this->PhantomToImageRASMatrix = vtkMatrix4x4::New();
+  
+
+   this->ReferenceBodyToolPort = 0;
+   this->NeedleToolPort = 1;
+
    this->ValidateEntryPoint[0] = 0.0;
    this->ValidateEntryPoint[1] = 0.0;
    this->ValidateEntryPoint[2] = 0.0;
@@ -136,6 +143,8 @@ vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
    this->InitializeTransform();
 
    this->InitializeFiducialListNode();
+
+   
 }
 
 //----------------------------------------------------------------------------
@@ -730,7 +739,7 @@ void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
         {
         // error macro      
         }   
-    this->PlanMRMLFiducialListNode->SetLocked(true);
+    //this->PlanMRMLFiducialListNode->SetLocked(true);
     this->PlanMRMLFiducialListNode->SetName("PerkStationFiducialList");
     this->PlanMRMLFiducialListNode->SetDescription("Created by PERK Station Module; marks entry point and target point");
     this->PlanMRMLFiducialListNode->SetColor(0.5,0.5,0.5);

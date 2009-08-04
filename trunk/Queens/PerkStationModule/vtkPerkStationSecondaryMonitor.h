@@ -19,7 +19,9 @@ class vtkImageMapToWindowLevelColors;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkImageMapper;
+class vtkTextActor;
 class vtkActor2D;
+class vtkActor2DCollection;
 class vtkActor;
 class vtkKWRenderWidget;
 class vtkLineSource;
@@ -140,6 +142,9 @@ public:
   // Overlay needle guide
   void OverlayNeedleGuide();
 
+  void OverlayRealTimeNeedleTip(double tipRAS[3], vtkMatrix4x4 *tranformMatrix=NULL);
+  void RemoveOverlayRealTimeNeedleTip();
+
   // Description
   // reset calibration
   void ResetCalibration();
@@ -152,6 +157,7 @@ public:
 
   void RemoveDepthPerceptionLines();
 
+  void RemoveTextActors();
 
 protected:
   vtkPerkStationSecondaryMonitor();
@@ -165,8 +171,20 @@ protected:
   vtkRenderWindowInteractor *Interator;
   vtkImageMapper *ImageMapper;
   vtkActor2D *ImageActor;
-  vtkActor *NeedleActor; 
-  vtkActorCollection *DepthPerceptionLines;
+  
+  // overlay needle guide actor
+  vtkActor *NeedleGuideActor; 
+  // cross-hair at real-time needle tip
+  vtkActor *NeedleTipActor;
+  // real-time needle vector as being tracked
+  vtkActor *RealTimeNeedleLineActor;
+  // needle tip z-location as tracked text actor
+  vtkTextActor *NeedleTipZLocationText;
+  // collection of depth perception lines
+  vtkActorCollection *DepthPerceptionLines;  
+  // collection of text labels on the depth perception lines
+  vtkActor2DCollection *TextActorsCollection;
+
   vtkImageMapToWindowLevelColors *MapToWindowLevelColors;
   
   vtkImageReslice *Reslice; // reslice/resample filter
@@ -195,7 +213,7 @@ protected:
   bool VerticalFlipped;
   bool HorizontalFlipped;
 
- 
+  double MeasureNeedleLengthInWorldCoordinates;
   unsigned int NumOfDepthPerceptionLines;
   bool DepthLinesInitialized;
 
