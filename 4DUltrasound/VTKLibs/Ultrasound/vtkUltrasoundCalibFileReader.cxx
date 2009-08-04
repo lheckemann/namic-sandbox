@@ -118,8 +118,25 @@ vtkUltrasoundCalibFileReader::~vtkUltrasoundCalibFileReader()
 {
   this->SetFileName(0);
   this->FileStream = 0;
-  this->HomogeneousMatrix->Delete();
-  this->CalibrationMatrix->Delete();
+
+  if(this->ObliquenessAdjustmentMatrix)
+    {
+    this->ObliquenessAdjustmentMatrix->Delete();
+    }
+
+  if(this->CoordinateTransformationMatrix)
+    {
+    this->CoordinateTransformationMatrix->Delete();
+    }
+
+  if(this->HomogeneousMatrix)
+    {
+    this->HomogeneousMatrix->Delete();
+    }
+  if(this->CalibrationMatrix)
+    {
+    this->CalibrationMatrix->Delete();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -698,8 +715,8 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   #else
   this->ShrinkFactor[0] = (int) (this->TransformationFactorMmToPixel + 0.5);//X 
   this->ShrinkFactor[1] = (int) (this->TransformationFactorMmToPixel + 0.5);//Y
-//  this->ShrinkFactor[0] = 1;//X 
-//  this->ShrinkFactor[1] = 1;//Y
+  this->ShrinkFactor[0] = 1;//X
+  this->ShrinkFactor[1] = 1;//Y
   #endif
   
   #ifdef DEBUG_CALIBRATIONFILE_READER
@@ -780,6 +797,11 @@ void vtkUltrasoundCalibFileReader::Calculate()
   this->ClipRectangle[1] = vtkUltrasoundCalibFileReader::DefaultClipPixels[1]*this->ImageSpacing[1]+this->ImageOrigin[1];
   this->ClipRectangle[2] = vtkUltrasoundCalibFileReader::DefaultClipPixels[2]*this->ImageSpacing[0]+this->ImageOrigin[0];
   this->ClipRectangle[3] = vtkUltrasoundCalibFileReader::DefaultClipPixels[3]*this->ImageSpacing[1]+this->ImageOrigin[1];
+
+  if(flipmatrix)
+    {
+    flipmatrix->Delete();
+    }
 }
 //----------------------------------------------------------------------------
 void vtkUltrasoundCalibFileReader::ReadComments()
