@@ -46,7 +46,7 @@ LabelPerimeterEstimationCalculator<TInputImage>
   
   m_Perimeters.clear();
   
-  // ProgressReporter progress( this, 0, this->GetImage()->GetRequestedRegion().GetNumberOfPixels() );
+  ProgressReporter progress( this, 0, this->GetImage()->GetRequestedRegion().GetNumberOfPixels() );
   
   // reduce the region to avoid reading outside
   RegionType region = this->GetImage()->GetRequestedRegion();
@@ -65,9 +65,6 @@ LabelPerimeterEstimationCalculator<TInputImage>
   typedef ConstShapedNeighborhoodIterator<InputImageType> IteratorType;
   typename IteratorType::ConstIterator nIt;
   IteratorType iIt( radius, this->GetImage(), region );
-//   ConstantBoundaryCondition<InputImageType> lcbc;
-//   lcbc.SetConstant( NumericTraits<InputImagePixelType>::max() );
-//   iIt.OverrideBoundaryCondition(&lcbc);
   // we want to search the neighbors with offset >= 0
   // 2D -> 4 neighbors
   // 3D -> 8 neighbors
@@ -91,12 +88,10 @@ LabelPerimeterEstimationCalculator<TInputImage>
       }
     if( deactivate )
       {
-//       std::cout << "- " << offset << std::endl;
       iIt.DeactivateOffset( offset );
       }
     else
       {
-//       std::cout << "+ " << idx0 + offset << std::endl;
       iIt.ActivateOffset( offset );
       indexes.push_back( idx0 + offset );
       }
@@ -144,12 +139,11 @@ LabelPerimeterEstimationCalculator<TInputImage>
 
       }
 
-    // progress.CompletedPixel();
+    progress.CompletedPixel();
 
     }
 
   // compute the participation to the perimeter for all the configurations
-//   std::cout << "spacing: " << this->GetImage()->GetSpacing() << std::endl;
   double physicalSize = 1;
   for( int i=0; i<ImageDimension; i++ )
     {
@@ -196,7 +190,6 @@ LabelPerimeterEstimationCalculator<TInputImage>
         }
       }
     contributions[i] /= ImageDimension;
-//     std::cout << "configuration: " << i << "  contribution: " << contributions[i] << std::endl;
     }
 
 
@@ -212,9 +205,7 @@ LabelPerimeterEstimationCalculator<TInputImage>
       it2++ )
       {
       m_Perimeters[ it->first ] += contributions[ it2->first ] * it2->second;
-//       std::cout << it->first+0.0 << "  "  << it2->first << "  " << it2->second << std::endl;
       }
-//     std::cout << "label: " << it->first+0.0 << "  perimeter: " << m_Perimeters[ it->first ] << std::endl;
     }
 
 }
