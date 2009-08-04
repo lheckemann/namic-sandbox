@@ -354,9 +354,9 @@ IF(USE_VTK)
 
     ADD_TEST(VectorRenderTest1
       ${CXX_TEST_PATH}/VectorMeshRender
-      ${TEMP}/meshWithVectorsIC4e.vtk
+      ${TEMP}/meshWithVectorsIC4g.vtk
       1   # vector scale factor
-      ${TEMP}/meshWithVectorsIC4e.png
+      ${TEMP}/meshWithVectorsIC4g.png
       )
 
   ENDIF(GENERATE_PAPER_SCREENSHOTS)
