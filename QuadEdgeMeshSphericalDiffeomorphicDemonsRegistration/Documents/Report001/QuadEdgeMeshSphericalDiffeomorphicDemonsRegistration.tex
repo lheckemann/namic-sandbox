@@ -198,7 +198,15 @@ the two meshes before you attempt to perform Deformable registration using the
 filter described below.
 
 
-\subsection{Basic Registration Example}
+\subsection{Basic Registration Source Code Example}
+
+The source code presented in this section can be found in the \code{Examples}
+directory under the filename
+
+\begin{itemize}
+\item QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+\end{itemize}
+
 
 In order to use this filter we should start by including headers for the Demons
 registration filter, the reader and writer types and the \doxygen{QuadEdgeMesh}
@@ -337,6 +345,55 @@ and can be passed to a Mesh Writer.
 \begin{center}
 \lstinputlisting[linerange={106-121}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
 \end{center}
+
+
+\subsection{How to Run}
+
+Once you have compiled the source code described in the previous section, you
+can run it from a command line of a console such as
+
+\begin{itemize}
+\item Unix shell
+\item GNU/Linux shell
+\item MS-DOS console window
+\item Visual Studio Command Prompt
+\end{itemize}
+
+In order to follow the rest of this section, you should be familiar with the
+command line operations of your platform.
+
+The Subdirectory \code{Examples} contain the source file 
+
+\begin{itemize}
+\item QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx
+\end{itemize}
+
+When building the project this file generates an executable called
+
+\begin{itemize}
+\item QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+\end{itemize}
+
+This executable expects the following four command line arguments
+
+\begin{enumerate}
+\item Input FixedMeshFileName (.vtk legacy format)
+\item Input MovingMeshFileName (.vtk legacy format)
+\item Output ResampledMeshFileName (.vtk legacy format)
+\item gamma (real value)
+\item sigmaX (real value)
+\item lambda (real value)
+\item numberOfSmoothingIterations (integer value)
+\item numberOfIterations (integer value)
+\end{enumerate}
+
+The results in the following section were generated with calls similar to
+
+\begin{verbatim}
+SmoothingMeshWithScalars fixedMeshWithScalarsIC1.vtk movingMeshWithScalarsIC1.vtk \
+resampledMesh.vtk  1.0 1.0 1.0 1 300
+\end{verbatim}
+
 
 
 
