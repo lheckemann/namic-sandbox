@@ -222,6 +222,46 @@ We declare the type of the registration filter and instantiate it.
 \lstinputlisting[linerange={46-49}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
 \end{center}
 
+In order to read the input mesh we declare a reader types for both the Fixed
+and Moving meshes, and create one instance of each one.
+
+\begin{center}
+\lstinputlisting[linerange={51-58}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
+
+The output of the readers is passed as input to the mesh deformable
+registration filter.
+
+\begin{center}
+\lstinputlisting[linerange={72-73}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
+
+As described in the introduction, this filter is designed to operate on meshes
+representing a spherical geometry and spherical topology. In order to perform
+consistent computations, the filter requires the user to provide the
+coordinates of the sphere center as well as the sphere radius. This may seem to
+be redundant, since, obviously the filter could have estimated these parameters
+from the population of points in the mesh, however, such approach would require
+to invest the computation time of estimating those values, without the guaranty
+that the resulting estimates will be satisfactory.
+
+In the current API of the filter, the user should provide the sphere center and
+the sphere radius by calling the methods \code{SetCenter()} and
+\code{SetRadius()} respectively. The values provided \emph{must} correspond to
+the real parameters of the spherical meshes passed as input, otherwise all the
+deformation calculations will be incorrect. It is also a requirement that both
+the Fixed and Moving mesh will have exactly the same center and same radius.
+
+\begin{center}
+\lstinputlisting[linerange={78-79}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
+
+Note that the type of the \code{center} variable can be taken as a trait of the
+filter type.
+ 
+\begin{center}
+\lstinputlisting[linerange={75-75}]{../../Examples/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx}
+\end{center}
 
 
 
