@@ -72,26 +72,24 @@ int main( int argc, char *argv[] )
   demonsFilter->SetFixedMesh( fixedReader->GetOutput() );
   demonsFilter->SetMovingMesh( movingReader->GetOutput() );
 
-  DemonsFilterType::PointType center0;
-  center0.Fill( 0.0 );
+  DemonsFilterType::PointType center;
+  center.Fill( 0.0 );
 
-  demonsFilter->SetSphereCenter( center0 );
+  demonsFilter->SetSphereCenter( center );
   demonsFilter->SetSphereRadius( 100.0 );
 
   const double gamma = atof( argv[4] );
-  demonsFilter->SetGamma( gamma );
-
   const double sigmaX = atof( argv[5] );
-  demonsFilter->SetSigmaX( sigmaX );
-
   const double lambda = atof( argv[6] );
-  demonsFilter->SetLambda( lambda );
-
   const unsigned int maximumNumberOfSmoothingIterations = atoi( argv[7] );
-  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
-
   const unsigned int maximumNumberOfIterations = atoi( argv[8] );
+
+  demonsFilter->SetGamma( gamma );
+  demonsFilter->SetSigmaX( sigmaX );
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+
+  demonsFilter->SetLambda( lambda );
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
 
 
   try
