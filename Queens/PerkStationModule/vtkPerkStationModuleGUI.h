@@ -128,6 +128,9 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   // Load experiment
   virtual void LoadExperiment(istream &file);
 
+  // Description
+  // Save information about open volumes
+  void SaveVolumeInformation(ostream& of);
 
   //BTX
     // Description:
@@ -152,7 +155,7 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
       };
     //ETX
 
-  void SaveVolumeInformation(ostream& of);
+  
 
 protected:
   vtkPerkStationModuleGUI();

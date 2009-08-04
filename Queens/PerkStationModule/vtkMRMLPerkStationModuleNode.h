@@ -31,6 +31,7 @@ class vtkMRMLLinearTransformNode;
 class vtkMRMLFiducialListNode;
 class vtkMRMLScalarVolumeNode;
 
+
 class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRMLNode
 {
   public:
@@ -159,6 +160,17 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   vtkSetMacro(ActualPlanInsertionDepth, double);
 
   // insert parameters:
+  vtkGetMacro(ReferenceBodyToolPort, int);
+  vtkSetMacro(ReferenceBodyToolPort, int);
+
+  vtkGetMacro(NeedleToolPort, int);
+  vtkSetMacro(NeedleToolPort, int);
+
+  void SetTrackerToPhantomMatrix(vtkMatrix4x4 *matrix){this->TrackerToPhantomMatrix->DeepCopy(matrix);};
+  vtkMatrix4x4 *GetTrackerToPhantomMatrix(){return this->TrackerToPhantomMatrix;};
+
+  void SetPhantomToImageRASMatrix(vtkMatrix4x4 *matrix){this->PhantomToImageRASMatrix->DeepCopy(matrix);};
+  vtkMatrix4x4 *GetPhantomToImageRASMatrix(){return this->PhantomToImageRASMatrix;};
 
   // validate parameters:
  
@@ -279,6 +291,12 @@ protected:
   double ActualPlanInsertionDepth;
 
   // insert parameters
+  vtkMatrix4x4 *TrackerToPhantomMatrix;
+  vtkMatrix4x4 *PhantomToImageRASMatrix;
+
+  int ReferenceBodyToolPort;
+  int NeedleToolPort;
+
 
   // validate parameters
   double ValidateEntryPoint[3];
@@ -296,6 +314,8 @@ protected:
 
   double EntryPointError; // error in mm
   double TargetPointError; //error in mm
+
+  
 
 
   // common parameters  

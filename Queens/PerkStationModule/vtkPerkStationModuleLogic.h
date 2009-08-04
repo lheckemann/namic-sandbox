@@ -39,6 +39,8 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleLogic : public vtkSlicerM
     vtkSetAndObserveMRMLNodeMacro( this->PerkStationModuleNode, n);
     }
 
+  bool ReadConfigFile(istream &file);
+  static char *strrev(char *s,int n);
 protected:
   vtkPerkStationModuleLogic();
   virtual ~vtkPerkStationModuleLogic();

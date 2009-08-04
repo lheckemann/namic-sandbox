@@ -58,6 +58,7 @@ Version:   $Revision: 1.2 $
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 #include "vtkKWLoadSaveButton.h"
+#include "vtkKWFrameWithLabel.h"
 
 #include "vtkPerkStationCalibrateStep.h"
 #include "vtkPerkStationPlanStep.h"
@@ -391,8 +392,7 @@ void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
     // reset the file browse button text
     this->SaveExperimentFileButton->SetText ("Save experiment");
    
-    }
-  
+    }  
   else
     {  
      
@@ -461,7 +461,21 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
     this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
 
-
+    /*
+    // read the config file
+    bool fileFound = this->GetLogic()->ReadConfigFile();
+    if (fileFound)
+      {
+      this->WizardWidget->SetErrorText("Config file found!");
+      this->WizardWidget->Update();
+      }
+    else
+      {
+      this->WizardWidget->SetErrorText("Config file not found!");
+      this->WizardWidget->Update();
+      }
+    
+    */
     }
 
   // save node parameters for Undo
@@ -744,7 +758,37 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   const char *about = "This work was supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details. ";
   vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PerkStationModule" );
   this->BuildHelpAndAboutFrame ( page, help, about );
+  vtkKWLabel *NACLabel = vtkKWLabel::New();
+  NACLabel->SetParent ( this->GetLogoFrame() );
+  NACLabel->Create();
+  NACLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetNACLogo() );
+
+  vtkKWLabel *NAMICLabel = vtkKWLabel::New();
+  NAMICLabel->SetParent ( this->GetLogoFrame() );
+  NAMICLabel->Create();
+  NAMICLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetNAMICLogo() );    
+
+  vtkKWLabel *NCIGTLabel = vtkKWLabel::New();
+  NCIGTLabel->SetParent ( this->GetLogoFrame() );
+  NCIGTLabel->Create();
+  NCIGTLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetNCIGTLogo() );
+
+  vtkKWLabel *BIRNLabel = vtkKWLabel::New();
+  BIRNLabel->SetParent ( this->GetLogoFrame() );
+  BIRNLabel->Create();
+  BIRNLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetBIRNLogo() );
+
+  app->Script ( "grid %s -row 0 -column 0 -padx 2 -pady 2 -sticky w", NAMICLabel->GetWidgetName());
+  app->Script ("grid %s -row 0 -column 1 -padx 2 -pady 2 -sticky w",  NACLabel->GetWidgetName());
+  app->Script ( "grid %s -row 1 -column 0 -padx 2 -pady 2 -sticky w", BIRNLabel->GetWidgetName());
+  app->Script ( "grid %s -row 1 -column 1 -padx 2 -pady 2 -sticky w", NCIGTLabel->GetWidgetName());
   
+  NACLabel->Delete();
+  NAMICLabel->Delete();
+  NCIGTLabel->Delete();
+  BIRNLabel->Delete();
+
+
   // add individual collapsible pages/frames
 
 
@@ -816,11 +860,12 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   workPhaseFrame->Delete();
   
   // collapsible? frame for volume node selection, and parameters selection?
-  vtkSlicerModuleCollapsibleFrame *loadSaveExptFrame = vtkSlicerModuleCollapsibleFrame::New ( );
+  vtkKWFrameWithLabel *loadSaveExptFrame = vtkKWFrameWithLabel::New ( );
   loadSaveExptFrame->SetParent(modulePage);
   loadSaveExptFrame->Create();
   loadSaveExptFrame->SetLabelText("Experiment frame");
-  loadSaveExptFrame->ExpandFrame();  
+  //loadSaveExptFrame->ExpandFrame(); 
+  //loadSaveExptFrame->
   app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
               loadSaveExptFrame->GetWidgetName(), modulePage->GetWidgetName());
   

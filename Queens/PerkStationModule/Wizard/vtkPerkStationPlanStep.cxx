@@ -858,7 +858,7 @@ void vtkPerkStationPlanStep::Reset()
   this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayNeedleGuide();
 
   this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
-  
+
   this->RemoveOverlayNeedleGuide();
 
   // reset parameters of mrml node

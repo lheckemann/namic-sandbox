@@ -18,12 +18,26 @@ if(NOT Slicer3_SOURCE_DIR)
 endif(NOT Slicer3_SOURCE_DIR)
 
 # --------------------------------------------------------------------------
+# Find NDI  tracking stuff
+
+FIND_PATH(NDIOAPI_INCLUDE_DIR ndopto.h)
+FIND_LIBRARY(NDIOAPI_LIBRARY oapi)
+
+SUBDIRS (
+    ndicapi
+    )
+# --------------------------------------------------------------------------
 # Include dirs
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard
+  ${CMAKE_CURRENT_SOURCE_DIR}/Tracking
+  ${CMAKE_CURRENT_SOURCE_DIR}/ndicapi
+  ${NDIOAPI_INCLUDE_DIR}
+  ${NDICAPI_BINARY_DIR}
+  ${NDIOAPI_INCLUDE_DIR}
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
    )
@@ -56,7 +70,14 @@ SET(PerkStationModule_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationPlanStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationInsertStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationValidateStep.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationEvaluateStep.cxx  
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationEvaluateStep.cxx
+  #  tracking
+  ${CMAKE_CURRENT_SOURCE_DIR}/Tracking/vtkTracker.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Tracking/vtkTrackerTool.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Tracking/vtkTrackerBuffer.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Tracking/vtkFrameToTimeConverter.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Tracking/vtkNDITracker.cxx
+  
 )
 
 # Abstract/pure virtual classes
@@ -90,6 +111,9 @@ generatelm(PerkStationModule_SRCS PerkStationModule.txt)
 # --------------------------------------------------------------------------
 # Build and install the library
 
+
+SET (Tracking_LIBS ndicapi ${NDIOAPI_LIBRARY})
+
 set(lib_name PerkStationModule)
 add_library(${lib_name} 
   ${PerkStationModule_SRCS}
@@ -103,6 +127,7 @@ target_link_libraries(${lib_name}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES} 
   ${ITK_LIBRARIES}
+  ${Tracking_LIBS}
   )
 
 slicer3_install_modules(${lib_name})

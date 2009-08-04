@@ -8,11 +8,16 @@
 #include "vtkWin32OpenGLRenderWindow.h"
 #include "vtkCylinderSource.h"
 #include "vtkMath.h"
+#include "vtkTransform.h"
 #include "vtkMatrixToHomogeneousTransform.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkProperty2D.h"
 #include "vtkActorCollection.h"
+#include "vtkActor2DCollection.h"
+#include "vtkTextProperty.h"
+#include "vtkTextActor.h"
 #include "vtkLineSource.h"
+#include "vtkGlyphSource2D.h"
 #include "vtkProperty.h"
 
 //----------------------------------------------------------------------------
@@ -57,6 +62,7 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
   this->MonitorPixelResolution[0] = 800;
   this->MonitorPixelResolution[1] = 600;
 
+  this->MeasureNeedleLengthInWorldCoordinates = 0;
 
   // display/view related
   this->ImageData = NULL;
@@ -109,8 +115,13 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
  this->ImageActor->SetMapper(this->ImageMapper);
  this->ImageActor->GetProperty()->SetDisplayLocationToBackground();
 
- this->NeedleActor = vtkActor::New();  
- this->DepthPerceptionLines = vtkActorCollection::New();
+ this->NeedleGuideActor = vtkActor::New();  
+ this->NeedleTipActor = vtkActor::New();
+ this->RealTimeNeedleLineActor = vtkActor::New();
+ this->NeedleTipZLocationText = vtkTextActor::New();
+ this->DepthPerceptionLines = vtkActorCollection::New(); 
+ this->TextActorsCollection = vtkActor2DCollection::New();
+
 }
 
 
@@ -125,6 +136,13 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     this->DepthPerceptionLines->Delete();
     this->DepthPerceptionLines = NULL;
     }
+  if (this->TextActorsCollection)
+    {
+    this->TextActorsCollection->RemoveAllItems();
+    this->TextActorsCollection->Delete();
+    this->TextActorsCollection = NULL;
+    }
+
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::ResetCalibration()
@@ -184,9 +202,37 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayNeedleGuide()
 
   // should remove the overlay needle guide
   vtkActorCollection *collection = this->Renderer->GetActors();
-  if (collection->IsItemPresent(this->NeedleActor))
+  if (collection->IsItemPresent(this->NeedleGuideActor))
     {
-    this->Renderer->RemoveActor(this->NeedleActor);
+    this->Renderer->RemoveActor(this->NeedleGuideActor);
+    if (this->DeviceActive)
+        this->RenderWindow->Render();
+    }
+
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::RemoveOverlayRealTimeNeedleTip()
+{
+  if (!this->DisplayInitialized)
+      return;
+
+ 
+  vtkActorCollection *collection = this->Renderer->GetActors();
+  if (collection->IsItemPresent(this->NeedleTipActor))
+    {
+    this->Renderer->RemoveActor(this->NeedleTipActor);
+    if (this->DeviceActive)
+        this->RenderWindow->Render();
+    }
+  if (collection->IsItemPresent(this->RealTimeNeedleLineActor))
+    {
+    this->Renderer->RemoveActor(this->RealTimeNeedleLineActor);
+    if (this->DeviceActive)
+        this->RenderWindow->Render();
+    }
+  if (collection->IsItemPresent(this->NeedleTipZLocationText))
+    {
+    this->Renderer->RemoveActor(this->NeedleTipZLocationText);
     if (this->DeviceActive)
         this->RenderWindow->Render();
     }
@@ -630,6 +676,180 @@ void vtkPerkStationSecondaryMonitor::Translate(double tx, double ty, double tz)
   this->UpdateMatrices();
 }
 
+//-----------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::OverlayRealTimeNeedleTip(double tipRAS[3], vtkMatrix4x4 *toolTransformMatrix)
+{
+  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkMatrix4x4::Invert(this->XYToRAS, rasToXY);
+
+  double xyPoint[2];
+  double worldCoordinate[4];
+  double wcPoint[3];
+   
+  double inPt[4] = {tipRAS[0], tipRAS[1], tipRAS[2], 1};
+  double outPt[4];  
+  rasToXY->MultiplyPoint(inPt, outPt);
+  xyPoint[0] = outPt[0];
+  xyPoint[1] = outPt[1];
+
+  this->Renderer->SetDisplayPoint(xyPoint[0],xyPoint[1], 0);
+  this->Renderer->DisplayToWorld();
+  this->Renderer->GetWorldPoint(worldCoordinate);
+  wcPoint[0] = worldCoordinate[0];
+  wcPoint[1] = worldCoordinate[1];
+  wcPoint[2] = worldCoordinate[2];
+
+  // model it as a line, with glyph at the end
+  // one point on the line is needle tip itself
+  // we know the slope of the line, hence we can get the second point on the line
+  // y = mx + c
+    
+  vtkTransform *toolTransform = vtkTransform::New();
+  toolTransform->SetMatrix(toolTransformMatrix);
+  float xyz[3];
+  toolTransform->GetOrientation(xyz);
+   
+  double angleRad = double(vtkMath::Pi()/180)*xyz[2];
+
+  // make needle tip point lie on the line
+  // c = y1 - mx1
+  float c = tipRAS[1] - tan(-angleRad)*tipRAS[0];
+
+  // for the end point lets say we know y = 0, we need to know x
+  double xyEndPoint[2];
+  xyEndPoint[1] = this->ScreenSize[1];
+
+  // first to RAS
+  // to get correct A coordinate
+  double rasEndPoint[3];
+  inPt[0] = 0;
+  inPt[1] = xyEndPoint[1];
+  inPt[2] = 0;
+  this->XYToRAS->MultiplyPoint(inPt, outPt);
+  rasEndPoint[1] = outPt[1];
+
+  // get the R coordinate
+  // x = (y - c)/m
+  rasEndPoint[0] = -c/tan(-angleRad);
+  rasEndPoint[2] = 0;
+
+  // back to xy coordinate system
+  inPt[0] = rasEndPoint[0];
+  inPt[1] = rasEndPoint[1];
+  inPt[2] = rasEndPoint[2];
+  rasToXY->MultiplyPoint(inPt, outPt);
+  xyEndPoint[0] = outPt[0];
+  xyEndPoint[1] = outPt[1];
+
+
+  // now from xy to world coordinates
+  double wcEndPoint[3];
+  this->Renderer->SetDisplayPoint(xyEndPoint[0],xyEndPoint[1], 0);
+  this->Renderer->DisplayToWorld();
+  this->Renderer->GetWorldPoint(worldCoordinate);
+  wcEndPoint[0] = worldCoordinate[0];
+  wcEndPoint[1] = worldCoordinate[1];
+  wcEndPoint[2] = worldCoordinate[2];
+
+  vtkLineSource *needleLine = vtkLineSource::New();
+  needleLine->SetPoint1(wcPoint);
+  needleLine->SetPoint2(wcEndPoint);
+  
+
+  vtkPolyDataMapper *needleLineMapper = vtkPolyDataMapper::New();  
+  needleLineMapper->SetInputConnection(needleLine->GetOutputPort());
+
+  this->RealTimeNeedleLineActor->SetMapper(needleLineMapper);
+  this->RealTimeNeedleLineActor->GetProperty()->SetColor(1,0,0);
+ 
+  // add to renderer of the Axial slice viewer
+  this->Renderer->AddActor(this->RealTimeNeedleLineActor);  
+
+
+  // set up the needle tip actor
+  vtkGlyphSource2D *needleTip = vtkGlyphSource2D::New();
+  needleTip->SetGlyphTypeToThickCross(); 
+  needleTip->SetFilled (0);
+  needleTip->SetScale(0.05);
+  needleTip->SetColor(1,0,0);  
+  needleTip->Update();
+
+  /*
+    // TO DO: transfrom needle mapper using vtkTransformPolyData
+  vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
+  transformMatrix->Identity();
+ 
+
+  transformMatrix->SetElement(0,0, cos(angleRad));
+  transformMatrix->SetElement(0,1, sin(angleRad));
+  transformMatrix->SetElement(0,2, 0);
+  transformMatrix->SetElement(0,3, 0);
+  
+
+  transformMatrix->SetElement(1,0, -sin(angleRad));
+  transformMatrix->SetElement(1,1, cos(angleRad));
+  transformMatrix->SetElement(1,2, 0);
+  transformMatrix->SetElement(1,3, 0);
+  
+
+  transformMatrix->SetElement(2,0, 0);
+  transformMatrix->SetElement(2,1, 0);
+  transformMatrix->SetElement(2,2, 1);
+  transformMatrix->SetElement(2,3, 0);
+
+  transformMatrix->SetElement(3,0, 0);
+  transformMatrix->SetElement(3,1, 0);
+  transformMatrix->SetElement(3,2, 0);
+  transformMatrix->SetElement(3,3, 1);
+
+  vtkMatrixToHomogeneousTransform *transform = vtkMatrixToHomogeneousTransform::New();
+  transform->SetInput(transformMatrix);
+  
+  vtkTransformPolyDataFilter *filter = vtkTransformPolyDataFilter::New();
+  filter->SetInputConnection(needleTip->GetOutputPort()); 
+  filter->SetTransform(transform);  
+*/
+
+
+  vtkPolyDataMapper *needleMapper = vtkPolyDataMapper::New();
+  //needleMapper->SetInputConnection(filter->GetOutputPort());
+  needleMapper->SetInputConnection(needleTip->GetOutputPort());
+
+  this->NeedleTipActor->SetMapper(needleMapper);
+  this->NeedleTipActor->SetPosition(wcPoint[0], wcPoint[1],wcPoint[2]);
+  //this->NeedleTipActor->RotateZ(xyz[2]);
+  
+ 
+  // add to renderer of the Axial slice viewer
+  this->Renderer->AddActor(this->NeedleTipActor);
+
+  // text actors for needle tip S, and target location    
+  double rasTarget[3];
+  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasTarget);
+  char text[50];
+  sprintf(text,"Needle Tip Z:  %.2f\nTarget Z:     %.2f",tipRAS[2], rasTarget[2]);      
+  this->NeedleTipZLocationText->SetInput(text);
+  this->NeedleTipZLocationText->SetTextScaleModeToNone();
+  this->NeedleTipZLocationText->GetTextProperty()->SetFontSize(25);
+  this->NeedleTipZLocationText->SetDisplayPosition(this->MonitorPixelResolution[0]-250, 100);
+  if (this->HorizontalFlipped)
+    {           
+    char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
+    this->NeedleTipZLocationText->SetInput(revText);
+    }
+  else if (this->VerticalFlipped)
+    {
+    this->NeedleTipZLocationText->GetTextProperty()->SetVerticalJustificationToTop();
+    this->NeedleTipZLocationText->SetOrientation(180);
+    }
+
+  this->Renderer->AddActor(this->NeedleTipZLocationText);
+
+  if (this->DeviceActive && this->DisplayInitialized)
+    this->RenderWindow->Render(); 
+
+
+}
 //------------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
 {
@@ -685,8 +905,9 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   wcTargetPoint[2] = worldCoordinate[2];
 
 
-  double halfNeedleLength = sqrt( (wcTargetPoint[0]-wcEntryPoint[0])*(wcTargetPoint[0]-wcEntryPoint[0]) + (wcTargetPoint[1]-wcEntryPoint[1])*(wcTargetPoint[1]-wcEntryPoint[1]));
+  double halfNeedleGuideLength = sqrt( (wcTargetPoint[0]-wcEntryPoint[0])*(wcTargetPoint[0]-wcEntryPoint[0]) + (wcTargetPoint[1]-wcEntryPoint[1])*(wcTargetPoint[1]-wcEntryPoint[1]));
 
+  this->MeasureNeedleLengthInWorldCoordinates = halfNeedleGuideLength;
 
   // steps
   // get the cylinder source, create the cylinder, whose height is equal to calculated insertion depth
@@ -696,7 +917,7 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
 
   vtkCylinderSource *needleGuide = vtkCylinderSource::New();
   // TO DO: how to relate this to actual depth???
-  needleGuide->SetHeight(2*halfNeedleLength );
+  needleGuide->SetHeight(2*halfNeedleGuideLength );
   //needleGuide->SetHeight(0.75);
   needleGuide->SetRadius( 0.015 );  
   needleGuide->SetResolution( 20 );
@@ -766,7 +987,7 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   //needleMapper->SetInputConnection(needleGuide->GetOutputPort());
 
   // after transfrom, set up actor 
-  this->NeedleActor->SetMapper(needleMapper );
+  this->NeedleGuideActor->SetMapper(needleMapper );
   //this->NeedleActor->GetProperty()->SetOpacity(0.3);
   
   //needleActor->SetPosition(needleCenter[0], needleCenter[1],0);  
@@ -774,7 +995,7 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   
  
   // add to renderer of the Axial slice viewer
-  this->Renderer->AddActor(this->NeedleActor);  
+  this->Renderer->AddActor(this->NeedleGuideActor);  
   this->RenderWindow->Render(); 
  
   
@@ -793,13 +1014,13 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
       return;
 
   this->DepthPerceptionLines->RemoveAllItems();
+  this->TextActorsCollection->RemoveAllItems();
 
   // Get insertion depth
   double insertionDepth = mrmlNode->GetActualPlanInsertionDepth();
 
   if (insertionDepth > 0)
-  {
-
+    {
     // first calculate how many, in increments of 10 mm, less than equal to 5 lines, that less than max number of lines
     this->NumOfDepthPerceptionLines = insertionDepth/10;
       
@@ -901,13 +1122,45 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         lineActor->SetMapper(lineMapper);
 
 
+        // text actor
+        vtkTextActor *textActor = vtkTextActor::New();
+        char *text = new char[10];
+        sprintf(text,"%d mm",(i+1)*10);     
+        textActor->SetInput(text);
+        textActor->SetTextScaleModeToNone();
+        textActor->GetTextProperty()->SetFontSize(30);
+        
+        if (denom>=0)
+            textActor->SetDisplayPosition(pointXY[0]+100, pointXY[1]+5);
+        else
+            textActor->SetDisplayPosition(pointXY[0]-100, pointXY[1]+5);
+
+        
+        // flip vertically or horizontally the text actor
+        if (this->HorizontalFlipped)
+          {         
+            char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
+            textActor->SetInput(revText);
+          }
+        else if (this->VerticalFlipped)
+          {
+          textActor->GetTextProperty()->SetVerticalJustificationToTop();
+          textActor->SetOrientation(180);
+          }
+
+        // add text actor to text actor collection
+        this->TextActorsCollection->AddItem(textActor);
+        // add text actor to the renderer
+        this->Renderer->AddActor(textActor);
+
         // add to actor collection
         this->DepthPerceptionLines->AddItem(lineActor);
         this->Renderer->AddActor(lineActor);
+        
 
         lineMapper->Delete();
         lineActor->Delete();
-        
+        textActor->Delete();
         }
       
     // add the last line for final target depth
@@ -974,9 +1227,52 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     this->DepthPerceptionLines->AddItem(lineActor);
     this->Renderer->AddActor(lineActor);
 
+
+    // set up the measurement line/cylinder
+    // find the point where to place the measurement cylinder, either in the right or left, but in the middle in y-axis
+    double xyMeasuringLineDock[2];
+
+    if (denom>=0)
+    {
+    xyMeasuringLineDock[0] = this->MonitorPixelResolution[0]-50;   
+    }
+    else
+    {    
+    xyMeasuringLineDock[0] = 50;
+    } 
+
+    xyMeasuringLineDock[1] = this->MonitorPixelResolution[1]/2;
+
+    vtkCylinderSource *needleMeasure = vtkCylinderSource::New();    
+    needleMeasure->SetHeight(this->MeasureNeedleLengthInWorldCoordinates ); 
+    needleMeasure->SetRadius( 0.005 );  
+    needleMeasure->SetResolution( 20 );
+
+    // map
+    vtkPolyDataMapper *measureMapper = vtkPolyDataMapper::New();  
+    measureMapper->SetInputConnection(needleMeasure->GetOutputPort());
+
+    // actor
+    vtkActor *measureLineActor = vtkActor::New();
+    measureLineActor->SetMapper(measureMapper );  
+    // set the correct display position
+
+    // convert to world coordinate
+    this->Renderer->SetDisplayPoint(xyMeasuringLineDock[0],xyMeasuringLineDock[1], 0);
+    this->Renderer->DisplayToWorld();
+    this->Renderer->GetWorldPoint(worldCoordinate);
+
+    measureLineActor->SetPosition(worldCoordinate[0], worldCoordinate[1], worldCoordinate[2]);
+ 
+     // add to actor collection
+    this->DepthPerceptionLines->AddItem(measureLineActor);
+    this->Renderer->AddActor(measureLineActor);
+
+
     lineMapper->Delete();
     lineActor->Delete();
 
+    int actorCount = this->Renderer->VisibleActorCount();
     this->DepthLinesInitialized = true;
 
     if (this->DeviceActive && this->DisplayInitialized)
@@ -990,6 +1286,8 @@ void vtkPerkStationSecondaryMonitor::RemoveDepthPerceptionLines()
 {
   if(!this->DepthLinesInitialized)
       return;
+
+  int actorCount = this->Renderer->VisibleActorCount();
 
   vtkActorCollection *collection = this->Renderer->GetActors();
   
@@ -1005,6 +1303,29 @@ void vtkPerkStationSecondaryMonitor::RemoveDepthPerceptionLines()
   this->DepthPerceptionLines->RemoveAllItems();
   this->DepthLinesInitialized = false;
 
+  this->RemoveTextActors();
+
+
+ 
   if (this->DeviceActive && this->DisplayInitialized)
     this->RenderWindow->Render();
+}
+//--------------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::RemoveTextActors()
+{
+  int actorCount = this->Renderer->VisibleActorCount();
+
+  //vtkActorCollection *collection = this->Renderer->GetActors();
+  
+  // remove text actors
+  for(int i = 0; i < this->TextActorsCollection->GetNumberOfItems(); i++)
+    {
+    vtkTextActor *textActor = vtkTextActor::SafeDownCast(this->TextActorsCollection->GetItemAsObject(i));
+    //if (collection->IsItemPresent(textActor))
+      {
+      this->Renderer->RemoveActor(textActor);
+      }   
+    }
+
+  this->TextActorsCollection->RemoveAllItems();
 }

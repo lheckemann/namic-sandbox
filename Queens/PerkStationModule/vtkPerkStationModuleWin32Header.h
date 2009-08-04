@@ -11,9 +11,9 @@
   Version:   $Revision: 1.4 $
 
 =========================================================================auto=*/
-// .NAME vtkCurvatureAnisotropicDiffusionFilterWin32Header - manage Windows system differences
+// .NAME vtkPerkStationModuleWin32Header - manage Windows system differences
 // .SECTION Description
-// The vtkCurvatureAnisotropicDiffusionFilterWin32Header captures some system differences between Unix
+// The vtkPerkStationModuleWin32Header captures some system differences between Unix
 // and Windows operating systems. 
 
 #ifndef __vtkPerkStationModuleWin32Header_h
