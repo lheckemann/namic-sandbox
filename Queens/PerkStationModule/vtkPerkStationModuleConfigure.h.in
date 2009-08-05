@@ -18,3 +18,8 @@
 #ifndef BUILD_SHARED_LIBS
 #define VTKSLICER_STATIC
 #endif
+
+#cmakedefine BUILD_USING_NDIOAPI
+#ifdef BUILD_USING_NDIOAPI
+#define USE_NDIOAPI
+#endif
