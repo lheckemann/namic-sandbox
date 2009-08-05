@@ -17,9 +17,11 @@
 #include "vtkKWWizardWorkflow.h"
 #include "vtkKWLoadSaveButton.h"
 
+#if defined(USE_NDIOAPI)
 #include "vtkTrackerTool.h"
 #include "vtkTrackerBuffer.h"
 #include "vtkNDITracker.h"
+#endif
 
 #include <stdio.h>
 
@@ -52,12 +54,18 @@ vtkPerkStationInsertStep::vtkPerkStationInsertStep()
   this->StartStopLoggingToFileCheckButton = NULL;
   this->LogFileLoadMsg = NULL;
   this->LogFileButton = NULL;
-  this->InsertionLogFile = NULL;
+
   
   this->ProcessingCallback = false; 
   this->TimerProcessing = false;
   this->LogToFile = false;
+
+  #if defined(USE_NDIOAPI)
   this->Tracker = vtkNDITracker::New();
+  this->InsertionLogFile = NULL;
+  #endif
+
+
   this->TrackerTimerId = NULL;
 
 }
@@ -130,7 +138,11 @@ vtkPerkStationInsertStep::~vtkPerkStationInsertStep()
     this->LogFileButton->Delete();
     this->LogFileButton = NULL;
     }
+  
+  #if defined(USE_NDIOAPI)
   this->Tracker->Delete();
+  #endif
+  
   if (this->TrackerTimerId)
     {
     vtkKWTkUtilities::CancelTimerHandler(vtkKWApplication::GetMainInterp(), this->TrackerTimerId); 
@@ -506,6 +518,7 @@ void vtkPerkStationInsertStep::ProcessGUIEvents(vtkObject *caller, unsigned long
 //-------------------------------------------------------------------------------------------
 void vtkPerkStationInsertStep::ConnectTrackerCallback(bool value)
 {
+  #if defined(USE_NDIOAPI)
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
   if(!mrmlNode)
@@ -551,10 +564,14 @@ void vtkPerkStationInsertStep::ConnectTrackerCallback(bool value)
       }
     }
 
+
+  #endif(USE_NDIOAPI)
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::TrackerTimerEvent()
 {
+  #if defined(USE_NDIOAPI)
+
   if (this->TimerProcessing)
     return;
 
@@ -621,11 +638,13 @@ void vtkPerkStationInsertStep::TrackerTimerEvent()
   this->TrackerTimerId = new char[strlen(tmpId)+1];
   strcpy(this->TrackerTimerId, tmpId);
  
-
+  #endif(USE_NDIOAPI)
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::WriteTrackingRecordToFile(double timestamp, const double *matrix)
 {
+  #if defined(USE_NDIOAPI)
+
   fprintf(this->InsertionLogFile,"%14.3f ",timestamp);  
   fprintf(this->InsertionLogFile,"%8.2f %8.2f %8.2f ",
           matrix[4*0+3],matrix[4*1+3],matrix[4*2+3]);
@@ -643,6 +662,8 @@ void vtkPerkStationInsertStep::WriteTrackingRecordToFile(double timestamp, const
       fprintf(this->InsertionLogFile,";\n");
       }
     }
+
+  #endif(USE_NDIOAPI)
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::PopulateControls()
@@ -741,7 +762,9 @@ void vtkPerkStationInsertStep::LogFileSaveButtonCallback()
 }
 //---------------------------------------------------------------------------
 void vtkPerkStationInsertStep::LogFileCheckButtonCallback(bool state)
-{
+{ 
+  #if defined(USE_NDIOAPI)
+
   if (state)
     {
     this->InsertionLogFile = fopen(this->InsertionLogFileName.c_str(),"w");   
@@ -762,6 +785,8 @@ void vtkPerkStationInsertStep::LogFileCheckButtonCallback(bool state)
       fclose(this->InsertionLogFile);
       }    
     }
+
+  #endif(USE_NDIOAPI)
 }
 //---------------------------------------------------------------------------
 void vtkPerkStationInsertStep::Validate()

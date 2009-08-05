@@ -12,7 +12,10 @@ class vtkKWCheckButtonWithLabel;
 class vtkKWLoadSaveButton;
 class vtkKWCheckButton;
 class vtkLineSource;
+
+#if defined(USE_NDIOAPI)
 class vtkNDITracker;
+#endif
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationInsertStep : public vtkPerkStationStep
 {
@@ -71,12 +74,14 @@ protected:
 
   virtual void Validate();
 
-  void WriteTrackingRecordToFile(double timestamp, const double *matrix);
+ 
+  
   // Description:
   // GUI callback  
   static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
 
   void ConnectTrackerCallback(bool value);
+  void WriteTrackingRecordToFile(double timestamp, const double *matrix);
   bool TimerProcessing;
   char *TrackerTimerId;
   
@@ -113,10 +118,12 @@ protected:
   vtkKWCheckButton *StartStopLoggingToFileCheckButton;
   vtkKWLabel *LogFileLoadMsg;  
   vtkKWLoadSaveButton *LogFileButton;
-  
-  
+  //BTX
+  #if defined(USE_NDIOAPI)
   vtkNDITracker *Tracker;
   FILE *InsertionLogFile;
+  #endif
+  //ETX
 private:    
   bool ProcessingCallback;
   vtkPerkStationInsertStep(const vtkPerkStationInsertStep&);
