@@ -285,6 +285,7 @@ int DoIt2( int argc, char * argv[])
   movingImage = movingExtract->GetOutput();
   
 
+  
   // If an initial transform was specified, read it
   //
   //
@@ -318,9 +319,19 @@ int DoIt2( int argc, char * argv[])
   typename TransformType::Pointer transform = TransformType::New();
   OptimizerScalesType scales( transform->GetNumberOfParameters() );
   scales.Fill ( 1.0 );
-  for( unsigned j = 9; j < 12; j++ )
+  if (ImageDimension == 3)
     {
-    scales[j] = 1.0 / vnl_math_sqr(TranslationScale);
+    for( unsigned j = 9; j < 12; j++ )
+      {
+      scales[j] = 1.0 / vnl_math_sqr(TranslationScale);
+      }
+    }
+  else // ImageDimension == 2
+    {
+    for( unsigned j = 4; j < 6; j++ )
+      {
+      scales[j] = 1.0 / vnl_math_sqr(TranslationScale);
+      }
     }
   optimizer->SetScales( scales );
 
@@ -387,10 +398,10 @@ int DoIt2( int argc, char * argv[])
       }
     else if (fa)
       {
-      vnl_matrix<double> t(3,3);
-      for (int i=0; i < 3; ++i)
+      vnl_matrix<double> t(ImageDimension,ImageDimension);
+      for (int i=0; i < ImageDimension; ++i)
         {
-        for (int j=0; j <3; ++j)
+        for (int j=0; j <ImageDimension; ++j)
           {
           t.put(i, j, fa->GetMatrix().GetVnlMatrix().get(i, j));
           }
@@ -456,13 +467,14 @@ int DoIt2( int argc, char * argv[])
     return  EXIT_FAILURE ;
     }
 
+
   transform->SetParameters ( registration->GetLastTransformParameters() );
 
   if (OutputTransform != "")
     {
     typedef itk::TransformFileWriter TransformWriterType;
     TransformWriterType::Pointer outputTransformWriter;
-
+    
     outputTransformWriter= TransformWriterType::New();
     outputTransformWriter->SetFileName( OutputTransform );
     outputTransformWriter->SetInput( transform );
@@ -476,6 +488,7 @@ int DoIt2( int argc, char * argv[])
       return  EXIT_FAILURE ;
       }
     }
+  
   
   // Resample to the original coordinate frame (not the reoriented
   // axial coordinate frame) of the fixed image --> modified to use reoriented frame
@@ -493,20 +506,20 @@ int DoIt2( int argc, char * argv[])
     resample->SetInput ( movingImage ); 
     resample->SetTransform ( transform );
     resample->SetInterpolator ( Interpolator );
-
+    
     // Set the output sampling based on the fixed image.
     // ResampleImageFilter needs an image of the same type as the
     // moving image.
     typename MovingImageType::Pointer fixedInformation = MovingImageType::New();
-    fixedInformation->CopyInformation( fixedReader->GetOutput() );
+    //fixedInformation->CopyInformation( fixedReader->GetOutput() );
+    fixedInformation->CopyInformation( fixedImage );
     resample->SetOutputParametersFromImage ( fixedInformation );
-
+    
     collector.Start( "Resample" );
     resample->Update();
     collector.Stop( "Resample" );
-
-
-
+    
+    
     // convert 2D image to 3D, if 2D registration is performed
     typename OutputPasteFilterType::Pointer outputPaste = OutputPasteFilterType::New();
     typename OutputPasteFilterType::LayoutArrayType layout;
@@ -524,6 +537,7 @@ int DoIt2( int argc, char * argv[])
       }
     outputPaste->SetLayout(layout);
     outputPaste->SetInput(resample->GetOutput());
+    //outputPaste->SetInput(movingImage);
     outputPaste->Update();
     
     typename WriterType::Pointer      writer =  WriterType::New();
@@ -572,7 +586,7 @@ int DoIt2( int argc, char * argv[])
       std::cerr << err << std::endl;
       return EXIT_FAILURE;
       }
-
+  
     /*
     typename WriterType::Pointer resampledWriter = WriterType::New();
     resampledWriter->SetFileName ( ResampledImageFileName.c_str() );
@@ -590,9 +604,9 @@ int DoIt2( int argc, char * argv[])
       return EXIT_FAILURE;
       }
     */
-
-    }
   
+    }
+
   // Report the time taken by the registration
   collector.Report();
 
