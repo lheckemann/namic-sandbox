@@ -6,7 +6,7 @@
   <version>0.1.0.$Revision: 8595 $(alpha)</version>
   <documentation-url>http://www.slicer.org/slicerWiki/index.php/Modules:DeformableB-SplineRegistration-Documentation-3.4</documentation-url>
   <license></license>
-  <contributor>Junichi Tokuda</contributor>
+  <contributor>Bill Lorensen's Junichi Tokuda</contributor>
   <acknowledgements>
     The module is based on Bill Lorensen's BSpline Registration module. This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
   </acknowledgements>
