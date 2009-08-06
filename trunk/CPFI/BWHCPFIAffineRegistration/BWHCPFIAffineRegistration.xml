@@ -123,31 +123,31 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <channel>input</channel>
     </transform>
     <image>
-      <name>FixedImageFileName</name>
+      <name>fixedImageFileName</name>
       <label>Fixed Image</label>
       <channel>input</channel>
       <index>0</index>
       <description>Fixed image to which to register</description>
     </image>
     <image>
-      <name>MovingImageFileName</name>
+      <name>movingImageFileName</name>
       <label>Moving Image</label>
       <channel>input</channel>
       <index>1</index>
       <description>Moving image</description>
     </image>
-    <transform fileExtensions=".txt" reference="MovingImageFileName">
-      <name>OutputTransform</name>
+    <transform fileExtensions=".txt" reference="movingImageFileName">
+      <name>outputTransform</name>
       <longflag>outputtransform</longflag>
       <description>Transform calculated that aligns the fixed and moving image. Maps positions in the fixed coordinate frame to the moving coordinate frame. Optional (specify an output transform or an output volume or both).</description>
       <label>Output transform</label>
       <channel>output</channel>
     </transform>
     <image>
-      <name>ResampledImageFileName</name>
-      <longflag>resampledmovingfilename</longflag>
+      <name>resampledImageFileName</name>
       <label>Output Volume</label>
       <channel>output</channel>
+      <index>2</index>
       <description>Resampled moving image to the fixed image coordinate frame. Optional (specify an output transform or an output volume or both).</description>
     </image>
   </parameters>
