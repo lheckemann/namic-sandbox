@@ -28,7 +28,12 @@ vtkCxxRevisionMacro(vtkFourDUsEndoNavStepBase, "$Revision: 1.2 $");
 vtkCxxSetObjectMacro(vtkFourDUsEndoNavStepBase,GUI,vtkFourDUsEndoNavGUI);
 vtkCxxSetObjectMacro(vtkFourDUsEndoNavStepBase,Logic,vtkFourDUsEndoNavLogic);
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavStepBase::vtkFourDUsEndoNavStepBase()
+ *
+ *  Constructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavStepBase::vtkFourDUsEndoNavStepBase()
 {
   this->GUI = NULL;
@@ -53,7 +58,12 @@ vtkFourDUsEndoNavStepBase::vtkFourDUsEndoNavStepBase()
 
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavStepBase::~vtkFourDUsEndoNavStepBase()
+ *
+ *  Destructor
+ *
+ ******************************************************************************/
 vtkFourDUsEndoNavStepBase::~vtkFourDUsEndoNavStepBase()
 {
   this->SetAndObserveMRMLScene ( NULL );
@@ -74,7 +84,19 @@ vtkFourDUsEndoNavStepBase::~vtkFourDUsEndoNavStepBase()
 
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavStepBase::PrintSelf(ostream& os, vtkIndent indent)
+ *
+ ******************************************************************************/
+void vtkFourDUsEndoNavStepBase::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+}
+
+/******************************************************************************
+ * vtkFourDUsEndoNavStepBase::~vtkFourDUsEndoNavStepBase()
+ *
+ ******************************************************************************/
 void vtkFourDUsEndoNavStepBase::HideUserInterface()
 {
   this->Superclass::HideUserInterface();
@@ -85,7 +107,10 @@ void vtkFourDUsEndoNavStepBase::HideUserInterface()
     }
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavStepBase::Validate()
+ *
+ ******************************************************************************/
 void vtkFourDUsEndoNavStepBase::Validate()
 {
   this->Superclass::Validate();
@@ -97,19 +122,20 @@ void vtkFourDUsEndoNavStepBase::Validate()
   wizardWorkflow->ProcessInputs();
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * int vtkFourDUsEndoNavStepBase::CanGoToSelf()
+ *
+ ******************************************************************************/
 int vtkFourDUsEndoNavStepBase::CanGoToSelf()
 {
   return this->Superclass::CanGoToSelf() || 1;
 }
 
-//----------------------------------------------------------------------------
-void vtkFourDUsEndoNavStepBase::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os,indent);
-}
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavStepBase::ShowUserInterface()
+ *
+ ******************************************************************************/
 void vtkFourDUsEndoNavStepBase::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
@@ -127,7 +153,11 @@ void vtkFourDUsEndoNavStepBase::ShowUserInterface()
 
 }
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavStepBase::GUICallback( vtkObject *caller,
+ *                         unsigned long eid, void *clientData, void *callData )
+ *
+ ******************************************************************************/
 void vtkFourDUsEndoNavStepBase::GUICallback( vtkObject *caller,
                            unsigned long eid, void *clientData, void *callData )
 {
@@ -146,6 +176,11 @@ void vtkFourDUsEndoNavStepBase::GUICallback( vtkObject *caller,
   
 }
 
+/******************************************************************************
+ * void vtkFourDUsEndoNavStepBase::MRMLCallback(vtkObject *caller,
+ *                          unsigned long eid, void *clientData, void *callData)
+ *
+ ******************************************************************************/
 void vtkFourDUsEndoNavStepBase::MRMLCallback(vtkObject *caller,
                                     unsigned long eid, void *clientData, void *callData)
 {

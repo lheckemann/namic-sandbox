@@ -36,7 +36,12 @@
 vtkStandardNewMacro(vtkFourDUsEndoNavSecondStep);
 vtkCxxRevisionMacro(vtkFourDUsEndoNavSecondStep, "$Revision: 1.1 $");
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavSecondStep::vtkFourDUsEndoNavSecondStep()
+ *
+ *  Constructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavSecondStep::vtkFourDUsEndoNavSecondStep()
 {
 
@@ -60,7 +65,12 @@ vtkFourDUsEndoNavSecondStep::vtkFourDUsEndoNavSecondStep()
 }
 
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavSecondStep::~vtkFourDUsEndoNavSecondStep()
+ *
+ *  Destructor
+ *
+ *****************************************************************************/
 vtkFourDUsEndoNavSecondStep::~vtkFourDUsEndoNavSecondStep()
 {
 
@@ -140,8 +150,22 @@ vtkFourDUsEndoNavSecondStep::~vtkFourDUsEndoNavSecondStep()
     }
 }
 
+/******************************************************************************
+ * void vtkFourDUsEndoNavSecondStep::PrintSelf(ostream& os, vtkIndent indent)
+ *
+ *  Print Information about the instance
+ *
+ *****************************************************************************/
+void vtkFourDUsEndoNavSecondStep::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+}
 
-//----------------------------------------------------------------------------
+
+/******************************************************************************
+ * void vtkFourDUsEndoNavSecondStep::ShowUserInterface()
+ *
+ *****************************************************************************/
 void vtkFourDUsEndoNavSecondStep::ShowUserInterface()
 {
 
@@ -272,18 +296,13 @@ void vtkFourDUsEndoNavSecondStep::ShowUserInterface()
                this->ScannerLabel2->GetWidgetName(), this->ScannerPortEntry->GetWidgetName(),
                this->ScannerConnectButton->GetWidgetName());
 
-
-
 }
 
-
-//----------------------------------------------------------------------------
-void vtkFourDUsEndoNavSecondStep::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os,indent);
-}
-
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavSecondStep::ProcessGUIEvents( vtkObject *caller,
+ *                                         unsigned long event, void *callData )
+ *
+ *****************************************************************************/
 void vtkFourDUsEndoNavSecondStep::ProcessGUIEvents( vtkObject *caller,
                                          unsigned long event, void *callData )
 {

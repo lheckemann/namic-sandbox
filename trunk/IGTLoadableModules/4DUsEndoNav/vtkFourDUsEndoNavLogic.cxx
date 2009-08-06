@@ -67,7 +67,12 @@ const char *vtkFourDUsEndoNavLogic::WorkPhaseKey[vtkFourDUsEndoNavLogic::NumPhas
 //  /* Em */ BRPTPR_EMERGENCY  ,
   };
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavLogic::vtkFourDUsEndoNavLogic()
+ *
+ *  Constructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavLogic::vtkFourDUsEndoNavLogic()
 {
   this->CurrentPhase         = StartUp;
@@ -88,7 +93,12 @@ vtkFourDUsEndoNavLogic::vtkFourDUsEndoNavLogic()
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavLogic::~vtkFourDUsEndoNavLogic()
+ *
+ *  Destructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavLogic::~vtkFourDUsEndoNavLogic()
 {
 
@@ -99,7 +109,10 @@ vtkFourDUsEndoNavLogic::~vtkFourDUsEndoNavLogic()
 
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavLogic::PrintSelf(ostream& os, vtkIndent indent)
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
     this->vtkObject::PrintSelf(os, indent);
@@ -108,7 +121,11 @@ void vtkFourDUsEndoNavLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavLogic::DataCallback(vtkObject *caller,
+ *                          unsigned long eid, void *clientData, void *callData)
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavLogic::DataCallback(vtkObject *caller,
                                        unsigned long eid, void *clientData, void *callData)
 {
@@ -117,20 +134,29 @@ void vtkFourDUsEndoNavLogic::DataCallback(vtkObject *caller,
     self->UpdateAll();
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavLogic::UpdateAll()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavLogic::UpdateAll()
 {
 
 }
 
-
+/******************************************************************************
+ * int vtkFourDUsEndoNavLogic::Enter()
+ *
+ * ****************************************************************************/
 int vtkFourDUsEndoNavLogic::Enter()
 {
   return 1;
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * int vtkFourDUsEndoNavLogic::SwitchWorkPhase(int newwp)
+ *
+ * ****************************************************************************/
 int vtkFourDUsEndoNavLogic::SwitchWorkPhase(int newwp)
 {
   if (IsPhaseTransitionable(newwp))
@@ -185,7 +211,10 @@ int vtkFourDUsEndoNavLogic::SwitchWorkPhase(int newwp)
 }
 
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavLogic::TimerHandler()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavLogic::TimerHandler()
 {
   if (this->TimerOn)
@@ -195,7 +224,10 @@ void vtkFourDUsEndoNavLogic::TimerHandler()
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * int vtkFourDUsEndoNavLogic::IsPhaseTransitionable(int nextwp)
+ *
+ * ****************************************************************************/
 int vtkFourDUsEndoNavLogic::IsPhaseTransitionable(int nextwp)
 {
   if (nextwp < 0 || nextwp > NumPhases)
@@ -218,7 +250,10 @@ int vtkFourDUsEndoNavLogic::IsPhaseTransitionable(int nextwp)
     }
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * int vtkFourDUsEndoNavLogic::WorkPhaseStringToID(const char* string)
+ *
+ * ****************************************************************************/
 int vtkFourDUsEndoNavLogic::WorkPhaseStringToID(const char* string)
 {
   for (int i = 0; i < vtkFourDUsEndoNavLogic::NumPhases; i ++)

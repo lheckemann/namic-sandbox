@@ -36,7 +36,12 @@
 vtkStandardNewMacro(vtkFourDUsEndoNavThirdStep);
 vtkCxxRevisionMacro(vtkFourDUsEndoNavThirdStep, "$Revision: 1.1 $");
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavThirdStep::vtkFourDUsEndoNavThirdStep()
+ *
+ *  Constructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavThirdStep::vtkFourDUsEndoNavThirdStep()
 {
 
@@ -60,7 +65,12 @@ vtkFourDUsEndoNavThirdStep::vtkFourDUsEndoNavThirdStep()
 }
 
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavThirdStep::~vtkFourDUsEndoNavThirdStep()
+ *
+ *  Destructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavThirdStep::~vtkFourDUsEndoNavThirdStep()
 {
 
@@ -140,8 +150,19 @@ vtkFourDUsEndoNavThirdStep::~vtkFourDUsEndoNavThirdStep()
     }
 }
 
+/******************************************************************************
+ * void vtkFourDUsEndoNavThirdStep::PrintSelf(ostream& os, vtkIndent indent)
+ *
+ * ****************************************************************************/
+void vtkFourDUsEndoNavThirdStep::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+}
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavThirdStep::ShowUserInterface()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavThirdStep::ShowUserInterface()
 {
 
@@ -272,18 +293,13 @@ void vtkFourDUsEndoNavThirdStep::ShowUserInterface()
                this->ScannerLabel2->GetWidgetName(), this->ScannerPortEntry->GetWidgetName(),
                this->ScannerConnectButton->GetWidgetName());
 
-
-
 }
 
-
-//----------------------------------------------------------------------------
-void vtkFourDUsEndoNavThirdStep::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os,indent);
-}
-
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavThirdStep::ProcessGUIEvents( vtkObject *caller,
+ *                                         unsigned long event, void *callData )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavThirdStep::ProcessGUIEvents( vtkObject *caller,
                                          unsigned long event, void *callData )
 {
