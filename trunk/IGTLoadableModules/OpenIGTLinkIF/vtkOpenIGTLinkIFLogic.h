@@ -78,7 +78,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   typedef std::vector<IGTLMrmlNodeInfoType>         IGTLMrmlNodeListType;
   typedef std::vector<std::string>                  ConnectorListType;
   typedef std::map<vtkMRMLNode*, ConnectorListType> MRMLNodeAndConnectorMapType;
-  typedef std::list<vtkIGTLToMRMLBase*>             MessageConverterListType;
+  typedef std::vector<vtkIGTLToMRMLBase*>           MessageConverterListType;
   //ETX
   
   // Work phase keywords used in NaviTrack (defined in BRPTPRInterface.h)
@@ -118,7 +118,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   int Initialize();
 
   //----------------------------------------------------------------
-  // Connector Management
+  // Connector and converter Management
   //----------------------------------------------------------------
 
   // Access connectors
@@ -128,13 +128,18 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   // Device Name management
   int  SetRestrictDeviceName(int f);
 
+  int  RegisterMessageConverter(vtkIGTLToMRMLBase* converter);
+  int  UnregisterMessageConverter(vtkIGTLToMRMLBase* converter);
+
+  unsigned int       GetNumberOfConverters();
+  vtkIGTLToMRMLBase* GetConverter(unsigned int i);
+  vtkIGTLToMRMLBase* GetConverterByDeviceType(const char* deviceType);
+
   //----------------------------------------------------------------
   // MRML Management
   //----------------------------------------------------------------
-  int  RegisterMessageConverter(vtkIGTLToMRMLBase* converter);
-  int  UnregisterMessageConverter(vtkIGTLToMRMLBase* converter);
+
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
-  vtkIGTLToMRMLBase* GetConverterByDeviceType(const char* deviceType);
 
   int  SetLocatorDriver(const char* nodeID);
   int  EnableLocatorDriver(int i);
