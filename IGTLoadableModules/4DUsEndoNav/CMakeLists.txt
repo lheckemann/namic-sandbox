@@ -30,16 +30,27 @@ ${OpenCV_INCLUDE_DIRS}
 # --------------------------------------------------------------------------
 # OpenIGTLink stuff
 
-FIND_PACKAGE(OpenIGTLink REQUIRED)
+#FIND_PACKAGE(OpenIGTLink REQUIRED)
+include_directories(
+  ${Slicer3_INCLUDE_DIRS}../Slicer3-lib/OpenIGTLink-build/
+)
 
 # --------------------------------------------------------------------------
 # Include dirs
 
-FIND_PATH(OPENIGTLINK REQUIRED)
-INCLUDE_DIRECTORIES(${OPENIGTLINK_INCLUDE_DIR})
+#FIND_PATH(OPENIGTLINK REQUIRED)
+#INCLUDE_DIRECTORIES(${OPENIGTLINK_INCLUDE_DIR})
+include_directories(
+  ${Slicer3_INCLUDE_DIRS}../Slicer3-lib/OpenIGTLink/
+)
 
 #FIND_PATH(OPENIGTLINKIF REQUIRED)
 #INCLUDE_DIRECTORIES(${OPENIGTLINKIF_INCLUDE_DIR})
+include_directories(
+  ${Slicer3_INCLUDE_DIRS}../Slicer3/Modules/OpenIGTLinkIF/
+  ${Slicer3_INCLUDE_DIRS}/Modules/OpenIGTLinkIF/
+)
+
 #
 # Include dirs
 #
@@ -52,7 +63,7 @@ include_directories(
   ${Slicer3_Base_INCLUDE_DIRS}
   ${OpenIGTLinkIF_SOURCE_DIR}
   ${OpenIGTLinkIF_BINARY_DIR}
-  ${OpenIGTLink_INCLUDE_DIRS}
+  #${OpenIGTLink_INCLUDE_DIRS}
   ${Volumes_SOURCE_DIR}
   ${Volumes_BINARY_DIR}  
   )
