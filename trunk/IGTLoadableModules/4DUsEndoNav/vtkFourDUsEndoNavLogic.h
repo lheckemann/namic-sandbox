@@ -12,18 +12,18 @@
 
 =========================================================================auto=*/
 
-// .NAME vtk4DUsEndoNavLogic - slicer logic class for Locator module
+// .NAME vtkFourDUsEndoNavLogic - slicer logic class for Locator module
 // .SECTION Description
 // This class manages the logic associated with tracking device for
 // IGT. 
 
 
-#ifndef __vtk4DUsEndoNavLogic_h
-#define __vtk4DUsEndoNavLogic_h
+#ifndef __vtkFourDUsEndoNavLogic_h
+#define __vtkFourDUsEndoNavLogic_h
 
 #include <pthread.h>
 
-#include "vtk4DUsEndoNavWin32Header.h"
+#include "vtkFourDUsEndoNavWin32Header.h"
 
 #include "vtkKWTkUtilities.h"
 
@@ -40,9 +40,9 @@
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLSliceNode.h"
 
-class vtk4DUsEndoNavGUI;
+class vtkFourDUsEndoNavGUI;
 
-class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavLogic : public vtkSlicerModuleLogic
+class VTK_FourDUsEndoNav_EXPORT vtkFourDUsEndoNavLogic : public vtkSlicerModuleLogic
 {
 
  public:
@@ -65,13 +65,13 @@ class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavLogic : public vtkSlicerModuleLogic
   //ETX
   
   // Work phase keywords used in NaviTrack (defined in BRPTPRInterface.h)
-  static const char* WorkPhaseKey[vtk4DUsEndoNavLogic::NumPhases];
+  static const char* WorkPhaseKey[vtkFourDUsEndoNavLogic::NumPhases];
 
  public:
   
-  static vtk4DUsEndoNavLogic *New();
+  static vtkFourDUsEndoNavLogic *New();
   
-  vtkTypeRevisionMacro(vtk4DUsEndoNavLogic,vtkObject);
+  vtkTypeRevisionMacro(vtkFourDUsEndoNavLogic,vtkObject);
   
   vtkGetMacro ( CurrentPhase,         int );
   vtkGetMacro ( PrevPhase,            int );
@@ -83,8 +83,8 @@ class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavLogic : public vtkSlicerModuleLogic
   vtkGetMacro ( ScannerWorkPhase,         int );
 
 
-  void SetGUI(vtk4DUsEndoNavGUI* gui) { this->GUI = gui; };
-  vtk4DUsEndoNavGUI* GetGUI()         { return this->GUI; };
+  void SetGUI(vtkFourDUsEndoNavGUI* gui) { this->GUI = gui; };
+  vtkFourDUsEndoNavGUI* GetGUI()         { return this->GUI; };
 
   void PrintSelf(ostream&, vtkIndent);
   
@@ -124,10 +124,10 @@ class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavLogic : public vtkSlicerModuleLogic
 
  protected:
   
-  vtk4DUsEndoNavLogic();
-  ~vtk4DUsEndoNavLogic();
-  vtk4DUsEndoNavLogic(const vtk4DUsEndoNavLogic&);
-  void operator=(const vtk4DUsEndoNavLogic&);
+  vtkFourDUsEndoNavLogic();
+  ~vtkFourDUsEndoNavLogic();
+  vtkFourDUsEndoNavLogic(const vtkFourDUsEndoNavLogic&);
+  void operator=(const vtkFourDUsEndoNavLogic&);
   
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
 
@@ -143,7 +143,7 @@ class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavLogic : public vtkSlicerModuleLogic
   
  private:
   
-  vtk4DUsEndoNavGUI* GUI;
+  vtkFourDUsEndoNavGUI* GUI;
 
   static const int PhaseTransitionMatrix[NumPhases][NumPhases];
   

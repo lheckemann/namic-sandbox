@@ -12,19 +12,19 @@
 
 ==========================================================================*/
 
-#ifndef __vtk4DUsEndoNavWin32Header_h
-#define __vtk4DUsEndoNavWin32Header_h
+#ifndef __vtkFourDUsEndoNavWin32Header_h
+#define __vtkFourDUsEndoNavWin32Header_h
 
-#include "vtk4DUsEndoNavConfigure.h"
+#include "vtkFourDUsEndoNavConfigure.h"
 
 #if defined(WIN32) && !defined(VTKSLICER_STATIC)
-  #if defined(4DUsEndoNav_EXPORTS)
-    #define VTK_4DUsEndoNav_EXPORT __declspec( dllexport )
+  #if defined(FourDUsEndoNav_EXPORTS)
+    #define VTK_FourDUsEndoNav_EXPORT __declspec( dllexport )
   #else
-    #define VTK_4DUsEndoNav_EXPORT __declspec( dllimport )
+    #define VTK_FourDUsEndoNav_EXPORT __declspec( dllimport )
   #endif
 #else
-  #define VTK_4DUsEndoNav_EXPORT
+  #define VTK_FourDUsEndoNav_EXPORT
 #endif
 
 #endif

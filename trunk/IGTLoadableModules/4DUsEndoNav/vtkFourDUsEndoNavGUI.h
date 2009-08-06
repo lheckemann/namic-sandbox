@@ -12,15 +12,15 @@
 
 =========================================================================auto=*/
 
-#ifndef __vtk4DUsEndoNavGUI_h
-#define __vtk4DUsEndoNavGUI_h
+#ifndef __vtkFourDUsEndoNavGUI_h
+#define __vtkFourDUsEndoNavGUI_h
 
 #ifdef WIN32
-#include "vtk4DUsEndoNavWin32Header.h"
+#include "vtkFourDUsEndoNavWin32Header.h"
 #endif
 
 #include "vtkSlicerModuleGUI.h"
-#include "vtk4DUsEndoNavLogic.h"
+#include "vtkFourDUsEndoNavLogic.h"
 
 #include "vtkIGTDataManager.h"
 #include "vtkIGTPat2ImgRegistration.h"
@@ -43,7 +43,7 @@ class vtkKWLoadSaveButtonWithLabel;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkKWWizardWidget;
 
-class vtk4DUsEndoNavStepBase;
+class vtkFourDUsEndoNavStepBase;
 
 class vtkTransform;
  
@@ -52,7 +52,7 @@ class vtkTransform;
 // Description:    
 // This class implements Slicer's Volumes GUI
 //
-class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavGUI : public vtkSlicerModuleGUI
+class VTK_FourDUsEndoNav_EXPORT vtkFourDUsEndoNavGUI : public vtkSlicerModuleGUI
 {
  public:
   
@@ -72,30 +72,30 @@ class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavGUI : public vtkSlicerModuleGUI
     SLICE_RTIMAGE_INPLANE   = 3
   };
   
-  static const double WorkPhaseColor[vtk4DUsEndoNavLogic::NumPhases][NUM_PHASES];
-  static const double WorkPhaseColorActive[vtk4DUsEndoNavLogic::NumPhases][NUM_PHASES];
-  static const double WorkPhaseColorDisabled[vtk4DUsEndoNavLogic::NumPhases][NUM_PHASES];
-  static const char* WorkPhaseStr[vtk4DUsEndoNavLogic::NumPhases];
+  static const double WorkPhaseColor[vtkFourDUsEndoNavLogic::NumPhases][NUM_PHASES];
+  static const double WorkPhaseColorActive[vtkFourDUsEndoNavLogic::NumPhases][NUM_PHASES];
+  static const double WorkPhaseColorDisabled[vtkFourDUsEndoNavLogic::NumPhases][NUM_PHASES];
+  static const char* WorkPhaseStr[vtkFourDUsEndoNavLogic::NumPhases];
   //ETX
   
  public:
   // Description:    
   // Usual vtk class functions
-  static vtk4DUsEndoNavGUI* New (  );
-  vtkTypeRevisionMacro ( vtk4DUsEndoNavGUI, vtkSlicerModuleGUI );
+  static vtkFourDUsEndoNavGUI* New (  );
+  vtkTypeRevisionMacro ( vtkFourDUsEndoNavGUI, vtkSlicerModuleGUI );
   void PrintSelf (ostream& os, vtkIndent indent );
   
   //SendDATANavitrack
   // Description:    
   // Get methods on class members (no Set methods required)
-  vtkGetObjectMacro ( Logic, vtk4DUsEndoNavLogic );
+  vtkGetObjectMacro ( Logic, vtkFourDUsEndoNavLogic );
   
   // Description:
   // API for setting VolumeNode, VolumeLogic and
   // for both setting and observing them.
   void SetModuleLogic ( vtkSlicerLogic *logic )
   { this->SetLogic ( vtkObjectPointer (&this->Logic), logic ); }
-  void SetAndObserveModuleLogic ( vtk4DUsEndoNavLogic *logic )
+  void SetAndObserveModuleLogic ( vtkFourDUsEndoNavLogic *logic )
   { this->SetAndObserveLogic ( vtkObjectPointer (&this->Logic), logic ); }
   // Description: 
   // Get wizard widget
@@ -144,8 +144,8 @@ class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavGUI : public vtkSlicerModuleGUI
   //ETX
   
  protected:
-  vtk4DUsEndoNavGUI ( );
-  virtual ~vtk4DUsEndoNavGUI ( );
+  vtkFourDUsEndoNavGUI ( );
+  virtual ~vtkFourDUsEndoNavGUI ( );
   
   //----------------------------------------------------------------
   // GUI widgets
@@ -160,13 +160,13 @@ class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavGUI : public vtkSlicerModuleGUI
   // Wizard Frame
   
   vtkKWWizardWidget *WizardWidget;
-  vtk4DUsEndoNavStepBase **WizardSteps;
+  vtkFourDUsEndoNavStepBase **WizardSteps;
   
   //----------------------------------------------------------------
   // Logic Values
   //----------------------------------------------------------------
 
-  vtk4DUsEndoNavLogic *Logic;
+  vtkFourDUsEndoNavLogic *Logic;
 
   vtkIGTDataManager *DataManager;
   vtkIGTPat2ImgRegistration *Pat2ImgReg;
@@ -185,8 +185,8 @@ class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavGUI : public vtkSlicerModuleGUI
   
  private:
 
-  vtk4DUsEndoNavGUI ( const vtk4DUsEndoNavGUI& ); // Not implemented.
-  void operator = ( const vtk4DUsEndoNavGUI& ); //Not implemented.
+  vtkFourDUsEndoNavGUI ( const vtkFourDUsEndoNavGUI& ); // Not implemented.
+  void operator = ( const vtkFourDUsEndoNavGUI& ); //Not implemented.
   
   void BuildGUIForWorkPhaseFrame();
   void BuildGUIForWizardFrame();

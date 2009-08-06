@@ -12,11 +12,11 @@
 
 ==========================================================================*/
 
-#ifndef __vtk4DUsEndoNavFirstStep_h
-#define __vtk4DUsEndoNavFirstStep_h
+#ifndef __vtkFourDUsEndoNavFirstStep_h
+#define __vtkFourDUsEndoNavFirstStep_h
 
 
-#include "vtk4DUsEndoNavStepBase.h"
+#include "vtkFourDUsEndoNavStepBase.h"
 #include "vtkCommand.h"
 
 #include <cv.h>
@@ -38,12 +38,12 @@ class vtkActor2D;
 class vtkRenderer;
 class vtkRenderWindow;
 
-class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavFirstStep :
-  public vtk4DUsEndoNavStepBase
+class VTK_FourDUsEndoNav_EXPORT vtkFourDUsEndoNavFirstStep :
+  public vtkFourDUsEndoNavStepBase
 {
 public:
-  static vtk4DUsEndoNavFirstStep *New();
-  vtkTypeRevisionMacro(vtk4DUsEndoNavFirstStep,vtk4DUsEndoNavStepBase);
+  static vtkFourDUsEndoNavFirstStep *New();
+  vtkTypeRevisionMacro(vtkFourDUsEndoNavFirstStep,vtkFourDUsEndoNavStepBase);
   void                PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void        ShowUserInterface();
@@ -75,8 +75,8 @@ public:
   vtkImageImport*     GetImporter(){return this->Importer;};
 
 protected:
-  vtk4DUsEndoNavFirstStep();
-  ~vtk4DUsEndoNavFirstStep();
+  vtkFourDUsEndoNavFirstStep();
+  ~vtkFourDUsEndoNavFirstStep();
 
   // GUI Widgets
   vtkKWFrame*         RobotFrame;
@@ -123,8 +123,8 @@ protected:
 
 
 private:
-  vtk4DUsEndoNavFirstStep(const vtk4DUsEndoNavFirstStep&);
-  void operator=(const vtk4DUsEndoNavFirstStep&);
+  vtkFourDUsEndoNavFirstStep(const vtkFourDUsEndoNavFirstStep&);
+  void operator=(const vtkFourDUsEndoNavFirstStep&);
 };
 
 #endif

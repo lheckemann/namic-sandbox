@@ -15,7 +15,7 @@
 #include "vtkObject.h"
 #include "vtkObjectFactory.h"
 
-#include "vtk4DUsEndoNavGUI.h"
+#include "vtkFourDUsEndoNavGUI.h"
 #include "BRPTPRInterface.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerModuleCollapsibleFrame.h"
@@ -25,10 +25,10 @@
 
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
-#include "vtk4DUsEndoNavStepBase.h"
-#include "vtk4DUsEndoNavFirstStep.h"
-#include "vtk4DUsEndoNavSecondStep.h"
-#include "vtk4DUsEndoNavThirdStep.h"
+#include "vtkFourDUsEndoNavStepBase.h"
+#include "vtkFourDUsEndoNavFirstStep.h"
+#include "vtkFourDUsEndoNavSecondStep.h"
+#include "vtkFourDUsEndoNavThirdStep.h"
 
 #include "vtkKWRenderWidget.h"
 #include "vtkKWWidget.h"
@@ -76,14 +76,14 @@
 #include <vector>
 
 //---------------------------------------------------------------------------
-vtkStandardNewMacro (vtk4DUsEndoNavGUI );
-vtkCxxRevisionMacro ( vtk4DUsEndoNavGUI, "$Revision: 1.0 $");
+vtkStandardNewMacro (vtkFourDUsEndoNavGUI );
+vtkCxxRevisionMacro ( vtkFourDUsEndoNavGUI, "$Revision: 1.0 $");
 //---------------------------------------------------------------------------
 
 
 //---------------------------------------------------------------------------
 // Button Colors and Labels for Work Phase Control
-const double vtk4DUsEndoNavGUI::WorkPhaseColor[vtk4DUsEndoNavLogic::NumPhases][NUM_PHASES] =
+const double vtkFourDUsEndoNavGUI::WorkPhaseColor[vtkFourDUsEndoNavLogic::NumPhases][NUM_PHASES] =
   {
   /* St */ { 1.0, 0.6, 1.0 },
   /* Pl */ { 0.6, 1.0, 0.6 },
@@ -93,7 +93,7 @@ const double vtk4DUsEndoNavGUI::WorkPhaseColor[vtk4DUsEndoNavLogic::NumPhases][N
 //  /* Em */ { 1.0, 0.0, 0.0 },
   };
 
-const double vtk4DUsEndoNavGUI::WorkPhaseColorActive[vtk4DUsEndoNavLogic::NumPhases][NUM_PHASES] =
+const double vtkFourDUsEndoNavGUI::WorkPhaseColorActive[vtkFourDUsEndoNavLogic::NumPhases][NUM_PHASES] =
   {
   /* St */ { 1.0, 0.4, 1.0 },
   /* Pl */ { 0.4, 1.0, 0.4 },
@@ -103,7 +103,7 @@ const double vtk4DUsEndoNavGUI::WorkPhaseColorActive[vtk4DUsEndoNavLogic::NumPha
 //  /* Em */ { 1.0, 0.0, 0.0 },
   };
 
-const double vtk4DUsEndoNavGUI::WorkPhaseColorDisabled[vtk4DUsEndoNavLogic::NumPhases][NUM_PHASES] =
+const double vtkFourDUsEndoNavGUI::WorkPhaseColorDisabled[vtkFourDUsEndoNavLogic::NumPhases][NUM_PHASES] =
   {
   /* St */ { 1.0, 0.95, 1.0 },
   /* Pl */ { 0.95, 1.0, 0.95 },
@@ -113,7 +113,7 @@ const double vtk4DUsEndoNavGUI::WorkPhaseColorDisabled[vtk4DUsEndoNavLogic::NumP
 //  /* Em */ { 1.0, 0.95, 0.95 },
   };
 
-const char *vtk4DUsEndoNavGUI::WorkPhaseStr[vtk4DUsEndoNavLogic::NumPhases] =
+const char *vtkFourDUsEndoNavGUI::WorkPhaseStr[vtkFourDUsEndoNavLogic::NumPhases] =
   {
   /* Su */ "Second Window",
   /* Pl */ "Second",
@@ -121,10 +121,10 @@ const char *vtk4DUsEndoNavGUI::WorkPhaseStr[vtk4DUsEndoNavLogic::NumPhases] =
   };
 
 //---------------------------------------------------------------------------
-vtk4DUsEndoNavGUI::vtk4DUsEndoNavGUI ( )
+vtkFourDUsEndoNavGUI::vtkFourDUsEndoNavGUI ( )
 {
 
-  std::cerr << "vtk4DUsEndoNavGUI::vtk4DUsEndoNavGUI ( )" << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::vtkFourDUsEndoNavGUI ( )" << std::endl;
 
   //----------------------------------------------------------------
   // Logic values
@@ -135,7 +135,7 @@ vtk4DUsEndoNavGUI::vtk4DUsEndoNavGUI ( )
   
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
-  this->DataCallbackCommand->SetCallback(vtk4DUsEndoNavGUI::DataCallback);
+  this->DataCallbackCommand->SetCallback(vtkFourDUsEndoNavGUI::DataCallback);
   
   //----------------------------------------------------------------
   // Workphase Frame
@@ -148,8 +148,8 @@ vtk4DUsEndoNavGUI::vtk4DUsEndoNavGUI ( )
   // Wizard Frame
   
   this->WizardWidget = vtkKWWizardWidget::New();
-  this->WizardSteps = new vtk4DUsEndoNavStepBase*[vtk4DUsEndoNavLogic::NumPhases];
-  for (int i = 0; i < vtk4DUsEndoNavLogic::NumPhases; i ++)
+  this->WizardSteps = new vtkFourDUsEndoNavStepBase*[vtkFourDUsEndoNavLogic::NumPhases];
+  for (int i = 0; i < vtkFourDUsEndoNavLogic::NumPhases; i ++)
     {
     this->WizardSteps[i] = NULL;
     }
@@ -157,12 +157,12 @@ vtk4DUsEndoNavGUI::vtk4DUsEndoNavGUI ( )
 
   this->Entered = 0;
 
-  std::cerr << "vtk4DUsEndoNavGUI::vtk4DUsEndoNavGUI ( ) end " << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::vtkFourDUsEndoNavGUI ( ) end " << std::endl;
 
 }
 
 //---------------------------------------------------------------------------
-vtk4DUsEndoNavGUI::~vtk4DUsEndoNavGUI ( )
+vtkFourDUsEndoNavGUI::~vtkFourDUsEndoNavGUI ( )
 {
   this->RemoveGUIObservers();
 
@@ -207,7 +207,7 @@ vtk4DUsEndoNavGUI::~vtk4DUsEndoNavGUI ( )
 
   if ( this->WizardSteps )
     {
-    for (int i = 0; i < vtk4DUsEndoNavLogic::NumPhases; i ++)
+    for (int i = 0; i < vtkFourDUsEndoNavLogic::NumPhases; i ++)
       {
       if ( this->WizardSteps[i] != NULL )
         {
@@ -224,11 +224,11 @@ vtk4DUsEndoNavGUI::~vtk4DUsEndoNavGUI ( )
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
+void vtkFourDUsEndoNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
 {
     this->vtkObject::PrintSelf ( os, indent );
     
-    os << indent << "4DUsEndoNavGUI: " << this->GetClassName ( ) << "\n";
+    os << indent << "FourDUsEndoNavGUI: " << this->GetClassName ( ) << "\n";
     os << indent << "Logic: " << this->GetLogic ( ) << "\n";
    
     // print widgets?
@@ -236,7 +236,7 @@ void vtk4DUsEndoNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::RemoveGUIObservers ( )
+void vtkFourDUsEndoNavGUI::RemoveGUIObservers ( )
 {
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
@@ -262,7 +262,7 @@ void vtk4DUsEndoNavGUI::RemoveGUIObservers ( )
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::RemoveLogicObservers ( )
+void vtkFourDUsEndoNavGUI::RemoveLogicObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   if (this->GetLogic())
@@ -274,9 +274,9 @@ void vtk4DUsEndoNavGUI::RemoveLogicObservers ( )
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::AddGUIObservers ( )
+void vtkFourDUsEndoNavGUI::AddGUIObservers ( )
 {
-  std::cerr << "vtk4DUsEndoNavGUI::AddGUIObservers ( )" << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::AddGUIObservers ( )" << std::endl;
 
   this->RemoveGUIObservers();
 
@@ -286,7 +286,7 @@ void vtk4DUsEndoNavGUI::AddGUIObservers ( )
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
 
-  std::cerr << "vtk4DUsEndoNavGUI::AddGUIObservers ( ) --2" << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::AddGUIObservers ( ) --2" << std::endl;
 
   //----------------------------------------------------------------
   // Workphase Frame
@@ -297,7 +297,7 @@ void vtk4DUsEndoNavGUI::AddGUIObservers ( )
       ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
-  std::cerr << "vtk4DUsEndoNavGUI::AddGUIObservers ( ) --3" << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::AddGUIObservers ( ) --3" << std::endl;
   
   //----------------------------------------------------------------
   // Wizard Frame
@@ -306,7 +306,7 @@ void vtk4DUsEndoNavGUI::AddGUIObservers ( )
                                                        (vtkCommand *)this->GUICallbackCommand);
 
 
-  std::cerr << "vtk4DUsEndoNavGUI::AddGUIObservers ( ) --4" << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::AddGUIObservers ( ) --4" << std::endl;
 
   //----------------------------------------------------------------
   // Etc Frame
@@ -315,41 +315,41 @@ void vtk4DUsEndoNavGUI::AddGUIObservers ( )
 
   this->AddLogicObservers();
 
-  std::cerr << "vtk4DUsEndoNavGUI::AddGUIObservers ( ) end" << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::AddGUIObservers ( ) end" << std::endl;
   
 }
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::AddLogicObservers ( )
+void vtkFourDUsEndoNavGUI::AddLogicObservers ( )
 {
 
-  std::cerr << "vtk4DUsEndoNavGUI::AddLogicObservers ( )" << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::AddLogicObservers ( )" << std::endl;
 
   this->RemoveLogicObservers();  
 
   if (this->GetLogic())
     {
     /*
-    this->GetLogic()->AddObserver(vtk4DUsEndoNavLogic::LocatorUpdateEvent,
+    this->GetLogic()->AddObserver(vtkFourDUsEndoNavLogic::LocatorUpdateEvent,
                                   (vtkCommand *)this->LogicCallbackCommand);
     */
     /*
-    this->GetLogic()->AddObserver(vtk4DUsEndoNavLogic::SliceUpdateEvent,
+    this->GetLogic()->AddObserver(vtkFourDUsEndoNavLogic::SliceUpdateEvent,
                                   (vtkCommand *)this->LogicCallbackCommand);
     */
       /*
-    this->GetLogic()->AddObserver(vtk4DUsEndoNavLogic::StatusUpdateEvent,
+    this->GetLogic()->AddObserver(vtkFourDUsEndoNavLogic::StatusUpdateEvent,
                                   (vtkCommand *)this->LogicCallbackCommand);
       */
 
     }
-  std::cerr << "vtk4DUsEndoNavGUI::AddLogicObservers ( ) end " << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::AddLogicObservers ( ) end " << std::endl;
 }
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
+void vtkFourDUsEndoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
 
   /*
@@ -416,11 +416,11 @@ void vtk4DUsEndoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::ProcessGUIEvents(vtkObject *caller,
+void vtkFourDUsEndoNavGUI::ProcessGUIEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
 
-  std::cerr << "vtk4DUsEndoNavGUI::ProcessGUIEvents() " << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::ProcessGUIEvents() " << std::endl;
 
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
@@ -445,7 +445,7 @@ void vtk4DUsEndoNavGUI::ProcessGUIEvents(vtkObject *caller,
         }
       }
 
-//    if(phase == vtk4DUsEndoNavLogic::StartUp)
+//    if(phase == vtkFourDUsEndoNavLogic::StartUp)
 //      {// Start Second window
 //
 //      std::cerr << "showCaptureData button is pressed." << std::endl;
@@ -460,7 +460,7 @@ void vtk4DUsEndoNavGUI::ProcessGUIEvents(vtkObject *caller,
 //
 //      }
 
-    if (phase < vtk4DUsEndoNavLogic::NumPhases) // if pressed one of them
+    if (phase < vtkFourDUsEndoNavLogic::NumPhases) // if pressed one of them
       {
       ChangeWorkPhase(phase, 1);
       }
@@ -474,11 +474,11 @@ void vtk4DUsEndoNavGUI::ProcessGUIEvents(vtkObject *caller,
       event == vtkKWWizardWorkflow::CurrentStateChangedEvent)
     {
           
-    ////////int phase = vtk4DUsEndoNavLogic::Emergency;
+    ////////int phase = vtkFourDUsEndoNavLogic::Emergency;
     int phase = 0;
     vtkKWWizardStep* step =  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep();
 
-    for (int i = 0; i < vtk4DUsEndoNavLogic::NumPhases-1; i ++)
+    for (int i = 0; i < vtkFourDUsEndoNavLogic::NumPhases-1; i ++)
       {
       if (step == vtkKWWizardStep::SafeDownCast(this->WizardSteps[i]))
         {
@@ -497,12 +497,12 @@ void vtk4DUsEndoNavGUI::ProcessGUIEvents(vtkObject *caller,
     this->WizardSteps[phase]->ProcessGUIEvents(caller, event, callData);
     }
 
-  std::cerr << "vtk4DUsEndoNavGUI::ProcessGUIEvents() end " << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::ProcessGUIEvents() end " << std::endl;
 
 } 
 
 
-void vtk4DUsEndoNavGUI::Init()
+void vtkFourDUsEndoNavGUI::Init()
 {
     this->DataManager->SetMRMLScene(this->GetMRMLScene());
     //   this->LocatorModelID = std::string(this->DataManager->RegisterStream(0));
@@ -512,24 +512,24 @@ void vtk4DUsEndoNavGUI::Init()
 
 
 
-void vtk4DUsEndoNavGUI::DataCallback(vtkObject *caller,
+void vtkFourDUsEndoNavGUI::DataCallback(vtkObject *caller,
         unsigned long eid, void *clientData, void *callData)
 {
-    vtk4DUsEndoNavGUI *self = reinterpret_cast<vtk4DUsEndoNavGUI *>(clientData);
-    vtkDebugWithObjectMacro(self, "In vtk4DUsEndoNavGUI DataCallback");
+    vtkFourDUsEndoNavGUI *self = reinterpret_cast<vtkFourDUsEndoNavGUI *>(clientData);
+    vtkDebugWithObjectMacro(self, "In vtkFourDUsEndoNavGUI DataCallback");
 
     self->UpdateAll();
 }
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::ProcessLogicEvents ( vtkObject *caller,
+void vtkFourDUsEndoNavGUI::ProcessLogicEvents ( vtkObject *caller,
     unsigned long event, void *callData )
 {
 
-  if (this->GetLogic() == vtk4DUsEndoNavLogic::SafeDownCast(caller))
+  if (this->GetLogic() == vtkFourDUsEndoNavLogic::SafeDownCast(caller))
     {
-    if (event == vtk4DUsEndoNavLogic::StatusUpdateEvent)
+    if (event == vtkFourDUsEndoNavLogic::StatusUpdateEvent)
       {
       }
     }
@@ -537,7 +537,7 @@ void vtk4DUsEndoNavGUI::ProcessLogicEvents ( vtkObject *caller,
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::ProcessMRMLEvents ( vtkObject *caller,
+void vtkFourDUsEndoNavGUI::ProcessMRMLEvents ( vtkObject *caller,
     unsigned long event, void *callData )
 {
     // Fill in
@@ -545,18 +545,18 @@ void vtk4DUsEndoNavGUI::ProcessMRMLEvents ( vtkObject *caller,
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::Enter()
+void vtkFourDUsEndoNavGUI::Enter()
 {
   // Fill in
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  std::cerr << "vtk4DUsEndoNavGUI::Enter() " << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::Enter() " << std::endl;
 
   if (this->Entered == 0)
     {
     this->GetLogic()->SetGUI(this);
 
-    ChangeWorkPhase(vtk4DUsEndoNavLogic::StartUp, 1);
+    ChangeWorkPhase(vtkFourDUsEndoNavLogic::StartUp, 1);
   
     //----------------------------------------------------------------
     // Following code should be in the logic class, but GetApplication()
@@ -571,40 +571,40 @@ void vtk4DUsEndoNavGUI::Enter()
     this->Entered = 1;
     }
 
-  std::cerr << "vtk4DUsEndoNavGUI::Enter() end " << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::Enter() end " << std::endl;
   
 }
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::Exit ( )
+void vtkFourDUsEndoNavGUI::Exit ( )
 {
     // Fill in
 }
 
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::BuildGUI ( )
+void vtkFourDUsEndoNavGUI::BuildGUI ( )
 {
-  std::cerr << "vtk4DUsEndoNavGUI::BuildGUI ( )" << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::BuildGUI ( )" << std::endl;
   // ---
   // MODULE GUI FRAME 
   // create a page
-  this->UIPanel->AddPage ( "4DUsEndoNav", "4DUsEndoNav", NULL );
+  this->UIPanel->AddPage ( "FourDUsEndoNav", "FourDUsEndoNav", NULL );
   
   BuildGUIForHelpFrame();
   BuildGUIForWorkPhaseFrame ();
   BuildGUIForWizardFrame();
-  std::cerr << "vtk4DUsEndoNavGUI::BuildGUI ( ) end" << std::endl;
+  std::cerr << "vtkFourDUsEndoNavGUI::BuildGUI ( ) end" << std::endl;
 }
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::TearDownGUI ( )
+void vtkFourDUsEndoNavGUI::TearDownGUI ( )
 {
   // disconnect circular references so destructor can be called
   
   this->GetLogic()->SetGUI(NULL);
-  for (int i = 0; i < vtk4DUsEndoNavLogic::NumPhases; i ++)
+  for (int i = 0; i < vtkFourDUsEndoNavLogic::NumPhases; i ++)
     {
     if (this->WizardSteps[i])
       {
@@ -615,9 +615,9 @@ void vtk4DUsEndoNavGUI::TearDownGUI ( )
 }
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::BuildGUIForWizardFrame()
+void vtkFourDUsEndoNavGUI::BuildGUIForWizardFrame()
 {
-    vtkKWWidget *page = this->UIPanel->GetPageWidget ( "4DUsEndoNav" );
+    vtkKWWidget *page = this->UIPanel->GetPageWidget ( "FourDUsEndoNav" );
     vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
     
 
@@ -661,31 +661,31 @@ void vtk4DUsEndoNavGUI::BuildGUIForWizardFrame()
     // -----------------------------------------------------------------
     // First step
 
-    if (!this->WizardSteps[vtk4DUsEndoNavLogic::StartUp])
+    if (!this->WizardSteps[vtkFourDUsEndoNavLogic::StartUp])
       {
-      this->WizardSteps[vtk4DUsEndoNavLogic::StartUp] = vtk4DUsEndoNavFirstStep::New();
+      this->WizardSteps[vtkFourDUsEndoNavLogic::StartUp] = vtkFourDUsEndoNavFirstStep::New();
       }
 
     // -----------------------------------------------------------------
     // Second step
 
-    if (!this->WizardSteps[vtk4DUsEndoNavLogic::Planning])
+    if (!this->WizardSteps[vtkFourDUsEndoNavLogic::Planning])
       {
-      this->WizardSteps[vtk4DUsEndoNavLogic::Planning] = vtk4DUsEndoNavSecondStep::New();
+      this->WizardSteps[vtkFourDUsEndoNavLogic::Planning] = vtkFourDUsEndoNavSecondStep::New();
       }
 
     // -----------------------------------------------------------------
     // Third step
 
-    if (!this->WizardSteps[vtk4DUsEndoNavLogic::Calibration])
+    if (!this->WizardSteps[vtkFourDUsEndoNavLogic::Calibration])
       {
-      this->WizardSteps[vtk4DUsEndoNavLogic::Calibration] = vtk4DUsEndoNavThirdStep::New();
+      this->WizardSteps[vtkFourDUsEndoNavLogic::Calibration] = vtkFourDUsEndoNavThirdStep::New();
       }
 
     // -----------------------------------------------------------------
     // Set GUI/Logic to each step and add to workflow
 
-    for (int i = 0; i < vtk4DUsEndoNavLogic::NumPhases-1; i ++)
+    for (int i = 0; i < vtkFourDUsEndoNavLogic::NumPhases-1; i ++)
       {
       this->WizardSteps[i]->SetGUI(this);
       this->WizardSteps[i]->SetLogic(this->Logic);
@@ -703,9 +703,9 @@ void vtk4DUsEndoNavGUI::BuildGUIForWizardFrame()
     // -----------------------------------------------------------------
     // Initial and finish step
 
-    wizard_workflow->SetFinishStep(this->WizardSteps[vtk4DUsEndoNavLogic::Calibration]);
+    wizard_workflow->SetFinishStep(this->WizardSteps[vtkFourDUsEndoNavLogic::Calibration]);
     wizard_workflow->CreateGoToTransitionsToFinishStep();
-    wizard_workflow->SetInitialStep(this->WizardSteps[vtk4DUsEndoNavLogic::StartUp]);
+    wizard_workflow->SetInitialStep(this->WizardSteps[vtkFourDUsEndoNavLogic::StartUp]);
 
     // -----------------------------------------------------------------
     // Show the user interface
@@ -718,16 +718,16 @@ void vtk4DUsEndoNavGUI::BuildGUIForWizardFrame()
 }
 
 
-void vtk4DUsEndoNavGUI::BuildGUIForHelpFrame ()
+void vtkFourDUsEndoNavGUI::BuildGUIForHelpFrame ()
 {
 
     vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
 
-    vtkKWWidget *page = this->UIPanel->GetPageWidget ( "4DUsEndoNav" );
+    vtkKWWidget *page = this->UIPanel->GetPageWidget ( "FourDUsEndoNav" );
 
     // Define your help text here.
     const char *help = 
-      "The **4DUsEndoNav Module** helps you to do prostate Biopsy and Treatment by:"
+      "The **FourDUsEndoNav Module** helps you to do prostate Biopsy and Treatment by:"
       " getting Realtime Images from MR-Scanner into Slicer3, control Scanner with Slicer 3,"
       " determin fiducial detection and control the Robot."
       " Module and Logic mainly coded by Junichi Tokuda, David Gobbi and Philip Mewes"; 
@@ -735,16 +735,16 @@ void vtk4DUsEndoNavGUI::BuildGUIForHelpFrame ()
     // ----------------------------------------------------------------
     // HELP FRAME         
     // ----------------------------------------------------------------
-    vtkSlicerModuleCollapsibleFrame *4DUsEndoNavHelpFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-    4DUsEndoNavHelpFrame->SetParent ( page );
-    4DUsEndoNavHelpFrame->Create ( );
-    4DUsEndoNavHelpFrame->CollapseFrame ( );
-    4DUsEndoNavHelpFrame->SetLabelText ("Help");
+    vtkSlicerModuleCollapsibleFrame *FourDUsEndoNavHelpFrame = vtkSlicerModuleCollapsibleFrame::New ( );
+    FourDUsEndoNavHelpFrame->SetParent ( page );
+    FourDUsEndoNavHelpFrame->Create ( );
+    FourDUsEndoNavHelpFrame->CollapseFrame ( );
+    FourDUsEndoNavHelpFrame->SetLabelText ("Help");
     app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-        4DUsEndoNavHelpFrame->GetWidgetName(), page->GetWidgetName());
+        FourDUsEndoNavHelpFrame->GetWidgetName(), page->GetWidgetName());
 
     // configure the parent classes help text widget
-    this->HelpText->SetParent ( 4DUsEndoNavHelpFrame->GetFrame() );
+    this->HelpText->SetParent ( FourDUsEndoNavHelpFrame->GetFrame() );
     this->HelpText->Create ( );
     this->HelpText->SetHorizontalScrollbarVisibility ( 0 );
     this->HelpText->SetVerticalScrollbarVisibility ( 1 );
@@ -757,16 +757,16 @@ void vtk4DUsEndoNavGUI::BuildGUIForHelpFrame ()
     app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4",
         this->HelpText->GetWidgetName ( ) );
 
-    4DUsEndoNavHelpFrame->Delete();
+    FourDUsEndoNavHelpFrame->Delete();
 
 }
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::BuildGUIForWorkPhaseFrame ()
+void vtkFourDUsEndoNavGUI::BuildGUIForWorkPhaseFrame ()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "4DUsEndoNav" );
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "FourDUsEndoNav" );
   
   vtkSlicerModuleCollapsibleFrame *workphaseFrame = vtkSlicerModuleCollapsibleFrame::New ( );
   workphaseFrame->SetParent(page);
@@ -808,7 +808,7 @@ void vtk4DUsEndoNavGUI::BuildGUIForWorkPhaseFrame ()
   this->WorkPhaseButtonSet->UniformColumnsOn();
   this->WorkPhaseButtonSet->UniformRowsOn();
   
-  for (int i = 0; i < vtk4DUsEndoNavLogic::NumPhases; i ++)
+  for (int i = 0; i < vtkFourDUsEndoNavLogic::NumPhases; i ++)
     {
     this->WorkPhaseButtonSet->AddWidget(i);
     this->WorkPhaseButtonSet->GetWidget(i)->SetWidth(16);
@@ -834,7 +834,7 @@ void vtk4DUsEndoNavGUI::BuildGUIForWorkPhaseFrame ()
 
 
 //----------------------------------------------------------------------------
-int vtk4DUsEndoNavGUI::ChangeWorkPhase(int phase, int fChangeWizard)
+int vtkFourDUsEndoNavGUI::ChangeWorkPhase(int phase, int fChangeWizard)
 {
 
    //  cerr << "ChangeWorkPhase: started" << endl;
@@ -844,7 +844,7 @@ int vtk4DUsEndoNavGUI::ChangeWorkPhase(int phase, int fChangeWizard)
     return 0;
     }
   
-  for (int i = 0; i < vtk4DUsEndoNavLogic::NumPhases; i ++)
+  for (int i = 0; i < vtkFourDUsEndoNavLogic::NumPhases; i ++)
     {
     vtkKWPushButton *pb = this->WorkPhaseButtonSet->GetWidget(i);
     if (i == this->Logic->GetCurrentPhase())
@@ -882,13 +882,13 @@ int vtk4DUsEndoNavGUI::ChangeWorkPhase(int phase, int fChangeWizard)
     step_to = this->Logic->GetCurrentPhase();
     step_from = this->Logic->GetPrevPhase();
 
-    //if (step_to == vtk4DUsEndoNavLogic::Emergency)
+    //if (step_to == vtkFourDUsEndoNavLogic::Emergency)
     //  {
-    //  step_to = vtk4DUsEndoNavLogic::Manual;
+    //  step_to = vtkFourDUsEndoNavLogic::Manual;
     //  }
-    //if (step_from == vtk4DUsEndoNavLogic::Emergency)
+    //if (step_from == vtkFourDUsEndoNavLogic::Emergency)
     //  {
-    //  step_from = vtk4DUsEndoNavLogic::Manual;
+    //  step_from = vtkFourDUsEndoNavLogic::Manual;
     //  }
     
     int steps =  step_to - step_from;
@@ -915,7 +915,7 @@ int vtk4DUsEndoNavGUI::ChangeWorkPhase(int phase, int fChangeWizard)
 
 
 //----------------------------------------------------------------------------
-void vtk4DUsEndoNavGUI::UpdateAll()
+void vtkFourDUsEndoNavGUI::UpdateAll()
 {
 
 }

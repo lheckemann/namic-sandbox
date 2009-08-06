@@ -12,10 +12,10 @@
 
 ==========================================================================*/
 
-#ifndef __vtk4DUsEndoNavStepBase_h
-#define __vtk4DUsEndoNavStepBase_h
+#ifndef __vtkFourDUsEndoNavStepBase_h
+#define __vtkFourDUsEndoNavStepBase_h
 
-#include "vtk4DUsEndoNavWin32Header.h"
+#include "vtkFourDUsEndoNavWin32Header.h"
 
 #include "vtkObject.h"
 #include "vtkKWObject.h"
@@ -24,15 +24,15 @@
 #include "vtkKWWizardStep.h"
 #include "vtkObserverManager.h"
 
-class vtk4DUsEndoNavGUI;
-class vtk4DUsEndoNavLogic;
+class vtkFourDUsEndoNavGUI;
+class vtkFourDUsEndoNavLogic;
 class vtkMRMLScene;
 
-class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavStepBase : public vtkKWWizardStep
+class VTK_FourDUsEndoNav_EXPORT vtkFourDUsEndoNavStepBase : public vtkKWWizardStep
 {
 public:
-  static vtk4DUsEndoNavStepBase *New();
-  vtkTypeRevisionMacro(vtk4DUsEndoNavStepBase,vtkKWWizardStep);
+  static vtkFourDUsEndoNavStepBase *New();
+  vtkTypeRevisionMacro(vtkFourDUsEndoNavStepBase,vtkKWWizardStep);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void Register(vtkObject *o) { Superclass::Register(o); };
@@ -40,11 +40,11 @@ public:
 
   // Description: 
   // Get/Set GUI
-  vtkGetObjectMacro(GUI, vtk4DUsEndoNavGUI);
-  vtkGetObjectMacro(Logic, vtk4DUsEndoNavLogic);
+  vtkGetObjectMacro(GUI, vtkFourDUsEndoNavGUI);
+  vtkGetObjectMacro(Logic, vtkFourDUsEndoNavLogic);
 
-  virtual void SetGUI(vtk4DUsEndoNavGUI*);
-  virtual void SetLogic(vtk4DUsEndoNavLogic*);
+  virtual void SetGUI(vtkFourDUsEndoNavGUI*);
+  virtual void SetLogic(vtkFourDUsEndoNavLogic*);
 
   void SetInMRMLCallbackFlag (int flag) {
     this->InMRMLCallbackFlag = flag;
@@ -82,8 +82,8 @@ public:
 
 
 protected:
-  vtk4DUsEndoNavStepBase();
-  ~vtk4DUsEndoNavStepBase();
+  vtkFourDUsEndoNavStepBase();
+  ~vtkFourDUsEndoNavStepBase();
 
   static void GUICallback(vtkObject *caller,
                           unsigned long eid, void *clientData, void *callData );
@@ -96,8 +96,8 @@ protected:
   int InGUICallbackFlag;
   int InMRMLCallbackFlag;
 
-  vtk4DUsEndoNavGUI   *GUI;
-  vtk4DUsEndoNavLogic *Logic;
+  vtkFourDUsEndoNavGUI   *GUI;
+  vtkFourDUsEndoNavLogic *Logic;
   vtkMRMLScene        *MRMLScene;
 
   vtkCallbackCommand *GUICallbackCommand;
@@ -107,8 +107,8 @@ protected:
 
 
 private:
-  vtk4DUsEndoNavStepBase(const vtk4DUsEndoNavStepBase&);
-  void operator=(const vtk4DUsEndoNavStepBase&);
+  vtkFourDUsEndoNavStepBase(const vtkFourDUsEndoNavStepBase&);
+  void operator=(const vtkFourDUsEndoNavStepBase&);
 
 };
 

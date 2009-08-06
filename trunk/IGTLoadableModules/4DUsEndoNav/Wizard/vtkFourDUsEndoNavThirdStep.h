@@ -12,10 +12,10 @@
 
 ==========================================================================*/
 
-#ifndef __vtk4DUsEndoNavThirdStep_h
-#define __vtk4DUsEndoNavThirdStep_h
+#ifndef __vtkFourDUsEndoNavThirdStep_h
+#define __vtkFourDUsEndoNavThirdStep_h
 
-#include "vtk4DUsEndoNavStepBase.h"
+#include "vtkFourDUsEndoNavStepBase.h"
 
 class vtkKWLoadSaveButtonWithLabel;
 class vtkKWFrame;
@@ -24,20 +24,20 @@ class vtkKWCheckButton;
 class vtkKWPushButton;
 class vtkKWLabel;
 
-class VTK_4DUsEndoNav_EXPORT vtk4DUsEndoNavThirdStep :
-  public vtk4DUsEndoNavStepBase
+class VTK_FourDUsEndoNav_EXPORT vtkFourDUsEndoNavThirdStep :
+  public vtkFourDUsEndoNavStepBase
 {
 public:
-  static vtk4DUsEndoNavThirdStep *New();
-  vtkTypeRevisionMacro(vtk4DUsEndoNavThirdStep,vtk4DUsEndoNavStepBase);
+  static vtkFourDUsEndoNavThirdStep *New();
+  vtkTypeRevisionMacro(vtkFourDUsEndoNavThirdStep,vtkFourDUsEndoNavStepBase);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void ShowUserInterface();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
 
 protected:
-  vtk4DUsEndoNavThirdStep();
-  ~vtk4DUsEndoNavThirdStep();
+  vtkFourDUsEndoNavThirdStep();
+  ~vtkFourDUsEndoNavThirdStep();
 
   // GUI Widgets
   vtkKWFrame *RobotFrame;
@@ -55,8 +55,8 @@ protected:
   vtkKWPushButton *ScannerConnectButton;
   
 private:
-  vtk4DUsEndoNavThirdStep(const vtk4DUsEndoNavThirdStep&);
-  void operator=(const vtk4DUsEndoNavThirdStep&);
+  vtkFourDUsEndoNavThirdStep(const vtkFourDUsEndoNavThirdStep&);
+  void operator=(const vtkFourDUsEndoNavThirdStep&);
 };
 
 #endif

@@ -12,10 +12,10 @@
 
 ==========================================================================*/
 
-#include "vtk4DUsEndoNavSecondStep.h"
+#include "vtkFourDUsEndoNavSecondStep.h"
 
-#include "vtk4DUsEndoNavGUI.h"
-#include "vtk4DUsEndoNavLogic.h"
+#include "vtkFourDUsEndoNavGUI.h"
+#include "vtkFourDUsEndoNavLogic.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
@@ -33,11 +33,11 @@
 
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtk4DUsEndoNavSecondStep);
-vtkCxxRevisionMacro(vtk4DUsEndoNavSecondStep, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkFourDUsEndoNavSecondStep);
+vtkCxxRevisionMacro(vtkFourDUsEndoNavSecondStep, "$Revision: 1.1 $");
 
 //----------------------------------------------------------------------------
-vtk4DUsEndoNavSecondStep::vtk4DUsEndoNavSecondStep()
+vtkFourDUsEndoNavSecondStep::vtkFourDUsEndoNavSecondStep()
 {
 
   this->SetName("1/5. Second");
@@ -61,7 +61,7 @@ vtk4DUsEndoNavSecondStep::vtk4DUsEndoNavSecondStep()
 
 
 //----------------------------------------------------------------------------
-vtk4DUsEndoNavSecondStep::~vtk4DUsEndoNavSecondStep()
+vtkFourDUsEndoNavSecondStep::~vtkFourDUsEndoNavSecondStep()
 {
 
   if (this->RobotFrame)
@@ -142,7 +142,7 @@ vtk4DUsEndoNavSecondStep::~vtk4DUsEndoNavSecondStep()
 
 
 //----------------------------------------------------------------------------
-void vtk4DUsEndoNavSecondStep::ShowUserInterface()
+void vtkFourDUsEndoNavSecondStep::ShowUserInterface()
 {
 
   this->Superclass::ShowUserInterface();
@@ -278,13 +278,13 @@ void vtk4DUsEndoNavSecondStep::ShowUserInterface()
 
 
 //----------------------------------------------------------------------------
-void vtk4DUsEndoNavSecondStep::PrintSelf(ostream& os, vtkIndent indent)
+void vtkFourDUsEndoNavSecondStep::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-void vtk4DUsEndoNavSecondStep::ProcessGUIEvents( vtkObject *caller,
+void vtkFourDUsEndoNavSecondStep::ProcessGUIEvents( vtkObject *caller,
                                          unsigned long event, void *callData )
 {
 

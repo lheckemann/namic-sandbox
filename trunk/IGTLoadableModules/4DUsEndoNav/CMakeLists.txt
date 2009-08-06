@@ -1,4 +1,4 @@
-PROJECT(4DUsEndoNav)
+PROJECT(FourDUsEndoNav)
 
 cmake_minimum_required(VERSION 2.4)
 if(COMMAND cmake_policy)
@@ -62,8 +62,8 @@ include_directories(
 # Configure include file
 #
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/vtk4DUsEndoNav.h.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/vtk4DUsEndoNavConfigure.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkFourDUsEndoNavConfigure.h.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkFourDUsEndoNavConfigure.h
   )
 
 file(GLOB headers 
@@ -73,7 +73,7 @@ file(GLOB headers
 
 install(FILES 
   ${headers} 
-  "${CMAKE_CURRENT_BINARY_DIR}/vtk4DUsEndoNavConfigure.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/vtkFourDUsEndoNavConfigure.h"
   DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
   )
 
@@ -81,13 +81,13 @@ install(FILES
 # --------------------------------------------------------------------------
 # Sources
 
-set(4DUsEndoNav_SRCS 
-  vtk4DUsEndoNavLogic.cxx
-  vtk4DUsEndoNavGUI.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtk4DUsEndoNavStepBase.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtk4DUsEndoNavFirstStep.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtk4DUsEndoNavSecondStep.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtk4DUsEndoNavThirdStep.cxx
+set(FourDUsEndoNav_SRCS 
+  vtkFourDUsEndoNavLogic.cxx
+  vtkFourDUsEndoNavGUI.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkFourDUsEndoNavStepBase.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkFourDUsEndoNavFirstStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkFourDUsEndoNavSecondStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkFourDUsEndoNavThirdStep.cxx
   )
 
 
@@ -95,23 +95,23 @@ set(4DUsEndoNav_SRCS
 # Wrapping
 
 include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
-vtk_wrap_tcl3(4DUsEndoNav 4DUsEndoNav_TCL_SRCS "${4DUsEndoNav_SRCS}" "")
+vtk_wrap_tcl3(FourDUsEndoNav FourDUsEndoNav_TCL_SRCS "${FourDUsEndoNav_SRCS}" "")
 
 
 #---------------------------------------------------------------------------
 # Add Loadable Module support
 
-generatelm(4DUsEndoNav_SRCS 4DUsEndoNav.txt)
+generatelm(FourDUsEndoNav_SRCS FourDUsEndoNav.txt)
 
 
 # --------------------------------------------------------------------------
 # Build and install the library
 
-set(lib_name 4DUsEndoNav)
+set(lib_name FourDUsEndoNav)
 
 add_library(${lib_name}
-  ${4DUsEndoNav_SRCS} 
-  ${4DUsEndoNav_TCL_SRCS}
+  ${FourDUsEndoNav_SRCS} 
+  ${FourDUsEndoNav_TCL_SRCS}
   )
 slicer3_set_modules_output_path(${lib_name})
 
