@@ -822,6 +822,65 @@ vtkMRMLIGTLConnectorNode::DeviceInfoType* vtkMRMLIGTLConnectorNode::GetDeviceInf
 
 
 //---------------------------------------------------------------------------
+void vtkMRMLIGTLConnectorNode::ImportDataFromCircularBuffer()
+{
+  vtkMRMLIGTLConnectorNode::NameListType nameList;
+  GetUpdatedBuffersList(nameList);
+  
+  vtkMRMLIGTLConnectorNode::NameListType::iterator nameIter;
+  for (nameIter = nameList.begin(); nameIter != nameList.end(); nameIter ++)
+    {
+    vtkIGTLCircularBuffer* circBuffer = GetCircularBuffer(*nameIter);
+    circBuffer->StartPull();
+    
+    igtl::MessageBase::Pointer buffer = circBuffer->GetPullBuffer();
+
+    vtkIGTLToMRMLBase* converter = this->IGTLNameToConverterMap[buffer->GetDeviceType()];
+    vtkMRMLNode* node = NULL;
+    vtkMRMLScene* scene = this->GetScene();
+    const char* classname = converter->GetMRMLName();
+    vtkCollection* collection = scene->GetNodesByClassByName(classname, buffer->GetDeviceName());
+    int nCol = collection->GetNumberOfItems();
+    if (nCol == 0)
+      {
+      node = converter->CreateNewNode(this->GetScene(), buffer->GetDeviceName());
+      }
+    else
+      {
+      for (int i = 0; i < nCol; i ++)
+        {
+        node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
+
+        // if restrict device feature is enabled,
+        // search the incoming MRMLNodeList.
+        if (this->RestrictDeviceName)
+          {
+          MRMLNodeListType::iterator iter;
+          for (iter = this->IncomingMRMLNodeList.begin();
+               iter != this->IncomingMRMLNodeList.end();
+               iter ++)
+            {
+            if (*iter == node)
+              {
+              converter->IGTLToMRML(buffer, node);
+              node->Modified();
+              }
+            }
+          }
+        else // this->RestrictDeviceName == NULL
+          {
+          converter->IGTLToMRML(buffer, node);
+          node->Modified();
+          }
+        }
+      }
+    circBuffer->EndPull();
+    }
+
+}
+
+
+//---------------------------------------------------------------------------
 int vtkMRMLIGTLConnectorNode::RegisterMessageConverter(vtkIGTLToMRMLBase* converter)
 {
   if (converter == NULL)
@@ -957,6 +1016,8 @@ int vtkMRMLIGTLConnectorNode::RegisterOutgoingMRMLNode(vtkMRMLNode* node)
   this->OutgoingMRMLNodeList.push_back(node);
   
   // TODO: should register other types of events here!!!
+  //vtkIntArray* nodeEvents = converter->GetNodeEvents();
+  // ....
   vtkEventBroker::GetInstance()
     ->AddObservation(node, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
 
@@ -1033,6 +1094,8 @@ void vtkMRMLIGTLConnectorNode::UnregisterIncomingMRMLNode(vtkMRMLNode* node)
     }
 
   // Check if the node has already been reagistered.
+  // TODO: MRMLNodeListType can be reimplemented as a std::list
+  // so that the converter can be removed by 'remove()' method.
   MRMLNodeListType::iterator iter;
   for (iter = this->IncomingMRMLNodeList.begin(); iter != this->IncomingMRMLNodeList.end(); iter ++)
     {
@@ -1044,6 +1107,50 @@ void vtkMRMLIGTLConnectorNode::UnregisterIncomingMRMLNode(vtkMRMLNode* node)
   
 }
 
+
+//---------------------------------------------------------------------------
+int vtkMRMLIGTLConnectorNode::GetNumberOfOutgoingMRMLNodes()
+{
+  return this->OutgoingMRMLNodeList.size();
+}
+
+
+//---------------------------------------------------------------------------
+vtkMRMLNode* vtkMRMLIGTLConnectorNode::GetOutgoingMRMLNode(int i)
+{
+  if (i >= 0 && i < this->OutgoingMRMLNodeList.size())
+    {
+    return this->OutgoingMRMLNodeList[i];
+    }
+  else
+    {
+    return NULL;
+    }
+}
+
+
+//---------------------------------------------------------------------------
+int vtkMRMLIGTLConnectorNode::GetNumberOfIncomingMRMLNodes()
+{
+  return this->IncomingMRMLNodeList.size();
+}
+
+
+//---------------------------------------------------------------------------
+vtkMRMLNode* vtkMRMLIGTLConnectorNode::GetIncomingMRMLNode(int i)
+{
+
+  if (i >= 0 && i < this->IncomingMRMLNodeList.size())
+    {
+    return this->IncomingMRMLNodeList[i];
+    }
+  else
+    {
+    return NULL;
+    }
+
+}
+  
 
 //---------------------------------------------------------------------------
 vtkIGTLToMRMLBase* vtkMRMLIGTLConnectorNode::GetConverterByMRMLTag(const char* tag)

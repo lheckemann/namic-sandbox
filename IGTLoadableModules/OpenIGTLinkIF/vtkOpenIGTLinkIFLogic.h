@@ -122,15 +122,11 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   //----------------------------------------------------------------
 
   // Access connectors
-  int                       GetNumberOfConnectors();
   vtkMRMLIGTLConnectorNode* GetConnector(const char* conID);
   void                      ImportFromCircularBuffers();
   
   // Device Name management
   int  SetRestrictDeviceName(int f);
-  int  AddDeviceToConnector(const char* conID, const char* deviceName, const char* deviceType, int io);
-  int  DeleteDeviceFromConnector(const char* conID, const char* deviceName, const char* deviceType, int io);
-  int  DeleteDeviceFromConnector(const char* conID, int devID, int io);
 
   //----------------------------------------------------------------
   // MRML Management
@@ -159,6 +155,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   void GetDeviceNamesFromMrml(IGTLMrmlNodeListType &list, const char* mrmlTagName);
   //void GetDeviceTypes(std::vector<char*> &list);
   //ETX
+
+  //const char* MRMLTagToIGTLName(const char* mrmlTagName);
 
  protected:
   
@@ -217,15 +215,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
 
   int MonitorFlag;
   int MonitorInterval;
-
-  //----------------------------------------------------------------
-  // Massage classes
-  //----------------------------------------------------------------
-
-  //BTX
-  igtl::TransformMessage::Pointer OutTransformMsg;
-  igtl::ImageMessage::Pointer OutImageMsg;
-  //ETX
 
   //----------------------------------------------------------------
   // Real-time image
