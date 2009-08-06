@@ -824,6 +824,7 @@ vtkMRMLIGTLConnectorNode::DeviceInfoType* vtkMRMLIGTLConnectorNode::GetDeviceInf
 //---------------------------------------------------------------------------
 void vtkMRMLIGTLConnectorNode::ImportDataFromCircularBuffer()
 {
+
   vtkMRMLIGTLConnectorNode::NameListType nameList;
   GetUpdatedBuffersList(nameList);
   
@@ -842,39 +843,43 @@ void vtkMRMLIGTLConnectorNode::ImportDataFromCircularBuffer()
       continue;
       }
     vtkIGTLToMRMLBase* converter = conIter->second;
-    vtkMRMLNode* node = NULL;
-    vtkMRMLScene* scene = this->GetScene();
-    const char* classname = converter->GetMRMLName();
-    vtkCollection* collection = scene->GetNodesByClassByName(classname, buffer->GetDeviceName());
-    int nCol = collection->GetNumberOfItems();
-    if (nCol == 0)
-      {
-      node = converter->CreateNewNode(this->GetScene(), buffer->GetDeviceName());
-      }
-    else
-      {
-      for (int i = 0; i < nCol; i ++)
-        {
-        node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
 
-        // if restrict device feature is enabled,
-        // search the incoming MRMLNodeList.
-        if (this->RestrictDeviceName)
+    vtkMRMLScene* scene = this->GetScene();
+
+    // look up the incoming MRML node list
+    MRMLNodeListType::iterator inIter;
+    for (inIter = this->IncomingMRMLNodeList.begin();
+         inIter != this->IncomingMRMLNodeList.end();
+         inIter ++)
+      {
+      if (strcmp((*inIter)->GetNodeTagName(), converter->GetMRMLName()) == 0 && 
+          strcmp((*inIter)->GetName(), (*nameIter).c_str()) == 0)
+        {
+        vtkMRMLNode* node = (*inIter);
+        converter->IGTLToMRML(buffer, node);
+        node->Modified();
+        break;
+        }
+      }
+
+    // if the incoming data is not restricted by name and type, search the scene as well.
+    if (!this->RestrictDeviceName)
+      {
+      const char* classname = scene->GetClassNameByTag(converter->GetMRMLName());
+      vtkCollection* collection = scene->GetNodesByClassByName(classname, buffer->GetDeviceName());
+      int nCol = collection->GetNumberOfItems();
+      if (nCol == 0)
+        {
+        vtkMRMLNode* node = converter->CreateNewNode(this->GetScene(), buffer->GetDeviceName());
+        RegisterIncomingMRMLNode(node);
+        converter->IGTLToMRML(buffer, node);
+        node->Modified();
+        }
+      else
+        {
+        for (int i = 0; i < nCol; i ++)
           {
-          MRMLNodeListType::iterator iter;
-          for (iter = this->IncomingMRMLNodeList.begin();
-               iter != this->IncomingMRMLNodeList.end();
-               iter ++)
-            {
-            if (*iter == node)
-              {
-              converter->IGTLToMRML(buffer, node);
-              node->Modified();
-              }
-            }
-          }
-        else // this->RestrictDeviceName == NULL
-          {
+          vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
           converter->IGTLToMRML(buffer, node);
           node->Modified();
           }
@@ -1053,10 +1058,11 @@ void vtkMRMLIGTLConnectorNode::UnregisterOutgoingMRMLNode(vtkMRMLNode* node)
       this->OutgoingMRMLNodeList.erase(iter);
 
       // Search converter from MRMLIDToConverterMap
-      MessageConverterMapType::iterator iter = this->MRMLIDToConverterMap.find(node->GetID());
-      if (iter != this->MRMLIDToConverterMap.end())
+      MessageConverterMapType::iterator citer = this->MRMLIDToConverterMap.find(node->GetID());
+      if (citer != this->MRMLIDToConverterMap.end())
         {
-        this->MRMLIDToConverterMap.erase(iter);
+        this->MRMLIDToConverterMap.erase(citer);
+        break;
         }
       break;
       }
@@ -1094,6 +1100,9 @@ int vtkMRMLIGTLConnectorNode::RegisterIncomingMRMLNode(vtkMRMLNode* node)
 void vtkMRMLIGTLConnectorNode::UnregisterIncomingMRMLNode(vtkMRMLNode* node)
 {
 
+  std::cerr << "void vtkMRMLIGTLConnectorNode::UnregisterIncomingMRMLNode(vtkMRMLNode* node)" << std::endl;
+  
+
   if (!node)
     {
     return;
@@ -1108,6 +1117,7 @@ void vtkMRMLIGTLConnectorNode::UnregisterIncomingMRMLNode(vtkMRMLNode* node)
     if (*iter == node) // the node has been already registered.
       {
       this->IncomingMRMLNodeList.erase(iter);
+      break;
       }
     }
   

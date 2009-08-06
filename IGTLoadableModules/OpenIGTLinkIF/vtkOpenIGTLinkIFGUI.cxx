@@ -2032,6 +2032,7 @@ int vtkOpenIGTLinkIFGUI::IsIOConfigTreeLeafSelected(const char* callData, std::s
       {
       conID = iter->connectorID;
       nodeID = iter->nodeID;
+      *io = iter->io;
       return NODE_CONNECTOR;
       }
     }
@@ -2042,6 +2043,7 @@ int vtkOpenIGTLinkIFGUI::IsIOConfigTreeLeafSelected(const char* callData, std::s
     if (iter->nodeName == callData)
       {
       conID = iter->connectorID;
+      nodeID = iter->nodeID;
       *io = iter->io;
       return NODE_IO;
       }
@@ -2073,7 +2075,7 @@ void vtkOpenIGTLinkIFGUI::AddIOConfigContextMenuItem(int type, const char* conID
     vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType::iterator iter;
     for (iter = this->CurrentNodeListAvailable.begin(); iter != this->CurrentNodeListAvailable.end(); iter ++)
       {
-      sprintf(command, "AddNodeCallback %s %d %s", conID, io, nodeID);
+      sprintf(command, "AddNodeCallback %s %d %s", conID, io, iter->nodeID.c_str());
       sprintf(label, "Add %s (%s)", iter->name.c_str(), iter->type.c_str());
       this->IOConfigContextMenu->AddCommand(label, this, command);
       }
@@ -2312,13 +2314,13 @@ void vtkOpenIGTLinkIFGUI::UpdateIOConfigTree()
         if (node != NULL)
           {
           //const char* deviceType = this->GetLogic()->MRMLTagToIGTLName(node->GetTag());
-          sprintf(conDeviceNode, "%s/in/%s", id, node->GetName(), node->GetID());
+          sprintf(conDeviceNode, "%s/in/%s", id, node->GetID());
           sprintf(conDeviceNodeName, "%s (%s)",  node->GetName(), node->GetNodeTagName());
           tree->AddNode(conInNode, conDeviceNode, conDeviceNodeName);
           
           nodeInfo.nodeName = conDeviceNode;
           nodeInfo.connectorID = id;
-          nodeInfo.nodeID = "";
+          nodeInfo.nodeID = node->GetID();
           nodeInfo.io = vtkMRMLIGTLConnectorNode::IO_INCOMING;
           this->IOConfigTreeNodeList.push_back(nodeInfo);
           }
@@ -2345,17 +2347,17 @@ void vtkOpenIGTLinkIFGUI::UpdateIOConfigTree()
       int numOutDevice = con->GetNumberOfOutgoingMRMLNodes();
       for (int i = 0; i < numOutDevice; i ++)
         {
-        vtkMRMLNode* node = con->GetIncomingMRMLNode(i);
+        vtkMRMLNode* node = con->GetOutgoingMRMLNode(i);
         if (node != NULL)
           {
           //const char* deviceType = this->GetLogic()->MRMLTagToIGTLName(node->GetTag());
-          sprintf(conDeviceNode, "%s/in/%s", id, node->GetName(), node->GetID());
+          sprintf(conDeviceNode, "%s/out/%s", id, node->GetID());
           sprintf(conDeviceNodeName, "%s (%s)",  node->GetName(), node->GetNodeTagName());
           tree->AddNode(conOutNode, conDeviceNode, conDeviceNodeName);
           
           nodeInfo.nodeName = conDeviceNode;
           nodeInfo.connectorID = id;
-          nodeInfo.nodeID = "";
+          nodeInfo.nodeID = node->GetID();
           nodeInfo.io = vtkMRMLIGTLConnectorNode::IO_OUTGOING;
           this->IOConfigTreeNodeList.push_back(nodeInfo);
           }
@@ -2374,7 +2376,7 @@ void vtkOpenIGTLinkIFGUI::UpdateIOConfigTree()
       //  nodeInfo.nodeName = conDeviceNode;
       //  nodeInfo.deviceID = *iter_out;
       //  nodeInfo.connectorID = id;
-      //  nodeInfo.nodeID = "";
+      //  nodeInfo.nodeID = node->GetID();
       //  nodeInfo.io = vtkMRMLIGTLConnectorNode::IO_OUTGOING;
       //  this->IOConfigTreeNodeList.push_back(nodeInfo);
       //  }
