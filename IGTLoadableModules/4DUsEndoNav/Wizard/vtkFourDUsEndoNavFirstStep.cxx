@@ -14,10 +14,10 @@
 
 #define DEBUG_FLAG
 
-#include "vtk4DUsEndoNavFirstStep.h"
+#include "vtkFourDUsEndoNavFirstStep.h"
 
-#include "vtk4DUsEndoNavGUI.h"
-#include "vtk4DUsEndoNavLogic.h"
+#include "vtkFourDUsEndoNavGUI.h"
+#include "vtkFourDUsEndoNavLogic.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
@@ -59,11 +59,11 @@ int thread_exit_flag = 0;
 //==============================================================================
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtk4DUsEndoNavFirstStep);
-vtkCxxRevisionMacro(vtk4DUsEndoNavFirstStep, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkFourDUsEndoNavFirstStep);
+vtkCxxRevisionMacro(vtkFourDUsEndoNavFirstStep, "$Revision: 1.1 $");
 
 //----------------------------------------------------------------------------
-vtk4DUsEndoNavFirstStep::vtk4DUsEndoNavFirstStep()
+vtkFourDUsEndoNavFirstStep::vtkFourDUsEndoNavFirstStep()
 {
 
   this->SetName("1/5. First");
@@ -112,7 +112,7 @@ vtk4DUsEndoNavFirstStep::vtk4DUsEndoNavFirstStep()
 
 
 //----------------------------------------------------------------------------
-vtk4DUsEndoNavFirstStep::~vtk4DUsEndoNavFirstStep()
+vtkFourDUsEndoNavFirstStep::~vtkFourDUsEndoNavFirstStep()
 {
 
   if (this->RobotFrame)
@@ -266,7 +266,7 @@ vtk4DUsEndoNavFirstStep::~vtk4DUsEndoNavFirstStep()
 }
 
 //----------------------------------------------------------------------------
-void vtk4DUsEndoNavFirstStep::ShowUserInterface()
+void vtkFourDUsEndoNavFirstStep::ShowUserInterface()
 {
 
   this->Superclass::ShowUserInterface();
@@ -402,13 +402,13 @@ void vtk4DUsEndoNavFirstStep::ShowUserInterface()
 
 
 //----------------------------------------------------------------------------
-void vtk4DUsEndoNavFirstStep::PrintSelf(ostream& os, vtkIndent indent)
+void vtkFourDUsEndoNavFirstStep::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
 
 //----------------------------------------------------------------------------
-void vtk4DUsEndoNavFirstStep::ProcessGUIEvents( vtkObject *caller,
+void vtkFourDUsEndoNavFirstStep::ProcessGUIEvents( vtkObject *caller,
                                          unsigned long event, void *callData )
 {
 
@@ -494,7 +494,7 @@ static void *thread_cvGetImageFromCamera(vtkMultiThreader::ThreadInfo *data)
   cerr << "Thread started" << endl;
 #endif
 
-  vtk4DUsEndoNavFirstStep *self = (vtk4DUsEndoNavFirstStep *)(data->UserData);
+  vtkFourDUsEndoNavFirstStep *self = (vtkFourDUsEndoNavFirstStep *)(data->UserData);
   int activeFlag = 1;
 
   do
@@ -606,7 +606,7 @@ static void *thread_cvGetImageFromCamera(vtkMultiThreader::ThreadInfo *data)
 
 }
 
-void vtk4DUsEndoNavFirstStep::cvGetImageFromCamera(void)
+void vtkFourDUsEndoNavFirstStep::cvGetImageFromCamera(void)
 {
 
         this->CaptureImageTmp = cvQueryFrame( this->Capture );
@@ -638,7 +638,7 @@ void vtk4DUsEndoNavFirstStep::cvGetImageFromCamera(void)
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLModelNode* vtk4DUsEndoNavFirstStep::SetVisibilityOfCaptureData(const char* nodeName, int v)
+vtkMRMLModelNode* vtkFourDUsEndoNavFirstStep::SetVisibilityOfCaptureData(const char* nodeName, int v)
 {
   #ifdef DEBUG_FLAG
     cerr << "SetVisibilityOfCaptureData" << endl;
@@ -652,7 +652,7 @@ vtkMRMLModelNode* vtk4DUsEndoNavFirstStep::SetVisibilityOfCaptureData(const char
 }
 
 //------------------------------------------------------------------------------
-vtkMRMLModelNode* vtk4DUsEndoNavFirstStep::initCapture(const char* nodeName, double r, double g, double b)
+vtkMRMLModelNode* vtkFourDUsEndoNavFirstStep::initCapture(const char* nodeName, double r, double g, double b)
 {
 
 #ifdef DEBUG_FLAG
@@ -912,7 +912,7 @@ vtkMRMLModelNode* vtk4DUsEndoNavFirstStep::initCapture(const char* nodeName, dou
 }
 
 //---------------------------------------------------------------------------
-int vtk4DUsEndoNavFirstStep::StopCapture()
+int vtkFourDUsEndoNavFirstStep::StopCapture()
 {
 
 #ifdef DEBUG_FLAG
@@ -933,7 +933,7 @@ return 0;
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* vtk4DUsEndoNavFirstStep::SetCloseOfCaptureData(const char* nodeName)
+vtkMRMLModelNode* vtkFourDUsEndoNavFirstStep::SetCloseOfCaptureData(const char* nodeName)
 {
 
     #ifdef DEBUG_FLAG

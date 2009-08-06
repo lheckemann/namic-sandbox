@@ -15,7 +15,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkCallbackCommand.h"
 
-#include "vtk4DUsEndoNavLogic.h"
+#include "vtkFourDUsEndoNavLogic.h"
 
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
@@ -34,17 +34,17 @@
 #include "itkGDCMImageIO.h"
 #include "itkSpatialOrientationAdapter.h"
 
-#include "vtk4DUsEndoNavGUI.h"
+#include "vtkFourDUsEndoNavGUI.h"
 
 // for communication with robot and scanner
 #include "BRPTPRInterface.h"
 
 
-vtkCxxRevisionMacro(vtk4DUsEndoNavLogic, "$Revision: 1.9.12.1 $");
-vtkStandardNewMacro(vtk4DUsEndoNavLogic);
+vtkCxxRevisionMacro(vtkFourDUsEndoNavLogic, "$Revision: 1.9.12.1 $");
+vtkStandardNewMacro(vtkFourDUsEndoNavLogic);
 
 //---------------------------------------------------------------------------
-const int vtk4DUsEndoNavLogic::PhaseTransitionMatrix[vtk4DUsEndoNavLogic::NumPhases][vtk4DUsEndoNavLogic::NumPhases] =
+const int vtkFourDUsEndoNavLogic::PhaseTransitionMatrix[vtkFourDUsEndoNavLogic::NumPhases][vtkFourDUsEndoNavLogic::NumPhases] =
   {
                /*     next workphase     */
       /*    */ /* St  Pl  Cl  Tg  Mn  Em */
@@ -57,7 +57,7 @@ const int vtk4DUsEndoNavLogic::PhaseTransitionMatrix[vtk4DUsEndoNavLogic::NumPha
   };
 
 //---------------------------------------------------------------------------
-const char *vtk4DUsEndoNavLogic::WorkPhaseKey[vtk4DUsEndoNavLogic::NumPhases] =
+const char *vtkFourDUsEndoNavLogic::WorkPhaseKey[vtkFourDUsEndoNavLogic::NumPhases] =
   { /* define in BRPTPRInterface.h */
   /* Su */ BRPTPR_START_UP   ,
   /* Pl */ BRPTPR_PLANNING   ,
@@ -68,7 +68,7 @@ const char *vtk4DUsEndoNavLogic::WorkPhaseKey[vtk4DUsEndoNavLogic::NumPhases] =
   };
 
 //---------------------------------------------------------------------------
-vtk4DUsEndoNavLogic::vtk4DUsEndoNavLogic()
+vtkFourDUsEndoNavLogic::vtkFourDUsEndoNavLogic()
 {
   this->CurrentPhase         = StartUp;
   this->PrevPhase            = StartUp;
@@ -81,7 +81,7 @@ vtk4DUsEndoNavLogic::vtk4DUsEndoNavLogic()
   // Timer Handling
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
-  this->DataCallbackCommand->SetCallback(vtk4DUsEndoNavLogic::DataCallback);
+  this->DataCallbackCommand->SetCallback(vtkFourDUsEndoNavLogic::DataCallback);
 
   this->TimerOn = 0;
 
@@ -89,7 +89,7 @@ vtk4DUsEndoNavLogic::vtk4DUsEndoNavLogic()
 
 
 //---------------------------------------------------------------------------
-vtk4DUsEndoNavLogic::~vtk4DUsEndoNavLogic()
+vtkFourDUsEndoNavLogic::~vtkFourDUsEndoNavLogic()
 {
 
     if (this->DataCallbackCommand)
@@ -100,38 +100,38 @@ vtk4DUsEndoNavLogic::~vtk4DUsEndoNavLogic()
 }
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkFourDUsEndoNavLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
     this->vtkObject::PrintSelf(os, indent);
 
-    os << indent << "vtk4DUsEndoNavLogic:             " << this->GetClassName() << "\n";
+    os << indent << "vtkFourDUsEndoNavLogic:             " << this->GetClassName() << "\n";
 
 }
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavLogic::DataCallback(vtkObject *caller,
+void vtkFourDUsEndoNavLogic::DataCallback(vtkObject *caller,
                                        unsigned long eid, void *clientData, void *callData)
 {
-    vtk4DUsEndoNavLogic *self = reinterpret_cast<vtk4DUsEndoNavLogic *>(clientData);
-    vtkDebugWithObjectMacro(self, "In vtk4DUsEndoNavLogic DataCallback");
+    vtkFourDUsEndoNavLogic *self = reinterpret_cast<vtkFourDUsEndoNavLogic *>(clientData);
+    vtkDebugWithObjectMacro(self, "In vtkFourDUsEndoNavLogic DataCallback");
     self->UpdateAll();
 }
 
 //---------------------------------------------------------------------------
-void vtk4DUsEndoNavLogic::UpdateAll()
+void vtkFourDUsEndoNavLogic::UpdateAll()
 {
 
 }
 
 
-int vtk4DUsEndoNavLogic::Enter()
+int vtkFourDUsEndoNavLogic::Enter()
 {
   return 1;
 }
 
 
 //---------------------------------------------------------------------------
-int vtk4DUsEndoNavLogic::SwitchWorkPhase(int newwp)
+int vtkFourDUsEndoNavLogic::SwitchWorkPhase(int newwp)
 {
   if (IsPhaseTransitionable(newwp))
     {
@@ -186,7 +186,7 @@ int vtk4DUsEndoNavLogic::SwitchWorkPhase(int newwp)
 
 
 //----------------------------------------------------------------------------
-void vtk4DUsEndoNavLogic::TimerHandler()
+void vtkFourDUsEndoNavLogic::TimerHandler()
 {
   if (this->TimerOn)
     {
@@ -196,7 +196,7 @@ void vtk4DUsEndoNavLogic::TimerHandler()
 
 
 //---------------------------------------------------------------------------
-int vtk4DUsEndoNavLogic::IsPhaseTransitionable(int nextwp)
+int vtkFourDUsEndoNavLogic::IsPhaseTransitionable(int nextwp)
 {
   if (nextwp < 0 || nextwp > NumPhases)
     {
@@ -219,11 +219,11 @@ int vtk4DUsEndoNavLogic::IsPhaseTransitionable(int nextwp)
 }
 
 //---------------------------------------------------------------------------
-int vtk4DUsEndoNavLogic::WorkPhaseStringToID(const char* string)
+int vtkFourDUsEndoNavLogic::WorkPhaseStringToID(const char* string)
 {
-  for (int i = 0; i < vtk4DUsEndoNavLogic::NumPhases; i ++)
+  for (int i = 0; i < vtkFourDUsEndoNavLogic::NumPhases; i ++)
     {
-    if (strcmp(vtk4DUsEndoNavLogic::WorkPhaseKey[i], string) == 0)
+    if (strcmp(vtkFourDUsEndoNavLogic::WorkPhaseKey[i], string) == 0)
       {
       return i;
       }

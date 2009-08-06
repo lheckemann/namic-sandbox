@@ -1,3 +1,0 @@
-Name: 4DUsEndoNav
-GUIName: 4DUsEndoNav
-Dependency: OpenIGTLinkIF, OpenCv
