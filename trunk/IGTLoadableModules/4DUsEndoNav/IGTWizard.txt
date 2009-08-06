@@ -1,3 +1,0 @@
-Name: IGTWizard
-GUIName: IGTWizard
-Dependency: OpenIGTLinkIF
