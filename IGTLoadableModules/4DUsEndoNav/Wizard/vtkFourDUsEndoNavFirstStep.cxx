@@ -62,7 +62,12 @@ int thread_exit_flag = 0;
 vtkStandardNewMacro(vtkFourDUsEndoNavFirstStep);
 vtkCxxRevisionMacro(vtkFourDUsEndoNavFirstStep, "$Revision: 1.1 $");
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavFirstStep::vtkFourDUsEndoNavFirstStep()
+ *
+ *  Constructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavFirstStep::vtkFourDUsEndoNavFirstStep()
 {
 
@@ -111,7 +116,12 @@ vtkFourDUsEndoNavFirstStep::vtkFourDUsEndoNavFirstStep()
 }
 
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavFirstStep::~vtkFourDUsEndoNavFirstStep()
+ *
+ *  Destructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavFirstStep::~vtkFourDUsEndoNavFirstStep()
 {
 
@@ -238,7 +248,6 @@ vtkFourDUsEndoNavFirstStep::~vtkFourDUsEndoNavFirstStep()
     this->Capture = NULL;
     }
 
-
   if(this->Importer)
     {
     this->Importer->Delete();
@@ -265,7 +274,22 @@ vtkFourDUsEndoNavFirstStep::~vtkFourDUsEndoNavFirstStep()
 
 }
 
-//----------------------------------------------------------------------------
+
+/******************************************************************************
+ * void vtkFourDUsEndoNavFirstStep::PrintSelf(ostream& os, vtkIndent indent)
+ *
+ *  Print information about the instance
+ *
+ * ****************************************************************************/
+void vtkFourDUsEndoNavFirstStep::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os,indent);
+}
+
+/******************************************************************************
+ * void vtkFourDUsEndoNavFirstStep::ShowUserInterface()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavFirstStep::ShowUserInterface()
 {
 
@@ -395,19 +419,13 @@ void vtkFourDUsEndoNavFirstStep::ShowUserInterface()
                this->ScannerLabel1->GetWidgetName(), this->ScannerAddressEntry->GetWidgetName(),
                this->ScannerLabel2->GetWidgetName(), this->ScannerPortEntry->GetWidgetName(),
                this->ScannerConnectButton->GetWidgetName());
-
-
-
 }
 
-
-//----------------------------------------------------------------------------
-void vtkFourDUsEndoNavFirstStep::PrintSelf(ostream& os, vtkIndent indent)
-{
-  this->Superclass::PrintSelf(os,indent);
-}
-
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavFirstStep::ProcessGUIEvents( vtkObject *caller,
+ *                                        unsigned long event, void *callData )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavFirstStep::ProcessGUIEvents( vtkObject *caller,
                                          unsigned long event, void *callData )
 {
@@ -486,7 +504,12 @@ void vtkFourDUsEndoNavFirstStep::ProcessGUIEvents( vtkObject *caller,
 
 //==============================================================================
 
-// thread function
+/******************************************************************************
+ * static void *thread_cvGetImageFromCamera(vtkMultiThreader::ThreadInfo *data)
+ *
+ * Thread Function
+ *
+ * ****************************************************************************/
 static void *thread_cvGetImageFromCamera(vtkMultiThreader::ThreadInfo *data)
 {
 
@@ -606,6 +629,10 @@ static void *thread_cvGetImageFromCamera(vtkMultiThreader::ThreadInfo *data)
 
 }
 
+/******************************************************************************
+ * void vtkFourDUsEndoNavFirstStep::cvGetImageFromCamera(void)
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavFirstStep::cvGetImageFromCamera(void)
 {
 
@@ -637,8 +664,13 @@ void vtkFourDUsEndoNavFirstStep::cvGetImageFromCamera(void)
 
 }
 
-//------------------------------------------------------------------------------
-vtkMRMLModelNode* vtkFourDUsEndoNavFirstStep::SetVisibilityOfCaptureData(const char* nodeName, int v)
+/******************************************************************************
+ * vtkMRMLModelNode* vtkFourDUsEndoNavFirstStep::SetVisibilityOfCaptureData
+ *                                                 (const char* nodeName, int v)
+ *
+ * ****************************************************************************/
+vtkMRMLModelNode* vtkFourDUsEndoNavFirstStep::SetVisibilityOfCaptureData
+                                                   (const char* nodeName, int v)
 {
   #ifdef DEBUG_FLAG
     cerr << "SetVisibilityOfCaptureData" << endl;
@@ -911,7 +943,10 @@ vtkMRMLModelNode* vtkFourDUsEndoNavFirstStep::initCapture(const char* nodeName, 
 
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * int vtkFourDUsEndoNavFirstStep::StopCapture()
+ *
+ * ****************************************************************************/
 int vtkFourDUsEndoNavFirstStep::StopCapture()
 {
 
@@ -932,7 +967,11 @@ int vtkFourDUsEndoNavFirstStep::StopCapture()
 return 0;
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * vtkMRMLModelNode* vtkFourDUsEndoNavFirstStep::SetCloseOfCaptureData
+ *                                                         (const char* nodeName)
+ *
+ * ****************************************************************************/
 vtkMRMLModelNode* vtkFourDUsEndoNavFirstStep::SetCloseOfCaptureData(const char* nodeName)
 {
 

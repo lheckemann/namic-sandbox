@@ -120,7 +120,12 @@ const char *vtkFourDUsEndoNavGUI::WorkPhaseStr[vtkFourDUsEndoNavLogic::NumPhases
   /* Cl */ "Third",
   };
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavGUI::vtkFourDUsEndoNavGUI ( )
+ *
+ *  Constructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavGUI::vtkFourDUsEndoNavGUI ( )
 {
 
@@ -161,7 +166,12 @@ vtkFourDUsEndoNavGUI::vtkFourDUsEndoNavGUI ( )
 
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * vtkFourDUsEndoNavGUI::~vtkFourDUsEndoNavGUI ( )
+ *
+ *  Destructor
+ *
+ * ****************************************************************************/
 vtkFourDUsEndoNavGUI::~vtkFourDUsEndoNavGUI ( )
 {
   this->RemoveGUIObservers();
@@ -223,7 +233,10 @@ vtkFourDUsEndoNavGUI::~vtkFourDUsEndoNavGUI ( )
 
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
 {
     this->vtkObject::PrintSelf ( os, indent );
@@ -235,7 +248,10 @@ void vtkFourDUsEndoNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::RemoveGUIObservers ( )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::RemoveGUIObservers ( )
 {
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
@@ -261,7 +277,10 @@ void vtkFourDUsEndoNavGUI::RemoveGUIObservers ( )
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::RemoveLogicObservers ( )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::RemoveLogicObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
@@ -273,7 +292,10 @@ void vtkFourDUsEndoNavGUI::RemoveLogicObservers ( )
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::AddGUIObservers ( )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::AddGUIObservers ( )
 {
   std::cerr << "vtkFourDUsEndoNavGUI::AddGUIObservers ( )" << std::endl;
@@ -320,7 +342,10 @@ void vtkFourDUsEndoNavGUI::AddGUIObservers ( )
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::AddLogicObservers ( )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::AddLogicObservers ( )
 {
 
@@ -348,7 +373,10 @@ void vtkFourDUsEndoNavGUI::AddLogicObservers ( )
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
 
@@ -415,7 +443,11 @@ void vtkFourDUsEndoNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::ProcessGUIEvents(vtkObject *caller,
+ *                                        unsigned long event, void *callData)
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::ProcessGUIEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
@@ -501,7 +533,10 @@ void vtkFourDUsEndoNavGUI::ProcessGUIEvents(vtkObject *caller,
 
 } 
 
-
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::Init()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::Init()
 {
     this->DataManager->SetMRMLScene(this->GetMRMLScene());
@@ -511,7 +546,11 @@ void vtkFourDUsEndoNavGUI::Init()
 }
 
 
-
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::DataCallback(vtkObject *caller,
+ *                          unsigned long eid, void *clientData, void *callData)
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::DataCallback(vtkObject *caller,
         unsigned long eid, void *clientData, void *callData)
 {
@@ -522,7 +561,11 @@ void vtkFourDUsEndoNavGUI::DataCallback(vtkObject *caller,
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::ProcessLogicEvents ( vtkObject *caller,
+ *                                         unsigned long event, void *callData )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::ProcessLogicEvents ( vtkObject *caller,
     unsigned long event, void *callData )
 {
@@ -536,7 +579,11 @@ void vtkFourDUsEndoNavGUI::ProcessLogicEvents ( vtkObject *caller,
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::ProcessMRMLEvents ( vtkObject *caller,
+ *                                         unsigned long event, void *callData )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::ProcessMRMLEvents ( vtkObject *caller,
     unsigned long event, void *callData )
 {
@@ -544,7 +591,10 @@ void vtkFourDUsEndoNavGUI::ProcessMRMLEvents ( vtkObject *caller,
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::Enter()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::Enter()
 {
   // Fill in
@@ -576,14 +626,20 @@ void vtkFourDUsEndoNavGUI::Enter()
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::Exit ( )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::Exit ( )
 {
     // Fill in
 }
 
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::BuildGUI ( )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::BuildGUI ( )
 {
   std::cerr << "vtkFourDUsEndoNavGUI::BuildGUI ( )" << std::endl;
@@ -598,7 +654,10 @@ void vtkFourDUsEndoNavGUI::BuildGUI ( )
   std::cerr << "vtkFourDUsEndoNavGUI::BuildGUI ( ) end" << std::endl;
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::TearDownGUI ( )
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::TearDownGUI ( )
 {
   // disconnect circular references so destructor can be called
@@ -614,7 +673,10 @@ void vtkFourDUsEndoNavGUI::TearDownGUI ( )
     }
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::BuildGUIForWizardFrame()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::BuildGUIForWizardFrame()
 {
     vtkKWWidget *page = this->UIPanel->GetPageWidget ( "FourDUsEndoNav" );
@@ -717,7 +779,10 @@ void vtkFourDUsEndoNavGUI::BuildGUIForWizardFrame()
       }
 }
 
-
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::BuildGUIForHelpFrame ()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::BuildGUIForHelpFrame ()
 {
 
@@ -761,7 +826,10 @@ void vtkFourDUsEndoNavGUI::BuildGUIForHelpFrame ()
 
 }
 
-//---------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::BuildGUIForWorkPhaseFrame ()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::BuildGUIForWorkPhaseFrame ()
 {
 
@@ -833,7 +901,10 @@ void vtkFourDUsEndoNavGUI::BuildGUIForWorkPhaseFrame ()
 }
 
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * int vtkFourDUsEndoNavGUI::ChangeWorkPhase(int phase, int fChangeWizard)
+ *
+ * ****************************************************************************/
 int vtkFourDUsEndoNavGUI::ChangeWorkPhase(int phase, int fChangeWizard)
 {
 
@@ -914,7 +985,10 @@ int vtkFourDUsEndoNavGUI::ChangeWorkPhase(int phase, int fChangeWizard)
 }
 
 
-//----------------------------------------------------------------------------
+/******************************************************************************
+ * void vtkFourDUsEndoNavGUI::UpdateAll()
+ *
+ * ****************************************************************************/
 void vtkFourDUsEndoNavGUI::UpdateAll()
 {
 
