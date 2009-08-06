@@ -835,7 +835,13 @@ void vtkMRMLIGTLConnectorNode::ImportDataFromCircularBuffer()
     
     igtl::MessageBase::Pointer buffer = circBuffer->GetPullBuffer();
 
-    vtkIGTLToMRMLBase* converter = this->IGTLNameToConverterMap[buffer->GetDeviceType()];
+    MessageConverterMapType::iterator conIter = 
+      this->IGTLNameToConverterMap.find(buffer->GetDeviceType());
+    if (conIter == this->IGTLNameToConverterMap.end()) // couldn't find from the map
+      {
+      continue;
+      }
+    vtkIGTLToMRMLBase* converter = conIter->second;
     vtkMRMLNode* node = NULL;
     vtkMRMLScene* scene = this->GetScene();
     const char* classname = converter->GetMRMLName();
@@ -902,7 +908,7 @@ int vtkMRMLIGTLConnectorNode::RegisterMessageConverter(vtkIGTLToMRMLBase* conver
     }
   
   // Register the converter
-  if (converter->GetIGTLName() || converter->GetMRMLName())
+  if (converter->GetIGTLName() && converter->GetMRMLName())
     {
     // check the converter type (single IGTL name or multiple IGTL names?)
     if (converter->GetConverterType() == vtkIGTLToMRMLBase::TYPE_NORMAL)

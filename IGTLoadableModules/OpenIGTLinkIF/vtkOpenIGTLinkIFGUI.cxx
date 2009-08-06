@@ -102,6 +102,9 @@ const char *vtkOpenIGTLinkIFGUI::ConnectorStatusStr[vtkMRMLIGTLConnectorNode::NU
 vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
 {
 
+  std::cerr << "vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( ) begin" << std::endl;
+
+
   //----------------------------------------------------------------
   // Logic values
   
@@ -173,6 +176,8 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   this->IOConfigTreeConnectorList.clear();
   this->IOConfigTreeIOList.clear();
   this->IOConfigTreeNodeList.clear();
+
+  std::cerr << "vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( ) end" << std::endl;
 
 }
 
@@ -1132,6 +1137,17 @@ void vtkOpenIGTLinkIFGUI::ProcessMRMLEvents ( vtkObject *caller,
       // If the new node is an IGTL connector
       if (cnode && strcmp(cnode->GetNodeTagName(), "IGTLConnector") == 0)
         {
+        // Register converters
+        unsigned int n = this->GetLogic()->GetNumberOfConverters();
+        for (int i = 0; i < n; i ++)
+          {
+          vtkIGTLToMRMLBase* c = this->GetLogic()->GetConverter(i);
+          if (c != NULL)
+            {
+            cnode->RegisterMessageConverter(c);
+            }
+          }
+
         vtkMRMLNode *nnode = NULL; // TODO: is this OK?
         vtkIntArray* nodeEvents = vtkIntArray::New();
         nodeEvents->InsertNextValue(vtkMRMLIGTLConnectorNode::ConnectedEvent);
@@ -1356,6 +1372,7 @@ void vtkOpenIGTLinkIFGUI::ProcessTimerEvents()
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFGUI::Enter()
 {
+  std::cerr << "void vtkOpenIGTLinkIFGUI::Enter() begin" << std::endl;
   // Fill in
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
@@ -1373,6 +1390,8 @@ void vtkOpenIGTLinkIFGUI::Enter()
   this->GetLogic()->Initialize();
   this->UpdateConnectorList(UPDATE_ALL);
 
+
+  std::cerr << "void vtkOpenIGTLinkIFGUI::Enter() end" << std::endl;
 }
 
 

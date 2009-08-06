@@ -47,6 +47,7 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
     {
     this->SliceDriver[i] = vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER;
     }
+
   this->LocatorDriverFlag = 0;
   //this->LocatorDriver = NULL;
   this->LocatorDriverNodeID = "";
@@ -387,7 +388,7 @@ int vtkOpenIGTLinkIFLogic::RegisterMessageConverter(vtkIGTLToMRMLBase* converter
     return 0;
     }
   
-  if (converter->GetIGTLName() || converter->GetMRMLName())
+  if (converter->GetIGTLName() && converter->GetMRMLName())
     // TODO: is this correct? Shouldn't it be "&&"
     {
     this->MessageConverterList.push_back(converter);
@@ -398,17 +399,20 @@ int vtkOpenIGTLinkIFLogic::RegisterMessageConverter(vtkIGTLToMRMLBase* converter
     }
 
   // Add the converter to the existing connectors
-  std::vector<vtkMRMLNode*> nodes;
-  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
-  this->GetMRMLScene()->GetNodesByClass(className, nodes);
-
-  std::vector<vtkMRMLNode*>::iterator niter;
-  for (niter = nodes.begin(); niter != nodes.end(); niter ++)
+  if (this->GetMRMLScene())
     {
-    vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::SafeDownCast(*niter);
-    if (connector)
+    std::vector<vtkMRMLNode*> nodes;
+    const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+    this->GetMRMLScene()->GetNodesByClass(className, nodes);
+    
+    std::vector<vtkMRMLNode*>::iterator niter;
+    for (niter = nodes.begin(); niter != nodes.end(); niter ++)
       {
-      connector->RegisterMessageConverter(converter);
+      vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::SafeDownCast(*niter);
+      if (connector)
+        {
+        connector->RegisterMessageConverter(converter);
+        }
       }
     }
 
@@ -424,25 +428,95 @@ int vtkOpenIGTLinkIFLogic::UnregisterMessageConverter(vtkIGTLToMRMLBase* convert
     return 0;
     }
 
-  this->MessageConverterList.remove(converter);
+  // Look up the message converter list
+  MessageConverterListType::iterator iter;
+  iter = this->MessageConverterList.begin();
+  while ((*iter) != converter) iter ++;
 
-  // Remove the converter from the existing connectors
-  std::vector<vtkMRMLNode*> nodes;
-  const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
-  this->GetMRMLScene()->GetNodesByClass(className, nodes);
-
-  std::vector<vtkMRMLNode*>::iterator iter;
-  for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+  if (iter != this->MessageConverterList.end())
+    // if the converter is on the list
     {
-    vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
-    if (connector)
+    this->MessageConverterList.erase(iter);
+    // Remove the converter from the existing connectors
+    std::vector<vtkMRMLNode*> nodes;
+    const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+    this->GetMRMLScene()->GetNodesByClass(className, nodes);
+    
+    std::vector<vtkMRMLNode*>::iterator iter;
+    for (iter = nodes.begin(); iter != nodes.end(); iter ++)
       {
-      connector->UnregisterMessageConverter(converter);
+      vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
+      if (connector)
+        {
+        connector->UnregisterMessageConverter(converter);
+        }
+      }
+    return 1;
+    }         
+  else
+    {
+    return 0;
+    }
+}
+
+//---------------------------------------------------------------------------
+unsigned int vtkOpenIGTLinkIFLogic::GetNumberOfConverters()
+{
+  this->MessageConverterList.size();
+}
+
+
+//---------------------------------------------------------------------------
+vtkIGTLToMRMLBase* vtkOpenIGTLinkIFLogic::GetConverter(unsigned int i)
+{
+
+  if (i < this->MessageConverterList.size())
+    {
+    return this->MessageConverterList[i];
+    }
+  else
+    {
+    return NULL;
+    }
+
+}
+
+
+//---------------------------------------------------------------------------
+vtkIGTLToMRMLBase* vtkOpenIGTLinkIFLogic::GetConverterByDeviceType(const char* deviceType)
+{
+  vtkIGTLToMRMLBase* converter = NULL;
+
+  MessageConverterListType::iterator iter;
+  for (iter = this->MessageConverterList.begin();
+       iter != this->MessageConverterList.end();
+       iter ++)
+    {
+    if ((*iter)->GetConverterType() == vtkIGTLToMRMLBase::TYPE_NORMAL)
+      {
+      if (strcmp((*iter)->GetIGTLName(), deviceType) == 0)
+        {
+        converter = *iter;
+        break;
+        }
+      }
+    else
+      {
+      int n = (*iter)->GetNumberOfIGTLNames();
+      for (int i = 0; i < n; i ++)
+        {
+        if (strcmp((*iter)->GetIGTLName(i), deviceType) == 0)
+          {
+          converter = *iter;
+          break;
+          }
+        }
       }
     }
 
-  return 1;
+  return converter;
 }
+
 
 
 //---------------------------------------------------------------------------
@@ -530,42 +604,6 @@ void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long 
         }
       }
     }
-}
-
-
-//---------------------------------------------------------------------------
-vtkIGTLToMRMLBase* vtkOpenIGTLinkIFLogic::GetConverterByDeviceType(const char* deviceType)
-{
-  vtkIGTLToMRMLBase* converter = NULL;
-
-  MessageConverterListType::iterator iter;
-  for (iter = this->MessageConverterList.begin();
-       iter != this->MessageConverterList.end();
-       iter ++)
-    {
-    if ((*iter)->GetConverterType() == vtkIGTLToMRMLBase::TYPE_NORMAL)
-      {
-      if (strcmp((*iter)->GetIGTLName(), deviceType) == 0)
-        {
-        converter = *iter;
-        break;
-        }
-      }
-    else
-      {
-      int n = (*iter)->GetNumberOfIGTLNames();
-      for (int i = 0; i < n; i ++)
-        {
-        if (strcmp((*iter)->GetIGTLName(i), deviceType) == 0)
-          {
-          converter = *iter;
-          break;
-          }
-        }
-      }
-    }
-
-  return converter;
 }
 
 
