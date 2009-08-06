@@ -1,4 +1,4 @@
-PROJECT(IGTWizard)
+PROJECT(4DUsEndoNav)
 
 cmake_minimum_required(VERSION 2.4)
 if(COMMAND cmake_policy)
@@ -14,11 +14,11 @@ if(NOT Slicer3_SOURCE_DIR)
   slicer3_set_default_install_prefix_for_external_projects()
 endif(NOT Slicer3_SOURCE_DIR)
 
-# --------------------------------------------------------------------------
-# OpenCV stuff
-
 # Chinzei; Next 1 line is to include here to find FindXX.cmake files.
 SET(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+
+# --------------------------------------------------------------------------
+# OpenCV stuff
 
 # Chinzei; This does everything you want!
 FIND_PACKAGE(OpenCV REQUIRED)
@@ -28,13 +28,18 @@ ${OpenCV_INCLUDE_DIRS}
 )
 
 # --------------------------------------------------------------------------
+# OpenIGTLink stuff
+
+FIND_PACKAGE(OpenIGTLink REQUIRED)
+
+# --------------------------------------------------------------------------
 # Include dirs
 
 FIND_PATH(OPENIGTLINK REQUIRED)
 INCLUDE_DIRECTORIES(${OPENIGTLINK_INCLUDE_DIR})
 
-FIND_PATH(OPENIGTLINKIF REQUIRED)
-INCLUDE_DIRECTORIES(${OPENIGTLINKIF_INCLUDE_DIR})
+#FIND_PATH(OPENIGTLINKIF REQUIRED)
+#INCLUDE_DIRECTORIES(${OPENIGTLINKIF_INCLUDE_DIR})
 #
 # Include dirs
 #
@@ -57,8 +62,8 @@ include_directories(
 # Configure include file
 #
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/vtkIGTWizardConfigure.h.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/vtkIGTWizardConfigure.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtk4DUsEndoNav.h.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/vtk4DUsEndoNavConfigure.h
   )
 
 file(GLOB headers 
@@ -68,7 +73,7 @@ file(GLOB headers
 
 install(FILES 
   ${headers} 
-  "${CMAKE_CURRENT_BINARY_DIR}/vtkIGTWizardConfigure.h"
+  "${CMAKE_CURRENT_BINARY_DIR}/vtk4DUsEndoNavConfigure.h"
   DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
   )
 
@@ -76,13 +81,13 @@ install(FILES
 # --------------------------------------------------------------------------
 # Sources
 
-set(IGTWizard_SRCS 
-  vtkIGTWizardLogic.cxx
-  vtkIGTWizardGUI.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkIGTWizardStepBase.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkIGTWizardFirstStep.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkIGTWizardSecondStep.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkIGTWizardThirdStep.cxx
+set(4DUsEndoNav_SRCS 
+  vtk4DUsEndoNavLogic.cxx
+  vtk4DUsEndoNavGUI.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtk4DUsEndoNavStepBase.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtk4DUsEndoNavFirstStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtk4DUsEndoNavSecondStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtk4DUsEndoNavThirdStep.cxx
   )
 
 
@@ -90,23 +95,23 @@ set(IGTWizard_SRCS
 # Wrapping
 
 include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
-vtk_wrap_tcl3(IGTWizard IGTWizard_TCL_SRCS "${IGTWizard_SRCS}" "")
+vtk_wrap_tcl3(4DUsEndoNav 4DUsEndoNav_TCL_SRCS "${4DUsEndoNav_SRCS}" "")
 
 
 #---------------------------------------------------------------------------
 # Add Loadable Module support
 
-generatelm(IGTWizard_SRCS IGTWizard.txt)
+generatelm(4DUsEndoNav_SRCS 4DUsEndoNav.txt)
 
 
 # --------------------------------------------------------------------------
 # Build and install the library
 
-set(lib_name IGTWizard)
+set(lib_name 4DUsEndoNav)
 
 add_library(${lib_name}
-  ${IGTWizard_SRCS} 
-  ${IGTWizard_TCL_SRCS}
+  ${4DUsEndoNav_SRCS} 
+  ${4DUsEndoNav_TCL_SRCS}
   )
 slicer3_set_modules_output_path(${lib_name})
 
@@ -121,6 +126,7 @@ target_link_libraries(${lib_name}
   ${KWWidgets_LIBRARIES}
   ${ITK_LIBRARIES}
   OpenIGTLinkIF
+  ${OpenIGTLinklib}
   Volumes
   ${OpenCV_CV_LIBRARY}
   ${OpenCV_CVAUX_LIBRARY}
