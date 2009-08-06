@@ -149,7 +149,7 @@ int DoIt2( int argc, char * argv[])
   //
   //
   typename FixedFileReaderType::Pointer fixedReader = FixedFileReaderType::New();
-  fixedReader->SetFileName ( FixedImageFileName.c_str() );
+  fixedReader->SetFileName ( fixedImageFileName.c_str() );
 
   try
     {
@@ -165,7 +165,7 @@ int DoIt2( int argc, char * argv[])
     }
 
   typename MovingFileReaderType::Pointer movingReader = MovingFileReaderType::New();
-    movingReader->SetFileName ( MovingImageFileName.c_str() );
+    movingReader->SetFileName ( movingImageFileName.c_str() );
 
   try
     {
@@ -470,13 +470,13 @@ int DoIt2( int argc, char * argv[])
 
   transform->SetParameters ( registration->GetLastTransformParameters() );
 
-  if (OutputTransform != "")
+  if (outputTransform != "")
     {
     typedef itk::TransformFileWriter TransformWriterType;
     TransformWriterType::Pointer outputTransformWriter;
     
     outputTransformWriter= TransformWriterType::New();
-    outputTransformWriter->SetFileName( OutputTransform );
+    outputTransformWriter->SetFileName( outputTransform );
     outputTransformWriter->SetInput( transform );
     try
       {
@@ -493,7 +493,7 @@ int DoIt2( int argc, char * argv[])
   // Resample to the original coordinate frame (not the reoriented
   // axial coordinate frame) of the fixed image --> modified to use reoriented frame
   //
-  if (ResampledImageFileName != "")
+  if (resampledImageFileName != "")
     {
     typename ResampleType::Pointer resample = ResampleType::New();
     typename ResampleInterpolatorType::Pointer Interpolator = ResampleInterpolatorType::New();
@@ -565,12 +565,12 @@ int DoIt2( int argc, char * argv[])
       outputImage->SetDirection(direction);
       outputImage->Update();
       
-      writer->SetFileName( ResampledImageFileName.c_str() );
+      writer->SetFileName( resampledImageFileName.c_str() );
       writer->SetInput( outputImage   );
       }
     else
       {
-      writer->SetFileName(  ResampledImageFileName.c_str() );
+      writer->SetFileName(  resampledImageFileName.c_str() );
       writer->SetInput( outputPaste->GetOutput()   );
       }
     
@@ -623,7 +623,7 @@ template<class T> int DoIt( int argc, char * argv[], const T& targ)
 
   try
     {
-    itk::GetImageType (MovingImageFileName, pixelType, componentType);
+    itk::GetImageType (movingImageFileName, pixelType, componentType);
 
     // This filter handles all types
     
@@ -697,7 +697,7 @@ int main( int argc, char * argv[] )
 
   try
     {
-    itk::GetImageType (FixedImageFileName, pixelType, componentType);
+    itk::GetImageType (fixedImageFileName, pixelType, componentType);
 
     // This filter handles all types
     
