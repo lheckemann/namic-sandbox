@@ -187,7 +187,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
   //BTX
   typedef std::vector<std::string> NameListType;
   int GetUpdatedBuffersList(NameListType& nameList); // TODO: this will be moved to private
-  vtkIGTLCircularBuffer* GetCircularBuffer(std::string& key);
+  vtkIGTLCircularBuffer* GetCircularBuffer(std::string& key);     // TODO: Is it OK to use device name as a key?
   //ETX
 
   //----------------------------------------------------------------
