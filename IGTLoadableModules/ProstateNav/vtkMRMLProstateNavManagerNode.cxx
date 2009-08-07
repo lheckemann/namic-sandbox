@@ -54,6 +54,7 @@ vtkMRMLProstateNavManagerNode::vtkMRMLProstateNavManagerNode()
   this->StepTransitionMatrix.clear();
   this->CurrentStep = 0;
   this->PreviousStep = 0;
+  this->RobotCommand = NULL;
 }
 
 //----------------------------------------------------------------------------
