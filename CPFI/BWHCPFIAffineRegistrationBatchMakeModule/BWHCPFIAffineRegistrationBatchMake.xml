@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Registration</category>
-  <title>Affine registration for BWH CPFI</title>
+  <category>Batch Processing</category>
+  <title>Affine registration BatchMake for BWH CPFI</title>
   <description>Registers two images together using an affine transform and mutual information. Modified for BWH CPFI project</description>
   <version>0.1.0.$Revision: 7755 $(alpha)</version>
   <documentation-url></documentation-url>
@@ -170,6 +170,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
 
   <parameters>
     <label>IO</label>
+
     <description>Input/output parameters</description>
     <transform fileExtensions=".txt">
       <name>InitialTransform</name>
@@ -179,20 +180,13 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <channel>input</channel>
     </transform>
 
-    <directory>
-      <name>fixedImageFileName_Directory</name>
+    <file>
+      <name>fixedImageFileName</name>
       <label>Fixed Image</label>
       <channel>input</channel>
       <index>0</index>
       <description>Fixed image to which to register</description>
-    </directory>
-    <string>
-      <name>fixedImageFileName_Mask</name>
-      <label>Moving Image Mask</label>
-      <longflag>fixedImageFileName_Mask</longflag>
-      <default>*.nrrd</default>
-      <description>Fixed image mask</description>
-    </string>
+    </file>
 
     <directory>
       <name>movingImageFileName_Directory</name>
@@ -211,10 +205,10 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
     
     <directory type="transform" reference="movingImageFileName">
       <name>outputTransform_Directory</name>
-      <longflag>outputtransform</longflag>
       <description>Transform calculated that aligns the fixed and moving image. Maps positions in the fixed coordinate frame to the moving coordinate frame. Optional (specify an output transform or an output volume or both).</description>
       <label>Output transform</label>
       <channel>output</channel>
+      <index>2</index>
     </directory>
     <string>
       <name>outputTransform_Mask</name>
@@ -228,7 +222,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       <name>resampledImageFileName_Directory</name>
       <label>Output Volume</label>
       <channel>output</channel>
-      <index>2</index>
+      <index>3</index>
       <description>Resampled moving image to the fixed image coordinate frame. Optional (specify an output transform or an output volume or both).</description>
     </directory>
     <string>
