@@ -22,7 +22,7 @@
 #include "vtkObject.h"
 #include "vtkProstateNavWin32Header.h" 
 
-class VTK_OPENIGTLINKIF_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
+class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
 {
 
  public:
