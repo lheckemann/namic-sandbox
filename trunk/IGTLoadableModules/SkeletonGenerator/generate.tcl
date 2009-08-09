@@ -96,12 +96,19 @@ puts $fd "Name: $::GENERATOR(NAME)"
 puts $fd "GUIName: $::GENERATOR(NAME)"
 close $fd
 
-set repModName "s/\\$\\$\{MODULE_NAME\}\\$\\$/$::GENERATOR(NAME)/g"
+## To avoid the problem that sed command does not replace $${MODULE_NAME}$$ on Windows
+if { $tcl_platform(platform) == "windows" } {
+    set repModName "s/\\\\$\\\\$\{MODULE_NAME\}\\\\$\\\\$/$::GENERATOR(NAME)/g"
+} else {
+    set repModName "s/\\$\\$\{MODULE_NAME\}\\$\\$/$::GENERATOR(NAME)/g"
+}
 
 if { $::GENERATOR(TYPE) != "wizard" } {
 
     foreach src $files {
-        regsub -all "$template/*" $src "" srcfilename
+        #regsub -all "$template/*" $src "" srcfilename
+        set srcfilename [file tail $src]
+
 
         #set srcfilename [string trimright $srcfilename ".in"]
         set srcfilename [string range $srcfilename 0 [expr [string length $srcfilename] - 4]]
