@@ -62,7 +62,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkUltrasoundWin32Header.h"
 #include "vtkAlgorithm.h"
 
-#include "SynchroGrabConfigure.h"
+#include "4DUltrasoundConfigure.h"
 
 #include <vtkstd/vector> // Required for vector
 

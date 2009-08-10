@@ -30,7 +30,7 @@
 // .SECTION See Also
 // vtkWin32VideoSource vtkMILVideoSource
 
-#include "SynchroGrabConfigure.h"
+#include "4DUltrasoundConfigure.h"
 
 #include "vtkV4L2VideoSource.h"
 

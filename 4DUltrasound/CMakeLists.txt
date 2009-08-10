@@ -4,13 +4,13 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
 # Set the project name.
 #
 
-PROJECT (QUEENSOPENIGT)
+PROJECT (FOURDULTRASOUND)
 
 #
 # Load CMake commands to e.g. bring VTK and ITK into the project
 #
 
-INCLUDE (${QUEENSOPENIGT_SOURCE_DIR}/CMakeOptions.cmake)
+INCLUDE (${FOURDULTRASOUND_SOURCE_DIR}/CMakeOptions.cmake)
 
 #
 # Try to find OpenIGTLink and include its settings (otherwise complain)
@@ -45,11 +45,11 @@ OPTION(USE_ULTRASOUND_DEVICE "Use Ultrasound Device." OFF)
 #
 
 OPTION(BUILD_SHARED_LIBS "Build shared libraries." OFF)
-SET(QUEENSOPENIGT_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+SET(FOURDULTRASOUND_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
 
 #
-# Here is where the sub-directories for the QueensOpenIGT classes are.
+# Here is where the sub-directories for the FOURDULTRASOUND classes are.
 #
 
 SUBDIRS (
@@ -63,12 +63,12 @@ SUBDIRS (
 # Include paths go here
 #
 INCLUDE_DIRECTORIES(
-  ${QUEENSOPENIGT_SOURCE_DIR}/VTKLibs
-  ${QUEENSOPENIGT_SOURCE_DIR}/VTKLibs/Ultrasound
-  ${QUEENSOPENIGT_SOURCE_DIR}/VTKLibs/Tracking
-  ${QUEENSOPENIGT_SOURCE_DIR}/Utilities/ndicapi
-  #${QUEENSOPENIGT_SOURCE_DIR}/Utilities/igtl
-  #${QUEENSOPENIGT_SOURCE_DIR}/Utilities/igtl/igtlutils
+  ${FOURDULTRASOUND_SOURCE_DIR}/VTKLibs
+  ${FOURDULTRASOUND_SOURCE_DIR}/VTKLibs/Ultrasound
+  ${FOURDULTRASOUND_SOURCE_DIR}/VTKLibs/Tracking
+  ${FOURDULTRASOUND_SOURCE_DIR}/Utilities/ndicapi
+  #${FOURDULTRASOUND_SOURCE_DIR}/Utilities/igtl
+  #${FOURDULTRASOUND_SOURCE_DIR}/Utilities/igtl/igtlutils
 )
 
 
@@ -77,24 +77,24 @@ INCLUDE_DIRECTORIES(
 #
 
 #CONFIGURE_FILE(
-#  ${QUEENSOPENIGT_SOURCE_DIR}/QueensOpenIGTLibsConfigure.h.in
-#  ${QUEENSOPENIGT_BINARY_DIR}/QueensOpenIGTLibsConfigure.h
+#  ${FOURDULTRASOUND_SOURCE_DIR}/FOURDULTRASOUNDLibsConfigure.h.in
+#  ${FOURDULTRASOUND_BINARY_DIR}/FOURDULTRASOUNDLibsConfigure.h
 #)
 
 CONFIGURE_FILE(
-  ${QUEENSOPENIGT_SOURCE_DIR}/SynchroGrabConfigure.h.in
-  ${QUEENSOPENIGT_BINARY_DIR}/SynchroGrabConfigure.h
+  ${FOURDULTRASOUND_SOURCE_DIR}/4DUltrasoundConfigure.h.in
+  ${FOURDULTRASOUND_BINARY_DIR}/4DUltrasoundConfigure.h
 )
 
 
 ##################
 
-#CONFIGURE_FILE(${QUEENSOPENIGT_SOURCE_DIR}/igtlConfigure.h.in 
-#  ${QUEENSOPENIGT_BINARY_DIR}/igtlConfigure.h)
+#CONFIGURE_FILE(${FOURDULTRASOUND_SOURCE_DIR}/igtlConfigure.h.in 
+#  ${FOURDULTRASOUND_BINARY_DIR}/igtlConfigure.h)
 
-#CONFIGURE_FILE(${QUEENSOPENIGT_SOURCE_DIR}/igtl_typeconfig.h.in 
-#  ${QUEENSOPENIGT_BINARY_DIR}/igtl_typeconfig.h)
+#CONFIGURE_FILE(${FOURDULTRASOUND_SOURCE_DIR}/igtl_typeconfig.h.in 
+#  ${FOURDULTRASOUND_BINARY_DIR}/igtl_typeconfig.h)
   
 ###########
 
-INCLUDE_DIRECTORIES(${QUEENSOPENIGT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${FOURDULTRASOUND_BINARY_DIR})

@@ -41,7 +41,7 @@ POSSIBILITY OF SUCH DAMAGES.
 
 =========================================================================*/
 
-#include "SynchroGrabConfigure.h"
+#include "4DUltrasoundConfigure.h"
 
 #include <limits.h>
 #include <float.h>

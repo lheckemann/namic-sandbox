@@ -40,7 +40,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
-#include "SynchroGrabConfigure.h"
+#include "4DUltrasoundConfigure.h"
 #include "vtkUltrasoundCalibFileReader.h"
 
 #include "vtkInformation.h"
@@ -715,8 +715,8 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   #else
   this->ShrinkFactor[0] = (int) (this->TransformationFactorMmToPixel + 0.5);//X 
   this->ShrinkFactor[1] = (int) (this->TransformationFactorMmToPixel + 0.5);//Y
-  this->ShrinkFactor[0] = 1;//X
-  this->ShrinkFactor[1] = 1;//Y
+  this->ShrinkFactor[0] = 2;//X
+  this->ShrinkFactor[1] = 2;//Y
   #endif
   
   #ifdef DEBUG_CALIBRATIONFILE_READER
