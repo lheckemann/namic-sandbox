@@ -1,0 +1,41 @@
+/* 
+ * Here is where system computed values get stored.
+ * These values should only change when the target compile platform changes.
+ */
+
+#cmakedefine USE_TRACKER_DEVICE
+
+#cmakedefine USE_ULTRASOUND_DEVICE
+
+#undef DO_CALIBRATION_FILE_CALCULATIONS
+
+#define ERRORTOLERANCE 10
+
+#define DATACOLLECTOR 1
+#define DATAPROCESSOR 2
+#define DATASENDER 3
+
+//Data Collector
+#define ERRORCOLLECTOR
+#define DEBUGCOLLECTOR
+//#define TIMINGCOLLECTOR
+
+//Data Processor
+#define ERRORPROCESSOR
+//#define DEBUGPROCESSOR
+//#define TIMINGPROCESSOR
+
+//Data Sender
+#define ERRORSENDER
+//#define DEBUGSENDER
+//#define TIMINGSENDER
+
+//Instrument Tracker
+//#define ERROR_INST_TRACKER
+//#define DEBUG_INST_TRACKER
+//#define TIMING_INST_TRACKER
+
+//Calibration File Reader
+//#define DEBUG_CALIBRATIONFILE_READER
+
+//#define HIGH_DEFINITION
