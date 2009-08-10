@@ -17,10 +17,9 @@
 #ifndef __vtkUltrasoundWin32Header_h
 #define __vtkUltrasoundWin32Header_h
 
-//#include <QueensOpenIGTLibsConfigure.h>
 #include <igtlConfigure.h>
 
-#if defined(WIN32) && !defined(QUEENSOPENIGT_STATIC)
+#if defined(WIN32) && !defined(FOURDULTRASOUND_STATIC)
 #if defined(vtkOpenIGTUltrasound_EXPORTS)
 #define VTK_ULTRASOUND_EXPORT __declspec( dllexport )
 #else

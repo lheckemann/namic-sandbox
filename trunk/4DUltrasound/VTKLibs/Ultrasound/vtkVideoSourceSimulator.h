@@ -41,7 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef __vtkVideoSourceSimulator_h
 #define __vtkVideoSourceSimulator_h
 
-#include "SynchroGrabConfigure.h"
+#include "4DUltrasoundConfigure.h"
 
 #include "vtkUltrasoundWin32Header.h"
 #include "vtkVideoSource.h"
