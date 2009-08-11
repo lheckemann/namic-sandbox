@@ -1074,6 +1074,14 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
                                      unsigned short *accPtr, int numscalars, 
                                      int outExt[6], int outInc[3])
 {
+
+  //JG (Jan Gumprecht) 11 August 2009 exclude black pixels from reconstruction
+  if(*inPtr < 20)
+    {
+    return 0;
+    }
+
+
   F fx, fy, fz;
 
   int outIdX0 = vtkUltraFloor(point[0], fx);
