@@ -19,6 +19,7 @@
 #include "vtkMRMLStorageNode.h"
 
 #include "vtkObject.h"
+#include "vtkStdString.h"
 #include "vtkProstateNavWin32Header.h" 
 
 #include "vtkMRMLFiducialListNode.h"
@@ -28,6 +29,7 @@
 #include "vtkMRMLModelNode.h"
 
 class vtkProstateNavStep;
+class vtkStringArray;
 
 class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 {
@@ -112,70 +114,18 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Description:
   // Get number of wizard steps
   const char* GetStepName(int i);
-
-  // Description:
-  // Get page by vtkProstateNavStep* pointer
-  vtkProstateNavStep* GetStepPage(int i);
-
-  // Description:
-  // Add a new step. Please note that the transition matrix is resized
-  // each time the new step is added by AddNewStep() fucntion.
-  // The matrix should  be defined after all steps are added to the
-  // manager class.
-  void AddNewStep(const char* name, vtkProstateNavStep* page, const char* wpcommand);
-  void AddNewStep(const char* name, vtkProstateNavStep* page) { AddNewStep(name, page, ""); };
   
   // Description:
-  // Clear the step
-  void ClearSteps();
+  // Switch step. Returns 0 if it is failed.
+  int SwitchStep(int newStep);
 
   // Description:
-  // Switch step. Returns 0 if it is not allowed.
-  int SwitchStep(int i);
-
-  // Description:
-  // Get current step.
+  // Get current workflow step.
   int GetCurrentStep();
 
   // Description:
-  // Get previous step.
+  // Get previous workflow step.
   int GetPreviousStep();
-
-
-  //----------------------------------------------------------------
-  // Phase transitions
-  //----------------------------------------------------------------
-  
-  // Description:
-  // Fill the transition matrix with 1 to allow all step transitions.
-  void AllowAllTransitions();
-
-  // Description:
-  // Fill the transition matrix with 0 to forbid all step transitions.
-  void ForbidAllTransitions();
-
-  // Description:
-  // Set phase transition by 2-D int array.
-  // The format of 'matrix' argument should be matrix[step_from][step_to].
-  int SetStepTransitionMatrix(const int** matrix);
-  
-  // Description:
-  // Allow trasition from 'step_from' to 'step_to'.
-  int SetAllowTransition(int step_from, int step_to);
-  
-  // Description:
-  // Forbid trasition from 'step_from' to 'step_to'.
-  int SetForbidTransition(int step_from, int step_to);
-
-  // Description:
-  // Check if the step can transtion from 'step_from' to 'step_to'.
-  // Returns 0, if forbidden, 1 if allowed, -1 if not defined.
-  int IsTransitionable(int step_from, int step_to);
-
-  // Description:
-  // Check if the step can transtion from current step to 'step_to'.
-  // Returns 0, if forbidden, 1 if allowed, -1 if not defined.
-  int IsTransitionable(int step_to);
 
   //----------------------------------------------------------------
   // Target Management
@@ -234,17 +184,11 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Data
   //----------------------------------------------------------------
 
-  // List of wizard pages
-  //BTX
-  typedef struct {
-    std::string         name;
-    vtkProstateNavStep* page;
-    std::string         wpcommand;  // Workphase command name
-  } StepInfoType;
-  std::vector<StepInfoType>         StepList;
+  vtkStdString GetWorkflowStepsString();
+  bool SetWorkflowStepsFromString(const vtkStdString& workflowStepsString);
 
-  std::vector< std::vector<int> >   StepTransitionMatrix;
-  //ETX
+  // List of workflow steps (wizard pages)
+  vtkStringArray *StepList;
   
   int CurrentStep;
   int PreviousStep;

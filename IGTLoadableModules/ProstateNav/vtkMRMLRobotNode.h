@@ -68,7 +68,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
-    {return "ProstateNavManager";};
+    {return "Robot";};
 
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
