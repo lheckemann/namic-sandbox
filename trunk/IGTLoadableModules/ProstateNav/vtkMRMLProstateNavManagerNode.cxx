@@ -16,6 +16,7 @@ Version:   $Revision: 1.2 $
 
 #include "vtkMRMLProstateNavManagerNode.h"
 #include "vtkMRMLIGTLConnectorNode.h"
+#include "vtkStringArray.h"
 
 #include "vtkMRMLScene.h"
 
@@ -50,8 +51,6 @@ vtkMRMLNode* vtkMRMLProstateNavManagerNode::CreateNodeInstance()
 //----------------------------------------------------------------------------
 vtkMRMLProstateNavManagerNode::vtkMRMLProstateNavManagerNode()
 {
-  this->StepList.clear();
-  this->StepTransitionMatrix.clear();
   this->CurrentStep = 0;
   this->PreviousStep = 0;
   this->TargetPlanList = NULL;
@@ -62,11 +61,19 @@ vtkMRMLProstateNavManagerNode::vtkMRMLProstateNavManagerNode()
   this->RobotTarget = NULL;
   this->ZFrameTransform = NULL;
   this->ZFrameModel = NULL;
+  this->StepList=vtkStringArray::New();
+
+  this->StepList->InsertNextValue("SetUp");
+  this->StepList->InsertNextValue("ZFrameCalibration");
+  this->StepList->InsertNextValue("PointTargeting");
+  this->StepList->InsertNextValue("PointVerification");
+  this->StepList->InsertNextValue("TransperinealProstateRobotManualControl");
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLProstateNavManagerNode::~vtkMRMLProstateNavManagerNode()
 {
+  this->StepList->Delete();
 }
 
 
@@ -76,6 +83,8 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
 
   // Start by having the superclass write its information
   Superclass::WriteXML(of, nIndent);
+
+  vtkIndent indent(nIndent);
 
   //switch (this->Type)
   //  {
@@ -94,6 +103,9 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
   //of << " serverPort=\"" << this->ServerPort << "\" ";
   //of << " restrictDeviceName=\"" << this->RestrictDeviceName << "\" ";
 
+  of << indent << " WorkflowSteps=\"" << GetWorkflowStepsString() << "\"";
+    
+
 }
 
 
@@ -110,12 +122,25 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
   int type = -1;
   int restrictDeviceName = 0;
 
-  /*
+  
   while (*atts != NULL)
     {
     attName = *(atts++);
     attValue = *(atts++);
 
+    if (!strcmp(attName, "WorkflowSteps"))
+      {
+      if (attValue==NULL)
+        {
+        vtkErrorMacro("Empty WorkflowSteps attribute value");
+        }
+      else if (!SetWorkflowStepsFromString(attValue))
+        {
+        vtkErrorMacro("Invalid WorkflowSteps attribute value: "<<attValue);
+        }
+      }
+
+/*
     if (!strcmp(attName, "connectorType"))
       {
       if (!strcmp(attValue, "SERVER"))
@@ -147,8 +172,10 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
       ss << attValue;
       ss >> restrictDeviceName;;
       }
+*/
     }
 
+  /*
   switch(type)
     {
     case TYPE_SERVER:
@@ -219,130 +246,43 @@ void vtkMRMLProstateNavManagerNode::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 int vtkMRMLProstateNavManagerNode::GetNumberOfSteps()
 {
-  return this->StepList.size();
+  return this->StepList->GetNumberOfValues();
 }
 
 
 //----------------------------------------------------------------------------
 const char* vtkMRMLProstateNavManagerNode::GetStepName(int i)
 {
-  if (i < this->StepList.size())
+  if (i>=0 && i < this->StepList->GetNumberOfValues())
     {
-    return this->StepList[i].name.c_str();
+      return this->StepList->GetValue(i);
     }
   else
     {
     return NULL;
     }
 }
-
-
 //----------------------------------------------------------------------------
-vtkProstateNavStep* vtkMRMLProstateNavManagerNode::GetStepPage(int i)
+int vtkMRMLProstateNavManagerNode::SwitchStep(int newStep)
 {
-  if (i < this->StepList.size())
-    {
-    return this->StepList[i].page;
-    }
-  else
-    {
-    return NULL;
-    }
-}
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavStep* page, const char* wpcommand)
-{
-
-  std::cerr << "void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavStep* page) start" << std::endl;
-  // Add to the list
-  StepInfoType step;
-
-  step.name      = name;
-  step.page      = page;
-  step.wpcommand = wpcommand;
-
-  this->StepList.push_back(step);
-  
-  // resize the transition matrix
-  int numSteps = this->StepList.size();
-  this->StepTransitionMatrix.resize(numSteps);
-  
-  std::vector< std::vector<int> >::iterator iter;
-  for (iter = this->StepTransitionMatrix.begin();
-       iter != this->StepTransitionMatrix.end(); iter ++)
-    {
-    iter->resize(numSteps);
-    }
-
-  // Configure the vtkProstateNavStep class
-  for (int i = 0; i < numSteps; i ++)
-    {
-    this->StepList[i].page->SetTotalSteps(numSteps);
-    this->StepList[i].page->SetStepNumber(i+1);
-    this->StepList[i].page->UpdateName();
-    this->StepList[i].page->SetProstateNavManager(this);
-    }
-
-  std::cerr << "void vtkMRMLProstateNavManagerNode::AddNewStep(const char* name, vtkProstateNavStep* page) end" << std::endl;
-
-}
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::ClearSteps()
-{
-
-  // Clear the list of step info
-  std::vector<StepInfoType>::iterator iter;
-  
-  for (iter = this->StepList.begin(); iter != this->StepList.end(); iter ++)
-    {
-    iter->page->Delete();
-    }
-
-  this->StepList.clear();
-
-  // Clear the step transtion matrix
-  std::vector< std::vector<int> >::iterator iter2;
-  for (iter2 = this->StepTransitionMatrix.begin();
-       iter2 != this->StepTransitionMatrix.end(); iter2 ++)
-    {
-    iter2->clear();
-    }
-  this->StepTransitionMatrix.clear();
-  
-}
-
-
-//----------------------------------------------------------------------------
-int vtkMRMLProstateNavManagerNode::SwitchStep(int i)
-{
-
-  if (i >= 0 && i < this->StepList.size())
-    {
-    if (this->StepTransitionMatrix[this->CurrentStep][i])
-      {
-      this->PreviousStep = this->CurrentStep;
-      this->CurrentStep = i;
-      if (this->RobotCommand && this->StepList[i].wpcommand.length() > 0)
-        {
-        const char* command = this->StepList[i].wpcommand.c_str();
-        this->RobotCommand->PushOutgoingCommand(command);
-        this->RobotCommand->InvokeEvent(vtkCommand::ModifiedEvent);
-        }
-      return 1;
-      }
-    else
-      {
-      return 0;
-      }
-    }
-  else
-    {
+  if (newStep<0 || newStep>=GetNumberOfSteps())
+  {
     return 0;
-    }
+  }
+  this->PreviousStep = this->CurrentStep;
+  this->CurrentStep = newStep;
+  //:TODO: robot notification shall be performed in the robot node class
+  // as a response to a step change (the robot node class shall be subscribed to the modified event of the manager node)
+  // START_UP, CALIBRATION, TARGETING, MANUAL, PLANNING
+  /*
+  if (this->RobotCommand && this->StepList[newStep].wpcommand.length() > 0)
+  {
+    const char* command = this->StepList[newStep].wpcommand.c_str();
+    this->RobotCommand->PushOutgoingCommand(command);
+    this->RobotCommand->InvokeEvent(vtkCommand::ModifiedEvent);
+  }
+  */
+  return 1;
 }
 
 
@@ -358,134 +298,6 @@ int vtkMRMLProstateNavManagerNode::GetPreviousStep()
 {
   return this->PreviousStep;
 }
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::AllowAllTransitions()
-{
-  std::vector< std::vector<int> >::iterator iter;
-  for (iter = this->StepTransitionMatrix.begin();
-       iter != this->StepTransitionMatrix.end(); iter ++)
-    {
-    std::vector<int>::iterator iter2;
-    for (iter2 = iter->begin(); iter2 != iter->end(); iter2 ++)
-      {
-      *iter2 = 1;
-      }
-    }
-
-}
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::ForbidAllTransitions()
-{
-  std::vector< std::vector<int> >::iterator iter;
-  for (iter = this->StepTransitionMatrix.begin();
-       iter != this->StepTransitionMatrix.end(); iter ++)
-    {
-    std::vector<int>::iterator iter2;
-    for (iter2 = iter->begin(); iter2 != iter->end(); iter2 ++)
-      {
-      *iter2 = 0;
-      }
-    }
-}
-
-
-//----------------------------------------------------------------------------
-int vtkMRMLProstateNavManagerNode::SetStepTransitionMatrix(const int** matrix)
-{
-  int numSteps = this->StepTransitionMatrix.size();  
-
-  for (int step_from = 0; step_from < numSteps; step_from ++)
-    {
-    for (int step_to = 0; step_to < numSteps; step_to ++)
-      {
-      this->StepTransitionMatrix[step_from][step_to] = matrix[step_from][step_to];
-      }
-    }
-  return 1;
-}
-
-  
-//----------------------------------------------------------------------------
-int vtkMRMLProstateNavManagerNode::SetAllowTransition(int step_from, int step_to)
-{
-
-  int numSteps = this->StepTransitionMatrix.size();
-
-  // Check the range
-  if (step_from >= 0 && step_from < numSteps && step_to >= 0 && step_to < numSteps)
-    {
-    this->StepTransitionMatrix[step_from][step_to] = 1;
-    return 1;
-    }
-  else
-    {
-    return 0;
-    }
-
-}
-
-  
-//----------------------------------------------------------------------------
-int vtkMRMLProstateNavManagerNode::SetForbidTransition(int step_from, int step_to)
-{
-
-  int numSteps = this->StepTransitionMatrix.size();
-
-  // Check the range
-  if (step_from >= 0 && step_from < numSteps && step_to >= 0 && step_to < numSteps)
-    {
-    this->StepTransitionMatrix[step_from][step_to] = 0;
-    return 1;
-    }
-  else
-    {
-    return 0;
-    }
-
-}
-
-
-//----------------------------------------------------------------------------
-int vtkMRMLProstateNavManagerNode::IsTransitionable(int step_from, int step_to)
-{
-
-  int numSteps = this->StepTransitionMatrix.size();
-
-  // Check the range
-  if (step_from >= 0 && step_from < numSteps
-      && step_to >= 0 && step_to < numSteps)
-    {
-    return this->StepTransitionMatrix[step_from][step_to];
-    }
-  else
-    {
-    return -1;
-    }
-
-}
-
-
-//----------------------------------------------------------------------------
-int vtkMRMLProstateNavManagerNode::IsTransitionable(int step_to)
-{
-
-  int numSteps = this->StepTransitionMatrix.size();
-
-  if (step_to >= 0 && step_to < numSteps)  // Check the range
-    {
-    return this->StepTransitionMatrix[this->CurrentStep][step_to];
-    }
-  else
-    {
-    return -1;
-    }
-
-}
-
 
 //----------------------------------------------------------------------------
 void vtkMRMLProstateNavManagerNode::SetAndObserveTargetPlanList(vtkMRMLFiducialListNode* ptr)
@@ -646,7 +458,6 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotTarget(vtkMRMLLinearTransf
 
 //----------------------------------------------------------------------------
 void vtkMRMLProstateNavManagerNode::SetAndObserveZFrameTransform(vtkMRMLLinearTransformNode* ptr)
-
 {
 
   if (this->ZFrameTransform != NULL)
@@ -670,4 +481,38 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveZFrameTransform(vtkMRMLLinearTr
 
 }
 
+//----------------------------------------------------------------------------
+vtkStdString vtkMRMLProstateNavManagerNode::GetWorkflowStepsString()
+{
+  vtkStdString workflowSteps;
+  // :TODO: generate the string from the StepList
+  for (int i=0; i<this->StepList->GetNumberOfValues(); i++)
+    {
+    workflowSteps += this->StepList->GetValue(i);
+    if (i<this->StepList->GetNumberOfValues()-1)
+      {
+      workflowSteps += " "; // add separator after each step but the last one
+      }
+    }
+  return workflowSteps;
+}
 
+//----------------------------------------------------------------------------
+bool vtkMRMLProstateNavManagerNode::SetWorkflowStepsFromString(const vtkStdString& workflowStepsString)
+{ 
+  this->StepList->Reset();
+
+  if (workflowStepsString.empty())
+    {
+    vtkWarningMacro("StepList string is empty");
+    return false;
+    }
+
+  vtkstd::stringstream workflowStepsStream(workflowStepsString);
+  vtkstd::string stepName;
+  while(workflowStepsStream>>stepName)
+    {
+    this->StepList->InsertNextValue(stepName);
+    }
+   return true;
+}

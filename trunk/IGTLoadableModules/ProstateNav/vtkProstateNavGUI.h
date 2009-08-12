@@ -26,6 +26,7 @@
 #include "vtkSlicerInteractorStyle.h"
 
 #include <string>
+#include <list>
 
 class vtkKWPushButton;
 class vtkKWPushButtonSet;
@@ -150,6 +151,9 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   vtkProstateNavGUI ( );
   virtual ~vtkProstateNavGUI ( );
   
+  // Return i-th worfklow step page
+  vtkProstateNavStep* GetStepPage(int i);
+
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
@@ -165,7 +169,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   
   //----------------------------------------------------------------
   // Wizard Frame
-  
   vtkKWWizardWidget *WizardWidget;
   
   //----------------------------------------------------------------
