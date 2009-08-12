@@ -1,6 +1,6 @@
 /*==========================================================================
 
-  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Portions (c) Copyright 2008-2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -772,9 +772,6 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     // UpdateConnectorList(UPDATE_ALL);
     // UpdateIOConfigTree();
 
-    int select = this->ConnectorList->GetWidget()->GetNumberOfRows() - 1;
-    this->ConnectorList->GetWidget()->SelectSingleRow(select);
-    UpdateConnectorPropertyFrame(select);
     }
 
   else if (this->DeleteConnectorButton == vtkKWPushButton::SafeDownCast(caller)
@@ -1163,12 +1160,11 @@ void vtkOpenIGTLinkIFGUI::ProcessMRMLEvents ( vtkObject *caller,
         // obtain the list of connectors in the scene
         UpdateConnectorNodeList();
 
-        //this->GetLogic()->AddConnectorToList(cnode);
-
-        this->UpdateConnectorListFlag          = 1;
-        this->UpdateConnectorPropertyFrameFlag = 1;
-        this->UpdateIOConfigTreeFlag           = 1;
-
+        UpdateConnectorList(UPDATE_ALL);
+        int select = this->ConnectorList->GetWidget()->GetNumberOfRows() - 1;
+        this->ConnectorList->GetWidget()->SelectSingleRow(select);
+        UpdateConnectorPropertyFrame(select);
+        UpdateIOConfigTree();
         }
       else
         {
@@ -2528,6 +2524,7 @@ void vtkOpenIGTLinkIFGUI::UpdateConnectorList(int updateLevel)
         }
       }
     }
+
 }
 
 
