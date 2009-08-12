@@ -152,25 +152,30 @@ vtkDataProcessor::~vtkDataProcessor()
   if(this->Reconstructor)
     {
     this->Reconstructor->Delete();
+    this->Reconstructor = NULL;
     }
 
   if(this->DataBufferLock)
     {
-  this->DataBufferLock->Delete();
+    this->DataBufferLock->Delete();
+    this->DataBufferLock = NULL;
     }
 
   if(this->DataBufferIndexQueueLock)
     {
     this->DataBufferIndexQueueLock->Delete();
+    this->DataBufferIndexQueueLock = NULL;
     }
 
   if(this->PlayerThreader)
     {
     this->PlayerThreader->Delete();
+    this->PlayerThreader = NULL;
     }
   if(this->calibReader)
     {
     this->calibReader->Delete();
+    this->calibReader = NULL;
     }
 
   this->SetCalibrationFileName(NULL);
@@ -509,14 +514,20 @@ int vtkDataProcessor::StartProcessing(vtkDataSender * sender)
  * ****************************************************************************/
 int vtkDataProcessor::StopProcessing()
 {
-  if(NULL != this->DataSender)
+  #ifdef  DEBUGPROCESSOR
+    this->LogStream << this->GetUpTime()  << " |P-INFO: Stop Data Sender" << endl;
+  #endif
+  if(this->DataSender)
     {
     this->DataSender->StopSending();
     }
 
+  #ifdef  DEBUGPROCESSOR
+    this->LogStream << this->GetUpTime()  << " |P-INFO: Stop Processor Thread" << endl;
+  #endif
   if(this->Processing)
     {//Stop thread
-        this->PlayerThreader->TerminateThread(this->PlayerThreadId);
+    this->PlayerThreader->TerminateThread(this->PlayerThreadId);
     this->PlayerThreadId = -1;
     this->Processing = false;
 
@@ -588,6 +599,8 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
       {
       this->DelayFactor = this->calibReader->GetDelayFactor();
       }
+
+    this->Reconstructor->SetReconstructionThreshold(this->calibReader->GetReconstructionThreshold());
 
     this->ReconstructorLifeTime = 500;
     }

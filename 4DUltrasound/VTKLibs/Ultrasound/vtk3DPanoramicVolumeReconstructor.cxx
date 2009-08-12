@@ -223,6 +223,11 @@ vtk3DPanoramicVolumeReconstructor::vtk3DPanoramicVolumeReconstructor()
 //  newOutput->AllocateScalars();
 //  
 //  this->SetOutput((vtkDataObject *) newOutput);
+
+  //Jan Gumprecht 12 August 2009
+  //Sets the lower grey value threshold. Pixels below this threshold are not inserted
+  //in the reconstructed volume
+  this->ReconstructionThreshold = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -1074,13 +1079,6 @@ static int vtkTrilinearInterpolation(F *point, T *inPtr, T *outPtr,
                                      unsigned short *accPtr, int numscalars, 
                                      int outExt[6], int outInc[3])
 {
-
-  //JG (Jan Gumprecht) 11 August 2009 exclude black pixels from reconstruction
-  if(*inPtr < 20)
-    {
-    return 0;
-    }
-
 
   F fx, fy, fz;
 
@@ -2853,30 +2851,36 @@ static void vtkOptimizedInsertSlice(vtk3DPanoramicVolumeReconstructor *self,
         {
         inPtr += numscalars;
         }
-       if (self->GetInterpolationMode() == VTK_FREEHAND_LINEAR)
-        { 
-        for (idX = r1; idX <= r2; idX++)
-          {
-          outPoint[0] = outPoint1[0] + idX*xAxis[0];
-          outPoint[1] = outPoint1[1] + idX*xAxis[1];
-          outPoint[2] = outPoint1[2] + idX*xAxis[2];
-          
-          int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr, 
-                                    numscalars, outExt, outInc);
-          inPtr += numscalars;
-          //self->PixelCount += hit;
-          self->IncrementPixelCount(threadId, hit);
-          }
-        }
-      else 
+
+
+
+      //JG (Jan Gumprecht) 11 August 2009 exclude black pixels from reconstruction
+      if(*inPtr > self->GetReconstructionThreshold())
         {
-        vtkFreehandOptimizedNNHelper(r1, r2, outPoint, outPoint1, xAxis, 
-                                     inPtr, outPtr, outExt, outInc,
-                                     numscalars, accPtr);
-        // self->PixelCount += r2-r1+1;
-        self->IncrementPixelCount(threadId, r2-r1+1);
-        }
-  
+         if (self->GetInterpolationMode() == VTK_FREEHAND_LINEAR)
+          {
+          for (idX = r1; idX <= r2; idX++)
+            {
+            outPoint[0] = outPoint1[0] + idX*xAxis[0];
+            outPoint[1] = outPoint1[1] + idX*xAxis[1];
+            outPoint[2] = outPoint1[2] + idX*xAxis[2];
+
+            int hit = vtkTrilinearInterpolation(outPoint, inPtr, outPtr, accPtr,
+                                      numscalars, outExt, outInc);
+            inPtr += numscalars;
+            //self->PixelCount += hit;
+            self->IncrementPixelCount(threadId, hit);
+            }
+          }
+        else
+          {
+          vtkFreehandOptimizedNNHelper(r1, r2, outPoint, outPoint1, xAxis,
+                                       inPtr, outPtr, outExt, outInc,
+                                       numscalars, accPtr);
+          // self->PixelCount += r2-r1+1;
+          self->IncrementPixelCount(threadId, r2-r1+1);
+          }
+      }
       // skip the portion of the slice we don't want to reconstruct
       for (idX = r2+1; idX <= inExt[1]; idX++)
         {
