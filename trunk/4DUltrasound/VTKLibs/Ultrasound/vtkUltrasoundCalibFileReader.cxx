@@ -111,6 +111,8 @@ vtkUltrasoundCalibFileReader::vtkUltrasoundCalibFileReader()
   this->MaximumVolumeSize[0] = -1;
   this->MaximumVolumeSize[1] = -1;
   this->MaximumVolumeSize[2] = -1;
+
+  this->ReconstructionThreshold = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -262,7 +264,58 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
     return -1;
     }
   this->ReadBlankLines();
+
+  //Read image Spacing
+   this->ReadComments();
+   numbers.clear();
+   this->ReadNumbers(numbers);
+   if (numbers.size() == 3)
+     {
+     this->ImageSpacing[0] = int(numbers.at(0));
+     this->ImageSpacing[1] = int(numbers.at(1));
+     this->ImageSpacing[2] = int(numbers.at(2));
+     #ifdef DEBUG_CALIBRATIONFILE_READER
+     this->LogStream << "CF-INFO: Image Spacing is " << this->ImageSpacing[0] << "| "<< this->ImageSpacing[1]<< "| "<< this->ImageSpacing[2] << endl;
+     #endif
+     }
+   else
+     {
+     this->LogStream << "ERROR in Calibration File: Cannot read image spacing" << endl;
+     return -1;
+     }
+   this->ReadBlankLines();
+
+//    #ifdef HIGH_DEFINITION
+//    //  this->ImageSpacing[0] = 0.25;
+//    //  this->ImageSpacing[1] = 0.25;
+//    //  this->ImageSpacing[2] = 0.25;
+//    this->ImageSpacing[0] = 1;
+//    this->ImageSpacing[1] = 1;
+//    this->ImageSpacing[2] = 1;
+//    #else
+//    this->ImageSpacing[0] = 1.0;
+//    this->ImageSpacing[1] = 1.0;
+//    this->ImageSpacing[2] = 1.0;
+//    #endif
   
+   //Read reconstruction threshold
+    this->ReadComments();
+    numbers.clear();
+    this->ReadNumbers(numbers);
+    if (numbers.size() == 1)
+      {
+      this->ReconstructionThreshold = int(numbers.at(0));
+      #ifdef DEBUG_CALIBRATIONFILE_READER
+      this->LogStream << "CF-INFO: Reconstruction Threshold is " << this->ReconstructionThreshold << endl;
+      #endif
+      }
+    else
+      {
+      this->LogStream << "ERROR in Calibration File: Cannot read reconstruction threshold" << endl;
+      return -1;
+      }
+    this->ReadBlankLines();
+
   //Read image margins
   this->ReadComments();
   numbers.clear();
@@ -715,8 +768,8 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   #else
   this->ShrinkFactor[0] = (int) (this->TransformationFactorMmToPixel + 0.5);//X 
   this->ShrinkFactor[1] = (int) (this->TransformationFactorMmToPixel + 0.5);//Y
-  this->ShrinkFactor[0] = 2;//X
-  this->ShrinkFactor[1] = 2;//Y
+//  this->ShrinkFactor[0] = 2;//X
+//  this->ShrinkFactor[1] = 2;//Y
   #endif
   
   #ifdef DEBUG_CALIBRATIONFILE_READER
@@ -732,18 +785,6 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   this->LogStream << "CF-INFO: ClipRectangle is: " << this->ClipRectangle[0] << " - " << this->ClipRectangle[1] << " | " << this->ClipRectangle[2] <<" - " << this->ClipRectangle[3] << endl;
   #endif
   
-  #ifdef HIGH_DEFINITION
-//  this->ImageSpacing[0] = 0.25;
-//  this->ImageSpacing[1] = 0.25;
-//  this->ImageSpacing[2] = 0.25;
-  this->ImageSpacing[0] = 1;
-  this->ImageSpacing[1] = 1;
-  this->ImageSpacing[2] = 1;
-  #else
-  this->ImageSpacing[0] = 1.0;
-  this->ImageSpacing[1] = 1.0;
-  this->ImageSpacing[2] = 1.0;
-  #endif
   //this->LogStream << "Calibration File: ClipRectangle 0 - "<< this->ClipRectangle[2] <<"| 0 - "<< this->ClipRectangle[3]<< endl;
   
 #endif

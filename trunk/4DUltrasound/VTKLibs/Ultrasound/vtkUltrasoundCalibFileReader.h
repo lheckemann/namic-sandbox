@@ -146,6 +146,8 @@ public:
 
   vtkGetMacro(OpenIGTLinkServerPortTrackedInstrument, int);
 
+  vtkGetMacro(ReconstructionThreshold, int);
+
 protected:
   vtkUltrasoundCalibFileReader();
   ~vtkUltrasoundCalibFileReader();
@@ -173,6 +175,7 @@ protected:
   int ImageSize[3];
   int ImageDimensions;
   int ImageMargin[4];
+  int ReconstructionThreshold;
 
   //Calibration Matrices
   double TrackerOffset[3];

@@ -269,6 +269,9 @@ public:
 
   int GetReconstructionThreadId(){ return this->ReconstructionThreadId; };
 
+  vtkSetMacro(ReconstructionThreshold, int);
+  vtkGetMacro(ReconstructionThreshold, int);
+
 protected:
   vtk3DPanoramicVolumeReconstructor();
   ~vtk3DPanoramicVolumeReconstructor();
@@ -296,6 +299,9 @@ protected:
   double FanAngles[2];
   double FanOrigin[2];
   double FanDepth;
+
+  //Jan Gumprecht 12 August 2009
+  int ReconstructionThreshold; //Don't insert pixel with a grey value below this threshold
 
   vtkMatrix4x4 *IndexMatrix;
   vtkMatrix4x4 *LastIndexMatrix;

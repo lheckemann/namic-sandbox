@@ -48,7 +48,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef VTKDATAPROCESSOR_H_
 #define VTKDATAPROCESSOR_H_
 
-#include "SynchroGrabConfigure.h"
+#include "4DUltrasoundConfigure.h"
 
 #include <queue>
 #include <map>
