@@ -1,6 +1,6 @@
 /*==========================================================================
 
-  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Portions (c) Copyright 2008-2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -439,16 +439,19 @@ int vtkOpenIGTLinkIFLogic::UnregisterMessageConverter(vtkIGTLToMRMLBase* convert
     this->MessageConverterList.erase(iter);
     // Remove the converter from the existing connectors
     std::vector<vtkMRMLNode*> nodes;
-    const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
-    this->GetMRMLScene()->GetNodesByClass(className, nodes);
-    
-    std::vector<vtkMRMLNode*>::iterator iter;
-    for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+    if (this->GetMRMLScene())
       {
-      vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
-      if (connector)
+      const char* className = this->GetMRMLScene()->GetClassNameByTag("IGTLConnector");
+      this->GetMRMLScene()->GetNodesByClass(className, nodes);
+    
+      std::vector<vtkMRMLNode*>::iterator iter;
+      for (iter = nodes.begin(); iter != nodes.end(); iter ++)
         {
-        connector->UnregisterMessageConverter(converter);
+        vtkMRMLIGTLConnectorNode* connector = vtkMRMLIGTLConnectorNode::SafeDownCast(*iter);
+        if (connector)
+          {
+          connector->UnregisterMessageConverter(converter);
+          }
         }
       }
     return 1;
@@ -462,7 +465,7 @@ int vtkOpenIGTLinkIFLogic::UnregisterMessageConverter(vtkIGTLToMRMLBase* convert
 //---------------------------------------------------------------------------
 unsigned int vtkOpenIGTLinkIFLogic::GetNumberOfConverters()
 {
-  this->MessageConverterList.size();
+  return this->MessageConverterList.size();
 }
 
 
