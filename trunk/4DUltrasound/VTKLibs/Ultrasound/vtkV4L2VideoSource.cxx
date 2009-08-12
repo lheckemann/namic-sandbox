@@ -220,6 +220,9 @@ vtkV4L2VideoSource::vtkV4L2VideoSource()
   this->fd = -1;
   this->n_buffers = 0;
 
+  this->VideoChannel = -1;
+  this->VideoMode = -1;
+
 }
 
 //----------------------------------------------------------------------------
@@ -1672,12 +1675,19 @@ void vtkV4L2VideoSource::InitDevice(){
   }
   
   //Set Input channel to 3 = S-Video on a Hauppauge Impact VCB
-  int channel = 3;
+  //Set Input channel to 1 = Composite on KRDM-CX23883
+//  int channel = 1;
+  int channel = this->VideoChannel;
 
-  //  if (-1 == xioctl (fd,VIDIOC_S_INPUT , &this->VideoChannel))
-  if (-1 == xioctl (fd,VIDIOC_S_INPUT , &channel))
-    errno_exit ("VIDIOC_S_INPUT");
+//  if (-1 == xioctl (fd,VIDIOC_S_INPUT , &this->VideoChannel))
   
+    if(channel < 0)
+      {
+      cerr << "ERROR: Unsupported Videochannel selected: " << channel << endl;
+      }
+    if (-1 == xioctl (fd,VIDIOC_S_INPUT , &channel))
+      errno_exit ("VIDIOC_S_INPUT");
+
   
   v4l2_std_id std_id;
 
@@ -1690,14 +1700,14 @@ void vtkV4L2VideoSource::InitDevice(){
     {//Set video mode to PAL
     std_id = V4L2_STD_PAL;    
     }
-  //  else
-  //{//ERROR: Video Mode unkown
-  // cerr << "ERROR: Unsupported Videomode selected: " << this->VideoMode << endl
-  //     << "       Supported modes: NTSC == 1 and PAL == 2" << endl;           
-  // exit (EXIT_FAILURE);   
-  // }
+  else
+    {//ERROR: Video Mode unkown
+     cerr << "ERROR: Unsupported Videomode selected: " << this->VideoMode << endl
+         << "       Supported modes: NTSC == 1 and PAL == 2" << endl;
+//     exit (EXIT_FAILURE);
+     }
 
-  std_id = V4L2_STD_NTSC;
+//  std_id = V4L2_STD_NTSC;
 
   if (-1 == ioctl (fd, VIDIOC_S_STD, &std_id)) {
         perror ("VIDIOC_S_STD");
