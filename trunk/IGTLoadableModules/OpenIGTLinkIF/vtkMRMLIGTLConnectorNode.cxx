@@ -640,7 +640,7 @@ int vtkMRMLIGTLConnectorNode::Skip(int length, int skipFully)
 
 
 //----------------------------------------------------------------------------
-int vtkMRMLIGTLConnectorNode::GetUpdatedBuffersList(NameListType& nameList)
+unsigned int vtkMRMLIGTLConnectorNode::GetUpdatedBuffersList(NameListType& nameList)
 {
   nameList.clear();
 
@@ -1135,16 +1135,16 @@ void vtkMRMLIGTLConnectorNode::UnregisterIncomingMRMLNode(vtkMRMLNode* node)
 
 
 //---------------------------------------------------------------------------
-int vtkMRMLIGTLConnectorNode::GetNumberOfOutgoingMRMLNodes()
+unsigned int vtkMRMLIGTLConnectorNode::GetNumberOfOutgoingMRMLNodes()
 {
   return this->OutgoingMRMLNodeList.size();
 }
 
 
 //---------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLIGTLConnectorNode::GetOutgoingMRMLNode(int i)
+vtkMRMLNode* vtkMRMLIGTLConnectorNode::GetOutgoingMRMLNode(unsigned int i)
 {
-  if (i >= 0 && i < this->OutgoingMRMLNodeList.size())
+  if (i < this->OutgoingMRMLNodeList.size())
     {
     return this->OutgoingMRMLNodeList[i];
     }
@@ -1156,17 +1156,17 @@ vtkMRMLNode* vtkMRMLIGTLConnectorNode::GetOutgoingMRMLNode(int i)
 
 
 //---------------------------------------------------------------------------
-int vtkMRMLIGTLConnectorNode::GetNumberOfIncomingMRMLNodes()
+unsigned int vtkMRMLIGTLConnectorNode::GetNumberOfIncomingMRMLNodes()
 {
   return this->IncomingMRMLNodeList.size();
 }
 
 
 //---------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLIGTLConnectorNode::GetIncomingMRMLNode(int i)
+vtkMRMLNode* vtkMRMLIGTLConnectorNode::GetIncomingMRMLNode(unsigned int i)
 {
 
-  if (i >= 0 && i < this->IncomingMRMLNodeList.size())
+  if (i < this->IncomingMRMLNodeList.size())
     {
     return this->IncomingMRMLNodeList[i];
     }
