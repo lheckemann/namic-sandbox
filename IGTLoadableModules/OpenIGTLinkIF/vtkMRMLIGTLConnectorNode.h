@@ -186,7 +186,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
 
   //BTX
   typedef std::vector<std::string> NameListType;
-  int GetUpdatedBuffersList(NameListType& nameList); // TODO: this will be moved to private
+  unsigned int GetUpdatedBuffersList(NameListType& nameList); // TODO: this will be moved to private
   vtkIGTLCircularBuffer* GetCircularBuffer(std::string& key);     // TODO: Is it OK to use device name as a key?
   //ETX
 
@@ -241,19 +241,19 @@ class VTK_OPENIGTLINKIF_EXPORT vtkMRMLIGTLConnectorNode : public vtkMRMLNode
 
   // Description:
   // Get number of registered outgoing MRML nodes:
-  int GetNumberOfOutgoingMRMLNodes();
+  unsigned int GetNumberOfOutgoingMRMLNodes();
 
   // Description:
   // Get Nth outgoing MRML nodes:
-  vtkMRMLNode* GetOutgoingMRMLNode(int i);
+  vtkMRMLNode* GetOutgoingMRMLNode(unsigned int i);
 
   // Description:
   // Get number of registered outgoing MRML nodes:
-  int GetNumberOfIncomingMRMLNodes();
+  unsigned int GetNumberOfIncomingMRMLNodes();
 
   // Description:
   // Get Nth outgoing MRML nodes:
-  vtkMRMLNode* GetIncomingMRMLNode(int i);
+  vtkMRMLNode* GetIncomingMRMLNode(unsigned int i);
   
 
  private:

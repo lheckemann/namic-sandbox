@@ -1136,7 +1136,7 @@ void vtkOpenIGTLinkIFGUI::ProcessMRMLEvents ( vtkObject *caller,
         {
         // Register converters
         unsigned int n = this->GetLogic()->GetNumberOfConverters();
-        for (int i = 0; i < n; i ++)
+        for (unsigned short i = 0; i < n; i ++)
           {
           vtkIGTLToMRMLBase* c = this->GetLogic()->GetConverter(i);
           if (c != NULL)
