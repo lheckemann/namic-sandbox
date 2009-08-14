@@ -103,6 +103,16 @@ int main(int argc, char **argv)
   char* logFile = "./logFile.txt";
   bool grabOneImage = false;
 
+  //Log Stream Preparation for error logging----------------------------------
+  logStream.precision(0);
+  logStream.setf(ios::fixed,ios::floatfield);
+  logStream.open(logFile, ios::out);
+
+    //redirect vtk errors to a file
+    vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
+    errOut->SetFileName("vtkError.txt");
+    vtkOutputWindow::SetInstance(errOut);
+
   vtkDataCollector *collector = vtkDataCollector::New();
   vtkDataProcessor *processor = vtkDataProcessor::New();
   vtkDataSender *sender = vtkDataSender::New();
@@ -118,34 +128,26 @@ int main(int argc, char **argv)
   sender->SetStartUpTime(startTime);
   instrumentTracker->SetStartUpTime(startTime);
 
+  collector->SetLogStream(logStream);
+  processor->SetLogStream(logStream);
+  sender->SetLogStream(logStream);
+  instrumentTracker->SetLogStream(logStream);
+
   printSplashScreen();
 
   //Read command line arguments
   int successParsingCommandLine = parseCommandLineArguments(argc, argv, collector, processor, sender, instrumentTracker);
   if(-1 == successParsingCommandLine)
    {
-   cerr << "ERROR: Could parse commandline arguments" << endl << endl;
+   cerr << "ERROR: Could not parse commandline arguments" << endl << endl;
    goodByeScreen();
    goodByeInput();
    }
   else
     {
-    //Log Stream Preparation for error logging----------------------------------
-    logStream.precision(0);
-    logStream.setf(ios::fixed,ios::floatfield);
-    logStream.open(logFile, ios::out);
-    collector->SetLogStream(logStream);
-    processor->SetLogStream(logStream);
-    sender->SetLogStream(logStream);
-    instrumentTracker->SetLogStream(logStream);
 
     //Print start process for the user------------------------------------------
     cout << "--- Started ---" << endl << endl;
-
-    //redirect vtk errors to a file
-    vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
-    errOut->SetFileName("vtkError.txt");
-    vtkOutputWindow::SetInstance(errOut);
 
     cout << "Hardware Initialization: " << std::flush;
     cout << '\a' << std::flush;
@@ -289,15 +291,25 @@ int main(int argc, char **argv)
     //Wait for user input to terminate 4D-Ultrasound
     if(terminate != 0)
       {
+      cout << '\a' << std::flush;
+        vtkSleep(0.2);
+      cout << '\a' << std::flush;
+      vtkSleep(0.2);
+      cout << '\a' << std::flush;
+
       cerr << "ERROR occurred while starting 4DUltrasound" << endl
       << endl;
       printErrorCodes(terminate);
+      goodByeScreen();
       }
-    
-    goodByeScreen();
-    goodByeInput();
+    else
+      {
+      goodByeScreen();
+      goodByeInput();
+      }
 
     //Stop Collecting
+    cerr << "Stop Collecting" << endl;
     collector->StopCollecting();
 
     //Stop Processing
@@ -307,6 +319,7 @@ int main(int argc, char **argv)
 //    sender->StopSending();
 
     //Close Sever Connection
+    cerr << "Close Server connection" << endl;
     sender->CloseServerConnection();      
 
     if(instrumentTracker->GetTrackingEnabled() && instrumentTracker->GetTracking())
@@ -314,11 +327,14 @@ int main(int argc, char **argv)
       goodByeInput();
       }
 
+    cerr << "Stop InstrumentTracker" << endl;
     instrumentTracker->StopTracking();
+    cerr << "Disconnect InstrumentTracker" << endl;
     instrumentTracker->CloseServerConnection();
     
     if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
       {
+      cerr << "Stop Tracker Device" << endl;
       tracker->StopTracking();
       }
     
@@ -332,32 +348,45 @@ int main(int argc, char **argv)
       cout << "--- 4D Ultrasound finished with ERRORS ---" << endl
            << "---           ERRORCODE: "<< terminate <<"             ---" << endl << endl;
       }
-    logStream.close();
-    if(errOut)
-      {
-      errOut->Delete();
-      }
     }
 
+  cerr << "Del InstrumentTracker" << endl;
   if(instrumentTracker)
     {
     instrumentTracker->Delete();
+    instrumentTracker = NULL;
     }
+  cerr << "Del Collector" << endl;
   if(collector)
     {
     collector->Delete();
+    collector = NULL;
     }
+  cerr << "Del Processor" << endl;
   if(processor)
     {
     processor->Delete();
+    processor = NULL;
     }
+  cerr << "Del Sender" << endl;
   if(sender)
     {
     sender->Delete();
+    sender = NULL;
     }
+  cerr << "Del Tracker" << endl;
   if(tracker)
     {
     tracker->Delete();
+    tracker = NULL;
+    }
+
+  logStream.close();
+
+  if(errOut)
+    {
+    errOut->Delete();
+    errOut = NULL;
     }
 }//End Main
 
@@ -509,13 +538,14 @@ int parseCommandLineArguments(int argc, char **argv,
         if(currentArg == "--reconstruct-volume" || currentArg == "-rv")
           {
           processor->EnableVolumeReconstruction(true);
+          sender->SetReconstructionEnabled(true);
           }
         else if(currentArg == "--dynamic-volumesize" || currentArg == "-dvs")
           {
           if(processor->GetVolumeReconstructionEnabled())
             {
-            processor->SetDynamicVolumeSize(true);
             collector->SetDynamicVolumeSize(true);
+            processor->SetDynamicVolumeSize(true);
             }
           else
             {
