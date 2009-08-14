@@ -48,7 +48,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef VTKINSTRUMENTTRACKER_H_
 #define VTKINSTRUMENTTRACKER_H_
 
-#include "SynchroGrabConfigure.h"
+#include "4DUltrasoundConfigure.h"
 
 #include "vtkObject.h"
 
