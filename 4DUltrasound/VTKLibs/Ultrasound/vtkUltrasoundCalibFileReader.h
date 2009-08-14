@@ -128,7 +128,7 @@ public:
   
   vtkGetVector3Macro(TrackerOffset, double);
   
-  vtkGetMacro(ObliquenessAdjustmentMatrix, vtkMatrix4x4*);
+  vtkGetMacro(TrackerCalibrationMatrix, vtkMatrix4x4*);
   
   vtkGetMacro(CoordinateTransformationMatrix, vtkMatrix4x4*);
   
@@ -179,7 +179,7 @@ protected:
 
   //Calibration Matrices
   double TrackerOffset[3];
-  vtkMatrix4x4 *ObliquenessAdjustmentMatrix;
+  vtkMatrix4x4 *TrackerCalibrationMatrix;
   vtkMatrix4x4 *CoordinateTransformationMatrix;
   double SystemOffset[3];
 

@@ -102,8 +102,8 @@ vtkUltrasoundCalibFileReader::vtkUltrasoundCalibFileReader()
   
   this->TransformationFactorMmToPixel = 1;
   
-  this->ObliquenessAdjustmentMatrix = vtkMatrix4x4::New();
-  this->ObliquenessAdjustmentMatrix->Identity();
+  this->TrackerCalibrationMatrix = vtkMatrix4x4::New();
+  this->TrackerCalibrationMatrix->Identity();
   
   this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
   this->CoordinateTransformationMatrix->Identity();
@@ -121,9 +121,9 @@ vtkUltrasoundCalibFileReader::~vtkUltrasoundCalibFileReader()
   this->SetFileName(0);
   this->FileStream = 0;
 
-  if(this->ObliquenessAdjustmentMatrix)
+  if(this->TrackerCalibrationMatrix)
     {
-    this->ObliquenessAdjustmentMatrix->Delete();
+    this->TrackerCalibrationMatrix->Delete();
     }
 
   if(this->CoordinateTransformationMatrix)
@@ -375,12 +375,12 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
       {
       for (int j = 0; j < 4; j++)
        {
-       this->ObliquenessAdjustmentMatrix->Element[i][j] = numbers.at(vecIndex++);
+       this->TrackerCalibrationMatrix->Element[i][j] = numbers.at(vecIndex++);
        }
       }
     #ifdef DEBUG_CALIBRATIONFILE_READER
     this->LogStream << "CF-INFO: Obliqueness adjustment matrix is: " << endl;
-    this->ObliquenessAdjustmentMatrix->Print(this->LogStream);
+    this->TrackerCalibrationMatrix->Print(this->LogStream);
     #endif
     }
   else
