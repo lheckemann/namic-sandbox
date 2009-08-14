@@ -50,7 +50,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <queue>
 #include <map>
 
-#include "SynchroGrabConfigure.h"
+#include "4DUltrasoundConfigure.h"
 
 #include "vtkObject.h"
 #include "vtkImageData.h"
@@ -123,6 +123,8 @@ public:
   
   vtkGetMacro(SendDataBufferSize, int);
   
+  vtkSetMacro(ReconstructionEnabled, bool);
+
   int GetCurrentBufferSize(){return sendDataQueue.size();}
 
   void SetLogStream(ofstream &LogStream);
@@ -176,7 +178,9 @@ protected:
   bool Connected;
   double lastFrameRateUpdate;
   int UpDateCounter;
+  int FrameCounter;
   double TransformationFactorMmToPixel;
+  bool ReconstructionEnabled;
 
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;
