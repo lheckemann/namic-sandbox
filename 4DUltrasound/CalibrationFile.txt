@@ -1,129 +1,282 @@
 #=============================== #
 # 4D Ultrasound Calibration file #
 #=============================== #
-#IMPORTANT: You must not change the order of the options only change the definition part of every option
+#IMPORTANT: You must not change the order of the options only change the 
+#           "Definition" part of every option
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 #IMAGE SETTINGS
 #==============
 
-#---------------------------------------
-#Image Dimensions - Dimensions of captured images in pixels 
+#-------------------------------------------------------------------------------
+#Image Dimensions
 #----------------
-#Format: NUM_OF_COLS(X)  NUM_OF_ROWS(Y)
+#   Dimensions of captured images in pixels
+##---
+#   Format: NUM_OF_COLS(X)  NUM_OF_ROWS(Y)
 # =========> !!!! VERY IMPORTANT: ASPECT RATIO MUST BE 4:3 !!!! <==========
 #
 #Examples
-#-------------------
+#---
 #1.) 160 120
 #2.) 320 240
 #3.) 640 480 
-#-------------------
+#---
 #Definition:
 640 480
 
-#---------------------------------------
-#Image Margins - Unneeded parts of the images, that can be cut of. Definition 
-#-------------   in Pixels. The bigger the margins, the faster 4DUltrasound will
-#                run
-#                Format: TOP BOTTOM LEFT RIGHT
+#-------------------------------------------------------------------------------
+#Image Spacing
+#-------------
+#   Spacing between the pixels
+#---
+#   Format: X Y Z [mm]
+#---
+# Definition:
+1 1 1
+
+#-------------------------------------------------------------------------------
+#Reconstruction Threshold
+#------------------------
+#   Pixels with a grey value below will not be inserted into the final volume. 
+#   This prevents the black space surrounding the US fan from distorting the
+#   reconstructed volume.
+#---
+#30
+0
+
+#-------------------------------------------------------------------------------
+#Image Margins
+#-------------
+#   Unneeded parts of the images, that can be cut of, i.e. the everything around
+#   the ultrasound fan. Use the "-gof" command line parameter to grab one image
+#   and to determine the margins
+#   
+#---
+#   Format: TOP BOTTOM LEFT RIGHT [pixel]
+#---
+#   Samples:
 #
-#Examples for Sonosite Titan Ultrasound Machine
-#-------------------
 #1.) No margins: 0 0 0 0
-#2.) 320 x 240 Pixel 7.3 cm Ultrasound Scan Depth: 16 18 40 30
-#3.) 640 x 480 Pixel 7.3 cm Ultrasound Scan Depth: 32 36 80 60
-#4.) 640 x 480 Pixel 4.3 cm Ultrasound Scan Depth: 72 144 100 50
-#-------------------
-#Definition:
-161 144 100 50
+#2.) 320 x 240 Pixel Sonosite Titan 7.3 cm Ultrasound Scan Depth: 16 18 40 30
+#3.) 640 x 480 Pixel Sonosite Titan 7.3 cm Ultrasound Scan Depth: 32 36 80 60
+#4.) 640 x 480 Pixel Sonosite Titan 4.3 cm Ultrasound Scan Depth: 161 144 100 50
+#5.) 640 x 480 Pixel Hitachi Ultrasound Scanner: 85 70 140 25
+#6.) 320 x 240 Pixel Aloka Pro Sound 3500 Abdominen Transducer 12 33 37 31
+#7.) 640 x 480 Pixel Aloka Pro Sound 3500 Abdominen Transducer 26 64 82 60
+#---
+# Definition:
+0 0 0 0
 
 
-#-------------------------------------------------------------------------------
+#==============================================================================
 #Tracked Ultrasound Calibration
-#------------------------------
-#Offset tip of tracker sensor to center of phased array of US transducer:
-# x y z [mm]
-#0 -14.2875 36.5125
-#Definition:
-0 -14.2875 39
+#==============================
+#   Offset tip of tracker sensor to center of phased array of US transducer
+#---
+#   Format: x y z [mm]
+#           x - long side of phased array
+#           y - direction of ultrasound rays
+#           z - small side of phased array
+#---
+#   Samples:
+#   
+#   Boston,USA January 2009 0 36.5125 14.2875
+#   Fukuoka, Japan 13 August 2009 0 29.5 15.5
+#---
+# Definition:
+0 0 0
 
-
-#---------------------------------------
-#Obliqueness tip of tracker sensor to center of phased array of US transducer:
-#Definition:
-0.933580  -0.358368  0 0
-0.358368   0.933580  0 0
-0          0         1 0
-0          0         0 1
-
-#---------------------------------------
-#Adjust coordinate system
-1  0  0  0
-0  0 -1  0
-0 -1  0  0
-0  0  0  1
-
-#---------------------------------------
-#System Offset [mm]
-0 0 300
 
 #-------------------------------------------------------------------------------
-#System settings
-#---------------
+# Tracker Sensor to Ultrasound Transducer Calibration
+#----------------------------------------------------
+#   Obliqueness tip of tracker sensor to center of phased array of US transducer:
+#   If you use 3D Slicer to determine this calibration matrix turn off the 
+#   calibration between world coordinates and image coordinates i.e. make this
+#   matrix a identity matrix.
+#---
+#   Samples:
+#
+#1  0  0  0
+#0  1  0  0
+#0  0  1  0
+#0  0  0  1
+#---
+# Definition:
+0.978062  0.013443  -0.207880 0.000000
+-0.017450 0.999695  -0.017452 0.000000
+0.207582  0.020697  0.977999  0.000000
+0.000000  0.000000  0.000000  1.000000
 
+
+#-------------------------------------------------------------------------------
+# World Coordinates to Image Coordinates
+#---------------------------------------
+#   Calibration between the coordinate system of tracker and the coordinate
+#   system of the visualization software
+#---
+#   Samples:
+#
+#1  0  0  0
+#0  1  0  0
+#0  0  1  0
+#0  0  0  1
+#---
+# Definition:
+ 0  1  0  0
+ 0  0 -1  0
+-1  0  0  0
+ 0  0  0  1
+
+
+
+#-------------------------------------------------------------------------------
+#Volume shift
+#------------
+#   Shift the reconstructed volume in all 3 dimensions
+#---
+#   Format: x y z  [mm]
+#---
+#   Samples:
+#
+#0 0 300
+#---
+# Definition:
+0 0 0
+
+#===============================================================================
+#System settings
+#===============
+
+#-------------------------------------------------------------------------------
 #Maxvolume size
-#20000000
-#x y z
+#--------------
+#   Set the maximum extent of the reconstructed volume
+#---
+#   Format: x y z [pixel]
+#---
+# Definition:
 400 400 400
 
+#-------------------------------------------------------------------------------
 #Video Device Name
-/dev/video
+#-----------------
+#   Define the video device from which to grab the ultrasound images
+#---
+# Definition:
+/dev/video0
 
+#-------------------------------------------------------------------------------
 #Video Channel
-# Hauppauge Impact VCB Model 558 S-Video Channel: 3
-3
-
-#Video Mode 1: NTSC 2:PAL
+#-------------
+#   Define the video channel of the frame grabber card that provides the images
+#---
+#   Samples:
+#
+#   Hauppauge Impact VCB Model 558 S-Video Channel: 3
+#   KRDM-CX23883 Composite Channel: 1
+#---
+# Definition:
 1
 
+#-------------------------------------------------------------------------------
+#Video Interlacing Mode
+#----------
+#   Define the interlacing mode of the frame grabber card
+#---
+#   Samples:
+#
+#   NTSC: 1
+#   PAL: 2
+#---
+# Definition:
+1
+
+#-------------------------------------------------------------------------------
 #Delay Factor
+#------------
+#   A delay factor to skip old frames. If you don't exactly know what it don' 
+#   touch it
+#---
+# Definition:
 50
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 #Ultrasound settings
-#-------------------
+#===================
 
+#-------------------------------------------------------------------------------
 #Frames per second
-# 30 is max
+#-----------------
+#   Set the frame rate at which to grab the ultrasound images.
+#   !!!! 30 fps is the maximum !!!
+#---
+# Definition:
 30
 
-#Ultrasound scan depth [mm]
-#Must be correspondent to fan height
-47
+#-------------------------------------------------------------------------------
+#Ultrasound scan depth
+#---------------------
+#   Define the scan depth set at the ultrasound device.
+#   !!! Must be correspondent to fan height !!!
+#---
+#   Format: [mm]
+#---
+# Definition:
+170
 
+#-------------------------------------------------------------------------------
 #Ultrasound scan fan height [Pixel]
-#Must be correspondent to scan depth
-#228 Pixel for 47 mm scan depth
-228
+#----------------------------------
+#   Define the height of the ultrasound fan in the grabbed images. Grab one 
+#   image using the "-gof" command line parameter and measure the fan height 
+#   between the lowest point of the upper and the lower arch.
+#   !!! Must be correspondent to scan depth, image size and image margin !!!
+#   !!! parameters                                                       !!!
+#---
+#   Samples:
+#
+#   Sonosite Titan: 228 Pixel for 47 mm scan depth
+#   Aloka ProSound 3500 Abdominen Transducer 373 Pixel for 170 mm
+#---
+# Definition:
+373
+
+#===============================================================================
+#Instrument setting
+#==================
 
 #-------------------------------------------------------------------------------
-#Instrument setting
-#------------------
-
 #Instrument Tracking Rate per second
+#-----------------------------------
+#---
+# Definition:
 30
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 #OpenIGTLink settings
-#-------------------
+#====================
 
-#OpenIGTLinkServer US
+#-------------------------------------------------------------------------------
+#OpenIGTLink Server
+#------------------
+#   All data will be sent to this OpenIGTLink server
+#---
+# Definition:
 localhost
 
-#OpenIGTLinkPort US
+#-------------------------------------------------------------------------------
+#OpenIGTLink Port of the reconstructed ultrasound volumes
+#--------------------------------------------------------
+#---
+# Definition:
 18944
 
-#OpenIGTLinkPort Inst
+#-------------------------------------------------------------------------------
+#OpenIGTLink Port of the instrument tracking data
+#--------------------
+#---
+# Definition:
 18945
 
