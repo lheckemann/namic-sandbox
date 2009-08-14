@@ -124,11 +124,13 @@ vtkInstrumentTracker::~vtkInstrumentTracker()
   if(this->calibReader)
     {
     this->calibReader->Delete();
+    this->calibReader = NULL;
     }
 
   if(this->PlayerThreader)
     {
     this->PlayerThreader->Delete();
+    this->PlayerThreader = NULL;
     }
 
   if(this->Tracking)
@@ -439,14 +441,17 @@ static void *vtkInstrumentTrackerThread(vtkMultiThreader::ThreadInfo *data)
   if(trackerMatrix)
     {
     trackerMatrix->Delete();
+    trackerMatrix = NULL;
     }
   if(oldMatrix)
     {
     oldMatrix->Delete();
+    oldMatrix = NULL;
     }
   if(adjustMatrix)
     {
     adjustMatrix->Delete();
+    adjustMatrix = NULL;
     }
 return NULL;
 }
