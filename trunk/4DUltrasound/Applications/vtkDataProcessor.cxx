@@ -126,6 +126,9 @@ vtkDataProcessor::vtkDataProcessor()
 
   this->DynamicVolumeSize = false;
   this->VolumeInitialized = false;
+
+  this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
+  this->CoordinateTransformationMatrix->Identity();
 }
 
 /******************************************************************************
@@ -176,6 +179,12 @@ vtkDataProcessor::~vtkDataProcessor()
     {
     this->calibReader->Delete();
     this->calibReader = NULL;
+    }
+
+  if(this->CoordinateTransformationMatrix)
+    {
+    this->CoordinateTransformationMatrix->Delete();
+    this->CoordinateTransformationMatrix = NULL;
     }
 
   this->SetCalibrationFileName(NULL);
@@ -331,6 +340,7 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
         #ifdef DEBUGPROCESSOR
           self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Data sender is too slow -> wait" << endl;
         #endif
+        dataAvailable = false;
         }
       else
         {
@@ -527,7 +537,17 @@ int vtkDataProcessor::StopProcessing()
   #endif
   if(this->Processing)
     {//Stop thread
-    this->PlayerThreader->TerminateThread(this->PlayerThreadId);
+    if(this->PlayerThreadId == -1)
+      {
+      #ifdef  ERRORPROCESSOR
+          this->LogStream << this->GetUpTime()  << " |P-ERROR: Try to stop Processor Thread with id -1" << endl;
+          cerr << "P-ERROR: Try to stop Processor Thread with id -1" << endl;
+      #endif
+      }
+    else
+      {
+      this->PlayerThreader->TerminateThread(this->PlayerThreadId);
+      }
     this->PlayerThreadId = -1;
     this->Processing = false;
 
@@ -593,7 +613,7 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
       this->MaximumVolumeSize[2] = this->calibReader->GetMaximumVolumeSize()[2];
       }
 
-    this->ProcessPeriod = 1 / this->calibReader->GetFramesPerSecond();
+    this->ProcessPeriod = 1.0 / (float) this->calibReader->GetFramesPerSecond();
 
     if(this->DelayFactor == DEFAULT_DELAY_FACTOR)
       {
@@ -601,6 +621,8 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
       }
 
     this->Reconstructor->SetReconstructionThreshold(this->calibReader->GetReconstructionThreshold());
+
+    this->CoordinateTransformationMatrix->DeepCopy(this->calibReader->GetCoordinateTransformationMatrix());
 
     this->ReconstructorLifeTime = 500;
     }
@@ -760,7 +782,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
 //      }
 
 //  if((extentChanged || originChanged) && !expansionPossible)
-  if(volumeSize > this->GetMaximumVolumeSize() || volumeSize <= 0 || ((extentChanged || originChanged) && this->oldVolume == NULL))
+  if(volumeSize > this->GetMaximumVolumeSize() || volumeSize < 0 || ((extentChanged || originChanged) && this->oldVolume == NULL))
     {
     retVal = -1;
 
@@ -971,7 +993,7 @@ int vtkDataProcessor::ReconstructVolume(int index)
  *  Prepare and forward reconstructed volume to DataSender
  *
  *  @Author:Jan Gumprecht
- *  @Date:  31.January 2009
+ *  @Date:  14.August 2009
  *
  *  @Return: Success: Index of DataSender's newDataBuffer were forwarded volume
  *                    is stored
@@ -999,6 +1021,7 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
   vtkImageData * reconstructedVolume = image;
 
 #endif
+
   //Generate and fill volume which will be forwarded----------------------------
   vtkImageData* volumeToForward = vtkImageData::New();
 
@@ -1012,46 +1035,25 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
 
   //Create and Fill OpenIGTLink Matrix for forwarding---------------------------
   vtkMatrix4x4 * matrix = vtkMatrix4x4::New();
-  this->GetVolumeMatrix(matrix);
-
-  vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
-  vtkMatrix4x4 * oldMatrix = vtkMatrix4x4::New();
-
-  //Transform coordinate System-------------------------------------------------
-  oldMatrix->DeepCopy(matrix);
-
-  adjustMatrix->Identity();
-  adjustMatrix->Element[0][0] = 0;
-  adjustMatrix->Element[1][1] = 0;
-  adjustMatrix->Element[2][2] = 0;
-
-  adjustMatrix->Element[2][0] = -1;
-  adjustMatrix->Element[0][1] =  1;
-  adjustMatrix->Element[1][2] = -1;
-
-  vtkMatrix4x4::Multiply4x4(oldMatrix, adjustMatrix, matrix);
-
-  if(adjustMatrix)
-    {
-    adjustMatrix->Delete();
-    adjustMatrix = NULL;
-    }
-  if(oldMatrix)
-    {
-    oldMatrix->Delete();
-    oldMatrix = NULL;
-    }
+  this->GetVolumeMatrix(matrix, false);
 
   double xOrigin = reconstructedVolume->GetOrigin()[0];
   double yOrigin = reconstructedVolume->GetOrigin()[1];
   double zOrigin = reconstructedVolume->GetOrigin()[2];
 
-  reconstructedVolume->SetOrigin(yOrigin, -zOrigin, -xOrigin);
+//  reconstructedVolume->SetOrigin(yOrigin, -zOrigin, -xOrigin);
 
   //Adjust matrix to OpenIGTLink offset-----------------------------------------
-  double xLength = (reconstructedVolume->GetDimensions()[0] - 1) / 2;
-  double yLength = (reconstructedVolume->GetDimensions()[1] - 1) / 2;
-  double zLength = (reconstructedVolume->GetDimensions()[2] - 1) / 2;
+  //  OpenIGTLink has the origin in the center of the volume, while vtkImageData
+  //  has the origin in the closest left lower corner
+  double xLength = (reconstructedVolume->GetDimensions()[0]) / 2;
+  double yLength = (reconstructedVolume->GetDimensions()[1]) / 2;
+  double zLength = (reconstructedVolume->GetDimensions()[2]) / 2;
+
+  #ifdef DEBUGPROCESSOR
+    this->LogStream << this->GetUpTime()  << " |P-INFO: Original Origin of Volume: " << xOrigin << " | " << yOrigin << " | " << zOrigin << endl
+                                  << "         |        x/y/z Lengths : " << xLength << " | " << yLength << " | " << zLength << endl;
+  #endif
 
   double xOpenIGTLinkOffset = matrix->Element[0][0] * xLength + matrix->Element[0][1] * yLength + matrix->Element[0][2] * zLength;
   double yOpenIGTLinkOffset = matrix->Element[1][0] * xLength + matrix->Element[1][1] * yLength + matrix->Element[1][2] * zLength;
@@ -1060,6 +1062,65 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
   matrix->Element[0][3] = reconstructedVolume->GetOrigin()[0] + xOpenIGTLinkOffset;
   matrix->Element[1][3] = reconstructedVolume->GetOrigin()[1] + yOpenIGTLinkOffset;
   matrix->Element[2][3] = reconstructedVolume->GetOrigin()[2] + zOpenIGTLinkOffset;
+
+  #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: OpenIGTLink message matrix with Origin" << endl;
+      matrix->Print(this->LogStream);
+  #endif
+
+  //Transform coordinate System-------------------------------------------------
+
+  if(!this->UltraSoundTrackingEnabled)
+    {//Apply tracking simulator transformation
+    vtkMatrix4x4 * trackerSimulatorMatrix = vtkMatrix4x4::New();
+
+    this->GetVolumeMatrix(trackerSimulatorMatrix, true);
+
+    //Multiply from the right, i.e. don't change the position
+    vtkMatrix4x4::Multiply4x4(matrix, trackerSimulatorMatrix, matrix);
+
+    if(trackerSimulatorMatrix)
+      {
+      trackerSimulatorMatrix->Delete();
+      trackerSimulatorMatrix = NULL;
+      }
+
+    #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: OpenIGTLink message matrix with applied tracker simulator simulation" << endl;
+      matrix->Print(this->LogStream);
+    #endif
+    }
+
+  vtkMatrix4x4 * adjustMatrix = vtkMatrix4x4::New();
+
+  adjustMatrix->Identity();
+//  adjustMatrix->Element[0][0] = 0;
+//  adjustMatrix->Element[1][1] = 0;
+//  adjustMatrix->Element[2][2] = 0;
+
+  //Matrix Layout
+  // 0  1  0  0
+  // 0  0 -1  0
+  //-1  0  0  0
+  // 0  0  0  1
+
+//  adjustMatrix->Element[2][0] = -1;
+//  adjustMatrix->Element[0][1] =  1;
+//  adjustMatrix->Element[1][2] = -1;
+
+  vtkMatrix4x4::Multiply4x4(adjustMatrix, matrix, matrix);
+
+  #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: OpenIGTLink  message matrix with processor adjustment" << endl;
+      matrix->Print(this->LogStream);
+  #endif
+
+  vtkMatrix4x4::Multiply4x4(this->CoordinateTransformationMatrix, matrix, matrix);
+
+  #ifdef DEBUGPROCESSOR
+      this->LogStream << this->GetUpTime()  << " |P-INFO: OpenIGTLink  message matrix with calibfile adjustment" << endl;
+      matrix->Print(this->LogStream);
+  #endif
 
   //Forward data to sender------------------------------------------------------
   int retval = this->DataSender->NewData(volumeToForward, matrix);
@@ -1073,6 +1134,7 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
       this->LogStream << this->GetUpTime()  << " |P-INFO: Volume forwarded to data sender " << " | Copytime: " << this->GetUpTime() -  copyTime << endl
                       << "         | Pixels: "<< counter << " | Data Sender Index: " << retval << endl
                       << "         | Volume Dimensions: "<< volumeToForward->GetDimensions()[0] << " | "<< volumeToForward->GetDimensions()[1] << " | "<< volumeToForward->GetDimensions()[2] << " | " << endl
+                      << "         | Origin: " << matrix->Element[0][3] << " | " << matrix->Element[1][3] << " | " << matrix->Element[2][3] << endl
                       << "         | SenderIndex: "<< retval << " | "  << endl;
     #endif
     }
@@ -1082,6 +1144,13 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
       this->LogStream << this->GetUpTime()  << " |P-ERROR: Could not forward volume to data sender" << " | " << endl;
     #endif
     retval = -1;
+    }
+
+  //Free memory
+  if(adjustMatrix)
+    {
+    adjustMatrix->Delete();
+    adjustMatrix = NULL;
     }
 
   return retval;
@@ -1240,20 +1309,22 @@ bool vtkDataProcessor::IsDataBufferFull()
 /******************************************************************************
  *  void vtkDataProcessor::GetVolumeMatrix(igtl::Matrix4x4& matrix)
  *
- *  Fills given transformation matrix with correct data
+ *  Fills given transformation matrix with correct data, either with an identity
+ *  matrix or a special matrix for the tracking simulator.
  *
  *  @Author:Jan Gumprecht
- *  @Date:  31.January 2009
+ *  @Date:  13.August 2009
  *
  *  @Param: Matrix4x4& matrix - Matrix to fill
+ *  @Param: bool trackerSimulator -
  *
  * ****************************************************************************/
-void vtkDataProcessor::GetVolumeMatrix(vtkMatrix4x4* matrix)
+void vtkDataProcessor::GetVolumeMatrix(vtkMatrix4x4* matrix, bool trackerSimulator)
 {
   float position[3];
   float orientation[4];
 
-  if(this->UltraSoundTrackingEnabled)
+  if(! trackerSimulator)
     {
     //NDI tracker matrix looks like
     //  1  0  0  0
@@ -1261,10 +1332,12 @@ void vtkDataProcessor::GetVolumeMatrix(vtkMatrix4x4* matrix)
     //  0  0  1  0
     //  0  0  0  1
 
-    matrix->Element[0][0] =   1.0;  matrix->Element[0][1] =  0.0;  matrix->Element[0][2] =  0.0; matrix->Element[0][3] = 0.0;
-    matrix->Element[1][0] =   0.0;  matrix->Element[1][1] =  1.0;  matrix->Element[1][2] =  0.0; matrix->Element[1][3] = 0.0;
-    matrix->Element[2][0] =   0.0;  matrix->Element[2][1] =  0.0;  matrix->Element[2][2] =  1.0; matrix->Element[2][3] = 0.0;
-    matrix->Element[3][0] =   0.0;  matrix->Element[3][1] =  0.0;  matrix->Element[3][2] =  0.0; matrix->Element[3][3] = 1.0;
+//    matrix->Element[0][0] =   1.0;  matrix->Element[0][1] =  0.0;  matrix->Element[0][2] =  0.0; matrix->Element[0][3] = 0.0;
+//    matrix->Element[1][0] =   0.0;  matrix->Element[1][1] =  1.0;  matrix->Element[1][2] =  0.0; matrix->Element[1][3] = 0.0;
+//    matrix->Element[2][0] =   0.0;  matrix->Element[2][1] =  0.0;  matrix->Element[2][2] =  1.0; matrix->Element[2][3] = 0.0;
+//    matrix->Element[3][0] =   0.0;  matrix->Element[3][1] =  0.0;  matrix->Element[3][2] =  0.0; matrix->Element[3][3] = 1.0;
+
+    matrix->Identity();
 
     }
   else

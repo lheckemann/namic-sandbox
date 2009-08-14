@@ -48,7 +48,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef __vtkDataCollector_h
 #define __vtkDataCollector_h
 
-#include "SynchroGrabConfigure.h"
+#include "4DUltrasoundConfigure.h"
 
 #include "vtkObject.h"
 #include "vtkDataProcessor.h"
@@ -141,7 +141,7 @@ public:
   int Initialize(vtkNDITracker* tracker);
   int StartCollecting(vtkDataProcessor * processor);
   int StopCollecting();
-  int ProcessMatrix(struct DataStruct* pDataStruct);
+  int CalibrateMatrix(struct DataStruct* pDataStruct);
   double GetUpTime();
   int ExtractImage(vtkImageData * original, vtkImageData * duplicate);
   int DuplicateFrame(vtkImageData * original, vtkImageData * duplicate);
@@ -149,7 +149,6 @@ public:
   int EnableTrackerTool();
   bool IsIdentityMatrix(vtkMatrix4x4 * matrix);
   bool IsMatrixEmpty(vtkMatrix4x4 * matrix);
-  int CalculateNormal(struct DataStruct DataStruct, double* normal);
   int CalculateVolumeProperties(struct DataStruct* pDataStruct);
   int GrabOneImage();
 
@@ -177,7 +176,7 @@ protected:
   bool DynamicVolumeSize;
   bool VolumeInitialized;
   
-  vtkMatrix4x4 *ObliquenessAdjustmentMatrix;
+  vtkMatrix4x4 *TrackerCalibrationMatrix;
   vtkMatrix4x4 *CoordinateTransformationMatrix;
 
   int ImageMargin[4];

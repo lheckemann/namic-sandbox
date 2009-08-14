@@ -152,6 +152,7 @@ protected:
   double DelayFactor;
   bool DynamicVolumeSize;
   bool VolumeInitialized;
+  vtkMatrix4x4 *CoordinateTransformationMatrix;
 
   std::queue<int> dataBufferIndexQueue; //Stores index of incoming objects
   int dataBufferSize; //Maximum amount of items that can be stored at the same time
@@ -175,7 +176,7 @@ protected:
   vtkMutexLock *DataBufferLock;
   vtkMutexLock *DataBufferIndexQueueLock;
 
-  void GetVolumeMatrix(vtkMatrix4x4* matrix);
+  void GetVolumeMatrix(vtkMatrix4x4* matrix, bool trackerSimulator);
   int  MergeVolumes(vtkImageData* newVolume,
                    vtkFloatingPointType* originNewVolume,
                    int* extentNewVolume,

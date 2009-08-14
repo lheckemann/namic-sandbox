@@ -47,6 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define NOMINMAX
 #undef REMOVE_ALPHA_CHANNEL
+//#define DEBUG_IMAGES //Write output to HDD
 
 //#include <windows.h>
 
@@ -55,6 +56,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkImageExtractComponents.h"
 #include "vtkImageData.h"
 #include "vtkJPEGWriter.h"
+#include "vtkBMPWriter.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMultiThreader.h"
 #include "vtkTimerLog.h"
@@ -91,7 +93,7 @@ vtkDataSender::vtkDataSender()
   this->ServerPort = 18944;
   this->OIGTLServer = NULL;
   this->SetOIGTLServer("localhost");
-  this->SendPeriod = 1 /(30 * 1.5);
+  this->SendPeriod = 1.0 /(30.0 * 1.5);
 
   this->socket = NULL;
   this->socket = igtl::ClientSocket::New();
@@ -110,10 +112,10 @@ vtkDataSender::vtkDataSender()
   this->SendDataBufferSize = 10;
   this->SendDataBufferIndex = -1;
 
-  frameProperties.Set = false;
-  frameProperties.SubVolumeOffset[0] = 0;
-  frameProperties.SubVolumeOffset[1] = 0;
-  frameProperties.SubVolumeOffset[2] = 0;
+  this->frameProperties.Set = false;
+  this->frameProperties.SubVolumeOffset[0] = 0;
+  this->frameProperties.SubVolumeOffset[1] = 0;
+  this->frameProperties.SubVolumeOffset[2] = 0;
 
   this->StartUpTime = vtkTimerLog::GetUniversalTime();
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
@@ -137,6 +139,10 @@ vtkDataSender::vtkDataSender()
   this->Statistics.minVolumeSize[0] = 0;
   this->Statistics.minVolumeSize[1] = 0;
   this->Statistics.minVolumeSize[2] = 0;
+
+  this->ReconstructionEnabled = false;
+
+  this->FrameCounter = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -148,6 +154,7 @@ vtkDataSender::~vtkDataSender()
   if(this->PlayerThreader)
     {
     this->PlayerThreader->Delete();
+    this->PlayerThreader = NULL;
     }
 
   this->StopSending();
@@ -156,6 +163,7 @@ vtkDataSender::~vtkDataSender()
   if(this->calibReader)
     {
     this->calibReader->Delete();
+    this->calibReader = NULL;
     }
 
   //Delete all buffer objects
@@ -169,6 +177,7 @@ vtkDataSender::~vtkDataSender()
   if(this->IndexLock)
     {
     this->IndexLock->Delete();
+    this->IndexLock = NULL;
     }
 }
 
@@ -179,6 +188,7 @@ void vtkDataSender::PrintSelf(ostream& os, vtkIndent indent)
 
 }
 
+//----------------------------------------------------------------------------
 int vtkDataSender::Initialize()
 {
 
@@ -201,6 +211,8 @@ int vtkDataSender::Initialize()
    this->SetOIGTLServer(this->calibReader->GetOpenIGTLinkServer());
 
    this->SetServerPort(this->calibReader->GetOpenIGTLinkServerPortUltrasound ());
+
+   this->calibReader->GetImageSpacing(this->frameProperties.Spacing);
 
    }
   else
@@ -525,6 +537,9 @@ int vtkDataSender::StopSending()
   //Stop send thread
   if (this->Sending)
     {
+    #ifdef DEBUGSENDER
+      this->LogStream <<  this->GetUpTime() << " |S-INFO: Stop Sender Thread" << endl;
+    #endif
     this->PlayerThreader->TerminateThread(this->PlayerThreadId);
     this->PlayerThreadId = -1;
     this->Sending = false;
@@ -581,49 +596,72 @@ int vtkDataSender::PrepareImageMessage(int index,
   vtkImageData * frame = this->sendDataBuffer[index].ImageData;
   vtkMatrix4x4 * matrix = this->sendDataBuffer[index].Matrix;
 
-//  if(!frameProperties.Set)//Only neccessary once
+  #ifdef DEBUG_IMAGES
+    vtkBMPWriter *writer = vtkBMPWriter::New();
+    char filename[256];
+    writer->SetInput(frame);
+    sprintf(filename,"./Output/DataSenderFrame%03d.bmp",this->FrameCounter);
+    writer->SetFileName(filename);
+    writer->Update();
+    if(writer)
+      {
+      writer->Delete();
+      writer = NULL;
+      }
+  #endif //DEBUG_IMAGES
+
+//  if(!this->frameProperties.Set)//Only neccessary once
 //    {
     //Get property of frame
-    frame->GetDimensions(frameProperties.Size);
-//    frame->GetSpacing(frameProperties.Spacing);
+    frame->GetDimensions(this->frameProperties.Size);
+//    if(this->ReconstructionEnabled)
+//      {
+//      frame->GetSpacing(this->frameProperties.Spacing);
+//      }
 
     #ifdef HIGH_DEFINITION
-    frameProperties.Spacing[0] = 1 / this->TransformationFactorMmToPixel;
-    frameProperties.Spacing[1] = 1 / this->TransformationFactorMmToPixel;
-    frameProperties.Spacing[2] = 1 / this->TransformationFactorMmToPixel;
-//    frameProperties.Origin[0] = (float) frame->GetOrigin()[0] / this->TransformationFactorMmToPixel;
-//    frameProperties.Origin[1] = (float) frame->GetOrigin()[1] / this->TransformationFactorMmToPixel;
-//    frameProperties.Origin[2] = (float) frame->GetOrigin()[2] / this->TransformationFactorMmToPixel;
-    frameProperties.Origin[0] = (float) frame->GetOrigin()[0];
-    frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
-    frameProperties.Origin[2] = (float) frame->GetOrigin()[2];
+    if(this->ReconstructionEnabled)
+      {
+      this->frameProperties.Spacing[0] = 1 / this->TransformationFactorMmToPixel;
+      this->frameProperties.Spacing[1] = 1 / this->TransformationFactorMmToPixel;
+      this->frameProperties.Spacing[2] = 1 / this->TransformationFactorMmToPixel;
+      }
+//    this->frameProperties.Origin[0] = (float) frame->GetOrigin()[0] / this->TransformationFactorMmToPixel;
+//    this->frameProperties.Origin[1] = (float) frame->GetOrigin()[1] / this->TransformationFactorMmToPixel;
+//    this->frameProperties.Origin[2] = (float) frame->GetOrigin()[2] / this->TransformationFactorMmToPixel;
+    this->frameProperties.Origin[0] = (float) frame->GetOrigin()[0];
+    this->frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
+    this->frameProperties.Origin[2] = (float) frame->GetOrigin()[2];
     #else
-    frameProperties.Spacing[0] = 1;
-    frameProperties.Spacing[1] = 1;
-    frameProperties.Spacing[2] = 1;
-    frameProperties.Origin[0] = (float) frame->GetOrigin()[0];
-    frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
-    frameProperties.Origin[2] = (float) frame->GetOrigin()[2];
+    if(this->ReconstructionEnabled)
+      {
+      this->frameProperties.Spacing[0] = 1;
+      this->frameProperties.Spacing[1] = 1;
+      this->frameProperties.Spacing[2] = 1;
+      }
+    this->frameProperties.Origin[0] = (float) frame->GetOrigin()[0];
+    this->frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
+    this->frameProperties.Origin[2] = (float) frame->GetOrigin()[2];
     #endif
 
-    frameProperties.ScalarType = frame->GetScalarType();
-    frameProperties.SubVolumeSize[0] = frameProperties.Size[0];
-    frameProperties.SubVolumeSize[1] = frameProperties.Size[1];
-    frameProperties.SubVolumeSize[2] = frameProperties.Size[2];
+    this->frameProperties.ScalarType = frame->GetScalarType();
+    this->frameProperties.SubVolumeSize[0] = this->frameProperties.Size[0];
+    this->frameProperties.SubVolumeSize[1] = this->frameProperties.Size[1];
+    this->frameProperties.SubVolumeSize[2] = this->frameProperties.Size[2];
 
-    frameProperties.Set = true;
+    this->frameProperties.Set = true;
 //    }
 
-    //------------------------------------------------------------
+  //----------------------------------------------------------------------------
   // Create a new IMAGE type message
   imageMessage = igtl::ImageMessage::New();
 
-//  imageMessage->SetOrigin(frameProperties.Origin[0], frameProperties.Origin[1], frameProperties.Origin[2]);
-  imageMessage->SetDimensions(frameProperties.Size);
-  imageMessage->SetSpacing((float) frameProperties.Spacing[0],(float) frameProperties.Spacing[1], (float) frameProperties.Spacing[2]);
-  imageMessage->SetScalarType(frameProperties.ScalarType);
-  imageMessage->SetDeviceName("4D Ultrasound Data Sender");
-  imageMessage->SetSubVolume(frameProperties.SubVolumeSize, frameProperties.SubVolumeOffset);
+//  imageMessage->SetOrigin(this->frameProperties.Origin[0], this->frameProperties.Origin[1], this->frameProperties.Origin[2]);
+  imageMessage->SetDimensions(this->frameProperties.Size);
+  imageMessage->SetSpacing((float) this->frameProperties.Spacing[0],(float) this->frameProperties.Spacing[1], (float) this->frameProperties.Spacing[2]);
+  imageMessage->SetScalarType(this->frameProperties.ScalarType);
+  imageMessage->SetDeviceName("4D US Volume");
+  imageMessage->SetSubVolume(this->frameProperties.SubVolumeSize, this->frameProperties.SubVolumeOffset);
   imageMessage->AllocateScalars();
 
   //Copy image to output buffer
@@ -638,12 +676,12 @@ int vtkDataSender::PrepareImageMessage(int index,
   #endif
 
   #ifdef  DEBUGSENDER
-    counter = frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2]; //scalarcomponents
+    counter = this->frameProperties.Size[0] * this->frameProperties.Size[1] * this->frameProperties.Size[2]; //scalarcomponents
   #endif
-//  memcpy(pImageMessage, pFrame, frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] * scalarComponents);
-  memcpy(pImageMessage, pFrame, frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2]);
+//  memcpy(pImageMessage, pFrame, this->frameProperties.Size[0] * this->frameProperties.Size[1] * this->frameProperties.Size[2] * scalarComponents);
+  memcpy(pImageMessage, pFrame, this->frameProperties.Size[0] * this->frameProperties.Size[1] * this->frameProperties.Size[2]);
 
-//  for(int i = 0 ; i < frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2] ; i++ )
+//  for(int i = 0 ; i < this->frameProperties.Size[0] * this->frameProperties.Size[1] * this->frameProperties.Size[2] ; i++ )
 //    {
 //    *pImageMessage = (unsigned char) *pFrame;
 //    ++pFrame; ++pImageMessage;
@@ -652,102 +690,100 @@ int vtkDataSender::PrepareImageMessage(int index,
 //    #endif
 //    }
 
+    igtl::Matrix4x4 igtlMatrix;
 
-  igtl::Matrix4x4 igtlMatrix;
+    //Copy matrix to output buffer
+    #ifdef HIGH_DEFINITION
+    igtlMatrix[0][0] = matrix->Element[0][0];
+    igtlMatrix[0][1] = matrix->Element[0][1];
+    igtlMatrix[0][2] = matrix->Element[0][2];
+    igtlMatrix[0][3] = matrix->Element[0][3] / this->TransformationFactorMmToPixel;
 
-  //Copy matrix to output buffer
-  #ifdef HIGH_DEFINITION
-  igtlMatrix[0][0] = matrix->Element[0][0];
-  igtlMatrix[0][1] = matrix->Element[0][1];
-  igtlMatrix[0][2] = matrix->Element[0][2];
-  igtlMatrix[0][3] = matrix->Element[0][3] / this->TransformationFactorMmToPixel;
+    igtlMatrix[1][0] = matrix->Element[1][0];
+    igtlMatrix[1][1] = matrix->Element[1][1];
+    igtlMatrix[1][2] = matrix->Element[1][2];
+    igtlMatrix[1][3] = matrix->Element[1][3] / this->TransformationFactorMmToPixel;
 
-  igtlMatrix[1][0] = matrix->Element[1][0];
-  igtlMatrix[1][1] = matrix->Element[1][1];
-  igtlMatrix[1][2] = matrix->Element[1][2];
-  igtlMatrix[1][3] = matrix->Element[1][3] / this->TransformationFactorMmToPixel;
+    igtlMatrix[2][0] = matrix->Element[2][0];
+    igtlMatrix[2][1] = matrix->Element[2][1];
+    igtlMatrix[2][2] = matrix->Element[2][2];
+    igtlMatrix[2][3] = matrix->Element[2][3] / this->TransformationFactorMmToPixel;
 
-  igtlMatrix[2][0] = matrix->Element[2][0];
-  igtlMatrix[2][1] = matrix->Element[2][1];
-  igtlMatrix[2][2] = matrix->Element[2][2];
-  igtlMatrix[2][3] = matrix->Element[2][3] / this->TransformationFactorMmToPixel;
+    igtlMatrix[3][0] = matrix->Element[3][0];
+    igtlMatrix[3][1] = matrix->Element[3][1];
+    igtlMatrix[3][2] = matrix->Element[3][2];
+    igtlMatrix[3][3] = matrix->Element[3][3];
+    #else
 
-  igtlMatrix[3][0] = matrix->Element[3][0];
-  igtlMatrix[3][1] = matrix->Element[3][1];
-  igtlMatrix[3][2] = matrix->Element[3][2];
-  igtlMatrix[3][3] = matrix->Element[3][3];
-  #else
+    igtlMatrix[0][0] = matrix->Element[0][0];
+    igtlMatrix[0][1] = matrix->Element[0][1];
+    igtlMatrix[0][2] = matrix->Element[0][2];
+    igtlMatrix[0][3] = matrix->Element[0][3];
 
-  igtlMatrix[0][0] = matrix->Element[0][0];
-  igtlMatrix[0][1] = matrix->Element[0][1];
-  igtlMatrix[0][2] = matrix->Element[0][2];
-  igtlMatrix[0][3] = matrix->Element[0][3];
-  igtlMatrix[1][0] = matrix->Element[1][0];
-  igtlMatrix[1][1] = matrix->Element[1][1];
-  igtlMatrix[1][2] = matrix->Element[1][2];
-  igtlMatrix[1][3] = matrix->Element[1][3];
+    igtlMatrix[1][0] = matrix->Element[1][0];
+    igtlMatrix[1][1] = matrix->Element[1][1];
+    igtlMatrix[1][2] = matrix->Element[1][2];
+    igtlMatrix[1][3] = matrix->Element[1][3];
 
-  igtlMatrix[2][0] = matrix->Element[2][0];
-  igtlMatrix[2][1] = matrix->Element[2][1];
-  igtlMatrix[2][2] = matrix->Element[2][2];
-  igtlMatrix[2][3] = matrix->Element[2][3];
+    igtlMatrix[2][0] = matrix->Element[2][0];
+    igtlMatrix[2][1] = matrix->Element[2][1];
+    igtlMatrix[2][2] = matrix->Element[2][2];
+    igtlMatrix[2][3] = matrix->Element[2][3];
 
-  igtlMatrix[3][0] = matrix->Element[3][0];
-  igtlMatrix[3][1] = matrix->Element[3][1];
-  igtlMatrix[3][2] = matrix->Element[3][2];
-  igtlMatrix[3][3] = matrix->Element[3][3];
-  #endif
+    igtlMatrix[3][0] = matrix->Element[3][0];
+    igtlMatrix[3][1] = matrix->Element[3][1];
+    igtlMatrix[3][2] = matrix->Element[3][2];
+    igtlMatrix[3][3] = matrix->Element[3][3];
+    #endif
 
-  this->ReleaseLock(DATASENDER);
+    this->ReleaseLock(DATASENDER);
 
-//  for(int i = 0; i < 4; ++i)
-//    {
-//    for(int j = 0; j < 4; ++j)
-//      {
-//      igtlMatrix[i][j] = matrix->Element[i][j];
-//      }
-//    }
-
-  #ifdef  DEBUGSENDER
-    this->LogStream <<  this->GetUpTime() << " |S-INFO: Size of image frame to send:"
-                    << frameProperties.Size[0] << " | "
-                    << frameProperties.Size[1] << " | "
-                    << frameProperties.Size[2] << endl
-                    << "           | Origin: " << frameProperties.Origin[0]<< "|" << frameProperties.Origin[1]<< "|" << frameProperties.Origin[2]<< endl
-                    << "           | Copied Pixels: "<< counter << " | Copy time: " << this->GetUpTime() - copyStart <<endl
-                    << "           | Index: " << index << " | "  <<endl;
-  #endif
+  //  for(int i = 0; i < 4; ++i)
+  //    {
+  //    for(int j = 0; j < 4; ++j)
+  //      {
+  //      igtlMatrix[i][j] = matrix->Element[i][j];
+  //      }
+  //    }
 
 //  #ifdef  DEBUGSENDER
 //    this->LogStream <<  this->GetUpTime() << " |S-INFO: OpenIGTLink image message matrix" << endl;
 //    matrix->Print(this->LogStream);
 //  #endif
 
+    imageMessage->SetMatrix(igtlMatrix);
 
-  imageMessage->SetMatrix(igtlMatrix);
-
+  #ifdef  DEBUGSENDER
+    this->LogStream <<  this->GetUpTime() << " |S-INFO: Size of image frame to send:"
+                    << this->frameProperties.Size[0] << " | "
+                    << this->frameProperties.Size[1] << " | "
+                    << this->frameProperties.Size[2] << endl
+                    << "           | Origin: " << this->frameProperties.Origin[0]<< "|" << this->frameProperties.Origin[1]<< "|" << this->frameProperties.Origin[2]<< endl
+                    << "           | Copied Pixels: "<< counter << " | Copy time: " << this->GetUpTime() - copyStart <<endl
+                    << "           | Index: " << index << " | "  <<endl;
+  #endif
   imageMessage->Pack();// Pack (serialize)
 
     //Statistics----------------------------------------------------------------
     this->Statistics.volumeCounter++;
-    this->Statistics.meanVolumeSize[0] += frameProperties.Size[0];
-    this->Statistics.meanVolumeSize[1] += frameProperties.Size[1];
-    this->Statistics.meanVolumeSize[2] += frameProperties.Size[2];
+    this->Statistics.meanVolumeSize[0] += this->frameProperties.Size[0];
+    this->Statistics.meanVolumeSize[1] += this->frameProperties.Size[1];
+    this->Statistics.meanVolumeSize[2] += this->frameProperties.Size[2];
 
-    double volumeSize = frameProperties.Size[0] * frameProperties.Size[1] * frameProperties.Size[2];
+    double volumeSize = this->frameProperties.Size[0] * this->frameProperties.Size[1] * this->frameProperties.Size[2];
 
     if(volumeSize > this->Statistics.maxVolumeSize[0] * this->Statistics.maxVolumeSize[1] * this->Statistics.maxVolumeSize[2])
       {
-      this->Statistics.maxVolumeSize[0] = frameProperties.Size[0];
-      this->Statistics.maxVolumeSize[1] = frameProperties.Size[1];
-      this->Statistics.maxVolumeSize[2] = frameProperties.Size[2];
+      this->Statistics.maxVolumeSize[0] = this->frameProperties.Size[0];
+      this->Statistics.maxVolumeSize[1] = this->frameProperties.Size[1];
+      this->Statistics.maxVolumeSize[2] = this->frameProperties.Size[2];
       }
 
     if(volumeSize < this->Statistics.minVolumeSize[0] * this->Statistics.minVolumeSize[1] * this->Statistics.minVolumeSize[2])
       {
-      this->Statistics.minVolumeSize[0] = frameProperties.Size[0];
-      this->Statistics.minVolumeSize[1] = frameProperties.Size[1];
-      this->Statistics.minVolumeSize[2] = frameProperties.Size[2];
+      this->Statistics.minVolumeSize[0] = this->frameProperties.Size[0];
+      this->Statistics.minVolumeSize[1] = this->frameProperties.Size[1];
+      this->Statistics.minVolumeSize[2] = this->frameProperties.Size[2];
       }
 
     #ifdef  DEBUGSENDER
@@ -784,6 +820,9 @@ int vtkDataSender::SendMessage(igtl::ImageMessage::Pointer& message)
         this->UpdateFrameRate(this->GetUpTime());
         }
       }
+
+  this->FrameCounter++;
+
   return 0;
 }
 
