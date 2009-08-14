@@ -110,11 +110,14 @@ vtkTrackerSimulator::~vtkTrackerSimulator()
     {
     this->StopTracking();
     }
+
   this->SendMatrix->Delete();
+
   if (this->Version)
     {
     delete [] this->Version;
     }
+
 #ifdef NEW_TRACKER_SIMULATOR
   this->PlayerThreader->Delete();
 #endif
