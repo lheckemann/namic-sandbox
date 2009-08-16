@@ -20,7 +20,7 @@ ADD_TEST(DemonsExample1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
   ${TEMP}/MeshDemonsFilter1.vtk
-  1.0    # Gamma
+  1.0    # Epsilon
   1.0    # SigmaX
   1.0    # Lambda
   1      # Smoothing Iterations

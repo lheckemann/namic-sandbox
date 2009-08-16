@@ -33,7 +33,7 @@ int main( int argc, char *argv[] )
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " fixedMeshFile  movingMeshFile ";
-    std::cerr << " outputMeshfile gamma sigmaX ";
+    std::cerr << " outputMeshfile epsilon sigmaX ";
     std::cerr << " lambda smoothingIterations ";
     std::cerr << " numberOfIterations" << std::endl;
     return EXIT_FAILURE;
@@ -116,16 +116,16 @@ int main( int argc, char *argv[] )
   demonsFilter->SetSphereRadius( 100.0 );
 
 
-  const double gamma1 = 2.0;
-  demonsFilter->SetGamma( gamma1 );
-  TEST_SET_GET_VALUE( gamma1, demonsFilter->GetGamma() );
+  const double epsilon1 = 2.0;
+  demonsFilter->SetEpsilon( epsilon1 );
+  TEST_SET_GET_VALUE( epsilon1, demonsFilter->GetEpsilon() );
 
-  const double gamma2 = 3.0;
-  demonsFilter->SetGamma( gamma2 );
-  TEST_SET_GET_VALUE( gamma2, demonsFilter->GetGamma() );
+  const double epsilon2 = 3.0;
+  demonsFilter->SetEpsilon( epsilon2 );
+  TEST_SET_GET_VALUE( epsilon2, demonsFilter->GetEpsilon() );
 
-  const double gamma = atof( argv[4] );
-  demonsFilter->SetGamma( gamma );
+  const double epsilon = atof( argv[4] );
+  demonsFilter->SetEpsilon( epsilon );
 
 
   const double sigmaX1 = 2.0;

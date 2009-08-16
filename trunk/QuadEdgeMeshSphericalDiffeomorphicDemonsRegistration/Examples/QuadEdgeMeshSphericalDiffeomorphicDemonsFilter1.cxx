@@ -30,7 +30,7 @@ int main( int argc, char *argv[] )
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " fixedMeshFile  movingMeshFile ";
-    std::cerr << " outputMeshfile gamma sigmaX ";
+    std::cerr << " outputMeshfile epsilon sigmaX ";
     std::cerr << " lambda smoothingIterations ";
     std::cerr << " numberOfIterations" << std::endl;
     return EXIT_FAILURE;
@@ -78,13 +78,13 @@ int main( int argc, char *argv[] )
   demonsFilter->SetSphereCenter( center );
   demonsFilter->SetSphereRadius( 100.0 );
 
-  const double gamma = atof( argv[4] );
+  const double epsilon = atof( argv[4] );
   const double sigmaX = atof( argv[5] );
   const double lambda = atof( argv[6] );
   const unsigned int maximumNumberOfSmoothingIterations = atoi( argv[7] );
   const unsigned int maximumNumberOfIterations = atoi( argv[8] );
 
-  demonsFilter->SetGamma( gamma );
+  demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
 
