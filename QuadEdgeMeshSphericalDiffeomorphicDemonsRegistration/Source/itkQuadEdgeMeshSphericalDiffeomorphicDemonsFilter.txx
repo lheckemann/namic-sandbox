@@ -54,7 +54,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
   this->m_SphereCenter.Fill( 0.0 );
   this->m_SphereRadius = 1.0;
-  this->m_Gamma = 1.0;
+  this->m_Epsilon = 1.0;
 
   this->m_SigmaX = 1.0;
 
@@ -395,7 +395,7 @@ ComputeVelocityField()
   VnlMatrix33Type mn2;
   VnlMatrix32Type Qn;
   VnlMatrix23Type QnT;
-  VnlMatrix22Type GammaI22;
+  VnlMatrix22Type EpsilonI22;
   VnlMatrix33Type Gn2Bn2;
   VnlMatrix33Type Gn2Bn2m2;
   VnlMatrix22Type QnTGn2Bn2m2Qn;
@@ -415,8 +415,8 @@ ComputeVelocityField()
 
   JacobianType destinationJacobian;
 
-  GammaI22.set_identity();
-  GammaI22 *= this->m_Gamma;
+  EpsilonI22.set_identity();
+  EpsilonI22 *= this->m_Epsilon;
 
   const double sigmaX2 = this->m_SigmaX * this->m_SigmaX;
 
@@ -483,7 +483,7 @@ ComputeVelocityField()
 
     QnTGn2Bn2m2Qn = QnT * Gn2Bn2m2 * Qn;
     
-    QnTGn2Bn2m2QnGI22 = QnTGn2Bn2m2Qn + GammaI22;
+    QnTGn2Bn2m2QnGI22 = QnTGn2Bn2m2Qn + EpsilonI22;
 
     QnTGn2Bn2m2QnGI22I = vnl_matrix_inverse< double >( QnTGn2Bn2m2QnGI22 );
 

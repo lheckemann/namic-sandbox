@@ -33,7 +33,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % submission process. Please replace the number "1338" with
 % the actual handle number that you get assigned.
 %
-\newcommand{\IJhandlerIDnumber}{1338}
+\newcommand{\IJhandlerIDnumber}{3117}
 
 \lstset{frame = tb,
        framerule = 0.25pt,
@@ -59,7 +59,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \release{1.00}
 
-\author{Luis Ibanez$^{1}$, Michel Audette$^{1}$, Thomas Yeo$^{1}$, Polina Goland$^{2}$}
+\author{Luis Ibanez$^{1}$, Michel Audette$^{1}$, B. T. Thomas Yeo$^{1}$, Polina Goland$^{2}$}
 \authoraddress{$^{1}$Kitware Inc., Clifton Park, NY\\
                $^{2}$CSAIL MIT, Boston, MA}
 
@@ -276,14 +276,14 @@ parameters that control the behavior of the deformation field. The main
 parameters are
 
 \begin{itemize}
-\item Gamma
+\item Epsilon
 \item SigmaX
 \item Number of Iterations
 \item Lambda
 \item Number of Smoothing Iterations
 \end{itemize}
 
-The parameter Gamma is the coefficient that multiplies the $2x2$ identity
+The parameter Epsilon is the coefficient that multiplies the $2x2$ identity
 matrix in the Levenberg Marquardt modification of the Newton method. This
 parameter adds stability to the solver. The larger this value is, the smaller
 the deformations will be.
@@ -315,7 +315,7 @@ more iterations are applied, the stronger the smoothing will be.
 These parameters described above are set with the methods
 
 \begin{itemize}
-\item \code{SetGamma()}
+\item \code{SetEpsilon()}
 \item \code{SetSigmaX()}
 \item \code{SetMaximumNumberOfIterations()}
 \item \code{SetLambda()}

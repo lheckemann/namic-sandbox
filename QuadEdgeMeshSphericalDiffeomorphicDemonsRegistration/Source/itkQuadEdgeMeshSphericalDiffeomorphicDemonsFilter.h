@@ -140,8 +140,8 @@ public:
 
   /** Set/Get the value of the regularization constant used in the computation
    * of the deformation field update. */
-  itkSetMacro( Gamma, double );
-  itkGetConstMacro( Gamma, double );
+  itkSetMacro( Epsilon, double );
+  itkGetConstMacro( Epsilon, double );
 
   /** Set/Get the value of the weight used in the contribution of the Jacobian
    * to the Levenberg Marquardt term during the computation of the velocity
@@ -317,7 +317,7 @@ private:
   double          m_SphereRadius;
 
   /** Regularization constant used during the update of the deformation field. */
-  double          m_Gamma;
+  double          m_Epsilon; // 1/sigmaX^2 == epsilon === > control step length of optimization.
 
   /** This term controls the contribution of the Jacobian in the Levenberg
    * Marquardt term that computes the velocity field. Large values of SigmaX
