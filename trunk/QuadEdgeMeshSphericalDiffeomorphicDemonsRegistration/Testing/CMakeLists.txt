@@ -227,8 +227,8 @@ ADD_TEST(DemonsFilterTest4
   1.0    # Gamma
   1.0    # SigmaX
   1.0    # Lambda
-  1      # Smoothing Iterations
-  3000   # maximum number of iterations
+  10     # Smoothing Iterations
+  15     # maximum number of iterations
   )
 
 ADD_TEST(DemonsFilterTest5
