@@ -274,14 +274,14 @@ int vtkMRMLProstateNavManagerNode::SwitchStep(int newStep)
   //:TODO: robot notification shall be performed in the robot node class
   // as a response to a step change (the robot node class shall be subscribed to the modified event of the manager node)
   // START_UP, CALIBRATION, TARGETING, MANUAL, PLANNING
-  /*
-  if (this->RobotCommand && this->StepList[newStep].wpcommand.length() > 0)
-  {
-    const char* command = this->StepList[newStep].wpcommand.c_str();
-    this->RobotCommand->PushOutgoingCommand(command);
-    this->RobotCommand->InvokeEvent(vtkCommand::ModifiedEvent);
-  }
-  */
+
+  // Tentatively, this function calls vtkMRMLBrpRobotCommandNode::SwitchStep().
+  // (we cannot test with the robot without sending workphase commands...)
+  if (this->RobotCommand)
+    {
+    this->RobotCommand->SwitchStep(this->StepList->GetValue(newStep).c_str());
+    }
+
   return 1;
 }
 
