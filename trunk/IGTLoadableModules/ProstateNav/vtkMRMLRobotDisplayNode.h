@@ -14,7 +14,6 @@
 #ifndef __vtkMRMLRobotDisplayNodee_h
 #define __vtkMRMLRobotDisplayNodee_h
 
-#include "vtkOpenIGTLinkIFWin32Header.h"
 #include "vtkMRML.h"
 #include "vtkMRMLNode.h"
 #include "vtkMRMLStorageNode.h"
