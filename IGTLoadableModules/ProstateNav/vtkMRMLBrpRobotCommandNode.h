@@ -68,7 +68,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLBrpRobotCommandNode : public vtkMRMLNode
   const char* PopOutgoingCommand();
   void PushIncomingCommand(const char* name);
   const char* PopIncomingCommand();
-  
+
+  int SwitchStep(const char* step);
+
  protected:
   //BTX
   std::string ZFrameTransformNodeID;
