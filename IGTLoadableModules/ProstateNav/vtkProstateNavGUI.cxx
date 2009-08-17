@@ -499,9 +499,9 @@ void vtkProstateNavGUI::Init()
   // Register all new MRML node classes
   {
     // SmartPointer is used to create an instance of the class, and desstroy immediately after registration is complete
-    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer<vtkMRMLBrpRobotCommandNode>::New() );
-    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer<vtkMRMLProstateNavManagerNode>::New() );
-    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer<vtkMRMLRobotDisplayNode>::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLBrpRobotCommandNode >::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLProstateNavManagerNode >::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLRobotDisplayNode >::New() );
     //:TODO: make sure that all MRML classes are registered (needed for creating/updating the node from XML)
   }
 
@@ -813,6 +813,8 @@ void vtkProstateNavGUI::BuildGUIForWizardFrame()
         {
           newStep->SetGUI(this);
           newStep->SetLogic(this->Logic);
+          newStep->SetAndObserveMRMLScene(this->GetMRMLScene());
+          newStep->SetProstateNavManager(this->ProstateNavManager);
           wizard_workflow->AddNextStep(newStep);          
 
           this->WorkPhaseButtonSet->AddWidget(i);

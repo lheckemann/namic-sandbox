@@ -370,12 +370,18 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotConnector(vtkMRMLIGTLConne
       ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
     }
 
+  if ( this->RobotConnector && this->RobotCommand )
+    {
+    this->RobotConnector->RegisterOutgoingMRMLNode( this->RobotCommand );
+    this->RobotConnector->RegisterIncomingMRMLNode( this->RobotCommand );    
+    }
+
+
   if ( this->RobotConnector != ptr )
     {
     this->Modified();
     }
 
-  
 }
 
 
@@ -423,6 +429,7 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotCommand(vtkMRMLBrpRobotCom
       ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
     }
 
+  
   if ( this->RobotCommand != ptr )
     {
     this->Modified();
