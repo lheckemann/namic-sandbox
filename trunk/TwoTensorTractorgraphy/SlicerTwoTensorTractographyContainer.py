@@ -306,10 +306,10 @@ class SlicerTwoTensorTractographyContainer(object):
                 for grad in range(numberOfGradients):
                         teem.nrrdKeyValueAdd(dwiNrrd, "DWMRI_gradient_" + "%.4d" % (grad), str(self.inVolumeNode.GetDiffusionGradients().ToArray()[grad][0]) + " " + str(self.inVolumeNode.GetDiffusionGradients().ToArray()[grad][1]) + " " + str(self.inVolumeNode.GetDiffusionGradients().ToArray()[grad][2]) )
 
-                # n_KeyValueSize = self.inVolumeNode.GetNumberOfGradients() 
+#               n_KeyValueSize = self.inVolumeNode.GetNumberOfGradients() 
 
 
-        #       frees the nrrd; does nothing with the array data inside
+                # frees the nrrd; does nothing with the array data inside
 #               E = teem.nrrdNix(n)
 #               if (E):
 #                       err = teem.biffGetDone("nrrd")
@@ -334,8 +334,8 @@ class SlicerTwoTensorTractographyContainer(object):
 #               worldPointFiducial = numpy.zeros((numberFiducials,3), 'float')
                 for i in range(fiducialList.GetNumberOfFiducials()):
                         fiducialPoints[i]=fiducialList.GetNthFiducialXYZ(i)
-        #               print "fiducialPoints", fiducialPoints
-        #               print "len(fiducialPoints): ", len(fiducialPoints)
+#                       print "fiducialPoints", fiducialPoints
+#                       print "len(fiducialPoints): ", len(fiducialPoints)
 
                 pos = fiducialList.GetNumberOfFiducials()
                 for i in range(0,fiducialList.GetNumberOfFiducials()):
@@ -369,15 +369,15 @@ class SlicerTwoTensorTractographyContainer(object):
                 seeding_array = inROINode.GetImageData().ToArray()
 
                 seedPoints = numpy.where( seeding_array == roiLabel )
-        #       seedPoints = numpy.where( seeding_array >= 0 )
-        #       order of seed points indices needs to be reversed
+#               seedPoints = numpy.where( seeding_array >= 0 )
+#               order of seed points indices needs to be reversed
                 seedPoints=numpy.array([seedPoints[2],seedPoints[1],seedPoints[0]]) 
                 seedPoints=numpy.transpose(seedPoints)
-        #       print seedPoints
-        #       how many seedpoints ver voxel (seed spacing)    
-        #       replicate the seeding points by numberOfSeedpointPerVoxel times
+#               print seedPoints
+#               how many seedpoints ver voxel (seed spacing)    
+#               replicate the seeding points by numberOfSeedpointPerVoxel times
                 seedPoints = numpy.tile(seedPoints, (numberOfSeedpointsPerVoxel,1))
-        #       add random values to the replicated seeding points
+#               add random values to the replicated seeding points
                 seedPoints = seedPoints + numpy.random.rand(seedPoints.shape[0],seedPoints.shape[1]) - 0.5
 
                 for i in range(seedPoints.shape[0]):
@@ -387,10 +387,10 @@ class SlicerTwoTensorTractographyContainer(object):
                         #worldPoint = self._parentClass.GetHelper().ConvertCoordinates2RAS(coordinates)
                         worldPoint = self.ConvertCoordinates2RAS(coordinates)
                         # check if ijk point is within tensor volume
-        #               if (PointWithinTensorData(seedPoints[i],point2,self.inVolumeNode)):
-        #                       seedPts.InsertTuple3(numTup,worldPoint2[0],worldPoint2[1],worldPoint2[2])
-        #                       print "point: ", seedPoints[i], "worldPoint2: ", worldPoint2
-        #                       numTup = numTup+1
+#                       if (PointWithinTensorData(seedPoints[i],point2,self.inVolumeNode)):
+#                               seedPts.InsertTuple3(numTup,worldPoint2[0],worldPoint2[1],worldPoint2[2])
+#                               print "point: ", seedPoints[i], "worldPoint2: ", worldPoint2
+#                               numTup = numTup+1
                         seedPoints[i][0] = worldPoint[0]
                         seedPoints[i][1] = worldPoint[1]
                         seedPoints[i][2] = worldPoint[2]
@@ -410,7 +410,7 @@ class SlicerTwoTensorTractographyContainer(object):
                 nCpu =  processing.cpuCount()
                 minSeedPoints = cpuIdx*(numSeedPoints/nCpu) + ((cpuIdx<numSeedPoints % nCpu) and cpuIdx>0) + (numSeedPoints%nCpu)*(cpuIdx>=(numSeedPoints%nCpu))
                 maxSeedPoints = (cpuIdx+1)*(numSeedPoints/nCpu) + (((cpuIdx+1)<=(numSeedPoints % nCpu)) and cpuIdx>0) + ((numSeedPoints%nCpu)-1)*(cpuIdx>=(numSeedPoints%nCpu))
-                #       numSeedPointsCpu = (((cpuIdx+1)*numSeedPoints/nCpu) - (cpuIdx*numSeedPoints/nCpu)) + (cpuIdx<numSeedPoints % nCpu)
+#               numSeedPointsCpu = (((cpuIdx+1)*numSeedPoints/nCpu) - (cpuIdx*numSeedPoints/nCpu)) + (cpuIdx<numSeedPoints % nCpu)
                 numSeedPointsCpu = maxSeedPoints-minSeedPoints+1
                 print "numSeedPointsCpu: ", numSeedPointsCpu
 
@@ -446,7 +446,7 @@ class SlicerTwoTensorTractographyContainer(object):
                 nCpu =  processing.cpuCount()
 #               minSeedPoints = cpuIdx*(numSeedPoints/nCpu) + ((cpuIdx<=numSeedPoints % nCpu) and cpuIdx>0)
 #               maxSeedPoints = (cpuIdx+1)*(numSeedPoints/nCpu) + ((cpuIdx+1)<=(numSeedPoints%nCpu))
-        #       numSeedPointsCpu = (((cpuIdx+1)*numSeedPoints/nCpu) - (cpuIdx*numSeedPoints/nCpu)) + (cpuIdx<numSeedPoints % nCpu)
+#               numSeedPointsCpu = (((cpuIdx+1)*numSeedPoints/nCpu) - (cpuIdx*numSeedPoints/nCpu)) + (cpuIdx<numSeedPoints % nCpu)
 #               numSeedPointsCpu = maxSeedPoints-minSeedPoints
                 szROI = (ctypes.c_size_t * 2)()
                 szROI[:] = [3,numSeedPoints]
@@ -466,29 +466,29 @@ class SlicerTwoTensorTractographyContainer(object):
                 print "seedPts2.ToArray(): ", seedPts2.ToArray()
 
 
-        #               numpyarray = numpy.array( dataP, dtype = numpy.float, copy=True)
-        #                       print "numpyarray: ", numpyarray
+#               numpyarray = numpy.array( dataP, dtype = numpy.float, copy=True)
+#               print "numpyarray: ", numpyarray
 
-        #                       array = numpy.ascontiguousarray(dataP)
+#               array = numpy.ascontiguousarray(dataP)
 
-        #                       ptr = array.ctypes.data
-        #                       dt = array.dtype
+#               ptr = array.ctypes.data
+#               dt = array.dtype
 
-        #                       type_map = {numpy.dtype('byte'): teem.nrrdTypeChar,
-        #                                   numpy.dtype('ubyte'): teem.nrrdTypeUChar,
-        #                                   numpy.dtype('short'): teem.nrrdTypeShort,
-        #                                   numpy.dtype('ushort'): teem.nrrdTypeUShort,
-        #                                   numpy.dtype('int'): teem.nrrdTypeInt,
-        #                                   numpy.dtype('uint'): teem.nrrdTypeUInt,
-        #                                   numpy.dtype('int64'): teem.nrrdTypeLLong,
-        #                                   numpy.dtype('uint64'): teem.nrrdTypeULLong,
-        #                                   numpy.dtype('float32'): teem.nrrdTypeFloat,
-        #                                   numpy.dtype('float64'): teem.nrrdTypeDouble}
-        #                       if dt not in type_map:
-        #                               raise Exception("I do not understand dtype %s" % dt)
+#               type_map = {numpy.dtype('byte'): teem.nrrdTypeChar,
+#                           numpy.dtype('ubyte'): teem.nrrdTypeUChar,
+#                           numpy.dtype('short'): teem.nrrdTypeShort,
+#                           numpy.dtype('ushort'): teem.nrrdTypeUShort,
+#                           numpy.dtype('int'): teem.nrrdTypeInt,
+#                           numpy.dtype('uint'): teem.nrrdTypeUInt,
+#                           numpy.dtype('int64'): teem.nrrdTypeLLong,
+#                           numpy.dtype('uint64'): teem.nrrdTypeULLong,
+#                           numpy.dtype('float32'): teem.nrrdTypeFloat,
+#                           numpy.dtype('float64'): teem.nrrdTypeDouble}
+#               if dt not in type_map:
+#                       raise Exception("I do not understand dtype %s" % dt)
 
-        #                       dims = list(reversed(array.shape))
-        #               roi_p = ctypes.cast(numpyarray.ctypes.data_as(ctypes.c_void_p), ctypes.POINTER(ctypes.c_float))
+#               dims = list(reversed(array.shape))
+#               roi_p = ctypes.cast(numpyarray.ctypes.data_as(ctypes.c_void_p), ctypes.POINTER(ctypes.c_float))
 
                 # get pointer to seed points array
                 roi_p = ctypes.cast(seedPts2.ToArray().__array_interface__['data'][0], ctypes.POINTER(ctypes.c_float))
@@ -503,26 +503,26 @@ class SlicerTwoTensorTractographyContainer(object):
                         err = teem.biffGetDone("nrrd")
                         print "Error in nrrdWrap Seedpoint array: ", cpuIdx
                         print err
-        #                       teem.nrrdWrap_nva(roiNrrd[i], array.ctypes.data_as(ctypes.c_void_p), teem.nrrdTypeFloat, 2, szROI)
-        #                       teem.nrrdWrap_nva(roiNrrd[i], array.ctypes.data_as(ctypes.c_void_p),type_map[dt], len(array.shape), *dims)
+#                       teem.nrrdWrap_nva(roiNrrd[i], array.ctypes.data_as(ctypes.c_void_p), teem.nrrdTypeFloat, 2, szROI)
+#                       teem.nrrdWrap_nva(roiNrrd[i], array.ctypes.data_as(ctypes.c_void_p),type_map[dt], len(array.shape), *dims)
         
                 print "i before ctypes.cast(roiNrdd...): ", cpuIdx
         #       cast the pointer to the ROI seed point data
                 data_out_roi = ctypes.cast(roiNrrd.contents.data, ctypes.POINTER(self.nrrdToCType(roiNrrd.contents.type))) 
-        #                       print "data_out_roi: " 
-        #                       for i in range(0,nCpu):
-        #                               print data_out_roi[i]
+#               print "data_out_roi: " 
+#               for i in range(0,nCpu):
+#                       print data_out_roi[i]
                 E = teem.nrrdSave("roi"+ "%i" %cpuIdx+".nhdr", roiNrrd, None)
                 if (E):
                         err = teem.biffGetDone("nrrd")
                         print err
-        #                       E = teem.nrrdSave('seedPoints-1.txt', roiNrrd, None)
-        #                       if (E):
-        #                               err = teem.biffGetDone("nrrd")
-        #                       print err
+#                       E = teem.nrrdSave('seedPoints-1.txt', roiNrrd, None)
+#                       if (E):
+#                               err = teem.biffGetDone("nrrd")
+#                       print err
 
-        #               print "roiNrrd[i]: ", roiNrrd[i]
-        #               print "fiberPld[i]: ", fiberPld[i]
+#               print "roiNrrd[i]: ", roiNrrd[i]
+#               print "fiberPld[i]: ", fiberPld[i]
 
                 ni = teem.nrrdIterNew()
                 teem.nrrdIterSetNrrd(ni, roiNrrd)
@@ -534,7 +534,7 @@ class SlicerTwoTensorTractographyContainer(object):
 
 
 
-        #       create the fiber context around the DWI volume 
+                # create the fiber context around the DWI volume 
                 tfx = teem.tenFiberContextDwiNew(dwiNrrd, 50, 1, 1,
                                         teem.tenEstimate1MethodLLS,
                                         teem.tenEstimate2MethodPeled)
@@ -542,49 +542,49 @@ class SlicerTwoTensorTractographyContainer(object):
                         err = teem.biffGetDone("ten")
                         print "tenFiberContextDwiNew: ", err
 
-        #       set the type of tractography; how tractography is done in DWI volumes
-        #       two-tensor estimation
+                # set the type of tractography; how tractography is done in DWI volumes
+                # two-tensor estimation
                 if (tensorType=="Two-Tensor"):
                         E = teem.tenFiberTypeSet(tfx, teem.tenDwiFiberType2Evec0)
                         if (E):
                                 err = teem.biffGetDone("ten")
                                 print err
-        #       one-tensor estimation
+                # one-tensor estimation
                 elif (tensorType=="One-Tensor"):
                         E = teem.tenFiberTypeSet(tfx, teem.tenDwiFiberType1Evec0)
                         if (E):
                                 err = teem.biffGetDone("ten")
                                 print err
 
-        #       set up stopping criteria 
-        #       (Bass+Pier's fractional anisotropy)/sqrt(2)
+                # set up stopping criteria 
+                # (Bass+Pier's fractional anisotropy)/sqrt(2)
                 if anisotropy == "FA": 
                         anisoSet = teem.tenAniso_FA
-        #       Westin's linear (first version)
+                #  Westin's linear (first version)
                 elif anisotropy == "Cl1":
                         anisoSet = teem.tenAniso_Cl1
-        #       Westin's planar (first version)
+                # Westin's planar (first version)
                 elif anisotropy == "Cp1":
                         anisoSet = teem.tenAniso_Cp1
-        #       Westin's linear + planar (first version)
+                # Westin's linear + planar (first version)
                 elif anisotropy == "Ca1":
                         anisoSet = teem.tenAniso_Ca1
-        #       minimum of Cl and Cp (first version)
+                # minimum of Cl and Cp (first version)
                 elif anisotropy == "Clpmin1":
                         anisoSet = teem.tenAniso_Clpmin1
-        #       Westin's linear (second version)
+                # Westin's linear (second version)
                 elif anisotropy == "Cl2":
                         anisoSet = teem.tenAniso_Cl2
-        #       Westin's planar (second version)
+                # Westin's planar (second version)
                 elif anisotropy == "Cp2":
                         anisoSet = teem.tenAniso_Cp2
-        #       Westin's linear + planar (second version)
+                # Westin's linear + planar (second version)
                 elif anisotropy == "Ca2":
                         anisoSet = teem.tenAniso_Ca2
-        #       minimum of Cl and Cp (second version)
+                # minimum of Cl and Cp (second version)
                 elif anisotropy == "Clpmin2":
                         anisoSet = teem.tenAniso_Clpmin2
-        #       unknwon stopping mode
+                # unknwon stopping mode
                 else:
                         anisoSet = teem.tenAnisoUnknown
 
@@ -608,11 +608,11 @@ class SlicerTwoTensorTractographyContainer(object):
                         err = teem.biffGetDone("ten")
                         print err
 
-        #       teem.tenFiberStopDoubleSet(tfx, tenFiberStopConfidence, confidence)
-        #       took too many steps along fiber
-        #       teem.tenFiberStopUIntSet(tfx, teem.tenFiberStopNumSteps, steps)
-        #       fibers with total (both halves) small # steps are discarded (more general-purpose than tenFiberStopStub)
-        #       teem.tenFiberStopUIntSet(tfx, tenFiberStopMinNumSteps, minimumSteps)
+#               teem.tenFiberStopDoubleSet(tfx, tenFiberStopConfidence, confidence)
+#               took too many steps along fiber
+#               teem.tenFiberStopUIntSet(tfx, teem.tenFiberStopNumSteps, steps)
+#               fibers with total (both halves) small # steps are discarded (more general-purpose than tenFiberStopStub)
+#               teem.tenFiberStopUIntSet(tfx, tenFiberStopMinNumSteps, minimumSteps)
  
                 fraction =0.1
                 E = teem.tenFiberStopDoubleSet(tfx, teem.tenFiberStopFraction, fraction)
@@ -620,36 +620,36 @@ class SlicerTwoTensorTractographyContainer(object):
                         err = teem.biffGetDone("ten")
                         print err
 
-        #       kernel for reconstructing tensor field
-        #       see documentation: http://teem.sourceforge.net/nrrd/kernels.html
+#               kernel for reconstructing tensor field
+#               see documentation: http://teem.sourceforge.net/nrrd/kernels.html
                 ksp = teem.nrrdKernelSpecNew()
 
-        #       mapping from a string to a NrrdKernel and a parameter vector
-        #       nrrdKernelBCCubic; The two-parameter family of first-order continuous, 4-sample support, piece-wise cubic splines
-        #       teem.nrrdKernelSpecParse(ksp, "cubic:2,1,0")
-        #       teem.nrrdKernelSpecParse(ksp, "cubic:0.333,0.333")
+#               mapping from a string to a NrrdKernel and a parameter vector
+#               nrrdKernelBCCubic; The two-parameter family of first-order continuous, 4-sample support, piece-wise cubic splines
+#               teem.nrrdKernelSpecParse(ksp, "cubic:2,1,0")
+#               teem.nrrdKernelSpecParse(ksp, "cubic:0.333,0.333")
                 teem.nrrdKernelSpecParse(ksp, "cubic:2,1,0")
                 E = teem.tenFiberKernelSet(tfx, ksp.contents.kernel, ksp.contents.parm)
                 if (E):
                         err = teem.biffGetDone("ten")
                         print err
 
-        #       set path integration & step size 
-        #       the different integration styles supported
-        #       tenFiberIntgUnknown,   /* 0: nobody knows */
-        #       tenFiberIntgEuler,     /* 1: dumb but fast */
-        #       tenFiberIntgMidpoint,  /* 2: 2nd order Runge-Kutta */
-        #       tenFiberIntgRK4,       /* 3: 4rth order Runge-Kutta */
-        #       tenFiberIntgLast
+#              set path integration & step size 
+#              the different integration styles supported
+#              tenFiberIntgUnknown,   /* 0: nobody knows */
+#              tenFiberIntgEuler,     /* 1: dumb but fast */
+#              tenFiberIntgMidpoint,  /* 2: 2nd order Runge-Kutta */
+#              tenFiberIntgRK4,       /* 3: 4rth order Runge-Kutta */
+#              tenFiberIntgLast
                 E = teem.tenFiberIntgSet(tfx, teem.tenFiberIntgRK4) 
                 if (E):
                         err = teem.biffGetDone("ten")
                         print err
-        #       teem.tenFiberParmSet(tfx, teem.tenFiberParmStepSize, 0.4)
-        #       integration method for fiber tracking
-        #       teem.tenFiberIntgSet(tfx, teem.tenFiberIntgEuler)
-        #       base step size
-        #       integrationStepLength = 0.5
+#              teem.tenFiberParmSet(tfx, teem.tenFiberParmStepSize, 0.4)
+#              integration method for fiber tracking
+#              teem.tenFiberIntgSet(tfx, teem.tenFiberIntgEuler)
+#              base step size
+#              integrationStepLength = 0.5
                 E = teem.tenFiberParmSet(tfx, teem.tenFiberParmStepSize, integrationStepLength)
                 if (E):
                         err = teem.biffGetDone("ten")
@@ -662,40 +662,40 @@ class SlicerTwoTensorTractographyContainer(object):
                         err = teem.biffGetDone("ten")
                         print err
 
-        #       print tfx.contents.stop 
-        #       print tfx.contents.minRadius    
-        #       print tfx.contents.minFraction
-        #       print tfx.contents.anisoStopType
-        #       print tfx.contents.useIndexSpace
-        #       print tfx.contents.verbose
-        #       print tfx.contents.confThresh
-        #       print tfx.contents.ten2AnisoStop
-        #       print tfx.contents.maxNumSteps
-        #       print tfx.contents.minNumSteps
-        #       print tfx.contents.stepSize
-        #       print tfx.contents.minWholeLen
+#               print tfx.contents.stop 
+#               print tfx.contents.minRadius    
+#               print tfx.contents.minFraction
+#               print tfx.contents.anisoStopType
+#               print tfx.contents.useIndexSpace
+#               print tfx.contents.verbose
+#               print tfx.contents.confThresh
+#               print tfx.contents.ten2AnisoStop
+#               print tfx.contents.maxNumSteps
+#               print tfx.contents.minNumSteps
+#               print tfx.contents.stepSize
+#               print tfx.contents.minWholeLen
 
                 E = teem.tenFiberVerboseSet(tfx, 2)     
                 if (E):
                         err = teem.biffGetDone("ten")
                         print err
 
-        #       checks if all information in the tfx tenFiberContext are set; if yes tenFiberUpdate(tfx) returns 0
+                # checks if all information in the tfx tenFiberContext are set; if yes tenFiberUpdate(tfx) returns 0
                 E = teem.tenFiberUpdate(tfx)
                 if (E):
                         err = teem.biffGetDone("ten")
                         print err
 
-        #       tfbs = teem.tenFiberSingleNew()
-        #       experimental struct for holding results from a multi tracing
-        #       tenFiberMulti is a container for multiple fibers; tenFiberMulti is basically just a container for an array of tenFiberSingle's
+#               tfbs = teem.tenFiberSingleNew()
+#               experimental struct for holding results from a multi tracing
+#               tenFiberMulti is a container for multiple fibers; tenFiberMulti is basically just a container for an array of tenFiberSingle's
                 tfml = teem.tenFiberMultiNew() 
 
                 fiberPld = teem.limnPolyDataNew()
 
-        #       does tractography for a list of seedpoints 
+                # does tractography for a list of seedpoints 
                 t2 = time.time()
-        #       print 'Start MultiTrace : ', t2, ' s'
+#               print 'Start MultiTrace : ', t2, ' s'
 
                 ni = teem.nrrdIterNew()
                 teem.nrrdIterSetNrrd(ni, roiNrrd)
@@ -704,35 +704,35 @@ class SlicerTwoTensorTractographyContainer(object):
                 print ", MultiTrace, cpuIdx: ", teem.nrrdIterValue(ni)
                 print ", MultiTrace, cpuIdx: ", teem.nrrdIterValue(ni)
 
-        #       does tractography and puts tractography results into tfml
+                # does tractography and puts tractography results into tfml
                 E = teem.tenFiberMultiTrace(tfx, tfml ,roiNrrd)
                 if (E):
                         err = teem.biffGetDone("ten")
                         print err
-        #       print 'End MultiTrace : ', time.time(), ' s'
+#               print 'End MultiTrace : ', time.time(), ' s'
                 print 'MultiTrace computation time : ', time.time()-t2, ' s'
 
-        #       converts tenFiberMulti to polydata
-        #       puts all the fibers into a single polydata struct, defined in teem/src/limn/limn.h, called limnPolyData
-        #       The "xyzw" array is all the vertices of *all* fibers, with 4 values per point (x,y,z,w  where w can be ignored); "xyzwNum" is the total 
-        #       number of vertices;  "primNum" is the number of fibers; you can index "type[i]" and "icnt[i]" with i between 0 and primNum-1;  type[i] will be
-        #       limnPrimitiveLineStrip, "icnt[i]" will be the number of vertices in line i;  "indx" is the list of *all* vertex indices (indexing into "xyzw") - 
-        #       these indices identify which vertices belong to each of the lines.
+                # converts tenFiberMulti to polydata
+                # puts all the fibers into a single polydata struct, defined in teem/src/limn/limn.h, called limnPolyData
+                # The "xyzw" array is all the vertices of *all* fibers, with 4 values per point (x,y,z,w  where w can be ignored); "xyzwNum" is the total 
+                # number of vertices;  "primNum" is the number of fibers; you can index "type[i]" and "icnt[i]" with i between 0 and primNum-1;  type[i] will be
+                # limnPrimitiveLineStrip, "icnt[i]" will be the number of vertices in line i;  "indx" is the list of *all* vertex indices (indexing into "xyzw") - 
+                # these indices identify which vertices belong to each of the lines.
                 E = teem.tenFiberMultiPolyData(tfx, fiberPld, tfml)
                 if (E):
                         err = teem.biffGetDone("ten")
                         print err
 
-        #       THIS SAVES limnPolyData to disk, 
-        #       save polydata output to Teem's LMPD format 
-        #       E = teem.limnPolyDataSave("fibers-dwi.lmpd", fiberPld)
-        #       if (E):
-        #               err = teem.biffGetDone("limn")
-        #               print err 
-        #       save individual fibers to txt files 
-        #       for vi in range(tfml.contents.fiberNum): 
-        #               teem.nrrdSave('vert-%d.txt' % (vi), 
-        #               tfml.contents.fiber[vi].nvert, None)
+#               THIS SAVES limnPolyData to disk, 
+#               save polydata output to Teem's LMPD format 
+#               E = teem.limnPolyDataSave("fibers-dwi.lmpd", fiberPld)
+#               if (E):
+#                       err = teem.biffGetDone("limn")
+#                       print err 
+#               save individual fibers to txt files 
+#               for vi in range(tfml.contents.fiberNum): 
+#                       teem.nrrdSave('vert-%d.txt' % (vi), 
+#                       tfml.contents.fiber[vi].nvert, None)
 
 
 
@@ -740,12 +740,12 @@ class SlicerTwoTensorTractographyContainer(object):
                 fiberPldCon = fiberPld.contents
 
                 print "Number of fibers: ", fiberPldCon.primNum
-        #       numFibs = fiberPldCon.primNum
+#               numFibs = fiberPldCon.primNum
                 print "Number of vertices for all fibers: "
                 print [fiberPldCon.icnt[i] for i in range(fiberPldCon.primNum)] 
 
-        #       print "length of fiber array (tfml.contents.fiber): ", tfml.contents.fiberNum
-        #       print tfml.contents.fiber.contents
+#               print "length of fiber array (tfml.contents.fiber): ", tfml.contents.fiberNum
+#               print tfml.contents.fiber.contents
         
                 numberOfPoints = sum([fiberPldCon.icnt[i] for i in range(fiberPldCon.primNum)])
                 numberOfCells = numberOfPoints + fiberPldCon.primNum
@@ -754,15 +754,15 @@ class SlicerTwoTensorTractographyContainer(object):
                 # create array for fiber cells
                 cells = numpy.zeros((numberOfCells,1), 'int')
 
-        #       numVert1 = (ctypes.c_uint * fiberPldCon.primNum)()
+#               numVert1 = (ctypes.c_uint * fiberPldCon.primNum)()
                 numVert1 = [fiberPldCon.icnt[i] for i in range(fiberPldCon.primNum)] 
-        #       "primNum" is the number of fibers
+#               "primNum" is the number of fibers
                 indexP=0
                 indexC=0
                 for numFib in range (fiberPldCon.primNum):      
                         cells[indexC,] = fiberPldCon.icnt[numFib]
                         indexC = indexC + 1
-        #               icnt[i] will be the number of vertices in line i
+#                       icnt[i] will be the number of vertices in line i
                         for i in range(fiberPldCon.icnt[numFib]):
                                 pts[indexP] = [float(fiberPldCon.xyzw[0+4*indexP]),float(fiberPldCon.xyzw[1+4*indexP]),float(fiberPldCon.xyzw[2+4*(indexP)])]
                                 cells[indexC,:] = [indexP]
@@ -772,10 +772,10 @@ class SlicerTwoTensorTractographyContainer(object):
                 print "pts numpy: ", pts
                 print "cells2 numpy: ", cells
 
-        #       E = teem.nrrdNix(roiNrrd)
-        #       if (E):
-        #               err = teem.biffGetDone("nrrd")
-        #               print err
+#               E = teem.nrrdNix(roiNrrd)
+#               if (E):
+#                       err = teem.biffGetDone("nrrd")
+#                       print err
         
                 numVert = numpy.zeros((fiberPldCon.primNum,), 'int')
                 for i in range(0,fiberPldCon.primNum):
@@ -818,10 +818,10 @@ class SlicerTwoTensorTractographyContainer(object):
         def SetupGage(self,inputDWI,dwiNrrd,outputFiberBundleNode):
 
                 kind = teem.tenDwiGageKindNew()
-        #       t=ctypes.POINTER(teem.airEnum)
-        #       what=ctypes.cast("peled", ctypes.POINTER(teem.airEnum))         
-        #       kind.enm =what
-        #       kind.name="dwi"
+#               t=ctypes.POINTER(teem.airEnum)
+#               what=ctypes.cast("peled", ctypes.POINTER(teem.airEnum))         
+#               kind.enm =what
+#               kind.name="dwi"
         
                 ngradKVP = teem.nrrdNew()
                 nbmatKVP = teem.nrrdNew()
@@ -842,22 +842,22 @@ class SlicerTwoTensorTractographyContainer(object):
                 pvl = teem.gagePerVolumeNew(ctx, dwiNrrd, kind)
 
                 ksp = teem.nrrdKernelSpecNew()
-        #       teem.nrrdKernelSpecParse(ksp, "cubic:0.333,0.333")
-        #       teem.nrrdKernelSpecParse(ksp, "cubic:1,0,0.5")
+#               teem.nrrdKernelSpecParse(ksp, "cubic:0.333,0.333")
+#               teem.nrrdKernelSpecParse(ksp, "cubic:1,0,0.5")
                 teem.nrrdKernelSpecParse(ksp, "cubic:2,1,0")
                 #0,0.5")
                 teem.gageKernelSet(ctx, teem.gageKernel00, ksp.contents.kernel, ksp.contents.parm)
-        #       teem.nrrdKernelSpecParse(ksp, "cubicd:2,1,0")
+#               teem.nrrdKernelSpecParse(ksp, "cubicd:2,1,0")
                 teem.gageKernelSet(ctx, teem.gageKernel11, ksp.contents.kernel, ksp.contents.parm)
                 teem.gagePerVolumeAttach(ctx, pvl)
 
-        #       twoTensAndErr = teem.gageAnswerPointer(ctx, pvl, teem.tenDwiGage2TensorPeledAndError)
-        #       twoTensErr = teem.gageAnswerPointer(ctx, pvl, teem.tenDwiGage2TensorPeledError)
-        #       evecAns = teem.gageAnswerPointer(ctx, pvl, teem.tenGageEvec)
-        #       FAans = teem.gageAnswerPointer(ctx, pvl, teem.tenGageFA)
-        #       FADwians = teem.gageAnswerPointer(ctx, pvl, teem.tenDwiGageFA)
-        #       tenAns = teem.gageAnswerPointer(ctx, pvl, teem.tenGageTensor)
-        #       b0 = teem.gageAnswerPointer(ctx, pvl, teem.tenDwiGageB0)
+#               twoTensAndErr = teem.gageAnswerPointer(ctx, pvl, teem.tenDwiGage2TensorPeledAndError)
+#               twoTensErr = teem.gageAnswerPointer(ctx, pvl, teem.tenDwiGage2TensorPeledError)
+#               evecAns = teem.gageAnswerPointer(ctx, pvl, teem.tenGageEvec)
+#               FAans = teem.gageAnswerPointer(ctx, pvl, teem.tenGageFA)
+#               FADwians = teem.gageAnswerPointer(ctx, pvl, teem.tenDwiGageFA)
+#               tenAns = teem.gageAnswerPointer(ctx, pvl, teem.tenGageTensor)
+#               b0 = teem.gageAnswerPointer(ctx, pvl, teem.tenDwiGageB0)
 
 
                 pdf = slicer.vtkTransformPolyDataFilter()
@@ -893,13 +893,13 @@ class SlicerTwoTensorTractographyContainer(object):
 
                 teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGage2TensorPeled)
                 teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGageTensorLLS)
-        #       teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGage2TensorPeledAndError)
-        #       teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGage2TensorPeledError)
-        #       teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGageFA)
-        #       teem.gageQueryItemOn(ctx, pvl, teem.tenGageEvec)
-        #       teem.gageQueryItemOn(ctx, pvl, teem.tenGageFA)
-        #       teem.gageQueryItemOn(ctx, pvl, teem.tenGageTensor)
-        #       teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGageB0)
+#               teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGage2TensorPeledAndError)
+#               teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGage2TensorPeledError)
+#               teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGageFA)
+#               teem.gageQueryItemOn(ctx, pvl, teem.tenGageEvec)
+#               teem.gageQueryItemOn(ctx, pvl, teem.tenGageFA)
+#               teem.gageQueryItemOn(ctx, pvl, teem.tenGageTensor)
+#               teem.gageQueryItemOn(ctx, pvl, teem.tenDwiGageB0)
                 # refresh all internal state in the gageContext prior to calling gageProbe()
                 E = teem.gageUpdate(ctx)
                 if (E):
@@ -912,7 +912,7 @@ class SlicerTwoTensorTractographyContainer(object):
                 nCpu =  processing.cpuCount()
                 # total number of fibers
                 numFibers = outputPolyData.GetLines().GetNumberOfCells()
-        #       numberOfPointsProcess  = (cpuIdx+1)*numFibers/nCpu + ((cpuIdx+1)<=numFibers%nCpu)
+#               numberOfPointsProcess  = (cpuIdx+1)*numFibers/nCpu + ((cpuIdx+1)<=numFibers%nCpu)
                 minFib = cpuIdx*numFibers/nCpu + ((cpuIdx<=numFibers % nCpu) and cpuIdx>0)
                 maxFib = (cpuIdx+1)*numFibers/nCpu + ((cpuIdx+1)<=numFibers%nCpu)
                 numberOfPointsCpu = sum([numVert[i] for i in range(minFib,maxFib)])
@@ -930,7 +930,7 @@ class SlicerTwoTensorTractographyContainer(object):
                 indexPt = 0
                 indexCell = numVertDone+minFib
                 print "indexCell: ", indexCell, " "
-        #       indexCell = numberOfCellsCpu
+#               indexCell = numberOfCellsCpu
                 count = 0
 
                 if (tensorType=="Two-Tensor"):
@@ -941,7 +941,7 @@ class SlicerTwoTensorTractographyContainer(object):
                                 print "pdf.GetOutput().GetLines().GetData().ToArray().squeeze(): ", pdf.GetOutput().GetLines().GetData().ToArray().squeeze()
                                 print "indexCellIf: ", indexCell
                                 numPtsinCell = pdf.GetOutput().GetLines().GetData().ToArray().squeeze()[indexCell]
-                        #       print "numPtsinCell: ", numPtsinCell
+#                               print "numPtsinCell: ", numPtsinCell
                                 # we need to increase indexCell by one, since indexCell contains the number of vertices for the respective fiber
                                 # recall the form of the cell array: (n,id1,id2,...,idn, n,id1,id2,...,idn, ...) where n is the number of points 
                                 # in the cell, and id is a zero-offset index into an associated point list (which is an array of vx-vy-vz 
@@ -952,9 +952,9 @@ class SlicerTwoTensorTractographyContainer(object):
                                 for i in range(numPtsinCell):
                                         # get fiber point index at cell index "indexCell"
                                         indexPt = cellArray[indexCell]
-                        #                print "indexPt", indexPt
-                        #               fiberPt = outputFiberBundleNode.GetPolyData().GetPoints().GetData().ToArray()[i]
-                        #               print outputFiberBundleNode.GetPolyData().GetPoints().GetData().ToArray()[i]
+#                                       print "indexPt", indexPt
+#                                       fiberPt = outputFiberBundleNode.GetPolyData().GetPoints().GetData().ToArray()[i]
+#                                       print outputFiberBundleNode.GetPolyData().GetPoints().GetData().ToArray()[i]
                                         #indexPt = pdf.GetOutput().GetLines().GetData().ToArray
                                         # fiber point in ijk space
                                         fiberPt = fiberArray[indexPt]
@@ -968,51 +968,40 @@ class SlicerTwoTensorTractographyContainer(object):
                                                 indexPt2 = cellArray[indexCell-1]
                                                 x2 = polyDataArray[indexPt2]
                                         t = (x2-x1)
-                #                       print "x2: ", x2, " x1: ", x1, " v: ", v
-                        #               print "v: ", v
                                         length = numpy.linalg.norm(t)
-                        #               print "length: ", length
+#                                       print "length: ", length
                                         t_norm = t/length
-                        #               t_norm = v
-                        #               print "t_norm: ", t_norm
+#                                       print "t_norm: ", t_norm
 
-                        #               print fiberPt[0], fiberPt[1], fiberPt[2]
-                        #               fiberPt3=[-31.62133789,-20.36137772,16.64269447]
-                        #               fiberPt4 = transPoint.MultiplyPoint(fiberPt3[0],fiberPt3[1],fiberPt3[2],1.0)
-                        #               print "fiberPt4: ", fiberPt4
-                        #               print "teem.gageProbe(ctx,-31.62133789,-20.36137772, 16.64269447): ",teem.gageProbe(ctx,fiberPt4[0],fiberPt4[1],fiberPt4[2])
-                        #               print "twoTens[0:13]: ", twoTens[0:13]
                                         # probe tensors in ijk space
                                         probeRet = teem.gageProbe(ctx, fiberPt[0],fiberPt[1],fiberPt[2])
                                         firstTens = numpy.array([ [twoTens[1],twoTens[2],twoTens[3]],[twoTens[2],twoTens[4],twoTens[5]],[twoTens[3],twoTens[5],twoTens[6] ]])
 
-                #                       
                                         (eigenvals1, eigenvecs1) = numpy.linalg.eig(firstTens)
-                        #               print "eigenvals1: ", eigenvals1
-                #                       largestEigenvalPos1 = computeLargestEigenval(eigenvals1)
-                #                       eigvec1=eigenvecs1[:,largestEigenvalPos1]
+#                                       print "eigenvals1: ", eigenvals1
+#                                       largestEigenvalPos1 = computeLargestEigenval(eigenvals1)
+#                                       eigvec1=eigenvecs1[:,largestEigenvalPos1]
                                         eigvec1=eigenvecs1[:,max(xrange(len(eigenvals1)), key=eigenvals1.__getitem__)]
                                         eigenvec1Norm = eigvec1/numpy.linalg.norm(eigvec1)
-                        #               print "largestEigenvalPos1: ", largestEigenvalPos1
+#                                       print "largestEigenvalPos1: ", largestEigenvalPos1
                                         secondTens = numpy.array([ [twoTens[8],twoTens[9],twoTens[10]],[twoTens[9],twoTens[11],twoTens[12]],[twoTens[10],twoTens[12],twoTens[13] ]])
-                #                       
                                         (eigenvals2, eigenvecs2) = numpy.linalg.eig(secondTens)
-                        #               print "eigenvals2: ",eigenvals2
-                #                       largestEigenvalPos2 = computeLargestEigenval(eigenvals2)
-        #                               eigvec2=eigenvecs2[:,largestEigenvalPos2]
+#                                       print "eigenvals2: ",eigenvals2
+#                                       largestEigenvalPos2 = computeLargestEigenval(eigenvals2)
+#                                       eigvec2=eigenvecs2[:,largestEigenvalPos2]
                                         eigvec2=eigenvecs2[:,max(xrange(len(eigenvals2)), key=eigenvals2.__getitem__)] 
                                         eigenvec2Norm = eigvec2/numpy.linalg.norm(eigvec2)
-                        #               print "largestEigenvalPos2: ", largestEigenvalPos2
-                        #               inner product to figure out which eigenvector is parallel to the tangent
+#                                       print "largestEigenvalPos2: ", largestEigenvalPos2
+                                        # inner product to figure out which eigenvector is parallel to the tangent
                                         e1 = numpy.inner(t_norm, eigenvec1Norm)
-                #                       print "e1: ", e1
+#                                       print "e1: ", e1
                                         e2 = numpy.inner(t_norm, eigenvec2Norm)
-                #                       print "e2: ", e2
+#                                       print "e2: ", e2
                                         val1 = abs(abs(e1)-1)
-                        #               print "val1: ", val1
+#                                       print "val1: ", val1
                                         val2 = abs(abs(e2)-1)
-                        #               print "val2: ", val2
-                        #               print "twoTens: ", twoTens[0:14]
+#                                       print "val2: ", val2
+#                                       print "twoTens: ", twoTens[0:14]
                                         if (min(val1,val2) == val1):            
                                                 tensors[count,:] = numpy.array([float(twoTens[1]),float(twoTens[2]),float(twoTens[3]),float(twoTens[2]),float(twoTens[4]),float(twoTens[5]),float(twoTens[3]),float(twoTens[5]),float(twoTens[6])], 'float')
                                         else:           
@@ -1037,18 +1026,18 @@ class SlicerTwoTensorTractographyContainer(object):
                         cellArray = pdf.GetOutput().GetLines().GetData().ToArray().squeeze()
                         for numFib in range (minFib,maxFib):
                                 numPtsinCell = cellArray[indexCell]
-                        #       print "numPtsinCell: ", numPtsinCell
+#                               print "numPtsinCell: ", numPtsinCell
                                 indexCell = indexCell +1        
-                #               icnt[i] will be the number of vertices in line i
+                                # icnt[i] will be the number of vertices in line i
                                 for i in range(numPtsinCell):
-        #                               indexPt = pdf.GetOutput().GetLines().GetData().ToArray().squeeze()[indexCell]
+#                                       indexPt = pdf.GetOutput().GetLines().GetData().ToArray().squeeze()[indexCell]
                                         # get fiber point index at cell index "indexCell"
                                         indexPt = cellArray[indexCell]
                                         # fiber point in ijk space
                                         fiberPt = fiberArray[indexPt]
-        #                               print "fiberPt squeeze: ", pdf.GetOutput().GetPoints().GetData().ToArray().squeeze()[indexPt]
-        #                               print "fiberPt without squeeze: ", pdf.GetOutput().GetPoints().GetData().ToArray()[indexPt]
-        #                               fiberPt = pdf.GetOutput().GetPoints().GetData().ToArray()[indexPt][0]
+#                                       print "fiberPt squeeze: ", pdf.GetOutput().GetPoints().GetData().ToArray().squeeze()[indexPt]
+#                                       print "fiberPt without squeeze: ", pdf.GetOutput().GetPoints().GetData().ToArray()[indexPt]
+#                                       fiberPt = pdf.GetOutput().GetPoints().GetData().ToArray()[indexPt][0]
                                         # probe tensors in ijk space
                                         probeRet = teem.gageProbe(ctx, fiberPt[0],fiberPt[1],fiberPt[2])        
                                         tensors[count,:] = numpy.array([float(twoTens[1]),float(twoTens[2]),float(twoTens[3]),float(twoTens[2]),float(twoTens[4]),float(twoTens[5]),float(twoTens[3]),float(twoTens[5]),float(twoTens[6])], 'float')
@@ -1066,9 +1055,9 @@ class SlicerTwoTensorTractographyContainer(object):
         def CreateDTINrrd(self,dwiNrrd, dti, dtiName):
                 dtiNrrd = teem.nrrdNew()
 
-        #       axes size
+                # axes size
                 sz_dti = (ctypes.c_size_t * 4)()
-        #       Get number of scalar components (for tensor it returns 9)
+                # Get number of scalar components (for tensor it returns 9)
                 dim = [0,0,0]
                 for i in range(3):
                         dim[i] = dwiNrrd.contents.axis[i+1].size
@@ -1081,12 +1070,12 @@ class SlicerTwoTensorTractographyContainer(object):
                         print err
 
                 data_out_dti = ctypes.cast(dtiNrrd.contents.data, ctypes.POINTER(self.nrrdToCType(dtiNrrd.contents.type)))
-        #       for i in range (0,outputPolyData.GetPoints().GetNumberOfPoints()):
-        #               print "data_out_dti1: ", outputPolyData.GetPoints().GetData().ToArray().squeeze()[i]
-        #               print "Tensors: ", outputFiberBundleNode.GetPolyData().GetPointData().GetTensors().ToArray().squeeze()[i]
+#               for i in range (0,outputPolyData.GetPoints().GetNumberOfPoints()):
+#               print "data_out_dti1: ", outputPolyData.GetPoints().GetData().ToArray().squeeze()[i]
+#               print "Tensors: ", outputFiberBundleNode.GetPolyData().GetPointData().GetTensors().ToArray().squeeze()[i]
 
 
-        #       set space and space dimension
+                # set space and space dimension
                 teem.nrrdSpaceSet(dtiNrrd, teem.nrrdSpace3DRightHanded) 
 
                 dtiNrrd.contents.measurementFrame[0][:3] = dwiNrrd.contents.measurementFrame[0][:3]
@@ -1099,11 +1088,11 @@ class SlicerTwoTensorTractographyContainer(object):
                                 dtiNrrd.contents.axis[i].spaceDirection[j] = dwiNrrd.contents.axis[i].spaceDirection[j]
 
 
-        #       set space origin
+                # set space origin
                 for k in range (dwiNrrd.contents.dim):
                         dtiNrrd.contents.spaceOrigin[:3] = dwiNrrd.contents.spaceOrigin[:3]
 
-        #       set axis kind information
+                # set axis kind information
                 dtiNrrd.contents.axis[0].kind = dwiNrrd.contents.axis[0].kind
                 dtiNrrd.contents.axis[1].kind = dwiNrrd.contents.axis[1].kind
                 dtiNrrd.contents.axis[2].kind = dwiNrrd.contents.axis[2].kind
@@ -1111,7 +1100,7 @@ class SlicerTwoTensorTractographyContainer(object):
 
 
 
-        #       teem.tenMeasurementFrameReduce(dtiNrrd)
+#              teem.tenMeasurementFrameReduce(dtiNrrd)
 
                 E = teem.nrrdSave(dtiName, dtiNrrd, None)
                 if (E):

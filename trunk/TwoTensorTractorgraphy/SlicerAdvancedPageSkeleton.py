@@ -38,5 +38,4 @@ class SlicerAdvancedPageSkeleton(object):
     def Reset(self):
         pass
 
-#    def SetMinMaxOfThresholdSlider(self):
-#        pass
+

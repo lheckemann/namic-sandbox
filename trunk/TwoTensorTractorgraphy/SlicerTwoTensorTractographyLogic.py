@@ -266,9 +266,9 @@ class SlicerTwoTensorTractographyLogic(object):
                         for i in range(1,nCpu):
                                 tens  = numpy.append(tens,tblocks2[i][0], axis=0)
 
-                #       insert tensors into vtk tensor array
-                #       for i in range(0,numberOfPoints):
-                #               tensorsVtk.InsertTuple9(i,tens[i][0],tens[i][1],tens[i][2],tens[i][3],tens[i][4],tens[i][5],tens[i][6],tens[i][7],tens[i][8])
+#                       insert tensors into vtk tensor array
+#                       for i in range(0,numberOfPoints):
+#                       tensorsVtk.InsertTuple9(i,tens[i][0],tens[i][1],tens[i][2],tens[i][3],tens[i][4],tens[i][5],tens[i][6],tens[i][7],tens[i][8])
 
                         tensorsVtk.FromArray(tens,2)
 
@@ -276,7 +276,7 @@ class SlicerTwoTensorTractographyLogic(object):
                         outputPolyData.GetPointData().SetTensors(tensorsVtk)
                         # set scalars of vtkPolyData structure to None (since they will be computed automatically by vtk)
                         outputPolyData.GetPointData().SetScalars(None)
-                #       print outputFiberBundleNode.GetPolyData().GetPointData().GetTensors().ToArray()
+#                       print outputFiberBundleNode.GetPolyData().GetPointData().GetTensors().ToArray()
 
                         outputFiberBundleLineDisplayNode = slicer.vtkMRMLFiberBundleLineDisplayNode()
                         outputFiberBundleTubeDisplayNode = slicer.vtkMRMLFiberBundleTubeDisplayNode()
@@ -352,25 +352,25 @@ class SlicerTwoTensorTractographyLogic(object):
                                 if (E):
                                         err = teem.biffGetDone("nrrd")
                                         print err
-                #       E = teem.limnPolyDataNix(fiberPld)
-                #       if (E):
-                #               err = teem.biffGetDone("limn")
-                #               print err
+#                       E = teem.limnPolyDataNix(fiberPld)
+#                       if (E):
+#                               err = teem.biffGetDone("limn")
+#                               print err
 
 
-                #       Computation time
+#                       Computation time
                         print "Total Tractography computation time : ", time.time()-t1, ' s'
 
 
         
                 ##################################### 7) Save parameter settings ####################################
 
-                #       parameterSettings= "tensorType: ", tensorType, "\n", "anisotropy: ", anisotropy, "\n" , "anisotropyThreshold: ", anisotropyThreshold, "\n", "stoppingCurvature: ", stoppingCurvature, "\n", "integrationStepLength: ", integrationStepLength, "\n", "steps: ", steps, "\n", "confidence: ", confidence, "\n", "fraction: ", fraction, "\n", "minimumLength: ", minimumLength, "\n", "maximumLength: ", maximumLength, "\n", "roiLabel: ", roiLabel, "\n",  "numberOfSeedpointsPerVoxel: ", numberOfSeedpointsPerVoxel, "\n", "fiducial: ", fiducial, "\n"
+#                       parameterSettings= "tensorType: ", tensorType, "\n", "anisotropy: ", anisotropy, "\n" , "anisotropyThreshold: ", anisotropyThreshold, "\n", "stoppingCurvature: ", stoppingCurvature, "\n", "integrationStepLength: ", integrationStepLength, "\n", "steps: ", steps, "\n", "confidence: ", confidence, "\n", "fraction: ", fraction, "\n", "minimumLength: ", minimumLength, "\n", "maximumLength: ", maximumLength, "\n", "roiLabel: ", roiLabel, "\n",  "numberOfSeedpointsPerVoxel: ", numberOfSeedpointsPerVoxel, "\n", "fiducial: ", fiducial, "\n"
 
-                #       E = teem.nrrdSave('ParameterSettings.txt', parameterSettings, None)
-                #       if (E):
-                #               err = teem.biffGetDone("nrrd")
-                #               print err
+#                       E = teem.nrrdSave('ParameterSettings.txt', parameterSettings, None)
+#                       if (E):
+#                       err = teem.biffGetDone("nrrd")
+#                       print err
 
 
                         return 
