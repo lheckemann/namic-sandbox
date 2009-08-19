@@ -19,6 +19,12 @@ Version:   $Revision: 1.2 $
 #include <string>
 
 
+#include "vtkMRMLPlotObjectNode.h"
+
+#include "vtkDataObject.h"
+#include "vtkFieldData.h"
+#include "vtkDoubleArray.h"
+
 //------------------------------------------------------------------------------
 vtkMRMLPlotObjectNode* vtkMRMLPlotObjectNode::New()
 {
@@ -75,7 +81,7 @@ void vtkMRMLPlotObjectNode::WriteXML(ostream& of, int nIndent)
   std::stringstream ssY;
   std::stringstream ssYerr;
 
-  int n = this->Array->GetNumberOfComponents();
+  //int n = this->Array->GetNumberOfComponents();
   double xy[3];
 
   //if (this->Array->GetNumberOfComponents() > 3)

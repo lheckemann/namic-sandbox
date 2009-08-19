@@ -112,7 +112,7 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
 
   void SetInMRMLCallbackFlag (int flag) {
     this->InMRMLCallbackFlag = flag;
-  }
+  };
   vtkGetMacro(InMRMLCallbackFlag, int);
 
   // Description:
@@ -121,7 +121,7 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
                                    unsigned long /*event*/, void * /*callData*/ );
 
  protected:
-  //BTX
+  // Description:
   // a shared function that call the virtual ProcessMRMLEvents subclasses,
   // if they are defined.
   static void MRMLCallback( vtkObject *__caller,
@@ -157,26 +157,8 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
   // Graph operations
   //----------------------------------------------------------------
  public:
-  void AddVerticalLine(double x);
-  void AddHorizontalLine(double y);
   void SetAxisLineColor(double r, double g, double b);
-  void RemoveLines();
   void UpdateGraph();
-
- protected:
-
-  //----------------------------------------------------------------
-  // Subroutines for plotting
-  //----------------------------------------------------------------
- protected:
-  // Description:
-  // Create a vtkDataObject to draw a line on the graph
-  vtkDataObject* CreateDataObjectForLine(double p1[2], double p2[2]);
-
-  // Description:
-  // Create a vtkDoubleArray to draw a line with error bars
-  vtkDoubleArray* CreatePlotDataWithErrorBar(vtkDoubleArray* srcData);
-
 
   //----------------------------------------------------------------
   // Constructor / destructor
@@ -189,7 +171,6 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
   // Description:
   // Create the widget.
   virtual void CreateWidget();
-
 
  private:
   vtkSlicerXYPlotWidget(const vtkSlicerXYPlotWidget&); // Not implemented
@@ -219,7 +200,6 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
   //----------------------------------------------------------------
   // Widgets
   //----------------------------------------------------------------
-
   vtkXYPlotActor* PlotActor;
 
 
@@ -237,18 +217,7 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
   // Updating flag is 1, while graph is being updated.
   int Updating;
 
-  //BTX
-  typedef std::vector<PlotDataType> PlotDataVectorType;
-  typedef std::vector<AxisLineType> AxisLineVectorType;
-  //ETX
-
-  //PlotDataVectorType PlotDataVector;
-  AxisLineVectorType VerticalLines;
-  AxisLineVectorType HorizontalLines;
-
   double AxisLineColor[3];
-  //int    AutoRangeX;
-  //int    AutoRangeY;
   double RangeX[2];
   double RangeY[2];
 

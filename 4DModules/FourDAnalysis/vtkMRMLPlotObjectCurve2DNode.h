@@ -18,15 +18,15 @@
 #include <vector>
 
 #include "vtkMRML.h"
-#include "vtkMRMLNode.h"
-#include "vtkMRMLStorageNode.h"
+#include "vtkMRMLPlotObjectNode.h"
 
 #include "vtkObject.h"
 #include "vtkFourDAnalysisWin32Header.h"
 
 #include "vtkDataObject.h"
+#include "vtkMRMLDoubleArrayNode.h"
 
-class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectCurve2DNode : public vtkMRMLNode
+class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectCurve2DNode : public vtkMRMLPlotObjectNode
 {
 
  public:
@@ -47,7 +47,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectCurve2DNode : public vtkMRMLNode
   //----------------------------------------------------------------
 
   static vtkMRMLPlotObjectCurve2DNode *New();
-  vtkTypeMacro(vtkMRMLPlotObjectCurve2DNode,vtkMRMLNode);
+  vtkTypeMacro(vtkMRMLPlotObjectCurve2DNode,vtkMRMLPlotObjectNode);
   
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -68,7 +68,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectCurve2DNode : public vtkMRMLNode
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
-    {return "PlotObjectLine2D";};
+    {return "PlotObjectCurve2D";};
 
   // Description:
   // Method to propagate events generated in mrml
@@ -82,8 +82,8 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectCurve2DNode : public vtkMRMLNode
   void SetAndObserveArray( vtkMRMLDoubleArrayNode* node );
   vtkGetObjectMacro ( Array, vtkMRMLDoubleArrayNode );
   
-  vtkSetMacro ( PlotErrro, int );
-  vtkGetMacro ( PlotErrro, int );
+  vtkSetMacro ( PlotError, int );
+  vtkGetMacro ( PlotError, int );
 
   //----------------------------------------------------------------
   // Method for Plotting (called from friend classes)
@@ -106,7 +106,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectCurve2DNode : public vtkMRMLNode
   //----------------------------------------------------------------
   // Subroutines for drawing
   //----------------------------------------------------------------
-  vtkDoubleArray* CreatePlotDataWithErrorBar(vtkDoubleArray* srcData);
+  vtkDoubleArray* CreatePlotDataWithErrorBar(vtkDoubleArray* srcData, double* xrange, double* yrange);
 
  protected:
 
@@ -130,7 +130,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectCurve2DNode : public vtkMRMLNode
   //----------------------------------------------------------------
   
   vtkMRMLDoubleArrayNode* Array;
-  int PlotErrro;
+  int PlotError;
 
 };
 

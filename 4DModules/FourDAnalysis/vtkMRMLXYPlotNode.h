@@ -26,6 +26,7 @@
 #include "vtkFourDAnalysisWin32Header.h"
 
 #include "vtkMRMLDoubleArrayNode.h"
+#include "vtkMRMLPlotObjectNode.h"
 
 class vtkIntArray;
 
@@ -82,8 +83,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
 
   // Description:
   // Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName()
-    {return "XYPlot";};
+  virtual const char* GetNodeTagName() { return "XYPlot"; };
 
   // Description:
   // Method to propagate events generated in mrml.
@@ -96,103 +96,44 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
   //vtkGetObjectMacro ( Array, vtkDoubleArray );
 
   //----------------------------------------------------------------
-  // Arrays for curves 
+  // PlotObjectNode management
   //----------------------------------------------------------------
   
   // Description:
   // Add DoiubleArrayNode to the plotting list. Returns array ID.
-  int AddArrayNode(vtkMRMLDoubleArrayNode* node);
+  int AddPlot(vtkMRMLPlotObjectNode* node);
 
   // Description:
   // Remove DoubleArrayNode from the plotting list.
-  void RemoveArrayNode(int id);
+  void RemovePlot(int id);
 
   // Description:
   // Remove DoubleArrayNode from the plotting list.
-  void RemoveArrayNodeByNodeID(const char* nodeID);
+  void RemovePlotByNodeID(const char* nodeID);
 
   // Description:
   // Remove all DoubleArrayNode from the plotting list.
-  void RemoveAllArrayNodes();
+  void ClearPlots();
 
   // Description:
   // Get number of arrays on the list
-  unsigned int GetNumberOfArrays();
+  unsigned int GetNumberOfPlots();
 
   // Description:
   // Get list of IDs
-  vtkIntArray* GetArrayNodeIDList();
+  vtkIntArray* GetPlotIDList();
 
   // Description:
   // Get n-th vtkMRMLDoubleArrayNode on the list
-  vtkMRMLDoubleArrayNode* GetArrayNode(int id);
-
+  vtkMRMLPlotObjectNode* GetPlot(int id);
 
   //----------------------------------------------------------------
-  // Vertical and horizntal lines
+  // Methods to change property of plot objects
   //----------------------------------------------------------------
-  
-  // Description:
-  // Add DoiubleArrayNode to the plotting list.
-  int AddVerticalLine(double position);
-  
-  // Description:
-  // Remove DoubleArrayNode from the plotting list.
-  void ClearVerticalLine(int id);
-  
-  // Description:
-  // Get number of arrays on the list
-  unsigned int GetNumberOfHorizontalLines();
-  
-  // Description:
-  // Add DoiubleArrayNode to the plotting list.
-  void AddHorizontalLine(double position);
-  
-  // Description:
-  // Remove DoubleArrayNode from the plotting list.
-  void ClearHorizontalLines(int i);
-  
-  // Description:
-  // Get number of arrays on the list
-  unsigned int GetNumberOfHorizontalLines();
-
-
-
-  // Description:
-  // Set line color
-  void SetColor(int id, double r, double g, double b);
-  
-  // Description:
-  // Get line color
-  void GetColor(int id, double* r, double* g, double* b);
-  
-  // Description:
-  // Set line name (this method updates the array node's name -- proveded for convinience)
-  void SetLineName(int id, const char* str);
-
-  // Description:
-  // Get line name (same as the array node's name)
-  const char* GetLineName(int id);
-  
-  // Description:
-  // Set visibility of the specified curve (i == 0 : off; i == 1 : on)
-  void SetVisibility(int id, int i);
-
-  // Description:
-  // Set visibility of the specified curve (0 : off; 1 : on)
-  int GetVisibility(int n);
 
   // Description:
   // Set visibility of the all curves (i == 0 : off; i == 1 : on)
   void SetVisibilityAll(int i);
-
-  // Description:
-  // Set error bar plot for the specified curve(i == 0 : off; i == 1 : on)
-  void SetErrorBar(int id, int i);
-
-  // Description:
-  // Get error bar plot for the specivied curve(0 : off; 1 : on)
-  int GetErrorBar(int id);
 
   // Description:
   // Set visibility of the all curves (i == 0 : off; i == 1 : on)
@@ -205,7 +146,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
 
   // Description:  
   // Invoke UpdateGraphEvent to force refreshing the graph
-  void Plot();
+  void Refresh();
 
   //----------------------------------------------------------------
   // Graph properties
@@ -217,14 +158,14 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
   {
     this->Title = str;
     this->Modified();
-  }
+  };
 
   // Description:
   // Get title of graph.
   const char* GetTitle()
   {
     return this->Title.c_str();
-  }
+  };
 
   // Description:
   // Set label for X-axis
@@ -232,14 +173,14 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
   {
     this->XLabel = str;
     this->Modified();
-  }
+  };
 
   // Description:
   // Get label for X-axis
-  const char* GetXLabel();
+  const char* GetXLabel()
   {
     return this->XLabel.c_str();
-  }
+  };
 
   // Description:
   // Set label for Y-axis
@@ -247,14 +188,14 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
   {
     this->YLabel = str;
     this->Modified();
-  }
+  };
   
   // Description:
   // Get label for Y-axis
   const char* GetYLabel()
   {
     return this->YLabel.c_str();
-  }
+  };
 
   // Description:
   // Set/Get automatic range setting flag
@@ -273,7 +214,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
         this->XRange[1] = range[1];
         this->Modified();
       }
-  }
+  };
 
   // Description:
   // Set Y range
@@ -285,7 +226,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
         this->YRange[1] = range[1];
         this->Modified();
       }
-  }
+  };
 
   // Description:
   // Get X range
@@ -293,7 +234,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
   {
     range[0] = this->YRange[0];
     range[1] = this->YRange[1];
-  }
+  };
  
   // Description:
   // Get Y range
@@ -301,7 +242,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
   {
     range[0] = this->YRange[0];
     range[1] = this->YRange[1];
-  }
+  };
 
   // Description:
   // Set color of axes
@@ -311,7 +252,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
     this->AxesColor[1] = g;
     this->AxesColor[2] = b;
     this->Modified();
-  }
+  };
   
   // Description:
   // Get color of axes
@@ -320,7 +261,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
     *r = this->AxesColor[0];
     *g = this->AxesColor[1];
     *b = this->AxesColor[2];
-  }
+  };
 
   // Description:
   // Set color of background
@@ -330,16 +271,16 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
     this->BackgroundColor[1] = g;
     this->BackgroundColor[2] = b;
     this->Modified();
-  }
+  };
 
   // Description:
   // Get color of background
-  void GetBackgroundColor(double* r, double* g, double* b);
+  void GetBackgroundColor(double* r, double* g, double* b)
   {
     *r = this->BackgroundColor[0];
     *g = this->BackgroundColor[1];
     *b = this->BackgroundColor[2];
-  }
+  };
 
   
  protected:
@@ -359,22 +300,12 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
   //----------------------------------------------------------------
 
   //BTX
-  typedef struct {
-    int                     type;         // TYPE_CURVE, TYPE_VERTICAL_LINE
-                                          // or  TYPE_HORIZONTAL_LINE
-    double                  lineColor[3];
-    int                     visibility;
-    int                     errorBar;
-    vtkMRMLDoubleArrayNode* arrayNode;
-    double                  value;        // used for TYPE_VERTICAL_LINE or  TYPE_HORIZONTAL_LINE
-  } PlotDataType;
-  //ETX
-
   std::string Title;             // Plotting graph title
   std::string XLabel;            // Label for x-axis
   std::string YLabel;            // Label for y-axis
+  std::map< int, vtkMRMLPlotObjectNode* > Data;  // map for plotting data
+  //ETX
 
-  std::map< int, PlotDataType > Data;  // map for plotting data
   int LastArrayID;
 
   int    AutoXRange;  // Flag for automatic range adjust (default: 0 = off)

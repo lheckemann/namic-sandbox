@@ -18,6 +18,11 @@ Version:   $Revision: 1.2 $
 #include <sstream>
 #include <string>
 
+#include "vtkMRMLPlotObjectCurve2DNode.h"
+
+#include "vtkDataObject.h"
+#include "vtkFieldData.h"
+#include "vtkDoubleArray.h"
 
 //------------------------------------------------------------------------------
 vtkMRMLPlotObjectCurve2DNode* vtkMRMLPlotObjectCurve2DNode::New()
@@ -50,7 +55,7 @@ vtkMRMLNode* vtkMRMLPlotObjectCurve2DNode::CreateNodeInstance()
 vtkMRMLPlotObjectCurve2DNode::vtkMRMLPlotObjectCurve2DNode()
 {
   this->Array = NULL;
-  this->PlotError = 0:
+  this->PlotError = 0;
 }
 
 
@@ -71,7 +76,7 @@ void vtkMRMLPlotObjectCurve2DNode::WriteXML(ostream& of, int nIndent)
   std::stringstream ssY;
   std::stringstream ssYerr;
 
-  int n = this->Array->GetNumberOfComponents();
+  //int n = this->Array->GetNumberOfComponents();
   double xy[3];
 
   //if (this->Array->GetNumberOfComponents() > 3)
@@ -321,7 +326,7 @@ vtkDataObject* vtkMRMLPlotObjectCurve2DNode::GetDrawObject(double* xrange, doubl
     if (this->PlotError)
       {
       // if error bar plotting is enabled, generate plot data with error bars.
-      vtkDoubleArray* data = CreatePlotDataWithErrorBar(array);
+      vtkDoubleArray* data = CreatePlotDataWithErrorBar(array, xrange, yrange);
       fieldData->AddArray(data);
       data->Delete();
       }
@@ -332,12 +337,6 @@ vtkDataObject* vtkMRMLPlotObjectCurve2DNode::GetDrawObject(double* xrange, doubl
     
     vtkDataObject* dataObject = vtkDataObject::New();
     dataObject->SetFieldData( fieldData );
-    
-    this->PlotActor->AddDataObjectInput(dataObject);
-    
-    this->PlotActor->SetDataObjectXComponent(obj, 0);
-    this->PlotActor->SetDataObjectYComponent(obj, 1);
-    this->PlotActor->SetPlotColor(obj, r, g, b);
     
     fieldData->Delete();
     return dataObject;
@@ -351,7 +350,7 @@ vtkDataObject* vtkMRMLPlotObjectCurve2DNode::GetDrawObject(double* xrange, doubl
 
 
 //----------------------------------------------------------------------------
-vtkDoubleArray* vtkMRMLPlotObjectCurve2DNode::CreatePlotDataWithErrorBar(vtkDoubleArray* srcData)
+vtkDoubleArray* vtkMRMLPlotObjectCurve2DNode::CreatePlotDataWithErrorBar(vtkDoubleArray* srcData, double* xrange, double* yrange)
 {
   vtkDoubleArray* plotData;
   plotData = vtkDoubleArray::New();
@@ -389,11 +388,11 @@ vtkDoubleArray* vtkMRMLPlotObjectCurve2DNode::CreatePlotDataWithErrorBar(vtkDoub
 
   if (nData > 10)
     {
-    errorBarWidth = ((this->RangeX[1] - this->RangeX[0]) / (double)nData) / 8.0;
+    errorBarWidth = ((xrange[1] - xrange[0]) / (double)nData) / 8.0;
     }
   else
     {
-    errorBarWidth = ((this->RangeX[1] - this->RangeX[0]) / 10.0) / 8.0;
+    errorBarWidth = ((xrange[1] - xrange[0]) / 10.0) / 8.0;
     }
   
   for (int j = 0; j < nData; j ++)

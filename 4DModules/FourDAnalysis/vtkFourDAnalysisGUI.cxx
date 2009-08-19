@@ -65,6 +65,8 @@
 #include "vtkMRMLCurveAnalysisNode.h"
 #include "vtkMRMLDoubleArrayNode.h"
 
+#include "vtkMRMLPlotObjectCurve2DNode.h"
+
 #include "vtkCurveAnalysisPythonInterface.h"
 #ifdef Slicer3_USE_PYTHON
 #include <Python.h>
@@ -833,14 +835,14 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       //this->IntensityPlot->ErrorBarOn();
       //this->IntensityPlot->UpdateGraph();
       this->PlotNode->SetErrorBarAll(1);
-      this->PlotNode->Plot();
+      this->PlotNode->Refresh();
       }
     else
       {
       //this->IntensityPlot->ErrorBarOff();
       //this->IntensityPlot->UpdateGraph();
       this->PlotNode->SetErrorBarAll(0);
-      this->PlotNode->Plot();
+      this->PlotNode->Refresh();
       }
     }
   else if (this->CurveScriptSelectButton->GetWidget()->GetLoadSaveDialog()
@@ -1502,7 +1504,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   this->PlotNode = vtkMRMLXYPlotNode::New();
   this->GetMRMLScene()->AddNode(this->PlotNode);
   this->IntensityPlot->SetAndObserveXYPlotNode(this->PlotNode);
-  this->PlotNode->Plot();
+  this->PlotNode->Refresh();
 
   this->ErrorBarCheckButton = vtkKWCheckButtonWithLabel::New();
   this->ErrorBarCheckButton->SetParent(frame->GetFrame());
@@ -2424,9 +2426,11 @@ void vtkFourDAnalysisGUI::UpdateIntensityPlot(vtkIntensityCurves* intensityCurve
     {
     int label = labels->GetValue(i);
     vtkMRMLDoubleArrayNode* anode = this->IntensityCurves->GetCurve(label);
+    vtkMRMLPlotObjectCurve2DNode* cnode = vtkMRMLPlotObjectCurve2DNode::New();
+    cnode->SetAndObserveArray(anode);
     //vtkDoubleArray* values = anode->GetArray();
     //int id = this->IntensityPlot->AddPlot(values, "1");
-    int id = this->PlotNode->AddArrayNode(anode);
+    int id = this->PlotNode->AddPlot(cnode);
 
     double color[3];
     lt->GetColor(label, color);
@@ -2437,13 +2441,13 @@ void vtkFourDAnalysisGUI::UpdateIntensityPlot(vtkIntensityCurves* intensityCurve
       color[1] = 0.0;
       color[2] = 0.0;
       }
-    this->PlotNode->SetColor(id, color[0], color[1], color[2]);
+    cnode->SetColor(color[0], color[1], color[2]);
     }
   //this->IntensityPlot->AutoRangeOn();
   //this->IntensityPlot->UpdateGraph();
   this->PlotNode->SetAutoXRange(1);
   this->PlotNode->SetAutoYRange(1);
-  this->PlotNode->Plot();
+  this->PlotNode->Refresh();
 
   // Update FittingLabelMenu
   if (this->FittingLabelMenu)
@@ -2483,12 +2487,14 @@ void vtkFourDAnalysisGUI::UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves*
   int n = labels->GetNumberOfTuples();
 
   //this->IntensityPlot->ClearPlot();
-  this->PlotNode->RemoveAllArrayNodes();
+  this->PlotNode->ClearPlots();
   for (int i = 0; i < n; i ++)
     {
     int label = labels->GetValue(i);
     vtkMRMLDoubleArrayNode* anode = this->IntensityCurves->GetCurve(label);
-    int id = this->PlotNode->AddArrayNode(anode);
+    vtkMRMLPlotObjectCurve2DNode* cnode = vtkMRMLPlotObjectCurve2DNode::New();
+    cnode->SetAndObserveArray(anode);
+    int id = this->PlotNode->AddPlot(cnode);
 
     double color[3];
     lt->GetColor(label, color);
@@ -2499,25 +2505,28 @@ void vtkFourDAnalysisGUI::UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves*
       color[1] = 0.0;
       color[2] = 0.0;
       }
-    this->PlotNode->SetColor(id, color[0], color[1], color[2]);
+    //this->PlotNode->SetColor(id, color[0], color[1], color[2]);
+    cnode->SetColor(color[0], color[1], color[2]);
     }
 
   if (this->FittedCurveNode)
     {
     //int id = this->IntensityPlot->AddPlot(array, "Fitted");
-    int id = this->PlotNode->AddArrayNode(this->FittedCurveNode);
+    vtkMRMLPlotObjectCurve2DNode* cnode = vtkMRMLPlotObjectCurve2DNode::New();
+    cnode->SetAndObserveArray(this->FittedCurveNode);
+    int id = this->PlotNode->AddPlot(cnode);
     double color[3];
     color[0] = 1.0;
     color[1] = 0.0;
     color[2] = 0.0;
-    this->PlotNode->SetColor(id, color[0], color[1], color[2]);
+    cnode->SetColor(color[0], color[1], color[2]);
     }
   
   //this->IntensityPlot->AutoRangeOn();
   //this->IntensityPlot->UpdateGraph();
   this->PlotNode->SetAutoXRange(1);
   this->PlotNode->SetAutoYRange(1);
-  this->PlotNode->Plot();
+  this->PlotNode->Refresh();
 
 }
 
