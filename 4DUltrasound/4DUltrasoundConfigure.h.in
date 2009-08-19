@@ -5,7 +5,7 @@
 
 #cmakedefine USE_TRACKER_DEVICE
 
-#cmakedefine USE_ULTRASOUND_DEVICE
+//#cmakedefine USE_ULTRASOUND_DEVICE
 
 #undef DO_CALIBRATION_FILE_CALCULATIONS
 
@@ -15,18 +15,31 @@
 #define DATAPROCESSOR 2
 #define DATASENDER 3
 
+//------------------------------------------------------------------------------
+// The following section sets different debugging flags.
+//
+// Comment in the flag you want to use. You may find the output in a file called
+// "logFile.txt" in the directory of of you 4D
+// 
+//
+// ERROR:  Print error messages to the log file
+// DEBUG:  Print runtime information to the log file
+// TIMING: Print information that are useful for the performance evaluation of
+//         the system
+
+
 //Data Collector
-#define ERRORCOLLECTOR
-#define DEBUGCOLLECTOR
+//#define ERRORCOLLECTOR
+//#define DEBUGCOLLECTOR
 //#define TIMINGCOLLECTOR
 
 //Data Processor
-#define ERRORPROCESSOR
+//#define ERRORPROCESSOR
 //#define DEBUGPROCESSOR
 //#define TIMINGPROCESSOR
 
 //Data Sender
-#define ERRORSENDER
+//#define ERRORSENDER
 //#define DEBUGSENDER
 //#define TIMINGSENDER
 
