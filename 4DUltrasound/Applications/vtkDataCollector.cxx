@@ -78,11 +78,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkNDITracker.h"
 #include "vtkTrackerSimulator.h"
 
-#ifdef USE_ULTRASOUND_DEVICE
 #include "vtkV4L2VideoSource.h"
-#else
 #include "vtkVideoSourceSimulator.h"
-#endif
 
 #define FUDGE_FACTOR 1.6
 #define CERTUS_UPDATE_RATE 625
@@ -93,6 +90,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #define DEFAULT_VIDEO_MODE -1 //NTSC: 1
 #define DEFAULT_ULTRASOUND_SCANDEPTH 70 //mm
 #define DEFAULT_MAXIMUM_VOLUME_SIZE -1
+
+#define MAX_COORDINATEJUMP 20
 
 using namespace std;
 
@@ -120,15 +119,14 @@ vtkDataCollector::vtkDataCollector()
   this->CalibrationFileName = NULL;
   this->calibReader = vtkUltrasoundCalibFileReader::New();
 
-  #ifdef USE_ULTRASOUND_DEVICE
-    char* devicename = "/dev/video";
-    this->SetVideoDevice(devicename);
-    this->SetVideoChannel(DEFAULT_VIDEO_CHANNEL);
-    this->SetVideoMode(DEFAULT_VIDEO_MODE); //NTSC
-    this->VideoSource = vtkV4L2VideoSource::New();
-  #else
-   this->VideoSource = vtkVideoSourceSimulator::New();
-  #endif //USE_ULTRASOUND_DEVICE
+  this->EnableFrameGrabbing = false;
+  this->FrameGrabbingEnabled = false;
+  char* devicename = "/dev/video";
+  this->SetVideoDevice(devicename);
+  this->SetVideoChannel(DEFAULT_VIDEO_CHANNEL);
+  this->SetVideoMode(DEFAULT_VIDEO_MODE); //NTSC
+  this->V4L2VideoSource = vtkV4L2VideoSource::New();
+  this->VideoSourceSimulator = vtkVideoSourceSimulator::New();
 
   this->Tagger = vtkTaggedImageFilter::New();
 
@@ -165,8 +163,8 @@ vtkDataCollector::vtkDataCollector()
   this->TrackerCalibrationMatrix = vtkMatrix4x4::New();
   this->TrackerCalibrationMatrix->Identity();
 
-  this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
-  this->CoordinateTransformationMatrix->Identity();
+  this->OrientationAtCalibrationMatrix = vtkMatrix4x4::New();
+  this->OrientationAtCalibrationMatrix->Identity();
 
   this->FixedVolumeProperties.Frame = NULL;
   this->FixedVolumeProperties.Matrix = NULL;
@@ -186,6 +184,13 @@ vtkDataCollector::vtkDataCollector()
 
   this->DynamicVolumeSize = false;
   this->VolumeInitialized = false;
+
+//  this->CollectCalibrationData = false;
+
+//  this->OldCoordinates[0] = 0;
+//  this->OldCoordinates[1] = 0;
+//  this->OldCoordinates[2] = 0;
+//  this->OldCoordinates[3] = 10; //Flag to check if the data was already set
 }
 
 /******************************************************************************
@@ -207,15 +212,20 @@ vtkDataCollector::~vtkDataCollector()
     this->trackerSimulator = NULL;
     }
 
-  cerr << "Release VideoSource System Resources" << endl;
-  this->VideoSource->ReleaseSystemResources();
-
-  cerr << "Delete Video Source" << endl;
-  if(this->VideoSource)
+  cerr << "Delete V4L2 Video Source" << endl;
+  if(this->V4L2VideoSource)
     {
-    this->VideoSource->Delete();
-    this->VideoSource = NULL;
+    this->V4L2VideoSource->ReleaseSystemResources();
+    this->V4L2VideoSource->Delete();
+    this->V4L2VideoSource = NULL;
     }
+  cerr << "Delete Video Source Simulator" << endl;
+  if(this->VideoSourceSimulator)
+      {
+      this->VideoSourceSimulator->ReleaseSystemResources();
+      this->VideoSourceSimulator->Delete();
+      this->VideoSourceSimulator = NULL;
+      }
   cerr << "Delete Tagger" << endl;
   if(this->Tagger)
     {
@@ -237,12 +247,13 @@ vtkDataCollector::~vtkDataCollector()
     this->TrackerCalibrationMatrix->Delete();
     this->TrackerCalibrationMatrix = NULL;
     }
-  cerr << "CoTransfMatrix" << endl;
-  if(this->CoordinateTransformationMatrix)
+  cerr << "Orientation at Calibration Matrix" << endl;
+  if(this->OrientationAtCalibrationMatrix)
     {
-    this->CoordinateTransformationMatrix->Delete();
-    this->CoordinateTransformationMatrix = NULL;
+    this->OrientationAtCalibrationMatrix->Delete();
+    this->OrientationAtCalibrationMatrix = NULL;
     }
+
   cerr << "Delete Calib Reader" << endl;
   if(this->calibReader)
     {
@@ -267,8 +278,17 @@ void vtkDataCollector::PrintSelf(ostream& os, vtkIndent indent)
 /******************************************************************************
  * int vtkDataCollector::Initialize(vtkNDITracker* tracker)
  *
+ *  Initialize the data collector: Get the parameters specified in the
+ *  calibration file; start the video source etc.
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  02.February 2009
+ *
+ *  @Param: vtkNDITracker* tracker - Instance of the NDI tracker class. Needed
+ *                to receive tracking information
+ *
+ *  @Retrun: 0 - On success or if the data collector is already initialized
+ *          -1 - On failure
  *
  * ****************************************************************************/
 int vtkDataCollector::Initialize(vtkNDITracker* tracker)
@@ -310,8 +330,12 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
 
     this->calibReader->GetTrackerOffset(this->TrackerOffset);
 
-    this->TrackerCalibrationMatrix->DeepCopy(this->calibReader->GetTrackerCalibrationMatrix());
-    this->CoordinateTransformationMatrix->DeepCopy(this->calibReader->GetCoordinateTransformationMatrix());
+    if(!this->GetCollectCalibrationData())
+      {
+      this->TrackerCalibrationMatrix->DeepCopy(this->calibReader->GetTrackerCalibrationMatrix());
+      this->OrientationAtCalibrationMatrix->DeepCopy(this->calibReader->GetOrientationAtCalibrationMatrix());
+//      this->OrientationAtCalibrationMatrix->Invert();
+      }
 
     //Video Source Settings
     this->SetVideoDevice(this->calibReader->GetVideoSource());
@@ -331,27 +355,43 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     }
 
   int *imSize = this->calibReader->GetImageSize();
-  this->VideoSource->SetFrameSize(imSize[0], imSize[1], 1);
-
-#ifdef USE_ULTRASOUND_DEVICE
-  this->VideoSource->SetVideoChannel(this->GetVideoChannel());
-  this->VideoSource->SetVideoMode(this->GetVideoMode());
-  this->VideoSource->SetVideoDevice(this->GetVideoDevice());
-#endif
-
-  // set up the video source (ultrasound machine)
-  this->VideoSource->SetFrameRate(this->FrameRate);
-  this->VideoSource->SetFrameBufferSize(this->FrameBufferSize);
-
   double imageOrigin[3] = {0 ,0, 0};//Images are not shifted
-  this->VideoSource->SetDataOrigin(imageOrigin);
+//  double *imageSpacing = this->calibReader->GetImageSpacing();
+  double imageSpacing[3] = {1, 1, 1};
 
-  double *imageSpacing = this->calibReader->GetImageSpacing();
-  this->VideoSource->SetDataSpacing(imageSpacing);
+  //Start frame grabbing if demanded
+  if(this->GetEnableFrameGrabbing())
+    {
+    this->V4L2VideoSource->SetFrameSize(imSize[0], imSize[1], 1);
 
-  //
-  // Setting up the synchronization filter
-  this->Tagger->SetVideoSource(this->VideoSource);
+    // set up the video source (ultrasound machine)
+    this->V4L2VideoSource->SetFrameRate(this->FrameRate);
+    this->V4L2VideoSource->SetFrameBufferSize(this->FrameBufferSize);
+
+    this->V4L2VideoSource->SetDataOrigin(imageOrigin);
+
+    this->V4L2VideoSource->SetDataSpacing(imageSpacing);
+
+    this->StartV4L2VideoSource();
+
+    // Setting up the synchronization filter
+    this->Tagger->SetVideoSource(this->V4L2VideoSource);
+    }
+  else
+    {//Use Simulator
+    this->VideoSourceSimulator->SetFrameSize(imSize[0], imSize[1], 1);
+
+    // set up the video source (ultrasound machine)
+    this->VideoSourceSimulator->SetFrameRate(this->FrameRate);
+    this->VideoSourceSimulator->SetFrameBufferSize(this->FrameBufferSize);
+
+    this->VideoSourceSimulator->SetDataOrigin(imageOrigin);
+
+    this->VideoSourceSimulator->SetDataSpacing(imageSpacing);
+
+    // Setting up the synchronization filter
+    this->Tagger->SetVideoSource(this->VideoSourceSimulator);
+    }
 
   if(this->TrackerDeviceEnabled)
     {
@@ -367,15 +407,10 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
     this->trackerSimulator->StartTracking();
     }
 
-
   this->Tagger->SetTrackerTool(this->tool);
   this->Tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
 
   this->Tagger->Initialize();
-  #ifdef USE_ULTRASOUND_DEVICE
-  this->VideoSource->Record();
-  this->VideoSource->Stop();
-  #endif
   this->Initialized = true;
   return 0;
 }
@@ -414,8 +449,11 @@ static inline void vtkSleep(double duration)
  *  @Date:  22.December 2008
  *
  *  @Param: vtkMultiThreader::ThreadInfo *data
- *
  *  @Param: double time - Time until which to sleep
+ *
+ *  @Return: 0 - If the thread received the termination signal
+ *           1 - If the sleep period is over and the thread receives no
+ *               termination signal
  *
  * ****************************************************************************/
 static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
@@ -459,7 +497,8 @@ static int vtkThreadSleep(vtkMultiThreader::ThreadInfo *data, double time)
 /******************************************************************************
  *  static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
  *
- *  This function runs in an alternate thread to asyncronously collect data
+ *  This function runs an alternate thread to asyncronously collect and process
+ *  data
  *
  *  @Author:Jan Gumprecht
  *  @Date:  19.Januar 2009
@@ -476,8 +515,14 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
   int frame = 0;
   int extent[6];
   bool skip = false;
+
   vtkImageShrink3D* mask = vtkImageShrink3D::New();
   mask->AveragingOn();
+
+  int calibrationCounter = 0;
+  vtkMatrix4x4 *averageCalibrationOrientationMatrix = vtkMatrix4x4::New();
+  averageCalibrationOrientationMatrix->Zero();
+  averageCalibrationOrientationMatrix->Element[3][3] = 1;
 
 #ifdef DEBUG_IMAGES
   vtkBMPWriter *writer = vtkBMPWriter::New();
@@ -510,13 +555,69 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
         dataStruct.TimeStamp = self->GetUpTime();
 
         //Grab new frame--------------------------------------------------------
-        self->GetVideoSource()->Grab();
+        if(self->GetFrameGrabbingEnabled())
+          {
+          self->GetV4L2VideoSource()->Grab();
+          }
+        else
+          {
+          self->GetVideoSourceSimulator()->Grab();
+          }
 
         //Get Tracking Matrix for new frame-------------------------------------
         dataStruct.Matrix = vtkMatrix4x4::New();
         self->GetTagger()->Update();
         dataStruct.Matrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
 
+        if(self->GetCollectCalibrationData())
+          {
+          for(int i = 0 ; i < 3; ++i)
+            {
+            for(int j = 0 ; j < 3 ; ++j)
+              {
+              averageCalibrationOrientationMatrix->Element[i][j]
+                                            += dataStruct.Matrix->Element[i][j];
+              }
+            }
+
+            if(0 == calibrationCounter)
+              {
+              cout << "Collection of calibration data in progress:" << std::flush;
+              }
+            if(0 == calibrationCounter%10)
+              {
+              cout << " *" << std::flush;
+              }
+            if(50 < calibrationCounter)
+              {
+              self->StopCollecting();
+              cout << endl;
+              cout << "Calibration data collected!" << endl;
+              cout << "Tracker orientation at calibration time is:" << endl << endl
+                   << "-------------------------------"<<endl;
+              for(int i = 0 ; i < 4; ++i)
+                {
+                for(int j = 0 ; j < 4 ; ++j)
+                  {
+                  if(j == 3 && i == 3)
+                    {
+                    cout << "1";
+                    }
+                  else
+                    {
+                    cout << averageCalibrationOrientationMatrix->Element[i][j] / (calibrationCounter + 1) << "  ";
+                    }
+                  }
+                  cout << endl;
+                }
+              cout << "-------------------------------"<<endl <<endl;
+              cout << "Please use this matrix in the calibration file at the" << endl
+                   << "\"Orientation of the sensor at calibration time\" section!"<< endl << endl;
+
+              cout << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<<endl;
+              }
+            calibrationCounter++;
+            }
         //Set Spacing of new frame----------------------------------------------
         self->GetTagger()->GetOutput()->GetSpacing(dataStruct.Spacing);
 
@@ -530,10 +631,40 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
         //Data Processing and error checking------------------------------------
 //        if(self->IsTrackerDeviceEnabled())
 //          {
-          if(-1 == self->CalibrateMatrix(&dataStruct))
+
+        struct DataStruct tmpDataStruct;
+        tmpDataStruct.Frame = NULL;
+        vtkMatrix4x4 * tmpMatrix = vtkMatrix4x4::New();
+        tmpMatrix->DeepCopy(self->GetOrientationAtCalibrationMatrix());
+        tmpDataStruct.Matrix = tmpMatrix;
+          if(-1 == self->CalibrateMatrix(&tmpDataStruct))
             {//Tracker matrix is unusable
             skip = true;
             }
+          else
+            {
+            vtkMatrix4x4 * B = vtkMatrix4x4::New();
+            B->DeepCopy(dataStruct.Matrix);
+            B->Invert();
+            vtkMatrix4x4::Multiply4x4(self->GetOrientationAtCalibrationMatrix(), B, B);
+            B->Invert();
+            vtkMatrix4x4::Multiply4x4(B, tmpDataStruct.Matrix, dataStruct.Matrix);
+            if(B)
+              {
+              B->Delete();
+              B = NULL;
+              }
+            }
+
+          if(tmpMatrix)
+            {
+            tmpMatrix->Delete();
+            tmpMatrix = NULL;
+            }
+//          if(-1 == self->CalibrateMatrix(&dataStruct))
+//            {//Tracker matrix is unusable
+//            skip = true;
+//            }
 //          }
 
         if(!skip && -1 == self->CalculateVolumeProperties(&dataStruct))
@@ -563,6 +694,10 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           self->ExtractImage(self->GetTagger()->GetOutput(), dataStruct.Frame);
           #ifdef SHRINK
 
+          #ifdef DEBUGCOLLECTOR
+          self->GetLogStream() << self->GetUpTime() << " |C-INFO: Image Coordinates before shrink: "<< dataStruct.Frame->GetDimensions()[0] << " | " << dataStruct.Frame->GetDimensions()[1] << " | " << dataStruct.Frame->GetDimensions()[2] << endl;
+          #endif
+
           mask->SetInput(dataStruct.Frame);
           mask->SetShrinkFactors(self->GetShrinkFactor()[0], self->GetShrinkFactor()[1], self->GetShrinkFactor()[2]);
           mask->Update();
@@ -575,6 +710,11 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
           dataStruct.Frame = vtkImageData::New();
 
           self->DuplicateFrame(mask->GetOutput(), dataStruct.Frame);
+
+          #ifdef DEBUGCOLLECTOR
+          self->GetLogStream() << self->GetUpTime() << " |C-INFO: Image Coordinates after shrink: "<< dataStruct.Frame->GetDimensions()[0] << " | " << dataStruct.Frame->GetDimensions()[1] << " | " << dataStruct.Frame->GetDimensions()[2] << endl;
+          #endif
+
           dataStruct.Frame->SetSpacing(dataStruct.Spacing);
           #endif
 
@@ -608,6 +748,15 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
             self->GetLogStream() << self->GetUpTime() << " |C-INFO: Data sent to processor" << endl;
             #endif
             }
+
+//          self->GetOldCoordinates()[0] = dataStruct.Matrix->Element[0][3];
+//          self->GetOldCoordinates()[1] = dataStruct.Matrix->Element[1][3];
+//          self->GetOldCoordinates()[2] = dataStruct.Matrix->Element[2][3];
+//          if(frame > 10)
+//            {
+//            self->GetOldCoordinates()[3] = 1; //Flag to show that initial data is overwritten
+//            }
+
           }
         else
           {
@@ -619,12 +768,14 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
             dataStruct.Matrix->Delete();
             dataStruct.Matrix = NULL;
             }
+
           }
         skip = false;
         }//Check if Processor has buffer space available
       }//Check if Processor stopped processing
 
     frame++;
+
     }
   while(vtkThreadSleep(data, startTime + frame/rate));
 
@@ -648,8 +799,15 @@ return NULL;
 /******************************************************************************
  * int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
  *
+ * Start the data collection thread
+ *
  *  @Author:Jan Gumprecht
  *  @Date:  02.February 2009
+ *
+ *  @Param: vtkDataProcessor * processor: Instance of the Data Processor
+ *
+ *  @Return: 0 - If the thread was started successfully
+ *          -1 - If the thread could not be started
  *
  * ****************************************************************************/
 int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
@@ -660,7 +818,6 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
       this->LogStream << this->GetUpTime() << " |C-ERROR: Can not start tracking; Data collector not initialized";
     #endif
     return -1;
-
     }
 
   if (!this->Collecting)
@@ -711,6 +868,8 @@ int vtkDataCollector::StartCollecting(vtkDataProcessor * processor)
 }
 /******************************************************************************
  * int vtkDataCollector::StopCollecting()
+ *
+ *  Stop the data collection thread
  *
  *  @Author:Jan Gumprecht
  *  @Date:  02.February 2009
@@ -766,16 +925,35 @@ int vtkDataCollector::StopCollecting()
  *  @Author:Jan Gumprecht
  *  @Date:  14.August 2009
  *
+ *  @Param: struct DataStruct *pDataStruct: Struct containing the matrix to
+ *                                          calibrate
+ *
+ *  @Return: 0 - On success
+ *          -1 - if the tracker sent unusable matrices
+ *
  * ****************************************************************************/
 int vtkDataCollector::CalibrateMatrix(struct DataStruct *pDataStruct)
 {
   if(this->IsMatrixEmpty(pDataStruct->Matrix) || this->IsIdentityMatrix(pDataStruct->Matrix))
     {
     #ifdef INFOCOLLECTOR
-    this->LogStream << this->GetUpTime() << " |C-ERROR: Tracker received no data"<< endl;
+    this->LogStream << this->GetUpTime() << " |C-ERROR: Tracker sent no data"<< endl;
     #endif
     return -1;
     }
+
+//  if(this->CoordinateJump(pDataStruct->Matrix) && this->OldCoordinates[3] <= 0)
+//      {
+//      #ifdef INFOCOLLECTOR
+//      this->LogStream << this->GetUpTime() << " |C-ERROR: Tracker sent jump matrix"<< endl;
+//      #endif
+//
+//      this->GetOldCoordinates()[3] = 4;
+//
+//      return -1;
+//      }
+//
+//  this->GetOldCoordinates()[3]--;
 
   #ifdef DEBUGCOLLECTOR
     this->LogStream << this->GetUpTime() << " |C-INFO: Calibrate Matrix: Original Matrix:"<< endl;
@@ -800,11 +978,6 @@ int vtkDataCollector::CalibrateMatrix(struct DataStruct *pDataStruct)
 
     vtkMatrix4x4::Multiply4x4(pDataStruct->Matrix, tmpMatrix, pDataStruct->Matrix);
 
-  if(tmpMatrix)
-    {
-    tmpMatrix->Delete();
-    tmpMatrix = NULL;
-    }
 
     #ifdef DEBUGCOLLECTOR
       this->LogStream << this->GetUpTime() << " |C-INFO: Calibrate Matrix: Matrix calibrated for reconstructor"<< endl;
@@ -813,7 +986,7 @@ int vtkDataCollector::CalibrateMatrix(struct DataStruct *pDataStruct)
 
   if(!this->TrackerDeviceEnabled)
     {
-  //Y-Axis transformation
+    //Y-Axis transformation only necessary for the tracker simulator
     vtkMatrix4x4 * yTransformation = vtkMatrix4x4::New();
 
     yTransformation->Identity();
@@ -827,9 +1000,7 @@ int vtkDataCollector::CalibrateMatrix(struct DataStruct *pDataStruct)
         yTransformation = NULL;
         }
     }
-  //Tracker - US Calibration ---------------------------------------------------
-
-  //Calibrate matrix without changing the position
+  //Tracker <-> US Calibration -------------------------------------------------
 
   vtkMatrix4x4::Multiply4x4(this->TrackerCalibrationMatrix, pDataStruct->Matrix, pDataStruct->Matrix);
 
@@ -848,7 +1019,6 @@ int vtkDataCollector::CalibrateMatrix(struct DataStruct *pDataStruct)
   //Apply Offset----------------------------------------------------------------
   double xOffset = -1 * ((this->clipRectangle[2] + 1) / 2 + this->TrackerOffset[0]);
   double yOffset = -1 * (this->clipRectangle[3] + 1  + this->TrackerOffset[1]);
-//  double yOffset = -1 * this->TrackerOffset[1];
   double zOffset = -1 * this->TrackerOffset[2];
 
   double xAxis[3] = {pDataStruct->Matrix->Element[0][0], pDataStruct->Matrix->Element[1][0], pDataStruct->Matrix->Element[2][0]};
@@ -889,6 +1059,12 @@ int vtkDataCollector::CalibrateMatrix(struct DataStruct *pDataStruct)
     this->LogStream << this->GetUpTime() << " |C-INFO: Calibrate Matrix: offset applied:"<< endl;
     pDataStruct->Matrix->Print(this->LogStream);
   #endif
+
+  if(tmpMatrix)
+    {
+    tmpMatrix->Delete();
+    tmpMatrix = NULL;
+    }
 
   return 0;
 }
@@ -936,7 +1112,7 @@ void vtkDataCollector::SetLogStream(ofstream &LogStream)
  * ****************************************************************************/
 ofstream& vtkDataCollector::GetLogStream()
 {
-        return this->LogStream;
+  return this->LogStream;
 }
 
 /******************************************************************************
@@ -949,6 +1125,9 @@ ofstream& vtkDataCollector::GetLogStream()
  *
  *  @Param: vtkImageData * original - Original
  *  @Param: vtkImageData * copy - Copy
+ *
+ *  @Return: 0 - If the extraction was successful
+ *          -1 - Otherwise
  *
  * ****************************************************************************/
 int vtkDataCollector::ExtractImage(vtkImageData * original, vtkImageData * extract)
@@ -1407,10 +1586,25 @@ int vtkDataCollector::GrabOneImage()
 
   for (int i = 0; i < 10; ++i)
     {
-    this->GetVideoSource()->Grab();
+    if(this->GetFrameGrabbingEnabled())
+      {
+      this->GetV4L2VideoSource()->Grab();
+      }
+    else
+      {
+      this->GetVideoSourceSimulator()->Grab();
+      }
     vtkSleep(0.2);
     }
-  this->GetVideoSource()->FastForward();
+
+  if(this->GetFrameGrabbingEnabled())
+    {
+    this->GetV4L2VideoSource()->FastForward();
+    }
+  else
+    {
+    this->GetVideoSourceSimulator()->FastForward();
+    }
 
   writer->SetInput(this->GetTagger()->GetOutput());
   sprintf(filename,this->GetFileName());
@@ -1425,3 +1619,60 @@ int vtkDataCollector::GrabOneImage()
 
   return 0;
 }
+
+/******************************************************************************
+ * int vtkDataCollector::StartV4L2Videosource(){
+ *
+ *  Enables Image grabbing from a V4L2 video source
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  17.August 2009
+ *
+ * ****************************************************************************/
+int vtkDataCollector::StartV4L2VideoSource()
+  {
+
+  this->V4L2VideoSource->SetVideoChannel(this->GetVideoChannel());
+  this->V4L2VideoSource->SetVideoMode(this->GetVideoMode());
+  this->V4L2VideoSource->SetVideoDevice(this->GetVideoDevice());
+
+  this->V4L2VideoSource->Record();
+  this->V4L2VideoSource->Stop();
+
+  this->FrameGrabbingEnabled = true;
+
+  return 0;
+}
+
+/******************************************************************************
+ * bool vtkDataCollector::CoordinateJump(vtkMatrix4x4 * matrix)
+ *
+ *  Checks if there is jump in the matrix positions
+ *
+ *  @Author:Jan Gumprecht
+ *  @Date:  18.August 2009
+ *
+ * ****************************************************************************/
+bool vtkDataCollector::CoordinateJump(vtkMatrix4x4 * matrix)
+  {
+//
+//  double xOld = this->OldCoordinates[0];
+//  double yOld = this->OldCoordinates[1];
+//  double zOld = this->OldCoordinates[2];
+//
+//  double xNew = matrix->Element[0][3];
+//  double yNew = matrix->Element[1][3];
+//  double zNew = matrix->Element[2][3];
+//
+//  if(MAX_COORDINATEJUMP
+//      > sqrt((xOld - xNew) * (xOld - xNew) + (yOld - yNew) * (yOld - yNew)
+//             + (zOld - zNew) * (zOld - zNew)))
+//    {
+//    return false;
+//    }
+//  else
+//    {
+    return true;
+//    }
+
+  }
