@@ -11,40 +11,26 @@
   Version:   $Revision: 1.3 $
 
 =========================================================================auto=*/
-#ifndef __vtkMRMLPlotObjectNode_h
-#define __vtkMRMLPlotObjectNode_h
+#ifndef __vtkMRMLArrayPlotNode_h
+#define __vtkMRMLArrayPlotNode_h
 
 #include <string>
 #include <vector>
 
 #include "vtkMRML.h"
-#include "vtkMRMLNode.h"
-#include "vtkMRMLStorageNode.h"
+#include "vtkMRMLPlotNode.h"
 
 #include "vtkObject.h"
 #include "vtkFourDAnalysisWin32Header.h"
 
 #include "vtkDataObject.h"
+#include "vtkMRMLDoubleArrayNode.h"
 
-class vtkSlicerXYPlotWidget;
-class vtkMRMLXYPlotManagerNode;
-
-
-class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
+class VTK_FourDAnalysis_EXPORT vtkMRMLArrayPlotNode : public vtkMRMLPlotNode
 {
 
-  //----------------------------------------------------------------
-  // Friend classes
-  //----------------------------------------------------------------
-  // Description:
-  // These clases are defined as a friend calls of vtkMRMLPlotObjectNode
-  // to call protected the function: GetDrawObject();
-  //BTX
-  friend class vtkSlicerXYPlotWidget;
-  friend class vtkMRMLXYPlotManagerNode;
-  //ETX
-
  public:
+
   //----------------------------------------------------------------
   // Constants
   //----------------------------------------------------------------
@@ -60,8 +46,8 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
 
-  static vtkMRMLPlotObjectNode *New();
-  vtkTypeMacro(vtkMRMLPlotObjectNode,vtkMRMLNode);
+  static vtkMRMLArrayPlotNode *New();
+  vtkTypeMacro(vtkMRMLArrayPlotNode,vtkMRMLPlotNode);
   
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -82,86 +68,69 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
-    {return "PlotObject";};
+    {return "PlotObjectCurve2D";};
 
   // Description:
   // Method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
 
   //----------------------------------------------------------------
-  // Get and Set Macros
+  // Get and Set Methods
   //----------------------------------------------------------------
-  vtkSetMacro ( Visible, int );
-  vtkGetMacro ( Visible, int );
 
-  // Description:
-  // Set line color by SetColor(double, double, double) or SetColor(Double* c[3])
-  vtkSetVector3Macro( Color, double );
-  vtkGetVector3Macro( Color, double );
+  //vtkSetObjectMacro ( Array, vtkMRMLDoubleArrayNode );
+  void SetAndObserveArray( vtkMRMLDoubleArrayNode* node );
+  vtkGetObjectMacro ( Array, vtkMRMLDoubleArrayNode );
   
-  //----------------------------------------------------------------
-  // Access methods
-  //----------------------------------------------------------------
-
-  // Description:
-  // Get Y range for given X range.
-  // Returns 0 if it cannot determin the x range.
-  virtual int GetYRange(const double* xrange, double* yrange) { return 0; };
-
-  // Description:
-  // Set legend of the object for the graph.
-  void SetLegend(const char* legend)
-  {
-    this->Legend = legend;
-  };
-
-
-  // Description:
-  // Get legend of the object for the graph.
-  const char* GetLegend()
-  {
-    return this->Legend.c_str();
-  };
-
+  vtkSetMacro ( PlotError, int );
+  vtkGetMacro ( PlotError, int );
 
   //----------------------------------------------------------------
-  // Methods for Plotting (called from friend classes)
+  // Method for Plotting (called from friend classes)
   //----------------------------------------------------------------
  protected:
   // Description:
   // Get minimum and muximum X values.
   // Returns 0 if the Y range cannot be determined.
-  virtual int GetXRange(double* xrange) {};
+  virtual int GetXRange(double* xrange);
 
   // Description:
   // Get minimum and muximum Y values.
   // Returns 0 if the Y range cannot be determined.
-  virtual int GetYRange(double* yrange) {};
+  virtual int GetYRange(double* yrange);
 
   // Description:
   // Get draw object (this funciton is called by vtkMRMLXYPlotManagerNode)
-  virtual vtkDataObject* GetDrawObject(double* xrange, double* yrange) {};
+  virtual vtkDataObject* GetDrawObject(double* xrange, double* yrange);
 
+  //----------------------------------------------------------------
+  // Subroutines for drawing
+  //----------------------------------------------------------------
+  vtkDoubleArray* CreatePlotDataWithErrorBar(vtkDoubleArray* srcData, double* xrange, double* yrange);
+
+ protected:
+
+  // Description:
+  // Get draw object (this funciton is called by vtkMRMLXYPlotManagerNode)
+  virtual vtkDataObject* GetDrawObject() {};
 
   //----------------------------------------------------------------
   // Constructor and destroctor
   //----------------------------------------------------------------
  protected:
-  vtkMRMLPlotObjectNode();
-  ~vtkMRMLPlotObjectNode();
-  vtkMRMLPlotObjectNode(const vtkMRMLPlotObjectNode&);
-  void operator=(const vtkMRMLPlotObjectNode&);
+  vtkMRMLArrayPlotNode();
+  ~vtkMRMLArrayPlotNode();
+  vtkMRMLArrayPlotNode(const vtkMRMLArrayPlotNode&);
+  void operator=(const vtkMRMLArrayPlotNode&);
 
 
  protected:
   //----------------------------------------------------------------
   // Data
   //----------------------------------------------------------------
-  int Visible;
-  double Color[3];
-  //BTX
-  std::string Legend;
-  //ETX
+  
+  vtkMRMLDoubleArrayNode* Array;
+  int PlotError;
 
 };
 

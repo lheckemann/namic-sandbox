@@ -18,63 +18,55 @@ Version:   $Revision: 1.2 $
 #include <sstream>
 #include <string>
 
-#include "vtkMRMLPlotObjectCurve2DNode.h"
+#include "vtkMRMLOrthogonalLinePlotNode.h"
 
 #include "vtkDataObject.h"
 #include "vtkFieldData.h"
 #include "vtkDoubleArray.h"
 
 //------------------------------------------------------------------------------
-vtkMRMLPlotObjectCurve2DNode* vtkMRMLPlotObjectCurve2DNode::New()
+vtkMRMLOrthogonalLinePlotNode* vtkMRMLOrthogonalLinePlotNode::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPlotObjectCurve2DNode"); if(ret)
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLOrthogonalLinePlotNode"); if(ret)
     {
-      return (vtkMRMLPlotObjectCurve2DNode*)ret;
+      return (vtkMRMLOrthogonalLinePlotNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLPlotObjectCurve2DNode;
+  return new vtkMRMLOrthogonalLinePlotNode;
 }
 
 
 //----------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLPlotObjectCurve2DNode::CreateNodeInstance()
+vtkMRMLNode* vtkMRMLOrthogonalLinePlotNode::CreateNodeInstance()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPlotObjectCurve2DNode");
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLOrthogonalLinePlotNode");
   if(ret)
     {
-      return (vtkMRMLPlotObjectCurve2DNode*)ret;
+      return (vtkMRMLOrthogonalLinePlotNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLPlotObjectCurve2DNode;
+  return new vtkMRMLOrthogonalLinePlotNode;
 }
 
 
 //----------------------------------------------------------------------------
-vtkMRMLPlotObjectCurve2DNode::vtkMRMLPlotObjectCurve2DNode()
+vtkMRMLOrthogonalLinePlotNode::vtkMRMLOrthogonalLinePlotNode()
 {
-  this->Array = NULL;
-  this->PlotError = 0;
+  this->Point[0] = 0.0;
+  this->Point[1] = 0.0;
 }
 
 
 //----------------------------------------------------------------------------
-vtkMRMLPlotObjectCurve2DNode::~vtkMRMLPlotObjectCurve2DNode()
+vtkMRMLOrthogonalLinePlotNode::~vtkMRMLOrthogonalLinePlotNode()
 {
-  if (this->Array)
-    {
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->Array, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-  this->Array->Delete();
-  this->Array = NULL;
-
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotObjectCurve2DNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLOrthogonalLinePlotNode::WriteXML(ostream& of, int nIndent)
 {
 
   // Start by having the superclass write its information
@@ -113,7 +105,7 @@ void vtkMRMLPlotObjectCurve2DNode::WriteXML(ostream& of, int nIndent)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotObjectCurve2DNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLOrthogonalLinePlotNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
 
@@ -222,11 +214,11 @@ void vtkMRMLPlotObjectCurve2DNode::ReadXMLAttributes(const char** atts)
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
-void vtkMRMLPlotObjectCurve2DNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLOrthogonalLinePlotNode::Copy(vtkMRMLNode *anode)
 {
 
   Superclass::Copy(anode);
-  vtkMRMLPlotObjectCurve2DNode *node = (vtkMRMLPlotObjectCurve2DNode *) anode;
+  vtkMRMLOrthogonalLinePlotNode *node = (vtkMRMLOrthogonalLinePlotNode *) anode;
 
   //int type = node->GetType();
   
@@ -234,59 +226,45 @@ void vtkMRMLPlotObjectCurve2DNode::Copy(vtkMRMLNode *anode)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotObjectCurve2DNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLOrthogonalLinePlotNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
-  if (this->Array == vtkMRMLDoubleArrayNode::SafeDownCast(caller) &&
-      event ==  vtkCommand::ModifiedEvent)
-    {
-    this->Modified();
-    return;
-    }
+  //if (this->TargetPlanList && this->TargetPlanList == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
+  //  event ==  vtkCommand::ModifiedEvent)
+  //  {
+  //  //this->ModifiedSinceReadOn();
+  //  //this->InvokeEvent(vtkMRMLVolumeNode::ImageDataModifiedEvent, NULL);
+  //  //this->UpdateFromMRML();
+  //  return;
+  //  }
+  //
+  //if (this->TargetCompletedList && this->TargetCompletedList == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
+  //  event ==  vtkCommand::ModifiedEvent)
+  //  {
+  //  //this->ModifiedSinceReadOn();
+  //  //this->InvokeEvent(vtkMRMLVolumeNode::ImageDataModifiedEvent, NULL);
+  //  //this->UpdateFromMRML();
+  //  return;
+  //  }
 
   return;
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotObjectCurve2DNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLOrthogonalLinePlotNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotObjectCurve2DNode::SetAndObserveArray( vtkMRMLDoubleArrayNode* node )
+int vtkMRMLOrthogonalLinePlotNode::GetXRange(double* xrange)
 {
-  if (this->Array != NULL)
+  if (this->Direction == VERTICAL)
     {
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->Array, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  this->Array = node;
-
-  if (node != NULL)
-    {
-    vtkEventBroker::GetInstance()->AddObservation(
-      node, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  if ( this->Array != node )
-    {
-    this->Modified();
-    }
-}
-
-
-//----------------------------------------------------------------------------
-int vtkMRMLPlotObjectCurve2DNode::GetXRange(double* xrange)
-{
-  if (this->Array)
-    {
-    double yrange[2];
-    this->Array->GetRange(xrange, yrange, this->PlotError);
+    xrange[0] = xrange[1] = this->Point[0];
     return 1;
     }
   else
@@ -297,129 +275,79 @@ int vtkMRMLPlotObjectCurve2DNode::GetXRange(double* xrange)
 
 
 //----------------------------------------------------------------------------
-int vtkMRMLPlotObjectCurve2DNode::GetYRange(double* yrange)
+int vtkMRMLOrthogonalLinePlotNode::GetYRange(double* yrange)
 {
-  if (this->Array)
+  if (this->Direction == VERTICAL)
     {
-    double xrange[2];
-    this->Array->GetRange(xrange, yrange, this->PlotError);
-    return 1;
+    return 0;
     }
   else
     {
-    return 0;
+    yrange[0] = yrange[1] = this->Point[1];
+    return 1;
     }
 }
 
 
 //----------------------------------------------------------------------------
-vtkDataObject* vtkMRMLPlotObjectCurve2DNode::GetDrawObject(double* xrange, double* yrange)
+vtkDataObject* vtkMRMLOrthogonalLinePlotNode::GetDrawObject(double* xrange, double* yrange)
 {
-  if (this->Array)
+  if (this->Direction == VERTICAL)
     {
-    vtkDoubleArray* array = this->Array->GetArray();
-    vtkFieldData* fieldData = vtkFieldData::New();
-  
-    if (this->PlotError)
+    if (this->Point[0] >= xrange[0] && this->Point[0] < xrange[1])
       {
-      // if error bar plotting is enabled, generate plot data with error bars.
-      vtkDoubleArray* data = CreatePlotDataWithErrorBar(array, xrange, yrange);
-      fieldData->AddArray(data);
-      data->Delete();
+      vtkDoubleArray* value = vtkDoubleArray::New();
+      value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
+      float xy[2];
+      
+      xy[0] = this->Point[0];  xy[1] = yrange[0];
+      value->InsertNextTuple( xy );
+      xy[0] = this->Point[0];  xy[1] = yrange[1]; 
+      value->InsertNextTuple( xy );
+      
+      vtkFieldData* fieldData = vtkFieldData::New();
+      fieldData->AddArray(value);
+      value->Delete();
+      
+      vtkDataObject* dataObject = vtkDataObject::New();
+      dataObject->SetFieldData( fieldData );
+      fieldData->Delete();
+      
+      return dataObject;
       }
     else
       {
-      fieldData->AddArray(array);
+      return NULL;
       }
-    
-    vtkDataObject* dataObject = vtkDataObject::New();
-    dataObject->SetFieldData( fieldData );
-    
-    fieldData->Delete();
-    return dataObject;
     }
-  else
+  else // Horizontal line
     {
-    return NULL;
-    }
-
-}
-
-
-//----------------------------------------------------------------------------
-vtkDoubleArray* vtkMRMLPlotObjectCurve2DNode::CreatePlotDataWithErrorBar(vtkDoubleArray* srcData, double* xrange, double* yrange)
-{
-  vtkDoubleArray* plotData;
-  plotData = vtkDoubleArray::New();
-  plotData->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-  
-  // Check if the data exists and it has 3 components (x, y, and error)
-  if (!srcData || srcData->GetNumberOfComponents() != static_cast<vtkIdType>(3))
-    {
-    int nData = srcData->GetNumberOfTuples();
-    for (int i = 0; i < nData; i ++)
+    if (this->Point[1] >= yrange[0] && this->Point[1] < yrange[1])
       {
-      double* values = srcData->GetTuple(i);
-      plotData->InsertNextTuple( values );
+      vtkDoubleArray* value = vtkDoubleArray::New();
+      value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
+      float xy[2];
+      xy[0] = xrange[0];  xy[1] = this->Point[1]; 
+      value->InsertNextTuple( xy );
+      xy[0] = xrange[1];  xy[1] = this->Point[1]; 
+      value->InsertNextTuple( xy );
+      
+      vtkFieldData* fieldData = vtkFieldData::New();
+      fieldData->AddArray(value);
+      value->Delete();
+      
+      vtkDataObject* dataObject = vtkDataObject::New();
+      dataObject->SetFieldData( fieldData );
+      fieldData->Delete();
+      
+      return dataObject;
       }
-    return plotData;
+    else
+      {
+      return NULL;
+      }
     }
 
-  // Note: Error bar
-  //
-  //        p2
-  //   p0 --+-- p1    ---
-  //        |          ^
-  //        *          | 2 * error
-  //        |          v
-  //   p4 --+-- p5    ---   
-  //        p3
-  //
-  //      |<->| error bar width * 2
-  //
-  // 'error bar width' = ((this->RangeX[1] - this->RangeX[0]) / nData) / 8
-  //
-  
-  int nData = srcData->GetNumberOfTuples();
-  double errorBarWidth;
-
-  if (nData > 10)
-    {
-    errorBarWidth = ((xrange[1] - xrange[0]) / (double)nData) / 8.0;
-    }
-  else
-    {
-    errorBarWidth = ((xrange[1] - xrange[0]) / 10.0) / 8.0;
-    }
-  
-  for (int j = 0; j < nData; j ++)
-    {
-    double* values = srcData->GetTuple(j);
-    double p[6][2];
-    
-    // set x coordinates
-    p[0][0] = p[4][0] = values[0] - errorBarWidth;
-    p[2][0] = p[3][0] = values[0];
-    p[1][0] = p[5][0] = values[0] + errorBarWidth;
-    
-    // set y coordinates
-    p[0][1] = p[1][1] = p[2][1] = values[1] + values[2];
-    p[3][1] = p[4][1] = p[5][1] = values[1] - values[2];
-    
-    // Add data point
-    plotData->InsertNextTuple( values );
-
-    // Add points for error bars
-    plotData->InsertNextTuple( p[2] );
-    plotData->InsertNextTuple( p[0] );
-    plotData->InsertNextTuple( p[1] );
-    plotData->InsertNextTuple( p[2] );
-    plotData->InsertNextTuple( p[3] );
-    plotData->InsertNextTuple( p[4] );
-    plotData->InsertNextTuple( p[5] );
-    plotData->InsertNextTuple( p[3] );
-    plotData->InsertNextTuple( values );
-    }
-
-  return plotData;
 }
+
+

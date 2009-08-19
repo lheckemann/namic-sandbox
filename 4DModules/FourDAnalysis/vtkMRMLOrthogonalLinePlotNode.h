@@ -11,21 +11,21 @@
   Version:   $Revision: 1.3 $
 
 =========================================================================auto=*/
-#ifndef __vtkMRMLPlotObjectOrthogonalLine2DNode_h
-#define __vtkMRMLPlotObjectOrthogonalLine2DNode_h
+#ifndef __vtkMRMLOrthogonalLinePlotNode_h
+#define __vtkMRMLOrthogonalLinePlotNode_h
 
 #include <string>
 #include <vector>
 
 #include "vtkMRML.h"
-#include "vtkMRMLPlotObjectNode.h"
+#include "vtkMRMLPlotNode.h"
 
 #include "vtkObject.h"
 #include "vtkFourDAnalysisWin32Header.h"
 
 #include "vtkDataObject.h"
 
-class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectOrthogonalLine2DNode : public vtkMRMLPlotObjectNode
+class VTK_FourDAnalysis_EXPORT vtkMRMLOrthogonalLinePlotNode : public vtkMRMLPlotNode
 {
 
  public:
@@ -47,8 +47,8 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectOrthogonalLine2DNode : public vt
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
 
-  static vtkMRMLPlotObjectOrthogonalLine2DNode *New();
-  vtkTypeMacro(vtkMRMLPlotObjectOrthogonalLine2DNode, vtkMRMLPlotObjectNode);
+  static vtkMRMLOrthogonalLinePlotNode *New();
+  vtkTypeMacro(vtkMRMLOrthogonalLinePlotNode, vtkMRMLPlotNode);
   
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -115,10 +115,10 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectOrthogonalLine2DNode : public vt
   // Constructor and destroctor
   //----------------------------------------------------------------
  protected:
-  vtkMRMLPlotObjectOrthogonalLine2DNode();
-  ~vtkMRMLPlotObjectOrthogonalLine2DNode();
-  vtkMRMLPlotObjectOrthogonalLine2DNode(const vtkMRMLPlotObjectOrthogonalLine2DNode&);
-  void operator=(const vtkMRMLPlotObjectOrthogonalLine2DNode&);
+  vtkMRMLOrthogonalLinePlotNode();
+  ~vtkMRMLOrthogonalLinePlotNode();
+  vtkMRMLOrthogonalLinePlotNode(const vtkMRMLOrthogonalLinePlotNode&);
+  void operator=(const vtkMRMLOrthogonalLinePlotNode&);
 
 
  protected:

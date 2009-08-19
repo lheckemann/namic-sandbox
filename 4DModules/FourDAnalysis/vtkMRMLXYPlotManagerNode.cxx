@@ -18,7 +18,7 @@ Version:   $Revision: 1.2 $
 
 #include "vtkMRMLScene.h"
 
-#include "vtkMRMLPlotObjectCurve2DNode.h"
+#include "vtkMRMLArrayPlotNode.h"
 
 //------------------------------------------------------------------------------
 vtkMRMLXYPlotManagerNode* vtkMRMLXYPlotManagerNode::New()
@@ -271,7 +271,7 @@ void vtkMRMLXYPlotManagerNode::PrintSelf(ostream& os, vtkIndent indent)
 
 
 //----------------------------------------------------------------------------
-int vtkMRMLXYPlotManagerNode::AddPlot(vtkMRMLPlotObjectNode* node)
+int vtkMRMLXYPlotManagerNode::AddPlotNode(vtkMRMLPlotNode* node)
 {
 
   // Check if the number of arrays hasn't reached to the maximum
@@ -283,7 +283,7 @@ int vtkMRMLXYPlotManagerNode::AddPlot(vtkMRMLPlotObjectNode* node)
 
   // Find unique ID
   int next_id = (this->LastArrayID + 1) % 10000;
-  std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
+  std::map< int, vtkMRMLPlotNode* >::iterator iter;
   while (1)
     {
     iter = this->Data.find(next_id);
@@ -303,10 +303,10 @@ int vtkMRMLXYPlotManagerNode::AddPlot(vtkMRMLPlotObjectNode* node)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotManagerNode::RemovePlot(int id)
+void vtkMRMLXYPlotManagerNode::RemovePlotNode(int id)
 {
   
-  std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
+  std::map< int, vtkMRMLPlotNode* >::iterator iter;
   iter = this->Data.find(id);
 
   if (iter != this->Data.end())
@@ -319,14 +319,14 @@ void vtkMRMLXYPlotManagerNode::RemovePlot(int id)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotManagerNode::RemovePlotByNodeID(const char* nodeID)
+void vtkMRMLXYPlotManagerNode::RemovePlotNodeByNodeID(const char* nodeID)
 {
 
-  std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
+  std::map< int, vtkMRMLPlotNode* >::iterator iter;
 
   for (iter = this->Data.begin(); iter != this->Data.end(); iter ++)
     {
-    vtkMRMLPlotObjectNode* anode = iter->second;
+    vtkMRMLPlotNode* anode = iter->second;
     if (anode && strcmp(anode->GetID(), nodeID) == 0)
       {
       this->Data.erase(iter);
@@ -338,9 +338,9 @@ void vtkMRMLXYPlotManagerNode::RemovePlotByNodeID(const char* nodeID)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotManagerNode::ClearPlots()
+void vtkMRMLXYPlotManagerNode::ClearPlotNodes()
 {
-  std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
+  std::map< int, vtkMRMLPlotNode* >::iterator iter;
   for (iter = this->Data.begin(); iter != this->Data.end(); iter ++)
     {
     if (iter->second)
@@ -357,21 +357,21 @@ void vtkMRMLXYPlotManagerNode::ClearPlots()
 
 
 //----------------------------------------------------------------------------
-unsigned int vtkMRMLXYPlotManagerNode::GetNumberOfPlots()
+unsigned int vtkMRMLXYPlotManagerNode::GetNumberOfPlotNodes()
 {
   this->Data.size();
 }
 
 
 //----------------------------------------------------------------------------
-vtkIntArray* vtkMRMLXYPlotManagerNode::GetPlotIDList()
+vtkIntArray* vtkMRMLXYPlotManagerNode::GetPlotNodeIDList()
 {
 
   vtkIntArray* list;
     
   list = vtkIntArray::New();
   
-  std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
+  std::map< int, vtkMRMLPlotNode* >::iterator iter;
   for (iter = this->Data.begin(); iter != this->Data.end(); iter ++)
     {
     
@@ -384,10 +384,10 @@ vtkIntArray* vtkMRMLXYPlotManagerNode::GetPlotIDList()
 
 
 //----------------------------------------------------------------------------
-vtkMRMLPlotObjectNode* vtkMRMLXYPlotManagerNode::GetPlot(int id)
+vtkMRMLPlotNode* vtkMRMLXYPlotManagerNode::GetPlotNode(int id)
 {
 
-  std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
+  std::map< int, vtkMRMLPlotNode* >::iterator iter;
   iter = this->Data.find(id);
 
   if (iter != this->Data.end())
@@ -404,13 +404,13 @@ vtkMRMLPlotObjectNode* vtkMRMLXYPlotManagerNode::GetPlot(int id)
 //----------------------------------------------------------------------------
 void vtkMRMLXYPlotManagerNode::SetVisibilityAll(int i)
 {
-  std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
+  std::map< int, vtkMRMLPlotNode* >::iterator iter;
 
   for (iter = this->Data.begin();
        iter != this->Data.end();
        iter ++)
     {
-    vtkMRMLPlotObjectNode* node = (iter->second);
+    vtkMRMLPlotNode* node = (iter->second);
     if (node)
       {
       node->SetVisible(i);
@@ -423,16 +423,16 @@ void vtkMRMLXYPlotManagerNode::SetVisibilityAll(int i)
 //----------------------------------------------------------------------------
 void vtkMRMLXYPlotManagerNode::SetErrorBarAll(int i)
 {
-  std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
+  std::map< int, vtkMRMLPlotNode* >::iterator iter;
   
   for (iter = this->Data.begin();
        iter != this->Data.end();
        iter ++)
     {
-    vtkMRMLPlotObjectNode* node = (iter->second);
+    vtkMRMLPlotNode* node = (iter->second);
     if (node && strcmp(node->GetNodeTagName(), "PlotObject") == 0)
       {
-      vtkMRMLPlotObjectCurve2DNode* cnode = vtkMRMLPlotObjectCurve2DNode::SafeDownCast(node);
+      vtkMRMLArrayPlotNode* cnode = vtkMRMLArrayPlotNode::SafeDownCast(node);
       if (cnode)
         {
         cnode->SetPlotError(i);
