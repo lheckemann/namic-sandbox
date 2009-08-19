@@ -1,12 +1,12 @@
 /*=auto=========================================================================
 
-  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $RCSfile: vtkMRML4DBundleNode.h,v $
+  Module:    $RCSfile: vtkIntensityCurve.h,v $
   Date:      $Date: 2006/03/19 17:12:29 $
   Version:   $Revision: 1.13 $
 
@@ -19,7 +19,8 @@
 #include "vtkObject.h"
 #include "vtkFourDAnalysisWin32Header.h"
 
-#include "vtkMRML4DBundleNode.h"
+#include "vtkMRMLTimeSeriesBundleNode.h"
+#include "vtkMRMLDoubleArrayNode.h"
 
 class VTK_FourDAnalysis_EXPORT vtkIntensityCurves : public vtkObject
 {
@@ -32,7 +33,8 @@ class VTK_FourDAnalysis_EXPORT vtkIntensityCurves : public vtkObject
   } CoordType;
   typedef std::vector<CoordType>         IndexTableType;
   typedef std::map<int, IndexTableType>  IndexTableMapType;  // IndexTableMapType[label]
-  typedef std::map<int, vtkDoubleArray*> IntensityCurveMapType;
+  //typedef std::map<int, vtkDoubleArray*> IntensityCurveMapType;
+  typedef std::map<int, vtkMRMLDoubleArrayNode*> IntensityCurveMapType;
   //ETX
 
  public:
@@ -42,15 +44,18 @@ class VTK_FourDAnalysis_EXPORT vtkIntensityCurves : public vtkObject
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  vtkGetObjectMacro ( BundleNode, vtkMRML4DBundleNode );
-  vtkSetObjectMacro ( BundleNode, vtkMRML4DBundleNode );
+  vtkGetObjectMacro ( BundleNode, vtkMRMLTimeSeriesBundleNode );
+  vtkSetObjectMacro ( BundleNode, vtkMRMLTimeSeriesBundleNode );
   vtkGetObjectMacro ( MaskNode,   vtkMRMLScalarVolumeNode );
   vtkSetObjectMacro ( MaskNode,   vtkMRMLScalarVolumeNode );
+  vtkSetObjectMacro ( MRMLScene,  vtkMRMLScene);
+  vtkGetObjectMacro ( MRMLScene,  vtkMRMLScene);
 
-  void            SetInterval(double interval) { this->Interval = interval; };
+  //void            SetInterval(double interval) { this->Interval = interval; };
   int             Update();
   vtkIntArray*    GetLabelList();
-  vtkDoubleArray* GetCurve(int label);
+  //vtkDoubleArray* GetCurve(int label);
+  vtkMRMLDoubleArrayNode* GetCurve(int label);
   int             OutputDataInCSV(ostream& os, int label);
 
  protected:
@@ -65,15 +70,17 @@ class VTK_FourDAnalysis_EXPORT vtkIntensityCurves : public vtkObject
 
  private:
 
-  vtkMRML4DBundleNode*     BundleNode;
+  vtkMRMLTimeSeriesBundleNode*     BundleNode;
   vtkMRMLScalarVolumeNode* MaskNode;
 
-  vtkMRML4DBundleNode*     PreviousBundleNode;
+  vtkMRMLTimeSeriesBundleNode*     PreviousBundleNode;
   vtkMRMLScalarVolumeNode* PreviousMaskNode;
 
   IntensityCurveMapType IntensityCurve;  // IntensityCurveMean[label]
   long                  PreviousUpdateTime;
   double                Interval;        // interval (s)
+
+  vtkMRMLScene*         MRMLScene;
 
 };
 

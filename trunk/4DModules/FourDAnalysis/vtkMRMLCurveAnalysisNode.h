@@ -1,6 +1,6 @@
 /*=auto=========================================================================
 
-  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -57,45 +57,66 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLCurveAnalysisNode : public vtkMRMLNode
   virtual const char* GetNodeTagName()
     {return "CurveAnalysis";};
 
-  vtkSetObjectMacro( SourceData, vtkDoubleArray );
-  vtkGetObjectMacro( SourceData, vtkDoubleArray );
-  vtkSetObjectMacro( FittedData, vtkDoubleArray );
-  vtkGetObjectMacro( FittedData, vtkDoubleArray );
+  vtkSetObjectMacro( TargetCurve, vtkDoubleArray );
+  vtkGetObjectMacro( TargetCurve, vtkDoubleArray );
+  vtkSetObjectMacro( FittedCurve, vtkDoubleArray );
+  vtkGetObjectMacro( FittedCurve, vtkDoubleArray );
 
-  void SetFunctionName(const char* name)
+  //void SetFunctionName(const char* name)
+  //{
+  //  this->FunctionName = name;
+  //}
+  //
+  //const char* GetFunctionName()
+  //{
+  //  return this->FunctionName.c_str();
+  //}
+
+  void SetMethodName(const char* name)
   {
-    this->FunctionName = name;
+    this->MethodName = name;
+  }
+  
+  const char* GetMethodName()
+  {
+    return this->MethodName.c_str();
   }
 
-  const char* GetFunctionName()
+
+  void SetMethodDescription(const char* desc)
   {
-    return this->FunctionName.c_str();
+    this->MethodDescription = desc;
+  }
+  
+  const char* GetMethodDescription()
+  {
+    return this->MethodName.c_str();
   }
 
   // Input curve data
-  void SetInputData(const char* name, vtkDoubleArray* data);
-  void AddInputDataName(const char* name) { SetInputData(name, NULL); };
-  vtkDoubleArray* GetInputData(const char* name);
-  vtkStringArray* GetInputDataNameArray();
-  void ClearInputData();
+  void SetInputArray(const char* name, vtkDoubleArray* data);
+  void AddInputArrayName(const char* name) { SetInputArray(name, NULL); };
+  vtkDoubleArray* GetInputArray(const char* name);
+  vtkStringArray* GetInputArrayNameArray();
+  void ClearInputArrays();
 
   // Initial optimization parameters
-  void SetInitialOptimParameter(const char* name, double value);
-  double GetInitialOptimParameter(const char* name);
-  vtkStringArray* GetInitialOptimParameterNameArray();
-  void ClearInitialOptimParameters();
+  void SetInitialParameter(const char* name, double value);
+  double GetInitialParameter(const char* name);
+  vtkStringArray* GetInitialParameterNameArray();
+  void ClearInitialParameters();
 
-  // Input parameters
-  void SetInputParameter(const char *name, const double value);
-  double GetInputParameter(const char* name);
-  vtkStringArray* GetInputParameterNameArray();
-  void ClearInputParameters();
+  // Constant
+  void SetConstant(const char *name, const double value);
+  double GetConstant(const char* name);
+  vtkStringArray* GetConstantNameArray();
+  void ClearConstants();
   
-  // Output parameters
-  void SetParameter(const char *name, const double value);
-  double GetParameter(const char* name);
-  vtkStringArray* GetParameterNameArray();
-  void ClearParameters();
+  // Output values
+  void SetOutputValue(const char *name, const double value);
+  double GetOutputValue(const char* name);
+  vtkStringArray* GetOutputValueNameArray();
+  void ClearOutputValues();
 
 
 private:
@@ -103,17 +124,19 @@ private:
   ~vtkMRMLCurveAnalysisNode();
   vtkMRMLCurveAnalysisNode(const vtkMRMLCurveAnalysisNode&);
   void operator=(const vtkMRMLCurveAnalysisNode&);
+  
+  vtkDoubleArray* TargetCurve;
+  vtkDoubleArray* FittedCurve;
 
-  vtkDoubleArray* SourceData;
-  vtkDoubleArray* FittedData;
-
-  ValueMapType    InputParameters;
-  ValueMapType    OutputParameters;
-  ArrayMapType    InputData;
-  ValueMapType    InitialOptimParameters;
+  ValueMapType    Constants;
+  ValueMapType    OutputValues;
+  ArrayMapType    InputArrays;
+  ValueMapType    InitialParameters;
 
   //BTX
-  std::string FunctionName;
+  //std::string FunctionName;
+  std::string MethodName;
+  std::string MethodDescription;
   //ETX
 
 };
