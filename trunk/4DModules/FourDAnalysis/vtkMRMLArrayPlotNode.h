@@ -68,7 +68,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLArrayPlotNode : public vtkMRMLPlotNode
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
-    {return "PlotObjectCurve2D";};
+    {return "ArrayPlot";};
 
   // Description:
   // Method to propagate events generated in mrml

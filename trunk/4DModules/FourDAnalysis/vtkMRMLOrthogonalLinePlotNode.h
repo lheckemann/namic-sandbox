@@ -69,7 +69,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLOrthogonalLinePlotNode : public vtkMRMLPlo
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
-    {return "PlotObjectLine2D";};
+    {return "OrthogonalLinePlot";};
 
   // Description:
   // Method to propagate events generated in mrml

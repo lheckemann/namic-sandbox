@@ -298,7 +298,6 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
   if (autoX && autoY)
     {
     vtkMRMLPlotNode* node;
-    int errorBar;
 
     double rangeX[2];
     double rangeY[2];
@@ -328,6 +327,7 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
       node = this->XYPlotNode->GetPlotNode(id);
       //errorBar = this->XYPlotNode->GetErrorBar(id);
       //node->GetRange(rangeX, rangeY, errorBar);
+          
       if (autoX && node->GetXRange(rangeX))
         {
         if (rangeX[0] < this->RangeX[0])

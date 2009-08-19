@@ -430,7 +430,7 @@ void vtkMRMLXYPlotManagerNode::SetErrorBarAll(int i)
        iter ++)
     {
     vtkMRMLPlotNode* node = (iter->second);
-    if (node && strcmp(node->GetNodeTagName(), "PlotObject") == 0)
+    if (node)
       {
       vtkMRMLArrayPlotNode* cnode = vtkMRMLArrayPlotNode::SafeDownCast(node);
       if (cnode)
