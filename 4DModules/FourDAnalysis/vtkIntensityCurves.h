@@ -33,7 +33,6 @@ class VTK_FourDAnalysis_EXPORT vtkIntensityCurves : public vtkObject
   } CoordType;
   typedef std::vector<CoordType>         IndexTableType;
   typedef std::map<int, IndexTableType>  IndexTableMapType;  // IndexTableMapType[label]
-  //typedef std::map<int, vtkDoubleArray*> IntensityCurveMapType;
   typedef std::map<int, vtkMRMLDoubleArrayNode*> IntensityCurveMapType;
   //ETX
 

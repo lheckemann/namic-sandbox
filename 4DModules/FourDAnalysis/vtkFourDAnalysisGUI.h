@@ -153,6 +153,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void UpdateSeriesSelectorMenus();
   //  void UpdateMaskSelectMenu();
 
+  void UpdatePlotList();
+
   void UpdateMethodNameField(vtkMRMLCurveAnalysisNode* curveNode);
   void UpdateInitialParameterList(vtkMRMLCurveAnalysisNode* curveNode);
   void GetInitialParametersAndInputCurves(vtkMRMLCurveAnalysisNode* curveNode, int start, int end);
@@ -203,6 +205,8 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   //vtkKWPlotGraph*      IntensityPlot;
   vtkSlicerXYPlotWidget*     IntensityPlot;
   vtkKWCheckButtonWithLabel* ErrorBarCheckButton;
+  vtkKWMultiColumnListWithScrollbars* PlotList;
+
 
   vtkKWMenuButton*     FittingLabelMenu;
   vtkKWLoadSaveButtonWithLabel* CurveScriptSelectButton;
