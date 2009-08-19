@@ -1,0 +1,13 @@
+NRRD0004
+# Complete NRRD file format specification at:
+# http://teem.sourceforge.net/nrrd/format.html
+type: short
+dimension: 3
+space: left-posterior-superior
+sizes: 75 77 98
+space directions: (0.616,0,0) (0,0.616,0) (0,0,0.616)
+kinds: domain domain domain
+endian: little
+encoding: gzip
+space origin: (-20.156,-52.9685,2.1)
+data file: MRMeningioma0_VOI_SuperSampled.raw.gz
