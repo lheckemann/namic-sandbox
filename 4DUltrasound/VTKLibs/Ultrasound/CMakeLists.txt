@@ -2,23 +2,24 @@
 # Source files
 #
 
-IF(USE_ULTRASOUND_DEVICE)  
-  #Use Ultrasound device
+#IF(USE_ULTRASOUND_DEVICE)  
+#  #Use Ultrasound device
   SET (Ultrasound_SRCS
     vtkV4L2VideoSource.cxx
-    vtkTaggedImageFilter.cxx
-    vtkUltrasoundCalibFileReader.cxx
-    vtk3DPanoramicVolumeReconstructor.cxx
-  )
-ELSE(USE_ULTRASOUND_DEVICE)  
-  #Use Ultrasound simulator
-  SET (Ultrasound_SRCS
     vtkVideoSourceSimulator.cxx
     vtkTaggedImageFilter.cxx
     vtkUltrasoundCalibFileReader.cxx
     vtk3DPanoramicVolumeReconstructor.cxx
   )
-ENDIF(USE_ULTRASOUND_DEVICE)  
+#ELSE(USE_ULTRASOUND_DEVICE)  
+#  #Use Ultrasound simulator
+#  SET (Ultrasound_SRCS
+#    vtkVideoSourceSimulator.cxx
+#    vtkTaggedImageFilter.cxx
+#    vtkUltrasoundCalibFileReader.cxx
+#    vtk3DPanoramicVolumeReconstructor.cxx
+#  )
+#ENDIF(USE_ULTRASOUND_DEVICE)  
 
 #
 # Libraries (starts empty)
