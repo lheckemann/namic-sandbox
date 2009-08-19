@@ -182,6 +182,8 @@ protected:
   double TransformationFactorMmToPixel;
   bool ReconstructionEnabled;
 
+  double ImageSpacing[3];
+
   //Multithreader to run a thread of collecting and sending data
   vtkMultiThreader *PlayerThreader;
   int PlayerThreadId;
