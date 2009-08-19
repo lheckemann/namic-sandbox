@@ -107,7 +107,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectOrthogonalLine2DNode : public vt
   virtual int GetYRange(double* yrange);
 
   // Description:
-  // Get draw object (this funciton is called by vtkMRMLXYPlotNode)
+  // Get draw object (this funciton is called by vtkMRMLXYPlotManagerNode)
   virtual vtkDataObject* GetDrawObject(double* xrange, double* yrange);
 
 

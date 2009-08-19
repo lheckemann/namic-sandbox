@@ -162,9 +162,9 @@ void vtkSlicerXYPlotWidget::ProcessMRMLEvents ( vtkObject * caller,
 {
 
   if ((this->AutoUpdate && event == vtkCommand::ModifiedEvent) ||
-      event == vtkMRMLXYPlotNode::UpdateGraphEvent)
+      event == vtkMRMLXYPlotManagerNode::UpdateGraphEvent)
     {
-    vtkMRMLXYPlotNode* pnode = vtkMRMLXYPlotNode::SafeDownCast(caller);
+    vtkMRMLXYPlotManagerNode* pnode = vtkMRMLXYPlotManagerNode::SafeDownCast(caller);
     if (pnode)
       {
       this->UpdateGraph();
@@ -227,7 +227,7 @@ void vtkSlicerXYPlotWidget::SetMRMLScene( vtkMRMLScene *aMRMLScene)
 
 
 //----------------------------------------------------------------------------
-void vtkSlicerXYPlotWidget::SetAndObserveXYPlotNode(vtkMRMLXYPlotNode* node)
+void vtkSlicerXYPlotWidget::SetAndObserveXYPlotNode(vtkMRMLXYPlotManagerNode* node)
 {
 
   if (this->XYPlotNode)
@@ -239,11 +239,11 @@ void vtkSlicerXYPlotWidget::SetAndObserveXYPlotNode(vtkMRMLXYPlotNode* node)
   
   if (node)
     {
-    vtkMRMLXYPlotNode* pnode = this->GetXYPlotNode();
+    vtkMRMLXYPlotManagerNode* pnode = this->GetXYPlotNode();
     
     vtkIntArray *events = vtkIntArray::New();
     events->InsertNextValue(vtkCommand::ModifiedEvent);
-    events->InsertNextValue(vtkMRMLXYPlotNode::UpdateGraphEvent);
+    events->InsertNextValue(vtkMRMLXYPlotManagerNode::UpdateGraphEvent);
     vtkSetAndObserveMRMLObjectEventsMacro(this->XYPlotNode, pnode, events);
     events->Delete();
     }

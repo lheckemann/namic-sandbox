@@ -100,7 +100,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectCurve2DNode : public vtkMRMLPlot
   virtual int GetYRange(double* yrange);
 
   // Description:
-  // Get draw object (this funciton is called by vtkMRMLXYPlotNode)
+  // Get draw object (this funciton is called by vtkMRMLXYPlotManagerNode)
   virtual vtkDataObject* GetDrawObject(double* xrange, double* yrange);
 
   //----------------------------------------------------------------
@@ -111,7 +111,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectCurve2DNode : public vtkMRMLPlot
  protected:
 
   // Description:
-  // Get draw object (this funciton is called by vtkMRMLXYPlotNode)
+  // Get draw object (this funciton is called by vtkMRMLXYPlotManagerNode)
   virtual vtkDataObject* GetDrawObject() {};
 
   //----------------------------------------------------------------

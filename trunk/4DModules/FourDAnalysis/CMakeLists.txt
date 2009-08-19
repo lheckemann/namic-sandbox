@@ -61,7 +61,7 @@ set(FourDAnalysis_SRCS
   vtkMRMLCurveAnalysisNode.cxx
   vtkCurveAnalysisPythonInterface.cxx
   vtkMRMLDoubleArrayNode.cxx
-  vtkMRMLXYPlotNode.cxx
+  vtkMRMLXYPlotManagerNode.cxx
   vtkMRMLPlotObjectNode.cxx
   vtkMRMLPlotObjectOrthogonalLine2DNode.cxx
   vtkMRMLPlotObjectCurve2DNode.cxx

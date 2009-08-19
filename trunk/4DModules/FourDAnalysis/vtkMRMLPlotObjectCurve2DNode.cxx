@@ -62,6 +62,14 @@ vtkMRMLPlotObjectCurve2DNode::vtkMRMLPlotObjectCurve2DNode()
 //----------------------------------------------------------------------------
 vtkMRMLPlotObjectCurve2DNode::~vtkMRMLPlotObjectCurve2DNode()
 {
+  if (this->Array)
+    {
+    vtkEventBroker::GetInstance()->RemoveObservations(
+      this->Array, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    }
+  this->Array->Delete();
+  this->Array = NULL;
+
 }
 
 
@@ -230,23 +238,12 @@ void vtkMRMLPlotObjectCurve2DNode::ProcessMRMLEvents( vtkObject *caller, unsigne
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
-  //if (this->TargetPlanList && this->TargetPlanList == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
-  //  event ==  vtkCommand::ModifiedEvent)
-  //  {
-  //  //this->ModifiedSinceReadOn();
-  //  //this->InvokeEvent(vtkMRMLVolumeNode::ImageDataModifiedEvent, NULL);
-  //  //this->UpdateFromMRML();
-  //  return;
-  //  }
-  //
-  //if (this->TargetCompletedList && this->TargetCompletedList == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
-  //  event ==  vtkCommand::ModifiedEvent)
-  //  {
-  //  //this->ModifiedSinceReadOn();
-  //  //this->InvokeEvent(vtkMRMLVolumeNode::ImageDataModifiedEvent, NULL);
-  //  //this->UpdateFromMRML();
-  //  return;
-  //  }
+  if (this->Array == vtkMRMLDoubleArrayNode::SafeDownCast(caller) &&
+      event ==  vtkCommand::ModifiedEvent)
+    {
+    this->Modified();
+    return;
+    }
 
   return;
 }

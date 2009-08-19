@@ -277,7 +277,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkCurveAnalysisPythonInterface* CurveAnalysisScript;
 
 
-  vtkMRMLXYPlotNode* PlotNode;
+  vtkMRMLXYPlotManagerNode* PlotNode;
 
 };
 

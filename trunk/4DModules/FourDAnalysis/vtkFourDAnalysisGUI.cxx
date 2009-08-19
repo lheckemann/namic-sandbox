@@ -1501,7 +1501,7 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   //this->IntensityPlot->UpdateGraph();
   this->IntensityPlot->SetMRMLScene(this->GetMRMLScene());
 
-  this->PlotNode = vtkMRMLXYPlotNode::New();
+  this->PlotNode = vtkMRMLXYPlotManagerNode::New();
   this->GetMRMLScene()->AddNode(this->PlotNode);
   this->IntensityPlot->SetAndObserveXYPlotNode(this->PlotNode);
   this->PlotNode->Refresh();
