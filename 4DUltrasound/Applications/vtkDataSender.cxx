@@ -86,63 +86,72 @@ vtkStandardNewMacro(vtkDataSender);
 //----------------------------------------------------------------------------
 vtkDataSender::vtkDataSender()
 {
-  this->Initialized = false;
-  this->CalibrationFileName = NULL;
-  this->calibReader = vtkUltrasoundCalibFileReader::New();
+  this->Initialized                   = false;
+  this->CalibrationFileName           = NULL;
+  this->calibReader                   = vtkUltrasoundCalibFileReader::New();
 
-  this->ServerPort = 18944;
-  this->OIGTLServer = NULL;
+  this->ServerPort                    = 18944;
+  this->OIGTLServer                   = NULL;
   this->SetOIGTLServer("localhost");
-  this->SendPeriod = 1.0 /(30.0 * 1.5);
+  this->SendPeriod                    = 1.0 /(30.0 * 1.5);
 
-  this->socket = NULL;
-  this->socket = igtl::ClientSocket::New();
+  this->socket                        = NULL;
+  this->socket                        = igtl::ClientSocket::New();
 
-  this->Verbose = false;
+  this->Verbose                       = false;
 
-  this->Connected = false;
-  this->Sending = false;
+  this->Connected                     = false;
+  this->Sending                       = false;
 
-  this->PlayerThreader = vtkMultiThreader::New();;
-  this->PlayerThreadId = -1;
-  this->IndexLockedByDataSender = -1;
-  this->IndexLockedByDataProcessor = -1;
-  this->IndexLock = vtkMutexLock::New();
+  this->PlayerThreader                = vtkMultiThreader::New();;
+  this->PlayerThreadId                = -1;
+  this->IndexLockedByDataSender       = -1;
+  this->IndexLockedByDataProcessor    = -1;
+  this->IndexLock                     = vtkMutexLock::New();
 
-  this->SendDataBufferSize = 10;
-  this->SendDataBufferIndex = -1;
+  this->SendDataBufferSize            = 10;
+  this->SendDataBufferIndex           = -1;
 
-  this->frameProperties.Set = false;
+  this->frameProperties.Set           = false;
   this->frameProperties.SubVolumeOffset[0] = 0;
   this->frameProperties.SubVolumeOffset[1] = 0;
   this->frameProperties.SubVolumeOffset[2] = 0;
 
-  this->StartUpTime = vtkTimerLog::GetUniversalTime();
+  this->StartUpTime                   = vtkTimerLog::GetUniversalTime();
   this->LogStream.ostream::rdbuf(cerr.rdbuf());
 
-  this->lastFrameRateUpdate = 0;
-  this->UpDateCounter = 0;
+  this->lastFrameRateUpdate           = 0;
+  this->UpDateCounter                 = 0;
 
-  this->TransformationFactorMmToPixel =  10;
+  this->TransformationFactorMmToPixel = 10;
 
-  this->Statistics.fpsCounter = 0;
-  this->Statistics.meanFPS = 0;
-  this->Statistics.maxFPS = -1;
-  this->Statistics.minFPS = 30;
-  this->Statistics.volumeCounter = 0;
-  this->Statistics.meanVolumeSize[0] = 0;
-  this->Statistics.meanVolumeSize[1] = 0;
-  this->Statistics.meanVolumeSize[2] = 0;
-  this->Statistics.maxVolumeSize[0] = 0;
-  this->Statistics.maxVolumeSize[1] = 0;
-  this->Statistics.maxVolumeSize[2] = 0;
-  this->Statistics.minVolumeSize[0] = 0;
-  this->Statistics.minVolumeSize[1] = 0;
-  this->Statistics.minVolumeSize[2] = 0;
+  this->Statistics.fpsCounter         = 0;
 
-  this->ReconstructionEnabled = false;
+  this->Statistics.meanFPS            = 0;
+  this->Statistics.maxFPS             = -1;
+  this->Statistics.minFPS             = 30;
 
-  this->FrameCounter = 0;
+  this->Statistics.volumeCounter      = 0;
+
+  this->Statistics.meanVolumeSize[0]  = 0;
+  this->Statistics.meanVolumeSize[1]  = 0;
+  this->Statistics.meanVolumeSize[2]  = 0;
+
+  this->Statistics.maxVolumeSize[0]   = 0;
+  this->Statistics.maxVolumeSize[1]   = 0;
+  this->Statistics.maxVolumeSize[2]   = 0;
+
+  this->Statistics.minVolumeSize[0]   = 0;
+  this->Statistics.minVolumeSize[1]   = 0;
+  this->Statistics.minVolumeSize[2]   = 0;
+
+  this->ReconstructionEnabled         = false;
+
+  this->FrameCounter                  = 0;
+
+  this->ImageSpacing[0]               = 1;
+  this->ImageSpacing[1]               = 1;
+  this->ImageSpacing[2]               = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -185,7 +194,6 @@ vtkDataSender::~vtkDataSender()
 void vtkDataSender::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-
 }
 
 //----------------------------------------------------------------------------
@@ -212,7 +220,7 @@ int vtkDataSender::Initialize()
 
    this->SetServerPort(this->calibReader->GetOpenIGTLinkServerPortUltrasound ());
 
-   this->calibReader->GetImageSpacing(this->frameProperties.Spacing);
+   this->calibReader->GetImageSpacing(this->ImageSpacing);
 
    }
   else
@@ -635,9 +643,13 @@ int vtkDataSender::PrepareImageMessage(int index,
     #else
     if(this->ReconstructionEnabled)
       {
-      this->frameProperties.Spacing[0] = 1;
-      this->frameProperties.Spacing[1] = 1;
-      this->frameProperties.Spacing[2] = 1;
+//      this->frameProperties.Spacing[0] = 1;
+//      this->frameProperties.Spacing[1] = 1;
+//      this->frameProperties.Spacing[2] = 1;
+
+      this->frameProperties.Spacing[0] = this->ImageSpacing[0];
+      this->frameProperties.Spacing[1] = this->ImageSpacing[1];
+      this->frameProperties.Spacing[2] = this->ImageSpacing[2];
       }
     this->frameProperties.Origin[0] = (float) frame->GetOrigin()[0];
     this->frameProperties.Origin[1] = (float) frame->GetOrigin()[1];
@@ -758,7 +770,14 @@ int vtkDataSender::PrepareImageMessage(int index,
                     << this->frameProperties.Size[0] << " | "
                     << this->frameProperties.Size[1] << " | "
                     << this->frameProperties.Size[2] << endl
-                    << "           | Origin: " << this->frameProperties.Origin[0]<< "|" << this->frameProperties.Origin[1]<< "|" << this->frameProperties.Origin[2]<< endl
+                    << "           | Spacing: "
+                    << this->frameProperties.Spacing[0] << " | "
+                    << this->frameProperties.Spacing[1] << " | "
+                    << this->frameProperties.Spacing[2] << endl
+                    << "           | Origin: "
+                    << this->frameProperties.Origin[0]<< "|"
+                    << this->frameProperties.Origin[1]<< "|"
+                    << this->frameProperties.Origin[2]<< endl
                     << "           | Copied Pixels: "<< counter << " | Copy time: " << this->GetUpTime() - copyStart <<endl
                     << "           | Index: " << index << " | "  <<endl;
   #endif
