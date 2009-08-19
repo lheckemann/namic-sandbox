@@ -119,6 +119,9 @@ public:
   
   vtkGetMacro(VolumeReconstructionEnabled, bool);
   
+  vtkSetMacro(CollectCalibrationData, bool);
+  vtkGetMacro(CollectCalibrationData, bool);
+
   int NewData(struct DataStruct dataStruct);
   int EnableVolumeReconstruction(bool flag);
   int StartProcessing(vtkDataSender * sender);
@@ -153,6 +156,7 @@ protected:
   bool DynamicVolumeSize;
   bool VolumeInitialized;
   vtkMatrix4x4 *CoordinateTransformationMatrix;
+  bool CollectCalibrationData;
 
   std::queue<int> dataBufferIndexQueue; //Stores index of incoming objects
   int dataBufferSize; //Maximum amount of items that can be stored at the same time

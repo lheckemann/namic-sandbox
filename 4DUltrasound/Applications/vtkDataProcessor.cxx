@@ -129,6 +129,8 @@ vtkDataProcessor::vtkDataProcessor()
 
   this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
   this->CoordinateTransformationMatrix->Identity();
+
+  this->CollectCalibrationData = false;
 }
 
 /******************************************************************************
@@ -622,7 +624,10 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
 
     this->Reconstructor->SetReconstructionThreshold(this->calibReader->GetReconstructionThreshold());
 
-    this->CoordinateTransformationMatrix->DeepCopy(this->calibReader->GetCoordinateTransformationMatrix());
+    if(!this->GetCollectCalibrationData())
+      {
+      this->CoordinateTransformationMatrix->DeepCopy(this->calibReader->GetCoordinateTransformationMatrix());
+      }
 
     this->ReconstructorLifeTime = 500;
     }
@@ -807,8 +812,6 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     }
   else
     {
-//    if(volumeSize <= this->GetMaximumVolumeSize())//include in 716
-//      {
       //Check if volume properties have changed
       if(dataSenderIndex == -2 || (originChanged || extentChanged))
         {
@@ -1135,7 +1138,7 @@ int vtkDataProcessor::ForwardData(vtkImageData * image)
                       << "         | Pixels: "<< counter << " | Data Sender Index: " << retval << endl
                       << "         | Volume Dimensions: "<< volumeToForward->GetDimensions()[0] << " | "<< volumeToForward->GetDimensions()[1] << " | "<< volumeToForward->GetDimensions()[2] << " | " << endl
                       << "         | Origin: " << matrix->Element[0][3] << " | " << matrix->Element[1][3] << " | " << matrix->Element[2][3] << endl
-                      << "         | SenderIndex: "<< retval << " | "  << endl;
+                      << "         | SenderIndex: "<< retval << endl;
     #endif
     }
   else
