@@ -35,11 +35,6 @@ ENDIF(COMMAND CMAKE_POLICY)
 #
 ADD_DEFINITIONS(-DIGTLSTATIC=1)
 
-#
-# Enable / Disable Hardware Simulators
-#
-OPTION(USE_ULTRASOUND_DEVICE "Use Ultrasound Device." OFF)
-
 # 
 # Whether to build with shared libs: define our own symbol
 #
