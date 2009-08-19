@@ -108,6 +108,9 @@ vtkUltrasoundCalibFileReader::vtkUltrasoundCalibFileReader()
   this->CoordinateTransformationMatrix = vtkMatrix4x4::New();
   this->CoordinateTransformationMatrix->Identity();
   
+  this->OrientationAtCalibrationMatrix = vtkMatrix4x4::New();
+  this->OrientationAtCalibrationMatrix->Identity();
+
   this->MaximumVolumeSize[0] = -1;
   this->MaximumVolumeSize[1] = -1;
   this->MaximumVolumeSize[2] = -1;
@@ -118,26 +121,35 @@ vtkUltrasoundCalibFileReader::vtkUltrasoundCalibFileReader()
 //----------------------------------------------------------------------------
 vtkUltrasoundCalibFileReader::~vtkUltrasoundCalibFileReader()
 {
-  this->SetFileName(0);
-  this->FileStream = 0;
+  this->SetFileName(NULL);
+  this->FileStream = NULL;
 
   if(this->TrackerCalibrationMatrix)
     {
     this->TrackerCalibrationMatrix->Delete();
+    this->TrackerCalibrationMatrix = NULL;
     }
 
   if(this->CoordinateTransformationMatrix)
     {
     this->CoordinateTransformationMatrix->Delete();
+    this->CoordinateTransformationMatrix = NULL;
     }
 
   if(this->HomogeneousMatrix)
     {
     this->HomogeneousMatrix->Delete();
+    this->HomogeneousMatrix = NULL;
     }
   if(this->CalibrationMatrix)
     {
     this->CalibrationMatrix->Delete();
+    this->CalibrationMatrix = NULL;
+    }
+  if(this->OrientationAtCalibrationMatrix)
+    {
+    this->OrientationAtCalibrationMatrix->Delete();
+    this->OrientationAtCalibrationMatrix = NULL;
     }
 }
 
@@ -271,9 +283,9 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
    this->ReadNumbers(numbers);
    if (numbers.size() == 3)
      {
-     this->ImageSpacing[0] = int(numbers.at(0));
-     this->ImageSpacing[1] = int(numbers.at(1));
-     this->ImageSpacing[2] = int(numbers.at(2));
+     this->ImageSpacing[0] = numbers.at(0);
+     this->ImageSpacing[1] = numbers.at(1);
+     this->ImageSpacing[2] = numbers.at(2);
      #ifdef DEBUG_CALIBRATIONFILE_READER
      this->LogStream << "CF-INFO: Image Spacing is " << this->ImageSpacing[0] << "| "<< this->ImageSpacing[1]<< "| "<< this->ImageSpacing[2] << endl;
      #endif
@@ -364,7 +376,7 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
     }
   this->ReadBlankLines();
   
-  //Read Tracker obliqueness adjustment matrix
+  //Read Tracker calibration matrix
   this->ReadComments();
   numbers.clear();
   this->ReadNumbers(numbers);
@@ -379,19 +391,46 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
        }
       }
     #ifdef DEBUG_CALIBRATIONFILE_READER
-    this->LogStream << "CF-INFO: Obliqueness adjustment matrix is: " << endl;
+    this->LogStream << "CF-INFO: Calibration matrix is: " << endl;
     this->TrackerCalibrationMatrix->Print(this->LogStream);
     #endif
     }
   else
     {
-    this->LogStream << "ERROR in Calibration File: Cannot read obliqueness adjustment matrix" << endl;
+    this->LogStream << "ERROR in Calibration File: Cannot read calibration matrix" << endl;
     return -1;
     }
   
-   this->ReadBlankLines();
-    
-  //Read Tracker coordinate adjustment matrix
+  this->ReadBlankLines();
+
+  //Read orientation at calibration matrix
+  this->ReadComments();
+  numbers.clear();
+  this->ReadNumbers(numbers);
+  vecIndex = 0;
+  if (numbers.size() == 16)
+    {
+    for (int i = 0; i < 4; i++)
+      {
+      for (int j = 0; j < 4; j++)
+        {
+        this->OrientationAtCalibrationMatrix->Element[i][j] = numbers.at(vecIndex++);
+        }
+      }
+    #ifdef DEBUG_CALIBRATIONFILE_READER
+    this->LogStream << "CF-INFO: Orientation at calibration matrix is: " << endl;
+    this->OrientationAtCalibrationMatrix->Print(this->LogStream);
+    #endif
+    }
+  else
+    {
+    this->LogStream << "ERROR in Calibration File: Cannot read orientation at calibration matrix" << endl;
+    return -1;
+    }
+
+  this->ReadBlankLines();
+
+  //Read World to Image coordinates transformation matrix
   this->ReadComments();
   numbers.clear();
   this->ReadNumbers(numbers);
@@ -406,13 +445,13 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
        }
       }
     #ifdef DEBUG_CALIBRATIONFILE_READER
-    this->LogStream << "CF-INFO: Coordinate transformation matrix is: " << endl;
+    this->LogStream << "CF-INFO: World to Image coordinates transformation matrix is: " << endl;
     this->CoordinateTransformationMatrix->Print(this->LogStream);
     #endif
     }
   else
     {
-    this->LogStream << "ERROR in Calibration File: Cannot read coordinate transformation matrix" << endl;
+    this->LogStream << "ERROR in Calibration File: Cannot read World to Image coordinates transformation matrix" << endl;
     return -1;
     }
   
@@ -674,7 +713,6 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   this->ReadComments();
   text.clear();
   this->ReadText(text);
-  
 
   if (text.size() >= 1)
     {
@@ -745,7 +783,8 @@ int vtkUltrasoundCalibFileReader::ReadCalibFile()
   //----------------------------------------------------------------------------
   //End of reading section do calculations
   
-  this->TransformationFactorMmToPixel = this->UltrasoundScanFanHeight / this->UltrasoundScanDepth * 4.0 / 3.0;
+//  this->TransformationFactorMmToPixel = this->UltrasoundScanFanHeight / this->UltrasoundScanDepth * 4.0 / 3.0;
+  this->TransformationFactorMmToPixel = this->UltrasoundScanFanHeight / this->UltrasoundScanDepth;
   
   #ifdef HIGH_DEFINITION
   this->SystemOffset[0] = this->SystemOffset[0] * this->TransformationFactorMmToPixel;
