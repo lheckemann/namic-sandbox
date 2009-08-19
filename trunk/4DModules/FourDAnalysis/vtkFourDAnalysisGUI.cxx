@@ -65,7 +65,7 @@
 #include "vtkMRMLCurveAnalysisNode.h"
 #include "vtkMRMLDoubleArrayNode.h"
 
-#include "vtkMRMLPlotObjectCurve2DNode.h"
+#include "vtkMRMLArrayPlotNode.h"
 
 #include "vtkCurveAnalysisPythonInterface.h"
 #ifdef Slicer3_USE_PYTHON
@@ -2426,11 +2426,11 @@ void vtkFourDAnalysisGUI::UpdateIntensityPlot(vtkIntensityCurves* intensityCurve
     {
     int label = labels->GetValue(i);
     vtkMRMLDoubleArrayNode* anode = this->IntensityCurves->GetCurve(label);
-    vtkMRMLPlotObjectCurve2DNode* cnode = vtkMRMLPlotObjectCurve2DNode::New();
+    vtkMRMLArrayPlotNode* cnode = vtkMRMLArrayPlotNode::New();
     cnode->SetAndObserveArray(anode);
     //vtkDoubleArray* values = anode->GetArray();
     //int id = this->IntensityPlot->AddPlot(values, "1");
-    int id = this->PlotNode->AddPlot(cnode);
+    int id = this->PlotNode->AddPlotNode(cnode);
 
     double color[3];
     lt->GetColor(label, color);
@@ -2487,14 +2487,14 @@ void vtkFourDAnalysisGUI::UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves*
   int n = labels->GetNumberOfTuples();
 
   //this->IntensityPlot->ClearPlot();
-  this->PlotNode->ClearPlots();
+  this->PlotNode->ClearPlotNodes();
   for (int i = 0; i < n; i ++)
     {
     int label = labels->GetValue(i);
     vtkMRMLDoubleArrayNode* anode = this->IntensityCurves->GetCurve(label);
-    vtkMRMLPlotObjectCurve2DNode* cnode = vtkMRMLPlotObjectCurve2DNode::New();
+    vtkMRMLArrayPlotNode* cnode = vtkMRMLArrayPlotNode::New();
     cnode->SetAndObserveArray(anode);
-    int id = this->PlotNode->AddPlot(cnode);
+    int id = this->PlotNode->AddPlotNode(cnode);
 
     double color[3];
     lt->GetColor(label, color);
@@ -2512,9 +2512,9 @@ void vtkFourDAnalysisGUI::UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves*
   if (this->FittedCurveNode)
     {
     //int id = this->IntensityPlot->AddPlot(array, "Fitted");
-    vtkMRMLPlotObjectCurve2DNode* cnode = vtkMRMLPlotObjectCurve2DNode::New();
+    vtkMRMLArrayPlotNode* cnode = vtkMRMLArrayPlotNode::New();
     cnode->SetAndObserveArray(this->FittedCurveNode);
-    int id = this->PlotNode->AddPlot(cnode);
+    int id = this->PlotNode->AddPlotNode(cnode);
     double color[3];
     color[0] = 1.0;
     color[1] = 0.0;

@@ -62,9 +62,9 @@ set(FourDAnalysis_SRCS
   vtkCurveAnalysisPythonInterface.cxx
   vtkMRMLDoubleArrayNode.cxx
   vtkMRMLXYPlotManagerNode.cxx
-  vtkMRMLPlotObjectNode.cxx
-  vtkMRMLPlotObjectOrthogonalLine2DNode.cxx
-  vtkMRMLPlotObjectCurve2DNode.cxx
+  vtkMRMLPlotNode.cxx
+  vtkMRMLOrthogonalLinePlotNode.cxx
+  vtkMRMLArrayPlotNode.cxx
   vtkSlicerXYPlotWidget.cxx
 )
 

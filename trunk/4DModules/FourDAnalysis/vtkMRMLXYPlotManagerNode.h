@@ -26,7 +26,7 @@
 #include "vtkFourDAnalysisWin32Header.h"
 
 #include "vtkMRMLDoubleArrayNode.h"
-#include "vtkMRMLPlotObjectNode.h"
+#include "vtkMRMLPlotNode.h"
 
 class vtkIntArray;
 
@@ -96,36 +96,36 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotManagerNode : public vtkMRMLNode
   //vtkGetObjectMacro ( Array, vtkDoubleArray );
 
   //----------------------------------------------------------------
-  // PlotObjectNode management
+  // PlotNode management
   //----------------------------------------------------------------
   
   // Description:
   // Add DoiubleArrayNode to the plotting list. Returns array ID.
-  int AddPlot(vtkMRMLPlotObjectNode* node);
+  int AddPlotNode(vtkMRMLPlotNode* node);
 
   // Description:
   // Remove DoubleArrayNode from the plotting list.
-  void RemovePlot(int id);
+  void RemovePlotNode(int id);
 
   // Description:
   // Remove DoubleArrayNode from the plotting list.
-  void RemovePlotByNodeID(const char* nodeID);
+  void RemovePlotNodeByNodeID(const char* nodeID);
 
   // Description:
   // Remove all DoubleArrayNode from the plotting list.
-  void ClearPlots();
+  void ClearPlotNodes();
 
   // Description:
   // Get number of arrays on the list
-  unsigned int GetNumberOfPlots();
+  unsigned int GetNumberOfPlotNodes();
 
   // Description:
   // Get list of IDs
-  vtkIntArray* GetPlotIDList();
+  vtkIntArray* GetPlotNodeIDList();
 
   // Description:
   // Get n-th vtkMRMLDoubleArrayNode on the list
-  vtkMRMLPlotObjectNode* GetPlot(int id);
+  vtkMRMLPlotNode* GetPlotNode(int id);
 
   //----------------------------------------------------------------
   // Methods to change property of plot objects
@@ -303,7 +303,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotManagerNode : public vtkMRMLNode
   std::string Title;             // Plotting graph title
   std::string XLabel;            // Label for x-axis
   std::string YLabel;            // Label for y-axis
-  std::map< int, vtkMRMLPlotObjectNode* > Data;  // map for plotting data
+  std::map< int, vtkMRMLPlotNode* > Data;  // map for plotting data
   //ETX
 
   int LastArrayID;

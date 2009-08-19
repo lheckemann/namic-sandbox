@@ -266,8 +266,8 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     }
   this->Updating = 1;
 
-  unsigned int numPlots = this->XYPlotNode->GetNumberOfPlots();
-  vtkIntArray* idList = this->XYPlotNode->GetPlotIDList();
+  unsigned int numPlots = this->XYPlotNode->GetNumberOfPlotNodes();
+  vtkIntArray* idList = this->XYPlotNode->GetPlotNodeIDList();
 
   if (numPlots <= 0)
     {
@@ -297,7 +297,7 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
   
   if (autoX && autoY)
     {
-    vtkMRMLPlotObjectNode* node;
+    vtkMRMLPlotNode* node;
     int errorBar;
 
     double rangeX[2];
@@ -306,7 +306,7 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     // Substitute the first values
     int id = idList->GetValue(0);
 
-    node  = this->XYPlotNode->GetPlot(id);
+    node  = this->XYPlotNode->GetPlotNode(id);
     node->GetXRange(rangeX);
     node->GetYRange(rangeY);
 
@@ -325,7 +325,7 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     for (unsigned int i = 1; i < numPlots; i ++)
       {
       id = idList->GetValue(i);
-      node = this->XYPlotNode->GetPlot(id);
+      node = this->XYPlotNode->GetPlotNode(id);
       //errorBar = this->XYPlotNode->GetErrorBar(id);
       //node->GetRange(rangeX, rangeY, errorBar);
       if (autoX && node->GetXRange(rangeX))
@@ -368,8 +368,8 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     for (unsigned int i = 0; i < numPlots; i ++)
       {
       int id = idList->GetValue(i);
-      vtkMRMLPlotObjectNode* node;
-      node  = this->XYPlotNode->GetPlot(id);
+      vtkMRMLPlotNode* node;
+      node  = this->XYPlotNode->GetPlotNode(id);
 
       if (node->GetVisible())
         {

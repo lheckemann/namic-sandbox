@@ -18,55 +18,60 @@ Version:   $Revision: 1.2 $
 #include <sstream>
 #include <string>
 
-#include "vtkMRMLPlotObjectOrthogonalLine2DNode.h"
+
+#include "vtkMRMLPlotNode.h"
 
 #include "vtkDataObject.h"
 #include "vtkFieldData.h"
 #include "vtkDoubleArray.h"
 
 //------------------------------------------------------------------------------
-vtkMRMLPlotObjectOrthogonalLine2DNode* vtkMRMLPlotObjectOrthogonalLine2DNode::New()
+vtkMRMLPlotNode* vtkMRMLPlotNode::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPlotObjectOrthogonalLine2DNode"); if(ret)
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPlotNode"); if(ret)
     {
-      return (vtkMRMLPlotObjectOrthogonalLine2DNode*)ret;
+      return (vtkMRMLPlotNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLPlotObjectOrthogonalLine2DNode;
+  return new vtkMRMLPlotNode;
 }
 
 
 //----------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLPlotObjectOrthogonalLine2DNode::CreateNodeInstance()
+vtkMRMLNode* vtkMRMLPlotNode::CreateNodeInstance()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPlotObjectOrthogonalLine2DNode");
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLPlotNode");
   if(ret)
     {
-      return (vtkMRMLPlotObjectOrthogonalLine2DNode*)ret;
+      return (vtkMRMLPlotNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLPlotObjectOrthogonalLine2DNode;
+  return new vtkMRMLPlotNode;
 }
 
 
 //----------------------------------------------------------------------------
-vtkMRMLPlotObjectOrthogonalLine2DNode::vtkMRMLPlotObjectOrthogonalLine2DNode()
+vtkMRMLPlotNode::vtkMRMLPlotNode()
 {
-  this->Point[0] = 0.0;
-  this->Point[1] = 0.0;
+  this->Visible  = 1;
+  this->Color[0] = 0.0;
+  this->Color[1] = 0.0;
+  this->Color[2] = 0.0;
+
+  this->Legend   = "";
 }
 
 
 //----------------------------------------------------------------------------
-vtkMRMLPlotObjectOrthogonalLine2DNode::~vtkMRMLPlotObjectOrthogonalLine2DNode()
+vtkMRMLPlotNode::~vtkMRMLPlotNode()
 {
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotObjectOrthogonalLine2DNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLPlotNode::WriteXML(ostream& of, int nIndent)
 {
 
   // Start by having the superclass write its information
@@ -105,7 +110,7 @@ void vtkMRMLPlotObjectOrthogonalLine2DNode::WriteXML(ostream& of, int nIndent)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotObjectOrthogonalLine2DNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLPlotNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
 
@@ -214,11 +219,11 @@ void vtkMRMLPlotObjectOrthogonalLine2DNode::ReadXMLAttributes(const char** atts)
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
-void vtkMRMLPlotObjectOrthogonalLine2DNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLPlotNode::Copy(vtkMRMLNode *anode)
 {
 
   Superclass::Copy(anode);
-  vtkMRMLPlotObjectOrthogonalLine2DNode *node = (vtkMRMLPlotObjectOrthogonalLine2DNode *) anode;
+  vtkMRMLPlotNode *node = (vtkMRMLPlotNode *) anode;
 
   //int type = node->GetType();
   
@@ -226,7 +231,7 @@ void vtkMRMLPlotObjectOrthogonalLine2DNode::Copy(vtkMRMLNode *anode)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotObjectOrthogonalLine2DNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLPlotNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
@@ -253,101 +258,8 @@ void vtkMRMLPlotObjectOrthogonalLine2DNode::ProcessMRMLEvents( vtkObject *caller
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLPlotObjectOrthogonalLine2DNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLPlotNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 }
-
-
-//----------------------------------------------------------------------------
-int vtkMRMLPlotObjectOrthogonalLine2DNode::GetXRange(double* xrange)
-{
-  if (this->Direction == VERTICAL)
-    {
-    xrange[0] = xrange[1] = this->Point[0];
-    return 1;
-    }
-  else
-    {
-    return 0;
-    }
-}
-
-
-//----------------------------------------------------------------------------
-int vtkMRMLPlotObjectOrthogonalLine2DNode::GetYRange(double* yrange)
-{
-  if (this->Direction == VERTICAL)
-    {
-    return 0;
-    }
-  else
-    {
-    yrange[0] = yrange[1] = this->Point[1];
-    return 1;
-    }
-}
-
-
-//----------------------------------------------------------------------------
-vtkDataObject* vtkMRMLPlotObjectOrthogonalLine2DNode::GetDrawObject(double* xrange, double* yrange)
-{
-  if (this->Direction == VERTICAL)
-    {
-    if (this->Point[0] >= xrange[0] && this->Point[0] < xrange[1])
-      {
-      vtkDoubleArray* value = vtkDoubleArray::New();
-      value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-      float xy[2];
-      
-      xy[0] = this->Point[0];  xy[1] = yrange[0];
-      value->InsertNextTuple( xy );
-      xy[0] = this->Point[0];  xy[1] = yrange[1]; 
-      value->InsertNextTuple( xy );
-      
-      vtkFieldData* fieldData = vtkFieldData::New();
-      fieldData->AddArray(value);
-      value->Delete();
-      
-      vtkDataObject* dataObject = vtkDataObject::New();
-      dataObject->SetFieldData( fieldData );
-      fieldData->Delete();
-      
-      return dataObject;
-      }
-    else
-      {
-      return NULL;
-      }
-    }
-  else // Horizontal line
-    {
-    if (this->Point[1] >= yrange[0] && this->Point[1] < yrange[1])
-      {
-      vtkDoubleArray* value = vtkDoubleArray::New();
-      value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-      float xy[2];
-      xy[0] = xrange[0];  xy[1] = this->Point[1]; 
-      value->InsertNextTuple( xy );
-      xy[0] = xrange[1];  xy[1] = this->Point[1]; 
-      value->InsertNextTuple( xy );
-      
-      vtkFieldData* fieldData = vtkFieldData::New();
-      fieldData->AddArray(value);
-      value->Delete();
-      
-      vtkDataObject* dataObject = vtkDataObject::New();
-      dataObject->SetFieldData( fieldData );
-      fieldData->Delete();
-      
-      return dataObject;
-      }
-    else
-      {
-      return NULL;
-      }
-    }
-
-}
-
 
