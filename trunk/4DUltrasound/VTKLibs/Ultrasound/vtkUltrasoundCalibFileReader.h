@@ -132,6 +132,8 @@ public:
   
   vtkGetMacro(CoordinateTransformationMatrix, vtkMatrix4x4*);
   
+  vtkGetMacro(OrientationAtCalibrationMatrix, vtkMatrix4x4*);
+
   vtkGetStringMacro(VideoSource);
 
   vtkGetMacro(VideoChannel, int);
@@ -176,11 +178,13 @@ protected:
   int ImageDimensions;
   int ImageMargin[4];
   int ReconstructionThreshold;
+  double ImageSpacing[3];
 
-  //Calibration Matrices
+  //Calibration Information
   double TrackerOffset[3];
   vtkMatrix4x4 *TrackerCalibrationMatrix;
   vtkMatrix4x4 *CoordinateTransformationMatrix;
+  vtkMatrix4x4 *OrientationAtCalibrationMatrix;
   double SystemOffset[3];
 
   //System Settings
@@ -203,13 +207,14 @@ protected:
   int OpenIGTLinkServerPortUltrasound;
   int OpenIGTLinkServerPortTrackedInstrument;
 
-  double ImageSpacing[3];
+  //Calculated Values
   double ImageOrigin[3];
   double ClipRectangle[4];
   static const double DefaultClipPixels[4];
   int ShrinkFactor[3];
   double TransformationFactorMmToPixel;
   
+  //Not used at the moment just kept for consistency
   vtkMatrix4x4 *HomogeneousMatrix;
   vtkMatrix4x4 *CalibrationMatrix;
 
