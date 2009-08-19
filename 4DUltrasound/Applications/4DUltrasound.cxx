@@ -146,6 +146,10 @@ int main(int argc, char **argv)
   else
     {
 
+    //Enable Volume Reconstruction
+    processor->EnableVolumeReconstruction(true);
+    sender->SetReconstructionEnabled(true);
+
     //Print start process for the user------------------------------------------
     cout << "--- Started ---" << endl << endl;
 
@@ -304,7 +308,10 @@ int main(int argc, char **argv)
       }
     else
       {
-      goodByeScreen();
+      if(!collector->GetCollectCalibrationData())
+        {
+        goodByeScreen();
+        }
       goodByeInput();
       }
 
@@ -534,27 +541,32 @@ int parseCommandLineArguments(int argc, char **argv,
         {
         string currentArg(argv[i]);
        
-        //Enable volume reconstruction
-        if(currentArg == "--reconstruct-volume" || currentArg == "-rv")
+//        //Enable volume reconstruction
+//        if(currentArg == "--reconstruct-volume" || currentArg == "-rv")
+//          {
+//          processor->EnableVolumeReconstruction(true);
+//          sender->SetReconstructionEnabled(true);
+//          }
+//        else if(currentArg == "--dynamic-volumesize" || currentArg == "-dvs")
+//          {
+//          if(processor->GetVolumeReconstructionEnabled())
+//            {
+//            collector->SetDynamicVolumeSize(true);
+//            processor->SetDynamicVolumeSize(true);
+//            }
+//          else
+//            {
+//            printUsage();
+//            cerr << "ERROR: Volume reconstruction must be enabled before dynamic volume size option is avaliable" << endl;
+//            return -1;
+//            }
+//          }
+
+        if(currentArg == "--grab-ultrasound-frames" || currentArg == "-gf")
           {
-          processor->EnableVolumeReconstruction(true);
-          sender->SetReconstructionEnabled(true);
+          collector->SetEnableFrameGrabbing(true);
           }
-        else if(currentArg == "--dynamic-volumesize" || currentArg == "-dvs")
-          {
-          if(processor->GetVolumeReconstructionEnabled())
-            {
-            collector->SetDynamicVolumeSize(true);
-            processor->SetDynamicVolumeSize(true);
-            }
-          else
-            {
-            printUsage();
-            cerr << "ERROR: Volume reconstruction must be enabled before dynamic volume size option is avaliable" << endl;
-            return -1;
-            }
-          }
-        //Track operting instrument
+        //Track surgical instrument
         else if(currentArg == "--track-instrument" || currentArg == "-ti")
           {
           if(!instrumentTracker->GetSimulationEnabled())
@@ -586,6 +598,12 @@ int parseCommandLineArguments(int argc, char **argv,
           {
           collector->EnableTrackerTool();
           }
+        else if(currentArg == "--get-calibration-data" || currentArg == "-gcd")
+          {
+          collector->SetCollectCalibrationData(true);
+          processor->SetCollectCalibrationData(true);
+          }
+
 //        //OpenIGTLink Server
 //        else if(currentArg == "--oigtl-server" || currentArg == "-os")
 //          {
