@@ -145,8 +145,6 @@ void vtkSlicerXYPlotWidget::CreateWidget()
   ren->SetBackground(1.0, 1.0, 1.0);
   ren->SetViewport(0.0, 0.0, 1.0, 1.0);
   ren->AddActor2D(this->PlotActor);
-  //ren->AddActor2D(this->PlotActor->GetLegendActor());
-  //this->GetRenderWindow()->SetSize(500, 250);
 
 }
 
@@ -361,9 +359,6 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
   if (this->PlotActor)
     {
     this->PlotActor->RemoveAllInputs();
-    this->PlotActor->SetLabelFormat("%g");
-    //this->PlotActor->GetLegendActor()->SetPosition(0.5, 0.5);
-    //this->PlotActor->GetLegendActor()->LockBorderOff();
 
     // -----------------------------------------
     // Draw curves
@@ -392,7 +387,6 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
           this->PlotActor->SetDataObjectXComponent(obj, 0);
           this->PlotActor->SetDataObjectYComponent(obj, 1);
           this->PlotActor->SetPlotColor(obj, r, g, b);
-          this->PlotActor->SetPlotLabel(obj, "aaaa");
           dataObject->Delete();
 
           obj ++;
