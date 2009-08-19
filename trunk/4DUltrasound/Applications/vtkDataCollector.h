@@ -57,11 +57,8 @@ class vtkUltrasoundCalibFileReader;
 class vtkTaggedImageFilter;
 class vtkMultiThreader;
 
-#ifdef USE_ULTRASOUND_DEVICE
 class vtkV4L2VideoSource;
-#else
 class vtkVideoSourceSimulator;
-#endif
 
 class vtkNDITracker;
 class vtkTrackerSimulator;
@@ -113,11 +110,11 @@ public:
   
   vtkGetVector3Macro(ShrinkFactor, int);
 
-#ifdef USE_ULTRASOUND_DEVICE
-  vtkGetMacro(VideoSource, vtkV4L2VideoSource *);
-#else
-  vtkGetMacro(VideoSource, vtkVideoSourceSimulator *);
-#endif
+//#ifdef USE_ULTRASOUND_DEVICE
+  vtkGetMacro(V4L2VideoSource, vtkV4L2VideoSource *);
+//#else
+  vtkGetMacro(VideoSourceSimulator, vtkVideoSourceSimulator *);
+//#endif
 
   vtkGetMacro(Tagger, vtkTaggedImageFilter *);
 
@@ -137,6 +134,18 @@ public:
   
   vtkSetStringMacro(FileName);
   vtkGetStringMacro(FileName);
+
+  vtkGetMacro(FrameGrabbingEnabled, bool);
+
+  vtkSetMacro(EnableFrameGrabbing, bool);
+  vtkGetMacro(EnableFrameGrabbing, bool);
+
+  vtkSetMacro(CollectCalibrationData, bool);
+  vtkGetMacro(CollectCalibrationData, bool);
+
+  vtkGetMacro(OrientationAtCalibrationMatrix, vtkMatrix4x4 *);
+
+  vtkGetMacro(OldCoordinates, double *);
 
   int Initialize(vtkNDITracker* tracker);
   int StartCollecting(vtkDataProcessor * processor);
@@ -175,9 +184,14 @@ protected:
   struct DataStruct FixedVolumeProperties;
   bool DynamicVolumeSize;
   bool VolumeInitialized;
+  bool FrameGrabbingEnabled;
+  bool EnableFrameGrabbing;
+  bool CollectCalibrationData;
   
   vtkMatrix4x4 *TrackerCalibrationMatrix;
-  vtkMatrix4x4 *CoordinateTransformationMatrix;
+  vtkMatrix4x4 *OrientationAtCalibrationMatrix;
+  double OldCoordinates[3];
+  bool CoordinateJump(vtkMatrix4x4 * matrix);
 
   int ImageMargin[4];
   //double UltrasoundScanDepth;
@@ -191,11 +205,8 @@ protected:
 
   vtkTaggedImageFilter *Tagger;
 
-#ifdef USE_ULTRASOUND_DEVICE
-  vtkV4L2VideoSource *VideoSource;
-#else
-  vtkVideoSourceSimulator *VideoSource;
-#endif
+  vtkV4L2VideoSource *V4L2VideoSource;
+  vtkVideoSourceSimulator *VideoSourceSimulator;
 
   vtkDataProcessor* DataProcessor;
 
@@ -206,6 +217,8 @@ protected:
   bool Collecting;
   bool Initialized;
   char* FileName;
+
+  int StartV4L2VideoSource();
 
 private:
 
