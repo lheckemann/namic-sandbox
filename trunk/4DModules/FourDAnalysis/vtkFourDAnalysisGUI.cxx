@@ -62,10 +62,13 @@
 #include "vtkCommandLineModuleGUI.h"
 
 #include "vtkMRMLTimeSeriesBundleNode.h"
+
+#include "vtkMRMLPlotNode.h"
+#include "vtkMRMLArrayPlotNode.h"
+#include "vtkMRMLOrthogonalLinePlotNode.h"
+#include "vtkMRMLXYPlotManagerNode.h"
 #include "vtkMRMLCurveAnalysisNode.h"
 #include "vtkMRMLDoubleArrayNode.h"
-
-#include "vtkMRMLArrayPlotNode.h"
 
 #include "vtkCurveAnalysisPythonInterface.h"
 #ifdef Slicer3_USE_PYTHON
@@ -116,6 +119,7 @@ vtkFourDAnalysisGUI::vtkFourDAnalysisGUI ( )
   this->MaskNodeSelector         = NULL;
   this->RunPlotButton            = NULL;
   this->ErrorBarCheckButton      = NULL;
+  this->PlotList                 = NULL;
   this->FittingLabelMenu         = NULL;
   this->CurveScriptSelectButton  = NULL;
   this->CurveFittingStartIndexSpinBox = NULL;
@@ -217,7 +221,6 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
   //  this->MaskSelectMenu->Delete();
   //  }
 
-
   if (this->RunPlotButton)
     {
     this->RunPlotButton->SetParent(NULL);
@@ -232,6 +235,11 @@ vtkFourDAnalysisGUI::~vtkFourDAnalysisGUI ( )
     {
     this->ErrorBarCheckButton->SetParent(NULL);
     this->ErrorBarCheckButton->Delete();
+    }
+  if (this->PlotList)
+    {
+    this->PlotList->SetParent(NULL);
+    this->PlotList->Delete();
     }
   if (this->FittingLabelMenu)
     {
@@ -350,6 +358,20 @@ void vtkFourDAnalysisGUI::Init()
       {
       this->IntensityCurves->SetMRMLScene(this->GetMRMLScene());
       }
+
+
+    // Register node classes. SmartPointer is used.
+    {
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLArrayPlotNode >::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLCurveAnalysisNode >::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLDoubleArrayNode >::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLOrthogonalLinePlotNode >::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLPlotNode >::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLXYPlotManagerNode >::New() );
+    }
+
+
+
     }
     
 }
@@ -460,6 +482,11 @@ void vtkFourDAnalysisGUI::RemoveGUIObservers ( )
   if (this->ErrorBarCheckButton)
     {
     this->ErrorBarCheckButton->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->PlotList)
+    {
+    this->PlotList->GetWidget()
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->FittingLabelMenu)
@@ -594,16 +621,6 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->ThresholdRange
       ->AddObserver(vtkKWRange::RangeValueChangingEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-  //if (this->AcqTimeEntry)
-  //  {
-  //  this->AcqTimeEntry
-  //    ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-  //  }
-  //if (this->MaskSelectMenu)
-  //  {
-  //  this->MaskSelectMenu->GetMenu()
-  //    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-  //  }
   if (this->MaskNodeSelector)
     {
     this->MaskNodeSelector
@@ -620,6 +637,12 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->ErrorBarCheckButton->GetWidget()
       ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->PlotList)
+    {
+    this->PlotList->GetWidget()
+      ->AddObserver(vtkKWMultiColumnList::CellUpdatedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->FittingLabelMenu)
     {
     this->FittingLabelMenu
@@ -825,6 +848,7 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
     //this->IntensityCurves->SetInterval(acqTime);
 
     UpdateIntensityPlot(this->IntensityCurves);
+    UpdatePlotList();
 
     }
   else if (this->ErrorBarCheckButton->GetWidget() == vtkKWCheckButton::SafeDownCast(caller)
@@ -844,6 +868,13 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       this->PlotNode->SetErrorBarAll(0);
       this->PlotNode->Refresh();
       }
+    }
+
+  else if (this->PlotList->GetWidget() == vtkKWMultiColumnList::SafeDownCast(caller)
+           && event == vtkKWMultiColumnList::CellUpdatedEvent)
+    {
+    std::cerr << "Plot list has been changed...." << std::endl;
+    UpdatePlotList();
     }
   else if (this->CurveScriptSelectButton->GetWidget()->GetLoadSaveDialog()
            == vtkKWLoadSaveDialog::SafeDownCast(caller)
@@ -976,6 +1007,7 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       //  this->GetMRMLScene()->RemoveNode(curveNode);
       //  }
       UpdateIntensityPlotWithFittedCurve(this->IntensityCurves);
+      UpdatePlotList();
       }
     }
   else if (this->SaveFittedCurveButton->GetWidget()->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller)
@@ -1512,9 +1544,29 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   this->ErrorBarCheckButton->GetWidget()->SelectedStateOn();
   this->ErrorBarCheckButton->SetLabelText("Show SD");
   
-  this->Script("pack %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
+  this->PlotList = vtkKWMultiColumnListWithScrollbars::New();
+  this->PlotList->SetParent(frame->GetFrame());
+  this->PlotList->Create();
+  this->PlotList->GetWidget()->SetHeight(6);
+  this->PlotList->GetWidget()->SetSelectionTypeToRow();
+  this->PlotList->GetWidget()->SetSelectionModeToSingle();
+  this->PlotList->GetWidget()->MovableRowsOff();
+  this->PlotList->GetWidget()->MovableColumnsOff();
+  this->PlotList->GetWidget()->AddColumn("On/Off");
+  this->PlotList->GetWidget()->AddColumn("Curve name");
+  this->PlotList->GetWidget()->AddColumn("MRML ID");
+  this->PlotList->GetWidget()->SetColumnWidth(0, 6);
+  this->PlotList->GetWidget()->SetColumnWidth(1, 15);
+  this->PlotList->GetWidget()->SetColumnWidth(2, 15);
+  this->PlotList->GetWidget()->SetColumnAlignmentToLeft(1);
+  this->PlotList->GetWidget()->ColumnEditableOff(0);
+  this->PlotList->GetWidget()->ColumnEditableOn(1);
+  this->PlotList->GetWidget()->SetSelectionTypeToCell();
+  
+  this->Script("pack %s %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
                this->IntensityPlot->GetWidgetName(),
-               this->ErrorBarCheckButton->GetWidgetName());
+               this->ErrorBarCheckButton->GetWidgetName(),
+               this->PlotList->GetWidgetName());
 
   frame->Delete();
   conBrowsFrame->Delete();
@@ -2187,51 +2239,36 @@ void vtkFourDAnalysisGUI::UpdateSeriesSelectorMenus()
 
 }
 
+//----------------------------------------------------------------------------
+void vtkFourDAnalysisGUI::UpdatePlotList()
+{
+  if (this->PlotList && this->PlotNode)
+    {
+    // Obtain a list of plot nodes
+    std::vector<vtkMRMLNode*> nodes;
+    this->GetMRMLScene()->GetNodesByClass("vtkMRMLPlotNode", nodes);
 
-////----------------------------------------------------------------------------
-//void vtkFourDAnalysisGUI::UpdateMaskSelectMenu()
-//{
-//
-//  if (!this->MaskSelectMenu)
-//    {
-//    return;
-//    }
-//
-//  const char* className = this->GetMRMLScene()->GetClassNameByTag("Volume");
-//  std::vector<vtkMRMLNode*> nodes;
-//  this->GetMRMLScene()->GetNodesByClass(className, nodes);
-//
-//  std::vector<vtkMRMLNode*>::iterator iter;
-//  if (nodes.size() > 0)
-//    {
-//    this->MaskSelectMenu->GetMenu()->DeleteAllItems();
-//    this->MaskNodeIDList.clear();
-//    for (iter = nodes.begin(); iter != nodes.end(); iter ++)
-//      {
-//      //(*iter)->GetName();
-//      //nodeInfo.nodeID = (*iter)->GetID();
-//      char str[256];
-//
-//      vtkMRMLScalarVolumeNode* node =
-//        vtkMRMLScalarVolumeNode::SafeDownCast(*iter);
-//        //vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID((*iter)->GetID()));
-//      if (node != NULL && node->GetLabelMap())
-//        {
-//        //sprintf(str, "%s (%s)", (*iter)->GetName(), (*iter)->GetID());
-//        sprintf(str, "%s", (*iter)->GetName());
-//        this->MaskSelectMenu->GetMenu()->AddRadioButton(str);
-//        std::string id((*iter)->GetID());
-//        this->MaskNodeIDList.push_back(id);
-//        
-//        vtkIntArray* events;
-//        events = vtkIntArray::New();
-//        events->InsertNextValue(vtkMRMLVolumeNode::ImageDataModifiedEvent); 
-//        vtkMRMLNode *nd = NULL; // TODO: is this OK?
-//        vtkSetAndObserveMRMLNodeEventsMacro(nd,node,events);
-//        }
-//      }
-//    }
-//}
+    this->PlotList->GetWidget()->DeleteAllRows();
+    this->PlotList->GetWidget()->AddRows(nodes.size());
+    
+    for (int i = 0; i < nodes.size(); i ++)
+      {
+      vtkMRMLPlotNode* node = vtkMRMLPlotNode::SafeDownCast(nodes[i]);
+      if (node)
+        {
+        double r, g, b;
+        node->GetColor(r, g, b);
+        this->PlotList->GetWidget()->SetCellEditWindowToCheckButton(i, 0);
+        this->PlotList->GetWidget()->SetCellSelectionBackgroundColor(i, 0, r, g, b);
+        this->PlotList->GetWidget()->SetCellBackgroundColor(i, 0, r, g, b);
+        //this->PlotList->GetWidget()->SetCellSelectionForegroundColor(i, 0, r, g, b);
+        //this->PlotList->GetWidget()->SetCellBackgroundColorForegroundColor(i, 0, r, g, b);
+        this->PlotList->GetWidget()->SetCellEditWindowToEntry(i, 1);
+        this->PlotList->GetWidget()->SetCellText(i, 2, node->GetID());
+        }
+      }
+    }
+}
 
 
 //----------------------------------------------------------------------------

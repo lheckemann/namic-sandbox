@@ -33,6 +33,7 @@
 #include "vtkMath.h"
 #include "vtkTextProperty.h"
 #include "vtkGlyphSource2D.h"
+#include "vtkLegendBoxActor.h"
 
 #include <math.h>
 
@@ -144,6 +145,7 @@ void vtkSlicerXYPlotWidget::CreateWidget()
   ren->SetBackground(1.0, 1.0, 1.0);
   ren->SetViewport(0.0, 0.0, 1.0, 1.0);
   ren->AddActor2D(this->PlotActor);
+  //ren->AddActor2D(this->PlotActor->GetLegendActor());
   //this->GetRenderWindow()->SetSize(500, 250);
 
 }
@@ -359,17 +361,22 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
   if (this->PlotActor)
     {
     this->PlotActor->RemoveAllInputs();
+    this->PlotActor->SetLabelFormat("%g");
+    //this->PlotActor->GetLegendActor()->SetPosition(0.5, 0.5);
+    //this->PlotActor->GetLegendActor()->LockBorderOff();
 
     // -----------------------------------------
     // Draw curves
 
     int obj = 0;
+
     // Search the list
     for (unsigned int i = 0; i < numPlots; i ++)
       {
       int id = idList->GetValue(i);
       vtkMRMLPlotNode* node;
       node  = this->XYPlotNode->GetPlotNode(id);
+
 
       if (node->GetVisible())
         {
@@ -385,12 +392,34 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
           this->PlotActor->SetDataObjectXComponent(obj, 0);
           this->PlotActor->SetDataObjectYComponent(obj, 1);
           this->PlotActor->SetPlotColor(obj, r, g, b);
+          this->PlotActor->SetPlotLabel(obj, "aaaa");
           dataObject->Delete();
+
           obj ++;
           }
         
         }
       }
+    
+    //// -----------------------------------------
+    //// Set legend
+    ////this->PlotActor->GetLegendActor()->SetNumberOfEntries(obj);
+    //obj = 0;
+    //
+    //for (unsigned int i = 0; i < numPlots; i ++)
+    //  {
+    //  int id = idList->GetValue(i);
+    //  vtkMRMLPlotNode* node;
+    //  node  = this->XYPlotNode->GetPlotNode(id);
+    //  if (node->GetVisible())
+    //    {
+    //    //this->PlotActor->GetLegendActor()->SetEntryString(obj, node->GetName());
+    //    this->PlotActor->GetLegendActor()->SetEntryString(obj, "abcd");
+    //    obj ++;
+    //    }
+    //  }
+    
+    //this->PlotActor->GetLegendActor()->BoxOn();
 
     this->PlotActor->SetXRange(this->RangeX[0], this->RangeX[1]);
     this->PlotActor->SetYRange(this->RangeY[0], this->RangeY[1]);
@@ -400,6 +429,7 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     this->GetRenderWindowInteractor()->Start();
 
     }
+
 
     
   this->Updating = 0;
