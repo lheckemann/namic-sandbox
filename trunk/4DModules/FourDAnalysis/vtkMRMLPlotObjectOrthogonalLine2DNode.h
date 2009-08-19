@@ -18,15 +18,14 @@
 #include <vector>
 
 #include "vtkMRML.h"
-#include "vtkMRMLNode.h"
-#include "vtkMRMLStorageNode.h"
+#include "vtkMRMLPlotObjectNode.h"
 
 #include "vtkObject.h"
 #include "vtkFourDAnalysisWin32Header.h"
 
 #include "vtkDataObject.h"
 
-class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectOrthogonalLine2DNode : public vtkMRMLNode
+class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectOrthogonalLine2DNode : public vtkMRMLPlotObjectNode
 {
 
  public:
@@ -49,7 +48,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectOrthogonalLine2DNode : public vt
   //----------------------------------------------------------------
 
   static vtkMRMLPlotObjectOrthogonalLine2DNode *New();
-  vtkTypeMacro(vtkMRMLPlotObjectOrthogonalLine2DNode,vtkMRMLNode);
+  vtkTypeMacro(vtkMRMLPlotObjectOrthogonalLine2DNode, vtkMRMLPlotObjectNode);
   
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -100,7 +99,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectOrthogonalLine2DNode : public vt
   // Description:
   // Get minimum and muximum X values.
   // Returns 0 if the Y range cannot be determined.
-  virtual int GetXange(double* xrange);
+  virtual int GetXRange(double* xrange);
 
   // Description:
   // Get minimum and muximum Y values.

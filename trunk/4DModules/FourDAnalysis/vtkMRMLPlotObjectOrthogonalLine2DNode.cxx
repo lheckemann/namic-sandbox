@@ -18,6 +18,11 @@ Version:   $Revision: 1.2 $
 #include <sstream>
 #include <string>
 
+#include "vtkMRMLPlotObjectOrthogonalLine2DNode.h"
+
+#include "vtkDataObject.h"
+#include "vtkFieldData.h"
+#include "vtkDoubleArray.h"
 
 //------------------------------------------------------------------------------
 vtkMRMLPlotObjectOrthogonalLine2DNode* vtkMRMLPlotObjectOrthogonalLine2DNode::New()
@@ -71,7 +76,7 @@ void vtkMRMLPlotObjectOrthogonalLine2DNode::WriteXML(ostream& of, int nIndent)
   std::stringstream ssY;
   std::stringstream ssYerr;
 
-  int n = this->Array->GetNumberOfComponents();
+  //int n = this->Array->GetNumberOfComponents();
   double xy[3];
 
   //if (this->Array->GetNumberOfComponents() > 3)
@@ -291,13 +296,13 @@ vtkDataObject* vtkMRMLPlotObjectOrthogonalLine2DNode::GetDrawObject(double* xran
     {
     if (this->Point[0] >= xrange[0] && this->Point[0] < xrange[1])
       {
-      vtkFloatArray* value = vtkFloatArray::New();
+      vtkDoubleArray* value = vtkDoubleArray::New();
       value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
       float xy[2];
       
-      xy[0] = this->Point[0];  xy[1] = this->yrange[0];
+      xy[0] = this->Point[0];  xy[1] = yrange[0];
       value->InsertNextTuple( xy );
-      xy[0] = this->Point[0];  xy[1] = this->yrange[1]; 
+      xy[0] = this->Point[0];  xy[1] = yrange[1]; 
       value->InsertNextTuple( xy );
       
       vtkFieldData* fieldData = vtkFieldData::New();
@@ -319,7 +324,7 @@ vtkDataObject* vtkMRMLPlotObjectOrthogonalLine2DNode::GetDrawObject(double* xran
     {
     if (this->Point[1] >= yrange[0] && this->Point[1] < yrange[1])
       {
-      vtkFloatArray* value = vtkFloatArray::New();
+      vtkDoubleArray* value = vtkDoubleArray::New();
       value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
       float xy[2];
       xy[0] = xrange[0];  xy[1] = this->Point[1]; 

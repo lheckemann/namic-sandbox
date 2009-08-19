@@ -26,6 +26,10 @@
 
 #include "vtkDataObject.h"
 
+class vtkSlicerXYPlotWidget;
+class vtkMRMLXYPlotNode;
+
+
 class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
 {
 
@@ -35,8 +39,10 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
   // Description:
   // These clases are defined as a friend calls of vtkMRMLPlotObjectNode
   // to call protected the function: GetDrawObject();
-  friend vtkSlicerXYPlotWidget;
-  friend vtkMRMLXYPlotNode;
+  //BTX
+  friend class vtkSlicerXYPlotWidget;
+  friend class vtkMRMLXYPlotNode;
+  //ETX
 
  public:
   //----------------------------------------------------------------
@@ -103,38 +109,19 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
   virtual int GetYRange(const double* xrange, double* yrange) { return 0; };
 
   // Description:
-  // Set line color
-  void SetColor(double r, double g, double b)
-  {
-    this->Color[0] = r;
-    this->Color[1] = g;
-    this->Color[2] = b;
-    this->Modified();
-  }
-  
-  // Description:
-  // Get line color
-  void GetColor(double* r, double* g, double* b);
-  {
-    *r = this->Color[0];
-    *g = this->Color[1];
-    *b = this->Color[2];
-  }
-  
-  // Description:
   // Set legend of the object for the graph.
   void SetLegend(const char* legend)
   {
-    this->Legend() = legend;
-  }
+    this->Legend = legend;
+  };
 
 
   // Description:
   // Get legend of the object for the graph.
   const char* GetLegend()
   {
-    return this->Legend().c_str();
-  }
+    return this->Legend.c_str();
+  };
 
 
   //----------------------------------------------------------------
@@ -144,16 +131,16 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
   // Description:
   // Get minimum and muximum X values.
   // Returns 0 if the Y range cannot be determined.
-  virtual int GetXRange(double* xrange);
+  virtual int GetXRange(double* xrange) {};
 
   // Description:
   // Get minimum and muximum Y values.
   // Returns 0 if the Y range cannot be determined.
-  virtual int GetYRange(double* yrange);
+  virtual int GetYRange(double* yrange) {};
 
   // Description:
   // Get draw object (this funciton is called by vtkMRMLXYPlotNode)
-  virtual vtkDataObject* GetDrawObject(double* xrange, double* yrange);
+  virtual vtkDataObject* GetDrawObject(double* xrange, double* yrange) {};
 
 
   //----------------------------------------------------------------
@@ -171,7 +158,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
   // Data
   //----------------------------------------------------------------
   int Visible;
-  int Color[3];
+  double Color[3];
   //BTX
   std::string Legend;
   //ETX

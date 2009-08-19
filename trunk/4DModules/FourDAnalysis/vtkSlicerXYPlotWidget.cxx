@@ -56,8 +56,8 @@ vtkSlicerXYPlotWidget::vtkSlicerXYPlotWidget()
 
   this->Updating  = 0;
   this->PlotActor = NULL;
-  this->VerticalLines.clear();
-  this->HorizontalLines.clear();
+  //this->VerticalLines.clear();
+  //this->HorizontalLines.clear();
 
   this->RangeX[0] = 0.0;
   this->RangeX[1] = 1.0;
@@ -78,9 +78,8 @@ vtkSlicerXYPlotWidget::vtkSlicerXYPlotWidget()
 vtkSlicerXYPlotWidget::~vtkSlicerXYPlotWidget()
 {
 
-  //this->PlotDataVector.clear();
-  this->VerticalLines.clear();
-  this->HorizontalLines.clear();
+  //this->VerticalLines.clear();
+  //this->HorizontalLines.clear();
 
   if (this->PlotActor)
     {
@@ -267,10 +266,10 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     }
   this->Updating = 1;
 
-  unsigned int numArray = this->XYPlotNode->GetNumberOfArrays();
-  vtkIntArray* idList = this->XYPlotNode->GetArrayNodeIDList();
+  unsigned int numPlots = this->XYPlotNode->GetNumberOfPlots();
+  vtkIntArray* idList = this->XYPlotNode->GetPlotIDList();
 
-  if (numArray <= 0)
+  if (numPlots <= 0)
     {
     this->Updating = 0;
     return;
@@ -298,17 +297,18 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
   
   if (autoX && autoY)
     {
-    vtkMRMLDoubleArrayNode* node;
-    double rangeX[2];
-    double rangeY[3];
+    vtkMRMLPlotObjectNode* node;
     int errorBar;
+
+    double rangeX[2];
+    double rangeY[2];
     
     // Substitute the first values
     int id = idList->GetValue(0);
 
-    node  = this->XYPlotNode->GetArrayNode(id);
-    errorBar = this->XYPlotNode->GetErrorBar(id);
-    node->GetRange(rangeX, rangeY, errorBar);
+    node  = this->XYPlotNode->GetPlot(id);
+    node->GetXRange(rangeX);
+    node->GetYRange(rangeY);
 
     if (autoX)
       {
@@ -322,57 +322,37 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
       }
 
     // Search the list
-    for (unsigned int i = 1; i < numArray; i ++)
+    for (unsigned int i = 1; i < numPlots; i ++)
       {
       id = idList->GetValue(i);
-      node = this->XYPlotNode->GetArrayNode(id);
-      errorBar = this->XYPlotNode->GetErrorBar(id);
-      node->GetRange(rangeX, rangeY, errorBar);
-      if (autoX)
+      node = this->XYPlotNode->GetPlot(id);
+      //errorBar = this->XYPlotNode->GetErrorBar(id);
+      //node->GetRange(rangeX, rangeY, errorBar);
+      if (autoX && node->GetXRange(rangeX))
         {
         if (rangeX[0] < this->RangeX[0])
           {
-          rangeX[0] = this->RangeX[0];
+          this->RangeX[0] = rangeX[0];
           }
-        if (rangeX[1] < this->RangeX[1])
+        if (rangeX[1] > this->RangeX[1])
           {
-          rangeX[1] = this->RangeX[1];
+          this->RangeX[1] = rangeX[1];
           }
         }
-      if (autoY)
+      if (autoY && node->GetYRange(rangeY))
         {
         if (rangeY[0] < this->RangeY[0])
           {
-          rangeY[0] = this->RangeY[0];
+          this->RangeY[0] = rangeY[0];
           }
-        if (rangeY[1] < this->RangeY[1])
+        if (rangeY[1] > this->RangeY[1])
           {
-          rangeY[1] = this->RangeY[1];
+          this->RangeY[1] = rangeY[1];
           }
         }
       }
     }
 
-
-  //// -----------------------------------------
-  //// Set color for vertical and horizontal lines
-  //
-  //AxisLineVectorType::iterator aiter;
-  //for (aiter = this->VerticalLines.begin(); aiter != this->VerticalLines.end(); aiter ++)
-  //  {
-  //  aiter->color[0] = this->AxisLineColor[0];
-  //  aiter->color[1] = this->AxisLineColor[1];
-  //  aiter->color[2] = this->AxisLineColor[2];
-  //  }
-  //for (aiter = this->HorizontalLines.begin(); aiter != this->HorizontalLines.end(); aiter ++)
-  //  {
-  //  aiter->color[0] = this->AxisLineColor[0];
-  //  aiter->color[1] = this->AxisLineColor[1];
-  //  aiter->color[2] = this->AxisLineColor[2];
-  //  }
-
-
-  
   // -----------------------------------------
   // Drawing
 
@@ -384,123 +364,33 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     // Draw curves
 
     int obj = 0;
-    //PlotDataVectorType::iterator iter;
-
     // Search the list
-    for (unsigned int i = 0; i < numArray; i ++)
+    for (unsigned int i = 0; i < numPlots; i ++)
       {
       int id = idList->GetValue(i);
+      vtkMRMLPlotObjectNode* node;
+      node  = this->XYPlotNode->GetPlot(id);
 
-      if (this->XYPlotNode->GetVisibility(id))
+      if (node->GetVisible())
         {
         double r;
         double g;
         double b;
-        this->XYPlotNode->GetColor(id, &r, &g, &b);
-        vtkMRMLDoubleArrayNode* node = this->XYPlotNode->GetArrayNode(id);
-        int errorBar = this->XYPlotNode->GetErrorBar(id);
-        vtkDoubleArray* array = node->GetArray();
+        node->GetColor(r, g, b);
 
-        vtkFieldData* fieldData = vtkFieldData::New();
-        
-        if (errorBar)
+        vtkDataObject* dataObject = node->GetDrawObject(this->RangeX, this->RangeY);
+        if (dataObject)
           {
-          // if error bar plotting is enabled, generate plot data with error bars.
-          vtkDoubleArray* data = CreatePlotDataWithErrorBar(array);
-          fieldData->AddArray(data);
-          data->Delete();
+          this->PlotActor->AddDataObjectInput(dataObject);
+          this->PlotActor->SetDataObjectXComponent(obj, 0);
+          this->PlotActor->SetDataObjectYComponent(obj, 1);
+          this->PlotActor->SetPlotColor(obj, r, g, b);
+          dataObject->Delete();
+          obj ++;
           }
-        else
-          {
-          fieldData->AddArray(array);
-          }
-
-        vtkDataObject* dataObject = vtkDataObject::New();
-        dataObject->SetFieldData( fieldData );
-
-        this->PlotActor->AddDataObjectInput(dataObject);
-
-        this->PlotActor->SetDataObjectXComponent(obj, 0);
-        this->PlotActor->SetDataObjectYComponent(obj, 1);
-        this->PlotActor->SetPlotColor(obj, r, g, b);
-
-        fieldData->Delete();
-        dataObject->Delete();
-
-        obj ++;
         
         }
       }
-
-    //// -----------------------------------------
-    //// Draw vertical lines
-    //
-    //AxisLineVectorType::iterator aiter;
-    //for (aiter = this->VerticalLines.begin(); aiter != this->VerticalLines.end(); aiter ++)
-    //  {
-    //  if (aiter->visible)
-    //    {
-    //    vtkFloatArray* value = vtkFloatArray::New();
-    //    value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-    //    float xy[2];
-    //    xy[0] = aiter->pos;  xy[1] = this->RangeY[0]; 
-    //    value->InsertNextTuple( xy );
-    //    xy[0] = aiter->pos;  xy[1] = this->RangeY[1]; 
-    //    value->InsertNextTuple( xy );
-    //
-    //    vtkFieldData* fieldData = vtkFieldData::New();
-    //    fieldData->AddArray(value);
-    //    value->Delete();
-    //    
-    //    vtkDataObject* dataObject = vtkDataObject::New();
-    //    dataObject->SetFieldData( fieldData );
-    //    fieldData->Delete();
-    //
-    //    this->PlotActor->AddDataObjectInput(dataObject);
-    //    dataObject->Delete();
-    //
-    //    this->PlotActor->SetDataObjectXComponent(obj, 0);
-    //    this->PlotActor->SetDataObjectYComponent(obj, 1);
-    //    this->PlotActor->SetPlotColor(obj, aiter->color[0], aiter->color[1], aiter->color[2]);
-    //
-    //    obj ++;
-    //    }
-    //  }
-    //
-    //
-    //// -----------------------------------------
-    //// Draw horizontal lines
-    //
-    //for (aiter = this->HorizontalLines.begin(); aiter != this->HorizontalLines.end(); aiter ++)
-    //  {
-    //  if (aiter->visible)
-    //    {
-    //    vtkFloatArray* value = vtkFloatArray::New();
-    //    value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-    //    float xy[2];
-    //    xy[0] = this->RangeX[0];  xy[1] = aiter->pos; 
-    //    value->InsertNextTuple( xy );
-    //    xy[0] = this->RangeX[1];  xy[1] = aiter->pos; 
-    //    value->InsertNextTuple( xy );
-    //
-    //    vtkFieldData* fieldData = vtkFieldData::New();
-    //    fieldData->AddArray(value);
-    //    value->Delete();
-    //
-    //    vtkDataObject* dataObject = vtkDataObject::New();
-    //    dataObject->SetFieldData( fieldData );
-    //    fieldData->Delete();
-    //
-    //    this->PlotActor->AddDataObjectInput(dataObject);
-    //    dataObject->Delete();
-    //
-    //    this->PlotActor->SetDataObjectXComponent(obj, 0);
-    //    this->PlotActor->SetDataObjectYComponent(obj, 1);
-    //    this->PlotActor->SetPlotColor(obj, aiter->color[0], aiter->color[1], aiter->color[2]);
-    //
-    //    obj ++;
-    //    }
-    //  }
 
     this->PlotActor->SetXRange(this->RangeX[0], this->RangeX[1]);
     this->PlotActor->SetYRange(this->RangeY[0], this->RangeY[1]);
@@ -516,142 +406,12 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
 }
 
 
-
-//----------------------------------------------------------------------------
-void vtkSlicerXYPlotWidget::AddVerticalLine(double x)
-{
-  AxisLineType lineData;
-  lineData.pos     = x;
-  lineData.visible = 1;
-  this->VerticalLines.push_back(lineData);
-}
-
-
-//----------------------------------------------------------------------------
-void vtkSlicerXYPlotWidget::AddHorizontalLine(double y)
-{
-  AxisLineType lineData;
-  lineData.pos     = y;
-  lineData.visible = 1;
-  this->HorizontalLines.push_back(lineData);
-}
-
-
 //----------------------------------------------------------------------------
 void vtkSlicerXYPlotWidget::SetAxisLineColor(double r, double g, double b)
 {
   this->AxisLineColor[0] = r;
   this->AxisLineColor[1] = g;
   this->AxisLineColor[2] = b;
-}
-
-
-//----------------------------------------------------------------------------
-void vtkSlicerXYPlotWidget::RemoveLines()
-{
-  this->VerticalLines.clear();
-  this->HorizontalLines.clear();
-}
-
-
-//----------------------------------------------------------------------------
-vtkDataObject* vtkSlicerXYPlotWidget::CreateDataObjectForLine(double p1[2], double p2[2])
-{
-
-  vtkDoubleArray* value = vtkDoubleArray::New();
-  value->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-  value->InsertNextTuple( p1 );
-  value->InsertNextTuple( p2 );
-  
-  vtkFieldData* fieldData = vtkFieldData::New();
-  fieldData->AddArray(value);
-  value->Delete();
-  
-  vtkDataObject* dataObject = vtkDataObject::New();
-  dataObject->SetFieldData( fieldData );
-  fieldData->Delete();
-  
-  return dataObject;
-  
-}
-
-
-//----------------------------------------------------------------------------
-vtkDoubleArray* vtkSlicerXYPlotWidget::CreatePlotDataWithErrorBar(vtkDoubleArray* srcData)
-{
-  vtkDoubleArray* plotData;
-  plotData = vtkDoubleArray::New();
-  plotData->SetNumberOfComponents( static_cast<vtkIdType>(2) );
-  
-  // Check if the data exists and it has 3 components (x, y, and error)
-  if (!srcData || srcData->GetNumberOfComponents() != static_cast<vtkIdType>(3))
-    {
-    int nData = srcData->GetNumberOfTuples();
-    for (int i = 0; i < nData; i ++)
-      {
-      double* values = srcData->GetTuple(i);
-      plotData->InsertNextTuple( values );
-      }
-    return plotData;
-    }
-
-  // Note: Error bar
-  //
-  //        p2
-  //   p0 --+-- p1    ---
-  //        |          ^
-  //        *          | 2 * error
-  //        |          v
-  //   p4 --+-- p5    ---   
-  //        p3
-  //
-  //      |<->| error bar width * 2
-  //
-  // 'error bar width' = ((this->RangeX[1] - this->RangeX[0]) / nData) / 8
-  //
-  
-  int nData = srcData->GetNumberOfTuples();
-  double errorBarWidth;
-
-  if (nData > 10)
-    {
-    errorBarWidth = ((this->RangeX[1] - this->RangeX[0]) / (double)nData) / 8.0;
-    }
-  else
-    {
-    errorBarWidth = ((this->RangeX[1] - this->RangeX[0]) / 10.0) / 8.0;
-    }
-  
-  for (int j = 0; j < nData; j ++)
-    {
-    double* values = srcData->GetTuple(j);
-    double p[6][2];
-    
-    // set x coordinates
-    p[0][0] = p[4][0] = values[0] - errorBarWidth;
-    p[2][0] = p[3][0] = values[0];
-    p[1][0] = p[5][0] = values[0] + errorBarWidth;
-    
-    // set y coordinates
-    p[0][1] = p[1][1] = p[2][1] = values[1] + values[2];
-    p[3][1] = p[4][1] = p[5][1] = values[1] - values[2];
-    
-    // Add data point
-    plotData->InsertNextTuple( values );
-
-    // Add points for error bars
-    plotData->InsertNextTuple( p[2] );
-    plotData->InsertNextTuple( p[0] );
-    plotData->InsertNextTuple( p[1] );
-    plotData->InsertNextTuple( p[2] );
-    plotData->InsertNextTuple( p[3] );
-    plotData->InsertNextTuple( p[4] );
-    plotData->InsertNextTuple( p[5] );
-    plotData->InsertNextTuple( p[3] );
-    plotData->InsertNextTuple( values );
-    }
-
-  return plotData;
 }
 
 
