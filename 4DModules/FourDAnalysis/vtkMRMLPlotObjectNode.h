@@ -27,7 +27,7 @@
 #include "vtkDataObject.h"
 
 class vtkSlicerXYPlotWidget;
-class vtkMRMLXYPlotNode;
+class vtkMRMLXYPlotManagerNode;
 
 
 class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
@@ -41,7 +41,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
   // to call protected the function: GetDrawObject();
   //BTX
   friend class vtkSlicerXYPlotWidget;
-  friend class vtkMRMLXYPlotNode;
+  friend class vtkMRMLXYPlotManagerNode;
   //ETX
 
  public:
@@ -139,7 +139,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLPlotObjectNode : public vtkMRMLNode
   virtual int GetYRange(double* yrange) {};
 
   // Description:
-  // Get draw object (this funciton is called by vtkMRMLXYPlotNode)
+  // Get draw object (this funciton is called by vtkMRMLXYPlotManagerNode)
   virtual vtkDataObject* GetDrawObject(double* xrange, double* yrange) {};
 
 

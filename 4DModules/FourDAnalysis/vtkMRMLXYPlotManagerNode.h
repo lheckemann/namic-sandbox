@@ -11,8 +11,8 @@
   Version:   $Revision: 1.3 $
 
 =========================================================================auto=*/
-#ifndef __vtkMRMLXYPlotNode_h
-#define __vtkMRMLXYPlotNode_h
+#ifndef __vtkMRMLXYPlotManagerNode_h
+#define __vtkMRMLXYPlotManagerNode_h
 
 #include <string>
 #include <vector>
@@ -30,7 +30,7 @@
 
 class vtkIntArray;
 
-class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
+class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotManagerNode : public vtkMRMLNode
 {
 
  public:
@@ -62,8 +62,8 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
 
-  static vtkMRMLXYPlotNode *New();
-  vtkTypeMacro(vtkMRMLXYPlotNode,vtkMRMLNode);
+  static vtkMRMLXYPlotManagerNode *New();
+  vtkTypeMacro(vtkMRMLXYPlotManagerNode,vtkMRMLNode);
   
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -288,10 +288,10 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotNode : public vtkMRMLNode
   // Constructor and destroctor
   //----------------------------------------------------------------
   
-  vtkMRMLXYPlotNode();
-  ~vtkMRMLXYPlotNode();
-  vtkMRMLXYPlotNode(const vtkMRMLXYPlotNode&);
-  void operator=(const vtkMRMLXYPlotNode&);
+  vtkMRMLXYPlotManagerNode();
+  ~vtkMRMLXYPlotManagerNode();
+  vtkMRMLXYPlotManagerNode(const vtkMRMLXYPlotManagerNode&);
+  void operator=(const vtkMRMLXYPlotManagerNode&);
 
 
  protected:

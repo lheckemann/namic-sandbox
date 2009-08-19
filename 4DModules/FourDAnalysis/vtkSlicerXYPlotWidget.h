@@ -22,7 +22,7 @@
 
 #include "vtkFourDAnalysisWin32Header.h"
 #include "vtkKWRenderWidget.h"
-#include "vtkMRMLXYPlotNode.h"
+#include "vtkMRMLXYPlotManagerNode.h"
 
 #include <string>
 #include <vector>
@@ -141,11 +141,11 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
 
   // Description:
   // Set and observe XYPlotNode
-  void SetAndObserveXYPlotNode(vtkMRMLXYPlotNode* node);
+  void SetAndObserveXYPlotNode(vtkMRMLXYPlotManagerNode* node);
 
   // Description:
   // Get XY plot node 
-  vtkGetObjectMacro(XYPlotNode, vtkMRMLXYPlotNode);
+  vtkGetObjectMacro(XYPlotNode, vtkMRMLXYPlotManagerNode);
 
   // Description::
   // AutoUpdate flag specifies when the graph is refreshed.
@@ -183,7 +183,7 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
   //----------------------------------------------------------------
 
   vtkMRMLScene* MRMLScene;
-  vtkMRMLXYPlotNode* XYPlotNode;
+  vtkMRMLXYPlotManagerNode* XYPlotNode;
 
   // Description:
   // MRML observer manager

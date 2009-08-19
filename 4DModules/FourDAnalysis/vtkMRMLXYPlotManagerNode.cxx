@@ -14,39 +14,39 @@ Version:   $Revision: 1.2 $
 
 #include "vtkObjectFactory.h"
 
-#include "vtkMRMLXYPlotNode.h"
+#include "vtkMRMLXYPlotManagerNode.h"
 
 #include "vtkMRMLScene.h"
 
 #include "vtkMRMLPlotObjectCurve2DNode.h"
 
 //------------------------------------------------------------------------------
-vtkMRMLXYPlotNode* vtkMRMLXYPlotNode::New()
+vtkMRMLXYPlotManagerNode* vtkMRMLXYPlotManagerNode::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLXYPlotNode"); if(ret)
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLXYPlotManagerNode"); if(ret)
     {
-      return (vtkMRMLXYPlotNode*)ret;
+      return (vtkMRMLXYPlotManagerNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLXYPlotNode;
+  return new vtkMRMLXYPlotManagerNode;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLNode* vtkMRMLXYPlotNode::CreateNodeInstance()
+vtkMRMLNode* vtkMRMLXYPlotManagerNode::CreateNodeInstance()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLXYPlotNode");
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLXYPlotManagerNode");
   if(ret)
     {
-      return (vtkMRMLXYPlotNode*)ret;
+      return (vtkMRMLXYPlotManagerNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLXYPlotNode;
+  return new vtkMRMLXYPlotManagerNode;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLXYPlotNode::vtkMRMLXYPlotNode()
+vtkMRMLXYPlotManagerNode::vtkMRMLXYPlotManagerNode()
 {
 
   this->Title  = "";
@@ -71,13 +71,13 @@ vtkMRMLXYPlotNode::vtkMRMLXYPlotNode()
 
 
 //----------------------------------------------------------------------------
-vtkMRMLXYPlotNode::~vtkMRMLXYPlotNode()
+vtkMRMLXYPlotManagerNode::~vtkMRMLXYPlotManagerNode()
 {
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLXYPlotManagerNode::WriteXML(ostream& of, int nIndent)
 {
 
   // Start by having the superclass write its information
@@ -116,7 +116,7 @@ void vtkMRMLXYPlotNode::WriteXML(ostream& of, int nIndent)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLXYPlotManagerNode::ReadXMLAttributes(const char** atts)
 {
   int disabledModify = this->StartModify();
 
@@ -225,11 +225,11 @@ void vtkMRMLXYPlotNode::ReadXMLAttributes(const char** atts)
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
-void vtkMRMLXYPlotNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLXYPlotManagerNode::Copy(vtkMRMLNode *anode)
 {
 
   Superclass::Copy(anode);
-  vtkMRMLXYPlotNode *node = (vtkMRMLXYPlotNode *) anode;
+  vtkMRMLXYPlotManagerNode *node = (vtkMRMLXYPlotManagerNode *) anode;
 
   //int type = node->GetType();
   
@@ -237,7 +237,7 @@ void vtkMRMLXYPlotNode::Copy(vtkMRMLNode *anode)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLXYPlotManagerNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
@@ -264,14 +264,14 @@ void vtkMRMLXYPlotNode::ProcessMRMLEvents( vtkObject *caller, unsigned long even
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLXYPlotManagerNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkMRMLNode::PrintSelf(os,indent);
 }
 
 
 //----------------------------------------------------------------------------
-int vtkMRMLXYPlotNode::AddPlot(vtkMRMLPlotObjectNode* node)
+int vtkMRMLXYPlotManagerNode::AddPlot(vtkMRMLPlotObjectNode* node)
 {
 
   // Check if the number of arrays hasn't reached to the maximum
@@ -303,7 +303,7 @@ int vtkMRMLXYPlotNode::AddPlot(vtkMRMLPlotObjectNode* node)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::RemovePlot(int id)
+void vtkMRMLXYPlotManagerNode::RemovePlot(int id)
 {
   
   std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
@@ -319,7 +319,7 @@ void vtkMRMLXYPlotNode::RemovePlot(int id)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::RemovePlotByNodeID(const char* nodeID)
+void vtkMRMLXYPlotManagerNode::RemovePlotByNodeID(const char* nodeID)
 {
 
   std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
@@ -338,8 +338,18 @@ void vtkMRMLXYPlotNode::RemovePlotByNodeID(const char* nodeID)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::ClearPlots()
+void vtkMRMLXYPlotManagerNode::ClearPlots()
 {
+  std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
+  for (iter = this->Data.begin(); iter != this->Data.end(); iter ++)
+    {
+    if (iter->second)
+      {
+      iter->second->Delete();
+      iter->second = NULL;
+      }
+    }
+
   this->Data.clear();
   this->LastArrayID = -1;
   this->Modified();
@@ -347,14 +357,14 @@ void vtkMRMLXYPlotNode::ClearPlots()
 
 
 //----------------------------------------------------------------------------
-unsigned int vtkMRMLXYPlotNode::GetNumberOfPlots()
+unsigned int vtkMRMLXYPlotManagerNode::GetNumberOfPlots()
 {
   this->Data.size();
 }
 
 
 //----------------------------------------------------------------------------
-vtkIntArray* vtkMRMLXYPlotNode::GetPlotIDList()
+vtkIntArray* vtkMRMLXYPlotManagerNode::GetPlotIDList()
 {
 
   vtkIntArray* list;
@@ -374,7 +384,7 @@ vtkIntArray* vtkMRMLXYPlotNode::GetPlotIDList()
 
 
 //----------------------------------------------------------------------------
-vtkMRMLPlotObjectNode* vtkMRMLXYPlotNode::GetPlot(int id)
+vtkMRMLPlotObjectNode* vtkMRMLXYPlotManagerNode::GetPlot(int id)
 {
 
   std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
@@ -392,7 +402,7 @@ vtkMRMLPlotObjectNode* vtkMRMLXYPlotNode::GetPlot(int id)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::SetVisibilityAll(int i)
+void vtkMRMLXYPlotManagerNode::SetVisibilityAll(int i)
 {
   std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
 
@@ -411,7 +421,7 @@ void vtkMRMLXYPlotNode::SetVisibilityAll(int i)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::SetErrorBarAll(int i)
+void vtkMRMLXYPlotManagerNode::SetErrorBarAll(int i)
 {
   std::map< int, vtkMRMLPlotObjectNode* >::iterator iter;
   
@@ -434,7 +444,7 @@ void vtkMRMLXYPlotNode::SetErrorBarAll(int i)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLXYPlotNode::Refresh()
+void vtkMRMLXYPlotManagerNode::Refresh()
 {
   this->InvokeEvent(UpdateGraphEvent);
 }
