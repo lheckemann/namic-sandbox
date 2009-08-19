@@ -34,21 +34,21 @@ from scipy.interpolate import interp1d, splrep, splev
 from numpy import r_
 
 # ----------------------------------------------------------------------
-# Kety Model
+# Tofts Model
 # ----------------------------------------------------------------------
 
-class CurveFittingKetyModelStepInput(CurveAnalysisBase):
-
-    duration = 1.0
+class CurveFittingToftsModel2(CurveAnalysisBase):
 
     # ------------------------------
     # Constructor -- Set initial parameters
     def __init__(self):
-        self.OptimParamNameList = ['Ktrans', 've', 'Cp0', 'delay']
-        self.InitialOptimParam  = [0.1, 0.1, 1.0, 0.0] 
+        self.ParameterNameList  = ['Ktrans', 've']
+        self.InitialParameter   = [0.1, 0.1] 
         self.InputCurveNameList = ['AIF']
-        self.InputParamNameList = ['Duration']
-        self.InputParam         = [1.0]
+        self.FunctionVectorInput = 0
+
+        self.MethodName          = 'Tofts Model (ignoring vp)'
+        self.MethodDescription   = '...'
 
         # dummy 
         self.AifTime = r_[0:5]
@@ -69,12 +69,6 @@ class CurveFittingKetyModelStepInput(CurveAnalysisBase):
         return signal
        
     # ------------------------------
-    # Set input parameters
-    def SetInputParam(self, name, param):
-        if name == 'Duration':
-            self.duration = param;
-
-    # ------------------------------
     # Generate arteral input function from given data
     def SetInputCurve(self, name, curve):
         if name == 'AIF':
@@ -91,41 +85,23 @@ class CurveFittingKetyModelStepInput(CurveAnalysisBase):
 
     # ------------------------------
     # Definition of the function
-    def Function(self, t, param):
-        Ktrans, ve, Cp0, delay = param
+    def Function(self, x, param):
+        Ktrans, ve = param
 
-        # If step imput is assumed, the respons can be described as
-        #
-        #   y = (Ktrans * Cp0 / kep) * (1-exp(-kep*t))         (t < duration)   ... (1)
-        #   y = (Ktrans * cp0 / kep) * exp(-kep*(t-duration))  (t >= duration)  ... (2)
-
-        #sys.stderr.write('t     : %s\n' % t )
-
-
-        # Calculate shifted time
-        t2 = scipy.greater_equal(t, delay) * (t - delay);
-
-        # To describe C(t) in one equasion, we introduce t_dush, which is
-        # defined by t_dash = t (t < duration) and t_dash = duration (t >= duration):
-        t_dash = scipy.less(t2, self.duration)*t2 + scipy.greater_equal(t2, self.duration)*self.duration
-
-        # Eq. (1) and (2) can be rewritten by:
-        kep = Ktrans / ve
-        y = (Ktrans*Cp0/kep)*(scipy.exp(kep*t_dash) - 1) * scipy.exp(-kep*t2)
-
+        #s = quadrature(lambda t: self.Aif(t) * scipy.exp(-Ktrans*(x-t)/ve), 0.0, x, tol=1.0e-03, vec_func=False)
+        s = fixed_quad(lambda t: self.Aif(t) * scipy.exp(-Ktrans*(x-t)/ve), 0.0, x, n=5)
+        y = Ktrans * s[0]
         return y
 
     # ------------------------------
     # Calculate the output parameters (called by GetOutputParam())
     def CalcOutputParamDict(self, param):
-        Ktrans, ve, Cp0, delay = param
+        Ktrans, ve = param
 
         dict = {}
         dict['Ktrans'] = Ktrans
         dict['ve']     = ve
         dict['kep']    = Ktrans / ve
-        dict['Cp0']    = Cp0
-        dict['delay']  = delay
         
         return dict
 

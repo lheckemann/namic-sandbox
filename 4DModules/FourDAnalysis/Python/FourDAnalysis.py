@@ -28,6 +28,8 @@ import imp
 import scipy.optimize 
 import numpy
 
+import time
+
 # ----------------------------------------------------------------------
 # Base class for curve fitting algorithm classes
 # ----------------------------------------------------------------------
@@ -35,37 +37,69 @@ import numpy
 class CurveAnalysisBase(object):
 
     # Parameters to optimze
-    OptimParamNameList    = []
-    InitialOptimParam     = []
-    OptimParam            = []
+    ParameterNameList     = []
+    InitialParameter      = []
+    Parameter             = []
 
     # Input curve
     InputCurveNameList    = []
 
-    # Input parameters
-    InputParamNameList    = []
-    InputParam            = []
+    # constants
+    ConstantNameList    = []
+    Constant            = []
 
     # Target curve
     TargetCurve           = []
 
     CovarianceMatrix      = []
 
+    FunctionVectorInput   = 0
+
+    MethodName            = ''
+    MethodDescription     = ''
+
     #def __init__(self):
-    #    ## OptimParamNameList and Initial Param should be set here
+        ## ParameterNameList and Initial Param should be set here
         
     def Initialize(self):
         return 0
 
+    # ------------------------------
+    # Get method name
+
+    def GetMethodName(self):
+        return self.MethodName
+
+    # ------------------------------
+    # Get method description
+
+    def GetMethodDescription(self):
+        return self.MethodDescription
+
+
     def Function(self, x, param):
         return 0
 
-    def ResidualError(self, param, y, x):
-        err = y - (self.Function(x, param))
-        return err
 
     def CalcOutputParamDict(self, param):
         return {}
+
+    # ------------------------------
+    # Generic residual error fucntion
+
+    def ResidualError(self, param, y, x):
+        lst = range(len(x))
+        f = self.REBUF
+        for i in lst:
+            f[i] = self.Function(x[i], param)
+        return (y - f)
+
+    # ------------------------------
+    # Residual error for functions that accept vector
+
+    def ResidualErrorVec(self, param, y, x):
+        err = y - (self.Function(x, param))
+        return err
 
     # ------------------------------
     # Convert signal intensity curve to concentration curve
@@ -81,42 +115,42 @@ class CurveAnalysisBase(object):
     # ------------------------------
     # Parameters to optimze
 
-    def GetOptimParamNameList(self):
-        return self.OptimParamNameList
+    def GetParameterNameList(self):
+        return self.ParameterNameList
 
-    def SetInitialOptimParam(self, param):
-        self.InitialOptimParam = param
+    def SetInitialParameter(self, param):
+        self.InitialParameter = param
 
-    def GetInitialOptimParam(self):
-        return self.InitialOptimParam
+    def GetInitialParameters(self):
+        return self.InitialParameter
 
-    def GetOptimParam(self):
-        return self.OptimParam
+    def GetParameter(self):
+        return self.Parameter
 
     # ------------------------------
-    # Input parameters
+    # Constants
 
-    def GetInputParamNameList(self):
-        return self.InputParamNameList
+    def GetConstantNameList(self):
+        return self.ConstantNameList
 
-    def GetInputParam(slef):
-        return self.InputParam
+    def GetConstant(slef):
+        return self.Constant
 
-    def SetInputParam(self, name, param):
+    def SetConstant(self, name, param):
         return 0
 
     # ------------------------------
     # Output parameters
 
     def GetOutputParamNameList(self):
-        dict = self.CalcOutputParamDict(self.InitialOptimParam)
+        dict = self.CalcOutputParamDict(self.InitialParameter)
         list = []
         for key, value in dict.iteritems():
             list.append(key)
         return list
 
     def GetOutputParam(self):
-        return self.CalcOutputParamDict(self.OptimParam)
+        return self.CalcOutputParamDict(self.Parameter)
 
     # ------------------------------
     # Input curve
@@ -137,25 +171,35 @@ class CurveAnalysisBase(object):
     # Fit curve
 
     def GetFitCurve(self, x):
-        return self.ConcentToSignal(self.Function(x, self.OptimParam))
+        if self.FunctionVectorInput == 0:
+            lst = range(len(x))
+            f = x.copy()
+            for i in lst:
+                f[i] = self.Function(x[i], self.Parameter)
+            return self.ConcentToSignal(f)
+        else:
+            return self.ConcentToSignal(self.Function(x, self.Parameter))
 
     # ------------------------------
     # Execute optimization
 
     def Execute(self):
-
+        
         x      = self.TargetCurve[:, 0]
         y_meas = self.SignalToConcent(self.TargetCurve[:, 1])
 
-        param0 = self.InitialOptimParam
+        param0 = self.InitialParameter
 
-        param_output = scipy.optimize.leastsq(self.ResidualError, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
-        self.OptimParam       = param_output[0] # fitted parameters
+        if self.FunctionVectorInput == 0:
+            self.REBUF  = scipy.zeros(len(x))   # to reduce number of memory allocations
+            param_output = scipy.optimize.leastsq(self.ResidualError, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
+        else:
+            param_output = scipy.optimize.leastsq(self.ResidualErrorVec, param0, args=(y_meas, x),full_output=False,ftol=1e-04,xtol=1.49012e-04)
+
+        self.Parameter       = param_output[0] # fitted parameters
         self.CovarianceMatrix = param_output[1] # covariant matrix
-        
+
         return 1        ## should return 0 if optimization fails
-
-
 
 
 # ----------------------------------------------------------------------
@@ -181,9 +225,8 @@ class CurveAnalysisExecuter(object):
         fileName = fileNameMatch.groups()[0]
         self.ModuleName = extexp.sub('', fileName)
 
-        sys.stderr.write('Directory     : %s\n' % directory )
-        sys.stderr.write('File name     : %s\n' % fileName )
-        sys.stderr.write('File name     : %s\n' % fileName )
+        #sys.stderr.write('Directory     : %s\n' % directory )
+        #sys.stderr.write('File name     : %s\n' % fileName )
 
         # ------------------------------
         # Add the search path if it hasn't been registered.
@@ -203,6 +246,18 @@ class CurveAnalysisExecuter(object):
                 fp.close()
 
     # ------------------------------
+    # Get Method Name
+    def GetMethodName(self):
+        exec('fitting = self.Module.' + self.ModuleName + '()')
+        return fitting.GetMethodName()
+
+    # ------------------------------
+    # Get Method Description
+    def GetMethodDescription(self):
+        exec('fitting = self.Module.' + self.ModuleName + '()')
+        return fitting.GetMethodDescription()
+
+    # ------------------------------
     # Get Input Curve Name List
     def GetInputCurveNames(self):
         exec('fitting = self.Module.' + self.ModuleName + '()')
@@ -210,11 +265,11 @@ class CurveAnalysisExecuter(object):
         return list
 
     # ------------------------------
-    # Get Initial Optimization Parameter List
-    def GetInitialOptimParams(self):
+    # Get Initial Optimization Parameter Dictionary
+    def GetInitialParameters(self):
         exec('fitting = self.Module.' + self.ModuleName + '()')
-        names  = fitting.GetOptimParamNameList()
-        values = fitting.GetInitialOptimParam()
+        names  = fitting.GetParameterNameList()
+        values = fitting.GetInitialParameters()
         n = len(names)
         params = {}
         for i in range(n):
@@ -222,10 +277,10 @@ class CurveAnalysisExecuter(object):
         return params
 
     # ------------------------------
-    # Get Input Parameter Name List
-    def GetInputParameterNames(self):
+    # Get Constant Name List
+    def GetConstantNames(self):
         exec('fitting = self.Module.' + self.ModuleName + '()')
-        list =  fitting.GetInputParamNameList()
+        list =  fitting.GetConstantNameList()
         return list
 
     # ------------------------------
@@ -237,40 +292,86 @@ class CurveAnalysisExecuter(object):
 
     # ------------------------------
     # Call curve fitting class
-    def Execute(self, inputCurvesDict, initialOptimParamDict, inputParamDict, targetCurve, outputCurve):
+    def Execute(self, inputCurveDict, initialParameterDict, inputParameterDict, targetCurve, outputCurve):
 
         exec('fitting = self.Module.' + self.ModuleName + '()')
 
         # ------------------------------
         # Set Curves
-        for name, curve in inputCurvesDict.iteritems():
+        for name, curve in inputCurveDict.iteritems():
             fitting.SetInputCurve(name, curve)
 
         fitting.SetTargetCurve(targetCurve)
 
         # ------------------------------
         # Set initial optimization parameters
-        nameList = fitting.GetOptimParamNameList()
+        nameList = fitting.GetParameterNameList()
         n = len(nameList)
         paramList = numpy.zeros(n)
         for i in range(n):
-            paramList[i] = initialOptimParamDict[nameList[i]]
+            paramList[i] = initialParameterDict[nameList[i]]
 
-        fitting.SetInitialOptimParam(paramList)
+        fitting.SetInitialParameter(paramList)
 
         # ------------------------------
-        # Set input parameters
-        for name, param, in inputParamDict.iteritems():
-            fitting.SetInputParam(name, param)
+        # Set constants
+        for name, param, in inputParameterDict.iteritems():
+            fitting.SetConstant(name, param)
 
         # ------------------------------
         # Run optimization
+
         fitting.Execute()
-        x = outputCurve[:, 0]
-        y = fitting.GetFitCurve(x)
-        
-        outputCurve[:, 1] = y
+        outputCurve[:,1] = fitting.GetFitCurve(outputCurve[:, 0])
         
         result = fitting.GetOutputParam()
 
         return result
+
+
+    # ------------------------------
+    # Call curve fitting class / for mulitprocess
+    def ExecuteWithQueue(self, q):
+
+        dict = q.get()
+        inputCurveDict       = dict['inputCurveDict']
+        initialParameterDict = dict['initialParameterDict']
+        inputParameterDict   = dict['inputParameterDict']
+        targetCurve          = dict['targetCurve']
+        outputCurve          = dict['outputCurve']
+
+        exec('fitting = self.Module.' + self.ModuleName + '()')
+
+        # ------------------------------
+        # Set Curves
+        for name, curve in inputCurveDict.iteritems():
+            fitting.SetInputCurve(name, curve)
+
+        fitting.SetTargetCurve(targetCurve)
+
+        # ------------------------------
+        # Set initial optimization parameters
+        nameList = fitting.GetParameterNameList()
+        n = len(nameList)
+        paramList = numpy.zeros(n)
+        for i in range(n):
+            paramList[i] = initialParameterDict[nameList[i]]
+
+        fitting.SetInitialParameter(paramList)
+
+        # ------------------------------
+        # Set constants
+        for name, param, in inputParameterDict.iteritems():
+            fitting.SetConstant(name, param)
+
+        # ------------------------------
+        # Run optimization
+
+        fitting.Execute()
+        outputCurve[:,1] = fitting.GetFitCurve(outputCurve[:, 0])
+        
+        rdict = {}
+        rdict['result']      = fitting.GetOutputParam()
+        rdict['outputCurve'] = outputCurve 
+
+        q.put(rdict)

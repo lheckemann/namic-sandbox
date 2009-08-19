@@ -34,17 +34,22 @@ from scipy.interpolate import interp1d, splrep, splev
 from numpy import r_
 
 # ----------------------------------------------------------------------
-# Kety Model
+# Tofts Model
 # ----------------------------------------------------------------------
 
-class CurveFittingKetyModel2(CurveAnalysisBase):
+class CurveFittingToftsModel(CurveAnalysisBase):
 
     # ------------------------------
     # Constructor -- Set initial parameters
     def __init__(self):
-        self.OptimParamNameList = ['Ktrans', 've']
-        self.InitialOptimParam  = [0.1, 0.1] 
+        self.ParameterNameList  = ['Ktrans', 'vp', 've']
+        self.InitialParameter   = [0.1, 0.1, 0.01] 
+        #self.InitialOptimParam  = [0.015, 0.12, 0.12] 
+        #self.InitialOptimParam  = [0.05, 0.2, 0.2] 
         self.InputCurveNameList = ['AIF']
+
+        self.MethodName          = 'Tofts Model'
+        self.MethodDescription   = '...'
 
         # dummy 
         self.AifTime = r_[0:5]
@@ -82,25 +87,25 @@ class CurveFittingKetyModel2(CurveAnalysisBase):
     # ------------------------------
     # Definition of the function
     def Function(self, x, param):
-        Ktrans, ve = param
+        Ktrans, vp, ve = param
         lst = range(len(x))
         y = scipy.zeros(len(x))
         for i in lst:
             xx = x[i]
             s = quadrature(lambda t: self.Aif(t) * scipy.exp(-Ktrans*(xx-t)/ve), 0.0, xx, tol=1.0e-03, vec_func=False)
             #s = quadrature(lambda t: splev(t,self.Tck,der=0) * scipy.exp(-Ktrans*(xx-t)/ve), 0.0, xx, vec_func=False)
-            y[i] = Ktrans  * s[0]
+            y[i] = vp * self.Aif(xx) + Ktrans  * s[0]
         return y
 
     # ------------------------------
     # Calculate the output parameters (called by GetOutputParam())
     def CalcOutputParamDict(self, param):
-        Ktrans, ve = param
+        Ktrans, vp, ve = param
 
         dict = {}
         dict['Ktrans'] = Ktrans
+        dict['vp']     = vp
         dict['ve']     = ve
-        dict['kep']    = Ktrans / ve
         
         return dict
 

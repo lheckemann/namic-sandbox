@@ -1,6 +1,6 @@
 /*==========================================================================
 
-  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -32,38 +32,38 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLScalarVolumeNode.h"
-#include "vtkMRML4DBundleNode.h"
+#include "vtkMRMLTimeSeriesBundleNode.h"
 #include "vtkMRMLCurveAnalysisNode.h"
 
 
 #include "itkOrientedImage.h"
 #include "itkImageSeriesReader.h"
 
-
 #include "vtkIntensityCurves.h"
+#include "vtkCurveAnalysisPythonInterface.h"
 
 #include <string>
 #include <map>
 
 
 class vtkIGTLConnector;
+class vtkMutexLock;
 
 class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLogic 
 {
  public:
   //BTX
   enum {  // Events
-    //LocatorUpdateEvent    = 50000,
-    StatusUpdateEvent       = 50001,
-    ProgressDialogEvent     = 50002,
+    StatusUpdateEvent       = 50003,
+    ProgressDialogEvent     = 50004,
   };
   enum {
     TYPE_MEAN,
     TYPE_SD,
   };
   typedef struct {
-    int    show;
-    double progress;
+    int         show;
+    double      progress;
     std::string message;
   } StatusMessageType;
 
@@ -89,6 +89,23 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   } CurveDataSetType;
 
   typedef std::map<std::string, CurveDataSetType> CurveCacheType;
+
+  typedef std::map<std::string, vtkImageData*>            ParameterImageMapType;
+  typedef std::map<std::string, vtkMRMLScalarVolumeNode*> ParameterVolumeNodeMapType;
+
+  typedef struct {
+    int                              id;
+    vtkFourDAnalysisLogic*           ptr;
+    vtkCurveAnalysisPythonInterface* curveAnalysisInterface;
+    std::vector<vtkImageData*>       imageVector;
+    std::vector<double>              imageTimeStampVector;
+    ParameterImageMapType            parameterImageMap;
+    vtkMutexLock*                    mutex;
+    
+    int rangei[2];
+    int rangej[2];
+    int rangek[2];
+  } ThreadInfo;
   //ETX
 
  public:
@@ -110,7 +127,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   typedef itk::ImageSeriesReader< VolumeType > ReaderType;
   //ETX
 
-  vtkMRMLScalarVolumeNode* AddMapVolumeNode(vtkMRML4DBundleNode* bundleNode,
+  vtkMRMLScalarVolumeNode* AddMapVolumeNode(vtkMRMLTimeSeriesBundleNode* bundleNode,
                                             const char* nodeName);
   int         GetNumberOfFrames();
   const char* GetFrameNodeID(int index);
@@ -121,8 +138,20 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
   void SetApplication(vtkSlicerApplication *app) { this->Application = app; };
   vtkSlicerApplication* GetApplication() { return this->Application; };
 
-  void GenerateParameterMap(const char* script,
-                            vtkMRML4DBundleNode* bundleNode, 
+
+  void GenerateParameterMapMT(const char* scriptFile,
+                              vtkMRMLCurveAnalysisNode* curveNode,
+                              vtkMRMLTimeSeriesBundleNode* bundleNode,
+                              const char* outputNodeNamePrefix,
+                              int start, int end,
+                              int imin, int imax, int jmin, int jmax, int kmin, int kmax);
+  //BTX
+  static void* CurveAnalysisThread(void* ptr);
+  //ETX
+
+  void GenerateParameterMap(vtkCurveAnalysisPythonInterface* script,
+                            vtkMRMLCurveAnalysisNode* curveNode,
+                            vtkMRMLTimeSeriesBundleNode* bundleNode, 
                             const char* outputNodeNamePrefix,
                             int start, int end,
                             int imin, int imax, int jmin, int jmax, int kmin, int kmax);
@@ -159,9 +188,6 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisLogic : public vtkSlicerModuleLog
 
   CurveCacheType CurveCache;  // CurveCache[<4d bundle name>][<label number>].<member of CurveDataType>
   //ETX
-
-  //vtkCurveAnalysisPythonScript* Script;
-
 
 };
 

@@ -1,6 +1,6 @@
 /*==========================================================================
 
-  Portions (c) Copyright 2008 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Portions (c) Copyright 2009 Brigham and Women's Hospital (BWH) All Rights Reserved.
 
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
@@ -25,8 +25,11 @@
 #include "vtkDoubleArray.h"
 
 #include "vtkFourDAnalysisLogic.h"
-#include "vtkKWPlotGraph.h"
+//#include "vtkKWPlotGraph.h"
 #include "vtkSlicerNodeSelectorWidget.h"
+
+#include "vtkSlicerXYPlotWidget.h"
+
 
 #include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWLoadSaveButtonWithLabel.h"
@@ -43,10 +46,11 @@ class vtkKWProgressDialog;
 class vtkKWRadioButtonSet;
 class vtkKWRadioButton;
 class vtkKWRange;
+class vtkKWEntryWithLabel;
 class vtkIntensityCurves;
 class vtkKWCheckButtonWithLabel;
 class vtkCurveAnalysisPythonInterface;
-
+class vtkSlicerNodeSelectorWidget;
 
 //class vtkFourDImageGUI;
 
@@ -136,7 +140,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   void UpdateAll();
-  void SelectActive4DBundle(vtkMRML4DBundleNode* bundleNode);
+  void SelectActive4DBundle(vtkMRMLTimeSeriesBundleNode* bundleNode);
 
 
   //----------------------------------------------------------------
@@ -147,14 +151,15 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void SetBackground(const char* bundleID, int index);
   void SetWindowLevelForCurrentFrame();
   void UpdateSeriesSelectorMenus();
-  void UpdateMaskSelectMenu();
+  //  void UpdateMaskSelectMenu();
 
+  void UpdateMethodNameField(vtkMRMLCurveAnalysisNode* curveNode);
   void UpdateInitialParameterList(vtkMRMLCurveAnalysisNode* curveNode);
   void GetInitialParametersAndInputCurves(vtkMRMLCurveAnalysisNode* curveNode, int start, int end);
   void UpdateOutputParameterList(vtkMRMLCurveAnalysisNode* curveNode);
 
   void UpdateIntensityPlot(vtkIntensityCurves* intensityCurves);
-  void UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves* intensityCurves, vtkDoubleArray* array);
+  void UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves* intensityCurves);
 
  protected:
   
@@ -190,18 +195,21 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   // -----------------------------------------
   // Intensity Curve
 
-  vtkKWEntry*       AcqTimeEntry;
-  vtkKWMenuButton*  SeriesToPlotMenu;
-  vtkKWMenuButton*  MaskSelectMenu;
-  vtkKWPlotGraph*   IntensityPlot;
+  vtkKWEntry*          AcqTimeEntry;
+  vtkKWMenuButton*     SeriesToPlotMenu;
+  //vtkKWMenuButton*     MaskSelectMenu;
+  vtkSlicerNodeSelectorWidget* MaskNodeSelector;
+
+  //vtkKWPlotGraph*      IntensityPlot;
+  vtkSlicerXYPlotWidget*     IntensityPlot;
   vtkKWCheckButtonWithLabel* ErrorBarCheckButton;
 
-  vtkKWMenuButton* FittingLabelMenu;
+  vtkKWMenuButton*     FittingLabelMenu;
   vtkKWLoadSaveButtonWithLabel* CurveScriptSelectButton;
-  vtkKWSpinBox*    CurveFittingStartIndexSpinBox;
-  vtkKWSpinBox*    CurveFittingEndIndexSpinBox;
-  vtkKWPushButton* RunFittingButton;
-
+  vtkKWSpinBox*        CurveFittingStartIndexSpinBox;
+  vtkKWSpinBox*        CurveFittingEndIndexSpinBox;
+  vtkKWPushButton*     RunFittingButton;
+  vtkKWEntryWithLabel* CurveScriptMethodName;
 
   vtkKWMultiColumnListWithScrollbars* InitialParameterList;
   vtkKWPushButton* RunPlotButton;
@@ -263,9 +271,13 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   int BundleNameCount; // used to name 4D bundle
 
   vtkIntensityCurves* IntensityCurves;
-  vtkDoubleArray*     FittedCurve;
+  //vtkDoubleArray*     FittedCurve;
+  vtkMRMLDoubleArrayNode*     FittedCurveNode;
 
   vtkCurveAnalysisPythonInterface* CurveAnalysisScript;
+
+
+  vtkMRMLXYPlotNode* PlotNode;
 
 };
 
