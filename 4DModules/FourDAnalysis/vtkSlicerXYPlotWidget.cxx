@@ -53,7 +53,7 @@ vtkSlicerXYPlotWidget::vtkSlicerXYPlotWidget()
   this->MRMLCallbackCommand = this->MRMLObserverManager->GetCallbackCommand();
 
   this->MRMLScene  = NULL;
-  this->XYPlotNode = NULL;
+  this->PlotManagerNode = NULL;
 
   this->Updating  = 0;
   this->PlotActor = NULL;
@@ -121,25 +121,14 @@ void vtkSlicerXYPlotWidget::CreateWidget()
   //this->PlotActor->SetXValuesToArcLength();
   //this->PlotActor->SetNumberOfXLabels(6);
 
-  this->PlotActor->SetTitle("");
-  this->PlotActor->SetXTitle("Time (s)");
-  this->PlotActor->SetYTitle("");
+  this->PlotActor->SetTitle("title");
+  this->PlotActor->SetXTitle("xlabel");
+  this->PlotActor->SetYTitle("ylabel");
+
   this->PlotActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
   this->PlotActor->GetProperty()->SetLineWidth(1);
-  //this->PlotActor->GetProperty()->SetPointSize(3);
+  this->PlotActor->GetProperty()->SetPointSize(3);
 
-  //# Set text prop color (same color for backward compat with test)
-  //# Assign same object to all text props
-  vtkTextProperty* tprop = this->PlotActor->GetTitleTextProperty();
-  tprop->SetColor(0.0, 0.0, 0.0);
-  tprop->ItalicOff();
-  tprop->BoldOff();
-  tprop->ShadowOff();
-  tprop->SetFontSize(10);
-
-  this->PlotActor->SetAxisTitleTextProperty(tprop);
-  this->PlotActor->SetAxisLabelTextProperty(tprop);
-  
   //# Create the Renderers, RenderWindow, and RenderWindowInteractor.
   vtkRenderer* ren = this->GetRenderer();
   ren->SetBackground(1.0, 1.0, 1.0);
@@ -227,24 +216,24 @@ void vtkSlicerXYPlotWidget::SetMRMLScene( vtkMRMLScene *aMRMLScene)
 
 
 //----------------------------------------------------------------------------
-void vtkSlicerXYPlotWidget::SetAndObserveXYPlotNode(vtkMRMLXYPlotManagerNode* node)
+void vtkSlicerXYPlotWidget::SetAndObservePlotManagerNode(vtkMRMLXYPlotManagerNode* node)
 {
 
-  if (this->XYPlotNode)
+  if (this->PlotManagerNode)
     {
-    vtkSetAndObserveMRMLObjectMacro(this->XYPlotNode, NULL);
+    vtkSetAndObserveMRMLObjectMacro(this->PlotManagerNode, NULL);
     }
     
-  this->XYPlotNode = node;
+  this->PlotManagerNode = node;
   
   if (node)
     {
-    vtkMRMLXYPlotManagerNode* pnode = this->GetXYPlotNode();
+    vtkMRMLXYPlotManagerNode* pnode = this->GetPlotManagerNode();
     
     vtkIntArray *events = vtkIntArray::New();
     events->InsertNextValue(vtkCommand::ModifiedEvent);
     events->InsertNextValue(vtkMRMLXYPlotManagerNode::UpdateGraphEvent);
-    vtkSetAndObserveMRMLObjectEventsMacro(this->XYPlotNode, pnode, events);
+    vtkSetAndObserveMRMLObjectEventsMacro(this->PlotManagerNode, pnode, events);
     events->Delete();
     }
 
@@ -255,7 +244,7 @@ void vtkSlicerXYPlotWidget::SetAndObserveXYPlotNode(vtkMRMLXYPlotManagerNode* no
 void vtkSlicerXYPlotWidget::UpdateGraph()
 {
 
-  if (!this->XYPlotNode)
+  if (!this->PlotManagerNode)
     {
     return;
     }
@@ -266,8 +255,8 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     }
   this->Updating = 1;
 
-  unsigned int numPlots = this->XYPlotNode->GetNumberOfPlotNodes();
-  vtkIntArray* idList = this->XYPlotNode->GetPlotNodeIDList();
+  unsigned int numPlots = this->PlotManagerNode->GetNumberOfPlotNodes();
+  vtkIntArray* idList = this->PlotManagerNode->GetPlotNodeIDList();
 
   if (numPlots <= 0)
     {
@@ -275,25 +264,23 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     return;
     }
 
-
-
   //--------------------------------------------------
   // Check automatic range adjustment flag
-  if (this->XYPlotNode->GetAutoXRange() == 0)  // off
+  if (this->PlotManagerNode->GetAutoXRange() == 0)  // off
     {
-    this->XYPlotNode->GetXRange(this->RangeX);
+    this->PlotManagerNode->GetXRange(this->RangeX);
     }
 
-  if (this->XYPlotNode->GetAutoYRange() == 0)  // off
+  if (this->PlotManagerNode->GetAutoYRange() == 0)  // off
     {
-    this->XYPlotNode->GetYRange(this->RangeY);
+    this->PlotManagerNode->GetYRange(this->RangeY);
     }
   
   //--------------------------------------------------
   // If auto-range options active, the ranges have to be
   // determined by finding minimum and maximum values in the data.
-  int autoX = this->XYPlotNode->GetAutoXRange();
-  int autoY = this->XYPlotNode->GetAutoYRange();
+  int autoX = this->PlotManagerNode->GetAutoXRange();
+  int autoY = this->PlotManagerNode->GetAutoYRange();
   
   if (autoX && autoY)
     {
@@ -304,29 +291,37 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     
     // Substitute the first values
     int id = idList->GetValue(0);
-
-    node  = this->XYPlotNode->GetPlotNode(id);
-    node->GetXRange(rangeX);
-    node->GetYRange(rangeY);
-
-    if (autoX)
+    unsigned int p = 0;
+    
+    // Find the first visible plot node
+    // and set initial range
+    for (; p < numPlots; p ++)
       {
-      this->RangeX[0] = rangeX[0];
-      this->RangeX[1] = rangeX[1];
-      }
-    if (autoY)
-      {
-      this->RangeY[0] = rangeY[0];
-      this->RangeY[1] = rangeY[1];
+      node  = this->PlotManagerNode->GetPlotNode(id);
+      if (node && node->GetVisible() > 0)
+        {
+        node->GetXRange(rangeX);
+        node->GetYRange(rangeY);
+        
+        if (autoX)
+          {
+          this->RangeX[0] = rangeX[0];
+          this->RangeX[1] = rangeX[1];
+          }
+        if (autoY)
+          {
+          this->RangeY[0] = rangeY[0];
+          this->RangeY[1] = rangeY[1];
+          }
+        break;
+        }
       }
 
     // Search the list
-    for (unsigned int i = 1; i < numPlots; i ++)
+    for (unsigned int i = p+1; i < numPlots; i ++)
       {
       id = idList->GetValue(i);
-      node = this->XYPlotNode->GetPlotNode(id);
-      //errorBar = this->XYPlotNode->GetErrorBar(id);
-      //node->GetRange(rangeX, rangeY, errorBar);
+      node = this->PlotManagerNode->GetPlotNode(id);
           
       if (autoX && node->GetXRange(rangeX))
         {
@@ -361,6 +356,65 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     this->PlotActor->RemoveAllInputs();
 
     // -----------------------------------------
+    // Plot title and labels
+
+    // Set text prop color (same color for backward compat with test)
+    // Assign same object to all text props
+    vtkTextProperty* tprop = vtkTextProperty::New();
+    tprop->SetColor(0.0, 0.0, 0.0);
+    tprop->ItalicOff();
+    tprop->BoldOff();
+    tprop->ShadowOff();
+    tprop->SetFontSize(10);
+    this->PlotActor->SetTitleTextProperty(tprop);
+    tprop->Delete();
+
+    vtkTextProperty* attprop = vtkTextProperty::New();
+    attprop->SetColor(0.0, 0.0, 0.0);
+    attprop->SetOpacity(1.0);
+    attprop->ItalicOff();
+    attprop->BoldOff();
+    attprop->ShadowOff();
+    attprop->SetFontSize(10);
+    this->PlotActor->SetAxisTitleTextProperty(attprop);
+    attprop->Delete();
+
+    vtkTextProperty* altprop = vtkTextProperty::New();
+    altprop->SetColor(0.0, 0.0, 0.0);
+    altprop->ItalicOff();
+    altprop->BoldOff();
+    altprop->ShadowOff();
+    altprop->SetFontSize(10);
+    this->PlotActor->SetAxisLabelTextProperty(altprop);
+    altprop->Delete();
+    
+    // Set plot title
+    this->PlotActor->SetTitle(this->PlotManagerNode->GetTitle());
+
+
+    // Set axis titles
+    if (strlen(this->PlotManagerNode->GetXLabel()) == 0)
+      {
+      this->PlotActor->SetXTitle(" ");
+      }
+    else
+      {
+      this->PlotActor->SetXTitle(this->PlotManagerNode->GetXLabel());
+      }
+    if (strlen(this->PlotManagerNode->GetYLabel()) == 0)
+      {
+      this->PlotActor->SetYTitle(" ");
+      }
+    else
+      {
+      this->PlotActor->SetYTitle(this->PlotManagerNode->GetYLabel());
+      }
+
+    //this->PlotActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
+    //this->PlotActor->GetProperty()->SetLineWidth(1);
+    //this->PlotActor->GetProperty()->SetPointSize(3);
+    
+    // -----------------------------------------
     // Draw curves
 
     int obj = 0;
@@ -369,15 +423,14 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     for (unsigned int i = 0; i < numPlots; i ++)
       {
       int id = idList->GetValue(i);
-      vtkMRMLPlotNode* node;
-      node  = this->XYPlotNode->GetPlotNode(id);
+      vtkMRMLPlotNode* node  = this->PlotManagerNode->GetPlotNode(id);
 
-
-      if (node->GetVisible())
+      if (node && node->GetVisible())
         {
         double r;
         double g;
         double b;
+
         node->GetColor(r, g, b);
 
         vtkDataObject* dataObject = node->GetDrawObject(this->RangeX, this->RangeY);
@@ -404,7 +457,7 @@ void vtkSlicerXYPlotWidget::UpdateGraph()
     //  {
     //  int id = idList->GetValue(i);
     //  vtkMRMLPlotNode* node;
-    //  node  = this->XYPlotNode->GetPlotNode(id);
+    //  node  = this->PlotManagerNode->GetPlotNode(id);
     //  if (node->GetVisible())
     //    {
     //    //this->PlotActor->GetLegendActor()->SetEntryString(obj, node->GetName());

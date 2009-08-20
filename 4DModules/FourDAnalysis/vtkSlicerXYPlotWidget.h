@@ -141,11 +141,11 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
 
   // Description:
   // Set and observe XYPlotNode
-  void SetAndObserveXYPlotNode(vtkMRMLXYPlotManagerNode* node);
+  void SetAndObservePlotManagerNode(vtkMRMLXYPlotManagerNode* node);
 
   // Description:
   // Get XY plot node 
-  vtkGetObjectMacro(XYPlotNode, vtkMRMLXYPlotManagerNode);
+  vtkGetObjectMacro(PlotManagerNode, vtkMRMLXYPlotManagerNode);
 
   // Description::
   // AutoUpdate flag specifies when the graph is refreshed.
@@ -183,7 +183,7 @@ class VTK_FourDAnalysis_EXPORT vtkSlicerXYPlotWidget : public vtkKWRenderWidget
   //----------------------------------------------------------------
 
   vtkMRMLScene* MRMLScene;
-  vtkMRMLXYPlotManagerNode* XYPlotNode;
+  vtkMRMLXYPlotManagerNode* PlotManagerNode;
 
   // Description:
   // MRML observer manager

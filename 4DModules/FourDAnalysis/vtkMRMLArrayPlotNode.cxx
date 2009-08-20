@@ -55,7 +55,7 @@ vtkMRMLNode* vtkMRMLArrayPlotNode::CreateNodeInstance()
 vtkMRMLArrayPlotNode::vtkMRMLArrayPlotNode()
 {
   this->Array = NULL;
-  this->PlotError = 0;
+  this->ErrorBar = 0;
 }
 
 
@@ -66,10 +66,9 @@ vtkMRMLArrayPlotNode::~vtkMRMLArrayPlotNode()
     {
     vtkEventBroker::GetInstance()->RemoveObservations(
       this->Array, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    this->Array->Delete();
+    this->Array = NULL;
     }
-  this->Array->Delete();
-  this->Array = NULL;
-
 }
 
 
@@ -286,7 +285,7 @@ int vtkMRMLArrayPlotNode::GetXRange(double* xrange)
   if (this->Array)
     {
     double yrange[2];
-    this->Array->GetRange(xrange, yrange, this->PlotError);
+    this->Array->GetRange(xrange, yrange, this->ErrorBar);
     return 1;
     }
   else
@@ -302,7 +301,7 @@ int vtkMRMLArrayPlotNode::GetYRange(double* yrange)
   if (this->Array)
     {
     double xrange[2];
-    this->Array->GetRange(xrange, yrange, this->PlotError);
+    this->Array->GetRange(xrange, yrange, this->ErrorBar);
     return 1;
     }
   else
@@ -320,7 +319,7 @@ vtkDataObject* vtkMRMLArrayPlotNode::GetDrawObject(double* xrange, double* yrang
     vtkDoubleArray* array = this->Array->GetArray();
     vtkFieldData* fieldData = vtkFieldData::New();
   
-    if (this->PlotError)
+    if (this->ErrorBar)
       {
       // if error bar plotting is enabled, generate plot data with error bars.
       vtkDoubleArray* data = CreatePlotDataWithErrorBar(array, xrange, yrange);
