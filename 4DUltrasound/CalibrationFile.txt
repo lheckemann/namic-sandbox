@@ -16,8 +16,8 @@
 #   Format: NUM_OF_COLS(X)  NUM_OF_ROWS(Y)
 # =========> !!!! VERY IMPORTANT: ASPECT RATIO MUST BE 4:3 !!!! <==========
 #
-#Examples
-#---
+#   Samples:
+#
 #1.) 160 120
 #2.) 320 240
 #3.) 640 480 
@@ -32,6 +32,11 @@
 #---
 #   Format: X Y Z [mm]
 #---
+#   Samples:
+#   
+#   2 2 2
+#   0.5 0.5 0.5
+#---
 # Definition:
 1 1 1
 
@@ -42,8 +47,12 @@
 #   This prevents the black space surrounding the US fan from distorting the
 #   reconstructed volume.
 #---
-#30
-0
+#   Samples:
+#   
+#   30
+#---
+# Definition:
+30
 
 #-------------------------------------------------------------------------------
 #Image Margins
@@ -68,11 +77,15 @@
 # Definition:
 0 0 0 0
 
-
 #==============================================================================
 #Tracked Ultrasound Calibration
 #==============================
-#   Offset tip of tracker sensor to center of phased array of US transducer
+#
+#-------------------------------------------------------------------------------
+# Offset tracker sensor - ultrasound transducer
+#----------------------------------------------
+#   Offset between the tip of tracker sensor to center of phased array of US 
+#   transducer
 #---
 #   Format: x y z [mm]
 #           x - long side of phased array
@@ -82,39 +95,58 @@
 #   Samples:
 #   
 #   Boston,USA January 2009 0 36.5125 14.2875
-#   Fukuoka, Japan 13 August 2009 0 29.5 15.5
+#   Fukuoka,Japan 13 August 2009 0 29.05 18.1
 #---
 # Definition:
 0 0 0
 
-
 #-------------------------------------------------------------------------------
 # Tracker Sensor to Ultrasound Transducer Calibration
 #----------------------------------------------------
-#   Obliqueness tip of tracker sensor to center of phased array of US transducer:
-#   If you use 3D Slicer to determine this calibration matrix turn off the 
-#   calibration between world coordinates and image coordinates i.e. make this
-#   matrix a identity matrix.
+#   Obliqueness tip of tracker sensor to center of phased array of US 
+#   transducer. Set to identity matrix during calibration. If you use 3D Slicer
+#   to determine this calibration matrix turn off the calibration between world
+#   coordinates and image coordinates i.e. make this matrix a identity matrix.
 #---
 #   Samples:
 #
-#1  0  0  0
-#0  1  0  0
-#0  0  1  0
-#0  0  0  1
+# 0.970074  0.017450  -0.242181 0.000000
+#-0.021155  0.999695  -0.012709 0.000000
+# 0.241885  0.017452  0.970148  0.000000
+# 0.000000  0.000000  0.000000  1.000000
 #---
 # Definition:
-0.978062  0.013443  -0.207880 0.000000
--0.017450 0.999695  -0.017452 0.000000
-0.207582  0.020697  0.977999  0.000000
-0.000000  0.000000  0.000000  1.000000
+1  0  0  0
+0  1  0  0
+0  0  1  0
+0  0  0  1
+
+#-------------------------------------------------------------------------------
+# Orientation of the sensor at calibration time
+#----------------------------------------------------
+#   This section defines the orientation of the tracking sensor during the 
+#   calibration process. Set to identity matrix during calibration.
+#---
+#   Samples:
+# 0.0421489  0.9480480  0.2501770  0
+#-0.9802670  0.0359161  0.0265707  0
+# 0.0214281 -0.2506700  0.9671830  0
+# 0.0000000  0.0000000  0.0000000  1
+#---
+#---
+# Definition:
+1  0  0  0
+0  1  0  0
+0  0  1  0
+0  0  0  1
 
 
 #-------------------------------------------------------------------------------
 # World Coordinates to Image Coordinates
 #---------------------------------------
 #   Calibration between the coordinate system of tracker and the coordinate
-#   system of the visualization software
+#   system of the visualization software. Set to identity matrix during
+#   calibration.
 #---
 #   Samples:
 #
@@ -128,8 +160,6 @@
  0  0 -1  0
 -1  0  0  0
  0  0  0  1
-
-
 
 #-------------------------------------------------------------------------------
 #Volume shift
