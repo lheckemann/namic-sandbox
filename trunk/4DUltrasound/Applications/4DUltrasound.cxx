@@ -316,7 +316,6 @@ int main(int argc, char **argv)
       }
 
     //Stop Collecting
-    cerr << "Stop Collecting" << endl;
     collector->StopCollecting();
 
     //Stop Processing
@@ -326,7 +325,6 @@ int main(int argc, char **argv)
 //    sender->StopSending();
 
     //Close Sever Connection
-    cerr << "Close Server connection" << endl;
     sender->CloseServerConnection();      
 
     if(instrumentTracker->GetTrackingEnabled() && instrumentTracker->GetTracking())
@@ -334,14 +332,11 @@ int main(int argc, char **argv)
       goodByeInput();
       }
 
-    cerr << "Stop InstrumentTracker" << endl;
     instrumentTracker->StopTracking();
-    cerr << "Disconnect InstrumentTracker" << endl;
     instrumentTracker->CloseServerConnection();
     
     if(instrumentTracker->GetTrackingEnabled() || collector->GetTrackerDeviceEnabled())
       {
-      cerr << "Stop Tracker Device" << endl;
       tracker->StopTracking();
       }
     
@@ -357,31 +352,26 @@ int main(int argc, char **argv)
       }
     }
 
-  cerr << "Del InstrumentTracker" << endl;
   if(instrumentTracker)
     {
     instrumentTracker->Delete();
     instrumentTracker = NULL;
     }
-  cerr << "Del Collector" << endl;
   if(collector)
     {
     collector->Delete();
     collector = NULL;
     }
-  cerr << "Del Processor" << endl;
   if(processor)
     {
     processor->Delete();
     processor = NULL;
     }
-  cerr << "Del Sender" << endl;
   if(sender)
     {
     sender->Delete();
     sender = NULL;
     }
-  cerr << "Del Tracker" << endl;
   if(tracker)
     {
     tracker->Delete();
@@ -453,14 +443,18 @@ void printUsage()
          << "-------"<<endl
          << "--calibration-file xxx or -c xxx:       Specify the calibration file" << endl
          << "                                        (MANDATORY)"<< endl
-         << "--reconstruct-volume or -rv:            Enable volume reconstruction" << endl
-         << "--dynamic-volumesize or -dvs:           Enable dynamic volume size for" << endl
-         << "                                        reconstructed volume"<< endl
+//         << "--reconstruct-volume or -rv:            Enable volume reconstruction" << endl
+//         << "--dynamic-volumesize or -dvs:           Enable dynamic volume size for" << endl
+//         << "                                        reconstructed volume"<< endl
+         << "--grab-ultrasound-frames or -gf:        Enables the grabbing of ultrasound"<< endl
+         << "                                        frames from the capture board"<< endl
          << "--track-ultrasound or -tu:              Enable ultrasound tracking"<< endl
          << "--track-instrument or -ti:              Enable instrument tracking" << endl
          << "--simulate-instrument or -si:           Simulate instrument"<< endl
-         << "--grab-one-frame xxx or -gof xxx        Grabs one ultrasound frame and "
-         << "                                        saves it as the specified file"
+         << "--grab-one-frame xxx or -gof xxx:       Grabs one ultrasound frame and "<< endl
+         << "                                        saves it as the specified file" << endl
+         << "--get-calibration-data  or -gcd:        Collects data necessary for the "<< endl
+         << "                                        calibration" << endl
 //         << "--oigtl-server xxx or -os xxx:          Specify OpenIGTLink server"<< endl
 //         << "                                        (default: 'localhost')" << endl
 //         << "--oigtl-port xxx or -op xxx:            Specify OpenIGTLink port of"<< endl
@@ -602,6 +596,8 @@ int parseCommandLineArguments(int argc, char **argv,
           {
           collector->SetCollectCalibrationData(true);
           processor->SetCollectCalibrationData(true);
+          collector->SetEnableFrameGrabbing(true);
+          collector->EnableTrackerTool();
           }
 
 //        //OpenIGTLink Server
@@ -767,6 +763,7 @@ int parseCommandLineArguments(int argc, char **argv,
           if( i < argc - 1)
             {
             collector->SetFileName(argv[++i]);
+            collector->SetEnableFrameGrabbing(true);
             return 1;
             }
           else
