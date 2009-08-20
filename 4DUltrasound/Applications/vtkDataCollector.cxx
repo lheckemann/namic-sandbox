@@ -47,7 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 //#define REMOVE_ALPHA_CHANNEL
 //#define DEBUG_IMAGES //Write tagger output to HDD
-//#define DEBUG_MATRICES //Prints tagger matrices to stdout
+#define DEBUG_MATRICES //Prints tagger matrices to stdout
 #define SHRINK
 
 //#include <windows.h>
@@ -202,37 +202,31 @@ vtkDataCollector::vtkDataCollector()
  * ****************************************************************************/
 vtkDataCollector::~vtkDataCollector()
 {
-  cerr << "Stop Collecting" << endl;
   this->StopCollecting();
 
-  cerr << "Delete Tracker Simulator" << endl;
   if(this->trackerSimulator)
     {
     this->trackerSimulator->Delete();
     this->trackerSimulator = NULL;
     }
 
-  cerr << "Delete V4L2 Video Source" << endl;
   if(this->V4L2VideoSource)
     {
     this->V4L2VideoSource->ReleaseSystemResources();
     this->V4L2VideoSource->Delete();
     this->V4L2VideoSource = NULL;
     }
-  cerr << "Delete Video Source Simulator" << endl;
   if(this->VideoSourceSimulator)
       {
       this->VideoSourceSimulator->ReleaseSystemResources();
       this->VideoSourceSimulator->Delete();
       this->VideoSourceSimulator = NULL;
       }
-  cerr << "Delete Tagger" << endl;
   if(this->Tagger)
     {
     this->Tagger->Delete();
     this->Tagger = NULL;
     }
-  cerr << "Delete Player Threader" << endl;
   if(this->PlayerThreader)
     {
     this->PlayerThreader->Delete();
@@ -241,20 +235,17 @@ vtkDataCollector::~vtkDataCollector()
 
   this->SetCalibrationFileName(NULL);
 
-  cerr << "Delete OBA Matrix" << endl;
   if(this->TrackerCalibrationMatrix)
     {
     this->TrackerCalibrationMatrix->Delete();
     this->TrackerCalibrationMatrix = NULL;
     }
-  cerr << "Orientation at Calibration Matrix" << endl;
   if(this->OrientationAtCalibrationMatrix)
     {
     this->OrientationAtCalibrationMatrix->Delete();
     this->OrientationAtCalibrationMatrix = NULL;
     }
 
-  cerr << "Delete Calib Reader" << endl;
   if(this->calibReader)
     {
     this->calibReader->Delete();
@@ -547,10 +538,11 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
       {//Check if data buffer of data processor already is full-----------------
       if(!self->GetDataProcessor()->IsDataBufferFull())
         {
+        skip = false;
+
         struct DataStruct dataStruct;
         dataStruct.Frame = NULL;
         dataStruct.Matrix = NULL;
-
 
         dataStruct.TimeStamp = self->GetUpTime();
 
@@ -569,208 +561,222 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
         self->GetTagger()->Update();
         dataStruct.Matrix->DeepCopy(self->GetTagger()->GetTransform()->GetMatrix());
 
-        if(self->GetCollectCalibrationData())
+        if(self->IsMatrixEmpty(dataStruct.Matrix) || self->IsIdentityMatrix(dataStruct.Matrix))
           {
-          for(int i = 0 ; i < 3; ++i)
+          #ifdef DEBUGCOLLECTOR
+          self->GetLogStream() << self->GetUpTime() << " |C-ERROR: Tracker sent no data"<< endl;
+          #endif
+
+          if(dataStruct.Matrix)
+             {
+             dataStruct.Matrix->Delete();
+             dataStruct.Matrix = NULL;
+             }
+          }
+        else
+          {
+
+          if(self->GetCollectCalibrationData() & frame > 5)
             {
-            for(int j = 0 ; j < 3 ; ++j)
+            for(int i = 0 ; i < 3; ++i)
               {
-              averageCalibrationOrientationMatrix->Element[i][j]
-                                            += dataStruct.Matrix->Element[i][j];
-              }
-            }
-
-            if(0 == calibrationCounter)
-              {
-              cout << "Collection of calibration data in progress:" << std::flush;
-              }
-            if(0 == calibrationCounter%10)
-              {
-              cout << " *" << std::flush;
-              }
-            if(50 < calibrationCounter)
-              {
-              self->StopCollecting();
-              cout << endl;
-              cout << "Calibration data collected!" << endl;
-              cout << "Tracker orientation at calibration time is:" << endl << endl
-                   << "-------------------------------"<<endl;
-              for(int i = 0 ; i < 4; ++i)
+              for(int j = 0 ; j < 3 ; ++j)
                 {
-                for(int j = 0 ; j < 4 ; ++j)
-                  {
-                  if(j == 3 && i == 3)
-                    {
-                    cout << "1";
-                    }
-                  else
-                    {
-                    cout << averageCalibrationOrientationMatrix->Element[i][j] / (calibrationCounter + 1) << "  ";
-                    }
-                  }
-                  cout << endl;
+                averageCalibrationOrientationMatrix->Element[i][j]
+                                              += dataStruct.Matrix->Element[i][j];
                 }
-              cout << "-------------------------------"<<endl <<endl;
-              cout << "Please use this matrix in the calibration file at the" << endl
-                   << "\"Orientation of the sensor at calibration time\" section!"<< endl << endl;
-
-              cout << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<<endl;
               }
-            calibrationCounter++;
-            }
-        //Set Spacing of new frame----------------------------------------------
-        self->GetTagger()->GetOutput()->GetSpacing(dataStruct.Spacing);
+
+              if(0 == calibrationCounter)
+                {
+                cout << "Collection of calibration data in progress:" << std::flush;
+                }
+              if(0 == calibrationCounter%10)
+                {
+                cout << " *" << std::flush;
+                }
+              if(50 < calibrationCounter)
+                {
+                self->StopCollecting();
+                cout << endl;
+                cout << "Calibration data collected!" << endl;
+                cout << "Tracker orientation at calibration time is:" << endl << endl
+                     << "-------------------------------"<<endl;
+                for(int i = 0 ; i < 4; ++i)
+                  {
+                  for(int j = 0 ; j < 4 ; ++j)
+                    {
+                    if(j == 3 && i == 3)
+                      {
+                      cout << "1";
+                      }
+                    else
+                      {
+                      cout << averageCalibrationOrientationMatrix->Element[i][j] / (calibrationCounter + 1) << "  ";
+                      }
+                    }
+                    cout << endl;
+                  }
+                cout << "-------------------------------"<<endl <<endl;
+                cout << "Please use this matrix in the calibration file at the" << endl
+                     << "\"Orientation of the sensor at calibration time\" section!"<< endl << endl;
+
+                cout << "Press 't' and hit 'ENTER' to terminate 4D Ultrasound"<<endl;
+                }
+              calibrationCounter++;
+              }
+          //Set Spacing of new frame----------------------------------------------
+          self->GetTagger()->GetOutput()->GetSpacing(dataStruct.Spacing);
 
 
-        #ifdef DEBUG_MATRICES
-        self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
-        dataStruct.Matrix->Print(self->GetLogStream());
-        #endif
+          #ifdef DEBUG_MATRICES
+          self->GetLogStream() << self->GetUpTime() << " |C-INFO Tracker matrix:" << endl;
+          dataStruct.Matrix->Print(self->GetLogStream());
+          #endif
 
 
-        //Data Processing and error checking------------------------------------
-//        if(self->IsTrackerDeviceEnabled())
-//          {
+          //Data Processing and error checking------------------------------------
+  //        if(self->IsTrackerDeviceEnabled())
+  //          {
 
-        struct DataStruct tmpDataStruct;
-        tmpDataStruct.Frame = NULL;
-        vtkMatrix4x4 * tmpMatrix = vtkMatrix4x4::New();
-        tmpMatrix->DeepCopy(self->GetOrientationAtCalibrationMatrix());
-        tmpDataStruct.Matrix = tmpMatrix;
-          if(-1 == self->CalibrateMatrix(&tmpDataStruct))
-            {//Tracker matrix is unusable
+          struct DataStruct tmpDataStruct;
+          tmpDataStruct.Frame = NULL;
+          vtkMatrix4x4 * tmpMatrix = vtkMatrix4x4::New();
+          tmpMatrix->DeepCopy(self->GetOrientationAtCalibrationMatrix());
+          tmpDataStruct.Matrix = tmpMatrix;
+            if(-1 == self->CalibrateMatrix(&tmpDataStruct))
+              {//Tracker matrix is unusable
+              skip = true;
+              }
+            else
+              {
+              vtkMatrix4x4 * B = vtkMatrix4x4::New();
+              B->DeepCopy(dataStruct.Matrix);
+              B->Invert();
+              vtkMatrix4x4::Multiply4x4(self->GetOrientationAtCalibrationMatrix(), B, B);
+              B->Invert();
+              vtkMatrix4x4::Multiply4x4(B, tmpDataStruct.Matrix, dataStruct.Matrix);
+              if(B)
+                {
+                B->Delete();
+                B = NULL;
+                }
+              }
+
+            if(tmpMatrix)
+              {
+              tmpMatrix->Delete();
+              tmpMatrix = NULL;
+              }
+  //          if(-1 == self->CalibrateMatrix(&dataStruct))
+  //            {//Tracker matrix is unusable
+  //            skip = true;
+  //            }
+  //          }
+
+          if(!skip && -1 == self->CalculateVolumeProperties(&dataStruct))
+            {
+            #ifdef DEBUGCOLLECTOR
+            self->GetLogStream() << self->GetUpTime() << " |C-ERROR: Can not calculate volume properties"<< endl;
+            #endif
             skip = true;
+            }
+
+          double volumeSize = dataStruct.VolumeExtent[1] * dataStruct.VolumeExtent[3] * dataStruct.VolumeExtent[5];
+
+          if(!skip && (volumeSize > self->GetMaximumVolumeSize() || volumeSize < 0 ))
+            {
+            #ifdef DEBUGCOLLECTOR
+            self->GetLogStream() << self->GetUpTime() << " |C-ERROR: Volume of new frame is too big or could not be calculated: "<< volumeSize << endl;
+            #endif
+            skip = true;
+            }
+
+          if(!skip)
+            {
+            //Get new frame-------------------------------------------------------
+            dataStruct.Frame = vtkImageData::New();
+
+  //          self->DuplicateFrame(self->GetTagger()->GetOutput(), dataStruct.Frame);
+            self->ExtractImage(self->GetTagger()->GetOutput(), dataStruct.Frame);
+            #ifdef SHRINK
+
+            #ifdef DEBUGCOLLECTOR
+            self->GetLogStream() << self->GetUpTime() << " |C-INFO: Image Coordinates before shrink: "<< dataStruct.Frame->GetDimensions()[0] << " | " << dataStruct.Frame->GetDimensions()[1] << " | " << dataStruct.Frame->GetDimensions()[2] << endl;
+            #endif
+
+            mask->SetInput(dataStruct.Frame);
+            mask->SetShrinkFactors(self->GetShrinkFactor()[0], self->GetShrinkFactor()[1], self->GetShrinkFactor()[2]);
+            mask->Update();
+
+            if(dataStruct.Frame)
+              {
+              dataStruct.Frame->Delete();
+              dataStruct.Frame = NULL;
+              }
+            dataStruct.Frame = vtkImageData::New();
+
+            self->DuplicateFrame(mask->GetOutput(), dataStruct.Frame);
+
+            #ifdef DEBUGCOLLECTOR
+            self->GetLogStream() << self->GetUpTime() << " |C-INFO: Image Coordinates after shrink: "<< dataStruct.Frame->GetDimensions()[0] << " | " << dataStruct.Frame->GetDimensions()[1] << " | " << dataStruct.Frame->GetDimensions()[2] << endl;
+            #endif
+
+            dataStruct.Frame->SetSpacing(dataStruct.Spacing);
+            #endif
+
+            #ifdef DEBUG_IMAGES
+            writer->SetInput(dataStruct.Frame);
+            sprintf(filename,"./Output/output%03d.bmp",frame);
+            writer->SetFileName(filename);
+            writer->Update();
+            #endif //DEBUG_IMAGES
+
+            //Forward frame + matrix to data sender-------------------------------
+            if(-1 == self->GetDataProcessor()->NewData(dataStruct))
+              {
+              #ifdef DEBUGCOLLECTOR
+              self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
+              #endif
+              if(dataStruct.Matrix)
+                {
+                dataStruct.Matrix->Delete();
+                dataStruct.Matrix = NULL;
+                }
+              if(dataStruct.Frame)
+                {
+                dataStruct.Frame->Delete();
+                dataStruct.Frame = NULL;
+                }
+              }
+            else
+              {
+              #ifdef DEBUGCOLLECTOR
+              self->GetLogStream() << self->GetUpTime() << " |C-INFO: Data sent to processor" << endl;
+              #endif
+              }
+
+  //          self->GetOldCoordinates()[0] = dataStruct.Matrix->Element[0][3];
+  //          self->GetOldCoordinates()[1] = dataStruct.Matrix->Element[1][3];
+  //          self->GetOldCoordinates()[2] = dataStruct.Matrix->Element[2][3];
+  //          if(frame > 10)
+  //            {
+  //            self->GetOldCoordinates()[3] = 1; //Flag to show that initial data is overwritten
+  //            }
+
             }
           else
             {
-            vtkMatrix4x4 * B = vtkMatrix4x4::New();
-            B->DeepCopy(dataStruct.Matrix);
-            B->Invert();
-            vtkMatrix4x4::Multiply4x4(self->GetOrientationAtCalibrationMatrix(), B, B);
-            B->Invert();
-            vtkMatrix4x4::Multiply4x4(B, tmpDataStruct.Matrix, dataStruct.Matrix);
-            if(B)
-              {
-              B->Delete();
-              B = NULL;
-              }
-            }
-
-          if(tmpMatrix)
-            {
-            tmpMatrix->Delete();
-            tmpMatrix = NULL;
-            }
-//          if(-1 == self->CalibrateMatrix(&dataStruct))
-//            {//Tracker matrix is unusable
-//            skip = true;
-//            }
-//          }
-
-        if(!skip && -1 == self->CalculateVolumeProperties(&dataStruct))
-          {
-          #ifdef DEBUGCOLLECTOR
-          self->GetLogStream() << self->GetUpTime() << " |C-ERROR: Can not calculate volume properties"<< endl;
-          #endif
-          skip = true;
-          }
-
-        double volumeSize = dataStruct.VolumeExtent[1] * dataStruct.VolumeExtent[3] * dataStruct.VolumeExtent[5];
-
-        if(!skip && (volumeSize > self->GetMaximumVolumeSize() || volumeSize < 0 ))
-          {
-          #ifdef DEBUGCOLLECTOR
-          self->GetLogStream() << self->GetUpTime() << " |C-ERROR: Volume of new frame is too big or could not be calculated: "<< volumeSize << endl;
-          #endif
-          skip = true;
-          }
-
-        if(!skip)
-          {
-          //Get new frame-------------------------------------------------------
-          dataStruct.Frame = vtkImageData::New();
-
-//          self->DuplicateFrame(self->GetTagger()->GetOutput(), dataStruct.Frame);
-          self->ExtractImage(self->GetTagger()->GetOutput(), dataStruct.Frame);
-          #ifdef SHRINK
-
-          #ifdef DEBUGCOLLECTOR
-          self->GetLogStream() << self->GetUpTime() << " |C-INFO: Image Coordinates before shrink: "<< dataStruct.Frame->GetDimensions()[0] << " | " << dataStruct.Frame->GetDimensions()[1] << " | " << dataStruct.Frame->GetDimensions()[2] << endl;
-          #endif
-
-          mask->SetInput(dataStruct.Frame);
-          mask->SetShrinkFactors(self->GetShrinkFactor()[0], self->GetShrinkFactor()[1], self->GetShrinkFactor()[2]);
-          mask->Update();
-
-          if(dataStruct.Frame)
-            {
-            dataStruct.Frame->Delete();
-            dataStruct.Frame = NULL;
-            }
-          dataStruct.Frame = vtkImageData::New();
-
-          self->DuplicateFrame(mask->GetOutput(), dataStruct.Frame);
-
-          #ifdef DEBUGCOLLECTOR
-          self->GetLogStream() << self->GetUpTime() << " |C-INFO: Image Coordinates after shrink: "<< dataStruct.Frame->GetDimensions()[0] << " | " << dataStruct.Frame->GetDimensions()[1] << " | " << dataStruct.Frame->GetDimensions()[2] << endl;
-          #endif
-
-          dataStruct.Frame->SetSpacing(dataStruct.Spacing);
-          #endif
-
-          #ifdef DEBUG_IMAGES
-          writer->SetInput(dataStruct.Frame);
-          sprintf(filename,"./Output/output%03d.bmp",frame);
-          writer->SetFileName(filename);
-          writer->Update();
-          #endif //DEBUG_IMAGES
-
-          //Forward frame + matrix to data sender-------------------------------
-          if(-1 == self->GetDataProcessor()->NewData(dataStruct))
-            {
             #ifdef DEBUGCOLLECTOR
-            self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Data Collector can not forward data to Data Processor" << endl;
+              self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Tracker sends unusable matrices" << endl;
             #endif
             if(dataStruct.Matrix)
               {
               dataStruct.Matrix->Delete();
               dataStruct.Matrix = NULL;
               }
-            if(dataStruct.Frame)
-              {
-              dataStruct.Frame->Delete();
-              dataStruct.Frame = NULL;
-              }
             }
-          else
-            {
-            #ifdef DEBUGCOLLECTOR
-            self->GetLogStream() << self->GetUpTime() << " |C-INFO: Data sent to processor" << endl;
-            #endif
-            }
-
-//          self->GetOldCoordinates()[0] = dataStruct.Matrix->Element[0][3];
-//          self->GetOldCoordinates()[1] = dataStruct.Matrix->Element[1][3];
-//          self->GetOldCoordinates()[2] = dataStruct.Matrix->Element[2][3];
-//          if(frame > 10)
-//            {
-//            self->GetOldCoordinates()[3] = 1; //Flag to show that initial data is overwritten
-//            }
-
-          }
-        else
-          {
-          #ifdef DEBUGCOLLECTOR
-            self->GetLogStream() << self->GetUpTime() << " |C-WARNING: Tracker sends unusable matrices" << endl;
-          #endif
-          if(dataStruct.Matrix)
-            {
-            dataStruct.Matrix->Delete();
-            dataStruct.Matrix = NULL;
-            }
-
-          }
-        skip = false;
+          }//Tracker send usefull data
         }//Check if Processor has buffer space available
       }//Check if Processor stopped processing
 
@@ -934,17 +940,14 @@ int vtkDataCollector::StopCollecting()
  * ****************************************************************************/
 int vtkDataCollector::CalibrateMatrix(struct DataStruct *pDataStruct)
 {
-  if(this->IsMatrixEmpty(pDataStruct->Matrix) || this->IsIdentityMatrix(pDataStruct->Matrix))
-    {
-    #ifdef INFOCOLLECTOR
-    this->LogStream << this->GetUpTime() << " |C-ERROR: Tracker sent no data"<< endl;
-    #endif
-    return -1;
-    }
+  #ifdef DEBUGCOLLECTOR
+    this->LogStream << this->GetUpTime() << " |C-INFO: Calibrate Matrix: Original Matrix:"<< endl;
+    pDataStruct->Matrix->Print(this->LogStream);
+  #endif
 
 //  if(this->CoordinateJump(pDataStruct->Matrix) && this->OldCoordinates[3] <= 0)
 //      {
-//      #ifdef INFOCOLLECTOR
+//      #ifdef DEBUGCOLLECTOR
 //      this->LogStream << this->GetUpTime() << " |C-ERROR: Tracker sent jump matrix"<< endl;
 //      #endif
 //
@@ -955,10 +958,6 @@ int vtkDataCollector::CalibrateMatrix(struct DataStruct *pDataStruct)
 //
 //  this->GetOldCoordinates()[3]--;
 
-  #ifdef DEBUGCOLLECTOR
-    this->LogStream << this->GetUpTime() << " |C-INFO: Calibrate Matrix: Original Matrix:"<< endl;
-    pDataStruct->Matrix->Print(this->LogStream);
-  #endif
 
   //----------------------------------------------------------------------------
   //Calibrate tracker Matrix----------------------------------------------------
@@ -977,7 +976,6 @@ int vtkDataCollector::CalibrateMatrix(struct DataStruct *pDataStruct)
     tmpMatrix->Element[1][2] =  1;
 
     vtkMatrix4x4::Multiply4x4(pDataStruct->Matrix, tmpMatrix, pDataStruct->Matrix);
-
 
     #ifdef DEBUGCOLLECTOR
       this->LogStream << this->GetUpTime() << " |C-INFO: Calibrate Matrix: Matrix calibrated for reconstructor"<< endl;
