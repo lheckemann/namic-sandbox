@@ -396,7 +396,7 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
                 {
                 #ifdef  DEBUGPROCESSOR
                   self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
-                  cerr <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
+                  //cerr <<  self->GetUpTime() << " |P-WARNING: Volume Reconstruction failed" << " | L:" << self->GetUpTime() - loopTime << "| S: " << self->GetUpTime() - sectionTime << endl;
                 #endif
   //              self->ResetOldVolume(lastDataSenderIndex);
                 errors++;
@@ -411,7 +411,7 @@ static void *vtkDataProcessorThread(vtkMultiThreader::ThreadInfo *data)
             {
             #ifdef  DEBUGPROCESSOR
                self->GetLogStream() <<  self->GetUpTime() << " |P-WARNING: Data too old for reconstruction (Index: "<< currentIndex << " )" << endl;
-               cout <<  self->GetUpTime() << " |P-WARNING: Data too old for reconstruction (Index: "<< currentIndex << " )" << endl;
+               //cerr <<  self->GetUpTime() << " |P-WARNING: Data too old for reconstruction (Index: "<< currentIndex << " )" << endl;
             #endif
             }
             self->DeleteData(currentIndex);
@@ -543,7 +543,7 @@ int vtkDataProcessor::StopProcessing()
       {
       #ifdef  ERRORPROCESSOR
           this->LogStream << this->GetUpTime()  << " |P-ERROR: Try to stop Processor Thread with id -1" << endl;
-          cerr << "P-ERROR: Try to stop Processor Thread with id -1" << endl;
+          //cerr << "P-ERROR: Try to stop Processor Thread with id -1" << endl;
       #endif
       }
     else
@@ -622,7 +622,14 @@ int vtkDataProcessor::EnableVolumeReconstruction(bool flag)
       this->DelayFactor = this->calibReader->GetDelayFactor();
       }
 
-    this->Reconstructor->SetReconstructionThreshold(this->calibReader->GetReconstructionThreshold());
+    if(!this->CollectCalibrationData)
+      {
+      this->Reconstructor->SetReconstructionThreshold(this->calibReader->GetReconstructionThreshold());
+      }
+    else
+      {
+      this->Reconstructor->SetReconstructionThreshold(0);
+      }
 
     if(!this->GetCollectCalibrationData())
       {
@@ -795,18 +802,18 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
     if(volumeSize > this->GetMaximumVolumeSize())
       {
       this->LogStream << this->GetUpTime()  << " |P-ERROR: Expansion necessary but not possible since boundary box of inserted frame ("<<volumeSize<< ") is bigger than maxi vol size:" << this->GetMaximumVolumeSize() <<endl;
-      cout << this->GetUpTime() << " |P-ERROR: Expansion necessary but not possible since boundary box of inserted frame ("<<volumeSize<< ") is bigger than maxi vol size:" << this->GetMaximumVolumeSize() <<endl;
+      //cerr << this->GetUpTime() << " |P-ERROR: Expansion necessary but not possible since boundary box of inserted frame ("<<volumeSize<< ") is bigger than maxi vol size:" << this->GetMaximumVolumeSize() <<endl;
       }
 
     if( volumeSize <= 0)
       {
-    this->LogStream << this->GetUpTime()  << " |P-ERROR: Ceck and Update aborted since volumeSize could not be computed "<<endl;
-          cout << this->GetUpTime() << " |P-ERROR: Ceck and Update aborted since volumeSize could not be computed " <<endl;
+      this->LogStream << this->GetUpTime()  << " |P-ERROR: Ceck and Update aborted since volumeSize could not be computed "<<endl;
+      //cerr << this->GetUpTime() << " |P-ERROR: Ceck and Update aborted since volumeSize could not be computed " <<endl;
       }
     if((extentChanged || originChanged) && this->oldVolume == NULL)
       {
       this->LogStream << this->GetUpTime()  << " |P-ERROR: Expansion necessary but not possible since no oldVolume exists" <<endl;
-      cout << this->GetUpTime() << " |P-ERROR: Expansion necessary but not possible since no oldVolume exists" << endl;
+      //cerr << this->GetUpTime() << " |P-ERROR: Expansion necessary but not possible since no oldVolume exists" << endl;
       }
      #endif
     }
@@ -891,7 +898,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
             {
             #ifdef  ERRORPROCESSOR
               this->LogStream << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
-              cout << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
+//              cerr << this->GetUpTime()  << " |P-ERROR: Expand failed" << endl;
             #endif
             retVal = -1;
             }
@@ -907,7 +914,7 @@ int vtkDataProcessor::CheckandUpdateVolume(int index, int dataSenderIndex)
 //      {
 //      #ifdef  ERRORPROCESSOR
 //      this->LogStream << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
-//      cout << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
+//      cerr << this->GetUpTime()  << " |P-ERROR: Updated volume ist too big: "<< volumeSize << "| Max Volume Size: " << this->GetMaximumVolumeSize()  << endl;
 //      #endif
 //      retVal = -1;
 //      }
