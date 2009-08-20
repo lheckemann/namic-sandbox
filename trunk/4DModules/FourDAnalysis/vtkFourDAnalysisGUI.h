@@ -156,12 +156,14 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   void UpdatePlotList();
   virtual void UpdatePlotListElement(int row, int col, char * str);
 
-  void UpdateMethodNameField(vtkMRMLCurveAnalysisNode* curveNode);
   void UpdateInitialParameterList(vtkMRMLCurveAnalysisNode* curveNode);
   void GetInitialParametersAndInputCurves(vtkMRMLCurveAnalysisNode* curveNode, int start, int end);
   void UpdateOutputParameterList(vtkMRMLCurveAnalysisNode* curveNode);
+  
+  // Description:
+  // GeneratePlotNodes() calculates time-intensity curves in the regions specified by the label data.
+  void GeneratePlotNodes();
 
-  void UpdateIntensityPlot(vtkIntensityCurves* intensityCurves);
   void UpdateIntensityPlotWithFittedCurve(vtkIntensityCurves* intensityCurves);
 
  protected:
@@ -280,7 +282,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkMRMLDoubleArrayNode*     FittedCurveNode;
 
   vtkCurveAnalysisPythonInterface* CurveAnalysisScript;
-  vtkMRMLXYPlotManagerNode* PlotNode;
+  vtkMRMLXYPlotManagerNode* PlotManagerNode;
 
   //BTX
   // Row index for   vtkKWMultiColumnListWithScrollbars* PlotList;

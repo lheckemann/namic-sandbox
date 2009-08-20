@@ -435,7 +435,7 @@ void vtkMRMLXYPlotManagerNode::SetErrorBarAll(int i)
       vtkMRMLArrayPlotNode* cnode = vtkMRMLArrayPlotNode::SafeDownCast(node);
       if (cnode)
         {
-        cnode->SetPlotError(i);
+        cnode->SetErrorBar(i);
         }
       }
     }

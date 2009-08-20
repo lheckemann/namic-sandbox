@@ -82,8 +82,8 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLArrayPlotNode : public vtkMRMLPlotNode
   void SetAndObserveArray( vtkMRMLDoubleArrayNode* node );
   vtkGetObjectMacro ( Array, vtkMRMLDoubleArrayNode );
   
-  vtkSetMacro ( PlotError, int );
-  vtkGetMacro ( PlotError, int );
+  vtkSetMacro ( ErrorBar, int );
+  vtkGetMacro ( ErrorBar, int );
 
   //----------------------------------------------------------------
   // Method for Plotting (called from friend classes)
@@ -130,7 +130,7 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLArrayPlotNode : public vtkMRMLPlotNode
   //----------------------------------------------------------------
   
   vtkMRMLDoubleArrayNode* Array;
-  int PlotError;
+  int ErrorBar;
 
 };
 

@@ -90,12 +90,6 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotManagerNode : public vtkMRMLNode
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
 
   //----------------------------------------------------------------
-  // Get and Set Macros
-  //----------------------------------------------------------------
-  //vtkSetObjectMacro ( Array, vtkDoubleArray );
-  //vtkGetObjectMacro ( Array, vtkDoubleArray );
-
-  //----------------------------------------------------------------
   // PlotNode management
   //----------------------------------------------------------------
   
@@ -245,26 +239,12 @@ class VTK_FourDAnalysis_EXPORT vtkMRMLXYPlotManagerNode : public vtkMRMLNode
   };
 
   // Description:
-  // Set color of axes
-  void SetAxesColor(double r, double g, double b)
-  {
-    this->AxesColor[0] = r;
-    this->AxesColor[1] = g;
-    this->AxesColor[2] = b;
-    this->Modified();
-  };
-  
-  // Description:
-  // Get color of axes
-  void GetAxesColor(double* r, double* g, double* b)
-  {
-    *r = this->AxesColor[0];
-    *g = this->AxesColor[1];
-    *b = this->AxesColor[2];
-  };
+  // Set / get color of axes
+  vtkSetVector3Macro( AxesColor, double );
+  vtkGetVector3Macro( AxesColor, double );
 
   // Description:
-  // Set color of background
+  // Set / get color of background
   void SetBackgroundColor(double r, double g, double b)
   {
     this->BackgroundColor[0] = r;
