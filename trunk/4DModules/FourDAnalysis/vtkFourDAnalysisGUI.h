@@ -154,6 +154,7 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   //  void UpdateMaskSelectMenu();
 
   void UpdatePlotList();
+  virtual void UpdatePlotListElement(int row, int col, char * str);
 
   void UpdateMethodNameField(vtkMRMLCurveAnalysisNode* curveNode);
   void UpdateInitialParameterList(vtkMRMLCurveAnalysisNode* curveNode);
@@ -279,9 +280,18 @@ class VTK_FourDAnalysis_EXPORT vtkFourDAnalysisGUI : public vtkSlicerModuleGUI
   vtkMRMLDoubleArrayNode*     FittedCurveNode;
 
   vtkCurveAnalysisPythonInterface* CurveAnalysisScript;
-
-
   vtkMRMLXYPlotManagerNode* PlotNode;
+
+  //BTX
+  // Row index for   vtkKWMultiColumnListWithScrollbars* PlotList;
+  enum {
+    COLUMN_VISIBLE   = 0,
+    COLUMN_COLOR     = 1,
+    COLUMN_NODE_NAME = 2,
+    COLUMN_MRML_ID   = 3
+  };
+  //ETX
+
 
 };
 

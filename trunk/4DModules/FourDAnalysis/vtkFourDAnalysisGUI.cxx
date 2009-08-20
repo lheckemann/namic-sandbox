@@ -634,11 +634,11 @@ void vtkFourDAnalysisGUI::AddGUIObservers ( )
     this->ErrorBarCheckButton->GetWidget()
       ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
-  if (this->PlotList)
-    {
-    this->PlotList->GetWidget()
-      ->AddObserver(vtkKWMultiColumnList::CellUpdatedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
+  //if (this->PlotList)
+  //  {
+  //  this->PlotList->GetWidget()
+  //    ->AddObserver(vtkKWMultiColumnList::CellUpdatedEvent, (vtkCommand *)this->GUICallbackCommand);
+  //  }
 
   if (this->FittingLabelMenu)
     {
@@ -865,13 +865,15 @@ void vtkFourDAnalysisGUI::ProcessGUIEvents(vtkObject *caller,
       this->PlotNode->Refresh();
       }
     }
-  
-  else if (this->PlotList->GetWidget() == vtkKWMultiColumnList::SafeDownCast(caller)
-           && event == vtkKWMultiColumnList::CellUpdatedEvent)
-    {
-    std::cerr << "Plot list has been changed...." << std::endl;
-    UpdatePlotList();
-    }
+  //else if (this->PlotList->GetWidget() == vtkKWMultiColumnList::SafeDownCast(caller))
+  //  {
+  //  if (event == vtkKWMultiColumnList::SelectionChangedEvent)
+  //    {
+  //    }
+  //  else if (event == vtkKWMultiColumnList::CellUpdatedEvent)
+  //    {
+  //    }
+  //  }
   else if (this->CurveScriptSelectButton->GetWidget()->GetLoadSaveDialog()
            == vtkKWLoadSaveDialog::SafeDownCast(caller)
            && event == vtkKWLoadSaveDialog::FileNameChangedEvent)
@@ -1549,45 +1551,52 @@ void vtkFourDAnalysisGUI::BuildGUIForFunctionViewer(int show)
   this->PlotList->GetWidget()->SetHeight(6);
   this->PlotList->GetWidget()->SetReliefToRidge();
   this->PlotList->GetWidget()->SetBorderWidth(1);
-  this->PlotList->GetWidget()->SetSelectionTypeToRow();
+  //this->PlotList->GetWidget()->SetSelectionTypeToRow();
+  this->PlotList->GetWidget()->SetSelectionTypeToCell();
   this->PlotList->GetWidget()->SetSelectionModeToSingle();
   this->PlotList->GetWidget()->MovableRowsOff();
   this->PlotList->GetWidget()->MovableColumnsOff();
+  this->PlotList->GetWidget()->AddColumn("");
   this->PlotList->GetWidget()->AddColumn("Color");
-  this->PlotList->GetWidget()->AddColumn("On/Off");
   this->PlotList->GetWidget()->AddColumn("Curve name");
   this->PlotList->GetWidget()->AddColumn("MRML ID");
 
-  // Color column
-  this->PlotList->GetWidget()->ColumnEditableOff(0);
-  this->PlotList->GetWidget()->SetColumnWidth(0, 5);
-  this->PlotList->GetWidget()->SetColumnResizable(0, 0);
-
   // On/off column
-  this->PlotList->GetWidget()->ColumnEditableOn(1);
-  this->PlotList->GetWidget()->SetColumnWidth(1, 6);
-  this->PlotList->GetWidget()->SetColumnEditWindowToCheckButton(1);
-  this->PlotList->GetWidget()->SetColumnResizable(1, 0);
+  this->PlotList->GetWidget()->SetColumnEditWindowToCheckButton(COLUMN_VISIBLE);
+  this->PlotList->GetWidget()->SetColumnStretchable(COLUMN_VISIBLE, 0);
+  this->PlotList->GetWidget()->SetColumnResizable(COLUMN_VISIBLE, 0);
+  this->PlotList->GetWidget()->SetColumnWidth(COLUMN_VISIBLE, 0);
+  this->PlotList->GetWidget()->ColumnEditableOn(COLUMN_VISIBLE);
+  this->PlotList->GetWidget()->SetColumnFormatCommandToEmptyOutput (COLUMN_VISIBLE);
+
+  // Color column
+  this->PlotList->GetWidget()->ColumnEditableOff(COLUMN_COLOR);
+  this->PlotList->GetWidget()->SetColumnWidth(COLUMN_COLOR, 5);
+  this->PlotList->GetWidget()->SetColumnResizable(COLUMN_COLOR, 0);
 
   // Curve name column
-  this->PlotList->GetWidget()->ColumnEditableOn(1);
-  this->PlotList->GetWidget()->SetColumnWidth(2, 15);
-  this->PlotList->GetWidget()->SetColumnEditWindowToEntry(2);
-  this->PlotList->GetWidget()->SetColumnAlignmentToLeft(2);
-  this->PlotList->GetWidget()->SetColumnStretchable(2, 1);
+  this->PlotList->GetWidget()->ColumnEditableOn(COLUMN_NODE_NAME);
+  this->PlotList->GetWidget()->SetColumnWidth(COLUMN_NODE_NAME, 15);
+  this->PlotList->GetWidget()->SetColumnEditWindowToEntry(COLUMN_NODE_NAME);
+  this->PlotList->GetWidget()->SetColumnAlignmentToLeft(COLUMN_NODE_NAME);
+  this->PlotList->GetWidget()->SetColumnStretchable(COLUMN_NODE_NAME, 1);
 
   // MRML ID column
-  this->PlotList->GetWidget()->ColumnEditableOff(0);
-  this->PlotList->GetWidget()->SetColumnWidth(3, 15);
-  this->PlotList->GetWidget()->SetColumnAlignmentToLeft(3);
-  this->PlotList->GetWidget()->SetColumnStretchable(3, 1);
+  this->PlotList->GetWidget()->ColumnEditableOff(COLUMN_MRML_ID);
+  this->PlotList->GetWidget()->SetColumnWidth(COLUMN_MRML_ID, 15);
+  this->PlotList->GetWidget()->SetColumnAlignmentToLeft(COLUMN_MRML_ID);
+  this->PlotList->GetWidget()->SetColumnStretchable(COLUMN_MRML_ID, 1);
 
-  this->PlotList->GetWidget()->SetSelectionTypeToCell();
   
   this->Script("pack %s %s %s -side top -fill x -expand y -anchor w -padx 2 -pady 2", 
                this->IntensityPlot->GetWidgetName(),
                this->ErrorBarCheckButton->GetWidgetName(),
                this->PlotList->GetWidgetName());
+
+  // Event handlers:
+  this->PlotList->GetWidget()->SetCellUpdatedCommand(this, "UpdatePlotListElement");
+  //this->PlotList->GetWidget()->SetRightClickCommand(this, "JumpSlicesCallback");
+  //this->PlotList->GetWidget()->SetSelectionCommand( this, "CurveVisibilityToggle");
 
   frame->Delete();
   conBrowsFrame->Delete();
@@ -2284,24 +2293,70 @@ void vtkFourDAnalysisGUI::UpdatePlotList()
         {
         double r, g, b;
         node->GetColor(r, g, b);
+        int v = node->GetVisible();
         
+        if (v > 0)
+          {
+          this->PlotList->GetWidget()->SetCellTextAsInt(i, COLUMN_VISIBLE, 1);
+          this->PlotList->GetWidget()->SetCellWindowCommandToCheckButton(i, COLUMN_VISIBLE);
+          }
+        else
+          {
+          this->PlotList->GetWidget()->SetCellTextAsInt(i, COLUMN_VISIBLE, 0);
+          this->PlotList->GetWidget()->SetCellWindowCommandToCheckButton(i, COLUMN_VISIBLE);
+          }
+
         // First column: color panel
-        this->PlotList->GetWidget()->SetCellSelectionBackgroundColor(i, 0, r, g, b);
-        this->PlotList->GetWidget()->SetCellBackgroundColor(i, 0, r, g, b);
+        this->PlotList->GetWidget()->SetCellSelectionBackgroundColor(i, COLUMN_COLOR, r, g, b);
+        this->PlotList->GetWidget()->SetCellBackgroundColor(i, COLUMN_COLOR, r, g, b);
 
         // Second column: check button to turn on / off
         //this->PlotList->GetWidget()->SetCellEditWindowToCheckButton(i, 1);
 
         // Third column: curve name entry
         //this->PlotList->GetWidget()->SetCellEditWindowToEntry(i, 2);
-        this->PlotList->GetWidget()->SetCellText(i, 2, node->GetID());
+        this->PlotList->GetWidget()->SetCellText(i, COLUMN_NODE_NAME, node->GetID());
 
         // Forth column: MRML node ID
-        this->PlotList->GetWidget()->SetCellText(i, 3, node->GetID());
+        this->PlotList->GetWidget()->SetCellText(i, COLUMN_MRML_ID, node->GetID());
         }
       }
     }
 }
+
+
+//----------------------------------------------------------------------------
+void vtkFourDAnalysisGUI::UpdatePlotListElement(int row, int col, char * str)
+{
+  if (this->PlotNode &&
+      this->GetMRMLScene() &&
+      (row >= 0) && (row < this->PlotList->GetWidget()->GetNumberOfRows()) &&
+      (col >= 0) && (col < this->PlotList->GetWidget()->GetNumberOfColumns()))
+    {
+    if (col == COLUMN_VISIBLE)
+      {
+      const char* nodeID = this->PlotList->GetWidget()->GetCellText(row, COLUMN_MRML_ID);
+      vtkMRMLPlotNode* pnode = vtkMRMLPlotNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodeID));
+      if (pnode)
+        {
+        int v = this->PlotList->GetWidget()->GetCellTextAsInt(row, col);
+        if (v == 0)
+          {
+          pnode->SetVisible(0);
+          }
+        else
+          {
+          pnode->SetVisible(1);
+          }
+        UpdateIntensityPlot(this->IntensityCurves);
+        }
+      }
+    }
+}
+
+
+
+
 
 
 //----------------------------------------------------------------------------
