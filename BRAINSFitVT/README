@@ -1,0 +1,10 @@
+This directory contains modified snapshot of BRAINSFit library,
+http://www.nitrc.org/projects/multimodereg/, as of release 259, modified for
+the BRAINSFit extension to work seamlessly (hopefully), with Slicer. This
+didn't work as of August 25, 2009.
+
+In addition, this branch will contain the changes that were found to be
+important for the VT vervet segmentation project,
+http://wiki.na-mic.org/Wiki/index.php/NA-MIC_NCBC_Collaboration:Measuring_Alcohol_and_Stress_Interaction
+
+Questions to Andriy Fedorov, fedorov at bwh harvard edu
