@@ -55,12 +55,11 @@
       <element>GeometryOn</element>
     </string-enumeration>
 
-    <transform>
+    <transform fileExtensions=".txt">
       <name>initialTransform</name>
-      <longflag>--initialTransform</longflag>
-      <label>Initial Transform</label>
+      <longflag>initialTransform</longflag>
       <description>Filename of transform used to initialize the registration.</description>
-      <default></default>
+      <label>Initial Transform</label>
       <channel>input</channel>
     </transform>
 
