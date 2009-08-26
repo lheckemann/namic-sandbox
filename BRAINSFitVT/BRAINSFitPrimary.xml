@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
   <category>Registration</category>
-  <title>BRAINSFit Mattes Mutual Information Registration</title>
+  <title>BRAINSFit Mattes Mutual Information Registration -- VT port</title>
   <description>Uses the Mattes Mutual Registration algorithm to register a three-dimensional volume to a reference volume
   </description>
   <version>2.4.1</version>
   <documentation-url></documentation-url>
   <license></license>
-  <contributor>University of Iowa Department of Psychiatry, http:://www.psychiatry.uiowa.edu
+  <contributor>University of Iowa Department of Psychiatry, http:://www.psychiatry.uiowa.edu, Surgical Planning Lab, Andriy Fedorov, fedorov@bwh.harvard.edu
   </contributor>
 
   <parameters advanced="false">
