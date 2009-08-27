@@ -15,6 +15,10 @@ M = [1.0, 0.0, 0.0, 0.0;
 
 sd = igtlopen('localhost', 18944);
 
+if sd == -1
+  error('Could not connect to the server.');
+end
+
 IMGDATA.Type = 'IMAGE';
 IMGDATA.Name = 'MatlabImage';
 IMGDATA.Image = I;
