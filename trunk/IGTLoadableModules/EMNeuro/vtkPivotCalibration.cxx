@@ -28,6 +28,8 @@ vtkPivotCalibration::vtkPivotCalibration()
   this->m_PivotCalibrationAlgorithm = vtkPivotCalibrationAlgorithm::New();
   this->bInitializeError = true;
   this->bComputationError = true;
+  this->m_CalibrationTransform = vtkMatrix4x4::New();
+  this->m_CalibrationTransform->Zero();
 }
 
 //------------------------------------------------------------------------
@@ -61,12 +63,13 @@ void vtkPivotCalibration::AcquireTransform()
 {
   if (!bInitializeError)
     {
-    if( this->m_Transforms.size() == this->m_RequiredNumberOfTransformations )
+    if( (this->m_Transforms.size() == this->m_RequiredNumberOfTransformations) && (this->bComputationError))
       {
       //got all the transformations we need for calibration
       std::cerr << "Finished filling the vector" << std::endl;
 
       //remove observer from the node
+
 
       //actually perform the calibration
       this->m_PivotCalibrationAlgorithm->ResetCalibration();
@@ -81,9 +84,9 @@ void vtkPivotCalibration::AcquireTransform()
         {
         this->bComputationError = false;
         //Print out results onto the screen
-        this->m_CalibrationTransform = vtkMatrix4x4::New();
         this->m_PivotCalibrationAlgorithm->GetCalibrationTransform(this->m_CalibrationTransform);
         }
+      std::cerr << "Size of transforms vector: " << this->m_Transforms.size() << std::endl;
       }
     else  //transform was updated, we need to retrieve it
       {
@@ -91,7 +94,13 @@ void vtkPivotCalibration::AcquireTransform()
       this->transformNode->GetMatrixTransformToWorld(mat);
       this->m_Transforms.push_back(mat);
       std::cerr << "Number of transforms stacked: " << this->m_Transforms.size() << std::endl;
+      mat->Delete();
       }
+    }
+  else
+    {
+    std::cerr << "The calibration did not initialize correctly" << std::endl;
+    return;
     }
 }
 
