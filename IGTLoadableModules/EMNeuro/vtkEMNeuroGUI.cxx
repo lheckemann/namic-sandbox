@@ -72,7 +72,7 @@ vtkEMNeuroGUI::vtkEMNeuroGUI ( )
 
   //----------------------------------------------------------------
   // Variables
-  this->pivot = vtkPivotCalibration::New();
+  //this->pivot = vtkPivotCalibration::New();
 
 }
 
@@ -265,8 +265,6 @@ void vtkEMNeuroGUI::RemoveLogicObservers ( )
 }
 
 
-
-
 //---------------------------------------------------------------------------
 void vtkEMNeuroGUI::AddLogicObservers ( )
 {
@@ -283,7 +281,6 @@ void vtkEMNeuroGUI::AddLogicObservers ( )
 void vtkEMNeuroGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
 }
-
 
 //---------------------------------------------------------------------------
 void vtkEMNeuroGUI::ProcessGUIEvents(vtkObject *caller,
@@ -324,7 +321,7 @@ void vtkEMNeuroGUI::ProcessGUIEvents(vtkObject *caller,
       vtkSetAndObserveMRMLNodeEventsMacro(nullNode, node, nodeEvents);
       nodeEvents->Delete();
       //Initialize Pivot Calibration
-      pivot->Initialize(10, node);
+      //pivot->Initialize(this->numPointsEntry->GetValueAsInt(), node);
       }
     }
   else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
@@ -337,10 +334,9 @@ void vtkEMNeuroGUI::ProcessGUIEvents(vtkObject *caller,
     {
     std::cerr << "TestButton22 is pressed." << std::endl;
     }
-
 }
 
-
+//---------------------------------------------------------------------------
 void vtkEMNeuroGUI::DataCallback(vtkObject *caller,
                                      unsigned long eid, void *clientData, void *callData)
 {
@@ -376,17 +372,14 @@ void vtkEMNeuroGUI::ProcessMRMLEvents ( vtkObject *caller,
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
 
     //Check to see if calibration node has been updated
-    if (node == NodeSelectorMenu->GetSelected())
+    if ((node == this->NodeSelectorMenu->GetSelected()) && (event == vtkMRMLTransformableNode::TransformModifiedEvent))
       {
       //Print node in terminal and send node to calibration vector
       std::cerr << "Calibration Node has been updated" << std::endl;
       node->Print(std::cerr);
       pivot->AcquireTransform();
-      }
-    else
-      {
-    //GetMatrixTransformtoParent()
-    //else remove observer on node
+      //node->RemoveObservers(vtkMRMLTransformableNode::TransformModifiedEvent, (vtkCommand *)this->GUICallbackCommand);
+      //node->RemoveAllObservers();
       }
     }
 
@@ -471,6 +464,12 @@ void vtkEMNeuroGUI::BuildGUIForCalibrationFrame()
   app->Script ( "pack %s -fill both -expand true",
                 nodeFrame->GetWidgetName());
 
+  vtkKWLabel* nodeLabel = vtkKWLabel::New();
+  nodeLabel->SetParent(nodeFrame);
+  nodeLabel->Create();
+  nodeLabel->SetText("Select Transform: ");
+  nodeLabel->SetWidth(15);
+
   this->NodeSelectorMenu = vtkSlicerNodeSelectorWidget::New();
   this->NodeSelectorMenu->SetParent(nodeFrame);
   this->NodeSelectorMenu->Create();
@@ -483,11 +482,11 @@ void vtkEMNeuroGUI::BuildGUIForCalibrationFrame()
   this->NodeSelectorMenu->SetMRMLScene(this->Logic->GetMRMLScene());
   this->NodeSelectorMenu->UpdateMenu();
   this->NodeSelectorMenu->SetBorderWidth(0);
-  this->NodeSelectorMenu->SetLabelText( "Select Transform");
-  this->NodeSelectorMenu->SetBalloonHelpString("Select a trasnform from the Scene");
+  //this->NodeSelectorMenu->SetLabelText( "Select Transform");
+  this->NodeSelectorMenu->SetBalloonHelpString("Select a transform from the Scene");
 
-  this->Script("pack %s -side left -padx 2 -pady 2",
-               this->NodeSelectorMenu->GetWidgetName());
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+               nodeLabel->GetWidgetName(), this->NodeSelectorMenu->GetWidgetName());
 
   //Number of points for calibration entry
   vtkKWFrame* pointsFrame = vtkKWFrame::New();
@@ -506,7 +505,8 @@ void vtkEMNeuroGUI::BuildGUIForCalibrationFrame()
   this->numPointsEntry->SetParent(pointsFrame);
   this->numPointsEntry->SetRestrictValueToInteger();
   this->numPointsEntry->Create();
-  this->numPointsEntry->SetWidth(8);
+  this->numPointsEntry->SetWidth(6);
+  this->numPointsEntry->SetValueAsInt(20);
 
   this->Script ( "pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
                  pointsLabel->GetWidgetName(),
@@ -522,7 +522,7 @@ void vtkEMNeuroGUI::BuildGUIForCalibrationFrame()
   this->StartCalibrateButton = vtkKWPushButton::New ( );
   this->StartCalibrateButton->SetParent ( startCalibrationFrame );
   this->StartCalibrateButton->Create ( );
-  this->StartCalibrateButton->SetText ("Get Transfer");
+  this->StartCalibrateButton->SetText ("Start Calibration");
   this->StartCalibrateButton->SetWidth (15);
   this->Script ( "pack %s -side left -expand true",
                  StartCalibrateButton->GetWidgetName());
@@ -534,6 +534,7 @@ void vtkEMNeuroGUI::BuildGUIForCalibrationFrame()
   pointsLabel->Delete();
   startCalibrationFrame->Delete();
   frame->Delete();
+  nodeLabel->Delete();
 
 }
 
