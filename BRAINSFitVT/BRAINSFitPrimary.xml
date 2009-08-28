@@ -2,12 +2,12 @@
 <executable>
   <category>Registration</category>
   <title>BRAINSFit Mattes Mutual Information Registration -- VT port</title>
-  <description>Uses the Mattes Mutual Registration algorithm to register a three-dimensional volume to a reference volume
+  <description>Uses the Mattes Mutual Registration algorithm to register a three-dimensional volume to a reference volume.
   </description>
-  <version>2.4.1</version>
+  <version>2.4.1-VT</version>
   <documentation-url></documentation-url>
   <license></license>
-  <contributor>University of Iowa Department of Psychiatry, http:://www.psychiatry.uiowa.edu, Surgical Planning Lab, Andriy Fedorov, fedorov@bwh.harvard.edu
+  <contributor>Core implementation: University of Iowa Department of Psychiatry, http:://www.psychiatry.uiowa.edu, Surgical Planning Lab. Customization as part of VT/WFU/SPL collaboration: Andriy Fedorov, fedorov@bwh.harvard.edu. See details here: http://www.na-mic.org/Wiki/index.php/Vervet_MRI_registration
   </contributor>
 
   <parameters advanced="false">
