@@ -30,20 +30,20 @@ if(CMAKE_SYSTEM_NAME MATCHES "SunOS")
        stdc++
      )
   ELSE(CMAKE_COMPILER_IS_GNUCXX)
-    FIND_LIBRARY(OpenIGTLink_SUNCC_CSTD_LIBRARY Cstd /opt/SUNWspro/lib)
-    IF(OpenIGTLink_SUNCC_CSTD_LIBRARY)
-       SET(OpenIGTLink_STD_LINK_LIBRARIES
-         ${OpenIGTLink_STD_LINK_LIBRARIES}
-         Cstd
-       )
-    ENDIF(OpenIGTLink_SUNCC_CSTD_LIBRARY)
-    FIND_LIBRARY(OpenIGTLink_SUNCC_CRUN_LIBRARY Crun /opt/SUNWspro/lib)
-    IF(OpenIGTLink_SUNCC_CRUN_LIBRARY)
-       SET(OpenIGTLink_STD_LINK_LIBRARIES
-         ${OpenIGTLink_STD_LINK_LIBRARIES}
-         Crun
-       )
-    ENDIF(OpenIGTLink_SUNCC_CRUN_LIBRARY)
+    #FIND_LIBRARY(OpenIGTLink_SUNCC_CSTD_LIBRARY Cstd /opt/SUNWspro/lib)
+    #IF(OpenIGTLink_SUNCC_CSTD_LIBRARY)
+    #   SET(OpenIGTLink_STD_LINK_LIBRARIES
+    #     ${OpenIGTLink_STD_LINK_LIBRARIES}
+    #     Cstd
+    #   )
+    #ENDIF(OpenIGTLink_SUNCC_CSTD_LIBRARY)
+    #FIND_LIBRARY(OpenIGTLink_SUNCC_CRUN_LIBRARY Crun /opt/SUNWspro/lib)
+    #IF(OpenIGTLink_SUNCC_CRUN_LIBRARY)
+    #   SET(OpenIGTLink_STD_LINK_LIBRARIES
+    #     ${OpenIGTLink_STD_LINK_LIBRARIES}
+    #     Crun
+    #   )
+    #ENDIF(OpenIGTLink_SUNCC_CRUN_LIBRARY)
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_SYSTEM_NAME MATCHES "SunOS")
 
