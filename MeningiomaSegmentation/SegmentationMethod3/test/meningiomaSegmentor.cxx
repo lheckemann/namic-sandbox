@@ -7,11 +7,11 @@
 #include <iostream>
 
 //douher
-#include "cArrayOp.h"
-#include "cArray3D.h"
+#include "../src/cArrayOp.h"
+#include "../src/cArray3D.h"
 
-#include "SFLSLocalChanVeseSegmentor3D.h"
-#include "SFLSChanVeseSegmentor3D.h"
+#include "../src/SFLSLocalChanVeseSegmentor3D.h"
+#include "../src/SFLSChanVeseSegmentor3D.h"
 
 
 template< typename TPixel >
