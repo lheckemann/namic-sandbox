@@ -26,17 +26,6 @@ endif(NOT BOOST_PATH)
 include_directories(${BOOST_PATH})
 
 
-# find cArray path
-find_path(CARRAY_PATH cArray2D.h)
-if(NOT CARRAY_PATH)
-   message(FATAL_ERROR "Please enter the path of cArray.*")
-endif(NOT CARRAY_PATH)
-
-include_directories(${CARRAY_PATH})
-include_directories(${CARRAY_PATH}/imageProcessing)
-include_directories(${CARRAY_PATH}/imageProcessing/sparseFieldLevelSet)
-
-
 set(Libraries
 ITKCommon
 ITKNumerics
