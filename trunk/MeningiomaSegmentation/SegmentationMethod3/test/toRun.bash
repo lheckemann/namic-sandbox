@@ -13,5 +13,5 @@
 # Seg image 8, 500 iteration, smooth factor 1.0, pick a point (36 42 18) in the object, 
 # Use global statistics 0 (Thus, using local statistics )
 # This is slower than the global method, but this is a robust method to handle the difficult roi8 image.
-./r/meningiomaSegmentor ../../Data/roi_04_2x.nrrd r8.nrrd 500 1.0 36 42 18 0
+./r/meningiomaSegmentor ../../Data/roi_08_2x.nrrd r8.nrrd 500 1.0 36 42 18 0
 
