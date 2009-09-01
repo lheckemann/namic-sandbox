@@ -41,15 +41,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   //----------------------------------------------------------------
 
   //BTX
-  // Events
-  enum {
-    ConnectedEvent        = 118944,
-    DisconnectedEvent     = 118945,
-    ActivatedEvent        = 118946,
-    DeactivatedEvent      = 118947,
-    ReceiveEvent          = 118948,
-    NewDeviceEvent        = 118949,
-  };
   //ETX
 
  public:

@@ -113,7 +113,6 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
 
   // these need to be set to null no matter what
   this->ScannerStatusLabelDisp  = NULL;
-  this->SoftwareStatusLabelDisp = NULL;
   this->RobotStatusLabelDisp = NULL;
 
   //----------------------------------------------------------------  
@@ -132,10 +131,12 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
   this->CommandConverter = NULL;
  
   // -----------------------------------------
-  // Set up manager
-
+  // Set up manager (the node type will be registered in Init())
   this->ProstateNavManager =  vtkMRMLProstateNavManagerNode::New();
 
+  this->TimerFlag = 0;  
+  this->ScannerConnectedFlag = 0;
+  this->RobotConnectedFlag   = 0;
 }
 
 
@@ -143,6 +144,8 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
 //---------------------------------------------------------------------------
 vtkProstateNavGUI::~vtkProstateNavGUI ( )
 {
+  this->TimerFlag = 0;
+
   this->RemoveGUIObservers();
 
   if (this->DataCallbackCommand)
@@ -175,12 +178,6 @@ vtkProstateNavGUI::~vtkProstateNavGUI ( )
   // -----------------------------------------
   // Work Phase Display Frame
 
-  if (this->SoftwareStatusLabelDisp)
-    {
-    this->SoftwareStatusLabelDisp->SetParent(NULL);
-    this->SoftwareStatusLabelDisp->Delete(); 
-    this->SoftwareStatusLabelDisp = NULL;
-    }
   if (this->ScannerStatusLabelDisp)
     {
     this->ScannerStatusLabelDisp->SetParent(NULL);
@@ -476,11 +473,72 @@ void vtkProstateNavGUI::ProcessGUIEvents(vtkObject *caller,
 } 
 
 
+//---------------------------------------------------------------------------
+void vtkProstateNavGUI::ProcessTimerEvents()
+{
+  if (this->TimerFlag)
+    {
+    // Scanner connector status
+    if (this->ScannerConnectedFlag == 1)
+      {
+      this->ScannerStatusLabelDisp->SetReadOnlyBackgroundColor(15.0/255.0, 102.0/255.0, 192.0/255.0);
+      this->ScannerStatusLabelDisp->SetForegroundColor(0.1, 0.1, 0.1);
+      this->ScannerStatusLabelDisp->SetValue (" SCANNER: ON ");
+      }
+    else if (this->ScannerConnectedFlag == 2)
+      {
+      this->ScannerStatusLabelDisp->SetReadOnlyBackgroundColor(0.9, 0.9, 0.9);
+      this->ScannerStatusLabelDisp->SetForegroundColor(0.4, 0.4, 0.4);
+      this->ScannerStatusLabelDisp->SetValue (" SCANNER: OFF ");
+      }
+    this->ScannerConnectedFlag   = 0;
+
+    // Robot connector status
+    if (this->RobotConnectedFlag == 1)
+      {
+      this->RobotStatusLabelDisp->SetReadOnlyBackgroundColor(15.0/255.0, 102.0/255.0, 192.0/255.0);
+      this->RobotStatusLabelDisp->SetForegroundColor(0.1, 0.1, 0.1);
+      this->RobotStatusLabelDisp->SetValue (" ROBOT: ON ");
+      }
+    else if (this->RobotConnectedFlag == 2)
+      {
+      this->RobotStatusLabelDisp->SetReadOnlyBackgroundColor(0.9, 0.9, 0.9);
+      this->RobotStatusLabelDisp->SetForegroundColor(0.4, 0.4, 0.4);
+      this->RobotStatusLabelDisp->SetValue (" ROBOT: OFF ");
+      }
+    this->RobotConnectedFlag   = 0;
+
+    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
+                                         this->TimerInterval,
+                                         this, "ProcessTimerEvents");        
+    }
+}
+
+
+//---------------------------------------------------------------------------
 void vtkProstateNavGUI::Init()
 {
   
-  this->GetMRMLScene()->AddNode(this->ProstateNavManager);
+  // -----------------------------------------
+  // Register all new MRML node classes
+  {
+    // SmartPointer is used to create an instance of the class, and desstroy immediately after registration is complete
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLBrpRobotCommandNode >::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLProstateNavManagerNode >::New() );
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLRobotDisplayNode >::New() );
+    //:TODO: make sure that all MRML classes are registered (needed for creating/updating the node from XML)
+  }
 
+  // Add the manager node to the scene and start observing it.
+  this->GetMRMLScene()->AddNode(this->ProstateNavManager);
+  vtkIntArray  *events = vtkIntArray::New();
+  events->InsertNextValue ( vtkCommand::ModifiedEvent );
+  events->InsertNextValue ( vtkMRMLIGTLConnectorNode::ConnectedEvent );
+  events->InsertNextValue ( vtkMRMLIGTLConnectorNode::DisconnectedEvent );
+
+  vtkMRMLProstateNavManagerNode* node = this->ProstateNavManager;
+  vtkSetAndObserveMRMLNodeEventsMacro ( this->ProstateNavManager, node, events );
+  
   int numSteps = this->ProstateNavManager->GetNumberOfSteps();
   for (int i = 0; i < numSteps; i ++)
     {
@@ -495,16 +553,6 @@ void vtkProstateNavGUI::Init()
       }    
     }
 
-  // -----------------------------------------
-  // Register all new MRML node classes
-  {
-    // SmartPointer is used to create an instance of the class, and desstroy immediately after registration is complete
-    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLBrpRobotCommandNode >::New() );
-    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLProstateNavManagerNode >::New() );
-    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLRobotDisplayNode >::New() );
-    //:TODO: make sure that all MRML classes are registered (needed for creating/updating the node from XML)
-  }
-
 
   //if (linxnode->IsA("vtkMRMLBrpRobotCommandNode"))
   //  {
@@ -517,7 +565,6 @@ void vtkProstateNavGUI::Init()
   //
   //std::vector<vtkMRMLNode*> nodes;
   //this->GetMRMLScene()->GetNodesByClass("vtkMRMLBrpRobotCommandNode", nodes);
-
 
 
 
@@ -544,7 +591,7 @@ void vtkProstateNavGUI::ProcessLogicEvents ( vtkObject *caller,
     {
     if (event == vtkProstateNavLogic::StatusUpdateEvent)
       {
-      this->UpdateDeviceStatus();
+      //this->UpdateDeviceStatus();
       }
     }
 }
@@ -554,7 +601,34 @@ void vtkProstateNavGUI::ProcessLogicEvents ( vtkObject *caller,
 void vtkProstateNavGUI::ProcessMRMLEvents ( vtkObject *caller,
     unsigned long event, void *callData )
 {
-    // Fill in
+
+  if (this->ProstateNavManager && this->ProstateNavManager == vtkMRMLProstateNavManagerNode::SafeDownCast(caller))
+    {
+    if (event == vtkMRMLIGTLConnectorNode::ConnectedEvent || event == vtkMRMLIGTLConnectorNode::DisconnectedEvent)
+      {
+      const char* connector = (char*) callData;
+      if (strcmp(connector, "Robot") == 0)
+        {
+        if (event == vtkMRMLIGTLConnectorNode::ConnectedEvent)
+          {
+          this->RobotConnectedFlag = 1;
+          }
+        else
+          {
+          this->RobotConnectedFlag = 2;
+          }
+        }
+      else // if (strcmp(connector, "Scanner") == 0))
+        if (event == vtkMRMLIGTLConnectorNode::ConnectedEvent)
+          {
+          this->ScannerConnectedFlag = 1;
+          }
+        else
+          {
+          this->ScannerConnectedFlag = 2;
+          }
+      }
+    }
 }
 
 
@@ -654,13 +728,18 @@ void vtkProstateNavGUI::Enter()
     
     this->Entered = 1;
     }  
+
+  this->TimerFlag = 1;
+  this->TimerInterval = 100;  // 100 ms
+  ProcessTimerEvents();
 }
 
 
 //---------------------------------------------------------------------------
 void vtkProstateNavGUI::Exit ( )
 {
-    // Fill in
+  // stop timer on leaving the module
+  this->TimerFlag = 0;  
 }
 
 
@@ -815,6 +894,10 @@ void vtkProstateNavGUI::BuildGUIForWizardFrame()
           newStep->SetLogic(this->Logic);
           newStep->SetAndObserveMRMLScene(this->GetMRMLScene());
           newStep->SetProstateNavManager(this->ProstateNavManager);
+          newStep->SetTotalSteps(numSteps);
+          newStep->SetStepNumber(i+1);
+          newStep->UpdateName();
+          
           wizard_workflow->AddNextStep(newStep);          
 
           this->WorkPhaseButtonSet->AddWidget(i);
@@ -917,49 +1000,39 @@ void vtkProstateNavGUI::BuildGUIForWorkPhaseFrame ()
   vtkKWFrame *workphaseStatusFrame = vtkKWFrame::New ( );
   workphaseStatusFrame->SetParent ( workphaseFrame->GetFrame() );
   workphaseStatusFrame->Create ( );
-  workphaseStatusFrame->SetReliefToRaised();
-  workphaseStatusFrame->SetBackgroundColor(0.9, 0.9, 0.9);
   
   vtkKWFrame *buttonFrame = vtkKWFrame::New();
   buttonFrame->SetParent( workphaseFrame->GetFrame());
   buttonFrame->Create();
-
-  app->Script ( "pack %s %s -side top -anchor center -fill x -padx 2 -pady 1",
+  
+  app->Script ( "pack %s %s -side top -fill x -expand y -padx 1 -pady 1",
                 workphaseStatusFrame->GetWidgetName(),
                 buttonFrame->GetWidgetName());
   
-
   // -----------------------------------------
   // Work Phase Display Frame
 
-  this->SoftwareStatusLabelDisp = vtkKWEntry::New();
-  this->SoftwareStatusLabelDisp->SetParent(workphaseStatusFrame);
-  this->SoftwareStatusLabelDisp->Create();
-  this->SoftwareStatusLabelDisp->SetWidth(18);
-  this->SoftwareStatusLabelDisp->SetReliefToFlat();
-  this->SoftwareStatusLabelDisp->SetBackgroundColor(0.9, 0.9, 0.9);
-  this->SoftwareStatusLabelDisp->SetValue (" NETWORK: OFF ");
+  this->ScannerStatusLabelDisp = vtkKWEntry::New();
+  this->ScannerStatusLabelDisp->SetParent(workphaseStatusFrame);
+  this->ScannerStatusLabelDisp->Create();
+  this->ScannerStatusLabelDisp->ReadOnlyOn();
+  this->ScannerStatusLabelDisp->SetBorderWidth(1);
+  this->ScannerStatusLabelDisp->SetReadOnlyBackgroundColor(0.9, 0.9, 0.9);
+  this->ScannerStatusLabelDisp->SetForegroundColor(0.4, 0.4, 0.4);
+  this->ScannerStatusLabelDisp->SetValue (" SCANNER: OFF ");
   
   this->RobotStatusLabelDisp = vtkKWEntry::New();
   this->RobotStatusLabelDisp->SetParent(workphaseStatusFrame);
   this->RobotStatusLabelDisp->Create();
-  this->RobotStatusLabelDisp->SetWidth(18);
-  this->RobotStatusLabelDisp->SetReliefToFlat();
-  this->RobotStatusLabelDisp->SetBackgroundColor(0.9, 0.9, 0.9);
+  this->RobotStatusLabelDisp->ReadOnlyOn();
+  this->RobotStatusLabelDisp->SetBorderWidth(1);
+  this->RobotStatusLabelDisp->SetReadOnlyBackgroundColor(0.9, 0.9, 0.9);
+  this->RobotStatusLabelDisp->SetForegroundColor(0.4, 0.4, 0.4);
   this->RobotStatusLabelDisp->SetValue (" ROBOT: OFF ");
   
-  this->ScannerStatusLabelDisp = vtkKWEntry::New();
-  this->ScannerStatusLabelDisp->SetParent(workphaseStatusFrame);
-  this->ScannerStatusLabelDisp->Create();
-  this->ScannerStatusLabelDisp->SetWidth(18);
-  this->ScannerStatusLabelDisp->SetReliefToFlat();
-  this->ScannerStatusLabelDisp->SetBackgroundColor(0.9, 0.9, 0.9);
-  this->ScannerStatusLabelDisp->SetValue (" SCANNER: OFF ");
-  
-  this->Script("pack %s %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
-               SoftwareStatusLabelDisp->GetWidgetName(),
-               ScannerStatusLabelDisp->GetWidgetName(),
-               RobotStatusLabelDisp->GetWidgetName()
+  this->Script("pack %s %s -side left -fill x -expand y -padx 1 -pady 1", 
+               RobotStatusLabelDisp->GetWidgetName(),
+               ScannerStatusLabelDisp->GetWidgetName()
                );
   
   // -----------------------------------------
@@ -970,12 +1043,12 @@ void vtkProstateNavGUI::BuildGUIForWorkPhaseFrame ()
   this->WorkPhaseButtonSet->Create();
   this->WorkPhaseButtonSet->PackHorizontallyOn();
   this->WorkPhaseButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(3);
-  this->WorkPhaseButtonSet->SetWidgetsPadX(2);
-  this->WorkPhaseButtonSet->SetWidgetsPadY(2);
+  this->WorkPhaseButtonSet->SetWidgetsPadX(1);
+  this->WorkPhaseButtonSet->SetWidgetsPadY(1);
   this->WorkPhaseButtonSet->UniformColumnsOn();
   this->WorkPhaseButtonSet->UniformRowsOn();
   
-  this->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
+  this->Script("pack %s -side left -anchor w -fill x -padx 1 -pady 1", 
                this->WorkPhaseButtonSet->GetWidgetName());
   
   workphaseFrame->Delete ();
@@ -1073,65 +1146,6 @@ int vtkProstateNavGUI::ChangeWorkPhase(int phase, int fChangeWizard)
 void vtkProstateNavGUI::UpdateAll()
 {
 
-}
-
-
-//----------------------------------------------------------------------------
-void vtkProstateNavGUI::UpdateDeviceStatus()
-{
-  bool network = this->GetLogic()->GetConnection();
-  if (!network)
-    {
-    this->SoftwareStatusLabelDisp->SetBackgroundColor(0.9, 0.9, 0.9);
-    this->SoftwareStatusLabelDisp->SetValue(" NETWORK: OFF ");
-    }
-  else
-    {
-    this->SoftwareStatusLabelDisp->SetBackgroundColor(0.0, 0.5, 1.0);
-    this->SoftwareStatusLabelDisp->SetValue(" NETWORK: ON ");
-    }
-  
-  int status = this->GetLogic()->GetRobotWorkPhase();
-  vtkProstateNavStep* step=GetStepPage(status);
-  if (step!=NULL)
-    {    
-    double r;
-    double g;
-    double b;
-    step->GetTitleBackgroundColor(&r, &g, &b);
-    this->RobotStatusLabelDisp->SetBackgroundColor(r, g, b);
-
-    std::ostrstream os;            
-    os << "RBT: " << step->GetTitle() << std::ends;
-    this->RobotStatusLabelDisp->SetValue(os.str());
-    os.rdbuf()->freeze();    
-    }
-  else
-    {
-    this->RobotStatusLabelDisp->SetBackgroundColor(0.9, 0.9, 0.9);
-    this->RobotStatusLabelDisp->SetValue(" ROBOT: OFF ");
-    }
-
-  status = this->GetLogic()->GetScannerWorkPhase();
-  step=GetStepPage(status);
-  if (step!=NULL)
-    {
-    double r;
-    double g;
-    double b;
-    step->GetTitleBackgroundColor(&r, &g, &b);
-    this->ScannerStatusLabelDisp->SetBackgroundColor(r, g, b);
-
-    std::ostrstream os;            
-    os << "SCNR: " << step->GetTitle() << std::ends;
-    this->ScannerStatusLabelDisp->SetValue(os.str());
-    os.rdbuf()->freeze();    
-    }
-  else
-    {
-    this->ScannerStatusLabelDisp->SetValue(" SCANNER: OFF ");
-    this->ScannerStatusLabelDisp->SetBackgroundColor(0.9, 0.9, 0.9);
-    }
 }
 
 

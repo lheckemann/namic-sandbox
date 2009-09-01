@@ -215,21 +215,30 @@ void vtkMRMLProstateNavManagerNode::ProcessMRMLEvents( vtkObject *caller, unsign
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
   if (this->TargetPlanList && this->TargetPlanList == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
-    event ==  vtkCommand::ModifiedEvent)
+      event ==  vtkCommand::ModifiedEvent)
     {
     //this->ModifiedSinceReadOn();
     //this->InvokeEvent(vtkMRMLVolumeNode::ImageDataModifiedEvent, NULL);
     //this->UpdateFromMRML();
     return;
     }
-
-  if (this->TargetCompletedList && this->TargetCompletedList == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
-    event ==  vtkCommand::ModifiedEvent)
+  else if (this->TargetCompletedList && this->TargetCompletedList == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
+           event ==  vtkCommand::ModifiedEvent)
     {
     //this->ModifiedSinceReadOn();
     //this->InvokeEvent(vtkMRMLVolumeNode::ImageDataModifiedEvent, NULL);
     //this->UpdateFromMRML();
     return;
+    }
+  else if (this->ScannerConnector && this->ScannerConnector == vtkMRMLIGTLConnectorNode::SafeDownCast(caller) &&
+           (event ==  vtkMRMLIGTLConnectorNode::ConnectedEvent || event ==  vtkMRMLIGTLConnectorNode::DisconnectedEvent))
+    {
+    this->InvokeEvent(event, (void*) "Scanner");
+    }
+  else if (this->RobotConnector && this->RobotConnector == vtkMRMLIGTLConnectorNode::SafeDownCast(caller) &&
+           (event ==  vtkMRMLIGTLConnectorNode::ConnectedEvent || event ==  vtkMRMLIGTLConnectorNode::DisconnectedEvent))
+    {
+    this->InvokeEvent(event, (void*) "Robot");
     }
 
   return;
@@ -360,6 +369,10 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotConnector(vtkMRMLIGTLConne
     {
     vtkEventBroker::GetInstance()->RemoveObservations(
       this->RobotConnector, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    vtkEventBroker::GetInstance()->RemoveObservations(
+      this->RobotConnector, vtkMRMLIGTLConnectorNode::ConnectedEvent, this, this->MRMLCallbackCommand );
+    vtkEventBroker::GetInstance()->RemoveObservations(
+      this->RobotConnector, vtkMRMLIGTLConnectorNode::DisconnectedEvent, this, this->MRMLCallbackCommand );
     }
 
   this->RobotConnector = ptr;
@@ -368,6 +381,10 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveRobotConnector(vtkMRMLIGTLConne
     {
     vtkEventBroker::GetInstance()->AddObservation(
       ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    vtkEventBroker::GetInstance()->AddObservation(
+      ptr, vtkMRMLIGTLConnectorNode::ConnectedEvent, this, this->MRMLCallbackCommand );
+    vtkEventBroker::GetInstance()->AddObservation(
+      ptr, vtkMRMLIGTLConnectorNode::DisconnectedEvent, this, this->MRMLCallbackCommand );
     }
 
   if ( this->RobotConnector && this->RobotCommand )
@@ -393,6 +410,10 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveScannerConnector(vtkMRMLIGTLCon
     {
     vtkEventBroker::GetInstance()->RemoveObservations(
       this->ScannerConnector, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    vtkEventBroker::GetInstance()->RemoveObservations(
+      this->ScannerConnector, vtkMRMLIGTLConnectorNode::ConnectedEvent, this, this->MRMLCallbackCommand );
+    vtkEventBroker::GetInstance()->RemoveObservations(
+      this->ScannerConnector, vtkMRMLIGTLConnectorNode::DisconnectedEvent, this, this->MRMLCallbackCommand );
     }
 
   this->ScannerConnector = ptr;
@@ -401,6 +422,10 @@ void vtkMRMLProstateNavManagerNode::SetAndObserveScannerConnector(vtkMRMLIGTLCon
     {
     vtkEventBroker::GetInstance()->AddObservation(
       ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
+    vtkEventBroker::GetInstance()->AddObservation(
+      ptr, vtkMRMLIGTLConnectorNode::ConnectedEvent, this, this->MRMLCallbackCommand );
+    vtkEventBroker::GetInstance()->AddObservation(
+      ptr, vtkMRMLIGTLConnectorNode::DisconnectedEvent, this, this->MRMLCallbackCommand );
     }
 
   if ( this->ScannerConnector != ptr )
