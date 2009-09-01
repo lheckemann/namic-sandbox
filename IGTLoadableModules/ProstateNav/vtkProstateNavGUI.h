@@ -131,8 +131,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
-  
+
   void HandleMouseEvent(vtkSlicerInteractorStyle *style);
+
+  void         ProcessTimerEvents();
   
   // Description:
   // Describe behavior at module startup and exit.
@@ -155,17 +157,30 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   vtkProstateNavStep* GetStepPage(int i);
 
   //----------------------------------------------------------------
+  // Timer flags
+  //----------------------------------------------------------------
+  int TimerFlag;
+  int TimerInterval;
+
+  //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
   
   //----------------------------------------------------------------
   // Workphase Frame
-  
-  vtkKWPushButtonSet *WorkPhaseButtonSet;
-
   vtkKWEntry *ScannerStatusLabelDisp;
-  vtkKWEntry *SoftwareStatusLabelDisp;
   vtkKWEntry *RobotStatusLabelDisp;
+  
+  // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
+  // directly from ProcessMRMLEvent(), we added following flags to update those GUI
+  // widgets in the timer handler.
+  // if flag == 0, the widget does not need to be updated()
+  // if flag == 1, the connector has connected to the target
+  // if flag == 2, the connector has disconnected from the target
+  int ScannerConnectedFlag;
+  int RobotConnectedFlag;
+
+  vtkKWPushButtonSet *WorkPhaseButtonSet;
   
   //----------------------------------------------------------------
   // Wizard Frame
@@ -190,7 +205,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   vtkMRMLFiducialListNode *FiducialListNode;
 
   void UpdateAll();
-  void UpdateDeviceStatus();
   
  private:
 

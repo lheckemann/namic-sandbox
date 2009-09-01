@@ -37,9 +37,8 @@ vtkCxxRevisionMacro(vtkProstateNavStepVerification, "$Revision: 1.1 $");
 //----------------------------------------------------------------------------
 vtkProstateNavStepVerification::vtkProstateNavStepVerification()
 {
-  //this->SetName("Set Scanner Parameters");
-  this->SetTitle("Set Scanner Parameters");
-  this->SetDescription("Operate the MRI scanner.");
+  this->SetTitle("Verification");
+  this->SetDescription("Verify targeting results.");
 
   this->TargetListFrame  = NULL;
   this->MultiColumnList = NULL;
