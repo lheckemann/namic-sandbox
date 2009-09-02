@@ -29,6 +29,18 @@ ADD_TEST(DemonsExample1
 
 ADD_TEST(DemonsExample2
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+  ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
+  ${TEST_DATA_ROOT}/Input/SimpleSurface2Small.vtk
+  ${TEMP}/MeshDemonsFilterSimpleSurface2to1Small.vtk
+  0.5    # Epsilon
+  0.5    # SigmaX
+  1.0    # Lambda
+  10     # Smoothing Iterations
+  30     # maximum number of iterations
+  )
+
+ADD_TEST(DemonsExample3
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEMP}/itkSimpleSurface1.vtk
   ${TEMP}/itkSimpleSurface2.vtk
   ${TEMP}/MeshDemonsFilterSimpleSurface2to1.vtk
