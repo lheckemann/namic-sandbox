@@ -40,13 +40,14 @@
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 3 )
+  if( argc < 8 )
     {
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
     std::cerr << "inputFixedMesh inputMovingMesh ";
-    std::cerr << "axisX axisY axisZ angle(radians) " << std::endl;
+    std::cerr << "axisX axisY axisZ angle(radians) ";
+    std::cerr << "outputResampledMesh " << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -214,6 +215,25 @@ int main( int argc, char * argv [] )
   resampler->SetInterpolator( interpolator );
 
   resampler->Update();
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >  WriterType;
+
+  WriterType::Pointer writer = WriterType::New();
+
+  writer->SetInput( resampler->GetOutput()  );
+  writer->SetFileName( argv[7] );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during writer Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   return EXIT_SUCCESS;
 
