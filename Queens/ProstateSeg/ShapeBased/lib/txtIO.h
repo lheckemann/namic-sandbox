@@ -22,7 +22,7 @@ namespace douher
 
     std::ifstream f(textFileName);
 
-    int maxFileNameLength = 1024;
+    const int maxFileNameLength = 1024;
     char n[maxFileNameLength];
 
     if (f.good())
