@@ -23,8 +23,19 @@ ADD_TEST(DemonsExample1
   1.0    # Epsilon
   1.0    # SigmaX
   1.0    # Lambda
-  1      # Smoothing Iterations
-  3000   # maximum number of iterations
+  10     # Smoothing Iterations
+  30     # maximum number of iterations
   )
 
+ADD_TEST(DemonsExample2
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+  ${TEMP}/itkSimpleSurface1.vtk
+  ${TEMP}/itkSimpleSurface2.vtk
+  ${TEMP}/MeshDemonsFilterSimpleSurface2to1.vtk
+  1.0    # Epsilon
+  1.0    # SigmaX
+  1.0    # Lambda
+  10     # Smoothing Iterations
+  30     # maximum number of iterations
+  )
 
