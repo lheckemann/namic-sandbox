@@ -204,7 +204,7 @@ private:
 
   /** Parallel-transport for gradient vectors. This is equivalent to sliding them along
    * the great circle that connects sourcePoint with destinationPoint.  */
-  void ParalelTransport( const PointType sourcePoint, const PointType destinationPoint,
+  void ParallelTransport( const PointType sourcePoint, const PointType destinationPoint,
     const DerivativeType & inputVector, DerivativeType & transportedVector ) const;
 
   /** Divide the cumulated derivatives by the cumulated areas */
