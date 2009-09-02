@@ -45,7 +45,7 @@ int main( int argc, char * argv [] )
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
     std::cerr << "inputFixedMesh inputMovingMesh ";
-    std::cerr << "axisX axisY axisZ angle " << std::endl;
+    std::cerr << "axisX axisY axisZ angle(radians) " << std::endl;
     return EXIT_FAILURE;
     }
 
