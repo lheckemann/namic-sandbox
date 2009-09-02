@@ -471,8 +471,8 @@ namespace douher
                                                                                vnl_matrix< double > A, \
                                                                                vnl_vector< double > translation, \
                                                                                T fillValue, \
-                                                                               unsigned char interpType = 1, \
-                                                                               long newNx = -1, long newNy = -1, long newNz = -1)
+                                                                               unsigned char interpType /*= 1*/, \
+                                                                               long newNx /*= -1*/, long newNy /*= -1*/, long newNz /*= -1*/)
   {
     if (translation.size() != 3 || A.rows() != 3 || A.columns() != 3)
       {

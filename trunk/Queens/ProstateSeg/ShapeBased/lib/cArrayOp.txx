@@ -793,7 +793,7 @@ namespace douher
   /* ==================================================
      clamp arrays 2D */
   template< typename T > 
-  typename cArray2D< T >::PointerType clampBelow2D( const typename cArray2D< T >::PointerType array, T clampValue, T setToValue = 0.0)
+  typename cArray2D< T >::PointerType clampBelow2D( const typename cArray2D< T >::PointerType array, T clampValue, T setToValue/* = 0.0*/)
   {
     long nx = array->getSizeX();
     long ny = array->getSizeY();
@@ -810,7 +810,7 @@ namespace douher
   /* ==================================================
      clamp arrays 3D */
   template< typename T > 
-  typename cArray3D< T >::PointerType clampBelow3D( const typename cArray3D< T >::PointerType array, T clampValue, T setToValue = 0.0)
+  typename cArray3D< T >::PointerType clampBelow3D( const typename cArray3D< T >::PointerType array, T clampValue, T setToValue /*= 0.0*/)
   {
     long nx = array->getSizeX();
     long ny = array->getSizeY();
@@ -829,7 +829,7 @@ namespace douher
   /* ==================================================
      clamp arrays 4D */
   template< typename T > 
-  typename cArray4D< T >::PointerType clampBelow4D( const typename cArray4D< T >::PointerType array, T clampValue, T setToValue = 0.0)
+  typename cArray4D< T >::PointerType clampBelow4D( const typename cArray4D< T >::PointerType array, T clampValue, T setToValue /*= 0.0*/)
   {
     long nx = array->getSizeX();
     long ny = array->getSizeY();
