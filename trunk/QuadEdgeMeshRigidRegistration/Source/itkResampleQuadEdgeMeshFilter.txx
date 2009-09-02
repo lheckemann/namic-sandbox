@@ -72,7 +72,7 @@ ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::GenerateData()
 {
   // Copy the input mesh into the output mesh.
-  this->CopyInputMeshToOutputMesh();
+  this->CopyInputMeshToOutputMesh(); // FIXME: Change this to copy Reference Mesh to Output Mesh
 
   OutputMeshPointer outputMesh = this->GetOutput();
 
@@ -95,13 +95,41 @@ ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
     itkExceptionMacro("Output Mesh has NULL PointData");
     }
 
-
-
   const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
 
   ProgressReporter progress(this, 0, numberOfPoints);
 
   std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
+
+  typedef typename OutputMeshType::PointsContainer::ConstIterator    PointIterator;
+  typedef typename OutputMeshType::PointDataContainer::Iterator      PointDataIterator;
+
+  PointIterator pointItr = outputMesh->GetPoints()->Begin();
+  PointIterator pointEnd = outputMesh->GetPoints()->End();
+
+  PointDataIterator pointDataItr = outputMesh->GetPointData()->Begin();
+  PointDataIterator pointDataEnd = outputMesh->GetPointData()->End();
+
+  typedef typename TransformType::InputPointType     InputPointType;
+  typedef typename TransformType::OutputPointType    MappedPointType;
+
+  OutputPointType  inputPoint;
+  OutputPointType  pointToEvaluate;
+
+  while( pointItr != pointEnd && pointDataItr != pointDataEnd )
+    {
+    inputPoint.CastFrom( pointItr.Value() );
+
+    MappedPointType transformedPoint = this->m_Transform->TransformPoint( inputPoint );
+
+    pointToEvaluate.CastFrom( transformedPoint );
+    pointDataItr.Value() = this->m_Interpolator->Evaluate( pointToEvaluate );
+
+    progress.CompletedPixel();
+
+    ++pointItr;
+    ++pointDataItr;
+    }
 
 }
 
