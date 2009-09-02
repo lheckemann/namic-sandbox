@@ -35,6 +35,7 @@
 #include "vtkPolyData.h"
 #include "vtkSmartPointer.h"
 
+#include "itkResampleQuadEdgeMeshFilter.h"
 
 int main( int argc, char * argv [] )
 {
@@ -198,6 +199,16 @@ int main( int argc, char * argv [] )
 
   std::cout << "final parameters = " << finalParameters << std::endl;
   std::cout << "final value      = " << bestValue << std::endl;
+ 
+  typedef itk::ResampleQuadEdgeMeshFilter< 
+    FixedMeshType, MovingMeshType >  ResamplingFilterType;
+
+  ResamplingFilterType::Pointer resampler = ResamplingFilterType::New();
+
+  resampler->SetReferenceMesh( meshFixed );
+  resampler->SetInput( meshMoving );
+  
+  resampler->Update();
 
   return EXIT_SUCCESS;
 
