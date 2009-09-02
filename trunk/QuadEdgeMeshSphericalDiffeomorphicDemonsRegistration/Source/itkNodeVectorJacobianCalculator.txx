@@ -230,7 +230,7 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
         // 
         // Parallel transport the derivative vector to each neighbor point
         //
-        this->ParalelTransport( cellCenterProjectedInSphere, point[i], 
+        this->ParallelTransport( cellCenterProjectedInSphere, point[i], 
           projectedDerivative[k], parallelTransportedDerivative[k] );
 
         for( unsigned int h = 0; h < MeshDimension; h++ )
@@ -350,7 +350,7 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
 template <class TInputMesh, class TScalar >
 void
 NodeVectorJacobianCalculator<TInputMesh, TScalar>
-::ParalelTransport( 
+::ParallelTransport( 
     const PointType src, const PointType dst,
     const DerivativeType & inputVector, 
     DerivativeType & transportedVector ) const
