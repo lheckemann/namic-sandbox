@@ -200,6 +200,8 @@ int main( int argc, char * argv [] )
   std::cout << "final parameters = " << finalParameters << std::endl;
   std::cout << "final value      = " << bestValue << std::endl;
  
+  transform->SetParameters( finalParameters );
+
   typedef itk::ResampleQuadEdgeMeshFilter< 
     FixedMeshType, MovingMeshType >  ResamplingFilterType;
 
@@ -208,6 +210,9 @@ int main( int argc, char * argv [] )
   resampler->SetReferenceMesh( meshFixed );
   resampler->SetInput( meshMoving );
   
+  resampler->SetTransform( transform );
+  resampler->SetInterpolator( interpolator );
+
   resampler->Update();
 
   return EXIT_SUCCESS;
