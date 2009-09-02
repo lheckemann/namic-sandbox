@@ -25,12 +25,13 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 9 )
+  if( argc < 10 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " fixedMeshFile  movingMeshFile ";
-    std::cerr << " outputMeshfile epsilon sigmaX ";
+    std::cerr << " outputMeshfile sphereRadius ";
+    std::cerr << " epsilon sigmaX ";
     std::cerr << " lambda smoothingIterations ";
     std::cerr << " numberOfIterations" << std::endl;
     return EXIT_FAILURE;
@@ -72,17 +73,22 @@ int main( int argc, char *argv[] )
   demonsFilter->SetFixedMesh( fixedReader->GetOutput() );
   demonsFilter->SetMovingMesh( movingReader->GetOutput() );
 
+//  demonsFilter->SetInitialDeformationField( arrayOfDestinationPoints );
+//  demonsFilter->SetMeshWithInitialDeformationField( meshWhoseDataValueAreDestinationPoints );
+
   DemonsFilterType::PointType center;
   center.Fill( 0.0 );
 
-  demonsFilter->SetSphereCenter( center );
-  demonsFilter->SetSphereRadius( 100.0 );
+  const double radius = atof( argv[4] );
 
-  const double epsilon = atof( argv[4] );
-  const double sigmaX = atof( argv[5] );
-  const double lambda = atof( argv[6] );
-  const unsigned int maximumNumberOfSmoothingIterations = atoi( argv[7] );
-  const unsigned int maximumNumberOfIterations = atoi( argv[8] );
+  demonsFilter->SetSphereCenter( center );
+  demonsFilter->SetSphereRadius( radius );
+
+  const double epsilon = atof( argv[5] );
+  const double sigmaX = atof( argv[6] );
+  const double lambda = atof( argv[7] );
+  const unsigned int maximumNumberOfSmoothingIterations = atoi( argv[8] );
+  const unsigned int maximumNumberOfIterations = atoi( argv[9] );
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );

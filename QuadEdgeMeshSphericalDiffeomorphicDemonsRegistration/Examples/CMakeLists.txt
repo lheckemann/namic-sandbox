@@ -20,6 +20,7 @@ ADD_TEST(DemonsExample1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
   ${TEMP}/MeshDemonsFilter1.vtk
+  100.0  # Sphere radius
   1.0    # Epsilon
   1.0    # SigmaX
   1.0    # Lambda
@@ -32,6 +33,7 @@ ADD_TEST(DemonsExample2
   ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
   ${TEST_DATA_ROOT}/Input/SimpleSurface2Small.vtk
   ${TEMP}/MeshDemonsFilterSimpleSurface2to1Small.vtk
+  1.0    # Sphere radius
   0.5    # Epsilon
   0.5    # SigmaX
   1.0    # Lambda
@@ -44,6 +46,7 @@ ADD_TEST(DemonsExample3
   ${TEMP}/itkSimpleSurface1.vtk
   ${TEMP}/itkSimpleSurface2.vtk
   ${TEMP}/MeshDemonsFilterSimpleSurface2to1.vtk
+  100.0  # Sphere radius
   1.0    # Epsilon
   1.0    # SigmaX
   1.0    # Lambda
