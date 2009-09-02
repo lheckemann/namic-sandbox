@@ -13,6 +13,8 @@
 #include "../src/SFLSLocalChanVeseSegmentor3D.h"
 #include "../src/SFLSChanVeseSegmentor3D.h"
 
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
 
 template< typename TPixel >
 douher::cArray3D< unsigned char >::Pointer 
@@ -48,8 +50,18 @@ int main(int argc, char** argv)
   ImageType::Pointer img = douher::readImageToArray3< PixelType >(inputImage);
   MaskImageType::Pointer mask = getInitMask< PixelType >(img, cx, cy, cz);
 
+  typedef itk::Image< unsigned char, 3 > ImageTypeITK;
+  typedef itk::ImageFileReader<ImageTypeITK> ReaderType;
+  typedef itk::ImageFileWriter<ImageTypeITK> WriterType;
+
+  ReaderType::Pointer inputReader = ReaderType::New();
+  inputReader->SetFileName(inputImage);
+  inputReader->Update();
+
   //  douher::saveAsImage3< unsigned char >(mask, "initMask.nrrd");
   
+  ImageTypeITK::Pointer imageITK = NULL;
+
   if (1 == globalSwitch)
     {
       // perform global statistics based segmentation
@@ -64,7 +76,9 @@ int main(int argc, char** argv)
       //cv->doSegmenation();
       cv->doChanVeseSegmenation();
 
-      douher::saveAsImage3< unsigned char >(getFinalMask<double>(cv->mp_phi), outputImage);
+//      douher::saveAsImage3< unsigned char >(getFinalMask<double>(cv->mp_phi), outputImage);
+      imageITK = 
+        douher::cArray3ToItkImage<unsigned char>(getFinalMask<double>(cv->mp_phi));
     }
   else
     {
@@ -82,11 +96,22 @@ int main(int argc, char** argv)
       // do segmentation
       cv->doLocalChanVeseSegmenation();
 
-      douher::saveAsImage3< unsigned char >(getFinalMask<double>(cv->mp_phi), outputImage);
+//      douher::saveAsImage3< unsigned char >(getFinalMask<double>(cv->mp_phi), outputImage);
+      
+      imageITK = 
+        douher::cArray3ToItkImage<unsigned char>(getFinalMask<double>(cv->mp_phi));
+
     }
+  
+  imageITK->SetSpacing(inputReader->GetOutput()->GetSpacing());
+  imageITK->SetOrigin(inputReader->GetOutput()->GetOrigin());
+//  imageITK->SetOrientation(inputReader>GetOrientation());
 
-
-
+  WriterType::Pointer outputWriter = WriterType::New();
+  outputWriter->SetFileName(outputImage);
+  outputWriter->SetInput(imageITK);
+  outputWriter->Update();
+  
   
   return 0;
 }
