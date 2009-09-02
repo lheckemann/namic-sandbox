@@ -55,21 +55,32 @@ public:
 
   typedef TOutputMesh                                        OutputMeshType;
   typedef typename OutputMeshType::Pointer                   OutputMeshPointer;
+  typedef typename OutputMeshType::ConstPointer              OutputMeshConstPointer;
   typedef typename OutputMeshType::EdgeCellType              OutputEdgeCellType;
   typedef typename OutputMeshType::PolygonCellType           OutputPolygonCellType;
+  typedef typename OutputMeshType::PointIdList               OutputPointIdList;
+  typedef typename OutputMeshType::CellTraits                OutputCellTraits;
+  typedef typename OutputCellTraits::PointIdInternalIterator OutputPointsIdInternalIterator;
   typedef typename OutputMeshType::QEType                    OutputQEType;
   typedef typename OutputMeshType::PointIdentifier           OutputPointIdentifier;
   typedef typename OutputMeshType::PointType                 OutputPointType;
   typedef typename OutputPointType::VectorType               OutputVectorType;
   typedef typename OutputPointType::CoordRepType             OutputCoordType;
   typedef typename OutputMeshType::PointsContainer           OutputPointsContainer;
-  typedef typename OutputMeshType::PointsContainerPointer    OutputPointsContainerPointer;
-  typedef typename OutputMeshType::PointsContainerIterator   OutputPointsContainerIterator;
-  typedef typename OutputMeshType::CellsContainerPointer     OutputCellsContainerPointer;
-  typedef typename OutputMeshType::CellsContainerIterator    OutputCellsContainerIterator;
-  typedef typename OutputMeshType::PointDataContainer        OutputPointDataContainer;
-  typedef typename OutputMeshType::PointDataContainerPointer OutputPointDataContainerPointer;
   typedef typename OutputMeshType::PixelType                 OutputPixelType;
+
+  typedef typename OutputMeshType::PointsContainerConstPointer    OutputPointsContainerConstPointer;
+  typedef typename OutputMeshType::PointsContainerPointer         OutputPointsContainerPointer;
+  typedef typename OutputMeshType::PointsContainerIterator        OutputPointsContainerIterator;
+  typedef typename OutputMeshType::PointsContainerConstIterator   OutputPointsContainerConstIterator;
+  typedef typename OutputMeshType::CellsContainerPointer          OutputCellsContainerPointer;
+  typedef typename OutputMeshType::CellsContainerConstPointer     OutputCellsContainerConstPointer;
+  typedef typename OutputMeshType::CellsContainerIterator         OutputCellsContainerIterator;
+  typedef typename OutputMeshType::CellsContainerConstIterator    OutputCellsContainerConstIterator;
+  typedef typename OutputMeshType::PointDataContainer             OutputPointDataContainer;
+  typedef typename OutputMeshType::PointDataContainerPointer      OutputPointDataContainerPointer;
+  typedef typename OutputMeshType::PointDataContainerConstPointer OutputPointDataContainerConstPointer;
+  typedef typename OutputMeshType::CellDataContainer              OutputCellDataContainer;
 
   itkStaticConstMacro( PointDimension, unsigned int, OutputMeshType::PointDimension );
 
@@ -124,8 +135,18 @@ private:
   ResampleQuadEdgeMeshFilter( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
+  virtual void CopyReferenceMeshToOutputMesh();
+  virtual void CopyReferenceMeshToOutputMeshGeometry();
+  virtual void CopyReferenceMeshToOutputMeshPoints();
+  virtual void CopyReferenceMeshToOutputMeshCells();
+  virtual void CopyReferenceMeshToOutputMeshEdgeCells();
+  virtual void CopyReferenceMeshToOutputMeshFieldData();
+  virtual void CopyReferenceMeshToOutputMeshPointData();
+  virtual void CopyReferenceMeshToOutputMeshCellData(); 
+
   TransformPointerType     m_Transform;         // Coordinate transform to use
   InterpolatorPointerType  m_Interpolator;      // Image function for
+
 };
 
 }
