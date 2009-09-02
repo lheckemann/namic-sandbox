@@ -329,6 +329,19 @@ ADD_TEST(itkLinearInterpolateMeshFunctionTest1
 
 ENDIF( FREESURFER_DIR )
 
+ADD_TEST(itkSimpleSurface1
+  ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
+  ${TEST_DATA_ROOT}/Input/SimpleSurface1/lh.sphere
+  ${TEST_DATA_ROOT}/Input/SimpleSurface1/lh.sulc
+  ${TEMP}/itkSimpleSurface1.vtk
+  )
+
+ADD_TEST(itkSimpleSurface2
+  ${CXX_TEST_PATH}/itkFreeSurferBinarySurfaceReaderTest2
+  ${TEST_DATA_ROOT}/Input/SimpleSurface2/lh.sphere
+  ${TEST_DATA_ROOT}/Input/SimpleSurface2/lh.sulc
+  ${TEMP}/itkSimpleSurface2.vtk
+  )
 
 IF(USE_VTK)
   IF(GENERATE_PAPER_SCREENSHOTS)
