@@ -18,7 +18,8 @@
 #define __itkResampleQuadEdgeMeshFilter_h
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
-#include "itkQuadEdgeMeshParamMatrixCoefficients.h"
+#include "itkInterpolateMeshFunction.h"
+#include "itkTransform.h"
 
 namespace itk
 {
@@ -72,10 +73,44 @@ public:
 
   itkStaticConstMacro( PointDimension, unsigned int, OutputMeshType::PointDimension );
 
+  /** Transform typedef. */
+  typedef Transform<double, 
+    itkGetStaticConstMacro(PointDimension), 
+    itkGetStaticConstMacro(PointDimension)> TransformType;
+  typedef typename TransformType::ConstPointer TransformPointerType;
+
+  /** Interpolator typedef. */
+  typedef InterpolateMeshFunction< InputMeshType > InterpolatorType;
+  typedef typename InterpolatorType::Pointer  InterpolatorPointerType;
+
+
   /** Set Mesh whose grid will define the geometry and topology of the output Mesh.
    *  In a registration scenario, this will typically be the Fixed mesh. */
   void SetReferenceMesh ( const OutputMeshType * mesh );
   const OutputMeshType * GetReferenceMesh( void ) const;
+
+  /** Set the coordinate transformation.
+   * Set the coordinate transform to use for resampling.  Note that this must
+   * be in physical coordinates and it is the output-to-input transform, NOT
+   * the input-to-output transform that you might naively expect.  By default
+   * the filter uses an Identity transform. You must provide a different
+   * transform here, before attempting to run the filter, if you do not want to
+   * use the default Identity transform. */
+  itkSetConstObjectMacro( Transform, TransformType ); 
+
+  /** Get a pointer to the coordinate transform. */
+  itkGetConstObjectMacro( Transform, TransformType );
+
+  /** Set the interpolator function.  The default is
+   * itk::LinearInterpolateMeshFunction<InputMeshType, TInterpolatorPrecisionType>. Some
+   * other options are itk::NearestNeighborInterpolateMeshFunction
+   * (useful for binary masks and other images with a small number of
+   * possible pixel values), and itk::BSplineInterpolateMeshFunction
+   * (which provides a higher order of interpolation).  */
+  itkSetObjectMacro( Interpolator, InterpolatorType );
+
+  /** Get a pointer to the interpolator function. */
+  itkGetConstObjectMacro( Interpolator, InterpolatorType );
 
 
 protected:
@@ -89,7 +124,8 @@ private:
   ResampleQuadEdgeMeshFilter( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
-  OutputMeshPointer      m_ReferenceMesh;
+  TransformPointerType     m_Transform;         // Coordinate transform to use
+  InterpolatorPointerType  m_Interpolator;      // Image function for
 };
 
 }
