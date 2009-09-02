@@ -27,6 +27,20 @@
 #include "itkVectorContainer.h"
 #include "itkVector.h"
 
+/* 
+    TODO:
+
+    Add other outputs:
+
+    1a) Allow the user to get the list of DestinationPoints. or
+    1b) Compose an output Mesh using the Destination points as the node coordinates (** preferred).
+
+    Add input:
+
+    1) Input a deformation field in the form of a list of destination points
+       or as a Mesh whose field data  the coordinates of the destination points.
+
+*/
 
 namespace itk
 {
