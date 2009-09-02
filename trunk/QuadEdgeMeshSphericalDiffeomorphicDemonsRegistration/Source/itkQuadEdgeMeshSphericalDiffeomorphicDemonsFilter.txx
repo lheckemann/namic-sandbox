@@ -56,7 +56,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_SphereRadius = 1.0;
   this->m_Epsilon = 1.0;
 
-  this->m_SigmaX = 1.0;
+  this->m_SigmaX = this->m_Epsilon;
 
   this->m_Lambda = 1.0;
   this->m_MaximumNumberOfSmoothingIterations = 1;
@@ -117,6 +117,7 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GenerateData()
 {
+  this->m_SigmaX = this->m_Epsilon; // Recommended link
   this->CopyInputMeshToOutputMesh();
   this->AllocateInternalArrays();
   this->InitializeFixedNodesSigmas();
@@ -416,9 +417,11 @@ ComputeVelocityField()
   JacobianType destinationJacobian;
 
   EpsilonI22.set_identity();
-  EpsilonI22 *= this->m_Epsilon;
+  EpsilonI22 *= ( this->m_Epsilon * this->m_Epsilon ) * this->m_ShortestEdgeLength;
 
-  const double sigmaX2 = this->m_SigmaX * this->m_SigmaX;
+  double metricSum = 0.0;
+
+  const double sigmaX2 = ( this->m_SigmaX * this->m_SigmaX ) * this->m_ShortestEdgeLength;
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
@@ -493,6 +496,8 @@ ComputeVelocityField()
 
     Vn.SetVnlVector( IntensitySlope * ( Fv - Mv ) );
 
+    metricSum += ( Fv - Mv )*( Fv - Mv ) / sigmaN2;
+
     velocityItr.Value() = Vn;
 
     ++velocityItr;
@@ -502,6 +507,8 @@ ComputeVelocityField()
     ++fixedPointDataItr;
     ++pointItr;
     }
+
+  std::cout <<  "Metric: " <<  metricSum << "   ";
 }
 
 
@@ -514,6 +521,8 @@ ComputeScalingAndSquaringNumberOfIterations()
   // Largest velocity vector Vn  magnitude  / 2^(N-2) < 1/2 Vertex distance
   //
   const double largestVelocityMagnitude = this->ComputeLargestVelocityMagnitude();
+
+std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude << std::endl;
 
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
@@ -581,6 +590,7 @@ ComputeShortestEdgeLength()
     }
 
   this->m_ShortestEdgeLength = shortestLength;
+std::cout << "shortestLength = " << this->m_ShortestEdgeLength << std::endl;
 }
 
  
