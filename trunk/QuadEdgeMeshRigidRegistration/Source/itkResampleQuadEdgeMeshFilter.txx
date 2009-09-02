@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkQuadEdgeMeshResamplingImageFilter_txx
-#define __itkQuadEdgeMeshResamplingImageFilter_txx
+#ifndef __itkResampleQuadEdgeMeshFilter_txx
+#define __itkResampleQuadEdgeMeshFilter_txx
 
-#include "itkQuadEdgeMeshResamplingImageFilter.h"
+#include "itkResampleQuadEdgeMeshFilter.h"
 #include "itkProgressReporter.h"
 #include "itkVersor.h"
 #include "itkNumericTraitsVectorPixel.h"
@@ -27,22 +27,48 @@ namespace itk
 
 
 template< class TInputMesh, class TOutputMesh >
-QuadEdgeMeshResamplingImageFilter< TInputMesh, TOutputMesh >
-::QuadEdgeMeshResamplingImageFilter()
+ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
+::ResampleQuadEdgeMeshFilter()
 {
 }
 
 
 template< class TInputMesh, class TOutputMesh >
-QuadEdgeMeshResamplingImageFilter< TInputMesh, TOutputMesh >
-::~QuadEdgeMeshResamplingImageFilter()
+ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
+::~ResampleQuadEdgeMeshFilter()
 {
 }
 
 
 template< class TInputMesh, class TOutputMesh >
 void
-QuadEdgeMeshResamplingImageFilter< TInputMesh, TOutputMesh >
+ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
+::SetReferenceMesh( const TOutputMesh * mesh )
+{
+  itkDebugMacro("setting input ReferenceMesh to " << mesh);
+  if( mesh != static_cast<const TOutputMesh *>(this->ProcessObject::GetInput( 1 )) )
+    {
+    this->ProcessObject::SetNthInput(1, const_cast< TOutputMesh *>( mesh ) );
+    this->Modified();
+    }
+}
+
+
+template< class TInputMesh, class TOutputMesh >
+const typename ResampleQuadEdgeMeshFilter<TInputMesh,TOutputMesh>::OutputMeshType *
+ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
+::GetReferenceMesh() const
+{
+  Self * surrogate = const_cast< Self * >( this );
+  const OutputMeshType * referenceMesh = 
+    static_cast<const OutputMeshType *>(surrogate->ProcessObject::GetInput(1));
+  return referenceMesh;
+}
+
+
+template< class TInputMesh, class TOutputMesh >
+void
+ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::GenerateData()
 {
   // Copy the input mesh into the output mesh.
@@ -70,9 +96,10 @@ QuadEdgeMeshResamplingImageFilter< TInputMesh, TOutputMesh >
     }
 
 
-  ProgressReporter progress(this, 0, this->m_MaximumNumberOfIterations);
 
   const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
+
+  ProgressReporter progress(this, 0, numberOfPoints);
 
   std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
 

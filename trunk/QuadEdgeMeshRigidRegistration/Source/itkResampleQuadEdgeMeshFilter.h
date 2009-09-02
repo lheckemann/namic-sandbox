@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkQuadEdgeMeshResamplingImageFilter_h
-#define __itkQuadEdgeMeshResamplingImageFilter_h
+#ifndef __itkResampleQuadEdgeMeshFilter_h
+#define __itkResampleQuadEdgeMeshFilter_h
 
 #include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
 #include "itkQuadEdgeMeshParamMatrixCoefficients.h"
@@ -24,25 +24,25 @@ namespace itk
 {
 
 /**
- * \class QuadEdgeMeshResamplingImageFilter
+ * \class ResampleQuadEdgeMeshFilter
  * \brief This resamples the scalar values of one QuadEdgeMesh into another one via a user-provided Transform and Interpolator.
  *
  * \ingroup MeshFilters
  *
  */
 template< class TInputMesh, class TOutputMesh >
-class QuadEdgeMeshResamplingImageFilter :
+class ResampleQuadEdgeMeshFilter :
   public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 {
 public:
-  typedef QuadEdgeMeshResamplingImageFilter             Self;
+  typedef ResampleQuadEdgeMeshFilter             Self;
   typedef QuadEdgeMeshToQuadEdgeMeshFilter< 
     TInputMesh, TOutputMesh >                           Superclass;
   typedef SmartPointer< Self >                          Pointer;
   typedef SmartPointer< const Self >                    ConstPointer;
 
   /** Run-time type information (and related methods).   */
-  itkTypeMacro( QuadEdgeMeshResamplingImageFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
+  itkTypeMacro( ResampleQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
@@ -72,23 +72,30 @@ public:
 
   itkStaticConstMacro( PointDimension, unsigned int, OutputMeshType::PointDimension );
 
+  /** Set Mesh whose grid will define the geometry and topology of the output Mesh.
+   *  In a registration scenario, this will typically be the Fixed mesh. */
+  void SetReferenceMesh ( const OutputMeshType * mesh );
+  const OutputMeshType * GetReferenceMesh( void ) const;
+
+
 protected:
-  QuadEdgeMeshResamplingImageFilter();
-  ~QuadEdgeMeshResamplingImageFilter();
+  ResampleQuadEdgeMeshFilter();
+  ~ResampleQuadEdgeMeshFilter();
 
   void GenerateData();
 
 private:
 
-  QuadEdgeMeshResamplingImageFilter( const Self& ); //purposely not implemented
+  ResampleQuadEdgeMeshFilter( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
+  OutputMeshPointer      m_ReferenceMesh;
 };
 
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkQuadEdgeMeshResamplingImageFilter.txx"
+#include "itkResampleQuadEdgeMeshFilter.txx"
 #endif
 
 #endif
