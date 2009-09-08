@@ -46,8 +46,8 @@ int main( int argc, char * argv [] )
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
     std::cerr << "inputFixedMesh inputMovingMesh ";
-    std::cerr << "axisX axisY axisZ angle(radians) ";
-    std::cerr << "outputResampledMesh " << std::endl;
+    std::cerr << "outputResampledMesh ";
+    std::cerr << "axisX axisY axisZ angle(radians) " << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -118,11 +118,11 @@ int main( int argc, char * argv [] )
   TransformType::AxisType  axis;
   TransformType::AngleType angle;
 
-  axis[0] = atof( argv[3] );
-  axis[1] = atof( argv[4] );
-  axis[2] = atof( argv[5] );
+  axis[0] = atof( argv[4] );
+  axis[1] = atof( argv[5] );
+  axis[2] = atof( argv[6] );
 
-  angle = atof( argv[6] );
+  angle = atof( argv[7] );
 
   transform->SetRotation( axis, angle );
   
@@ -221,7 +221,7 @@ int main( int argc, char * argv [] )
   WriterType::Pointer writer = WriterType::New();
 
   writer->SetInput( resampler->GetOutput()  );
-  writer->SetFileName( argv[7] );
+  writer->SetFileName( argv[3] );
 
   try
     {
