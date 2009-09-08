@@ -37,6 +37,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_BasisSystemAtNode = BasisSystemContainerType::New();
   this->m_DestinationPoints = DestinationPointContainerType::New();
   this->m_DestinationPointsSwap = DestinationPointContainerType::New();
+  this->m_UserProvidedInitialDestinationPoints = false;
 
   this->m_TriangleListBasisSystemCalculator = TriangleListBasisSystemCalculatorType::New(); 
   
@@ -113,6 +114,37 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
+::SetDestinationPoints( const DestinationPointContainerType * destinationPoints )
+{
+  itkDebugMacro("setting Destination Points to " << destinationPoints ); 
+
+  if( destinationPoints == NULL )
+    {
+    itkExceptionMacro("Pointer to DestinationPoints was NULL");
+    }
+
+  this->m_DestinationPoints = DestinationPointContainerType::New();
+  this->m_DestinationPoints->Reserve( destinationPoints->Size() );
+
+  DestinationPointConstIterator srcPointItr = destinationPoints->Begin();
+
+  DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
+  DestinationPointIterator dstPointEnd = this->m_DestinationPoints->End();
+
+  while( dstPointItr != dstPointEnd )
+    {
+    dstPointItr.Value() = srcPointItr.Value();
+    ++srcPointItr;
+    ++dstPointItr;
+    }
+
+  this->Modified(); 
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GenerateData()
@@ -148,8 +180,11 @@ AllocateInternalArrays()
   this->m_BasisSystemAtNode = BasisSystemContainerType::New();
   this->m_BasisSystemAtNode->Reserve( numberOfNodes );
 
-  this->m_DestinationPoints = DestinationPointContainerType::New();
-  this->m_DestinationPoints->Reserve( numberOfNodes );
+  if( !this->m_UserProvidedInitialDestinationPoints )
+    {
+    this->m_DestinationPoints = DestinationPointContainerType::New();
+    this->m_DestinationPoints->Reserve( numberOfNodes );
+    }
 
   this->m_DestinationPointsSwap = DestinationPointContainerType::New();
   this->m_DestinationPointsSwap->Reserve( numberOfNodes );
@@ -246,12 +281,17 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeInitialArrayOfDestinationPoints()
 {
-  //
-  // We start with a deformation field defining an identity transform.
-  // This should be modified if we ever take an initial deformation field
-  // as an input.
-  //
+
   const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
+
+  if( this->m_UserProvidedInitialDestinationPoints )
+    {
+    if( this->m_DestinationPoints->Size() != points->Size() )
+      {
+      itkExceptionMacro("Number of destination points does not match fixed mesh number of points");
+      }
+    return;
+    }
 
   FixedPointsConstIterator srcPointItr = points->Begin();
 
