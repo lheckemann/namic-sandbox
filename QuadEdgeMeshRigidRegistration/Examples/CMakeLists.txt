@@ -20,6 +20,14 @@ ADD_TEST(RigidExample1
   0      # Default initial angle
   )
 
+ADD_TEST(RigidExample2
+  ${CXX_TEST_PATH}/MeanSquaresMeshToMeshMetricRegistration1
+  ${TEST_DATA_ROOT}/Input/SimpleSurface1.vtk
+  ${TEST_DATA_ROOT}/Input/SimpleSurface2.vtk
+  ${TEMP}/RigidRegistrationSimpleSurface2to1.vtk
+  0 0 1  # Default initial axis
+  0      # Default initial angle
+  )
 
 
 IF(QuadEdgeMeshRigidRegistration_USE_VTK)
@@ -33,11 +41,20 @@ IF(QuadEdgeMeshRigidRegistration_USE_VTK)
     vtkRendering vtkFiltering vtkIO vtkHybrid
     ) 
 
-ADD_TEST(RigidExample2
+ADD_TEST(RigidExample3
   ${CXX_TEST_PATH}/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1
   ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
   ${TEST_DATA_ROOT}/Input/SimpleSurface2Small.vtk
   ${TEMP}/RigidRegistrationSimpleSurface2to1Small2.vtk
+  0 0 1  # Default initial axis
+  0      # Default initial angle
+  )
+
+ADD_TEST(RigidExample4
+  ${CXX_TEST_PATH}/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1
+  ${TEST_DATA_ROOT}/Input/SimpleSurface1.vtk
+  ${TEST_DATA_ROOT}/Input/SimpleSurface2.vtk
+  ${TEMP}/RigidRegistrationSimpleSurface2to1_b.vtk
   0 0 1  # Default initial axis
   0      # Default initial angle
   )
