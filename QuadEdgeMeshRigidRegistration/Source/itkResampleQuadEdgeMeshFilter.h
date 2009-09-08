@@ -36,7 +36,7 @@ class ResampleQuadEdgeMeshFilter :
   public QuadEdgeMeshToQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 {
 public:
-  typedef ResampleQuadEdgeMeshFilter             Self;
+  typedef ResampleQuadEdgeMeshFilter                    Self;
   typedef QuadEdgeMeshToQuadEdgeMeshFilter< 
     TInputMesh, TOutputMesh >                           Superclass;
   typedef SmartPointer< Self >                          Pointer;
@@ -87,12 +87,12 @@ public:
   /** Transform typedef. */
   typedef Transform<double, 
     itkGetStaticConstMacro(PointDimension), 
-    itkGetStaticConstMacro(PointDimension)> TransformType;
-  typedef typename TransformType::ConstPointer TransformPointerType;
+    itkGetStaticConstMacro(PointDimension)>         TransformType;
+  typedef typename TransformType::ConstPointer      TransformPointerType;
 
   /** Interpolator typedef. */
-  typedef InterpolateMeshFunction< InputMeshType > InterpolatorType;
-  typedef typename InterpolatorType::Pointer  InterpolatorPointerType;
+  typedef InterpolateMeshFunction< InputMeshType >  InterpolatorType;
+  typedef typename InterpolatorType::Pointer        InterpolatorPointerType;
 
 
   /** Set Mesh whose grid will define the geometry and topology of the output Mesh.
