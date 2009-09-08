@@ -31,7 +31,7 @@ ADD_TEST(DemonsExample1
 ADD_TEST(DemonsExample2
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
-  ${TEST_DATA_ROOT}/Input/SimpleSurface2Small.vtk
+  ${TEST_DATA_ROOT}/Input/RigidRegistrationSimpleSurface2to1Small.vtk
   ${TEMP}/MeshDemonsFilterSimpleSurface2to1Small.vtk
   1.0    # Sphere radius
   0.5    # Epsilon
@@ -43,8 +43,8 @@ ADD_TEST(DemonsExample2
 
 ADD_TEST(DemonsExample3
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
-  ${TEMP}/itkSimpleSurface1.vtk
-  ${TEMP}/itkSimpleSurface2.vtk
+  ${TEST_DATA_ROOT}/Input/SimpleSurface1.vtk
+  ${TEST_DATA_ROOT}/Input/RigidRegistrationSimpleSurface2to1.vtk
   ${TEMP}/MeshDemonsFilterSimpleSurface2to1.vtk
   100.0  # Sphere radius
   1.0    # Epsilon
