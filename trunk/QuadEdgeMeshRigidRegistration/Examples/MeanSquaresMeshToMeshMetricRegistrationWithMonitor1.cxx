@@ -37,6 +37,52 @@
 
 #include "itkResampleQuadEdgeMeshFilter.h"
 
+class CommandIterationUpdate : public itk::Command 
+{
+public:
+  typedef  CommandIterationUpdate   Self;
+  typedef  itk::Command             Superclass;
+  typedef itk::SmartPointer<Self>   Pointer;
+
+  itkNewMacro( Self );
+
+protected:
+  CommandIterationUpdate()
+   {
+   iterationCounter = 0;
+   }
+
+public:
+  typedef itk::VersorTransformOptimizer  OptimizerType;
+  typedef   const OptimizerType   *      OptimizerPointer;
+
+  void Execute(itk::Object *caller, const itk::EventObject & event)
+    {
+    Execute( (const itk::Object *)caller, event);
+    }
+
+  void Execute(const itk::Object * object, const itk::EventObject & event)
+    {
+    OptimizerPointer optimizer = dynamic_cast< OptimizerPointer >( object );
+
+    if( ! itk::IterationEvent().CheckEvent( &event ) )
+      {
+      return;
+      }
+
+    std::cout << " Iteration " << ++iterationCounter;
+    std::cout << "  Value " << optimizer->GetValue() << "   ";
+    std::cout << "  Position " << optimizer->GetCurrentPosition() << std::endl ; 
+    }
+private:
+
+  unsigned int iterationCounter; 
+
+};
+
+
+
+
 int main( int argc, char * argv [] )
 {
 
@@ -155,6 +201,9 @@ int main( int argc, char * argv [] )
   optimizer->SetNumberOfIterations( 100 );
 
 
+  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  optimizer->AddObserver( itk::IterationEvent(), observer );
+
   //
   // Configuration of Visual Registration Monitor
   //
@@ -179,6 +228,8 @@ int main( int argc, char * argv [] )
   visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
 
   visualMonitor.Observe( optimizer.GetPointer(), transform.GetPointer() );
+
+  visualMonitor.SetVerbose( false );
 
 
   try

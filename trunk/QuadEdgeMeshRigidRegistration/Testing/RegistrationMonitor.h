@@ -54,6 +54,7 @@ public:
     
   void Observe( OptimizerType * optimizer, TransformType * transform );
 
+  void SetVerbose( bool );
 
 private:
   
@@ -85,6 +86,8 @@ private:
 
   unsigned int                    CurrentIterationNumber;
   unsigned int                    NumberOfIterationsPerUpdate;
+ 
+  bool                            Verbose;
 
   // These methods will only be called by the Observer
   void Update();
