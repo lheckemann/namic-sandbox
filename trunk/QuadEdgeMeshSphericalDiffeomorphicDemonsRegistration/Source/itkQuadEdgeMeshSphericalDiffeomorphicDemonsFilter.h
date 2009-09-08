@@ -32,13 +32,7 @@
 
     Add other outputs:
 
-    1a) Allow the user to get the list of DestinationPoints. or
     1b) Compose an output Mesh using the Destination points as the node coordinates (** preferred).
-
-    Add input:
-
-    1) Input a deformation field in the form of a list of destination points
-       or as a Mesh whose field data  the coordinates of the destination points.
 
 */
 
@@ -128,6 +122,13 @@ public:
    * is only valid after the first iteration of the filter execution has been
    * completed. It can be used for tracking the progress of the filter. */
   itkGetConstObjectMacro( DestinationPoints, DestinationPointContainerType );
+
+  /** Set the initial list of destination points. This makes possible to use the
+   * outcome of a deformable registration as the input for another one. It is
+   * also possible to initialize such array of destination points by using a 
+   * low degrees of freedom transform, such as a rigid transform, for example. */
+  void SetDestinationPoints( const DestinationPointContainerType * );
+
 
   /** Set/Get the maximum number of iterations that the filter will be
    * allowed to run.  The default is set to 50. */
@@ -256,6 +257,7 @@ private:
    * smoothed version, the field s(xn) as defined in.  */
   DestinationPointContainerPointer      m_DestinationPoints;
   DestinationPointContainerPointer      m_DestinationPointsSwap;
+  bool                                  m_UserProvidedInitialDestinationPoints;
 
   /** Auxiliary array for computing the Exponential of the velocity field
    * via the Scaling and Squaring method.  */
