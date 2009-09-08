@@ -61,6 +61,8 @@ RegistrationMonitor::RegistrationMonitor()
 
   this->CurrentIterationNumber = 0;
   this->NumberOfIterationsPerUpdate = 1;
+
+  this->Verbose = true;
 }
 
 /** Destructor */
@@ -180,11 +182,23 @@ void RegistrationMonitor
   this->NumberOfIterationsPerUpdate = number;
 }
 
+
+/** Define whether to print out messages or not. */
+void RegistrationMonitor
+::SetVerbose( bool verbose )
+{
+  this->Verbose = verbose;
+}
+
+
 /** Update the Visualization */
 void RegistrationMonitor::Update()
 {
 
-  std::cout << "Iteration " << this->CurrentIterationNumber << std::endl;
+  if( this->Verbose )
+    {
+    std::cout << "Iteration " << this->CurrentIterationNumber << std::endl;
+    }
   
   if( this->CurrentIterationNumber % 
       this->NumberOfIterationsPerUpdate )
