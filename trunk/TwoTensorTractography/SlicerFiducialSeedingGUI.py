@@ -1,4 +1,5 @@
 from Slicer import slicer
+from SlicerAdvancedPageSkeleton import SlicerAdvancedPageSkeleton
 
 vtkKWPushButton_InvokedEvent = 10000
 vtkSlicerNodeSelectorWidget_NodeSelectedEvent = 11000
