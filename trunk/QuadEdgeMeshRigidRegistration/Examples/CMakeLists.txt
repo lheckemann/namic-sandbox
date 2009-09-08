@@ -11,6 +11,15 @@ TARGET_LINK_LIBRARIES(MeanSquaresMeshToMeshMetricRegistration1 ITKQuadEdgeMesh I
 ADD_EXECUTABLE(ConvertFreeSurferBinarySurfaceToVTKSurface ConvertFreeSurferBinarySurfaceToVTKSurface.cxx)
 TARGET_LINK_LIBRARIES(ConvertFreeSurferBinarySurfaceToVTKSurface ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
+ADD_TEST(RigidExample1
+  ${CXX_TEST_PATH}/MeanSquaresMeshToMeshMetricRegistration1
+  ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
+  ${TEST_DATA_ROOT}/Input/SimpleSurface2Small.vtk
+  ${TEMP}/RigidRegistrationSimpleSurface2to1Small.vtk
+  0 0 1  # Default initial axis
+  0      # Default initial angle
+  )
+
 
 
 IF(QuadEdgeMeshRigidRegistration_USE_VTK)
@@ -23,5 +32,15 @@ IF(QuadEdgeMeshRigidRegistration_USE_VTK)
     ITKQuadEdgeMesh ITKNumerics ITKIO
     vtkRendering vtkFiltering vtkIO vtkHybrid
     ) 
+
+ADD_TEST(RigidExample2
+  ${CXX_TEST_PATH}/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1
+  ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
+  ${TEST_DATA_ROOT}/Input/SimpleSurface2Small.vtk
+  ${TEMP}/RigidRegistrationSimpleSurface2to1Small2.vtk
+  0 0 1  # Default initial axis
+  0      # Default initial angle
+  )
+
 
 ENDIF(QuadEdgeMeshRigidRegistration_USE_VTK)

@@ -29,6 +29,8 @@
 #include "itkCommand.h"
 #include "itkVTKPolyDataReader.h"
 
+#include "itkResampleQuadEdgeMeshFilter.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
 class CommandIterationUpdate : public itk::Command 
 {
@@ -85,6 +87,7 @@ int main( int argc, char * argv [] )
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
     std::cerr << "inputFixedMesh inputMovingMesh ";
+    std::cerr << "outputResampledMesh ";
     std::cerr << "axisX axisY axisZ angle(radians) " << std::endl;
     return EXIT_FAILURE;
     }
@@ -156,11 +159,11 @@ int main( int argc, char * argv [] )
   TransformType::AxisType  axis;
   TransformType::AngleType angle;
 
-  axis[0] = atof( argv[3] );
-  axis[1] = atof( argv[4] );
-  axis[2] = atof( argv[5] );
+  axis[0] = atof( argv[4] );
+  axis[1] = atof( argv[5] );
+  axis[2] = atof( argv[6] );
 
-  angle = atof( argv[6] );
+  angle = atof( argv[7] );
 
   transform->SetRotation( axis, angle );
   
@@ -215,6 +218,42 @@ int main( int argc, char * argv [] )
 
   std::cout << "final parameters = " << finalParameters << std::endl;
   std::cout << "final value      = " << bestValue << std::endl;
+
+
+  transform->SetParameters( finalParameters );
+
+  typedef itk::ResampleQuadEdgeMeshFilter< 
+    FixedMeshType, MovingMeshType >  ResamplingFilterType;
+
+  ResamplingFilterType::Pointer resampler = ResamplingFilterType::New();
+
+  resampler->SetReferenceMesh( meshFixed );
+  resampler->SetInput( meshMoving );
+  
+  resampler->SetTransform( transform );
+  resampler->SetInterpolator( interpolator );
+
+  resampler->Update();
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >  WriterType;
+
+  WriterType::Pointer writer = WriterType::New();
+
+  writer->SetInput( resampler->GetOutput()  );
+  writer->SetFileName( argv[3] );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Error during writer Update() " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
 
   return EXIT_SUCCESS;
 
