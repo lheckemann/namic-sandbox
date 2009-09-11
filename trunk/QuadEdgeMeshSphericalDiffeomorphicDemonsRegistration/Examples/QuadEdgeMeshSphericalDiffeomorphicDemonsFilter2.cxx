@@ -73,6 +73,9 @@ int main( int argc, char *argv[] )
   demonsFilter->SetFixedMesh( fixedReader->GetOutput() );
   demonsFilter->SetMovingMesh( movingReader->GetOutput() );
 
+//  demonsFilter->SetInitialDeformationField( arrayOfDestinationPoints );
+//  demonsFilter->SetMeshWithInitialDeformationField( meshWhoseDataValueAreDestinationPoints );
+
   DemonsFilterType::PointType center;
   center.Fill( 0.0 );
 
