@@ -170,25 +170,12 @@ void
 ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::CopyReferenceMeshToOutputMeshPoints()
 {
+  const OutputMeshType * in = this->GetReferenceMesh();
+  OutputMeshType * out = this->GetOutput();
 
-  OutputMeshConstPointer in = this->GetReferenceMesh();
-  OutputMeshPointer out = this->GetOutput();
-
-  // Copy points
-  OutputPointsContainerConstPointer inPoints = in->GetPoints();
-
-  if( inPoints )
-    {
-    OutputPointsContainerConstIterator inIt = inPoints->Begin();
-    while( inIt != inPoints->End() )
-      {
-      OutputPointType pOut;
-      pOut.CastFrom( inIt.Value() );
-      out->SetPoint( inIt.Index(), pOut );
-      inIt++;
-      } 
-    }
+  CopyMeshToMeshPoints( in, out );
 }
+
 
 // ---------------------------------------------------------------------
 template< class TInputMesh, class TOutputMesh >
@@ -196,26 +183,10 @@ void
 ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::CopyReferenceMeshToOutputMeshEdgeCells()
 {
-  OutputMeshConstPointer in = this->GetReferenceMesh();
-  OutputMeshPointer out = this->GetOutput();
+  const OutputMeshType * in = this->GetReferenceMesh();
+  OutputMeshType * out = this->GetOutput();
 
-  // Copy Edge Cells
-  OutputCellsContainerConstPointer inEdgeCells = in->GetEdgeCells();
-
-  if( inEdgeCells )
-    {
-    OutputCellsContainerConstIterator ecIt = inEdgeCells->Begin();
-    while( ecIt != inEdgeCells->End() )
-      {
-      OutputEdgeCellType* pe = dynamic_cast< OutputEdgeCellType* >( ecIt.Value());
-      if( pe )
-        {
-        out->AddEdgeWithSecurePointList( pe->GetQEGeom()->GetOrigin(),
-                                         pe->GetQEGeom()->GetDestination() );
-        }
-      ecIt++;
-      }
-    }
+  CopyMeshToMeshEdgeCells( in, out );
 }
 
 
@@ -225,33 +196,12 @@ void
 ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::CopyReferenceMeshToOutputMeshCells()
 {
-  OutputMeshConstPointer in = this->GetReferenceMesh();
-  OutputMeshPointer out = this->GetOutput();
+  const OutputMeshType * in = this->GetReferenceMesh();
+  OutputMeshType * out = this->GetOutput();
 
-  // Copy cells
-  OutputCellsContainerConstPointer inCells = in->GetCells();
-
-  if( inCells )
-    {
-    OutputCellsContainerConstIterator cIt = inCells->Begin();
-    while( cIt != inCells->End() )
-      {
-      OutputPolygonCellType * pe = dynamic_cast< OutputPolygonCellType* >( cIt.Value());
-      if( pe )
-        {
-        OutputPointIdList points;
-        OutputPointsIdInternalIterator pit = pe->InternalPointIdsBegin();
-        while( pit != pe->InternalPointIdsEnd( ) )
-          {
-          points.push_back( ( *pit ) );
-          ++pit;
-          }
-        out->AddFaceWithSecurePointList( points, false );
-        }
-      cIt++;
-      }
-    }
+  CopyMeshToMeshCells( in, out );
 }
+
 
 // ---------------------------------------------------------------------
 template< class TInputMesh, class TOutputMesh >
@@ -259,34 +209,10 @@ void
 ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::CopyReferenceMeshToOutputMeshPointData()
 {
+  const OutputMeshType * in = this->GetReferenceMesh();
+  OutputMeshType * out = this->GetOutput();
 
-  OutputMeshConstPointer in = this->GetReferenceMesh();
-  OutputMeshPointer out = this->GetOutput();
-
-  typedef typename OutputPointDataContainer::Pointer      OutputPointDataContainerPointer;
-
-  OutputPointDataContainerConstPointer inputPointData = in->GetPointData();
-
-  if( inputPointData.IsNull() )
-    {
-    // There is nothing to copy
-    itkWarningMacro("Reference mesh point data is NULL");
-    return;
-    }
-
-  OutputPointDataContainerPointer outputPointData = OutputPointDataContainer::New();
-  outputPointData->Reserve( inputPointData->Size() );
-
-  // Copy point data
-  typedef typename OutputPointDataContainer::ConstIterator  OutputPointDataContainerConstIterator;
-  OutputPointDataContainerConstIterator inIt = inputPointData->Begin();
-  while( inIt != inputPointData->End() )
-    {
-    outputPointData->SetElement( inIt.Index(), inIt.Value() );
-    inIt++;
-    } 
-
-  out->SetPointData( outputPointData );
+  CopyMeshToMeshPointData( in, out );
 }
 
 
@@ -296,35 +222,12 @@ void
 ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 ::CopyReferenceMeshToOutputMeshCellData()
 {
+  const OutputMeshType * in = this->GetReferenceMesh();
+  OutputMeshType * out = this->GetOutput();
 
-  OutputMeshConstPointer in = this->GetReferenceMesh();
-  OutputMeshPointer out = this->GetOutput();
-
-  typedef typename OutputCellDataContainer::ConstPointer  OutputCellDataContainerConstPointer;
-  typedef typename OutputCellDataContainer::Pointer      OutputCellDataContainerPointer;
-
-  OutputCellDataContainerConstPointer inputCellData = in->GetCellData();
-
-  if( inputCellData.IsNull() )
-    {
-    // There is nothing to copy
-    return;
-    }
-
-  OutputCellDataContainerPointer outputCellData = OutputCellDataContainer::New();
-  outputCellData->Reserve( inputCellData->Size() );
-
-  // Copy point data
-  typedef typename OutputCellDataContainer::ConstIterator  OutputCellDataContainerConstIterator;
-  OutputCellDataContainerConstIterator inIt = inputCellData->Begin();
-  while( inIt != inputCellData->End() )
-    {
-    outputCellData->SetElement( inIt.Index(), inIt.Value() );
-    inIt++;
-    } 
-
-  out->SetCellData( outputCellData );
+  CopyMeshToMeshCellData( in, out );
 }
+
 } // end namespace itk
 
 #endif
