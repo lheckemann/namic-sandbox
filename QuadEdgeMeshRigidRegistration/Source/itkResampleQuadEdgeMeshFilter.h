@@ -26,7 +26,8 @@ namespace itk
 
 /**
  * \class ResampleQuadEdgeMeshFilter
- * \brief This resamples the scalar values of one QuadEdgeMesh into another one via a user-provided Transform and Interpolator.
+ * \brief This resamples the scalar values of one QuadEdgeMesh into another one
+ * via a user-provided Transform and Interpolator.
  *
  * \ingroup MeshFilters
  *
