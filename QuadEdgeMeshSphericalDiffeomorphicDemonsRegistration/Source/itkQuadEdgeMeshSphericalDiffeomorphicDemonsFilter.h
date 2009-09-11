@@ -53,6 +53,7 @@ public:
   typedef typename  FixedMeshType::ConstPointer             FixedMeshConstPointer;
   typedef typename  FixedMeshType::PointType                PointType;
   typedef typename  FixedMeshType::PointsContainer          FixedPointsContainer;
+  typedef typename  FixedPointsContainer::Iterator          FixedPointsIterator;
   typedef typename  FixedPointsContainer::ConstIterator     FixedPointsConstIterator;
   typedef typename  FixedMeshType::PointDataContainer       FixedPointDataContainer;
   typedef typename  FixedPointDataContainer::ConstIterator  FixedPointDataConstIterator;
@@ -223,6 +224,7 @@ private:
   void ConvertTangentVectorFieldToDeformationField();
   void AssignResampledMovingValuesToOutputMesh();
   void ComposeFixedMeshOutputDisplacedToMovingMesh();
+  void CopyDestinationPointsToDeformedFixedMesh();
   void ComputeScalingAndSquaringNumberOfIterations();
   void ComputeShortestEdgeLength();
   double ComputeLargestVelocityMagnitude() const;

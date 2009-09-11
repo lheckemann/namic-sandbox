@@ -1051,6 +1051,32 @@ ComposeFixedMeshOutputDisplacedToMovingMesh()
   CopyMeshToMeshCells( in, out );
   CopyMeshToMeshPointData( in, out );
   CopyMeshToMeshCellData( in, out );
+
+  this->CopyDestinationPointsToDeformedFixedMesh();
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+CopyDestinationPointsToDeformedFixedMesh()
+{
+  DestinationPointConstIterator srcPointItr = this->m_DestinationPoints->Begin();
+  DestinationPointConstIterator srcPointEnd = this->m_DestinationPoints->End();
+
+  FixedMeshType * deformedFixedMesh = 
+    dynamic_cast< FixedMeshType * >(this->ProcessObject::GetOutput(1));
+
+  FixedPointsContainer * points = deformedFixedMesh->GetPoints();
+
+  FixedPointsIterator dstPointItr = points->Begin();
+
+  while( srcPointItr != srcPointEnd )
+    {
+    dstPointItr.Value() = srcPointItr.Value();
+    ++dstPointItr;
+    ++srcPointItr;
+    }
 }
 
 
