@@ -151,7 +151,10 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GenerateData()
 {
-  this->m_SigmaX = this->m_Epsilon; // Recommended link
+  // Recommended link
+  this->m_SigmaX = this->m_Epsilon; 
+
+  // Prepare data
   this->CopyInputMeshToOutputMesh();
   this->AllocateInternalArrays();
   this->InitializeFixedNodesSigmas();
@@ -159,8 +162,11 @@ GenerateData()
   this->ComputeShortestEdgeLength();
   this->ComputeInitialArrayOfDestinationPoints();
   this->InitializeInterpolators();
+
+  // Compute deformations
   this->RunIterations();
-  this->PrintOutDeformationVectors();
+
+  // Gathering outputs
   this->ComputeMappedMovingValueAtEveryNode();
   this->AssignResampledMovingValuesToOutputMesh();
   this->ComposeFixedMeshOutputDisplacedToMovingMesh();
