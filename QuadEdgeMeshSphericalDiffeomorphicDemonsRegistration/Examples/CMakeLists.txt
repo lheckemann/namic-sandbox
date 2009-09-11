@@ -20,6 +20,11 @@ ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2
 TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2
  ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
+ADD_EXECUTABLE(ReadFreesurferBinarySurfaceWriteVTKMesh
+ ReadFreesurferBinarySurfaceWriteVTKMesh.cxx) 
+TARGET_LINK_LIBRARIES(ReadFreesurferBinarySurfaceWriteVTKMesh
+ ITKQuadEdgeMesh ITKNumerics ITKIO) 
+
 
 ADD_TEST(DemonsExample1
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
@@ -76,4 +81,16 @@ ADD_TEST(DemonsExample4
   10     # Smoothing Iterations
   30     # maximum number of iterations
   )
+
+
+IF( PATIENT_DATA_ROOT )
+
+ ADD_TEST(anonConvert1
+  ${CXX_TEST_PATH}/ReadFreesurferBinarySurfaceWriteVTKMesh
+  ${PATIENT_DATA_ROOT}/sub1/surf/lh.pial
+  ${PATIENT_DATA_ROOT}/sub1/surf/lh.sulc
+  ${TEMP}/sub1.vtk
+  )
+ 
+ENDIF( PATIENT_DATA_ROOT )
 
