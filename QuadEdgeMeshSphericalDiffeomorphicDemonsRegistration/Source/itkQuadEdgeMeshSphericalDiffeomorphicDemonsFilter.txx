@@ -1022,7 +1022,8 @@ AssignResampledMovingValuesToOutputMesh()
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-const TFixedMesh * 
+const 
+typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::FixedMeshType *
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GetDeformedFixedMesh() const
 {
@@ -1031,7 +1032,7 @@ GetDeformedFixedMesh() const
     return 0;
     }
   
-  return dynamic_cast< FixedMeshType * >(this->ProcessObject::GetOutput(1));
+  return dynamic_cast< const FixedMeshType * >(this->ProcessObject::GetOutput(1));
 }
 
 
