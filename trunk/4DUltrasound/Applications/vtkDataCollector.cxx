@@ -159,6 +159,7 @@ vtkDataCollector::vtkDataCollector()
   this->SystemOffset[2] = 300;
 
   this->TransformationFactorMmToPixel = 1;
+  this->PositionCorrectionFactor = 1;
 
   this->TrackerCalibrationMatrix = vtkMatrix4x4::New();
   this->TrackerCalibrationMatrix->Identity();
@@ -318,6 +319,8 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
       this->MaximumVolumeSize[2] = this->calibReader->GetMaximumVolumeSize()[2];
       }
     this->TransformationFactorMmToPixel =  this->calibReader->GetTransformationFactorMmToPixel();
+
+    this->PositionCorrectionFactor = this->TransformationFactorMmToPixel / this->Shrinkfactor;
 
     this->calibReader->GetTrackerOffset(this->TrackerOffset);
 
@@ -723,6 +726,13 @@ static void *vtkDataCollectorThread(vtkMultiThreader::ThreadInfo *data)
             #endif
 
             dataStruct.Frame->SetSpacing(dataStruct.Spacing);
+
+            //The image can only be shrunk by integer values although float
+            //might sometimes be necessary. Therefore the position data needs
+            //to be adjusted
+            dataStruct.Matrix->Element[0][3] *= self->GetPositionCorrectionFactor();
+            dataStruct.Matrix->Element[1][3] *= self->GetPositionCorrectionFactor();
+            dataStruct.Matrix->Element[2][3] *= self->GetPositionCorrectionFactor();
             #endif
 
             #ifdef DEBUG_IMAGES

@@ -79,7 +79,7 @@ public:
 
   vtkSetStringMacro(CalibrationFileName);
   vtkGetStringMacro(CalibrationFileName);
-  
+
   vtkSetMacro(TrackerDeviceEnabled, bool);
   vtkGetMacro(TrackerDeviceEnabled, bool);
 
@@ -104,10 +104,10 @@ public:
 
   vtkSetMacro(StartUpTime, double);
   vtkGetMacro(StartUpTime, double);
-  
+
   vtkSetVector3Macro(TrackerOffset, double);
   vtkGetVector3Macro(TrackerOffset, double);
-  
+
   vtkGetVector3Macro(ShrinkFactor, int);
 
 //#ifdef USE_ULTRASOUND_DEVICE
@@ -122,16 +122,16 @@ public:
 
   vtkSetVector3Macro(MaximumVolumeSize, double);
   double GetMaximumVolumeSize();
-  
+
   void SetLogStream(ofstream &LogStream);
   ofstream& GetLogStream();
-  
+
   vtkSetVector3Macro(SystemOffset, double);
   vtkGetVector3Macro(SystemOffset, double);
 
   vtkSetMacro(DynamicVolumeSize, bool);
   vtkGetMacro(DynamicVolumeSize, bool);
-  
+
   vtkSetStringMacro(FileName);
   vtkGetStringMacro(FileName);
 
@@ -146,6 +146,8 @@ public:
   vtkGetMacro(OrientationAtCalibrationMatrix, vtkMatrix4x4 *);
 
   vtkGetMacro(OldCoordinates, double *);
+
+  vtkGetMacro(PositionCorrectionFactor, double)
 
   int Initialize(vtkNDITracker* tracker);
   int StartCollecting(vtkDataProcessor * processor);
@@ -172,7 +174,7 @@ protected:
   char *CalibrationFileName;
   vtkUltrasoundCalibFileReader *calibReader;
   double clipRectangle[4];
-  
+
   char *VideoDevice; // e.g. /dev/video
   int   VideoChannel; // e.g. 3 at Hauppauge Impact VCB Modell 558
   int   VideoMode; //NTSC == 1 , PAL == 2
@@ -187,7 +189,7 @@ protected:
   bool FrameGrabbingEnabled;
   bool EnableFrameGrabbing;
   bool CollectCalibrationData;
-  
+
   vtkMatrix4x4 *TrackerCalibrationMatrix;
   vtkMatrix4x4 *OrientationAtCalibrationMatrix;
   double OldCoordinates[3];
@@ -197,6 +199,7 @@ protected:
   //double UltrasoundScanDepth;
   int ShrinkFactor[3];
   double TransformationFactorMmToPixel;
+  double PositionCorrectionFactor,
 
   bool TrackerDeviceEnabled;
   vtkTrackerTool *tool;
