@@ -30,9 +30,11 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 ::QuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
 {
   this->SetNumberOfRequiredInputs( 2 );
-  this->SetNumberOfRequiredOutputs( 1 );
-  this->SetNumberOfOutputs( 1 );
+  this->SetNumberOfRequiredOutputs( 2 );
+  this->SetNumberOfOutputs( 2 );
+
   this->SetNthOutput( 0, OutputMeshType::New() );
+  this->SetNthOutput( 1, FixedMeshType::New() );
 
   this->m_BasisSystemAtNode = BasisSystemContainerType::New();
   this->m_DestinationPoints = DestinationPointContainerType::New();
@@ -161,6 +163,7 @@ GenerateData()
   this->PrintOutDeformationVectors();
   this->ComputeMappedMovingValueAtEveryNode();
   this->AssignResampledMovingValuesToOutputMesh();
+  this->ComposeFixedMeshOutputDisplacedToMovingMesh();
 }
 
 
@@ -1015,6 +1018,38 @@ AssignResampledMovingValuesToOutputMesh()
     ++outputDataItr;
     ++resampledArrayItr;
     } 
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+const TFixedMesh * 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+GetDeformedFixedMesh() const
+{
+  if (this->GetNumberOfOutputs() < 2)
+    {
+    return 0;
+    }
+  
+  return dynamic_cast< FixedMeshType * >(this->ProcessObject::GetOutput(1));
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComposeFixedMeshOutputDisplacedToMovingMesh()
+{
+  const FixedMeshType * in = this->m_FixedMesh.GetPointer();
+
+  FixedMeshType * out = 
+    dynamic_cast< FixedMeshType * >(this->ProcessObject::GetOutput(1));
+
+  CopyMeshToMeshPoints( in, out );
+  CopyMeshToMeshEdgeCells( in, out );
+  CopyMeshToMeshCells( in, out );
+  CopyMeshToMeshPointData( in, out );
+  CopyMeshToMeshCellData( in, out );
 }
 
 
