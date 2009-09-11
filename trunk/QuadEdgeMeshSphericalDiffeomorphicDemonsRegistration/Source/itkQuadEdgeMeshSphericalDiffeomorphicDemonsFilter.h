@@ -27,14 +27,6 @@
 #include "itkVectorContainer.h"
 #include "itkVector.h"
 
-/* 
-    TODO:
-
-    Add other outputs:
-
-    1b) Compose an output Mesh using the Destination points as the node coordinates (** preferred).
-
-*/
 
 namespace itk
 {
@@ -198,6 +190,12 @@ public:
   itkSetMacro( Lambda, double );
   itkGetMacro( Lambda, double );
 
+  /** Returns a new mesh that is identical to the input Fixed Mesh except for
+   * the fact that its points have been moved to the location of the destination
+   * points. This is equivalent to deforming the input fixed mesh by applying to
+   * it the deformation field that is computed by this filter.  This output is
+   * only valid after you have successfully called the Update() method. */ 
+  const FixedMeshType * GetDeformedFixedMesh() const;
 
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
@@ -224,6 +222,7 @@ private:
   void SmoothTangentVectorField();
   void ConvertTangentVectorFieldToDeformationField();
   void AssignResampledMovingValuesToOutputMesh();
+  void ComposeFixedMeshOutputDisplacedToMovingMesh();
   void ComputeScalingAndSquaringNumberOfIterations();
   void ComputeShortestEdgeLength();
   double ComputeLargestVelocityMagnitude() const;
