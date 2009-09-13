@@ -19,11 +19,8 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkMeanSquaresMeshToMeshMetric.h"
-#include "itkMeshToMeshRegistrationMethod.h"
 #include "itkLinearInterpolateMeshFunction.h"
-#include "itkVersorTransformOptimizer.h"
-#include "itkVersorTransform.h"
+#include "itkIdentityTransform.h"
 #include "itkQuadEdgeMesh.h"
 
 #include "itkCommand.h"
@@ -42,8 +39,7 @@ int main( int argc, char * argv [] )
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
     std::cerr << "inputFixedMesh inputMovingMesh ";
-    std::cerr << "outputResampledMesh ";
-    std::cerr << "axisX axisY axisZ angle(radians) " << std::endl;
+    std::cerr << "outputResampledMesh " << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -73,73 +69,17 @@ int main( int argc, char * argv [] )
   FixedMeshType::ConstPointer  meshFixed  = fixedMeshReader->GetOutput();
   MovingMeshType::ConstPointer meshMoving = movingMeshReader->GetOutput();
 
-  typedef itk::MeshToMeshRegistrationMethod< 
-                                    FixedMeshType, 
-                                    MovingMeshType >    RegistrationType;
-
-  RegistrationType::Pointer   registration  = RegistrationType::New();
-
-  typedef itk::MeanSquaresMeshToMeshMetric< FixedMeshType, 
-                                            MovingMeshType >   
-                                            MetricType;
-
-  MetricType::Pointer  metric = MetricType::New();
-
-  registration->SetMetric( metric ); 
-
-
-  registration->SetFixedMesh( meshFixed );
-  registration->SetMovingMesh( meshMoving );
-
-
-  typedef itk::VersorTransform< MetricType::TransformComputationType >  TransformType;
+  typedef itk::IdentityTransform< double >  TransformType;
 
   TransformType::Pointer transform = TransformType::New();
-
-  registration->SetTransform( transform );
 
 
   typedef itk::LinearInterpolateMeshFunction< MovingMeshType > InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
-  registration->SetInterpolator( interpolator );
 
-  const unsigned int numberOfTransformParameters = 
-     transform->GetNumberOfParameters();
-
-  typedef TransformType::ParametersType         ParametersType;
-  ParametersType parameters( numberOfTransformParameters );
-
-  TransformType::AxisType  axis;
-  TransformType::AngleType angle;
-
-  axis[0] = atof( argv[4] );
-  axis[1] = atof( argv[5] );
-  axis[2] = atof( argv[6] );
-
-  angle = atof( argv[7] );
-
-  transform->SetRotation( axis, angle );
-  
-  parameters = transform->GetParameters();
-
-  registration->SetInitialTransformParameters( parameters );
-
-
-  typedef itk::VersorTransformOptimizer     OptimizerType;
-
-  OptimizerType::Pointer      optimizer     = OptimizerType::New();
-
-  registration->SetOptimizer( optimizer );
-
-
-  typedef OptimizerType::ScalesType             ScalesType;
-
-  transform->SetParameters( finalParameters );
-
-  typedef itk::ResampleQuadEdgeMeshFilter< 
-    FixedMeshType, MovingMeshType >  ResamplingFilterType;
+  typedef itk::ResampleQuadEdgeMeshFilter< FixedMeshType, MovingMeshType >  ResamplingFilterType;
 
   ResamplingFilterType::Pointer resampler = ResamplingFilterType::New();
 
