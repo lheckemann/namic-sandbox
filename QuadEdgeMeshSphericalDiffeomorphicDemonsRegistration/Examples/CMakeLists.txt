@@ -29,6 +29,10 @@ ADD_EXECUTABLE(GenerateRegularSphere GenerateRegularSphere.cxx)
 TARGET_LINK_LIBRARIES(GenerateRegularSphere
  ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
+ADD_EXECUTABLE(ResampleMeshUsingRegularSphere ResampleMeshUsingRegularSphere.cxx)
+TARGET_LINK_LIBRARIES(ResampleMeshUsingRegularSphere
+ ITKQuadEdgeMesh ITKNumerics ITKIO) 
+
 
 MACRO( GENERATE_SPHERE RADIUS SUBDIVISIONS )
 
@@ -50,6 +54,26 @@ GENERATE_SPHERE( 100.0  4 )
 GENERATE_SPHERE( 100.0  5 )
 GENERATE_SPHERE( 100.0  6 )
 GENERATE_SPHERE( 100.0  7 )
+
+
+MACRO( RESAMPLE_MESH INPUT_MESH_ID SUBDIVISIONS)
+
+
+  ADD_TEST(Resample${SUBDIVISIONS}
+    ${CXX_TEST_PATH}/ResampleMeshUsingRegularSphere
+    ${TEMP}/sub${INPUT_MESH_ID}.vtk
+    ${TEMP}/IC${SUBDIVISIONS}.vtk
+    ${TEMP}/sub${INPUT_MESH_ID}_IC${SUBDIVISIONS}.vtk
+    )
+
+ENDMACRO( RESAMPLE_MESH )
+
+
+RESAMPLE_MESH( 01a  4 )  #  ic4: with inflated.H
+RESAMPLE_MESH( 01b  5 )  #  ic5: with sulc
+RESAMPLE_MESH( 01b  6 )  #  ic6: with sulc
+RESAMPLE_MESH( 01c  7 )  #  ic7: with curv 
+
 
 ADD_TEST(DemonsExample1
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
