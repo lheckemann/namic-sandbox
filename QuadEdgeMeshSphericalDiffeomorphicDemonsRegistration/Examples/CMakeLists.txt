@@ -25,6 +25,30 @@ ADD_EXECUTABLE(ReadFreesurferBinarySurfaceWriteVTKMesh
 TARGET_LINK_LIBRARIES(ReadFreesurferBinarySurfaceWriteVTKMesh
  ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
+ADD_EXECUTABLE(GenerateRegularSphere GenerateRegularSphere.cxx)
+TARGET_LINK_LIBRARIES(GenerateRegularSphere
+ ITKQuadEdgeMesh ITKNumerics ITKIO) 
+
+
+MACRO( GENERATE_SPHERE RADIUS SUBDIVISIONS )
+
+ADD_TEST(GenerateIC${SUBDIVISIONS}
+  ${CXX_TEST_PATH}/GenerateRegularSphere
+  ${TEMP}/IC${SUBDIVISIONS}.vtk
+  ${RADIUS}         # Sphere radius
+  ${SUBDIVISIONS}   # Number of subdivisions
+  )
+
+ENDMACRO( GENERATE_SPHERE )
+
+
+GENERATE_SPHERE( 100.0  1 )
+GENERATE_SPHERE( 100.0  2 )
+GENERATE_SPHERE( 100.0  3 )
+GENERATE_SPHERE( 100.0  4 )
+GENERATE_SPHERE( 100.0  5 )
+GENERATE_SPHERE( 100.0  6 )
+GENERATE_SPHERE( 100.0  7 )
 
 ADD_TEST(DemonsExample1
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
