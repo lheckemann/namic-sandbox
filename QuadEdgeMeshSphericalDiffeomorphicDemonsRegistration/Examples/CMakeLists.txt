@@ -85,12 +85,53 @@ ADD_TEST(DemonsExample4
 
 IF( PATIENT_DATA_ROOT )
 
- ADD_TEST(anonConvert1
+MACRO(CONVERT_ANON_DATA ID)
+
+ADD_TEST(anonConvert${ID}a
   ${CXX_TEST_PATH}/ReadFreesurferBinarySurfaceWriteVTKMesh
-  ${PATIENT_DATA_ROOT}/sub1/surf/lh.pial
-  ${PATIENT_DATA_ROOT}/sub1/surf/lh.sulc
-  ${TEMP}/sub1.vtk
+  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sphere
+  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.inflated.H
+  ${TEMP}/sub${ID}a.vtk
+  )
+
+ADD_TEST(anonConvert${ID}b
+  ${CXX_TEST_PATH}/ReadFreesurferBinarySurfaceWriteVTKMesh
+  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sphere
+  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sulc
+  ${TEMP}/sub${ID}b.vtk
   )
  
+ADD_TEST(anonConvert${ID}c
+  ${CXX_TEST_PATH}/ReadFreesurferBinarySurfaceWriteVTKMesh
+  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sphere
+  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.curv
+  ${TEMP}/sub${ID}c.vtk
+  )
+ 
+ENDMACRO(CONVERT_ANON_DATA)
+
+CONVERT_ANON_DATA(01)
+CONVERT_ANON_DATA(02)
+CONVERT_ANON_DATA(03)
+CONVERT_ANON_DATA(04)
+CONVERT_ANON_DATA(05)
+CONVERT_ANON_DATA(06)
+CONVERT_ANON_DATA(07)
+CONVERT_ANON_DATA(08)
+CONVERT_ANON_DATA(09)
+CONVERT_ANON_DATA(10)
+
 ENDIF( PATIENT_DATA_ROOT )
 
+
+#
+# REGISTER( lh 01  15 )
+#
+# lh_DemonsRegistered_Sub01ToSub15.vtk
+#
+# lh_moving_to_fixed.vtk
+#
+# lh_MatlabSphericalDemons_Sub01ToSub15.vtk
+# Sub01 is moving
+# Sub15 is fixed.
+#
