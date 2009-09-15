@@ -14,11 +14,17 @@
 #include "vtkProperty2D.h"
 #include "vtkActorCollection.h"
 #include "vtkActor2DCollection.h"
+
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
+#include "vtkTextSource.h"
+#include "vtkTextMapper.h"
+#include "vtkVectorText.h"
+
 #include "vtkLineSource.h"
 #include "vtkGlyphSource2D.h"
 #include "vtkProperty.h"
+#include "vtkPropCollection.h"
 
 //----------------------------------------------------------------------------
 vtkPerkStationSecondaryMonitor* vtkPerkStationSecondaryMonitor::New()
@@ -73,6 +79,9 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
   this->XYToRAS = vtkMatrix4x4::New();
   this->CurrentTransformMatrix = vtkMatrix4x4::New();
   this->ResliceTransform = vtkTransform::New();
+
+  this->SystemStateResliceMatrix = vtkMatrix4x4::New();
+  this->SystemStateXYToIJK = vtkMatrix4x4::New();
   
   this->HorizontalFlipped = false;
   this->VerticalFlipped = false;
@@ -94,12 +103,12 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
 
  this->Renderer->SetActiveCamera(camera);
  
- // interator
- this->Interator = vtkRenderWindowInteractor::New();
- this->Interator->SetRenderWindow(this->RenderWindow);
+ // Interactor
+ this->Interactor = vtkRenderWindowInteractor::New();
+ this->Interactor->SetRenderWindow(this->RenderWindow);
 
  vtkSlicerInteractorStyle *iStyle = vtkSlicerInteractorStyle::New();
- this->Interator->SetInteractorStyle (iStyle);
+ this->Interactor->SetInteractorStyle (iStyle);
 
  // window level mapping
  this->MapToWindowLevelColors = vtkImageMapToWindowLevelColors::New();
@@ -130,6 +139,94 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
 {
   this->SetGUI(NULL);
 
+  if (this->RenderWindow)
+    {
+    this->RenderWindow->Delete();
+    this->RenderWindow = NULL;
+    }
+  if (this->Renderer)
+    {
+    this->Renderer->RemoveAllViewProps();
+    this->Renderer->Delete();
+    this->Renderer = NULL;
+    }
+
+  if (this->Interactor)
+    {
+    this->Interactor->Delete();
+    this->Interactor = NULL;
+    }
+
+  if (this->ImageMapper)
+    {
+    this->ImageMapper->Delete();
+    this->ImageMapper = NULL;
+    }
+  if (this->ImageActor)
+    {
+    this->ImageActor->Delete();
+    this->ImageActor = NULL;
+    }
+  if (this->NeedleGuideActor)
+    {
+    this->NeedleGuideActor->Delete();
+    this->NeedleGuideActor = NULL;
+    }
+  if (this->NeedleTipActor)
+    {
+    this->NeedleTipActor->Delete();
+    this->NeedleTipActor = NULL;
+    }
+  if (this->RealTimeNeedleLineActor)
+    {
+    this->RealTimeNeedleLineActor->Delete();
+    this->RealTimeNeedleLineActor = NULL;
+    }
+  if (this->NeedleTipZLocationText)
+    {
+    this->NeedleTipZLocationText->Delete();
+    this->NeedleTipZLocationText = NULL;
+    }
+  if (this->MapToWindowLevelColors)
+    {
+    this->MapToWindowLevelColors->Delete();
+    this->MapToWindowLevelColors = NULL;
+    }
+  if (this->Reslice)
+    {
+    this->Reslice->Delete();
+    this->Reslice = NULL;
+    }
+  if (this->XYToIJK)
+    {
+    this->XYToIJK->Delete();
+    this->XYToIJK = NULL;
+    }
+  if (this->XYToRAS)
+    {
+    this->XYToRAS->Delete();
+    this->XYToRAS = NULL;
+    }
+  if (this->CurrentTransformMatrix)
+    {
+    this->CurrentTransformMatrix->Delete();
+    this->CurrentTransformMatrix = NULL;
+    }
+  if (this->ResliceTransform)
+    {
+    this->ResliceTransform->Delete();
+    this->ResliceTransform = NULL;
+    }
+  if (this->VolumeNode)
+    {
+    this->VolumeNode->Delete();
+    this->VolumeNode = NULL;
+    }
+  if (this->ImageData)
+    {
+    this->ImageData->Delete();
+    this->ImageData = NULL;
+    }  
   if (this->DepthPerceptionLines)
     {
     this->DepthPerceptionLines->RemoveAllItems();
@@ -458,10 +555,14 @@ void vtkPerkStationSecondaryMonitor::UpdateMatrices()
   vtkMatrix4x4::Multiply4x4(this->CurrentTransformMatrix,xyToIJK, xyToIJK);
   this->XYToIJK->DeepCopy(xyToIJK);
 
+  
   //update xyToRAS
   vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
   this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
   vtkMatrix4x4::Multiply4x4(ijkToRAS, this->XYToIJK, this->XYToRAS);
+
+  vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red")->GetLogic();
+  this->UpdateImageDataOnSliceOffset(sliceLogic->GetSliceOffset());
 
   this->UpdateImageDisplay();
 
@@ -493,6 +594,189 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   */
   
     
+}
+//---------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(double rasOffset)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
+  if (strcmpi(mrmlNode->GetVolumeInUse(), "Planning"))
+      return;
+
+  // first convert 's' offset into 'k' offset in ijk space
+  // this can be done using rastoijk matrix
+
+  // we need to update reslice transform and the xytoijk transform
+  vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
+  this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
+
+  vtkMatrix4x4 *rasToIJK = vtkMatrix4x4::New();
+  vtkMatrix4x4::Invert(ijkToRAS, rasToIJK);
+
+  double rasPt[4] = { 0,0, rasOffset, 1};
+  double ijkPt[4];
+  rasToIJK->MultiplyPoint(rasPt, ijkPt);
+
+  // now we have the ijk offset
+  double kOffset = ijkPt[2];
+
+  vtkMatrix4x4 *xyToRAS = vtkMatrix4x4::New();
+  xyToRAS->DeepCopy( this->XYToRAS );
+
+  for (int i = 0; i < 3; i++)
+    {
+    xyToRAS->SetElement( i, 3, 0.0 );  // Zero out the tranlation portion
+    }
+  xyToRAS->Invert();
+  double v1[4], v2[4];
+  for (int i = 0; i < 4; i++)
+    { // get the translation back as a vector
+    v1[i] = this->XYToRAS->GetElement( i, 3 );
+    }
+  // bring the translation into slice space
+  // and overwrite the z part
+  xyToRAS->MultiplyPoint(v1, v2);
+
+  v2[2] = rasOffset;
+
+  // Now bring the new translation vector back into RAS space
+  xyToRAS->Invert();
+  xyToRAS->MultiplyPoint(v2, v1);
+  for (int i = 0; i < 4; i++)
+    {
+    xyToRAS->SetElement( i, 3, v1[i] );
+    }
+ 
+  this->XYToRAS->DeepCopy( xyToRAS );
+  // calculate the xyToRAS matrix
+  vtkMatrix4x4::Multiply4x4(rasToIJK, this->XYToRAS, this->XYToIJK);
+  
+  xyToRAS->Delete();
+
+
+  
+
+
+  /*
+  //
+  // Set the Offset
+  // - get the current translation in ijk space and convert it to xy space
+  //   by transforming it by the invers of the upper 3x3 of SliceToRAS
+  // - replace the k value of the translation with the new value given by the kOffset
+  // - this preserves whatever translation was already in place
+  //
+
+
+  vtkMatrix4x4 *xyToIJK = vtkMatrix4x4::New();
+  xyToIJK->DeepCopy( this->XYToIJK );
+
+  for (int i = 0; i < 3; i++)
+    {
+    xyToIJK->SetElement( i, 3, 0.0 );  // Zero out the tranlation portion
+    }
+  xyToIJK->Invert();
+  double v1[4], v2[4];
+  for (int i = 0; i < 4; i++)
+    { // get the translation back as a vector
+    v1[i] = this->XYToIJK->GetElement( i, 3 );
+    }
+  // bring the translation into slice space
+  // and overwrite the z part
+  xyToIJK->MultiplyPoint(v1, v2);
+
+  v2[2] = kOffset;
+
+  // Now bring the new translation vector back into RAS space
+  xyToIJK->Invert();
+  xyToIJK->MultiplyPoint(v2, v1);
+  for (int i = 0; i < 4; i++)
+    {
+    xyToIJK->SetElement( i, 3, v1[i] );
+    }
+ 
+  // if the translation has changed, update the rest of the matrices
+    if ( xyToIJK->GetElement( 0, 3 ) != this->XYToIJK->GetElement( 0, 3 ) ||
+       xyToIJK->GetElement( 1, 3 ) != this->XYToIJK->GetElement( 1, 3 ) ||
+       xyToIJK->GetElement( 2, 3 ) != this->XYToIJK->GetElement( 2, 3 ) )
+    {
+    this->XYToIJK->DeepCopy( xyToIJK );
+    // calculate the xyToRAS matrix
+    vtkMatrix4x4::Multiply4x4(ijkToRAS, this->XYToIJK, this->XYToRAS);
+    }
+  xyToIJK->Delete();
+*/
+
+  // same exercise for reslicetransform matrix
+
+  vtkMatrix4x4 *resliceMatrix = vtkMatrix4x4::New();
+  resliceMatrix->DeepCopy(this->ResliceTransform->GetMatrix());
+
+  for (int i = 0; i < 3; i++)
+    {
+    resliceMatrix->SetElement( i, 3, 0.0 );  // Zero out the tranlation portion
+    }
+  resliceMatrix->Invert();
+
+  for (int i = 0; i < 4; i++)
+    { // get the translation back as a vector
+    v1[i] = this->ResliceTransform->GetMatrix()->GetElement( i, 3 );
+    }
+  // bring the translation into slice space
+  // and overwrite the z part
+  resliceMatrix->MultiplyPoint(v1, v2);
+
+  v2[2] = kOffset;
+
+  // Now bring the new translation vector back into RAS space
+  resliceMatrix->Invert();
+  resliceMatrix->MultiplyPoint(v2, v1);
+  for (int i = 0; i < 4; i++)
+    {
+    resliceMatrix->SetElement( i, 3, v1[i] );
+    }
+ 
+ this->ResliceTransform->GetMatrix()->DeepCopy( resliceMatrix );
+ resliceMatrix->Delete();
+
+
+  this->UpdateImageDisplay();
+
+
+
+
+
+
+
+  /*
+  vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red")->GetLogic();
+  vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
+
+  vtkMatrix4x4 *sliceRas = sliceNode->GetSliceToRAS();
+
+  vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
+  this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
+
+  vtkMatrix4x4 *rasToIJK = vtkMatrix4x4::New();
+  vtkMatrix4x4::Invert(ijkToRAS, rasToIJK);
+
+  double inPt[4] = {0, 0, sliceRas->GetElement(2,3), 1};
+  double outPt[4];
+  rasToIJK->MultiplyPoint(inPt, outPt);
+
+  
+  this->ResliceTransform->GetMatrix()->SetElement(2,3, outPt[2]);
+  this->XYToIJK->SetElement(2,3, outPt[2]);
+  this->XYToRAS->SetElement(2,3, sliceRas->GetElement(2,3));
+
+  this->UpdateImageDisplay();
+
+  */
+
 }
 //----------------------------------------------------------------------------
 BOOL CALLBACK MyInfoEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT prc, LPARAM dwData) 
@@ -652,6 +936,87 @@ void vtkPerkStationSecondaryMonitor::Rotate(double angle)
   this->UpdateMatrices();
 }
 //----------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::TiltOutOfPlane(double tiltAngle, double rasCor[3])
+{
+  // save the state for reset?
+  // state determined by three matrices: reslice, xytoijk, and current transform
+  // we won't meddle with current transform matrix, so need to save reslice and xytoijk
+  this->SystemStateResliceMatrix->DeepCopy(this->ResliceTransform->GetMatrix());
+  this->SystemStateXYToIJK->DeepCopy(this->XYToIJK);
+
+
+
+  // apply the tilt
+  vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
+  this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
+
+  vtkMatrix4x4 *rasToIJK = vtkMatrix4x4::New();
+  vtkMatrix4x4::Invert(ijkToRAS, rasToIJK);
+  
+
+  /*
+  double inPt[4] = {rasCor[0], rasCor[1], rasCor[2], 1};
+  double outPt[4];
+
+  rasToIJK->MultiplyPoint(inPt, outPt);
+
+  double ijkPt[3] = {outPt[0], outPt[1], outPt[2]};
+
+  */
+
+
+  // rotate the reslice transform by tilt angle about x-axis
+  vtkTransform *transform = vtkTransform::New();
+  transform->RotateX(tiltAngle);
+  vtkMatrix4x4 *rotMatrix = vtkMatrix4x4::New();
+  rotMatrix->DeepCopy(transform->GetMatrix());
+
+  //this->CurrentTransformMatrix->DeepCopy(rotMatrix);
+
+  vtkMatrix4x4 *xyToRAS = vtkMatrix4x4::New();
+  xyToRAS->DeepCopy(this->XYToRAS);
+
+  vtkMatrix4x4::Multiply4x4(rotMatrix, xyToRAS, xyToRAS);
+  xyToRAS->SetElement(2,3, rasCor[2]);
+  this->XYToRAS->DeepCopy(xyToRAS);
+
+  // calculate the translation vector between xyToIJK & reslice transform
+  double t[3];
+  t[0] = this->XYToIJK->GetElement(0,3) - this->ResliceTransform->GetMatrix()->GetElement(0,3);
+  t[1] = this->XYToIJK->GetElement(1,3) - this->ResliceTransform->GetMatrix()->GetElement(1,3);
+  t[2] = this->XYToIJK->GetElement(2,3) - this->ResliceTransform->GetMatrix()->GetElement(2,3);
+
+
+  vtkMatrix4x4 *xyToIJK = vtkMatrix4x4::New();
+  vtkMatrix4x4::Multiply4x4(rasToIJK, xyToRAS, xyToIJK);
+  this->XYToIJK->DeepCopy(xyToIJK);
+  
+  
+  vtkMatrix4x4 *resliceMatrix = vtkMatrix4x4::New();
+  resliceMatrix->DeepCopy(xyToIJK);
+  resliceMatrix->SetElement(0,3,xyToIJK->GetElement(0,3)-t[0]);
+  resliceMatrix->SetElement(1,3,xyToIJK->GetElement(1,3)-t[1]);
+  resliceMatrix->SetElement(2,3,xyToIJK->GetElement(2,3)-t[2]);
+  this->ResliceTransform->GetMatrix()->DeepCopy(resliceMatrix);
+
+
+  /*vtkMatrix4x4 *resliceMatrix = vtkMatrix4x4::New();
+  resliceMatrix->DeepCopy(this->ResliceTransform->GetMatrix());
+
+  vtkMatrix4x4::Multiply4x4(this->CurrentTransformMatrix, resliceMatrix,resliceMatrix);
+  this->ResliceTransform->GetMatrix()->DeepCopy(resliceMatrix);
+  
+ // this->ResliceTransform->RotateX(tiltAngle);
+
+  vtkMatrix4x4 *newReslice = vtkMatrix4x4::New();
+  newReslice->DeepCopy(this->ResliceTransform->GetMatrix());
+*/
+  this->UpdateImageDisplay();
+
+  
+
+}
+//----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::Translate(double tx, double ty, double tz)
 {
   // translation components come in here as mm
@@ -713,7 +1078,7 @@ void vtkPerkStationSecondaryMonitor::OverlayRealTimeNeedleTip(double tipRAS[3], 
 
   // make needle tip point lie on the line
   // c = y1 - mx1
-  float c = tipRAS[1] - tan(-angleRad)*tipRAS[0];
+  float c = tipRAS[1] - tan(angleRad)*tipRAS[0];
 
   // for the end point lets say we know y = 0, we need to know x
   double xyEndPoint[2];
@@ -730,7 +1095,7 @@ void vtkPerkStationSecondaryMonitor::OverlayRealTimeNeedleTip(double tipRAS[3], 
 
   // get the R coordinate
   // x = (y - c)/m
-  rasEndPoint[0] = -c/tan(-angleRad);
+  rasEndPoint[0] = (rasEndPoint[1]-c)/tan(angleRad);
   rasEndPoint[2] = 0;
 
   // back to xy coordinate system
@@ -833,9 +1198,11 @@ void vtkPerkStationSecondaryMonitor::OverlayRealTimeNeedleTip(double tipRAS[3], 
   this->NeedleTipZLocationText->GetTextProperty()->SetFontSize(25);
   this->NeedleTipZLocationText->SetDisplayPosition(this->MonitorPixelResolution[0]-250, 100);
   if (this->HorizontalFlipped)
-    {           
-    char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
-    this->NeedleTipZLocationText->SetInput(revText);
+    { 
+    this->NeedleTipZLocationText->GetTextProperty()->SetJustificationToCentered();
+    this->NeedleTipZLocationText->SetOrientation(180);
+    //char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
+    //this->NeedleTipZLocationText->SetInput(revText);
     }
   else if (this->VerticalFlipped)
     {
@@ -1120,43 +1487,72 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         // actor
         vtkActor *lineActor = vtkActor::New();
         lineActor->SetMapper(lineMapper);
+        lineActor->GetProperty()->SetColor(0,255,0);
 
 
-        // text actor
-        vtkTextActor *textActor = vtkTextActor::New();
         char *text = new char[10];
         sprintf(text,"%d mm",(i+1)*10);     
+       
+        vtkTextActor *textActor = vtkTextActor::New();
         textActor->SetInput(text);
+
+        //textActor->SetPosition(wcStartPoint[0],wcStartPoint[1],wcStartPoint[2]);
+        //textActor->GetProperty()->SetColor(0,0,1);
+        textActor->GetTextProperty()->SetColor(0,1,0);
         textActor->SetTextScaleModeToNone();
         textActor->GetTextProperty()->SetFontSize(30);
         
         if (denom>=0)
-            textActor->SetDisplayPosition(pointXY[0]+100, pointXY[1]+5);
+          {
+          textActor->SetDisplayPosition(pointXY[0]+100, pointXY[1]+5);
+          // convert to world coordinate
+          //this->Renderer->SetDisplayPoint(pointXY[0]+100,pointXY[1]+5, 0);
+          //this->Renderer->DisplayToWorld();
+          //this->Renderer->GetWorldPoint(worldCoordinate);
+          //textActor->SetPosition(worldCoordinate[0],worldCoordinate[1],worldCoordinate[2]);       
+          }
         else
-            textActor->SetDisplayPosition(pointXY[0]-100, pointXY[1]+5);
+          {
+          textActor->SetDisplayPosition(pointXY[0]-100, pointXY[1]+5);
+          // convert to world coordinate
+          //this->Renderer->SetDisplayPoint(pointXY[0]-100,pointXY[1]+5, 0);
+          //this->Renderer->DisplayToWorld();
+          //this->Renderer->GetWorldPoint(worldCoordinate);
+          //textActor->SetPosition(worldCoordinate[0],worldCoordinate[1],worldCoordinate[2]);
+          }
 
         
         // flip vertically or horizontally the text actor
         if (this->HorizontalFlipped)
-          {         
-            char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
-            textActor->SetInput(revText);
+          { 
+          //textActor->GetTextProperty()->SetJustificationToLeft();
+          //textActor->SetOrientation(180);
+          //textActor->GetTextProperty()->SetVerticalJustificationToBottom();
+          //textActor->SetOrientation(180);
+          char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
+          textActor->SetInput(revText);
+          //textActor->RotateY(180);
           }
         else if (this->VerticalFlipped)
           {
           textActor->GetTextProperty()->SetVerticalJustificationToTop();
           textActor->SetOrientation(180);
+          //textActor->RotateX(180);
           }
 
         // add text actor to text actor collection
         this->TextActorsCollection->AddItem(textActor);
+       
         // add text actor to the renderer
         this->Renderer->AddActor(textActor);
 
+
+         
         // add to actor collection
         this->DepthPerceptionLines->AddItem(lineActor);
         this->Renderer->AddActor(lineActor);
-        
+
+
 
         lineMapper->Delete();
         lineActor->Delete();
@@ -1221,6 +1617,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     // actor
     vtkActor *lineActor = vtkActor::New();
     lineActor->SetMapper(lineMapper);
+    lineActor->GetProperty()->SetColor(0,255,0);
 
 
     // add to actor collection
@@ -1234,11 +1631,11 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
 
     if (denom>=0)
     {
-    xyMeasuringLineDock[0] = this->MonitorPixelResolution[0]-50;   
+    xyMeasuringLineDock[0] = this->MonitorPixelResolution[0]-100;   
     }
     else
     {    
-    xyMeasuringLineDock[0] = 50;
+    xyMeasuringLineDock[0] = 100;
     } 
 
     xyMeasuringLineDock[1] = this->MonitorPixelResolution[1]/2;
@@ -1276,7 +1673,9 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
     this->DepthLinesInitialized = true;
 
     if (this->DeviceActive && this->DisplayInitialized)
-        this->RenderWindow->Render();
+      {   
+      this->RenderWindow->Render();
+      }
 
   }
 
@@ -1329,3 +1728,55 @@ void vtkPerkStationSecondaryMonitor::RemoveTextActors()
 
   this->TextActorsCollection->RemoveAllItems();
 }
+
+//-------------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::ResetTilt()
+{
+  this->ResliceTransform->GetMatrix()->DeepCopy(this->SystemStateResliceMatrix);
+  this->XYToIJK->DeepCopy(this->SystemStateXYToIJK);
+  
+  //update xyToRAS
+  vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
+  this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
+  vtkMatrix4x4::Multiply4x4(ijkToRAS, this->XYToIJK, this->XYToRAS);
+
+  vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red")->GetLogic();
+  this->UpdateImageDataOnSliceOffset(sliceLogic->GetSliceOffset());
+
+  this->UpdateImageDisplay();
+}
+//-------------------------------------------------------------------------------
+/*void vtkPerkStationSecondaryMonitor::JumpSliceByOffsetting(double r, double a, double s)
+{
+  vtkMatrix4x4 *sliceToRAS = this->GetSliceToRAS();
+  double sr = sliceToRAS->GetElement(0, 3);
+  double sa = sliceToRAS->GetElement(1, 3);
+  double ss = sliceToRAS->GetElement(2, 3);
+
+  // deduce the slice spacing
+  vtkMatrix4x4 *xyzToRAS = this->GetXYToRAS();
+
+  double p1xyz[4] = {0.0,0.0,0.0,1.0};
+  double p2xyz[4] = {0.0,0.0,1.0,1.0};
+
+  double p1ras[4], p2ras[4];
+
+  xyzToRAS->MultiplyPoint(p1xyz, p1ras);
+  xyzToRAS->MultiplyPoint(p2xyz, p2ras);
+
+  double sliceSpacing = sqrt(vtkMath::Distance2BetweenPoints(p2ras, p1ras));
+  
+  double d;
+  d = (r-sr)*sliceToRAS->GetElement(0,2)
+      + (a-sa)*sliceToRAS->GetElement(1,2)
+      + (s-ss)*sliceToRAS->GetElement(2,2);
+  sr += (d - this->ActiveSlice*sliceSpacing)*sliceToRAS->GetElement(0,2);
+  sa += (d - this->ActiveSlice*sliceSpacing)*sliceToRAS->GetElement(1,2);
+  ss += (d - this->ActiveSlice*sliceSpacing)*sliceToRAS->GetElement(2,2);
+  
+  sliceToRAS->SetElement( 0, 3, sr );
+  sliceToRAS->SetElement( 1, 3, sa );
+  sliceToRAS->SetElement( 2, 3, ss );
+  this->UpdateMatrices();
+}
+*/

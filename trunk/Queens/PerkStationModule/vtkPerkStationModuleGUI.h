@@ -29,6 +29,8 @@ class vtkKWComboBoxWithLabel;
 class vtkKWRadioButtonSet;
 class vtkKWMenuButtonWithLabel;
 class vtkKWLoadSaveButton;
+class vtkKWScale;
+class vtkKWScaleWithEntry;
 
 class vtkPerkStationCalibrateStep;
 class vtkPerkStationPlanStep;
@@ -113,6 +115,12 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   virtual void ResetAndStartNewExperiment();
 
   // Description
+  // Callback on the load calibration button
+  void LoadPlanningVolumeButtonCallback(const char *fileName);
+  // Description
+  // Callback on the load calibration button
+  void LoadValidationVolumeButtonCallback(const char *fileName);
+  // Description
   // Callback on the load experiment button
   void LoadExperimentButtonCallback(const char *fileName);
 
@@ -131,6 +139,8 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   // Description
   // Save information about open volumes
   void SaveVolumeInformation(ostream& of);
+
+  void EnableLoadValidationVolumeButton(bool enable);
 
   //BTX
     // Description:
@@ -205,11 +215,21 @@ protected:
   // mode selector menu
   vtkKWMenuButtonWithLabel *ModeListMenu;
 
+
+  // 1)  button: open file dialog box
+  vtkKWLoadSaveButton *LoadPlanningVolumeButton;
+  // 2) button: save calib file dialog box
+  vtkKWLoadSaveButton *LoadValidationVolumeButton;
+
+
   // 1)  button: open file dialog box
   vtkKWLoadSaveButton *LoadExperimentFileButton;
   // 2) button: save calib file dialog box
   vtkKWLoadSaveButton *SaveExperimentFileButton;
 
+  // two scales for window and level
+  vtkKWScaleWithEntry *DisplayVolumeWindowValue;
+  vtkKWScaleWithEntry *DisplayVolumeLevelValue;
  
 
   // Description:
@@ -228,7 +248,7 @@ private:
   
   // gui state variables
   int Mode; // clinical mode or training mode
-  
+  double SliceOffset;
   int ObserverCount;
   int State; // whether in calibration mode, insert, validation , or
   vtkKWRadioButtonSet *StateButtonSet;  

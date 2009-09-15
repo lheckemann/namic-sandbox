@@ -389,9 +389,9 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->LogFileButton->SetHighlightThickness(2);
     this->LogFileButton->SetBackgroundColor(0.85,0.85,0.85);
     this->LogFileButton->SetActiveBackgroundColor(1,1,1);
-    this->LogFileButton->SetText("Load registration");
+    this->LogFileButton->SetText("Log file");
     this->LogFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
-    this->LogFileButton->SetBalloonHelpString("Load tracker config file");
+    this->LogFileButton->SetBalloonHelpString("Load log file to write to");
     this->LogFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
     this->LogFileButton->TrimPathFromFileNameOn();
     this->LogFileButton->SetMaximumFileNameLength(256);
@@ -399,7 +399,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->LogFileButton->GetLoadSaveDialog()->SetFileTypes("{{CFG File} {.cfg}} {{All Files} {*.*}}");      
     }
   this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                        this->LoadTrackerConfigFileButton->GetWidgetName());
+                        this->LogFileButton->GetWidgetName());
 
   // start/stop logging toggle button
   if (!this->StartStopLoggingToFileCheckButton)
@@ -412,9 +412,17 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->StartStopLoggingToFileCheckButton->Create();
     this->StartStopLoggingToFileCheckButton->SetText("Start logging");  
     this->StartStopLoggingToFileCheckButton->SetCompoundModeToLeft();
+    this->StartStopLoggingToFileCheckButton->SetBorderWidth(2);
+    this->StartStopLoggingToFileCheckButton->SetReliefToSunken();
+    this->StartStopLoggingToFileCheckButton->SetOffReliefToRaised();
+    this->StartStopLoggingToFileCheckButton->SetHighlightThickness(2);
+    this->StartStopLoggingToFileCheckButton->IndicatorVisibilityOff();    
+    this->StartStopLoggingToFileCheckButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->StartStopLoggingToFileCheckButton->SetActiveBackgroundColor(1,1,1);
     this->StartStopLoggingToFileCheckButton->IndicatorVisibilityOff();  
+    this->StartStopLoggingToFileCheckButton->SetEnabled(0);
     }
-  this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
+  this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
                         this->StartStopLoggingToFileCheckButton->GetWidgetName());
 
 
@@ -425,6 +433,11 @@ void vtkPerkStationInsertStep::ShowUserInterface()
 
   // TO DO: populate controls wherever needed
   this->PopulateControls();
+
+//  if (this->GetGUI()->GetSecondaryMonitor()->GetDepthLinesInitialized())
+  //  {
+    this->LogTimer->StartTimer();
+//  }
 
 }
 
@@ -758,7 +771,13 @@ void vtkPerkStationInsertStep::LoadConfigButtonCallback()
 //---------------------------------------------------------------------------
 void vtkPerkStationInsertStep::LogFileSaveButtonCallback()
 {
-
+  this->InsertionLogFile = fopen(this->InsertionLogFileName.c_str(),"w");   
+  if (this->InsertionLogFile == 0)
+    {
+    this->LogFileLoadMsg->SetText("Could not open file for writing...");
+    return;
+    }
+  this->StartStopLoggingToFileCheckButton->SetEnabled(1);
 }
 //---------------------------------------------------------------------------
 void vtkPerkStationInsertStep::LogFileCheckButtonCallback(bool state)
@@ -766,13 +785,7 @@ void vtkPerkStationInsertStep::LogFileCheckButtonCallback(bool state)
   #if defined(USE_NDIOAPI)
 
   if (state)
-    {
-    this->InsertionLogFile = fopen(this->InsertionLogFileName.c_str(),"w");   
-    if (this->InsertionLogFile == 0)
-        {
-        this->LogFileLoadMsg->SetText("Could not open file for writing...");
-        return;
-        }
+    {    
     this->LogToFile = true;
     this->StartStopLoggingToFileCheckButton->SetText("Logging..press to stop");
     }
@@ -799,6 +812,19 @@ void vtkPerkStationInsertStep::Validate()
   this->GetGUI()->GetSecondaryMonitor()->RemoveDepthPerceptionLines();
 
   this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayRealTimeNeedleTip();
+
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
+  // stop the log timer
+  this->LogTimer->StopTimer();
+
+  // log the time in mrml node
+  mrmlNode->SetTimeSpentOnInsertStep(this->LogTimer->GetElapsedTime());
  
 
 }

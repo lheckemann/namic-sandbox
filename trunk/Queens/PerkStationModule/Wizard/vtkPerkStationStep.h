@@ -6,7 +6,7 @@
 
 class vtkPerkStationModuleGUI;
 class vtkKWMenu;
-
+class vtkTimerLog;
 //#define EMSEG_MENU_BUTTON_WIDTH 15
 //#define EMSEG_WIDGETS_LABEL_WIDTH 25
 
@@ -38,6 +38,8 @@ protected:
 
   vtkPerkStationModuleGUI *GUI;
   vtkCallbackCommand *WizardGUICallbackCommand;
+  vtkTimerLog *LogTimer;
+
 private:
   vtkPerkStationStep(const vtkPerkStationStep&);
   void operator=(const vtkPerkStationStep&);

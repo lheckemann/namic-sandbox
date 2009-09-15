@@ -98,6 +98,8 @@ public:
   // Save calibration  
   virtual void SuggestFileName();
 
+  virtual void Validate();
+
 protected:
   vtkPerkStationCalibrateStep();
   ~vtkPerkStationCalibrateStep(); 

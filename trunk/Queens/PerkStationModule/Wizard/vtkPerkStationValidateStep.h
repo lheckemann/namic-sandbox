@@ -8,6 +8,8 @@ class vtkKWLabel;
 class vtkKWEntryWithLabel;
 class vtkKWEntrySet;
 class vtkKWPushButton;
+class vtkKWFrameWithLabel;
+class vtkActor;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationValidateStep : public vtkPerkStationStep
 {
@@ -57,6 +59,12 @@ protected:
 
   void ResetControls();
 
+  void OverlayValidationNeedleAxis();
+  void RemoveValidationNeedleAxis();
+
+  void PresentValidationErrors();
+
+
   // in clinical mode
   // reset push button
   vtkKWPushButton *ResetValidationButton;
@@ -71,7 +79,22 @@ protected:
   vtkKWLabel *TargetPointLabel;  
   vtkKWEntrySet      *TargetPoint; 
   vtkKWEntryWithLabel *InsertionDepth;
- 
+
+
+   // for insertion/validation
+  vtkKWFrameWithLabel *ValidationErrorsFrame;
+  vtkKWEntryWithLabel      *EntryPointError; // read only  
+  vtkKWEntryWithLabel      *TargetPointError; // read only
+  vtkKWEntryWithLabel      *InsertionAngleError;
+  vtkKWEntryWithLabel      *InsertionDepthError;
+  
+  vtkKWFrameWithLabel *TimePerformanceFrame;
+  vtkKWEntryWithLabel *CalibrationTime;
+  vtkKWEntryWithLabel *PlanTime;
+  vtkKWEntryWithLabel *InsertionTime;
+
+
+  vtkActor *ValidationNeedleActor;
   bool EntryTargetAcquired;
   unsigned int ClickNumber;
 

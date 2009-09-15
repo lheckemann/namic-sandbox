@@ -1999,6 +1999,12 @@ void vtkPerkStationCalibrateStep::PopulateControls()
 
   this->CurrentSubState = 0;
 
+  // start the log timer??
+  this->LogTimer->StartTimer();
+
+  // Q: do we want to reset timer on reset of calibration?
+
+
 }
 
 //----------------------------------------------------------------------------
@@ -2451,7 +2457,7 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
   if (( (s == istyleSecondary) || (s == istyle0))&& (event == vtkCommand::LeftButtonPressEvent) )
     {
     // hear clicks only if the current sub state is Translate or Rotate with one exception // to be able to specify COR from slicer's laptop window, only in clinical mode
-      if ( (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))  && !( (s == istyle0) && (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false)))
+    if ( (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))  && !( (s == istyle0) && (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false)))
       //if (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
         return;
 
@@ -2537,9 +2543,9 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
     // capture the key
     char  *key = style->GetKeySym();    
 
-    double translationVertical = 5; // in mm
-    double translationHorizontal = 5; // in mm
-    double rotation = 2; // in degrees
+    double translationVertical = 2; // in mm
+    double translationHorizontal = 2; // in mm
+    double rotation = 1; // in degrees
 
     bool verticalFlip = this->GetGUI()->GetMRMLNode()->GetVerticalFlip();
     bool horizontalFlip = this->GetGUI()->GetMRMLNode()->GetHorizontalFlip();
@@ -4188,8 +4194,23 @@ void vtkPerkStationCalibrateStep::ProcessGUIEvents(vtkObject *caller, unsigned l
   this->ProcessingCallback = false;
 }
 //----------------------------------------------------------------------------
-/*void vtkPerkStationCalibrateStep::Validate()
+void vtkPerkStationCalibrateStep::Validate()
 {
-}*/
+  this->Superclass::Validate();
+
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
+  // start the log timer??
+  this->LogTimer->StopTimer();
+
+  // log the time in mrml node
+  mrmlNode->SetTimeSpentOnCalibrateStep(this->LogTimer->GetElapsedTime());
+
+}
 
 
