@@ -105,6 +105,10 @@ vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
    this->UserPlanInsertionAngle = 0;
    this->ActualPlanInsertionAngle = 0;
 
+   this->TiltAngle = 0;
+   this->OriginalSliceToRAS = vtkMatrix4x4::New();
+   this->TiltSliceToRAS = vtkMatrix4x4::New();
+
    this->UserPlanInsertionDepth = 0;
    this->ActualPlanInsertionDepth = 0;
 
@@ -140,6 +144,12 @@ vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
    this->EntryPointError = 0;
    this->TargetPointError = 0;
 
+   this->TimeSpentOnCalibrateStep = 0;
+   this->TimeSpentOnPlanStep = 0;
+   this->TimeSpentOnInsertStep = 0;
+   this->TimeSpentOnValidateStep = 0;
+
+
    this->InitializeTransform();
 
    this->InitializeFiducialListNode();
@@ -155,6 +165,8 @@ vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
    this->SetPlanningVolumeNode(NULL);
    this->SetValidationVolumeNode(NULL);
    this->SetVolumeInUse(NULL);
+   vtkSetMRMLNodeMacro (this->CalibrationMRMLTransformNode, NULL);
+   vtkSetMRMLNodeMacro (this->PlanMRMLFiducialListNode, NULL);  
 
 }
 
@@ -742,12 +754,28 @@ void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
     //this->PlanMRMLFiducialListNode->SetLocked(true);
     this->PlanMRMLFiducialListNode->SetName("PerkStationFiducialList");
     this->PlanMRMLFiducialListNode->SetDescription("Created by PERK Station Module; marks entry point and target point");
-    this->PlanMRMLFiducialListNode->SetColor(0.5,0.5,0.5);
+    this->PlanMRMLFiducialListNode->SetColor(0.5,1,0.5);
     this->PlanMRMLFiducialListNode->SetGlyphType(vtkMRMLFiducialListNode::Diamond3D);
     this->PlanMRMLFiducialListNode->SetOpacity(0.7);
     this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility(true);
-    this->PlanMRMLFiducialListNode->SetSymbolScale(20);
+    this->PlanMRMLFiducialListNode->SetSymbolScale(10);
     this->PlanMRMLFiducialListNode->SetTextScale(10);
+}
+//-------------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode *vtkMRMLPerkStationModuleNode::GetActiveVolumeNode()
+{
+  if (strcmpi(this->VolumeInUse, "Planning") == 0)
+    {
+    return this->PlanningVolumeNode;
+    }
+  else if (strcmpi(this->VolumeInUse, "Validation") == 0)
+    {
+    return this->ValidationVolumeNode;
+    }
+  else
+    {
+    return NULL;
+    }
 }
 //-------------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::SetPlanningVolumeNode(vtkMRMLScalarVolumeNode *planVolNode)
@@ -761,6 +789,16 @@ void vtkMRMLPerkStationModuleNode::SetValidationVolumeNode(vtkMRMLScalarVolumeNo
   vtkSetMRMLNodeMacro(this->ValidationVolumeNode, validationVolNode);
 }
 
+//------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::AddVolumeInformationToList(vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type)
+{
+  VolumeInformationStruct volStruct;
+  volStruct.DiskLocation=diskLocation;
+  volStruct.Type = type;
+  volStruct.VolumeNode = volNode;
+  volStruct.Active = false;
+  this->VolumesList.push_back(volStruct);
+}
 /*
 
 

@@ -101,7 +101,7 @@ public:
 
   // Description
   // get interactor
-  vtkRenderWindowInteractor *GetRenderWindowInteractor(){return this->Interator;};
+  vtkRenderWindowInteractor *GetRenderWindowInteractor(){return this->Interactor;};
 
   // Description
   // Get XYToRAS matrix
@@ -135,6 +135,11 @@ public:
   void Rotate(double angle);
 
   // Description
+  // Tilt image out of plane (units degrees)
+  void TiltOutOfPlane(double tiltAngle, double rasCor[3]);
+
+
+  // Description
   // Translate (translation units mm, so must be converted to pixels inside function)
   void Translate(double tx, double ty, double tz);
 
@@ -153,11 +158,16 @@ public:
   // remove overlay guide needle actor
   void RemoveOverlayNeedleGuide();
 
+  void ResetTilt();
+
   void SetDepthPerceptionLines();  
 
   void RemoveDepthPerceptionLines();
 
   void RemoveTextActors();
+
+
+  void UpdateImageDataOnSliceOffset(double sliceOffset=0);
 
 protected:
   vtkPerkStationSecondaryMonitor();
@@ -168,7 +178,7 @@ protected:
   // about handling the display/visualization
   vtkWin32OpenGLRenderWindow *RenderWindow;
   vtkRenderer *Renderer;
-  vtkRenderWindowInteractor *Interator;
+  vtkRenderWindowInteractor *Interactor;
   vtkImageMapper *ImageMapper;
   vtkActor2D *ImageActor;
   
@@ -192,6 +202,11 @@ protected:
   vtkMatrix4x4 *XYToIJK; // moving from xy coordinates to volume/slice ijk
   vtkMatrix4x4 *XYToRAS; // use volume node's ijktoras matrix along with xytoijk to get a mapping of xy to ras
   vtkMatrix4x4 *CurrentTransformMatrix;
+
+
+  vtkMatrix4x4 *SystemStateXYToIJK;
+  vtkMatrix4x4 *SystemStateResliceMatrix;
+
   // transform to be used for Reslice
   vtkTransform *ResliceTransform;
   vtkMRMLScalarVolumeNode *VolumeNode;

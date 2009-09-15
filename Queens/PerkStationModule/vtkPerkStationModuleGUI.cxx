@@ -59,6 +59,9 @@ Version:   $Revision: 1.2 $
 #include "vtkKWWizardWorkflow.h"
 #include "vtkKWLoadSaveButton.h"
 #include "vtkKWFrameWithLabel.h"
+#include "vtkKWScale.h"
+#include "vtkKWScaleWithEntry.h"
+#include "vtkKWMessageDialog.h"
 
 #include "vtkPerkStationCalibrateStep.h"
 #include "vtkPerkStationPlanStep.h"
@@ -92,7 +95,9 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   this->VolumeSelector = vtkSlicerNodeSelectorWidget::New();
   this->PSNodeSelector = vtkSlicerNodeSelectorWidget::New();
 
-  
+  this->LoadPlanningVolumeButton = NULL;
+  this->LoadValidationVolumeButton = NULL;
+
   this->LoadExperimentFileButton = NULL;
   this->SaveExperimentFileButton = NULL;
 
@@ -121,8 +126,11 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   this->Mode = vtkPerkStationModuleGUI::ModeId::Training;
   this->StateButtonSet = NULL;
   this->State = vtkPerkStationModuleGUI::StateId::Calibrate;  
+  this->DisplayVolumeLevelValue = NULL;
+  this->DisplayVolumeWindowValue = NULL;
 
   this->Built = false;
+  this->SliceOffset = 0;
 
   this->ObserverCount = 0;
 }
@@ -130,15 +138,31 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
 //----------------------------------------------------------------------------
 vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
 {
-  
-  this->SetLogic (NULL);
-  vtkSetMRMLNodeMacro(this->MRMLNode, NULL);
+  this->RemoveGUIObservers();
 
+  
+  vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
+  if (sliceLogic)
+    {  
+    sliceLogic->GetSliceNode()->RemoveObservers(vtkCommand::ModifiedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->ModeListMenu)
     {
     this->ModeListMenu->SetParent(NULL);
     this->ModeListMenu->Delete();
     this->ModeListMenu = NULL;
+    }
+  if (this->LoadPlanningVolumeButton)
+    {
+    this->LoadPlanningVolumeButton->SetParent(NULL);
+    this->LoadPlanningVolumeButton->Delete();
+    this->LoadPlanningVolumeButton = NULL;
+    }
+  if (this->LoadValidationVolumeButton)
+    {
+    this->LoadValidationVolumeButton->SetParent(NULL);
+    this->LoadValidationVolumeButton->Delete();
+    this->LoadValidationVolumeButton = NULL;
     }
   if (this->LoadExperimentFileButton)
     {
@@ -207,6 +231,46 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
     this->EvaluateStep->Delete();
     this->EvaluateStep = NULL;
     }
+  if (this->DisplayVolumeLevelValue)
+    {
+    this->DisplayVolumeLevelValue->SetParent(NULL);
+    this->DisplayVolumeLevelValue->Delete();
+    this->DisplayVolumeLevelValue = NULL;
+    }
+  if (this->DisplayVolumeWindowValue)
+    {
+    this->DisplayVolumeWindowValue->SetParent(NULL);
+    this->DisplayVolumeWindowValue->Delete();
+    this->DisplayVolumeWindowValue = NULL;
+    }
+
+  this->SetLogic (NULL);
+
+  if (this->MRMLNode)
+    {
+    /*if (this->MRMLNode->GetCalibrationMRMLTransformNode())
+        {
+        this->Logic->GetMRMLScene()->RemoveNode(this->MRMLNode->GetCalibrationMRMLTransformNode());
+        }
+    if (this->MRMLNode->GetPlanMRMLFiducialListNode())
+        {
+        this->Logic->GetMRMLScene()->RemoveNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
+        }
+    if (this->MRMLNode->GetPlanningVolumeNode())
+        {
+        this->Logic->GetMRMLScene()->RemoveNode(this->MRMLNode->GetPlanningVolumeNode());
+        }
+    if (this->MRMLNode->GetValidationVolumeNode())
+        {
+        this->Logic->GetMRMLScene()->RemoveNode(this->MRMLNode->GetValidationVolumeNode());
+        }*/
+    this->MRMLNode->Delete();
+    vtkSetMRMLNodeMacro(this->MRMLNode, NULL);
+    }
+ 
+  this->SecondaryMonitor = NULL;
+  
+  
   
 }
 
@@ -224,7 +288,60 @@ void vtkPerkStationModuleGUI::Enter()
     vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast( this->GetApplicationGUI ( ));
     p->RepackMainViewer ( vtkMRMLLayoutNode::SlicerLayoutOneUpSliceView, "Red");       
     }
- 
+  
+  vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
+  
+  if (n == NULL)
+    {
+    // no parameter node selected yet, create new
+    this->PSNodeSelector->SetSelectedNew("vtkMRMLPerkStationModuleNode");
+    this->PSNodeSelector->ProcessNewNodeCommand("vtkMRMLPerkStationModuleNode", "PS");
+    n = vtkMRMLPerkStationModuleNode::SafeDownCast(this->PSNodeSelector->GetSelected());
+
+    // set an observe new node in Logic
+    this->Logic->SetAndObservePerkStationModuleNode(n);
+    vtkSetAndObserveMRMLNodeMacro(this->MRMLNode, n);
+
+    // add the transform of mrml node to the MRML scene
+    this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
+    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetCalibrationMRMLTransformNode());
+    vtkMRMLLinearTransformNode *node = NULL;
+    vtkIntArray* nodeEvents = vtkIntArray::New();
+    nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    vtkSetAndObserveMRMLNodeMacro(node, this->MRMLNode->GetCalibrationMRMLTransformNode());
+    vtkSetAndObserveMRMLNodeEventsMacro(node,this->MRMLNode->GetCalibrationMRMLTransformNode(),nodeEvents);
+    // add MRMLFiducialListNode to the scene
+    this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
+    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
+
+    // add listener to the slice logic, so that any time user makes change to slice viewer in laptop, the display needs to be updated on secondary monitor
+    // e.g. user may move to a certain slice in a series of slices
+  
+    vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
+    if (sliceLogic)
+      {  
+      sliceLogic->GetSliceNode()->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand *)this->GUICallbackCommand);
+      }
+
+    
+
+    /*
+    // read the config file
+    bool fileFound = this->GetLogic()->ReadConfigFile();
+    if (fileFound)
+      {
+      this->WizardWidget->SetErrorText("Config file found!");
+      this->WizardWidget->Update();
+      }
+    else
+      {
+      this->WizardWidget->SetErrorText("Config file not found!");
+      this->WizardWidget->Update();
+      }
+    
+    */
+    }
+
 }
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::AddGUIObservers ( ) 
@@ -235,8 +352,7 @@ void vtkPerkStationModuleGUI::AddGUIObservers ( )
 
   // add listener to main slicer's red slice view
   appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-  // add listener to own render window created for secondary monitor
-  
+  // add listener to own render window created for secondary monitor  
 
   if (this->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
     {
@@ -247,6 +363,17 @@ void vtkPerkStationModuleGUI::AddGUIObservers ( )
     this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
     }
 
+ 
+  
+  // load volumes buttons
+  if (this->LoadPlanningVolumeButton)
+    {
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
+  if (this->LoadValidationVolumeButton)
+    {
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
 
   // wizard workflow
   this->WizardWidget->GetWizardWorkflow()->AddObserver( vtkKWWizardWorkflow::CurrentStateChangedEvent, static_cast<vtkCommand *>(this->GUICallbackCommand));  
@@ -265,6 +392,11 @@ void vtkPerkStationModuleGUI::AddGUIObservers ( )
     {
     this->SaveExperimentFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
     }
+
+  
+  this->DisplayVolumeLevelValue->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->DisplayVolumeWindowValue->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
   this->ObserverCount++;
 
 }
@@ -278,8 +410,7 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
   //this->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver(vtkCommand::CharEvent, (vtkCommand *)this->GUICallbackCommand);
   
   this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);  
-
+  this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand); 
   if (this->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
     {
     this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);    
@@ -293,7 +424,18 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
 
   this->ModeListMenu->GetWidget()->GetMenu()->RemoveObservers ( vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 
+  this->DisplayVolumeLevelValue->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
+  this->DisplayVolumeWindowValue->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  if (this->LoadPlanningVolumeButton)
+    {
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
+  if (this->LoadValidationVolumeButton)
+    {
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
 
   if (this->LoadExperimentFileButton)
     {
@@ -326,6 +468,11 @@ void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
     {
     this->CalibrateStep->ProcessKeyboardEvents(caller, event, callData);
     }
+  else if (this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic()->GetSliceNode() == vtkMRMLSliceNode::SafeDownCast(caller) && event == vtkCommand::ModifiedEvent && !vtkPerkStationModuleLogic::DoubleEqual(this->SliceOffset, this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset()))
+   {
+   this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset();
+   this->SecondaryMonitor->UpdateImageDataOnSliceOffset(this->SliceOffset);
+   }
   else if (this->WizardWidget->GetWizardWorkflow() == vtkKWWizardWorkflow::SafeDownCast(caller) && event == vtkKWWizardWorkflow::CurrentStateChangedEvent)
     {
     // TO DO        
@@ -351,6 +498,30 @@ void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
       }
     this->StateButtonSet->GetWidget(this->State)->SetSelectedState(1);
 
+    }  
+  else if (this->LoadPlanningVolumeButton && this->LoadPlanningVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+    {
+    // load planning volume dialog button
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("PSOpenPathPlanVol");
+    const char *fileName = this->LoadPlanningVolumeButton->GetLoadSaveDialog()->GetFileName();    
+    if ( fileName ) 
+      {
+      this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("PSOpenPathPlanVol");
+      // call the callback function
+      this->LoadPlanningVolumeButtonCallback(fileName); 
+      this->LoadPlanningVolumeButton->SetText ("Plan volume loaded");
+      } 
+    }
+  else if (this->LoadValidationVolumeButton && this->LoadValidationVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+    {
+    // load validation volume dialog button    
+    const char *fileName = this->LoadValidationVolumeButton->GetLoadSaveDialog()->GetFileName();    
+    if ( fileName ) 
+      {      
+      // call the callback function
+      this->LoadValidationVolumeButtonCallback(fileName);   
+      this->LoadValidationVolumeButton->SetText ("Validation volume loaded");
+      } 
     }
   else if (this->LoadExperimentFileButton && this->LoadExperimentFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {
@@ -393,13 +564,32 @@ void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
     this->SaveExperimentFileButton->SetText ("Save experiment");
    
     }  
+  else if (this->DisplayVolumeLevelValue && this->DisplayVolumeLevelValue == vtkKWScaleWithEntry::SafeDownCast(caller) && (event == vtkKWScale::ScaleValueChangedEvent))
+    {
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->SetAutoWindowLevel(0);
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->SetLevel(this->DisplayVolumeLevelValue->GetValue());
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->Modified();
+    this->SecondaryMonitor->UpdateImageDisplay();
+    }
+  else if (this->DisplayVolumeWindowValue && this->DisplayVolumeWindowValue == vtkKWScaleWithEntry::SafeDownCast(caller) && (event == vtkKWScale::ScaleValueChangedEvent))
+    {
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->SetAutoWindowLevel(0);
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->SetWindow(this->DisplayVolumeWindowValue->GetValue());
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->Modified();
+    this->SecondaryMonitor->UpdateImageDisplay();
+    }
   else
     {  
      
     vtkSlicerNodeSelectorWidget *selector = vtkSlicerNodeSelectorWidget::SafeDownCast(caller);  
     if (selector == this->VolumeSelector && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent && this->VolumeSelector->GetSelected() != NULL) 
       { 
-      this->UpdateMRML();
+      //this->UpdateMRML();
+      // handle here, when user changes the selection of the active volume
+      // the selection has to be propagated in Slicer's viewers and enviroment
+      // the system state has to updated that the volume in use is the one that is selected
+      // the secondary monitor has to be updated
+      // all this to be done here
       }
     
     if (selector == this->PSNodeSelector && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent  && this->PSNodeSelector->GetSelected() != NULL) 
@@ -461,6 +651,17 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
     this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
 
+    // add listener to the slice logic, so that any time user makes change to slice viewer in laptop, the display needs to be updated on secondary monitor
+    // e.g. user may move to a certain slice in a series of slices
+  
+    vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();
+    if (sliceLogic)
+      {  
+      sliceLogic->GetSliceNode()->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand *)this->GUICallbackCommand);
+      }
+
+    
+
     /*
     // read the config file
     bool fileFound = this->GetLogic()->ReadConfigFile();
@@ -502,7 +703,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
 
       // what if the volume selected is actually validation
       // in that case just return
-     if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+      if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
         {
         if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
           {
@@ -544,6 +745,10 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       // set up the image on secondary monitor    
       this->SecondaryMonitor->SetupImageData();
       
+      // set the window/level controls values from the scalar volume display node
+      this->DisplayVolumeLevelValue->SetValue(n->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode()->GetLevel());
+      this->DisplayVolumeWindowValue->SetValue(n->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode()->GetWindow());
+    
       if (!planningVolumePreExists)
         {
         // repopulate/enable/disable controls now that volume has been loaded
@@ -593,6 +798,10 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       this->VolumeSelector->GetSelected()->Modified();
 
       this->VolumeSelector->UpdateMenu();
+
+       // set the window/level controls values from the scalar volume display node
+      this->DisplayVolumeLevelValue->SetValue(n->GetValidationVolumeNode()->GetScalarVolumeDisplayNode()->GetLevel());
+      this->DisplayVolumeWindowValue->SetValue(n->GetValidationVolumeNode()->GetScalarVolumeDisplayNode()->GetWindow());
 
 
       }
@@ -901,10 +1110,116 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   this->VolumeSelector->UpdateMenu();
 
   this->VolumeSelector->SetBorderWidth(2);
-  this->VolumeSelector->SetLabelText( "Input Volume: ");
+  this->VolumeSelector->SetLabelText( "Active Volume: ");
   this->VolumeSelector->SetBalloonHelpString("select an input volume from the current mrml scene.");
   app->Script("pack %s -side top -anchor e -padx 2 -pady 4", 
                 this->VolumeSelector->GetWidgetName());
+
+  // load volume buttons
+  vtkKWFrame *loadVolFrame = vtkKWFrame::New();
+  loadVolFrame->SetParent(loadSaveExptFrame->GetFrame());
+  loadVolFrame->Create();     
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    loadVolFrame->GetWidgetName());
+
+  // create the load file dialog button
+  if (!this->LoadPlanningVolumeButton)
+    {
+    this->LoadPlanningVolumeButton = vtkKWLoadSaveButton::New();
+    }
+  if (!this->LoadPlanningVolumeButton->IsCreated())
+    {
+    this->LoadPlanningVolumeButton->SetParent(loadVolFrame);
+    this->LoadPlanningVolumeButton->Create();
+    this->LoadPlanningVolumeButton->SetBorderWidth(2);
+    this->LoadPlanningVolumeButton->SetReliefToRaised();       
+    this->LoadPlanningVolumeButton->SetHighlightThickness(2);
+    this->LoadPlanningVolumeButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->LoadPlanningVolumeButton->SetActiveBackgroundColor(1,1,1);
+    this->LoadPlanningVolumeButton->SetText("Load planning volume");
+    this->LoadPlanningVolumeButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
+    this->LoadPlanningVolumeButton->SetBalloonHelpString("Click to load a planning image or a volume");
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    this->LoadPlanningVolumeButton->TrimPathFromFileNameOn();
+    this->LoadPlanningVolumeButton->SetMaximumFileNameLength(256);
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SetFileTypes("{ {DICOM Files} {*} }");      
+    }
+  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                        this->LoadPlanningVolumeButton->GetWidgetName());
+
+   // create the load file dialog button
+  if (!this->LoadValidationVolumeButton)
+    {
+    this->LoadValidationVolumeButton = vtkKWLoadSaveButton::New();
+    }
+  if (!this->LoadValidationVolumeButton->IsCreated())
+    {
+    this->LoadValidationVolumeButton->SetParent(loadVolFrame);
+    this->LoadValidationVolumeButton->Create();
+    this->LoadValidationVolumeButton->SetBorderWidth(2);
+    this->LoadValidationVolumeButton->SetReliefToRaised();       
+    this->LoadValidationVolumeButton->SetHighlightThickness(2);
+    this->LoadValidationVolumeButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->LoadValidationVolumeButton->SetActiveBackgroundColor(1,1,1);
+    this->LoadValidationVolumeButton->SetText("Load validation volume");
+    this->LoadValidationVolumeButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
+    this->LoadValidationVolumeButton->SetBalloonHelpString("Click to load a validation image or a volume");
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    this->LoadPlanningVolumeButton->TrimPathFromFileNameOn();
+    this->LoadValidationVolumeButton->SetMaximumFileNameLength(256);
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()->SetFileTypes("{ {DICOM Files} {*} }");
+    this->LoadValidationVolumeButton->SetEnabled(0);
+    }
+  this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
+                        this->LoadValidationVolumeButton->GetWidgetName());
+
+  vtkKWFrameWithLabel *windowLevelFrame = vtkKWFrameWithLabel::New();
+  windowLevelFrame->SetParent(loadSaveExptFrame->GetFrame());
+  windowLevelFrame->SetLabelText("Window/Level");
+  windowLevelFrame->Create();
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    windowLevelFrame->GetWidgetName());
+
+
+  if (!this->DisplayVolumeWindowValue)
+    {
+    this->DisplayVolumeWindowValue = vtkKWScaleWithEntry::New();
+    }
+  if (!this->DisplayVolumeWindowValue->IsCreated())
+    {
+    this->DisplayVolumeWindowValue->SetParent(windowLevelFrame->GetFrame());
+    this->DisplayVolumeWindowValue->Create();
+    this->DisplayVolumeWindowValue->SetRange(0.0, 8192.0);
+    this->DisplayVolumeWindowValue->SetResolution(10.0);
+    this->DisplayVolumeWindowValue->SetLength(150);
+    this->DisplayVolumeWindowValue->SetLabelText("Window"); 
+    this->DisplayVolumeWindowValue->SetLabelPositionToTop();
+    this->DisplayVolumeWindowValue->SetEntryPositionToTop();
+    }
+  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                        this->DisplayVolumeWindowValue->GetWidgetName());
+
+  if (!this->DisplayVolumeLevelValue)
+    {
+    this->DisplayVolumeLevelValue = vtkKWScaleWithEntry::New();
+    }
+  if (!this->DisplayVolumeLevelValue->IsCreated())
+    {
+    this->DisplayVolumeLevelValue->SetParent(windowLevelFrame->GetFrame());
+    this->DisplayVolumeLevelValue->Create();
+    this->DisplayVolumeLevelValue->SetRange(0.0, 2048.0);
+    this->DisplayVolumeLevelValue->SetResolution(10.0);
+    this->DisplayVolumeLevelValue->SetLength(150);
+    this->DisplayVolumeLevelValue->SetLabelText("Level");   
+    this->DisplayVolumeLevelValue->SetLabelPositionToTop();
+    this->DisplayVolumeLevelValue->SetEntryPositionToTop();
+    
+    }
+  this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
+                        this->DisplayVolumeLevelValue->GetWidgetName());
+
 
 
   // Create the frame
@@ -967,6 +1282,7 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
                         this->SaveExperimentFileButton->GetWidgetName());
 
 
+  windowLevelFrame->Delete();
   volSelFrame->Delete();
   loadSaveFrame->Delete();
   loadSaveExptFrame->Delete();
@@ -1503,3 +1819,160 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
 
 }
 
+
+//--------------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::LoadPlanningVolumeButtonCallback(const char *fileName)
+{
+  std::string fileString(fileName);
+  for (unsigned int i = 0; i < fileString.length(); i++)
+    {
+    if (fileString[i] == '\\')
+      {
+      fileString[i] = '/';
+      }
+    }  
+
+  bool planningVolumePreExists = false;
+
+  // in case the planning volume already exists, it is just that the user has loaded another dicom series
+  // as a new planning volume
+  // then later in the code, this implies that the experiment has to be started over
+  if (this->MRMLNode->GetPlanningVolumeNode())
+    {
+    planningVolumePreExists = true;
+    }
+
+  this->MRMLNode->SetVolumeInUse("Planning");
+
+  vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>(this->GetApplication());
+  vtkMRMLScalarVolumeNode *volumeNode = this->GetLogic()->AddVolumeToScene(app,fileString.c_str(), VOL_CALIBRATE_PLAN);
+        
+  if (volumeNode)
+    {
+    
+    vtkMRMLScalarVolumeDisplayNode *node = NULL;
+    vtkSetAndObserveMRMLNodeMacro(node, volumeNode->GetScalarVolumeDisplayNode());
+
+    // set up the image on secondary monitor    
+    this->SecondaryMonitor->SetupImageData();
+
+    if (!planningVolumePreExists)
+      {
+      // bring the wizard GUI back to Calibrate step
+      // the volume selection has changed/added, so make sure that the wizard is in the intial calibration state!
+      while (this->WizardWidget->GetWizardWorkflow()->GetCurrentState()!= this->WizardWidget->GetWizardWorkflow()->GetInitialState())
+        {
+        this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
+        }
+        this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
+      }
+    else
+      {
+      this->ResetAndStartNewExperiment();
+      }
+        
+    // set the window/level controls values from the scalar volume display node
+    this->DisplayVolumeLevelValue->SetValue(volumeNode->GetScalarVolumeDisplayNode()->GetLevel());
+    this->DisplayVolumeWindowValue->SetValue(volumeNode->GetScalarVolumeDisplayNode()->GetWindow());
+
+
+    this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID( volumeNode->GetID() );
+    this->GetApplicationLogic()->PropagateVolumeSelection();
+
+    this->VolumeSelector->SetSelected(volumeNode);
+    const char *strName = this->VolumeSelector->GetSelected()->GetName();
+    std::string strPlan = std::string(strName) + "-Plan";
+    this->VolumeSelector->GetSelected()->SetName(strPlan.c_str());
+    this->VolumeSelector->GetSelected()->SetDescription("Planning image/volume; created by PerkStation module");
+    this->VolumeSelector->GetSelected()->Modified();
+    this->VolumeSelector->UpdateMenu();
+
+    // enable the load validation volume button
+    this->EnableLoadValidationVolumeButton(true);
+    }
+  else 
+    {
+    vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
+    //dialog->SetParent ( this-> );
+    dialog->SetStyleToMessage();
+    std::string msg = std::string("Unable to read volume file ") + std::string(fileName);
+    dialog->SetText(msg.c_str());
+    dialog->Create ( );
+    dialog->Invoke();
+    dialog->Delete();
+    }
+}
+//--------------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::LoadValidationVolumeButtonCallback(const char *fileName)
+{
+  std::string fileString(fileName);
+  for (unsigned int i = 0; i < fileString.length(); i++)
+    {
+    if (fileString[i] == '\\')
+      {
+      fileString[i] = '/';
+      }
+    }  
+
+  bool validationVolumePreExists = false;
+
+  // in case the planning volume already exists, it is just that the user has loaded another dicom series
+  // as a new planning volume
+  // then later in the code, this implies that the experiment has to be started over
+  if (this->MRMLNode->GetValidationVolumeNode())
+    {
+    validationVolumePreExists = true;
+    }
+
+  this->MRMLNode->SetVolumeInUse("Validation");
+
+  vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>(this->GetApplication());
+  vtkMRMLScalarVolumeNode *volumeNode = this->GetLogic()->AddVolumeToScene(app,fileString.c_str(), VOL_VALIDATION);
+        
+  if (volumeNode)
+    {
+
+    // as of now, don't want to disturb display on the secondary monitor
+    // i.e. don't want the secondary monitor to display or overlay the validation image
+    // if such a request come from clinician, it will be handled then
+
+    // set the window/level controls values from the scalar volume display node
+    this->DisplayVolumeLevelValue->SetValue(volumeNode->GetScalarVolumeDisplayNode()->GetLevel());
+    this->DisplayVolumeWindowValue->SetValue(volumeNode->GetScalarVolumeDisplayNode()->GetWindow());
+
+
+    this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID( volumeNode->GetID() );
+    this->GetApplicationLogic()->PropagateVolumeSelection();
+
+    this->VolumeSelector->SetSelected(volumeNode);
+    const char *strName = this->VolumeSelector->GetSelected()->GetName();
+    std::string strPlan = std::string(strName) + "-Validation";
+    this->VolumeSelector->GetSelected()->SetName(strPlan.c_str());
+    this->VolumeSelector->GetSelected()->SetDescription("Validation image/volume; created by PerkStation module");
+    this->VolumeSelector->GetSelected()->Modified();
+
+    this->VolumeSelector->UpdateMenu();
+
+    
+
+    }
+  else 
+    {
+    vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
+    //dialog->SetParent ( this-> );
+    dialog->SetStyleToMessage();
+    std::string msg = std::string("Unable to read volume file ") + std::string(fileName);
+    dialog->SetText(msg.c_str());
+    dialog->Create ( );
+    dialog->Invoke();
+    dialog->Delete();
+    // default to planning
+    this->MRMLNode->SetVolumeInUse("Planning");
+    }
+}
+//---------------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::EnableLoadValidationVolumeButton(bool enable)
+{
+  if (this->LoadValidationVolumeButton)
+      this->LoadValidationVolumeButton->SetEnabled(enable);
+}

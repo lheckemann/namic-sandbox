@@ -31,6 +31,12 @@ class vtkMRMLLinearTransformNode;
 class vtkMRMLFiducialListNode;
 class vtkMRMLScalarVolumeNode;
 
+enum VolumeType
+{
+  VOL_GENERIC, // any other than the specific volumes 
+  VOL_CALIBRATE_PLAN,  
+  VOL_VALIDATION
+};
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRMLNode
 {
@@ -149,6 +155,16 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   vtkGetMacro(ActualPlanInsertionAngle, double);
   vtkSetMacro(ActualPlanInsertionAngle, double);
 
+  // Get/Set  TiltAngle(module parameter)
+  vtkGetMacro(TiltAngle, double);
+  vtkSetMacro(TiltAngle, double);
+
+  void SetOriginalSliceToRAS(vtkMatrix4x4 *matrix){this->OriginalSliceToRAS->DeepCopy(matrix);};
+  vtkMatrix4x4 *GetOriginalSliceToRAS(){return this->OriginalSliceToRAS;};
+
+  void SetTiltSliceToRAS(vtkMatrix4x4 *matrix){this->TiltSliceToRAS->DeepCopy(matrix);};
+  vtkMatrix4x4 *GetTiltSliceToRAS(){return this->TiltSliceToRAS;};
+
   // Description:
   // Get/Set  UserInsertionDepth(module parameter)
   vtkGetMacro(UserPlanInsertionDepth, double);
@@ -201,6 +217,18 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
 
 
   // common:
+  vtkSetMacro(TimeSpentOnCalibrateStep, double);
+  vtkGetMacro(TimeSpentOnCalibrateStep, double);
+
+  vtkSetMacro(TimeSpentOnPlanStep, double);
+  vtkGetMacro(TimeSpentOnPlanStep, double);
+
+  vtkSetMacro(TimeSpentOnInsertStep, double);
+  vtkGetMacro(TimeSpentOnInsertStep, double);
+
+  vtkSetMacro(TimeSpentOnValidateStep, double);
+  vtkGetMacro(TimeSpentOnValidateStep, double);
+
 
   // Description:
 
@@ -223,6 +251,8 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   vtkMRMLScalarVolumeNode *GetValidationVolumeNode(){return this->ValidationVolumeNode;};
   void SetValidationVolumeNode(vtkMRMLScalarVolumeNode *validationVolNode);
 
+  vtkMRMLScalarVolumeNode *GetActiveVolumeNode();
+
   // Description:
   // Update the stored reference to another node in the scene
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
@@ -238,6 +268,9 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
 
   void CalculateEntryPointError();
   void CalculateTargetPointError();
+
+
+   void AddVolumeInformationToList(vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type); 
 
 
 protected:
@@ -290,6 +323,14 @@ protected:
   double UserPlanInsertionDepth;
   double ActualPlanInsertionDepth;
 
+  // out of plane tilt angle applicable for new perk station design
+  // this is applicable when the entry and target are not on the same slice
+  // an oblique slice has to be extracted that contains both entry and target
+  double TiltAngle;
+
+  vtkMatrix4x4 *OriginalSliceToRAS;
+  vtkMatrix4x4 *TiltSliceToRAS;
+
   // insert parameters
   vtkMatrix4x4 *TrackerToPhantomMatrix;
   vtkMatrix4x4 *PhantomToImageRASMatrix;
@@ -315,7 +356,11 @@ protected:
   double EntryPointError; // error in mm
   double TargetPointError; //error in mm
 
-  
+  // elapsed time at each step
+  double TimeSpentOnCalibrateStep;
+  double TimeSpentOnPlanStep;
+  double TimeSpentOnInsertStep;
+  double TimeSpentOnValidateStep;
 
 
   // common parameters  
@@ -326,6 +371,21 @@ protected:
   // scalar volume node
   vtkMRMLScalarVolumeNode *PlanningVolumeNode;
   vtkMRMLScalarVolumeNode *ValidationVolumeNode;
+  
+
+  
+
+  //keep track of all the volumes that were opened, maintain a list
+  //BTX
+  typedef struct{
+    std::string Type;
+    std::string DiskLocation;
+    bool Active;
+    vtkMRMLScalarVolumeNode *VolumeNode;
+  } VolumeInformationStruct;
+  std::vector<VolumeInformationStruct> VolumesList;
+  //ETX
+
 
 };
 

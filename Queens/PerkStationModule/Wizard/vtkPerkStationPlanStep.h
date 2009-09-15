@@ -95,6 +95,10 @@ protected:
   vtkKWEntrySet      *TargetPoint;
   vtkKWEntryWithLabel *InsertionAngle;
   vtkKWEntryWithLabel *InsertionDepth;
+  vtkKWFrame *TiltInformationFrame;
+  vtkKWEntryWithLabel *SystemTiltAngle;
+  vtkKWLabel *TiltMsg;  
+
 
   double WCEntryPoint[3];
   double WCTargetPoint[3];
