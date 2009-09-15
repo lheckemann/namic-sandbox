@@ -771,6 +771,7 @@ void vtkPerkStationInsertStep::LoadConfigButtonCallback()
 //---------------------------------------------------------------------------
 void vtkPerkStationInsertStep::LogFileSaveButtonCallback()
 {
+#if defined(USE_NDIOAPI)
   this->InsertionLogFile = fopen(this->InsertionLogFileName.c_str(),"w");   
   if (this->InsertionLogFile == 0)
     {
@@ -778,6 +779,7 @@ void vtkPerkStationInsertStep::LogFileSaveButtonCallback()
     return;
     }
   this->StartStopLoggingToFileCheckButton->SetEnabled(1);
+#endif // USE_NDIOAPI
 }
 //---------------------------------------------------------------------------
 void vtkPerkStationInsertStep::LogFileCheckButtonCallback(bool state)
