@@ -34,6 +34,7 @@
 
 #include "mex.h"
 #include <math.h>
+#include <string.h>
 
 #include "igtlOSUtil.h"
 #include "igtlImageMessage.h"

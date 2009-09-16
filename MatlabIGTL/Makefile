@@ -16,12 +16,12 @@
 
 
 ### OpenIGTLink Library
-IGTLSRC= /Users/junichi/igtdev/igtl/OpenIGTLink
-IGTLBLD= /Users/junichi/igtdev/igtl/OpenIGTLink-build
+IGTLSRC= /projects/igtdev/tokuda/igtl/OpenIGTLink
+IGTLBLD= /projects/igtdev/tokuda/igtl/OpenIGTLink-build
 
 
 ### for Matlab
-MEX    = /local/os-exact/pkg/Matlab71-64/bin/mex
+MEX    = /local/os-exact/bin/mex
 MEXOPT = 
 
 #### for Octave
@@ -43,8 +43,8 @@ igtlopen.mex: igtlopen.cpp igtlMexClientSocket.o igtlMexSocket.o
 igtlsend.mex: igtlsend.cpp igtlMexClientSocket.o igtlMexSocket.o
 	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} $^
 
-#igtlreceive.mex: igtlreceive.cpp igtlMexClientSocket.o igtlMexSocket.o
-#	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} $^
+igtlreceive.mex: igtlreceive.cpp igtlMexClientSocket.o igtlMexSocket.o
+	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} $^
 
 igtlclose.mex: igtlclose.cpp igtlMexClientSocket.o igtlMexSocket.o
 	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} $^
