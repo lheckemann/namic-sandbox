@@ -57,6 +57,7 @@
   #include <netdb.h>
   #include <unistd.h>
   #include <sys/time.h>
+  #include <string.h>
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
