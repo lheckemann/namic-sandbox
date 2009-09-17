@@ -35,21 +35,21 @@ int main( int argc, char *argv[] )
   MaskImageType::Pointer maskImage = NULL;
 
   // print out arguments
-  std::cout << " === IO ===" << std::endl <<
-            << "Input image name: " << inputImage << std::endl <<
-            << "Mask image name: " << maskImageName << std::endl <<
-            << "Output image name: " << outputImage << std::endl <<
-            << "Output bias field: " << outputBiasField << std::endl <<
-            << " === Parameters ===" << std::endl <<
-            << "Shrink factor: " << shrinkFactor << std::endl <<
-            << "Number of fitting levels: " << nFittingLevels << std::endl <<
-            << "Number of iterations: " << nIterations << std::endl <<
-            << "Number of histogram bins: " << nHistogramBins << std::endl <<
-            << "Weiner filter noise: " << weinerFilterNoise << std::endl <<
-            << "Bias field full width at half maximum: " << biasFieldFullWidthAtHalfMaximum << std::endl <<
-            << "Convergence threshold: " << convergenceThreshold << std::endl <<
-            << "Spline order: " << splineOrder << std::endl <<
-            << "Number of control points: " << nControlPoints[0] << "," << nControlPoints[1] << 
+  std::cout << " === IO ===" << std::endl 
+            << "Input image name: " << inputImage << std::endl 
+            << "Mask image name: " << maskImageName << std::endl 
+            << "Output image name: " << outputImage << std::endl 
+            << "Output bias field: " << outputBiasField << std::endl 
+            << " === Parameters ===" << std::endl 
+            << "Shrink factor: " << shrinkFactor << std::endl 
+            << "Number of fitting levels: " << nFittingLevels << std::endl 
+            << "Number of iterations: " << nIterations << std::endl 
+            << "Number of histogram bins: " << nHistogramBins << std::endl 
+            << "Weiner filter noise: " << weinerFilterNoise << std::endl 
+            << "Bias field full width at half maximum: " << biasFieldFullWidthAtHalfMaximum << std::endl 
+            << "Convergence threshold: " << convergenceThreshold << std::endl 
+            << "Spline order: " << splineOrder << std::endl 
+            << "Number of control points: " << nControlPoints[0] << "," << nControlPoints[1] 
             << nControlPoints[2] << std::endl << std::endl;
 
   if( maskImageName != "")
