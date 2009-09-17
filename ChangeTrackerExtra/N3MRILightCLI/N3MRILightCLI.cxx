@@ -36,7 +36,7 @@ int main( int argc, char *argv[] )
 
   // print out arguments
   std::cout << " === IO ===" << std::endl <<
-            << "Input image name: " << inputImageName << std::endl <<
+            << "Input image name: " << inputImage << std::endl <<
             << "Mask image name: " << maskImageName << std::endl <<
             << "Output image name: " << outputImage << std::endl <<
             << "Output bias field: " << outputBiasField << std::endl <<
