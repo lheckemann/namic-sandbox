@@ -76,7 +76,7 @@
       <longflag>splineorder</longflag>
       <description></description>
       <label>Spline order</label>
-      <default>4</default>
+      <default>3</default>
     </integer>
 
     <integer-vector>
