@@ -28,7 +28,7 @@
       <longflag>nfittinglevels</longflag>
       <description></description>
       <label>Number of fitting levels</label>
-      <default>40</default>
+      <default>4</default>
     </integer>
 
     <integer>
