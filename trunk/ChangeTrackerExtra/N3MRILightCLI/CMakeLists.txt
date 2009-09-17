@@ -29,9 +29,9 @@ ELSE(GenerateCLP_DIR)
   MESSAGE(FATAL_ERROR "Can't build without GenerateCLP. Please set GenerateCLP_DIR")
 ENDIF(GenerateCLP_DIR)
 
-GENERATECLP(N3MRILightCLI N4ITKLightCLI.xml)
-
-ADD_EXECUTABLE(N3MRILightCLI itkN3MRIBiasFieldCorrectionImageFilterTest.cxx)
+GENERATECLP(N3MRILightCLI N3MRILightCLI.xml)
+ADD_EXECUTABLE(N3MRILightCLI N3MRILightCLI.cxx)
+slicer3_set_plugins_output_path(N3MRILightCLI)
 TARGET_LINK_LIBRARIES(N3MRILightCLI ITKIO ITKStatistics)
 
 IF(BUILD_AGAINST_SLICER3)
