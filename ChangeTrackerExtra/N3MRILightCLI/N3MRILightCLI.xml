@@ -33,7 +33,7 @@
 
     <integer>
       <name>nIterations</name>
-      <longflag>niteratoins</longflag>
+      <longflag>niterations</longflag>
       <description></description>
       <label>Maximum number of iterations</label>
       <default>50</default>
@@ -81,7 +81,7 @@
 
     <integer-vector>
       <name>nControlPoints</name>
-      <longflag>iterations</longflag>
+      <longflag>ncontrolpoints</longflag>
       <description></description>
       <label>Number of control points</label>
       <default>4,4,4</default>
