@@ -50,7 +50,7 @@ int main( int argc, char *argv[] )
             << "Convergence threshold: " << convergenceThreshold << std::endl 
             << "Spline order: " << splineOrder << std::endl 
             << "Number of control points: " << nControlPoints[0] << "," << nControlPoints[1] 
-            << nControlPoints[2] << std::endl << std::endl;
+            << "," << nControlPoints[2] << std::endl << std::endl;
 
   if( maskImageName != "")
     {
@@ -64,10 +64,10 @@ int main( int argc, char *argv[] )
       maskreader->Update();
       maskImage = maskreader->GetOutput();
       }
-    catch(...)
+    catch(itk::ExceptionObject &e)
       {
       std::cout << "Mask file not read.  Generating mask file using otsu"
-        << " thresholding." << std::endl;
+        << " thresholding. Exception: " << e << std::endl;
       }
 
     ThresholdType::Pointer thresh = ThresholdType::New();
@@ -80,7 +80,7 @@ int main( int argc, char *argv[] )
 
     maskImage = thresh->GetOutput();
     }
-  if( maskImageName != "" )
+  if( maskImageName == "")
     {
     typedef itk::OtsuThresholdImageFilter<ImageType, MaskImageType>
       ThresholderType;
@@ -125,9 +125,9 @@ int main( int argc, char *argv[] )
     {
     correcter->Update();
     }
-  catch(...)
+  catch(itk::ExceptionObject e)
     {
-    std::cerr << "Exception caught." << std::endl;
+    std::cerr << "Exception caught while performing bias correction: " << e << std::endl;
     return EXIT_FAILURE;
     }
 
