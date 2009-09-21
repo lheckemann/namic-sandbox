@@ -20,7 +20,7 @@
       <longflag>shrinkfactor</longflag>
       <description></description>
       <label>Shrink factor</label>
-      <default>1</default>
+      <default>4</default>
     </double>
 
     <integer>
