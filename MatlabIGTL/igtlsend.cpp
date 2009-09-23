@@ -176,7 +176,7 @@ int procTransformData(int sd, const char* name, const mxArray *ptr)
   mxArray*    transField = mxGetField(ptr, 0, "Trans");
 
   double*    trans       = mxGetPr(transField);
-  const int* s           = mxGetDimensions(transField);
+  const mwSize* s        = mxGetDimensions(transField);
   
   igtl::Matrix4x4 mat;
   mat[0][0] = trans[0];  mat[0][1] = trans[4];  mat[0][2] = trans[8];  mat[0][3] = trans[12];
@@ -241,7 +241,7 @@ int procImageData(int sd, const char* name, const mxArray *ptr)
   
   double*     rdata    = mxGetPr(imageField);
   int ndim             = mxGetNumberOfDimensions(imageField);
-  const int*  s        = mxGetDimensions(imageField);
+  const mwSize*  s     = mxGetDimensions(imageField);
   int size[3];
   size[0] = s[0]; size[1] = s[1]; size[2] = (ndim == 3)? s[2]:1;
   double*     trans    = mxGetPr(transField);

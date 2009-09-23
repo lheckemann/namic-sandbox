@@ -265,7 +265,7 @@ int procTransformData(int sd, const char* name, const mxArray *ptr)
   mxArray*    transField = mxGetField(ptr, 0, "Trans");
 
   double*    trans       = mxGetPr(transField);
-  const int* s           = mxGetDimensions(transField);
+  const mwSize* s        = mxGetDimensions(transField);
   
   igtl::Matrix4x4 mat;
   mat[0][0] = trans[0];  mat[0][1] = trans[4];  mat[0][2] = trans[8];  mat[0][3] = trans[12];
