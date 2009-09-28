@@ -707,6 +707,7 @@ void DoItSimple(ImageType::Pointer binaryImage, DistPointPair3D& diameterA,
     if(binaryImage->GetPixel(curIdx))
       continue;
     i++;
+    curIdx[extractionIdxId] = i;
     break;
     }
   binaryImage->TransformIndexToPhysicalPoint(curIdx, diameterC.second.first);
@@ -717,6 +718,7 @@ void DoItSimple(ImageType::Pointer binaryImage, DistPointPair3D& diameterA,
     if(binaryImage->GetPixel(curIdx))
       continue;
     i--;
+    curIdx[extractionIdxId] = i;
     break;
     }
   binaryImage->TransformIndexToPhysicalPoint(curIdx, diameterC.second.second);
