@@ -1,8 +1,8 @@
 
 ADD_EXECUTABLE(ModelToImageRegistration1 ModelToImageRegistration1.cxx)
-TARGET_LINK_LIBRARIES(ModelToImageRegistration1 ITKBasicFilters ITKIO)
+TARGET_LINK_LIBRARIES(ModelToImageRegistration1 ITKStatistics ITKNumerics ITKBasicFilters ITKIO)
 
 ADD_EXECUTABLE(ModelToImageRegistration2 ModelToImageRegistration2.cxx)
-TARGET_LINK_LIBRARIES(ModelToImageRegistration2 ITKBasicFilters ITKIO)
+TARGET_LINK_LIBRARIES(ModelToImageRegistration2 ITKStatistics ITKNumerics ITKBasicFilters ITKIO)
 
 
