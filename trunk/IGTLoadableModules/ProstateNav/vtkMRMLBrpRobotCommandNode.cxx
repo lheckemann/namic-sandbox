@@ -150,11 +150,17 @@ int vtkMRMLBrpRobotCommandNode::SwitchStep(const char* step)
     {
     command = "PLANNING";
     }
+  else
+  {
+    vtkErrorMacro("Unknown step: "<<step);
+    return 0;
+  }
 
   if (command)
     {
     this->PushOutgoingCommand(command);
     this->Modified();
     }
-  
+
+  return 1;
 }
