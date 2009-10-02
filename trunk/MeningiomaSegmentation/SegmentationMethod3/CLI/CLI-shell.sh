@@ -1,6 +1,6 @@
 #!/usr/bin/tclsh
 
-if {$argv == "--xml"} {
+#if {$argv == "--xml"} {
 
   puts "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
   puts "<executable>"
@@ -92,6 +92,7 @@ if {$argv == "--xml"} {
   puts "</parameters>"
   puts "</executable>"
   exit 0
-}
+#}
 foreach {a b c d e f g h} $argv {}
-exec /home/gaoyi/usr/work/NAMICSandBox/MeningiomaSegmentation/SegmentationMethod2/test/r/meningiomaSegmentor $a $b $c $d $e $f $g $h
+#exec /home/gaoyi/usr/work/NAMICSandBox/MeningiomaSegmentation/SegmentationMethod2/test/r/meningiomaSegmentor $a $b $c $d $e $f $g $h
+exec /u4/home/gth818n/usr/work/NamicSandBox/MeningiomaSegmentation/SegmentationMethod3/test/r/meningiomaSegmentor $a $b $c $d $e $f $g $h
