@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>
+    Segmentation
+  </category>
+  <title>
+    Meningioma Segmentation
+  </title>
+  <description>
+    Segment Meningioma
+  </description>
+  <version>1.0</version>
+  <documentation-url>
+    http://wiki.na-mic.org/Wiki/index.php
+  </documentation-url>
+  <license></license>
+  <contributor>
+    Yi Gao, Andriy Fedorov, Allen Tannenbaum
+  </contributor>
+  <acknowledgements>
+    This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health
+  </acknowledgements>
+
+  <parameters advanced="true">
+    <label>Segmentation Parameters</label>
+    <description>Parameters for meningioma segmentation</description>
+
+    <integer>
+      <name>numOfIteration</name>
+      <longflag>numOfIteration</longflag>
+      <flag>n</flag>
+      <description>Max number of iteration</description>
+      <label>Number of iteration</label>
+      <default>1000</default>
+      <constraints>
+        <minimum>1</minimum>
+        <maximum>1000</maximum>
+        <step>10</step>
+      </constraints>
+    </integer>
+
+    <double>
+      <name>curvatureWeight</name>
+      <longflag>curvatureWeight</longflag>
+      <flag>c</flag>
+      <description>Smoothness factor[0-1]</description>
+      <label>Smoothness factor[0-1]</label>
+      <default>0.9</default>
+      <constraints>
+        <minimum>0.0</minimum>
+        <maximum>1.0</maximum>
+        <step>0.1</step>
+      </constraints>
+    </double>
+
+    <point coordinateSystem="ras" multiple="true">
+      <name>seed</name>
+      <label>Seeds</label>
+      <longflag>--seed</longflag>
+      <description>Seed point(s) for initial position</description>
+      <default>100,100,10</default>
+    </point>
+
+<!--     <integer> -->
+<!--       <name>cx</name> -->
+<!--       <longflag>centerX</longflag> -->
+<!--       <flag>x</flag> -->
+<!--       <description>x-coord of a point in object</description> -->
+<!--       <label>center X</label> -->
+<!--       <default>100</default> -->
+<!--     </integer> -->
+
+<!--     <integer> -->
+<!--       <name>cy</name> -->
+<!--       <longflag>centerY</longflag> -->
+<!--       <flag>y</flag> -->
+<!--       <description>y-coord of a point in object</description> -->
+<!--       <label>center Y</label> -->
+<!--       <default>100</default> -->
+<!--     </integer> -->
+
+<!--     <integer> -->
+<!--       <name>cz</name> -->
+<!--       <longflag>centerZ</longflag> -->
+<!--       <flag>z</flag> -->
+<!--       <description>z-coord of a point in object</description> -->
+<!--       <label>center Z</label> -->
+<!--       <default>10</default> -->
+<!--     </integer> -->
+
+      <boolean>
+        <name>globalSwitch</name>
+        <longflag>--global</longflag>
+        <flag>g</flag> 
+        <description>true: Use local statistics, false: Use global statistics.</description>
+        <label>Use local statistics?</label>
+        <default>false</default>
+      </boolean> 
+
+<!--     <integer> -->
+<!--       <name>globalSwitch</name> -->
+<!--       <longflag>globalSwitch</longflag> -->
+<!--       <flag>g</flag> -->
+<!--       <description>1: Use global statistics, 0: Use local statistics.</description> -->
+<!--       <label>global or local?</label> -->
+<!--       <default>1</default> -->
+<!--       <constraints> -->
+<!--         <minimum>0</minimum> -->
+<!--         <maximum>1</maximum> -->
+<!--         <step>1</step> -->
+<!--       </constraints> -->
+<!--     </integer> -->
+
+  </parameters>
+
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>originalImageFileName</name>
+      <label>Original Image</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Original image to be segmented</description>
+    </image>
+    <image>
+      <name>segmentedImageFileName</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description>Segmented image</description>
+    </image>
+  </parameters>
+
+</executable>
