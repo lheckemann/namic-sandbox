@@ -1,7 +1,7 @@
 scm       svn
 svnpath http://svn.na-mic.org/NAMICSandBox/trunk/MeningiomaSegmentation/localGlobal
-name     MeningiomaSegmentorCLI
-cmakeproject      MeningiomaSegmentorCLI
+name     MeningiomaSegModule
+cmakeproject      MeningiomaSegModule
 svnusername slicerbot
 svnpassword slicer
 
@@ -15,7 +15,7 @@ svnpassword slicer
 n/a
 
 # match category in the xml description of the module (where it shows up in Modules menu)
-category  Filtering
+category  Segmentation
 
 # give people an idea what to expect from this code 
 # - is it just a test or something you stand beind?
