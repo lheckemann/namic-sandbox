@@ -123,7 +123,7 @@
       <index>0</index>
       <description>Original image to be segmented</description>
     </image>
-    <image>
+    <image type="label">
       <name>segmentedImageFileName</name>
       <label>Output Volume</label>
       <channel>output</channel>
