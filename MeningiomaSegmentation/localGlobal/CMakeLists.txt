@@ -35,7 +35,7 @@ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
 
 #########################################################
 OPTION(BUILD_SLICER_MODULE "Build Slicer CLI module."
-       ${VTK_BUILD_SHARED_LIBS} OFF)
+       ${VTK_BUILD_SHARED_LIBS} ON)
 
 IF(BUILD_SLICER_MODULE)
   
