@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkDeformationFieldFromTransformQuadEdgeMeshFilter_h
-#define __itkDeformationFieldFromTransformQuadEdgeMeshFilter_h
+#ifndef __itkDeformationFieldFromTransformMeshFilter_h
+#define __itkDeformationFieldFromTransformMeshFilter_h
 
 #include "itkMeshToMeshFilter.h"
 #include "itkTransform.h"
@@ -24,7 +24,7 @@ namespace itk
 {
 
 /**
- * \class DeformationFieldFromTransformQuadEdgeMeshFilter
+ * \class DeformationFieldFromTransformMeshFilter
  * \brief Generate destination points from a Mesh and a Transform.
  *
  * This filter takes as input a Mesh and a Transform and produces as
@@ -35,18 +35,18 @@ namespace itk
  *
  */
 template< class TInputMesh, class TOutputMesh >
-class DeformationFieldFromTransformQuadEdgeMeshFilter :
+class DeformationFieldFromTransformMeshFilter :
   public MeshToMeshFilter< TInputMesh, TOutputMesh >
 {
 public:
-  typedef DeformationFieldFromTransformQuadEdgeMeshFilter     Self;
+  typedef DeformationFieldFromTransformMeshFilter     Self;
   typedef MeshToMeshFilter< 
     TInputMesh, TOutputMesh >                                 Superclass;
   typedef SmartPointer< Self >                                Pointer;
   typedef SmartPointer< const Self >                          ConstPointer;
 
   /** Run-time type information (and related methods).   */
-  itkTypeMacro( DeformationFieldFromTransformQuadEdgeMeshFilter, MeshToMeshFilter );
+  itkTypeMacro( DeformationFieldFromTransformMeshFilter, MeshToMeshFilter );
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
@@ -99,14 +99,14 @@ public:
 
 
 protected:
-  DeformationFieldFromTransformQuadEdgeMeshFilter();
-  ~DeformationFieldFromTransformQuadEdgeMeshFilter();
+  DeformationFieldFromTransformMeshFilter();
+  ~DeformationFieldFromTransformMeshFilter();
 
   void GenerateData();
 
 private:
 
-  DeformationFieldFromTransformQuadEdgeMeshFilter( const Self& ); //purposely not implemented
+  DeformationFieldFromTransformMeshFilter( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
   TransformPointerType     m_Transform;         // Coordinate transform to use
@@ -116,7 +116,7 @@ private:
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkDeformationFieldFromTransformQuadEdgeMeshFilter.txx"
+#include "itkDeformationFieldFromTransformMeshFilter.txx"
 #endif
 
 #endif

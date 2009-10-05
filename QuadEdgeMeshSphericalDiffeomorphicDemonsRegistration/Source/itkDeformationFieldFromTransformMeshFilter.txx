@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkDeformationFieldFromTransformQuadEdgeMeshFilter_txx
-#define __itkDeformationFieldFromTransformQuadEdgeMeshFilter_txx
+#ifndef __itkDeformationFieldFromTransformMeshFilter_txx
+#define __itkDeformationFieldFromTransformMeshFilter_txx
 
-#include "itkDeformationFieldFromTransformQuadEdgeMeshFilter.h"
+#include "itkDeformationFieldFromTransformMeshFilter.h"
 #include "itkProgressReporter.h"
 #include "itkVersor.h"
 #include "itkNumericTraitsVectorPixel.h"
@@ -27,22 +27,22 @@ namespace itk
 
 
 template< class TInputMesh, class TOutputMesh >
-DeformationFieldFromTransformQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
-::DeformationFieldFromTransformQuadEdgeMeshFilter()
+DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
+::DeformationFieldFromTransformMeshFilter()
 {
 }
 
 
 template< class TInputMesh, class TOutputMesh >
-DeformationFieldFromTransformQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
-::~DeformationFieldFromTransformQuadEdgeMeshFilter()
+DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
+::~DeformationFieldFromTransformMeshFilter()
 {
 }
 
 
 template< class TInputMesh, class TOutputMesh >
 void
-DeformationFieldFromTransformQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
+DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
 ::GenerateData()
 {
   // Copy the input mesh into the output mesh.
