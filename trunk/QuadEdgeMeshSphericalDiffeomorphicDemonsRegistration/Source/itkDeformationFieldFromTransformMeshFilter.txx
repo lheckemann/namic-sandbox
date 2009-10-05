@@ -28,7 +28,7 @@ template< class TInputMesh, class TOutputMesh >
 DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
 ::DeformationFieldFromTransformMeshFilter()
 {
-  this->m_Transform = TransformType::New();
+  this->m_Transform = NULL;
 }
 
 
@@ -36,6 +36,29 @@ template< class TInputMesh, class TOutputMesh >
 DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
 ::~DeformationFieldFromTransformMeshFilter()
 {
+}
+
+template< class TInputMesh, class TOutputMesh >
+void
+DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
+::GenerateOutputInformation()
+{
+  InputMeshConstPointer  inputMesh      =  this->GetInput();
+  OutputMeshPointer      outputMesh     =  this->GetOutput();
+  
+  if( !inputMesh )
+    {
+    itkExceptionMacro(<<"Missing Input Mesh");
+    }
+
+  if( !outputMesh )
+    {
+    itkExceptionMacro(<<"Missing Output Mesh");
+    }
+
+  outputMesh->SetRequestedRegion( inputMesh->GetRequestedRegion() );
+  outputMesh->SetBufferedRegion( inputMesh->GetBufferedRegion() );
+  outputMesh->SetRequestedRegionToLargestPossibleRegion();
 }
 
 
@@ -62,6 +85,11 @@ DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
   if( !outputMesh )
     {
     itkExceptionMacro(<<"Missing Output Mesh");
+    }
+
+  if( this->m_Transform.IsNull() )
+    {
+    itkExceptionMacro(<<"Transform is not Set");
     }
 
   outputMesh->SetBufferedRegion( outputMesh->GetRequestedRegion() );
