@@ -31,7 +31,7 @@
 
 #include "itkResampleQuadEdgeMeshFilter.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
-#include "itkDeformationFieldFromTransformQuadEdgeMeshFilter.h"
+#include "itkDeformationFieldFromTransformMeshFilter.h"
 
 class CommandIterationUpdate : public itk::Command 
 {
@@ -225,7 +225,7 @@ int main( int argc, char * argv [] )
 
   typedef itk::PointSet< float, 3 >   PointSetType;
 
-  typedef itk::DeformationFieldFromTransformQuadEdgeMeshFilter<
+  typedef itk::DeformationFieldFromTransformMeshFilter<
     FixedMeshType, PointSetType >  DeformationFieldFromTransformFilterType;
 
   DeformationFieldFromTransformFilterType::Pointer deformationField =
