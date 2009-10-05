@@ -41,6 +41,10 @@ ADD_EXECUTABLE(RigidMeshRegistration
   ${QuadEdgeMeshRigidRegistration}/Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx)
 TARGET_LINK_LIBRARIES(RigidMeshRegistration ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(MultiResolutionRegistration1 MultiResolutionRegistration1.cxx)
+TARGET_LINK_LIBRARIES(MultiResolutionRegistration1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+
 MACRO( GENERATE_SPHERE RADIUS SUBDIVISIONS )
 
 ADD_TEST(GenerateIC${SUBDIVISIONS}
