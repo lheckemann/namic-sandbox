@@ -99,6 +99,7 @@ ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
   if( pointData.IsNull() )
     {
     pointData = OutputPointDataContainer::New();
+    outputMesh->SetPointData( pointData );
     }
 
   pointData->Reserve( numberOfPoints );
