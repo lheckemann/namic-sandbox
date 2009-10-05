@@ -4,11 +4,15 @@
 SET(CXX_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
 SET(TEST_DATA_ROOT ${CMAKE_SOURCE_DIR}/Data)
 SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
+SET(QuadEdgeMeshRigidRegistration ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshRigidRegistration)
+SET(QuadEdgeMeshFieldSmoothingFilters ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshFieldSmoothingFilters)
 
 INCLUDE_DIRECTORIES( 
-  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration_SOURCE_DIR}/Testing
-  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration_SOURCE_DIR}/../QuadEdgeMeshFieldSmoothingFilters/Source/
+  ${PROJECT_SOURCE_DIR}/Testing
+  ${QuadEdgeMeshRigidRegistration}/Source/
+  ${QuadEdgeMeshFieldSmoothingFilters}/Source/
   )
+
 
 ADD_EXECUTABLE(QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
  QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx) 
@@ -33,6 +37,9 @@ ADD_EXECUTABLE(ResampleMeshUsingRegularSphere ResampleMeshUsingRegularSphere.cxx
 TARGET_LINK_LIBRARIES(ResampleMeshUsingRegularSphere
  ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
+ADD_EXECUTABLE(RigidMeshRegistration
+  ${QuadEdgeMeshRigidRegistration}/Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx)
+TARGET_LINK_LIBRARIES(RigidMeshRegistration ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 MACRO( GENERATE_SPHERE RADIUS SUBDIVISIONS )
 
@@ -77,8 +84,28 @@ MACRO( RESAMPLE_MESH_ALL_LEVELS INPUT_MESH_ID )
 
 ENDMACRO( RESAMPLE_MESH_ALL_LEVELS )
 
+
 RESAMPLE_MESH_ALL_LEVELS( 01 )
 RESAMPLE_MESH_ALL_LEVELS( 02 )
+
+
+MACRO( RIGIDLY_REGISTER MESHID1 MESHID2 SUBDIVISIONS )
+
+SET(FIXEDMESH   ${TEMP}/sub${MESHID1}_IC${SUBDIVISIONS}.vtk)
+SET(MOVINGMESH  ${TEMP}/sub${MESHID2}_IC${SUBDIVISIONS}.vtk)
+
+ADD_TEST(RigidRegister_${MESHID1}_${MESHID2}_IC${SUBDIVISIONS} 
+  ${CXX_TEST_PATH}/RigidMeshRegistration
+  ${FIXEDMESH}
+  ${MOVINGMESH}
+  ${TEMP}/sub${MESHID2}to${MESHID1}_IC${SUBDIVISIONS}.vtk
+  0 0 1  # Default initial axis
+  0      # Default initial angle
+  )
+
+ENDMACRO( RIGIDLY_REGISTER )
+
+RIGIDLY_REGISTER( 01a  02a  4 )
 
 ADD_TEST(DemonsExample1
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
