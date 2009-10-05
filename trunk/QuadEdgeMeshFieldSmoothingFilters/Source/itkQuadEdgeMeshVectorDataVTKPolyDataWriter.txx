@@ -136,7 +136,11 @@ QuadEdgeMeshVectorDataVTKPolyDataWriter<TMesh>
 
     PointDataContainerIterator c_it = pointdata->Begin();
 
+#ifdef ITK_USE_REVIEW_STATISTICS
+    const unsigned int vectorSize = Statistics::MeasurementVectorTraits::GetLength( c_it.Value() );
+#else
     const unsigned int vectorSize = MeasurementVectorTraits::GetLength( c_it.Value() );
+#endif
 
     while(  c_it != pointdata->End() )
       {
