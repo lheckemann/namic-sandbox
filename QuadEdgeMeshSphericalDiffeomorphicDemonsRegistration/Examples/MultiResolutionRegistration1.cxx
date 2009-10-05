@@ -223,37 +223,15 @@ int main( int argc, char * argv [] )
 
   transform->SetParameters( finalParameters );
 
-  typedef itk::ResampleQuadEdgeMeshFilter< 
-    FixedMeshType, MovingMeshType >  ResamplingFilterType;
+  typedef itk::PointSet< float, 3 >   PointSetType;
 
-  ResamplingFilterType::Pointer resampler = ResamplingFilterType::New();
+  typedef itk::DeformationFieldFromTransformQuadEdgeMeshFilter<
+    FixedMeshType, PointSetType >  DeformationFieldFromTransformFilterType;
 
-  resampler->SetReferenceMesh( meshFixed );
-  resampler->SetInput( meshMoving );
-  
-  resampler->SetTransform( transform );
-  resampler->SetInterpolator( interpolator );
+  DeformationFieldFromTransformFilterType::Pointer deformationField =
+    DeformationFieldFromTransformFilterType::New();
 
-  resampler->Update();
-
-  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >  WriterType;
-
-  WriterType::Pointer writer = WriterType::New();
-
-  writer->SetInput( resampler->GetOutput()  );
-  writer->SetFileName( argv[3] );
-
-  try
-    {
-    writer->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Error during writer Update() " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
+  deformationField->SetInput( fixedMeshReader->GetOutput() );
 
   return EXIT_SUCCESS;
 }
