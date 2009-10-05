@@ -68,12 +68,17 @@ MACRO( RESAMPLE_MESH INPUT_MESH_ID SUBDIVISIONS)
 
 ENDMACRO( RESAMPLE_MESH )
 
+MACRO( RESAMPLE_MESH_ALL_LEVELS INPUT_MESH_ID )
 
-RESAMPLE_MESH( 01a  4 )  #  ic4: with inflated.H
-RESAMPLE_MESH( 01b  5 )  #  ic5: with sulc
-RESAMPLE_MESH( 01b  6 )  #  ic6: with sulc
-RESAMPLE_MESH( 01c  7 )  #  ic7: with curv 
+  RESAMPLE_MESH( ${INPUT_MESH_ID}a  4 )  #  ic4: with inflated.H
+  RESAMPLE_MESH( ${INPUT_MESH_ID}b  5 )  #  ic5: with sulc
+  RESAMPLE_MESH( ${INPUT_MESH_ID}b  6 )  #  ic6: with sulc
+  RESAMPLE_MESH( ${INPUT_MESH_ID}c  7 )  #  ic7: with curv 
 
+ENDMACRO( RESAMPLE_MESH_ALL_LEVELS )
+
+RESAMPLE_MESH_ALL_LEVELS( 01 )
+RESAMPLE_MESH_ALL_LEVELS( 02 )
 
 ADD_TEST(DemonsExample1
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
