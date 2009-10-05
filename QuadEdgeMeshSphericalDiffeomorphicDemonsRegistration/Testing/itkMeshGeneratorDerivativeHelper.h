@@ -115,12 +115,12 @@ public:
   fixedScale.Fill( 1.0 );
   
   movingSphereMeshSource->SetCenter( movingCenter );
-  movingSphereMeshSource->SetResolution( 4.0 );
+  movingSphereMeshSource->SetResolution( 4 );
   movingSphereMeshSource->SetScale( movingScale );
   movingSphereMeshSource->Modified();
 
   fixedShpereMeshSource->SetCenter( fixedCenter );
-  fixedShpereMeshSource->SetResolution( 4.0 );
+  fixedShpereMeshSource->SetResolution( 4 );
   fixedShpereMeshSource->SetScale( fixedScale );
   fixedShpereMeshSource->Modified();
 
