@@ -51,28 +51,16 @@ public:
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
 
-  typedef TInputMesh                                       InputMeshType;
-  typedef typename InputMeshType::Pointer                  InputMeshPointer;
-  typedef typename InputMeshType::PixelType                InputPixelType;
-  typedef typename InputMeshType::PointDataContainer       InputPointDataContainer;
+  typedef TInputMesh                                              InputMeshType;
+  typedef typename InputMeshType::ConstPointer                    InputMeshConstPointer;
+  typedef typename InputMeshType::PointsContainerConstIterator    InputPointsContainerConstIterator;
 
-  typedef TOutputMesh                                        OutputMeshType;
-  typedef typename OutputMeshType::Pointer                   OutputMeshPointer;
-  typedef typename OutputMeshType::ConstPointer              OutputMeshConstPointer;
-  typedef typename OutputMeshType::PointIdentifier           OutputPointIdentifier;
-  typedef typename OutputMeshType::PointType                 OutputPointType;
-  typedef typename OutputPointType::VectorType               OutputVectorType;
-  typedef typename OutputPointType::CoordRepType             OutputCoordType;
-  typedef typename OutputMeshType::PointsContainer           OutputPointsContainer;
-  typedef typename OutputMeshType::PixelType                 OutputPixelType;
+  typedef TOutputMesh                                             OutputMeshType;
+  typedef typename OutputMeshType::Pointer                        OutputMeshPointer;
 
-  typedef typename OutputMeshType::PointsContainerConstPointer    OutputPointsContainerConstPointer;
   typedef typename OutputMeshType::PointsContainerPointer         OutputPointsContainerPointer;
   typedef typename OutputMeshType::PointsContainerIterator        OutputPointsContainerIterator;
   typedef typename OutputMeshType::PointsContainerConstIterator   OutputPointsContainerConstIterator;
-  typedef typename OutputMeshType::PointDataContainer             OutputPointDataContainer;
-  typedef typename OutputMeshType::PointDataContainerPointer      OutputPointDataContainerPointer;
-  typedef typename OutputMeshType::PointDataContainerConstPointer OutputPointDataContainerConstPointer;
 
   itkStaticConstMacro( PointDimension, unsigned int, OutputMeshType::PointDimension );
 
@@ -81,11 +69,6 @@ public:
     itkGetStaticConstMacro(PointDimension), 
     itkGetStaticConstMacro(PointDimension)>         TransformType;
   typedef typename TransformType::ConstPointer      TransformPointerType;
-
-  /** Interpolator typedef. */
-  typedef InterpolateMeshFunction< InputMeshType >  InterpolatorType;
-  typedef typename InterpolatorType::Pointer        InterpolatorPointerType;
-
 
   /** Set the coordinate transformation.  Set the coordinate transform that
    * will map the points of the input mesh to points of the output PointSet. 
@@ -101,6 +84,8 @@ public:
 protected:
   DeformationFieldFromTransformMeshFilter();
   ~DeformationFieldFromTransformMeshFilter();
+
+  void PrintSelf(std::ostream& os, Indent indent) const;
 
   void GenerateData();
 

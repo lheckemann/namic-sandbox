@@ -19,8 +19,6 @@
 
 #include "itkDeformationFieldFromTransformMeshFilter.h"
 #include "itkProgressReporter.h"
-#include "itkVersor.h"
-#include "itkNumericTraitsVectorPixel.h"
 
 namespace itk
 {
@@ -30,6 +28,7 @@ template< class TInputMesh, class TOutputMesh >
 DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
 ::DeformationFieldFromTransformMeshFilter()
 {
+  this->m_Transform = TransformType::New();
 }
 
 
@@ -45,54 +44,65 @@ void
 DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
 ::GenerateData()
 {
-  // Copy the input mesh into the output mesh.
-  // FIXME this->CopyReferenceMeshToOutputMesh();
+  
+  typedef typename TInputMesh::PointsContainer  InputPointsContainer;
+  typedef typename TOutputMesh::PointsContainer OutputPointsContainer;
 
-  OutputMeshPointer outputMesh = this->GetOutput();
+  typedef typename TInputMesh::PointsContainerConstPointer  InputPointsContainerPointer;
+  typedef typename TOutputMesh::PointsContainerPointer OutputPointsContainerPointer;
 
-  //
-  // Visit all nodes of the Mesh 
-  //
-  typedef typename OutputPointDataContainer::ConstIterator OutputPointDataIterator;
-
-  OutputPointsContainerPointer points = outputMesh->GetPoints();
-
-  if( points.IsNull() )
+  InputMeshConstPointer  inputMesh      =  this->GetInput();
+  OutputMeshPointer      outputMesh     =  this->GetOutput();
+  
+  if( !inputMesh )
     {
-    itkExceptionMacro("Mesh has NULL Points");
+    itkExceptionMacro(<<"Missing Input Mesh");
     }
+
+  if( !outputMesh )
+    {
+    itkExceptionMacro(<<"Missing Output Mesh");
+    }
+
+  outputMesh->SetBufferedRegion( outputMesh->GetRequestedRegion() );
+
+  InputPointsContainerPointer  inPoints  = inputMesh->GetPoints();
+  OutputPointsContainerPointer outPoints = outputMesh->GetPoints();
+
+  outPoints->Reserve( inputMesh->GetNumberOfPoints() );
+  outPoints->Squeeze();  // in case the previous mesh had 
+                         // allocated a larger memory
 
   const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
 
   ProgressReporter progress(this, 0, numberOfPoints);
 
-  std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
+  InputPointsContainerConstIterator  inputPoint  = inPoints->Begin();
+  OutputPointsContainerIterator      outputPoint = outPoints->Begin();
 
-  typedef typename OutputMeshType::PointsContainer::ConstIterator    PointIterator;
-  typedef typename OutputMeshType::PointDataContainer::Iterator      PointDataIterator;
-
-  PointIterator pointItr = outputMesh->GetPoints()->Begin();
-  PointIterator pointEnd = outputMesh->GetPoints()->End();
-
-  typedef typename TransformType::InputPointType     InputPointType;
-  typedef typename TransformType::OutputPointType    MappedPointType;
-
-  OutputPointType  inputPoint;
-  OutputPointType  pointToEvaluate;
-
-  while( pointItr != pointEnd )
+  while( inputPoint != inPoints->End() ) 
     {
-    inputPoint.CastFrom( pointItr.Value() );
-
-    MappedPointType transformedPoint = this->m_Transform->TransformPoint( inputPoint );
-
-    pointToEvaluate.CastFrom( transformedPoint );
+    outputPoint.Value() = m_Transform->TransformPoint( inputPoint.Value() );
 
     progress.CompletedPixel();
 
-    ++pointItr;
+    ++inputPoint;
+    ++outputPoint;
     }
 
+}
+
+
+template< class TInputMesh, class TOutputMesh >
+void
+DeformationFieldFromTransformMeshFilter< TInputMesh, TOutputMesh >
+::PrintSelf(std::ostream& os, Indent indent) const
+{
+  Superclass::PrintSelf(os,indent);
+  if( this->m_Transform )
+    {
+    os << indent << "Transform: " << this->m_Transform << std::endl;
+    }
 }
 
 
