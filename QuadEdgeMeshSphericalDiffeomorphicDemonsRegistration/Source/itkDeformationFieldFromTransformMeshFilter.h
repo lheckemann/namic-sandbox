@@ -87,7 +87,10 @@ protected:
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
+  void GenerateOutputInformation();
+
   void GenerateData();
+
 
 private:
 
