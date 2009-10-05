@@ -98,7 +98,7 @@ ADD_TEST(RigidRegister_${MESHID1}_${MESHID2}_IC${SUBDIVISIONS}
   ${CXX_TEST_PATH}/RigidMeshRegistration
   ${FIXEDMESH}
   ${MOVINGMESH}
-  ${TEMP}/sub${MESHID2}to${MESHID1}_IC${SUBDIVISIONS}.vtk
+  ${TEMP}/sub${MESHID2}_rigid_to_${MESHID1}_IC${SUBDIVISIONS}.vtk
   0 0 1  # Default initial axis
   0      # Default initial angle
   )
@@ -106,6 +106,34 @@ ADD_TEST(RigidRegister_${MESHID1}_${MESHID2}_IC${SUBDIVISIONS}
 ENDMACRO( RIGIDLY_REGISTER )
 
 RIGIDLY_REGISTER( 01a  02a  4 )
+
+
+MACRO( DEMONS_REGISTER MESHID1 MESHID2 SUBDIVISIONS )
+
+SET(FIXEDMESH   ${TEMP}/sub${MESHID1}_IC${SUBDIVISIONS}.vtk)
+SET(MOVINGMESH  ${TEMP}/sub${MESHID2}_rigid_to_${MESHID1}_IC${SUBDIVISIONS}.vtk)
+SET(RESAMPLEDMOVINGMESH  ${TEMP}/sub${MESHID2}_demons_resampled_to_${MESHID1}_IC${SUBDIVISIONS}.vtk)
+SET(DEFORMEDFIXEDMESH  ${TEMP}/sub${MESHID1}_demons_deformed_to_${MESHID2}_IC${SUBDIVISIONS}.vtk)
+
+ADD_TEST(DemonsRegister_${MESHID1}_${MESHID2}_IC${SUBDIVISIONS} 
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+  ${FIXEDMESH}
+  ${MOVINGMESH}
+  ${RESAMPLEDMOVINGMESH}
+  ${DEFORMEDFIXEDMESH}
+  100.0  # Sphere radius
+  1.0    # Epsilon
+  1.0    # SigmaX
+  1.0    # Lambda
+  10     # Smoothing Iterations
+  30     # maximum number of iterations
+  )
+
+ENDMACRO( DEMONS_REGISTER )
+
+
+DEMONS_REGISTER( 01a  02a  4 )
+
 
 ADD_TEST(DemonsExample1
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
