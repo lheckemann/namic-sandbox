@@ -82,14 +82,14 @@ private:
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 3 )
+  if( argc < 4 )
     {
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
     std::cerr << "inputFixedMesh inputMovingMesh ";
     std::cerr << "outputResampledMesh ";
-    std::cerr << "axisX axisY axisZ angle(radians) " << std::endl;
+    std::cerr << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -151,22 +151,12 @@ int main( int argc, char * argv [] )
 
   registration->SetInterpolator( interpolator );
 
-  const unsigned int numberOfTransformParameters = 
-     transform->GetNumberOfParameters();
+  const unsigned int numberOfTransformParameters = transform->GetNumberOfParameters();
 
   typedef TransformType::ParametersType         ParametersType;
   ParametersType parameters( numberOfTransformParameters );
 
-  TransformType::AxisType  axis;
-  TransformType::AngleType angle;
-
-  axis[0] = atof( argv[4] );
-  axis[1] = atof( argv[5] );
-  axis[2] = atof( argv[6] );
-
-  angle = atof( argv[7] );
-
-  transform->SetRotation( axis, angle );
+  transform->SetIdentity();
   
   parameters = transform->GetParameters();
 
@@ -228,10 +218,22 @@ int main( int argc, char * argv [] )
   typedef itk::DeformationFieldFromTransformMeshFilter<
     FixedMeshType, PointSetType >  DeformationFieldFromTransformFilterType;
 
-  DeformationFieldFromTransformFilterType::Pointer deformationField =
+  DeformationFieldFromTransformFilterType::Pointer deformationFieldFromTransform =
     DeformationFieldFromTransformFilterType::New();
 
-  deformationField->SetInput( fixedMeshReader->GetOutput() );
+  deformationFieldFromTransform->SetInput( fixedMeshReader->GetOutput() );
+  deformationFieldFromTransform->SetTransform( transform );
+
+  try
+    {
+    deformationFieldFromTransform->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   return EXIT_SUCCESS;
 }
