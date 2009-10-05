@@ -88,27 +88,33 @@ ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
     itkExceptionMacro("Mesh has NULL PointData");
     }
 
-  OutputPointDataContainerPointer pointData = outputMesh->GetPointData();
-
-  if( pointData.IsNull() )
-    {
-    itkExceptionMacro("Output Mesh has NULL PointData");
-    }
-
   const unsigned int numberOfPoints = outputMesh->GetNumberOfPoints();
 
   ProgressReporter progress(this, 0, numberOfPoints);
 
   std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
 
+  OutputPointDataContainerPointer pointData = outputMesh->GetPointData();
+
+  if( pointData.IsNull() )
+    {
+    pointData = OutputPointDataContainer::New();
+    }
+
+  pointData->Reserve( numberOfPoints );
+
+  // Initialize the internal point locator structure 
+  this->m_Interpolator->SetInputMesh( this->GetInput() );
+  this->m_Interpolator->Initialize();
+
   typedef typename OutputMeshType::PointsContainer::ConstIterator    PointIterator;
   typedef typename OutputMeshType::PointDataContainer::Iterator      PointDataIterator;
 
-  PointIterator pointItr = outputMesh->GetPoints()->Begin();
-  PointIterator pointEnd = outputMesh->GetPoints()->End();
+  PointIterator pointItr = points->Begin();
+  PointIterator pointEnd = points->End();
 
-  PointDataIterator pointDataItr = outputMesh->GetPointData()->Begin();
-  PointDataIterator pointDataEnd = outputMesh->GetPointData()->End();
+  PointDataIterator pointDataItr = pointData->Begin();
+  PointDataIterator pointDataEnd = pointData->End();
 
   typedef typename TransformType::InputPointType     InputPointType;
   typedef typename TransformType::OutputPointType    MappedPointType;
