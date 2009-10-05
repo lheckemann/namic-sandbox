@@ -61,8 +61,8 @@ MACRO( RESAMPLE_MESH INPUT_MESH_ID SUBDIVISIONS)
 
   ADD_TEST(Resample${INPUT_MESH_ID}_IC${SUBDIVISIONS}
     ${CXX_TEST_PATH}/ResampleMeshUsingRegularSphere
-    ${TEMP}/sub${INPUT_MESH_ID}.vtk
     ${TEMP}/IC${SUBDIVISIONS}.vtk
+    ${TEMP}/sub${INPUT_MESH_ID}.vtk
     ${TEMP}/sub${INPUT_MESH_ID}_IC${SUBDIVISIONS}.vtk
     )
 
