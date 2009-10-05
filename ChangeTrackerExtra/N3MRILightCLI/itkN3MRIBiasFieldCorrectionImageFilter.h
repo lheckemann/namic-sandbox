@@ -19,7 +19,12 @@
 
 #include "itkImageToImageFilter.h"
 
+#if 0
+#include "./itkBSplineScatteredDataPointSetToImageFilter.h"
+#else
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
+#endif
+
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkPointSet.h"
 #include "itkVector.h"
