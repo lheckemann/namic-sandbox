@@ -21,6 +21,10 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLScene.h"
 
 #include "vtkProstateNavStep.h"
+#include "vtkMRMLRobotNode.h"
+
+#include "vtkSlicerComponentGUI.h" // for vtkSetAndObserveMRMLNodeEventsMacro
+#include "vtkSmartPointer.h"
 
 
 //------------------------------------------------------------------------------
@@ -53,27 +57,44 @@ vtkMRMLProstateNavManagerNode::vtkMRMLProstateNavManagerNode()
 {
   this->CurrentStep = 0;
   this->PreviousStep = 0;
+
+  /*
   this->TargetPlanList = NULL;
   this->TargetCompletedList = NULL;
-  this->RobotConnector = NULL;
-  this->ScannerConnector = NULL;
-  this->RobotCommand = NULL;
-  this->RobotTarget = NULL;
-  this->ZFrameTransform = NULL;
-  this->ZFrameModel = NULL;
+  this->RobotNode=NULL;
+  */
+
+  TargetPlanListNodeID=NULL;
+  TargetPlanListNode=NULL;
+
+  TargetCompletedListNodeID=NULL;
+  TargetCompletedListNode=NULL;
+
+  RobotNodeID=NULL;
+  RobotNode=NULL;
+
   this->StepList=vtkStringArray::New();
 
-  this->StepList->InsertNextValue("SetUp");
-  this->StepList->InsertNextValue("ZFrameCalibration");
-  this->StepList->InsertNextValue("PointTargeting");
-  this->StepList->InsertNextValue("PointVerification");
-  this->StepList->InsertNextValue("TransperinealProstateRobotManualControl");
+  this->HideFromEditorsOff();
+
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLProstateNavManagerNode::~vtkMRMLProstateNavManagerNode()
 {
   this->StepList->Delete();
+  if (this->TargetPlanListNodeID) 
+  {
+    SetAndObserveTargetPlanListNodeID(NULL);
+  }
+  if (this->TargetCompletedListNodeID) 
+  {
+    SetAndObserveTargetCompletedListNodeID(NULL);
+  }
+  if (this->RobotNodeID) 
+  {
+    SetAndObserveRobotNodeID(NULL);
+  }
 }
 
 
@@ -86,25 +107,7 @@ void vtkMRMLProstateNavManagerNode::WriteXML(ostream& of, int nIndent)
 
   vtkIndent indent(nIndent);
 
-  //switch (this->Type)
-  //  {
-  //  case TYPE_SERVER:
-  //    of << " connectorType=\"" << "SERVER" << "\" ";
-  //    break;
-  //  case TYPE_CLIENT:
-  //    of << " connectorType=\"" << "CLIENT" << "\" ";
-  //    of << " serverHostname=\"" << this->ServerHostname << "\" ";
-  //    break;
-  //  default:
-  //    of << " connectorType=\"" << "NOT_DEFINED" << "\" ";
-  //    break;
-  //  }
-  //
-  //of << " serverPort=\"" << this->ServerPort << "\" ";
-  //of << " restrictDeviceName=\"" << this->RestrictDeviceName << "\" ";
-
-  of << indent << " WorkflowSteps=\"" << GetWorkflowStepsString() << "\"";
-    
+  of << indent << " WorkflowSteps=\"" << GetWorkflowStepsString() << "\"";    
 
 }
 
@@ -139,59 +142,7 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
         vtkErrorMacro("Invalid WorkflowSteps attribute value: "<<attValue);
         }
       }
-
-/*
-    if (!strcmp(attName, "connectorType"))
-      {
-      if (!strcmp(attValue, "SERVER"))
-        {
-        type = TYPE_SERVER;
-        }
-      else if (!strcmp(attValue, "CLIENT"))
-        {
-        type = TYPE_CLIENT;
-        }
-      else
-        {
-        type = TYPE_NOT_DEFINED;
-        }
-      }
-    if (!strcmp(attName, "serverHostname"))
-      {
-      serverHostname = attValue;
-      }
-    if (!strcmp(attName, "serverPort"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      ss >> port;
-      }
-    if (!strcmp(attName, "restrictDeviceName"))
-      {
-      std::stringstream ss;
-      ss << attValue;
-      ss >> restrictDeviceName;;
-      }
-*/
     }
-
-  /*
-  switch(type)
-    {
-    case TYPE_SERVER:
-      this->SetTypeServer(port);
-      this->SetRestrictDeviceName(restrictDeviceName);
-      break;
-    case TYPE_CLIENT:
-      this->SetTypeClient(serverHostname, port);
-      this->SetRestrictDeviceName(restrictDeviceName);
-      break;
-    default: // not defined
-      // do nothing
-      break;
-    }
-  */
-
 }
 
 
@@ -200,12 +151,53 @@ void vtkMRMLProstateNavManagerNode::ReadXMLAttributes(const char** atts)
 // Does NOT copy: ID, FilePrefix, Name, VolumeID
 void vtkMRMLProstateNavManagerNode::Copy(vtkMRMLNode *anode)
 {
-
   Superclass::Copy(anode);
   vtkMRMLProstateNavManagerNode *node = (vtkMRMLProstateNavManagerNode *) anode;
 
   //int type = node->GetType();
+
+  this->CurrentStep = node->CurrentStep;
+  this->PreviousStep = node->PreviousStep;
+  this->SetTargetPlanListNodeID(node->TargetPlanListNodeID);
+  this->SetTargetCompletedListNodeID(node->TargetCompletedListNodeID);
+  this->SetRobotNodeID(node->RobotNodeID);
+
+  this->StepList->Reset();
+  for (int i=0; i>node->StepList->GetSize(); i++)
+  {
+    this->StepList->SetValue(i, node->StepList->GetValue(i));
+  }
+
+  this->HideFromEditors=node->HideFromEditors;
   
+}
+
+//-----------------------------------------------------------
+void vtkMRMLProstateNavManagerNode::UpdateReferences()
+{
+   Superclass::UpdateReferences();
+/*  if (this->TargetTransformNodeID != NULL && this->Scene->GetNodeByID(this->TargetTransformNodeID) == NULL)
+    {
+    this->SetAndObserveTargetTransformNodeID(NULL);
+    }
+    */
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLProstateNavManagerNode::UpdateReferenceID(const char *oldID, const char *newID)
+{
+  Superclass::UpdateReferenceID(oldID, newID);
+  /*if (this->TargetTransformNodeID && !strcmp(oldID, this->TargetTransformNodeID))
+    {
+    this->SetAndObserveTargetTransformNodeID(newID);
+    }*/
+}
+
+//-----------------------------------------------------------
+void vtkMRMLProstateNavManagerNode::UpdateScene(vtkMRMLScene *scene)
+{
+   Superclass::UpdateScene(scene);
+   /*this->SetAndObserveTargetTransformNodeID(this->GetTargetTransformNodeID());*/
 }
 
 
@@ -214,7 +206,7 @@ void vtkMRMLProstateNavManagerNode::ProcessMRMLEvents( vtkObject *caller, unsign
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
-  if (this->TargetPlanList && this->TargetPlanList == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
+  if (this->TargetPlanListNode && this->TargetPlanListNode == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
       event ==  vtkCommand::ModifiedEvent)
     {
     //this->ModifiedSinceReadOn();
@@ -222,23 +214,13 @@ void vtkMRMLProstateNavManagerNode::ProcessMRMLEvents( vtkObject *caller, unsign
     //this->UpdateFromMRML();
     return;
     }
-  else if (this->TargetCompletedList && this->TargetCompletedList == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
+  else if (this->TargetCompletedListNode && this->TargetCompletedListNode == vtkMRMLFiducialListNode::SafeDownCast(caller) &&
            event ==  vtkCommand::ModifiedEvent)
     {
     //this->ModifiedSinceReadOn();
     //this->InvokeEvent(vtkMRMLVolumeNode::ImageDataModifiedEvent, NULL);
     //this->UpdateFromMRML();
     return;
-    }
-  else if (this->ScannerConnector && this->ScannerConnector == vtkMRMLIGTLConnectorNode::SafeDownCast(caller) &&
-           (event ==  vtkMRMLIGTLConnectorNode::ConnectedEvent || event ==  vtkMRMLIGTLConnectorNode::DisconnectedEvent))
-    {
-    this->InvokeEvent(event, (void*) "Scanner");
-    }
-  else if (this->RobotConnector && this->RobotConnector == vtkMRMLIGTLConnectorNode::SafeDownCast(caller) &&
-           (event ==  vtkMRMLIGTLConnectorNode::ConnectedEvent || event ==  vtkMRMLIGTLConnectorNode::DisconnectedEvent))
-    {
-    this->InvokeEvent(event, (void*) "Robot");
     }
 
   return;
@@ -279,17 +261,11 @@ int vtkMRMLProstateNavManagerNode::SwitchStep(int newStep)
     return 0;
   }
   this->PreviousStep = this->CurrentStep;
-  this->CurrentStep = newStep;
-  //:TODO: robot notification shall be performed in the robot node class
-  // as a response to a step change (the robot node class shall be subscribed to the modified event of the manager node)
-  // START_UP, CALIBRATION, TARGETING, MANUAL, PLANNING
+  this->CurrentStep = newStep; 
 
   // Tentatively, this function calls vtkMRMLBrpRobotCommandNode::SwitchStep().
   // (we cannot test with the robot without sending workphase commands...)
-  if (this->RobotCommand)
-    {
-    this->RobotCommand->SwitchStep(this->StepList->GetValue(newStep).c_str());
-    }
+  this->RobotNode->SwitchStep(this->StepList->GetValue(newStep).c_str());
 
   return 1;
 }
@@ -308,210 +284,66 @@ int vtkMRMLProstateNavManagerNode::GetPreviousStep()
   return this->PreviousStep;
 }
 
+/*
 //----------------------------------------------------------------------------
 void vtkMRMLProstateNavManagerNode::SetAndObserveTargetPlanList(vtkMRMLFiducialListNode* ptr)
 {
+  if (this->TargetPlanList == ptr)
+  {
+    // no modification
+    return;
+  }
 
-  if (this->TargetPlanList != NULL)
-    {
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->TargetPlanList, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  this->TargetPlanList = ptr;
-
-  if (ptr != NULL)
-    {
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  if ( this->TargetPlanList != ptr )
-    {
-    this->Modified();
-    }
-
+  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+  events->InsertNextValue ( vtkCommand::ModifiedEvent);
+  vtkSetAndObserveMRMLNodeMacro(this->TargetPlanList, ptr);
+  //vtkSetAndObserveMRMLNodeEventsMacro ( this->TargetPlanList, ptr, events ); // calls this->Modified()
+  //vtkSetAndObserveMRMLNodeEventsMacro ( this->TargetPlanList, ptr, NULL); // calls this->Modified()
 }
 
 
 //----------------------------------------------------------------------------
 void vtkMRMLProstateNavManagerNode::SetAndObserveTargetCompletedList(vtkMRMLFiducialListNode* ptr)
 {
+  if (this->TargetCompletedList == ptr)
+  {
+    // no modification
+    return;
+  }
 
-  if (this->TargetCompletedList != NULL)
-    {
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->TargetCompletedList, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  this->TargetCompletedList = ptr;
-
-  if (ptr != NULL)
-    {
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  if ( this->TargetCompletedList != ptr )
-    {
-    this->Modified();
-    }
-
+  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+  events->InsertNextValue ( vtkCommand::ModifiedEvent);
+  //vtkSetAndObserveMRMLNodeEventsMacro ( this->TargetCompletedList, ptr, events );  // calls this->Modified()
 
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::SetAndObserveRobotConnector(vtkMRMLIGTLConnectorNode* ptr)
+void vtkMRMLProstateNavManagerNode::SetAndObserveRobotNode(vtkMRMLRobotNode* ptr)
 {
+  if (this->RobotNode == ptr)
+  {
+    // no modification
+    return;
+  }
 
-  if (this->RobotConnector != NULL)
-    {
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->RobotConnector, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->RobotConnector, vtkMRMLIGTLConnectorNode::ConnectedEvent, this, this->MRMLCallbackCommand );
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->RobotConnector, vtkMRMLIGTLConnectorNode::DisconnectedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  this->RobotConnector = ptr;
-
+  // update workflow steps from the new Robot node
+  // (the Manager node is the owner of workflow steps, as it may add additional steps or modify the steps that
+  // it gets from the robot)
   if (ptr != NULL)
     {
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkMRMLIGTLConnectorNode::ConnectedEvent, this, this->MRMLCallbackCommand );
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkMRMLIGTLConnectorNode::DisconnectedEvent, this, this->MRMLCallbackCommand );
+    SetWorkflowStepsFromString(ptr->GetWorkflowStepsString());    
     }
-
-  if ( this->RobotConnector && this->RobotCommand )
+  else
     {
-    this->RobotConnector->RegisterOutgoingMRMLNode( this->RobotCommand );
-    this->RobotConnector->RegisterIncomingMRMLNode( this->RobotCommand );    
+    SetWorkflowStepsFromString("");
     }
 
-
-  if ( this->RobotConnector != ptr )
-    {
-    this->Modified();
-    }
-
+  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
+  events->InsertNextValue ( vtkCommand::ModifiedEvent);
+  vtkSetAndObserveMRMLNodeEventsMacro ( this->RobotNode, ptr, events ); // this triggers a this->Modified() event  
 }
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::SetAndObserveScannerConnector(vtkMRMLIGTLConnectorNode* ptr)
-{
-
-  if (this->ScannerConnector != NULL)
-    {
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->ScannerConnector, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->ScannerConnector, vtkMRMLIGTLConnectorNode::ConnectedEvent, this, this->MRMLCallbackCommand );
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->ScannerConnector, vtkMRMLIGTLConnectorNode::DisconnectedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  this->ScannerConnector = ptr;
-
-  if (ptr != NULL)
-    {
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkMRMLIGTLConnectorNode::ConnectedEvent, this, this->MRMLCallbackCommand );
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkMRMLIGTLConnectorNode::DisconnectedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  if ( this->ScannerConnector != ptr )
-    {
-    this->Modified();
-    }
-
-}
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::SetAndObserveRobotCommand(vtkMRMLBrpRobotCommandNode* ptr)
-{
-
-  if (this->RobotCommand != NULL)
-    {
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->RobotCommand, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  this->RobotCommand = ptr;
-
-  if (ptr != NULL)
-    {
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  
-  if ( this->RobotCommand != ptr )
-    {
-    this->Modified();
-    }
-
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::SetAndObserveRobotTarget(vtkMRMLLinearTransformNode* ptr)
-{
-
-  if (this->RobotTarget != NULL)
-    {
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->RobotTarget, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  this->RobotTarget = ptr;
-
-  if (ptr != NULL)
-    {
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  if ( this->RobotTarget != ptr )
-    {
-    this->Modified();
-    }
-  
-}
-
-
-//----------------------------------------------------------------------------
-void vtkMRMLProstateNavManagerNode::SetAndObserveZFrameTransform(vtkMRMLLinearTransformNode* ptr)
-{
-
-  if (this->ZFrameTransform != NULL)
-    {
-    vtkEventBroker::GetInstance()->RemoveObservations(
-      this->ZFrameTransform, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  this->ZFrameTransform = ptr;
-
-  if (ptr != NULL)
-    {
-    vtkEventBroker::GetInstance()->AddObservation(
-      ptr, vtkCommand::ModifiedEvent, this, this->MRMLCallbackCommand );
-    }
-
-  if ( this->ZFrameTransform != ptr )
-    {
-    this->Modified();
-    }
-
-}
+*/
 
 //----------------------------------------------------------------------------
 vtkStdString vtkMRMLProstateNavManagerNode::GetWorkflowStepsString()
@@ -547,4 +379,90 @@ bool vtkMRMLProstateNavManagerNode::SetWorkflowStepsFromString(const vtkStdStrin
     this->StepList->InsertNextValue(stepName);
     }
    return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLProstateNavManagerNode::SetAndObserveTargetPlanListNodeID(const char *nodeID)
+{
+  vtkSetAndObserveMRMLObjectMacro(this->TargetPlanListNode, NULL);
+  this->SetTargetPlanListNodeID(nodeID);
+  vtkMRMLFiducialListNode *tnode = this->GetTargetPlanListNode();
+  vtkSetAndObserveMRMLObjectMacro(this->TargetPlanListNode, tnode);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLFiducialListNode* vtkMRMLProstateNavManagerNode::GetTargetPlanListNode()
+{
+  vtkMRMLFiducialListNode* node = NULL;
+  if (this->GetScene() && this->TargetPlanListNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->TargetPlanListNodeID);
+    node = vtkMRMLFiducialListNode::SafeDownCast(snode);
+    }
+  return node;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLProstateNavManagerNode::SetAndObserveTargetCompletedListNodeID(const char *nodeID)
+{
+  vtkSetAndObserveMRMLObjectMacro(this->TargetCompletedListNode, NULL);
+  this->SetTargetCompletedListNodeID(nodeID);
+  vtkMRMLFiducialListNode *tnode = this->GetTargetCompletedListNode();
+  vtkSetAndObserveMRMLObjectMacro(this->TargetCompletedListNode, tnode);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLFiducialListNode* vtkMRMLProstateNavManagerNode::GetTargetCompletedListNode()
+{
+  vtkMRMLFiducialListNode* node = NULL;
+  if (this->GetScene() && this->TargetCompletedListNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->TargetCompletedListNodeID);
+    node = vtkMRMLFiducialListNode::SafeDownCast(snode);
+    }
+  return node;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLProstateNavManagerNode::SetAndObserveRobotNodeID(const char *nodeID)
+{
+  vtkSetAndObserveMRMLObjectMacro(this->RobotNode, NULL);
+
+  // update workflow steps from the new Robot node
+  // (the Manager node is the owner of workflow steps, as it may add additional steps or modify the steps that
+  // it gets from the robot)
+  if (this->GetScene() && nodeID != NULL )
+  {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(nodeID);
+    vtkMRMLRobotNode* node = vtkMRMLRobotNode::SafeDownCast(snode);
+    if (node != NULL)
+    {
+      SetWorkflowStepsFromString(node->GetWorkflowStepsString());    
+    }
+    else
+    {
+      SetWorkflowStepsFromString("");
+    }
+  }
+  else
+  {
+    SetWorkflowStepsFromString("");
+  }
+
+  this->SetRobotNodeID(nodeID);
+  vtkMRMLRobotNode *tnode = this->GetRobotNode();
+
+  vtkSetAndObserveMRMLObjectMacro(this->RobotNode, tnode);
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLRobotNode* vtkMRMLProstateNavManagerNode::GetRobotNode()
+{
+  vtkMRMLRobotNode* node = NULL;
+  if (this->GetScene() && this->RobotNodeID != NULL )
+    {
+    vtkMRMLNode* snode = this->GetScene()->GetNodeByID(this->RobotNodeID);
+    node = vtkMRMLRobotNode::SafeDownCast(snode);
+    }
+  return node;
 }

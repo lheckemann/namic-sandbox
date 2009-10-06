@@ -73,6 +73,8 @@ set(ProstateNav_SRCS
   vtkMRMLBrpRobotCommandNode.cxx
   vtkMRMLRobotDisplayNode.cxx
   vtkMRMLRobotNode.cxx
+  vtkMRMLTransPerinealProstateRobotNode.cxx
+  vtkMRMLTransRectalProstateRobotNode.cxx  
   vtkMRMLProstateNavManagerNode.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepSetUp.cxx

@@ -41,12 +41,9 @@ class vtkKWEntryWithLabel;
 class vtkKWLoadSaveButtonWithLabel;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkKWWizardWidget;
+class vtkSlicerNodeSelectorWidget;
 
 class vtkProstateNavStep;
-
-class vtkTransform;
-class vtkIGTLToMRMLCoordinate;
-class vtkIGTLToMRMLBrpRobotCommand;
 
 class vtkMRMLProstateNavManagerNode;
  
@@ -73,7 +70,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
     SLICE_RTIMAGE_INPLANE   = 3
   };
   
-  static const char* WorkPhaseStr[vtkProstateNavLogic::NumPhases];
   //ETX
   
  public:
@@ -99,6 +95,8 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // Get wizard widget
   vtkGetObjectMacro(WizardWidget, vtkKWWizardWidget);
 
+  vtkGetObjectMacro ( ProstateNavManager, vtkMRMLProstateNavManagerNode );
+
   // Get Target Fiducials (used in the wizard steps)
   vtkGetStringMacro ( FiducialListNodeID );
   vtkSetStringMacro ( FiducialListNodeID );
@@ -121,6 +119,9 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   void AddLogicObservers ( );
   void RemoveLogicObservers ( );
 
+  void AddMRMLObservers();
+  void RemoveMRMLObservers();
+
   // Description: 
   // Get the categorization of the module.
   const char *GetCategory() const { return "IGT"; }
@@ -133,12 +134,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
 
   void HandleMouseEvent(vtkSlicerInteractorStyle *style);
-
-  void         ProcessTimerEvents();
   
   // Description:
   // Describe behavior at module startup and exit.
-  virtual void Enter ( );
+  virtual void Enter (vtkMRMLNode *node);
   virtual void Exit ( );
   
   void Init();
@@ -157,33 +156,27 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   vtkProstateNavStep* GetStepPage(int i);
 
   //----------------------------------------------------------------
-  // Timer flags
-  //----------------------------------------------------------------
-  int TimerFlag;
-  int TimerInterval;
-
-  //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
   
+  // Configuration Frame
+
+  vtkSlicerNodeSelectorWidget* ProstateNavManagerSelectorWidget;
+  vtkSlicerNodeSelectorWidget* RobotSelectorWidget;
+
   //----------------------------------------------------------------
   // Workphase Frame
-  vtkKWEntry *ScannerStatusLabelDisp;
-  vtkKWEntry *RobotStatusLabelDisp;
   
-  // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
-  // directly from ProcessMRMLEvent(), we added following flags to update those GUI
-  // widgets in the timer handler.
-  // if flag == 0, the widget does not need to be updated()
-  // if flag == 1, the connector has connected to the target
-  // if flag == 2, the connector has disconnected from the target
-  int ScannerConnectedFlag;
-  int RobotConnectedFlag;
+  vtkKWFrame *StatusButtonFrame;
+  vtkKWPushButtonSet *StatusButtonSet;
 
-  vtkKWPushButtonSet *WorkPhaseButtonSet;
+  vtkKWFrame *WorkphaseButtonFrame;
+  vtkKWPushButtonSet *WorkphaseButtonSet;
   
   //----------------------------------------------------------------
   // Wizard Frame
+
+  vtkSlicerModuleCollapsibleFrame *WizardFrame;
   vtkKWWizardWidget *WizardWidget;
   
   //----------------------------------------------------------------
@@ -193,9 +186,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   vtkProstateNavLogic *Logic;
 
   vtkCallbackCommand *DataCallbackCommand;
-  vtkIGTLToMRMLCoordinate* CoordinateConverter;
-  vtkIGTLToMRMLBrpRobotCommand* CommandConverter;
- 
 
   //----------------------------------------------------------------
   // Target Fiducials
@@ -204,26 +194,31 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   char *FiducialListNodeID;
   vtkMRMLFiducialListNode *FiducialListNode;
 
-  void UpdateAll();
-  
+  void UpdateFromMRML();
+
  private:
 
   vtkProstateNavGUI ( const vtkProstateNavGUI& ); // Not implemented.
   void operator = ( const vtkProstateNavGUI& ); //Not implemented.
   
-  void BuildGUIForWorkPhaseFrame();
+  void BuildGUIForConfigurationFrame();
+  void BuildGUIForWorkphaseFrame();
   void BuildGUIForWizardFrame();
   void BuildGUIForHelpFrame();
-  void BuildGUIForDeviceFrame();
+
+  void UpdateStatusButtons();
+  void UpdateWorkflowSteps();
   
-  int  ChangeWorkPhase(int phase, int fChangeWizard=0);
+  int  ChangeWorkphase(int phase, int fChangeWizard=0);
   const char* AddZFrameModel(const char* nodeName);
 
   int Entered;
 
+  // store the currently displayed workflow steps
+  // if the same steps requested to be displayed, then nothing will happen
+  vtkStringArray* DisplayedWorkflowSteps;
 
   vtkMRMLProstateNavManagerNode* ProstateNavManager;
-
   
 };
 
