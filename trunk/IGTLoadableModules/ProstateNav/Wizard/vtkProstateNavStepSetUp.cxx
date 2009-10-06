@@ -33,6 +33,8 @@
 #include "vtkOpenIGTLinkIFLogic.h"
 #include "vtkOpenIGTLinkIFGUI.h"
 
+#include "vtkMRMLRobotNode.h"
+#include "vtkMRMLTransPerinealProstateRobotNode.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavStepSetUp);
@@ -268,9 +270,9 @@ void vtkProstateNavStepSetUp::ProcessGUIEvents( vtkObject *caller,
       && (event == vtkSlicerNodeSelectorWidget::NewNodeEvent || event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent))
     {
     vtkMRMLFiducialListNode* node = vtkMRMLFiducialListNode::SafeDownCast(this->TargetPlanFiducialSelector->GetSelected());
-    if (this->ProstateNavManager)
+    if (this->ProstateNavManager && node)
       {
-      this->ProstateNavManager->SetAndObserveTargetPlanList(node);
+      this->ProstateNavManager->SetAndObserveTargetPlanListNodeID(node->GetID());
       }
     }
 
@@ -278,19 +280,21 @@ void vtkProstateNavStepSetUp::ProcessGUIEvents( vtkObject *caller,
       && (event == vtkSlicerNodeSelectorWidget::NewNodeEvent || event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent))
     {
     vtkMRMLFiducialListNode* node = vtkMRMLFiducialListNode::SafeDownCast(this->TargetCompletedFiducialSelector->GetSelected());
-    if (this->ProstateNavManager)
+    if (this->ProstateNavManager && node)
       {
-      this->ProstateNavManager->SetAndObserveTargetCompletedList(node);
+      this->ProstateNavManager->SetAndObserveTargetCompletedListNodeID(node->GetID());
       }
     }
+
+  vtkMRMLTransPerinealProstateRobotNode* robotNode=GetRobotNode();
 
   if (this->RobotConnectorSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && (event == vtkSlicerNodeSelectorWidget::NewNodeEvent || event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent))
     {
     vtkMRMLIGTLConnectorNode* node = vtkMRMLIGTLConnectorNode::SafeDownCast(this->RobotConnectorSelector->GetSelected());
-    if (this->ProstateNavManager)
+    if (robotNode && node)
       {
-      this->ProstateNavManager->SetAndObserveRobotConnector(node);
+      robotNode->SetAndObserveRobotConnectorNodeID(node->GetID());
       }
     }
 
@@ -298,13 +302,20 @@ void vtkProstateNavStepSetUp::ProcessGUIEvents( vtkObject *caller,
       && (event == vtkSlicerNodeSelectorWidget::NewNodeEvent || event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent))
     {
     vtkMRMLIGTLConnectorNode* node = vtkMRMLIGTLConnectorNode::SafeDownCast(this->ScannerConnectorSelector->GetSelected());
-    if (this->ProstateNavManager)
+    if (robotNode && node)
       {
-      this->ProstateNavManager->SetAndObserveScannerConnector(node);
+      robotNode->SetAndObserveScannerConnectorNodeID(node->GetID());
       }
     }
 
 }
 
-
-
+vtkMRMLTransPerinealProstateRobotNode* vtkProstateNavStepSetUp::GetRobotNode()
+{
+  if (this->ProstateNavManager==NULL)
+  {
+    return NULL;
+  }
+  vtkMRMLTransPerinealProstateRobotNode* robotNode = vtkMRMLTransPerinealProstateRobotNode::SafeDownCast(this->ProstateNavManager->GetRobotNode());
+  return robotNode;
+}

@@ -35,11 +35,7 @@ public:
   virtual void ShowUserInterface();
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
 
-  void ShowZFrameModel();
-  void HideZFrameModel();
-
-  const char* AddZFrameModel(const char* nodeName); // returns Node ID
-  const char* AddZFrameTransform(const char* nodeName);
+  void ShowZFrameModel(bool show);
 
   void PerformZFrameCalibration(const char* filename);
 

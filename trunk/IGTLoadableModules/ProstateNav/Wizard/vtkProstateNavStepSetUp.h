@@ -25,6 +25,7 @@ class vtkKWCheckButton;
 class vtkKWPushButton;
 class vtkKWLabel;
 class vtkSlicerNodeSelectorWidget;
+class vtkMRMLTransPerinealProstateRobotNode;
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavStepSetUp :
   public vtkProstateNavStep
@@ -40,6 +41,8 @@ public:
 protected:
   vtkProstateNavStepSetUp();
   ~vtkProstateNavStepSetUp();
+
+  vtkMRMLTransPerinealProstateRobotNode* GetRobotNode();
 
   // GUI Widgets
   vtkSlicerNodeSelectorWidget* TargetPlanFiducialSelector;

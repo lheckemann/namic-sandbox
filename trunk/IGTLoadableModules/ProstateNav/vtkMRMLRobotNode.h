@@ -22,6 +22,12 @@
 #include "vtkObject.h"
 #include "vtkProstateNavWin32Header.h" 
 
+#include "vtkMRMLLinearTransformNode.h"
+
+class vtkMRMLModelNode;
+class vtkMRMLScalarVolumeNode;
+class vtkSlicerApplication;
+
 class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
 {
 
@@ -38,7 +44,22 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
     ChangeTargetEvent     = 200908,
     RobotMovedEvent       = 200910
   };
+
+  enum STATUS_ID {
+    StatusOff=0,
+    StatusOk,
+    StatusWarning,
+    StatusError
+  };
+
+  struct StatusDescriptor
+  {
+    std::string text;
+    STATUS_ID indicator; // this determines the background color
+  };
   //ETX
+
+
 
  public:
 
@@ -66,17 +87,63 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   virtual void Copy(vtkMRMLNode *node);
 
   // Description:
+  // Updates other nodes in the scene depending on this node
+  // or updates this node if it depends on other nodes
+  virtual void UpdateScene(vtkMRMLScene *);
+
+// Description:
+  // Update the stored reference to another node in the scene
+  void UpdateReferenceID(const char *oldID, const char *newID);
+
+  // Description:
+  // Updates this node if it depends on other nodes 
+  // when the node is deleted in the scene
+  void UpdateReferences();
+
+  // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
     {return "Robot";};
 
+  virtual const char* GetWorkflowStepsString()
+    {return "PointTargeting"; };
+
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
 
+  // Description:
+  // Get/Set robot target (vtkMRMLLinearTransformNode)
+  vtkGetStringMacro(TargetTransformNodeID);
+  vtkMRMLTransformNode* GetTargetTransformNode();
+  void SetAndObserveTargetTransformNodeID(const char *transformNodeID);
+
+  virtual int Enter(vtkSlicerApplication* app);
+
+  virtual int  MoveTo(const char *transformNodeId) { return 0; };
+
+  virtual void SwitchStep(const char *stepName) {};
+
+  virtual int OnTimer() {return 1; };
+
+  virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode) { return 0; };
+
+  // Description:
+  // Get calibration object (Z frame, fiducials, etc.) model and transform
+  virtual const char* GetCalibrationObjectModelId() {return ""; };
+  virtual const char* GetCalibrationObjectTransformId() { return ""; };
+
+
+  int GetStatusDescriptorCount();
+  
+  // Description:
+  // returns 0 if failed
+  //BTX
+  int GetStatusDescriptor(unsigned int index, std::string &text, STATUS_ID &indicator);
+  //ETX
 
  protected:
   //----------------------------------------------------------------
-  // Constructor and destroctor
+  // Constructor and destructor
   //----------------------------------------------------------------
   
   vtkMRMLRobotNode();
@@ -84,6 +151,13 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   vtkMRMLRobotNode(const vtkMRMLRobotNode&);
   void operator=(const vtkMRMLRobotNode&);
 
+  vtkSetReferenceStringMacro(TargetTransformNodeID);
+  char *TargetTransformNodeID;
+  vtkMRMLTransformNode* TargetTransformNode;
+
+  //BTX
+  std::vector<StatusDescriptor> StatusDescriptors;
+  //ETX
 
  protected:
   //

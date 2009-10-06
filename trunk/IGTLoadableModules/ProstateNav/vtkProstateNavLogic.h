@@ -17,7 +17,6 @@
 // This class manages the logic associated with tracking device for
 // IGT. 
 
-
 #ifndef __vtkProstateNavLogic_h
 #define __vtkProstateNavLogic_h
 
@@ -30,12 +29,6 @@
 #include "vtkSlicerApplication.h"
 #include "vtkCallbackCommand.h"
 
-#include "vtkCylinderSource.h"
-#include "vtkTransformPolyDataFilter.h"
-#include "vtkTransform.h"
-#include "vtkAppendPolyData.h"
-
-
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLSliceNode.h"
 
@@ -43,43 +36,28 @@ class vtkProstateNavGUI;
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic 
 {
-
- public:
-  //BTX
-  enum WorkPhase {
-    StartUp = 0,
-    Planning,
-    Calibration,
-    Targeting,
-    Manual,
-    Emergency,
-    NumPhases,
-  };
-  enum {  // Events
-    LocatorUpdateEvent      = 50000,
-    StatusUpdateEvent       = 50001,
-  };
-
-  //ETX
   
  public:
+
+   //BTX
+   enum 
+   {  // Events
+     LocatorUpdateEvent      = 50000,
+     StatusUpdateEvent       = 50001,
+   };
+   //ETX
+
   
   static vtkProstateNavLogic *New();
   
   vtkTypeRevisionMacro(vtkProstateNavLogic,vtkObject);
   
-  vtkGetMacro ( Connection,              bool );
-  vtkGetMacro ( RobotWorkPhase,           int );
-  vtkGetMacro ( ScannerWorkPhase,         int );
-
-
   void SetGUI(vtkProstateNavGUI* gui) { this->GUI = gui; };
   vtkProstateNavGUI* GetGUI()         { return this->GUI; };
 
-  void PrintSelf(ostream&, vtkIndent);
+  void PrintSelf(ostream&, vtkIndent);  
   
-  
-  int  Enter();
+  int  Enter(vtkSlicerApplication* app);
   void TimerHandler();
   
   int  RobotStop();
@@ -89,7 +67,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   int  RobotMoveTo(float position[3], float orientation[4]);
 
   int  RobotMoveTo();
-  int  SendZFrame();
   
   int  ScanStart();
   int  ScanPause();
@@ -100,13 +77,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   //                            std::vector<float>& position, std::vector<float>& orientation);
   //ETX
   
-  const char* GetRobotCommandNodeID()    { return this->RobotCommandNodeID.c_str();   };
-  const char* GetRobotTargetNodeID()     { return this->RobotTargetNodeID.c_str();    };
-  const char* GetZFrameTransformNodeID() { return this->ZFrameTransformNodeID.c_str();};
-  const char* GetZFrameModelNodeID()     { return this->ZFrameModelNodeID.c_str();};
-
  protected:
   
+  void UpdateAll();
+
   vtkProstateNavLogic();
   ~vtkProstateNavLogic();
   vtkProstateNavLogic(const vtkProstateNavLogic&);
@@ -114,44 +88,24 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
 
+  /*
   void UpdateAll();
   void UpdateSliceDisplay();
   void UpdateLocator();
-
-
-  const char* AddZFrameModel(const char* nodeName);
+  */
 
   vtkCallbackCommand *DataCallbackCommand;
-
   
  private:
   
   vtkProstateNavGUI* GUI;
 
+  /*
   bool  Connected;
   bool  RealtimeImageUpdate;
+  */
 
   int   TimerOn;
-
-  //BTX
-  std::string RobotCommandNodeID;   
-  std::string RobotTargetNodeID;    
-  std::string ZFrameTransformNodeID;
-  std::string ZFrameModelNodeID;
-  //ETX
-
-
-  //----------------------------------------------------------------
-  // Locator
-  //----------------------------------------------------------------
-
-  // Junichi Tokuda on 11/27/2007:
-  // What's a difference between LocatorMatrix and Locator Transform???
-
-  bool  Connection;  
-  int   RobotWorkPhase;
-  int   ScannerWorkPhase;
-
 
 };
 

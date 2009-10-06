@@ -36,6 +36,8 @@
 #include "vtkMRMLLinearTransformNode.h"
 #include "igtlMath.h"
 
+#include "vtkMRMLRobotNode.h"
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavTargetingStep);
 vtkCxxRevisionMacro(vtkProstateNavTargetingStep, "$Revision: 1.1 $");
@@ -276,7 +278,7 @@ void vtkProstateNavTargetingStep::ShowUserInterface()
     
     if (fidGUI)
       {
-      vtkMRMLFiducialListNode* fidNode = this->GetProstateNavManager()->GetTargetPlanList();
+      vtkMRMLFiducialListNode* fidNode = this->GetProstateNavManager()->GetTargetPlanListNode();
       if (fidNode)
         {
         fidGUI->Enter();
@@ -322,10 +324,8 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
       orientation[2] = (float) matrix->GetElementValueAsDouble(0, 2);
       orientation[3] = (float) matrix->GetElementValueAsDouble(0, 3);
 
-      //vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->
-      //  GetNodeByID(this->GetLogic()->GetRobotTargetNodeID());
-      //vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
-      vtkMRMLLinearTransformNode* transformNode = this->GetProstateNavManager()->GetRobotTarget();
+      vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
+      vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
 
       if (transformNode)
         {
@@ -367,13 +367,7 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
         transformToParent->DeepCopy(matrix);
 
         // Send move to command 
-        vtkMRMLBrpRobotCommandNode* cnode = this->GetProstateNavManager()->GetRobotCommand();
-        if (cnode)
-          {
-          cnode->SetTargetTransformNodeID(transformNode->GetID());
-          cnode->PushOutgoingCommand("MOVE_TO");
-          cnode->InvokeEvent(vtkCommand::ModifiedEvent);
-          }
+        this->GetProstateNavManager()->GetRobotNode()->MoveTo(transformNode->GetID());
 
         }
       }
@@ -405,37 +399,37 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
   // -----------------------------------------------------------------
   // Modified Event
 
-  if (node == this->GetProstateNavManager()->GetTargetPlanList()
+  if (node == this->GetProstateNavManager()->GetTargetPlanListNode()
       && event == vtkCommand::ModifiedEvent)
     {
-    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanList());
+    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanListNode());
     }
 
   // -----------------------------------------------------------------
   // Node Added Event : when a fiducial is added to the list
 
-  if (node == this->GetProstateNavManager()->GetTargetPlanList()
+  if (node == this->GetProstateNavManager()->GetTargetPlanListNode()
       && event == vtkMRMLScene::NodeAddedEvent)
     {
-    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanList());
+    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanListNode());
     }
 
   // -----------------------------------------------------------------
   // Fiducial Modified Event
 
-  else if (node == this->GetProstateNavManager()->GetTargetPlanList()
+  else if (node == this->GetProstateNavManager()->GetTargetPlanListNode()
            && event == vtkMRMLFiducialListNode::FiducialModifiedEvent)
     {
-    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanList());
+    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanListNode());
     }
   
   // -----------------------------------------------------------------
   // Display Modified Event
   
-  else if (node == this->GetProstateNavManager()->GetTargetPlanList()
+  else if (node == this->GetProstateNavManager()->GetTargetPlanListNode()
            && event == vtkMRMLFiducialListNode::DisplayModifiedEvent)
     {
-    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanList());
+    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanListNode());
     }
   
 }
@@ -448,8 +442,8 @@ void vtkProstateNavTargetingStep::UpdateMRMLObserver()
   if (this->GetProstateNavManager())
     {
 
-    vtkMRMLFiducialListNode* plan      = this->GetProstateNavManager()->GetTargetPlanList();
-    vtkMRMLFiducialListNode* completed = this->GetProstateNavManager()->GetTargetCompletedList();
+    vtkMRMLFiducialListNode* plan      = this->GetProstateNavManager()->GetTargetPlanListNode();
+    vtkMRMLFiducialListNode* completed = this->GetProstateNavManager()->GetTargetCompletedListNode();
 
     if (plan && completed)
       {
@@ -466,7 +460,7 @@ void vtkProstateNavTargetingStep::UpdateMRMLObserver()
         ->SetAndObserveObjectEvents(vtkObjectPointer(&(plan)),(plan),(events));
       if ( oldNode != (plan) )
         {
-        this->GetProstateNavManager()->SetAndObserveTargetPlanList(plan);
+        this->GetProstateNavManager()->SetAndObserveTargetPlanListNodeID(plan->GetID());
         this->InvokeEvent (vtkCommand::ModifiedEvent);
         } 
 
@@ -476,7 +470,7 @@ void vtkProstateNavTargetingStep::UpdateMRMLObserver()
         ->SetAndObserveObjectEvents(vtkObjectPointer(&(completed)),(completed),(events));
       if ( oldNode2 != (completed) )
         {
-        this->GetProstateNavManager()->SetAndObserveTargetPlanList(completed);
+        this->GetProstateNavManager()->SetAndObserveTargetPlanListNodeID(completed->GetID());
         this->InvokeEvent (vtkCommand::ModifiedEvent);
         } 
 
@@ -491,7 +485,7 @@ void vtkProstateNavTargetingStep::UpdateMRMLObserver()
 void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char * str)
 {
 
-  vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanList();
+  vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanListNode();
 
   if (fidList == NULL)
     {
@@ -566,7 +560,7 @@ void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char
 void vtkProstateNavTargetingStep::OnMultiColumnListSelectionChanged()
 {
 
-  vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanList();
+  vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanListNode();
 
   if (fidList == NULL)
     {

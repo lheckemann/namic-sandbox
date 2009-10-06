@@ -23,13 +23,10 @@
 #include "vtkProstateNavWin32Header.h" 
 
 #include "vtkMRMLFiducialListNode.h"
-#include "vtkMRMLIGTLConnectorNode.h"
-#include "vtkMRMLBrpRobotCommandNode.h"
-#include "vtkMRMLLinearTransformNode.h"
-#include "vtkMRMLModelNode.h"
 
 class vtkProstateNavStep;
 class vtkStringArray;
+class vtkMRMLRobotNode;
 
 class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 {
@@ -48,18 +45,11 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   //----------------------------------------------------------------
   // Get and Set Macros
   //----------------------------------------------------------------
-  vtkGetObjectMacro ( TargetPlanList, vtkMRMLFiducialListNode );
-  vtkGetObjectMacro ( TargetCompletedList, vtkMRMLFiducialListNode );
+  //vtkGetObjectMacro ( TargetPlanList, vtkMRMLFiducialListNode );
+  //vtkGetObjectMacro ( TargetCompletedList, vtkMRMLFiducialListNode );
 
-  vtkGetObjectMacro ( RobotConnector, vtkMRMLIGTLConnectorNode );
-  vtkGetObjectMacro ( ScannerConnector, vtkMRMLIGTLConnectorNode );
-
-  vtkGetObjectMacro ( RobotCommand, vtkMRMLBrpRobotCommandNode );
-  vtkGetObjectMacro ( RobotTarget, vtkMRMLLinearTransformNode );
-  vtkGetObjectMacro ( ZFrameTransform, vtkMRMLLinearTransformNode );
-
-  vtkGetObjectMacro ( ZFrameModel, vtkMRMLModelNode );
-  vtkSetObjectMacro ( ZFrameModel, vtkMRMLModelNode );
+  //void SetAndObserveRobotNode(vtkMRMLRobotNode* ptr);
+  //vtkGetObjectMacro ( RobotNode, vtkMRMLRobotNode );
 
   //----------------------------------------------------------------
   // Standard methods for MRML nodes
@@ -83,6 +73,20 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Description:
   // Copy the node's attributes to this object
   virtual void Copy(vtkMRMLNode *node);
+
+  // Description:
+  // Updates other nodes in the scene depending on this node
+  // or updates this node if it depends on other nodes
+  virtual void UpdateScene(vtkMRMLScene *);
+
+// Description:
+  // Update the stored reference to another node in the scene
+  void UpdateReferenceID(const char *oldID, const char *newID);
+
+  // Description:
+  // Updates this node if it depends on other nodes 
+  // when the node is deleted in the scene
+  void UpdateReferences();
 
   // Description:
   // Get node XML tag name (like Volume, Model)
@@ -124,41 +128,22 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   
   // Description:
   // Set and start observing target plan list
-  void SetAndObserveTargetPlanList(vtkMRMLFiducialListNode* ptr);
+  //void SetAndObserveTargetPlanList(vtkMRMLFiducialListNode* ptr);
+  vtkGetStringMacro(TargetPlanListNodeID);
+  vtkMRMLFiducialListNode* GetTargetPlanListNode();
+  void SetAndObserveTargetPlanListNodeID(const char *targetPlanListNodeID);
 
   // Description:
   // Set and start observing completed target list
-  void SetAndObserveTargetCompletedList(vtkMRMLFiducialListNode* ptr);
+  //void SetAndObserveTargetCompletedList(vtkMRMLFiducialListNode* ptr);
+  vtkGetStringMacro(TargetCompletedListNodeID);
+  vtkMRMLFiducialListNode* GetTargetCompletedListNode();
+  void SetAndObserveTargetCompletedListNodeID(const char *targetCompletedListNodeID);
 
-  //----------------------------------------------------------------
-  // Connectors
-  //----------------------------------------------------------------
+  vtkGetStringMacro(RobotNodeID);
+  vtkMRMLRobotNode* GetRobotNode();
+  void SetAndObserveRobotNodeID(const char *robotNodeID);
 
-  // Description:
-  // Set and start observing OpenIGTLink connector for robot
-  void SetAndObserveRobotConnector(vtkMRMLIGTLConnectorNode* ptr);
-
-  // Description:
-  // Set and start observing OpenIGTLink connector for scanner
-  void SetAndObserveScannerConnector(vtkMRMLIGTLConnectorNode* ptr);
-
-  //----------------------------------------------------------------
-  // Commands
-  //----------------------------------------------------------------
-
-  // Description:
-  // Set and start observing OpenIGTLink connector for scanner
-  void SetAndObserveRobotCommand(vtkMRMLBrpRobotCommandNode* ptr);
-
-  // Description:
-  // Set and start observing target for robot 
-  void SetAndObserveRobotTarget(vtkMRMLLinearTransformNode* ptr);
-
-  // Description:
-  // Set and start observing Z-frame transform
-  void SetAndObserveZFrameTransform(vtkMRMLLinearTransformNode* ptr);
-
-  
  protected:
   //----------------------------------------------------------------
   // Constructor and destroctor
@@ -184,17 +169,20 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   int CurrentStep;
   int PreviousStep;
   
-  vtkMRMLFiducialListNode* TargetPlanList;
-  vtkMRMLFiducialListNode* TargetCompletedList;
+  //vtkMRMLFiducialListNode* TargetPlanList;
+  vtkSetReferenceStringMacro(TargetPlanListNodeID);
+  char *TargetPlanListNodeID;
+  vtkMRMLFiducialListNode* TargetPlanListNode;
 
-  vtkMRMLIGTLConnectorNode* RobotConnector;
-  vtkMRMLIGTLConnectorNode* ScannerConnector;
+  //vtkMRMLFiducialListNode* TargetCompletedList;  
+  vtkSetReferenceStringMacro(TargetCompletedListNodeID);
+  char *TargetCompletedListNodeID;
+  vtkMRMLFiducialListNode* TargetCompletedListNode;
 
-  vtkMRMLBrpRobotCommandNode* RobotCommand;
-  vtkMRMLLinearTransformNode* RobotTarget;
-  vtkMRMLLinearTransformNode* ZFrameTransform;
-  vtkMRMLModelNode* ZFrameModel;
-  
+  //vtkMRMLRobotNode* RobotNode;
+  vtkSetReferenceStringMacro(RobotNodeID);
+  char *RobotNodeID;
+  vtkMRMLRobotNode* RobotNode;
 
 };
 
