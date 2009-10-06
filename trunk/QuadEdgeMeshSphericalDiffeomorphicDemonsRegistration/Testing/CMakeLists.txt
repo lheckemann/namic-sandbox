@@ -240,7 +240,7 @@ ADD_TEST(DemonsFilterTest5
   100.0    # SigmaX
   1.0      # Lambda
   2        # Smoothing Iterations
-  20000    # maximum number of iterations
+  200      # maximum number of iterations
   )
 
 ADD_TEST(VersorOperationsTest1
