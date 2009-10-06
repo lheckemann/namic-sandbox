@@ -31,10 +31,11 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 {
   this->SetNumberOfRequiredInputs( 2 );
   this->SetNumberOfRequiredOutputs( 2 );
-  this->SetNumberOfOutputs( 2 );
+  this->SetNumberOfOutputs( 3 );
 
   this->SetNthOutput( 0, OutputMeshType::New() );
   this->SetNthOutput( 1, FixedMeshType::New() );
+  this->SetNthOutput( 2, DestinationPointSetType::New() );
 
   this->m_BasisSystemAtNode = BasisSystemContainerType::New();
   this->m_DestinationPoints = DestinationPointContainerType::New();
@@ -148,6 +149,20 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+const typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::DestinationPointSetType *
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+GetFinalDestinationPoints() const
+{
+  if (this->GetNumberOfOutputs() < 3)
+    {
+    return 0;
+    }
+  
+  return dynamic_cast< const DestinationPointSetType * >(this->ProcessObject::GetOutput(2));
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void 
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::CopyInitialDestinationPoints()
@@ -212,6 +227,7 @@ GenerateData()
   this->ComputeMappedMovingValueAtEveryNode();
   this->AssignResampledMovingValuesToOutputMesh();
   this->ComposeFixedMeshOutputDisplacedToMovingMesh();
+  this->ComposeDestinationPointsOutputPointSet();
 }
 
 
@@ -1134,6 +1150,23 @@ CopyDestinationPointsToDeformedFixedMesh()
 }
 
 
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+ComposeDestinationPointsOutputPointSet()
+{
+  DestinationPointSetType * destinationPointSet =
+    dynamic_cast< DestinationPointSetType * >(this->ProcessObject::GetOutput(2));
+
+  if( !destinationPointSet )
+    {
+    itkExceptionMacro("Problem found while composing the destination PointSet");
+    }
+
+  destinationPointSet->SetPoints( this->m_DestinationPoints );
+}
+
+ 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void 
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
