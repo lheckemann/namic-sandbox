@@ -72,7 +72,7 @@ public:
   typedef typename PointType::VectorType                  VectorType;
 
   /** Type for the container of destination points of the deformation field. */
-  typedef VectorContainer< PointIdentifier, PointType >   DestinationPointsContainerType;
+  typedef typename TInputMesh::PointsContainer            DestinationPointsContainerType;
 
   /** 
    * Interpolate the mesh at a point position.

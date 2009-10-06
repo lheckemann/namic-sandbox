@@ -73,7 +73,7 @@ public:
   typedef VectorContainer< PointIdentifier, BasisSystemType >   BasisSystemContainerType;
   typedef typename BasisSystemContainerType::Pointer            BasisSystemContainerPointer;
   typedef typename BasisSystemContainerType::Iterator           BasisSystemContainerIterator;
-  typedef VectorContainer< PointIdentifier, PointType >         DestinationPointContainerType;
+  typedef FixedPointsContainer                                  DestinationPointContainerType;
   typedef typename DestinationPointContainerType::Pointer       DestinationPointContainerPointer;
   typedef typename DestinationPointContainerType::Iterator      DestinationPointIterator;
   typedef typename DestinationPointContainerType::ConstIterator DestinationPointConstIterator;

@@ -217,7 +217,8 @@ int main( int argc, char * argv [] )
 
   transform->SetParameters( finalParameters );
 
-  typedef itk::PointSet< float, 3 >   PointSetType;
+  typedef FixedMeshType::Traits   MeshTraits;
+  typedef itk::PointSet< MeshPixelType, Dimension, MeshTraits >   PointSetType;
 
   typedef itk::DeformationFieldFromTransformMeshFilter<
     FixedMeshType, PointSetType >  DeformationFieldFromTransformFilterType;
@@ -273,6 +274,11 @@ int main( int argc, char * argv [] )
   demonsFilter->SetLambda( lambda );
   demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
 
+  //
+  // Initialize the deformable registration stage with 
+  // the results of the Rigid Registration.
+  //
+  demonsFilter->SetDestinationPoints( destinationPoints->GetPoints() );
 
   try
     {
