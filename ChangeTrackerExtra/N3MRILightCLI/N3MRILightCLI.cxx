@@ -19,8 +19,8 @@ int main( int argc, char *argv[] )
   // TODO: handle properly various image types
   typedef float RealType;
 
-  typedef itk::Image<RealType, 3> ImageType;
-  typedef itk::Image<unsigned char, 3> MaskImageType;
+  typedef itk::OrientedImage<RealType, 3> ImageType;
+  typedef itk::OrientedImage<unsigned char, 3> MaskImageType;
 
   typedef itk::ImageFileReader<ImageType> ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
