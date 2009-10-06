@@ -1157,6 +1157,30 @@ PrintOutDeformationVectors()
   std::cout << std::endl;
 }
 
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+PrintSelf(std::ostream& os, Indent indent) const
+{
+  Superclass::PrintSelf(os,indent);
+
+  os << "User provided initial destination points : " << 
+    (this->m_UserProvidedInitialDestinationPoints ? " true " : " false " ) << std::endl;
+  os << "Sphere center: " << this->m_SphereCenter << std::endl;
+  os << "Sphere radius: " << this->m_SphereRadius << std::endl;
+  os << "Epsilon : " << this->m_Epsilon << std::endl;
+  os << "Sigma X : " << this->m_SigmaX << std::endl;
+  os << "Lambda : " << this->m_Lambda << std::endl;
+  os << "Maximum number of iterations : " << this->m_MaximumNumberOfIterations << std::endl;
+  os << "Maximum number of smoothing iterations : " << this->m_MaximumNumberOfSmoothingIterations << std::endl;
+  os << "Fixed nodes sigma : " << this->m_FixedNodesSigmas.GetPointer() << std::endl;
+  os << "Shortest edge length : " << this->m_ShortestEdgeLength << std::endl;
+  os << "Scaling and squaring number of iterations : " << this->m_ScalingAndSquaringNumberOfIterations << std::endl;
+
+}
+
+
 }
 
 #endif
