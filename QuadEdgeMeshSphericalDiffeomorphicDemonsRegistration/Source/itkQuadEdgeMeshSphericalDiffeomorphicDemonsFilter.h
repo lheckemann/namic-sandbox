@@ -52,12 +52,15 @@ public:
   typedef TMovingMesh                                       MovingMeshType;
   typedef typename  FixedMeshType::ConstPointer             FixedMeshConstPointer;
   typedef typename  FixedMeshType::PointType                PointType;
+  typedef typename  FixedMeshType::PixelType                FixedPixelType;
   typedef typename  FixedMeshType::PointsContainer          FixedPointsContainer;
   typedef typename  FixedPointsContainer::Iterator          FixedPointsIterator;
   typedef typename  FixedPointsContainer::ConstIterator     FixedPointsConstIterator;
   typedef typename  FixedMeshType::PointDataContainer       FixedPointDataContainer;
   typedef typename  FixedPointDataContainer::ConstIterator  FixedPointDataConstIterator;
   typedef typename  MovingMeshType::ConstPointer            MovingMeshConstPointer;
+
+  itkStaticConstMacro( PointDimension, unsigned int, FixedMeshType::PointDimension );
 
   /** Output types. */
   typedef TOutputMesh                                       OutputMeshType;
@@ -67,21 +70,24 @@ public:
   typedef typename OutputPointDataContainer::Iterator       OutputPointDataContainerIterator;
  
   /** Declaration of internal types, some of which are exposed for monitoring purposes */
-  typedef typename PointType::VectorType                        VectorType;
-  typedef TriangleBasisSystem< VectorType, 2 >                  BasisSystemType;
-  typedef typename FixedMeshType::PointIdentifier               PointIdentifier;
-  typedef VectorContainer< PointIdentifier, BasisSystemType >   BasisSystemContainerType;
-  typedef typename BasisSystemContainerType::Pointer            BasisSystemContainerPointer;
-  typedef typename BasisSystemContainerType::Iterator           BasisSystemContainerIterator;
-  typedef FixedPointsContainer                                  DestinationPointContainerType;
-  typedef typename DestinationPointContainerType::Pointer       DestinationPointContainerPointer;
-  typedef typename DestinationPointContainerType::Iterator      DestinationPointIterator;
-  typedef typename DestinationPointContainerType::ConstIterator DestinationPointConstIterator;
-  typedef VectorContainer< PointIdentifier, double >            NodeSigmaContainerType;
-  typedef typename NodeSigmaContainerType::Pointer              NodeSigmaContainerPointer;
-  typedef typename NodeSigmaContainerType::Iterator             NodeSigmaContainerIterator;
-  typedef typename NodeSigmaContainerType::ConstPointer         NodeSigmaContainerConstPointer;
-  typedef typename NodeSigmaContainerType::ConstIterator        NodeSigmaContainerConstIterator;
+  typedef typename PointType::VectorType                          VectorType;
+  typedef TriangleBasisSystem< VectorType, 2 >                    BasisSystemType;
+  typedef typename FixedMeshType::PointIdentifier                 PointIdentifier;
+  typedef VectorContainer< PointIdentifier, BasisSystemType >     BasisSystemContainerType;
+  typedef typename BasisSystemContainerType::Pointer              BasisSystemContainerPointer;
+  typedef typename BasisSystemContainerType::Iterator             BasisSystemContainerIterator;
+  typedef typename FixedMeshType::Traits                          FixedMeshTraits;
+  typedef PointSet< FixedPixelType, PointDimension, FixedMeshTraits >  
+                                                                  DestinationPointSetType;
+  typedef typename DestinationPointSetType::PointsContainer       DestinationPointContainerType;
+  typedef typename DestinationPointContainerType::Pointer         DestinationPointContainerPointer;
+  typedef typename DestinationPointContainerType::Iterator        DestinationPointIterator;
+  typedef typename DestinationPointContainerType::ConstIterator   DestinationPointConstIterator;
+  typedef VectorContainer< PointIdentifier, double >              NodeSigmaContainerType;
+  typedef typename NodeSigmaContainerType::Pointer                NodeSigmaContainerPointer;
+  typedef typename NodeSigmaContainerType::Iterator               NodeSigmaContainerIterator;
+  typedef typename NodeSigmaContainerType::ConstPointer           NodeSigmaContainerConstPointer;
+  typedef typename NodeSigmaContainerType::ConstIterator          NodeSigmaContainerConstIterator;
 
   typedef Vector<double, 3>                                       VelocityVectorType;
   typedef VectorContainer< PointIdentifier, VelocityVectorType >  VelocityVectorContainer;
@@ -111,16 +117,22 @@ public:
   itkGetConstObjectMacro( BasisSystemAtNode, BasisSystemContainerType );
 
   /** Returns the array of destination points resulting from applying the
-   * deformation field to all nodes of the Fixed Mesh. The content of this array
+   * deformation field to all nodes of the Fixed Mesh. The points are stored
+   * in the point container of an itk::PointSet. The content of this array
    * is only valid after the first iteration of the filter execution has been
    * completed. It can be used for tracking the progress of the filter. */
-  itkGetConstObjectMacro( DestinationPoints, DestinationPointContainerType );
+  const DestinationPointSetType * GetInitialDestinationPoints() const;
 
   /** Set the initial list of destination points. This makes possible to use the
    * outcome of a deformable registration as the input for another one. It is
    * also possible to initialize such array of destination points by using a 
-   * low degrees of freedom transform, such as a rigid transform, for example. */
-  void SetDestinationPoints( const DestinationPointContainerType * );
+   * low degrees of freedom transform, such as a rigid transform, for example.
+   * The destination points are stored as the points of an itk::PointSet class. 
+   * This is used as a data pipeline input, meaning that when calling Update()
+   * in this filter, the pipeline is going to verify if the content of the
+   * PointSet is computed by a preceding filter, and in such case, whether
+   * the preceding filter must be re-executed or not. */
+  void SetInitialDestinationPoints( const DestinationPointSetType * );
 
 
   /** Set/Get the maximum number of iterations that the filter will be
@@ -213,6 +225,8 @@ private:
   void ComputeBasisSystemAtEveryNode();
   void ComputeInitialArrayOfDestinationPoints();
   void InitializeInterpolators();
+  void CopyInitialDestinationPoints();
+  void CopySourcePoinstAsDestinationPoints();
 
   void RunIterations();
   void ComputeMappedMovingValueAtEveryNode();
@@ -287,7 +301,6 @@ private:
   typedef VectorContainer< PointIdentifier, MovingPixelRealType > ResampledMovingValuesContainerType;
   typedef typename ResampledMovingValuesContainerType::Iterator   ResampledMovingValuesContainerIterator;
 
-  typedef typename FixedMeshType::PixelType                     FixedPixelType;
   typedef typename NumericTraits< FixedPixelType >::RealType    FixedPixelRealType;
 
   /** Container that stores values resampled from the Moving mesh field at the

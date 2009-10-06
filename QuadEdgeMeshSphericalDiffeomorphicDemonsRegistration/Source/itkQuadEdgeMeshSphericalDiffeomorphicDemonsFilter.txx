@@ -88,8 +88,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     this->m_FixedMesh = fixedMesh;
 
     // Process object is not const-correct so the const_cast is required here
-    this->ProcessObject::SetNthInput(0, 
-                                   const_cast< FixedMeshType *>( fixedMesh ) );
+    this->ProcessObject::SetNthInput(0, const_cast< FixedMeshType *>( fixedMesh ) );
     
     this->Modified(); 
     } 
@@ -118,13 +117,56 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void 
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
-::SetDestinationPoints( const DestinationPointContainerType * destinationPoints )
+::SetInitialDestinationPoints( const DestinationPointSetType * destinationPointSet )
 {
+  itkDebugMacro("setting Destination PointSet to " << destinationPointSet ); 
+
+  if (this->GetInitialDestinationPoints() != destinationPointSet ) 
+    { 
+    // Process object is not const-correct so the const_cast is required here
+    this->ProcessObject::SetNthInput(2, const_cast< DestinationPointSetType *>( destinationPointSet ) );
+    
+    this->m_UserProvidedInitialDestinationPoints = true;
+
+    this->Modified(); 
+    } 
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+const typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::DestinationPointSetType *
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
+::GetInitialDestinationPoints() const
+{
+  if (this->GetNumberOfInputs() < 3)
+    {
+    return 0;
+    }
+  
+  return static_cast<const DestinationPointSetType * >(this->ProcessObject::GetInput(2) );
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void 
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
+::CopyInitialDestinationPoints()
+{
+  const DestinationPointSetType * destinationPointSet = 
+    static_cast<const DestinationPointSetType * >( this->ProcessObject::GetInput(2) );
+
+  const DestinationPointContainerType * destinationPoints = destinationPointSet->GetPoints();
+
   itkDebugMacro("setting Destination Points to " << destinationPoints ); 
 
   if( destinationPoints == NULL )
     {
     itkExceptionMacro("Pointer to DestinationPoints was NULL");
+    }
+
+  if( destinationPoints->Size() != this->m_FixedMesh->GetNumberOfPoints() )
+    {
+    itkExceptionMacro("Number of destination points does not match fixed mesh number of points");
     }
 
   this->m_DestinationPoints = DestinationPointContainerType::New();
@@ -290,17 +332,23 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeInitialArrayOfDestinationPoints()
 {
-
-  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
-
   if( this->m_UserProvidedInitialDestinationPoints )
     {
-    if( this->m_DestinationPoints->Size() != points->Size() )
-      {
-      itkExceptionMacro("Number of destination points does not match fixed mesh number of points");
-      }
-    return;
+    this->CopyInitialDestinationPoints();
     }
+  else
+    {
+    this->CopySourcePoinstAsDestinationPoints();
+    }
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+CopySourcePoinstAsDestinationPoints()
+{
+  const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
 
   FixedPointsConstIterator srcPointItr = points->Begin();
 
