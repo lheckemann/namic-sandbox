@@ -116,11 +116,9 @@ public:
    * successfully. */
   itkGetConstObjectMacro( BasisSystemAtNode, BasisSystemContainerType );
 
-  /** Returns the array of destination points resulting from applying the
+  /** Returns the array of destination points used for initializing the
    * deformation field to all nodes of the Fixed Mesh. The points are stored
-   * in the point container of an itk::PointSet. The content of this array
-   * is only valid after the first iteration of the filter execution has been
-   * completed. It can be used for tracking the progress of the filter. */
+   * in the point container of an itk::PointSet. */
   const DestinationPointSetType * GetInitialDestinationPoints() const;
 
   /** Set the initial list of destination points. This makes possible to use the
@@ -134,6 +132,12 @@ public:
    * the preceding filter must be re-executed or not. */
   void SetInitialDestinationPoints( const DestinationPointSetType * );
 
+  /** Returns the array of destination points resulting from applying the
+   * deformation field to all nodes of the Fixed Mesh. The points are stored
+   * in the point container of an itk::PointSet. The content of this array
+   * is only valid after the first iteration of the filter execution has been
+   * completed. It can be used for tracking the progress of the filter. */
+  const DestinationPointSetType * GetFinalDestinationPoints() const;
 
   /** Set/Get the maximum number of iterations that the filter will be
    * allowed to run.  The default is set to 50. */
@@ -239,6 +243,7 @@ private:
   void ConvertTangentVectorFieldToDeformationField();
   void AssignResampledMovingValuesToOutputMesh();
   void ComposeFixedMeshOutputDisplacedToMovingMesh();
+  void ComposeDestinationPointsOutputPointSet();
   void CopyDestinationPointsToDeformedFixedMesh();
   void ComputeScalingAndSquaringNumberOfIterations();
   void ComputeShortestEdgeLength();
