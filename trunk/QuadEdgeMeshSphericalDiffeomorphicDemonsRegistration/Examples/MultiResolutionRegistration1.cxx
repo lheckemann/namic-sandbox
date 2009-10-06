@@ -278,7 +278,7 @@ int main( int argc, char * argv [] )
   // Initialize the deformable registration stage with 
   // the results of the Rigid Registration.
   //
-  demonsFilter->SetDestinationPoints( destinationPoints->GetPoints() );
+  demonsFilter->SetInitialDestinationPoints( destinationPoints );
 
   try
     {
