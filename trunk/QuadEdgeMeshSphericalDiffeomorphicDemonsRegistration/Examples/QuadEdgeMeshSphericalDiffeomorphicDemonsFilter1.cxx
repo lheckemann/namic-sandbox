@@ -114,6 +114,8 @@ int main( int argc, char *argv[] )
   writer->SetFileName( argv[3] );
   writer->SetInput( demonsFilter->GetOutput() );
 
+  demonsFilter->Print( std::cout );
+
   try
     {
     writer->Update();
