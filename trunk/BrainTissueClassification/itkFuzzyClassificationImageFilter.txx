@@ -24,6 +24,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkNumericTraits.h"
+#include "itkListSample.h"
 #include "itkObjectFactory.h"
 #include "itkProgressReporter.h"
 
@@ -347,9 +348,9 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   // let program decide how many bins are there for the histogram
   compute_histogram (image, histVector, binMax, binMin, nBinHistogram);
-  assert (histVector.size() == nBinHistogram);
-  assert (binMin.size() == nBinHistogram);
-  assert (binMax.size() == nBinHistogram);  
+  assert (histVector.size() == static_cast<unsigned long>(nBinHistogram));
+  assert (binMin.size() == static_cast<unsigned long>(nBinHistogram));
+  assert (binMax.size() == static_cast<unsigned long>(nBinHistogram));  
 
   // the variable n_bin below is used to devide the range of intensity used for kernal
   // estimator calculation.  
@@ -396,15 +397,15 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   int kernalLength = kernalEstimator.size();
   assert (kernalLength > 0);
-  assert (xVector.size() == kernalLength);
-  int ind = 0;
+  assert (xVector.size() == static_cast<unsigned long>(kernalLength));
+
   for (int k = 1; k < kernalLength-1; k++) {
     if (kernalEstimator[k] < kernalEstimator[k-1])
       continue;
     if (kernalEstimator[k] < kernalEstimator[k+1])
       continue;
     centroid_v.push_back (xVector[k]);
-    if (centroid_v.size() >= n_class)
+    if (centroid_v.size() >= static_cast<unsigned long>(n_class) )
       break;
   }
 
@@ -618,7 +619,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 ::CountMode (const vcl_vector<float>& v)
 {
   int c = 0;
-  for (int k = 1; k < v.size()-1; k++) {
+  for (unsigned int k = 1; k < v.size()-1; k++) {
     if ( v[k] > v[k-1] && v[k] > v[k+1])
       c++;
   }
@@ -1098,7 +1099,6 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                           vnl_matrix<double>& B)
 {
   // vcl_printf ("    grid_regression_linear(): \n");
-  int i;
 
   //Put centroid_v_grid[2] into y[] (only use the WM for now).
   assert (centroid_v_grid[0].size() == 3);
@@ -1108,7 +1108,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   //Determine the total number of qualified inputs.
   // vcl_printf ("      WM centroid(s): ");
   int SZ = 0;
-  for (i=0; i<centroid_v_grid.size(); i++) {
+  for (unsigned int i=0; i<centroid_v_grid.size(); i++) {
     // vcl_printf ("%.2f ", centroid_v_grid[i][2]);
     if (centroid_v_grid[i][2] >= 0) {
       SZ++;
@@ -1122,7 +1122,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vnl_matrix<double> x3 (SZ,1);
 
   int c = 0;
-  for (int i=0; i<centroid_v_grid.size(); i++) {
+  for (unsigned int i=0; i<centroid_v_grid.size(); i++) {
     if (centroid_v_grid[i][2] < 0) 
       continue;
 
@@ -1172,7 +1172,6 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                              vnl_matrix<double>& B)
 {
   // vcl_printf ("    grid_regression_quadratic(): \n");
-  int i;
 
   //Put centroid_v_grid[2] into y[] (only use the WM for now).
   assert (centroid_v_grid[0].size() == 3);
@@ -1182,7 +1181,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   //Determine the total number of qualified inputs.
   // vcl_printf ("      WM centroid(s): ");
   int SZ = 0;
-  for (i=0; i<centroid_v_grid.size(); i++) {
+  for (unsigned int i=0; i<centroid_v_grid.size(); i++) {
     // vcl_printf ("%.2f ", centroid_v_grid[i][2]);
     if (centroid_v_grid[i][2] >= 0) {
       SZ++;
@@ -1196,7 +1195,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vnl_matrix<double> x3 (SZ,1);
 
   int c = 0;
-  for (int i=0; i<centroid_v_grid.size(); i++) {
+  for (unsigned int i=0; i<centroid_v_grid.size(); i++) {
     if (centroid_v_grid[i][2] < 0) 
       continue;
 
@@ -1226,7 +1225,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vnl_matrix<double> x1x3 (SZ,1);
   vnl_matrix<double> x2x3 (SZ,1); 
   c = 0;
-  for (int i=0; i<centroid_v_grid.size(); i++) {
+  for (unsigned int i=0; i<centroid_v_grid.size(); i++) {
     if (centroid_v_grid[i][2] < 0) 
       continue;
 
@@ -1250,10 +1249,10 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   vnl_matrix<double> x2x2 (SZ,1);
   vnl_matrix<double> x3x3 (SZ,1);
   c = 0;
-  for (int i=0; i<centroid_v_grid.size(); i++) {
+  for (unsigned int i=0; i<centroid_v_grid.size(); i++) {
     if (centroid_v_grid[i][2] < 0) 
       continue;
-    assert (i < SZ);
+    assert (i < static_cast<unsigned int>(SZ));
     int x_1 = grid_center_index[i][0];
     int x_2 = grid_center_index[i][1];
     int x_3 = grid_center_index[i][2];
@@ -1302,7 +1301,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   assert (grid_center_index.size() == centroid_vn_grid.size());
 
   //Compute a new value for the grid_center_index[] from B.
-  for (int i=0; i<grid_center_index.size(); i++) {
+  for (unsigned int i=0; i<grid_center_index.size(); i++) {
     assert (grid_center_index[i].GetIndexDimension() == 3);
     int x_1 = grid_center_index[i][0];
     int x_2 = grid_center_index[i][1];
@@ -1324,7 +1323,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   assert (grid_center_index.size() == centroid_vn_grid.size());
 
   //Compute a new value for the grid_center_index[] from B.
-  for (int i=0; i<grid_center_index.size(); i++) {
+  for (unsigned int i=0; i<grid_center_index.size(); i++) {
     assert (grid_center_index[i].GetIndexDimension() == 3);
     int x_1 = grid_center_index[i][0];
     int x_2 = grid_center_index[i][1];
@@ -1348,24 +1347,49 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 {
   // vcl_printf ("compute_histogram(): \n");
 
-  typedef itk::Statistics::ScalarImageToListAdaptor< InputImageType >   AdaptorType;
-  AdaptorType::Pointer adaptor = AdaptorType::New();
-  adaptor->SetImage (image);
-  typedef typename InputImageType::PixelType  HistogramMeasurementType;
-  typedef itk::Statistics::ListSampleToHistogramGenerator< 
-                AdaptorType, HistogramMeasurementType> GeneratorType;
-  GeneratorType::Pointer generator = GeneratorType::New();
-  typedef GeneratorType::HistogramType  HistogramType;
+  typedef itk::Vector< float, 1 > MeasurementVectorType ;
+  typedef itk::Statistics::ListSample < MeasurementVectorType > ListType;
+  
+  ListType::Pointer list = ListType::New();
+  list->SetMeasurementVectorSize( 1 );
+  list->Clear();
+
+  itk::ImageRegionIteratorWithIndex<InputImageType> it0( image, image->GetLargestPossibleRegion() );
+  for ( it0.GoToBegin(); !it0.IsAtEnd(); ++it0) 
+  {
+    typename InputImageType::IndexType idx = it0.GetIndex();
+    if ( !this->m_ImageMask )
+    {
+      list->PushBack( static_cast<float>( it0.Get() ) );
+    }
+    else if ( this->m_ImageMask->GetPixel(idx) != 0 )
+    {
+      list->PushBack( static_cast<float>( it0.Get() ) );
+    }
+  }
+  
+  typedef itk::Statistics::ListSampleToHistogramGenerator<ListType, float> GeneratorType;
+  typename GeneratorType::Pointer generator = GeneratorType::New();
+  typedef typename GeneratorType::HistogramType  HistogramType;
 
   // let the program decide the number of bins 
   // using the maximum and minimum intensity values
   if (nBin == 0) {
-    typedef itk::ImageRegionIterator< InputImageType > IteratorType;
+    typedef itk::ImageRegionIteratorWithIndex< InputImageType > IteratorType;
     IteratorType it (image, image->GetLargestPossibleRegion());
     typename InputImageType::PixelType bMin = it.Get();
     typename InputImageType::PixelType bMax = it.Get();
 
     for ( it.GoToBegin(); !it.IsAtEnd(); ++it) {
+      typename InputImageType::IndexType idx = it0.GetIndex();
+      if ( this->m_ImageMask )
+      {
+        if ( this->m_ImageMask->GetPixel(idx) == 0 )
+        {
+          continue;
+        }
+      }
+
       typename InputImageType::PixelType d = it.Get();
       if (bMin > d ) {
         bMin = d;
@@ -1377,15 +1401,15 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
     nBin = static_cast<int> (bMax-bMin+1);
   }
 
-  HistogramType::SizeType histogramSize;
+  typename HistogramType::SizeType histogramSize;
   histogramSize.Fill (nBin);
 
-  generator->SetListSample (adaptor);
+  generator->SetListSample (list);
   generator->SetNumberOfBins (histogramSize);
   generator->SetMarginalScale (10.0);
   generator->Update();
 
-  HistogramType::ConstPointer histogram = generator->GetOutput();
+  typename HistogramType::ConstPointer histogram = generator->GetOutput();
   const unsigned int hs = histogram->Size();
 
   histVector.clear();
@@ -1393,7 +1417,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   binMin.clear();
 
   ///debug: // vcl_printf ("\n");
-  for (int k = 0; k < hs; k++) {
+  for (unsigned int k = 0; k < hs; k++) {
     float hist_v = histogram->GetFrequency(k, 0);
     float bin_min = histogram->GetBinMin(0, k);
     float bin_max = histogram->GetBinMax(0, k);
@@ -1651,7 +1675,6 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   //Given a set of fitting images, compute a new gain field image.
   // vcl_printf ("    compute_gain_from_grids(): \n");
 
-  int i;
   typedef itk::ImageRegionIterator < InputImageType > IteratorType;
   typedef itk::ImageRegionIteratorWithIndex < InputImageType > IndexIteratorType;  
 
@@ -1660,7 +1683,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   IteratorType yit (img_y, img_y->GetRequestedRegion());
   double sum = 0;
   int count = 0;
-  for (i=0; i<gain_field_g_grid.size(); i++) {
+  for (unsigned int i=0; i<gain_field_g_grid.size(); i++) {
     IndexIteratorType iit (gain_field_g_grid[i], gain_field_g_grid[i]->GetRequestedRegion());
     for (iit.GoToBegin(); !iit.IsAtEnd(); ++iit) {
       //Skip if this pixel is in background.
@@ -1682,7 +1705,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   float max = -itk::NumericTraits<float>::min();
   float min = itk::NumericTraits<float>::min();
 
-  for (i=0; i<gain_field_g_grid.size(); i++) {
+  for (unsigned int i=0; i<gain_field_g_grid.size(); i++) {
     IndexIteratorType iit (gain_field_g_grid[i], gain_field_g_grid[i]->GetRequestedRegion());
     for (iit.GoToBegin(); !iit.IsAtEnd(); ++iit) {
       double pixel = iit.Get();
@@ -1748,21 +1771,21 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
 
   //print centroid_v_grid[] for the WM.
   // vcl_printf ("      centroid_v_grid[%d]:  ", centroid_v_grid.size());
-  for (int i=0; i<centroid_v_grid.size(); i++) {
+  for (unsigned int i=0; i<centroid_v_grid.size(); i++) {
     assert (centroid_v_grid[i].size() == 3);
     // vcl_printf ("%4.0f ", centroid_v_grid[i][2]);
   }
 
   //print centroid_vn_grid
   // vcl_printf ("\n      centroid_vn_grid[%d]: ", centroid_vn_grid.size());
-  for (int i=0; i<centroid_vn_grid.size(); i++) {
+  for (unsigned int i=0; i<centroid_vn_grid.size(); i++) {
     // vcl_printf ("%4.0f ", centroid_vn_grid[i]);
   }
 
   //Compute SSD.
   double SSD = 0;
   assert (centroid_v_grid.size() == centroid_vn_grid.size());
-  for (int i=0; i<centroid_v_grid.size(); i++) {
+  for (unsigned int i=0; i<centroid_v_grid.size(); i++) {
     int diff = centroid_v_grid[i][2] - centroid_vn_grid[i];
     SSD += (diff * diff);
   }
