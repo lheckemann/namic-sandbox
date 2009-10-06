@@ -265,7 +265,7 @@ int main( int argc, char * argv [] )
   const double sigmaX = 1.0;
   const double lambda = 1.0;
   const unsigned int maximumNumberOfSmoothingIterations = 10;
-  const unsigned int maximumNumberOfIterations = 30;
+  const unsigned int maximumNumberOfIterations = 300;
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
@@ -287,6 +287,25 @@ int main( int argc, char * argv [] )
   catch( itk::ExceptionObject & exp )
     {
     std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   WriterType;
+  WriterType::Pointer writer = WriterType::New();
+
+  demonsFilter->Print( std::cout );
+
+  writer->SetFileName( argv[3] );
+  writer->SetInput( demonsFilter->GetOutput() );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
 
