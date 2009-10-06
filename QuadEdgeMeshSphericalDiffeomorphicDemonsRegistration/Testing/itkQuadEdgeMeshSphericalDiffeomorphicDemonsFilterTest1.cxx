@@ -191,12 +191,12 @@ int main( int argc, char *argv[] )
 
   itk::MeshWriterHelper1<RegisteredMeshType>::WriteMeshToFile( demonsFilter->GetOutput(), argv[3] );
 
-  typedef DemonsFilterType::DestinationPointContainerType    DestinationPointContainerType;
-  typedef DestinationPointContainerType::ConstPointer        DestinationPointContainerConstPointer;
+  typedef DemonsFilterType::DestinationPointSetType     DestinationPointSetType;
+  typedef DestinationPointSetType::ConstPointer         DestinationPointContainerConstPointer;
 
-  DestinationPointContainerConstPointer destinationPoints = demonsFilter->GetDestinationPoints();
+  DestinationPointContainerConstPointer destinationPoints = demonsFilter->GetFinalDestinationPoints();
 
-  std::cout << "Number of Destination points = " << destinationPoints->Size() << std::endl;
+  std::cout << "Number of Destination points = " << destinationPoints->GetNumberOfPoints() << std::endl;
 
   typedef DemonsFilterType::BasisSystemContainerType         BasisSystemContainerType;
   typedef BasisSystemContainerType::ConstPointer             BasisSystemContainerPointer;
