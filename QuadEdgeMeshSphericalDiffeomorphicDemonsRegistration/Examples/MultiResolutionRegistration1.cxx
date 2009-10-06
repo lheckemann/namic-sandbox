@@ -31,6 +31,7 @@
 
 #include "itkResampleQuadEdgeMeshFilter.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
+#include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkDeformationFieldFromTransformMeshFilter.h"
 
 class CommandIterationUpdate : public itk::Command 
@@ -93,8 +94,11 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  typedef itk::QuadEdgeMesh< float, 3 >   FixedMeshType;
-  typedef itk::QuadEdgeMesh< float, 3 >   MovingMeshType;
+  typedef float      MeshPixelType;
+  const unsigned int Dimension = 3;
+
+  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   FixedMeshType;
+  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MovingMeshType;
 
   typedef itk::VTKPolyDataReader< FixedMeshType >     FixedReaderType;
   typedef itk::VTKPolyDataReader< MovingMeshType >    MovingReaderType;
@@ -231,6 +235,52 @@ int main( int argc, char * argv [] )
   catch( itk::ExceptionObject & excp )
     {
     std::cout << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  PointSetType::ConstPointer destinationPoints = 
+    deformationFieldFromTransform->GetOutput();
+
+
+  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   RegisteredMeshType;
+
+  typedef itk::QuadEdgeMeshSphericalDiffeomorphicDemonsFilter<
+    FixedMeshType, MovingMeshType, RegisteredMeshType >   DemonsFilterType;
+
+  DemonsFilterType::Pointer demonsFilter = DemonsFilterType::New();
+
+  demonsFilter->SetFixedMesh( fixedMeshReader->GetOutput() );
+  demonsFilter->SetMovingMesh( movingMeshReader->GetOutput() );
+
+  DemonsFilterType::PointType center;
+  center.Fill( 0.0 );
+
+  const double radius = 100.0;
+
+  demonsFilter->SetSphereCenter( center );
+  demonsFilter->SetSphereRadius( radius );
+
+  const double epsilon = 1.0;
+  const double sigmaX = 1.0;
+  const double lambda = 1.0;
+  const unsigned int maximumNumberOfSmoothingIterations = 10;
+  const unsigned int maximumNumberOfIterations = 30;
+
+  demonsFilter->SetEpsilon( epsilon );
+  demonsFilter->SetSigmaX( sigmaX );
+  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+
+  demonsFilter->SetLambda( lambda );
+  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
+
+
+  try
+    {
+    demonsFilter->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
     return EXIT_FAILURE;
     }
 
