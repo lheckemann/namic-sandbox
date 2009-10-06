@@ -213,6 +213,7 @@ public:
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
   ~QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();
+  void PrintSelf(std::ostream& os, Indent indent) const;
   
   virtual void GenerateData( );
   
