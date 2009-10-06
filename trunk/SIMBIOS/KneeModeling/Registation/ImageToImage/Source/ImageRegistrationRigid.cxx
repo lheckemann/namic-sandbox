@@ -243,7 +243,7 @@ int main( int argc, char *argv[] )
   
 
   std::cout << "Number of Pixels Used = ";
-  std::cout << metric->GetNumberOfPixelsCounter() << std::endl;
+  std::cout << metric->GetNumberOfPixelsCounted() << std::endl;
 
   OptimizerType::ParametersType finalParameters = 
                     registration->GetLastTransformParameters();
