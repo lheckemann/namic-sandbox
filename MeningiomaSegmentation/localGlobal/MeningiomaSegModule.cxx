@@ -177,6 +177,10 @@ getInitMask(typename itk::Image< TPixel, 3 >::Pointer img, long cx, long cy, lon
   region.SetIndex( start );
 
   mask->SetRegions( region );
+
+  mask->SetSpacing(img->GetSpacing());
+  mask->SetOrigin(img->GetOrigin());
+
   mask->Allocate();
   mask->FillBuffer(0);
   
@@ -218,6 +222,10 @@ getFinalMask(typename itk::Image< TPixel, 3 >::Pointer img, TPixel thod)
   region.SetIndex( start );
 
   mask->SetRegions( region );
+
+  mask->SetSpacing(img->GetSpacing());
+  mask->SetOrigin(img->GetOrigin());
+
   mask->Allocate();
   mask->FillBuffer(0);
   
