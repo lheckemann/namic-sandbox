@@ -19,7 +19,7 @@
 
 #include "itkResampleDestinationPointsQuadEdgeMeshFilter.h"
 #include "itkProgressReporter.h"
-#include "itkVersor.h"
+#include "itkIdentityTransform.h"
 #include "itkNumericTraitsVectorPixel.h"
 
 namespace itk
@@ -35,6 +35,10 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
   this->SetNumberOfOutputs( 1 );
 
   this->SetNthOutput( 0, OutputPointSetType::New() );
+
+  this->m_Interpolator = InterpolatorType::New();
+
+  this->m_Transform = itk::IdentityTransform<double>::New();
 }
 
 
