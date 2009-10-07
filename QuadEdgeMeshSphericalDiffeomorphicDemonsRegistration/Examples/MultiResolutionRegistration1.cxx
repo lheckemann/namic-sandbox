@@ -36,6 +36,7 @@
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkDeformationFieldFromTransformMeshFilter.h"
 #include "itkResampleDestinationPointsQuadEdgeMeshFilter.h"
+#include "itkIdentityTransform.h"
 
 
 class CommandIterationUpdate : public itk::Command 
@@ -359,13 +360,25 @@ int main( int argc, char * argv [] )
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
   typedef itk::ResampleDestinationPointsQuadEdgeMeshFilter< 
-    PointSetType, FixedMeshType, PointSetType > UpsampleDestinationPointsFilterType;
+    PointSetType, FixedMeshType, FixedMeshType, PointSetType > UpsampleDestinationPointsFilterType;
 
   UpsampleDestinationPointsFilterType::Pointer upsampleDestinationPoints = 
     UpsampleDestinationPointsFilterType::New();
 
   upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
-  upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader->GetOutput() ); // FIXME: Replace with following resolution mesh.
+  upsampleDestinationPoints->SetFixedMesh( fixedMeshReader->GetOutput() );
+  upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader->GetOutput() ); // FIXME: Replace with next higher resolution mesh.
+  upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
+
+  try
+    {
+    upsampleDestinationPoints->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
 
   return EXIT_SUCCESS;
