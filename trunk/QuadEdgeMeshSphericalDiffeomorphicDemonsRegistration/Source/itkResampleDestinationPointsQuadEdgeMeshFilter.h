@@ -26,49 +26,56 @@ namespace itk
 
 /**
  * \class ResampleDestinationPointsQuadEdgeMeshFilter
- * \brief This resamples the scalar values of one QuadEdgeMesh into another one
- * via a user-provided Transform and Interpolator.
+ * \brief This filter resamples a collection of destination points.
+ *
+ * This filter takes as input a PointSet, and a fixed Mesh, and assumes that
+ * the points in the PointSet are one-to-one destination points for the points
+ * in the fixed Mesh. Then, it computes via linear interpolation the destination
+ * points that would correspond to the locations indicated by the points of the
+ * reference mesh.
  *
  * \ingroup MeshFilters
  *
  */
-template< class TInputMesh, class TReferenceMesh, class TOutputMesh >
+template< class TInputPointSet, class TFixedMesh, class TReferenceMesh, class TOutputPointSet >
 class ResampleDestinationPointsQuadEdgeMeshFilter :
-  public MeshToMeshFilter< TInputMesh, TOutputMesh >
+  public MeshToMeshFilter< TInputPointSet, TOutputPointSet >
 {
 public:
-  typedef ResampleDestinationPointsQuadEdgeMeshFilter                    Self;
-  typedef QuadEdgeMeshToQuadEdgeMeshFilter< 
-    TInputMesh, TOutputMesh >                           Superclass;
+  typedef ResampleDestinationPointsQuadEdgeMeshFilter   Self;
+  typedef MeshToMeshFilter< 
+    TInputPointSet, TOutputPointSet >                   Superclass;
   typedef SmartPointer< Self >                          Pointer;
   typedef SmartPointer< const Self >                    ConstPointer;
 
   /** Run-time type information (and related methods).   */
-  itkTypeMacro( ResampleDestinationPointsQuadEdgeMeshFilter, QuadEdgeMeshToQuadEdgeMeshFilter );
+  itkTypeMacro( ResampleDestinationPointsQuadEdgeMeshFilter, MeshToMeshFilter );
 
   /** New macro for creation of through a Smart Pointer   */
   itkNewMacro( Self );
 
-  typedef TInputMesh                                       InputMeshType;
-  typedef typename InputMeshType::Pointer                  InputMeshPointer;
+  typedef TInputPointSet                                     InputPointSetType;
+  typedef typename InputPointSetType::Pointer                InputPointSetPointer;
+  typedef typename InputPointSetType::PointsContainer        InputPointsContainer;
+
+  typedef TFixedMesh                                         FixedMeshType;
+  typedef typename FixedMeshType::PointType                  FixedMeshPointType;
 
   typedef TReferenceMesh                                     ReferenceMeshType;
+  typedef typename ReferenceMeshType::PointsContainer        ReferencePointsContainer;
+  typedef typename ReferencePointsContainer::ConstIterator   ReferencePointsContainerConstIterator;
 
-  typedef TOutputMesh                                        OutputMeshType;
-  typedef typename OutputMeshType::Pointer                   OutputMeshPointer;
-  typedef typename OutputMeshType::ConstPointer              OutputMeshConstPointer;
-  typedef typename OutputMeshType::PointIdentifier           OutputPointIdentifier;
-  typedef typename OutputMeshType::PointType                 OutputPointType;
-  typedef typename OutputPointType::VectorType               OutputVectorType;
-  typedef typename OutputPointType::CoordRepType             OutputCoordType;
-  typedef typename OutputMeshType::PointsContainer           OutputPointsContainer;
+  typedef TOutputPointSet                                    OutputPointSetType;
+  typedef typename OutputPointSetType::Pointer               OutputPointSetPointer;
+  typedef typename OutputPointSetType::ConstPointer          OutputPointSetConstPointer;
+  typedef typename OutputPointSetType::PointType             OutputPointType;
+  typedef typename OutputPointSetType::PointsContainer       OutputPointsContainer;
 
-  typedef typename OutputMeshType::PointsContainerConstPointer    OutputPointsContainerConstPointer;
-  typedef typename OutputMeshType::PointsContainerPointer         OutputPointsContainerPointer;
-  typedef typename OutputMeshType::PointsContainerIterator        OutputPointsContainerIterator;
-  typedef typename OutputMeshType::PointsContainerConstIterator   OutputPointsContainerConstIterator;
+  typedef typename OutputPointSetType::PointsContainerConstPointer    OutputPointsContainerConstPointer;
+  typedef typename OutputPointSetType::PointsContainerPointer         OutputPointsContainerPointer;
+  typedef typename OutputPointSetType::PointsContainerIterator        OutputPointsContainerIterator;
 
-  itkStaticConstMacro( PointDimension, unsigned int, OutputMeshType::PointDimension );
+  itkStaticConstMacro( PointDimension, unsigned int, OutputPointSetType::PointDimension );
 
   /** Transform typedef. */
   typedef Transform<double, 
@@ -78,12 +85,18 @@ public:
 
   /** Interpolator typedef. */
   typedef LinearInterpolateDeformationFieldMeshFunction< 
-    ReferenceMeshType, InputMeshType >                    InterpolatorType;
+    ReferenceMeshType, InputPointsContainer >             InterpolatorType;
   typedef typename InterpolatorType::Pointer              InterpolatorPointerType;
 
+  /** Set Mesh whose grid defines the geometry and topology of the input PointSet.
+   *  In a multi-resolution registration scenario, this will typically be the Fixed
+   *  mesh at the current higher resolution level. */
+  void SetFixedMesh ( const FixedMeshType * mesh );
+  const FixedMeshType * GetFixedMesh( void ) const;
 
-  /** Set Mesh whose grid will define the geometry and topology of the output Mesh.
-   *  In a registration scenario, this will typically be the Fixed mesh. */
+  /** Set Mesh whose grid will define the geometry of the output PointSet.
+   *  In a multi-resolution registration scenario, this will typically be 
+   *  the Fixed mesh at the next higher resolution level. */
   void SetReferenceMesh ( const ReferenceMeshType * mesh );
   const ReferenceMeshType * GetReferenceMesh( void ) const;
 
@@ -100,7 +113,7 @@ public:
   itkGetConstObjectMacro( Transform, TransformType );
 
   /** Set the interpolator function.  The default is
-   * itk::LinearInterpolateMeshFunction<InputMeshType, TInterpolatorPrecisionType>. Some
+   * itk::LinearInterpolateMeshFunction<InputPointSetType, TInterpolatorPrecisionType>. Some
    * other options are itk::NearestNeighborInterpolateMeshFunction
    * (useful for binary masks and other images with a small number of
    * possible pixel values), and itk::BSplineInterpolateMeshFunction
