@@ -35,7 +35,7 @@ namespace itk
  * \ingroup MeshFunctions MeshInterpolators
  * 
  * */
-template <class TInputMesh>
+template <class TInputMesh, class TDestinationPointsContainer = typename TInputMesh::PointsContainer >
 class ITK_EXPORT LinearInterpolateDeformationFieldMeshFunction :
   public LinearInterpolateMeshFunction< TInputMesh >
 {
@@ -72,7 +72,7 @@ public:
   typedef typename PointType::VectorType                  VectorType;
 
   /** Type for the container of destination points of the deformation field. */
-  typedef typename TInputMesh::PointsContainer            DestinationPointsContainerType;
+  typedef TDestinationPointsContainer                     DestinationPointsContainerType;
 
   /** 
    * Interpolate the mesh at a point position.

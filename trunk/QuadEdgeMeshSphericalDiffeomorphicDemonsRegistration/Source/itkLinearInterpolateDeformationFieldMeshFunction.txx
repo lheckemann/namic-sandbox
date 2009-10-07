@@ -28,8 +28,8 @@ namespace itk
 /**
  * Constructor
  */
-template <class TInputMesh>
-LinearInterpolateDeformationFieldMeshFunction<TInputMesh>
+template <class TInputMesh, class TDestinationPointsContainer>
+LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsContainer>
 ::LinearInterpolateDeformationFieldMeshFunction()
 {
 }
@@ -38,8 +38,8 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh>
 /**
  * Destructor
  */
-template <class TInputMesh>
-LinearInterpolateDeformationFieldMeshFunction<TInputMesh>
+template <class TInputMesh, class TDestinationPointsContainer>
+LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsContainer>
 ::~LinearInterpolateDeformationFieldMeshFunction()
 {
 }
@@ -48,9 +48,9 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh>
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputMesh>
+template <class TInputMesh, class TDestinationPointsContainer>
 void
-LinearInterpolateDeformationFieldMeshFunction<TInputMesh>
+LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsContainer>
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf( os, indent );
@@ -60,9 +60,9 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh>
 /**
  * Evaluate the mesh at a given point position.
  */
-template <class TInputMesh>
+template <class TInputMesh, class TDestinationPointsContainer>
 void
-LinearInterpolateDeformationFieldMeshFunction<TInputMesh>
+LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsContainer>
 ::Evaluate( const DestinationPointsContainerType * field, 
   const PointType & point, PointType & outputPoint ) const
 {
