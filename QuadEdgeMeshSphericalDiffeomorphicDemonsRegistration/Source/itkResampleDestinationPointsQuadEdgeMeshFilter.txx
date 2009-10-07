@@ -142,7 +142,7 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
 
   if( points.IsNull() || ( points->Size() != numberOfPoints ) )
     {
-    itkExceptionMacro("Mesh has NULL PointData");
+    // We need to reallocate the points container for the output.
     points = OutputPointsContainer::New();
     points->Reserve( numberOfPoints );
     outputPointSet->SetPoints( points );
