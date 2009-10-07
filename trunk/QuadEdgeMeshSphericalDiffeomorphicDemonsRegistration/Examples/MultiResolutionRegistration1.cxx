@@ -35,6 +35,8 @@
 #include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkDeformationFieldFromTransformMeshFilter.h"
+#include "itkResampleDestinationPointsQuadEdgeMeshFilter.h"
+
 
 class CommandIterationUpdate : public itk::Command 
 {
@@ -351,6 +353,19 @@ int main( int argc, char * argv [] )
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
+
+
+  //
+  // Supersample the list of destination points using the mesh at the next resolution level.
+  //
+  typedef itk::ResampleDestinationPointsQuadEdgeMeshFilter< 
+    PointSetType, FixedMeshType, PointSetType > UpsampleDestinationPointsFilterType;
+
+  UpsampleDestinationPointsFilterType::Pointer upsampleDestinationPoints = 
+    UpsampleDestinationPointsFilterType::New();
+
+  upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
+  upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader->GetOutput() ); // FIXME: Replace with following resolution mesh.
 
 
   return EXIT_SUCCESS;
