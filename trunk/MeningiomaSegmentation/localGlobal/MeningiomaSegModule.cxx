@@ -83,8 +83,8 @@ int main(int argc, char** argv)
           img->TransformPhysicalPointToIndex(lpsPoint, index);
           mask = getInitMask< PixelType >(img, index[0], index[1], index[2]);
 
-          //       std::cout << "LPS: " << lpsPoint << std::endl;
-          //       std::cout << "IJK: " << index << std::endl;
+          std::cout << "LPS: " << lpsPoint << std::endl;
+          std::cout << "IJK: " << index << std::endl;
         }
     }
   else
@@ -135,6 +135,8 @@ int main(int argc, char** argv)
   
   finalMask->SetSpacing(img->GetSpacing());
   finalMask->SetOrigin(img->GetOrigin());
+
+  finalMask->CopyInformation(img);
 //  imageITK->SetOrientation(inputReader>GetOrientation());
 
 
