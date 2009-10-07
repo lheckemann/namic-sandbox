@@ -30,7 +30,9 @@
 #include "itkVTKPolyDataReader.h"
 
 #include "itkResampleQuadEdgeMeshFilter.h"
+#include "itkQuadEdgeMeshTraits.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
+#include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkDeformationFieldFromTransformMeshFilter.h"
 
@@ -239,8 +241,49 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
+
   PointSetType::ConstPointer destinationPoints = 
     deformationFieldFromTransform->GetOutput();
+
+  const PointSetType::PointsContainer * dstPoints = destinationPoints->GetPoints();
+
+  const FixedMeshType * fixedMesh = fixedMeshReader->GetOutput();
+  const FixedMeshType::PointsContainer * srcPoints = fixedMesh->GetPoints();
+
+  typedef FixedMeshType::PointType  PointType;
+  typedef PointType::VectorType     VectorType;
+
+  typedef itk::QuadEdgeMeshTraits< VectorType, Dimension, bool, bool > VectorPointSetTraits;
+
+  typedef itk::QuadEdgeMesh< VectorType, Dimension, VectorPointSetTraits > MeshWithVectorsType;
+  MeshWithVectorsType::Pointer vectorMesh = MeshWithVectorsType::New();
+
+  typedef MeshWithVectorsType::PointDataContainer  PointDataContainer;
+  PointDataContainer::Pointer vectors = PointDataContainer::New();
+
+  vectors->Reserve( fixedMesh->GetNumberOfPoints() );
+
+  vectorMesh->SetPoints( const_cast< FixedMeshType::PointsContainer *>( srcPoints ) );
+  vectorMesh->SetPointData( vectors );
+
+  PointDataContainer::Iterator  vitr = vectors->Begin();
+  PointSetType::PointsContainer::ConstIterator  dstitr = dstPoints->Begin();
+  FixedMeshType::PointsContainer::ConstIterator srcitr = srcPoints->Begin();
+
+  while( srcitr != srcPoints->End() )
+    {
+    vitr.Value() = dstitr.Value() - srcitr.Value();
+    ++srcitr;
+    ++dstitr;
+    ++vitr;
+    }
+
+  typedef itk::QuadEdgeMeshVectorDataVTKPolyDataWriter< MeshWithVectorsType >  VectorMeshWriterType;
+  VectorMeshWriterType::Pointer vectorMeshWriter = VectorMeshWriterType::New();
+  vectorMeshWriter->SetInput( vectorMesh );
+  vectorMeshWriter->SetFileName("VectorMesh.vtk");
+  vectorMeshWriter->Update(); 
+
 
 
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   RegisteredMeshType;
@@ -265,7 +308,7 @@ int main( int argc, char * argv [] )
   const double sigmaX = 1.0;
   const double lambda = 1.0;
   const unsigned int maximumNumberOfSmoothingIterations = 10;
-  const unsigned int maximumNumberOfIterations = 300;
+  const unsigned int maximumNumberOfIterations = 30;
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
