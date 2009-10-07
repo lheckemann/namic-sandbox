@@ -157,6 +157,11 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
                        0.8, 0.8,
                        0.01, gain_field_g,
                        mem_fun_u, mem_fun_un, this->m_ClassCentroid);
+           
+    for (int k = 0; k < this->m_NumberOfClasses; k++)
+      {
+      std::cout << this->m_ClassCentroid[k] << "\n";
+      }
     }
   else 
     {
@@ -288,6 +293,11 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
   }
   while (conv == false);
 
+  for (int k = 0; k < this->m_NumberOfClasses; k++)
+  {
+    std::cout << centroid_v[k] << "\n";
+  }
+
   itk::ImageRegionIteratorWithIndex<InputImageType> it( img_y, img_y->GetLargestPossibleRegion() );
   std::vector <float> count( this->m_NumberOfClasses );
   for (int k = 0; k < this->m_NumberOfClasses; k++)
@@ -310,7 +320,7 @@ FuzzyClassificationImageFilter<TInputImage, TOutputImage>
       else
       {
         count[k] += 1.0;
-        p -= this->m_ClassCentroid[k];
+        p -= centroid_v[k];
         this->m_ClassStandardDeviation[k] += (p*p);
       }
     }
