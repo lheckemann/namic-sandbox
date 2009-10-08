@@ -88,7 +88,7 @@ private:
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 4 )
+  if( argc < 7 )
     {
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
@@ -397,6 +397,56 @@ int main( int argc, char * argv [] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Here build a Mesh using the upsampled destination points and
+  // the scalar values of the fixed IC5 mesh.
+
+  FixedMeshType::Pointer fixedMesh2 = fixedMeshReader2->GetOutput();
+  fixedMesh2->DisconnectPipeline();
+
+  PointSetType::ConstPointer upsampledPointSet = upsampleDestinationPoints->GetOutput();
+  
+  const PointSetType::PointsContainer * upsampledPoints = upsampledPointSet->GetPoints();
+
+  PointSetType::PointsContainerConstIterator upsampledPointsItr = upsampledPoints->Begin();
+  PointSetType::PointsContainerConstIterator upsampledPointsEnd = upsampledPoints->Begin();
+
+  FixedMeshType::PointsContainer::Pointer fixedPoints2 = fixedMesh2->GetPoints();
+
+  FixedMeshType::PointsContainerIterator fixedPoint2Itr = fixedPoints2->Begin();
+
+  while( upsampledPointsItr != upsampledPointsEnd )
+    {
+    fixedPoint2Itr.Value() = upsampledPointsItr.Value();
+    ++fixedPoint2Itr;
+    ++upsampledPointsItr;
+    }
+
+  // 
+  // Now feed this mesh into the Rigid registration of the second resolution level.
+  //
+
+  registration->SetFixedMesh( fixedMesh2 );
+  registration->SetMovingMesh( movingMeshReader2->GetOutput() );
+
+  transform->SetIdentity();
+  parameters = transform->GetParameters();
+
+  registration->SetInitialTransformParameters( parameters );
+
+  // 
+  //  Running Second Resolution Level Rigid Registration.
+  //
+  try
+    {
+    registration->StartRegistration();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Registration failed" << std::endl;
+    std::cout << "Reason " << e << std::endl;
     return EXIT_FAILURE;
     }
 
