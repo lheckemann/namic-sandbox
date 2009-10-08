@@ -340,14 +340,14 @@ int main( int argc, char * argv [] )
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   WriterType;
   WriterType::Pointer writer = WriterType::New();
 
-  demonsFilter->Print( std::cout );
-
   writer->SetFileName( argv[3] );
   writer->SetInput( demonsFilter->GetOutput() );
 
   try
     {
+std::cout << "BEFORE writer Update()" << std::endl;
     writer->Update();
+std::cout << "AFTER writer Update()" << std::endl;
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -356,6 +356,9 @@ int main( int argc, char * argv [] )
     }
 
 
+  //
+  //  Starting process for the second resolution level (IC5).
+  // 
   FixedReaderType::Pointer fixedMeshReader2 = FixedReaderType::New();
   fixedMeshReader2->SetFileName( argv[4] );
 
@@ -390,7 +393,9 @@ int main( int argc, char * argv [] )
 
   try
     {
+std::cout << "BEFORE upsampleDestinationPoints Update()" << std::endl;
     upsampleDestinationPoints->Update();
+std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -493,6 +498,158 @@ int main( int argc, char * argv [] )
     }
 
   writer->SetFileName( argv[6] );
+  writer->SetInput( demonsFilter->GetOutput() );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  //
+  //  Starting process for the third resolution level (IC6).
+  // 
+  FixedReaderType::Pointer fixedMeshReader3 = FixedReaderType::New();
+  fixedMeshReader3->SetFileName( argv[7] );
+
+  MovingReaderType::Pointer movingMeshReader3 = MovingReaderType::New();
+  movingMeshReader3->SetFileName( argv[8] );
+
+  try
+    {
+    fixedMeshReader3->Update( );
+    movingMeshReader3->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  //
+  // Supersample the list of destination points using the mesh at the next resolution level.
+  //
+  typedef itk::ResampleDestinationPointsQuadEdgeMeshFilter< 
+    PointSetType, FixedMeshType, FixedMeshType, PointSetType > UpsampleDestinationPointsFilterType;
+
+  upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
+  upsampleDestinationPoints->SetFixedMesh( fixedMesh2 );
+  upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader3->GetOutput() );
+  upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
+
+  try
+    {
+std::cout << "BEFORE upsampleDestinationPoints Update()" << std::endl;
+    upsampleDestinationPoints->Update();
+std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Here build a Mesh using the upsampled destination points and
+  // the scalar values of the fixed IC6 mesh.
+
+  FixedMeshType::Pointer fixedMesh3 = fixedMeshReader3->GetOutput();
+  fixedMesh3->DisconnectPipeline();
+
+  upsampledPointSet = upsampleDestinationPoints->GetOutput();
+  
+  upsampledPoints = upsampledPointSet->GetPoints();
+
+  upsampledPointsItr = upsampledPoints->Begin();
+  upsampledPointsEnd = upsampledPoints->Begin();
+
+  FixedMeshType::PointsContainer::Pointer fixedPoints3 = fixedMesh3->GetPoints();
+
+  FixedMeshType::PointsContainerIterator fixedPoint3Itr = fixedPoints3->Begin();
+
+  while( upsampledPointsItr != upsampledPointsEnd )
+    {
+    fixedPoint3Itr.Value() = upsampledPointsItr.Value();
+    ++fixedPoint3Itr;
+    ++upsampledPointsItr;
+    }
+
+  // 
+  // Now feed this mesh into the Rigid registration of the third resolution level.
+  //
+
+  registration->SetFixedMesh( fixedMesh3 );
+  registration->SetMovingMesh( movingMeshReader3->GetOutput() );
+
+  transform->SetIdentity();
+  parameters = transform->GetParameters();
+
+  registration->SetInitialTransformParameters( parameters );
+
+  // 
+  //  Running Third Resolution Level Rigid Registration.
+  //
+
+  std::cout << "Running Third Resolution Level Rigid Registration." << std::endl;
+
+  try
+    {
+    registration->StartRegistration();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Registration failed" << std::endl;
+    std::cout << "Reason " << e << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  finalParameters = registration->GetLastTransformParameters();
+
+  std::cout << "final parameters = " << finalParameters << std::endl;
+  std::cout << "final value      = " << optimizer->GetValue() << std::endl;
+
+  transform->SetParameters( finalParameters );
+
+  deformationFieldFromTransform->SetInput( fixedMesh3 );
+  deformationFieldFromTransform->SetTransform( transform );
+
+  try
+    {
+    deformationFieldFromTransform->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
+
+  demonsFilter->SetFixedMesh( fixedMesh3 );
+  demonsFilter->SetMovingMesh( movingMeshReader3->GetOutput() );
+
+
+  // 
+  //  Running Third Resolution Level Demons Registration.
+  //
+  std::cout << "Running Third Resolution Level Demons Registration." << std::endl;
+
+  try
+    {
+    demonsFilter->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  writer->SetFileName( argv[9] );
   writer->SetInput( demonsFilter->GetOutput() );
 
   try
