@@ -123,6 +123,9 @@ SET(MOVINGMESH2  ${TEMP}/sub${MESHID2}b_IC5.vtk)
 SET(FIXEDMESH3   ${TEMP}/sub${MESHID1}b_IC6.vtk)
 SET(MOVINGMESH3  ${TEMP}/sub${MESHID2}b_IC6.vtk)
 
+SET(FIXEDMESH4   ${TEMP}/sub${MESHID1}c_IC7.vtk)
+SET(MOVINGMESH4  ${TEMP}/sub${MESHID2}c_IC7.vtk)
+
 ADD_TEST(MultiResRegistration_${MESHID1}_${MESHID2}
   ${CXX_TEST_PATH}/MultiResolutionRegistration1
   ${FIXEDMESH1}
@@ -134,6 +137,9 @@ ADD_TEST(MultiResRegistration_${MESHID1}_${MESHID2}
   ${FIXEDMESH3}
   ${MOVINGMESH3}
   ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC6.vtk
+  ${FIXEDMESH4}
+  ${MOVINGMESH4}
+  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC7.vtk
   )
 
 ENDMACRO( MULTIRES_REGISTER )
