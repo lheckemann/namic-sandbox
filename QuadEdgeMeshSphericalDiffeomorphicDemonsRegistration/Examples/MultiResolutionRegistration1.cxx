@@ -93,8 +93,10 @@ int main( int argc, char * argv [] )
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
-    std::cerr << "inputFixedMesh inputMovingMesh ";
-    std::cerr << "outputResampledMesh ";
+    std::cerr << "inputFixedMeshRes1 inputMovingMeshRes1 ";
+    std::cerr << "outputResampledMeshRes1 ";
+    std::cerr << "inputFixedMeshRes2 inputMovingMeshRes2 ";
+    std::cerr << "outputResampledMeshRes2 ";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -108,16 +110,16 @@ int main( int argc, char * argv [] )
   typedef itk::VTKPolyDataReader< FixedMeshType >     FixedReaderType;
   typedef itk::VTKPolyDataReader< MovingMeshType >    MovingReaderType;
 
-  FixedReaderType::Pointer fixedMeshReader = FixedReaderType::New();
-  fixedMeshReader->SetFileName( argv[1] );
+  FixedReaderType::Pointer fixedMeshReader1 = FixedReaderType::New();
+  fixedMeshReader1->SetFileName( argv[1] );
 
-  MovingReaderType::Pointer movingMeshReader = MovingReaderType::New();
-  movingMeshReader->SetFileName( argv[2] );
+  MovingReaderType::Pointer movingMeshReader1 = MovingReaderType::New();
+  movingMeshReader1->SetFileName( argv[2] );
 
   try
     {
-    fixedMeshReader->Update( );
-    movingMeshReader->Update( );
+    fixedMeshReader1->Update( );
+    movingMeshReader1->Update( );
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -125,8 +127,8 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  FixedMeshType::ConstPointer  meshFixed  = fixedMeshReader->GetOutput();
-  MovingMeshType::ConstPointer meshMoving = movingMeshReader->GetOutput();
+  FixedMeshType::ConstPointer  meshFixed  = fixedMeshReader1->GetOutput();
+  MovingMeshType::ConstPointer meshMoving = movingMeshReader1->GetOutput();
 
   typedef itk::MeshToMeshRegistrationMethod< 
                                     FixedMeshType, 
@@ -231,7 +233,7 @@ int main( int argc, char * argv [] )
   DeformationFieldFromTransformFilterType::Pointer deformationFieldFromTransform =
     DeformationFieldFromTransformFilterType::New();
 
-  deformationFieldFromTransform->SetInput( fixedMeshReader->GetOutput() );
+  deformationFieldFromTransform->SetInput( fixedMeshReader1->GetOutput() );
   deformationFieldFromTransform->SetTransform( transform );
 
   try
@@ -250,7 +252,7 @@ int main( int argc, char * argv [] )
 
   const PointSetType::PointsContainer * dstPoints = destinationPoints->GetPoints();
 
-  const FixedMeshType * fixedMesh = fixedMeshReader->GetOutput();
+  const FixedMeshType * fixedMesh = fixedMeshReader1->GetOutput();
   const FixedMeshType::PointsContainer * srcPoints = fixedMesh->GetPoints();
 
   typedef FixedMeshType::PointType  PointType;
@@ -296,8 +298,8 @@ int main( int argc, char * argv [] )
 
   DemonsFilterType::Pointer demonsFilter = DemonsFilterType::New();
 
-  demonsFilter->SetFixedMesh( fixedMeshReader->GetOutput() );
-  demonsFilter->SetMovingMesh( movingMeshReader->GetOutput() );
+  demonsFilter->SetFixedMesh( fixedMeshReader1->GetOutput() );
+  demonsFilter->SetMovingMesh( movingMeshReader1->GetOutput() );
 
   DemonsFilterType::PointType center;
   center.Fill( 0.0 );
@@ -356,6 +358,24 @@ int main( int argc, char * argv [] )
     }
 
 
+  FixedReaderType::Pointer fixedMeshReader2 = FixedReaderType::New();
+  fixedMeshReader2->SetFileName( argv[4] );
+
+  MovingReaderType::Pointer movingMeshReader2 = MovingReaderType::New();
+  movingMeshReader2->SetFileName( argv[5] );
+
+  try
+    {
+    fixedMeshReader2->Update( );
+    movingMeshReader2->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   //
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
@@ -366,8 +386,8 @@ int main( int argc, char * argv [] )
     UpsampleDestinationPointsFilterType::New();
 
   upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
-  upsampleDestinationPoints->SetFixedMesh( fixedMeshReader->GetOutput() );
-  upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader->GetOutput() ); // FIXME: Replace with next higher resolution mesh.
+  upsampleDestinationPoints->SetFixedMesh( fixedMeshReader1->GetOutput() );
+  upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader2->GetOutput() );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
 
   try
