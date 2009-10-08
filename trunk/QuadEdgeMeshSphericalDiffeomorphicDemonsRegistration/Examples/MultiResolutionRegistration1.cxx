@@ -216,10 +216,8 @@ int main( int argc, char * argv [] )
   OptimizerType::ParametersType finalParameters = 
                     registration->GetLastTransformParameters();
 
-  const double bestValue = optimizer->GetValue();
-
   std::cout << "final parameters = " << finalParameters << std::endl;
-  std::cout << "final value      = " << bestValue << std::endl;
+  std::cout << "final value      = " << optimizer->GetValue() << std::endl;
 
 
   transform->SetParameters( finalParameters );
@@ -439,6 +437,9 @@ int main( int argc, char * argv [] )
   // 
   //  Running Second Resolution Level Rigid Registration.
   //
+
+  std::cout << "Running Second Resolution Level Rigid Registration." << std::endl;
+
   try
     {
     registration->StartRegistration();
@@ -447,6 +448,47 @@ int main( int argc, char * argv [] )
     {
     std::cerr << "Registration failed" << std::endl;
     std::cout << "Reason " << e << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  finalParameters = registration->GetLastTransformParameters();
+
+  std::cout << "final parameters = " << finalParameters << std::endl;
+  std::cout << "final value      = " << optimizer->GetValue() << std::endl;
+
+  transform->SetParameters( finalParameters );
+
+  deformationFieldFromTransform->SetInput( fixedMesh2 );
+  deformationFieldFromTransform->SetTransform( transform );
+
+  try
+    {
+    deformationFieldFromTransform->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
+
+  demonsFilter->SetFixedMesh( fixedMesh2 );
+  demonsFilter->SetMovingMesh( movingMeshReader2->GetOutput() );
+
+
+  // 
+  //  Running Second Resolution Level Demons Registration.
+  //
+  std::cout << "Running Second Resolution Level Demons Registration." << std::endl;
+
+  try
+    {
+    demonsFilter->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
     return EXIT_FAILURE;
     }
 
