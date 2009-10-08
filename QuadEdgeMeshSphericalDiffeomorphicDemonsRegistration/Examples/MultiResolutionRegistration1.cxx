@@ -88,7 +88,7 @@ private:
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 7 )
+  if( argc < 13 )
     {
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
@@ -97,6 +97,10 @@ int main( int argc, char * argv [] )
     std::cerr << "outputResampledMeshRes1 ";
     std::cerr << "inputFixedMeshRes2 inputMovingMeshRes2 ";
     std::cerr << "outputResampledMeshRes2 ";
+    std::cerr << "inputFixedMeshRes3 inputMovingMeshRes3 ";
+    std::cerr << "outputResampledMeshRes3 ";
+    std::cerr << "inputFixedMeshRes4 inputMovingMeshRes4 ";
+    std::cerr << "outputResampledMeshRes4 ";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -345,9 +349,7 @@ int main( int argc, char * argv [] )
 
   try
     {
-std::cout << "BEFORE writer Update()" << std::endl;
     writer->Update();
-std::cout << "AFTER writer Update()" << std::endl;
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -512,7 +514,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
 
   //
-  //  Starting process for the third resolution level (IC6).
+  //  Starting process for the Third resolution level (IC6).
   // 
   FixedReaderType::Pointer fixedMeshReader3 = FixedReaderType::New();
   fixedMeshReader3->SetFileName( argv[7] );
@@ -535,9 +537,6 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   //
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
-  typedef itk::ResampleDestinationPointsQuadEdgeMeshFilter< 
-    PointSetType, FixedMeshType, FixedMeshType, PointSetType > UpsampleDestinationPointsFilterType;
-
   upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
   upsampleDestinationPoints->SetFixedMesh( fixedMesh2 );
   upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader3->GetOutput() );
@@ -650,6 +649,155 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     }
 
   writer->SetFileName( argv[9] );
+  writer->SetInput( demonsFilter->GetOutput() );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  //
+  //  Starting process for the Fourth resolution level (IC7).
+  // 
+  FixedReaderType::Pointer fixedMeshReader4 = FixedReaderType::New();
+  fixedMeshReader4->SetFileName( argv[10] );
+
+  MovingReaderType::Pointer movingMeshReader4 = MovingReaderType::New();
+  movingMeshReader4->SetFileName( argv[11] );
+
+  try
+    {
+    fixedMeshReader4->Update( );
+    movingMeshReader4->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  //
+  // Supersample the list of destination points using the mesh at the next resolution level.
+  //
+  upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
+  upsampleDestinationPoints->SetFixedMesh( fixedMesh3 );
+  upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader4->GetOutput() );
+  upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
+
+  try
+    {
+std::cout << "BEFORE upsampleDestinationPoints Update()" << std::endl;
+    upsampleDestinationPoints->Update();
+std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Here build a Mesh using the upsampled destination points and
+  // the scalar values of the fixed IC6 mesh.
+
+  FixedMeshType::Pointer fixedMesh4 = fixedMeshReader4->GetOutput();
+  fixedMesh4->DisconnectPipeline();
+
+  upsampledPointSet = upsampleDestinationPoints->GetOutput();
+  
+  upsampledPoints = upsampledPointSet->GetPoints();
+
+  upsampledPointsItr = upsampledPoints->Begin();
+  upsampledPointsEnd = upsampledPoints->Begin();
+
+  FixedMeshType::PointsContainer::Pointer fixedPoints4 = fixedMesh4->GetPoints();
+
+  FixedMeshType::PointsContainerIterator fixedPoint4Itr = fixedPoints4->Begin();
+
+  while( upsampledPointsItr != upsampledPointsEnd )
+    {
+    fixedPoint4Itr.Value() = upsampledPointsItr.Value();
+    ++fixedPoint4Itr;
+    ++upsampledPointsItr;
+    }
+
+  // 
+  // Now feed this mesh into the Rigid registration of the third resolution level.
+  //
+
+  registration->SetFixedMesh( fixedMesh4 );
+  registration->SetMovingMesh( movingMeshReader4->GetOutput() );
+
+  transform->SetIdentity();
+  parameters = transform->GetParameters();
+
+  registration->SetInitialTransformParameters( parameters );
+
+  // 
+  //  Running Fourth Resolution Level Rigid Registration.
+  //
+
+  std::cout << "Running Fourth Resolution Level Rigid Registration." << std::endl;
+
+  try
+    {
+    registration->StartRegistration();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Registration failed" << std::endl;
+    std::cout << "Reason " << e << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  finalParameters = registration->GetLastTransformParameters();
+
+  std::cout << "final parameters = " << finalParameters << std::endl;
+  std::cout << "final value      = " << optimizer->GetValue() << std::endl;
+
+  transform->SetParameters( finalParameters );
+
+  deformationFieldFromTransform->SetInput( fixedMesh4 );
+  deformationFieldFromTransform->SetTransform( transform );
+
+  try
+    {
+    deformationFieldFromTransform->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
+
+  demonsFilter->SetFixedMesh( fixedMesh4 );
+  demonsFilter->SetMovingMesh( movingMeshReader4->GetOutput() );
+
+
+  // 
+  //  Running Fourth Resolution Level Demons Registration.
+  //
+  std::cout << "Running Fourth Resolution Level Demons Registration." << std::endl;
+
+  try
+    {
+    demonsFilter->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  writer->SetFileName( argv[12] );
   writer->SetInput( demonsFilter->GetOutput() );
 
   try
