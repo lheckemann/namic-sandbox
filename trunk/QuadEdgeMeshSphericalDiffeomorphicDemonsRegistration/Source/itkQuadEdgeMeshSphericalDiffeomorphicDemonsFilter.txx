@@ -198,8 +198,6 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     ++srcPointItr;
     ++dstPointItr;
     }
-
-  this->Modified(); 
 }
 
 
