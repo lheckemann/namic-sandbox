@@ -9,6 +9,7 @@
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkShrinkImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
+#include "itkOrientedImage.h"
 
 
 
