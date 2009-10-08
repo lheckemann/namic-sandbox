@@ -8,6 +8,8 @@
 
 #include <iostream>
 
+#include <fstream>
+
 
 #include "SFLSLocalChanVeseSegmentor3D.h"
 #include "SFLSChanVeseSegmentor3D.h"
@@ -68,7 +70,20 @@ int main(int argc, char** argv)
 
   /* --------------------------------------------------------------------------------
      set the mask image according to the seeds  */
-  MaskImageType::Pointer mask;
+  MaskImageType::Pointer mask = MaskImageType::New();
+  MaskImageType::RegionType region = img->GetLargestPossibleRegion();
+  mask->CopyInformation(img);
+  mask->Allocate();
+  mask->FillBuffer(0);
+
+
+
+  //debug//
+  std::ofstream f("/tmp/outputMen.txt");
+  //DEBUG//
+
+  f<< "seed.size =  " << seed.size() << std::endl;
+
   if (seed.size() > 0)
     {
       MaskImageType::PointType lpsPoint;
@@ -81,10 +96,23 @@ int main(int argc, char** argv)
           lpsPoint[2] = seed[i][2];
 
           img->TransformPhysicalPointToIndex(lpsPoint, index);
-          mask = getInitMask< PixelType >(img, index[0], index[1], index[2]);
 
-          std::cout << "LPS: " << lpsPoint << std::endl;
-          std::cout << "IJK: " << index << std::endl;
+          for (long ix = index[0]-3; ix < index[0]+4; ++ix)
+            {
+              for (long iy = index[1]-3; iy < index[1]+4; ++iy)
+                {
+                  for (long iz = index[2]-3; iz < index[2]+4; ++iz)
+                    {
+                      MaskImageType::IndexType idx = {{ix, iy, iz}};
+                      mask->SetPixel(idx, 2);
+                    }
+                }
+            }
+
+//           //mask = getInitMask< PixelType >(img, index[0], index[1], index[2]);
+
+          f << "LPS: " << lpsPoint << std::endl;
+          f << "IJK: " << index << std::endl;
         }
     }
   else
@@ -92,6 +120,9 @@ int main(int argc, char** argv)
       std::cerr << "No seeds specified." << std::endl;
       return -1;
     }
+
+  f.close();
+
   /* set the mask image according to the seeds
      --------------------------------------------------------------------------------*/
 
