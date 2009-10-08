@@ -492,6 +492,19 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
+  writer->SetFileName( argv[6] );
+  writer->SetInput( demonsFilter->GetOutput() );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   return EXIT_SUCCESS;
 }
