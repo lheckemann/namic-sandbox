@@ -45,13 +45,10 @@ protected:
   vtkMRMLTransPerinealProstateRobotNode* GetRobotNode();
 
   // GUI Widgets
-  vtkSlicerNodeSelectorWidget* TargetPlanFiducialSelector;
-  vtkSlicerNodeSelectorWidget* TargetCompletedFiducialSelector;
-
+ 
   vtkSlicerNodeSelectorWidget* RobotConnectorSelector;
   vtkSlicerNodeSelectorWidget* ScannerConnectorSelector;
 
-  vtkKWFrame *FiducialFrame;
   vtkKWFrame *ConnectorFrame;
 
 private:

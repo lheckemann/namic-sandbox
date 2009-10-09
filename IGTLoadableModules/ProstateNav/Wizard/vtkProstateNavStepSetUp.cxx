@@ -48,10 +48,6 @@ vtkProstateNavStepSetUp::vtkProstateNavStepSetUp()
   this->SetTitle("Configuration");
   this->SetDescription("System configuration.");
 
-  this->FiducialFrame                   = NULL;
-  this->TargetPlanFiducialSelector      = NULL;
-  this->TargetCompletedFiducialSelector = NULL;
-
   this->ConnectorFrame                  = NULL;
   this->RobotConnectorSelector          = NULL;
   this->ScannerConnectorSelector        = NULL;
@@ -62,29 +58,6 @@ vtkProstateNavStepSetUp::vtkProstateNavStepSetUp()
 //----------------------------------------------------------------------------
 vtkProstateNavStepSetUp::~vtkProstateNavStepSetUp()
 {
-
-  // Target fiducials
-  if (this->FiducialFrame)
-    {
-    this->FiducialFrame->SetParent(NULL);
-    this->FiducialFrame->Delete();
-    this->FiducialFrame = NULL;
-    }
-
-  if (this->TargetPlanFiducialSelector)
-    {
-    this->TargetPlanFiducialSelector->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    this->TargetPlanFiducialSelector->SetParent(NULL);
-    this->TargetPlanFiducialSelector->Delete();
-    this->TargetPlanFiducialSelector = NULL;
-    }
-  if (this->TargetCompletedFiducialSelector)
-    {
-    this->TargetCompletedFiducialSelector->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    this->TargetCompletedFiducialSelector->SetParent(NULL);
-    this->TargetCompletedFiducialSelector->Delete();
-    this->TargetCompletedFiducialSelector = NULL;
-    }
 
   // Connectors
   if (this->ConnectorFrame)
@@ -121,71 +94,6 @@ void vtkProstateNavStepSetUp::ShowUserInterface()
   vtkKWWizardWidget *wizardWidget = this->GetGUI()->GetWizardWidget();
   vtkKWWidget *parent = wizardWidget->GetClientArea();
 
-  if (!this->FiducialFrame)
-    {
-    this->FiducialFrame = vtkKWFrame::New();
-    this->FiducialFrame->SetParent ( parent );
-    this->FiducialFrame->Create ( );
-    }
-
-  this->Script ( "pack %s -side top -fill x",
-                 this->FiducialFrame->GetWidgetName());
-
-  if (!this->TargetPlanFiducialSelector)
-    {
-    this->TargetPlanFiducialSelector = vtkSlicerNodeSelectorWidget::New() ;
-    this->TargetPlanFiducialSelector->SetParent(this->FiducialFrame);
-    this->TargetPlanFiducialSelector->Create();
-    this->TargetPlanFiducialSelector->SetNodeClass("vtkMRMLFiducialListNode", NULL, NULL, "FiducialList");
-    this->TargetPlanFiducialSelector->SetMRMLScene(this->MRMLScene);
-    this->TargetPlanFiducialSelector->SetBorderWidth(2);
-    this->TargetPlanFiducialSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff();
-    this->TargetPlanFiducialSelector->GetWidget()->GetWidget()->SetWidth(24);
-    this->TargetPlanFiducialSelector->SetNoneEnabled(0);
-    this->TargetPlanFiducialSelector->SetNewNodeEnabled(1);
-    this->TargetPlanFiducialSelector->SetLabelText( "Targets planned: ");
-    this->TargetPlanFiducialSelector->SetBalloonHelpString("Select or create a target list.");
-    this->TargetPlanFiducialSelector->ExpandWidgetOff();
-    this->TargetPlanFiducialSelector->SetLabelWidth(18);
-
-    this->TargetPlanFiducialSelector
-      ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-                    (vtkCommand *)this->GUICallbackCommand );
-    this->TargetPlanFiducialSelector
-      ->AddObserver(vtkSlicerNodeSelectorWidget::NewNodeEvent,
-                    (vtkCommand *)this->GUICallbackCommand );
-    }    
-
-  if (!this->TargetCompletedFiducialSelector)
-    {
-    this->TargetCompletedFiducialSelector = vtkSlicerNodeSelectorWidget::New() ;
-    this->TargetCompletedFiducialSelector->SetParent(this->FiducialFrame);
-    this->TargetCompletedFiducialSelector->Create();
-    this->TargetCompletedFiducialSelector->SetNodeClass("vtkMRMLFiducialListNode", NULL, NULL, "FiducialList");
-    this->TargetCompletedFiducialSelector->SetMRMLScene(this->MRMLScene);
-    this->TargetCompletedFiducialSelector->SetBorderWidth(2);
-    this->TargetCompletedFiducialSelector->GetWidget()->GetWidget()->IndicatorVisibilityOff();
-    this->TargetCompletedFiducialSelector->GetWidget()->GetWidget()->SetWidth(24);
-    this->TargetCompletedFiducialSelector->SetNoneEnabled(0);
-    this->TargetCompletedFiducialSelector->SetNewNodeEnabled(1);
-    this->TargetCompletedFiducialSelector->SetLabelText( "Targets completed: ");
-    this->TargetCompletedFiducialSelector->SetBalloonHelpString("Select or create a target list.");
-    this->TargetCompletedFiducialSelector->ExpandWidgetOff();
-    this->TargetCompletedFiducialSelector->SetLabelWidth(18);
-
-    this->TargetCompletedFiducialSelector
-      ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
-                    (vtkCommand *)this->GUICallbackCommand );
-    this->TargetCompletedFiducialSelector
-      ->AddObserver(vtkSlicerNodeSelectorWidget::NewNodeEvent,
-                    (vtkCommand *)this->GUICallbackCommand );
-    }    
-
-  this->Script("pack %s %s -side top -anchor nw -fill x -padx 2 -pady 2",
-               this->TargetPlanFiducialSelector->GetWidgetName(),
-               this->TargetCompletedFiducialSelector->GetWidgetName());
-
-
   // Connector Frame
 
   if (!this->ConnectorFrame)
@@ -201,7 +109,7 @@ void vtkProstateNavStepSetUp::ShowUserInterface()
   if (!this->RobotConnectorSelector)
     {
     this->RobotConnectorSelector = vtkSlicerNodeSelectorWidget::New() ;
-    this->RobotConnectorSelector->SetParent(this->FiducialFrame);
+    this->RobotConnectorSelector->SetParent(this->ConnectorFrame);
     this->RobotConnectorSelector->Create();
     this->RobotConnectorSelector->SetNodeClass("vtkMRMLIGTLConnectorNode", NULL, NULL, "RobotConnector");
     this->RobotConnectorSelector->SetMRMLScene(this->MRMLScene);
@@ -226,7 +134,7 @@ void vtkProstateNavStepSetUp::ShowUserInterface()
   if (!this->ScannerConnectorSelector)
     {
     this->ScannerConnectorSelector = vtkSlicerNodeSelectorWidget::New() ;
-    this->ScannerConnectorSelector->SetParent(this->FiducialFrame);
+    this->ScannerConnectorSelector->SetParent(this->ConnectorFrame);
     this->ScannerConnectorSelector->Create();
     this->ScannerConnectorSelector->SetNodeClass("vtkMRMLIGTLConnectorNode", NULL, NULL, "ScannerConnector");
     this->ScannerConnectorSelector->SetMRMLScene(this->MRMLScene);
@@ -266,26 +174,6 @@ void vtkProstateNavStepSetUp::ProcessGUIEvents( vtkObject *caller,
                                          unsigned long event, void *callData )
 {
 
-  if (this->TargetPlanFiducialSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
-      && (event == vtkSlicerNodeSelectorWidget::NewNodeEvent || event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent))
-    {
-    vtkMRMLFiducialListNode* node = vtkMRMLFiducialListNode::SafeDownCast(this->TargetPlanFiducialSelector->GetSelected());
-    if (this->ProstateNavManager && node)
-      {
-      this->ProstateNavManager->SetAndObserveTargetPlanListNodeID(node->GetID());
-      }
-    }
-
-  if (this->TargetCompletedFiducialSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
-      && (event == vtkSlicerNodeSelectorWidget::NewNodeEvent || event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent))
-    {
-    vtkMRMLFiducialListNode* node = vtkMRMLFiducialListNode::SafeDownCast(this->TargetCompletedFiducialSelector->GetSelected());
-    if (this->ProstateNavManager && node)
-      {
-      this->ProstateNavManager->SetAndObserveTargetCompletedListNodeID(node->GetID());
-      }
-    }
-
   vtkMRMLTransPerinealProstateRobotNode* robotNode=GetRobotNode();
 
   if (this->RobotConnectorSelector == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
@@ -293,7 +181,8 @@ void vtkProstateNavStepSetUp::ProcessGUIEvents( vtkObject *caller,
     {
     vtkMRMLIGTLConnectorNode* node = vtkMRMLIGTLConnectorNode::SafeDownCast(this->RobotConnectorSelector->GetSelected());
     if (robotNode && node)
-      {
+      {      
+      robotNode->Init(vtkSlicerApplication::SafeDownCast(this->GetApplication())); // :TODO: this may not be the best place for robot initialization (e.g., when scene is loaded from MRML the GUI will not be used)    
       robotNode->SetAndObserveRobotConnectorNodeID(node->GetID());
       }
     }

@@ -73,7 +73,8 @@ set(ProstateNav_SRCS
   vtkProstateNavGUI.cxx
   vtkRobotToImageRegistration.cxx
   vtkMRMLRobotNode.cxx
-  vtkMRMLRobotDisplayNode.cxx  
+  vtkMRMLRobotDisplayNode.cxx
+  vtkProstateNavTargetDescriptor.cxx  
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/vtkIGTLToMRMLCoordinate.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/vtkIGTLToMRMLBrpRobotCommand.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/vtkZFrameRobotToImageRegistration.cxx

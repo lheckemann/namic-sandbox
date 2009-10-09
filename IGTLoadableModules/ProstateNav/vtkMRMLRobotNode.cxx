@@ -274,7 +274,7 @@ vtkMRMLTransformNode* vtkMRMLRobotNode::GetTargetTransformNode()
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLRobotNode::Enter(vtkSlicerApplication* app)
+int vtkMRMLRobotNode::Init(vtkSlicerApplication* app)
 {
   if (GetTargetTransformNode()==NULL)
   {

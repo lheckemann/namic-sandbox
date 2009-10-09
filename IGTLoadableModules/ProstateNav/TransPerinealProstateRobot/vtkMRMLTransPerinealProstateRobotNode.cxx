@@ -435,9 +435,9 @@ void vtkMRMLTransPerinealProstateRobotNode::PrintSelf(ostream& os, vtkIndent ind
 }
 
 
-int vtkMRMLTransPerinealProstateRobotNode::Enter(vtkSlicerApplication* app)
+int vtkMRMLTransPerinealProstateRobotNode::Init(vtkSlicerApplication* app)
 { 
-  this->Superclass::Enter(app);
+  this->Superclass::Init(app);
 
   vtkOpenIGTLinkIFGUI* igtlGUI = vtkOpenIGTLinkIFGUI::SafeDownCast(app->GetModuleGUIByName("OpenIGTLink IF"));
   if (igtlGUI)
@@ -763,7 +763,10 @@ int vtkMRMLTransPerinealProstateRobotNode::PerformRegistration(vtkMRMLScalarVolu
 //----------------------------------------------------------------------------
 void vtkMRMLTransPerinealProstateRobotNode::SwitchStep(const char *stepName)
 {
-  this->GetRobotCommandNode()->SwitchStep(stepName);
+  if (this->GetRobotCommandNode())
+    {
+    this->GetRobotCommandNode()->SwitchStep(stepName);
+    }
 }
 
 

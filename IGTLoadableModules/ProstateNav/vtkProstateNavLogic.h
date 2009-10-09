@@ -32,6 +32,8 @@
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLSliceNode.h"
 
+#include "vtkMRMLProstateNavManagerNode.h"
+
 class vtkProstateNavGUI;
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic 
@@ -75,10 +77,35 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   //BTX
   //Image* ReadCalibrationImage(const char* filename, int* width, int* height,
   //                            std::vector<float>& position, std::vector<float>& orientation);
+
+  bool AddTargetToNeedle(std::string needleType, float* rasLocation, unsigned int & targetDescIndex);
+
+  // Description:
+  // Add volume to MRML scene and return the MRML node.
+  // If volumeType is specified, then the volume is also selected as the current Calibration
+  // targeting or verification volume.
+  vtkMRMLScalarVolumeNode *AddVolumeToScene(vtkSlicerApplication* app,const char *fileName, VolumeType volumeType=VOL_GENERIC);
+
+  int ShowCoverage(vtkSlicerApplication *app);
+
   //ETX
+
+  void UpdateTargetListFromMRML();
   
  protected:
-  
+
+  //BTX
+  std::string GetFoRStrFromVolumeNodeID(const char* volNodeID);
+  //ETX
+
+  // Description:
+  // Helper method for loading a volume via the Volume module.
+  vtkMRMLScalarVolumeNode *AddArchetypeVolume(vtkSlicerApplication* app, const char* fileName, const char *volumeName);  
+
+  // Description:
+  // Set window/level computation, forcing the volume type to scalar (not statistical)
+  void SetAutoScaleScalarVolume(vtkMRMLScalarVolumeNode *volumeNode);
+
   void UpdateAll();
 
   vtkProstateNavLogic();
@@ -98,6 +125,18 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   
  private:
   
+  // Description:
+  // Set Slicers's 2D view orientations from the image orientation.
+  void SetSliceViewFromVolume(vtkSlicerApplication *app, vtkMRMLVolumeNode *volumeNode);
+
+  int GetTargetIndexFromFiducialID(const char* fiducialID);
+
+  int CreateCoverageVolume();
+  void DeleteCoverageVolume();
+  int UpdateCoverageVolumeImage();
+
+  bool IsTargetReachable(int needleIndex, double rasLocation[3]);
+
   vtkProstateNavGUI* GUI;
 
   /*

@@ -138,6 +138,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // Description:
   // Describe behavior at module startup and exit.
   virtual void Enter (vtkMRMLNode *node);
+  virtual void Enter ();
   virtual void Exit ( );
   
   void Init();
@@ -194,7 +195,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   char *FiducialListNodeID;
   vtkMRMLFiducialListNode *FiducialListNode;
 
-  void UpdateFromMRML();
+  void UpdateGUI();
 
  private:
 
