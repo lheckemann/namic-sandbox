@@ -270,6 +270,8 @@ int main( int argc, char *argv[] )
   thresholder2->SetInput( fastMarching->GetOutput() );
   shapeDetection->SetInput( thresholder2->GetOutput() );
 
+  shapeDetection->UseImageSpacingOn();
+
   internalWriter->SetInput( thresholder2->GetOutput() );
   internalWriter->SetFileName( "ShapeDetectionInput.mhd" );
   internalWriter->Update();
