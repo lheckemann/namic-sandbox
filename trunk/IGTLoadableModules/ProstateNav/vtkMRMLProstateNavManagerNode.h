@@ -24,9 +24,20 @@
 
 #include "vtkMRMLFiducialListNode.h"
 
+#include "vtkProstateNavTargetDescriptor.h"
+
 class vtkProstateNavStep;
 class vtkStringArray;
 class vtkMRMLRobotNode;
+
+enum VolumeType
+{
+  VOL_GENERIC, // any other than the specific volumes 
+  VOL_CALIBRATION,
+  VOL_TARGETING,
+  VOL_VERIFICATION,
+  VOL_COVERAGE
+};
 
 class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
 {
@@ -38,6 +49,15 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   //----------------------------------------------------------------
 
   //BTX
+
+  struct NeedleDescriptorStruct
+    {
+    std::string NeedleName; // use as UID for targets
+    float NeedleLength;
+    float NeedleOvershoot;
+    std::string Description;
+    };
+
   //ETX
 
  public:
@@ -45,11 +65,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   //----------------------------------------------------------------
   // Get and Set Macros
   //----------------------------------------------------------------
-  //vtkGetObjectMacro ( TargetPlanList, vtkMRMLFiducialListNode );
-  //vtkGetObjectMacro ( TargetCompletedList, vtkMRMLFiducialListNode );
 
-  //void SetAndObserveRobotNode(vtkMRMLRobotNode* ptr);
-  //vtkGetObjectMacro ( RobotNode, vtkMRMLRobotNode );
 
   //----------------------------------------------------------------
   // Standard methods for MRML nodes
@@ -61,6 +77,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual vtkMRMLNode* CreateNodeInstance();
+
+  void Init();
 
   // Description:
   // Set node attributes
@@ -122,23 +140,93 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   // Get previous workflow step.
   int GetPreviousStep();
 
+  vtkSetReferenceStringMacro(CalibrationVolumeNodeID);
+  vtkGetStringMacro(CalibrationVolumeNodeID);
+
+  vtkSetReferenceStringMacro(TargetingVolumeNodeID);
+  vtkGetStringMacro(TargetingVolumeNodeID);
+
+  vtkSetReferenceStringMacro(VerificationVolumeNodeID);
+  vtkGetStringMacro(VerificationVolumeNodeID);
+
+  vtkSetReferenceStringMacro(CoverageVolumeNodeID);
+  vtkGetStringMacro(CoverageVolumeNodeID);
+
+  bool FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc);
+
+  //----------------------------------------------------------------
+  // Needle Management
+  //----------------------------------------------------------------
+
+  //BTX
+  // Description:
+  // Set/Get the number of needle types and TargetingFiducialsLists, because there could be more than one lists, depending on needle type
+  int GetNumberOfNeedles(){ return this->NeedlesVector.size();};
+  //ETX
+
+  // Description:
+  // Set/Get the current needle index (if <0 then there is no active needle)
+  vtkGetMacro(CurrentNeedleIndex,int);
+  vtkSetMacro(CurrentNeedleIndex,int);
+
+  //BTX
+  // Description:
+  // get/set methods for storing needle information
+  void SetNeedleType(unsigned int needleIndex, std::string type);
+  std::string GetNeedleType(unsigned int needleIndex);
+  //ETX
+
+  //BTX
+  // Description:
+  // get/set methods for storing needle information
+  void SetNeedleDescription(unsigned int needleIndex, std::string desc);
+  std::string GetNeedleDescription(unsigned int needleIndex);
+  //ETX
+
+  // Description:
+  // get/set methods for storing needle information
+  void SetNeedleLength(unsigned int needleIndex, float length);
+  float GetNeedleLength(unsigned int needleIndex);
+
+  // Description:
+  // get/set methods for storing needle information
+  void SetNeedleOvershoot(unsigned int needleIndex, float overshoot);
+  float GetNeedleOvershoot(unsigned int needleIndex);
+
   //----------------------------------------------------------------
   // Target Management
   //----------------------------------------------------------------
   
+  bool AddTargetToFiducialList(double targetRAS[3], unsigned int fiducialListIndex, unsigned int targetNr, int & fiducialIndex);  
+  bool GetTargetFromFiducialList(int fiducialListIndex, int fiducialIndex, double &r, double &a, double &s);
+
+  void SetFiducialColor(int fiducialIndex, bool selected); // :TODO: rename it to SetFiducialSelected
+
+  //BTX
+  // Description:
+  // Get Targeting Fiducials Lists names(used in the wizard steps)
+  std::string GetTargetingFiducialsListName(unsigned int index)
+    {
+    if (index < this->NeedlesVector.size())
+      return this->NeedlesVector[index].NeedleName;
+    else
+      return NULL;
+    }; 
+  //ETX
+  
+  unsigned int AddTargetDescriptor(vtkProstateNavTargetDescriptor *target);
+  int RemoveTargetDescriptorAtIndex(unsigned int index); // return with 0 if failed
+  vtkProstateNavTargetDescriptor *GetTargetDescriptorAtIndex(unsigned int index);
+  int GetTotalNumberOfTargets() { return this->TargetDescriptorsVector.size();};
+  vtkGetMacro(CurrentTargetIndex, int);
+  int SetCurrentTargetIndex(int index);
+
   // Description:
   // Set and start observing target plan list
   //void SetAndObserveTargetPlanList(vtkMRMLFiducialListNode* ptr);
   vtkGetStringMacro(TargetPlanListNodeID);
   vtkMRMLFiducialListNode* GetTargetPlanListNode();
   void SetAndObserveTargetPlanListNodeID(const char *targetPlanListNodeID);
-
-  // Description:
-  // Set and start observing completed target list
-  //void SetAndObserveTargetCompletedList(vtkMRMLFiducialListNode* ptr);
-  vtkGetStringMacro(TargetCompletedListNodeID);
-  vtkMRMLFiducialListNode* GetTargetCompletedListNode();
-  void SetAndObserveTargetCompletedListNodeID(const char *targetCompletedListNodeID);
 
   vtkGetStringMacro(RobotNodeID);
   vtkMRMLRobotNode* GetRobotNode();
@@ -168,22 +256,31 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   
   int CurrentStep;
   int PreviousStep;
-  
-  //vtkMRMLFiducialListNode* TargetPlanList;
+
+  //BTX
+  std::vector<NeedleDescriptorStruct> NeedlesVector;
+  int CurrentNeedleIndex;
+
+  std::vector<vtkProstateNavTargetDescriptor*> TargetDescriptorsVector;
+  int CurrentTargetIndex; // if <0 then no current target is selected
+
+  //ETX
+
   vtkSetReferenceStringMacro(TargetPlanListNodeID);
   char *TargetPlanListNodeID;
   vtkMRMLFiducialListNode* TargetPlanListNode;
-
-  //vtkMRMLFiducialListNode* TargetCompletedList;  
-  vtkSetReferenceStringMacro(TargetCompletedListNodeID);
-  char *TargetCompletedListNodeID;
-  vtkMRMLFiducialListNode* TargetCompletedListNode;
 
   //vtkMRMLRobotNode* RobotNode;
   vtkSetReferenceStringMacro(RobotNodeID);
   char *RobotNodeID;
   vtkMRMLRobotNode* RobotNode;
 
+  char *CalibrationVolumeNodeID;  
+  char *TargetingVolumeNodeID;
+  char *VerificationVolumeNodeID;
+  char *CoverageVolumeNodeID;  
+
+  bool Initialized;
 };
 
 #endif

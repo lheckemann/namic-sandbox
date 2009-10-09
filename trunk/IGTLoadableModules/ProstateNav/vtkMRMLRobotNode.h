@@ -117,7 +117,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   vtkMRMLTransformNode* GetTargetTransformNode();
   void SetAndObserveTargetTransformNodeID(const char *transformNodeID);
 
-  virtual int Enter(vtkSlicerApplication* app);
+  virtual int Init(vtkSlicerApplication* app);
 
   virtual int  MoveTo(const char *transformNodeId) { return 0; };
 

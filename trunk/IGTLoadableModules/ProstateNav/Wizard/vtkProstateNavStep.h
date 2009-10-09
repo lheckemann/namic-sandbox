@@ -114,6 +114,7 @@ public:
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData) {};
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData) {};
 
+  virtual void UpdateGUI() {};
 
 protected:
   vtkProstateNavStep();
