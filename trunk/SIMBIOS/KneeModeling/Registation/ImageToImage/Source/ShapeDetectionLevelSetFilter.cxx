@@ -163,10 +163,14 @@ int main( int argc, char *argv[] )
   gradientMagnitude->SetInput( smoothing->GetOutput() );
   sigmoid->SetInput( gradientMagnitude->GetOutput() );
   
-  InternalWriterType::Pointer  sigmoidWriter = InternalWriterType::New();
-  sigmoidWriter->SetInput( sigmoid->GetOutput() );
-  sigmoidWriter->SetFileName("Sigmoid.mha");
-  sigmoidWriter->Update();
+
+  internalWriter->SetInput( gradientMagnitude->GetOutput() );
+  internalWriter->SetFileName("GradientMagnitude.mha");
+  internalWriter->Update();
+
+  internalWriter->SetInput( sigmoid->GetOutput() );
+  internalWriter->SetFileName("Sigmoid.mha");
+  internalWriter->Update();
 
   shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
 
@@ -185,6 +189,9 @@ int main( int argc, char *argv[] )
 
   const double alpha =  atof( argv[4] );
   const double beta  =  atof( argv[5] );
+
+  std::cout << "alpha = " << alpha << std::endl;
+  std::cout << "beta = " << beta << std::endl;
 
   sigmoid->SetAlpha( alpha );
   sigmoid->SetBeta(  beta  );
