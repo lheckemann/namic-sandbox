@@ -6,6 +6,7 @@ SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
 
 FIND_PATH(KNEE_DATA_DIR README.txt)
 
+SET(SEEDS_DATA_DIR ${PROJECT_SOURCE_DIR}/Testing/Data)
 
 MACRO(PREPAREMASK DATASETID )
 
@@ -17,7 +18,7 @@ ADD_TEST(ShapeDetection${DATASETID}
   -1.0 # Alpha
    5.0 # Beta
   25.0 # Initial radius in mm
-  ${KNEE_DATA_DIR}/${DATASETID}_Seeds.txt
+  ${SEEDS_DATA_DIR}/${DATASETID}_Seeds.txt
   )
  
 ADD_TEST(Masking${DATASETID}
@@ -41,7 +42,7 @@ ADD_TEST(ShapeDetection${DATASETID}_3T
   1500.0 # Beta
     10.0 # Initial radius in mm
    400.0 # Maximum number of iterations
-  ${KNEE_DATA_DIR}/${DATASETID}_3T_MRI_Seeds.txt
+  ${SEEDS_DATA_DIR}/${DATASETID}_3T_MRI_Seeds.txt
   )
  
 ADD_TEST(Masking${DATASETID}_3T
