@@ -77,13 +77,14 @@ public:
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 8 )
+  if( argc < 9 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " inputImage  outputImage";
     std::cerr << " Sigma SigmoidAlpha SigmoidBeta ";
     std::cerr << " InitialRadiusDistance";
+    std::cerr << " MaximumNumberOfLevelSetIterations";
     std::cerr << " InputSeedsFile";
     std::cerr << std::endl;
     return EXIT_FAILURE;
@@ -220,8 +221,8 @@ int main( int argc, char *argv[] )
 
   std::ifstream inputSeedsFile;
 
-  std::cout << "Opening seeds file " << argv[7] << std::endl;
-  inputSeedsFile.open( argv[7] );
+  std::cout << "Opening seeds file " << argv[8] << std::endl;
+  inputSeedsFile.open( argv[8] );
 
   float seedX;
   float seedY;
@@ -283,9 +284,12 @@ int main( int argc, char *argv[] )
   shapeDetection->SetPropagationScaling(  propagationScaling );
   shapeDetection->SetCurvatureScaling( curvatureScaling ); 
 
+  const unsigned int numberOfIterations = atoi( argv[7] );
+
+  std::cout << "Maximum number of iterations = " << numberOfIterations << std::endl;
 
   shapeDetection->SetMaximumRMSError( 0.0001 );
-  shapeDetection->SetNumberOfIterations( 300 );
+  shapeDetection->SetNumberOfIterations( numberOfIterations );
   
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();

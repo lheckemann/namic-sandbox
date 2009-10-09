@@ -36,10 +36,11 @@ ADD_TEST(ShapeDetection${DATASETID}_3T
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
   ${KNEE_DATA_DIR}/${DATASETID}_3T_MRI.mhd
   ${TEMP}/${DATASETID}_3T_MRI_Mask.mhd
-   0.7 # Sigma in mm
-  -1.0 # Alpha
+     0.7 # Sigma in mm
+    -1.0 # Alpha
   1500.0 # Beta
-  25.0 # Initial radius in mm
+    10.0 # Initial radius in mm
+   400.0 # Maximum number of iterations
   ${KNEE_DATA_DIR}/${DATASETID}_3T_MRI_Seeds.txt
   )
  
