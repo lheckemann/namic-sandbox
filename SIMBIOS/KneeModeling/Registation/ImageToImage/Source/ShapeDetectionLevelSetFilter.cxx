@@ -164,14 +164,6 @@ int main( int argc, char *argv[] )
   sigmoid->SetInput( gradientMagnitude->GetOutput() );
   
 
-  internalWriter->SetInput( gradientMagnitude->GetOutput() );
-  internalWriter->SetFileName("GradientMagnitude.mha");
-  internalWriter->Update();
-
-  internalWriter->SetInput( sigmoid->GetOutput() );
-  internalWriter->SetFileName("Sigmoid.mha");
-  internalWriter->Update();
-
   shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
 
   thresholder->SetInput( shapeDetection->GetOutput() );
@@ -196,6 +188,15 @@ int main( int argc, char *argv[] )
   sigmoid->SetAlpha( alpha );
   sigmoid->SetBeta(  beta  );
   
+
+  internalWriter->SetInput( gradientMagnitude->GetOutput() );
+  internalWriter->SetFileName("GradientMagnitude.mha");
+  internalWriter->Update();
+
+  internalWriter->SetInput( sigmoid->GetOutput() );
+  internalWriter->SetFileName("Sigmoid.mha");
+  internalWriter->Update();
+
 
   typedef FastMarchingFilterType::NodeContainer           NodeContainer;
   typedef FastMarchingFilterType::NodeType                NodeType;
