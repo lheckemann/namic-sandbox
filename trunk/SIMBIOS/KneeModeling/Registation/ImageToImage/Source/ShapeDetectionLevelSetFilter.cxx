@@ -163,6 +163,10 @@ int main( int argc, char *argv[] )
   gradientMagnitude->SetInput( smoothing->GetOutput() );
   sigmoid->SetInput( gradientMagnitude->GetOutput() );
   
+  InternalImageType::Pointer  sigmoidWriter = InternalImageType::New();
+  sigmoidWriter->SetInput( sigmoid->GetOutput() );
+  sigmoidWriter->SetFileName("Sigmoid.mha");
+  sigmoidWriter->Update();
 
   shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
 
