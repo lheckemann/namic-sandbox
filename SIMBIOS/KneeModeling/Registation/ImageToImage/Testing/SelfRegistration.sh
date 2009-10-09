@@ -13,6 +13,6 @@ mkdir /home/ibanez/bin/NAMIC/NAMICSandbox/SIMBIOS/KneeModeling/Registration/Imag
 /home/ibanez/bin/NAMIC/NAMICSandbox/SIMBIOS/KneeModeling/Registration/ImageToImage/Release/Testing/Temporary/$4/finalBSplineTransform_42_Deformed_42.txt \
 $1  $2  1.0  $3
 
-./EvaluateMetric.sh $1 $2 $3 $4
+/home/ibanez/src/NAMIC/NAMICSandbox/SIMBIOS/KneeModeling/Registration/ImageToImage/Testing/EvaluateMetric.sh $1 $2 $3 $4
 
 
