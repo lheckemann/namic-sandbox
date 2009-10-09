@@ -278,8 +278,8 @@ int main( int argc, char *argv[] )
   internalWriter->Update();
 
 
-  const double curvatureScaling   = 1.0;
-  const double propagationScaling = 1.0;
+  const double curvatureScaling   =   1.0;
+  const double propagationScaling = 100.0;
 
   shapeDetection->SetPropagationScaling(  propagationScaling );
   shapeDetection->SetCurvatureScaling( curvatureScaling ); 
