@@ -118,6 +118,41 @@ static long ndi_open_handles[4] = { -1, -1, -1, -1 };
 /*---------------------------------------------------------------------*/
 #if defined(WIN32) || defined(_WIN32)
 
+// The following part was added by Yoshito Otake on 10/08/2009
+// in order to handle the error during ndiSerialOpen()
+/*---------------from here (by Yoshito Otake, 10/08/2009)-----------------------*/
+#include <strsafe.h> // for StringCchPrintf()
+void OutputError(LPTSTR lpszFunction) 
+{ 
+    // Retrieve the system error message for the last-error code
+    LPVOID lpMsgBuf;
+    LPVOID lpDisplayBuf;
+    DWORD dw = GetLastError(); 
+
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL );
+
+    // Display the error message
+    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
+        (lstrlen((LPCTSTR)lpMsgBuf)+lstrlen((LPCTSTR)lpszFunction)+40)*sizeof(TCHAR)); 
+    StringCchPrintf((LPTSTR)lpDisplayBuf, 
+        LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+        TEXT("%s failed with error %d: %s"), 
+        lpszFunction, dw, lpMsgBuf); 
+    MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
+
+    LocalFree(lpMsgBuf);
+    LocalFree(lpDisplayBuf);
+}
+/*---------------until here (by Yoshito Otake, 10/08/2009)----------------------*/
+
 HANDLE ndiSerialOpen(const char *device)
 {
   static COMMTIMEOUTS default_ctmo = { MAXDWORD, MAXDWORD,
@@ -156,6 +191,7 @@ HANDLE ndiSerialOpen(const char *device)
     if (i < NDI_MAX_SAVE_STATE) { /* if we saved the state, forget the state */
       ndi_open_handles[i] = INVALID_HANDLE_VALUE;
     }
+    OutputError("Error at SetupComm(): ");  // added by Yoshito Otake at 10/08/2009
     CloseHandle(serial_port);
     return INVALID_HANDLE_VALUE;
   }
@@ -164,6 +200,7 @@ HANDLE ndiSerialOpen(const char *device)
     if (i < NDI_MAX_SAVE_STATE) { /* if we saved the state, forget the state */
       ndi_open_handles[i] = INVALID_HANDLE_VALUE;
     }
+    OutputError("Error at GetCommState(): ");  // added by Yoshito Otake at 10/08/2009
     CloseHandle(serial_port);
     return INVALID_HANDLE_VALUE;
   }
@@ -178,6 +215,7 @@ HANDLE ndiSerialOpen(const char *device)
     if (i < NDI_MAX_SAVE_STATE) { /* if we saved the state, forget the state */
       ndi_open_handles[i] = INVALID_HANDLE_VALUE;
     }
+    OutputError("Error at SetCommState(): ");  // added by Yoshito Otake at 10/08/2009
     CloseHandle(serial_port);
     return INVALID_HANDLE_VALUE;
   }
@@ -188,6 +226,7 @@ HANDLE ndiSerialOpen(const char *device)
       SetCommState(serial_port,&ndi_save_dcb[i]); 
       ndi_open_handles[i] = INVALID_HANDLE_VALUE;
     }
+    OutputError("Error at SetCommTimeouts(): ");  // added by Yoshito Otake at 10/08/2009
     CloseHandle(serial_port);
     return INVALID_HANDLE_VALUE;
   }

@@ -604,6 +604,11 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(double rasOffs
     // TO DO: what to do on failure
     return;
     }
+  if (!mrmlNode->GetVolumeInUse())
+    {
+    // TO DO: what to do on failure
+    return;
+    }
 
   if (strcmpi(mrmlNode->GetVolumeInUse(), "Planning"))
       return;

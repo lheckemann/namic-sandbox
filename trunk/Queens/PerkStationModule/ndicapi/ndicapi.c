@@ -536,6 +536,10 @@ int ndiProbe(const char *device)
     return NDI_OPEN_ERROR;
   }
 
+  // The following line was added by Yoshito Otake on 10/08/2009, because
+  // on some environments, we need to wait until the initialization completes
+  ndiSerialSleep(serial_port, 1500);
+
   /* check DSR line to see whether any device is connected */
   if (!ndiSerialCheckDSR(serial_port)) {
     ndiSerialClose(serial_port);
