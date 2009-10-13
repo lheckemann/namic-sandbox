@@ -242,6 +242,36 @@ vtkHybridNavLogicTcl.s:
 	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.s
 .PHONY : vtkHybridNavLogicTcl.s
 
+# target to build an object file
+vtkPivotCalibration.o:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkPivotCalibration.o
+.PHONY : vtkPivotCalibration.o
+
+# target to preprocess a source file
+vtkPivotCalibration.i:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkPivotCalibration.i
+.PHONY : vtkPivotCalibration.i
+
+# target to generate assembly for a file
+vtkPivotCalibration.s:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkPivotCalibration.s
+.PHONY : vtkPivotCalibration.s
+
+# target to build an object file
+vtkPivotCalibrationTcl.o:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o
+.PHONY : vtkPivotCalibrationTcl.o
+
+# target to preprocess a source file
+vtkPivotCalibrationTcl.i:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.i
+.PHONY : vtkPivotCalibrationTcl.i
+
+# target to generate assembly for a file
+vtkPivotCalibrationTcl.s:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.s
+.PHONY : vtkPivotCalibrationTcl.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -273,6 +303,12 @@ help:
 	@echo "... vtkHybridNavLogicTcl.o"
 	@echo "... vtkHybridNavLogicTcl.i"
 	@echo "... vtkHybridNavLogicTcl.s"
+	@echo "... vtkPivotCalibration.o"
+	@echo "... vtkPivotCalibration.i"
+	@echo "... vtkPivotCalibration.s"
+	@echo "... vtkPivotCalibrationTcl.o"
+	@echo "... vtkPivotCalibrationTcl.i"
+	@echo "... vtkPivotCalibrationTcl.s"
 .PHONY : help
 
 
