@@ -34,9 +34,10 @@ ENDIF(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
 
 IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Development")
   FILE(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/Slicer3/Modules/HybridNav" TYPE FILE FILES
+    "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavLogic.h"
     "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavGUI.h"
     "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavWin32Header.h"
-    "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavLogic.h"
+    "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkPivotCalibration.h"
     "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkHybridNavConfigure.h"
     )
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Development")

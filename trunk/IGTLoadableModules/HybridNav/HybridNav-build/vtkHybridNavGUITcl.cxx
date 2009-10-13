@@ -225,9 +225,9 @@ int VTKTCL_EXPORT vtkHybridNavGUICppCommand(vtkHybridNavGUI *op, Tcl_Interp *int
     Tcl_ResetResult(interp);
     return TCL_OK;
     }
-  if ((!strcmp("BuildGUIForTestFrame1",argv[1]))&&(argc == 2))
+  if ((!strcmp("BuildGUIForCalibrationFrame",argv[1]))&&(argc == 2))
     {
-    op->BuildGUIForTestFrame1();
+    op->BuildGUIForCalibrationFrame();
     Tcl_ResetResult(interp);
     return TCL_OK;
     }
@@ -273,7 +273,7 @@ int VTKTCL_EXPORT vtkHybridNavGUICppCommand(vtkHybridNavGUI *op, Tcl_Interp *int
     Tcl_AppendResult(interp,"  HandleMouseEvent\t with 1 arg\n",NULL);
     Tcl_AppendResult(interp,"  BuildGUI\n",NULL);
     Tcl_AppendResult(interp,"  BuildGUIForHelpFrame\n",NULL);
-    Tcl_AppendResult(interp,"  BuildGUIForTestFrame1\n",NULL);
+    Tcl_AppendResult(interp,"  BuildGUIForCalibrationFrame\n",NULL);
     Tcl_AppendResult(interp,"  BuildGUIForTestFrame2\n",NULL);
     Tcl_AppendResult(interp,"  UpdateAll\n",NULL);
     return TCL_OK;
@@ -313,7 +313,7 @@ int VTKTCL_EXPORT vtkHybridNavGUICppCommand(vtkHybridNavGUI *op, Tcl_Interp *int
     Tcl_DStringAppendElement ( &dString, "HandleMouseEvent" );
     Tcl_DStringAppendElement ( &dString, "BuildGUI" );
     Tcl_DStringAppendElement ( &dString, "BuildGUIForHelpFrame" );
-    Tcl_DStringAppendElement ( &dString, "BuildGUIForTestFrame1" );
+    Tcl_DStringAppendElement ( &dString, "BuildGUIForCalibrationFrame" );
     Tcl_DStringAppendElement ( &dString, "BuildGUIForTestFrame2" );
     Tcl_DStringAppendElement ( &dString, "UpdateAll" );
   Tcl_DStringResult ( interp, &dString );
@@ -636,18 +636,18 @@ int VTKTCL_EXPORT vtkHybridNavGUICppCommand(vtkHybridNavGUI *op, Tcl_Interp *int
     Tcl_DStringFree ( &dString );
     return TCL_OK;
     }
-    /* Starting function: BuildGUIForTestFrame1 */
-    if ( strcmp ( argv[2], "BuildGUIForTestFrame1" ) == 0 ) {
+    /* Starting function: BuildGUIForCalibrationFrame */
+    if ( strcmp ( argv[2], "BuildGUIForCalibrationFrame" ) == 0 ) {
     Tcl_DStringInit ( &dString );
-    Tcl_DStringAppendElement ( &dString, "BuildGUIForTestFrame1" );
+    Tcl_DStringAppendElement ( &dString, "BuildGUIForCalibrationFrame" );
     /* Arguments */
     Tcl_DStringStartSublist ( &dString );
     Tcl_DStringEndSublist ( &dString );
-    /* Documentation for BuildGUIForTestFrame1 */
+    /* Documentation for BuildGUIForCalibrationFrame */
     Tcl_DStringAppendElement ( &dString, "" );
-    Tcl_DStringAppendElement ( &dString, "void BuildGUIForTestFrame1 ();" );
+    Tcl_DStringAppendElement ( &dString, "void BuildGUIForCalibrationFrame ();" );
     Tcl_DStringAppendElement ( &dString, "vtkHybridNavGUI" );
-    /* Closing for BuildGUIForTestFrame1 */
+    /* Closing for BuildGUIForCalibrationFrame */
 
     Tcl_DStringResult ( interp, &dString );
     Tcl_DStringFree ( &dString );

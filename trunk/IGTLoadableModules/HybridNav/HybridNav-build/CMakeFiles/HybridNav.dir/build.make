@@ -122,9 +122,33 @@ CMakeFiles/HybridNav.dir/vtkHybridNavGUI.o.provides: CMakeFiles/HybridNav.dir/vt
 CMakeFiles/HybridNav.dir/vtkHybridNavGUI.o.provides.build: CMakeFiles/HybridNav.dir/vtkHybridNavGUI.o
 .PHONY : CMakeFiles/HybridNav.dir/vtkHybridNavGUI.o.provides.build
 
+CMakeFiles/HybridNav.dir/vtkPivotCalibration.o: CMakeFiles/HybridNav.dir/flags.make
+CMakeFiles/HybridNav.dir/vtkPivotCalibration.o: /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkPivotCalibration.cxx
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_4)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/HybridNav.dir/vtkPivotCalibration.o"
+	/usr/bin/g++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/HybridNav.dir/vtkPivotCalibration.o -c /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkPivotCalibration.cxx
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibration.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/HybridNav.dir/vtkPivotCalibration.i"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_FLAGS) -E /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkPivotCalibration.cxx > CMakeFiles/HybridNav.dir/vtkPivotCalibration.i
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibration.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/HybridNav.dir/vtkPivotCalibration.s"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_FLAGS) -S /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkPivotCalibration.cxx -o CMakeFiles/HybridNav.dir/vtkPivotCalibration.s
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibration.o.requires:
+.PHONY : CMakeFiles/HybridNav.dir/vtkPivotCalibration.o.requires
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibration.o.provides: CMakeFiles/HybridNav.dir/vtkPivotCalibration.o.requires
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkPivotCalibration.o.provides.build
+.PHONY : CMakeFiles/HybridNav.dir/vtkPivotCalibration.o.provides
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibration.o.provides.build: CMakeFiles/HybridNav.dir/vtkPivotCalibration.o
+.PHONY : CMakeFiles/HybridNav.dir/vtkPivotCalibration.o.provides.build
+
 CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.o: CMakeFiles/HybridNav.dir/flags.make
 CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.o: vtkHybridNavLogicTcl.cxx
-	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_4)
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_5)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.o"
 	/usr/bin/g++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.o -c /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkHybridNavLogicTcl.cxx
 
@@ -148,7 +172,7 @@ CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.o.provides.build: CMakeFiles/Hybri
 
 CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o: CMakeFiles/HybridNav.dir/flags.make
 CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o: vtkHybridNavGUITcl.cxx
-	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_5)
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_6)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o"
 	/usr/bin/g++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o -c /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkHybridNavGUITcl.cxx
 
@@ -170,9 +194,33 @@ CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o.provides: CMakeFiles/HybridNav.dir
 CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o.provides.build: CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o
 .PHONY : CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o.provides.build
 
+CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o: CMakeFiles/HybridNav.dir/flags.make
+CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o: vtkPivotCalibrationTcl.cxx
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_7)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o"
+	/usr/bin/g++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o -c /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkPivotCalibrationTcl.cxx
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.i"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_FLAGS) -E /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkPivotCalibrationTcl.cxx > CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.i
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.s"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_FLAGS) -S /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkPivotCalibrationTcl.cxx -o CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.s
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o.requires:
+.PHONY : CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o.requires
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o.provides: CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o.requires
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o.provides.build
+.PHONY : CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o.provides
+
+CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o.provides.build: CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o
+.PHONY : CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o.provides.build
+
 CMakeFiles/HybridNav.dir/HybridNavInit.o: CMakeFiles/HybridNav.dir/flags.make
 CMakeFiles/HybridNav.dir/HybridNavInit.o: HybridNavInit.cxx
-	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_6)
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_8)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/HybridNav.dir/HybridNavInit.o"
 	/usr/bin/g++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/HybridNav.dir/HybridNavInit.o -c /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/HybridNavInit.cxx
 
@@ -196,33 +244,40 @@ CMakeFiles/HybridNav.dir/HybridNavInit.o.provides.build: CMakeFiles/HybridNav.di
 
 HybridNavLib.cxx: /projects/prostate/elhawary/Slicer3-build/bin/GenerateLM
 HybridNavLib.cxx: /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/HybridNav.txt
-	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_7)
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_9)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Generating HybridNavLib.cxx"
 	/projects/prostate/elhawary/Slicer3-build/bin/GenerateLM --InputTxt /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/HybridNav.txt --OutputHeader /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/HybridNavLib.h --OutputCxx /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/HybridNavLib.cxx
 
 HybridNavLib.h: /projects/prostate/elhawary/Slicer3-build/bin/GenerateLM
 HybridNavLib.h: /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/HybridNav.txt
-	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_8)
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_10)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Generating HybridNavLib.h"
 	/projects/prostate/elhawary/Slicer3-build/bin/GenerateLM --InputTxt /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/HybridNav.txt --OutputHeader /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/HybridNavLib.h --OutputCxx /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/HybridNavLib.cxx
 
 vtkHybridNavLogicTcl.cxx: /projects/prostate/elhawary/Slicer3-lib/VTK-build/bin/vtkWrapTcl
 vtkHybridNavLogicTcl.cxx: /projects/prostate/elhawary/Slicer3-lib/VTK/Wrapping/hints
 vtkHybridNavLogicTcl.cxx: /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavLogic.h
-	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_9)
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_11)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Tcl Wrapping - generating vtkHybridNavLogicTcl.cxx"
 	/projects/prostate/elhawary/Slicer3-lib/VTK-build/bin/vtkWrapTcl /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavLogic.h /projects/prostate/elhawary/Slicer3-lib/VTK/Wrapping/hints 1 /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkHybridNavLogicTcl.cxx
 
 vtkHybridNavGUITcl.cxx: /projects/prostate/elhawary/Slicer3-lib/VTK-build/bin/vtkWrapTcl
 vtkHybridNavGUITcl.cxx: /projects/prostate/elhawary/Slicer3-lib/VTK/Wrapping/hints
 vtkHybridNavGUITcl.cxx: /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavGUI.h
-	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_10)
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_12)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Tcl Wrapping - generating vtkHybridNavGUITcl.cxx"
 	/projects/prostate/elhawary/Slicer3-lib/VTK-build/bin/vtkWrapTcl /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavGUI.h /projects/prostate/elhawary/Slicer3-lib/VTK/Wrapping/hints 1 /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkHybridNavGUITcl.cxx
 
+vtkPivotCalibrationTcl.cxx: /projects/prostate/elhawary/Slicer3-lib/VTK-build/bin/vtkWrapTcl
+vtkPivotCalibrationTcl.cxx: /projects/prostate/elhawary/Slicer3-lib/VTK/Wrapping/hints
+vtkPivotCalibrationTcl.cxx: /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkPivotCalibration.h
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_13)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Tcl Wrapping - generating vtkPivotCalibrationTcl.cxx"
+	/projects/prostate/elhawary/Slicer3-lib/VTK-build/bin/vtkWrapTcl /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkPivotCalibration.h /projects/prostate/elhawary/Slicer3-lib/VTK/Wrapping/hints 1 /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkPivotCalibrationTcl.cxx
+
 HybridNavInit.cxx: /projects/prostate/elhawary/Slicer3-lib/VTK-build/bin/vtkWrapTclInit
 HybridNavInit.cxx: HybridNavInit.data
-	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_11)
+	$(CMAKE_COMMAND) -E cmake_progress_report /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles $(CMAKE_PROGRESS_14)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Tcl Wrapping - generating HybridNavInit.cxx"
 	/projects/prostate/elhawary/Slicer3-lib/VTK-build/bin/vtkWrapTclInit /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/HybridNavInit.data /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/HybridNavInit.cxx
 
@@ -231,8 +286,10 @@ HybridNav_OBJECTS = \
 "CMakeFiles/HybridNav.dir/HybridNavLib.o" \
 "CMakeFiles/HybridNav.dir/vtkHybridNavLogic.o" \
 "CMakeFiles/HybridNav.dir/vtkHybridNavGUI.o" \
+"CMakeFiles/HybridNav.dir/vtkPivotCalibration.o" \
 "CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.o" \
 "CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o" \
+"CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o" \
 "CMakeFiles/HybridNav.dir/HybridNavInit.o"
 
 # External object files for target HybridNav
@@ -241,8 +298,10 @@ HybridNav_EXTERNAL_OBJECTS =
 lib/Slicer3/Modules/libHybridNav.so: CMakeFiles/HybridNav.dir/HybridNavLib.o
 lib/Slicer3/Modules/libHybridNav.so: CMakeFiles/HybridNav.dir/vtkHybridNavLogic.o
 lib/Slicer3/Modules/libHybridNav.so: CMakeFiles/HybridNav.dir/vtkHybridNavGUI.o
+lib/Slicer3/Modules/libHybridNav.so: CMakeFiles/HybridNav.dir/vtkPivotCalibration.o
 lib/Slicer3/Modules/libHybridNav.so: CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.o
 lib/Slicer3/Modules/libHybridNav.so: CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o
+lib/Slicer3/Modules/libHybridNav.so: CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o
 lib/Slicer3/Modules/libHybridNav.so: CMakeFiles/HybridNav.dir/HybridNavInit.o
 lib/Slicer3/Modules/libHybridNav.so: /usr/lib64/libGL.so
 lib/Slicer3/Modules/libHybridNav.so: /usr/lib64/libXt.so
@@ -266,8 +325,10 @@ CMakeFiles/HybridNav.dir/build: lib/Slicer3/Modules/libHybridNav.so
 CMakeFiles/HybridNav.dir/requires: CMakeFiles/HybridNav.dir/HybridNavLib.o.requires
 CMakeFiles/HybridNav.dir/requires: CMakeFiles/HybridNav.dir/vtkHybridNavLogic.o.requires
 CMakeFiles/HybridNav.dir/requires: CMakeFiles/HybridNav.dir/vtkHybridNavGUI.o.requires
+CMakeFiles/HybridNav.dir/requires: CMakeFiles/HybridNav.dir/vtkPivotCalibration.o.requires
 CMakeFiles/HybridNav.dir/requires: CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.o.requires
 CMakeFiles/HybridNav.dir/requires: CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o.requires
+CMakeFiles/HybridNav.dir/requires: CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o.requires
 CMakeFiles/HybridNav.dir/requires: CMakeFiles/HybridNav.dir/HybridNavInit.o.requires
 .PHONY : CMakeFiles/HybridNav.dir/requires
 
@@ -279,6 +340,7 @@ CMakeFiles/HybridNav.dir/depend: HybridNavLib.cxx
 CMakeFiles/HybridNav.dir/depend: HybridNavLib.h
 CMakeFiles/HybridNav.dir/depend: vtkHybridNavLogicTcl.cxx
 CMakeFiles/HybridNav.dir/depend: vtkHybridNavGUITcl.cxx
+CMakeFiles/HybridNav.dir/depend: vtkPivotCalibrationTcl.cxx
 CMakeFiles/HybridNav.dir/depend: HybridNavInit.cxx
 	cd /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build /projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles/HybridNav.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/HybridNav.dir/depend
