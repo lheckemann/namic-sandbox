@@ -12,7 +12,7 @@ MACRO(PREPAREMASK DATASETID )
 
 ADD_TEST(ShapeDetection${DATASETID}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
-  ${KNEE_DATA_DIR}/${DATASETID}.mhd
+  ${KNEE_DATA_DIR}/Knees/${DATASETID}.mhd
   ${TEMP}/${DATASETID}_Mask.mhd
    0.7 # Sigma in mm
   -1.0 # Alpha
@@ -23,7 +23,7 @@ ADD_TEST(ShapeDetection${DATASETID}
  
 ADD_TEST(Masking${DATASETID}
   ${CXX_TEST_PATH}/MaskImageForRegistration
-  ${KNEE_DATA_DIR}/${DATASETID}.mhd
+  ${KNEE_DATA_DIR}/Knees/${DATASETID}.mhd
   ${TEMP}/${DATASETID}_Mask.mhd
   ${TEMP}/${DATASETID}_Masked.mhd
   ) 
@@ -59,19 +59,19 @@ MACRO(PREPAREMASK3TPD DATASETID )
 
 ADD_TEST(ShapeDetection${DATASETID}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
-  ${KNEE_DATA_DIR}/${DATASETID}.mhd
+  ${KNEE_DATA_DIR}/3TPDImages/${DATASETID}.mhd
   ${TEMP}/${DATASETID}_Mask.mhd
      0.6 # Sigma in mm
     -1.0 # Alpha
     50.0 # Beta
-    25.0 # Initial radius in mm
-   100.0 # Maximum number of iterations
+    10.0 # Initial radius in mm
+   200.0 # Maximum number of iterations
   ${SEEDS_DATA_DIR}/${DATASETID}_Seeds.txt
   )
  
 ADD_TEST(Masking${DATASETID}
   ${CXX_TEST_PATH}/MaskImageForRegistration
-  ${KNEE_DATA_DIR}/${DATASETID}.mhd
+  ${KNEE_DATA_DIR}/3TPDImages/${DATASETID}.mhd
   ${TEMP}/${DATASETID}_Mask.mhd
   ${TEMP}/${DATASETID}_Masked.mhd
   ) 
