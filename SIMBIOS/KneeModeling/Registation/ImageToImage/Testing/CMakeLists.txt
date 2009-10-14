@@ -55,6 +55,30 @@ ADD_TEST(Masking${DATASETID}_3T
 ENDMACRO(PREPAREMASK3T)
 
 
+MACRO(PREPAREMASK3TPD DATASETID )
+
+ADD_TEST(ShapeDetection${DATASETID}
+  ${CXX_TEST_PATH}/ShapeDetectionLevelSetFilter
+  ${KNEE_DATA_DIR}/${DATASETID}.mhd
+  ${TEMP}/${DATASETID}_Mask.mhd
+     0.6 # Sigma in mm
+    -1.0 # Alpha
+    50.0 # Beta
+    25.0 # Initial radius in mm
+   100.0 # Maximum number of iterations
+  ${SEEDS_DATA_DIR}/${DATASETID}_Seeds.txt
+  )
+ 
+ADD_TEST(Masking${DATASETID}
+  ${CXX_TEST_PATH}/MaskImageForRegistration
+  ${KNEE_DATA_DIR}/${DATASETID}.mhd
+  ${TEMP}/${DATASETID}_Mask.mhd
+  ${TEMP}/${DATASETID}_Masked.mhd
+  ) 
+
+ENDMACRO(PREPAREMASK3TPD)
+
+
 MACRO(DEFORM DATASETID )
 
 ADD_TEST(Deform_${DATASETID}
@@ -148,6 +172,8 @@ PREPAREMASK( 58 )
 PREPAREMASK( 64 )
 
 PREPAREMASK3T( 58 )
+
+PREPAREMASK3TPD( SagittalPD-MRImages )
 
 DEFORM( 42 )
 
