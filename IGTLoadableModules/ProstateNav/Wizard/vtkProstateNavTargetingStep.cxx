@@ -533,7 +533,7 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
   // show coverage dialog button
    if (this->ShowCoverageButton && this->ShowCoverageButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
-      this->ShowCoverage(this->AddTargetsOnClickButton->GetSelectedState() == 1);
+      this->ShowCoverage(this->ShowCoverageButton->GetSelectedState() == 1);
     }
 
  // activate fiducial placement
@@ -975,9 +975,7 @@ void vtkProstateNavTargetingStep::LoadTargetingVolumeButtonCallback(const char *
   
   this->LoadTargetingVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPath");
 
-  vtkSlicerApplication *app = static_cast<vtkSlicerApplication *>(this->GetGUI()->GetApplication());
-
-  vtkMRMLScalarVolumeNode *volumeNode = this->GetGUI()->GetLogic()->AddVolumeToScene(app,fileString.c_str(), VOL_TARGETING);
+  vtkMRMLScalarVolumeNode *volumeNode = this->GetGUI()->GetLogic()->AddVolumeToScene(fileString.c_str(), VOL_TARGETING);
         
   if (volumeNode)
     {
@@ -1096,7 +1094,7 @@ void vtkProstateNavTargetingStep::ShowCoverage(bool show)
     vtkErrorMacro("Invalid logic object");
     return;
   }
-  logic->ShowCoverage(vtkSlicerApplication::SafeDownCast(this->GetApplication()));
+  logic->ShowCoverage(show);
 }
 
 void vtkProstateNavTargetingStep::UpdateCurrentTargetDisplay()

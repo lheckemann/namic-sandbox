@@ -27,6 +27,7 @@
 class vtkMRMLModelNode;
 class vtkMRMLScalarVolumeNode;
 class vtkSlicerApplication;
+class vtkProstateNavTargetDescriptor;
 
 class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
 {
@@ -124,6 +125,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   virtual void SwitchStep(const char *stepName) {};
 
   virtual int OnTimer() {return 1; };
+
+  virtual bool FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc) { return false; };
 
   virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode) { return 0; };
 

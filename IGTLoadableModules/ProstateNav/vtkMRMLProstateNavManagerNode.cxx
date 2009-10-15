@@ -667,15 +667,9 @@ void vtkMRMLProstateNavManagerNode::Init()
 
 bool vtkMRMLProstateNavManagerNode::FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc)
 {
-  // :TODO: call the current robot's target parameter computation algorithm
-  // this is just a dummy targeting params computation for coverage area display testing
-  double *ras=targetDesc->GetRASLocation();
-  const double center[3]={0,0,0};
-  const double radius2=25*25;
-  targetDesc->SetIsOutsideReach(
-    (ras[0]-center[0])*(ras[0]-center[0])+
-    (ras[1]-center[1])*(ras[1]-center[1])+
-    (ras[2]-center[2])*(ras[2]-center[2])>radius2
-    );
-  return true;
+  if (this->RobotNode==NULL)
+    {
+    return false;
+    }
+  return this->RobotNode->FindTargetingParams(targetDesc);
 }

@@ -666,7 +666,7 @@ void vtkProstateNavGUI::Enter()
   if (this->Entered == 0)
     {
     this->GetLogic()->SetGUI(this);
-    this->GetLogic()->Enter(vtkSlicerApplication::SafeDownCast(this->GetApplication()));    
+    this->GetLogic()->Enter();    
     this->Entered = 1;
     }
 
