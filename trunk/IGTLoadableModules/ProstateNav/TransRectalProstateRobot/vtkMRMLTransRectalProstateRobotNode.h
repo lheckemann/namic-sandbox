@@ -63,6 +63,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
 
+  virtual bool FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc);
+
 
  protected:
   //----------------------------------------------------------------

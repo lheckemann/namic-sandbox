@@ -122,6 +122,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
 
   virtual int OnTimer();
 
+  virtual bool FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc);
+
   virtual const char* GetCalibrationObjectModelId() { return GetZFrameModelNodeID(); };
   virtual const char* GetCalibrationObjectTransformId() { return GetZFrameTransformNodeID(); };
 

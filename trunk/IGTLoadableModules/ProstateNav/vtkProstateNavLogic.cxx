@@ -43,7 +43,7 @@
 
 #include "ProstateNavMath.h"
 
-const int COVERAGE_MAP_SIZE_MM=300; // 500
+const int COVERAGE_MAP_SIZE_MM=500;
 const int COVERAGE_MAP_RESOLUTION_MM=5;
 
 vtkCxxRevisionMacro(vtkProstateNavLogic, "$Revision: 1.9.12.1 $");
@@ -95,7 +95,7 @@ void vtkProstateNavLogic::UpdateAll()
 }
 
 
-int vtkProstateNavLogic::Enter(vtkSlicerApplication* app)
+int vtkProstateNavLogic::Enter()
 {      
   vtkKWTkUtilities::CreateTimerHandler(this->GetGUI()->GetApplication(), 200, this, "TimerHandler");
   return 1;
@@ -174,7 +174,7 @@ int vtkProstateNavLogic::ScanStop()
 }
 
 //---------------------------------------------------------------------------
-void vtkProstateNavLogic::SetSliceViewFromVolume( vtkSlicerApplication *app,vtkMRMLVolumeNode *volumeNode)
+void vtkProstateNavLogic::SetSliceViewFromVolume(vtkMRMLVolumeNode *volumeNode)
 {
   if (!volumeNode)
     {
@@ -231,8 +231,7 @@ void vtkProstateNavLogic::SetSliceViewFromVolume( vtkSlicerApplication *app,vtkM
   permutationMatrix->Invert();
   vtkMatrix4x4::Multiply4x4(matrix, permutationMatrix, rotationMatrix); 
 
-  vtkSlicerApplicationLogic *appLogic =
-    app->GetApplicationGUI()->GetApplicationLogic();
+  vtkSlicerApplicationLogic *appLogic = this->GetGUI()->GetApplicationLogic();
 
   
   // Set the slice views to match the volume slice orientation
@@ -282,7 +281,7 @@ void vtkProstateNavLogic::SetSliceViewFromVolume( vtkSlicerApplication *app,vtkM
 
 }
 //---------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(vtkSlicerApplication* app, const char *fileName, VolumeType volumeType/*=VOL_GENERIC*/)
+vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(const char *fileName, VolumeType volumeType/*=VOL_GENERIC*/)
 {
   if (fileName==0)
   {
@@ -291,7 +290,7 @@ vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(vtkSlicerApplicat
   }
 
   vtksys_stl::string volumeNameString = vtksys::SystemTools::GetFilenameName(fileName);
-  vtkMRMLScalarVolumeNode *volumeNode = this->AddArchetypeVolume(app, fileName, volumeNameString.c_str());
+  vtkMRMLScalarVolumeNode *volumeNode = this->AddArchetypeVolume(fileName, volumeNameString.c_str());
 
   if (volumeNode==NULL)
   {
@@ -307,7 +306,7 @@ vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(vtkSlicerApplicat
   }
 
   this->SetAutoScaleScalarVolume(volumeNode);
-  this->SetSliceViewFromVolume(app, volumeNode);
+  this->SetSliceViewFromVolume(volumeNode);
 
   switch (volumeType)
   {
@@ -331,7 +330,7 @@ vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(vtkSlicerApplicat
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddArchetypeVolume(vtkSlicerApplication* app, const char* fileName, const char *volumeName)
+vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddArchetypeVolume(const char* fileName, const char *volumeName)
 {
   // Set up storageNode
   vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode> storageNode = vtkSmartPointer<vtkMRMLVolumeArchetypeStorageNode>::New(); 
@@ -439,7 +438,7 @@ void vtkProstateNavLogic::SetAutoScaleScalarVolume(vtkMRMLScalarVolumeNode *volu
 // Add the volume and a display node to the scene
 // return 0 if failed
 //----------------------------------------------------------------------------
-int vtkProstateNavLogic::ShowCoverage(vtkSlicerApplication *app) 
+int vtkProstateNavLogic::ShowCoverage(bool show) 
 {
 
   vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
@@ -449,13 +448,26 @@ int vtkProstateNavLogic::ShowCoverage(vtkSlicerApplication *app)
     return 0;
   }
   
+  // always delete it first, because we recreate if it is needed
+  // TODO: if the coverage area is not changed (e.g., calibration is not changed) then don't delete and recreate the volume, just show/hide it once it is created
   vtkMRMLScalarVolumeNode* coverageVolumeNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCoverageVolumeNodeID()));
   if (coverageVolumeNode!=NULL)
   {
     DeleteCoverageVolume();
   }
 
-  // :TODO: check calibration (make sure that the robot is calibrated with the currently displayed targeting volume)
+  if (!show)
+  {
+    // we don't need to show the volume, so we can quit now
+    return 1;
+  }
+
+  // Save original slice location
+  vtkSlicerApplicationGUI *applicationGUI = this->GUI->GetApplicationGUI();
+  double oldSliceSetting[3];
+  oldSliceSetting[0] = double(applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset());
+  oldSliceSetting[1] = double(applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceOffset());
+  oldSliceSetting[2] = double(applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceOffset());
 
   if (CreateCoverageVolume()==0)
   {
@@ -469,32 +481,17 @@ int vtkProstateNavLogic::ShowCoverage(vtkSlicerApplication *app)
     return 0;
   }
 
-  // Create display node
-  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> labelDisplayNode  = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
-  labelDisplayNode->SetAndObserveColorNodeID ("vtkMRMLColorTableNodeLabels"); // set the display node to have a label map lookup table
-  this->GetMRMLScene()->AddNode(labelDisplayNode);
-  coverageVolumeNode->SetAndObserveDisplayNodeID( labelDisplayNode->GetID() );  
+  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetLabelOpacity(0.6);
+  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetLabelOpacity(0.6);
+  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetLabelOpacity(0.6);
 
-  // add the label volume to the scene
-  this->GetMRMLScene()->AddNode(coverageVolumeNode);
+  // Select coverage volume node id as label
+  const char* coverageVolNodeID=manager->GetCoverageVolumeNodeID();
+  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetLabelVolumeID(coverageVolNodeID);
+  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetLabelVolumeID(coverageVolNodeID);
+  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetLabelVolumeID(coverageVolNodeID);
 
-  vtkSlicerApplicationGUI *applicationGUI = app->GetApplicationGUI();
-
-  // Reset to original slice location 
-  double oldSliceSetting[3];
-  oldSliceSetting[0] = double(applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset());
-  oldSliceSetting[1] = double(applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceOffset());
-  oldSliceSetting[2] = double(applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceOffset());
-
-  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(coverageVolumeNode->GetID());
-  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(coverageVolumeNode->GetID());
-  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetForegroundVolumeID(coverageVolumeNode->GetID());
-
-  applicationGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
-  applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
-  applicationGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceCompositeNode()->SetForegroundOpacity(0.6);
-
-  // Reset to original slice location 
+  // Restore to original slice location
   applicationGUI->GetMainSliceGUI("Red")->GetLogic()->SetSliceOffset(oldSliceSetting[0]);
   applicationGUI->GetMainSliceGUI("Yellow")->GetLogic()->SetSliceOffset(oldSliceSetting[1]);
   applicationGUI->GetMainSliceGUI("Green")->GetLogic()->SetSliceOffset(oldSliceSetting[2]);
@@ -513,19 +510,19 @@ int vtkProstateNavLogic::CreateCoverageVolume()
     return 0;
   }
 
-  //vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCalibrationVolumeNodeID()));
-  vtkMRMLVolumeNode* volumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetTargetingVolumeNodeID()));
-  if (!volumeNode) 
+  //vtkMRMLVolumeNode* baseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetCalibrationVolumeNodeID()));
+  vtkMRMLVolumeNode* baseVolumeNode = vtkMRMLVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(manager->GetTargetingVolumeNodeID()));
+  if (!baseVolumeNode) 
   {
+    // volume node is already created
     return 0;
   }
 
   // Create volume node (as copy of calibration volume)
   vtkSmartPointer<vtkMRMLScalarVolumeNode> coverageVolumeNode = vtkSmartPointer<vtkMRMLScalarVolumeNode>::New();    
-  int modifiedSinceRead = volumeNode->GetModifiedSinceRead();
-  coverageVolumeNode->CopyWithScene(volumeNode);
-  coverageVolumeNode->SetName("TRPBCoverage");
-  manager->SetCoverageVolumeNodeID(coverageVolumeNode->GetID());   // Add ref to main MRML node
+  int modifiedSinceRead = baseVolumeNode->GetModifiedSinceRead();
+  coverageVolumeNode->CopyWithScene(baseVolumeNode);
+  coverageVolumeNode->SetName("RobotCoverageArea");
 
   // Create image data
   vtkSmartPointer<vtkImageData> coverageLabelMapImage=vtkSmartPointer<vtkImageData>::New();
@@ -535,12 +532,12 @@ int vtkProstateNavLogic::CreateCoverageVolume()
   coverageLabelMapImage->SetScalarType(VTK_SHORT);
   coverageLabelMapImage->AllocateScalars();
   coverageVolumeNode->SetAndObserveImageData(coverageLabelMapImage);
-
+  
   // Get the calibration volume centerpoint in RAS coordinates
   double rasCenterPoint[4]={0,0,0,1}; // centerpoint position in RAS coorindates
   {   
     int extent[6];
-    volumeNode->GetImageData()->GetWholeExtent(extent);
+    baseVolumeNode->GetImageData()->GetWholeExtent(extent);
 
     double ijkCenterPoint[4]={0,0,0,1}; // centerpoint position in IJK coorindates
     ijkCenterPoint[0]=(extent[0]+extent[1])/2;
@@ -548,7 +545,7 @@ int vtkProstateNavLogic::CreateCoverageVolume()
     ijkCenterPoint[2]=(extent[4]+extent[5])/2;
 
     vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
-    volumeNode->GetIJKToRASMatrix(ijkToRas);
+    baseVolumeNode->GetIJKToRASMatrix(ijkToRas);
 
     ijkToRas->MultiplyPoint(ijkCenterPoint, rasCenterPoint);
   }
@@ -563,9 +560,22 @@ int vtkProstateNavLogic::CreateCoverageVolume()
   coverageVolumeNode->SetAndObserveStorageNodeID(NULL);
   coverageVolumeNode->SetModifiedSinceRead(1);
   coverageVolumeNode->SetLabelMap(1);
+
+  // Create display node
+  vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode> coverageDisplayNode  = vtkSmartPointer<vtkMRMLLabelMapVolumeDisplayNode>::New();
+  coverageDisplayNode->SetAndObserveColorNodeID ("vtkMRMLColorTableNodeLabels"); // set the display node to have a label map lookup table
+  this->GetMRMLScene()->AddNode(coverageDisplayNode);
   
+  // link the display node with the volume node
+  coverageVolumeNode->SetAndObserveDisplayNodeID( coverageDisplayNode->GetID() );  
+
+  // add the label volume to the scene
+  this->GetMRMLScene()->AddNode(coverageVolumeNode);
+
+  manager->SetCoverageVolumeNodeID(coverageVolumeNode->GetID());   // Add ref to main MRML node
+
   // Restore modifiedSinceRead value since copy cause Modify on image data.
-  volumeNode->SetModifiedSinceRead(modifiedSinceRead);
+  baseVolumeNode->SetModifiedSinceRead(modifiedSinceRead);
 
   return UpdateCoverageVolumeImage();
 }
@@ -659,6 +669,12 @@ void vtkProstateNavLogic::DeleteCoverageVolume()
     return;
   }
   
+  // delete volume node
+  manager->SetCoverageVolumeNodeID(NULL);
+
+  // delete image data
+  coverageVolumeNode->SetAndObserveImageData(NULL);
+
   // remove node from scene
   vtkMRMLScene *scene=this->GetMRMLScene();
   if (scene!=NULL)
@@ -666,11 +682,6 @@ void vtkProstateNavLogic::DeleteCoverageVolume()
     scene->RemoveNode(coverageVolumeNode);
   }
   
-  // delete image data
-  coverageVolumeNode->SetAndObserveImageData(NULL);
-  
-  // delete volume node
-  manager->SetCoverageVolumeNodeID(NULL);
 }
 
 //--------------------------------------------------------------------------------------
@@ -695,7 +706,7 @@ bool vtkProstateNavLogic::IsTargetReachable(int needleIndex, double rasLocation[
   
   targetDesc->SetNeedleType(manager->GetNeedleType(needleIndex), manager->GetNeedleLength(needleIndex), manager->GetNeedleOvershoot(needleIndex));
 
-  // record the FoR str - takes quite long time
+  // record the FoR str - takes quite long time, so don't use it
   //std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeID());
   //targetDesc->SetFoRStr(FoR);
 

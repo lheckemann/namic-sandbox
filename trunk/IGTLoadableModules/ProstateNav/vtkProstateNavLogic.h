@@ -59,7 +59,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
 
   void PrintSelf(ostream&, vtkIndent);  
   
-  int  Enter(vtkSlicerApplication* app);
+  int  Enter();
   void TimerHandler();
   
   int  RobotStop();
@@ -84,9 +84,9 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   // Add volume to MRML scene and return the MRML node.
   // If volumeType is specified, then the volume is also selected as the current Calibration
   // targeting or verification volume.
-  vtkMRMLScalarVolumeNode *AddVolumeToScene(vtkSlicerApplication* app,const char *fileName, VolumeType volumeType=VOL_GENERIC);
+  vtkMRMLScalarVolumeNode *AddVolumeToScene(const char *fileName, VolumeType volumeType=VOL_GENERIC);
 
-  int ShowCoverage(vtkSlicerApplication *app);
+  int ShowCoverage(bool show);
 
   //ETX
 
@@ -100,7 +100,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
 
   // Description:
   // Helper method for loading a volume via the Volume module.
-  vtkMRMLScalarVolumeNode *AddArchetypeVolume(vtkSlicerApplication* app, const char* fileName, const char *volumeName);  
+  vtkMRMLScalarVolumeNode *AddArchetypeVolume(const char* fileName, const char *volumeName);  
 
   // Description:
   // Set window/level computation, forcing the volume type to scalar (not statistical)
@@ -127,7 +127,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   
   // Description:
   // Set Slicers's 2D view orientations from the image orientation.
-  void SetSliceViewFromVolume(vtkSlicerApplication *app, vtkMRMLVolumeNode *volumeNode);
+  void SetSliceViewFromVolume(vtkMRMLVolumeNode *volumeNode);
 
   int GetTargetIndexFromFiducialID(const char* fiducialID);
 
