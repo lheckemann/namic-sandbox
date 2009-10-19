@@ -243,6 +243,36 @@ vtkHybridNavLogicTcl.s:
 .PHONY : vtkHybridNavLogicTcl.s
 
 # target to build an object file
+vtkMRMLHybridNavToolNode.o:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkMRMLHybridNavToolNode.o
+.PHONY : vtkMRMLHybridNavToolNode.o
+
+# target to preprocess a source file
+vtkMRMLHybridNavToolNode.i:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkMRMLHybridNavToolNode.i
+.PHONY : vtkMRMLHybridNavToolNode.i
+
+# target to generate assembly for a file
+vtkMRMLHybridNavToolNode.s:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkMRMLHybridNavToolNode.s
+.PHONY : vtkMRMLHybridNavToolNode.s
+
+# target to build an object file
+vtkMRMLHybridNavToolNodeTcl.o:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkMRMLHybridNavToolNodeTcl.o
+.PHONY : vtkMRMLHybridNavToolNodeTcl.o
+
+# target to preprocess a source file
+vtkMRMLHybridNavToolNodeTcl.i:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkMRMLHybridNavToolNodeTcl.i
+.PHONY : vtkMRMLHybridNavToolNodeTcl.i
+
+# target to generate assembly for a file
+vtkMRMLHybridNavToolNodeTcl.s:
+	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkMRMLHybridNavToolNodeTcl.s
+.PHONY : vtkMRMLHybridNavToolNodeTcl.s
+
+# target to build an object file
 vtkPivotCalibration.o:
 	$(MAKE) -f CMakeFiles/HybridNav.dir/build.make CMakeFiles/HybridNav.dir/vtkPivotCalibration.o
 .PHONY : vtkPivotCalibration.o
@@ -303,6 +333,12 @@ help:
 	@echo "... vtkHybridNavLogicTcl.o"
 	@echo "... vtkHybridNavLogicTcl.i"
 	@echo "... vtkHybridNavLogicTcl.s"
+	@echo "... vtkMRMLHybridNavToolNode.o"
+	@echo "... vtkMRMLHybridNavToolNode.i"
+	@echo "... vtkMRMLHybridNavToolNode.s"
+	@echo "... vtkMRMLHybridNavToolNodeTcl.o"
+	@echo "... vtkMRMLHybridNavToolNodeTcl.i"
+	@echo "... vtkMRMLHybridNavToolNodeTcl.s"
 	@echo "... vtkPivotCalibration.o"
 	@echo "... vtkPivotCalibration.i"
 	@echo "... vtkPivotCalibration.s"

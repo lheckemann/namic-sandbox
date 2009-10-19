@@ -10,6 +10,8 @@ SET(CMAKE_DEPENDS_CHECK_CXX
   "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkHybridNavGUITcl.cxx" "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles/HybridNav.dir/vtkHybridNavGUITcl.o"
   "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavLogic.cxx" "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles/HybridNav.dir/vtkHybridNavLogic.o"
   "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkHybridNavLogicTcl.cxx" "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles/HybridNav.dir/vtkHybridNavLogicTcl.o"
+  "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkMRMLHybridNavToolNode.cxx" "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles/HybridNav.dir/vtkMRMLHybridNavToolNode.o"
+  "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkMRMLHybridNavToolNodeTcl.cxx" "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles/HybridNav.dir/vtkMRMLHybridNavToolNodeTcl.o"
   "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkPivotCalibration.cxx" "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles/HybridNav.dir/vtkPivotCalibration.o"
   "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkPivotCalibrationTcl.cxx" "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/CMakeFiles/HybridNav.dir/vtkPivotCalibrationTcl.o"
   )

@@ -20,6 +20,9 @@ ClientData vtkHybridNavGUINewCommand();
 int vtkPivotCalibrationCommand(ClientData cd, Tcl_Interp *interp,
              int argc, char *argv[]);
 ClientData vtkPivotCalibrationNewCommand();
+int vtkMRMLHybridNavToolNodeCommand(ClientData cd, Tcl_Interp *interp,
+             int argc, char *argv[]);
+ClientData vtkMRMLHybridNavToolNodeNewCommand();
 
 extern Tcl_HashTable vtkInstanceLookup;
 extern Tcl_HashTable vtkPointerLookup;
@@ -50,6 +53,8 @@ int VTK_EXPORT Hybridnav_Init(Tcl_Interp *interp)
                   vtkHybridNavGUICommand);
   vtkTclCreateNew(interp,const_cast<char *>("vtkPivotCalibration"), vtkPivotCalibrationNewCommand,
                   vtkPivotCalibrationCommand);
+  vtkTclCreateNew(interp,const_cast<char *>("vtkMRMLHybridNavToolNode"), vtkMRMLHybridNavToolNodeNewCommand,
+                  vtkMRMLHybridNavToolNodeCommand);
   char pkgName[]="HybridNav";
   char pkgVers[]=VTK_TCL_TO_STRING(VTK_MAJOR_VERSION) "." VTK_TCL_TO_STRING(VTK_MINOR_VERSION);
   Tcl_PkgProvide(interp, pkgName, pkgVers);

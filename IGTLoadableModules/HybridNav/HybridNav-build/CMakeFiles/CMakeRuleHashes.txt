@@ -4,4 +4,5 @@
 80b2068230c243516fa062241fe09e16 HybridNavLib.h
 c4c49d6005cc253daa3fae34d9ebda8c vtkHybridNavGUITcl.cxx
 35fc763f498786ccc9cc58645cda695d vtkHybridNavLogicTcl.cxx
+0d0ca5865dc1e50898cb4e3d15a87d7e vtkMRMLHybridNavToolNodeTcl.cxx
 3b6f0c5a63f413f0e5341e8f0dff2263 vtkPivotCalibrationTcl.cxx
