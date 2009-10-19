@@ -38,6 +38,7 @@ IF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Develop
     "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavGUI.h"
     "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkHybridNavWin32Header.h"
     "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkPivotCalibration.h"
+    "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav/vtkMRMLHybridNavToolNode.h"
     "/projects/prostate/elhawary/SlicerModules/HybridNav/HybridNav-build/vtkHybridNavConfigure.h"
     )
 ENDIF(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Development")
