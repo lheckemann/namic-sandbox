@@ -50,6 +50,7 @@ set(HybridNav_SRCS
   vtkHybridNavLogic.cxx
   vtkHybridNavGUI.cxx
   vtkPivotCalibration.cxx
+  vtkMRMLHybridNavToolNode.cxx
 )
 
 
