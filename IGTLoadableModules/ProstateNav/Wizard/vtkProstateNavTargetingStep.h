@@ -53,7 +53,7 @@ public:
   void UpdateMRMLObserver();
   void OnMultiColumnListUpdate(int row, int col, char * str);
   void OnMultiColumnListSelectionChanged();
-  void SetGUIFromList(vtkMRMLFiducialListNode * activeFiducialListNode);
+  void UpdateTargetListGUI();
 
 protected:
   vtkProstateNavTargetingStep();
@@ -72,13 +72,8 @@ protected:
   // Callback on the load targeting volume button
   void LoadTargetingVolumeButtonCallback(const char *fileName); 
 
-  // bring target to view in all three views
-  void BringTargetToViewIn2DViews();
-
   void AddGUIObservers();
-  void RemoveGUIObservers();
-
-  void UpdateCurrentTargetDisplay();
+  void RemoveGUIObservers();  
 
   // Description:
   // Switch mouse interaction mode to activate target placement
@@ -109,9 +104,6 @@ protected:
   //ETX
 
   bool ProcessingCallback;
-
-  int LastSelectedTargetDescriptorIndex;
-  int CurrentSelectedTargetDescriptorIndex;
 
   vtkKWFrame *MainFrame;
   

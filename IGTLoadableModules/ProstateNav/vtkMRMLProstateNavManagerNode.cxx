@@ -462,6 +462,7 @@ int vtkMRMLProstateNavManagerNode::SetCurrentTargetIndex(int index)
     }
   this->CurrentTargetIndex=index;
   this->Modified();
+  this->InvokeEvent(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent);
   return this->CurrentTargetIndex;
 }
 

@@ -58,7 +58,13 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
     std::string Description;
     };
 
+  // Events
+  enum {
+    CurrentTargetChangedEvent = 200900,
+  };
+
   //ETX
+
 
  public:
 
