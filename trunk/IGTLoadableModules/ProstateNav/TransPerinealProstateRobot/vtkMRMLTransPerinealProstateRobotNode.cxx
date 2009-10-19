@@ -938,4 +938,8 @@ bool vtkMRMLTransPerinealProstateRobotNode::FindTargetingParams(vtkProstateNavTa
   return true;
 }
 
-
+std::string vtkMRMLTransPerinealProstateRobotNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc)
+{
+  // :TODO: construct a string that contains useful information for the current target (reachable, etc.)
+  return "";
+}

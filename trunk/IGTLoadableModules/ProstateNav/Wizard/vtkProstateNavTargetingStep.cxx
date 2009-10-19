@@ -82,7 +82,7 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
 
   this->MainFrame=NULL;
   
-  // TargetPlanning
+  // TargetPlanning frame
   this->TargetPlanningFrame=NULL;
   this->LoadTargetingVolumeButton=NULL;
   this->TargetPlanningFrame=NULL;
@@ -92,8 +92,6 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
 
   // TargetList frame
   this->TargetListFrame=NULL;
-  // multi-column list to display target, params, etc
-  // this needle will display targets corresponding to the needle type selected
   this->TargetList=NULL;
   this->DeleteButton=NULL;
 
@@ -113,11 +111,6 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
   this->TargetDescriptorIndicesIndexedByListIndex.clear();
 
   this->ProcessingCallback = false;
-  this->LastSelectedTargetDescriptorIndex = -1;
-  this->CurrentSelectedTargetDescriptorIndex = -1;
-
-
-
 }
 
 //----------------------------------------------------------------------------
@@ -371,6 +364,27 @@ void vtkProstateNavTargetingStep::ShowTargetControlFrame()
                this->NeedlePositionMatrix->GetWidgetName(),
                this->NeedleOrientationMatrix->GetWidgetName());
 
+  if(!this->Message)
+    {
+    this->Message = vtkKWText::New();
+    }
+  if(!this->Message->IsCreated())
+    {
+    this->Message->SetParent(this->TargetControlFrame);
+    this->Message->Create();
+    this->Message->SetText("Select needle type, then click on image to add a target");      
+    this->Message->SetBackgroundColor(0.7, 0.7, 0.95);
+    this->Message->SetHeight(6);
+    this->Message->SetWrapToWord();
+    this->Message->ReadOnlyOn();
+    this->Message->SetBorderWidth(2);
+    this->Message->SetReliefToGroove();
+    this->Message->SetFont("times 12 bold");
+    //this->Message->SetForegroundColor(0.0, 1.0, 0.0);
+    }
+  this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", 
+                this->Message->GetWidgetName());
+
   if (!this->MoveButton)
     {
     this->MoveButton = vtkKWPushButton::New();
@@ -392,27 +406,6 @@ void vtkProstateNavTargetingStep::ShowTargetControlFrame()
   this->Script("pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
                this->MoveButton->GetWidgetName(),
                this->StopButton->GetWidgetName());
-
-  if(!this->Message)
-    {
-    this->Message = vtkKWText::New();
-    }
-  if(!this->Message->IsCreated())
-    {
-    this->Message->SetParent(this->TargetControlFrame);
-    this->Message->Create();
-    this->Message->SetText("Select needle type, then click on image to add a target");      
-    this->Message->SetBackgroundColor(0.7, 0.7, 0.95);
-    this->Message->SetHeight(6);
-    this->Message->SetWrapToWord();
-    this->Message->ReadOnlyOn();
-    this->Message->SetBorderWidth(2);
-    this->Message->SetReliefToGroove();
-    this->Message->SetFont("times 12 bold");
-    //this->Message->SetForegroundColor(0.0, 1.0, 0.0);
-    }
-  this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", 
-                this->Message->GetWidgetName());
 
 }
 
@@ -575,7 +568,7 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
   if (node == this->GetProstateNavManager()->GetTargetPlanListNode()
       && event == vtkCommand::ModifiedEvent)
     {
-    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanListNode());
+    UpdateTargetListGUI();
     }
 
   // -----------------------------------------------------------------
@@ -584,7 +577,7 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
   if (node == this->GetProstateNavManager()->GetTargetPlanListNode()
       && event == vtkMRMLScene::NodeAddedEvent)
     {
-    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanListNode());
+    UpdateTargetListGUI();
     }
 
   // -----------------------------------------------------------------
@@ -593,7 +586,7 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
   else if (node == this->GetProstateNavManager()->GetTargetPlanListNode()
            && event == vtkMRMLFiducialListNode::FiducialModifiedEvent)
     {
-    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanListNode());
+    UpdateTargetListGUI();
     }
   
   // -----------------------------------------------------------------
@@ -602,7 +595,7 @@ void vtkProstateNavTargetingStep::ProcessMRMLEvents(vtkObject *caller,
   else if (node == this->GetProstateNavManager()->GetTargetPlanListNode()
            && event == vtkMRMLFiducialListNode::DisplayModifiedEvent)
     {
-    SetGUIFromList(this->GetProstateNavManager()->GetTargetPlanListNode());
+    UpdateTargetListGUI();
     }
   
 }
@@ -765,28 +758,19 @@ void vtkProstateNavTargetingStep::OnMultiColumnListSelectionChanged()
     matrix->SetElementValueAsDouble(0, 1, wxyz[1]);
     matrix->SetElementValueAsDouble(0, 2, wxyz[2]);
     matrix->SetElementValueAsDouble(0, 3, wxyz[3]);
-      
-    // use row index to get information about the target
-    this->CurrentSelectedTargetDescriptorIndex = rowIndex;
-    this->LastSelectedTargetDescriptorIndex = this->CurrentSelectedTargetDescriptorIndex;   
-    
-    // things to do on selection  
-    int oldModify=this->GetGUI()->GetProstateNavManager()->StartModify();
-    this->GetGUI()->GetProstateNavManager()->SetCurrentTargetIndex(this->CurrentSelectedTargetDescriptorIndex);
-    // bring target to view in all three views
-    this->BringTargetToViewIn2DViews();
-
+          
     this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);
-
-    UpdateCurrentTargetDisplay();
-
-    this->GetGUI()->GetProstateNavManager()->EndModify(oldModify);
     }
 }
 
 //----------------------------------------------------------------------------
-void vtkProstateNavTargetingStep::SetGUIFromList(vtkMRMLFiducialListNode * activeFiducialListNode)
+void vtkProstateNavTargetingStep::UpdateTargetListGUI()
 {
+  vtkMRMLFiducialListNode* activeFiducialListNode=NULL;
+  if (this->GetProstateNavManager()!=NULL)
+  {
+    activeFiducialListNode=this->GetProstateNavManager()->GetTargetPlanListNode();
+  }
 
   if (activeFiducialListNode == NULL)    //clear out the list box
     {
@@ -845,7 +829,7 @@ void vtkProstateNavTargetingStep::SetGUIFromList(vtkMRMLFiducialListNode * activ
 
     if (xyz == NULL)
       {
-      vtkErrorMacro ("SetGUIFromList: ERROR: got null xyz for point " << row << endl);
+      vtkErrorMacro ("UpdateTargetListGUI: ERROR: got null xyz for point " << row << endl);
       }
 
     if (target->GetName().compare(this->TargetList->GetWidget()->GetCellText(row,0)) != 0)
@@ -881,11 +865,7 @@ void vtkProstateNavTargetingStep::SetGUIFromList(vtkMRMLFiducialListNode * activ
       this->TargetList->GetWidget()->SetCellText(row,8,target->GetNeedleTypeString().c_str());
     }
 
-    }
-
-  UpdateCurrentTargetDisplay(); // if a new node is added then it is selected by default => keep only the current target as selected
-
-  vtkDebugMacro("Now going to update GUI from the logic's active list");
+    }  
 
 }
 
@@ -1006,32 +986,30 @@ void vtkProstateNavTargetingStep::UpdateGUI()
     return;
   }
 
+  // Display information about the currently selected target descriptor    
   if (this->Message)
-  {
-    // get the information about the currently selected target descriptor
-    int targetIndex=mrmlNode->GetCurrentTargetIndex();
-    vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(targetIndex); 
-    if (targetDesc!=NULL)
+  {    
+    vtkMRMLRobotNode* robot=NULL;
+    if (this->GetProstateNavManager()!=NULL)
     {
-      std::ostrstream os;  
-      os << "Needle type:"<<targetDesc->GetNeedleTypeString()<<std::endl;
-      os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
-      os << "RAS location: "<<targetDesc->GetRASLocationString().c_str()<<std::endl;
-      os << "Reachable: "<<targetDesc->GetReachableString().c_str()<<std::endl;
-      os << "Depth: "<<targetDesc->GetDepthCM()<<" cm"<<std::endl;
-      os << "Device rotation: "<<targetDesc->GetAxisRotation()<<" deg"<<std::endl;
-      os << "Needle angle: "<<targetDesc->GetNeedleAngle()<<" deg"<<std::endl;
-      os << std::ends;
-      this->Message->SetText(os.str());
-      os.rdbuf()->freeze();
+      robot=this->GetProstateNavManager()->GetRobotNode();
+    }
+    vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex()); 
+
+    if (robot!=NULL && targetDesc!=NULL)
+    {
+      std::string info=robot->GetTargetInfoText(targetDesc);
+      this->Message->SetText(info.c_str());
     }
     else
     {
+      // no target info available for the current robot with the current target
       this->Message->SetText("");
     }
+
   }
 
-  SetGUIFromList(mrmlNode->GetTargetPlanListNode());
+  UpdateTargetListGUI();
 
   if (this->NeedleTypeMenuList)
     {
@@ -1041,46 +1019,11 @@ void vtkProstateNavTargetingStep::UpdateGUI()
       std::string needle = mrmlNode->GetNeedleType(i);
       this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton(needle.c_str());
       }
-    //this->NeedleTypeMenuList->GetWidget()->SetValue(this->GetGUI()->GetProstateNavManager()->GetNeedleType(0).c_str());
     int needleIndex=mrmlNode->GetCurrentNeedleIndex();
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->SelectItem(needleIndex);
     }
 }
-//--------------------------------------------------------------------------------
-void vtkProstateNavTargetingStep::BringTargetToViewIn2DViews()
-{
-  if (this->CurrentSelectedTargetDescriptorIndex != -1)
-    {
-    // set up the three 2D views
 
-    // the slices may not be really orthogonal, they could be oblique
-    // we could directly call slice node -> JumpAllSlices (r, a, s), this brings target in view
-    // in all slices, but with target fiducial at the center of the view, moving (disturbing) the image altogether
-    // for this function ->JumpSliceByOffsetting does the job
-    
-    // get the point ras location of the target fiducial (P) that lies on the image plane
-    vtkProstateNavTargetDescriptor *targetDesc = this->GetGUI()->GetProstateNavManager()->GetTargetDescriptorAtIndex(this->CurrentSelectedTargetDescriptorIndex);    
-    double P[3];
-    targetDesc->GetRASLocation(P);
-
-    // red slice node    
-    vtkSlicerSliceLogic *redSlice = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Red");    
-    vtkSlicerSliceLogic *yellowSlice = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Yellow");    
-    vtkSlicerSliceLogic *greenSlice = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Green");    
-
-    int redOldModify=redSlice->GetSliceNode()->StartModify();
-    int yellowOldModify=yellowSlice->GetSliceNode()->StartModify();
-    int greenOldModify=greenSlice->GetSliceNode()->StartModify();
-
-    redSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
-    yellowSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
-    greenSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
-
-    redSlice->GetSliceNode()->EndModify(redOldModify);
-    yellowSlice->GetSliceNode()->EndModify(yellowOldModify);
-    greenSlice->GetSliceNode()->EndModify(greenOldModify);
-    }
-}
 // return:
 //  0=error
 //----------------------------------------------------------------------------
@@ -1095,42 +1038,6 @@ void vtkProstateNavTargetingStep::ShowCoverage(bool show)
     return;
   }
   logic->ShowCoverage(show);
-}
-
-void vtkProstateNavTargetingStep::UpdateCurrentTargetDisplay()
-{
-  vtkMRMLProstateNavManagerNode *manager= this->GetGUI()->GetProstateNavManager();
-  if(manager==NULL)
-  {
-    return;
-  }
-
-  vtkMRMLFiducialListNode* fidList = this->GetProstateNavManager()->GetTargetPlanListNode();
-  if(fidList==NULL)
-  {
-    return;
-  }
-
-  int currentTargetInd=manager->GetCurrentTargetIndex();
-  std::string fidID="INVALID";
-  if (currentTargetInd>=0)
-  {
-    vtkProstateNavTargetDescriptor* targetDesc=manager->GetTargetDescriptorAtIndex(currentTargetInd);
-    if (targetDesc!=NULL)
-    {
-      fidID=targetDesc->GetFiducialID();
-    }
-  }
-
-  int oldModify=fidList->StartModify();
-  for (int i = 0; i < fidList->GetNumberOfFiducials(); i ++)
-  {              
-    // select only the active target
-    fidList->SetNthFiducialSelected(i, fidID.compare(fidList->GetNthFiducialID(i))==0);
-  }
-  fidList->EndModify(oldModify);
-  // StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
-  fidList->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL);
 }
 
 //----------------------------------------------------------------------------

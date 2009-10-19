@@ -97,12 +97,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
 
   vtkGetObjectMacro ( ProstateNavManager, vtkMRMLProstateNavManagerNode );
 
-  // Get Target Fiducials (used in the wizard steps)
-  vtkGetStringMacro ( FiducialListNodeID );
-  vtkSetStringMacro ( FiducialListNodeID );
-  vtkGetObjectMacro ( FiducialListNode, vtkMRMLFiducialListNode );
-  vtkSetObjectMacro ( FiducialListNode, vtkMRMLFiducialListNode );
-
   // Description:    
   // This method builds the IGTDemo module GUI
   virtual void BuildGUI ( );
@@ -153,6 +147,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   vtkProstateNavGUI ( );
   virtual ~vtkProstateNavGUI ( );
   
+  void SetProstateNavManager(vtkMRMLProstateNavManagerNode* node);
+  void SetRobot(vtkMRMLRobotNode* robot);
+  void SetTargetPlanList(vtkMRMLFiducialListNode* targetPlanList);
+
   // Return i-th worfklow step page
   vtkProstateNavStep* GetStepPage(int i);
 
@@ -192,9 +190,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // Target Fiducials
   //----------------------------------------------------------------
 
-  char *FiducialListNodeID;
-  vtkMRMLFiducialListNode *FiducialListNode;
-
   void UpdateGUI();
 
  private:
@@ -213,6 +208,15 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   int  ChangeWorkphase(int phase, int fChangeWizard=0);
   const char* AddZFrameModel(const char* nodeName);
 
+  // Description:
+  // Display current target fiducial highlighted
+  void UpdateCurrentTargetDisplay();
+
+  // Description:
+  // Bring current target to view in all three slice views
+  void BringTargetToViewIn2DViews();
+
+
   int Entered;
 
   // store the currently displayed workflow steps
@@ -220,6 +224,8 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   vtkStringArray* DisplayedWorkflowSteps;
 
   vtkMRMLProstateNavManagerNode* ProstateNavManager;
+  vtkMRMLRobotNode* Robot;
+  vtkMRMLFiducialListNode* TargetPlanList;
   
 };
 

@@ -127,6 +127,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   virtual int OnTimer() {return 1; };
 
   virtual bool FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc) { return false; };
+  //BTX
+  virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc) { return ""; };
+  //ETX
 
   virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode) { return 0; };
 

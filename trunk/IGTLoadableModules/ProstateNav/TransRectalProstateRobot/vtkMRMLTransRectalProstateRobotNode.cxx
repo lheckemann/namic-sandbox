@@ -120,3 +120,18 @@ bool vtkMRMLTransRectalProstateRobotNode::FindTargetingParams(vtkProstateNavTarg
 }
 
 
+std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc)
+{
+  std::ostrstream os;  
+  os << "Needle type:"<<targetDesc->GetNeedleTypeString()<<std::endl;
+  os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
+  os << "RAS location: "<<targetDesc->GetRASLocationString().c_str()<<std::endl;
+  os << "Reachable: "<<targetDesc->GetReachableString().c_str()<<std::endl;
+  os << "Depth: "<<targetDesc->GetDepthCM()<<" cm"<<std::endl;
+  os << "Device rotation: "<<targetDesc->GetAxisRotation()<<" deg"<<std::endl;
+  os << "Needle angle: "<<targetDesc->GetNeedleAngle()<<" deg"<<std::endl;
+  os << std::ends;
+  std::string result=os.str();
+  os.rdbuf()->freeze();
+  return result;
+}
