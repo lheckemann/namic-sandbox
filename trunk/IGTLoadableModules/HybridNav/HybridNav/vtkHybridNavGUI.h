@@ -29,6 +29,7 @@ class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkKWEntry;
 class vtkPivotCalibration;
+class vtkKWMultiColumnListWithScrollbars;
 
 class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
 {
@@ -96,15 +97,14 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
+  void BuildGUIForToolFrame();
   void BuildGUIForCalibrationFrame();
-  void BuildGUIForTestFrame2();
 
   //----------------------------------------------------------------
   // Update routines
   //----------------------------------------------------------------
 
   void UpdateAll();
-
 
  protected:
 
@@ -119,11 +119,22 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
+  //----------------------------------------------------------------
+  //Tools Browser Frame
+
+  vtkKWMultiColumnListWithScrollbars* ToolList;
+  vtkKWPushButton*     AddToolButton;
+  vtkKWPushButton*     DeleteToolButton;
+  vtkKWEntry*          ToolNameEntry;
   vtkSlicerNodeSelectorWidget* ToolNodeSelectorMenu;
+  vtkKWEntry*          ToolDescriptionEntry;
+
+  //----------------------------------------------------------------
+  //Pivot Calibration Frame
+
+  vtkSlicerNodeSelectorWidget* CalibrationNodeSelectorMenu;
   vtkKWEntry* numPointsEntry;
   vtkKWPushButton* StartCalibrateButton;
-  vtkKWPushButton* TestButton21;
-  vtkKWPushButton* TestButton22;
 
   //----------------------------------------------------------------
   // Variables
@@ -137,6 +148,19 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
   vtkHybridNavLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;
+
+  //----------------------------------------------------------------
+  // Connector and MRML Node list management
+  //----------------------------------------------------------------
+  //Populates the tool list with all the tool nodes
+  void UpdateToolNodeList();
+
+  //BTX
+  // List of tool nodes
+  std::vector<std::string> ToolNodeList;
+  //ETX
+
+
 
 };
 
