@@ -173,6 +173,12 @@ vtkHybridNavGUI::~vtkHybridNavGUI ( )
 //---------------------------------------------------------------------------
 void vtkHybridNavGUI::Init()
 {
+  vtkMRMLScene* scene = this->GetMRMLScene();
+
+  vtkMRMLHybridNavToolNode* toolNode = vtkMRMLHybridNavToolNode::New();
+  scene->RegisterNodeClass(toolNode);
+  toolNode->Delete();
+
 }
 
 

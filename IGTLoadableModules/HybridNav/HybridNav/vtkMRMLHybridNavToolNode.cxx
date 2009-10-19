@@ -58,6 +58,8 @@ vtkMRMLNode* vtkMRMLHybridNavToolNode::CreateNodeInstance()
 //----------------------------------------------------------------------------
 vtkMRMLHybridNavToolNode::vtkMRMLHybridNavToolNode()
 {
+  this->HideFromEditors = 0;
+
   this->Calibrated = 0;
   this->ToolName = "";
   this->ToolDescription = "Description";
@@ -67,7 +69,10 @@ vtkMRMLHybridNavToolNode::vtkMRMLHybridNavToolNode()
 //----------------------------------------------------------------------------
 vtkMRMLHybridNavToolNode::~vtkMRMLHybridNavToolNode()
 {
-  this->transformNode->Delete();
+  if (transformNode)
+    {
+    this->transformNode->Delete();
+    }
 }
 
 //----------------------------------------------------------------------------
