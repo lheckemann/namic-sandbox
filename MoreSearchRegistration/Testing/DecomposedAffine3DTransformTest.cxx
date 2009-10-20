@@ -255,6 +255,9 @@ int DecomposedAffine3DTransformTest(int argc, char* argv[])
 
     transform->SetParameters(p);
 
+    // For documentation of the seemingly magic numbers here
+    // See doc/decomposedaffine.wxm which can be viewed
+    // in wxMaxima
     double correctmat[3][3] = 
       {{.7062135564636849,.4510564674532633,.05476333802272874},
        {-.2984926652832313,.7051681974079773,-0.432815461170225},
@@ -305,16 +308,25 @@ int DecomposedAffine3DTransformTest(int argc, char* argv[])
       transform->GetJacobian(point);
     std::cout << jacobian << std::endl;
     
+    // For documentation of the seemingly magic numbers here
+    // See doc/decomposedaffine.wxm which can be viewed
+    // in wxMaxima
     double trotblock[3][3] = 
       {{-9.081503126502604,19.22561410135243,12.26427714204459},
        {-15.72962482419812,-7.137628792381929,3.27316514041321},
        {-8.98459299385682,-8.284227039865527,0.0}};
     
+    // For documentation of the seemingly magic numbers here
+    // See doc/decomposedaffine.wxm which can be viewed
+    // in wxMaxima
     double tscaleblock[3][3] = 
       {{2.515885794901877,-0.692909649383465,1.712795626306205},
        {-1.063380120071511,-1.200154717786898,-9.39403072725379},
        {-.8136592574583325,-.5740251485476346,17.57323299333159}};
 
+    // For documentation of the seemingly magic numbers here
+    // See doc/decomposedaffine.wxm which can be viewed
+    // in wxMaxima
     double tskewblock[3][3] = 
       {{-2.118640669391055,14.1242711292737,8.31491579260158},
        {.8954779958496939,-5.969853305664625,14.40185661344278},
