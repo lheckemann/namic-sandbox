@@ -141,9 +141,9 @@ int FixedRotationSimilarity3DTransformTest(int argc, char* argv[])
     similaritytransform->SetCenter(center);
 
     TransformType::AxisType axis;
-    axis[0] = 1;
-    axis[1] = 1;
-    axis[2] = 0;
+    axis[0] = 0;
+    axis[1] = 0;
+    axis[2] = 1;
     axis.Normalize();
 
     const TransformType::AngleType angle = M_PI/2; // radians
@@ -159,10 +159,10 @@ int FixedRotationSimilarity3DTransformTest(int argc, char* argv[])
     std::cout << "Translation by " << trans << std::endl;
     similaritytransform->SetTranslation(trans);
 
-    TransformType::ScaleType scale(1.2);   
+    TransformType::ScaleType scale(1.5);   
 
     std::cout << "Scale by " << scale << std::endl;
-    similaritytransform->SetScale(1.2);
+    similaritytransform->SetScale(scale);
 
     std::cout << similaritytransform << std::endl;
 
@@ -203,13 +203,32 @@ int FixedRotationSimilarity3DTransformTest(int argc, char* argv[])
       }
 
 
-    TransformType::InputPointType zeropt;
-    zeropt[0] = 0.0;
-    zeropt[1] = 0.0;
-    zeropt[2] = 0.0;
+    TransformType::InputPointType centerp1;
+    centerp1[0] = center[0];
+    centerp1[1] = center[1] + 1.0;
+    centerp1[2] = center[2];
 
-    std::cout << "Jacobian at [0,0,0]" << std::endl;
-    std::cout << similaritytransform->GetJacobian(zeropt);
+    std::cout << "Jacobian at [0,1,0]" << std::endl;
+    jacobian = similaritytransform->GetJacobian(centerp1);
+    std::cout << jacobian << std::endl;
+
+    if(jacobian[0][0] != 1.0 ||
+       jacobian[0][1] != 0.0 ||
+       jacobian[0][2] != 0.0 ||
+       jacobian[1][0] != 0.0 ||
+       jacobian[1][1] != 1.0 ||
+       jacobian[1][2] != 0.0 ||
+       jacobian[2][0] != 0.0 ||
+       jacobian[2][1] != 0.0 ||
+       jacobian[2][2] != 1.0 ||
+       fabs(jacobian[0][3] + 1.0) > 1.0e-10 ||
+       fabs(jacobian[1][3] - 0.0) > 1.0e-10 ||
+       fabs(jacobian[2][3] - 0.0) > 1.0e-10)
+      {
+      std::cerr << "Jacobian at center_Y + 1 is incorrect" << std::endl;
+      return EXIT_FAILURE;
+      }
+
     }
 
   return EXIT_SUCCESS;
