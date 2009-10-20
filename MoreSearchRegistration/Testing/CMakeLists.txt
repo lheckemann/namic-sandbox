@@ -3,6 +3,7 @@ include_directories( ${MoreSearchRegistration_SOURCE_DIR} )
 set(MoreSearchTests_SOURCE
     FixedRotationSimilarity3DTransformTest.cxx
     EulerSimilarity3DTransformTest.cxx
+    DecomposedAffine3DTransformTest.cxx
     FRPROptimizerTest.cxx)
 
 create_test_sourcelist(MoreSearchTestsList
@@ -19,6 +20,10 @@ add_test(FixedRotationSimilarity3DTransformTest
 add_test(EulerSimilarity3DTransformTest
          MoreSearchTests
          EulerSimilarity3DTransformTest)
+
+add_test(DecomposedAffine3DTransformTest
+         MoreSearchTests
+         DecomposedAffine3DTransformTest)
 
 add_test(FRPROptimizerTest
          MoreSearchTests
