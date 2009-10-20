@@ -137,13 +137,15 @@ GetJacobian( const InputPointType & p ) const
   this->m_Jacobian[2][2] = 1.0;
 
   // compute Jacobian with respect to the scale parameter
-  // const MatrixType & matrix = this->GetMatrix();
+  const MatrixType & matrix = this->GetMatrix();
 
-  // const InputVectorType mpp = matrix * pp;
+  // Applies rotation and scale
+  const InputVectorType mpp = matrix * pp;
 
-  this->m_Jacobian[0][3] = pp[0] / this->GetScale();
-  this->m_Jacobian[1][3] = pp[1] / this->GetScale();
-  this->m_Jacobian[2][3] = pp[2] / this->GetScale();
+  // Remove back out the scale
+  this->m_Jacobian[0][3] = mpp[0] / this->GetScale();
+  this->m_Jacobian[1][3] = mpp[1] / this->GetScale();
+  this->m_Jacobian[2][3] = mpp[2] / this->GetScale();
 
   return this->m_Jacobian;
 }

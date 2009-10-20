@@ -25,9 +25,13 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkImageRegistrationMethod.h"
 #include "itkResampleImageFilter.h"
+#include "itkVectorResampleImageFilter.h"
+#include "itkRegionalMinimaImageFilter.h"
 
 // My headers
 #include "itkFixedRotationSimilarity3DTransform.h"
+#include "itkEulerSimilarity3DTransform.h"
+#include "itkSimilarity3DTransform.h"
 #include "RegistrationMonitor.h"
 #include "ImageWriters.h"
 
@@ -45,102 +49,63 @@ typedef OrientedImage<ProcessingPixel, 3> ProcessingImage;
 typedef ImageFileReader<FileImage>        Reader;
 
 // Rotation Grid is how the optimized parameters 
-typedef Image<FixedArray<float, 3>, 3>    RotationGrid;
+typedef Image<Vector<float, 3>, 3>    RotationGrid;
 typedef Image<float, 3>                   CostGrid;
 
-
-RotationGrid::Pointer
-createRotationGrid(double max, double resolution)
+template<typename T>
+struct
+pairFirstOnlyGreater
 {
-  RotationGrid::Pointer image = RotationGrid::New();
+  bool operator()(const T & a,
+                  const T & b)
+{
+  return a.first > b.first;
+}
 
-  RotationGrid::RegionType region;
+};
 
-  RotationGrid::IndexType start;
-  RotationGrid::SizeType size;
 
-  region.SetSize( size );
-  region.SetIndex( start );
-  
+template<class T>
+typename T::Pointer
+createGrid(double max, double resolution)
+{
+  typename T::Pointer image = T::New();
+
+  typename T::RegionType region;
+
+  typename T::IndexType start;
+  typename T::SizeType size;
+  typename T::SpacingType spacing;
+  typename T::PointType origin;
+
   for(unsigned int i = 0; i < 3; ++i)
     {
     start[i] = 0;
-    size[i] = 2*floor(resolution / max) + 1;
+    size[i] = 2*floor(max / resolution) + 1;
+    spacing[i] = resolution;
+    origin[i] = -(resolution * static_cast<double>(size[i]/2));
     }
 
+  region.SetSize( size );
+  region.SetIndex( start ); 
+
   image->SetRegions( region );
+  image->SetSpacing( spacing );
+  image->SetOrigin( origin );
   image->Allocate();
 
   return image;
 }
 
-class RotationGenerator
+Versor<double> createRotationFromEulerAngles(double x, double y, double z)
 {
-public:
-  typedef Versor<double> Rotation;
-private:
-  typedef std::list<Versor<double> > Container;
-public:
-  typedef Container::iterator Iterator;
-  typedef Container::const_iterator ConstIterator;
-      
-  explicit RotationGenerator(double max, double resolution)
-  {
-    Versor<double> identity;
-    identity.SetIdentity();
-    rotations.push_back(identity);
+  Versor<double> vx, vy, vz;
+  vx.SetRotationAroundX(x);
+  vy.SetRotationAroundY(y);
+  vz.SetRotationAroundZ(z);
 
-    for(double a = 0; a < max; a += resolution)
-      {
-      Versor<double> posi;
-      Versor<double> negi;
-
-      posi.SetRotationAroundX(a);
-      negi.SetRotationAroundX(-a);
-      
-      for(double b = 0; b < max; b += resolution)
-        {
-        Versor<double> posj;
-        Versor<double> negj;
-
-        posj.SetRotationAroundY(b);
-        negj.SetRotationAroundY(-b);
-
-        for(double c = 0; c < max; c += resolution)
-          {
-          Versor<double> posk;
-          Versor<double> negk;
-
-          posk.SetRotationAroundZ(c);
-          negk.SetRotationAroundZ(-c);
-
-          Versor<double> pos = posk * posj * posi;
-          Versor<double> neg = negk * negj * negi;
-          
-          if( !(a == 0 && b == 0 && c == 0) )
-            {
-            rotations.push_back(pos);
-            rotations.push_back(neg);
-            }
-          }
-        }
-      }
-  }
-
-  virtual ~RotationGenerator()
-  {
-  }
-
-  Iterator begin() { return this->rotations.begin(); }
-  Iterator end() { return this->rotations.end(); }
-  ConstIterator begin() const { return this->rotations.begin(); }
-  ConstIterator end() const { return this->rotations.end(); }
-  
-  size_t size() const { return this->rotations.size(); }
-
-private:
-  std::list<Versor<double> > rotations;
-};
+  return vz * vx * vy;
+}
 
 int main( int argc, char * argv[] )
 {
@@ -151,6 +116,10 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
   
+  const double maxa = M_PI/16;
+//  const double maxa = 0;
+  const double res1 = M_PI/16;
+  const double res2 = res1/2;
 
   Reader::Pointer freader = Reader::New();
   Reader::Pointer mreader = Reader::New();
@@ -167,21 +136,7 @@ int main( int argc, char * argv[] )
   // Resample both images to 8x8x8
   typedef RecursiveMultiResolutionPyramidImageFilter<FileImage, ProcessingImage> ImagePyramid;
 
-  // const unsigned int mr = 4;
-  // const unsigned int Dimension = 3;
-
-  // Array2D<unsigned int> schedule(mr, Dimension);
-  // for(unsigned int r = 0; r < mr; ++r)
-  //   {
-  //   for(unsigned int d = 0; d < Dimension; ++d)
-  //     {
-  //     schedule[r][d] = pow(2, mr - 1 - r);
-  //     }
-  //   }
-  
-  // std::cout << schedule << std::endl;
-
-  const int numberoflevels = ceil(log(8.0/ fabs(freader->GetOutput()->GetSpacing()[2]))/log(2));
+  const unsigned int numberoflevels = ceil(log(8.0/ fabs(freader->GetOutput()->GetSpacing()[2]))/log(2));
   std::cout << "nl: " << numberoflevels << std::endl;
 
   ImagePyramid::Pointer fpyramid = ImagePyramid::New();
@@ -204,15 +159,18 @@ int main( int argc, char * argv[] )
   std::cout << "schedule: " << fpyramid->GetSchedule() << std::endl;
 
   // 0 is the downsampled image
-  std::cout << "pyramid[0]: " << fpyramid->GetOutput(0)->GetLargestPossibleRegion().GetSize() << std::endl;
-  std::cout << "pyramid[1]: " << fpyramid->GetOutput(1)->GetLargestPossibleRegion().GetSize() << std::endl;
+  for(unsigned int i = 0;  i < numberoflevels; ++i)
+    {
+    std::cout << "pyramid[" << i << "]: " << 
+      fpyramid->GetOutput(i)->GetLargestPossibleRegion().GetSize() << std::endl;
+    }
   
-  typedef FixedRotationSimilarity3DTransform<double> Transform;
-  typedef CenteredTransformInitializer< Transform,
+  typedef FixedRotationSimilarity3DTransform<double> FixedRotationTransform;
+  typedef CenteredTransformInitializer< FixedRotationTransform,
     ProcessingImage,
     ProcessingImage>   TransformInitializer;
 
-  Transform::Pointer initt = Transform::New();
+  FixedRotationTransform::Pointer initt = FixedRotationTransform::New();
   initt->SetIdentity();
 
   TransformInitializer::Pointer tinit = TransformInitializer::New();
@@ -243,14 +201,11 @@ int main( int argc, char * argv[] )
   // We have (2*n+1)^3 rotaions.  So this number must be very very small.
   // Setup registration framework
   
-  // std::priority_queue<std::pair<float, int>,
-  //   std::vector<std::pair<float, int> >,
-  //   std::greater<std::pair<float, int> > > pq;
+  RotationGrid::Pointer coarsegrid = 
+    createGrid<RotationGrid>(maxa, res1);
 
-  RotationGenerator rg(M_PI/4, M_PI/16);
-  //RotationGenerator rg(M_PI/6, M_PI/16);
-
-  std::cout << "Built " << rg.size() << " trial rotations" << std::endl;
+  std::cout << "Built " << coarsegrid->GetLargestPossibleRegion().GetNumberOfPixels() << 
+    " trial rotations" << std::endl;
 
   std::ofstream file("tmp/moresearch.csv");
   if(!file)
@@ -263,10 +218,18 @@ int main( int argc, char * argv[] )
   std::vector<double> scales;
 
   int counter = 0;
-  for(RotationGenerator::ConstIterator it = rg.begin();
-      it != rg.end(); ++it)
+  typedef ImageRegionIteratorWithIndex<RotationGrid> Iterator;
+  Iterator it(coarsegrid,
+              coarsegrid->GetLargestPossibleRegion());
+
+  for(it.GoToBegin() ;
+      !it.IsAtEnd(); ++it)
     {
-    const Versor<double> & rot = *it;
+    //const Versor<double> & rot = *it;
+    RotationGrid::PointType p;
+    coarsegrid->TransformIndexToPhysicalPoint(it.GetIndex(), p);
+    
+    const Versor<double> rot = createRotationFromEulerAngles(p[0], p[1], p[2]);
     
     typedef ImageRegistrationMethod<ProcessingImage, ProcessingImage> ImageRegistration;
     ImageRegistration::Pointer reg = ImageRegistration::New();
@@ -294,7 +257,6 @@ int main( int argc, char * argv[] )
     //Contains only 16384 pixels total   
     //metric->SetUseAllPixels(true);
     // metric->SetFixedImageMask(maskreader->GetOutput());
-    metric->SetNumberOfThreads(4);
     metric->SetNumberOfSpatialSamples(15000);
     metric->SetFixedImageSamplesIntensityThreshold(50);
     metric->SetUseExplicitPDFDerivatives(true);
@@ -323,7 +285,7 @@ int main( int argc, char * argv[] )
     opt->SetMaximize(false);
     opt->SetCatchGetValueException( true );
     opt->SetMetricWorstPossibleValue(0.0);
-    opt->AddObserver( IterationEvent(), command);
+    //opt->AddObserver( IterationEvent(), command);
 
     // For 1 + 1
     //typedef itk::Statistics::NormalVariateGenerator Generator;
@@ -359,13 +321,13 @@ int main( int argc, char * argv[] )
     reg->SetOptimizer(opt);
 
     // Execute a simplified rotation on the downsampled images
-    Transform::Pointer ot = Transform::New();
+    FixedRotationTransform::Pointer ot = FixedRotationTransform::New();
     ot->SetIdentity();
     ot->SetRotation(rot);
     ot->SetCenter(initt->GetCenter());
     ot->SetTranslation(initt->GetTranslation());
     ot->SetParameters(initt->GetParameters());
-    Transform::Pointer nt = Transform::New();
+    FixedRotationTransform::Pointer nt = FixedRotationTransform::New();
     nt->SetIdentity();
     nt->SetRotation(rot);
     nt->SetCenter(initt->GetCenter());
@@ -384,24 +346,33 @@ int main( int argc, char * argv[] )
 
     std::cout << "Finished grid point " << counter << std::endl;
     // std::cout << "t: " << initt->GetTranslation() << std::endl;
-    std::cout << nt->GetParameters() << std::endl;
-    std::cout << "matrix: " << nt->GetMatrix() << std::endl;
 
-    double nv = metric->GetValue(nt->GetParameters());
+    typedef FixedRotationTransform::ParametersType ParametersType;
+    ParametersType pm = nt->GetParameters();
 
     file << opt->GetValue() << "," <<
       counter << "," <<
       opt->GetCurrentIteration() << "," <<
-      nt->GetParameters()[0] << "," <<
-      nt->GetParameters()[1] << "," <<
-      nt->GetParameters()[2] << "," <<
-      nt->GetParameters()[3] << std::endl;
+      pm[0] << "," <<
+      pm[1] << "," <<
+      pm[2] << "," <<
+      pm[3] << std::endl;
 
     // std::cout << "Metric: " << opt->GetValue() << std::endl;
     // std::cout << "it: " << opt->GetCurrentIteration() << std::endl;
     // std::cout << "Rotation versor: " << rot << std::endl;
     // std::cout << "p: " << reg->GetLastTransformParameters() << std::endl;
     // std::cout << "scale: " << nt->GetScale() << std::endl;
+
+    
+    RotationGrid::PixelType t;
+    t[0] = pm[0];
+    t[1] = pm[1];
+    t[2] = pm[2];
+
+    it.Set(t);
+
+    scales.push_back(pm[3]);
 
     std::stringstream ss;
     ss << "tmp/pre" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
@@ -413,7 +384,276 @@ int main( int argc, char * argv[] )
     ++counter;
     }
 
-  
+  // Image of metric values over a fine grid
+  CostGrid::Pointer costgrid =
+    createGrid<CostGrid>(maxa, res2);
+
+  // Resample the translation parameters from the coarse grid to the fine
+  // grid
+  typedef VectorResampleImageFilter<RotationGrid, RotationGrid> VectorResample;
+  VectorResample::Pointer rgridresampler = VectorResample::New();
+  rgridresampler->SetInput(coarsegrid);
+  rgridresampler->SetOutputOrigin(costgrid->GetOrigin());
+  rgridresampler->SetOutputSpacing(costgrid->GetSpacing());
+  rgridresampler->SetOutputStartIndex(costgrid->GetLargestPossibleRegion().GetIndex() );
+  rgridresampler->SetSize(costgrid->GetLargestPossibleRegion().GetSize() );
+  rgridresampler->Update();
+
+  typedef MattesMutualInformationImageToImageMetric<ProcessingImage, ProcessingImage> Metric;
+  Metric::Pointer metric = Metric::New();
+  metric->SetNumberOfHistogramBins(256/8);
+  //    Metric::HistogramSizeType hsize;
+  //    hsize[0] = 256/8;
+  //    hsize[1] = 256/8;
+  //    metric->SetHistogramSize(hsize);
+  //Contains only 16384 pixels total   
+  //metric->SetUseAllPixels(true);
+  // metric->SetFixedImageMask(maskreader->GetOutput());
+  metric->SetNumberOfSpatialSamples(15000);
+  metric->SetFixedImageSamplesIntensityThreshold(50);
+  metric->SetUseExplicitPDFDerivatives(true);
+
+  typedef LinearInterpolateImageFunction<ProcessingImage, double> Interpolator;
+  Interpolator::Pointer reginterp = Interpolator::New();
+
+  metric->SetInterpolator(reginterp);
+  metric->SetFixedImage(fpyramid->GetOutput(0));
+  metric->SetFixedImageRegion(fpyramid->GetOutput(0)->GetLargestPossibleRegion());
+  metric->SetMovingImage(mpyramid->GetOutput(0));
+
+  // replace with median
+  std::nth_element(scales.begin(),
+                   scales.begin() + scales.size()/2,
+                   scales.end());
+  const double mscale = *(scales.begin() + scales.size()/2);
+
+  std::cout << "Computing on fine grid" << std::endl;
+
+  typedef ImageRegionIteratorWithIndex<CostGrid> CostIterator;
+  typedef ImageRegionConstIteratorWithIndex<CostGrid> CostConstIterator;
+
+  CostIterator cit(costgrid,
+                   costgrid->GetLargestPossibleRegion());
+  Iterator fit(rgridresampler->GetOutput(),
+               rgridresampler->GetOutput()->GetLargestPossibleRegion());
+  for(cit.GoToBegin(), fit.GoToBegin();
+      !cit.IsAtEnd(); ++cit, ++fit)
+    {
+    FixedRotationTransform::Pointer t = FixedRotationTransform::New();
+    t->SetIdentity();
+    
+    RotationGrid::PointType pt;
+    costgrid->TransformIndexToPhysicalPoint(fit.GetIndex(), pt);
+    
+    const Versor<double> rot = createRotationFromEulerAngles(pt[0], pt[1], pt[2]);
+
+    metric->SetTransform(t);
+    metric->Initialize();
+
+    FixedRotationTransform::ParametersType p(4);
+    p.Fill(0.0);
+    p[0] = fit.Get()[0];
+    p[1] = fit.Get()[1];
+    p[2] = fit.Get()[2];
+    p[3] = mscale;
+
+    const double m = metric->GetValue(p);
+    cit.Set(m);
+    }
+
+  writeimage(costgrid, "costs.mha");
+
+  typedef itk::Image<unsigned char, 3> BooleanImage;
+
+  typedef itk::RegionalMinimaImageFilter<CostGrid, BooleanImage> RegionalMinimaFilterType;
+  RegionalMinimaFilterType::Pointer minima = RegionalMinimaFilterType::New();
+  minima->SetInput(costgrid);
+  minima->SetFlatIsMinima(false);
+  minima->SetFullyConnected(false);
+  minima->SetForegroundValue(1);
+  minima->SetBackgroundValue(0);
+
+  writeimage(minima->GetOutput(), "minima.mha");
+
+  // Build a priority queue of best N minima to use
+  typedef RotationGrid::IndexType RIndexType;
+  typedef RotationGrid::PointType RPointType;
+
+  typedef std::pair<float, RIndexType> PairType;
+  std::priority_queue<PairType,
+    std::vector<PairType>,
+    pairFirstOnlyGreater<PairType> > pq;
+
+  CostConstIterator ccit(costgrid,
+                         costgrid->GetLargestPossibleRegion());
+  typedef ImageRegionConstIteratorWithIndex<BooleanImage> BooleanConstIterator;
+  BooleanConstIterator bit(minima->GetOutput(),
+                           minima->GetOutput()->GetLargestPossibleRegion());
+
+  for(cit.GoToBegin(), bit.GoToBegin();
+      !cit.IsAtEnd();
+      ++cit, ++bit)
+    {
+    if(bit.Get())
+      {
+
+      pq.push(std::make_pair(cit.Get(),
+                             cit.GetIndex()));
+      }
+    }
+  assert(bit.IsAtEnd());
+
+  // Array of candidate parameters to use for 7dof registration
+  typedef EulerSimilarity3DTransform<double>                 SimilarityTransform;
+  typedef SimilarityTransform::ParametersType                SimilarityParameters;
+
+  std::vector<SimilarityParameters> initialSimilarity;
+
+  for(unsigned int candidateRank = 0; candidateRank < 3; ++candidateRank)
+    {
+    std::cout << "i: " << candidateRank << std::endl;
+
+    PairType p = pq.top();
+    pq.pop();
+
+    std::cout << "m: " << p.first << std::endl;
+    std::cout << "ri: " << p.second << std::endl;
+
+    SimilarityParameters params(SimilarityTransform::ParametersDimension);
+    // Get the rotatoin
+    RPointType rotationvalue;
+    costgrid->TransformIndexToPhysicalPoint(p.second, rotationvalue);
+
+    std::cout << "Euler angles: " << rotationvalue << std::endl;
+
+    params[0] = rotationvalue[0];
+    params[1] = rotationvalue[1];
+    params[2] = rotationvalue[2];
+
+    std::cout << "Scale: " << mscale << std::endl;
+    
+    // Get the translation
+    RotationGrid::PixelType t =
+      rgridresampler->GetOutput()->GetPixel(p.second);
+
+    params[3] = t[0];
+    params[4] = t[1];
+    params[5] = t[2];
+
+    // Set the scale to the median scale
+    params[6] = mscale;
+
+    initialSimilarity.push_back(params);
+    }
+
+  // Use level 0 then level 1 for each of the candidate transforms using
+  // a similarity transform
+  typedef std::vector<SimilarityParameters>::const_iterator SimilarityParametersIterator;
+  counter = 0;
+  for(SimilarityParametersIterator pit = 
+        initialSimilarity.begin();
+      pit != initialSimilarity.end();
+      ++pit, ++counter)
+    {
+    typedef ImageRegistrationMethod<ProcessingImage, ProcessingImage> ImageRegistration;
+    ImageRegistration::Pointer reg = ImageRegistration::New();
+    reg->SetFixedImage(fpyramid->GetOutput(0));
+    reg->SetFixedImageRegion(fpyramid->GetOutput(0)->GetLargestPossibleRegion());
+    reg->SetMovingImage(mpyramid->GetOutput(0));
+
+    typedef ImageRegistrationViewer ViewerCommandType;
+    ViewerCommandType::Pointer command = ViewerCommandType::New();
+
+    typedef LinearInterpolateImageFunction<ProcessingImage, double> Interpolator;
+    Interpolator::Pointer reginterp = Interpolator::New();
+
+    reg->SetInterpolator(reginterp);
+
+    typedef MattesMutualInformationImageToImageMetric<ProcessingImage, ProcessingImage> Metric;
+//   typedef NormalizedMutualInformationHistogramImageToImageMetric<ProcessingImage, ProcessingImage> Metric;
+//    typedef NormalizedCorrelationImageToImageMetric<ProcessingImage, ProcessingImage> Metric;
+    Metric::Pointer metric = Metric::New();
+    metric->SetNumberOfHistogramBins(256/8);
+    //    Metric::HistogramSizeType hsize;
+    //    hsize[0] = 256/8;
+    //    hsize[1] = 256/8;
+    //    metric->SetHistogramSize(hsize);
+    //Contains only 16384 pixels total   
+    //metric->SetUseAllPixels(true);
+    // metric->SetFixedImageMask(maskreader->GetOutput());
+    metric->SetNumberOfSpatialSamples(15000);
+    metric->SetFixedImageSamplesIntensityThreshold(50);
+    metric->SetUseExplicitPDFDerivatives(true);
+//    metric->Initialize();
+
+    reg->SetMetric(metric);
+
+    //typedef OnePlusOneEvolutionaryOptimizer OptimizerType;
+    //typedef PowellOptimizer OptimizerType;
+    typedef FRPROptimizer OptimizerType;
+    //typedef GradientDescentOptimizer OptimizerType;
+    OptimizerType::Pointer opt = OptimizerType::New(); 
+    typedef Optimizer::ScalesType       OptimizerScalesType;
+    OptimizerScalesType optimizerScales( 7 );
+    // should set this scale based on size of the image
+    // optimizerScales[0] = 1.0/ 2500.0;
+    // optimizerScales[1] = 1.0/ 2500.0;
+    // optimizerScales[2] = 1.0/ 2500.0;
+    // optimizerScales[3] = 1.0/ 1.0;
+    optimizerScales[0] = 1.0/ 1.0;
+    optimizerScales[1] = 1.0/ 1.0;
+    optimizerScales[2] = 1.0/ 1.0;
+    optimizerScales[3] = 1.0/ 50.0;
+    optimizerScales[4] = 1.0/ 50.0;
+    optimizerScales[5] = 1.0/ 50.0;
+    optimizerScales[6] = 1.0/ 1.0;
+
+    opt->SetScales( optimizerScales );
+    opt->SetMaximize(false);
+    opt->SetCatchGetValueException( true );
+    opt->SetMetricWorstPossibleValue(0.0);
+    // opt->AddObserver( IterationEvent(), command);
+
+    opt->SetStepLength(10.0);
+    opt->SetStepTolerance(.001);
+    opt->SetValueTolerance(.0001);
+    opt->SetMaximumIteration(100);
+    opt->SetMaximumLineIteration(30);
+    opt->SetUseUnitLengthGradient( true );
+    opt->SetToPolakRibiere();
+
+    reg->SetOptimizer(opt);
+
+    SimilarityTransform::Pointer ot = 
+      SimilarityTransform::New();
+
+    ot->SetIdentity();
+    ot->SetCenter(initt->GetCenter());
+    ot->SetParameters(*pit);
+
+    reg->SetTransform(ot);
+    reg->SetInitialTransformParameters(*pit);
+    std::cout << "Initial transform params" << std::endl
+              << *pit << std::endl;
+
+    reg->StartRegistration();
+
+    SimilarityParameters pm = ot->GetParameters();
+
+    std::cout << opt->GetValue() << "," <<
+      counter << "," <<
+      opt->GetCurrentIteration() << ",";
+
+    for(unsigned int i = 0; i < 7; ++i)
+      {
+      std::cout << pm[i] << ",";
+      }
+    std::cout << std::endl;
+    }
+
+  // Store the metric 
+
+  // Get the best metric of the level 1 registrations
 
   return EXIT_SUCCESS;
 }
