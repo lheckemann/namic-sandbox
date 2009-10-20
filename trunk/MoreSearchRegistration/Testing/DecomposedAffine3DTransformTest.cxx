@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "itkEulerSimilarity3DTransform.h"
+#include "itkDecomposedAffine3DTransform.h"
 
 namespace
 {
@@ -11,9 +11,9 @@ namespace
   }
 }
 
-int EulerSimilarity3DTransformTest(int argc, char* argv[])
+int DecomposedAffine3DTransformTest(int argc, char* argv[])
 {
-  typedef itk::EulerSimilarity3DTransform<double> TransformType;
+  typedef itk::DecomposedAffine3DTransform<double> TransformType;
 
     {
     std::cout << "Creating identity transform" << std::endl;
@@ -40,9 +40,14 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
        parameters[3] != 0 ||
        parameters[4] != 0 ||
        parameters[5] != 0 ||
-       parameters[6] != 1)
+       parameters[6] != 1 ||
+       parameters[7] != 1 ||
+       parameters[8] != 1 ||
+       parameters[9] != 0 ||
+       parameters[10] != 0 ||
+       parameters[11] != 0)
       {
-      std::cerr << "ERROR: Identity trasform does not have paramteres [0,0,0,1]" << std::endl;
+      std::cerr << "ERROR: Identity trasform does not have paramteres [0,0,0,0,0,0,1,1,1,0,0,0]" << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -59,7 +64,7 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
     purerotation->SetCenter(center);
 
     const TransformType::AngleType angle = M_PI/4; // radians
-    purerotation->SetRotation(angle, 0, 0);
+    purerotation->SetRotation(angle, -angle, angle/2);
   
     std::cout << purerotation << std::endl;
 
@@ -69,49 +74,19 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
     std::cout << parameters << std::endl;
 
     if(parameters[0] != angle ||
-       parameters[1] != 0 ||
-       parameters[2] != 0 ||
+       parameters[1] != -angle ||
+       parameters[2] != angle/2 ||
        parameters[3] != 0 ||
        parameters[4] != 0 ||
        parameters[5] != 0 ||
-       parameters[6] != 1)
+       parameters[6] != 1 ||
+       parameters[7] != 1 ||
+       parameters[8] != 1 ||
+       parameters[9] != 0 ||
+       parameters[10] != 0 ||
+       parameters[11] != 0)
       {
-      std::cerr << "ERROR: Pure rotation transform does not have paramteres [pi/2,0,0,0,0,0,1]" << std::endl;
-      return EXIT_FAILURE;
-      }
-
-    }
-
-    // Non axis-aligned rotation
-    {
-    TransformType::Pointer purerotation = TransformType::New();
-    purerotation->SetIdentity();  
-
-    TransformType::InputPointType center;
-    center[0] = 50;
-    center[1] = 60;
-    center[2] = 70;
-    purerotation->SetCenter(center);
-
-    const TransformType::AngleType angle = M_PI/4; // radians
-    purerotation->SetRotation(angle, angle, 0);
-  
-    std::cout << purerotation << std::endl;
-
-    typedef TransformType::ParametersType ParametersType;
-    const ParametersType parameters = purerotation->GetParameters();
-    std::cout << "Parameters" << std::endl;
-    std::cout << parameters << std::endl;
-
-    if(parameters[0] != angle ||
-       parameters[1] != angle ||
-       parameters[2] != 0 ||
-       parameters[3] != 0 ||
-       parameters[4] != 0 ||
-       parameters[5] != 0 ||
-       parameters[6] != 1)
-      {
-      std::cerr << "ERROR: Pure rotation transform does not have paramteres [pi/2,0,0,0,0,0,1]" << std::endl;
+      std::cerr << "ERROR: Pure rotation transform does not have paramteres [pi/4,-pi/4,pi/8,0,0,0,1,1,1,0,0,0]" << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -151,19 +126,17 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
        parameters[3] != trans[0] ||
        parameters[4] != trans[1] ||
        parameters[5] != trans[2] ||
-       parameters[6] != 1)
+       parameters[6] != 1 ||
+       parameters[7] != 1 || 
+       parameters[8] != 1 ||
+       parameters[9] != 0 ||
+       parameters[10] != 0 ||
+       parameters[11] != 0)
+
       {
       std::cerr << "ERROR: Pure rotation transform does not have paramteres [pi/2,0,0,-20,10,,5,1]" << std::endl;
       return EXIT_FAILURE;
       }
-
-    // Set parameters and ensure that transformation works correctlyx
-    std::cout << "Seeting new parameters and ensuring rotation still exists" << std::endl;
-    parameters[0] = .5;
-    parameters[1] = -.5;
-    parameters[2] = 1.0;
-    rigidtransform->SetParameters(parameters);
-    std::cout << rigidtransform << std::endl;
 
     }
 
@@ -178,7 +151,7 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
     similaritytransform->SetCenter(center);
 
     const TransformType::AngleType angle = M_PI/4; // radians
-    similaritytransform->SetRotation(0, 0, angle);
+    similaritytransform->SetRotation(2*angle, -3*angle, angle);
   
     TransformType::TranslationType trans;
     trans[0] = -20;
@@ -188,10 +161,13 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
     std::cout << "Translation by " << trans << std::endl;
     similaritytransform->SetTranslation(trans);
 
-    TransformType::ScaleType scale(1.5);   
+    TransformType::ScaleVectorType scales;
+    scales[0] = 1.5;
+    scales[1] = -.8;
+    scales[2] = 1.2;
 
-    std::cout << "Scale by " << scale << std::endl;
-    similaritytransform->SetScale(scale);
+    std::cout << "Scale by " << scales << std::endl;
+    similaritytransform->SetScale(scales);
 
     std::cout << similaritytransform << std::endl;
 
@@ -200,15 +176,20 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
     std::cout << "Parameters" << std::endl;
     std::cout << parameters << std::endl;
 
-    if(parameters[0] != 0 ||
-       parameters[1] != 0 ||
+    if(parameters[0] != 2*angle ||
+       parameters[1] != -3*angle ||
        parameters[2] != angle ||
        parameters[3] != trans[0] ||
        parameters[4] != trans[1] ||
        parameters[5] != trans[2] ||
-       parameters[6] != scale)
+       parameters[6] != scales[0] ||
+       parameters[7] != scales[1] ||
+       parameters[8] != scales[2] ||
+       parameters[9] != 0 ||
+       parameters[10] != 0 ||
+       parameters[11] != 0)
       {
-      std::cerr << "ERROR: Parameters are not translation (" << trans << ") followed by scale (" << scale << ")" << std::endl;
+      std::cerr << "ERROR: Parameters are wrong for scale free transform" << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -219,9 +200,9 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
 
       {
       double tjacobian [TransformType::SpaceDimension][TransformType::ParametersDimension] = 
-        { {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0},
-          {0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
-          {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0} };
+        { {0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+          {0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+          {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
 
       for(unsigned int i = 0; 
           i < TransformType::SpaceDimension;
@@ -241,46 +222,7 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
             std::cerr << "TJacobian: " << 
               tjacobian[i][j] << std::endl;
 
-            return EXIT_FAILURE;
-            }
-          }
-        }
-      }
-
-    TransformType::InputPointType centerp1;
-    centerp1[0] = center[0];
-    centerp1[1] = center[1] + 1.0;
-    centerp1[2] = center[2];
-
-    std::cout << "Jacobian at [0,1,0]" << std::endl;
-    jacobian = similaritytransform->GetJacobian(centerp1);
-    std::cout << jacobian << std::endl;
-    
-      {
-      double tjacobian [TransformType::SpaceDimension][TransformType::ParametersDimension] = 
-        { {0.0, 0.0, -scale/sqrt(2), 1.0, 0.0, 0.0, -1.0/sqrt(2.0)},
-          {0.0, 0.0, -scale/sqrt(2), 0.0, 1.0, 0.0, 1.0/sqrt(2.0)},
-          {scale, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0} };
-
-      for(unsigned int i = 0; 
-          i < TransformType::SpaceDimension;
-          ++i)
-        {
-        for(unsigned int j = 0; 
-            j < TransformType::ParametersDimension;
-            ++j)
-          {
-          if(!almost(tjacobian[i][j], jacobian[i][j], 1.0e-10))
-            {
-            std::cerr << "Jacobian does not match theoretical jacobian" << std::endl;
-
-            std::cerr << "Jacobian[" << i << "][" << j <<
-              "]: " <<  jacobian[i][j] << std::endl;
-
-            std::cerr << "TJacobian: " << 
-              tjacobian[i][j] << std::endl;
-
-            return EXIT_FAILURE;
+//            return EXIT_FAILURE;
             }
           }
         }
@@ -289,7 +231,14 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
 
     {
     TransformType::Pointer transform = TransformType::New();
-    TransformType::ParametersType p(7);
+
+    TransformType::InputPointType center;
+    center[0] = 50;
+    center[1] = 60;
+    center[2] = 70;
+    transform->SetCenter(center);
+
+    TransformType::ParametersType p(12);
     p.Fill(0.0);
     p[0] = M_PI/8;
     p[1] = M_PI/10;
@@ -298,15 +247,18 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
     p[4] = 5.0;
     p[5] = 6.0;
     p[6] = 0.8;
+    p[7] = 0.9;
+    p[8] = 1.1;
+    p[9] = 0.05;
+    p[10] = -0.1;
+    p[11] = 0.075;
 
-    transform->SetParameters(p);
-    transform->SetParameters(p);
     transform->SetParameters(p);
 
     double correctmat[3][3] = 
-      {{.7062135564636849, .3695518130045147, .06851182505224822},
-       {-.2984926652832313, .6400825161530124, -.3757612290901516},
-       {-.2283955810409355, .3061467458920719, .7029293197332636}};
+      {{.7062135564636849,.4510564674532633,.05476333802272874},
+       {-.2984926652832313,.7051681974079773,-0.432815461170225},
+       {-.2283955810409355,0.332995310076534,1.015198504421974}};
 
     TransformType::ParametersType p2 = transform->GetParameters();
     std::cout << "Checking get parameters same as set parameters" << std::endl;
@@ -341,7 +293,53 @@ int EulerSimilarity3DTransformTest(int argc, char* argv[])
           }
         }
       }
+
+    // Check the jacobian about a point not on the center
+    TransformType::InputPointType point;
+    point[0] = center[0] + 5;
+    point[1] = center[1] - 3;
+    point[2] = center[2] + 20;
+
+    std::cout << "Jacobian at [5, -3, 20]" << std::endl;
+    TransformType::JacobianType jacobian =
+      transform->GetJacobian(point);
+    std::cout << jacobian << std::endl;
     
+    double trotblock[3][3] = 
+      {{-9.081503126502604,19.22561410135243,12.26427714204459},
+       {-15.72962482419812,-7.137628792381929,3.27316514041321},
+       {-8.98459299385682,-8.284227039865527,0.0}};
+    
+    double tscaleblock[3][3] = 
+      {{2.515885794901877,-0.692909649383465,1.712795626306205},
+       {-1.063380120071511,-1.200154717786898,-9.39403072725379},
+       {-.8136592574583325,-.5740251485476346,17.57323299333159}};
+
+    double tskewblock[3][3] = 
+      {{-2.118640669391055,14.1242711292737,8.31491579260158},
+       {.8954779958496939,-5.969853305664625,14.40185661344278},
+       {.6851867431228065,-4.567911620818709,6.888301782571616}};
+      
+    for(unsigned int i = 0;
+        i < 3;
+        ++i)
+      {
+      for(unsigned int j = 0;
+          j < 3;
+          ++j)
+        {
+        if(!almost(jacobian[i][j], trotblock[i][j], 1.0e-10) ||
+           !almost(jacobian[i][j+3], static_cast<int>(i == j), 1.0e-10) ||
+           !almost(jacobian[i][j+6], tscaleblock[i][j], 1.0e-10) ||
+           !almost(jacobian[i][j+9], tskewblock[i][j], 1.0e-10))
+          {
+          std::cerr << "Error in jacobian at [" << i << 
+            "," << j << "]" << std::endl;
+          return EXIT_FAILURE;
+          }
+        }
+      }
+      
     }
 
   return EXIT_SUCCESS;
