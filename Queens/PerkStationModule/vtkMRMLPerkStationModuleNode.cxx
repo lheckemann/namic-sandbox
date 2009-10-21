@@ -114,7 +114,9 @@ vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
 
    this->TrackerToPhantomMatrix = vtkMatrix4x4::New();
    this->PhantomToImageRASMatrix = vtkMatrix4x4::New();
-  
+   this->ToolTipOffset[0] = 0.0;
+   this->ToolTipOffset[1] = 0.0;
+   this->ToolTipOffset[2] = 0.0;
 
    this->ReferenceBodyToolPort = 0;
    this->NeedleToolPort = 1;
