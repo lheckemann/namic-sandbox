@@ -46,9 +46,14 @@ vtkPerkStationInsertStep::vtkPerkStationInsertStep()
   this->ConnectTrackerCheckButton = NULL;
   this->TrackerStatusMsg = NULL;
 
+  this->NeedleToolFrame = NULL;
   this->NeedleTipPositionFrame = NULL;
   this->NeedleTipPositionLabel = NULL;
   this->NeedleTipPosition = NULL;
+
+  this->ToolTipOffsetFrame = NULL;
+  this->ToolTipOffsetLabel = NULL;
+  this->ToolTipOffset = NULL;
 
   this->LoggingFrame = NULL;
   this->StartStopLoggingToFileCheckButton = NULL;
@@ -103,6 +108,11 @@ vtkPerkStationInsertStep::~vtkPerkStationInsertStep()
     this->ConnectTrackerCheckButton->Delete();
     this->ConnectTrackerCheckButton = NULL;
     }
+  if(this->NeedleToolFrame)
+    {
+    this->NeedleToolFrame->Delete();
+    this->NeedleToolFrame = NULL;
+    }
   if(this->NeedleTipPositionFrame)
     {
     this->NeedleTipPositionFrame->Delete();
@@ -117,6 +127,21 @@ vtkPerkStationInsertStep::~vtkPerkStationInsertStep()
     {
     this->NeedleTipPosition->DeleteAllWidgets();
     this->NeedleTipPosition = NULL;
+    }
+  if(this->ToolTipOffsetFrame)
+    {
+    this->ToolTipOffsetFrame->Delete();
+    this->ToolTipOffsetFrame = NULL;
+    }
+  if(this->ToolTipOffsetLabel)
+    {
+    this->ToolTipOffsetLabel->Delete();
+    this->ToolTipOffsetLabel = NULL;
+    }  
+  if(this->ToolTipOffset)
+    {
+    this->ToolTipOffset->DeleteAllWidgets();
+    this->ToolTipOffset = NULL;
     }
   if(this->LoggingFrame)
     {
@@ -286,13 +311,28 @@ void vtkPerkStationInsertStep::ShowUserInterface()
                this->ConnectTrackerCheckButton->GetWidgetName());*/
   
   
+  if (!this->NeedleToolFrame)
+    {
+    this->NeedleToolFrame = vtkKWFrameWithLabel::New();
+    }
+  if (!this->NeedleToolFrame->IsCreated())
+    {
+    this->NeedleToolFrame->SetParent(parent);
+    this->NeedleToolFrame->Create();
+    this->NeedleToolFrame->SetLabelText("Needle tool info");
+    }
+
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+               this->NeedleToolFrame->GetWidgetName());
+
+  
   if (!this->NeedleTipPositionFrame)
     {
-    this->NeedleTipPositionFrame = vtkKWFrameWithLabel::New();
+    this->NeedleTipPositionFrame = vtkKWFrame::New();
     }
   if (!this->NeedleTipPositionFrame->IsCreated())
     {
-    this->NeedleTipPositionFrame->SetParent(parent);
+    this->NeedleTipPositionFrame->SetParent(this->NeedleToolFrame->GetFrame());
     this->NeedleTipPositionFrame->Create();
     }
 
@@ -308,7 +348,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     }
   if (!this->NeedleTipPositionLabel->IsCreated())
     {
-    this->NeedleTipPositionLabel->SetParent(this->NeedleTipPositionFrame->GetFrame());
+    this->NeedleTipPositionLabel->SetParent(this->NeedleTipPositionFrame);
     this->NeedleTipPositionLabel->Create();
     this->NeedleTipPositionLabel->SetText("Needle tip position: ");
     this->NeedleTipPositionLabel->SetBackgroundColor(0.7, 0.7, 0.7);
@@ -326,7 +366,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     }
   if (!this->NeedleTipPosition->IsCreated())
     {
-    this->NeedleTipPosition->SetParent(this->NeedleTipPositionFrame->GetFrame());
+    this->NeedleTipPosition->SetParent(this->NeedleTipPositionFrame);
     this->NeedleTipPosition->Create();
     this->NeedleTipPosition->SetBorderWidth(2);
     this->NeedleTipPosition->SetReliefToGroove();
@@ -340,9 +380,66 @@ void vtkPerkStationInsertStep::ShowUserInterface()
       //entry->ReadOnlyOn();      
       }
     }
-
   this->Script("pack %s -side top  -anchor nw -padx 2 -pady 2", 
                 this->NeedleTipPosition->GetWidgetName());
+  
+  // frame for Tool tip offset
+  
+  if (!this->ToolTipOffsetFrame)
+    {
+    this->ToolTipOffsetFrame = vtkKWFrame::New();
+    }
+  if (!this->ToolTipOffsetFrame->IsCreated())
+    {
+    this->ToolTipOffsetFrame->SetParent(this->NeedleToolFrame->GetFrame());
+    this->ToolTipOffsetFrame->Create();
+    }
+
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+               this->ToolTipOffsetFrame->GetWidgetName());
+
+  // label for Tool tip offset
+
+  if (!this->ToolTipOffsetLabel)
+    { 
+    this->ToolTipOffsetLabel = vtkKWLabel::New();
+    }
+  if (!this->ToolTipOffsetLabel->IsCreated())
+    {
+    this->ToolTipOffsetLabel->SetParent(this->ToolTipOffsetFrame);
+    this->ToolTipOffsetLabel->Create();
+    this->ToolTipOffsetLabel->SetText("Tool tip offset: ");
+    this->ToolTipOffsetLabel->SetBackgroundColor(0.7, 0.7, 0.7);
+    }
+  
+  this->Script("pack %s -side left -anchor nw -padx 0 -pady 2", 
+                this->ToolTipOffsetLabel->GetWidgetName());
+
+  // Tool tip offset: will get populated when the configuration file is loaded
+ 
+  if (!this->ToolTipOffset)
+    {
+    this->ToolTipOffset =  vtkKWEntrySet::New();    
+    }
+  if (!this->ToolTipOffset->IsCreated())
+    {
+    this->ToolTipOffset->SetParent(this->ToolTipOffsetFrame);
+    this->ToolTipOffset->Create();
+    this->ToolTipOffset->SetBorderWidth(2);
+    this->ToolTipOffset->SetReliefToGroove();
+    this->ToolTipOffset->SetPackHorizontally(1);
+    this->ToolTipOffset->SetMaximumNumberOfWidgetsInPackingDirection(3);
+    // two entries of image spacing (x, y)
+    for (int id = 0; id < 3; id++)
+      {
+      vtkKWEntry *entry = this->ToolTipOffset->AddWidget(id);     
+      entry->SetWidth(7);
+      entry->ReadOnlyOn();      
+      entry->SetValueAsDouble(0);
+      }
+    }
+  this->Script("pack %s -side top  -anchor nw -padx 2 -pady 2", 
+                this->ToolTipOffset->GetWidgetName());
 
 
   // logging to file components
@@ -539,6 +636,7 @@ void vtkPerkStationInsertStep::ConnectTrackerCallback(bool value)
 
   if (value)
     {
+    this->TrackerStatusMsg->SetText("Connecting to tracker...");
     if(this->Tracker->Probe() != 1)
       {
       this->TrackerStatusMsg->SetText("Could not connect to tracker");
@@ -763,8 +861,10 @@ void vtkPerkStationInsertStep::LoadConfigButtonCallback()
     ifstream file(fileNameWithPath.c_str());    
     bool fileRead = this->GetGUI()->GetLogic()->ReadConfigFile(file);
     file.close();
-    if (fileRead)
+    if (fileRead){
         this->TrackerConfigFileLoadMsg->SetText("Config file read correctly");
+        this->UpdateToolTipOffset();
+    }
     else
         this->TrackerConfigFileLoadMsg->SetText("Config file could not be read");
 }
@@ -829,4 +929,21 @@ void vtkPerkStationInsertStep::Validate()
   mrmlNode->SetTimeSpentOnInsertStep(this->LogTimer->GetElapsedTime());
  
 
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationInsertStep::UpdateToolTipOffset()
+{
+  #if defined(USE_NDIOAPI)
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (mrmlNode)
+  {
+  vtkTrackerTool *tool = this->Tracker->GetTool(mrmlNode->GetNeedleToolPort());
+  double *tool_tip_offset = mrmlNode->GetToolTipOffset();
+  vtkMatrix4x4 *toolCalibrationMatrix = tool->GetBuffer()->GetToolCalibrationMatrix();
+  for(unsigned int i=0;i<3;i++){
+    toolCalibrationMatrix->SetElement(i, 3, tool_tip_offset[i]);
+    this->ToolTipOffset->GetWidget(i)->SetValueAsDouble(tool_tip_offset[i]);
+  }
+  }
+  #endif
 }

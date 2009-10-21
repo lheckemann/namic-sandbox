@@ -84,6 +84,7 @@ bool vtkPerkStationModuleLogic::ReadConfigFile(istream &file)
   unsigned int indexEndOfAttribute = 0;
   unsigned int indexStartOfValue = 0;
   unsigned int indexEndOfValue = 0;
+  double tool_tip_offset[3] = {0.0, 0.0, 0.0};
 
   int paramSetCount = 0;
   while(!file.eof())
@@ -176,7 +177,28 @@ bool vtkPerkStationModuleLogic::ReadConfigFile(istream &file)
             // error in file?
             }
             }
-        else
+        else if (!strcmp(attName, "ToolTipOffset"))
+             {
+            // read data into a temporary vector
+            std::stringstream ss;
+            ss << attValue;
+            double d;
+            std::vector<double> tmpVec;
+            while (ss >> d)
+            {
+            tmpVec.push_back(d);
+            }
+            if (tmpVec.size()==3)
+            {
+            for (unsigned int i = 0; i < 3; i++)
+              tool_tip_offset[i] = tmpVec[i];
+            }
+            else
+            {
+            // error in file?
+            }
+            }
+       else
             {
             // error in file?
             }     
@@ -185,9 +207,10 @@ bool vtkPerkStationModuleLogic::ReadConfigFile(istream &file)
 
     } // end while going through the file
 
-  if (mat1read && mat2read)
+  if (mat1read && mat2read){
+      this->GetPerkStationModuleNode()->SetToolTipOffset(tool_tip_offset);
       return true;
-  else
+  } else
       return false;
   
 }

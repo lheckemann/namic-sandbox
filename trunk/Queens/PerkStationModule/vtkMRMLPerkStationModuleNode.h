@@ -188,6 +188,9 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   void SetPhantomToImageRASMatrix(vtkMatrix4x4 *matrix){this->PhantomToImageRASMatrix->DeepCopy(matrix);};
   vtkMatrix4x4 *GetPhantomToImageRASMatrix(){return this->PhantomToImageRASMatrix;};
 
+  void SetToolTipOffset(double *tool_tip_offset){memcpy(this->ToolTipOffset, tool_tip_offset, sizeof(double)*3);};
+  double *GetToolTipOffset(){return this->ToolTipOffset;};
+
   // validate parameters:
  
   // Description:
@@ -334,6 +337,7 @@ protected:
   // insert parameters
   vtkMatrix4x4 *TrackerToPhantomMatrix;
   vtkMatrix4x4 *PhantomToImageRASMatrix;
+  double ToolTipOffset[3];
 
   int ReferenceBodyToolPort;
   int NeedleToolPort;

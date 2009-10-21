@@ -58,7 +58,9 @@ public:
   // Callback on the load calibration button
   void LogFileCheckButtonCallback(bool state);
 
-  
+  // Description
+  // Update the tool tip offset of the tracker. The values from MRML node are applied.
+  void UpdateToolTipOffset();  
 
 protected:
   vtkPerkStationInsertStep();
@@ -109,9 +111,15 @@ protected:
   vtkKWLabel *TrackerStatusMsg;
 
   // needle tip position info
-  vtkKWFrameWithLabel *NeedleTipPositionFrame;
+  vtkKWFrameWithLabel *NeedleToolFrame;
+  vtkKWFrame *NeedleTipPositionFrame;
   vtkKWLabel *NeedleTipPositionLabel;
   vtkKWEntrySet       *NeedleTipPosition;
+
+  // tool tip offset infor
+  vtkKWFrame *ToolTipOffsetFrame;
+  vtkKWLabel *ToolTipOffsetLabel;
+  vtkKWEntrySet       *ToolTipOffset;
 
   // GUI controls for logging the insertion attempt
   vtkKWFrameWithLabel *LoggingFrame;
