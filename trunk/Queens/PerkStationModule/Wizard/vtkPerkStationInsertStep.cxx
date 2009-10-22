@@ -434,7 +434,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
       {
       vtkKWEntry *entry = this->ToolTipOffset->AddWidget(id);     
       entry->SetWidth(7);
-      entry->ReadOnlyOn();      
+      entry->SetRestrictValueToDouble();
       entry->SetValueAsDouble(0);
       }
     }
@@ -591,6 +591,21 @@ void vtkPerkStationInsertStep::ProcessGUIEvents(vtkObject *caller, unsigned long
     //this->LoadTrackerConfigFileButton->SetText ("Load new config");
    
     }
+
+  // tool tip offset entry widget
+  if ( ( (this->ToolTipOffset->GetWidget(0) && this->ToolTipOffset->GetWidget(0) == vtkKWEntry::SafeDownCast(caller))
+        || (this->ToolTipOffset->GetWidget(1) && this->ToolTipOffset->GetWidget(1) == vtkKWEntry::SafeDownCast(caller))
+        || (this->ToolTipOffset->GetWidget(2) && this->ToolTipOffset->GetWidget(2) == vtkKWEntry::SafeDownCast(caller)) )
+      && (event == vtkKWEntry::EntryValueChangedEvent) )
+    {
+    vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+    if(mrmlNode)
+      {
+      double tool_tip_offset[3];
+      for(unsigned int i=0;i<3;i++) tool_tip_offset[i] = this->ToolTipOffset->GetWidget(i)->GetValueAsDouble();
+      mrmlNode->SetToolTipOffset(tool_tip_offset);
+      }
+    }
   // check button
   if (this->ConnectTrackerCheckButton && this->ConnectTrackerCheckButton->GetWidget()== vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
@@ -655,6 +670,16 @@ void vtkPerkStationInsertStep::ConnectTrackerCallback(bool value)
     vtkMatrix4x4::Multiply4x4(mrmlNode->GetPhantomToImageRASMatrix(), mrmlNode->GetTrackerToPhantomMatrix(), trackerToImageRASMatrix);
     this->Tracker->SetWorldCalibrationMatrix(trackerToImageRASMatrix);
 
+    // apply tool tip offset which is retrieved from GUI
+    vtkTrackerTool *tool = this->Tracker->GetTool(mrmlNode->GetNeedleToolPort());
+    vtkMatrix4x4 *toolCalibrationMatrix = tool->GetBuffer()->GetToolCalibrationMatrix();
+    for(unsigned int i=0;i<3;i++)
+      toolCalibrationMatrix->SetElement(i, 3, this->ToolTipOffset->GetWidget(i)->GetValueAsDouble());
+
+    // disable tool tip offset entry widget
+    for(unsigned int i=0;i<3;i++)
+      this->ToolTipOffset->GetWidget(i)->SetEnabled(0);
+
     // start the callback timer
     // inititate timer call
      const char *tmpId = vtkKWTkUtilities::CreateTimerHandler(this->GetApplication()->GetMainInterp(), 50, this, "TrackerTimerEvent");
@@ -668,8 +693,12 @@ void vtkPerkStationInsertStep::ConnectTrackerCallback(bool value)
       this->Tracker->StopTracking();
       this->TrackerStatusMsg->SetText("Tracking stopped");
       this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayRealTimeNeedleTip();
+
+      // enable tool tip offset entry widget
+      for(unsigned int i=0;i<3;i++)
+        this->ToolTipOffset->GetWidget(i)->SetEnabled(1);
       }
-    if (this->TrackerTimerId)
+      if (this->TrackerTimerId)
       {
       vtkKWTkUtilities::CancelTimerHandler(vtkKWApplication::GetMainInterp(), this->TrackerTimerId); 
       }
@@ -827,7 +856,13 @@ void vtkPerkStationInsertStep::AddGUIObservers()
     {
     this->StartStopLoggingToFileCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
     }
-  
+  if (this->ToolTipOffset)
+    {
+    for(int i=0;i<3;i++)
+      {
+      this->ToolTipOffset->GetWidget(i)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+      }
+    }
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::RemoveGUIObservers()
@@ -849,6 +884,13 @@ void vtkPerkStationInsertStep::RemoveGUIObservers()
     {
     this->StartStopLoggingToFileCheckButton->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
     }
+  if (this->ToolTipOffset)
+    {
+    for(int i=0;i<3;i++)
+      {
+      this->ToolTipOffset->GetWidget(i)->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+      }
+    }
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationInsertStep::LoadConfigButtonCallback()
@@ -863,7 +905,14 @@ void vtkPerkStationInsertStep::LoadConfigButtonCallback()
     file.close();
     if (fileRead){
         this->TrackerConfigFileLoadMsg->SetText("Config file read correctly");
-        this->UpdateToolTipOffset();
+        // update GUIs of tool tip offset according to the MRML node value
+        vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+        if (mrmlNode)
+        {
+          double *tool_tip_offset = mrmlNode->GetToolTipOffset();
+          for(unsigned int i=0;i<3;i++)
+            this->ToolTipOffset->GetWidget(i)->SetValueAsDouble(tool_tip_offset[i]);
+        }
     }
     else
         this->TrackerConfigFileLoadMsg->SetText("Config file could not be read");
@@ -929,21 +978,4 @@ void vtkPerkStationInsertStep::Validate()
   mrmlNode->SetTimeSpentOnInsertStep(this->LogTimer->GetElapsedTime());
  
 
-}
-//----------------------------------------------------------------------------
-void vtkPerkStationInsertStep::UpdateToolTipOffset()
-{
-  #if defined(USE_NDIOAPI)
-  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-  if (mrmlNode)
-  {
-  vtkTrackerTool *tool = this->Tracker->GetTool(mrmlNode->GetNeedleToolPort());
-  double *tool_tip_offset = mrmlNode->GetToolTipOffset();
-  vtkMatrix4x4 *toolCalibrationMatrix = tool->GetBuffer()->GetToolCalibrationMatrix();
-  for(unsigned int i=0;i<3;i++){
-    toolCalibrationMatrix->SetElement(i, 3, tool_tip_offset[i]);
-    this->ToolTipOffset->GetWidget(i)->SetValueAsDouble(tool_tip_offset[i]);
-  }
-  }
-  #endif
 }

@@ -188,6 +188,12 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   void SetPhantomToImageRASMatrix(vtkMatrix4x4 *matrix){this->PhantomToImageRASMatrix->DeepCopy(matrix);};
   vtkMatrix4x4 *GetPhantomToImageRASMatrix(){return this->PhantomToImageRASMatrix;};
 
+  // Description:
+  // Get/Set tool tip offset. This offset (x, y, z) is added to needle tool coordinate measured by the tracker.
+  // The needle tool is usually pre-calibrated by the manufacturer and the tip offset is stored in its SROM,
+  // but it is not loaded on an old tracker (e.g. Aurora firmware Rev.006 or earlier version). Also it is usually recommended
+  // to do pivoting calibration just before each experiment in order to ensure the accuracy. So this variable
+  // is used to modify the offset in such case.
   void SetToolTipOffset(double *tool_tip_offset){memcpy(this->ToolTipOffset, tool_tip_offset, sizeof(double)*3);};
   double *GetToolTipOffset(){return this->ToolTipOffset;};
 

@@ -58,10 +58,6 @@ public:
   // Callback on the load calibration button
   void LogFileCheckButtonCallback(bool state);
 
-  // Description
-  // Update the tool tip offset of the tracker. The values from MRML node are applied.
-  void UpdateToolTipOffset();  
-
 protected:
   vtkPerkStationInsertStep();
   ~vtkPerkStationInsertStep();

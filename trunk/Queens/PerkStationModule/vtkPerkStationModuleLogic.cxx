@@ -73,9 +73,6 @@ void vtkPerkStationModuleLogic::PrintSelf(ostream& os, vtkIndent indent)
 //---------------------------------------------------------------------------
 bool vtkPerkStationModuleLogic::ReadConfigFile(istream &file)
 {
-  bool mat1read = false;
-  bool mat2read = false;
-
   char currentLine[256];  
   char* attName = "";
   char* attValue = "";
@@ -84,7 +81,16 @@ bool vtkPerkStationModuleLogic::ReadConfigFile(istream &file)
   unsigned int indexEndOfAttribute = 0;
   unsigned int indexStartOfValue = 0;
   unsigned int indexEndOfValue = 0;
+
+  // local variables to temporarily store the loaded values
+  // we apply these values to MRML node only if all the requied fields are successfully loaded
   double tool_tip_offset[3] = {0.0, 0.0, 0.0};
+  int needle_tool_port = 0, reference_body_tool_port = 0;
+  std::vector<double> tracker_to_phantom_matrix, phantom_to_imageRAS_matrix;
+
+  // flags to check if all the required fields are loaded or not
+  bool is_tracker_to_phantom_matrix_read = false;
+  bool is_phantom_to_imageRAS_matrix_read = false;
 
   int paramSetCount = 0;
   while(!file.eof())
@@ -112,107 +118,104 @@ bool vtkPerkStationModuleLogic::ReadConfigFile(istream &file)
         // now we need to do string matching on attributeName, and further parse attributeValue as it may have more than one value
         if (!strcmp(attName, "NeedleToolPort"))
             {
+            // read needle tool port number into a local variable, needle_port
             std::stringstream ss;
             ss << attValue;
-            int val;
-            ss >> val;              
-            this->GetPerkStationModuleNode()->SetNeedleToolPort(val);          
+            ss >> needle_tool_port;              
             }
         else if (!strcmp(attName, "ReferenceBodyToolPort"))
             {
+            // read reference body tool port number into a local variable, reference_body_tool_port
             std::stringstream ss;
             ss << attValue;
-            int val;
-            ss >> val;              
-            this->GetPerkStationModuleNode()->SetReferenceBodyToolPort(val);              
+            ss >> reference_body_tool_port;              
             }
         else if (!strcmp(attName, "TrackerToPhantomMatrix"))
             {
-            // read data into a temporary vector
+            // read tracker to phantom matrix into a local array, tracker_to_phantom_matrix
             std::stringstream ss;
             ss << attValue;
             double d;
-            std::vector<double> tmpVec;
             while (ss >> d)
-            {
-            tmpVec.push_back(d);
-            }
-            if (tmpVec.size()==16)
-            {
-            vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
-            for (unsigned int i = 0; i < 4; i++)
-                for (unsigned int j = 0; j < 4; j++)
-                    matrix->SetElement(i,j,tmpVec[4*i+j]);
-            this->GetPerkStationModuleNode()->SetTrackerToPhantomMatrix(matrix);
-            mat1read = true;
-            }
+              {
+              tracker_to_phantom_matrix.push_back(d);
+              }
+            if (tracker_to_phantom_matrix.size()==16)
+              {
+              is_tracker_to_phantom_matrix_read = true;
+              }
             else
-            {
-            // error in file?
-            }
+              {
+              vtkErrorMacro("TrackerToPhantomMatrix field in configuration file could not be loaded correctly.");
+              }
             }
         else if (!strcmp(attName, "PhantomToImageMatrix"))
             {
-            // read data into a temporary vector
+            // read phantom to image matrix into a local array, phantom_to_imageRAS_matrix
             std::stringstream ss;
             ss << attValue;
             double d;
-            std::vector<double> tmpVec;
             while (ss >> d)
-            {
-            tmpVec.push_back(d);
-            }
-            if (tmpVec.size()==16)
-            {
-            vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
-            for (unsigned int i = 0; i < 4; i++)
-                for (unsigned int j = 0; j < 4; j++)
-                    matrix->SetElement(i,j,tmpVec[4*i+j]);
-            this->GetPerkStationModuleNode()->SetPhantomToImageRASMatrix(matrix);
-            mat2read = true;
-            
-            }
+              {
+              phantom_to_imageRAS_matrix.push_back(d);
+              }
+            if (phantom_to_imageRAS_matrix.size()==16)
+              {
+              is_phantom_to_imageRAS_matrix_read = true;
+              }
             else
-            {
-            // error in file?
-            }
+              {
+              vtkErrorMacro("PhantomToImageMatrix field in configuration file could not be loaded correctly.");
+              }
             }
         else if (!strcmp(attName, "ToolTipOffset"))
-             {
-            // read data into a temporary vector
+            {
+            // read tool tip offset into a local array, tool_tip_offset
             std::stringstream ss;
             ss << attValue;
             double d;
             std::vector<double> tmpVec;
             while (ss >> d)
-            {
-            tmpVec.push_back(d);
-            }
+              {
+              tmpVec.push_back(d);
+              }
             if (tmpVec.size()==3)
-            {
-            for (unsigned int i = 0; i < 3; i++)
-              tool_tip_offset[i] = tmpVec[i];
+              {
+              memcpy(tool_tip_offset, &(tmpVec[0]), sizeof(double)*3);
+              }
             }
-            else
+         else
             {
-            // error in file?
-            }
-            }
-       else
-            {
-            // error in file?
+            // the attribute name does not match to any of the defined attribute names.
+            vtkErrorMacro("Attribute name " << attName << " is not defined.");
             }     
         
         }// end if testing for it is a valid attName
 
     } // end while going through the file
 
-  if (mat1read && mat2read){
-      this->GetPerkStationModuleNode()->SetToolTipOffset(tool_tip_offset);
-      return true;
-  } else
-      return false;
-  
+  // if TrackerToPhantomMatrix and PhantomToImageMatrix were properly loaded, we consider that the config file was loaded successfully.
+  if (is_tracker_to_phantom_matrix_read && is_phantom_to_imageRAS_matrix_read)
+    {
+    // if successful, update MRML node and return 'true'
+    this->GetPerkStationModuleNode()->SetNeedleToolPort(needle_tool_port);          
+    this->GetPerkStationModuleNode()->SetReferenceBodyToolPort(reference_body_tool_port);             
+    this->GetPerkStationModuleNode()->SetToolTipOffset(tool_tip_offset);
+
+    vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
+    matrix->DeepCopy( &(tracker_to_phantom_matrix[0]) );
+    this->GetPerkStationModuleNode()->SetTrackerToPhantomMatrix(matrix);
+    matrix->DeepCopy( &(phantom_to_imageRAS_matrix[0]) );
+    this->GetPerkStationModuleNode()->SetPhantomToImageRASMatrix(matrix);
+    matrix->Delete();
+
+    return true;
+    } 
+  else
+    {
+    // if failed, just return 'false'
+    return false;
+    }
 }
 //----------------------------------------------------------------------------------
 char *vtkPerkStationModuleLogic::strrev(char *s,int n)
