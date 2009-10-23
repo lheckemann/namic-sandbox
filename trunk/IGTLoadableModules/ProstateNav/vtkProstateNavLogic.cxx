@@ -22,11 +22,14 @@
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationGUI.h"
+#include "vtkSlicerFiducialsGUI.h"
 #include "vtkSlicerColorLogic.h"
 #include "vtkMRMLLabelMapVolumeDisplayNode.h"
 
 #include "vtkMRMLProstateNavManagerNode.h"
 #include "vtkMRMLRobotNode.h"
+
+#include "vtkKWRadioButton.h"
 
 // for DICOM read
 #include "itkImageFileReader.h"
@@ -812,6 +815,7 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
   }
 }
 
+//----------------------------------------------------------------------------
 int vtkProstateNavLogic::GetTargetIndexFromFiducialID(const char* fiducialID)
 {
   if (fiducialID==NULL)
@@ -835,4 +839,117 @@ int vtkProstateNavLogic::GetTargetIndexFromFiducialID(const char* fiducialID)
     }
   }
   return -1;
+}
+
+//----------------------------------------------------------------------------
+int vtkProstateNavLogic::SetMouseInteractionMode(int mode)
+{  
+  if (GetApplicationLogic()==NULL)
+  {
+   vtkErrorMacro("Application logic is invalid");
+    return 0;
+  }
+  if (GetApplicationLogic()->GetMRMLScene()==NULL)
+  {
+    vtkErrorMacro("Scene is invalid");
+    return 0;
+  }
+  vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(GetApplicationLogic()->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLInteractionNode"));
+  if (interactionNode==NULL)
+  {
+    vtkErrorMacro("Interaction node is invalid");
+    return 0;
+  }
+  
+  if (this->GetGUI()==NULL)
+  {
+    vtkErrorMacro("GUI is invalid");
+    return 0;
+  }  
+  vtkSlicerApplication* app=vtkSlicerApplication::SafeDownCast(this->GetGUI()->GetApplication());
+  if (app==NULL)
+  {
+    vtkErrorMacro("Application is invalid");
+    return 0;
+  }
+  vtkSlicerApplicationGUI* appGUI = app->GetApplicationGUI();
+  if (appGUI==NULL)
+  {
+    vtkErrorMacro("Application GUI is invalid");
+    return 0;
+  }
+  vtkSlicerToolbarGUI *tGUI = appGUI->GetApplicationToolbar();
+  if (tGUI==NULL)
+  {
+    vtkErrorMacro("Application toolbar GUI is invalid");
+    return 0;
+  }
+
+  // Update GUI (activate either point modify, add, or rotate toolbar button) 
+  // (setting logic state could update the GUI as well, but apparently it does not,
+  // so we have to update the GUI manually)
+  switch (mode)
+  {
+  case vtkMRMLInteractionNode::Place:
+    if (tGUI->GetMousePlaceButton())
+    {
+      tGUI->GetMousePlaceButton()->SelectedStateOn();
+    }
+    break;
+  case vtkMRMLInteractionNode::ViewTransform:
+    if (tGUI->GetMouseTransformViewButton())
+    {
+      tGUI->GetMouseTransformViewButton()->SelectedStateOn();
+    }
+    break;
+  case vtkMRMLInteractionNode::PickManipulate:
+    if (tGUI->GetMousePickButton())
+    {
+      tGUI->GetMousePickButton()->SelectedStateOn();
+    }
+    break;
+  default:
+    vtkErrorMacro("Unknown mode: "<<mode);
+    return 0;
+  }        
+
+  // Set logic state
+  interactionNode->SetCurrentInteractionMode(mode); 
+
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+int vtkProstateNavLogic::SetCurrentFiducialList(vtkMRMLFiducialListNode* fidNode)
+{
+  if (fidNode==NULL)
+  {
+    vtkErrorMacro("Fiducial node is invalid");
+    return 0;
+  }
+
+  if (this->GetGUI()==NULL)
+  {
+    vtkErrorMacro("GUI is invalid");
+    return 0;
+  }  
+  vtkSlicerApplication* app=vtkSlicerApplication::SafeDownCast(this->GetGUI()->GetApplication());
+  if (app==NULL)
+  {
+    vtkErrorMacro("Application is invalid");
+    return 0;
+  }
+
+  vtkSlicerFiducialsGUI* fidGUI = vtkSlicerFiducialsGUI::SafeDownCast ( app->GetModuleGUIByName ("Fiducials"));
+  if (fidGUI==NULL)
+  {
+    vtkErrorMacro("Fiducial GUI is invalid");
+    return 0;
+  }
+  
+  // Activate target fiducials in the Fiducial GUI
+  fidGUI->Enter();
+  fidGUI->SetFiducialListNodeID(fidNode->GetID());
+  
+  return 1;
 }

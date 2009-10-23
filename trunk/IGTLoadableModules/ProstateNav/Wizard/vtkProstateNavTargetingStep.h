@@ -74,16 +74,7 @@ protected:
 
   void AddGUIObservers();
   void RemoveGUIObservers();  
-
-  // Description:
-  // Switch mouse interaction mode to activate target placement
-  // by clicking on the image
-  // vtkMRMLInteractionNode::Place = place fiducials
-  // vtkMRMLInteractionNode::ViewTransform = rotate scene
-  void SetMouseInteractionMode(int mode);
   
-  void SetTargetAsCurrentFiducialList();
-
   //BTX
   // Description:
   // The column orders in the list box
@@ -98,9 +89,7 @@ protected:
     DepthColumn = 6,
     NumberOfColumns = 7,
     };
-  
-  // a list indexed by row index, and the value is targetDesc index  
-  std::vector<unsigned int> TargetDescriptorIndicesIndexedByListIndex;
+    
   //ETX
 
   bool ProcessingCallback;
