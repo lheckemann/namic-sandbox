@@ -130,6 +130,16 @@ public:
     vtkSetMacro(TargetValidated,bool);
 
     // Description
+    // Set/get validation info: needle tip point
+    vtkSetVector3Macro(NeedleTipValidationPosition,double);
+    vtkGetVectorMacro(NeedleTipValidationPosition,double,3);
+
+    // Description
+    // Set/get validation info: needle base point (any point along the needle)
+    vtkSetVector3Macro(NeedleBaseValidationPosition,double);
+    vtkGetVectorMacro(NeedleBaseValidationPosition,double,3);
+
+    // Description
     // Set/get validation info: computed distance from the needle
     vtkGetMacro(OverallError,double);
     vtkSetMacro(OverallError,double);
@@ -187,6 +197,8 @@ private:
     std::string FiducialID; // ID of the fiducial in the FiducialListNode
     //ETX
     bool TargetValidated;  ///< Indicates whether it was validated against needle insertion
+    double NeedleTipValidationPosition[3];
+    double NeedleBaseValidationPosition[3];
     double OverallError; /// < Calculated value, ComputedDistanceFromNeedle
     double APError;/// < Calculated value
     double LRError;/// < Calculated value

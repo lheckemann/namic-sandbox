@@ -39,7 +39,6 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkSlicerVolumesGUI.h"
 #include "vtkMRMLInteractionNode.h"
-#include "vtkKWRadioButton.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWWizardWidget.h"
@@ -68,6 +67,24 @@ const char TARGET_INDEX_ATTR[]="TARGET_IND";
     obj->Delete(); \
     obj = NULL; \
     };
+
+// Definition of target list columns
+static enum
+{
+  COL_NAME = 0,
+  COL_X,
+  COL_Y,
+  COL_Z,
+  COL_OR_W,
+  COL_OR_X,
+  COL_OR_Y,
+  COL_OR_Z,
+  COL_NEEDLE,
+  COL_COUNT // all valid columns should be inserted above this line
+};
+static const char* COL_LABELS[COL_COUNT] = { "Name", "X", "Y", "Z", "OrW", "OrX", "OrY", "OrZ", "Needle" };
+static const int COL_WIDTHS[COL_COUNT] = { 8, 6, 6, 6, 6, 6, 6, 6, 8 };
+
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavTargetingStep);
@@ -107,8 +124,6 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
   this->TitleBackgroundColor[0] = 0.8;
   this->TitleBackgroundColor[1] = 0.8;
   this->TitleBackgroundColor[2] = 0.8;
-
-  this->TargetDescriptorIndicesIndexedByListIndex.clear();
 
   this->ProcessingCallback = false;
 }
@@ -267,16 +282,10 @@ void vtkProstateNavTargetingStep::ShowTargetListFrame()
     this->TargetList->GetWidget()->MovableRowsOff();
     this->TargetList->GetWidget()->MovableColumnsOff();
 
-    const int COL_COUNT=9;
-    const char* labels[COL_COUNT] =
-      { "Name", "X", "Y", "Z", "OrW", "OrX", "OrY", "OrZ", "Needle" };
-    const int widths[COL_COUNT] = 
-      { 8, 6, 6, 6, 6, 6, 6, 6, 8 };
-
     for (int col = 0; col < COL_COUNT; col ++)
       {
-      this->TargetList->GetWidget()->AddColumn(labels[col]);
-      this->TargetList->GetWidget()->SetColumnWidth(col, widths[col]);
+      this->TargetList->GetWidget()->AddColumn(COL_LABELS[col]);
+      this->TargetList->GetWidget()->SetColumnWidth(col, COL_WIDTHS[col]);
       this->TargetList->GetWidget()->SetColumnAlignmentToLeft(col);
       //this->TargetList->GetWidget()->ColumnEditableOff(col);
       this->TargetList->GetWidget()->ColumnEditableOn(col);
@@ -512,11 +521,11 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
   // load targeting volume dialog button
   if (this->LoadTargetingVolumeButton && this->LoadTargetingVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
     {
-    this->LoadTargetingVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathVol");          
+    this->LoadTargetingVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("ProstateNavOpenPathVol");          
     const char *fileName = this->LoadTargetingVolumeButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
-      this->LoadTargetingVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathVol");
+      this->LoadTargetingVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("ProstateNavOpenPathVol");
       // call the callback function
       this->LoadTargetingVolumeButtonCallback(fileName);    
       } 
@@ -532,15 +541,20 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
  // activate fiducial placement
  if (this->AddTargetsOnClickButton && this->AddTargetsOnClickButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
   {
-    SetTargetAsCurrentFiducialList();
-    if (this->AddTargetsOnClickButton->GetSelectedState() == 1)
+    // Activate target fiducials in the Fiducial GUI
+    if (this->GetLogic()==NULL)
     {
-      SetMouseInteractionMode(vtkMRMLInteractionNode::Place);
-    }
+      vtkErrorMacro("Logic is invalid");
+    }    
     else
     {
-      SetMouseInteractionMode(vtkMRMLInteractionNode::ViewTransform);
+      vtkMRMLFiducialListNode* fidNode = this->GetProstateNavManager()->GetTargetPlanListNode();
+      GetLogic()->SetCurrentFiducialList(fidNode);
+      GetLogic()->SetMouseInteractionMode( (this->AddTargetsOnClickButton->GetSelectedState()==1) ? 
+        vtkMRMLInteractionNode::Place : 
+        vtkMRMLInteractionNode::ViewTransform);
     }
+
   }
 
   if (this->NeedleTypeMenuList && this->NeedleTypeMenuList->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller) && (event == vtkKWMenu::MenuItemInvokedEvent))
@@ -651,12 +665,12 @@ void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char
     {
       
     // now update the requested value
-    if (col == 0)
+    if (col == COL_NAME)
       {
       fidList->SetNthFiducialLabelText(row, str);
       updated=true;
       }
-    else if (col >= 1 && col <= 3)
+    else if (col >= COL_X && col <= COL_Z)
       {
       // get the current xyz
       float * xyz = fidList->GetNthFiducialXYZ(row);
@@ -664,43 +678,43 @@ void vtkProstateNavTargetingStep::OnMultiColumnListUpdate(int row, int col, char
       float newCoordinate = atof(str);
       if ( xyz )
         {
-        if (col == 1)
+        if (col == COL_X)
           {
           fidList->SetNthFiducialXYZ(row, newCoordinate, xyz[1], xyz[2]);
           updated=true;
           }
-        if (col == 2)
+        if (col == COL_Y)
           {
           fidList->SetNthFiducialXYZ(row, xyz[0], newCoordinate, xyz[2]);
           updated=true;
           }
-        if (col == 3)
+        if (col == COL_Z)
           {
           fidList->SetNthFiducialXYZ(row, xyz[0], xyz[1], newCoordinate);
           updated=true;
           }
         }            
       }
-    else if (col >= 4  && col <= 7)
+    else if (col >= COL_OR_W  && col <= COL_OR_Z)
       {
       float * wxyz = fidList->GetNthFiducialOrientation(row);
       float newCoordinate = atof(str);
-      if (col == 4)
+      if (col == COL_OR_W)
         {
         fidList->SetNthFiducialOrientation(row, newCoordinate, wxyz[1], wxyz[2], wxyz[3]);
         updated=true;
         }
-      if (col == 5)
+      if (col == COL_OR_X)
         {
         fidList->SetNthFiducialOrientation(row, wxyz[0], newCoordinate, wxyz[2], wxyz[3]);
         updated=true;
         }
-      if (col == 6)
+      if (col == COL_OR_Y)
         {
         fidList->SetNthFiducialOrientation(row, wxyz[0], wxyz[1], newCoordinate, wxyz[3]);
         updated=true;
         }
-      if (col == 7)
+      if (col == COL_OR_Z)
         {
         fidList->SetNthFiducialOrientation(row, wxyz[0], wxyz[1], wxyz[2], newCoordinate);
         updated=true;
@@ -832,9 +846,9 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
       vtkErrorMacro ("UpdateTargetListGUI: ERROR: got null xyz for point " << row << endl);
       }
 
-    if (target->GetName().compare(this->TargetList->GetWidget()->GetCellText(row,0)) != 0)
+    if (target->GetName().compare(this->TargetList->GetWidget()->GetCellText(row,COL_NAME)) != 0)
         {
-          this->TargetList->GetWidget()->SetCellText(row,0,target->GetName().c_str());
+          this->TargetList->GetWidget()->SetCellText(row,COL_NAME,target->GetName().c_str());
         }               
 
     // selected
@@ -843,9 +857,9 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
       {
       for (int i = 0; i < 3; i ++) // for position (x, y, z)
         {
-        if (deleteFlag || columnList->GetCellTextAsDouble(row,1+i) != xyz[i])
+        if (deleteFlag || columnList->GetCellTextAsDouble(row,COL_X+i) != xyz[i])
           {
-          columnList->SetCellTextAsDouble(row,1+i,xyz[i]);
+          columnList->SetCellTextAsDouble(row,COL_X+i,xyz[i]);
           }
         }
       }
@@ -853,16 +867,16 @@ void vtkProstateNavTargetingStep::UpdateTargetListGUI()
       {
       for (int i = 0; i < 4; i ++) // for orientation (w, x, y, z)
         {
-        if (deleteFlag || columnList->GetCellTextAsDouble(row, 4+i) != wxyz[i])
+        if (deleteFlag || columnList->GetCellTextAsDouble(row, COL_OR_W+i) != wxyz[i])
           {
-          columnList->SetCellTextAsDouble(row,4+i,wxyz[i]);
+          columnList->SetCellTextAsDouble(row,COL_OR_W+i,wxyz[i]);
           }
         }
       }
 
-    if (target->GetNeedleTypeString().compare(this->TargetList->GetWidget()->GetCellText(row,8)) != 0)
+    if (target->GetNeedleTypeString().compare(this->TargetList->GetWidget()->GetCellText(row,COL_NEEDLE)) != 0)
     {
-      this->TargetList->GetWidget()->SetCellText(row,8,target->GetNeedleTypeString().c_str());
+      this->TargetList->GetWidget()->SetCellText(row,COL_NEEDLE,target->GetNeedleTypeString().c_str());
     }
 
     }  
@@ -1055,75 +1069,4 @@ void vtkProstateNavTargetingStep::HideUserInterface()
       }
     }
   
-}
-
-//----------------------------------------------------------------------------
-void vtkProstateNavTargetingStep::SetMouseInteractionMode(int mode)
-{
-  if (this->GetLogic())
-  {
-    if (this->GetLogic()->GetApplicationLogic())
-    {
-      if (this->GetLogic()->GetApplicationLogic()->GetMRMLScene())
-      {
-        vtkMRMLInteractionNode *interactionNode = vtkMRMLInteractionNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNthNodeByClass(0, "vtkMRMLInteractionNode"));
-        if (interactionNode!=NULL)
-        {
-        interactionNode->SetCurrentInteractionMode(mode); 
-        } 
-      }
-    }
-  }
-  vtkSlicerApplication* app=vtkSlicerApplication::SafeDownCast(this->GetApplication());
-  if (app)
-  {
-    vtkSlicerApplicationGUI* appGUI = app->GetApplicationGUI();
-    if ( appGUI )
-    {
-      vtkSlicerToolbarGUI *tGUI = appGUI->GetApplicationToolbar();
-      if ( tGUI )
-      {
-        switch (mode)
-        {
-        case vtkMRMLInteractionNode::Place:
-          if (tGUI->GetMousePlaceButton())
-          {
-            tGUI->GetMousePlaceButton()->SelectedStateOn();
-          }
-          break;
-        case vtkMRMLInteractionNode::ViewTransform:
-          if (tGUI->GetMouseTransformViewButton())
-          {
-            tGUI->GetMouseTransformViewButton()->SelectedStateOn();
-          }
-          break;
-        case vtkMRMLInteractionNode::PickManipulate:
-          if (tGUI->GetMousePickButton())
-          {
-            tGUI->GetMousePickButton()->SelectedStateOn();
-          }
-          break;
-        }        
-      }
-    }
-  } 
-}
-
-void vtkProstateNavTargetingStep::SetTargetAsCurrentFiducialList()
-{
-  // Activate target fiducials in the Fiducial GUI
-  if (this->GetProstateNavManager() && this->GetGUI())
-  {
-    vtkSlicerApplication *app = (vtkSlicerApplication *)(this->GetGUI()->GetApplication());
-    vtkSlicerFiducialsGUI* fidGUI = vtkSlicerFiducialsGUI::SafeDownCast ( app->GetModuleGUIByName ("Fiducials"));
-    if (fidGUI)
-    {
-      vtkMRMLFiducialListNode* fidNode = this->GetProstateNavManager()->GetTargetPlanListNode();
-      if (fidNode)
-      {
-        fidGUI->Enter();
-        fidGUI->SetFiducialListNodeID (fidNode->GetID());
-      }
-    }
-  }
 }

@@ -17,15 +17,24 @@
 
 #include "vtkProstateNavStep.h"
 
-#include "vtkMRMLFiducial.h"
-#include "vtkMRMLFiducialListNode.h"
-
+class vtkKWEntry;
+class vtkKWEntrySet;
+class vtkKWEntryWithLabel;
 class vtkKWFrame;
-class vtkKWMultiColumnListWithScrollbars;
+class vtkKWLabel;
+class vtkKWLoadSaveButton;
 class vtkKWMatrixWidgetWithLabel;
+class vtkKWMenuButton;
+class vtkKWMenuButtonWithLabel;
+class vtkKWMultiColumnList;
+class vtkKWMultiColumnListWithScrollbars;
 class vtkKWPushButton;
+class vtkKWText;
+class vtkImageData;
+class vtkMRMLScalarVolumeNode;
 class vtkMRMLSelectionNode;
 class vtkMRMLFiducialListNode;
+class vtkKWCheckButton;
 
 class VTK_PROSTATENAV_EXPORT vtkProstateNavStepVerification : public vtkProstateNavStep
 {
@@ -35,37 +44,67 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   virtual void ShowUserInterface();
-  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
+  virtual void HideUserInterface();
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event, void *callData);
 
-  void UpdateMRMLObserver(vtkMRMLSelectionNode* selnode);
-  //void UpdateElement(int row, int col, char * str);
-  void OnMultiColumnListUpdate(int row, int col, char * str);
+  virtual void UpdateGUI();
+
   void OnMultiColumnListSelectionChanged();
+  void UpdateTargetListGUI();
 
-  void SetGUIFromList(vtkMRMLFiducialListNode * activeFiducialListNode);
-
-  //vtkGetStringMacro(FiducialListNodeID);
-  //void SetFiducialListNodeID(char *id);
-  //void SetFiducialListNode(vtkMRMLFiducialListNode *fiducialListNode);
-  
 protected:
   vtkProstateNavStepVerification();
   ~vtkProstateNavStepVerification();
 
-  // GUI WIdgets
-  vtkKWFrame* TargetListFrame;
-  vtkKWMultiColumnListWithScrollbars* MultiColumnList;
-  vtkKWMatrixWidgetWithLabel* NeedlePositionMatrix;
-  vtkKWMatrixWidgetWithLabel* NeedleNormalMatrix;
-  vtkKWFrame* TargetControlFrame;
-  vtkKWPushButton *AddButton;
-  vtkKWPushButton *RemoveButton;
-  vtkKWPushButton *RemoveAllButton;
+  void ShowVolumeSelectionFrame();
+  void ShowTargetListFrame();
+  void ShowVerificationControlFrame();
 
+  unsigned int PopulateListWithTargetDetails(unsigned int targetDescIndex);
+  void UpdateVerificationResultsForCurrentTarget();
+  void DisplayVerificationResultsForCurrentTarget();
 
-//  char *FiducialListNodeID;
-//  vtkMRMLFiducialListNode *FiducialListNode;
+  // Description
+  // Callback on the load targeting volume button
+  void LoadVerificationVolumeButtonCallback(const char *fileName); 
+
+  void AddGUIObservers();
+  void RemoveGUIObservers();  
+
+  void AddMRMLObservers();
+  void RemoveMRMLObservers();
+
+  void SetVerificationPointListNode(vtkMRMLFiducialListNode *node);
+
+  void StartVerification();
+  void StopVerification();  
+
+  bool ProcessingCallback;
+
+  vtkKWFrame *MainFrame;
+  
+  // TargetPlanning
+  vtkKWFrame *VolumeSelectionFrame;
+  vtkKWLoadSaveButton *LoadVerificationVolumeButton;
+  vtkKWFrame *LoadVolumeDialogFrame;
+
+  // TargetList frame
+  vtkKWFrame *TargetListFrame;
+  vtkKWMultiColumnListWithScrollbars* TargetList;
+
+  // TargetControl frame
+  vtkKWFrame *VerificationControlFrame;
+  vtkKWPushButton *VerifyButton;
+  vtkKWPushButton *ClearButton;
+
+  vtkKWText *Message;
+
+  // Description:
+  // VerificationPointListNode is used for displaying two fiducial points that defines a needle trajectory
+  vtkMRMLFiducialListNode* VerificationPointListNode;
+
+  int TargetIndexUnderVerification; // if <0 it means that there no target is under verification
 
 private:
   vtkProstateNavStepVerification(const vtkProstateNavStepVerification&);

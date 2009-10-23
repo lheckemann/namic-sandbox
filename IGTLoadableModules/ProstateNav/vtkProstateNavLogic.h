@@ -88,6 +88,19 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
 
   int ShowCoverage(bool show);
 
+  // Description:
+  // Switch mouse interaction mode to activate target placement
+  // by clicking on the image
+  // vtkMRMLInteractionNode::Place = place fiducials
+  // vtkMRMLInteractionNode::ViewTransform = rotate scene
+  // Return value: zero if an error occurred
+  int SetMouseInteractionMode(int mode);
+
+  // Description:
+  // Select the current fidicual list in the Fiducial module
+  // If the user clicks on the image in Place interaction mode, then fiducials will be added to the current fiducial list.
+  int SetCurrentFiducialList(vtkMRMLFiducialListNode* fidNode);
+
   //ETX
 
   void UpdateTargetListFromMRML();
