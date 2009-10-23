@@ -22,6 +22,11 @@
 #include "igtlStatusMessage.h"
 #include "igtlClientSocket.h"
 
+//
+// Test comment
+//
+
+
 int main(int argc, char* argv[])
 {
   //------------------------------------------------------------
