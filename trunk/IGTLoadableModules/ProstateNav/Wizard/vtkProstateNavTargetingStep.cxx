@@ -69,7 +69,7 @@ const char TARGET_INDEX_ATTR[]="TARGET_IND";
     };
 
 // Definition of target list columns
-static enum
+enum
 {
   COL_NAME = 0,
   COL_X,
