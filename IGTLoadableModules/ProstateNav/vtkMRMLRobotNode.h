@@ -138,6 +138,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   virtual const char* GetCalibrationObjectModelId() {return ""; };
   virtual const char* GetCalibrationObjectTransformId() { return ""; };
 
+  // Description:
+  // Get workspace object model (representing range of motion of the device)
+  virtual const char* GetWorkspaceObjectModelId() {return ""; };
 
   int GetStatusDescriptorCount();
   
