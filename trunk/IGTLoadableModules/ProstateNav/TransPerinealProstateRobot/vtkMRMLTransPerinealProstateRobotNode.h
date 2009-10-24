@@ -112,6 +112,10 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   vtkMRMLModelNode* GetZFrameModelNode();
   void SetAndObserveZFrameModelNodeID(const char *nodeID);
 
+  vtkGetStringMacro(WorkspaceModelNodeID);
+  vtkMRMLModelNode* GetWorkspaceModelNode();
+  void SetAndObserveWorkspaceModelNodeID(const char *nodeID);
+
   vtkGetStringMacro(ZFrameTransformNodeID);
   vtkMRMLLinearTransformNode* GetZFrameTransformNode();
   void SetAndObserveZFrameTransformNodeID(const char *nodeID);
@@ -129,6 +133,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
 
   virtual const char* GetCalibrationObjectModelId() { return GetZFrameModelNodeID(); };
   virtual const char* GetCalibrationObjectTransformId() { return GetZFrameTransformNodeID(); };
+  virtual const char* GetWorkspaceObjectModelId() { return GetWorkspaceModelNodeID(); };
 
   virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode);
 
@@ -150,6 +155,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   vtkGetMacro ( RobotWorkPhase,           int );
   vtkGetMacro ( ScannerWorkPhase,         int );
 
+  const char* AddWorkspaceModel(const char* nodeName);
   const char* AddZFrameModel(const char* nodeName);
 
   // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
@@ -184,6 +190,10 @@ private:
   vtkSetReferenceStringMacro(ZFrameTransformNodeID); 
   char *ZFrameTransformNodeID;
   vtkMRMLLinearTransformNode* ZFrameTransformNode;  
+
+  vtkSetReferenceStringMacro(WorkspaceModelNodeID);
+  char *WorkspaceModelNodeID;
+  vtkMRMLModelNode* WorkspaceModelNode;
 
   // Other member variables
 

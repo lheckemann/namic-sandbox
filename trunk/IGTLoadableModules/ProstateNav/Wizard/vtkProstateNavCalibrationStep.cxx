@@ -62,8 +62,9 @@ vtkProstateNavCalibrationStep::vtkProstateNavCalibrationStep()
   this->SelectImageButton = NULL;
   this->CalibrateButton   = NULL;
 
-  this->ZFrameSettingFrame = NULL;
-  this->ShowZFrameCheckButton = NULL;
+  this->ZFrameSettingFrame       = NULL;
+  this->ShowZFrameCheckButton    = NULL;
+  this->ShowWorkspaceCheckButton = NULL;
 
 }
 
@@ -96,6 +97,13 @@ vtkProstateNavCalibrationStep::~vtkProstateNavCalibrationStep()
     this->ShowZFrameCheckButton->SetParent(NULL);
     this->ShowZFrameCheckButton->Delete();
     }
+  if (this->ShowWorkspaceCheckButton)
+    {
+    this->ShowWorkspaceCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
+    this->ShowWorkspaceCheckButton->SetParent(NULL);
+    this->ShowWorkspaceCheckButton->Delete();
+    }
+
 }
 
 //----------------------------------------------------------------------------
@@ -176,6 +184,20 @@ void vtkProstateNavCalibrationStep::ShowUserInterface()
   this->Script("pack %s -side top -anchor w -padx 2 -pady 2", 
                this->ShowZFrameCheckButton->GetWidgetName());
 
+  if (!this->ShowWorkspaceCheckButton)
+    {
+    this->ShowWorkspaceCheckButton = vtkKWCheckButton::New();
+    this->ShowWorkspaceCheckButton->SetParent(this->ZFrameSettingFrame);
+    this->ShowWorkspaceCheckButton->Create();
+    this->ShowWorkspaceCheckButton->SelectedStateOff();
+    this->ShowWorkspaceCheckButton->SetText("Show Range of Motion");
+    this->ShowWorkspaceCheckButton
+      ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
+
+  this->Script("pack %s -side top -anchor w -padx 2 -pady 2", 
+               this->ShowWorkspaceCheckButton->GetWidgetName());
+
 }
 
 
@@ -197,6 +219,12 @@ void vtkProstateNavCalibrationStep::ProcessGUIEvents(vtkObject *caller,
     int checked = this->ShowZFrameCheckButton->GetSelectedState(); 
     ShowZFrameModel(checked);
     }
+  if (this->ShowWorkspaceCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+           && event == vtkKWCheckButton::SelectedStateChangedEvent )
+    {
+    int checked = this->ShowWorkspaceCheckButton->GetSelectedState(); 
+    ShowWorkspaceModel(checked);
+    }
   if (this->CalibrateButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
@@ -210,7 +238,7 @@ void vtkProstateNavCalibrationStep::ProcessGUIEvents(vtkObject *caller,
 void vtkProstateNavCalibrationStep::ShowZFrameModel(bool show)
 {
 
-//  vtkMRMLModelNode*  modelNode =
+  //  vtkMRMLModelNode*  modelNode =
   //  vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->ZFrameModelNodeID.c_str()));
   //  vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->GetLogic()->GetZFrameModelNodeID()));
 
@@ -220,6 +248,22 @@ void vtkProstateNavCalibrationStep::ShowZFrameModel(bool show)
   modelNode->Modified();
   this->MRMLScene->Modified();
 }
+
+
+//----------------------------------------------------------------------------
+void vtkProstateNavCalibrationStep::ShowWorkspaceModel(bool show)
+{
+
+  vtkMRMLModelNode*   modelNode = vtkMRMLModelNode::SafeDownCast(this->MRMLScene->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetWorkspaceObjectModelId()));
+  if (modelNode)
+    {
+    vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+    displayNode->SetVisibility(show);
+    modelNode->Modified();
+    this->MRMLScene->Modified();
+    }
+}
+
 
 /*
 //----------------------------------------------------------------------------

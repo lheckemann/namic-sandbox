@@ -36,6 +36,7 @@ public:
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);  
 
   void ShowZFrameModel(bool show);
+  void ShowWorkspaceModel(bool show);
 
   void PerformZFrameCalibration(const char* filename);
 
@@ -48,6 +49,8 @@ protected:
   vtkKWLoadSaveButtonWithLabel *SelectImageButton;
   vtkKWPushButton  *CalibrateButton;
   vtkKWCheckButton *ShowZFrameCheckButton;
+  vtkKWCheckButton *ShowWorkspaceCheckButton;
+
   vtkKWFrame       *ZFrameSettingFrame;
 
   //vtkMRMLModelNode* ZFrameModelNode;
