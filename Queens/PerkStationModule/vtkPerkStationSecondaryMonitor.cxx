@@ -102,13 +102,15 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
  camera->SetParallelProjection(1);
 
  this->Renderer->SetActiveCamera(camera);
- 
+ camera->Delete();
+
  // Interactor
  this->Interactor = vtkRenderWindowInteractor::New();
  this->Interactor->SetRenderWindow(this->RenderWindow);
 
  vtkSlicerInteractorStyle *iStyle = vtkSlicerInteractorStyle::New();
  this->Interactor->SetInteractorStyle (iStyle);
+ iStyle->Delete();
 
  // window level mapping
  this->MapToWindowLevelColors = vtkImageMapToWindowLevelColors::New();
@@ -139,6 +141,25 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
 {
   this->SetGUI(NULL);
 
+  // Release references of vtk rendering object to other object
+  if (this->RenderWindow)
+    {
+    this->RenderWindow->RemoveRenderer(this->Renderer);
+    }
+  if (this->Renderer)
+    {
+    this->Renderer->RemoveAllViewProps();
+    }
+  if (this->Interactor)
+    {
+    this->Interactor->SetRenderWindow(NULL);
+    }
+  if (this->ImageActor)
+    {
+    this->ImageActor->SetMapper(NULL);
+    }
+
+
   if (this->RenderWindow)
     {
     this->RenderWindow->Delete();
@@ -146,7 +167,6 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     }
   if (this->Renderer)
     {
-    this->Renderer->RemoveAllViewProps();
     this->Renderer->Delete();
     this->Renderer = NULL;
     }
@@ -216,6 +236,16 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     {
     this->ResliceTransform->Delete();
     this->ResliceTransform = NULL;
+    }
+  if (this->SystemStateResliceMatrix)
+    {
+    this->SystemStateResliceMatrix->Delete();
+    this->SystemStateResliceMatrix = NULL;
+    }
+  if (this->SystemStateXYToIJK)
+    {
+    this->SystemStateXYToIJK->Delete();
+    this->SystemStateXYToIJK = NULL;
     }
   if (this->VolumeNode)
     {

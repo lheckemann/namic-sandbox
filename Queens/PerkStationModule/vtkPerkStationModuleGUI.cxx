@@ -108,6 +108,7 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   this->WizardWidget = vtkKWWizardWidget::New();
 
   // wizard workflow
+  this->WizardFrame = NULL;  
   this->CalibrateStep = NULL;
   this->PlanStep = NULL;
   this->InsertStep = NULL;
@@ -148,52 +149,50 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
     }
   if (this->ModeListMenu)
     {
-    this->ModeListMenu->SetParent(NULL);
     this->ModeListMenu->Delete();
     this->ModeListMenu = NULL;
     }
   if (this->LoadPlanningVolumeButton)
     {
-    this->LoadPlanningVolumeButton->SetParent(NULL);
     this->LoadPlanningVolumeButton->Delete();
     this->LoadPlanningVolumeButton = NULL;
     }
   if (this->LoadValidationVolumeButton)
     {
-    this->LoadValidationVolumeButton->SetParent(NULL);
     this->LoadValidationVolumeButton->Delete();
     this->LoadValidationVolumeButton = NULL;
     }
   if (this->LoadExperimentFileButton)
     {
-    this->LoadExperimentFileButton->SetParent(NULL);
     this->LoadExperimentFileButton->Delete();
     this->LoadExperimentFileButton = NULL;
     }
   if (this->SaveExperimentFileButton)
     {
-    this->SaveExperimentFileButton->SetParent(NULL);
     this->SaveExperimentFileButton->Delete();
     this->SaveExperimentFileButton = NULL;
     }
   if (this->StateButtonSet)
     {
-    this->StateButtonSet->SetParent(NULL);
     this->StateButtonSet->Delete();
     this->StateButtonSet = NULL;
     }
 
   if ( this->VolumeSelector ) 
     {
-    this->VolumeSelector->SetParent(NULL);
     this->VolumeSelector->Delete();
     this->VolumeSelector = NULL;
     }
   if ( this->PSNodeSelector ) 
     {
-    this->PSNodeSelector->SetParent(NULL);
     this->PSNodeSelector->Delete();
     this->PSNodeSelector = NULL;
+    }
+
+  if (this->WizardFrame)
+    {    
+    this->WizardFrame->Delete();
+    this->WizardFrame = NULL;
     }
 
   if (this->WizardWidget)
@@ -233,13 +232,11 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
     }
   if (this->DisplayVolumeLevelValue)
     {
-    this->DisplayVolumeLevelValue->SetParent(NULL);
     this->DisplayVolumeLevelValue->Delete();
     this->DisplayVolumeLevelValue = NULL;
     }
   if (this->DisplayVolumeWindowValue)
     {
-    this->DisplayVolumeWindowValue->SetParent(NULL);
     this->DisplayVolumeWindowValue->Delete();
     this->DisplayVolumeWindowValue = NULL;
     }
@@ -264,10 +261,12 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
         {
         this->Logic->GetMRMLScene()->RemoveNode(this->MRMLNode->GetValidationVolumeNode());
         }*/
-    this->MRMLNode->Delete();
+    // do we need to delete the MRML node here? (The ReferenceCount of this object seems inconsistent, when it's deleted here.)
+    //this->MRMLNode->Delete();
     vtkSetMRMLNodeMacro(this->MRMLNode, NULL);
     }
  
+  this->SecondaryMonitor->Delete();
   this->SecondaryMonitor = NULL;
   
   
@@ -310,6 +309,7 @@ void vtkPerkStationModuleGUI::Enter()
     nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     vtkSetAndObserveMRMLNodeMacro(node, this->MRMLNode->GetCalibrationMRMLTransformNode());
     vtkSetAndObserveMRMLNodeEventsMacro(node,this->MRMLNode->GetCalibrationMRMLTransformNode(),nodeEvents);
+    nodeEvents->Delete();
     // add MRMLFiducialListNode to the scene
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
     this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
@@ -1286,7 +1286,7 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   volSelFrame->Delete();
   loadSaveFrame->Delete();
   loadSaveExptFrame->Delete();
-
+  loadVolFrame->Delete();
   // Wizard collapsible frame with individual steps inside
   this->WizardFrame = vtkSlicerModuleCollapsibleFrame::New();
   this->WizardFrame->SetParent(modulePage);
@@ -1396,6 +1396,55 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::TearDownGUI() 
 {
+  if (this->ModeListMenu)
+    {
+    this->ModeListMenu->SetParent(NULL);
+    }
+  if (this->LoadPlanningVolumeButton)
+    {
+    this->LoadPlanningVolumeButton->SetParent(NULL);
+    if(this->LoadPlanningVolumeButton->IsCreated())
+      {      
+      // vtkKWLoadSaveButton set itself as a parent of its member function LoadSaveDialog automatically when it is created by LoadSaveDialog->SetParent(this),       
+      // but it does not do LoadSaveDialog->SetParent(NULL) in its destructor, so we do it here.
+      this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SetParent(NULL);
+      }
+    }
+  if (this->LoadValidationVolumeButton)
+    {
+    this->LoadValidationVolumeButton->SetParent(NULL);
+    if(this->LoadValidationVolumeButton->IsCreated())
+      {
+      // same as the above reason
+      this->LoadValidationVolumeButton->GetLoadSaveDialog()->SetParent(NULL);
+      }
+    }
+  if (this->LoadExperimentFileButton)
+    {
+    this->LoadExperimentFileButton->SetParent(NULL);
+    if(this->LoadExperimentFileButton->IsCreated())
+      {
+      // same as the above reason
+      this->LoadExperimentFileButton->GetLoadSaveDialog()->SetParent(NULL);
+      }
+    }
+  if (this->SaveExperimentFileButton)
+    {
+    this->SaveExperimentFileButton->SetParent(NULL);
+    if(this->SaveExperimentFileButton->IsCreated())
+      {
+      // same as the above reason
+      this->SaveExperimentFileButton->GetLoadSaveDialog()->SetParent(NULL);
+      }    
+    }
+  if (this->WizardFrame)
+    {    
+    this->WizardFrame->SetParent(NULL);    
+    }  
+  if (this->WizardWidget)
+    {
+    this->WizardWidget->SetParent(NULL);
+    }
   if (this->CalibrateStep)
     {
     this->CalibrateStep->SetGUI(NULL);
@@ -1419,6 +1468,37 @@ void vtkPerkStationModuleGUI::TearDownGUI()
   if (this->EvaluateStep)
     {
     this->EvaluateStep->SetGUI(NULL);
+    }
+  if (this->VolumeSelector)
+    {
+    if(this->VolumeSelector->IsCreated())
+      {
+      // vtkKWMenuButtonWithSpinButtonsWithLabel::CreateWidget() set itself as a parent of its Widget by Widget->SetParent(this).       
+      // But it does not do Widget->SetParent(NULL) in its destructor, so we do it here.
+      this->VolumeSelector->GetWidget()->SetParent(NULL);
+      // vtkKWWidgetWithLabel::CreateLabel() set itself as a parent of its Widget by label->SetParent(this).       
+      // But it does not do label->SetParent(NULL) in its destructor, so we do it here.
+      this->VolumeSelector->GetLabel()->SetParent(NULL);
+      }
+    this->VolumeSelector->SetParent(NULL);
+    }
+  if (this->PSNodeSelector)
+    {
+    if(this->PSNodeSelector->IsCreated())
+      {
+      // same as the above reason
+      this->PSNodeSelector->GetWidget()->SetParent(NULL);
+      this->PSNodeSelector->GetLabel()->SetParent(NULL);
+      }
+    this->PSNodeSelector->SetParent(NULL);
+    }
+  if (this->DisplayVolumeLevelValue)
+    {
+    this->DisplayVolumeLevelValue->SetParent(NULL);
+    }
+  if (this->DisplayVolumeWindowValue)
+    {
+    this->DisplayVolumeWindowValue->SetParent(NULL);
     }
 }
 

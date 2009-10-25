@@ -162,13 +162,28 @@ vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
 //----------------------------------------------------------------------------
 vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
 {
+   this->OriginalSliceToRAS->Delete();
+   this->TiltSliceToRAS->Delete();
+   this->TrackerToPhantomMatrix->Delete();
+   this->PhantomToImageRASMatrix->Delete();
+
    this->SetPlanningVolumeRef(NULL);
    this->SetValidationVolumeRef(NULL);
    this->SetPlanningVolumeNode(NULL);
    this->SetValidationVolumeNode(NULL);
    this->SetVolumeInUse(NULL);
-   vtkSetMRMLNodeMacro (this->CalibrationMRMLTransformNode, NULL);
-   vtkSetMRMLNodeMacro (this->PlanMRMLFiducialListNode, NULL);  
+   if(this->CalibrationMRMLTransformNode)
+     {
+     this->CalibrationMRMLTransformNode->Delete();
+     this->CalibrationMRMLTransformNode = NULL;
+     }
+   if(this->PlanMRMLFiducialListNode)
+     {
+     this->PlanMRMLFiducialListNode->Delete();
+     this->PlanMRMLFiducialListNode = NULL;
+     }
+//   vtkSetMRMLNodeMacro (this->CalibrationMRMLTransformNode, NULL);
+//   vtkSetMRMLNodeMacro (this->PlanMRMLFiducialListNode, NULL);  
 
 }
 
@@ -742,7 +757,7 @@ void vtkMRMLPerkStationModuleNode::InitializeTransform()
     vtkMatrix4x4 *matrix = vtkMatrix4x4::New();
     matrix->Identity();
     this->CalibrationMRMLTransformNode->ApplyTransform(matrix);
-    //matrix->Delete();      
+    matrix->Delete();      
 }
 //-------------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
