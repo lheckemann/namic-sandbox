@@ -4,6 +4,8 @@
 
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
+#include "vtkKWEntry.h"
+#include "vtkKWEntrySet.h"
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPerkStationStep);
@@ -28,6 +30,7 @@ vtkPerkStationStep::~vtkPerkStationStep()
     this->WizardGUICallbackCommand->Delete();
     this->WizardGUICallbackCommand=NULL;
   }
+  this->LogTimer->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -63,4 +66,19 @@ int vtkPerkStationStep::CanGoToSelf()
 void vtkPerkStationStep::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationStep::ReleaseReferencesForKWEntrySet(vtkKWEntrySet *entrySet)
+{
+  if (entrySet)
+    {
+    if (entrySet->IsCreated())
+      {
+      for(unsigned int i=0;i<entrySet->GetNumberOfWidgets();i++)
+        {
+        entrySet->GetWidget(i)->SetParent(NULL);
+        }
+      }  
+    }
 }

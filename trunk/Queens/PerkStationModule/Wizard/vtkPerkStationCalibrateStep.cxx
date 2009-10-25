@@ -122,17 +122,20 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
   // load/reset controls
   if (this->LoadResetFrame)
     {
+    this->LoadResetFrame->SetParent(NULL);
     this->LoadResetFrame->Delete();
     this->LoadResetFrame = NULL;
     }
   if (this->LoadCalibrationFileButton)
     {
+    this->LoadCalibrationFileButton->SetParent(NULL);
     this->LoadCalibrationFileButton->Delete();
     this->LoadCalibrationFileButton = NULL;
     }
 
   if (this->ResetCalibrationButton)
     {
+    this->ResetCalibrationButton->SetParent(NULL);
     this->ResetCalibrationButton->Delete();
     this->ResetCalibrationButton = NULL;
     }
@@ -140,117 +143,149 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
   // save controls
   if (this->SaveFrame)
     {
+    this->SaveFrame->SetParent(NULL);
     this->SaveFrame->Delete();
     this->SaveFrame = NULL;
     }
   if (this->SaveCalibrationFileButton)
     {
+    this->SaveCalibrationFileButton->SetParent(NULL);
     this->SaveCalibrationFileButton->Delete();
     this->SaveCalibrationFileButton = NULL;
     }
   // flip step
   if (this->FlipFrame)
     {
+    this->FlipFrame->SetParent(NULL);
     this->FlipFrame->Delete();
     this->FlipFrame = NULL;
     }
   if (this->VerticalFlipCheckButton)
     {
+    this->VerticalFlipCheckButton->SetParent(NULL);
     this->VerticalFlipCheckButton->Delete();
     this->VerticalFlipCheckButton = NULL;
     }
   if (this->HorizontalFlipCheckButton)
     {
+    this->HorizontalFlipCheckButton->SetParent(NULL);
     this->HorizontalFlipCheckButton->Delete();
     this->HorizontalFlipCheckButton = NULL;
     }
   // scale step
   if (this->ScaleFrame)
     {
+    this->ScaleFrame->SetParent(NULL);
     this->ScaleFrame->Delete();
     this->ScaleFrame = NULL;
     }
   if (this->MonPhySizeFrame)
     {
+    this->MonPhySizeFrame->SetParent(NULL);
     this->MonPhySizeFrame->Delete();
     this->MonPhySizeFrame = NULL;
     }
   if (this->MonPhySizeLabel)
     {
+    this->MonPhySizeLabel->SetParent(NULL);
     this->MonPhySizeLabel->Delete();
     this->MonPhySizeLabel = NULL;
     }
   if (this->MonPhySize)
     {
+    this->ReleaseReferencesForKWEntrySet(this->MonPhySize);
     this->MonPhySize->DeleteAllWidgets();
+    this->MonPhySize->SetParent(NULL);
+    this->MonPhySize->Delete();
     this->MonPhySize = NULL;
     }
   if (this->UpdateAutoScale)
     {
+    this->UpdateAutoScale->SetParent(NULL);
     this->UpdateAutoScale->Delete();
     this->UpdateAutoScale = NULL;
     }
   if (this->MonPixResFrame)
     {
+    this->MonPixResFrame->SetParent(NULL);
     this->MonPixResFrame->Delete();
     this->MonPixResFrame = NULL;
     }
   if (this->MonPixResLabel)
     {
+    this->MonPixResLabel->SetParent(NULL);
     this->MonPixResLabel->Delete();
     this->MonPixResLabel = NULL;
     }
   if (this->MonPixRes)
     {
+    this->ReleaseReferencesForKWEntrySet(this->MonPixRes);
     this->MonPixRes->DeleteAllWidgets();
+    this->MonPixRes->SetParent(NULL);
+    this->MonPixRes->Delete();
     this->MonPixRes = NULL;
     }
 
   if (this->ImgPixSizeFrame)
     {
+    this->ImgPixSizeFrame->SetParent(NULL);
     this->ImgPixSizeFrame->Delete();
     this->ImgPixSizeFrame = NULL;
     }
   if (this->ImgPixSizeLabel)
     {
+    this->ImgPixSizeLabel->SetParent(NULL);
     this->ImgPixSizeLabel->Delete();
     this->ImgPixSizeLabel = NULL;
     }
 
   if (this->ImgSpacing)
     {
+    this->ReleaseReferencesForKWEntrySet(this->ImgSpacing);
     this->ImgSpacing->DeleteAllWidgets();
+    this->ImgSpacing->SetParent(NULL);
+    this->ImgSpacing->Delete();
     this->ImgSpacing = NULL;
     }
 
   if (this->ImgScaleFrame)
     {
+    this->ImgScaleFrame->SetParent(NULL);
     this->ImgScaleFrame->Delete();
     this->ImgScaleFrame = NULL;
     }
   if (this->ImgScaleLabel)
     {
+    this->ImgScaleLabel->SetParent(NULL);
     this->ImgScaleLabel->Delete();
     this->ImgScaleLabel = NULL;
     }
   if (this->ImgScaling)
     {
+    this->ReleaseReferencesForKWEntrySet(this->ImgScaling);
     this->ImgScaling->DeleteAllWidgets();
+    this->ImgScaling->SetParent(NULL);
+    this->ImgScaling->Delete();
     this->ImgScaling = NULL;
     }
   if (this->MonPixSizeFrame)
     {
+    this->MonPixSizeFrame->SetParent(NULL);
     this->MonPixSizeFrame->Delete();
     this->MonPixSizeFrame = NULL;
     }
   if (this->MonPixSizeLabel)
     {
+    this->MonPixSizeLabel->SetParent(NULL);
     this->MonPixSizeLabel->Delete();
     this->MonPixSizeLabel = NULL;
     }
   if (this->MonSpacing)
     {
+    this->ReleaseReferencesForKWEntrySet(this->MonSpacing);
     this->MonSpacing->DeleteAllWidgets();
+    this->MonSpacing->SetParent(NULL);
+    this->MonSpacing->Delete();
     this->MonSpacing = NULL;
     }
   
@@ -259,57 +294,74 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
   // translate step
   if (this->TranslateFrame)
     {
+    this->TranslateFrame->SetParent(NULL);
     this->TranslateFrame->Delete();
     this->TranslateFrame = NULL;
     }  
   if (this->TransMessage)
     {
+    this->TransMessage->SetParent(NULL);
     this->TransMessage->Delete();
     this->TransMessage = NULL;
     }  
   if (this->TransImgFidFrame)
     {
+    this->TransImgFidFrame->SetParent(NULL);
     this->TransImgFidFrame->Delete();
     this->TransImgFidFrame = NULL;
     }
   if (this->TransImgFidLabel)
     {
+    this->TransImgFidLabel->SetParent(NULL);
     this->TransImgFidLabel->Delete();
     this->TransImgFidLabel = NULL;
     }
   if (this->TransImgFid)
     {
+    this->ReleaseReferencesForKWEntrySet(this->TransImgFid);
     this->TransImgFid->DeleteAllWidgets();
+    this->TransImgFid->SetParent(NULL);
+    this->TransImgFid->Delete();
     this->TransImgFid = NULL;
     }
   if (this->TransPhyFidFrame)
     {
+    this->TransPhyFidFrame->SetParent(NULL);
     this->TransPhyFidFrame->Delete();
     this->TransPhyFidFrame = NULL;
     }
   if (this->TransPhyFidLabel)
     {
+    this->TransPhyFidLabel->SetParent(NULL);
     this->TransPhyFidLabel->Delete();
     this->TransPhyFidLabel = NULL;
     }  
   if (this->TransPhyFid)
     {
+    this->ReleaseReferencesForKWEntrySet(this->TransPhyFid);
     this->TransPhyFid->DeleteAllWidgets();
+    this->TransPhyFid->SetParent(NULL);
+    this->TransPhyFid->Delete();
     this->TransPhyFid = NULL;
     }
   if (this->TransEntryFrame)
     {
+    this->TransEntryFrame->SetParent(NULL);
     this->TransEntryFrame->Delete();
     this->TransEntryFrame = NULL;
     }
   if (this->TransEntryLabel)
     {
+    this->TransEntryLabel->SetParent(NULL);
     this->TransEntryLabel->Delete();
     this->TransEntryLabel = NULL;
     }  
   if (this->Translation)
     {
+    this->ReleaseReferencesForKWEntrySet(this->Translation);
     this->Translation->DeleteAllWidgets();
+    this->Translation->SetParent(NULL);
+    this->Translation->Delete();
     this->Translation = NULL;
     }
 
@@ -319,72 +371,92 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
   // rotate step
   if (this->RotateFrame)
     {
+    this->RotateFrame->SetParent(NULL);
     this->RotateFrame->Delete();
     this->RotateFrame = NULL;
     }
   if (this->RotMessage)
     {
+    this->RotMessage->SetParent(NULL);
     this->RotMessage->Delete();
     this->RotMessage = NULL;
     }
   if (this->CORFrame)
     {
+    this->CORFrame->SetParent(NULL);
     this->CORFrame->Delete();
     this->CORFrame = NULL;
     }
   if (this->CORLabel)
     {
+    this->CORLabel->SetParent(NULL);
     this->CORLabel->Delete();
     this->CORLabel = NULL;
     }    
   if (this->COR)
     {
+    this->ReleaseReferencesForKWEntrySet(this->COR);
     this->COR->DeleteAllWidgets();
+    this->COR->SetParent(NULL);
+    this->COR->Delete();
     this->COR = NULL;
     }
   if (this->RotImgFidFrame)
     {
+    this->RotImgFidFrame->SetParent(NULL);
     this->RotImgFidFrame->Delete();
     this->RotImgFidFrame = NULL;
     }
   if (this->RotImgFidLabel)
     {
+    this->RotImgFidLabel->SetParent(NULL);
     this->RotImgFidLabel->Delete();
     this->RotImgFidLabel = NULL;
     }    
   
   if (this->RotImgFid)
     {
+    this->ReleaseReferencesForKWEntrySet(this->RotImgFid);
     this->RotImgFid->DeleteAllWidgets();
+    this->RotImgFid->SetParent(NULL);
+    this->RotImgFid->Delete();
     this->RotImgFid = NULL;
     }
   if (this->RotPhyFidFrame)
     {
+    this->RotPhyFidFrame->SetParent(NULL);
     this->RotPhyFidFrame->Delete();
     this->RotPhyFidFrame = NULL;
     }
   if (this->RotPhyFidLabel)
     {
+    this->RotPhyFidLabel->SetParent(NULL);
     this->RotPhyFidLabel->Delete();
     this->RotPhyFidLabel = NULL;
     }
   if (this->RotPhyFid)
     {
+    this->ReleaseReferencesForKWEntrySet(this->RotPhyFid);
     this->RotPhyFid->DeleteAllWidgets();
+    this->RotPhyFid->SetParent(NULL);
+    this->RotPhyFid->Delete();
     this->RotPhyFid = NULL;
     }
   if (this->RotImgFidFrame)
     {
     this->RotImgFidFrame->Delete();
+    this->RotImgFidFrame->SetParent(NULL);
     this->RotImgFidFrame = NULL;
     }
   if (this->RotImgFidLabel)
     {
+    this->RotImgFidLabel->SetParent(NULL);
     this->RotImgFidLabel->Delete();
     this->RotImgFidLabel = NULL;
     }      
   if (this->RotationAngle)
     {
+    this->RotationAngle->SetParent(NULL);
     this->RotationAngle->Delete();
     this->RotationAngle = NULL;
     }

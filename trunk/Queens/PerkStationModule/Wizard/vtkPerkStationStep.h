@@ -6,6 +6,7 @@
 
 class vtkPerkStationModuleGUI;
 class vtkKWMenu;
+class vtkKWEntrySet;
 class vtkTimerLog;
 //#define EMSEG_MENU_BUTTON_WIDTH 15
 //#define EMSEG_WIDGETS_LABEL_WIDTH 25
@@ -31,6 +32,13 @@ public:
   void AddGUIObservers() { }
   virtual void RemoveGUIObservers() { }
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData) { }
+
+  // Description:
+  // This is a convenience function to release references of vtkKWentrySet object to all the children widget.
+  // vtkKWEntrySet doesn't call SetParent(NULL) for each child widget when it's deleted, 
+  // while vtkKWEntrySet::AllocateAndCreateWidget() calls SetParent(this).
+  // So this function should be called before deleting vtkKWEntrySet object.
+  void ReleaseReferencesForKWEntrySet(vtkKWEntrySet *entrySet);
 
 protected:
   vtkPerkStationStep();

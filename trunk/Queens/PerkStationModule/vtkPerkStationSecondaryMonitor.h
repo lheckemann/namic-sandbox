@@ -1,6 +1,7 @@
 #ifndef __vtkPerkStationSecondaryMonitor_h
 #define __vtkPerkStationSecondaryMonitor_h
 
+#include "vtkObject.h"
 #include "vtkPerkStationModule.h"
 // for getting display device information
 #include "Windows.h"
@@ -27,7 +28,7 @@ class vtkKWRenderWidget;
 class vtkLineSource;
 class vtkActorCollection;
 
-class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationSecondaryMonitor
+class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationSecondaryMonitor : public vtkObject
 {
 public:
   static vtkPerkStationSecondaryMonitor *New();  
@@ -35,6 +36,7 @@ public:
   // Description: 
   // Get/Set GUI
   vtkPerkStationModuleGUI* GetGUI(){return this->GUI;};
+  vtkTypeMacro(vtkPerkStationSecondaryMonitor,vtkObject);
   virtual void SetGUI(vtkPerkStationModuleGUI *gui){ this->GUI = gui;};
 
   // About the secondary monitor itself:
