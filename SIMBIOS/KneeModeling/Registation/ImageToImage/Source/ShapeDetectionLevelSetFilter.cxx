@@ -174,18 +174,22 @@ int main( int argc, char *argv[] )
   chronometer.Start("reading");
   reader->Update();
   chronometer.Stop("reading");
+  chronometer.Report( std::cout );
 
   chronometer.Start("smoothing");
   smoothing->Update();
   chronometer.Stop("smoothing");
+  chronometer.Report( std::cout );
 
   chronometer.Start("gradient");
   gradientMagnitude->Update();
   chronometer.Stop("gradient");
+  chronometer.Report( std::cout );
 
   chronometer.Start("sigmoid");
   sigmoid->Update();
   chronometer.Stop("sigmoid");
+  chronometer.Report( std::cout );
 
 
   shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
@@ -285,6 +289,7 @@ int main( int argc, char *argv[] )
   chronometer.Start("fastMarching");
   fastMarching->Update();
   chronometer.Stop("fastMarching");
+  chronometer.Report( std::cout );
 
   internalWriter->SetInput( fastMarching->GetOutput() );
   internalWriter->SetFileName("fastMarching.mhd");
@@ -332,10 +337,12 @@ int main( int argc, char *argv[] )
   chronometer.Start("shapeDetection");
   shapeDetection->Update();
   chronometer.Stop("shapeDetection");
+  chronometer.Report( std::cout );
 
   chronometer.Start("thresholding");
   thresholder->Update();
   chronometer.Stop("thresholding");
+  chronometer.Report( std::cout );
 
 
   try
@@ -343,6 +350,7 @@ int main( int argc, char *argv[] )
     chronometer.Start("writer");
     writer->Update();
     chronometer.Stop("writer");
+    chronometer.Report( std::cout );
     }
   catch( itk::ExceptionObject & excep )
     {
