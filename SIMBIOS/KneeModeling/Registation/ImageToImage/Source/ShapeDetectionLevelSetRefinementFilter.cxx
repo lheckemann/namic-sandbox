@@ -121,11 +121,6 @@ int main( int argc, char *argv[] )
   levelSetReader->SetFileName( argv[2] );
   writer->SetFileName( argv[3] );
 
-  typedef   itk::CurvatureAnisotropicDiffusionImageFilter< 
-                               InternalImageType, 
-                               InternalImageType >  SmoothingFilterType;
-
-
   typedef  itk::ShapeDetectionLevelSetImageFilter< InternalImageType, 
                               InternalImageType >    ShapeDetectionFilterType;
 
