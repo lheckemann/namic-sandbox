@@ -226,6 +226,12 @@ int main( int argc, char *argv[] )
   std::cout << "Opening seeds file " << argv[11] << std::endl;
   inputSeedsFile.open( argv[11] );
 
+  if( inputSeedsFile.fail() )
+    {
+    std::cerr << "Error reading file " << argv[11] << std::endl;
+    return EXIT_FAILURE;
+    }
+
   float seedX;
   float seedY;
   float seedZ;
