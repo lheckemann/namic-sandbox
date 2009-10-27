@@ -240,7 +240,7 @@ int main( int argc, char *argv[] )
 
     seeds->InsertElement( numberOfSeedPoints, node );
 
-    std::cout << "Seed " << numberOfSeedPoints << seedX << " " << seedY << " " << seedZ << " = " << seedPosition << std::endl;
+    std::cout << "Seed " << numberOfSeedPoints << " : " <<  seedX << " " << seedY << " " << seedZ << " = " << seedPosition << std::endl;
     numberOfSeedPoints++;
 
     inputSeedsFile >> seedX >> seedY >> seedZ;
