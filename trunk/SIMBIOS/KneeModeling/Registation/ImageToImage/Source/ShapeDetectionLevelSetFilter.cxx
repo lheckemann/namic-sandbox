@@ -27,6 +27,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkImage.h"
+#include "itkTimeProbesCollectorBase.h"
 
 
 
@@ -101,6 +102,7 @@ int main( int argc, char *argv[] )
   typedef unsigned char     OutputPixelType;
   typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
 
+  itk::TimeProbesCollectorBase  chronometer;
 
   typedef itk::BinaryThresholdImageFilter< 
     InternalImageType, OutputImageType > ThresholdingFilterType;
@@ -161,11 +163,30 @@ int main( int argc, char *argv[] )
 
   ShapeDetectionFilterType::Pointer shapeDetection = ShapeDetectionFilterType::New();
 
+  smoothing->ReleaseDataFlagOn();
+  gradientMagnitude->ReleaseDataFlagOn();
+  sigmoid->ReleaseDataFlagOn();
 
   smoothing->SetInput( reader->GetOutput() );
   gradientMagnitude->SetInput( smoothing->GetOutput() );
   sigmoid->SetInput( gradientMagnitude->GetOutput() );
   
+  chronometer.Start("reading");
+  reader->Update();
+  chronometer.Stop("reading");
+
+  chronometer.Start("smoothing");
+  smoothing->Update();
+  chronometer.Stop("smoothing");
+
+  chronometer.Start("gradient");
+  gradientMagnitude->Update();
+  chronometer.Stop("gradient");
+
+  chronometer.Start("sigmoid");
+  sigmoid->Update();
+  chronometer.Stop("sigmoid");
+
 
   shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
 
@@ -261,6 +282,10 @@ int main( int argc, char *argv[] )
 
   fastMarching->SetOutputSize( reader->GetOutput()->GetBufferedRegion().GetSize() );
 
+  chronometer.Start("fastMarching");
+  fastMarching->Update();
+  chronometer.Stop("fastMarching");
+
   internalWriter->SetInput( fastMarching->GetOutput() );
   internalWriter->SetFileName("fastMarching.mhd");
   internalWriter->Update();
@@ -304,10 +329,20 @@ int main( int argc, char *argv[] )
 
   shapeDetection->AddObserver( itk::IterationEvent(), observer );
 
+  chronometer.Start("shapeDetection");
+  shapeDetection->Update();
+  chronometer.Stop("shapeDetection");
+
+  chronometer.Start("thresholding");
+  thresholder->Update();
+  chronometer.Stop("thresholding");
+
 
   try
     {
+    chronometer.Start("writer");
     writer->Update();
+    chronometer.Stop("writer");
     }
   catch( itk::ExceptionObject & excep )
     {
@@ -326,6 +361,8 @@ int main( int argc, char *argv[] )
   std::cout << std::endl;
   std::cout << "Number of elapsed iterations: " << shapeDetection->GetElapsedIterations() << std::endl;
   std::cout << "RMS change: " << shapeDetection->GetRMSChange() << std::endl;
+
+  chronometer.Report( std::cout );
 
   return EXIT_SUCCESS;
 }
