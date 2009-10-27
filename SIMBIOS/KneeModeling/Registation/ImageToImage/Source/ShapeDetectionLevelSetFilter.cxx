@@ -77,7 +77,7 @@ public:
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 11 )
+  if( argc < 12 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
@@ -87,6 +87,7 @@ int main( int argc, char *argv[] )
     std::cerr << " CurvatureWeight PropagationWeight";
     std::cerr << " MaximumNumberOfLevelSetIterations";
     std::cerr << " InputSeedsFile";
+    std::cerr << " outputEdgeMap";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -196,7 +197,7 @@ int main( int argc, char *argv[] )
   internalWriter->Update();
 
   internalWriter->SetInput( sigmoid->GetOutput() );
-  internalWriter->SetFileName("Sigmoid.mha");
+  internalWriter->SetFileName( argv[10] );
   internalWriter->Update();
 
 
