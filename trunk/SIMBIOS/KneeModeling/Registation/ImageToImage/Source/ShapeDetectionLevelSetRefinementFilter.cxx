@@ -18,9 +18,6 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkCurvatureAnisotropicDiffusionImageFilter.h"
-#include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
-#include "itkSigmoidImageFilter.h"
 #include "itkShapeDetectionLevelSetImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkImageFileReader.h"
@@ -76,16 +73,13 @@ public:
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 11 )
+  if( argc < 7 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputImage  outputImage";
-    std::cerr << " Sigma SigmoidAlpha SigmoidBeta ";
-    std::cerr << " InitialRadiusDistance";
+    std::cerr << " inputEdgeMap  inputLevelSet outputLevelSet";
     std::cerr << " CurvatureWeight PropagationWeight";
     std::cerr << " MaximumNumberOfLevelSetIterations";
-    std::cerr << " InputSeedsFile";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -116,39 +110,20 @@ int main( int argc, char *argv[] )
   typedef  itk::ImageFileWriter<  OutputImageType  > WriterType;
   typedef  itk::ImageFileWriter< InternalImageType > InternalWriterType;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  ReaderType::Pointer sigmoidReader = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
 
   ReaderType::Pointer levelSetReader = ReaderType::New();
 
   InternalWriterType::Pointer internalWriter = InternalWriterType::New();
 
-  reader->SetFileName( argv[1] );
+  sigmoidReader->SetFileName( argv[1] );
   levelSetReader->SetFileName( argv[2] );
   writer->SetFileName( argv[3] );
 
   typedef   itk::CurvatureAnisotropicDiffusionImageFilter< 
                                InternalImageType, 
                                InternalImageType >  SmoothingFilterType;
-
-  SmoothingFilterType::Pointer smoothing = SmoothingFilterType::New();
-
-
-  typedef   itk::GradientMagnitudeRecursiveGaussianImageFilter< 
-                               InternalImageType, 
-                               InternalImageType >  GradientFilterType;
-
-  typedef   itk::SigmoidImageFilter<
-                               InternalImageType, 
-                               InternalImageType >  SigmoidFilterType;
-
-
-
-  GradientFilterType::Pointer  gradientMagnitude = GradientFilterType::New();
-  SigmoidFilterType::Pointer sigmoid = SigmoidFilterType::New();
-
-  sigmoid->SetOutputMinimum(  0.0  );
-  sigmoid->SetOutputMaximum(  1.0  );
 
 
   typedef  itk::ShapeDetectionLevelSetImageFilter< InternalImageType, 
@@ -157,44 +132,12 @@ int main( int argc, char *argv[] )
   ShapeDetectionFilterType::Pointer shapeDetection = ShapeDetectionFilterType::New();
 
 
-  smoothing->SetInput( reader->GetOutput() );
-  gradientMagnitude->SetInput( smoothing->GetOutput() );
-  sigmoid->SetInput( gradientMagnitude->GetOutput() );
-  
 
-  shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
+  shapeDetection->SetFeatureImage( sigmoidReader->GetOutput() );
 
   thresholder->SetInput( shapeDetection->GetOutput() );
 
   writer->SetInput( thresholder->GetOutput() );
-
-
-  smoothing->SetTimeStep( 0.01 );
-  smoothing->SetNumberOfIterations(  5 );
-  smoothing->SetConductanceParameter( 9.0 );
-
-  const double sigma = atof( argv[3] );
-
-  gradientMagnitude->SetSigma(  sigma  );
-
-  const double alpha =  atof( argv[4] );
-  const double beta  =  atof( argv[5] );
-
-  std::cout << "alpha = " << alpha << std::endl;
-  std::cout << "beta = " << beta << std::endl;
-
-  sigmoid->SetAlpha( alpha );
-  sigmoid->SetBeta(  beta  );
-  
-
-  internalWriter->SetInput( gradientMagnitude->GetOutput() );
-  internalWriter->SetFileName("GradientMagnitude.mha");
-  internalWriter->Update();
-
-  internalWriter->SetInput( sigmoid->GetOutput() );
-  internalWriter->SetFileName("Sigmoid.mha");
-  internalWriter->Update();
-
 
   typedef itk::BinaryThresholdImageFilter< 
     InternalImageType, InternalImageType > InternalThresholdingFilterType;
@@ -217,13 +160,13 @@ int main( int argc, char *argv[] )
   internalWriter->Update();
 
 
-  const double curvatureScaling   = atof( argv[7] );
-  const double propagationScaling = atof( argv[8] );
+  const double curvatureScaling   = atof( argv[4] );
+  const double propagationScaling = atof( argv[5] );
 
   shapeDetection->SetPropagationScaling(  propagationScaling );
   shapeDetection->SetCurvatureScaling( curvatureScaling ); 
 
-  const unsigned int numberOfIterations = atoi( argv[9] );
+  const unsigned int numberOfIterations = atoi( argv[6] );
 
   std::cout << "Maximum number of iterations = " << numberOfIterations << std::endl;
 
