@@ -178,12 +178,12 @@ int main( int argc, char *argv[] )
   smoothing->SetNumberOfIterations(  5 );
   smoothing->SetConductanceParameter( 9.0 );
 
-  const double sigma = atof( argv[3] );
+  const double sigma = atof( argv[4] );
 
   gradientMagnitude->SetSigma(  sigma  );
 
-  const double alpha =  atof( argv[4] );
-  const double beta  =  atof( argv[5] );
+  const double alpha =  atof( argv[5] );
+  const double beta  =  atof( argv[6] );
 
   std::cout << "alpha = " << alpha << std::endl;
   std::cout << "beta = " << beta << std::endl;
@@ -197,7 +197,7 @@ int main( int argc, char *argv[] )
   internalWriter->Update();
 
   internalWriter->SetInput( sigmoid->GetOutput() );
-  internalWriter->SetFileName( argv[10] );
+  internalWriter->SetFileName( argv[3] );
   internalWriter->Update();
 
 
@@ -206,7 +206,7 @@ int main( int argc, char *argv[] )
   NodeContainer::Pointer seeds = NodeContainer::New();
   
 
-  const double initialDistance = atof( argv[6] );
+  const double initialDistance = atof( argv[7] );
 
 
   InternalImageType::IndexType  seedPosition;
@@ -223,8 +223,8 @@ int main( int argc, char *argv[] )
 
   std::ifstream inputSeedsFile;
 
-  std::cout << "Opening seeds file " << argv[9] << std::endl;
-  inputSeedsFile.open( argv[9] );
+  std::cout << "Opening seeds file " << argv[11] << std::endl;
+  inputSeedsFile.open( argv[11] );
 
   float seedX;
   float seedY;
@@ -280,13 +280,13 @@ int main( int argc, char *argv[] )
   internalWriter->Update();
 
 
-  const double curvatureScaling   = atof( argv[7] );
-  const double propagationScaling = atof( argv[8] );
+  const double curvatureScaling   = atof( argv[8] );
+  const double propagationScaling = atof( argv[9] );
 
   shapeDetection->SetPropagationScaling(  propagationScaling );
   shapeDetection->SetCurvatureScaling( curvatureScaling ); 
 
-  const unsigned int numberOfIterations = atoi( argv[9] );
+  const unsigned int numberOfIterations = atoi( argv[10] );
 
   std::cout << "Maximum number of iterations = " << numberOfIterations << std::endl;
 
