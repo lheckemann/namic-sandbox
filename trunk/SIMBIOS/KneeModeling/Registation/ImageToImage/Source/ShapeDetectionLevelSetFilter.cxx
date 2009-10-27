@@ -286,6 +286,8 @@ int main( int argc, char *argv[] )
 
   fastMarching->SetOutputSize( reader->GetOutput()->GetBufferedRegion().GetSize() );
 
+  fastMarching->SetStoppingValue( 300 ); // related to the size of the object to be segmented.
+
   chronometer.Start("fastMarching");
   fastMarching->Update();
   chronometer.Stop("fastMarching");
