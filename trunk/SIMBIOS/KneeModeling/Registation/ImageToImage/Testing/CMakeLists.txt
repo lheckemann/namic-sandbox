@@ -65,10 +65,26 @@ ADD_TEST(ShapeDetection${DATASETID}
     -1.0 # Alpha
     50.0 # Beta
     10.0 # Initial radius in mm
+     1.0 # curvature weight
+    80.0 # propagation weight
    200.0 # Maximum number of iterations
   ${SEEDS_DATA_DIR}/${DATASETID}_Seeds.txt
   )
  
+ADD_TEST(ShapeDetectionRefinement${DATASETID}
+  ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
+  ${KNEE_DATA_DIR}/3TPDImages/${DATASETID}.mhd
+  ${TEMP}/${DATASETID}_Mask.mhd
+  ${TEMP}/${DATASETID}_Refined_Mask.mhd
+     0.6 # Sigma in mm
+    -1.0 # Alpha
+    50.0 # Beta
+    80.0 # curvature weight
+     1.0 # propagation weight
+   100.0 # Maximum number of iterations
+  )
+ 
+
 ADD_TEST(Masking${DATASETID}
   ${CXX_TEST_PATH}/MaskImageForRegistration
   ${KNEE_DATA_DIR}/3TPDImages/${DATASETID}.mhd
