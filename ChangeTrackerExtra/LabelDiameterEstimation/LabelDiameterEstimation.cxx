@@ -228,8 +228,8 @@ int DoIt( int argc, char * argv[])
     UpdateImageWithDiameter(outputImage, diameterB.second.first, diameterB.second.second);
     UpdateImageWithDiameter(outputImage, diameterC.second.first, diameterC.second.second);
 
-    std::cout << "Estimate tumor volume (ABC/2): " << diameterA.first*diameterB.first*diameterC.first/2. << std::endl;
-    std::cout << "True tumor volume: " << FindLabelVolume(binaryImage, 1) << " mm^3" << std::endl;
+    std::cout << "Estimate label volume (ABC/2): " << diameterA.first*diameterB.first*diameterC.first/2. << std::endl;
+    std::cout << "True label volume: " << FindLabelVolume(binaryImage, 1) << " mm^3" << std::endl;
     }
 
   WriterType::Pointer writer = WriterType::New();
