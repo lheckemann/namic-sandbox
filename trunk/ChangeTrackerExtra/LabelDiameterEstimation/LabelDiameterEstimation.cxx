@@ -123,6 +123,8 @@ ImageType::IndexType FindLargestAreaSliceAlongDirection(ImageType::Pointer, int)
 ImageType2D::PointType SegmentIntersection2D(Point2DPair &p0, Point2DPair &p1);
 double FindLabelVolume(ImageType::Pointer image, int label);
 
+double orthTol = 0.01;
+
 struct DistPtPairSort
 {
   bool operator()(DistPointPair2D p0, DistPointPair2D p1) { 
@@ -160,11 +162,10 @@ int DoIt( int argc, char * argv[])
 {
   PARSE_ARGS;
 
+  orthTol = orthogonalityTolerance;
+
   DistPointPair3D diameterA, diameterB, diameterC;
   
-  // fiducial list will store three pairs of fiducials, each corresponding to
-  // the endpoints of the three diameters ordered by length
-  std::ofstream fiducialsFile(outputFiducialFile.c_str()); 
 
 // Instances
   ReaderType::Pointer reader = ReaderType::New();
@@ -207,15 +208,21 @@ int DoIt( int argc, char * argv[])
     std::cout << "2d diameter estimation: " << std::endl;
     DoItSimple(binaryImage, diameterA, diameterB, diameterC);
 
-    SavePointAsRASPoint(binaryImage, diameterA.second.first, fiducialsFile, std::string("DA-0"));
-    SavePointAsRASPoint(binaryImage, diameterA.second.second, fiducialsFile, std::string("DA-1"));
     std::cout << "Largest diameter (A) length: " << diameterA.first << std::endl;
-    SavePointAsRASPoint(binaryImage, diameterB.second.first, fiducialsFile, std::string("DB-0"));
-    SavePointAsRASPoint(binaryImage, diameterB.second.second, fiducialsFile, std::string("DB-1"));
     std::cout << "Second diameter (B) length: " << diameterB.first << std::endl;
-    SavePointAsRASPoint(binaryImage, diameterC.second.first, fiducialsFile, std::string("DC-0"));
-    SavePointAsRASPoint(binaryImage, diameterC.second.second, fiducialsFile, std::string("DC-1"));
     std::cout << "Third diameter (C) length: " << diameterC.first << std::endl;
+
+    // fiducial list will store three pairs of fiducials, each corresponding to
+    // the endpoints of the three diameters ordered by length
+    if(outputFiducialFile != ""){
+      std::ofstream fiducialsFile(outputFiducialFile.c_str()); 
+      SavePointAsRASPoint(binaryImage, diameterA.second.first, fiducialsFile, std::string("DA-0"));
+      SavePointAsRASPoint(binaryImage, diameterA.second.second, fiducialsFile, std::string("DA-1"));
+      SavePointAsRASPoint(binaryImage, diameterB.second.first, fiducialsFile, std::string("DB-0"));
+      SavePointAsRASPoint(binaryImage, diameterB.second.second, fiducialsFile, std::string("DB-1"));
+      SavePointAsRASPoint(binaryImage, diameterC.second.first, fiducialsFile, std::string("DC-0"));
+      SavePointAsRASPoint(binaryImage, diameterC.second.second, fiducialsFile, std::string("DC-1"));
+    }
 
     UpdateImageWithDiameter(outputImage, diameterA.second.first, diameterA.second.second);
     UpdateImageWithDiameter(outputImage, diameterB.second.first, diameterB.second.second);
@@ -382,7 +389,7 @@ double FindInSliceDiameters(ImageType2D::Pointer slice,
   dv0[0] = maxDiameterTuple.second.first[0]-maxDiameterTuple.second.second[0];
   dv0[1] = maxDiameterTuple.second.first[1]-maxDiameterTuple.second.second[1];
   j = 0;
-  double dot, mindot = 1;
+  double dot;
   for(std::vector<DistPointPair2D>::const_iterator pIt = distPtVector.begin();
       pIt!=distPtVector.end();++pIt,++i)
     {
@@ -391,25 +398,27 @@ double FindInSliceDiameters(ImageType2D::Pointer slice,
 
     // consider only those diameters perpendicular to the first one
     dot = fabs(dv0*dv1/(maxDiameterTuple.first*(*pIt).first));
-    if(dot>mindot)
+    if(fabs(dot)>orthTol)
       continue;
     j++;
     double currentDiameter;
     currentDiameter = (*pIt).first;
     currentDiameter = EstimateDiameterBresenham(slice, 
       (*pIt).second.first, (*pIt).second.second, currentDiameter);
-    if(dot<mindot)
+
+/*    if(dot<mindot) // most perpendicular
       {
       diameterEstimate2nd = currentDiameter;
       maxDiameterTuple2nd = *pIt;
       maxDiameterTuple2nd.first = diameterEstimate2nd;
       mindot = dot;
       }
-    else if(currentDiameter > diameterEstimate2nd)
+*/
+    if(currentDiameter > diameterEstimate2nd) // largest and perpendicular up to the tolerance
       {
-        diameterEstimate2nd = currentDiameter;
-        maxDiameterTuple2nd = *pIt;
-        maxDiameterTuple2nd.first = diameterEstimate2nd;
+      diameterEstimate2nd = currentDiameter;
+      maxDiameterTuple2nd = *pIt;
+      maxDiameterTuple2nd.first = diameterEstimate2nd;
       }
     /*
     // if the current estimate is larger than the distance between the next
@@ -651,7 +660,7 @@ void DoItSimple(ImageType::Pointer binaryImage, DistPointPair3D& diameterA,
   // extract the largest area slice -- maxAreaIdx is non-zero for the
   // collapsing dimension
   ExtractorType::Pointer extractor = ExtractorType::New();
-  int extractionIdxId;
+  int extractionIdxId = -1;
   ImageType::RegionType largestSliceRegion;
   ImageType::SizeType imageSize = binaryImage->GetLargestPossibleRegion().GetSize();
   for(i=0;i<3;i++)
@@ -660,6 +669,11 @@ void DoItSimple(ImageType::Pointer binaryImage, DistPointPair3D& diameterA,
       imageSize[i] = 0;
       extractionIdxId = i;
       }
+  if(extractionIdxId<0){
+    std::cerr << "Error occured while searching for largest area slice" << std::endl;
+    return;
+  }
+
   largestSliceRegion.SetSize(imageSize);
   largestSliceRegion.SetIndex(maxAreaIdx);
   extractor->SetInput(binaryImage);

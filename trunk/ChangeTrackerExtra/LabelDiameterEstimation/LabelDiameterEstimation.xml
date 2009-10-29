@@ -10,7 +10,7 @@
   Estimates the largest diameter of a label, saved as a list of endpoint
   fiducials in a file.
   </description>
-  <version>1.3</version>
+  <version>1.4</version>
   <documentation-url></documentation-url>
   <license></license>
   <contributor>Andriy Fedorov</contributor>
@@ -18,14 +18,28 @@
 This work was supported by funding from Brain Science Foundation.
 </acknowledgements>
 
+  <parameters advanced="true">
+    <label>Advanced Parameters</label>
+    <description>Advanced parameters</description>
+    
+    <double>
+      <name>orthogonalityTolerance</name>
+      <longflag>tolerance</longflag>
+      <description>Allowed deviation of the angle cos() between the first two
+      diameters from 1 (corresponds to orthogonal -- 90 degrees angle).</description>
+      <label>Orthogonality tolerance</label>
+      <default>0.01</default>
+    </double>
+  </parameters>
+
   <parameters>
-    <label> Parameters</label>
-    <description>Parameters for diameter estimation</description>
+    <label> Parameters </label>
+    <description>Diameter estimation parameters</description>
 
     <integer>
       <name>inputLabel</name>
       <longflag>--label</longflag>
-      <description>The value of the label that should be used for diameter estimation. If set to 0, all non-zero values in the input image will be considered as one label.</description>
+      <description>The value of the label that should be used for diameter estimation. If set to 0, all non-zero values in the input image will thresholded between [1,255], and the result will be considered as single label.</description>
       <label>Label value</label>
       <default>0</default>
     </integer>
@@ -58,6 +72,7 @@ This work was supported by funding from Brain Science Foundation.
       <index>2</index>
       <description>File to save the list of fiducials corresponding to the
       identified diameters</description>
+      <default>""</default>
     </file>
 
   </parameters>
