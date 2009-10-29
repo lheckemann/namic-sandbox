@@ -10,12 +10,12 @@
   Estimates the largest diameter of a label, saved as a list of endpoint
   fiducials in a file.
   </description>
-  <version>1.0</version>
+  <version>1.3</version>
   <documentation-url></documentation-url>
   <license></license>
   <contributor>Andriy Fedorov</contributor>
 <acknowledgements>
-This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+This work was supported by funding from Brain Science Foundation.
 </acknowledgements>
 
   <parameters>
@@ -25,9 +25,9 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
     <integer>
       <name>inputLabel</name>
       <longflag>--label</longflag>
-      <description>The value of the label that should be used for diameter estimation.</description>
+      <description>The value of the label that should be used for diameter estimation. If set to 0, all non-zero values in the input image will be considered as one label.</description>
       <label>Label value</label>
-      <default>1</default>
+      <default>0</default>
     </integer>
 
   </parameters>

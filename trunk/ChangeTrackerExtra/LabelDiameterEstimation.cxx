@@ -21,7 +21,7 @@
 #define ITK_LEAN_AND_MEAN
 #endif
 
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkBinaryThresholdImageFilter.h"
@@ -39,6 +39,7 @@
 #include "itkBinaryBallStructuringElement.h"
 #include "itkConnectedThresholdImageFilter.h"
 #include "itkAndImageFilter.h"
+#include "itkOrientImageFilter.h"
 
 #include "itkPluginFilterWatcher.h"
 #include "itkPluginUtilities.h"
@@ -51,7 +52,7 @@
 // Image Types
 typedef  unsigned char  PixelType;
 
-typedef itk::Image< PixelType, 3 > ImageType;
+typedef itk::OrientedImage< PixelType, 3 > ImageType;
 typedef itk::Image< PixelType, 2 > ImageType2D;
 typedef itk::ImageRegionConstIteratorWithIndex<ImageType> ConstIterWithIndex;
 typedef itk::ImageRegionConstIterator<ImageType> ConstIter;
@@ -77,6 +78,7 @@ typedef itk::NearestNeighborInterpolateImageFunction<ImageType> InterpolatorType
 typedef itk::SimpleContourExtractorImageFilter<ImageType,ImageType> ContourExtractorType;
 typedef itk::SimpleContourExtractorImageFilter<ImageType2D,ImageType2D> ContourExtractorType2D;
 typedef itk::ConnectedThresholdImageFilter<ImageType,ImageType> ConnectedThresholdType;
+typedef itk::OrientImageFilter<ImageType,ImageType> OrientFilterType;
 
 typedef itk::BinaryBallStructuringElement<PixelType, 3> KernelType;
 typedef itk::BinaryErodeImageFilter<ImageType,ImageType,KernelType> EroderType;
@@ -169,17 +171,31 @@ int DoIt( int argc, char * argv[])
   reader->SetFileName (inputVolume.c_str());
   reader->Update();
 
+  ImageType::Pointer inputImage;
+  OrientFilterType::Pointer orient = OrientFilterType::New();
+  orient->SetInput(reader->GetOutput());
+  orient->SetDesiredCoordinateOrientationToAxial();
+  orient->UseImageDirectionOn();
+  orient->Update();
+
+  inputImage = orient->GetOutput();
+
   itk::ImageDuplicator<ImageType>::Pointer duplicator = 
     itk::ImageDuplicator<ImageType>::New();
-  duplicator->SetInputImage(reader->GetOutput());
+  duplicator->SetInputImage(inputImage);
   duplicator->Update();
   ImageType::Pointer outputImage = duplicator->GetOutput();
   outputImage->FillBuffer(0);
 
   ThresholdType::Pointer threshold = ThresholdType::New();
-  threshold->SetInput(reader->GetOutput());
-  threshold->SetUpperThreshold(inputLabel);
-  threshold->SetLowerThreshold(inputLabel);
+  threshold->SetInput(inputImage);
+  if(inputLabel != 0){
+    threshold->SetUpperThreshold(inputLabel);
+    threshold->SetLowerThreshold(inputLabel);
+  } else {
+    threshold->SetUpperThreshold(255);
+    threshold->SetLowerThreshold(1);
+  }
   threshold->SetInsideValue(1);
   threshold->SetOutsideValue(0);
   threshold->Update();
