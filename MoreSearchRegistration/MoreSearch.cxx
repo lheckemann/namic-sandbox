@@ -34,10 +34,12 @@
 #include "itkSimilarity3DTransform.h"
 #include "RegistrationMonitor.h"
 #include "ImageWriters.h"
+#include "itkDecomposedAffine3DTransform.h"
 
 #include <queue>
 #include <iostream>
 #include <iomanip>
+#include <limits>
 
 using namespace itk;
 
@@ -110,7 +112,7 @@ Versor<double> createRotationFromEulerAngles(double x, double y, double z)
 int main( int argc, char * argv[] )
 {
   // Read in image
-  if(argc != 3)
+  if(argc != 4)
     {
     std::cerr << "Usage: " << argv[0] << " <fixed image> <moving image>" << std::endl;
     return EXIT_FAILURE;
@@ -461,8 +463,6 @@ int main( int argc, char * argv[] )
     cit.Set(m);
     }
 
-  writeimage(costgrid, "costs.mha");
-
   typedef itk::Image<unsigned char, 3> BooleanImage;
 
   typedef itk::RegionalMinimaImageFilter<CostGrid, BooleanImage> RegionalMinimaFilterType;
@@ -472,8 +472,7 @@ int main( int argc, char * argv[] )
   minima->SetFullyConnected(false);
   minima->SetForegroundValue(1);
   minima->SetBackgroundValue(0);
-
-  writeimage(minima->GetOutput(), "minima.mha");
+  minima->Update();
 
   // Build a priority queue of best N minima to use
   typedef RotationGrid::IndexType RIndexType;
@@ -546,6 +545,9 @@ int main( int argc, char * argv[] )
     initialSimilarity.push_back(params);
     }
 
+  float bestValue = std::numeric_limits<float>::max();
+  SimilarityParameters bestParams;
+
   // Use level 0 then level 1 for each of the candidate transforms using
   // a similarity transform
   typedef std::vector<SimilarityParameters>::const_iterator SimilarityParametersIterator;
@@ -612,7 +614,7 @@ int main( int argc, char * argv[] )
     opt->SetMaximize(false);
     opt->SetCatchGetValueException( true );
     opt->SetMetricWorstPossibleValue(0.0);
-    // opt->AddObserver( IterationEvent(), command);
+    opt->AddObserver( IterationEvent(), command);
 
     opt->SetStepLength(10.0);
     opt->SetStepTolerance(.001);
@@ -633,27 +635,152 @@ int main( int argc, char * argv[] )
 
     reg->SetTransform(ot);
     reg->SetInitialTransformParameters(*pit);
-    std::cout << "Initial transform params" << std::endl
+
+    std::cout << "======= Candidate ======" << std::endl;
+
+    std::cout << "Initial optimized transform params" << std::endl
               << *pit << std::endl;
 
     reg->StartRegistration();
 
-    SimilarityParameters pm = ot->GetParameters();
+    SimilarityParameters pm = reg->GetLastTransformParameters();
 
-    std::cout << opt->GetValue() << "," <<
-      counter << "," <<
-      opt->GetCurrentIteration() << ",";
+    std::cout << "8mm optimized transform params" << std::endl
+              << pm << std::endl;
+    std::cout << "Metric: " << opt->GetValue() << std::endl;
 
-    for(unsigned int i = 0; i < 7; ++i)
+    // BUmp up a resolution level
+    reg->SetFixedImage(fpyramid->GetOutput(1));
+    reg->SetFixedImageRegion(fpyramid->GetOutput(1)->GetLargestPossibleRegion());
+    reg->SetMovingImage(mpyramid->GetOutput(1));
+    metric->SetNumberOfHistogramBins(256/4);
+    metric->SetNumberOfSpatialSamples(60000);
+
+    reg->SetInitialTransformParameters(pm);
+    reg->StartRegistration();
+
+    pm = reg->GetLastTransformParameters();
+
+    std::cout << "4mm optimized transform params" << std::endl
+              << pm << std::endl;
+    std::cout << "Metric: " << opt->GetValue() << std::endl;
+
+    if(opt->GetValue() < bestValue)
       {
-      std::cout << pm[i] << ",";
+      bestValue = opt->GetValue();
+      bestParams = pm;
       }
-    std::cout << std::endl;
+
     }
 
-  // Store the metric 
-
   // Get the best metric of the level 1 registrations
+  std::cout << "Best metric: " << bestValue << std::endl;
+  std::cout << "Params: " << bestParams <<std::endl;
+
+  typedef DecomposedAffine3DTransform<double>             AffineTransform;
+  
+  AffineTransform::Pointer affinet = AffineTransform::New();
+  affinet->SetIdentity();
+  affinet->SetCenter(initt->GetCenter());
+
+  AffineTransform::ParametersType affineparams =
+    affinet->GetParameters();
+  
+  for(int i = 0; i < 6; ++i)
+    affineparams[i] = bestParams[i];
+  
+  affineparams[6] = bestParams[6];
+  affineparams[7] = bestParams[6];
+  affineparams[8] = bestParams[6];
+  affineparams[9] = 0.0;
+  affineparams[10] = 0.0;
+  affineparams[11] = 0.0;
+
+  typedef ImageRegistrationMethod<ProcessingImage, ProcessingImage> ImageRegistration;
+  ImageRegistration::Pointer reg = ImageRegistration::New();
+  reg->SetFixedImage(fpyramid->GetOutput(2));
+  reg->SetFixedImageRegion(fpyramid->GetOutput(2)->GetLargestPossibleRegion());
+  reg->SetMovingImage(mpyramid->GetOutput(2));
+
+  typedef ImageRegistrationViewer ViewerCommandType;
+  ViewerCommandType::Pointer command = ViewerCommandType::New();
+
+  typedef LinearInterpolateImageFunction<ProcessingImage, double> Interpolator;
+  Interpolator::Pointer reginterpf = Interpolator::New();
+
+  reg->SetInterpolator(reginterpf);
+
+  typedef MattesMutualInformationImageToImageMetric<ProcessingImage, ProcessingImage> Metric;
+//   typedef NormalizedMutualInformationHistogramImageToImageMetric<ProcessingImage, ProcessingImage> Metric;
+//    typedef NormalizedCorrelationImageToImageMetric<ProcessingImage, ProcessingImage> Metric;
+  Metric::Pointer metricf = Metric::New();
+  metricf->SetNumberOfHistogramBins(256/2);
+  //    Metric::HistogramSizeType hsize;
+  //    hsize[0] = 256/8;
+  //    hsize[1] = 256/8;
+  //    metric->SetHistogramSize(hsize);
+  //Contains only 16384 pixels total   
+  //metric->SetUseAllPixels(true);
+  // metric->SetFixedImageMask(maskreader->GetOutput());
+  metricf->SetNumberOfSpatialSamples(240000);
+  metricf->SetFixedImageSamplesIntensityThreshold(50);
+  metricf->SetUseExplicitPDFDerivatives(true);
+//    metricf->Initialize();
+
+  reg->SetMetric(metricf);
+
+  //typedef OnePlusOneEvolutionaryOptimizer OptimizerType;
+  //typedef PowellOptimizer OptimizerType;
+  typedef FRPROptimizer OptimizerType;
+  //typedef GradientDescentOptimizer OptimizerType;
+  OptimizerType::Pointer opt = OptimizerType::New(); 
+  typedef Optimizer::ScalesType       OptimizerScalesType;
+  OptimizerScalesType optimizerScales( 12 );
+  // should set this scale based on size of the image
+  // optimizerScales[0] = 1.0/ 2500.0;
+  // optimizerScales[1] = 1.0/ 2500.0;
+  // optimizerScales[2] = 1.0/ 2500.0;
+  // optimizerScales[3] = 1.0/ 1.0;
+  optimizerScales[0] = 1.0/ 1.0;
+  optimizerScales[1] = 1.0/ 1.0;
+  optimizerScales[2] = 1.0/ 1.0;
+  optimizerScales[3] = 1.0/ 50.0;
+  optimizerScales[4] = 1.0/ 50.0;
+  optimizerScales[5] = 1.0/ 50.0;
+  optimizerScales[6] = 1.0/ 1.0;
+  optimizerScales[7] = 1.0/ 1.0;
+  optimizerScales[8] = 1.0/ 1.0;
+  optimizerScales[9] = 1.0/ 1.0;
+  optimizerScales[10] = 1.0/ 1.0;
+  optimizerScales[11] = 1.0/ 1.0;
+
+  opt->SetScales( optimizerScales );
+  opt->SetMaximize(false);
+  opt->SetCatchGetValueException( true );
+  opt->SetMetricWorstPossibleValue(0.0);
+  opt->AddObserver( IterationEvent(), command);
+
+  opt->SetStepLength(10.0);
+  opt->SetStepTolerance(.001);
+  opt->SetValueTolerance(.0001);
+  opt->SetMaximumIteration(100);
+  opt->SetMaximumLineIteration(30);
+  opt->SetUseUnitLengthGradient( true );
+  opt->SetToPolakRibiere();
+
+  reg->SetOptimizer(opt);
+  
+  reg->SetTransform(affinet);
+  reg->SetInitialTransformParameters(affineparams);
+
+  reg->StartRegistration();
+  
+  AffineTransform::ParametersType finalp = reg->GetLastTransformParameters();
+
+  std::cout << " 2mm optimized params " << std::endl
+            << finalp << std::endl;
+
+  writeimage(mpyramid->GetOutput(3), affinet, argv[3]);
 
   return EXIT_SUCCESS;
 }
