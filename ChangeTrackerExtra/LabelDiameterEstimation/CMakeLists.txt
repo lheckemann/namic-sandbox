@@ -35,5 +35,5 @@ slicer3_set_plugins_output_path(LabelDiameterEstimation)
 TARGET_LINK_LIBRARIES(LabelDiameterEstimation ITKIO ITKStatistics)
 
 IF(BUILD_AGAINST_SLICER3)
-  slicer3_install_plugins(N3MRILightCLI)
+  slicer3_install_plugins(LabelDiameterEstimation)
 ENDIF(BUILD_AGAINST_SLICER3)
