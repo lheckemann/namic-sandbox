@@ -81,13 +81,17 @@ diff(a.p, sk2, 1);
 diff(a.p, sk3, 1);
 /* [wxMaxima: input   end   ] */
 
-/* [wxMaxima: input   start ] */
-/* TESTING */;
-/* [wxMaxima: input   end   ] */
+/* [wxMaxima: comment start ]
+Code for generating values for CTest
+   [wxMaxima: comment end   ] */
 
 /* [wxMaxima: input   start ] */
 float(at(a, [x=%pi/8, y=%pi/10, z=-%pi/6, scx=.8, scy=.9, scz=1.1, sk1=.05, sk2=-.1, sk3=.075]));
 /* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Jacobian matrix for rotation parameters
+   [wxMaxima: comment end   ] */
 
 /* [wxMaxima: input   start ] */
 Jr : addcol(matrix(),diff(a.p, x,1), diff(a.p, y, 1), diff(a.p, z, 1));
@@ -97,6 +101,10 @@ Jr : addcol(matrix(),diff(a.p, x,1), diff(a.p, y, 1), diff(a.p, z, 1));
 float(at(Jr, [x=%pi/8, y=%pi/10, z=-%pi/6, scx=.8, scy=.9, scz=1.1, sk1=.05, sk2=-.1, sk3=.075, px=6, py=-3, pz=20]));
 /* [wxMaxima: input   end   ] */
 
+/* [wxMaxima: comment start ]
+Jacobian matrix for axis scaling parameters (Translation not included because its usually just the identity)
+   [wxMaxima: comment end   ] */
+
 /* [wxMaxima: input   start ] */
 Jsc : addcol(matrix(),diff(a.p, scx,1), diff(a.p, scy, 1), diff(a.p, scz, 1));
 /* [wxMaxima: input   end   ] */
@@ -104,6 +112,10 @@ Jsc : addcol(matrix(),diff(a.p, scx,1), diff(a.p, scy, 1), diff(a.p, scz, 1));
 /* [wxMaxima: input   start ] */
 float(at(Jsc, [x=%pi/8, y=%pi/10, z=-%pi/6, scx=.8, scy=.9, scz=1.1, sk1=.05, sk2=-.1, sk3=.075, px=6, py=-3, pz=20]));
 /* [wxMaxima: input   end   ] */
+
+/* [wxMaxima: comment start ]
+Jacobian matrix for skew parameters
+   [wxMaxima: comment end   ] */
 
 /* [wxMaxima: input   start ] */
 Jsk : addcol(matrix(),diff(a.p, sk1,1), diff(a.p, sk2, 1), diff(a.p, sk3, 1));
