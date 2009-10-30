@@ -29,6 +29,12 @@ public :
 
   void Execute( const itk::Object * object, const itk::EventObject & event )
   {
+    if( typeid( event ) == typeid( itk::StartEvent ) )
+      {
+      this->Reset();
+      return;
+      }
+
     if( typeid( event ) != typeid( itk::IterationEvent ) || object == NULL)
       {
       return;
@@ -61,6 +67,15 @@ public :
   void Update()
   {
     this->Execute ( (const Object *)NULL, itk::IterationEvent() );
+  }
+
+  void Reset()
+  {
+    this->m_LastTime = m_Clock->GetTimeStamp();
+    this->m_Iteration = 0;
+    this->m_UpdateInterval = 1;
+    this->m_DontShowParameters = false;
+
   }
 
 protected:

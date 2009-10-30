@@ -114,11 +114,11 @@ int main( int argc, char * argv[] )
   // Read in image
   if(argc != 4)
     {
-    std::cerr << "Usage: " << argv[0] << " <fixed image> <moving image>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <fixed image> <moving image> <resampled output>" << std::endl;
     return EXIT_FAILURE;
     }
   
-  const double maxa = M_PI/16;
+  const double maxa = M_PI/8;
 //  const double maxa = 0;
   const double res1 = M_PI/16;
   const double res2 = res1/2;
@@ -759,11 +759,12 @@ int main( int argc, char * argv[] )
   opt->SetCatchGetValueException( true );
   opt->SetMetricWorstPossibleValue(0.0);
   opt->AddObserver( IterationEvent(), command);
+  opt->AddObserver( StartEvent(), command);
 
   opt->SetStepLength(10.0);
   opt->SetStepTolerance(.001);
   opt->SetValueTolerance(.0001);
-  opt->SetMaximumIteration(100);
+  opt->SetMaximumIteration(50);
   opt->SetMaximumLineIteration(30);
   opt->SetUseUnitLengthGradient( true );
   opt->SetToPolakRibiere();
@@ -774,10 +775,28 @@ int main( int argc, char * argv[] )
   reg->SetInitialTransformParameters(affineparams);
 
   reg->StartRegistration();
-  
-  AffineTransform::ParametersType finalp = reg->GetLastTransformParameters();
+
+  AffineTransform::ParametersType mm2p = reg->GetLastTransformParameters();
 
   std::cout << " 2mm optimized params " << std::endl
+            << mm2p << std::endl;
+
+  // Rerun with new params
+
+  opt->SetMaximumIteration(30);
+  
+  metricf->SetNumberOfHistogramBins(256);
+  metricf->SetNumberOfSpatialSamples(480000);
+  reg->SetFixedImage(fpyramid->GetOutput(3));
+  reg->SetFixedImageRegion(fpyramid->GetOutput(3)->GetLargestPossibleRegion());
+  reg->SetMovingImage(mpyramid->GetOutput(3)); 
+  reg->SetInitialTransformParameters(reg->GetLastTransformParameters());
+
+  reg->StartRegistration();
+    
+  AffineTransform::ParametersType finalp = reg->GetLastTransformParameters();
+
+  std::cout << " 1mm optimized params " << std::endl
             << finalp << std::endl;
 
   writeimage(mpyramid->GetOutput(3), affinet, argv[3]);
