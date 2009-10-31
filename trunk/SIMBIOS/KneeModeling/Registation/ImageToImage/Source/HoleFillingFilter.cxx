@@ -88,5 +88,8 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
+  std::cout << "Iteration used = " << holeFiller->GetCurrentIterationNumber()     << std::endl;
+  std::cout << "Pixels changes = " << holeFiller->GetTotalNumberOfPixelsChanged() << std::endl;
+
   return EXIT_SUCCESS;
 }
