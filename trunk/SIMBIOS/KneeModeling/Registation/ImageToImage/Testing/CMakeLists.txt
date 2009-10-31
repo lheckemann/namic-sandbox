@@ -96,9 +96,9 @@ ADD_TEST(ThresholdRefinement${DATASETID}
   ${KNEE_DATA_DIR}/3TPDImages/${DATASETID}.mhd
   ${TEMP}/${DATASETID}_Refined_Mask.mhd
   ${TEMP}/${DATASETID}_Refined_UnLeaked_Mask.mhd
-    10.0 # lower threshold
-    10.0 # upper threshold
-    10.0 # curvature weight
+     100.0 # lower threshold
+    3000.0 # upper threshold
+     10.0 # curvature weight
   )
  
 ADD_TEST(Masking${DATASETID}
