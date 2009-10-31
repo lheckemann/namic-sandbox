@@ -78,7 +78,7 @@ ADD_TEST(ShapeDetectionHoleFilling${DATASETID}
   ${TEMP}/${DATASETID}_Filled_Mask.mhd
      2 # Manhattan Radius
      2 # Majority
-   200 # Maximum number of iterations
+   400 # Maximum number of iterations
   )
 
 ADD_TEST(ShapeDetectionRefinement${DATASETID}
