@@ -32,7 +32,7 @@ int main( int argc, char *argv[] )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputImage  outputImage";
+    std::cerr << " inputImage inputSegmentation outputSegmentation";
     std::cerr << " LowerThreshold";
     std::cerr << " UpperThreshold";
     std::cerr << " [CurvatureScaling == 1.0]";
@@ -63,11 +63,13 @@ int main( int argc, char *argv[] )
   typedef  itk::ImageFileReader< InternalImageType > ReaderType;
   typedef  itk::ImageFileWriter<  OutputImageType  > WriterType;
 
-  ReaderType::Pointer reader = ReaderType::New();
+  ReaderType::Pointer imageReader = ReaderType::New();
+  ReaderType::Pointer maskReader  = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
 
-  reader->SetFileName( argv[1] );
-  writer->SetFileName( argv[2] );
+  imageReader->SetFileName( argv[1] );
+  maskReader->SetFileName( argv[2] );
+  writer->SetFileName( argv[3] );
 
 
   typedef  itk::ThresholdSegmentationLevelSetImageFilter< InternalImageType, 
@@ -77,7 +79,7 @@ int main( int argc, char *argv[] )
     ThresholdSegmentationLevelSetImageFilterType::New();
 
 
-  const double curvatureScaling = atof( argv[5] );
+  const double curvatureScaling = atof( argv[6] );
 
   thresholdSegmentation->SetPropagationScaling( 1.0 );
   thresholdSegmentation->SetCurvatureScaling( curvatureScaling );
@@ -85,12 +87,12 @@ int main( int argc, char *argv[] )
   thresholdSegmentation->SetMaximumRMSError( 1e-4 );
   thresholdSegmentation->SetNumberOfIterations( 1200 );
 
-  thresholdSegmentation->SetUpperThreshold( atof( argv[3] ) );
-  thresholdSegmentation->SetLowerThreshold( atof( argv[4] ) );
+  thresholdSegmentation->SetUpperThreshold( atof( argv[4] ) );
+  thresholdSegmentation->SetLowerThreshold( atof( argv[5] ) );
   thresholdSegmentation->SetIsoSurfaceValue( 127.5 );
   
   thresholdSegmentation->SetInput( maskReader->GetOutput() );
-  thresholdSegmentation->SetFeatureImage( reader->GetOutput() );
+  thresholdSegmentation->SetFeatureImage( imageReader->GetOutput() );
 
   thresholder->SetInput( thresholdSegmentation->GetOutput() );
   writer->SetInput( thresholder->GetOutput() );
