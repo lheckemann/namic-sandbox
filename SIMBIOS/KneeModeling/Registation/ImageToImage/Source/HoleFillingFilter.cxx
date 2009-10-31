@@ -46,7 +46,6 @@ int main( int argc, char * argv[] )
 
   FilterType::Pointer holeFiller = FilterType::New();
 
-  holeFiller->SetInput( reader->GetOutput() );
            
   ImageType::SizeType indexRadius;
   
@@ -73,6 +72,7 @@ int main( int argc, char * argv[] )
 
   WriterType::Pointer writer = WriterType::New();
 
+  holeFiller->SetInput( reader->GetOutput() );
   writer->SetInput( holeFiller->GetOutput() );
 
   writer->SetFileName( argv[2] );
