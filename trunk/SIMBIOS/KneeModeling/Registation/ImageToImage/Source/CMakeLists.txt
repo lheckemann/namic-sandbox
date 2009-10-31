@@ -1,4 +1,8 @@
 
+SET(HOLE_FILLING_PROJECT_DIR ${PROJECT_SOURCE_DIR}/../../../../VotingHoleFillFloodingImageFilter)
+
+INCLUDE_DIRECTORIES( ${HOLE_FILLING_PROJECT_DIR}/Source )
+
 ADD_EXECUTABLE(ShapeDetectionLevelSetFilter ShapeDetectionLevelSetFilter.cxx)
 TARGET_LINK_LIBRARIES(ShapeDetectionLevelSetFilter ITKBasicFilters ITKIO)
 
@@ -10,6 +14,9 @@ TARGET_LINK_LIBRARIES(DicomSeriesReadImageWrite ITKBasicFilters ITKIO)
 
 ADD_EXECUTABLE(MaskImageForRegistration MaskImageForRegistration.cxx)
 TARGET_LINK_LIBRARIES(MaskImageForRegistration ITKBasicFilters ITKIO)
+
+ADD_EXECUTABLE(HoleFillingFilter HoleFillingFilter.cxx)
+TARGET_LINK_LIBRARIES(HoleFillingFilter ITKBasicFilters ITKIO)
 
 ADD_EXECUTABLE(ImageRegistrationRigid ImageRegistrationRigid.cxx vtkKWImage.cxx vtkRegistrationMonitor.cxx)
 TARGET_LINK_LIBRARIES(ImageRegistrationRigid
