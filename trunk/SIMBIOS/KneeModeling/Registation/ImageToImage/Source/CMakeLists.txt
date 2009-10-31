@@ -18,6 +18,9 @@ TARGET_LINK_LIBRARIES(MaskImageForRegistration ITKBasicFilters ITKIO)
 ADD_EXECUTABLE(HoleFillingFilter HoleFillingFilter.cxx)
 TARGET_LINK_LIBRARIES(HoleFillingFilter ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(ThresholdSegmentationLevelSetImageFilter ThresholdSegmentationLevelSetImageFilter.cxx)
+TARGET_LINK_LIBRARIES(ThresholdSegmentationLevelSetImageFilter ITKBasicFilters ITKIO)
+
 ADD_EXECUTABLE(ImageRegistrationRigid ImageRegistrationRigid.cxx vtkKWImage.cxx vtkRegistrationMonitor.cxx)
 TARGET_LINK_LIBRARIES(ImageRegistrationRigid
   ITKStatistics ITKBasicFilters ITKNumerics ITKIO ITKCommon
