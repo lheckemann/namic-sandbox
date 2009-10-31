@@ -71,14 +71,23 @@ ADD_TEST(ShapeDetection${DATASETID}
    200.0 # Maximum number of iterations
   ${SEEDS_DATA_DIR}/${DATASETID}_Seeds.txt
   )
- 
+  
+ADD_TEST(ShapeDetectionHoleFilling${DATASETID}
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  ${TEMP}/${DATASETID}_Mask.mhd
+  ${TEMP}/${DATASETID}_Filled_Mask.mhd
+     2 # Manhattan Radius
+     2 # Majority
+   200 # Maximum number of iterations
+  )
+
 ADD_TEST(ShapeDetectionRefinement${DATASETID}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
   ${TEMP}/${DATASETID}_Sigmoid.mhd
-  ${TEMP}/${DATASETID}_Mask.mhd
+  ${TEMP}/${DATASETID}_Filled_Mask.mhd
   ${TEMP}/${DATASETID}_Refined_Mask.mhd
-    80.0 # curvature weight
-     1.0 # propagation weight
+    10.0 # curvature weight
+    10.0 # propagation weight
    100.0 # Maximum number of iterations
   )
  
