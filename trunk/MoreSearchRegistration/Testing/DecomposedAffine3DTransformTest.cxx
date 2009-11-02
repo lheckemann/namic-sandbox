@@ -238,7 +238,7 @@ int DecomposedAffine3DTransformTest(int argc, char* argv[])
     center[2] = 70;
     transform->SetCenter(center);
 
-    TransformType::ParametersType p(12);
+    TransformType::ParametersType p(TransformType::ParametersDimension);
     p.Fill(0.0);
     p[0] = M_PI/8;
     p[1] = M_PI/10;
@@ -265,7 +265,7 @@ int DecomposedAffine3DTransformTest(int argc, char* argv[])
 
     TransformType::ParametersType p2 = transform->GetParameters();
     std::cout << "Checking get parameters same as set parameters" << std::endl;
-    for(unsigned int i = 0; i < 7; ++i)
+    for(unsigned int i = 0; i < TransformType::ParametersDimension; ++i)
       {
       if(!almost(p[i],p2[i], 1.0e-10))
         {
