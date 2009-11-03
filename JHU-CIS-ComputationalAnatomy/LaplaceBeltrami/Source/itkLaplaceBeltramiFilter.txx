@@ -106,13 +106,13 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
   typedef typename TInputMesh::PointsContainer  InputPointsContainer;
   typedef typename TOutputMesh::PointsContainer OutputPointsContainer;
 
-  typedef typename TInputMesh::PointsContainerPointer
-    InputPointsContainerPointer;
+  typedef typename TInputMesh::PointsContainerConstPointer
+    InputPointsContainerConstPointer;
   typedef typename TOutputMesh::PointsContainerPointer
     OutputPointsContainerPointer;
 
-  InputMeshPointer    inputMesh      =  this->GetInput();
-  OutputMeshPointer   outputMesh     =  this->GetOutput();
+  InputMeshConstPointer  inputMesh      =  this->GetInput();
+  OutputMeshPointer      outputMesh     =  this->GetOutput();
 
   unsigned int dim = 3;
   unsigned int sides = 3;
@@ -129,7 +129,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
 
   outputMesh->SetBufferedRegion( outputMesh->GetRequestedRegion() );
 
-  InputPointsContainerPointer  inPoints  = inputMesh->GetPoints();
+  InputPointsContainerConstPointer  inPoints  = inputMesh->GetPoints();
   OutputPointsContainerPointer outPoints = outputMesh->GetPoints();
 
   const unsigned int numberOfPoints = inputMesh->GetNumberOfPoints();

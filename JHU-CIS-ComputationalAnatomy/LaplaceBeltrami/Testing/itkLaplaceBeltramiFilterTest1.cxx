@@ -18,6 +18,8 @@
 #pragma warning ( disable : 4786 )
 #endif
 
+#include "itkQuadEdgeMesh.h"
+#include "itkQuadEdgeMeshVTKPolyDataReader.h"
 #include "itkLaplaceBeltramiFilter.h"
 
 int main( int argc, char *argv[] )
@@ -34,6 +36,22 @@ int main( int argc, char *argv[] )
   const unsigned int Dimension = 3;
 
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MeshType;
+
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< MeshType >   ReaderType;
+
+  typedef itk::LaplaceBeltramiFilter< MeshType, MeshType >   FilterType;
+
+  ReaderType::Pointer reader = ReaderType::New();
+
+  reader->SetFileName( argv[1] );
+
+  reader->Update();
+
+
+  FilterType::Pointer filter = FilterType::New();
+
+  filter->SetInput( reader->GetOutput() );
+
 
   return EXIT_SUCCESS;
 }

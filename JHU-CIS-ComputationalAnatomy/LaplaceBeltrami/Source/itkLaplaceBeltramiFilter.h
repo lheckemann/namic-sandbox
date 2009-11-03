@@ -17,7 +17,6 @@
 #ifndef __itkLaplaceBeltramiFilter_h
 #define __itkLaplaceBeltramiFilter_h
 
-#include "itkMesh.h"
 #include "itkMeshToMeshFilter.h"
 
 // vnl headers
@@ -54,10 +53,10 @@ public:
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
-  typedef typename InputMeshType::Pointer      InputMeshPointer;
-  typedef typename OutputMeshType::Pointer     OutputMeshPointer;
-  typedef typename InputMeshType::PointType    InputPointType;
-  typedef typename OutputMeshType::PointType   OutputPointType;
+  typedef typename InputMeshType::ConstPointer    InputMeshConstPointer;
+  typedef typename OutputMeshType::Pointer        OutputMeshPointer;
+  typedef typename InputMeshType::PointType       InputPointType;
+  typedef typename OutputMeshType::PointType      OutputPointType;
 
   /** Type for representing coordinates. */
   //typedef typename TInputMesh::CoordRepType          CoordRepType;
