@@ -1,6 +1,6 @@
 
 scm       svn
-svnpath http://svn.na-mic.org/NAMICSandBox/trunk/ChangeTrackerExtra/LabelDiameterEstimation
+svnpath http://svn.na-mic.org/NAMICSandBox/trunk/VervetAtlas/Tools/DiscardDirectionCosines
 name     DiscardDirectionCosines
 cmakeproject DiscardDirectionCosines
 svnusername slicerbot
