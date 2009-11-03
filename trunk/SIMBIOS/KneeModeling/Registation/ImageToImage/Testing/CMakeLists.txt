@@ -81,12 +81,6 @@ ADD_TEST(ShapeDetectionHoleFilling${DATASETID}
    400 # Maximum number of iterations
   )
 
-ADD_TEST(InvertIntensity${DATASETID}
-  ${CXX_TEST_PATH}/InvertIntensityImageFilter
-  ${TEMP}/${DATASETID}_Filled_Mask.mhd
-  ${TEMP}/${DATASETID}_Filled_Inverted_Mask.mhd
-  )
-
 ADD_TEST(ShapeDetectionRefinement${DATASETID}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
   ${TEMP}/${DATASETID}_Sigmoid.mhd
@@ -97,6 +91,12 @@ ADD_TEST(ShapeDetectionRefinement${DATASETID}
    100.0 # Maximum number of iterations
   )
  
+ADD_TEST(InvertIntensity${DATASETID}
+  ${CXX_TEST_PATH}/InvertIntensityImageFilter
+  ${TEMP}/${DATASETID}_Refined_Mask.mhd
+  ${TEMP}/${DATASETID}_Refined_Inverted_Mask.mhd
+  )
+
 ADD_TEST(ThresholdRefinement${DATASETID}
   ${CXX_TEST_PATH}/ThresholdSegmentationLevelSetImageFilter
   ${KNEE_DATA_DIR}/3TPDImages/${DATASETID}.mhd
