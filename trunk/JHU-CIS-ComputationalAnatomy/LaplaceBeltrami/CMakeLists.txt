@@ -19,6 +19,7 @@ INCLUDE(CTest)
 
 INCLUDE_DIRECTORIES(
   ${PROJECT_SOURCE_DIR}/Source
+  ${PROJECT_SOURCE_DIR}/../../QuadEdgeMeshFieldSmoothingFilters/Source
   )
 
 # Disable MSVC 8 warnings
