@@ -200,6 +200,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
       const unsigned long *tp;
       tp = cellPtr->GetPointIds();
 
+/*
       InputPointType v0,v1,v2;
       inputMesh->GetPoint((int)(tp[ix[0]]), &v0);
       inputMesh->GetPoint((int)(tp[ix[1]]), &v1);
@@ -219,8 +220,30 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
       double c0 = e0.sum();
       double c1 = e1.sum();
       double c2 = e2.sum();
+*/
 
-      double faceArea = faceAreas(faceIx);
+      // Beginning of replacement for code commented out above...  Check with Michael...
+      typedef typename InputPointType::VectorType   InputVectorType;
+
+      InputPointType p0;
+      InputPointType p1;
+      InputPointType p2;
+
+      inputMesh->GetPoint((int)(tp[ix[0]]), &p0);
+      inputMesh->GetPoint((int)(tp[ix[1]]), &p1);
+      inputMesh->GetPoint((int)(tp[ix[2]]), &p2);
+
+      const InputVectorType e0 = p2 - p1;
+      const InputVectorType e1 = p0 - p2;
+      const InputVectorType e2 = p1 - p0;
+
+      const double c0 = e0.GetSquaredNorm();
+      const double c1 = e1.GetSquaredNorm();
+      const double c2 = e2.GetSquaredNorm();
+
+      // End of replacement for code commented out above...  Check with Michael...
+
+      const double faceArea = faceAreas(faceIx);
 
       m_LBOperator(tp[ix[0]], tp[ix[1]]) -= c1 / faceArea;
       m_LBOperator(tp[ix[0]], tp[ix[2]]) -= c2 / faceArea;
