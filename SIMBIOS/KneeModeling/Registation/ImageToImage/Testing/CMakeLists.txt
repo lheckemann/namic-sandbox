@@ -81,6 +81,12 @@ ADD_TEST(ShapeDetectionHoleFilling${DATASETID}
    400 # Maximum number of iterations
   )
 
+ADD_TEST(InvertIntensity${DATASETID}
+  ${CXX_TEST_PATH}/InvertIntensityImageFilter
+  ${TEMP}/${DATASETID}_Filled_Mask.mhd
+  ${TEMP}/${DATASETID}_Filled_Inverted_Mask.mhd
+  )
+
 ADD_TEST(ShapeDetectionRefinement${DATASETID}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
   ${TEMP}/${DATASETID}_Sigmoid.mhd
