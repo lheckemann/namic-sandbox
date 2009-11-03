@@ -236,7 +236,9 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
       }
     }
 
+  //
   // saves area as a sparse diagonal matrix
+  //
   m_VertexAreas.set_size(vertexCount, vertexCount);
   for (unsigned int k = 0; k < vertexCount; k++)
     {
@@ -290,10 +292,11 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
 
       double evFactorSum = 0.0;
       for (unsigned int eigIx = 0; eigIx < eigenvector.size(); eigIx++)
-      {
+        {
         eigenvector(eigIx) = eigenvector(eigIx) / sqrt(m_VertexAreas(eigIx, eigIx));
         evFactorSum += eigenvector(eigIx) * eigenvector(eigIx) * m_VertexAreas(eigIx, eigIx);
-      }
+        }
+
       eigenvector /= sqrt(evFactorSum);
       m_Harmonics.set_row(k, eigenvector);
       }
