@@ -24,7 +24,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkResampleImageFilter.h"
-#include "itkIdentiyTransform.h"
+#include "itkIdentityTransform.h"
 
 int main( int argc, char *argv[] )
 {
