@@ -82,17 +82,19 @@ int main( int argc, char *argv[] )
   smoothing->SetInput( reader->GetOutput() );
   gradientMagnitude->SetInput( smoothing->GetOutput() );
   sigmoid->SetInput( gradientMagnitude->GetOutput() );
+  writer->SetInput( sigmoid->GetOutput() );
+
 
   smoothing->SetTimeStep( 0.01 );
   smoothing->SetNumberOfIterations(  5 );
   smoothing->SetConductanceParameter( 9.0 );
 
-  const double sigma = atof( argv[4] );
+  const double sigma = atof( argv[3] );
 
   gradientMagnitude->SetSigma(  sigma  );
 
-  const double alpha =  atof( argv[5] );
-  const double beta  =  atof( argv[6] );
+  const double alpha =  atof( argv[4] );
+  const double beta  =  atof( argv[5] );
 
   std::cout << "alpha = " << alpha << std::endl;
   std::cout << "beta = " << beta << std::endl;
@@ -123,8 +125,6 @@ int main( int argc, char *argv[] )
     chronometer.Stop("sigmoid");
     chronometer.Report( std::cout );
 
-    writer->SetInput( sigmoid->GetOutput() );
-    writer->SetFileName( argv[3] );
     chronometer.Start("writer");
     writer->Update();
     chronometer.Stop("writer");
