@@ -9,6 +9,9 @@ TARGET_LINK_LIBRARIES(ShapeDetectionLevelSetFilter ITKBasicFilters ITKIO)
 ADD_EXECUTABLE(ShapeDetectionLevelSetRefinementFilter ShapeDetectionLevelSetRefinementFilter.cxx)
 TARGET_LINK_LIBRARIES(ShapeDetectionLevelSetRefinementFilter ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(GradientMagnitudeSigmoidFilter GradientMagnitudeSigmoidFilter.cxx)
+TARGET_LINK_LIBRARIES(GradientMagnitudeSigmoidFilter ITKBasicFilters ITKIO)
+
 ADD_EXECUTABLE(DicomSeriesReadImageWrite DicomSeriesReadImageWrite2.cxx)
 TARGET_LINK_LIBRARIES(DicomSeriesReadImageWrite ITKBasicFilters ITKIO)
 
