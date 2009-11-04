@@ -128,6 +128,31 @@ ADD_TEST(Resample_${DATASET1}_${DATASET2}
 ENDMACRO(RESAMPLE_IMAGE)
 
 
+MACRO(REFINE_SEGMENTATION DATASET1 DATASET2 )
+
+ADD_TEST(Sigmoid_${DATASET2}
+  ${CXX_TEST_PATH}/SigmoidFilter
+  ${TEMP}/${DATASET2}_resampled_to_${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_Sigmoid.mhd
+   0.7 # Sigma in mm
+  -1.0 # Alpha
+   5.0 # Beta
+  )
+
+ADD_TEST(Refinement_of_${DATASET1}_with_${DATASET2}
+  ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
+  ${TEMP}/${DATASET2}_Sigmoid.mhd
+  ${TEMP}/${DATASET1}_Filled_Mask.mhd
+  ${TEMP}/${DATASET2}_Refined_Mask.mhd
+    10.0 # curvature weight
+    10.0 # propagation weight
+   100.0 # Maximum number of iterations
+  )
+
+ENDMACRO(REFINE_SEGMENTATION)
+
+
+ 
 MACRO(DEFORM DATASETID )
 
 ADD_TEST(Deform_${DATASETID}
@@ -229,4 +254,6 @@ DEFORM( 42 )
 REGISTER( 64 42 )
 
 RESAMPLE_IMAGE( SagittalPD-MRImages 58_3T_MRI )
+
+REFINE_SEGMENTATION( SagittalPD-MRImages 58_3T_MRI )
 
