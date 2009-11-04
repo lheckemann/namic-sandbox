@@ -163,34 +163,13 @@ int main( int argc, char *argv[] )
 
   ShapeDetectionFilterType::Pointer shapeDetection = ShapeDetectionFilterType::New();
 
-  smoothing->ReleaseDataFlagOn();
-  gradientMagnitude->ReleaseDataFlagOn();
-  sigmoid->ReleaseDataFlagOn();
+//  smoothing->ReleaseDataFlagOn();
+//  gradientMagnitude->ReleaseDataFlagOn();
+//  sigmoid->ReleaseDataFlagOn();
 
   smoothing->SetInput( reader->GetOutput() );
   gradientMagnitude->SetInput( smoothing->GetOutput() );
   sigmoid->SetInput( gradientMagnitude->GetOutput() );
-  
-  chronometer.Start("reading");
-  reader->Update();
-  chronometer.Stop("reading");
-  chronometer.Report( std::cout );
-
-  chronometer.Start("smoothing");
-  smoothing->Update();
-  chronometer.Stop("smoothing");
-  chronometer.Report( std::cout );
-
-  chronometer.Start("gradient");
-  gradientMagnitude->Update();
-  chronometer.Stop("gradient");
-  chronometer.Report( std::cout );
-
-  chronometer.Start("sigmoid");
-  sigmoid->Update();
-  chronometer.Stop("sigmoid");
-  chronometer.Report( std::cout );
-
 
   shapeDetection->SetFeatureImage( sigmoid->GetOutput() );
 
@@ -216,14 +195,33 @@ int main( int argc, char *argv[] )
   sigmoid->SetAlpha( alpha );
   sigmoid->SetBeta(  beta  );
   
+  
+  chronometer.Start("reading");
+  reader->Update();
+  chronometer.Stop("reading");
+  chronometer.Report( std::cout );
 
-  internalWriter->SetInput( gradientMagnitude->GetOutput() );
-  internalWriter->SetFileName("GradientMagnitude.mha");
-  internalWriter->Update();
+  chronometer.Start("smoothing");
+  smoothing->Update();
+  chronometer.Stop("smoothing");
+  chronometer.Report( std::cout );
+
+  chronometer.Start("gradient");
+  gradientMagnitude->Update();
+  chronometer.Stop("gradient");
+  chronometer.Report( std::cout );
+
+  chronometer.Start("sigmoid");
+  sigmoid->Update();
+  chronometer.Stop("sigmoid");
+  chronometer.Report( std::cout );
+
 
   internalWriter->SetInput( sigmoid->GetOutput() );
   internalWriter->SetFileName( argv[3] );
+  chronometer.Start("writingSigmoid");
   internalWriter->Update();
+  chronometer.Stop("writingSigmoid");
 
 
   typedef FastMarchingFilterType::NodeContainer           NodeContainer;
@@ -293,9 +291,6 @@ int main( int argc, char *argv[] )
   chronometer.Stop("fastMarching");
   chronometer.Report( std::cout );
 
-  internalWriter->SetInput( fastMarching->GetOutput() );
-  internalWriter->SetFileName("fastMarching.mhd");
-  internalWriter->Update();
 
   typedef itk::BinaryThresholdImageFilter< 
     InternalImageType, InternalImageType > InternalThresholdingFilterType;
@@ -312,10 +307,6 @@ int main( int argc, char *argv[] )
   shapeDetection->SetInput( thresholder2->GetOutput() );
 
   shapeDetection->UseImageSpacingOn();
-
-  internalWriter->SetInput( thresholder2->GetOutput() );
-  internalWriter->SetFileName( "ShapeDetectionInput.mhd" );
-  internalWriter->Update();
 
 
   const double curvatureScaling   = atof( argv[8] );
@@ -360,9 +351,6 @@ int main( int argc, char *argv[] )
     std::cerr << excep << std::endl;
     }
 
-  internalWriter->SetInput( shapeDetection->GetOutput() );
-  internalWriter->SetFileName( "ShapeDetection.mhd" );
-  internalWriter->Update();
 
   // Print out some useful information 
   std::cout << std::endl;
