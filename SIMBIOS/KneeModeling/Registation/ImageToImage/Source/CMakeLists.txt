@@ -21,6 +21,9 @@ TARGET_LINK_LIBRARIES(HoleFillingFilter ITKBasicFilters ITKIO)
 ADD_EXECUTABLE(InvertIntensityImageFilter InvertIntensityImageFilter.cxx)
 TARGET_LINK_LIBRARIES(InvertIntensityImageFilter ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(ResampleImageFilter ResampleImageFilter.cxx)
+TARGET_LINK_LIBRARIES(ResampleImageFilter ITKBasicFilters ITKIO)
+
 ADD_EXECUTABLE(ThresholdSegmentationLevelSetImageFilter ThresholdSegmentationLevelSetImageFilter.cxx)
 TARGET_LINK_LIBRARIES(ThresholdSegmentationLevelSetImageFilter ITKBasicFilters ITKIO)
 
