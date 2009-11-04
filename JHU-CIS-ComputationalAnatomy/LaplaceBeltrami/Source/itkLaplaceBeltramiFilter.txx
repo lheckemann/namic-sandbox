@@ -200,7 +200,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
       const unsigned long *tp;
       tp = cellPtr->GetPointIds();
 
-/*
+      /*
       InputPointType v0,v1,v2;
       inputMesh->GetPoint((int)(tp[ix[0]]), &v0);
       inputMesh->GetPoint((int)(tp[ix[1]]), &v1);
@@ -220,7 +220,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
       double c0 = e0.sum();
       double c1 = e1.sum();
       double c2 = e2.sum();
-*/
+      */
 
       // Beginning of replacement for code commented out above...  Check with Michael...
       typedef typename InputPointType::VectorType   InputVectorType;
