@@ -131,12 +131,12 @@ ENDMACRO(RESAMPLE_IMAGE)
 MACRO(REFINE_SEGMENTATION DATASET1 DATASET2 )
 
 ADD_TEST(Sigmoid_${DATASET2}
-  ${CXX_TEST_PATH}/SigmoidFilter
+  ${CXX_TEST_PATH}/GradientMagnitudeSigmoidFilter
   ${TEMP}/${DATASET2}_resampled_to_${DATASET1}.mhd
   ${TEMP}/${DATASET2}_Sigmoid.mhd
    0.7 # Sigma in mm
   -1.0 # Alpha
-   5.0 # Beta
+   1000.0 # Beta
   )
 
 ADD_TEST(Refinement_of_${DATASET1}_with_${DATASET2}
