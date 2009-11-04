@@ -72,12 +72,14 @@ int main( int argc, char *argv[] )
   thresholder->SetOutsideValue(  0  );
   thresholder->SetInsideValue(  255 );
 
-  typedef  itk::ImageFileReader< InternalImageType > ReaderType;
-  typedef  itk::ImageFileWriter<  OutputImageType  > WriterType;
+  typedef  itk::ImageFileReader< InternalImageType >    ReaderType;
+  typedef  itk::ImageFileWriter< OutputImageType  >     WriterType;
+  typedef  itk::ImageFileWriter< InternalImageType  >   InternalWriterType;
 
   ReaderType::Pointer imageReader = ReaderType::New();
   ReaderType::Pointer maskReader  = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
+  InternalWriterType::Pointer internalWriter = InternalWriterType::New();
 
   imageReader->SetFileName( argv[1] );
   maskReader->SetFileName( argv[2] );
@@ -111,10 +113,14 @@ int main( int argc, char *argv[] )
   thresholder->SetInput( thresholdSegmentation->GetOutput() );
   writer->SetInput( thresholder->GetOutput() );
 
+  internalWriter->SetFileName("inputInitialLevelSet.mha");
+  internalWriter->SetInput( thresholder2->GetOutput() );
+  internalWriter->Update();
+  
 
   try
     {
-    writer->Update();
+//    writer->Update();
     }
   catch( itk::ExceptionObject & excep )
     {
