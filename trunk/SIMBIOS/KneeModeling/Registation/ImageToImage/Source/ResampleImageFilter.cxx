@@ -28,7 +28,7 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 8 )
+  if( argc < 4 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
