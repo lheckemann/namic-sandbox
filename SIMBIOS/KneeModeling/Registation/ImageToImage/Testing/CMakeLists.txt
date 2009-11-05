@@ -147,7 +147,7 @@ ADD_TEST(SigmoidDual_${DATASET2}_${DATASET1}
   ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
    0.7 # Sigma in mm
   -1.0 # Alpha
-   1000.0 # Beta
+   50.0 # Beta
   )
 
 
