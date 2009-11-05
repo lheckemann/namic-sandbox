@@ -143,6 +143,7 @@ ADD_TEST(SigmoidDual_${DATASET2}_${DATASET1}
   ${CXX_TEST_PATH}/TwoChannelGradientMagnitudeSigmoidFilter
   ${KNEE_DATA_DIR}/3TPDImages/${DATASET1}.mhd
   ${TEMP}/${DATASET2}_resampled_to_${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_GradientMagnitude.mhd
   ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
    0.7 # Sigma in mm
   -1.0 # Alpha

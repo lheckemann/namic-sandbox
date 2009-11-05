@@ -29,11 +29,11 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 6 )
+  if( argc < 8 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputImage  outputImage";
+    std::cerr << " inputImage1 inputImage2  outputGradientMagnitude outputSigmoid";
     std::cerr << " Sigma SigmoidAlpha SigmoidBeta ";
     std::cerr << std::endl;
     return EXIT_FAILURE;
@@ -61,7 +61,6 @@ int main( int argc, char *argv[] )
   reader1->SetFileName( argv[1] );
   reader2->SetFileName( argv[2] );
 
-  writer->SetFileName( argv[3] );
 
   typedef   itk::GradientMagnitudeRecursiveGaussianImageFilter< 
                                InternalImageType, 
@@ -78,7 +77,7 @@ int main( int argc, char *argv[] )
   GradientFilterType::Pointer  gradientMagnitude1 = GradientFilterType::New();
   GradientFilterType::Pointer  gradientMagnitude2 = GradientFilterType::New();
 
-  WeighedAddmageFilterType::Pointer weighedSum = WeighedAddmageFilterType::New();
+  WeighedAddmageFilterType::Pointer weightedSum = WeighedAddmageFilterType::New();
 
   SigmoidFilterType::Pointer sigmoid = SigmoidFilterType::New();
 
@@ -88,21 +87,20 @@ int main( int argc, char *argv[] )
   gradientMagnitude1->SetInput( reader1->GetOutput() );
   gradientMagnitude2->SetInput( reader2->GetOutput() );
 
-  weighedSum->SetInput1( gradientMagnitude1->GetOutput() );
-  weighedSum->SetInput2( gradientMagnitude2->GetOutput() );
+  weightedSum->SetInput1( gradientMagnitude1->GetOutput() );
+  weightedSum->SetInput2( gradientMagnitude2->GetOutput() );
 
-  weighedSum->SetAlpha( 0.953 );
+  weightedSum->SetAlpha( 0.953 );
 
-  sigmoid->SetInput( weighedSum->GetOutput() );
-  writer->SetInput( sigmoid->GetOutput() );
+  sigmoid->SetInput( weightedSum->GetOutput() );
 
-  const double sigma = atof( argv[3] );
+  const double sigma = atof( argv[5] );
 
   gradientMagnitude1->SetSigma(  sigma  );
   gradientMagnitude2->SetSigma(  sigma  );
 
-  const double alpha =  atof( argv[4] );
-  const double beta  =  atof( argv[5] );
+  const double alpha =  atof( argv[6] );
+  const double beta  =  atof( argv[7] );
 
   std::cout << "alpha = " << alpha << std::endl;
   std::cout << "beta = " << beta << std::endl;
@@ -125,12 +123,25 @@ int main( int argc, char *argv[] )
     chronometer.Stop("gradient");
     chronometer.Report( std::cout );
 
+    chronometer.Start("weightedSum");
+    weightedSum->Update();
+    chronometer.Stop("weightedSum");
+    chronometer.Report( std::cout );
+
+    chronometer.Start("writer");
+    writer->SetFileName( argv[3] );
+    writer->SetInput( weightedSum->GetOutput() );
+    writer->Update();
+    chronometer.Stop("writer");
+
     chronometer.Start("sigmoid");
     sigmoid->Update();
     chronometer.Stop("sigmoid");
     chronometer.Report( std::cout );
 
     chronometer.Start("writer");
+    writer->SetFileName( argv[4] );
+    writer->SetInput( sigmoid->GetOutput() );
     writer->Update();
     chronometer.Stop("writer");
     }
