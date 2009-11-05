@@ -22,6 +22,7 @@
 #include "itkSigmoidImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkWeightedAddImageFilter.h"
 #include "itkImage.h"
 #include "itkTimeProbesCollectorBase.h"
 
@@ -66,12 +67,18 @@ int main( int argc, char *argv[] )
                                InternalImageType, 
                                InternalImageType >  GradientFilterType;
 
+  typedef   itk::WeightedAddImageFilter< 
+    InternalImageType, 
+    InternalImageType, InternalImageType > WeighedAddmageFilterType;
+
   typedef   itk::SigmoidImageFilter<
                                InternalImageType, 
                                InternalImageType >  SigmoidFilterType;
 
   GradientFilterType::Pointer  gradientMagnitude1 = GradientFilterType::New();
   GradientFilterType::Pointer  gradientMagnitude2 = GradientFilterType::New();
+
+  WeighedAddmageFilterType::Pointer weighedSum = WeighedAddmageFilterType::New();
 
   SigmoidFilterType::Pointer sigmoid = SigmoidFilterType::New();
 
@@ -81,7 +88,12 @@ int main( int argc, char *argv[] )
   gradientMagnitude1->SetInput( reader1->GetOutput() );
   gradientMagnitude2->SetInput( reader2->GetOutput() );
 
-  sigmoid->SetInput( gradientMagnitude1->GetOutput() );
+  weighedSum->SetInput1( gradientMagnitude1->GetOutput() );
+  weighedSum->SetInput2( gradientMagnitude2->GetOutput() );
+
+  weighedSum->SetAlpha( 0.953 );
+
+  sigmoid->SetInput( weighedSum->GetOutput() );
   writer->SetInput( sigmoid->GetOutput() );
 
   const double sigma = atof( argv[3] );
