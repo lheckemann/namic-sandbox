@@ -27,6 +27,7 @@
 #include "itkResampleImageFilter.h"
 #include "itkVectorResampleImageFilter.h"
 #include "itkRegionalMinimaImageFilter.h"
+#include "itkImageMaskSpatialObject.h"
 
 // My headers
 #include "itkFixedRotationSimilarity3DTransform.h"
@@ -47,8 +48,10 @@ using namespace itk;
 typedef short                             Pixel;
 typedef float                             ProcessingPixel;
 typedef OrientedImage<Pixel, 3>           FileImage;
+typedef OrientedImage<unsigned char, 3>   MaskImage;
 typedef OrientedImage<ProcessingPixel, 3> ProcessingImage;
 typedef ImageFileReader<FileImage>        Reader;
+typedef ImageFileReader<MaskImage>        MaskReader;
 
 // Rotation Grid is how the optimized parameters 
 typedef Image<Vector<float, 3>, 3>    RotationGrid;
@@ -112,12 +115,11 @@ Versor<double> createRotationFromEulerAngles(double x, double y, double z)
 int main( int argc, char * argv[] )
 {
   // Read in image
-  if(argc != 4)
+  if(argc != 5)
     {
-    std::cerr << "Usage: " << argv[0] << " <fixed image> <moving image> <resampled output>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <fixed image> <mask> <moving image> <resampled output>" << std::endl;
     return EXIT_FAILURE;
     }
-  
   const double maxa = M_PI/8;
 //  const double maxa = 0;
   const double res1 = M_PI/16;
@@ -125,15 +127,19 @@ int main( int argc, char * argv[] )
 
   Reader::Pointer freader = Reader::New();
   Reader::Pointer mreader = Reader::New();
-//  Reader::Pointer maskreader = Reader::New();
+  MaskReader::Pointer maskreader = MaskReader::New();
 
   freader->SetFileName(argv[1]);
-  //maskreader->SetFileName(argv[2]);
-  mreader->SetFileName(argv[2]);
+  maskreader->SetFileName(argv[2]);
+  mreader->SetFileName(argv[3]);
 
   freader->Update();
-  //maskreader->Update();
+  maskreader->Update();
   mreader->Update();
+
+  ImageMaskSpatialObject<3>::Pointer mask = NULL;
+  //  ImageMaskSpatialObject<3>::New();
+  //mask->SetImage(maskreader->GetOutput());
 
   // Resample both images to 8x8x8
   typedef RecursiveMultiResolutionPyramidImageFilter<FileImage, ProcessingImage> ImagePyramid;
@@ -260,6 +266,10 @@ int main( int argc, char * argv[] )
     //metric->SetUseAllPixels(true);
     // metric->SetFixedImageMask(maskreader->GetOutput());
     metric->SetNumberOfSpatialSamples(15000);
+    if(mask)
+      {
+      metric->SetFixedImageMask(mask);
+      }
     metric->SetFixedImageSamplesIntensityThreshold(50);
     metric->SetUseExplicitPDFDerivatives(true);
 //    metric->Initialize();
@@ -412,6 +422,10 @@ int main( int argc, char * argv[] )
   //metric->SetUseAllPixels(true);
   // metric->SetFixedImageMask(maskreader->GetOutput());
   metric->SetNumberOfSpatialSamples(15000);
+  if(mask)
+    {
+    metric->SetFixedImageMask(mask);
+    }
   metric->SetFixedImageSamplesIntensityThreshold(50);
   metric->SetUseExplicitPDFDerivatives(true);
 
@@ -458,8 +472,17 @@ int main( int argc, char * argv[] )
     p[1] = fit.Get()[1];
     p[2] = fit.Get()[2];
     p[3] = mscale;
+    
+    double m = 0.0;
+    try
+      {
+      m = metric->GetValue(p);
+      }
+    catch (itk::ExceptionObject & e)
+      {
+      // Let m = 0
+      }
 
-    const double m = metric->GetValue(p);
     cit.Set(m);
     }
 
@@ -584,6 +607,10 @@ int main( int argc, char * argv[] )
     //metric->SetUseAllPixels(true);
     // metric->SetFixedImageMask(maskreader->GetOutput());
     metric->SetNumberOfSpatialSamples(15000);
+    if(mask)
+      {
+      metric->SetFixedImageMask(mask);
+      }
     metric->SetFixedImageSamplesIntensityThreshold(50);
     metric->SetUseExplicitPDFDerivatives(true);
 //    metric->Initialize();
@@ -655,6 +682,10 @@ int main( int argc, char * argv[] )
     reg->SetMovingImage(mpyramid->GetOutput(1));
     metric->SetNumberOfHistogramBins(256/4);
     metric->SetNumberOfSpatialSamples(60000);
+    if(mask)
+      {
+      metric->SetFixedImageMask(mask);
+      }
 
     reg->SetInitialTransformParameters(pm);
     reg->StartRegistration();
@@ -723,6 +754,10 @@ int main( int argc, char * argv[] )
   //metric->SetUseAllPixels(true);
   // metric->SetFixedImageMask(maskreader->GetOutput());
   metricf->SetNumberOfSpatialSamples(240000);
+  if(mask)
+    {
+    metricf->SetFixedImageMask(mask);
+    }
   metricf->SetFixedImageSamplesIntensityThreshold(50);
   metricf->SetUseExplicitPDFDerivatives(true);
 //    metricf->Initialize();
@@ -787,6 +822,11 @@ int main( int argc, char * argv[] )
   
   metricf->SetNumberOfHistogramBins(256);
   metricf->SetNumberOfSpatialSamples(480000);
+  if(mask)
+    {
+    metricf->SetFixedImageMask(mask);
+    }
+
   reg->SetFixedImage(fpyramid->GetOutput(3));
   reg->SetFixedImageRegion(fpyramid->GetOutput(3)->GetLargestPossibleRegion());
   reg->SetMovingImage(mpyramid->GetOutput(3)); 
@@ -799,7 +839,7 @@ int main( int argc, char * argv[] )
   std::cout << " 1mm optimized params " << std::endl
             << finalp << std::endl;
 
-  writeimage(mpyramid->GetOutput(3), affinet, argv[3]);
+  writeimage(mpyramid->GetOutput(3), affinet, argv[4]);
 
   return EXIT_SUCCESS;
 }
