@@ -139,14 +139,25 @@ ADD_TEST(Sigmoid_${DATASET2}
    1000.0 # Beta
   )
 
+ADD_TEST(SigmoidDual_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/TwoChannelGradientMagnitudeSigmoidFilter
+  ${KNEE_DATA_DIR}/3TPDImages/${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_resampled_to_${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
+   0.7 # Sigma in mm
+  -1.0 # Alpha
+   1000.0 # Beta
+  )
+
+
 ADD_TEST(Refinement_of_${DATASET1}_with_${DATASET2}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
   ${TEMP}/${DATASET2}_Sigmoid.mhd
   ${TEMP}/${DATASET1}_Filled_Mask.mhd
   ${TEMP}/${DATASET2}_Refined_Mask.mhd
-    10.0 # curvature weight
-    10.0 # propagation weight
-   100.0 # Maximum number of iterations
+   100.0 # curvature weight
+     1.0 # propagation weight
+   200.0 # Maximum number of iterations
   )
 
 ENDMACRO(REFINE_SEGMENTATION)
