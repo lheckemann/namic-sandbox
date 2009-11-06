@@ -143,6 +143,14 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   
   //ETX
   
+  // Description:
+  // Bring a marker to view in all three slice views along its principal axes
+  // N - the direction vector of the locator,
+  // T - the transverse direction vector of the locator (optional)
+  // P - the tip location of the locator (optional)
+  // All the above values are in RAS space. 
+  void BringMarkerToViewIn2DViews(double* P, double* N=NULL, double* T=NULL);
+
  protected:
   vtkProstateNavGUI ( );
   virtual ~vtkProstateNavGUI ( );
@@ -215,7 +223,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // Description:
   // Bring current target to view in all three slice views
   void BringTargetToViewIn2DViews();
-
 
   int Entered;
 

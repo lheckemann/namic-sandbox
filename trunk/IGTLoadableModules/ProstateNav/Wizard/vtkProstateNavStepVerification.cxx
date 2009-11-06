@@ -99,7 +99,6 @@ vtkCxxRevisionMacro(vtkProstateNavStepVerification, "$Revision: 1.1 $");
 //----------------------------------------------------------------------------
 vtkProstateNavStepVerification::vtkProstateNavStepVerification()
 {
-  //this->SetName("Targeting");
   this->SetTitle("Verification");
   this->SetDescription("Measure needle distance from target.");
 
@@ -357,7 +356,7 @@ void vtkProstateNavStepVerification::ShowVerificationControlFrame()
     this->Message->SetFont("times 12 bold");
     //this->Message->SetForegroundColor(0.0, 1.0, 0.0);
     }
-  this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", 
+  this->Script("pack %s -side top -anchor nw -expand y -fill x -padx 2 -pady 6", 
                 this->Message->GetWidgetName());
 
 }
