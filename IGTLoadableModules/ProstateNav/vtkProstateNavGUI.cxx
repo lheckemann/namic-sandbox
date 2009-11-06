@@ -36,6 +36,7 @@
 #include "vtkProstateNavStepSetUp.h"
 #include "vtkProstateNavStepVerification.h"
 #include "vtkProstateNavCalibrationStep.h"
+#include "vtkProstateNavFiducialCalibrationStep.h"
 #include "vtkProstateNavTargetingStep.h"
 #include "vtkProstateNavManualControlStep.h"
 
@@ -1290,6 +1291,12 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
       calibrationStep->SetTitleBackgroundColor(193.0/255.0, 115.0/255.0, 80.0/255.0);
       newStep=calibrationStep;
     }
+    else if (!stepName.compare("FiducialCalibration"))
+    {
+      vtkProstateNavFiducialCalibrationStep* calibrationStep = vtkProstateNavFiducialCalibrationStep::New();
+      calibrationStep->SetTitleBackgroundColor(193.0/255.0, 115.0/255.0, 80.0/255.0);
+      newStep=calibrationStep;
+    }
     else if (!stepName.compare("PointTargeting"))
     {
       vtkProstateNavTargetingStep* targetingStep = vtkProstateNavTargetingStep::New();
@@ -1392,7 +1399,12 @@ void vtkProstateNavGUI::BringTargetToViewIn2DViews()
   double P[3];
   targetDesc->GetRASLocation(P);
 
-  // red slice node    
+  BringMarkerToViewIn2DViews(P);
+}
+
+//--------------------------------------------------------------------------------
+void vtkProstateNavGUI::BringMarkerToViewIn2DViews(double* P, double* N/*=NULL*/, double* T/*=NULL*/)
+{
   vtkSlicerSliceLogic *redSlice = vtkSlicerApplicationGUI::SafeDownCast(GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Red");    
   vtkSlicerSliceLogic *yellowSlice = vtkSlicerApplicationGUI::SafeDownCast(GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Yellow");    
   vtkSlicerSliceLogic *greenSlice = vtkSlicerApplicationGUI::SafeDownCast(GetApplicationGUI())->GetApplicationLogic()->GetSliceLogic("Green");    
@@ -1401,14 +1413,24 @@ void vtkProstateNavGUI::BringTargetToViewIn2DViews()
   int yellowOldModify=yellowSlice->GetSliceNode()->StartModify();
   int greenOldModify=greenSlice->GetSliceNode()->StartModify();
 
-  redSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
-  yellowSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
-  greenSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
+  if (N!=NULL && T!=NULL) // slice orientation is specified
+  {
+    redSlice->GetSliceNode()->SetSliceToRASByNTP(N[0], N[1], N[2], T[0], T[1], T[2], P[0], P[1], P[2], 0);
+    yellowSlice->GetSliceNode()->SetSliceToRASByNTP(N[0], N[1], N[2], T[0], T[1], T[2], P[0], P[1], P[2], 1);
+    greenSlice->GetSliceNode()->SetSliceToRASByNTP(N[0], N[1], N[2], T[0], T[1], T[2], P[0], P[1], P[2], 2);
+  }
+  else
+  {
+    redSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
+    yellowSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
+    greenSlice->GetSliceNode()->JumpSliceByOffsetting(P[0], P[1], P[2]);
+  }
 
   redSlice->GetSliceNode()->EndModify(redOldModify);
   yellowSlice->GetSliceNode()->EndModify(yellowOldModify);
   greenSlice->GetSliceNode()->EndModify(greenOldModify);
 }
+
 
 //--------------------------------------------------------------------------------
 void vtkProstateNavGUI::UpdateCurrentTargetDisplay()

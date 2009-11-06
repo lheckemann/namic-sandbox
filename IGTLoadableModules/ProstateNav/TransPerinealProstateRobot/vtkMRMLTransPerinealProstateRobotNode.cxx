@@ -29,6 +29,8 @@ Version:   $Revision: 1.2 $
 
 #include "vtkProstateNavTargetDescriptor.h"
 
+#include "vtkTriangleFilter.h"
+
 //-------------------------------------
 
 static const int STATUS_ROBOT=0;
@@ -614,8 +616,11 @@ const char* vtkMRMLTransPerinealProstateRobotNode::AddWorkspaceModel(const char*
   apd->AddInput(tfilter1->GetOutput());
   //apd->AddInput(tfilter2->GetOutput());
   apd->Update();
+
+  vtkSmartPointer<vtkTriangleFilter> cleaner=vtkSmartPointer<vtkTriangleFilter>::New();
+  cleaner->SetInputConnection(apd->GetOutputPort());
   
-  workspaceModel->SetAndObservePolyData(apd->GetOutput());
+  workspaceModel->SetAndObservePolyData(cleaner->GetOutput());
 
   double color[3];
   color[0] = 0.5;

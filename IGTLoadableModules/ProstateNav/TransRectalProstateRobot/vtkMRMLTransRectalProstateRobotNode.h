@@ -18,9 +18,12 @@
 #include "vtkMRML.h"
 #include "vtkMRMLRobotNode.h"
 #include "vtkMRMLStorageNode.h"
+#include "vtkSmartPointer.h"
+#include "vtkLineSource.h"
 
 #include "vtkObject.h"
 #include "vtkProstateNavWin32Header.h" 
+#include "vtkTransRectalFiducialCalibrationAlgo.h"
 
 class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRMLRobotNode
 {
@@ -58,7 +61,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
     {return "TransRectalProstateRobot";};
 
   virtual const char* GetWorkflowStepsString()
-    {return "PointTargeting PointVerification"; };
+    {return "FiducialCalibration PointTargeting PointVerification"; };
 
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
@@ -68,6 +71,22 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc);
   //ETX
 
+  // Description:
+  void GetCalibrationMarker(unsigned int markerNr, double &r, double &a, double &s, bool &valid);
+  void SetCalibrationMarker(unsigned int markerNr, double markerRAS[3]);
+  void RemoveAllCalibrationMarkers();
+
+  void ResetCalibrationData();
+  const TRProstateBiopsyCalibrationData& GetCalibrationData() { return this->CalibrationData; }
+  void SetCalibrationData(const TRProstateBiopsyCalibrationData& calibData) { this->CalibrationData=calibData; } 
+
+  //BTX
+  bool SegmentRegisterMarkers(vtkMRMLScalarVolumeNode *calibVol, double thresh[4], double fidDimsMm[3], double radiusMm, bool bUseRadius, double initialAngle, std::string &resultDetails);
+  //ETX
+
+ vtkImageData* GetCalibMarkerPreProcOutput(int i);
+ void GetCalibrationAxisCenterpoints(vtkPoints *points, int ii) { return this->CalibrationAlgo->GetAxisCenterpoints(points, ii); };
+ 
 
  protected:
   //----------------------------------------------------------------
@@ -77,10 +96,17 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   vtkMRMLTransRectalProstateRobotNode();
   ~vtkMRMLTransRectalProstateRobotNode();
   vtkMRMLTransRectalProstateRobotNode(const vtkMRMLTransRectalProstateRobotNode&);
-  void operator=(const vtkMRMLTransRectalProstateRobotNode&);
+  void operator=(const vtkMRMLTransRectalProstateRobotNode&);  
 
  protected:
-  //  
+  TRProstateBiopsyCalibrationData CalibrationData;
+
+  //BTX
+  vtkSmartPointer<vtkTransRectalFiducialCalibrationAlgo> CalibrationAlgo;  
+  //ETX
+
+  double CalibrationMarkerPositions[CALIB_MARKER_COUNT][3];
+  bool CalibrationMarkerValid[CALIB_MARKER_COUNT];
   
 };
 
