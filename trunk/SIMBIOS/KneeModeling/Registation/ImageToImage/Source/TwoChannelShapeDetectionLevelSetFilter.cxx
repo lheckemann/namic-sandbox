@@ -150,7 +150,7 @@ int main( int argc, char *argv[] )
   NodeContainer::Pointer seeds = NodeContainer::New();
   
 
-  const double initialDistance = atof( argv[7] );
+  const double initialDistance = atof( argv[3] );
 
 
   InternalImageType::IndexType  seedPosition;
@@ -167,12 +167,12 @@ int main( int argc, char *argv[] )
 
   std::ifstream inputSeedsFile;
 
-  std::cout << "Opening seeds file " << argv[11] << std::endl;
-  inputSeedsFile.open( argv[11] );
+  std::cout << "Opening seeds file " << argv[7] << std::endl;
+  inputSeedsFile.open( argv[7] );
 
   if( inputSeedsFile.fail() )
     {
-    std::cerr << "Error reading file " << argv[11] << std::endl;
+    std::cerr << "Error reading file " << argv[7] << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -230,13 +230,13 @@ int main( int argc, char *argv[] )
   shapeDetection->UseImageSpacingOn();
 
 
-  const double curvatureScaling   = atof( argv[8] );
-  const double propagationScaling = atof( argv[9] );
+  const double curvatureScaling   = atof( argv[4] );
+  const double propagationScaling = atof( argv[5] );
 
   shapeDetection->SetPropagationScaling(  propagationScaling );
   shapeDetection->SetCurvatureScaling( curvatureScaling ); 
 
-  const unsigned int numberOfIterations = atoi( argv[10] );
+  const unsigned int numberOfIterations = atoi( argv[6] );
 
   std::cout << "Maximum number of iterations = " << numberOfIterations << std::endl;
 
