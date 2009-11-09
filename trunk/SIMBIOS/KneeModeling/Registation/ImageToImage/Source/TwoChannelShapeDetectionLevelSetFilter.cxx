@@ -75,7 +75,7 @@ public:
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 12 )
+  if( argc < 8 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
@@ -84,7 +84,6 @@ int main( int argc, char *argv[] )
     std::cerr << " CurvatureWeight PropagationWeight";
     std::cerr << " MaximumNumberOfLevelSetIterations";
     std::cerr << " InputSeedsFile";
-    std::cerr << " outputEdgeMap";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
