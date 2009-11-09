@@ -139,7 +139,7 @@ ADD_TEST(Sigmoid_${DATASET2}
    1000.0 # Beta
   )
 
-ADD_TEST(SigmoidDual_${DATASET2}_${DATASET1}
+ADD_TEST(TwoChannelSigmoid_${DATASET2}_${DATASET1}
   ${CXX_TEST_PATH}/TwoChannelGradientMagnitudeSigmoidFilter
   ${KNEE_DATA_DIR}/3TPDImages/${DATASET1}.mhd
   ${TEMP}/${DATASET2}_resampled_to_${DATASET1}.mhd
@@ -150,8 +150,7 @@ ADD_TEST(SigmoidDual_${DATASET2}_${DATASET1}
    75.0 # Beta
   )
 
-
-ADD_TEST(ShapeDetectionDual_${DATASET2}_${DATASET1}
+ADD_TEST(TwoChannelShapeDetection_${DATASET2}_${DATASET1}
   ${CXX_TEST_PATH}/TwoChannelShapeDetectionLevelSetFilter
   ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
   ${TEMP}/${DATASET2}_${DATASET1}_ShapeDetection.mhd
@@ -159,9 +158,19 @@ ADD_TEST(ShapeDetectionDual_${DATASET2}_${DATASET1}
      1.0 # curvature weight
     80.0 # propagation weight
    200.0 # Maximum number of iterations
-  ${SEEDS_DATA_DIR}/${DATASETID}_Seeds.txt
+  ${SEEDS_DATA_DIR}/${DATASET1}_Seeds.txt
   )
   
+ADD_TEST(TwoChannelShapeDetectionRefinement_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
+  ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_ShapeDetection.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_ShapeDetection_Refined.mhd
+    10.0 # curvature weight
+    10.0 # propagation weight
+   100.0 # Maximum number of iterations
+  )
+ 
 ADD_TEST(ShapeDetectionHoleFilling${DATASETID}
   ${CXX_TEST_PATH}/HoleFillingFilter
   ${TEMP}/${DATASETID}_Mask.mhd
