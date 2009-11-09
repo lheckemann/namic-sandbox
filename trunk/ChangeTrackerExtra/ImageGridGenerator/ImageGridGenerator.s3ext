@@ -1,0 +1,27 @@
+
+scm       svn
+svnpath http://svn.na-mic.org/NAMICSandBox/trunk/ChangeTrackerExtra/ImageGridGenerator
+name     ImageGridGenerator
+cmakeproject      ImageGridGenerator
+svnusername slicerbot
+svnpassword slicer
+
+
+#
+# list dependencies
+# - these should be names of other modules that have .s3ext files 
+# - the dependencies will be built first
+
+# homepage
+n/a
+
+# match category in the xml description of the module (where it shows up in Modules menu)
+category  Filtering
+
+# give people an idea what to expect from this code 
+# - is it just a test or something you stand beind?
+status    Development
+
+# One line description of what the module does
+This module generates a label image with regular line grid. Such image is useful in visualizing the transform resulting from registration, in particular for non-rigid transform. CLI wrapper of IJ submission #140 Gridding Graphic Graticules Tustison N., Avants B., Gee J.
+
