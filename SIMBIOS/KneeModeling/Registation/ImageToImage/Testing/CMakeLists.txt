@@ -151,6 +151,38 @@ ADD_TEST(SigmoidDual_${DATASET2}_${DATASET1}
   )
 
 
+ADD_TEST(ShapeDetectionDual_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/TwoChannelShapeDetectionLevelSetFilter
+  ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_ShapeDetection.mhd
+    25.0 # Initial radius in mm
+     1.0 # curvature weight
+    80.0 # propagation weight
+   200.0 # Maximum number of iterations
+  ${SEEDS_DATA_DIR}/${DATASETID}_Seeds.txt
+  )
+  
+ADD_TEST(ShapeDetectionHoleFilling${DATASETID}
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  ${TEMP}/${DATASETID}_Mask.mhd
+  ${TEMP}/${DATASETID}_Filled_Mask.mhd
+     2 # Manhattan Radius
+     2 # Majority
+   400 # Maximum number of iterations
+  )
+
+ADD_TEST(ShapeDetectionRefinement${DATASETID}
+  ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
+  ${TEMP}/${DATASETID}_Sigmoid.mhd
+  ${TEMP}/${DATASETID}_Filled_Mask.mhd
+  ${TEMP}/${DATASETID}_Refined_Mask.mhd
+    10.0 # curvature weight
+    10.0 # propagation weight
+   100.0 # Maximum number of iterations
+  ${SEEDS_DATA_DIR}/${DATASETID}_Seeds.txt
+  )
+
+
 ADD_TEST(Refinement_of_${DATASET1}_with_${DATASET2}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
   ${TEMP}/${DATASET2}_Sigmoid.mhd
