@@ -25,6 +25,7 @@ class vtkKWLoadSaveButton;
 class vtkSlicerInteractorStyle;
 class vtkMRMLVolumeNode;
 class vtkActor;
+class vtkSlicerViewerWidget;
 
 class vtkMRMLScalarVolumeNode;
 class vtkMRMLTRProstateBiopsyModuleNode;
@@ -38,6 +39,7 @@ class vtkVolume;
 class vtkMatrix4x4; 
 class vtkKWRenderWidget;
 class vtkMRMLTransRectalProstateRobotNode;
+
 
 #include "vtkSmartPointer.h"
 
@@ -73,9 +75,7 @@ public:
   virtual void HideUserInterface();
 
   virtual void UpdateMRML();
-  virtual void UpdateGUI();
-
-  void UpdateMRMLObserver();
+  virtual void UpdateGUI();  
 
   // Description:
   // The Enter and Exit functions are not part of vtkKWWizardStep.
@@ -130,8 +130,6 @@ protected:
   void ShowMarkerVolumesIn3DView(bool show);
   void ClearMarkerVolumesIn3DView();
 
-  void SetCalibrationPointListNode(vtkMRMLFiducialListNode *node);
-
   void EnableMarkerPositionEdit(bool enable);
 
   void UpdateCalibration();
@@ -143,6 +141,8 @@ protected:
   static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
 
   vtkMRMLTransRectalProstateRobotNode* GetRobot();
+
+  vtkSlicerViewerWidget* GetMainViewerWidget();
 
   //BTX
 
@@ -178,11 +178,11 @@ protected:
   vtkSmartPointer<vtkActor> Axes2Actor;
   vtkSmartPointer<vtkActor> AxesCenterPointsActor;  
 
-  //ETX
-
   // Description:
   // CalibrationListNode is used for displaying 4 fiducial points that defines the calibration marker initial positions
-  vtkMRMLFiducialListNode* CalibrationPointListNode;
+  vtkSmartPointer<vtkMRMLFiducialListNode> CalibrationPointListNode;
+
+  //ETX
 
   bool ProcessingCallback;
 

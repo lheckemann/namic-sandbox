@@ -112,30 +112,25 @@ void vtkMRMLTransRectalProstateRobotNode::PrintSelf(ostream& os, vtkIndent inden
 bool vtkMRMLTransRectalProstateRobotNode::FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc)
 {
   // this is used for coverage area computation (IsOutsideReach means that the target is outside the robot's coverage area)
-
-  // :TODO: perform real targeting parameter computation  
-  double *ras=targetDesc->GetRASLocation();
-  const double center[3]={0,0,0};
-  const double radius2=25*25;
-  targetDesc->SetIsOutsideReach(
-    (ras[0]-center[0])*(ras[0]-center[0])+
-    (ras[1]-center[1])*(ras[1]-center[1])+
-    (ras[2]-center[2])*(ras[2]-center[2])>radius2
-    );
-  return true;
+  return this->CalibrationAlgo->FindTargetingParams(targetDesc);
 }
 
 
 std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc)
 {
+  bool validTargeting=FindTargetingParams(targetDesc);
+
   std::ostrstream os;  
   os << "Needle type:"<<targetDesc->GetNeedleTypeString()<<std::endl;
   os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
   os << "RAS location: "<<targetDesc->GetRASLocationString().c_str()<<std::endl;
-  os << "Reachable: "<<targetDesc->GetReachableString().c_str()<<std::endl;
-  os << "Depth: "<<targetDesc->GetDepthCM()<<" cm"<<std::endl;
-  os << "Device rotation: "<<targetDesc->GetAxisRotation()<<" deg"<<std::endl;
-  os << "Needle angle: "<<targetDesc->GetNeedleAngle()<<" deg"<<std::endl;
+  if (validTargeting)
+  {
+    os << "Reachable: "<<targetDesc->GetReachableString().c_str()<<std::endl;
+    os << "Depth: "<<targetDesc->GetDepthCM()<<" cm"<<std::endl;
+    os << "Device rotation: "<<targetDesc->GetAxisRotation()<<" deg"<<std::endl;
+    os << "Needle angle: "<<targetDesc->GetNeedleAngle()<<" deg"<<std::endl;
+  }
   os << std::ends;
   std::string result=os.str();
   os.rdbuf()->freeze();

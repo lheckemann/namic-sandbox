@@ -619,6 +619,16 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
   vtkSmartPointer<vtkMatrix4x4> ijkToRas=vtkSmartPointer<vtkMatrix4x4>::New();
   coverageVolumeNode->GetIJKToRASMatrix(ijkToRas);
 
+  vtkSmartPointer<vtkProstateNavTargetDescriptor> targetDesc=vtkSmartPointer<vtkProstateNavTargetDescriptor>::New();
+  targetDesc->SetNeedleType(manager->GetNeedleType(manager->GetCurrentNeedleIndex()), 
+    manager->GetNeedleLength(manager->GetCurrentNeedleIndex()), 
+    manager->GetNeedleOvershoot(manager->GetCurrentNeedleIndex()));
+  double needleLength=manager->GetNeedleLength(manager->GetCurrentNeedleIndex());
+
+  std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeID());
+  targetDesc->SetFoRStr(FoR);
+  
+
   float value=0;  
   for (int z=extent[4]; z<=extent[5]; z++)
   {
@@ -632,16 +642,27 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
         ijkToRas->MultiplyPoint(ijkPoint, rasPoint);
         
         value=0;
+
+        // it is not a boundary voxel
+        // (we leave a black boundary around the image to ensure that
+        // contouring of the coverage area results in a closed surface)
         if (z!=extent[4] && z!=extent[5] && 
           y!=extent[2] && y!=extent[3] &&
           x!=extent[0] && x!=extent[1])
         {
-          // it is not a boundary voxel
-          // (we leave a black boundary around the image to ensure that
-          // contouring of the coverage area results in a closed surface)
-          if (IsTargetReachable(manager->GetCurrentNeedleIndex(), rasPoint))
+          targetDesc->SetRASLocation(rasPoint[0], rasPoint[1], rasPoint[2]);
+          
+          if(manager->FindTargetingParams(targetDesc))
           {
-            value=1;
+            if (!targetDesc->GetIsOutsideReach())
+            {
+              // inside reach
+              if (targetDesc->GetDepthCM()<=needleLength)
+              {
+                // needle is long enough
+                value=1;
+              }
+            }
           }
         }
 
@@ -685,54 +706,6 @@ void vtkProstateNavLogic::DeleteCoverageVolume()
     scene->RemoveNode(coverageVolumeNode);
   }
   
-}
-
-//--------------------------------------------------------------------------------------
-bool vtkProstateNavLogic::IsTargetReachable(int needleIndex, double rasLocation[3])
-{
-
-  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
-  if (manager==NULL)
-  {
-    vtkErrorMacro("Error determining if target is reachable, manager is invalid");
-    return false;
-  }
-
-  static vtkProstateNavTargetDescriptor *targetDesc=NULL;
-  if (targetDesc==NULL)
-  {
-    targetDesc=vtkProstateNavTargetDescriptor::New();
-  }
-  //vtkSmartPointer<vtkProstateNavTargetDescriptor> targetDesc=vtkSmartPointer<vtkProstateNavTargetDescriptor>::New();
-
-  targetDesc->SetRASLocation(rasLocation[0], rasLocation[1], rasLocation[2]);
-  
-  targetDesc->SetNeedleType(manager->GetNeedleType(needleIndex), manager->GetNeedleLength(needleIndex), manager->GetNeedleOvershoot(needleIndex));
-
-  // record the FoR str - takes quite long time, so don't use it
-  //std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeID());
-  //targetDesc->SetFoRStr(FoR);
-
-  // 2) calculate targeting parameters for active needle, store in a target descriptor
-  if(!manager->FindTargetingParams(targetDesc))
-      {
-      // error message
-      // to do
-      return false;
-      }
-
-  if (targetDesc->GetIsOutsideReach())
-  {
-    return false;
-  }
-
-  if (targetDesc->GetDepthCM()>manager->GetNeedleLength(needleIndex))
-  {
-    return false;
-  }
-
-
-  return true;
 }
 
 void vtkProstateNavLogic::UpdateTargetListFromMRML()
