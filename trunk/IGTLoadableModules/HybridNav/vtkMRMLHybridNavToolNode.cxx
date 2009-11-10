@@ -21,9 +21,7 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLHybridNavToolNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLNode.h"
-#include <string>
-#include <iostream>
-#include <sstream>
+#include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkObjectFactory.h"
 
@@ -59,7 +57,6 @@ vtkMRMLNode* vtkMRMLHybridNavToolNode::CreateNodeInstance()
 vtkMRMLHybridNavToolNode::vtkMRMLHybridNavToolNode()
 {
   this->HideFromEditors = 0;
-
   this->Calibrated = 0;
   this->ToolName = "";
   this->ToolDescription = "Description";
@@ -114,5 +111,17 @@ void vtkMRMLHybridNavToolNode::SetToolNode(vtkMRMLNode* node)
 //--------------------------------------------------------------------------
 vtkMRMLLinearTransformNode* vtkMRMLHybridNavToolNode::GetToolNode()
 {
-  return this->transformNode;
+  if (transformNode)
+    {
+    return this->transformNode;
+    }
+}
+
+//--------------------------------------------------------------------------
+const char* vtkMRMLHybridNavToolNode::GetToolNodeAsChar()
+{
+  if (transformNode)
+    return this->transformNode->GetID();
+  else
+    return "None";
 }

@@ -72,6 +72,7 @@ public:
  const char* GetToolDescription() { return this->ToolDescription.c_str(); }
  void SetToolNode(vtkMRMLNode*);
  vtkMRMLLinearTransformNode* GetToolNode();
+ const char* GetToolNodeAsChar();
 
 private:
  //BTX

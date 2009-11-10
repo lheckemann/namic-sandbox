@@ -280,15 +280,14 @@ void vtkHybridNavGUI::RemoveGUIObservers ( )
 void vtkHybridNavGUI::AddGUIObservers ( )
 {
   this->RemoveGUIObservers();
-
-  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+ // vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
   //----------------------------------------------------------------
   // MRML
 
   vtkIntArray* events = vtkIntArray::New();
-  //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
-  //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
 
   if (this->GetMRMLScene() != NULL)
@@ -386,30 +385,81 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
     std::cerr << "Tool has been added" << std::endl;
     //Create Tool object, populate list and add node to scene
     vtkMRMLHybridNavToolNode* tool = vtkMRMLHybridNavToolNode::New();
-    //vtkMRMLLinearTransformNode* tool = vtkMRMLLinearTransformNode::New();
     this->GetMRMLScene()->AddNode(tool);
     tool->Modified();
-    //tool->Delete();
+    tool->Delete();
     }
   else if (this->DeleteToolButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
     std::cerr << "Tool has been deleted" << std::endl;
+    int selected = this->ToolList->GetWidget()->GetIndexOfFirstSelectedRow();
+      if (selected >= 0 && selected < (int)this->ToolNodeList.size())
+        {
+        vtkMRMLHybridNavToolNode* tnode
+          = vtkMRMLHybridNavToolNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ToolNodeList[selected]));
+        if (tnode)
+          {
+          this->GetMRMLScene()->RemoveNode(tnode);
+          this->GetMRMLScene()->Modified();
+          //tnode->Delete();
+          int nrow = this->ToolList->GetWidget()->GetNumberOfRows();
+          if (selected >= nrow)
+            {
+            selected = nrow - 1;
+            }
+          this->ToolList->GetWidget()->SelectSingleRow(selected);
+          //UpdateToolPropertyFrame(selected);
+          }
+        }
     }
   else if (this->ToolNameEntry == vtkKWEntry::SafeDownCast(caller)
       && event == vtkKWEntry::EntryValueChangedEvent)
     {
     std::cerr << "Tool Name has been modified." << std::endl;
+    int selected = this->ToolList->GetWidget()->GetIndexOfFirstSelectedRow();
+    if (selected >= 0 && selected < (int)this->ToolNodeList.size())
+      {
+      vtkMRMLHybridNavToolNode* tool
+        = vtkMRMLHybridNavToolNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ToolNodeList[selected]));
+      if (tool)
+        {
+        tool->SetName(this->ToolNameEntry->GetValue());
+        UpdateToolList(UPDATE_SELECTED_ONLY);
+        }
+      }
     }
   else if (this->ToolNodeSelectorMenu == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
     std::cerr << "Node Selector is pressed." << std::endl;
+    int selected = this->ToolList->GetWidget()->GetIndexOfFirstSelectedRow();
+    if (selected >= 0 && selected < (int)this->ToolNodeList.size())
+      {
+      vtkMRMLHybridNavToolNode* tool
+        = vtkMRMLHybridNavToolNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ToolNodeList[selected]));
+      if (tool)
+        {
+        tool->SetToolNode(this->ToolNodeSelectorMenu->GetSelected());
+        UpdateToolList(UPDATE_SELECTED_ONLY);
+        }
+      }
     }
   else if (this->ToolDescriptionEntry == vtkKWEntry::SafeDownCast(caller)
       && event == vtkKWEntry::EntryValueChangedEvent)
     {
     std::cerr << "Tool description has been modified." << std::endl;
+    int selected = this->ToolList->GetWidget()->GetIndexOfFirstSelectedRow();
+    if (selected >= 0 && selected < (int)this->ToolNodeList.size())
+      {
+      vtkMRMLHybridNavToolNode* tool
+        = vtkMRMLHybridNavToolNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ToolNodeList[selected]));
+      if (tool)
+        {
+        tool->SetToolDescription(this->ToolDescriptionEntry->GetValue());
+        UpdateToolList(UPDATE_SELECTED_ONLY);
+        }
+      }
     }
 
   //--------------------------------------------------------------------------
@@ -482,16 +532,16 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
     {
     vtkObject* obj = (vtkObject*)callData;
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(obj);
-    if (node)
+    if (node && strcmp(node->GetNodeTagName(), "HybridNavTool") == 0)
       {
+      std::cerr << "Node event" << std::endl;
       vtkMRMLHybridNavToolNode* tnode = vtkMRMLHybridNavToolNode::SafeDownCast(node);
       // obtain the list of tools in the scene
       UpdateToolNodeList();
-      //UpdateConnectorList(UPDATE_ALL);
-      //int select = this->ConnectorList->GetWidget()->GetNumberOfRows() - 1;
-      //this->ConnectorList->GetWidget()->SelectSingleRow(select);
-      //UpdateConnectorPropertyFrame(select);
-      //UpdateIOConfigTree();
+      UpdateToolList(UPDATE_ALL);
+      int select = this->ToolList->GetWidget()->GetNumberOfRows() - 1;
+      this->ToolList->GetWidget()->SelectSingleRow(select);
+      UpdateToolPropertyFrame(select);
       }
     else
       {
@@ -499,14 +549,28 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
       }
     }
 
+  //---------------------------------------------
+  // Removing a node
+  else if (event == vtkMRMLScene::NodeRemovedEvent)
+    {
+    std::cerr << "Tool Node to be deleted" << std::endl;
+    //vtkObject* obj = (vtkObject*)callData;
+    /*vtkMRMLHybridNavToolNode* node = vtkMRMLHybridNavToolNode::SafeDownCast(obj);
+    if (node)
+      {
+      //UpdateToolNodeList();
+      //UpdateToolList(UPDATE_ALL);
+      }*/
+    }
+
   // Detect if something has happened in the MRML scene
-  if (caller != NULL)
+  /*if (caller != NULL)
     {
     std::cerr<< "MRML event called" << std::endl;
-    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    //vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
 
     //Check to see if calibration transform node has been updated
-    if ((node == dynamic_cast<vtkMRMLNode*>(pivot->transformNode) ) && (event == vtkMRMLTransformableNode::TransformModifiedEvent))
+    /*if ((node == dynamic_cast<vtkMRMLNode*>(pivot->transformNode) ) && (event == vtkMRMLTransformableNode::TransformModifiedEvent))
       {
       std::cerr<< "Node event called" << std::endl;
       //Print node in terminal and send node to calibration vector
@@ -520,7 +584,7 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
         vtkSetAndObserveMRMLNodeEventsMacro(node, node, NULL);
         }
       }
-    }
+    }*/
 }
 
 //---------------------------------------------------------------------------
@@ -664,7 +728,7 @@ void vtkHybridNavGUI::BuildGUIForToolFrame()
   this->ToolNameEntry = vtkKWEntry::New();
   this->ToolNameEntry->SetParent(nameFrame);
   this->ToolNameEntry->Create();
-  this->ToolNameEntry->SetWidth(18);
+  this->ToolNameEntry->SetWidth(25);
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
               nameLabel->GetWidgetName() , this->ToolNameEntry->GetWidgetName());
   nameLabel->Delete();
@@ -716,10 +780,8 @@ void vtkHybridNavGUI::BuildGUIForToolFrame()
 
   this->ToolDescriptionEntry = vtkKWEntry::New();
   this->ToolDescriptionEntry->SetParent(descriptionFrame);
-  this->ToolDescriptionEntry->SetRestrictValueToInteger();
   this->ToolDescriptionEntry->Create();
-  this->ToolDescriptionEntry->SetWidth(15);
-  this->ToolDescriptionEntry->SetValueAsInt(20);
+  this->ToolDescriptionEntry->SetWidth(25);
 
   this->Script ( "pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
                  descriptionLabel->GetWidgetName(),
@@ -842,7 +904,7 @@ void vtkHybridNavGUI::UpdateAll()
 //----------------------------------------------------------------------------
 void vtkHybridNavGUI::UpdateToolNodeList()
 {
-// obtain the list of connectors in the scene
+// update the list of tools in the scene, by saving their ID in a vector
   std::cerr << "Tool node list updated" << std::endl;
   std::vector<vtkMRMLNode*> nodes;
   const char* className = this->GetMRMLScene()->GetClassNameByTag("HybridNavTool");
@@ -859,4 +921,159 @@ void vtkHybridNavGUI::UpdateToolNodeList()
       }
     }
   return;
+}
+
+//---------------------------------------------------------------------------
+void vtkHybridNavGUI::UpdateToolList(int updateLevel)
+{
+  std::cerr << "Tool list updated" << std::endl;
+  // Update Tool List
+  if (this->ToolList == NULL)
+    {
+    return;
+    }
+
+  //----------------------------------------------------------------
+  // Change number of rows (UPDATE_ALL only)
+
+  if (updateLevel >= UPDATE_ALL)
+    {
+
+    // Adjust number of rows in ToolList
+    int numRows = this->ToolList->GetWidget()->GetNumberOfRows();
+    int numTools = this->ToolNodeList.size();
+
+    if (numRows < numTools)
+      {
+      this->ToolList->GetWidget()->AddRows(numTools-numRows);
+      }
+    else if (numRows > numTools)
+      {
+      int ndel = numRows-numTools;
+      for (int i = 0; i < ndel; i ++)
+        {
+        this->ToolList->GetWidget()->DeleteRow(numTools);
+        }
+      }
+    }
+  int numItems = this->ToolNodeList.size();
+
+  //----------------------------------------------------------------
+  // Update rows (UPDATE_ALL, UPDATE_PROPERTIES_ALL and UPDATE_SELECTED_ONLY)
+
+  // Generate list of rows to update
+  std::vector<int> updateRows;
+  updateRows.clear();
+  if (updateLevel >= UPDATE_ALL)
+    {
+    for (int i = 0; i < numItems; i ++)
+      {
+      updateRows.push_back(i);
+      }
+    }
+  else if (updateLevel >= UPDATE_SELECTED_ONLY)
+    {
+    updateRows.push_back(this->ToolList->GetWidget()->GetIndexOfFirstSelectedRow());
+    }
+
+  //Update the Tool List row by row
+  std::vector<int>::iterator iter;
+  for (iter = updateRows.begin(); iter != updateRows.end(); iter ++)
+    {
+    int i = *iter;
+    if (i >= 0 && i < (int)this->ToolNodeList.size())
+      {
+      vtkMRMLHybridNavToolNode* tool
+        = vtkMRMLHybridNavToolNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ToolNodeList[i]));
+      if (tool)
+        {
+        // Tool Name
+        this->ToolList->GetWidget()
+          ->SetCellText(i,0, tool->GetName());
+
+        // Tool Node
+        this->ToolList->GetWidget()
+          ->SetCellText(i,1, tool->GetToolNodeAsChar());
+
+        //Tool Calibrated
+        const char* c;
+        if(tool->GetCalibrated())
+            c="Y";
+        else
+            c="N";
+        this->ToolList->GetWidget()
+          ->SetCellText(i,2, c);
+
+        //Tool Description
+        this->ToolList->GetWidget()
+          ->SetCellText(i,3, tool->GetToolDescription());
+        }
+      }
+    }
+}
+
+
+//---------------------------------------------------------------------------
+void vtkHybridNavGUI::UpdateToolPropertyFrame(int i)
+{
+  // if i < 0, all fields are deactivated.
+
+  int numRows = this->ToolList->GetWidget()->GetNumberOfRows();
+  if (i >= 0 && i >= numRows)
+    {
+    return;
+    }
+
+  //----------------------------------------------------------------
+  // No connector is registered
+  if (i < 0 || numRows <= 0)
+    {
+    // Deactivate everything
+    // Tool Name entry
+    this->ToolNameEntry->SetValue("");
+    this->ToolNameEntry->EnabledOff();
+    this->ToolNameEntry->UpdateEnableState();
+
+    // Tool Node
+    //this->ToolNodeSelectorMenu->SetNoneEnabled(0);
+    //this->ToolNodeSelectorMenu->UpdateEnableState();
+
+    // Tool Description Entry
+    this->ToolDescriptionEntry->SetValue("");
+    this->ToolDescriptionEntry->EnabledOff();
+    this->ToolDescriptionEntry->UpdateEnableState();
+
+    return;
+    }
+
+  //----------------------------------------------------------------
+  // A connector is selected on the list
+
+  if (i < 0 || i >= (int)this->ToolNodeList.size())
+    {
+    return;
+    }
+
+  vtkMRMLHybridNavToolNode* tool
+    = vtkMRMLHybridNavToolNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ToolNodeList[i]));
+
+  if (tool == NULL)  // if the connector has already beeen removed
+    {
+    UpdateToolNodeList();
+    UpdateToolPropertyFrame(i);
+    return;
+    }
+
+  // Tool Name entry
+  this->ToolNameEntry->SetValue(tool->GetName());
+
+  // Tool node
+  if (tool->GetToolNode())
+    {
+    this->ToolNodeSelectorMenu->SetSelected((vtkMRMLNode*)tool->GetToolNode());
+    }
+
+  // Tool Description entry
+  this->ToolDescriptionEntry->SetValue(tool->GetToolDescription());
+
 }
