@@ -6,6 +6,9 @@ INCLUDE_DIRECTORIES( ${HOLE_FILLING_PROJECT_DIR}/Source )
 ADD_EXECUTABLE(ShapeDetectionLevelSetFilter ShapeDetectionLevelSetFilter.cxx)
 TARGET_LINK_LIBRARIES(ShapeDetectionLevelSetFilter ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(CropImage ImageReadRegionOfInterestWrite.cxx)
+TARGET_LINK_LIBRARIES(CropImage ITKBasicFilters ITKIO)
+
 ADD_EXECUTABLE(ShapeDetectionLevelSetRefinementFilter ShapeDetectionLevelSetRefinementFilter.cxx)
 TARGET_LINK_LIBRARIES(ShapeDetectionLevelSetRefinementFilter ITKBasicFilters ITKIO)
 

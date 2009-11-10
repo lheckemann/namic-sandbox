@@ -150,10 +150,24 @@ ADD_TEST(TwoChannelSigmoid_${DATASET2}_${DATASET1}
    75.0 # Beta
   )
 
+ADD_TEST(TwoChannelCrop_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/CropImage
+  ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_Cropped_Sigmoid.mhd
+  30  # startX
+  42  # startY
+   4  # startZ
+  450 # sizeX
+  450 # sizeY
+  170 # sizeZ
+  )
+
+
+
 ADD_TEST(TwoChannelShapeDetection_${DATASET2}_${DATASET1}
   ${CXX_TEST_PATH}/TwoChannelShapeDetectionLevelSetFilter
-  ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
-  ${TEMP}/${DATASET2}_${DATASET1}_ShapeDetection.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_Cropped_Sigmoid.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_Cropped_ShapeDetection.mhd
     25.0 # Initial radius in mm
      1.0 # curvature weight
     80.0 # propagation weight
@@ -163,9 +177,9 @@ ADD_TEST(TwoChannelShapeDetection_${DATASET2}_${DATASET1}
   
 ADD_TEST(TwoChannelShapeDetectionRefinement_${DATASET2}_${DATASET1}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
-  ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
-  ${TEMP}/${DATASET2}_${DATASET1}_ShapeDetection.mhd
-  ${TEMP}/${DATASET2}_${DATASET1}_ShapeDetection_Refined.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_Cropped_Sigmoid.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_Cropped_ShapeDetection.mhd
+  ${TEMP}/${DATASET2}_${DATASET1}_Cropped_ShapeDetection_Refined.mhd
     10.0 # curvature weight
     10.0 # propagation weight
    100.0 # Maximum number of iterations
@@ -173,8 +187,8 @@ ADD_TEST(TwoChannelShapeDetectionRefinement_${DATASET2}_${DATASET1}
  
 ADD_TEST(TwoChannelHoleFilling${DATASETID}
   ${CXX_TEST_PATH}/HoleFillingFilter
-  ${TEMP}/${DATASETID}_Mask.mhd
-  ${TEMP}/${DATASETID}_Filled_Mask.mhd
+  ${TEMP}/${DATASETID}_Cropped_ShapeDetection_Refined.mhd
+  ${TEMP}/${DATASETID}_Cropped_ShapeDetection_Refined_Filled_Mask.mhd
      2 # Manhattan Radius
      2 # Majority
    400 # Maximum number of iterations
