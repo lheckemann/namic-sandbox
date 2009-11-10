@@ -33,6 +33,17 @@ class vtkKWMultiColumnListWithScrollbars;
 
 class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
 {
+  //----------------------------------------------------------------
+  // Type defines
+  //----------------------------------------------------------------
+ public:
+  //BTX
+  // Tool List update level options
+  enum {
+    UPDATE_SELECTED_ONLY   = 0,  // Update selected item only
+    UPDATE_ALL      = 1,         // Update status for all items
+  };
+  //ETX
  public:
 
   vtkTypeRevisionMacro ( vtkHybridNavGUI, vtkSlicerModuleGUI );
@@ -154,6 +165,11 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   //Populates the tool list with all the tool nodes
   void UpdateToolNodeList();
+  void UpdateToolList(int updateLevel);
+  void UpdateToolPropertyFrame(int i);
+
+  //Vector with tool list
+
 
   //BTX
   // List of tool nodes
