@@ -120,7 +120,10 @@ int main( int argc, char * argv[] )
     std::cerr << "Usage: " << argv[0] << " <fixed image> <mask> <moving image> <resampled output>" << std::endl;
     return EXIT_FAILURE;
     }
-  const double maxa = M_PI/8;
+
+  const bool DEBUG = true;
+ 
+  const double maxa = M_PI/16;
 //  const double maxa = 0;
   const double res1 = M_PI/16;
   const double res2 = res1/2;
@@ -145,7 +148,8 @@ int main( int argc, char * argv[] )
   typedef RecursiveMultiResolutionPyramidImageFilter<FileImage, ProcessingImage> ImagePyramid;
 
   const unsigned int numberoflevels = ceil(log(8.0/ fabs(freader->GetOutput()->GetSpacing()[2]))/log(2));
-  std::cout << "nl: " << numberoflevels << std::endl;
+  if(DEBUG)
+    std::cout << "nl: " << numberoflevels << std::endl;
 
   ImagePyramid::Pointer fpyramid = ImagePyramid::New();
   typedef ImagePyramid::ScheduleType Schedule;
@@ -164,13 +168,17 @@ int main( int argc, char * argv[] )
   mpyramid->SetInput(mreader->GetOutput());
   mpyramid->Update();
 
-  std::cout << "schedule: " << fpyramid->GetSchedule() << std::endl;
+  if(DEBUG)
+    {
+    std::cout << "schedule: " << fpyramid->GetSchedule() << std::endl;
 
-  // 0 is the downsampled image
-  for(unsigned int i = 0;  i < numberoflevels; ++i)
+    // 0 is the downsampled image
+    for(unsigned int i = 0;  i < numberoflevels; ++i)
     {
     std::cout << "pyramid[" << i << "]: " << 
       fpyramid->GetOutput(i)->GetLargestPossibleRegion().GetSize() << std::endl;
+    }
+
     }
   
   typedef FixedRotationSimilarity3DTransform<double> FixedRotationTransform;
@@ -188,8 +196,11 @@ int main( int argc, char * argv[] )
   tinit->MomentsOn();
   //tinit->GeometryOn();
 
-  writeimage(fpyramid->GetOutput(0), "tmp/dfixed.nrrd");
-  writeimage(mpyramid->GetOutput(0), "tmp/dmoving.nrrd");
+  if(DEBUG)
+    {
+    writeimage(fpyramid->GetOutput(0), "tmp/dfixed.nrrd");
+    writeimage(mpyramid->GetOutput(0), "tmp/dmoving.nrrd");
+    }
 
   try
     {
@@ -201,7 +212,8 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
-  std::cout << "Initialized transform: " << std::endl;
+  if(DEBUG)
+    std::cout << "Initialized transform: " << std::endl;
   //std::cout << initt << std::endl;
 
   // Generate a set of rotations
@@ -212,16 +224,19 @@ int main( int argc, char * argv[] )
   RotationGrid::Pointer coarsegrid = 
     createGrid<RotationGrid>(maxa, res1);
 
-  std::cout << "Built " << coarsegrid->GetLargestPossibleRegion().GetNumberOfPixels() << 
-    " trial rotations" << std::endl;
-
-  std::ofstream file("tmp/moresearch.csv");
-  if(!file)
+  if(DEBUG)
     {
+    std::cout << "Built " << coarsegrid->GetLargestPossibleRegion().GetNumberOfPixels() << 
+      " trial rotations" << std::endl;
+
+    std::ofstream file("tmp/moresearch.csv");
+    if(!file)
+      {
     std::cerr  << "cannot open csv file for writing" << std::endl;
     return EXIT_FAILURE;
+      }
+    file << "metric,i,# its,t0,t1,t2,s" << std::endl;
     }
-  file << "metric,i,# its,t0,t1,t2,s" << std::endl;
 
   std::vector<double> scales;
 
@@ -356,19 +371,22 @@ int main( int argc, char * argv[] )
 
     nt->SetParameters( reg->GetLastTransformParameters() );
 
-    std::cout << "Finished grid point " << counter << std::endl;
-    // std::cout << "t: " << initt->GetTranslation() << std::endl;
+    if(DEBUG)
+      {
+      std::cout << "Finished grid point " << counter << std::endl;
+      // std::cout << "t: " << initt->GetTranslation() << std::endl;
+      }
 
     typedef FixedRotationTransform::ParametersType ParametersType;
     ParametersType pm = nt->GetParameters();
 
-    file << opt->GetValue() << "," <<
-      counter << "," <<
-      opt->GetCurrentIteration() << "," <<
-      pm[0] << "," <<
-      pm[1] << "," <<
-      pm[2] << "," <<
-      pm[3] << std::endl;
+    // file << opt->GetValue() << "," <<
+    //   counter << "," <<
+    //   opt->GetCurrentIteration() << "," <<
+    //   pm[0] << "," <<
+    //   pm[1] << "," <<
+    //   pm[2] << "," <<
+    //   pm[3] << std::endl;
 
     // std::cout << "Metric: " << opt->GetValue() << std::endl;
     // std::cout << "it: " << opt->GetCurrentIteration() << std::endl;
@@ -386,13 +404,16 @@ int main( int argc, char * argv[] )
 
     scales.push_back(pm[3]);
 
-    std::stringstream ss;
-    ss << "tmp/pre" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
-    writeimage(mpyramid->GetOutput(0), ot, ss.str());
-    ss.clear();
-    ss.str("");
-    ss << "tmp/post" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
-    writeimage(mpyramid->GetOutput(0), nt, ss.str());
+    if(DEBUG)
+      {
+      std::stringstream ss;
+      ss << "tmp/pre" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
+      writeimage(mpyramid->GetOutput(0), ot, ss.str());
+      ss.clear();
+      ss.str("");
+      ss << "tmp/post" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
+      writeimage(mpyramid->GetOutput(0), nt, ss.str());
+      }
     ++counter;
     }
 
@@ -443,7 +464,8 @@ int main( int argc, char * argv[] )
                    scales.end());
   const double mscale = *(scales.begin() + scales.size()/2);
 
-  std::cout << "Computing on fine grid" << std::endl;
+  if(DEBUG)
+    std::cout << "Computing on fine grid" << std::endl;
 
   typedef ImageRegionIteratorWithIndex<CostGrid> CostIterator;
   typedef ImageRegionConstIteratorWithIndex<CostGrid> CostConstIterator;
@@ -486,6 +508,9 @@ int main( int argc, char * argv[] )
     cit.Set(m);
     }
 
+  if(DEBUG)
+    std::cout << "Finished fine grid" << std::endl;
+
   typedef itk::Image<unsigned char, 3> BooleanImage;
 
   typedef itk::RegionalMinimaImageFilter<CostGrid, BooleanImage> RegionalMinimaFilterType;
@@ -495,7 +520,14 @@ int main( int argc, char * argv[] )
   minima->SetFullyConnected(false);
   minima->SetForegroundValue(1);
   minima->SetBackgroundValue(0);
+
+  if(DEBUG)
+    std::cout << "Computing minima" << std::endl;
+
   minima->Update();
+
+  if(DEBUG)
+    std::cout << "Finished computing minima" << std::endl;
 
   // Build a priority queue of best N minima to use
   typedef RotationGrid::IndexType RIndexType;
@@ -512,6 +544,9 @@ int main( int argc, char * argv[] )
   BooleanConstIterator bit(minima->GetOutput(),
                            minima->GetOutput()->GetLargestPossibleRegion());
 
+  if(DEBUG)
+    std::cout << "Putting minima in priority queue" << std::endl;
+  
   for(cit.GoToBegin(), bit.GoToBegin();
       !cit.IsAtEnd();
       ++cit, ++bit)
@@ -533,26 +568,32 @@ int main( int argc, char * argv[] )
 
   for(unsigned int candidateRank = 0; candidateRank < 3; ++candidateRank)
     {
-    std::cout << "i: " << candidateRank << std::endl;
+    if(DEBUG)
+      std::cout << "i: " << candidateRank << std::endl;
 
     PairType p = pq.top();
     pq.pop();
 
-    std::cout << "m: " << p.first << std::endl;
-    std::cout << "ri: " << p.second << std::endl;
+    if(DEBUG)
+      {
+      std::cout << "m: " << p.first << std::endl;
+      std::cout << "ri: " << p.second << std::endl;
+      }
 
     SimilarityParameters params(SimilarityTransform::ParametersDimension);
     // Get the rotatoin
     RPointType rotationvalue;
     costgrid->TransformIndexToPhysicalPoint(p.second, rotationvalue);
 
-    std::cout << "Euler angles: " << rotationvalue << std::endl;
+    if(DEBUG)
+      std::cout << "Euler angles: " << rotationvalue << std::endl;
 
     params[0] = rotationvalue[0];
     params[1] = rotationvalue[1];
     params[2] = rotationvalue[2];
 
-    std::cout << "Scale: " << mscale << std::endl;
+    if(DEBUG)
+      std::cout << "Scale: " << mscale << std::endl;
     
     // Get the translation
     RotationGrid::PixelType t =
@@ -641,7 +682,10 @@ int main( int argc, char * argv[] )
     opt->SetMaximize(false);
     opt->SetCatchGetValueException( true );
     opt->SetMetricWorstPossibleValue(0.0);
-    opt->AddObserver( IterationEvent(), command);
+    if(DEBUG)
+      {
+      opt->AddObserver( IterationEvent(), command);
+      }
 
     opt->SetStepLength(10.0);
     opt->SetStepTolerance(.001);
@@ -663,18 +707,24 @@ int main( int argc, char * argv[] )
     reg->SetTransform(ot);
     reg->SetInitialTransformParameters(*pit);
 
-    std::cout << "======= Candidate ======" << std::endl;
+    if(DEBUG)
+      {
+      std::cout << "======= Candidate ======" << std::endl;
 
-    std::cout << "Initial optimized transform params" << std::endl
-              << *pit << std::endl;
+      std::cout << "Initial optimized transform params" << std::endl
+                << *pit << std::endl;
+      }
 
     reg->StartRegistration();
 
     SimilarityParameters pm = reg->GetLastTransformParameters();
 
-    std::cout << "8mm optimized transform params" << std::endl
-              << pm << std::endl;
-    std::cout << "Metric: " << opt->GetValue() << std::endl;
+    if(DEBUG)
+      {
+      std::cout << "8mm optimized transform params" << std::endl
+                << pm << std::endl;
+      std::cout << "Metric: " << opt->GetValue() << std::endl;
+      }
 
     // BUmp up a resolution level
     reg->SetFixedImage(fpyramid->GetOutput(1));
@@ -692,9 +742,12 @@ int main( int argc, char * argv[] )
 
     pm = reg->GetLastTransformParameters();
 
-    std::cout << "4mm optimized transform params" << std::endl
-              << pm << std::endl;
-    std::cout << "Metric: " << opt->GetValue() << std::endl;
+    if(DEBUG)
+      {
+      std::cout << "4mm optimized transform params" << std::endl
+                << pm << std::endl;
+      std::cout << "Metric: " << opt->GetValue() << std::endl;
+      }
 
     if(opt->GetValue() < bestValue)
       {
@@ -705,8 +758,11 @@ int main( int argc, char * argv[] )
     }
 
   // Get the best metric of the level 1 registrations
-  std::cout << "Best metric: " << bestValue << std::endl;
-  std::cout << "Params: " << bestParams <<std::endl;
+  if(DEBUG)
+    {
+    std::cout << "Best metric: " << bestValue << std::endl;
+    std::cout << "Params: " << bestParams <<std::endl;
+    }
 
   typedef DecomposedAffine3DTransform<double>             AffineTransform;
   
@@ -793,8 +849,11 @@ int main( int argc, char * argv[] )
   opt->SetMaximize(false);
   opt->SetCatchGetValueException( true );
   opt->SetMetricWorstPossibleValue(0.0);
-  opt->AddObserver( IterationEvent(), command);
-  opt->AddObserver( StartEvent(), command);
+  if(DEBUG)
+    {
+    opt->AddObserver( IterationEvent(), command);
+    opt->AddObserver( StartEvent(), command);
+    }
 
   opt->SetStepLength(10.0);
   opt->SetStepTolerance(.001);
@@ -813,8 +872,11 @@ int main( int argc, char * argv[] )
 
   AffineTransform::ParametersType mm2p = reg->GetLastTransformParameters();
 
-  std::cout << " 2mm optimized params " << std::endl
-            << mm2p << std::endl;
+  if(DEBUG)
+    {
+    std::cout << " 2mm optimized params " << std::endl
+              << mm2p << std::endl;
+    }
 
   // Rerun with new params
 
@@ -836,8 +898,11 @@ int main( int argc, char * argv[] )
     
   AffineTransform::ParametersType finalp = reg->GetLastTransformParameters();
 
-  std::cout << " 1mm optimized params " << std::endl
-            << finalp << std::endl;
+  if(DEBUG)
+    {
+    std::cout << " 1mm optimized params " << std::endl
+              << finalp << std::endl;
+    }
 
   writeimage(mpyramid->GetOutput(3), affinet, argv[4]);
 
