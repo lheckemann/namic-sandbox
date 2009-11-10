@@ -1060,7 +1060,6 @@ void vtkProstateNavGUI::UpdateGUI() // from MRML
       }
   }
   
-  BringTargetToViewIn2DViews();
   UpdateCurrentTargetDisplay(); // if a new node is added then it is selected by default => keep only the current target as selected
 }
 
