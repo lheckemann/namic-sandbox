@@ -145,7 +145,7 @@ ADD_TEST(TwoChannelSigmoid_${DATASET2}_${DATASET1}
   ${TEMP}/${DATASET2}_resampled_to_${DATASET1}.mhd
   ${TEMP}/${DATASET2}_${DATASET1}_GradientMagnitude.mhd
   ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
-   0.7 # Sigma in mm
+   0.3 # Sigma in mm
   -1.0 # Alpha
    75.0 # Beta
   )
@@ -171,7 +171,7 @@ ADD_TEST(TwoChannelShapeDetectionRefinement_${DATASET2}_${DATASET1}
    100.0 # Maximum number of iterations
   )
  
-ADD_TEST(ShapeDetectionHoleFilling${DATASETID}
+ADD_TEST(TwoChannelHoleFilling${DATASETID}
   ${CXX_TEST_PATH}/HoleFillingFilter
   ${TEMP}/${DATASETID}_Mask.mhd
   ${TEMP}/${DATASETID}_Filled_Mask.mhd
@@ -179,18 +179,6 @@ ADD_TEST(ShapeDetectionHoleFilling${DATASETID}
      2 # Majority
    400 # Maximum number of iterations
   )
-
-ADD_TEST(ShapeDetectionRefinement${DATASETID}
-  ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
-  ${TEMP}/${DATASETID}_Sigmoid.mhd
-  ${TEMP}/${DATASETID}_Filled_Mask.mhd
-  ${TEMP}/${DATASETID}_Refined_Mask.mhd
-    10.0 # curvature weight
-    10.0 # propagation weight
-   100.0 # Maximum number of iterations
-  ${SEEDS_DATA_DIR}/${DATASETID}_Seeds.txt
-  )
-
 
 ADD_TEST(Refinement_of_${DATASET1}_with_${DATASET2}
   ${CXX_TEST_PATH}/ShapeDetectionLevelSetRefinementFilter
