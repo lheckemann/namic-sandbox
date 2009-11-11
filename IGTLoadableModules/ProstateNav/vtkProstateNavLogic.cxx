@@ -333,6 +333,49 @@ vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(const char *fileN
 }
 
 //---------------------------------------------------------------------------
+int vtkProstateNavLogic::SelectVolumeInScene(vtkMRMLScalarVolumeNode* volumeNode, VolumeType volumeType)
+{
+  if (volumeNode==0)
+  {
+    vtkErrorMacro("SelectVolumeInScene: invalid volume");
+    return 0;
+  }
+
+  vtkMRMLProstateNavManagerNode* manager=this->GUI->GetProstateNavManager();
+  if (manager==NULL)
+  {
+    vtkErrorMacro("Error adding volume to the scene, manager is invalid");
+    return 0;
+  }
+
+  this->SetAutoScaleScalarVolume(volumeNode);
+  this->SetSliceViewFromVolume(volumeNode);
+
+  this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID( volumeNode->GetID() );
+  this->GetGUI()->GetApplicationLogic()->PropagateVolumeSelection();
+
+  switch (volumeType)
+  {
+  case VOL_CALIBRATION:
+    manager->SetCalibrationVolumeNodeID(volumeNode->GetID());
+    break;
+  case VOL_TARGETING:
+    manager->SetTargetingVolumeNodeID(volumeNode->GetID());
+    break;
+  case VOL_VERIFICATION:
+    manager->SetVerificationVolumeNodeID(volumeNode->GetID());
+    break;
+  default:
+    vtkErrorMacro("AddVolumeToScene: unknown volume type: " << volumeType);
+  }
+  
+  volumeNode->Modified();
+  this->Modified();
+
+  return 1;
+}
+
+//---------------------------------------------------------------------------
 vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddArchetypeVolume(const char* fileName, const char *volumeName)
 {
   // Set up storageNode

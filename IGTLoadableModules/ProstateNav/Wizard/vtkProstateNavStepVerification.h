@@ -22,7 +22,7 @@ class vtkKWEntrySet;
 class vtkKWEntryWithLabel;
 class vtkKWFrame;
 class vtkKWLabel;
-class vtkKWLoadSaveButton;
+class vtkSlicerNodeSelectorWidget;
 class vtkKWMatrixWidgetWithLabel;
 class vtkKWMenuButton;
 class vtkKWMenuButtonWithLabel;
@@ -65,10 +65,6 @@ protected:
   void UpdateVerificationResultsForCurrentTarget();
   void DisplayVerificationResultsForCurrentTarget();
 
-  // Description
-  // Callback on the load targeting volume button
-  void LoadVerificationVolumeButtonCallback(const char *fileName); 
-
   void AddGUIObservers();
   void RemoveGUIObservers();  
 
@@ -86,7 +82,8 @@ protected:
   
   // TargetPlanning
   vtkKWFrame *VolumeSelectionFrame;
-  vtkKWLoadSaveButton *LoadVerificationVolumeButton;
+  vtkKWPushButton *LoadVerificationVolumeButton;
+  vtkSlicerNodeSelectorWidget* VolumeSelectorWidget;
   vtkKWFrame *LoadVolumeDialogFrame;
 
   // TargetList frame

@@ -6,6 +6,7 @@
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationLogic.h"
 #include "vtkMRMLFiducialListNode.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 
 #include "vtkMath.h"
 #include "vtkLineSource.h"
@@ -67,7 +68,8 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
   this->CalibrationPointListNode->SetName("CalibrationMarkers");
 
   this->LoadVolumeDialogFrame=vtkSmartPointer<vtkKWFrame>::New();
-  this->LoadCalibrationVolumeButton=vtkSmartPointer<vtkKWLoadSaveButton>::New();
+  this->LoadCalibrationVolumeButton=vtkSmartPointer<vtkKWPushButton>::New();
+  this->VolumeSelectorWidget=vtkSmartPointer<vtkSlicerNodeSelectorWidget>::New();
   this->ResetCalibrationButton=vtkSmartPointer<vtkKWPushButton>::New();
   this->ResegmentButton=vtkSmartPointer<vtkKWPushButton>::New();
   this->EditMarkerPositionButton=vtkSmartPointer<vtkKWCheckButton>::New();  
@@ -159,13 +161,25 @@ void vtkProstateNavFiducialCalibrationStep::ShowLoadVolumeControls()
     this->LoadCalibrationVolumeButton->SetHighlightThickness(2);
     this->LoadCalibrationVolumeButton->SetBackgroundColor(0.85,0.85,0.85);
     this->LoadCalibrationVolumeButton->SetActiveBackgroundColor(1,1,1);        
-    this->LoadCalibrationVolumeButton->SetText( "Browse for Calibration Volume DICOM Series");
-    this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->SetFileTypes("{ {DICOM Files} {*} }");    
-    this->LoadCalibrationVolumeButton->TrimPathFromFileNameOff();    
-    this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode    
-    //this->LoadCalibrationVolumeButton->GetWidget()->AddObserver(vtkKWPushButton::InvokedEvent, this->WizardGUICallbackCommand);
+    this->LoadCalibrationVolumeButton->SetText( "Load volume");
+    this->LoadCalibrationVolumeButton->SetBalloonHelpString("Click to load a volume. Need to additionally select the volume to make it the current calibration volume.");
     }
   this->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->LoadCalibrationVolumeButton->GetWidgetName());
+
+  if (!this->VolumeSelectorWidget->IsCreated())
+    {
+    this->VolumeSelectorWidget->SetParent(this->LoadVolumeDialogFrame);
+    this->VolumeSelectorWidget->Create();
+    this->VolumeSelectorWidget->SetBorderWidth(2);  
+    this->VolumeSelectorWidget->SetNodeClass("vtkMRMLVolumeNode", NULL, NULL, NULL);
+    this->VolumeSelectorWidget->SetMRMLScene(this->GetLogic()->GetApplicationLogic()->GetMRMLScene());
+    this->VolumeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+    this->VolumeSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
+    this->VolumeSelectorWidget->SetLabelText( "Calibration Volume: ");
+    this->VolumeSelectorWidget->SetBalloonHelpString("Select the calibration volume from the current scene.");    
+    }
+  this->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->VolumeSelectorWidget->GetWidgetName());
+
 }
 
 //----------------------------------------------------------------------------
@@ -407,7 +421,18 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
   this->ShowAxesIn3DView(true);
   this->ShowMarkerVolumesIn3DView(true);
 
-  
+  vtkMRMLProstateNavManagerNode *manager= this->GetGUI()->GetProstateNavManager();
+  if(manager!=NULL)
+  {
+    const char* calVolNodeID = manager->GetCalibrationVolumeNodeID();
+    vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(calVolNodeID));
+    if ( calVolNode )
+    {
+      this->VolumeSelectorWidget->UpdateMenu();
+      this->VolumeSelectorWidget->SetSelected( calVolNode );
+    }
+  }
+
   vtkMRMLScene* scene=NULL;
   if (this->GetLogic())
   {
@@ -427,6 +452,27 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
     }
   }
 
+  // update calibration marker positions from fiducials (needed for testing&debugging)
+  vtkMRMLTransRectalProstateRobotNode* robot= GetRobot();
+  if(robot==NULL)
+  {
+    vtkErrorMacro("UpdateCalibration: node is invalid");
+  }
+  else
+  {
+    int fidCount=this->CalibrationPointListNode->GetNumberOfFiducials();
+    for (int i=0; i<CALIB_MARKER_COUNT && i<fidCount; i++)
+    {
+      float* rasPoint=this->CalibrationPointListNode->GetNthFiducialXYZ(i);
+      double rasPointDouble[3]={rasPoint[0], rasPoint[1], rasPoint[2]};
+      robot->SetCalibrationMarker(i, rasPointDouble);
+    }
+    if (this->CalibrationPointListNode->GetNumberOfFiducials()>=CALIB_MARKER_COUNT)
+    {
+      Resegment();
+    }
+  }
+
   AddGUIObservers();
   AddMRMLObservers();
 }
@@ -441,6 +487,7 @@ void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
   ClearMarkerVolumesIn3DView();
   ClearAxesIn3DView();
 
+  /* // it is useful for testing to access the fiducials (to set a position manually, etc.)
   vtkMRMLScene* scene=NULL;
   if (this->GetLogic())
   {
@@ -457,6 +504,7 @@ void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
     scene->RemoveNode(this->CalibrationPointListNode);
     this->CalibrationPointListNode->SetScene(NULL);
   }
+  */
 
 }
 
@@ -529,7 +577,8 @@ void vtkProstateNavFiducialCalibrationStep::AddGUIObservers()
   this->ResetCalibrationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->EditMarkerPositionButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ResegmentButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+  this->LoadCalibrationVolumeButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );  
   for (int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     this->JumpToFiducialButton[i]->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -541,7 +590,8 @@ void vtkProstateNavFiducialCalibrationStep::RemoveGUIObservers()
   this->ResetCalibrationButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);  
   this->EditMarkerPositionButton->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ResegmentButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+  this->LoadCalibrationVolumeButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->VolumeSelectorWidget->RemoveObservers ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,  (vtkCommand *)this->GUICallbackCommand );
   for (int i=0; i<CALIB_MARKER_COUNT; i++)
   {
     this->JumpToFiducialButton[i]->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -549,8 +599,7 @@ void vtkProstateNavFiducialCalibrationStep::RemoveGUIObservers()
 }
 //----------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::Enter()
-{
-
+{  
 
 }
 
@@ -602,16 +651,9 @@ void vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents(vtkObject *caller,
       return;
   
   // load calib volume dialog button
-  if (this->LoadCalibrationVolumeButton && this->LoadCalibrationVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+  if (this->LoadCalibrationVolumeButton && this->LoadCalibrationVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
     {
-    this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("TRProstateOpenPathCalibVol");
-    const char *fileName = this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->GetFileName();    
-    if ( fileName ) 
-      {
-      this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPathCalibVol");
-      // call the callback function
-      this->LoadCalibrationVolumeButtonCallback(fileName);    
-      } 
+    this->GetApplication()->Script("::LoadVolume::ShowDialog");
     }
 
   // Calibrate
@@ -639,43 +681,18 @@ void vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents(vtkObject *caller,
     }  
   }
 
+  if (this->VolumeSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
+    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
+  {
+    vtkMRMLScalarVolumeNode *volume = vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeSelectorWidget->GetSelected());
+    if (volume != NULL)
+    {
+      this->GetGUI()->GetLogic()->SelectVolumeInScene(volume, VOL_CALIBRATION);
+      this->EditMarkerPositionButton->SetSelectedState(1);
+    }
+  }
 }
 
-//-----------------------------------------------------------------------------
-void vtkProstateNavFiducialCalibrationStep::LoadCalibrationVolumeButtonCallback(const char *fileName)
-{
-  std::string fileString(fileName);
-  for (unsigned int i = 0; i < fileString.length(); i++)
-    {
-    if (fileString[i] == '\\')
-      {
-      fileString[i] = '/';
-      }
-    }
-  
-  this->LoadCalibrationVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPath");
-
-  vtkMRMLScalarVolumeNode *volumeNode = this->GetGUI()->GetLogic()->AddVolumeToScene(fileString.c_str(), VOL_CALIBRATION);
-        
-  if (volumeNode)
-    {
-    this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID( volumeNode->GetID() );
-    this->GetGUI()->GetApplicationLogic()->PropagateVolumeSelection();
-    this->EditMarkerPositionButton->SetSelectedState(1);
-    }
-  else 
-    {
-    vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
-    dialog->SetParent ( this->LoadVolumeDialogFrame );
-    dialog->SetStyleToMessage();
-    std::string msg = std::string("Unable to read volume file ") + std::string(fileName);
-    dialog->SetText(msg.c_str());
-    dialog->Create ( );
-    dialog->Invoke();
-    dialog->Delete();
-    }
-     
-}
 //-----------------------------------------------------------------------------
 void vtkProstateNavFiducialCalibrationStep::Reset()
 {

@@ -86,6 +86,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   // targeting or verification volume.
   vtkMRMLScalarVolumeNode *AddVolumeToScene(const char *fileName, VolumeType volumeType=VOL_GENERIC);
 
+  // Description:
+  // Set a specific role for a loaded volume.
+  int SelectVolumeInScene(vtkMRMLScalarVolumeNode* volumeNode, VolumeType volumeType);
+
   int ShowCoverage(bool show);
 
   // Description:
