@@ -29,12 +29,12 @@
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 8 )
+  if( argc < 9 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " inputImage1 inputImage2  outputGradientMagnitude outputSigmoid";
-    std::cerr << " Sigma SigmoidAlpha SigmoidBeta ";
+    std::cerr << " Sigma SigmoidAlpha SigmoidBeta Weight"; //Here Weight represent the value used in SetAlpha Note 0<= Alpha <=1 
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -90,7 +90,7 @@ int main( int argc, char *argv[] )
   weightedSum->SetInput1( gradientMagnitude1->GetOutput() );
   weightedSum->SetInput2( gradientMagnitude2->GetOutput() );
 
-  weightedSum->SetAlpha( 0.953 );
+  weightedSum->SetAlpha( atof(argv[8]) );
 
   sigmoid->SetInput( weightedSum->GetOutput() );
 
