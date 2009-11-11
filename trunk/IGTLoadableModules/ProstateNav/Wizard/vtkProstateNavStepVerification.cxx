@@ -25,6 +25,7 @@
 #include "vtkSlicerFiducialsGUI.h"
 #include "vtkSlicerFiducialsLogic.h"
 #include "vtkMRMLSelectionNode.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 
 #include "vtkMRMLLinearTransformNode.h"
 #include "igtlMath.h"
@@ -52,7 +53,6 @@
 #include "vtkKWLabel.h"
 #include "vtkKWEntryWithLabel.h"
 #include "vtkKWEntrySet.h"
-#include "vtkKWLoadSaveButton.h"
 #include "vtkKWMessageDialog.h"
 #include "vtkKWText.h"
 #include "vtkKWPushButton.h"
@@ -107,7 +107,7 @@ vtkProstateNavStepVerification::vtkProstateNavStepVerification()
   // TargetPlanning frame
   this->VolumeSelectionFrame=NULL;
   this->LoadVerificationVolumeButton=NULL;
-  this->VolumeSelectionFrame=NULL;
+  this->VolumeSelectorWidget=NULL;
 
   // TargetList frame
   this->TargetListFrame=NULL;
@@ -140,8 +140,8 @@ vtkProstateNavStepVerification::~vtkProstateNavStepVerification()
   
   // TargetPlanning
   DELETE_IF_NULL_WITH_SETPARENT_NULL(VolumeSelectionFrame);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(LoadVerificationVolumeButton);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(VolumeSelectionFrame);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(LoadVerificationVolumeButton);  
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(VolumeSelectorWidget);
 
   // TargetList frame
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetListFrame);
@@ -226,12 +226,12 @@ void vtkProstateNavStepVerification::ShowVolumeSelectionFrame()
     this->VolumeSelectionFrame->Create();
     }
 
-  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
-               this->VolumeSelectionFrame->GetWidgetName());
- 
- if (!this->LoadVerificationVolumeButton)
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2",
+    this->VolumeSelectionFrame->GetWidgetName());
+
+  if (!this->LoadVerificationVolumeButton)
     {
-     this->LoadVerificationVolumeButton = vtkKWLoadSaveButton::New();
+    this->LoadVerificationVolumeButton = vtkKWLoadSaveButton::New();
     }
   if (!this->LoadVerificationVolumeButton->IsCreated())
     {
@@ -242,14 +242,28 @@ void vtkProstateNavStepVerification::ShowVolumeSelectionFrame()
     this->LoadVerificationVolumeButton->SetHighlightThickness(2);
     this->LoadVerificationVolumeButton->SetBackgroundColor(0.85,0.85,0.85);
     this->LoadVerificationVolumeButton->SetActiveBackgroundColor(1,1,1);        
-    this->LoadVerificationVolumeButton->SetText( "Browse for Verification Volume DICOM Series");
-    this->LoadVerificationVolumeButton->GetLoadSaveDialog()->SetFileTypes("{ {DICOM Files} {*} }");
-    this->LoadVerificationVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-    this->LoadVerificationVolumeButton->TrimPathFromFileNameOff();    
-    this->LoadVerificationVolumeButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode        
+    this->LoadVerificationVolumeButton->SetText( "Load volume");
+    this->LoadVerificationVolumeButton->SetBalloonHelpString("Click to load a volume. Need to additionally select the volume to make it the current verification volume.");
+    }  
+  this->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->LoadVerificationVolumeButton->GetWidgetName());
+
+  if (!this->VolumeSelectorWidget)
+    {
+     this->VolumeSelectorWidget = vtkSlicerNodeSelectorWidget::New();
     }
-  
-  this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky w", this->LoadVerificationVolumeButton->GetWidgetName());
+  if (!this->VolumeSelectorWidget->IsCreated())
+    {
+    this->VolumeSelectorWidget->SetParent(this->VolumeSelectionFrame);
+    this->VolumeSelectorWidget->Create();
+    this->VolumeSelectorWidget->SetBorderWidth(2);  
+    this->VolumeSelectorWidget->SetNodeClass("vtkMRMLVolumeNode", NULL, NULL, NULL);
+    this->VolumeSelectorWidget->SetMRMLScene(this->GetLogic()->GetApplicationLogic()->GetMRMLScene());
+    this->VolumeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+    this->VolumeSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
+    this->VolumeSelectorWidget->SetLabelText( "Verification Volume: ");
+    this->VolumeSelectorWidget->SetBalloonHelpString("Select the targeting volume from the current scene.");
+    }
+  this->Script("pack %s -side top -fill x -anchor nw -padx 2 -pady 2", this->VolumeSelectorWidget->GetWidgetName());
 
 }
 
@@ -335,7 +349,7 @@ void vtkProstateNavStepVerification::ShowVerificationControlFrame()
     this->VerificationControlFrame->SetParent(parent);
     this->VerificationControlFrame->Create();
     }
-  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+  this->Script("pack %s -side top -anchor nw -expand y -fill x -padx 0 -pady 2",
                this->VerificationControlFrame->GetWidgetName());
 
   if(!this->Message)
@@ -392,26 +406,26 @@ void vtkProstateNavStepVerification::ProcessGUIEvents(vtkObject *caller,
 
   }
 
-  /////////
+  // -----------------------------------------------------------------
+  // Load volume button Pressed
 
-  vtkMRMLProstateNavManagerNode *mrmlNode = this->GetGUI()->GetProstateNavManager();
-
-  if(!mrmlNode)
-    return;
-
-  // load targeting volume dialog button
-  if (this->LoadVerificationVolumeButton && this->LoadVerificationVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
-  {
-    this->LoadVerificationVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("ProstateNavOpenPathVol");          
-    const char *fileName = this->LoadVerificationVolumeButton->GetLoadSaveDialog()->GetFileName();
-    if ( fileName ) 
+  if (this->LoadVerificationVolumeButton && this->LoadVerificationVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
     {
-      this->LoadVerificationVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("ProstateNavOpenPathVol");
-      // call the callback function
-      this->LoadVerificationVolumeButtonCallback(fileName);    
-    } 
-  }
+    this->GetApplication()->Script("::LoadVolume::ShowDialog");
+    }
 
+  // -----------------------------------------------------------------
+  // Volume selector
+  
+  if (this->VolumeSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
+    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
+  {
+    vtkMRMLScalarVolumeNode *volume = vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeSelectorWidget->GetSelected());
+    if (volume != NULL)
+    {
+      this->GetGUI()->GetLogic()->SelectVolumeInScene(volume, VOL_VERIFICATION);
+    }
+  }
 }
 
 
@@ -623,10 +637,13 @@ void vtkProstateNavStepVerification::AddGUIObservers()
 {
   this->RemoveGUIObservers();
 
-    // 1) click on load targeting volume dialog
   if (this->LoadVerificationVolumeButton)
     {
-    this->LoadVerificationVolumeButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->LoadVerificationVolumeButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand); 
+    }
+  if (this->VolumeSelectorWidget)
+    {
+    this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);  
     }
   if (this->VerifyButton)
     {
@@ -647,7 +664,11 @@ void vtkProstateNavStepVerification::RemoveGUIObservers()
 {
   if (this->LoadVerificationVolumeButton)
     {
-    this->LoadVerificationVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->LoadVerificationVolumeButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand); 
+    }
+  if (this->VolumeSelectorWidget)
+    {
+    this->VolumeSelectorWidget->RemoveObserver ((vtkCommand *)this->GUICallbackCommand);  
     }
   if (this->VerifyButton)
     {
@@ -662,41 +683,6 @@ void vtkProstateNavStepVerification::RemoveGUIObservers()
     this->TargetList->GetWidget()->SetCellUpdatedCommand(this, "");
     this->TargetList->GetWidget()->SetSelectionChangedCommand(this, "");
     }
-}
-
-//-----------------------------------------------------------------------------
-void vtkProstateNavStepVerification::LoadVerificationVolumeButtonCallback(const char *fileName)
-{
-  std::string fileString(fileName);
-  for (unsigned int i = 0; i < fileString.length(); i++)
-    {
-    if (fileString[i] == '\\')
-      {
-      fileString[i] = '/';
-      }
-    }
-  
-  this->LoadVerificationVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPath");
-
-  vtkMRMLScalarVolumeNode *volumeNode = this->GetGUI()->GetLogic()->AddVolumeToScene(fileString.c_str(), VOL_TARGETING);
-        
-  if (volumeNode)
-    {
-    this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID( volumeNode->GetID() );
-    this->GetGUI()->GetApplicationLogic()->PropagateVolumeSelection();
-    }
-  else 
-    {
-    vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
-    dialog->SetParent ( this->VolumeSelectionFrame );
-    dialog->SetStyleToMessage();
-    std::string msg = std::string("Unable to read volume file ") + std::string(fileName);
-    dialog->SetText(msg.c_str());
-    dialog->Create ( );
-    dialog->Invoke();
-    dialog->Delete();
-    }
-     
 }
 
 //--------------------------------------------------------------------------------
@@ -730,6 +716,14 @@ void vtkProstateNavStepVerification::UpdateGUI()
       this->Message->SetText("");
     }
 
+  }
+
+  const char* volNodeID = mrmlNode->GetVerificationVolumeNodeID();
+  vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
+  if ( volNode )
+  {
+    this->VolumeSelectorWidget->UpdateMenu();
+    this->VolumeSelectorWidget->SetSelected( volNode );
   }
 
   UpdateTargetListGUI();

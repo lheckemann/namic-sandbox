@@ -20,7 +20,7 @@ class vtkKWEntrySet;
 class vtkKWEntryWithLabel;
 class vtkKWFrameWithLabel;
 class vtkKWCheckButtonWithLabel;
-class vtkKWLoadSaveButton;
+class vtkSlicerNodeSelectorWidget;
 
 class vtkSlicerInteractorStyle;
 class vtkMRMLVolumeNode;
@@ -96,10 +96,6 @@ public:
   // Reset
   virtual void Reset();
 
-  // Description
-  // Callback on the load calibration button
-  void LoadCalibrationVolumeButtonCallback(const char *fileName);
-
 protected:
   vtkProstateNavFiducialCalibrationStep();
   ~vtkProstateNavFiducialCalibrationStep();
@@ -147,7 +143,8 @@ protected:
   //BTX
 
   vtkSmartPointer<vtkKWFrame> LoadVolumeDialogFrame;
-  vtkSmartPointer<vtkKWLoadSaveButton> LoadCalibrationVolumeButton;
+  vtkSmartPointer<vtkKWPushButton> LoadCalibrationVolumeButton;
+  vtkSmartPointer<vtkSlicerNodeSelectorWidget> VolumeSelectorWidget;
 
   // 3) reset push button, this will require segmentation from start i.e.
   // new specification of 4 clicks on fiducials

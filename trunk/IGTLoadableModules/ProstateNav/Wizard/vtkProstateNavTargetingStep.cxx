@@ -19,6 +19,7 @@
 
 #include "vtkKWMatrixWidget.h"
 #include "vtkKWMatrixWidgetWithLabel.h"
+#include "vtkSlicerNodeSelectorWidget.h"
 
 #include "vtkSlicerFiducialsGUI.h"
 #include "vtkSlicerFiducialsLogic.h"
@@ -48,7 +49,6 @@
 #include "vtkKWLabel.h"
 #include "vtkKWEntryWithLabel.h"
 #include "vtkKWEntrySet.h"
-#include "vtkKWLoadSaveButton.h"
 #include "vtkKWMessageDialog.h"
 #include "vtkKWText.h"
 #include "vtkKWPushButton.h"
@@ -102,6 +102,7 @@ vtkProstateNavTargetingStep::vtkProstateNavTargetingStep()
   // TargetPlanning frame
   this->TargetPlanningFrame=NULL;
   this->LoadTargetingVolumeButton=NULL;
+  this->VolumeSelectorWidget=NULL;
   this->TargetPlanningFrame=NULL;
   this->ShowCoverageButton=NULL;
   this->AddTargetsOnClickButton=NULL;
@@ -138,6 +139,7 @@ vtkProstateNavTargetingStep::~vtkProstateNavTargetingStep()
   // TargetPlanning
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetPlanningFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(LoadTargetingVolumeButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(VolumeSelectorWidget);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetPlanningFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowCoverageButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(AddTargetsOnClickButton);
@@ -187,12 +189,12 @@ void vtkProstateNavTargetingStep::ShowTargetPlanningFrame()
     this->TargetPlanningFrame->Create();
     }
 
-  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2",
                this->TargetPlanningFrame->GetWidgetName());
- 
- if (!this->LoadTargetingVolumeButton)
+  
+  if (!this->LoadTargetingVolumeButton)
     {
-     this->LoadTargetingVolumeButton = vtkKWLoadSaveButton::New();
+     this->LoadTargetingVolumeButton = vtkKWPushButton::New();
     }
   if (!this->LoadTargetingVolumeButton->IsCreated())
     {
@@ -203,11 +205,25 @@ void vtkProstateNavTargetingStep::ShowTargetPlanningFrame()
     this->LoadTargetingVolumeButton->SetHighlightThickness(2);
     this->LoadTargetingVolumeButton->SetBackgroundColor(0.85,0.85,0.85);
     this->LoadTargetingVolumeButton->SetActiveBackgroundColor(1,1,1);        
-    this->LoadTargetingVolumeButton->SetText( "Browse for Targeting Volume DICOM Series");
-    this->LoadTargetingVolumeButton->GetLoadSaveDialog()->SetFileTypes("{ {DICOM Files} {*} }");
-    this->LoadTargetingVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-    this->LoadTargetingVolumeButton->TrimPathFromFileNameOff();    
-    this->LoadTargetingVolumeButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode        
+    this->LoadTargetingVolumeButton->SetText( "Load volume");
+    this->LoadTargetingVolumeButton->SetBalloonHelpString("Click to load a volume. Need to additionally select the volume to make it the current targeting volume.");
+    }
+
+  if (!this->VolumeSelectorWidget)
+    {
+     this->VolumeSelectorWidget = vtkSlicerNodeSelectorWidget::New();
+    }
+  if (!this->VolumeSelectorWidget->IsCreated())
+    {
+    this->VolumeSelectorWidget->SetParent(this->TargetPlanningFrame);
+    this->VolumeSelectorWidget->Create();
+    this->VolumeSelectorWidget->SetBorderWidth(2);  
+    this->VolumeSelectorWidget->SetNodeClass("vtkMRMLVolumeNode", NULL, NULL, NULL);
+    this->VolumeSelectorWidget->SetMRMLScene(this->GetLogic()->GetApplicationLogic()->GetMRMLScene());
+    this->VolumeSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+    this->VolumeSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
+    this->VolumeSelectorWidget->SetLabelText( "Targeting Volume: ");
+    this->VolumeSelectorWidget->SetBalloonHelpString("Select the targeting volume from the current scene.");
     }
 
   if (!this->ShowCoverageButton)
@@ -246,11 +262,12 @@ void vtkProstateNavTargetingStep::ShowTargetPlanningFrame()
     this->NeedleTypeMenuList->SetLabelText("Needle type");
     this->NeedleTypeMenuList->SetBalloonHelpString("Select the needle type");
     }
-  
-  this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky w", this->LoadTargetingVolumeButton->GetWidgetName());
-  this->Script("grid %s -row 0 -column 2 -padx 2 -pady 2 -sticky w", this->ShowCoverageButton->GetWidgetName());
-  this->Script("grid %s -row 1 -column 0 -padx 2 -pady 2 -sticky w", this->AddTargetsOnClickButton->GetWidgetName());
-  this->Script("grid %s -row 1 -column 1 -columnspan 2 -padx 2 -pady 2 -sticky w", this->NeedleTypeMenuList->GetWidgetName());
+    
+  this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->LoadTargetingVolumeButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 2 -padx 2 -pady 2 -sticky e", this->ShowCoverageButton->GetWidgetName());
+  this->Script("grid %s -row 1 -column 0 -columnspan 3 -padx 2 -pady 2 -sticky ew", this->VolumeSelectorWidget->GetWidgetName());
+  this->Script("grid %s -row 2 -column 0 -padx 2 -pady 2 -sticky w", this->AddTargetsOnClickButton->GetWidgetName());
+  this->Script("grid %s -row 2 -column 1 -columnspan 2 -padx 2 -pady 2 -sticky e", this->NeedleTypeMenuList->GetWidgetName());
 
 }
 
@@ -519,17 +536,9 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
       return;
 
   // load targeting volume dialog button
-  if (this->LoadTargetingVolumeButton && this->LoadTargetingVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+  if (this->LoadTargetingVolumeButton && this->LoadTargetingVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
     {
-    this->LoadTargetingVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("ProstateNavOpenPathVol");          
-    const char *fileName = this->LoadTargetingVolumeButton->GetLoadSaveDialog()->GetFileName();
-    if ( fileName ) 
-      {
-      this->LoadTargetingVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("ProstateNavOpenPathVol");
-      // call the callback function
-      this->LoadTargetingVolumeButtonCallback(fileName);    
-      } 
-   
+    this->GetApplication()->Script("::LoadVolume::ShowDialog");
     }
 
   // show coverage dialog button
@@ -562,6 +571,16 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
       mrmlNode->SetCurrentNeedleIndex(this->NeedleTypeMenuList->GetWidget()->GetMenu()->GetIndexOfSelectedItem());
     }
 
+  if (this->VolumeSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
+    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
+  {
+    vtkMRMLScalarVolumeNode *volume = vtkMRMLScalarVolumeNode::SafeDownCast(this->VolumeSelectorWidget->GetSelected());
+    if (volume != NULL)
+    {
+      this->GetGUI()->GetLogic()->SelectVolumeInScene(volume, VOL_TARGETING);
+      this->AddTargetsOnClickButton->SetSelectedState(1);
+    }
+  }
 }
 
 
@@ -890,10 +909,13 @@ void vtkProstateNavTargetingStep::AddGUIObservers()
 {
   this->RemoveGUIObservers();
 
-    // 1) click on load targeting volume dialog
   if (this->LoadTargetingVolumeButton)
     {
-    this->LoadTargetingVolumeButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->LoadTargetingVolumeButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand); 
+    }
+  if (this->VolumeSelectorWidget)
+    {
+    this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);  
     }
   if (this->ShowCoverageButton)
     {
@@ -926,7 +948,11 @@ void vtkProstateNavTargetingStep::RemoveGUIObservers()
 {
   if (this->LoadTargetingVolumeButton)
     {
-    this->LoadTargetingVolumeButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->LoadTargetingVolumeButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand); 
+    }
+  if (this->VolumeSelectorWidget)
+    {
+    this->VolumeSelectorWidget->RemoveObserver ((vtkCommand *)this->GUICallbackCommand);  
     }
   if (this->ShowCoverageButton)
     {
@@ -955,41 +981,6 @@ void vtkProstateNavTargetingStep::RemoveGUIObservers()
     }
 }
 
-//-----------------------------------------------------------------------------
-void vtkProstateNavTargetingStep::LoadTargetingVolumeButtonCallback(const char *fileName)
-{
-  std::string fileString(fileName);
-  for (unsigned int i = 0; i < fileString.length(); i++)
-    {
-    if (fileString[i] == '\\')
-      {
-      fileString[i] = '/';
-      }
-    }
-  
-  this->LoadTargetingVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("TRProstateOpenPath");
-
-  vtkMRMLScalarVolumeNode *volumeNode = this->GetGUI()->GetLogic()->AddVolumeToScene(fileString.c_str(), VOL_TARGETING);
-        
-  if (volumeNode)
-    {
-    this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID( volumeNode->GetID() );
-    this->GetGUI()->GetApplicationLogic()->PropagateVolumeSelection();
-    }
-  else 
-    {
-    vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
-    dialog->SetParent ( this->TargetPlanningFrame );
-    dialog->SetStyleToMessage();
-    std::string msg = std::string("Unable to read volume file ") + std::string(fileName);
-    dialog->SetText(msg.c_str());
-    dialog->Create ( );
-    dialog->Invoke();
-    dialog->Delete();
-    }
-     
-}
-
 //--------------------------------------------------------------------------------
 void vtkProstateNavTargetingStep::UpdateGUI()
 {
@@ -998,6 +989,15 @@ void vtkProstateNavTargetingStep::UpdateGUI()
   if (!mrmlNode)
   {
     return;
+  }
+
+  
+  const char* volNodeID = mrmlNode->GetTargetingVolumeNodeID();
+  vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
+  if ( volNode )
+  {
+    this->VolumeSelectorWidget->UpdateMenu();
+    this->VolumeSelectorWidget->SetSelected( volNode );
   }
 
   // Display information about the currently selected target descriptor    
