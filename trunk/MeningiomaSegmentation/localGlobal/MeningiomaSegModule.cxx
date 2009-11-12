@@ -72,8 +72,8 @@ int main(int argc, char** argv)
      set the mask image according to the seeds  */
   MaskImageType::Pointer mask = MaskImageType::New();
   MaskImageType::RegionType region = img->GetLargestPossibleRegion();
-  mask->CopyInformation(img);
   mask->Allocate();
+  mask->CopyInformation(img);
   mask->FillBuffer(0);
 
 
@@ -135,6 +135,8 @@ int main(int argc, char** argv)
   outputWriter1->SetFileName("/tmp/initMask.nrrd");
   outputWriter1->SetInput(mask);
   outputWriter1->Update();
+
+  return EXIT_SUCCESS;
   //DEBUG//
 
 
