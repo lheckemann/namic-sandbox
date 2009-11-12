@@ -123,7 +123,7 @@ int main( int argc, char * argv[] )
 
   const bool DEBUG = true;
  
-  const double maxa = M_PI/16;
+  const double maxa = M_PI/8;
 //  const double maxa = 0;
   const double res1 = M_PI/16;
   const double res2 = res1/2;
@@ -303,9 +303,9 @@ int main( int argc, char * argv[] )
     // optimizerScales[1] = 1.0/ 2500.0;
     // optimizerScales[2] = 1.0/ 2500.0;
     // optimizerScales[3] = 1.0/ 1.0;
-    optimizerScales[0] = 1.0/ 50.0;
-    optimizerScales[1] = 1.0/ 50.0;
-    optimizerScales[2] = 1.0/ 50.0;
+    optimizerScales[0] = 1.0/ 100.0;
+    optimizerScales[1] = 1.0/ 100.0;
+    optimizerScales[2] = 1.0/ 100.0;
     optimizerScales[3] = 1.0/ 1.0;
 
     opt->SetScales( optimizerScales );
@@ -337,12 +337,12 @@ int main( int argc, char * argv[] )
     //opt->UseGradientOff();
 
     // For FRPR
-    opt->SetStepLength(200.0);
+    opt->SetStepLength(1.0);
     opt->SetStepTolerance(.001);
     opt->SetValueTolerance(.0001);
     opt->SetMaximumIteration(100);
     opt->SetMaximumLineIteration(30);
-    opt->SetUseUnitLengthGradient( true );
+    //opt->SetUseUnitLengthGradient( true );
     opt->SetToPolakRibiere();
 
     reg->SetOptimizer(opt);
@@ -354,6 +354,7 @@ int main( int argc, char * argv[] )
     ot->SetCenter(initt->GetCenter());
     ot->SetTranslation(initt->GetTranslation());
     ot->SetParameters(initt->GetParameters());
+
     FixedRotationTransform::Pointer nt = FixedRotationTransform::New();
     nt->SetIdentity();
     nt->SetRotation(rot);
@@ -484,6 +485,8 @@ int main( int argc, char * argv[] )
     costgrid->TransformIndexToPhysicalPoint(fit.GetIndex(), pt);
     
     const Versor<double> rot = createRotationFromEulerAngles(pt[0], pt[1], pt[2]);
+    t->SetRotation(rot);
+    t->SetCenter(initt->GetCenter());
 
     metric->SetTransform(t);
     metric->Initialize();
@@ -494,6 +497,9 @@ int main( int argc, char * argv[] )
     p[1] = fit.Get()[1];
     p[2] = fit.Get()[2];
     p[3] = mscale;
+
+    // Shouldnt be necessary but just in case
+    t->SetParameters(p);
     
     double m = 0.0;
     try
@@ -529,6 +535,9 @@ int main( int argc, char * argv[] )
   if(DEBUG)
     std::cout << "Finished computing minima" << std::endl;
 
+  writeimage(costgrid, "costgrid.mha");
+  writeimage(minima->GetOutput(), "minima.mha");
+
   // Build a priority queue of best N minima to use
   typedef RotationGrid::IndexType RIndexType;
   typedef RotationGrid::PointType RPointType;
@@ -553,12 +562,19 @@ int main( int argc, char * argv[] )
     {
     if(bit.Get())
       {
+      std::cout << "mi: " << cit.Get() << std::endl;
 
       pq.push(std::make_pair(cit.Get(),
                              cit.GetIndex()));
       }
     }
   assert(bit.IsAtEnd());
+
+  if(pq.size() == 0)
+    {
+    std::cerr << "Could not find any candidate starting positions" << std::endl;
+    return EXIT_FAILURE;
+    }
 
   // Array of candidate parameters to use for 7dof registration
   typedef EulerSimilarity3DTransform<double>                 SimilarityTransform;
@@ -570,6 +586,11 @@ int main( int argc, char * argv[] )
     {
     if(DEBUG)
       std::cout << "i: " << candidateRank << std::endl;
+
+    if(pq.size() == 0)
+      {
+      break;
+      }
 
     PairType p = pq.top();
     pq.pop();
@@ -903,6 +924,8 @@ int main( int argc, char * argv[] )
     std::cout << " 1mm optimized params " << std::endl
               << finalp << std::endl;
     }
+
+  affinet->SetParameters(finalp);
 
   writeimage(mpyramid->GetOutput(3), affinet, argv[4]);
 
