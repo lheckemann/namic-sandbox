@@ -72,6 +72,7 @@ int main(int argc, char** argv)
      set the mask image according to the seeds  */
   MaskImageType::Pointer mask = MaskImageType::New();
   MaskImageType::RegionType region = img->GetLargestPossibleRegion();
+  mask->SetRegions(region);
   mask->Allocate();
   mask->CopyInformation(img);
   mask->FillBuffer(0);
