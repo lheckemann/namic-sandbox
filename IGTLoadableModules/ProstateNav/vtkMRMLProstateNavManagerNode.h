@@ -53,8 +53,12 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   struct NeedleDescriptorStruct
     {
     std::string NeedleName; // use as UID for targets
+    // NeedleLength: maximum possible insertion depth, in mm
     float NeedleLength;
-    float NeedleOvershoot;
+    // Overshoot: where the target will be placed compared to the needle tip, in mm
+    // if negative, then target is towards the needle base (biopsy)
+    // if positive, then target is in front of the needle tip (seed placement)
+    float NeedleOvershoot; 
     std::string Description;
     };
 

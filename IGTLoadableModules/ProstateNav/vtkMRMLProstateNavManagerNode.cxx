@@ -636,13 +636,13 @@ void vtkMRMLProstateNavManagerNode::Init()
   NeedleDescriptorStruct needle;
   needle.Description = "Biopsy needle";
   needle.NeedleLength = 150;
-  needle.NeedleOvershoot = 15;
+  needle.NeedleOvershoot = -13;
   needle.NeedleName = "Biopsy";
   this->NeedlesVector.push_back(needle);
 
   needle.Description = "Seed placement needle";
   needle.NeedleLength = 180;
-  needle.NeedleOvershoot = 5;
+  needle.NeedleOvershoot = 1.5;
   needle.NeedleName = "Seed placement";
   this->NeedlesVector.push_back(needle);
 

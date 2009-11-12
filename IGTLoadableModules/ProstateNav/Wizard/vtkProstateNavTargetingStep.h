@@ -66,6 +66,8 @@ protected:
 
   void ShowCoverage(bool show);
 
+  void EnableAddTargetsOnClickButton(bool enable);
+
   unsigned int PopulateListWithTargetDetails(unsigned int targetDescIndex);
 
   void AddGUIObservers();
