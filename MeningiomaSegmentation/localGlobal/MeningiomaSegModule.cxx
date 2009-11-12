@@ -142,8 +142,6 @@ int main(int argc, char** argv)
   f<<"done\n"<<std::flush;
 
   f.close();
-
-  return EXIT_SUCCESS;
   //DEBUG//
 
 
