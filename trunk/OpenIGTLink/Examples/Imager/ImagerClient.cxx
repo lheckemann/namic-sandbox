@@ -17,6 +17,7 @@
 #include <iostream>
 #include <math.h>
 #include <cstdlib>
+#include <cstdio>
 
 #include "igtlOSUtil.h"
 #include "igtlImageMessage.h"
