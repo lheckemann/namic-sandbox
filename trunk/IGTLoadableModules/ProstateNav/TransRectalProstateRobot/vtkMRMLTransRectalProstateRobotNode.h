@@ -81,7 +81,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   void SetCalibrationData(const TRProstateBiopsyCalibrationData& calibData) { this->CalibrationData=calibData; } 
 
   //BTX
-  bool SegmentRegisterMarkers(vtkMRMLScalarVolumeNode *calibVol, double thresh[4], double fidDimsMm[3], double radiusMm, bool bUseRadius, double initialAngle, std::string &resultDetails);
+  bool SegmentRegisterMarkers(vtkMRMLScalarVolumeNode *calibVol, double thresh[4], double fidDimsMm[3], double radiusMm, bool bUseRadius, double initialAngle, std::string &resultDetails, bool enableAutomaticCenterpointAdjustment);
   //ETX
 
  vtkImageData* GetCalibMarkerPreProcOutput(int i);

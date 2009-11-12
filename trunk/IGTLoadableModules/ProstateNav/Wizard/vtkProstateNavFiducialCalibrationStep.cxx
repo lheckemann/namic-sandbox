@@ -85,6 +85,7 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
     this->FiducialThresholdScale[i]=vtkSmartPointer<vtkKWScaleWithEntry>::New();
     this->JumpToFiducialButton[i]=vtkSmartPointer<vtkKWPushButton>::New();
     }
+  this->AutomaticCenterpointAdjustmentCheckButton=vtkSmartPointer<vtkKWCheckButton>::New();
   this->RadiusSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
   this->RadiusCheckButton=vtkSmartPointer<vtkKWCheckButton>::New();
   this->InitialAngleSpinBox=vtkSmartPointer<vtkKWSpinBoxWithLabel>::New();
@@ -100,6 +101,8 @@ vtkProstateNavFiducialCalibrationStep::vtkProstateNavFiducialCalibrationStep()
   CalibPointPreProcRendererList.resize(CALIB_MARKER_COUNT);
 
   this->ObservedRobot=NULL;
+  
+  this->EnableAutomaticCenterpointAdjustment=true;
 }
 
 //----------------------------------------------------------------------------
@@ -212,7 +215,8 @@ void vtkProstateNavFiducialCalibrationStep::ShowFiducialSegmentParamsControls()
     this->FiducialWidthSpinBox->GetWidget()->SetRange(0,100);
     this->FiducialWidthSpinBox->GetWidget()->SetIncrement(1);
     this->FiducialWidthSpinBox->GetWidget()->SetValue(8);
-    this->FiducialWidthSpinBox->SetLabelText("width");
+    this->FiducialWidthSpinBox->SetLabelText("W");
+    this->FiducialWidthSpinBox->SetBalloonHelpString("fiducial width in mm");
     //this->FiducialWidthSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
     }
   if (!this->FiducialHeightSpinBox->IsCreated())
@@ -223,7 +227,8 @@ void vtkProstateNavFiducialCalibrationStep::ShowFiducialSegmentParamsControls()
     this->FiducialHeightSpinBox->GetWidget()->SetRange(0,100);
     this->FiducialHeightSpinBox->GetWidget()->SetIncrement(1);
     this->FiducialHeightSpinBox->GetWidget()->SetValue(5);
-    this->FiducialHeightSpinBox->SetLabelText("height");
+    this->FiducialHeightSpinBox->SetLabelText("H");
+    this->FiducialHeightSpinBox->SetBalloonHelpString("fiducial height in mm");
     //this->FiducialHeightSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
     }
   if (!this->FiducialDepthSpinBox->IsCreated())
@@ -234,7 +239,8 @@ void vtkProstateNavFiducialCalibrationStep::ShowFiducialSegmentParamsControls()
     this->FiducialDepthSpinBox->GetWidget()->SetRange(0,100);
     this->FiducialDepthSpinBox->GetWidget()->SetIncrement(1);
     this->FiducialDepthSpinBox->GetWidget()->SetValue(5);
-    this->FiducialDepthSpinBox->SetLabelText("depth");
+    this->FiducialDepthSpinBox->SetLabelText("D");
+    this->FiducialDepthSpinBox->SetBalloonHelpString("fiducial depth in mm");
     //this->FiducialDepthSpinBox->GetWidget()->AddObserver(vtkKWSpinBox::SpinBoxValueChangedEvent, this->WizardGUICallbackCommand);
     }
   /*this->Script("pack %s %s %s -side top -anchor w -padx 2 -pady 2", 
@@ -301,12 +307,24 @@ void vtkProstateNavFiducialCalibrationStep::ShowFiducialSegmentParamsControls()
           //this->FiducialThresholdScale[i]->AddObserver(vtkKWScale::ScaleValueChangingEvent, this->WizardGUICallbackCommand);            
         }
         ospack << " " << this->FiducialThresholdScale[i]->GetWidgetName();
-        ospack << " -row "<<2+i<<" -column 1 -padx 2 -pady 2" << std::ends;
+        ospack << " -row "<<2+i<<" -column 1 -columnspan 3 -padx 2 -pady 2" << std::ends;
         this->Script(ospack.str());
         ospack.rdbuf()->freeze();
         ospack.clear();
       }
     }
+
+  // create the Calibrate button
+  if (!this->AutomaticCenterpointAdjustmentCheckButton->IsCreated())
+    {
+    this->AutomaticCenterpointAdjustmentCheckButton->SetParent(this->FiducialPropertiesFrame->GetFrame());
+    this->AutomaticCenterpointAdjustmentCheckButton->Create();
+    this->AutomaticCenterpointAdjustmentCheckButton->SetText("Enable automatic marker centerpoint detection");
+    this->AutomaticCenterpointAdjustmentCheckButton->SetBalloonHelpString("Click to set calibration marker positions on the images");
+    this->AutomaticCenterpointAdjustmentCheckButton->SetEnabled(1);
+    }    
+   this->Script("grid %s -row 6 -column 0 -columnspan 3 -sticky e -padx 2 -pady 4", this->AutomaticCenterpointAdjustmentCheckButton->GetWidgetName());
+
 }
 
 //----------------------------------------------------------------------------
@@ -576,6 +594,7 @@ void vtkProstateNavFiducialCalibrationStep::AddGUIObservers()
   this->RemoveGUIObservers();
   this->ResetCalibrationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->EditMarkerPositionButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->AutomaticCenterpointAdjustmentCheckButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ResegmentButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->LoadCalibrationVolumeButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );  
@@ -589,6 +608,7 @@ void vtkProstateNavFiducialCalibrationStep::RemoveGUIObservers()
 {
   this->ResetCalibrationButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);  
   this->EditMarkerPositionButton->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->AutomaticCenterpointAdjustmentCheckButton->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);  
   this->ResegmentButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->LoadCalibrationVolumeButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->VolumeSelectorWidget->RemoveObservers ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent,  (vtkCommand *)this->GUICallbackCommand );
@@ -637,6 +657,13 @@ void vtkProstateNavFiducialCalibrationStep::UpdateMRML()
 void vtkProstateNavFiducialCalibrationStep::UpdateGUI() 
 {
   PopulateCalibrationResults();
+  
+  // Update automatic centerpoint adjustment checkbox
+  bool enableAutomaticCenterpointAdjustmentOnGui=(this->AutomaticCenterpointAdjustmentCheckButton->GetSelectedState()==1);
+  if (enableAutomaticCenterpointAdjustmentOnGui!=this->EnableAutomaticCenterpointAdjustment)
+  {
+    this->AutomaticCenterpointAdjustmentCheckButton->SetSelectedState(this->EnableAutomaticCenterpointAdjustment?1:0);
+  }
 } 
 
 //----------------------------------------------------------------------------
@@ -659,8 +686,19 @@ void vtkProstateNavFiducialCalibrationStep::ProcessGUIEvents(vtkObject *caller,
   // Calibrate
   if (this->EditMarkerPositionButton && this->EditMarkerPositionButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
-      EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
+    EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
     }  
+
+  // Enable/disable automatic marker centerpoint adjustment
+  if (this->AutomaticCenterpointAdjustmentCheckButton && this->AutomaticCenterpointAdjustmentCheckButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+      bool newEnable=(this->AutomaticCenterpointAdjustmentCheckButton->GetSelectedState() == 1);
+      if (newEnable!=this->EnableAutomaticCenterpointAdjustment)
+      {
+        this->EnableAutomaticCenterpointAdjustment=newEnable;
+        this->Resegment();
+      }      
+    }
 
   // reset calib button
   if (this->ResetCalibrationButton && this->ResetCalibrationButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
@@ -780,7 +818,7 @@ void vtkProstateNavFiducialCalibrationStep::Resegment()
   const char* calVolNodeID = mrmlNode->GetCalibrationVolumeNodeID();
   vtkMRMLScalarVolumeNode *calVolNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(calVolNodeID));
 
-  bool calibResult=robot->SegmentRegisterMarkers(calVolNode, thresh, fidDims, radius, bUseRadius, initialAngle, calibResultDetails);
+  bool calibResult=robot->SegmentRegisterMarkers(calVolNode, thresh, fidDims, radius, bUseRadius, initialAngle, calibResultDetails, this->EnableAutomaticCenterpointAdjustment);
   
   wizard_widget->SetErrorText(calibResultDetails.c_str());
   wizard_widget->Update();
@@ -914,8 +952,6 @@ void vtkProstateNavFiducialCalibrationStep::UpdateAxesIn3DView()
   glypher->SetInput(pointspoly);
   glypher->SetSourceConnection(glyph->GetOutputPort());
   glypher->SetScaleFactor(0.25);
-
-  //TODO: check why it is not displayed???
 
   vtkPolyDataMapper *pointsMapper = vtkPolyDataMapper::New();
   pointsMapper->SetInputConnection(glypher->GetOutputPort());

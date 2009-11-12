@@ -164,6 +164,7 @@ protected:
   vtkSmartPointer<vtkKWSpinBoxWithLabel> FiducialHeightSpinBox;
   vtkSmartPointer<vtkKWSpinBoxWithLabel> FiducialDepthSpinBox;
   vtkSmartPointer<vtkKWScaleWithEntry> FiducialThresholdScale[CALIB_MARKER_COUNT];
+  vtkSmartPointer<vtkKWCheckButton> AutomaticCenterpointAdjustmentCheckButton;
   vtkSmartPointer<vtkKWSpinBoxWithLabel> RadiusSpinBox;
   vtkSmartPointer<vtkKWCheckButton> RadiusCheckButton;
   vtkSmartPointer<vtkKWSpinBoxWithLabel> InitialAngleSpinBox;
@@ -188,6 +189,7 @@ protected:
   //ETX
 
   vtkMRMLTransRectalProstateRobotNode* ObservedRobot;
+  bool EnableAutomaticCenterpointAdjustment;
 
 private:  
   vtkProstateNavFiducialCalibrationStep(const vtkProstateNavFiducialCalibrationStep&);
