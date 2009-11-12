@@ -110,6 +110,7 @@ int main(int argc, char* argv[])
         }
       else
         {
+        std::cerr << "Receiving : " << headerMsg->GetDeviceType() << std::endl;
         socket->Skip(headerMsg->GetBodySizeToRead(), 0);
         }
       }
