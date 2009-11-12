@@ -1140,7 +1140,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
 
     // Insertion deepth offset (in mm)
     double offset;
-    offset = target->GetNeedleLength();
+    offset = target->GetNeedleOvershoot();
     // offset = -13; - Biopsy needle
     // offset = 1.5; - Seed placement needle, gold markers  
     

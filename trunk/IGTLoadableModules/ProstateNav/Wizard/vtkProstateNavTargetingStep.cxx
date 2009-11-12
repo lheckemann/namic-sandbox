@@ -172,6 +172,8 @@ void vtkProstateNavTargetingStep::ShowUserInterface()
   UpdateMRMLObserver();
   
   this->AddGUIObservers();
+
+  EnableAddTargetsOnClickButton(this->AddTargetsOnClickButton->GetSelectedState()==1);
 }
 
 //----------------------------------------------------------------------------
@@ -557,11 +559,7 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
     }    
     else
     {
-      vtkMRMLFiducialListNode* fidNode = this->GetProstateNavManager()->GetTargetPlanListNode();
-      GetLogic()->SetCurrentFiducialList(fidNode);
-      GetLogic()->SetMouseInteractionMode( (this->AddTargetsOnClickButton->GetSelectedState()==1) ? 
-        vtkMRMLInteractionNode::Place : 
-        vtkMRMLInteractionNode::ViewTransform);
+      EnableAddTargetsOnClickButton(this->AddTargetsOnClickButton->GetSelectedState()==1);
     }
 
   }
@@ -1067,6 +1065,20 @@ void vtkProstateNavTargetingStep::HideUserInterface()
       //this->MRMLObserverManager->RemoveObjectEvents(vtkObjectPointer(&(plan)));
       this->MRMLObserverManager->RemoveObjectEvents(plan);
       }
-    }
-  
+    }  
+}
+
+//----------------------------------------------------------------------------
+void vtkProstateNavTargetingStep::EnableAddTargetsOnClickButton(bool enable)
+{
+  if (this->GetProstateNavManager()==NULL)
+  {
+    return;
+  }
+  vtkMRMLFiducialListNode* fidNode = this->GetProstateNavManager()->GetTargetPlanListNode();
+  GetLogic()->SetCurrentFiducialList(fidNode);
+  GetLogic()->SetMouseInteractionMode( (enable) ? 
+    vtkMRMLInteractionNode::Place : 
+    vtkMRMLInteractionNode::ViewTransform
+    );
 }

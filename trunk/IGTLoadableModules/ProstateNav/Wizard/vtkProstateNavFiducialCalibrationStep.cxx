@@ -505,7 +505,7 @@ void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
   ClearMarkerVolumesIn3DView();
   ClearAxesIn3DView();
 
-  /* // it is useful for testing to access the fiducials (to set a position manually, etc.)
+  // it is useful for testing to access the fiducials (to set a position manually, etc.)
   vtkMRMLScene* scene=NULL;
   if (this->GetLogic())
   {
@@ -521,8 +521,7 @@ void vtkProstateNavFiducialCalibrationStep::HideUserInterface()
   {
     scene->RemoveNode(this->CalibrationPointListNode);
     this->CalibrationPointListNode->SetScene(NULL);
-  }
-  */
+  }  
 
 }
 
