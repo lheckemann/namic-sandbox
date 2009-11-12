@@ -87,6 +87,13 @@ public:
 
   const TRProstateBiopsyCalibrationData& GetCalibrationData() { return this->CalibrationData; }
 
+  // Description
+  // Enable automatic adjustment of the clicked marker centerpoint position based on the
+  // image contents. If disabled, then the manually defined marker positions considered to be
+  // the centerpoints.
+  // By default it is enabled.
+  void SetEnableMarkerCenterpointAdjustment(bool enable);
+
 protected:
 
   bool RotatePoint(double H_before[3], double rotation_rad, double alpha_rad, double mainaxis[3], double I[3], /*out*/double H_after[3]);
@@ -109,6 +116,8 @@ protected:
   void Linefinder(double P_[3], double v_[3], std::vector<itk::Point<double,3> > CoordVector);
   //ETX
 
+  void CropWithCylinder(vtkImageData* output, vtkImageData* input, const double linePoint_RAS[3],const double normal_RAS[3], vtkMatrix4x4 *ijkToRAS, double radiusMm);
+
   bool DoubleEqual(double val1, double val2);
 
   vtkTransRectalFiducialCalibrationAlgo();
@@ -121,6 +130,8 @@ protected:
   //ETX
 
   TRProstateBiopsyCalibrationData CalibrationData;
+
+  bool EnableMarkerCenterpointAdjustment;
 
 private:
   vtkTransRectalFiducialCalibrationAlgo(const vtkTransRectalFiducialCalibrationAlgo&);  // Not implemented.

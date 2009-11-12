@@ -174,7 +174,7 @@ void vtkMRMLTransRectalProstateRobotNode::RemoveAllCalibrationMarkers()
 }
 
 //------------------------------------------------------------------------------
-bool vtkMRMLTransRectalProstateRobotNode::SegmentRegisterMarkers(vtkMRMLScalarVolumeNode *calibVol, double thresh[4], double fidDimsMm[3], double radiusMm, bool bUseRadius, double initialAngle, std::string &resultDetails)
+bool vtkMRMLTransRectalProstateRobotNode::SegmentRegisterMarkers(vtkMRMLScalarVolumeNode *calibVol, double thresh[4], double fidDimsMm[3], double radiusMm, bool bUseRadius, double initialAngle, std::string &resultDetails, bool enableAutomaticCenterpointAdjustment)
 {
   TRProstateBiopsyCalibrationFromImageInput in;
 
@@ -210,6 +210,8 @@ bool vtkMRMLTransRectalProstateRobotNode::SegmentRegisterMarkers(vtkMRMLScalarVo
 
   TRProstateBiopsyCalibrationFromImageOutput res;
 
+  this->CalibrationAlgo->SetEnableMarkerCenterpointAdjustment(enableAutomaticCenterpointAdjustment);
+
   bool success=true;
   if (!this->CalibrationAlgo->CalibrateFromImage(in, res))
   {
@@ -235,12 +237,15 @@ bool vtkMRMLTransRectalProstateRobotNode::SegmentRegisterMarkers(vtkMRMLScalarVo
   else
   {    
     // calibration is successful
+
+    /*commented out to keep the original marker guesses
+    // update manually set marker positions with the result of the marker detection
     for (int i=0; i<CALIB_MARKER_COUNT; i++)
-    {
-      // update manually set marker positions with the result of the marker detection
+    {      
       SetCalibrationMarker(i, res.MarkerPositions[i]);
       in.MarkerSegmentationThreshold[i]=thresh[i];
     }
+    */
 
     const TRProstateBiopsyCalibrationData calibData=this->CalibrationAlgo->GetCalibrationData();
     SetCalibrationData(calibData);    

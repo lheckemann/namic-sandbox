@@ -12,13 +12,24 @@
 
 =========================================================================auto=*/
 
+// true=mean detection algo; false=circle detection algo
+static const bool USE_MARKER_MEAN_DETECTION=true;
+// true: report error if marker is not found; false: if a marker is not found then just use the initial guess
+static bool REQUIRE_MARKER_DETECTION=true;
+// completely ignore all voxels that are farther from the initial guess line than radius*MAX_RADIUS_TOLERANCE
+const double MAX_RADIUS_TOLERANCE=1.8;
+
+// circle detection algo params
 static const int CIRCLE_VOTE_NEEDED=18;
-static const bool REQUIRE_MARKER_DETECTION=false;
-static const bool USE_MARKER_MEAN_DETECTION=false;
+
+// mean detection algo params
+static const int MIN_CIRCLE_PIXEL_COUNT=5;
+
+// debug params
 static const bool WRITE_DEBUG_IMAGES=false;
 static const char DEBUG_IMAGE_PATH[]="c:\\";
 
-static const bool MANUAL_CALIBRATION=true;
+//----------------------------------------------------------------------------
 
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
@@ -36,6 +47,8 @@ static const bool MANUAL_CALIBRATION=true;
 #include "vtkPointData.h"
 #include "vtkMetaImageWriter.h"
 #include "vtkImageReslice.h"
+#include "vtkImageEllipsoidSource.h"
+#include "vtkImageMask.h"
 
 #include "ProstateNavMath.h"
 #include "vtkProstateNavTargetDescriptor.h"
@@ -57,6 +70,7 @@ vtkTransRectalFiducialCalibrationAlgo::vtkTransRectalFiducialCalibrationAlgo()
     {
     CalibMarkerPreProcOutput[i]=vtkImageData::New();
     }
+  this->EnableMarkerCenterpointAdjustment=true;
 }
 
 vtkTransRectalFiducialCalibrationAlgo::~vtkTransRectalFiducialCalibrationAlgo()
@@ -158,6 +172,8 @@ void vtkTransRectalFiducialCalibrationAlgo::SegmentAxis(const double initPos1Ras
     finalPos2Ras[i] = initPos2Ras[i];
   }
 
+  CoordinatesVectorAxis->clear();
+
   found1 = SegmentCircle(finalPos1Ras, PNormal1Ras, thresh1, fidDimsMm, radiusMm, volumeIJKToRASMatrix, calibVol, *CoordinatesVectorAxis, img1); 
   if (!found1)
   {
@@ -183,8 +199,6 @@ void vtkTransRectalFiducialCalibrationAlgo::SegmentAxis(const double initPos1Ras
     return;
   }
 
-  // :TODO: check the followings, it seems that it manipulates only the init position
-
   int vecSize = CoordinatesVectorAxis->size(); // :TODO: remove, for debugging only
 
   // Use CoordVector to find the line 
@@ -196,7 +210,7 @@ void vtkTransRectalFiducialCalibrationAlgo::SegmentAxis(const double initPos1Ras
   this->RemoveOutliners(P1,v1, initPos1Ras, initPos2Ras, *CoordinatesVectorAxis);
 
   // we did not find anything, so take the clicked points (too bad)
-  if (vtkMath::Norm(v1)<0.001 || MANUAL_CALIBRATION) 
+  if (vtkMath::Norm(v1)<0.001) 
   {
     CoordinatesVectorAxis->clear();
 
@@ -305,10 +319,15 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
     thresholdFilter->ThresholdByUpper(nThreshold);  
     thresholdFilter->SetOutValue(range[0]);
     thresholdFilter->SetInValue(range[1]);
+    thresholdFilter->SetOutputScalarTypeToUnsignedChar();
     thresholdFilter->Update();
     
+    // remove points that are too far from the centerline
+    vtkSmartPointer<vtkImageData> radiusCroppedImage=vtkSmartPointer<vtkImageData>::New();
+    CropWithCylinder(radiusCroppedImage, thresholdFilter->GetOutput(), markerCenterGuess_RAS, normal_RAS, ijkToRAS, radiusMm);  
+
     // the output voi to use
-    vtkImageData *binaryVOI = thresholdFilter->GetOutput();
+    vtkImageData *binaryVOI = radiusCroppedImage;
 
     // Copy the preprocessed image output for display purposes
     if (preprocOutput!=0)
@@ -327,6 +346,17 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
         writer->Delete();
       }
       
+    }
+
+    if (!this->EnableMarkerCenterpointAdjustment)
+    {
+      // no need for automatic adjustment, just use the initial guess as result
+      itk::Point<double,3> coord;
+      coord[0] = markerCenterGuess_RAS[0];
+      coord[1] = markerCenterGuess_RAS[1];
+      coord[2] = markerCenterGuess_RAS[2];
+      CoordinatesVector.push_back(coord);
+      return true;
     }
 
     // Define a coordinate system (planeX_RAS, planeY_RAS, planeNormal_RAS) with one axis parallel to the planeNormal_RAS vector
@@ -404,23 +434,17 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
     imageReslicer->SetBackgroundColor( range[0], range[0], range[0], range[0] );
     imageReslicer->SetInterpolationModeToCubic();
     imageReslicer->Update();
-
-    // Origin and spacing of the resliced image
-    vtkImageData *planeImageData = imageReslicer->GetOutput();
-
-    // Temporary storage will be used for counting the circle centers (optimization)
-    int tempStorageSize = 0;
-    {
-      int *planeExtent = planeImageData->GetWholeExtent();
-      int width=abs(planeExtent[0]-planeExtent[1])+1;
-      int height=abs(planeExtent[2]-planeExtent[3])+1;
-      tempStorageSize = width*height;      
-    }
-    unsigned int *tempStorage = new unsigned int[tempStorageSize+8];;
-    
+           
     // Looking for mean center along the resliced planes
     double meanx=0.0, meany=0.0, meanz=0.0;
     int meanNr=0;
+
+    // Resliced image slice
+    vtkImageData *planeImageData = NULL;
+     
+    // Temporary storage will be used for counting the circle centers (optimization)
+    int tempStorageSize = 0;
+    unsigned int *tempStorage = NULL;
 
     // number of slices generated from this dataset (Volume Of Interest)
     int nTotalSlices = 0;
@@ -434,6 +458,24 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
       imageReslicer->SetResliceAxesOrigin(planeOrigin_IJK);  
       imageReslicer->Update();
 
+      planeImageData = imageReslicer->GetOutput();
+
+      // allocate temporary buffer (reallocated only if it is necessary)
+      {
+        int *planeExtent = planeImageData->GetWholeExtent();
+        int width=abs(planeExtent[0]-planeExtent[1])+1;
+        int height=abs(planeExtent[2]-planeExtent[3])+1;
+        int neededTempStorageSize = width*height;
+        if (neededTempStorageSize>tempStorageSize)
+        {
+          delete[] tempStorage;
+          tempStorageSize=neededTempStorageSize;
+          tempStorage = new unsigned int[tempStorageSize+8];
+        }
+      }    
+
+
+
       if (WRITE_DEBUG_IMAGES)
       {
         // dump the slice image (for debug only)
@@ -446,7 +488,12 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
         writer->SetCompressionToNoCompression();
         std::ostrstream os;            
         os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(2);
-        os << DEBUG_IMAGE_PATH << "CalibMarkerSlice_" << nTotalSlices << ".tif" << std::ends;
+        os << DEBUG_IMAGE_PATH << "CalibMarkerSlice_";
+        if (nTotalSlices<10)
+        {
+          os << "0";
+        }
+        os << nTotalSlices << ".tif" << std::ends;
         writer->SetFileName(os.str());
         os.rdbuf()->freeze();
         writer->SetInput(cast->GetOutput());
@@ -458,13 +505,16 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
       // if returns false, the center was not found (not enough votes?)
       bool lCircleFound;
       double ix, iy;
+      double *minMax=planeImageData->GetScalarRange();
+      double binaryImageThreshold=minMax[0]+1; // set the threshold to slightly above the minimum value
       if (USE_MARKER_MEAN_DETECTION)
       {
-        lCircleFound = CalculateCircleCenterMean(planeImageData, 2*radiusMm, nThreshold, ix, iy);
+        
+        lCircleFound = CalculateCircleCenterMean(planeImageData, radiusMm, binaryImageThreshold, ix, iy);
       }
       else
       {
-        lCircleFound = CalculateCircleCenter(planeImageData, tempStorage, tempStorageSize,  nThreshold, 2*radiusMm/10.0, ix, iy, CIRCLE_VOTE_NEEDED, true);
+        lCircleFound = CalculateCircleCenter(planeImageData, tempStorage, tempStorageSize,  binaryImageThreshold, 2*radiusMm/10.0, ix, iy, CIRCLE_VOTE_NEEDED, true);
       }
 
       if (lCircleFound) 
@@ -503,7 +553,6 @@ bool vtkTransRectalFiducialCalibrationAlgo::SegmentCircle(double markerCenterGue
     } // while(all slices)
 
     delete[] tempStorage;
-
     
     // Return value: compute mean value of circle centers (for visualisation only)
     if (meanNr>0) {     
@@ -713,7 +762,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenterMean(vtkImageDa
         return false;
     }
 
-    // assume spacingY==spacingY -  depends on vtkImageReslicer settings!
+    // assume spacing[0]==spacing[1] -  depends on vtkImageReslicer settings!
     
 
     // convert mm to pixel
@@ -731,7 +780,8 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenterMean(vtkImageDa
     double sumy=0;
     double sumweight=0;
 
-    // Cumulate circle centers
+    // compute a weighed sum of pixels above threshold
+    int validPixelCount=0;
     int x=0;
     int y=0;
     for (int i=0;i<width*height;i++) 
@@ -744,13 +794,14 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenterMean(vtkImageDa
         double value=*(da->GetTuple(i));
         if (value>threshold)
         {
-           sumx+=x*value;
+          sumx+=x*value;
           sumy+=y*value;
-          sumweight+=value;
+          sumweight+=value-threshold;
+          validPixelCount++;
         }
     }
     
-    if (sumweight<threshold*10+1) 
+    if (validPixelCount<MIN_CIRCLE_PIXEL_COUNT)
     {
         return false;
     }
@@ -759,8 +810,8 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalculateCircleCenterMean(vtkImageDa
     gx=sumx/sumweight;
     gy=sumy/sumweight;
 
-    gx-=( (width-1)  /2.0 );
-    gy-=( (height-1) /2.0 ); 
+    gx-=(double)width/2.0;
+    gy-=(double)height/2.0;
 
     return true;
 }
@@ -1315,14 +1366,63 @@ void vtkTransRectalFiducialCalibrationAlgo::GetAxisCenterpoints(vtkPoints *point
     coords=&CoordinatesVectorAxis2;
   }
   std::vector<PointType>::iterator it = coords->begin();
-  int ii=0;
+  int insertPos=points->GetNumberOfPoints();
   while (it != coords->end()) 
   {
     double x=(*it)[0];
     double y=(*it)[1];
     double z=(*it)[2];
-    points->InsertPoint(ii,x,y,z);
+    points->InsertPoint(insertPos,x,y,z);
     it++;
-    ii++;
+    insertPos++;
   }  
+}
+
+//----------------------------------------------------------------------------
+void vtkTransRectalFiducialCalibrationAlgo::SetEnableMarkerCenterpointAdjustment(bool enable)
+{
+  this->EnableMarkerCenterpointAdjustment=enable;
+}
+
+void vtkTransRectalFiducialCalibrationAlgo::CropWithCylinder(vtkImageData* output, vtkImageData* input, const double linePoint_RAS[3],const double lineVector_RAS[3], vtkMatrix4x4 *ijkToRAS, double radiusMm)
+{
+  output->DeepCopy(input);
+
+  double lineVectorNorm_RAS[4]={0,0,0,0};
+  lineVectorNorm_RAS[0]=lineVector_RAS[0];
+  lineVectorNorm_RAS[1]=lineVector_RAS[1];
+  lineVectorNorm_RAS[2]=lineVector_RAS[2];
+  vtkMath::Normalize(lineVectorNorm_RAS);
+
+  int *extent = output->GetWholeExtent(); 
+  double coord_IJK[4]={0,0,0,1};
+  for (coord_IJK[2]=extent[4]; coord_IJK[2]<=extent[5]; coord_IJK[2]++)
+  {
+    for (coord_IJK[1]=extent[2]; coord_IJK[1]<=extent[3]; coord_IJK[1]++)
+    {
+      for (coord_IJK[0]=extent[0]; coord_IJK[0]<=extent[1]; coord_IJK[0]++)
+      {
+        double coord_RAS[4]={0,0,0,1};
+        ijkToRAS->MultiplyPoint(coord_IJK, coord_RAS);
+
+        double distFromLine=0;
+        {
+          double v[3];
+          v[0] = coord_RAS[0] - linePoint_RAS[0];
+          v[1] = coord_RAS[1] - linePoint_RAS[1];
+          v[2] = coord_RAS[2] - linePoint_RAS[2];
+          double dot = vtkMath::Dot(lineVectorNorm_RAS,v);
+          double w[3];
+          w[0] = v[0] - dot*lineVectorNorm_RAS[0];
+          w[1] = v[1] - dot*lineVectorNorm_RAS[1];
+          w[2] = v[2] - dot*lineVectorNorm_RAS[2];
+          distFromLine=vtkMath::Norm(w);
+        }
+        if (distFromLine>radiusMm*MAX_RADIUS_TOLERANCE)
+        {
+          output->SetScalarComponentFromFloat(coord_IJK[0],coord_IJK[1],coord_IJK[2],0,0);
+        }
+      }
+    }
+  }
 }
