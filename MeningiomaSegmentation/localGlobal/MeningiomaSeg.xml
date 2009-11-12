@@ -31,7 +31,7 @@
       <flag>n</flag>
       <description>Max number of iteration</description>
       <label>Number of iteration</label>
-      <default>1000</default>
+      <default>10</default>
       <constraints>
         <minimum>1</minimum>
         <maximum>1000</maximum>
