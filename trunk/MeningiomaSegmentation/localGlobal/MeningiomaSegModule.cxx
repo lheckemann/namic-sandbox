@@ -80,9 +80,12 @@ int main(int argc, char** argv)
 
   //debug//
   std::ofstream f("/tmp/outputMen.txt");
+  f<<mask->GetLargestPossibleRegion().GetIndex()<<std::endl;
+  f<<"--------------------\n";
   //DEBUG//
 
   f<< "seed.size =  " << seed.size() << std::endl;
+  f<<"--------------------\n";
 
   if (seed.size() > 0)
     {
@@ -110,7 +113,6 @@ int main(int argc, char** argv)
             }
 
 //           //mask = getInitMask< PixelType >(img, index[0], index[1], index[2]);
-
           f << "LPS: " << lpsPoint << std::endl;
           f << "IJK: " << index << std::endl;
         }
@@ -125,8 +127,9 @@ int main(int argc, char** argv)
 
   /* set the mask image according to the seeds
      --------------------------------------------------------------------------------*/
-  //  douher::saveAsImage3< unsigned char >(mask, "initMask.nrrd");
-
+  //debug//
+  douher::saveAsImage3< unsigned char >(mask, "/tmp/initMask.nrrd");
+  //DEBUG//
 
 
   MaskImageType::Pointer finalMask = mask;
