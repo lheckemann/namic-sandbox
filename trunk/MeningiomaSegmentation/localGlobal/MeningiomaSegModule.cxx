@@ -125,10 +125,16 @@ int main(int argc, char** argv)
 
   f.close();
 
+
+  typedef itk::ImageFileWriter< MaskImageType > WriterType;
+
   /* set the mask image according to the seeds
      --------------------------------------------------------------------------------*/
   //debug//
-  douher::saveAsImage3< unsigned char >(mask, "/tmp/initMask.nrrd");
+  WriterType::Pointer outputWriter1 = WriterType::New();
+  outputWriter1->SetFileName("/tmp/initMask.nrrd");
+  outputWriter1->SetInput(mask);
+  outputWriter1->Update();
   //DEBUG//
 
 
