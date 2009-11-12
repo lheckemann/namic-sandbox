@@ -80,6 +80,9 @@ public:
   long m_ny;
   long m_nz;
 
+  double m_dx;
+  double m_dy;
+  double m_dz;
 
   std::list< double > m_force;
 
