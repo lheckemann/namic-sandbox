@@ -125,50 +125,52 @@ int main(int argc, char** argv)
 
   /* set the mask image according to the seeds
      --------------------------------------------------------------------------------*/
-
   //  douher::saveAsImage3< unsigned char >(mask, "initMask.nrrd");
+
+
+
+  MaskImageType::Pointer finalMask = mask;
+  //  MaskImageType::Pointer finalMask = NULL;
+
+//   if (!globalSwitch)
+//     {
+//       // perform global statistics based segmentation
+//       CSFLSChanVeseSegmentor3D< PixelType > cv;
+//       cv.setImage(img);
+//       cv.setMask(mask);
+
+//       cv.setNumIter(numOfIteration);
+
+//       cv.setCurvatureWeight(curvatureWeight);
+
+//       cv.doChanVeseSegmenation();
+
+//       finalMask = getFinalMask<double>(cv.mp_phi);
+//     }
+//   else
+//     {
+//       // perform local statistics based segmentation
+//       CSFLSLocalChanVeseSegmentor3D< PixelType > cv;
+//       cv.setImage(img);
+//       cv.setMask(mask);
+
+//       cv.setNumIter(numOfIteration);
+
+//       cv.setCurvatureWeight(curvatureWeight);
+//       cv.setNBHDSize(30, 30, 5);
+
+
+//       // do segmentation
+//       cv.doLocalChanVeseSegmenation();
+
+//       finalMask = getFinalMask<double>(cv.mp_phi);
+//     }
   
-  MaskImageType::Pointer finalMask = NULL;
+//   finalMask->SetSpacing(img->GetSpacing());
+//   finalMask->SetOrigin(img->GetOrigin());
 
-  if (!globalSwitch)
-    {
-      // perform global statistics based segmentation
-      CSFLSChanVeseSegmentor3D< PixelType > cv;
-      cv.setImage(img);
-      cv.setMask(mask);
-
-      cv.setNumIter(numOfIteration);
-
-      cv.setCurvatureWeight(curvatureWeight);
-
-      cv.doChanVeseSegmenation();
-
-      finalMask = getFinalMask<double>(cv.mp_phi);
-    }
-  else
-    {
-      // perform local statistics based segmentation
-      CSFLSLocalChanVeseSegmentor3D< PixelType > cv;
-      cv.setImage(img);
-      cv.setMask(mask);
-
-      cv.setNumIter(numOfIteration);
-
-      cv.setCurvatureWeight(curvatureWeight);
-      cv.setNBHDSize(30, 30, 5);
-
-
-      // do segmentation
-      cv.doLocalChanVeseSegmenation();
-
-      finalMask = getFinalMask<double>(cv.mp_phi);
-    }
-  
-  finalMask->SetSpacing(img->GetSpacing());
-  finalMask->SetOrigin(img->GetOrigin());
-
-  finalMask->CopyInformation(img);
-//  imageITK->SetOrientation(inputReader>GetOrientation());
+//   finalMask->CopyInformation(img);
+// //  imageITK->SetOrientation(inputReader>GetOrientation());
 
 
   typedef itk::ImageFileWriter< MaskImageType > WriterType;
