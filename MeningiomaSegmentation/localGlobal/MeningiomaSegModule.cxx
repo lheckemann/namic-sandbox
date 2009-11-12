@@ -123,7 +123,6 @@ int main(int argc, char** argv)
       return -1;
     }
 
-  f.close();
 
 
   typedef itk::ImageFileWriter< MaskImageType > WriterType;
@@ -131,10 +130,17 @@ int main(int argc, char** argv)
   /* set the mask image according to the seeds
      --------------------------------------------------------------------------------*/
   //debug//
+
+  f<<"outputing init mask to file..."<<std::flush;
+
   WriterType::Pointer outputWriter1 = WriterType::New();
   outputWriter1->SetFileName("/tmp/initMask.nrrd");
   outputWriter1->SetInput(mask);
   outputWriter1->Update();
+
+  f<<"done\n"<<std::flush;
+
+  f.close();
 
   return EXIT_SUCCESS;
   //DEBUG//
