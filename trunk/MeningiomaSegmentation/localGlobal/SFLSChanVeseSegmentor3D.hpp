@@ -83,9 +83,14 @@ CSFLSChanVeseSegmentor3D< TPixel >
 
   computeMeans();    
 
-  //douher::saveAsImage2< double >(mp_phi, "initPhi.nrrd");
   for (unsigned int it = 0; it < this->m_numIter; ++it)
     {
+      if (this->m_areaIn < this->m_maxVoxelNumber)
+        //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        {
+          break;
+        }
+
       computeForce();
 
       this->normalizeForce();
