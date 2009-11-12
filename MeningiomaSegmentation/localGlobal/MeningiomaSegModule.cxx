@@ -75,18 +75,19 @@ int main(int argc, char** argv)
   mask->SetRegions(region);
   mask->Allocate();
   mask->CopyInformation(img);
+  //  mask->SetOrientation(img->GetOrientation());
   mask->FillBuffer(0);
 
 
 
   //debug//
-  std::ofstream f("/tmp/outputMen.txt");
-  f<<mask->GetLargestPossibleRegion().GetIndex()<<std::endl;
-  f<<"--------------------\n";
+  //  std::ofstream f("/tmp/outputMen.txt");
+//   f<<mask->GetLargestPossibleRegion().GetIndex()<<std::endl;
+//   f<<"--------------------\n";
   //DEBUG//
 
-  f<< "seed.size =  " << seed.size() << std::endl;
-  f<<"--------------------\n";
+//   f<< "seed.size =  " << seed.size() << std::endl;
+//   f<<"--------------------\n";
 
   if (seed.size() > 0)
     {
@@ -114,8 +115,8 @@ int main(int argc, char** argv)
             }
 
 //           //mask = getInitMask< PixelType >(img, index[0], index[1], index[2]);
-          f << "LPS: " << lpsPoint << std::endl;
-          f << "IJK: " << index << std::endl;
+//           f << "LPS: " << lpsPoint << std::endl;
+//           f << "IJK: " << index << std::endl;
         }
     }
   else
@@ -132,61 +133,60 @@ int main(int argc, char** argv)
      --------------------------------------------------------------------------------*/
   //debug//
 
-  f<<"outputing init mask to file..."<<std::flush;
+//   f<<"outputing init mask to file..."<<std::flush;
 
-  WriterType::Pointer outputWriter1 = WriterType::New();
-  outputWriter1->SetFileName("/tmp/initMask.nrrd");
-  outputWriter1->SetInput(mask);
-  outputWriter1->Update();
+//   WriterType::Pointer outputWriter1 = WriterType::New();
+//   outputWriter1->SetFileName("/tmp/initMask.nrrd");
+//   outputWriter1->SetInput(mask);
+//   outputWriter1->Update();
 
-  f<<"done\n"<<std::flush;
+//   f<<"done\n"<<std::flush;
 
-  f.close();
+//   f.close();
   //DEBUG//
 
 
-  MaskImageType::Pointer finalMask = mask;
-  //  MaskImageType::Pointer finalMask = NULL;
+  //  MaskImageType::Pointer finalMask = mask;
+  MaskImageType::Pointer finalMask = NULL;
 
-//   if (!globalSwitch)
-//     {
-//       // perform global statistics based segmentation
-//       CSFLSChanVeseSegmentor3D< PixelType > cv;
-//       cv.setImage(img);
-//       cv.setMask(mask);
+  if (!globalSwitch)
+    {
+      // perform global statistics based segmentation
+      CSFLSChanVeseSegmentor3D< PixelType > cv;
+      cv.setImage(img);
+      cv.setMask(mask);
 
-//       cv.setNumIter(numOfIteration);
+      cv.setNumIter(numOfIteration);
 
-//       cv.setCurvatureWeight(curvatureWeight);
+      cv.setCurvatureWeight(curvatureWeight);
 
-//       cv.doChanVeseSegmenation();
+      cv.doChanVeseSegmenation();
 
-//       finalMask = getFinalMask<double>(cv.mp_phi);
-//     }
-//   else
-//     {
-//       // perform local statistics based segmentation
-//       CSFLSLocalChanVeseSegmentor3D< PixelType > cv;
-//       cv.setImage(img);
-//       cv.setMask(mask);
+      finalMask = getFinalMask<double>(cv.mp_phi);
+    }
+  else
+    {
+      // perform local statistics based segmentation
+      CSFLSLocalChanVeseSegmentor3D< PixelType > cv;
+      cv.setImage(img);
+      cv.setMask(mask);
 
-//       cv.setNumIter(numOfIteration);
+      cv.setNumIter(numOfIteration);
 
-//       cv.setCurvatureWeight(curvatureWeight);
-//       cv.setNBHDSize(30, 30, 5);
+      cv.setCurvatureWeight(curvatureWeight);
+      cv.setNBHDSize(30, 30, 5);
 
 
-//       // do segmentation
-//       cv.doLocalChanVeseSegmenation();
+      // do segmentation
+      cv.doLocalChanVeseSegmenation();
 
-//       finalMask = getFinalMask<double>(cv.mp_phi);
-//     }
+      finalMask = getFinalMask<double>(cv.mp_phi);
+    }
   
 //   finalMask->SetSpacing(img->GetSpacing());
 //   finalMask->SetOrigin(img->GetOrigin());
-
-//   finalMask->CopyInformation(img);
-// //  imageITK->SetOrientation(inputReader>GetOrientation());
+  finalMask->CopyInformation(img);
+//  imageITK->SetOrientation(inputReader>GetOrientation());
 
 
   typedef itk::ImageFileWriter< MaskImageType > WriterType;
