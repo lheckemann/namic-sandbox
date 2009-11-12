@@ -1,4 +1,4 @@
-Project(MeningiomaSegmentationModule)
+project(MeningiomaSegmentationModule)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -21,21 +21,6 @@ ELSE (Slicer3_FOUND)
   MESSAGE(ERROR "Cannot build without a Slicer3 build tree or a Slicer3 installation. Please set Slicer3_DIR. If using a Slicer3 build, Slicer3_DIR needs to be set to the root of the build tree of Slicer3.  If using an installation of Slicer3, Slicer3_DIR needs to be set to <SlicerInstallation>/lib/Slicer3.")
 ENDIF (Slicer3_FOUND)
 
-
-
-
-# # On Windows add also header files to the project
-# # (required for object browsing in the Microsoft Visual C++ IDE) 
-# IF (WIN32)
-#   IF (NOT CYGWIN)
-#     SET(MeningiomaSeg_SRCS ${MeningiomaSeg_SRCS}
-# #       cVolOp.h
-# #       cVolume.h
-# #       randomWalkSeg.h
-# #       spdEqSolver.h 
-#   )
-#   ENDIF (NOT CYGWIN)
-# ENDIF(WIN32)
 
 
 # # Need to include class headers and the configuration header.
