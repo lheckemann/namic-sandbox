@@ -71,6 +71,7 @@ vtkTransRectalFiducialCalibrationAlgo::vtkTransRectalFiducialCalibrationAlgo()
     CalibMarkerPreProcOutput[i]=vtkImageData::New();
     }
   this->EnableMarkerCenterpointAdjustment=true;
+  this->CalibrationData.CalibrationValid=false;
 }
 
 vtkTransRectalFiducialCalibrationAlgo::~vtkTransRectalFiducialCalibrationAlgo()
@@ -123,6 +124,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalibrateFromImage(const TRProstateB
   double axesDistance=0;
   if (this->FindProbe(P1, P2, v1, v2, I1, I2, axesAngleDegrees, axesDistance))
   {
+    this->CalibrationData.FoR=input.FoR;
     this->CalibrationData.CalibrationValid=true;
     this->CalibrationData.AxesDistance=axesDistance;
     this->CalibrationData.RobotRegistrationAngleDegrees=input.RobotInitialAngle;
@@ -1106,8 +1108,13 @@ void vtkTransRectalFiducialCalibrationAlgo::Linefinder(double P_[3], double v_[3
 /// Calculations to find the targeting parameters (point -> rotation & deepth)
 bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTargetDescriptor *target)
 {
-  if (!this->CalibrationData.CalibrationValid) 
-    return false;
+    if (!this->CalibrationData.CalibrationValid) 
+    {
+      target->SetTargetingParametersValid(false);
+      return false;
+    }
+
+    target->SetCalibrationFoRStr(this->CalibrationData.FoR);
 
     // Axel algorithm, part 1 :
     //  When fiducials segmented
@@ -1137,12 +1144,6 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     v2[0] = this->CalibrationData.v2[0];
     v2[1] = -this->CalibrationData.v2[1];
     v2[2] = this->CalibrationData.v2[2];
-
-    // Insertion deepth offset (in mm)
-    double offset;
-    offset = target->GetNeedleOvershoot();
-    // offset = -13; - Biopsy needle
-    // offset = 1.5; - Seed placement needle, gold markers  
     
     double H_zero[3];
     
@@ -1249,11 +1250,17 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     insM[1] = H_afterLps[1] - targetLps[1];
     insM[2] = H_afterLps[2] - targetLps[2];
 
-    double n_insertion=vtkMath::Norm(insM)+n_slide+offset;
+    // Insertion depth offset (in mm)
+    // overshoot>0: biopsy
+    // overshoot<0: seed placement
+    double overshoot = target->GetNeedleOvershoot();
+
+    double n_insertion=vtkMath::Norm(insM)+n_slide+overshoot;
 
     // Text -------------------------------------------------------------
     target->SetDepthCM(n_insertion/10.0);
 
+    target->SetTargetingParametersValid(true);
     return true;
 }
 

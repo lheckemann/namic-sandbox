@@ -55,9 +55,9 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
     std::string NeedleName; // use as UID for targets
     // NeedleLength: maximum possible insertion depth, in mm
     float NeedleLength;
-    // Overshoot: where the target will be placed compared to the needle tip, in mm
-    // if negative, then target is towards the needle base (biopsy)
-    // if positive, then target is in front of the needle tip (seed placement)
+    // Overshoot: where is the target compared to the needle tip, in mm
+    // if positive, then target is towards the needle base (biopsy)
+    // if negative, then target is in front of the needle tip (seed placement)
     float NeedleOvershoot; 
     std::string Description;
     };
@@ -208,8 +208,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLProstateNavManagerNode : public vtkMRMLNode
   //----------------------------------------------------------------
   
   bool AddTargetToFiducialList(double targetRAS[3], unsigned int fiducialListIndex, unsigned int targetNr, int & fiducialIndex);  
-  bool GetTargetFromFiducialList(int fiducialListIndex, int fiducialIndex, double &r, double &a, double &s);
-
+  bool GetTargetFromFiducialList(int fiducialListIndex, int fiducialIndex, double &r, double &a, double &s);  
   void SetFiducialColor(int fiducialIndex, bool selected); // :TODO: rename it to SetFiducialSelected
 
   //BTX

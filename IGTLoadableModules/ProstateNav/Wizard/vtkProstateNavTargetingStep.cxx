@@ -75,15 +75,15 @@ enum
   COL_X,
   COL_Y,
   COL_Z,
+  COL_NEEDLE,
   COL_OR_W,
   COL_OR_X,
   COL_OR_Y,
   COL_OR_Z,
-  COL_NEEDLE,
   COL_COUNT // all valid columns should be inserted above this line
 };
-static const char* COL_LABELS[COL_COUNT] = { "Name", "X", "Y", "Z", "OrW", "OrX", "OrY", "OrZ", "Needle" };
-static const int COL_WIDTHS[COL_COUNT] = { 8, 6, 6, 6, 6, 6, 6, 6, 8 };
+static const char* COL_LABELS[COL_COUNT] = { "Name", "R", "A", "S", "Needle", "OrW", "OrX", "OrY", "OrZ" };
+static const int COL_WIDTHS[COL_COUNT] = { 8, 6, 6, 6, 8, 6, 6, 6, 6 };
 
 
 //----------------------------------------------------------------------------
@@ -298,6 +298,7 @@ void vtkProstateNavTargetingStep::ShowTargetListFrame()
     this->TargetList->Create();
     this->TargetList->SetHeight(1);
     this->TargetList->GetWidget()->SetSelectionTypeToRow();
+    this->TargetList->GetWidget()->SetSelectionBackgroundColor(1,0,0);
     this->TargetList->GetWidget()->MovableRowsOff();
     this->TargetList->GetWidget()->MovableColumnsOff();
 
@@ -536,6 +537,31 @@ void vtkProstateNavTargetingStep::ProcessGUIEvents(vtkObject *caller,
 
   if(!mrmlNode)
       return;
+
+  if (this->DeleteButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+      vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex());       
+      vtkMRMLFiducialListNode* plan = this->GetProstateNavManager()->GetTargetPlanListNode();
+      if (plan!=NULL && targetDesc!=NULL)
+      {
+        int fidIndex=plan->GetFiducialIndex(targetDesc->GetFiducialID());
+        if (fidIndex>=0)
+        {
+          plan->RemoveFiducial(fidIndex);
+          mrmlNode->SetCurrentTargetIndex(-1);
+          UpdateTargetListGUI();
+        }
+        else
+        {
+          vtkErrorMacro("Cannot delete target, fiducial not found");
+        }
+      }
+      else
+      {
+        vtkErrorMacro("Cannot delete target, fiducial or target descriptor is invalid");
+      }
+    }
 
   // load targeting volume dialog button
   if (this->LoadTargetingVolumeButton && this->LoadTargetingVolumeButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
@@ -776,6 +802,11 @@ void vtkProstateNavTargetingStep::OnMultiColumnListSelectionChanged()
     int targetIndex=this->TargetList->GetWidget()->GetRowAttributeAsInt(rowIndex, TARGET_INDEX_ATTR);
     vtkProstateNavTargetDescriptor* targetDesc=this->GetProstateNavManager()->GetTargetDescriptorAtIndex(targetIndex);    
 
+    if (targetDesc==NULL)
+    {
+      vtkErrorMacro("Target descriptor not found");
+      return;
+    }
     // Copy the values to inputs
     vtkKWMatrixWidget* matrix = this->NeedlePositionMatrix->GetWidget();
     double* xyz=targetDesc->GetRASLocation();
@@ -927,6 +958,10 @@ void vtkProstateNavTargetingStep::AddGUIObservers()
     {
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->DeleteButton)
+    {
+    this->DeleteButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->MoveButton)
     {
     this->MoveButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -963,6 +998,10 @@ void vtkProstateNavTargetingStep::RemoveGUIObservers()
   if (this->NeedleTypeMenuList)
     {
       this->NeedleTypeMenuList->GetWidget()->GetMenu()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->DeleteButton)
+    {
+    this->DeleteButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->MoveButton)
     {
@@ -1028,8 +1067,14 @@ void vtkProstateNavTargetingStep::UpdateGUI()
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->DeleteAllItems();
     for (int i = 0; i < mrmlNode->GetNumberOfNeedles(); i++)
       {
-      std::string needle = mrmlNode->GetNeedleType(i);
-      this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton(needle.c_str());
+      std::ostrstream needleTitle;
+      needleTitle << mrmlNode->GetNeedleType(i) << " ("
+        <<mrmlNode->GetNeedleOvershoot(i)<<"mm overshoot, "
+        <<mrmlNode->GetNeedleLength(i)<<"mm length"
+        << ")" << std::ends;      
+      this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton(needleTitle.str());
+      needleTitle.rdbuf()->freeze();
+      needleTitle.clear();
       }
     int needleIndex=mrmlNode->GetCurrentNeedleIndex();
     this->NeedleTypeMenuList->GetWidget()->GetMenu()->SelectItem(needleIndex);

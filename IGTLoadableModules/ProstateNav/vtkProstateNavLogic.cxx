@@ -669,7 +669,7 @@ int vtkProstateNavLogic::UpdateCoverageVolumeImage()
   double needleLength=manager->GetNeedleLength(manager->GetCurrentNeedleIndex());
 
   std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeID());
-  targetDesc->SetFoRStr(FoR);
+  targetDesc->SetTargetingFoRStr(FoR);
   
 
   float value=0;  
@@ -791,7 +791,7 @@ void vtkProstateNavLogic::UpdateTargetListFromMRML()
       targetDesc->SetNeedleType(manager->GetNeedleType(needleIndex), manager->GetNeedleLength(needleIndex), manager->GetNeedleOvershoot(needleIndex));
 
       std::string FoR = this->GetFoRStrFromVolumeNodeID(manager->GetTargetingVolumeNodeID());
-      targetDesc->SetFoRStr(FoR);
+      targetDesc->SetTargetingFoRStr(FoR);
 
       manager->AddTargetDescriptor(targetDesc);
     }

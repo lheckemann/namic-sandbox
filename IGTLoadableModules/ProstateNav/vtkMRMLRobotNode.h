@@ -127,6 +127,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   virtual int OnTimer() {return 1; };
 
   virtual bool FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc) { return false; };
+  virtual bool ShowRobotAtTarget(vtkProstateNavTargetDescriptor *targetDesc) { return false; };
   //BTX
   virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc) { return ""; };
   //ETX
@@ -141,6 +142,10 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   // Description:
   // Get workspace object model (representing range of motion of the device)
   virtual const char* GetWorkspaceObjectModelId() {return ""; };
+
+  // Description:
+  // Get robot model (representing the robot with the needle guide, etc.)
+  virtual const char* GetRobotModelId() {return ""; };
 
   int GetStatusDescriptorCount();
   
