@@ -459,7 +459,7 @@ ObjectFactoryBase
 {
   Superclass::PrintSelf(os);
 
-  char* indent = "    ";
+  const char* indent = "    ";
 
   os << indent << "Factory DLL path: " << m_LibraryPath.c_str() << "\n";
   os << indent << "Factory description: " << this->GetDescription() << std::endl;
