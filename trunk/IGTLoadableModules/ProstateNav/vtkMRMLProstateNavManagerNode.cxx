@@ -461,6 +461,12 @@ int vtkMRMLProstateNavManagerNode::SetCurrentTargetIndex(int index)
     return this->CurrentTargetIndex;
     }
   this->CurrentTargetIndex=index;
+
+  if (GetRobotNode())
+  {
+    GetRobotNode()->ShowRobotAtTarget(GetTargetDescriptorAtIndex(this->CurrentTargetIndex));
+  }
+
   this->Modified();
   this->InvokeEvent(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent);
   return this->CurrentTargetIndex;
@@ -634,15 +640,22 @@ void vtkMRMLProstateNavManagerNode::Init()
  
   // initialize at least one needle  
   NeedleDescriptorStruct needle;
+
+  needle.Description = "Generic needle";
+  needle.NeedleLength = 200;
+  needle.NeedleOvershoot = 0;
+  needle.NeedleName = "Generic";
+  this->NeedlesVector.push_back(needle);
+
   needle.Description = "Biopsy needle";
-  needle.NeedleLength = 150;
-  needle.NeedleOvershoot = -13;
+  needle.NeedleLength = 200;
+  needle.NeedleOvershoot = 13;
   needle.NeedleName = "Biopsy";
   this->NeedlesVector.push_back(needle);
 
   needle.Description = "Seed placement needle";
-  needle.NeedleLength = 180;
-  needle.NeedleOvershoot = 1.5;
+  needle.NeedleLength = 200;
+  needle.NeedleOvershoot = -1.5;
   needle.NeedleName = "Seed placement";
   this->NeedlesVector.push_back(needle);
 

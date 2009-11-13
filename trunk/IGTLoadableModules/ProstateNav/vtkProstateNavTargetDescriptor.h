@@ -124,8 +124,14 @@ public:
         return std::string(ras);
     }
     //ETX
+    
     // Description
-    // Set/get Validation info: is validated?   
+    // Set/get targeting info is valid (they are computed using a valid calibration data)
+    vtkGetMacro(TargetingParametersValid,bool);
+    vtkSetMacro(TargetingParametersValid,bool);
+
+    // Description
+    // Set/get Needle placement is validated
     vtkGetMacro(TargetValidated,bool);
     vtkSetMacro(TargetValidated,bool);
 
@@ -165,10 +171,15 @@ public:
     void SetNeedleConfirmationVolumeFoRStr(std::string foRStr){this->ValidationVolumeFoR_STR = foRStr;}
     std::string GetNeedleConfirmationVolumeFoRStr() const {return this->ValidationVolumeFoR_STR;};
 
-     // Description
-    // Set/get FoR string
-    void SetFoRStr(std::string foRStr){this->FoR_STR = foRStr;}
-    std::string GetFoRStr() const {return this->FoR_STR;};
+    // Description
+    // Set/get FoR string of the targeting volume
+    void SetTargetingFoRStr(std::string foRStr){this->TargetingFoR_STR = foRStr;}
+    std::string GetTargetingFoRStr() const {return this->TargetingFoR_STR;};
+
+    // Description
+    // Set/get FoR string of the calibration volume
+    void SetCalibrationFoRStr(std::string foRStr){this->CalibrationFoR_STR = foRStr;}
+    std::string GetCalibrationFoRStr() const {return this->CalibrationFoR_STR;};
 
     void SetFiducialID(std::string fidId){this->FiducialID = fidId;}
     std::string GetFiducialID() const {return this->FiducialID; };
@@ -191,12 +202,14 @@ private:
     double RASLocation[3];
     double RASOrientation[4];
     //BTX
-    std::string FoR_STR;
+    std::string TargetingFoR_STR;
+    std::string CalibrationFoR_STR; /// string identifier for the calibration volume
     std::string ValidationVolumeFoR_STR; /// string identifier for the volume used for needle confirmation
     std::string NeedleType;
     std::string FiducialID; // ID of the fiducial in the FiducialListNode
     //ETX
     bool TargetValidated;  ///< Indicates whether it was validated against needle insertion
+    bool TargetingParametersValid;
     double NeedleTipValidationPosition[3];
     double NeedleBaseValidationPosition[3];
     double OverallError; /// < Calculated value, ComputedDistanceFromNeedle

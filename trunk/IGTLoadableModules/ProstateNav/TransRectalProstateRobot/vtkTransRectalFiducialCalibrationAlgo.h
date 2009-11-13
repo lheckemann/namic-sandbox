@@ -42,8 +42,8 @@ struct TRProstateBiopsyCalibrationFromImageInput
   double RobotInitialAngle;
   vtkMatrix4x4 *VolumeIJKToRASMatrix;
   vtkImageData *VolumeImageData;
+  std::string FoR; // frame of reference
 };
-//ETX
 
 struct TRProstateBiopsyCalibrationFromImageOutput
 {
@@ -61,7 +61,10 @@ struct TRProstateBiopsyCalibrationData
   double I2[3]; 
   double v1[3];
   double v2[3];
+  std::string FoR; // frame of reference UID
 };
+
+//ETX
 
 class VTK_PROSTATENAV_EXPORT vtkTransRectalFiducialCalibrationAlgo :
   public vtkObject
