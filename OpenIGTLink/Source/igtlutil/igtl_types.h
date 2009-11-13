@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Open IGT Link Library
+  Program:   OpenIGTLink Library
   Module:    $HeadURL$
   Language:  C
   Date:      $Date$
