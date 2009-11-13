@@ -20,25 +20,40 @@
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
 
+char barray[] = {
+  0x00, 0x01,                                     /* Version number */
+  0x54, 0x59, 0x50, 0x45, 0x4e, 0x41, 0x4d, 0x45,
+  0x00, 0x00, 0x00, 0x00,                         /* TYPENAME */ 
+  0x44, 0x65, 0x76, 0x69, 0x63, 0x65, 0x4e, 0x61,
+  0x6d, 0x65, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00,                         /* Device name */
+  0x00, 0x00, 0x00, 0x00, 0x49, 0x96, 0x02, 0xd2, /* Time stamp */
+  0x00, 0x00, 0x00, 0x07, 0x50, 0x88, 0xFF, 0x06, /* Body size */
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x7E, 0xA7, /* CRC */
+};
+
+
 int main( int argc, char * argv [] )
 {
 
   igtl_header  header;
 
   header.version = 1;
-  strncpy( header.name, "Name", 8 );
+  strncpy( header.name, "TYPENAME", 12 );
   strncpy( header.device_name, "DeviceName", 20 );
-  header.timestamp = 12345;
-  header.body_size = 234567;
+  header.timestamp = 1234567890;
+  header.body_size = 31415926534;
   header.crc = 1343143;
 
   igtl_header_convert_byte_order( &header );
 
-  //
-  // FIXME: Test the outcome of the 
-  // byte order conversion for correctness.
-  // until then, we mark this test as failing.
-  //
+  if (memcmp((const void*)&header, (const void*)barray, IGTL_HEADER_SIZE) == 0)
+    {
+    return EXIT_SUCCESS;
+    }
+  else
+    {
+    return EXIT_FAILURE;
+    }
 
-  return EXIT_SUCCESS;
 }
