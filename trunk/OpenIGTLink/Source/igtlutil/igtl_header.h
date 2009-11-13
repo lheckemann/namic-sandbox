@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Open ITK Link Library
+  Program:   OpenIGTLink Library
   Module:    $HeadURL$
   Language:  C
   Date:      $Date$
