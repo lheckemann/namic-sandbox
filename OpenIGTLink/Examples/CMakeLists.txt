@@ -13,6 +13,7 @@ if(NOT OpenIGTLink_PLATFORM_QNX)
       Imager
       Status
       Receiver
+      Thread
       )
 else(NOT OpenIGTLink_PLATFORM_QNX)
   SUBDIRS(

@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Open ITK Link Library
+  Program:   OpenIGTLink Library
   Module:    $RCSfile: itkImage.h,v $
   Language:  C++
   Date:      $Date: 2008/01/13 19:48:38 $
