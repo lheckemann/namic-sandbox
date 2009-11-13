@@ -211,7 +211,7 @@ int MultiThreader::GetNumberOfThreads()
 
 // Set the user defined method that will be run on NumberOfThreads threads
 // when m_SingleMethodExecute is called.
-void MultiThreader::SetSingleMethod( igtlThreadFunctionType f, 
+void MultiThreader::SetSingleMethod( ThreadFunctionType f, 
                                         void *data )
 { 
   this->m_SingleMethod = f;
@@ -223,7 +223,7 @@ void MultiThreader::SetSingleMethod( igtlThreadFunctionType f,
 // called with index = 0, 1, ..,  NumberOfThreads-1 to set up all the
 // required user defined methods
 void MultiThreader::SetMultipleMethod( int index, 
-                                          igtlThreadFunctionType f, void *data )
+                                          ThreadFunctionType f, void *data )
 { 
   // You can only set the method for 0 through NumberOfThreads-1
   if ( index >= this->m_NumberOfThreads )
@@ -452,7 +452,7 @@ void MultiThreader::MultipleMethodExecute()
 
   for ( thread_loop = 0; thread_loop < this->m_NumberOfThreads; thread_loop++ )
     {
-    if ( this->m_MultipleMethod[thread_loop] == (igtlThreadFunctionType)NULL)
+    if ( this->m_MultipleMethod[thread_loop] == (ThreadFunctionType)NULL)
       {
       igtlErrorMacro( << "No multiple method set for: " << thread_loop );
       return;
@@ -609,9 +609,9 @@ void MultiThreader::MultipleMethodExecute()
 #endif
 }
 
-int MultiThreader::SpawnThread( igtlThreadFunctionType f, void *userdata )
+int MultiThreader::SpawnThread( ThreadFunctionType f, void *userdata )
 {
-  int id;
+  int id = 0;
 
 #ifdef OpenIGTLink_USE_WIN32_THREADS
   DWORD              threadId;
@@ -619,9 +619,9 @@ int MultiThreader::SpawnThread( igtlThreadFunctionType f, void *userdata )
 
   for ( id = 0; id < IGTL_MAX_THREADS; id++ )
     {
-    if ( this->m_SpawnedThreadActiveFlagLock[id] == NULL )
+    if ( ! this->m_SpawnedThreadActiveFlagLock[id] )
       {
-      this->m_SpawnedThreadActiveFlagLock[id] = igtl::MutexLock::New();
+      this->m_SpawnedThreadActiveFlagLock[id] = MutexLock::New();
       }
     this->m_SpawnedThreadActiveFlagLock[id]->Lock();
     if (this->m_SpawnedThreadActiveFlag[id] == 0)
@@ -704,7 +704,7 @@ int MultiThreader::SpawnThread( igtlThreadFunctionType f, void *userdata )
   // There is no multi threading, so there is only one thread.
   // This won't work - so give an error message.
   igtlErrorMacro( << "Cannot spawn thread in a single threaded environment!" );
-  this->m_SpawnedThreadActiveFlagLock[id]->Delete();
+  this->m_SpawnedThreadActiveFlagLock[id] = 0;
   id = -1;
 #endif
 #endif
@@ -751,7 +751,7 @@ void MultiThreader::TerminateThread( int threadID )
 #endif
 #endif
 
-  this->m_SpawnedThreadActiveFlagLock[threadID]->Delete();
+  this->m_SpawnedThreadActiveFlagLock[threadID] = 0;
   this->m_SpawnedThreadActiveFlagLock[threadID] = NULL;
 
 }

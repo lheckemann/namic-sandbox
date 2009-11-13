@@ -40,6 +40,7 @@
 #include "igtlObject.h"
 #include "igtlObjectFactory.h"
 #include "igtlMacro.h"
+#include "igtlMutexLock.h"
 
 
 #ifdef OpenIGTLink_USE_SPROC
@@ -106,30 +107,29 @@ namespace igtl
 #endif
 
 #ifdef OpenIGTLink_USE_SPROC
-typedef int igtlThreadProcessIDType;
+typedef int ThreadProcessIDType;
 typedef int MultiThreaderIDType;
 #endif
 
 #ifdef OpenIGTLink_USE_PTHREADS
-typedef void *(*igtlThreadFunctionType)(void *);
-typedef pthread_t igtlThreadProcessIDType;
+typedef void *(*ThreadFunctionType)(void *);
+typedef pthread_t ThreadProcessIDType;
 typedef pthread_t MultiThreaderIDType;
 #endif
 
 #ifdef OpenIGTLink_USE_WIN32_THREADS
-typedef igtlWindowsLPTHREAD_START_ROUTINE igtlThreadFunctionType;
-typedef igtlWindowsHANDLE igtlThreadProcessIDType;
+typedef igtlWindowsLPTHREAD_START_ROUTINE ThreadFunctionType;
+typedef igtlWindowsHANDLE ThreadProcessIDType;
 typedef igtlWindowsDWORD MultiThreaderIDType;
 #endif
 
 #if !defined(OpenIGTLink_USE_PTHREADS) && !defined(OpenIGTLink_USE_WIN32_THREADS)
-typedef void (*igtlThreadFunctionType)(void *);
-typedef int igtlThreadProcessIDType;
+typedef void (*ThreadFunctionType)(void *);
+typedef int ThreadProcessIDType;
 typedef int MultiThreaderIDType;
 #endif
 //ETX
 
-class MutexLock;
 
 class IGTLCommon_EXPORT MultiThreader : public Object 
 {
@@ -165,7 +165,7 @@ public:
     int                 ThreadID;
     int                 NumberOfThreads;
     int                 *ActiveFlag;
-    MutexLock        *ActiveFlagLock;
+    MutexLock::Pointer  ActiveFlagLock;
     void                *UserData;
   };
   //ETX
@@ -211,20 +211,20 @@ public:
   // Set the SingleMethod to f() and the UserData field of the
   // ThreadInfo that is passed to it will be data.
   // This method (and all the methods passed to SetMultipleMethod)
-  // must be of type igtlThreadFunctionType and must take a single argument of
+  // must be of type ThreadFunctionType and must take a single argument of
   // type void *.
-  void SetSingleMethod(igtlThreadFunctionType, void *data );
+  void SetSingleMethod(ThreadFunctionType, void *data );
  
   // Description:
   // Set the MultipleMethod at the given index to f() and the UserData 
   // field of the ThreadInfo that is passed to it will be data.
-  void SetMultipleMethod( int index, igtlThreadFunctionType, void *data ); 
+  void SetMultipleMethod( int index, ThreadFunctionType, void *data ); 
 
   // Description:
   // Create a new thread for the given function. Return a thread id
   // which is a number between 0 and IGTL_MAX_THREADS - 1. This id should
   // be used to kill the thread at a later time.
-  int SpawnThread( igtlThreadFunctionType, void *data );
+  int SpawnThread( ThreadFunctionType, void *data );
 
   // Description:
   // Terminate the thread that was created with a SpawnThreadExecute()
@@ -252,14 +252,14 @@ protected:
   ThreadInfo                 m_ThreadInfoArray[IGTL_MAX_THREADS];
 
   // The methods
-  igtlThreadFunctionType      m_SingleMethod;
-  igtlThreadFunctionType      m_MultipleMethod[IGTL_MAX_THREADS];
+  ThreadFunctionType         m_SingleMethod;
+  ThreadFunctionType         m_MultipleMethod[IGTL_MAX_THREADS];
 
   // Storage of MutexFunctions and ints used to control spawned 
   // threads and the spawned thread ids
   int                        m_SpawnedThreadActiveFlag[IGTL_MAX_THREADS];
-  MutexLock                 *m_SpawnedThreadActiveFlagLock[IGTL_MAX_THREADS];
-  igtlThreadProcessIDType     m_SpawnedThreadProcessID[IGTL_MAX_THREADS];
+  MutexLock::Pointer         m_SpawnedThreadActiveFlagLock[IGTL_MAX_THREADS];
+  ThreadProcessIDType        m_SpawnedThreadProcessID[IGTL_MAX_THREADS];
   ThreadInfo                 m_SpawnedThreadInfoArray[IGTL_MAX_THREADS];
 
 //ETX
