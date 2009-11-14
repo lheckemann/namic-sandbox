@@ -47,13 +47,13 @@
       <name>expectedVolume</name>
       <longflag>expectedVolume</longflag>
       <flag>v</flag>
-      <description>The approximate volume of the object, in mm^3.</description>
-      <label>Approximate volume(mm^3)</label>
+      <description>The approximate volume of the object, in mL.</description>
+      <label>Approximate volume(mL)</label>
       <default>1</default>
       <constraints>
         <minimum>0.0</minimum>
-        <maximum>10000000</maximum>
-        <step>100</step>
+        <maximum>10000</maximum>
+        <step>10</step>
       </constraints>
     </double>
 

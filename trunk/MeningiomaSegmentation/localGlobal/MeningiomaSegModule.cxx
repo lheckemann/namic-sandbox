@@ -64,7 +64,10 @@ int main(int argc, char** argv)
       curvatureWeight = 10;
     }
 
-
+  /* In the interface, the volume is in mL, but in the code, it's in
+     mm^3 */
+  expectedVolume *= 1000;
+  
   if (0 > expectedVolume)
     {
       expectedVolume = 0.1;
