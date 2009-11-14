@@ -17,14 +17,19 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
-template< typename TPixel >
-itk::Image< unsigned char, 3 >::Pointer 
-getInitMask(typename itk::Image< TPixel, 3 >::Pointer img, long cx, long cy, long cz );
+
+#include "itkImageRegionConstIterator.h"
 
 
 template< typename TPixel >
 itk::Image< unsigned char, 3 >::Pointer 
 getFinalMask(typename itk::Image< TPixel, 3 >::Pointer img, TPixel thod = 0);
+
+
+template< typename TPixel >
+bool
+useLocal(typename itk::Image< TPixel, 3 >::Pointer img);
+
 
 
 int main(int argc, char** argv)
@@ -45,6 +50,28 @@ int main(int argc, char** argv)
 //   long cy = atol(argv[6]);
 //   long cz = atol(argv[7]);
 //   int globalSwitch = atoi(argv[8]);
+
+
+  /*----------------------------------------------------------------------
+    check ranges of input parameters */
+  if (0 > curvatureWeight)
+    {
+      curvatureWeight = 0;
+    }
+
+  if (10 < curvatureWeight)
+    {
+      curvatureWeight = 10;
+    }
+
+
+  if (0 > expectedVolume)
+    {
+      expectedVolume = 0.1;
+    }
+  /* check ranges of input parameters 
+     ----------------------------------------------------------------------*/
+
 
   typedef double PixelType;
   typedef itk::Image< PixelType, 3 > ImageType;
@@ -114,7 +141,6 @@ int main(int argc, char** argv)
                 }
             }
 
-//           //mask = getInitMask< PixelType >(img, index[0], index[1], index[2]);
 //           f << "LPS: " << lpsPoint << std::endl;
 //           f << "IJK: " << index << std::endl;
         }
@@ -149,6 +175,8 @@ int main(int argc, char** argv)
   //  MaskImageType::Pointer finalMask = mask;
   MaskImageType::Pointer finalMask = NULL;
 
+  bool globalSwitch = useLocal<PixelType>(img);
+
   if (!globalSwitch)
     {
       // perform global statistics based segmentation
@@ -156,9 +184,11 @@ int main(int argc, char** argv)
       cv.setImage(img);
       cv.setMask(mask);
 
-      cv.setNumIter(numOfIteration);
+      long ChanVeseNumOfIteration = 100000;
+      cv.setNumIter(ChanVeseNumOfIteration);
+      cv.setExpectedVolume(expectedVolume);
 
-      cv.setCurvatureWeight(curvatureWeight);
+      cv.setCurvatureWeight(curvatureWeight/20.0); // in the interface, it's 0~10 scale, internally, it's 0~0.5
 
       cv.doChanVeseSegmenation();
 
@@ -171,9 +201,11 @@ int main(int argc, char** argv)
       cv.setImage(img);
       cv.setMask(mask);
 
-      cv.setNumIter(numOfIteration);
+      long localChanVeseNumOfIteration = 1000;
+      cv.setNumIter(localChanVeseNumOfIteration);
+      cv.setExpectedVolume(expectedVolume);
 
-      cv.setCurvatureWeight(curvatureWeight);
+      cv.setCurvatureWeight(curvatureWeight/20.0); // in the interface, it's 0~10 scale, here need to /10
       cv.setNBHDSize(30, 30, 5);
 
 
@@ -197,58 +229,6 @@ int main(int argc, char** argv)
   
   
   return EXIT_SUCCESS;
-}
-
-
-template< typename TPixel >
-itk::Image< unsigned char, 3 >::Pointer 
-getInitMask(typename itk::Image< TPixel, 3 >::Pointer img, long cx, long cy, long cz )
-{
-  typedef itk::Image< unsigned char, 3 > MaskType;
-
-  MaskType::SizeType size = img->GetLargestPossibleRegion().GetSize();
-
-  long nx = size[0];
-  long ny = size[1];
-  long nz = size[2];
-  
-  
-  if (cx < 0 || cx > nx-1 || cy < 0 || cy > ny-1 || cz < 0 || cz > nz-1 )
-    {
-      std::cerr<<"(cx, cy, cz) not in the img domain. abort.\n";
-      raise(SIGABRT);
-    }
-
-
-  MaskType::Pointer mask = MaskType::New();
-  MaskType::IndexType start = {{0, 0, 0}};
-
-  MaskType::RegionType region;
-  region.SetSize( size );
-  region.SetIndex( start );
-
-  mask->SetRegions( region );
-
-  mask->SetSpacing(img->GetSpacing());
-  mask->SetOrigin(img->GetOrigin());
-
-  mask->Allocate();
-  mask->FillBuffer(0);
-  
-
-  for (long ix = cx-5; ix < cx+6; ++ix)
-    {
-      for (long iy = cy-5; iy < cy+6; ++iy)
-        {
-          for (long iz = cz-5; iz < cz+6; ++iz)
-            {
-              itk::Image< unsigned char, 3 >::IndexType idx = {{ix, iy, iz}};
-              mask->SetPixel(idx, 1);
-            }
-        }
-    }
-
-  return mask;  
 }
 
 
@@ -298,4 +278,52 @@ getFinalMask(typename itk::Image< TPixel, 3 >::Pointer img, TPixel thod)
 
 
   return mask;
+}
+
+
+template< typename TPixel >
+bool
+useLocal(typename itk::Image< TPixel, 3 >::Pointer img)
+{
+  typedef itk::Image< TPixel, 3 > TImage;
+  typedef itk::ImageRegionConstIterator<TImage> TImageRegionConstIterator;
+  TImageRegionConstIterator it(img, img->GetLargestPossibleRegion());
+
+  bool useLocalStat = false;
+
+  double mean = 0;
+
+  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+    {
+      mean += it.Get();
+    }
+
+  typename TImage::SizeType s = img->GetLargestPossibleRegion().GetSize();
+  long n = s[0]*s[1]*s[2];
+
+  mean /= n;
+
+  double stddev = 0;
+  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+    {
+      TPixel v = it.Get();
+      stddev += (v - mean)*(v - mean);
+    }
+  
+  stddev /= n;
+  stddev = sqrt(stddev);
+
+  if (stddev > 10000)
+    {
+      useLocalStat = true;
+    }
+
+  //debug//
+  std::ofstream f("/tmp/l.txt");
+  f<<stddev<<std::endl<<useLocalStat<<std::endl;
+  f.close();
+  //DEBUG//
+
+
+  return useLocalStat;
 }

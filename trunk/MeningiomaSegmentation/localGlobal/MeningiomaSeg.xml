@@ -4,10 +4,14 @@
     Segmentation
   </category>
   <title>
-    Meningioma Segmentation
+    Localized Region-Based Segmentation
   </title>
   <description>
-    Segment Meningioma
+    Active contour segmentation method based on the Localized
+    Region-Based statistics. The algorithm is described in the paper:
+    Lankton, S. and Tannenbaum, A.R. "Localizing region-based active
+    contours", IEEE Transactions on Image Processing, vol 17,
+    pp2029--2039, 2008
   </description>
   <version>1.0</version>
   <documentation-url>
@@ -25,31 +29,46 @@
     <label>Segmentation Parameters</label>
     <description>Parameters for meningioma segmentation</description>
 
-    <integer>
-      <name>numOfIteration</name>
-      <longflag>numOfIteration</longflag>
-      <flag>n</flag>
-      <description>Max number of iteration</description>
-      <label>Number of iteration</label>
-      <default>10</default>
+<!--     <integer> -->
+<!--       <name>numOfIteration</name> -->
+<!--       <longflag>numOfIteration</longflag> -->
+<!--       <flag>n</flag> -->
+<!--       <description>Max number of iteration</description> -->
+<!--       <label>Number of iteration</label> -->
+<!--       <default>10</default> -->
+<!--       <constraints> -->
+<!--         <minimum>1</minimum> -->
+<!--         <maximum>1000</maximum> -->
+<!--         <step>10</step> -->
+<!--       </constraints> -->
+<!--     </integer> -->
+
+    <double>
+      <name>expectedVolume</name>
+      <longflag>expectedVolume</longflag>
+      <flag>v</flag>
+      <description>The approximate volume of the object, in mm^3.</description>
+      <label>Approximate volume(mm^3)</label>
+      <default>1</default>
       <constraints>
-        <minimum>1</minimum>
-        <maximum>1000</maximum>
-        <step>10</step>
+        <minimum>0.0</minimum>
+        <maximum>10000000</maximum>
+        <step>100</step>
       </constraints>
-    </integer>
+    </double>
 
     <double>
       <name>curvatureWeight</name>
       <longflag>curvatureWeight</longflag>
       <flag>c</flag>
-      <description>Smoothness factor[0-1]</description>
-      <label>Smoothness factor[0-1]</label>
-      <default>0.9</default>
+      <description>Given sphere 10 score and extreme rough surface 0,
+      what is the smoothness of the object?</description>
+      <label>Smoothness score[0-10]</label>
+      <default>0</default>
       <constraints>
         <minimum>0.0</minimum>
-        <maximum>1.0</maximum>
-        <step>0.1</step>
+        <maximum>10.0</maximum>
+        <step>1</step>
       </constraints>
     </double>
 
@@ -88,14 +107,14 @@
 <!--       <default>10</default> -->
 <!--     </integer> -->
 
-      <boolean>
-        <name>globalSwitch</name>
-        <longflag>--global</longflag>
-        <flag>g</flag> 
-        <description>true: Use local statistics, false: Use global statistics.</description>
-        <label>Use local statistics?</label>
-        <default>false</default>
-      </boolean> 
+<!--       <boolean> -->
+<!--         <name>globalSwitch</name> -->
+<!--         <longflag>global</longflag> -->
+<!--         <flag>g</flag> -->
+<!--         <description>true: Use local statistics, false: Use global statistics.</description> -->
+<!--         <label>Use local statistics?</label> -->
+<!--         <default>false</default> -->
+<!--       </boolean> -->
 
 <!--     <integer> -->
 <!--       <name>globalSwitch</name> -->

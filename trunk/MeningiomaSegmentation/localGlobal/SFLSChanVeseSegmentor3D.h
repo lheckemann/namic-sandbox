@@ -38,6 +38,8 @@ public:
     m_curvatureWeight = a;
   }
 
+  void setExpectedVolume(double v);
+
 
   // data
   double m_curvatureWeight;
@@ -47,6 +49,7 @@ public:
 
   double m_meanIn;
   double m_meanOut;
+
 
 
   /* ============================================================
@@ -61,6 +64,11 @@ public:
   /* ============================================================
      computeForce    */
   void computeForce();
+
+private:
+  //void adjustCurvatureWeight();
+
+  double m_expectedPhysicalVolume;
 
 };
 
