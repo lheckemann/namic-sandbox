@@ -1,7 +1,7 @@
 scm       svn
 svnpath http://svn.na-mic.org/NAMICSandBox/trunk/MeningiomaSegmentation/localGlobal
-name     MeningiomaSegModule
-cmakeproject      MeningiomaSegModule
+name     LocalRegionalSegModule
+cmakeproject      LocalRegionalSegModule
 svnusername slicerbot
 svnpassword slicer
 
@@ -22,5 +22,5 @@ category  Segmentation
 status    Development
 
 # One line description of what the module does
-Mennigioma segmentation module
+Localized Region-based Segmentation Module
 
