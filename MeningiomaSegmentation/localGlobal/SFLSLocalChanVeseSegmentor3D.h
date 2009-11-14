@@ -39,6 +39,9 @@ public:
     m_nbz = nbz;
   }
 
+  void setExpectedVolume(double v);
+
+
   // data
   double m_curvatureWeight;
 
@@ -50,6 +53,7 @@ public:
   double m_meanIn;
   double m_meanOut;
 
+  long m_voxelCountIn;
 
   /* ============================================================
    * functions
@@ -65,18 +69,13 @@ public:
   void computeForce();
 
 
+private:
+  //  void adjustCurvatureWeight();
 
-  //debug//
-  void checkNan();
-  //DEBUG//
+  void countInsideVoxel();
+  void updateCountInsideVoxel();
 
-  //   protected:
-  //     /*----------------------------------------------------------------------
-  //       For fast computation, keep the local meanIn/Out at each pixel */
-  //     cArray3D< TPixel >::Pointer m_localMeanIn;
-  //     cArray3D< TPixel >::Pointer m_localMeanOut;
-  //     cArray3D< long >::Pointer m_localAreaIn;
-  //     cArray3D< long >::Pointer m_localAreaOut;
+  double m_expectedPhysicalVolume;
 
 };
 

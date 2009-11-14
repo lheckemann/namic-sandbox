@@ -25,13 +25,19 @@ void
 CSFLSSegmentor3D< TPixel >
 ::basicInit()
 {
-  m_numIter = 100;
+  m_numIter = 1000;
   m_timeStep = 1.0;
 
 
   m_nx = 0;
   m_ny = 0;
   m_nz = 0;
+
+  m_dx = 1.0;
+  m_dy = 1.0;
+  m_dz = 1.0;
+
+  return;
 }
 
 /* ============================================================
@@ -60,12 +66,19 @@ CSFLSSegmentor3D< TPixel >
       m_nx = size[0];
       m_ny = size[1];
       m_nz = size[2];
+
+      typename ImageType::SpacingType spc = img->GetSpacing();      
+      m_dx = spc[0];
+      m_dy = spc[1];
+      m_dz = spc[2];
     }
   else if ( m_nx != (long)size[0] || m_ny != (long)size[1] || m_nz != (long)size[2] )
     {
       std::cerr<<"image sizes do not match. abort\n";
       raise(SIGABRT);
     }
+
+  return;
 }
 
 /* ============================================================

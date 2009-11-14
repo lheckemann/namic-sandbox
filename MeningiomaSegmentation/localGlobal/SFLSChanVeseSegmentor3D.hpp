@@ -6,6 +6,10 @@
 #include <algorithm>
 
 
+#include <fstream>
+
+#include "itkImageDuplicator.h"
+
 /* ============================================================
    basicInit    */
 template< typename TPixel >
@@ -16,7 +20,28 @@ CSFLSChanVeseSegmentor3D< TPixel >
   SuperClassType::basicInit();
     
   m_curvatureWeight = 0.1;
+
+  m_expectedPhysicalVolume = 1e10;
 }  
+
+
+/* ============================================================
+   computeForce    */
+template< typename TPixel >
+void
+CSFLSChanVeseSegmentor3D< TPixel >
+::setExpectedVolume(double v)
+{
+  if (v <= 0)
+    {
+      std::cerr<<"Error: v <= 0\n";
+      raise(SIGABRT);
+    }
+
+  m_expectedPhysicalVolume = v;
+
+  return;
+}
 
 
 /* ============================================================
@@ -31,6 +56,7 @@ CSFLSChanVeseSegmentor3D< TPixel >
   updateMeans();
 
   double fmax = -1e10;
+  double kappaMax = -1e10;
 
   long n = this->m_lz.size();
   double* kappaOnZeroLS = new double[ n ];
@@ -52,6 +78,7 @@ CSFLSChanVeseSegmentor3D< TPixel >
         double a = (I - m_meanIn)*(I - m_meanIn) - (I - m_meanOut)*(I - m_meanOut);
         
         fmax = fabs(a)>fmax?fabs(a):fmax;
+        kappaMax = fabs(kappaOnZeroLS[i])>kappaMax?fabs(kappaOnZeroLS[i]):kappaMax;
 
         cvForce[i] = a;
       }
@@ -60,12 +87,86 @@ CSFLSChanVeseSegmentor3D< TPixel >
 
   for (long i = 0; i < n; ++i)
     {
-      this->m_force.push_back(cvForce[i]/(fmax + 1e-10) +  m_curvatureWeight*kappaOnZeroLS[i]);
+      this->m_force.push_back((1 - m_curvatureWeight)*cvForce[i]/(fmax + 1e-10) +  m_curvatureWeight*kappaOnZeroLS[i]/(kappaMax + 1e-10));
     }
     
   delete[] kappaOnZeroLS;
   delete[] cvForce;
 }
+
+
+
+// /* ============================================================
+//    adjustCurvatureWeight    */
+// template< typename TPixel >
+// void
+// CSFLSChanVeseSegmentor3D< TPixel >
+// ::adjustCurvatureWeight()
+// {
+//   /* 
+//      If the curvature weight is too large s.t. the mask shrinks to
+//      nothing, then half it until it grows.
+
+//      To do so, run the algorithm for once, if the area decrease, half
+//      the curvature weight and adjust again.
+//   */
+
+//   // make copies
+//   typedef itk::ImageDuplicator< itk::Image<unsigned char, 3 > > MaskDuplicatorType; 
+//   MaskDuplicatorType::Pointer duplicator = MaskDuplicatorType::New(); 
+//   duplicator->SetInputImage(this->mp_mask); 
+//   duplicator->Update(); 
+//   itk::Image<unsigned char, 3 >::Pointer clonedMask = duplicator->GetOutput();
+
+
+
+//   std::ofstream f("/tmp/c.txt", std::ios_base::app);
+
+//   while(true)
+//     {  
+//       MaskDuplicatorType::Pointer duplicator1 = MaskDuplicatorType::New(); 
+//       duplicator1->SetInputImage(clonedMask); 
+//       duplicator1->Update(); 
+//       this->mp_mask = duplicator1->GetOutput();
+
+
+//       this->initializeSFLS();
+
+//       computeMeans();    
+
+//       double oldAreaIn = m_areaIn;
+
+//       computeForce();
+//       this->normalizeForce();
+//       this->oneStepLevelSetEvolution();
+  
+//       updateMeans();
+
+
+//       if  (oldAreaIn > m_areaIn)
+//         {
+//           f<<"m_curvatureWeight too big "<<m_curvatureWeight<<std::endl;
+
+//           m_curvatureWeight -= 0.1;
+
+//           f<<"m_curvatureWeight adjust to  "<<m_curvatureWeight<<std::endl;
+
+//           if (m_curvatureWeight < 0)
+//             {
+//               m_curvatureWeight = 0;
+//               return;
+//             }
+//         }
+//       else
+//         {
+//           f<<"m_curvatureWeight fine "<<m_curvatureWeight<<std::endl;
+//           f<<"no need to adjust.\n";
+//           return;
+//         }
+//     }
+
+//   f.close();
+// }
 
 
 /* ============================================================
@@ -79,19 +180,56 @@ CSFLSChanVeseSegmentor3D< TPixel >
    * From the initial mask, generate: 1. SFLS, 2. mp_label and
    * 3. mp_phi.      
    */
+
   this->initializeSFLS();
 
   computeMeans();    
 
+
   //douher::saveAsImage2< double >(mp_phi, "initPhi.nrrd");
   for (unsigned int it = 0; it < this->m_numIter; ++it)
     {
+      double oldVolume = m_areaIn;
+
       computeForce();
+
+      if (it > 10 && oldVolume >= m_areaIn)
+        {
+          // stops growing
+          std::ofstream f("/tmp/g.txt");
+          f<<"oldVolume >= m_areaIn "<<oldVolume<<"\t"<<m_areaIn<<std::endl;
+          f<<"stops growing\n";
+          f.close();
+          return;
+        }
 
       this->normalizeForce();
 
       this->oneStepLevelSetEvolution();
+
+      double volumeIn = m_areaIn*(this->m_dx)*(this->m_dy)*(this->m_dz);
+
+      if (volumeIn > m_expectedPhysicalVolume)
+        {
+          //          std::fstream f("/tmp/o.txt", std::ios_base::app);
+          std::ofstream f("/tmp/o.txt");
+          f<<"m_expectedPhysicalVolume = "<<m_expectedPhysicalVolume<<std::endl;
+          f<<"volumeIn = "<<volumeIn<<std::endl;
+
+          f<<"out from volume\n";
+          f.close();
+          return;
+        }
     }
+
+
+  //  std::fstream f1("/tmp/o1.txt", std::ios_base::app);
+  std::ofstream f1("/tmp/o1.txt");
+  f1<<"m_numIter = "<<this->m_numIter<<std::endl;
+  f1<<"out from iteration\n";
+  f1.close();
+
+  return;
 }
 
 
