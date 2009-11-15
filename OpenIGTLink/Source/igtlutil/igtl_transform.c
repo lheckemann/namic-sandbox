@@ -39,7 +39,7 @@ igtl_uint64 igtl_export igtl_transform_get_crc(igtl_float32* transform)
 
   igtl_uint64 crc = crc64(0, 0, 0);
 
-  crc = crc64((unsigned char*)transform, sizeof(igtl_uint64)*12, crc);
+  crc = crc64((unsigned char*)transform, sizeof(igtl_float32)*12, crc);
 
   return crc;
 }
