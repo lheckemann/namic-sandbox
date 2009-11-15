@@ -26,6 +26,7 @@
 
 /* The decimal is rounded when it is converted to IEEE 754 floating point */
 
+/* gold standard */
 char barray[] = {
   0x00, 0x01,                                     /* Version number */
   0x54, 0x52, 0x41, 0x4e, 0x53, 0x46, 0x4f, 0x52,
@@ -35,7 +36,7 @@ char barray[] = {
   0x00, 0x00, 0x00, 0x00,                         /* Device name */
   0x00, 0x00, 0x00, 0x00, 0x49, 0x96, 0x02, 0xd2, /* Time stamp */
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, /* Body size */
-  0x5a, 0xa6, 0xa1, 0x10, 0x50, 0xbf, 0x62, 0x49, /* CRC */
+  0xf6, 0xdd, 0x2b, 0x8e, 0xb4, 0xdf, 0x6d, 0xd2, /* CRC */
 
   0xBF, 0x74, 0x73, 0xCD, 0x3E, 0x49, 0x59, 0xE6, /* tx, ty */
   0xBE, 0x63, 0xDD, 0x98, 0xBE, 0x49, 0x59, 0xE6, /* tz, sx */
@@ -45,49 +46,53 @@ char barray[] = {
   0x41, 0x9B, 0xC4, 0x67, 0x42, 0x38, 0x36, 0x60, /* py, pz */
 };
 
+#pragma pack(1)
+struct transform_message {
+  igtl_header      header;
+  igtl_float32     transform[12];
+};
+#pragma pack(0)
 
 int main( int argc, char * argv [] )
 {
 
-  char* message = malloc(IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE);
+  struct transform_message message;
 
-  igtl_header*  header = (igtl_header*)message;
-  igtl_float32* transform = (igtl_float32*)&message[IGTL_HEADER_SIZE];
-  
+  /* Setting dummy transform */
+  message.transform[0] = -0.954892;
+  message.transform[1] = 0.196632;
+  message.transform[2] = -0.222525;
+  message.transform[3] = -0.196632;
+  message.transform[4] = 0.142857;
+  message.transform[5] = 0.970014;
+  message.transform[6] = 0.222525;
+  message.transform[7] = 0.970014;
+  message.transform[8] = -0.0977491;
+  message.transform[9] = 46.0531;
+  message.transform[10] = 19.4709;
+  message.transform[11] = 46.0531;
 
-  transform[0] = -0.954892;
-  transform[1] = 0.196632;
-  transform[2] = -0.222525;
+  igtl_transform_convert_byte_order(message.transform);
 
-  transform[3] = -0.196632;
-  transform[4] = 0.142857;
-  transform[5] = 0.970014;
+  /* Setting header */
+  message.header.version = 1;
+  strncpy( (char*)&(message.header.name), "TRANSFORM", 12 );
+  strncpy( (char*)&(message.header.device_name), "DeviceName", 20 );
+  message.header.timestamp = 1234567890;
+  message.header.body_size = IGTL_TRANSFORM_SIZE;
+  message.header.crc = igtl_transform_get_crc(message.transform);
+  igtl_header_convert_byte_order( &(message.header) );
 
-  transform[6] = 0.222525;
-  transform[7] = 0.970014;
-  transform[8] = -0.0977491;
-
-  transform[9] = 46.0531;
-  transform[10] = 19.4709;
-  transform[11] = 46.0531;
-
-  igtl_transform_convert_byte_order(transform);
-
-  header->version = 1;
-  strncpy( header->name, "TRANSFORM", 12 );
-  strncpy( header->device_name, "DeviceName", 20 );
-  header->timestamp = 1234567890;
-  header->body_size = IGTL_TRANSFORM_SIZE;
-  header->crc = igtl_transform_get_crc(transform);
-  igtl_header_convert_byte_order( header );
-
+  /* Dumping data -- for testing */
+  /*
   FILE *fp;
   fp = fopen("transform.bin", "w");
-  fwrite(header, IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE, 1, fp);
+  fwrite(&(message.header), IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE, 1, fp);
   fclose(fp);
+  */
 
-  int r = memcmp((const void*)message, (const void*)barray, IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE);
-  free(message);
+  /* Compare the serialized byte array with the gold standard */ 
+  int r = memcmp((const void*)&message, (const void*)barray, IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE);
 
   if (r == 0)
     {
@@ -99,8 +104,6 @@ int main( int argc, char * argv [] )
     }
 
 }
-
-
 
 
 
