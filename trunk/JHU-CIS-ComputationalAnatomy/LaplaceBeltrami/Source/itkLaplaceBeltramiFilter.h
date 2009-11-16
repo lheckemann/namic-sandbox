@@ -54,9 +54,10 @@ public:
   typedef SmartPointer<const Self>  ConstPointer;
 
   typedef typename InputMeshType::ConstPointer    InputMeshConstPointer;
-  typedef typename OutputMeshType::Pointer        OutputMeshPointer;
-  typedef typename InputMeshType::PointType       InputPointType;
-  typedef typename OutputMeshType::PointType      OutputPointType;
+  typedef typename InputMeshType::Pointer      InputMeshPointer;
+  typedef typename OutputMeshType::Pointer     OutputMeshPointer;
+  typedef typename InputMeshType::PointType    InputPointType;
+  typedef typename OutputMeshType::PointType   OutputPointType;
 
   /** Type for representing coordinates. */
   //typedef typename TInputMesh::CoordRepType          CoordRepType;
@@ -71,6 +72,11 @@ public:
   void SetInput(TInputMesh *input);
 
   /** Convenient constants obtained from TMeshTraits template parameter. */
+/*  itkStaticConstMacro(InputPointDimension, unsigned int,
+     ::itk::GetMeshDimension< TInputMesh >::PointDimension );
+  itkStaticConstMacro(OutputPointDimension, unsigned int,
+     ::itk::GetMeshDimension< TOutputMesh >::PointDimension );
+*/
   itkStaticConstMacro(InputPointDimension, unsigned int,
      ::itk::GetMeshDimension< TInputMesh >::PointDimension );
   itkStaticConstMacro(OutputPointDimension, unsigned int,
@@ -78,11 +84,16 @@ public:
 
   typedef typename InputMeshType::PointsContainer    PointsContainer;
   typedef typename InputMeshType::CellsContainer     CellsContainer;
+  typedef typename InputMeshType::PointsContainerPointer    PointsContainerPointer;
+  typedef typename InputMeshType::CellsContainerPointer     CellsContainerPointer;
+  typedef typename InputMeshType::CellsContainerConstPointer     CellsContainerConstPointer;
   typedef typename InputMeshType::PointIdentifier    PointIdentifier;
   typedef typename InputMeshType::CellIdentifier     CellIdentifier;
+  typedef typename PointsContainer::ConstPointer     PointsContainerConstPointer;
   typedef typename PointsContainer::ConstIterator    PointIterator;
   typedef typename CellsContainer::ConstIterator     CellIterator;
   typedef typename InputMeshType::CellType           CellType;
+  typedef typename InputMeshType::PointType           PointType;
   typedef typename CellType::PointIdIterator         PointIdIterator;
   typedef typename CellType::CellAutoPointer         CellAutoPointer;
 
@@ -96,6 +107,9 @@ public:
 
   /** Get the areas for each vertex */
   void GetVertexAreas( LBMatrixType& );
+
+  /** Get a single surface harmonic */
+  bool GetSurfaceHarmonic( unsigned int harmonic, InputMeshPointer );
 
 protected:
   LaplaceBeltramiFilter();
@@ -111,6 +125,9 @@ private:
   //purposely not implemented
   void operator=(const LaplaceBeltramiFilter&);
 
+  /* mesh input to the filter */
+  InputMeshPointer filterInput;
+
   /** Number of most significant eigenvalues to include */
   unsigned int m_EigenValueCount;
 
@@ -120,8 +137,11 @@ private:
   /** The areas for each vertex */
   LBMatrixType m_VertexAreas;
 
-  /** Harmonics for the most significan basis functions */
+  /** Harmonics for the most significant basis functions */
   vnl_matrix<TCompRep> m_Harmonics;
+
+  /** Get a single surface harmonic */
+  static void CopySurface( InputMeshConstPointer surface, InputMeshPointer copy );
 
 };
 
