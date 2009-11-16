@@ -12,7 +12,9 @@ SET(TEMP ${CMAKE_BINARY_DIR}/Testing/Temporary)
 #######################
 
 ADD_EXECUTABLE(itkLaplaceBeltramiFilterTest1 itkLaplaceBeltramiFilterTest1.cxx )
+ADD_EXECUTABLE(itkLaplaceBeltramiFilterTest2 itkLaplaceBeltramiFilterTest2.cxx )
 TARGET_LINK_LIBRARIES(itkLaplaceBeltramiFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+TARGET_LINK_LIBRARIES(itkLaplaceBeltramiFilterTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ###################
 ###################
@@ -26,3 +28,6 @@ ADD_TEST(itkLaplaceBeltramiFilterTest1
   ${CXX_TEST_PATH}/itkLaplaceBeltramiFilterTest1
   )
 
+ADD_TEST(itkLaplaceBeltramiFilterTest2
+  ${CXX_TEST_PATH}/itkLaplaceBeltramiFilterTest2
+  )
