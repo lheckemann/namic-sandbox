@@ -25,6 +25,7 @@
 #include "vnl/algo/vnl_sparse_symmetric_eigensystem.h"
 
 #include <float.h>  // for DBL_MIN
+#include "itkArray.h"
 
 
 namespace itk
@@ -34,10 +35,10 @@ namespace itk
  */
 template <class TInputMesh, class TOutputMesh, typename TCompRep>
 LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
-::LaplaceBeltramiFilter()
+::LaplaceBeltramiFilter() :
+  filterInput(NULL),
+  m_EigenValueCount(0)
 {
-  this->m_EigenValueCount = 0;
-
 }
 
 /**
@@ -49,7 +50,7 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
 ::SetEigenValueCount( unsigned int evCount )
 {
   this->m_EigenValueCount = evCount;
-};
+}
 
 /**
  * Get the Laplace Beltrami operator
@@ -60,7 +61,7 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
 ::GetLBOperator( LBMatrixType& lbOp )
 {
   lbOp = this->m_LBOperator;
-};
+}
 
 /**
  * Get the areas for each vertex
@@ -71,7 +72,7 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
 ::GetVertexAreas( LBMatrixType& lbVa )
 {
   lbVa = this->m_VertexAreas;
-};
+}
 
 /**
  *
@@ -127,7 +128,8 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
     itkExceptionMacro(<<"Missing Output Mesh");
     }
 
-  outputMesh->SetBufferedRegion( outputMesh->GetRequestedRegion() );
+  filterInput = TInputMesh::New();
+  CopySurface(inputMesh, filterInput);
 
   InputPointsContainerConstPointer  inPoints  = inputMesh->GetPoints();
   OutputPointsContainerPointer outPoints = outputMesh->GetPoints();
@@ -140,6 +142,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
 
   unsigned int cellCount = inputMesh->GetNumberOfCells();
   unsigned int vertexCount = inputMesh->GetNumberOfPoints();
+
   itk::Array<double> faceAreas(cellCount);
   itk::Array<double> vertexAreas(vertexCount);
   itk::Array<unsigned int> vertexCounts(vertexCount);
@@ -185,7 +188,6 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
     }
 
   m_LBOperator.set_size(vertexCount, vertexCount);
-  unsigned int i0, i1, i2;
   unsigned int ix[sides];
   for (unsigned int i = 0; i < sides; i++)
     {
@@ -199,28 +201,6 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
       inputMesh->GetCell( faceIx, cellPtr );
       const unsigned long *tp;
       tp = cellPtr->GetPointIds();
-
-      /*
-      InputPointType v0,v1,v2;
-      inputMesh->GetPoint((int)(tp[ix[0]]), &v0);
-      inputMesh->GetPoint((int)(tp[ix[1]]), &v1);
-      inputMesh->GetPoint((int)(tp[ix[2]]), &v2);
-
-      vnl_vector<double> e0((v2 - v1).GetVnlVector());
-      vnl_vector<double> e1((v0 - v2).GetVnlVector());
-      vnl_vector<double> e2((v1 - v0).GetVnlVector());
-
-      vnl_c_vector<double>::multiply(
-                e0.data_block(), e1.data_block(), e1.data_block(), e0.size());
-      vnl_c_vector<double>::multiply(
-                e0.data_block(), e2.data_block(), e2.data_block(), e0.size());
-      vnl_c_vector<double>::multiply(
-                e0.data_block(), e0.data_block(), e0.data_block(), e0.size());
-
-      double c0 = e0.sum();
-      double c1 = e1.sum();
-      double c2 = e2.sum();
-      */
 
       // Beginning of replacement for code commented out above...  Check with Michael...
       typedef typename InputPointType::VectorType   InputVectorType;
@@ -238,8 +218,8 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
       const InputVectorType e2 = p1 - p0;
 
       const double c0 = e0.GetSquaredNorm();
-      const double c1 = e1.GetSquaredNorm();
-      const double c2 = e2.GetSquaredNorm();
+      const double c1 = e0 * e1;
+      const double c2 = e0 * e2;
 
       // End of replacement for code commented out above...  Check with Michael...
 
@@ -288,19 +268,20 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
     //   (4) Divide all coefficients V[k][l] by sqrt(sum_l V[k][l]^2 B[l][l])
     //       for normalization.
 
-    vnl_sparse_matrix< TCompRep > C(m_LBOperator);
+    vnl_sparse_matrix< double > C(m_LBOperator.rows(), m_LBOperator.cols());
     
     for(unsigned int rowIx = 0; rowIx < C.rows(); rowIx++)
-    {
-    for(unsigned int colIx = 0; colIx < C.cols(); colIx++)
       {
-        if (C(rowIx, colIx))
+      for(unsigned int colIx = 0; colIx < C.cols(); colIx++)
         {
-          C(rowIx, colIx) /= sqrt(m_VertexAreas(rowIx, rowIx) *
-                            m_VertexAreas(colIx, colIx));
+        if (m_LBOperator(rowIx, colIx))
+          {
+            C(rowIx, colIx) = m_LBOperator(rowIx, colIx) /
+                 (sqrt(m_VertexAreas(rowIx, rowIx) *
+                              m_VertexAreas(colIx, colIx)));
+          }
         }
       }
-    }
 
     // get the eigenvalues for the sparse symmetric matrix
     vnl_sparse_symmetric_eigensystem sse;
@@ -311,7 +292,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
 
     for (unsigned int k = 0; k < this->m_EigenValueCount; k++)
       {
-      vnl_vector< TCompRep > eigenvector(sse.get_eigenvector(k));
+      vnl_vector< double > eigenvector(sse.get_eigenvector(k));
 
       double evFactorSum = 0.0;
       for (unsigned int eigIx = 0; eigIx < eigenvector.size(); eigIx++)
@@ -321,12 +302,68 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
         }
 
       eigenvector /= sqrt(evFactorSum);
-      m_Harmonics.set_row(k, eigenvector);
+      for (unsigned int vIx = 0; vIx < eigenvector.size(); vIx++)
+        m_Harmonics(k, vIx) = eigenvector(vIx);
       }
+    this->GetSurfaceHarmonic(0, outputMesh);
     }
-  outputMesh = inputMesh;
+  else
+    {
+    outputMesh->Initialize();
+    CopySurface(inputMesh, outputMesh);
+    }
 }
 
+/**
+ * Get a single surface harmonic
+ */
+template <class TInputMesh, class TOutputMesh, typename TCompRep>
+bool
+LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
+::GetSurfaceHarmonic( unsigned int harmonic, InputMeshPointer surface )
+{
+  if (harmonic < 0 || harmonic >= m_Harmonics.rows())
+    return false;
+
+  surface->Initialize();
+  InputMeshConstPointer filterInputConst = (InputMeshConstPointer) filterInput;
+  CopySurface(filterInputConst, surface);
+  for (unsigned int k = 0; k < this->m_Harmonics.cols(); k++)
+    surface->SetPointData(k, this->m_Harmonics(harmonic, k));
+      
+  return true;
+}
+
+/**
+ * Copy a surface
+ */
+template <class TInputMesh, class TOutputMesh, typename TCompRep>
+void
+LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
+::CopySurface( InputMeshConstPointer surface, InputMeshPointer copy )
+{
+    PointsContainerConstPointer points = surface->GetPoints();
+    PointIterator it = points->Begin();
+    PointIterator itEnd = points->End();
+    unsigned int i = 0;
+    while ( it != itEnd )
+    {
+        PointType point = it.Value(); it++;
+        copy->SetPoint( i++, point );
+    }
+
+    i = 0;
+    CellsContainerConstPointer cells = surface->GetCells();
+    CellIterator itCells = cells->Begin();
+    CellIterator itCellsEnd = cells->End();
+    while ( itCells != itCellsEnd )
+    {
+        CellAutoPointer cellCopy;
+        itCells.Value()->MakeCopy( cellCopy );
+        copy->SetCell( i++, cellCopy );
+        itCells++;
+    }
+}
 } // end namespace itk
 
 #endif
