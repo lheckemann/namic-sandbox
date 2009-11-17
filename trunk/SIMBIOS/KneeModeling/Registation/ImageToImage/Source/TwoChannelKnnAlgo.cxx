@@ -25,7 +25,9 @@
 #include "itkWeightedAddImageFilter.h"
 #include "itkImage.h"
 #include "itkTimeProbesCollectorBase.h"
+#include <math.h>
 
+unsigned int findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yClusterCenter, int numberOfClusters);
 
 int main( int argc, char *argv[] )
 {
@@ -134,25 +136,74 @@ int main( int argc, char *argv[] )
 
 //  colors[0] = 
 
+  
+  unsigned int numberOfPixels=0;   
+  
+
+  ImageType::Pointer outputImage = ImageType::New();
+  outputImage->SetRegions( image1->GetRequestedRegion() );
+  outputImage->CopyInformation( image1 );
+  outputImage->Allocate();
+
   /* Iterate through the images */
   IteratorType it1( image1, image1->GetRequestedRegion());
   IteratorType it2( image2, image2->GetRequestedRegion());
-
-   
+  IteratorType it3( outputImage, outputImage->GetRequestedRegion());
+  
   /* Get the scatter plot */
-
-  for ( it1.GoToBegin(), it2.GoToBegin(); !it1.IsAtEnd() && !it2.IsAtEnd();
-    ++it1, ++it2)
+  for ( it1.GoToBegin(), it2.GoToBegin(), it3.GoToBegin(); !it1.IsAtEnd() && !it2.IsAtEnd();
+    ++it1, ++it2, ++it3)
   {
    /* Find x and y */
    float x,y;
    x = it1.Get();
    y = it2.Get();
-
+   ++numberOfPixels;
    /* Find the cluster center closest to x,y */
 //          std::cout << " X = "<< x << " Y = "<< y << std::endl;
-//   findClosestClusterCenterIndex(x, y, xClusterCenter, yClusterCenter);
+      it3.Set(findClosestClusterCenterIndex(x, y, xClusterCenter, yClusterCenter, 4));
+  }
+  
+  writer->SetInput( outputImage );
+  writer->Update();
+  std::cout << " Number of pixels = "<< numberOfPixels << std::endl;
+  return EXIT_SUCCESS;
+}
+
+unsigned int
+findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yClusterCenter, int numberOfClusters)
+{
+ int i=0;
+        float minDistance=0.0, distance=0.0;
+ int minIndex=0;
+ int flag=0;
+
+ for(i=0; i<numberOfClusters; i++)
+ {
+  distance = (x - xClusterCenter[i])*(x - xClusterCenter[i]) + (y - yClusterCenter[i])*(y - yClusterCenter[i]);
+
+  if(flag == 0)
+  {
+   minDistance = distance;
+   minIndex = i;
+   flag=1;
+   continue;
   }
 
-  return EXIT_SUCCESS;
+  if(minDistance > distance)
+  {
+   minDistance = distance;
+   minIndex = i;
+  }
+ }
+
+ if ( minIndex == 0)
+  return 0;
+ else if(minIndex == 1)
+  return 80;
+ else if(minIndex == 2)
+  return 128;
+ else if(minIndex == 3)
+  return 255;
+ return minIndex;
 }
