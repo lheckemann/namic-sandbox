@@ -4,7 +4,7 @@
     Segmentation
   </category>
   <title>
-    Localized Region-Based Segmentation
+    Robust Statistics Segmentation
   </title>
   <description>
     Active contour segmentation using robust statistic as features.
@@ -115,6 +115,10 @@
 
   </parameters>
 
+  <parameters advanced="true">
+    <label>Auxiliary Parameters</label>
+    <description>Some auxillary parameters to control the stop criteria.</description>
+
     <double>
       <name>curvatureWeight</name>
       <longflag>curvatureWeight</longflag>
@@ -130,11 +134,6 @@
         <step>0.1</step>
       </constraints>
     </double>
-
-
-  <parameters advanced="true">
-    <label>Auxiliary Parameters</label>
-    <description>Some auxillary parameters to control the stop criteria.</description>
 
     <double>
       <name>maxRunningTime</name>
@@ -186,7 +185,3 @@
   </parameters>
 
 </executable>
-
-
-
-
