@@ -135,7 +135,7 @@ int main( int argc, char * argv[] )
 
   freader->SetFileName(argv[1]);
   //maskreader->SetFileName(argv[2]);
-  mreader->SetFileName(argv[3]);
+  mreader->SetFileName(argv[2]);
 
   freader->Update();
   //maskreader->Update();
@@ -928,7 +928,7 @@ int main( int argc, char * argv[] )
 
   affinet->SetParameters(finalp);
 
-  writeimage(mpyramid->GetOutput(3), affinet, argv[4]);
+  writeimage(mpyramid->GetOutput(3), affinet, argv[3]);
 
   return EXIT_SUCCESS;
 }
