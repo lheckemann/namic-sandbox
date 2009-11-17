@@ -5,3 +5,6 @@ include(${ITK_USE_FILE})
 
 add_executable(ChangeDetection ChangeDetection.cxx)
 target_link_libraries(ChangeDetection ITKIO ITKStatistics)
+
+add_executable(LabelShapeStatisticsCalculator LabelShapeStatisticsCalculator.cxx)
+target_link_libraries(LabelShapeStatisticsCalculator ITKIO ITKStatistics)
