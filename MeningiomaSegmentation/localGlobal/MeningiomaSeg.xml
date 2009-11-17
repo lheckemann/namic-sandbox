@@ -7,11 +7,7 @@
     Localized Region-Based Segmentation
   </title>
   <description>
-    Active contour segmentation method based on the Localized
-    Region-Based statistics. The algorithm is described in the paper:
-    Lankton, S. and Tannenbaum, A.R. "Localizing region-based active
-    contours", IEEE Transactions on Image Processing, vol 17,
-    pp2029--2039, 2008
+    Active contour segmentation using robust statistic as features.
   </description>
   <version>1.0</version>
   <documentation-url>
@@ -19,29 +15,15 @@
   </documentation-url>
   <license></license>
   <contributor>
-    Yi Gao, Andriy Fedorov, Allen Tannenbaum
+    Yi Gao, Allen Tannenbaum
   </contributor>
   <acknowledgements>
     This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health
   </acknowledgements>
 
-  <parameters advanced="true">
+  <parameters>
     <label>Segmentation Parameters</label>
-    <description>Parameters for meningioma segmentation</description>
-
-<!--     <integer> -->
-<!--       <name>numOfIteration</name> -->
-<!--       <longflag>numOfIteration</longflag> -->
-<!--       <flag>n</flag> -->
-<!--       <description>Max number of iteration</description> -->
-<!--       <label>Number of iteration</label> -->
-<!--       <default>10</default> -->
-<!--       <constraints> -->
-<!--         <minimum>1</minimum> -->
-<!--         <maximum>1000</maximum> -->
-<!--         <step>10</step> -->
-<!--       </constraints> -->
-<!--     </integer> -->
+    <description>Parameters for robust statistics segmentation</description>
 
     <double>
       <name>expectedVolume</name>
@@ -58,19 +40,20 @@
     </double>
 
     <double>
-      <name>curvatureWeight</name>
-      <longflag>curvatureWeight</longflag>
-      <flag>c</flag>
-      <description>Given sphere 10 score and extreme rough surface 0,
-      what is the smoothness of the object?</description>
-      <label>Smoothness score[0-10]</label>
-      <default>0</default>
+      <name>intensityHomogeneity</name>
+      <longflag>intensityHomogeneity</longflag>
+      <description>What is the homogeneity of intensity within the
+      object? Given constant intensity at 1.0 score and extreme
+      fluctuating intensity at 0.</description>
+      <label>Intensity Homogeneity[0-1.0]</label>
+      <default>0.0</default>
       <constraints>
         <minimum>0.0</minimum>
-        <maximum>10.0</maximum>
-        <step>1</step>
+        <maximum>1.0</maximum>
+        <step>0.1</step>
       </constraints>
     </double>
+
 
     <point coordinateSystem="ras" multiple="true">
       <name>seed</name>
@@ -132,6 +115,57 @@
 
   </parameters>
 
+    <double>
+      <name>curvatureWeight</name>
+      <longflag>curvatureWeight</longflag>
+      <flag>c</flag>
+      <description>Given sphere 1.0 score and extreme rough
+      bounday/surface 0 score,
+      what is the expected smoothness of the object?</description>
+      <label>Boundary Smoothness[0-1]</label>
+      <default>0</default>
+      <constraints>
+        <minimum>0.0</minimum>
+        <maximum>1.0</maximum>
+        <step>0.1</step>
+      </constraints>
+    </double>
+
+
+  <parameters advanced="true">
+    <label>Auxiliary Parameters</label>
+    <description>Some auxillary parameters to control the stop criteria.</description>
+
+    <double>
+      <name>maxRunningTime</name>
+      <longflag>maxRunningTime</longflag>
+      <description>The program will stop if this time is reached.</description>
+      <label>Max running time(min)</label>
+      <default>10</default>
+      <constraints>
+        <minimum>0</minimum>
+        <maximum>60</maximum>
+        <step>1</step>
+      </constraints>
+    </double>
+
+<!--     <integer> -->
+<!--       <name>numOfIteration</name> -->
+<!--       <longflag>numOfIteration</longflag> -->
+<!--       <flag>n</flag> -->
+<!--       <description>Max number of iteration</description> -->
+<!--       <label>Number of iteration</label> -->
+<!--       <default>1000000</default> -->
+<!--       <constraints> -->
+<!--         <minimum>1</minimum> -->
+<!--         <maximum>1000000</maximum> -->
+<!--         <step>100</step> -->
+<!--       </constraints> -->
+<!--     </integer> -->
+
+  </parameters>
+
+
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
@@ -152,3 +186,7 @@
   </parameters>
 
 </executable>
+
+
+
+
