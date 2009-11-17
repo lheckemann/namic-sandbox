@@ -17,9 +17,7 @@
 #include "itkPluginUtilities.h"
 #include "ImageGridGeneratorCLP.h"
 
-namespace {
-
-int main(int argc, char* arv[])
+int main(int argc, char* argv[])
 {
 
   PARSE_ARGS;
@@ -40,22 +38,22 @@ int main(int argc, char* arv[])
   typedef itk::GridImageSource<OutputImageType> GridSourceType;
   typedef itk::ImageFileReader<InputImageType> ReaderType;
 
-  typename GridSourceType::Pointer gridImage = GridSourceType::New();
-  typename ReaderType::Pointer reader = ReaderType::New();
+  GridSourceType::Pointer gridImage = GridSourceType::New();
+  ReaderType::Pointer reader = ReaderType::New();
 
   reader->SetFileName(inputImage.c_str());
   reader->Update();
 
-  typename InputImageType::Pointer inImage = reader->GetOutput();
+  InputImageType::Pointer inImage = reader->GetOutput();
 
   double scale = 255.0;
-  typename ImageType::SizeType size;
-  typename ImageType::PointType origin;
-  typename ImageType::SpacingType spacing;
-  typename GridSourceType::ArrayType gridSpacing; 
-  typename GridSourceType::ArrayType gridOffset; 
-  typename GridSourceType::ArrayType sigma; 
-  typename GridSourceType::BoolArrayType which; 
+  InputImageType::SizeType size;
+  InputImageType::PointType origin;
+  InputImageType::SpacingType spacing;
+  GridSourceType::ArrayType gridSpacing; 
+  GridSourceType::ArrayType gridOffset; 
+  GridSourceType::ArrayType sigma; 
+  GridSourceType::BoolArrayType which; 
 
   // Specify image parameters
   origin.Fill( 0.0 );
@@ -107,21 +105,19 @@ int main(int argc, char* arv[])
     return EXIT_FAILURE;
     }
 
-  typename ImageType::Pointer outImage = gridImage->GetOutput();
+  OutputImageType::Pointer outImage = gridImage->GetOutput();
 
-  typename NotType::Pointer notf = NotType::New();
+  NotType::Pointer notf = NotType::New();
   notf->SetInput(gridImage->GetOutput());
   notf->Update();
 
   outImage = notf->GetOutput();
   outImage->SetDirection(inImage->GetDirection());
 
-  typename WriterType::Pointer writer = WriterType::New();
+  WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outputImage.c_str() );
   writer->SetInput( outImage );
   writer->Update();
   
   return EXIT_SUCCESS;
 }
-
-} // end of anonymous namespace
