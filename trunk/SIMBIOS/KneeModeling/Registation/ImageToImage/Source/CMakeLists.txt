@@ -21,6 +21,9 @@ TARGET_LINK_LIBRARIES(TwoChannelGradientMagnitudeSigmoidFilter ITKBasicFilters I
 ADD_EXECUTABLE(TwoChannelShapeDetectionLevelSetFilter TwoChannelShapeDetectionLevelSetFilter.cxx)
 TARGET_LINK_LIBRARIES(TwoChannelShapeDetectionLevelSetFilter ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(TwoChannelKnnAlgo TwoChannelKnnAlgo.cxx)
+TARGET_LINK_LIBRARIES(TwoChannelKnnAlgo ITKBasicFilters ITKIO)
+
 ADD_EXECUTABLE(DicomSeriesReadImageWrite DicomSeriesReadImageWrite2.cxx)
 TARGET_LINK_LIBRARIES(DicomSeriesReadImageWrite ITKBasicFilters ITKIO)
 
