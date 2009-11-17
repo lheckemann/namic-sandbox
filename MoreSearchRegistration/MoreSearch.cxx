@@ -122,6 +122,7 @@ int main( int argc, char * argv[] )
     }
 
   const bool DEBUG = true;
+  const bool VERYDEBUG = false;
  
   const double maxa = M_PI/8;
 //  const double maxa = 0;
@@ -196,7 +197,7 @@ int main( int argc, char * argv[] )
   tinit->MomentsOn();
   //tinit->GeometryOn();
 
-  if(DEBUG)
+  if(VERYDEBUG)
     {
     writeimage(fpyramid->GetOutput(0), "tmp/dfixed.nrrd");
     writeimage(mpyramid->GetOutput(0), "tmp/dmoving.nrrd");
@@ -405,7 +406,7 @@ int main( int argc, char * argv[] )
 
     scales.push_back(pm[3]);
 
-    if(DEBUG)
+    if(VERYDEBUG)
       {
       std::stringstream ss;
       ss << "tmp/pre" << std::setw(3) << std::setfill('0') << counter << ".nrrd";
