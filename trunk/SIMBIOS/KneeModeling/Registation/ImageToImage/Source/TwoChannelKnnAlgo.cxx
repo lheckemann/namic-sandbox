@@ -79,8 +79,6 @@ int main( int argc, char *argv[] )
   float seedY;
   float seedZ;
   unsigned int numberOfSeedPoints=0;
-  unsigned int pixelValueArray[512][512];
-  unsigned int xDimensions=512, yDimensions=512;
   float xClusterCenter[4];
   float yClusterCenter[4];
   ImageType::IndexType pixelIndex;
