@@ -115,9 +115,9 @@ Versor<double> createRotationFromEulerAngles(double x, double y, double z)
 int main( int argc, char * argv[] )
 {
   // Read in image
-  if(argc != 5)
+  if(argc != 4)
     {
-    std::cerr << "Usage: " << argv[0] << " <fixed image> <mask> <moving image> <resampled output>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <fixed image> <moving image> <resampled output>" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -133,11 +133,11 @@ int main( int argc, char * argv[] )
   MaskReader::Pointer maskreader = MaskReader::New();
 
   freader->SetFileName(argv[1]);
-  maskreader->SetFileName(argv[2]);
+  //maskreader->SetFileName(argv[2]);
   mreader->SetFileName(argv[3]);
 
   freader->Update();
-  maskreader->Update();
+  //maskreader->Update();
   mreader->Update();
 
   ImageMaskSpatialObject<3>::Pointer mask = NULL;

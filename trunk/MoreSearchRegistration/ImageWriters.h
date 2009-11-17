@@ -28,7 +28,7 @@ void writeimage(const T* image,
                 const J* transform, 
                 const std::string & filename)
 {
-  typedef itk::ResampleImageFilter<T, T> ResampleImageFilter;
+  typedef itk::ResampleImageFilter<T, itk::Image<short, 3> > ResampleImageFilter;
   typename ResampleImageFilter::Pointer resampler = 
     ResampleImageFilter::New();
   // Resample the moving image
@@ -38,8 +38,8 @@ void writeimage(const T* image,
   resampler->Update();
 
   // Write out test image
-  typename itk::ImageFileWriter<T>::Pointer writer = 
-    itk::ImageFileWriter<T>::New();
+  typename itk::ImageFileWriter<itk::Image<short, 3> >::Pointer writer = 
+    itk::ImageFileWriter<itk::Image<short, 3> >::New();
   writer->SetFileName(filename);
   writer->SetInput(resampler->GetOutput());
   writer->Update();
