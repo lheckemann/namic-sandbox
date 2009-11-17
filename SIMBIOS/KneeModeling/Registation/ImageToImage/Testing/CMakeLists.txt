@@ -147,8 +147,8 @@ ADD_TEST(TwoChannelSigmoid_${DATASET2}_${DATASET1}
   ${TEMP}/${DATASET2}_${DATASET1}_Sigmoid.mhd
    0.3 # Sigma in mm
   -1.0 # Alpha
-   75.0 # Beta
-   0.97 # Weight Default value : 0.953
+   200.0 # Beta
+   0.953 # Weight Default value : 0.953
   )
 
 ADD_TEST(TwoChannelCrop_${DATASET2}_${DATASET1}
@@ -173,7 +173,7 @@ ADD_TEST(TwoChannelShapeDetection_${DATASET2}_${DATASET1}
      1.0 # curvature weight
     80.0 # propagation weight
    200.0 # Maximum number of iterations
-  ${SEEDS_DATA_DIR}/${DATASET1}_Seeds.txt
+   ${SEEDS_DATA_DIR}/temp_seeds.txt # Default ${SEEDS_DATA_DIR}/${DATASET1}_Seeds.txt
   )
   
 ADD_TEST(TwoChannelShapeDetectionRefinement_${DATASET2}_${DATASET1}
@@ -204,6 +204,20 @@ ADD_TEST(Refinement_of_${DATASET1}_with_${DATASET2}
      1.0 # propagation weight
    200.0 # Maximum number of iterations
   )
+
+ADD_TEST(TwoChannelKnnAlgo_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgo
+  ${KNEE_DATA_DIR}/3TPDImages/${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_resampled_to_${DATASET1}.mhd
+  ${TEMP}/OutputKnn.mhd
+  ${SEEDS_DATA_DIR}/Seeds1.txt
+  ${SEEDS_DATA_DIR}/Seeds2.txt
+  ${SEEDS_DATA_DIR}/Seeds3.txt
+  ${SEEDS_DATA_DIR}/Seeds4.txt
+  )
+
+
+
 
 ENDMACRO(REFINE_SEGMENTATION)
 
