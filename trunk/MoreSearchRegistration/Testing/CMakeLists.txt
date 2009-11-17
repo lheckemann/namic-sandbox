@@ -5,7 +5,8 @@ set(MoreSearchTests_SOURCE
     EulerSimilarity3DTransformTest.cxx
     EulerAnisotropicSimilarity3DTransformTest.cxx
     DecomposedAffine3DTransformTest.cxx
-    FRPROptimizerTest.cxx)
+    FRPROptimizerTest.cxx
+    DownsampleHeuristicsTest.cxx)
 
 create_test_sourcelist(MoreSearchTestsList
                        MoreSearchTests.cxx
@@ -33,3 +34,7 @@ add_test(DecomposedAffine3DTransformTest
 add_test(FRPROptimizerTest
          MoreSearchTests
          FRPROptimizerTest)
+
+add_test(DownsampleHeuristicsTest
+         MoreSearchTests 
+         DownsampleHeuristicsTest)
