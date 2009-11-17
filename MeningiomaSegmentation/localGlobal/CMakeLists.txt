@@ -1,25 +1,43 @@
-project(MeningiomaSegmentationModule)
+project(RobustStatisticsSegmentationModule)
 
 cmake_minimum_required(VERSION 2.6)
 
 #
 # Disable the warnings that DevStudio 2005 emits wrt to sprintf, strcpu, etc.
 #
-IF(CMAKE_COMPILER_2005)
-  ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
-ENDIF(CMAKE_COMPILER_2005)
+if(CMAKE_COMPILER_2005)
+  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
+endif(CMAKE_COMPILER_2005)
 
 
 #
 # Find Slicer3. This will locate all the components needed to build modules 
 # for Slicer3.
 #
-FIND_PACKAGE(Slicer3 REQUIRED)
-IF (Slicer3_FOUND)
-  INCLUDE(${Slicer3_USE_FILE})    
-ELSE (Slicer3_FOUND)
-  MESSAGE(ERROR "Cannot build without a Slicer3 build tree or a Slicer3 installation. Please set Slicer3_DIR. If using a Slicer3 build, Slicer3_DIR needs to be set to the root of the build tree of Slicer3.  If using an installation of Slicer3, Slicer3_DIR needs to be set to <SlicerInstallation>/lib/Slicer3.")
-ENDIF (Slicer3_FOUND)
+find_package(Slicer3 REQUIRED)
+if (Slicer3_FOUND)
+  include(${Slicer3_USE_FILE})    
+else (Slicer3_FOUND)
+  message(ERROR "Cannot build without a Slicer3 build tree or a Slicer3 installation. Please set Slicer3_DIR. If using a Slicer3 build, Slicer3_DIR needs to be set to the root of the build tree of Slicer3.  If using an installation of Slicer3, Slicer3_DIR needs to be set to <SlicerInstallation>/lib/Slicer3.")
+endif (Slicer3_FOUND)
+
+
+# boost
+find_path(BOOST_PATH /boost/shared_ptr.hpp)
+if(NOT BOOST_PATH)
+   message(FATAL_ERROR "Please enter the path of boost")
+endif(NOT BOOST_PATH)
+
+include_directories(${BOOST_PATH})
+
+
+# find cArray path
+find_path(CARRAY_PATH cArray2D.h)
+if(NOT CARRAY_PATH)
+   message(FATAL_ERROR "Please enter the path of cArray.*")
+endif(NOT CARRAY_PATH)
+
+include_directories(${CARRAY_PATH})
 
 
 
@@ -82,16 +100,16 @@ ENDIF (Slicer3_FOUND)
 # ADD_EXECUTABLE ( ExampleModule ${ExampleModule_SOURCE})
 # TARGET_LINK_LIBRARIES ( ExampleModule ITKStatistics ITKIO ITKBasicFilters ITKCommon)
 
-SET (MeningiomaSeg_SRCS MeningiomaSegModule.cxx)
-GENERATECLP(MeningiomaSeg_SRCS MeningiomaSeg.xml)
-ADD_EXECUTABLE ( MeningiomaSegModule ${MeningiomaSeg_SRCS})
-TARGET_LINK_LIBRARIES ( MeningiomaSegModule ITKCommon ITKBasicFilters ITKIO itkvnl)
+set(seg_SRC SFLSRobustStat3DTest.cxx)
+GENERATECLP(seg_SRC SFLSRobustStat3DTest.xml)
+add_executable( SFLSRobustStat3DModule ${seg_SRC})
+target_link_libraries( SFLSRobustStat3DModule ITKCommon ITKBasicFilters ITKIO itkvnl)
 
 
 
 # ADD_EXECUTABLE(${PROJECT_NAME}
-#     ${MeningiomaSeg_SRCS}
-#     MeningiomaSegModule.cxx
+#     ${seg_SRC}
+#     SFLSRobustStat3DModule.cxx
 # )
 
 #TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${MeningiomaSeg_LIBS})
@@ -99,7 +117,7 @@ TARGET_LINK_LIBRARIES ( MeningiomaSegModule ITKCommon ITKBasicFilters ITKIO itkv
 #
 # Install into a local plugins directory
 #
-set(TARGETS MeningiomaSegModule)
+set(TARGETS SFLSRobustStat3DModule)
 foreach(targ ${TARGETS})
   slicer3_set_plugins_output_path(${targ})
 endforeach(targ ${TARGETS})
@@ -112,7 +130,7 @@ slicer3_install_plugins(${TARGETS})
 #     slicer3_install_plugins(${TARGETS})
 #     endif (Slicer3_SOURCE_DIR)
 
-#   #ADD_LIBRARY(${PROJECT_NAME}Module SHARED ${MeningiomaSeg_SRCS})
+#   #ADD_LIBRARY(${PROJECT_NAME}Module SHARED ${seg_SRC})
 #   #slicer3_set_plugins_output_path(${PROJECT_NAME}Module)
 #   #set_target_properties (${PROJECT_NAME}Module PROPERTIES
 #   #  COMPILE_FLAGS "-Dmain=ModuleEntryPoint")
@@ -142,7 +160,7 @@ slicer3_install_plugins(${TARGETS})
 
 #   IF(ITK_FOUND)
 #     ADD_EXECUTABLE(${PROJECT_NAME}Test 
-#     ${MeningiomaSeg_SRCS}
+#     ${seg_SRC}
 #     meningiomaSegmentor.cxx
 #     )
 #     TARGET_LINK_LIBRARIES(${PROJECT_NAME}Test ${MeningiomaSeg_LIBS})    
