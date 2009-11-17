@@ -225,7 +225,7 @@ int main( int argc, char * argv[] )
   RotationGrid::Pointer coarsegrid = 
     createGrid<RotationGrid>(maxa, res1);
 
-  if(DEBUG)
+  if(VERYDEBUG)
     {
     std::cout << "Built " << coarsegrid->GetLargestPossibleRegion().GetNumberOfPixels() << 
       " trial rotations" << std::endl;
