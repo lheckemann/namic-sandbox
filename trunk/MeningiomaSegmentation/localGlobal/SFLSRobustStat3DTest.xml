@@ -39,22 +39,6 @@
       </constraints>
     </double>
 
-    <double>
-      <name>intensityHomogeneity</name>
-      <longflag>intensityHomogeneity</longflag>
-      <description>What is the homogeneity of intensity within the
-      object? Given constant intensity at 1.0 score and extreme
-      fluctuating intensity at 0.</description>
-      <label>Intensity Homogeneity[0-1.0]</label>
-      <default>0.0</default>
-      <constraints>
-        <minimum>0.0</minimum>
-        <maximum>1.0</maximum>
-        <step>0.1</step>
-      </constraints>
-    </double>
-
-
     <point coordinateSystem="ras" multiple="true">
       <name>seed</name>
       <label>Seeds</label>
@@ -115,9 +99,24 @@
 
   </parameters>
 
-  <parameters advanced="true">
+  <parameters>
     <label>Auxiliary Parameters</label>
     <description>Some auxillary parameters to control the stop criteria.</description>
+
+    <double>
+      <name>intensityHomogeneity</name>
+      <longflag>intensityHomogeneity</longflag>
+      <description>What is the homogeneity of intensity within the
+      object? Given constant intensity at 1.0 score and extreme
+      fluctuating intensity at 0.</description>
+      <label>Intensity Homogeneity[0-1.0]</label>
+      <default>0.0</default>
+      <constraints>
+        <minimum>0.0</minimum>
+        <maximum>1.0</maximum>
+        <step>0.1</step>
+      </constraints>
+    </double>
 
     <double>
       <name>curvatureWeight</name>
