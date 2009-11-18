@@ -155,10 +155,48 @@ igtl_uint64 igtl_export igtl_image_get_crc(igtl_image_header * header, void* ima
   igtl_uint64   crc;
   igtl_uint64   img_size;
 
-  img_size = igtl_image_get_data_size(header);
+  /* calculate image size (we do not call igtl_image_get_data_size()
+   * because header has already been serialized.
+   */
+  igtl_uint64 si;
+  igtl_uint64 sj;
+  igtl_uint64 sk;
+  igtl_uint64 sp;
+
+  if (igtl_is_little_endian())
+    {
+    si = BYTE_SWAP_INT16(header->subvol_size[0]);
+    sj = BYTE_SWAP_INT16(header->subvol_size[1]);
+    sk = BYTE_SWAP_INT16(header->subvol_size[2]);
+    }
+  else
+    {
+    si = header->subvol_size[0];
+    sj = header->subvol_size[1];
+    sk = header->subvol_size[2];
+    }
+  switch (header->scalar_type) {
+  case IGTL_IMAGE_STYPE_TYPE_INT8:
+  case IGTL_IMAGE_STYPE_TYPE_UINT8:
+    sp = 1;
+    break;
+  case IGTL_IMAGE_STYPE_TYPE_INT16:
+  case IGTL_IMAGE_STYPE_TYPE_UINT16:
+    sp = 2;
+    break;
+  case IGTL_IMAGE_STYPE_TYPE_INT32:
+  case IGTL_IMAGE_STYPE_TYPE_UINT32:
+    sp = 4;
+    break;
+  default:
+    sp = 0;
+    break;
+  }
+  
+  img_size = si*sj*sk*sp;
   crc = crc64(0, 0, 0);
   crc = crc64((unsigned char*) header, IGTL_IMAGE_HEADER_SIZE, crc);
-  crc = crc64((unsigned char*) image, img_size, crc);
+  crc = crc64((unsigned char*) image, (int)img_size, crc);
 
   return crc;
 }

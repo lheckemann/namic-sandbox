@@ -79,18 +79,21 @@ int main( int argc, char * argv [] )
   strncpy( (char*)&(message.header.name), "IMAGE", 12 );
   strncpy( (char*)&(message.header.device_name), "DeviceName", 20 );
   message.header.timestamp = 1234567890;
-  message.header.body_size = image_size;
+  message.header.body_size = IGTL_IMAGE_HEADER_SIZE + image_size;
   message.header.crc = igtl_image_get_crc(&(message.iheader), message.image);
   igtl_header_convert_byte_order( &(message.header) );
 
-  /* Dumping data -- for testing */
+  /* Dumping data -- for debugging */
+  /*
   FILE *fp;
   fp = fopen("image.bin", "w");
-  fwrite(&(message), IGTL_HEADER_SIZE+image_size, 1, fp);
+  fwrite(&(message), IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size, 1, fp);
   fclose(fp);
+  */
 
   /* Compare the serialized byte array with the gold standard */ 
-  int r = memcmp((const void*)&message, (const void*)test_image_message, IGTL_HEADER_SIZE+image_size);
+  int r = memcmp((const void*)&message, (const void*)test_image_message,
+                 IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size);
 
   if (r == 0)
     {
