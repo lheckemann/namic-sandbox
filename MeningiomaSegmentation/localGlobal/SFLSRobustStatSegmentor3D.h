@@ -6,7 +6,7 @@
 #include <list>
 #include <vector>
 
-#include "boost/shared_ptr.hpp"
+//#include "boost/shared_ptr.hpp"
 
 template< typename TPixel >
 class CSFLSRobustStatSegmentor3D : public CSFLSSegmentor3D< TPixel >
@@ -18,7 +18,7 @@ public:
   typedef CSFLSSegmentor3D< TPixel > SuperClassType;
 
   typedef CSFLSRobustStatSegmentor3D< TPixel > Self;
-  typedef boost::shared_ptr< Self > Pointer;
+  //typedef boost::shared_ptr< Self > Pointer;
 
 
   /*================================================================================
@@ -28,8 +28,8 @@ public:
     basicInit();
   }
 
-  /* New */
-  static Pointer New() { return Pointer(new Self); }
+//   /* New */
+//   static Pointer New() { return Pointer(new Self); }
 
   void basicInit();
 
