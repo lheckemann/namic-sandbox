@@ -4,7 +4,7 @@
     Segmentation
   </category>
   <title>
-    Robust Statistics Segmentation
+    Localized Region-Based Segmentation
   </title>
   <description>
     Active contour segmentation using robust statistic as features.
