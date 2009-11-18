@@ -9,8 +9,8 @@
 #include "itkImageFileWriter.h"
 
 
-// for reading seeds
-#include "aux/txtIO.h"
+// // for reading seeds
+// #include "aux/txtIO.h"
 
 
 template< typename TImage >

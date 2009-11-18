@@ -7,7 +7,7 @@
 #include <ctime>
 
 //debug//
-#include "cArrayOp.h"
+//#include "cArrayOp.h"
 #include <fstream>
 //DEBUG//
 
@@ -229,9 +229,9 @@ CSFLSRobustStatSegmentor3D< TPixel >
 
   getThingsReady();
 
-  std::ofstream f("/tmp/d.txt", std::ios_base::app);
-  f<<"m_maxRunningTime = "<<this->m_maxRunningTime<<std::endl;
-  f.close();
+//   std::ofstream f("/tmp/d.txt", std::ios_base::app);
+//   f<<"m_maxRunningTime = "<<this->m_maxRunningTime<<std::endl;
+//   f.close();
   
 
 
@@ -260,9 +260,9 @@ CSFLSRobustStatSegmentor3D< TPixel >
       this->updateInsideVoxelCount();
       if (it > 2 && oldVoxelCount >= this->m_insideVoxelCount)
         {
-          std::ofstream f("/tmp/o.txt");
-          f<<"stop grow\n";
-          f.close();
+//           std::ofstream f("/tmp/o.txt");
+//           f<<"stop grow\n";
+//           f.close();
 
           break;
         }
@@ -277,12 +277,12 @@ CSFLSRobustStatSegmentor3D< TPixel >
       if (volumeIn > (this->m_maxVolume))
         {
           //          std::fstream f("/tmp/o.txt", std::ios_base::app);
-          std::ofstream f("/tmp/o.txt");
-          f<<"m_maxVolume = "<<this->m_maxVolume<<std::endl;
-          f<<"volumeIn = "<<volumeIn<<std::endl;
+//           std::ofstream f("/tmp/o.txt");
+//           f<<"m_maxVolume = "<<this->m_maxVolume<<std::endl;
+//           f<<"volumeIn = "<<volumeIn<<std::endl;
 
-          f<<"reach max volume\n";
-          f.close();
+//           f<<"reach max volume\n";
+//           f.close();
 
 
           break;
@@ -294,10 +294,10 @@ CSFLSRobustStatSegmentor3D< TPixel >
       double ellapsedTime = (clock() - startingTime)/static_cast<double>(CLOCKS_PER_SEC);
       if (ellapsedTime > (this->m_maxRunningTime))
         {
-          std::ofstream f("/tmp/o.txt");
-          f<<"running time = "<<ellapsedTime<<std::endl;
-          f<<"m_maxRunningTime = "<<this->m_maxRunningTime<<std::endl;
-          f.close();
+//           std::ofstream f("/tmp/o.txt");
+//           f<<"running time = "<<ellapsedTime<<std::endl;
+//           f<<"m_maxRunningTime = "<<this->m_maxRunningTime<<std::endl;
+//           f.close();
 
           break;
         }
@@ -652,9 +652,9 @@ CSFLSRobustStatSegmentor3D< TPixel >
   m_kernelWidthFactor = f;
 
 
-  std::ofstream fil("/tmp/d.txt", std::ios_base::app);
-  fil<<"m_kernelWidthFactor = "<<m_kernelWidthFactor<<std::endl;
-  fil.close();
+//   std::ofstream fil("/tmp/d.txt", std::ios_base::app);
+//   fil<<"m_kernelWidthFactor = "<<m_kernelWidthFactor<<std::endl;
+//   fil.close();
 
 
   return;
@@ -667,9 +667,9 @@ void
 CSFLSRobustStatSegmentor3D< TPixel >
 ::setIntensityHomogeneity(double h)
 {
-  std::ofstream fil("/tmp/d.txt", std::ios_base::app);
-  fil<<"intensity homogeneity = "<<h<<std::endl;
-  fil.close();
+//   std::ofstream fil("/tmp/d.txt", std::ios_base::app);
+//   fil<<"intensity homogeneity = "<<h<<std::endl;
+//   fil.close();
 
 
   double f = h*(10.0 - 0.3) + 0.3;
