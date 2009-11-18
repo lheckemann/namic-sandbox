@@ -22,13 +22,13 @@ else (Slicer3_FOUND)
 endif (Slicer3_FOUND)
 
 
-# boost
-find_path(BOOST_PATH /boost/shared_ptr.hpp)
-if(NOT BOOST_PATH)
-   message(FATAL_ERROR "Please enter the path of boost")
-endif(NOT BOOST_PATH)
+# # boost
+# find_path(BOOST_PATH /boost/shared_ptr.hpp)
+# if(NOT BOOST_PATH)
+#    message(FATAL_ERROR "Please enter the path of boost")
+# endif(NOT BOOST_PATH)
 
-include_directories(${BOOST_PATH})
+# include_directories(${BOOST_PATH})
 
 
 # # find cArray path
