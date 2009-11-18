@@ -216,6 +216,17 @@ ADD_TEST(TwoChannelKnnAlgo_${DATASET2}_${DATASET1}
   ${SEEDS_DATA_DIR}/Seeds4.txt
   )
 
+ADD_TEST(TwoChannelKnnAlgoRGB_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGB
+  ${KNEE_DATA_DIR}/3TPDImages/${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_resampled_to_${DATASET1}.mhd
+  ${TEMP}/OutputKnnRGB.mhd
+  ${SEEDS_DATA_DIR}/Seeds1.txt
+  ${SEEDS_DATA_DIR}/Seeds2.txt
+  ${SEEDS_DATA_DIR}/Seeds3.txt
+  ${SEEDS_DATA_DIR}/Seeds4.txt
+  )
+
 
 
 
