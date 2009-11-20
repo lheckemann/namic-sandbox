@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Demonstration</category>
+  <title>Cube</title>
+  <description>shows a cube in the 3D layout</description>
+  <version>1.0</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor>Martin Loepprich, Surgical Planning Laboratory, Harvard Medical School</contributor>
+  <acknowledgements></acknowledgements>
+ <!-- start of the parameter definition -->  
+ <parameters>
+  <!-- lable: name of the section -->  
+    <label>Output</label>
+  <!-- descreption: tooltip -->  
+    <description>The output parameters</description>
+
+  <!-- geometry: this is the 3d layout in slicer -->  
+   <geometry>
+      <name>MyOutputGeometry</name>
+      <label>Output Geometry</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description>File that contains generated geometry</description>
+    </geometry>
+    
+</parameters>
+
+</executable>
