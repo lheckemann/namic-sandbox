@@ -26,6 +26,7 @@
 #include "itkImage.h"
 #include "itkTimeProbesCollectorBase.h"
 #include "itkScalarToRGBColormapImageFilter.h"
+#include "itkRGBPixel.h"
 #include <math.h>
 
 unsigned int findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yClusterCenter, int numberOfClusters);
@@ -61,7 +62,7 @@ int main( int argc, char *argv[] )
   typedef itk::Image < RGBPixelType, Dimension > RGBImageType;
   typedef itk::ImageRegionIterator< RGBImageType > RGBIteratorType;
   typedef itk::ScalarToRGBColormapImageFilter < ImageType, RGBImageType > RGBFilterType;
-
+  
   typedef  itk::ImageFileWriter< RGBImageType > WriterType;
   
   ReaderType::Pointer reader1 = ReaderType::New();
@@ -171,7 +172,38 @@ int main( int argc, char *argv[] )
    ++numberOfPixels;
    /* Find the cluster center closest to x,y */
 //          std::cout << " X = "<< x << " Y = "<< y << std::endl;
-      it3.Set(findClosestClusterCenterIndex(x, y, xClusterCenter, yClusterCenter, 4));
+    unsigned int cIndex = findClosestClusterCenterIndex(x, y, xClusterCenter, yClusterCenter, 4);
+    RGBImageType::PixelType pixelValue; 
+   
+    if(cIndex == 0)
+    {
+     pixelValue[0] = 255;
+     pixelValue[1] = 0;
+     pixelValue[2] = 0;
+    }
+    else if(cIndex == 80)
+    {
+     pixelValue[0] = 0;
+     pixelValue[1] = 255;
+     pixelValue[2] = 0;
+    }
+
+    else if(cIndex == 128)
+    {
+     pixelValue[0] = 0;
+     pixelValue[1] = 0;
+     pixelValue[2] = 255;
+
+    }
+
+    else
+    {
+     pixelValue[0] = 255;
+     pixelValue[1] = 255;
+     pixelValue[2] = 0;
+    }
+
+    it3.Set(pixelValue);
   }
   
   rgbImage->Update();
@@ -208,16 +240,6 @@ findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yC
   }
  }
 
-/* if ( minIndex == 0)
-  return 0;
- else if(minIndex == 1)
-  return 80;
- else if(minIndex == 2)
-  return 128;
- else if(minIndex == 3)
-  return 255;
- return minIndex;
-*/
  if ( minIndex == 0)
   return 0;
  else if(minIndex == 1)
