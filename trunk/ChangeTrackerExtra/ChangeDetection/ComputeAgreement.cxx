@@ -41,6 +41,8 @@ int main(int argc, char * argv[])
   IterType it(i1,i1->GetLargestPossibleRegion());
   it.GoToBegin();
   for(;!it.IsAtEnd();++it){
+    if(!it.Get())
+      continue;
     ImageType::IndexType idx1 = it.GetIndex(), idx2;
     ImageType::PointType pt;
     i1->TransformIndexToPhysicalPoint(idx1,pt);
