@@ -231,7 +231,7 @@ void vtkProstateNavStepVerification::ShowVolumeSelectionFrame()
 
   if (!this->LoadVerificationVolumeButton)
     {
-    this->LoadVerificationVolumeButton = vtkKWLoadSaveButton::New();
+    this->LoadVerificationVolumeButton = vtkKWPushButton::New();
     }
   if (!this->LoadVerificationVolumeButton->IsCreated())
     {
@@ -703,21 +703,8 @@ void vtkProstateNavStepVerification::UpdateGUI()
     {
       robot=this->GetProstateNavManager()->GetRobotNode();
     }
-    vtkProstateNavTargetDescriptor *targetDesc = mrmlNode->GetTargetDescriptorAtIndex(mrmlNode->GetCurrentTargetIndex()); 
-
-    if (robot!=NULL && targetDesc!=NULL)
-    {
-      std::string info=robot->GetTargetInfoText(targetDesc);
-      this->Message->SetText(info.c_str());
-    }
-    else
-    {
-      // no target info available for the current robot with the current target
-      this->Message->SetText("");
-    }
-
+    this->Message->SetText("Select a target, click on 'Verify target' button, then click on two points along the visible needle line.");
   }
-
   const char* volNodeID = mrmlNode->GetVerificationVolumeNodeID();
   vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
   if ( volNode )
