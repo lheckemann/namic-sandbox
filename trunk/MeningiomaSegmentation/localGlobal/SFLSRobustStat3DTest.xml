@@ -134,6 +134,20 @@
       </constraints>
     </double>
 
+    <integer>
+      <name>labelValue</name>
+      <longflag>labelValue</longflag>
+      <description>Label value of the output image</description>
+      <label>Output Label Value</label>
+      <default>1</default>
+      <constraints>
+        <minimum>1</minimum>
+        <maximum>255</maximum>
+        <step>1</step>
+      </constraints>
+    </integer>
+
+
     <double>
       <name>maxRunningTime</name>
       <longflag>maxRunningTime</longflag>

@@ -21,7 +21,7 @@ seedsPreprocess(typename TImage::Pointer img,                           \
 
 template< typename TPixel >
 itk::Image< unsigned char, 3 >::Pointer 
-getFinalMask(typename itk::Image< TPixel, 3 >::Pointer img, TPixel thod = 0);
+getFinalMask(typename itk::Image< TPixel, 3 >::Pointer img, unsigned char l, TPixel thod = 0);
 
 
 int main(int argc, char** argv)
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
   
   typedef itk::Image< unsigned char, 3 > MaskImageType;
 
-  MaskImageType::Pointer finalMask = getFinalMask<double>(seg.mp_phi, 2.0);
+  MaskImageType::Pointer finalMask = getFinalMask<double>(seg.mp_phi, labelValue, 2.0);
   finalMask->CopyInformation(img);
 
   typedef itk::ImageFileWriter< MaskImageType > WriterType;
@@ -146,7 +146,7 @@ seedsPreprocess(typename TImage::Pointer img,                           \
 
 template< typename TPixel >
 itk::Image< unsigned char, 3 >::Pointer 
-getFinalMask(typename itk::Image< TPixel, 3 >::Pointer img, TPixel thod)
+getFinalMask(typename itk::Image< TPixel, 3 >::Pointer img, unsigned char l, TPixel thod)
 {
   typedef itk::Image< unsigned char, 3 > MaskType;
 
@@ -182,7 +182,7 @@ getFinalMask(typename itk::Image< TPixel, 3 >::Pointer img, TPixel thod)
               MaskType::IndexType idx = {{ix, iy, iz}};
               TPixel v = img->GetPixel(idx);
               
-              mask->SetPixel(idx, v<=thod?1:0);
+              mask->SetPixel(idx, v<=thod?l:0);
             }
         }
     }
