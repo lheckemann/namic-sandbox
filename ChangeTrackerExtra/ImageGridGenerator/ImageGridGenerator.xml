@@ -5,10 +5,10 @@
   <index>3</index>
   <description>Constructs a binary grid image useful for visualizing the
   transforms resulting from image registration.</description>
-  <version>0.0</version>
+  <version>0.3</version>
   <documentation-url></documentation-url>
   <license></license>
-  <contributor>Nick Tustison (algorithm), Andriy Fedorov (Slicer wrapping)</contributor>
+  <contributor>Nick Tustison (algorithm), Andriy Fedorov (Slicer wrapping). fedorov AT bwh harvard edu</contributor>
 <acknowledgements>
 </acknowledgements>
 
@@ -19,8 +19,7 @@
     <double>
       <name>gridThickness</name>
       <longflag>lineThickness</longflag>
-      <description>Grid line thickness specified in pixels of input template
-      image</description>
+      <description>Grid line thickness specified in pixels of input template image</description>
       <label>Thickness of grid lines</label>
       <default>1</default>
     </double>
@@ -28,7 +27,7 @@
     <integer-vector>
       <name>nControlPoints</name>
       <longflag>ncontrolpoints</longflag>
-      <description></description>
+      <description>How many grid lines there should be in each dimension of the image</description>
       <label>Number of control points</label>
       <default>4,4,4</default>
     </integer-vector>
@@ -43,14 +42,14 @@
       <label>Input Image</label>
       <channel>input</channel>
       <index>0</index>
-      <description>Input image to be used as a template for the grid image</description>
+      <description>Input image to be used as a template for the grid image. The grid image will exist in the same space as the input image.</description>
     </image>
-    <image>
+    <image type="label">
       <name>outputImage</name>
       <label>Output Volume</label>
       <channel>output</channel>
       <index>1</index>
-      <description>Grid image</description>
+      <description>Grid image (label image)</description>
     </image>
   </parameters>
 

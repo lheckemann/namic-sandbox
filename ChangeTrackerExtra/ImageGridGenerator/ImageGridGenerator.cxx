@@ -67,14 +67,18 @@ int main(int argc, char* argv[])
   which.Fill( true );
 
   spacing = inImage->GetSpacing();
-  sigma[0] = spacing[0];
-  sigma[1] = spacing[1];
-  sigma[2] = spacing[2];
+  sigma[0] = spacing[0]*gridThickness;
+  sigma[1] = spacing[1]*gridThickness;
+  sigma[2] = spacing[2]*gridThickness;
 
   size = inImage->GetLargestPossibleRegion().GetSize();
-  gridSpacing[0] = size[0]*spacing[0]/10.;
-  gridSpacing[1] = size[1]*spacing[1]/10.;
-  gridSpacing[2] = size[2]*spacing[2]/10.;
+  gridSpacing[0] = size[0]*spacing[0]/nControlPoints[0];
+  gridSpacing[1] = size[1]*spacing[1]/nControlPoints[1];
+  gridSpacing[2] = size[2]*spacing[2]/nControlPoints[2];
+
+  gridOffset[0] = size[0]*spacing[0]/nControlPoints[0]/2.;
+  gridOffset[1] = size[1]*spacing[1]/nControlPoints[1]/2.;
+  gridOffset[2] = size[2]*spacing[2]/nControlPoints[2]/2.;
 
   // Specify 0th order B-spline function (Box function)
   typedef itk::BSplineKernelFunction<0> KernelType;
