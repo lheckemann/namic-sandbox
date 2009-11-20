@@ -266,7 +266,7 @@ void vtkProstateNavTargetingStep::ShowTargetPlanningFrame()
     }
     
   this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->LoadTargetingVolumeButton->GetWidgetName());
-  this->Script("grid %s -row 0 -column 2 -padx 2 -pady 2 -sticky e", this->ShowCoverageButton->GetWidgetName());
+  this->Script("grid %s -row 0 -column 2 -padx 2 -pady 2 -sticky w", this->ShowCoverageButton->GetWidgetName());
   this->Script("grid %s -row 1 -column 0 -columnspan 3 -padx 2 -pady 2 -sticky ew", this->VolumeSelectorWidget->GetWidgetName());
   this->Script("grid %s -row 2 -column 0 -padx 2 -pady 2 -sticky w", this->AddTargetsOnClickButton->GetWidgetName());
   this->Script("grid %s -row 2 -column 1 -columnspan 2 -padx 2 -pady 2 -sticky e", this->NeedleTypeMenuList->GetWidgetName());
