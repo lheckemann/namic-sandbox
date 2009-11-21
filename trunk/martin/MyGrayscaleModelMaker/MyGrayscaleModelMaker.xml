@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Surface Models</category>
+  <title>My Grayscale Model Maker</title>
+  <description>
+Create 3D surface models from grayscale.
+</description>
+  <version>3.0</version>
+  <documentation-url>http://www.slicer.org</documentation-url>
+  <license>slicer3</license>
+  <contributor>Nicole Aucoin, Bill Lorensen</contributor>
+<acknowledgements>
+This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+</acknowledgements>
+<parameters>
+    <label>IO</label>
+    <description>Input/output parameters</description>
+    <image>
+      <name>MyInputVolume</name>
+      <label>Input Volume</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input label map.</description>
+      </image>
+      
+    <image type="label">
+      <name>MyOutputVolume</name>
+      <label>Output Volume</label>
+      <channel>output</channel>
+      <index>1</index>
+      <default>None</default>
+    </image>
+      
+    <geometry>
+      <name>MyOutputGeometry</name>
+      <label>Output Geometry</label>
+      <channel>output</channel>
+      <index>2</index>
+      <description>File that contains generated geometry)</description>
+    </geometry>
+    
+  </parameters>
+  
+  
+  <parameters>
+      <label>Binary Thresholding Parameters</label>
+      <description>Specify the parameters of the binary threshold</description>
+      
+      <integer>
+      <!-- name: same name as in c++ -->  
+	<name>MyLowerThreshold</name>
+	<!-- longflag: output in terminal -->
+	<longflag>--MyLowerThreshold</longflag>
+	<label>Lower Threshold</label>
+	<default>80</default>
+      </integer>
+    
+       <integer>
+      <!-- name: same name as in c++ -->  
+	<name>MyUpperThreshold</name>
+	<!-- longflag: output in terminal -->
+	<longflag>--MyUpperThreshold</longflag>
+	<label>Upper Threshold</label>
+	<default>120</default>
+      </integer>
+    
+</parameters>
+  
+  
+</executable>
