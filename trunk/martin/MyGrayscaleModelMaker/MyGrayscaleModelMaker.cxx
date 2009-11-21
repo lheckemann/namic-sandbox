@@ -6,6 +6,7 @@
 #include "itkImageFileWriter.h"  //write ITK image
 //VTK classes
 #include "vtkImageThreshold.h"  //thresholds the image
+#include "vtkImageGaussianSmooth.h"  //Gaussian smooth of the thresholded image
 #include "vtkMarchingCubes.h"  //marching cube
 #include "vtkXMLPolyDataWriter.h"  //write marching cube result in 3d layout
 #include "vtkPluginFilterWatcher.h"  //status report of caluculations
@@ -58,7 +59,7 @@ int main(int argc, char * argv[])
   vtkPluginFilterWatcher watchThresholding(thresholdFilter,
                                            "thresholding the image",
                                            CLPProcessInformation,
-                                           1.0, 0.0);  //status report of thresholding
+                                           1.0/3.0, 0.0);  //status report of thresholding
   
   thresholdFilter->ThresholdBetween(MyLowerThreshold, MyUpperThreshold); 
 //thresholdFilter->SetReplaceIn(1);
@@ -67,26 +68,40 @@ int main(int argc, char * argv[])
   thresholdFilter->SetOutValue(0); 
   thresholdFilter->Update();  //now the image is thresholded
    
-   
-  //------------marching cube of thresholded image------------
+  
+/*  //------------gaussian smooth of thresholded image------------
+  std::cout << "-------------start GaussianSmooth-------------" << std::endl;  
+  
+  vtkImageGaussianSmooth * gaussianSmooth = vtkImageGaussianSmooth::New();
+  
+  vtkPluginFilterWatcher watchGaussianSmooth(gaussianSmooth,
+                                    "Gaussian Smooth",
+                                     CLPProcessInformation,
+                                     1.0/3.0, 0.0);
+  
+  gaussianSmooth->SetInput(thresholdFilter->GetOutput());
+  gaussianSmooth->SetRadiusFactors(1,1,1);
+  gaussianSmooth->SetStandardDeviations(1,1,1);
+  
+  //------------marching cube of gaussian smoothed image------------
   std::cout << "-------------start marching cube-------------" << std::endl;
    
-  vtkMarchingCubes * mcubes = NULL;
-  mcubes = vtkMarchingCubes::New();
-  vtkPluginFilterWatcher watchMCubes(mcubes,
+  vtkMarchingCubes * marchingCubes = NULL;
+  marchingCubes = vtkMarchingCubes::New();
+  vtkPluginFilterWatcher watchMarchingCubes(marchingCubes,
                                     "Marching Cubes",
                                      CLPProcessInformation,
-                                     1.0, 0.0);
+                                     1.0/3.0, 0.0);
 
-  mcubes->SetInput(thresholdFilter->GetOutput());
-  mcubes->SetValue(0,127.5);
-  mcubes->ComputeScalarsOff();
-  mcubes->ComputeGradientsOff();
-  mcubes->ComputeNormalsOn();
-  (mcubes->GetOutput())->ReleaseDataFlagOn();
-  mcubes->Update();
+  marchingCubes->SetInput(gaussianSmooth->GetOutput());
+  marchingCubes->SetValue(0,127.5);
+  marchingCubes->ComputeScalarsOff();
+  marchingCubes->ComputeGradientsOff();
+  marchingCubes->ComputeNormalsOn();
+  marchingCubes->GetOutput()->ReleaseDataFlagOn();
+  marchingCubes->Update();
 
-  std::cout << "Number of polygons = " << mcubes->GetOutput()->GetNumberOfPolys() << endl;
+  std::cout << "Number of polygons = " << marchingCubes->GetOutput()->GetNumberOfPolys() << endl;
   
   std::cout << "-------------start writing-------------" << std::endl;
   
@@ -94,9 +109,9 @@ int main(int argc, char * argv[])
   //------------write the result of marching cube ------------
   vtkXMLPolyDataWriter * writerPolyDataWriter = NULL;
   writerPolyDataWriter = vtkXMLPolyDataWriter::New();
-  writerPolyDataWriter->SetInput(mcubes->GetOutput());
+  writerPolyDataWriter->SetInput(marchingCubes->GetOutput());
   writerPolyDataWriter->SetFileName(MyOutputGeometry.c_str());
-  writerPolyDataWriter->Write();
+  writerPolyDataWriter->Write(); */
 
   //------------write the result of thresholding ------------
   //first converting VTK to ITK image
@@ -113,8 +128,9 @@ int main(int argc, char * argv[])
     
   //Cleanup
   if (thresholdFilter) thresholdFilter->Delete();
-  if (mcubes) mcubes->Delete();
-  if (writerPolyDataWriter) writerPolyDataWriter->Delete();
+/*  if (gaussianSmooth) gaussianSmooth->Delete();
+  if (marchingCubes) marchingCubes->Delete();
+  if (writerPolyDataWriter) writerPolyDataWriter->Delete(); */
 
   return EXIT_SUCCESS;
 }
