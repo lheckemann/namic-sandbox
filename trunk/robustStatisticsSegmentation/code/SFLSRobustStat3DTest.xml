@@ -4,10 +4,10 @@
     Segmentation
   </category>
   <title>
-    Localized Region-Based Segmentation
+    Robust Statistics Segmentation
   </title>
   <description>
-    Active contour segmentation using robust statistic as features.
+    Active contour segmentation using robust statistic.
   </description>
   <version>1.0</version>
   <documentation-url>
@@ -15,7 +15,7 @@
   </documentation-url>
   <license></license>
   <contributor>
-    Yi Gao, Allen Tannenbaum
+    Yi Gao, Allen Tannenbaum, Ron Kikinis
   </contributor>
   <acknowledgements>
     This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health
