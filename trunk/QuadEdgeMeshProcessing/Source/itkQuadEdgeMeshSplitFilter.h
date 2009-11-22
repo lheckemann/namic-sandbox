@@ -36,7 +36,7 @@ namespace itk
       InputPointsContainerConstPointer;
     typedef typename InputMeshType::PointsContainerConstIterator
       InputPointsContainerConstIterator;
-    typedef typename InputMeshType::CellsContainerPointer
+    typedef typename InputMeshType::CellsContainerConstPointer
       InputCellsContainerConstPointer;
     typedef typename InputMeshType::CellsContainerConstIterator
       InputCellsContainerConstIterator;

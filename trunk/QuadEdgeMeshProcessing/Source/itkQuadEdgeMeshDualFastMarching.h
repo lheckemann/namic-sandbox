@@ -27,9 +27,10 @@ namespace itk
     {
     public:
       typedef QuadEdgeMeshDualFastMarching Self;
-      typedef QuadEdgeMeshFunctionBase< TMesh,
-      std::list< typename TMesh::CellIdentifier > >
-      Superclass;
+      typedef QuadEdgeMeshFunctionBase< 
+        TMesh,
+        std::list< typename TMesh::CellIdentifier > >
+          Superclass;
       typedef SmartPointer< Self > Pointer;
       typedef SmartPointer< const Self > ConstPointer;
 
@@ -38,13 +39,15 @@ namespace itk
       itkTypeMacro( QuadEdgeMeshDualFastMarching, QuadEdgeMeshFunctionBase );
 
       typedef TMesh MeshType;
-      typedef typename MeshType::Pointer MeshPointer;
+      typedef typename MeshType::ConstPointer MeshConstPointer;
       typedef typename MeshType::PointType PointType;
       typedef typename MeshType::CellType CellType;
       typedef typename MeshType::CellIdentifier CellIdentifier;
       typedef typename MeshType::CellAutoPointer CellAutoPointer;
+      typedef typename MeshType::CellsContainerConstPointer 
+        CellsContainerConstPointer;
       typedef typename MeshType::CellsContainerConstIterator
-      CellsContainerConstIterator;
+        CellsContainerConstIterator;
       typedef typename MeshType::PointIdIterator PointIdIterator;
       typedef typename MeshType::PointIdentifier PointIdentifier;
       typedef typename MeshType::QEType QEType;
@@ -91,21 +94,21 @@ namespace itk
         };
 
       typedef MinPriorityQueueElementWrapper< Item, MetricValueType,
-      CellIdentifier >
-      PriorityQueueItemType;
+        CellIdentifier >
+          PriorityQueueItemType;
       typedef PriorityQueueContainer< PriorityQueueItemType,
-      PriorityQueueItemType,
-      MetricValueType, long >   PriorityQueueType;
+        PriorityQueueItemType,
+        MetricValueType, long >   PriorityQueueType;
       typedef typename PriorityQueueType::Pointer PriorityQueuePointer;
       typedef std::map< CellIdentifier, std::list< PriorityQueueItemType > >
-      QueueMapType;
+        QueueMapType;
       typedef typename QueueMapType::iterator QueueMapIterator;
 
-      itkSetObjectMacro( Mesh, MeshType );
-      itkGetObjectMacro( Mesh, MeshType );
+      itkSetConstObjectMacro( Mesh, MeshType );
+      itkGetConstObjectMacro( Mesh, MeshType );
 
       void Reset( )
-      {
+        {
         m_FastMarchingComputed = false;
         m_ElementMap.clear( );
         m_ClusterVector.clear( );
@@ -114,22 +117,22 @@ namespace itk
         m_ClusterBorderVector.clear( );
         m_PriorityQueue->Clear( );
         m_FaceProcessed.clear( );
-      }
+        }
 
       void SetSeedFaces( const SeedVectorType& iSeeds )
-      {
+        {
         m_SeedFaces = iSeeds;
-      }
+        }
 
       SeedVectorType GetSeedFaces( ) const
         {
-          return m_SeedFaces;
+        return m_SeedFaces;
         }
 
       CellIdentifier GetSeedFace( const size_t& iId ) const
         {
-          assert( ( iId >= 0 ) && ( iId < m_SeedFaces.size( ) ) );
-          return m_SeedFaces[iId];
+        assert( ( iId >= 0 ) && ( iId < m_SeedFaces.size( ) ) );
+        return m_SeedFaces[iId];
         }
 
       PointType GetSeedCaracteristicPoint( const size_t& iId ) const
@@ -141,7 +144,9 @@ namespace itk
           PointType pt1[3];
 
           for ( int k = 0; k < 3; it1++, k++ )
+            {
             pt1[k] = m_Mesh->GetPoint( *it1 );
+            }
 
           return TriangleType::ComputeGravityCenter( pt1[0], pt1[1], pt1[2] );
         }
@@ -154,7 +159,9 @@ namespace itk
         m_Metric.SetMesh( m_Mesh );
 
         if ( !m_FastMarchingComputed )
+          {
           ComputeFastMarching( );
+          }
 
         return m_ClusterVector;
       }
@@ -172,7 +179,9 @@ namespace itk
         m_SeedFaces = iSeeds;
 
         if ( !m_FastMarchingComputed )
+          {
           ComputeFastMarching( );
+          }
 
         return m_ClusterVector[ iId ];
       }
@@ -186,7 +195,9 @@ namespace itk
         m_Metric.SetMesh( m_Mesh );
 
         if ( !m_FastMarchingComputed )
+          {
           ComputeFastMarching( );
+          }
 
         return m_ClusterVector[ iId ];
       }
@@ -202,7 +213,9 @@ namespace itk
         m_Metric.SetMesh( m_Mesh );
 
         if ( !m_FastMarchingComputed )
+          {
           ComputeFastMarching( );
+          }
 
         return m_ClusterVector[ iId ];
       }
@@ -219,7 +232,7 @@ namespace itk
       ~QuadEdgeMeshDualFastMarching( )
       {}
 
-      MeshPointer m_Mesh;
+      MeshConstPointer m_Mesh;
       MetricType m_Metric;
       SeedVectorType m_SeedFaces;
       std::vector< bool > m_FaceProcessed;
@@ -233,23 +246,28 @@ namespace itk
       QueueMapType m_QueueMap;
 
       void InitFMM( )
-      {
+        {
         m_NumberOfUnprocessedElements = m_Mesh->GetNumberOfCells( );
 
         m_FaceProcessed.resize( m_NumberOfUnprocessedElements );
         size_t i( 0 );
-        for ( CellsContainerConstIterator cell_it = m_Mesh->GetCells(
-              )->Begin( );
-              cell_it != m_Mesh->GetCells( )->End( );
-              cell_it++, i++ )
+        CellsContainerConstPointer meshcells = m_Mesh->GetCells();
+
+        CellsContainerConstIterator cell_it = meshcells->Begin();
+
+        while( cell_it != meshcells->End() )
           {
-            if ( cell_it.Value( )->GetNumberOfPoints( ) > 2 )
-              m_FaceProcessed[i] = false;
-            else
-              {
-                m_FaceProcessed[i] = true;
-                m_NumberOfUnprocessedElements--;
-              }
+          if ( cell_it.Value( )->GetNumberOfPoints( ) > 2 )
+            {
+            m_FaceProcessed[i] = false;
+            }
+          else
+            {
+            m_FaceProcessed[i] = true;
+            m_NumberOfUnprocessedElements--;
+            }
+          ++i;
+          ++cell_it;
           }
 
         m_ClusterVector.resize( m_SeedFaces.size( ) );
@@ -257,22 +275,26 @@ namespace itk
 
         CellIdentifier id_cluster( 0 ), id_face( 0 );
 
-        for ( SeedVectorIterator it = m_SeedFaces.begin( );
-              it != m_SeedFaces.end( );
-              it++, id_cluster++, m_NumberOfUnprocessedElements-- )
+        SeedVectorIterator it = m_SeedFaces.begin();
+
+        while( it != m_SeedFaces.end( ) )
           {
-            id_face = *it;
+          id_face = *it;
 
-            m_FaceProcessed[ id_face ] = true;
+          m_FaceProcessed[ id_face ] = true;
 
-            Item item( id_face, 0., id_cluster );
-            PriorityQueueItemType qi( item, 0. );
-            m_QueueMap[ id_face ].push_back( qi );
+          Item item( id_face, 0., id_cluster );
+          PriorityQueueItemType qi( item, 0. );
+          m_QueueMap[ id_face ].push_back( qi );
 
-            m_ClusterVector[ id_cluster ].push_back( id_face );
-            m_FaceClusterMap[ id_face ] = id_cluster;
+          m_ClusterVector[ id_cluster ].push_back( id_face );
+          m_FaceClusterMap[ id_face ] = id_cluster;
 
-            PushFMM( id_face, id_cluster, 0. );
+          PushFMM( id_face, id_cluster, 0. );
+          
+          ++it;
+          ++id_cluster;
+          --m_NumberOfUnprocessedElements;
           }
       }
 
@@ -287,54 +309,54 @@ namespace itk
 
         if ( poly != 0 )
           {
-            QEType* edge = poly->GetEdgeRingEntry();
+          QEType* edge = poly->GetEdgeRingEntry();
 
-            if ( edge != 0 )
+          if ( edge != 0 )
+            {
+            if ( edge->GetLeft( ) != iId_face )
               {
-                if ( edge->GetLeft( ) != iId_face )
-                  edge = edge->GetSym( );
+              edge = edge->GetSym( );
 
-                // ***
-                QEType* temp( edge );
-                MetricValueType value( iValue );
-                CellIdentifier id_face2( 0 ), id_cluster2( 0 );
+              // ***
+              QEType* temp( edge );
+              MetricValueType value( iValue );
+              CellIdentifier id_face2( 0 ), id_cluster2( 0 );
 
-                do
+              do
+                {
+                id_face2 = temp->GetRight( );
+                if ( id_face2 != MeshType::m_NoFace )
                   {
-                    id_face2 = temp->GetRight( );
-                    if ( id_face2 != MeshType::m_NoFace )
+                  if ( !m_FaceProcessed[ id_face2 ] )
+                    {
+                    value += m_Metric( iId_face, id_face2 );
+
+                    Item item( id_face2, value, iId_cluster );
+                    PriorityQueueItemType qj( item, value );
+
+                    m_QueueMap[ iId_face ].push_back( qj );
+                    m_PriorityQueue->Push( qj );
+                    }
+                  else
+                    {
+                    id_cluster2 = m_FaceClusterMap[ id_face2 ];
+                    if ( id_cluster2 != iId_cluster )
                       {
-                        if ( !m_FaceProcessed[ id_face2 ] )
-                          {
-                            value += m_Metric( iId_face, id_face2 );
-
-                            Item item( id_face2, value, iId_cluster );
-                            PriorityQueueItemType qj( item, value );
-
-                            m_QueueMap[ iId_face ].push_back( qj );
-                            m_PriorityQueue->Push( qj );
-                          }
-                        else
-                          {
-                            id_cluster2 = m_FaceClusterMap[ id_face2 ];
-                            if ( id_cluster2 != iId_cluster )
-                              {
-                                m_ClusterBorderVector[ iId_cluster
-                                                     ].push_back( iId_face );
-                                m_ClusterBorderVector[ id_cluster2
-                                                     ].push_back( id_face2 );
-                              }
-                          }
+                      m_ClusterBorderVector[ iId_cluster ].push_back( iId_face );
+                      m_ClusterBorderVector[ id_cluster2 ].push_back( id_face2 );
                       }
-                    temp = temp->GetLnext( );
+                    }
                   }
-                while ( temp != edge );
+                temp = temp->GetLnext( );
+                }
+              while ( temp != edge );
               }
+            }
           }
       }
 
       void UpdateFMM( )
-      {
+        {
         MetricValueType value( 0. );
         CellIdentifier id_cluster( 0 ), id_face( 0 );
         PriorityQueueItemType qi;
@@ -342,43 +364,42 @@ namespace itk
 
         while ( !m_PriorityQueue->Empty( ) )
           {
-            qi = m_PriorityQueue->Peek( );
-            item = qi.m_Element;
-            id_face = item.m_Face;
-            id_cluster = item.m_Cluster;
-            value = item.m_Value;
+          qi = m_PriorityQueue->Peek( );
+          item = qi.m_Element;
+          id_face = item.m_Face;
+          id_cluster = item.m_Cluster;
+          value = item.m_Value;
 
-            if ( !m_FaceProcessed[ id_face ] )
+          if ( !m_FaceProcessed[ id_face ] )
+            {
+            QueueMapIterator queue_it = m_QueueMap.find( id_face );
+            if ( queue_it != m_QueueMap.end( ) )
               {
-                QueueMapIterator queue_it = m_QueueMap.find( id_face );
-                if ( queue_it != m_QueueMap.end( ) )
-                  {
-                    while ( !queue_it->second.empty( ) )
-                      {
-                        m_PriorityQueue->DeleteElement(
-                          queue_it->second.front( ) );
-                        queue_it->second.pop_front( );
-                      }
-                    m_QueueMap.erase( queue_it );
-                  }
-
-                m_FaceProcessed[ id_face ] = true;
-                m_ClusterVector[ id_cluster ].push_back( id_face );
-                m_FaceClusterMap[ id_face ] = id_cluster;
-
-                PushFMM( id_face, id_cluster, value );
+              while ( !queue_it->second.empty( ) )
+                {
+                m_PriorityQueue->DeleteElement( queue_it->second.front( ) );
+                queue_it->second.pop_front( );
+                }
+              m_QueueMap.erase( queue_it );
               }
-            m_PriorityQueue->Pop( );
-            m_NumberOfUnprocessedElements--;
+
+            m_FaceProcessed[ id_face ] = true;
+            m_ClusterVector[ id_cluster ].push_back( id_face );
+            m_FaceClusterMap[ id_face ] = id_cluster;
+
+            PushFMM( id_face, id_cluster, value );
+            }
+          m_PriorityQueue->Pop( );
+          m_NumberOfUnprocessedElements--;
           }
-      }
+        }
 
       void ComputeFastMarching( )
-      {
+        {
         InitFMM( );
         UpdateFMM( );
         m_FastMarchingComputed = true;
-      }
+        }
 
     private:
       QuadEdgeMeshDualFastMarching( const Self& );
