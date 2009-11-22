@@ -27,7 +27,7 @@ void
 QuadEdgeMeshSplitFilter< TInputMesh, TOutputMesh >::
 GenerateData( )
 {
-  InputMeshPointer input = this->GetInput();
+  InputMeshConstPointer input = this->GetInput();
 
   OutputMeshPointer output0 = this->GetOutput( 0 );
   output0->SetCellsAllocationMethod(
@@ -99,7 +99,7 @@ typename QuadEdgeMeshSplitFilter< TInputMesh, TOutputMesh >::OutputPointIdList
 QuadEdgeMeshSplitFilter< TInputMesh, TOutputMesh >::
 AddFacePointsToOutputMesh( OutputMeshType* ioMesh, InputPolygonType* iPoly )
 {
-  InputMeshPointer input = this->GetInput();
+  InputMeshConstPointer input = this->GetInput();
 
   InputQEType* edge = iPoly->GetEdgeRingEntry();
   InputQEType* temp = edge;

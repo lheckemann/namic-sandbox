@@ -15,7 +15,7 @@ namespace itk
     {
     public:
       typedef TMesh MeshType;
-      typedef typename MeshType::Pointer MeshPointer;
+      typedef typename MeshType::ConstPointer MeshConstPointer;
       typedef typename MeshType::CellIdentifier CellIdentifier;
       typedef typename MeshType::CellAutoPointer CellAutoPointer;
       typedef typename MeshType::PointIdIterator PointIdIterator;
@@ -26,15 +26,15 @@ namespace itk
       QuadEdgeMeshDualMetric( MeshType* iMesh ) : m_Mesh( iMesh ) {}
       virtual ~QuadEdgeMeshDualMetric( ) {}
 
-      void SetMesh( MeshType* iMesh )
-      {
+      void SetMesh( const MeshType* iMesh )
+        {
         m_Mesh = iMesh;
-      }
+        }
 
       virtual ValueType operator ( ) ( const CellIdentifier& iFace1,
                                        const CellIdentifier& iFace2 ) const = 0;
     protected:
-      MeshPointer m_Mesh;
+      MeshConstPointer m_Mesh;
     };
 
   /** \class QuadEdgeMeshDualSquaredEuclideanMetric
@@ -50,7 +50,7 @@ namespace itk
       typedef QuadEdgeMeshDualSquaredEuclideanMetric Self;
 
       typedef typename Superclass::MeshType MeshType;
-      typedef typename Superclass::MeshPointer MeshPointer;
+      typedef typename Superclass::MeshConstPointer MeshConstPointer;
       typedef typename Superclass::CellIdentifier CellIdentifier;
       typedef typename Superclass::CellAutoPointer CellAutoPointer;
       typedef typename Superclass::PointIdIterator PointIdIterator;
@@ -68,25 +68,27 @@ namespace itk
       ValueType operator ( ) ( const CellIdentifier& iFace1,
                                const CellIdentifier& iFace2 ) const
         {
-          CellAutoPointer cell1, cell2;
-          this->m_Mesh->GetCell( iFace1, cell1 );
-          this->m_Mesh->GetCell( iFace2, cell2 );
+        CellAutoPointer cell1, cell2;
+        this->m_Mesh->GetCell( iFace1, cell1 );
+        this->m_Mesh->GetCell( iFace2, cell2 );
 
-          PointIdIterator it1 = cell1->PointIdsBegin( );
-          PointIdIterator it2 = cell2->PointIdsBegin( );
+        PointIdIterator it1 = cell1->PointIdsBegin( );
+        PointIdIterator it2 = cell2->PointIdsBegin( );
 
-          PointType pt1[3], pt2[3];
+        PointType pt1[3], pt2[3];
 
-          for ( int k = 0; k < 3; ++it1, ++it2, ++k )
-            {
-              pt1[k] = this->m_Mesh->GetPoint( *it1 );
-              pt2[k] = this->m_Mesh->GetPoint( *it2 );
-            }
-          PointType center1 =
-            TriangleType::ComputeGravityCenter( pt1[0], pt1[1], pt1[2] );
-          PointType center2 =
-            TriangleType::ComputeGravityCenter( pt2[0], pt2[1], pt2[2] );
-          return center1.SquaredEuclideanDistanceTo( center2 );
+        for ( int k = 0; k < 3; ++it1, ++it2, ++k )
+          {
+          pt1[k] = this->m_Mesh->GetPoint( *it1 );
+          pt2[k] = this->m_Mesh->GetPoint( *it2 );
+          }
+        PointType center1 =
+          TriangleType::ComputeGravityCenter( pt1[0], pt1[1], pt1[2] );
+
+        PointType center2 =
+          TriangleType::ComputeGravityCenter( pt2[0], pt2[1], pt2[2] );
+
+        return center1.SquaredEuclideanDistanceTo( center2 );
         }
     };
 
@@ -104,7 +106,7 @@ namespace itk
       typedef QuadEdgeMeshDualSquaredEuclideanWithAreaWeightMetric Self;
 
       typedef typename Superclass::MeshType MeshType;
-      typedef typename Superclass::MeshPointer MeshPointer;
+      typedef typename Superclass::MeshConstPointer MeshConstPointer;
       typedef typename Superclass::CellIdentifier CellIdentifier;
       typedef typename Superclass::CellAutoPointer CellAutoPointer;
       typedef typename Superclass::PointIdIterator PointIdIterator;
@@ -121,33 +123,33 @@ namespace itk
       ValueType operator ( ) ( const CellIdentifier& iOrg,
                                const CellIdentifier& iDest ) const
         {
-          CellAutoPointer cell1, cell2;
-          this->m_Mesh->GetCell( iOrg, cell1 );
-          this->m_Mesh->GetCell( iDest, cell2 );
+        CellAutoPointer cell1, cell2;
+        this->m_Mesh->GetCell( iOrg, cell1 );
+        this->m_Mesh->GetCell( iDest, cell2 );
 
-          PointIdIterator it1 = cell1->PointIdsBegin( );
-          PointIdIterator it2 = cell2->PointIdsBegin( );
+        PointIdIterator it1 = cell1->PointIdsBegin( );
+        PointIdIterator it2 = cell2->PointIdsBegin( );
 
-          PointType pt1[3], pt2[3];
+        PointType pt1[3], pt2[3];
 
-          for ( int k = 0; k < 3; it1++, it2++, k++ )
-            {
-              pt1[k] = this->m_Mesh->GetPoint( *it1 );
-              pt2[k] = this->m_Mesh->GetPoint( *it2 );
-            }
-          typename TriangleType::Pointer t1 = TriangleType::New( );
-          t1->SetPoints( pt1[0], pt1[1], pt1[2] );
+        for( int k = 0; k < 3; ++it1, ++it2, ++k )
+          {
+          pt1[k] = this->m_Mesh->GetPoint( *it1 );
+          pt2[k] = this->m_Mesh->GetPoint( *it2 );
+          }
+        typename TriangleType::Pointer t1 = TriangleType::New( );
+        t1->SetPoints( pt1[0], pt1[1], pt1[2] );
 
-          typename TriangleType::Pointer t2 = TriangleType::New( );
-          t2->SetPoints( pt2[0], pt2[1], pt2[2] );
+        typename TriangleType::Pointer t2 = TriangleType::New( );
+        t2->SetPoints( pt2[0], pt2[1], pt2[2] );
 
-          PointType center1 = t1->ComputeGravityCenter( );
-          PointType center2 = t2->ComputeGravityCenter( );
+        PointType center1 = t1->ComputeGravityCenter( );
+        PointType center2 = t2->ComputeGravityCenter( );
 
-          ValueType d_2 = center1.SquaredEuclideanDistanceTo( center2 );
-          ValueType Area = t1->ComputeArea( );
+        ValueType d_2 = center1.SquaredEuclideanDistanceTo( center2 );
+        ValueType Area = t1->ComputeArea( );
 
-          return Area * d_2;
+        return Area * d_2;
         }
 
     };

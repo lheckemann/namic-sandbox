@@ -41,6 +41,8 @@ namespace itk
 
     typedef typename InputMeshType::PointsContainerPointer
       InputPointsContainerPointer;
+    typedef typename InputMeshType::PointsContainerConstPointer
+      InputPointsContainerConstPointer;
     typedef typename InputMeshType::PointsContainerConstIterator
       InputPointsContainerConstIterator;
 
@@ -115,9 +117,9 @@ namespace itk
 
     void ComputeCoefficientMap()
     {
-      InputMeshPointer input = this->GetInput();
+      InputMeshConstPointer input = this->GetInput();
 
-      InputPointsContainerPointer points = input->GetPoints();
+      InputPointsContainerConstPointer points = input->GetPoints();
       InputPointIdentifier p_id( 0 );
       InputQEType* qe( 0 );
       InputQEType* qe_it( 0 );
