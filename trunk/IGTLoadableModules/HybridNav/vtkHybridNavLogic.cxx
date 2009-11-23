@@ -19,6 +19,14 @@
 #include "vtkSlicerApplicationGUI.h"
 
 #include "vtkHybridNavLogic.h"
+#include "vtkMRMLHybridNavToolNode.h"
+#include "vtkMRMLLinearTransformNode.h"
+
+#include "vtkCylinderSource.h"
+#include "vtkSphereSource.h"
+#include "vtkAppendPolyData.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkTransform.h"
 
 vtkCxxRevisionMacro(vtkHybridNavLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkHybridNavLogic);
@@ -73,9 +81,123 @@ void vtkHybridNavLogic::UpdateAll()
 
 }
 
+//---------------------------------------------------------------------------
+/*int vtkHybridNavLogic::EnableToolModel(vtkMRMLHybridNavToolNode* tnode)
+{
+  vtkMRMLModelNode* mnode = this->AddLocatorModel("HybridNavTool", 0.5, 0.5, 0.5);
+  vtkMRMLLinearTransformNode *tn = tnode->GetToolNode();
+  if (!tnode)
+    {
+    return 0;
+    }
+  else
+    {
+    mnode->SetAndObserveTransformNodeID(tn->GetID());
+    mnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+    }
 
+  return 1;
+}*/
 
+//---------------------------------------------------------------------------
+/*vtkMRMLModelNode* vtkHybridNavLogic::SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode, int v)
+{
+  /*vtkMRMLModelNode*   locatorModel;
+  vtkMRMLDisplayNode* locatorDisp;
 
+  // Check if any node with the specified name exists
+  vtkMRMLScene*  scene = this->GetApplicationLogic()->GetMRMLScene();
+  vtkCollection* collection = scene->GetNodesByName(nodeName);
 
+  if (collection != NULL && collection->GetNumberOfItems() == 0)
+    {
+    // if a node doesn't exist
+    locatorModel = AddLocatorModel(nodeName, 0.0, 1.0, 1.0);
+    }
+  else
+    {
+    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
+    }
 
+  if (locatorModel)
+    {
+    locatorDisp = locatorModel->GetDisplayNode();
+    locatorDisp->SetVisibility(v);
+    locatorModel->Modified();
+    this->GetApplicationLogic()->GetMRMLScene()->Modified();
+    }
 
+  return locatorModel;
+  std::cerr << "Set Visibility turned On" << std::endl;
+}
+*/
+
+//-------------------------------------------------------------------------------------------------------------
+vtkMRMLModelNode* vtkHybridNavLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
+{
+
+  vtkMRMLModelNode           *locatorModel;
+  vtkMRMLModelDisplayNode    *locatorDisp;
+
+  locatorModel = vtkMRMLModelNode::New();
+  locatorDisp = vtkMRMLModelDisplayNode::New();
+  
+  GetMRMLScene()->SaveStateForUndo();
+  GetMRMLScene()->AddNode(locatorDisp);
+  GetMRMLScene()->AddNode(locatorModel);  
+  
+  locatorDisp->SetScene(this->GetMRMLScene());
+  
+  //locatorModel->SetName(nodeName);
+  locatorModel->SetScene(this->GetMRMLScene());
+  locatorModel->SetAndObserveDisplayNodeID(locatorDisp->GetID());
+  locatorModel->SetHideFromEditors(0);
+  
+  // Cylinder represents the locator stick
+  vtkCylinderSource *cylinder = vtkCylinderSource::New();
+  cylinder->SetRadius(1.5);
+  cylinder->SetHeight(100);
+  cylinder->SetCenter(0, 0, 0);
+  cylinder->Update();
+
+  // Rotate cylinder
+  vtkTransformPolyDataFilter *tfilter = vtkTransformPolyDataFilter::New();
+  vtkTransform* trans =   vtkTransform::New();
+  trans->RotateX(90.0);
+  trans->Translate(0.0, -50.0, 0.0);
+  trans->Update();
+  tfilter->SetInput(cylinder->GetOutput());
+  tfilter->SetTransform(trans);
+  tfilter->Update();
+  
+  // Sphere represents the locator tip 
+  vtkSphereSource *sphere = vtkSphereSource::New();
+  sphere->SetRadius(3.0);
+  sphere->SetCenter(0, 0, 0);
+  sphere->Update();
+  
+  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+  apd->AddInput(sphere->GetOutput());
+  apd->AddInput(tfilter->GetOutput());
+  apd->Update();
+  
+  locatorModel->SetAndObservePolyData(apd->GetOutput());
+  
+  double color[3];
+  color[0] = r;
+  color[1] = g;
+  color[2] = b;
+  locatorDisp->SetPolyData(locatorModel->GetPolyData());
+  locatorDisp->SetColor(color);
+  
+  trans->Delete();
+  tfilter->Delete();
+  cylinder->Delete();
+  sphere->Delete();
+  apd->Delete();
+
+  //locatorModel->Delete();
+  locatorDisp->Delete();
+
+  return locatorModel;
+}

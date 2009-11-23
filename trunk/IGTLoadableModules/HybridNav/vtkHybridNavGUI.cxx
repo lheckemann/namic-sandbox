@@ -31,6 +31,7 @@
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
 #include "vtkKWEvent.h"
+#include "vtkKWCheckButton.h"
 
 #include "vtkKWPushButton.h"
 #include "vtkKWEntry.h"
@@ -41,6 +42,7 @@
 #include "vtkCornerAnnotation.h"
 #include "vtkPivotCalibration.h"
 #include "vtkMRMLHybridNavToolNode.h"
+#include "vtkMRMLModelNode.h"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkHybridNavGUI );
@@ -70,6 +72,7 @@ vtkHybridNavGUI::vtkHybridNavGUI ( )
   this->ToolNameEntry = NULL;
   this->ToolNodeSelectorMenu = NULL;
   this->ToolDescriptionEntry = NULL;
+  this->ToolCheckButton = NULL;
 
   //----------------------------------------------------------------
   //Pivot Calibration Frame
@@ -141,6 +144,11 @@ vtkHybridNavGUI::~vtkHybridNavGUI ( )
     this->ToolDescriptionEntry->SetParent(NULL);
     this->ToolDescriptionEntry->Delete();
     }
+  if (this->ToolCheckButton)
+    {
+    this->ToolCheckButton->SetParent(NULL);
+    this->ToolCheckButton->Delete();
+    }
 
   //-----------------------------------------------------------------
   //Pivot Calibration Frame
@@ -175,6 +183,7 @@ void vtkHybridNavGUI::Init()
 {
   vtkMRMLScene* scene = this->GetMRMLScene();
 
+  //Register new node type to the scene
   vtkMRMLHybridNavToolNode* toolNode = vtkMRMLHybridNavToolNode::New();
   scene->RegisterNodeClass(toolNode);
   toolNode->Delete();
@@ -194,9 +203,7 @@ void vtkHybridNavGUI::Enter()
     this->TimerInterval = 100;  // 100 ms
     ProcessTimerEvents();
     }
-
 }
-
 
 //---------------------------------------------------------------------------
 void vtkHybridNavGUI::Exit ( )
@@ -250,6 +257,11 @@ void vtkHybridNavGUI::RemoveGUIObservers ( )
   if (this->ToolDescriptionEntry)
     {
     this->ToolDescriptionEntry
+       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->ToolCheckButton)
+    {
+    this->ToolCheckButton
        ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
@@ -313,6 +325,8 @@ void vtkHybridNavGUI::AddGUIObservers ( )
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ToolDescriptionEntry
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->ToolCheckButton
+     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   //----------------------------------------------------------------
   //Calibration frame
@@ -374,11 +388,17 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
 
   //--------------------------------------------------------------------------
   //Tool Frame
+  
+  //Select Element in the Tool List Frame
   else if (this->ToolList->GetWidget() == vtkKWMultiColumnList::SafeDownCast(caller)
            && event == vtkKWMultiColumnList::SelectionChangedEvent)
     {
     std::cerr << "Tool selected" << std::endl;
+    int selected = this->ToolList->GetWidget()->GetIndexOfFirstSelectedRow();
+    UpdateToolPropertyFrame(selected);
     }
+  
+  //Add a Tool to the Tool List Frame
   else if (this->AddToolButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
     {
@@ -386,8 +406,11 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
     //Create Tool object, populate list and add node to scene
     vtkMRMLHybridNavToolNode* tool = vtkMRMLHybridNavToolNode::New();
     this->GetMRMLScene()->AddNode(tool);
+    this->GetMRMLScene()->Modified();
     tool->Modified();
     tool->Delete();
+    //Represent the tool
+    vtkMRMLModelNode* mnode = this->GetLogic()->AddLocatorModel("HybridNavTool", 0.5, 0.5, 0.5);
     }
   else if (this->DeleteToolButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
@@ -409,7 +432,7 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
             selected = nrow - 1;
             }
           this->ToolList->GetWidget()->SelectSingleRow(selected);
-          //UpdateToolPropertyFrame(selected);
+          UpdateToolPropertyFrame(selected);
           }
         }
     }
@@ -461,7 +484,24 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         }
       }
     }
-
+  
+  //ToolCheckButton pressed
+  else if (this->ToolCheckButton == vtkKWCheckButton::SafeDownCast(caller)
+      && event == vtkKWCheckButton::SelectedStateChangedEvent)
+    {
+    std::cerr << "Tool CheckButton has been pressed." << std::endl;
+    int selected = this->ToolList->GetWidget()->GetIndexOfFirstSelectedRow();
+    if (selected >= 0 && selected < (int)this->ToolNodeList.size())
+      {
+      vtkMRMLHybridNavToolNode* tool
+        = vtkMRMLHybridNavToolNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ToolNodeList[selected]));
+      if (tool)
+        {
+        tool->SetToolVisibility(this->ToolCheckButton->GetSelectedState());
+        UpdateToolList(UPDATE_SELECTED_ONLY);
+        }
+      }
+    }
   //--------------------------------------------------------------------------
   //Calibration Frame
   //Events related with changing numPoints text box
@@ -532,10 +572,18 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
     {
     vtkObject* obj = (vtkObject*)callData;
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(obj);
+    
+    //Check to see if node is from a HybridNavTool
     if (node && strcmp(node->GetNodeTagName(), "HybridNavTool") == 0)
       {
-      std::cerr << "Node event" << std::endl;
+      std::cerr << "Hybrid Nav Tool Node event" << std::endl;
       vtkMRMLHybridNavToolNode* tnode = vtkMRMLHybridNavToolNode::SafeDownCast(node);
+      //Add Observer to Node
+      vtkIntArray* nodeEvents = vtkIntArray::New();
+      nodeEvents->InsertNextValue(vtkCommand::ModifiedEvent);
+      vtkSetAndObserveMRMLNodeEventsMacro(tnode,tnode,nodeEvents);
+      nodeEvents->Delete();
+      
       // obtain the list of tools in the scene
       UpdateToolNodeList();
       UpdateToolList(UPDATE_ALL);
@@ -543,24 +591,26 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
       this->ToolList->GetWidget()->SelectSingleRow(select);
       UpdateToolPropertyFrame(select);
       }
-    else
-      {
-      //UpdateRealTimeImageSourceMenu();
-      }
     }
 
   //---------------------------------------------
   // Removing a node
   else if (event == vtkMRMLScene::NodeRemovedEvent)
     {
-    std::cerr << "Tool Node to be deleted" << std::endl;
-    //vtkObject* obj = (vtkObject*)callData;
-    /*vtkMRMLHybridNavToolNode* node = vtkMRMLHybridNavToolNode::SafeDownCast(obj);
-    if (node)
+    vtkObject* obj = (vtkObject*)callData;
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(obj);
+    
+    //Check to see if node is from a HybridNavTool
+    if (node && strcmp(node->GetNodeTagName(), "HybridNavTool") == 0)
       {
-      //UpdateToolNodeList();
-      //UpdateToolList(UPDATE_ALL);
-      }*/
+      std::cerr << "Tool Node to be deleted" << std::endl;
+      vtkMRMLHybridNavToolNode* node = vtkMRMLHybridNavToolNode::SafeDownCast(obj);
+      if (node)
+        {
+        UpdateToolNodeList();
+        UpdateToolList(UPDATE_ALL);
+        }
+      }
     }
 
   // Detect if something has happened in the MRML scene
@@ -783,10 +833,35 @@ void vtkHybridNavGUI::BuildGUIForToolFrame()
   this->ToolDescriptionEntry->Create();
   this->ToolDescriptionEntry->SetWidth(25);
 
-  this->Script ( "pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
                  descriptionLabel->GetWidgetName(),
                  this->ToolDescriptionEntry->GetWidgetName());
 
+  //Tool Model -- Visualization Check button
+  vtkKWFrame* ModelFrame = vtkKWFrame::New();
+  ModelFrame->SetParent(controlFrame->GetFrame());
+  ModelFrame->Create();
+  this->Script ( "pack %s -fill both -expand true",
+                 ModelFrame->GetWidgetName());
+
+  vtkKWLabel* ModelLabel = vtkKWLabel::New();
+  ModelLabel->SetParent(ModelFrame);
+  ModelLabel->Create();
+  ModelLabel->SetWidth(12);
+  ModelLabel->SetText("Show Tool: ");
+  
+  this->ToolCheckButton = vtkKWCheckButton::New();
+  this->ToolCheckButton->SetParent(ModelFrame);
+  this->ToolCheckButton->Create();
+  this->ToolCheckButton->SelectedStateOff();
+  //this->ToolCheckButton->SetText("Show Locator");
+  
+  app->Script("pack %s %s -side left -anchor w -padx 2 -pady 2", 
+               ModelLabel->GetWidgetName(),
+               this->ToolCheckButton->GetWidgetName());
+  
+  //Un-enable all elements in Tool Property Frame
+  UpdateToolPropertyFrame(-1);
 }
 
 
@@ -1034,14 +1109,19 @@ void vtkHybridNavGUI::UpdateToolPropertyFrame(int i)
     this->ToolNameEntry->EnabledOff();
     this->ToolNameEntry->UpdateEnableState();
 
+    //TODO: Would be good to unenable node when nothing is selected
     // Tool Node
-    //this->ToolNodeSelectorMenu->SetNoneEnabled(0);
+    //this->ToolNodeSelectorMenu->SetNoneEnabled(1);
     //this->ToolNodeSelectorMenu->UpdateEnableState();
 
     // Tool Description Entry
     this->ToolDescriptionEntry->SetValue("");
     this->ToolDescriptionEntry->EnabledOff();
     this->ToolDescriptionEntry->UpdateEnableState();
+    
+    //Tool Visibility
+    this->ToolCheckButton->EnabledOff();
+    this->ToolCheckButton->UpdateEnableState();
 
     return;
     }
@@ -1065,15 +1145,25 @@ void vtkHybridNavGUI::UpdateToolPropertyFrame(int i)
     }
 
   // Tool Name entry
+  this->ToolNameEntry->EnabledOn();
+  this->ToolNameEntry->UpdateEnableState();
   this->ToolNameEntry->SetValue(tool->GetName());
 
   // Tool node
+  //TODO: Make sure that when there is no node selected, that the node displays nothing
   if (tool->GetToolNode())
     {
     this->ToolNodeSelectorMenu->SetSelected((vtkMRMLNode*)tool->GetToolNode());
     }
 
   // Tool Description entry
+  this->ToolDescriptionEntry->EnabledOn();
+  this->ToolDescriptionEntry->UpdateEnableState();
   this->ToolDescriptionEntry->SetValue(tool->GetToolDescription());
+  
+  //Tool Visibility
+  this->ToolCheckButton->EnabledOn();
+  this->ToolCheckButton->UpdateEnableState();
+  this->ToolCheckButton->SetSelectedState(tool->GetToolVisibility());
 
 }

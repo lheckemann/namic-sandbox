@@ -65,7 +65,7 @@ public:
  vtkGetMacro( Calibrated, int );
  vtkSetMacro( Calibrated, int );
 
- // tool name, description and node
+ // tool name, description, node and visibility
  void SetToolName(const char* str) { this->ToolName = str; }
  const char* GetToolName() { return this->ToolName.c_str(); }
  void SetToolDescription(const char* str) { this->ToolDescription = str; }
@@ -73,6 +73,8 @@ public:
  void SetToolNode(vtkMRMLNode*);
  vtkMRMLLinearTransformNode* GetToolNode();
  const char* GetToolNodeAsChar();
+ void SetToolVisibility(int i);
+ int GetToolVisibility(); 
 
 private:
  //BTX
@@ -80,6 +82,7 @@ private:
  std::string ToolDescription;
  //ETX
  int Calibrated;
+ int ToolVisibility;
  vtkMRMLLinearTransformNode* transformNode;        //MRML node which contains tracking information
 
 };

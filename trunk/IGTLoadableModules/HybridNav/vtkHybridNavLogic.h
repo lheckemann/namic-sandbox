@@ -30,7 +30,8 @@
 
 #include "vtkMRMLSliceNode.h"
 
-class vtkIGTLConnector;
+class vtkMRMLHybridNavToolNode;
+class vtkMRMLModelNode;
 
 class VTK_HybridNav_EXPORT vtkHybridNavLogic : public vtkSlicerModuleLogic 
 {
@@ -48,7 +49,14 @@ class VTK_HybridNav_EXPORT vtkHybridNavLogic : public vtkSlicerModuleLogic
   
   vtkTypeRevisionMacro(vtkHybridNavLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
-
+  
+  //BTX
+  //functions to enable a model to represent the tool
+  int EnableToolModel(vtkMRMLHybridNavToolNode* tn);
+  vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
+  //vtkMRMLModelNode* SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode, int v);
+  //ETX
+  
  protected:
   
   vtkHybridNavLogic();
@@ -56,6 +64,7 @@ class VTK_HybridNav_EXPORT vtkHybridNavLogic : public vtkSlicerModuleLogic
 
   void operator=(const vtkHybridNavLogic&);
   vtkHybridNavLogic(const vtkHybridNavLogic&);
+  
 
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
