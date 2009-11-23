@@ -61,6 +61,7 @@ vtkMRMLHybridNavToolNode::vtkMRMLHybridNavToolNode()
   this->ToolName = "";
   this->ToolDescription = "Description";
   transformNode = NULL;
+  this->ToolVisibility = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -124,4 +125,17 @@ const char* vtkMRMLHybridNavToolNode::GetToolNodeAsChar()
     return this->transformNode->GetID();
   else
     return "None";
+}
+
+//--------------------------------------------------------------------------
+void vtkMRMLHybridNavToolNode::SetToolVisibility(int i)
+{
+  this->ToolVisibility = i;
+  std::cerr << "Tool Visibility is " << this->ToolVisibility << std::endl;
+}
+
+//--------------------------------------------------------------------------
+int vtkMRMLHybridNavToolNode::GetToolVisibility()
+{
+  return this->ToolVisibility;
 }

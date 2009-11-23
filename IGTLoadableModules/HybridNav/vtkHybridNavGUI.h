@@ -30,6 +30,7 @@ class vtkSlicerNodeSelectorWidget;
 class vtkKWEntry;
 class vtkPivotCalibration;
 class vtkKWMultiColumnListWithScrollbars;
+class vtkKWCheckButton;
 
 class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
 {
@@ -139,6 +140,7 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
   vtkKWEntry*          ToolNameEntry;
   vtkSlicerNodeSelectorWidget* ToolNodeSelectorMenu;
   vtkKWEntry*          ToolDescriptionEntry;
+  vtkKWCheckButton*    ToolCheckButton;
 
   //----------------------------------------------------------------
   //Pivot Calibration Frame
