@@ -75,9 +75,6 @@ scheduleImagePyramid(PyramidFilterType* pyramid)
     nalllevels++;
     }
 
-  std::cout << "ninplane: " <<ninplanelevels << std::endl;
-  std::cout << "nalllevels: " << nalllevels << std::endl;
-
   const unsigned int nlevels = ninplanelevels + nalllevels+1;
   
   pyramid->SetNumberOfLevels(nlevels);
