@@ -46,8 +46,6 @@ ScalingValues::ScalingValues(const itk::ImageBase<3>* image,
       {
       boundingPoint[i] = p2[i];
       }
-    std::cout << "bp: " << boundingPoint << std::endl;
-    
     d[i] = boundingPoint.EuclideanDistanceTo(centerOfRotation);
 
     }  
