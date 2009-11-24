@@ -26,8 +26,12 @@ TARGET_LINK_LIBRARIES(itkLaplaceBeltramiFilterTest2 ITKQuadEdgeMesh ITKIO ITKNum
 
 ADD_TEST(itkLaplaceBeltramiFilterTest1
   ${CXX_TEST_PATH}/itkLaplaceBeltramiFilterTest1
+  ${TEST_DATA_ROOT}/fv0.vtk
+  ${TEMP}/fv0_surfaceHarmonic_0_Test1.vtk
   )
 
 ADD_TEST(itkLaplaceBeltramiFilterTest2
   ${CXX_TEST_PATH}/itkLaplaceBeltramiFilterTest2
+  ${TEST_DATA_ROOT}/fv0.vtk
+  ${TEMP}/fv0_surfaceHarmonic_0_Test2.vtk
   )
