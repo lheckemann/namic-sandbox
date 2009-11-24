@@ -53,11 +53,11 @@ public:
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
-  typedef typename InputMeshType::ConstPointer    InputMeshConstPointer;
-  typedef typename InputMeshType::Pointer      InputMeshPointer;
-  typedef typename OutputMeshType::Pointer     OutputMeshPointer;
-  typedef typename InputMeshType::PointType    InputPointType;
-  typedef typename OutputMeshType::PointType   OutputPointType;
+  typedef typename InputMeshType::ConstPointer  InputMeshConstPointer;
+  typedef typename InputMeshType::Pointer       InputMeshPointer;
+  typedef typename OutputMeshType::Pointer      OutputMeshPointer;
+  typedef typename InputMeshType::PointType     InputPointType;
+  typedef typename OutputMeshType::PointType    OutputPointType;
 
   /** Type for representing coordinates. */
   //typedef typename TInputMesh::CoordRepType          CoordRepType;
@@ -82,20 +82,20 @@ public:
   itkStaticConstMacro(OutputPointDimension, unsigned int,
      ::itk::GetMeshDimension< TOutputMesh >::PointDimension );
 
-  typedef typename InputMeshType::PointsContainer    PointsContainer;
-  typedef typename InputMeshType::CellsContainer     CellsContainer;
-  typedef typename InputMeshType::PointsContainerPointer    PointsContainerPointer;
-  typedef typename InputMeshType::CellsContainerPointer     CellsContainerPointer;
-  typedef typename InputMeshType::CellsContainerConstPointer     CellsContainerConstPointer;
-  typedef typename InputMeshType::PointIdentifier    PointIdentifier;
-  typedef typename InputMeshType::CellIdentifier     CellIdentifier;
-  typedef typename PointsContainer::ConstPointer     PointsContainerConstPointer;
-  typedef typename PointsContainer::ConstIterator    PointIterator;
-  typedef typename CellsContainer::ConstIterator     CellIterator;
-  typedef typename InputMeshType::CellType           CellType;
-  typedef typename InputMeshType::PointType           PointType;
-  typedef typename CellType::PointIdIterator         PointIdIterator;
-  typedef typename CellType::CellAutoPointer         CellAutoPointer;
+  typedef typename InputMeshType::PointsContainer             PointsContainer;
+  typedef typename InputMeshType::CellsContainer              CellsContainer;
+  typedef typename InputMeshType::PointsContainerPointer      PointsContainerPointer;
+  typedef typename InputMeshType::CellsContainerPointer       CellsContainerPointer;
+  typedef typename InputMeshType::CellsContainerConstPointer  CellsContainerConstPointer;
+  typedef typename InputMeshType::PointIdentifier             PointIdentifier;
+  typedef typename InputMeshType::CellIdentifier              CellIdentifier;
+  typedef typename PointsContainer::ConstPointer              PointsContainerConstPointer;
+  typedef typename PointsContainer::ConstIterator             PointIterator;
+  typedef typename CellsContainer::ConstIterator              CellIterator;
+  typedef typename InputMeshType::CellType                    CellType;
+  typedef typename InputMeshType::PointType                   PointType;
+  typedef typename CellType::PointIdIterator                  PointIdIterator;
+  typedef typename CellType::CellAutoPointer                  CellAutoPointer;
 
   typedef vnl_sparse_matrix< TCompRep >  LBMatrixType;
 
@@ -126,7 +126,7 @@ private:
   void operator=(const LaplaceBeltramiFilter&);
 
   /* mesh input to the filter */
-  InputMeshPointer filterInput;
+  InputMeshPointer m_FilterInput;  // We may want to reconsider this variable.
 
   /** Number of most significant eigenvalues to include */
   unsigned int m_EigenValueCount;

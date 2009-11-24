@@ -36,7 +36,7 @@ namespace itk
 template <class TInputMesh, class TOutputMesh, typename TCompRep>
 LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
 ::LaplaceBeltramiFilter() :
-  filterInput(NULL),
+  m_FilterInput(NULL),
   m_EigenValueCount(0)
 {
 }
@@ -128,8 +128,8 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
     itkExceptionMacro(<<"Missing Output Mesh");
     }
 
-  filterInput = TInputMesh::New();
-  CopySurface(inputMesh, filterInput);
+  m_FilterInput = TInputMesh::New();
+  CopySurface(inputMesh, m_FilterInput);
 
   InputPointsContainerConstPointer  inPoints  = inputMesh->GetPoints();
   OutputPointsContainerPointer outPoints = outputMesh->GetPoints();
@@ -326,7 +326,7 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
     return false;
 
   surface->Initialize();
-  InputMeshConstPointer filterInputConst = (InputMeshConstPointer) filterInput;
+  InputMeshConstPointer filterInputConst = (InputMeshConstPointer) m_FilterInput;
   CopySurface(filterInputConst, surface);
   for (unsigned int k = 0; k < this->m_Harmonics.cols(); k++)
     surface->SetPointData(k, this->m_Harmonics(harmonic, k));
@@ -342,26 +342,26 @@ void
 LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
 ::CopySurface( InputMeshConstPointer surface, InputMeshPointer copy )
 {
-    PointsContainerConstPointer points = surface->GetPoints();
-    PointIterator it = points->Begin();
-    PointIterator itEnd = points->End();
-    unsigned int i = 0;
-    while ( it != itEnd )
+  PointsContainerConstPointer points = surface->GetPoints();
+  PointIterator it = points->Begin();
+  PointIterator itEnd = points->End();
+  unsigned int i = 0;
+  while ( it != itEnd )
     {
-        PointType point = it.Value(); it++;
-        copy->SetPoint( i++, point );
+    PointType point = it.Value(); it++;
+    copy->SetPoint( i++, point );
     }
 
-    i = 0;
-    CellsContainerConstPointer cells = surface->GetCells();
-    CellIterator itCells = cells->Begin();
-    CellIterator itCellsEnd = cells->End();
-    while ( itCells != itCellsEnd )
+  i = 0;
+  CellsContainerConstPointer cells = surface->GetCells();
+  CellIterator itCells = cells->Begin();
+  CellIterator itCellsEnd = cells->End();
+  while ( itCells != itCellsEnd )
     {
-        CellAutoPointer cellCopy;
-        itCells.Value()->MakeCopy( cellCopy );
-        copy->SetCell( i++, cellCopy );
-        itCells++;
+    CellAutoPointer cellCopy;
+    itCells.Value()->MakeCopy( cellCopy );
+    copy->SetCell( i++, cellCopy );
+    itCells++;
     }
 }
 } // end namespace itk
