@@ -5,10 +5,12 @@ PROJECT( MoreSearchRegistration )
   # Find ITK
   find_package( ITK REQUIRED )
   include( ${ITK_USE_FILE} )
+
+  add_library( RegistrationHelper ScalingHeuristics.cxx)
     
   # Build the command line
   add_executable( MoreSearch MoreSearch.cxx )
-  target_link_libraries( MoreSearch ITKStatistics ITKIO ITKNumerics ITKTransformIOReview )
+  target_link_libraries( MoreSearch RegistrationHelper ITKStatistics ITKIO ITKNumerics ITKTransformIOReview )
        
   # Build the command line
   add_executable( ExploreObjectiveFunction ExploreObjectiveFunction.cxx )
