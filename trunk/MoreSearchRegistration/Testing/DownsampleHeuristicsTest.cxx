@@ -6,6 +6,9 @@
 #include <iostream>
 #include <cstdlib>
 
+namespace
+{
+
 typedef itk::Image<short, 3> ImageType;
 typedef ImageType::RegionType  RegionType;
 typedef RegionType::SizeType   SizeType;
@@ -29,6 +32,8 @@ createTestImage(SizeType size,
   //image->Allocate();
   
   return image;
+}
+
 }
 
 int DownsampleHeuristicsTest(int argc, char* argv[])
