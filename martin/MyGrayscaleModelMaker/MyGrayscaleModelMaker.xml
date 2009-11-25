@@ -65,6 +65,72 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
       </integer>
     
 </parameters>
-  
-  
+
+<parameters>
+    <label>Crop the Image</label>
+    <description>Specify the parameters of the crop</description>
+    <!-- xrange -->   
+    <integer>
+     <name>MyXmin</name>
+     <label>xmin</label>
+     <longflag>--MyXmin</longflag>
+     <default>20</default>
+     <constraints>
+     <minimum>0</minimum>
+     <maximum>100</maximum>
+     </constraints>
+   </integer>
+   <integer>
+     <name>MyXmax</name>
+     <label>xmax</label>
+     <longflag>--MyXmax</longflag>
+     <default>40</default>
+     <constraints>
+     <minimum>0</minimum>
+     <maximum>100</maximum>
+     </constraints>
+   </integer>
+    <!-- yrange -->      
+    <integer>
+     <name>MyYmin</name>
+     <label>ymin</label>
+     <longflag>--MyYmin</longflag>
+     <default>20</default>
+     <constraints>
+     <minimum>0</minimum>
+     <maximum>100</maximum>
+     </constraints>
+   </integer>
+    <integer>
+     <name>MyYmax</name>
+     <label>ymax</label>
+     <longflag>--MyYmax</longflag>
+     <default>40</default>
+     <constraints>
+     <minimum>0</minimum>
+     <maximum>100</maximum>
+     </constraints>
+   </integer>
+     <!-- yrange -->      
+    <integer>
+     <name>MyZmin</name>
+     <label>zmin</label>
+     <longflag>--MyZmin</longflag>
+     <default>20</default>
+     <constraints>
+     <minimum>0</minimum>
+     <maximum>100</maximum>
+     </constraints>
+   </integer>
+    <integer>
+     <name>MyZmax</name>
+     <label>zmax</label>
+     <longflag>--MyZmax</longflag>
+     <default>40</default>
+     <constraints>
+     <minimum>0</minimum>
+     <maximum>100</maximum>
+     </constraints>
+   </integer>
+</parameters>
 </executable>
