@@ -227,7 +227,31 @@ ADD_TEST(TwoChannelKnnAlgoRGB_${DATASET2}_${DATASET1}
   ${SEEDS_DATA_DIR}/Seeds4.txt
   )
 
+ADD_TEST(TwoChannelKnnAlgoInteractiveRGB2_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGB
+  ${KNEE_DATA_DIR}/3TPDImages/${DATASET1}.mhd
+  ${TEMP}/${DATASET2}_resampled_to_${DATASET1}.mhd
+  ${TEMP}/OutputKnnRGB.mhd
+  5 # Represents number of seed files
+  ${SEEDS_DATA_DIR}/Background.txt
+  ${SEEDS_DATA_DIR}/Fat.txt
+  ${SEEDS_DATA_DIR}/Muscle.txt
+  ${SEEDS_DATA_DIR}/Bones.txt
+  ${SEEDS_DATA_DIR}/Cartilage.txt
+  )
 
+ADD_TEST(MattTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive
+  /home/harishd/MattDemer/IDEAL-SPGR-Fat/ideal-spgr-fat.mhd
+  /home/harishd/MattDemer/IDEAL-SPGR-Water/ideal-spgr-water.mhd
+  /home/harishd/MattDemer/OutputKnnRGBInteractive.mhd
+  5 # Represents number of seed files
+  ${SEEDS_DATA_DIR}/Background.txt
+  ${SEEDS_DATA_DIR}/Fat.txt
+  ${SEEDS_DATA_DIR}/Muscle.txt
+  ${SEEDS_DATA_DIR}/Bones.txt
+  ${SEEDS_DATA_DIR}/Cartilage.txt
+  )
 
 
 ENDMACRO(REFINE_SEGMENTATION)
