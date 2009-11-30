@@ -90,7 +90,7 @@ int main( int argc, char *argv[] )
     }
   
   // calculate normal vector c to the plane defined by the input points
-  VectorType va, vb, vc;
+  VectorType va, vb, planeNormal, planePt;
 
   va[0] = planePts[0][0]-planePts[1][0];
   va[1] = planePts[0][1]-planePts[1][1];
@@ -100,37 +100,47 @@ int main( int argc, char *argv[] )
   vb[1] = planePts[0][1]-planePts[2][1];
   vb[2] = planePts[0][2]-planePts[2][2];
   
-  vc[0] = va[1]*vb[2]-va[2]*vb[1];
-  vc[1] = va[2]*vb[0]-va[0]*vb[2];
-  vc[2] = va[0]*vb[1]-va[1]*vb[0];
+  planeNormal[0] = va[1]*vb[2]-va[2]*vb[1];
+  planeNormal[1] = va[2]*vb[0]-va[0]*vb[2];
+  planeNormal[2] = va[0]*vb[1]-va[1]*vb[0];
 
-  double n = vc.GetNorm();
-  vc[0] /= n;
-  vc[1] /= n;
-  vc[2] /= n;
+  double n = planeNormal.GetNorm();
+  planeNormal[0] /= n;
+  planeNormal[1] /= n;
+  planeNormal[2] /= n;
 
-  itk::Matrix<double,3,3> proj;
-  proj[0][0] = vc[1]*vc[1]+vc[2]*vc[2];
-  proj[0][1] = -vc[0]*vc[1];
-  proj[0][2] = -vc[0]*vc[2];
-  proj[1][0] = -vc[1]*vc[0];
-  proj[1][1] = vc[0]*vc[0]+vc[2]*vc[2];
-  proj[1][2] = -vc[1]*vc[2];
-  proj[2][0] = -vc[2]*vc[0];
-  proj[2][1] = -vc[2]*vc[1];
-  proj[2][2] = vc[0]*vc[0]+vc[1]*vc[1];
+
+  planePt[0] = planePts[0][0];
+  planePt[1] = planePts[0][1];
+  planePt[2] = planePts[0][2];
+
 
   IterType itIn(input, input->GetLargestPossibleRegion());
-
   itIn.GoToBegin();
   for(;!itIn.IsAtEnd();++itIn){
-    ImageType::PointType pt, ptReflected;
+    ImageType::PointType pt, ptReflected, ptProjected;
     ImageType::IndexType idx;
 
     if(!itIn.Get())
       continue;
     input->TransformIndexToPhysicalPoint(itIn.GetIndex(), pt);
-    ptReflected = ReflectPoint(proj,pt);
+
+    VectorType labelPt;
+    labelPt[0] = pt[0];
+    labelPt[1] = pt[1];
+    labelPt[2] = pt[2];
+    double distance = planeNormal*(labelPt-planePt);
+    //ptReflected = labelPt-planeNormal*distance;
+    ptProjected[0] = labelPt[0]-distance*planeNormal[0];
+    ptProjected[1] = labelPt[1]-distance*planeNormal[1];
+    ptProjected[2] = labelPt[2]-distance*planeNormal[2];
+//    pt[0] = -labelPt[0]+2.*ptReflected[0];
+//    ptReflected[1] = -labelPt[1]+2.*ptReflected[1];
+//    ptReflected[2] = -labelPt[2]+2.*ptReflected[2];
+
+    ptReflected[0] = ptProjected[0]-distance*planeNormal[0];
+    ptReflected[1] = ptProjected[1]-distance*planeNormal[1];
+    ptReflected[2] = ptProjected[2]-distance*planeNormal[2];
 
     if(!output->TransformPhysicalPointToIndex(ptReflected, idx)){
       std::cerr << "Point falls outside the image!" << std::endl;
@@ -159,9 +169,9 @@ ImageType::PointType ReflectPoint(itk::Matrix<double,3,3> proj, ImageType::Point
   ImageType::PointType out, v;
   out = proj*pt;
 
-  out[0] = -pt[0]+2.*out[0];
-  out[1] = -pt[1]+2.*out[1];
-  out[2] = -pt[2]+2.*out[2];
+//  out[0] = -pt[0]+2.*out[0];
+//  out[1] = -pt[1]+2.*out[1];
+//  out[2] = -pt[2]+2.*out[2];
 
   return out;
 }
