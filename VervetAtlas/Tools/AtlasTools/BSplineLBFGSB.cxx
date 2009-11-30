@@ -93,6 +93,7 @@
 #include "itkTransformFileReader.h"
 
 #define PERCENT_SAMPLES 5.
+#define NUM_THREADS 2
 
 //  The following section of code implements a Command observer
 //  used to monitor the evolution of the registration process.
@@ -133,6 +134,8 @@ public:
 
 int main( int argc, char *argv[] )
 {
+  itk::MultiThreader::SetGlobalMaximumNumberOfThreads(NUM_THREADS);
+  itk::MultiThreader::SetGlobalDefaultNumberOfThreads(NUM_THREADS);
   if( argc < 4 )
     {
     std::cerr << "Missing Parameters " << std::endl;
