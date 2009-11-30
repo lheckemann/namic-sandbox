@@ -24,6 +24,7 @@
 #include "itkImageDuplicator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkVector.h"
+#include "itkMatrix.h"
 
 #include "ThreePointMirrorCLP.h"
 
@@ -46,7 +47,7 @@ namespace {
   typedef  itk::ImageRegionIteratorWithIndex<ImageType> IterType;
   typedef  itk::Vector<double,3> VectorType;
 
-  ImageType::PointType ReflectPoint(VectorType n, double d, ImageType::PointType pt);
+  ImageType::PointType ReflectPoint(itk::Matrix<double,3,3>, ImageType::PointType pt);
 
 int main( int argc, char *argv[] )
 {
@@ -103,13 +104,21 @@ int main( int argc, char *argv[] )
   vc[1] = va[2]*vb[0]-va[0]*vb[2];
   vc[2] = va[0]*vb[1]-va[1]*vb[0];
 
-  double n = sqrt(va.GetSquaredNorm()*vb.GetSquaredNorm()+(va*vb)*(va*vb));
+  double n = vc.GetNorm();
   vc[0] /= n;
   vc[1] /= n;
   vc[2] /= n;
 
-  // calculate the plane equation
-  double d = -vc[0]*planePts[0][0]-vc[1]*planePts[0][1]-vc[2]*planePts[0][2];
+  itk::Matrix<double,3,3> proj;
+  proj[0][0] = vc[1]*vc[1]+vc[2]*vc[2];
+  proj[0][1] = -vc[0]*vc[1];
+  proj[0][2] = -vc[0]*vc[2];
+  proj[1][0] = -vc[1]*vc[0];
+  proj[1][1] = vc[0]*vc[0]+vc[2]*vc[2];
+  proj[1][2] = -vc[1]*vc[2];
+  proj[2][0] = -vc[2]*vc[0];
+  proj[2][1] = -vc[2]*vc[1];
+  proj[2][2] = vc[0]*vc[0]+vc[1]*vc[1];
 
   IterType itIn(input, input->GetLargestPossibleRegion());
 
@@ -121,16 +130,14 @@ int main( int argc, char *argv[] )
     if(!itIn.Get())
       continue;
     input->TransformIndexToPhysicalPoint(itIn.GetIndex(), pt);
-    std::cout << "Input point: " << pt << std::endl;
-    ptReflected = ReflectPoint(vc, d, pt);
-    std::cout << "Reflected point: " << ptReflected << std::endl;
-    break;
+    ptReflected = ReflectPoint(proj,pt);
 
     if(!output->TransformPhysicalPointToIndex(ptReflected, idx)){
       std::cerr << "Point falls outside the image!" << std::endl;
       continue;
     }
-    output->SetPixel(idx, itIn.Get());
+    // this is my convention -- bump label id by 1
+    output->SetPixel(idx, itIn.Get()+1);
   }
 
   writer->SetInput(output);
@@ -148,14 +155,13 @@ int main( int argc, char *argv[] )
   return 0;
 }
   
-// from http://mathworld.wolfram.com/Reflection.html
-ImageType::PointType ReflectPoint(VectorType n, double d, ImageType::PointType pt){
-  double D;
-  ImageType::PointType outPt;
-  D = 2.*(n[0]*pt[0]+n[1]*pt[1]+n[2]*pt[2]+d)/(pt[0]*pt[0]+pt[1]*pt[1]+pt[2]*pt[2]);
-  outPt[0] = pt[0]-D*n[0];
-  outPt[1] = pt[1]-D*n[1];
-  outPt[2] = pt[2]-D*n[2];
+ImageType::PointType ReflectPoint(itk::Matrix<double,3,3> proj, ImageType::PointType pt){
+  ImageType::PointType out, v;
+  out = proj*pt;
 
-  return outPt;
+  out[0] = -pt[0]+2.*out[0];
+  out[1] = -pt[1]+2.*out[1];
+  out[2] = -pt[2]+2.*out[2];
+
+  return out;
 }
