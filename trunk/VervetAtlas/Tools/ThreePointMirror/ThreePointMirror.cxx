@@ -23,6 +23,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageDuplicator.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkVector.h"
 
 #include "ThreePointMirrorCLP.h"
 
@@ -43,8 +44,9 @@ namespace {
   typedef  itk::ImageFileReader< ImageType > ReaderType;
   typedef  itk::ImageFileWriter< ImageType > WriterType;
   typedef  itk::ImageRegionIteratorWithIndex<ImageType> IterType;
+  typedef  itk::Vector<double,3> VectorType;
 
-  ImageType::PointType ReflectPoint(ImageType::PointType n, double d, ImageType::PointType pt);
+  ImageType::PointType ReflectPoint(VectorType n, double d, ImageType::PointType pt);
 
 int main( int argc, char *argv[] )
 {
@@ -76,7 +78,7 @@ int main( int argc, char *argv[] )
       planePts[i][1] = -seed[i][1];
       planePts[i][2] =  seed[i][2];
 
-//       std::cout << "LPS: " << lpsPoint << std::endl;
+       std::cout << "LPS: " << planePts[i] << std::endl;
 //       std::cout << "IJK: " << index << std::endl;
       }
     }
@@ -87,7 +89,7 @@ int main( int argc, char *argv[] )
     }
   
   // calculate normal vector c to the plane defined by the input points
-  ImageType::PointType va, vb, vc;
+  VectorType va, vb, vc;
 
   va[0] = planePts[0][0]-planePts[1][0];
   va[1] = planePts[0][1]-planePts[1][1];
@@ -100,6 +102,11 @@ int main( int argc, char *argv[] )
   vc[0] = va[1]*vb[2]-va[2]*vb[1];
   vc[1] = va[2]*vb[0]-va[0]*vb[2];
   vc[2] = va[0]*vb[1]-va[1]*vb[0];
+
+  double n = sqrt(va.GetSquaredNorm()*vb.GetSquaredNorm()+(va*vb)*(va*vb));
+  vc[0] /= n;
+  vc[1] /= n;
+  vc[2] /= n;
 
   // calculate the plane equation
   double d = -vc[0]*planePts[0][0]-vc[1]*planePts[0][1]-vc[2]*planePts[0][2];
@@ -114,9 +121,15 @@ int main( int argc, char *argv[] )
     if(!itIn.Get())
       continue;
     input->TransformIndexToPhysicalPoint(itIn.GetIndex(), pt);
+    std::cout << "Input point: " << pt << std::endl;
     ptReflected = ReflectPoint(vc, d, pt);
+    std::cout << "Reflected point: " << ptReflected << std::endl;
+    break;
 
-    output->TransformPhysicalPointToIndex(ptReflected, idx);
+    if(!output->TransformPhysicalPointToIndex(ptReflected, idx)){
+      std::cerr << "Point falls outside the image!" << std::endl;
+      continue;
+    }
     output->SetPixel(idx, itIn.Get());
   }
 
@@ -136,7 +149,7 @@ int main( int argc, char *argv[] )
 }
   
 // from http://mathworld.wolfram.com/Reflection.html
-ImageType::PointType ReflectPoint(ImageType::PointType n, double d, ImageType::PointType pt){
+ImageType::PointType ReflectPoint(VectorType n, double d, ImageType::PointType pt){
   double D;
   ImageType::PointType outPt;
   D = 2.*(n[0]*pt[0]+n[1]*pt[1]+n[2]*pt[2]+d)/(pt[0]*pt[0]+pt[1]*pt[1]+pt[2]*pt[2]);
