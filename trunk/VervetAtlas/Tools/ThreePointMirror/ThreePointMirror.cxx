@@ -44,7 +44,7 @@ namespace {
   typedef  itk::ImageFileWriter< ImageType > WriterType;
   typedef  itk::ImageRegionIteratorWithIndex<ImageType> IterType;
 
-  ImageType::PointType ReflectPoint(double n[3], double d, ImageType::PointType pt);
+  ImageType::PointType ReflectPoint(ImageType::PointType n, double d, ImageType::PointType pt);
 
 int main( int argc, char *argv[] )
 {
@@ -59,7 +59,7 @@ int main( int argc, char *argv[] )
 
   ImageType::Pointer input = reader->GetOutput();
   DuplicatorType::Pointer dup = DuplicatorType::New();
-  dup->SetInput(input);
+  dup->SetInputImage(input);
   dup->Update();
   ImageType::Pointer output = dup->GetOutput();
   output->FillBuffer(0);
@@ -87,7 +87,7 @@ int main( int argc, char *argv[] )
     }
   
   // calculate normal vector c to the plane defined by the input points
-  InputImage::PointType va, vb, vc;
+  ImageType::PointType va, vb, vc;
 
   va[0] = planePts[0][0]-planePts[1][0];
   va[1] = planePts[0][1]-planePts[1][1];
@@ -102,7 +102,7 @@ int main( int argc, char *argv[] )
   vc[2] = va[0]*vb[1]-va[1]*vb[0];
 
   // calculate the plane equation
-  double d = -vc[0]*planePts[0]-vc[1]*planePts[1]-vc[2]*planePts[2];
+  double d = -vc[0]*planePts[0][0]-vc[1]*planePts[0][1]-vc[2]*planePts[0][2];
 
   IterType itIn(input, input->GetLargestPossibleRegion());
 
@@ -136,7 +136,7 @@ int main( int argc, char *argv[] )
 }
   
 // from http://mathworld.wolfram.com/Reflection.html
-ImageType::PointType ReflectPoint(double n[3], double d, ImageType::PointType pt){
+ImageType::PointType ReflectPoint(ImageType::PointType n, double d, ImageType::PointType pt){
   double D;
   ImageType::PointType outPt;
   D = 2.*(n[0]*pt[0]+n[1]*pt[1]+n[2]*pt[2]+d)/(pt[0]*pt[0]+pt[1]*pt[1]+pt[2]*pt[2]);
