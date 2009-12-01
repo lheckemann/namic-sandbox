@@ -28,18 +28,20 @@ int main( int argc, char *argv[] )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " fixedMeshFile  movingMeshFile ";
+    std::cerr << " fixedMeshFile  movingMeshFile " << std::endl;
     return EXIT_FAILURE;
     }
   
-  typedef float      MeshPixelType;
+  typedef float      MeshPixelType1;
+  typedef double      MeshPixelType2;
   const unsigned int Dimension = 3;
 
-  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MeshType;
+  typedef itk::QuadEdgeMesh< MeshPixelType1, Dimension >   InMeshType;
+  typedef itk::QuadEdgeMesh< MeshPixelType2, Dimension >   OutMeshType;
 
-  typedef itk::QuadEdgeMeshVTKPolyDataReader< MeshType >   ReaderType;
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< InMeshType >   ReaderType;
 
-  typedef itk::LaplaceBeltramiFilter< MeshType, MeshType >   FilterType;
+  typedef itk::LaplaceBeltramiFilter< InMeshType, OutMeshType >   FilterType;
 
   ReaderType::Pointer reader = ReaderType::New();
 
@@ -52,6 +54,8 @@ int main( int argc, char *argv[] )
 
   filter->SetInput( reader->GetOutput() );
 
+  filter->Update();
 
   return EXIT_SUCCESS;
+
 }
