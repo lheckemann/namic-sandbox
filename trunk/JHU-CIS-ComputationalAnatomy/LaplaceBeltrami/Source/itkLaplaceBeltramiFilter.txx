@@ -33,10 +33,9 @@ namespace itk
 /**
  *
  */
-template <class TInputMesh, class TOutputMesh, typename TCompRep>
-LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
+template <class TInputMesh, class TOutputMesh>
+LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
 ::LaplaceBeltramiFilter() :
-  m_FilterInput(NULL),
   m_EigenValueCount(0)
 {
 }
@@ -44,9 +43,9 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
 /**
  * Set the number of eigenvalues to produce
  */
-template <class TInputMesh, class TOutputMesh, typename TCompRep>
+template <class TInputMesh, class TOutputMesh>
 void
-LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
+LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
 ::SetEigenValueCount( unsigned int evCount )
 {
   this->m_EigenValueCount = evCount;
@@ -55,9 +54,9 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
 /**
  * Get the Laplace Beltrami operator
  */
-template <class TInputMesh, class TOutputMesh, typename TCompRep>
+template <class TInputMesh, class TOutputMesh>
 void
-LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
+LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
 ::GetLBOperator( LBMatrixType& lbOp )
 {
   lbOp = this->m_LBOperator;
@@ -66,9 +65,9 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
 /**
  * Get the areas for each vertex
  */
-template <class TInputMesh, class TOutputMesh, typename TCompRep>
+template <class TInputMesh, class TOutputMesh>
 void
-LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
+LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
 ::GetVertexAreas( LBMatrixType& lbVa )
 {
   lbVa = this->m_VertexAreas;
@@ -77,9 +76,9 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
 /**
  *
  */
-template <class TInputMesh, class TOutputMesh, typename TCompRep>
+template <class TInputMesh, class TOutputMesh>
 void
-LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
+LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -88,9 +87,9 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
 /**
  *
  */
-template <class TInputMesh, class TOutputMesh, typename TCompRep>
+template <class TInputMesh, class TOutputMesh>
 void
-LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
+LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
 ::SetInput(TInputMesh *input)
 {
   this->ProcessObject::SetNthInput(0, input);
@@ -99,9 +98,9 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
 /**
  * This method causes the filter to generate its output.
  */
-template <class TInputMesh, class TOutputMesh, typename TCompRep>
+template <class TInputMesh, class TOutputMesh>
 void
-LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
+LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
 ::GenerateData(void)
 {
   typedef typename TInputMesh::PointsContainer  InputPointsContainer;
@@ -111,6 +110,8 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
     InputPointsContainerConstPointer;
   typedef typename TOutputMesh::PointsContainerPointer
     OutputPointsContainerPointer;
+
+  this->CopyInputMeshToOutputMesh();
 
   InputMeshConstPointer  inputMesh      =  this->GetInput();
   OutputMeshPointer      outputMesh     =  this->GetOutput();
@@ -128,17 +129,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
     itkExceptionMacro(<<"Missing Output Mesh");
     }
 
-  m_FilterInput = TInputMesh::New();
-  CopySurface(inputMesh, m_FilterInput);
-
   InputPointsContainerConstPointer  inPoints  = inputMesh->GetPoints();
-  OutputPointsContainerPointer outPoints = outputMesh->GetPoints();
-
-  const unsigned int numberOfPoints = inputMesh->GetNumberOfPoints();
-
-  outPoints->Reserve( numberOfPoints );
-  outPoints->Squeeze();  // in case the previous mesh had
-                         // allocated a larger memory
 
   unsigned int cellCount = inputMesh->GetNumberOfCells();
   unsigned int vertexCount = inputMesh->GetNumberOfPoints();
@@ -151,7 +142,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
   vertexAreas.Fill(0.0);
   vertexCounts.Fill(0);
 
-  CellAutoPointer cellPtr;
+  InputCellAutoPointer cellPtr;
 
   for (unsigned int cellId = 0; cellId < cellCount; cellId++)
     {
@@ -302,68 +293,34 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh, TCompRep >
         }
 
       eigenvector /= sqrt(evFactorSum);
-      for (unsigned int vIx = 0; vIx < eigenvector.size(); vIx++)
-        m_Harmonics(k, vIx) = eigenvector(vIx);
+      m_Harmonics.set_row(k, eigenvector);
       }
-    this->GetSurfaceHarmonic(0, outputMesh);
+    this->SetSurfaceHarmonic(0);
     }
   else
     {
-    outputMesh->Initialize();
-    CopySurface(inputMesh, outputMesh);
+    m_Harmonics.clear();
     }
 }
 
 /**
  * Get a single surface harmonic
  */
-template <class TInputMesh, class TOutputMesh, typename TCompRep>
+template <class TInputMesh, class TOutputMesh>
 bool
-LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
-::GetSurfaceHarmonic( unsigned int harmonic, InputMeshPointer surface )
+LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
+::SetSurfaceHarmonic( unsigned int harmonic )
 {
-  if (harmonic < 0 || harmonic >= m_Harmonics.rows())
+  if (harmonic >= m_Harmonics.rows())
     return false;
 
-  surface->Initialize();
-  InputMeshConstPointer filterInputConst = (InputMeshConstPointer) m_FilterInput;
-  CopySurface(filterInputConst, surface);
+  OutputMeshPointer surface = this->GetOutput();
   for (unsigned int k = 0; k < this->m_Harmonics.cols(); k++)
     surface->SetPointData(k, this->m_Harmonics(harmonic, k));
       
   return true;
 }
 
-/**
- * Copy a surface
- */
-template <class TInputMesh, class TOutputMesh, typename TCompRep>
-void
-LaplaceBeltramiFilter<TInputMesh, TOutputMesh, TCompRep>
-::CopySurface( InputMeshConstPointer surface, InputMeshPointer copy )
-{
-  PointsContainerConstPointer points = surface->GetPoints();
-  PointIterator it = points->Begin();
-  PointIterator itEnd = points->End();
-  unsigned int i = 0;
-  while ( it != itEnd )
-    {
-    PointType point = it.Value(); it++;
-    copy->SetPoint( i++, point );
-    }
-
-  i = 0;
-  CellsContainerConstPointer cells = surface->GetCells();
-  CellIterator itCells = cells->Begin();
-  CellIterator itCellsEnd = cells->End();
-  while ( itCells != itCellsEnd )
-    {
-    CellAutoPointer cellCopy;
-    itCells.Value()->MakeCopy( cellCopy );
-    copy->SetCell( i++, cellCopy );
-    itCells++;
-    }
-}
 } // end namespace itk
 
 #endif
