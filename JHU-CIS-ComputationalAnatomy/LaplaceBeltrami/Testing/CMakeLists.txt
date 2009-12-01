@@ -32,6 +32,7 @@ ADD_TEST(itkLaplaceBeltramiFilterTest1
 
 ADD_TEST(itkLaplaceBeltramiFilterTest2
   ${CXX_TEST_PATH}/itkLaplaceBeltramiFilterTest2
+  -e 10
   ${TEST_DATA_ROOT}/fv0.vtk
   ${TEMP}/fv0_surfaceHarmonic_0_Test2.vtk
   )
