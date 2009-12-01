@@ -17,10 +17,10 @@
 #ifndef __itkLaplaceBeltramiFilter_h
 #define __itkLaplaceBeltramiFilter_h
 
-#include "itkMeshToMeshFilter.h"
+#include "itkQuadEdgeMeshToQuadEdgeMeshFilter.h"
 
 // vnl headers
-#include <vnl/vnl_math.h>
+#include <vnl/vnl_matrix.h>
 #include <vnl/vnl_sparse_matrix.h>
 
 
@@ -30,16 +30,16 @@ namespace itk
 /** \class LaplaceBeltramiFilter
  * \brief
  *
- * LaplaceBeltramiFilter defines basis functions on a mesh, then (if
+ * LaplaceBeltramiFilter defines basis functions on a quad edge mesh, then (if
  * requested) determines the N most significant eigenvalues of the basis.
  *
  * \ingroup MeshFilters
  * \sa TransformMeshFilter
  */
 
-template <class TInputMesh, class TOutputMesh, typename TCompRep = float>
+template <class TInputMesh, class TOutputMesh>
 class ITK_EXPORT LaplaceBeltramiFilter :
-    public MeshToMeshFilter<TInputMesh, TOutputMesh>
+    public QuadEdgeMeshToQuadEdgeMeshFilter<TInputMesh, TOutputMesh>
 {
 public:
   /** Standard class typedefs. */
@@ -48,56 +48,54 @@ public:
   typedef TInputMesh   InputMeshType;
   typedef TOutputMesh  OutputMeshType;
 
-  typedef MeshToMeshFilter<TInputMesh,TOutputMesh> Superclass;
+  typedef QuadEdgeMeshToQuadEdgeMeshFilter<TInputMesh,TOutputMesh> Superclass;
 
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
   typedef typename InputMeshType::ConstPointer  InputMeshConstPointer;
+  typedef typename OutputMeshType::ConstPointer OutputMeshConstPointer;
   typedef typename InputMeshType::Pointer       InputMeshPointer;
   typedef typename OutputMeshType::Pointer      OutputMeshPointer;
   typedef typename InputMeshType::PointType     InputPointType;
   typedef typename OutputMeshType::PointType    OutputPointType;
 
-  /** Type for representing coordinates. */
-  //typedef typename TInputMesh::CoordRepType          CoordRepType;
-  typedef double CoordRepType;
-
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(LaplaceBeltramiFilter,MeshToMeshFilter);
+  itkTypeMacro(LaplaceBeltramiFilter, QuadEdgeMeshToQuadEdgeMeshFilter);
 
   void SetInput(TInputMesh *input);
 
   /** Convenient constants obtained from TMeshTraits template parameter. */
-/*  itkStaticConstMacro(InputPointDimension, unsigned int,
-     ::itk::GetMeshDimension< TInputMesh >::PointDimension );
-  itkStaticConstMacro(OutputPointDimension, unsigned int,
-     ::itk::GetMeshDimension< TOutputMesh >::PointDimension );
-*/
   itkStaticConstMacro(InputPointDimension, unsigned int,
      ::itk::GetMeshDimension< TInputMesh >::PointDimension );
   itkStaticConstMacro(OutputPointDimension, unsigned int,
      ::itk::GetMeshDimension< TOutputMesh >::PointDimension );
 
-  typedef typename InputMeshType::PointsContainer             PointsContainer;
-  typedef typename InputMeshType::CellsContainer              CellsContainer;
-  typedef typename InputMeshType::PointsContainerPointer      PointsContainerPointer;
-  typedef typename InputMeshType::CellsContainerPointer       CellsContainerPointer;
-  typedef typename InputMeshType::CellsContainerConstPointer  CellsContainerConstPointer;
-  typedef typename InputMeshType::PointIdentifier             PointIdentifier;
-  typedef typename InputMeshType::CellIdentifier              CellIdentifier;
-  typedef typename PointsContainer::ConstPointer              PointsContainerConstPointer;
-  typedef typename PointsContainer::ConstIterator             PointIterator;
-  typedef typename CellsContainer::ConstIterator              CellIterator;
-  typedef typename InputMeshType::CellType                    CellType;
-  typedef typename InputMeshType::PointType                   PointType;
-  typedef typename CellType::PointIdIterator                  PointIdIterator;
-  typedef typename CellType::CellAutoPointer                  CellAutoPointer;
+  typedef typename OutputMeshType::PointsContainer             OutputPointsContainer;
+  typedef typename OutputMeshType::CellsContainer              OutputCellsContainer;
+  typedef typename InputMeshType::PointsContainerPointer       PointsContainerPointer;
+  typedef typename InputMeshType::CellsContainerPointer        CellsContainerPointer;
+  typedef typename InputMeshType::CellsContainerConstPointer   InputCellsContainerConstPointer;
+  typedef typename OutputMeshType::CellsContainerConstPointer  OutputCellsContainerConstPointer;
+  typedef typename InputMeshType::PointIdentifier              InputPointIdentifier;
+  typedef typename InputMeshType::CellIdentifier               InputCellIdentifier;
+  typedef typename OutputPointsContainer::ConstPointer         OutputPointsContainerConstPointer;
+  typedef typename OutputPointsContainer::ConstIterator        OutputPointIterator;
+  typedef typename OutputCellsContainer::ConstIterator         OutputCellIterator;
+  typedef typename InputMeshType::CellType                     InputCellType;
+  typedef typename OutputMeshType::CellType                    OutputCellType;
+  typedef typename InputCellType::PointIdIterator              InputPointIdIterator;
+  typedef typename InputCellType::CellAutoPointer              InputCellAutoPointer;
+  typedef typename OutputCellType::PointIdIterator             OutputPointIdIterator;
+  typedef typename OutputCellType::CellAutoPointer             OutputCellAutoPointer;
 
-  typedef vnl_sparse_matrix< TCompRep >  LBMatrixType;
+  typedef typename OutputMeshType::PointDataContainer          OutputPointDataContainer;
+  typedef typename OutputPointDataContainer::ConstPointer      OutputPointDataContainerConstPointer; 
+
+  typedef vnl_sparse_matrix< double >  LBMatrixType;
 
   /** Set the number of eigenvalues to produce */
   void SetEigenValueCount( unsigned int );
@@ -109,7 +107,7 @@ public:
   void GetVertexAreas( LBMatrixType& );
 
   /** Get a single surface harmonic */
-  bool GetSurfaceHarmonic( unsigned int harmonic, InputMeshPointer );
+  bool SetSurfaceHarmonic( unsigned int harmonic );
 
 protected:
   LaplaceBeltramiFilter();
@@ -119,14 +117,12 @@ protected:
   /** Generate Requested Data */
   virtual void GenerateData( void );
 
+
 private:
   //purposely not implemented
   LaplaceBeltramiFilter(const LaplaceBeltramiFilter&);
   //purposely not implemented
   void operator=(const LaplaceBeltramiFilter&);
-
-  /* mesh input to the filter */
-  InputMeshPointer m_FilterInput;  // We may want to reconsider this variable.
 
   /** Number of most significant eigenvalues to include */
   unsigned int m_EigenValueCount;
@@ -138,10 +134,7 @@ private:
   LBMatrixType m_VertexAreas;
 
   /** Harmonics for the most significant basis functions */
-  vnl_matrix<TCompRep> m_Harmonics;
-
-  /** Get a single surface harmonic */
-  static void CopySurface( InputMeshConstPointer surface, InputMeshPointer copy );
+  vnl_matrix<double> m_Harmonics;
 
 };
 
