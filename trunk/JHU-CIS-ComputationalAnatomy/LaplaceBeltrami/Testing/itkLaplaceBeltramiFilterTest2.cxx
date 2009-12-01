@@ -9,10 +9,10 @@
 #include <getopt.h>
 #endif
 
-#include <itkMesh.h>
-#include <itkLaplaceBeltramiFilter.h>
-#include <itkVTKPolyDataReader.h>
-#include <itkVTKPolyDataWriter.h>
+#include "itkQuadEdgeMesh.h"
+#include "itkLaplaceBeltramiFilter.h"
+#include "itkQuadEdgeMeshVTKPolyDataReader.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
 void showUsage()
 {
@@ -69,18 +69,21 @@ int main(int argc, char *argv[])
     const char* inFile = argv[optind];
     const char* firstHarmonicOutFile = argv[optind + 1];
 
-    // 8 bit Analyze Data?
-    typedef double              PixelType;
-    typedef double              CoordRep;
-    const   unsigned int        Dimension = 3;
+    typedef float              PixelType;
+    typedef double             PointDataType;
+    typedef double             DDataType;
+    typedef double             CoordRep;
+    typedef double             InterpRep;
+    const   unsigned int       Dimension = 3;
 
     // Declare the type of the input and output mesh
-    typedef itk::DefaultStaticMeshTraits<PixelType,Dimension,Dimension,
-        CoordRep,double,PixelType> MeshTraits;
-    typedef itk::Mesh<double,Dimension,MeshTraits> MeshType;
+    typedef itk::QuadEdgeMeshTraits<PixelType, Dimension, PointDataType,
+        DDataType, CoordRep, InterpRep> MeshTraits;
+    typedef itk::QuadEdgeMesh<float,Dimension,MeshTraits> InMeshType;
+    typedef itk::QuadEdgeMesh<double,Dimension,MeshTraits> OutMeshType;
 
     //  We can now instantiate the types of the reader.
-    typedef itk::VTKPolyDataReader< MeshType >  ReaderType;
+    typedef itk::QuadEdgeMeshVTKPolyDataReader< InMeshType >  ReaderType;
 
     // create readers
     ReaderType::Pointer meshReader = ReaderType::New();
@@ -100,14 +103,14 @@ int main(int argc, char *argv[])
         }
 
     // get the objects
-    MeshType::Pointer mesh = meshReader->GetOutput();
+    InMeshType::Pointer mesh = meshReader->GetOutput();
 
     std::cout << "Vertex Count:  " << 
         mesh->GetNumberOfPoints() << std::endl;
     std::cout << "Cell Count:  " << 
         mesh->GetNumberOfCells() << std::endl;
 
-    typedef itk::LaplaceBeltramiFilter< MeshType, MeshType, double >
+    typedef itk::LaplaceBeltramiFilter< InMeshType, OutMeshType >
                                     LbFilterType;
     LbFilterType::Pointer lbFilter = LbFilterType::New();
 
@@ -115,10 +118,11 @@ int main(int argc, char *argv[])
     lbFilter->SetEigenValueCount(eCount);
     lbFilter->Update();
 
-    MeshType::Pointer outMesh = lbFilter->GetOutput();
+    OutMeshType::Pointer outMesh = lbFilter->GetOutput();
 
     //  We can now instantiate the types of the write.
-    typedef itk::VTKPolyDataWriter< MeshType >  WriterType;
+    typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< OutMeshType >
+            WriterType;
 
     // create readers
     WriterType::Pointer meshWriter = WriterType::New();
@@ -134,9 +138,10 @@ int main(int argc, char *argv[])
 
     for (unsigned int i = 0; i < eCount; i++)
       {   
-      if (lbFilter->GetSurfaceHarmonic(i, outMesh))
+      if (lbFilter->SetSurfaceHarmonic(i))
         {
         WriterType::Pointer harmonicWriter = WriterType::New();
+        outMesh = lbFilter->GetOutput();
         harmonicWriter->SetInput(outMesh);
         char countStr[8];
         sprintf(countStr, "_%d", i);
