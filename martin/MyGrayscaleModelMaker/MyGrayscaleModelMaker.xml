@@ -1,17 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>Surface Models</category>
+  <category>Demonstration</category>
   <title>My Grayscale Model Maker</title>
-  <description>
-Create 3D surface models from grayscale.
-</description>
-  <version>3.0</version>
-  <documentation-url>http://www.slicer.org</documentation-url>
-  <license>slicer3</license>
-  <contributor>Nicole Aucoin, Bill Lorensen</contributor>
-<acknowledgements>
-This work is part of the National Alliance for Medical Image Computing (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149.
-</acknowledgements>
+  <description>Thresholds an image and creats a 3d surface</description>
+  <version>1.0</version>
+  <documentation-url></documentation-url>
+  <license></license>
+  <contributor>Martin Loepprich, Surgical Planning Laboratory, Harvard Medical School</contributor>
+<acknowledgements></acknowledgements>
 <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
@@ -52,7 +48,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
 	<!-- longflag: output in terminal -->
 	<longflag>--MyLowerThreshold</longflag>
 	<label>Lower Threshold</label>
-	<default>80</default>
+	<default>1000</default>
       </integer>
     
        <integer>
@@ -61,7 +57,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
 	<!-- longflag: output in terminal -->
 	<longflag>--MyUpperThreshold</longflag>
 	<label>Upper Threshold</label>
-	<default>120</default>
+	<default>4000</default>
       </integer>
     
 </parameters>
@@ -74,7 +70,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
      <name>MyXmin</name>
      <label>xmin</label>
      <longflag>--MyXmin</longflag>
-     <default>20</default>
+     <default>45</default>
      <constraints>
      <minimum>0</minimum>
      <maximum>100</maximum>
@@ -84,7 +80,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
      <name>MyXmax</name>
      <label>xmax</label>
      <longflag>--MyXmax</longflag>
-     <default>40</default>
+     <default>77</default>
      <constraints>
      <minimum>0</minimum>
      <maximum>100</maximum>
@@ -95,7 +91,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
      <name>MyYmin</name>
      <label>ymin</label>
      <longflag>--MyYmin</longflag>
-     <default>20</default>
+     <default>0</default>
      <constraints>
      <minimum>0</minimum>
      <maximum>100</maximum>
@@ -105,7 +101,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
      <name>MyYmax</name>
      <label>ymax</label>
      <longflag>--MyYmax</longflag>
-     <default>40</default>
+     <default>100</default>
      <constraints>
      <minimum>0</minimum>
      <maximum>100</maximum>
@@ -116,7 +112,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
      <name>MyZmin</name>
      <label>zmin</label>
      <longflag>--MyZmin</longflag>
-     <default>20</default>
+     <default>44</default>
      <constraints>
      <minimum>0</minimum>
      <maximum>100</maximum>
@@ -126,7 +122,7 @@ This work is part of the National Alliance for Medical Image Computing (NAMIC), 
      <name>MyZmax</name>
      <label>zmax</label>
      <longflag>--MyZmax</longflag>
-     <default>40</default>
+     <default>65</default>
      <constraints>
      <minimum>0</minimum>
      <maximum>100</maximum>

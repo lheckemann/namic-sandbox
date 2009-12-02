@@ -16,6 +16,10 @@
 #include "vtkPolyDataConnectivityFilter.h" //shows every component in a different color
 #include "vtkXMLPolyDataWriter.h"  //write marching cube result in 3d layout
 #include "vtkPluginFilterWatcher.h"  //status report of caluculations
+
+#include "vtkITKArchetypeImageSeriesScalarReader.h"  //these classes are necessary to
+#include "vtkTransform.h"                            //set the right information of the
+#include "vtkTransformPolyDataFilter.h"              //3d model
 //converter classes
 #include "itkImageToVTKImageFilter.h"  //converts ITK image to VTK image
 #include "itkVTKImageToImageFilter.h"  //converts ITK image to VTK image
@@ -189,13 +193,25 @@ int main(int argc, char * argv[])
       standardDeviations[2] << std::endl; 
   }
   
-  
-  vtkImageChangeInformation * imageChangeInformation = vtkImageChangeInformation::New();
-  imageChangeInformation->SetInput(gaussianSmooth->GetOutput());
-  
-  //TODO change to the right origin
-  imageChangeInformation->SetOutputOrigin(inputOrigin[0],inputOrigin[1],inputOrigin[2]);
+
+  //THIS IS NECESSARY TO SET THE RIGHT ORIGIN, SPACING AND DIRECTION - IN FORM OF A MATRIX - FOR THE 3D MODEL
+  //read the input file with the Slicer class vtkITKArchetypeImageSeriesScalarReader
+  vtkITKArchetypeImageSeriesScalarReader * itkArchetypeImageSeriesScalarReader = vtkITKArchetypeImageSeriesScalarReader::New();
+  itkArchetypeImageSeriesScalarReader->SetArchetype(MyInputVolume.c_str());
+  itkArchetypeImageSeriesScalarReader->SetOutputScalarTypeToNative();
+  itkArchetypeImageSeriesScalarReader->SetDesiredCoordinateOrientationToNative();
+  itkArchetypeImageSeriesScalarReader->SetUseNativeOriginOn();
+  itkArchetypeImageSeriesScalarReader->Update();
+  //change information (origin and spacing) of the 3d model
+  vtkImageChangeInformation *imageChangeInformation = vtkImageChangeInformation::New();
+  imageChangeInformation->SetInput (gaussianSmooth->GetOutput());
+  imageChangeInformation->SetOutputOrigin(0, 0, 0);
+  imageChangeInformation->SetOutputSpacing(1, 1, 1);
   imageChangeInformation->Update();
+  //gets the RasToIjkMatrix from the reader (Slicer specific)
+  vtkTransform *transformIJKtoRAS = vtkTransform::New();
+  transformIJKtoRAS->SetMatrix(itkArchetypeImageSeriesScalarReader->GetRasToIjkMatrix());
+  transformIJKtoRAS->Inverse();
   
   //------------marching cube of gaussian smoothed image------------
    
@@ -221,16 +237,31 @@ int main(int argc, char * argv[])
   
   
   //to get different colors of the marching cubes
-  vtkPolyDataConnectivityFilter *polyDataConnectivityFilter = vtkPolyDataConnectivityFilter::New();
-  polyDataConnectivityFilter->SetInput(marchingCubes->GetOutput());
-  polyDataConnectivityFilter->SetExtractionModeToAllRegions();
-  polyDataConnectivityFilter->ColorRegionsOn();
+//   vtkPolyDataConnectivityFilter *polyDataConnectivityFilter = vtkPolyDataConnectivityFilter::New();
+//   polyDataConnectivityFilter->SetInput(marchingCubes->GetOutput());
+//   polyDataConnectivityFilter->SetExtractionModeToAllRegions();
+//   polyDataConnectivityFilter->ColorRegionsOn();
+
+
+
  
-  
   //------------write the result of marching cube ------------
+  //first apply the matrix transformation
+  vtkTransformPolyDataFilter * transformer = vtkTransformPolyDataFilter::New();
+  transformer->SetInput(marchingCubes->GetOutput());
+  transformer->SetTransform(transformIJKtoRAS);
+
+  if (debug)
+  {
+    std::cout << "transformation matrix:\n";
+    transformIJKtoRAS->GetMatrix()->Print(std::cout);
+  }
+  (transformer->GetOutput())->ReleaseDataFlagOn();
+  
+  //second write the file
   vtkXMLPolyDataWriter * writerPolyDataWriter = NULL;
   writerPolyDataWriter = vtkXMLPolyDataWriter::New();
-  writerPolyDataWriter->SetInput(polyDataConnectivityFilter->GetOutput());
+  writerPolyDataWriter->SetInput(transformer->GetOutput());
   writerPolyDataWriter->SetFileName(MyOutputGeometry.c_str());
   writerPolyDataWriter->Write();
   
@@ -283,8 +314,12 @@ int main(int argc, char * argv[])
   if (imageThreshold) imageThreshold->Delete();
   if (imageConstantPad) imageConstantPad->Delete();
   if (gaussianSmooth) gaussianSmooth->Delete();
+  if (itkArchetypeImageSeriesScalarReader) itkArchetypeImageSeriesScalarReader->Delete();
+  if (imageChangeInformation) imageChangeInformation->Delete();
+  if (transformIJKtoRAS) transformIJKtoRAS->Delete();
   if (marchingCubes) marchingCubes->Delete();
-  if (polyDataConnectivityFilter) polyDataConnectivityFilter->Delete();
+//if (polyDataConnectivityFilter) polyDataConnectivityFilter->Delete();
+  if (transformer) transformer->Delete();
   if (writerPolyDataWriter) writerPolyDataWriter->Delete();
 
   return EXIT_SUCCESS;
