@@ -73,33 +73,35 @@ puts "Slicer3_HOME is $::Slicer3_HOME"
 # section below, or genlib will happily build the library again.
 
 set ::Slicer3_TAG "http://svn.slicer.org/Slicer3/trunk"
-set ::CMAKE_TAG "CMake-2-6"
+set ::CMAKE_TAG "CMake-2-8-0"
 set ::Teem_TAG http://teem.svn.sourceforge.net/svnroot/teem/teem/tags/1.10.0
 set ::KWWidgets_TAG "Slicer-3-4"
-set ::VTK_TAG "VTK-5-2"
-set ::ITK_TAG ITK-3-10
-set ::PYTHON_TAG "http://svn.python.org/projects/python/branches/release25-maint"
-#set ::BLAS_TAG http://svn.slicer.org/Slicer3-lib-mirrors/trunk/netlib/BLAS
-#set ::LAPACK_TAG http://svn.slicer.org/Slicer3-lib-mirrors/trunk/netlib/lapack-3.1.1
-set ::LAPACK_TAG "http://svn.na-mic.org/NAMICSandBox/trunk/4DModules/Misc/lapack-3.1.1"
-set ::ATLAS_TAG "http://svn.na-mic.org/NAMICSandBox/trunk/4DModules/Misc/atlas-3.8.3"
-set ::NETLIB_INC_TAG "http://svn.na-mic.org/NAMICSandBox/trunk/4DModules/Misc/netlib_make_inc"
-#set ::NUMPY_TAG "http://svn.scipy.org/svn/numpy/trunk"
-set ::NUMPY_TAG "http://svn.scipy.org/svn/numpy/branches/1.2.x"
-#set ::SCIPY_TAG "http://svn.scipy.org/svn/scipy/trunk"
+set ::VTK_TAG "VTK-5-4"
+set ::ITK_TAG ITK-3-16
+set ::PYTHON_TAG "http://svn.python.org/projects/python/branches/release26-maint"
+set ::BLAS_TAG http://svn.slicer.org/Slicer3-lib-mirrors/trunk/netlib/BLAS
+set ::LAPACK_TAG http://svn.slicer.org/Slicer3-lib-mirrors/trunk/netlib/lapack-3.1.1
+set ::NETLIB_INC_TAG http://svn.na-mic.org/NAMICSandBox/trunk/4DModules/Misc/netlib_make_inc
+set ::ATLAS_TAG http://svn.na-mic.org/NAMICSandBox/trunk/4DModules/Misc/atlas-3.8.3
+set ::NUMPY_TAG "http://svn.scipy.org/svn/numpy/branches/1.3.x"
 set ::SCIPY_TAG "http://svn.scipy.org/svn/scipy/branches/0.7.x"
-set ::BatchMake_TAG "BatchMake-1-2"
+#set ::BatchMake_TAG "BatchMake-1-2"
+set ::BatchMake_TAG "HEAD"
 set ::SLICERLIBCURL_TAG "HEAD"
 set ::OpenIGTLink_TAG "http://svn.na-mic.org/NAMICSandBox/branches/OpenIGTLink-1-0"
+#set ::OpenCV_TAG "http://sourceforge.net/projects/opencvlibrary/files/opencv-linux/1.0/opencv-1.0.0.tar.gz/download" 
+set ::OpenCV_TAG "http://sourceforge.net/projects/opencvlibrary/files/opencv-unix/1.0/opencv-1.0.0.tar.gz/download"
 
 # set TCL_VERSION to "tcl" to get 8.4, otherwise use tcl85 get 8.5
 # set 8.5 for Solaris explicitly, because 8.4 complains 
 # when built 64 bit with gcc. Suncc/CC is fine, however.
-  if {$tcl_platform(os) == "SunOS"} {
-    set ::TCL_VERSION tcl85
-  } else {
-    set ::TCL_VERSION tcl
-  }
+if {$tcl_platform(os) == "SunOS"} {
+  set ::TCL_VERSION tcl85
+  set ::TCL_MINOR_VERSION 5
+} else {
+  set ::TCL_VERSION tcl
+  set ::TCL_MINOR_VERSION 4
+}
 
 # Set library, binary, etc. paths...
 
@@ -148,6 +150,7 @@ set ::CMAKE_PATH $::Slicer3_LIB/CMake-build
 set ::SOV_BINARY_DIR ""
 set ::XVNC_EXECUTABLE " "
 set ::OpenIGTLink_DIR $::Slicer3_LIB/OpenIGTLink-build 
+set ::OpenCV_DIR $::Slicer3_LIB/OpenCV-build 
 set ::BatchMake_SRC_DIR $::Slicer3_LIB/BatchMake
 set ::BatchMake_BUILD_DIR $::Slicer3_LIB/BatchMake-build
 set ::SLICERLIBCURL_SRC_DIR $::Slicer3_LIB/cmcurl
@@ -167,8 +170,9 @@ set ::USE_NUMPY "ON"
 set ::USE_SCIPY "true"
 # CMake Option for using OpenIGTLink library. Must be "OFF" or "ON", default is "OFF"
 set ::USE_OPENIGTLINK "ON"
+# CMake Option for using OpenCV library. Must be "OFF" or "ON", default is "OFF"
+set ::USE_OPENCV "OFF"
  
-
 switch $::tcl_platform(os) {
     "SunOS" {
         set shared_lib_ext "so"
@@ -199,16 +203,17 @@ switch $::tcl_platform(os) {
           error "need to define system python path for $::tcl_platform(os)"
         }
         set ::PYTHON_TEST_FILE $::PYTHON_BIN_DIR/bin/python
-        set ::PYTHON_LIB $::PYTHON_BIN_DIR/lib/libpython2.5.so
-        set ::PYTHON_INCLUDE $::PYTHON_BIN_DIR/include/python2.5
+        set ::PYTHON_LIB $::PYTHON_BIN_DIR/lib/libpython2.6.so
+        set ::PYTHON_INCLUDE $::PYTHON_BIN_DIR/include/python2.6
         set ::NETLIB_TEST_FILE $::Slicer3_LIB/netlib-build/BLAS-build/libblas.a
-        set ::NUMPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.5/site-packages/numpy/core/numeric.pyc
-        set ::SCIPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.5/site-packages/scipy/version.pyc
+        set ::NUMPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.6/site-packages/numpy/core/numeric.pyc
+        set ::SCIPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.6/site-packages/scipy/version.pyc
         set ::TK_TEST_FILE  $::TCL_BIN_DIR/wish8.5
         set ::ITCL_TEST_FILE $::TCL_LIB_DIR/itcl3.4/libitcl3.4.so
         set ::Teem_TEST_FILE $::Teem_BIN_DIR/unu
         set ::VTK_TEST_FILE $::VTK_DIR/bin/vtk
         set ::KWWidgets_TEST_FILE $::KWWidgets_BUILD_DIR/bin/libKWWidgets.so
+        set ::OpenCV_TEST_FILE $::OpenCV_DIR/lib/libcv.so
         set ::VTK_TCL_LIB $::TCL_LIB_DIR/libtcl8.5.$shared_lib_ext 
         set ::VTK_TK_LIB $::TCL_LIB_DIR/libtk8.5.$shared_lib_ext
         set ::VTK_TCLSH $::TCL_BIN_DIR/tclsh8.5
@@ -231,28 +236,29 @@ switch $::tcl_platform(os) {
         set ::VTK_BUILD_SUBDIR ""
         set ::Teem_BIN_DIR  $::Teem_BUILD_DIR/bin
 
-        set ::TCL_TEST_FILE $::TCL_BIN_DIR/tclsh8.4
-        set ::TK_TEST_FILE  $::TCL_BIN_DIR/wish8.4
+        set ::TCL_TEST_FILE $::TCL_BIN_DIR/tclsh8.$::TCL_MINOR_VERSION
+        set ::TK_TEST_FILE  $::TCL_BIN_DIR/wish8.$::TCL_MINOR_VERSION
         set ::INCR_TCL_LIB $::TCL_LIB_DIR/lib/libitcl3.2.dylib
         set ::INCR_TK_LIB $::TCL_LIB_DIR/lib/libitk3.2.dylib
         if { $::USE_SYSTEM_PYTHON } {
           set ::PYTHON_BIN_DIR /usr
         }
         set ::PYTHON_TEST_FILE $::PYTHON_BIN_DIR/bin/python
-        set ::PYTHON_LIB $::PYTHON_BIN_DIR/lib/libpython2.5.dylib
-        set ::PYTHON_INCLUDE $::PYTHON_BIN_DIR/include/python2.5
+        set ::PYTHON_LIB $::PYTHON_BIN_DIR/lib/libpython2.6.dylib
+        set ::PYTHON_INCLUDE $::PYTHON_BIN_DIR/include/python2.6
         set ::NETLIB_TEST_FILE $::Slicer3_LIB/netlib-build/BLAS-build/libblas.a
-        set ::NUMPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.5/site-packages/numpy/core/numeric.pyc
-        set ::SCIPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.5/site-packages/scipy/version.pyc
+        set ::NUMPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.6/site-packages/numpy/core/numeric.pyc
+        set ::SCIPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.6/site-packages/scipy/version.pyc
         set ::ITCL_TEST_FILE $::TCL_LIB_DIR/libitcl3.2.dylib
         set ::IWIDGETS_TEST_FILE $::TCL_LIB_DIR/iwidgets4.0.1/iwidgets.tcl
         set ::BLT_TEST_FILE $::TCL_BIN_DIR/bltwish24
         set ::Teem_TEST_FILE $::Teem_BIN_DIR/unu
         set ::VTK_TEST_FILE $::VTK_DIR/bin/vtk
         set ::KWWidgets_TEST_FILE $::KWWidgets_BUILD_DIR/bin/libKWWidgets.$shared_lib_ext
-        set ::VTK_TCL_LIB $::TCL_LIB_DIR/libtcl8.4.$shared_lib_ext 
-        set ::VTK_TK_LIB $::TCL_LIB_DIR/libtk8.4.$shared_lib_ext
-        set ::VTK_TCLSH $::TCL_BIN_DIR/tclsh8.4
+        set ::OpenCV_TEST_FILE $::OpenCV_DIR/lib/libcv.$shared_lib_ext
+        set ::VTK_TCL_LIB $::TCL_LIB_DIR/libtcl8.$::TCL_MINOR_VERSION.$shared_lib_ext 
+        set ::VTK_TK_LIB $::TCL_LIB_DIR/libtk8.$::TCL_MINOR_VERSION.$shared_lib_ext
+        set ::VTK_TCLSH $::TCL_BIN_DIR/tclsh8.$::TCL_MINOR_VERSION
         set ::ITK_TEST_FILE $::ITK_BINARY_PATH/bin/libITKCommon.$shared_lib_ext
         set ::TK_EVENT_PATCH $::Slicer3_HOME/tkEventPatch.diff
         set ::env(VTK_BUILD_SUBDIR) $::VTK_BUILD_SUBDIR
@@ -274,16 +280,17 @@ switch $::tcl_platform(os) {
           error "need to define system python path for $::tcl_platform(os)"
         }
         set ::PYTHON_TEST_FILE $::PYTHON_BIN_DIR/bin/python
-        set ::PYTHON_LIB $::PYTHON_BIN_DIR/lib/libpython2.5.so
-        set ::PYTHON_INCLUDE $::PYTHON_BIN_DIR/include/python2.5
+        set ::PYTHON_LIB $::PYTHON_BIN_DIR/lib/libpython2.6.so
+        set ::PYTHON_INCLUDE $::PYTHON_BIN_DIR/include/python2.6
         set ::NETLIB_TEST_FILE $::Slicer3_LIB/netlib-build/BLAS-build/libblas.a
-        set ::NUMPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.5/site-packages/numpy/core/numeric.pyc
-        set ::SCIPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.5/site-packages/scipy/version.pyc
+        set ::NUMPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.6/site-packages/numpy/core/numeric.pyc
+        set ::SCIPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.6/site-packages/scipy/version.pyc
         set ::TK_TEST_FILE  $::TCL_BIN_DIR/wish8.4
         set ::ITCL_TEST_FILE $::TCL_LIB_DIR/libitcl3.2.so
         set ::Teem_TEST_FILE $::Teem_BIN_DIR/unu
         set ::VTK_TEST_FILE $::VTK_DIR/bin/vtk
         set ::KWWidgets_TEST_FILE $::KWWidgets_BUILD_DIR/bin/libKWWidgets.so
+        set ::OpenCV_TEST_FILE $::OpenCV_DIR/lib/libcv.so
         set ::VTK_TCL_LIB $::TCL_LIB_DIR/libtcl8.4.$shared_lib_ext 
         set ::VTK_TK_LIB $::TCL_LIB_DIR/libtk8.4.$shared_lib_ext
         set ::VTK_TCLSH $::TCL_BIN_DIR/tclsh8.4
@@ -313,18 +320,17 @@ switch $::tcl_platform(os) {
         if { $::USE_SYSTEM_PYTHON } {
           error "need to define system python path for $::tcl_platform(os)"
         }
-        #set ::PYTHON_TEST_FILE $::PYTHON_BIN_DIR/bin/python.exe
-        #set ::PYTHON_LIB $::PYTHON_BIN_DIR/Libs/python25.lib
         set ::PYTHON_TEST_FILE $::PYTHON_BIN_DIR/PCbuild/python.exe
-        set ::PYTHON_LIB $::PYTHON_BIN_DIR/PCbuild/python25.lib
+        set ::PYTHON_LIB $::PYTHON_BIN_DIR/PCbuild/python26.lib
 
         set ::PYTHON_INCLUDE $::PYTHON_BIN_DIR/include
 
-        set ::NETLIB_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.5/site-packages/numpy/core/numeric.pyc
+        set ::NETLIB_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.6/site-packages/numpy/core/numeric.pyc
         set ::NUMPY_TEST_FILE $::PYTHON_BIN_DIR/lib/site-packages/numpy/core/numeric.pyc
-        set ::SCIPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.5/site-packages/scipy/version.pyc
+        set ::SCIPY_TEST_FILE $::PYTHON_BIN_DIR/lib/python2.6/site-packages/scipy/version.pyc
         set ::VTK_TEST_FILE $::VTK_DIR/bin/$::VTK_BUILD_TYPE/vtk.exe
         set ::KWWidgets_TEST_FILE $::KWWidgets_BUILD_DIR/bin/$::env(VTK_BUILD_SUBDIR)/KWWidgets.lib
+        set ::OpenCV_TEST_FILE $::OpenCV_DIR/lib/$::VTK_BUILD_TYPE/CV.lib
         set ::VTK_TCL_LIB $::TCL_LIB_DIR/tcl84.lib
         set ::VTK_TK_LIB $::TCL_LIB_DIR/tk84.lib
         set ::VTK_TCLSH $::TCL_BIN_DIR/tclsh84.exe
@@ -342,7 +348,7 @@ switch $::tcl_platform(os) {
 # System dependent variables
 
 switch $::tcl_platform(os) {
-    "SunOS" {
+      "SunOS" {
         set ::VTKSLICERBASE_BUILD_LIB $::Slicer3_HOME/Base/builds/$::env(BUILD)/bin/vtkSlicerBase.so
         set ::VTKSLICERBASE_BUILD_TCL_LIB $::Slicer3_HOME/Base/builds/$::env(BUILD)/bin/vtkSlicerBaseTCL.so
         set ::GENERATOR "Unix Makefiles"
@@ -360,12 +366,14 @@ switch $::tcl_platform(os) {
           set ::env(CC) cc
           set ::env(CXX) CC
           set ::FORTRAN_COMPILER "f90"
+          set ::env(CXXFLAGS) "-library=stlport4"
         } else {
           set ::env(CC) gcc
           set ::env(CXX) g++
           set ::COMPILER_PATH "/usr/sfw/bin"
           set ::COMPILER "g++"
           set ::FORTRAN_COMPILER "g77"
+          set ::env(CXXFLAGS) ""
         }
         # NOTE: the bellow flags will only work with gcc, and Studio 12 or newer.
         # Earlier Studio versions do not accept the -m64 flag.
@@ -377,13 +385,25 @@ switch $::tcl_platform(os) {
         } else {
           set GETBUILDTEST(bitness) $GENLIB(bitness)
         }
-        if {$GETBUILDTEST(bitness) == "64" || $GENLIB(bitness) == "64"} {
-          set ::env(CFLAGS) -m64
-          set ::env(CXXFLAGS) -m64
-          set ::env(LDFLAGS) -m64
+        if {$::GETBUILDTEST(bitness) == "64" || $::GENLIB(bitness) == "64"} {
+
+          # Due to bug 6223255 on Solaris 10 we need to explicitly set the runtime path
+          # for shared objects, because the linker will not find the 64 bit lib automatically.
+          # See the bellow link for more details:
+          # http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6223255
+          if {$tcl_platform(osVersion) == "5.10" && ($::GETBUILDTEST(bitness) == "64" || $::GENLIB(bitness) == "64")} {
+            set ::env(CFLAGS) -m64
+            set ::env(CXXFLAGS) "$::env(CXXFLAGS) -m64"
+            set ::env(LDFLAGS) "-m64 -L/usr/sfw/lib/64 -R/usr/sfw/lib/64"
+
+          } else {
+            set ::env(CFLAGS) -m64
+            set ::env(CXXFLAGS) "$::env(CXXFLAGS) -m64"
+            set ::env(LDFLAGS) -m64
+          }
         } else {
           set ::env(CFLAGS) ""
-          set ::env(CXXFLGS) ""
+          set ::env(CXXFLAGS)  $::env(CXXFLAGS)
           set ::env(LDFLAGS) ""
         }
         puts "slicer_variables.tcl: GENLIB(bitness): $::GENLIB(bitness) GETBUILDTEST(bitness): $::GETBUILDTEST(bitness)"
@@ -412,7 +432,9 @@ switch $::tcl_platform(os) {
         set ::COMPILER "g++"
         set ::FORTRAN_COMPILER "gfortran"
         set ::CMAKE $::CMAKE_PATH/bin/cmake
-        set ::MAKE make
+        set numCPUs 1
+        catch { set numCPUs [lindex [exec /usr/sbin/system_profiler | grep "Total Number Of Cores"] end] }
+        set ::MAKE "make -j [expr (2 * $numCPUs) - 1]"
         set ::SERIAL_MAKE make
     }
     default {
@@ -452,13 +474,36 @@ switch $::tcl_platform(os) {
         if {[info exists ::env(MAKE)]} {
             set ::MAKE $::env(MAKE)
         } else {
-            set ::MAKE "c:/Program\ Files/Microsoft\ Visual\ Studio\ .NET/Common7/IDE/devenv.exe"
+            # The following line set a default value, hoping that it will be
+            # overriden later on as the script tries for different flavors
+            # of visual studio. Let's try a little harder by checking 
+            # some environment variable (ultimately we should try poking
+            # in the Win32 registry).
+            if {[info exists ::env(VSINSTALLDIR)]} {
+                set ::MAKE [file join $::env(VSINSTALLDIR) "Common7/IDE/devenv.exe"]
+            } else {  
+                set ::MAKE "c:/Program\ Files/Microsoft\ Visual\ Studio\ .NET/Common7/IDE/devenv.exe"
+            }
         }
 
         if {[info exists ::env(COMPILER_PATH)]} {
             set ::COMPILER_PATH $::env(COMPILER_PATH)
         } else {
-            set ::COMPILER_PATH "c:/Program\ Files/Microsoft\ Visual\ Studio\ .NET/Common7/Vc7/bin"
+            if {[info exists ::env(VSINSTALLDIR)]} {
+                set ::COMPILER_PATH [file join $::env(VSINSTALLDIR) "Common7/Vc7/bin"]
+            } else {  
+                set ::COMPILER_PATH "c:/Program\ Files/Microsoft\ Visual\ Studio\ .NET/Common7/Vc7/bin"
+            }
+        }
+
+        if {[info exists ::env(MSSDK_PATH)]} {
+            set ::MSSDK_PATH $::env(MSSDK_PATH)
+        } else {
+            if {[info exists ::env(WindowsSdkDir)]} {
+                 set ::MSSDK_PATH [file normalize $::env(WindowsSdkDir)]
+            } else {  
+                 set ::MSSDK_PATH "C:/Program\ Files/Microsoft\ SDKs/Windows/v6.0A"
+            }
         }
 
         #
@@ -498,7 +543,7 @@ switch $::tcl_platform(os) {
             set ::GENERATOR "Visual Studio 8 2005"   ;# do NOT use the 64 bit target
             set ::MAKE "c:/Program Files (x86)/Microsoft Visual Studio 8/Common7/IDE/devenv.exe"
             set ::COMPILER_PATH "c:/Program Files (x86)/Microsoft Visual Studio 8/VC/bin"
-            error "*****\n MSSDK_PATH value not known for this compiler - \nLook at settings for other Visual Studio 2005 configuration for possible locations of the SDK include and library files.  \ncontact slicer-devel@bwh.harvard.edu for more instructions or to report correct path for this compiler."
+            set ::MSSDK_PATH "c:/Program Files (x86)/Microsoft Visual Studio 8/SDK/v2.0"
         }
         #
         ## for Visual Studio 9
@@ -512,6 +557,13 @@ switch $::tcl_platform(os) {
         if { [file exists "c:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE/devenv.exe"] } {
             set ::GENERATOR "Visual Studio 9 2008"
             set ::MAKE "c:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE/devenv.exe"
+            set ::COMPILER_PATH "c:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin"
+            set ::MSSDK_PATH "c:/Program Files/Microsoft SDKs/Windows/v6.0A"
+        }
+
+        if { [file exists "c:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE/VCExpress.exe"] } {
+            set ::GENERATOR "Visual Studio 9 2008" 
+            set ::MAKE "c:/Program Files (x86)/Microsoft Visual Studio 9.0/Common7/IDE/VCExpress.exe"
             set ::COMPILER_PATH "c:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/bin"
             set ::MSSDK_PATH "c:/Program Files/Microsoft SDKs/Windows/v6.0A"
         }
