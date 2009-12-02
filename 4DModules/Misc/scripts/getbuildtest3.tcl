@@ -48,6 +48,7 @@ proc Usage { {msg ""} } {
     set msg "$msg\n   -e --extend : optional, build external modules using the extend script"
     set msg "$msg\n   -32 -64 : Set if we want to build Slicer 32 or 64 bits" 
     set msg "$msg\n            : The default on Solaris is the current bitness of the underlying kernel (isainfo -b)"
+    set msg "$msg\n            : The default on Linux is the current bitness of the underlying kernel"
     set msg "$msg\n            : 32 bits on other platforms"
     set msg "$msg\n   --gcc --suncc : Set the desired compiler for the build process"
     set msg "$msg\n            : The default is gcc/g++"
@@ -71,13 +72,20 @@ set ::GETBUILDTEST(buildList) ""
 set ::GETBUILDTEST(cpack-generator) ""
 set ::GETBUILDTEST(rpm-spec) ""
 set ::GETBUILDTEST(extend) "false"
-if {$tcl_platform(os) == "SunOS"} {
-   set isainfo [exec isainfo -b]
-   set ::GETBUILDTEST(bitness) "-$isainfo"
-} else {
-  set ::GETBUILDTEST(bitness) "32"
+set ::GETBUILDTEST(compiler) ""
+set ::GETBUILDTEST(bitness) "32"
+switch $::tcl_platform(os) {
+    "SunOS" { 
+        set isainfo [exec isainfo -b]
+        set ::GETBUILDTEST(bitness) "$isainfo"
+        set ::GETBUILDTEST(compiler) "gcc"
+    }
+    "Linux" {           
+        if {$::tcl_platform(machine) == "x86_64"} {
+            set ::GETBUILDTEST(bitness) 64
+        }
+    }
 }
-set ::GETBUILDTEST(compiler) "gcc"
  
 set strippedargs ""
 set argc [llength $argv]
@@ -392,7 +400,9 @@ if { $::GETBUILDTEST(doxy) } {
 cd $::Slicer3_HOME
 set cmd "sh ./Scripts/genlib3.tcl $Slicer3_LIB"
 
-append cmd " --$::GETBUILDTEST(compiler)"
+if { $::GETBUILDTEST(compiler) != "" } {
+  append cmd " --$::GETBUILDTEST(compiler)"
+}
 append cmd " -$::GETBUILDTEST(bitness)"
 
 if { $::GETBUILDTEST(release) != "" } {
@@ -472,7 +482,14 @@ if {$::GETBUILDTEST(verbose)} {
 
 # build the slicer
 # - first run cmake
+# - create the Slicer3Version.txt file
 # - then run plaftorm specific build command
+
+if { $::USE_SYSTEM_PYTHON } {
+  set ::Slicer3_USE_SYSTEM_PYTHON ON
+} else {
+  set ::Slicer3_USE_SYSTEM_PYTHON OFF
+}
 
 cd $::Slicer3_BUILD
 runcmd $::CMAKE \
@@ -482,6 +499,7 @@ runcmd $::CMAKE \
         -DCMAKE_CXX_COMPILER_FULLPATH:FILEPATH=$COMPILER_PATH/$COMPILER \
         -DITK_DIR:FILEPATH=$ITK_BINARY_PATH \
         -DKWWidgets_DIR:FILEPATH=$Slicer3_LIB/KWWidgets-build \
+        -DOpenCV_DIR:FILEPATH=$Slicer3_LIB/OpenCV-build \
         -DTeem_DIR:FILEPATH=$Slicer3_LIB/teem-build \
         -DOpenIGTLink_DIR:FILEPATH=$Slicer3_LIB/OpenIGTLink-build \
         -DBatchMake_DIR:FILEPATH=$Slicer3_LIB/BatchMake-build \
@@ -489,8 +507,10 @@ runcmd $::CMAKE \
         -DINCR_TCL_LIBRARY:FILEPATH=$::INCR_TCL_LIB \
         -DINCR_TK_LIBRARY:FILEPATH=$::INCR_TK_LIB \
         -DSlicer3_USE_PYTHON=$::USE_PYTHON \
+        -DSlicer3_USE_SYSTEM_PYTHON=$::Slicer3_USE_SYSTEM_PYTHON \
         -DSlicer3_USE_NUMPY=$::USE_NUMPY \
         -DSlicer3_USE_OPENIGTLINK=$::USE_OPENIGTLINK \
+        -DSlicer3_USE_OPENCV=$::USE_OPENCV \
         -DPYTHON_INCLUDE_PATH:PATH=$::PYTHON_INCLUDE \
         -DPYTHON_LIBRARY:FILEPATH=$::PYTHON_LIB \
         -DSandBox_DIR:FILEPATH=$Slicer3_LIB/NAMICSandBox \
@@ -510,7 +530,13 @@ runcmd $::CMAKE \
 # are compatibile with
 #
 
-source $::Slicer3_HOME/Scripts/versioner.tcl
+set cmd "sh $::Slicer3_HOME/Scripts/versioner.tcl"
+set retval [catch "eval runcmd $cmd" res]
+if {$retval == 1} {
+  puts "ERROR: failed to run versioner script: $cmd"
+  puts "$res"
+  return
+}
 
 #
 # now do the actual build
@@ -527,8 +553,8 @@ if { $isWindows } {
     if { $::USE_PYTHON == "ON" } {
       if { ![file exists bin] } { file mkdir bin }
       if { ![file exists bin/$::VTK_BUILD_TYPE] } { file mkdir bin/$::VTK_BUILD_TYPE }
-      if { ![file exists bin/$::VTK_BUILD_TYPE/python25.dll] } { 
-        file copy $::Slicer3_LIB/python-build/PCbuild/python25.dll bin/$::VTK_BUILD_TYPE 
+      if { ![file exists bin/$::VTK_BUILD_TYPE/python26.dll] } { 
+        file copy $::Slicer3_LIB/python-build/PCbuild/python26.dll bin/$::VTK_BUILD_TYPE 
       }
     }
 
@@ -540,7 +566,7 @@ if { $isWindows } {
     } else {
         # tell cmake explicitly what command line to run when doing the ctest builds
         set makeCmd "$::MAKE Slicer3.sln /out buildlog.txt /build $::VTK_BUILD_TYPE /project ALL_BUILD"
-        runcmd $::CMAKE -DMAKECOMMAND:STRING=$makeCmd $Slicer3_HOME
+        runcmd $::CMAKE -DCTEST_TEST_TIMEOUT=180 -DMAKECOMMAND:STRING=$makeCmd $Slicer3_HOME 
 
         if { $::GETBUILDTEST(test-type) == "" } {
             runcmd $::MAKE Slicer3.SLN /out buildlog.txt /build $::VTK_BUILD_TYPE
@@ -628,7 +654,7 @@ if {$::GETBUILDTEST(upload) == "true"} {
 if { $::GETBUILDTEST(extend) == "true" } {
   # build the slicer3 extensions
   cd $::Slicer3_HOME
-  set cmd "sh ./Scripts/extend.tcl"
+  set cmd "sh ./Scripts/extend.tcl $::GETBUILDTEST(test-type) $::GETBUILDTEST(release)"
   eval runcmd $cmd
 }
 

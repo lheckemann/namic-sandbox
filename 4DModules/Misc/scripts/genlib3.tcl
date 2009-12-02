@@ -384,6 +384,11 @@ if { [BuildThis $::TCL_TEST_FILE "tcl"] == 1 } {
       } else {
         cd $Slicer3_LIB/tcl/tcl/unix
 
+        if {$tcl_platform(os) == "SunOS" && $tcl_platform(osVersion) == "5.10"} {
+          replaceStringInFile tcl.m4 "SunOS-5.1\[\[1-9\]\]*|SunOS-5.\[\[2-9\]\]\[\[0-9\]\]" "SunOS-5.1\[\[0-9\]\]*|SunOS-5.\[\[2-9\]\]\[\[0-9\]\]"
+          replaceStringInFile configure "SunOS-5.1\[1-9\]*|SunOS-5.\[2-9\]\[0-9\]" "SunOS-5.1\[0-9\]*|SunOS-5.\[2-9\]\[0-9\]"
+
+        }
         if {$::GENLIB(bitness) == "64"} {
           runcmd ./configure --enable-64bit --prefix=$Slicer3_LIB/tcl-build
         } else {
@@ -411,6 +416,13 @@ if { [BuildThis $::TK_TEST_FILE "tk"] == 1 } {
          # ignore, already downloaded with tcl
       } else {
         cd $Slicer3_LIB/tcl/tk/unix
+
+        if {$tcl_platform(os) == "SunOS" && $tcl_platform(osVersion) == "5.10"} {
+          replaceStringInFile tcl.m4 "SunOS-5.1\[\[1-9\]\]*|SunOS-5.\[\[2-9\]\]\[\[0-9\]\]" "SunOS-5.1\[\[0-9\]\]*|SunOS-5.\[\[2-9\]\]\[\[0-9\]\]"
+          replaceStringInFile configure "SunOS-5.1\[1-9\]*|SunOS-5.\[2-9\]\[0-9\]" "SunOS-5.1\[0-9\]*|SunOS-5.\[2-9\]\[0-9\]"
+
+        }
+
         if { $isDarwin } {
           runcmd ./configure --with-tcl=$Slicer3_LIB/tcl-build/lib --prefix=$Slicer3_LIB/tcl-build --disable-corefoundation --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-x
         } else {
@@ -539,21 +551,55 @@ if { [BuildThis $::BLT_TEST_FILE "blt"] == 1 } {
             cd $Slicer3_LIB/tcl/blt
             runcmd ./configure --with-tcl=$Slicer3_LIB/tcl/tcl/unix --with-tk=$Slicer3_LIB/tcl-build --prefix=$Slicer3_LIB/tcl-build --enable-shared --x-includes=/usr/X11R6/include --x-libraries=/usr/X11R6/lib --with-cflags=-fno-common
             eval runcmd $::MAKE
-            eval runcmd $::MAKE install
+            catch "eval runcmd $::MAKE install" ;# install fails at end, so catch so build doesn't fail
+
         } elseif { $isSolaris } {
-            cd $Slicer3_LIB/tcl/blt
-            runcmd ./configure --with-tcl=$Slicer3_LIB/tcl/tcl/unix --with-tk=$Slicer3_LIB/tcl-build --prefix=$Slicer3_LIB/tcl-build --enable-shared
-            eval runcmd $::SERIAL_MAKE
-            eval runcmd $::SERIAL_MAKE install
+
+          cd $Slicer3_LIB/tcl/blt
+
+          # On Solaris 10 - due to bug http://bugs.opensolaris.org/bugdatabase/view_bug.do?bug_id=6223255 - we need to set some -L and -R paths.
+          # I does not affect later Solaris releases.
+          set EXTRAS10LIBS ""
+          set MYSQLDIR ""             
+          if {$::GENLIB(bitness) == "64"} {
+            set ::env(CC) "$::GENLIB(compiler) -m64"
+            set ::env(LDFLAGS) "-m64 -L/usr/sfw/lib/64 -R/usr/sfw/lib/64"
+            puts "genlib blt 64 bit branch: $::env(CC)"
+            if {$tcl_platform(osVersion) == "5.10"} {
+              replaceStringInFile src/Makefile.in "@XFT_LIB_SPEC@" "@EXPAT_LIB_SPEC@ @XFT_LIB_SPEC@"
+              set EXTRAS10LIBS "--with-freetype2libdir=/usr/sfw/lib/64 --with-expatlibdir=/usr/sfw/lib/64"
+              set MYSQLDIR "--without-mysqlincdir --without-mysqllibdir"
+              puts "ExtraS10Libs_64 are: $EXTRAS10LIBS"
+            } else {
+              set MYSQLDIR "--with-mysqlincdir=/usr/mysql/5.1/include --with-mysqllibdir=/usr/mysql/5.1/lib/64/mysql"
+            } 
+          } else {
+            set ::env(CC) "$::GENLIB(compiler)"
+            puts "genlib blt 32 bit branch: $::env(CC)"
+            if {$tcl_platform(osVersion) == "5.10"} {
+              replaceStringInFile src/Makefile.in "@XFT_LIB_SPEC@" "@EXPAT_LIB_SPEC@ @XFT_LIB_SPEC@"
+              set EXTRAS10LIBS "--with-freetype2libdir=/usr/sfw/lib --with-expatlibdir=/usr/sfw/lib"
+              set MYSQLDIR "--without-mysqlincdir --without-mysqllibdir"
+              puts "ExtraS10Libs_32 are: $EXTRAS10LIBS"
+            } else {
+              set MYSQLDIR "--with-mysqlincdir=/usr/mysql/5.1/include --with-mysqllibdir=/usr/mysql/5.1/lib/mysql"
+              }
+          }
+              
+          eval runcmd ./configure --with-tcl=$Slicer3_LIB/tcl/tcl/unix --with-tk=$Slicer3_LIB/tcl-build --prefix=$Slicer3_LIB/tcl-build --enable-shared $EXTRAS10LIBS $MYSQLDIR
+          eval runcmd $::SERIAL_MAKE
+          eval runcmd $::SERIAL_MAKE install
+
         } else {
+
             cd $Slicer3_LIB/tcl/blt
             runcmd ./configure --with-tcl=$Slicer3_LIB/tcl/tcl/unix --with-tk=$Slicer3_LIB/tcl-build --prefix=$Slicer3_LIB/tcl-build
             eval runcmd $::SERIAL_MAKE
             eval runcmd $::SERIAL_MAKE install
+
         }
     }
 }
-
 ################################################################################
 # Get and build python
 #
@@ -567,20 +613,13 @@ if {  [BuildThis $::PYTHON_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [stri
       runcmd $::SVN co $::PYTHON_TAG python-build
       cd $Slicer3_LIB/python-build
 
-      # patch the socket module to accomodate newer visual studios
-      if { $::GENERATOR != "Visual Studio 7 .NET 2003" } {
-        file copy -force $::Slicer3_HOME/Base/GUI/Python/patched-socketmodule.c Modules/socketmodule.c
-      }
-
       # point the tkinter build file to the slicer tcl-build 
       replaceStringInFile "PCbuild/_tkinter.vcproj" "tcltk" "tcl-build"
 
       if { $::GENERATOR != "Visual Studio 7 .NET 2003" } {
-         if {$::MAKE != "c:/Program Files/Microsoft Visual Studio 9.0/Common7/IDE/VCExpress.exe"} {
+         if {[file tail $::MAKE] != "VCExpress.exe"} {
            runcmd $::MAKE PCbuild/pcbuild.sln /Upgrade
-         } else {
-           runcmd $::MAKE PCbuild/pcbuild.sln
-         }
+         } 
       }
       runcmd $::MAKE PCbuild/pcbuild.sln /out buildlog.txt /build Release
 
@@ -591,19 +630,19 @@ if {  [BuildThis $::PYTHON_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [stri
       # copy the lib so that numpy and slicer can find it easily
       # copy the socket shared library so python can find it
       # TODO: perhaps we need an installer step here
-      set ret [catch "file copy -force $::Slicer3_LIB/python-build/PCbuild/python25.lib $::Slicer3_LIB/python-build/Lib/python25.lib "]
+      set ret [catch "file copy -force $::Slicer3_LIB/python-build/PCbuild/python26.lib $::Slicer3_LIB/python-build/Lib/python26.lib "]
       if {$ret == 1} {
-          puts "ERROR: couldn't copy $::Slicer3_LIB/python-build/PCbuild/python25.lib to $::Slicer3_LIB/python-build/Lib/"
+          puts "ERROR: couldn't copy $::Slicer3_LIB/python-build/PCbuild/python26.lib to $::Slicer3_LIB/python-build/Lib/"
           exit 1
       }
       set ret [catch "file copy -force $::Slicer3_LIB/python-build/PCbuild/_socket.pyd $::Slicer3_LIB/python-build/Lib/_socket.pyd"]
       if {$ret == 1} {
-         puts "ERROR: failed to copy $::Slicer3_LIB/python-build/PCbuild/_socket.pyd $::Slicer3_LIB/python-build/Lib/_socket.pyd"
+         puts "ERROR: failed to copy $::Slicer3_LIB/python-build/PCbuild/_socket.pyd to $::Slicer3_LIB/python-build/Lib/_socket.pyd"
          exit 1
        }
-      set ret [catch "file copy -force $::Slicer3_LIB/python-build/PCbuild/_ctypes.pyd to $::Slicer3_LIB/python-build/Lib/_ctypes.pyd"]
+      set ret [catch "file copy -force $::Slicer3_LIB/python-build/PCbuild/_ctypes.pyd $::Slicer3_LIB/python-build/Lib/_ctypes.pyd"]
       if {$ret == 1} {
-        puts "ERORR: failed to copy $::Slicer3_LIB/python-build/PCbuild/_ctypes.pyd to $::Slicer3_LIB/python-build/Lib/_ctypes.pyd"
+        puts "ERROR: failed to copy $::Slicer3_LIB/python-build/PCbuild/_ctypes.pyd to $::Slicer3_LIB/python-build/Lib/_ctypes.pyd"
         exit 1
       }
 
@@ -615,15 +654,22 @@ if {  [BuildThis $::PYTHON_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [stri
 
       cd $Slicer3_LIB/python
       runcmd $::SVN co $::PYTHON_TAG
-      cd $Slicer3_LIB/python/release25-maint
-
+      cd $Slicer3_LIB/python/release26-maint
       foreach flag {LD_LIBRARY_PATH LDFLAGS CPPFLAGS} {
         if { ![info exists ::env($flag)] } { set ::env($flag) "" }
       }
       set ::env(LDFLAGS) "$::env(LDFLAGS) -L$Slicer3_LIB/tcl-build/lib"
       set ::env(CPPFLAGS) "$::env(CPPFLAGS) -I$Slicer3_LIB/tcl-build/include"
       set ::env(LD_LIBRARY_PATH) $Slicer3_LIB/tcl-build/lib:$Slicer3_LIB/python-build/lib:$::env(LD_LIBRARY_PATH)
-
+      if { $isSolaris } {
+          if {$::GENLIB(bitness) == "64"} {
+              set ::env(CC) "$::GENLIB(compiler) -m64"
+              set ::env(LDFLAGS)  "$::env(LDFLAGS) -L/usr/sfw/lib/64"
+          } elseif {$::GENLIB(bitness) == "32"} {
+              set ::env(CC) "$::GENLIB(compiler)"
+              set ::env(LDFLAGS)  "$::env(LDFLAGS) -L/usr/sfw/lib"
+          }
+      }
       runcmd ./configure --prefix=$Slicer3_LIB/python-build --with-tcl=$Slicer3_LIB/tcl-build --enable-shared
       eval runcmd $::MAKE
       eval runcmd $::SERIAL_MAKE install
@@ -631,16 +677,16 @@ if {  [BuildThis $::PYTHON_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [stri
       if { $isDarwin } {
             # Special Slicer hack to build and install the .dylib
             file mkdir $::Slicer3_LIB/python-build/lib/
-            file delete -force $::Slicer3_LIB/python-build/lib/libpython2.5.dylib
+            file delete -force $::Slicer3_LIB/python-build/lib/libpython2.6.dylib
             set fid [open environhack.c w]
             puts $fid "char **environ=0;"
             close $fid
             runcmd gcc -c -o environhack.o environhack.c
-            runcmd libtool -o $::Slicer3_LIB/python-build/lib/libpython2.5.dylib -dynamic  \
-                -all_load libpython2.5.a environhack.o -single_module \
-                -install_name $::Slicer3_LIB/python-build/lib/libpython2.5.dylib \
-                -compatibility_version 2.5 \
-                -current_version 2.5 -lSystem -lSystemStubs
+            runcmd libtool -o $::Slicer3_LIB/python-build/lib/libpython2.6.dylib -dynamic  \
+                -all_load libpython2.6.a environhack.o -single_module \
+                -install_name $::Slicer3_LIB/python-build/lib/libpython2.6.dylib \
+                -compatibility_version 2.6 \
+                -current_version 2.6 -lSystem -lSystemStubs
 
         }
     }
@@ -661,14 +707,17 @@ if { [BuildThis $::NETLIB_TEST_FILE "netlib"] && !$::USE_SYSTEM_PYTHON && $::USE
         # windows binary already checked out
     } else {
         # generate paltform tag  
+
+        set platform "NONE"
+
         if { $isDarwin } {
-          set platform DARWIN
+          set platform "DARWIN"
         } elseif { $isLinux && $::tcl_platform(machine) == "x86_64" } {
-        #} elseif { $isLinux && $::GENLIB(bitness) == "64" } {
-          set platform LINUX64
+          set platform "LINUX64"
         } else {
-          set platform LINUX
+          set platform "LINUX"
         }
+        puts "platform = $platform"
        
         # Build lapack
 
@@ -725,13 +774,31 @@ if {  [BuildThis $::NUMPY_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [strin
     if { $isWindows } {
 
         # prepare the environment for numpy build script
-        regsub -all ":" [file dirname $::MAKE] "" devenvdir
-        regsub -all ":" $::COMPILER_PATH "" vcbindir
-        set ::env(PATH) /cygdrive/$devenvdir:/cygdrive/$vcbindir:$::env(PATH)
-        set ::env(PATH) $::Slicer3_LIB/python-build/PCbuild:$::env(PATH)
+        # - the path setup depends on how cygwin was configured (either
+        # with or without the /cygdrive portion of the path)
+        if { [string match *cygdrive* $env(PATH)] } {
+          # Steve's way - cygwin does not mount c:/ as /c
+          regsub -all ":" [file dirname $::MAKE] "" devenvdir
+          regsub -all ":" $::COMPILER_PATH "" vcbindir
+          set devenvdir /cygdrive/$devenvdir
+          set vcbindir /cygdrive/$vcbindir
+          set ::env(PATH) $devenvdir:$vcbindir:$::env(PATH)
+          regsub -all ":" $::Slicer3_LIB/python-build/PCbuild "" pcbuildpath
+          set ::env(PATH) /cygdrive/$pcbuildpath:$::env(PATH)
+          regsub -all ":" $::MSSDK_PATH/Bin "" sdkpath
+          set ::env(PATH) /cygdrive/$sdkpath:$::env(PATH)
+        } else {
+          # Jim's way - cygwin does mount c:/ as /c and doesn't use cygdrive
+          set devenvdir [file dirname $::MAKE]
+          set vcbindir $::COMPILER_PATH
+          set ::env(PATH) $devenvdir\;$vcbindir\;$::env(PATH)
+          set ::env(PATH) $::env(PATH)\;$::Slicer3_LIB/python-build/PCbuild
+        }
         set ::env(INCLUDE) [file dirname $::COMPILER_PATH]/include
         set ::env(INCLUDE) $::MSSDK_PATH/Include\;$::env(INCLUDE)
+        set ::env(INCLUDE) [file normalize $::Slicer3_LIB/python-build/Include]\;$::env(INCLUDE)
         set ::env(LIB) $::MSSDK_PATH/Lib\;[file dirname $::COMPILER_PATH]/lib
+        set ::env(LIBPATH) $devenvdir
 
         cd $::Slicer3_LIB/python/numpy
         runcmd $::Slicer3_LIB/python-build/PCbuild/python.exe ./setup.py --verbose install
@@ -751,7 +818,6 @@ if {  [BuildThis $::NUMPY_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [strin
         }
 
     } else {
-
         if { $isDarwin } {
             if { ![info exists ::env(DYLD_LIBRARY_PATH)] } { set ::env(DYLD_LIBRARY_PATH) "" }
             set ::env(DYLD_LIBRARY_PATH) $::Slicer3_LIB/python-build/lib:$::env(DYLD_LIBRARY_PATH)
@@ -781,6 +847,7 @@ if {  [BuildThis $::NUMPY_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [strin
         close $fp
 
        # build and install
+        runcmd $::Slicer3_LIB/python-build/bin/python ./setup.py build --fcompiler=gfortran
         runcmd $::Slicer3_LIB/python-build/bin/python ./setup.py install
 
         if { $::USE_SCIPY } {
@@ -802,6 +869,7 @@ if {  [BuildThis $::NUMPY_TEST_FILE "python"] && !$::USE_SYSTEM_PYTHON && [strin
           puts $fp "libraries = lapack, ptf77blas, ptcblas, atlas"
           close $fp
 
+          runcmd $::Slicer3_LIB/python-build/bin/python ./setup.py build --fcompiler=gfortran
           runcmd $::Slicer3_LIB/python-build/bin/python ./setup.py install
         }
     }
@@ -836,7 +904,7 @@ if { [BuildThis $::VTK_TEST_FILE "vtk"] == 1 } {
       }
 
       #
-      # Note - the two banches are identical down to the line starting -DOPENGL...
+      # Note - 
       # -- the text needs to be duplicated to avoid quoting problems with paths that have spaces
       #
       if { $isLinux && $::tcl_platform(machine) == "x86_64" } {
@@ -917,6 +985,31 @@ if { [BuildThis $::VTK_TEST_FILE "vtk"] == 1 } {
             $USE_VTK_ANSI_STDLIB \
             -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON \
             -DVTK_USE_64BIT_IDS:BOOL=ON \
+            ../VTK
+      } elseif { $isWindows } {
+        runcmd $::CMAKE \
+            -G$GENERATOR \
+            -DCMAKE_BUILD_TYPE:STRING=$::VTK_BUILD_TYPE \
+            -DBUILD_SHARED_LIBS:BOOL=ON \
+            -DCMAKE_SKIP_RPATH:BOOL=ON \
+            -DCMAKE_CXX_COMPILER:STRING=$COMPILER_PATH/$COMPILER \
+            -DCMAKE_CXX_COMPILER_FULLPATH:FILEPATH=$COMPILER_PATH/$COMPILER \
+            -DCMAKE_C_COMPILER:STRING=$COMPILER_PATH/$COMPILER \
+            -DCMAKE_C_COMPILER_FULLPATH:FILEPATH=$COMPILER_PATH/$COMPILER \
+            -DBUILD_TESTING:BOOL=OFF \
+            -DVTK_USE_CARBON:BOOL=OFF \
+            -DVTK_USE_X:BOOL=ON \
+            -DVTK_WRAP_TCL:BOOL=ON \
+            -DVTK_USE_HYBRID:BOOL=ON \
+            -DVTK_USE_PATENTED:BOOL=ON \
+            -DVTK_USE_PARALLEL:BOOL=ON \
+            -DVTK_DEBUG_LEAKS:BOOL=$::VTK_DEBUG_LEAKS \
+            -DTCL_INCLUDE_PATH:PATH=$TCL_INCLUDE_DIR \
+            -DTK_INCLUDE_PATH:PATH=$TCL_INCLUDE_DIR \
+            -DTCL_LIBRARY:FILEPATH=$::VTK_TCL_LIB \
+            -DTK_LIBRARY:FILEPATH=$::VTK_TK_LIB \
+            -DTCL_TCLSH:FILEPATH=$::VTK_TCLSH \
+            $USE_VTK_ANSI_STDLIB \
             ../VTK
       } else {
         runcmd $::CMAKE \
@@ -1026,6 +1119,8 @@ if { [BuildThis $::ITK_TEST_FILE "itk"] == 1 } {
           -DCMAKE_CXX_COMPILER_FULLPATH:FILEPATH=$COMPILER_PATH/$COMPILER \
           -DITK_USE_REVIEW:BOOL=ON \
           -DITK_USE_OPTIMIZED_REGISTRATION_METHODS:BOOL=ON \
+          -DITK_USE_PORTABLE_ROUND:BOOL=ON \
+          -DITK_USE_CENTERED_PIXEL_COORDINATES_CONSISTENTLY:BOOL=ON \
           -DITK_USE_TRANSFORM_IO_FACTORIES:BOOL=ON \
           -DBUILD_SHARED_LIBS:BOOL=ON \
           -DCMAKE_SKIP_RPATH:BOOL=OFF \
@@ -1041,6 +1136,8 @@ if { [BuildThis $::ITK_TEST_FILE "itk"] == 1 } {
           -DCMAKE_CXX_COMPILER_FULLPATH:FILEPATH=$COMPILER_PATH/$COMPILER \
           -DITK_USE_REVIEW:BOOL=ON \
           -DITK_USE_OPTIMIZED_REGISTRATION_METHODS:BOOL=ON \
+          -DITK_USE_PORTABLE_ROUND:BOOL=ON \
+          -DITK_USE_CENTERED_PIXEL_COORDINATES_CONSISTENTLY:BOOL=ON \
           -DITK_USE_TRANSFORM_IO_FACTORIES:BOOL=ON \
           -DBUILD_SHARED_LIBS:BOOL=ON \
           -DCMAKE_SKIP_RPATH:BOOL=ON \
@@ -1277,6 +1374,57 @@ if { ![file exists $::BatchMake_TEST_FILE] || $::GENLIB(update) } {
     } else {
         eval runcmd $::MAKE
     }
+}
+
+
+################################################################################
+# Get and build OpenCV 
+#
+#
+if { [BuildThis $::OpenCV_TEST_FILE "cv"] == 1 && [string tolower $::USE_OPENCV] == "on" } {
+
+    # Slicer module OpenCV doesn't compile with OpenCV library 1.1 in svn trunk.
+    # Now we try to get and build OpenCV library 1.0, which is now distributed 
+    # only in tarball on linux
+    file mkdir $::Slicer3_LIB/OpenCV-build
+    file mkdir $::Slicer3_LIB/OpenCV
+
+    cd $::Slicer3_LIB/OpenCV
+    runcmd wget $::OpenCV_TAG 
+    runcmd tar xvfz ./opencv-1.0.0.tar.gz
+    cd $Slicer3_LIB/OpenCV/opencv-1.0.0
+
+    runcmd ./configure --prefix=$Slicer3_LIB/OpenCV-build 
+    eval runcmd $::MAKE
+    eval runcmd $::SERIAL_MAKE install
+
+ 
+#    cd $::Slicer3_LIB
+
+#    runcmd $::SVN co $::OpenCV_TAG OpenCV 
+
+#    file mkdir $::Slicer3_LIB/OpenCV-build
+#    cd $::Slicer3_LIB/OpenCV-build
+
+#    runcmd $::CMAKE \
+#        -G$GENERATOR \
+#        -DCMAKE_BUILD_TYPE:STRING=$::VTK_BUILD_TYPE \
+#        -DCMAKE_CXX_COMPILER:STRING=$COMPILER_PATH/$COMPILER \
+#        -DCMAKE_CXX_COMPILER_FULLPATH:FILEPATH=$COMPILER_PATH/$COMPILER \
+#        -DBUILD_SHARED_LIBS:BOOL=ON \
+#        -DBUILD_TESTING:BOOL=OFF \
+#        -DOpenCV_DIR:FILEPATH=$Slicer3_LIB/OpenCV-build \
+#        ../OpenCV/opencv
+
+#    if {$isWindows} {
+#        if { $MSVC6 } {
+#            runcmd $::MAKE BatchMake.dsw /MAKE "ALL_BUILD - $::VTK_BUILD_TYPE"
+#        } else {
+#            runcmd $::MAKE BatchMake.SLN /out buildlog.txt /build  $::VTK_BUILD_TYPE
+#        }
+#    } else {
+#        eval runcmd $::MAKE
+#    }
 }
 
 
