@@ -147,7 +147,7 @@ bool vtkTransRectalFiducialCalibrationAlgo::CalibrateFromImage(const TRProstateB
 //--------------------------------------------------------------------------------------
 void vtkTransRectalFiducialCalibrationAlgo::SegmentAxis(const double initPos1Ras[3], const double initPos2Ras[3], vtkMatrix4x4 *volumeIJKToRASMatrix, vtkImageData* calibVol,
     double thresh1, double thresh2, const double fidDimsMm[3], double radiusMm, double initialAngle, 
-    double P1[3], double v1[3], double finalPos1Ras[3], double finalPos2Ras[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2, std::vector<typename PointType> *CoordinatesVectorAxis)
+    double P1[3], double v1[3], double finalPos1Ras[3], double finalPos2Ras[3], bool &found1, bool &found2, vtkImageData* img1, vtkImageData* img2, std::vector<PointType> *CoordinatesVectorAxis)
 {
   /// \todo Show resliced object in a window, like ITK-SNAP
 
@@ -967,7 +967,7 @@ struct PointTooFar
 };
 
 /// Remove outlaying points
-void vtkTransRectalFiducialCalibrationAlgo::RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3], std::vector<typename PointType> &CoordinatesVector)
+void vtkTransRectalFiducialCalibrationAlgo::RemoveOutliners(double P_[3], double v_[3], const double def1[3], const double def2[3], std::vector<PointType> &CoordinatesVector)
 {
     // Initial threshold to disregard center points, which are too far away from initial line.
     double outlier_thres_initial=4;
