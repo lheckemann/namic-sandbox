@@ -26,4 +26,12 @@ target_link_libraries(BSplineGradientDescent ITKIO ITKStatistics ITKNumerics)
 add_executable(MultiresDemons MultiresDemons.cxx)
 target_link_libraries(MultiresDemons ITKIO ITKStatistics ITKNumerics)
 
+add_executable(CombineMasks CombineMasks.cxx)
+target_link_libraries(CombineMasks ITKIO ITKStatistics)
+
+add_executable(AverageLabel AverageLabel.cxx)
+target_link_libraries(AverageLabel ITKIO ITKStatistics)
+
+add_executable(LabelFullOverlap LabelFullOverlap.cxx)
+target_link_libraries(LabelFullOverlap ITKIO ITKStatistics)
 #subdirs(Plugins)
