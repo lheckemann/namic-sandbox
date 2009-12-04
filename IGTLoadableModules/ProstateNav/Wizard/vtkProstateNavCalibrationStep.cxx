@@ -59,7 +59,8 @@ vtkProstateNavCalibrationStep::vtkProstateNavCalibrationStep()
   this->SetDescription("Perform Z-frame calibration.");
 
   this->SelectImageFrame  = NULL;
-  this->SelectImageButton = NULL;
+  //this->SelectImageButton = NULL;
+  this->ZFrameImageSelectorWidget = NULL;
   this->CalibrateButton   = NULL;
 
   this->ZFrameSettingFrame       = NULL;
@@ -76,10 +77,15 @@ vtkProstateNavCalibrationStep::~vtkProstateNavCalibrationStep()
     this->SelectImageFrame->SetParent(NULL);
     this->SelectImageFrame->Delete();
     }
-  if (this->SelectImageButton)
+  //if (this->SelectImageButton)
+  //  {
+  //  this->SelectImageButton->SetParent(NULL);
+  //  this->SelectImageButton->Delete();
+  //  }
+  if (this->ZFrameImageSelectorWidget)
     {
-    this->SelectImageButton->SetParent(NULL);
-    this->SelectImageButton->Delete();
+    this->ZFrameImageSelectorWidget->SetParent(NULL);
+    this->ZFrameImageSelectorWidget->Delete();
     }
   if (this->CalibrateButton)
     {
@@ -126,23 +132,42 @@ void vtkProstateNavCalibrationStep::ShowUserInterface()
   this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
                this->SelectImageFrame->GetWidgetName());
 
-  if (!this->SelectImageButton)
+  //if (!this->SelectImageButton)
+  //  {
+  //  this->SelectImageButton = vtkKWLoadSaveButtonWithLabel::New();
+  //  this->SelectImageButton->SetParent(this->SelectImageFrame);
+  //  this->SelectImageButton->Create();
+  //  this->SelectImageButton->SetWidth(50);
+  //  this->SelectImageButton->GetWidget()->SetText ("Browse Image File");
+  //  /*
+  //  this->SelectImageButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes(
+  //    "{ {ProstateNav} {*.dcm} }");
+  //  */
+  //  this->SelectImageButton->GetWidget()->GetLoadSaveDialog()
+  //    ->RetrieveLastPathFromRegistry("OpenPath");
+  //  }
+  //
+  //this->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
+  //             this->SelectImageButton->GetWidgetName());
+
+  if (!this->ZFrameImageSelectorWidget)
     {
-    this->SelectImageButton = vtkKWLoadSaveButtonWithLabel::New();
-    this->SelectImageButton->SetParent(this->SelectImageFrame);
-    this->SelectImageButton->Create();
-    this->SelectImageButton->SetWidth(50);
-    this->SelectImageButton->GetWidget()->SetText ("Browse Image File");
-    /*
-    this->SelectImageButton->GetWidget()->GetLoadSaveDialog()->SetFileTypes(
-      "{ {ProstateNav} {*.dcm} }");
-    */
-    this->SelectImageButton->GetWidget()->GetLoadSaveDialog()
-      ->RetrieveLastPathFromRegistry("OpenPath");
+    this->ZFrameImageSelectorWidget = vtkSlicerNodeSelectorWidget::New() ;
+    this->ZFrameImageSelectorWidget->SetParent(this->SelectImageFrame);
+    this->ZFrameImageSelectorWidget->Create(); 
+    this->ZFrameImageSelectorWidget->AddNodeClass("vtkMRMLScalarVolumeNode", NULL, NULL, NULL);
+    this->ZFrameImageSelectorWidget->SetMRMLScene(this->MRMLScene);
+    this->ZFrameImageSelectorWidget->SetBorderWidth(2);
+    this->ZFrameImageSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+    this->ZFrameImageSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
+    this->ZFrameImageSelectorWidget->SetLabelText( "ZFrame Image: ");
+    this->ZFrameImageSelectorWidget->NewNodeEnabledOn();
+    this->ZFrameImageSelectorWidget->SetBalloonHelpString("Select Z-frame image node");
+    this->ZFrameImageSelectorWidget->SetEnabled(1);
     }
 
-  this->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
-               this->SelectImageButton->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
+               this->ZFrameImageSelectorWidget->GetWidgetName());
 
   if (!this->CalibrateButton)
     {
@@ -228,8 +253,10 @@ void vtkProstateNavCalibrationStep::ProcessGUIEvents(vtkObject *caller,
   if (this->CalibrateButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    const char *filename = this->SelectImageButton->GetWidget()->GetFileName();
-    PerformZFrameCalibration(filename);
+    //const char *filename = this->SelectImageButton->GetWidget()->GetFileName();
+    vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->ZFrameImageSelectorWidget->GetSelected());
+    //PerformZFrameCalibration(filename);
+    PerformZFrameCalibration(volumeNode);
     }
 }
 
@@ -326,4 +353,16 @@ void vtkProstateNavCalibrationStep::PerformZFrameCalibration(const char* filenam
     std::cerr << "Couldn't find ZFrame image in the MRML scene." << std::endl;
   }
 }
+
+
+//----------------------------------------------------------------------------
+void vtkProstateNavCalibrationStep::PerformZFrameCalibration(vtkMRMLScalarVolumeNode* node)
+{
+  if (node)
+    {
+    this->GetProstateNavManager()->GetRobotNode()->PerformRegistration(node);
+    }
+
+}
+
 

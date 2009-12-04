@@ -25,6 +25,8 @@
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 
+#include "vtkSlicerNodeSelectorWidget.h"
+
 class VTK_PROSTATENAV_EXPORT vtkProstateNavCalibrationStep : public vtkProstateNavStep
 {
 public:
@@ -38,15 +40,19 @@ public:
   void ShowZFrameModel(bool show);
   void ShowWorkspaceModel(bool show);
 
+  // Description:
+  // If a file name is specified, the function will import an image from the file
+  // to the MRML scene and call Z-Frame calibration code.
   void PerformZFrameCalibration(const char* filename);
-
+  void PerformZFrameCalibration(vtkMRMLScalarVolumeNode* node);
   
 protected:
   vtkProstateNavCalibrationStep();
   ~vtkProstateNavCalibrationStep();
 
   vtkKWFrame       *SelectImageFrame;
-  vtkKWLoadSaveButtonWithLabel *SelectImageButton;
+  //vtkKWLoadSaveButtonWithLabel *SelectImageButton;
+  vtkSlicerNodeSelectorWidget *ZFrameImageSelectorWidget;
   vtkKWPushButton  *CalibrateButton;
   vtkKWCheckButton *ShowZFrameCheckButton;
   vtkKWCheckButton *ShowWorkspaceCheckButton;
