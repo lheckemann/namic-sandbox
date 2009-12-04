@@ -1,6 +1,7 @@
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
+#include "itkBinaryThresholdImageFilter.h"
 
 #include <iomanip>
 
@@ -8,18 +9,32 @@ template <unsigned int ImageDimension>
 int LabelOverlapMeasures( int argc, char * argv[] )
 {
   typedef unsigned int PixelType;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::OrientedImage<PixelType, ImageDimension> ImageType;
 
   typedef itk::ImageFileReader<ImageType>  ReaderType;
+  typedef itk::BinaryThresholdImageFilter<ImageType,ImageType> ThresholdType;
   typename ReaderType::Pointer reader1 = ReaderType::New();
   reader1->SetFileName( argv[2] );
   typename ReaderType::Pointer reader2 = ReaderType::New();
   reader2->SetFileName( argv[3] );
 
+  typename ThresholdType::Pointer thresh1 = ThresholdType::New();
+  typename ThresholdType::Pointer thresh2 = ThresholdType::New();
+
+  thresh1->SetInput(reader1->GetOutput());
+  thresh1->SetUpperThreshold(255);
+  thresh1->SetLowerThreshold(1);
+  thresh1->SetInsideValue(1);
+
+  thresh2->SetInput(reader2->GetOutput());
+  thresh2->SetUpperThreshold(255);
+  thresh2->SetLowerThreshold(1);
+  thresh2->SetInsideValue(1);
+
   typedef itk::LabelOverlapMeasuresImageFilter<ImageType> FilterType;
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetSourceImage( reader1->GetOutput() );
-  filter->SetTargetImage( reader2->GetOutput() );
+  filter->SetSourceImage( thresh1->GetOutput() );
+  filter->SetTargetImage( thresh2->GetOutput() );
   filter->Update();
 
   std::cout << "                                          "
