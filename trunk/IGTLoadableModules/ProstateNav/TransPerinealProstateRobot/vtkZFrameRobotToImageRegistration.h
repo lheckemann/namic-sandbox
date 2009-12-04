@@ -55,7 +55,9 @@ class VTK_PROSTATENAV_EXPORT vtkZFrameRobotToImageRegistration : public vtkRobot
   // Methods related to finding the fiducial artifacts in the MR images.
   void Init(int xsize, int ysize);
   int  ZFrameRegistration(vtkMRMLScalarVolumeNode* volumeNode,
-                          vtkMRMLLinearTransformNode* transformNode, int slindex);
+                          vtkMRMLLinearTransformNode* transformNode, int slindex_s, int slindex_e);
+  int  ZFrameRegistrationQuaternion(float position[3], float quaternion[4],
+                                    Matrix& srcImage, int xsize, int ysize);
   bool LocateFiducials(Matrix &image, int xsize, int ysize, 
                        int Zcoordinates[7][2], float tZcoordinates[7][2]);
   void FindSubPixelPeak(int Zcoordinate[2], float tZcoordinate[2],
