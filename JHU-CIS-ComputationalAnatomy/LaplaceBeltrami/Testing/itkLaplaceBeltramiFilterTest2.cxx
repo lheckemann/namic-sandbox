@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 
 #ifdef _WINDOWS
 #include <getoptwin32.h>
