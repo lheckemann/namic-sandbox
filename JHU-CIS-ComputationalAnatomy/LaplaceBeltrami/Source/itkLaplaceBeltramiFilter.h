@@ -98,16 +98,16 @@ public:
   typedef vnl_sparse_matrix< double >  LBMatrixType;
 
   /** Set the number of eigenvalues to produce */
-  void SetEigenValueCount( unsigned int );
+  void SetEigenValueCount( unsigned int ); // FIXME: Why is this not using the itkSetMacro() ?
 
   /** Get the Laplace Beltrami operator */
-  void GetLBOperator( LBMatrixType& );
+  void GetLBOperator( LBMatrixType& ) const;
 
   /** Get the areas for each vertex */
-  void GetVertexAreas( LBMatrixType& );
+  void GetVertexAreas( LBMatrixType& ) const;
 
   /** Get a single surface harmonic */
-  bool SetSurfaceHarmonic( unsigned int harmonic );
+  bool SetSurfaceHarmonic( unsigned int harmonic ); // FIXME: Why is this not using the itkSetMacro() ?
 
 protected:
   LaplaceBeltramiFilter();

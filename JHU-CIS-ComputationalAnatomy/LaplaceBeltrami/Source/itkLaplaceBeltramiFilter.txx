@@ -35,9 +35,9 @@ namespace itk
  */
 template <class TInputMesh, class TOutputMesh>
 LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
-::LaplaceBeltramiFilter() :
-  m_EigenValueCount(0)
+::LaplaceBeltramiFilter()
 {
+  this->m_EigenValueCount = 0;
 }
 
 /**
@@ -48,7 +48,9 @@ void
 LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
 ::SetEigenValueCount( unsigned int evCount )
 {
+  // FIXME: Why is this method not using the itkSetMacro() ?
   this->m_EigenValueCount = evCount;
+  this->Modified(); 
 }
 
 /**
@@ -57,7 +59,7 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
 template <class TInputMesh, class TOutputMesh>
 void
 LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
-::GetLBOperator( LBMatrixType& lbOp )
+::GetLBOperator( LBMatrixType& lbOp ) const
 {
   lbOp = this->m_LBOperator;
 }
@@ -68,7 +70,7 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
 template <class TInputMesh, class TOutputMesh>
 void
 LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
-::GetVertexAreas( LBMatrixType& lbVa )
+::GetVertexAreas( LBMatrixType& lbVa ) const
 {
   lbVa = this->m_VertexAreas;
 }
@@ -82,6 +84,8 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
+  os << "Harmonic " << this->m_Harmonics << std::endl;
+  os << "Eigen Value Count " << this->m_EigenValueCount << std::endl;
 }
 
 /**
@@ -280,7 +284,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
     sse.CalculateNPairs(C, this->m_EigenValueCount, false);
 
     // get the output
-    m_Harmonics.set_size(this->m_EigenValueCount, vertexCount);
+    this->m_Harmonics.set_size(this->m_EigenValueCount, vertexCount);
 
     for (unsigned int k = 0; k < this->m_EigenValueCount; k++)
       {
@@ -294,13 +298,13 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
         }
 
       eigenvector /= sqrt(evFactorSum);
-      m_Harmonics.set_row(k, eigenvector);
+      this->m_Harmonics.set_row(k, eigenvector);
       }
     this->SetSurfaceHarmonic(0);
     }
   else
     {
-    m_Harmonics.clear();
+    this->m_Harmonics.clear();
     }
 }
 
@@ -312,9 +316,9 @@ bool
 LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
 ::SetSurfaceHarmonic( unsigned int harmonic )
 {
-  if (harmonic >= m_Harmonics.rows())
+  if ( harmonic >= this->m_Harmonics.rows() )
     {
-    return false;
+    return false;  // FIXME: Why to fail silently ? shouldn't this throw an exception ?
     }
 
   OutputMeshPointer surface = this->GetOutput();

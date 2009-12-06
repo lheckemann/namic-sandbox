@@ -70,6 +70,12 @@ int main( int argc, char *argv[] )
     std::cout << excp << std::endl;
     }
 
+  // Purposely attempt to set a harmonic that is too large
+  filter->SetSurfaceHarmonic( 10000 );
+
+  // Now setting it to an acceptable value
+  filter->SetSurfaceHarmonic( 0 );
+
   //
   //  Now connect the input and verify that it runs fine.
   // 
