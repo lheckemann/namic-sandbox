@@ -269,9 +269,8 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
         {
         if (m_LBOperator(rowIx, colIx))
           {
-            C(rowIx, colIx) = m_LBOperator(rowIx, colIx) /
-                 (sqrt(m_VertexAreas(rowIx, rowIx) *
-                              m_VertexAreas(colIx, colIx)));
+          C(rowIx, colIx) = m_LBOperator(rowIx, colIx) /
+            (sqrt(m_VertexAreas(rowIx, rowIx) * m_VertexAreas(colIx, colIx)));
           }
         }
       }
@@ -314,11 +313,16 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
 ::SetSurfaceHarmonic( unsigned int harmonic )
 {
   if (harmonic >= m_Harmonics.rows())
+    {
     return false;
+    }
 
   OutputMeshPointer surface = this->GetOutput();
+
   for (unsigned int k = 0; k < this->m_Harmonics.cols(); k++)
+    {
     surface->SetPointData(k, this->m_Harmonics(harmonic, k));
+    }
       
   return true;
 }
