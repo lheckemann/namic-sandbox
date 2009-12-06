@@ -52,10 +52,38 @@ int main( int argc, char *argv[] )
 
   FilterType::Pointer filter = FilterType::New();
 
+  std::cout << "Name of Class = " << filter->GetNameOfClass() << std::endl;
+
+  std::cout << "Test Print() = " << std::endl;
+  filter->Print( std::cout );
+
+  // Intentionally run it without an input to test error management
+  try
+    {
+    filter->Update();
+    std::cerr << "Failed to throw expected exception" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "SUCCESFULLY catched expected exception" << std::endl;
+    std::cout << excp << std::endl;
+    }
+
+  //
+  //  Now connect the input and verify that it runs fine.
+  // 
   filter->SetInput( reader->GetOutput() );
 
-  filter->Update();
+  try
+    {
+    filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
-
 }
