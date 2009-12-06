@@ -327,6 +327,8 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
     {
     surface->SetPointData(k, this->m_Harmonics(harmonic, k));
     }
+
+  this->Modified();
       
   return true;
 }
