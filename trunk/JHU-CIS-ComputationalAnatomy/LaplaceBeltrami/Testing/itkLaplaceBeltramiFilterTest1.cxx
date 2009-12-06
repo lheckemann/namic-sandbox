@@ -91,5 +91,20 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+
+  // Now run the filter without computing eigen values.
+  filter->SetEigenValueCount( 0 );
+
+  try
+    {
+    filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   return EXIT_SUCCESS;
 }
