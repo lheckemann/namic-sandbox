@@ -158,7 +158,9 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
     const unsigned long *tp;
     tp = cellPtr->GetPointIds();
 
-    InputPointType v0,v1,v2;
+    InputPointType v0;
+    InputPointType v1;
+    InputPointType v2;
     inputMesh->GetPoint((int)(tp[0]), &v0);
     inputMesh->GetPoint((int)(tp[1]), &v1);
     inputMesh->GetPoint((int)(tp[2]), &v2);
