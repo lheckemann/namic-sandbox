@@ -124,9 +124,9 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
 
   // state descriptors
   this->ModeListMenu = NULL;
-  this->Mode = vtkPerkStationModuleGUI::ModeId::Training;
+  this->Mode = vtkPerkStationModuleGUI::Training;
   this->StateButtonSet = NULL;
-  this->State = vtkPerkStationModuleGUI::StateId::Calibrate;  
+  this->State = vtkPerkStationModuleGUI::Calibrate;  
   this->DisplayVolumeLevelValue = NULL;
   this->DisplayVolumeWindowValue = NULL;
 
@@ -963,7 +963,9 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   // MODULE GUI FRAME 
   // ---
   // Define your help text and build the help frame here.
-  const char *help = "**PERK Station Module:** **Under Construction** Use this module to perform image overlay guided percutaneous interventions ....";
+  const char *help = "**PERK Station Module:** "
+                     "**Revision 5438** "
+                     "Use this module to perform image overlay guided percutaneous interventions ....";
   const char *about = "This work was supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details. ";
   vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PerkStationModule" );
   this->BuildHelpAndAboutFrame ( page, help, about );
