@@ -66,7 +66,7 @@ int main( int argc, char *argv[] )
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cout << "SUCCESFULLY catched expected exception" << std::endl;
+    std::cout << "SUCCESSFULLY catched expected exception" << std::endl;
     std::cout << excp << std::endl;
     }
 
@@ -94,6 +94,7 @@ int main( int argc, char *argv[] )
 
   // Now run the filter without computing eigen values.
   filter->SetEigenValueCount( 0 );
+  std::cout << "Eigenvalue Count " << filter->GetEigenValueCount() << std::endl;
 
   try
     {
