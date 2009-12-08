@@ -52,9 +52,9 @@ class VTK_HybridNav_EXPORT vtkHybridNavLogic : public vtkSlicerModuleLogic
   
   //BTX
   //functions to enable a model to represent the tool
-  int EnableToolModel(vtkMRMLHybridNavToolNode* tn);
-  vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
-  //vtkMRMLModelNode* SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode, int v);
+  vtkMRMLHybridNavToolNode* CreateToolModel(vtkMRMLHybridNavToolNode* tnode);
+  //vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
+  void SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode, int v);
   //ETX
   
  protected:

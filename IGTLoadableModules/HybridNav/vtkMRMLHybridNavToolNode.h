@@ -17,12 +17,12 @@
 
 #include "vtkHybridNavWin32Header.h"
 #include "vtkMRML.h"
-#include "vtkMRMLNode.h"
+#include "vtkMRMLModelNode.h"
 #include "vtkMRMLStorageNode.h"
 #include "vtkObject.h"
-#include "vtkMRMLLinearTransformNode.h"
+#include "vtkMatrix4x4.h"
 
-class VTK_HybridNav_EXPORT vtkMRMLHybridNavToolNode : public vtkMRMLNode
+class VTK_HybridNav_EXPORT vtkMRMLHybridNavToolNode : public vtkMRMLModelNode
 {
 
 public:
@@ -30,7 +30,7 @@ public:
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
   static vtkMRMLHybridNavToolNode *New();
-  vtkTypeMacro(vtkMRMLHybridNavToolNode,vtkMRMLNode);
+  vtkTypeMacro(vtkMRMLHybridNavToolNode, vtkMRMLModelNode);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Create instance of a HybridNavTool node.
@@ -47,6 +47,9 @@ public:
 
   // Get unique node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName() {return "HybridNavTool";};
+  
+  //Disactivate the possibility to apply non-linear transforms
+  virtual bool CanApplyNonLinearTransforms() {return 0;};
 
 protected:
   //----------------------------------------------------------------
@@ -58,32 +61,26 @@ protected:
   void operator=(const vtkMRMLHybridNavToolNode&);
 
 public:
- //----------------------------------------------------------------
- // Tool properties
- //----------------------------------------------------------------
+  //----------------------------------------------------------------
+  // Tool properties
+  //----------------------------------------------------------------
 
- vtkGetMacro( Calibrated, int );
- vtkSetMacro( Calibrated, int );
+  vtkGetMacro( Calibrated, int );
+  vtkSetMacro( Calibrated, int );
 
- // tool name, description, node and visibility
- void SetToolName(const char* str) { this->ToolName = str; }
- const char* GetToolName() { return this->ToolName.c_str(); }
- void SetToolDescription(const char* str) { this->ToolDescription = str; }
- const char* GetToolDescription() { return this->ToolDescription.c_str(); }
- void SetToolNode(vtkMRMLNode*);
- vtkMRMLLinearTransformNode* GetToolNode();
- const char* GetToolNodeAsChar();
- void SetToolVisibility(int i);
- int GetToolVisibility(); 
+  // tool name, description, node and visibility
+  void SetToolName(const char* str) { this->ToolName = str; }
+  const char* GetToolName() { return this->ToolName.c_str(); }
+  void SetToolDescription(const char* str) { this->ToolDescription = str; }
+  const char* GetToolDescription() { return this->ToolDescription.c_str(); }
 
 private:
- //BTX
- std::string ToolName;
- std::string ToolDescription;
- //ETX
- int Calibrated;
- int ToolVisibility;
- vtkMRMLLinearTransformNode* transformNode;        //MRML node which contains tracking information
+  //BTX
+  std::string ToolName;
+  std::string ToolDescription;
+  //ETX
+  int Calibrated;
+  vtkMatrix4x4* calMatrix;        // Tranformation matrix from sensor to tool tip (calibration)
 
 };
 

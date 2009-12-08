@@ -60,17 +60,14 @@ vtkMRMLHybridNavToolNode::vtkMRMLHybridNavToolNode()
   this->Calibrated = 0;
   this->ToolName = "";
   this->ToolDescription = "Description";
-  transformNode = NULL;
-  this->ToolVisibility = 1;
+  calMatrix = vtkMatrix4x4::New();
+  calMatrix->Identity();
 }
 
 //----------------------------------------------------------------------------
 vtkMRMLHybridNavToolNode::~vtkMRMLHybridNavToolNode()
 {
-  if (transformNode)
-    {
-    this->transformNode->Delete();
-    }
+  calMatrix->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -100,42 +97,42 @@ void vtkMRMLHybridNavToolNode::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //---------------------------------------------------------------------------
-void vtkMRMLHybridNavToolNode::SetToolNode(vtkMRMLNode* node)
+/*void vtkMRMLHybridNavToolNode::SetToolNode(vtkMRMLNode* node)
 {
   //cast the node to a vtkMRMLLinearNode
   if (node)
   {
     this->transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
   }
-}
+}*/
 
 //--------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLHybridNavToolNode::GetToolNode()
+/*vtkMRMLLinearTransformNode* vtkMRMLHybridNavToolNode::GetToolNode()
 {
   if (transformNode)
     {
     return this->transformNode;
     }
-}
+}*/
 
 //--------------------------------------------------------------------------
-const char* vtkMRMLHybridNavToolNode::GetToolNodeAsChar()
+/*const char* vtkMRMLHybridNavToolNode::GetToolNodeAsChar()
 {
   if (transformNode)
     return this->transformNode->GetID();
   else
     return "None";
-}
+}*/
 
 //--------------------------------------------------------------------------
-void vtkMRMLHybridNavToolNode::SetToolVisibility(int i)
+/*void vtkMRMLHybridNavToolNode::SetToolVisibility(int i)
 {
   this->ToolVisibility = i;
   std::cerr << "Tool Visibility is " << this->ToolVisibility << std::endl;
-}
+}*/
 
 //--------------------------------------------------------------------------
-int vtkMRMLHybridNavToolNode::GetToolVisibility()
+/*int vtkMRMLHybridNavToolNode::GetToolVisibility()
 {
   return this->ToolVisibility;
-}
+}*/

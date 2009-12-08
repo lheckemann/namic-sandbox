@@ -82,58 +82,89 @@ void vtkHybridNavLogic::UpdateAll()
 }
 
 //---------------------------------------------------------------------------
-/*int vtkHybridNavLogic::EnableToolModel(vtkMRMLHybridNavToolNode* tnode)
+vtkMRMLHybridNavToolNode* vtkHybridNavLogic::CreateToolModel(vtkMRMLHybridNavToolNode* tnode)
 {
-  vtkMRMLModelNode* mnode = this->AddLocatorModel("HybridNavTool", 0.5, 0.5, 0.5);
-  vtkMRMLLinearTransformNode *tn = tnode->GetToolNode();
-  if (!tnode)
-    {
-    return 0;
-    }
-  else
-    {
-    mnode->SetAndObserveTransformNodeID(tn->GetID());
-    mnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
-    }
+  //Create display node and add to scene
+  vtkMRMLModelDisplayNode*  toolDisp = vtkMRMLModelDisplayNode::New();
+  
+  GetMRMLScene()->SaveStateForUndo();
+  GetMRMLScene()->AddNode(toolDisp);
+  toolDisp->SetScene(this->GetMRMLScene());
+  
+  //Associate display node to tool node
+  tnode->SetScene(this->GetMRMLScene());
+  tnode->SetAndObserveDisplayNodeID(toolDisp->GetID());
+  
+  // Graphical representation of the tool node
+  // Cylinder represents the locator stick
+  vtkCylinderSource *cylinder = vtkCylinderSource::New();
+  cylinder->SetRadius(1.5);
+  cylinder->SetHeight(100);
+  cylinder->SetCenter(0, 0, 0);
+  cylinder->Update();
 
-  return 1;
-}*/
+  // Rotate cylinder
+  vtkTransformPolyDataFilter *tfilter = vtkTransformPolyDataFilter::New();
+  vtkTransform* trans =   vtkTransform::New();
+  trans->RotateX(90.0);
+  trans->Translate(0.0, -50.0, 0.0);
+  trans->Update();
+  tfilter->SetInput(cylinder->GetOutput());
+  tfilter->SetTransform(trans);
+  tfilter->Update();
+  
+  // Sphere represents the tool tracking sensor
+  vtkSphereSource *sphere = vtkSphereSource::New();
+  sphere->SetRadius(3.0);
+  sphere->SetCenter(0, 0, 0);
+  sphere->Update();
+  
+  //Append geometries together
+  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+  apd->AddInput(sphere->GetOutput());
+  apd->AddInput(tfilter->GetOutput());
+  apd->Update();
+  
+  tnode->SetAndObservePolyData(apd->GetOutput());
+  
+  double color[3];
+  color[0] = 0.5;
+  color[1] = 0.5;
+  color[2] = 0.3;
+  toolDisp->SetPolyData(tnode->GetPolyData());
+  toolDisp->SetColor(color);
+  toolDisp->SetVisibility(1);
+  
+  trans->Delete();
+  tfilter->Delete();
+  cylinder->Delete();
+  sphere->Delete();
+  apd->Delete();
+
+  //locatorModel->Delete();
+  toolDisp->Delete();
+
+  return tnode;
+}
 
 //---------------------------------------------------------------------------
-/*vtkMRMLModelNode* vtkHybridNavLogic::SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode, int v)
+void vtkHybridNavLogic::SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode, int v)
 {
-  /*vtkMRMLModelNode*   locatorModel;
-  vtkMRMLDisplayNode* locatorDisp;
+  vtkMRMLDisplayNode* toolDisp;
 
-  // Check if any node with the specified name exists
-  vtkMRMLScene*  scene = this->GetApplicationLogic()->GetMRMLScene();
-  vtkCollection* collection = scene->GetNodesByName(nodeName);
-
-  if (collection != NULL && collection->GetNumberOfItems() == 0)
+  if (tnode)
     {
-    // if a node doesn't exist
-    locatorModel = AddLocatorModel(nodeName, 0.0, 1.0, 1.0);
-    }
-  else
-    {
-    locatorModel = vtkMRMLModelNode::SafeDownCast(collection->GetItemAsObject(0));
-    }
-
-  if (locatorModel)
-    {
-    locatorDisp = locatorModel->GetDisplayNode();
-    locatorDisp->SetVisibility(v);
-    locatorModel->Modified();
+    toolDisp = tnode->GetDisplayNode();
+    toolDisp->SetVisibility(v);
+    tnode->Modified();
     this->GetApplicationLogic()->GetMRMLScene()->Modified();
     }
-
-  return locatorModel;
+    
   std::cerr << "Set Visibility turned On" << std::endl;
 }
-*/
 
 //-------------------------------------------------------------------------------------------------------------
-vtkMRMLModelNode* vtkHybridNavLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
+/*vtkMRMLModelNode* vtkHybridNavLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
 {
 
   vtkMRMLModelNode           *locatorModel;
@@ -200,4 +231,4 @@ vtkMRMLModelNode* vtkHybridNavLogic::AddLocatorModel(const char* nodeName, doubl
   locatorDisp->Delete();
 
   return locatorModel;
-}
+}*/

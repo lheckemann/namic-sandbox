@@ -49,7 +49,7 @@ public:
    *  the pivot calibration and the tracker MRML node information.
    *  It is assumed that the tracker is already in tracking mode and that the
    *  tool is connected to the given port and channel. */
-  void Initialize( unsigned int n, vtkMRMLNode* node );
+  void Initialize( unsigned int n, vtkMRMLTransformNode* node );
 
   /* This method is part of the data acquisition before the actual calibration
    * process. We add a transform to the vector which stores the data. When the
@@ -94,7 +94,6 @@ public:
    *  respectively denoting that the RMSE is and isn't available.
    *  \sa PivotCalibrationAlgorithm */
   //void RequestCalibrationRMSE();
-
 
 
 protected:
