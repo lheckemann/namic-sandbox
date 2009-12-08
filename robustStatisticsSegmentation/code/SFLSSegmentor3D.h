@@ -15,17 +15,21 @@ template< typename TPixel >
 class CSFLSSegmentor3D : public CSFLS
 {
 public:
-
   typedef CSFLSSegmentor3D< TPixel > Self;
+
+  typedef CSFLS::NodeType NodeType;
+  typedef CSFLS::CSFLSLayer CSFLSLayer;
   //typedef boost::shared_ptr< Self > Pointer;
 
   typedef itk::Image<TPixel, 3> TImage;
+  typedef itk::Image<float, 3> TFloatImage;
   typedef itk::Image<double, 3> TDoubleImage;
   typedef itk::Image<char, 3> TCharImage;
   typedef itk::Image<unsigned char, 3> TUCharImage;
 
   typedef TImage ImageType;
-  typedef TDoubleImage LSImageType;
+  //typedef TDoubleImage LSImageType;
+  typedef TFloatImage LSImageType;
   typedef TCharImage LabelImageType;
   typedef TUCharImage MaskImageType;
 

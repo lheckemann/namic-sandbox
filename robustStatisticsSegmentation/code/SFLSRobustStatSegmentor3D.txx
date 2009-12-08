@@ -48,7 +48,7 @@ CSFLSRobustStatSegmentor3D< TPixel >
 
   {
     long i = 0;
-    for (CSFLSLayer::iterator itz = this->m_lz.begin(); itz != this->m_lz.end(); ++itz, ++i)
+    for (typename CSFLSLayer::iterator itz = this->m_lz.begin(); itz != this->m_lz.end(); ++itz, ++i)
       {
         long ix = (*itz)[0];
         long iy = (*itz)[1];
@@ -126,7 +126,8 @@ CSFLSRobustStatSegmentor3D< TPixel >
 
   for (long ifeature = 0; ifeature < m_numberOfFeature; ++ifeature)
     {
-      TDoubleImagePointer fimg = TDoubleImage::New();
+      //TDoubleImagePointer fimg = TDoubleImage::New();
+      TFloatImagePointer fimg = TFloatImage::New();
       fimg->SetRegions(this->mp_img->GetLargestPossibleRegion() );
       fimg->Allocate();
       fimg->CopyInformation(this->mp_img);

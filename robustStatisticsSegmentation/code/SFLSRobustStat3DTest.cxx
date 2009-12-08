@@ -77,7 +77,7 @@ int main(int argc, char** argv)
   
   typedef itk::Image< unsigned char, 3 > MaskImageType;
 
-  MaskImageType::Pointer finalMask = getFinalMask<double>(seg.mp_phi, labelValue, 2.0);
+  MaskImageType::Pointer finalMask = getFinalMask<float>(seg.mp_phi, labelValue, 2.0);
   finalMask->CopyInformation(img);
 
   typedef itk::ImageFileWriter< MaskImageType > WriterType;

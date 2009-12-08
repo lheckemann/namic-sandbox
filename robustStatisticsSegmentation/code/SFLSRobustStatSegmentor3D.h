@@ -18,6 +18,10 @@ public:
   typedef CSFLSSegmentor3D< TPixel > SuperClassType;
 
   typedef CSFLSRobustStatSegmentor3D< TPixel > Self;
+
+
+  typedef typename SuperClassType::NodeType NodeType;
+  typedef typename SuperClassType::CSFLSLayer CSFLSLayer;
   //typedef boost::shared_ptr< Self > Pointer;
 
 
@@ -43,8 +47,12 @@ public:
   typedef typename TLabelImage::Pointer TLabelImagePointer;
 
 
-  typedef typename SuperClassType::TDoubleImage TDoubleImage;
-  typedef typename TDoubleImage::Pointer TDoubleImagePointer;
+//   typedef typename SuperClassType::TDoubleImage TDoubleImage;
+//   typedef typename TDoubleImage::Pointer TDoubleImagePointer;
+
+  typedef typename SuperClassType::TFloatImage TFloatImage;
+  typedef typename TFloatImage::Pointer TFloatImagePointer;
+
 
   typedef typename SuperClassType::MaskImageType TMaskImage;
 
@@ -81,7 +89,8 @@ protected:
      2. median absolute deviation (MAD)
   */
   TLabelImagePointer m_featureComputed; // if feature at this point is computed, then is 1
-  std::vector<TDoubleImagePointer> m_featureImageList;
+  //std::vector<TDoubleImagePointer> m_featureImageList;
+  std::vector<TFloatImagePointer> m_featureImageList;
 
 
   double m_kernelWidthFactor; // kernel_width = empirical_std/m_kernelWidthFactor, Eric has it at 10.0
