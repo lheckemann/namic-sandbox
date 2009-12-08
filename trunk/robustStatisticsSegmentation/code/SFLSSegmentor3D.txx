@@ -443,12 +443,12 @@ CSFLSSegmentor3D< TPixel >
           energy fnal computation. */
         if ( phi_old <= 0 && phi_new > 0 )
           {
-            m_lIn2out.push_back(CSFLSLayer::NodeType(ix, iy, iz));
+            m_lIn2out.push_back(NodeType(ix, iy, iz));
           }
 
         if( phi_old>0  && phi_new <= 0)
           {
-            m_lOut2in.push_back(CSFLSLayer::NodeType(ix, iy, iz));
+            m_lOut2in.push_back(NodeType(ix, iy, iz));
           }
 
         //           // DEBUG
@@ -735,42 +735,42 @@ CSFLSSegmentor3D< TPixel >
       TIndex idx1 = {{ix+1, iy, iz}};
       if ( (ix+1 < m_nx) && doubleEqual(mp_phi->GetPixel(idx1), -3.0) )
         {
-          Sn2.push_back(CSFLSLayer::NodeType(ix+1, iy, iz));
+          Sn2.push_back(NodeType(ix+1, iy, iz));
           mp_phi->SetPixel(idx1, mp_phi->GetPixel(idx) - 1 ); 
         }
 
       TIndex idx2 = {{ix-1, iy, iz}};
       if ( (ix-1 >= 0) && doubleEqual(mp_phi->GetPixel(idx2), -3.0) )
         {
-          Sn2.push_back(CSFLSLayer::NodeType(ix-1, iy, iz));
+          Sn2.push_back(NodeType(ix-1, iy, iz));
           mp_phi->SetPixel(idx2, mp_phi->GetPixel(idx) - 1); 
         }
 
       TIndex idx3 = {{ix, iy+1, iz}};
       if ( (iy+1 < m_ny) && doubleEqual(mp_phi->GetPixel(idx3), -3.0) )
         {
-          Sn2.push_back(CSFLSLayer::NodeType(ix, iy+1, iz));
+          Sn2.push_back(NodeType(ix, iy+1, iz));
           mp_phi->SetPixel(idx3, mp_phi->GetPixel(idx) - 1 ); 
         }
 
       TIndex idx4 = {{ix, iy-1, iz}};
       if ( (iy-1>=0) && doubleEqual(mp_phi->GetPixel(idx4), -3.0) )
         {
-          Sn2.push_back(CSFLSLayer::NodeType(ix, iy-1, iz) );
+          Sn2.push_back(NodeType(ix, iy-1, iz) );
           mp_phi->SetPixel(idx4, mp_phi->GetPixel(idx) - 1 );
         }
 
       TIndex idx5 = {{ix, iy, iz+1}};
       if ( (iz+1 < m_nz) && doubleEqual(mp_phi->GetPixel(idx5), -3.0) )
         {
-          Sn2.push_back(CSFLSLayer::NodeType(ix, iy, iz+1));
+          Sn2.push_back(NodeType(ix, iy, iz+1));
           mp_phi->SetPixel(idx5, mp_phi->GetPixel(idx) - 1 ); 
         }
 
       TIndex idx6 = {{ix, iy, iz-1}};
       if ( (iz-1>=0) && doubleEqual(mp_phi->GetPixel(idx6), -3.0) )
         {
-          Sn2.push_back(CSFLSLayer::NodeType(ix, iy, iz-1) );
+          Sn2.push_back(NodeType(ix, iy, iz-1) );
           mp_phi->SetPixel(idx6, mp_phi->GetPixel(idx) - 1 );
         }
     }
@@ -797,42 +797,42 @@ CSFLSSegmentor3D< TPixel >
       TIndex idx1 = {{ix+1, iy, iz}};
       if ( (ix+1 < m_nx) && doubleEqual(mp_phi->GetPixel(idx1), 3.0) )
         {
-          Sp2.push_back(CSFLSLayer::NodeType(ix+1, iy, iz));
+          Sp2.push_back(NodeType(ix+1, iy, iz));
           mp_phi->SetPixel(idx1, mp_phi->GetPixel(idx) + 1 ); 
         }
 
       TIndex idx2 = {{ix-1, iy, iz}};
       if ( (ix-1 >= 0) && doubleEqual(mp_phi->GetPixel(idx2), 3.0) )
         {
-          Sp2.push_back(CSFLSLayer::NodeType(ix-1, iy, iz));
+          Sp2.push_back(NodeType(ix-1, iy, iz));
           mp_phi->SetPixel(idx2, mp_phi->GetPixel(idx) + 1); 
         }
 
       TIndex idx3 = {{ix, iy+1, iz}};
       if ( (iy+1 < m_ny) && doubleEqual(mp_phi->GetPixel(idx3), 3.0) )
         {
-          Sp2.push_back(CSFLSLayer::NodeType(ix, iy+1, iz));
+          Sp2.push_back(NodeType(ix, iy+1, iz));
           mp_phi->SetPixel(idx3, mp_phi->GetPixel(idx) + 1 ); 
         }
 
       TIndex idx4 = {{ix, iy-1, iz}};
       if ( (iy-1>=0) && doubleEqual(mp_phi->GetPixel(idx4), 3.0) )
         {
-          Sp2.push_back(CSFLSLayer::NodeType(ix, iy-1, iz) );
+          Sp2.push_back(NodeType(ix, iy-1, iz) );
           mp_phi->SetPixel(idx4, mp_phi->GetPixel(idx) + 1 );
         }
 
       TIndex idx5 = {{ix, iy, iz+1}};
       if ( (iz+1 < m_nz) && doubleEqual(mp_phi->GetPixel(idx5), 3.0) )
         {
-          Sp2.push_back(CSFLSLayer::NodeType(ix, iy, iz+1));
+          Sp2.push_back(NodeType(ix, iy, iz+1));
           mp_phi->SetPixel(idx5, mp_phi->GetPixel(idx) + 1 ); 
         }
 
       TIndex idx6 = {{ix, iy, iz-1}};
       if ( (iz-1>=0) && doubleEqual(mp_phi->GetPixel(idx6), 3.0) )
         {
-          Sp2.push_back(CSFLSLayer::NodeType(ix, iy, iz-1) );
+          Sp2.push_back(NodeType(ix, iy, iz-1) );
           mp_phi->SetPixel(idx6, mp_phi->GetPixel(idx) + 1 );
         }
     } 
@@ -1015,7 +1015,7 @@ CSFLSSegmentor3D< TPixel >
                        || (iz+1 < m_nz && mp_mask->GetPixel(idx6) == 0) \
                        || (iz-1 >= 0 && mp_mask->GetPixel(idx5) == 0) )
                     {
-                      m_lz.push_back(CSFLSLayer::NodeType(ix, iy, iz));
+                      m_lz.push_back(NodeType(ix, iy, iz));
 
                       mp_label->SetPixel(idx, 0);
                       mp_phi->SetPixel(idx, 0.0);
@@ -1055,14 +1055,14 @@ CSFLSSegmentor3D< TPixel >
               mp_label->SetPixel(idx, 1); 
               mp_phi->SetPixel(idx, 1); 
             
-              m_lp1.push_back( CSFLSLayer::NodeType(ix+1, iy, iz) );
+              m_lp1.push_back( NodeType(ix+1, iy, iz) );
             }
           else if ( mp_label->GetPixel(idx) == -3 )
             {
               mp_label->SetPixel(idx, -1); 
               mp_phi->SetPixel(idx, -1); 
             
-              m_ln1.push_back( CSFLSLayer::NodeType(ix+1, iy, iz) );
+              m_ln1.push_back( NodeType(ix+1, iy, iz) );
             }
         }
 
@@ -1075,14 +1075,14 @@ CSFLSSegmentor3D< TPixel >
               mp_label->SetPixel(idx, 1); 
               mp_phi->SetPixel(idx, 1); 
             
-              m_lp1.push_back( CSFLSLayer::NodeType(ix-1, iy, iz) );
+              m_lp1.push_back( NodeType(ix-1, iy, iz) );
             }
           else if ( mp_label->GetPixel(idx) == -3 )
             {
               mp_label->SetPixel(idx, -1); 
               mp_phi->SetPixel(idx, -1); 
             
-              m_ln1.push_back( CSFLSLayer::NodeType(ix-1, iy, iz) );
+              m_ln1.push_back( NodeType(ix-1, iy, iz) );
             }
         }
 
@@ -1095,14 +1095,14 @@ CSFLSSegmentor3D< TPixel >
               mp_label->SetPixel(idx, 1); 
               mp_phi->SetPixel(idx, 1); 
             
-              m_lp1.push_back(CSFLSLayer::NodeType(ix, iy+1, iz) );
+              m_lp1.push_back(NodeType(ix, iy+1, iz) );
             }
           else if ( mp_label->GetPixel(idx) == -3 )
             {
               mp_label->SetPixel(idx, -1); 
               mp_phi->SetPixel(idx, -1); 
             
-              m_ln1.push_back( CSFLSLayer::NodeType(ix, iy+1, iz) );
+              m_ln1.push_back( NodeType(ix, iy+1, iz) );
             }
         }
 
@@ -1115,14 +1115,14 @@ CSFLSSegmentor3D< TPixel >
               mp_label->SetPixel(idx, 1); 
               mp_phi->SetPixel(idx, 1); 
             
-              m_lp1.push_back( CSFLSLayer::NodeType(ix, iy-1, iz) );
+              m_lp1.push_back( NodeType(ix, iy-1, iz) );
             }
           else if ( mp_label->GetPixel(idx) == -3 )
             {
               mp_label->SetPixel(idx, -1); 
               mp_phi->SetPixel(idx, -1); 
             
-              m_ln1.push_back( CSFLSLayer::NodeType(ix, iy-1, iz) );
+              m_ln1.push_back( NodeType(ix, iy-1, iz) );
             }
         }
 
@@ -1135,14 +1135,14 @@ CSFLSSegmentor3D< TPixel >
               mp_label->SetPixel(idx, 1); 
               mp_phi->SetPixel(idx, 1); 
             
-              m_lp1.push_back(CSFLSLayer::NodeType(ix, iy, iz+1) );
+              m_lp1.push_back(NodeType(ix, iy, iz+1) );
             }
           else if ( mp_label->GetPixel(idx) == -3 )
             {
               mp_label->SetPixel(idx, -1); 
               mp_phi->SetPixel(idx, -1); 
             
-              m_ln1.push_back( CSFLSLayer::NodeType(ix, iy, iz+1) );
+              m_ln1.push_back( NodeType(ix, iy, iz+1) );
             }
         }
 
@@ -1155,14 +1155,14 @@ CSFLSSegmentor3D< TPixel >
               mp_label->SetPixel(idx, 1); 
               mp_phi->SetPixel(idx, 1); 
             
-              m_lp1.push_back( CSFLSLayer::NodeType(ix, iy, iz-1) );
+              m_lp1.push_back( NodeType(ix, iy, iz-1) );
             }
           else if ( mp_label->GetPixel(idx) == -3 )
             {
               mp_label->SetPixel(idx, -1); 
               mp_phi->SetPixel(idx, -1); 
             
-              m_ln1.push_back( CSFLSLayer::NodeType(ix, iy, iz-1) );
+              m_ln1.push_back( NodeType(ix, iy, iz-1) );
             }
         }
     }
@@ -1181,7 +1181,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx1, -2); 
           mp_phi->SetPixel(idx1, -2); 
             
-          m_ln2.push_back( CSFLSLayer::NodeType(ix+1, iy, iz) );
+          m_ln2.push_back( NodeType(ix+1, iy, iz) );
         }
 
       TIndex idx2 = {{ix-1, iy, iz}};
@@ -1190,7 +1190,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx2, -2); 
           mp_phi->SetPixel(idx2, -2); 
             
-          m_ln2.push_back( CSFLSLayer::NodeType(ix-1, iy, iz) );
+          m_ln2.push_back( NodeType(ix-1, iy, iz) );
         }
 
       TIndex idx3 = {{ix, iy+1, iz}};
@@ -1199,7 +1199,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx3, -2); 
           mp_phi->SetPixel(idx3, -2); 
             
-          m_ln2.push_back( CSFLSLayer::NodeType(ix, iy+1, iz) );
+          m_ln2.push_back( NodeType(ix, iy+1, iz) );
         }
 
       TIndex idx4 = {{ix, iy-1, iz}};
@@ -1208,7 +1208,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx4, -2); 
           mp_phi->SetPixel(idx4, -2); 
             
-          m_ln2.push_back( CSFLSLayer::NodeType(ix, iy-1, iz) );
+          m_ln2.push_back( NodeType(ix, iy-1, iz) );
         }
 
       TIndex idx5 = {{ix, iy, iz+1}};
@@ -1217,7 +1217,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx5, -2); 
           mp_phi->SetPixel(idx5, -2); 
             
-          m_ln2.push_back( CSFLSLayer::NodeType(ix, iy, iz+1) );
+          m_ln2.push_back( NodeType(ix, iy, iz+1) );
         }
 
 
@@ -1227,7 +1227,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx6, -2); 
           mp_phi->SetPixel(idx6, -2); 
             
-          m_ln2.push_back( CSFLSLayer::NodeType(ix, iy, iz-1) );
+          m_ln2.push_back( NodeType(ix, iy, iz-1) );
         }
     }
 
@@ -1244,7 +1244,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx1, 2); 
           mp_phi->SetPixel(idx1, 2); 
             
-          m_lp2.push_back( CSFLSLayer::NodeType(ix+1, iy, iz) );
+          m_lp2.push_back( NodeType(ix+1, iy, iz) );
         }
 
       TIndex idx2 = {{ix-1, iy, iz}};
@@ -1253,7 +1253,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx2, 2); 
           mp_phi->SetPixel(idx2, 2); 
             
-          m_lp2.push_back( CSFLSLayer::NodeType(ix-1, iy, iz) );
+          m_lp2.push_back( NodeType(ix-1, iy, iz) );
         }
 
       TIndex idx3 = {{ix, iy+1, iz}};
@@ -1262,7 +1262,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx3, 2); 
           mp_phi->SetPixel(idx3, 2); 
             
-          m_lp2.push_back( CSFLSLayer::NodeType(ix, iy+1, iz) );
+          m_lp2.push_back( NodeType(ix, iy+1, iz) );
         }
 
       TIndex idx4 = {{ix, iy-1, iz}};
@@ -1271,7 +1271,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx4, 2); 
           mp_phi->SetPixel(idx4, 2); 
             
-          m_lp2.push_back( CSFLSLayer::NodeType(ix, iy-1, iz) );
+          m_lp2.push_back( NodeType(ix, iy-1, iz) );
         }
 
       TIndex idx5 = {{ix, iy, iz+1}};
@@ -1280,7 +1280,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx5, 2); 
           mp_phi->SetPixel(idx5, 2); 
             
-          m_lp2.push_back( CSFLSLayer::NodeType(ix, iy, iz+1) );
+          m_lp2.push_back( NodeType(ix, iy, iz+1) );
         }
 
       TIndex idx6 = {{ix, iy, iz-1}};
@@ -1289,7 +1289,7 @@ CSFLSSegmentor3D< TPixel >
           mp_label->SetPixel(idx6, 2); 
           mp_phi->SetPixel(idx6, 2); 
             
-          m_lp2.push_back( CSFLSLayer::NodeType(ix, iy, iz-1) );
+          m_lp2.push_back( NodeType(ix, iy, iz-1) );
         }
     }
 }
@@ -1369,7 +1369,7 @@ CSFLSSegmentor3D< TPixel >
 
 /* getLevelSetFunction */
 template< typename TPixel >
-itk::Image<double, 3>::Pointer
+itk::Image<float, 3>::Pointer
 CSFLSSegmentor3D< TPixel >
 ::getLevelSetFunction()
 {
