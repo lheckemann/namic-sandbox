@@ -46,7 +46,7 @@ vtkPivotCalibration::~vtkPivotCalibration()
 }
 
 //------------------------------------------------------------------------
-void vtkPivotCalibration::Initialize( unsigned int n,vtkMRMLNode* node )
+void vtkPivotCalibration::Initialize( unsigned int n, vtkMRMLTransformNode* node )
 {
   //Initialize the transform data node and number of transforms
   if (node != NULL)
@@ -69,8 +69,8 @@ int vtkPivotCalibration::AcquireTransform()
 {
   if (!bInitializeError)
     {
-        //Check to see if the calibration vector is already full
-    if( (this->m_Transforms.size() == this->m_RequiredNumberOfTransformations) && (this->bComputationError) )
+    //Check to see if the calibration vector is already full
+    if ( (this->m_Transforms.size() == this->m_RequiredNumberOfTransformations) && (this->bComputationError) )
       {
       //got all the transformations we need for calibration
       std::cerr << "Size of transforms vector: " << this->m_Transforms.size() << std::endl;
@@ -79,6 +79,7 @@ int vtkPivotCalibration::AcquireTransform()
 
       //compute calibration
       this->ResetCalibration();
+      
       this->ComputeCalibration();
 
       //Delete the matrices allocated in memory in the vector
@@ -100,6 +101,7 @@ int vtkPivotCalibration::AcquireTransform()
       vtkMatrix4x4* mat = vtkMatrix4x4::New();
       this->transformNode->GetMatrixTransformToWorld(mat);
       this->m_Transforms.push_back(mat);
+      mat->Print(std::cerr);
       std::cerr << "Number of transforms stacked: " << this->m_Transforms.size() << std::endl;
       return 0;
       }

@@ -153,6 +153,7 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
   // Variables
   //----------------------------------------------------------------
   vtkPivotCalibration* pivot;
+  int Calibrating;
 
   //----------------------------------------------------------------
   // Logic Values

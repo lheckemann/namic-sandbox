@@ -83,6 +83,7 @@ vtkHybridNavGUI::vtkHybridNavGUI ( )
   //----------------------------------------------------------------
   // Variables
   this->pivot = vtkPivotCalibration::New();
+  Calibrating = 0;
 
   //----------------------------------------------------------------
   // Locator  (MRML)  //----------------------------------------------------------------
@@ -405,12 +406,11 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
     std::cerr << "Tool has been added" << std::endl;
     //Create Tool object, populate list and add node to scene
     vtkMRMLHybridNavToolNode* tool = vtkMRMLHybridNavToolNode::New();
+    tool = this->GetLogic()->CreateToolModel(tool);         //Represent the tool
     this->GetMRMLScene()->AddNode(tool);
     this->GetMRMLScene()->Modified();
     tool->Modified();
     tool->Delete();
-    //Represent the tool
-    vtkMRMLModelNode* mnode = this->GetLogic()->AddLocatorModel("HybridNavTool", 0.5, 0.5, 0.5);
     }
   else if (this->DeleteToolButton == vtkKWPushButton::SafeDownCast(caller)
            && event == vtkKWPushButton::InvokedEvent)
@@ -463,8 +463,12 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         = vtkMRMLHybridNavToolNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ToolNodeList[selected]));
       if (tool)
         {
-        tool->SetToolNode(this->ToolNodeSelectorMenu->GetSelected());
-        UpdateToolList(UPDATE_SELECTED_ONLY);
+        if (this->ToolNodeSelectorMenu->GetSelected())   //check if transform has actually been selected
+          {
+          tool->SetAndObserveTransformNodeID(this->ToolNodeSelectorMenu->GetSelected()->GetID());
+          tool->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+          UpdateToolList(UPDATE_SELECTED_ONLY);
+          }
         }
       }
     }
@@ -497,7 +501,7 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         = vtkMRMLHybridNavToolNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->ToolNodeList[selected]));
       if (tool)
         {
-        tool->SetToolVisibility(this->ToolCheckButton->GetSelectedState());
+        this->GetLogic()->SetVisibilityOfToolModel(tool, this->ToolCheckButton->GetSelectedState());
         UpdateToolList(UPDATE_SELECTED_ONLY);
         }
       }
@@ -521,18 +525,20 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
     //Check if a node has been selected
     if (this->CalibrationNodeSelectorMenu->GetSelected())
       {
-      vtkMRMLNode* node = this->CalibrationNodeSelectorMenu->GetSelected();
-
-      //Remove any current observers on node
-
-      //Add observer on selected node
-      vtkIntArray* nodeEvents = vtkIntArray::New();
-      nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
-      vtkSetAndObserveMRMLNodeEventsMacro(node, node, nodeEvents);
-      nodeEvents->Delete();
-
-      //Initialize pivot calibration object
-      pivot->Initialize(this->numPointsEntry->GetValueAsInt(), node);
+      vtkMRMLHybridNavToolNode* tnode = vtkMRMLHybridNavToolNode::SafeDownCast(this->CalibrationNodeSelectorMenu->GetSelected());
+      if (tnode)
+        {
+        //TODO: by adding this observer the TransformModifiedEvent gets called twice every new matrix
+        //Add observer to Tracked Transform Node
+        vtkIntArray* nodeEvents = vtkIntArray::New();
+        nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+        vtkMRMLTransformNode* transformNode = tnode->GetParentTransformNode();
+        vtkSetAndObserveMRMLNodeEventsMacro(transformNode,transformNode,nodeEvents);
+        nodeEvents->Delete();
+        //Initialize pivot calibration object
+        pivot->Initialize(this->numPointsEntry->GetValueAsInt(), transformNode);
+        Calibrating = 1;
+        }
       }
     }
 }
@@ -614,27 +620,27 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
     }
 
   // Detect if something has happened in the MRML scene
-  /*if (caller != NULL)
+  if (event == vtkMRMLTransformableNode::TransformModifiedEvent)
     {
-    std::cerr<< "MRML event called" << std::endl;
-    //vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    std::cerr<< "Tool modified event called" << std::endl;
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
 
     //Check to see if calibration transform node has been updated
-    /*if ((node == dynamic_cast<vtkMRMLNode*>(pivot->transformNode) ) && (event == vtkMRMLTransformableNode::TransformModifiedEvent))
+    if ((node == vtkMRMLNode::SafeDownCast(pivot->transformNode)) && (Calibrating == 1))
       {
-      std::cerr<< "Node event called" << std::endl;
+      std::cerr<< "Calibration Node event called" << std::endl;
       //Print node in terminal and send node to calibration vector
-      std::cerr << "Calibration Node has been updated" << std::endl;
       int i = pivot->AcquireTransform();
       if (i == 1)
         {
         std::cerr << "Calibration matrix: ";
         pivot->CalibrationTransform->Print(std::cerr);
+        Calibrating = 0;
         //Remove observer on selected node
         vtkSetAndObserveMRMLNodeEventsMacro(node, node, NULL);
         }
       }
-    }*/
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -901,7 +907,7 @@ void vtkHybridNavGUI::BuildGUIForCalibrationFrame()
   vtkKWLabel* nodeLabel = vtkKWLabel::New();
   nodeLabel->SetParent(nodeFrame);
   nodeLabel->Create();
-  nodeLabel->SetText("Select Transform: ");
+  nodeLabel->SetText("Select Tool: ");
   nodeLabel->SetWidth(15);
 
   this->CalibrationNodeSelectorMenu = vtkSlicerNodeSelectorWidget::New();
@@ -909,7 +915,7 @@ void vtkHybridNavGUI::BuildGUIForCalibrationFrame()
   this->CalibrationNodeSelectorMenu->Create();
   this->CalibrationNodeSelectorMenu->SetWidth(15);
   this->CalibrationNodeSelectorMenu->SetNewNodeEnabled(0);
-  this->CalibrationNodeSelectorMenu->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, NULL);
+  this->CalibrationNodeSelectorMenu->SetNodeClass("vtkMRMLHybridNavToolNode", NULL, NULL, NULL);
   this->CalibrationNodeSelectorMenu->NoneEnabledOn();
   this->CalibrationNodeSelectorMenu->SetShowHidden(1);
   this->CalibrationNodeSelectorMenu->Create();
@@ -1067,8 +1073,11 @@ void vtkHybridNavGUI::UpdateToolList(int updateLevel)
           ->SetCellText(i,0, tool->GetName());
 
         // Tool Node
-        this->ToolList->GetWidget()
-          ->SetCellText(i,1, tool->GetToolNodeAsChar());
+        if(tool->GetParentTransformNode())
+          {
+          this->ToolList->GetWidget()
+            ->SetCellText(i,1, tool->GetParentTransformNode()->GetID());
+          }
 
         //Tool Calibrated
         const char* c;
@@ -1151,9 +1160,9 @@ void vtkHybridNavGUI::UpdateToolPropertyFrame(int i)
 
   // Tool node
   //TODO: Make sure that when there is no node selected, that the node displays nothing
-  if (tool->GetToolNode())
+  if (tool->GetParentTransformNode())
     {
-    this->ToolNodeSelectorMenu->SetSelected((vtkMRMLNode*)tool->GetToolNode());
+    this->ToolNodeSelectorMenu->SetSelected((vtkMRMLNode*)tool->GetParentTransformNode());
     }
 
   // Tool Description entry
@@ -1164,6 +1173,8 @@ void vtkHybridNavGUI::UpdateToolPropertyFrame(int i)
   //Tool Visibility
   this->ToolCheckButton->EnabledOn();
   this->ToolCheckButton->UpdateEnableState();
-  this->ToolCheckButton->SetSelectedState(tool->GetToolVisibility());
+  vtkMRMLDisplayNode* toolDisp = tool->GetDisplayNode();
+  std::cerr << "Tool visibility: " << toolDisp->GetVisibility() << std::endl;
+  this->ToolCheckButton->SetSelectedState(toolDisp->GetVisibility());
 
 }
