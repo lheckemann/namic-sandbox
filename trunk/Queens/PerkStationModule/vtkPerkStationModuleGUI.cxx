@@ -354,7 +354,7 @@ void vtkPerkStationModuleGUI::AddGUIObservers ( )
   appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
   // add listener to own render window created for secondary monitor  
 
-  if (this->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+  if (this->GetMode() == vtkPerkStationModuleGUI::Clinical)
     {
     this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::KeyPressEvent, (vtkCommand *)this->GUICallbackCommand);    
     }
@@ -411,7 +411,7 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
   
   this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
   this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand); 
-  if (this->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+  if (this->GetMode() == vtkPerkStationModuleGUI::Clinical)
     {
     this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);    
     }
@@ -478,23 +478,23 @@ void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
     // TO DO        
     if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep)
       {
-      this->State = vtkPerkStationModuleGUI::StateId::Calibrate;      
+      this->State = vtkPerkStationModuleGUI::Calibrate;      
       }
     else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->PlanStep)
       {
-      this->State = vtkPerkStationModuleGUI::StateId::Plan;  
+      this->State = vtkPerkStationModuleGUI::Plan;  
       }
     else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->InsertStep)
       {
-      this->State = vtkPerkStationModuleGUI::StateId::Insert;
+      this->State = vtkPerkStationModuleGUI::Insert;
       }
     else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep)
       {
-      this->State = vtkPerkStationModuleGUI::StateId::Validate;
+      this->State = vtkPerkStationModuleGUI::Validate;
       }
     else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->EvaluateStep)
       {
-      this->State = vtkPerkStationModuleGUI::StateId::Evaluate;
+      this->State = vtkPerkStationModuleGUI::Evaluate;
       }
     this->StateButtonSet->GetWidget(this->State)->SetSelectedState(1);
 
@@ -603,16 +603,16 @@ void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
     if (this->ModeListMenu->GetWidget()->GetMenu() ==  vtkKWMenu::SafeDownCast(caller) &&     event == vtkKWMenu::MenuItemInvokedEvent)   
       {
         const char *val = this->ModeListMenu->GetWidget()->GetValue();
-        if (!strcmp(val, "CLINICAL") && this->Mode == vtkPerkStationModuleGUI::ModeId::Training)
+        if (!strcmp(val, "CLINICAL") && this->Mode == vtkPerkStationModuleGUI::Training)
           {
-          this->Mode = vtkPerkStationModuleGUI::ModeId::Clinical;
+          this->Mode = vtkPerkStationModuleGUI::Clinical;
           this->SetUpPerkStationMode();
           // disable the option of changing the Mode now on
           this->ModeListMenu->GetWidget()->SetEnabled(0);
           }
-        else if (!strcmp(val, "TRAINING") && this->Mode == vtkPerkStationModuleGUI::ModeId::Clinical)
+        else if (!strcmp(val, "TRAINING") && this->Mode == vtkPerkStationModuleGUI::Clinical)
           {
-          this->Mode = vtkPerkStationModuleGUI::ModeId::Training;
+          this->Mode = vtkPerkStationModuleGUI::Training;
           this->SetUpPerkStationMode();       
           // disable the option of changing the Mode now on
           this->ModeListMenu->GetWidget()->SetEnabled(0);
@@ -990,7 +990,7 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   BIRNLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetBIRNLogo() );
 
   app->Script ( "grid %s -row 0 -column 0 -padx 2 -pady 2 -sticky w", NAMICLabel->GetWidgetName());
-  app->Script ("grid %s -row 0 -column 1 -padx 2 -pady 2 -sticky w",  NACLabel->GetWidgetName());
+  app->Script ( "grid %s -row 0 -column 1 -padx 2 -pady 2 -sticky w",  NACLabel->GetWidgetName());
   app->Script ( "grid %s -row 1 -column 0 -padx 2 -pady 2 -sticky w", BIRNLabel->GetWidgetName());
   app->Script ( "grid %s -row 1 -column 1 -padx 2 -pady 2 -sticky w", NCIGTLabel->GetWidgetName());
   
@@ -1371,11 +1371,11 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
 
   switch (this->Mode)
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
         wizard_workflow->SetFinishStep(this->EvaluateStep);
         break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:     
+    case vtkPerkStationModuleGUI::Clinical:     
         wizard_workflow->SetFinishStep(this->ValidateStep);
         
         break;
@@ -1530,11 +1530,11 @@ void vtkPerkStationModuleGUI::SetUpPerkStationWizardWorkflow()
   
   switch (this->Mode)
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
         wizard_workflow->SetFinishStep(this->EvaluateStep);
         break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
         // create transition/program validate button such that it doesn't go further
         wizard_workflow->SetFinishStep(this->ValidateStep);
         this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::AnyEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -1668,11 +1668,11 @@ void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
 
   switch(this->Mode)
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
         this->GetMRMLNode()->WriteXML(of, 0);
         break;
     
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
         // save information about image volumes used
         this->SaveVolumeInformation(of);
         // save information about calibration
