@@ -74,6 +74,9 @@ public:
   itkStaticConstMacro(OutputPointDimension, unsigned int,
      ::itk::GetMeshDimension< TOutputMesh >::PointDimension );
 
+  itkSetMacro( EigenValueCount, unsigned int );
+  itkGetMacro( EigenValueCount, unsigned int );
+
   typedef typename OutputMeshType::PointsContainer             OutputPointsContainer;
   typedef typename OutputMeshType::CellsContainer              OutputCellsContainer;
   typedef typename InputMeshType::PointsContainerPointer       PointsContainerPointer;
@@ -96,9 +99,6 @@ public:
   typedef typename OutputPointDataContainer::ConstPointer      OutputPointDataContainerConstPointer; 
 
   typedef vnl_sparse_matrix< double >  LBMatrixType;
-
-  /** Set the number of eigenvalues to produce */
-  void SetEigenValueCount( unsigned int ); // FIXME: Why is this not using the itkSetMacro() ?
 
   /** Get the Laplace Beltrami operator */
   void GetLBOperator( LBMatrixType& ) const;

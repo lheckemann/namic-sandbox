@@ -37,20 +37,7 @@ template <class TInputMesh, class TOutputMesh>
 LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
 ::LaplaceBeltramiFilter()
 {
-  this->m_EigenValueCount = 0;
-}
-
-/**
- * Set the number of eigenvalues to produce
- */
-template <class TInputMesh, class TOutputMesh>
-void
-LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
-::SetEigenValueCount( unsigned int evCount )
-{
-  // FIXME: Why is this method not using the itkSetMacro() ?
-  this->m_EigenValueCount = evCount;
-  this->Modified(); 
+  SetEigenValueCount(0);
 }
 
 /**
@@ -84,8 +71,14 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
-  os << "Harmonic " << this->m_Harmonics << std::endl;
-  os << "Eigen Value Count " << this->m_EigenValueCount << std::endl;
+  os << indent << "Harmonic " << this->m_Harmonics << std::endl;
+  os << indent << "Eigen Value Count " << this->m_EigenValueCount << std::endl;
+  os << indent << "Vertex Areas dimensions " << this->m_VertexAreas.rows() << " x "
+     << this->m_VertexAreas.rows() << std::endl;
+  os << indent << "Laplace Beltrami Operator dimensions "
+     << this->m_LBOperator.rows() << " x "
+     << this->m_LBOperator.rows() << std::endl;
+
 }
 
 /**
@@ -122,16 +115,6 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
 
   unsigned int dim = 3;
   unsigned int sides = 3;
-
-  if( !inputMesh )
-    {
-    itkExceptionMacro(<<"Missing Input Mesh");
-    }
-
-  if( !outputMesh )
-    {
-    itkExceptionMacro(<<"Missing Output Mesh");
-    }
 
   InputPointsContainerConstPointer  inPoints  = inputMesh->GetPoints();
 
