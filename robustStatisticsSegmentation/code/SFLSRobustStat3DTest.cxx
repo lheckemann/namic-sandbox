@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 
 
 
-  typedef double PixelType;
+  typedef int PixelType;
   typedef itk::Image< PixelType, 3 > ImageType;
 
   typedef itk::ImageFileReader< ImageType > ImageReaderType;
