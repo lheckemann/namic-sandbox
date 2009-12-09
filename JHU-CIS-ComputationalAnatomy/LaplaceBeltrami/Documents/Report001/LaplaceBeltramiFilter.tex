@@ -96,9 +96,12 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 \begin{abstract}
 \noindent
 This document describes a contribution to the Insight Toolkit intended to
-support the process of ... .  The methods included here are
-restricted to Meshes with a Spherical geometry and topology, and with scalar
-values associated to their nodes.
+support the process of statistical analysis in Computational Anatomy.
+The methods included here are
+restricted to closed, triagulated surfaces (represented by a QuadEdgeMesh) 
+with a Spherical geometry and
+topology.  The filter assigns basis function values as Point Data on each 
+vertex of the Mesh.
 
 This paper is accompanied with the source code, input data, parameters and
 output data that we used for validating the algorithm described in this paper.
@@ -110,9 +113,41 @@ facilitate \textbf{reproducibility} of the reported results.
 
 \section{Introduction}
 
+In the field of Computational Anatomy the shape of biological structures are
+compared mathematically between subjects.  The difference or similarity in shape
+between subject structures is quantified and correlations between shape and
+disease can be produced and examined for statistical significance.
+
+Previous efforts have concentrated on using a single measurement, called metric
+distance, to quantify difference in shape.  Statistical comparisons on metric
+distance provide useful results, but information is lost in the
+reduction of data down to one dimension.
+
+It is desirable to reduce the dimensionality of statistical comparisons
+between subjects, but maintain information that might be valuable in finding
+correlations between shape and pathology.  A surface mesh can be represented in a way that its N most significant surface harmonics can be compared with other
+subjects.
+
+The purpose of this filter is to use the Laplace-Beltrami operator to determine
+surface harmonics in terms of PointData at each vertex.  In the same way that
+a sound signal can be approximately characterized by a combination of its most
+significant frequency components, so can a surface be expressed as a combination
+of its surface harmonics.  This filter determines the requested N most
+significant harmonics.
+
+
 \section{Overview}
 
+The filter described in this report operates on \doxygen{QuadEdgeMesh}
+data, and provides
+the requested basis function as PointData in a copy of the Input Mesh.
 
+\subsection{Algorithm}
+
+The basic algorithm implemented in this filter involves visiting all the
+faces of the triangulated Mesh, determining the face's area and the areas of
+the associated vertices, then computes the laplacian operator as a sparse
+matrix over the vertices.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
