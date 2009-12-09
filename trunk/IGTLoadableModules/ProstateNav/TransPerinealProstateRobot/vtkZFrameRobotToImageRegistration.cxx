@@ -68,8 +68,14 @@ int vtkZFrameRobotToImageRegistration::DoRegistration()
     {
     Init(256, 256);
     //ZFrameRegistration(this->FiducialVolume, this->RobotToImageTransform, 0);
-    ZFrameRegistration(this->FiducialVolume, this->RobotToImageTransform, 4, 12);
-    return 1;
+    if (ZFrameRegistration(this->FiducialVolume, this->RobotToImageTransform, 4, 12))
+      {
+      return 1;
+      }
+    else
+      {
+      return 0;
+      }
     }
   else
     {
@@ -239,10 +245,12 @@ int vtkZFrameRobotToImageRegistration::ZFrameRegistration(vtkMRMLScalarVolumeNod
 
 
   // Here we calculate 'average' quaternion from registration results from
-  // multiple slices. The average quaternion here is defined by:
+  // multiple slices. The average quaternion here is defined as the eigenvector
+  // corresponding to the largest eigenvalue of the sample moment of inertia
+  // matrix given as:
   //            ____
   //         1  \   |
-  //    T = ---  |     qi, qi'
+  //    T = ---  |     qi qi'
   //         n  /___|
   //              i
 
@@ -320,7 +328,6 @@ int vtkZFrameRobotToImageRegistration::ZFrameRegistration(vtkMRMLScalarVolumeNod
       for(j=0; j<ysize; j++)
         SourceImage.element(i,j) = InputImage[i*ysize+j];
     
-
     // if Z-frame position is determined from the slice
     if (ZFrameRegistrationQuaternion(position, quaternion, SourceImage, xsize, ysize))
       {
@@ -328,14 +335,25 @@ int vtkZFrameRobotToImageRegistration::ZFrameRegistration(vtkMRMLScalarVolumeNod
       P[1] += position[1];
       P[2] += position[2];
       
-      for (i = 0; i < 4; i ++)
-        {
-        T.element(i, 0) += quaternion[i]*quaternion[0];
-        T.element(i, 1) += quaternion[i]*quaternion[1];
-        T.element(i, 2) += quaternion[i]*quaternion[2];
-        T.element(i, 3) += quaternion[i]*quaternion[3];
-        }
+      std::cerr << "position = ("
+                << position[0] << ", "
+                << position[1] << ", "
+                << position[2] << ")" << std::endl;
+      
+      // Note that T is defined as SymmetricMatrix class 
+      // and upper triangular part is updated.
+      T.element(0, 0) = T.element(0, 0) + quaternion[0]*quaternion[0];
+      T.element(0, 1) = T.element(0, 1) + quaternion[0]*quaternion[1];
+      T.element(0, 2) = T.element(0, 2) + quaternion[0]*quaternion[2];
+      T.element(0, 3) = T.element(0, 3) + quaternion[0]*quaternion[3];
+      T.element(1, 1) = T.element(1, 1) + quaternion[1]*quaternion[1];
+      T.element(1, 2) = T.element(1, 2) + quaternion[1]*quaternion[2];
+      T.element(1, 3) = T.element(1, 3) + quaternion[1]*quaternion[3];
+      T.element(2, 2) = T.element(2, 2) + quaternion[2]*quaternion[2];
+      T.element(2, 3) = T.element(2, 3) + quaternion[2]*quaternion[3];
+      T.element(3, 3) = T.element(3, 3) + quaternion[3]*quaternion[3];
       n ++;
+
       std::cerr << "quaternion = ("
                 << quaternion[0] << ", "
                 << quaternion[1] << ", "
@@ -344,19 +362,29 @@ int vtkZFrameRobotToImageRegistration::ZFrameRegistration(vtkMRMLScalarVolumeNod
       }
     }
 
-  float fn = n;
+  if (n <= 0)
+    return 0;
+
+  float fn = (float) n;
   for (i = 0; i < 3; i ++)
     {
     P[i] /= fn;
     }
 
-  for (i = 0; i < 4; i ++)
-    {
-    T.element(i, 0) /= fn;
-    T.element(i, 1) /= fn;
-    T.element(i, 2) /= fn;
-    T.element(i, 3) /= fn;
-    }
+  T.element(0, 0) = T.element(0, 0) / fn;
+  T.element(0, 1) = T.element(0, 1) / fn;
+  T.element(0, 2) = T.element(0, 2) / fn;
+  T.element(0, 3) = T.element(0, 3) / fn;
+
+  T.element(1, 1) = T.element(1, 1) / fn;
+  T.element(1, 2) = T.element(1, 2) / fn;
+  T.element(1, 3) = T.element(1, 3) / fn;
+
+  T.element(2, 2) = T.element(2, 2) / fn;
+  T.element(2, 3) = T.element(2, 3) / fn;
+
+  T.element(3, 3) = T.element(3, 3) / fn;
+
   
   // calculate eigenvalues of T matrix
   DiagonalMatrix D;
@@ -364,6 +392,15 @@ int vtkZFrameRobotToImageRegistration::ZFrameRegistration(vtkMRMLScalarVolumeNod
   D.ReSize(4);
   V.ReSize(4, 4);
   eigenvalues(T, D, V);
+
+  for (i = 0; i < 4; i ++)
+    {
+    std::cerr << "T[" << i << ", 0] = ("
+              <<  T.element(i, 0) << ", "
+              <<  T.element(i, 1) << ", "
+              <<  T.element(i, 2) << ", "
+              <<  T.element(i, 3) << ")" << std::endl;
+    }
 
   std::cerr << "D[" << i << ", 0] = ("
             <<  D.element(0) << ", "
@@ -382,8 +419,8 @@ int vtkZFrameRobotToImageRegistration::ZFrameRegistration(vtkMRMLScalarVolumeNod
 
   // find the maximum eigen value
   int maxi = 0;
-  float maxv = 0.0;
-  for (i = 0; i < 4; i ++)
+  float maxv = D.element(0);
+  for (i = 1; i < 4; i ++)
     {
     if (D.element(i) > maxv)
       {
@@ -400,6 +437,17 @@ int vtkZFrameRobotToImageRegistration::ZFrameRegistration(vtkMRMLScalarVolumeNod
   quaternion[2] = V.element(2, maxi);
   quaternion[3] = V.element(3, maxi);
 
+  std::cerr << "average position = ("
+            << position[0] << ", "
+            << position[1] << ", "
+            << position[2] << ")" << std::endl;
+
+  std::cerr << "average quaternion = ("
+            << quaternion[0] << ", "
+            << quaternion[1] << ", "
+            << quaternion[2] << ", "
+            << quaternion[3] << ")" << std::endl;
+  
   QuaternionToMatrix(quaternion, matrix);
   matrix[0][3] = position[0];
   matrix[1][3] = position[1];
@@ -455,9 +503,6 @@ int vtkZFrameRobotToImageRegistration::ZFrameRegistrationQuaternion(float positi
   bool          frame_lock;
   float         pixel_size=FORCE_FOV/FORCE_SIZEX;
   float         tmpCoord;
-  int           i;
-  int           j;
-    
 
   // Get current position and orientation of the imaging plane.
   // SPL OpenTracker events always contain Position and Orientation attributes.
@@ -600,12 +645,14 @@ bool vtkZFrameRobotToImageRegistration::LocateFiducials(Matrix &SourceImage, int
   // Transform the MR image to the frequency domain (k-space).
   FFT2(SourceImage, zeroimag, IFreal, IFimag);
 
+  /*
   FILE* fp;
   fp = fopen("dump.txt", "w");
   for(i=0; i<xsize; i++)
     for(j=0; j<ysize; j++)
       fprintf(fp, "%.2f\n", SourceImage.element(i,j));
   fclose(fp);
+  */
 
 
   // Normalize the image.
@@ -714,17 +761,21 @@ bool vtkZFrameRobotToImageRegistration::LocateFiducials(Matrix &SourceImage, int
            // Ignore coordinate if the offpeak value is within 30% of the peak.
            i--;
            std::cerr << "vtkZFrameRobotToImageRegistration::LocateFiducials - Bad Peak." << std::endl;
-           if(++peakcount > 10) return(false);
+           if(++peakcount > 10)
+             return(false);
         }
       }
 
-    // Find the subpixel coordinates of the peak.
-    FindSubPixelPeak(&(Zcoordinates[i][0]), &(tZcoordinates[i][0]), 
-                     PIreal.element(Zcoordinates[i][0],Zcoordinates[i][1]),
-                     PIreal.element(Zcoordinates[i][0]-1,Zcoordinates[i][1]),
-                     PIreal.element(Zcoordinates[i][0]+1,Zcoordinates[i][1]),
-                     PIreal.element(Zcoordinates[i][0],Zcoordinates[i][1]-1),
-                     PIreal.element(Zcoordinates[i][0],Zcoordinates[i][1]+1));
+    if (i >= 0)
+      {
+      // Find the subpixel coordinates of the peak.
+      FindSubPixelPeak(&(Zcoordinates[i][0]), &(tZcoordinates[i][0]), 
+                       PIreal.element(Zcoordinates[i][0],Zcoordinates[i][1]),
+                       PIreal.element(Zcoordinates[i][0]-1,Zcoordinates[i][1]),
+                       PIreal.element(Zcoordinates[i][0]+1,Zcoordinates[i][1]),
+                       PIreal.element(Zcoordinates[i][0],Zcoordinates[i][1]-1),
+                       PIreal.element(Zcoordinates[i][0],Zcoordinates[i][1]+1));
+      }
     
     // Eliminate this peak and search for the next.
     for(int m=rstart; m<=rstop; m++)
