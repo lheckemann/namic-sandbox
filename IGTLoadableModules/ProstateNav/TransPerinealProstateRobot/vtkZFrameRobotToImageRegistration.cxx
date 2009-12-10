@@ -257,7 +257,7 @@ int vtkZFrameRobotToImageRegistration::ZFrameRegistration(vtkMRMLScalarVolumeNod
   int n = 0;
   SymmetricMatrix T;
   T.ReSize(4);
-  float P[3];
+  float P[3]={0,0,0};
   for (i = 0; i < 4; i ++)
     for (j = 0; j < 4; j ++)
       T.element(i, j) = 0.0;
