@@ -1135,13 +1135,13 @@ bool vtkTransRectalFiducialCalibrationAlgo::FindTargetingParams(vtkProstateNavTa
     I1[1] = -this->CalibrationData.I1[1];
     I1[2] = this->CalibrationData.I1[2];
 
-    double v1[3];
-    v1[0] = this->CalibrationData.v1[0];
-    v1[1] = this->CalibrationData.v1[1];
-    v1[2] = -this->CalibrationData.v1[2];
+    double v1[3]; // v1 is inverted and then converted from RAS to LPS 
+    v1[0] = -(-this->CalibrationData.v1[0]);
+    v1[1] = -(-this->CalibrationData.v1[1]);
+    v1[2] = (-this->CalibrationData.v1[2]);
 
     double v2[3];
-    v2[0] = this->CalibrationData.v2[0];
+    v2[0] = -this->CalibrationData.v2[0];
     v2[1] = -this->CalibrationData.v2[1];
     v2[2] = this->CalibrationData.v2[2];
     
