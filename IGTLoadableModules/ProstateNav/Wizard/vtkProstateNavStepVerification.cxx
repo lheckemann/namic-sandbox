@@ -209,6 +209,7 @@ void vtkProstateNavStepVerification::ShowUserInterface()
   SetVerificationPointListNode(verifNode);
 
   this->AddGUIObservers();
+  this->AddMRMLObservers();
 }
 
 //----------------------------------------------------------------------------
@@ -446,16 +447,22 @@ void vtkProstateNavStepVerification::ProcessMRMLEvents(vtkObject *caller,
       break;
     }
   }
+
+  vtkMRMLProstateNavManagerNode *managerNode = vtkMRMLProstateNavManagerNode::SafeDownCast(caller);
+  if (managerNode!=NULL && managerNode==GetProstateNavManager())
+    {
+    switch (event)
+      {
+      case vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent:
+        this->GUI->BringTargetToViewIn2DViews(vtkProstateNavGUI::BRING_MARKERS_TO_VIEW_ALIGN_TO_NEEDLE);
+        break;
+      }
+    }
+
 }
 
 //----------------------------------------------------------------------------
 void vtkProstateNavStepVerification::AddMRMLObservers()
-{
-  
-}
-
-//----------------------------------------------------------------------------
-void vtkProstateNavStepVerification::RemoveMRMLObservers()
 {
   if (VerificationPointListNode!=NULL)
   {
@@ -465,6 +472,25 @@ void vtkProstateNavStepVerification::RemoveMRMLObservers()
     events->InsertNextValue(vtkMRMLFiducialListNode::DisplayModifiedEvent);
     events->InsertNextValue(vtkMRMLFiducialListNode::FiducialModifiedEvent);
     this->MRMLObserverManager->SetAndObserveObjectEvents(vtkObjectPointer(&VerificationPointListNode),VerificationPointListNode,events);
+  }
+  vtkMRMLProstateNavManagerNode* manager=this->GetProstateNavManager();
+  if (manager!=NULL)
+  {
+    manager->AddObserver(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);    
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkProstateNavStepVerification::RemoveMRMLObservers()
+{
+  if (VerificationPointListNode!=NULL)
+  {    
+    this->MRMLObserverManager->SetAndObserveObjectEvents(vtkObjectPointer(&VerificationPointListNode), NULL, NULL);
+  }
+  vtkMRMLProstateNavManagerNode* manager=this->GetProstateNavManager();
+  if (manager!=NULL)
+  {
+    manager->RemoveObservers(vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent, this->MRMLCallbackCommand);    
   }
 }
 
@@ -725,24 +751,14 @@ void vtkProstateNavStepVerification::HideUserInterface()
   SetVerificationPointListNode(NULL);
 
   RemoveGUIObservers();
+  RemoveMRMLObservers();
 
   this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->RemoveNode(this->VerificationPointListNode);
   if (this->VerificationPointListNode)
   {
     this->VerificationPointListNode->Delete();
     this->VerificationPointListNode=NULL;
-  }
-
-  if (this->GetProstateNavManager())
-    {
-    vtkMRMLFiducialListNode* plan = this->GetProstateNavManager()->GetTargetPlanListNode();
-    if (plan)
-      {
-      //this->MRMLObserverManager->RemoveObjectEvents(vtkObjectPointer(&(plan)));
-      this->MRMLObserverManager->RemoveObjectEvents(plan);
-      }
-    }
-  
+  }  
 }
 
 //----------------------------------------------------------------------------

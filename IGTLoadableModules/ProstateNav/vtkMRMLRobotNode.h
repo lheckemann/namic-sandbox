@@ -132,6 +132,11 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
   virtual std::string GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc) { return ""; };
   //ETX
 
+  // Description:
+  // Sets the transform to a coordinate system that is aligned with the robot base.
+  // This coordinate system is determined during the calibration and it is not changed after that.
+  virtual bool GetRobotBaseTransform(vtkMatrix4x4* transform) { return false; };
+
   virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode) { return 0; };
 
   // Description:
