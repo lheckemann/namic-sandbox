@@ -440,47 +440,47 @@ bool vtkMRMLTransRectalProstateRobotNode::ShowRobotAtTarget(vtkProstateNavTarget
   NeedleTrajectoryTube->SetNumberOfSides(8);
   NeedleTrajectoryTube->CappingOn();
 
-  // update manipulator position
-  vtkSmartPointer<vtkMatrix4x4> manipTransform=vtkSmartPointer<vtkMatrix4x4>::New();
-  if (!GetRobotManipulatorTransform(manipTransform))
+  // update robot base position
+  vtkSmartPointer<vtkMatrix4x4> baseTransform=vtkSmartPointer<vtkMatrix4x4>::New();
+  if (!GetRobotBaseTransform(baseTransform))
   {
     // no calibration
     return false;
   }
 
-  double point1Manip[4]={-100,0,0 ,1}; // robot tip point
-  double point2Manip[4]={400,0,0 ,1}; // robot base point
+  double point1Probe[4]={-100,0,0 ,1}; // probe tip point
+  double point2Probe[4]={400,0,0 ,1}; // probe base point
   
   double point1Ras[4]={0,0,0 ,1};
   double point2Ras[4]={0,0,0 ,1};
 
-  manipTransform->MultiplyPoint(point1Manip, point1Ras);
-  manipTransform->MultiplyPoint(point2Manip, point2Ras);
+  baseTransform->MultiplyPoint(point1Probe, point1Ras);
+  baseTransform->MultiplyPoint(point2Probe, point2Ras);
 
-  vtkSmartPointer<vtkLineSource> RobotManipulatorSheathLine=vtkSmartPointer<vtkLineSource>::New();
-  RobotManipulatorSheathLine->SetResolution(100);
-  RobotManipulatorSheathLine->SetPoint1(point1Ras);
-  RobotManipulatorSheathLine->SetPoint2(point2Ras);
+  vtkSmartPointer<vtkLineSource> probeLine=vtkSmartPointer<vtkLineSource>::New();
+  probeLine->SetResolution(100);
+  probeLine->SetPoint1(point1Ras);
+  probeLine->SetPoint2(point2Ras);
 
-  vtkSmartPointer<vtkTubeFilter> sheathTube=vtkSmartPointer<vtkTubeFilter>::New();
-  sheathTube->SetInputConnection(RobotManipulatorSheathLine->GetOutputPort());
-  //sheathTube->SetRadius(14.5);
-  sheathTube->SetRadius(13.0); // TODO: read this from a model descriptor
-  sheathTube->SetNumberOfSides(20);
-  sheathTube->CappingOn();
+  vtkSmartPointer<vtkTubeFilter> probeTube=vtkSmartPointer<vtkTubeFilter>::New();
+  probeTube->SetInputConnection(probeLine->GetOutputPort());
+  //probeTube->SetRadius(14.5);
+  probeTube->SetRadius(13.0); // TODO: read this from a model descriptor
+  probeTube->SetNumberOfSides(20);
+  probeTube->CappingOn();
 
-  vtkSmartPointer<vtkTubeFilter> sheathCenterlineTube=vtkSmartPointer<vtkTubeFilter>::New();
-  sheathCenterlineTube->SetInputConnection(RobotManipulatorSheathLine->GetOutputPort());
-  sheathCenterlineTube->SetRadius(0.5);
-  sheathCenterlineTube->SetNumberOfSides(8);
-  sheathCenterlineTube->CappingOn();
+  vtkSmartPointer<vtkTubeFilter> probeCenterlineTube=vtkSmartPointer<vtkTubeFilter>::New();
+  probeCenterlineTube->SetInputConnection(probeLine->GetOutputPort());
+  probeCenterlineTube->SetRadius(0.5);
+  probeCenterlineTube->SetNumberOfSides(8);
+  probeCenterlineTube->CappingOn();
   
   // Merge all into a single polydata
 
   vtkSmartPointer<vtkAppendPolyData> apd = vtkSmartPointer<vtkAppendPolyData>::New();
   apd->AddInputConnection(NeedleTrajectoryTube->GetOutputPort());
-  apd->AddInputConnection(sheathTube->GetOutputPort());
-  apd->AddInputConnection(sheathCenterlineTube->GetOutputPort());
+  apd->AddInputConnection(probeTube->GetOutputPort());
+  apd->AddInputConnection(probeCenterlineTube->GetOutputPort());
   apd->Update();
 
   vtkSmartPointer<vtkTriangleFilter> cleaner=vtkSmartPointer<vtkTriangleFilter>::New();
@@ -495,7 +495,7 @@ bool vtkMRMLTransRectalProstateRobotNode::ShowRobotAtTarget(vtkProstateNavTarget
 }
 
 //------------------------------------------------------------------------------
-bool vtkMRMLTransRectalProstateRobotNode::GetRobotManipulatorTransform(vtkMatrix4x4* transform)
+bool vtkMRMLTransRectalProstateRobotNode::GetRobotBaseTransform(vtkMatrix4x4* transform)
 {
   if (!this->CalibrationData.CalibrationValid)
   {

@@ -69,6 +69,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
     SLICE_RTIMAGE_INPLANE90 = 2,
     SLICE_RTIMAGE_INPLANE   = 3
   };
+  enum {
+    BRING_MARKERS_TO_VIEW_KEEP_CURRENT_ORIENTATION, // show slices in their original (acquisition) directions
+    BRING_MARKERS_TO_VIEW_ALIGN_TO_NEEDLE           // show needle aligned slices (parallel and perpendicular to the needle and robot main axis)
+  };
   
   //ETX
   
@@ -151,6 +155,10 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // All the above values are in RAS space. 
   void BringMarkerToViewIn2DViews(double* P, double* N=NULL, double* T=NULL);
 
+  // Description:
+  // Bring current target to view in all three slice views
+  void BringTargetToViewIn2DViews(int mode);
+
  protected:
   vtkProstateNavGUI ( );
   virtual ~vtkProstateNavGUI ( );
@@ -219,10 +227,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // Description:
   // Display current target fiducial highlighted
   void UpdateCurrentTargetDisplay();
-
-  // Description:
-  // Bring current target to view in all three slice views
-  void BringTargetToViewIn2DViews();
 
   int Entered;
 

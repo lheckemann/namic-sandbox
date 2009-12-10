@@ -50,7 +50,9 @@ public:
 
   virtual void UpdateGUI();
 
-  void UpdateMRMLObserver();
+  void AddMRMLObservers();
+  void RemoveMRMLObservers();
+
   void OnMultiColumnListUpdate(int row, int col, char * str);
   void OnMultiColumnListSelectionChanged();
   void UpdateTargetListGUI();
@@ -102,6 +104,7 @@ protected:
   vtkKWCheckButton *ShowCoverageButton;  
   vtkKWCheckButton *AddTargetsOnClickButton;
   vtkKWMenuButtonWithLabel *NeedleTypeMenuList;  
+  vtkMRMLFiducialListNode *TargetPlanListNode;
 
   // TargetList frame
   vtkKWFrame *TargetListFrame;

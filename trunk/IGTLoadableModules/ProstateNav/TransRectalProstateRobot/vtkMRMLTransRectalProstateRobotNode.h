@@ -93,6 +93,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
  void GetCalibrationAxisCenterpoints(vtkPoints *points, int ii) { return this->CalibrationAlgo->GetAxisCenterpoints(points, ii); };
  
  virtual const char* GetRobotModelId() {return GetRobotModelNodeID(); };
+ virtual bool GetRobotBaseTransform(vtkMatrix4x4* transform);
 
  protected:
   //----------------------------------------------------------------
@@ -108,9 +109,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransRectalProstateRobotNode : public vtkMRM
   vtkMRMLModelNode* GetRobotModelNode();
   void SetAndObserveRobotModelNodeID(const char *nodeID);
 
-  const char* AddRobotModel(const char* nodeName);
-
-  bool GetRobotManipulatorTransform(vtkMatrix4x4* transform);
+  const char* AddRobotModel(const char* nodeName); 
 
  protected:
   TRProstateBiopsyCalibrationData CalibrationData;

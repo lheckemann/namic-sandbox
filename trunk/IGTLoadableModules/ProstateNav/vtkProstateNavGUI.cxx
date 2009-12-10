@@ -73,6 +73,7 @@
 #include "vtkActor.h"
 #include "vtkProperty.h"
 #include "vtkCornerAnnotation.h"
+#include "vtkMath.h"
 
 // for Realtime Image
 #include "vtkImageChangeInformation.h"
@@ -659,7 +660,7 @@ void vtkProstateNavGUI::ProcessMRMLEvents ( vtkObject *caller,
         UpdateGUI();
         break;
       case vtkMRMLProstateNavManagerNode::CurrentTargetChangedEvent:
-        BringTargetToViewIn2DViews();
+        // BringTargetToViewIn2DViews(); this is now called in wizard steps
         break;
       }
     }
@@ -1368,7 +1369,7 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
 }
 
 //--------------------------------------------------------------------------------
-void vtkProstateNavGUI::BringTargetToViewIn2DViews()
+void vtkProstateNavGUI::BringTargetToViewIn2DViews(int mode)
 {
   vtkMRMLProstateNavManagerNode *manager= GetProstateNavManager();
   if(manager==NULL)
@@ -1389,16 +1390,50 @@ void vtkProstateNavGUI::BringTargetToViewIn2DViews()
     return;
   }  
 
-  // the slices may not be really orthogonal, they could be oblique
-  // we could directly call slice node -> JumpAllSlices (r, a, s), this brings target in view
-  // in all slices, but with target fiducial at the center of the view, moving (disturbing) the image altogether
-  // for this function ->JumpSliceByOffsetting does the job
-
   // get the point ras location of the target fiducial (P) that lies on the image plane
-  double P[3];
-  targetDesc->GetRASLocation(P);
+  double targetRAS[3];
+  targetDesc->GetRASLocation(targetRAS);
 
-  BringMarkerToViewIn2DViews(P);
+  if (mode==BRING_MARKERS_TO_VIEW_KEEP_CURRENT_ORIENTATION)
+  {
+    // the slices may not be really orthogonal, they could be oblique
+    // we could directly call slice node -> JumpAllSlices (r, a, s), this brings target in view
+    // in all slices, but with target fiducial at the center of the view, moving (disturbing) the image altogether
+    // for this function ->JumpSliceByOffsetting does the job
+    BringMarkerToViewIn2DViews(targetRAS);
+  }
+  else
+  {
+    // Align the slices with the needle
+    // Slice 1: orthogonal to the needle
+    // Slice 2: aligned with the needle line and robot main axis
+    // Slice 3: orthogonal to Slice 1 and 2
+
+    double targetHingeRAS[3];
+    targetDesc->GetHingePosition(targetHingeRAS);
+
+    double needleVector[4]={0,0,0, 0};
+    needleVector[0] = targetRAS[0] - targetHingeRAS[0];
+    needleVector[1] = targetRAS[1] - targetHingeRAS[1];
+    needleVector[2] = targetRAS[2] - targetHingeRAS[2];
+    vtkMath::Normalize(needleVector);
+
+    double transverseVector[4]={1,0,0, 0};
+
+    if (this->Robot!=NULL)
+    {
+      // aligned transverse vector with robot base
+      vtkSmartPointer<vtkMatrix4x4> transform=vtkSmartPointer<vtkMatrix4x4>::New();
+      if (this->Robot->GetRobotBaseTransform(transform))
+      {
+        double unalignedTransverseVector[4]={transverseVector[0],transverseVector[1],transverseVector[2], 0};
+        transform->MultiplyPoint(unalignedTransverseVector, transverseVector);
+      }
+    }    
+
+    BringMarkerToViewIn2DViews(targetRAS, needleVector, transverseVector);
+  }
+  
 }
 
 //--------------------------------------------------------------------------------
