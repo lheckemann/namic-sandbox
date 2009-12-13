@@ -15,7 +15,7 @@ fixedImgIso=${dataDir}/02780302_label-iso.nrrd
 unu resample -s = = x6.4 -i ${fixedImg} -o ${fixedImgIso}
 
 
-for j in ${dataDir}/*.nrrd; do
+for j in ${dataDir}/*_label.nrrd; do
     movingImgIso=`echo ${j} | sed s/.nrrd/-iso.nrrd/`
 
     unu resample -s = = x6.4 -i ${j} -o ${movingImgIso}
