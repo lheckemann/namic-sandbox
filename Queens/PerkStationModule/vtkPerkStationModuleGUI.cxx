@@ -53,8 +53,8 @@ Version:   $Revision: 1.2 $
 #include "vtkKWComboBoxWithLabel.h"
 #include "vtkKWMenuButton.h"
 #include "vtkKWMenuButtonWithLabel.h"
-#include "vtkKWRadioButton.h"
-#include "vtkKWRadioButtonSet.h"
+#include "vtkKWPushButton.h"
+#include "vtkKWPushButtonSet.h"
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
 #include "vtkKWLoadSaveButton.h"
@@ -74,7 +74,9 @@ Version:   $Revision: 1.2 $
 
 
 
-//------------------------------------------------------------------------------
+/**
+ * Factory.
+ */
 vtkPerkStationModuleGUI* vtkPerkStationModuleGUI::New()
 {
   // First try to create the object from the vtkObjectFactory
@@ -88,7 +90,9 @@ vtkPerkStationModuleGUI* vtkPerkStationModuleGUI::New()
 }
 
 
-//----------------------------------------------------------------------------
+/**
+ * Protected constructor. Use factory instead.
+ */
 vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
 {
   // gui elements
@@ -125,7 +129,6 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   // state descriptors
   this->ModeListMenu = NULL;
   this->Mode = vtkPerkStationModuleGUI::Training;
-  this->StateButtonSet = NULL;
   this->State = vtkPerkStationModuleGUI::Calibrate;  
   this->DisplayVolumeLevelValue = NULL;
   this->DisplayVolumeWindowValue = NULL;
@@ -134,6 +137,11 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   this->SliceOffset = 0;
 
   this->ObserverCount = 0;
+  
+    // Workphase handling.
+  this->WorkphaseButtonFrame = vtkKWFrame::New();
+  this->WorkphaseButtonSet = NULL;
+
 }
 
 //----------------------------------------------------------------------------
@@ -172,12 +180,7 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
     this->SaveExperimentFileButton->Delete();
     this->SaveExperimentFileButton = NULL;
     }
-  if (this->StateButtonSet)
-    {
-    this->StateButtonSet->Delete();
-    this->StateButtonSet = NULL;
-    }
-
+  
   if ( this->VolumeSelector ) 
     {
     this->VolumeSelector->Delete();
@@ -270,6 +273,21 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
   this->SecondaryMonitor = NULL;
   
   
+    // Workphase handling.
+  
+  if (this->WorkphaseButtonFrame)
+    {
+    this->WorkphaseButtonFrame->SetParent(NULL);
+    this->WorkphaseButtonFrame->Delete(); 
+    this->WorkphaseButtonFrame = NULL;
+    }
+
+  if (this->WorkphaseButtonSet)
+    {
+    this->WorkphaseButtonSet->SetParent(NULL);
+    this->WorkphaseButtonSet->Delete();
+    }
+  
   
 }
 
@@ -343,62 +361,103 @@ void vtkPerkStationModuleGUI::Enter()
     }
 
 }
-//---------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::AddGUIObservers ( ) 
+
+
+/**
+ * Set observers on widgets and GUI classes.
+ * (GUICallbackCommand will call ProcessGUIEvents.)
+ */
+void vtkPerkStationModuleGUI::AddGUIObservers() 
 {
   this->RemoveGUIObservers();
 
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  // add listener to main slicer's red slice view
-  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-  // add listener to own render window created for secondary monitor  
-
-  if (this->GetMode() == vtkPerkStationModuleGUI::Clinical)
-    {
-    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::KeyPressEvent, (vtkCommand *)this->GUICallbackCommand);    
-    }
-  else
-    {
-    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-
- 
+    // add listener to main slicer's red slice view
+  appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()
+    ->GetRenderWindowInteractor()->GetInteractorStyle()
+    ->AddObserver( vtkCommand::LeftButtonPressEvent,
+    ( vtkCommand* )this->GUICallbackCommand );
   
-  // load volumes buttons
-  if (this->LoadPlanningVolumeButton)
+    // add listener to own render window created for secondary monitor  
+  if ( this->GetMode() == vtkPerkStationModuleGUI::Clinical )
     {
-    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()
+      ->AddObserver( vtkCommand::KeyPressEvent,
+                     ( vtkCommand* )this->GUICallbackCommand );    
     }
-  if (this->LoadValidationVolumeButton)
+  else  // In training mode.
     {
-    this->LoadValidationVolumeButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()
+      ->AddObserver( vtkCommand::LeftButtonPressEvent,
+                     ( vtkCommand* )this->GUICallbackCommand );
     }
-
-  // wizard workflow
-  this->WizardWidget->GetWizardWorkflow()->AddObserver( vtkKWWizardWorkflow::CurrentStateChangedEvent, static_cast<vtkCommand *>(this->GUICallbackCommand));  
-
-  this->VolumeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
-
-  this->PSNodeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );    
-
-  this->ModeListMenu->GetWidget()->GetMenu()->AddObserver ( vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-  if (this->LoadExperimentFileButton)
+  
+    // load volumes buttons
+  if ( this->LoadPlanningVolumeButton )
     {
-    this->LoadExperimentFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()
+      ->AddObserver( vtkKWTopLevel::WithdrawEvent,
+                     (vtkCommand *)this->GUICallbackCommand );
     }
+  if ( this->LoadValidationVolumeButton )
+    {
+    this->LoadValidationVolumeButton->GetLoadSaveDialog()
+      ->AddObserver( vtkKWTopLevel::WithdrawEvent,
+                     ( vtkCommand* )this->GUICallbackCommand );
+    }
+  
+  
+    // ----------------------------------------------------------------
+    // Workphase pushbutton set.
+  
+  for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
+    {
+    this->WorkphaseButtonSet->GetWidget( i )->AddObserver(
+      vtkKWPushButton::InvokedEvent,
+      ( vtkCommand* )( this->GUICallbackCommand ) );
+    }
+  
+  
+    // ----------------------------------------------------------------
+    // wizard workflow
+    
+  this->WizardWidget->GetWizardWorkflow()->AddObserver(
+    vtkKWWizardWorkflow::CurrentStateChangedEvent,
+    static_cast< vtkCommand* >( this->GUICallbackCommand ) );  
+
+  this->VolumeSelector->AddObserver(
+    vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+    ( vtkCommand* )this->GUICallbackCommand );
+
+  this->PSNodeSelector->AddObserver(
+    vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+    ( vtkCommand* )this->GUICallbackCommand );
+
+  this->ModeListMenu->GetWidget()->GetMenu()->AddObserver(
+    vtkKWMenu::MenuItemInvokedEvent, ( vtkCommand* )this->GUICallbackCommand );
+
+  if ( this->LoadExperimentFileButton )
+    {
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->AddObserver(
+      vtkKWTopLevel::WithdrawEvent, ( vtkCommand* )this->GUICallbackCommand );
+    }
+  
   if (this->SaveExperimentFileButton)
     {
-    this->SaveExperimentFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->AddObserver(
+      vtkKWTopLevel::WithdrawEvent, ( vtkCommand* )this->GUICallbackCommand );
     }
-
   
-  this->DisplayVolumeLevelValue->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->DisplayVolumeWindowValue->AddObserver(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->DisplayVolumeLevelValue->AddObserver(
+    vtkKWScale::ScaleValueChangedEvent,
+    ( vtkCommand* )this->GUICallbackCommand );
+  
+  this->DisplayVolumeWindowValue->AddObserver(
+    vtkKWScale::ScaleValueChangedEvent,
+    ( vtkCommand* )this->GUICallbackCommand );
 
   this->ObserverCount++;
-
 }
 
 
@@ -416,15 +475,23 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
     this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);    
     }
 
-  this->WizardWidget->GetWizardWorkflow()->RemoveObserver( static_cast<vtkCommand *>(this->GUICallbackCommand));
+  this->WizardWidget->GetWizardWorkflow()->RemoveObserver(
+    static_cast< vtkCommand* >( this->GUICallbackCommand ) );
+  
+  this->VolumeSelector->RemoveObservers(
+    vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+    ( vtkCommand* )this->GUICallbackCommand );
 
-  this->VolumeSelector->RemoveObservers (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
+  this->PSNodeSelector->RemoveObservers(
+    vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
+    ( vtkCommand* )this->GUICallbackCommand );    
 
-  this->PSNodeSelector->RemoveObservers (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );    
+  this->ModeListMenu->GetWidget()->GetMenu()->RemoveObservers(
+    vtkKWMenu::MenuItemInvokedEvent, ( vtkCommand* )this->GUICallbackCommand );
 
-  this->ModeListMenu->GetWidget()->GetMenu()->RemoveObservers ( vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-  this->DisplayVolumeLevelValue->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->DisplayVolumeLevelValue->RemoveObservers(
+    vtkKWScale::ScaleValueChangedEvent,
+    ( vtkCommand* )this->GUICallbackCommand );
 
   this->DisplayVolumeWindowValue->RemoveObservers(vtkKWScale::ScaleValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
@@ -450,83 +517,164 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
 }
 
 
-
-//---------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
-                                           unsigned long event,
-                                           void *callData ) 
+/**
+ * Responds to events form widgets or slicer GUI.
+ *
+ * @param caller
+ * @param event Event ID.
+ * @param callData
+ */
+void
+vtkPerkStationModuleGUI
+::ProcessGUIEvents ( vtkObject*    caller,
+                     unsigned long event,
+                     void*         callData ) 
 {
-
-  const char *eventName = vtkCommand::GetStringFromEventId(event);
-  if (strcmp(eventName, "LeftButtonPressEvent") == 0)
+  const char* eventName = vtkCommand::GetStringFromEventId( event );
+  
+  
+    // ---------------------------------------------------------------
+    // Workphase pushbutton set.
+  
+  if ( event == vtkKWPushButton::InvokedEvent
+       && this->WorkphaseButtonSet != NULL )
+    {
+    for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
+      {
+      if ( vtkKWPushButton::SafeDownCast( caller )
+           == this->WorkphaseButtonSet->GetWidget( i ) )
+        {
+        this->ChangeWorkphase( i );
+        this->UpdateWorkphaseButtons();
+        }
+      }
+    }
+  
+  
+    // Press mouse press events on images to the different workflow steps.
+    
+  if ( strcmp( eventName, "LeftButtonPressEvent" ) == 0 )
     {    
-    this->CalibrateStep->ProcessImageClickEvents(caller, event, callData);  
-    this->PlanStep->ProcessImageClickEvents(caller, event, callData);
-    this->ValidateStep->ProcessImageClickEvents(caller, event, callData);
+    this->CalibrateStep->ProcessImageClickEvents( caller, event, callData );
+    this->PlanStep->ProcessImageClickEvents( caller, event, callData );
+    this->ValidateStep->ProcessImageClickEvents( caller, event, callData );
     }
-  else if (strcmp(eventName, "KeyPressEvent") == 0)
+  
+  
+    // Pass the keyboard events to the calibration workflow step.
+  
+  else if ( strcmp( eventName, "KeyPressEvent" ) == 0 )
     {
-    this->CalibrateStep->ProcessKeyboardEvents(caller, event, callData);
+    this->CalibrateStep->ProcessKeyboardEvents( caller, event, callData );
     }
-  else if (this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic()->GetSliceNode() == vtkMRMLSliceNode::SafeDownCast(caller) && event == vtkCommand::ModifiedEvent && !vtkPerkStationModuleLogic::DoubleEqual(this->SliceOffset, this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset()))
+  
+  
+    // Red slice is selected and slice offset is changed.
+    
+  else if ( this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()
+              ->GetSliceNode() == vtkMRMLSliceNode::SafeDownCast( caller )
+            && event == vtkCommand::ModifiedEvent
+            && ! vtkPerkStationModuleLogic::DoubleEqual(
+                   this->SliceOffset,
+                   this->GetApplicationGUI()->GetMainSliceGUI( "Red" )
+                     ->GetLogic()->GetSliceOffset() ) )
    {
-   this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic()->GetSliceOffset();
-   this->SecondaryMonitor->UpdateImageDataOnSliceOffset(this->SliceOffset);
+   this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )
+     ->GetLogic()->GetSliceOffset();
+   this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
    }
-  else if (this->WizardWidget->GetWizardWorkflow() == vtkKWWizardWorkflow::SafeDownCast(caller) && event == vtkKWWizardWorkflow::CurrentStateChangedEvent)
+  
+  
+    // If the Wizard Widget changed state.
+    
+  else if ( this->WizardWidget->GetWizardWorkflow()
+              == vtkKWWizardWorkflow::SafeDownCast( caller )
+            && event == vtkKWWizardWorkflow::CurrentStateChangedEvent )
     {
-    // TO DO        
-    if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep)
+    // TO DO  -- What?
+    if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
+         == this->CalibrateStep )
       {
-      this->State = vtkPerkStationModuleGUI::Calibrate;      
+      this->State = vtkPerkStationModuleGUI::Calibrate;
+      this->MRMLNode->SwitchStep( 0 );
       }
-    else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->PlanStep)
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
+              == this->PlanStep )
       {
-      this->State = vtkPerkStationModuleGUI::Plan;  
+      this->State = vtkPerkStationModuleGUI::Plan;
+      this->MRMLNode->SwitchStep( 1 );
       }
-    else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->InsertStep)
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
+              == this->InsertStep )
       {
       this->State = vtkPerkStationModuleGUI::Insert;
+      this->MRMLNode->SwitchStep( 2 );
       }
-    else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep)
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
+              == this->ValidateStep )
       {
       this->State = vtkPerkStationModuleGUI::Validate;
+      this->MRMLNode->SwitchStep( 3 );
       }
-    else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->EvaluateStep)
+    else if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
+              == this->EvaluateStep )
       {
       this->State = vtkPerkStationModuleGUI::Evaluate;
+      this->MRMLNode->SwitchStep( 4 );
       }
-    this->StateButtonSet->GetWidget(this->State)->SetSelectedState(1);
-
+    
+    this->UpdateWorkphaseButtons();
     }  
-  else if (this->LoadPlanningVolumeButton && this->LoadPlanningVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+  
+  
+    // Load planning volume.
+  else if ( this->LoadPlanningVolumeButton
+            && this->LoadPlanningVolumeButton->GetLoadSaveDialog()
+               == vtkKWLoadSaveDialog::SafeDownCast( caller )
+            && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
     // load planning volume dialog button
-    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("PSOpenPathPlanVol");
-    const char *fileName = this->LoadPlanningVolumeButton->GetLoadSaveDialog()->GetFileName();    
+    this->LoadPlanningVolumeButton->GetLoadSaveDialog()->
+      RetrieveLastPathFromRegistry( "PSOpenPathPlanVol" );
+    const char *fileName =
+      this->LoadPlanningVolumeButton->GetLoadSaveDialog()->GetFileName();    
     if ( fileName ) 
       {
-      this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SaveLastPathToRegistry("PSOpenPathPlanVol");
-      // call the callback function
-      this->LoadPlanningVolumeButtonCallback(fileName); 
-      this->LoadPlanningVolumeButton->SetText ("Plan volume loaded");
+      this->LoadPlanningVolumeButton->GetLoadSaveDialog()->
+        SaveLastPathToRegistry( "PSOpenPathPlanVol" );
+      
+        // call the callback function
+      this->LoadPlanningVolumeButtonCallback( fileName ); 
+      this->LoadPlanningVolumeButton->SetText( "Plan volume loaded" );
       } 
     }
-  else if (this->LoadValidationVolumeButton && this->LoadValidationVolumeButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+  
+    // Load validation volume.
+  else if ( this->LoadValidationVolumeButton
+            && this->LoadValidationVolumeButton->GetLoadSaveDialog()
+               == vtkKWLoadSaveDialog::SafeDownCast( caller )
+            && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
     // load validation volume dialog button    
-    const char *fileName = this->LoadValidationVolumeButton->GetLoadSaveDialog()->GetFileName();    
+    const char *fileName = this->LoadValidationVolumeButton->
+      GetLoadSaveDialog()->GetFileName();    
     if ( fileName ) 
       {      
       // call the callback function
       this->LoadValidationVolumeButtonCallback(fileName);   
-      this->LoadValidationVolumeButton->SetText ("Validation volume loaded");
+      this->LoadValidationVolumeButton->SetText( "Validation volume loaded" );
       } 
     }
-  else if (this->LoadExperimentFileButton && this->LoadExperimentFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+  
+    // Load calibration.
+  else if ( this->LoadExperimentFileButton
+            && this->LoadExperimentFileButton->GetLoadSaveDialog()
+               == vtkKWLoadSaveDialog::SafeDownCast( caller )
+            && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
     // load calib dialog button
-    const char *fileName = this->LoadExperimentFileButton->GetLoadSaveDialog()->GetFileName();
+    const char *fileName = this->LoadExperimentFileButton->
+      GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
       //this->CalibFilePath = std::string(this->LoadCalibrationFileButton->GetLoadSaveDialog()->GetLastPath());
@@ -535,53 +683,70 @@ void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
 
       // call the callback function
       this->LoadExperimentButtonCallback(fileName);
-    
       }
     
     // reset the file browse button text
     this->LoadExperimentFileButton->SetText ("Load experiment");
-   
     }  
-  else if (this->SaveExperimentFileButton && this->SaveExperimentFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+  
+    // Save experiment.
+  else if ( this->SaveExperimentFileButton
+            && this->SaveExperimentFileButton->GetLoadSaveDialog()
+               == vtkKWLoadSaveDialog::SafeDownCast(caller)
+            && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
-    
-  // save calib dialog button
+    // save calib dialog button
     const char *fileName = this->SaveExperimentFileButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
-    
       std::string fullFileName = std::string(fileName) + ".xml";
-      // get the file name and file path
+        // get the file name and file path
       this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("OpenPath");
-        
-      // call the callback function
+        // call the callback function
       this->SaveExperimentButtonCallback(fullFileName.c_str());
-
-    
       }
     
     // reset the file browse button text
     this->SaveExperimentFileButton->SetText ("Save experiment");
    
     }  
-  else if (this->DisplayVolumeLevelValue && this->DisplayVolumeLevelValue == vtkKWScaleWithEntry::SafeDownCast(caller) && (event == vtkKWScale::ScaleValueChangedEvent))
+  
+  
+    // Grayscale window level change.
+  else if ( this->DisplayVolumeLevelValue
+            && this->DisplayVolumeLevelValue
+               == vtkKWScaleWithEntry::SafeDownCast( caller )
+            && ( event == vtkKWScale::ScaleValueChangedEvent ) )
     {
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->SetAutoWindowLevel(0);
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->SetLevel(this->DisplayVolumeLevelValue->GetValue());
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->Modified();
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
+      SetAutoWindowLevel( 0 );
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
+      SetLevel( this->DisplayVolumeLevelValue->GetValue() );
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
+      Modified();
     this->SecondaryMonitor->UpdateImageDisplay();
     }
-  else if (this->DisplayVolumeWindowValue && this->DisplayVolumeWindowValue == vtkKWScaleWithEntry::SafeDownCast(caller) && (event == vtkKWScale::ScaleValueChangedEvent))
+  
+  
+    // Grayscale window width change.
+  else if ( this->DisplayVolumeWindowValue
+            && this->DisplayVolumeWindowValue
+               == vtkKWScaleWithEntry::SafeDownCast( caller )
+            && ( event == vtkKWScale::ScaleValueChangedEvent ) )
     {
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->SetAutoWindowLevel(0);
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->SetWindow(this->DisplayVolumeWindowValue->GetValue());
-    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->Modified();
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
+      SetAutoWindowLevel( 0 );
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
+      SetWindow( this->DisplayVolumeWindowValue->GetValue() );
+    this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
+      Modified();
     this->SecondaryMonitor->UpdateImageDisplay();
     }
+  
   else
-    {  
-     
-    vtkSlicerNodeSelectorWidget *selector = vtkSlicerNodeSelectorWidget::SafeDownCast(caller);  
+    { 
+    vtkSlicerNodeSelectorWidget *selector
+      = vtkSlicerNodeSelectorWidget::SafeDownCast( caller );
     if (selector == this->VolumeSelector && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent && this->VolumeSelector->GetSelected() != NULL) 
       { 
       //this->UpdateMRML();
@@ -600,24 +765,27 @@ void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
       this->UpdateGUI();
       }
       
-    if (this->ModeListMenu->GetWidget()->GetMenu() ==  vtkKWMenu::SafeDownCast(caller) &&     event == vtkKWMenu::MenuItemInvokedEvent)   
+    if ( this->ModeListMenu->GetWidget()->GetMenu() ==
+           vtkKWMenu::SafeDownCast( caller )
+         && event == vtkKWMenu::MenuItemInvokedEvent )
       {
         const char *val = this->ModeListMenu->GetWidget()->GetValue();
-        if (!strcmp(val, "CLINICAL") && this->Mode == vtkPerkStationModuleGUI::Training)
+        if ( ! strcmp(val, "CLINICAL") && this->Mode ==
+               vtkPerkStationModuleGUI::Training )
           {
           this->Mode = vtkPerkStationModuleGUI::Clinical;
           this->SetUpPerkStationMode();
           // disable the option of changing the Mode now on
-          this->ModeListMenu->GetWidget()->SetEnabled(0);
+          this->ModeListMenu->GetWidget()->SetEnabled( 0 );
           }
-        else if (!strcmp(val, "TRAINING") && this->Mode == vtkPerkStationModuleGUI::Clinical)
+        else if ( ! strcmp(val, "TRAINING") && this->Mode ==
+                    vtkPerkStationModuleGUI::Clinical )
           {
           this->Mode = vtkPerkStationModuleGUI::Training;
-          this->SetUpPerkStationMode();       
-          // disable the option of changing the Mode now on
-          this->ModeListMenu->GetWidget()->SetEnabled(0);
+          this->SetUpPerkStationMode();
+            // disable the option of changing the Mode now on
+          this->ModeListMenu->GetWidget()->SetEnabled( 0 );
           }
-        
       }
     
     }
@@ -944,18 +1112,18 @@ void vtkPerkStationModuleGUI::ProcessMRMLEvents ( vtkObject *caller,
 
 
 //---------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::BuildGUI ( ) 
+void vtkPerkStationModuleGUI::BuildGUI() 
 {
   if ( this->Built)
       return;
-
+  
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
 
   //register MRML PS node
   vtkMRMLPerkStationModuleNode* PSNode = vtkMRMLPerkStationModuleNode::New();
   this->Logic->GetMRMLScene()->RegisterNodeClass(PSNode);
   PSNode->Delete();
-
+  
   this->UIPanel->AddPage ( "PerkStationModule", "PerkStationModule", NULL );
   vtkKWWidget *modulePage =  this->UIPanel->GetPageWidget("PerkStationModule");
   
@@ -1003,92 +1171,107 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   // add individual collapsible pages/frames
 
 
-  // Mode collapsible frame with combo box label
+  // Mode collapsible frame with combo box label.
   vtkSlicerModuleCollapsibleFrame *modeFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-  modeFrame->SetParent(modulePage);
-  modeFrame->Create();
-  modeFrame->SetLabelText("Mode frame");
-  modeFrame->ExpandFrame();
+    modeFrame->SetParent(modulePage);
+    modeFrame->Create();
+    modeFrame->SetLabelText("Mode frame");
+    modeFrame->ExpandFrame();
   
   app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
               modeFrame->GetWidgetName(), modulePage->GetWidgetName());
   
-  // add combo box in the frame
+  // Add combo box in the frame.
   this->ModeListMenu = vtkKWMenuButtonWithLabel::New();
-  this->ModeListMenu->SetParent(modeFrame->GetFrame());
-  this->ModeListMenu->Create();
-  this->ModeListMenu->SetLabelText("Mode");
-  this->ModeListMenu->SetBalloonHelpString("This indicates whether the PERK Station module is being used in CLINICAL or TRAINING mode");
-  this->ModeListMenu->GetWidget()->GetMenu()->AddRadioButton("TRAINING");
-  this->ModeListMenu->GetWidget()->GetMenu()->AddRadioButton("CLINICAL");
-  this->ModeListMenu->GetWidget()->SetValue("TRAINING");
+    this->ModeListMenu->SetParent( modeFrame->GetFrame() );
+    this->ModeListMenu->Create();
+    this->ModeListMenu->SetLabelText( "Mode" );
+    this->ModeListMenu->SetBalloonHelpString(
+      "This indicates whether the PERK Station module is being used in "
+      "CLINICAL or TRAINING mode" );
+    this->ModeListMenu->GetWidget()->GetMenu()->AddRadioButton( "TRAINING" );
+    this->ModeListMenu->GetWidget()->GetMenu()->AddRadioButton( "CLINICAL" );
+    this->ModeListMenu->GetWidget()->SetValue( "TRAINING" );
  
-
   app->Script("pack %s -side top -anchor nw -expand n -padx 4 -pady 4", 
     this->ModeListMenu->GetWidgetName(), modeFrame->GetWidgetName());
 
   modeFrame->Delete();
-
-  // Work phase collapsible frame with push buttons/radio buttons set
-  vtkSlicerModuleCollapsibleFrame *workPhaseFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-  workPhaseFrame->SetParent(modulePage);
-  workPhaseFrame->Create();
-  workPhaseFrame->SetLabelText("Work phase frame");
-  workPhaseFrame->ExpandFrame();
   
-  app->Script("pack %s -side top -fill x -expand y -anchor w -padx 4 -pady 2",
-              workPhaseFrame->GetWidgetName(), modulePage->GetWidgetName());
- 
-  // add radio buttons set
-  this->StateButtonSet = vtkKWRadioButtonSet::New();
-  this->StateButtonSet->SetParent(workPhaseFrame->GetFrame());
-  this->StateButtonSet->Create();
-  this->StateButtonSet->SetBorderWidth(2);
-  //this->StateButtonSet->SetReliefToGroove();
-  this->StateButtonSet->SetPackHorizontally(1);
-  this->StateButtonSet->SetWidgetsInternalPadX(2);
-  this->StateButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(5);
-  const char *buffer[]= {"Calibrate", "Plan", "Insert", "Validate", "Evaluate"};
-  for (int id = 0; id < 5; id++)
-    {
-    vtkKWRadioButton *radiob = this->StateButtonSet->AddWidget(id);
-    radiob->SetText(buffer[id]);
-    radiob->SetBorderWidth(2);
-    radiob->SetReliefToSunken();
-    radiob->SetOffReliefToRaised();
-    radiob->SetHighlightThickness(2);
-    radiob->IndicatorVisibilityOff();
-    //radiob->SetStateToDisabled();
-    radiob->SetBackgroundColor(0.85,0.85,0.85);
-    radiob->SetActiveBackgroundColor(1,1,1);
-    }
-  this->StateButtonSet->GetWidget(0)->SetSelectedState(1);
- 
-
-  app->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2", 
-    this->StateButtonSet->GetWidgetName());
-
-  workPhaseFrame->Delete();
   
-  // collapsible? frame for volume node selection, and parameters selection?
+    // collapsible? frame for volume node selection, and parameters selection?
+  
   vtkKWFrameWithLabel *loadSaveExptFrame = vtkKWFrameWithLabel::New ( );
   loadSaveExptFrame->SetParent(modulePage);
   loadSaveExptFrame->Create();
   loadSaveExptFrame->SetLabelText("Experiment frame");
   //loadSaveExptFrame->ExpandFrame(); 
-  //loadSaveExptFrame->
+  
   app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
               loadSaveExptFrame->GetWidgetName(), modulePage->GetWidgetName());
   
+  
+    // Work phase collapsible frame with push buttons/radio buttons set.
+  
+  this->WorkphaseButtonFrame->SetParent( modulePage );
+  this->WorkphaseButtonFrame->Create();
+  // this->WorkphaseButtonFrame->SetLabelText( "Work phase frame" );
+  // this->WorkphaseButtonFrame->ExpandFrame();
+  
+  // app->Script ( "pack %s -side top -fill x -expand y -padx 1 -pady 1",
+  app->Script("pack %s -side top -fill x -expand y -anchor w -padx 4 -pady 2",
+                this->WorkphaseButtonFrame->GetWidgetName());
+ 
+ 
+    // ----------------------------------------------------------------
+    // Add workphase button set.
+  
+  this->WorkphaseButtonSet = vtkKWPushButtonSet::New();
+    this->WorkphaseButtonSet->SetParent( this->WorkphaseButtonFrame );
+    this->WorkphaseButtonSet->Create();
+    this->WorkphaseButtonSet->PackHorizontallyOn();
+    this->WorkphaseButtonSet->SetMaximumNumberOfWidgetsInPackingDirection( 5 );
+    this->WorkphaseButtonSet->SetWidgetsPadX( 1 );
+    this->WorkphaseButtonSet->SetWidgetsPadY( 1 );
+    this->WorkphaseButtonSet->UniformColumnsOn();
+    this->WorkphaseButtonSet->UniformRowsOn();  
+    this->Script( "pack %s -side left -anchor w -fill x -padx 1 -pady 1", 
+                  this->WorkphaseButtonSet->GetWidgetName() );    
 
-  // Create the frame
+    // Captions for radiobuttons.
+  const char *buffer[] =
+    {
+    "Calibrate", "Plan", "Insert", "Validate", "Evaluate"
+    };
+  
+    // Individual radiobuttons.
+  for (int id = 0; id < 5; id++)
+    {
+    vtkKWPushButton *pb = this->WorkphaseButtonSet->AddWidget( id );
+      pb->SetText( buffer[ id ] );
+      pb->SetBorderWidth( 2 );
+      pb->SetReliefToGroove();
+      pb->SetHighlightThickness( 2 );
+      pb->SetBackgroundColor( 0.85, 0.85, 0.85 );
+      pb->SetActiveBackgroundColor( 1, 1, 1 );
+    }
+  
+    // Initial state.
+  this->WorkphaseButtonSet->GetWidget( 0 )->SetReliefToSunken();
+
+    // ---------------------------------------------------------------
+    // Create the volume selection frame
+  
   vtkKWFrame *volSelFrame = vtkKWFrame::New();
   volSelFrame->SetParent(loadSaveExptFrame->GetFrame());
   volSelFrame->Create();     
   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                     volSelFrame->GetWidgetName());
-
-  //MRML node
+  
+    
+    // ---------------------------------------------------------------
+    // MRML node
+  
   this->PSNodeSelector->SetNodeClass("vtkMRMLPerkStationModuleNode", NULL, NULL, "PS Parameters");
   this->PSNodeSelector->SetNewNodeEnabled(1);
   this->PSNodeSelector->NoneEnabledOn();
@@ -1377,15 +1560,17 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
 
     case vtkPerkStationModuleGUI::Clinical:     
         wizard_workflow->SetFinishStep(this->ValidateStep);
-        
         break;
 
     }
 
   // -----------------------------------------------------------------
-  // Initial step and transitions  
-  wizard_workflow->CreateGoToTransitionsToFinishStep();
-  wizard_workflow->SetInitialStep(this->CalibrateStep);    
+  // Initial step and transitions
+  
+  // TODO: How to set up the transitions correctly?
+  
+  // wizard_workflow->CreateGoToTransitionsToFinishStep();
+  wizard_workflow->SetInitialStep( this->CalibrateStep );    
   
  
   this->SetUpPerkStationWizardWorkflow();
@@ -1402,6 +1587,7 @@ void vtkPerkStationModuleGUI::TearDownGUI()
     {
     this->ModeListMenu->SetParent(NULL);
     }
+  
   if (this->LoadPlanningVolumeButton)
     {
     this->LoadPlanningVolumeButton->SetParent(NULL);
@@ -1412,6 +1598,7 @@ void vtkPerkStationModuleGUI::TearDownGUI()
       this->LoadPlanningVolumeButton->GetLoadSaveDialog()->SetParent(NULL);
       }
     }
+  
   if (this->LoadValidationVolumeButton)
     {
     this->LoadValidationVolumeButton->SetParent(NULL);
@@ -1421,6 +1608,7 @@ void vtkPerkStationModuleGUI::TearDownGUI()
       this->LoadValidationVolumeButton->GetLoadSaveDialog()->SetParent(NULL);
       }
     }
+  
   if (this->LoadExperimentFileButton)
     {
     this->LoadExperimentFileButton->SetParent(NULL);
@@ -1611,9 +1799,6 @@ void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
     reslice->Update();
 
     
-
-
-
     imageMapper->SetInput(reslice->GetOutput());
 
     
@@ -1630,9 +1815,8 @@ void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
     {
     vtkErrorMacro("No secondary monitor detected");
     }
-
-  
 }
+
 
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::ResetAndStartNewExperiment()
@@ -1654,10 +1838,9 @@ void vtkPerkStationModuleGUI::ResetAndStartNewExperiment()
     this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
     }
   this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
-
-
-
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
 {
@@ -1688,6 +1871,7 @@ void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
   
 }
 
+
 //----------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::LoadExperiment(istream &file)
 {
@@ -1705,6 +1889,8 @@ void vtkPerkStationModuleGUI::LoadExperiment(istream &file)
   this->ValidateStep->LoadValidation(file);
 
 }
+
+
 //---------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::SaveExperimentButtonCallback(const char *fileName)
 {
@@ -1715,6 +1901,7 @@ void vtkPerkStationModuleGUI::SaveExperimentButtonCallback(const char *fileName)
     file.close();
 }
 
+
 //-----------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::LoadExperimentButtonCallback(const char *fileName)
 {
@@ -1722,6 +1909,7 @@ void vtkPerkStationModuleGUI::LoadExperimentButtonCallback(const char *fileName)
     this->LoadExperiment(file);
     file.close();
 }
+
 
 //-----------------------------------------------------------------------------------
 char *vtkPerkStationModuleGUI::CreateFileName()
@@ -1847,7 +2035,6 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
 
   
 
-
   // following information needs to be written to the file
 
   // 1) Volume location file path
@@ -1894,11 +2081,6 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
   for(int i = 0; i < 3; i++)
       of << spacing[i] << " ";
   of << "\" \n";
-
-  
-
-  
-
 }
 
 
@@ -2013,7 +2195,6 @@ void vtkPerkStationModuleGUI::LoadValidationVolumeButtonCallback(const char *fil
         
   if (volumeNode)
     {
-
     // as of now, don't want to disturb display on the secondary monitor
     // i.e. don't want the secondary monitor to display or overlay the validation image
     // if such a request come from clinician, it will be handled then
@@ -2034,9 +2215,6 @@ void vtkPerkStationModuleGUI::LoadValidationVolumeButtonCallback(const char *fil
     this->VolumeSelector->GetSelected()->Modified();
 
     this->VolumeSelector->UpdateMenu();
-
-    
-
     }
   else 
     {
@@ -2052,9 +2230,94 @@ void vtkPerkStationModuleGUI::LoadValidationVolumeButtonCallback(const char *fil
     this->MRMLNode->SetVolumeInUse("Planning");
     }
 }
+
+
 //---------------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::EnableLoadValidationVolumeButton(bool enable)
 {
   if (this->LoadValidationVolumeButton)
       this->LoadValidationVolumeButton->SetEnabled(enable);
+}
+
+
+/**
+ * Call this to change workphase.
+ *
+ * @param phase New phase.
+ * @returns 1 on success, 0 on error.
+ */
+int
+vtkPerkStationModuleGUI
+::ChangeWorkphase( int phase )
+{
+  
+  if ( ! this->MRMLNode->SwitchStep( phase ) ) // Set next phase
+    {
+    cerr << "ChangeWorkphase: Cannot transition!" << endl;
+    return 0;
+    }
+  
+  int numSteps = this->MRMLNode->GetNumberOfSteps();
+  
+  
+    // Switch wizard frame.
+  
+  vtkKWWizardWorkflow *wizard = this->WizardWidget->GetWizardWorkflow();
+  
+  int step_from;
+  int step_to;
+  
+  step_to = this->MRMLNode->GetCurrentStep();
+  step_from = this->MRMLNode->GetPreviousStep();
+  
+  int steps =  step_to - step_from;
+  if ( steps > 0 )
+    {
+    for (int i = 0; i < steps; i ++) 
+      {
+      wizard->AttemptToGoToNextStep();
+      }
+    }
+  else
+    {
+    steps = - steps;
+    for ( int i = 0; i < steps; i ++ )
+      {
+      wizard->AttemptToGoToPreviousStep();
+      }
+    }
+  
+  vtkPerkStationStep* step =
+    vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
+  if ( step )
+    {
+    step->ShowUserInterface();
+    // step->UpdateGUI();
+    }
+  
+  
+  return 1;  // Indicating success.
+}
+
+
+/**
+ * Updates the workphase button faces according to current wizard state.
+ */
+void
+vtkPerkStationModuleGUI
+::UpdateWorkphaseButtons()
+{
+  int currentStep = this->MRMLNode->GetCurrentStep();
+  
+  for ( int i = 0; i < this->WorkphaseButtonSet->GetNumberOfWidgets(); ++ i )
+    {
+    if ( i == currentStep )
+      {
+      this->WorkphaseButtonSet->GetWidget( i )->SetReliefToSunken();
+      }
+    else
+      {
+      this->WorkphaseButtonSet->GetWidget( i )->SetReliefToGroove();
+      }
+    }
 }

@@ -17,6 +17,7 @@ Version:   $Revision: 1.2 $
 #include <sstream>
 
 #include "vtkObjectFactory.h"
+#include "vtkStringArray.h"
 
 #include "vtkMRMLPerkStationModuleNode.h"
 #include "vtkMRMLScene.h"
@@ -53,110 +54,119 @@ vtkMRMLNode* vtkMRMLPerkStationModuleNode::CreateNodeInstance()
   return new vtkMRMLPerkStationModuleNode;
 }
 
-//----------------------------------------------------------------------------
-vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
+
+/**
+ * Constructor.
+ */
+vtkMRMLPerkStationModuleNode
+::vtkMRMLPerkStationModuleNode()
 {
-   this->PlanningVolumeRef = NULL;
-   this->ValidationVolumeRef = NULL;
-   this->PlanningVolumeNode = NULL;
-   this->ValidationVolumeNode = NULL;
-   this->VolumeInUse = NULL;
+  this->PlanningVolumeRef = NULL;
+  this->ValidationVolumeRef = NULL;
+  this->PlanningVolumeNode = NULL;
+  this->ValidationVolumeNode = NULL;
+  this->VolumeInUse = NULL;
 
-   this->HideFromEditors = true;
+  this->HideFromEditors = true;
 
-   // member variables
-   this->VerticalFlip = false;
-   this->HorizontalFlip = false;
+  // member variables
+  this->VerticalFlip = false;
+  this->HorizontalFlip = false;
 
-   this->ClinicalModeRotation = 0.0;
-   this->ClinicalModeTranslation[0] = 0.0;
-   this->ClinicalModeTranslation[1] = 0.0;
+  this->ClinicalModeRotation = 0.0;
+  this->ClinicalModeTranslation[0] = 0.0;
+  this->ClinicalModeTranslation[1] = 0.0;
 
-   this->UserScaling[0] = 1.0;
-   this->UserScaling[1] = 1.0;
-   this->UserScaling[2] = 1.0;
+  this->UserScaling[0] = 1.0;
+  this->UserScaling[1] = 1.0;
+  this->UserScaling[2] = 1.0;
 
-   this->ActualScaling[0] = 1.0;
-   this->ActualScaling[1] = 1.0;
-   this->ActualScaling[2] = 1.0;
+  this->ActualScaling[0] = 1.0;
+  this->ActualScaling[1] = 1.0;
+  this->ActualScaling[2] = 1.0;
 
-   this->UserTranslation[0] = 0;
-   this->UserTranslation[1] = 0;
-   this->UserTranslation[2] = 0;
+  this->UserTranslation[0] = 0;
+  this->UserTranslation[1] = 0;
+  this->UserTranslation[2] = 0;
 
-   this->ActualTranslation[0] = 0;
-   this->ActualTranslation[1] = 0;
-   this->ActualTranslation[2] = 0;
+  this->ActualTranslation[0] = 0;
+  this->ActualTranslation[1] = 0;
+  this->ActualTranslation[2] = 0;
 
-   this->UserRotation = 0;
-   this->ActualRotation = 0;
-   this->CenterOfRotation[0] = 0.0;
-   this->CenterOfRotation[1] = 0.0;
-   this->CenterOfRotation[2] = 0.0;
+  this->UserRotation = 0;
+  this->ActualRotation = 0;
+  this->CenterOfRotation[0] = 0.0;
+  this->CenterOfRotation[1] = 0.0;
+  this->CenterOfRotation[2] = 0.0;
 
-   this->PlanEntryPoint[0] = 0.0;
-   this->PlanEntryPoint[1] = 0.0;
-   this->PlanEntryPoint[2] = 0.0;
+  this->PlanEntryPoint[0] = 0.0;
+  this->PlanEntryPoint[1] = 0.0;
+  this->PlanEntryPoint[2] = 0.0;
 
-   this->PlanTargetPoint[0] = 0.0;
-   this->PlanTargetPoint[1] = 0.0;
-   this->PlanTargetPoint[2] = 0.0;
+  this->PlanTargetPoint[0] = 0.0;
+  this->PlanTargetPoint[1] = 0.0;
+  this->PlanTargetPoint[2] = 0.0;
 
-   this->UserPlanInsertionAngle = 0;
-   this->ActualPlanInsertionAngle = 0;
+  this->UserPlanInsertionAngle = 0;
+  this->ActualPlanInsertionAngle = 0;
 
-   this->TiltAngle = 0;
-   this->OriginalSliceToRAS = vtkMatrix4x4::New();
-   this->TiltSliceToRAS = vtkMatrix4x4::New();
+  this->TiltAngle = 0;
+  this->OriginalSliceToRAS = vtkMatrix4x4::New();
+  this->TiltSliceToRAS = vtkMatrix4x4::New();
 
-   this->UserPlanInsertionDepth = 0;
-   this->ActualPlanInsertionDepth = 0;
+  this->UserPlanInsertionDepth = 0;
+  this->ActualPlanInsertionDepth = 0;
+  this->TrackerToPhantomMatrix = vtkMatrix4x4::New();
+  this->PhantomToImageRASMatrix = vtkMatrix4x4::New();
+  this->ToolTipOffset[0] = 0.0;
+  this->ToolTipOffset[1] = 0.0;
+  this->ToolTipOffset[2] = 0.0;
 
-   this->TrackerToPhantomMatrix = vtkMatrix4x4::New();
-   this->PhantomToImageRASMatrix = vtkMatrix4x4::New();
-   this->ToolTipOffset[0] = 0.0;
-   this->ToolTipOffset[1] = 0.0;
-   this->ToolTipOffset[2] = 0.0;
+  this->ReferenceBodyToolPort = 0;
+  this->NeedleToolPort = 1;
 
-   this->ReferenceBodyToolPort = 0;
-   this->NeedleToolPort = 1;
+  this->ValidateEntryPoint[0] = 0.0;
+  this->ValidateEntryPoint[1] = 0.0;
+  this->ValidateEntryPoint[2] = 0.0;
 
-   this->ValidateEntryPoint[0] = 0.0;
-   this->ValidateEntryPoint[1] = 0.0;
-   this->ValidateEntryPoint[2] = 0.0;
+  this->ValidateTargetPoint[0] = 0.0;
+  this->ValidateTargetPoint[1] = 0.0;
+  this->ValidateTargetPoint[2] = 0.0;
 
-   this->ValidateTargetPoint[0] = 0.0;
-   this->ValidateTargetPoint[1] = 0.0;
-   this->ValidateTargetPoint[2] = 0.0;
-
-   this->ValidateInsertionDepth = 0.0;
-
-
-   this->CalibrateTranslationError[0] = 0;
-   this->CalibrateTranslationError[1] = 0;
-
-   this->CalibrateScaleError[0] = 0.0;
-   this->CalibrateScaleError[1] = 0.0;
-
-   this->CalibrateRotationError = 0;
-
-   this->PlanInsertionAngleError = 0;
-   this->PlanInsertionDepthError = 0;
-
-   this->EntryPointError = 0;
-   this->TargetPointError = 0;
-
-   this->TimeSpentOnCalibrateStep = 0;
-   this->TimeSpentOnPlanStep = 0;
-   this->TimeSpentOnInsertStep = 0;
-   this->TimeSpentOnValidateStep = 0;
+  this->ValidateInsertionDepth = 0.0;
 
 
-   this->InitializeTransform();
+  this->CalibrateTranslationError[0] = 0;
+  this->CalibrateTranslationError[1] = 0;
 
-   this->InitializeFiducialListNode();
+  this->CalibrateScaleError[0] = 0.0;
+  this->CalibrateScaleError[1] = 0.0;
 
-   
+  this->CalibrateRotationError = 0;
+
+  this->PlanInsertionAngleError = 0;
+  this->PlanInsertionDepthError = 0;
+
+  this->EntryPointError = 0;
+  this->TargetPointError = 0;
+
+  this->TimeSpentOnCalibrateStep = 0;
+  this->TimeSpentOnPlanStep = 0;
+  this->TimeSpentOnInsertStep = 0;
+  this->TimeSpentOnValidateStep = 0;
+
+
+  this->InitializeTransform();
+  this->InitializeFiducialListNode();
+  
+  this->StepList = vtkStringArray::New();
+    this->StepList->InsertNextValue( "Calibration" );
+    this->StepList->InsertNextValue( "Planning" );
+    this->StepList->InsertNextValue( "Insertion" );
+    this->StepList->InsertNextValue( "Validation" );
+    this->StepList->InsertNextValue( "Evaluation" );
+  this->CurrentStep = 0;
+  this->PreviousStep = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -184,7 +194,8 @@ vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
      }
 //   vtkSetMRMLNodeMacro (this->CalibrationMRMLTransformNode, NULL);
 //   vtkSetMRMLNodeMacro (this->PlanMRMLFiducialListNode, NULL);  
-
+  
+  this->StepList->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -195,6 +206,7 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
 
   vtkIndent indent(nIndent);
+  
   
   of << "\" \n";
   of << indent << " PlanningVolumeRef=\"" 
@@ -314,24 +326,23 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
      << "\" \n";
 
   of << indent << " TargetPointError=\"" << this->TargetPointError
-     << "\" \n";
-
-
-
+     << "\" \n";  
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
 {
-  vtkMRMLNode::ReadXMLAttributes(atts);
+  vtkMRMLNode::ReadXMLAttributes( atts );
 
   // Read all MRML node attributes from two arrays of names and values
   const char* attName;
   const char* attValue;
-  while (*atts != NULL) 
+  
+  while ( *atts != NULL )
     {
     attName = *(atts++);
     attValue = *(atts++);
+    
     if (!strcmp(attName, "PlanningVolumeRef"))
       {
       this->SetPlanningVolumeRef(attValue);
@@ -668,6 +679,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       this->TargetPointError = val;
       } 
     }
+  
 }
 
 //----------------------------------------------------------------------------
@@ -687,7 +699,18 @@ void vtkMRMLPerkStationModuleNode::Copy(vtkMRMLNode *anode)
   this->SetValidationVolumeRef(node->ValidationVolumeRef);
   this->SetPlanningVolumeNode(node->GetPlanningVolumeNode());
   this->SetValidationVolumeNode(node->GetValidationVolumeNode());
-
+  
+  
+    // Work phases.
+  
+  this->StepList->Reset();
+  for ( int i = 0; i > node->StepList->GetSize(); i ++ )
+  {
+    this->StepList->SetValue( i, node->StepList->GetValue( i ) );
+  }
+  
+  this->CurrentStep = node->CurrentStep;
+  this->PreviousStep = node->PreviousStep;
 }
 
 //----------------------------------------------------------------------------
@@ -823,3 +846,74 @@ void vtkMRMLPerkStationModuleNode::SetTransformNodeMatrix(vtkMatrix4x4 *matrix)
 {
   this->CalibrationMRMLTransformNode->ApplyTransform(matrix);
 }*/
+
+
+/**
+ * @returns Number of workphase steps.
+ */
+int
+vtkMRMLPerkStationModuleNode
+::GetNumberOfSteps()
+{
+  return this->StepList->GetNumberOfValues();
+}
+
+
+/**
+ * @returns Current step ID.
+ */
+int
+vtkMRMLPerkStationModuleNode
+::GetCurrentStep()
+{
+  return this->CurrentStep;
+}
+
+
+/**
+ * @returns Previous step ID.
+ */
+int
+vtkMRMLPerkStationModuleNode
+::GetPreviousStep()
+{
+  return this->PreviousStep;
+}
+  
+
+/**
+ * Modifies the workphase step.
+ */
+int
+vtkMRMLPerkStationModuleNode
+::SwitchStep( int newStep )
+{
+  if ( newStep < 0 )
+    {
+    return 0;
+    }
+  
+  this->PreviousStep = this->CurrentStep;
+  this->CurrentStep = newStep;
+  
+  return 1;
+}
+
+
+/**
+ * @returns Name of work phase step i.
+ */
+const char*
+vtkMRMLPerkStationModuleNode
+::GetStepName( int i )
+{
+  if ( i >= 0 && i < this->StepList->GetNumberOfValues() )
+    {
+      return this->StepList->GetValue( i );
+    }
+  else
+    {
+    return NULL;
+    }
+}
+

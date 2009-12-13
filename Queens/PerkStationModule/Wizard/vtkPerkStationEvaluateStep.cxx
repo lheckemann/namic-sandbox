@@ -769,7 +769,7 @@ void vtkPerkStationEvaluateStep::LoadEvaluation(istream &file)
   if (!mrmlNode)
       return;
 
-  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Training)
+  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Training)
     {
     // indicates all user parameters read are valid so do the calculations now
     mrmlNode->CalculateCalibrateScaleError();
