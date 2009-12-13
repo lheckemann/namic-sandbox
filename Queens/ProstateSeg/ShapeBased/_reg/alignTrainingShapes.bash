@@ -22,7 +22,7 @@ for j in ${dataDir}/*_label.nrrd; do
 
     regMovingImgIso=`echo ${movingImgIso} | sed s/-iso/-reg-iso/`
 
-    ${exeFile} ${fixedImgIso} ${movingImgIso} 5000 0.5 ${regMovingImgIso}
+    ${exeFile} ${fixedImgIso} ${movingImgIso} 5000 0.1 ${regMovingImgIso}
 
     regMovingImg=`echo ${regMovingImgIso} | sed s/-iso//`
 
