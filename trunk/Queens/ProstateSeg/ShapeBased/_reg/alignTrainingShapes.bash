@@ -30,11 +30,11 @@ for j in ${dataDir}/*_label.nrrd; do
 
     mv ${regMovingImg} ${resultDataDir}/
 
-    rm movingImgIso
+    rm ${movingImgIso}
 done
 
 
 
 
 ##################################################
-rm fixedImgIso
+rm ${fixedImgIso}
