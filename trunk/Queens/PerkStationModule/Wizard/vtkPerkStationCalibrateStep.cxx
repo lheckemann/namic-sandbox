@@ -480,10 +480,10 @@ void vtkPerkStationCalibrateStep::EnableDisableLoadResetControls(bool enable)
 {
   switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       this->LoadCalibrationFileButton->SetEnabled(enable);
       this->ResetCalibrationButton->SetEnabled(enable);
       break;
@@ -494,10 +494,10 @@ void vtkPerkStationCalibrateStep::EnableDisableSaveControls(bool enable)
 {
   switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       this->SaveCalibrationFileButton->SetEnabled(enable);
       break;
     }
@@ -515,7 +515,7 @@ void vtkPerkStationCalibrateStep::EnableDisableScaleComponents(bool enable)
   this->ScaleFrame->GetFrame()->SetEnabled(enable);
   switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       this->ImgSpacing->GetWidget(0)->SetEnabled(enable);
       this->ImgSpacing->GetWidget(1)->SetEnabled(enable);
       this->MonSpacing->GetWidget(0)->SetEnabled(enable);
@@ -524,7 +524,7 @@ void vtkPerkStationCalibrateStep::EnableDisableScaleComponents(bool enable)
       this->ImgScaling->GetWidget(1)->SetEnabled(enable);
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       this->MonPhySize->GetWidget(0)->SetEnabled(enable);
       this->MonPhySize->GetWidget(1)->SetEnabled(enable);
       this->MonPixRes->GetWidget(0)->SetEnabled(enable);
@@ -541,7 +541,7 @@ void vtkPerkStationCalibrateStep::EnableDisableTranslateComponents(bool enable)
   this->TranslateFrame->GetFrame()->SetEnabled(enable);
   switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       this->TransImgFid->GetWidget(0)->SetEnabled(enable);
       this->TransImgFid->GetWidget(1)->SetEnabled(enable);
       this->TransPhyFid->GetWidget(0)->SetEnabled(enable);
@@ -550,7 +550,7 @@ void vtkPerkStationCalibrateStep::EnableDisableTranslateComponents(bool enable)
       this->Translation->GetWidget(1)->SetEnabled(enable);
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       break;
     }
 
@@ -563,7 +563,7 @@ void vtkPerkStationCalibrateStep::EnableDisableRotateComponents(bool enable)
   this->RotateFrame->GetFrame()->SetEnabled(enable);
   switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       this->COR->GetWidget(0)->SetEnabled(enable);
       this->COR->GetWidget(1)->SetEnabled(enable);    
       this->RotImgFid->GetWidget(0)->SetEnabled(enable);
@@ -573,7 +573,7 @@ void vtkPerkStationCalibrateStep::EnableDisableRotateComponents(bool enable)
       this->RotationAngle->GetWidget()->SetEnabled(enable);
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       this->COR->GetWidget(0)->SetEnabled(enable);
       this->COR->GetWidget(1)->SetEnabled(enable);
       break;
@@ -586,7 +586,7 @@ void vtkPerkStationCalibrateStep::EnableDisableRotateComponents(bool enable)
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::EnableDisableControls()
 {
-  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Training)
+  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Training)
   {
   switch (this->CurrentSubState)
     {
@@ -658,14 +658,14 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
   switch (this->GetGUI()->GetMode())      
     {
 
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
 
       this->SetName("1/5. Calibrate");
       this->GetGUI()->GetWizardWidget()->SetErrorText( "Please note that the order of the click (first image fiducial, then physical fiducial) is important.");
       this->GetGUI()->GetWizardWidget()->Update();  
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
        
       // in clinical mode
       this->SetName("1/4. Calibrate");
@@ -725,12 +725,12 @@ void vtkPerkStationCalibrateStep::ShowLoadResetControls()
   switch (this->GetGUI()->GetMode())      
     {
 
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       // no controls to show at the moment
 
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
        
       // in clinical mode
       {
@@ -812,11 +812,11 @@ void vtkPerkStationCalibrateStep::ShowSaveControls()
   switch (this->GetGUI()->GetMode())      
     {
 
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
 
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
        
       // in clinical mode
       {
@@ -871,8 +871,8 @@ void vtkPerkStationCalibrateStep::ShowFlipComponents()
   this->ClearFlipComponents();
 
   // gui same for flip components irrespective of the current perk station mode
-  if (    (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Training)
-       || (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+  if (    (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Training)
+       || (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical)
       )
     {
     // Create the frame
@@ -940,7 +940,7 @@ void vtkPerkStationCalibrateStep::ShowScaleComponents()
   switch (this->GetGUI()->GetMode())      
     {
 
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       {
       // Create the frame
         if (!this->ScaleFrame)
@@ -1135,7 +1135,7 @@ void vtkPerkStationCalibrateStep::ShowScaleComponents()
       }
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
        
       // in clinical mode
 
@@ -1313,7 +1313,7 @@ void vtkPerkStationCalibrateStep::ShowTranslateComponents()
   switch (this->GetGUI()->GetMode())
     {
 
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       {
       // Create the frame
       if (!this->TranslateFrame)
@@ -1503,7 +1503,7 @@ void vtkPerkStationCalibrateStep::ShowTranslateComponents()
       }
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       {
       // Create the frame
       if (!this->TranslateFrame)
@@ -1554,7 +1554,7 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
   switch (this->GetGUI()->GetMode())
     {
 
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       {
 
       // rotation individual components
@@ -1764,7 +1764,7 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
       }
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       {
       // Create the frame
       if (!this->RotateFrame)
@@ -1873,7 +1873,7 @@ void vtkPerkStationCalibrateStep::InstallCallbacks()
 
 /*  switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       {
       // flip components
       this->VerticalFlipCheckButton->GetWidget()->SetCommand(this, "VerticalFlipCallback");
@@ -1910,7 +1910,7 @@ void vtkPerkStationCalibrateStep::InstallCallbacks()
       }
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       {
       // flip components
       this->VerticalFlipCheckButton->GetWidget()->SetCommand(this, "VerticalFlipCallback");
@@ -1971,7 +1971,7 @@ void vtkPerkStationCalibrateStep::PopulateControls()
  
   switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
     if(!this->TrainingModeControlsPopulated)
       {
       // populate flip frame components
@@ -2027,7 +2027,7 @@ void vtkPerkStationCalibrateStep::PopulateControls()
       }
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
     if(!this->ClinicalModeControlsPopulated)
       {
       // populate flip frame components
@@ -2103,11 +2103,11 @@ void vtkPerkStationCalibrateStep::PopulateControlsOnLoadCalibration()
  
   switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       // error
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
    
       {
       // populate flip frame components
@@ -2400,7 +2400,7 @@ void vtkPerkStationCalibrateStep::ImageTranslationEntryCallback(int widgetIndex)
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::COREntryCallback(int widgetIndex)
 {
-  if (this->CurrentSubState != 3 && this->GetGUI()->GetMode() != vtkPerkStationModuleGUI::ModeId::Clinical)
+  if (this->CurrentSubState != 3 && this->GetGUI()->GetMode() != vtkPerkStationModuleGUI::Clinical)
       return;
   
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
@@ -2458,7 +2458,7 @@ void vtkPerkStationCalibrateStep::COREntryCallback(int widgetIndex)
     this->CORSpecified = true;
     xValChanged = false;
     yValChanged = false;
-    if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+    if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical)
       {
       this->GetGUI()->GetWizardWidget()->SetErrorText( "");
       this->GetGUI()->GetWizardWidget()->Update();      
@@ -2529,7 +2529,7 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
   if (( (s == istyleSecondary) || (s == istyle0))&& (event == vtkCommand::LeftButtonPressEvent) )
     {
     // hear clicks only if the current sub state is Translate or Rotate with one exception // to be able to specify COR from slicer's laptop window, only in clinical mode
-    if ( (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))  && !( (s == istyle0) && (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false)))
+    if ( (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))  && !( (s == istyle0) && (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false)))
       //if (!((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
         return;
 
@@ -2549,7 +2549,7 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
     // Note: at the moment, in calibrate step, listening only to clicks done in secondary monitor
     // because looking through secondary monitor mirror only can do calibration
 
-    if ( (s == istyle0) && (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false))
+    if ( (s == istyle0) && (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical) && (this->CurrentSubState == 1) && (this->CORSpecified == false))
       {
       // coming from main gui viewer of SLICER
       // to be able to specify COR from slicer's laptop window, only in clinical mode
@@ -2587,7 +2587,7 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
       return;
 
   // has to be in clinical mode
-  if (this->GetGUI()->GetMode()!= vtkPerkStationModuleGUI::ModeId::Clinical)
+  if (this->GetGUI()->GetMode()!= vtkPerkStationModuleGUI::Clinical)
     return;
 
   
@@ -2813,7 +2813,7 @@ void vtkPerkStationCalibrateStep::RecordClick(int xyPoint[2], double rasPoint[3]
         }
         break;
     default:
-        if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical && !this->CORSpecified)
+        if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical && !this->CORSpecified)
           {
           this->COR->GetWidget(0)->SetValueAsDouble(rasPoint[0]);
           this->COR->GetWidget(1)->SetValueAsDouble(rasPoint[1]);
@@ -2886,11 +2886,11 @@ void vtkPerkStationCalibrateStep::ScaleImage()
 
    switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       this->GetGUI()->GetMRMLNode()->GetUserScaling(scale); 
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       this->GetGUI()->GetMRMLNode()->GetActualScaling(scale);
       break;
     }
@@ -3198,11 +3198,11 @@ void vtkPerkStationCalibrateStep::LoadCalibration(istream &file)
   switch (this->GetGUI()->GetMode())      
     {
 
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
      
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
        
       // in clinical mode
       char currentLine[256];  
@@ -3518,7 +3518,7 @@ void vtkPerkStationCalibrateStep::ResetControls()
 
    switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
         if (this->ImgScaling)
           {
           // image scaling
@@ -3569,7 +3569,7 @@ void vtkPerkStationCalibrateStep::ResetControls()
           }
         break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
         if (this->COR)
           {
           this->COR->GetWidget(0)->SetValue("");
@@ -3934,7 +3934,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
   // add event handling callbacks for each control
   switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       {
       
       // flip controls
@@ -3978,7 +3978,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
     
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       {
        // load reset components
       if (this->LoadCalibrationFileButton)
@@ -4031,7 +4031,7 @@ void vtkPerkStationCalibrateStep::RemoveGUIObservers()
   // add event handling callbacks for each control
   switch (this->GetGUI()->GetMode())
     {
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
       {
       
       // flip controls
@@ -4075,7 +4075,7 @@ void vtkPerkStationCalibrateStep::RemoveGUIObservers()
 
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
       {
       // load reset components
       if (this->LoadCalibrationFileButton)

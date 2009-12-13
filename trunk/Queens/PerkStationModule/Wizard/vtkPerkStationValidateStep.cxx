@@ -199,13 +199,13 @@ void vtkPerkStationValidateStep::ShowUserInterface()
   switch (this->GetGUI()->GetMode())      
     {
 
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
 
       this->SetName("4/5. Validate");
       this->GetGUI()->GetWizardWidget()->Update();  
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
        
       // in clinical mode
       this->SetName("4/4. Validate");
@@ -747,7 +747,7 @@ void vtkPerkStationValidateStep::RemoveGUIObservers()
 void vtkPerkStationValidateStep::InstallCallbacks()
 {
     // Configure the OK button to start
-  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical)
     {
     vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 

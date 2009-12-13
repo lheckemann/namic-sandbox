@@ -1,16 +1,4 @@
-/*=auto=========================================================================
 
-  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-  See Doc/copyright/copyright.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
-
-  Program:   3D Slicer
-  Module:    $RCSfile: vtkMRMLPerkStationModuleNode.h,v $
-  Date:      $Date: 2006/03/19 17:12:29 $
-  Version:   $Revision: 1.3 $
-
-=========================================================================auto=*/
 #ifndef __vtkMRMLPerkStationModuleNode_h
 #define __vtkMRMLPerkStationModuleNode_h
 
@@ -31,6 +19,7 @@ class vtkMRMLLinearTransformNode;
 class vtkMRMLFiducialListNode;
 class vtkMRMLScalarVolumeNode;
 
+
 enum VolumeType
 {
   VOL_GENERIC, // any other than the specific volumes 
@@ -38,9 +27,13 @@ enum VolumeType
   VOL_VALIDATION
 };
 
-class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRMLNode
+
+class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode
+  : public vtkMRMLNode
 {
-  public:
+
+public:
+
   static vtkMRMLPerkStationModuleNode *New();
   vtkTypeMacro(vtkMRMLPerkStationModuleNode,vtkMRMLNode);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -278,11 +271,17 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   void CalculateEntryPointError();
   void CalculateTargetPointError();
 
-
-   void AddVolumeInformationToList(vtkMRMLScalarVolumeNode *volNode, const char *diskLocation, char *type); 
-
+  void AddVolumeInformationToList( vtkMRMLScalarVolumeNode *volNode,
+                                   const char *diskLocation, char *type ); 
+  
+  int GetNumberOfSteps();
+  int GetCurrentStep();
+  int GetPreviousStep();
+  int SwitchStep(int newStep);
+  const char* GetStepName(int i);
 
 protected:
+
   vtkMRMLPerkStationModuleNode();
   ~vtkMRMLPerkStationModuleNode();
   vtkMRMLPerkStationModuleNode(const vtkMRMLPerkStationModuleNode&);
@@ -395,8 +394,16 @@ protected:
   } VolumeInformationStruct;
   std::vector<VolumeInformationStruct> VolumesList;
   //ETX
+  
+  
+    // Keep track of work phases.
 
+protected:
 
+  vtkStringArray *StepList;
+  int CurrentStep;
+  int PreviousStep;
+  
 };
 
 #endif

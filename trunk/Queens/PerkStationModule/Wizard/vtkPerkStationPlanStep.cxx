@@ -166,7 +166,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
   switch (this->GetGUI()->GetMode())      
     {
 
-    case vtkPerkStationModuleGUI::ModeId::Training:
+    case vtkPerkStationModuleGUI::Training:
 
       this->SetName("2/5. Plan");
       this->GetGUI()->GetWizardWidget()->Update();
@@ -174,7 +174,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
        
       break;
 
-    case vtkPerkStationModuleGUI::ModeId::Clinical:
+    case vtkPerkStationModuleGUI::Clinical:
        
       // in clinical mode
       this->SetName("2/4. Plan");
@@ -520,7 +520,7 @@ void vtkPerkStationPlanStep::PopulateControlsOnLoadPlanning()
     if (!this->GetGUI()->GetMRMLNode())
       return;
 
-    if (!this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+    if (!this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical)
       return;
 
     double rasEntry[3];
@@ -849,7 +849,7 @@ void vtkPerkStationPlanStep::CalculatePlanInsertionAngleAndDepth()
   double insAngle = double(180/vtkMath::Pi()) * atan(double((rasEntry[1] - rasTarget[1])/(rasEntry[0] - rasTarget[0])));
   this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionAngle(insAngle);
   
-  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical)
     {
     // there is also a possibility of the entry and target being on different slices
     // in this case, one also needs to calculate the tilt angle to extract the para-axial oblique slice which contains 
