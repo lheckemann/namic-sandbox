@@ -20,7 +20,7 @@ for j in ${dataDir}/*_label.nrrd; do
 
     unu resample -s = = x6.4 -i ${j} -o ${movingImgIso}
 
-    regMovingImgIso=`echo ${j} | sed s/-iso/-reg-iso/`
+    regMovingImgIso=`echo ${movingImgIso} | sed s/-iso/-reg-iso/`
 
     ${exeFile} ${fixedImgIso} ${movingImgIso} 5000 0.5 ${regMovingImgIso}
 
