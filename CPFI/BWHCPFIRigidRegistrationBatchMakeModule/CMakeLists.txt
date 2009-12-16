@@ -1,7 +1,7 @@
 project (BWHCPFIRigidRegistrationBatchMakeModule)
 
 # Set the name of the Slicer3 execution module to be run using BatchMake
-set(Slicer3ExeModule BWHCPFIRegistration)
+set(Slicer3ExeModule BWHCPFIRigidRegistration)
 
 # Set the name of the Slicer3 BatchMake module to be created
 set(Slicer3BatchModule BWHCPFIRigidRegistrationBatchMake)
