@@ -320,7 +320,7 @@ int vtkDataCollector::Initialize(vtkNDITracker* tracker)
       }
     this->TransformationFactorMmToPixel =  this->calibReader->GetTransformationFactorMmToPixel();
 
-    this->PositionCorrectionFactor = this->TransformationFactorMmToPixel / this->Shrinkfactor;
+    this->PositionCorrectionFactor = this->TransformationFactorMmToPixel / this->ShrinkFactor[0];
 
     this->calibReader->GetTrackerOffset(this->TrackerOffset);
 

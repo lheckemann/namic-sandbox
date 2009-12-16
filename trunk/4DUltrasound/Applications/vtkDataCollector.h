@@ -199,7 +199,7 @@ protected:
   //double UltrasoundScanDepth;
   int ShrinkFactor[3];
   double TransformationFactorMmToPixel;
-  double PositionCorrectionFactor,
+  double PositionCorrectionFactor;
 
   bool TrackerDeviceEnabled;
   vtkTrackerTool *tool;
