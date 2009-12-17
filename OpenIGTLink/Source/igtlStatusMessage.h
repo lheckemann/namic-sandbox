@@ -89,7 +89,7 @@ protected:
   
   igtlUint16   m_Code;
   igtlInt64    m_SubCode;
-  char         m_ErrorName[21];
+  char         m_ErrorName[20];
   
   //BTX
   std::string  m_StatusMessageString;

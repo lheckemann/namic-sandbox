@@ -62,7 +62,7 @@ extern "C" {
 typedef struct {
   igtl_uint16    code;             /* status code defined above */
   igtl_int64     subcode;          /* sub code for the error    */
-  char           error_name[IGTL_STATUS_ERROR_NAME_LENGTH+1]; 
+  char           error_name[IGTL_STATUS_ERROR_NAME_LENGTH]; 
                                    /* error name -- can be anything, don't rely on this */
   /*char           status_message[]; */
 } igtl_status_header;
