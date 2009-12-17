@@ -73,6 +73,8 @@ public:
   const char* GetToolName() { return this->ToolName.c_str(); }
   void SetToolDescription(const char* str) { this->ToolDescription = str; }
   const char* GetToolDescription() { return this->ToolDescription.c_str(); }
+  void SetCalibrationMatrix(vtkMatrix4x4* cm) { this->calMatrix = cm; }
+  vtkMatrix4x4* GetCalibrationMatrix() { return this->calMatrix; }  
 
 private:
   //BTX

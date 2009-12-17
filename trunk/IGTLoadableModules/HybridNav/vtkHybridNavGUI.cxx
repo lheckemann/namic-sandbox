@@ -528,7 +528,6 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
       vtkMRMLHybridNavToolNode* tnode = vtkMRMLHybridNavToolNode::SafeDownCast(this->CalibrationNodeSelectorMenu->GetSelected());
       if (tnode)
         {
-        //TODO: by adding this observer the TransformModifiedEvent gets called twice every new matrix
         //Add observer to Tracked Transform Node
         vtkIntArray* nodeEvents = vtkIntArray::New();
         nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
@@ -536,7 +535,7 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         vtkSetAndObserveMRMLNodeEventsMacro(transformNode,transformNode,nodeEvents);
         nodeEvents->Delete();
         //Initialize pivot calibration object
-        pivot->Initialize(this->numPointsEntry->GetValueAsInt(), transformNode);
+        pivot->Initialize(this->numPointsEntry->GetValueAsInt(), tnode);
         Calibrating = 1;
         }
       }
@@ -633,11 +632,22 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
       int i = pivot->AcquireTransform();
       if (i == 1)
         {
+        //Print out calculated Calibration Matrix
         std::cerr << "Calibration matrix: ";
         pivot->CalibrationTransform->Print(std::cerr);
         Calibrating = 0;
-        //Remove observer on selected node
-        vtkSetAndObserveMRMLNodeEventsMacro(node, node, NULL);
+        
+        vtkSetAndObserveMRMLNodeEventsMacro(node, node, NULL);    //Remove observer on selected node
+        pivot->toolNode->SetCalibrated(1); //Update Tool Calibration status
+        pivot->toolNode->SetCalibrationMatrix(pivot->CalibrationTransform);
+        UpdateToolList(UPDATE_ALL);
+        
+        //Create node with Calibration Matrix
+        vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::New();
+        tnode->ApplyTransform(pivot->CalibrationTransform);
+        //tool = this->GetLogic()->CreateToolModel(tool);         //Represent the tool
+        this->GetMRMLScene()->AddNode(tnode);
+        this->GetMRMLScene()->Modified();
         }
       }
     }

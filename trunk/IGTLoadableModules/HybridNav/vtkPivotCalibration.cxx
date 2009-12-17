@@ -19,6 +19,7 @@
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_vector.h"
 #include "vtkMatrix4x4.h"
+#include <cmath>
 
 //------------------------------------------------------------------------
 
@@ -46,15 +47,17 @@ vtkPivotCalibration::~vtkPivotCalibration()
 }
 
 //------------------------------------------------------------------------
-void vtkPivotCalibration::Initialize( unsigned int n, vtkMRMLTransformNode* node )
+void vtkPivotCalibration::Initialize( unsigned int n, vtkMRMLHybridNavToolNode* node )
 {
   //Initialize the transform data node and number of transforms
   if (node != NULL)
     {
-    this->transformNode = static_cast<vtkMRMLLinearTransformNode*> (node);
+    toolNode = node;
+    this->transformNode = vtkMRMLLinearTransformNode::SafeDownCast(toolNode->GetParentTransformNode());
     this->m_RequiredNumberOfTransformations = n;
     this->m_Transforms.clear();
     bInitializeError = false;
+    bComputationError = true;
     std::cerr << "Calibration successfully initialized." << std::endl;
     }
   else
@@ -100,10 +103,27 @@ int vtkPivotCalibration::AcquireTransform()
       {
       vtkMatrix4x4* mat = vtkMatrix4x4::New();
       this->transformNode->GetMatrixTransformToWorld(mat);
-      this->m_Transforms.push_back(mat);
-      mat->Print(std::cerr);
-      std::cerr << "Number of transforms stacked: " << this->m_Transforms.size() << std::endl;
-      return 0;
+      
+      //check to see if matrix is a repetition of previously acquired matrix
+      if (this->m_Transforms.size() > 1)
+        {
+        if (CompareMatrix(mat, m_Transforms.back()) == 0)
+          {
+          this->m_Transforms.push_back(mat);
+          mat->Print(std::cerr);
+          std::cerr << "Number of transforms stacked: " << this->m_Transforms.size() << std::endl;
+          return 0;
+          }
+        else 
+          return 0;
+        }
+      else
+        {
+        this->m_Transforms.push_back(mat);
+        mat->Print(std::cerr);
+        std::cerr << "Number of transforms stacked: " << this->m_Transforms.size() << std::endl;
+        return 0;
+        }
       }
     }
   else
@@ -155,7 +175,6 @@ void vtkPivotCalibration::ComputeCalibration()
     for (int i = 0; i < 3; i++)
       {
       t(i) = (*it)->GetElement(i, 3);
-      std::cerr << (*it)->GetElement(i, 3) << std::endl;
       }
     t *= -1;
     b.update( t, currentRow );
@@ -168,9 +187,6 @@ void vtkPivotCalibration::ComputeCalibration()
     A.update(R, currentRow, 0);
     A.update( minusI, currentRow, 1 );
     }
-
-  std::cerr << "Matrix A:" << A << std::endl;
-  std::cerr << "Vector b:" << b << std::endl;
 
   //solve the equations
   vnl_svd<double> svdA(A);
@@ -211,8 +227,6 @@ void vtkPivotCalibration::ComputeCalibration()
     }
 }
 
-
-
 //--------------------------------------------------------------------------------
 void vtkPivotCalibration::SetSingularValueThreshold( double threshold )
 {
@@ -220,6 +234,21 @@ void vtkPivotCalibration::SetSingularValueThreshold( double threshold )
 }
 
 //--------------------------------------------------------------------------------
+bool vtkPivotCalibration::CompareMatrix( vtkMatrix4x4* mat1, vtkMatrix4x4* mat2)
+{
+  bool equal = 1;
+  for (int i = 0; i < 4; i++)
+    {
+    for (int j = 0; j < 3; j++)
+      {
+      if ( fabs(mat1->GetElement(i,j) - mat2->GetElement(i,j)) > 0.001)
+        equal = 0;
+        return equal;
+      }
+    }
+  return equal;
+}
+
 
 
 /*void
