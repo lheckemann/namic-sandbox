@@ -69,7 +69,7 @@ igtlInt64 StatusMessage::GetSubCode()
 
 void StatusMessage::SetErrorName(const char* name)
 {
-  this->m_ErrorName[IGTL_STATUS_ERROR_NAME_LENGTH] = '\0';
+  this->m_ErrorName[IGTL_STATUS_ERROR_NAME_LENGTH-1] = '\0';
   strncpy(this->m_ErrorName, name, IGTL_STATUS_ERROR_NAME_LENGTH);
 }
 
@@ -125,7 +125,7 @@ int StatusMessage::UnpackBody()
 
   this->m_Code    = status_header->code;
   this->m_SubCode = status_header->subcode;
-  this->m_ErrorName[IGTL_STATUS_ERROR_NAME_LENGTH] = '\0';
+  this->m_ErrorName[IGTL_STATUS_ERROR_NAME_LENGTH-1] = '\0';
   strncpy(this->m_ErrorName, status_header->error_name, IGTL_STATUS_ERROR_NAME_LENGTH);
 
   // make sure that the status message in the pack ends with '\0'
