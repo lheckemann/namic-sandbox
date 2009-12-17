@@ -34,7 +34,7 @@
 struct status_message {
   igtl_header        header;
   igtl_status_header status;
-  char               err_msg[sizeof(STR_ERROR_MESSAGE)+1];
+  char               err_msg[sizeof(STR_ERROR_MESSAGE)];
 };
 #pragma pack(0)
 
@@ -42,7 +42,7 @@ int main( int argc, char * argv [] )
 {
 
   igtl_uint64 crc;
-  unsigned int msglen = sizeof(STR_ERROR_MESSAGE)+1;
+  unsigned int msglen = sizeof(STR_ERROR_MESSAGE);
 
   /* Set dummy status */
   struct status_message message;
