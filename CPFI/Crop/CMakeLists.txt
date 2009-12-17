@@ -1,20 +1,44 @@
-project(Crop)
+project( Crop )
 
-cmake_minimum_required(VERSION 2.4)
 
-# Slicer 3
-find_package(Slicer3 REQUIRED)
-include(${Slicer3_USE_FILE})
+find_package(GenerateCLP REQUIRED)
+if(GenerateCLP_FOUND)
+  include(${GenerateCLP_USE_FILE})
+endif(GenerateCLP_FOUND)
 
-#Default install prefix
-slicer3_set_default_install_prefix_for_external_projects()
+link_directories(${ModuleDescriptionParser_BINARY_DIR})
 
-set (CLP Crop)
-set (${CLP}_SOURCE ${CLP}.cxx)
-generateclp(${CLP}_SOURCE ${CLP}.xml)
+find_package(ITK REQUIRED)
+include(${ITK_USE_FILE})
 
+include_directories( ${SlicerBaseCLI_BINARY_DIR} ${SlicerBaseCLI_SOURCE_DIR} )
+
+#####################
+
+set (CLP Crop )
+
+set ( ${CLP}_SOURCE ${CLP}.cxx)
+generateclp(${CLP}_SOURCE ${CLP}.xml ${Slicer3_SOURCE_DIR}/Resources/NAMICLogo.h)
 add_executable(${CLP} ${${CLP}_SOURCE})
 slicer3_set_plugins_output_path(${CLP})
-target_link_libraries(${CLP} ${ITK_LIBRARIES} MRML vtkITK vtkIO SlicerBaseLogic SlicerBaseCLI)
+target_link_libraries (${CLP}
+  ITKIO
+  ITKBasicFilters
+  )
 
+add_library(${CLP}Lib SHARED ${${CLP}_SOURCE})
+set_target_properties (${CLP}Lib PROPERTIES COMPILE_FLAGS "-Dmain=ModuleEntryPoint")
+slicer3_set_plugins_output_path(${CLP}Lib)
+target_link_libraries (${CLP}Lib ITKIO ITKBasicFilters)
+
+if (Slicer3_SOURCE_DIR)
+  # install each target in the production area (where it would appear in an 
+  # installation) and install each target in the developer area (for running 
+  # from a build)
+  set(TARGETS        
+    Crop
+    )
+  slicer3_install_plugins(${TARGETS})
+
+endif (Slicer3_SOURCE_DIR)
 
