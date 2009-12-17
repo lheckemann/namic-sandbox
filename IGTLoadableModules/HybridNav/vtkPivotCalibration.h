@@ -20,6 +20,7 @@
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMatrix4x4.h"
 #include "itkPoint.h"
+#include "vtkMRMLHybridNavToolNode.h"
 #include <vector>
 
 /** PivotCalibration
@@ -49,7 +50,7 @@ public:
    *  the pivot calibration and the tracker MRML node information.
    *  It is assumed that the tracker is already in tracking mode and that the
    *  tool is connected to the given port and channel. */
-  void Initialize( unsigned int n, vtkMRMLTransformNode* node );
+  void Initialize( unsigned int n, vtkMRMLHybridNavToolNode* node );
 
   /* This method is part of the data acquisition before the actual calibration
    * process. We add a transform to the vector which stores the data. When the
@@ -74,6 +75,9 @@ public:
    *  tolerance. */
   void SetSingularValueThreshold( double threshold );
 
+  //This method allows comparing two matrices to see if they are the same
+  //returns 1 if matrices are equal or 0 if they are different
+  bool CompareMatrix( vtkMatrix4x4*, vtkMatrix4x4* );
 
   /** This method is used to request the calibration transformation.
    *  The method should only be invoked after a successful calibration.
@@ -105,6 +109,7 @@ public:
 
   vtkMRMLLinearTransformNode* transformNode;        //MRML node which contains tracking information
   vtkMatrix4x4* CalibrationTransform;   //transform from tracked position to tool tip point
+  vtkMRMLHybridNavToolNode* toolNode;
 
 private:
 //BTX
