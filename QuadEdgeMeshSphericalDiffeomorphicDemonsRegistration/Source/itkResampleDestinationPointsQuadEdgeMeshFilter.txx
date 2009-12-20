@@ -132,7 +132,7 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
 
   const InputPointsContainer * inputPoints = inputPointSet->GetPoints();
 
-   if( !inputPoints )
+  if( !inputPoints )
     {
     itkExceptionMacro("Input PointSet has no points");
     }
