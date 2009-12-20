@@ -41,9 +41,9 @@ class DeformationFieldFromTransformMeshFilter :
 public:
   typedef DeformationFieldFromTransformMeshFilter     Self;
   typedef MeshToMeshFilter< 
-    TInputMesh, TOutputMesh >                                 Superclass;
-  typedef SmartPointer< Self >                                Pointer;
-  typedef SmartPointer< const Self >                          ConstPointer;
+    TInputMesh, TOutputMesh >                         Superclass;
+  typedef SmartPointer< Self >                        Pointer;
+  typedef SmartPointer< const Self >                  ConstPointer;
 
   /** Run-time type information (and related methods).   */
   itkTypeMacro( DeformationFieldFromTransformMeshFilter, MeshToMeshFilter );
