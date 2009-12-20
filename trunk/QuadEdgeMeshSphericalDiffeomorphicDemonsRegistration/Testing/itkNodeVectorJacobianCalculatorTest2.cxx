@@ -182,6 +182,8 @@ int main( int argc, char *argv[] )
   fixedVectorContainer->Reserve( fixedMesh->GetNumberOfPoints() ); 
 
   FixedPointType   fixedPoint;
+  fixedPoint.Fill(0.0f);
+
   for( unsigned int i=0; i < fixedMesh->GetNumberOfPoints(); i++ )
     {
     fixedMesh->GetPoint(i, &fixedPoint);
