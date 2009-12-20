@@ -63,6 +63,7 @@ int main(int argc, char* argv[] )
   MeshType::Pointer mesh = surfaceReader->GetOutput();
 
   PointType  point;
+  point.Fill(0.0f);
 
   std::cout << "Testing itk::FreeSurferBinarySurfaceReader" << std::endl;
 

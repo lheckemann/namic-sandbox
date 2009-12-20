@@ -109,9 +109,15 @@ public:
   MovingPointType  movingPt;
   FixedPointType   fixedPt;
 
+  movingPt.Fill(0.0f);
+  fixedPt.Fill(0.0f);
+
   MovingVectorType  movingVtr;
   FixedVectorType   fixedVtr;
   
+  movingVtr.Fill(0.0f);
+  fixedVtr.Fill(0.0f);
+
   std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
 
   fixedMesh->Print( std::cout );

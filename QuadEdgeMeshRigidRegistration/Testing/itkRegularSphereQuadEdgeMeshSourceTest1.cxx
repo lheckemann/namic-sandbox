@@ -75,6 +75,7 @@ int main( int argc, char * argv [] )
   MeshType::Pointer myMesh = mySphereMeshSource->GetOutput();
 
   PointType  pt;
+  pt.Fill(0.0f);
 
   std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
 
