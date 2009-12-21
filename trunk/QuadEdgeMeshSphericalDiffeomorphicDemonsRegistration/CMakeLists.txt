@@ -33,6 +33,9 @@ INCLUDE_DIRECTORIES(
 
 OPTION(BUILD_REPORTS "Generate articles for the Insight Journal" OFF)
 
+OPTION(USE_TESTING_SET "Run tests with Testing data collection" OFF)
+OPTION(USE_TRAINING_SET "Run tests with Training data collection" OFF)
+
 # Disable MSVC 8 warnings
 IF(WIN32)
   OPTION(DISABLE_MSVC8_DEPRECATED_WARNINGS
