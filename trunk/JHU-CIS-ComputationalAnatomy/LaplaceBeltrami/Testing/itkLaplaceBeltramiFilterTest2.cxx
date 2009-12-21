@@ -16,7 +16,7 @@
 
 void showUsage()
 {
-  printf("USAGE: LaplaceBeltrami [OPTIONS] <vtk_mesh_file> <first_harmonic_surface>\n");
+  printf("USAGE: itkLaplaceBeltramiFilterTest2 [OPTIONS] <vtk_mesh_file> <first_harmonic_surface>\n");
   printf("\t\t-h --help : print this message\n");
   printf("\t\t-e --eigenvalueCount : number of principal eigenvalues to calculate\n");
   exit(1);
