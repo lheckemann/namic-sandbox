@@ -25,8 +25,18 @@ SET(REPORT_SRCS
   InsightJournal.ist
   InsightJournal.sty
   LaplaceBeltramiFilter.tex
+  newcom.tex
   times.sty
   picins.sty
+  SurfaceHarmonic_1.png
+  SurfaceHarmonic_2.png
+  SurfaceHarmonic_3.png
+  SurfaceHarmonic_4.png
+  SurfaceHarmonic_5.png
+  SurfaceHarmonic_6.png
+  SurfaceHarmonic_7.png
+  SurfaceHarmonic_8.png
+  SurfaceHarmonic_9.png
   )
 
 #
