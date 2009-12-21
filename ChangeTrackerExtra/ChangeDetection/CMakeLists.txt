@@ -11,3 +11,6 @@ target_link_libraries(LabelShapeStatisticsCalculator ITKIO ITKStatistics)
 
 add_executable(ComputeAgreement ComputeAgreement.cxx)
 target_link_libraries(ComputeAgreement ITKIO ITKStatistics)
+
+add_executable(LineProfile LineProfile.cxx)
+target_link_libraries(LineProfile ITKIO ITKStatistics)
