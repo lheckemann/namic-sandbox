@@ -63,6 +63,16 @@ LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
 }
 
 /**
+ * Get the surface harmonics at each vertex
+ */
+template <class TInputMesh, class TOutputMesh>
+void
+LaplaceBeltramiFilter<TInputMesh, TOutputMesh>
+::GetHarmonics( HarmonicSetType& harms ) const
+{
+  harms = this->m_Harmonics;
+}
+/**
  *
  */
 template <class TInputMesh, class TOutputMesh>
