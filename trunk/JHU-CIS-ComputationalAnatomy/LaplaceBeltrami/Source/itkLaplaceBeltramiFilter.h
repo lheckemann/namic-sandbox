@@ -99,12 +99,16 @@ public:
   typedef typename OutputPointDataContainer::ConstPointer      OutputPointDataContainerConstPointer; 
 
   typedef vnl_sparse_matrix< double >  LBMatrixType;
+  typedef vnl_matrix< double >         HarmonicSetType;
 
   /** Get the Laplace Beltrami operator */
   void GetLBOperator( LBMatrixType& ) const;
 
   /** Get the areas for each vertex */
   void GetVertexAreas( LBMatrixType& ) const;
+
+  /** Get the areas for each vertex */
+  void GetHarmonics( HarmonicSetType& ) const;
 
   /** Get a single surface harmonic */
   bool SetSurfaceHarmonic( unsigned int harmonic ); // FIXME: Why is this not using the itkSetMacro() ?
@@ -134,7 +138,7 @@ private:
   LBMatrixType m_VertexAreas;
 
   /** Harmonics for the most significant basis functions */
-  vnl_matrix<double> m_Harmonics;
+  HarmonicSetType m_Harmonics;
 
 };
 
