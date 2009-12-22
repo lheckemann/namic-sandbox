@@ -119,9 +119,10 @@ int main( int argc, char *argv[] )
     std::cerr << " [useExplicitPDFderivatives ] [useCachingBSplineWeights ] ";
     std::cerr << " [filenameForFinalAffineTransform] ";
     std::cerr << " [filenameForFinalBSplineTransform] ";
-    std::cerr << " [numberOfGridNodesInsideImageInOneDimensionCoarse] ";
-    std::cerr << " [numberOfGridNodesInsideImageInOneDimensionFine] ";
-    std::cerr << " [maximumStepLength] [maximumNumberOfIterations]";
+    std::cerr << " [numberOfGridNodesInsideImageInOneDimensionCoarse=5] ";
+    std::cerr << " [numberOfGridNodesInsideImageInOneDimensionFine=20] ";
+    std::cerr << " [maximumStepLength=10.0 (BSpline)] [maximumNumberOfIterations=50 (Bspline)]";
+    std::cerr << " [samplesIntensityThreshold]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -171,6 +172,11 @@ int main( int argc, char *argv[] )
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
   InterpolatorType::Pointer   interpolator  = InterpolatorType::New();
   RegistrationType::Pointer   registration  = RegistrationType::New();
+  double samplesIntensityThreshold = 0;
+
+  if( argc>15 ){
+    samplesIntensityThreshold = bool(atoi(argv[15]));
+  }
   
 
   registration->SetMetric(        metric        );
@@ -382,6 +388,8 @@ int main( int argc, char *argv[] )
   std::cout << "Number of Samples = " << numberOfSamples << std::endl;
   metric->SetNumberOfSpatialSamples( numberOfSamples );
 
+  if(samplesIntensityThreshold)
+    metric->SetFixedImageSamplesIntensityThreshold(samplesIntensityThreshold);
 
   std::cout << "Starting Affine Registration " << std::endl;
 
