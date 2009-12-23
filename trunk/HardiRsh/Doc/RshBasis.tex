@@ -1,0 +1,70 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage{amssymb, amsmath, amsfonts}
+
+% Title Page
+\title{Real Spherical Harmonic basis}
+\author{Luke Bloy}
+
+\newcommand{\abs}[1]{\ensuremath{    \left| #1 \right| }}
+\renewcommand\Re{\operatorname{\mathfrak{Re}}}
+\renewcommand\Im{\operatorname{\mathfrak{Im}}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The purpose of this section is to describe the basis implemented in itkRealSymSphericalHarmonicBasis.h and to descibe its relation to existing RSH basis in literature.
+\end{abstract}
+
+A number of high angular resolution diffuision imaging (HARDI) data models consist of real-valued antipodally symmetric functions defined on the sphere. The real spherical harmonics provide a natural functional basis for for functions of this type. Beacuse the spherical harmonics ($Y_l^m$) of odd order ($l$) are not symmetric they can be saftely removed from basis set.
+
+We use the normalized real spherical harmonics inorder to maintain orthonomality. The basic definition of our basis set is as follows:
+\begin{equation}
+\label{eq:RSHdef}
+R_l^m(\theta,\phi) = \begin{cases}
+         Y_l^m(\theta,\phi)               & m = 0 \: \text{,} \: l \: \text{even}\\
+	\sqrt{2} \Re{Y_l^m(\theta,\phi)}  & m < 0 \: \text{,} \: l \: \text{even}\\
+        \sqrt{2} \Im{Y_l^m(\theta,\phi)}  & m > 0 \: \text{,} \: l \: \text{even}\\        
+\end{cases}
+\end{equation}
+
+Often there are operators that have been defined in the complex spherical harmonics ($Y_l^m$), such as rotation. For this reason it is also often useful to  express $R_l^m$ directly interms of the $Y_l^m$s functions. Allowing us to write down a change of basis operation between the two functional basis sets directly. To achieve this we use the following identity for the complex congugate of $Y_l^m$.
+\begin{equation*}
+\label{eq:SHcomplexConjugate}
+\overline{Y_l^m} = (-1)^m Y_l^{-m}
+\end{equation*}
+Using this identity we cas express $\Re{Y_l^m}$ and $\Im{Y_l^m}$ as follows:
+\begin{align*}
+\Re{Y_l^m} &= \frac{1}{2} \left( Y_l^m + \overline{Y_l^m} \right) = \frac{1}{2} \left( Y_l^m + (-1)^m Y_l^{-m} \right) \\
+\Im{Y_l^m} &= \frac{1}{2 i} \left( Y_l^m - \overline{Y_l^m} \right) = \frac{i}{2} \left( - Y_l^m + (-1)^{m} Y_l^{-m} \right)
+\end{align*}
+This yeilds the following expression of equation \ref{eq:RSHdef}:
+\begin{equation}
+R_l^m(\theta,\phi) = \begin{cases}
+         Y_l^m(\theta,\phi)               & m = 0 \: \text{,} \: l \: \text{even}\\
+	\frac{\sqrt{2}}{2} \left( Y_l^m + (-1)^m Y_l^{-m} \right)  & m < 0 \: \text{,} \: l \: \text{even}\\
+        \frac{\sqrt{2}i}{2} \left( - Y_l^m + (-1)^{m} Y_l^{-m} \right)  & m > 0 \: \text{,} \: l \: \text{even}\\        
+\end{cases}
+\end{equation}
+
+In our implementation we use the definition of the complex spherical harmonics without the Condon-Shortley phase (http://mathworld.wolfram.com/Condon-ShortleyPhase.html) which is included in the definition of the legendre polynomials ( $P_l^m$ ) we use. 
+\begin{equation*}
+Y_l^m(\theta,\phi) = \sqrt{\frac{(2 l +1)}{4 \pi}} \sqrt{\frac{(l-m)!}{(l+m)!}} P_l^m (\cos \theta) e^{i m \phi}  
+\end{equation*}
+
+This definition yeilds the RSH basis as implemented in itkRealSymSphericalHarmonicBasis.h.
+\begin{equation}
+R_l^m(\theta,\phi) = \begin{cases}
+        \sqrt{\frac{(2 l +1)}{4 \pi}} P_l^0 (\cos \theta)             & m = 0 \: \text{,} \: l \: \text{even}\\
+	\sqrt{2} \sqrt{\frac{(2 l +1)}{4 \pi} \frac{(l-m)!}{(l+m)!}} P_l^m (\cos \theta) \cos(m \phi)    & m < 0 \: \text{,} \: l \: \text{even}\\
+        \sqrt{2} \sqrt{\frac{(2 l +1)}{4 \pi} \frac{(l-m)!}{(l+m)!}} P_l^m (\cos \theta) \sin(m \phi)    & m > 0 \: \text{,} \, l \: \text{even}\\        
+\end{cases}
+\end{equation}
+
+It is important to note thet many implementations of the assosiated legendre polynomials do not support negative $m$. For this reason, we use the following identity when computing $P_l^m$ for $m < 0$:
+\begin{equation*}
+P_l^{-m} = (-1)^m \frac{(l+m)!}{(l-m)!} P_l^{m}
+\end{equation*}
+
+\end{document}          
