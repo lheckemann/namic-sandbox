@@ -117,6 +117,7 @@ int main( int argc, char *argv[] )
     std::cerr << " [differenceOutputfile] [differenceBeforeRegistration] ";
     std::cerr << " [deformationField] ";
     std::cerr << " [useExplicitPDFderivatives ] [useCachingBSplineWeights ] ";
+    std::cerr << " [filenameForFinalRigidTransform] ";
     std::cerr << " [filenameForFinalAffineTransform] ";
     std::cerr << " [filenameForFinalBSplineTransform] ";
     std::cerr << " [numberOfGridNodesInsideImageInOneDimensionCoarse=5] ";
@@ -341,6 +342,17 @@ int main( int argc, char *argv[] )
 
   rigidTransform->SetParameters( registration->GetLastTransformParameters() );
 
+  // Optionally, save the Rigid transform in a file
+  if( argc > 9 )
+    {
+    std::cout << "Writing Rigid transform parameter file " << argv[9] << std::endl;
+    typedef itk::TransformFileWriter     TransformWriterType;
+    TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+    transformWriter->SetFileName( argv[9] );
+    transformWriter->SetInput( rigidTransform );
+    transformWriter->Update();
+    std::cout << " Done!" << std::endl;
+    }
 
   //
   //  Perform Affine Registration
@@ -412,12 +424,12 @@ int main( int argc, char *argv[] )
   affineTransform->SetParameters( registration->GetLastTransformParameters() );
 
   // Optionally, save the Affine transform in a file
-  if( argc > 8 )
+  if( argc > 10 )
     {
     std::cout << "Writing affine transform parameter file ...";
     typedef itk::TransformFileWriter     TransformWriterType;
     TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-    transformWriter->SetFileName( argv[9] );
+    transformWriter->SetFileName( argv[10] );
     transformWriter->SetInput( affineTransform );
     transformWriter->Update();
     std::cout << " Done!" << std::endl;
@@ -430,9 +442,9 @@ int main( int argc, char *argv[] )
 
   unsigned int numberOfGridNodesInOneDimensionCoarse = 5;
 
-  if( argc > 10 )
+  if( argc > 11 )
     {
-    numberOfGridNodesInOneDimensionCoarse = atoi( argv[11] );
+    numberOfGridNodesInOneDimensionCoarse = atoi( argv[12] );
     }
 
 
@@ -505,15 +517,15 @@ int main( int argc, char *argv[] )
 
 
   // Optionally, get the step length from the command line arguments
-  if( argc > 11 )
+  if( argc > 14 )
     {
-    optimizer->SetMaximumStepLength( atof( argv[13] ) );
+    optimizer->SetMaximumStepLength( atof( argv[14] ) );
     }
 
   // Optionally, get the number of iterations from the command line arguments
-  if( argc > 12 )
+  if( argc > 15 )
     {
-    optimizer->SetNumberOfIterations( atoi( argv[14] ) );
+    optimizer->SetNumberOfIterations( atoi( argv[15] ) );
     }
 
 
@@ -562,9 +574,9 @@ int main( int argc, char *argv[] )
 
   unsigned int numberOfGridNodesInOneDimensionFine = 20;
 
-  if( argc > 11 )
+  if( argc > 13 )
     {
-    numberOfGridNodesInOneDimensionFine = atoi( argv[12] );
+    numberOfGridNodesInOneDimensionFine = atoi( argv[13] );
     }
 
   RegionType::SizeType   gridHighSizeOnImage;
@@ -887,12 +899,12 @@ int main( int argc, char *argv[] )
     }
 
   // Optionally, save the BSpline transform in a file
-  if( argc > 9 )
+  if( argc > 11 )
     {
     std::cout << "Writing transform parameter file ...";
     typedef itk::TransformFileWriter     TransformWriterType;
     TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-    transformWriter->SetFileName( argv[10] );
+    transformWriter->SetFileName( argv[11] );
     transformWriter->SetInput( bsplineTransformFine );
     transformWriter->Update();
     std::cout << " Done!" << std::endl;
