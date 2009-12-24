@@ -172,7 +172,7 @@ int main( int argc, char *argv[] )
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
   InterpolatorType::Pointer   interpolator  = InterpolatorType::New();
   RegistrationType::Pointer   registration  = RegistrationType::New();
-  double samplesIntensityThreshold = 0;
+  double samplesIntensityThreshold = 1.;
 
   if( argc>15 ){
     samplesIntensityThreshold = bool(atoi(argv[15]));
@@ -411,6 +411,17 @@ int main( int argc, char *argv[] )
 
   affineTransform->SetParameters( registration->GetLastTransformParameters() );
 
+  // Optionally, save the Affine transform in a file
+  if( argc > 8 )
+    {
+    std::cout << "Writing affine transform parameter file ...";
+    typedef itk::TransformFileWriter     TransformWriterType;
+    TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+    transformWriter->SetFileName( argv[9] );
+    transformWriter->SetInput( affineTransform );
+    transformWriter->Update();
+    std::cout << " Done!" << std::endl;
+    }
 
   //
   //  Perform Deformable Registration
@@ -490,7 +501,7 @@ int main( int argc, char *argv[] )
   optimizer->SetMinimumStepLength(  0.01 );
 
   optimizer->SetRelaxationFactor( 0.7 );
-  optimizer->SetNumberOfIterations( 50 );
+  optimizer->SetNumberOfIterations( 150 );
 
 
   // Optionally, get the step length from the command line arguments
@@ -872,18 +883,6 @@ int main( int argc, char *argv[] )
       return EXIT_FAILURE;
       }
 
-    std::cout << " Done!" << std::endl;
-    }
-
-  // Optionally, save the Affine transform in a file
-  if( argc > 8 )
-    {
-    std::cout << "Writing transform parameter file ...";
-    typedef itk::TransformFileWriter     TransformWriterType;
-    TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-    transformWriter->SetFileName( argv[9] );
-    transformWriter->SetInput( affineTransform );
-    transformWriter->Update();
     std::cout << " Done!" << std::endl;
     }
 
