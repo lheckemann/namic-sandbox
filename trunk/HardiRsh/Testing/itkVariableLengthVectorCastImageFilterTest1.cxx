@@ -8,10 +8,12 @@
 int main( int argc, char * argv[])
 {
   const unsigned int  Dimension = 2;
-  typedef signed short                              ComponentType;
-  typedef itk::VariableLenghtVector<ComponentType>  PixelType;
-  typedef itk::Image< PixelType, Dimension >        InputImageType;
-  typedef itk::Image< ComponentType, Dimension >    OutputImageType; 
+  typedef signed short                                    InputComponentType;
+  typedef unsigned char                                   OutputComponentType;
+  typedef itk::VariableLengthVector<InputComponentType>   InputPixelType;
+  typedef itk::VariableLengthVector<OutputComponentType>  OutputPixelType;
+  typedef itk::Image< InputPixelType, Dimension >         InputImageType;
+  typedef itk::Image< OutputPixelType, Dimension >        OutputImageType; 
 
   typedef itk::VariableLengthVectorCastImageFilter<
     InputImageType, OutputImageType >               FilterType;
