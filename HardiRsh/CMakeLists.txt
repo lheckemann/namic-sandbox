@@ -53,6 +53,8 @@ SET (BUILD_EXECS OFF CACHE BOOL "Do you want to build the exectuables")
 
 SET (SKIP_ITK_BUILD_SETTINGS_FILE OFF CACHE BOOL "Skip including the itk Build settings")
 
+INCLUDE(CTest)
+
 IF(BUILD_SLICER)
   #Find Slicer Dependencies and Use Slicer ITK
   if(NOT Slicer3_SOURCE_DIR)
