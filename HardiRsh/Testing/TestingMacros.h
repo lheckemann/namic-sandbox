@@ -15,14 +15,14 @@
 
 #define EXERCISE_BASIC_OBJECT_METHODS( object ) \
     { \
-    if ( object == NULL ) \
+    if ( object.IsNull() ) \
       { \
       std::cerr << "EXERCISE_BASIC_OBJECT_METHODS( with NULL object )" << std::endl;  \
       return EXIT_FAILURE;  \
       } \
     object->Print( std::cout );  \
-    std::cout << "Name of Class = " << object->GetClassName() << std::endl; \
-    std::cout << "Name of Superclass = " << object->Superclass::GetClassName() << std::endl; \
+    std::cout << "Name of Class = " << object->GetNameOfClass() << std::endl; \
+    std::cout << "Name of Superclass = " << object->Superclass::GetNameOfClass() << std::endl; \
     }
 
 #define TRY_EXPECT_ITK_EXCEPTION( command ) \
