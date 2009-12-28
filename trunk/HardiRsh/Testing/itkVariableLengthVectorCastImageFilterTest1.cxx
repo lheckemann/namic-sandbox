@@ -1,19 +1,18 @@
 #include <iostream>
 
 #include "itkVariableLengthVector.h"
-#include "itkImage.h"
+#include "itkVectorImage.h"
 #include "itkVariableLengthVectorCastImageFilter.h"
 #include "TestingMacros.h"
 
 int main( int argc, char * argv[])
 {
   const unsigned int  Dimension = 2;
-  typedef signed short                                    InputComponentType;
-  typedef unsigned char                                   OutputComponentType;
-  typedef itk::VariableLengthVector<InputComponentType>   InputPixelType;
-  typedef itk::VariableLengthVector<OutputComponentType>  OutputPixelType;
-  typedef itk::Image< InputPixelType, Dimension >         InputImageType;
-  typedef itk::Image< OutputPixelType, Dimension >        OutputImageType; 
+  typedef signed short                                          InputComponentType;
+  typedef itk::Vector< InputComponentType, 5 >                  InputPixelType;
+  typedef unsigned char                                         OutputComponentType;
+  typedef itk::Image< InputPixelType, Dimension >               InputImageType;
+  typedef itk::VectorImage< OutputComponentType, Dimension >    OutputImageType; 
 
   typedef itk::VariableLengthVectorCastImageFilter<
     InputImageType, OutputImageType >               FilterType;
