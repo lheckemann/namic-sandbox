@@ -14,3 +14,6 @@ target_link_libraries(ComputeAgreement ITKIO ITKStatistics)
 
 add_executable(LineProfile LineProfile.cxx)
 target_link_libraries(LineProfile ITKIO ITKStatistics)
+
+add_executable(AddGaussianNoise AddGaussianNoise.cxx)
+target_link_libraries(AddGaussianNoise ITKIO ITKStatistics)
