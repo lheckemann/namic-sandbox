@@ -37,6 +37,9 @@ template <class TInputMesh, class TOutputMesh>
 LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
 ::LaplaceBeltramiFilter()
 {
+  /// \todo Instead of calling SetEigenValueCount you can initialize
+  /// m_EigenValueCount in the initialization part of the constructor:
+  /// LaplaceBeltramiFilter() : m_EigenValueCount( 0 ) {}
   SetEigenValueCount(0);
 }
 
@@ -140,6 +143,29 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
   vertexCounts.Fill(0);
 
   InputCellAutoPointer cellPtr;
+
+  /// \todo Iterate on all vertex of the mesh. Your code is going to be
+  /// really simplified and shorter. Then later, you can consider other
+  /// existing functionalities like area for triangle, edge weights...
+  //InputPointsContainerConstIterator pit = inPoints->Begin();
+  //
+  //while( pit != inPoints->End() )
+  //  {
+  //  // First get one edge of the neighborhood
+  //  InputQEType* qe = pit->Value()->GetEdge();
+  //
+  //  // Then iterate on the 0-ring 
+  //  InputQEType* temp = qe;
+  //  do
+  //    {
+  //    // here you can easily compute the area and all matrix
+  //    // elements you need.
+  //  
+  //    // Go to the next quad edge in the 0-ring of the current vertex
+  //    temp = temp->GetONext();
+  //    } while( temp != qe );
+  //  ++pit;
+  //  }
 
   for (unsigned int cellId = 0; cellId < cellCount; cellId++)
     {
@@ -249,13 +275,13 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
     // A * x = lambda * x, where x is an eigenvector and lambda an eigenvalue...
     // so, to use this class:
     //   (1) create a new sparse matrix C by dividing each nonzero coefficient
-    //       of A, say A[k][l], by sqrt(B[k][k]*B[l][l]);
+    //       of A, say A[k][l], by vcl_sqrt(B[k][k]*B[l][l]);
     //   (2) Solve the eigenvalue problem C*x = lambda*x for the first N
     //       eigenvectors; then A and C have the same eigenvalues.
     //   (3) let W[k][l] be the lth coordinate of the kth eigenvector of
     //       C (I am not sure of what the correct order of indices is, you may
-    //       need to switch them). Define V[k][l] = W[k][l]/sqrt(B[l][l])
-    //   (4) Divide all coefficients V[k][l] by sqrt(sum_l V[k][l]^2 B[l][l])
+    //       need to switch them). Define V[k][l] = W[k][l]/vcl_sqrt(B[l][l])
+    //   (4) Divide all coefficients V[k][l] by vcl_sqrt(sum_l V[k][l]^2 B[l][l])
     //       for normalization.
 
     vnl_sparse_matrix< double > C(m_LBOperator.rows(), m_LBOperator.cols());
@@ -267,7 +293,7 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
         if (m_LBOperator(rowIx, colIx))
           {
           C(rowIx, colIx) = m_LBOperator(rowIx, colIx) /
-            (sqrt(m_VertexAreas(rowIx, rowIx) * m_VertexAreas(colIx, colIx)));
+            (vcl_sqrt(m_VertexAreas(rowIx, rowIx) * m_VertexAreas(colIx, colIx)));
           }
         }
       }
@@ -286,11 +312,11 @@ LaplaceBeltramiFilter< TInputMesh, TOutputMesh >
       double evFactorSum = 0.0;
       for (unsigned int eigIx = 0; eigIx < eigenvector.size(); eigIx++)
         {
-        eigenvector(eigIx) = eigenvector(eigIx) / sqrt(m_VertexAreas(eigIx, eigIx));
+        eigenvector(eigIx) = eigenvector(eigIx) / vcl_sqrt(m_VertexAreas(eigIx, eigIx));
         evFactorSum += eigenvector(eigIx) * eigenvector(eigIx) * m_VertexAreas(eigIx, eigIx);
         }
 
-      eigenvector /= sqrt(evFactorSum);
+      eigenvector /= vcl_sqrt(evFactorSum);
       this->m_Harmonics.set_row(k, eigenvector);
       }
     this->SetSurfaceHarmonic(0);
