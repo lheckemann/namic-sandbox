@@ -906,6 +906,8 @@ int main( int argc, char *argv[] )
     TransformWriterType::Pointer transformWriter = TransformWriterType::New();
     transformWriter->SetFileName( argv[11] );
     transformWriter->SetInput( bsplineTransformFine );
+    transformWriter->AddTransform( bsplineTransformFine->GetBulkTransform() );
+    transformWriter->AddTransform( bsplineTransformFine );
     transformWriter->Update();
     std::cout << " Done!" << std::endl;
     }
