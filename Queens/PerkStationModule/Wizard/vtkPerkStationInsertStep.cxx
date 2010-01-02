@@ -493,7 +493,7 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->LogFileButton->TrimPathFromFileNameOn();
     this->LogFileButton->SetMaximumFileNameLength(256);
     this->LogFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode  
-    this->LogFileButton->GetLoadSaveDialog()->SetFileTypes("{{CFG File} {.cfg}} {{All Files} {*.*}}");      
+    this->LogFileButton->GetLoadSaveDialog()->SetFileTypes("{{dat File} {.dat}} {{All Files} {*.*}}");      
     }
   this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
                         this->LogFileButton->GetWidgetName());
