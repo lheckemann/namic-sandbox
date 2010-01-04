@@ -556,7 +556,9 @@ void vtkDiffusionRSHGlyph::GetDeformedSourcePoints( vtkPoints *newSourcePts, vtk
   vtkIdType numSourcePts = newSourcePts->GetNumberOfPoints( );
   double pt[3];
 
-  double maxValue,minValue;
+  double maxValue = 1.0;
+  double minValue = 0.0;
+  
   if ( this->ColorMode == COLOR_BY_VALUE || this->MinMaxNormalization )
   {
     maxValue = values.max_value();
@@ -572,8 +574,8 @@ void vtkDiffusionRSHGlyph::GetDeformedSourcePoints( vtkPoints *newSourcePts, vtk
       value = (values[m] - minValue) / (maxValue - minValue);
     }
     else
-    { //Not sure what is best Here!
-      value = values[m] / maxValue;
+    { //Not sure what is best Here! Currently No Normalization
+      value = values[m];
     }
     
     pt[0] *= value;
@@ -584,15 +586,15 @@ void vtkDiffusionRSHGlyph::GetDeformedSourcePoints( vtkPoints *newSourcePts, vtk
 
     //Set the scalars for coloring
     if ( this->ColorMode == COLOR_BY_ORIENTATION)
-      {
+    {
       double norm = vcl_sqrt(pt[0] * pt[0] + pt[1] * pt[1] + pt[2] * pt[2]); 
       pt[0] /= norm; pt[1] /= norm; pt[2] /= norm; 
       vtkDiffusionTensorGlyph::RGBToIndex(fabs(pt[0]),fabs(pt[1]),fabs(pt[2]),value);
-      }
+    }
     else if ( this->ColorMode == COLOR_BY_VALUE)
-      {
+    {
       value = values[m] / maxValue;
-      }
+    }
     
     defScalars->SetTuple(m,&value);
 
