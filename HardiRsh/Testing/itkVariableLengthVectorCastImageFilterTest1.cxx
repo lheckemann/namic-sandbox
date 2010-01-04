@@ -3,7 +3,7 @@
 #include "itkVariableLengthVector.h"
 #include "itkVectorImage.h"
 #include "itkVariableLengthVectorCastImageFilter.h"
-#include "TestingMacros.h"
+#include "itkTestingMacros.h"
 
 int main( int argc, char * argv[])
 {

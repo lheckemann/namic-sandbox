@@ -1,6 +1,11 @@
 
 SET(CXX_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
 
+# Add path to find itkTestingMacros.h
+INCLUDE_DIRECTORIES(
+  ${SBIA_HARDI_SOURCE_DIR}/Testing
+  )
+
 ADD_EXECUTABLE(itkRealSymSphericalHarmonicBasisTest itkRealSymSphericalHarmonicBasisTest.cxx ${VNL_TEMPLATE_SOURCES} ${SpecialFunctions_SOURCES} )
 TARGET_LINK_LIBRARIES(itkRealSymSphericalHarmonicBasisTest ITKNumerics ITKCommon)
 ADD_TEST(itkRealSymSphericalHarmonicBasisTest ${CXX_TEST_PATH}/itkRealSymSphericalHarmonicBasisTest )
