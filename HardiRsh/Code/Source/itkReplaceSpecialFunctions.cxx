@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdlib>
 
+ 
 /**
  * Compute the binomial coefficient
  * 
@@ -52,66 +53,6 @@ binomialCoeff( int n, int k )
   return result;
 }
 
-/**
- * Compute the legendre polynomial. p(l,m,x)
- * 
- * TODO This code nees to be replaced
- * It is a modified version of the Code from Numerical Recipies in C
- * 
- */
-double
-LegendreP( int l, int m, double x )
-{
-  //Handle the case of negative m
-  if (m < 0)
-  {
-    //Determine (-1)^(m)
-    int sign = 1;
-    if ( vcl_abs(m) % 2 == 1) sign = -1;
-
-    // Compute factorial(l+m) / factorial(l-m) 
-    double f = 1.0;
-    // m < 0 so (l-m) > (l+m)
-    // (l+m)!/(l-m)! = Prod
-    for (int i = (l-m); i>(l+m) ; i--)
-    {
-      f /= i;
-    }
-    
-    return sign * f * LegendreP(l,-m,x);
-  }
-
-  double pmm = 1;
-  if( m > 0 )
-  {
-    double somx2 = vcl_sqrt( (1-x)*(1+x) );
-    double fact = 1;
-    for( int i=1; i<=m; ++i )
-    {
-      pmm *= -fact * somx2;
-      fact += 2;
-    }
-  }
-
-  if( l == m )
-    return pmm;
-
-  double pmmp1 = x * (2*m+1) * pmm;
-
-  if( l == m+1 )
-    return pmmp1;
-
-  double pll = 0.0;
-
-  for( int ll=m+2; ll<=l; ++ll )
-  {
-    pll = ( (2*ll-1) * x * pmmp1 - (ll+m-1) * pmm ) / (ll-m);
-    pmm = pmmp1;
-    pmmp1 = pll;
-  }
-  return pll;
-}
-
 /** Compute the associated legendre polynomial P_n^m(z)
  * 
  *  Use the following recursion relations from wolfram
@@ -128,7 +69,7 @@ LegendreP( int l, int m, double x )
  *  [4] P_n^m(x)       = (-1)^m((n+m)!)/((n-m)!)  P_n^(-m)(x). 
  * 
  **/
-/*
+
 double
 LegendreP( int n, int m, double x )
 {
@@ -150,8 +91,44 @@ LegendreP( int n, int m, double x )
     
     return sign * f * LegendreP(n,-m,x);
   }
+  
+  if (m == 0 && n == 0)
+  {
+    return 1.0;
+  }
+  
+  //Compute P_{n-2)_m
+  //initialize with P_m^m = (-1)^m (2m-1)!! (1-x^2)^(m/2)
+  double pm2 = 1;
+  if ( m % 2 == 1 )
+  {
+    pm2 = -1;
+  }
 
-  return 1;
+  //(-1)^m (2m-1)!!
+  for ( int i=1 ; i<2*m ; i=i+2 )
+  {
+    pm2 *= i;
+  }
+  
+  pm2 *= vcl_pow(vcl_sqrt( (1+x)*(1-x) ), m);
+
+  if (m==n) return pm2;
+
+  //Compute P_(m+1)^m(x)   = x (2m+1)P_m^m(x).
+  double pm1 = x * (2 * m + 1) * pm2;
+
+  if (n==m+1) return pm1;
+  
+  // Iterate (n-m) P_n^m(x) = x(2n-1) P_(n-1)^m(x) - (n+m-1) P_(n-2)^m(x).
+  double pn;
+  for (int nn = m+2; nn<=n; nn++)
+  {
+    pn = (x * (2 * nn -1) * pm1 - (nn+m-1) * pm2) / (nn - m);
+    pm2 = pm1;
+    pm1 = pn;
+  }
+  return pn;
+
 }
-*/
 #endif //__itkReplaceSpecialFunctions_cxx

@@ -21,14 +21,14 @@ endif(NOT Slicer3_SOURCE_DIR)
 #we alse need to include the orig Volumes Module
 #it should have a vtkVolumes.h in it
 FIND_PATH(SLICER_VOLUMES_INCLUDE_DIR vtkVolumes.h
-  ${Slicer3_DIR}/include/Slicer3/Modules/Volumes 
+  ${Slicer3_DIR}/../../include/Slicer3/Modules/Volumes 
   ${Slicer3_DIR}/../Slicer3/Modules/Volumes )
 
 #if Slicer3_DIR is an install dir then SLICER_VOLUMES_INCLUDE_DIR
 #also has vtkVolumesConfigure.h in it 
 FIND_PATH(ALT_SLICER_VOLUMES_INCLUDE_DIR vtkVolumesConfigure.h
   ${SLICER_VOLUMES_INCLUDE_DIR}
-  ${Slicer3_DIR}/include/Slicer3/Modules/Volumes 
+  ${Slicer3_DIR}/../../include/Slicer3/Modules/Volumes 
   ${Slicer3_DIR}/Modules/Volumes )
 
 #TODO it would be awesome if Slicer3Config set these module includes correctly
