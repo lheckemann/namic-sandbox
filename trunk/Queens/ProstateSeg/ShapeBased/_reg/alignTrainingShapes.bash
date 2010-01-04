@@ -10,12 +10,13 @@ exeFile='./src/imageRegByPointSet/c/affine/r/imgRegByPtSet3DTest_uchar'
 
 fixedImg=${dataDir}/02780302_label.nrrd
 
-fixedImgIso=${dataDir}/02780302_label-iso.nrrd
-
-unu resample -s = = x6.4 -i ${fixedImg} -o ${fixedImgIso}
-
 
 for j in ${dataDir}/*_label.nrrd; do
+    fixedImgIso=${dataDir}/02780302_label-iso.nrrd
+
+    unu resample -s = = x6.4 -i ${fixedImg} -o ${fixedImgIso}
+
+
     movingImgIso=`echo ${j} | sed s/.nrrd/-iso.nrrd/`
 
     unu resample -s = = x6.4 -i ${j} -o ${movingImgIso}
