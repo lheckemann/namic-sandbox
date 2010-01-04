@@ -323,13 +323,24 @@ void CImgRegByPtSet3D::pointSetRegistration(VnlDoubleVectorType initParam)
 void CImgRegByPtSet3D::gogogo()
 {
   // 1. convert to pt sets
-  DoubleImage3DPointerType featureFixedImage = getFeatureMap(m_fixedImage);
-  imageToPointSet3D( featureFixedImage, m_numerOfPointForFixedImage, m_fixedPointSet);
-  douher::writeImage3<double>(featureFixedImage, "fixFeature.nrrd");
 
-  DoubleImage3DPointerType featureMovingImage = getFeatureMap(m_movingImage);
+  /* use the feature image to get the point set */
+  //DoubleImage3DPointerType featureFixedImage = getFeatureMap(m_fixedImage);
+
+  /* use the image itself to get the point set */
+  DoubleImage3DPointerType featureFixedImage = m_fixedImage;
+
+  imageToPointSet3D( featureFixedImage, m_numerOfPointForFixedImage, m_fixedPointSet);
+  //douher::writeImage3<double>(featureFixedImage, "fixFeature.nrrd");
+
+
+  /* use the feature image to get the point set */
+  //DoubleImage3DPointerType featureMovingImage = getFeatureMap(m_movingImage);
+
+  /* use the image itself to get the point set */
+  DoubleImage3DPointerType featureMovingImage = m_movingImage;
   imageToPointSet3D( featureMovingImage, m_numerOfPointForMovingImage, m_movingPointSet);
-  douher::writeImage3<double>(featureMovingImage, "movFeature.nrrd");
+  //douher::writeImage3<double>(featureMovingImage, "movFeature.nrrd");
 //   savePointSetToTextFile3D(&ptSet1, "pt1.txt");
 //   savePointSetToTextFile3D(&ptSet2, "pt2.txt");
 
