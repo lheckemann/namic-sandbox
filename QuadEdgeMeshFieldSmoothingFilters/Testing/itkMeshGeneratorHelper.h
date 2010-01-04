@@ -113,12 +113,18 @@ static void GenerateMeshes(
   MovingPointType  movingPt;
   FixedPointType   fixedPt;
 
+  movingPt.Fill(0.0f);
+  fixedPt.Fill(0.0f);
+
   typedef MovingPointType::VectorType  MovingVectorType;
   typedef FixedPointType::VectorType   FixedVectorType;
 
   MovingVectorType  movingVtr;
   FixedVectorType   fixedVtr;
   
+  movingVtr.Fill(0.0f);
+  fixedVtr.Fill(0.0f);
+
   std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
 
   fixedMesh->Print( std::cout );
