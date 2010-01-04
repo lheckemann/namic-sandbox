@@ -1,3 +1,5 @@
+SET(CXX_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
+
 SET(KIT SbiaHardiSlicerIntegration)
 CREATE_TEST_SOURCELIST(Tests ${KIT}CxxTests.cxx
   vtkMRMLDiffusionRSHDisplayPropertiesNodeTest1.cxx
