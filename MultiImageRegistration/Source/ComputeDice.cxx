@@ -34,6 +34,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 
@@ -45,21 +46,19 @@
 
 #include <itksys/SystemTools.hxx>
 
-using namespace std;
-
 std::string replaceExtension(const std::string oldname, const std::string extension)
 {
   return oldname.substr(0, oldname.rfind(".")) + "." + extension;
 }
 
-int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder,
+int getCommandLine(       int argc, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
-                          string& useBspline, string& useBsplineHigh,
-                          string& labelFileFolder, vector<string>& labelFileNames, string& labelType )
+                          std::string& useBspline, std::string& useBsplineHigh,
+                          std::string& labelFileFolder, std::vector<std::string>& labelFileNames, std::string& labelType )
 {
 
 
-  ifstream initFile(initFname);
+  std::ifstream initFile(initFname);
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
@@ -69,7 +68,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   while( !initFile.eof() )
   {
     
-    string dummy;
+    std::string dummy;
     initFile >> dummy;
 
     if(dummy == "-i")
@@ -167,25 +166,25 @@ int main( int argc, char * argv[] )
   if( argc < 3 )
   {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  <filenames.init>  <parameters.init>" << endl;
+    std::cerr << argv[0] << "  <filenames.init>  <parameters.init>" << std::endl;
     return EXIT_FAILURE;
   }
 
   // Input Parameter declarations
-  vector<string> fileNames;
-  string inputFolder;
-  string outputFolder;
+  std::vector<std::string> fileNames;
+  std::string inputFolder;
+  std::string outputFolder;
   int bsplineInitialGridSize = 4;
   int numberOfBsplineLevel = 0;
     
-  string useBspline("off");
-  string useBsplineHigh("off");
+  std::string useBspline("off");
+  std::string useBsplineHigh("off");
   
-  string labelFileFolder;
-  vector<string> labelFileNames;
+  std::string labelFileFolder;
+  std::vector<std::string> labelFileNames;
       
 
-  string labelType("ICC");
+  std::string labelType("ICC");
     //Get the command line arguments
   for(int i=1; i<argc; i++)
   {
@@ -206,7 +205,7 @@ int main( int argc, char * argv[] )
   // check whether all labels exist
   if( (unsigned int)N != labelFileNames.size())
   {
-    cout << " Number of label files do not match number of input files " << endl;
+    std::cout << " Number of label files do not match number of input files " << std::endl;
     return EXIT_FAILURE;
   }
 
@@ -220,7 +219,7 @@ int main( int argc, char * argv[] )
   for(int i=0; i<N; i++)
   {
     labelReaderArray[i] = ReaderType::New();
-    string fname = labelFileFolder + labelFileNames[i];
+    std::string fname = labelFileFolder + labelFileNames[i];
     labelReaderArray[i]->SetFileName(fname.c_str());
     std::cout << "Reading  " << fname.c_str() << std::endl;
     labelReaderArray[i]->Update();
@@ -231,7 +230,7 @@ int main( int argc, char * argv[] )
   for(int i=0; i<N; i++)
   {
     imageReaderArray[i] = ReaderType::New();
-    string fname = inputFolder + fileNames[i];
+    std::string fname = inputFolder + fileNames[i];
     imageReaderArray[i]->SetFileName(fname.c_str());
     std::cout << "Reading  " << fname.c_str() << std::endl; 
     imageReaderArray[i]->Update();
@@ -251,8 +250,8 @@ int main( int argc, char * argv[] )
   {
     transformLevels = 1;
   }
-  vector< vector < string > >  transformFileNames(transformLevels);
-  vector< string > transformNames(transformLevels);
+  std::vector< std::vector < std::string > >  transformFileNames(transformLevels);
+  std::vector< std::string > transformNames(transformLevels);
   
   // Generate the transform filenames
   for(int i=0; i<transformLevels; i++)
@@ -269,7 +268,7 @@ int main( int argc, char * argv[] )
     }
     else // generate bspline names
     {
-      ostringstream bsplineFolderName;
+      std::ostringstream bsplineFolderName;
       bsplineFolderName << "Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1);
       transformNames[i] = bsplineFolderName.str();
       for( int j=0; j<N; j++)
@@ -282,7 +281,7 @@ int main( int argc, char * argv[] )
 
   }
 
-  ofstream dicePredFile;
+  std::ofstream dicePredFile;
   if(labelType == "ICC")
   {
     dicePredFile.open(( (outputFolder + "DicePredictionICC.txt").c_str() ));
@@ -328,7 +327,7 @@ int main( int argc, char * argv[] )
 
       if( i > -1)
       {
-        cout << "Reading Transform" << transformFileNames[i][j] << endl;
+        std::cout << "Reading Transform" << transformFileNames[i][j] << std::endl;
       }
 
       // Create reader factories
@@ -422,7 +421,7 @@ int main( int argc, char * argv[] )
 
       // write out the resampled label files
       WriterType::Pointer writer = WriterType::New();
-      string fname = outputFolder;
+      std::string fname = outputFolder;
       if(i==-1)
       {
         fname += "LabelsResampled/InputImage/";
@@ -437,7 +436,7 @@ int main( int argc, char * argv[] )
       }
       else
       {
-        ostringstream bsplineFolderName;
+        std::ostringstream bsplineFolderName;
         bsplineFolderName << "LabelsResampled/Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1) << "/";
         itksys::SystemTools::MakeDirectory( (fname+bsplineFolderName.str()).c_str() );
         fname += bsplineFolderName.str() + labelFileNames[j];
@@ -458,7 +457,7 @@ int main( int argc, char * argv[] )
       naryANDImageFilter->SetInput(j,resampleArray[j]->GetOutput());
     }
 
-    cout << "Computing dice measure " << endl;
+    std::cout << "Computing dice measure " << std::endl;
     if(labelType == "ICC")
     {
       for(int j=0; j<3 ; j++)
@@ -507,11 +506,11 @@ int main( int argc, char * argv[] )
         writer->SetInput(naryANDImageFilter->GetOutput());
 
         // Set the file name
-        string fname = outputFolder;
+        std::string fname = outputFolder;
 
         if(i==-1)
         {
-          ostringstream affine;
+          std::ostringstream affine;
           affine << j << ".hdr";
           fname += "Labels/InputImage/";
           itksys::SystemTools::MakeDirectory( fname.c_str() );
@@ -519,7 +518,7 @@ int main( int argc, char * argv[] )
         }
         else if(i==0)
         {
-          ostringstream affine;
+          std::ostringstream affine;
           affine << j << ".hdr";
           fname += "Labels/Affine/";
           itksys::SystemTools::MakeDirectory( fname.c_str() );
@@ -527,7 +526,7 @@ int main( int argc, char * argv[] )
         }
         else
         {
-          ostringstream bsplineFolderName;
+          std::ostringstream bsplineFolderName;
           bsplineFolderName << "Labels/Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1) << "/";
           itksys::SystemTools::MakeDirectory( (fname+bsplineFolderName.str()).c_str() );
           bsplineFolderName << j << ".hdr";
@@ -563,7 +562,7 @@ int main( int argc, char * argv[] )
         sliceExtractFilter->SetInput( naryANDImageFilter->GetOutput() );
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
-        string sliceName = fname;
+        std::string sliceName = fname;
         sliceName.replace(sliceName.size()-4, 4, "_X.tiff" );
 
         sliceWriter->SetFileName( sliceName.c_str() );
@@ -639,7 +638,7 @@ int main( int argc, char * argv[] )
           dicePredFile << predIntersection/predUnion << " ";
 
         } // end k
-        dicePredFile << endl;
+        dicePredFile << std::endl;
 
       } // end j
 
@@ -665,10 +664,10 @@ int main( int argc, char * argv[] )
         writer->SetInput(naryANDImageFilter->GetOutput());
 
         // Set the file name
-        string fname = outputFolder;
+        std::string fname = outputFolder;
         if(i==-1)
         {
-          ostringstream affine;
+          std::ostringstream affine;
           affine << j << ".hdr";
           fname += "HandLabels/InputImage/";
           itksys::SystemTools::MakeDirectory( fname.c_str() );
@@ -676,7 +675,7 @@ int main( int argc, char * argv[] )
         }
         else if(i==0)
         {
-          ostringstream affine;
+          std::ostringstream affine;
           affine << j << ".hdr";
           fname += "HandLabels/Affine/";
           itksys::SystemTools::MakeDirectory( fname.c_str() );
@@ -684,7 +683,7 @@ int main( int argc, char * argv[] )
         }
         else
         {
-          ostringstream bsplineFolderName;
+          std::ostringstream bsplineFolderName;
           bsplineFolderName << "HandLabels/Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1) << "/";
           itksys::SystemTools::MakeDirectory( (fname+bsplineFolderName.str()).c_str() );
           bsplineFolderName << j << ".hdr";
@@ -738,7 +737,7 @@ int main( int argc, char * argv[] )
           dicePredFile << predIntersection/predUnion << " ";
 
         } // end k
-        dicePredFile << endl;
+        dicePredFile << std::endl;
 
       }
     }

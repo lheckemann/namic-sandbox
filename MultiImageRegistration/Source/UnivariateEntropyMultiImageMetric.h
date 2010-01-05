@@ -33,7 +33,6 @@
 #include <vector>
 #include "MultiImageMetric.h"
 
-using namespace std;
 
 namespace itk
 {
