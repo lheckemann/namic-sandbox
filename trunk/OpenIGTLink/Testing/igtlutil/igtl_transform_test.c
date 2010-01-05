@@ -14,7 +14,7 @@
 
 =========================================================================*/
 
-
+#include "igtl_types.h"
 #include "igtl_header.h"
 #include "igtl_transform.h"
 #include <string.h>
@@ -34,26 +34,27 @@ struct transform_message {
   igtl_header      header;
   igtl_float32     transform[12];
 };
-#pragma pack(0)
+#pragma pack()
 
 int main( int argc, char * argv [] )
 {
 
   struct transform_message message;
+  int r;
 
   /* Set dummy transform */
-  message.transform[0] = -0.954892;
-  message.transform[1] = 0.196632;
-  message.transform[2] = -0.222525;
-  message.transform[3] = -0.196632;
-  message.transform[4] = 0.142857;
-  message.transform[5] = 0.970014;
-  message.transform[6] = 0.222525;
-  message.transform[7] = 0.970014;
-  message.transform[8] = -0.0977491;
-  message.transform[9] = 46.0531;
-  message.transform[10] = 19.4709;
-  message.transform[11] = 46.0531;
+  message.transform[0] = -0.954892f;
+  message.transform[1] = 0.196632f;
+  message.transform[2] = -0.222525f;
+  message.transform[3] = -0.196632f;
+  message.transform[4] = 0.142857f;
+  message.transform[5] = 0.970014f;
+  message.transform[6] = 0.222525f;
+  message.transform[7] = 0.970014f;
+  message.transform[8] = -0.0977491f;
+  message.transform[9] = 46.0531f;
+  message.transform[10] = 19.4709f;
+  message.transform[11] = 46.0531f;
 
   igtl_transform_convert_byte_order(message.transform);
 
@@ -75,7 +76,8 @@ int main( int argc, char * argv [] )
   */
 
   /* Compare the serialized byte array with the gold standard */ 
-  int r = memcmp((const void*)&message, (const void*)test_transform_message, IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE);
+  r = memcmp((const void*)&message, (const void*)test_transform_message,
+                 IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE);
 
   if (r == 0)
     {

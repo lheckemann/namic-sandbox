@@ -14,7 +14,7 @@
 
 =========================================================================*/
 
-
+#include "igtl_types.h"
 #include "igtl_header.h"
 #include "igtl_status.h"
 #include <string.h>
@@ -36,16 +36,19 @@ struct status_message {
   igtl_status_header status;
   char               err_msg[sizeof(STR_ERROR_MESSAGE)];
 };
-#pragma pack(0)
+#pragma pack()
 
 int main( int argc, char * argv [] )
 {
 
   igtl_uint64 crc;
-  unsigned int msglen = sizeof(STR_ERROR_MESSAGE);
+  unsigned int msglen;
+  struct status_message message;
+  int r;
+
+  msglen = sizeof(STR_ERROR_MESSAGE);
 
   /* Set dummy status */
-  struct status_message message;
   message.status.code = IGTL_STATUS_DISABLED;
   message.status.subcode = 0x0A;
   strcpy(message.err_msg, STR_ERROR_MESSAGE);
@@ -64,14 +67,17 @@ int main( int argc, char * argv [] )
 
   /* Dumping data -- for testing */
 
+  /*
   FILE *fp;
   fp = fopen("status.bin", "w");
   fwrite(&(message.header), IGTL_HEADER_SIZE+IGTL_STATUS_HEADER_SIZE + msglen, 1, fp);
   fclose(fp);
+  */
 
 
   /* Compare the serialized byte array with the gold standard */ 
-  int r = memcmp((const void*)&message, (const void*)test_status_message, IGTL_HEADER_SIZE+IGTL_STATUS_HEADER_SIZE+msglen);
+  r = memcmp((const void*)&message, (const void*)test_status_message,
+                 IGTL_HEADER_SIZE+IGTL_STATUS_HEADER_SIZE+msglen);
 
   if (r == 0)
     {
