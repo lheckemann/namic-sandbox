@@ -459,7 +459,7 @@ int main( int argc, char * argv[] )
       if(write3DImages == "on")
       {
         cout << "Writing " << (currentFolderName+"Images/"+fileNames[j]).c_str() << endl;
-        writer->Update();
+        writer->UpdateLargestPossibleRegion();
       }
 
       // Extract the central slice
@@ -504,7 +504,7 @@ int main( int argc, char * argv[] )
       sliceWriter->SetFileName( sliceName.c_str() );
       
       cout << "Writing " << sliceName.c_str() << endl; 
-      sliceWriter->Update();     
+      sliceWriter->UpdateLargestPossibleRegion();     
 
       // Do the same for other slices
       size = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize();
@@ -517,7 +517,7 @@ int main( int argc, char * argv[] )
       sliceExtractFilter->SetExtractionRegion( extractRegion );
       sliceName = currentFolderName+"Slices/z"+sliceStream.str()+".tiff";
       sliceWriter->SetFileName( sliceName.c_str() );
-      sliceWriter->Update();     
+      sliceWriter->UpdateLargestPossibleRegion();     
 
       // Do the same for other slices
       size = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize();
@@ -530,7 +530,7 @@ int main( int argc, char * argv[] )
       sliceExtractFilter->SetExtractionRegion( extractRegion );
       sliceName = currentFolderName+"Slices/y"+sliceStream.str()+".tiff";
       sliceWriter->SetFileName( sliceName.c_str() );
-      sliceWriter->Update();     
+      sliceWriter->UpdateLargestPossibleRegion();     
 
 
       // Write visualization images for deformation fields
@@ -567,7 +567,7 @@ int main( int argc, char * argv[] )
         {
           itksys::SystemTools::MakeDirectory( (currentFolderName+"DeformationImage/").c_str() );
           writer->SetFileName( (currentFolderName+"DeformationImage/"+fileNames[j]).c_str() );
-          writer->Update();
+          writer->UpdateLargestPossibleRegion();
         }
 
         // Extract the central slices of the the deformation field
@@ -579,7 +579,7 @@ int main( int argc, char * argv[] )
         string sliceName = currentFolderName+"DeformationSlices/"+sliceStream.str()+".tiff";
         sliceWriter->SetFileName( sliceName.c_str() );
         cout << "Writing " << sliceName << endl;
-        sliceWriter->Update();
+        sliceWriter->UpdateLargestPossibleRegion();
 
         imageResampleArray[j]->SetInput( imagePointer );
 
@@ -606,7 +606,7 @@ int main( int argc, char * argv[] )
       writer->SetInput(naryMeanImageFilter->GetOutput());
       writer->SetFileName((meanFolder+"Mean.hdr").c_str());
       writer->SetImageIO(imageReaderArray[0]->GetImageIO());
-      writer->Update();
+      writer->UpdateLargestPossibleRegion();
     }
     
     // Extract the central slice
@@ -647,7 +647,7 @@ int main( int argc, char * argv[] )
     // write mean image
     cout << "Writing " << (meanFolder+"MeanSliceX.tiff").c_str() << endl;
     sliceWriter->SetFileName( (meanFolder+"MeanSliceX.tiff").c_str() );
-    sliceWriter->Update();     
+    sliceWriter->UpdateLargestPossibleRegion();     
 
     // Do the same for other slices
     size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
@@ -658,7 +658,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
     sliceWriter->SetFileName( (meanFolder+"MeanSliceY.tiff").c_str() );
-    sliceWriter->Update();     
+    sliceWriter->UpdateLargestPossibleRegion();     
 
     // Do the same for other slices
     size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
@@ -669,7 +669,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
     sliceWriter->SetFileName( (meanFolder+"MeanSliceZ.tiff").c_str() );
-    sliceWriter->Update();     
+    sliceWriter->UpdateLargestPossibleRegion();     
 
 
     if(write3DImages == "on")
@@ -677,7 +677,7 @@ int main( int argc, char * argv[] )
       cout << "Writing " << (stdFolder+"STD.hdr").c_str() << endl;
       writer->SetInput(narySTDImageFilter->GetOutput());
       writer->SetFileName((stdFolder+"STD.hdr").c_str());
-      writer->Update();
+      writer->UpdateLargestPossibleRegion();
     }    
     // write std image
     sliceExtractFilter->SetInput( narySTDImageFilter->GetOutput() );
@@ -692,7 +692,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
     sliceWriter->SetFileName( (stdFolder+"STDSliceX.tiff").c_str() );
-    sliceWriter->Update();
+    sliceWriter->UpdateLargestPossibleRegion();
 
     // Do the same for other slices
     size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
@@ -703,7 +703,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
     sliceWriter->SetFileName( (stdFolder+"STDSliceY.tiff").c_str() );
-    sliceWriter->Update();     
+    sliceWriter->UpdateLargestPossibleRegion();     
 
     // Do the same for other slices
     size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
@@ -714,7 +714,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
     sliceWriter->SetFileName( (stdFolder+"STDSliceZ.tiff").c_str() );
-    sliceWriter->Update();         
+    sliceWriter->UpdateLargestPossibleRegion();         
     
   } // End of transform levels
 
