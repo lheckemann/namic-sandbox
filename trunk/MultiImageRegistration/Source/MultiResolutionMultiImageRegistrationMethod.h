@@ -27,7 +27,6 @@
 #include "VarianceMultiImageMetric.h"
 #include "UserMacro.h"
 #include <vector>
-using namespace std;
 
 namespace itk
 {

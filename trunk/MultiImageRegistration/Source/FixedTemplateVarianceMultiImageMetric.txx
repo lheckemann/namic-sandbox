@@ -122,11 +122,11 @@ FixedTemplateVarianceMultiImageMetric < TImage >
   double sumOfSquares;
   
   // Sum over spatial samples
-  for (int a=threadId; a<this->m_NumberOfSpatialSamples; a += this->m_NumberOfThreads )
+  for (unsigned int a=threadId; a<this->m_NumberOfSpatialSamples; a += this->m_NumberOfThreads )
   {
     sumOfSquares = 0.0;
     // Sum over images
-    for (int j = 0; j < this->m_NumberOfImages; j++)
+    for (unsigned int j = 0; j < this->m_NumberOfImages; j++)
     {
       const double currentValue = 
           this->m_Sample[a].imageValueArray[j] - this->m_Sample[a].imageValueArray[m_FixedTemplateIndex];
@@ -147,7 +147,7 @@ FixedTemplateVarianceMultiImageMetric < TImage >
   MeasureType value = NumericTraits< RealType >::Zero;
 
   // Sum over the values returned by threads
-  for( int i=0; i < this->m_NumberOfThreads; i++ )
+  for( unsigned int i=0; i < this->m_NumberOfThreads; i++ )
   {
     value += this->m_value[i];
   }
@@ -221,9 +221,9 @@ FixedTemplateVarianceMultiImageMetric < TImage >
 
 
   //Initialize the derivative array to zero
-  for(int i=0; i<this->m_NumberOfImages;i++)
+  for(unsigned int i=0; i<this->m_NumberOfImages;i++)
   {
-    this->m_DerivativesArray[threadId][i].Fill(0.0);
+    this->m_DerivativesArray[threadId][i].Fill(value);
   }
 
   
@@ -232,11 +232,11 @@ FixedTemplateVarianceMultiImageMetric < TImage >
   double sumOfSquares;
   
   // Sum over spatial samples
-  for (int a=threadId; a<this->m_NumberOfSpatialSamples; a += this->m_NumberOfThreads )
+  for (unsigned int a=threadId; a<this->m_NumberOfSpatialSamples; a += this->m_NumberOfThreads )
   {
     sumOfSquares = 0.0;
     // Sum over images
-    for (int j = 0; j < this->m_NumberOfImages; j++)
+    for (unsigned int j = 0; j < this->m_NumberOfImages; j++)
     {
       const double currentValue = 
           this->m_Sample[a].imageValueArray[j] - this->m_Sample[a].imageValueArray[m_FixedTemplateIndex];
@@ -245,7 +245,7 @@ FixedTemplateVarianceMultiImageMetric < TImage >
     this->m_value[threadId] += sumOfSquares;
 
     // Calculate derivative
-    for (int i = 0; i < this->m_NumberOfImages; i++)
+    for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
     {
       //calculate the derivative weight
       const double weight = 2.0  * 
@@ -277,7 +277,7 @@ void FixedTemplateVarianceMultiImageMetric < TImage >
   derivative.Fill (0.0);
 
   // Sum over the values returned by threads
-  for( int i=0; i < this->m_NumberOfThreads; i++ )
+  for( unsigned int i=0; i < this->m_NumberOfThreads; i++ )
   {
     value += this->m_value[i];
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
@@ -317,7 +317,7 @@ void FixedTemplateVarianceMultiImageMetric < TImage >
     
     //Set the parametersImage to current Image
     unsigned int count = 0;
-    for(int i=0; i<this->m_NumberOfImages*itkGetStaticConstMacro(ImageDimension); i++)
+    for(unsigned int i=0; i<this->m_NumberOfImages*itkGetStaticConstMacro(ImageDimension); i++)
     {
       for( parametersIt.GoToBegin(); !parametersIt.IsAtEnd(); ++parametersIt)
       {

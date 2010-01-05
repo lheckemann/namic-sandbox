@@ -101,7 +101,7 @@ UnivariateEntropyMultiImageMetric<TFixedImage>
 
   // Each thread has its own derivative pointer
   m_DerivativesArray.resize(this->m_NumberOfThreads);
-  for(int i=0; i<this->m_NumberOfThreads; i++)
+  for(unsigned int i=0; i<this->m_NumberOfThreads; i++)
   {
     m_DerivativesArray[i].resize(this->m_NumberOfImages);
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
@@ -125,7 +125,7 @@ UnivariateEntropyMultiImageMetric<TFixedImage>
   m_RandIterArray[0]->SetNumberOfSamples(this->GetFixedImageRegion().GetNumberOfPixels());
   m_RandIterArray[0]->ReinitializeSeed();
   m_RandIterArray[0]->GoToBegin();
-  for(int i=1; i< this->m_NumberOfThreads; i++)
+  for(unsigned int i=1; i< this->m_NumberOfThreads; i++)
   {
     m_RandIterArray[i] = new RandomIterator( *m_RandIterArray[0] );
     unsigned long int numberOfSkips = (this->GetFixedImageRegion().GetNumberOfPixels()* i) / this->m_NumberOfThreads;
@@ -436,7 +436,7 @@ UnivariateEntropyMultiImageMetric < TFixedImage >
   MeasureType value = NumericTraits< RealType >::Zero;
 
   // Sum over the values returned by threads
-  for( int i=0; i < this->m_NumberOfThreads; i++ )
+  for( unsigned int i=0; i < this->m_NumberOfThreads; i++ )
   {
     value += m_value[i];
   }
@@ -538,7 +538,7 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
   derivative.Fill (0.0);
 
   // Sum over the values returned by threads
-  for( int i=0; i < this->m_NumberOfThreads; i++ )
+  for( unsigned int i=0; i < this->m_NumberOfThreads; i++ )
   {
     value += m_value[i];
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
@@ -578,7 +578,7 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
     
     //Set the parametersImage to current Image
     unsigned int count = 0;
-    for(int i=0; i<this->m_NumberOfImages*itkGetStaticConstMacro(ImageDimension); i++)
+    for(unsigned int i=0; i<this->m_NumberOfImages*itkGetStaticConstMacro(ImageDimension); i++)
     {
       for( parametersIt.GoToBegin(); !parametersIt.IsAtEnd(); ++parametersIt)
       {

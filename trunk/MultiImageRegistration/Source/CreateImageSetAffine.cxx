@@ -29,13 +29,13 @@
 #include "itkRescaleIntensityImageFilter.h"
 
 #include <string>
+#include <iostream>
 #include <sstream>
 #include <stdlib.h>
 #include <ctime>
 
 #include <itksys/SystemTools.hxx>
 
-using namespace std;
 
 int main( int argc, char * argv[] )
 {
@@ -170,8 +170,8 @@ int main( int argc, char * argv[] )
     writer->SetInput( resample->GetOutput() );
       
 
-    string fname;
-    ostringstream fnameStream;
+    std::string fname;
+    std::ostringstream fnameStream;
     fnameStream << i ;
 
 
@@ -179,7 +179,7 @@ int main( int argc, char * argv[] )
     itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
     itksys::SystemTools::MakeDirectory( (fname + argv[2] + "/TransformFiles/").c_str() );
 
-    string fileName = fname + argv[2] + "/TransformFiles/" + fnameStream.str() + ".txt";
+    std::string fileName = fname + argv[2] + "/TransformFiles/" + fnameStream.str() + ".txt";
     transformFileWriter->SetFileName(fileName.c_str());
     transformFileWriter->SetPrecision(12);
     transformFileWriter->SetInput(affineTransform);

@@ -49,16 +49,15 @@ std::string replaceExtension(const std::string oldname, const std::string extens
   return oldname.substr(0, oldname.rfind(".")) + "." + extension;
 }
 
-using namespace std;
-int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder,
+int getCommandLine(       int argc, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
-                          string& useBspline, string& useBsplineHigh,
-                          string& writeDeformationFields, string& write3DImages,
-                          string& syntheticFolderName )
+                          std::string& useBspline, std::string& useBsplineHigh,
+                          std::string& writeDeformationFields, std::string& write3DImages,
+                          std::string& syntheticFolderName )
 {
 
 
-  ifstream initFile(initFname);
+  std::ifstream initFile(initFname);
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
@@ -68,7 +67,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   while( !initFile.eof() )
   {
     
-    string dummy;
+    std::string dummy;
     initFile >> dummy;
 
     if(dummy == "-i")
@@ -134,23 +133,23 @@ int main( int argc, char * argv[] )
   if( argc < 3 )
   {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  <filenames.init>  <parameters.init>" << endl;
+    std::cerr << argv[0] << "  <filenames.init>  <parameters.init>" << std::endl;
     return EXIT_FAILURE;
   }
 
   // Input Parameter declarations
-  vector<string> fileNames;
-  string inputFolder;
-  string syntheticFolderName;
-  string outputFolder;
-  string writeDeformationFields = "off";
-  string write3DImages = "off";
+  std::vector<std::string> fileNames;
+  std::string inputFolder;
+  std::string syntheticFolderName;
+  std::string outputFolder;
+  std::string writeDeformationFields = "off";
+  std::string write3DImages = "off";
   
   int bsplineInitialGridSize = 4;
   int numberOfBsplineLevel = 0;
     
-  string useBspline("off");
-  string useBsplineHigh("off");
+  std::string useBspline("off");
+  std::string useBsplineHigh("off");
   
 
     //Get the command line arguments
@@ -163,7 +162,7 @@ int main( int argc, char * argv[] )
                   writeDeformationFields, write3DImages, syntheticFolderName )
        ) 
     {
-      std:: cout << "Error reading parameter file " << std::endl;
+      std::cout << "Error reading parameter file " << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -172,7 +171,7 @@ int main( int argc, char * argv[] )
 
   if(N<2)
   {
-     cout << "Not enough filenames" << endl;
+     std::cout << "Not enough filenames" << std::endl;
      return EXIT_FAILURE;
   }
   
@@ -186,7 +185,7 @@ int main( int argc, char * argv[] )
   for(int i=0; i<N; i++)
   {
     imageReaderArray[i] = ReaderType::New();
-    string fname = inputFolder + fileNames[i];
+    std::string fname = inputFolder + fileNames[i];
     imageReaderArray[i]->SetFileName(fname.c_str());
     imageReaderArray[i]->Update();
   } 
@@ -205,8 +204,8 @@ int main( int argc, char * argv[] )
   {
     transformLevels = 1;
   }
-  vector< vector < string > >  transformFileNames(transformLevels);
-  vector < string >   syntheticTransformFileNames(N);
+  std::vector< std::vector < std::string > >  transformFileNames(transformLevels);
+  std::vector < std::string >   syntheticTransformFileNames(N);
 
   if( syntheticFolderName == "" )
   {
@@ -232,7 +231,7 @@ int main( int argc, char * argv[] )
     }
     else // generate bspline names
     {
-      ostringstream bsplineFolderName;
+      std::ostringstream bsplineFolderName;
       bsplineFolderName << "Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1);
 
       for( int j=0; j<N; j++)
@@ -302,7 +301,7 @@ int main( int argc, char * argv[] )
       // Inpute image, apply identity tranform
       if( i == 0)
       {
-        cout << "Reading " << transformFileNames[i][j].c_str() << endl;
+        std::cout << "Reading " << transformFileNames[i][j].c_str() << std::endl;
         TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
         transformFileReader->SetFileName(transformFileNames[i][j].c_str());
         
@@ -317,7 +316,7 @@ int main( int argc, char * argv[] )
       else
       {
 
-        cout << "Reading " << transformFileNames[i][j].c_str() << endl;
+        std::cout << "Reading " << transformFileNames[i][j].c_str() << std::endl;
 
         // Get Affine transform
         TransformFileReader::Pointer        affineTransformFileReader = TransformFileReader::New();
@@ -348,7 +347,7 @@ int main( int argc, char * argv[] )
 
       }
       
-      cout << "Reading " << syntheticTransformFileNames[j] << endl;
+      std::cout << "Reading " << syntheticTransformFileNames[j] << std::endl;
       // Read the synthetic transforms from file
       if( useBspline != "on" ) // affine
       {
@@ -384,27 +383,27 @@ int main( int argc, char * argv[] )
     }
 
     // Create the output folders
-    string currentFolderName;
+    std::string currentFolderName;
     if(i==0)
     {
       currentFolderName = outputFolder + "Affine/";
     }
     else
     {
-      ostringstream bsplineFolderName;
+      std::ostringstream bsplineFolderName;
       bsplineFolderName << "Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1) << "/";
       currentFolderName = outputFolder + bsplineFolderName.str();
     }
     itksys::SystemTools::MakeDirectory( currentFolderName.c_str() );
     
-    string diffFolderName = currentFolderName+"DefFieldDifference/";
+    std::string diffFolderName = currentFolderName+"DefFieldDifference/";
     itksys::SystemTools::MakeDirectory( diffFolderName.c_str() );
     
     // compare the deformation fields and compute the magnitude difference images
-    ofstream maxMeanDefFile((diffFolderName+"meanMax.txt").c_str());
+    std::ofstream maxMeanDefFile((diffFolderName+"meanMax.txt").c_str());
     for(int j=0; j<N; j++)
     {
-      cout << "Writing" << (diffFolderName+fileNames[j]).c_str() << endl;
+      std::cout << "Writing" << (diffFolderName+fileNames[j]).c_str() << std::endl;
       ImageType::Pointer imagePointer = imageReaderArray[j]->GetOutput();
 
       typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorWithIndexType;
@@ -451,7 +450,7 @@ int main( int argc, char * argv[] )
       
       maxMeanDefFile << mean /
                      (double)(imagePointer->GetLargestPossibleRegion().GetNumberOfPixels())
-                     << " " << max << endl;
+                     << " " << max << std::endl;
       
       // Write the output image
       WriterType::Pointer  writer = WriterType::New();

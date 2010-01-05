@@ -150,7 +150,7 @@ public:
       {
         GradientOptimizerPointer gradientPointer =
             dynamic_cast< GradientOptimizerPointer >(object );
-        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << std::setiosflags(std::ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter " << std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << gradientPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << gradientPointer->GetValue() << "   " << std::endl;
@@ -164,7 +164,7 @@ public:
       {
         LineSearchOptimizerPointer lineSearchOptimizerPointer =
             dynamic_cast< LineSearchOptimizerPointer >( object );
-        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << std::setiosflags(std::ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << lineSearchOptimizerPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << lineSearchOptimizerPointer->GetValue() << "   " << std::endl;
@@ -178,7 +178,7 @@ public:
       {
         SPSAOptimizerPointer spsaOptimizerPointer =
             dynamic_cast< SPSAOptimizerPointer >( object );
-        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << std::setiosflags(std::ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << spsaOptimizerPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << spsaOptimizerPointer->GetValue() << "   " << std::endl;
@@ -202,7 +202,7 @@ public:
       {
         SimplexOptimizerTypePointer simplexOptimizer =
             dynamic_cast< SimplexOptimizerTypePointer >( object );
-        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << std::setiosflags(std::ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(6) << simplexOptimizer->GetCachedValue() << "   " << std::endl;
         if(m_CumulativeIterationIndex % 100 == 0 )
@@ -229,9 +229,9 @@ public:
         m_MetricPointer->Finalize();
         m_MetricPointer->SetNumberOfSpatialSamples( 1000000 );
         m_MetricPointer->Initialize();
-        cout << "ALLSamples: Iter" << m_CumulativeIterationIndex;
-        cout << " Value " << m_MetricPointer->GetValue(optimizer->GetCurrentPosition());
-        cout << " # of samples " << m_MetricPointer->GetFixedImageRegion().GetNumberOfPixels()/2 << endl;
+        std::cout << "ALLSamples: Iter" << m_CumulativeIterationIndex;
+        std::cout << " Value " << m_MetricPointer->GetValue(optimizer->GetCurrentPosition());
+        std::cout << " # of samples " << m_MetricPointer->GetFixedImageRegion().GetNumberOfPixels()/2 << std::endl;
         m_MetricPointer->Finalize();
         m_MetricPointer->SetNumberOfSpatialSamples(numberOfSamples);
         m_MetricPointer->Initialize();
@@ -454,10 +454,10 @@ public:
   void Execute(const itk::Object * , const itk::EventObject & )
     { return; }
 
-  void SetFileNames(    std::vector<string> fileNames2,
-                        std::vector<string> inputFileNames2,
-                        std::vector<string> outputFileNames2,
-                        string              outputFolder2)
+  void SetFileNames(    std::vector<std::string> fileNames2,
+                        std::vector<std::string> inputFileNames2,
+                        std::vector<std::string> outputFileNames2,
+                        std::string              outputFolder2)
   {
     for(unsigned int i=0; i<fileNames.size(); i++ )
     {
@@ -484,10 +484,10 @@ public:
     double m_MultiScaleMaximumIterationIncrease;
     double m_MultiScaleStepLengthIncrease;
 
-    std::vector<string> fileNames;
-    std::vector<string> inputFileNames;
-    std::vector<string> outputFileNames;
-    string              outputFolder;
+    std::vector<std::string> fileNames;
+    std::vector<std::string> inputFileNames;
+    std::vector<std::string> outputFileNames;
+    std::string              outputFolder;
     std::vector< itk::Transform< double, Dimension,Dimension >* > transformArray;
 };
 
@@ -498,42 +498,42 @@ std::string replaceExtension(const std::string oldname, const std::string extens
 
 
 // Get the command line arguments
-int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
+int getCommandLine(int argc, char *initFname, vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder, std::string& optimizerType,
                    int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
                    double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
                    int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
                    double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                    int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
-                   string& BSplineRegularizationFlag, double& bsplineRegularizationFactor,
-                   string& transformType,string& metricType, string& useBspline, string& useBsplineHigh,
+                   std::string& BSplineRegularizationFlag, double& bsplineRegularizationFactor,
+                   std::string& transformType,std::string& metricType, std::string& useBspline, std::string& useBsplineHigh,
                    double& translationScaleCoeffs,
                    int& maximumLineIteration, double& parzenWindowStandardDeviation,
                    double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
                    double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
                    double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
                    unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
-                   string &mask, string& maskType, unsigned int& threshold1, unsigned int& threshold2,
-                   string &writeOutputImages, string &writeDeformationFields,
-                   string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
+                   std::string &mask, std::string& maskType, unsigned int& threshold1, unsigned int& threshold2,
+                   std::string &writeOutputImages, std::string &writeDeformationFields,
+                   std::string &writeMean3DImages, std::string& metricPrint, unsigned int& printInterval,
                    double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
                    unsigned int& StartLevel,
-                   string& useNormalizeFilter, double& gaussianFilterKernelWidth,
+                   std::string& useNormalizeFilter, double& gaussianFilterKernelWidth,
                    unsigned int& fixedTemplateIndex);
 
 
 int main( int argc, char *argv[] )
 {
 
-  vector<string> fileNames;
-  string inputFolder("");
-  string outputFolder("");
+  vector<std::string> fileNames;
+  std::string inputFolder("");
+  std::string outputFolder("");
   
-  string optimizerType("lineSearch");
-  string metricType("entropy");
-  string interpolatorType("linear");
+  std::string optimizerType("lineSearch");
+  std::string metricType("entropy");
+  std::string interpolatorType("linear");
   
-  string metricPrint("off");
-  string useNormalizeFilter("off");
+  std::string metricPrint("off");
+  std::string useNormalizeFilter("off");
   
   unsigned int printInterval = 500;
   unsigned int startLevel = 0;
@@ -573,22 +573,22 @@ int main( int argc, char *argv[] )
   int bsplineInitialGridSize = 4;
   int numberOfBsplineLevel = 1;
   
-  string BSplineRegularizationFlag("off");
+  std::string BSplineRegularizationFlag("off");
   double bsplineRegularizationFactor = 1e-1;
   
   double parzenWindowStandardDeviation = 0.4;
   double gaussianFilterKernelWidth = 3.0;
-  string mask("all");
-  string maskType("none");
+  std::string mask("all");
+  std::string maskType("none");
   unsigned int threshold1 = 9;
   unsigned int threshold2 = 20;
       
-  string useBspline("off");
-  string useBsplineHigh("off");
+  std::string useBspline("off");
+  std::string useBsplineHigh("off");
 
-  string writeOutputImages("off");
-  string writeDeformationFields("off");
-  string writeMean3DImages("off");
+  std::string writeOutputImages("off");
+  std::string writeDeformationFields("off");
+  std::string writeMean3DImages("off");
   
   //SPSA related parameters
   double SPSAalpha = 0.602;
@@ -623,7 +623,7 @@ int main( int argc, char *argv[] )
         useNormalizeFilter, gaussianFilterKernelWidth,
         fixedTemplateIndex ) )
     {
-      std:: cout << "Error reading parameter file " << std::endl;
+      std::cout << "Error reading parameter file " << std::endl;
       return EXIT_FAILURE;
     }
   }
@@ -686,8 +686,8 @@ int main( int argc, char *argv[] )
   }
   
   //generate filenames
-  vector<string> inputFileNames(N);
-  vector<string> outputFileNames(N);
+  vector<std::string> inputFileNames(N);
+  vector<std::string> outputFileNames(N);
   for(int i=0; i<N; i++)
   {
     //write output file names
@@ -862,7 +862,7 @@ int main( int argc, char *argv[] )
         maskImage->SetImage(connectedThreshold->GetOutput());
         registration->SetImageMaskArray(i, maskImage);
 
-        cout << "message: Computing mask "  << endl;
+        std::cout << "message: Computing mask "  << std::endl;
       }
       else if( maskType == "neighborhoodConnected" && ((mask == "single" && i==0 ) || mask == "all"))
       {
@@ -889,7 +889,7 @@ int main( int argc, char *argv[] )
         maskImage->SetImage(neighborhoodConnected->GetOutput());
         registration->SetImageMaskArray(i, maskImage);
 
-        cout << "message: Computing mask " << endl;
+        std::cout << "message: Computing mask " << std::endl;
       }
 
       NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
@@ -1118,7 +1118,7 @@ int main( int argc, char *argv[] )
     itksys::SystemTools::MakeDirectory( (outputFolder + "Affine/TransformFiles/").c_str() );
     for(int i=0; i<N;i++)
     {
-      string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
+      std::string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
       fileName = replaceExtension(fileName, "txt");
       transformFileWriter->SetFileName(fileName.c_str());
       transformFileWriter->SetPrecision(12);
@@ -1203,9 +1203,9 @@ int main( int argc, char *argv[] )
                              itk::CreateObjectFunction<AffineTransformType>::New());
        
         TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
-        string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
+        std::string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
         fileName = replaceExtension(fileName, "txt");
-        std::cout << "message: Reading " << fileName << endl;        
+        std::cout << "message: Reading " << fileName << std::endl;        
         transformFileReader->SetFileName(fileName.c_str());
         
         // Create the transforms
@@ -1363,7 +1363,7 @@ int main( int argc, char *argv[] )
     {
       transformArray[i] = bsplineTransformArrayLow[i];
     }
-    ostringstream bsplineFolderName;
+    std::ostringstream bsplineFolderName;
     bsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize;
     command->SetFileNames( fileNames, inputFileNames,
                            outputFileNames, outputFolder + bsplineFolderName.str() + "_MultiScale_" );
@@ -1377,7 +1377,7 @@ int main( int argc, char *argv[] )
       itksys::SystemTools::MakeDirectory( (outputFolder + bsplineFolderName.str() + "TransformFiles/").c_str() );
       for(int i=0; i<N;i++)
       {
-        string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
+        std::string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
         fileName = replaceExtension(fileName, "txt");
         transformFileWriter->SetFileName(fileName.c_str());
         transformFileWriter->SetPrecision(12);
@@ -1436,9 +1436,9 @@ int main( int argc, char *argv[] )
 
             TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
 
-            ostringstream bsplineFolderName;
+            std::ostringstream bsplineFolderName;
             bsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize << "/";
-            string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
+            std::string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
             fileName = replaceExtension(fileName, "txt");
             transformFileReader->SetFileName(fileName.c_str());
             transformFileReader->Update();
@@ -1634,7 +1634,7 @@ int main( int argc, char *argv[] )
         {
           transformArray[i] = bsplineTransformArrayHigh[i];
         }
-        ostringstream bsplineFolderName;
+        std::ostringstream bsplineFolderName;
         bsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize;
         
         command->SetFileNames( fileNames, inputFileNames,
@@ -1647,7 +1647,7 @@ int main( int argc, char *argv[] )
         itksys::SystemTools::MakeDirectory( (outputFolder + bsplineFolderName.str() + "TransformFiles/").c_str() );
         for(int i=0; i<N;i++)
         {
-          string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
+          std::string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
           fileName = replaceExtension(fileName, "txt");
           transformFileWriter->SetFileName(fileName.c_str());
           transformFileWriter->SetPrecision(12);
@@ -1676,17 +1676,17 @@ int main( int argc, char *argv[] )
 
 
 
-int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
+int getCommandLine(       int argc, char *initFname, vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder, std::string& optimizerType,
                           int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
                           double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
                           int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
                           double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           
-                          string& BSplineRegularizationFlag, double& bsplineRegularizationFactor,
+                          std::string& BSplineRegularizationFlag, double& bsplineRegularizationFactor,
 
-                          string& interpolatorType, string& metricType,
-                          string& useBspline, string& useBsplineHigh,
+                          std::string& interpolatorType, std::string& metricType,
+                          std::string& useBspline, std::string& useBsplineHigh,
                           
                           double& translationScaleCoeffs,
                           int& maximumLineIteration,   double& parzenWindowStandardDeviation,
@@ -1698,20 +1698,20 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
                           unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
 
-                          string &mask, string& maskType, unsigned int& threshold1, unsigned int& threshold2,
-                          string &writeOutputImages, string &writeDeformationFields,
+                          std::string &mask, std::string& maskType, unsigned int& threshold1, unsigned int& threshold2,
+                          std::string &writeOutputImages, std::string &writeDeformationFields,
                           
-                          string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
+                          std::string &writeMean3DImages, std::string& metricPrint, unsigned int& printInterval,
 
                           double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
                           unsigned int& StartLevel,
-                          string& useNormalizeFilter,
+                          std::string& useNormalizeFilter,
                           double& gaussianFilterKernelWidth,
                           unsigned int& fixedTemplateIndex)
 {
 
 
-  ifstream initFile(initFname);
+  std::ifstream initFile(initFname);
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
@@ -1721,7 +1721,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   while( !initFile.eof() )
   {
     
-    string dummy;
+    std::string dummy;
     initFile >> dummy;
 
     if(dummy == "-i")

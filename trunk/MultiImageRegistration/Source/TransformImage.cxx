@@ -37,7 +37,6 @@
 
 #include "itkTransformFileReader.h"    
     
-using namespace std;
 
 int main( int argc, char * argv[] )
 {
@@ -90,7 +89,7 @@ int main( int argc, char * argv[] )
 
   TransformListType::iterator it=transformList->begin();
 
-  string type(argv[4]);
+  std::string type(argv[4]);
 
   TransformType::Pointer   transform;
   for(TransformListType::iterator it=transformList->begin(); it !=transformList->end() ; it++)

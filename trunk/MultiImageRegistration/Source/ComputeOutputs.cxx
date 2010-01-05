@@ -45,21 +45,20 @@
 
 #include <itksys/SystemTools.hxx>
 
-using namespace std;
 
 std::string replaceExtension(const std::string oldname, const std::string extension)
 {
   return oldname.substr(0, oldname.rfind(".")) + "." + extension;
 }
 
-int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder,
+int getCommandLine(       int argc, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
-                          string& useBspline, string& useBsplineHigh,
-                          string& writeDeformationFields, string& write3DImages )
+                          std::string& useBspline, std::string& useBsplineHigh,
+                          std::string& writeDeformationFields, std::string& write3DImages )
 {
 
 
-  ifstream initFile(initFname);
+  std::ifstream initFile(initFname);
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
@@ -69,7 +68,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   while( !initFile.eof() )
   {
     
-    string dummy;
+    std::string dummy;
     initFile >> dummy;
 
     if(dummy == "-i")
@@ -192,22 +191,22 @@ int main( int argc, char * argv[] )
   if( argc < 3 )
   {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  <filenames.init>  <parameters.init>" << endl;
+    std::cerr << argv[0] << "  <filenames.init>  <parameters.init>" << std::endl;
     return EXIT_FAILURE;
   }
 
   // Input Parameter declarations
-  vector<string> fileNames;
-  string inputFolder;
-  string outputFolder;
-  string writeDeformationFields = "off";
-  string write3DImages = "off";
+  std::vector<std::string> fileNames;
+  std::string inputFolder;
+  std::string outputFolder;
+  std::string writeDeformationFields = "off";
+  std::string write3DImages = "off";
   
   int bsplineInitialGridSize = 4;
   int numberOfBsplineLevel = 0;
     
-  string useBspline("off");
-  string useBsplineHigh("off");
+  std::string useBspline("off");
+  std::string useBsplineHigh("off");
   
 
     //Get the command line arguments
@@ -229,7 +228,7 @@ int main( int argc, char * argv[] )
 
   if(N<2)
   {
-     cout << "Not enough filenames" << endl;
+     std::cout << "Not enough filenames" << std::endl;
      return EXIT_FAILURE;
   }
   
@@ -243,7 +242,7 @@ int main( int argc, char * argv[] )
   for(int i=0; i<N; i++)
   {
     imageReaderArray[i] = ReaderType::New();
-    string fname = inputFolder + fileNames[i];
+    std::string fname = inputFolder + fileNames[i];
     imageReaderArray[i]->SetFileName(fname.c_str());
     std::cout << "Reading " << fname.c_str() << std::endl;
     imageReaderArray[i]->Update();
@@ -263,8 +262,8 @@ int main( int argc, char * argv[] )
   {
     transformLevels = 1;
   }
-  vector< vector < string > >  transformFileNames(transformLevels);
-  vector< string > transformNames(transformLevels);
+  std::vector< std::vector < std::string > >  transformFileNames(transformLevels);
+  std::vector< std::string > transformNames(transformLevels);
   
   // Generate the transform filenames
   for(int i=0; i<transformLevels; i++)
@@ -281,7 +280,7 @@ int main( int argc, char * argv[] )
     }
     else // generate bspline names
     {
-      ostringstream bsplineFolderName;
+      std::ostringstream bsplineFolderName;
       bsplineFolderName << "Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1);
       transformNames[i] = bsplineFolderName.str();
       for( int j=0; j<N; j++)
@@ -398,7 +397,7 @@ int main( int argc, char * argv[] )
     }
 
     // Create the output folders
-    string currentFolderName;
+    std::string currentFolderName;
     if( i==-1)
     {
       currentFolderName = outputFolder + "InputImage/";
@@ -409,7 +408,7 @@ int main( int argc, char * argv[] )
     }
     else
     {
-      ostringstream bsplineFolderName;
+      std::ostringstream bsplineFolderName;
       bsplineFolderName << "Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1) << "/";
       currentFolderName = outputFolder + bsplineFolderName.str();
     }
@@ -459,7 +458,7 @@ int main( int argc, char * argv[] )
       
       if(write3DImages == "on")
       {
-        cout << "Writing " << (currentFolderName+"Images/"+fileNames[j]).c_str() << endl;
+        std::cout << "Writing " << (currentFolderName+"Images/"+fileNames[j]).c_str() << std::endl;
         writer->Update();
       }
 
@@ -499,12 +498,12 @@ int main( int argc, char * argv[] )
 
        // write mean image
       itksys::SystemTools::MakeDirectory( (currentFolderName+"Slices/").c_str() );
-      ostringstream sliceStream;
+      std::ostringstream sliceStream;
       sliceStream << j;
-      string sliceName = currentFolderName+"Slices/x"+sliceStream.str()+".tiff";
+      std::string sliceName = currentFolderName+"Slices/x"+sliceStream.str()+".tiff";
       sliceWriter->SetFileName( sliceName.c_str() );
       
-      cout << "Writing " << sliceName.c_str() << endl; 
+      std::cout << "Writing " << sliceName.c_str() << std::endl; 
       sliceWriter->Update();     
 
       // Do the same for other slices
@@ -575,11 +574,11 @@ int main( int argc, char * argv[] )
         itksys::SystemTools::MakeDirectory( (currentFolderName+"DeformationSlices/").c_str() );
         sliceExtractFilter->SetInput( imageResampleArray[j]->GetOutput() );
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-        ostringstream sliceStream;
+        std::ostringstream sliceStream;
         sliceStream << j;
-        string sliceName = currentFolderName+"DeformationSlices/"+sliceStream.str()+".tiff";
+        std::string sliceName = currentFolderName+"DeformationSlices/"+sliceStream.str()+".tiff";
         sliceWriter->SetFileName( sliceName.c_str() );
-        cout << "Writing " << sliceName << endl;
+        std::cout << "Writing " << sliceName << std::endl;
         sliceWriter->Update();
 
         imageResampleArray[j]->SetInput( imagePointer );
@@ -591,8 +590,8 @@ int main( int argc, char * argv[] )
 
     
     // Set the folder name
-    string meanFolder = currentFolderName + "MeanImages/";
-    string stdFolder = currentFolderName  + "STDImages/";
+    std::string meanFolder = currentFolderName + "MeanImages/";
+    std::string stdFolder = currentFolderName  + "STDImages/";
 
     itksys::SystemTools::MakeDirectory( meanFolder.c_str() );
     itksys::SystemTools::MakeDirectory( stdFolder.c_str() );
@@ -603,7 +602,7 @@ int main( int argc, char * argv[] )
     
     if(write3DImages == "on")
     {
-      cout << "Writing " << (meanFolder+"Mean.hdr").c_str() << endl;
+      std::cout << "Writing " << (meanFolder+"Mean.hdr").c_str() << std::endl;
       writer->SetInput(naryMeanImageFilter->GetOutput());
       writer->SetFileName((meanFolder+"Mean.hdr").c_str());
       writer->SetImageIO(imageReaderArray[0]->GetImageIO());
@@ -646,7 +645,7 @@ int main( int argc, char * argv[] )
     sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
     // write mean image
-    cout << "Writing " << (meanFolder+"MeanSliceX.tiff").c_str() << endl;
+    std::cout << "Writing " << (meanFolder+"MeanSliceX.tiff").c_str() << std::endl;
     sliceWriter->SetFileName( (meanFolder+"MeanSliceX.tiff").c_str() );
     sliceWriter->Update();     
 
@@ -675,7 +674,7 @@ int main( int argc, char * argv[] )
 
     if(write3DImages == "on")
     {
-      cout << "Writing " << (stdFolder+"STD.hdr").c_str() << endl;
+      std::cout << "Writing " << (stdFolder+"STD.hdr").c_str() << std::endl;
       writer->SetInput(narySTDImageFilter->GetOutput());
       writer->SetFileName((stdFolder+"STD.hdr").c_str());
       writer->Update();
@@ -684,7 +683,7 @@ int main( int argc, char * argv[] )
     sliceExtractFilter->SetInput( narySTDImageFilter->GetOutput() );
     sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
-    cout << "Writing " << (stdFolder+"STDSlice.tiff").c_str() << endl;
+    std::cout << "Writing " << (stdFolder+"STDSlice.tiff").c_str() << std::endl;
     size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
     start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
     start[0] = size[0]/2;
