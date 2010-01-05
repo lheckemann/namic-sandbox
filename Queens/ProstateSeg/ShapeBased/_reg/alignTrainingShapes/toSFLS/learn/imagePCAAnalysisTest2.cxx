@@ -21,7 +21,8 @@
 
 //douher
 #include "cArrayOp.h"
-#include "aux/txtIO.h"
+//#include "aux/txtIO.h"
+#include "lib/txtIO.h"
 
 // itk
 #include "itkImage.h"
