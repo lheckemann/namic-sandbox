@@ -12,7 +12,6 @@
 
 #include "vtkMRMLDiffusionRSHDisplayPropertiesNode.h"
 #include "vtkAbstractTransform.h"
-#include "vtkSmartPointer.h"
 
 #include <stdlib.h>
 #include <iostream>

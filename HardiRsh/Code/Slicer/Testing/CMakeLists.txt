@@ -2,7 +2,10 @@ SET(CXX_TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
 
 SET(KIT SbiaHardiSlicerIntegration)
 CREATE_TEST_SOURCELIST(Tests ${KIT}CxxTests.cxx
+  vtkMRMLDiffusionRSHVolumeDisplayNodeTest1.cxx
   vtkMRMLDiffusionRSHDisplayPropertiesNodeTest1.cxx
+  vtkMRMLDiffusionRSHVolumeNodeTest1.cxx
+  vtkMRMLDiffusionRSHVolumeSliceDisplayNodeTest1.cxx
   EXTRA_INCLUDE slicerTestingMacros.h
   )
 
@@ -30,7 +33,10 @@ MACRO( SIMPLE_TEST  TESTNAME )
 ENDMACRO( SIMPLE_TEST  )
 
 
+SIMPLE_TEST( vtkMRMLDiffusionRSHVolumeDisplayNodeTest1 )
 SIMPLE_TEST( vtkMRMLDiffusionRSHDisplayPropertiesNodeTest1 )
+SIMPLE_TEST( vtkMRMLDiffusionRSHVolumeNodeTest1 )
+SIMPLE_TEST( vtkMRMLDiffusionRSHVolumeSliceDisplayNodeTest1 )
 
 #ADD_EXECUTABLE(SphereHarmonicTest SphereHarmonicTest.cxx)
 #TARGET_LINK_LIBRARIES( SphereHarmonicTest vtkRendering ${lib_name} )
