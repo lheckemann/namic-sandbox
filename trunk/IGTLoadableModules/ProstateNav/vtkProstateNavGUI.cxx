@@ -89,6 +89,8 @@
 
 #include <vector>
 
+
+
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkProstateNavGUI );
 vtkCxxRevisionMacro ( vtkProstateNavGUI, "$Revision: 1.0 $");
@@ -821,11 +823,15 @@ void vtkProstateNavGUI::BuildGUIForHelpFrame ()
     vtkKWWidget *page = this->UIPanel->GetPageWidget ( "ProstateNav" );
 
     // Define your help text here.
-    const char *help = 
-      "The **ProstateNav Module** helps you to do prostate Biopsy and Treatment by:"
-      " getting Realtime Images from MR-Scanner into Slicer3, control Scanner with Slicer 3,"
-      " determin fiducial detection and control the Robot."
-      " Module and Logic mainly coded by Junichi Tokuda, David Gobbi and Philip Mewes"; 
+    std::stringstream ss;
+
+    ss << "Module Revision: " << ProstateNav_REVISION << std::endl;
+
+    ss << "The **ProstateNav Module** helps you to do prostate Biopsy and Treatment by:";
+    ss << " getting Realtime Images from MR-Scanner into Slicer3, control Scanner with Slicer 3,";
+    ss << " determin fiducial detection and control the Robot.";
+    ss << " Module and Logic mainly coded by Junichi Tokuda (BWH), Andras Lasso,";
+    ss << " David Gobbi (Queen's University) and Philip Mewes";
 
     // ----------------------------------------------------------------
     // HELP FRAME         
@@ -843,7 +849,8 @@ void vtkProstateNavGUI::BuildGUIForHelpFrame ()
     this->HelpText->Create ( );
     this->HelpText->SetHorizontalScrollbarVisibility ( 0 );
     this->HelpText->SetVerticalScrollbarVisibility ( 1 );
-    this->HelpText->GetWidget()->SetText ( help );
+    //this->HelpText->GetWidget()->SetText ( help );
+    this->HelpText->GetWidget()->SetText ( ss.str().c_str() );
     this->HelpText->GetWidget()->SetReliefToFlat ( );
     this->HelpText->GetWidget()->SetWrapToWord ( );
     this->HelpText->GetWidget()->ReadOnlyOn ( );
