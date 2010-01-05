@@ -6,22 +6,18 @@ namespace itk
 // Helper macro for defining the traits of the Vector type for a given component type and dimension
 //
 #define SYM_RSH_STATIC_TRAITS_MACRO( T, N ) \
-template <typename B> \
-const SymRealSphericalHarmonicRep<T,N,B> \
-  NumericTraits<SymRealSphericalHarmonicRep<T,N,B> >::Zero = \
-  SymRealSphericalHarmonicRep<T,N,B>( NumericTraits<T>::Zero ); \
-template <typename B> \
-const SymRealSphericalHarmonicRep<T,N,B>  \
-  NumericTraits<SymRealSphericalHarmonicRep<T,N,B> >::One  = \
-  SymRealSphericalHarmonicRep<T,N,B>( NumericTraits<T>::One ); \
-template <typename B> \
-SymRealSphericalHarmonicRep<T,N,B> \
-  NumericTraits<SymRealSphericalHarmonicRep<T,N,B> >::ZeroValue() \
-  { return NumericTraits<SymRealSphericalHarmonicRep<T,N,B> >::Zero; } \
-template <typename B> \
-SymRealSphericalHarmonicRep<T,N,B> \
-  NumericTraits<SymRealSphericalHarmonicRep<T,N,B> >::OneValue() \
-  { return NumericTraits<SymRealSphericalHarmonicRep<T,N,B> >::One; }
+const SymRealSphericalHarmonicRep<T,N> \
+  NumericTraits<SymRealSphericalHarmonicRep<T,N> >::Zero = \
+  SymRealSphericalHarmonicRep<T,N>( NumericTraits<T>::Zero ); \
+const SymRealSphericalHarmonicRep<T,N>  \
+  NumericTraits<SymRealSphericalHarmonicRep<T,N> >::One  = \
+  SymRealSphericalHarmonicRep<T,N>( NumericTraits<T>::One ); \
+SymRealSphericalHarmonicRep<T,N> \
+  NumericTraits<SymRealSphericalHarmonicRep<T,N> >::ZeroValue() \
+  { return NumericTraits<SymRealSphericalHarmonicRep<T,N> >::Zero; } \
+SymRealSphericalHarmonicRep<T,N> \
+  NumericTraits<SymRealSphericalHarmonicRep<T,N> >::OneValue() \
+  { return NumericTraits<SymRealSphericalHarmonicRep<T,N> >::One; }
   
 
 //

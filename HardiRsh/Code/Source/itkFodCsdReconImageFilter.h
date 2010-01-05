@@ -47,7 +47,7 @@ public:
   typedef typename Superclass::RshBasisMatrixInverseType        RshBasisMatrixInverseType;
 
   typedef vnl_vector< double >                                  VectorType;
-  typedef typename OutputPixelType::BasisType::LmVector         LmVector;
+  typedef typename OutputPixelType::LmVector                    LmVector;
 
   itkStaticConstMacro(NumberOfCoefficients,unsigned int, OutputPixelType::Dimension);
 

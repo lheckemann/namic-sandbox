@@ -10,7 +10,6 @@
 #include "itkVectorContainer.h"
 #include "itkSpatialObject.h"
 
-#include "itkRealSymSphericalHarmonicBasis.h"
 #include "itkSymRealSphericalHarmonicRep.h"
 #include "itkDiffusionTensor3D.h"
 
@@ -27,7 +26,7 @@ namespace itk
 template
 <
   class TGradientImagePixelType,
-  typename TBasisType=itk::RealSymSphericalHarmonicBasis< 4 >
+  typename TRSHPixelType=itk::SymRealSphericalHarmonicRep<double, 4 >
 >
 class ITK_EXPORT FiberImpulseResponseImageCalculator : public Object 
 {
@@ -73,12 +72,8 @@ public:
    **/
   typedef SpatialObject< 3 >                        ImageMaskType;
   typedef typename ImageMaskType::ConstPointer      ImageMaskPointer;
-
-  /** Basis Typedef. */
-  typedef TBasisType                                BasisType;
           
-  typedef SymRealSphericalHarmonicRep< double, BasisType::MaxOrder >
-                                                    RshPixelType;
+  typedef TRSHPixelType                             RshPixelType;
   
   /** Tensor typedefs. */  
   typedef itk::DiffusionTensor3D<double>                DtiType;

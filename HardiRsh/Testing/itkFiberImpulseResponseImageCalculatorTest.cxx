@@ -240,9 +240,9 @@ int itkFirTest(int, char* [] )
 
   typedef unsigned int    GradientPixelType;
                                         
-  typedef itk::RealSymSphericalHarmonicBasis<4>
-                                            BasisType;      
-  typedef itk::FiberImpulseResponseImageCalculator<GradientPixelType,BasisType>
+  typedef itk::SymRealSphericalHarmonicRep<double,4>
+                                            RSHPixelType;      
+  typedef itk::FiberImpulseResponseImageCalculator<GradientPixelType,RSHPixelType>
                                               CaluculatorType;
 
 

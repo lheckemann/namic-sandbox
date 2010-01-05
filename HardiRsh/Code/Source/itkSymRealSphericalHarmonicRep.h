@@ -25,16 +25,18 @@
 #include "itk_hash_map.h"
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_vector_fixed.h"
+#include "itkVectorContainer.h"
+#include "itkReplaceSpecialFunctions.h"
 
-#include "itkRealSymSphericalHarmonicBasis.h"
+//#include "itkRealSymSphericalHarmonicBasis.h"
 
 namespace itk
 {
 
 template
 < typename TComponent,
-  unsigned int TMaxOrder=4,
-  typename TBasisType= itk::RealSymSphericalHarmonicBasis< TMaxOrder >
+  unsigned int TMaxOrder=4
+//  ,typename TBasisType= itk::RealSymSphericalHarmonicBasis< TMaxOrder >
 >
 class SymRealSphericalHarmonicRep: public
       FixedArray<TComponent,(TMaxOrder+1)*(TMaxOrder+2)/2>
@@ -52,9 +54,10 @@ public:
   /**Dimension of unique Orders since Max Order must be even. */
   itkStaticConstMacro(NumberOfOrders, unsigned int, TMaxOrder / 2 + 1);
 
+  typedef vnl_vector_fixed<int,2>                     LmVector;
   /** Basis Typedef. */
-  typedef TBasisType                                                BasisType;
-  typedef typename BasisType::RshRotationMatixType                  RshRotationMatixType;
+//  typedef TBasisType                                                BasisType;
+//  typedef typename BasisType::RshRotationMatixType                  RshRotationMatixType;
 
   /** Convenience typedefs. */
   typedef FixedArray<TComponent, itkGetStaticConstMacro(Dimension)> BaseArray;
@@ -187,7 +190,7 @@ public:
     {
       itkGenericExceptionMacro( << "Attempting to extract a componant with an illegal order (l)");
     }
-    int c = BasisType::GetJ(l,m);
+    int c = GetJ(l,m);
     return this->operator[](c);
   }
 
@@ -198,7 +201,7 @@ public:
     {
       itkGenericExceptionMacro( << "Attempting to Set a componant with an illegal order (l)");
     }
-    int c = BasisType::GetJ(l,m);
+    int c = GetJ(l,m);
     this->operator[](c) = v;
   }
  
@@ -206,26 +209,42 @@ public:
 
   BaseArray GetFixedArray() { return (*this); }
 
-  /** Rotate by the provided matix. */
-  template<typename TMatrixValueType>
-  Self Rotate( const Matrix<TMatrixValueType, 3u, 3u> & m);
+  //~ /** Rotate by the provided matix. */
+  //~ template<typename TMatrixValueType>
+  //~ Self Rotate( const Matrix<TMatrixValueType, 3u, 3u> & m);
+//~ 
+  //~ template<typename TMatrixValueType>
+  //~ Self Rotate( const vnl_matrix_fixed<TMatrixValueType, 3u, 3u> & m)
+  //~ {
+    //~ return this->Rotate( static_cast<Matrix<TMatrixValueType, 3u, 3u> >(m) );
+  //~ }
+//~ 
+  //~ template<typename TMatrixValueType>
+  //~ Self Rotate( const vnl_matrix<TMatrixValueType> & m)
+  //~ {
+    //~ return this->Rotate( static_cast<Matrix<TMatrixValueType> >(m) );
+  //~ }
 
-  template<typename TMatrixValueType>
-  Self Rotate( const vnl_matrix_fixed<TMatrixValueType, 3u, 3u> & m)
+  static const LmVector GetLM(unsigned int);
+
+  const RealValueType Evaluate(RealValueType theta, RealValueType phi) const;
+  const RealValueType Evaluate(GradientDirectionType Gradient) const;
+
+  /// Evaluate the jth Basis Function
+  static const double Y( int j, double theta, double phi );
+  static double Y( int l, int m, double theta, double phi )
   {
-    return this->Rotate( static_cast<Matrix<TMatrixValueType, 3u, 3u> >(m) );
+    return Y(GetJ(l,m),theta,phi);
   }
 
-  template<typename TMatrixValueType>
-  Self Rotate( const vnl_matrix<TMatrixValueType> & m)
-  {
-    return this->Rotate( static_cast<Matrix<TMatrixValueType> >(m) );
-  }
-
-  RealValueType Evaluate(RealValueType theta, RealValueType phi);
-  RealValueType Evaluate(GradientDirectionType Gradient);
+  static const unsigned int GetJ(int,int);
 
 protected:
+
+private:
+  
+  /// Returns the normalization constant for the SH basis function with parameters (l,m).
+  static const double K( int l, int m );
 
 };
 

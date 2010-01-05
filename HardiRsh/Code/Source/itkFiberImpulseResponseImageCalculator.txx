@@ -135,7 +135,7 @@ FiberImpulseResponseImageCalculator<TGradientImagePixelType,TBasisType>
 {
   MatrixType rshSolver;
   
-  unsigned int numberOfOrders = BasisType::NumberOfOrders;
+  unsigned int numberOfOrders = RshPixelType::NumberOfOrders;
 
   vnl_matrix< double >  rshBasis;
   rshBasis.set_size( this->m_NumGradients, numberOfOrders );
@@ -165,7 +165,7 @@ FiberImpulseResponseImageCalculator<TGradientImagePixelType,TBasisType>
 
     for (unsigned int c = 0; c < numberOfOrders; c++)
     {
-      rshBasis[m][c]  = BasisType::Y(2 * c, 0 ,theta,phi);
+      rshBasis[m][c]  = RshPixelType::Y(2 * c, 0 ,theta,phi);
     }
   }
 

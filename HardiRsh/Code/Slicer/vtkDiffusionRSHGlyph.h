@@ -2,7 +2,7 @@
 #ifndef __vtkDiffusionRSHGlyph_h
 #define __vtkDiffusionRSHGlyph_h
 
-#include "itkRealSymSphericalHarmonicBasis.h"
+#include "itkSymRealSphericalHarmonicRep.h"
 
 #include "vtkGlyph3D.h"
 #include "vnl/vnl_matrix.h"
