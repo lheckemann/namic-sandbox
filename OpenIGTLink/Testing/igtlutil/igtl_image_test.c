@@ -15,6 +15,7 @@
 =========================================================================*/
 
 #include <stdio.h>
+#include "igtl_types.h"
 #include "igtl_header.h"
 #include "igtl_image.h"
 
@@ -31,13 +32,20 @@ struct image_message {
   igtl_image_header  iheader;     /* image header */
   igtl_uint8         image[TEST_IMAGE_MESSAGE_SIZE];
 };
-#pragma pack(0)
+#pragma pack()
 
 
 int main( int argc, char * argv [] )
 {
 
   struct image_message message;
+  int r;
+  igtl_uint64 image_size;
+  igtl_float32 spacing[] = {1.0f, 1.0f, 1.0f};
+  igtl_float32 origin[]  = {46.0531f, 19.4709f, 46.0531f};
+  igtl_float32 norm_i[]  = {-0.954892f, 0.196632f, -0.222525f};
+  igtl_float32 norm_j[]  = {-0.196632f, 0.142857f, 0.970014f};
+  igtl_float32 norm_k[]  = {0.222525f, 0.970014f, -0.0977491f};
 
   /* Set data */
   message.iheader.version     = 1;
@@ -57,20 +65,14 @@ int main( int argc, char * argv [] )
   message.iheader.subvol_size[1] = 50;
   message.iheader.subvol_size[2] = 1;
 
-  igtl_float32 spacing[] = {1.0, 1.0, 1.0};
-  igtl_float32 origin[]  = {46.0531, 19.4709, 46.0531};
-  igtl_float32 norm_i[]  = {-0.954892, 0.196632, -0.222525};
-  igtl_float32 norm_j[]  = {-0.196632, 0.142857, 0.970014};
-  igtl_float32 norm_k[]  = {0.222525, 0.970014, -0.0977491};
-
   igtl_image_set_matrix(spacing, origin, norm_i, norm_j, norm_k, &(message.iheader));
 
   /* Copy image data */
   memcpy((void*)message.image, (void*)test_image, TEST_IMAGE_MESSAGE_SIZE);
   
   /* Get image data size -- note that this should be done before byte order swapping. */
-  igtl_uint64 image_size = igtl_image_get_data_size(&(message.iheader));
-
+  image_size = igtl_image_get_data_size(&(message.iheader));
+  
   /* Swap byte order if necessary */
   igtl_image_convert_byte_order(&(message.iheader));
 
@@ -92,7 +94,7 @@ int main( int argc, char * argv [] )
   */
 
   /* Compare the serialized byte array with the gold standard */ 
-  int r = memcmp((const void*)&message, (const void*)test_image_message,
+  r = memcmp((const void*)&message, (const void*)test_image_message,
                  IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size);
 
   if (r == 0)
