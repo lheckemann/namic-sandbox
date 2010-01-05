@@ -6,10 +6,6 @@ INCLUDE_DIRECTORIES(
   ${SBIA_HARDI_SOURCE_DIR}/Testing
   )
 
-ADD_EXECUTABLE(itkRealSymSphericalHarmonicBasisTest itkRealSymSphericalHarmonicBasisTest.cxx ${VNL_TEMPLATE_SOURCES} ${SpecialFunctions_SOURCES} )
-TARGET_LINK_LIBRARIES(itkRealSymSphericalHarmonicBasisTest ITKNumerics ITKCommon)
-ADD_TEST(itkRealSymSphericalHarmonicBasisTest ${CXX_TEST_PATH}/itkRealSymSphericalHarmonicBasisTest )
-
 ADD_EXECUTABLE(itkSymRealSphericalHarmonicRepTest1 itkSymRealSphericalHarmonicRepTest1.cxx ${VNL_TEMPLATE_SOURCES} ${SpecialFunctions_SOURCES} )
 TARGET_LINK_LIBRARIES(itkSymRealSphericalHarmonicRepTest1  ITKCommon )
 ADD_TEST(itkSymRealSphericalHarmonicRepTest1 ${CXX_TEST_PATH}/itkSymRealSphericalHarmonicRepTest1 )

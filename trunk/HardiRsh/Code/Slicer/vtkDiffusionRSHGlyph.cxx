@@ -485,52 +485,57 @@ double vtkDiffusionRSHGlyph::EvaluateBasis(
   {
     case 0:
     {
-      return itk::RealSymSphericalHarmonicBasis<0>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,0>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     case 2:
     {
-      return itk::RealSymSphericalHarmonicBasis<2>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,2>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     case 4:
     {
-      return itk::RealSymSphericalHarmonicBasis<4>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,4>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     case 6:
     {
-      return itk::RealSymSphericalHarmonicBasis<6>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,6>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     case 8:
     {
-      return itk::RealSymSphericalHarmonicBasis<8>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,8>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     case 10:
     {
-      return itk::RealSymSphericalHarmonicBasis<10>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,10>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     case 12:
     {
-      return itk::RealSymSphericalHarmonicBasis<12>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,12>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     case 14:
     {
-      return itk::RealSymSphericalHarmonicBasis<14>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,14>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     case 16:
     {
-      return itk::RealSymSphericalHarmonicBasis<16>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,16>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     case 18:
     {
-      return itk::RealSymSphericalHarmonicBasis<18>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      return itk::SymRealSphericalHarmonicRep<double,18>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
+      break;
+    }
+    case 20:
+    {
+      return itk::SymRealSphericalHarmonicRep<double,20>::Y(c+1,static_cast<double>(theta),static_cast<double>(phi));
       break;
     }
     default:

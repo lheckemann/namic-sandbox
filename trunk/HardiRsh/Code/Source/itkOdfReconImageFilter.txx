@@ -38,7 +38,7 @@ OdfReconImageFilter<  TGradientImagePixelType, TOutputPixelType, TImageDimension
 
   //convert the rshcoeffs to odf coeffs
   for( unsigned int i=0; i<OutputPixelType::Dimension; i++){
-    int l = (OutputPixelType::BasisType::GetLM(i+1))[0];
+    int l = (OutputPixelType::GetLM(i+1))[0];
     coeffs[i] = static_cast<double>( 2.0 * vnl_math::pi * LegendreP( l , 0, 0 ) * coeffs[i] );
   }
 

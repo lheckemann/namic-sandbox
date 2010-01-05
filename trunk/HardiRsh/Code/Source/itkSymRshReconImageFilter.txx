@@ -350,7 +350,7 @@ SymRshReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
   else
   {
     RshBasisMatrixType L2, basis2;
-    typename OutputPixelType::BasisType::LmVector lmVec;
+    typename OutputPixelType::LmVector lmVec;
 
     //Build lambda * L^2 matrix
     L2.set_size( NumberOfCoefficients, NumberOfCoefficients );
@@ -358,7 +358,7 @@ SymRshReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
 
     for(unsigned int j=0;j<NumberOfCoefficients;j++)
     {
-      lmVec = OutputPixelType::BasisType::GetLM(j+1);
+      lmVec = OutputPixelType::GetLM(j+1);
       int l = lmVec(0);
       L2[j][j] = m_BeltramiLambda * (l*l) * ( (l+1) * (l+1) );
     }

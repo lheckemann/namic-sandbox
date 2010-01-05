@@ -69,7 +69,7 @@ FodCsdReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
   /* multiple the rows of m_RshBasis by the correct part of the FIR Resp*/
   for (unsigned int i=0; i<NumberOfCoefficients; ++i)
   {
-    LmVector lm = OutputPixelType::BasisType::GetLM(i+1);
+    LmVector lm = OutputPixelType::GetLM(i+1);
     if (lm[0]/2 < respRsh_size)
     {
       this->m_RshBasis.scale_column(
@@ -89,7 +89,7 @@ FodCsdReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
   /* Apply the inverse filter!*/
   for (unsigned int i=0; i<NumberOfCoefficients; ++i)
   {
-    LmVector lm = OutputPixelType::BasisType::GetLM(i+1);
+    LmVector lm = OutputPixelType::GetLM(i+1);
     this->m_RshBasisPseudoInverse.scale_row(i,m_RecipricalFilter[lm[0]/2]);
   }
     
@@ -136,7 +136,7 @@ FodCsdReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
       }
 
       for (unsigned int c = 0; c < NumberOfCoefficients; c++)
-        this->m_HiResRshBasis[m][c]  = OutputPixelType::BasisType::Y(c+1,theta,phi);
+        this->m_HiResRshBasis[m][c]  = OutputPixelType::Y(c+1,theta,phi);
 
       lastPhi = phi;
     }
