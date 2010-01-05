@@ -255,7 +255,7 @@ FiberImpulseResponseImageCalculator<TGradientImagePixelType,TBasisType>
     int skipVox = 0;
     for (unsigned int i=0;i<6;++i)
     {
-      if ( isnan(D[i]) || isinf(D[i]) )
+      if ( vnl_math_isnan(D[i]) || vnl_math_isinf(D[i]) )
       {
         //I'm not sure why this happens? quite confusing
         ///TODO investigate this

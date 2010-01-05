@@ -209,7 +209,7 @@ SymRshReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
           Sig[i] = static_cast<double>(b[gradientind[i]]) / static_cast<double>(b0);
         }
         
-        if ( isnan(Sig[i]) || isinf(Sig[i]) )
+        if ( vnl_math_isnan(Sig[i]) || vnl_math_isinf(Sig[i]) )
         {
           std::cerr << "gInd    :" << gradientind[i] << std::endl;
           std::cerr << "sig     :" << Sig[i] << std::endl;
@@ -383,7 +383,7 @@ SymRshReconImageFilter<  TGradientImagePixelType, TOutputPixelType, TImageDimens
   vnl_vector< double > res;
   coeffs  = m_RshBasisPseudoInverse * signal;
   
-  if ( isnan(coeffs[1]) )
+  if ( vnl_math_isnan(coeffs[1]) )
     std::cerr << signal << std::endl;
     
   if ( m_CalculateResidualImage )
