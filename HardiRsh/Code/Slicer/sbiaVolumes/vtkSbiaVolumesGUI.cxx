@@ -747,9 +747,6 @@ void vtkSbiaVolumesGUI::UpdateFramesFromMRML()
       //RSH VOLUME NO MEASUREMENT FRAME  
       this->GradientFrame->EnabledOff();
       this->GradientFrame->SetAllowFrameToCollapse(0);
-      vtkMRMLDiffusionRSHVolumeNode *RSHNode = 
-        vtkMRMLDiffusionRSHVolumeNode::SafeDownCast(refNode);
-//      this->DiffusionEditorWidget->UpdateWidget(RSHNode);
       }
     else 
       {
