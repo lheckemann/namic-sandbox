@@ -48,14 +48,18 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules/")
 SET (BUILD_TEST ON CACHE BOOL "Do you want to build tests")
 SET (BUILD_DOC  ON CACHE BOOL "Do you want to build Documentation (Needs Doxygen) ")
 
-SET (BUILD_SLICER OFF CACHE BOOL "Do you want to build Slicer Support")
+SET (BUILD_SLICER ON CACHE BOOL "Do you want to build Slicer Support")
 SET (BUILD_EXECS OFF CACHE BOOL "Do you want to build the exectuables")
 
 SET (SKIP_ITK_BUILD_SETTINGS_FILE OFF CACHE BOOL "Skip including the itk Build settings")
 
-INCLUDE(CTest)
-
-#TODO Munge Build name together to better id stuff.
+#Setup the buildname if it isn't set by hand!
+IF(NOT BUILDNAME)
+  INCLUDE(CTest)
+  SET(BUILDNAME "${BUILDNAME}-HardiRSH-${CMAKE_BUILD_TYPE}" CACHE STRING "Build name for cdash submisions")
+ELSE(NOT BUILDNAME)
+  INCLUDE(CTest)
+ENDIF(NOT BUILDNAME)
 
 IF(BUILD_SLICER)
   #Find Slicer Dependencies and Use Slicer ITK
