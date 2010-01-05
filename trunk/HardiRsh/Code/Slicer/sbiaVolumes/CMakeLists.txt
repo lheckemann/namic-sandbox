@@ -17,6 +17,7 @@ endif(NOT Slicer3_SOURCE_DIR)
 
 # --------------------------------------------------------------------------
 # Include dirs
+# --------------------------------------------------------------------------
 
 #we alse need to include the orig Volumes Module
 #it should have a vtkVolumes.h in it
@@ -31,8 +32,12 @@ FIND_PATH(ALT_SLICER_VOLUMES_INCLUDE_DIR vtkVolumesConfigure.h
   ${Slicer3_DIR}/../../include/Slicer3/Modules/Volumes 
   ${Slicer3_DIR}/Modules/Volumes )
 
-#TODO it would be awesome if Slicer3Config set these module includes correctly
+FIND_LIBRARY( VOLUMES_LIB Volumes 
+  ${Slicer3_DIR}/Modules/
+  ${Slicer3_DIR}/lib/Slicer3/Modules
+  ) 
 
+#TODO it would be awesome if Slicer3Config set these module includes correctly
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -45,7 +50,7 @@ include_directories(
 
 #
 # Configure include file
-#
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/vtkSbiaVolumesConfigure.h.in 
   ${CMAKE_CURRENT_BINARY_DIR}/vtkSbiaVolumesConfigure.h
@@ -104,7 +109,10 @@ add_library(${lib_name}
 
 slicer3_set_modules_output_path(${lib_name})
 
+
 target_link_libraries(${lib_name}
+  SbiaHardiSlicerIntegration
+  ${VOLUMES_LIB}
   ${Slicer3_Libs_LIBRARIES}
   ${Slicer3_Base_LIBRARIES}
   ${KWWidgets_LIBRARIES}
