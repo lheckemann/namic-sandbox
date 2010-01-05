@@ -69,7 +69,7 @@ SymRSHPowerImageFilter<TInputImage,TOutputComponentType>
         RealValueType tmp
           = static_cast<RealValueType>(input.GetLthMthComponent(l,m));
 
-        if ( isnan(tmp) || isinf(tmp) ) ///TODO Something is wrong upstream. Fix it later
+        if ( vnl_math_isnan(tmp) || vnl_math_isinf(tmp) ) ///TODO Something is wrong upstream. Fix it later
           tmp = 0;
 
         sum+= tmp * tmp;
