@@ -1,10 +1,10 @@
 #!/bin/bash
 
 exeFile=./r/imagePCAAnalysisTest2
-listFile=lalist.txt
+listFile=shapeList.txt
 
 iii=0
-while [ $iii -lt 12 ]; do
+while [ $iii -lt 6 ]; do
     echo ${iii}
     ${exeFile} ${listFile} ${iii}
 
