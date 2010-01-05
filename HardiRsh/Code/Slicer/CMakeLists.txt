@@ -53,6 +53,9 @@ add_library(${lib_name}
   ${SbiaHardiSlicerIntegration_TCL_SRCS}
   ${SpecialFunctions_SOURCES}
   )
+
+#set(lib_name SbiaHardiSlicerIntegration)
+
 slicer3_set_modules_output_path(${lib_name})
 
 target_link_libraries(${lib_name}

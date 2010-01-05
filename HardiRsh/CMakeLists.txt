@@ -55,6 +55,8 @@ SET (SKIP_ITK_BUILD_SETTINGS_FILE OFF CACHE BOOL "Skip including the itk Build s
 
 INCLUDE(CTest)
 
+#TODO Munge Build name together to better id stuff.
+
 IF(BUILD_SLICER)
   #Find Slicer Dependencies and Use Slicer ITK
   if(NOT Slicer3_SOURCE_DIR)
@@ -90,6 +92,7 @@ SET( ${PROJECT_NAME}_INCLUDES
 INCLUDE_DIRECTORIES( ${${PROJECT_NAME}_INCLUDES} )
 
 #should be relpaced with a FILE GLOB CALL
+#Todo this should buld a VNLMatrix library and link against it.
 SET(VNL_TEMPLATE_SOURCES
   ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+double.15.15-.cxx
   ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+double.28.28-.cxx
