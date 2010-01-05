@@ -316,7 +316,9 @@ int main( int argc, char * argv[] )
 
     std::vector<ResampleFilterType::Pointer> imageResampleArray(N);
 
-    
+    // Arbirarily taking the fist image as the model grid for resample all other images...
+    ImageType::ConstPointer imageModelPointer = labelReaderArray[0]->GetOutput();
+
     for(int j=0; j<N; j++)
     {
       // Typedef for reader
@@ -411,10 +413,10 @@ int main( int argc, char * argv[] )
       ImageType::Pointer imagePointer = labelReaderArray[j]->GetOutput();
 
       resampleArray[j]->SetInput( imagePointer );
-      resampleArray[j]->SetSize(    imagePointer->GetLargestPossibleRegion().GetSize() );
-      resampleArray[j]->SetOutputOrigin(  imagePointer->GetOrigin() );
-      resampleArray[j]->SetOutputSpacing( imagePointer->GetSpacing() );
-      resampleArray[j]->SetOutputDirection( imagePointer->GetDirection());
+      resampleArray[j]->SetSize(    imageModelPointer->GetLargestPossibleRegion().GetSize() );
+      resampleArray[j]->SetOutputOrigin(  imageModelPointer->GetOrigin() );
+      resampleArray[j]->SetOutputSpacing( imageModelPointer->GetSpacing() );
+      resampleArray[j]->SetOutputDirection( imageModelPointer->GetDirection());
       resampleArray[j]->SetDefaultPixelValue( 0 );
       resampleArray[j]->Update();
 
