@@ -1,6 +1,6 @@
 PROJECT(ProstateNav)
 
-cmake_minimum_required(VERSION 2.4)
+cmake_minimum_required(VERSION 2.6)
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
@@ -14,6 +14,15 @@ if(NOT Slicer3_SOURCE_DIR)
   slicer3_set_default_install_prefix_for_external_projects()
 endif(NOT Slicer3_SOURCE_DIR)
 
+# --------------------------------------------------------------------------
+# Find Slicer3
+
+find_package(Subversion)
+if (Subversion_FOUND)
+  Subversion_WC_INFO(${CMAKE_HOME_DIRECTORY} ProstateNav)
+  MESSAGE("Current ProstateNav revision is ${ProstateNav_WC_REVISION}")
+  set(ProstateNav_REVISION "${ProstateNav_WC_REVISION}")
+endif (Subversion_FOUND)
 
 # --------------------------------------------------------------------------
 # Include dirs
