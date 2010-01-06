@@ -121,7 +121,7 @@ namespace douher
 
   ////////////////////////////////////////////////////////////
   template< typename TData >
-  typename itk::Image< TData, 3 >::Pointer
+  typename CImagePCAAnalysis3D<TData>::TItkImage::Pointer
   CImagePCAAnalysis3D<TData>::getMeanImage()
   {
     if (!m_pcaDone)
@@ -134,8 +134,8 @@ namespace douher
   }
 
   ////////////////////////////////////////////////////////////
-  template< typename TData >
-  typename itk::Image< TData, 3 >::Pointer
+  template< typename TData >  
+  typename CImagePCAAnalysis3D<TData>::TItkImage::Pointer
   CImagePCAAnalysis3D<TData>::getEigenImage( long i)
   {
     if (!m_pcaDone)
