@@ -490,9 +490,6 @@ int RshReconImTest2(int, char*[])
 
   //Attach the grads and signal!
   addGradImage<ReconImageFilterType>(reconFilter);
-
-  //Attach a mask
-  addMask<ReconImageFilterType>(reconFilter);
   
   //Make 3 RSHs to check....
   typedef ReconImageFilterType::OutputPixelType OutputPixelType;
@@ -511,6 +508,10 @@ int RshReconImTest2(int, char*[])
     std::cerr << "Error in GetCalculatedResitualImage()\n";
     return EXIT_FAILURE;  
   }
+
+  //Attach a mask
+  addMask<ReconImageFilterType>(reconFilter);
+
   try
   {
     reconFilter->Update();

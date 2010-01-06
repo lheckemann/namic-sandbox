@@ -25,7 +25,8 @@
 #include "itkVectorImage.h"
 
 #include "itkFiberImpulseResponseImageCalculator.h"
-#include "itkRealSymSphericalHarmonicBasis.h"
+
+#include "itkSymRealSphericalHarmonicRep.h"
 
 #define INDENT "\t"
 #define EXEC_NAME "calcFirResponse"
@@ -128,11 +129,11 @@ int compute(
   typedef TPixelType                        GradientPixelType;
   typedef TPercisionType                    PrecisionType;
 
-  //Define the Basis to use.
-  typedef itk::RealSymSphericalHarmonicBasis<NOrder>
-                                            BasisType;
+  //Define the RSH PixelType to use.
+  typedef itk::SymRealSphericalHarmonicRep<double,NOrder>
+                                            RSHPixelType;
 
-  typedef itk::FiberImpulseResponseImageCalculator<GradientPixelType,BasisType>
+  typedef itk::FiberImpulseResponseImageCalculator<GradientPixelType,RSHPixelType>
                                             CaluculatorType;
 
   typename CaluculatorType::Pointer firFilter = CaluculatorType::New();

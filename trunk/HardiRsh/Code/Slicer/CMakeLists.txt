@@ -93,8 +93,8 @@ if(Slicer3_USE_PYTHON)
 
 endif(Slicer3_USE_PYTHON)
 
-
 subdirs(sbiaVolumes)
+subdirs(CLI)
 
 # --------------------------------------------------------------------------
 # Testing

@@ -11,8 +11,6 @@
 
 //Recon filters
 #include "itkOdfReconImageFilter.h"
-//#include "itkFopdfReconImageFilter.h"
-
 #include "itkSymRealSphericalHarmonicRep.h"
 
 #include "itkImageMaskSpatialObject.h"
