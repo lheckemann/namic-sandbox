@@ -36,6 +36,7 @@ endif (Subversion_FOUND)
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot
+  ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateTemplate
   ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard
   ${CMAKE_CURRENT_SOURCE_DIR}/newmat
@@ -61,6 +62,7 @@ configure_file(
 file(GLOB headers 
   "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/*.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateTemplate/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/Wizard/*.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/newmat/*.h"
@@ -89,6 +91,7 @@ set(ProstateNav_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/vtkIGTLToMRMLBrpRobotCommand.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/vtkMRMLBrpRobotCommandNode.cxx  
   ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateRobot/vtkMRMLTransPerinealProstateRobotNode.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/TransPerinealProstateTemplate/vtkMRMLTransPerinealProstateTemplateNode.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/vtkMRMLTransRectalProstateRobotNode.cxx  
   ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/vtkTransRectalFiducialCalibrationAlgo.cxx  
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStep.cxx

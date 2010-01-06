@@ -11,8 +11,8 @@
   Version:   $Revision: 1.3 $
 
 =========================================================================auto=*/
-#ifndef __vtkMRMLTransPerinealRobotNode_h
-#define __vtkMRMLTransPerinealRobotNode_h
+#ifndef __vtkMRMLTransPerinealProstateTemplateNode_h
+#define __vtkMRMLTransPerinealProstateTemplateNode_h
 
 #include "vtkOpenIGTLinkIFWin32Header.h"
 #include "vtkMRML.h"
@@ -28,17 +28,15 @@
 #include "vtkProstateNavWin32Header.h" 
 
 #include "vtkMRMLIGTLConnectorNode.h"
-#include "vtkMRMLBrpRobotCommandNode.h"
 
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLModelNode.h"
 
 class vtkTransform;
 class vtkIGTLToMRMLCoordinate;
-class vtkIGTLToMRMLBrpRobotCommand;
 class vtkSlicerApplication;
 
-class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkMRMLRobotNode
+class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public vtkMRMLRobotNode
 {
 
  public:
@@ -47,12 +45,12 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   // Standard methods for MRML nodes
   //----------------------------------------------------------------
 
-  static vtkMRMLTransPerinealProstateRobotNode *New();
-  vtkTypeMacro(vtkMRMLTransPerinealProstateRobotNode,vtkMRMLRobotNode);  
+  static vtkMRMLTransPerinealProstateTemplateNode *New();
+  vtkTypeMacro(vtkMRMLTransPerinealProstateTemplateNode,vtkMRMLRobotNode);  
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual vtkMRMLTransPerinealProstateRobotNode* CreateNodeInstance();
+  virtual vtkMRMLTransPerinealProstateTemplateNode* CreateNodeInstance();
 
   // Description:
   // Set node attributes
@@ -83,7 +81,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   // Description:
   // Get node XML tag name (like Volume, Model)
   virtual const char* GetNodeTagName()
-    {return "TransPerinealProstateRobot";};
+    {return "TransPerinealProstateTemplate";};
 
   // method to propagate events generated in mrml
   virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
@@ -95,14 +93,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   // Description:
   // Initialize the robot
   virtual int Init(vtkSlicerApplication* app);
-
-  vtkGetStringMacro(RobotCommandNodeID);
-  vtkMRMLBrpRobotCommandNode* GetRobotCommandNode();
-  void SetAndObserveRobotCommandNodeID(const char *nodeID);
-  
-  vtkGetStringMacro(RobotConnectorNodeID);
-  vtkMRMLIGTLConnectorNode* GetRobotConnectorNode();
-  void SetAndObserveRobotConnectorNodeID(const char *nodeID);
 
   vtkGetStringMacro(ScannerConnectorNodeID);
   vtkMRMLIGTLConnectorNode* GetScannerConnectorNode();
@@ -120,8 +110,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   vtkMRMLLinearTransformNode* GetZFrameTransformNode();
   void SetAndObserveZFrameTransformNodeID(const char *nodeID);
   
-  virtual int  MoveTo(const char *transformNodeId);
-
   virtual void SwitchStep(const char *stepName);
 
   virtual int OnTimer();
@@ -138,21 +126,20 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode);
 
   virtual const char* GetWorkflowStepsString()
-    {return "SetUp ZFrameCalibration PointTargeting PointVerification TransperinealProstateRobotManualControl"; };
+    {return "SetUp ZFrameCalibration PointTargeting PointVerification TransperinealProstateTemplateManualControl"; };
 
  protected:
 
-  vtkMRMLTransPerinealProstateRobotNode();
-  ~vtkMRMLTransPerinealProstateRobotNode();
-  vtkMRMLTransPerinealProstateRobotNode(const vtkMRMLTransPerinealProstateRobotNode&);
-  void operator=(const vtkMRMLTransPerinealProstateRobotNode&);
+  vtkMRMLTransPerinealProstateTemplateNode();
+  ~vtkMRMLTransPerinealProstateTemplateNode();
+  vtkMRMLTransPerinealProstateTemplateNode(const vtkMRMLTransPerinealProstateTemplateNode&);
+  void operator=(const vtkMRMLTransPerinealProstateTemplateNode&);
 
   ///////////
 
   int  SendZFrame();
 
   vtkGetMacro ( Connection,              bool );
-  vtkGetMacro ( RobotWorkPhase,           int );
   vtkGetMacro ( ScannerWorkPhase,         int );
 
   const char* AddWorkspaceModel(const char* nodeName);
@@ -165,19 +152,10 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateRobotNode : public vtkM
   // if flag == 1, the connector has connected to the target
   // if flag == 2, the connector has disconnected from the target
   int ScannerConnectedFlag;
-  int RobotConnectedFlag;
 
 private:
 
   // Node references
-
-  vtkSetReferenceStringMacro(RobotCommandNodeID);
-  char *RobotCommandNodeID;
-  vtkMRMLBrpRobotCommandNode* RobotCommandNode;
-
-  vtkSetReferenceStringMacro(RobotConnectorNodeID);
-  char *RobotConnectorNodeID;
-  vtkMRMLIGTLConnectorNode* RobotConnectorNode;
 
   vtkSetReferenceStringMacro(ScannerConnectorNodeID);
   char *ScannerConnectorNodeID;
@@ -198,10 +176,8 @@ private:
   // Other member variables
 
   vtkIGTLToMRMLCoordinate* CoordinateConverter;
-  vtkIGTLToMRMLBrpRobotCommand* CommandConverter;
 
   bool  Connection;  
-  int   RobotWorkPhase;
   int   ScannerWorkPhase;
   
 };
