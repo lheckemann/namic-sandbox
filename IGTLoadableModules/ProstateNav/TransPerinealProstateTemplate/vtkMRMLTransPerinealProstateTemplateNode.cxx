@@ -6,7 +6,7 @@ See Doc/copyright/copyright.txt
 or http://www.slicer.org/copyright/copyright.txt for details.
 
 Program:   3D Slicer
-Module:    $RCSfile: vtkMRMLTransPerinealProstateRobotNode.cxx,v $
+Module:    $RCSfile: vtkMRMLTransPerinealProstateTemplateNode.cxx,v $
 Date:      $Date: 2006/03/17 15:10:10 $
 Version:   $Revision: 1.2 $
 
@@ -14,16 +14,14 @@ Version:   $Revision: 1.2 $
 
 #include "vtkObjectFactory.h"
 
-#include "vtkMRMLTransPerinealProstateRobotNode.h"
+#include "vtkMRMLTransPerinealProstateTemplateNode.h"
 #include "vtkMRMLScene.h"
 
 #include "vtkOpenIGTLinkIFGUI.h"
 #include "vtkOpenIGTLinkIFLogic.h"
 #include "vtkIGTLToMRMLCoordinate.h"
-#include "vtkIGTLToMRMLBrpRobotCommand.h"
 
 #include "vtkMRMLIGTLConnectorNode.h"
-#include "vtkMRMLBrpRobotCommandNode.h"
 
 #include "vtkZFrameRobotToImageRegistration.h"
 
@@ -33,51 +31,41 @@ Version:   $Revision: 1.2 $
 
 //-------------------------------------
 
-static const int STATUS_ROBOT=0;
 static const int STATUS_SCANNER=1;
-
-static const char STATUS_ROBOT_OFF[]="Robot: OFF";
-static const char STATUS_ROBOT_ON[]="Robot: ON";
 
 static const char STATUS_SCANNER_OFF[]="Scanner: OFF";
 static const char STATUS_SCANNER_ON[]="Scanner: ON";
 
 //------------------------------------------------------------------------------
-vtkMRMLTransPerinealProstateRobotNode* vtkMRMLTransPerinealProstateRobotNode::New()
+vtkMRMLTransPerinealProstateTemplateNode* vtkMRMLTransPerinealProstateTemplateNode::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLTransPerinealProstateRobotNode");
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLTransPerinealProstateTemplateNode");
   if(ret)
     {
-      return (vtkMRMLTransPerinealProstateRobotNode*)ret;
+      return (vtkMRMLTransPerinealProstateTemplateNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLTransPerinealProstateRobotNode;
+  return new vtkMRMLTransPerinealProstateTemplateNode;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLTransPerinealProstateRobotNode* vtkMRMLTransPerinealProstateRobotNode::CreateNodeInstance()
+vtkMRMLTransPerinealProstateTemplateNode* vtkMRMLTransPerinealProstateTemplateNode::CreateNodeInstance()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLTransPerinealProstateRobotNode");
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkMRMLTransPerinealProstateTemplateNode");
   if(ret)
     {
-      return (vtkMRMLTransPerinealProstateRobotNode*)ret;
+      return (vtkMRMLTransPerinealProstateTemplateNode*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkMRMLTransPerinealProstateRobotNode;
+  return new vtkMRMLTransPerinealProstateTemplateNode;
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLTransPerinealProstateRobotNode::vtkMRMLTransPerinealProstateRobotNode()
+vtkMRMLTransPerinealProstateTemplateNode::vtkMRMLTransPerinealProstateTemplateNode()
 {
   // Node references
-
-  this->RobotCommandNodeID=NULL;
-  this->RobotCommandNode=NULL;
-
-  this->RobotConnectorNodeID=NULL;
-  this->RobotConnectorNode=NULL;
 
   this->ScannerConnectorNodeID=NULL;
   this->ScannerConnectorNode=NULL;
@@ -93,37 +81,18 @@ vtkMRMLTransPerinealProstateRobotNode::vtkMRMLTransPerinealProstateRobotNode()
 
   // Other
 
-  this->CoordinateConverter = vtkIGTLToMRMLCoordinate::New();
-  this->CommandConverter = vtkIGTLToMRMLBrpRobotCommand::New();
-
-  this->RobotWorkPhase       = -1;
   this->ScannerWorkPhase     = -1;
-
   this->ScannerConnectedFlag = 0;
-  this->RobotConnectedFlag   = 0;
-
 
   StatusDescriptor s;
-  s.indicator=StatusOff;
-  s.text=STATUS_ROBOT_OFF;  
-  this->StatusDescriptors.push_back(s); // STATUS_ROBOT=0
-
   s.indicator=StatusOff;
   s.text=STATUS_SCANNER_OFF;
   this->StatusDescriptors.push_back(s); // STATUS_SCANNER=1
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLTransPerinealProstateRobotNode::~vtkMRMLTransPerinealProstateRobotNode()
+vtkMRMLTransPerinealProstateTemplateNode::~vtkMRMLTransPerinealProstateTemplateNode()
 {
-  if (this->RobotCommandNodeID) 
-  {
-    SetAndObserveRobotCommandNodeID(NULL);
-  }
-  if (this->RobotConnectorNodeID) 
-  {
-    SetAndObserveRobotConnectorNodeID(NULL);
-  }
   if (this->ScannerConnectorNodeID) 
   {
     SetAndObserveScannerConnectorNodeID(NULL);
@@ -137,36 +106,17 @@ vtkMRMLTransPerinealProstateRobotNode::~vtkMRMLTransPerinealProstateRobotNode()
     SetAndObserveZFrameTransformNodeID(NULL);
   }
 
-
-  if (this->CoordinateConverter)
-  { 
-    this->CoordinateConverter->Delete();
-    this->CoordinateConverter = NULL;
-  }
-  if (this->CommandConverter)
-  {
-    this->CommandConverter->Delete();
-    this->CommandConverter = NULL;
-  }
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::WriteXML(ostream& of, int nIndent)
+void vtkMRMLTransPerinealProstateTemplateNode::WriteXML(ostream& of, int nIndent)
 {
   // Start by having the superclass write its information
   Superclass::WriteXML(of, nIndent);
 
   vtkIndent indent(nIndent);
 
-  if (this->RobotCommandNodeID != NULL) 
-    {
-    of << indent << " RobotCommandNodeRef=\"" << this->RobotCommandNodeID << "\"";
-    }
-  if (this->RobotConnectorNodeID != NULL) 
-    {
-    of << indent << " RobotConnectorNodeRef=\"" << this->RobotConnectorNodeID << "\"";
-    }
   if (this->ScannerConnectorNodeID != NULL) 
     {
     of << indent << " ScannerConnectorNodeRef=\"" << this->ScannerConnectorNodeID << "\"";
@@ -202,7 +152,7 @@ void vtkMRMLTransPerinealProstateRobotNode::WriteXML(ostream& of, int nIndent)
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::ReadXMLAttributes(const char** atts)
+void vtkMRMLTransPerinealProstateTemplateNode::ReadXMLAttributes(const char** atts)
 {
   Superclass::ReadXMLAttributes(atts);
 
@@ -215,14 +165,6 @@ void vtkMRMLTransPerinealProstateRobotNode::ReadXMLAttributes(const char** atts)
     attName  = *(atts++);
     attValue = *(atts++);
 
-    if (!strcmp(attName, "RobotCommandNodeRef")) 
-      {
-      this->SetAndObserveRobotCommandNodeID(attValue);
-      }
-    if (!strcmp(attName, "RobotConnectorNodeRef")) 
-      {
-      this->SetAndObserveRobotConnectorNodeID(attValue);
-      }
     if (!strcmp(attName, "ScannerConnectorNodeRef")) 
       {
       this->SetAndObserveScannerConnectorNodeID(attValue);
@@ -295,16 +237,14 @@ void vtkMRMLTransPerinealProstateRobotNode::ReadXMLAttributes(const char** atts)
 
 //----------------------------------------------------------------------------
 // Copy the node's attributes to this object.
-void vtkMRMLTransPerinealProstateRobotNode::Copy(vtkMRMLNode *anode)
+void vtkMRMLTransPerinealProstateTemplateNode::Copy(vtkMRMLNode *anode)
 {  
   int disabledModify = this->StartModify();
 
   Superclass::Copy(anode);
-  vtkMRMLTransPerinealProstateRobotNode *node = vtkMRMLTransPerinealProstateRobotNode::SafeDownCast(anode);
+  vtkMRMLTransPerinealProstateTemplateNode *node = vtkMRMLTransPerinealProstateTemplateNode::SafeDownCast(anode);
   if (node!=NULL)
   {
-    this->SetRobotCommandNodeID(node->RobotCommandNodeID);
-    this->SetRobotConnectorNodeID(node->RobotConnectorNodeID);
     this->SetScannerConnectorNodeID(node->ScannerConnectorNodeID);
     this->SetZFrameModelNodeID(node->ZFrameModelNodeID);
     this->SetZFrameTransformNodeID(node->ZFrameTransformNodeID);
@@ -324,18 +264,10 @@ void vtkMRMLTransPerinealProstateRobotNode::Copy(vtkMRMLNode *anode)
 }
 
 //-----------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::UpdateReferences()
+void vtkMRMLTransPerinealProstateTemplateNode::UpdateReferences()
 {
   Superclass::UpdateReferences();
 
-  if (this->RobotCommandNodeID != NULL && this->Scene->GetNodeByID(this->RobotCommandNodeID) == NULL)
-    {
-    this->SetAndObserveRobotCommandNodeID(NULL);
-    }
-  if (this->RobotConnectorNodeID != NULL && this->Scene->GetNodeByID(this->RobotConnectorNodeID) == NULL)
-    {
-    this->SetAndObserveRobotConnectorNodeID(NULL);
-    }
   if (this->ScannerConnectorNodeID != NULL && this->Scene->GetNodeByID(this->ScannerConnectorNodeID) == NULL)
     {
     this->SetAndObserveScannerConnectorNodeID(NULL);
@@ -351,17 +283,9 @@ void vtkMRMLTransPerinealProstateRobotNode::UpdateReferences()
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::UpdateReferenceID(const char *oldID, const char *newID)
+void vtkMRMLTransPerinealProstateTemplateNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
   Superclass::UpdateReferenceID(oldID, newID);
-  if (this->RobotCommandNodeID && !strcmp(oldID, this->RobotCommandNodeID))
-    {
-    this->SetAndObserveRobotCommandNodeID(newID);
-    }
-  if (this->RobotConnectorNodeID && !strcmp(oldID, this->RobotConnectorNodeID))
-    {
-    this->SetAndObserveRobotConnectorNodeID(newID);
-    }
   if (this->ScannerConnectorNodeID && !strcmp(oldID, this->ScannerConnectorNodeID))
     {
     this->SetAndObserveScannerConnectorNodeID(newID);
@@ -378,22 +302,20 @@ void vtkMRMLTransPerinealProstateRobotNode::UpdateReferenceID(const char *oldID,
 }
 
 //-----------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::UpdateScene(vtkMRMLScene *scene)
+void vtkMRMLTransPerinealProstateTemplateNode::UpdateScene(vtkMRMLScene *scene)
 {
    Superclass::UpdateScene(scene);
-   this->SetAndObserveRobotCommandNodeID(this->GetRobotCommandNodeID());
-   this->SetAndObserveRobotConnectorNodeID(this->GetRobotConnectorNodeID());
    this->SetAndObserveScannerConnectorNodeID(this->GetScannerConnectorNodeID());
    this->SetAndObserveZFrameModelNodeID(this->GetZFrameModelNodeID());
    this->SetAndObserveZFrameTransformNodeID(this->GetZFrameTransformNodeID());
 }
 
 //-----------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
+void vtkMRMLTransPerinealProstateTemplateNode::ProcessMRMLEvents( vtkObject *caller, unsigned long event, void *callData )
 {
   Superclass::ProcessMRMLEvents(caller, event, callData);
 
-  if (this->StatusDescriptors.size()<=STATUS_SCANNER || this->StatusDescriptors.size()<=STATUS_ROBOT)
+  if (this->StatusDescriptors.size()<=STATUS_SCANNER)
   {
     vtkErrorMacro("StatusDescriptors does not contain scanner and robot status");
   }
@@ -415,34 +337,18 @@ void vtkMRMLTransPerinealProstateRobotNode::ProcessMRMLEvents( vtkObject *caller
           break;
         }
       }
-    else if (this->GetRobotConnectorNode() && this->GetRobotConnectorNode() == vtkMRMLIGTLConnectorNode::SafeDownCast(caller))
-      {
-      switch (event)
-        {
-        case vtkMRMLIGTLConnectorNode::ConnectedEvent:
-          this->StatusDescriptors[STATUS_ROBOT].indicator=StatusOk;
-          this->StatusDescriptors[STATUS_ROBOT].text=STATUS_ROBOT_ON;
-          this->InvokeEvent(vtkMRMLRobotNode::ChangeStatusEvent);
-          break;
-        case vtkMRMLIGTLConnectorNode::DisconnectedEvent:
-          this->StatusDescriptors[STATUS_ROBOT].indicator=StatusOff;
-          this->StatusDescriptors[STATUS_ROBOT].text=STATUS_ROBOT_OFF;
-          this->InvokeEvent(vtkMRMLRobotNode::ChangeStatusEvent);
-          break;
-        }
-      }
   }
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::PrintSelf(ostream& os, vtkIndent indent)
+void vtkMRMLTransPerinealProstateTemplateNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os,indent);
 }
 
 
-int vtkMRMLTransPerinealProstateRobotNode::Init(vtkSlicerApplication* app)
+int vtkMRMLTransPerinealProstateTemplateNode::Init(vtkSlicerApplication* app)
 { 
   this->Superclass::Init(app);
 
@@ -451,23 +357,8 @@ int vtkMRMLTransPerinealProstateRobotNode::Init(vtkSlicerApplication* app)
     {
     igtlGUI->Enter();    
     //igtlGUI->GetLogic()->RegisterMessageConverter(this->CoordinateConverter);
-    igtlGUI->GetLogic()->RegisterMessageConverter(this->CommandConverter);
+    //igtlGUI->GetLogic()->RegisterMessageConverter(this->CommandConverter);
     }
-
-  std::cerr << "Adding robot command" << std::endl;
-
-  // Set up robot command node.
-  if (GetRobotCommandNode()==NULL)
-  {  
-    vtkSmartPointer<vtkMRMLBrpRobotCommandNode> node = vtkSmartPointer<vtkMRMLBrpRobotCommandNode>::New();
-    node->SetName("BRPRobotCommand");
-    node->SetScene(this->GetScene());
-    this->Scene->SaveStateForUndo();
-    this->Scene->AddNode(node);
-    node->Modified();
-    this->Scene->Modified();
-    SetAndObserveRobotCommandNodeID(node->GetID());
-  }
 
   // Z-Frame transform node
   if (GetZFrameTransformNode()==NULL)
@@ -521,46 +412,18 @@ int vtkMRMLTransPerinealProstateRobotNode::Init(vtkSlicerApplication* app)
   return 1;
 }
 
-int vtkMRMLTransPerinealProstateRobotNode::OnTimer()
+
+int vtkMRMLTransPerinealProstateTemplateNode::OnTimer()
 {
-    if (this->GetRobotCommandNode())
-      {
-      //cnode->PushOutgoingCommand("GET_COORDINATE");
-      this->GetRobotCommandNode()->PushOutgoingCommand("GET_COORDINA");
-      this->GetRobotCommandNode()->InvokeEvent(vtkCommand::ModifiedEvent);
-      }
-//    std::cerr << "void vtkProstateNavLogic::TimerHandler() is called" << std::endl;
     return 1;
 }
 
-//---------------------------------------------------------------------------
-int  vtkMRMLTransPerinealProstateRobotNode::MoveTo(const char *transformNodeId)
-{
-  if (this->GetRobotCommandNode()==NULL)
-    {
-    return 0;
-    }
-
-  this->GetRobotCommandNode()->SetTargetTransformNodeID(transformNodeId);
-  this->GetRobotCommandNode()->PushOutgoingCommand("MOVE_TO");
-  this->GetRobotCommandNode()->InvokeEvent(vtkCommand::ModifiedEvent);
-  
-  return 1;
-}
 
 //---------------------------------------------------------------------------
-int vtkMRMLTransPerinealProstateRobotNode::SendZFrame()
+int vtkMRMLTransPerinealProstateTemplateNode::SendZFrame()
 {
-  if (this->GetRobotCommandNode()==NULL)
-    {
-    return 0;
-    }
 
   std::cerr << "int vtkProstateNavLogic::SendZFrame(): " << this->GetZFrameTransformNodeID() << std::endl;
-
-  this->GetRobotCommandNode()->SetZFrameTransformNodeID(this->GetZFrameTransformNodeID());
-  this->GetRobotCommandNode()->PushOutgoingCommand("SET_Z_FRAME");
-  this->GetRobotCommandNode()->InvokeEvent(vtkCommand::ModifiedEvent);
 
   return 1;
   
@@ -568,7 +431,7 @@ int vtkMRMLTransPerinealProstateRobotNode::SendZFrame()
 
 
 //----------------------------------------------------------------------------
-const char* vtkMRMLTransPerinealProstateRobotNode::AddWorkspaceModel(const char* nodeName)
+const char* vtkMRMLTransPerinealProstateTemplateNode::AddWorkspaceModel(const char* nodeName)
 {
   vtkMRMLModelNode           *workspaceModel;
   vtkMRMLModelDisplayNode    *workspaceDisp;
@@ -646,7 +509,7 @@ const char* vtkMRMLTransPerinealProstateRobotNode::AddWorkspaceModel(const char*
 
 
 //----------------------------------------------------------------------------
-const char* vtkMRMLTransPerinealProstateRobotNode::AddZFrameModel(const char* nodeName)
+const char* vtkMRMLTransPerinealProstateTemplateNode::AddZFrameModel(const char* nodeName)
 {
   vtkMRMLModelNode           *zframeModel;
   vtkMRMLModelDisplayNode    *zframeDisp;
@@ -840,7 +703,7 @@ const char* vtkMRMLTransPerinealProstateRobotNode::AddZFrameModel(const char* no
 }
 
 //----------------------------------------------------------------------------
-int vtkMRMLTransPerinealProstateRobotNode::PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode)
+int vtkMRMLTransPerinealProstateTemplateNode::PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode)
 {
   vtkZFrameRobotToImageRegistration* registration = vtkZFrameRobotToImageRegistration::New();
   registration->SetFiducialVolume(volumeNode);
@@ -851,106 +714,19 @@ int vtkMRMLTransPerinealProstateRobotNode::PerformRegistration(vtkMRMLScalarVolu
     registration->SetRobotToImageTransform(transformNode);
     registration->DoRegistration();
     //this->GetLogic()->SendZFrame();
-
-    std::cerr << "Sending Z-frame Data" << std::endl;
-    if (this->GetRobotCommandNode()==NULL)
-    {
-      return 0;
-    }
-    this->GetRobotCommandNode()->SetZFrameTransformNodeID(transformNode->GetID());
-    this->GetRobotCommandNode()->PushOutgoingCommand("SET_Z_FRAME");
-    this->GetRobotCommandNode()->InvokeEvent(vtkCommand::ModifiedEvent);
   }
 
   return 1;
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::SwitchStep(const char *stepName)
+void vtkMRMLTransPerinealProstateTemplateNode::SwitchStep(const char *stepName)
 {
-  if (this->GetRobotCommandNode())
-    {
-    this->GetRobotCommandNode()->SwitchStep(stepName);
-    }
 }
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveRobotCommandNodeID(const char *nodeId)
-{
-if (nodeId==this->GetRobotCommandNodeID())
-  {
-    // no change
-    return;
-  }
-  if (this->GetRobotCommandNodeID()!=NULL && nodeId!=NULL && strcmp(nodeId, this->GetRobotCommandNodeID())==0)
-  {
-    // no change
-    return;
-  }
-  vtkSetAndObserveMRMLObjectMacro(this->RobotCommandNode, NULL);
-  this->SetRobotCommandNodeID(nodeId);
-  vtkMRMLBrpRobotCommandNode *tnode = this->GetRobotCommandNode();
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  events->InsertNextValue(vtkCommand::ModifiedEvent);
-  vtkSetAndObserveMRMLObjectEventsMacro(this->RobotCommandNode, tnode, events);
-  this->Modified();
-}
-
-//----------------------------------------------------------------------------
-vtkMRMLBrpRobotCommandNode* vtkMRMLTransPerinealProstateRobotNode::GetRobotCommandNode()
-{
-  if (this->GetScene() && this->RobotCommandNodeID != NULL )
-    {    
-    return vtkMRMLBrpRobotCommandNode::SafeDownCast(this->GetScene()->GetNodeByID(this->RobotCommandNodeID));
-    }
-  return NULL;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveRobotConnectorNodeID(const char *nodeId)
-{
-  if (nodeId==this->GetRobotConnectorNodeID())
-  {
-    // no change
-    return;
-  }
-  if (this->GetRobotConnectorNodeID()!=NULL && nodeId!=NULL && strcmp(nodeId, this->GetRobotConnectorNodeID())==0)
-  {
-    // no change
-    return;
-  }
-
-  vtkSetAndObserveMRMLObjectMacro(this->RobotConnectorNode, NULL);
-  this->SetRobotConnectorNodeID(nodeId);
-  vtkMRMLIGTLConnectorNode *tnode = this->GetRobotConnectorNode();
-  vtkSmartPointer<vtkIntArray> events = vtkSmartPointer<vtkIntArray>::New();
-  events->InsertNextValue(vtkMRMLIGTLConnectorNode::ConnectedEvent);
-  events->InsertNextValue(vtkMRMLIGTLConnectorNode::DisconnectedEvent);
-  vtkSetAndObserveMRMLObjectEventsMacro(this->RobotConnectorNode, tnode, events);
-
-  if ( this->GetRobotConnectorNode() && this->GetRobotCommandNode() )
-  {
-    this->GetRobotConnectorNode()->RegisterOutgoingMRMLNode( this->GetRobotCommandNode() );
-    this->GetRobotConnectorNode()->RegisterIncomingMRMLNode( this->GetRobotCommandNode() );    
-  }
-
-  this->Modified();
-}
-
-
-//----------------------------------------------------------------------------
-vtkMRMLIGTLConnectorNode* vtkMRMLTransPerinealProstateRobotNode::GetRobotConnectorNode()
-{
-  if (this->GetScene() && this->GetRobotConnectorNodeID()!=NULL )
-    {    
-    return vtkMRMLIGTLConnectorNode::SafeDownCast(this->GetScene()->GetNodeByID(this->GetRobotConnectorNodeID()));
-    }
-  return NULL;
-}
-
-//----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveScannerConnectorNodeID(const char *nodeId)
+void vtkMRMLTransPerinealProstateTemplateNode::SetAndObserveScannerConnectorNodeID(const char *nodeId)
 {
   if (nodeId==this->GetScannerConnectorNodeID())
   {
@@ -973,7 +749,7 @@ void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveScannerConnectorNodeID(
 
 
 //----------------------------------------------------------------------------
-vtkMRMLIGTLConnectorNode* vtkMRMLTransPerinealProstateRobotNode::GetScannerConnectorNode()
+vtkMRMLIGTLConnectorNode* vtkMRMLTransPerinealProstateTemplateNode::GetScannerConnectorNode()
 {
   if (this->GetScene() && this->ScannerConnectorNodeID != NULL )
     {    
@@ -983,7 +759,7 @@ vtkMRMLIGTLConnectorNode* vtkMRMLTransPerinealProstateRobotNode::GetScannerConne
 }
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveZFrameModelNodeID(const char *nodeId)
+void vtkMRMLTransPerinealProstateTemplateNode::SetAndObserveZFrameModelNodeID(const char *nodeId)
 {
   vtkSetAndObserveMRMLObjectMacro(this->ZFrameModelNode, NULL);
   this->SetZFrameModelNodeID(nodeId);
@@ -994,7 +770,7 @@ void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveZFrameModelNodeID(const
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkMRMLTransPerinealProstateRobotNode::GetZFrameModelNode()
+vtkMRMLModelNode* vtkMRMLTransPerinealProstateTemplateNode::GetZFrameModelNode()
 {
   if (this->GetScene() && this->ZFrameModelNodeID != NULL )
     {    
@@ -1005,7 +781,7 @@ vtkMRMLModelNode* vtkMRMLTransPerinealProstateRobotNode::GetZFrameModelNode()
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveWorkspaceModelNodeID(const char *nodeId)
+void vtkMRMLTransPerinealProstateTemplateNode::SetAndObserveWorkspaceModelNodeID(const char *nodeId)
 {
   vtkSetAndObserveMRMLObjectMacro(this->WorkspaceModelNode, NULL);
   this->SetWorkspaceModelNodeID(nodeId);
@@ -1016,7 +792,7 @@ void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveWorkspaceModelNodeID(co
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLModelNode* vtkMRMLTransPerinealProstateRobotNode::GetWorkspaceModelNode()
+vtkMRMLModelNode* vtkMRMLTransPerinealProstateTemplateNode::GetWorkspaceModelNode()
 {
   if (this->GetScene() && this->WorkspaceModelNodeID != NULL )
     {    
@@ -1027,7 +803,7 @@ vtkMRMLModelNode* vtkMRMLTransPerinealProstateRobotNode::GetWorkspaceModelNode()
 
 
 //----------------------------------------------------------------------------
-void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveZFrameTransformNodeID(const char *nodeId)
+void vtkMRMLTransPerinealProstateTemplateNode::SetAndObserveZFrameTransformNodeID(const char *nodeId)
 {
   vtkSetAndObserveMRMLObjectMacro(this->ZFrameTransformNode, NULL);
   this->SetZFrameTransformNodeID(nodeId);
@@ -1039,7 +815,7 @@ void vtkMRMLTransPerinealProstateRobotNode::SetAndObserveZFrameTransformNodeID(c
 
 
 //----------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateRobotNode::GetZFrameTransformNode()
+vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateTemplateNode::GetZFrameTransformNode()
 {
   if (this->GetScene() && this->ZFrameTransformNodeID != NULL )
     {    
@@ -1049,7 +825,7 @@ vtkMRMLLinearTransformNode* vtkMRMLTransPerinealProstateRobotNode::GetZFrameTran
 }
 
 //----------------------------------------------------------------------------
-bool vtkMRMLTransPerinealProstateRobotNode::FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc)
+bool vtkMRMLTransPerinealProstateTemplateNode::FindTargetingParams(vtkProstateNavTargetDescriptor *targetDesc)
 {
   // this is used for coverage area computation (IsOutsideReach means that the target is outside the robot's coverage area)
 
@@ -1065,7 +841,7 @@ bool vtkMRMLTransPerinealProstateRobotNode::FindTargetingParams(vtkProstateNavTa
   return true;
 }
 
-std::string vtkMRMLTransPerinealProstateRobotNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc)
+std::string vtkMRMLTransPerinealProstateTemplateNode::GetTargetInfoText(vtkProstateNavTargetDescriptor *targetDesc)
 {
   // :TODO: construct a string that contains useful information for the current target (reachable, etc.)
   return "";
