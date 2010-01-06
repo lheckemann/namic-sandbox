@@ -63,19 +63,19 @@ unsigned int colorPixels[MAX_SEED_FILES][3] = {
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 5 || (argc < 4+atoi(argv[4])))
+  if( argc < 3 ) //|| (argc < 4+atoi(argv[4])))
   {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputImage1 inputImage2 outputLabelMap";
-    std::cerr << " NumberOfSeedPoints " ;
+    std::cerr << " inputImage1 inputImage2 z_slice_number";
+ /*   std::cerr << " NumberOfSeedPoints " ;
     std::cerr << " SeedsFile1";
     std::cerr << " SeedsFile2";
     std::cerr << " SeedsFile3";
     std::cerr << " SeedsFile4";
     std::cerr << " ... ";
     std::cerr << std::endl;
-    return EXIT_FAILURE;
+*/    return EXIT_FAILURE;
   }
 
 
@@ -107,113 +107,39 @@ int main( int argc, char *argv[] )
   reader1->Update();
   reader2->Update();
  
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[3] );
-  unsigned int totalSeeds = atoi(argv[4]);
-  PointType point;
-  float seedX;
-  float seedY;
-  float seedZ;
-  unsigned int numberOfSeedPoints=0;
-  float xClusterCenter[totalSeeds];
-  float yClusterCenter[totalSeeds];
-  ImageType::IndexType pixelIndex;
   ImageType::Pointer image1 = reader1->GetOutput();
   ImageType::Pointer image2 = reader2->GetOutput();
 
-  /* Get the cluster centers */
-  for(unsigned int i=5; i<5+totalSeeds; i++)
-  {
-    std::ifstream inputSeedsFile;
-
-    std::cout << "Opening seeds file " << argv[i] << std::endl; 
-    inputSeedsFile.open( argv[i] );
-
-   if( inputSeedsFile.fail() )
-   {   
-    std::cerr << "Error reading file " << argv[i] << std::endl;
-    return EXIT_FAILURE;
-   }   
-          
-   float xCluster=0, yCluster=0;
-          
-   inputSeedsFile >> seedX >> seedY >> seedZ;
-
-   numberOfSeedPoints=0;
-//   std::cout << "Seed x = "<< seedX <<" Seed y = "<< seedY << " Seed z = "<< seedZ << std::endl;
-
-   while( ! inputSeedsFile.eof() )
-   {   
-    pixelIndex[0] = seedX;
-    pixelIndex[1] = seedY;
-    pixelIndex[2] = seedZ;
-
-    ImageType::PixelType pixelValue1 = image1->GetPixel( pixelIndex );
-    ImageType::PixelType pixelValue2 = image2->GetPixel( pixelIndex );
-
-    xCluster += pixelValue1;
-    yCluster += pixelValue2;
-
-    std::cout << "Seed " << numberOfSeedPoints << " : " <<  seedX << " " << seedY << " " << seedZ << " = " << pixelValue1 << " " << pixelValue2 << std::endl;
-    numberOfSeedPoints++;
-
-    inputSeedsFile >> seedX >> seedY >> seedZ;
-   }
-
-   inputSeedsFile.close();
-
-   xClusterCenter[i-5] = xCluster/numberOfSeedPoints;
-   yClusterCenter[i-5] = yCluster/numberOfSeedPoints;
-  }
-
-  std::cout << "Cluster Centers are "<< std::endl;
-  for(unsigned int i=0; i<totalSeeds; i++)
-   std::cout << xClusterCenter[i] <<"  "<<yClusterCenter[i] << std::endl;
- 
   unsigned int numberOfPixels=0;   
   RGBImageType::PixelType clusterPixelValues[MAX_SEED_FILES];
-
-  for(unsigned int i=0; i<MAX_SEED_FILES; i++)
-  {
-   clusterPixelValues[i][0] = colorPixels[i][0];
-   clusterPixelValues[i][1] = colorPixels[i][1];
-   clusterPixelValues[i][2] = colorPixels[i][2];
-
-//   printf("Color of %d cluster is r=%d g=%d b=%d \n", i, clusterPixelValues[i][0], clusterPixelValues[i][1], clusterPixelValues[i][2]);
-  }
-
-  /* For RGB Pixels */
-  RGBImageType::Pointer rgbImage = RGBImageType::New();
-  rgbImage->SetRegions( image1->GetRequestedRegion() );
-  rgbImage->CopyInformation( image1 );
-  rgbImage->Allocate();
-  
 
   /* Iterate through the images */
   IteratorType it1( image1, image1->GetRequestedRegion());
   IteratorType it2( image2, image2->GetRequestedRegion());
-  
-  RGBIteratorType it3( rgbImage, rgbImage->GetRequestedRegion());
-
+  int nx=512, ny=512;
+  int z_slice = atoi(argv[3]);
   /* Get the scatter plot */
-  for (it1.GoToBegin(), it2.GoToBegin(), it3.GoToBegin(); !it1.IsAtEnd() && !it2.IsAtEnd() ; ++it1,++it2,++it3)
+//  for (it1.GoToBegin(), it2.GoToBegin(); !it1.IsAtEnd() && !it2.IsAtEnd() ; ++it1,++it2)
+  for (int x1=0; x1<nx ; ++x1)
   {
    /* Find x and y */
-   float x, y;
+/*   float x, y;
    x = it1.Get();
    y = it2.Get();
+*/
+   for(int y1=0; y1<ny ; ++y1)
+   {
+    ImageType::IndexType pixelIndex;
+    pixelIndex[0]=x1;
+    pixelIndex[1]=y1;
+    pixelIndex[2]=z_slice;
 
-   ++numberOfPixels;
-   /* Find the cluster center closest to x,y */
+    std::cout << x1 << " " << y1 << " " << image1->GetPixel(pixelIndex) << " " << image2->GetPixel(pixelIndex) << std::endl;
+    ++numberOfPixels;
+   }
 //          std::cout << " X = "<< x << " Y = "<< y << std::endl;
-    unsigned int cIndex = findClosestClusterCenterIndex(x,y, xClusterCenter, yClusterCenter, totalSeeds);
-    
-    it3.Set(clusterPixelValues[cIndex]);
   }
   
-  rgbImage->Update();
-  writer->SetInput( rgbImage );
-  writer->Update();
   std::cout << " Number of pixels = "<< numberOfPixels << std::endl;
   return EXIT_SUCCESS;
 }

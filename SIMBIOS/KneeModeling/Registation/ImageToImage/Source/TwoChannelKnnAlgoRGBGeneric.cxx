@@ -55,7 +55,7 @@ unsigned int colorPixels[MAX_SEED_FILES][3] = {
      192,192,192,
      0,128,128,
      255,255,0,
-     154,205,50,
+     154,205,50
      240,255,255,
      };
 
@@ -63,11 +63,12 @@ unsigned int colorPixels[MAX_SEED_FILES][3] = {
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 5 || (argc < 4+atoi(argv[4])))
+  if( argc < 6 || (argc < 5+atoi(argv[4])+atoi(argv[1])))
   {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputImage1 inputImage2 outputLabelMap";
+    std::cerr << " No of image vectors " ;
+    std::cerr << " inputImage1 inputImage2 ... inputImageN outputLabelMap";
     std::cerr << " NumberOfSeedPoints " ;
     std::cerr << " SeedsFile1";
     std::cerr << " SeedsFile2";
@@ -97,19 +98,22 @@ int main( int argc, char *argv[] )
   typedef itk::ScalarToRGBColormapImageFilter < ImageType, RGBImageType > RGBFilterType;
   
   typedef  itk::ImageFileWriter< RGBImageType > WriterType;
-
-  ReaderType::Pointer reader1 = ReaderType::New();
-  ReaderType::Pointer reader2 = ReaderType::New();
-
-  reader1->SetFileName( argv[1] );
-  reader2->SetFileName( argv[2] );
-
-  reader1->Update();
-  reader2->Update();
  
+  int totalReaderFiles=atoi(argv[1]);
+
+  ReaderType::Pointer reader[totalReaderFiles];
+  ImageType::Pointer image[totalReaderFiles];
+  for(int i=0; i<totalReaderFiles; i++)
+  {
+   reader[i] = ReaderType::New();
+   reader[i]->SetFileName( argv[i+1] );
+   reader[i]->Update();
+     image[i] = reader[i]->GetOutput();
+  }
+  
   WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[3] );
-  unsigned int totalSeeds = atoi(argv[4]);
+  writer->SetFileName( argv[1+totalReaderFiles] );
+  unsigned int totalSeeds = atoi(argv[2+totalReaderFiles]);
   PointType point;
   float seedX;
   float seedY;
@@ -118,11 +122,10 @@ int main( int argc, char *argv[] )
   float xClusterCenter[totalSeeds];
   float yClusterCenter[totalSeeds];
   ImageType::IndexType pixelIndex;
-  ImageType::Pointer image1 = reader1->GetOutput();
-  ImageType::Pointer image2 = reader2->GetOutput();
+
 
   /* Get the cluster centers */
-  for(unsigned int i=5; i<5+totalSeeds; i++)
+  for(unsigned int i=2+totalReaderFiles; i<totalSeeds+2+totalReaderFiles; i++)
   {
     std::ifstream inputSeedsFile;
 
@@ -135,26 +138,24 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
    }   
           
-   float xCluster=0, yCluster=0;
+   float xCluster[totalReaderFiles];
           
    inputSeedsFile >> seedX >> seedY >> seedZ;
-
-   numberOfSeedPoints=0;
-//   std::cout << "Seed x = "<< seedX <<" Seed y = "<< seedY << " Seed z = "<< seedZ << std::endl;
-
    while( ! inputSeedsFile.eof() )
    {   
     pixelIndex[0] = seedX;
     pixelIndex[1] = seedY;
     pixelIndex[2] = seedZ;
 
-    ImageType::PixelType pixelValue1 = image1->GetPixel( pixelIndex );
-    ImageType::PixelType pixelValue2 = image2->GetPixel( pixelIndex );
-
-    xCluster += pixelValue1;
-    yCluster += pixelValue2;
-
-    std::cout << "Seed " << numberOfSeedPoints << " : " <<  seedX << " " << seedY << " " << seedZ << " = " << pixelValue1 << " " << pixelValue2 << std::endl;
+    
+    ImageType::PixelType pixelValue[totalReaderFiles];
+    
+    for(int j=0; j<totalReaderFiles; j++)
+    {
+     pixelValue[j] = image[j]->GetPixel( pixelIndex );
+     xCluster[j] += pixelValue1;
+    }
+//    std::cout << "Seed " << numberOfSeedPoints << " : " <<  seedX << " " << seedY << " " << seedZ << " = " << pixelValue1 << " " << pixelValue2 << std::endl;
     numberOfSeedPoints++;
 
     inputSeedsFile >> seedX >> seedY >> seedZ;
@@ -162,14 +163,13 @@ int main( int argc, char *argv[] )
 
    inputSeedsFile.close();
 
-   xClusterCenter[i-5] = xCluster/numberOfSeedPoints;
-   yClusterCenter[i-5] = yCluster/numberOfSeedPoints;
+   xClusterCenter[i-5] = xCluster[i]/numberOfSeedPoints;
   }
 
   std::cout << "Cluster Centers are "<< std::endl;
   for(unsigned int i=0; i<totalSeeds; i++)
    std::cout << xClusterCenter[i] <<"  "<<yClusterCenter[i] << std::endl;
- 
+  
   unsigned int numberOfPixels=0;   
   RGBImageType::PixelType clusterPixelValues[MAX_SEED_FILES];
 
@@ -179,34 +179,38 @@ int main( int argc, char *argv[] )
    clusterPixelValues[i][1] = colorPixels[i][1];
    clusterPixelValues[i][2] = colorPixels[i][2];
 
-//   printf("Color of %d cluster is r=%d g=%d b=%d \n", i, clusterPixelValues[i][0], clusterPixelValues[i][1], clusterPixelValues[i][2]);
+   printf("Color of %d cluster is r=%d g=%d b=%d \n", i, clusterPixelValues[i][0], clusterPixelValues[i][1], clusterPixelValues[i][2]);
   }
 
   /* For RGB Pixels */
   RGBImageType::Pointer rgbImage = RGBImageType::New();
-  rgbImage->SetRegions( image1->GetRequestedRegion() );
-  rgbImage->CopyInformation( image1 );
+  rgbImage->SetRegions( image[0]->GetRequestedRegion() );
+  rgbImage->CopyInformation( image[0] );
   rgbImage->Allocate();
   
 
   /* Iterate through the images */
-  IteratorType it1( image1, image1->GetRequestedRegion());
-  IteratorType it2( image2, image2->GetRequestedRegion());
+//  IteratorType it1( image1, image->GetRequestedRegion());
+//  IteratorType it2( image2, image2->GetRequestedRegion());
+   IteratorType it[totalReaderFiles];
   
   RGBIteratorType it3( rgbImage, rgbImage->GetRequestedRegion());
+  for(int i=0; i<totalReaderFiles; i++)
+  {
+ it[i].GoToBegin();
+  }
 
   /* Get the scatter plot */
-  for (it1.GoToBegin(), it2.GoToBegin(), it3.GoToBegin(); !it1.IsAtEnd() && !it2.IsAtEnd() ; ++it1,++it2,++it3)
+  for ( it3.GoToBegin(); !it[0].IsAtEnd(); ++it3)
   {
    /* Find x and y */
-   float x, y;
-   x = it1.Get();
-   y = it2.Get();
-
+   float x[totalReaderFiles];
+   for(int i=0; i<totalReaderFiles; i++)
+    x = it[i].Get();
    ++numberOfPixels;
    /* Find the cluster center closest to x,y */
 //          std::cout << " X = "<< x << " Y = "<< y << std::endl;
-    unsigned int cIndex = findClosestClusterCenterIndex(x,y, xClusterCenter, yClusterCenter, totalSeeds);
+    unsigned int cIndex = findClosestClusterCenterIndex(x, totalReaderFiles, xClusterCenter, yClusterCenter, totalSeeds);
     
     it3.Set(clusterPixelValues[cIndex]);
   }
