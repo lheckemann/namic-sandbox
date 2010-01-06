@@ -297,8 +297,6 @@ int OdfReconImTest2(int, char*[])
   //Attach the grads and signal!
   addGradImage<ReconImageFilterType>(reconFilter);
 
-  //Attach a mask
-  addMask<ReconImageFilterType>(reconFilter);
   
   //Make 3 RSHs to check....
   typedef ReconImageFilterType::OutputPixelType OutputPixelType;
@@ -310,6 +308,9 @@ int OdfReconImTest2(int, char*[])
   // Also see if vnl_svd is thread safe now...
   std::cout << std::endl << "This filter is using " <<
     reconFilter->GetNumberOfThreads() << " threads " << std::endl;
+
+  //Attach a mask
+  addMask<ReconImageFilterType>(reconFilter);
 
   try
   {

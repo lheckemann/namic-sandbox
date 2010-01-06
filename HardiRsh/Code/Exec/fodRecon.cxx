@@ -11,8 +11,6 @@
 
 #include "itkFodCsdReconImageFilter.h"
 #include "itkSymRealSphericalHarmonicRep.h"
-//#include "itkFODRealSymSphericalHarmonicBasis.h"
-#include "itkRealSymSphericalHarmonicBasis.h"
 
 #include "itkImageMaskSpatialObject.h"
 #include "itkBinaryThresholdImageFilter.h"
@@ -156,9 +154,9 @@ unsigned int normalize_flag
   typedef TPercisionType                                    PrecisionType;
 
 //  typedef itk::FODRealSymSphericalHarmonicBasis< NOrder>    RSHBasisType;
-  typedef itk::RealSymSphericalHarmonicBasis< NOrder>    RSHBasisType;
+//  typedef itk::RealSymSphericalHarmonicBasis< NOrder>    RSHBasisType;
 
-  typedef itk::SymRealSphericalHarmonicRep< PrecisionType, NOrder, RSHBasisType >
+  typedef itk::SymRealSphericalHarmonicRep< PrecisionType, NOrder >
                                                             RshPixelType;
 
   typedef itk::FodCsdReconImageFilter<

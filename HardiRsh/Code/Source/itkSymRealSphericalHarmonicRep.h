@@ -55,9 +55,6 @@ public:
   itkStaticConstMacro(NumberOfOrders, unsigned int, TMaxOrder / 2 + 1);
 
   typedef vnl_vector_fixed<int,2>                     LmVector;
-  /** Basis Typedef. */
-//  typedef TBasisType                                                BasisType;
-//  typedef typename BasisType::RshRotationMatixType                  RshRotationMatixType;
 
   /** Convenience typedefs. */
   typedef FixedArray<TComponent, itkGetStaticConstMacro(Dimension)> BaseArray;

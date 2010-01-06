@@ -19,7 +19,7 @@ class ITK_EXPORT OdfReconImageFilter :
 {
 public:
 
-  typedef OdfReconImageFilter                  Self;
+  typedef OdfReconImageFilter                     Self;
   typedef SmartPointer<Self>                      Pointer;
   typedef SmartPointer<const Self>                ConstPointer;
 

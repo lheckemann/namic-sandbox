@@ -31,7 +31,7 @@ SymRshReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
   m_GradientDirectionContainer = NULL;
   m_RshBasis.set_identity();
   m_RshBasisPseudoInverse.set_identity();
-  m_ImageMask = 0; //Must be suplied by the user
+  m_ImageMask = NULL; //Must be suplied by the user
   
   m_ResidualImage = 0;
   m_CalculateResidualImage = false;
@@ -79,12 +79,6 @@ SymRshReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
           "There is only one Gradient image. I expect that to be a VectorImage. "
           << "But its of type: " << gradientImageClassName );
     }
-  }
-
-  //Make sure the mask image was specified
-  if ( ! m_ImageMask )
-  {
-   itkExceptionMacro( << "You must specifiy a mask Image!");
   }
 
   /** Setup both fscores Image and residuals Image */
@@ -195,7 +189,7 @@ SymRshReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
     typename GradientImagesType::PointType inputPoint;
     gradientImagePointer->TransformIndexToPhysicalPoint( index, inputPoint );
 
-    if( this->m_ImageMask->IsInside( inputPoint ) &&
+    if( ( ! this->m_ImageMask || this->m_ImageMask->IsInside( inputPoint ) ) &&
         b0 > NumericTraits<GradientPixelType>::Zero )
     {
       for( unsigned int i = 0; i< m_NumberOfGradientDirections; i++ )
@@ -220,13 +214,14 @@ SymRshReconImageFilter< TGradientImagePixelType, TOutputPixelType, TImageDimensi
           itkExceptionMacro( << "Error in Pixel "<< index);
         }
       }
-
+      
       ResidualPixelType residual( m_NumberOfGradientDirections );
       pixValue = this->ComputeCoeffsFromSignal( Sig, residual );
       
       if (m_CalculateResidualImage) res_iter.Set(residual);
 
     }
+    //else {std::cerr << "Skipping Pixels : " << b0 << std::endl;}
     progress.CompletedPixel();
     oit.Set( pixValue );
     
