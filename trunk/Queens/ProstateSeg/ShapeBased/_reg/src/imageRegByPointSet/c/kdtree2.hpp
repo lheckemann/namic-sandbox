@@ -212,8 +212,6 @@ private:
   // return true if the bounding box for this node is within the
   // search range given by the searchvector and maximum ballsize in 'sr'. 
 
-  void check_query_in_bound(searchrecord& sr); // debugging only
-
   // for processing final buckets. 
   void process_terminal_node(searchrecord& sr);
   void process_terminal_node_fixedball(searchrecord& sr);

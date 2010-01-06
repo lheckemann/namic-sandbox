@@ -662,7 +662,7 @@ void kdtree2_node::process_terminal_node(searchrecord& sr) {
     for (int i=0; i<dim; i++) cout << sr.qv[i] << ','; 
     cout << "]\n";
     cout << "nn = " << nn << '\n';
-    check_query_in_bound(sr);
+    //check_query_in_bound(sr);
   }
 
   for (int i=l; i<=u;i++) {
