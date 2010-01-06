@@ -28,17 +28,20 @@
 #include "itkScalarToRGBColormapImageFilter.h"
 #include "itkRGBPixel.h"
 #include <math.h>
+#include <string>
+#define MAX_SEED_FILES 25
 
-#define MAX_SEED_FILES 20
-
-unsigned int findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yClusterCenter, int numberOfClusters);
-
-typedef enum {red, green, blue, brown, chocolate, darkkhaki, darkmagenta, darkorange, darkorchid, darkturquoise, deeppink, dimgray, gold, indigo, 
-       navy, silver, teal, yellow, yellowgreen, azure}colors;
+unsigned int findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yClusterCenter, float *xStandardDev, float *yStandardDev, int numberOfClusters, int numberOfSds);
+typedef enum {red, white, green, ran, pink, grey, blue, brown, chocolate, darkkhaki, darkmagenta, darkorange, darkorchid, darkturquoise, deeppink, dimgray, gold, indigo, 
+       navy, silver, teal, yellow, yellowgreen, azure, black}colors;
 
 unsigned int colorPixels[MAX_SEED_FILES][3] = {
      255,0,0,
+     255,255,255,
      0,255,0,
+     204,128,51,
+     255,192,203,
+     128,128,128,
      0,0,255,
      165,42,42,
      210,105,30,
@@ -57,17 +60,18 @@ unsigned int colorPixels[MAX_SEED_FILES][3] = {
      255,255,0,
      154,205,50,
      240,255,255,
+     0,0,0
      };
 
 
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 5 || (argc < 4+atoi(argv[4])))
+  if( argc < 4 || (argc < 3+atoi(argv[3])))
   {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputImage1 inputImage2 outputLabelMap";
+    std::cerr << " inputImage1 inputImage2";
     std::cerr << " NumberOfSeedPoints " ;
     std::cerr << " SeedsFile1";
     std::cerr << " SeedsFile2";
@@ -107,9 +111,7 @@ int main( int argc, char *argv[] )
   reader1->Update();
   reader2->Update();
  
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[3] );
-  unsigned int totalSeeds = atoi(argv[4]);
+  unsigned int totalSeeds = atoi(argv[3]);
   PointType point;
   float seedX;
   float seedY;
@@ -122,11 +124,65 @@ int main( int argc, char *argv[] )
   ImageType::Pointer image2 = reader2->GetOutput();
 
   /* Get the cluster centers */
-  for(unsigned int i=5; i<5+totalSeeds; i++)
+  for(unsigned int i=4; i<4+totalSeeds; i++)
   {
     std::ifstream inputSeedsFile;
 
-    std::cout << "Opening seeds file " << argv[i] << std::endl; 
+//    std::cout << "Opening seeds file " << argv[i] << std::endl; 
+    inputSeedsFile.open( argv[i] );
+
+   if( inputSeedsFile.fail() )
+   {   
+    std::cerr << "Error reading file " << argv[i] << std::endl;
+    return EXIT_FAILURE;
+   }
+          
+   float xCluster=0, yCluster=0;
+          
+   inputSeedsFile >> seedX >> seedY >> seedZ;
+
+   numberOfSeedPoints=0;
+//   std::cout << "Seed x = "<< seedX <<" Seed y = "<< seedY << " Seed z = "<< seedZ << std::endl;
+   std::cout << "*******************" << std::endl;
+   while( ! inputSeedsFile.eof() )
+   {   
+    pixelIndex[0] = seedX;
+    pixelIndex[1] = seedY;
+    pixelIndex[2] = seedZ;
+
+    ImageType::PixelType pixelValue1 = image1->GetPixel( pixelIndex );
+    ImageType::PixelType pixelValue2 = image2->GetPixel( pixelIndex );
+
+    xCluster += pixelValue1;
+    yCluster += pixelValue2;
+
+    std::cout << seedX << " " << seedY << " " << seedZ << " " << pixelValue1 << " " << pixelValue2 << std::endl;
+//    std::cout << "Seed " << numberOfSeedPoints << " : " <<  seedX << " " << seedY << " " << seedZ << " = " << pixelValue1 << " " << pixelValue2 << std::endl;
+    numberOfSeedPoints++;
+
+    inputSeedsFile >> seedX >> seedY >> seedZ;
+   }
+   std::cout << "******************" << std::endl;
+   inputSeedsFile.close();
+
+   xClusterCenter[i-4] = xCluster/numberOfSeedPoints;
+   yClusterCenter[i-4] = yCluster/numberOfSeedPoints;
+  }
+
+  return EXIT_SUCCESS;
+//  xClusterCenter[3] += 500;
+//  std::cout << "Cluster Centers are "<< std::endl;
+//  for(unsigned int i=0; i<totalSeeds; i++)
+//   std::cout << xClusterCenter[i] <<"  "<<yClusterCenter[i] << std::endl;
+
+  float xStandardDev[totalSeeds], yStandardDev[totalSeeds];
+
+  /* Find the standard deviation */
+  for(unsigned int i=4; i<4+totalSeeds; i++)
+  {
+    std::ifstream inputSeedsFile;
+
+//    std::cout << "Opening seeds file " << argv[i] << std::endl; 
     inputSeedsFile.open( argv[i] );
 
    if( inputSeedsFile.fail() )
@@ -135,7 +191,7 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
    }   
           
-   float xCluster=0, yCluster=0;
+   float xdev=0, ydev=0;
           
    inputSeedsFile >> seedX >> seedY >> seedZ;
 
@@ -151,27 +207,30 @@ int main( int argc, char *argv[] )
     ImageType::PixelType pixelValue1 = image1->GetPixel( pixelIndex );
     ImageType::PixelType pixelValue2 = image2->GetPixel( pixelIndex );
 
-    xCluster += pixelValue1;
-    yCluster += pixelValue2;
+    xdev += (xClusterCenter[i-4]-pixelValue1)*(xClusterCenter[i-4]-pixelValue1);
+    ydev += (yClusterCenter[i-4]-pixelValue2)*(yClusterCenter[i-4]-pixelValue2);
 
-    std::cout << "Seed " << numberOfSeedPoints << " : " <<  seedX << " " << seedY << " " << seedZ << " = " << pixelValue1 << " " << pixelValue2 << std::endl;
+//   std::cout << "Seed " << numberOfSeedPoints << " : " <<  seedX << " " << seedY << " " << seedZ << " = " << pixelValue1 << " " << pixelValue2 << std::endl;
     numberOfSeedPoints++;
 
     inputSeedsFile >> seedX >> seedY >> seedZ;
    }
 
    inputSeedsFile.close();
-
-   xClusterCenter[i-5] = xCluster/numberOfSeedPoints;
-   yClusterCenter[i-5] = yCluster/numberOfSeedPoints;
+//   std::cout << " numberOfSeedPoints = "<< numberOfSeedPoints << " xdev = " << xdev << " ydev = "<< ydev << " xClusterCenter[i]= " << xClusterCenter[i] << " yClusterCenter[i] = " << yClusterCenter[i] << std::endl;
+//   return 0;
+   xStandardDev[i-4] = sqrt (xdev/numberOfSeedPoints);
+   yStandardDev[i-4] = sqrt (ydev/numberOfSeedPoints);
   }
 
-  std::cout << "Cluster Centers are "<< std::endl;
+//  std::cout << "Standard Deviation are "<< std::endl;
   for(unsigned int i=0; i<totalSeeds; i++)
-   std::cout << xClusterCenter[i] <<"  "<<yClusterCenter[i] << std::endl;
- 
+   std::cout << xStandardDev[i] <<"  "<<yStandardDev[i] << std::endl;
+
   unsigned int numberOfPixels=0;   
   RGBImageType::PixelType clusterPixelValues[MAX_SEED_FILES];
+
+  int numberOfSds=2;
 
   for(unsigned int i=0; i<MAX_SEED_FILES; i++)
   {
@@ -205,45 +264,44 @@ int main( int argc, char *argv[] )
 
    ++numberOfPixels;
    /* Find the cluster center closest to x,y */
-//          std::cout << " X = "<< x << " Y = "<< y << std::endl;
-    unsigned int cIndex = findClosestClusterCenterIndex(x,y, xClusterCenter, yClusterCenter, totalSeeds);
+    unsigned int cIndex = findClosestClusterCenterIndex(x,y, xClusterCenter, yClusterCenter, xStandardDev, yStandardDev, totalSeeds, numberOfSds);
     
     it3.Set(clusterPixelValues[cIndex]);
   }
   
   rgbImage->Update();
-  writer->SetInput( rgbImage );
-  writer->Update();
-  std::cout << " Number of pixels = "<< numberOfPixels << std::endl;
+//  std::cout << " Number of pixels = "<< numberOfPixels << std::endl;
   return EXIT_SUCCESS;
 }
 
 unsigned int
-findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yClusterCenter, int numberOfClusters)
+findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yClusterCenter, float *xStandardDev, float *yStandardDev, int numberOfClusters, int numberOfSds)
 {
  int i=0;
- float minDistance=0.0, distance=0.0;
  int minIndex=0;
  int flag=0;
 
  for(i=0; i<numberOfClusters; i++)
  {
-  distance = (x - xClusterCenter[i])*(x - xClusterCenter[i]) + (y - yClusterCenter[i])*(y - yClusterCenter[i]);
-
-  if(flag == 0)
-  {
-   minDistance = distance;
-   minIndex = i;
-   flag=1;
-   continue;
-  }
-
-  if(minDistance > distance)
-  {
-   minDistance = distance;
-   minIndex = i;
-  }
+ if(x>=(xClusterCenter[i]-numberOfSds*xStandardDev[i]) && x<=(xClusterCenter[i]+numberOfSds*xStandardDev[i]) && y>=(yClusterCenter[i]-numberOfSds*yStandardDev[i]) && y<=(yClusterCenter[i]+numberOfSds*yStandardDev[i]) && flag==0)
+ {
+  minIndex=i;
+  flag=1;
  }
 
+ else if(x>=(xClusterCenter[i]-numberOfSds*xStandardDev[i]) && x<=(xClusterCenter[i]+numberOfSds*xStandardDev[i]) && y>=(yClusterCenter[i]-numberOfSds*yStandardDev[i]) && y<=(yClusterCenter[i]+numberOfSds*yStandardDev[i]) && flag==1)
+ {
+//  std::cout << " Going here " << std::endl;
+  return 18;
+//  float distance1 = (x - xClusterCenter[i])*(x - xClusterCenter[i]) + (y - yClusterCenter[i])*(y - yClusterCenter[i]);
+//  float distance2 = (x - xClusterCenter[minIndex])*(x - xClusterCenter[minIndex]) + (y - yClusterCenter[minIndex])*(y - yClusterCenter[minIndex]);
+//  if(distance2 > distance1)
+//   minIndex=i; 
+ }
+ }
+
+ if(flag == 0) /* It doesnt fall into any cluster */
+  return MAX_SEED_FILES-1;
+// std::cout << " minIndex = " << minIndex << std::endl;
  return minIndex;
 }

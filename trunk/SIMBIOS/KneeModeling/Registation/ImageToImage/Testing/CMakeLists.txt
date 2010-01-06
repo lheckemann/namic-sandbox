@@ -245,13 +245,240 @@ ADD_TEST(MattTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
   /home/harishd/MattDemer/IDEAL-SPGR-Fat/ideal-spgr-fat.mhd
   /home/harishd/MattDemer/IDEAL-SPGR-Water/ideal-spgr-water.mhd
   /home/harishd/MattDemer/OutputKnnRGBInteractive.mhd
-  5 # Represents number of seed files
-  ${SEEDS_DATA_DIR}/Background.txt
-  ${SEEDS_DATA_DIR}/Fat.txt
-  ${SEEDS_DATA_DIR}/Muscle.txt
-  ${SEEDS_DATA_DIR}/Bones.txt
-  ${SEEDS_DATA_DIR}/Cartilage.txt
+  4 # Represents number of seed files
+  /home/harishd/MattDemer/Background.txt
+  /home/harishd/MattDemer/Femur.txt
+  /home/harishd/MattDemer/Cartilage.txt
+  /home/harishd/MattDemer/Fat.txt
   )
+
+ADD_TEST(TwoChannelLabelMapKnnAlgo_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap
+  /home/harishd/MattDemer/IDEAL-SPGR-Fat/ideal-spgr-fat.mhd
+  /home/harishd/MattDemer/IDEAL-SPGR-Water/ideal-spgr-water.mhd
+  /home/harishd/MattDemer/OutputKnnLabelMap.mhd
+  4
+  /home/harishd/MattDemer/Background.txt
+  /home/harishd/MattDemer/Femur.txt
+  /home/harishd/MattDemer/Cartilage.txt
+  /home/harishd/MattDemer/Fat.txt
+  )
+
+ADD_TEST(TwoChannelGradientLabelMapKnnAlgo_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap
+  /home/harishd/MattDemer/gradientFatOutput.mhd
+  /home/harishd/MattDemer/gradientWaterOutput.mhd
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
+  4
+  /home/harishd/MattDemer/Background.txt
+  /home/harishd/MattDemer/Femur.txt
+  /home/harishd/MattDemer/Cartilage.txt
+  /home/harishd/MattDemer/Fat.txt
+  )
+
+
+
+ADD_TEST(MattViewTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoViewPixels_Knee
+  /home/harishd/MattDemer/IDEAL-SPGR-Fat/ideal-spgr-fat.mhd
+  /home/harishd/MattDemer/IDEAL-SPGR-Water/ideal-spgr-water.mhd
+  )
+
+ADD_TEST(MattSDTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD
+  /home/harishd/MattDemer/IDEAL-SPGR-Fat/ideal-spgr-fat.mhd
+  /home/harishd/MattDemer/IDEAL-SPGR-Water/ideal-spgr-water.mhd
+  /home/harishd/MattDemer/OutputKnnRGBInteractive.mhd
+  4 # Represents number of seed files
+  /home/harishd/Background.txt
+  /home/harishd/Femur.txt
+  /home/harishd/Cartilage.txt
+  /home/harishd/Fat.txt
+  )
+
+ADD_TEST(MattSlice100TwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD
+  /home/harishd/MattDemer/IDEAL-SPGR-Fat/Slice100/I0100.mhd
+  /home/harishd/MattDemer/IDEAL-SPGR-Water/Slice100/I0100.mhd
+  /home/harishd/MattDemer/Slice100.mhd
+  4 # Represents number of seed files
+  /home/harishd/100_Background.txt
+  /home/harishd/100_Femur.txt
+  /home/harishd/100_Cartilage.txt
+  /home/harishd/100_Fat.txt
+  )
+
+ADD_TEST(MattSD_OnlyBonesTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_OnlyBones
+  /home/harishd/MattDemer/IDEAL-SPGR-Fat/ideal-spgr-fat.mhd
+  /home/harishd/MattDemer/IDEAL-SPGR-Water/ideal-spgr-water.mhd
+  /home/harishd/MattDemer/OnlyBones.mhd
+  4 # Represents number of seed files
+  /home/harishd/MattDemer/Background.txt
+  /home/harishd/MattDemer/Femur.txt
+  /home/harishd/MattDemer/Cartilage.txt
+  /home/harishd/MattDemer/Fat.txt
+  )
+
+
+ADD_TEST(HipTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_Hip
+  /home/harishd/ChristieHip/PD-IDEAL-FSE-FAT/pd-ideal-fse-fat.mhd
+  /home/harishd/ChristieHip/PD-IDEAL-FSE-WATER/pd-ideal-fse-water.mhd
+  /home/harishd/ChristieHip/Output.mhd
+  5 # Represents number of seed files
+  /home/harishd/ChristieHip/Background.txt
+  /home/harishd/ChristieHip/Bone1.txt
+  /home/harishd/ChristieHip/Bone2.txt
+  /home/harishd/ChristieHip/Muscle.txt
+  /home/harishd/ChristieHip/Fat.txt
+  )
+
+ADD_TEST(HipSpgrTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_Hip_Spgr
+  /home/harishd/ChristieHip/IDEAL-SPGR-OUTPHASE/ideal-spgr-outphase.mhd
+  /home/harishd/ChristieHip/IDEAL-SPGR-WATER/ideal-spgr-water.mhd
+  /home/harishd/ChristieHip/Output.mhd
+  4 # Represents number of seed files
+  /home/harishd/ChristieHip/Background_Spgr.txt
+  /home/harishd/ChristieHip/Bone_Spgr.txt
+  /home/harishd/ChristieHip/Muscle_Spgr.txt
+  /home/harishd/ChristieHip/Fat_Spgr.txt
+  )
+
+ADD_TEST(HipViewTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoViewPixels_Hip
+  /home/harishd/ChristieHip/PD-IDEAL-FSE-FAT/pd-ideal-fse-fat.mhd
+  /home/harishd/ChristieHip/PD-IDEAL-FSE-WATER/pd-ideal-fse-water.mhd
+  33
+  )
+
+ADD_TEST(HipSpgrViewTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoViewPixels_Hip
+  /home/harishd/ChristieHip/IDEAL-SPGR-OUTPHASE/ideal-spgr-outphase.mhd
+  /home/harishd/ChristieHip/IDEAL-SPGR-WATER/ideal-spgr-water.mhd
+  100
+  )
+
+ADD_TEST(HipPrintTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_PrintPixelValues_SD
+  /home/harishd/ChristieHip/PD-IDEAL-FSE-FAT/pd-ideal-fse-fat.mhd
+  /home/harishd/ChristieHip/PD-IDEAL-FSE-WATER/pd-ideal-fse-water.mhd
+  5 # Represents number of seed files
+  /home/harishd/ChristieHip/Background.txt
+  /home/harishd/ChristieHip/Bone1.txt
+  /home/harishd/ChristieHip/Bone2.txt
+  /home/harishd/ChristieHip/Muscle.txt
+  /home/harishd/ChristieHip/Fat.txt
+  )
+
+ADD_TEST(HipSpgrPrintTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_PrintPixelValues_SD
+  /home/harishd/ChristieHip/IDEAL-SPGR-OUTPHASE/ideal-spgr-outphase.mhd
+  /home/harishd/ChristieHip/IDEAL-SPGR-WATER/ideal-spgr-water.mhd
+  4 # Represents number of seed files
+  /home/harishd/ChristieHip/Background_Spgr.txt
+  /home/harishd/ChristieHip/Bone_Spgr.txt
+  /home/harishd/ChristieHip/Muscle_Spgr.txt
+  /home/harishd/ChristieHip/Fat_Spgr.txt
+  )
+
+ADD_TEST(ConnectedThreshold_LabelMap_Bones
+  ${CXX_TEST_PATH}/ConnectedThresholdImageFilter
+  /home/harishd/MattDemer/OutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/BonesOnly.mhd
+  211 # seedX
+  178 # seedY
+  71 # seedZ
+  79
+  81
+  )
+
+ADD_TEST(TwoChannelHoleFilling
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/MattDemer/OutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/OutputKnnLabelMap_Filled.mhd
+     2 # Manhattan Radius
+     2 # Majority
+   400 # Maximum number of iterations
+  )
+
+ADD_TEST(TwoChannelMorphOpeningFilter
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
+  /home/harishd/MattDemer/OutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/MorphOpeningOutput.mhd
+  )
+
+ADD_TEST(TwoChannelMorphClosingFilter
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalClosingImageFilter
+  /home/harishd/MattDemer/OutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/MorphClosingOutput.mhd
+  )
+
+ADD_TEST(RelabelComponentImageFilterTest
+  ${CXX_TEST_PATH}/RelabelComponentImageFilter
+  /home/harishd/MattDemer/OutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/RelabelFilterOutput.mhd
+  )
+
+
+
+ADD_TEST(TwoChannelGrayScaleGetROI
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_OnlyBones
+  /home/harishd/MattDemer/OutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/OutputROI.mhd
+  80
+  )
+
+
+ADD_TEST(TwoChannelBonesGrayScaleGetROI
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_OnlyBones
+  /home/harishd/MattDemer/BinaryOpeningOutput.mhd
+  /home/harishd/MattDemer/BonesBinaryOpeningOutput.mhd
+  80
+  )
+
+
+ADD_TEST(OnlyBonesTwoChannelMorphOpeningFilter
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
+  /home/harishd/MattDemer/OutputROI.mhd
+  /home/harishd/MattDemer/MorphOpeningOutputBones.mhd
+  )
+
+ADD_TEST(TwoChannelSignedMaurerDistance
+  ${CXX_TEST_PATH}/TwoChannelSignedMaurerDistanceMapImageFilter
+  /home/harishd/MattDemer/OutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/MaurerOutput.mhd
+  )
+
+ADD_TEST(TwoChannelBonesSignedMaurerDistance
+  ${CXX_TEST_PATH}/TwoChannelSignedMaurerDistanceMapImageFilter
+  /home/harishd/MattDemer/BonesBinaryOpeningOutput.mhd
+  /home/harishd/MattDemer/BonesMaurerOutput.mhd
+  )
+
+
+ADD_TEST(TwoChannelBinaryOpening
+  ${CXX_TEST_PATH}/TwoChannelBinaryOpeningFilter
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/BinaryOpeningOutput.mhd
+  2
+  )
+
+ADD_TEST(TwoChannelGradMorphOpeningFilter
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/GradientMorphOpeningOutput.mhd
+  )
+
+ADD_TEST(TwoChannelConnectedImageFilterTest
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentImageFilter
+  /home/harishd/MattDemer/BonesBinaryOpeningOutput.mhd
+  /home/harishd/MattDemer/ConnectedOutput.mhd
+  75
+  85
+  )
+
 
 
 ENDMACRO(REFINE_SEGMENTATION)
