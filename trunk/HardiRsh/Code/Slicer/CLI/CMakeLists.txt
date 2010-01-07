@@ -18,6 +18,14 @@ FIND_PATH(SLICER_RESOURCES_DIR ITKLogo.h
 
 message("Slicer_Dir = ${Slicer3_DIR}")
 message(${SLICER_RESOURCES_DIR})
+
+include_directories(
+  ${Slicer3_Libs_INCLUDE_DIRS}
+  ${Slicer3_Base_INCLUDE_DIRS}
+)
+
+INCLUDE_DIRECTORIES( /home/lbloy/Projects/NAMICSandBox/VotingHoleFillFloodingImageFilter/Source/ )
+
 #####################
 set (CLP DiffusionODFEstimation)
 
@@ -33,9 +41,19 @@ target_link_libraries ( ${CLP}
   ${ITK_LIBRARIES}
 )
 
-include_directories(
-  ${Slicer3_Libs_INCLUDE_DIRS}
-  ${Slicer3_Base_INCLUDE_DIRS}
+#####################
+set (CLP DiffusionFODEstimation)
+
+set ( ${CLP}_SOURCE ${CLP}.cxx ${SpecialFunctions_SOURCES})
+generateclp(${CLP}_SOURCE ${CLP}.xml ${SLICER_RESOURCES_DIR}/ITKLogo.h)
+add_executable(${CLP} ${${CLP}_SOURCE})
+slicer3_set_plugins_output_path(${CLP})
+target_link_libraries ( ${CLP}
+  ${Slicer3_Libs_LIBRARIES}
+  ${Slicer3_Base_LIBRARIES}
+  ${VTK_LIBRARIES}
+  ${KWWidgets_LIBRARIES}
+  ${ITK_LIBRARIES}
 )
 
 if (Slicer3_SOURCE_DIR)

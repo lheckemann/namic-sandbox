@@ -225,6 +225,9 @@ std::vector< vtkMRMLGlyphableVolumeSliceDisplayNode*>  vtkMRMLDiffusionRSHVolume
 //----------------------------------------------------------------------------
 void vtkMRMLDiffusionRSHVolumeDisplayNode::AddSliceGlyphDisplayNodes( vtkMRMLVolumeNode* volumeNode )
 {
+  std::cout << "vtkMRMLDiffusionRSHVolumeDisplayNode " << (void *) this << std::endl;
+  std::cout << "vtkMRMLDiffusionRSHVolumeDisplayNode " << (void *) volumeNode << std::endl;
+
   std::vector< vtkMRMLGlyphableVolumeSliceDisplayNode*> nodes = this->GetSliceGlyphDisplayNodes( volumeNode );
   if (nodes.size() == 0)
     {

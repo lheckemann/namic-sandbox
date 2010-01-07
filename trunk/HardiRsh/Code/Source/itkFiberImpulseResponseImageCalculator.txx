@@ -286,6 +286,14 @@ FiberImpulseResponseImageCalculator<TGradientImagePixelType,TBasisType>
     
     tensor.ComputeEigenAnalysis(lambda, vMat);
 
+    //Compute FA (This is the slow way to do this)
+    if ( tensor.GetFractionalAnisotropy() < this->GetFAThreshold() )
+    {
+      //SKIP!
+      ++it;
+      continue;
+    }
+
     GradientDirectionContainerPointer
             gradContainer = RotateGradientContainer(vMat.GetVnlMatrix());
   

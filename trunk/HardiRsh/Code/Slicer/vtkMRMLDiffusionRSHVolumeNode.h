@@ -27,7 +27,7 @@
 #include "vtkMRMLNRRDStorageNode.h"
 
 class vtkDoubleArray;
-class vtkMRMLDiffusionTensorVolumeSliceDisplayNode;
+//class vtkMRMLDiffusionTensorVolumeSliceDisplayNode;
 class vtkMRMLStorageNode;
 
 class VTK_MRML_EXPORT vtkMRMLDiffusionRSHVolumeNode : public vtkMRMLDiffusionImageVolumeNode

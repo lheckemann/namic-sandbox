@@ -65,6 +65,19 @@
       </constraints>
     </integer>
     <double>
+      <name>faThreshold</name>
+      <label>FA threshold</label>
+      <flag>f</flag>
+      <longflag>faThreshold</longflag>
+      <description> The FA threshold is used to determine voxels with a "single" fiber population inorder to compute a fiber impulse response function</description>
+      <default>.7</default>
+      <constraints>
+      	<minimum>0.1</minimum>
+	      <maximum>1</maximum>
+	      <step>0.05</step>
+      </constraints>
+    </double>
+    <double>
       <name>beltramiLambda</name>
       <label>Beltrami smoothing factor</label>
       <flag>b</flag>

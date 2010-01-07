@@ -2,7 +2,7 @@ XML = """<?xml version="1.0" encoding="utf-8"?>
 <executable>
 
   <category>HARDI Modules</category>
-  <title>Load an RSH Volume</title>
+  <title>Load an RSH Volume from a nifti file</title>
   <description>
 Load an RSH Volume
 </description>
@@ -46,6 +46,8 @@ Load an RSH Volume
 initialized = False
 
 
+
+
 def Initialize():
 
   os      =__import__('os')
@@ -54,18 +56,19 @@ def Initialize():
   sys     =__import__('sys')
   
   #find the library File
-  if os.environ.has_key('HARDI_MODULES_DIR'):
-    libFile = os.path.join(os.environ['HARDI_MODULES_DIR'],'@LIB_FILENAME@')
-  elif os.environ.has_key('Slicer3_MODULES_DIR'):
-    libFile = os.path.join(os.environ['Slicer3_MODULES_DIR'],'@LIB_FILENAME@')
-  else:
-    libFile = os.path.join('@CMAKE_BINARY_DIR@','@Slicer3_INSTALL_PLUGINS_LIB_DIR@','@LIB_FILENAME@')
+  libFile = os.path.join('/home/lbloy/Projects/HardiRsh-build','lib/Slicer3/Modules','libSbiaHardiSlicerIntegration.so')
+  
+  if ( not os.path.exists(libFile) 
+     and os.environ.has_key('Slicer3_MODULES_DIR') ):
+      libFile = os.path.join(os.environ['Slicer3_MODULES_DIR'],'libSbiaHardiSlicerIntegration.so')
 
   if os.path.exists(libFile):
     Slicer.TkCall('load '+libFile)
   else:
-    print "Can't find Shared Libary"
+    print "Can't find Shared Libary : "+libFile
     sys.exit(1);
+
+  print "done Loading libraries"
 
   newNodes = [\
     slicer.vtkMRMLDiffusionRSHVolumeNode() ,\
@@ -73,8 +76,12 @@ def Initialize():
     slicer.vtkMRMLDiffusionRSHVolumeSliceDisplayNode(),\
     slicer.vtkMRMLDiffusionRSHDisplayPropertiesNode() ]
 
+  print "starting to Loading libraries"
+
   for n in newNodes:
     slicer.MRMLScene.RegisterNodeClass(n)
+
+  print "done Registering Nodes"
 
   RSHColorTable = slicer.vtkMRMLColorTableNode()
   RSHColorTable.SetName('RSHColorScheme')

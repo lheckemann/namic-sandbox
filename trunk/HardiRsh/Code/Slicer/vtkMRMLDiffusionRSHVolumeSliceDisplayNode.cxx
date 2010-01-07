@@ -319,6 +319,8 @@ vtkMRMLDiffusionRSHDisplayPropertiesNode* vtkMRMLDiffusionRSHVolumeSliceDisplayN
 void vtkMRMLDiffusionRSHVolumeSliceDisplayNode::SetAndObserveDiffusionRSHDisplayPropertiesNodeID ( const char *id )
 {
   // Stop observing any old node
+  std::cout << "vtkMRMLDiffusionRSHVolumeSliceDisplayNode " << (void *) this << std::endl;
+  std::cout << "vtkMRMLDiffusionRSHVolumeSliceDisplayNode " << (void *) this->DiffusionRSHDisplayPropertiesNode << std::endl;
   vtkSetAndObserveMRMLObjectMacro ( this->DiffusionRSHDisplayPropertiesNode, NULL );
 
   // Set the ID. This is the "ground truth" reference to the node.
