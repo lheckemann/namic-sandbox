@@ -94,6 +94,9 @@ public:
   itkGetConstMacro(BValue,double);
   
   itkGetConstMacro(RespRSH,VectorType);
+
+  itkSetMacro(FAThreshold,double);
+  itkGetConstMacro(FAThreshold,double);
   
 protected:
   FiberImpulseResponseImageCalculator();
@@ -125,7 +128,7 @@ private:
   unsigned int                                          m_NumBaselines;
   
   double                                                m_BValue;
-  
+  double                                                m_FAThreshold;
 };
 
 } // end namespace itk

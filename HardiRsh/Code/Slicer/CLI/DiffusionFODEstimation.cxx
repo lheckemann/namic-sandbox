@@ -16,7 +16,7 @@
 #include "vtkImageConnectivity.h"
 #include "vtkITKNewOtsuThresholdImageFilter.h"
 
-#include "DiffusionODFEstimationCLP.h"
+#include "DiffusionFODEstimationCLP.h"
 
 #include "itkVectorImage.h"
 #include "itkImage.h"
@@ -32,9 +32,12 @@
 #include "itkNewOtsuThresholdImageFilter.h"
 #include "itkImageMaskSpatialObject.h"
 
-#include "itkSymRealSphericalHarmonicRep.h"
-#include "itkOdfReconImageFilter.h"
+
 #include "itkVotingBinaryHoleFillFloodingImageFilter.h"
+
+#include "itkFodCsdReconImageFilter.h"
+#include "itkSymRealSphericalHarmonicRep.h"
+#include "itkFiberImpulseResponseImageCalculator.h"
 
 template <unsigned int order>
 int runner(
@@ -43,6 +46,7 @@ int runner(
   std::string outputBaseline,
   std::string thresholdMask,
   double beltramiLambda,
+  double faThreshold,
   double otsuOmegaThreshold,
   bool removeIslands,
   bool applyMask )
@@ -58,14 +62,19 @@ int runner(
   typedef itk::SymRealSphericalHarmonicRep< PrecisionType, order >
                                                   RSHPixelType;
 
-  typedef itk::OdfReconImageFilter<
+  //defined fod and fir filters
+  typedef itk::FodCsdReconImageFilter<
     GradientPixelType,
-    RSHPixelType>                                 OdfReconFilterType;
+    RSHPixelType>                                 FodReconFilterType;
+    
+  typedef itk::FiberImpulseResponseImageCalculator
+    <GradientPixelType,
+    RSHPixelType>                                           FirCalculatorType;
+  
 
-  typedef typename OdfReconFilterType::GradientImagesType  GradientImagesType;
-  typedef itk::Image<GradientPixelType,3>
-                                                  GradientImageType;
-  typedef typename OdfReconFilterType::OutputImageType     OdfImageType;
+  typedef typename FodReconFilterType::GradientImagesType   GradientImagesType;
+  typedef itk::Image<GradientPixelType,3>                   GradientImageType;
+  typedef typename FodReconFilterType::OutputImageType      RSHImageType;
 
   typename itk::ImageFileReader<GradientImagesType>::Pointer reader 
     = itk::ImageFileReader<GradientImagesType>::New();
@@ -108,9 +117,9 @@ int runner(
   typename std::vector<std::string>::const_iterator itKey = imgMetaKeys.begin();
   std::string metaString;
   
-  typename OdfReconFilterType::GradientDirectionType vect3d;
-  typename OdfReconFilterType::GradientDirectionContainerType::Pointer 
-  DiffusionVectors = OdfReconFilterType::GradientDirectionContainerType::New();
+  typename FodReconFilterType::GradientDirectionType vect3d;
+  typename FodReconFilterType::GradientDirectionContainerType::Pointer 
+  DiffusionVectors = FodReconFilterType::GradientDirectionContainerType::New();
 
   std::vector<int> b0Indexes;
   
@@ -181,7 +190,7 @@ int runner(
   
   ImageMaskType::Pointer imageMask;
 
-  //THIS ISN"T WORKING!!!
+  //THIS ISN"T WORKING very quickely!!!
   if ( removeIslands )
   {
     typedef itk::VotingBinaryHoleFillFloodingImageFilter
@@ -190,16 +199,6 @@ int runner(
     typename HoleFillingFilterType::Pointer holeFiller = HoleFillingFilterType::New();
     
     holeFiller->SetInput( otsu->GetOutput() );
-    typename ImageMaskType::SizeType indexRadius;
-
-    indexRadius[0] = 5; // radius along x
-    indexRadius[1] = 5; // radius along y
-    indexRadius[2] = 5; // radius along z
-
-    holeFiller->SetRadius( indexRadius );
-    holeFiller->SetBackgroundValue(  0 );
-    holeFiller->SetForegroundValue(  1 );
-
     holeFiller->Update();
     imageMask = holeFiller->GetOutput();
   }
@@ -208,25 +207,40 @@ int runner(
     imageMask = otsu->GetOutput();
   }
   spatialObjectMask->SetImage( imageMask );
-  
-  //Configure the filter
-  typename OdfReconFilterType::Pointer odfReconFilter = OdfReconFilterType::New();
 
-  odfReconFilter->SetGradientImage( DiffusionVectors, gradientImg);
-  
-  odfReconFilter->SetCalculateResidualImage(false);
-  odfReconFilter->SetNormalize(true);
-  odfReconFilter->SetBeltramiLambda(beltramiLambda);
-  
-//TODO conditiional
+  typename FirCalculatorType::Pointer firFilter =  FirCalculatorType::New();
+    
   if (applyMask)
   {
-    odfReconFilter->SetImageMask( spatialObjectMask );
+    firFilter->SetImageMask( spatialObjectMask );
+  }
+  firFilter->SetFAThreshold( faThreshold );
+  firFilter->SetGradientImage( DiffusionVectors, gradientImg);
+  firFilter->SetBValue(b0);
+
+  firFilter->Compute();
+  typename FirCalculatorType::VectorType firRsh = firFilter->GetRespRSH();
+  
+  std::cerr << firRsh << std::endl;
+  
+  
+  //Configure the filter
+  typename FodReconFilterType::Pointer fodReconFilter = FodReconFilterType::New();
+
+  fodReconFilter->SetGradientImage( DiffusionVectors, gradientImg);
+  
+  fodReconFilter->SetCalculateResidualImage(false);
+  fodReconFilter->SetNormalize(true);
+  fodReconFilter->SetBeltramiLambda(beltramiLambda);
+  
+  if (applyMask)
+  {
+    fodReconFilter->SetImageMask( spatialObjectMask );
   }
   
   try
   {
-    odfReconFilter->Update();
+    fodReconFilter->Update();
   }
   catch( itk::ExceptionObject & err )
   {
@@ -237,10 +251,10 @@ int runner(
 
   //Writer
   typedef itk::VectorImage
-    <typename OdfImageType::PixelType::ComponentType, 3>
+    <typename RSHImageType::PixelType::ComponentType, 3>
                                                           VectorImageType;
 
-  typedef itk::VariableLengthVectorCastImageFilter<OdfImageType,VectorImageType> CasterType;
+  typedef itk::VariableLengthVectorCastImageFilter<RSHImageType,VectorImageType> CasterType;
   typedef itk::ImageFileWriter< VectorImageType > OdfWriterType;
 
   typename OdfWriterType::Pointer odfWriter = OdfWriterType::New();
@@ -248,7 +262,7 @@ int runner(
 
   //We need to cast the odf output to vectorImage.
   typename CasterType::Pointer caster = CasterType::New();
-  caster->SetInput(odfReconFilter->GetOutput() );
+  caster->SetInput(fodReconFilter->GetOutput() );
   caster->Update();
   
   //TODO attach meta data (after removing measurement frame!!!)
@@ -280,25 +294,25 @@ int main( int argc, char * argv[] )
     switch ( order )
     {
       case 2:
-        return runner<2>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<2>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold, removeIslands, applyMask );
       case 4:
-        return runner<4>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<4>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold,removeIslands, applyMask );
       case 6:
-        return runner<6>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<6>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold,removeIslands, applyMask );
       case 8:
-        return runner<8>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<8>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold,removeIslands, applyMask );
       case 10:
-        return runner<10>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<10>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold,removeIslands, applyMask );
       case 12:
-        return runner<12>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<12>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold,removeIslands, applyMask );
       case 14:
-        return runner<14>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<14>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold,removeIslands, applyMask );
       case 16:
-        return runner<16>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<16>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold,removeIslands, applyMask );
       case 18:
-        return runner<18>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<18>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold,removeIslands, applyMask );
       case 20:
-        return runner<20>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, otsuOmegaThreshold,removeIslands, applyMask );
+        return runner<20>( inputVolume, outputODF, outputBaseline, thresholdMask, beltramiLambda, faThreshold, otsuOmegaThreshold,removeIslands, applyMask );
       default:
         std::cout << "Unsupported dimension" << std::endl;
         exit( EXIT_FAILURE );
