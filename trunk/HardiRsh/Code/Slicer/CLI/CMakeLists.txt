@@ -24,8 +24,6 @@ include_directories(
   ${Slicer3_Base_INCLUDE_DIRS}
 )
 
-INCLUDE_DIRECTORIES( /home/lbloy/Projects/NAMICSandBox/VotingHoleFillFloodingImageFilter/Source/ )
-
 #####################
 set (CLP DiffusionODFEstimation)
 
