@@ -74,12 +74,18 @@ void progress_callback(int percentComplete)
 int main( int argc, char * argv [] )
 {
    PARSE_ARGS; 
+   
+  std::vector< std::string > shapeModelFileList = douher::readTextLineToListOfString(shapeModelFileName.c_str());
+  int numOfEigenShapes=shapeModelFileList.size()-1; // the first file is the mean shape, followed by eigen shapes
+  std::cout << "number of eigen shapes=" << numOfEigenShapes << std::endl;
 
-   std::string modelPath="c:\\Users\\andras\\devel\\SlicerLatestStableDebug\\Slicer3-build\\lib\\Slicer3\\plugins\\debug\\";
-  
-   std::string meanShapeName = modelPath + "meanImage.nrrd";
-   std::string eigenList = modelPath + "eigenShapeWithStdList.txt";
+  std::string modelPath = itksys::SystemTools::GetFilenamePath(shapeModelFileName.c_str()) + std::string("/");
+  std::cout << "modelPath=" << modelPath.c_str() << std::endl;
 
+  std::string meanShapeName = modelPath + shapeModelFileList[0];
+  std::cout << "meanShapeName=" << meanShapeName.c_str() << std::endl;
+
+  std::cout << std::flush;
 
   const unsigned int Dimension = 3;
 
@@ -173,7 +179,6 @@ InternalImageType::IndexType rightPointIJK;
 
   std::cout<<"done\n";
 
-
   std::cout<<"Read shape model...."<<std::flush;  
 
   // 2. Tsai's shape based
@@ -182,21 +187,19 @@ InternalImageType::IndexType rightPointIJK;
 
   c.setMeanShape(douher::readImage3< double >( meanShapeName.c_str() ));
 
-
   // eigen shapes
   long numEigen = 8;
-  std::vector< std::string > nameOfShapes = douher::readTextLineToListOfString(eigenList.c_str());
-
-  if (numEigen > (long)nameOfShapes.size())
+  if (numEigen > numOfEigenShapes)
     {
-      numEigen = nameOfShapes.size();
+      numEigen = numOfEigenShapes;
     }
 
   std::vector< douher::cArray3D< double >::Pointer > eigenShapes;
 
-  for (int i = 0; i < numEigen; ++i)
+  for (int i = 0; i < numEigen; ++i) 
     {
-      std::string filename=modelPath + nameOfShapes[i];
+      std::string filename=modelPath + shapeModelFileList[i+1]; // start from 1, the 0th file is the mean shape
+      std::cout<<"Add eigen shape: "<<filename.c_str()<<"\n";
       c.addEigenShape(douher::readImage3< double >( filename.c_str() ));
     }
 
@@ -228,6 +231,12 @@ InternalImageType::IndexType rightPointIJK;
 
   typedef CShapeBasedSeg::DoubleImageType DoubleImageType;
   DoubleImageType::Pointer segRslt = c.getSegmentation();
+
+  // Only voxel values are correct, image metadata (origin, spacing, orientation) is not
+  // set correctly for the output volume. Copy that from the input volume.
+  // :TODO: fix orientation as well
+  segRslt->SetOrigin(reader->GetOutput()->GetOrigin());
+  segRslt->SetSpacing(reader->GetOutput()->GetSpacing());
 
   douher::writeImage3< double >(segRslt, segmentedImageFileName.c_str());
 
