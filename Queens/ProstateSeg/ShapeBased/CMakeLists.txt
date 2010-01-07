@@ -11,6 +11,7 @@ find_path(BOOST_PATH boost/shared_ptr.hpp
   boost_1_41_0
   ../boost_1_41_0
   ../../boost_1_41_0
+  c:/Users/andras/devel/boost_1_41_0
   )
 if(NOT BOOST_PATH)
    message(FATAL_ERROR "Please enter the path of boost")
