@@ -16,6 +16,9 @@
 ########################################################################
 ADD_SUBDIRECTORY(Source)
 
+
+INCLUDE_DIRECTORIES( ${CMAKE_CURRENT_SOURCE_DIR}/VotingHoleFillFloodingImageFilter_Source )
+
 IF(BUILD_EXECS)
   ADD_SUBDIRECTORY(Exec)
 ENDIF(BUILD_EXECS)
