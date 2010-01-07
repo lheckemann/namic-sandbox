@@ -131,7 +131,7 @@ InternalImageType::IndexType rightPointIJK;
     }
 
   std::cout << "Left point IJK: " << leftPointIJK << std::endl;
-  std::cout << "Left point IJK: " << rightPointIJK << std::endl;
+  std::cout << "Right point IJK: " << rightPointIJK << std::endl;
 
   //////
   double t1, t2;
