@@ -476,9 +476,30 @@ ADD_TEST(TwoChannelConnectedImageFilterTest
   /home/harishd/MattDemer/BonesBinaryOpeningOutput.mhd
   /home/harishd/MattDemer/ConnectedOutput.mhd
   75
-  85
+  255
   )
 
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/HoleFillingOutput.mhd
+  /home/harishd/MattDemer/IterativeBinaryOpeningOutput.mhd
+  1
+  238
+  84
+  87
+  149
+  17
+  87
+  )
+
+ADD_TEST(TwoChannelHoleFillingTest
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/MattDemer/ConnectedOutput.mhd
+  /home/harishd/MattDemer/HoleFillingOutput.mhd
+     1 # Manhattan Radius
+     1 # Majority
+     5 # Maximum number of iterations
+  )
 
 
 ENDMACRO(REFINE_SEGMENTATION)

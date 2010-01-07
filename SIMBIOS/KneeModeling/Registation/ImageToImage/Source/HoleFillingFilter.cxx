@@ -22,7 +22,7 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-
+#include "itkImageRegionIteratorWithIndex.h"
 
 int main( int argc, char * argv[] )
 {
@@ -55,7 +55,7 @@ int main( int argc, char * argv[] )
 
   holeFiller->SetRadius( indexRadius );
   holeFiller->SetBackgroundValue(   0 );
-  holeFiller->SetForegroundValue( 255 );
+  holeFiller->SetForegroundValue( 1 );
 
   const unsigned int majority = atoi( argv[4] );
 
@@ -67,8 +67,23 @@ int main( int argc, char * argv[] )
 
 
   ReaderType::Pointer reader = ReaderType::New();
-
   reader->SetFileName( argv[1] );
+  reader->Update();
+
+  ImageType::Pointer img = ImageType::New();
+  img->CopyInformation( reader->GetOutput() );
+  img->SetRegions( img->GetLargestPossibleRegion() );
+  img->Allocate();
+
+  itk::ImageRegionIteratorWithIndex<ImageType> itImg( img, img->GetLargestPossibleRegion() );
+  for (itImg.GoToBegin(); !itImg.IsAtEnd(); ++itImg)
+  {
+   ImageType::IndexType idx = itImg.GetIndex();
+   if ( reader->GetOutput()->GetPixel(idx) == 1 )
+   {
+    itImg.Set( 1 );
+   }
+  }
 
   WriterType::Pointer writer = WriterType::New();
 
