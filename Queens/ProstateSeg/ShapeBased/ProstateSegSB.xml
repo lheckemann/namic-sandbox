@@ -33,6 +33,13 @@
       <description>A point on the left and the right side of the prostate on an axial slice, near the center of the prostate.</description>   
     </point>
     
+    <file fileExtensions=".sm">
+      <name>shapeModelFileName</name>
+      <longflag>shapeModelFileName</longflag>
+      <description>Shape model file name.</description>
+      <label>Shape model file</label>
+    </file>    
+    
   </parameters>
        
   <parameters advanced="true">
