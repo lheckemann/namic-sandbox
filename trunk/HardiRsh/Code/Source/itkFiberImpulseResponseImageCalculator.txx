@@ -181,7 +181,8 @@ void
 FiberImpulseResponseImageCalculator<TGradientImagePixelType,TBasisType>
 ::Compute(void)
 {
-
+  std::cerr << "start FOD computatoin" << std::endl;
+  
   //Make sure the GradientContainer is set!
   if (! m_GradientDirectionContainer || m_GradientDirectionContainer->size() == 0 )
   {
@@ -286,6 +287,7 @@ FiberImpulseResponseImageCalculator<TGradientImagePixelType,TBasisType>
     
     tensor.ComputeEigenAnalysis(lambda, vMat);
 
+    std::cerr << "Fa : " << tensor.GetFractionalAnisotropy() << std::endl;
     //Compute FA (This is the slow way to do this)
     if ( tensor.GetFractionalAnisotropy() < this->GetFAThreshold() )
     {
@@ -311,7 +313,17 @@ FiberImpulseResponseImageCalculator<TGradientImagePixelType,TBasisType>
     ++it;
   }
   
+  if (counter == 0)
+  {
+    std::cerr << "No Voxels made the list!!" << std::endl;
+    itkExceptionMacro( << "No Voxels made the list!!");
+    std::cerr << "Post Exception!!" << std::endl;
+  }
+
   m_RespRSH /= counter;
+
+  std::cerr << "end FOD computatoin" << std::endl;
+  
 }
  
  
