@@ -109,6 +109,17 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
   vtkGetStringMacro(ZFrameTransformNodeID);
   vtkMRMLLinearTransformNode* GetZFrameTransformNode();
   void SetAndObserveZFrameTransformNodeID(const char *nodeID);
+
+  vtkGetStringMacro(ActiveNeedleModelNodeID);
+  vtkMRMLModelNode* GetActiveNeedleModelNode();
+  void SetAndObserveActiveNeedleModelNodeID(const char *nodeID);
+
+  vtkGetStringMacro(ActiveNeedleTransformNodeID);
+  vtkMRMLLinearTransformNode* GetActiveNeedleTransformNode();
+  void SetAndObserveActiveNeedleTransformNodeID(const char *nodeID);
+
+
+  virtual int  MoveTo(const char *transformNodeId);
   
   virtual void SwitchStep(const char *stepName);
 
@@ -126,7 +137,26 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
   virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode);
 
   virtual const char* GetWorkflowStepsString()
-    {return "SetUp ZFrameCalibration PointTargeting PointVerification TransperinealProstateTemplateManualControl"; };
+    {return "SetUpTemplate ZFrameCalibration TemplateTargeting PointVerification"; };
+
+  //----------------------------------------------------------------------------
+  // Funcitons to obtain information about needle guiding template
+  
+  // Description:
+  // Get position and orientation of grid hole (i, j)
+  int GetHoleTransform(int i, int j, vtkMatrix4x4* matrix); 
+
+  // Description:
+  // Get needle tip position and orientation, when grid hole (i, j) is used.
+  int GetNeedleTransform(int i, int j, double length, vtkMatrix4x4* matrix);
+  
+  // Description:
+  // Find the best hole to target the designated target position
+  int FindHole(double targetX, double targetY, double targetZ,
+               int& nearest_i, int& nearest_j, double& nearest_depth,
+               double& errorX, double& errorY, double& errorZ);
+
+
 
  protected:
 
@@ -144,6 +174,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
 
   const char* AddWorkspaceModel(const char* nodeName);
   const char* AddZFrameModel(const char* nodeName);
+  const char* AddNeedleModel(const char* nodeName, double length, double diameter);
 
   // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
   // directly from ProcessMRMLEvent(), we added following flags to update those GUI
@@ -152,6 +183,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
   // if flag == 1, the connector has connected to the target
   // if flag == 2, the connector has disconnected from the target
   int ScannerConnectedFlag;
+
 
 private:
 
@@ -173,12 +205,57 @@ private:
   char *WorkspaceModelNodeID;
   vtkMRMLModelNode* WorkspaceModelNode;
 
+  vtkSetReferenceStringMacro(ActiveNeedleModelNodeID);
+  char *ActiveNeedleModelNodeID;
+  vtkMRMLModelNode* ActiveNeedleModelNode;
+
+  vtkSetReferenceStringMacro(ActiveNeedleTransformNodeID); 
+  char *ActiveNeedleTransformNodeID;
+  vtkMRMLLinearTransformNode* ActiveNeedleTransformNode;
+
+
   // Other member variables
 
   vtkIGTLToMRMLCoordinate* CoordinateConverter;
 
   bool  Connection;  
   int   ScannerWorkPhase;
+
+  // Template for needle guidance
+  double TemplateGridPitch[2];   // Template pitch in mm (x and y in the figure bellow)
+  double TemplateNumGrids[2];    // Number of holes in each direction (m and n in the figure bellow)
+  double TemplateOffset[3];      // Offset of the first hole ((0,0) in the figure bellow)
+                                 // from the Z-frame center (mm) (in the Z-frame coordinate system)
+
+  //
+  // Figure: needle guiding template parameters
+  //
+  //   Template (holes are indicated as 'o')
+  //   +---------------------------------------+
+  //   |         x                             |
+  //   |     |<----->|                         |
+  //   |  -- o       o       o   ....    o     |
+  //   |  ^ (0,0)   (0,1)   (0,2)       (0,n-1)|
+  //   | y|                                    |
+  //   |  v                                    |
+  //   |  -- o       o       o   ....    o     |
+  //   |    (1,0)   (1,1)   (1,2)       (1,n-1)|
+  //   |                                       |
+  //   |                                       |
+  //   |     o       o       o   ....    o     |
+  //   |    (2,0)   (2,1)   (2,2)       (2,n-1)|
+  //   |     .       .       .   .       .     |
+  //   |     .       .       .     .     .     |
+  //   |     .       .       .       .   .     |
+  //   |                                       |
+  //   |     o       o       o   ....    o     |
+  //   |    (m-1,0) (m-1,1) (m-1,2)   (m-1,n-1)|
+  //   |                                       |
+  //   +---------------------------------------+ 
+  //
+  // NOTE: index (i, j) starts from (0, 0) for coding. When it displayed
+  //  for clinicians, (i+1, j+1) is used. 
+  //
   
 };
 

@@ -96,11 +96,13 @@ set(ProstateNav_SRCS
   ${CMAKE_CURRENT_SOURCE_DIR}/TransRectalProstateRobot/vtkTransRectalFiducialCalibrationAlgo.cxx  
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepSetUp.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepSetUpTemplate.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavCalibrationStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavFiducialCalibrationStep.cxx   
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavTargetingStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavManualControlStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepVerification.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkProstateNavStepTargetingTemplate.cxx
   )
 
 set(ProstateNavIGTL_SRCS
