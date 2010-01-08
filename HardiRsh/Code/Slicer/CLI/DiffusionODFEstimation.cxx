@@ -10,12 +10,6 @@
 #include <algorithm>
 #include <string>
 
-#include "vtkImageData.h"
-#include "vtkImageCast.h"
-#include "vtkImageSeedConnectivity.h"
-#include "vtkImageConnectivity.h"
-#include "vtkITKNewOtsuThresholdImageFilter.h"
-
 #include "DiffusionODFEstimationCLP.h"
 
 #include "itkVectorImage.h"
@@ -32,9 +26,12 @@
 #include "itkNewOtsuThresholdImageFilter.h"
 #include "itkImageMaskSpatialObject.h"
 
+
+#include "itkVotingBinaryHoleFillFloodingImageFilter.h"
+
+
 #include "itkSymRealSphericalHarmonicRep.h"
 #include "itkOdfReconImageFilter.h"
-#include "itkVotingBinaryHoleFillFloodingImageFilter.h"
 
 template <unsigned int order>
 int runner(
@@ -112,6 +109,49 @@ int runner(
   typename OdfReconFilterType::GradientDirectionContainerType::Pointer 
   DiffusionVectors = OdfReconFilterType::GradientDirectionContainerType::New();
 
+  // Apply measurement frame if it exists
+  //Adapted from dtiestim code.
+  
+  vnl_matrix<double> transform(3,3);
+  transform.set_identity();
+  
+  if(imgMetaDictionary.HasKey("NRRD_measurement frame"))
+  {
+    std::cout << "Reorienting gradient directions to image coordinate frame" << std::endl;
+
+    // measurement frame
+    vnl_matrix<double> mf(3,3);
+    // imaging frame
+    vnl_matrix<double> imgf(3,3);
+    std::vector<std::vector<double> > nrrdmf;
+    itk::ExposeMetaData<std::vector<std::vector<double> > >(imgMetaDictionary,"NRRD_measurement frame",nrrdmf);
+
+    imgf = gradientImg->GetDirection().GetVnlMatrix();
+    std::cout << "Image frame: " << std::endl;
+    std::cout << imgf << std::endl;
+
+    for(unsigned int i = 0; i < 3; ++i)
+    {
+      for(unsigned int j = 0; j < 3; ++j)
+      {
+        mf(i,j) = nrrdmf[j][i];
+
+        nrrdmf[j][i] = imgf(i,j);
+      }
+    }
+
+    std::cout << "Meausurement frame: " << std::endl;
+    std::cout << mf << std::endl;
+
+    itk::EncapsulateMetaData<std::vector<std::vector<double> > >(imgMetaDictionary,"NRRD_measurement frame",nrrdmf);
+    // prevent slicer error
+    transform = vnl_svd<double>(imgf).inverse()*mf;
+
+    std::cout << "Transform: " << std::endl;
+    std::cout << transform << std::endl;
+
+  }
+
   std::vector<int> b0Indexes;
   
   for (; itKey != imgMetaKeys.end(); itKey ++)
@@ -123,8 +163,7 @@ int runner(
     { 
       sscanf(metaString.c_str(), "%lf %lf %lf\n", &x, &y, &z);
       vect3d[0] = x; vect3d[1] = y; vect3d[2] = z;
-
-      DiffusionVectors->InsertElement( numberOfImages, vect3d );
+      DiffusionVectors->InsertElement( numberOfImages, transform * vect3d );
       ++numberOfImages;
       // If the direction is 0.0, this is a reference image
       if (vect3d[0] == 0.0 &&
@@ -218,7 +257,6 @@ int runner(
   odfReconFilter->SetNormalize(true);
   odfReconFilter->SetBeltramiLambda(beltramiLambda);
   
-//TODO conditiional
   if (applyMask)
   {
     odfReconFilter->SetImageMask( spatialObjectMask );
@@ -304,9 +342,10 @@ int main( int argc, char * argv[] )
         exit( EXIT_FAILURE );
     }
   }
-  catch (std::exception& e)
+  catch( itk::ExceptionObject & err )
   {
-    cout << "Standard exception: " << e.what() << endl;
+    std::cerr << "ExceptionObject caught on filter update!" << std::endl;
+    std::cerr << err << std::endl;
     return EXIT_FAILURE;
   }
 

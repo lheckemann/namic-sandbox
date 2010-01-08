@@ -10,12 +10,6 @@
 #include <algorithm>
 #include <string>
 
-#include "vtkImageData.h"
-#include "vtkImageCast.h"
-#include "vtkImageSeedConnectivity.h"
-#include "vtkImageConnectivity.h"
-#include "vtkITKNewOtsuThresholdImageFilter.h"
-
 #include "DiffusionFODEstimationCLP.h"
 
 #include "itkVectorImage.h"
@@ -121,6 +115,49 @@ int runner(
   typename FodReconFilterType::GradientDirectionContainerType::Pointer 
   DiffusionVectors = FodReconFilterType::GradientDirectionContainerType::New();
 
+  // Apply measurement frame if it exists
+  //Adapted from dtiestim code.
+  
+  vnl_matrix<double> transform(3,3);
+  transform.set_identity();
+  
+  if(imgMetaDictionary.HasKey("NRRD_measurement frame"))
+  {
+    std::cout << "Reorienting gradient directions to image coordinate frame" << std::endl;
+
+    // measurement frame
+    vnl_matrix<double> mf(3,3);
+    // imaging frame
+    vnl_matrix<double> imgf(3,3);
+    std::vector<std::vector<double> > nrrdmf;
+    itk::ExposeMetaData<std::vector<std::vector<double> > >(imgMetaDictionary,"NRRD_measurement frame",nrrdmf);
+
+    imgf = gradientImg->GetDirection().GetVnlMatrix();
+    std::cout << "Image frame: " << std::endl;
+    std::cout << imgf << std::endl;
+
+    for(unsigned int i = 0; i < 3; ++i)
+    {
+      for(unsigned int j = 0; j < 3; ++j)
+      {
+        mf(i,j) = nrrdmf[j][i];
+
+        nrrdmf[j][i] = imgf(i,j);
+      }
+    }
+
+    std::cout << "Meausurement frame: " << std::endl;
+    std::cout << mf << std::endl;
+
+    itk::EncapsulateMetaData<std::vector<std::vector<double> > >(imgMetaDictionary,"NRRD_measurement frame",nrrdmf);
+    // prevent slicer error
+    transform = vnl_svd<double>(imgf).inverse()*mf;
+
+    std::cout << "Transform: " << std::endl;
+    std::cout << transform << std::endl;
+
+  }
+
   std::vector<int> b0Indexes;
   
   for (; itKey != imgMetaKeys.end(); itKey ++)
@@ -132,8 +169,7 @@ int runner(
     { 
       sscanf(metaString.c_str(), "%lf %lf %lf\n", &x, &y, &z);
       vect3d[0] = x; vect3d[1] = y; vect3d[2] = z;
-
-      DiffusionVectors->InsertElement( numberOfImages, vect3d );
+      DiffusionVectors->InsertElement( numberOfImages, transform * vect3d );
       ++numberOfImages;
       // If the direction is 0.0, this is a reference image
       if (vect3d[0] == 0.0 &&
@@ -199,6 +235,16 @@ int runner(
     typename HoleFillingFilterType::Pointer holeFiller = HoleFillingFilterType::New();
     
     holeFiller->SetInput( otsu->GetOutput() );
+    typename ImageMaskType::SizeType indexRadius;
+
+    indexRadius[0] = 5; // radius along x
+    indexRadius[1] = 5; // radius along y
+    indexRadius[2] = 5; // radius along z
+
+    holeFiller->SetRadius( indexRadius );
+    holeFiller->SetBackgroundValue(  0 );
+    holeFiller->SetForegroundValue(  1 );
+
     holeFiller->Update();
     imageMask = holeFiller->GetOutput();
   }
@@ -218,17 +264,21 @@ int runner(
   firFilter->SetGradientImage( DiffusionVectors, gradientImg);
   firFilter->SetBValue(b0);
 
+  std::cout << "running firFilter" << std::endl;
+
   firFilter->Compute();
   typename FirCalculatorType::VectorType firRsh = firFilter->GetRespRSH();
+
+  std::cout << "complete firFilter" << std::endl;
   
-  std::cerr << firRsh << std::endl;
+  std::cout << "fir Responce function: " << firRsh << std::endl;
   
   
   //Configure the filter
   typename FodReconFilterType::Pointer fodReconFilter = FodReconFilterType::New();
 
   fodReconFilter->SetGradientImage( DiffusionVectors, gradientImg);
-  
+  fodReconFilter->SetResponseRSH(firRsh);
   fodReconFilter->SetCalculateResidualImage(false);
   fodReconFilter->SetNormalize(true);
   fodReconFilter->SetBeltramiLambda(beltramiLambda);
@@ -318,11 +368,13 @@ int main( int argc, char * argv[] )
         exit( EXIT_FAILURE );
     }
   }
-  catch (std::exception& e)
+  catch( itk::ExceptionObject & err )
   {
-    cout << "Standard exception: " << e.what() << endl;
+    std::cerr << "Error occured computing FODs!" << std::endl;
+    std::cerr << err << std::endl;
     return EXIT_FAILURE;
   }
+
 
   return EXIT_SUCCESS;
 }
