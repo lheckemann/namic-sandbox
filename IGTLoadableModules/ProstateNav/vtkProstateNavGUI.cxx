@@ -34,10 +34,12 @@
 #include "vtkKWWizardWorkflow.h"
 #include "vtkProstateNavStep.h"
 #include "vtkProstateNavStepSetUp.h"
+#include "vtkProstateNavStepSetUpTemplate.h"
 #include "vtkProstateNavStepVerification.h"
 #include "vtkProstateNavCalibrationStep.h"
 #include "vtkProstateNavFiducialCalibrationStep.h"
 #include "vtkProstateNavTargetingStep.h"
+#include "vtkProstateNavStepTargetingTemplate.h"
 #include "vtkProstateNavManualControlStep.h"
 
 #include "vtkSlicerFiducialsGUI.h"
@@ -86,6 +88,7 @@
 #include "vtkMRMLProstateNavManagerNode.h"
 #include "vtkMRMLTransRectalProstateRobotNode.h"
 #include "vtkMRMLTransPerinealProstateRobotNode.h"
+#include "vtkMRMLTransPerinealProstateTemplateNode.h"
 
 #include <vector>
 
@@ -618,6 +621,7 @@ void vtkProstateNavGUI::Init()
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLRobotDisplayNode >::New() );
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransRectalProstateRobotNode >::New() );
     this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransPerinealProstateRobotNode >::New() );    
+    this->GetMRMLScene()->RegisterNodeClass( vtkSmartPointer< vtkMRMLTransPerinealProstateTemplateNode >::New() );    
   }
 
 }
@@ -896,6 +900,7 @@ void vtkProstateNavGUI::BuildGUIForConfigurationFrame ()
   this->RobotSelectorWidget->SetParent(configurationFrame->GetFrame());
   this->RobotSelectorWidget->Create(); 
   this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateRobotNode", NULL, NULL, NULL);
+  this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransPerinealProstateTemplateNode", NULL, NULL, NULL);
   this->RobotSelectorWidget->AddNodeClass("vtkMRMLTransRectalProstateRobotNode", NULL, NULL, NULL);
   this->RobotSelectorWidget->SetMRMLScene(this->GetMRMLScene());
   this->RobotSelectorWidget->SetBorderWidth(2);
@@ -1292,6 +1297,12 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
       setupStep->SetTitleBackgroundColor(205.0/255.0, 200.0/255.0, 177.0/255.0);
       newStep=setupStep;
     }
+    if (!stepName.compare("SetUpTemplate"))
+      {
+      vtkProstateNavStepSetUpTemplate* setupStep = vtkProstateNavStepSetUpTemplate::New();
+      setupStep->SetTitleBackgroundColor(205.0/255.0, 200.0/255.0, 177.0/255.0);
+      newStep=setupStep;
+      }
     else if (!stepName.compare("ZFrameCalibration"))
     {
       vtkProstateNavCalibrationStep* calibrationStep = vtkProstateNavCalibrationStep::New();
@@ -1310,6 +1321,12 @@ void vtkProstateNavGUI::UpdateWorkflowSteps()
       targetingStep->SetTitleBackgroundColor(138.0/255.0, 165.0/255.0, 111.0/255.0);
       newStep=targetingStep;
     }
+    else if (!stepName.compare("TemplateTargeting"))
+      {
+      vtkProstateNavStepTargetingTemplate* targetingStep = vtkProstateNavStepTargetingTemplate::New();
+      targetingStep->SetTitleBackgroundColor(138.0/255.0, 165.0/255.0, 111.0/255.0);
+      newStep=targetingStep;
+      }
     else if (!stepName.compare("TransperinealProstateRobotManualControl"))
     {
       vtkProstateNavManualControlStep* manualStep = vtkProstateNavManualControlStep::New();
