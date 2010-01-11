@@ -68,6 +68,7 @@ protected:
 
   void ShowCoverage(bool show);
   void ShowNeedle(bool show);
+  void ShowTemplate(bool show);
 
   void EnableAddTargetsOnClickButton(bool enable);
 
@@ -105,6 +106,7 @@ protected:
   vtkKWCheckButton *ShowCoverageButton;
   vtkKWCheckButton *AddTargetsOnClickButton;
   vtkKWCheckButton *ShowNeedleButton;
+  vtkKWCheckButton *ShowTemplateButton;
   vtkKWMenuButtonWithLabel *NeedleTypeMenuList;  
   vtkMRMLFiducialListNode *TargetPlanListNode;
   vtkKWFrame *OptionFrame;
