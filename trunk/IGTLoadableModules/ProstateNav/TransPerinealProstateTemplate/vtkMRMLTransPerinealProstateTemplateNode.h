@@ -98,17 +98,25 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
   vtkMRMLIGTLConnectorNode* GetScannerConnectorNode();
   void SetAndObserveScannerConnectorNodeID(const char *nodeID);
 
-  vtkGetStringMacro(ZFrameModelNodeID);
-  vtkMRMLModelNode* GetZFrameModelNode();
-  void SetAndObserveZFrameModelNodeID(const char *nodeID);
-
   vtkGetStringMacro(WorkspaceModelNodeID);
   vtkMRMLModelNode* GetWorkspaceModelNode();
   void SetAndObserveWorkspaceModelNodeID(const char *nodeID);
 
+  vtkGetStringMacro(ZFrameModelNodeID);
+  vtkMRMLModelNode* GetZFrameModelNode();
+  void SetAndObserveZFrameModelNodeID(const char *nodeID);
+
   vtkGetStringMacro(ZFrameTransformNodeID);
   vtkMRMLLinearTransformNode* GetZFrameTransformNode();
   void SetAndObserveZFrameTransformNodeID(const char *nodeID);
+
+  vtkGetStringMacro(TemplateModelNodeID);
+  vtkMRMLModelNode* GetTemplateModelNode();
+  void SetAndObserveTemplateModelNodeID(const char *nodeID);
+
+  //vtkGetStringMacro(TemplateTransformNodeID);
+  //vtkMRMLLinearTransformNode* GetTemplateTransformNode();
+  //void SetAndObserveTemplateTransformNodeID(const char *nodeID);
 
   vtkGetStringMacro(ActiveNeedleModelNodeID);
   vtkMRMLModelNode* GetActiveNeedleModelNode();
@@ -117,7 +125,6 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
   vtkGetStringMacro(ActiveNeedleTransformNodeID);
   vtkMRMLLinearTransformNode* GetActiveNeedleTransformNode();
   void SetAndObserveActiveNeedleTransformNodeID(const char *nodeID);
-
 
   virtual int  MoveTo(const char *transformNodeId);
   
@@ -174,6 +181,7 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
 
   const char* AddWorkspaceModel(const char* nodeName);
   const char* AddZFrameModel(const char* nodeName);
+  const char* AddTemplateModel(const char* nodeName);
   const char* AddNeedleModel(const char* nodeName, double length, double diameter);
 
   // NOTE: Since we couldn't update ScannerStatusLabelDisp and RobotStatusLabelDisp
@@ -200,6 +208,14 @@ private:
   vtkSetReferenceStringMacro(ZFrameTransformNodeID); 
   char *ZFrameTransformNodeID;
   vtkMRMLLinearTransformNode* ZFrameTransformNode;  
+
+  vtkSetReferenceStringMacro(TemplateModelNodeID);
+  char *TemplateModelNodeID;
+  vtkMRMLModelNode* TemplateModelNode;
+
+  //vtkSetReferenceStringMacro(TemplateTransformNodeID); 
+  //char *TemplateTransformNodeID;
+  //vtkMRMLLinearTransformNode* TemplateTransformNode;  
 
   vtkSetReferenceStringMacro(WorkspaceModelNodeID);
   char *WorkspaceModelNodeID;
@@ -231,6 +247,7 @@ private:
   // Figure: needle guiding template parameters
   //
   //   Template (holes are indicated as 'o')
+  //
   //   +---------------------------------------+
   //   |         x                             |
   //   |     |<----->|                         |
