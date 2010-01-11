@@ -108,6 +108,7 @@ vtkProstateNavStepTargetingTemplate::vtkProstateNavStepTargetingTemplate()
   this->TargetPlanningFrame=NULL;
   this->ShowCoverageButton=NULL;
   this->ShowNeedleButton=NULL;
+  this->ShowTemplateButton=NULL;
   this->AddTargetsOnClickButton=NULL;
   this->NeedleTypeMenuList=NULL; 
 
@@ -150,6 +151,7 @@ vtkProstateNavStepTargetingTemplate::~vtkProstateNavStepTargetingTemplate()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetPlanningFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowCoverageButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowNeedleButton);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowTemplateButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(AddTargetsOnClickButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleTypeMenuList); 
   DELETE_IF_NULL_WITH_SETPARENT_NULL(OptionFrame);
@@ -274,7 +276,7 @@ void vtkProstateNavStepTargetingTemplate::ShowTargetPlanningFrame()
     this->ShowCoverageButton->SetParent(this->OptionFrame);
     this->ShowCoverageButton->Create();
     this->ShowCoverageButton->SelectedStateOff();
-    this->ShowCoverageButton->SetText("Show coverage");
+    this->ShowCoverageButton->SetText("Coverage");
     this->ShowCoverageButton->SetBalloonHelpString("Show coverage volume of the robot");
   }
 
@@ -298,15 +300,27 @@ void vtkProstateNavStepTargetingTemplate::ShowTargetPlanningFrame()
     this->ShowNeedleButton->SetParent(this->OptionFrame);
     this->ShowNeedleButton->Create();
     this->ShowNeedleButton->SelectedStateOff();
-    this->ShowNeedleButton->SetText("Show needle");
+    this->ShowNeedleButton->SetText("Needle");
     this->ShowNeedleButton->SetBalloonHelpString("Show predicted needle path");
   }
 
-  this->Script("pack %s %s %s -side left -expand y -padx 2 -pady 2",
+  if (!this->ShowTemplateButton)
+  {
+    this->ShowTemplateButton = vtkKWCheckButton::New();
+  } 
+  if (!this->ShowTemplateButton->IsCreated()) {
+    this->ShowTemplateButton->SetParent(this->OptionFrame);
+    this->ShowTemplateButton->Create();
+    this->ShowTemplateButton->SelectedStateOff();
+    this->ShowTemplateButton->SetText("Template");
+    this->ShowTemplateButton->SetBalloonHelpString("Show predicted needle path");
+  }
+
+  this->Script("pack %s %s %s %s -side left -expand y -padx 2 -pady 2",
                this->AddTargetsOnClickButton->GetWidgetName(),
                this->ShowCoverageButton->GetWidgetName(),
-               this->ShowNeedleButton->GetWidgetName());
-
+               this->ShowNeedleButton->GetWidgetName(),
+               this->ShowTemplateButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->LoadTargetingVolumeButton->GetWidgetName());
   //this->Script("grid %s -row 0 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->VolumeSelectorWidget->GetWidgetName());
   //this->Script("grid %s -row 1 -column 0 -columnspan 2 -padx 2 -pady 2 -sticky ew", this->NeedleTypeMenuList->GetWidgetName());
@@ -589,6 +603,11 @@ void vtkProstateNavStepTargetingTemplate::ProcessGUIEvents(vtkObject *caller,
    if (this->ShowNeedleButton && this->ShowNeedleButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
     {
     this->ShowNeedle(this->ShowNeedleButton->GetSelectedState() == 1);
+    }
+   
+   if (this->ShowTemplateButton && this->ShowTemplateButton == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+    this->ShowTemplate(this->ShowTemplateButton->GetSelectedState() == 1);
     }
 
  // activate fiducial placement
@@ -962,6 +981,10 @@ void vtkProstateNavStepTargetingTemplate::AddGUIObservers()
     {
       this->ShowNeedleButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
+  if (this->ShowTemplateButton)
+    {
+      this->ShowTemplateButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+    }
   if (this->AddTargetsOnClickButton)
     {
       this->AddTargetsOnClickButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -1006,6 +1029,10 @@ void vtkProstateNavStepTargetingTemplate::RemoveGUIObservers()
   if (this->ShowNeedleButton)
     {
     this->ShowNeedleButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }  
+  if (this->ShowTemplateButton)
+    {
+    this->ShowTemplateButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }  
   if (this->AddTargetsOnClickButton)
     {
@@ -1135,6 +1162,30 @@ void vtkProstateNavStepTargetingTemplate::ShowNeedle(bool show)
     return;
 
   vtkMRMLModelNode* modelNode = robotNode->GetActiveNeedleModelNode();
+
+  if (modelNode == NULL)
+    return;
+
+  vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
+
+  if (displayNode == NULL)
+    return;
+
+  // Show the predicted needle path
+  displayNode->SetVisibility(show);
+
+}
+
+//---------------------------------------------------------------------------
+void vtkProstateNavStepTargetingTemplate::ShowTemplate(bool show)
+{
+  vtkMRMLTransPerinealProstateTemplateNode* robotNode = 
+    vtkMRMLTransPerinealProstateTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
+
+  if (robotNode == NULL)
+    return;
+
+  vtkMRMLModelNode* modelNode = robotNode->GetTemplateModelNode();
 
   if (modelNode == NULL)
     return;

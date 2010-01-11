@@ -40,18 +40,19 @@ Version:   $Revision: 1.2 $
 //          + TemplateModel
 
 // Hole (0, 0) position (surface)
-#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X  -35.0
+#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X  35.0
 #define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Y  25.0
 #define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Z  55.0
 
 // Template corner position
-#define TEMPLATE_BLOCK_OFFSET_FROM_HOLE_X   -15.0
+#define TEMPLATE_BLOCK_OFFSET_FROM_HOLE_X   15.0
 #define TEMPLATE_BLOCK_OFFSET_FROM_HOLE_y   15.0
 #define TEMPLATE_BLOCK_OFFSET_FROM_HOLE_Z   0.0
 
 #define TEMPLATE_WIDTH   100.0  // dimension in x direction (mm)
 #define TEMPLATE_HEIGHT  120.0  // dimension in y direction (mm)
 #define TEMPLATE_DEPTH   25.0   // dimension in z direction (mm)
+#define TEMPLATE_HOLE_RADIUS 1.0 // (only for visualization)
 
 #define TEMPLATE_GRID_PITCH_X 5.0
 #define TEMPLATE_GRID_PITCH_Y 5.0
@@ -525,7 +526,7 @@ int vtkMRMLTransPerinealProstateTemplateNode::Init(vtkSlicerApplication* app)
     if (modelNode)
       {
       vtkMRMLDisplayNode* displayNode = modelNode->GetDisplayNode();
-      displayNode->SetVisibility(1);
+      displayNode->SetVisibility(0);
       modelNode->Modified();
       this->Scene->Modified();
       //modelNode->SetAndObserveTransformNodeID(GetTemplateTransformNodeID());
@@ -888,14 +889,14 @@ const char* vtkMRMLTransPerinealProstateTemplateNode::AddTemplateModel(const cha
       {
       double offset[3];
 
-      offset[0] = this->TemplateOffset[0] + i * this->TemplateGridPitch[0];
+      offset[0] = this->TemplateOffset[0] - i * this->TemplateGridPitch[0];
       offset[1] = this->TemplateOffset[1] - j * this->TemplateGridPitch[1];
-      offset[2] = this->TemplateOffset[2];
+      offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
 
       vtkCylinderSource *cylinder = vtkCylinderSource::New();
       cylinder->SetResolution(24);
       cylinder->SetRadius(1.0);
-      cylinder->SetHeight(5);
+      cylinder->SetHeight(TEMPLATE_DEPTH);
       cylinder->SetCenter(0, 0, 0);
       cylinder->Update();
       
@@ -1339,7 +1340,7 @@ int vtkMRMLTransPerinealProstateTemplateNode::GetHoleTransform(int i, int j, vtk
 
   // offset from the Z-frame center
   double off[4];
-  off[0] = this->TemplateOffset[0] + i * this->TemplateGridPitch[0];
+  off[0] = this->TemplateOffset[0] - i * this->TemplateGridPitch[0];
   off[1] = this->TemplateOffset[1] - j * this->TemplateGridPitch[1];
   off[2] = this->TemplateOffset[2];
   off[3] = 1.0;
