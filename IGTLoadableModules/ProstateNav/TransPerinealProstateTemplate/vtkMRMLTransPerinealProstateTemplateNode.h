@@ -126,6 +126,8 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLTransPerinealProstateTemplateNode : public v
   vtkMRMLLinearTransformNode* GetActiveNeedleTransformNode();
   void SetAndObserveActiveNeedleTransformNodeID(const char *nodeID);
 
+  vtkGetStringMacro(ScreenMessage);
+
   virtual int  MoveTo(const char *transformNodeId);
   
   virtual void SwitchStep(const char *stepName);
@@ -229,6 +231,9 @@ private:
   char *ActiveNeedleTransformNodeID;
   vtkMRMLLinearTransformNode* ActiveNeedleTransformNode;
 
+  // Screen message
+  vtkSetReferenceStringMacro(ScreenMessage);
+  char *ScreenMessage;
 
   // Other member variables
 
