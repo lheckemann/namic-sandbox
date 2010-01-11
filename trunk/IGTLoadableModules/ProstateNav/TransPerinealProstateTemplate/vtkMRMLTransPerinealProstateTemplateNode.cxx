@@ -124,6 +124,8 @@ vtkMRMLTransPerinealProstateTemplateNode::vtkMRMLTransPerinealProstateTemplateNo
 
   // Other
 
+  this->ScreenMessage = NULL;
+
   this->ScannerWorkPhase     = -1;
   this->ScannerConnectedFlag = 0;
 
@@ -1078,7 +1080,16 @@ int vtkMRMLTransPerinealProstateTemplateNode::MoveTo(const char *transformNodeId
     needleTransform->SetElement(1, 3, needleTip[1]);
     needleTransform->SetElement(2, 3, needleTip[2]);
     needleTransformNode->Modified();
-    }
+
+    std::ostringstream ss;
+    ss << "Grid:   (" << i << ", " << j << ")" << std::endl;
+    ss << "Depth:  " << depth << " mm" << std::endl;
+    ss << "Target: R=" << targetX << ", A=" << targetY << ", S=" << targetZ << std::endl;
+    ss << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
+    SetScreenMessage(ss.str().c_str());
+
+    Modified();
+    } 
 
   return 1;
 }
@@ -1411,7 +1422,6 @@ int vtkMRMLTransPerinealProstateTemplateNode::FindHole(double targetX, double ta
   // Calculate targeting error
   errorX = needleTip[0] - targetX;
   errorY = needleTip[1] - targetY;
-  errorZ = needleTip[2] = targetZ;
-  
+  errorZ = needleTip[2] - targetZ;
   return 0;
 }

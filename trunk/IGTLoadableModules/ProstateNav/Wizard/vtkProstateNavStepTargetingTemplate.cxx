@@ -119,7 +119,7 @@ vtkProstateNavStepTargetingTemplate::vtkProstateNavStepTargetingTemplate()
   // TargetControl frame
   this->TargetControlFrame=NULL;
   this->NeedlePositionMatrix=NULL;
-  this->NeedleOrientationMatrix=NULL;
+  //this->NeedleOrientationMatrix=NULL;
   this->MoveButton=NULL;
   this->StopButton=NULL;
 
@@ -162,7 +162,7 @@ vtkProstateNavStepTargetingTemplate::~vtkProstateNavStepTargetingTemplate()
   // TargetControl frame
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetControlFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedlePositionMatrix);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleOrientationMatrix);
+  //DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleOrientationMatrix);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(MoveButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(StopButton);
 
@@ -413,27 +413,29 @@ void vtkProstateNavStepTargetingTemplate::ShowTargetControlFrame()
     matrix->SetElementChangedCommandTriggerToAnyChange();
     }
 
-  if (!this->NeedleOrientationMatrix)
-    {
-    this->NeedleOrientationMatrix = vtkKWMatrixWidgetWithLabel::New();
-    this->NeedleOrientationMatrix->SetParent(this->TargetControlFrame);
-    this->NeedleOrientationMatrix->Create();
-    this->NeedleOrientationMatrix->SetLabelText("Orientation (W, X, Y, Z):");
-    this->NeedleOrientationMatrix->ExpandWidgetOff();
-    this->NeedleOrientationMatrix->GetLabel()->SetWidth(18);
-    this->NeedleOrientationMatrix->SetBalloonHelpString("Set the needle orientation");
+  //if (!this->NeedleOrientationMatrix)
+  //  {
+  //  this->NeedleOrientationMatrix = vtkKWMatrixWidgetWithLabel::New();
+  //  this->NeedleOrientationMatrix->SetParent(this->TargetControlFrame);
+  //  this->NeedleOrientationMatrix->Create();
+  //  this->NeedleOrientationMatrix->SetLabelText("Orientation (W, X, Y, Z):");
+  //  this->NeedleOrientationMatrix->ExpandWidgetOff();
+  //  this->NeedleOrientationMatrix->GetLabel()->SetWidth(18);
+  //  this->NeedleOrientationMatrix->SetBalloonHelpString("Set the needle orientation");
+  //
+  //  vtkKWMatrixWidget *matrix =  this->NeedleOrientationMatrix->GetWidget();
+  //  matrix->SetNumberOfColumns(4);
+  //  matrix->SetNumberOfRows(1);
+  //  matrix->SetElementWidth(12);
+  //  matrix->SetRestrictElementValueToDouble();
+  //  matrix->SetElementChangedCommandTriggerToAnyChange();
+  //  }
 
-    vtkKWMatrixWidget *matrix =  this->NeedleOrientationMatrix->GetWidget();
-    matrix->SetNumberOfColumns(4);
-    matrix->SetNumberOfRows(1);
-    matrix->SetElementWidth(12);
-    matrix->SetRestrictElementValueToDouble();
-    matrix->SetElementChangedCommandTriggerToAnyChange();
-    }
-
-  this->Script("pack %s %s -side top -anchor nw -expand n -padx 2 -pady 2",
-               this->NeedlePositionMatrix->GetWidgetName(),
-               this->NeedleOrientationMatrix->GetWidgetName());
+  //this->Script("pack %s %s -side top -anchor nw -expand n -padx 2 -pady 2",
+  //             this->NeedlePositionMatrix->GetWidgetName(),
+  //             this->NeedleOrientationMatrix->GetWidgetName());
+  this->Script("pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+               this->NeedlePositionMatrix->GetWidgetName());
 
   if(!this->Message)
     {
@@ -451,7 +453,8 @@ void vtkProstateNavStepTargetingTemplate::ShowTargetControlFrame()
     this->Message->SetBorderWidth(2);
     this->Message->SetReliefToGroove();
     this->Message->SetFont("times 12 bold");
-    //this->Message->SetForegroundColor(0.0, 1.0, 0.0);
+    this->Message->SetForegroundColor(0.0, 0.0, 0.0);
+
     }
   this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", 
                 this->Message->GetWidgetName());
@@ -499,21 +502,14 @@ void vtkProstateNavStepTargetingTemplate::ProcessGUIEvents(vtkObject *caller,
   if (this->MoveButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
-    if (this->Logic && this->NeedlePositionMatrix && this->NeedleOrientationMatrix)
+    if (this->Logic && this->NeedlePositionMatrix /*&& this->NeedleOrientationMatrix*/)
       {
       float position[3];   // position parameters
-      float orientation[4]; // orientation parameters
 
       vtkKWMatrixWidget* matrix = this->NeedlePositionMatrix->GetWidget();
       position[0] = (float) matrix->GetElementValueAsDouble(0, 0);
       position[1] = (float) matrix->GetElementValueAsDouble(0, 1);
       position[2] = (float) matrix->GetElementValueAsDouble(0, 2);
-
-      matrix = this->NeedleOrientationMatrix->GetWidget();
-      orientation[0] = (float) matrix->GetElementValueAsDouble(0, 0);
-      orientation[1] = (float) matrix->GetElementValueAsDouble(0, 1);
-      orientation[2] = (float) matrix->GetElementValueAsDouble(0, 2);
-      orientation[3] = (float) matrix->GetElementValueAsDouble(0, 3);
 
       vtkMRMLNode* node = this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(this->GetProstateNavManager()->GetRobotNode()->GetTargetTransformNodeID());
       vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(node);
@@ -521,44 +517,18 @@ void vtkProstateNavStepTargetingTemplate::ProcessGUIEvents(vtkObject *caller,
       if (transformNode)
         {
         vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
-        igtl::Matrix4x4 igtlmatrix;
+        matrix->Identity();
 
-        igtl::QuaternionToMatrix(orientation, igtlmatrix);
-        igtlmatrix[0][3] = position[0];
-        igtlmatrix[1][3] = position[1];
-        igtlmatrix[2][3] = position[2];
-        
-        matrix->SetElement(0, 0, igtlmatrix[0][0]);
-        matrix->SetElement(1, 0, igtlmatrix[1][0]);
-        matrix->SetElement(2, 0, igtlmatrix[2][0]);
-        matrix->SetElement(3, 0, igtlmatrix[3][0]);
-
-        matrix->SetElement(0, 1, igtlmatrix[0][1]);
-        matrix->SetElement(1, 1, igtlmatrix[1][1]);
-        matrix->SetElement(2, 1, igtlmatrix[2][1]);
-        matrix->SetElement(3, 1, igtlmatrix[3][1]);
-
-        matrix->SetElement(0, 2, igtlmatrix[0][2]);
-        matrix->SetElement(1, 2, igtlmatrix[1][2]);
-        matrix->SetElement(2, 2, igtlmatrix[2][2]);
-        matrix->SetElement(3, 2, igtlmatrix[3][2]);
-
-        matrix->SetElement(0, 3, igtlmatrix[0][3]);
-        matrix->SetElement(1, 3, igtlmatrix[1][3]);
-        matrix->SetElement(2, 3, igtlmatrix[2][3]);
-        matrix->SetElement(3, 3, igtlmatrix[3][3]);
-        
-
-        std::cerr << "TARGETPOISITION = "
-                  << igtlmatrix[0][3] << ", "
-                  << igtlmatrix[1][3] << ", "
-                  << igtlmatrix[2][3] << std::endl;
+        matrix->SetElement(0, 3, position[0]);
+        matrix->SetElement(1, 3, position[1]);
+        matrix->SetElement(2, 3, position[2]);
 
         vtkMatrix4x4* transformToParent = transformNode->GetMatrixTransformToParent();
         transformToParent->DeepCopy(matrix);
 
         // Send move to command 
         this->GetProstateNavManager()->GetRobotNode()->MoveTo(transformNode->GetID());
+        this->UpdateGUI();
 
         }
       }
@@ -852,12 +822,12 @@ void vtkProstateNavStepTargetingTemplate::OnMultiColumnListSelectionChanged()
     matrix->SetElementValueAsDouble(0, 1, xyz[1]);
     matrix->SetElementValueAsDouble(0, 2, xyz[2]);
 
-    matrix = this->NeedleOrientationMatrix->GetWidget();
-    double* wxyz=targetDesc->GetRASOrientation();
-    matrix->SetElementValueAsDouble(0, 0, wxyz[0]);
-    matrix->SetElementValueAsDouble(0, 1, wxyz[1]);
-    matrix->SetElementValueAsDouble(0, 2, wxyz[2]);
-    matrix->SetElementValueAsDouble(0, 3, wxyz[3]);
+    //matrix = this->NeedleOrientationMatrix->GetWidget();
+    //double* wxyz=targetDesc->GetRASOrientation();
+    //matrix->SetElementValueAsDouble(0, 0, wxyz[0]);
+    //matrix->SetElementValueAsDouble(0, 1, wxyz[1]);
+    //matrix->SetElementValueAsDouble(0, 2, wxyz[2]);
+    //matrix->SetElementValueAsDouble(0, 3, wxyz[3]);
           
     this->GetProstateNavManager()->SetCurrentTargetIndex(targetIndex);
     }
@@ -1085,7 +1055,10 @@ void vtkProstateNavStepTargetingTemplate::UpdateGUI()
 
   // Display information about the currently selected target descriptor    
   if (this->Message)
-  {    
+  {
+  // NOTE: This part will be rewritten with TargetDescriptor.
+  //       Currently TargetDescriptor does not support template index...
+  /*
     vtkMRMLRobotNode* robot=NULL;
     if (this->GetProstateNavManager()!=NULL)
     {
@@ -1103,7 +1076,16 @@ void vtkProstateNavStepTargetingTemplate::UpdateGUI()
       // no target info available for the current robot with the current target
       this->Message->SetText("");
     }
-
+  */
+    if (this->GetProstateNavManager()!=NULL && this->Message)
+      {
+      vtkMRMLTransPerinealProstateTemplateNode* robot;
+      robot = vtkMRMLTransPerinealProstateTemplateNode::SafeDownCast(this->GetProstateNavManager()->GetRobotNode());
+      if (robot)
+        {
+        this->Message->SetText(robot->GetScreenMessage());
+        }
+      }
   }
 
   UpdateTargetListGUI();
