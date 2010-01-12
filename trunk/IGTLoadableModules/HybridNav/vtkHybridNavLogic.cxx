@@ -27,6 +27,7 @@
 #include "vtkAppendPolyData.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkTransform.h"
+#include "vtkMatrix4x4.h"
 
 vtkCxxRevisionMacro(vtkHybridNavLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkHybridNavLogic);
@@ -86,7 +87,6 @@ vtkMRMLHybridNavToolNode* vtkHybridNavLogic::CreateToolModel(vtkMRMLHybridNavToo
 {
   //Create display node and add to scene
   vtkMRMLModelDisplayNode*  toolDisp = vtkMRMLModelDisplayNode::New();
-  
   GetMRMLScene()->SaveStateForUndo();
   GetMRMLScene()->AddNode(toolDisp);
   toolDisp->SetScene(this->GetMRMLScene());
@@ -127,6 +127,7 @@ vtkMRMLHybridNavToolNode* vtkHybridNavLogic::CreateToolModel(vtkMRMLHybridNavToo
   
   tnode->SetAndObservePolyData(apd->GetOutput());
   
+  //Assign color to geometry
   double color[3];
   color[0] = 0.5;
   color[1] = 0.5;
@@ -145,6 +146,100 @@ vtkMRMLHybridNavToolNode* vtkHybridNavLogic::CreateToolModel(vtkMRMLHybridNavToo
   toolDisp->Delete();
 
   return tnode;
+}
+
+//---------------------------------------------------------------------------
+void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
+{
+  //Extract display node from tool node
+  vtkMRMLModelDisplayNode*  tipDisp = mnode->GetModelDisplayNode();
+  
+  //Get Polydata from Display Node
+  vtkPolyData* pd = tipDisp->GetPolyData();
+  
+  //Create additional sphere to represent sensor
+  vtkSphereSource *sphere = vtkSphereSource::New();
+  sphere->SetRadius(3.0);
+  sphere->SetCenter(0, 0, 0);
+  sphere->Update();
+  
+  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+  
+  // Create filter
+  if (!tfilter)
+    {
+    tfilter = vtkTransformPolyDataFilter::New();
+    vtkTransform* trans = vtkTransform::New();
+    trans->Identity();
+    trans->Translate(0.0, 0.0, -1*(mnode->GetCalibrationMatrix()->GetElement(2,3)));
+    trans->Update();
+    tfilter->SetInput(sphere->GetOutput());
+    tfilter->SetTransform(trans);
+    tfilter->Update();
+    
+    //Append geometries together
+    apd->AddInput(tfilter->GetOutput());
+    apd->AddInput(pd);
+    apd->Update();
+    }
+  
+  /*if (tfilter == NULL)
+    {
+    // Create filter
+    tfilter = vtkTransformPolyDataFilter::New();
+    vtkTransform* trans = vtkTransform::New();
+    trans->Identity();
+    trans->Translate(0.0, 0.0, -1*(mnode->GetCalibrationMatrix()->GetElement(2,3)));
+    trans->Update();
+    tfilter->SetInput(sphere->GetOutput());
+    tfilter->SetTransform(trans);
+    tfilter->Update();
+    
+    //Append geometries together
+    //apd->RemoveInput(pd);
+    apd->AddInput(tfilter->GetOutput());
+    //apd->AddInput(pd);
+    apd->Update();
+    }
+  else 
+    {
+    //Remove filter from previous model
+    apd->RemoveInput(tfilter->GetOutput());
+    apd->AddInput(pd);
+    apd->Update();
+    
+    vtkTransform* trans = vtkTransform::New();
+    trans->Identity();
+    trans->Translate(0.0, 0.0, -1*(mnode->GetCalibrationMatrix()->GetElement(2,3)));
+    trans->Update();
+    tfilter->SetInput(sphere->GetOutput());
+    tfilter->SetTransform(trans);
+    tfilter->Update();
+    
+    //Append geometries together
+    apd->AddInput(tfilter->GetOutput());
+    //apd->AddInput(pd);
+    apd->Update();
+    }*/
+    
+  mnode->SetAndObservePolyData(apd->GetOutput());
+  
+  //Give color to the geometries
+  double color[3];
+  color[0] = 1;
+  color[1] = 0.1;
+  color[2] = 0.1;
+  tipDisp->SetPolyData(mnode->GetPolyData());
+  tipDisp->SetColor(color);
+  tipDisp->SetVisibility(1);
+  mnode->Modified();
+  this->GetApplicationLogic()->GetMRMLScene()->Modified();
+  
+  //tfilter->Delete();
+  //sphere->Delete();
+  //apd->Delete();
+  //pd->Delete();
+  //tipDisp->Delete();
 }
 
 //---------------------------------------------------------------------------

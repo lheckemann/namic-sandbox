@@ -29,6 +29,7 @@
 #include "vtkCallbackCommand.h"
 
 #include "vtkMRMLSliceNode.h"
+#include "vtkMRMLHybridNavToolNode.h"
 
 class vtkMRMLHybridNavToolNode;
 class vtkMRMLModelNode;
@@ -53,6 +54,7 @@ class VTK_HybridNav_EXPORT vtkHybridNavLogic : public vtkSlicerModuleLogic
   //BTX
   //functions to enable a model to represent the tool
   vtkMRMLHybridNavToolNode* CreateToolModel(vtkMRMLHybridNavToolNode* tnode);
+  void AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode);
   //vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
   void SetVisibilityOfToolModel(vtkMRMLHybridNavToolNode* tnode, int v);
   //ETX
@@ -68,6 +70,7 @@ class VTK_HybridNav_EXPORT vtkHybridNavLogic : public vtkSlicerModuleLogic
 
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
+  vtkTransformPolyDataFilter *tfilter;
 
   vtkCallbackCommand *DataCallbackCommand;
 
