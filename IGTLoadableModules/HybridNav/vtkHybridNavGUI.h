@@ -147,6 +147,7 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
 
   vtkSlicerNodeSelectorWidget* CalibrationNodeSelectorMenu;
   vtkKWEntry* numPointsEntry;
+  vtkKWEntry* CalibrationResult;
   vtkKWPushButton* StartCalibrateButton;
 
   //----------------------------------------------------------------

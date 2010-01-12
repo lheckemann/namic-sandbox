@@ -79,6 +79,7 @@ vtkHybridNavGUI::vtkHybridNavGUI ( )
   this->CalibrationNodeSelectorMenu = NULL;
   this->StartCalibrateButton = NULL;
   this->numPointsEntry = NULL;
+  this->CalibrationResult = NULL;
 
   //----------------------------------------------------------------
   // Variables
@@ -163,6 +164,12 @@ vtkHybridNavGUI::~vtkHybridNavGUI ( )
     {
     this->numPointsEntry->SetParent(NULL);
     this->numPointsEntry->Delete();
+    }
+
+  if (this->CalibrationResult)
+    {
+    this->CalibrationResult->SetParent(NULL);
+    this->CalibrationResult->Delete();
     }
 
   if (this->StartCalibrateButton)
@@ -271,6 +278,11 @@ void vtkHybridNavGUI::RemoveGUIObservers ( )
   if (this->numPointsEntry)
     {
     this->numPointsEntry
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  if (this->CalibrationResult)
+    {
+    this->CalibrationResult
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->StartCalibrateButton)
@@ -667,6 +679,9 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
         this->GetMRMLScene()->Modified();
         //Assign new geometry to the tool to reflect tool tip and sensor location
         this->GetLogic()->AppendToolTipModel(pivot->toolNode);
+        
+        //Print result in GUI text box
+        this->CalibrationResult->SetValueAsDouble(pivot->toolNode->GetCalibrationMatrix()->GetElement(2,3));
         }
       }
     }
@@ -979,6 +994,31 @@ void vtkHybridNavGUI::BuildGUIForCalibrationFrame()
   this->Script ( "pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
                  pointsLabel->GetWidgetName(),
                  this->numPointsEntry->GetWidgetName());
+
+  //Calibration Result TextBox
+  vtkKWFrame* resultFrame = vtkKWFrame::New();
+  resultFrame->SetParent(frame->GetFrame());
+  resultFrame->Create();
+  this->Script ( "pack %s -fill both -expand true",
+                 resultFrame->GetWidgetName());
+
+  vtkKWLabel* resultLabel = vtkKWLabel::New();
+  resultLabel->SetParent(resultFrame);
+  resultLabel->Create();
+  resultLabel->SetWidth(15);
+  resultLabel->SetText("Result: ");
+
+  this->CalibrationResult = vtkKWEntry::New();
+  this->CalibrationResult->SetParent(resultFrame);
+  this->CalibrationResult->SetRestrictValueToDouble();
+  this->CalibrationResult->Create();
+  this->CalibrationResult->SetWidth(6);
+  this->CalibrationResult->SetValueAsDouble(0.0);
+  this->CalibrationResult->ReadOnlyOn();
+
+  this->Script ( "pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+                 resultLabel->GetWidgetName(),
+                 this->CalibrationResult->GetWidgetName());
 
   //Calibration button
   vtkKWFrame* startCalibrationFrame = vtkKWFrame::New();
