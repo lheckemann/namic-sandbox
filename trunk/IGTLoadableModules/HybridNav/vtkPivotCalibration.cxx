@@ -37,6 +37,7 @@ vtkPivotCalibration::vtkPivotCalibration()
   this->bComputationError = true;
   this->CalibrationTransform = vtkMatrix4x4::New();
   this->m_SingularValueThreshold = DEFAULT_SINGULAR_VALUE_THRESHOLD;
+  this->m_RMSE = 0.0;
 }
 
 //------------------------------------------------------------------------
