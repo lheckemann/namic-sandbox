@@ -528,7 +528,17 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
       vtkMRMLHybridNavToolNode* tnode = vtkMRMLHybridNavToolNode::SafeDownCast(this->CalibrationNodeSelectorMenu->GetSelected());
       if (tnode)
         {
-        //Add observer to Tracked Transform Node
+        // Annull previous appended calibration matrix
+        vtkMatrix4x4* m1 = vtkMatrix4x4::New();
+        m1->Invert(tnode->GetCalibrationMatrix(), m1);
+        tnode->vtkMRMLTransformableNode::ApplyTransform(m1);
+        
+        // Delete any previous calibration matrix
+        vtkMatrix4x4* m2 = vtkMatrix4x4::New();
+        m2->Identity();
+        tnode->SetCalibrationMatrix(m2);
+        
+        // Add observer to Tracked Transform Node
         vtkIntArray* nodeEvents = vtkIntArray::New();
         nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
         vtkMRMLTransformNode* transformNode = tnode->GetParentTransformNode();
@@ -536,7 +546,7 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         nodeEvents->Delete();
         //Initialize pivot calibration object
         pivot->Initialize(this->numPointsEntry->GetValueAsInt(), tnode);
-        Calibrating = 1;
+        this->Calibrating = 1;
         }
       }
     }
@@ -636,18 +646,27 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
         std::cerr << "Calibration matrix: ";
         pivot->CalibrationTransform->Print(std::cerr);
         Calibrating = 0;
-        
         vtkSetAndObserveMRMLNodeEventsMacro(node, node, NULL);    //Remove observer on selected node
-        pivot->toolNode->SetCalibrated(1); //Update Tool Calibration status
-        pivot->toolNode->SetCalibrationMatrix(pivot->CalibrationTransform);
+        
+        //Update Tool Calibration status
+        pivot->toolNode->SetCalibrated(1); 
+        pivot->toolNode->SetCalibrationMatrix(pivot->CalibrationTransform);  //Assign Calibration Matrix to tool node
         UpdateToolList(UPDATE_ALL);
         
-        //Create node with Calibration Matrix
-        vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::New();
-        tnode->ApplyTransform(pivot->CalibrationTransform);
-        //tool = this->GetLogic()->CreateToolModel(tool);         //Represent the tool
-        this->GetMRMLScene()->AddNode(tnode);
-        this->GetMRMLScene()->Modified();
+        //Create linear transform node with Calibration Matrix
+        //vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::New();
+        //tnode->ApplyTransform(pivot->CalibrationTransform);  //assign calibration matrix to transform
+        //tnode->SetAndObserveTransformNodeID(pivot->toolNode->GetParentTransformNode()->GetID());
+        //this->GetMRMLScene()->AddNode(tnode);
+        //this->GetMRMLScene()->Modified();
+        //Assign tool model with calibration matrix
+        //pivot->toolNode->GetParentTransformNode()->Reset();
+        pivot->toolNode->vtkMRMLTransformableNode::ApplyTransform(pivot->CalibrationTransform);
+        pivot->toolNode->Modified();
+        //pivot->toolNode->SetAndObserveTransformNodeID(tnode->GetID());
+        //this->GetMRMLScene()->Modified();
+        //Assign new geometry to the tool to reflect tool tip and sensor location
+        this->GetLogic()->AppendToolTipModel(pivot->toolNode);
         }
       }
     }
