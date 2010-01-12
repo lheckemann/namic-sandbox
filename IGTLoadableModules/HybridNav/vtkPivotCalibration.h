@@ -95,9 +95,8 @@ public:
   /** This method is used to request the Root Mean Square Error (RMSE) of the
    *  overdetermined equation system used to perform pivot calibration. It
    *  generates two events: DoubleTypeEvent, and InvalidRequestErrorEvent,
-   *  respectively denoting that the RMSE is and isn't available.
-   *  \sa PivotCalibrationAlgorithm */
-  //void RequestCalibrationRMSE();
+   *  respectively denoting that the RMSE is and isn't available.*/
+  double RequestCalibrationRMSE( ) { return m_RMSE;}
 
 
 protected:
