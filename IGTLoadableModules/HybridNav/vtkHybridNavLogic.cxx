@@ -163,65 +163,22 @@ void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
   sphere->SetCenter(0, 0, 0);
   sphere->Update();
   
-  vtkAppendPolyData *apd = vtkAppendPolyData::New();
-  
   // Create filter
-  if (!tfilter)
-    {
-    tfilter = vtkTransformPolyDataFilter::New();
-    vtkTransform* trans = vtkTransform::New();
-    trans->Identity();
-    trans->Translate(0.0, 0.0, -1*(mnode->GetCalibrationMatrix()->GetElement(2,3)));
-    trans->Update();
-    tfilter->SetInput(sphere->GetOutput());
-    tfilter->SetTransform(trans);
-    tfilter->Update();
-    
-    //Append geometries together
-    apd->AddInput(tfilter->GetOutput());
-    apd->AddInput(pd);
-    apd->Update();
-    }
+  tfilter = vtkTransformPolyDataFilter::New();
+  vtkTransform* trans = vtkTransform::New();
+  trans->Identity();
+  trans->Translate(0.0, 0.0, -1*(mnode->GetCalibrationMatrix()->GetElement(2,3)));
+  trans->Update();
+  tfilter->SetInput(sphere->GetOutput());
+  tfilter->SetTransform(trans);
+  tfilter->Update();
   
-  /*if (tfilter == NULL)
-    {
-    // Create filter
-    tfilter = vtkTransformPolyDataFilter::New();
-    vtkTransform* trans = vtkTransform::New();
-    trans->Identity();
-    trans->Translate(0.0, 0.0, -1*(mnode->GetCalibrationMatrix()->GetElement(2,3)));
-    trans->Update();
-    tfilter->SetInput(sphere->GetOutput());
-    tfilter->SetTransform(trans);
-    tfilter->Update();
-    
-    //Append geometries together
-    //apd->RemoveInput(pd);
-    apd->AddInput(tfilter->GetOutput());
-    //apd->AddInput(pd);
-    apd->Update();
-    }
-  else 
-    {
-    //Remove filter from previous model
-    apd->RemoveInput(tfilter->GetOutput());
-    apd->AddInput(pd);
-    apd->Update();
-    
-    vtkTransform* trans = vtkTransform::New();
-    trans->Identity();
-    trans->Translate(0.0, 0.0, -1*(mnode->GetCalibrationMatrix()->GetElement(2,3)));
-    trans->Update();
-    tfilter->SetInput(sphere->GetOutput());
-    tfilter->SetTransform(trans);
-    tfilter->Update();
-    
-    //Append geometries together
-    apd->AddInput(tfilter->GetOutput());
-    //apd->AddInput(pd);
-    apd->Update();
-    }*/
-    
+  //Append geometries together
+  vtkAppendPolyData *apd = vtkAppendPolyData::New();
+  apd->AddInput(tfilter->GetOutput());
+  apd->AddInput(pd);
+  apd->Update();
+
   mnode->SetAndObservePolyData(apd->GetOutput());
   
   //Give color to the geometries

@@ -659,12 +659,12 @@ void vtkHybridNavGUI::ProcessMRMLEvents ( vtkObject *caller,
         //tnode->SetAndObserveTransformNodeID(pivot->toolNode->GetParentTransformNode()->GetID());
         //this->GetMRMLScene()->AddNode(tnode);
         //this->GetMRMLScene()->Modified();
+        
         //Assign tool model with calibration matrix
-        //pivot->toolNode->GetParentTransformNode()->Reset();
-        pivot->toolNode->vtkMRMLTransformableNode::ApplyTransform(pivot->CalibrationTransform);
+        //pivot->toolNode->SetAndObserveTransformNodeID(pivot->toolNode->GetID());
+        pivot->toolNode->vtkMRMLTransformableNode::ApplyTransform(pivot->toolNode->GetCalibrationMatrix());
         pivot->toolNode->Modified();
-        //pivot->toolNode->SetAndObserveTransformNodeID(tnode->GetID());
-        //this->GetMRMLScene()->Modified();
+        this->GetMRMLScene()->Modified();
         //Assign new geometry to the tool to reflect tool tip and sensor location
         this->GetLogic()->AppendToolTipModel(pivot->toolNode);
         }
