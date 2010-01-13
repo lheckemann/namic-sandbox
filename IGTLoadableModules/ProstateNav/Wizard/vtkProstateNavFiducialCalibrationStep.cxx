@@ -1,7 +1,7 @@
 #include "vtkProstateNavFiducialCalibrationStep.h"
 
 #include "vtkProstateNavGUI.h"
-#include "vtkProstatenavLogic.h"
+#include "vtkProstateNavLogic.h"
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationLogic.h"
