@@ -84,7 +84,7 @@ int main( int argc, char ** argv )
   iccReader->SetFileName( argv[2] );
   tumorReader->SetFileName( argv[3] );
   outputWriter->SetFileName( argv[4] );
-  float growthMagnitude = atoi(argv[5]);
+  float growthMagnitude = atof(argv[5]);
 
   inputReader->Update();
   iccReader->Update();
