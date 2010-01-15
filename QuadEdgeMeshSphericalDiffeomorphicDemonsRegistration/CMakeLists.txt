@@ -8,6 +8,10 @@ PROJECT(QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration)
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
+IF( NOT ITK_USE_REVIEW )
+  MESSAGE(FATAL_ERROR "ITK must be build with ITK_USE_REVIEW turned ON")
+ENDIF( NOT ITK_USE_REVIEW )
+
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables") 
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
 
