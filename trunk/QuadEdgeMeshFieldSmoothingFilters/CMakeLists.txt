@@ -23,6 +23,10 @@ IF(USE_VTK)
 ENDIF(USE_VTK)
 
 
+IF(NOT ITK_USE_REVIEW)
+  MESSAGE(FATAL_ERROR "This projects requires ITK_USE_REVIEW ON, you must reconfigure your ITK build")
+ENDIF()
+
 INCLUDE(CTest)
 
 INCLUDE_DIRECTORIES(
