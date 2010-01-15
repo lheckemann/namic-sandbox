@@ -26,6 +26,8 @@
 #include "vtkUDPServerLogic.h"
 
 class vtkKWPushButton;
+class vtkKWEntry;
+class vtkKWMultiColumnListWithScrollbars;
 
 class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
 {
@@ -93,8 +95,8 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
 
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
-  void BuildGUIForTestFrame1();
-  void BuildGUIForTestFrame2();
+  void BuildGUIForServerFrame();
+  void BuildGUIForDataFrame();
 
   //----------------------------------------------------------------
   // Update routines
@@ -104,6 +106,16 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
 
 
  protected:
+  
+  //----------------------------------------------------------------
+  // Message
+  //----------------------------------------------------------------
+  //BTX
+  static const int BUFFSIZE = 255;
+  bool ServerConnected;
+  char buffer[BUFFSIZE];
+  bool received;
+  //ETX
   
   //----------------------------------------------------------------
   // Timer
@@ -116,10 +128,9 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   // GUI widgets
   //----------------------------------------------------------------
 
-  vtkKWPushButton* TestButton11;
-  vtkKWPushButton* TestButton12;
-  vtkKWPushButton* TestButton21;
-  vtkKWPushButton* TestButton22;
+  vtkKWPushButton* ConnectButton;
+  vtkKWEntry*      PortEntry;
+  vtkKWMultiColumnListWithScrollbars* DataTable;
 
   //----------------------------------------------------------------
   // Logic Values

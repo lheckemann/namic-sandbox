@@ -30,7 +30,17 @@
 
 #include "vtkMRMLSliceNode.h"
 
-class vtkIGTLConnector;
+#include <stdio.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <iostream>
+#include <fcntl.h>
+
+class vtkMultiThreader;
 
 class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic 
 {
@@ -48,6 +58,19 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   
   vtkTypeRevisionMacro(vtkUDPServerLogic,vtkObject);
   void PrintSelf(ostream&, vtkIndent);
+  
+  //----------------------------------
+  //Data Handlers
+  int StartServerConnection();
+  int ImportData();
+  int Start(int p);
+  int Stop();
+  bool GetServerStopFlag() {return this->ServerStopFlag;};
+  
+  //-----------------------------------
+  //Thread Control
+  
+  static void* ThreadFunction(void* ptr);
 
  protected:
   
@@ -62,8 +85,26 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
 
   vtkCallbackCommand *DataCallbackCommand;
 
+  //-----------------------------------------------------------------
+  // Server Connection
+  //-----------------------------------------------------------------
+  
+  //BTX
+  int sock;
+  int port;
+  bool received;
+  static const int BUFFSIZE = 255;
+  char buffer[BUFFSIZE];
+  struct sockaddr_in echoserver;
+  struct sockaddr_in echoclient;
+  unsigned int echolen, clientlen, serverlen;
+  int ThreadID;
+  bool ServerStopFlag;
+  //ETX
+
  private:
 
+ vtkMultiThreader* Thread;
 
 };
 
