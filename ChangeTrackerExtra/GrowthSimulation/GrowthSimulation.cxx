@@ -71,7 +71,7 @@ int main( int argc, char ** argv )
   if( argc < 5 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " inputImage inputICCSeg inputTumorSeg outputImage" << std::endl;
+    std::cerr << argv[0] << " inputImage inputICCSeg inputTumorSeg outputImage growthMagnitude" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -84,6 +84,7 @@ int main( int argc, char ** argv )
   iccReader->SetFileName( argv[2] );
   tumorReader->SetFileName( argv[3] );
   outputWriter->SetFileName( argv[4] );
+  float growthMagnitude = atoi(argv[5]);
 
   inputReader->Update();
   iccReader->Update();
@@ -96,7 +97,7 @@ int main( int argc, char ** argv )
   // Find the center of gravity for the tumor label
   LabelToShapeType::Pointer label2shape = LabelToShapeType::New();
   typedef itk::ShapeLabelObject< PixelType, 3 > ShapeLabelObjectType;
-  label2shape->SetInput(iccImage);
+  label2shape->SetInput(tumorImage);
   label2shape->Update();
 
   typedef itk::LabelMap< ShapeLabelObjectType >   LabelMapType;
@@ -106,7 +107,8 @@ int main( int argc, char ** argv )
   ImageType::IndexType centroidIdx;
   ImageType::PointType centroidPt = labelObject->GetCentroid();
   tumorImage->TransformPhysicalPointToIndex(labelObject->GetCentroid(), centroidIdx);
-  std::cout << "Center of gravity: " << labelObject->GetCentroid() << " (" 
+  std::cout << "Total label objects: " << labelMap->GetNumberOfLabelObjects() << std::endl;
+  std::cout << "Center of gravity for label " << labelObject->GetLabel() << ": " << labelObject->GetCentroid() << " (" 
     << centroidIdx << ")" << std::endl;
  
   typedef itk::ImageDuplicator<ImageType> DuplicatorType;
@@ -140,7 +142,7 @@ int main( int argc, char ** argv )
     displ[2] = curPt[2]-centroidPt[2];
     GradientImageType::PixelType curDispl = it.Get();
     if(displ.GetNorm()<31.45 && curDispl.GetNorm())
-      curDispl *= sin(.1*displ.GetNorm())/curDispl.GetNorm();
+      curDispl *= growthMagnitude*sin(.1*displ.GetNorm())/curDispl.GetNorm();
     else
       curDispl *= 0;
     it.Set(curDispl);
