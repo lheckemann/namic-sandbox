@@ -132,7 +132,8 @@ int main( int argc, char ** argv )
   GradientImageType::Pointer gradImage = grad->GetOutput();
 
   itk::ImageRegionIteratorWithIndex<GradientImageType> it(gradImage, gradImage->GetBufferedRegion());
-  for(it.GoToBegin();!it.IsAtEnd();++it){
+  itk::ImageRegionIteratorWithIndex<ImageType> iccit(iccImage, iccImage->GetBufferedRegion());
+  for(it.GoToBegin(),iccit.GoToBegin();!it.IsAtEnd();++it,++iccit){
     GradientPixelType displ;
     GradientImageType::PointType curPt;
     GradientImageType::IndexType curIdx = it.GetIndex();
@@ -145,6 +146,8 @@ int main( int argc, char ** argv )
       curDispl *= growthMagnitude*sin(.1*displ.GetNorm())/curDispl.GetNorm();
     else
       curDispl *= 0;
+    if(!iccit.Get())
+      curDispl *= 0.;
     it.Set(curDispl);
   }
 
