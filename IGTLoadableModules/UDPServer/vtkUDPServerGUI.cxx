@@ -31,11 +31,11 @@
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
 #include "vtkKWEvent.h"
-
+#include "vtkKWEntry.h"
+#include "vtkKWMultiColumnListWithScrollbars.h"
+#include "vtkKWMultiColumnList.h"
 #include "vtkKWPushButton.h"
-
 #include "vtkCornerAnnotation.h"
-
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkUDPServerGUI );
@@ -56,14 +56,16 @@ vtkUDPServerGUI::vtkUDPServerGUI ( )
   
   //----------------------------------------------------------------
   // GUI widgets
-  this->TestButton11 = NULL;
-  this->TestButton12 = NULL;
-  this->TestButton21 = NULL;
-  this->TestButton22 = NULL;
+  this->ConnectButton = NULL;
+  this->PortEntry = NULL;
+  this->DataTable = NULL;
   
   //----------------------------------------------------------------
-  // Locator  (MRML)
+  //Message Variables
+  this->ServerConnected = 0;
   this->TimerFlag = 0;
+  this->received = 0;
+  this->TimerInterval = 1000;  // 100 ms
 
 }
 
@@ -87,28 +89,22 @@ vtkUDPServerGUI::~vtkUDPServerGUI ( )
   //----------------------------------------------------------------
   // Remove GUI widgets
 
-  if (this->TestButton11)
+  if (this->ConnectButton)
     {
-    this->TestButton11->SetParent(NULL);
-    this->TestButton11->Delete();
+    this->ConnectButton->SetParent(NULL);
+    this->ConnectButton->Delete();
     }
 
-  if (this->TestButton12)
+  if (this->PortEntry)
     {
-    this->TestButton12->SetParent(NULL);
-    this->TestButton12->Delete();
+    this->PortEntry->SetParent(NULL);
+    this->PortEntry->Delete();
     }
 
-  if (this->TestButton21)
+  if (this->DataTable)
     {
-    this->TestButton21->SetParent(NULL);
-    this->TestButton21->Delete();
-    }
-
-  if (this->TestButton22)
-    {
-    this->TestButton22->SetParent(NULL);
-    this->TestButton22->Delete();
+    this->DataTable->SetParent(NULL);
+    this->DataTable->Delete();
     }
 
   //----------------------------------------------------------------
@@ -128,18 +124,8 @@ void vtkUDPServerGUI::Init()
 //---------------------------------------------------------------------------
 void vtkUDPServerGUI::Enter()
 {
-  // Fill in
-  //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  
-  if (this->TimerFlag == 0)
-    {
-    this->TimerFlag = 1;
-    this->TimerInterval = 100;  // 100 ms
-    ProcessTimerEvents();
-    }
 
 }
-
 
 //---------------------------------------------------------------------------
 void vtkUDPServerGUI::Exit ( )
@@ -163,30 +149,23 @@ void vtkUDPServerGUI::RemoveGUIObservers ( )
 {
   //vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  if (this->TestButton11)
+  if (this->ConnectButton)
     {
-    this->TestButton11
+    this->ConnectButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
-  if (this->TestButton12)
+  if (this->PortEntry)
     {
-    this->TestButton12
+    this->PortEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
-  if (this->TestButton21)
+    
+  if (this->DataTable)
     {
-    this->TestButton21
+    this->DataTable
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-
-  if (this->TestButton22)
-    {
-    this->TestButton22
-      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
-
 
   this->RemoveLogicObservers();
 
@@ -217,15 +196,11 @@ void vtkUDPServerGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // GUI Observers
 
-  this->TestButton11
+  this->ConnectButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton12
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton21
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->TestButton22
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-
+  this->PortEntry
+     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  
   this->AddLogicObservers();
 
 }
@@ -240,9 +215,6 @@ void vtkUDPServerGUI::RemoveLogicObservers ( )
                                       (vtkCommand *)this->LogicCallbackCommand);
     }
 }
-
-
-
 
 //---------------------------------------------------------------------------
 void vtkUDPServerGUI::AddLogicObservers ( )
@@ -276,30 +248,35 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
     return;
     }
 
-  
-  if (this->TestButton11 == vtkKWPushButton::SafeDownCast(caller) 
+  if (this->ConnectButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent)
     {
-    std::cerr << "TestButton11 is pressed." << std::endl;
+    std::cerr << "Connect/Disconnect Button has been pressed." << std::endl;
+    this->ServerConnected = !(this->ServerConnected);
+    if (this->ServerConnected == 1)
+      {
+      //Call server connect loop to connect
+      this->GetLogic()->Start(this->PortEntry->GetValueAsInt());
+      if (!this->GetLogic()->GetServerStopFlag())
+        {
+        this->ConnectButton->SetText("Disconnect");
+        }
+      }
+    else
+      {
+      this->GetLogic()->Stop();
+      if (this->GetLogic()->GetServerStopFlag())
+        {
+        this->ConnectButton->SetText("Connect");
+        }
+      }
     }
-  else if (this->TestButton12 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
+  else if (this->PortEntry == vtkKWEntry::SafeDownCast(caller)
+      && event == vtkKWEntry::EntryValueChangedEvent)
     {
-    std::cerr << "TestButton12 is pressed." << std::endl;
+    std::cerr << "Port has been modified." << std::endl;
     }
-  else if (this->TestButton21 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton21 is pressed." << std::endl;
-    }
-  else if (this->TestButton22 == vtkKWPushButton::SafeDownCast(caller)
-      && event == vtkKWPushButton::InvokedEvent)
-    {
-    std::cerr << "TestButton22 is pressed." << std::endl;
-    }
-
-} 
-
+}
 
 void vtkUDPServerGUI::DataCallback(vtkObject *caller, 
                                      unsigned long eid, void *clientData, void *callData)
@@ -336,12 +313,15 @@ void vtkUDPServerGUI::ProcessMRMLEvents ( vtkObject *caller,
     }
 }
 
-
 //---------------------------------------------------------------------------
 void vtkUDPServerGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
+    // -----------------------------------------
+    // Get incoming new data
+    //TODO: check return value
+    //this->GetLogic()->ImportData(this->PortEntry->GetValueAsInt());
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
@@ -349,23 +329,21 @@ void vtkUDPServerGUI::ProcessTimerEvents()
     }
 }
 
-
 //---------------------------------------------------------------------------
 void vtkUDPServerGUI::BuildGUI ( )
 {
 
-  // ---
   // MODULE GUI FRAME 
   // create a page
   this->UIPanel->AddPage ( "UDPServer", "UDPServer", NULL );
 
+  //Call Build GUI methods
   BuildGUIForHelpFrame();
-  BuildGUIForTestFrame1();
-  BuildGUIForTestFrame2();
-
+  BuildGUIForServerFrame();
+  BuildGUIForDataFrame();
 }
 
-
+//--------------------------------------------------------------------------
 void vtkUDPServerGUI::BuildGUIForHelpFrame ()
 {
   // Define your help text here.
@@ -381,7 +359,7 @@ void vtkUDPServerGUI::BuildGUIForHelpFrame ()
 
 
 //---------------------------------------------------------------------------
-void vtkUDPServerGUI::BuildGUIForTestFrame1()
+void vtkUDPServerGUI::BuildGUIForServerFrame()
 {
 
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
@@ -391,94 +369,116 @@ void vtkUDPServerGUI::BuildGUIForTestFrame1()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 1");
+  conBrowsFrame->SetLabelText("Server Connection");
   //conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Test child frame
+  // Server Frame
 
   vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
   frame->SetParent(conBrowsFrame->GetFrame());
   frame->Create();
-  frame->SetLabelText ("Test child frame");
+  frame->SetLabelText ("Server Configuration");
   this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
                  frame->GetWidgetName() );
 
   // -----------------------------------------
-  // Test push button
+  // Port Entry Textbox
+  
+  vtkKWFrame *portFrame = vtkKWFrame::New();
+  portFrame->SetParent(frame->GetFrame());
+  portFrame->Create();
+  
+  vtkKWFrame *connectFrame = vtkKWFrame::New();
+  connectFrame->SetParent(frame->GetFrame());
+  connectFrame->Create();
+  app->Script ( "pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+                portFrame->GetWidgetName(),
+                connectFrame->GetWidgetName());
 
-  this->TestButton11 = vtkKWPushButton::New ( );
-  this->TestButton11->SetParent ( frame->GetFrame() );
-  this->TestButton11->Create ( );
-  this->TestButton11->SetText ("Test 11");
-  this->TestButton11->SetWidth (12);
+  vtkKWLabel *portLabel = vtkKWLabel::New();
+  portLabel->SetParent(portFrame);
+  portLabel->Create();
+  portLabel->SetWidth(8);
+  portLabel->SetText("Port: ");
 
-  this->TestButton12 = vtkKWPushButton::New ( );
-  this->TestButton12->SetParent ( frame->GetFrame() );
-  this->TestButton12->Create ( );
-  this->TestButton12->SetText ("Tset 12");
-  this->TestButton12->SetWidth (12);
+  this->PortEntry = vtkKWEntry::New();
+  this->PortEntry->SetParent(portFrame);
+  this->PortEntry->Create();
+  this->PortEntry->SetWidth(6);
+  this->PortEntry->SetRestrictValueToInteger();
+  this->PortEntry->SetValueAsInt(3000);
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+              portLabel->GetWidgetName() , this->PortEntry->GetWidgetName());
+  portLabel->Delete();
 
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton11->GetWidgetName(),
-               this->TestButton12->GetWidgetName());
+  //--------------------------------------------
+  // Connect Button
+  
+  this->ConnectButton = vtkKWPushButton::New( );
+  this->ConnectButton->SetParent(connectFrame);
+  this->ConnectButton->Create( );
+  this->ConnectButton->SetText("Connect");
+  this->ConnectButton->SetWidth(12);
 
+  this->Script("pack %s -padx 2 -pady 2", 
+               this->ConnectButton->GetWidgetName());
+
+  connectFrame->Delete();
   conBrowsFrame->Delete();
   frame->Delete();
 
 }
 
-
-//---------------------------------------------------------------------------
-void vtkUDPServerGUI::BuildGUIForTestFrame2 ()
+//----------------------------------------------------------------------------
+void vtkUDPServerGUI::BuildGUIForDataFrame()
 {
   vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ("UDPServer");
+  vtkKWWidget *page = this->UIPanel->GetPageWidget("UDPServer");
   
-  vtkSlicerModuleCollapsibleFrame *conBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
+  vtkSlicerModuleCollapsibleFrame *dataBrowsFrame = vtkSlicerModuleCollapsibleFrame::New();
 
-  conBrowsFrame->SetParent(page);
-  conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Test Frame 2");
-  //conBrowsFrame->CollapseFrame();
+  dataBrowsFrame->SetParent(page);
+  dataBrowsFrame->Create();
+  dataBrowsFrame->SetLabelText("Data Frame");
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
-               conBrowsFrame->GetWidgetName(), page->GetWidgetName());
+               dataBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
   // -----------------------------------------
-  // Test child frame
+  // Data Table Widget
 
-  vtkKWFrameWithLabel *frame = vtkKWFrameWithLabel::New();
-  frame->SetParent(conBrowsFrame->GetFrame());
-  frame->Create();
-  frame->SetLabelText ("Test child frame");
-  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-                 frame->GetWidgetName() );
+  this->DataTable = vtkKWMultiColumnListWithScrollbars::New();
+  this->DataTable->SetParent(dataBrowsFrame->GetFrame());
+  this->DataTable->Create();
+  this->DataTable->SetHeight(1);
+  this->DataTable->GetWidget()->SetSelectionTypeToRow();
+  this->DataTable->GetWidget()->SetSelectionModeToSingle();
+  this->DataTable->GetWidget()->MovableRowsOff();
+  this->DataTable->GetWidget()->MovableColumnsOff();
+
+  const char* labels[] =
+    { "Date", "Time", "Smoothed", "Beta", "Gamma"};
+  const int widths[] = 
+    { 8, 8, 11, 7, 7 };
+
+  for (int col = 0; col < 5; col ++)
+    {
+    this->DataTable->GetWidget()->AddColumn(labels[col]);
+    this->DataTable->GetWidget()->SetColumnWidth(col, widths[col]);
+    this->DataTable->GetWidget()->SetColumnAlignmentToLeft(col);
+    this->DataTable->GetWidget()->ColumnEditableOff(col);
+    this->DataTable->GetWidget()->SetColumnEditWindowToSpinBox(col);
+    }
+  this->DataTable->GetWidget()->SetColumnEditWindowToCheckButton(0);
   
-  // -----------------------------------------
-  // Test push button
-
-  this->TestButton21 = vtkKWPushButton::New ( );
-  this->TestButton21->SetParent ( frame->GetFrame() );
-  this->TestButton21->Create ( );
-  this->TestButton21->SetText ("Test 21");
-  this->TestButton21->SetWidth (12);
-
-  this->TestButton22 = vtkKWPushButton::New ( );
-  this->TestButton22->SetParent ( frame->GetFrame() );
-  this->TestButton22->Create ( );
-  this->TestButton22->SetText ("Tset 22");
-  this->TestButton22->SetWidth (12);
-
-  this->Script("pack %s %s -side left -padx 2 -pady 2", 
-               this->TestButton21->GetWidgetName(),
-               this->TestButton22->GetWidgetName());
-
-
-  conBrowsFrame->Delete();
-  frame->Delete();
+   app->Script ("pack %s -fill both -expand true",  
+               this->DataTable->GetWidgetName());
+  
+  dataBrowsFrame->Delete();
 }
+  
 
 
 //----------------------------------------------------------------------------
