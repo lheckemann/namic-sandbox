@@ -102,12 +102,13 @@ protected:
   vtkKWFrame *TargetPlanningFrame;
   //vtkKWPushButton* LoadTargetingVolumeButton;
   vtkSlicerNodeSelectorWidget* VolumeSelectorWidget;
+  vtkSlicerNodeSelectorWidget* TargetListSelectorWidget;
   vtkKWFrame *LoadVolumeDialogFrame;
   vtkKWCheckButton *ShowCoverageButton;
   vtkKWCheckButton *AddTargetsOnClickButton;
   vtkKWCheckButton *ShowNeedleButton;
   vtkKWCheckButton *ShowTemplateButton;
-  vtkKWMenuButtonWithLabel *NeedleTypeMenuList;  
+  vtkKWMenuButtonWithLabel *NeedleTypeMenuList;
   vtkMRMLFiducialListNode *TargetPlanListNode;
   vtkKWFrame *OptionFrame;
 

@@ -105,12 +105,13 @@ vtkProstateNavStepTargetingTemplate::vtkProstateNavStepTargetingTemplate()
   this->TargetPlanningFrame=NULL;
   //this->LoadTargetingVolumeButton=NULL;
   this->VolumeSelectorWidget=NULL;
+  this->TargetListSelectorWidget=NULL;
   this->TargetPlanningFrame=NULL;
   this->ShowCoverageButton=NULL;
   this->ShowNeedleButton=NULL;
   this->ShowTemplateButton=NULL;
   this->AddTargetsOnClickButton=NULL;
-  this->NeedleTypeMenuList=NULL; 
+  //this->NeedleTypeMenuList=NULL; 
 
   // TargetList frame
   this->TargetListFrame=NULL;
@@ -148,12 +149,13 @@ vtkProstateNavStepTargetingTemplate::~vtkProstateNavStepTargetingTemplate()
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetPlanningFrame);
   //DELETE_IF_NULL_WITH_SETPARENT_NULL(LoadTargetingVolumeButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(VolumeSelectorWidget);
+  DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetListSelectorWidget);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(TargetPlanningFrame);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowCoverageButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowNeedleButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(ShowTemplateButton);
   DELETE_IF_NULL_WITH_SETPARENT_NULL(AddTargetsOnClickButton);
-  DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleTypeMenuList); 
+  //DELETE_IF_NULL_WITH_SETPARENT_NULL(NeedleTypeMenuList); 
   DELETE_IF_NULL_WITH_SETPARENT_NULL(OptionFrame);
 
   // TargetList frame
@@ -239,21 +241,39 @@ void vtkProstateNavStepTargetingTemplate::ShowTargetPlanningFrame()
     this->VolumeSelectorWidget->SetBalloonHelpString("Select the targeting volume from the current scene.");
     }
 
-  if (!this->NeedleTypeMenuList)
+  if (!this->TargetListSelectorWidget)
     {
-    this->NeedleTypeMenuList = vtkKWMenuButtonWithLabel::New();
+    this->TargetListSelectorWidget = vtkSlicerNodeSelectorWidget::New();
     }
-  if (!this->NeedleTypeMenuList->IsCreated())
+  if (!this->TargetListSelectorWidget->IsCreated())
     {
-    this->NeedleTypeMenuList->SetParent(this->TargetPlanningFrame);
-    this->NeedleTypeMenuList->Create();
-    this->NeedleTypeMenuList->SetLabelText("Needle type: ");
-    this->NeedleTypeMenuList->SetBalloonHelpString("Select the needle type");
+    this->TargetListSelectorWidget->SetParent(this->TargetPlanningFrame);
+    this->TargetListSelectorWidget->Create();
+    this->TargetListSelectorWidget->SetBorderWidth(2);  
+    this->TargetListSelectorWidget->SetNodeClass("vtkMRMLFiducialListNode", NULL, NULL, NULL);
+    this->TargetListSelectorWidget->SetMRMLScene(this->GetLogic()->GetApplicationLogic()->GetMRMLScene());
+    this->TargetListSelectorWidget->GetWidget()->GetWidget()->IndicatorVisibilityOff();
+    this->TargetListSelectorWidget->GetWidget()->GetWidget()->SetWidth(24);
+    this->TargetListSelectorWidget->SetLabelText( "Target List: ");
+    this->TargetListSelectorWidget->SetBalloonHelpString("Select the fiducial list from the current scene.");
     }
+
+  //if (!this->NeedleTypeMenuList)
+  //  {
+  //  this->NeedleTypeMenuList = vtkKWMenuButtonWithLabel::New();
+  //  }
+  //if (!this->NeedleTypeMenuList->IsCreated())
+  //  {
+  //  this->NeedleTypeMenuList->SetParent(this->TargetPlanningFrame);
+  //  this->NeedleTypeMenuList->Create();
+  //  this->NeedleTypeMenuList->SetLabelText("Needle type: ");
+  //  this->NeedleTypeMenuList->SetBalloonHelpString("Select the needle type");
+  //  }
 
   this->Script("pack %s %s -side top -anchor nw -expand y -padx 2 -pady 2",
                this->VolumeSelectorWidget->GetWidgetName(),
-               this->NeedleTypeMenuList->GetWidgetName());
+               this->TargetListSelectorWidget->GetWidgetName());
+               //this->NeedleTypeMenuList->GetWidgetName());
 
   if (!this->OptionFrame)
     {
@@ -625,10 +645,22 @@ void vtkProstateNavStepTargetingTemplate::ProcessGUIEvents(vtkObject *caller,
 
   }
 
-  if (this->NeedleTypeMenuList && this->NeedleTypeMenuList->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller) && (event == vtkKWMenu::MenuItemInvokedEvent))
+ //if (this->NeedleTypeMenuList && this->NeedleTypeMenuList->GetWidget()->GetMenu() == vtkKWMenu::SafeDownCast(caller) && (event == vtkKWMenu::MenuItemInvokedEvent))
+ //  {
+ //    mrmlNode->SetCurrentNeedleIndex(this->NeedleTypeMenuList->GetWidget()->GetMenu()->GetIndexOfSelectedItem());
+ //  }
+ //
+  if (this->TargetListSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
+    event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
     {
-      mrmlNode->SetCurrentNeedleIndex(this->NeedleTypeMenuList->GetWidget()->GetMenu()->GetIndexOfSelectedItem());
+    vtkMRMLFiducialListNode *fid = vtkMRMLFiducialListNode::SafeDownCast(this->TargetListSelectorWidget->GetSelected());
+    if (fid != NULL)
+      {
+      vtkMRMLProstateNavManagerNode* manager=this->GetProstateNavManager();
+      manager->SetAndObserveTargetPlanListNodeID(fid->GetID());
+      }
     }
+
 
   if (this->VolumeSelectorWidget == vtkSlicerNodeSelectorWidget::SafeDownCast(caller) &&
     event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent ) 
@@ -949,11 +981,11 @@ void vtkProstateNavStepTargetingTemplate::UpdateTargetListGUI()
         }
       }
 
-    if (target->GetNeedleTypeString().compare(this->TargetList->GetWidget()->GetCellText(row,COL_NEEDLE)) != 0)
-    {
-      this->TargetList->GetWidget()->SetCellText(row,COL_NEEDLE,target->GetNeedleTypeString().c_str());
-    }
-
+    //if (target->GetNeedleTypeString().compare(this->TargetList->GetWidget()->GetCellText(row,COL_NEEDLE)) != 0)
+    //{
+    //  this->TargetList->GetWidget()->SetCellText(row,COL_NEEDLE,target->GetNeedleTypeString().c_str());
+    //}
+    //
     }  
 
 }
@@ -973,6 +1005,11 @@ void vtkProstateNavStepTargetingTemplate::AddGUIObservers()
     {
     this->VolumeSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);  
     }
+  if (this->TargetListSelectorWidget)
+    {
+    this->TargetListSelectorWidget->AddObserver ( vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);  
+    }
+
   if (this->ShowCoverageButton)
     {
       this->ShowCoverageButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -989,11 +1026,11 @@ void vtkProstateNavStepTargetingTemplate::AddGUIObservers()
     {
       this->AddTargetsOnClickButton->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
     }  
-  if (this->NeedleTypeMenuList)
-    {
-    this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-    }
-  if (this->DeleteButton)
+  //if (this->NeedleTypeMenuList)
+  //  {
+  //  this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+//  }
+    if (this->DeleteButton)
     {
     this->DeleteButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     }
@@ -1022,6 +1059,10 @@ void vtkProstateNavStepTargetingTemplate::RemoveGUIObservers()
     {
     this->VolumeSelectorWidget->RemoveObserver ((vtkCommand *)this->GUICallbackCommand);  
     }
+  if (this->TargetListSelectorWidget)
+    {
+    this->TargetListSelectorWidget->RemoveObserver ((vtkCommand *)this->GUICallbackCommand);  
+    }
   if (this->ShowCoverageButton)
     {
     this->ShowCoverageButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
@@ -1038,10 +1079,10 @@ void vtkProstateNavStepTargetingTemplate::RemoveGUIObservers()
     {
       this->AddTargetsOnClickButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }  
-  if (this->NeedleTypeMenuList)
-    {
-      this->NeedleTypeMenuList->GetWidget()->GetMenu()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-    }
+  //if (this->NeedleTypeMenuList)
+  //  {
+  //    this->NeedleTypeMenuList->GetWidget()->GetMenu()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  //  }
   if (this->DeleteButton)
     {
     this->DeleteButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
@@ -1071,7 +1112,6 @@ void vtkProstateNavStepTargetingTemplate::UpdateGUI()
     return;
   }
 
-  
   const char* volNodeID = mrmlNode->GetTargetingVolumeNodeID();
   vtkMRMLScalarVolumeNode *volNode=vtkMRMLScalarVolumeNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(volNodeID));
   if ( volNode )
@@ -1079,6 +1119,14 @@ void vtkProstateNavStepTargetingTemplate::UpdateGUI()
     this->VolumeSelectorWidget->UpdateMenu();
     this->VolumeSelectorWidget->SetSelected( volNode );
   }
+
+  const char* targetNodeID = mrmlNode->GetTargetPlanListNodeID();
+  vtkMRMLFiducialListNode *targetNode=vtkMRMLFiducialListNode::SafeDownCast(this->GetLogic()->GetApplicationLogic()->GetMRMLScene()->GetNodeByID(targetNodeID));
+  if (targetNode)
+    {
+    this->TargetListSelectorWidget->UpdateMenu();
+    this->TargetListSelectorWidget->SetSelected(targetNode);
+    }
 
   // Display information about the currently selected target descriptor    
   if (this->Message)
@@ -1117,23 +1165,23 @@ void vtkProstateNavStepTargetingTemplate::UpdateGUI()
 
   UpdateTargetListGUI();
 
-  if (this->NeedleTypeMenuList)
-    {
-    this->NeedleTypeMenuList->GetWidget()->GetMenu()->DeleteAllItems();
-    for (int i = 0; i < mrmlNode->GetNumberOfNeedles(); i++)
-      {
-      std::ostrstream needleTitle;
-      needleTitle << mrmlNode->GetNeedleType(i) << " ("
-        <<mrmlNode->GetNeedleOvershoot(i)<<"mm overshoot, "
-        <<mrmlNode->GetNeedleLength(i)<<"mm length"
-        << ")" << std::ends;      
-      this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton(needleTitle.str());
-      needleTitle.rdbuf()->freeze();
-      needleTitle.clear();
-      }
-    int needleIndex=mrmlNode->GetCurrentNeedleIndex();
-    this->NeedleTypeMenuList->GetWidget()->GetMenu()->SelectItem(needleIndex);
-    }
+  //if (this->NeedleTypeMenuList)
+  //  {
+  //  this->NeedleTypeMenuList->GetWidget()->GetMenu()->DeleteAllItems();
+  //  for (int i = 0; i < mrmlNode->GetNumberOfNeedles(); i++)
+  //    {
+  //    std::ostrstream needleTitle;
+  //    needleTitle << mrmlNode->GetNeedleType(i) << " ("
+  //      <<mrmlNode->GetNeedleOvershoot(i)<<"mm overshoot, "
+  //      <<mrmlNode->GetNeedleLength(i)<<"mm length"
+  //      << ")" << std::ends;      
+  //    this->NeedleTypeMenuList->GetWidget()->GetMenu()->AddRadioButton(needleTitle.str());
+  //    needleTitle.rdbuf()->freeze();
+  //    needleTitle.clear();
+  //    }
+  //  int needleIndex=mrmlNode->GetCurrentNeedleIndex();
+  //  this->NeedleTypeMenuList->GetWidget()->GetMenu()->SelectItem(needleIndex);
+  //  }
 }
 
 // return:
