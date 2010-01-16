@@ -139,6 +139,10 @@ class VTK_PROSTATENAV_EXPORT vtkMRMLRobotNode : public vtkMRMLNode
 
   virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode) { return 0; };
 
+  // The following method is defined tentatively to pass registration parameter.
+  virtual int PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode, int param1, int param2) { return 0; };
+
+
   // Description:
   // Get calibration object (Z frame, fiducials, etc.) model and transform
   virtual const char* GetCalibrationObjectModelId() {return ""; };

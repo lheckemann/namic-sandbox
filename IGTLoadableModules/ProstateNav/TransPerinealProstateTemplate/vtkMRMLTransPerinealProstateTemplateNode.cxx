@@ -23,7 +23,7 @@ Version:   $Revision: 1.2 $
 
 #include "vtkMRMLIGTLConnectorNode.h"
 
-#include "vtkZFrameRobotToImageRegistration.h"
+#include "vtkZFrameRobotToImageRegistration2.h"
 
 #include "vtkProstateNavTargetDescriptor.h"
 
@@ -40,9 +40,9 @@ Version:   $Revision: 1.2 $
 //          + TemplateModel
 
 // Hole (0, 0) position (surface)
-#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X  35.0
+#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X  -35.0
 #define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Y  25.0
-#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Z  55.0
+#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Z  30.0
 
 // Template corner position
 #define TEMPLATE_BLOCK_OFFSET_FROM_HOLE_X   15.0
@@ -55,8 +55,7 @@ Version:   $Revision: 1.2 $
 #define TEMPLATE_HOLE_RADIUS 1.0 // (only for visualization)
 
 #define TEMPLATE_GRID_PITCH_X 5.0
-#define TEMPLATE_GRID_PITCH_Y 5.0
-
+#define TEMPLATE_GRID_PITCH_Y -5.0
 #define TEMPLATE_NUMBER_OF_GRIDS_X 15
 #define TEMPLATE_NUMBER_OF_GRIDS_y 15
 
@@ -716,7 +715,8 @@ const char* vtkMRMLTransPerinealProstateTemplateNode::AddZFrameModel(const char*
   vtkTransform* trans2 =   vtkTransform::New();
   trans2->Translate(length/2.0, 0.0, 0.0);
   trans2->RotateX(90.0);
-  trans2->RotateX(-45.0);
+  //trans2->RotateX(-45.0);
+  trans2->RotateX(45.0);
   trans2->Update();
   tfilter2->SetInput(cylinder2->GetOutput());
   tfilter2->SetTransform(trans2);
@@ -749,8 +749,9 @@ const char* vtkMRMLTransPerinealProstateTemplateNode::AddZFrameModel(const char*
 
   vtkTransformPolyDataFilter *tfilter4 = vtkTransformPolyDataFilter::New();
   vtkTransform* trans4 =   vtkTransform::New();
-  trans4->Translate(0.0, -length/2.0, 0.0);
+  trans4->Translate(0.0, length/2.0, 0.0);
   trans4->RotateX(90.0);
+  //trans4->RotateZ(-45.0);
   trans4->RotateZ(-45.0);
   trans4->Update();
   tfilter4->SetInput(cylinder4->GetOutput());
@@ -786,7 +787,8 @@ const char* vtkMRMLTransPerinealProstateTemplateNode::AddZFrameModel(const char*
   vtkTransform* trans6 =   vtkTransform::New();
   trans6->Translate(-length/2.0, 0.0, 0.0);
   trans6->RotateX(90.0);
-  trans6->RotateX(45.0);
+  //trans6->RotateX(45.0);
+  trans6->RotateX(-45.0);
   trans6->Update();
   tfilter6->SetInput(cylinder6->GetOutput());
   tfilter6->SetTransform(trans6);
@@ -889,8 +891,8 @@ const char* vtkMRMLTransPerinealProstateTemplateNode::AddTemplateModel(const cha
       {
       double offset[3];
 
-      offset[0] = this->TemplateOffset[0] - i * this->TemplateGridPitch[0];
-      offset[1] = this->TemplateOffset[1] - j * this->TemplateGridPitch[1];
+      offset[0] = this->TemplateOffset[0] + i * this->TemplateGridPitch[0];
+      offset[1] = this->TemplateOffset[1] + j * this->TemplateGridPitch[1];
       offset[2] = this->TemplateOffset[2] + TEMPLATE_DEPTH/2;
 
       vtkCylinderSource *cylinder = vtkCylinderSource::New();
@@ -1031,13 +1033,31 @@ const char* vtkMRMLTransPerinealProstateTemplateNode::AddNeedleModel(const char*
 //----------------------------------------------------------------------------
 int vtkMRMLTransPerinealProstateTemplateNode::PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode)
 {
-  vtkZFrameRobotToImageRegistration* registration = vtkZFrameRobotToImageRegistration::New();
+  vtkZFrameRobotToImageRegistration2* registration = vtkZFrameRobotToImageRegistration2::New();
   registration->SetFiducialVolume(volumeNode);
 
   vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->Scene->GetNodeByID(this->GetZFrameTransformNodeID()));
   if (transformNode != NULL)
   {
     registration->SetRobotToImageTransform(transformNode);
+    registration->DoRegistration();
+  }
+
+  return 1;
+}
+
+
+//----------------------------------------------------------------------------
+int vtkMRMLTransPerinealProstateTemplateNode::PerformRegistration(vtkMRMLScalarVolumeNode* volumeNode, int param1, int param2)
+{
+  vtkZFrameRobotToImageRegistration2* registration = vtkZFrameRobotToImageRegistration2::New();
+  registration->SetFiducialVolume(volumeNode);
+
+  vtkMRMLLinearTransformNode* transformNode = vtkMRMLLinearTransformNode::SafeDownCast(this->Scene->GetNodeByID(this->GetZFrameTransformNodeID()));
+  if (transformNode != NULL)
+  {
+    registration->SetRobotToImageTransform(transformNode);
+    registration->SetSliceRange(param1, param2);
     registration->DoRegistration();
   }
 
@@ -1340,8 +1360,8 @@ int vtkMRMLTransPerinealProstateTemplateNode::GetHoleTransform(int i, int j, vtk
 
   // offset from the Z-frame center
   double off[4];
-  off[0] = this->TemplateOffset[0] - i * this->TemplateGridPitch[0];
-  off[1] = this->TemplateOffset[1] - j * this->TemplateGridPitch[1];
+  off[0] = this->TemplateOffset[0] + i * this->TemplateGridPitch[0];
+  off[1] = this->TemplateOffset[1] + j * this->TemplateGridPitch[1];
   off[2] = this->TemplateOffset[2];
   off[3] = 1.0;
 

@@ -48,6 +48,8 @@
 
 #include "vtkMRMLRobotNode.h"
 
+#include "vtkKWMatrixWidget.h"
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkProstateNavCalibrationStep);
 vtkCxxRevisionMacro(vtkProstateNavCalibrationStep, "$Revision: 1.1 $");
@@ -61,6 +63,7 @@ vtkProstateNavCalibrationStep::vtkProstateNavCalibrationStep()
   this->SelectImageFrame  = NULL;
   //this->SelectImageButton = NULL;
   this->ZFrameImageSelectorWidget = NULL;
+  this->SliceRangeMatrix = NULL;
   this->CalibrateButton   = NULL;
 
   this->ZFrameSettingFrame       = NULL;
@@ -86,6 +89,11 @@ vtkProstateNavCalibrationStep::~vtkProstateNavCalibrationStep()
     {
     this->ZFrameImageSelectorWidget->SetParent(NULL);
     this->ZFrameImageSelectorWidget->Delete();
+    }
+  if (this->SliceRangeMatrix)
+    {
+    this->SliceRangeMatrix->SetParent(NULL);
+    this->SliceRangeMatrix->Delete();
     }
   if (this->CalibrateButton)
     {
@@ -168,6 +176,31 @@ void vtkProstateNavCalibrationStep::ShowUserInterface()
 
   this->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
                this->ZFrameImageSelectorWidget->GetWidgetName());
+
+
+  if (!this->SliceRangeMatrix)
+    {
+    this->SliceRangeMatrix = vtkKWMatrixWidgetWithLabel::New();
+    this->SliceRangeMatrix->SetParent(this->SelectImageFrame);
+    this->SliceRangeMatrix->Create();
+    this->SliceRangeMatrix->SetLabelText("Slice range:");
+    this->SliceRangeMatrix->ExpandWidgetOff();
+    this->SliceRangeMatrix->GetLabel()->SetWidth(18);
+    this->SliceRangeMatrix->SetBalloonHelpString("Set the needle position");
+
+    vtkKWMatrixWidget *matrix =  this->SliceRangeMatrix->GetWidget();
+    matrix->SetNumberOfColumns(2);
+    matrix->SetNumberOfRows(1);
+    matrix->SetElementWidth(12);
+    matrix->SetRestrictElementValueToInteger();
+    matrix->SetElementChangedCommandTriggerToAnyChange();
+    matrix->SetElementValueAsInt(0, 0, 0);
+    matrix->SetElementValueAsInt(0, 1, 11);
+    }
+
+  this->Script("pack %s -side top -anchor w -padx 2 -pady 2", 
+               this->SliceRangeMatrix->GetWidgetName());
+
 
   if (!this->CalibrateButton)
     {
@@ -253,10 +286,14 @@ void vtkProstateNavCalibrationStep::ProcessGUIEvents(vtkObject *caller,
   if (this->CalibrateButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
+    vtkKWMatrixWidget *matrix =  this->SliceRangeMatrix->GetWidget();
+    int s_index = matrix->GetElementValueAsInt(0, 0);
+    int e_index = matrix->GetElementValueAsInt(0, 1);
+
     //const char *filename = this->SelectImageButton->GetWidget()->GetFileName();
     vtkMRMLScalarVolumeNode *volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->ZFrameImageSelectorWidget->GetSelected());
     //PerformZFrameCalibration(filename);
-    PerformZFrameCalibration(volumeNode);
+    PerformZFrameCalibration(volumeNode, s_index, e_index);
     }
 }
 
@@ -356,11 +393,11 @@ void vtkProstateNavCalibrationStep::PerformZFrameCalibration(const char* filenam
 
 
 //----------------------------------------------------------------------------
-void vtkProstateNavCalibrationStep::PerformZFrameCalibration(vtkMRMLScalarVolumeNode* node)
+void vtkProstateNavCalibrationStep::PerformZFrameCalibration(vtkMRMLScalarVolumeNode* node, int s_index, int e_index)
 {
   if (node)
     {
-    this->GetProstateNavManager()->GetRobotNode()->PerformRegistration(node);
+    this->GetProstateNavManager()->GetRobotNode()->PerformRegistration(node, s_index, e_index);
     }
 
 }
