@@ -21,6 +21,11 @@
 
 #include <string>
 
+
+// Disable warning C4996 (strncpy() may be unsafe) in Windows. 
+#define _CRT_SECURE_NO_WARNINGS
+
+
 namespace igtl {
 
 MessageBase::MessageBase():
