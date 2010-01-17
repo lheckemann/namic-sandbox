@@ -541,7 +541,7 @@ Object
 {
   Superclass::PrintSelf(os);
 
-  char* indent = "    ";
+  const char* indent = "    ";
 
   //  os << indent << "Modified Time: " << this->GetMTime() << std::endl;
   os << indent << "Debug: " << (m_Debug ? "On\n" : "Off\n");

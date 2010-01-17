@@ -794,7 +794,7 @@ void MultiThreader::PrintSelf(std::ostream& os)
 {
   this->Superclass::PrintSelf(os); 
 
-  char* indent = "    ";
+  const char* indent = "    ";
   os << indent << "Thread Count: " << this->m_NumberOfThreads << "\n";
   os << indent << "Global Maximum Number Of Threads: " << 
     MultiThreaderGlobalMaximumNumberOfThreads << std::endl;

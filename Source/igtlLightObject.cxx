@@ -233,7 +233,7 @@ LightObject
   int status;
   char* unmangled = abi::__cxa_demangle(mangledName, 0, 0, &status);
 
-  char* indent = "    ";
+  const char* indent = "    ";
 
   os << indent << "RTTI typeinfo:   ";
 
