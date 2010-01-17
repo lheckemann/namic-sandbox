@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Open ITK Link Library
+  Program:   Open IGT Link Library
   Module:    $RCSfile: $
   Language:  C
   Date:      $Date: $
@@ -27,8 +27,8 @@ int main( int argc, char * argv [] )
   float norm_i[3];
   float norm_j[3];
   float norm_k[3];
-  unsigned long crc;
-  char * image;
+  /*unsigned long crc;*/
+  /*char * image;*/
 
   igtl_image_header  header;
 

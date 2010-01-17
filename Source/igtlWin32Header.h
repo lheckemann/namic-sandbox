@@ -103,6 +103,7 @@
 #  pragma warning ( disable : 4706 ) /* assignment in conditional expression */
 #  pragma warning ( disable : 4710 ) /* function not inlined */
 #  pragma warning ( disable : 4786 ) /* identifier truncated in debug info */
+#  pragma warning ( disable : 4996 ) /* 'strncpy': This function or variable may be unsafe. */
 # endif
 
 // typename keyword in default template arguments is not accepted by

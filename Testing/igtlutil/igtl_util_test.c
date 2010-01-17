@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Open ITK Link Library
+  Program:   Open IGT Link Library
   Module:    $RCSfile: $
   Language:  C
   Date:      $Date: $
