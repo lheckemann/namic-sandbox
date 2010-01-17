@@ -103,9 +103,9 @@ void igtl_export igtl_image_get_matrix(float spacing[3], float origin[3],
   py = (float) header->matrix[10];
   pz = (float) header->matrix[11];
 
-  spacing[0] = sqrt(tx*tx + ty*ty + tz*tz);
-  spacing[1] = sqrt(sx*sx + sy*sy + sz*sz);
-  spacing[2] = sqrt(nx*nx + ny*ny + nz*nz);
+  spacing[0] = sqrtf(tx*tx + ty*ty + tz*tz);
+  spacing[1] = sqrtf(sx*sx + sy*sy + sz*sz);
+  spacing[2] = sqrtf(nx*nx + ny*ny + nz*nz);
   norm_i[0] = header->matrix[0]  / spacing[0];
   norm_i[1] = header->matrix[1]  / spacing[0];
   norm_i[2] = header->matrix[2]  / spacing[0];
