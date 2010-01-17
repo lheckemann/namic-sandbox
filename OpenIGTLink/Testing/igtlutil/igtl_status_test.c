@@ -41,7 +41,7 @@ struct status_message {
 int main( int argc, char * argv [] )
 {
 
-  igtl_uint64 crc;
+  /*igtl_uint64 crc;*/
   unsigned int msglen;
   struct status_message message;
   int r;

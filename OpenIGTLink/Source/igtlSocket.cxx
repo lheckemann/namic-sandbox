@@ -93,8 +93,8 @@ int Socket::CreateSocket()
 #if defined(_WIN32) && !defined(__CYGWIN__)
   // Declare variables
   WSADATA wsaData;
-  SOCKET ListenSocket;
-  sockaddr_in service;
+  //SOCKET ListenSocket;
+  //sockaddr_in service;
 
   //---------------------------------------
   // Initialize Winsock
