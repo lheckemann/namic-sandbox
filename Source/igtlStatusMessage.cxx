@@ -19,6 +19,9 @@
 #include "igtl_header.h"
 #include "igtl_status.h"
 
+// Disable warning C4996 (strncpy() may be unsafe) in Windows. 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <string.h>
 
 namespace igtl {
