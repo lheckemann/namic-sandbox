@@ -30,5 +30,14 @@
 #define igtl_export
 #endif
 
+#if defined(_WIN32)
+#  include <windows.h>
+#endif
+
+#if defined(_MSC_VER)
+  // Enable MSVC compiler warning messages that are useful but off by default.
+#  pragma warning ( disable : 4996 ) /* 'strncpy': This function or variable may be unsafe. */
+#endif
+
 
 #endif /*__IGTL_WIN32HEADER_H*/
