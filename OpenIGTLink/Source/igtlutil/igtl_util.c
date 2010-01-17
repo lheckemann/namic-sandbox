@@ -23,7 +23,7 @@ int igtl_export igtl_is_little_endian()
 }
 
 
-igtl_uint64 igtl_export crc64(unsigned char *data, int len, igtl_uint64 crc)
+igtl_uint64 igtl_export crc64(unsigned char *data,  igtl_uint64 len, igtl_uint64 crc)
 {
 
     static const igtl_uint64 table[256] = {
