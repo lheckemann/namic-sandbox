@@ -24,7 +24,6 @@
 void igtl_export igtl_position_convert_byte_order(igtl_position* pos)
 {
 
-  int i;
   igtl_uint32 tmp[4];
 
   if (igtl_is_little_endian())

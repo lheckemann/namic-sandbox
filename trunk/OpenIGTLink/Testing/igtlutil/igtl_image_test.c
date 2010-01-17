@@ -95,7 +95,7 @@ int main( int argc, char * argv [] )
 
   /* Compare the serialized byte array with the gold standard */ 
   r = memcmp((const void*)&message, (const void*)test_image_message,
-                 IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size);
+                 (size_t)(IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size));
 
   if (r == 0)
     {
