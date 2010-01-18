@@ -40,7 +40,7 @@ Version:   $Revision: 1.2 $
 //          + TemplateModel
 
 // Hole (0, 0) position (surface)
-#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X  -35.0
+#define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_X  35.0
 #define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Y  25.0
 #define TEMPLATE_HOLE_OFFSET_FROM_ZFRAME_Z  30.0
 
@@ -54,9 +54,9 @@ Version:   $Revision: 1.2 $
 #define TEMPLATE_DEPTH   25.0   // dimension in z direction (mm)
 #define TEMPLATE_HOLE_RADIUS 1.0 // (only for visualization)
 
-#define TEMPLATE_GRID_PITCH_X 5.0
+#define TEMPLATE_GRID_PITCH_X -5.0
 #define TEMPLATE_GRID_PITCH_Y -5.0
-#define TEMPLATE_NUMBER_OF_GRIDS_X 15
+#define TEMPLATE_NUMBER_OF_GRIDS_X 15  // must be odd number
 #define TEMPLATE_NUMBER_OF_GRIDS_y 15
 
 
@@ -1103,7 +1103,8 @@ int vtkMRMLTransPerinealProstateTemplateNode::MoveTo(const char *transformNodeId
     needleTransformNode->Modified();
 
     std::ostringstream ss;
-    ss << "Grid:   (" << i << ", " << j << ")" << std::endl;
+    //ss << "Grid:   (" << i << ", " << (char) ('A' + j) << ")" << std::endl;
+    ss << "Grid:   (" << (char) ('A' + j) << ", " << (i - TEMPLATE_NUMBER_OF_GRIDS_X/2) << ")" << std::endl;
     ss << "Depth:  " << depth << " mm" << std::endl;
     ss << "Target: R=" << targetX << ", A=" << targetY << ", S=" << targetZ << std::endl;
     ss << "Error:  R=" << errorX  << ", A=" << errorY  << ", S=" << errorZ  << std::endl;
