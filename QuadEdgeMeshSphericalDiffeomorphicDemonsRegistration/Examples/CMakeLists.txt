@@ -191,6 +191,18 @@ ADD_TEST(DemonsRegister_${MESHID1}_${MESHID2}_IC${SUBDIVISIONS}
 
 ENDMACRO( DEMONS_REGISTER )
 
+
+MACRO( COMPARE_MESHES MESHID1 MESHID2 )
+
+ADD_TEST(CompareRegistration_${MESHID1}_${MESHID2}
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalRMSDistanceMetric
+  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC7.vtk
+  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC7.vtk
+  )
+
+ENDMACRO( COMPARE_MESHES )
+
+
 ADD_TEST(DemonsExample1
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
@@ -345,6 +357,9 @@ IF( USE_TRAINING_SET )
   MULTIRES_REGISTER( 15 16 )
   MULTIRES_REGISTER( 17 18 )
   MULTIRES_REGISTER( 19 20 )
+
+  COMPARE_MESHES( 11 12 )
+
 ENDIF( USE_TRAINING_SET )
 
 
