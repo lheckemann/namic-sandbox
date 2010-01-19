@@ -44,6 +44,12 @@ TARGET_LINK_LIBRARIES(RigidMeshRegistration ITKQuadEdgeMesh ITKIO ITKNumerics)
 ADD_EXECUTABLE(MultiResolutionRegistration1 MultiResolutionRegistration1.cxx)
 TARGET_LINK_LIBRARIES(MultiResolutionRegistration1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(QuadEdgeMeshSphericalRMSDistanceMetric
+ QuadEdgeMeshSphericalRMSDistanceMetric.cxx) 
+TARGET_LINK_LIBRARIES(QuadEdgeMeshSphericalRMSDistanceMetric
+ ITKQuadEdgeMesh ITKNumerics ITKIO) 
+
+
 
 MACRO( GENERATE_SPHERE RADIUS SUBDIVISIONS )
 
