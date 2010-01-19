@@ -25,6 +25,8 @@
 
 #include "vtkUDPServerLogic.h"
 
+#include <string>
+
 class vtkKWPushButton;
 class vtkKWEntry;
 class vtkKWMultiColumnListWithScrollbars;
@@ -103,6 +105,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   void UpdateAll();
+  void UpdateDataFrame(char* data);
 
 
  protected:
@@ -115,6 +118,15 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   bool ServerConnected;
   char buffer[BUFFSIZE];
   bool received;
+  //Structure to save data message
+  struct probeData{
+    std::string date;
+    std::string time;
+    int smoothedCount;
+    int betaCount;
+    int gammaCount;
+  };
+  probeData pd;
   //ETX
   
   //----------------------------------------------------------------

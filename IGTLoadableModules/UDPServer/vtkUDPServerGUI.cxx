@@ -37,6 +37,12 @@
 #include "vtkKWPushButton.h"
 #include "vtkCornerAnnotation.h"
 
+#include <vector>
+#include <sstream>
+#include <list>
+#include <stdio.h>
+#include <stdlib.h>
+
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkUDPServerGUI );
 vtkCxxRevisionMacro ( vtkUDPServerGUI, "$Revision: 1.0 $");
@@ -65,7 +71,7 @@ vtkUDPServerGUI::vtkUDPServerGUI ( )
   this->ServerConnected = 0;
   this->TimerFlag = 0;
   this->received = 0;
-  this->TimerInterval = 1000;  // 100 ms
+  this->TimerInterval = 1000;  // in ms
 
 }
 
@@ -260,6 +266,8 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
       if (!this->GetLogic()->GetServerStopFlag())
         {
         this->ConnectButton->SetText("Disconnect");
+        this->TimerFlag = 1;
+        ProcessTimerEvents();
         }
       }
     else
@@ -268,6 +276,7 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
       if (this->GetLogic()->GetServerStopFlag())
         {
         this->ConnectButton->SetText("Connect");
+        this->TimerFlag = 0;
         }
       }
     }
@@ -319,9 +328,15 @@ void vtkUDPServerGUI::ProcessTimerEvents()
   if (this->TimerFlag)
     {
     // -----------------------------------------
-    // Get incoming new data
-    //TODO: check return value
-    //this->GetLogic()->ImportData(this->PortEntry->GetValueAsInt());
+    // Check incoming new data
+    char* data;
+    data = this->GetLogic()->GetImportedData();
+    if (data)
+      {
+      //Place data in the Data Frame List
+      this->UpdateDataFrame(data);
+      }
+    
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
@@ -479,10 +494,83 @@ void vtkUDPServerGUI::BuildGUIForDataFrame()
   dataBrowsFrame->Delete();
 }
   
-
-
 //----------------------------------------------------------------------------
 void vtkUDPServerGUI::UpdateAll()
 {
 }
 
+//----------------------------------------------------------------------------
+void vtkUDPServerGUI::UpdateDataFrame(char* data)
+{
+  //Check if data is in tact
+  if (data == NULL)
+    {
+    return;
+    }
+
+  //Decompose data into members of probeData structure
+  std::cerr << "About to decompose data" << std::endl;
+  
+  //Create stream object from data pointer
+  std::string buffdata = data;
+  std::cerr << buffdata << std::endl;
+  std::istringstream iss (data,std::istringstream::in);
+  
+  // create a list 'vars' which will hold the variables extracted from 'iss'
+  std::list< std::string > vars;
+
+  // while no error on 'iss'
+  while(iss)
+    {
+    // 'aVar' will hold the next word read from 'in'
+    std::string aVar;
+
+    // get all text from 'iss' up to the next comma, or end of data into 'aVar'
+    getline(iss, aVar, ',');
+
+    // Copy of 'aWord' in to the 'words' list
+    if (iss)
+      {
+      vars.push_back(aVar);
+      }
+    }
+    
+  // convert all entries in 'vars' into variables
+  std::list< std::string >::iterator it;
+  
+  it = vars.begin();
+  // Date variable
+  pd.date = *(it);
+  // Time variable
+  pd.time = *(++it);
+  // Smoothed counts
+  pd.smoothedCount = atoi((*(++it)).c_str());
+  // Beta counts
+  pd.betaCount = atoi((*(++it)).c_str());
+  //Gamma counts
+  pd.gammaCount = atoi((*(++it)).c_str());
+
+  //Update Dataframe with data from pd structure
+  std::cerr << "About to upload data onto Data Frame" << std::endl;
+  this->DataTable->GetWidget()->AddRow();
+  int row = (this->DataTable->GetWidget()->GetNumberOfRows())-1;
+  //Date column
+  this->DataTable->GetWidget()->SetCellText(row, 0, pd.date.c_str());
+  //Time column
+  this->DataTable->GetWidget()->SetCellText(row, 1, pd.time.c_str());
+  //Smoothed Counts column
+  char sc[15];
+  sprintf(sc, "%d", pd.smoothedCount);
+  //itoa(pd.smoothedCount, sc, 10);
+  this->DataTable->GetWidget()->SetCellText(row, 2, sc);
+  //Beta counts column
+  char bc[15];
+  sprintf(bc, "%d", pd.betaCount);
+  //itoa(pd.betaCount, bc, 10);
+  this->DataTable->GetWidget()->SetCellText(row, 3, bc);
+  //Gamma Counts Column
+  char gc[15];
+  sprintf(gc, "%d", pd.gammaCount);
+  //itoa(pd.gammaCount, gc, 10);
+  this->DataTable->GetWidget()->SetCellText(row, 4, gc);
+}
