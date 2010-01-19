@@ -27,7 +27,7 @@ int main( int argc, char *argv[] )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " fixedMeshFile  movingMeshFile ";
+    std::cerr << " fixedMeshFile  movingMeshFile " << std::endl;
     return EXIT_FAILURE;
     }
   
@@ -61,7 +61,44 @@ int main( int argc, char *argv[] )
   FixedMeshType::ConstPointer  fixedMesh  = fixedReader->GetOutput();
   MovingMeshType::ConstPointer movingMesh = movingReader->GetOutput();
 
+  if( fixedMesh->GetNumberOfPoints() != movingMesh->GetNumberOfPoints() )
+    {
+    std::cerr << "Error: the two input meshes do not have the same number of points" << std::endl;
+    std::cerr << "Fixed mesh number of points = " << fixedMesh->GetNumberOfPoints() << std::endl;
+    std::cerr << "Moving mesh number of points = " << movingMesh->GetNumberOfPoints() << std::endl;
+    return EXIT_FAILURE;
+    }
 
+  typedef FixedMeshType::PointsContainer      FixedPointsContainer;
+  typedef MovingMeshType::PointsContainer     MovingPointsContainer;
+
+  typedef FixedPointsContainer::ConstIterator     FixedPointsConstIterator;
+  typedef MovingPointsContainer::ConstIterator    MovingPointsConstIterator;
+
+
+  FixedPointsContainer::ConstPointer    fixedPoints   = fixedMesh->GetPoints();
+  MovingPointsContainer::ConstPointer   movingPoints  = movingMesh->GetPoints();
+
+  FixedPointsConstIterator  fixedPointItr   = fixedPoints->Begin();
+  MovingPointsConstIterator movingPointItr  = movingPoints->Begin();
+
+  FixedPointsConstIterator  fixedPointEnd   = fixedPoints->End();
+  MovingPointsConstIterator movingPointEnd  = movingPoints->End();
+
+  double sumOfDistances = 0.0;
+
+  while( ( fixedPointItr != fixedPointEnd ) && ( movingPointItr != movingPointEnd ) )
+    {
+    ++fixedPointItr;
+    ++movingPointItr;
+    const double distanceSquared = 
+      fixedPointItr.Value().SquaredEuclideanDistanceTo( movingPointItr.Value() );
+    sumOfDistances += distanceSquared;
+    }
+  
+  const double distancesRMS = vcl_sqrt( sumOfDistances );
+
+  std::cout << "RMS " << distancesRMS << std::endl;
 
   return EXIT_SUCCESS;
 }
