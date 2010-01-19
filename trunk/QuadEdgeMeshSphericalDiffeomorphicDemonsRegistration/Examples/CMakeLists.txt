@@ -194,10 +194,13 @@ ENDMACRO( DEMONS_REGISTER )
 
 MACRO( COMPARE_MESHES MESHID1 MESHID2 )
 
+SET(REFERENCE_MESH 
+  ${PATIENT_RESULTS_DATA_ROOT}/lh_MatlabSphericalDemons_sub${MESHID1}Tosub${MESHID2}.reg)
+
 ADD_TEST(CompareRegistration_${MESHID1}_${MESHID2}
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalRMSDistanceMetric
   ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC7.vtk
-  ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_IC7.vtk
+  ${REFERENCE_MESH}
   )
 
 ENDMACRO( COMPARE_MESHES )
