@@ -62,10 +62,11 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   //----------------------------------
   //Data Handlers
   int StartServerConnection();
-  int ImportData();
+  void ImportData();
   int Start(int p);
   int Stop();
   bool GetServerStopFlag() {return this->ServerStopFlag;};
+  char* GetImportedData(){return this->ImportedData;};
   
   //-----------------------------------
   //Thread Control
@@ -92,7 +93,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   //BTX
   int sock;
   int port;
-  bool received;
+  int received;
   static const int BUFFSIZE = 255;
   char buffer[BUFFSIZE];
   struct sockaddr_in echoserver;
@@ -100,6 +101,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   unsigned int echolen, clientlen, serverlen;
   int ThreadID;
   bool ServerStopFlag;
+  char* ImportedData;
   //ETX
 
  private:

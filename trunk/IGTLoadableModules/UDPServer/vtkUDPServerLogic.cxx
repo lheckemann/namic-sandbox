@@ -21,6 +21,8 @@
 #include "vtkUDPServerLogic.h"
 #include "vtkMultiThreader.h"
 
+#include <string>
+
 vtkCxxRevisionMacro(vtkUDPServerLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkUDPServerLogic);
 
@@ -47,9 +49,7 @@ vtkUDPServerLogic::~vtkUDPServerLogic()
     {
     this->DataCallbackCommand->Delete();
     }
-
 }
-
 
 //---------------------------------------------------------------------------
 void vtkUDPServerLogic::PrintSelf(ostream& os, vtkIndent indent)
@@ -115,9 +115,8 @@ int vtkUDPServerLogic::StartServerConnection()
 }
 
 //--------------------------------------------------------------------------
-int vtkUDPServerLogic::ImportData()
+void vtkUDPServerLogic::ImportData()
 {
-//while (1) {
   // Receive a message from the client
   clientlen = sizeof(echoclient);
   if ((received = recvfrom(sock, buffer, BUFFSIZE, 0, (struct sockaddr *) &echoclient, &clientlen)) < 0) 
@@ -125,70 +124,12 @@ int vtkUDPServerLogic::ImportData()
     std::cerr << "Failed to receive message" << std::endl;
     }
   fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));
+  buffer[received]= '\0';
+  //Print out received data
   std::cerr << received << " bytes received" << std::endl;
-  std::cerr << buffer << std::endl;
-  
-  // Send the message back to client
-  if (sendto(sock, buffer, received, 0, (struct sockaddr *) &echoclient, sizeof(echoclient)) != received) 
-    {
-    std::cerr << "Mismatch in number of echo'd bytes" << std::endl;
-    }
-//}
-  /*if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) 
-    {
-    std::cerr << "Failed to create socket" << std::endl;
-    return 0;
-    }
-  else
-    {
-    // Construct the server sockaddr_in structure
-    memset(&echoserver, 0, sizeof(echoserver));     // Clear struct
-    echoserver.sin_family = AF_INET;                // Internet IP
-    echoserver.sin_addr.s_addr = htonl(INADDR_ANY); // Any IP address
-    echoserver.sin_port = htons(port);              // server port
-
-    // Bind the socket
-    serverlen = sizeof(echoserver);
-    if (bind(sock, (struct sockaddr *) &echoserver, serverlen) < 0) 
-      {
-      std::cerr << "Failed to bind server socket" << std::endl;
-      return 0;
-      }
-    return 1;
-    }
-  clientlen = sizeof(echoclient);
-  
-
-
-  //Try to receive message
-  received = recvfrom(sock, buffer, BUFFSIZE, 0, (struct sockaddr *) &echoclient, &clientlen);
-  std::cerr << received << " bytes received" << std::endl;
-  if (received < 0)
-    {
-    std::cerr << "Failed to receive message" << std::endl;
-    return 0;
-    }
-  else if (received > 0)
-    {
-    std::cerr << "Message received" << std::endl;
-    //Print message to screen
-    fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));
-    buffer[received] = '\0'; // Assure null-terminated string
-    std::cerr << buffer;
-  
-    // Send the message back to client
-    if (sendto(sock, buffer, received, 0, (struct sockaddr *) &echoclient, sizeof(echoclient)) != received)
-      {
-      std::cerr << "Mismatch in number of echo'd bytes" << std::endl;
-      return 0;
-      }
-    return 1;
-    }
-  else
-    {
-    std::cerr << "No message received" << std::endl;
-    return 0;
-    }*/
+  std::string txt = buffer;
+  std::cerr << txt << std::endl;
+  this->ImportedData = buffer;
 }
 
 //-------------------------------------------------------------------------------
@@ -206,6 +147,7 @@ int vtkUDPServerLogic::Start(int p)
     }
   //Start Thread
   this->ThreadID = this->Thread->SpawnThread((vtkThreadFunctionType) &vtkUDPServerLogic::ThreadFunction, this);
+  std::cerr << "Thread ID: " << this->ThreadID << std::endl;
   return 1;
 }
 
@@ -219,6 +161,7 @@ void* vtkUDPServerLogic::ThreadFunction(void* ptr)
   
   //Start the Server Connection
   int state = server->StartServerConnection();
+  std::cerr << "State: " << state<< std::endl;
   if (state == 0)
     {
     server->ServerStopFlag = true;
@@ -238,6 +181,7 @@ void* vtkUDPServerLogic::ThreadFunction(void* ptr)
 int vtkUDPServerLogic::Stop()
 {
   // Check if thread exists
+  std::cerr << "Thread ID: " << this->ThreadID << std::endl;
   if (this->ThreadID >= 0)
     {
     this->ServerStopFlag = true;
