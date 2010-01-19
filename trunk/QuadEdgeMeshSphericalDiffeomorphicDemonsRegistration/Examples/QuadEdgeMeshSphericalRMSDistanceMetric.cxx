@@ -1,0 +1,67 @@
+/*=========================================================================
+
+  Program:   Insight Segmentation & Registration Toolkit
+  Module:    $RCSfile: QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1.cxx,v $
+  Language:  C++
+  Date:      $Date: 2008-03-10 19:46:31 $
+  Version:   $Revision: 1.37 $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even 
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+#if defined(_MSC_VER)
+#pragma warning ( disable : 4786 )
+#endif
+
+#include "itkQuadEdgeMeshVTKPolyDataReader.h"
+#include "itkQuadEdgeMesh.h"
+
+int main( int argc, char *argv[] )
+{
+  if( argc < 3 )
+    {
+    std::cerr << "Missing Parameters " << std::endl;
+    std::cerr << "Usage: " << argv[0];
+    std::cerr << " fixedMeshFile  movingMeshFile ";
+    return EXIT_FAILURE;
+    }
+  
+  typedef float      MeshPixelType;
+  const unsigned int Dimension = 3;
+
+  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   FixedMeshType;
+  typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   MovingMeshType;
+
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< FixedMeshType >   FixedReaderType;
+  typedef itk::QuadEdgeMeshVTKPolyDataReader< MovingMeshType >  MovingReaderType;
+
+  FixedReaderType::Pointer fixedReader = FixedReaderType::New();
+  fixedReader->SetFileName( argv[1] );
+
+  MovingReaderType::Pointer movingReader = MovingReaderType::New();
+  movingReader->SetFileName( argv[2] );
+
+  try
+    {
+    fixedReader->Update( );
+    movingReader->Update( );
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << "Exception thrown while reading the input file " << std::endl;
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  FixedMeshType::ConstPointer  fixedMesh  = fixedReader->GetOutput();
+  MovingMeshType::ConstPointer movingMesh = movingReader->GetOutput();
+
+
+
+  return EXIT_SUCCESS;
+}
