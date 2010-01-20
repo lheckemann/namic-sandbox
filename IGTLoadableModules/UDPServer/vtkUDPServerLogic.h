@@ -67,6 +67,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerLogic : public vtkSlicerModuleLogic
   int Stop();
   bool GetServerStopFlag() {return this->ServerStopFlag;};
   char* GetImportedData(){return this->ImportedData;};
+  void SetPort(int p) {this->port = p;};
   
   //-----------------------------------
   //Thread Control

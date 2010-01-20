@@ -107,7 +107,6 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   void UpdateAll();
   void UpdateDataFrame(char* data);
 
-
  protected:
   
   //----------------------------------------------------------------
@@ -143,6 +142,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   vtkKWPushButton* ConnectButton;
   vtkKWEntry*      PortEntry;
   vtkKWMultiColumnListWithScrollbars* DataTable;
+  vtkKWEntry*      UpdateEntry;
 
   //----------------------------------------------------------------
   // Logic Values
