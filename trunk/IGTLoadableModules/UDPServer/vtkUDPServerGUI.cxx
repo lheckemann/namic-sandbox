@@ -65,6 +65,7 @@ vtkUDPServerGUI::vtkUDPServerGUI ( )
   this->ConnectButton = NULL;
   this->PortEntry = NULL;
   this->DataTable = NULL;
+  this->UpdateEntry = NULL;
   
   //----------------------------------------------------------------
   //Message Variables
@@ -105,6 +106,12 @@ vtkUDPServerGUI::~vtkUDPServerGUI ( )
     {
     this->PortEntry->SetParent(NULL);
     this->PortEntry->Delete();
+    }
+
+  if (this->UpdateEntry)
+    {
+    this->UpdateEntry->SetParent(NULL);
+    this->UpdateEntry->Delete();
     }
 
   if (this->DataTable)
@@ -166,7 +173,13 @@ void vtkUDPServerGUI::RemoveGUIObservers ( )
     this->PortEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-    
+
+  if (this->UpdateEntry)
+    {
+    this->UpdateEntry
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->DataTable)
     {
     this->DataTable
@@ -206,7 +219,8 @@ void vtkUDPServerGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->PortEntry
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-  
+  this->UpdateEntry
+     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->AddLogicObservers();
 
 }
@@ -267,6 +281,7 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
         {
         this->ConnectButton->SetText("Disconnect");
         this->TimerFlag = 1;
+        this->TimerInterval = this->UpdateEntry->GetValueAsInt();
         ProcessTimerEvents();
         }
       }
@@ -284,7 +299,14 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
       && event == vtkKWEntry::EntryValueChangedEvent)
     {
     std::cerr << "Port has been modified." << std::endl;
+    this->GetLogic()->SetPort(this->PortEntry->GetValueAsInt());
     }
+  else if (this->UpdateEntry == vtkKWEntry::SafeDownCast(caller)
+      && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    std::cerr << "Update Entry has been modified." << std::endl;
+    this->TimerInterval = this->UpdateEntry->GetValueAsInt();
+    }  
 }
 
 void vtkUDPServerGUI::DataCallback(vtkObject *caller, 
@@ -406,17 +428,13 @@ void vtkUDPServerGUI::BuildGUIForServerFrame()
   portFrame->SetParent(frame->GetFrame());
   portFrame->Create();
   
-  vtkKWFrame *connectFrame = vtkKWFrame::New();
-  connectFrame->SetParent(frame->GetFrame());
-  connectFrame->Create();
-  app->Script ( "pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
-                portFrame->GetWidgetName(),
-                connectFrame->GetWidgetName());
+  app->Script ("pack %s -fill both -expand true", 
+               portFrame->GetWidgetName());
 
   vtkKWLabel *portLabel = vtkKWLabel::New();
   portLabel->SetParent(portFrame);
   portLabel->Create();
-  portLabel->SetWidth(8);
+  portLabel->SetWidth(16);
   portLabel->SetText("Port: ");
 
   this->PortEntry = vtkKWEntry::New();
@@ -425,12 +443,50 @@ void vtkUDPServerGUI::BuildGUIForServerFrame()
   this->PortEntry->SetWidth(6);
   this->PortEntry->SetRestrictValueToInteger();
   this->PortEntry->SetValueAsInt(3000);
+
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
               portLabel->GetWidgetName() , this->PortEntry->GetWidgetName());
+              
   portLabel->Delete();
+  portFrame->Delete();
+
+  // -----------------------------------------
+  // Update Rate Entry Textbox
+  
+  vtkKWFrame *updateFrame = vtkKWFrame::New();
+  updateFrame->SetParent(frame->GetFrame());
+  updateFrame->Create();
+
+  app->Script ( "pack %s -fill both -expand true",
+                updateFrame->GetWidgetName());
+
+  vtkKWLabel* updateLabel = vtkKWLabel::New();
+  updateLabel->SetParent(updateFrame);
+  updateLabel->Create();
+  updateLabel->SetWidth(16);
+  updateLabel->SetText("Update Rate (ms): ");
+
+  this->UpdateEntry = vtkKWEntry::New();
+  this->UpdateEntry->SetParent(updateFrame);
+  this->UpdateEntry->Create();
+  this->UpdateEntry->SetWidth(6);
+  this->UpdateEntry->SetRestrictValueToInteger();
+  this->UpdateEntry->SetValueAsInt(1000);
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+              updateLabel->GetWidgetName() , this->UpdateEntry->GetWidgetName());
+  
+  updateLabel->Delete();
+  updateFrame->Delete();
 
   //--------------------------------------------
   // Connect Button
+  vtkKWFrame *connectFrame = vtkKWFrame::New();
+  connectFrame->SetParent(frame->GetFrame());
+  connectFrame->Create();
+  
+  app->Script ( "pack %s -padx 2 -pady 2",
+                connectFrame->GetWidgetName());
   
   this->ConnectButton = vtkKWPushButton::New( );
   this->ConnectButton->SetParent(connectFrame);
@@ -438,13 +494,13 @@ void vtkUDPServerGUI::BuildGUIForServerFrame()
   this->ConnectButton->SetText("Connect");
   this->ConnectButton->SetWidth(12);
 
-  this->Script("pack %s -padx 2 -pady 2", 
-               this->ConnectButton->GetWidgetName());
+  app->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2",
+              this->ConnectButton->GetWidgetName());
+
 
   connectFrame->Delete();
-  conBrowsFrame->Delete();
   frame->Delete();
-
+  conBrowsFrame->Delete();
 }
 
 //----------------------------------------------------------------------------
