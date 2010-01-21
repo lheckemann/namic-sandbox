@@ -6,15 +6,15 @@ INCLUDE_DIRECTORIES(
   ${SBIA_HARDI_SOURCE_DIR}/Testing
   )
 
-ADD_EXECUTABLE(itkSymRealSphericalHarmonicRepTest1 itkSymRealSphericalHarmonicRepTest1.cxx ${VNL_TEMPLATE_SOURCES} ${SpecialFunctions_SOURCES} )
+ADD_EXECUTABLE(itkSymRealSphericalHarmonicRepTest1 itkSymRealSphericalHarmonicRepTest1.cxx ${SpecialFunctions_SOURCES} )
 TARGET_LINK_LIBRARIES(itkSymRealSphericalHarmonicRepTest1  ITKCommon )
 ADD_TEST(itkSymRealSphericalHarmonicRepTest1 ${CXX_TEST_PATH}/itkSymRealSphericalHarmonicRepTest1 )
 
-ADD_EXECUTABLE(itkVariableLengthVectorCastImageFilterTest1 itkVariableLengthVectorCastImageFilterTest1.cxx ${VNL_TEMPLATE_SOURCES} ${SpecialFunctions_SOURCES} )
+ADD_EXECUTABLE(itkVariableLengthVectorCastImageFilterTest1 itkVariableLengthVectorCastImageFilterTest1.cxx  ${SpecialFunctions_SOURCES} )
 TARGET_LINK_LIBRARIES(itkVariableLengthVectorCastImageFilterTest1 ITKNumerics ITKCommon)
 ADD_TEST(itkVariableLengthVectorCastImageFilterTest1 ${CXX_TEST_PATH}/itkVariableLengthVectorCastImageFilterTest1 )
 
-ADD_EXECUTABLE(SymRshRepReadWriteTest SymRshRepReadWriteTest.cxx ${VNL_TEMPLATE_SOURCES} ${SpecialFunctions_SOURCES} )
+ADD_EXECUTABLE(SymRshRepReadWriteTest SymRshRepReadWriteTest.cxx ${SpecialFunctions_SOURCES} )
 TARGET_LINK_LIBRARIES(SymRshRepReadWriteTest ITKNumerics ITKCommon ITKIO)
 ADD_TEST(SymRshRepReadWriteTest ${CXX_TEST_PATH}/SymRshRepReadWriteTest )
 

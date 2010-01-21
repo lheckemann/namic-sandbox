@@ -28,6 +28,7 @@
 
 
 #include "itkVotingBinaryHoleFillFloodingImageFilter.h"
+#include "itkHoleFillingFrontPropagationLabelImageFilter.h"
 
 
 #include "itkSymRealSphericalHarmonicRep.h"
@@ -220,11 +221,14 @@ int runner(
   
   ImageMaskType::Pointer imageMask;
 
-  //THIS ISN"T WORKING!!!
   if ( removeIslands )
   {
-    typedef itk::VotingBinaryHoleFillFloodingImageFilter
+
+    typedef itk::HoleFillingFrontPropagationLabelImageFilter 
             <ImageMaskType,ImageMaskType>         HoleFillingFilterType;
+    
+    //~ typedef itk::VotingBinaryHoleFillFloodingImageFilter
+            //~ <ImageMaskType,ImageMaskType>         HoleFillingFilterType;
             
     typename HoleFillingFilterType::Pointer holeFiller = HoleFillingFilterType::New();
     
