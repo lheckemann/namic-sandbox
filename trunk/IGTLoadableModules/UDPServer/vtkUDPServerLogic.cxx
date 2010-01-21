@@ -155,7 +155,6 @@ int vtkUDPServerLogic::Start(int p)
 void* vtkUDPServerLogic::ThreadFunction(void* ptr)
 {
   std::cerr << "Starting Thread Function..." << std::endl;
-  std::cerr << "Socket Connected" << std::endl;
   vtkMultiThreader::ThreadInfo* vinfo = static_cast<vtkMultiThreader::ThreadInfo*>(ptr);
   vtkUDPServerLogic* server = static_cast<vtkUDPServerLogic*>(vinfo->UserData);
   
