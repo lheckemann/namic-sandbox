@@ -49,6 +49,7 @@ install(FILES
 set(UDPServer_SRCS 
   vtkUDPServerLogic.cxx
   vtkUDPServerGUI.cxx
+  vtkMRMLUDPServerNode.cxx
 )
 
 

@@ -131,6 +131,11 @@ vtkUDPServerGUI::~vtkUDPServerGUI ( )
 //---------------------------------------------------------------------------
 void vtkUDPServerGUI::Init()
 {
+  //Register new node type to the scene
+  vtkMRMLScene* scene = this->GetMRMLScene();
+  vtkMRMLUDPServerNode* svrNode = vtkMRMLUDPServerNode::New();
+  scene->RegisterNodeClass(svrNode);
+  svrNode->Delete();
 }
 
 
@@ -202,7 +207,7 @@ void vtkUDPServerGUI::AddGUIObservers ( )
   // MRML
 
   vtkIntArray* events = vtkIntArray::New();
-  //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
   //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
   events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
   
@@ -258,7 +263,6 @@ void vtkUDPServerGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
                                          unsigned long event, void *callData)
 {
-
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
@@ -280,6 +284,11 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
       if (!this->GetLogic()->GetServerStopFlag())
         {
         this->ConnectButton->SetText("Disconnect");
+        //Add a node to the scene
+        vtkMRMLUDPServerNode* svrNode = vtkMRMLUDPServerNode::New();
+        this->GetMRMLScene()->AddNode(svrNode);
+        this->GetMRMLScene()->Modified();
+        //Start Timer to update collected values
         this->TimerFlag = 1;
         this->TimerInterval = this->UpdateEntry->GetValueAsInt();
         ProcessTimerEvents();
@@ -337,11 +346,17 @@ void vtkUDPServerGUI::ProcessLogicEvents ( vtkObject *caller,
 void vtkUDPServerGUI::ProcessMRMLEvents ( vtkObject *caller,
                                             unsigned long event, void *callData )
 {
-  // Fill in
-
-  if (event == vtkMRMLScene::SceneCloseEvent)
+ // -----------------------------------------
+  // Adding a new node
+  if (event == vtkMRMLScene::NodeAddedEvent)
     {
+    vtkObject* obj = (vtkObject*)callData;
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(obj);
+    
+    //Make new node active
+    this->ActiveNode = vtkMRMLUDPServerNode::SafeDownCast(node);
     }
+    
 }
 
 //---------------------------------------------------------------------------
@@ -564,7 +579,10 @@ void vtkUDPServerGUI::UpdateDataFrame(char* data)
     return;
     }
 
-  //Decompose data into members of probeData structure
+  //--------------------------------------------------------------------------
+  // Decompose data into members of probeData structure
+  //--------------------------------------------------------------------------
+  
   std::cerr << "About to decompose data" << std::endl;
   
   //Create stream object from data pointer
@@ -606,10 +624,14 @@ void vtkUDPServerGUI::UpdateDataFrame(char* data)
   //Gamma counts
   pd.gammaCount = atoi((*(++it)).c_str());
 
-  //Update Dataframe with data from pd structure
+  //----------------------------------------------------------------------------------------
+  // Update Dataframe with data from pd structure
+  //----------------------------------------------------------------------------------------
+  
   std::cerr << "About to upload data onto Data Frame" << std::endl;
   this->DataTable->GetWidget()->AddRow();
   int row = (this->DataTable->GetWidget()->GetNumberOfRows())-1;
+  this->DataTable->GetWidget()->SelectRow(row);
   //Date column
   this->DataTable->GetWidget()->SetCellText(row, 0, pd.date.c_str());
   //Time column
@@ -629,4 +651,11 @@ void vtkUDPServerGUI::UpdateDataFrame(char* data)
   sprintf(gc, "%d", pd.gammaCount);
   //itoa(pd.gammaCount, gc, 10);
   this->DataTable->GetWidget()->SetCellText(row, 4, gc);
+  
+  //Update Node with values
+  this->ActiveNode->SetSmoothedCounts(pd.smoothedCount);
+  this->ActiveNode->SetBetaCounts(pd.betaCount);
+  this->ActiveNode->SetGammaCounts(pd.gammaCount);
+  this->ActiveNode->SetDate(pd.date);
+  this->ActiveNode->SetTime(pd.time);
 }

@@ -24,6 +24,7 @@
 #include "vtkSlicerInteractorStyle.h"
 
 #include "vtkUDPServerLogic.h"
+#include "vtkMRMLUDPServerNode.h"
 
 #include <string>
 
@@ -127,6 +128,11 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   };
   probeData pd;
   //ETX
+  
+  //----------------------------------------------------------------
+  // UDPServerNode
+  //----------------------------------------------------------------
+  vtkMRMLUDPServerNode* ActiveNode;
   
   //----------------------------------------------------------------
   // Timer
