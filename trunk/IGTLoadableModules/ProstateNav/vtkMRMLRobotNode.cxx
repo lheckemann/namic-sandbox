@@ -12,6 +12,8 @@ Version:   $Revision: 1.2 $
 
 =========================================================================auto=*/
 
+/* This is a test comment */
+
 #include <iostream>
 #include <sstream>
 
