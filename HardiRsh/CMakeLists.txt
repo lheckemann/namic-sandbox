@@ -95,22 +95,11 @@ SET( ${PROJECT_NAME}_INCLUDES
 #Include out headers
 INCLUDE_DIRECTORIES( ${${PROJECT_NAME}_INCLUDES} )
 
-#should be relpaced with a FILE GLOB CALL
-#Todo this should buld a VNLMatrix library and link against it.
-SET(VNL_TEMPLATE_SOURCES
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+double.15.15-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+double.28.28-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+double.45.45-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+double.66.66-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+float.15.15-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+float.28.28-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+float.45.45-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+float.66.66-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+int.15.15-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+int.28.28-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+int.45.45-.cxx
-  ${PROJECT_SOURCE_DIR}/Template/vnl_matrix_fixed+int.66.66-.cxx
-)
+##Enable code coverage for debug builds!
+SET( CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fprofile-arcs -ftest-coverage "
+ CACHE STRING "Flags used by the compiler during debug builds." FORCE)
+SET( CMAKE_C_FLAGS_DEBUG "-g -O0 -fprofile-arcs -ftest-coverage "
+ CACHE STRING "Flags used by the compiler during debug builds." FORCE)
 
 SET( SpecialFunctions_SOURCES
   ${PROJECT_SOURCE_DIR}/Code/Source/itkReplaceSpecialFunctions.cxx

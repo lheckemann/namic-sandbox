@@ -162,8 +162,13 @@ protected:
   typedef typename SeedArrayMapType::const_iterator  SeedArrayMapConstIterator;
   typedef std::map<LabelType, SizeValueType >        NumberOfPixelsArrayMapType;
 
+//This class doesn't provide a << print stream so the macro won't compile.
+//  itkGetConstReferenceMacro( SeedArrayMap1, SeedArrayMapType );
+  virtual const SeedArrayMapType & GetSeedArrayMap1 () const
+  {
+    return this->m_SeedArrayMap1;
+  }
 
-  itkGetConstReferenceMacro( SeedArrayMap1, SeedArrayMapType );
 
 private:
   FrontPropagationLabelImageFilter(const Self&); //purposely not implemented
