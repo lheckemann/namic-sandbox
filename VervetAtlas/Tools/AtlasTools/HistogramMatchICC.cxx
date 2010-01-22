@@ -56,7 +56,7 @@ int main(int argc, char** argv){
   HistMatchType::Pointer histM = HistMatchType::New();
   histM->SetInput(inMasker->GetOutput());
   histM->SetReferenceImage(refMasker->GetOutput());
-  histM->SetNumberOfHistogramLevels(64);
+  histM->SetNumberOfHistogramLevels(128);
   histM->Update();
 
   writer->SetInput(histM->GetOutput());
