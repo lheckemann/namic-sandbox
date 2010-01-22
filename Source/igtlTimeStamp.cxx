@@ -51,8 +51,7 @@
 namespace igtl
 {
 
-TimeStamp::TimeStamp():
-  m_Frequency(1),Object()
+TimeStamp::TimeStamp():m_Frequency(1)
 {
 #if defined(WIN32) || defined(_WIN32)
 
