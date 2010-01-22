@@ -79,7 +79,7 @@ class IGTLCommon_EXPORT Socket : public Object
   igtlTypeMacro(igtl::Socket, igtl::Object)
   igtlNewMacro(igtl::Socket);
 
-  void PrintSelf(std::ostream& os);
+  void PrintSelf(std::ostream& os) const;
 
 public:
 
