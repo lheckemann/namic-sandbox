@@ -178,7 +178,7 @@ int Socket::SelectSocket(int socketdescriptor, unsigned long msec)
     tvalptr = &tval;
     }
   FD_ZERO(&rset);
-  FD_SET(socketdescriptor, &rset);
+  FD_SET( (unsigned int)(socketdescriptor), &rset);
   int res = select(socketdescriptor + 1, &rset, 0, 0, tvalptr);
   if(res == 0)
     {
@@ -404,7 +404,7 @@ int Socket::Skip(int length, int skipFully/*=1*/)
 }
 
 //-----------------------------------------------------------------------------
-void Socket::PrintSelf(std::ostream& os)
+void Socket::PrintSelf(std::ostream& os) const
 {
   this->Superclass::PrintSelf(os);
 }
