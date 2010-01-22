@@ -34,4 +34,8 @@ target_link_libraries(AverageLabel ITKIO ITKStatistics)
 
 add_executable(LabelFullOverlap LabelFullOverlap.cxx)
 target_link_libraries(LabelFullOverlap ITKIO ITKStatistics)
+
+add_executable(DilateLabel DilateLabel.cxx)
+target_link_libraries(DilateLabel ITKIO ITKStatistics)
+
 #subdirs(Plugins)
