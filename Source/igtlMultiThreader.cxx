@@ -790,7 +790,7 @@ int MultiThreader::ThreadsEqual(MultiThreaderIDType t1,
 }
 
 // Print method for the multithreader
-void MultiThreader::PrintSelf(std::ostream& os)
+void MultiThreader::PrintSelf(std::ostream& os) const
 {
   this->Superclass::PrintSelf(os); 
 
