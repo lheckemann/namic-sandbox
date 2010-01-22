@@ -218,7 +218,7 @@ int Socket::SelectSockets(const int* sockets_to_select, int size,
   FD_ZERO(&rset);
   for (i=0; i<size; i++)
     {
-    FD_SET(sockets_to_select[i],&rset);
+    FD_SET((unsigned int)(sockets_to_select[i]),&rset);
     max_fd = (sockets_to_select[i] > max_fd)? sockets_to_select[i] : max_fd;
     }
   
@@ -277,16 +277,16 @@ int Socket::Connect(int socketdescriptor, const char* hostName, int port)
 }
 
 //-----------------------------------------------------------------------------
-int Socket::GetPort(int sock)
+int Socket::GetPort(int igtlNotUsed(sock) )
 {
   struct sockaddr_in sockinfo;
   memset(&sockinfo, 0, sizeof(sockinfo));
 #if defined(VTK_HAVE_GETSOCKNAME_WITH_SOCKLEN_T)
   socklen_t sizebuf = sizeof(sockinfo);
 #else
-  int sizebuf = sizeof(sockinfo);
 #endif
 //  FIXME: Setup configuration for VTK_HAVE_GETSOCKNAME_WITH_SOCKLEN_T so we can uncomment these lines
+//  int sizebuf = sizeof(sockinfo);
 //  if(getsockname(sock, reinterpret_cast<sockaddr*>(&sockinfo), &sizebuf) != 0)
 //    {
 //    return 0;

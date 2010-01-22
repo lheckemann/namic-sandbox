@@ -143,7 +143,7 @@ public:
   igtlNewMacro(Self);  
   igtlTypeMacro(MultiThreader, Object);
 
-  void PrintSelf(std::ostream& os);
+  void PrintSelf(std::ostream& os) const;
 
   // Description:
   // This is the structure that is passed to the thread that is
