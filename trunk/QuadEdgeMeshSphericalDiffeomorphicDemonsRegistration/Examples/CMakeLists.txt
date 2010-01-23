@@ -211,7 +211,7 @@ ADD_TEST(ConvertResult_${MESHID1}_${MESHID2}
   ${CXX_TEST_PATH}/ReadFreesurferBinarySurfaceWriteVTKMesh
   ${REFERENCE_MESH}
   ${PATIENT_DATA_ROOT}/sub${MESHID2}/surf/lh.curv
-  ${TEMP}/${REFERENCE_MESH_BASE_NAME}.vtk
+  ${TEMP}/${REFERENCE_MESH_BASE_NAME}c.vtk
   )
 
 
