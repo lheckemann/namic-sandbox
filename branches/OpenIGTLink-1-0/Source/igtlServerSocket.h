@@ -52,7 +52,7 @@ public:
   igtlTypeMacro(igtl::ServerSocket, igtl::Socket);
   igtlNewMacro(igtl::ServerSocket);
 
-  void PrintSelf(std::ostream& os) const;
+  //void PrintSelf(std::ostream& os) const;
 
   // Description:
   // Creates a server socket at a given port and binds to it.

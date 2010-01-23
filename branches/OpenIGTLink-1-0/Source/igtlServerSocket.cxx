@@ -112,11 +112,11 @@ ClientSocket::Pointer ServerSocket::WaitForConnection(unsigned long msec /*=0*/)
   return cs;
 }
 
-//-----------------------------------------------------------------------------
-void ServerSocket::PrintSelf(std::ostream& os) const
-{
-  this->Superclass::PrintSelf(os);
-}
+////-----------------------------------------------------------------------------
+//void ServerSocket::PrintSelf(std::ostream& os) const
+//{
+//  this->Superclass::PrintSelf(os);
+//}
 
 
 } // end of igtl namespace

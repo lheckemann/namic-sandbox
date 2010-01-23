@@ -109,9 +109,9 @@ void SimpleMutexLock::Unlock()
 #endif
 }
 
-void MutexLock::PrintSelf(std::ostream& os) const
-{
-  Superclass::PrintSelf(os);
-}
+//void MutexLock::PrintSelf(std::ostream& os) const
+//{
+//  Superclass::PrintSelf(os);
+//}
 
 }//end namespace igtl

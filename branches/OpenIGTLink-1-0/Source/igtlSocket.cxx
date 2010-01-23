@@ -179,7 +179,7 @@ int Socket::SelectSocket(int socketdescriptor, unsigned long msec)
     tvalptr = &tval;
     }
   FD_ZERO(&rset);
-  FD_SET( (unsigned int)(socketdescriptor), &rset);
+  FD_SET( socketdescriptor, &rset);
   int res = select(socketdescriptor + 1, &rset, 0, 0, tvalptr);
   if(res == 0)
     {
@@ -219,7 +219,7 @@ int Socket::SelectSockets(const int* sockets_to_select, int size,
   FD_ZERO(&rset);
   for (i=0; i<size; i++)
     {
-    FD_SET((unsigned int)(sockets_to_select[i]),&rset);
+    FD_SET( sockets_to_select[i],&rset);
     max_fd = (sockets_to_select[i] > max_fd)? sockets_to_select[i] : max_fd;
     }
   
@@ -283,7 +283,7 @@ int Socket::GetPort(int igtlNotUsed(sock) )
   struct sockaddr_in sockinfo;
   memset(&sockinfo, 0, sizeof(sockinfo));
 #if defined(VTK_HAVE_GETSOCKNAME_WITH_SOCKLEN_T)
-  socklen_t sizebuf = sizeof(sockinfo);
+  //socklen_t sizebuf = sizeof(sockinfo);
 #else
 #endif
 //  FIXME: Setup configuration for VTK_HAVE_GETSOCKNAME_WITH_SOCKLEN_T so we can uncomment these lines
@@ -404,11 +404,11 @@ int Socket::Skip(int length, int skipFully/*=1*/)
 
 }
 
-//-----------------------------------------------------------------------------
-void Socket::PrintSelf(std::ostream& os) const
-{
-  this->Superclass::PrintSelf(os);
-}
+////-----------------------------------------------------------------------------
+//void Socket::PrintSelf(std::ostream& os) const
+//{
+//  this->Superclass::PrintSelf(os);
+//}
 
 
 } // end of igtl namespace
