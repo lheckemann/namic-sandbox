@@ -34,6 +34,7 @@
 #cmakedefine OpenIGTLink_USE_PTHREADS
 #cmakedefine OpenIGTLink_USE_WIN32_THREADS
 #cmakedefine OpenIGTLink_USE_SPROC
+#cmakedefine OpenIGTLink_HAVE_GETSOCKNAME_WITH_SOCKLEN_T
 
 #endif /*__IGTL_CONFIGURE_H*/
 
