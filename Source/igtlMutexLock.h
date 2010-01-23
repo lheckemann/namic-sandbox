@@ -154,7 +154,7 @@ protected:
   ~MutexLock() {}
   
   SimpleMutexLock   m_SimpleMutexLock;
-  void PrintSelf(std::ostream& os) const;
+  //void PrintSelf(std::ostream& os) const;
   
 private:
   MutexLock(const Self&); //purposely not implemented

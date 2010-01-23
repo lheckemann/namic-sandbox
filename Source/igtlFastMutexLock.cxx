@@ -37,9 +37,9 @@
 namespace igtl
 {
 
-void FastMutexLock::PrintSelf(std::ostream& os) const
-{
-  Superclass::PrintSelf(os);
-}
+//void FastMutexLock::PrintSelf(std::ostream& os) const
+//{
+//  Superclass::PrintSelf(os);
+//}
 
 }//end namespace igtl

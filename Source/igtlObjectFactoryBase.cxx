@@ -270,26 +270,26 @@ ObjectFactoryBase
  * A file scope helper function to concat path and file into
  * a full path
  */
-static std::string 
-CreateFullPath(const char* path, const char* file)
-{
-  std::string ret;
-#ifdef _WIN32
-  const char sep = '\\';
-#else
-  const char sep = '/';
-#endif
-  /**
-   * make sure the end of path is a separator
-   */
-  ret = path;
-  if ( !ret.empty() && ret[ret.size()-1] != sep )
-    {
-    ret += sep;
-    }
-  ret += file;
-  return ret;
-}
+//static std::string 
+//CreateFullPath(const char* path, const char* file)
+//{
+//  std::string ret;
+//#ifdef _WIN32
+//  const char sep = '\\';
+//#else
+//  const char sep = '/';
+//#endif
+//  /**
+//   * make sure the end of path is a separator
+//   */
+//  ret = path;
+//  if ( !ret.empty() && ret[ret.size()-1] != sep )
+//    {
+//    ret += sep;
+//    }
+//  ret += file;
+//  return ret;
+//}
 
 
 /**

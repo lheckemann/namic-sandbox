@@ -70,11 +70,11 @@ int ClientSocket::ConnectToServer(const char* hostName, int port)
   return 0;
 }
 
-//-----------------------------------------------------------------------------
-void ClientSocket::PrintSelf(std::ostream& os) const
-{
-  this->Superclass::PrintSelf(os);
-}
+////-----------------------------------------------------------------------------
+//void ClientSocket::PrintSelf(std::ostream& os) const
+//{
+//  this->Superclass::PrintSelf(os);
+//}
 
 } // end of igtl namespace
 

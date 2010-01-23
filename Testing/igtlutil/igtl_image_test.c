@@ -19,7 +19,7 @@
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
 
-int main( int argc, char * argv [] )
+int main( /*int argc, char * argv []*/ )
 {
   typedef long long LongType;
   float spacing[3];
@@ -32,17 +32,17 @@ int main( int argc, char * argv [] )
 
   igtl_image_header  header;
 
-  LongType size = igtl_image_get_data_size( &header );
+  /*LongType size = igtl_image_get_data_size( &header );*/
 
   igtl_image_get_matrix(spacing, origin, norm_i, norm_j, norm_k, & header);
   igtl_image_convert_byte_order( & header);
 
-  // FIXME: verify the outcome
+  /* FIXME: verify the outcome*/
 
   
-  //crc = igtl_image_get_crc( &header, (void*) image);
+  /*crc = igtl_image_get_crc( &header, (void*) image);*/
 
-  // FIXME: verify the outcome
+  /* FIXME: verify the outcome*/
 
 
   return EXIT_SUCCESS;

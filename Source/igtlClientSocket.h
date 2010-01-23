@@ -51,7 +51,7 @@ public:
   igtlTypeMacro(igtl::ClientSocket, igtl::Socket)
   igtlNewMacro(igtl::ClientSocket);
 
-  void PrintSelf(std::ostream& os) const;
+  //void PrintSelf(std::ostream& os) const;
 
   // Description:
   // Connects to host. Returns 0 on success, -1 on error.
