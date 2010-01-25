@@ -17,6 +17,7 @@
 #include "igtl_types.h"
 #include "igtl_header.h"
 #include "igtl_status.h"
+#include "igtl_util.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -45,6 +46,7 @@ int main( int argc, char * argv [] )
   unsigned int msglen;
   struct status_message message;
   int r;
+  int s;
 
   msglen = sizeof(STR_ERROR_MESSAGE);
 
@@ -79,12 +81,23 @@ int main( int argc, char * argv [] )
   r = memcmp((const void*)&message, (const void*)test_status_message,
                  IGTL_HEADER_SIZE+IGTL_STATUS_HEADER_SIZE+msglen);
 
+  r = 1;
   if (r == 0)
     {
     return EXIT_SUCCESS;
     }
   else
     {
+    /* Print first 256 bytes as HEX values in STDERR for debug */
+    s = IGTL_HEADER_SIZE+IGTL_STATUS_HEADER_SIZE+msglen;
+    if (s > 256)
+      {
+      s = 256;
+      }
+
+    fprintf(stdout, "\n===== First %d bytes of the test message =====\n", s);
+    igtl_message_dump_hex(stdout, (const void*)&message, s);
+
     return EXIT_FAILURE;
     }
 

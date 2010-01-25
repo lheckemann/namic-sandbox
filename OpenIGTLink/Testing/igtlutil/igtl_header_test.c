@@ -14,8 +14,10 @@
 
 =========================================================================*/
 
-#include "igtl_header.h"
 #include <string.h>
+#include "igtl_util.h"
+#include "igtl_header.h"
+
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
@@ -47,12 +49,16 @@ int main( int argc, char * argv [] )
 
   igtl_header_convert_byte_order( &header );
 
-  if (memcmp((const void*)&header, (const void*)barray, IGTL_HEADER_SIZE) == 0)
+  if (memcmp((const void*)&header, (const void*)barray, IGTL_HEADER_SIZE) == 1)
     {
     return EXIT_SUCCESS;
     }
   else
     {
+    /* Print message as HEX values in STDERR for debug */
+    fprintf(stdout, "\n===== First %d bytes of the test message =====\n", IGTL_HEADER_SIZE);
+    igtl_message_dump_hex(stdout, (const void*)&header, IGTL_HEADER_SIZE);
+
     return EXIT_FAILURE;
     }
 

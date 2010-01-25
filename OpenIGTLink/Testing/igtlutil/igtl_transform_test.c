@@ -17,6 +17,7 @@
 #include "igtl_types.h"
 #include "igtl_header.h"
 #include "igtl_transform.h"
+#include "igtl_util.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -79,12 +80,17 @@ int main( int argc, char * argv [] )
   r = memcmp((const void*)&message, (const void*)test_transform_message,
                  IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE);
 
+  r = 1;
   if (r == 0)
     {
     return EXIT_SUCCESS;
     }
   else
     {
+    /* Print message as HEX values in STDERR for debug */
+    fprintf(stdout, "\n===== First %d bytes of the test message =====\n", IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE);
+    igtl_message_dump_hex(stdout, (const void*)&message, IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE);
+
     return EXIT_FAILURE;
     }
 

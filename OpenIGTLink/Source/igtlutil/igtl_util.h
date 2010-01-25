@@ -17,6 +17,7 @@
 #ifndef __IGTL_UTIL_H
 #define __IGTL_UTIL_H
 
+#include <stdio.h>
 #include "igtl_win32header.h"
 #include "igtl_types.h"
 
@@ -49,6 +50,7 @@ igtl_uint64 igtl_export crc64(unsigned char *data, igtl_uint64 len, igtl_uint64 
 
 igtl_uint32 igtl_export igtl_nanosec_to_frac(igtl_uint32 nanosec);
 igtl_uint32 igtl_export igtl_frac_to_nanosec(igtl_uint32 frac);
+void igtl_export igtl_message_dump_hex(FILE* stream, const void* message, int max_size);
 
 #ifdef __cplusplus
 }
