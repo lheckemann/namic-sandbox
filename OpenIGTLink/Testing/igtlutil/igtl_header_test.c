@@ -49,7 +49,7 @@ int main( int argc, char * argv [] )
 
   igtl_header_convert_byte_order( &header );
 
-  if (memcmp((const void*)&header, (const void*)barray, IGTL_HEADER_SIZE) == 1)
+  if (memcmp((const void*)&header, (const void*)barray, IGTL_HEADER_SIZE) == 0)
     {
     return EXIT_SUCCESS;
     }
