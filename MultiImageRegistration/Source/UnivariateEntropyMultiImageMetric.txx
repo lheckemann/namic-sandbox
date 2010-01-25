@@ -741,7 +741,7 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
     typedef itk::Array<RealType> WeigtsType;
     WeigtsType bsplineWeights(numberOfWeights);
     this->m_BSplineTransformArray[imageNumber]->GetJacobian(
-                                sample.FixedImagePoint, bsplineIndexes, bsplineWeights);
+                                sample.FixedImagePoint, bsplineWeights, bsplineIndexes );
 
     for (int k = 0; k < numberOfWeights; k++)
     {
