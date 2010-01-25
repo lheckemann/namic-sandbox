@@ -34,6 +34,7 @@
 #include "itkImageDuplicator.h"
 
 #define CHANGING_BAND 5
+#define EXP_FUNCTION 1
 
 using namespace std;
 
@@ -71,7 +72,7 @@ int main( int argc, char ** argv )
   if( argc < 5 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " inputImage inputICCSeg inputTumorSeg outputImage growthMagnitude" << std::endl;
+    std::cerr << argv[0] << " inputImage inputICCSeg inputTumorSeg outputImage growthMagnitude [0=sin model|1=1/exp model]" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -85,6 +86,7 @@ int main( int argc, char ** argv )
   tumorReader->SetFileName( argv[3] );
   outputWriter->SetFileName( argv[4] );
   float growthMagnitude = atof(argv[5]);
+  int modelType = atoi(argv[6]);
 
   inputReader->Update();
   iccReader->Update();
@@ -142,12 +144,20 @@ int main( int argc, char ** argv )
     displ[1] = curPt[1]-centroidPt[1];
     displ[2] = curPt[2]-centroidPt[2];
     GradientImageType::PixelType curDispl = it.Get();
-    if(displ.GetNorm()<31.45 && curDispl.GetNorm())
-      curDispl *= growthMagnitude*sin(.1*displ.GetNorm())/curDispl.GetNorm();
-    else
-      curDispl *= 0;
+
+    if(modelType){  // inverse exp model
+      if(curDispl.GetNorm())
+        curDispl *= growthMagnitude/exp(.1*displ.GetNorm())/curDispl.GetNorm();
+      else
+        curDispl *= 0;
+    } else {        // sin model
+      if(displ.GetNorm()<31.45 && curDispl.GetNorm())
+        curDispl *= growthMagnitude*sin(.1*displ.GetNorm())/curDispl.GetNorm();
+      else
+        curDispl *= 0;
+    }
     if(!iccit.Get())
-      curDispl *= 0.;
+        curDispl *= 0.;
     it.Set(curDispl);
   }
 

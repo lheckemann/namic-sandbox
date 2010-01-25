@@ -86,7 +86,7 @@ int main(int argc, char * argv[])
   typedef itk::LabelImageToShapeLabelMapFilter< ImageType, LabelMapType> I2LType;
   I2LType::Pointer i2l = I2LType::New();
   i2l->SetInput( reader->GetOutput() );
-  i2l->SetComputePerimeter(true);
+  i2l->SetComputePerimeter(false);
   i2l->Update();
 
   typedef LabelMapType::LabelObjectContainerType LabelObjectContainerType;
@@ -98,14 +98,14 @@ int main(int argc, char * argv[])
   for (unsigned int n = 0; n < labelMap->GetNumberOfLabelObjects(); n++)
     {
     ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject(n);
-    std::cout << "Label: " 
-              << itk::NumericTraits<LabelMapType::LabelType>::PrintType(labelObject->GetLabel()) << std::endl;
+//    std::cout << "Label: " 
+//              << itk::NumericTraits<LabelMapType::LabelType>::PrintType(labelObject->GetLabel()) << std::endl;
 //    std::cout << "    Region: "
 //              << labelObject->GetRegion() << std::endl;
-    std::cout << "    Size in pixels: "
-              << labelObject->GetSize() << std::endl;
-    std::cout << "    Physical Size: "
-              << labelObject->GetPhysicalSize() << std::endl;
+//    std::cout << "    Size in pixels: "
+//              << labelObject->GetSize() << std::endl;
+//    std::cout << "    Physical Size: "
+      std::cout << labelObject->GetPhysicalSize() << std::endl;
 //    std::cout << "    Centroid center of shape: "
 //              << labelObject->GetCentroid() << std::endl;
 //    std::cout << "    RegionElongation : "
@@ -124,10 +124,10 @@ int main(int argc, char * argv[])
 //              << labelObject->GetBinaryPrincipalAxes() << std::endl;
 //    std::cout << "    BinaryElongation: "
 //              << labelObject->GetBinaryElongation() << std::endl;
-    std::cout << "    Perimeter: "
-              << labelObject->GetPerimeter() << std::endl;
-    std::cout << "    Roundness: "
-              << labelObject->GetRoundness() << std::endl;
+//    std::cout << "    Perimeter: "
+//              << labelObject->GetPerimeter() << std::endl;
+//    std::cout << "    Roundness: "
+//              << labelObject->GetRoundness() << std::endl;
 //    std::cout << "    EquivalentRadius: "
 //              << labelObject->GetEquivalentRadius() << std::endl;
 //    std::cout << "    EquivalentPerimeter: "
