@@ -142,7 +142,7 @@ MultiImageMetric<TImage>
   }
   
   // Use optimized Bspline derivatives 
-  if( !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
+  if( !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransform") )
   {
     this->m_UserBsplineDefined = true;
   }

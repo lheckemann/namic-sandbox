@@ -37,7 +37,7 @@
 
 // Transform headers
 #include "itkAffineTransform.h"
-#include "BSplineDeformableTransformOpt.h"
+#include "itkBSplineDeformableTransform.h"
 
 // Interpolator headers    
 #include "itkLinearInterpolateImageFunction.h"
@@ -306,7 +306,7 @@ public:
     // Output message about registration
     std::cout << "message: metric type: " << metric->GetNameOfClass() << std::endl;
     std::cout << "message: Transform Type: " << registration->GetTransformArray(0)->GetNameOfClass();
-    if( !strcmp(registration->GetTransformArray(0)->GetNameOfClass(), "BSplineDeformableTransformOpt") )
+    if( !strcmp(registration->GetTransformArray(0)->GetNameOfClass(), "BSplineDeformableTransform") )
     {
       std::cout << " (" << bsplineGridSize << "x" << bsplineGridSize << "x" << bsplineGridSize << ")";
     }    
@@ -1142,7 +1142,7 @@ int main( int argc, char *argv[] )
   const unsigned int SplineOrder = 3;
   typedef ScalarType CoordinateRepType;
 
-  typedef itk::BSplineDeformableTransformOpt< CoordinateRepType,
+  typedef itk::BSplineDeformableTransform< CoordinateRepType,
                                                Dimension,
                                                SplineOrder >     BSplineTransformType;
 

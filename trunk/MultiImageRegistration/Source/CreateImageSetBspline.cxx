@@ -22,7 +22,7 @@
 
 #include "itkAffineTransform.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
-#include "BSplineDeformableTransformOpt.h"
+#include "itkBSplineDeformableTransform.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkNormalVariateGenerator.h"
@@ -115,7 +115,7 @@ int main( int argc, char * argv[] )
     typedef itk::ResampleImageFilter<InputImageType,OutputImageType> ResampleFilterType;
     ResampleFilterType::Pointer resample = ResampleFilterType::New();
 
-    typedef itk::BSplineDeformableTransformOpt< double,
+    typedef itk::BSplineDeformableTransform< double,
                                            Dimension,
                                            3 >     BSplineTransformType;
 
