@@ -87,6 +87,8 @@ int main( int argc, char *argv[] )
 
   double sumOfDistances = 0.0;
 
+  const unsigned long numberOfPoints = fixedPoints->Size();
+
   while( ( fixedPointItr != fixedPointEnd ) && ( movingPointItr != movingPointEnd ) )
     {
     ++fixedPointItr;
@@ -96,7 +98,7 @@ int main( int argc, char *argv[] )
     sumOfDistances += distanceSquared;
     }
   
-  const double distancesRMS = vcl_sqrt( sumOfDistances );
+  const double distancesRMS = vcl_sqrt( sumOfDistances / numberOfPoints );
 
   std::cout << "RMS " << distancesRMS << std::endl;
 
