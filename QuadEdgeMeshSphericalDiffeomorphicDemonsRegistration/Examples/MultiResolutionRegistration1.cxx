@@ -891,10 +891,10 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   registration->SetInitialTransformParameters( parameters );
 
   // 
-  //  Running Fourth Resolution Level Rigid Registration.
+  //  Running Fifth Resolution Level Rigid Registration.
   //
 
-  std::cout << "Running Fourth Resolution Level Rigid Registration." << std::endl;
+  std::cout << "Running Fifth Resolution Level Rigid Registration." << std::endl;
 
   try
     {
@@ -934,9 +934,9 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
 
   // 
-  //  Running Fourth Resolution Level Demons Registration.
+  //  Running Fifth Resolution Level Demons Registration.
   //
-  std::cout << "Running Final Resolution Level Demons Registration." << std::endl;
+  std::cout << "Running Fifth Resolution Level Demons Registration." << std::endl;
 
   try
     {
