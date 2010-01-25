@@ -99,7 +99,6 @@ int main( int argc, char * argv [] )
   r = memcmp((const void*)&message, (const void*)test_image_message,
                  (size_t)(IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size));
 
-  r = 1;
   if (r == 0)
     {
     return EXIT_SUCCESS;

@@ -80,7 +80,6 @@ int main( int argc, char * argv [] )
   r = memcmp((const void*)&message, (const void*)test_transform_message,
                  IGTL_HEADER_SIZE+IGTL_TRANSFORM_SIZE);
 
-  r = 1;
   if (r == 0)
     {
     return EXIT_SUCCESS;

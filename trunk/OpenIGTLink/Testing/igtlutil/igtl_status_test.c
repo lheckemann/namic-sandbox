@@ -81,7 +81,6 @@ int main( int argc, char * argv [] )
   r = memcmp((const void*)&message, (const void*)test_status_message,
                  IGTL_HEADER_SIZE+IGTL_STATUS_HEADER_SIZE+msglen);
 
-  r = 1;
   if (r == 0)
     {
     return EXIT_SUCCESS;
