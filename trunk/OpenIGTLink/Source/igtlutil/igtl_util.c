@@ -208,3 +208,35 @@ igtl_uint32 igtl_export igtl_frac_to_nanosec(igtl_uint32 frac)
   return r;
 }
 
+
+void igtl_export igtl_message_dump_hex(FILE* stream, const void* message, int bytes)
+{
+  /* Print first 256 bytes as HEX values in STDERR for debug */
+
+  unsigned char* p;
+  int row;
+  int cols_in_last_row;
+  int i;
+  int j;
+
+  p = (unsigned char*)message;
+  row = bytes / 16;
+  cols_in_last_row = bytes % 16;
+
+  for (i = 0; i < row; i ++)
+    {
+    for (j = 0; j < 16; j ++)
+      {
+      fprintf(stream, "%02x ", *p);
+      p++;
+      }
+    fprintf(stream, "\n");
+    }
+
+  for (j = 0; j < cols_in_last_row; j ++)
+    {
+    fprintf(stream, "%02x ", p[i]);
+    }
+  fprintf(stream, "\n");
+  
+}

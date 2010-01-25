@@ -18,6 +18,7 @@
 #include "igtl_types.h"
 #include "igtl_header.h"
 #include "igtl_image.h"
+#include "igtl_util.h"
 
 /* include test image data and serialized image message */
 #include "igtl_test_data_image.h"
@@ -41,6 +42,7 @@ int main( int argc, char * argv [] )
   struct image_message message;
   int r;
   igtl_uint64 image_size;
+  int s;
   igtl_float32 spacing[] = {1.0f, 1.0f, 1.0f};
   igtl_float32 origin[]  = {46.0531f, 19.4709f, 46.0531f};
   igtl_float32 norm_i[]  = {-0.954892f, 0.196632f, -0.222525f};
@@ -97,12 +99,23 @@ int main( int argc, char * argv [] )
   r = memcmp((const void*)&message, (const void*)test_image_message,
                  (size_t)(IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size));
 
+  r = 1;
   if (r == 0)
     {
     return EXIT_SUCCESS;
     }
   else
     {
+    /* Print first 256 bytes as HEX values in STDERR for debug */
+    s = IGTL_HEADER_SIZE+IGTL_IMAGE_HEADER_SIZE+image_size;
+    if (s > 256)
+      {
+      s = 256;
+      }
+
+    fprintf(stdout, "\n===== First %d bytes of the test message =====\n", s);
+    igtl_message_dump_hex(stdout, (const void*)&message, s);
+
     return EXIT_FAILURE;
     }
 }
