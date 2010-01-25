@@ -87,26 +87,23 @@ int main( int argc, char * argv[] )
   TransformListType*   transformList = transformFileReader->GetTransformList();
 
 
-  TransformListType::iterator it=transformList->begin();
-
-  std::string type(argv[4]);
-
+  const std::string type(argv[4]);
   TransformType::Pointer   transform;
-  for(TransformListType::iterator it=transformList->begin(); it !=transformList->end() ; it++)
+  for(TransformListType::iterator transformIter=transformList->begin(); transformIter !=transformList->end() ; transformIter++)
   {
     if(type=="bspline")
     {
-      BSplineTransformType::Pointer  bsplineTransform = BSplineTransformType::New();
-      bsplineTransform->SetFixedParameters((*it)->GetFixedParameters());
-      bsplineTransform->SetParameters((*it)->GetParameters());
-      transform = bsplineTransform;
+      BSplineTransformType::Pointer  localbsplineTransform = BSplineTransformType::New();
+      localbsplineTransform->SetFixedParameters((*transformIter)->GetFixedParameters());
+      localbsplineTransform->SetParameters((*transformIter)->GetParameters());
+      transform = localbsplineTransform;
     }
     else
     {
-      AffineTransformType::Pointer  affineTransform = AffineTransformType::New();
-      affineTransform->SetParameters((*it)->GetParameters());
-      affineTransform->SetFixedParameters((*it)->GetFixedParameters());
-      transform = affineTransform;
+      AffineTransformType::Pointer  localaffineTransform = AffineTransformType::New();
+      localaffineTransform->SetParameters((*transformIter)->GetParameters());
+      localaffineTransform->SetFixedParameters((*transformIter)->GetFixedParameters());
+      transform = localaffineTransform;
     }
 
   }

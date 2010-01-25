@@ -455,7 +455,7 @@ public:
     { return; }
 
   void SetFileNames(    std::vector<std::string> fileNames2,
-                        std::vector<std::string> inputFileNames2,
+                        std::vector<std::string> itkNotUsed(inputFileNames2),
                         std::vector<std::string> outputFileNames2,
                         std::string              outputFolder2)
   {
@@ -1363,21 +1363,21 @@ int main( int argc, char *argv[] )
     {
       transformArray[i] = bsplineTransformArrayLow[i];
     }
-    std::ostringstream bsplineFolderName;
-    bsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize;
+    std::ostringstream localbsplineFolderName;
+    localbsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize;
     command->SetFileNames( fileNames, inputFileNames,
-                           outputFileNames, outputFolder + bsplineFolderName.str() + "_MultiScale_" );
-    bsplineFolderName << "/" ;
+                           outputFileNames, outputFolder + localbsplineFolderName.str() + "_MultiScale_" );
+    localbsplineFolderName << "/" ;
 
 
     if(startLevel != 2)
     {
       //Write the transform files
       itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
-      itksys::SystemTools::MakeDirectory( (outputFolder + bsplineFolderName.str() + "TransformFiles/").c_str() );
+      itksys::SystemTools::MakeDirectory( (outputFolder + localbsplineFolderName.str() + "TransformFiles/").c_str() );
       for(int i=0; i<N;i++)
       {
-        std::string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
+        std::string fileName = outputFolder + localbsplineFolderName.str() + "TransformFiles/" + fileNames[i];
         fileName = replaceExtension(fileName, "txt");
         transformFileWriter->SetFileName(fileName.c_str());
         transformFileWriter->SetPrecision(12);
@@ -1436,9 +1436,9 @@ int main( int argc, char *argv[] )
 
             TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
 
-            std::ostringstream bsplineFolderName;
-            bsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize << "/";
-            std::string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
+            std::ostringstream tempbsplineFolderName;
+            tempbsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize << "/";
+            std::string fileName = outputFolder + tempbsplineFolderName.str() + "TransformFiles/" + fileNames[i];
             fileName = replaceExtension(fileName, "txt");
             transformFileReader->SetFileName(fileName.c_str());
             transformFileReader->Update();
@@ -1575,19 +1575,19 @@ int main( int argc, char *argv[] )
         // Decrease the learning rate at each level
         // Reset the optimizer scales
         typedef OptimizerType::ScalesType       OptimizerScalesType;
-        OptimizerScalesType optimizerScales( bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N );
-        optimizerScales.Fill( 1.0 );
+        OptimizerScalesType localOptimizerScales( bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N );
+        localOptimizerScales.Fill( 1.0 );
 
         if(optimizerType == "lineSearch")
         {
-          lineSearchOptimizer->SetScales( optimizerScales );
+          lineSearchOptimizer->SetScales( localOptimizerScales );
           lineSearchOptimizer->SetStepLength(optBsplineHighLearningRate);
           lineSearchOptimizer->SetMaximumIteration( optBsplineHighNumberOfIterations );
         }
         else if(optimizerType == "simplex")
         {
           simplexOptimizer->SetMaximumNumberOfIterations( optBsplineHighNumberOfIterations );
-          simplexOptimizer->SetScales( optimizerScales );
+          simplexOptimizer->SetScales( localOptimizerScales );
         }
         else if(optimizerType == "SPSA")
         {
@@ -1596,11 +1596,11 @@ int main( int argc, char *argv[] )
           SPSAOptimizer->SetA( SPSAOptimizer->GetMaximumNumberOfIterations()/10.0 );
           SPSAOptimizer->Setc( SPSAOptimizer->Geta()*SPSAcRel );
           
-          SPSAOptimizer->SetScales( optimizerScales );
+          SPSAOptimizer->SetScales( localOptimizerScales );
         }
         else
         {
-          optimizer->SetScales( optimizerScales );
+          optimizer->SetScales( localOptimizerScales );
           optimizer->SetLearningRate( optBsplineHighLearningRate );
           optimizer->SetNumberOfIterations( optBsplineHighNumberOfIterations );
         }
@@ -1634,20 +1634,20 @@ int main( int argc, char *argv[] )
         {
           transformArray[i] = bsplineTransformArrayHigh[i];
         }
-        std::ostringstream bsplineFolderName;
-        bsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize;
+        std::ostringstream tempbsplineFolderName;
+        tempbsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize;
         
         command->SetFileNames( fileNames, inputFileNames,
-                               outputFileNames, outputFolder + bsplineFolderName.str() + "_MultiScale_" );
-        bsplineFolderName << "/" ;
+                               outputFileNames, outputFolder + tempbsplineFolderName.str() + "_MultiScale_" );
+        tempbsplineFolderName << "/" ;
 
 
         // Write the transform files
         itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
-        itksys::SystemTools::MakeDirectory( (outputFolder + bsplineFolderName.str() + "TransformFiles/").c_str() );
+        itksys::SystemTools::MakeDirectory( (outputFolder + tempbsplineFolderName.str() + "TransformFiles/").c_str() );
         for(int i=0; i<N;i++)
         {
-          std::string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
+          std::string fileName = outputFolder + tempbsplineFolderName.str() + "TransformFiles/" + fileNames[i];
           fileName = replaceExtension(fileName, "txt");
           transformFileWriter->SetFileName(fileName.c_str());
           transformFileWriter->SetPrecision(12);
@@ -1676,7 +1676,7 @@ int main( int argc, char *argv[] )
 
 
 
-int getCommandLine(       int argc, char *initFname, vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder, std::string& optimizerType,
+int getCommandLine(       int /*argc*/, char *initFname, vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder, std::string& optimizerType,
                           int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
                           double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
                           int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
