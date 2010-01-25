@@ -202,20 +202,22 @@ protected:
   vtkImageReslice *Reslice; // reslice/resample filter
   // matrices   
   vtkMatrix4x4 *XYToIJK; // moving from xy coordinates to volume/slice ijk
-  vtkMatrix4x4 *XYToRAS; // use volume node's ijktoras matrix along with xytoijk to get a mapping of xy to ras
+  vtkMatrix4x4 *XYToRAS; // use volume node's ijktoras matrix along with xytoijk
+                         // to get a mapping of xy to ras
   vtkMatrix4x4 *CurrentTransformMatrix;
 
 
   vtkMatrix4x4 *SystemStateXYToIJK;
   vtkMatrix4x4 *SystemStateResliceMatrix;
 
-  // transform to be used for Reslice
+    // transform to be used for Reslice
   vtkTransform *ResliceTransform;
   vtkMRMLScalarVolumeNode *VolumeNode;
 
   vtkImageData *ImageData; // the image data to be displayed
 
-  vtkMatrix4x4 *GetFlipMatrixFromDirectionCosines (vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip);
+  vtkMatrix4x4 *GetFlipMatrixFromDirectionCosines (
+    vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip );
  
   
   // about the monitor
@@ -225,8 +227,8 @@ protected:
   double MonitorPixelResolution[2];
   double MonitorPhysicalSizeMM[2];  
   int VirtualScreenCoord[2];
-  int ScreenSize[3];
-  int ImageSize[3];
+  int ScreenSize[3]; // Number of pixels on the monitor.
+  int ImageSize[3]; 
   bool VerticalFlipped;
   bool HorizontalFlipped;
 

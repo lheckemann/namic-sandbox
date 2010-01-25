@@ -304,9 +304,11 @@ void vtkPerkStationSecondaryMonitor::ResetCalibration()
   xyToIJK->SetElement(2,3,0.);
   this->XYToIJK->DeepCopy(xyToIJK);
 
-  // to have consistent display i.e. same display as in SLICER's slice viewer, and own render window in secondary monitor
+  // to have consistent display i.e. same display as in SLICER's slice viewer,
+  // and own render window in secondary monitor
   // figure out whether a horizontal flip required or a vertical flip or both
-  // Note: this does not counter the flip that will be required due to secondary monitors orientation/mounting
+  // Note: this does not counter the flip that will be required due to secondary
+  // monitors orientation/mounting
   // It only makes sure that two displays have same view if they are physically in same orientation
   vtkMatrix4x4 *directionMatrix = vtkMatrix4x4::New();
   this->VolumeNode->GetIJKToRASDirectionMatrix(directionMatrix);
@@ -371,14 +373,14 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if (!mrmlNode)
     {
-    // TO DO: what to do on failure
+    // TODO: what to do on failure
     return;
     }
 
   this->VolumeNode = mrmlNode->GetPlanningVolumeNode();
   if (!this->VolumeNode)
     {
-    // TO DO: what to do on failure
+    // TODO: what to do on failure
     return;
     }
 
@@ -591,9 +593,11 @@ void vtkPerkStationSecondaryMonitor::UpdateMatrices()
   this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
   vtkMatrix4x4::Multiply4x4(ijkToRAS, this->XYToIJK, this->XYToRAS);
 
-  vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red")->GetLogic();
-  this->UpdateImageDataOnSliceOffset(sliceLogic->GetSliceOffset());
-
+  vtkSlicerSliceLogic *sliceLogic = 
+    vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() )->
+      GetMainSliceGUI( "Red" )->GetLogic();
+  this->UpdateImageDataOnSliceOffset( sliceLogic->GetSliceOffset() );
+  
   this->UpdateImageDisplay();
 
 }
