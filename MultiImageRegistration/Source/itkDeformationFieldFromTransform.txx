@@ -93,7 +93,7 @@ template <class TOutputImage, class TPrecision>
 void 
 DeformationFieldFromTransform<TOutputImage, TPrecision>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegion,
-                       int threadId)
+                       int /* threadId */)
 {
 
   itkDebugMacro(<<"Actually executing");

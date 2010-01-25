@@ -54,7 +54,7 @@ std::string replaceExtension(const std::string oldname, const std::string extens
   return oldname.substr(0, oldname.rfind(".")) + "." + extension;
 }
 
-int getCommandLine(       int argc, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
+int getCommandLine(       int /*argc*/, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           std::string& useBspline, std::string& useBsplineHigh,
                           std::string& writeDeformationFields, std::string& write3DImages )

@@ -245,14 +245,14 @@ MultiImageMetric<TImage>
 template <class TImage>
 void
 MultiImageMetric<TImage>
-  ::BeforeGetThreadedValue(const ParametersType & parameters) const
+  ::BeforeGetThreadedValue(const ParametersType & itkNotUsed(parameters)) const
 {
 }
 
 template <class TImage>
 void
 MultiImageMetric<TImage>
-::AfterGetThreadedValue(MeasureType & value, DerivativeType & derivative) const
+::AfterGetThreadedValue(MeasureType & itkNotUsed(value), DerivativeType & itkNotUsed(derivative)) const
 {
 }
 

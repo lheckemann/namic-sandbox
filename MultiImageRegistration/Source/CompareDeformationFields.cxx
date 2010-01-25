@@ -48,7 +48,7 @@ std::string replaceExtension(const std::string oldname, const std::string extens
   return oldname.substr(0, oldname.rfind(".")) + "." + extension;
 }
 
-int getCommandLine(       int argc, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
+int getCommandLine(       int /*argc*/, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           std::string& useBspline, std::string& useBsplineHigh,
                           std::string& writeDeformationFields, std::string& write3DImages,
@@ -400,10 +400,10 @@ int main( int argc, char * argv[] )
     
     // compare the deformation fields and compute the magnitude difference images
     std::ofstream maxMeanDefFile((diffFolderName+"meanMax.txt").c_str());
-    for(int j=0; j<N; j++)
+    for(int jIndex=0; jIndex<N; jIndex++)
     {
-      std::cout << "Writing" << (diffFolderName+fileNames[j]).c_str() << std::endl;
-      ImageType::Pointer imagePointer = imageReaderArray[j]->GetOutput();
+      std::cout << "Writing" << (diffFolderName+fileNames[jIndex]).c_str() << std::endl;
+      ImageType::Pointer imagePointer = imageReaderArray[jIndex]->GetOutput();
 
       typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorWithIndexType;
       IteratorWithIndexType it(imagePointer, imagePointer->GetLargestPossibleRegion());
@@ -423,16 +423,18 @@ int main( int argc, char * argv[] )
         imagePointer->TransformIndexToPhysicalPoint(index, point);
         
         // transform the point
-        mappedPoint = syntheticTransformArray[j]->TransformPoint(point);
+        mappedPoint = syntheticTransformArray[jIndex]->TransformPoint(point);
 
         // transform the point again
-        mappedPoint = transformArray[j]->TransformPoint(mappedPoint);
+        mappedPoint = transformArray[jIndex]->TransformPoint(mappedPoint);
         
        double diff = 0.0;
-       for(int j=0; j<Dimension; j++)
-       {
-         diff += (point[j] - mappedPoint[j])*(point[j] - mappedPoint[j]);
-       }
+         {
+         for(int q=0; q<Dimension; q++)
+           {
+           diff += (point[q] - mappedPoint[q])*(point[q] - mappedPoint[q]);
+           }
+         }
        
        diff = sqrt(diff);
        
@@ -454,8 +456,8 @@ int main( int argc, char * argv[] )
       // Write the output image
       WriterType::Pointer  writer = WriterType::New();
       writer->SetInput(imagePointer);
-      writer->SetImageIO(imageReaderArray[j]->GetImageIO());
-      writer->SetFileName( (diffFolderName+fileNames[j]).c_str() );
+      writer->SetImageIO(imageReaderArray[jIndex]->GetImageIO());
+      writer->SetFileName( (diffFolderName+fileNames[jIndex]).c_str() );
       writer->Update();
       
     }

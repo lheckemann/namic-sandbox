@@ -707,7 +707,7 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
 
 template < class TFixedImage >
 void UnivariateEntropyMultiImageMetric < TFixedImage >::
-UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const
+UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& /*threadID*/) const
 {
 
   const CovarientType gradient = m_DerivativeCalculator[imageNumber]->Evaluate(

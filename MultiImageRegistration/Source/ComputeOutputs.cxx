@@ -50,7 +50,7 @@ std::string replaceExtension(const std::string oldname, const std::string extens
   return oldname.substr(0, oldname.rfind(".")) + "." + extension;
 }
 
-int getCommandLine(       int argc, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
+int getCommandLine(       int /*argc*/, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           std::string& useBspline, std::string& useBsplineHigh,
                           std::string& writeDeformationFields, std::string& write3DImages )
@@ -497,12 +497,12 @@ int main( int argc, char * argv[] )
 
        // write mean image
       itksys::SystemTools::MakeDirectory( (currentFolderName+"Slices/").c_str() );
-      std::ostringstream sliceStream;
-      sliceStream << j;
-      std::string sliceName = currentFolderName+"Slices/x"+sliceStream.str()+".tiff";
-      sliceWriter->SetFileName( sliceName.c_str() );
+      std::ostringstream localSliceStream;
+      localSliceStream << j;
+      std::string localSliceName = currentFolderName+"Slices/x"+localSliceStream.str()+".tiff";
+      sliceWriter->SetFileName( localSliceName.c_str() );
       
-      std::cout << "Writing " << sliceName.c_str() << std::endl; 
+      std::cout << "Writing " << localSliceName.c_str() << std::endl; 
       sliceWriter->Update();     
 
       // Do the same for other slices
@@ -514,8 +514,8 @@ int main( int argc, char * argv[] )
       extractRegion.SetSize(  size  );
       extractRegion.SetIndex( start );
       sliceExtractFilter->SetExtractionRegion( extractRegion );
-      sliceName = currentFolderName+"Slices/z"+sliceStream.str()+".tiff";
-      sliceWriter->SetFileName( sliceName.c_str() );
+      localSliceName = currentFolderName+"Slices/z"+localSliceStream.str()+".tiff";
+      sliceWriter->SetFileName( localSliceName.c_str() );
       sliceWriter->Update();     
 
       // Do the same for other slices
@@ -527,8 +527,8 @@ int main( int argc, char * argv[] )
       extractRegion.SetSize(  size  );
       extractRegion.SetIndex( start );
       sliceExtractFilter->SetExtractionRegion( extractRegion );
-      sliceName = currentFolderName+"Slices/y"+sliceStream.str()+".tiff";
-      sliceWriter->SetFileName( sliceName.c_str() );
+      localSliceName = currentFolderName+"Slices/y"+localSliceStream.str()+".tiff";
+      sliceWriter->SetFileName( localSliceName.c_str() );
       sliceWriter->Update();     
 
 
@@ -573,11 +573,11 @@ int main( int argc, char * argv[] )
         itksys::SystemTools::MakeDirectory( (currentFolderName+"DeformationSlices/").c_str() );
         sliceExtractFilter->SetInput( imageResampleArray[j]->GetOutput() );
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-        std::ostringstream sliceStream;
-        sliceStream << j;
-        std::string sliceName = currentFolderName+"DeformationSlices/"+sliceStream.str()+".tiff";
-        sliceWriter->SetFileName( sliceName.c_str() );
-        std::cout << "Writing " << sliceName << std::endl;
+        std::ostringstream tempSliceStream;
+        tempSliceStream << j;
+        std::string tempSliceName = currentFolderName+"DeformationSlices/"+tempSliceStream.str()+".tiff";
+        sliceWriter->SetFileName( tempSliceName.c_str() );
+        std::cout << "Writing " << tempSliceName << std::endl;
         sliceWriter->Update();
 
         imageResampleArray[j]->SetInput( imagePointer );
