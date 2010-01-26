@@ -106,7 +106,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
 
   void UpdateAll();
-  void UpdateDataFrame(char* data);
+  int UpdateDataFrame(char* data);
 
  protected:
   
@@ -132,7 +132,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // UDPServerNode
   //----------------------------------------------------------------
-  vtkMRMLUDPServerNode* ActiveNode;
+  vtkMRMLUDPServerNode* svrNode;
   
   //----------------------------------------------------------------
   // Timer
@@ -149,6 +149,7 @@ class VTK_UDPServer_EXPORT vtkUDPServerGUI : public vtkSlicerModuleGUI
   vtkKWEntry*      PortEntry;
   vtkKWMultiColumnListWithScrollbars* DataTable;
   vtkKWEntry*      UpdateEntry;
+  vtkKWPushButton* ClearListButton;
 
   //----------------------------------------------------------------
   // Logic Values
