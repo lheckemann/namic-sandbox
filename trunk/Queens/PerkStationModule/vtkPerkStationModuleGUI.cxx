@@ -1876,7 +1876,8 @@ void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
 void vtkPerkStationModuleGUI::LoadExperiment(istream &file)
 {
   // reset before you load
-  // 1) Reset individual work phase steps to bring to fresh state, who are in turn, responsible for reseting MRML node parameters
+  // 1) Reset individual work phase steps to bring to fresh state, who are
+  // in turn, responsible for reseting MRML node parameters
   this->CalibrateStep->Reset();
   this->PlanStep->Reset();
   this->InsertStep->Reset();
@@ -1911,7 +1912,7 @@ void vtkPerkStationModuleGUI::LoadExperimentButtonCallback(const char *fileName)
 }
 
 
-//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 char *vtkPerkStationModuleGUI::CreateFileName()
 {
     // create a folder for current date, if not already created
