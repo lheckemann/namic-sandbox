@@ -31,7 +31,6 @@
 #include "vtkMRMLSliceNode.h"
 #include "vtkMRMLHybridNavToolNode.h"
 
-class vtkMRMLHybridNavToolNode;
 class vtkMRMLModelNode;
 
 class VTK_HybridNav_EXPORT vtkHybridNavLogic : public vtkSlicerModuleLogic 
