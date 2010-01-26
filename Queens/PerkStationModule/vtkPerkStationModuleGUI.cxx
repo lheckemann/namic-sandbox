@@ -563,7 +563,7 @@ vtkPerkStationModuleGUI
   
     // Pass the keyboard events to the calibration workflow step.
   
-  else if ( strcmp( eventName, "KeyPressEvent" ) == 0 )
+  if ( strcmp( eventName, "KeyPressEvent" ) == 0 )
     {
     this->CalibrateStep->ProcessKeyboardEvents( caller, event, callData );
     }
@@ -571,10 +571,10 @@ vtkPerkStationModuleGUI
   
     // Red slice is selected and slice offset is changed.
     
-  else if ( this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()
-              ->GetSliceNode() == vtkMRMLSliceNode::SafeDownCast( caller )
-            && event == vtkCommand::ModifiedEvent
-            && ! vtkPerkStationModuleLogic::DoubleEqual(
+  if ( this->GetApplicationGUI()->GetMainSliceGUI( "Red" )->GetLogic()
+       ->GetSliceNode() == vtkMRMLSliceNode::SafeDownCast( caller )
+       && event == vtkCommand::ModifiedEvent
+       && ! vtkPerkStationModuleLogic::DoubleEqual(
                    this->SliceOffset,
                    this->GetApplicationGUI()->GetMainSliceGUI( "Red" )
                      ->GetLogic()->GetSliceOffset() ) )
@@ -587,9 +587,9 @@ vtkPerkStationModuleGUI
   
     // If the Wizard Widget changed state.
     
-  else if ( this->WizardWidget->GetWizardWorkflow()
-              == vtkKWWizardWorkflow::SafeDownCast( caller )
-            && event == vtkKWWizardWorkflow::CurrentStateChangedEvent )
+  if ( this->WizardWidget->GetWizardWorkflow()
+       == vtkKWWizardWorkflow::SafeDownCast( caller )
+       && event == vtkKWWizardWorkflow::CurrentStateChangedEvent )
     {
     // TO DO  -- What?
     if ( this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()
@@ -628,10 +628,10 @@ vtkPerkStationModuleGUI
   
   
     // Load planning volume.
-  else if ( this->LoadPlanningVolumeButton
-            && this->LoadPlanningVolumeButton->GetLoadSaveDialog()
-               == vtkKWLoadSaveDialog::SafeDownCast( caller )
-            && ( event == vtkKWTopLevel::WithdrawEvent ) )
+  if ( this->LoadPlanningVolumeButton
+       && this->LoadPlanningVolumeButton->GetLoadSaveDialog()
+       == vtkKWLoadSaveDialog::SafeDownCast( caller )
+       && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
     // load planning volume dialog button
     this->LoadPlanningVolumeButton->GetLoadSaveDialog()->
@@ -649,11 +649,13 @@ vtkPerkStationModuleGUI
       } 
     }
   
+  
     // Load validation volume.
-  else if ( this->LoadValidationVolumeButton
-            && this->LoadValidationVolumeButton->GetLoadSaveDialog()
-               == vtkKWLoadSaveDialog::SafeDownCast( caller )
-            && ( event == vtkKWTopLevel::WithdrawEvent ) )
+  
+  if ( this->LoadValidationVolumeButton
+       && this->LoadValidationVolumeButton->GetLoadSaveDialog()
+       == vtkKWLoadSaveDialog::SafeDownCast( caller )
+       && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
     // load validation volume dialog button    
     const char *fileName = this->LoadValidationVolumeButton->
@@ -666,11 +668,13 @@ vtkPerkStationModuleGUI
       } 
     }
   
+  
     // Load calibration.
-  else if ( this->LoadExperimentFileButton
-            && this->LoadExperimentFileButton->GetLoadSaveDialog()
-               == vtkKWLoadSaveDialog::SafeDownCast( caller )
-            && ( event == vtkKWTopLevel::WithdrawEvent ) )
+  
+  if ( this->LoadExperimentFileButton
+       && this->LoadExperimentFileButton->GetLoadSaveDialog()
+       == vtkKWLoadSaveDialog::SafeDownCast( caller )
+       && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
     // load calib dialog button
     const char *fileName = this->LoadExperimentFileButton->
@@ -689,13 +693,15 @@ vtkPerkStationModuleGUI
     this->LoadExperimentFileButton->SetText ("Load experiment");
     }  
   
+  
     // Save experiment.
-  else if ( this->SaveExperimentFileButton
+  
+  if ( this->SaveExperimentFileButton
             && this->SaveExperimentFileButton->GetLoadSaveDialog()
                == vtkKWLoadSaveDialog::SafeDownCast(caller)
             && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
-    // save calib dialog button
+      // save calib dialog button
     const char *fileName = this->SaveExperimentFileButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
@@ -706,14 +712,14 @@ vtkPerkStationModuleGUI
       this->SaveExperimentButtonCallback(fullFileName.c_str());
       }
     
-    // reset the file browse button text
+      // reset the file browse button text
     this->SaveExperimentFileButton->SetText ("Save experiment");
-   
     }  
   
   
     // Grayscale window level change.
-  else if ( this->DisplayVolumeLevelValue
+  
+  if ( this->DisplayVolumeLevelValue
             && this->DisplayVolumeLevelValue
                == vtkKWScaleWithEntry::SafeDownCast( caller )
             && ( event == vtkKWScale::ScaleValueChangedEvent ) )
@@ -729,10 +735,11 @@ vtkPerkStationModuleGUI
   
   
     // Grayscale window width change.
-  else if ( this->DisplayVolumeWindowValue
-            && this->DisplayVolumeWindowValue
-               == vtkKWScaleWithEntry::SafeDownCast( caller )
-            && ( event == vtkKWScale::ScaleValueChangedEvent ) )
+  
+  if ( this->DisplayVolumeWindowValue
+       && this->DisplayVolumeWindowValue
+       == vtkKWScaleWithEntry::SafeDownCast( caller )
+       && ( event == vtkKWScale::ScaleValueChangedEvent ) )
     {
     this->GetMRMLNode()->GetActiveVolumeNode()->GetScalarVolumeDisplayNode()->
       SetAutoWindowLevel( 0 );
@@ -743,51 +750,56 @@ vtkPerkStationModuleGUI
     this->SecondaryMonitor->UpdateImageDisplay();
     }
   
-  else
+  
+  vtkSlicerNodeSelectorWidget *selector
+    = vtkSlicerNodeSelectorWidget::SafeDownCast( caller );
+    
+  
+  if ( selector == this->VolumeSelector
+       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
+       && this->VolumeSelector->GetSelected() != NULL ) 
     { 
-    vtkSlicerNodeSelectorWidget *selector
-      = vtkSlicerNodeSelectorWidget::SafeDownCast( caller );
-    if (selector == this->VolumeSelector && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent && this->VolumeSelector->GetSelected() != NULL) 
-      { 
-      //this->UpdateMRML();
-      // handle here, when user changes the selection of the active volume
-      // the selection has to be propagated in Slicer's viewers and enviroment
-      // the system state has to updated that the volume in use is the one that is selected
-      // the secondary monitor has to be updated
-      // all this to be done here
-      }
+    //this->UpdateMRML();
+    // handle here, when user changes the selection of the active volume
+    // the selection has to be propagated in Slicer's viewers and enviroment
+    // the system state has to updated that the volume in use is the one that is selected
+    // the secondary monitor has to be updated
+    // all this to be done here
+    }
+  
+  
+  if ( selector == this->PSNodeSelector
+       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent
+       && this->PSNodeSelector->GetSelected() != NULL ) 
+    { 
+    vtkMRMLPerkStationModuleNode* n = vtkMRMLPerkStationModuleNode::SafeDownCast(this->PSNodeSelector->GetSelected());
+    this->Logic->SetAndObservePerkStationModuleNode(n);
+    vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n);
+    this->UpdateGUI();
+    }
+  
     
-    if (selector == this->PSNodeSelector && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent  && this->PSNodeSelector->GetSelected() != NULL) 
-      { 
-      vtkMRMLPerkStationModuleNode* n = vtkMRMLPerkStationModuleNode::SafeDownCast(this->PSNodeSelector->GetSelected());
-      this->Logic->SetAndObservePerkStationModuleNode(n);
-      vtkSetAndObserveMRMLNodeMacro( this->MRMLNode, n);
-      this->UpdateGUI();
-      }
-      
-    if ( this->ModeListMenu->GetWidget()->GetMenu() ==
-           vtkKWMenu::SafeDownCast( caller )
-         && event == vtkKWMenu::MenuItemInvokedEvent )
+  if ( this->ModeListMenu->GetWidget()->GetMenu()
+         == vtkKWMenu::SafeDownCast( caller )
+       && event == vtkKWMenu::MenuItemInvokedEvent )
+    {
+    const char *val = this->ModeListMenu->GetWidget()->GetValue();
+    if ( ! strcmp(val, "CLINICAL") && this->Mode ==
+           vtkPerkStationModuleGUI::Training )
       {
-        const char *val = this->ModeListMenu->GetWidget()->GetValue();
-        if ( ! strcmp(val, "CLINICAL") && this->Mode ==
-               vtkPerkStationModuleGUI::Training )
-          {
-          this->Mode = vtkPerkStationModuleGUI::Clinical;
-          this->SetUpPerkStationMode();
-          // disable the option of changing the Mode now on
-          this->ModeListMenu->GetWidget()->SetEnabled( 0 );
-          }
-        else if ( ! strcmp(val, "TRAINING") && this->Mode ==
-                    vtkPerkStationModuleGUI::Clinical )
-          {
-          this->Mode = vtkPerkStationModuleGUI::Training;
-          this->SetUpPerkStationMode();
-            // disable the option of changing the Mode now on
-          this->ModeListMenu->GetWidget()->SetEnabled( 0 );
-          }
+      this->Mode = vtkPerkStationModuleGUI::Clinical;
+      this->SetUpPerkStationMode();
+      // disable the option of changing the Mode now on
+      this->ModeListMenu->GetWidget()->SetEnabled( 0 );
       }
-    
+    else if ( ! strcmp(val, "TRAINING") && this->Mode ==
+                vtkPerkStationModuleGUI::Clinical )
+      {
+      this->Mode = vtkPerkStationModuleGUI::Training;
+      this->SetUpPerkStationMode();
+        // disable the option of changing the Mode now on
+      this->ModeListMenu->GetWidget()->SetEnabled( 0 );
+      }
     }
 }
 
@@ -1211,7 +1223,7 @@ void vtkPerkStationModuleGUI::BuildGUI()
               loadSaveExptFrame->GetWidgetName(), modulePage->GetWidgetName());
   
   
-    // Work phase collapsible frame with push buttons/radio buttons set.
+    // Work phase collapsible frame with push buttons.
   
   this->WorkphaseButtonFrame->SetParent( modulePage );
   this->WorkphaseButtonFrame->Create();

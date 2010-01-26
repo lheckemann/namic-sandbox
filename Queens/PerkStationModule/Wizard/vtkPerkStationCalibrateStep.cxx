@@ -775,6 +775,34 @@ void vtkPerkStationCalibrateStep::ShowLoadResetControls()
       this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
                             this->LoadCalibrationFileButton->GetWidgetName());
 
+      
+      // create the load file dialog button
+      if (!this->SaveCalibrationFileButton)
+        {
+        this->SaveCalibrationFileButton = vtkKWLoadSaveButton::New();
+        }
+      if (!this->SaveCalibrationFileButton->IsCreated())
+        {
+        this->SaveCalibrationFileButton->SetParent( this->LoadResetFrame );
+        this->SaveCalibrationFileButton->Create();
+        this->SaveCalibrationFileButton->SetText("Save calibration");
+        this->SaveCalibrationFileButton->SetBorderWidth(2);
+        this->SaveCalibrationFileButton->SetReliefToRaised();       
+        this->SaveCalibrationFileButton->SetHighlightThickness(2);
+        this->SaveCalibrationFileButton->SetBackgroundColor(0.85,0.85,0.85);
+        this->SaveCalibrationFileButton->SetActiveBackgroundColor(1,1,1);               
+        this->SaveCalibrationFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconFloppy);
+        this->SaveCalibrationFileButton->SetBalloonHelpString("Click to save calibration in a file");
+        this->SaveCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode
+        this->SaveCalibrationFileButton->TrimPathFromFileNameOff();
+        this->SaveCalibrationFileButton->SetMaximumFileNameLength(256);
+        this->SaveCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
+        this->SaveCalibrationFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+        }
+      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                            this->SaveCalibrationFileButton->GetWidgetName());
+      
+      
       // create the reset calib button
        if (!this->ResetCalibrationButton)
         {
@@ -820,6 +848,7 @@ void vtkPerkStationCalibrateStep::ShowSaveControls()
        
       // in clinical mode
       {
+      
       // Create the frame
       if (!this->SaveFrame)
         {
@@ -832,7 +861,7 @@ void vtkPerkStationCalibrateStep::ShowSaveControls()
         }
       this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                         this->SaveFrame->GetWidgetName());
-
+      /*
       // create the load file dialog button
       if (!this->SaveCalibrationFileButton)
         {
@@ -856,9 +885,8 @@ void vtkPerkStationCalibrateStep::ShowSaveControls()
         this->SaveCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
         this->SaveCalibrationFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
         }
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                            this->SaveCalibrationFileButton->GetWidgetName());
-      }
+      */
+      } // in clinical mode
       break;
     }
 }
@@ -2138,23 +2166,21 @@ void vtkPerkStationCalibrateStep::PopulateControlsOnLoadCalibration()
 
       this->GetGUI()->GetWizardWidget()->SetErrorText( "");
       this->GetGUI()->GetWizardWidget()->Update();      
-      
       }
       
       break;
     } 
-
   
-
   this->CurrentSubState = 0;
-
 }
 
+
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::HorizontalFlipCallback(bool value)
+void vtkPerkStationCalibrateStep::HorizontalFlipCallback( bool value )
 {
-    if (this->ImageFlipDone || this->CurrentSubState != 0)
-      return;
+  // if (this->ImageFlipDone || this->CurrentSubState != 0) return;
+  
+  if ( this->CurrentSubState != 0 ) return;
   
   // set user scaling in mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
@@ -2167,15 +2193,16 @@ void vtkPerkStationCalibrateStep::HorizontalFlipCallback(bool value)
   this->CurrentSubState = 1;
   this->EnableDisableControls();
 
-  // disable the option of CLINICAL/TRAINING mode, now that user has started calibration
-   this->GetGUI()->GetModeListMenu()->GetWidget()->SetEnabled(0);
+    // disable the option of CLINICAL/TRAINING mode,
+    // now that user has started calibration
+  this->GetGUI()->GetModeListMenu()->GetWidget()->SetEnabled(0);
 }
+
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::VerticalFlipCallback(bool value)
+void vtkPerkStationCalibrateStep::VerticalFlipCallback( bool value )
 {
  
-  if (this->ImageFlipDone || this->CurrentSubState != 0)
-      return;
+  if (this->ImageFlipDone || this->CurrentSubState != 0) return;
  
   // set user scaling in mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
@@ -2187,10 +2214,13 @@ void vtkPerkStationCalibrateStep::VerticalFlipCallback(bool value)
   this->CurrentSubState = 1;
   this->EnableDisableControls();
 
-  // disable the option of CLINICAL/TRAINING mode, now that user has started calibration
-   this->GetGUI()->GetModeListMenu()->GetWidget()->SetEnabled(0);
+    // disable the option of CLINICAL/TRAINING mode,
+    // now that user has started calibration
+  this->GetGUI()->GetModeListMenu()->GetWidget()->SetEnabled(0);
 
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ImageScalingEntryCallback(int widgetIndex)
 {
@@ -2858,8 +2888,7 @@ void vtkPerkStationCalibrateStep::CalculateImageRotation(double & rotationAngle)
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::FlipImage()
 {
-  if(this->ImageFlipDone)
-      return;
+  if ( this->ImageFlipDone ) return;
 
   bool verticalFlip = false;
   bool horizontalFlip = false;
@@ -2867,10 +2896,10 @@ void vtkPerkStationCalibrateStep::FlipImage()
   verticalFlip = this->GetGUI()->GetMRMLNode()->GetVerticalFlip();
   horizontalFlip = this->GetGUI()->GetMRMLNode()->GetHorizontalFlip();
 
-  if (verticalFlip)
+  if ( verticalFlip )
     this->GetGUI()->GetSecondaryMonitor()->FlipVertical();
 
-  if (horizontalFlip)
+  if ( horizontalFlip )
     this->GetGUI()->GetSecondaryMonitor()->FlipHorizontal(); 
 
 }
@@ -3597,6 +3626,12 @@ void vtkPerkStationCalibrateStep::ClearLoadResetControls()
     this->Script("pack forget %s", 
                     this->LoadCalibrationFileButton->GetWidgetName());
     }
+    if (this->SaveCalibrationFileButton)
+    {
+    this->Script("pack forget %s", 
+                    this->SaveCalibrationFileButton->GetWidgetName());
+    }
+    
     if (this->ResetCalibrationButton)
     {
     this->Script("pack forget %s", 
@@ -3613,11 +3648,13 @@ void vtkPerkStationCalibrateStep::ClearSaveControls()
     this->Script("pack forget %s", 
                     this->SaveFrame->GetWidgetName());
     }
+    /*
     if (this->SaveCalibrationFileButton)
     {
     this->Script("pack forget %s", 
                     this->SaveCalibrationFileButton->GetWidgetName());
     }
+    */
 
    
 }
@@ -4149,9 +4186,14 @@ void vtkPerkStationCalibrateStep::ProcessGUIEvents(vtkObject *caller, unsigned l
     }
 
   this->ProcessingCallback = true;
-
-  // load calib dialog button
-  if (this->LoadCalibrationFileButton && this->LoadCalibrationFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+  
+  
+    // load calib dialog button
+  
+  if ( this->LoadCalibrationFileButton
+       && this->LoadCalibrationFileButton->GetLoadSaveDialog()
+          == vtkKWLoadSaveDialog::SafeDownCast( caller )
+       && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
     const char *fileName = this->LoadCalibrationFileButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
@@ -4159,60 +4201,77 @@ void vtkPerkStationCalibrateStep::ProcessGUIEvents(vtkObject *caller, unsigned l
       //this->CalibFilePath = std::string(this->LoadCalibrationFileButton->GetLoadSaveDialog()->GetLastPath());
       // indicates ok has been pressed with a file name
       this->CalibFileName = std::string(fileName);
-
       // call the callback function
       this->LoadCalibrationButtonCallback();
-    
       }
-    
     // reset the file browse button text
     this->LoadCalibrationFileButton->SetText ("Load calibration");
-   
     }
   
-  // save calib dialog button
-  if (this->SaveCalibrationFileButton && this->SaveCalibrationFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+  
+    // save calib dialog button
+  
+  if ( this->SaveCalibrationFileButton
+       && this->SaveCalibrationFileButton->GetLoadSaveDialog()
+          == vtkKWLoadSaveDialog::SafeDownCast( caller )
+       && ( event == vtkKWTopLevel::WithdrawEvent ) )
     {
     const char *fileName = this->SaveCalibrationFileButton->GetLoadSaveDialog()->GetFileName();
     if ( fileName ) 
       {
-    
       this->CalibFileName = std::string(fileName) + ".xml";
       // get the file name and file path
       this->SaveCalibrationFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("OpenPath");
         
       // call the callback function
       this->SaveCalibrationButtonCallback();
-
-    
       }
-    
     // reset the file browse button text
     this->SaveCalibrationFileButton->SetText ("Save calibration");
-   
     }
-  // reset calib button
-  if (this->ResetCalibrationButton && this->ResetCalibrationButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+
+
+    // reset calib button
+  
+  if ( this->ResetCalibrationButton
+       && this->ResetCalibrationButton == vtkKWPushButton::SafeDownCast(caller)
+       && ( event == vtkKWPushButton::InvokedEvent ) )
     {
     this->Reset();
     }
-
-  // update auto scale button
-  if (this->UpdateAutoScale && this->UpdateAutoScale == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+  
+  
+    // update auto scale button
+  
+  if ( this->UpdateAutoScale
+       && this->UpdateAutoScale == vtkKWPushButton::SafeDownCast(caller)
+       && ( event == vtkKWPushButton::InvokedEvent ) )
     {
     this->UpdateAutoScaleCallback();
     }
-  // check button
-  if (this->VerticalFlipCheckButton && this->VerticalFlipCheckButton->GetWidget()== vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+  
+  
+    // check buttons
+  
+  if ( this->VerticalFlipCheckButton
+       && this->VerticalFlipCheckButton->GetWidget()
+          == vtkKWCheckButton::SafeDownCast( caller )
+       && (event == vtkKWCheckButton::SelectedStateChangedEvent ) )
     {
-    // vertical flip button selected state changed
-    this->VerticalFlipCallback(bool(this->VerticalFlipCheckButton->GetWidget()->GetSelectedState()));
+      // vertical flip button selected state changed
+    this->VerticalFlipCallback(
+      bool( this->VerticalFlipCheckButton->GetWidget()->GetSelectedState() ) );
     }
-
-  if (this->HorizontalFlipCheckButton && this->HorizontalFlipCheckButton->GetWidget() == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+  
+  
+  if ( this->HorizontalFlipCheckButton
+       && this->HorizontalFlipCheckButton->GetWidget()
+          == vtkKWCheckButton::SafeDownCast( caller )
+       && ( event == vtkKWCheckButton::SelectedStateChangedEvent ) )
     {
-    // horizontal flip button selected state changed
-    this->HorizontalFlipCallback(bool(this->HorizontalFlipCheckButton->GetWidget()->GetSelectedState()));
+      // horizontal flip button selected state changed
+    this->HorizontalFlipCallback(
+      bool( this->HorizontalFlipCheckButton->GetWidget()->GetSelectedState() ));
     }
 
   // image scaling entry x
