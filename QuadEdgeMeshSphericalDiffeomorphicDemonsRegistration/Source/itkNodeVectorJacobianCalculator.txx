@@ -316,7 +316,7 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
       ++pointIdIterator;
       }
 
-    const AreaType area = TriangleHelperType::ComputeArea( point[0], point[1], point[3] );
+    const AreaType area = TriangleHelperType::ComputeArea( point[0], point[1], point[2] );
 
     areaIterator.Value() = area;
 
