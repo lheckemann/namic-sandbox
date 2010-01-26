@@ -38,4 +38,9 @@ target_link_libraries(LabelFullOverlap ITKIO ITKStatistics)
 add_executable(DilateLabel DilateLabel.cxx)
 target_link_libraries(DilateLabel ITKIO ITKStatistics)
 
+add_executable(AccumulateFloat AccumulateFloat.cxx)
+target_link_libraries(AccumulateFloat ITKIO ITKStatistics)
+
+add_executable(SubFloatFrom1 SubFloatFrom1.cxx)
+target_link_libraries(SubFloatFrom1 ITKIO ITKStatistics)
 #subdirs(Plugins)
