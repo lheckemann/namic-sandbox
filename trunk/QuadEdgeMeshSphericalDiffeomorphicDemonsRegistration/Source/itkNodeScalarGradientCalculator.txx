@@ -162,9 +162,9 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
     //
     // contribute to accumulated area around each point of triangle
     //
-    for( unsigned int i=0; i < numberOfVerticesInTriangle; i++ )
+    for( unsigned int ii=0; ii < numberOfVerticesInTriangle; ii++ )
       {
-      this->m_PointAreaAccumulatorList->ElementAt( pointIds[i] ) += area;
+      this->m_PointAreaAccumulatorList->ElementAt( pointIds[ii] ) += area;
       }
 
     const TriangleBasisSystemType & basisSystem = basisSystemListIterator.Value();
@@ -211,18 +211,18 @@ NodeScalarGradientCalculator<TInputMesh, TScalar>
 
     projectedDerivative *= area;
 
-    for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
+    for( unsigned int ij = 0; ij < numberOfVerticesInTriangle; ij++ )
       {
       // 
       // Parallel transport the derivative vector to each neighbor point
       //
-      this->ParalelTransport( cellCenterProjectedInSphere, point[i], 
+      this->ParalelTransport( cellCenterProjectedInSphere, point[ij], 
         projectedDerivative, parallelTransportedDerivative );
 
       //
       // then accumulate them there.
       //
-      this->m_PointDerivativeAccumulatorList->ElementAt( pointIds[i] ) += parallelTransportedDerivative;
+      this->m_PointDerivativeAccumulatorList->ElementAt( pointIds[ij] ) += parallelTransportedDerivative;
       }
 
     ++cellIterator;
