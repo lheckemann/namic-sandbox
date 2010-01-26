@@ -42,11 +42,11 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_DestinationPointsSwap = DestinationPointContainerType::New();
   this->m_UserProvidedInitialDestinationPoints = false;
 
-  this->m_TriangleListBasisSystemCalculator = TriangleListBasisSystemCalculatorType::New(); 
-  
-  this->m_NodeScalarGradientCalculator = NodeScalarGradientCalculatorType::New(); 
+  this->m_TriangleListBasisSystemCalculator = TriangleListBasisSystemCalculatorType::New();
 
-  this->m_NodeVectorJacobianCalculator = NodeVectorJacobianCalculatorType::New(); 
+  this->m_NodeScalarGradientCalculator = NodeScalarGradientCalculatorType::New();
+
+  this->m_NodeVectorJacobianCalculator = NodeVectorJacobianCalculatorType::New();
 
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
 
@@ -78,59 +78,59 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::SetFixedMesh( const FixedMeshType * fixedMesh )
 {
-  itkDebugMacro("setting Fixed Mesh to " << fixedMesh ); 
+  itkDebugMacro("setting Fixed Mesh to " << fixedMesh );
 
-  if (this->m_FixedMesh.GetPointer() != fixedMesh ) 
-    { 
+  if (this->m_FixedMesh.GetPointer() != fixedMesh )
+    {
     this->m_FixedMesh = fixedMesh;
 
     // Process object is not const-correct so the const_cast is required here
     this->ProcessObject::SetNthInput(0, const_cast< FixedMeshType *>( fixedMesh ) );
-    
-    this->Modified(); 
-    } 
+
+    this->Modified();
+    }
 }
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::SetMovingMesh( const MovingMeshType * movingMesh )
 {
-  itkDebugMacro("setting Moving Mesh to " << movingMesh ); 
+  itkDebugMacro("setting Moving Mesh to " << movingMesh );
 
-  if (this->m_MovingMesh.GetPointer() != movingMesh ) 
-    { 
+  if (this->m_MovingMesh.GetPointer() != movingMesh )
+    {
     this->m_MovingMesh = movingMesh;
 
     // Process object is not const-correct so the const_cast is required here
     this->ProcessObject::SetNthInput(1, const_cast< MovingMeshType *>( movingMesh ) );
-    
-    this->Modified(); 
-    } 
+
+    this->Modified();
+    }
 }
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::SetInitialDestinationPoints( const DestinationPointSetType * destinationPointSet )
 {
-  itkDebugMacro("setting Destination PointSet to " << destinationPointSet ); 
+  itkDebugMacro("setting Destination PointSet to " << destinationPointSet );
 
-  if (this->GetInitialDestinationPoints() != destinationPointSet ) 
-    { 
+  if (this->GetInitialDestinationPoints() != destinationPointSet )
+    {
     // Process object is not const-correct so the const_cast is required here
     this->ProcessObject::SetNthInput(2, const_cast< DestinationPointSetType *>( destinationPointSet ) );
-    
+
     this->m_UserProvidedInitialDestinationPoints = true;
 
-    this->Modified(); 
-    } 
+    this->Modified();
+    }
 }
 
 
@@ -143,7 +143,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
     {
     return 0;
     }
-  
+
   return static_cast<const DestinationPointSetType * >(this->ProcessObject::GetInput(2) );
 }
 
@@ -157,22 +157,22 @@ GetFinalDestinationPoints() const
     {
     return 0;
     }
-  
+
   return dynamic_cast< const DestinationPointSetType * >(this->ProcessObject::GetOutput(2));
 }
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::CopyInitialDestinationPoints()
 {
-  const DestinationPointSetType * destinationPointSet = 
+  const DestinationPointSetType * destinationPointSet =
     static_cast<const DestinationPointSetType * >( this->ProcessObject::GetInput(2) );
 
   const DestinationPointContainerType * destinationPoints = destinationPointSet->GetPoints();
 
-  itkDebugMacro("setting Destination Points to " << destinationPoints ); 
+  itkDebugMacro("setting Destination Points to " << destinationPoints );
 
   if( destinationPoints == NULL )
     {
@@ -207,7 +207,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 GenerateData()
 {
   // Recommended link
-  this->m_SigmaX = this->m_Epsilon; 
+  this->m_SigmaX = this->m_Epsilon;
 
   // Prepare data
   this->CopyInputMeshToOutputMesh();
@@ -395,7 +395,7 @@ RunIterations()
 {
   // Report the progress
   ProgressReporter progress( this, 0, this->m_MaximumNumberOfIterations );
-  
+
   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
     {
     this->ComputeMappedMovingValueAtEveryNode();
@@ -423,7 +423,7 @@ ComputeGradientsOfMappedMovingValueAtEveryNode()
   this->m_NodeScalarGradientCalculator->SetInputMesh( this->m_FixedMesh );
   this->m_NodeScalarGradientCalculator->SetDataContainer( this->m_ResampledMovingValuesContainer );
 
-  this->m_NodeScalarGradientCalculator->SetBasisSystemList( 
+  this->m_NodeScalarGradientCalculator->SetBasisSystemList(
     this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
 
   this->m_NodeScalarGradientCalculator->SetSphereCenter( this->m_SphereCenter );
@@ -435,7 +435,7 @@ ComputeGradientsOfMappedMovingValueAtEveryNode()
   this->m_NodeVectorJacobianCalculator->SetInputMesh( this->m_FixedMesh );
   this->m_NodeVectorJacobianCalculator->SetVectorContainer( this->m_DestinationPoints );
 
-  this->m_NodeVectorJacobianCalculator->SetBasisSystemList( 
+  this->m_NodeVectorJacobianCalculator->SetBasisSystemList(
     this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
 
   this->m_NodeVectorJacobianCalculator->SetSphereCenter( this->m_SphereCenter );
@@ -550,7 +550,7 @@ ComputeVelocityField()
 
     Gn2 = Gn * Gn;
 
-    typedef typename NodeScalarGradientCalculatorType::DerivativeType  DerivativeType; 
+    typedef typename NodeScalarGradientCalculatorType::DerivativeType  DerivativeType;
     DerivativeType derivative = this->m_NodeScalarGradientCalculator->Evaluate( pointId );
 
     destinationJacobian = this->m_NodeVectorJacobianCalculator->Evaluate( pointId );
@@ -560,7 +560,7 @@ ComputeVelocityField()
     const VectorType & v1 = basis.GetVector(1);
     const MovingPixelRealType Mv = resampledArrayItr.Value();
     const FixedPixelRealType Fv = fixedPointDataItr.Value();
-    
+
     for( unsigned int i = 0; i < 3; i++ )
       {
       Qn(i,0) = v0[i];
@@ -578,8 +578,8 @@ ComputeVelocityField()
         BnT(r,c) = destinationJacobian(c,r);  // FIXME : Check for potential transposition here...
         }
       }
-    
-    Gn2Bn = Gn2 * BnT; 
+
+    Gn2Bn = Gn2 * BnT;
 
     Gn2Bn2 = Gn2Bn.transpose() * Gn2Bn;
 
@@ -592,7 +592,7 @@ ComputeVelocityField()
     Gn2Bn2m2 = mn2 / sigmaN2 + Gn2Bn2 / sigmaX2;
 
     QnTGn2Bn2m2Qn = QnT * Gn2Bn2m2 * Qn;
-    
+
     QnTGn2Bn2m2QnGI22 = QnTGn2Bn2m2Qn + EpsilonI22;
 
     QnTGn2Bn2m2QnGI22I = vnl_matrix_inverse< double >( QnTGn2Bn2m2QnGI22 );
@@ -641,7 +641,7 @@ std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude << std::e
   else
     {
     unsigned int iterations = static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
-    
+
     if( iterations < minimumNumberOfIterations )
       {
       iterations = minimumNumberOfIterations;
@@ -701,7 +701,7 @@ ComputeShortestEdgeLength()
 std::cout << "shortestLength = " << this->m_ShortestEdgeLength << std::endl;
 }
 
- 
+
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 double
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
@@ -713,7 +713,7 @@ ComputeLargestVelocityMagnitude() const
   VelocityVectorConstIterator velocityEnd = this->m_VelocityField->End();
 
   while( velocityItr != velocityEnd )
-    { 
+    {
     const double velocityMagnitude = velocityItr.Value().GetNorm();
 
     if( velocityMagnitude > largestVelocityMagnitude )
@@ -764,9 +764,9 @@ ComputeDeformationByScalingAndSquaring()
     DestinationPointIterator newDisplacementItr = this->m_DisplacementFieldSwap->Begin();
 
     while( oldDisplacementItr != oldDisplacementEnd )
-      { 
-      newDisplacementItr.Value() = 
-        this->InterpolateDestinationFieldAtPoint( 
+      {
+      newDisplacementItr.Value() =
+        this->InterpolateDestinationFieldAtPoint(
           this->m_DisplacementField, oldDisplacementItr.Value() );
 
       ++newDisplacementItr;
@@ -789,9 +789,9 @@ ComposeDeformationUpdateWithPreviousDeformation()
   DestinationPointIterator newDestinationPointItr = this->m_DestinationPointsSwap->Begin();
 
   while( displacementItr != displacementEnd )
-    { 
+    {
     newDestinationPointItr.Value() =
-      this->InterpolateDestinationFieldAtPoint( 
+      this->InterpolateDestinationFieldAtPoint(
         this->m_DestinationPoints, displacementItr.Value() );
 
 
@@ -806,7 +806,7 @@ ComposeDeformationUpdateWithPreviousDeformation()
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::PointType
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
-InterpolateDestinationFieldAtPoint( const DestinationPointContainerType * destinationField, 
+InterpolateDestinationFieldAtPoint( const DestinationPointContainerType * destinationField,
   const PointType & point )
 {
   PointType interpolatedDestinationPoint;
@@ -894,7 +894,7 @@ ConvertDeformationFieldToTangentVectorField()
     vectorToCenter.Normalize();
 
     tangentItr.Value() =
-      CrossProduct( vectorToCenter, 
+      CrossProduct( vectorToCenter,
         CrossProduct( vectorToCenter, dstPointItr.Value().GetVectorFromOrigin() ) );
 
     tangentItr.Value() *= factor;
@@ -939,7 +939,7 @@ SmoothTangentVectorField()
       const EdgeType * edgeToNeighborPoint = edgeToFirstNeighborPoint;
 
       AccumulatePixelType tangentVectorSum;
-  
+
       for( unsigned int k = 0; k < PointDimension; k++ )
         {
         tangentVectorSum[k] = centralTangentVector[k];
@@ -951,10 +951,10 @@ SmoothTangentVectorField()
         {
         const PointIdentifier neighborPointId = edgeToNeighborPoint->GetDestination();
         const PointType & neighborPoint = points->GetElement( neighborPointId );
-        const TangentVectorType & neighborTangentVector = 
+        const TangentVectorType & neighborTangentVector =
           this->m_TangentVectorField->GetElement( neighborPointId );
 
-        this->ParalelTransport( neighborPoint, pointItr.Value(), 
+        this->ParalelTransport( neighborPoint, pointItr.Value(),
           neighborTangentVector, transportedTangentVector );
 
         for( unsigned int k = 0; k < PointDimension; k++ )
@@ -1003,7 +1003,7 @@ ParalelTransport( const PointType sourcePoint, const PointType destinationPoint,
   const double scaledCosinus = vsrc * vdst;
 
   double angle = vcl_atan2( scaledSinus, scaledCosinus );
-  
+
   typedef Versor< double > VersorType;
 
   VersorType versor;
@@ -1055,7 +1055,7 @@ ConvertTangentVectorFieldToDeformationField()
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 AssignResampledMovingValuesToOutputMesh()
 {
@@ -1078,12 +1078,12 @@ AssignResampledMovingValuesToOutputMesh()
 
     ++outputDataItr;
     ++resampledArrayItr;
-    } 
+    }
 }
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-const 
+const
 typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::FixedMeshType *
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GetDeformedFixedMesh() const
@@ -1092,19 +1092,19 @@ GetDeformedFixedMesh() const
     {
     return 0;
     }
-  
+
   return dynamic_cast< const FixedMeshType * >(this->ProcessObject::GetOutput(1));
 }
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComposeFixedMeshOutputDisplacedToMovingMesh()
 {
   const FixedMeshType * in = this->m_FixedMesh.GetPointer();
 
-  FixedMeshType * out = 
+  FixedMeshType * out =
     dynamic_cast< FixedMeshType * >(this->ProcessObject::GetOutput(1));
 
   CopyMeshToMeshPoints( in, out );
@@ -1118,14 +1118,14 @@ ComposeFixedMeshOutputDisplacedToMovingMesh()
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 CopyDestinationPointsToDeformedFixedMesh()
 {
   DestinationPointConstIterator srcPointItr = this->m_DestinationPoints->Begin();
   DestinationPointConstIterator srcPointEnd = this->m_DestinationPoints->End();
 
-  FixedMeshType * deformedFixedMesh = 
+  FixedMeshType * deformedFixedMesh =
     dynamic_cast< FixedMeshType * >(this->ProcessObject::GetOutput(1));
 
   FixedPointsContainer * points = deformedFixedMesh->GetPoints();
@@ -1142,7 +1142,7 @@ CopyDestinationPointsToDeformedFixedMesh()
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComposeDestinationPointsOutputPointSet()
 {
@@ -1157,9 +1157,9 @@ ComposeDestinationPointsOutputPointSet()
   destinationPointSet->SetPoints( this->m_DestinationPoints );
 }
 
- 
+
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 PrintOutDeformationVectors()
 {
@@ -1183,13 +1183,13 @@ PrintOutDeformationVectors()
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-void 
+void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
 
-  os << "User provided initial destination points : " << 
+  os << "User provided initial destination points : " <<
     (this->m_UserProvidedInitialDestinationPoints ? " true " : " false " ) << std::endl;
   os << "Sphere center: " << this->m_SphereCenter << std::endl;
   os << "Sphere radius: " << this->m_SphereRadius << std::endl;
