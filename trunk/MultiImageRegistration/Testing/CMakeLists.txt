@@ -63,70 +63,79 @@ ENDMACRO(MULTIIMAGEREGISTRATION)
 #
 FIND_PATH(BrainWeb_DATA_ROOT NAMES brainweb165a10f17.mha  DOC "http://public.kitware.com/pub/itk/Data/BrainWeb/BrainPart1.tgz")
 
-IF(BrainWeb_DATA_ROOT)
 
   SET(T1Processing ON)
   SET(T2Processing OFF)
   SET(PDProcessing OFF)
 
+  ## Included locally
+  SET(T1Data ${MultiImageRegistration_TEST_INPUT_DIR}/T1.nii.gz)
+  SET(T2Data ${MultiImageRegistration_TEST_INPUT_DIR}/T2.nii.gz)
+  SET(PDData ${MultiImageRegistration_TEST_INPUT_DIR}/PD.nii.gz)
+
+IF(BrainWeb_DATA_ROOT)
+  ## From BrainWeb
+  #SET(T1Data ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha)
+  #SET(T2Data ${BrainWeb_DATA_ROOT}/brainweb1e1a10f20.mha)
+  #SET(PDData ${BrainWeb_DATA_ROOT}/brainweb1e5a10f17.mha)
+ENDIF(BrainWeb_DATA_ROOT)
+
   SET(TestingMaxData 3)
 
 IF(T1Processing)
   #  Affine test with 2 input images for BrainPart2.tgz
-  MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 2 Affine 002)
+  MULTIIMAGEREGISTRATION(${T1Data} 2 Affine 002)
   #  B-spline test with 2 images for BrainPart2.tgz
-  MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 2 Bspline 005)
+  MULTIIMAGEREGISTRATION(${T1Data} 2 Bspline 005)
   IF(${TestingMaxData} GREATER 10)
     #  Affine test with 10 input images for BrainPart2.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 10 Affine 008)
+    MULTIIMAGEREGISTRATION(${T1Data} 10 Affine 008)
     #  B-spline test with 10 images for BrainPart2.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 10 Bspline 011)
+    MULTIIMAGEREGISTRATION(${T1Data} 10 Bspline 011)
   ENDIF(${TestingMaxData} GREATER 10)
   IF(${TestingMaxData} GREATER 30)
     #  Affine test with 30 input images for BrainPart2.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 30 Affine 014)
+    MULTIIMAGEREGISTRATION(${T1Data} 30 Affine 014)
     #  B-spline test with 30 images for BrainPart2.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 30 Bspline 017)
+    MULTIIMAGEREGISTRATION(${T1Data} 30 Bspline 017)
   ENDIF(${TestingMaxData} GREATER 30)
 ENDIF(T1Processing)
 IF(T2Processing)
   #  Affine test with 1 input images for BrainPart1.tgz
-  MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e1a10f20.mha 2 Affine 001)
+  MULTIIMAGEREGISTRATION(${T2Data} 2 Affine 001)
   #  B-spline test with 2 images for BrainPart1.tgz
-  MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e1a10f20.mha 2 Bspline 004)
+  MULTIIMAGEREGISTRATION(${T2Data} 2 Bspline 004)
   IF(${TestingMaxData} GREATER 10)
     #  Affine test with 10 input images for BrainPart1.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e1a10f20.mha 10 Affine 007)
+    MULTIIMAGEREGISTRATION(${T2Data} 10 Affine 007)
     #  B-spline test with 10 images for BrainPart1.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e1a10f20.mha 10 Bspline 010)
+    MULTIIMAGEREGISTRATION(${T2Data} 10 Bspline 010)
   ENDIF(${TestingMaxData} GREATER 10)
   IF(${TestingMaxData} GREATER 30)
     #  Affine test with 30 input images for BrainPart1.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e1a10f20.mha 30 Affine 013)
+    MULTIIMAGEREGISTRATION(${T2Data} 30 Affine 013)
     #  B-spline test with 30 images for BrainPart1.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e1a10f20.mha 30 Bspline 016)
+    MULTIIMAGEREGISTRATION(${T2Data} 30 Bspline 016)
   ENDIF(${TestingMaxData} GREATER 30)
 ENDIF(T2Processing)
 IF(PDProcessing)
   #  Affine test with 2 input images for BrainPart3.tgz
-  MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e5a10f17.mha 2 Affine 003)
+  MULTIIMAGEREGISTRATION(${PDData} 2 Affine 003)
   #  B-spline test with 2 images for BrainPart3.tgz
-  MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e5a10f17.mha 2 Bspline 006)
+  MULTIIMAGEREGISTRATION(${PDData} 2 Bspline 006)
   IF(${TestingMaxData} GREATER 10)
     #  Affine test with 10 input images for BrainPart3.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e5a10f17.mha 10 Affine 009)
+    MULTIIMAGEREGISTRATION(${PDData} 10 Affine 009)
     #  B-spline test with 10 images for BrainPart3.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e5a10f17.mha 10 Bspline 012)
+    MULTIIMAGEREGISTRATION(${PDData} 10 Bspline 012)
   ENDIF(${TestingMaxData} GREATER 10)
   IF(${TestingMaxData} GREATER 30)
     #  Affine test with 30 input images for BrainPart3.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e5a10f17.mha 30 Affine 015)
+    MULTIIMAGEREGISTRATION(${PDData} 30 Affine 015)
     #  B-spline test with 30 images for BrainPart3.tgz
-    MULTIIMAGEREGISTRATION(${BrainWeb_DATA_ROOT}/brainweb1e5a10f17.mha 30 Bspline 018)
+    MULTIIMAGEREGISTRATION(${PDData} 30 Bspline 018)
   ENDIF(${TestingMaxData} GREATER 30)
 ENDIF(PDProcessing)
-
-ENDIF(BrainWeb_DATA_ROOT)
 
 #
 #  Find the FAImage image datasets to use them as input

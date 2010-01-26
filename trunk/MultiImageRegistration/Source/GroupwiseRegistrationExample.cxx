@@ -493,7 +493,7 @@ public:
 
 std::string replaceExtension(const std::string oldname, const std::string extension)
 {
-  return oldname.substr(0, oldname.rfind(".")) + "." + extension;
+  return oldname.substr(0, oldname.rfind(".nii.gz")) + "." + extension;
 }
 
 
@@ -1119,7 +1119,7 @@ int main( int argc, char *argv[] )
     for(int i=0; i<N;i++)
     {
       std::string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
-      fileName = replaceExtension(fileName, "txt");
+      fileName = replaceExtension(fileName, "mat");
       transformFileWriter->SetFileName(fileName.c_str());
       transformFileWriter->SetPrecision(12);
       transformFileWriter->SetInput(affineTransformArray[i]);
@@ -1204,7 +1204,7 @@ int main( int argc, char *argv[] )
        
         TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
         std::string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
-        fileName = replaceExtension(fileName, "txt");
+        fileName = replaceExtension(fileName, "mat");
         std::cout << "message: Reading " << fileName << std::endl;        
         transformFileReader->SetFileName(fileName.c_str());
         
@@ -1378,7 +1378,7 @@ int main( int argc, char *argv[] )
       for(int i=0; i<N;i++)
       {
         std::string fileName = outputFolder + localbsplineFolderName.str() + "TransformFiles/" + fileNames[i];
-        fileName = replaceExtension(fileName, "txt");
+        fileName = replaceExtension(fileName, "mat");
         transformFileWriter->SetFileName(fileName.c_str());
         transformFileWriter->SetPrecision(12);
         transformFileWriter->SetInput(bsplineTransformArrayLow[i]);
@@ -1439,7 +1439,7 @@ int main( int argc, char *argv[] )
             std::ostringstream tempbsplineFolderName;
             tempbsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize << "/";
             std::string fileName = outputFolder + tempbsplineFolderName.str() + "TransformFiles/" + fileNames[i];
-            fileName = replaceExtension(fileName, "txt");
+            fileName = replaceExtension(fileName, "mat");
             transformFileReader->SetFileName(fileName.c_str());
             transformFileReader->Update();
             TransformListType*   transformList = transformFileReader->GetTransformList();
@@ -1648,7 +1648,7 @@ int main( int argc, char *argv[] )
         for(int i=0; i<N;i++)
         {
           std::string fileName = outputFolder + tempbsplineFolderName.str() + "TransformFiles/" + fileNames[i];
-          fileName = replaceExtension(fileName, "txt");
+          fileName = replaceExtension(fileName, "mat");
           transformFileWriter->SetFileName(fileName.c_str());
           transformFileWriter->SetPrecision(12);
           transformFileWriter->SetInput(bsplineTransformArrayHigh[i]);

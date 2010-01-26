@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -30,7 +30,7 @@
 #include "itkTransformFileWriter.h"
 
 #include "itkRescaleIntensityImageFilter.h"
-    
+
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -57,13 +57,13 @@ int main( int argc, char * argv[] )
   {
     srand(time(NULL));
   }
-    
+
   const     unsigned int   Dimension = 3;
-  
+
   typedef   double  InputPixelType;
   typedef   unsigned short  OutputPixelType;
 
-  
+
   typedef itk::Image< InputPixelType,  Dimension >   InputImageType;
   typedef itk::Image< OutputPixelType, Dimension >   OutputImageType;
 
@@ -75,16 +75,17 @@ int main( int argc, char * argv[] )
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
   reader->Update();
-  
+  InputImageType::Pointer referenceImage = reader->GetOutput();
+
   // Rescale the input image to 0-255
   typedef itk::RescaleIntensityImageFilter<InputImageType, InputImageType >  RescaleFilterType;
   RescaleFilterType::Pointer    rescaleFilter    = RescaleFilterType::New();
-  rescaleFilter->SetInput(    reader->GetOutput() );
+  rescaleFilter->SetInput(    referenceImage );
   rescaleFilter->SetOutputMinimum(0);
   rescaleFilter->SetOutputMaximum(255);
   rescaleFilter->Update();
-  
-  int numberOfImages = atoi(argv[3]);
+
+  const int numberOfImages = atoi(argv[3]);
 
   std::vector<double> randomOffsetNumbers(numberOfImages*TOTNUM);
   for(long int i=0;i<TOTNUM*numberOfImages; i++)
@@ -94,7 +95,7 @@ int main( int argc, char * argv[] )
   for(long int i=0;i<TOTNUM; i++)
   {
     // Make the mean zero along images
-    double mean = 0.0; 
+    double mean = 0.0;
     for(int j=0; j<numberOfImages;j++)
     {
       mean += randomOffsetNumbers[TOTNUM*j+i];
@@ -103,15 +104,15 @@ int main( int argc, char * argv[] )
     for(int j=0; j<numberOfImages;j++)
     {
       randomOffsetNumbers[TOTNUM*j+i] -= mean;
-    } 
+    }
   }
-  
-  
+
+
   for(int i=0; i<numberOfImages ; i++)
   {
 
     WriterType::Pointer writer = WriterType::New();
-   
+
     typedef itk::ResampleImageFilter<InputImageType,OutputImageType> ResampleFilterType;
     ResampleFilterType::Pointer resample = ResampleFilterType::New();
 
@@ -135,12 +136,12 @@ int main( int argc, char * argv[] )
     bsplineRegion.SetSize( totalGridSize );
 
     typedef BSplineTransformType::SpacingType SpacingType;
-    SpacingType bsplineSpacing = reader->GetOutput()->GetSpacing();
+    SpacingType bsplineSpacing = referenceImage->GetSpacing();
 
     typedef BSplineTransformType::OriginType OriginType;
-    OriginType bsplineOrigin = reader->GetOutput()->GetOrigin();;
+    OriginType bsplineOrigin = referenceImage->GetOrigin();;
 
-    InputImageType::SizeType ImageSize = reader->GetOutput()->GetLargestPossibleRegion().GetSize();
+    InputImageType::SizeType ImageSize = referenceImage->GetLargestPossibleRegion().GetSize();
 
     for(unsigned int r=0; r<Dimension; r++)
     {
@@ -152,13 +153,12 @@ int main( int argc, char * argv[] )
     bsplineTransform->SetGridSpacing( bsplineSpacing );
     bsplineTransform->SetGridOrigin( bsplineOrigin );
     bsplineTransform->SetGridRegion( bsplineRegion );
-  
 
     typedef BSplineTransformType::ParametersType     ParametersType;
 
     const unsigned int numberOfParameters =
                      bsplineTransform->GetNumberOfParameters();
-  
+
     ParametersType bsplineParameters( numberOfParameters );
 
     bsplineParameters.Fill( 0.0 );
@@ -183,43 +183,37 @@ int main( int argc, char * argv[] )
 
     // Initialize the resampler
     // Get the size of the image
-    InputImageType::SizeType   size;
-    size = reader->GetOutput()->GetLargestPossibleRegion().GetSize();
+    const InputImageType::SizeType size = referenceImage->GetLargestPossibleRegion().GetSize();
 
     //Get the spacing
-    InputImageType::SpacingType spacing;
-    spacing = reader->GetOutput()->GetSpacing();
+    const InputImageType::SpacingType spacing = referenceImage->GetSpacing();
     //Get the origin
-    BSplineTransformType::OriginType origin;
-    origin = reader->GetOutput()->GetOrigin();
+    const InputImageType::PointType origin = referenceImage->GetOrigin();
 
-    resample->SetSize(size);
-    resample->SetOutputOrigin(origin);
-    resample->SetOutputSpacing(spacing);
-    resample->SetOutputDirection( reader->GetOutput()->GetDirection());
+    resample->SetOutputParametersFromImage(referenceImage);
     resample->SetDefaultPixelValue( 0 );
-      
     resample->SetInput( rescaleFilter->GetOutput() );
     writer->SetInput( resample->GetOutput() );
-      
 
     std::string fname;
     std::ostringstream fnameStream;
     fnameStream << i ;
 
 
-    //Write the transform files
-    itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
-    itksys::SystemTools::MakeDirectory( (fname + argv[2] + "/TransformFiles/").c_str() );
+      {
+      //Write the transform files
+      itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
+      itksys::SystemTools::MakeDirectory( (fname + argv[2] + "/TransformFiles/").c_str() );
 
-    std::string fileName = fname + argv[2] + "/TransformFiles/" + fnameStream.str() + ".txt";
-    transformFileWriter->SetFileName(fileName.c_str());
-    transformFileWriter->SetPrecision(12);
-    transformFileWriter->SetInput(bsplineTransform);
-    transformFileWriter->Update();
+      std::string fileName = fname + argv[2] + "/TransformFiles/" + fnameStream.str() + ".mat";
+      transformFileWriter->SetFileName(fileName.c_str());
+      transformFileWriter->SetPrecision(12);
+      transformFileWriter->SetInput(bsplineTransform);
+      transformFileWriter->Update();
+      }
 
     itksys::SystemTools::MakeDirectory( (fname+argv[2]+"/Images/").c_str() );
-    
+
     fname = fname + argv[2] + "/Images/" + fnameStream.str();
     if(Dimension == 2)
     {
@@ -227,9 +221,9 @@ int main( int argc, char * argv[] )
     }
     else
     {
-      fname += ".mhd";
+      fname += ".nii.gz";
     }
-    
+
     writer->SetFileName( fname.c_str() );
     std::cout << "Writing " << fname.c_str() << std::endl;
     writer->Update();
