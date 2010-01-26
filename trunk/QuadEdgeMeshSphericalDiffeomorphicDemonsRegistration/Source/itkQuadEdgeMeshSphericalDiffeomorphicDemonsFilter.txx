@@ -360,6 +360,7 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 CopySourcePoinstAsDestinationPoints()
 {
+std::cout << "CopySourcePoinstAsDestinationPoints() It should be called only once" << std::endl;
   const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
 
   FixedPointsConstIterator srcPointItr = points->Begin();
@@ -605,7 +606,13 @@ ComputeVelocityField()
 
     metricSum += ( Fv - Mv )*( Fv - Mv ) / sigmaN2;
 
-    velocityItr.Value() = Vn;
+    //
+    // FIXME   velocityItr.Value() = Vn;
+    // FIXME   velocityItr.Value() = Vn * ( this->m_SphereRadius );
+    //
+    velocityItr.Value() = Vn * (this->m_SphereRadius * this->m_SphereRadius);
+
+if( pointId == 0 ) std::cout << "velocity  = " << velocityItr.Value() << " = " << Vn << std::endl;
 
     ++velocityItr;
     ++sigmaItr;
@@ -634,6 +641,8 @@ std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude << std::e
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
   const unsigned int minimumNumberOfIterations = 2; // FIXME: This is critical. It used to be 10
+
+std::cout << "ratio = " << ratio << std::endl;
   if( ratio < 1.0 )
     {
     this->m_ScalingAndSquaringNumberOfIterations = minimumNumberOfIterations;
@@ -641,7 +650,7 @@ std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude << std::e
   else
     {
     unsigned int iterations = static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
-
+std::cout << "iterations = " << iterations << std::endl;
     if( iterations < minimumNumberOfIterations )
       {
       iterations = minimumNumberOfIterations;
@@ -698,7 +707,7 @@ ComputeShortestEdgeLength()
     }
 
   this->m_ShortestEdgeLength = shortestLength;
-std::cout << "shortestLength = " << this->m_ShortestEdgeLength << std::endl;
+std::cout << "shortestLength = " << this->m_ShortestEdgeLength << std::endl;  // *****
 }
 
 
@@ -711,7 +720,7 @@ ComputeLargestVelocityMagnitude() const
 
   VelocityVectorConstIterator velocityItr = this->m_VelocityField->Begin();
   VelocityVectorConstIterator velocityEnd = this->m_VelocityField->End();
-
+std::cout << "velocity for point 0 = " << velocityItr.Value() << std::endl; // *****
   while( velocityItr != velocityEnd )
     {
     const double velocityMagnitude = velocityItr.Value().GetNorm();
@@ -787,6 +796,10 @@ ComposeDeformationUpdateWithPreviousDeformation()
   DestinationPointConstIterator displacementEnd = this->m_DisplacementField->End();
 
   DestinationPointIterator newDestinationPointItr = this->m_DestinationPointsSwap->Begin();
+
+
+DestinationPointIterator dstPointItrX = this->m_DestinationPoints->Begin();
+std::cout << "Current Destination for point 0 = " << dstPointItrX.Value() << std::endl;
 
   while( displacementItr != displacementEnd )
     {
@@ -1198,7 +1211,7 @@ PrintSelf(std::ostream& os, Indent indent) const
   os << "Lambda : " << this->m_Lambda << std::endl;
   os << "Maximum number of iterations : " << this->m_MaximumNumberOfIterations << std::endl;
   os << "Maximum number of smoothing iterations : " << this->m_MaximumNumberOfSmoothingIterations << std::endl;
-  os << "Fixed nodes sigma : " << this->m_FixedNodesSigmas.GetPointer() << std::endl;
+  os << "Fixed nodes sigmas container pointer : " << this->m_FixedNodesSigmas.GetPointer() << std::endl;
   os << "Shortest edge length : " << this->m_ShortestEdgeLength << std::endl;
   os << "Scaling and squaring number of iterations : " << this->m_ScalingAndSquaringNumberOfIterations << std::endl;
 
