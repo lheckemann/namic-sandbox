@@ -164,10 +164,10 @@ protected:
 
 
 
-  // for flip, the controls remain same for both modes
-  // for monitor associated flip
+    // for flip, the controls remain same for both modes
+    // for monitor associated flip
   vtkKWFrameWithLabel *FlipFrame;
-  // information from the user
+    // information from the user
   vtkKWCheckButtonWithLabel *VerticalFlipCheckButton;
   vtkKWCheckButtonWithLabel *HorizontalFlipCheckButton;
   bool ImageFlipDone;
