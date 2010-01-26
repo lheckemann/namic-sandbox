@@ -66,6 +66,7 @@ vtkUDPServerGUI::vtkUDPServerGUI ( )
   this->PortEntry = NULL;
   this->DataTable = NULL;
   this->UpdateEntry = NULL;
+  this->ClearListButton = NULL;
   
   //----------------------------------------------------------------
   //Message Variables
@@ -73,7 +74,6 @@ vtkUDPServerGUI::vtkUDPServerGUI ( )
   this->TimerFlag = 0;
   this->received = 0;
   this->TimerInterval = 1000;  // in ms
-
 }
 
 //---------------------------------------------------------------------------
@@ -119,6 +119,12 @@ vtkUDPServerGUI::~vtkUDPServerGUI ( )
     this->DataTable->SetParent(NULL);
     this->DataTable->Delete();
     }
+  
+  if (this->ClearListButton)
+    {
+    this->ClearListButton->SetParent(NULL);
+    this->ClearListButton->Delete();
+    }
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -133,9 +139,9 @@ void vtkUDPServerGUI::Init()
 {
   //Register new node type to the scene
   vtkMRMLScene* scene = this->GetMRMLScene();
-  vtkMRMLUDPServerNode* svrNode = vtkMRMLUDPServerNode::New();
-  scene->RegisterNodeClass(svrNode);
-  svrNode->Delete();
+  vtkMRMLUDPServerNode* sNode = vtkMRMLUDPServerNode::New();
+  scene->RegisterNodeClass(sNode);
+  sNode->Delete();
 }
 
 
@@ -190,6 +196,12 @@ void vtkUDPServerGUI::RemoveGUIObservers ( )
     this->DataTable
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+  
+  if (this->ClearListButton)
+    {
+    this->ClearListButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   this->RemoveLogicObservers();
 
@@ -227,7 +239,8 @@ void vtkUDPServerGUI::AddGUIObservers ( )
   this->UpdateEntry
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->AddLogicObservers();
-
+  this->ClearListButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
 }
 
 
@@ -285,9 +298,12 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
         {
         this->ConnectButton->SetText("Disconnect");
         //Add a node to the scene
-        vtkMRMLUDPServerNode* svrNode = vtkMRMLUDPServerNode::New();
-        this->GetMRMLScene()->AddNode(svrNode);
-        this->GetMRMLScene()->Modified();
+        if (svrNode == NULL)
+          {
+          svrNode = vtkMRMLUDPServerNode::New();
+          this->GetMRMLScene()->AddNode(svrNode);
+          this->GetMRMLScene()->Modified();
+          }
         //Start Timer to update collected values
         this->TimerFlag = 1;
         this->TimerInterval = this->UpdateEntry->GetValueAsInt();
@@ -315,7 +331,12 @@ void vtkUDPServerGUI::ProcessGUIEvents(vtkObject *caller,
     {
     std::cerr << "Update Entry has been modified." << std::endl;
     this->TimerInterval = this->UpdateEntry->GetValueAsInt();
-    }  
+    } 
+  else if (this->ClearListButton == vtkKWPushButton::SafeDownCast(caller) 
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    this->DataTable->GetWidget()->DeleteAllRows();
+    }
 }
 
 void vtkUDPServerGUI::DataCallback(vtkObject *caller, 
@@ -353,8 +374,12 @@ void vtkUDPServerGUI::ProcessMRMLEvents ( vtkObject *caller,
     vtkObject* obj = (vtkObject*)callData;
     vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(obj);
     
-    //Make new node active
-    this->ActiveNode = vtkMRMLUDPServerNode::SafeDownCast(node);
+    //Check to see if node is UDPServerNode
+    /*if (node && strcmp(node->GetNodeTagName(), "UDPServerNode") == 0)
+      {
+      //Make new node active
+      this->svrNode = vtkMRMLUDPServerNode::SafeDownCast(node);
+      }*/
     }
     
 }
@@ -512,7 +537,6 @@ void vtkUDPServerGUI::BuildGUIForServerFrame()
   app->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2",
               this->ConnectButton->GetWidgetName());
 
-
   connectFrame->Delete();
   frame->Delete();
   conBrowsFrame->Delete();
@@ -535,8 +559,15 @@ void vtkUDPServerGUI::BuildGUIForDataFrame()
   // -----------------------------------------
   // Data Table Widget
 
+  vtkKWFrame *listFrame = vtkKWFrame::New();
+  listFrame->SetParent(dataBrowsFrame->GetFrame());
+  listFrame->Create();
+  
+  app->Script ( "pack %s -padx 2 -pady 2",
+                listFrame->GetWidgetName());
+
   this->DataTable = vtkKWMultiColumnListWithScrollbars::New();
-  this->DataTable->SetParent(dataBrowsFrame->GetFrame());
+  this->DataTable->SetParent(listFrame);
   this->DataTable->Create();
   this->DataTable->SetHeight(1);
   this->DataTable->GetWidget()->SetSelectionTypeToRow();
@@ -562,6 +593,28 @@ void vtkUDPServerGUI::BuildGUIForDataFrame()
    app->Script ("pack %s -fill both -expand true",  
                this->DataTable->GetWidgetName());
   
+  listFrame->Delete();
+  
+  //--------------------------------------------
+  // Clear List Button
+  
+  vtkKWFrame *clearFrame = vtkKWFrame::New();
+  clearFrame->SetParent(dataBrowsFrame->GetFrame());
+  clearFrame->Create();
+  
+  app->Script ( "pack %s -padx 2 -pady 2",
+                clearFrame->GetWidgetName());
+  
+  this->ClearListButton = vtkKWPushButton::New( );
+  this->ClearListButton->SetParent(clearFrame);
+  this->ClearListButton->Create( );
+  this->ClearListButton->SetText("Clear List");
+  this->ClearListButton->SetWidth(12);
+
+  app->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2",
+              this->ClearListButton->GetWidgetName());
+
+  clearFrame->Delete();  
   dataBrowsFrame->Delete();
 }
   
@@ -571,12 +624,12 @@ void vtkUDPServerGUI::UpdateAll()
 }
 
 //----------------------------------------------------------------------------
-void vtkUDPServerGUI::UpdateDataFrame(char* data)
+int vtkUDPServerGUI::UpdateDataFrame(char* data)
 {
   //Check if data is in tact
-  if (data == NULL)
+  if (!data)
     {
-    return;
+    return 1;
     }
 
   //--------------------------------------------------------------------------
@@ -587,6 +640,7 @@ void vtkUDPServerGUI::UpdateDataFrame(char* data)
   
   //Create stream object from data pointer
   std::string buffdata = data;
+  std::cerr << data << std::endl;
   std::cerr << buffdata << std::endl;
   std::istringstream iss (data,std::istringstream::in);
   
@@ -652,10 +706,14 @@ void vtkUDPServerGUI::UpdateDataFrame(char* data)
   //itoa(pd.gammaCount, gc, 10);
   this->DataTable->GetWidget()->SetCellText(row, 4, gc);
   
+  //TODO: Make sure the last row is selected and always shown
+  
   //Update Node with values
-  this->ActiveNode->SetSmoothedCounts(pd.smoothedCount);
-  this->ActiveNode->SetBetaCounts(pd.betaCount);
-  this->ActiveNode->SetGammaCounts(pd.gammaCount);
-  this->ActiveNode->SetDate(pd.date);
-  this->ActiveNode->SetTime(pd.time);
+  this->svrNode->SetSmoothedCounts(pd.smoothedCount);
+  this->svrNode->SetBetaCounts(pd.betaCount);
+  this->svrNode->SetGammaCounts(pd.gammaCount);
+  this->svrNode->SetDate(pd.date);
+  this->svrNode->SetTime(pd.time);
+  
+  return 0;
 }
