@@ -45,6 +45,7 @@ vtkPerkStationInsertStep::vtkPerkStationInsertStep()
   this->TrackerConnectionFrame = NULL;
   this->ConnectTrackerCheckButton = NULL;
   this->TrackerStatusMsg = NULL;
+  this->DisplayRealTimeNeedleTip = NULL;
 
   this->NeedleToolFrame = NULL;
   this->NeedleTipPositionFrame = NULL;
@@ -107,6 +108,11 @@ vtkPerkStationInsertStep::~vtkPerkStationInsertStep()
     {
     this->ConnectTrackerCheckButton->Delete();
     this->ConnectTrackerCheckButton = NULL;
+    }
+  if(this->DisplayRealTimeNeedleTip)
+    {
+    this->DisplayRealTimeNeedleTip->Delete();
+    this->DisplayRealTimeNeedleTip = NULL;
     }
   if(this->NeedleToolFrame)
     {
@@ -289,9 +295,28 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     this->ConnectTrackerCheckButton->SetLabelText("Connect to tracker:");
     this->ConnectTrackerCheckButton->SetHeight(4);
     }
+
+  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                this->ConnectTrackerCheckButton->GetWidgetName());
+
+  // check button to change display status of the red line representing needle in real-time
+
+  if (!this->DisplayRealTimeNeedleTip)
+    {
+    this->DisplayRealTimeNeedleTip = vtkKWCheckButtonWithLabel::New();
+    }
+  if (!this->DisplayRealTimeNeedleTip->IsCreated())
+    {
+    this->DisplayRealTimeNeedleTip->SetParent(this->TrackerConnectionFrame->GetFrame());
+    this->DisplayRealTimeNeedleTip->Create();
+    this->DisplayRealTimeNeedleTip->GetLabel()->SetBackgroundColor(0.7,0.7,0.7);
+    this->DisplayRealTimeNeedleTip->SetLabelText("Display needle line:");
+    this->DisplayRealTimeNeedleTip->SetHeight(4);
+    this->DisplayRealTimeNeedleTip->GetWidget()->SetSelectedState(true);
+    }
  
   this->Script("pack %s -side top -anchor nw -padx 2 -pady 2", 
-                this->ConnectTrackerCheckButton->GetWidgetName());
+                this->DisplayRealTimeNeedleTip->GetWidgetName());
 
   
   if(!this->TrackerStatusMsg)
@@ -612,6 +637,11 @@ void vtkPerkStationInsertStep::ProcessGUIEvents(vtkObject *caller, unsigned long
     // vertical flip button selected state changed
     this->ConnectTrackerCallback(bool(this->ConnectTrackerCheckButton->GetWidget()->GetSelectedState()));
     }
+  if (this->DisplayRealTimeNeedleTip && this->DisplayRealTimeNeedleTip->GetWidget()== vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+    // update visibility of RealTimeNeedleLine
+    this->GetGUI()->GetSecondaryMonitor()->SetRealTimeNeedleLineActorVisibility( this->DisplayRealTimeNeedleTip->GetWidget()->GetSelectedState() );
+    }
 
   
   // log file dialog button
@@ -848,6 +878,10 @@ void vtkPerkStationInsertStep::AddGUIObservers()
     {
     this->ConnectTrackerCheckButton->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
     }
+  if (this->DisplayRealTimeNeedleTip)
+    {
+    this->DisplayRealTimeNeedleTip->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }
   if (this->LogFileButton)
     {
     this->LogFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
@@ -875,6 +909,10 @@ void vtkPerkStationInsertStep::RemoveGUIObservers()
   if (this->ConnectTrackerCheckButton)
     {
     this->ConnectTrackerCheckButton->GetWidget()->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }
+  if (this->DisplayRealTimeNeedleTip)
+    {
+    this->DisplayRealTimeNeedleTip->GetWidget()->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
     }
    if (this->LogFileButton)
     {

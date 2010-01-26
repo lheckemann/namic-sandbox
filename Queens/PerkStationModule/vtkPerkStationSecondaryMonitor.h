@@ -168,8 +168,11 @@ public:
 
   void RemoveTextActors();
 
-
   void UpdateImageDataOnSliceOffset(double sliceOffset=0);
+
+  // Description
+  // Set visivility of RealTimeNeedleLineActor
+  void SetRealTimeNeedleLineActorVisibility(bool v);
 
 protected:
   vtkPerkStationSecondaryMonitor();
