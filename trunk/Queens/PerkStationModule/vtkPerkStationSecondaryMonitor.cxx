@@ -1784,6 +1784,14 @@ void vtkPerkStationSecondaryMonitor::ResetTilt()
 
   this->UpdateImageDisplay();
 }
+
+void vtkPerkStationSecondaryMonitor::SetRealTimeNeedleLineActorVisibility(bool v)
+{
+  this->RealTimeNeedleLineActor->SetVisibility(v);
+  this->NeedleTipActor->SetVisibility(v);
+  this->RenderWindow->Render();
+}
+
 //-------------------------------------------------------------------------------
 /*void vtkPerkStationSecondaryMonitor::JumpSliceByOffsetting(double r, double a, double s)
 {

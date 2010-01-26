@@ -106,6 +106,9 @@ protected:
   vtkKWCheckButtonWithLabel *ConnectTrackerCheckButton;
   vtkKWLabel *TrackerStatusMsg;
 
+  // display red line representing needle in real-time
+  vtkKWCheckButtonWithLabel *DisplayRealTimeNeedleTip;
+
   // needle tip position info
   vtkKWFrameWithLabel *NeedleToolFrame;
   vtkKWFrame *NeedleTipPositionFrame;
