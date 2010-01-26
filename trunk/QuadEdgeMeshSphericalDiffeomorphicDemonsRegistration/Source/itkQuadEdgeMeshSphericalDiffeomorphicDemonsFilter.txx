@@ -308,8 +308,6 @@ ComputeBasisSystemAtEveryNode()
   const PointsContainer * points = this->m_FixedMesh->GetPoints();
 
   typedef typename TFixedMesh::QEPrimal           EdgeType;
-  typedef typename TFixedMesh::PointType          PointType;
-  typedef typename PointType::VectorType          VectorType;
 
   for( PointIdentifier pointId1 = 0; pointId1 < numberOfNodes; pointId1++ )
     {
@@ -453,8 +451,6 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeMappedMovingValueAtEveryNode()
 {
-  typedef typename DestinationPointContainerType::ConstIterator  DestinationPointIterator;
-
   DestinationPointIterator pointItr = this->m_DestinationPoints->Begin();
   DestinationPointIterator pointEnd = this->m_DestinationPoints->End();
 
@@ -637,17 +633,18 @@ std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude << std::e
 
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
+  const unsigned int minimumNumberOfIterations = 2; // FIXME: This is critical. It used to be 10
   if( ratio < 1.0 )
     {
-    this->m_ScalingAndSquaringNumberOfIterations = 10;
+    this->m_ScalingAndSquaringNumberOfIterations = minimumNumberOfIterations;
     }
   else
     {
-    int iterations = static_cast< int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
+    unsigned int iterations = static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
     
-    if( iterations < 10 )
+    if( iterations < minimumNumberOfIterations )
       {
-      iterations = 10;
+      iterations = minimumNumberOfIterations;
       }
 
     this->m_ScalingAndSquaringNumberOfIterations = iterations;
@@ -921,8 +918,6 @@ SmoothTangentVectorField()
   TangentVectorType smoothedVector;
   TangentVectorType transportedTangentVector;
 
-  const unsigned int PointDimension = PointType::Dimension;
-
   for( unsigned int iter = 0; iter < this->m_MaximumNumberOfSmoothingIterations; ++iter )
     {
     typedef typename OutputMeshType::QEPrimal    EdgeType;
@@ -1073,8 +1068,6 @@ AssignResampledMovingValuesToOutputMesh()
   outputPointData->Reserve( numberOfNodes );
 
   OutputPointDataContainerIterator outputDataItr = outputPointData->Begin();
-
-  typedef typename ResampledMovingValuesContainerType::ConstIterator  ResampledMovingValuesContainerIterator;
 
   ResampledMovingValuesContainerIterator  resampledArrayItr = this->m_ResampledMovingValuesContainer->Begin();
   ResampledMovingValuesContainerIterator  resampledArrayEnd = this->m_ResampledMovingValuesContainer->End();
