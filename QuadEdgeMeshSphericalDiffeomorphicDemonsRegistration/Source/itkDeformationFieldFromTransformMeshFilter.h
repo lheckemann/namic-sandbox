@@ -58,7 +58,6 @@ public:
   typedef TOutputMesh                                             OutputMeshType;
   typedef typename OutputMeshType::Pointer                        OutputMeshPointer;
 
-  typedef typename OutputMeshType::PointsContainerPointer         OutputPointsContainerPointer;
   typedef typename OutputMeshType::PointsContainerIterator        OutputPointsContainerIterator;
   typedef typename OutputMeshType::PointsContainerConstIterator   OutputPointsContainerConstIterator;
 
