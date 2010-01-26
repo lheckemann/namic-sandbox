@@ -47,7 +47,7 @@
 
 std::string replaceExtension(const std::string oldname, const std::string extension)
 {
-  return oldname.substr(0, oldname.rfind(".")) + "." + extension;
+  return oldname.substr(0, oldname.rfind(".nii.gz")) + "." + extension;
 }
 
 int getCommandLine(       int /*argc*/, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
@@ -273,7 +273,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + "Affine/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat");
       }
       transformNames[i] = "Affine";
     }
@@ -285,7 +285,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat");
 
       }
     }

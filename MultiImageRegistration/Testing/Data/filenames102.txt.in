@@ -22,7 +22,7 @@
 # if inputFolder is specified, the pathname is relative to that 
 # folder. Otherwise supply the full pathname
 #
- -f  0.mhd
- -f  1.mhd
+ -f  0.nii.gz
+ -f  1.nii.gz
 
  

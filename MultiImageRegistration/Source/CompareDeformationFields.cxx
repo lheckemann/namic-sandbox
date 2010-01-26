@@ -45,7 +45,7 @@
 
 std::string replaceExtension(const std::string oldname, const std::string extension)
 {
-  return oldname.substr(0, oldname.rfind(".")) + "." + extension;
+  return oldname.substr(0, oldname.rfind(".nii.gz")) + "." + extension;
 }
 
 int getCommandLine(       int /*argc*/, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
@@ -213,7 +213,7 @@ int main( int argc, char * argv[] )
   for(int i=0; i<N;i++)
   {
     syntheticTransformFileNames[i] = syntheticFolderName + "TransformFiles/" + fileNames[i];
-    syntheticTransformFileNames[i] = replaceExtension(syntheticTransformFileNames[i], "txt");
+    syntheticTransformFileNames[i] = replaceExtension(syntheticTransformFileNames[i], "mat");
   }
   
   // Generate the transform filenames
@@ -225,7 +225,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + "Affine/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat");
       }
     }
     else // generate bspline names
@@ -236,7 +236,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "mat");
       }
     }
 
