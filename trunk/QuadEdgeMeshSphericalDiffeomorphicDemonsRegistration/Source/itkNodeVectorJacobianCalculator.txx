@@ -166,9 +166,9 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
     //
     // contribute to accumulated area around each point of triangle
     //
-    for( unsigned int i=0; i < numberOfVerticesInTriangle; i++ )
+    for( unsigned int ik=0; ik < numberOfVerticesInTriangle; ik++ )
       {
-      this->m_PointAreaAccumulatorList->ElementAt( pointIds[i] ) += area;
+      this->m_PointAreaAccumulatorList->ElementAt( pointIds[ik] ) += area;
       }
 
     const TriangleBasisSystemType & basisSystem = basisSystemListIterator.Value();
@@ -198,11 +198,11 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
     vectorToCenterNormalized.Normalize();
 
 
-    for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
+    for( unsigned int il = 0; il < numberOfVerticesInTriangle; il++ )
       {
-      ArrayValueType pixelValue1 = pixelValue[0][i];
-      ArrayValueType pixelValue2 = pixelValue[1][i];
-      ArrayValueType pixelValue3 = pixelValue[2][i];
+      ArrayValueType pixelValue1 = pixelValue[0][il];
+      ArrayValueType pixelValue2 = pixelValue[1][il];
+      ArrayValueType pixelValue3 = pixelValue[2][il];
       
       InterpolatorType::GetDerivativeFromPixelsAndBasis(
         pixelValue1, pixelValue2, pixelValue3, u12, u32, derivative );
@@ -211,10 +211,10 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
 
       for( unsigned int k = 0; k < MeshDimension; k++ )
         {
-        projectedDerivative[i][k] = derivative[k] - vectorToCenterNormalized[k] * radialComponent;
+        projectedDerivative[il][k] = derivative[k] - vectorToCenterNormalized[k] * radialComponent;
         }
 
-      projectedDerivative[i] *= area;
+      projectedDerivative[il] *= area;
       }
 
     // Store at each vertex the value equal to triangle area x
@@ -222,7 +222,7 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
     // and divide by the sum of triangle areas about each vertex.
     // Begin by weighting contribution to point of this triangle by its area.
 
-    for( unsigned int i = 0; i < numberOfVerticesInTriangle; i++ )
+    for( unsigned int im = 0; im < numberOfVerticesInTriangle; im++ )
       {
 
       for( unsigned int k = 0; k < MeshDimension; k++ )
@@ -230,7 +230,7 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
         // 
         // Parallel transport the derivative vector to each neighbor point
         //
-        this->ParallelTransport( cellCenterProjectedInSphere, point[i], 
+        this->ParallelTransport( cellCenterProjectedInSphere, point[im], 
           projectedDerivative[k], parallelTransportedDerivative[k] );
 
         for( unsigned int h = 0; h < MeshDimension; h++ )
@@ -242,7 +242,7 @@ NodeVectorJacobianCalculator<TInputMesh, TScalar>
       //
       // then accumulate them there.
       //
-      this->m_PointJacobianAccumulatorList->ElementAt( pointIds[i] ) += projectedJacobian;
+      this->m_PointJacobianAccumulatorList->ElementAt( pointIds[im] ) += projectedJacobian;
       }
 
     ++cellIterator;
