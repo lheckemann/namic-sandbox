@@ -591,7 +591,7 @@ int main(int argc, char* argv[])
     std::cout << "Analysis done" << std::endl;
 
     cout << "=========================" << endl;    
-    logic->MeassureGrowth(tgThreshold[0], tgThreshold[1], Analysis_Intensity_Shrink, Analysis_Intensity_Growth);
+    logic->MeassureGrowth(tgThreshold[0], tgThreshold[1], Analysis_Intensity_Shrink, Analysis_Intensity_Growth,Scan1SegmentOutput);
     cout << "After measure growth" << endl;
     Analysis_Intensity_Total = Analysis_Intensity_Growth + Analysis_Intensity_Shrink; 
     CMD = tg.WorkingDir + "/TG_Analysis_Intensity.nhdr";
@@ -781,11 +781,18 @@ void InitializeThresholds(tgCMDLineStructure &tg, vtkImageData* image, vtkImageD
     std::string histFileName = std::string(tg.GetWorkingDir())+"/boundary_histogram.txt";
     ofstream histFile(histFileName.c_str());
     int idx = hist->GetMin()[0];
+    float mean = 0, cnt = 0;
     for(;idx<hist->GetMax()[0];idx++){
       histFile << idx << " " << hist->GetOutput()->GetScalarComponentAsFloat(idx,0,0,0) << std::endl;
+      mean += hist->GetOutput()->GetScalarComponentAsFloat(idx,0,0,0)*(float)idx;
+      cnt += hist->GetOutput()->GetScalarComponentAsFloat(idx,0,0,0);
     }
+    mean = mean/cnt;
     
     std::cerr << "Histogram min: " << thrMin << std::endl;
     std::cerr << "Histogram max: " << thrMax << std::endl;
+    std::cerr << "Histogram mean: " << mean << std::endl;
+
+    thrMin = mean;
 
 }
