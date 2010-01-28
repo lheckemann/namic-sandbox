@@ -627,7 +627,7 @@ void vtkUDPServerGUI::UpdateAll()
 int vtkUDPServerGUI::UpdateDataFrame(char* data)
 {
   //Check if data is in tact
-  if (!data)
+  if (data == NULL)
     {
     return 1;
     }
@@ -639,8 +639,12 @@ int vtkUDPServerGUI::UpdateDataFrame(char* data)
   std::cerr << "About to decompose data" << std::endl;
   
   //Create stream object from data pointer
-  std::string buffdata = data;
-  std::cerr << data << std::endl;
+  std::string buffdata (data);
+  std::cerr << "Converted data to string" << std::endl;
+  if (buffdata.length() < 18)  //check length of string
+    {
+    return 1;
+    }
   std::cerr << buffdata << std::endl;
   std::istringstream iss (data,std::istringstream::in);
   
