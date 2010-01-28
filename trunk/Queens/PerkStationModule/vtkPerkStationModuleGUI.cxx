@@ -468,13 +468,19 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
   //this->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
   //this->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver(vtkCommand::CharEvent, (vtkCommand *)this->GUICallbackCommand);
   
-  this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand); 
-  if (this->GetMode() == vtkPerkStationModuleGUI::Clinical)
+  this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()
+      ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
+      ->RemoveObserver( (vtkCommand*)( this->GUICallbackCommand ) );
+  
+  this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()
+      ->RemoveObserver( (vtkCommand*)( this->GUICallbackCommand ) ); 
+  
+  if ( this->GetMode() == vtkPerkStationModuleGUI::Clinical )
     {
-    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);    
+    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()
+        ->RemoveObserver( (vtkCommand*)( this->GUICallbackCommand ) );    
     }
-
+  
   this->WizardWidget->GetWizardWorkflow()->RemoveObserver(
     static_cast< vtkCommand* >( this->GUICallbackCommand ) );
   
@@ -803,14 +809,16 @@ vtkPerkStationModuleGUI
     }
 }
 
-//---------------------------------------------------------------------------
+/**
+ * Updates parameters values in MRML node based on GUI widgets.
+ */
 void vtkPerkStationModuleGUI::UpdateMRML ()
 {
   vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
   
   if (n == NULL)
     {
-    // no parameter node selected yet, create new
+      // no parameter node selected yet, create new
     this->PSNodeSelector->SetSelectedNew("vtkMRMLPerkStationModuleNode");
     this->PSNodeSelector->ProcessNewNodeCommand("vtkMRMLPerkStationModuleNode", "PS");
     n = vtkMRMLPerkStationModuleNode::SafeDownCast(this->PSNodeSelector->GetSelected());
@@ -831,7 +839,8 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
     this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
 
-    // add listener to the slice logic, so that any time user makes change to slice viewer in laptop, the display needs to be updated on secondary monitor
+    // add listener to the slice logic, so that any time user makes change
+    // to slice viewer in laptop, the display needs to be updated on secondary monitor
     // e.g. user may move to a certain slice in a series of slices
   
     vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI("Red")->GetLogic();

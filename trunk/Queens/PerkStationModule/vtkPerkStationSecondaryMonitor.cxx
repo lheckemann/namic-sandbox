@@ -79,7 +79,22 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
   this->XYToRAS = vtkMatrix4x4::New();
   this->CurrentTransformMatrix = vtkMatrix4x4::New();
   this->ResliceTransform = vtkTransform::New();
-
+  
+  /*
+  this->SecMonImageFlip = vtkTransform::New();
+  vtkTransform* SecMonImageRotate = vtkTransform::New();
+  this->SecMonImageTranslate = vtkTransform::New();
+  
+  vtkTransform* XYToRAStransform=vtkTransform::New();
+  XYToRAStransform->Concatenate(this->SecMonImageFlip);
+  XYToRAStransform->Concatenate(SecMonImageRotate);
+  XYToRAStransform->Concatenate(this->SecMonImageTranslate);  
+  
+  SecMonImageRotate->Translate(rx,ry,rz);
+  SecMonImageRotate->RotateWXYZ();
+  SecMonImageRotate->Translate(-rx,-ry,-rz);
+  */
+  
   this->SystemStateResliceMatrix = vtkMatrix4x4::New();
   this->SystemStateXYToIJK = vtkMatrix4x4::New();
   
@@ -367,6 +382,8 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayRealTimeNeedleTip()
     }
 
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::SetupImageData()
 {
@@ -516,11 +533,9 @@ void vtkPerkStationSecondaryMonitor::LoadCalibration()
   verticalFlip = this->GetGUI()->GetMRMLNode()->GetVerticalFlip();
   horizontalFlip = this->GetGUI()->GetMRMLNode()->GetHorizontalFlip();
 
-  if (verticalFlip)
-    this->GetGUI()->GetSecondaryMonitor()->FlipVertical();
-
-  if (horizontalFlip)
-    this->GetGUI()->GetSecondaryMonitor()->FlipHorizontal(); 
+  this->GetGUI()->GetSecondaryMonitor()->FlipVertical( verticalFlip );
+  
+  this->GetGUI()->GetSecondaryMonitor()->FlipHorizontal( horizontalFlip ); 
 
   // 3) Translation
   double trans[2];
@@ -644,8 +659,10 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(double rasOffs
     return;
     }
 
-  if (strcmpi(mrmlNode->GetVolumeInUse(), "Planning"))
-      return;
+  if ( strcmpi( mrmlNode->GetVolumeInUse(), "Planning" ) )
+    {
+    return;
+    }
 
   // first convert 's' offset into 'k' offset in ijk space
   // this can be done using rastoijk matrix
@@ -837,91 +854,118 @@ BOOL CALLBACK MyInfoEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT prc, LPARAM dwDa
     
     }
   return TRUE;
-} 
-//----------------------------------------------------------------------------
+}
+
+
+/**
+ * Detect the secondary monitor attached to the system, and geather information
+ * about it.
+ */
 void vtkPerkStationSecondaryMonitor::Initialize()
 {
 
   // first make sure secondary monitor is connected
   int nMonitors = GetSystemMetrics(SM_CMONITORS);
-
-  if (nMonitors == 2)
+  
+  if (nMonitors != 2)
     {
-    // get info about the monitors
-    EnumDisplayMonitors(NULL, NULL, MyInfoEnumProc, (LPARAM) this);
+    return;
+    }
+  
+  
+  // get info about the monitors
+  EnumDisplayMonitors(NULL, NULL, MyInfoEnumProc, (LPARAM) this);
 
-    // get the resolution/dimensions/spacing
-    DISPLAY_DEVICE lpDisplayDevice;
-    lpDisplayDevice.cb = sizeof(lpDisplayDevice);
-    lpDisplayDevice.StateFlags = DISPLAY_DEVICE_ATTACHED_TO_DESKTOP;
-    int iDevNum = 0;
-    int iPhyDevNum = 0;
-    DWORD dwFlags = 0;
+  // get the resolution/dimensions/spacing
+  DISPLAY_DEVICE lpDisplayDevice;
+  lpDisplayDevice.cb = sizeof( lpDisplayDevice );
+  lpDisplayDevice.StateFlags = DISPLAY_DEVICE_ATTACHED_TO_DESKTOP;
+  int iDevNum = 0;
+  int iPhyDevNum = 0;
+  DWORD dwFlags = 0;
 
-    while(EnumDisplayDevices(NULL, iDevNum, &lpDisplayDevice, dwFlags))
+  while( EnumDisplayDevices( NULL, iDevNum, &lpDisplayDevice, dwFlags ) )
+    {
+    iDevNum++;
+    
+    if( ( lpDisplayDevice.StateFlags
+          & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP ) == 1 )
       {
-      iDevNum++;
-      if( (lpDisplayDevice.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) == 1)
-        {
-        iPhyDevNum++;
-        
+      iPhyDevNum ++;
+      
         // get the device context for the monitor
-        HDC hdc = CreateDC("DISPLAY", lpDisplayDevice.DeviceName, NULL, NULL);    
-          
-        // now the device context can be used in many functions to retrieve information about the monitor
-        double width_mm = GetDeviceCaps(hdc, HORZSIZE);
-        double height_mm = GetDeviceCaps(hdc, VERTSIZE);
-         
-        double width_pix = GetDeviceCaps(hdc, HORZRES);
-        double height_pix = GetDeviceCaps(hdc, VERTRES);
+      HDC hdc = CreateDC( "DISPLAY", lpDisplayDevice.DeviceName, NULL, NULL );    
         
-        if (!(lpDisplayDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE))
-          {
-          this->MonitorPhysicalSizeMM[0] = width_mm;
-          this->MonitorPhysicalSizeMM[1] = height_mm;
-          this->MonitorPixelResolution[0] = width_pix;
-          this->MonitorPixelResolution[1] = height_pix;
-          this->DeviceActive = true;
-          this->ScreenSize[0] = width_pix;
-          this->ScreenSize[1] = height_pix;
-          }
-
-        DeleteDC(hdc);
-
+        // now the device context can be used in many functions to retrieve
+        // information about the monitor
+      double width_mm = GetDeviceCaps( hdc, HORZSIZE );
+      double height_mm = GetDeviceCaps( hdc, VERTSIZE );
+       
+      double width_pix = GetDeviceCaps( hdc, HORZRES );
+      double height_pix = GetDeviceCaps( hdc, VERTRES );
+      
+      if ( ! ( lpDisplayDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE ) )
+        {
+        this->MonitorPhysicalSizeMM[ 0 ] = width_mm;
+        this->MonitorPhysicalSizeMM[ 1 ] = height_mm;
+        this->MonitorPixelResolution[ 0 ] = width_pix;
+        this->MonitorPixelResolution[ 1 ] = height_pix;
+        this->DeviceActive = true;
+        this->ScreenSize[ 0 ] = width_pix;
+        this->ScreenSize[ 1 ] = height_pix;
         }
-      }
 
+      DeleteDC( hdc );
+      }
     }
 
 }
 
 
 //----------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::FlipVertical()
+void vtkPerkStationSecondaryMonitor::FlipVertical( bool flip )
 {
-    vtkMatrix4x4 *flipVerticalMatrix = vtkMatrix4x4::New();
-    flipVerticalMatrix->Identity();
-    flipVerticalMatrix->SetElement(1,1,-1);
-    flipVerticalMatrix->SetElement(1,3,this->ImageSize[1]);
-
-    this->CurrentTransformMatrix->DeepCopy(flipVerticalMatrix);
-
-    this->VerticalFlipped = true;
-    this->UpdateMatrices();
+  if ( this->VerticalFlipped == flip )
+    {
+    return; // No need to flip.
+    }
+  else
+    {
+    this->VerticalFlipped = ! this->VerticalFlipped;
+    }
+  
+  vtkMatrix4x4 *flipVerticalMatrix = vtkMatrix4x4::New();
+  flipVerticalMatrix->Identity();
+  flipVerticalMatrix->SetElement(1,1,-1);
+  flipVerticalMatrix->SetElement(1,3,this->ImageSize[1]);
+  
+  this->CurrentTransformMatrix->DeepCopy(flipVerticalMatrix);
+  this->UpdateMatrices();
 }
+
+
 //----------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::FlipHorizontal()
+void vtkPerkStationSecondaryMonitor::FlipHorizontal( bool flip )
 {
-    vtkMatrix4x4 *flipHorizontalMatrix = vtkMatrix4x4::New();
-    flipHorizontalMatrix->Identity();
-    flipHorizontalMatrix->SetElement(0,0,-1);
-    flipHorizontalMatrix->SetElement(0,3,this->ImageSize[0]);
+  if ( this->VerticalFlipped == flip )
+    {
+    return; // No need to flip.
+    }
+  else
+    {
+    this->VerticalFlipped = ! this->VerticalFlipped;
+    }
+  
+  vtkMatrix4x4 *flipHorizontalMatrix = vtkMatrix4x4::New();
+  flipHorizontalMatrix->Identity();
+  flipHorizontalMatrix->SetElement(0,0,-1);
+  flipHorizontalMatrix->SetElement(0,3,this->ImageSize[0]);
 
-    this->CurrentTransformMatrix->DeepCopy(flipHorizontalMatrix);
-
-    this->HorizontalFlipped = true;
-    this->UpdateMatrices();
+  this->CurrentTransformMatrix->DeepCopy(flipHorizontalMatrix);
+  this->UpdateMatrices();
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::Scale(double sx, double sy, double sz)
 {
@@ -1827,3 +1871,72 @@ void vtkPerkStationSecondaryMonitor::SetRealTimeNeedleLineActorVisibility(bool v
   this->UpdateMatrices();
 }
 */
+
+
+
+  // New image geometry handling.
+
+
+/**
+ * @param flip False sets the image into original position, True into flipped.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::SetSecMonHorizontalFlip( bool flip )
+{
+  this->SecMonHorizontalFlip = flip;
+}
+
+
+/**
+ * @param flip False sets the image into original position, True into flipped.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::SetSecMonVerticalFlip( bool flip )
+{
+  this->SecMonVerticalFlip = flip;
+}
+
+
+/**
+ * @param rotation New rotation parameters.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::SetSecMonRotation( double[ 3 ] rotation )
+{
+  for ( int i = 0; i < 3; ++ i )
+    {
+    this->SecMonRotation[ i ] = rotation[ i ];
+    }
+}
+
+
+/**
+ * @param center New rotation center.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::SetRotationCenter( double[ 3 ] center )
+{
+  for ( int i = 0; i < 3; ++ i )
+    {
+    this->SecMonRotationCenter[ i ] = center[ i ];
+    }
+}
+
+
+/**
+ * @param translation New translation parameters.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::SetSecMonTranslation( double[ 3 ] translation )
+{
+  for ( int i = 0; i < 3; ++ i )
+    {
+    this->SecMonTranslation[ i ] = translation[ i ];
+    }
+}
+  
