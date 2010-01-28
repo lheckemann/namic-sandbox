@@ -117,7 +117,6 @@ ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
   PointDataIterator pointDataItr = pointData->Begin();
   PointDataIterator pointDataEnd = pointData->End();
 
-  typedef typename TransformType::InputPointType     InputPointType;
   typedef typename TransformType::OutputPointType    MappedPointType;
 
   OutputPointType  inputPoint;

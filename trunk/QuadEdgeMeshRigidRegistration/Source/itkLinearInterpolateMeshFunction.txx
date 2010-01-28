@@ -66,7 +66,7 @@ void
 LinearInterpolateMeshFunction<TInputMesh>
 ::EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const
 {
-  InstanceIdentifierVectorType pointIds;
+  InstanceIdentifierVectorType pointIds(3);
 
   if( this->FindTriangle( point, pointIds ) )
     {
@@ -144,7 +144,7 @@ LinearInterpolateMeshFunction<TInputMesh>::OutputType
 LinearInterpolateMeshFunction<TInputMesh>
 ::Evaluate( const PointType& point ) const
 {
-  InstanceIdentifierVectorType pointIds;
+  InstanceIdentifierVectorType pointIds(3);
 
   bool foundTriangle = this->FindTriangle( point, pointIds );
 
@@ -236,7 +236,6 @@ LinearInterpolateMeshFunction<TInputMesh>
   const InputMeshType * mesh = this->GetInputMesh(); 
 
   typedef typename InputMeshType::PointsContainer    PointsContainer;
-  typedef typename PointType::VectorType             VectorType;
 
   const PointsContainer * points = mesh->GetPoints();
 
