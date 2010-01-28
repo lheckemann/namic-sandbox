@@ -14,6 +14,7 @@
 #include "itkMaskImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
+#include "itkBinaryContourImageFilter.h"
 
 #include "itkLabelObject.h"
 #include "itkShapeLabelObject.h"
@@ -38,7 +39,7 @@
 
 using namespace std;
 
-typedef float      PixelType;
+typedef short PixelType;
 typedef float DTPixelType;
 const   unsigned int      Dimension = 3;
 typedef itk::OrientedImage< PixelType, Dimension >    ImageType;
@@ -61,8 +62,9 @@ typedef itk::LabelImageToShapeLabelMapFilter<ImageType,LabelMapType> LabelToShap
 
 typedef itk::CovariantVector< float, Dimension >  GradientPixelType;
 typedef itk::Image< GradientPixelType, Dimension > GradientImageType;
-typedef itk::GradientRecursiveGaussianImageFilter<ImageType,GradientImageType> GradFilterType;
+typedef itk::GradientRecursiveGaussianImageFilter<DTImageType,GradientImageType> GradFilterType;
 typedef itk::ImageFileWriter<GradientImageType> DFWriterType;
+typedef itk::ImageFileWriter<DTImageType> DTWriterType;
 
 typedef itk::BinaryBallStructuringElement<PixelType, Dimension> StructuringElementType;
 typedef itk::BinaryErodeImageFilter<ImageType, ImageType, StructuringElementType>  ErodeFilterType;
@@ -72,7 +74,7 @@ int main( int argc, char ** argv )
   if( argc < 5 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " inputImage inputICCSeg inputTumorSeg outputImage growthMagnitude [0=sin model|1=1/exp model]" << std::endl;
+    std::cerr << argv[0] << " inputImage inputICCSeg inputTumorSeg outputImagePrefix growthMagnitude [0=sin model|1=1/exp model]" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -80,11 +82,16 @@ int main( int argc, char ** argv )
   ReaderType::Pointer iccReader = ReaderType::New();
   ReaderType::Pointer tumorReader = ReaderType::New();
   DFWriterType::Pointer outputWriter = DFWriterType::New();
+  WriterType::Pointer outputMagnWriter = WriterType::New();
   
+  std::string dfFileName = std::string(argv[4])+".mha";
+  std::string dfMagnFileName = std::string(argv[4])+"_magn.mha";
+
   inputReader->SetFileName( argv[1] );
   iccReader->SetFileName( argv[2] );
   tumorReader->SetFileName( argv[3] );
-  outputWriter->SetFileName( argv[4] );
+  outputWriter->SetFileName( dfFileName.c_str() );
+  outputMagnWriter->SetFileName( dfMagnFileName.c_str() );
   float growthMagnitude = atof(argv[5]);
   int modelType = atoi(argv[6]);
 
@@ -102,69 +109,111 @@ int main( int argc, char ** argv )
   label2shape->SetInput(tumorImage);
   label2shape->Update();
 
+  ImageType::IndexType centroidIdx;
   typedef itk::LabelMap< ShapeLabelObjectType >   LabelMapType;
   typedef LabelMapType::LabelObjectContainerType LabelObjectContainerType;
   LabelMapType* labelMap = label2shape->GetOutput();
   ShapeLabelObjectType* labelObject = labelMap->GetNthLabelObject(1);
-  ImageType::IndexType centroidIdx;
   ImageType::PointType centroidPt = labelObject->GetCentroid();
   tumorImage->TransformPhysicalPointToIndex(labelObject->GetCentroid(), centroidIdx);
   std::cout << "Total label objects: " << labelMap->GetNumberOfLabelObjects() << std::endl;
   std::cout << "Center of gravity for label " << labelObject->GetLabel() << ": " << labelObject->GetCentroid() << " (" 
     << centroidIdx << ")" << std::endl;
+
+  typedef itk::BinaryContourImageFilter<ImageType,ImageType> ContourFilterType;
+  ContourFilterType::Pointer contourFilter = ContourFilterType::New();
+  contourFilter->SetInput(tumorImage);
+  contourFilter->SetForegroundValue(labelObject->GetLabel());
+  contourFilter->Update();
+  ImageType::Pointer contourImage = contourFilter->GetOutput();
  
+  typedef itk::ImageDuplicator<ImageType> DuplicatorType;
+  DuplicatorType::Pointer dup0 = DuplicatorType::New();
+  dup0->SetInputImage(tumorImage);
+  dup0->Update();
+  ImageType::Pointer dfMagnImage = dup0->GetOutput();
+  dfMagnImage->FillBuffer(0.);
+
   typedef itk::ImageDuplicator<ImageType> DuplicatorType;
   DuplicatorType::Pointer dup = DuplicatorType::New();
   dup->SetInputImage(tumorImage);
   dup->Update();
   ImageType::Pointer dtInput = dup->GetOutput();
+
   dtInput->FillBuffer(0);
   dtInput->SetPixel(centroidIdx,1);
 
-  DTType::Pointer dt = DTType::New();
-  dt->SetInput(dtInput);
-  dt->SetSquaredDistance(false);
-  dt->Update();
+  DTType::Pointer dtFromCenter = DTType::New();
+  dtFromCenter->SetInput(dtInput);
+  dtFromCenter->SetUseImageSpacing(true);
+  dtFromCenter->SetSquaredDistance(false);
+  dtFromCenter->Update();
+
+  float aveDistToBdry = 0., cnt = 0;
+  itk::ImageRegionIteratorWithIndex<ImageType> bdrySearchIt(contourImage, contourImage->GetBufferedRegion());
+  for(bdrySearchIt.GoToBegin();!bdrySearchIt.IsAtEnd();++bdrySearchIt){
+    if(!bdrySearchIt.Get())
+      continue;
+    float dist2center = dtFromCenter->GetOutput()->GetPixel(bdrySearchIt.GetIndex());
+    aveDistToBdry += dist2center;
+    cnt++;
+  }
+  aveDistToBdry /= cnt;
+
+  std::cout << "Ave boundary point is at distance " << aveDistToBdry << std::endl;
 
   GradFilterType::Pointer grad = GradFilterType::New();
-  grad->SetInput(dt->GetOutput());
+  grad->SetInput(dtFromCenter->GetOutput());
   grad->Update();
 
+  float distCentr2Bdry = aveDistToBdry;
   
   GradientImageType::Pointer gradImage = grad->GetOutput();
+
+  float sinScaleConst = 3.14/(2*distCentr2Bdry);
+  if(modelType){  // inverse exp model
+    std::cout << "Using exp growth simulation model" << std::endl;
+  } else {
+    std::cout << "Using sin growth simulation model" << std::endl;
+    std::cout << "Parameters: Magnitude = " << growthMagnitude << 
+      ", Scale constant = " << sinScaleConst << std::endl;
+  }
 
   itk::ImageRegionIteratorWithIndex<GradientImageType> it(gradImage, gradImage->GetBufferedRegion());
   itk::ImageRegionIteratorWithIndex<ImageType> iccit(iccImage, iccImage->GetBufferedRegion());
   for(it.GoToBegin(),iccit.GoToBegin();!it.IsAtEnd();++it,++iccit){
-    GradientPixelType displ;
     GradientImageType::PointType curPt;
     GradientImageType::IndexType curIdx = it.GetIndex();
     gradImage->TransformIndexToPhysicalPoint(curIdx, curPt);
-    displ[0] = curPt[0]-centroidPt[0];
-    displ[1] = curPt[1]-centroidPt[1];
-    displ[2] = curPt[2]-centroidPt[2];
-    GradientImageType::PixelType curDispl = it.Get();
+
+    float distFromCenter = dtFromCenter->GetOutput()->GetPixel(curIdx);
+    GradientImageType::PixelType curDispl = it.Get(); // gradient vector at the current pixel
 
     if(modelType){  // inverse exp model
       if(curDispl.GetNorm())
-        curDispl *= growthMagnitude/exp(.1*displ.GetNorm())/curDispl.GetNorm();
+        curDispl *= growthMagnitude/exp(.1*distCentr2Bdry)/curDispl.GetNorm();
       else
         curDispl *= 0;
     } else {        // sin model
-      if(displ.GetNorm()<31.45 && curDispl.GetNorm())
-        curDispl *= growthMagnitude*sin(.1*displ.GetNorm())/curDispl.GetNorm();
+      // use half-period of 3D sin wave centered at the tumor centroid, and 
+      // scaled in such a way that the maximum displacement magnitude is at the 
+      // distance from the centroid to the tumor boundary
+      if(distFromCenter<2.*distCentr2Bdry && curDispl.GetNorm())
+        curDispl *= growthMagnitude*sin(distFromCenter*sinScaleConst)/curDispl.GetNorm();
       else
         curDispl *= 0;
     }
     if(!iccit.Get())
         curDispl *= 0.;
     it.Set(curDispl);
+    dfMagnImage->SetPixel(curIdx,curDispl.GetNorm());
   }
 
   outputWriter->SetInput(grad->GetOutput());
   outputWriter->Update();
   
-  
+  outputMagnWriter->SetInput(dfMagnImage);
+  outputMagnWriter->Update();
  
   return NULL;
 }
