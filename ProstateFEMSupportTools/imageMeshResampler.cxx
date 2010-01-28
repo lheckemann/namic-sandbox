@@ -1,9 +1,5 @@
 /*
- * Input: tetrahedral mesh with the displacements at each vertex, greyscale
- * image, binary mask.
- * Output: masked part of the greyscale image deformed according to the mesh
- * displacements.
- *
+ *  Resample image based on displacements defined at mesh vertices
  */
 
 #include "vtkUnstructuredGrid.h"
@@ -27,7 +23,7 @@
 #include "vtkDoubleArray.h"
 #include "vtkTensor.h"
 
-#include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkMaskImageFilter.h"
@@ -38,10 +34,12 @@
 #include "itkVector.h"
 #include "itkShiftScaleInPlaceImageFilter.h"
 
+#include "itkImageDuplicator.h"
+
 typedef float PixelType;
 typedef itk::Vector<double,3> DFPixelType;
-typedef itk::Image<PixelType,3> ImageType;
-typedef itk::Image<DFPixelType,3> DFImageType;
+typedef itk::OrientedImage<PixelType,3> ImageType;
+typedef itk::OrientedImage<DFPixelType,3> DFImageType;
 typedef itk::ImageFileReader<ImageType> ImageReaderType;
 typedef itk::ImageFileWriter<ImageType> ImageWriterType;
 typedef itk::ImageFileWriter<DFImageType> DFImageWriterType;
@@ -49,6 +47,7 @@ typedef itk::MaskImageFilter<ImageType,ImageType,ImageType> MaskFilterType;
 typedef itk::WarpImageFilter<ImageType,ImageType,DFImageType> WarpFilterType;
 typedef itk::ShiftScaleInPlaceImageFilter<DFImageType> ScaleFilterType;
 typedef itk::ChangeInformationImageFilter<ImageType> ChangeInfoType;
+typedef itk::ImageDuplicator<ImageType> DupType;
 
 typedef itk::ImageRegionConstIteratorWithIndex<ImageType> ImageIterator;
 typedef itk::ImageRegionIterator<DFImageType> DFImageIterator;
@@ -59,27 +58,35 @@ double getNorm(double* vec){
 
 int main(int argc, char **argv){
 
+  // TODO: add option to choose interpolator
   if(argc!=6){
-    std::cerr << "Usage: " << "input_image input_mask input_mesh output_image output_image_df" << std::endl;
+    std::cerr << "Usage: " << "input_image input_mesh reference_image output_image output_image_df" << std::endl;
     return -1;
   }
 
+  char* inputImageName = argv[1];
+  char* inputMeshName = argv[2];
+  char* refImageName = argv[3];
+  char* outImageName = argv[4];
+  char* outDFName = argv[5];
+
   ImageReaderType::Pointer imageReader = ImageReaderType::New();
-  imageReader->SetFileName(argv[1]);
+  imageReader->SetFileName(inputImageName);
   imageReader->Update();
 
-//  ImageReaderType::Pointer maskReader = ImageReaderType::New();
-//  maskReader->SetFileName(argv[2]);
-//  maskReader->Update();
+  ImageReaderType::Pointer refImageReader = ImageReaderType::New();
+  refImageReader->SetFileName(refImageName);
+  refImageReader->Update();
+
+  ImageType::Pointer refImage = refImageReader->GetOutput();
 
   vtkUnstructuredGridReader *meshReader = vtkUnstructuredGridReader::New();
-  meshReader->SetFileName(argv[3]);
+  meshReader->SetFileName(inputMeshName);
   meshReader->Update();
 
   vtkUnstructuredGrid *mesh = meshReader->GetOutput();
   vtkDataArray *meshDeformation = mesh->GetPointData()->GetArray("ResultDisplacement");
   ImageType::Pointer image = imageReader->GetOutput();
-//  ImageType::Pointer maskImage = maskReader->GetOutput();
 
   DFImageType::Pointer dfImage = DFImageType::New();
   DFImageType::RegionType region;
@@ -87,20 +94,27 @@ int main(int argc, char **argv){
   region.SetIndex(image->GetBufferedRegion().GetIndex());
   dfImage->SetRegions(region);
   dfImage->Allocate();
-  dfImage->SetSpacing(image->GetSpacing());
+  dfImage->SetSpacing(refImage->GetSpacing());
+  dfImage->SetDirection(refImage->GetDirection());
+  dfImage->SetOrigin(refImage->GetOrigin());
 
-  ImageType::Pointer maskImage = ImageType::New();
-  maskImage->SetRegions(region);
-  maskImage->Allocate();
-  maskImage->FillBuffer(0);
-  maskImage->SetSpacing(image->GetSpacing());
-  maskImage->SetDirection(image->GetDirection());
-  maskImage->SetOrigin(image->GetOrigin());
+  DupType::Pointer dup1 = DupType::New();
+  dup1->SetInputImage(refImage);
+  dup1->Update();
+  ImageType::Pointer outputImage = dup1->GetOutput();
 
   vtkPoints *meshPoints = mesh->GetPoints();
   vtkCellArray *cells = mesh->GetCells();
   vtkIdType npts, *pts;
   int i, cellId=0;
+
+  for(i=0;i<mesh->GetNumberOfPoints();i++){
+    double thisPt[3];
+    memcpy(&thisPt[0], meshPoints->GetPoint(i), sizeof(double)*3);
+    thisPt[0] *= -1;
+    thisPt[1] *= -1;
+    meshPoints->SetPoint(i,thisPt[0],thisPt[1],thisPt[2]);
+  }
   
   std::cout << "Before the main loop" << std::endl;
 
@@ -113,10 +127,10 @@ int main(int argc, char **argv){
 //      " " << tetra->GetPointId(2) << " " << tetra->GetPointId(3) << std::endl;
     vtkPoints *tetraPoints = tetra->GetPoints();
     ImageType::IndexType bbMin, bbMax;
-    bbMin[0] = image->GetBufferedRegion().GetSize()[0];
-    bbMin[1] = image->GetBufferedRegion().GetSize()[1];
-    bbMin[2] = image->GetBufferedRegion().GetSize()[2];
-    bbMax = image->GetBufferedRegion().GetIndex();
+    bbMin[0] = refImage->GetBufferedRegion().GetSize()[0];
+    bbMin[1] = refImage->GetBufferedRegion().GetSize()[1];
+    bbMin[2] = refImage->GetBufferedRegion().GetSize()[2];
+    bbMax = refImage->GetBufferedRegion().GetIndex();
 
     for(i=0;i<4;i++){
       ImageType::PointType point;
@@ -125,7 +139,7 @@ int main(int argc, char **argv){
       point[1] = tetraPoints->GetPoint(i)[1];
       point[2] = tetraPoints->GetPoint(i)[2];
 //      std::cout << point[0] << " " << point[1] << " " << point[2] << std::endl;
-      image->TransformPhysicalPointToIndex(point, index);
+      refImage->TransformPhysicalPointToIndex(point, index);
       if(index[0]<bbMin[0])
         bbMin[0] = index[0];
       if(index[1]<bbMin[1])
@@ -178,18 +192,19 @@ int main(int argc, char **argv){
 //    std::cout << thisCell->GetPointId(2) << std::endl;
 //    std::cout << thisCell->GetPointId(3) << std::endl;
 
-    ImageIterator imageI(image, tetraRegion);
+    ImageIterator imageI(refImage, tetraRegion);
     DFImageIterator dfImageI(dfImage, tetraRegion);
     imageI.GoToBegin(); dfImageI.GoToBegin();
     for(;!imageI.IsAtEnd();++imageI,++dfImageI){
-      ImageType::PointType point;
-      image->TransformIndexToPhysicalPoint(imageI.GetIndex(), point);
+      ImageType::PointType pointRef, pointIn;
+      ImageType::IndexType idxOut;
+      refImage->TransformIndexToPhysicalPoint(imageI.GetIndex(), pointRef);
       double coord[3], closestPoint[3], pcoords[3], bc[4], dist;
       DFImageType::PixelType dfPixel;
       int subId, isInside;
-      coord[0] = point[0];
-      coord[1] = point[1];
-      coord[2] = point[2];
+      coord[0] = pointRef[0];
+      coord[1] = pointRef[1];
+      coord[2] = pointRef[2];
 
       isInside = tetra->EvaluatePosition(&coord[0], &closestPoint[0],
         subId, pcoords, dist, &bc[0]);
@@ -201,39 +216,38 @@ int main(int argc, char **argv){
       dfPixel[1] = bc[0]*dp0[1]+bc[1]*dp1[1]+bc[2]*dp2[1]+bc[3]*dp3[1];
       dfPixel[2] = bc[0]*dp0[2]+bc[1]*dp1[2]+bc[2]*dp2[2]+bc[3]*dp3[2];
 
-      dfPixel[0] *= -1.;
-      dfPixel[1] *= -1.;
-      dfPixel[2] *= -1.;
-      
       dfImageI.Set(dfPixel);
-      maskImage->SetPixel(imageI.GetIndex(), 1);
+
+      pointIn[0] = pointRef[0]-dfPixel[0];
+      pointIn[1] = pointRef[1]-dfPixel[1];
+      pointIn[2] = pointRef[2]-dfPixel[2];
+
+      image->TransformPhysicalPointToIndex(pointIn, idxOut);
+      outputImage->SetPixel(imageI.GetIndex(), image->GetPixel(idxOut));
     }
   }
 
-  std::cout << "After the main loop" << std::endl;
-
-  MaskFilterType::Pointer maskFilter = MaskFilterType::New();
-  maskFilter->SetInput1(image);
-  maskFilter->SetInput2(maskImage);
-  
   WarpFilterType::Pointer warpFilter = WarpFilterType::New();
-  warpFilter->SetInput(maskFilter->GetOutput());
+  warpFilter->SetInput(image);
   warpFilter->SetDeformationField(dfImage);
   warpFilter->SetOutputSpacing(image->GetSpacing());
+  warpFilter->SetOutputDirection(image->GetDirection());
+  warpFilter->SetOutputOrigin(image->GetOrigin());
+
+
+  ImageWriterType::Pointer wimageWriter = ImageWriterType::New();
+  wimageWriter->SetInput(warpFilter->GetOutput());
+  wimageWriter->SetFileName("warped_image.nrrd");
+  wimageWriter->Update();
 
   ImageWriterType::Pointer imageWriter = ImageWriterType::New();
-  imageWriter->SetInput(maskImage);
-  imageWriter->SetFileName(argv[4]);
+  imageWriter->SetInput(outputImage);
+  imageWriter->SetFileName(outImageName);
   imageWriter->Update();
-
-  DFImageIterator dfImageI(dfImage, dfImage->GetBufferedRegion());
-  for(dfImageI.GoToBegin();!dfImageI.IsAtEnd();++dfImageI){
-    dfImageI.Set(dfImageI.Get()*-1.);
-  }
 
   DFImageWriterType::Pointer dfImageWriter = DFImageWriterType::New();
   dfImageWriter->SetInput(dfImage);
-  dfImageWriter->SetFileName(argv[5]);
+  dfImageWriter->SetFileName(outDFName);
   dfImageWriter->Update();
 
   return 0;
