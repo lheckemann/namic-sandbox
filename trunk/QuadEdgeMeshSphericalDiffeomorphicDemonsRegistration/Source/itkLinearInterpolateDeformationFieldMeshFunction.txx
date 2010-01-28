@@ -66,7 +66,7 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
 ::Evaluate( const DestinationPointsContainerType * field, 
   const PointType & point, PointType & outputPoint ) const
 {
-  InstanceIdentifierVectorType pointIds;
+  InstanceIdentifierVectorType pointIds(3);
 
   bool foundTriangle = this->FindTriangle( point, pointIds );
 
