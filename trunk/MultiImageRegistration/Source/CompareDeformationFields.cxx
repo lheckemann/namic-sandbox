@@ -32,7 +32,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-
+#include "CompareDeformationFieldsCLP.h"
 
 //Define the global types for image type
 #define PixelType float
@@ -48,7 +48,7 @@ std::string replaceExtension(const std::string oldname, const std::string extens
   return oldname.substr(0, oldname.rfind(".nii.gz")) + "." + extension;
 }
 
-int getCommandLine(       int /*argc*/, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
+int getCommandLine(       std::string initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           std::string& useBspline, std::string& useBsplineHigh,
                           std::string& writeDeformationFields, std::string& write3DImages,
@@ -56,7 +56,7 @@ int getCommandLine(       int /*argc*/, char *initFname, std::vector<std::string
 {
 
 
-  std::ifstream initFile(initFname);
+  std::ifstream initFile(initFname.c_str());
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
@@ -129,13 +129,7 @@ int getCommandLine(       int /*argc*/, char *initFname, std::vector<std::string
 
 int main( int argc, char * argv[] )
 {
-  if( argc < 3 )
-  {
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  <filenames.init>  <parameters.init>" << std::endl;
-    return EXIT_FAILURE;
-  }
-
+  PARSE_ARGS;
   // Input Parameter declarations
   std::vector<std::string> fileNames;
   std::string inputFolder;
@@ -152,19 +146,27 @@ int main( int argc, char * argv[] )
   
 
     //Get the command line arguments
-  for(int i=1; i<argc; i++)
-  {
-    if ( getCommandLine(
-                  argc, argv[i], fileNames, inputFolder, outputFolder,
+ 
+  if ( getCommandLine(
+                  inputFilesName,  fileNames, inputFolder, outputFolder,
                   bsplineInitialGridSize,  numberOfBsplineLevel,
                   useBspline, useBsplineHigh,
-                  writeDeformationFields, write3DImages, syntheticFolderName )
-       ) 
+                  writeDeformationFields, write3DImages, syntheticFolderName)
+       )
     {
-      std::cout << "Error reading parameter file " << std::endl;
+      std:: cout << "Error reading parameter file " << std::endl;
       return EXIT_FAILURE;
     }
-  }
+    if ( getCommandLine(
+                  parametersFileName,  fileNames, inputFolder, outputFolder,
+                  bsplineInitialGridSize,  numberOfBsplineLevel,
+                  useBspline, useBsplineHigh,
+                  writeDeformationFields, write3DImages, syntheticFolderName)
+       )
+    {
+      std:: cout << "Error reading parameter file " << std::endl;
+      return EXIT_FAILURE;
+    }
 
   const int N = fileNames.size();
 

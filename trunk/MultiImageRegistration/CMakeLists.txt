@@ -31,10 +31,14 @@ ELSE("${ITK_VERSION}" LESS 3.16)
     ##  that can be built stand alone are combined in larger packages
     ##  This logic will include SlicerExectionModel only if it
     ##  has not already been built.
-    IF( NOT GenerateCLP_DIR )
-      ADD_SUBDIRECTORY(SlicerExecutionModel)
-    ENDIF( NOT GenerateCLP_DIR )
+     ADD_SUBDIRECTORY(SlicerExecutionModel)
   ENDIF( NOT BUILD_AGAINST_SLICER3 )
+    FIND_PACKAGE(GenerateCLP NO_MODULE REQUIRED)
+    IF(GenerateCLP_DIR)
+      INCLUDE(${GenerateCLP_USE_FILE})
+    ELSE(GenerateCLP_DIR)
+      MESSAGE(FATAL_ERROR "Can't build without GenerateCLP. Please set GenerateCLP_DIR")
+    ENDIF(GenerateCLP_DIR)
 
   SUBDIRS( Source )
   SUBDIRS( Testing )

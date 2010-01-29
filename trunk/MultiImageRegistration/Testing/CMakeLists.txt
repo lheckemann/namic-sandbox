@@ -2,8 +2,47 @@
 # Test for the Multi-Image Registration
 #
 
+GENERATECLP(TransformImage.cxx TransformImage.xml)
+ADD_EXECUTABLE(TransformImage TransformImage.cxx )
+TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)
+        
+GENERATECLP(ComputeDice.cxx ComputeDice.xml)
+ADD_EXECUTABLE(ComputeDice ComputeDice.cxx )
+TARGET_LINK_LIBRARIES(ComputeDice ITKCommon ITKBasicFilters ITKIO)
 
-#
+GENERATECLP(CompareDeformationFields.cxx CompareDeformationFields.xml)
+ADD_EXECUTABLE(CompareDeformationFields CompareDeformationFields.cxx )
+TARGET_LINK_LIBRARIES(CompareDeformationFields ITKCommon ITKBasicFilters ITKIO)
+
+GENERATECLP(ComputeOutputs.cxx ComputeOutputs.xml)
+ADD_EXECUTABLE(ComputeOutputs ComputeOutputs.cxx ) 
+TARGET_LINK_LIBRARIES(ComputeOutputs ITKCommon ITKBasicFilters ITKIO)
+    
+GENERATECLP(CreateImageSetAffine.cxx CreateImageSetAffine.xml)
+ADD_EXECUTABLE(CreateImageSetAffine CreateImageSetAffine.cxx )
+TARGET_LINK_LIBRARIES(CreateImageSetAffine ITKCommon ITKBasicFilters ITKIO ITKStatistics)
+
+GENERATECLP(CreateImageSetBspline.cxx CreateImageSetBspline.xml)
+ADD_EXECUTABLE(CreateImageSetBspline CreateImageSetBspline.cxx )
+TARGET_LINK_LIBRARIES(CreateImageSetBspline ITKCommon ITKBasicFilters ITKIO ITKStatistics)
+
+GENERATECLP(ComputeJacobianField.cxx ComputeJacobianField.xml)
+ADD_EXECUTABLE(ComputeJacobianField ComputeJacobianField.cxx )
+TARGET_LINK_LIBRARIES(ComputeJacobianField ITKCommon ITKBasicFilters ITKIO ITKStatistics)
+
+GENERATECLP(ComputeDeformationFields.cxx ComputeDeformationFields.xml)
+ADD_EXECUTABLE(ComputeDeformationFields ComputeDeformationFields.cxx )
+TARGET_LINK_LIBRARIES(ComputeDeformationFields ITKCommon ITKBasicFilters ITKIO)
+
+GENERATECLP(SpatialPriorGenerator.cxx SpatialPriorGenerator.xml)
+ADD_EXECUTABLE(PriorGen SpatialPriorGenerator.cxx)
+TARGET_LINK_LIBRARIES(PriorGen ITKCommon ITKIO)
+
+
+SET_TARGET_PROPERTIES(TransformImage ComputeDice CompareDeformationFields ComputeOutputs
+       CreateImageSetAffine CreateImageSetBspline ComputeJacobianField ComputeDeformationFields PriorGen
+                       PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${MultiImageRegistration_BINARY_DIR}/Testing/bin )
+
 # Define directory for output produced from the tests.
 #
 SET(MultiImageRegistration_TEST_OUTPUT_DIR "${MultiImageRegistration_BINARY_DIR}/Testing/Temporary")
@@ -18,7 +57,7 @@ CONFIGURE_FILE(
 
 #
 MACRO(MULTIIMAGEREGISTRATION INPUTIMAGE NUMBEROFIMAGES TRANSFORMTYPE  DATAID)
-  ADD_TEST(CreateRandImages${DATAID} ${EXECUTABLE_OUTPUT_PATH}/CreateImageSet${TRANSFORMTYPE}
+  ADD_TEST(CreateRandImages${DATAID} ${MultiImageRegistration_BINARY_DIR}/Testing/bin/CreateImageSet${TRANSFORMTYPE}
     ${INPUTIMAGE}
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData${DATAID}
     ${NUMBEROFIMAGES} on
@@ -45,12 +84,12 @@ MACRO(MULTIIMAGEREGISTRATION INPUTIMAGE NUMBEROFIMAGES TRANSFORMTYPE  DATAID)
     )
   SET_TESTS_PROPERTIES(RegistrationTest${DATAID} PROPERTIES DEPENDS CreateRandImages${DATAID})
   # Create output files
-  ADD_TEST(WriteOutputsTest${DATAID} ${EXECUTABLE_OUTPUT_PATH}/ComputeOutputs
+  ADD_TEST(WriteOutputsTest${DATAID} ${MultiImageRegistration_BINARY_DIR}/Testing/bin/ComputeOutputs
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration${DATAID}/filenames${DATAID}.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration${DATAID}/parameters${DATAID}.txt
     )
   SET_TESTS_PROPERTIES(WriteOutputsTest${DATAID} PROPERTIES DEPENDS RegistrationTest${DATAID})
-  ADD_TEST(CompareDeformation${DATAID} ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+  ADD_TEST(CompareDeformation${DATAID} ${MultiImageRegistration_BINARY_DIR}/Testing/bin/CompareDeformationFields
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration${DATAID}/filenames${DATAID}.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration${DATAID}/parameters${DATAID}.txt
     )

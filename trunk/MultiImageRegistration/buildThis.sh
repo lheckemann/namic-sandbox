@@ -87,8 +87,8 @@ if [ 1 == 1 ];then  ## Temporary bypass of building ITK
   if [ ! -f ${ITK_SOURCE}/CMakeLists.txt ] || [ ${LOCAL_PATH}/build${PROJECTNAME}.sh -nt ${ITK_SOURCE}/CMakeLists.txt ]; then
     mkdir -p ${ITK_SOURCE}
     pushd ${COMPILE_DIR}
-    cvs -d :pserver:anoncvs:@www.vtk.org:/cvsroot/Insight login
-    cvs -d :pserver:anoncvs@www.vtk.org:/cvsroot/Insight checkout -D 2010-01-26 Insight
+    cvs -d :pserver:anoncvs:@www.itk.org:/cvsroot/Insight login
+    cvs -d :pserver:anoncvs@www.itk.org:/cvsroot/Insight checkout -D 2010-01-26 Insight
     popd
   fi
   mkdir -p ${ITK_BUILD}

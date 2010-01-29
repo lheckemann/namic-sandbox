@@ -43,6 +43,8 @@
 
 #include "itkTransformFileReader.h"
 
+#include "ComputeDiceCLP.h"
+
 #include <itksys/SystemTools.hxx>
 
 std::string replaceExtension(const std::string oldname, const std::string extension)
@@ -50,14 +52,14 @@ std::string replaceExtension(const std::string oldname, const std::string extens
   return oldname.substr(0, oldname.rfind(".nii.gz")) + "." + extension;
 }
 
-int getCommandLine(       int /*argc*/, char *initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
+int getCommandLine(       std::string initFname, std::vector<std::string>& fileNames, std::string& inputFolder, std::string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           std::string& useBspline, std::string& useBsplineHigh,
                           std::string& labelFileFolder, std::vector<std::string>& labelFileNames, std::string& labelType )
 {
 
 
-  std::ifstream initFile(initFname);
+  std::ifstream initFile(initFname.c_str());
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
@@ -162,12 +164,7 @@ public:
 
 int main( int argc, char * argv[] )
 {
-  if( argc < 3 )
-  {
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  <filenames.init>  <parameters.init>" << std::endl;
-    return EXIT_FAILURE;
-  }
+  PARSE_ARGS;
 
   // Input Parameter declarations
   std::vector<std::string> fileNames;
@@ -185,10 +182,9 @@ int main( int argc, char * argv[] )
 
   std::string labelType("ICC");
     //Get the command line arguments
-  for(int i=1; i<argc; i++)
-  {
+  
     if ( getCommandLine(
-                  argc, argv[i], fileNames, inputFolder, outputFolder,
+                  inputFilesName, fileNames, inputFolder, outputFolder,
                   bsplineInitialGridSize,  numberOfBsplineLevel,
                   useBspline, useBsplineHigh,
                   labelFileFolder, labelFileNames, labelType )
@@ -197,7 +193,16 @@ int main( int argc, char * argv[] )
       std:: cout << "Error reading parameter file " << std::endl;
       return EXIT_FAILURE;
     }
-  }
+    if ( getCommandLine(
+                  parametersFileName, fileNames, inputFolder, outputFolder,
+                  bsplineInitialGridSize,  numberOfBsplineLevel,
+                  useBspline, useBsplineHigh,
+                  labelFileFolder, labelFileNames, labelType )
+       ) 
+    {
+      std:: cout << "Error reading parameter file " << std::endl;
+      return EXIT_FAILURE;
+    }
 
   const int N = fileNames.size();
 

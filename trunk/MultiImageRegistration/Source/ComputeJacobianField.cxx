@@ -37,17 +37,12 @@
 #define OutputPixelType double
 #define Dimension 3
 
-#include "itkTransformFileReader.h"    
+#include "itkTransformFileReader.h"   
+#include "ComputeJacobianFieldCLP.h" 
     
 int main( int argc, char * argv[] )
 {
-  if( argc < 3 )
-    {
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  <transformParametersFile> <JacobianDeterminantOutputFile> \n";
-    std::cerr << "   Usage: Tfile.txt JacobianDet.mhd " << std::endl;
-    return EXIT_FAILURE;
-    }
+  PARSE_ARGS;
 
   // typedef for transformation types
   typedef itk::Transform< InputPixelType, Dimension >  TransformType;
@@ -72,8 +67,17 @@ int main( int argc, char * argv[] )
 
   TransformFileReader::Pointer      transformFileReader = TransformFileReader::New();
   //std::cout << argv[1] << std::endl;
-  transformFileReader->SetFileName(argv[1]);
-  transformFileReader->Update();
+  transformFileReader->SetFileName(transformParametersFile);
+  try
+  {
+     transformFileReader->Update();
+  }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception thrown while reading files " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   typedef TransformFileReader::TransformListType   TransformListType;
   TransformListType*   transformList = transformFileReader->GetTransformList();
@@ -141,8 +145,8 @@ int main( int argc, char * argv[] )
 
   // Write Jacobian determinant image.
   WriterType::Pointer writer = WriterType::New();
-  std::cout << "Writing into: " << argv[2] << std::endl;
-  writer->SetFileName( argv[2] );
+  std::cout << "Writing into: " << JacobianDeterminantOutputFile << std::endl;
+  writer->SetFileName( JacobianDeterminantOutputFile );
   writer->SetInput( jacdetfilter->GetOutput() );
   
   //std::cout << "Before image write try ... \n" << std::endl;
