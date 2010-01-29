@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+  <executable>
+  <category>BRAINS-Registration</category>
+  <title>MultiImageRegistration</title>
+
+  <description>
+This programs implemented non-rigid groupwise registration by using B-Spline Defomation model.
+  </description>
+  <version>1.0</version>
+  <documentation-url>http:://mri.radiology.uiowa.edu/mriwiki</documentation-url>
+  <license>NEED TO ADD</license>
+  <contributor>This tool was developed by Yongqiang Zhao.</contributor>
+
+  <parameters>
+    <label>Input </label>
+    <description>Parameters for specifying the input files name and parameters file for groupwise registratioin.</description>
+    
+    <string>
+      <name>inputFilesName</name>
+      <label>Input files Name</label>
+      <index>0</index>
+      <description>The name of file that lists all the image files'name for groupwise registration.</description>
+      <default></default>
+    </string>
+
+    <string>
+      <name>parametersFileName</name>
+      <label>Name of parameters file</label>
+      <index>1</index>
+      <description>The name of file that lists all the parameters for groupwise registration.</description>
+      <default></default>
+    </string>
+  
+
+  </parameters>
+
+ </executable>
