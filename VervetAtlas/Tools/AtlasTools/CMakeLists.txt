@@ -47,6 +47,9 @@ target_link_libraries(AccumulateShort ITKIO ITKStatistics)
 add_executable(SubFloatFrom1 SubFloatFrom1.cxx)
 target_link_libraries(SubFloatFrom1 ITKIO ITKStatistics)
 
+add_executable(SubShortFromConst SubShortFromConst.cxx)
+target_link_libraries(SubShortFromConst ITKIO ITKStatistics)
+
 ADD_EXECUTABLE(Combine-sub-structures Combine-sub-structures.cxx)
 TARGET_LINK_LIBRARIES(Combine-sub-structures ITKNumerics ITKIO ITKStatistics)
 
