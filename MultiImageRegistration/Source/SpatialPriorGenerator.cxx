@@ -14,6 +14,7 @@
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
 #include <itkCastImageFilter.h>
+#include "SpatialPriorGeneratorCLP.h"
 
 const   unsigned int                          Dimension = 3;
 typedef long int                              LabelVoxelType;
@@ -89,122 +90,18 @@ void PrintUsage()
             << std::endl;
 }
 
-int ParseCommandLine(int&                         argc,
-                     char**                       argv,
-                     std::vector<std::string>&    labelmapFilenames,
-                     std::string&                 priorFilename,
-                     std::set<LabelVoxelType>&    foregroundValues,
-                     PriorVoxelType&              intensityScale)
-{
-  //
-  // everything should start empty
-  int numLabelmaps = 0;
-  labelmapFilenames.clear();
-  priorFilename.clear();
-  foregroundValues.clear();
-  
-  //
-  // the first argument should be the number of 
-  --argc; ++argv;
-
-  //
-  // we need at least one input and an output
-  if (argc < 3)
-    {
-    std::cerr << "Error: wrong number of arguments; argc= " << argc 
-              << std::endl;
-    return -1;
-    }
-
-  numLabelmaps = atoi(argv[0]);
-  --argc; ++argv;
-
-  //
-  // make sure there are enough file arguments
-  if (argc < numLabelmaps + 1)
-    {
-    std::cerr << "Error: wrong number of file name arguments; argc=" << argc
-              << std::endl;
-    return -1;
-    }
-
-  //
-  // read the input filenames
-  for (int i = 0; i < numLabelmaps; ++i)
-    {
-    labelmapFilenames.push_back(argv[0]);
-    --argc; ++argv;
-    }
-
-  //
-  // read the output filename
-  priorFilename = argv[0];
-  --argc; ++argv;
-  
-  //
-  // check for foreground labels
-  int numForegroundLabels = 0;
-  if (argc > 0)
-    {
-    numForegroundLabels = atoi(argv[0]);
-    --argc; ++argv;
-    }
-
-  //
-  // make sure there are enough label arguments
-  if (argc < numForegroundLabels)
-    {
-    std::cerr << "Error: wrong number of label value arguments; argc=" << argc
-              << std::endl;
-    return -1;
-    }
-
-  //
-  // read the foreground labels
-  for (int i = 0; i < numForegroundLabels; ++i)
-    {
-    foregroundValues.insert(atoi(argv[0]));
-    --argc; ++argv;
-    }  
-
-  if (argc > 0)
-    {
-    intensityScale = atof(argv[0]);
-    --argc; ++argv;
-    }
-
-  if (argc != 0)
-    {
-    std::cerr << "Error: wrong number of arguments at end of parsing; argc=" 
-              << argc << std::endl;
-    return -1;
-    }
-
-  return 0;
-}
-
 int main(int argc, char** argv)
 {
-  //
-  // parse command line
-  std::cerr << "Parsing command line..." << std::endl;
-
-  std::vector<std::string>           labelmapFilenames;
+  PARSE_ARGS;
+  
   std::set<LabelVoxelType>           foregroundValues;
-  std::string                        priorFilename;
-  PriorVoxelType                     intensityScale = 255.0;
-
-  int parseStatus = 
-    ParseCommandLine(argc, argv,
-                     labelmapFilenames, priorFilename, foregroundValues,
-                     intensityScale);
-  if (parseStatus != 0)
-    {
-    PrintUsage();
-    return parseStatus;
-    }
 
   //
+  if((unsigned int)numImages != labelmapFilenames.size())
+  {
+    std::cout<<"Error: wrong number of file name arguments; numImages="<<numImages<<std::endl;
+    return -1;
+  }
   // display information about what we will do
   std::cout << "Number of labelmap images: " << labelmapFilenames.size() 
             << std::endl;
@@ -212,8 +109,18 @@ int main(int argc, char** argv)
     {
     std::cout << "  " << labelmapFilenames[i] << std::endl;
     }
-  std::cout << "Number of foreground labels: " << foregroundValues.size() 
+  if((unsigned int)numLabels != labelValues.size())
+  {
+    std::cout<<"Error: wrong number of foreground value arguments; numLabels="<<numLabels<<std::endl;
+    return -1;
+  }
+  std::cout << "Number of foreground labels: " << labelValues.size() 
             << std::endl;    
+  for (int i = 0; i < numLabels; ++i)
+    {
+      foregroundValues.insert(atoi(labelValues[i].c_str()));
+    }
+
   if (foregroundValues.empty())
     {
     std::cout << "Counting all nonzero voxels as foreground" << std::endl;

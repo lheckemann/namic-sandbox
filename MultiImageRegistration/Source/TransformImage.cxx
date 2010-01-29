@@ -35,19 +35,13 @@
 #define InternalPixelType float
 #define Dimension 3
 
-#include "itkTransformFileReader.h"    
+#include "itkTransformFileReader.h" 
+#include "TransformImageCLP.h"   
     
 
 int main( int argc, char * argv[] )
 {
-  if( argc < 5 )
-    {
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  <inputImageFile>  <outputImageFile> <transformParametersFile> ";
-    std::cerr << "  <transformType:(affine,bspline)>" << std::endl;
-    std::cerr << "   Usage: input.img output.img Tfile.txt affine " << std::endl;
-    return EXIT_FAILURE;
-    }
+  PARSE_ARGS;
 
   typedef itk::Image< PixelType,  Dimension >   ImageType;
 
@@ -80,14 +74,14 @@ int main( int argc, char * argv[] )
   typedef itk::TransformFileReader    TransformFileReader;
 
   TransformFileReader::Pointer      transformFileReader = TransformFileReader::New();
-  transformFileReader->SetFileName(argv[3]);
+  transformFileReader->SetFileName(transformParametersFile);
   transformFileReader->Update();
 
   typedef TransformFileReader::TransformListType   TransformListType;
   TransformListType*   transformList = transformFileReader->GetTransformList();
 
 
-  const std::string type(argv[4]);
+  const std::string type(transformType);
   TransformType::Pointer   transform;
   for(TransformListType::iterator transformIter=transformList->begin(); transformIter !=transformList->end() ; transformIter++)
   {
@@ -116,7 +110,7 @@ int main( int argc, char * argv[] )
   ReaderType::Pointer reader = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
    
-  reader->SetFileName( argv[1] );
+  reader->SetFileName( inputImageFile );
   reader->Update();
 
   //
@@ -154,7 +148,7 @@ int main( int argc, char * argv[] )
 
   // Write the tranformed image
   writer->SetImageIO(reader->GetImageIO());
-  writer->SetFileName( argv[2] );
+  writer->SetFileName( outputImageFile );
   writer->SetInput( resample->GetOutput()   );
   writer->Update();
 

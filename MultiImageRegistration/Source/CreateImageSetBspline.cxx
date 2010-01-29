@@ -39,13 +39,14 @@
 #include <cstdlib>
 #include <ctime>
 
+#include "CreateImageSetBsplineCLP.h"
 #include <itksys/SystemTools.hxx>
 
 #define TOTNUM 100000
 
 int main( int argc, char * argv[] )
 {
-
+/*
   if( argc < 4 )
   {
     std::cerr << "Usage: " << std::endl;
@@ -57,7 +58,8 @@ int main( int argc, char * argv[] )
   {
     srand(time(NULL));
   }
-
+*/
+  PARSE_ARGS;
   const     unsigned int   Dimension = 3;
 
   typedef   double  InputPixelType;
@@ -73,7 +75,7 @@ int main( int argc, char * argv[] )
 
   // Read the input image
   ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( argv[1] );
+  reader->SetFileName( inputImageFile );
   reader->Update();
   InputImageType::Pointer referenceImage = reader->GetOutput();
 
@@ -85,7 +87,7 @@ int main( int argc, char * argv[] )
   rescaleFilter->SetOutputMaximum(255);
   rescaleFilter->Update();
 
-  const int numberOfImages = atoi(argv[3]);
+  const int numberOfImages = atoi(NumberOfImages.c_str());
 
   std::vector<double> randomOffsetNumbers(numberOfImages*TOTNUM);
   for(long int i=0;i<TOTNUM*numberOfImages; i++)
@@ -203,18 +205,18 @@ int main( int argc, char * argv[] )
       {
       //Write the transform files
       itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
-      itksys::SystemTools::MakeDirectory( (fname + argv[2] + "/TransformFiles/").c_str() );
+      itksys::SystemTools::MakeDirectory( (fname + folderName + "/TransformFiles/").c_str() );
 
-      std::string fileName = fname + argv[2] + "/TransformFiles/" + fnameStream.str() + ".mat";
+      std::string fileName = fname + folderName + "/TransformFiles/" + fnameStream.str() + ".mat";
       transformFileWriter->SetFileName(fileName.c_str());
       transformFileWriter->SetPrecision(12);
       transformFileWriter->SetInput(bsplineTransform);
       transformFileWriter->Update();
       }
 
-    itksys::SystemTools::MakeDirectory( (fname+argv[2]+"/Images/").c_str() );
+    itksys::SystemTools::MakeDirectory( (fname+folderName+"/Images/").c_str() );
 
-    fname = fname + argv[2] + "/Images/" + fnameStream.str();
+    fname = fname + folderName + "/Images/" + fnameStream.str();
     if(Dimension == 2)
     {
       fname += ".png";
