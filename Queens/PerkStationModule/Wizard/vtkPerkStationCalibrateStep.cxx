@@ -2180,8 +2180,7 @@ void vtkPerkStationCalibrateStep::HorizontalFlipCallback( bool value )
 {
   // if (this->ImageFlipDone || this->CurrentSubState != 0) return;
   
-  // TODO: If this is uncommented, it causes bug in Clinical mode.
-  // if ( this->CurrentSubState != 0 ) return;
+  if ( this->CurrentSubState != 0 ) return;
   
   // set user scaling in mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
@@ -2889,8 +2888,7 @@ void vtkPerkStationCalibrateStep::CalculateImageRotation(double & rotationAngle)
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::FlipImage()
 {
-  // TODO: Why was this here?
-  // if ( this->ImageFlipDone ) return;
+  if ( this->ImageFlipDone ) return;
 
   bool verticalFlip = false;
   bool horizontalFlip = false;
@@ -2898,9 +2896,11 @@ void vtkPerkStationCalibrateStep::FlipImage()
   verticalFlip = this->GetGUI()->GetMRMLNode()->GetVerticalFlip();
   horizontalFlip = this->GetGUI()->GetMRMLNode()->GetHorizontalFlip();
 
-  this->GetGUI()->GetSecondaryMonitor()->FlipVertical( verticalFlip );
+  if ( verticalFlip )
+    this->GetGUI()->GetSecondaryMonitor()->FlipVertical();
 
-  this->GetGUI()->GetSecondaryMonitor()->FlipHorizontal( horizontalFlip ); 
+  if ( horizontalFlip )
+    this->GetGUI()->GetSecondaryMonitor()->FlipHorizontal(); 
 
 }
 //----------------------------------------------------------------------------
@@ -4270,11 +4270,10 @@ void vtkPerkStationCalibrateStep::ProcessGUIEvents(vtkObject *caller, unsigned l
        && ( event == vtkKWCheckButton::SelectedStateChangedEvent ) )
     {
       // horizontal flip button selected state changed
-    bool state = bool(
-      this->HorizontalFlipCheckButton->GetWidget()->GetSelectedState() );
-    this->HorizontalFlipCallback( state );
+    this->HorizontalFlipCallback(
+      bool( this->HorizontalFlipCheckButton->GetWidget()->GetSelectedState() ));
     }
-  
+
   // image scaling entry x
   if (this->ImgScaling && this->ImgScaling->GetWidget(0) == vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
     {
