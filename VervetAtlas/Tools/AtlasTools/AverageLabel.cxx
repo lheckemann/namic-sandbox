@@ -27,10 +27,6 @@ typedef itk::ImageFileWriter<ImageType> WriterType;
 typedef itk::BinaryThresholdImageFilter<ImageType,ImageType> ThresholdType;
 typedef itk::DiscreteGaussianImageFilter<ImageType,ImageType> GaussianType;
 
-// labels are fixed for now
-const float labelList[] = {1,2,3,11,12,13,14,15,16,17,18,19,20};
-const int labelListSize = 13;
-
 
 int main(int argc, char** argv){
   int i;
@@ -88,7 +84,7 @@ int main(int argc, char** argv){
     thresh->SetInput(reader->GetOutput());
     thresh->SetUpperThreshold(label);
     thresh->SetLowerThreshold(label);
-    thresh->SetInsideValue(label);
+    thresh->SetInsideValue(1.);
     thresh->SetOutsideValue(0);
 
     GaussianType::Pointer gauss = GaussianType::New();
@@ -104,7 +100,7 @@ int main(int argc, char** argv){
   }
 
   divider->SetInput(accumulator);
-  divider->SetConstant(label*(argc-3));
+  divider->SetConstant(float(argc-3));
   divider->Update();
 
   writer->SetInput(divider->GetOutput());
