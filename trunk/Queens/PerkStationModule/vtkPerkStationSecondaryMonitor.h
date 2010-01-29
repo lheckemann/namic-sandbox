@@ -28,22 +28,9 @@ class vtkKWRenderWidget;
 class vtkLineSource;
 class vtkActorCollection;
 
-
-/**
- * Creates a VTK window for the secondary monitor, and responsible for all
- * computations needed to fill it with the appropriate image slice.
- * 
- * Coordinate systems:
- *  * RAS: Slicer's system, fixed to the patient, unit is mm.
- */
-class
-VTK_PERKSTATIONMODULE_EXPORT
-vtkPerkStationSecondaryMonitor
-: public vtkObject
+class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationSecondaryMonitor : public vtkObject
 {
-
 public:
-  
   static vtkPerkStationSecondaryMonitor *New();  
 
   // Description: 
@@ -51,173 +38,149 @@ public:
   vtkPerkStationModuleGUI* GetGUI(){return this->GUI;};
   vtkTypeMacro(vtkPerkStationSecondaryMonitor,vtkObject);
   virtual void SetGUI(vtkPerkStationModuleGUI *gui){ this->GUI = gui;};
-  
-  
+
   // About the secondary monitor itself:
 
   // Description:
   // See if the secondary monitor is attached or not
   bool IsSecondaryMonitorActive(){ return this->DeviceActive;};
 
+  // Description:
+  // Detect the secondary monitor attached to the system, gather information about it
   void Initialize();
-  
-  
+
   // Description:
   // Get Spacing
-  void GetMonitorSpacing(double & xSpacing, double & ySpacing)
-  {
-    xSpacing = this->MonitorPhysicalSizeMM[0]/this->MonitorPixelResolution[0];
-    ySpacing = this->MonitorPhysicalSizeMM[1]/this->MonitorPixelResolution[1];
-  }
-  
-  
+  void GetMonitorSpacing(double & xSpacing, double & ySpacing){xSpacing = this->MonitorPhysicalSizeMM[0]/this->MonitorPixelResolution[0]; ySpacing = this->MonitorPhysicalSizeMM[1]/this->MonitorPixelResolution[1];};
+
   // Description:
   // Get/Set VirtialScreenCoord
-  void GetVirtualScreenCoord( int & left, int & top)
-  {
-    left = this->VirtualScreenCoord[0];
-    top = this->VirtualScreenCoord[1];
-  }
-  
-  void SetVirtualScreenCoord( int left, int top )
-  {
-    this->VirtualScreenCoord[0] = left;
-    this->VirtualScreenCoord[1] = top;
-  }
-  
-  
+  void GetVirtualScreenCoord( int & left, int & top){left = this->VirtualScreenCoord[0]; top = this->VirtualScreenCoord[1];};
+  void SetVirtualScreenCoord( int left, int top){this->VirtualScreenCoord[0] = left; this->VirtualScreenCoord[1] = top;};
+
   // Description:
   // get/set physical size of monitor
-  void GetPhysicalSize(double & mmX, double & mmY)
-  {
-    mmX = this->MonitorPhysicalSizeMM[0];
-    mmY = this->MonitorPhysicalSizeMM[1];
-  }
+  void GetPhysicalSize(double & mmX, double & mmY){mmX = this->MonitorPhysicalSizeMM[0]; mmY = this->MonitorPhysicalSizeMM[1];};
+  void SetPhysicalSize(double mmX, double mmY){this->MonitorPhysicalSizeMM[0] = mmX; this->MonitorPhysicalSizeMM[1] = mmY;};
+
+  // Description:
+  // get/set physical size of monitor
+  void GetPixelResolution(double & pixX, double & pixY){pixX = this->MonitorPixelResolution[0]; pixY = this->MonitorPixelResolution[1];};
+  void SetPixelResolution(double pixX, double pixY){this->MonitorPixelResolution[0] = pixX; this->MonitorPixelResolution[1] = pixY;};
+
+  // Description:
+  // Get/Set ScreenSize
+  void GetScreenDimensions( unsigned int & sizeX, unsigned int & sizeY){sizeX = this->ScreenSize[0]; sizeY = this->ScreenSize[1];};
   
-  void SetPhysicalSize(double mmX, double mmY)
-  {
-    this->MonitorPhysicalSizeMM[0] = mmX;
-    this->MonitorPhysicalSizeMM[1] = mmY;
-  }
+  // Description
+  // set up image data, once the volume has been loaded inside slicer
+  void SetupImageData();
+
+  // Description
+  // load calibration, which has been read in from a file already
+  void LoadCalibration();
+
+
+  bool GetDepthLinesInitialized(){return this->DepthLinesInitialized;};
+
+  // Description
+  // update matrices
+  // please note that this function calls UpdateImageDisplay at end of recomputing matrices
+  void UpdateMatrices();
+
+  // Description
+  // update display
+  // reads the window/level from scalar display node, and updates the rendering the image
+  void UpdateImageDisplay();
+
+  // Description
+  // get render window
+  vtkWin32OpenGLRenderWindow *GetRenderWindow(){return this->RenderWindow;};
+
+  // Description
+  // get renderer
+  vtkRenderer *GetRenderer(){ return this->Renderer;};
+
+  // Description
+  // get interactor
+  vtkRenderWindowInteractor *GetRenderWindowInteractor(){return this->Interactor;};
+
+  // Description
+  // Get XYToRAS matrix
+  vtkMatrix4x4 *GetXYToRAS(){ return this->XYToRAS;};
+
+  // Description
+  // Get XYToSlice matrix
+  vtkMatrix4x4 *GetXYToIJK(){ return this->XYToIJK;};
 
   
-    // get/set physical size of monitor
-  void GetPixelResolution(double & pixX, double & pixY)
-  {
-    pixX = this->MonitorPixelResolution[0];
-    pixY = this->MonitorPixelResolution[1];
-  }
-    
-  void SetPixelResolution(double pixX, double pixY)
-  {
-    this->MonitorPixelResolution[0] = pixX;
-    this->MonitorPixelResolution[1] = pixY;
-  }
+
+  void GetTranslation(double & translationX, double & translationY){translationX = this->CurrentTranslation[0]; translationY = this->CurrentTranslation[1];};
+
+  void GetRotation(double & rotation){rotation = this->CurrentRotation;};
   
-  
-    // Get/Set ScreenSize
-  void GetScreenDimensions( unsigned int & sizeX, unsigned int & sizeY)
-  {
-    sizeX = this->ScreenSize[0]; sizeY = this->ScreenSize[1];
-  }
-  
-    // set up image data, once the volume has been loaded inside slicer
-  void SetupImageData();
-  
-    // load calibration, which has been read in from a file already
-  void LoadCalibration();
-  
-  
-  bool GetDepthLinesInitialized()
-  {
-    return this->DepthLinesInitialized;
-  }
-  
-  
-  // please note that this function calls UpdateImageDisplay at end of
-  // recomputing matrices
-  void UpdateMatrices();
-  
-  // reads the window/level from scalar display node, and updates the
-  // rendering the image
-  void UpdateImageDisplay();
-  
-  
-  vtkWin32OpenGLRenderWindow *GetRenderWindow(){return this->RenderWindow;};
-  vtkRenderer *GetRenderer(){ return this->Renderer;};
-  vtkRenderWindowInteractor *GetRenderWindowInteractor(){return this->Interactor;};
-  vtkMatrix4x4 *GetXYToRAS(){ return this->XYToRAS;};
-  vtkMatrix4x4 *GetXYToIJK(){ return this->XYToIJK;};
-  
-  
-    // Old interface for image geometry.
-  
-  void GetTranslation(double & translationX, double & translationY)
-  {
-    translationX = this->CurrentTranslation[0];
-    translationY = this->CurrentTranslation[1];
-  }
-  
-  void GetRotation(double & rotation)
-  {
-    rotation = this->CurrentRotation;
-  }
-  
-  void FlipVertical( bool flip );
-  void FlipHorizontal( bool flip );
-  void Scale( double sx, double sy, double sz );
-  void Rotate( double angle ); // Rotate image (units degrees)
-    // Tilt image out of plane (units degrees)
-  void TiltOutOfPlane( double tiltAngle, double rasCor[3] );
-    // Translate (translation units mm, so must be converted to pixels
-    // inside function)
-  void Translate( double tx, double ty, double tz );
-  
-  
-  
+
+  // Description
+  // Flip vertically, i.e., about x-axis (left stays left)
+  void FlipVertical();
+
+  // Description
+  // Flip horizontally, i.e., about y-axis (left becomes right)
+  void FlipHorizontal();
+
+  // Description
+  // Scale image
+  void Scale(double sx, double sy, double sz);
+
+  // Description
+  // Rotate image (units degrees)
+  void Rotate(double angle);
+
+  // Description
+  // Tilt image out of plane (units degrees)
+  void TiltOutOfPlane(double tiltAngle, double rasCor[3]);
+
+
+  // Description
+  // Translate (translation units mm, so must be converted to pixels inside function)
+  void Translate(double tx, double ty, double tz);
+
+  // Description
+  // Overlay needle guide
   void OverlayNeedleGuide();
+
   void OverlayRealTimeNeedleTip(double tipRAS[3], vtkMatrix4x4 *tranformMatrix=NULL);
   void RemoveOverlayRealTimeNeedleTip();
-  
-  
-  void ResetCalibration();
-  
-  
-    // remove overlay guide needle actor
-  void RemoveOverlayNeedleGuide();
-  
-  void ResetTilt();
-  
-  void SetDepthPerceptionLines();  
-  
-  void RemoveDepthPerceptionLines();
-  
-  void RemoveTextActors();
-  
-  void UpdateImageDataOnSliceOffset(double sliceOffset=0);
-  
-  
-    // Set visivility of RealTimeNeedleLineActor
-  void SetRealTimeNeedleLineActorVisibility(bool v);
-  
-  
-    // Image geometry.
-  
-  void SetSecMonHorizontalFlip( bool flip );
-  void SetSecMonVerticalFlip( bool flip );
-  void SetSecMonRotation( double[ 3 ] rotation );
-  void SetSecMonRotationCenter( double[ 3 ] center );
-  void SetSecMonTranslation( double[ 3 ] translation );
-  
-  
-protected:
 
+  // Description
+  // reset calibration
+  void ResetCalibration();
+
+  // Description
+  // remove overlay guide needle actor
+  void RemoveOverlayNeedleGuide();
+
+  void ResetTilt();
+
+  void SetDepthPerceptionLines();  
+
+  void RemoveDepthPerceptionLines();
+
+  void RemoveTextActors();
+
+  void UpdateImageDataOnSliceOffset(double sliceOffset=0);
+
+  // Description
+  // Set visivility of RealTimeNeedleLineActor
+  void SetRealTimeNeedleLineActorVisibility(bool v);
+
+protected:
   vtkPerkStationSecondaryMonitor();
   ~vtkPerkStationSecondaryMonitor();  
 
   vtkPerkStationModuleGUI *GUI;
 
-    // about handling the display/visualization
+  // about handling the display/visualization
   vtkWin32OpenGLRenderWindow *RenderWindow;
   vtkRenderer *Renderer;
   vtkRenderWindowInteractor *Interactor;
@@ -252,7 +215,6 @@ protected:
 
     // transform to be used for Reslice
   vtkTransform *ResliceTransform;
-  
   vtkMRMLScalarVolumeNode *VolumeNode;
 
   vtkImageData *ImageData; // the image data to be displayed
@@ -265,7 +227,11 @@ protected:
   bool DeviceActive;
   bool DisplayInitialized;
   
+  double MonitorPixelResolution[2];
+  double MonitorPhysicalSizeMM[2];  
   int VirtualScreenCoord[2];
+  int ScreenSize[3]; // Number of pixels on the monitor.
+  int ImageSize[3]; 
   bool VerticalFlipped;
   bool HorizontalFlipped;
 
@@ -276,33 +242,9 @@ protected:
   double CurrentTranslation[2];
   double CurrentRotation;
   bool CalibrationFromFileLoaded;
-
 private:
-  
   vtkPerkStationSecondaryMonitor(const vtkPerkStationSecondaryMonitor&);
   void operator=(const vtkPerkStationSecondaryMonitor&);
-  
-  
-  
-    // New data structure for image geometry.
-  
-  vtkTransform *SecMonHorizontalFlipTransform;
-  vtkTransform *SecMonVerticalFlipTranform;
-  vtkTransform *SecMonRotateTransform;
-  vtkTransform *SecMonTranslateTransform;
-  
-  bool SecMonHorizontalFlip;
-  bool SecMonVerticalFlip;
-  double SecMonRotation[ 3 ];
-  double SecMonRotationCenter[ 3 ]; // In the RAS coordinate system.
-  double SecMonTranslation[ 3 ];
-  
-    // Transfered from the old version.
-  double MonitorPixelResolution[ 2 ];
-  double MonitorPhysicalSizeMM[ 2 ];  
-  int ScreenSize[ 3 ];   // Number of pixels on the monitor.
-  int ImageSize[ 3 ];    // Number of pixels in the image.
-  
 };
 
 #endif
