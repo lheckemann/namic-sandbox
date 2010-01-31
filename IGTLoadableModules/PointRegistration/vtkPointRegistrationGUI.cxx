@@ -63,6 +63,7 @@ vtkPointRegistrationGUI::vtkPointRegistrationGUI ( )
   //----------------------------------------------------------------
   // GUI widgets
   this->PatTransformNode = NULL;
+  this->TrackerNode = NULL;
   this->PatCoordinatesEntry = NULL;
   this->ImagCoordinatesEntry = NULL;
   this->GetPatCoordinatesButton = NULL;
@@ -102,6 +103,12 @@ vtkPointRegistrationGUI::~vtkPointRegistrationGUI ( )
     {
     this->PatTransformNode->SetParent(NULL);
     this->PatTransformNode->Delete();
+    }
+
+  if (this->TrackerNode)
+    {
+    this->TrackerNode->SetParent(NULL);
+    this->TrackerNode->Delete();
     }
 
   if (this->PatCoordinatesEntry)
@@ -220,6 +227,12 @@ void vtkPointRegistrationGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->TrackerNode)
+    {
+    this->TrackerNode
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   if (this->PatCoordinatesEntry)
     {
     this->PatCoordinatesEntry
@@ -266,6 +279,13 @@ void vtkPointRegistrationGUI::RemoveGUIObservers ( )
     this->RegisterButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
+    
+  if (this->ApplyTransformButton)
+    {
+    this->ApplyTransformButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+    
   this->RemoveLogicObservers();
 
 }
@@ -319,6 +339,8 @@ void vtkPointRegistrationGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->PatTransformNode
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->ApplyTransformButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
     
   this->AddLogicObservers();
 }
@@ -528,32 +550,61 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
             }
           }
         }
-      vtkMatrix4x4* regTrans = vtkMatrix4x4::New();
       //Calculate registration Matrix
-      int error = this->GetLogic()->PerformPatientToImageRegistration(patCoords, imCoords, regTrans);
-      if (!regTrans)
+      if (regTrans == NULL)
+        {
+        regTrans = vtkMatrix4x4::New();
+        }
+      int error = this->GetLogic()->PerformPatientToImageRegistration(patCoords, imCoords, this->regTrans);
+      if (error == 1)
         {
         vtkSlicerApplication::GetInstance()->ErrorMessage("Error in registration between patient and image land marks.");
         return;
         }
-      if (error == 1)
-        {
-        std::cerr << "There was an error with registration" << std::endl;
-        return;
-        }
       //Create Registration Node
       vtkMRMLLinearTransformNode* registrationMatrix = vtkMRMLLinearTransformNode::New();
-      registrationMatrix->SetAndObserveMatrixTransformToParent(regTrans);
+      registrationMatrix->SetAndObserveMatrixTransformToParent(this->regTrans);
       this->GetMRMLScene()->AddNode(vtkMRMLNode::SafeDownCast(registrationMatrix));
       this->GetMRMLScene()->Modified();
       
       //clean up
-      regTrans->Delete();
       patCoords->Delete();
       imCoords->Delete();
       }
     }
+   
+   //Apply calculated transform to selected node
+  else if (this->ApplyTransformButton == vtkKWPushButton::SafeDownCast(caller) 
+          && event == vtkKWPushButton::InvokedEvent)
+    {
+    //Check to see if node has a transform selected
+    if (!this->TrackerNode)
+      {
+      vtkSlicerApplication::GetInstance()->ErrorMessage("No tracker node selected");
+      return;
+      }
+        
+    //Check if registration matrix has been defined
+    if (!this->regTrans)
+      {
+      vtkSlicerApplication::GetInstance()->ErrorMessage("No registration matrix has been calculated");
+      return;
+      }
+
+    //Apply Transform to tracker
+    //vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::New();
+    vtkMRMLLinearTransformNode* tnode;
+    tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNode->GetSelected());
+    tnode->Print(std::cerr);
+    tnode->SetAndObserveMatrixTransformToParent(this->regTrans);
+    vtkMatrix4x4* mat = vtkMatrix4x4::New();
+    tnode->GetMatrixTransformToWorld(mat);
+    mat->Print(std::cerr);
+    mat->Delete();
+    }   
+    
 }
+
 
 //---------------------------------------------------------------------------------------
 void vtkPointRegistrationGUI::DataCallback(vtkObject *caller, 
@@ -889,8 +940,70 @@ void vtkPointRegistrationGUI::BuildGUIForRegistrationFrame ()
 
   registerFrame->Delete ();
   listFrame->Delete();
-  regFrame->Delete();
   pairFrame->Delete();
+  
+  //---------------------------------------------
+  // Apply Transform Frame
+  //---------------------------------------------
+  vtkKWFrameWithLabel *applyFrame = vtkKWFrameWithLabel::New();
+  applyFrame->SetParent ( regFrame->GetFrame() );
+  applyFrame->Create ( );
+  applyFrame->SetLabelText ("Apply Transform");
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2",
+                applyFrame->GetWidgetName());
+
+  //Tracker Node Row
+  vtkKWFrame *trackerFrame = vtkKWFrame::New();
+  trackerFrame->SetParent ( applyFrame->GetFrame() );
+  trackerFrame->Create ( );
+  this->Script( "pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
+                trackerFrame->GetWidgetName());
+
+  vtkKWLabel *tnodeLabel = vtkKWLabel::New();
+  tnodeLabel->SetParent(trackerFrame);
+  tnodeLabel->Create();
+  tnodeLabel->SetWidth(15);
+  tnodeLabel->SetText("Tracker Node: ");
+
+  this->TrackerNode = vtkSlicerNodeSelectorWidget::New();
+  this->TrackerNode->SetParent(trackerFrame);
+  this->TrackerNode->Create();
+  this->TrackerNode->SetWidth(20);
+  this->TrackerNode->SetNewNodeEnabled(0);
+  this->TrackerNode->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, NULL);
+  this->TrackerNode->NoneEnabledOn();
+  this->TrackerNode->SetShowHidden(1);
+  this->TrackerNode->Create();
+  this->TrackerNode->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->TrackerNode->UpdateMenu();
+  this->TrackerNode->SetBorderWidth(0);
+  this->TrackerNode->SetBalloonHelpString("Select a transform from the Scene");
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+              tnodeLabel->GetWidgetName() , this->TrackerNode->GetWidgetName());
+
+  //Apply Transform button
+  vtkKWFrame *applyButtonFrame = vtkKWFrame::New();
+  applyButtonFrame->SetParent ( applyFrame->GetFrame() );
+  applyButtonFrame->Create ( );
+  app->Script( "pack %s -padx 2 -pady 2",
+                applyButtonFrame->GetWidgetName());
+
+  this->ApplyTransformButton = vtkKWPushButton::New();
+  this->ApplyTransformButton->SetParent(applyButtonFrame);
+  this->ApplyTransformButton->Create();
+  this->ApplyTransformButton->SetText( "Apply Transform" );
+  this->ApplyTransformButton->SetWidth ( 15 );
+  this->Script( "pack %s -side left -anchor w -fill x -padx 2 -pady 2",
+                this->ApplyTransformButton->GetWidgetName());
+  
+  //Clean up
+  tnodeLabel->Delete();
+  applyFrame->Delete();
+  applyButtonFrame->Delete();
+ 
+  regFrame->Delete();
+
 }
 
 //----------------------------------------------------------------------------
