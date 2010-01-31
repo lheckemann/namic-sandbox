@@ -30,6 +30,7 @@ class vtkKWEntryWithLabel;
 class vtkKWEntry;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkSlicerNodeSelectorWidget;
+class vtkMatrix4x4;
 
 class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerModuleGUI
 {
@@ -120,6 +121,7 @@ class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerMod
   //----------------------------------------------------------------
 
   vtkSlicerNodeSelectorWidget* PatTransformNode;
+  vtkSlicerNodeSelectorWidget* TrackerNode;
   vtkKWEntryWithLabel *PatCoordinatesEntry;
   vtkKWEntryWithLabel *ImagCoordinatesEntry;
   vtkKWPushButton *GetPatCoordinatesButton;
@@ -128,6 +130,12 @@ class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerMod
   vtkKWPushButton *DeletePointPairButton;
   vtkKWPushButton *DeleteAllPointPairButton;    
   vtkKWPushButton *RegisterButton;
+  vtkKWPushButton *ApplyTransformButton;
+  
+  //----------------------------------------------------------------
+  // Variables
+  //----------------------------------------------------------------
+  vtkMatrix4x4* regTrans;
 
   //----------------------------------------------------------------
   // Logic Values
