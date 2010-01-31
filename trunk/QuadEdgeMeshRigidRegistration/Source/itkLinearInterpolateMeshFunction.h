@@ -94,18 +94,18 @@ public:
     const TArray & pixelArray1, const TArray & pixelArray2, const TArray & pixelArray3,
     const VectorType & u12, const VectorType & u32, TMatrix & jacobian);
 
+  typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;
+
+  virtual bool FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
+
 protected:
   LinearInterpolateMeshFunction();
   ~LinearInterpolateMeshFunction();
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;
-
   virtual bool ComputeWeights( const PointType & point,
     const InstanceIdentifierVectorType & pointIds ) const;
-
-  virtual bool FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
 
   const RealType & GetInterpolationWeight( unsigned int ) const;
 
