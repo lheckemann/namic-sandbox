@@ -98,6 +98,14 @@ public:
 
   virtual bool FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
 
+  /** Set Sphere Center.  The implementation of this interpolator assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the coordinates of the center of the sphere
+   * represented by the Mesh. 
+   */
+  itkSetMacro( SphereCenter, PointType );
+  itkGetConstMacro( SphereCenter, PointType );
+
 protected:
   LinearInterpolateMeshFunction();
   ~LinearInterpolateMeshFunction();
@@ -105,6 +113,9 @@ protected:
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   virtual bool ComputeWeights( const PointType & point,
+    const InstanceIdentifierVectorType & pointIds ) const;
+
+  virtual bool ComputeSphericalWeights( const PointType & point,
     const InstanceIdentifierVectorType & pointIds ) const;
 
   const RealType & GetInterpolationWeight( unsigned int ) const;
@@ -127,6 +138,8 @@ private:
   typedef TriangleBasisSystemCalculator< TInputMesh, TriangleBasisSystemType >  TriangleBasisSystemCalculatorType;
 
   typename TriangleBasisSystemCalculatorType::Pointer m_TriangleBasisSystemCalculator;
+
+  PointType       m_SphereCenter;
 };
 
 } // end namespace itk
