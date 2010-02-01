@@ -78,11 +78,11 @@ public:
    * Interpolate the mesh at a point position.
    * Returns the interpolated mesh intensity at a specified point position. The
    * mesh cell is located based on proximity to the point to be evaluated.
-   *
-   * FIXME: What to do if the point is far from the Mesh ?
+   * Returns false when the point is far from the mesh or when not triangle
+   * can be found to contain the point.
    *
    */
-  virtual void Evaluate( const DestinationPointsContainerType * field, 
+  virtual bool Evaluate( const DestinationPointsContainerType * field, 
     const PointType & point, PointType & outputPoint ) const;
 
 protected:

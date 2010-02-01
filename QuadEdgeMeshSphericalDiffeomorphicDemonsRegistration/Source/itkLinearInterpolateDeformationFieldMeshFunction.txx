@@ -61,7 +61,7 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
  * Evaluate the mesh at a given point position.
  */
 template <class TInputMesh, class TDestinationPointsContainer>
-void
+bool
 LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsContainer>
 ::Evaluate( const DestinationPointsContainerType * field, 
   const PointType & point, PointType & outputPoint ) const
@@ -72,7 +72,7 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
 
   if( !foundTriangle )
     {
-    return;
+    return false;
     }
 
   const PointType & point1 = field->ElementAt( pointIds[0] );
@@ -83,6 +83,8 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
   const RealType & weight2 = this->GetInterpolationWeight(1);
 
   outputPoint.SetToBarycentricCombination( point1, point2, point3, weight1, weight2 );
+
+  return true;
 }
 
 } // end namespace itk
