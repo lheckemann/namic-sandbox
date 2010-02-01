@@ -26,6 +26,10 @@ INCLUDE_DIRECTORIES(
 #######################
 #######################
 
+ADD_EXECUTABLE(itkLinearInterpolateDeformationFieldMeshFunctionTest1 
+  itkLinearInterpolateDeformationFieldMeshFunctionTest1.cxx )
+TARGET_LINK_LIBRARIES(itkLinearInterpolateDeformationFieldMeshFunctionTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkMeshGeneratorHelperTest1 
   ${QuadEdgeMeshFieldSmoothingFilters}/Testing/itkMeshGeneratorHelperTest1.cxx )
 TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -182,6 +186,11 @@ ADD_TEST(MeshGeneratorHelperTest9
   2.0    # Phi multiplier
   )
 
+ADD_TEST(LinearInterpolateDeformationFieldMeshFunctionTest1
+  ${CXX_TEST_PATH}/itkLinearInterpolateDeformationFieldMeshFunctionTest1
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
+  )
+SET_TESTS_PROPERTIES( LinearInterpolateDeformationFieldMeshFunctionTest1 PROPERTIES DEPENDS MeshGeneratorHelperTest2)
 
 ADD_TEST(DemonsFilterTest1
   ${CXX_TEST_PATH}/itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1
