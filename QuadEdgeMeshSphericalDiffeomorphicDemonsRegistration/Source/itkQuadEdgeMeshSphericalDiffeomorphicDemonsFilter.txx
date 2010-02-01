@@ -360,7 +360,6 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 CopySourcePoinstAsDestinationPoints()
 {
-std::cout << "CopySourcePoinstAsDestinationPoints() It should be called only once" << std::endl;
   const FixedPointsContainer * points = this->m_FixedMesh->GetPoints();
 
   FixedPointsConstIterator srcPointItr = points->Begin();
@@ -387,6 +386,7 @@ InitializeInterpolators()
 
   this->m_DeformationInterpolator->SetInputMesh( this->m_FixedMesh );
   this->m_DeformationInterpolator->Initialize();
+  this->m_DeformationInterpolator->SetSphereCenter( this->m_SphereCenter );
 }
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
@@ -756,9 +756,15 @@ ComputeDeformationByScalingAndSquaring()
 
   FixedPointsConstIterator pointItr = points->Begin();
 
+  PointType destinationPoint;
+
   while( displacementItr != displacementEnd )
     {
-    displacementItr.Value() = pointItr.Value() +  velocityItr.Value() * scalingFactor;
+    destinationPoint = pointItr.Value() +  velocityItr.Value() * scalingFactor;
+
+    this->ProjectPointToSphereSurface( destinationPoint );
+
+    displacementItr.Value() = destinationPoint;
 
     ++displacementItr;
     ++pointItr;
@@ -774,9 +780,13 @@ ComputeDeformationByScalingAndSquaring()
 
     while( oldDisplacementItr != oldDisplacementEnd )
       {
+      destinationPoint = oldDisplacementItr.Value();
+
+      this->ProjectPointToSphereSurface( destinationPoint );
+
       newDisplacementItr.Value() =
         this->InterpolateDestinationFieldAtPoint(
-          this->m_DisplacementField, oldDisplacementItr.Value() );
+          this->m_DisplacementField, destinationPoint );
 
       ++newDisplacementItr;
       ++oldDisplacementItr;
@@ -823,8 +833,16 @@ InterpolateDestinationFieldAtPoint( const DestinationPointContainerType * destin
   const PointType & point )
 {
   PointType interpolatedDestinationPoint;
-  this->m_DeformationInterpolator->Evaluate( destinationField, point, interpolatedDestinationPoint );
+
+  const bool found = this->m_DeformationInterpolator->Evaluate( destinationField, point, interpolatedDestinationPoint );
+
+  if( !found )
+    {
+    itkExceptionMacro("Point not found in the interpolation" << point );
+    }
+
   this->ProjectPointToSphereSurface( interpolatedDestinationPoint );
+
   return interpolatedDestinationPoint;
 }
 
@@ -835,7 +853,9 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 ProjectPointToSphereSurface( PointType & point ) const
 {
   VectorType vectorToCenter( point - this->m_SphereCenter );
-  vectorToCenter *= this->m_SphereRadius / vectorToCenter.GetNorm();
+
+  const double radialDistance = vectorToCenter.GetNorm();
+  vectorToCenter *= this->m_SphereRadius / radialDistance;
   point = this->m_SphereCenter + vectorToCenter;
 }
 
