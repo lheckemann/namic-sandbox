@@ -174,6 +174,17 @@ public:
   // Set visivility of RealTimeNeedleLineActor
   void SetRealTimeNeedleLineActorVisibility(bool v);
 
+
+  
+    // Image geometry.
+  
+  void SetSecMonHorizontalFlip( bool flip );
+  void SetSecMonVerticalFlip( bool flip );
+  void SetSecMonRotation( double rotation[ 3 ] );
+  void SetSecMonRotationCenter( double center[ 3 ] );
+  void SetSecMonTranslation( double translation[ 3 ] );
+  
+  
 protected:
   vtkPerkStationSecondaryMonitor();
   ~vtkPerkStationSecondaryMonitor();  
@@ -220,7 +231,7 @@ protected:
   vtkImageData *ImageData; // the image data to be displayed
 
   vtkMatrix4x4 *GetFlipMatrixFromDirectionCosines (
-    vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip );
+  vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip );
  
   
   // about the monitor
@@ -242,9 +253,26 @@ protected:
   double CurrentTranslation[2];
   double CurrentRotation;
   bool CalibrationFromFileLoaded;
+
 private:
+
   vtkPerkStationSecondaryMonitor(const vtkPerkStationSecondaryMonitor&);
   void operator=(const vtkPerkStationSecondaryMonitor&);
+  
+  
+    // New data structure for image geometry.
+  
+  vtkTransform* SecMonHorizontalFlipTransform;
+  vtkTransform* SecMonVerticalFlipTransform;
+  vtkTransform* SecMonRotateTransform;
+  vtkTransform* SecMonTranslateTransform;
+  
+  bool SecMonHorizontalFlip;
+  bool SecMonVerticalFlip;
+  double SecMonRotation[ 3 ];
+  double SecMonRotationCenter[ 3 ];
+  double SecMonTranslation[ 3 ];
+  
 };
 
 #endif
