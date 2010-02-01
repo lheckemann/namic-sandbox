@@ -92,8 +92,6 @@ ResampleQuadEdgeMeshFilter< TInputMesh, TOutputMesh >
 
   ProgressReporter progress(this, 0, numberOfPoints);
 
-  std::cout << "Output Mesh numberOfPoints " << numberOfPoints << std::endl;
-
   OutputPointDataContainerPointer pointData = outputMesh->GetPointData();
 
   if( pointData.IsNull() )
