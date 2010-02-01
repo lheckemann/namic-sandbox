@@ -837,7 +837,9 @@ BOOL CALLBACK MyInfoEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT prc, LPARAM dwDa
     
     }
   return TRUE;
-} 
+}
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::Initialize()
 {
@@ -887,7 +889,6 @@ void vtkPerkStationSecondaryMonitor::Initialize()
           }
 
         DeleteDC(hdc);
-
         }
       }
 
@@ -1827,3 +1828,60 @@ void vtkPerkStationSecondaryMonitor::SetRealTimeNeedleLineActorVisibility(bool v
   this->UpdateMatrices();
 }
 */
+
+
+
+  // New image geometry handling.
+
+void
+vtkPerkStationSecondaryMonitor
+::SetSecMonHorizontalFlip( bool flip )
+{
+  this->SecMonHorizontalFlip = flip;
+}
+
+
+void
+vtkPerkStationSecondaryMonitor
+::SetSecMonVerticalFlip( bool flip )
+{
+  this->SecMonVerticalFlip = flip;
+}
+
+
+/**
+ * @param rotation 3-element vector, specifying rotation angles in degrees
+ *                 around the X, Y and Z axes in this order.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::SetSecMonRotation( double rotation[ 3 ] )
+{
+  for ( int i = 0; i < 3; ++ i )
+    {
+    this->SecMonRotation[ i ] = rotation[ i ];
+    }
+}
+
+
+void
+vtkPerkStationSecondaryMonitor
+::SetSecMonRotationCenter( double center[ 3 ] )
+{
+  for ( int i = 0; i < 3; ++ i )
+    {
+    this->SecMonRotationCenter[ i ] = center[ i ];
+    }
+}
+
+
+void
+vtkPerkStationSecondaryMonitor
+::SetSecMonTranslation( double translation[ 3 ] )
+{
+  for ( int i = 0; i < 3; ++ i )
+    {
+    this->SecMonTranslation[ i ] = translation[ i ];
+    }
+}
+
