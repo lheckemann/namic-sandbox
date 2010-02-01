@@ -33,6 +33,7 @@ LinearInterpolateMeshFunction<TInputMesh>
 ::LinearInterpolateMeshFunction()
 {
   this->m_TriangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
+  this->m_SphereCenter.Fill( 0.0 );
 }
 
 
@@ -209,7 +210,7 @@ LinearInterpolateMeshFunction<TInputMesh>
     pointIds[1] = temp1->GetDestination();
     pointIds[2] = temp2->GetDestination();
 
-    const bool isInside = this->ComputeWeights( point, pointIds );
+    const bool isInside = this->ComputeSphericalWeights( point, pointIds );
 
     if( isInside )
       {
@@ -223,6 +224,80 @@ LinearInterpolateMeshFunction<TInputMesh>
 }
 
 
+/**
+ * Compute interpolation weights and verify if the input point is inside the
+ * spherical triangle formed by the three identifiers.
+ */
+template <class TInputMesh>
+bool
+LinearInterpolateMeshFunction<TInputMesh>
+::ComputeSphericalWeights( const PointType & point, 
+  const InstanceIdentifierVectorType & pointIds ) const
+{
+  const InputMeshType * mesh = this->GetInputMesh(); 
+
+  typedef typename InputMeshType::PointsContainer    PointsContainer;
+
+  const PointsContainer * points = mesh->GetPoints();
+
+  //
+  // Get the vertexes of this triangle
+  //
+  const PointType pt1 = points->GetElement( pointIds[0] );
+  const PointType pt2 = points->GetElement( pointIds[1] );
+  const PointType pt3 = points->GetElement( pointIds[2] );
+
+  const VectorType v1 = pt1 - this->m_SphereCenter;
+  const VectorType v2 = pt2 - this->m_SphereCenter;
+  const VectorType v3 = pt3 - this->m_SphereCenter;
+
+  const VectorType v12 = CrossProduct(v1,v2);
+  const VectorType v23 = CrossProduct(v2,v3);
+  const VectorType v31 = CrossProduct(v3,v1);
+
+  const VectorType V = point - this->m_SphereCenter;
+
+  const double n1 = v1 * v23;
+  const double n2 = v2 * v31;
+  const double n3 = v3 * v12;
+
+  const double b1 = ( V * v23 ) / n1;
+  const double b2 = ( V * v31 ) / n2;
+  const double b3 = ( V * v12 ) / n3;
+  
+  //
+  // Test if the projected point is inside the cell.
+  //
+  // Zero with epsilon
+  //
+  const double zwe = -1e-4;
+
+  bool isInside = false;
+
+  m_InterpolationWeights[0] = b1;
+  m_InterpolationWeights[1] = b2;
+  m_InterpolationWeights[2] = b3;
+
+  //
+  // Since the three barycentric coordinates are interdependent
+  // only three tests should be necessary. That is, we only need
+  // to test against the equations of three lines (half-spaces).
+  //
+  if( ( b1 >= zwe ) && ( b2 >= zwe ) && ( b3 >= zwe ) )
+    {
+    // The points is inside this triangle 
+    isInside = true;
+    }
+
+
+  //
+  // FIXME: It should now do also the chain rule with the Jacobian of how the
+  // point projected on the triangle will change as the point in the sphere
+  // surfaces changes.
+  //
+
+  return isInside;
+}
 /**
  * Compute interpolation weights and verify if the input point is inside the
  * triangle formed by the three identifiers.
