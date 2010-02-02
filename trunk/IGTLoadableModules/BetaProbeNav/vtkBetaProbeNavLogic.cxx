@@ -60,9 +60,7 @@ vtkBetaProbeNavLogic::~vtkBetaProbeNavLogic()
     {
     this->DataCallbackCommand->Delete();
     }
-
 }
-
 
 //---------------------------------------------------------------------------
 void vtkBetaProbeNavLogic::PrintSelf(ostream& os, vtkIndent indent)
@@ -72,7 +70,6 @@ void vtkBetaProbeNavLogic::PrintSelf(ostream& os, vtkIndent indent)
 
 }
 
-
 //---------------------------------------------------------------------------
 void vtkBetaProbeNavLogic::DataCallback(vtkObject *caller, 
                                        unsigned long eid, void *clientData, void *callData)
@@ -81,7 +78,6 @@ void vtkBetaProbeNavLogic::DataCallback(vtkObject *caller,
   vtkDebugWithObjectMacro(self, "In vtkBetaProbeNavLogic DataCallback");
   self->UpdateAll();
 }
-
 
 //---------------------------------------------------------------------------
 void vtkBetaProbeNavLogic::UpdateAll()
@@ -95,37 +91,44 @@ void vtkBetaProbeNavLogic::CollectData(vtkMRMLNode* tn, vtkMRMLNode* cn)
   std::cerr << "Collect Data started" << std::endl;
   
   //Pick up position data from TransformNode
-  if ((this->Points == NULL) && (this->Scalars == NULL))
+  if ((this->Points == NULL) || (this->Scalars == NULL))
     {
     //Create objects
-    Points = vtkPoints::New();
-    Scalars = vtkFloatArray::New();
-    //Scalars->SetName("Gamma");
+    this->Points = vtkPoints::New();
+    this->Scalars = vtkFloatArray::New();
+    this->Scalars->SetName("Gamma");
     }
 
   //Extract position from transform
   float pos[3];
   vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(tn);
-  pos[0] = tnode->GetMatrixTransformToParent()->GetElement(0, 3);
-  pos[1] = tnode->GetMatrixTransformToParent()->GetElement(1, 3);
-  pos[2] = tnode->GetMatrixTransformToParent()->GetElement(2, 3);
-  //Add point to Points Array
-  this->Points->InsertNextPoint(pos);
+  if (tnode)
+    {
+    pos[0] = tnode->GetMatrixTransformToParent()->GetElement(0, 3);
+    pos[1] = tnode->GetMatrixTransformToParent()->GetElement(1, 3);
+    pos[2] = tnode->GetMatrixTransformToParent()->GetElement(2, 3);
+    //Add point to Points Array
+    this->Points->InsertNextPoint(pos);
+    }
   
   //Extract counts from CountNode and append to Float Array
   vtkMRMLUDPServerNode* cnode = vtkMRMLUDPServerNode::SafeDownCast(cn);
-  float counts[3];
-  counts[0] = cnode->GetSmoothedCounts();
-  counts[1] = cnode->GetBetaCounts();
-  counts[2] = cnode->GetGammaCounts();
-  //Add scalar to Scalars array
-  Scalars->InsertNextTuple1(cnode->GetGammaCounts());
+  if (cnode)
+    {
+    float counts[3];
+    counts[0] = cnode->GetSmoothedCounts();
+    counts[1] = cnode->GetBetaCounts();
+    counts[2] = cnode->GetGammaCounts();
+    //Add scalar to Scalars array
+    this->Scalars->InsertNextTuple1(cnode->GetGammaCounts());
+    }
+
 }
 
 //---------------------------------------------------------------------------
 vtkMRMLModelNode* vtkBetaProbeNavLogic::RepresentData(vtkMRMLModelNode* mnode)
 {
-  if (CountMap == NULL)
+  if ((this->CountMap) == NULL)
     {
     CountMap = vtkPolyData::New();
     }
