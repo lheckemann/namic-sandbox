@@ -31,6 +31,7 @@ class vtkKWEntry;
 class vtkKWMultiColumnListWithScrollbars;
 class vtkSlicerNodeSelectorWidget;
 class vtkMatrix4x4;
+class vtkMRMLLinearTransformNode;
 
 class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerModuleGUI
 {
@@ -99,6 +100,8 @@ class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerMod
   virtual void BuildGUI ( );
   void BuildGUIForHelpFrame();
   void BuildGUIForRegistrationFrame();
+  void BuildGUIForRegistrationSelectFrame();
+  void BuildGUIForApplyTransformFrame();
 
   //----------------------------------------------------------------
   // Update routines
@@ -132,11 +135,15 @@ class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerMod
   vtkKWPushButton *RegisterButton;
   vtkKWPushButton *ResetButton;
   vtkKWPushButton *ApplyTransformButton;
+  vtkSlicerNodeSelectorWidget* SelectRegNode;
+  vtkKWPushButton* SelectRegNodeButton;
+  
   
   //----------------------------------------------------------------
   // Variables
   //----------------------------------------------------------------
   vtkMatrix4x4* regTrans;
+  vtkMRMLLinearTransformNode* regTransNode;
 
   //----------------------------------------------------------------
   // Logic Values
