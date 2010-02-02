@@ -632,6 +632,7 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
 
     //Add observer to tracker in order to apply registration matrix to transform
     vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNode->GetSelected());
+    vtkSetAndObserveMRMLNodeEventsMacro(tnode,tnode,NULL); //eliminate any current observer on the node
     vtkIntArray* nodeEvents = vtkIntArray::New();
     nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     vtkSetAndObserveMRMLNodeEventsMacro(tnode,tnode,nodeEvents);
