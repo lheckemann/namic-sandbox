@@ -210,6 +210,10 @@ protected:
   vtkActorCollection *DepthPerceptionLines;  
   // collection of text labels on the depth perception lines
   vtkActor2DCollection *TextActorsCollection;
+  
+  vtkTextActor *LeftSideActor;
+  vtkTextActor *RightSideActor;
+  
 
   vtkImageMapToWindowLevelColors *MapToWindowLevelColors;
   

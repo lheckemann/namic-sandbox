@@ -132,7 +132,10 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
  this->NeedleTipZLocationText = vtkTextActor::New();
  this->DepthPerceptionLines = vtkActorCollection::New(); 
  this->TextActorsCollection = vtkActor2DCollection::New();
-
+ 
+ this->LeftSideActor = vtkTextActor::New();
+ this->RightSideActor = vtkTextActor::New();
+ 
 }
 
 
@@ -207,6 +210,19 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     this->NeedleTipZLocationText->Delete();
     this->NeedleTipZLocationText = NULL;
     }
+  
+  if ( this->LeftSideActor )
+    {
+    this->LeftSideActor->Delete();
+    this->LeftSideActor = NULL;
+    }
+    
+  if ( this->RightSideActor )
+    {
+    this->RightSideActor->Delete();
+    this->RightSideActor = NULL;
+    }
+  
   if (this->MapToWindowLevelColors)
     {
     this->MapToWindowLevelColors->Delete();
@@ -408,7 +424,27 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->Renderer->RemoveAllViewProps();
   // add new image actor
   this->Renderer->AddActor(this->ImageActor);
+  
+  
+  this->LeftSideActor->SetInput( "L" );
+  this->LeftSideActor->GetTextProperty()->SetColor( 1, 0.5, 0 );
+  this->LeftSideActor->SetTextScaleModeToNone();
+  this->LeftSideActor->GetTextProperty()->SetFontSize( 30 );
+  this->LeftSideActor->GetTextProperty()->BoldOn();
+  this->LeftSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50, 50 );
+  // this->LeftSideActor->SetHeight( - 20.0 );
+  
+  this->RightSideActor->SetInput( "R" );
+  this->RightSideActor->GetTextProperty()->SetColor( 1, 0.5, 0 );
+  this->RightSideActor->SetTextScaleModeToNone();
+  this->RightSideActor->GetTextProperty()->SetFontSize( 30 );
+  this->RightSideActor->GetTextProperty()->BoldOn();
+  this->RightSideActor->SetDisplayPosition( 50, 50 );
+  
+  this->Renderer->AddActor( this->LeftSideActor );
+  this->Renderer->AddActor( this->RightSideActor );
 
+  
   // matrix stuff  
   // matrices
   this->XYToIJK->Identity();
@@ -922,6 +958,9 @@ void vtkPerkStationSecondaryMonitor::FlipHorizontal()
 
     this->HorizontalFlipped = true;
     this->UpdateMatrices();
+    
+    this->LeftSideActor->SetDisplayPosition( 50, 50 );
+    this->RightSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50, 50 );
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::Scale(double sx, double sy, double sz)
