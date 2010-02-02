@@ -11,13 +11,20 @@
 #include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkShiftScaleImageFilter.h"
+#include "itkCastImageFilter.h"
+#include "itkMinimumMaximumImageFilter.h"
 #include <iostream>
 
 typedef itk::OrientedImage<float, 3> ImageType;
+typedef itk::OrientedImage<short, 3> OutputImageType;
 typedef itk::HistogramMatchingImageFilter<ImageType,ImageType> HistMatchType;
 typedef itk::MaskImageFilter<ImageType,ImageType> MaskType;
 typedef itk::ImageFileReader<ImageType> ReaderType;
-typedef itk::ImageFileWriter<ImageType> WriterType;
+typedef itk::ImageFileWriter<OutputImageType> WriterType;
+typedef itk::MinimumMaximumImageFilter<ImageType> MinMaxType;
+typedef itk::ShiftScaleImageFilter<ImageType,ImageType> RescaleType;
+typedef itk::CastImageFilter<ImageType,OutputImageType> CastType;
 
 int main(int argc, char** argv){
   int i;
@@ -59,7 +66,32 @@ int main(int argc, char** argv){
   histM->SetNumberOfHistogramLevels(128);
   histM->Update();
 
-  writer->SetInput(histM->GetOutput());
+  MinMaxType::Pointer minMax = MinMaxType::New();
+  minMax->SetInput(histM->GetOutput());
+  minMax->Update();
+
+  std::cout << "Min = " << minMax->GetMinimum() << 
+    " Max = " << minMax->GetMaximum() << std::endl;
+  
+  RescaleType::Pointer rescaler = RescaleType::New();
+  rescaler->SetInput(histM->GetOutput());
+  rescaler->SetShift(-minMax->GetMinimum());
+  rescaler->SetScale(256.*64./(minMax->GetMaximum()-minMax->GetMinimum()));
+  rescaler->Update();
+
+  MinMaxType::Pointer minMax1 = MinMaxType::New();
+  minMax1->SetInput(rescaler->GetOutput());
+  minMax1->Update();
+
+  std::cout << "Scale = " << rescaler->GetScale() << 
+    " Shift = " << rescaler->GetShift() << std::endl;
+  std::cout << "Min = " << minMax1->GetMinimum() << 
+    " Max = " << minMax1->GetMaximum() << std::endl;
+
+  CastType::Pointer cast = CastType::New();
+  cast->SetInput(rescaler->GetOutput());  
+
+  writer->SetInput(cast->GetOutput());
   writer->Update();
 
   return 0;
