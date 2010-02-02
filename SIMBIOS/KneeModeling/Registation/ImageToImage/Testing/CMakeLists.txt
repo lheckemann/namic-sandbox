@@ -264,17 +264,6 @@ ADD_TEST(TwoChannelLabelMapKnnAlgo_${DATASET2}_${DATASET1}
   /home/harishd/MattDemer/Fat.txt
   )
 
-ADD_TEST(TwoChannelGradientLabelMapKnnAlgo_${DATASET2}_${DATASET1}
-  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap
-  /home/harishd/MattDemer/gradientFatOutput.mhd
-  /home/harishd/MattDemer/gradientWaterOutput.mhd
-  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
-  4
-  /home/harishd/MattDemer/Background.txt
-  /home/harishd/MattDemer/Femur.txt
-  /home/harishd/MattDemer/Cartilage.txt
-  /home/harishd/MattDemer/Fat.txt
-  )
 
 
 
@@ -383,6 +372,8 @@ ADD_TEST(HipSpgrPrintTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
   /home/harishd/ChristieHip/Fat_Spgr.txt
   )
 
+
+
 ADD_TEST(ConnectedThreshold_LabelMap_Bones
   ${CXX_TEST_PATH}/ConnectedThresholdImageFilter
   /home/harishd/MattDemer/OutputKnnLabelMap.mhd
@@ -403,10 +394,32 @@ ADD_TEST(TwoChannelHoleFilling
    400 # Maximum number of iterations
   )
 
-ADD_TEST(TwoChannelMorphOpeningFilter
+ADD_TEST(TwoChannelMorphOpeningFilter1
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
+  /home/harishd/MattDemer/gradientFatOutput.mhd
+  /home/harishd/MattDemer/gradientFatMorphOpeningOutput.mhd
+  1
+  )
+
+ADD_TEST(TwoChannelMorphOpeningFilter2
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
+  /home/harishd/MattDemer/gradientWaterOutput.mhd
+  /home/harishd/MattDemer/gradientWaterMorphOpeningOutput.mhd
+  1
+  )
+
+ADD_TEST(NewTwoChannelMorphOpeningFilter
   ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
   /home/harishd/MattDemer/OutputKnnLabelMap.mhd
-  /home/harishd/MattDemer/MorphOpeningOutput.mhd
+  /home/harishd/MattDemer/MorphOpeningOutput1.mhd
+  2
+  )
+
+ADD_TEST(TwoChannelMorphBinaryOpeningFilter
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
+  /home/harishd/MattDemer/BinaryOpeningOutput.mhd
+  /home/harishd/MattDemer/MorphBinaryOpeningOutput.mhd
+  2
   )
 
 ADD_TEST(TwoChannelMorphClosingFilter
@@ -431,12 +444,6 @@ ADD_TEST(TwoChannelGrayScaleGetROI
   )
 
 
-ADD_TEST(TwoChannelBonesGrayScaleGetROI
-  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_OnlyBones
-  /home/harishd/MattDemer/BinaryOpeningOutput.mhd
-  /home/harishd/MattDemer/BonesBinaryOpeningOutput.mhd
-  80
-  )
 
 
 ADD_TEST(OnlyBonesTwoChannelMorphOpeningFilter
@@ -457,6 +464,24 @@ ADD_TEST(TwoChannelBonesSignedMaurerDistance
   /home/harishd/MattDemer/BonesMaurerOutput.mhd
   )
 
+ADD_TEST(TwoChannelGradMorphOpeningFilter
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/GradientMorphOpeningOutput.mhd
+  )
+# The cycle starts here #
+ADD_TEST(TwoChannelGradientLabelMapKnnAlgo_${DATASET2}_${DATASET1}
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap
+  /home/harishd/MattDemer/gradientFatOutput.mhd
+  /home/harishd/MattDemer/gradientWaterOutput.mhd
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
+  4
+  /home/harishd/MattDemer/Background.txt
+  /home/harishd/MattDemer/Femur.txt
+  /home/harishd/MattDemer/Cartilage.txt
+  /home/harishd/MattDemer/Fat.txt
+  )
+
 
 ADD_TEST(TwoChannelBinaryOpening
   ${CXX_TEST_PATH}/TwoChannelBinaryOpeningFilter
@@ -465,10 +490,11 @@ ADD_TEST(TwoChannelBinaryOpening
   2
   )
 
-ADD_TEST(TwoChannelGradMorphOpeningFilter
-  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
-  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
-  /home/harishd/MattDemer/GradientMorphOpeningOutput.mhd
+ADD_TEST(TwoChannelBonesGrayScaleGetROI
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_OnlyBones
+  /home/harishd/MattDemer/BinaryOpeningOutput.mhd
+  /home/harishd/MattDemer/BonesBinaryOpeningOutput.mhd
+  80
   )
 
 ADD_TEST(TwoChannelConnectedImageFilterTest
@@ -479,17 +505,12 @@ ADD_TEST(TwoChannelConnectedImageFilterTest
   255
   )
 
-ADD_TEST(TwoChannelIterativeBinaryOpeningTest
-  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
-  /home/harishd/MattDemer/HoleFillingOutput.mhd
-  /home/harishd/MattDemer/IterativeBinaryOpeningOutput.mhd
-  1
-  238
-  84
-  87
-  149
-  17
-  87
+ADD_TEST(TwoChannelConnectedBinaryImageFilterTest
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentImageFilter
+  /home/harishd/MattDemer/BinaryOpeningOutput.mhd
+  /home/harishd/MattDemer/ConnectedOutput1.mhd
+  75
+  255
   )
 
 ADD_TEST(TwoChannelHoleFillingTest
@@ -500,6 +521,110 @@ ADD_TEST(TwoChannelHoleFillingTest
      1 # Majority
      5 # Maximum number of iterations
   )
+
+ADD_TEST(TwoChannelBakIterativeBinaryOpeningTest
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilterBak
+  /home/harishd/MattDemer/HoleFillingOutput.mhd
+  /home/harishd/MattDemer/IterativeBinaryOpeningOutput.mhd
+  1
+  238
+  84
+  87
+  149
+  17
+  87
+  )
+# The cycle ends here #
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/HoleFillingOutput.mhd
+  /home/harishd/MattDemer/IterativeBinaryOpeningOutput1.mhd
+  1
+  238
+  84
+  87
+  149
+  17
+  87
+  )
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest2
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/IterativeBinaryOpeningOutput2.mhd
+  1
+  256
+  176
+  129
+  256
+  109
+  140
+  )
+
+
+ADD_TEST(TwoChannelFinalHoleFilling
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/MattDemer/DilationOutput3.mhd
+  /home/harishd/MattDemer/FinalOutput_Filled.mhd
+     1 # Manhattan Radius
+     1 # Majority
+   400 # Maximum number of iterations
+  )
+
+ADD_TEST(TwoChannelHipGradientLabelMapKnnAlgo
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap
+  /home/harishd/ChristieHip/gradientOutPhaseOutput.mhd
+  /home/harishd/ChristieHip/gradientWaterOutput.mhd
+  /home/harishd/ChristieHip/GradientOutputKnnLabelMap.mhd
+  5
+  /home/harishd/ChristieHip/Background.txt
+  /home/harishd/ChristieHip/Bone1.txt
+  /home/harishd/ChristieHip/Bone2.txt
+  /home/harishd/ChristieHip/Muscle.txt
+  /home/harishd/ChristieHip/Fat.txt
+ )
+
+
+ADD_TEST(TwoChannelHipBinaryOpening
+  ${CXX_TEST_PATH}/TwoChannelBinaryOpeningFilter
+  /home/harishd/ChristieHip/GradientOutputKnnLabelMap.mhd
+  /home/harishd/ChristieHip/BinaryOpeningOutput.mhd
+  2
+ )
+
+ADD_TEST(TwoChannelHipBonesGrayScaleGetROI
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_OnlyBones
+  /home/harishd/ChristieHip/BinaryOpeningOutput.mhd
+  /home/harishd/ChristieHip/BonesBinaryOpeningOutput.mhd
+  80
+ )
+
+ADD_TEST(TwoChannelHipConnectedImageFilterTest
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentImageFilter
+  /home/harishd/ChristieHip/BonesBinaryOpeningOutput.mhd
+  /home/harishd/ChristieHip/ConnectedOutput.mhd
+  75
+  255
+ )
+
+ADD_TEST(TwoChannelHipHoleFillingTest
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/ChristieHip/ConnectedOutput.mhd
+  /home/harishd/ChristieHip/HoleFillingOutput.mhd
+  1 # Manhattan Radius
+  1 # Majority
+  5 # Maximum number of iterations
+ )
+
+ADD_TEST(TwoChannelNewConnectedImageFilterTest
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentImageFilter
+  /home/harishd/MattDemer/BinaryOpeningOutput.mhd
+  /home/harishd/MattDemer/ConnectedOutputNew.mhd
+  75
+  255
+  )
+
 
 
 ENDMACRO(REFINE_SEGMENTATION)

@@ -229,7 +229,7 @@ int main( int argc, char *argv[] )
   float ynumberOfSds[totalSeeds];
 
   xnumberOfSds[0]=1.5; // background
-  xnumberOfSds[1]=2; // Bones
+  xnumberOfSds[1]=5; // Bones
   xnumberOfSds[2]=5; // Cartilage
   xnumberOfSds[3]=1; // Fat
 
@@ -238,22 +238,6 @@ int main( int argc, char *argv[] )
   ynumberOfSds[2]=5; // Cartilage
   ynumberOfSds[3]=5; // Fat
   
-/*  for(unsigned int i=0; i<MAX_SEED_FILES; i++)
-  {
-   clusterPixelValues[i][0] = colorPixels[i][0];
-   clusterPixelValues[i][1] = colorPixels[i][1];
-   clusterPixelValues[i][2] = colorPixels[i][2];*/
-
-//   printf("Color of %d cluster is r=%d g=%d b=%d \n", i, clusterPixelValues[i][0], clusterPixelValues[i][1], clusterPixelValues[i][2]);
-//  }
-
-  /* For RGB Pixels */
-/*  RGBImageType::Pointer rgbImage = RGBImageType::New();
-  rgbImage->SetRegions( image1->GetRequestedRegion() );
-  rgbImage->CopyInformation( image1 );
-  rgbImage->Allocate();
-*/
-
   /* For gray scale image */
   ImageType::Pointer outputImage = ImageType::New();
   outputImage->SetRegions( image1->GetRequestedRegion() );
@@ -307,7 +291,7 @@ findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yC
 
  for(i=0; i<numberOfClusters; i++)
  {
-  if(i == 0)
+  if(i == 0) //Case for background
   {
 
    if(x>=0 && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=0 && y<=(yClusterCenter[i]+ynumberOfSds[i]*yStandardDev[i]) && flag==0)
