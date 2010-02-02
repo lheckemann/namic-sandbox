@@ -152,7 +152,6 @@ void vtkBetaProbeNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
   os << indent << "Logic: " << this->GetLogic ( ) << "\n";
 }
 
-
 //---------------------------------------------------------------------------
 void vtkBetaProbeNavGUI::RemoveGUIObservers ( )
 {

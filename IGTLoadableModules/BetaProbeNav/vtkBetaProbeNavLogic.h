@@ -33,7 +33,7 @@
 
 class vtkPoints;
 class vtkFloatArray;
-class vtkPloyData;
+class vtkPolyData;
 class vtkMRMLModelNode;
 
 class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic 
