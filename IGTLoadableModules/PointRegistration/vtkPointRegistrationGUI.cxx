@@ -587,22 +587,19 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
     //Check if registration matrix has been defined
     if (!this->regTrans)
       {
-      vtkSlicerApplication::GetInstance()->ErrorMessage("No registration matrix has been calculated");
-      return;
+      //vtkSlicerApplication::GetInstance()->ErrorMessage("No registration matrix has been calculated");
+      //return;
+      this->regTrans = vtkMatrix4x4::New();
       }
 
-    //Apply Transform to tracker
-    //vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::New();
-    vtkMRMLLinearTransformNode* tnode;
-    tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNode->GetSelected());
-    tnode->Print(std::cerr);
-    tnode->SetAndObserveMatrixTransformToParent(this->regTrans);
-    vtkMatrix4x4* mat = vtkMatrix4x4::New();
-    tnode->GetMatrixTransformToWorld(mat);
-    mat->Print(std::cerr);
-    mat->Delete();
-    }   
-    
+    //Add observer to tracker in order to apply registration matrix to transform
+    vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(this->TrackerNode->GetSelected());
+    vtkIntArray* nodeEvents = vtkIntArray::New();
+    nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
+    vtkSetAndObserveMRMLNodeEventsMacro(tnode,tnode,nodeEvents);
+    tnode->InvokeEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+    nodeEvents->Delete();
+    }  
 }
 
 
@@ -640,6 +637,23 @@ void vtkPointRegistrationGUI::ProcessMRMLEvents ( vtkObject *caller,
   if (event == vtkMRMLScene::SceneCloseEvent)
     {
     }
+    
+  // Detect if something has happened in the MRML scene
+  if (event == vtkMRMLTransformableNode::TransformModifiedEvent)
+    {
+    vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(caller);
+    
+    if ((node == vtkMRMLNode::SafeDownCast(this->TrackerNode->GetSelected())))
+      {
+      //Apply registration matrix to transform
+      vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(node);
+      vtkMatrix4x4* mat = vtkMatrix4x4::New();
+      tnode->GetMatrixTransformToWorld(mat);
+      mat->Multiply4x4(this->regTrans, mat, mat);
+      tnode->SetAndObserveMatrixTransformToParent(mat);
+      }
+    }
+    
 }
 
 
