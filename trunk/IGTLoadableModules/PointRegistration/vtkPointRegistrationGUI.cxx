@@ -72,6 +72,8 @@ vtkPointRegistrationGUI::vtkPointRegistrationGUI ( )
   this->DeletePointPairButton = NULL;
   this->DeleteAllPointPairButton = NULL;    
   this->RegisterButton = NULL;
+  this->ApplyTransformButton = NULL;
+  this->ResetButton = NULL;
   
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -157,6 +159,18 @@ vtkPointRegistrationGUI::~vtkPointRegistrationGUI ( )
     {
     this->RegisterButton->SetParent(NULL);
     this->RegisterButton->Delete();
+    }
+    
+  if (this->ApplyTransformButton)
+    {
+    this->ApplyTransformButton->SetParent(NULL);
+    this->ApplyTransformButton->Delete();
+    }
+    
+     if (this->ResetButton)
+    {
+    this->ResetButton->SetParent(NULL);
+    this->ResetButton->Delete();
     }
     
   //----------------------------------------------------------------
@@ -285,7 +299,13 @@ void vtkPointRegistrationGUI::RemoveGUIObservers ( )
     this->ApplyTransformButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
-    
+  
+  if (this->ResetButton)
+    {
+    this->ResetButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+  
   this->RemoveLogicObservers();
 
 }
@@ -336,6 +356,8 @@ void vtkPointRegistrationGUI::AddGUIObservers ( )
   this->DeleteAllPointPairButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->RegisterButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->ResetButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->PatTransformNode
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -572,6 +594,22 @@ void vtkPointRegistrationGUI::ProcessGUIEvents(vtkObject *caller,
       imCoords->Delete();
       }
     }
+  
+  //Reset Button
+  else if (this->ResetButton == vtkKWPushButton::SafeDownCast(caller) 
+          && event == vtkKWPushButton::InvokedEvent)
+    {
+    //Delete all calues from text boxes
+    this->PatCoordinatesEntry->GetWidget()->SetValue("");
+    this->ImagCoordinatesEntry->GetWidget()->SetValue("");
+    this->PointPairMultiColumnList->GetWidget()->DeleteAllRows();
+    
+    //Check if registration matrix has been defined
+    if (!this->regTrans)
+      this->regTrans = vtkMatrix4x4::New();
+    else
+      this->regTrans->Identity();
+    }  
    
    //Apply calculated transform to selected node
   else if (this->ApplyTransformButton == vtkKWPushButton::SafeDownCast(caller) 
@@ -947,9 +985,18 @@ void vtkPointRegistrationGUI::BuildGUIForRegistrationFrame ()
   this->RegisterButton->SetText ("Register");
   this->RegisterButton->SetWidth (12);
   this->RegisterButton->SetBalloonHelpString("Perform patient to image registration.");
+  
+  // add a reset button 
+  this->ResetButton = vtkKWPushButton::New ( );
+  this->ResetButton->SetParent ( registerFrame );
+  this->ResetButton->Create ( );
+  this->ResetButton->SetText ("Reset");
+  this->ResetButton->SetWidth (12);
+  this->ResetButton->SetBalloonHelpString("Reset all values.");
 
-  app->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2", 
-              this->RegisterButton->GetWidgetName());
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              this->RegisterButton->GetWidgetName(),
+              this->ResetButton->GetWidgetName());
 
 
   registerFrame->Delete ();

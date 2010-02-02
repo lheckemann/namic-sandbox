@@ -130,6 +130,7 @@ class VTK_PointRegistration_EXPORT vtkPointRegistrationGUI : public vtkSlicerMod
   vtkKWPushButton *DeletePointPairButton;
   vtkKWPushButton *DeleteAllPointPairButton;    
   vtkKWPushButton *RegisterButton;
+  vtkKWPushButton *ResetButton;
   vtkKWPushButton *ApplyTransformButton;
   
   //----------------------------------------------------------------
