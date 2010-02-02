@@ -765,8 +765,8 @@ void InitializeThresholds(tgCMDLineStructure &tg, vtkImageData* image, vtkImageD
     hist->SetInput(cast->GetOutput());
     hist->IgnoreZeroOn();
     hist->Update();
-    tgWriteVolume("hist_band.nrrd",m,cast->GetOutput());
-    tgWriteVolume("input_image.nrrd",m,cast->GetOutput());
+//    tgWriteVolume("hist_band.nrrd",m,cast->GetOutput());
+//    tgWriteVolume("input_image.nrrd",m,cast->GetOutput());
 
 //  double max = hist->GetMax()[0];
     hist->SetComponentOrigin(0.,0.,0.);
@@ -781,18 +781,26 @@ void InitializeThresholds(tgCMDLineStructure &tg, vtkImageData* image, vtkImageD
     std::string histFileName = std::string(tg.GetWorkingDir())+"/boundary_histogram.txt";
     ofstream histFile(histFileName.c_str());
     int idx = hist->GetMin()[0];
-    float mean = 0, cnt = 0;
+    float mean = 0, stdev = 0, cnt = 0;
     for(;idx<hist->GetMax()[0];idx++){
       histFile << idx << " " << hist->GetOutput()->GetScalarComponentAsFloat(idx,0,0,0) << std::endl;
       mean += hist->GetOutput()->GetScalarComponentAsFloat(idx,0,0,0)*(float)idx;
       cnt += hist->GetOutput()->GetScalarComponentAsFloat(idx,0,0,0);
     }
     mean = mean/cnt;
-    
+
+    for(;idx<hist->GetMax()[0];idx++){
+      float d = mean - hist->GetOutput()->GetScalarComponentAsFloat(idx,0,0,0);
+      stdev += d*d*float(idx);
+    }
+
+    stdev = sqrt(stdev/cnt);
+   
     std::cerr << "Histogram min: " << thrMin << std::endl;
     std::cerr << "Histogram max: " << thrMax << std::endl;
     std::cerr << "Histogram mean: " << mean << std::endl;
+    std::cerr << "Histogram STD: " << stdev << std::endl;
 
-    thrMin = mean;
+    thrMin = mean-stdev;
 
 }
