@@ -33,6 +33,7 @@
 #include "itkChangeInformationImageFilter.h"
 #include "itkVector.h"
 #include "itkShiftScaleInPlaceImageFilter.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 
 #include "itkImageDuplicator.h"
 
@@ -49,6 +50,8 @@ typedef itk::ShiftScaleInPlaceImageFilter<DFImageType> ScaleFilterType;
 typedef itk::ChangeInformationImageFilter<ImageType> ChangeInfoType;
 typedef itk::ImageDuplicator<ImageType> DupType;
 
+typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double> NNType;
+
 typedef itk::ImageRegionConstIteratorWithIndex<ImageType> ImageIterator;
 typedef itk::ImageRegionIterator<DFImageType> DFImageIterator;
 
@@ -59,8 +62,8 @@ double getNorm(double* vec){
 int main(int argc, char **argv){
 
   // TODO: add option to choose interpolator
-  if(argc!=6){
-    std::cerr << "Usage: " << "input_image input_mesh reference_image output_image output_image_df" << std::endl;
+  if(argc<6){
+    std::cerr << "Usage: " << "input_image input_mesh reference_image output_image output_image_df [0|1]" << std::endl;
     return -1;
   }
 
@@ -69,6 +72,13 @@ int main(int argc, char **argv){
   char* refImageName = argv[3];
   char* outImageName = argv[4];
   char* outDFName = argv[5];
+
+  bool useNearestNeighbor = false; // linear by default
+  
+  if(argc>6)
+    useNearestNeighbor = (bool) atoi(argv[6]);
+
+  
 
   ImageReaderType::Pointer imageReader = ImageReaderType::New();
   imageReader->SetFileName(inputImageName);
@@ -114,8 +124,13 @@ int main(int argc, char **argv){
     thisPt[0] *= -1;
     thisPt[1] *= -1;
     meshPoints->SetPoint(i,thisPt[0],thisPt[1],thisPt[2]);
+
   }
   
+//
+//
+//
+
   std::cout << "Before the main loop" << std::endl;
 
   for(cells->InitTraversal();cells->GetNextCell(npts,pts);cellId++){
@@ -123,8 +138,8 @@ int main(int argc, char **argv){
     vtkTetra* tetra = vtkTetra::New();
     vtkCell* thisCell = mesh->GetCell(cellId);
     tetra->Initialize(npts, pts, meshPoints);
-//    std::cout << tetra->GetPointId(0) << " " << tetra->GetPointId(1) <<
-//      " " << tetra->GetPointId(2) << " " << tetra->GetPointId(3) << std::endl;
+    //std::cout << tetra->GetPointId(0) << " " << tetra->GetPointId(1) <<
+    //  " " << tetra->GetPointId(2) << " " << tetra->GetPointId(3) << std::endl;
     vtkPoints *tetraPoints = tetra->GetPoints();
     ImageType::IndexType bbMin, bbMax;
     bbMin[0] = refImage->GetBufferedRegion().GetSize()[0];
@@ -146,7 +161,7 @@ int main(int argc, char **argv){
         bbMin[1] = index[1];
       if(index[2]<bbMin[2])
         bbMin[2] = index[2];
-      
+
       if(index[0]>bbMax[0])
         bbMax[0] = index[0];
       if(index[1]>bbMax[1])
@@ -224,10 +239,21 @@ int main(int argc, char **argv){
 
       image->TransformPhysicalPointToIndex(pointIn, idxOut);
       outputImage->SetPixel(imageI.GetIndex(), image->GetPixel(idxOut));
+
     }
   }
 
+//
+//
+//
+
   WarpFilterType::Pointer warpFilter = WarpFilterType::New();
+  if(useNearestNeighbor){
+    NNType::Pointer nnInterp = NNType::New();
+    warpFilter->SetInterpolator(nnInterp);
+    std::cout << "Using nearest neighbor interpolator" << std::endl;
+  }
+
   warpFilter->SetInput(image);
   warpFilter->SetDeformationField(dfImage);
   warpFilter->SetOutputSpacing(image->GetSpacing());
