@@ -259,7 +259,7 @@ private:
     const TangentVectorType & inputVector, 
     TangentVectorType & transportedVector ) const;
 
-  void PrintOutDeformationVectors();
+  void PrintOutDeformationVectors( std::ostream & os = std::cout );
 
   virtual PointType InterpolateDestinationFieldAtPoint( 
     const DestinationPointContainerType * destinationField, const PointType & point );
