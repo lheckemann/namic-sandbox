@@ -12,20 +12,27 @@
 
 #include "itkAddImageFilter.h"
 #include "itkDivideByConstantImageFilter.h"
+#include "itkMultiplyByConstantImageFilter.h"
 #include "itkOrientedImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
+#include "itkCastImageFilter.h"
+#include "itkMinimumMaximumImageFilter.h"
 #include <iostream>
 
 typedef itk::OrientedImage<float, 3> ImageType;
+typedef itk::OrientedImage<short, 3> OutputType;
 typedef itk::DivideByConstantImageFilter<ImageType,float,ImageType> DivideType;
+typedef itk::MultiplyByConstantImageFilter<ImageType,float,ImageType> MulType;
 typedef itk::AddImageFilter<ImageType,ImageType> AddType;
 typedef itk::ImageFileReader<ImageType> ReaderType;
-typedef itk::ImageFileWriter<ImageType> WriterType;
+typedef itk::ImageFileWriter<OutputType> WriterType;
 typedef itk::BinaryThresholdImageFilter<ImageType,ImageType> ThresholdType;
 typedef itk::DiscreteGaussianImageFilter<ImageType,ImageType> GaussianType;
+typedef itk::CastImageFilter<ImageType,OutputType> CastType;
+typedef itk::MinimumMaximumImageFilter<ImageType> MinMaxType;
 
 
 int main(int argc, char** argv){
@@ -61,7 +68,7 @@ int main(int argc, char** argv){
   thresh->SetInput(reader->GetOutput());
   thresh->SetUpperThreshold(label);
   thresh->SetLowerThreshold(label);
-  thresh->SetInsideValue(label);
+  thresh->SetInsideValue(1.);
   thresh->SetOutsideValue(0);
 
   GaussianType::Pointer gauss = GaussianType::New();
@@ -103,7 +110,20 @@ int main(int argc, char** argv){
   divider->SetConstant(float(argc-3));
   divider->Update();
 
-  writer->SetInput(divider->GetOutput());
+  MulType::Pointer mul = MulType::New();
+  mul->SetInput(divider->GetOutput());
+  mul->SetConstant(255.);
+
+  MinMaxType::Pointer minmax = MinMaxType::New();
+  minmax->SetInput(divider->GetOutput());
+  minmax->Update();
+  std::cout << "Min prob: " << minmax->GetMinimum() << " Max prob: " 
+    << minmax->GetMaximum() << std::endl;
+
+  CastType::Pointer cast = CastType::New();
+  cast->SetInput(mul->GetOutput());
+
+  writer->SetInput(cast->GetOutput());
   writer->SetFileName(argv[argc-1]);
   writer->Update();
 
