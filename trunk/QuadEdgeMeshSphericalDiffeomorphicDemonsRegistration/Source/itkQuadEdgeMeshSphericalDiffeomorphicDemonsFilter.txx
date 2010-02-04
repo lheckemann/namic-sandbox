@@ -640,7 +640,7 @@ std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude << std::e
 
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
-  const unsigned int minimumNumberOfIterations = 2; // FIXME: This is critical. It used to be 10
+  const unsigned int minimumNumberOfIterations = 10; // FIXME: This is critical. It used to be 10
 
 std::cout << "ratio = " << ratio << std::endl;
   if( ratio < 1.0 )
@@ -1063,6 +1063,8 @@ ConvertTangentVectorFieldToDeformationField()
   typedef Versor< double >   VersorType;
   VersorType versor;
 
+  const double normEpsilon = itk::NumericTraits<double>::min();
+
   while( tangentItr != tangentEnd )
     {
     VectorType vectorToCenter( pointItr.Value() - this->m_SphereCenter );
@@ -1072,13 +1074,21 @@ ConvertTangentVectorFieldToDeformationField()
     const VectorType & tangent = tangentItr.Value();
 
     const double sinTheta = tangent.GetNorm();
-    const double theta = vcl_asin( sinTheta );
 
-    const VectorType axis = CrossProduct( vectorToCenter, tangent );
+    if( sinTheta > normEpsilon )
+      {
+      const double theta = vcl_asin( sinTheta );
 
-    versor.Set( axis, theta );
+      const VectorType axis = CrossProduct( vectorToCenter, tangent );
 
-    dstPointItr.Value() = versor.Transform( pointItr.Value() );
+      versor.Set( axis, theta );
+
+      dstPointItr.Value() = versor.Transform( pointItr.Value() );
+      }
+    else
+      {
+      dstPointItr.Value() = pointItr.Value();
+      }
 
     ++dstPointItr;
     ++tangentItr;
@@ -1194,10 +1204,10 @@ ComposeDestinationPointsOutputPointSet()
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
-PrintOutDeformationVectors()
+PrintOutDeformationVectors( std::ostream & os )
 {
-  std::cout << std::endl;
-  std::cout << "Deformation Vectors at every node " <<  std::endl;
+  os << std::endl;
+  os << "Deformation Vectors at every node " <<  std::endl;
   DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
   DestinationPointIterator dstPointEnd = this->m_DestinationPoints->End();
 
@@ -1206,12 +1216,12 @@ PrintOutDeformationVectors()
 
   while( dstPointItr != dstPointEnd )
     {
-    std::cout <<  dstPointItr.Value() - srcPointItr.Value() << std::endl;
+    os <<  dstPointItr.Value() - srcPointItr.Value() << std::endl;
 
     ++dstPointItr;
     ++srcPointItr;
     }
-  std::cout << std::endl;
+  os << std::endl;
 }
 
 
