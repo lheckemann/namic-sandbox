@@ -217,6 +217,7 @@ GenerateData()
   this->ComputeShortestEdgeLength();
   this->ComputeInitialArrayOfDestinationPoints();
   this->InitializeInterpolators();
+  this->InitializeGradientCalculators();
 
   // Compute deformations
   this->RunIterations();
@@ -389,6 +390,33 @@ InitializeInterpolators()
   this->m_DeformationInterpolator->SetSphereCenter( this->m_SphereCenter );
 }
 
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+void
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
+InitializeGradientCalculators()
+{
+  this->m_TriangleListBasisSystemCalculator->SetInputMesh( this->m_FixedMesh );
+  this->m_TriangleListBasisSystemCalculator->Calculate();
+
+  this->m_NodeScalarGradientCalculator->SetInputMesh( this->m_FixedMesh );
+  this->m_NodeScalarGradientCalculator->SetDataContainer( this->m_ResampledMovingValuesContainer );
+
+  this->m_NodeScalarGradientCalculator->SetBasisSystemList(
+    this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
+
+  this->m_NodeScalarGradientCalculator->SetSphereCenter( this->m_SphereCenter );
+  this->m_NodeScalarGradientCalculator->SetSphereRadius( this->m_SphereRadius );
+
+  this->m_NodeVectorJacobianCalculator->SetInputMesh( this->m_FixedMesh );
+  this->m_NodeVectorJacobianCalculator->SetBasisSystemList(
+    this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
+
+  this->m_NodeVectorJacobianCalculator->SetSphereCenter( this->m_SphereCenter );
+  this->m_NodeVectorJacobianCalculator->SetSphereRadius( this->m_SphereRadius );
+}
+
+
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
@@ -418,29 +446,10 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 ComputeGradientsOfMappedMovingValueAtEveryNode()
 {
-  this->m_TriangleListBasisSystemCalculator->SetInputMesh( this->m_FixedMesh );
-  this->m_TriangleListBasisSystemCalculator->Calculate();
-
-  this->m_NodeScalarGradientCalculator->SetInputMesh( this->m_FixedMesh );
-  this->m_NodeScalarGradientCalculator->SetDataContainer( this->m_ResampledMovingValuesContainer );
-
-  this->m_NodeScalarGradientCalculator->SetBasisSystemList(
-    this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
-
-  this->m_NodeScalarGradientCalculator->SetSphereCenter( this->m_SphereCenter );
-  this->m_NodeScalarGradientCalculator->SetSphereRadius( this->m_SphereRadius );
-
   this->m_NodeScalarGradientCalculator->Initialize();
   this->m_NodeScalarGradientCalculator->Compute();
 
-  this->m_NodeVectorJacobianCalculator->SetInputMesh( this->m_FixedMesh );
   this->m_NodeVectorJacobianCalculator->SetVectorContainer( this->m_DestinationPoints );
-
-  this->m_NodeVectorJacobianCalculator->SetBasisSystemList(
-    this->m_TriangleListBasisSystemCalculator->GetBasisSystemList() );
-
-  this->m_NodeVectorJacobianCalculator->SetSphereCenter( this->m_SphereCenter );
-  this->m_NodeVectorJacobianCalculator->SetSphereRadius( this->m_SphereRadius );
 
   this->m_NodeVectorJacobianCalculator->Initialize();
   this->m_NodeVectorJacobianCalculator->Compute();
@@ -515,7 +524,7 @@ ComputeVelocityField()
 
   VnlVector3Type mn;
   VnlVector2Type QnTmn;
-  VnlVector3Type IntensitySlope;
+  VnlVector3Type intensitySlope;
   VelocityVectorType Vn;
 
   VectorType vectorToCenter;
@@ -600,9 +609,9 @@ ComputeVelocityField()
 
     QnTmn = QnT * mn;
 
-    IntensitySlope = Qn * QnTGn2Bn2m2QnGI22I * QnTmn;
+    intensitySlope = Qn * QnTGn2Bn2m2QnGI22I * QnTmn;
 
-    Vn.SetVnlVector( IntensitySlope * ( Fv - Mv ) );
+    Vn.SetVnlVector( intensitySlope * ( Fv - Mv ) );
 
     metricSum += ( Fv - Mv )*( Fv - Mv ) / sigmaN2;
 
@@ -612,7 +621,9 @@ ComputeVelocityField()
     //
     velocityItr.Value() = Vn * (this->m_SphereRadius * this->m_SphereRadius);
 
-if( pointId == 0 ) std::cout << "velocity  = " << velocityItr.Value() << " = " << Vn << std::endl;
+if( pointId == 0 ) std::cout << "velocity  = " << velocityItr.Value() << " = " << Vn << " intensitySlope = " << intensitySlope << std::endl;
+if( pointId == 0 ) std::cout << "Qn  = " << Qn  << " QnTGn2Bn2m2QnGI22I= " << QnTGn2Bn2m2QnGI22I << " QnTmn " << QnTmn << " mn = " << mn << std::endl;
+if( pointId == 0 ) std::cout << "derivative  = " << derivative  << std::endl;
 
     ++velocityItr;
     ++sigmaItr;
@@ -640,7 +651,7 @@ std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude << std::e
 
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
-  const unsigned int minimumNumberOfIterations = 10; // FIXME: This is critical. It used to be 10
+  const unsigned int minimumNumberOfIterations = 1; // FIXME: This is critical. It used to be 10
 
 std::cout << "ratio = " << ratio << std::endl;
   if( ratio < 1.0 )
