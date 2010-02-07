@@ -154,8 +154,6 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
 
   ProgressReporter progress(this, 0, numberOfPoints);
 
-  std::cout << "Output numberOfPoints " << numberOfPoints << std::endl;
-
   this->m_Interpolator->SetInputMesh( fixedMesh );
   this->m_Interpolator->Initialize();
 
