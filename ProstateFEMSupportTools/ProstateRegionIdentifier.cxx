@@ -33,10 +33,16 @@ int main(int argc, char **argv){
     return -1;
   }
 
+
   char* inputImageName = argv[1];
   char* inputMeshName = argv[2];
   char* outAbaqusName = argv[3];
   char* outVTKmesh = argv[4];
+  
+  std::cout << "Input image: " << inputImageName << std::endl;
+  std::cout << "Input mesh: " << inputMeshName << std::endl;
+  std::cout << "Output Abaqus mesh: " << outAbaqusName << std::endl;
+  std::cout << "Output VTK mesh: " << outVTKmesh << std::endl;
 
   ImageReaderType::Pointer imageReader = ImageReaderType::New();
   imageReader->SetFileName(inputImageName);
@@ -60,10 +66,10 @@ int main(int argc, char **argv){
   tissueType->Delete();
 
   vtkIdType npts, *pts;
-  int i, cellId=0, label0 = 0, label4 = 0, label5 = 0;
+  int i, cellId=0, label4 = 0, label5 = 0;
+  std::vector<std::string> label4Cells, label5Cells;
 
   for(cells->InitTraversal();cells->GetNextCell(npts,pts);cellId++){
-    assert(npts==4);
     vtkTetra* tetra = vtkTetra::New();
     tetra->Initialize(npts, pts, meshPoints);
     
@@ -101,14 +107,45 @@ int main(int argc, char **argv){
 
     float labelValue = image->GetPixel(tetCenterIdx);
 
+    if(labelValue == 0)
+      labelValue = maxLabel > 0 ? maxLabel : 4;
+
+    std::ostringstream outEntryStream;
+    outEntryStream << cellId+1 << ", " << pts[0]+1 << ", " << pts[1]+1 << ", " <<
+      pts[2]+1 << ", " << pts[3];
+    std::string outEntry = outEntryStream.str();
+
     switch(int(labelValue)){
-      case 4: tissueType->InsertTuple(cellId, &labelValue); label4++; break;
-      case 5: tissueType->InsertTuple(cellId, &labelValue); label5++; break;
-      default: labelValue = maxLabel > 0 ? maxLabel : 4; 
-               tissueType->InsertTuple(cellId, &labelValue); label0++;
+      case 4: tissueType->InsertTuple(cellId, &labelValue); 
+              label4++; 
+              label4Cells.push_back(outEntry);
+              break;
+      case 5: tissueType->InsertTuple(cellId, &labelValue); 
+              label5++; 
+              label5Cells.push_back(outEntry);
+              break;
+      default: assert(0);
     }
   }
 
+  std::ofstream abaqusMeshFile(outAbaqusName);
+  abaqusMeshFile << "*NODE" << std::endl;
+
+  for(i=0;i<mesh->GetNumberOfPoints();i++)
+    abaqusMeshFile << i+1 << ", " << mesh->GetPoint(i)[0] << ", " << 
+      mesh->GetPoint(i)[1] << ", " << mesh->GetPoint(i)[2] << std::endl;
+  
+  abaqusMeshFile << "*ELEMENT,TYPE=C3D4ANP,ELSET=Prostate_CG" << std::endl;
+  for(std::vector<std::string>::iterator it=label4Cells.begin();it!=label4Cells.end();++it){
+    abaqusMeshFile << *it << std::endl;
+  }
+
+  abaqusMeshFile << "*ELEMENT,TYPE=C3D4ANP,ELSET=Prostate_PZ" << std::endl;
+  for(std::vector<std::string>::iterator it=label5Cells.begin();it!=label5Cells.end();++it){
+    abaqusMeshFile << *it << std::endl;
+  }
+  abaqusMeshFile.close();
+ 
 //  std::cout << "Tets with label 0: " << label0 << std::endl;
 //  std::cout << "Tets with label 4: " << label4 << std::endl;
 //  std::cout << "Tets with label 5: " << label5 << std::endl;
