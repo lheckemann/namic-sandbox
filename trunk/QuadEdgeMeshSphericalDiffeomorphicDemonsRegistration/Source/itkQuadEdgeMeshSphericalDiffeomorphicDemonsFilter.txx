@@ -617,13 +617,11 @@ ComputeVelocityField()
 
     //
     // FIXME   velocityItr.Value() = Vn;
+    //
     // FIXME   velocityItr.Value() = Vn * ( this->m_SphereRadius );
     //
     velocityItr.Value() = Vn * (this->m_SphereRadius * this->m_SphereRadius);
-
-if( pointId == 0 ) std::cout << "velocity  = " << velocityItr.Value() << " = " << Vn << " intensitySlope = " << intensitySlope << std::endl;
-if( pointId == 0 ) std::cout << "Qn  = " << Qn  << " QnTGn2Bn2m2QnGI22I= " << QnTGn2Bn2m2QnGI22I << " QnTmn " << QnTmn << " mn = " << mn << std::endl;
-if( pointId == 0 ) std::cout << "derivative  = " << derivative  << std::endl;
+    //
 
     ++velocityItr;
     ++sigmaItr;
@@ -633,7 +631,7 @@ if( pointId == 0 ) std::cout << "derivative  = " << derivative  << std::endl;
     ++pointItr;
     }
 
-  std::cout <<  "Metric: " <<  metricSum << "   ";
+  std::cout <<  "Metric: " <<  metricSum << std::endl;
 }
 
 
@@ -647,13 +645,10 @@ ComputeScalingAndSquaringNumberOfIterations()
   //
   const double largestVelocityMagnitude = this->ComputeLargestVelocityMagnitude();
 
-std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude << std::endl;
-
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
-  const unsigned int minimumNumberOfIterations = 1; // FIXME: This is critical. It used to be 10
+  const unsigned int minimumNumberOfIterations = 0; // FIXME: This is critical. It used to be 10
 
-std::cout << "ratio = " << ratio << std::endl;
   if( ratio < 1.0 )
     {
     this->m_ScalingAndSquaringNumberOfIterations = minimumNumberOfIterations;
@@ -661,7 +656,7 @@ std::cout << "ratio = " << ratio << std::endl;
   else
     {
     unsigned int iterations = static_cast< unsigned int >( vcl_log( ratio ) / vcl_log( 2.0 ) ) + 2;
-std::cout << "iterations = " << iterations << std::endl;
+
     if( iterations < minimumNumberOfIterations )
       {
       iterations = minimumNumberOfIterations;
@@ -718,7 +713,6 @@ ComputeShortestEdgeLength()
     }
 
   this->m_ShortestEdgeLength = shortestLength;
-std::cout << "shortestLength = " << this->m_ShortestEdgeLength << std::endl;  // *****
 }
 
 
@@ -731,7 +725,7 @@ ComputeLargestVelocityMagnitude() const
 
   VelocityVectorConstIterator velocityItr = this->m_VelocityField->Begin();
   VelocityVectorConstIterator velocityEnd = this->m_VelocityField->End();
-std::cout << "velocity for point 0 = " << velocityItr.Value() << std::endl; // *****
+
   while( velocityItr != velocityEnd )
     {
     const double velocityMagnitude = velocityItr.Value().GetNorm();
@@ -818,10 +812,9 @@ ComposeDeformationUpdateWithPreviousDeformation()
 
   DestinationPointIterator newDestinationPointItr = this->m_DestinationPointsSwap->Begin();
 
+  DestinationPointIterator dstPointItrX = this->m_DestinationPoints->Begin();
 
-DestinationPointIterator dstPointItrX = this->m_DestinationPoints->Begin();
 std::cout << "Current Destination for point 0 = " << dstPointItrX.Value() << std::endl;
-
   while( displacementItr != displacementEnd )
     {
     newDestinationPointItr.Value() =
