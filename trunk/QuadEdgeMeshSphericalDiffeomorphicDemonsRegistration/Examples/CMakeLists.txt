@@ -228,8 +228,8 @@ ADD_TEST(DemonsExample1
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
   ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
-  ${TEMP}/MeshDemonsFilter1_ResampledMovingMesh.vtk
-  ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh.vtk
+  ${TEMP}/MeshDemonsFilter1_ResampledMovingMesh_IC1.vtk
+  ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh_IC1.vtk
   100.0  # Sphere radius
   1.0    # Epsilon
   1.0    # SigmaX
@@ -239,6 +239,35 @@ ADD_TEST(DemonsExample1
   )
 
 ADD_TEST(DemonsExample2
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC2.vtk
+  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC2.vtk
+  ${TEMP}/MeshDemonsFilter1_ResampledMovingMesh_IC2.vtk
+  ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh_IC2.vtk
+  100.0  # Sphere radius
+  1.0    # Epsilon
+  1.0    # SigmaX
+  1.0    # Lambda
+  10     # Smoothing Iterations
+  30     # maximum number of iterations
+  )
+
+ADD_TEST(DemonsExample3
+  ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC3.vtk
+  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC3.vtk
+  ${TEMP}/MeshDemonsFilter1_ResampledMovingMesh_IC3.vtk
+  ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh_IC3.vtk
+  100.0  # Sphere radius
+  1.0    # Epsilon
+  1.0    # SigmaX
+  1.0    # Lambda
+  10     # Smoothing Iterations
+  30     # maximum number of iterations
+  )
+
+
+ADD_TEST(DemonsExample4
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
   ${TEST_DATA_ROOT}/Input/RigidRegistrationSimpleSurface2to1Small.vtk
@@ -252,7 +281,7 @@ ADD_TEST(DemonsExample2
   30     # maximum number of iterations
   )
 
-ADD_TEST(DemonsExample3
+ADD_TEST(DemonsExample5
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEST_DATA_ROOT}/Input/SimpleSurface1.vtk
   ${TEST_DATA_ROOT}/Input/RigidRegistrationSimpleSurface2to1.vtk
@@ -266,7 +295,7 @@ ADD_TEST(DemonsExample3
   30     # maximum number of iterations
   )
 
-ADD_TEST(DemonsExample4
+ADD_TEST(DemonsExample6
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter2
   ${TEST_DATA_ROOT}/Input/SimpleSurface1Small.vtk
   ${TEST_DATA_ROOT}/Input/RigidRegistrationSimpleSurface2to1Small.vtk
