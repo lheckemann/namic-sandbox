@@ -234,7 +234,7 @@ ADD_TEST(DemonsExample1
   1.0    # Epsilon
   1.0    # SigmaX
   1.0    # Lambda
-  10     # Smoothing Iterations
+   2     # Smoothing Iterations
   30     # maximum number of iterations
   )
 
@@ -248,7 +248,7 @@ ADD_TEST(DemonsExample2
   1.0    # Epsilon
   1.0    # SigmaX
   1.0    # Lambda
-  10     # Smoothing Iterations
+   2     # Smoothing Iterations
   30     # maximum number of iterations
   )
 
@@ -262,7 +262,7 @@ ADD_TEST(DemonsExample3
   1.0    # Epsilon
   1.0    # SigmaX
   1.0    # Lambda
-  10     # Smoothing Iterations
+   2     # Smoothing Iterations
   30     # maximum number of iterations
   )
 
