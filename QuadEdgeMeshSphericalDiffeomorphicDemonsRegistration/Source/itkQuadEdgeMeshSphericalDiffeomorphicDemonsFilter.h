@@ -230,6 +230,7 @@ private:
   void ComputeBasisSystemAtEveryNode();
   void ComputeInitialArrayOfDestinationPoints();
   void InitializeInterpolators();
+  void InitializeGradientCalculators();
   void CopyInitialDestinationPoints();
   void CopySourcePoinstAsDestinationPoints();
 
