@@ -431,7 +431,9 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->LeftSideActor->SetTextScaleModeToNone();
   this->LeftSideActor->GetTextProperty()->SetFontSize( 30 );
   this->LeftSideActor->GetTextProperty()->BoldOn();
-  this->LeftSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50, 50 );
+  this->LeftSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50,
+                                           this->ScreenSize[ 1 ] - 50 );
+  this->LeftSideActor->SetOrientation( 180 );
   // this->LeftSideActor->SetHeight( - 20.0 );
   
   this->RightSideActor->SetInput( "R" );
@@ -439,7 +441,8 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->RightSideActor->SetTextScaleModeToNone();
   this->RightSideActor->GetTextProperty()->SetFontSize( 30 );
   this->RightSideActor->GetTextProperty()->BoldOn();
-  this->RightSideActor->SetDisplayPosition( 50, 50 );
+  this->RightSideActor->SetDisplayPosition( 50, this->ScreenSize[ 1 ] - 50 );
+  this->RightSideActor->SetOrientation( 180 );
   
   this->Renderer->AddActor( this->LeftSideActor );
   this->Renderer->AddActor( this->RightSideActor );
@@ -959,8 +962,9 @@ void vtkPerkStationSecondaryMonitor::FlipHorizontal()
     this->HorizontalFlipped = true;
     this->UpdateMatrices();
     
-    this->LeftSideActor->SetDisplayPosition( 50, 50 );
-    this->RightSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50, 50 );
+    this->LeftSideActor->SetDisplayPosition( 50, this->ScreenSize[ 1 ] - 50 );
+    this->RightSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50,
+                                              this->ScreenSize[ 1 ] - 50 );
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::Scale(double sx, double sy, double sz)
