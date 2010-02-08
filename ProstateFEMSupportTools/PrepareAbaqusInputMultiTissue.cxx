@@ -164,7 +164,7 @@ int main(int argc, char **argv){
       labelValue = maxLabel > 0 ? maxLabel : 4;
 
     std::ostringstream outEntryStream;
-    outEntryStream << cellId+1 << ", " << pts[0]+1 << ", " << pts[1]+1 << ", " <<
+    outEntryStream << "   " << cellId+1 << ", " << pts[0]+1 << ", " << pts[1]+1 << ", " <<
       pts[2]+1 << ", " << pts[3]+1;
     std::string outEntry = outEntryStream.str();
 
@@ -186,7 +186,7 @@ int main(int argc, char **argv){
   abaqusMeshFile << "*NODE" << std::endl;
 
   for(i=0;i<mesh->GetNumberOfPoints();i++)
-    abaqusMeshFile << i+1 << ", " << mesh->GetPoint(i)[0] << ", " << 
+    abaqusMeshFile << "   " << i+1 << ", " << mesh->GetPoint(i)[0] << ", " << 
       mesh->GetPoint(i)[1] << ", " << mesh->GetPoint(i)[2] << std::endl;
   
   abaqusMeshFile << "*ELEMENT,TYPE=C3D4ANP,ELSET=Prostate_CG" << std::endl;
@@ -200,10 +200,9 @@ int main(int argc, char **argv){
   }
 
   std::ofstream displFile(outDisplName);
-  displFile << "*NSET, NSET=Loaded_Nodes" << std::endl;
   for(i=0;i<surf->GetNumberOfPoints();i+=takeEveryNthPoint){
     double *displVal = displ->GetTuple3(i);
-    displFile << i+1 << " " << displVal[0] << " " << displVal[1] << " " << displVal[2] << std::endl;
+    displFile << i+1 << "   " << displVal[0] << " " << displVal[1] << " " << displVal[2] << std::endl;
   }
   abaqusMeshFile.close();
  
