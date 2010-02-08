@@ -165,7 +165,7 @@ int main(int argc, char **argv){
 
     std::ostringstream outEntryStream;
     outEntryStream << cellId+1 << ", " << pts[0]+1 << ", " << pts[1]+1 << ", " <<
-      pts[2]+1 << ", " << pts[3];
+      pts[2]+1 << ", " << pts[3]+1;
     std::string outEntry = outEntryStream.str();
 
     switch(int(labelValue)){
