@@ -548,18 +548,24 @@ void vtkPerkStationPlanStep::PopulateControlsOnLoadPlanning()
 
 }
 //----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
+void vtkPerkStationPlanStep::ProcessImageClickEvents(
+  vtkObject *caller, unsigned long event, void *callData)
 {
   
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
-  // first identify if the step is pertinent, i.e. current step of wizard workflow is actually calibration step
-  if (!wizard_widget ||   wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this)
+  // first identify if the step is pertinent, i.e. current step of wizard
+  // workflow is actually calibration step
+  if ( ! wizard_widget
+       || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this )
     {
     return;
     }
 
-  if (!this->GetGUI()->GetMRMLNode() || !this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode() || strcmp(this->GetGUI()->GetMRMLNode()->GetVolumeInUse(), "Planning")!=0)
+  if ( ! this->GetGUI()->GetMRMLNode()
+       || ! this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode()
+       || strcmp( this->GetGUI()->GetMRMLNode()->GetVolumeInUse(),
+                  "Planning" )!= 0 )
     {
     // TO DO: what to do on failure
     return;
@@ -567,73 +573,95 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
 
 
   // see if the entry and target have already been acquired
-  if(this->EntryTargetAcquired)
+  if( this->EntryTargetAcquired )
     {
     return;
     }
-  vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
-  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  
+  vtkSlicerInteractorStyle *s =
+    vtkSlicerInteractorStyle::SafeDownCast( caller );
+  vtkSlicerInteractorStyle *istyle0 =
+    vtkSlicerInteractorStyle::SafeDownCast(
+      this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->
+      GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->
+      GetInteractorStyle() );
   
   
   vtkRenderWindowInteractor *rwi;
   vtkMatrix4x4 *matrix;
 
-  // planning has to happen on slicer laptop, cannot be done from secondary monitor, so don't listen to clicks in secondary monitor
-  if ((s == istyle0)&& (event == vtkCommand::LeftButtonPressEvent))
+
+    // planning has to happen on slicer laptop, cannot be done from secondary
+    // monitor, so don't listen to clicks in secondary monitor
+  
+  if ( ( s == istyle0 )
+       && ( event == vtkCommand::LeftButtonPressEvent ) )
     {
-    ++this->ClickNumber;
-    // mouse click happened in the axial slice view
-    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
-    rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
+    ++ this->ClickNumber;
+    
+    
+      // mouse click happened in the axial slice view
+    
+    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(
+      this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+    rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
+      GetRenderWindowInteractor();    
     matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
 
     
-    int point[2];
-    rwi->GetLastEventPosition(point);
-    double inPt[4] = {point[0], point[1], 0, 1};
-    double outPt[4];    
-    matrix->MultiplyPoint(inPt, outPt); 
-    double ras[3] = {outPt[0], outPt[1], outPt[2]};
+    int point[ 2 ];
+    rwi->GetLastEventPosition( point );
+    double inPt[ 4 ] = { point[0], point[1], 0, 1 };
+    double outPt[ 4 ];    
+    matrix->MultiplyPoint( inPt, outPt ); 
+    double ras[ 3 ] = { outPt[ 0 ], outPt[ 1 ], outPt[ 2 ] };
 
-    // depending on click number, it is either Entry point or target point
-    if (this->ClickNumber ==1)
+    
+      // depending on click number, it is either Entry point or target point
+    
+    if ( this->ClickNumber == 1 )
       {
-      // entry point specification by user
-      this->EntryPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
-      this->EntryPoint->GetWidget(1)->SetValueAsDouble(ras[1]);
-      this->EntryPoint->GetWidget(2)->SetValueAsDouble(ras[2]);
+        // entry point specification by user
+      this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
+      this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
+      this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
 
-      // record value in mrml node
-      this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint(ras);
+        // record value in mrml node
+      this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint( ras );
 
-      // start the log timer      
+        // start the log timer      
       this->LogTimer->StartTimer();
 
 
-      // record value in mrml fiducial list node      
-      int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ(ras[0], ras[1], ras[2], false);
-      this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText(index, "Entry");
+        // record value in mrml fiducial list node      
       
-
+      int index = this->GetGUI()->GetMRMLNode()->
+        GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ(
+          ras[ 0 ], ras[ 1 ], ras[ 2 ], false );
+      
+      this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
+        SetNthFiducialLabelText( index, "Entry" );
       }
-    else if (this->ClickNumber == 2)
+    else if ( this->ClickNumber == 2 )
       {
-      this->TargetPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
-      this->TargetPoint->GetWidget(1)->SetValueAsDouble(ras[1]);
-      this->TargetPoint->GetWidget(2)->SetValueAsDouble(ras[2]);
+      this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
+      this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
+      this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
       
-      // record value in the MRML node
-      this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint(ras);
+        // record value in the MRML node
+      this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint( ras );
     
-      // record value in mrml fiducial list node      
-      int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ(ras[0], ras[1], ras[2], false);
-      this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText(index, "Target");
+        // record value in mrml fiducial list node      
+      int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
+        AddFiducialWithXYZ( ras[0], ras[1], ras[2], false );
+      this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
+        SetNthFiducialLabelText( index, "Target" );
       
-      // calculate insertion angle and insertion depth
+        // calculate insertion angle and insertion depth
       this->CalculatePlanInsertionAngleAndDepth();
-      // record those values too in the mrml node
+        // record those values too in the mrml node
     
-      // do an image overlay of a cylinder!!
+        // do an image overlay of a cylinder!!
       this->OverlayNeedleGuide();
       this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
       
@@ -714,17 +742,21 @@ void vtkPerkStationPlanStep::InsertionAngleEntryCallback()
 //------------------------------------------------------------------------------
 void vtkPerkStationPlanStep::OverlayNeedleGuide()
 {
-  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->
+    GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->
+    GetOverlayRenderer();
 
-  // get the world coordinates
-  int point[2];
-  double worldCoordinate[4];
-  vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
+    // get the world coordinates
+  int point[ 2 ];
+  double worldCoordinate[ 4 ];
+  vtkSlicerSliceGUI *sliceGUI =
+    vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->
+      GetApplicationGUI())->GetMainSliceGUI( "Red" );
   vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
   vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
   vtkMatrix4x4::Invert(xyToRAS, rasToXY);
 
-  // entry point
+    // entry point
   double rasEntry[3];
   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
   double inPt[4] = {rasEntry[0], rasEntry[1], rasEntry[2], 1};
@@ -767,7 +799,7 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   double halfNeedleLength = sqrt( (this->WCTargetPoint[0]-this->WCEntryPoint[0])*(this->WCTargetPoint[0]-this->WCEntryPoint[0]) + (this->WCTargetPoint[1]-this->WCEntryPoint[1])*(this->WCTargetPoint[1]-this->WCEntryPoint[1]));
   needleGuide->SetHeight(2*halfNeedleLength);
   //needleGuide->SetHeight(0.75 );
-  needleGuide->SetRadius( 0.02 );
+  needleGuide->SetRadius( 0.009 );
   //needleGuide->SetCenter((this->XYTargetPoint[0]+this->XYPlanPoint[0])/2, (this->XYTargetPoint[1]+this->XYPlanPoint[1])/2, 0);
   needleGuide->SetResolution( 10 );
 
