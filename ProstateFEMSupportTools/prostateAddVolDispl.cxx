@@ -57,7 +57,7 @@ int main(int argc, char** argv){
   vtkFloatArray *displArray = vtkFloatArray::New();
   displArray->SetNumberOfComponents(3);
   displArray->SetNumberOfTuples(vol->GetNumberOfPoints());
-  displArray->SetName("ResultDisplacement");
+  displArray->SetName("Displacement");
   vol->GetPointData()->AddArray(displArray);
   displArray->Delete();
  
