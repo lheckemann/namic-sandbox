@@ -58,6 +58,8 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->ClickNumber = 0;
   this->ProcessingCallback = false;
   this->NeedleActor = NULL;
+  
+  this->SelectTargetFirst = true;
 }
 
 //----------------------------------------------------------------------------
@@ -578,8 +580,10 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(
     return;
     }
   
+  
   vtkSlicerInteractorStyle *s =
     vtkSlicerInteractorStyle::SafeDownCast( caller );
+  
   vtkSlicerInteractorStyle *istyle0 =
     vtkSlicerInteractorStyle::SafeDownCast(
       this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->
@@ -594,83 +598,99 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(
     // planning has to happen on slicer laptop, cannot be done from secondary
     // monitor, so don't listen to clicks in secondary monitor
   
-  if ( ( s == istyle0 )
-       && ( event == vtkCommand::LeftButtonPressEvent ) )
+  if ( ( s != istyle0 )
+       || ( event != vtkCommand::LeftButtonPressEvent ) )
     {
-    ++ this->ClickNumber;
+    return;
+    }
+  
+  
+  ++ this->ClickNumber;
+  
+  
+    // mouse click happened in the axial slice view
+  
+  vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(
+    this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
+  rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
+    GetRenderWindowInteractor();    
+  matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+
+  
+  int point[ 2 ];
+  rwi->GetLastEventPosition( point );
+  double inPt[ 4 ] = { point[0], point[1], 0, 1 };
+  double outPt[ 4 ];    
+  matrix->MultiplyPoint( inPt, outPt ); 
+  double ras[ 3 ] = { outPt[ 0 ], outPt[ 1 ], outPt[ 2 ] };
+
+  
+    // depending on click number, it is either Entry point or target point
+  
+  int entryClick = 1;
+  int targetClick = 2;
+  
+  if ( this->SelectTargetFirst )
+    {
+    targetClick = 1;
+    entryClick = 2;
+    }
+  
+  
+  if ( this->ClickNumber == entryClick )
+    {
+      // entry point specification by user
+    this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
+    this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
+    this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
+
+      // record value in mrml node
+    this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint( ras );
+
+      // record value in mrml fiducial list node          
+    int index = this->GetGUI()->GetMRMLNode()->
+      GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ(
+        ras[ 0 ], ras[ 1 ], ras[ 2 ], false );
     
+    this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
+      SetNthFiducialLabelText( index, "Entry" );
+    }
+  else if ( this->ClickNumber == targetClick )
+    {
+    this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
+    this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
+    this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
     
-      // mouse click happened in the axial slice view
+      // record value in the MRML node
+    this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint( ras );
+  
+      // record value in mrml fiducial list node      
+    int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
+      AddFiducialWithXYZ( ras[0], ras[1], ras[2], false );
     
-    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(
-      this->GetGUI()->GetApplicationGUI() )->GetMainSliceGUI( "Red" );
-    rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->
-      GetRenderWindowInteractor();    
-    matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-
+    this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
+      SetNthFiducialLabelText( index, "Target" );
+    }
+  
+  
+  if ( this->ClickNumber == 1 )  // On first click.
+    {   
+    this->LogTimer->StartTimer();  // Start the log timer.
+    }
+  
+  
+  if ( this->ClickNumber == 2 ) // Needle guide ready.
+    {
+      // calculate insertion angle and insertion depth
+    this->CalculatePlanInsertionAngleAndDepth();
+  
+      // do an image overlay of a cylinder!!
+    this->OverlayNeedleGuide();
+    this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
     
-    int point[ 2 ];
-    rwi->GetLastEventPosition( point );
-    double inPt[ 4 ] = { point[0], point[1], 0, 1 };
-    double outPt[ 4 ];    
-    matrix->MultiplyPoint( inPt, outPt ); 
-    double ras[ 3 ] = { outPt[ 0 ], outPt[ 1 ], outPt[ 2 ] };
+    this->ClickNumber = 0;
 
-    
-      // depending on click number, it is either Entry point or target point
-    
-    if ( this->ClickNumber == 1 )
-      {
-        // entry point specification by user
-      this->EntryPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
-      this->EntryPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
-      this->EntryPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
-
-        // record value in mrml node
-      this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint( ras );
-
-        // start the log timer      
-      this->LogTimer->StartTimer();
-
-
-        // record value in mrml fiducial list node      
-      
-      int index = this->GetGUI()->GetMRMLNode()->
-        GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ(
-          ras[ 0 ], ras[ 1 ], ras[ 2 ], false );
-      
-      this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
-        SetNthFiducialLabelText( index, "Entry" );
-      }
-    else if ( this->ClickNumber == 2 )
-      {
-      this->TargetPoint->GetWidget( 0 )->SetValueAsDouble( ras[ 0 ] );
-      this->TargetPoint->GetWidget( 1 )->SetValueAsDouble( ras[ 1 ] );
-      this->TargetPoint->GetWidget( 2 )->SetValueAsDouble( ras[ 2 ] );
-      
-        // record value in the MRML node
-      this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint( ras );
-    
-        // record value in mrml fiducial list node      
-      int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
-        AddFiducialWithXYZ( ras[0], ras[1], ras[2], false );
-      this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->
-        SetNthFiducialLabelText( index, "Target" );
-      
-        // calculate insertion angle and insertion depth
-      this->CalculatePlanInsertionAngleAndDepth();
-        // record those values too in the mrml node
-    
-        // do an image overlay of a cylinder!!
-      this->OverlayNeedleGuide();
-      this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();  
-      
-      this->ClickNumber = 0;
-
-      this->EntryTargetAcquired = true;
-      }
-
-
+    this->EntryTargetAcquired = true;
     }
 }
 

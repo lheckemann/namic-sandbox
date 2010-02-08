@@ -108,6 +108,7 @@ protected:
   vtkActor *NeedleActor;
 private:
   bool ProcessingCallback;
+  bool SelectTargetFirst;
 
   vtkPerkStationPlanStep(const vtkPerkStationPlanStep&);
   void operator=(const vtkPerkStationPlanStep&);
