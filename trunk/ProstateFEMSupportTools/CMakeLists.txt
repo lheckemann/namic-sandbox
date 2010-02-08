@@ -20,3 +20,12 @@ target_link_libraries(imageMeshResampler ITKCommon ITKIO vtkIO vtkGraphics)
 
 add_executable(ProstateRegionIdentifier ProstateRegionIdentifier.cxx)
 target_link_libraries(ProstateRegionIdentifier ITKCommon ITKIO vtkIO vtkGraphics)
+
+add_executable(PrepareAbaqusInputMultiTissue PrepareAbaqusInputMultiTissue.cxx)
+target_link_libraries(PrepareAbaqusInputMultiTissue ITKCommon ITKIO vtkIO vtkGraphics)
+
+add_executable(InitDisplFromTwoMeshes InitDisplFromTwoMeshes.cxx)
+target_link_libraries(InitDisplFromTwoMeshes ITKCommon ITKIO vtkIO vtkGraphics)
+
+add_executable(CalculateDisplDiff CalculateDisplDiff.cxx)
+target_link_libraries(CalculateDisplDiff ITKCommon ITKIO vtkIO vtkGraphics)
