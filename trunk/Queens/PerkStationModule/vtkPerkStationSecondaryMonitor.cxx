@@ -1360,8 +1360,9 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   this->MeasureNeedleLengthInWorldCoordinates = halfNeedleGuideLength;
 
   // steps
-  // get the cylinder source, create the cylinder, whose height is equal to calculated insertion depth
-  // apply transform on the cylinder to world coordinates, using the information of entry and target point
+  // get the cylinder source, create the cylinder, whose height is equal to
+  // calculated insertion depth apply transform on the cylinder to world
+  // coordinates, using the information of entry and target point
   // i.e. using the insertion angle
   // add it to slice viewer's renderer
 
@@ -1369,7 +1370,7 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   // TO DO: how to relate this to actual depth???
   needleGuide->SetHeight(2*halfNeedleGuideLength );
   //needleGuide->SetHeight(0.75);
-  needleGuide->SetRadius( 0.015 );  
+  needleGuide->SetRadius( 0.009 );  
   needleGuide->SetResolution( 20 );
 
   //int *windowSize = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindow()->GetSize();
