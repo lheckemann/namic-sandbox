@@ -814,7 +814,6 @@ ComposeDeformationUpdateWithPreviousDeformation()
 
   DestinationPointIterator dstPointItrX = this->m_DestinationPoints->Begin();
 
-std::cout << "Current Destination for point 0 = " << dstPointItrX.Value() << std::endl;
   while( displacementItr != displacementEnd )
     {
     newDestinationPointItr.Value() =
