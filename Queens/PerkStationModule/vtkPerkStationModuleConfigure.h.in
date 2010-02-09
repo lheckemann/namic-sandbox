@@ -23,3 +23,33 @@
 #ifdef BUILD_USING_NDIOAPI
 #define USE_NDIOAPI
 #endif
+
+
+#ifndef PERKLOG_DEBUG
+#define PERKLOG_DEBUG( message ) \
+  vtkSlicerApplication::GetInstance()->DebugMessage( message );
+#endif
+
+#ifndef PERKLOG_WARNING
+#define PERKLOG_WARNING( message ) \
+  vtkSlicerApplication::GetInstance()->WarningMessage( message );
+#endif
+
+#ifndef PERKLOG_ERROR
+#define PERKLOG_ERROR( message ) \
+  vtkSlicerApplication::GetInstance()->ErrorMessage( message );
+#endif
+
+#ifndef PERKLOG_INFO
+#define PERKLOG_INFO( message ) \
+  vtkSlicerApplication::GetInstance()->InformationMessage( message );
+#endif
+
+#ifndef PERKLOG
+#define PERKLOG( level, message ) \
+  if ( level == "debug" ) PERKLOG_DEBUG( message ); \
+  if ( level == "warning" ) PERKLOG_WARNING( message ); \
+  if ( level == "error" ) PERKLOG_ERROR( message ); \
+  if ( level == "info" ) PERKLOG_INFO( message );
+#endif
+
