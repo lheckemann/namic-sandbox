@@ -52,6 +52,9 @@ TARGET_LINK_LIBRARIES(itkMeshGeneratorHelperTest5 ITKQuadEdgeMesh ITKIO ITKNumer
 ADD_EXECUTABLE(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 itkResampleDestinationPointsQuadEdgeMeshFilterTest1.cxx )
+TARGET_LINK_LIBRARIES(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkVersorOperationsTest1 itkVersorOperationsTest1.cxx )
 TARGET_LINK_LIBRARIES(itkVersorOperationsTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -251,6 +254,20 @@ ADD_TEST(DemonsFilterTest5
   2        # Smoothing Iterations
   200      # maximum number of iterations
   )
+
+ADD_TEST(ResampleDestinationFilterTest1
+  ${CXX_TEST_PATH}/itkResampleDestinationPointsQuadEdgeMeshFilterTest1
+  ${TEMP}/meshWithScalarsIC1.vtk
+  ${TEMP}/meshWithScalarsIC1.vtk
+  ${TEMP}/meshWithScalarsIC2.vtk
+  ${TEMP}/meshWithScalarsIC1RegisteredToItselfResampledToIC2.vtk
+  1.0    # Epsilon
+  1.0    # SigmaX
+  1.0    # Lambda
+  1      # Smoothing Iterations
+  1      # maximum number of iterations
+  )
+
 
 ADD_TEST(VersorOperationsTest1
   ${CXX_TEST_PATH}/itkVersorOperationsTest1
