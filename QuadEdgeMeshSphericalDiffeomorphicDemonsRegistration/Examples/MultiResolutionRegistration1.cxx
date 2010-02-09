@@ -418,7 +418,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   const PointSetType::PointsContainer * upsampledPoints = upsampledPointSet->GetPoints();
 
   PointSetType::PointsContainerConstIterator upsampledPointsItr = upsampledPoints->Begin();
-  PointSetType::PointsContainerConstIterator upsampledPointsEnd = upsampledPoints->Begin();
+  PointSetType::PointsContainerConstIterator upsampledPointsEnd = upsampledPoints->End();
 
   FixedMeshType::PointsContainer::Pointer fixedPoints2 = fixedMesh2->GetPoints();
 
@@ -567,7 +567,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   upsampledPoints = upsampledPointSet->GetPoints();
 
   upsampledPointsItr = upsampledPoints->Begin();
-  upsampledPointsEnd = upsampledPoints->Begin();
+  upsampledPointsEnd = upsampledPoints->End();
 
   FixedMeshType::PointsContainer::Pointer fixedPoints3 = fixedMesh3->GetPoints();
 
@@ -716,7 +716,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   upsampledPoints = upsampledPointSet->GetPoints();
 
   upsampledPointsItr = upsampledPoints->Begin();
-  upsampledPointsEnd = upsampledPoints->Begin();
+  upsampledPointsEnd = upsampledPoints->End();
 
   FixedMeshType::PointsContainer::Pointer fixedPoints4 = fixedMesh4->GetPoints();
 
@@ -865,7 +865,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   upsampledPoints = upsampledPointSet->GetPoints();
 
   upsampledPointsItr = upsampledPoints->Begin();
-  upsampledPointsEnd = upsampledPoints->Begin();
+  upsampledPointsEnd = upsampledPoints->End();
 
   FixedMeshType::PointsContainer::Pointer fixedPoints5 = fixedMesh5->GetPoints();
 
