@@ -316,7 +316,7 @@ int main( int argc, char * argv [] )
   const double epsilon = 1.0;
   const double sigmaX = 1.0;
   const double lambda = 1.0;
-  const unsigned int maximumNumberOfSmoothingIterations = 10;
+  const unsigned int maximumNumberOfSmoothingIterations = 2;
   const unsigned int maximumNumberOfIterations = 30;
 
   demonsFilter->SetEpsilon( epsilon );
@@ -878,78 +878,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     ++upsampledPointsItr;
     }
 
-  // 
-  // Now feed this mesh into the Rigid registration of the third resolution level.
-  //
-
-  registration->SetFixedMesh( fixedMesh5 );
-  registration->SetMovingMesh( movingMeshReader5->GetOutput() );
-
-  transform->SetIdentity();
-  parameters = transform->GetParameters();
-
-  registration->SetInitialTransformParameters( parameters );
-
-  // 
-  //  Running Fifth Resolution Level Rigid Registration.
-  //
-
-  std::cout << "Running Fifth Resolution Level Rigid Registration." << std::endl;
-
-  try
-    {
-    registration->StartRegistration();
-    }
-  catch( itk::ExceptionObject & e )
-    {
-    std::cerr << "Registration failed" << std::endl;
-    std::cout << "Reason " << e << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  finalParameters = registration->GetLastTransformParameters();
-
-  std::cout << "final parameters = " << finalParameters << std::endl;
-  std::cout << "final value      = " << optimizer->GetValue() << std::endl;
-
-  transform->SetParameters( finalParameters );
-
-  deformationFieldFromTransform->SetInput( fixedMesh5 );
-  deformationFieldFromTransform->SetTransform( transform );
-
-  try
-    {
-    deformationFieldFromTransform->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cout << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  demonsFilter->SetInitialDestinationPoints( deformationFieldFromTransform->GetOutput() );
-
-  demonsFilter->SetFixedMesh( fixedMesh5 );
-  demonsFilter->SetMovingMesh( movingMeshReader5->GetOutput() );
-
-
-  // 
-  //  Running Fifth Resolution Level Demons Registration.
-  //
-  std::cout << "Running Fifth Resolution Level Demons Registration." << std::endl;
-
-  try
-    {
-    demonsFilter->Update( );
-    }
-  catch( itk::ExceptionObject & exp )
-    {
-    std::cerr << exp << std::endl;
-    return EXIT_FAILURE;
-    }
-
   writer->SetFileName( argv[15] );
-  writer->SetInput( demonsFilter->GetOutput() );
+  writer->SetInput( fixedMesh5 );
 
   try
     {
