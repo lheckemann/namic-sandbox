@@ -3,6 +3,7 @@
 
 #include "vtkPerkStationStep.h"
 
+class vtkKWCheckButtonWithLabel;
 class vtkKWLabel;
 class vtkKWFrame;
 class vtkKWEntryWithLabel;
@@ -84,15 +85,21 @@ protected:
   // reset push button
   vtkKWPushButton *ResetPlanButton;
   vtkKWFrame *ResetFrame;
-
+  
+  vtkKWFrame* TargetFirstFrame;
+  vtkKWCheckButtonWithLabel* TargetFirstCheck;
+  
   // entry point RAS
   // information to be had from the user
+  
   vtkKWFrame *EntryPointFrame;
   vtkKWLabel *EntryPointLabel;
   vtkKWEntrySet      *EntryPoint;
+  
   vtkKWFrame *TargetPointFrame;
   vtkKWLabel *TargetPointLabel;  
   vtkKWEntrySet      *TargetPoint;
+  
   vtkKWEntryWithLabel *InsertionAngle;
   vtkKWEntryWithLabel *InsertionDepth;
   vtkKWFrame *TiltInformationFrame;

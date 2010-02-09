@@ -5,6 +5,7 @@
 #include "vtkPerkStationSecondaryMonitor.h"
 #include "vtkMRMLFiducialListNode.h"
 
+#include "vtkKWCheckButtonWithLabel.h"
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
 #include "vtkKWEntry.h"
@@ -21,6 +22,11 @@
 #include "vtkMatrixToHomogeneousTransform.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkMath.h"
+
+// debug
+#include "vtkSlicerApplication.h"
+
+
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPerkStationPlanStep);
 vtkCxxRevisionMacro(vtkPerkStationPlanStep, "$Revision: 1.1 $");
@@ -35,6 +41,9 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
 
   this->ResetFrame = NULL;
   this->ResetPlanButton = NULL;
+  
+  this->TargetFirstFrame = NULL;
+  this->TargetFirstCheck = NULL;
   this->EntryPointFrame = NULL;
   this->EntryPointLabel = NULL;
   this->EntryPoint = NULL;
@@ -75,7 +84,18 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
     this->ResetPlanButton->Delete();
     this->ResetPlanButton = NULL;
     }
-
+  
+  if ( this->TargetFirstFrame )
+    {
+    this->TargetFirstFrame->Delete();
+    this->TargetFirstFrame = NULL;
+    }
+  if ( this->TargetFirstCheck )
+    {
+    this->TargetFirstCheck->Delete();
+    this->TargetFirstCheck = NULL;
+    }
+  
   if (this->EntryPointFrame)
     {
     this->EntryPointFrame->Delete();
@@ -144,8 +164,7 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
 void vtkPerkStationPlanStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
-
-  
+    
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   wizard_widget->GetCancelButton()->SetEnabled(0);
   vtkKWWidget *parent = wizard_widget->GetClientArea();
@@ -163,7 +182,13 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     this->Script("pack forget %s", 
                     this->ResetPlanButton->GetWidgetName());
     }
-
+  
+  
+  if ( this->TargetFirstCheck )
+    {
+    this->Script( "pack forget %s", this->TargetFirstCheck->GetWidgetName() );
+    }
+  
 
   switch (this->GetGUI()->GetMode())      
     {
@@ -220,8 +245,6 @@ void vtkPerkStationPlanStep::ShowUserInterface()
       this->Script("pack %s -side top -padx 2 -pady 4", 
                         this->ResetPlanButton->GetWidgetName());
       
-      
-
       break;
     }
   
@@ -237,7 +260,36 @@ void vtkPerkStationPlanStep::ShowUserInterface()
  
 
   // Create the individual components
-
+  
+  if ( ! this->TargetFirstFrame )
+    {
+    this->TargetFirstFrame = vtkKWFrame::New();
+    }
+  if ( ! this->TargetFirstFrame->IsCreated() )
+    {
+    this->TargetFirstFrame->SetParent( parent );
+    this->TargetFirstFrame->Create();
+    }
+  
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                this->TargetFirstFrame->GetWidgetName() );
+  
+  if ( ! this->TargetFirstCheck )
+    {
+    this->TargetFirstCheck = vtkKWCheckButtonWithLabel::New();
+    }
+  if ( ! this->TargetFirstCheck->IsCreated() )
+    {
+    this->TargetFirstCheck->SetParent( this->TargetFirstFrame );
+    this->TargetFirstCheck->SetLabelText( "Select target point first" );
+    this->TargetFirstCheck->Create();
+    this->TargetFirstCheck->GetWidget()->SetSelectedState(
+       ( this->SelectTargetFirst ? 1 : 0 ) );
+    }
+  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 4", 
+                this->TargetFirstCheck->GetWidgetName() );
+  
+  
   //frame
   if (!this->EntryPointFrame)
     {
@@ -250,7 +302,7 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     }
 
   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->EntryPointFrame->GetWidgetName());
+                this->EntryPointFrame->GetWidgetName() );
 
   // label.
   if (!this->EntryPointLabel)
@@ -630,8 +682,12 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(
   int entryClick = 1;
   int targetClick = 2;
   
-  if ( this->SelectTargetFirst )
+  this->TargetFirstCheck->GlobalWarningDisplayOn();
+  
+  // if ( this->SelectTargetFirst )
+  if ( this->TargetFirstCheck->GetWidget()->GetSelectedState() != 0 )
     {
+    vtkDebugMacro( << "haho" );
     targetClick = 1;
     entryClick = 2;
     }
