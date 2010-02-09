@@ -21,6 +21,7 @@
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkQuadEdgeMesh.h"
 #include "itkQuadEdgeMeshVTKPolyDataReader.h"
+#include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkMeshGeneratorHelper.h"
 #include "itkMeshWriterHelper1.h"
 #include "itkTestingMacros.h"
@@ -33,8 +34,8 @@ int main( int argc, char *argv[] )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " fixedMeshFile  movingMeshFile referenceMeshFile";
-    std::cerr << " outputMeshfile epsilon sigmaX ";
+    std::cerr << " fixedMeshFile  movingMeshFile outputMeshfile ";
+    std::cerr << " referenceMeshFile resampledOutputMeshFile epsilon sigmaX ";
     std::cerr << " lambda smoothingIterations ";
     std::cerr << " numberOfIterations" << std::endl;
     return EXIT_FAILURE;
@@ -65,12 +66,13 @@ int main( int argc, char *argv[] )
   movingReader->SetFileName( argv[2] );
 
   FixedReaderType::Pointer referenceReader = FixedReaderType::New();
-  referenceReader->SetFileName( argv[3] );
+  referenceReader->SetFileName( argv[4] );
 
   try
     {
     fixedReader->Update( );
     movingReader->Update( );
+    referenceReader->Update( );
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -82,101 +84,25 @@ int main( int argc, char *argv[] )
   demonsFilter->SetFixedMesh( fixedReader->GetOutput() );
   demonsFilter->SetMovingMesh( movingReader->GetOutput() );
 
-  if( demonsFilter->GetFixedMesh() != fixedReader->GetOutput() )
-    {
-    std::cerr << "Error in SetFixedMesh()/GetFixedMesh() " << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  if( demonsFilter->GetMovingMesh() != movingReader->GetOutput() )
-    {
-    std::cerr << "Error in SetMovingMesh()/GetMovingMesh() " << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  DemonsFilterType::PointType center1;
-  center1.Fill( 17.0 );
-  demonsFilter->SetSphereCenter( center1 );
-  TEST_SET_GET_VALUE( center1, demonsFilter->GetSphereCenter() );
-
-  DemonsFilterType::PointType center2;
-  center2.Fill( 31.0 );
-  demonsFilter->SetSphereCenter( center2 );
-  TEST_SET_GET_VALUE( center2, demonsFilter->GetSphereCenter() );
-
-  const double radius1 = 19.0;
-  demonsFilter->SetSphereRadius( radius1 );
-  TEST_SET_GET_VALUE( radius1, demonsFilter->GetSphereRadius() );
-
-  const double radius2 = 29.0;
-  demonsFilter->SetSphereRadius( radius2 );
-  TEST_SET_GET_VALUE( radius2, demonsFilter->GetSphereRadius() );
-
-
   DemonsFilterType::PointType center0;
   center0.Fill( 0.0 );
 
   demonsFilter->SetSphereCenter( center0 );
   demonsFilter->SetSphereRadius( 100.0 );
 
-
-  const double epsilon1 = 2.0;
-  demonsFilter->SetEpsilon( epsilon1 );
-  TEST_SET_GET_VALUE( epsilon1, demonsFilter->GetEpsilon() );
-
-  const double epsilon2 = 3.0;
-  demonsFilter->SetEpsilon( epsilon2 );
-  TEST_SET_GET_VALUE( epsilon2, demonsFilter->GetEpsilon() );
-
-  const double epsilon = atof( argv[5] );
+  const double epsilon = atof( argv[6] );
   demonsFilter->SetEpsilon( epsilon );
 
-
-  const double sigmaX1 = 2.0;
-  demonsFilter->SetSigmaX( sigmaX1 );
-  TEST_SET_GET_VALUE( sigmaX1, demonsFilter->GetSigmaX() );
-
-  const double sigmaX2 = 3.0;
-  demonsFilter->SetSigmaX( sigmaX2 );
-  TEST_SET_GET_VALUE( sigmaX2, demonsFilter->GetSigmaX() );
-
-  const double sigmaX = atof( argv[6] );
+  const double sigmaX = atof( argv[7] );
   demonsFilter->SetSigmaX( sigmaX );
 
-
-  const double lambda1 = 2.0;
-  demonsFilter->SetLambda( lambda1 );
-  TEST_SET_GET_VALUE( lambda1, demonsFilter->GetLambda() );
-
-  const double lambda2 = 3.0;
-  demonsFilter->SetLambda( lambda2 );
-  TEST_SET_GET_VALUE( lambda2, demonsFilter->GetLambda() );
-
-  const double lambda = atof( argv[7] );
+  const double lambda = atof( argv[8] );
   demonsFilter->SetLambda( lambda );
 
-
-  unsigned int maximumNumberOfSmoothingIterations = 10;
-  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
-  TEST_SET_GET_VALUE( maximumNumberOfSmoothingIterations, demonsFilter->GetMaximumNumberOfSmoothingIterations() );
-
-  maximumNumberOfSmoothingIterations = 15;
-  demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
-  TEST_SET_GET_VALUE( maximumNumberOfSmoothingIterations, demonsFilter->GetMaximumNumberOfSmoothingIterations() );
-
-  maximumNumberOfSmoothingIterations = atoi( argv[8] );
+  unsigned int maximumNumberOfSmoothingIterations = atoi( argv[9] );
   demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
 
-
-  unsigned int maximumNumberOfIterations = 10;
-  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
-  TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
-
-  maximumNumberOfIterations = 15;
-  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
-  TEST_SET_GET_VALUE( maximumNumberOfIterations, demonsFilter->GetMaximumNumberOfIterations() );
-
-  maximumNumberOfIterations = atoi( argv[9] );
+  unsigned int maximumNumberOfIterations = atoi( argv[10] );
   demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
 
 
@@ -193,7 +119,21 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  itk::MeshWriterHelper1<RegisteredMeshType>::WriteMeshToFile( demonsFilter->GetOutput(), argv[4] );
+  typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< FixedMeshType >   WriterType;
+  WriterType::Pointer writer = WriterType::New();
+
+  writer->SetFileName( argv[3] );
+  writer->SetInput( demonsFilter->GetOutput() );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   typedef DemonsFilterType::DestinationPointSetType     DestinationPointSetType;
   typedef DestinationPointSetType::ConstPointer         DestinationPointContainerConstPointer;
@@ -236,6 +176,49 @@ int main( int argc, char *argv[] )
 std::cout << "BEFORE upsampleDestinationPoints Update()" << std::endl;
     upsampleDestinationPoints->Update();
 std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  // Here build a Mesh using the upsampled destination points and
+  // the scalar values of the fixed FINAL mesh.
+
+  FixedMeshType::Pointer referenceMesh = referenceReader->GetOutput();
+  referenceMesh->Print(std::cout);
+
+  referenceMesh->DisconnectPipeline();
+
+  PointSetType::ConstPointer upsampledPointSet = upsampleDestinationPoints->GetOutput();
+  
+  upsampledPointSet->Print( std::cout );
+
+  const PointSetType::PointsContainer * upsampledPoints = upsampledPointSet->GetPoints();
+
+  PointSetType::PointsContainerConstIterator upsampledPointsItr = upsampledPoints->Begin();
+  PointSetType::PointsContainerConstIterator upsampledPointsEnd = upsampledPoints->End();
+
+  FixedMeshType::PointsContainer::Pointer referencePoints = referenceMesh->GetPoints();
+
+  FixedMeshType::PointsContainerIterator referencePointItr = referencePoints->Begin();
+
+
+  while( upsampledPointsItr != upsampledPointsEnd )
+    {
+    referencePointItr.Value() = upsampledPointsItr.Value();
+    ++referencePointItr;
+    ++upsampledPointsItr;
+    }
+
+  writer->SetFileName( argv[5] );
+  writer->SetInput( referenceMesh );
+
+  try
+    {
+    writer->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
