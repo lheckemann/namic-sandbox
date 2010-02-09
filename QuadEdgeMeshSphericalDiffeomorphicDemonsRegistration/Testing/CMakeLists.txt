@@ -257,15 +257,16 @@ ADD_TEST(DemonsFilterTest5
 
 ADD_TEST(ResampleDestinationFilterTest1
   ${CXX_TEST_PATH}/itkResampleDestinationPointsQuadEdgeMeshFilterTest1
-  ${TEMP}/meshWithScalarsIC1.vtk
-  ${TEMP}/meshWithScalarsIC1.vtk
-  ${TEMP}/meshWithScalarsIC2.vtk
-  ${TEMP}/meshWithScalarsIC1RegisteredToItselfResampledToIC2.vtk
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
+  ${TEST_DATA_ROOT}/Input/movingMeshWithScalarsIC1.vtk
+  ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1InResamplingTest.vtk
+  ${TEMP}/meshWithScalarsIC4.vtk
+  ${TEMP}/movingMeshWithScalarsIC1registeredToFixedMeshWithScalarsIC1ResampledToIC4.vtk
   1.0    # Epsilon
   1.0    # SigmaX
   1.0    # Lambda
   1      # Smoothing Iterations
-  1      # maximum number of iterations
+  10      # maximum number of iterations
   )
 
 
