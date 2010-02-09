@@ -205,5 +205,10 @@ int main( int argc, char *argv[] )
 
   std::cout << "Number of basis systems = " << basisSystems->Size() << std::endl;
 
+  std::cout << std::endl;
+  std::cout << "Testing second call to Update(), the filter shouldn't run again" << std::endl;
+  demonsFilter->Update();
+
+
   return EXIT_SUCCESS;
 }
