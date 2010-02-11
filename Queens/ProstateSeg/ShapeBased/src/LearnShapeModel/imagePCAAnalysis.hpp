@@ -9,9 +9,9 @@
 #include "imagePCAAnalysis.h"
 
 // douher
-#include "cArrayOp.h"
-#include "shuxue.h"
-#include "imageProcessing.h"
+#include "arrays/cArrayOp.h"
+#include "arrays/shuxue.h"
+#include "imageProcessing/imageProcessing.h"
 
 namespace douher
 {

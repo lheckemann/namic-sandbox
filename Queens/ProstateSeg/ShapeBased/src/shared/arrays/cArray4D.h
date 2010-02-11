@@ -1,8 +1,6 @@
 #ifndef cArray4D_h_
 #define cArray4D_h_
 
-#include "basicHeaders.h"
-
 namespace douher
 {
   template<typename T> 

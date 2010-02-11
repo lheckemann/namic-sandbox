@@ -1,9 +1,9 @@
 #ifndef ICP3_h_
 #define ICP3_h_
 
-#include "../pointSet.h"
+#include "pointSet.h"
 
-#include "../kdtree2.hpp"
+#include "kdtree2.hpp"
 
 
 class ICP3

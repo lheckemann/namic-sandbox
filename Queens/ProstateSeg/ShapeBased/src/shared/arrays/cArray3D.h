@@ -1,7 +1,7 @@
 #ifndef cArray3D_h_
 #define cArray3D_h_
 
-#include "basicHeaders.h"
+#include "boost/shared_ptr.hpp"
 
 namespace douher
 {

@@ -15,10 +15,6 @@
 
 #include <vnl/vnl_vector.h>
 
-
-#include "basicHeaders.h"
-
-
 #include "cArray2D.h"
 #include "cArray3D.h"
 #include "cArray4D.h"

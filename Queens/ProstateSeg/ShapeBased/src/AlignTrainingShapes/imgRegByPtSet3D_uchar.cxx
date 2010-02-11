@@ -5,7 +5,7 @@
 
 #include "itkImageRegionIterator.h"
 
-#include "../../../douher/imageProcessing/imageProcessing.h"
+#include "imageProcessing/imageProcessing.h"
 
 
 

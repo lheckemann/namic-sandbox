@@ -10,8 +10,8 @@
 #include <csignal>
 
 // douher
-#include "../../douher/cArrayOp.h"
-#include "../../douher/imageProcessing/imageProcessing.h"
+#include "arrays/cArrayOp.h"
+#include "imageProcessing/imageProcessing.h"
 
 
 /*============================================================*/
