@@ -13,9 +13,7 @@
 
 #include "ICP3.h"
 
-// douher
-//#include "cArrayOp.h"
-#include "../../../douher/imageProcessing/imageProcessing.h"
+#include "imageProcessing/imageProcessing.h"
 
 
 /*============================================================*/

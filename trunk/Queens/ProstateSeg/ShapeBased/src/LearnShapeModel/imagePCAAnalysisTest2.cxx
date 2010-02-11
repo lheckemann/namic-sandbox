@@ -20,9 +20,9 @@
 #include <fstream>
 
 //douher
-#include "cArrayOp.h"
+#include "arrays/cArrayOp.h"
 //#include "aux/txtIO.h"
-#include "lib/txtIO.h"
+#include "txtio/txtIO.h"
 
 // itk
 #include "itkImage.h"

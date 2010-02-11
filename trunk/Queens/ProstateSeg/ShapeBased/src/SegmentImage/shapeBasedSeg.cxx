@@ -9,8 +9,8 @@
 
 
 //douher
-#include "lib/imageProcessing.h"
-#include "lib/shuxue.h"
+#include "imageProcessing/imageProcessing.h"
+#include "arrays/shuxue.h"
 
 //============================================================
 CShapeBasedSeg::CShapeBasedSeg()

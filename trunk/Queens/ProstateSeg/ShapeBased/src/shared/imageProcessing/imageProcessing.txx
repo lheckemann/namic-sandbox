@@ -21,7 +21,7 @@
 #include <csignal>
 
 
-#include "../cArrayOp.h"
+#include "arrays/cArrayOp.h"
 
 
 namespace douher

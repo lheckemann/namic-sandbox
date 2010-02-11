@@ -5,7 +5,7 @@
 
 #include "ICP3.h"
 #include "ICPCost3.h"
-#include "../pointSetFileIO.h"
+#include "pointSetFileIO.h"
 
 
 int main(int argc, char **argv ) 

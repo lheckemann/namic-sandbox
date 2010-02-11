@@ -3,7 +3,7 @@
 
 #include <vnl/vnl_matrix_fixed.h>
 
-#include "../pointSet.h"
+#include "pointSet.h"
 
 class CImgRegByPtSet3D
 {

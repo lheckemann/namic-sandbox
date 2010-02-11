@@ -5,8 +5,8 @@
 #include "vnl/vnl_matrix.h"
 
 // douher
-#include "lib/cArray3D.h"
-#include "lib/SFLSSegmentor3D.h"
+#include "arrays/cArray3D.h"
+#include "SFLSSegmentor3D.h"
 
 // std
 #include <vector>

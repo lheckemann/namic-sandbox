@@ -9,9 +9,9 @@
 #include <string>
 
 //douher
-#include "lib/cArrayOp.h"
-#include "lib/cArray3D.h"
-#include "lib/txtIO.h"
+#include "arrays/cArrayOp.h"
+#include "arrays/cArray3D.h"
+#include "txtio/txtIO.h"
 
 
 #include "shapeBasedGAC.h"
