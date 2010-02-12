@@ -8,6 +8,8 @@
 
 #include <csignal>
 
+#include <fstream>
+
 #include "itkImageRegionIteratorWithIndex.h"
 
 template< typename TPixel >
@@ -44,6 +46,9 @@ CSFLSSegmentor3D< TPixel >
 
   m_maxVolume = 1e10; // in mm^3
   m_maxRunningTime = 3600; // in sec
+
+
+  m_keepZeroLayerHistory = false;
 
   m_done = false;
 }
@@ -194,6 +199,8 @@ CSFLSSegmentor3D< TPixel >
       std::cerr<<"image sizes do not match. abort\n";
       raise(SIGABRT);
     }
+
+  return;
 }
 
 
@@ -369,18 +376,28 @@ CSFLSSegmentor3D< TPixel >
 
   double fMax = fabs( m_force.front() );
 
-  for (std::list<double>::const_iterator itf = m_force.begin(); itf != m_force.end(); ++itf)
-    {
-      double v = fabs(*itf);
-      fMax = fMax>v?fMax:v;
-    }
-
+  //for (std::list<double>::const_iterator itf = m_force.begin(); itf != m_force.end(); ++itf)
+  {
+    long nf = m_force.size();
+    //for (std::list<double>::const_iterator itf = m_force.begin(); itf != m_force.end(); ++itf)
+    for (long itf = 0; itf < nf; ++itf)
+      {
+        double v = fabs(m_force[itf]);
+        fMax = fMax>v?fMax:v;
+      }
+  }
   fMax /= 0.49;
 
-  for (std::list<double>::iterator itf = m_force.begin(); itf != m_force.end(); ++itf)
-    {
-      (*itf) /= (fMax + 1e-10);
-    }
+  {
+    long nf = m_force.size();
+
+    //for (std::list<double>::iterator itf = m_force.begin(); itf != m_force.end(); ++itf)
+    for (long itf = 0; itf < nf; ++itf)
+      {
+        //(*itf) /= (fMax + 1e-10);
+        m_force[itf] /= (fMax + 1e-10);
+      }
+  }
 }
 
 
@@ -424,11 +441,24 @@ CSFLSSegmentor3D< TPixel >
     scan Lz values [-2.5 -1.5)[-1.5 -.5)[-.5 .5](.5 1.5](1.5 2.5]
     ========                */
   {
-    std::list<double>::const_iterator itf = m_force.begin();
-    for (CSFLSLayer::iterator itz = m_lz.begin(); \
-         itz != m_lz.end(); \
-         ++itf)
+    //std::list<double>::const_iterator itf = m_force.begin();
+
+    long nz = m_lz.size();
+    std::vector<CSFLSLayer::iterator> m_lzIterVct( nz );
+    {
+      long iiizzz = 0;
+      for (CSFLSLayer::iterator itz = m_lz.begin(); itz != m_lz.end(); ++itz)
+        m_lzIterVct[iiizzz++] = itz;    
+    }
+
+    //    for (CSFLSLayer::iterator itz = m_lz.begin(); itz != m_lz.end(); ++itf)
+    //#pragma omp parallel for
+    for (long iiizzz = 0; iiizzz < nz; ++iiizzz)
       {
+        long itf = iiizzz;
+
+        CSFLSLayer::iterator itz = m_lzIterVct[iiizzz];
+
         long ix = (*itz)[0];
         long iy = (*itz)[1];
         long iz = (*itz)[2];
@@ -436,20 +466,20 @@ CSFLSSegmentor3D< TPixel >
         TIndex idx = {{ix, iy, iz}};
 
         double phi_old = mp_phi->GetPixel(idx);
-        double phi_new = phi_old + (*itf);
+        double phi_new = phi_old + m_force[itf];
 
         /*----------------------------------------------------------------------
           Update the lists of pt who change the state, for faster
           energy fnal computation. */
-        if ( phi_old <= 0 && phi_new > 0 )
-          {
-            m_lIn2out.push_back(NodeType(ix, iy, iz));
-          }
+          if ( phi_old <= 0 && phi_new > 0 )
+            {
+              m_lIn2out.push_back(NodeType(ix, iy, iz));
+            }
 
-        if( phi_old>0  && phi_new <= 0)
-          {
-            m_lOut2in.push_back(NodeType(ix, iy, iz));
-          }
+          if( phi_old>0  && phi_new <= 0)
+            {
+              m_lOut2in.push_back(NodeType(ix, iy, iz));
+            }
 
         //           // DEBUG
         //           if (phi_new > 3.1 || phi_new < -3.1)
@@ -477,7 +507,6 @@ CSFLSSegmentor3D< TPixel >
           {
             ++itz;              
           }
-
         /*--------------------------------------------------
           NOTE, mp_label are (should) NOT update here. They should
           be updated with Sz, Sn/p's
@@ -1373,11 +1402,11 @@ itk::Image<float, 3>::Pointer
 CSFLSSegmentor3D< TPixel >
 ::getLevelSetFunction()
 {
-  if (!m_done)
-    {
-      std::cerr<<"Error: not done.\n";
-      raise(SIGABRT);
-    }
+//   if (!m_done)
+//     {
+//       std::cerr<<"Error: not done.\n";
+//       raise(SIGABRT);
+//     }
 
   return mp_phi;
 }
@@ -1496,6 +1525,98 @@ CSFLSSegmentor3D< TPixel >
   return (dxx*(dy2 + dz2) + dyy*(dx2 + dz2) + dzz*(dx2 + dy2) - 2*dx*dy*dxy - 2*dx*dz*dxz - 2*dy*dz*dyz)\
     /(dx2 + dy2 + dz2 + vnl_math::eps);
 }
+
+
+template< typename TPixel >
+void
+CSFLSSegmentor3D< TPixel >
+::getZeroLayerAtIteration(unsigned long i)
+{
+  if (!m_keepZeroLayerHistory)
+    {
+      std::cerr<<"Error: no history stored.";
+      std::cerr<<"By default, they are not. Set keepZeroLayerHistory(true) *before* doSegmentation to keep history.\n";
+      raise(SIGABRT);
+    }
+  else if(i >= m_numIter)
+    {
+      std::cerr<<"Error: history requested, "<<i<<", exceeds number of records, "<<m_numIter<<std::endl;
+      raise(SIGABRT);
+    }
+  else
+    {
+      // return the i-th zero-layer
+      return m_zeroLayerHistory[i];
+    }
+}
+
+
+template< typename TPixel >
+void
+CSFLSSegmentor3D< TPixel >
+::writeZeroLayerAtIterationToFile(unsigned long i, const char* name)
+{
+  if (!m_keepZeroLayerHistory)
+    {
+      std::cerr<<"Error: no history stored.";
+      std::cerr<<"By default, they are not. Set keepZeroLayerHistory(true) *before* doSegmentation to keep history.\n";
+      raise(SIGABRT);
+    }
+  else if(i >= m_numIter)
+    {
+      std::cerr<<"Error: history requested, "<<i<<", exceeds number of records, "<<m_numIter<<std::endl;
+      raise(SIGABRT);
+    }
+  else
+    {
+      // write it out
+      const CSFLSLayer& requestedHistory = m_zeroLayerHistory[i];
+
+      std::ofstream f(name);
+
+      typename ImageType::PointType physicalPoint;
+      typename ImageType::IndexType index;
+
+      for (CSFLSLayer::const_iterator itz = requestedHistory.begin(); itz != requestedHistory.end(); ++itz)
+        {
+//           /* output ijk */
+//           f<<*itz;
+//           /* _output ijk */
+
+
+          /* output physical points */
+          index[0] = (*itz)[0];
+          index[1] = (*itz)[1];
+          index[2] = (*itz)[2];
+
+          mp_img->TransformIndexToPhysicalPoint(index, physicalPoint);
+          // the returned physical coord is in physicalPoint, but in
+          // RAS, but Slicer displays LPS, so add - at the first two coords:
+          f<<-physicalPoint[0]<<" "<<-physicalPoint[1]<<" "<<physicalPoint[2]<<"\n"; 
+          /* _output physical points */
+
+        }
+      f.close();
+    }
+
+  return;
+}
+
+template< typename TPixel >
+void
+CSFLSSegmentor3D< TPixel >
+::writeZeroLayerToFile(const char* namePrefix)
+{
+  for (unsigned long i = 0; i < m_numIter; ++i)
+    {
+      char thisName[1000];
+      sprintf(thisName, "%s_%ld.layer", namePrefix, i);
+      writeZeroLayerAtIterationToFile(i, thisName);
+    }
+
+  return;
+}
+
 
 
 #endif

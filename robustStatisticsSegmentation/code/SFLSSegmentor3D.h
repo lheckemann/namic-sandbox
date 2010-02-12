@@ -4,6 +4,7 @@
 #include "SFLS.h"
 
 #include <list>
+#include <vector>
 
 //douher
 //#include "cArray3D.h"
@@ -17,8 +18,10 @@ class CSFLSSegmentor3D : public CSFLS
 public:
   typedef CSFLSSegmentor3D< TPixel > Self;
 
-  typedef CSFLS::NodeType NodeType;
-  typedef CSFLS::CSFLSLayer CSFLSLayer;
+  typedef CSFLS SuperClassType;
+
+  typedef SuperClassType::NodeType NodeType;
+  typedef SuperClassType::CSFLSLayer CSFLSLayer;
   //typedef boost::shared_ptr< Self > Pointer;
 
   typedef itk::Image<TPixel, 3> TImage;
@@ -28,7 +31,6 @@ public:
   typedef itk::Image<unsigned char, 3> TUCharImage;
 
   typedef TImage ImageType;
-  //typedef TDoubleImage LSImageType;
   typedef TFloatImage LSImageType;
   typedef TCharImage LabelImageType;
   typedef TUCharImage MaskImageType;
@@ -81,6 +83,13 @@ public:
   void setMaxVolume(double v); // v is in mL
   void setMaxRunningTime(double t); // t in min
 
+
+  // about evolution history
+  void keepZeroLayerHistory(bool b) {m_keepZeroLayerHistory = b;}
+  void getZeroLayerAtIteration(unsigned long i);
+  void writeZeroLayerAtIterationToFile(unsigned long i, const char* name);
+  void writeZeroLayerToFile(const char* namePrefix);
+
     
   void setCurvatureWeight(double a);
 
@@ -95,7 +104,8 @@ public:
   typename MaskImageType::Pointer mp_mask; // 0, non-0 mask for object
   typename LSImageType::Pointer mp_phi;
 
-  std::list< double > m_force;
+  //  std::list< double > m_force;
+  std::vector< double > m_force;
 
   double m_timeStep;
 
@@ -139,6 +149,10 @@ protected:
   {
     return (a-b < eps && b-a < eps);
   }
+
+
+  bool m_keepZeroLayerHistory;
+  std::vector< CSFLSLayer > m_zeroLayerHistory;
 
 
 };
