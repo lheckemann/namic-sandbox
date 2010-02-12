@@ -2,24 +2,20 @@
 #define SFLS_h_
 
 
-// itk
-#include "vnl/vnl_vector_fixed.h"
-
 // std
 #include <list>
 
-//douher
-//#include "SFLSLayer.h"
+// itk
+#include "vnl/vnl_vector_fixed.h"
 
 
 class CSFLS
 {
 public:
-  typedef vnl_vector_fixed< long, 3 > NodeType;
-  typedef std::list< NodeType > CSFLSLayer;
-
-
   typedef CSFLS Self;
+
+  typedef vnl_vector_fixed< int, 3 > NodeType;
+  typedef std::list< NodeType > CSFLSLayer;
 
   //typedef boost::shared_ptr< Self > Pointer;
 
