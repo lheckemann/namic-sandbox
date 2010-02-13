@@ -89,7 +89,6 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
    vtkFloatArray* nGammaScalars;
    vtkPolyData* CountMap;
    vtkMRMLModelDisplayNode* dispNode;
-   vtkMRMLScalarVolumeDisplayNode* scalDispNode;
    vtkImageData* image;
    double maxRange;
 

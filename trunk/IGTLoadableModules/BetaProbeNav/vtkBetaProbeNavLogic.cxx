@@ -369,10 +369,8 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLNode* inode, vt
   if (!image)
     {
     std::cerr << "Creating a new image" << std::endl;
-    //Create image and display node
+    //Create image node
     this->image = vtkImageData::New();
-    vtkMRMLScalarVolumeDisplayNode* dispNode =  vtkMRMLScalarVolumeDisplayNode::New();
-    snode->SetAndObserveDisplayNodeID(dispNode->GetID());
     
     //Get image characteristics
     vtkImageData* im = vnode->GetImageData();
@@ -394,12 +392,6 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLNode* inode, vt
     //Assign properties to snode
     snode->SetOrigin(vnode->GetOrigin());
     snode->SetAndObserveImageData(this->image);
-    dispNode->SetScene(this->GetMRMLScene());
-    dispNode->SetInterpolate(0);
-    GetMRMLScene()->SaveStateForUndo();
-    GetMRMLScene()->AddNode(dispNode);
-    
-    dispNode->Delete();
     }
   
   //Extract IJK to RAS Matrix

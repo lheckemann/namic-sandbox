@@ -37,6 +37,7 @@
 #include "vtkSlicerNodeSelectorWidget.h"
 #include "vtkMRMLModelNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
+#include "vtkMRMLScalarVolumeDisplayNode.h"
 
 #include "vtkCornerAnnotation.h"
 #include "vtkKWRadioButtonSet.h"
@@ -368,18 +369,33 @@ void vtkBetaProbeNavGUI::ProcessGUIEvents(vtkObject *caller,
       //Check to see if the ScalarVolumeNode already exists
       if (this->scalnode == NULL)
         {
-        //Create scalar node and add to the image
-        scalnode = vtkMRMLScalarVolumeNode::New();       
+        //Create scalar node and display node and add to the image
+        scalnode = vtkMRMLScalarVolumeNode::New();
+        vtkMRMLScalarVolumeDisplayNode* dispNode = vtkMRMLScalarVolumeDisplayNode::New();
+        scalnode->SetAndObserveDisplayNodeID(dispNode->GetID());  
+        dispNode->SetScene(this->GetMRMLScene());
+        //Set Display Node Features
+        dispNode->SetInterpolate(0);
+        short range[2];
+        range[0] = 0.0;
+        range[1] = 256.0;
+        dispNode->SetLowerThreshold(range[0]);
+        dispNode->SetUpperThreshold(range[1]);
+        dispNode->SetWindow(range[1] - range[0]);
+        dispNode->SetLevel(0.5 * (range[1] + range[0]) );
+        dispNode->Modified();
         scalnode->Modified();
         this->GetMRMLScene()->AddNode(scalnode);
+        GetMRMLScene()->AddNode(dispNode);  
         this->GetMRMLScene()->Modified();
+        dispNode->Delete();
         } 
       else
         {
         //Node is already created we just need to reset the image
-        vtkMRMLDisplayNode* scalDisp = scalnode->GetDisplayNode();
-        if (scalDisp)
-           this->GetMRMLScene()->RemoveNode(scalDisp);
+        //vtkMRMLDisplayNode* scalDisp = scalnode->GetDisplayNode();
+        //if (scalDisp)
+        //   this->GetMRMLScene()->RemoveNode(scalDisp);
         //Reset image data
         this->GetLogic()->SetImageData(NULL);
         scalnode->Modified();
