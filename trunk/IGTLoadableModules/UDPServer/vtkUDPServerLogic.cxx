@@ -123,12 +123,10 @@ void vtkUDPServerLogic::ImportData()
     {
     std::cerr << "Failed to receive message" << std::endl;
     }
-  fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));
+  //fprintf(stderr, "Client connected: %s\n", inet_ntoa(echoclient.sin_addr));
   buffer[received]= '\0';
   //Print out received data
-  std::cerr << received << " bytes received" << std::endl;
-  std::string txt = buffer;
-  std::cerr << txt << std::endl;
+  //std::cerr << received << " bytes received" << std::endl;
   this->ImportedData = buffer;
 }
 
