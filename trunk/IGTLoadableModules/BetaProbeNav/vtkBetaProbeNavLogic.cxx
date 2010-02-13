@@ -29,12 +29,16 @@
 #include "vtkPointData.h"
 #include "vtkAppendPolyData.h"
 #include "vtkMRMLModelNode.h"
-#include "vtkMRMLFiberBundleDisplayNode.h"
+#include "vtkMRMLNode.h"
+#include "vtkMRMLModelDisplayNode.h"
+#include "vtkMRMLScalarVolumeDisplayNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
 #include "vtkSphereSource.h"
 #include "vtkCellArray.h"
 #include "vtkCellData.h"
 #include "vtkType.h"
 #include "vtkGlyph3D.h"
+#include "vtkImageData.h"
 
 vtkCxxRevisionMacro(vtkBetaProbeNavLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkBetaProbeNavLogic);
@@ -42,15 +46,25 @@ vtkStandardNewMacro(vtkBetaProbeNavLogic);
 //---------------------------------------------------------------------------
 vtkBetaProbeNavLogic::vtkBetaProbeNavLogic()
 {
-
   // Timer Handling
-
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkBetaProbeNavLogic::DataCallback);
-
+  //Variables
+  Points = vtkPoints::New();
+  SmoothScalars = vtkFloatArray::New();
+  BetaScalars = vtkFloatArray::New();
+  GammaScalars = vtkFloatArray::New();
+  nSmoothScalars = vtkFloatArray::New();
+  nSmoothScalars->SetName("Smoothed");
+  nBetaScalars = vtkFloatArray::New();
+  nBetaScalars->SetName("Beta");
+  nGammaScalars = vtkFloatArray::New();
+  nGammaScalars->SetName("Gamma");
+  CountMap = vtkPolyData::New();
+  image = NULL;
+  //dispNode = vtkMRMLModelDisplayNode::New();
 }
-
 
 //---------------------------------------------------------------------------
 vtkBetaProbeNavLogic::~vtkBetaProbeNavLogic()
@@ -60,6 +74,7 @@ vtkBetaProbeNavLogic::~vtkBetaProbeNavLogic()
     {
     this->DataCallbackCommand->Delete();
     }
+
 }
 
 //---------------------------------------------------------------------------
@@ -91,13 +106,11 @@ void vtkBetaProbeNavLogic::CollectData(vtkMRMLNode* tn, vtkMRMLNode* cn)
   std::cerr << "Collect Data started" << std::endl;
   
   //Pick up position data from TransformNode
-  if ((this->Points == NULL) || (this->Scalars == NULL))
+  /*if (this->Points == NULL)
     {
     //Create objects
-    this->Points = vtkPoints::New();
-    this->Scalars = vtkFloatArray::New();
-    this->Scalars->SetName("Gamma");
-    }
+    Points = vtkPoints::New();
+    }*/
 
   //Extract position from transform
   float pos[3];
@@ -108,134 +121,86 @@ void vtkBetaProbeNavLogic::CollectData(vtkMRMLNode* tn, vtkMRMLNode* cn)
     pos[1] = tnode->GetMatrixTransformToParent()->GetElement(1, 3);
     pos[2] = tnode->GetMatrixTransformToParent()->GetElement(2, 3);
     //Add point to Points Array
+    std::cerr << "About to add points to array" << std::endl;
     this->Points->InsertNextPoint(pos);
+    std::cerr << "Added Points to Array" << std::endl;
     }
   
-  //Extract counts from CountNode and append to Float Array
+  //Extract counts from CountNode and append to Float Arrays
   vtkMRMLUDPServerNode* cnode = vtkMRMLUDPServerNode::SafeDownCast(cn);
-  if (cnode)
+  SmoothScalars->InsertNextTuple1(cnode->GetSmoothedCounts());
+  BetaScalars->InsertNextTuple1(cnode->GetBetaCounts());
+  GammaScalars->InsertNextTuple1(cnode->GetGammaCounts());
+  
+  //Normalize value of Scalars for Color mapping purposes
+  //Smooth Scalars
+  for (vtkIdType i = 0; i < (this->SmoothScalars->GetNumberOfTuples()); i++)
     {
-    float counts[3];
-    counts[0] = cnode->GetSmoothedCounts();
-    counts[1] = cnode->GetBetaCounts();
-    counts[2] = cnode->GetGammaCounts();
-    //Add scalar to Scalars array
-    this->Scalars->InsertNextTuple1(cnode->GetGammaCounts());
+    double nSC;
+    nSC = this->SmoothScalars->GetTuple1(i);
+    nSC = (int) (255*nSC/(this->maxRange)); 
+    nSmoothScalars->InsertNextTuple1(nSC);
     }
-
+  //BetaScalars
+  for (vtkIdType i = 0; i < (this->BetaScalars->GetNumberOfTuples()); i++)
+    {
+    double nBC;
+    nBC = this->BetaScalars->GetTuple1(i);
+    nBC = (int) (255*nBC/(this->maxRange)); 
+    nBetaScalars->InsertNextTuple1(nBC);
+    }
+  //GammaScalars
+  for (vtkIdType i = 0; i < (this->GammaScalars->GetNumberOfTuples()); i++)
+    {
+    double nGC;
+    nGC = this->GammaScalars->GetTuple1(i);
+    nGC = (int) (255*nGC/(this->maxRange)); 
+    nGammaScalars->InsertNextTuple1(nGC);
+    }
 }
 
 //---------------------------------------------------------------------------
 vtkMRMLModelNode* vtkBetaProbeNavLogic::RepresentData(vtkMRMLModelNode* mnode)
 {
-  if ((this->CountMap) == NULL)
+  if (this->CountMap == NULL)
     {
     CountMap = vtkPolyData::New();
     }
-  
+
   //Append points to PolyData
-  CountMap->SetPoints(Points);
-  
-  //Calculate the range of the scalars
-  double* range = new double [2];
-  range = Scalars->GetRange();
-  
-  //Calculate normalized Scalars
-  vtkFloatArray* normScalars = vtkFloatArray::New();
-  normScalars->SetName("Gamma");
-  for (vtkIdType i = 0; i < (Scalars->GetNumberOfTuples()); i++)
-    {
-    double ns = 255*((Scalars->GetTuple1(i)) - range[0])/(range[1] - range[0]); 
-    normScalars->InsertNextTuple1(ns);
-    }
-  CountMap->GetPointData()->SetScalars(normScalars);
+  CountMap->SetPoints(this->Points);
   CountMap->Update();
-  
-  //Normalize scalar before adding them to CountMap
-  /*double sMin = 0;
-  double sMax = 0;]
-  double val;
-  for (int i = 0; i < (Scalars->GetNumberOfTuples())
-    {
-    val = Scalars->GetTuple1(i);
-    if (i == 0)
-      {
-      sMin = val;
-      sMax = sMin;
-      }
-    if (val < sMin)
-      sMin = val;
-    if (val > sMax)
-      sMax = val;
-    }*/
- 
+
+  //Append scalars to points  
+  CountMap->GetPointData()->AddArray(this->nSmoothScalars);
+  CountMap->GetPointData()->AddArray(this->nBetaScalars);
+  CountMap->GetPointData()->AddArray(this->nGammaScalars);
+  CountMap->GetPointData()->SetActiveScalars("Gamma");
+  CountMap->Update();
   
   //--------------------------------
   //Represent Polydata using glyphs
   
   //Create display node and add to scene
-  std::cerr << "About to create display node display node" << std::endl;
-  //vtkMRMLFiberBundleDisplayNode*  dataDisp = vtkMRMLFiberBundleDisplayNode::New();
-  vtkMRMLModelDisplayNode* dataDisp = vtkMRMLModelDisplayNode::New();
-  std::cerr << "Created the display node" << std::endl;
-  GetMRMLScene()->SaveStateForUndo();
-  std::cerr << "Created the display node1" << std::endl;
-  GetMRMLScene()->AddNode(dataDisp);
-    std::cerr << "Created the display node2" << std::endl;
-  dataDisp->SetScene(this->GetMRMLScene());
-  std::cerr << "Created the display node3" << std::endl;
+  if ((this->dispNode == NULL) || (mnode->GetDisplayNode() == NULL))
+    {
+    std::cerr << "About to create display node display node" << std::endl;
+    dispNode = vtkMRMLModelDisplayNode::New();
+    GetMRMLScene()->SaveStateForUndo();
+    GetMRMLScene()->AddNode(dispNode);
+    dispNode->SetScene(this->GetMRMLScene());
   
-  //Associate display node to model node
-  mnode->SetScene(this->GetMRMLScene());
-  mnode->SetAndObserveDisplayNodeID(dataDisp->GetID());
-  
+    //Associate display node to model node
+    mnode->SetScene(this->GetMRMLScene());
+    mnode->SetAndObserveDisplayNodeID(dispNode->GetID());
+    std::cerr << "Display node assigned" << std::endl;
+    }
+    
   // Each glyph is represented by a sphere
   vtkSphereSource *sphere = vtkSphereSource::New();
   sphere->SetRadius(2.0);
   sphere->SetCenter(0, 0, 0);
   sphere->Update();
-  
-  //Append geometries together
-  //vtkAppendPolyData *apd = vtkAppendPolyData::New();
-  //apd->AddInput(sphere->GetOutput());
-  //apd->AddInput(CountMap);
-  //apd->Update();
-  
-  /*vtkPoints* pts = vtkPoints::New();
-  //vtkCellArray* verts = vtkCellArray::New();
-  /*double x[3];
-  for (vtkIdType i = 0; i < 5; i++)
-    {
-    //Create points
-    x[1] = i; x[2] = 100*(i+1); x[3] = 500*(i+2);
-    pts->InsertNextPoint(x);
-    
-    //Create scalars
-    Scalars->InsertNextTuple1((double)i*10);
-    
-    //vtkSphereSource *sphere = vtkSphereSource::New();
-    //sphere->SetRadius(1.0);
-    //sphere->SetCenter(x);
-    //sphere->Update();
-    
-    //Add scalars to the sphere
-    //int num = sphere->GetOutput()->GetPolys()->GetNumberOfCells();
-    //std::cerr << "Number of polys: " << num << std::endl;
-
-    //for (int j = 0; j < num; j++)
-    //  {
-    //  scals->InsertNextTuple1(i*1000);
-    //  }
-    //std::cerr << "Number of cells: " << sphere->GetOutput()->GetNumberOfCells() << std::endl;
-    /*sphere->GetOutput()->GetCellData()->SetScalars(scals);
-    apd->AddInput(sphere->GetOutput());
-    apd->Update(); 
-    sphere->Delete();
-    scals->Delete();
-    //scals->InsertNextTuple1(1000*i);
-    //pts->InsertNextPoint(x);
-    //verts->InsertNextCell(1, &i);*/
-    //}
   
   //Create Glyphs
   vtkGlyph3D* gly = vtkGlyph3D::New();
@@ -247,22 +212,241 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::RepresentData(vtkMRMLModelNode* mnode)
   //gly->SetScaleFactor(0.25);
   //gly->ClampingOn();
   //gly->SetRange(0,40);
-  //gly->Update();
+  gly->Update();
   
+  std::cerr << "Glyphs created" << std::endl;
   mnode->SetAndObservePolyData(gly->GetOutput());
-  
+  std::cerr << "dispNode Properties" << std::endl;
   //Properties of dataDisp node
-  dataDisp->SetActiveScalarName("Gamma");
-  dataDisp->SetScalarVisibility(1);
+  dispNode->SetActiveScalarName("Gamma");
+  dispNode->SetScalarVisibility(1);
   //dataDisp->SetColorNode
-  dataDisp->SetPolyData(mnode->GetPolyData());
-  dataDisp->SetVisibility(1);
-  //dataDisp->SetColorModeToScalar();
-  //Assign color to geometry
-  /*double color[3];
-  color[0] = 0.5;
-  color[1] = 0.5;
-  color[2] = 0.3;*/
-
+  std::cerr << "dispNode Properties setting polydata" << std::endl;
+  dispNode->SetPolyData(mnode->GetPolyData());
+  std::cerr << "dispNode Properties setting visibility" << std::endl;
+  dispNode->SetVisibility(1);
+  
+  //Clean up
+  sphere->Delete();
+  gly->Delete();
+  std::cerr << "About to return model" << std::endl;
   return mnode;
 }
+
+//---------------------------------------------------------------------------
+vtkMRMLModelNode* vtkBetaProbeNavLogic::RepresentDataRT(vtkMRMLModelNode* mnode)
+{
+  if (this->CountMap == NULL)
+    {
+    CountMap = vtkPolyData::New();
+    }
+  
+  //Access last point appended
+  vtkPolyData* newPoly = vtkPolyData::New(); 
+  double pt[3];
+  vtkPoints* pts = vtkPoints::New(); 
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, pt);
+  pts->InsertNextPoint(pt);
+  newPoly->SetPoints(pts);
+
+  //Access latest Scalars
+  vtkFloatArray* nSC = vtkFloatArray::New();
+  nSC->SetName("Smoothed");
+  double ns = this->nSmoothScalars->GetTuple1(this->nSmoothScalars->GetNumberOfTuples()-1);
+  nSC->InsertNextTuple1(ns);
+  vtkFloatArray* nBC = vtkFloatArray::New();
+  nSC->SetName("Beta");
+  double nb = this->nBetaScalars->GetTuple1(this->nBetaScalars->GetNumberOfTuples()-1);
+  nBC->InsertNextTuple1(nb);
+  vtkFloatArray* nGC = vtkFloatArray::New();
+  nSC->SetName("Gamma");
+  double ng = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
+  nGC->InsertNextTuple1(ng);
+
+  //Add Scalars to latest point
+  newPoly->GetPointData()->AddArray(nSC);
+  newPoly->GetPointData()->AddArray(nBC);
+  newPoly->GetPointData()->AddArray(nGC);
+  newPoly->GetPointData()->SetActiveScalars("Gamma");
+  
+  
+  //--------------------------------
+  //Represent Polydata using glyphs
+  
+  //Create display node and add to scene
+  if ((this->dispNode == NULL) || (mnode->GetDisplayNode() == NULL))
+    {
+    std::cerr << "About to create display node display node" << std::endl;
+    dispNode = vtkMRMLModelDisplayNode::New();
+    GetMRMLScene()->SaveStateForUndo();
+    GetMRMLScene()->AddNode(dispNode);
+    dispNode->SetScene(this->GetMRMLScene());
+  
+    //Associate display node to model node
+    mnode->SetScene(this->GetMRMLScene());
+    mnode->SetAndObserveDisplayNodeID(dispNode->GetID());
+    std::cerr << "Display node assigned" << std::endl;
+    mnode->SetAndObserveDisplayNodeID(dispNode->GetID());
+    }
+    
+  // Each glyph is represented by a sphere
+  vtkSphereSource *sphere = vtkSphereSource::New();
+  sphere->SetRadius(2.0);
+  sphere->SetCenter(0, 0, 0);
+  sphere->Update();
+  
+  //Create Glyphs
+  vtkGlyph3D* gly = vtkGlyph3D::New();
+  gly->SetSourceConnection(sphere->GetOutputPort());
+  gly->SetInput(newPoly);
+  gly->SetColorModeToColorByScalar();
+  gly->SetScaleModeToDataScalingOff();
+  gly->Update();
+  
+  //Append to previous polydata
+  vtkAppendPolyData* apd = vtkAppendPolyData::New();
+  apd->AddInput(CountMap);
+  apd->AddInput(gly->GetOutput());
+  apd->Update();
+  
+  mnode->SetAndObservePolyData(apd->GetOutput());
+  
+  //Properties of dataDisp node
+  dispNode->SetActiveScalarName("Gamma");
+  dispNode->SetScalarVisibility(1);
+  dispNode->SetPolyData(mnode->GetPolyData());
+
+  //Save the current polydata until next time
+  CountMap->DeepCopy(apd->GetOutput());
+
+  //Clean up
+  sphere->Delete();
+  gly->Delete();
+  apd->Delete();
+  pts->Delete();
+  newPoly->Delete();
+  nSC->Delete();
+  nGC->Delete();
+  nBC->Delete();
+  
+  return mnode;
+}
+
+//----------------------------------------------------------------------------
+void vtkBetaProbeNavLogic::ClearArrays()
+{
+  //Clear All variables
+  if (this->CountMap)
+    this->CountMap->Reset();
+  if (this->Points)
+    this->Points->Reset();
+  if (this->SmoothScalars)
+    this->SmoothScalars->Reset();
+  if (this->BetaScalars)
+    this->BetaScalars->Reset();
+  if (this->GammaScalars)
+    this->GammaScalars->Reset();
+  if (this->nSmoothScalars)
+    this->nSmoothScalars->Reset();
+  if (this->nBetaScalars)
+    this->nBetaScalars->Reset();
+  if (this->nGammaScalars)
+    this->nGammaScalars->Reset();
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLNode* inode, vtkMRMLScalarVolumeNode* snode)
+{
+  if (!inode)
+    {
+    return snode;
+    }
+  
+  //Get current image from node
+  vtkMRMLScalarVolumeNode* vnode = vtkMRMLScalarVolumeNode::SafeDownCast(inode);
+  
+  // Check to see if image has been created
+  if (!image)
+    {
+    std::cerr << "Creating a new image" << std::endl;
+    //Create image and display node
+    this->image = vtkImageData::New();
+    vtkMRMLScalarVolumeDisplayNode* dispNode =  vtkMRMLScalarVolumeDisplayNode::New();
+    snode->SetAndObserveDisplayNodeID(dispNode->GetID());
+    
+    //Get image characteristics
+    vtkImageData* im = vnode->GetImageData();
+    int dim[3];
+    im->GetDimensions(dim);
+    this->image->SetDimensions(dim[0], dim[1], dim[2]);
+    int ext[6];
+    im->GetExtent(ext);
+    this->image->SetExtent(ext);
+    double sp[3];
+    im->GetSpacing(sp);
+    this->image->SetSpacing(sp);
+    im->GetOrigin(sp);
+    this->image->SetOrigin(sp);
+    this->image->SetNumberOfScalarComponents(1);
+    this->image->SetScalarTypeToShort();
+    this->image->AllocateScalars();
+    
+    //Assign properties to snode
+    snode->SetOrigin(vnode->GetOrigin());
+    snode->SetAndObserveImageData(this->image);
+    dispNode->SetScene(this->GetMRMLScene());
+    dispNode->SetInterpolate(0);
+    GetMRMLScene()->SaveStateForUndo();
+    GetMRMLScene()->AddNode(dispNode);
+    
+    dispNode->Delete();
+    }
+  
+  //Extract IJK to RAS Matrix
+  vtkMatrix4x4* mat = vtkMatrix4x4::New();
+  vnode->GetIJKToRASMatrix(mat);
+  
+  //Set this matrix to snode
+  snode->SetIJKToRASMatrix(mat);
+  
+  //Convert last point introduced into Points Array and convert to ijk
+  double pt[3];
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, pt);
+  double ptt[4];   //Make pt[3] into homogenous form
+  for (int i = 0; i < 3; i++)
+    {
+    ptt[i] = pt[i];
+    std::cerr << ptt[i] << std::endl;
+    }
+  ptt[3] = 1;
+  
+  //We need Matrix from RAS to IJK, so we invert matrix
+  mat->Invert(mat, mat);
+  double npt[4];     //calculate new point in IJK
+  mat->MultiplyPoint(ptt, npt);
+ 
+  for (int i = 0; i < 3; i++)
+    {
+    std::cerr << npt[i] << std::endl;
+    }
+  
+  //With the ijk point we colorate the pixel of the new image
+  //Get Scalar Pointer of image
+  short* scalPointer = (short*) image->GetScalarPointer(npt[0], npt[1], npt[2]);
+  if (scalPointer)
+    {
+    double scal = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
+    std::cerr << scal << std::endl;
+    std::cerr << *(scalPointer) << std::endl;
+    //memset(scalPointer, (short)scal, sizeof(short));
+    *(scalPointer) = (short)scal;
+    std::cerr << *(scalPointer) << std::endl;
+    image->Update();
+    }
+  
+  //Clean up
+  mat->Delete();
+  
+  return snode; 
+}
+

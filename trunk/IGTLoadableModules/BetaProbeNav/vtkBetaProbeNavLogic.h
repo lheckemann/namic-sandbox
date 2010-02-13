@@ -29,12 +29,16 @@
 #include "vtkCallbackCommand.h"
 
 #include "vtkMRMLSliceNode.h"
-#include "vtkMRMLNode.h"
 
 class vtkPoints;
 class vtkFloatArray;
 class vtkPolyData;
 class vtkMRMLModelNode;
+class vtkMRMLNode;
+class vtkMRMLModelDisplayNode;
+class vtkMRMLScalarVolumeDisplayNode;
+class vtkImageData;
+class vtkMRMLScalarVolumeNode;
 
 class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic 
 {
@@ -54,6 +58,13 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
   void PrintSelf(ostream&, vtkIndent);
   void CollectData(vtkMRMLNode*, vtkMRMLNode*);
   vtkMRMLModelNode* RepresentData(vtkMRMLModelNode* mnode);
+  vtkMRMLModelNode* RepresentDataRT(vtkMRMLModelNode* mnode);
+  vtkMRMLScalarVolumeNode* PaintImage(vtkMRMLNode* inode, vtkMRMLScalarVolumeNode* snode);
+  void ClearArrays();
+  double GetMaxRange() { return this->maxRange; };
+  void SetMaxRange(double rg) { this->maxRange = rg; };
+  vtkImageData* GetImageData() { return this->image; };
+  void SetImageData (vtkImageData* im) { this->image = im; };
 
  protected:
   
@@ -70,8 +81,18 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
 
  private:
    vtkPoints* Points;
-   vtkFloatArray* Scalars;
+   vtkFloatArray* SmoothScalars;
+   vtkFloatArray* BetaScalars;
+   vtkFloatArray* GammaScalars;
+   vtkFloatArray* nSmoothScalars;
+   vtkFloatArray* nBetaScalars;
+   vtkFloatArray* nGammaScalars;
    vtkPolyData* CountMap;
+   vtkMRMLModelDisplayNode* dispNode;
+   vtkMRMLScalarVolumeDisplayNode* scalDispNode;
+   vtkImageData* image;
+   double maxRange;
+
 };
 
 #endif
