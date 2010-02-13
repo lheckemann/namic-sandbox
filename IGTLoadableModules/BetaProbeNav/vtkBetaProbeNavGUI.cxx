@@ -31,13 +31,16 @@
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
 #include "vtkKWEvent.h"
+#include "vtkKWEntry.h"
 
 #include "vtkKWPushButton.h"
-#include  "vtkSlicerNodeSelectorWidget.h"
+#include "vtkSlicerNodeSelectorWidget.h"
+#include "vtkMRMLModelNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
 
 #include "vtkCornerAnnotation.h"
-#include "vtkMRMLModelNode.h"
-
+#include "vtkKWRadioButtonSet.h"
+#include "vtkKWRadioButton.h"
 
 //---------------------------------------------------------------------------
 vtkStandardNewMacro (vtkBetaProbeNavGUI );
@@ -62,11 +65,19 @@ vtkBetaProbeNavGUI::vtkBetaProbeNavGUI ( )
   this->StopButton = NULL;
   this->TransformNode = NULL;
   this->CountNode = NULL;
+  this->ImageNode = NULL;
+  this->SphereTypeButtonSet = NULL;
+  this->RangeEntry = NULL;
+  this->UpdateEntry = NULL;
   
   //----------------------------------------------------------------
   // Locator  (MRML)
   this->TimerFlag = 0;
   this->TimerInterval = 1000; //ms
+  
+  //----------------------------------------------------------------
+  // MRML
+  //mnode = vtkMRMLModelNode::New();
 
 }
 
@@ -113,6 +124,30 @@ vtkBetaProbeNavGUI::~vtkBetaProbeNavGUI ( )
     this->CountNode->SetParent(NULL);
     this->CountNode->Delete();
     }
+    
+  if (this->ImageNode)
+    {
+    this->ImageNode->SetParent(NULL);
+    this->ImageNode->Delete();
+    }
+    
+  if (this->SphereTypeButtonSet)
+    {
+    this->SphereTypeButtonSet->SetParent(NULL);
+    this->SphereTypeButtonSet->Delete();
+    }
+
+  if (this->RangeEntry)
+    {
+    this->RangeEntry->SetParent(NULL);
+    this->RangeEntry->Delete();
+    }
+
+  if (this->UpdateEntry)
+    {
+    this->UpdateEntry->SetParent(NULL);
+    this->UpdateEntry->Delete();
+    }
 
   //----------------------------------------------------------------
   // Unregister Logic class
@@ -152,6 +187,7 @@ void vtkBetaProbeNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
   os << indent << "Logic: " << this->GetLogic ( ) << "\n";
 }
 
+
 //---------------------------------------------------------------------------
 void vtkBetaProbeNavGUI::RemoveGUIObservers ( )
 {
@@ -178,6 +214,24 @@ void vtkBetaProbeNavGUI::RemoveGUIObservers ( )
   if (this->CountNode)
     {
     this->CountNode
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->ImageNode)
+    {
+    this->ImageNode
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->RangeEntry)
+    {
+    this->RangeEntry
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->UpdateEntry)
+    {
+    this->UpdateEntry
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
@@ -218,8 +272,14 @@ void vtkBetaProbeNavGUI::AddGUIObservers ( )
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->CountNode
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->ImageNode
+    ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->RangeEntry
+     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->UpdateEntry
+     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  
   this->AddLogicObservers();
-
 }
 
 
@@ -265,45 +325,132 @@ void vtkBetaProbeNavGUI::ProcessGUIEvents(vtkObject *caller,
     return;
     }
 
-  
+  //---------------------------------------
+  //Start Button Pressed
+  //---------------------------------------
   if (this->StartButton == vtkKWPushButton::SafeDownCast(caller) 
       && event == vtkKWPushButton::InvokedEvent)
     {
     std::cerr << "Start button is pressed." << std::endl;
-    //Make sure Transform Node and Count Node is selected
-    if ((TransformNode) && (CountNode))
+    
+    //Make sure Transform Node, Count Node and Image Node is selected
+    if (!((TransformNode) && (CountNode) && (ImageNode)))
       {
+      std::cerr << "One of the nodes was not defined" << std::endl;
+      return;
+      }
+    
+    //Check to see if Spheres is selected
+    if (!SphereTypeButtonSet->GetWidget(0)->GetSelectedState())
+      {
+      //TODO: disable the spheres option while calculating
+      if (this->mnode == NULL)
+        {
+        //Create a model node and add to scene
+        mnode = vtkMRMLModelNode::New();       
+        mnode->Modified();
+        this->GetMRMLScene()->AddNode(mnode);
+        this->GetMRMLScene()->Modified();
+        }
+      else
+        {
+        //Model is already created but we need to reset the display node
+        vtkMRMLDisplayNode* dnode = mnode->GetDisplayNode();
+        if (dnode)
+          this->GetMRMLScene()->RemoveNode(dnode);
+        mnode->Modified();
+        this->GetMRMLScene()->Modified();
+        //Reset all the point and scalar arrays
+        this->GetLogic()->ClearArrays();
+        }
+      }
+
+      //Check to see if the ScalarVolumeNode already exists
+      if (this->scalnode == NULL)
+        {
+        //Create scalar node and add to the image
+        scalnode = vtkMRMLScalarVolumeNode::New();       
+        scalnode->Modified();
+        this->GetMRMLScene()->AddNode(scalnode);
+        this->GetMRMLScene()->Modified();
+        } 
+      else
+        {
+        //Node is already created we just need to reset the image
+        vtkMRMLDisplayNode* scalDisp = scalnode->GetDisplayNode();
+        if (scalDisp)
+           this->GetMRMLScene()->RemoveNode(scalDisp);
+        //Reset image data
+        this->GetLogic()->SetImageData(NULL);
+        scalnode->Modified();
+        this->GetMRMLScene()->Modified();
+        }
+        
+      //Set the range of values for the radiation counts
+      this->GetLogic()->SetMaxRange(this->RangeEntry->GetValueAsDouble());
       //Start Timer to collect data points
       this->TimerFlag = 1;
+      this->TimerInterval = this->UpdateEntry->GetValueAsInt();
       ProcessTimerEvents();
       }
-    }
+  
+  //---------------------------------------
+  //Stop Button Pressed
+  //---------------------------------------    
   else if (this->StopButton == vtkKWPushButton::SafeDownCast(caller)
       && event == vtkKWPushButton::InvokedEvent)
     {
     std::cerr << "Stop button is pressed." << std::endl;
-    if ((TransformNode) && (CountNode))
+    //TODO: Disable the selection checkboxes of spheres
+    //TODO: Save data to file
+    if ((TransformNode) && (CountNode) && (ImageNode))
       {
       //Stop Timer to stop data point collection
       this->TimerFlag = 0;
-      //Represent the tool
-      vtkMRMLModelNode* mnode = vtkMRMLModelNode::New();
-      mnode = this->GetLogic()->RepresentData(mnode);
-      this->GetMRMLScene()->AddNode(mnode);
-      this->GetMRMLScene()->Modified();
-      mnode->Modified();
-      mnode->Delete();
+      
+      //Represent the spheres if post view was selected
+      if (SphereTypeButtonSet->GetWidget(2)->GetSelectedState())
+        {
+        if (mnode)
+          {
+          mnode = this->GetLogic()->RepresentData(mnode);
+          mnode->Modified();
+          this->GetMRMLScene()->Modified();
+          }
+        }
       }
     }
+    
   else if (this->TransformNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
     std::cerr << "Transform node menu is selected." << std::endl;
     }
+    
   else if (this->CountNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
       && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
     {
     std::cerr << "Count Node menu is selected." << std::endl;
+    }
+    
+  else if (this->ImageNode == vtkSlicerNodeSelectorWidget::SafeDownCast(caller)
+      && event == vtkSlicerNodeSelectorWidget::NodeSelectedEvent)
+    {
+    std::cerr << "Image Node menu is selected." << std::endl;
+    }
+  //Change in the Range Entry
+  else if (this->RangeEntry == vtkKWEntry::SafeDownCast(caller)
+      && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    std::cerr << "Range has been modified." << std::endl;
+    this->GetLogic()->SetMaxRange(this->RangeEntry->GetValueAsDouble());
+    }
+  //Change in Update Rate Entry
+  else if (this->RangeEntry == vtkKWEntry::SafeDownCast(caller)
+      && event == vtkKWEntry::EntryValueChangedEvent)
+    {
+    std::cerr << "Update Rate has been modified." << std::endl;
+    this->TimerInterval = this->RangeEntry->GetValueAsDouble();
     }
 
 } 
@@ -347,9 +494,14 @@ void vtkBetaProbeNavGUI::ProcessTimerEvents()
 {
   if (this->TimerFlag)
     {
-    if ((this->TransformNode) && (this->CountNode))
+    if ((this->TransformNode) && (this->CountNode) && (this->ImageNode))
       {
       this->GetLogic()->CollectData(this->TransformNode->GetSelected(), this->CountNode->GetSelected());
+      if (this->SphereTypeButtonSet->GetWidget(1)->GetSelectedState())
+        {
+        mnode = this->GetLogic()->RepresentDataRT(mnode);
+        }
+      scalnode = this->GetLogic()->PaintImage(this->ImageNode->GetSelected(), scalnode);
       }
     // update timer
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
@@ -357,7 +509,6 @@ void vtkBetaProbeNavGUI::ProcessTimerEvents()
                                          this, "ProcessTimerEvents");        
     }
 }
-
 
 //---------------------------------------------------------------------------
 void vtkBetaProbeNavGUI::BuildGUI ( )
@@ -429,7 +580,7 @@ void vtkBetaProbeNavGUI::BuildGUIForImportDataFrame()
   this->TransformNode = vtkSlicerNodeSelectorWidget::New();
   this->TransformNode->SetParent(tnodeFrame);
   this->TransformNode->Create();
-  this->TransformNode->SetWidth(20);
+  this->TransformNode->SetWidth(30);
   this->TransformNode->SetNewNodeEnabled(0);
   this->TransformNode->SetNodeClass("vtkMRMLLinearTransformNode", NULL, NULL, NULL);
   this->TransformNode->NoneEnabledOn();
@@ -461,7 +612,7 @@ void vtkBetaProbeNavGUI::BuildGUIForImportDataFrame()
   this->CountNode = vtkSlicerNodeSelectorWidget::New();
   this->CountNode->SetParent(cnodeFrame);
   this->CountNode->Create();
-  this->CountNode->SetWidth(20);
+  this->CountNode->SetWidth(30);
   this->CountNode->SetNewNodeEnabled(0);
   this->CountNode->SetNodeClass("vtkMRMLUDPServerNode", NULL, NULL, NULL);
   this->CountNode->NoneEnabledOn();
@@ -476,7 +627,61 @@ void vtkBetaProbeNavGUI::BuildGUIForImportDataFrame()
   
   cnodeLabel->Delete();
   cnodeFrame->Delete();
+  
+  //Image Node Menu
+  vtkKWFrame *inodeFrame = vtkKWFrame::New();
+  inodeFrame->SetParent(frame->GetFrame());
+  inodeFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",
+                inodeFrame->GetWidgetName());
 
+  vtkKWLabel *inodeLabel = vtkKWLabel::New();
+  inodeLabel->SetParent(inodeFrame);
+  inodeLabel->Create();
+  inodeLabel->SetWidth(15);
+  inodeLabel->SetText("Image Node: ");
+
+  this->ImageNode = vtkSlicerNodeSelectorWidget::New();
+  this->ImageNode->SetParent(inodeFrame);
+  this->ImageNode->Create();
+  this->ImageNode->SetWidth(30);
+  this->ImageNode->SetNewNodeEnabled(0);
+  this->ImageNode->SetNodeClass("vtkMRMLScalarVolumeNode", NULL, NULL, NULL);
+  this->ImageNode->NoneEnabledOn();
+  this->ImageNode->SetShowHidden(1);
+  this->ImageNode->Create();
+  this->ImageNode->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->ImageNode->UpdateMenu();
+  this->ImageNode->SetBorderWidth(0);
+  this->ImageNode->SetBalloonHelpString("Select an image node from the Scene");
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+              inodeLabel->GetWidgetName() , this->ImageNode->GetWidgetName());
+  
+  inodeLabel->Delete();
+  inodeFrame->Delete();
+  //Update Rate Entry text box
+  vtkKWFrame *updateFrame = vtkKWFrame::New();
+  updateFrame->SetParent(frame->GetFrame());
+  updateFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                updateFrame->GetWidgetName());
+
+  vtkKWLabel *updateLabel = vtkKWLabel::New();
+  updateLabel->SetParent(updateFrame);
+  updateLabel->Create();
+  updateLabel->SetWidth(15);
+  updateLabel->SetText("Update Rate (ms): ");
+
+  this->UpdateEntry = vtkKWEntry::New();
+  this->UpdateEntry->SetParent(updateFrame);
+  this->UpdateEntry->Create();
+  this->UpdateEntry->SetWidth(8);
+  this->UpdateEntry->SetRestrictValueToInteger();
+  this->UpdateEntry->SetValueAsInt(500);
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+              updateLabel->GetWidgetName() , this->UpdateEntry->GetWidgetName());
+  
   //Start button
   vtkKWFrame *startFrame = vtkKWFrame::New();
   startFrame->SetParent(frame->GetFrame());
@@ -501,10 +706,85 @@ void vtkBetaProbeNavGUI::BuildGUIForImportDataFrame()
               this->StartButton->GetWidgetName(),
               this->StopButton->GetWidgetName());
 
+  //Clean up
   startFrame->Delete();
+  frame->Delete();
+  updateLabel->Delete();
+  updateFrame->Delete();
+
+  // -----------------------------------------
+  // Data Representation Frame
+
+  vtkKWFrameWithLabel *repFrame = vtkKWFrameWithLabel::New();
+  repFrame->SetParent(conBrowsFrame->GetFrame());
+  repFrame->Create();
+  repFrame->SetLabelText ("Data Representation");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 repFrame->GetWidgetName() );
+
+  // Sphere Representation Selection
+  vtkKWFrame *sphereFrame = vtkKWFrame::New();
+  sphereFrame->SetParent(repFrame->GetFrame());
+  sphereFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                sphereFrame->GetWidgetName());
+
+  vtkKWLabel *sphereLabel = vtkKWLabel::New();
+  sphereLabel->SetParent(sphereFrame);
+  sphereLabel->Create();
+  sphereLabel->SetWidth(8);
+  sphereLabel->SetText("Spheres: ");
+
+  this->SphereTypeButtonSet = vtkKWRadioButtonSet::New();
+  this->SphereTypeButtonSet->SetParent(sphereFrame);
+  this->SphereTypeButtonSet->Create();
+  this->SphereTypeButtonSet->PackHorizontallyOn();
+  this->SphereTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(3);
+  this->SphereTypeButtonSet->UniformColumnsOn();
+  this->SphereTypeButtonSet->UniformRowsOn();
+
+  this->SphereTypeButtonSet->AddWidget(0);
+  this->SphereTypeButtonSet->GetWidget(0)->SetText("None");
+  this->SphereTypeButtonSet->GetWidget(0)->SelectedStateOn();
+  this->SphereTypeButtonSet->AddWidget(1);
+  this->SphereTypeButtonSet->GetWidget(1)->SetText("RT");
+  this->SphereTypeButtonSet->AddWidget(2);
+  this->SphereTypeButtonSet->GetWidget(2)->SetText("Post");
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              sphereLabel->GetWidgetName() , this->SphereTypeButtonSet->GetWidgetName());
+
+  //Range Selection
+  vtkKWFrame *rangeFrame = vtkKWFrame::New();
+  rangeFrame->SetParent(repFrame->GetFrame());
+  rangeFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                rangeFrame->GetWidgetName());
+
+  vtkKWLabel *rangeLabel = vtkKWLabel::New();
+  rangeLabel->SetParent(rangeFrame);
+  rangeLabel->Create();
+  rangeLabel->SetWidth(15);
+  rangeLabel->SetText("Range (max): ");
+
+  this->RangeEntry = vtkKWEntry::New();
+  this->RangeEntry->SetParent(rangeFrame);
+  this->RangeEntry->Create();
+  this->RangeEntry->SetWidth(8);
+  this->RangeEntry->SetRestrictValueToInteger();
+  this->RangeEntry->SetValueAsInt(255);
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+              rangeLabel->GetWidgetName() , this->RangeEntry->GetWidgetName());
+  
+   //Clean up
+  repFrame->Delete();
+  sphereFrame->Delete();
+  sphereLabel->Delete();
+  rangeFrame->Delete();
+  rangeLabel->Delete();
   
   conBrowsFrame->Delete();
-  frame->Delete();
 
 }
 

@@ -27,6 +27,10 @@
 
 class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
+class vtkKWRadioButtonSet;
+class vtkMRMLModelNode;
+class vtkKWEntry;
+class vtkMRMLScalarVolumeNode;
 
 class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
 {
@@ -120,6 +124,10 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   vtkKWPushButton* StopButton;
   vtkSlicerNodeSelectorWidget* TransformNode;
   vtkSlicerNodeSelectorWidget* CountNode;
+  vtkSlicerNodeSelectorWidget* ImageNode;
+  vtkKWRadioButtonSet* SphereTypeButtonSet;
+  vtkKWEntry* RangeEntry;
+  vtkKWEntry* UpdateEntry;
 
   //----------------------------------------------------------------
   // Logic Values
@@ -128,6 +136,12 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   vtkBetaProbeNavLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;
+
+  //----------------------------------------------------------------
+  // Model Nodes
+  //----------------------------------------------------------------
+  vtkMRMLModelNode* mnode;
+  vtkMRMLScalarVolumeNode* scalnode;
 
 };
 
