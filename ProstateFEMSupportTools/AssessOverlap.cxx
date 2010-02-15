@@ -107,6 +107,7 @@ int main( int argc, char ** argv ){
   }
  
   float dice = 2.*overlapAcc/(it1acc+it2acc);
+  std::cerr << "Dice coefficient; Hausdorff distance; Image1 label volume; Image2 label volume" << std::endl;
   std::cerr << dice << "; " << ((hd1>hd2) ? hd1:hd2) << "; " << 
     it1acc*sp[0]*sp[1]*sp[2] << "; " << it2acc*sp[0]*sp[1]*sp[2] << std::endl;
 
