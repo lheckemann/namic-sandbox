@@ -2,6 +2,7 @@
 #define cArray3D_txx_
 
 #include "cArray3D.h"
+#include "signal.h"
 
 #include <iostream>
 

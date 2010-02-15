@@ -1319,77 +1319,73 @@ CSFLSSegmentor3D< TPixel >
 }
 
 
-// /* ============================================================
-//    doSegmenation    */
-// template< typename TPixel >
-// void
-// CSFLSSegmentor3D< TPixel >
-// ::doSegmenation()
-// {
-// //   double arbitraryInitPhi = 1000;
-// //   mp_phi.reset(new cArray3D< double >(m_nx, m_ny, m_nz, arbitraryInitPhi) );
+  /* ============================================================
+     doSegmenation    */
+  template< typename TPixel >
+  void
+  CSFLSSegmentor3D< TPixel >
+  ::doSegmenation()
+  {
+    double arbitraryInitPhi = 1000;
+    //mp_phi.reset(new cArray3D< double >(m_nx, m_ny, m_nz, arbitraryInitPhi) );
+
+    // douher::saveAsImage3< double >(mp_phi, "init0.nrrd");
 
 
-//   // douher::saveAsImage3< double >(mp_phi, "init0.nrrd");
+    /*============================================================
+     * From the initial mask, generate: 1. SFLS, 2. mp_label and
+     * 3. mp_phi.      
+     */
+    initializeSFLS();
+
+    //douher::saveAsImage3< double >(mp_phi, "initPhi.nrrd");
+
+    for (unsigned int it = 0; it < m_numIter; ++it)
+      {
+  std::cout<<"iteration "<<it<<"\n"<<std::flush;
+
+        /*--------------------------------------------------
+          Compute the force on the zero level set, NOT on the whole domain.
+          This is NOT implemented in this base class.    
+
+          This function will compute the m_force. m_force has the same
+          size as the m_ln, indicating the change at each pixel on the
+          zero level set.
+        */
+        computeForce(); 
 
 
-//   /*============================================================
-//    * From the initial mask, generate: 1. SFLS, 2. mp_label and
-//    * 3. mp_phi.      
-//    */
-//   initializeSFLS();
+        normalizeForce();
 
-//   //douher::saveAsImage3< double >(mp_phi, "initPhi.nrrd");
-
-//   for (unsigned int it = 0; it < m_numIter; ++it)
-//     {
-//       std::cout<<"iteration "<<it<<"\n"<<std::flush;
-
-//       /*--------------------------------------------------
-//         Compute the force on the zero level set, NOT on the whole domain.
-//         This is NOT implemented in this base class.    
-
-//         This function will compute the m_force. m_force has the same
-//         size as the m_ln, indicating the change at each pixel on the
-//         zero level set.
-//       */
-//       computeForce(); 
-
-
-//       normalizeForce();
-
-//       //         // debug
-//       //         for (std::list< double >::const_iterator itf = this->m_force.begin(); itf != this->m_force.end(); ++itf)
-//       //           {
-//       //             std::cout<<(*itf)<<", ";
-//       //           }
-//       //         std::cout<<std::endl<<it<<std::endl<<std::endl;
+//         // debug
+//         for (std::list< double >::const_iterator itf = this->m_force.begin(); itf != this->m_force.end(); ++itf)
+//           {
+//             std::cout<<(*itf)<<", ";
+//           }
+//         std::cout<<std::endl<<it<<std::endl<<std::endl;
 
 
 
-//       //         //debug//
-//       //         labelsCoherentCheck1();
+//         //debug//
+//         labelsCoherentCheck1();
 
-//       oneStepLevelSetEvolution();
-
-
-//       //         //debug//
-//       //         std::cout<<"-----------------------"<<it<<"---------------------------"<<std::endl;
-//       //         std::cout<<"lz \t ln1 \t ln2 \t lp1 \t lp2 \n";
-//       //         std::cout<<m_lz.size()<<"\t"<<m_ln1.size()<<"\t"<<m_ln2.size()<<"\t"<<m_lp1.size()<<"\t"<<m_lp2.size()<<std::endl;
-//       //         std::cout<<"--------------------------------------------------"<<std::endl;
+        oneStepLevelSetEvolution();
 
 
-//       //         // debug
-//       //         labelsCoherentCheck1();
+//         //debug//
+//         std::cout<<"-----------------------"<<it<<"---------------------------"<<std::endl;
+//         std::cout<<"lz \t ln1 \t ln2 \t lp1 \t lp2 \n";
+//         std::cout<<m_lz->size()<<"\t"<<m_ln1->size()<<"\t"<<m_ln2->size()<<"\t"<<m_lp1->size()<<"\t"<<m_lp2->size()<<std::endl;
+//         std::cout<<"--------------------------------------------------"<<std::endl;
 
 
-//       //        douher::saveAsImage3< double >(mp_phi, "temp.nrrd");
+//         // debug
+//         labelsCoherentCheck1();
 
-// updateInsideVoxelCount();
-//     }
-// }
 
+        //        douher::saveAsImage3< double >(mp_phi, "temp.nrrd");
+      }
+  }
 
 /* getLevelSetFunction */
 template< typename TPixel >
