@@ -16,8 +16,8 @@
 #include <vnl/vnl_random.h>
 
 //douher
-#include "lib/cArrayOp.h"
-#include "lib/imageProcessing.h"
+#include "arrays/cArrayOp.h"
+#include "imageProcessing/imageProcessing.h"
 
 
 /* basicInit    */
@@ -58,15 +58,15 @@ void CShapeBasedGAC::computeFeatureImage()
       std::cerr<<"set image first.\n";
       raise(SIGABRT);
     }
-
-  typedef itk::Image< double, 3 > ItkImageType;
-
-  ItkImageType::Pointer imageItk = douher::cArray3ToItkImage< double >(mp_img);
   
   /* smooth image */
+  typedef itk::Image< double, 3 > ItkImageType;
   typedef itk::CurvatureAnisotropicDiffusionImageFilter< ItkImageType, ItkImageType >  SmoothingFilterType;
   SmoothingFilterType::Pointer smoothing = SmoothingFilterType::New();
-  smoothing->SetInput( imageItk );
+
+  //ItkImageType::Pointer imageItk = douher::cArray3ToItkImage< double >(mp_img);
+  smoothing->SetInput( mp_img );
+
   smoothing->SetTimeStep( 0.05 );
   smoothing->SetNumberOfIterations(  10 );
   smoothing->SetConductanceParameter( 9.0 );
@@ -138,12 +138,12 @@ void CShapeBasedGAC::computeForce()
 
   double fmax = -1e10;
 
-  long n = this->m_lz->size();
+  long n = this->m_lz.size();
   double* theForce = new double[ n ];
 
   {
     long i = 0;
-    for (douher::CSFLSLayer::iterator itz = this->m_lz->begin(); itz != this->m_lz->end(); ++itz, ++i)
+    for (CSFLS::CSFLSLayer::iterator itz = this->m_lz.begin(); itz != this->m_lz.end(); ++itz, ++i)
       {
   long ix = (*itz)[0];
   long iy = (*itz)[1];
@@ -217,29 +217,58 @@ double CShapeBasedGAC::computeForceAt(long ix, long iy, long iz)
 
   double featureVal = m_featureImage->get(ix, iy, iz);
 
+  //typename itk::Image<float, 3>::IndexType idx = {{ix, iy, iz}};
+  typedef itk::Image< float, 3 >::IndexType IndexType;
+  //double phi = this->mp_phi->GetPixel(idx);
+  IndexType idx1;
+  IndexType idx2;
+  IndexType idx3;
+
+  idx1[0]=ix;
+  idx1[1]=iy;
+  idx1[2]=iz;
 
   if( ix+1 < this->m_nx && ix-1 >=0 )
     {
-      dPhiDxMinus = this->mp_phi->get(ix, iy, iz) - this->mp_phi->get(ix-1, iy, iz);
-      dPhiDxPlus = this->mp_phi->get(ix+1, iy, iz) - this->mp_phi->get(ix, iy, iz);
+      idx2[0]=ix-1;
+      idx2[1]=iy;
+      idx2[3]=iz;
+      idx3[0]=ix+1;
+      idx3[1]=iy;
+      idx3[3]=iz;
+      dPhiDxMinus = this->mp_phi->GetPixel(idx1) - this->mp_phi->GetPixel(idx2);
+      dPhiDxPlus = this->mp_phi->GetPixel(idx3) - this->mp_phi->GetPixel(idx1);
 
-      dFeatureDx = (this->m_featureImage->get(ix+1, iy, iz) - this->m_featureImage->get(ix-1, iy, iz))/2.0;
+      dFeatureDx = (this->m_featureImage->get(ix+1,iy,iz) - this->m_featureImage->get(ix-1,iy,iz))/2.0;
     }
 
   if( iy+1 < this->m_ny && iy-1 >=0 ) 
     {
-      dPhiDyMinus = this->mp_phi->get(ix, iy, iz) - this->mp_phi->get(ix, iy-1, iz);
-      dPhiDyPlus = this->mp_phi->get(ix, iy+1, iz) - this->mp_phi->get(ix, iy, iz);
-
-      dFeatureDy = (this->m_featureImage->get(ix, iy+1, iz) - this->m_featureImage->get(ix, iy-1, iz))/2.0;
+    idx2[0]=ix;
+    idx2[1]=iy-1;
+    idx2[3]=iz;
+    idx3[0]=ix;
+    idx3[1]=iy+1;
+    idx3[3]=iz;
+    
+    dPhiDyMinus = this->mp_phi->GetPixel(idx1) - this->mp_phi->GetPixel(idx2);
+    dPhiDyPlus = this->mp_phi->GetPixel(idx3) - this->mp_phi->GetPixel(idx1);
+    
+    dFeatureDy = (this->m_featureImage->get(ix,iy+1,iz) - this->m_featureImage->get(ix,iy-1,iz))/2.0;
     }
 
   if( iz+1 < this->m_nz && iz-1 >=0 )
     {
-      dPhiDzMinus = this->mp_phi->get(ix, iy, iz) - this->mp_phi->get(ix, iy, iz-1);
-      dPhiDzPlus = this->mp_phi->get(ix, iy, iz+1) - this->mp_phi->get(ix, iy, iz);
+    idx2[0]=ix;
+    idx2[1]=iy;
+    idx2[3]=iz-1;
+    idx3[0]=ix;
+    idx3[1]=iy;
+    idx3[3]=iz+1;
+    dPhiDzMinus = this->mp_phi->GetPixel(idx1) - this->mp_phi->GetPixel(idx2);
+    dPhiDzPlus = this->mp_phi->GetPixel(idx3) - this->mp_phi->GetPixel(idx1);
 
-      dFeatureDz = (this->m_featureImage->get(ix, iy, iz+1) - this->m_featureImage->get(ix, iy, iz-1))/2.0;
+    dFeatureDz = (this->m_featureImage->get(ix,iy,iz+1) - this->m_featureImage->get(ix,iy,iz-1))/2.0;
     }
 
 
@@ -321,7 +350,7 @@ CShapeBasedGAC::updateCentroid()
 
   sumCentroid = m_centroid*m_volumeOld;
 
-  for (douher::CSFLSLayer::const_iterator it = this->m_lIn2out.begin(); it != this->m_lIn2out.end(); ++it)
+  for (CSFLS::CSFLSLayer::const_iterator it = this->m_lIn2out.begin(); it != this->m_lIn2out.end(); ++it)
     {
       long ix = (*it)[0];
       long iy = (*it)[1];
@@ -335,7 +364,7 @@ CShapeBasedGAC::updateCentroid()
       sumCentroid -= a;
     }
 
-  for (douher::CSFLSLayer::const_iterator it = this->m_lOut2in.begin(); it != this->m_lOut2in.end(); ++it)
+  for (CSFLS::CSFLSLayer::const_iterator it = this->m_lOut2in.begin(); it != this->m_lOut2in.end(); ++it)
     {
       long ix = (*it)[0];
       long iy = (*it)[1];
@@ -475,6 +504,48 @@ CShapeBasedGAC::computeVolume(douher::cArray3D< double >::Pointer phi)
 }
 
 
+/*================================================================================*/
+double 
+CShapeBasedGAC::computeVolume(LSImageType::Pointer phi)
+{
+  double v = 0.0;
+  typedef itk::ImageRegionConstIterator< LSImageType > ImgIteratorType;
+  ImgIteratorType it( phi, phi->GetRequestedRegion() );
+  for ( it.GoToBegin(); !it.IsAtEnd(); ++it )
+  {
+    if (it.Get()<=0)
+    {
+      v+=1.0;
+    }
+  }
+  return v;
+}
+
+
+vnl_vector<double> 
+CShapeBasedGAC::computeCentroid(LSImageType::Pointer phi)
+{
+  vnl_vector<double> centroid(3, 0.0);
+  double totalMass = 0.0;
+
+  double v = 0.0;
+  typedef itk::ImageRegionConstIterator< LSImageType > ImgIteratorType;
+  ImgIteratorType it( phi, phi->GetRequestedRegion() );
+  for ( it.GoToBegin(); !it.IsAtEnd(); ++it )
+  {  
+    if (it.Get()<=0)
+    {
+      totalMass+=1.0;
+      centroid[0] += it.Get()*it.GetIndex()[0];
+      centroid[1] += it.Get()*it.GetIndex()[1];
+      centroid[2] += it.Get()*it.GetIndex()[2];
+    }
+  }
+
+  centroid /= totalMass;
+
+  return centroid;
+}
 
 
 /*================================================================================*/
@@ -558,7 +629,14 @@ void CShapeBasedGAC::getMaskFromMeanShape()
   douher::cArray3D< double >::Pointer dm = moveCentroidToThePoint(scaleMean, m_startingCenter, fillValue);
 
   // 3.
-  mp_mask.reset(new douher::cArray3D< unsigned char >(m_nx, m_ny, m_nz, 0));
+  //mp_mask.reset(new douher::cArray3D< unsigned char >(m_nx, m_ny, m_nz, 0));
+  mp_mask=MaskImageType::New();
+  MaskImageType::SizeType size;
+  size[0] = m_nx; // size along X
+  size[1] = m_ny; // size along Y
+  size[2] = m_nz; // size along Z  
+  mp_mask->FillBuffer(0);
+  MaskImageType::IndexType idx;
 
   for (long ix = 0; ix < m_nx; ++ix)
     {
@@ -568,14 +646,17 @@ void CShapeBasedGAC::getMaskFromMeanShape()
       {
               if (dm->get(ix, iy, iz) <= 0)
     {
-      mp_mask->set(ix, iy, iz, 1);
+    idx[0]=ix;
+    idx[1]=iy;
+    idx[2]=iz;
+    mp_mask->SetPixel(idx, 1);
     }
       }
   }
     }
   
   //debug//
-  douher::saveAsImage3< unsigned char >(mp_mask, "initMask.nrrd");
+  //douher::saveAsImage3< unsigned char >(mp_mask, "initMask.nrrd");
   //  exit(0);
   //DEBUG//
 

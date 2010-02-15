@@ -14,6 +14,8 @@
 #include "shapeBasedGAC.h"
 #include "shapeBasedSeg.h"
 
+#include "itkBinaryThresholdImageFilter.h"
+#include "itkCastImageFilter.h"
 
 douher::cArray3D< double >::Pointer connection(douher::cArray3D< double >::Pointer phi);
 
@@ -52,13 +54,28 @@ int main(int argc, char** argv)
 
 
   // 1. GAC
-  ImageType::Pointer img = douher::readImageToArray3< PixelType >(inputImage);
+  //ImageType::Pointer img = douher::readImageToArray3< PixelType >(inputImage);
 
-  //  ImageType::Pointer featureImg = douher::readImageToArray3< PixelType >("feature.nrrd");
+  typedef itk::Image<PixelType, 3> InputImageType;
+  InputImageType::Pointer inputImagePtr;
+  typedef itk::ImageFileReader< InputImageType > InputImageReaderType;
+  InputImageReaderType::Pointer reader = InputImageReaderType::New();
+  reader->SetFileName(inputImage);
+  try
+    {
+      reader->Update();
+      inputImagePtr = reader->GetOutput();
+    }
+  catch ( itk::ExceptionObject &err)
+    {
+      std::cerr<< "ExceptionObject caught !" << std::endl; 
+      std::cerr<< err << std::endl; 
+      raise(SIGABRT);
+    }
 
 
   CShapeBasedGAC::Pointer gac = CShapeBasedGAC::New();
-  gac->setImage(img);
+  gac->setImage(inputImagePtr);
   gac->setLeftAndRightPointsInTheMiddleSlice(lx, ly, lz, rx, ry, rz);
 
 
@@ -73,17 +90,43 @@ int main(int argc, char** argv)
   gac->doShapeBasedGACSegmenation();
 
   //debug//
-  douher::saveAsImage3< double >(gac->mp_phi, "gacResult.nrrd");
+  //douher::saveAsImage3< double >(gac->mp_phi, "gacResult.nrrd");
+  typedef CShapeBasedGAC::LSImageType floatImage_t;
+  typedef itk::ImageFileWriter< floatImage_t > writer_t;
+  writer_t::Pointer outputWriter = writer_t::New();
+  outputWriter->SetFileName("gacResult.nrrd");
+  outputWriter->SetInput(gac->mp_phi);
+  outputWriter->Update();
+
   //DEBUG//
 
   //debug//
-  douher::saveAsImage3< double >(connection(gac->mp_phi), "gacResultBin.nrrd");
+  //typedef CShapeBasedGAC::LSImageType floatImage_t;
+  //douher::saveAsImage3< double >(connection(gac->mp_phi), "gacResultBin.nrrd");
+  typedef itk::BinaryThresholdImageFilter<CShapeBasedGAC::LSImageType, CShapeBasedGAC::LSImageType>  FilterType;
+  FilterType::Pointer filter = FilterType::New();
+  outputWriter->SetInput( filter->GetOutput() );
+  filter->SetInput(gac->mp_phi);
+  filter->SetOutsideValue(0);
+  filter->SetInsideValue(1);
+  filter->SetLowerThreshold(-1e6);
+  filter->SetUpperThreshold(0);
+  filter->Update();
+  outputWriter->SetFileName("gacResultBin.nrrd");
+  outputWriter->Update(); 
   //DEBUG//
 
 
   // 2. Tsai's shape based
   CShapeBasedSeg c;
-  c.setInputImage(douher::cArray3ToItkImage< double >(connection(gac->mp_phi)) );
+  //c.setInputImage(douher::cArray3ToItkImage< double >(connection(gac->mp_phi)) );
+  //CShapeBasedSeg::DoubleImageType::Pointer cinput=CShapeBasedSeg::DoubleImageType::New();
+  typedef itk::CastImageFilter< CShapeBasedGAC::LSImageType, CShapeBasedSeg::DoubleImageType> CastFromLSToDoubleFilterType;
+  CastFromLSToDoubleFilterType::Pointer toDouble = CastFromLSToDoubleFilterType::New(); 
+  toDouble->SetInput(filter->GetOutput());
+  
+  //CShapeBasedSeg::DoubleImageType::Pointer cinput=CShapeBasedSeg::DoubleImageType::New();  
+  c.setInputImage(toDouble->GetOutput());  
 
   c.setMeanShape(douher::readImage3< double >( meanShapeName ));
 

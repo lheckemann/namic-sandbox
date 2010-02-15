@@ -6,20 +6,20 @@
 
 // douher
 #include "arrays/cArray3D.h"
-#include "SFLSSegmentor3D.h"
+#include "SFLSSegmentor/SFLSSegmentor3D.h"
 
 // std
 #include <vector>
 
 
 
-class CShapeBasedGAC : public douher::CSFLSSegmentor3D< double >
+class CShapeBasedGAC : public CSFLSSegmentor3D< double >
 {
 public:
   typedef CShapeBasedGAC Self;
   typedef boost::shared_ptr< Self > Pointer;
 
-  typedef douher::CSFLSSegmentor3D< double > SuperClassType;
+  typedef CSFLSSegmentor3D< double > SuperClassType;
 
 
   typedef vnl_vector< double > VectorType;
@@ -30,7 +30,7 @@ public:
 
 
   /* ctor */
-  CShapeBasedGAC() : douher::CSFLSSegmentor3D< double >()
+  CShapeBasedGAC() : CSFLSSegmentor3D< double >()
   {
     basicInit();
   }
@@ -135,11 +135,13 @@ public:
   // Input a level set fn, compute its inside volume
   void computeVolume();
   double computeVolume(douher::cArray3D< double >::Pointer phi);
+  double computeVolume(LSImageType::Pointer phi);
 
   void updateVolume();
 
   void computeCentroid();
   vnl_vector<double> computeCentroid(douher::cArray3D< double >::Pointer phi);
+  vnl_vector<double> computeCentroid(LSImageType::Pointer phi);
 
   void updateCentroid();
 

@@ -18,7 +18,6 @@ namespace douher
   /*============================================================
    * readTextLineToListOfString   
    */
-  template<typename TNull>
   std::vector< std::string > readTextLineToListOfString(const char* textFileName)
   {
     /* The file MUST end with an empty line, then each line will be
