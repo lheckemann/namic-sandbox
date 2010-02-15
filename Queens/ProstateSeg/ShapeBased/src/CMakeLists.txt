@@ -21,7 +21,7 @@ ENDIF(ITK_FOUND)
 ################################
 # include boost
 FIND_PATH(BOOST_PATH boost/shared_ptr.hpp
-  shared/boost_1_40_0
+  shared/boost_1_42_0
   )
 IF(NOT BOOST_PATH)
    MESSAGE(FATAL_ERROR "Please enter the path of boost")
