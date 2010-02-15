@@ -34,7 +34,7 @@ int main(int argc, char **argv){
 
   if(argc<7){
     std::cerr << "Usage: " << "input_image input_surface_mesh input_volume_mesh output_mesh_abaqus " << std::endl << 
-      " output_displacements_file output_mesh_vtk [skip_every_nth_vertex]" << std::endl;
+      " output_displacements_file output_mesh_vtk [skip_every_nth_vertex scale_displ_by_const]" << std::endl;
     return -1;
   }
 
@@ -47,10 +47,17 @@ int main(int argc, char **argv){
   char* outVTKmesh = argv[6];
 
   int takeEveryNthPoint = 1; // change this to 2 to skip every second point, etc.
+  float scaleConst = 1;
   if(argc>7){
     takeEveryNthPoint = atoi(argv[7]);
     std::cout << "During surface displacement initialization will take every " << takeEveryNthPoint << " point" << std::endl;
   }
+
+  if(argc>8){
+    scaleConst = atof(argv[8]);
+    std::cout << "During surface displacement initialization will scale by " << scaleConst << std::endl;
+  }
+
 
   
   std::cout << "Input image: " << inputImageName << std::endl;
@@ -100,9 +107,9 @@ int main(int argc, char **argv){
     double surfPt[3], volPt[3], displVal[3];
     surf->GetPoint(i, &surfPt[0]);
     mesh->GetPoint(i, &volPt[0]);
-    displVal[0] = surfPt[0]-volPt[0];
-    displVal[1] = surfPt[1]-volPt[1];
-    displVal[2] = surfPt[2]-volPt[2];
+    displVal[0] = (float(scaleConst))*(surfPt[0]-volPt[0]);    
+    displVal[1] = (float(scaleConst))*(surfPt[1]-volPt[1]);
+    displVal[2] = (float(scaleConst))*(surfPt[2]-volPt[2]);
     if(i%takeEveryNthPoint == 0)
       displ->InsertTuple3(i, displVal[0], displVal[1], displVal[2]);
     else
