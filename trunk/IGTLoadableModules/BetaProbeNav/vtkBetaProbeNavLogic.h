@@ -91,6 +91,7 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
    vtkMRMLModelDisplayNode* dispNode;
    vtkImageData* image;
    double maxRange;
+   double probeDiam;
 
 };
 
