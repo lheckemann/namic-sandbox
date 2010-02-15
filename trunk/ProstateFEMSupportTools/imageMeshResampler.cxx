@@ -95,13 +95,13 @@ int main(int argc, char **argv){
   meshReader->Update();
 
   vtkUnstructuredGrid *mesh = meshReader->GetOutput();
-  vtkDataArray *meshDeformation = mesh->GetPointData()->GetArray("ResultDisplacement");
+  vtkDataArray *meshDeformation = mesh->GetPointData()->GetArray("Displacement");
   ImageType::Pointer image = imageReader->GetOutput();
 
   DFImageType::Pointer dfImage = DFImageType::New();
   DFImageType::RegionType region;
-  region.SetSize(image->GetBufferedRegion().GetSize());
-  region.SetIndex(image->GetBufferedRegion().GetIndex());
+  region.SetSize(refImage->GetBufferedRegion().GetSize());
+  region.SetIndex(refImage->GetBufferedRegion().GetIndex());
   dfImage->SetRegions(region);
   dfImage->Allocate();
   dfImage->SetSpacing(refImage->GetSpacing());
@@ -112,6 +112,13 @@ int main(int argc, char **argv){
   dup1->SetInputImage(refImage);
   dup1->Update();
   ImageType::Pointer outputImage = dup1->GetOutput();
+  outputImage->FillBuffer(0);
+
+  DupType::Pointer dup2 = DupType::New();
+  dup2->SetInputImage(refImage);
+  dup2->Update();
+  ImageType::Pointer outputImageMask = dup2->GetOutput();
+  outputImageMask->FillBuffer(0);
 
   vtkPoints *meshPoints = mesh->GetPoints();
   vtkCellArray *cells = mesh->GetCells();
@@ -119,27 +126,32 @@ int main(int argc, char **argv){
   int i, cellId=0;
 
   for(i=0;i<mesh->GetNumberOfPoints();i++){
-    double thisPt[3];
+    double thisPt[3], dp[3];
+
     memcpy(&thisPt[0], meshPoints->GetPoint(i), sizeof(double)*3);
+    memcpy(&dp[0], meshDeformation->GetTuple3(i), sizeof(double)*3);
+
+    thisPt[0] += dp[0];
+    thisPt[1] += dp[1];
+    thisPt[2] += dp[2];
+
     thisPt[0] *= -1;
     thisPt[1] *= -1;
-    meshPoints->SetPoint(i,thisPt[0],thisPt[1],thisPt[2]);
 
+    meshPoints->SetPoint(i,thisPt[0],thisPt[1],thisPt[2]);
   }
   
 //
 //
 //
 
-  std::cout << "Before the main loop" << std::endl;
-
   for(cells->InitTraversal();cells->GetNextCell(npts,pts);cellId++){
     assert(npts==4);
     vtkTetra* tetra = vtkTetra::New();
     vtkCell* thisCell = mesh->GetCell(cellId);
     tetra->Initialize(npts, pts, meshPoints);
-    //std::cout << tetra->GetPointId(0) << " " << tetra->GetPointId(1) <<
-    //  " " << tetra->GetPointId(2) << " " << tetra->GetPointId(3) << std::endl;
+//    std::cout << tetra->GetPointId(0) << " " << tetra->GetPointId(1) <<
+//      " " << tetra->GetPointId(2) << " " << tetra->GetPointId(3) << std::endl;
     vtkPoints *tetraPoints = tetra->GetPoints();
     ImageType::IndexType bbMin, bbMax;
     bbMin[0] = refImage->GetBufferedRegion().GetSize()[0];
@@ -154,7 +166,10 @@ int main(int argc, char **argv){
       point[1] = tetraPoints->GetPoint(i)[1];
       point[2] = tetraPoints->GetPoint(i)[2];
 //      std::cout << point[0] << " " << point[1] << " " << point[2] << std::endl;
-      refImage->TransformPhysicalPointToIndex(point, index);
+      if(!refImage->TransformPhysicalPointToIndex(point, index)){
+        std::cerr << "Point is outside the image" << std::endl;
+        return -1;
+      }
       if(index[0]<bbMin[0])
         bbMin[0] = index[0];
       if(index[1]<bbMin[1])
@@ -227,19 +242,22 @@ int main(int argc, char **argv){
       if(!isInside)
         continue;
 
-      dfPixel[0] = bc[0]*dp0[0]+bc[1]*dp1[0]+bc[2]*dp2[0]+bc[3]*dp3[0];
-      dfPixel[1] = bc[0]*dp0[1]+bc[1]*dp1[1]+bc[2]*dp2[1]+bc[3]*dp3[1];
-      dfPixel[2] = bc[0]*dp0[2]+bc[1]*dp1[2]+bc[2]*dp2[2]+bc[3]*dp3[2];
+      dfPixel[0] = (bc[0]*dp0[0]+bc[1]*dp1[0]+bc[2]*dp2[0]+bc[3]*dp3[0]);
+      dfPixel[1] = (bc[0]*dp0[1]+bc[1]*dp1[1]+bc[2]*dp2[1]+bc[3]*dp3[1]);
+      dfPixel[2] = -(bc[0]*dp0[2]+bc[1]*dp1[2]+bc[2]*dp2[2]+bc[3]*dp3[2]);
 
       dfImageI.Set(dfPixel);
 
-      pointIn[0] = pointRef[0]-dfPixel[0];
-      pointIn[1] = pointRef[1]-dfPixel[1];
-      pointIn[2] = pointRef[2]-dfPixel[2];
+      pointIn[0] = pointRef[0]+dfPixel[0];
+      pointIn[1] = pointRef[1]+dfPixel[1];
+      pointIn[2] = pointRef[2]+dfPixel[2];
 
-      image->TransformPhysicalPointToIndex(pointIn, idxOut);
+      if(!image->TransformPhysicalPointToIndex(pointIn, idxOut)){
+        std::cerr << "Point is outside the input image" << std::endl;
+        return -2;
+      }
       outputImage->SetPixel(imageI.GetIndex(), image->GetPixel(idxOut));
-
+      outputImageMask->SetPixel(imageI.GetIndex(), 1);
     }
   }
 
@@ -256,18 +274,24 @@ int main(int argc, char **argv){
 
   warpFilter->SetInput(image);
   warpFilter->SetDeformationField(dfImage);
-  warpFilter->SetOutputSpacing(image->GetSpacing());
-  warpFilter->SetOutputDirection(image->GetDirection());
-  warpFilter->SetOutputOrigin(image->GetOrigin());
+  warpFilter->SetOutputSpacing(refImage->GetSpacing());
+  warpFilter->SetOutputDirection(refImage->GetDirection());
+  warpFilter->SetOutputOrigin(refImage->GetOrigin());
 
-
+  MaskFilterType::Pointer maskFilter = MaskFilterType::New();
+  maskFilter->SetInput1(warpFilter->GetOutput());
+  maskFilter->SetInput2(outputImageMask);
+  maskFilter->Update();
+  
+  /*
   ImageWriterType::Pointer wimageWriter = ImageWriterType::New();
-  wimageWriter->SetInput(warpFilter->GetOutput());
+  wimageWriter->SetInput(maskFilter->GetOutput());
   wimageWriter->SetFileName("warped_image.nrrd");
   wimageWriter->Update();
+  */
 
   ImageWriterType::Pointer imageWriter = ImageWriterType::New();
-  imageWriter->SetInput(outputImage);
+  imageWriter->SetInput(maskFilter->GetOutput());
   imageWriter->SetFileName(outImageName);
   imageWriter->Update();
 
