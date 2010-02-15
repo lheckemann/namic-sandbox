@@ -51,18 +51,19 @@ vtkBetaProbeNavLogic::vtkBetaProbeNavLogic()
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkBetaProbeNavLogic::DataCallback);
   //Variables
-  Points = vtkPoints::New();
-  SmoothScalars = vtkFloatArray::New();
-  BetaScalars = vtkFloatArray::New();
-  GammaScalars = vtkFloatArray::New();
-  nSmoothScalars = vtkFloatArray::New();
-  nSmoothScalars->SetName("Smoothed");
-  nBetaScalars = vtkFloatArray::New();
-  nBetaScalars->SetName("Beta");
-  nGammaScalars = vtkFloatArray::New();
-  nGammaScalars->SetName("Gamma");
-  CountMap = vtkPolyData::New();
-  image = NULL;
+  this->Points = vtkPoints::New();
+  this->SmoothScalars = vtkFloatArray::New();
+  this->BetaScalars = vtkFloatArray::New();
+  this->GammaScalars = vtkFloatArray::New();
+  this->nSmoothScalars = vtkFloatArray::New();
+  this->nSmoothScalars->SetName("Smoothed");
+  this->nBetaScalars = vtkFloatArray::New();
+  this->nBetaScalars->SetName("Beta");
+  this->nGammaScalars = vtkFloatArray::New();
+  this->nGammaScalars->SetName("Gamma");
+  this->CountMap = vtkPolyData::New();
+  this->image = NULL;
+  this->probeDiam = 9.0; //(mm) make sure it is an odd number
   //dispNode = vtkMRMLModelDisplayNode::New();
 }
 
@@ -424,7 +425,7 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLNode* inode, vt
   
   //With the ijk point we colorate the pixel of the new image
   //Get Scalar Pointer of image
-  short* scalPointer = (short*) image->GetScalarPointer(npt[0], npt[1], npt[2]);
+  /*short* scalPointer = (short*) image->GetScalarPointer(npt[0], npt[1], npt[2]);
   if (scalPointer)
     {
     double scal = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
@@ -433,6 +434,35 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLNode* inode, vt
     //memset(scalPointer, (short)scal, sizeof(short));
     *(scalPointer) = (short)scal;
     std::cerr << *(scalPointer) << std::endl;
+    image->Update();
+    }*/
+    
+  //Project value of radiation over a large amount of pixels
+  //With the ijk point we colorate pixels on the new image
+  //Get Scalar Pointer of image
+  short* scalPointer = (short*) image->GetScalarPointer(npt[0], npt[1], npt[2]);
+  //Calculate how many pixels need to be colored
+  double sp[3];
+  this->image->GetSpacing(sp);
+  int numPix_i = this->probeDiam/sp[0];
+  int numPix_j = this->probeDiam/sp[1];
+  int numPix_k = this->probeDiam/sp[2];
+  //Fill in the pixels
+  if (scalPointer)
+    {
+    //Calculate intensity value to associate to pixel
+    double scal = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1); 
+    for (int i = -floor(numPix_i/2); i <= floor(numPix_i/2); i++)
+      {
+      for (int j = -floor(numPix_j/2); j <= floor(numPix_j/2); j++)
+        {
+        for (int k = -floor(numPix_k/2); k <= floor(numPix_k/2); k++)
+          {
+          short* scalPointer = (short*) image->GetScalarPointer(npt[0] + i, npt[1] + j, npt[2] + k);
+          *(scalPointer) = (short)scal;
+          }
+        }
+      }
     image->Update();
     }
   
