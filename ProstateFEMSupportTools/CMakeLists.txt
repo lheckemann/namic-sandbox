@@ -29,3 +29,6 @@ target_link_libraries(InitDisplFromTwoMeshes ITKCommon ITKIO vtkIO vtkGraphics)
 
 add_executable(CalculateDisplDiff CalculateDisplDiff.cxx)
 target_link_libraries(CalculateDisplDiff ITKCommon ITKIO vtkIO vtkGraphics)
+
+add_executable(AssessOverlap AssessOverlap.cxx)
+target_link_libraries(AssessOverlap ITKCommon ITKIO vtkIO vtkGraphics)
