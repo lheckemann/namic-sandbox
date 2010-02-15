@@ -460,8 +460,9 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLNode* inode, vt
           {
           int ext[6];
           image->GetExtent(ext);
-          //Check to see that indices are within the image
-          if ( (npt[0]+i <= ext[1]) && (npt[1]+j <= ext[3]) && (npt[2]+k <= ext[5]) )
+          //Check to see that indices are within the extent of the image
+          if ( (npt[0]+i <= ext[1]) && (npt[1]+j <= ext[3]) && (npt[2]+k <= ext[5])
+             && (npt[0]+i >= ext[0]) && (npt[1]+j >= ext[2]) && (npt[2]+k >= ext[4]) )
             {
             short* scalPointer = (short*) image->GetScalarPointer(npt[0] + i, npt[1] + j, npt[2] + k);
             *(scalPointer) = (short)scal;
