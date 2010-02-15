@@ -64,6 +64,8 @@ int main(int argc, char **argv){
   mesh1->GetPointData()->AddArray(displDiff);
   displDiff->Delete();
 
+  float mean = 0, min = 1000, max = 0;
+  std::vector<float> diffList;
   for(int i=0;i<mesh1->GetNumberOfPoints();i++){
     double *displVal1, *displVal2;
     double diff[3];
@@ -73,7 +75,23 @@ int main(int argc, char **argv){
     diff[1] = displVal1[1]-displVal2[1];
     diff[2] = displVal1[2]-displVal2[2];
     displDiff->InsertTuple3(i,diff[0],diff[1],diff[2]);
+    float magn = sqrt(diff[0]*diff[0]+diff[1]*diff[1]+diff[2]*diff[2]);
+    mean += magn;
+    if(magn<min)
+      min=magn;
+    if(magn>max)
+      max = magn;
+    diffList.push_back(magn);
   }
+
+  std::sort(diffList.begin(),diffList.end());
+
+  std::cout << "Mean difference magnitude: " << mean/(float)mesh1->GetNumberOfPoints() << std::endl;
+  std::cout << "Min : "<< min << ", Max: " << max << std::endl;
+  std::cout << "Median: " << diffList[diffList.size()/2] << std::endl;
+  std::cout << "1st quartile: " << diffList[diffList.size()/4] << std::endl;
+  std::cout << "3rd quartile: " << diffList[diffList.size()*3/4] << std::endl;
+  std::cout << "Inter-quartile range: " << diffList[diffList.size()*3/4]-diffList[diffList.size()/4] << std::endl;
 
   vtkUnstructuredGridWriter *meshWriter = vtkUnstructuredGridWriter::New();
   meshWriter->SetInput(mesh1);
