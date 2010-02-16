@@ -8,7 +8,6 @@
 #include <iostream>
 #include <string>
 
-//douher
 #include "arrays/cArrayOp.h"
 #include "arrays/cArray3D.h"
 #include "txtio/txtIO.h"
@@ -22,29 +21,6 @@
 #include "itkOrientedImage.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkCastImageFilter.h"
-
-douher::cArray3D< double >::Pointer connection(douher::cArray3D< double >::Pointer phi)
-{
-  douher::cArray3D< double >::Pointer bin(new douher::cArray3D< double >(phi));
-
-  long nx = phi->getSizeX();
-  long ny = phi->getSizeY();
-  long nz = phi->getSizeZ();
-  
-  long n = nx*ny*nz;
-
-  for (long i = 0; i < n; ++i)
-    {
-      (*bin)[i] = (*bin)[i]<=0?1:0; // use 2.5, instead of 0, to enclose more
-    }
-
-  return bin;
-}
-
-
-
-
-
 
 
 // Description:
@@ -143,11 +119,6 @@ int main( int argc, char * argv [] )
 
   std::cout<<"reading input volume...."<<std::flush;  
 
-
-  
-  //typedef douher::cArray3D< PixelType > ImageType;
-  typedef douher::cArray3D< unsigned char > MaskImageType;
-
   // 1. GAC
   CShapeBasedGAC::Pointer gac = CShapeBasedGAC::New();
 
@@ -222,12 +193,6 @@ int main( int argc, char * argv [] )
       c.addEigenShape(douher::readImage3< double >( filename.c_str() ));
     }
 
-//   for (int i = 0; i < numEigen; ++i)
-//     {
-//       c.addEigenShape( douher::cArray3ToItkImage< double >(gac->m_eigenShapes[i]) );
-//     }
-
-
   //debug//
   //  c.setMaxIteration(0);
   //DEBUG//
@@ -240,9 +205,7 @@ int main( int argc, char * argv [] )
   c.gogogo();
 
   std::cout<<"current param = "<<c.getParameters()<<std::endl;
-
   std::cout<<"current cost = "<<c.getCost()<<std::endl;
-
   std::cout<<"done\n";
 
 
@@ -254,16 +217,16 @@ int main( int argc, char * argv [] )
   // Only voxel values are correct, image metadata (origin, spacing, orientation) is not
   // set correctly for the output volume. Copy that from the input volume.
   // :TODO: fix orientation as well
-  segRslt->SetOrigin(reader->GetOutput()->GetOrigin());
-  segRslt->SetSpacing(reader->GetOutput()->GetSpacing());
-
+  segRslt->SetOrigin(inputImagePtr->GetOrigin());
+  segRslt->SetSpacing(inputImagePtr->GetSpacing());
   douher::writeImage3< double >(segRslt, segmentedImageFileName.c_str());
 
+  /*
   typedef unsigned char OutputPixelType;
   typedef itk::OrientedImage< OutputPixelType, Dimension > OutputImageType;
   typedef itk::ImageFileWriter<  OutputImageType  > WriterType;
   WriterType::Pointer writer = WriterType::New();
-
+  */
 
   std::cout<<"done\n";
 
