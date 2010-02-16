@@ -20,6 +20,8 @@
 #include <string>
 
 #include "itkOrientedImage.h"
+#include "itkBinaryThresholdImageFilter.h"
+#include "itkCastImageFilter.h"
 
 douher::cArray3D< double >::Pointer connection(douher::cArray3D< double >::Pointer phi)
 {
@@ -89,40 +91,42 @@ int main( int argc, char * argv [] )
 
   const unsigned int Dimension = 3;
 
-  typedef unsigned char InternalPixelType;  
-  typedef itk::OrientedImage< InternalPixelType, Dimension >  InternalImageType;
+  typedef double PixelType;
+  //typedef itk::OrientedImage< PixelType, Dimension >  InputImageType; :TODO: test if left right point computation is OK with simple itk::Image
+  typedef itk::Image< PixelType, Dimension >  InputImageType;
 
-  typedef unsigned char OutputPixelType;
-  typedef itk::OrientedImage< OutputPixelType, Dimension > OutputImageType;
+  InputImageType::Pointer inputImagePtr;
+  typedef itk::ImageFileReader< InputImageType > InputImageReaderType;
+  InputImageReaderType::Pointer reader = InputImageReaderType::New();
+  reader->SetFileName(inputImageFileName.c_str());
+  try
+    {
+      reader->Update();
+      inputImagePtr = reader->GetOutput();
+    }
+  catch ( itk::ExceptionObject &err)
+    {
+      std::cerr<< "ExceptionObject caught !" << std::endl; 
+      std::cerr<< err << std::endl; 
+      raise(SIGABRT);
+    }  
 
-//  typedef itk::CastImageFilter< InternalImageType, OutputImageType > CastingFilterType;
-//  CastingFilterType::Pointer caster = CastingFilterType::New();
-                        
-  typedef itk::ImageFileReader< InternalImageType > ReaderType;
-  typedef itk::ImageFileWriter<  OutputImageType  > WriterType;
-
-  ReaderType::Pointer reader = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
-
-  reader->SetFileName( inputImageFileName.c_str() );
-  reader->Update(); 
-
-InternalImageType::IndexType leftPointIJK;
-InternalImageType::IndexType rightPointIJK;
+  InputImageType::IndexType leftPointIJK;
+  InputImageType::IndexType rightPointIJK;
 
   if (prostate_side_points.size() == 2)
     {
-    InternalImageType::PointType rasPoint;
+    InputImageType::PointType rasPoint;
 
     rasPoint[0] = prostate_side_points[1][0];  
     rasPoint[1] = prostate_side_points[1][1];
     rasPoint[2] = prostate_side_points[1][2];
-    reader->GetOutput()->TransformPhysicalPointToIndex(rasPoint, leftPointIJK);
+    inputImagePtr->TransformPhysicalPointToIndex(rasPoint, leftPointIJK);
 
     rasPoint[0] = prostate_side_points[0][0];  
     rasPoint[1] = prostate_side_points[0][1];
     rasPoint[2] = prostate_side_points[0][2];
-    reader->GetOutput()->TransformPhysicalPointToIndex(rasPoint, rightPointIJK);
+    inputImagePtr->TransformPhysicalPointToIndex(rasPoint, rightPointIJK);
     }
   else
     {
@@ -140,17 +144,15 @@ InternalImageType::IndexType rightPointIJK;
   std::cout<<"reading input volume...."<<std::flush;  
 
 
-  typedef double PixelType;
-  typedef douher::cArray3D< PixelType > ImageType;
+  
+  //typedef douher::cArray3D< PixelType > ImageType;
   typedef douher::cArray3D< unsigned char > MaskImageType;
 
   // 1. GAC
-  ImageType::Pointer img = douher::readImageToArray3< PixelType >(inputImageFileName.c_str());
-
-  //  ImageType::Pointer featureImg = douher::readImageToArray3< PixelType >("feature.nrrd");
-
   CShapeBasedGAC::Pointer gac = CShapeBasedGAC::New();
-  gac->setImage(img);
+
+  gac->setImage(inputImagePtr);
+
   gac->setLeftAndRightPointsInTheMiddleSlice(
     leftPointIJK[0],leftPointIJK[1],leftPointIJK[2],
     rightPointIJK[0],rightPointIJK[1],rightPointIJK[2]);
@@ -170,11 +172,24 @@ InternalImageType::IndexType rightPointIJK;
   gac->doShapeBasedGACSegmenation();
 
   //debug//
-  douher::saveAsImage3< double >(gac->mp_phi, "gacResult.nrrd");
-  //DEBUG//
+  typedef CShapeBasedGAC::LSImageType floatImage_t;
+  typedef itk::ImageFileWriter< floatImage_t > writer_t;
+  writer_t::Pointer outputWriter = writer_t::New();
+  outputWriter->SetFileName("gacResult.nrrd");
+  outputWriter->SetInput(gac->mp_phi);
+  outputWriter->Update();
 
-  //debug//
-  douher::saveAsImage3< double >(connection(gac->mp_phi), "gacResultBin.nrrd");
+  typedef itk::BinaryThresholdImageFilter<CShapeBasedGAC::LSImageType, CShapeBasedGAC::LSImageType>  FilterType;
+  FilterType::Pointer thresholdFilter = FilterType::New();
+  outputWriter->SetInput( thresholdFilter->GetOutput() );
+  thresholdFilter->SetInput(gac->mp_phi);
+  thresholdFilter->SetOutsideValue(0);
+  thresholdFilter->SetInsideValue(1);
+  thresholdFilter->SetLowerThreshold(-1e6);
+  thresholdFilter->SetUpperThreshold(0);
+  thresholdFilter->Update();
+  outputWriter->SetFileName("gacResultBin.nrrd");
+  outputWriter->Update();
   //DEBUG//
 
   std::cout<<"done\n";
@@ -183,7 +198,11 @@ InternalImageType::IndexType rightPointIJK;
 
   // 2. Tsai's shape based
   CShapeBasedSeg c;
-  c.setInputImage(douher::cArray3ToItkImage< double >(connection(gac->mp_phi)) );
+
+  typedef itk::CastImageFilter< CShapeBasedGAC::LSImageType, CShapeBasedSeg::DoubleImageType> CastFromLSToDoubleFilterType;
+  CastFromLSToDoubleFilterType::Pointer toDouble = CastFromLSToDoubleFilterType::New(); 
+  toDouble->SetInput(thresholdFilter->GetOutput());  
+  c.setInputImage(toDouble->GetOutput());  
 
   c.setMeanShape(douher::readImage3< double >( meanShapeName.c_str() ));
 
@@ -239,6 +258,12 @@ InternalImageType::IndexType rightPointIJK;
   segRslt->SetSpacing(reader->GetOutput()->GetSpacing());
 
   douher::writeImage3< double >(segRslt, segmentedImageFileName.c_str());
+
+  typedef unsigned char OutputPixelType;
+  typedef itk::OrientedImage< OutputPixelType, Dimension > OutputImageType;
+  typedef itk::ImageFileWriter<  OutputImageType  > WriterType;
+  WriterType::Pointer writer = WriterType::New();
+
 
   std::cout<<"done\n";
 

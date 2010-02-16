@@ -5,7 +5,7 @@
 
 
 // douher
-#include "SFLSChanVeseSegmentor3D.h"
+#include "SFLSSegmentor/SFLSChanVeseSegmentor3D.h"
 
 
 int main(int argc, char** argv)
