@@ -2613,7 +2613,8 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
   if(!this->GetGUI()->GetMRMLNode())
       return;
   
-  if(!this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode() || strcmp(this->GetGUI()->GetMRMLNode()->GetVolumeInUse(), "Planning")!=0)
+  if( ! this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode()
+      || strcmp(this->GetGUI()->GetMRMLNode()->GetVolumeInUse(), "Planning")!=0)
       return;
 
   // has to be in clinical mode
@@ -2623,23 +2624,41 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
   
   // has to be when it is in 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
-
-  if (!wizard_widget || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this)
+  
+  
+  if ( ! wizard_widget
+       || wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this )
     {
     return;
     }
-
+  
+  
   if (this->ProcessingCallback)
     {
     return;
     }
-
   this->ProcessingCallback = true;
 
   vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-
+  
+  
+  // todo
+  if (
+       ( event == vtkCommand::KeyPressEvent )
+       // && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 0 )
+     )
+    {
+    char  *key = style->GetKeySym();
+    if ( ! strcmp( key, "a" ) )
+      {
+      this->GetGUI()->GetSecondaryMonitor()->Translate(0, 2, 0);
+      }
+    }
+  
+  
+  
   if ( (style == istyleSecondary) && (event == vtkCommand::KeyPressEvent))
     {
     // capture the key
