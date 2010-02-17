@@ -378,6 +378,13 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
     ->AddObserver( vtkCommand::LeftButtonPressEvent,
     ( vtkCommand* )this->GUICallbackCommand );
   
+    // calibrate planning image
+  appGUI->GetMainSliceGUI( "Red" )->GetSliceViewer()->GetRenderWidget()
+    ->GetRenderWindowInteractor()->GetInteractorStyle()
+    ->AddObserver( vtkCommand::KeyPressEvent,
+    ( vtkCommand* )this->GUICallbackCommand );
+  
+  
     // add listener to own render window created for secondary monitor  
   if ( this->GetMode() == vtkPerkStationModuleGUI::Clinical )
     {
