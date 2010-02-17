@@ -17,6 +17,7 @@
 
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
+#include "vtkTextActorFlippable.h"
 #include "vtkTextSource.h"
 #include "vtkTextMapper.h"
 #include "vtkVectorText.h"
@@ -133,9 +134,8 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
  this->DepthPerceptionLines = vtkActorCollection::New(); 
  this->TextActorsCollection = vtkActor2DCollection::New();
  
- this->LeftSideActor = vtkTextActor::New();
- this->RightSideActor = vtkTextActor::New();
- 
+ this->LeftSideActor = vtkTextActorFlippable::New();
+ this->RightSideActor = vtkTextActorFlippable::New();
 }
 
 
@@ -433,8 +433,8 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->LeftSideActor->GetTextProperty()->BoldOn();
   this->LeftSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50,
                                            this->ScreenSize[ 1 ] - 50 );
+  this->LeftSideActor->Flip( 0 );
   this->LeftSideActor->SetOrientation( 180 );
-  // this->LeftSideActor->SetHeight( - 20.0 );
   
   this->RightSideActor->SetInput( "R" );
   this->RightSideActor->GetTextProperty()->SetColor( 1, 0.5, 0 );
@@ -442,7 +442,9 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->RightSideActor->GetTextProperty()->SetFontSize( 30 );
   this->RightSideActor->GetTextProperty()->BoldOn();
   this->RightSideActor->SetDisplayPosition( 50, this->ScreenSize[ 1 ] - 50 );
+  this->RightSideActor->Flip( 0 );
   this->RightSideActor->SetOrientation( 180 );
+  
   
   this->Renderer->AddActor( this->LeftSideActor );
   this->Renderer->AddActor( this->RightSideActor );
@@ -1577,7 +1579,8 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         char *text = new char[10];
         sprintf(text,"%d mm",(i+1)*10);     
        
-        vtkTextActor *textActor = vtkTextActor::New();
+        // vtkTextActor *textActor = vtkTextActor::New();
+        vtkTextActorFlippable *textActor = vtkTextActorFlippable::New();
         textActor->SetInput(text);
 
         //textActor->SetPosition(wcStartPoint[0],wcStartPoint[1],wcStartPoint[2]);
@@ -1585,6 +1588,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         textActor->GetTextProperty()->SetColor(0,1,0);
         textActor->SetTextScaleModeToNone();
         textActor->GetTextProperty()->SetFontSize(30);
+        textActor->Flip( 0 );
         
         if (denom>=0)
           {
@@ -1609,19 +1613,16 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         // flip vertically or horizontally the text actor
         if (this->HorizontalFlipped)
           { 
-          //textActor->GetTextProperty()->SetJustificationToLeft();
-          //textActor->SetOrientation(180);
-          //textActor->GetTextProperty()->SetVerticalJustificationToBottom();
-          //textActor->SetOrientation(180);
-          char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
-          textActor->SetInput(revText);
-          //textActor->RotateY(180);
+          
+          // char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
+          // textActor->SetInput(revText);
+          textActor->SetInput( text );
+          textActor->SetOrientation( 180 );
           }
         else if (this->VerticalFlipped)
           {
           textActor->GetTextProperty()->SetVerticalJustificationToTop();
           textActor->SetOrientation(180);
-          //textActor->RotateX(180);
           }
 
         // add text actor to text actor collection
