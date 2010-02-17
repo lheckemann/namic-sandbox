@@ -1285,7 +1285,12 @@ void vtkPerkStationModuleGUI::BuildGUI()
     };
   
     // Individual radiobuttons.
-  for (int id = 0; id < 5; id++)
+  int numSteps = 5;
+  if ( this->Mode == this->Clinical )
+    {
+    numSteps = 4;
+    }
+  for (int id = 0; id < numSteps; id ++ )
     {
     vtkKWPushButton *pb = this->WorkphaseButtonSet->AddWidget( id );
       pb->SetText( buffer[ id ] );
