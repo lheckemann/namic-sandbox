@@ -70,6 +70,7 @@ SET(PerkStationModule_SRCS
   vtkPerkStationModuleGUI.cxx
   vtkMRMLPerkStationModuleNode.cxx
   vtkPerkStationSecondaryMonitor.cxx
+  vtkTextActorFlippable.cxx
    # wizard
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationCalibrateStep.cxx

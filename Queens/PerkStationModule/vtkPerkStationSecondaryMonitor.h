@@ -21,6 +21,7 @@ class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkImageMapper;
 class vtkTextActor;
+class vtkTextActorFlippable;
 class vtkActor2D;
 class vtkActor2DCollection;
 class vtkActor;
@@ -211,8 +212,8 @@ protected:
   // collection of text labels on the depth perception lines
   vtkActor2DCollection *TextActorsCollection;
   
-  vtkTextActor *LeftSideActor;
-  vtkTextActor *RightSideActor;
+  vtkTextActorFlippable *LeftSideActor;
+  vtkTextActorFlippable *RightSideActor;
   
 
   vtkImageMapToWindowLevelColors *MapToWindowLevelColors;
