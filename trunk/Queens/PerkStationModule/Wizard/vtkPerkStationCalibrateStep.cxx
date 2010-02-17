@@ -2900,7 +2900,9 @@ void vtkPerkStationCalibrateStep::FlipImage()
     this->GetGUI()->GetSecondaryMonitor()->FlipVertical();
 
   if ( horizontalFlip )
-    this->GetGUI()->GetSecondaryMonitor()->FlipHorizontal(); 
+    this->GetGUI()->GetSecondaryMonitor()->FlipHorizontal();
+  
+  this->GetGUI()->GetSecondaryMonitor()->UpdateImageDisplay();
 
 }
 //----------------------------------------------------------------------------
