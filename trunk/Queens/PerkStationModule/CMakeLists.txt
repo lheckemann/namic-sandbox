@@ -17,6 +17,18 @@ if(NOT Slicer3_SOURCE_DIR)
   slicer3_set_default_install_prefix_for_external_projects()
 endif(NOT Slicer3_SOURCE_DIR)
 
+
+# --------------------------------------------------------------------------
+# Version patch.
+
+find_package(Subversion)
+if (Subversion_FOUND)
+  Subversion_WC_INFO(${CMAKE_CURRENT_SOURCE_DIR} PerkStationModule)
+  MESSAGE("Current PerkStationModule revision is ${PerkStationModule_WC_REVISION}")
+  set(PerkStationModule_REVISION "${PerkStationModule_WC_REVISION}")
+endif (Subversion_FOUND)
+
+
 # --------------------------------------------------------------------------
 # Find NDI  tracking stuff
 option(BUILD_USING_NDIOAPI "Build Perk station with NDI tracking support." ON)

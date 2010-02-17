@@ -24,6 +24,7 @@
 #define USE_NDIOAPI
 #endif
 
+#define PerkStationModule_REVISION @PerkStationModule_WC_REVISION@
 
 #ifndef PERKLOG_DEBUG
 #define PERKLOG_DEBUG( message ) \

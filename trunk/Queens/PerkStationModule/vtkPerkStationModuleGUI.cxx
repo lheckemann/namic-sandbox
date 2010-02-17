@@ -72,8 +72,6 @@ Version:   $Revision: 1.2 $
 #include "vtkPerkStationSecondaryMonitor.h"
 
 
-
-
 /**
  * Factory.
  */
@@ -128,7 +126,8 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
 
   // state descriptors
   this->ModeListMenu = NULL;
-  this->Mode = vtkPerkStationModuleGUI::Training;
+  // this->Mode = vtkPerkStationModuleGUI::Training;
+  this->Mode = vtkPerkStationModuleGUI::Clinical;
   this->State = vtkPerkStationModuleGUI::Calibrate;  
   this->DisplayVolumeLevelValue = NULL;
   this->DisplayVolumeWindowValue = NULL;
@@ -433,10 +432,13 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
   this->PSNodeSelector->AddObserver(
     vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
     ( vtkCommand* )this->GUICallbackCommand );
-
+  
+  // If TRAINING / CLINICAL mode switch is needed, enable this commented part.
+  /*
   this->ModeListMenu->GetWidget()->GetMenu()->AddObserver(
     vtkKWMenu::MenuItemInvokedEvent, ( vtkCommand* )this->GUICallbackCommand );
-
+  */
+  
   if ( this->LoadExperimentFileButton )
     {
     this->LoadExperimentFileButton->GetLoadSaveDialog()->AddObserver(
@@ -491,10 +493,13 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
   this->PSNodeSelector->RemoveObservers(
     vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
     ( vtkCommand* )this->GUICallbackCommand );    
-
+  
+  // If TRAINING / CLINICAL mode switch is needed, enable this commented part.
+  /*
   this->ModeListMenu->GetWidget()->GetMenu()->RemoveObservers(
     vtkKWMenu::MenuItemInvokedEvent, ( vtkCommand* )this->GUICallbackCommand );
-
+  */
+  
   this->DisplayVolumeLevelValue->RemoveObservers(
     vtkKWScale::ScaleValueChangedEvent,
     ( vtkCommand* )this->GUICallbackCommand );
@@ -1152,9 +1157,16 @@ void vtkPerkStationModuleGUI::BuildGUI()
   // MODULE GUI FRAME 
   // ---
   // Define your help text and build the help frame here.
-  const char *help = "**PERK Station Module:** "
-                     "**Revision 5438** "
-                     "Use this module to perform image overlay guided percutaneous interventions ....";
+  
+  std::stringstream helpss;
+  helpss << "**PERK Station Module:** "
+         << "**Revision " << PerkStationModule_REVISION << "**"
+         << "Use this module to perform image overlay guided percutaneous "
+         << "interventions ....";
+  const char* help = helpss.str().c_str();
+  // std::string str( help );
+  PERKLOG_INFO( helpss.str().c_str() );
+  
   const char *about = "This work was supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details. ";
   vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PerkStationModule" );
   this->BuildHelpAndAboutFrame ( page, help, about );
@@ -1199,8 +1211,11 @@ void vtkPerkStationModuleGUI::BuildGUI()
     modeFrame->SetLabelText("Mode frame");
     modeFrame->ExpandFrame();
   
+  // If TRAINING / CLINICAL mode switch is needed, enable this commented part.
+  /*
   app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
               modeFrame->GetWidgetName(), modulePage->GetWidgetName());
+  */
   
   // Add combo box in the frame.
   this->ModeListMenu = vtkKWMenuButtonWithLabel::New();
@@ -1212,11 +1227,15 @@ void vtkPerkStationModuleGUI::BuildGUI()
       "CLINICAL or TRAINING mode" );
     this->ModeListMenu->GetWidget()->GetMenu()->AddRadioButton( "TRAINING" );
     this->ModeListMenu->GetWidget()->GetMenu()->AddRadioButton( "CLINICAL" );
-    this->ModeListMenu->GetWidget()->SetValue( "TRAINING" );
- 
+    // this->ModeListMenu->GetWidget()->SetValue( "TRAINING" );
+    this->ModeListMenu->GetWidget()->SetValue( "CLINICAL" );
+  
+  // If TRAINING / CLINICAL mode switch is needed, enable this commented part.
+  /*
   app->Script("pack %s -side top -anchor nw -expand n -padx 4 -pady 4", 
     this->ModeListMenu->GetWidgetName(), modeFrame->GetWidgetName());
-
+  */
+  
   modeFrame->Delete();
   
   
