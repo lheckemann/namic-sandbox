@@ -19,14 +19,16 @@
 #include "itkMedianImageFilter.h"
 #include "itkMaskImageFilter.h"
 #include "itkImageRegionConstIterator.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkMedianImageFilter.h"
 #include "itkSubtractImageFilter.h"
-#include "itkImageRegionConstIterator.h"
 #include "itkAddImageFilter.h"
+#include "itkImageDuplicator.h"
+#include "itkTernaryAddImageFilter.h"
 
 
 #include "itkImage.h"
@@ -62,15 +64,20 @@ typedef itk::MedianImageFilter<ImageType,ImageType> MedianType;
 typedef itk::SubtractImageFilter<ImageType,ImageType> SubtractType;
 typedef itk::AddImageFilter<ImageType,ImageType> AddType;
 typedef itk::ImageRegionConstIterator<ImageType> ConstIterType;
+typedef itk::ImageRegionIteratorWithIndex<ImageType> IterType;
+typedef itk::ImageDuplicator<ImageType> DupType;
 
 typedef int HistogramMeasurementType;
 typedef itk::Statistics::ScalarImageToListAdaptor<ImageType> AdaptorType;
 typedef itk::Statistics::ListSampleToHistogramGenerator<AdaptorType,HistogramMeasurementType> GeneratorType;
 
 void SaveImage(ImageType::Pointer,const char*);
+void SaveHisto(std::vector<float>, const char*);
 void SaveDTImage(DTImageType::Pointer,const char*);
 DTImageType::Pointer DetectChanges(ImageType::Pointer,ImageType::Pointer,ImageType::Pointer,bool);
-void CalculateRegionHistograms(ImageType::Pointer diff, std::vector<float> &, std::vector<float> &,  std::vector<float> &, std::vector<float> &);
+void CalculateRegionHistograms(ImageType::Pointer diff, ImageType::Pointer mask, 
+  std::vector<float> &, std::vector<float> &,  std::vector<float> &, std::vector<float> &);
+ImageType::Pointer EnforceConnectedness(ImageType::Pointer margin, ImageType::Pointer input);
 
 int main( int argc, char ** argv )
 {
@@ -95,7 +102,7 @@ int main( int argc, char ** argv )
   readerS->SetFileName( segmFilename );
 
   // calculate masks for stable, growth and shrink regions
-  ImageType::Pointer growthMask, shrinkMask, stableMask, diffRegion;
+  ImageType::Pointer growthMask, shrinkMask, stableMask, diffMask, marginMask;
   
   DTType::Pointer dt = DTType::New();
   dt->SetInput(readerS->GetOutput());
@@ -104,20 +111,43 @@ int main( int argc, char ** argv )
   dt->Update();
 
   DTBinaryThresholdType::Pointer thresh = DTBinaryThresholdType::New();
+  thresh->SetInsideValue(1);
+  thresh->ReleaseDataFlagOn();
+
   thresh->SetInput(dt->GetOutput());
   thresh->SetLowerThreshold(-CHANGING_BAND);
   thresh->SetUpperThreshold(CHANGING_BAND);
-  thresh->SetInsideValue(1);
   thresh->Update();
-  diffRegion = thresh->GetOutput();
+  diffMask = thresh->GetOutput();
+  diffMask->DisconnectPipeline();
 
-  DTBinaryThresholdType::Pointer stableThresh = DTBinaryThresholdType::New();
-  stableThresh->SetInput(dt->GetOutput());
-  stableThresh->SetUpperThreshold(-CHANGING_BAND*2-0.01);
-  stableThresh->SetLowerThreshold(-CHANGING_BAND-100.);
-  stableThresh->SetInsideValue(1);
-  stableThresh->Update();
-  stableMask = stableThresh->GetOutput();
+  thresh->SetInput(dt->GetOutput());
+  thresh->SetLowerThreshold(-CHANGING_BAND);
+  thresh->SetUpperThreshold(0);
+  thresh->Update();
+  shrinkMask = thresh->GetOutput();
+  shrinkMask->DisconnectPipeline();
+
+  thresh->SetInput(dt->GetOutput());
+  thresh->SetLowerThreshold(0);
+  thresh->SetUpperThreshold(CHANGING_BAND);
+  thresh->Update();
+  growthMask = thresh->GetOutput();
+  growthMask->DisconnectPipeline();
+
+  thresh->SetInput(dt->GetOutput());
+  thresh->SetLowerThreshold(-1000);
+  thresh->SetUpperThreshold(-CHANGING_BAND-.01);
+  thresh->Update();
+  stableMask = thresh->GetOutput();
+  stableMask->DisconnectPipeline();
+
+  thresh->SetInput(dt->GetOutput());
+  thresh->SetLowerThreshold(0);
+  thresh->SetUpperThreshold(1);
+  thresh->Update();
+  marginMask = thresh->GetOutput();
+  marginMask->DisconnectPipeline();
 
   // smooth the inputs
   MedianType::Pointer tp0med = MedianType::New(), tp1med = MedianType::New();
@@ -134,23 +164,8 @@ int main( int argc, char ** argv )
   sub->SetInput2(tp0med->GetOutput());
   sub->Update();
 
-  // mask the analysis region
-  MaskType::Pointer maskerChange = MaskType::New();
-  maskerChange->SetInput1(sub->GetOutput());
-  maskerChange->SetInput2(diffRegion);
-  maskerChange->Update();
+  ImageType::Pointer diffImage = sub->GetOutput();
 
-  // mask the stable region
-  MaskType::Pointer maskerStable = MaskType::New();
-  maskerStable->SetInput1(sub->GetOutput());
-  maskerStable->SetInput2(stableMask);
-  maskerStable->Update();
-
-  ImageType::Pointer diff = maskerChange->GetOutput();
-  ImageType::Pointer stable = maskerStable->GetOutput();
-  SaveImage(diff,"diff.nrrd");
-  SaveImage(stable,"stable.nrrd");
- 
   std::vector<float> cumHistPosDiff;
   std::vector<float> cumHistNegDiff;
   std::vector<float> histPosDiff;
@@ -161,249 +176,130 @@ int main( int argc, char ** argv )
   std::vector<float> histPosStable;
   std::vector<float> histNegStable;
 
-  CalculateRegionHistograms(diff, histPosDiff, cumHistPosDiff, histNegDiff, cumHistNegDiff);
-  CalculateRegionHistograms(stable, histPosStable, cumHistPosStable, histNegStable, cumHistNegStable);
+  std::vector<float> cumHistPosShrink;
+  std::vector<float> cumHistNegShrink;
+  std::vector<float> histPosShrink;
+  std::vector<float> histNegShrink;
 
-  std::cout << "Stable region bounds: -" << histNegStable.size() << " to " << histPosStable.size() << std::endl;
-  std::cout << "Changing region bounds: -" << histNegDiff.size() << " to " << histPosDiff.size() << std::endl;
+  std::vector<float> cumHistPosGrowth;
+  std::vector<float> cumHistNegGrowth;
+  std::vector<float> histPosGrowth;
+  std::vector<float> histNegGrowth;
+
+  std::cout << "Difference region" << std::endl;
+  CalculateRegionHistograms(diffImage, diffMask, histPosDiff, cumHistPosDiff, histNegDiff, cumHistNegDiff);
+  std::cout << "Stable region" << std::endl;
+  CalculateRegionHistograms(diffImage, stableMask, histPosStable, cumHistPosStable, histNegStable, cumHistNegStable);
+  std::cout << "Shrink region" << std::endl;
+  CalculateRegionHistograms(diffImage, shrinkMask, histPosShrink, cumHistPosShrink, histNegShrink, cumHistNegShrink);
+  std::cout << "Growth region" << std::endl;
+  CalculateRegionHistograms(diffImage, growthMask, histPosGrowth, cumHistPosGrowth, histNegGrowth, cumHistNegGrowth);
+
+  std::cout << "Stable region bounds: -" << histNegStable.size()-1 << " to " << histPosStable.size()-1 << std::endl;
+  std::cout << "Changing region bounds: -" << histNegDiff.size()-1 << " to " << histPosDiff.size()-1 << std::endl;
+
+//  SaveHisto(histPosDiff, "growth_histo.txt");
+//  SaveHisto(histNegDiff, "shrink_histo.txt");
+//  SaveHisto(histPosStable, "stable_pos.txt");
+//  SaveHisto(cumHistPosStable, "stable_pos_cum.txt");
+
+//    {
+//    std::ofstream sghisto("shrink_growth_histo.txt");
+//    for(int i=histNegDiff.size()-1;i>0;i--)
+//      sghisto << -i << " " << histNegDiff[i] << std::endl;
+//    for(int i=1;i<histNegDiff.size();i++)
+//      sghisto << i << " " << histNegDiff[i] << std::endl;
+//    }
 
   BinaryThresholdType::Pointer growthThresh = BinaryThresholdType::New();
   BinaryThresholdType::Pointer shrinkThresh = BinaryThresholdType::New();
 
-  float cutoffThresh = histNegStable.size()>histPosStable.size() ? histNegStable.size() : histPosStable.size();
-  
-  growthThresh->SetInput(diff);
-  growthThresh->SetLowerThreshold(cutoffThresh);
-  growthThresh->SetUpperThreshold(histPosDiff.size());
-  growthThresh->SetInsideValue(14);
-  growthThresh->SetOutsideValue(0);
-
-  shrinkThresh->SetInput(diff);
-  shrinkThresh->SetUpperThreshold(-cutoffThresh);
-  shrinkThresh->SetLowerThreshold(-1.*float(histNegDiff.size()));
-  shrinkThresh->SetInsideValue(12);
-  shrinkThresh->SetOutsideValue(0);
-
-  AddType::Pointer adder = AddType::New();
-  adder->SetInput1(growthThresh->GetOutput());
-  adder->SetInput2(shrinkThresh->GetOutput());
-  adder->Update();
-  
-  float negCnt = 0, posCnt = 0;
-  ConstIterType rit(adder->GetOutput(),adder->GetOutput()->GetLargestPossibleRegion());
-  for(rit.GoToBegin();!rit.IsAtEnd();++rit){
-    if(rit.Get()==12)
-      negCnt++;
-    if(rit.Get()==14)
-      posCnt++;
-  }
-  ImageType::SpacingType spacing = diff->GetSpacing();
-  std::cout << "Input image spacing: " << spacing[0] << ", " << spacing[1] << ", " << spacing[2] << std::endl;
-  std::cout << "AltGrowth: " << posCnt*spacing[0]*spacing[1]*spacing[2] << std::endl;
-  std::cout << "AltShrink: " << negCnt*spacing[0]*spacing[1]*spacing[2] << std::endl;
-
-  SaveImage(adder->GetOutput(), "alt_result.nrrd");
-
+  float cutoffThresh = histNegStable.size()>histPosStable.size() ? histNegStable.size()-1 : histPosStable.size()-1;
   /*
-  DetectChanges(reader0->GetOutput(),reader1->GetOutput(),diffRegion,true);
+  if(argc>4){
+    cutoffThresh = atoi(argv[4]);
+    std::cout << "Percentage at cutoff: " << cumHistPosDiff[cutoffThresh] << std::endl;
+  } else {
+    std::cout << "Cutoff at 95\%" << std::endl;
+    for(int i=0;i<cumHistPosDiff.size();i++){
+      if(cumHistPosDiff[i]>=.95){
+        cutoffThresh = i;
+        break;
+      }
+    }
+  }
+  */
+  std::cout << "cutoff threshold value: " << cutoffThresh << std::endl;
 
-  std::cerr << "After DT" << std::endl;
-  // get small number above 0 based on the isotropic spacing of the input (0
-  // distance value corresponds to the outer layer of the pixels in the binary
-  // input
-  DTImageType::SpacingType dtSpacing = dt->GetOutput()->GetSpacing();
-
-  DTBinaryThresholdType::Pointer growthThresh = DTBinaryThresholdType::New();
-  growthThresh->SetInput(dt->GetOutput());
-  growthThresh->SetLowerThreshold(0.01);
-  growthThresh->SetUpperThreshold(CHANGING_BAND);
-  growthThresh->SetInsideValue(1);
-  growthThresh->Update();
-  growthMask = growthThresh->GetOutput();
-
-  DTBinaryThresholdType::Pointer shrinkThresh = DTBinaryThresholdType::New();
-  shrinkThresh->SetInput(dt->GetOutput());
-  shrinkThresh->SetUpperThreshold(0.01);
-  shrinkThresh->SetLowerThreshold(-CHANGING_BAND);
-  shrinkThresh->SetInsideValue(1);
-  shrinkThresh->Update();
-  shrinkMask = shrinkThresh->GetOutput();
-
-  DTBinaryThresholdType::Pointer stableThresh = DTBinaryThresholdType::New();
-  stableThresh->SetInput(dt->GetOutput());
-  stableThresh->SetUpperThreshold(-CHANGING_BAND-0.01);
-  stableThresh->SetLowerThreshold(-CHANGING_BAND-100.);
-  stableThresh->SetInsideValue(1);
-  stableThresh->Update();
-  stableMask = stableThresh->GetOutput();
- 
-  SaveImage(growthMask,"growthMask.nrrd");
-  SaveImage(shrinkMask,"shrinkMask.nrrd");
-  SaveImage(stableMask,"stableMask.nrrd");
-
+  DupType::Pointer dup1 = DupType::New();
+  DupType::Pointer dup2 = DupType::New();
   
-  // match the histogram of the second image to the first image
-  HistogramMatchingType::Pointer histogramMatching = HistogramMatchingType::New();
-  histogramMatching->SetSourceImage(reader1->GetOutput());
-  histogramMatching->SetReferenceImage(reader0->GetOutput());
+  dup1->SetInputImage(diffImage);
+  dup1->Update();
 
-  MaskType::Pointer masker0 = MaskType::New();
-  masker0->SetInput1(reader0->GetOutput());
-  masker0->SetInput2(readerS->GetOutput());
-  masker0->Update();
-  
-  // get intensity range for the input images within the segmented region
-  ConstIterType image0It(masker0->GetOutput(), masker0->GetOutput()->GetLargestPossibleRegion());
-  ConstIterType segmIt(readerS->GetOutput(), readerS->GetOutput()->GetLargestPossibleRegion());
-  image0It.GoToBegin();
-  segmIt.GoToBegin();
-  PixelType min = 300, max = -300;
-  
-  for(;!image0It.IsAtEnd();++image0It,++segmIt){
-    if(!segmIt.Get())
+  dup2->SetInputImage(diffImage);
+  dup2->Update();
+
+  ImageType::Pointer cdSeg = dup1->GetOutput(), cdNoSeg = dup2->GetOutput();
+  cdSeg->FillBuffer(0); cdNoSeg->FillBuffer(0);
+
+  IterType itDiff(diffImage, diffImage->GetBufferedRegion());
+  IterType itDiffMask(diffMask, diffMask->GetBufferedRegion());
+  IterType itGrowthMask(growthMask, growthMask->GetBufferedRegion());
+  IterType itShrinkMask(growthMask, growthMask->GetBufferedRegion());
+
+  itDiff.GoToBegin();itDiffMask.GoToBegin();
+  itGrowthMask.GoToBegin();itShrinkMask.GoToBegin();
+
+  int cdSegGrowthCnt = 0, cdSegShrinkCnt = 0, cdNoSegGrowthCnt = 0, cdNoSegShrinkCnt = 0;
+  for(;!itDiff.IsAtEnd();++itDiff,++itDiffMask,++itGrowthMask,++itShrinkMask){
+    if(abs(itDiff.Get())<cutoffThresh)
       continue;
-    min = fmin(image0It.Get(),min);
-    max = fmax(image0It.Get(),max);
+    if(itDiff.Get()>0){
+      // growth
+      if(itDiffMask.Get()){
+        cdNoSeg->SetPixel(itDiff.GetIndex(), 14);
+      }
+      if(itGrowthMask.Get()){
+        cdSeg->SetPixel(itDiff.GetIndex(),14);      
+      }
+    } else {
+      // shrink
+      if(itDiffMask.Get()){
+        cdNoSeg->SetPixel(itDiff.GetIndex(),12);
+      }
+      if(itShrinkMask.Get()){
+        cdSeg->SetPixel(itDiff.GetIndex(),12);
+      }
+    }
+  }
+ 
+  cdNoSeg = EnforceConnectedness(marginMask, cdNoSeg);
+  cdSeg = EnforceConnectedness(marginMask, cdSeg);
+
+  IterType it1(cdNoSeg, cdNoSeg->GetBufferedRegion());
+  IterType it2(cdSeg, cdSeg->GetBufferedRegion());
+  for(it1.GoToBegin(),it2.GoToBegin();!it1.IsAtEnd();++it1,++it2){
+    if(it1.Get()==12)
+      cdNoSegShrinkCnt++;
+    if(it2.Get()==12)
+      cdSegShrinkCnt++;
+    if(it1.Get()==14)
+      cdNoSegGrowthCnt++;
+    if(it2.Get()==14)
+      cdSegGrowthCnt++;
   }
 
-  MinMaxType::Pointer minmax0 = MinMaxType::New();
-  minmax0->SetInput(masker0->GetOutput());
-  minmax0->Update();
-  std::cerr << "Thresholds are: " << min << ", " << max << std::endl;
+  ImageType::SpacingType spacing = diffImage->GetSpacing();
+  float pixelVol = spacing[0]*spacing[1]*spacing[2];
+  std::cout << "cdNoSeg: growthVol = " << pixelVol*cdNoSegGrowthCnt << ", shrinkVol = " << pixelVol*cdNoSegShrinkCnt << std::endl;
+  std::cout << "cdSeg: growthVol = " << pixelVol*cdSegGrowthCnt << ", shrinkVol = " << pixelVol*cdSegShrinkCnt << std::endl;
+  std::cout << "cdNoSeg: growthCnt = " << cdNoSegGrowthCnt << ", shrinkCnt = " << cdNoSegShrinkCnt << std::endl;
+  std::cout << "cdSeg: growthCnt = " << cdSegGrowthCnt << ", shrinkCnt = " << cdSegShrinkCnt << std::endl;
 
-  // create the mask for the second normalized image
-  ThresholdType::Pointer thresh = ThresholdType::New();
-  thresh->SetInput(histogramMatching->GetOutput());
-  thresh->ThresholdOutside(min, max);
-  thresh->Update();
+  SaveImage(cdNoSeg, "cdNoSegResult.nrrd");
+  SaveImage(cdNoSeg, "cdSegResult.nrrd");
 
-  BinaryThresholdType::Pointer bthresh = BinaryThresholdType::New();
-  bthresh->SetInput(thresh->GetOutput());
-  bthresh->SetLowerThreshold(1);
-  bthresh->SetUpperThreshold(max);
-
-  ConnectedCompType::Pointer connected = ConnectedCompType::New();
-  RelabelType::Pointer relabeler = RelabelType::New();
-  connected->SetInput(bthresh->GetOutput());
-  connected->SetFullyConnected(1);
-  relabeler->SetInput(connected->GetOutput());
-  relabeler->Update();
-
-  BinaryThresholdType::Pointer relabelThresh = BinaryThresholdType::New();
-  relabelThresh->SetInput(relabeler->GetOutput());
-  relabelThresh->SetLowerThreshold(1);
-  relabelThresh->SetUpperThreshold(1);
-  relabelThresh->Update();
-
-  MaskType::Pointer masker2 = MaskType::New();
-  masker2->SetInput1(thresh->GetOutput());
-  masker2->SetInput2(relabelThresh->GetOutput());
-  masker2->Update();
-
-  ImageType::Pointer image0ready, image1ready;
-  image0ready = masker0->GetOutput();
-  image1ready = masker2->GetOutput();
-
-
-
-  CastType::Pointer cast0 = CastType::New(), cast1 = CastType::New();
-  cast0->SetInput(growthThresh->GetOutput());
-  cast1->SetInput(shrinkThresh->GetOutput());
-  cast0->Update();
-  cast1->Update();
-
-  ImageType::Pointer shrinkMask = cast1->GetOutput();
-  ImageType::Pointer growthMask = cast0->GetOutput();
-
-  SaveDTImage(dt->GetOutput(), "dt.nrrd");
-  SaveImage(cast0->GetOutput(), "image0.nrrd");
-  SaveImage(cast1->GetOutput(), "image1.nrrd");
-
-  // outer band, tumor corresponds to higher intensity, so growth will
-  // correspond to negative values of the difference image
-  DetectChanges(reader0->GetOutput(), reader1->GetOutput(), cast0->GetOutput(), 1);
-
-  // inner band, tumor corresponds to higher intensity, so shrinkage will
-  // correspond to positive values of the difference image
-  DetectChanges(reader0->GetOutput(), reader1->GetOutput(), cast0->GetOutput(), 1);
-  std::cout << "Images saved" << std::endl;
-
-  return 0;
-
-  
-
-  PixelType min0, min1, max0, max1;
-  min0 = minmax0->GetMinimum();
-  max0 = minmax0->GetMaximum();
-  min1 = minmax1->GetMinimum();
-  max1 = minmax1->GetMaximum();
-
-  cout << "Image 0 range: " << (int)min0 << ", " << (int)max0 << std::endl;
-  cout << "Image 1 range: " << (int)min1 << ", " << (int)max1 << std::endl;
-
-  // set intensity of the first image below threshold0 to be threshold0
-  // assume thresholds are defined with respect the the intensities observed
-  // in the first image
-  ThresholdType::Pointer threshold0min = ThresholdType::New();
-  ThresholdType::Pointer threshold0max = ThresholdType::New();
-  ThresholdType::Pointer threshold1min = ThresholdType::New();
-  ThresholdType::Pointer threshold1max = ThresholdType::New();
-
-  threshold0min->SetInput(reader0->GetOutput());
-  threshold0min->SetOutsideValue((PixelType)threshold0);
-  threshold0min->ThresholdBelow(threshold0);
-
-  threshold0max->SetInput(threshold0min->GetOutput());
-  threshold0max->ThresholdAbove((PixelType)threshold1);
-  threshold0max->SetOutsideValue(threshold1);
-
-  threshold1min->SetInput(histogramMatching->GetOutput());
-  threshold1min->SetOutsideValue((PixelType)threshold0);
-  threshold1min->ThresholdBelow(threshold0<min1?min1:threshold0);
-
-  threshold1max->SetInput(threshold1min->GetOutput());
-  threshold1max->SetOutsideValue((PixelType)threshold1);
-  threshold1max->ThresholdAbove(threshold1>max1?max1:threshold1);
-  
-  ImageType::Pointer thImage0 = threshold0max->GetOutput();
-  ImageType::Pointer thImage1 = threshold1max->GetOutput();
-
-  // find the difference between the scans, and do median smoothing
-  SubtractType::Pointer subtract = SubtractType::New();
-  subtract->SetInput1(thImage0);
-  subtract->SetInput2(thImage1);
-  
-  MedianType::Pointer median = MedianType::New();
-  ImageType::SizeType radius;
-  radius[0] = 1;
-  radius[1] = 1;
-  radius[2] = 1;
-  median->SetInput(subtract->GetOutput());
-  median->SetRadius(radius);
-
-
-  WriterType::Pointer writer0 = WriterType::New();
-  WriterType::Pointer writer1 = WriterType::New();
-
-  writer0->SetFileName("tmp0.nrrd");
-  writer1->SetFileName("tmp1.nrrd");
-
-  writer0->SetInput(median->GetOutput());
-  writer1->SetInput(threshold1max->GetOutput());
-
-  try 
-    { 
-    writer0->Update(); 
-    writer1->Update();
-    } 
-  catch( itk::ExceptionObject & err ) 
-    { 
-    std::cerr << "ExceptionObject caught !" << std::endl; 
-    std::cerr << err << std::endl; 
-    return EXIT_FAILURE;
-    } 
-
-  */
   return EXIT_SUCCESS;
 }
 
@@ -421,20 +317,17 @@ void SaveDTImage(DTImageType::Pointer image,const char* name){
   w->Update();
 }
 
-/*
-template<TImage>
-ImageType::Pointer ThresholdBetween(TImage::Pointer image,int low, int high){
-  itk::BinaryThresholdImageFilter<TImage,ImageType> ThresholdType;
-  ThresholdType::Pointer thresh = ThresholdType::New();
-  thresh->SetInput(image);
-  thresh->SetLowerThreshold(low);
-  thresh->SetUpperThreshold(high);
-  thresh->Update();
-  return thresh->GetOutput();
-}*/
-
-void CalculateRegionHistograms(ImageType::Pointer diff, std::vector<float> &histPos, std::vector<float> &cumHistPos,
+void CalculateRegionHistograms(ImageType::Pointer input, ImageType::Pointer mask, 
+    std::vector<float> &histPos, std::vector<float> &cumHistPos,
   std::vector<float> &histNeg, std::vector<float> &cumHistNeg){
+
+  MaskType::Pointer masker = MaskType::New();
+  masker->SetInput1(input);
+  masker->SetInput2(mask);
+  masker->Update();
+
+  ImageType::Pointer diff = masker->GetOutput();
+
   // calculate the histogram
   MinMaxType::Pointer minmax = MinMaxType::New();
   minmax->SetInput(diff);
@@ -445,10 +338,6 @@ void CalculateRegionHistograms(ImageType::Pointer diff, std::vector<float> &hist
   cumHistNeg.resize(abs(minmax->GetMinimum())+1);
   histPos.resize(minmax->GetMaximum()+1);
   histNeg.resize(abs(minmax->GetMinimum())+1);
-//  std::vector<float> cumHistPos(minmax->GetMaximum()+1,0);
-//  std::vector<float> cumHistNeg(abs(minmax->GetMinimum())+1,0);
-//  std::vector<float> histPos(minmax->GetMaximum()+1,0);
-//  std::vector<float> histNeg(abs(minmax->GetMinimum())+1,0);
   float posCnt = 0, negCnt = 0, posCntCum = 0, negCntCum = 0;
   unsigned i;
 
@@ -471,203 +360,45 @@ void CalculateRegionHistograms(ImageType::Pointer diff, std::vector<float> &hist
   for(i=0;i<histPos.size();i++){
     posCntCum += histPos[i];
     cumHistPos[i] = posCntCum/posCnt;
-//    std::cout << i << " " << histPos[i] << " " << cumHistPos[i] << std::endl;
-    if(cumHistPos[i] >= SENSITIVITY && !posThresh){
-      posThresh = i;
-    }
   }
   for(i=0;i<histNeg.size();i++){
     negCntCum += histNeg[i];
     cumHistNeg[i]= negCntCum/negCnt;
-//    std::cout << i << " " << histNeg[i] << " " << cumHistNeg[i] << std::endl;
-    if(cumHistNeg[i] >= SENSITIVITY && !negThresh){
-      negThresh = -i;
-    }
   }
 
-  /*
-  std::cout << "PosThresh: " << posThresh << std::endl << "NegThresh: " << negThresh << std::endl;
-
-  std::ofstream phf("pos_cum_hist.txt");
-  std::ofstream nhf("neg_cum_hist.txt");
-  for(i=0;i<cumHistPos.size();i++){
-    phf << i << " " << cumHistPos[i] << std::endl;
-  }
-  for(i=0;i<cumHistNeg.size();i++){
-    nhf << i << " " << cumHistNeg[i] << std::endl;
-  }
-
-  BinaryThresholdType::Pointer growthThresh = BinaryThresholdType::New();
-  BinaryThresholdType::Pointer shrinkThresh = BinaryThresholdType::New();
-  
-  growthThresh->SetInput(diff);
-  growthThresh->SetLowerThreshold(posThresh);
-  growthThresh->SetUpperThreshold(minmax->GetMaximum());
-  growthThresh->SetInsideValue(14);
-  growthThresh->SetOutsideValue(0);
-
-  shrinkThresh->SetInput(diff);
-  shrinkThresh->SetUpperThreshold(negThresh);
-  shrinkThresh->SetLowerThreshold(minmax->GetMinimum());
-  shrinkThresh->SetInsideValue(12);
-  shrinkThresh->SetOutsideValue(0);
-
-  AddType::Pointer adder = AddType::New();
-  adder->SetInput1(growthThresh->GetOutput());
-  adder->SetInput2(shrinkThresh->GetOutput());
-  adder->Update();
-  
-  negCnt = 0; posCnt = 0;
-  ConstIterType rit(adder->GetOutput(),adder->GetOutput()->GetLargestPossibleRegion());
-  for(rit.GoToBegin();!rit.IsAtEnd();++rit){
-    if(rit.Get()==12)
-      negCnt++;
-    if(rit.Get()==14)
-      posCnt++;
-  }
-  ImageType::SpacingType spacing = diff->GetSpacing();
-  std::cout << "Input image spacing: " << spacing[0] << ", " << spacing[1] << ", " << spacing[2] << std::endl;
-  std::cout << "AltGrowth: " << posCnt*spacing[0]*spacing[1]*spacing[2] << std::endl;
-  std::cout << "AltShrink: " << negCnt*spacing[0]*spacing[1]*spacing[2] << std::endl;
-
-  SaveImage(adder->GetOutput(), "alt_result.nrrd");
-
-//    std::cout << "Bin " << i << " bounds: " << hist->GetBinMin(0,i) << ":" 
-//      << hist->GetBinMax(0,i) << ", freq: " << hist->GetFrequency(i,0) << std::endl;
-  */
- 
 }
 
-// Take two images, the mask where the changes are expected, and flag whether
-// changes are expected in the negative (1) or positive (0) side. 
-// Return the image where intensity is between 0 and 1, corresponding to the
-// likelihood of a pixel being the expected change.
-DTImageType::Pointer DetectChanges(ImageType::Pointer tp0image, ImageType::Pointer tp1image, 
-  ImageType::Pointer mask, bool positiveChange){
-
-  // smooth the inputs
-  MedianType::Pointer tp0med = MedianType::New(), tp1med = MedianType::New();
-  ImageType::SizeType medRad;
-  medRad.Fill(1);
-  tp0med->SetRadius(medRad);
-  tp1med->SetRadius(medRad);
-  tp0med->SetInput(tp0image);
-  tp1med->SetInput(tp1image);
-
- 
-  // find the difference
-  SubtractType::Pointer sub = SubtractType::New();
-  sub->SetInput1(tp1med->GetOutput());
-  sub->SetInput2(tp0med->GetOutput());
-  sub->Update();
-
-  // mask the analysis region
-  MaskType::Pointer masker = MaskType::New();
-  masker->SetInput1(sub->GetOutput());
-  masker->SetInput2(mask);
-  masker->Update();
-
-  ImageType::Pointer diff = masker->GetOutput();
-  SaveImage(diff,"diff.nrrd");
- 
-  // calculate the histogram
-  MinMaxType::Pointer minmax = MinMaxType::New();
-  minmax->SetInput(diff);
-  minmax->Update();
-
-  std::cerr << "Min: " << minmax->GetMinimum() << ", Max: " << minmax->GetMaximum() << std::endl;
-  std::vector<float> cumHistPos(minmax->GetMaximum()+1,0);
-  std::vector<float> cumHistNeg(abs(minmax->GetMinimum())+1,0);
-  std::vector<float> histPos(minmax->GetMaximum()+1,0);
-  std::vector<float> histNeg(abs(minmax->GetMinimum())+1,0);
-
-  CalculateRegionHistograms(diff, histPos, cumHistPos, histNeg, cumHistNeg);
-
-  float posCnt = 0, negCnt = 0, posCntCum = 0, negCntCum = 0;
-  unsigned i;
-
-  ConstIterType sit(diff,diff->GetLargestPossibleRegion());
-  for(sit.GoToBegin();!sit.IsAtEnd();++sit){
-    float val = sit.Get();
-    if(!val)
-      continue;
-    if(val<0){
-      histNeg[abs(val)]++;
-      negCnt++;
-    }
-    if(val>0){
-      histPos[val]++;
-      posCnt++;
-    }
+void SaveHisto(std::vector<float> hist, const char* name){
+  std::ofstream nhf(name);
+  for(int i=0;i<hist.size();i++){
+    nhf << i << " " << hist[i] << std::endl;
   }
+}
 
-  int posThresh = 0, negThresh = 0;
-  for(i=0;i<histPos.size();i++){
-    posCntCum += histPos[i];
-    cumHistPos[i] = posCntCum/posCnt;
-//    std::cout << i << " " << histPos[i] << " " << cumHistPos[i] << std::endl;
-    if(cumHistPos[i] >= SENSITIVITY && !posThresh){
-      posThresh = i;
-    }
-  }
-  for(i=0;i<histNeg.size();i++){
-    negCntCum += histNeg[i];
-    cumHistNeg[i]= negCntCum/negCnt;
-//    std::cout << i << " " << histNeg[i] << " " << cumHistNeg[i] << std::endl;
-    if(cumHistNeg[i] >= SENSITIVITY && !negThresh){
-      negThresh = -i;
-    }
-  }
-
-  std::cout << "PosThresh: " << posThresh << std::endl << "NegThresh: " << negThresh << std::endl;
-
-  std::ofstream phf("pos_cum_hist.txt");
-  std::ofstream nhf("neg_cum_hist.txt");
-  for(i=0;i<cumHistPos.size();i++){
-    phf << i << " " << cumHistPos[i] << std::endl;
-  }
-  for(i=0;i<cumHistNeg.size();i++){
-    nhf << i << " " << cumHistNeg[i] << std::endl;
-  }
-
-  BinaryThresholdType::Pointer growthThresh = BinaryThresholdType::New();
-  BinaryThresholdType::Pointer shrinkThresh = BinaryThresholdType::New();
+ImageType::Pointer EnforceConnectedness(ImageType::Pointer margin, ImageType::Pointer input){
+  // make sure we include only those pixels that are connected with the
+  // segmentation margin
   
-  growthThresh->SetInput(diff);
-  growthThresh->SetLowerThreshold(posThresh);
-  growthThresh->SetUpperThreshold(minmax->GetMaximum());
-  growthThresh->SetInsideValue(14);
-  growthThresh->SetOutsideValue(0);
+  MaskType::Pointer mask = MaskType::New();
+  BinaryThresholdType::Pointer thresh = BinaryThresholdType::New();
+  AddType::Pointer add = AddType::New();
+  ConnectedCompType::Pointer conn = ConnectedCompType::New();
+  RelabelType::Pointer relabel = RelabelType::New();
 
-  shrinkThresh->SetInput(diff);
-  shrinkThresh->SetUpperThreshold(negThresh);
-  shrinkThresh->SetLowerThreshold(minmax->GetMinimum());
-  shrinkThresh->SetInsideValue(12);
-  shrinkThresh->SetOutsideValue(0);
+  add->SetInput1(margin);
+  add->SetInput2(input);
+  conn->SetInput(add->GetOutput());
+  conn->FullyConnectedOn();
+  relabel->SetInput(conn->GetOutput());
+  thresh->SetInput(relabel->GetOutput());
+  thresh->SetUpperThreshold(1);
+  thresh->SetLowerThreshold(1);
+  thresh->SetInsideValue(1);
+  thresh->SetOutsideValue(0);
 
-  AddType::Pointer adder = AddType::New();
-  adder->SetInput1(growthThresh->GetOutput());
-  adder->SetInput2(shrinkThresh->GetOutput());
-  adder->Update();
-  
-  negCnt = 0; posCnt = 0;
-  ConstIterType rit(adder->GetOutput(),adder->GetOutput()->GetLargestPossibleRegion());
-  for(rit.GoToBegin();!rit.IsAtEnd();++rit){
-    if(rit.Get()==12)
-      negCnt++;
-    if(rit.Get()==14)
-      posCnt++;
-  }
-  ImageType::SpacingType spacing = diff->GetSpacing();
-  std::cout << "Input image spacing: " << spacing[0] << ", " << spacing[1] << ", " << spacing[2] << std::endl;
-  std::cout << "AltGrowth: " << posCnt*spacing[0]*spacing[1]*spacing[2] << std::endl;
-  std::cout << "AltShrink: " << negCnt*spacing[0]*spacing[1]*spacing[2] << std::endl;
+  mask->SetInput1(input);
+  mask->SetInput2(thresh->GetOutput());
+  mask->Update();
 
-  SaveImage(adder->GetOutput(), "alt_result.nrrd");
-
-//    std::cout << "Bin " << i << " bounds: " << hist->GetBinMin(0,i) << ":" 
-//      << hist->GetBinMax(0,i) << ", freq: " << hist->GetFrequency(i,0) << std::endl;
-  
-  
-  return NULL;
+  return mask->GetOutput();
 }
