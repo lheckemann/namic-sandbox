@@ -185,6 +185,15 @@ public:
   void SetSecMonRotationCenter( double center[ 3 ] );
   void SetSecMonTranslation( double translation[ 3 ] );
   
+    
+    // Display calibration workphase controls.
+
+public:
+  void ShowCalibrationControls( bool show );
+
+protected:
+  vtkTextActorFlippable* CalibrationControlsActor;
+
   
 protected:
   vtkPerkStationSecondaryMonitor();

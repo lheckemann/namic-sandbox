@@ -12,23 +12,26 @@ vtkStandardNewMacro( vtkTextActorFlippable );
 
 
 /**
- * @param direction 0: flips around X axis, 1: flips around Y axis.
+ * @param flip True flips the text, False leaves in normal position.
  */
 void
-vtkTextActorFlippable::Flip( int direction )
+vtkTextActorFlippable::FlipAroundX( bool flip )
 {
-  switch( direction )
-    {
-    case 0:
-      this->FlipX = ! this->FlipX;
-      break;
-    case 1:
-      this->FlipY = ! this->FlipY;
-      break;
-    }
-  
+  this->FlipX = flip;
   this->Modified();
 }
+
+
+/**
+ * @param flip True flips the text, False leaves in normal position.
+ */
+void
+vtkTextActorFlippable::FlipAroundY( bool flip )
+{
+  this->FlipY = flip;
+  this->Modified();
+}
+
 
 void
 vtkTextActorFlippable
