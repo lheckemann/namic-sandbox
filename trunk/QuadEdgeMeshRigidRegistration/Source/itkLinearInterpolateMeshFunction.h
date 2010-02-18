@@ -115,9 +115,6 @@ protected:
   virtual bool ComputeWeights( const PointType & point,
     const InstanceIdentifierVectorType & pointIds ) const;
 
-  virtual bool ComputeSphericalWeights( const PointType & point,
-    const InstanceIdentifierVectorType & pointIds ) const;
-
   const RealType & GetInterpolationWeight( unsigned int ) const;
 
 private:

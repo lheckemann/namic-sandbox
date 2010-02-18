@@ -220,7 +220,6 @@ LinearInterpolateMeshFunction<TInputMesh>
       pointIds[1] = temp1->GetDestination();
       pointIds[2] = temp2->GetDestination();
 
-      //const bool isInside = this->ComputeSphericalWeights( point, pointIds );
       const bool isInside = this->ComputeWeights( point, pointIds );
 
       if( isInside )
@@ -239,86 +238,12 @@ LinearInterpolateMeshFunction<TInputMesh>
 
 /**
  * Compute interpolation weights and verify if the input point is inside the
- * spherical triangle formed by the three identifiers.
- */
-template <class TInputMesh>
-bool
-LinearInterpolateMeshFunction<TInputMesh>
-::ComputeSphericalWeights( const PointType & point, 
-  const InstanceIdentifierVectorType & pointIds ) const
-{
-  const InputMeshType * mesh = this->GetInputMesh(); 
-
-  typedef typename InputMeshType::PointsContainer    PointsContainer;
-
-  const PointsContainer * points = mesh->GetPoints();
-
-  //
-  // Get the vertexes of this triangle
-  //
-  const PointType pt1 = points->GetElement( pointIds[0] );
-  const PointType pt2 = points->GetElement( pointIds[1] );
-  const PointType pt3 = points->GetElement( pointIds[2] );
-
-  const VectorType v1 = pt1 - this->m_SphereCenter;
-  const VectorType v2 = pt2 - this->m_SphereCenter;
-  const VectorType v3 = pt3 - this->m_SphereCenter;
-
-  const VectorType v12 = CrossProduct(v1,v2);
-  const VectorType v23 = CrossProduct(v2,v3);
-  const VectorType v31 = CrossProduct(v3,v1);
-
-  const VectorType V = point - this->m_SphereCenter;
-
-  const double n1 = v1 * v23;
-  const double n2 = v2 * v31;
-  const double n3 = v3 * v12;
-
-  const double b1 = ( V * v23 ) / n1;
-  const double b2 = ( V * v31 ) / n2;
-  const double b3 = ( V * v12 ) / n3;
-  
-  //
-  // Test if the projected point is inside the cell.
-  //
-  // Zero with epsilon
-  //
-  const double zwe = -1e-4;
-
-  bool isInside = false;
-
-  m_InterpolationWeights[0] = b1;
-  m_InterpolationWeights[1] = b2;
-  m_InterpolationWeights[2] = b3;
-
-  //
-  // Since the three barycentric coordinates are interdependent
-  // only three tests should be necessary. That is, we only need
-  // to test against the equations of three lines (half-spaces).
-  //
-  if( ( b1 >= zwe ) && ( b2 >= zwe ) && ( b3 >= zwe ) )
-    {
-    // The points is inside this triangle 
-    isInside = true;
-    }
-
-
-  //
-  // FIXME: It should now do also the chain rule with the Jacobian of how the
-  // point projected on the triangle will change as the point in the sphere
-  // surfaces changes.
-  //
-
-  return isInside;
-}
-/**
- * Compute interpolation weights and verify if the input point is inside the
  * triangle formed by the three identifiers.
  */
 template <class TInputMesh>
 bool
 LinearInterpolateMeshFunction<TInputMesh>
-::ComputeWeights( const PointType & point, 
+::ComputeWeights( const PointType & inputPoint, 
   const InstanceIdentifierVectorType & pointIds ) const
 {
   const InputMeshType * mesh = this->GetInputMesh(); 
@@ -334,11 +259,33 @@ LinearInterpolateMeshFunction<TInputMesh>
   PointType pt2 = points->GetElement( pointIds[1] );
   PointType pt3 = points->GetElement( pointIds[2] );
 
+  //
+  //  Prolong the points on the plane that is tangent the sphere at "point"
+  //  as proposed in the paper "Spherical Barycentric Coordinates" 
+  //  by Torsten Langer, Alexander Belyaev, Hans-Peter Siedel
+  //  at Eurographics Symposium on Geometry Processing (2006).
+  //
+  const VectorType v1 = pt1 - this->m_SphereCenter;
+  const VectorType v2 = pt2 - this->m_SphereCenter;
+  const VectorType v3 = pt3 - this->m_SphereCenter;
+
+  const VectorType V = inputPoint - this->m_SphereCenter;
+
+  const double vv = V * V;
+
+  const double vv1 = V * v1;
+  const double vv2 = V * v2;
+  const double vv3 = V * v3;
+
+  PointType ppt1 = this->m_SphereCenter + ( v1 * ( vv / vv1 ) );
+  PointType ppt2 = this->m_SphereCenter + ( v2 * ( vv / vv2 ) );
+  PointType ppt3 = this->m_SphereCenter + ( v3 * ( vv / vv3 ) );
+
   TriangleBasisSystemType triangleBasisSystem;
   TriangleBasisSystemType orthogonalBasisSytem;
 
   this->m_TriangleBasisSystemCalculator->CalculateBasis( 
-    pt1, pt2, pt3, triangleBasisSystem, orthogonalBasisSytem );
+    ppt1, ppt2, ppt3, triangleBasisSystem, orthogonalBasisSytem );
 
   m_U12 = triangleBasisSystem.GetVector(0); 
   m_U32 = triangleBasisSystem.GetVector(1); 
@@ -347,12 +294,12 @@ LinearInterpolateMeshFunction<TInputMesh>
   m_V32 = orthogonalBasisSytem.GetVector(1); 
 
   //
-  // Project point to plane, by using the dual vector base
+  // Project inputPoint to plane, by using the dual vector base
   //
   // Compute components of the input point in the 2D
   // space defined by m_V12 and m_V32
   //
-  VectorType xo = point - pt2;
+  VectorType xo = inputPoint - pt2;
 
   const double u12p = xo * m_U12;
   const double u32p = xo * m_U32;
