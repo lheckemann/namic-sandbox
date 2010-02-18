@@ -151,6 +151,7 @@ LinearInterpolateMeshFunction<TInputMesh>
 
   if( !foundTriangle )
     {
+    std::cout<<"can not find a triangle!!"<<std::endl;
     return itk::NumericTraits< OutputType >::ZeroValue();
     }
 
@@ -183,10 +184,12 @@ bool
 LinearInterpolateMeshFunction<TInputMesh>
 ::FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const
 {
-  const unsigned int numberOfNeighbors = 1;
+  const unsigned int numberOfNeighbors = 5;
 
-  this->Search( point, numberOfNeighbors, pointIds );
+  InstanceIdentifierVectorType closestPointIds(numberOfNeighbors);
 
+  this->Search( point, numberOfNeighbors, closestPointIds );
+  
   const InputMeshType * mesh = this->GetInputMesh(); 
 
   typedef typename InputMeshType::QEPrimal    EdgeType;
@@ -194,31 +197,41 @@ LinearInterpolateMeshFunction<TInputMesh>
   //
   // Find the edge connected to the closest point.
   //
-  EdgeType * edge1 = mesh->FindEdge( pointIds[0] );
-
-  // 
-  // Explore triangles around pointIds[0]
-  //
-  EdgeType * temp1 = NULL;
-  EdgeType * temp2 = edge1;
-
-  do
+  
+  // go through triangles around each neighbors
+  for ( unsigned int i = 0; i < numberOfNeighbors; i++ )
     {
-    temp1 = temp2;
-    temp2 = temp1->GetOnext();
+    
+    pointIds[0] = closestPointIds[i];
+    
+    EdgeType * edge1 = mesh->FindEdge( pointIds[0] );
 
-    pointIds[1] = temp1->GetDestination();
-    pointIds[2] = temp2->GetDestination();
+    // 
+    // Explore triangles around pointIds[0]
+    //
+    EdgeType * temp1 = NULL;
+    EdgeType * temp2 = edge1;
 
-    const bool isInside = this->ComputeSphericalWeights( point, pointIds );
-
-    if( isInside )
+    do
       {
-      return true;
+      temp1 = temp2;
+      temp2 = temp1->GetOnext();
+
+      pointIds[1] = temp1->GetDestination();
+      pointIds[2] = temp2->GetDestination();
+
+      //const bool isInside = this->ComputeSphericalWeights( point, pointIds );
+      const bool isInside = this->ComputeWeights( point, pointIds );
+
+      if( isInside )
+        {
+        return true;
+        }
+
       }
+    while( temp2 != edge1 );
 
     }
-  while( temp2 != edge1 );
 
   return false;
 }
@@ -365,7 +378,7 @@ LinearInterpolateMeshFunction<TInputMesh>
   // Zero with epsilon
   //
   const double zwe = -1e-4;
-
+  
   bool isInside = false;
 
   m_InterpolationWeights[0] = b1;
