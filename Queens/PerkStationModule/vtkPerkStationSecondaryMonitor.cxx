@@ -136,6 +136,10 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
  
  this->LeftSideActor = vtkTextActorFlippable::New();
  this->RightSideActor = vtkTextActorFlippable::New();
+ 
+   // Calibration controls.
+ 
+ this->CalibrationControlsActor = vtkTextActorFlippable::New();
 }
 
 
@@ -221,6 +225,12 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     {
     this->RightSideActor->Delete();
     this->RightSideActor = NULL;
+    }
+  
+  if ( this->CalibrationControlsActor )
+    {
+    this->CalibrationControlsActor->Delete();
+    this->CalibrationControlsActor = NULL;
     }
   
   if (this->MapToWindowLevelColors)
@@ -433,7 +443,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->LeftSideActor->GetTextProperty()->BoldOn();
   this->LeftSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50,
                                            this->ScreenSize[ 1 ] - 50 );
-  this->LeftSideActor->Flip( 0 );
+  this->LeftSideActor->FlipAroundX( true );
   this->LeftSideActor->SetOrientation( 180 );
   
   this->RightSideActor->SetInput( "R" );
@@ -442,13 +452,29 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->RightSideActor->GetTextProperty()->SetFontSize( 30 );
   this->RightSideActor->GetTextProperty()->BoldOn();
   this->RightSideActor->SetDisplayPosition( 50, this->ScreenSize[ 1 ] - 50 );
-  this->RightSideActor->Flip( 0 );
+  this->RightSideActor->FlipAroundX( true );
   this->RightSideActor->SetOrientation( 180 );
-  
   
   this->Renderer->AddActor( this->LeftSideActor );
   this->Renderer->AddActor( this->RightSideActor );
-
+  
+  
+    // Calibration controls.
+  
+  this->CalibrationControlsActor->SetInput(
+    "Up:[A]  Down:[Z]  Left:[Q]  Right:[W]   Rotatations:[G][H]" );
+  this->CalibrationControlsActor->GetTextProperty()->SetColor( 1, 1, 0 );
+  this->CalibrationControlsActor->SetTextScaleModeToNone();
+  this->CalibrationControlsActor->GetTextProperty()->SetFontSize( 28 );
+  this->CalibrationControlsActor->GetTextProperty()->BoldOn();
+  this->CalibrationControlsActor->SetDisplayPosition(
+    this->ScreenSize[ 0 ] / 2 + 370, this->ScreenSize[ 1 ] - 40 );
+  this->CalibrationControlsActor->FlipAroundX( true );
+  this->CalibrationControlsActor->SetOrientation( 180 );
+  // this->CalibrationControlsActor->SetVisibility( 0 );
+  
+  this->Renderer->AddActor( this->CalibrationControlsActor );
+  
   
   // matrix stuff  
   // matrices
@@ -1588,11 +1614,13 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         textActor->GetTextProperty()->SetColor(0,1,0);
         textActor->SetTextScaleModeToNone();
         textActor->GetTextProperty()->SetFontSize(30);
-        textActor->Flip( 0 );
+        textActor->FlipAroundX( true );
+        textActor->SetOrientation( 180 );
         
         if (denom>=0)
           {
-          textActor->SetDisplayPosition(pointXY[0]+100, pointXY[1]+5);
+          // textActor->SetDisplayPosition(pointXY[0]+100, pointXY[1]+5);
+          textActor->SetDisplayPosition(pointXY[0]+100, pointXY[1]+25);
           // convert to world coordinate
           //this->Renderer->SetDisplayPoint(pointXY[0]+100,pointXY[1]+5, 0);
           //this->Renderer->DisplayToWorld();
@@ -1601,7 +1629,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
           }
         else
           {
-          textActor->SetDisplayPosition(pointXY[0]-100, pointXY[1]+5);
+          textActor->SetDisplayPosition(pointXY[0]-100, pointXY[1]+25);
           // convert to world coordinate
           //this->Renderer->SetDisplayPoint(pointXY[0]-100,pointXY[1]+5, 0);
           //this->Renderer->DisplayToWorld();
@@ -1610,19 +1638,10 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
           }
 
         
-        // flip vertically or horizontally the text actor
-        if (this->HorizontalFlipped)
-          { 
-          
-          // char *revText = vtkPerkStationModuleLogic::strrev(text, strlen(text));
-          // textActor->SetInput(revText);
-          textActor->SetInput( text );
-          textActor->SetOrientation( 180 );
-          }
-        else if (this->VerticalFlipped)
+        // flip vertically the text actor
+        if (this->VerticalFlipped)
           {
           textActor->GetTextProperty()->SetVerticalJustificationToTop();
-          textActor->SetOrientation(180);
           }
 
         // add text actor to text actor collection
@@ -1927,6 +1946,21 @@ vtkPerkStationSecondaryMonitor
   for ( int i = 0; i < 3; ++ i )
     {
     this->SecMonTranslation[ i ] = translation[ i ];
+    }
+}
+
+
+void
+vtkPerkStationSecondaryMonitor
+::ShowCalibrationControls( bool show )
+{
+  if ( show )
+    {
+    this->CalibrationControlsActor->SetVisibility( 1 );
+    }
+  else
+    {
+    this->CalibrationControlsActor->SetVisibility( 0 );
     }
 }
 

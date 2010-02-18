@@ -19,7 +19,8 @@ public:
   
   static vtkTextActorFlippable *New();
   
-  void Flip( int direction );
+  void FlipAroundX( bool flip );
+  void FlipAroundY( bool flip );
   
   vtkTypeRevisionMacro( vtkTextActorFlippable, vtkTextActor );
   void PrintSelf( ostream& os, vtkIndent indent );

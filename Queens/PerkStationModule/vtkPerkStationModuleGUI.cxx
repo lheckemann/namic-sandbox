@@ -1,16 +1,3 @@
-/*=auto=========================================================================
-
-Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-See Doc/copyright/copyright.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
-
-Program:   3D Slicer
-Module:    $RCSfile: vtkPerkStationModuleGUI.cxx,v $
-Date:      $Date: 2006/03/17 15:10:10 $
-Version:   $Revision: 1.2 $
-
-=========================================================================auto=*/
 
 #include <string>
 #include <iostream>
@@ -2346,6 +2333,20 @@ vtkPerkStationModuleGUI
     {
     step->ShowUserInterface();
     // step->UpdateGUI();
+    }
+  
+  
+    // Secondary monitor.
+  
+  if ( phase == this->Calibrate )
+    {
+    this->SecondaryMonitor->ShowCalibrationControls( true );
+    this->SecondaryMonitor->UpdateImageDisplay();
+    }
+  else
+    {
+    this->SecondaryMonitor->ShowCalibrationControls( false );
+    this->SecondaryMonitor->UpdateImageDisplay();
     }
   
   

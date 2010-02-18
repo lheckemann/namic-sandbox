@@ -654,7 +654,7 @@ void vtkPerkStationCalibrateStep::EnableDisableControls()
 void vtkPerkStationCalibrateStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
-
+  
   switch (this->GetGUI()->GetMode())      
     {
 
@@ -709,8 +709,10 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
     
   // TO DO: install callbacks
   this->InstallCallbacks();
-
-
+  
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->
+    GetSliceViewer()->Focus();
+  
 }
 
 //----------------------------------------------------------------------------
@@ -2644,7 +2646,10 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
   
   
-  // todo
+    // Image calibration on second monitor with focus on Red Slice.
+  
+  double stepSize = 0.8;
+  
   if (
        ( event == vtkCommand::KeyPressEvent )
        // && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 0 )
@@ -2653,7 +2658,27 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
     char  *key = style->GetKeySym();
     if ( ! strcmp( key, "a" ) )
       {
-      this->GetGUI()->GetSecondaryMonitor()->Translate(0, 2, 0);
+      this->GetGUI()->GetSecondaryMonitor()->Translate( 0, stepSize, 0 );
+      }
+    if ( ! strcmp( key, "z" ) )
+      {
+      this->GetGUI()->GetSecondaryMonitor()->Translate( 0, - stepSize, 0 );
+      }
+    if ( ! strcmp( key, "q" ) )
+      {
+      this->GetGUI()->GetSecondaryMonitor()->Translate( - stepSize, 0, 0 );
+      }
+    if ( ! strcmp( key, "w" ) )
+      {
+      this->GetGUI()->GetSecondaryMonitor()->Translate( stepSize, 0, 0 );
+      }
+    if ( ! strcmp( key, "g" ) )
+      {
+      this->GetGUI()->GetSecondaryMonitor()->Rotate( stepSize / 3.0 );
+      }
+    if ( ! strcmp( key, "h" ) )
+      {
+      this->GetGUI()->GetSecondaryMonitor()->Rotate( - stepSize / 3.0 );
       }
     }
   
