@@ -30,7 +30,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 ::QuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
 {
   this->SetNumberOfRequiredInputs( 2 );
-  this->SetNumberOfRequiredOutputs( 2 );
+  this->SetNumberOfRequiredOutputs( 3 );
   this->SetNumberOfOutputs( 3 );
 
   this->SetNthOutput( 0, OutputMeshType::New() );
@@ -313,6 +313,12 @@ ComputeBasisSystemAtEveryNode()
   for( PointIdentifier pointId1 = 0; pointId1 < numberOfNodes; pointId1++ )
     {
     const EdgeType * edge = this->m_FixedMesh->FindEdge( pointId1 );
+
+    if( !edge )
+      {
+      itkExceptionMacro("FindEdge() returned NULL for pointId " << pointId1 );
+      }
+
     PointIdentifier pointId2 = edge->GetDestination();
 
     const PointType point1 = points->GetElement( pointId1 );
@@ -816,9 +822,12 @@ ComposeDeformationUpdateWithPreviousDeformation()
 
   while( displacementItr != displacementEnd )
     {
+    PointType point = displacementItr.Value();
+
+    this->ProjectPointToSphereSurface( point );
+
     newDestinationPointItr.Value() =
-      this->InterpolateDestinationFieldAtPoint(
-        this->m_DestinationPoints, displacementItr.Value() );
+      this->InterpolateDestinationFieldAtPoint( this->m_DestinationPoints, point );
 
 
     ++newDestinationPointItr;
@@ -1105,9 +1114,9 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 AssignResampledMovingValuesToOutputMesh()
 {
-  OutputMeshPointer out = this->GetOutput();
+  OutputMeshPointer outputMesh = this->GetOutput();
 
-  OutputPointDataContainerPointer outputPointData = out->GetPointData();
+  OutputPointDataContainerPointer outputPointData = outputMesh->GetPointData();
 
   const PointIdentifier numberOfNodes = this->m_FixedMesh->GetNumberOfPoints();
 
@@ -1180,7 +1189,7 @@ CopyDestinationPointsToDeformedFixedMesh()
 
   while( srcPointItr != srcPointEnd )
     {
-    dstPointItr.Value() = srcPointItr.Value();
+    dstPointItr.Value().SetPoint( srcPointItr.Value() );
     ++dstPointItr;
     ++srcPointItr;
     }
