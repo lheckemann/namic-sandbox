@@ -587,6 +587,31 @@ vtkPerkStationModuleGUI
    this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )
      ->GetLogic()->GetSliceOffset();
    this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
+   
+   
+     // todo: switch visibility of needle guide
+   
+   double entry[ 3 ];
+   double target[ 3 ];
+   this->GetMRMLNode()->GetPlanEntryPoint( entry );
+   this->GetMRMLNode()->GetPlanTargetPoint( target );
+   double minOffset = target[ 2 ];
+   double maxOffset = entry[ 2 ];
+   if ( entry[ 2 ] < target[ 2 ] )
+     {
+     minOffset = entry[ 2 ];
+     maxOffset = target[ 2 ];
+     }
+   
+   if ( this->SliceOffset <= maxOffset
+        && this->SliceOffset >= minOffset )
+     {
+     this->SecondaryMonitor->ShowNeedleGuide( true );
+     }
+   else
+     {
+     this->SecondaryMonitor->ShowNeedleGuide( false );
+     }
    }
   
   
@@ -1145,7 +1170,7 @@ void vtkPerkStationModuleGUI::BuildGUI()
   PSNode->Delete();
   
   this->UIPanel->AddPage ( "PerkStationModule", "PerkStationModule", NULL );
-  vtkKWWidget *modulePage =  this->UIPanel->GetPageWidget("PerkStationModule");
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PerkStationModule" );
   
   // ---
   // MODULE GUI FRAME 
@@ -1154,16 +1179,48 @@ void vtkPerkStationModuleGUI::BuildGUI()
   
   std::stringstream helpss;
   helpss << "**PERK Station Module:** "
-         << "**Revision " << PerkStationModule_REVISION << "**"
+         << "**Revision " << PerkStationModule_REVISION << "**" << std::endl
          << "Use this module to perform image overlay guided percutaneous "
-         << "interventions ....";
+         << "interventions.";
   const char* help = helpss.str().c_str();
-  // std::string str( help );
-  PERKLOG_INFO( helpss.str().c_str() );
   
-  const char *about = "This work was supported by NA-MIC, NAC, BIRN, NCIGT, and the Slicer Community. See <a>http://www.slicer.org</a> for details. ";
-  vtkKWWidget *page = this->UIPanel->GetPageWidget ( "PerkStationModule" );
+  
+  // ----------------------------------------------------------------
+  // HELP FRAME         
+  // ----------------------------------------------------------------
+  vtkSlicerModuleCollapsibleFrame *PerkStationHelpFrame =
+    vtkSlicerModuleCollapsibleFrame::New ( );
+  PerkStationHelpFrame->SetParent ( page );
+  PerkStationHelpFrame->Create ( );
+  PerkStationHelpFrame->CollapseFrame ( );
+  PerkStationHelpFrame->SetLabelText ("Help");
+  app->Script ( "pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+      PerkStationHelpFrame->GetWidgetName(), page->GetWidgetName());
+
+  // configure the parent classes help text widget
+  this->HelpText->SetParent ( PerkStationHelpFrame->GetFrame() );
+  this->HelpText->Create ( );
+  this->HelpText->SetHorizontalScrollbarVisibility ( 0 );
+  this->HelpText->SetVerticalScrollbarVisibility ( 1 );
+  this->HelpText->GetWidget()->SetText ( helpss.str().c_str() );
+  this->HelpText->GetWidget()->SetReliefToFlat ( );
+  this->HelpText->GetWidget()->SetWrapToWord ( );
+  this->HelpText->GetWidget()->ReadOnlyOn ( );
+  this->HelpText->GetWidget()->QuickFormattingOn ( );
+  this->HelpText->GetWidget()->SetBalloonHelpString ( "" );
+  app->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 4",
+      this->HelpText->GetWidgetName ( ) );
+
+  PerkStationHelpFrame->Delete();
+
+  
+  const char *about = "This work was supported by NA-MIC, NAC, BIRN, NCIGT,"
+                      "and the Slicer Community."
+                      "See <a>http://www.slicer.org</a> for details. ";
+  
+  /*
   this->BuildHelpAndAboutFrame ( page, help, about );
+  
   vtkKWLabel *NACLabel = vtkKWLabel::New();
   NACLabel->SetParent ( this->GetLogoFrame() );
   NACLabel->Create();
@@ -1193,14 +1250,14 @@ void vtkPerkStationModuleGUI::BuildGUI()
   NAMICLabel->Delete();
   NCIGTLabel->Delete();
   BIRNLabel->Delete();
-
-
+  */
+  
   // add individual collapsible pages/frames
 
 
   // Mode collapsible frame with combo box label.
   vtkSlicerModuleCollapsibleFrame *modeFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-    modeFrame->SetParent(modulePage);
+    modeFrame->SetParent( page );
     modeFrame->Create();
     modeFrame->SetLabelText("Mode frame");
     modeFrame->ExpandFrame();
@@ -1236,18 +1293,18 @@ void vtkPerkStationModuleGUI::BuildGUI()
     // collapsible? frame for volume node selection, and parameters selection?
   
   vtkKWFrameWithLabel *loadSaveExptFrame = vtkKWFrameWithLabel::New ( );
-  loadSaveExptFrame->SetParent(modulePage);
+  loadSaveExptFrame->SetParent( page );
   loadSaveExptFrame->Create();
   loadSaveExptFrame->SetLabelText("Experiment frame");
   //loadSaveExptFrame->ExpandFrame(); 
   
   app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-              loadSaveExptFrame->GetWidgetName(), modulePage->GetWidgetName());
+              loadSaveExptFrame->GetWidgetName(), page->GetWidgetName());
   
   
     // Work phase collapsible frame with push buttons.
   
-  this->WorkphaseButtonFrame->SetParent( modulePage );
+  this->WorkphaseButtonFrame->SetParent( page );
   this->WorkphaseButtonFrame->Create();
   // this->WorkphaseButtonFrame->SetLabelText( "Work phase frame" );
   // this->WorkphaseButtonFrame->ExpandFrame();
@@ -1513,14 +1570,14 @@ void vtkPerkStationModuleGUI::BuildGUI()
   loadVolFrame->Delete();
   // Wizard collapsible frame with individual steps inside
   this->WizardFrame = vtkSlicerModuleCollapsibleFrame::New();
-  this->WizardFrame->SetParent(modulePage);
+  this->WizardFrame->SetParent( page );
   this->WizardFrame->Create();
   this->WizardFrame->SetLabelText("Wizard");
   this->WizardFrame->ExpandFrame();
 
   app->Script("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
               this->WizardFrame->GetWidgetName(), 
-              modulePage->GetWidgetName());
+              page->GetWidgetName());
 
     // individual page/collapsible frame with their own widgets inside:
   this->WizardWidget->SetParent(this->WizardFrame->GetFrame());

@@ -687,7 +687,6 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(
   // if ( this->SelectTargetFirst )
   if ( this->TargetFirstCheck->GetWidget()->GetSelectedState() != 0 )
     {
-    vtkDebugMacro( << "haho" );
     targetClick = 1;
     entryClick = 2;
     }
@@ -1488,7 +1487,8 @@ void vtkPerkStationPlanStep::WizardGUICallback(vtkObject *caller, unsigned long 
 }
 
 //----------------------------------------------------------------------------
-void vtkPerkStationPlanStep::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
+void vtkPerkStationPlanStep::ProcessGUIEvents(vtkObject *caller,
+                                            unsigned long event, void *callData)
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
@@ -1507,7 +1507,9 @@ void vtkPerkStationPlanStep::ProcessGUIEvents(vtkObject *caller, unsigned long e
   this->ProcessingCallback = true;
   
   // reset plan button
-  if (this->ResetPlanButton && this->ResetPlanButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+  if ( this->ResetPlanButton
+       && this->ResetPlanButton == vtkKWPushButton::SafeDownCast(caller)
+       && ( event == vtkKWPushButton::InvokedEvent ) )
     {
     this->Reset();
     }

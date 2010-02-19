@@ -186,11 +186,14 @@ public:
   void SetSecMonTranslation( double translation[ 3 ] );
   
     
-    // Display calibration workphase controls.
+    // Control display of visual guides.  
 
-public:
   void ShowCalibrationControls( bool show );
+  void ShowNeedleGuide( bool show );
+  void ShowDepthPerceptionLines( bool show );
+  
 
+  // Display calibration workphase controls.
 protected:
   vtkTextActorFlippable* CalibrationControlsActor;
 

@@ -1620,7 +1620,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
         if (denom>=0)
           {
           // textActor->SetDisplayPosition(pointXY[0]+100, pointXY[1]+5);
-          textActor->SetDisplayPosition(pointXY[0]+100, pointXY[1]+25);
+          textActor->SetDisplayPosition(pointXY[0]+120, pointXY[1]+25);
           // convert to world coordinate
           //this->Renderer->SetDisplayPoint(pointXY[0]+100,pointXY[1]+5, 0);
           //this->Renderer->DisplayToWorld();
@@ -1629,7 +1629,7 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
           }
         else
           {
-          textActor->SetDisplayPosition(pointXY[0]-100, pointXY[1]+25);
+          textActor->SetDisplayPosition(pointXY[0]-120, pointXY[1]+25);
           // convert to world coordinate
           //this->Renderer->SetDisplayPoint(pointXY[0]-100,pointXY[1]+5, 0);
           //this->Renderer->DisplayToWorld();
@@ -1950,6 +1950,9 @@ vtkPerkStationSecondaryMonitor
 }
 
 
+/**
+ * @param show True makes object visible, false hides it.
+ */
 void
 vtkPerkStationSecondaryMonitor
 ::ShowCalibrationControls( bool show )
@@ -1964,3 +1967,48 @@ vtkPerkStationSecondaryMonitor
     }
 }
 
+
+/**
+ * @param show True makes object visible, false hides it.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::ShowNeedleGuide( bool show )
+{
+  if ( show )
+    {
+    this->NeedleGuideActor->SetVisibility( 1 );
+    }
+  else
+    {
+    this->NeedleGuideActor->SetVisibility( 0 );
+    }
+}
+
+
+/**
+ * @param show True makes object visible, false hides it.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::ShowDepthPerceptionLines( bool show )
+{
+  if ( show )
+    {
+    for( int i = 0; i < this->DepthPerceptionLines->GetNumberOfItems(); ++ i )
+      {
+      vtkActor* actor = vtkActor::SafeDownCast(
+        this->DepthPerceptionLines->GetItemAsObject( i ) );
+      actor->SetVisibility( 1 );
+      }
+    }
+  else
+    {
+    for( int i = 0; i < this->DepthPerceptionLines->GetNumberOfItems(); ++ i )
+      {
+      vtkActor* actor = vtkActor::SafeDownCast(
+        this->DepthPerceptionLines->GetItemAsObject( i ) );
+      actor->SetVisibility( 0 );
+      }
+    }
+}
