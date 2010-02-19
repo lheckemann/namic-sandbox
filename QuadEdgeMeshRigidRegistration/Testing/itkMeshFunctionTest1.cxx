@@ -44,7 +44,7 @@ public:
   typedef typename Superclass::OutputType       OutputType;
   typedef typename Superclass::PointType        PointType;
 
-  virtual OutputType Evaluate( const PointType& point ) const
+  virtual OutputType Evaluate( const PointType& itkNotUsed(point) ) const
     {
     return OutputType();
     }
