@@ -46,6 +46,8 @@ include_directories(
   ${OpenIGTLinkIF_SOURCE_DIR}
   ${OpenIGTLinkIF_BINARY_DIR}
   ${OpenIGTLink_INCLUDE_DIRS}
+  ${vtkSlicerVolumesModuleLogic_SOURCE_DIR}
+  ${vtkSlicerVolumesModuleLogic_BINARY_DIR}
   ${Volumes_SOURCE_DIR}
   ${Volumes_BINARY_DIR}
   )
@@ -82,6 +84,7 @@ set(ProstateNav_SRCS
   vtkMRMLProstateNavManagerNode.cxx
   vtkProstateNavLogic.cxx
   vtkProstateNavGUI.cxx
+  vtkSlicerSecondaryViewerWindow.cxx 
   vtkMRMLRobotNode.cxx
   vtkMRMLRobotDisplayNode.cxx
   vtkProstateNavTargetDescriptor.cxx  
@@ -181,6 +184,7 @@ target_link_libraries(${lib_name}
   ${KWWidgets_LIBRARIES}
   ${ITK_LIBRARIES}
   OpenIGTLinkIF
+  vtkSlicerVolumesModuleLogic
   Volumes
   )
 
