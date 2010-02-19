@@ -108,30 +108,34 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
 
 
-  int nt = 1;
-  std::vector<double> fmaxOfThisThread;
-  std::vector<double> kappaMaxOfThisThread;
+#ifndef NDEBUG
+    std::ofstream ff("/tmp/force.txt");
+#endif
+
 
 #pragma omp parallel
   {
-#pragma omp single
-    {
-      nt = omp_get_num_threads();
+    double fmaxOfThisThread = std::numeric_limits<double>::min();
+    double kappaMaxOfThisThread = std::numeric_limits<double>::min();
 
-      fmaxOfThisThread.resize(nt);
-      kappaMaxOfThisThread.resize(nt);
+// #pragma omp single
+//     {
+//       nt = omp_get_num_threads();
+
+//       fmaxOfThisThread.resize(nt);
+//       kappaMaxOfThisThread.resize(nt);
       
-      for (int ithread = 0; ithread < nt; ++ithread)
-        {
-          fmaxOfThisThread[ithread] = std::numeric_limits<double>::min();
-          kappaMaxOfThisThread[ithread] = std::numeric_limits<double>::min();
-        }
+//       for (int ithread = 0; ithread < nt; ++ithread)
+//         {
+//           fmaxOfThisThread[ithread] = ;
+//           kappaMaxOfThisThread[ithread] = std::numeric_limits<double>::min();
+//         }
 
-      // implicite barrier here, good, gurantee the fmaxOfThisThread, kappaMaxOfThisThread are allocated.
-    }
+//       // implicite barrier here, good, gurantee the fmaxOfThisThread, kappaMaxOfThisThread are allocated.
+//     }
 
 
-    int ithread = omp_get_thread_num();
+    //int ithread = omp_get_thread_num();
 
 #pragma omp for
       for (long i = 0; i < n; ++i)
@@ -159,22 +163,45 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
           double a = -kernelEvaluationUsingPDF(f);
 
 
-          fmaxOfThisThread[ithread] = fmaxOfThisThread[ithread]>fabs(a)?fmaxOfThisThread[ithread]:fabs(a);
-          kappaMaxOfThisThread[ithread] = kappaMaxOfThisThread[ithread]>fabs(kappaOnZeroLS[i])\
-            ?kappaMaxOfThisThread[ithread]:fabs(kappaOnZeroLS[i]);
+#ifndef NDEBUG
+#pragma omp critical
+          {
+            ff<<f[0]<<"\t"<<f[1]<<"\t"<<f[2]<<"\t"<<a<<std::endl;
+          }
+#endif
+
+
+
+          fmaxOfThisThread = fmaxOfThisThread>fabs(a)?fmaxOfThisThread:fabs(a);
+          kappaMaxOfThisThread = kappaMaxOfThisThread>fabs(kappaOnZeroLS[i])?kappaMaxOfThisThread:fabs(kappaOnZeroLS[i]);
 
           cvForce[i] = a;
         }
+
+#pragma omp critical
+      {
+        fmax = fmax>fmaxOfThisThread?fmax:fmaxOfThisThread;
+        kappaMax = kappaMax>kappaMaxOfThisThread?kappaMax:kappaMaxOfThisThread;
+      }
     }
 
+#ifndef NDEBUG
+  ff.close();
+#endif
 
 
-    for (int ithread = 0; ithread < nt; ++ithread)
-      {
-        fmax = fmax>fmaxOfThisThread[ithread]?fmax:fmaxOfThisThread[ithread];
-        kappaMax = kappaMax>kappaMaxOfThisThread[ithread]?kappaMax:kappaMaxOfThisThread[ithread];
-      }
 
+
+//     for (int ithread = 0; ithread < nt; ++ithread)
+//       {
+//         fmax = fmax>fmaxOfThisThread[ithread]?fmax:fmaxOfThisThread[ithread];
+//         kappaMax = kappaMax>kappaMaxOfThisThread[ithread]?kappaMax:kappaMaxOfThisThread[ithread];
+//       }
+
+
+  //std::cout<<"this->m_curvatureWeight = "<<this->m_curvatureWeight<<std::endl;
+
+  std::cout<<"fmax = "<<fmax<<std::endl;
 
     this->m_force.resize(n);
     for (long i = 0; i < n; ++i)
@@ -241,7 +268,7 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
   seedToMask();
 
-  dialteSeeds();
+  //dialteSeeds();
 
   initFeatureComputedImage();
   initFeatureImage();
@@ -387,6 +414,10 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
    */
   this->initializeSFLS();
 
+#ifndef NDEBUG
+  std::ofstream dbgf("/tmp/dbgo.txt", std::ios_base::app);
+#endif
+
   //douher::saveAsImage2< double >(mp_phi, "initPhi.nrrd");
   for (unsigned int it = 0; it < this->m_numIter; ++it)
     //for (unsigned int it = 0; ; ++it)
@@ -394,6 +425,14 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       //dbg//
       std::cout<<"In iteration "<<it<<std::endl<<std::flush;
       //DBG//
+
+
+      #ifndef NDEBUG
+      dbgf<<"In iteration "<<it<<std::endl<<std::flush;
+      dbgf<<"m_insideVoxelCount = "<<this->m_insideVoxelCount<<std::endl;
+      dbgf<<"m_kernelWidthFactor = "<<m_kernelWidthFactor<<std::endl;
+      dbgf<<"m_maxRunningTime = "<<this->m_maxRunningTime<<std::endl;          
+      #endif
 
 
 
@@ -421,10 +460,14 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       if (it > 2 && oldVoxelCount >= this->m_insideVoxelCount)
         {
           std::ofstream f("/tmp/o.txt");
-          f<<"In the "<<it<<"-th iteration, stop grow\n";
+          f<<"In the "<<it<<"-th iteration\n";
+
+          f<<"stop grow\n";
           f<<"oldVoxelCount = "<<oldVoxelCount<<std::endl;
           f<<"m_insideVoxelCount = "<<this->m_insideVoxelCount<<std::endl;
+
           f<<"m_kernelWidthFactor = "<<m_kernelWidthFactor<<std::endl;
+          f<<"m_maxRunningTime = "<<this->m_maxRunningTime<<std::endl;          
           f.close();
 
           break;
@@ -441,10 +484,12 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
         {
           //          std::fstream f("/tmp/o.txt", std::ios_base::app);
           std::ofstream f("/tmp/o.txt");
+          f<<"In the "<<it<<"-th iteration\n";
+          f<<"reach max volume\n";
+
           f<<"m_maxVolume = "<<this->m_maxVolume<<std::endl;
           f<<"volumeIn = "<<volumeIn<<std::endl;
 
-          f<<"reach max volume\n";
           f.close();
 
 
@@ -467,6 +512,11 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
 
     }
+
+#ifndef NDEBUG
+  dbgf.close();
+#endif
+
 
   return;
 }
@@ -687,9 +737,16 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
     }
 
 
-  short ax = 0;
-  short ay = 0;
-  short az = 0;
+//   short ax = 0;
+//   short ay = 0;
+//   short az = 0;
+
+
+
+#ifndef NDEBUG
+  std::ofstream intensityAtSeeds("/tmp/intenSeeds.txt");
+#endif
+
 
   for (long i = 0; i < n; ++i)
     {
@@ -703,28 +760,46 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       long iy = m_seeds[i][1];
       long iz = m_seeds[i][2];
 
-      for (long iiz = iz - az; iiz <= iz + az; ++iiz)
-        {
-          for (long iiy = iy - ay; iiy <= iy + ay; ++iiy)
-            {
-              for (long iix = ix - ax; iix <= ix + ax; ++iix)
-                {
-                  if (0 <= iix && iix < this->m_nx    \
-                      && 0 <= iiy && iiy < this->m_ny    \
-                      && 0 <= iiz && iiz < this->m_nz)
-                    {
-                      TIndex idx = {{iix, iiy, iiz}};
+      TIndex idx = {{ix, iy, iz}};
                       
-                      std::vector<double> featureHere(m_numberOfFeature);
-                      computeFeatureAt(idx, featureHere);
+      std::vector<double> featureHere(m_numberOfFeature);
+      computeFeatureAt(idx, featureHere);
 
-                      m_featureAtTheSeeds.push_back(featureHere);
-                    }
-                }
-            }
-        }
+      m_featureAtTheSeeds.push_back(featureHere);
+
+
+#ifndef NDEBUG
+      //intensityAtSeeds<<"inensity at ( "<<ix<<", "<<iy<<", "<<iz<<") is "<<this->mp_img->GetPixel(idx)<<std::endl;
+      intensityAtSeeds<<this->mp_img->GetPixel(idx)<<std::endl;
+#endif
+      
+
+
+//       for (long iiz = iz - az; iiz <= iz + az; ++iiz)
+//         {
+//           for (long iiy = iy - ay; iiy <= iy + ay; ++iiy)
+//             {
+//               for (long iix = ix - ax; iix <= ix + ax; ++iix)
+//                 {
+//                   if (0 <= iix && iix < this->m_nx    \
+//                       && 0 <= iiy && iiy < this->m_ny    \
+//                       && 0 <= iiz && iiz < this->m_nz)
+//                     {
+//                       TIndex idx = {{iix, iiy, iiz}};
+                      
+//                       std::vector<double> featureHere(m_numberOfFeature);
+//                       computeFeatureAt(idx, featureHere);
+
+//                       m_featureAtTheSeeds.push_back(featureHere);
+//                     }
+//                 }
+//             }
+//         }
     }
 
+#ifndef NDEBUG
+  intensityAtSeeds.close();
+#endif
 
   return;
 }
@@ -756,6 +831,14 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       m_kernelStddev[i] /= (n-1);
       m_kernelStddev[i] = sqrt(m_kernelStddev[i]);
     }
+
+#ifndef NDEBUG
+  std::ofstream dbgf("/tmp/dbgo.txt", std::ios_base::app);
+  for (long i = 0; i < m_numberOfFeature; ++i)
+    {
+      dbgf<<"Feature "<<i<<" has var = "<<m_kernelStddev[i]<<std::endl;
+    }
+#endif
 
   return;
 }
@@ -871,6 +954,11 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
   
   computeMinMax(); // so we have the range of all pdfs
 
+#ifndef NDEBUG
+  std::cout<<"m_inputImageIntensityMin = "<<m_inputImageIntensityMin<<std::endl;
+  std::cout<<"m_inputImageIntensityMax = "<<m_inputImageIntensityMax<<std::endl;
+#endif
+
 
   long n = m_seeds.size();
 
@@ -881,10 +969,21 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       // assumption: TPixel are of integer types.
 
       double stdDev = m_kernelStddev[ifeature]/m_kernelWidthFactor; // /10 as in Eric's appendix
+
+#ifndef NDEBUG
+      std::cout<<"stdDev of "<<ifeature<<"-th feature = "<<stdDev<<std::endl;
+#endif
+
+
+      //#ifndef NDEBUG
+      std::ofstream df("/tmp/detail.txt");
+      //#endif
+
+
       double var2 = -1.0/(2*stdDev*stdDev);
       double c = 1.0/sqrt(2*(vnl_math::pi))/stdDev;
 
-#pragma omp parallel for
+      //#pragma omp parallel for
       for (TPixel a = m_inputImageIntensityMin; a <= m_inputImageIntensityMax; ++a)
         {
           long ia = static_cast<long>(a - m_inputImageIntensityMin);
@@ -893,17 +992,46 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
           for (long ii = 0; ii < n; ++ii)
             {
               pp += exp(var2*(a - m_featureAtTheSeeds[ii][ifeature])*(a - m_featureAtTheSeeds[ii][ifeature]));
+
             }
-      
+
+     
           pp *= c;
           pp /= n;
+
+
+          //#ifndef NDEBUG
+          //#pragma omp critical
+          {
+            df<<std::scientific<<ifeature<<"\t"<<pp<<std::endl;
+          }
+          //#endif
 
           thisPDF[ia] = pp;
         }
 
 
+      //#ifndef NDEBUG
+  df.close();
+  //#endif
+
       m_PDFlearnedFromSeeds.push_back(thisPDF);
     }
+
+
+
+
+#ifndef NDEBUG
+  std::ofstream pdff("/tmp/pdf.txt");
+  long npdf = m_PDFlearnedFromSeeds[0].size();
+  for (long i = 0; i < npdf; ++i)
+    {
+      pdff<<std::scientific<<m_PDFlearnedFromSeeds[0][i]<<" ";
+    }
+  pdff<<std::endl;
+  pdff.close();
+#endif
+
 
   return;
 }
