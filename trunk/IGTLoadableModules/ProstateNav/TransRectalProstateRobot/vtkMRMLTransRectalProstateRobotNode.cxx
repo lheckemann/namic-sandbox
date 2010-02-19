@@ -208,7 +208,8 @@ std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNa
 {
   bool validTargeting=FindTargetingParams(targetDesc);
 
-  std::ostrstream os;  
+  std::ostrstream os;    
+  os << targetDesc->GetName()<<std::endl;
   if (validTargeting)
   {
     if (targetDesc->GetCalibrationFoRStr().compare(targetDesc->GetTargetingFoRStr())!=0)
@@ -219,13 +220,14 @@ std::string vtkMRMLTransRectalProstateRobotNode::GetTargetInfoText(vtkProstateNa
     {
       os << "Warning: the target is not reachable"<<std::endl;
     }    
+    os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
     os << "Depth: "<<targetDesc->GetDepthCM()<<" cm"<<std::endl;
     os << "Device rotation: "<<targetDesc->GetAxisRotation()<<" deg"<<std::endl;
     os << "Needle angle: "<<targetDesc->GetNeedleAngle()<<" deg"<<std::endl;
   }
-  os << "Needle type:"<<targetDesc->GetNeedleTypeString()<<std::endl;
+  os << "Needle type: "<<targetDesc->GetNeedleTypeString()<<std::endl;
   os << std::setiosflags(ios::fixed | ios::showpoint) << std::setprecision(1);
-  os << "RAS location: "<<targetDesc->GetRASLocationString().c_str()<<std::endl;
+  os << targetDesc->GetRASLocationString().c_str()<<std::endl;
   os << std::ends;
   std::string result=os.str();
   os.rdbuf()->freeze();
