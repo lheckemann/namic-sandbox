@@ -421,7 +421,10 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       if (it > 2 && oldVoxelCount >= this->m_insideVoxelCount)
         {
           std::ofstream f("/tmp/o.txt");
-          f<<"stop grow\n";
+          f<<"In the "<<it<<"-th iteration, stop grow\n";
+          f<<"oldVoxelCount = "<<oldVoxelCount<<std::endl;
+          f<<"m_insideVoxelCount = "<<this->m_insideVoxelCount<<std::endl;
+          f<<"m_kernelWidthFactor = "<<m_kernelWidthFactor<<std::endl;
           f.close();
 
           break;
@@ -818,14 +821,14 @@ void
 CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 ::setKernelWidthFactor(double f)
 {
-  if (f < 0.3)
+  if (f < 0.1)
     {
-      m_kernelWidthFactor = 0.3;
+      m_kernelWidthFactor = 0.1;
     }
 
-  if (f > 30.0)
+  if (f > 20.0)
     {
-      m_kernelWidthFactor = 30.0;
+      m_kernelWidthFactor = 20.0;
     }
 
   m_kernelWidthFactor = f;
@@ -851,7 +854,7 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 //   fil.close();
 
 
-  double f = h*(30.0 - 0.3) + 0.3;
+  double f = h*(20.0 - 0.1) + 0.1;
 
   setKernelWidthFactor(f);
 
