@@ -60,7 +60,7 @@ NearestNeighborInterpolateMeshFunction<TInputMesh>
 template <class TInputMesh>
 void
 NearestNeighborInterpolateMeshFunction<TInputMesh>
-::EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const
+::EvaluateDerivative( const PointType& itkNotUsed(point), DerivativeType & itkNotUsed(derivative) ) const
 {
 }
 
@@ -73,8 +73,6 @@ NearestNeighborInterpolateMeshFunction<TInputMesh>::OutputType
 NearestNeighborInterpolateMeshFunction<TInputMesh>
 ::Evaluate( const PointType& point ) const
 {
-  typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;
-
   const unsigned int numberOfNeighbors = 1;
   InstanceIdentifierVectorType result;
 

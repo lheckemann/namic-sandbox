@@ -47,20 +47,20 @@ protected:
   virtual ~MetricHelper() {}
 
   /**  Get the value for single valued optimizers. */
-  MeasureType GetValue( const TransformParametersType & parameters ) const
+  MeasureType GetValue( const TransformParametersType & itkNotUsed(parameters) ) const
     {
     return 1.0;
     }
 
   /**  Get derivatives for multiple valued optimizers. */
-  void GetDerivative( const TransformParametersType & parameters,
+  void GetDerivative( const TransformParametersType & itkNotUsed(parameters),
                               DerivativeType& derivative ) const
     {
     derivative.Fill( 0.0 );
     }
 
   /**  Get value and derivatives for multiple valued optimizers. */
-  void GetValueAndDerivative( const TransformParametersType & parameters,
+  void GetValueAndDerivative( const TransformParametersType & itkNotUsed(parameters),
                               MeasureType& Value, DerivativeType& derivative ) const
     {
     Value = 1.0;

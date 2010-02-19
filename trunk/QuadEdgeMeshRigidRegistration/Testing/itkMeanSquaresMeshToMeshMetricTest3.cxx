@@ -74,7 +74,7 @@ private:
 
 
 
-int main( int argc, char * argv [] )
+int main( int, char * [] )
 {
   typedef itk::QuadEdgeMesh<float, 3>   MovingMeshType;
   typedef itk::QuadEdgeMesh<float, 3>   FixedMeshType;

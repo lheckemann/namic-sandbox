@@ -80,6 +80,8 @@ public:
 
   virtual void EvaluateDerivative( const PointType& point, DerivativeType & derivative ) const;
 
+  typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;
+
 protected:
   NearestNeighborInterpolateMeshFunction();
   ~NearestNeighborInterpolateMeshFunction();
