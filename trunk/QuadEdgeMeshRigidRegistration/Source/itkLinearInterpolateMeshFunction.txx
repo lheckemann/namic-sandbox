@@ -151,8 +151,7 @@ LinearInterpolateMeshFunction<TInputMesh>
 
   if( !foundTriangle )
     {
-    std::cout<<"can not find a triangle!!"<<std::endl;
-    return itk::NumericTraits< OutputType >::ZeroValue();
+    itkExceptionMacro("Can not find a triangle for point " << point );
     }
 
   PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
