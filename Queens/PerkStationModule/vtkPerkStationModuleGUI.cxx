@@ -587,36 +587,8 @@ vtkPerkStationModuleGUI
    this->SliceOffset = this->GetApplicationGUI()->GetMainSliceGUI( "Red" )
      ->GetLogic()->GetSliceOffset();
    this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
-   
-   
-     // switch visibility of needle guide
-     // Show needle guide only in planning plane +/- 0.5 mm.
-   
-   double entry[ 3 ];
-   double target[ 3 ];
-   this->GetMRMLNode()->GetPlanEntryPoint( entry );
-   this->GetMRMLNode()->GetPlanTargetPoint( target );
-   double minOffset = target[ 2 ];
-   double maxOffset = entry[ 2 ];
-   if ( entry[ 2 ] < target[ 2 ] )
-     {
-     minOffset = entry[ 2 ];
-     maxOffset = target[ 2 ];
-     }
-   
-   if ( ( this->SliceOffset <= ( maxOffset + 0.51 ) )
-        && ( this->SliceOffset >= ( minOffset - 0.51 ) ) )
-     {
-     this->SecondaryMonitor->ShowNeedleGuide( true );
-     this->SecondaryMonitor->ShowDepthPerceptionLines( true );
-     }
-   else
-     {
-     this->SecondaryMonitor->ShowNeedleGuide( false );
-     this->SecondaryMonitor->ShowDepthPerceptionLines( false );
-     }
    }
-  
+   
   
     // If the Wizard Widget changed state.
     

@@ -290,6 +290,7 @@ private:
   double SecMonRotationCenter[ 3 ];
   double SecMonTranslation[ 3 ];
   
+  double SliceOffset; // Axial slice position as displayed by Slicer.
 };
 
 #endif
