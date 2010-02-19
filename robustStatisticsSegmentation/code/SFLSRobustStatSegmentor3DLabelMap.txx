@@ -108,9 +108,9 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
 
 
-#ifndef NDEBUG
-    std::ofstream ff("/tmp/force.txt");
-#endif
+// #ifndef NDEBUG
+//     std::ofstream ff("/tmp/force.txt");
+// #endif
 
 
 #pragma omp parallel
@@ -163,12 +163,12 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
           double a = -kernelEvaluationUsingPDF(f);
 
 
-#ifndef NDEBUG
-#pragma omp critical
-          {
-            ff<<f[0]<<"\t"<<f[1]<<"\t"<<f[2]<<"\t"<<a<<std::endl;
-          }
-#endif
+// #ifndef NDEBUG
+// #pragma omp critical
+//           {
+//             ff<<f[0]<<"\t"<<f[1]<<"\t"<<f[2]<<"\t"<<a<<std::endl;
+//           }
+// #endif
 
 
 
@@ -185,9 +185,9 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       }
     }
 
-#ifndef NDEBUG
-  ff.close();
-#endif
+// #ifndef NDEBUG
+//   ff.close();
+// #endif
 
 
 
@@ -414,9 +414,9 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
    */
   this->initializeSFLS();
 
-#ifndef NDEBUG
-  std::ofstream dbgf("/tmp/dbgo.txt", std::ios_base::app);
-#endif
+// #ifndef NDEBUG
+//   std::ofstream dbgf("/tmp/dbgo.txt", std::ios_base::app);
+// #endif
 
   //douher::saveAsImage2< double >(mp_phi, "initPhi.nrrd");
   for (unsigned int it = 0; it < this->m_numIter; ++it)
@@ -427,12 +427,12 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       //DBG//
 
 
-      #ifndef NDEBUG
-      dbgf<<"In iteration "<<it<<std::endl<<std::flush;
-      dbgf<<"m_insideVoxelCount = "<<this->m_insideVoxelCount<<std::endl;
-      dbgf<<"m_kernelWidthFactor = "<<m_kernelWidthFactor<<std::endl;
-      dbgf<<"m_maxRunningTime = "<<this->m_maxRunningTime<<std::endl;          
-      #endif
+//       #ifndef NDEBUG
+//       dbgf<<"In iteration "<<it<<std::endl<<std::flush;
+//       dbgf<<"m_insideVoxelCount = "<<this->m_insideVoxelCount<<std::endl;
+//       dbgf<<"m_kernelWidthFactor = "<<m_kernelWidthFactor<<std::endl;
+//       dbgf<<"m_maxRunningTime = "<<this->m_maxRunningTime<<std::endl;          
+//       #endif
 
 
 
@@ -513,9 +513,9 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
     }
 
-#ifndef NDEBUG
-  dbgf.close();
-#endif
+// #ifndef NDEBUG
+//   dbgf.close();
+// #endif
 
 
   return;
@@ -743,9 +743,9 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
 
 
-#ifndef NDEBUG
-  std::ofstream intensityAtSeeds("/tmp/intenSeeds.txt");
-#endif
+// #ifndef NDEBUG
+//   std::ofstream intensityAtSeeds("/tmp/intenSeeds.txt");
+// #endif
 
 
   for (long i = 0; i < n; ++i)
@@ -768,38 +768,15 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       m_featureAtTheSeeds.push_back(featureHere);
 
 
-#ifndef NDEBUG
-      //intensityAtSeeds<<"inensity at ( "<<ix<<", "<<iy<<", "<<iz<<") is "<<this->mp_img->GetPixel(idx)<<std::endl;
-      intensityAtSeeds<<this->mp_img->GetPixel(idx)<<std::endl;
-#endif
-      
-
-
-//       for (long iiz = iz - az; iiz <= iz + az; ++iiz)
-//         {
-//           for (long iiy = iy - ay; iiy <= iy + ay; ++iiy)
-//             {
-//               for (long iix = ix - ax; iix <= ix + ax; ++iix)
-//                 {
-//                   if (0 <= iix && iix < this->m_nx    \
-//                       && 0 <= iiy && iiy < this->m_ny    \
-//                       && 0 <= iiz && iiz < this->m_nz)
-//                     {
-//                       TIndex idx = {{iix, iiy, iiz}};
-                      
-//                       std::vector<double> featureHere(m_numberOfFeature);
-//                       computeFeatureAt(idx, featureHere);
-
-//                       m_featureAtTheSeeds.push_back(featureHere);
-//                     }
-//                 }
-//             }
-//         }
+// #ifndef NDEBUG
+//       //intensityAtSeeds<<"inensity at ( "<<ix<<", "<<iy<<", "<<iz<<") is "<<this->mp_img->GetPixel(idx)<<std::endl;
+//       intensityAtSeeds<<this->mp_img->GetPixel(idx)<<std::endl;
+// #endif
     }
 
-#ifndef NDEBUG
-  intensityAtSeeds.close();
-#endif
+// #ifndef NDEBUG
+//   intensityAtSeeds.close();
+// #endif
 
   return;
 }
@@ -832,13 +809,13 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       m_kernelStddev[i] = sqrt(m_kernelStddev[i]);
     }
 
-#ifndef NDEBUG
-  std::ofstream dbgf("/tmp/dbgo.txt", std::ios_base::app);
-  for (long i = 0; i < m_numberOfFeature; ++i)
-    {
-      dbgf<<"Feature "<<i<<" has var = "<<m_kernelStddev[i]<<std::endl;
-    }
-#endif
+// #ifndef NDEBUG
+//   std::ofstream dbgf("/tmp/dbgo.txt", std::ios_base::app);
+//   for (long i = 0; i < m_numberOfFeature; ++i)
+//     {
+//       dbgf<<"Feature "<<i<<" has var = "<<m_kernelStddev[i]<<std::endl;
+//     }
+// #endif
 
   return;
 }
@@ -954,10 +931,10 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
   
   computeMinMax(); // so we have the range of all pdfs
 
-#ifndef NDEBUG
-  std::cout<<"m_inputImageIntensityMin = "<<m_inputImageIntensityMin<<std::endl;
-  std::cout<<"m_inputImageIntensityMax = "<<m_inputImageIntensityMax<<std::endl;
-#endif
+// #ifndef NDEBUG
+//   std::cout<<"m_inputImageIntensityMin = "<<m_inputImageIntensityMin<<std::endl;
+//   std::cout<<"m_inputImageIntensityMax = "<<m_inputImageIntensityMax<<std::endl;
+// #endif
 
 
   long n = m_seeds.size();
@@ -970,14 +947,14 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
       double stdDev = m_kernelStddev[ifeature]/m_kernelWidthFactor; // /10 as in Eric's appendix
 
-#ifndef NDEBUG
-      std::cout<<"stdDev of "<<ifeature<<"-th feature = "<<stdDev<<std::endl;
-#endif
+// #ifndef NDEBUG
+//       std::cout<<"stdDev of "<<ifeature<<"-th feature = "<<stdDev<<std::endl;
+// #endif
 
 
-      //#ifndef NDEBUG
-      std::ofstream df("/tmp/detail.txt");
-      //#endif
+//       //#ifndef NDEBUG
+//       std::ofstream df("/tmp/detail.txt");
+//       //#endif
 
 
       double var2 = -1.0/(2*stdDev*stdDev);
@@ -1000,20 +977,20 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
           pp /= n;
 
 
-          //#ifndef NDEBUG
-          //#pragma omp critical
-          {
-            df<<std::scientific<<ifeature<<"\t"<<pp<<std::endl;
-          }
-          //#endif
+//           //#ifndef NDEBUG
+//           //#pragma omp critical
+//           {
+//             df<<std::scientific<<ifeature<<"\t"<<pp<<std::endl;
+//           }
+//           //#endif
 
           thisPDF[ia] = pp;
         }
 
 
-      //#ifndef NDEBUG
-  df.close();
-  //#endif
+//       //#ifndef NDEBUG
+//   df.close();
+//   //#endif
 
       m_PDFlearnedFromSeeds.push_back(thisPDF);
     }
@@ -1021,16 +998,16 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
 
 
-#ifndef NDEBUG
-  std::ofstream pdff("/tmp/pdf.txt");
-  long npdf = m_PDFlearnedFromSeeds[0].size();
-  for (long i = 0; i < npdf; ++i)
-    {
-      pdff<<std::scientific<<m_PDFlearnedFromSeeds[0][i]<<" ";
-    }
-  pdff<<std::endl;
-  pdff.close();
-#endif
+// #ifndef NDEBUG
+//   std::ofstream pdff("/tmp/pdf.txt");
+//   long npdf = m_PDFlearnedFromSeeds[0].size();
+//   for (long i = 0; i < npdf; ++i)
+//     {
+//       pdff<<std::scientific<<m_PDFlearnedFromSeeds[0][i]<<" ";
+//     }
+//   pdff<<std::endl;
+//   pdff.close();
+// #endif
 
 
   return;
