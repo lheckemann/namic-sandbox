@@ -309,12 +309,24 @@ void vtkProstateNavTargetingStep::ShowTargetListFrame()
       this->TargetList->GetWidget()->AddColumn(COL_LABELS[col]);
       this->TargetList->GetWidget()->SetColumnWidth(col, COL_WIDTHS[col]);
       this->TargetList->GetWidget()->SetColumnAlignmentToLeft(col);
-      //this->TargetList->GetWidget()->ColumnEditableOff(col);
+      this->TargetList->GetWidget()->ColumnEditableOff(col);
+      }
+
+    // Set editing options
+
+    this->TargetList->GetWidget()->ColumnEditableOn(COL_NAME);
+    this->TargetList->GetWidget()->SetColumnEditWindowToEntry(COL_NAME);
+
+    for (int col = COL_X; col <= COL_Z; col ++)
+      {
       this->TargetList->GetWidget()->ColumnEditableOn(col);
       this->TargetList->GetWidget()->SetColumnEditWindowToSpinBox(col);
       }
-
-    this->TargetList->GetWidget()->SetColumnEditWindowToCheckButton(0);
+    for (int col = COL_OR_W; col <= COL_OR_Z; col ++)
+      {
+      this->TargetList->GetWidget()->ColumnEditableOn(col);
+      this->TargetList->GetWidget()->SetColumnEditWindowToSpinBox(col);
+      }
 
     }
   this->Script( "pack %s -side top -anchor nw -expand n -padx 2 -pady 2",
