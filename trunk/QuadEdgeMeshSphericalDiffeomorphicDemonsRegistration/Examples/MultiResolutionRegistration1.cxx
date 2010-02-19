@@ -201,7 +201,7 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 100 );
+  optimizer->SetNumberOfIterations( 1 ); // FIXME it was 100
 
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
@@ -276,14 +276,18 @@ int main( int argc, char * argv [] )
   vectorMesh->SetPointData( vectors );
 
   PointDataContainer::Iterator  vitr = vectors->Begin();
-  PointSetType::PointsContainer::ConstIterator  dstitr = dstPoints->Begin();
-  FixedMeshType::PointsContainer::ConstIterator srcitr = srcPoints->Begin();
 
-  while( srcitr != srcPoints->End() )
+  PointSetType::PointsContainer::ConstIterator  dstItr = dstPoints->Begin();
+
+  FixedMeshType::PointsContainer::ConstIterator srcItr = srcPoints->Begin();
+  FixedMeshType::PointsContainer::ConstIterator srcEnd = srcPoints->End();
+
+
+  while( srcItr != srcEnd )
     {
-    vitr.Value() = dstitr.Value() - srcitr.Value();
-    ++srcitr;
-    ++dstitr;
+    vitr.Value() = dstItr.Value() - srcItr.Value();
+    ++srcItr;
+    ++dstItr;
     ++vitr;
     }
 
@@ -317,7 +321,7 @@ int main( int argc, char * argv [] )
   const double sigmaX = 1.0;
   const double lambda = 1.0;
   const unsigned int maximumNumberOfSmoothingIterations = 2;
-  const unsigned int maximumNumberOfIterations = 30;
+  const unsigned int maximumNumberOfIterations = 1; // FIXME it was 30
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
@@ -426,7 +430,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   while( upsampledPointsItr != upsampledPointsEnd )
     {
-    fixedPoint2Itr.Value() = upsampledPointsItr.Value();
+    // Point in the QuadEdgeMesh must also keep their pointer to Edge
+    fixedPoint2Itr.Value().SetPoint( upsampledPointsItr.Value() );
     ++fixedPoint2Itr;
     ++upsampledPointsItr;
     }
@@ -575,7 +580,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   while( upsampledPointsItr != upsampledPointsEnd )
     {
-    fixedPoint3Itr.Value() = upsampledPointsItr.Value();
+    fixedPoint3Itr.Value().SetPoint( upsampledPointsItr.Value() );
     ++fixedPoint3Itr;
     ++upsampledPointsItr;
     }
@@ -724,7 +729,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   while( upsampledPointsItr != upsampledPointsEnd )
     {
-    fixedPoint4Itr.Value() = upsampledPointsItr.Value();
+    fixedPoint4Itr.Value().SetPoint( upsampledPointsItr.Value() );
     ++fixedPoint4Itr;
     ++upsampledPointsItr;
     }
@@ -873,7 +878,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   while( upsampledPointsItr != upsampledPointsEnd )
     {
-    fixedPoint5Itr.Value() = upsampledPointsItr.Value();
+    fixedPoint5Itr.Value().SetPoint( upsampledPointsItr.Value() );
     ++fixedPoint5Itr;
     ++upsampledPointsItr;
     }
