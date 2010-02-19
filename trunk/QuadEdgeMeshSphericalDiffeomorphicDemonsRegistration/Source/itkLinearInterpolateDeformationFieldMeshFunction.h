@@ -85,6 +85,10 @@ public:
   virtual bool Evaluate( const DestinationPointsContainerType * field, 
     const PointType & point, PointType & outputPoint ) const;
 
+  /** Provide empty implementation of virtual method from the base class. 
+      This method is not expected to be used by this current class. */
+  virtual OutputType Evaluate( const PointType& point ) const;
+
 protected:
   LinearInterpolateDeformationFieldMeshFunction();
   ~LinearInterpolateDeformationFieldMeshFunction();

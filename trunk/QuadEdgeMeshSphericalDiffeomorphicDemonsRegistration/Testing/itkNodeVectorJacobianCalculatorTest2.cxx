@@ -77,7 +77,7 @@ static void mapSphericalCoordinatesVectorFunctionJacobian(float inPhi, float inT
 //Really simple example: each component is a sinusoid mapping between
 //0 and 1 as a function of theta, constant in phi
 static void
-mapSphericalCoordinatesVectorFunction(float inPhi, float inTheta, FixedVectorType &result) 
+mapSphericalCoordinatesVectorFunction(float itkNotUsed(inPhi), float inTheta, FixedVectorType &result) 
 {
   //Really simple sinusoidal vector function 
   result[0]= vcl_sin(inTheta);
@@ -128,7 +128,7 @@ mapSphericalCoordinatesVectorFunctionJacobian(float inPhi, float inTheta,
   return; 
 }
                                     
-int main( int argc, char *argv[] )
+int main( int, char * [] )
 {
    //const double piOver4 = atan( 1.0 );
    //const double pi = piOver4 * 4.0;

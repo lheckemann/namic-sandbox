@@ -36,7 +36,7 @@
 //fixed vertex positions transformed to to moving mesh, 2) estimating 
 //gradients at fixed faces from vertex values, and 3) averaging
 //gradient values at each fixed vertex based on incident faces.  
-int main( int argc, char *argv[] )
+int main( int, char * [] )
 {
 
   const unsigned int Dimension = 3;

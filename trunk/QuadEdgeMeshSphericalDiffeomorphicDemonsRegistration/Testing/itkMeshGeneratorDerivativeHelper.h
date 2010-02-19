@@ -29,7 +29,7 @@ mapSphericalCoordinatesFunctionGradient(float inPhi, float inTheta, bool printFl
 
 //Really simple example: a sinusoid mapping between 0 and 1 as a function of theta, constant in phi
 static float 
-mapSphericalCoordinatesFunction(float inPhi, float inTheta) 
+mapSphericalCoordinatesFunction(float itkNotUsed(inPhi), float inTheta) 
 {
   float result; 
 
