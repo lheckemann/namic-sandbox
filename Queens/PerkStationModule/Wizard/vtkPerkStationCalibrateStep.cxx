@@ -694,10 +694,10 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
   
   // translate components
   this->ShowTranslateComponents();
-
+  
   // rotate components
   this->ShowRotateComponents();
-
+  
   // save calibration controls if needed
   this->ShowSaveControls();
   
@@ -1545,10 +1545,11 @@ void vtkPerkStationCalibrateStep::ShowTranslateComponents()
         this->TranslateFrame->SetParent(parent);
         this->TranslateFrame->Create();
         this->TranslateFrame->SetLabelText("Translate");
-        this->TranslateFrame->SetBalloonHelpString("Use arrow keys to translate and align image with phatom/patient");
+        this->TranslateFrame->SetBalloonHelpString(
+          "Use arrow keys to translate and align image with phatom/patient");
         }
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->TranslateFrame->GetWidgetName());
+      // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+      //               this->TranslateFrame->GetWidgetName());
       if(!this->TransMessage)
         {
         this->TransMessage = vtkKWText::New();
@@ -1557,7 +1558,11 @@ void vtkPerkStationCalibrateStep::ShowTranslateComponents()
         {
         this->TransMessage->SetParent(this->TranslateFrame->GetFrame());
         this->TransMessage->Create();
-        this->TransMessage->SetText("First make sure that the secondary monitor image window has 'focus'. You can click in that window to get focus. Use arrow keys on the keyboard to move/translate image. Use corresponding numeric keypad with NumLock 'On' for finer movement");      
+        this->TransMessage->SetText(
+          "First make sure that the secondary monitor image window has 'focus'."
+          " You can click in that window to get focus. Use arrow keys on the "
+          "keyboard to move/translate image. Use corresponding numeric keypad "
+          "with NumLock 'On' for finer movement" );      
         this->TransMessage->SetBackgroundColor(0.7, 0.7, 0.95);
         this->TransMessage->SetHeight(6);
         this->TransMessage->SetWrapToWord();
@@ -1568,8 +1573,8 @@ void vtkPerkStationCalibrateStep::ShowTranslateComponents()
             "Allows you align image fiducials and physical fiducials "
             "as seen through mirror ");
         }
-        this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", 
-                    this->TransMessage->GetWidgetName());
+        // this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", 
+        //            this->TransMessage->GetWidgetName());
       }
       break;
     } 
@@ -1806,10 +1811,11 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
         this->RotateFrame->SetParent(parent);
         this->RotateFrame->Create();
         this->RotateFrame->SetLabelText("Rotate");
-        this->RotateFrame->SetBalloonHelpString("Perform fine rotational alignment of image and phantom/patient");
+        this->RotateFrame->SetBalloonHelpString(
+          "Perform fine rotational alignment of image and phantom/patient");
         }
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->RotateFrame->GetWidgetName());
+      // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+      //               this->RotateFrame->GetWidgetName());
 
       // center of rotation   
       if (!this->CORFrame)
@@ -1822,8 +1828,8 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
         this->CORFrame->Create();
         }
 
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->CORFrame->GetWidgetName());
+      // this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+      //                   this->CORFrame->GetWidgetName());
 
 
       // label
@@ -1839,8 +1845,8 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
         this->CORLabel->SetBackgroundColor(0.7, 0.7, 0.7);
         }
             
-      this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->CORLabel->GetWidgetName());
+      // this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+      //                   this->CORLabel->GetWidgetName());
             
 
       if (!this->COR)
@@ -1865,8 +1871,8 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
             }
         }
         
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->COR->GetWidgetName());
+      //this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+      //                  this->COR->GetWidgetName());
       if(!this->RotMessage)
         {
         this->RotMessage = vtkKWText::New();
@@ -1886,8 +1892,8 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
             "Allows you align image fiducials and physical fiducials "
             "as seen through mirror ");
         }
-        this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", 
-                    this->RotMessage->GetWidgetName());
+      //this->Script("pack %s -side top -anchor nw -expand n -fill x -padx 2 -pady 6", 
+      //              this->RotMessage->GetWidgetName());
       }
       break;
     } 
