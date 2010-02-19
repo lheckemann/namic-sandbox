@@ -526,20 +526,23 @@ void vtkProstateNavStepVerification::OnMultiColumnListSelectionChanged()
 //----------------------------------------------------------------------------
 void vtkProstateNavStepVerification::UpdateTargetListGUI()
 {
+  if (this->TargetList==NULL || this->TargetList->GetWidget()==NULL)
+    {
+    // no widget, nothing to update
+    return;
+    }
+
   vtkMRMLFiducialListNode* activeFiducialListNode=NULL;
   if (this->GetProstateNavManager()!=NULL)
     {
     activeFiducialListNode=this->GetProstateNavManager()->GetTargetPlanListNode();
     }
 
-  if (activeFiducialListNode == NULL)    //clear out the list box
+  if (activeFiducialListNode == NULL)    //clear out the list box if no target list is available
     {
-    if (this->TargetList)
+    if (this->TargetList->GetWidget()->GetNumberOfRows() != 0)
       {
-      if (this->TargetList->GetWidget()->GetNumberOfRows() != 0)
-        {
-        this->TargetList->GetWidget()->DeleteAllRows();
-        }
+      this->TargetList->GetWidget()->DeleteAllRows();
       }
     return;
     }
@@ -549,24 +552,20 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
 
   vtkMRMLProstateNavManagerNode *manager = this->GetGUI()->GetProstateNavManager();
   if (!manager)
-  {
+    {
     return;
-  }
+    }
 
   //int numPoints = activeFiducialListNode->GetNumberOfFiducials();
   int numPoints = manager->GetTotalNumberOfTargets();
 
-  bool deleteFlag = true;
-
+  bool recreateRows = false;
   if (numPoints != this->TargetList->GetWidget()->GetNumberOfRows())
     {
     // clear out the multi column list box and fill it in with the
     // new list
     this->TargetList->GetWidget()->DeleteAllRows();
-    }
-  else
-    {
-    deleteFlag = false;
+    recreateRows = true;
     }
         
   double *xyz;
@@ -578,7 +577,7 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
 
     vtkKWMultiColumnList* columnList = this->TargetList->GetWidget();
 
-    if (deleteFlag)
+    if (recreateRows)
       {
       // add a row for this point
       columnList->AddRow();
@@ -602,7 +601,7 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
       {
       for (int i = 0; i < 3; i ++) // for position (x, y, z)
         {
-        if (deleteFlag || columnList->GetCellTextAsDouble(row,COL_X+i) != xyz[i])
+        if (recreateRows || columnList->GetCellTextAsDouble(row,COL_X+i) != xyz[i])
           {
           columnList->SetCellTextAsDouble(row,COL_X+i,xyz[i]);
           }
@@ -616,19 +615,19 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
 
     if (target->GetTargetValidated())
       {
-      if (deleteFlag || columnList->GetCellTextAsDouble(row,COL_OVERALL_ERROR) != target->GetOverallError())
+      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_OVERALL_ERROR) != target->GetOverallError())
         {
         columnList->SetCellTextAsDouble(row,COL_OVERALL_ERROR,target->GetOverallError());
         }
-      if (deleteFlag || columnList->GetCellTextAsDouble(row,COL_LR_ERROR) != target->GetLRError())
+      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_LR_ERROR) != target->GetLRError())
         {
         columnList->SetCellTextAsDouble(row,COL_LR_ERROR,target->GetLRError());
         }
-      if (deleteFlag || columnList->GetCellTextAsDouble(row,COL_AP_ERROR) != target->GetAPError())
+      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_AP_ERROR) != target->GetAPError())
         {
         columnList->SetCellTextAsDouble(row,COL_AP_ERROR,target->GetAPError());
         }
-      if (deleteFlag || columnList->GetCellTextAsDouble(row,COL_IS_ERROR) != target->GetISError())
+      if (recreateRows || columnList->GetCellTextAsDouble(row,COL_IS_ERROR) != target->GetISError())
         {
         columnList->SetCellTextAsDouble(row,COL_IS_ERROR,target->GetISError());
         }
@@ -636,19 +635,19 @@ void vtkProstateNavStepVerification::UpdateTargetListGUI()
     else
       {
         std::string emptyString;
-        if (deleteFlag || emptyString.compare(columnList->GetCellText(row,COL_OVERALL_ERROR))!=0)
+        if (recreateRows || emptyString.compare(columnList->GetCellText(row,COL_OVERALL_ERROR))!=0)
           {
           columnList->SetCellText(row,COL_OVERALL_ERROR,emptyString.c_str());
           }
-        if (deleteFlag || emptyString.compare(columnList->GetCellText(row,COL_LR_ERROR))!=0)
+        if (recreateRows || emptyString.compare(columnList->GetCellText(row,COL_LR_ERROR))!=0)
           {
           columnList->SetCellText(row,COL_LR_ERROR,emptyString.c_str());
           }
-        if (deleteFlag || emptyString.compare(columnList->GetCellText(row,COL_AP_ERROR))!=0)
+        if (recreateRows || emptyString.compare(columnList->GetCellText(row,COL_AP_ERROR))!=0)
           {
           columnList->SetCellText(row,COL_AP_ERROR,emptyString.c_str());
           }
-        if (deleteFlag || emptyString.compare(columnList->GetCellText(row,COL_IS_ERROR))!=0)
+        if (recreateRows || emptyString.compare(columnList->GetCellText(row,COL_IS_ERROR))!=0)
           {
           columnList->SetCellText(row,COL_IS_ERROR,emptyString.c_str());
           }
@@ -775,6 +774,11 @@ void vtkProstateNavStepVerification::StartVerification()
     vtkErrorMacro("Manager is invalid");
     return;
   }      
+  if (this->VerificationPointListNode==NULL)
+  {
+    vtkErrorMacro("VerificationPointListNode is invalid");
+    return;
+  }      
 
   this->TargetIndexUnderVerification=-1; // updates may be called while modifying MRML nodes, make sure that no verification is attempted
 
@@ -833,6 +837,8 @@ void vtkProstateNavStepVerification::UpdateVerificationResultsForCurrentTarget()
   if (this->TargetIndexUnderVerification<0)
   {
     // no current target under verification
+    this->VerificationPointListNode->RemoveAllFiducials();
+    StopVerification();
     return;
   }
   if (this->GetProstateNavManager()==NULL)
