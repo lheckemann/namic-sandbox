@@ -119,10 +119,6 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavLogic : public vtkSlicerModuleLogic
   // Helper method for loading a volume via the Volume module.
   vtkMRMLScalarVolumeNode *AddArchetypeVolume(const char* fileName, const char *volumeName);  
 
-  // Description:
-  // Set window/level computation, forcing the volume type to scalar (not statistical)
-  void SetAutoScaleScalarVolume(vtkMRMLScalarVolumeNode *volumeNode);
-
   void UpdateAll();
 
   vtkProstateNavLogic();

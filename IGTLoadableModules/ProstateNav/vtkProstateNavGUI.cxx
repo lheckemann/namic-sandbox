@@ -90,6 +90,8 @@
 #include "vtkMRMLTransPerinealProstateRobotNode.h"
 #include "vtkMRMLTransPerinealProstateTemplateNode.h"
 #include "vtkSlicerSecondaryViewerWindow.h"
+#include "vtkSlicerViewerWidget.h"
+#include "vtkMRMLViewNode.h"
 
 #include <vector>
 
@@ -736,6 +738,11 @@ void vtkProstateNavGUI::Enter()
   {
     this->SecondaryWindow->SetApplication(this->GetApplication());
     this->SecondaryWindow->Create();
+    vtkSlicerViewerWidget* viewerWidget=this->SecondaryWindow->GetViewerWidget();
+    if (viewerWidget!=NULL && viewerWidget->GetViewNode()!=NULL)
+    {
+      viewerWidget->GetViewNode()->SetRenderMode(vtkMRMLViewNode::Orthographic);
+    }
   }
   this->SecondaryWindow->DisplayOnSecondaryMonitor();
 
@@ -1069,7 +1076,7 @@ int vtkProstateNavGUI::ChangeWorkphase(int phase, int fChangeWizard)
     vtkProstateNavStep* step=vtkProstateNavStep::SafeDownCast(wizard->GetCurrentStep());
     if (step)
       {
-      step->ShowUserInterface();
+      //step->ShowUserInterface(); ShowUserInterface is triggered by state Enter event
       step->UpdateGUI();
       }
    

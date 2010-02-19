@@ -487,9 +487,10 @@ void vtkProstateNavFiducialCalibrationStep::ShowUserInterface()
     }
     if (this->CalibrationPointListNode->GetNumberOfFiducials()>=CALIB_MARKER_COUNT)
     {
-      Resegment();
+      //Resegment(); no need to resegment, as the node modified event will trigger UpdateCalibration();
     }
   }
+  EnableMarkerPositionEdit(this->EditMarkerPositionButton->GetSelectedState() == 1);
 
   AddGUIObservers();
   AddMRMLObservers();
