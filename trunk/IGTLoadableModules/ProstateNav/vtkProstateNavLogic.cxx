@@ -308,7 +308,6 @@ vtkMRMLScalarVolumeNode *vtkProstateNavLogic::AddVolumeToScene(const char *fileN
     return NULL;
   }
 
-  this->SetAutoScaleScalarVolume(volumeNode);
   this->SetSliceViewFromVolume(volumeNode);
 
   switch (volumeType)
@@ -348,7 +347,6 @@ int vtkProstateNavLogic::SelectVolumeInScene(vtkMRMLScalarVolumeNode* volumeNode
     return 0;
   }
 
-  this->SetAutoScaleScalarVolume(volumeNode);
   this->SetSliceViewFromVolume(volumeNode);
 
   this->GetGUI()->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID( volumeNode->GetID() );
@@ -449,35 +447,6 @@ std::string vtkProstateNavLogic::GetFoRStrFromVolumeNodeID(const char* volNodeID
   tagValue.clear(); itk::ExposeMetaData<std::string>( volDictionary, "0020|0052", tagValue );
   
   return tagValue;
-}
-
-// Perform AutoWindowLevel computation with CalculateScalarAutoLevels
-// Need to do it manually, because automatic implementation in vtkMRMLScalarVolumeNode::UpdateFromMRML()
-// assumes that it is a stats volume if name contains 'stat'.
-// The name could easily contain 'stat' as we are dealing with 'prostate' images.
-void vtkProstateNavLogic::SetAutoScaleScalarVolume(vtkMRMLScalarVolumeNode *volumeNode)
-{
-  if (volumeNode==0)
-  {
-    vtkErrorMacro("Invalid volumeNode in SetAutoScaleScalarVolume");
-    return;
-  }
-  vtkMRMLScalarVolumeDisplayNode *displayNode=volumeNode->GetScalarVolumeDisplayNode();
-  if (displayNode==0)
-  {
-    vtkErrorMacro("Invalid displayNode in SetAutoScaleScalarVolume");
-    return;
-  }
-  int modifyOld=displayNode->StartModify(); 
-  displayNode->SetAutoWindowLevel(true);
-  displayNode->SetAutoThreshold(false);
-  displayNode->SetApplyThreshold(false);
-  volumeNode->CalculateScalarAutoLevels(NULL,NULL);
-  displayNode->SetAutoWindowLevel(false);
-  displayNode->SetAutoThreshold(false);
-  displayNode->SetApplyThreshold(false);
-  displayNode->Modified();
-  displayNode->EndModify(modifyOld); 
 }
 
 // Recreate, update coverage volume
