@@ -27,6 +27,9 @@
 #include "vtkProperty.h"
 #include "vtkPropCollection.h"
 
+#include <sstream>
+
+
 //----------------------------------------------------------------------------
 vtkPerkStationSecondaryMonitor* vtkPerkStationSecondaryMonitor::New()
 {
@@ -671,6 +674,47 @@ void vtkPerkStationSecondaryMonitor::UpdateMatrices()
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
 {
+  
+    // Visual guides.
+  
+     // switch visibility of needle guide
+     // Show needle guide only in planning plane +/- 0.5 mm.
+   
+   double entry[ 3 ];
+   double target[ 3 ];
+   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
+   this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( target );
+   double minOffset = target[ 2 ] - 0.5;
+   double maxOffset = entry[ 2 ] + 0.5;
+   if ( entry[ 2 ] < target[ 2 ] )
+     {
+     minOffset = entry[ 2 ] - 0.5;
+     maxOffset = target[ 2 ] + 0.5;
+     }
+   
+   if (
+        ( this->SliceOffset <= maxOffset )
+        && ( this->SliceOffset >= minOffset )
+        && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 )
+      )
+     {
+     this->ShowNeedleGuide( true );
+     this->ShowDepthPerceptionLines( true );
+     }
+   else
+     {
+     this->ShowNeedleGuide( false );
+     this->ShowDepthPerceptionLines( false );
+     }
+   
+  
+  /*
+  std::stringstream ss;
+  ss << this->SliceOffset << " in? " << minOffset << ", " << maxOffset;
+  PERKLOG_DEBUG( ss.str().c_str() );
+  */
+  
+  
   if(this->DisplayInitialized)
     {
     this->MapToWindowLevelColors->SetWindow(this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow());
@@ -685,20 +729,15 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
         this->RenderWindow->Render();  
         }
     }
-
-  /*vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0()->GetLogic();
-  vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
-
-  vtkMatrix4x4 *xyslice = sliceNode->GetXYToSlice();
-  vtkMatrix4x4 *sliceRas = sliceNode->GetSliceToRAS();
-  vtkMatrix4x4 *xyRas = sliceNode->GetXYToRAS();
-  */
   
-    
 }
+
+
 //---------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(double rasOffset)
 {
+  this->SliceOffset = rasOffset;
+  
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if (!mrmlNode)
     {
@@ -850,40 +889,11 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(double rasOffs
  resliceMatrix->Delete();
 
 
-  this->UpdateImageDisplay();
+ this->UpdateImageDisplay();
 
-
-
-
-
-
-
-  /*
-  vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red")->GetLogic();
-  vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
-
-  vtkMatrix4x4 *sliceRas = sliceNode->GetSliceToRAS();
-
-  vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
-  this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
-
-  vtkMatrix4x4 *rasToIJK = vtkMatrix4x4::New();
-  vtkMatrix4x4::Invert(ijkToRAS, rasToIJK);
-
-  double inPt[4] = {0, 0, sliceRas->GetElement(2,3), 1};
-  double outPt[4];
-  rasToIJK->MultiplyPoint(inPt, outPt);
-
-  
-  this->ResliceTransform->GetMatrix()->SetElement(2,3, outPt[2]);
-  this->XYToIJK->SetElement(2,3, outPt[2]);
-  this->XYToRAS->SetElement(2,3, sliceRas->GetElement(2,3));
-
-  this->UpdateImageDisplay();
-
-  */
 
 }
+
 //----------------------------------------------------------------------------
 BOOL CALLBACK MyInfoEnumProc(HMONITOR hMonitor, HDC hdc, LPRECT prc, LPARAM dwData) 
 {
@@ -2001,6 +2011,12 @@ vtkPerkStationSecondaryMonitor
         this->DepthPerceptionLines->GetItemAsObject( i ) );
       actor->SetVisibility( 1 );
       }
+    for( int i = 0; i < this->TextActorsCollection->GetNumberOfItems(); ++ i )
+      {
+      vtkTextActorFlippable* actor = vtkTextActorFlippable::SafeDownCast(
+        this->TextActorsCollection->GetItemAsObject( i ) );
+      actor->SetVisibility( 1 );
+      }
     }
   else
     {
@@ -2008,6 +2024,12 @@ vtkPerkStationSecondaryMonitor
       {
       vtkActor* actor = vtkActor::SafeDownCast(
         this->DepthPerceptionLines->GetItemAsObject( i ) );
+      actor->SetVisibility( 0 );
+      }
+    for( int i = 0; i < this->TextActorsCollection->GetNumberOfItems(); ++ i )
+      {
+      vtkTextActorFlippable* actor = vtkTextActorFlippable::SafeDownCast(
+        this->TextActorsCollection->GetItemAsObject( i ) );
       actor->SetVisibility( 0 );
       }
     }
