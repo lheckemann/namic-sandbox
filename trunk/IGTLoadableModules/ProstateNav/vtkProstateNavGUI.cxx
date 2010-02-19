@@ -89,6 +89,7 @@
 #include "vtkMRMLTransRectalProstateRobotNode.h"
 #include "vtkMRMLTransPerinealProstateRobotNode.h"
 #include "vtkMRMLTransPerinealProstateTemplateNode.h"
+#include "vtkSlicerSecondaryViewerWindow.h"
 
 #include <vector>
 
@@ -139,6 +140,8 @@ vtkProstateNavGUI::vtkProstateNavGUI ( )
 
   this->DisplayedWorkflowSteps=vtkStringArray::New();
 
+  this->SecondaryWindow=NULL;
+
   this->Entered = 0;
 
 }
@@ -154,6 +157,13 @@ vtkProstateNavGUI::~vtkProstateNavGUI ( )
     {
     this->DataCallbackCommand->Delete();
     }  
+
+  if (this->SecondaryWindow!=NULL)
+  {
+    this->SecondaryWindow->SetApplication(NULL);
+    this->SecondaryWindow->Delete();
+    this->SecondaryWindow=NULL;
+  }
 
   //----------------------------------------------------------------
   // Configuration Frame
@@ -718,6 +728,17 @@ void vtkProstateNavGUI::Enter()
       }
     }
 
+  if (this->SecondaryWindow==NULL)
+  {
+    this->SecondaryWindow=vtkSlicerSecondaryViewerWindow::New();
+  }
+  if (!this->SecondaryWindow->IsCreated())
+  {
+    this->SecondaryWindow->SetApplication(this->GetApplication());
+    this->SecondaryWindow->Create();
+  }
+  this->SecondaryWindow->DisplayOnSecondaryMonitor();
+
   AddMRMLObservers();
 
   // Anything could have been done while using an other module, so update the GUI now
@@ -777,6 +798,11 @@ void vtkProstateNavGUI::BuildGUI ( )
 void vtkProstateNavGUI::TearDownGUI ( )
 {
   // disconnect circular references so destructor can be called
+
+  if (this->SecondaryWindow)
+  {  
+    this->SecondaryWindow->Destroy();
+  }
 
   this->GetLogic()->SetGUI(NULL);
 
@@ -1506,7 +1532,7 @@ void vtkProstateNavGUI::UpdateCurrentTargetDisplay()
   }
 
   int currentTargetInd=manager->GetCurrentTargetIndex();
-  std::string selectedFidID="INVALID";
+  std::string selectedFidID="INVALID";  
   if (currentTargetInd>=0)
   {
     vtkProstateNavTargetDescriptor* targetDesc=manager->GetTargetDescriptorAtIndex(currentTargetInd);
@@ -1541,6 +1567,55 @@ void vtkProstateNavGUI::UpdateCurrentTargetDisplay()
     // StartModify/EndModify discarded vtkMRMLFiducialListNode::FiducialModifiedEvent-s, so we have to resubmit them now
     fidList->InvokeEvent(vtkMRMLFiducialListNode::FiducialModifiedEvent, NULL);
   }  
+
+  UpdateCurrentTargetDisplayInSecondaryWindow();
+}
+
+void vtkProstateNavGUI::UpdateCurrentTargetDisplayInSecondaryWindow()
+{  
+  vtkMRMLProstateNavManagerNode *manager= GetProstateNavManager();
+  if(manager==NULL)
+  {
+    return;
+  }
+
+  if (this->SecondaryWindow==NULL || 
+    this->SecondaryWindow->GetViewerWidget()==NULL ||
+    this->SecondaryWindow->GetViewerWidget()->GetMainViewer()==NULL)
+  {
+    vtkErrorMacro("Secondary window is not available");
+    return;
+  }
+  
+  vtkCornerAnnotation *anno = this->SecondaryWindow->GetViewerWidget()->GetMainViewer()->GetCornerAnnotation();
+  if (anno==NULL)
+  {
+    vtkErrorMacro("Corner annotation is not available");
+    return;
+  }
+
+  static double lsf=10.0;
+  static double nlsf=0.35;
+  anno->SetLinearFontScaleFactor(lsf);
+  anno->SetNonlinearFontScaleFactor(nlsf);
+
+  const int TARGET_CORNER_ID=3;
+  vtkMRMLRobotNode* robot=manager->GetRobotNode();
+  vtkProstateNavTargetDescriptor *targetDesc = manager->GetTargetDescriptorAtIndex(manager->GetCurrentTargetIndex()); 
+  if (robot!=NULL && targetDesc!=NULL)
+  {
+    std::string info=robot->GetTargetInfoText(targetDesc);
+    anno->SetText(TARGET_CORNER_ID,info.c_str());
+  }
+  else
+  {
+    // no target info available for the current robot with the current target    
+    anno->SetText(TARGET_CORNER_ID, "No target");
+  }
+
+  this->SecondaryWindow->GetViewerWidget()->GetMainViewer()->CornerAnnotationVisibilityOn();
+  // update the annotations
+  this->SecondaryWindow->GetViewerWidget()->GetMainViewer()->Render();
 }
 
 void vtkProstateNavGUI::SetProstateNavManager(vtkMRMLProstateNavManagerNode* node)

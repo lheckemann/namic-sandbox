@@ -44,6 +44,7 @@ class vtkKWWizardWidget;
 class vtkSlicerNodeSelectorWidget;
 
 class vtkProstateNavStep;
+class vtkSlicerSecondaryViewerWindow;
 
 class vtkMRMLProstateNavManagerNode;
  
@@ -173,7 +174,9 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // GUI widgets
   //----------------------------------------------------------------
-  
+
+  vtkSlicerSecondaryViewerWindow* SecondaryWindow;
+
   // Configuration Frame
 
   vtkSlicerNodeSelectorWidget* ProstateNavManagerSelectorWidget;
@@ -227,6 +230,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // Description:
   // Display current target fiducial highlighted
   void UpdateCurrentTargetDisplay();
+  void UpdateCurrentTargetDisplayInSecondaryWindow();
 
   int Entered;
 
