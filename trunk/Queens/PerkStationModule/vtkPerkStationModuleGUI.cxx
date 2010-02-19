@@ -589,7 +589,8 @@ vtkPerkStationModuleGUI
    this->SecondaryMonitor->UpdateImageDataOnSliceOffset( this->SliceOffset );
    
    
-     // todo: switch visibility of needle guide
+     // switch visibility of needle guide
+     // Show needle guide only in planning plane +/- 0.5 mm.
    
    double entry[ 3 ];
    double target[ 3 ];
@@ -603,14 +604,16 @@ vtkPerkStationModuleGUI
      maxOffset = target[ 2 ];
      }
    
-   if ( this->SliceOffset <= maxOffset
-        && this->SliceOffset >= minOffset )
+   if ( ( this->SliceOffset <= ( maxOffset + 0.51 ) )
+        && ( this->SliceOffset >= ( minOffset - 0.51 ) ) )
      {
      this->SecondaryMonitor->ShowNeedleGuide( true );
+     this->SecondaryMonitor->ShowDepthPerceptionLines( true );
      }
    else
      {
      this->SecondaryMonitor->ShowNeedleGuide( false );
+     this->SecondaryMonitor->ShowDepthPerceptionLines( false );
      }
    }
   
@@ -1178,8 +1181,8 @@ void vtkPerkStationModuleGUI::BuildGUI()
   // Define your help text and build the help frame here.
   
   std::stringstream helpss;
-  helpss << "**PERK Station Module:** "
-         << "**Revision " << PerkStationModule_REVISION << "**" << std::endl
+  helpss << "**PERK Station Module** " << std::endl
+       //  << "**Revision " << PerkStationModule_REVISION << "**" << std::endl
          << "Use this module to perform image overlay guided percutaneous "
          << "interventions.";
   const char* help = helpss.str().c_str();
