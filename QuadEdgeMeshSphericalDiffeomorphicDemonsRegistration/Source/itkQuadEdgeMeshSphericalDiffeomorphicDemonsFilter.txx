@@ -647,7 +647,7 @@ ComputeScalingAndSquaringNumberOfIterations()
 
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
-  const unsigned int minimumNumberOfIterations = 0; // FIXME: This is critical. It used to be 10
+  const unsigned int minimumNumberOfIterations = 1; // FIXME: This is critical. It used to be 10
 
   if( ratio < 1.0 )
     {

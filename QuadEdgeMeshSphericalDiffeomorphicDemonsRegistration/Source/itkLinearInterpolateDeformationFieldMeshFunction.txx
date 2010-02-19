@@ -56,6 +56,18 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
   this->Superclass::PrintSelf( os, indent );
 }
 
+/**
+ * Method provided for completness of the base class API. 
+ * This method is not expected to be used here.
+ */
+template <class TInputMesh, class TDestinationPointsContainer >
+typename 
+LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsContainer>::OutputType
+LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsContainer>
+::Evaluate( const PointType& itkNotUsed(point) ) const
+{
+  return OutputType();
+}
 
 /**
  * Evaluate the mesh at a given point position.
