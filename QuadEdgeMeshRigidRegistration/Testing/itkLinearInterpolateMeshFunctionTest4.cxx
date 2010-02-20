@@ -194,7 +194,6 @@ int main(int argc, char* argv[] )
 
     versor.Set( axis, angle );
 
-    std::cout << "pt = " << point << "pr = " << perturbationVector << "axis = " << axis << std::endl;
     perturbedPoint.CastFrom( versor.Transform( point ) );
 
     const double distance = perturbedPoint.EuclideanDistanceTo( point );
