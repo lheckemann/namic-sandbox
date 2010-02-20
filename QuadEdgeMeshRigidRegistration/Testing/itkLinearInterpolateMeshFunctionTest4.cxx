@@ -24,6 +24,7 @@
 #include "itkVTKPolyDataReader.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkLinearInterpolateMeshFunction.h"
+#include "itkVersor.h"
 
 #include <iostream>
 
@@ -45,6 +46,8 @@ int main(int argc, char* argv[] )
 
   typedef ReaderType::PointType   PointType;
   typedef PointType::VectorType   VectorType;
+
+  typedef itk::Versor< double >   VersorType;
 
   surfaceReader->SetFileName(argv[1]);
 
@@ -124,6 +127,13 @@ int main(int argc, char* argv[] )
 
   const double sphereRadius = 100.0;
 
+  const double perturbationDistance = sphereRadius * factor;
+
+  const double angle = vcl_atan( factor );
+
+  VersorType versor;
+  PointType perturbedPoint;
+
   PointType center;
 
   center.Fill(0.0);
@@ -137,16 +147,50 @@ int main(int argc, char* argv[] )
     {
     const PointType & point = pointItr.Value();
 
-    PointType perturbedPoint = point;
+    unsigned int minimumComponent = 0;
 
-    perturbedPoint[0] += factor * ( point[1] + point[2] );
-    perturbedPoint[1] += factor * ( point[2] + point[0] );
-    perturbedPoint[2] += factor * ( point[0] + point[1] );
+    if ( point[minimumComponent] > point[1] )
+      {
+      minimumComponent = 1;
+      }
 
-    VectorType radialVector = perturbedPoint - center;
-    radialVector *= sphereRadius / radialVector.GetNorm();
-  
-    perturbedPoint = center + radialVector;
+    if ( point[minimumComponent] > point[2] )
+      {
+      minimumComponent = 2;
+      }
+
+    VectorType perturbationVector;
+    perturbationVector.Fill(0.0);
+
+    perturbationVector[minimumComponent] = 1.0;
+ 
+    VectorType radialVector = point - center;
+
+    VectorType axis = CrossProduct( perturbationVector, radialVector );
+    axis.Normalize();
+
+    versor.Set( axis, angle );
+
+    perturbedPoint.CastFrom( versor.Transform( point ) );
+
+    const double distance = perturbedPoint.EuclideanDistanceTo( point );
+
+    if( distance > perturbationDistance * 2.0 )
+      {
+      std::cerr << "Perturbed point is too far " << std::endl;
+      std::cerr << "original  point = " << point << std::endl;
+      std::cerr << "perturbed point = " << perturbedPoint << std::endl;
+      std::cerr << "distance = " << distance << std::endl;
+      }
+
+    if( distance < perturbationDistance / 2.0 )
+      {
+      std::cerr << "Perturbed point is too close " << std::endl;
+      std::cerr << "original  point = " << point << std::endl;
+      std::cerr << "perturbed point = " << perturbedPoint << std::endl;
+      std::cerr << "distance = " << distance << std::endl;
+      }
+
 
     bool triangleFound = interpolator->FindTriangle( point, pointIds );
 
