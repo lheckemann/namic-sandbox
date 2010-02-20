@@ -172,12 +172,12 @@ int main(int argc, char* argv[] )
 
     unsigned int minimumComponent = 0;
 
-    if ( point[minimumComponent] > point[1] )
+    if ( vnl_math_abs( point[minimumComponent] ) > vnl_math_abs( point[1] ) )
       {
       minimumComponent = 1;
       }
 
-    if ( point[minimumComponent] > point[2] )
+    if ( vnl_math_abs( point[minimumComponent] ) > vnl_math_abs( point[2] ) )
       {
       minimumComponent = 2;
       }
@@ -194,6 +194,7 @@ int main(int argc, char* argv[] )
 
     versor.Set( axis, angle );
 
+    std::cout << "pt = " << point << "pr = " << perturbationVector << "axis = " << axis << std::endl;
     perturbedPoint.CastFrom( versor.Transform( point ) );
 
     const double distance = perturbedPoint.EuclideanDistanceTo( point );
