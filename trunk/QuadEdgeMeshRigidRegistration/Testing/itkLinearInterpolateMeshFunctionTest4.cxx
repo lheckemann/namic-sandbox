@@ -22,6 +22,7 @@
 
 #include "itkQuadEdgeMesh.h"
 #include "itkVTKPolyDataReader.h"
+#include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 #include "itkLinearInterpolateMeshFunction.h"
 #include "itkVersor.h"
@@ -30,15 +31,17 @@
 
 int main(int argc, char* argv[] )
 {
-  if( argc < 2 )
+  if( argc < 3 )
     {
-    std::cerr << "Usage: itkFreeSurferBinarySurfaceReaderTest inputFilename";
+    std::cerr << "Usage: itkLinearInterpolateMeshFunctionTest inputFilename outputDeformationFieldMesh";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
 
-  typedef itk::QuadEdgeMesh<float, 3>         MeshType;
-  typedef itk::VTKPolyDataReader< MeshType >  ReaderType;
+  const unsigned int Dimension = 3;
+
+  typedef itk::QuadEdgeMesh<double, Dimension> MeshType;
+  typedef itk::VTKPolyDataReader< MeshType >   ReaderType;
 
   typedef MeshType::PointsContainer    PointsContainer;
 
@@ -74,7 +77,8 @@ int main(int argc, char* argv[] )
 
   PointsContainer::Pointer  points = mesh->GetPoints();
 
-  InterpolatorType::InstanceIdentifierVectorType  pointIds(3);
+  const unsigned int numberOfVerticesInTriangle = 3;
+  InterpolatorType::InstanceIdentifierVectorType  pointIds(numberOfVerticesInTriangle);
 
   PointsContainer::ElementIdentifier pointId = 0;
 
@@ -122,6 +126,25 @@ int main(int argc, char* argv[] )
   std::cout << std::endl;
 
   std::cout << "Repeating test with perturbation " << std::endl;
+
+  //
+  // Storing the perturbation field in a mesh.
+  //
+  typedef itk::QuadEdgeMeshTraits< VectorType, Dimension, bool, bool > VectorPointSetTraits;
+
+  typedef itk::QuadEdgeMesh< VectorType, Dimension, VectorPointSetTraits > MeshWithVectorsType;
+  MeshWithVectorsType::Pointer vectorMesh = MeshWithVectorsType::New();
+
+  typedef MeshWithVectorsType::PointDataContainer  PointDataContainer;
+  PointDataContainer::Pointer perturbationVectors = PointDataContainer::New();
+
+  perturbationVectors->Reserve( mesh->GetNumberOfPoints() );
+
+  vectorMesh->SetPoints( const_cast< MeshType::PointsContainer *>( points.GetPointer() ) );
+  vectorMesh->SetPointData( perturbationVectors );
+
+  PointDataContainer::Iterator  vectorItr = perturbationVectors->Begin();
+
 
   const double factor = 0.01;
 
@@ -191,6 +214,7 @@ int main(int argc, char* argv[] )
       std::cerr << "distance = " << distance << std::endl;
       }
 
+    vectorItr.Value() = perturbedPoint - point;
 
     bool triangleFound = interpolator->FindTriangle( point, pointIds );
 
@@ -217,7 +241,16 @@ int main(int argc, char* argv[] )
 
     ++pointItr;
     ++pointId;
+    ++vectorItr;
     }
+
+
+  typedef itk::QuadEdgeMeshVectorDataVTKPolyDataWriter< MeshWithVectorsType >  VectorMeshWriterType;
+  VectorMeshWriterType::Pointer vectorMeshWriter = VectorMeshWriterType::New();
+  vectorMeshWriter->SetInput( vectorMesh );
+  vectorMeshWriter->SetFileName( argv[2] );
+  vectorMeshWriter->Update(); 
+
 
   std::cout << "SUCCESS: Checking the perturbed points " << std::endl;
   std::cout << std::endl;

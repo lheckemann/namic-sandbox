@@ -199,31 +199,37 @@ ADD_TEST(itkLinearInterpolateMeshFunctionTest3
 ADD_TEST(itkLinearInterpolateMeshFunctionTest4a
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
   ${TEMP}/IC4.vtk
+  ${TEMP}/perturbationFieldIC4.vtk
   )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest4b
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
   ${TEMP}/IC5.vtk
+  ${TEMP}/perturbationFieldIC5.vtk
   )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest4c
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
   ${TEMP}/IC6.vtk
+  ${TEMP}/perturbationFieldIC6.vtk
   )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest4d
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
   ${TEMP}/IC7.vtk
+  ${TEMP}/perturbationFieldIC7.vtk
   )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest4e
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
   ${TEMP}/IC8.vtk
+  ${TEMP}/perturbationFieldIC8.vtk
   )
 
 ADD_TEST(itkLinearInterpolateMeshFunctionTest4f
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
   ${TEMP}/IC9.vtk
+  ${TEMP}/perturbationFieldIC9.vtk
   )
 
 ADD_TEST(itkNearestNeighborInterpolateMeshFunctionTest1
