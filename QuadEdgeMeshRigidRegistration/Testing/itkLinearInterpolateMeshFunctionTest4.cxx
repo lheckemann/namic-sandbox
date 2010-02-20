@@ -39,10 +39,11 @@ int main(int argc, char* argv[] )
   typedef itk::QuadEdgeMesh<float, 3>         MeshType;
   typedef itk::VTKPolyDataReader< MeshType >  ReaderType;
 
+  typedef MeshType::PointsContainer    PointsContainer;
+
   ReaderType::Pointer  surfaceReader = ReaderType::New();
 
   typedef ReaderType::PointType   PointType;
-  typedef ReaderType::VectorType  VectorType;
 
   surfaceReader->SetFileName(argv[1]);
 
@@ -59,30 +60,6 @@ int main(int argc, char* argv[] )
 
   MeshType::Pointer mesh = surfaceReader->GetOutput();
 
-  std::cout << "Testing itk::FreeSurferBinarySurfaceReader" << std::endl;
-
-  unsigned int numberOfPoints = mesh->GetNumberOfPoints();
-  unsigned int numberOfCells  = mesh->GetNumberOfCells();
-
-  std::cout << "numberOfPoints= " << numberOfPoints << std::endl;
-  std::cout << "numberOfCells= " << numberOfCells << std::endl;
-
-  if( !numberOfPoints )
-    {
-    std::cerr << "ERROR: numberOfPoints= " << numberOfPoints << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  if( !numberOfCells )
-    {
-    std::cerr << "ERROR: numberOfCells= " << numberOfCells << std::endl;
-    return EXIT_FAILURE;
-    }
-
-
-  //
-  //  Exercise the Interpolation
-  //
   typedef itk::LinearInterpolateMeshFunction< MeshType >   InterpolatorType;
 
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
@@ -91,29 +68,37 @@ int main(int argc, char* argv[] )
 
   interpolator->Initialize();
 
-  typedef InterpolatorType::Superclass    InterpolatorSuperclassType;
+  PointsContainer::Pointer  points = mesh->GetPoints();
 
-  std::cout << interpolator->InterpolatorSuperclassType::GetNameOfClass() << std::endl;
-  interpolator->InterpolatorSuperclassType::Print( std::cout );
-
-  typedef InterpolatorSuperclassType::Superclass  InterpolatorSuperSuperclassType;
-
-  std::cout << interpolator->InterpolatorSuperSuperclassType::GetNameOfClass() << std::endl;
-  interpolator->InterpolatorSuperSuperclassType::Print( std::cout );
-
-
-  std::cout << "Interpolator " << std::endl;
-  interpolator->Print( std::cout );
-
-  std::cout << interpolator->GetNameOfClass() << std::endl;
+  PointsContainer::ConstIterator  pointItr = points->Begin();
+  PointsContainer::ConstIterator  pointEnd = points->End();
 
   PointType  point;
 
-  mesh->GetPoint( 0, &point );
+  InterpolatorType::InstanceIdentifierVectorType  pointIds(3);
 
-  InterpolatorType::RealType interpolatedValue = interpolator->Evaluate( point );
+  PointsContainer::ElementIdentifier pointId = 0;
 
-  std::cout << "Value at " << point << " = " << interpolatedValue << std::endl;
+  while( pointItr != pointEnd )
+    {
+    interpolator->FindTriangle( pointItr.Value(), pointIds );
+
+    if( pointId != pointIds[0]  && pointId != pointIds[1]  && pointId != pointIds[2] )
+      {
+      std::cerr << "The triangle found doesn't has the point as vertex" << std::endl;
+      std::cerr << "pointId " << pointId << std::endl;
+      std::cerr << "pointIds[0] " << pointIds[0] << std::endl;
+      std::cerr << "pointIds[1] " << pointIds[1] << std::endl;
+      std::cerr << "pointIds[2] " << pointIds[2] << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    ++pointItr;
+    ++pointId;
+    }
+
+  std::cout << "Checked " << pointId << " points " << std::endl;
+  std::cout << "from a mesh with " << mesh->GetNumberOfPoints() << " points " << std::endl;
 
   std::cout << "Test passed"<< std::endl;
 
