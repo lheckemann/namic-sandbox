@@ -44,6 +44,7 @@ int main(int argc, char* argv[] )
   ReaderType::Pointer  surfaceReader = ReaderType::New();
 
   typedef ReaderType::PointType   PointType;
+  typedef PointType::VectorType   VectorType;
 
   surfaceReader->SetFileName(argv[1]);
 
@@ -70,18 +71,26 @@ int main(int argc, char* argv[] )
 
   PointsContainer::Pointer  points = mesh->GetPoints();
 
-  PointsContainer::ConstIterator  pointItr = points->Begin();
-  PointsContainer::ConstIterator  pointEnd = points->End();
-
-  PointType  point;
-
   InterpolatorType::InstanceIdentifierVectorType  pointIds(3);
 
   PointsContainer::ElementIdentifier pointId = 0;
 
+  PointsContainer::ConstIterator  pointItr = points->Begin();
+  PointsContainer::ConstIterator  pointEnd = points->End();
+
+  std::cout << "Checking the original points " << std::endl;
+
   while( pointItr != pointEnd )
     {
-    interpolator->FindTriangle( pointItr.Value(), pointIds );
+    const PointType & point = pointItr.Value();
+
+    bool triangleFound = interpolator->FindTriangle( point, pointIds );
+
+    if( !triangleFound )
+      {
+      std::cerr << "Failed to find triangle for point = " << point << std::endl;
+      return EXIT_FAILURE;
+      }
 
     if( pointId != pointIds[0]  && pointId != pointIds[1]  && pointId != pointIds[2] )
       {
@@ -97,8 +106,77 @@ int main(int argc, char* argv[] )
     ++pointId;
     }
 
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "SUCCESS: Checking the original points " << std::endl;
+  std::cout << std::endl;
+  std::cout << std::endl;
+
   std::cout << "Checked " << pointId << " points " << std::endl;
   std::cout << "from a mesh with " << mesh->GetNumberOfPoints() << " points " << std::endl;
+
+  std::cout << std::endl;
+  std::cout << std::endl;
+
+  std::cout << "Repeating test with perturbation " << std::endl;
+
+  const double factor = 0.01;
+
+  const double sphereRadius = 100.0;
+
+  PointType center;
+
+  center.Fill(0.0);
+
+  pointItr = points->Begin();
+  pointEnd = points->End();
+
+  pointId = 0;
+
+  while( pointItr != pointEnd )
+    {
+    const PointType & point = pointItr.Value();
+
+    PointType perturbedPoint = point;
+
+    perturbedPoint[0] += factor * ( point[1] + point[2] );
+    perturbedPoint[1] += factor * ( point[2] + point[0] );
+    perturbedPoint[2] += factor * ( point[0] + point[1] );
+
+    VectorType radialVector = perturbedPoint - center;
+    radialVector *= sphereRadius / radialVector.GetNorm();
+  
+    perturbedPoint = center + radialVector;
+
+    bool triangleFound = interpolator->FindTriangle( point, pointIds );
+
+    if( !triangleFound )
+      {
+      std::cerr << "Failed to find triangle for point = " << perturbedPoint << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    if( pointId != pointIds[0]  && pointId != pointIds[1]  && pointId != pointIds[2] )
+      {
+      std::cerr << "The triangle found doesn't has the point as vertex" << std::endl;
+      std::cerr << "pointId " << pointId << std::endl;
+      std::cerr << "pointIds[0] " << pointIds[0] << std::endl;
+      std::cerr << "pointIds[1] " << pointIds[1] << std::endl;
+      std::cerr << "pointIds[2] " << pointIds[2] << std::endl;
+      std::cerr << "point = " << point << std::endl;
+      std::cerr << "perturbedPoint = " << perturbedPoint << std::endl;
+      std::cout << std::endl;
+      std::cout << "SUCCESS: Checking the perturbed points " << std::endl;
+      std::cout << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    ++pointItr;
+    ++pointId;
+    }
+
+  std::cout << "SUCCESS: Checking the perturbed points " << std::endl;
+  std::cout << std::endl;
 
   std::cout << "Test passed"<< std::endl;
 
