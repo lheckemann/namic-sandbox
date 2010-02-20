@@ -34,14 +34,17 @@ TARGET_LINK_LIBRARIES(itkFreeSurferBinarySurfaceReaderTest2 ITKQuadEdgeMesh ITKI
 ADD_EXECUTABLE(itkMeshFunctionTest1 itkMeshFunctionTest1.cxx )
 TARGET_LINK_LIBRARIES(itkMeshFunctionTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
-ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest3 itkLinearInterpolateMeshFunctionTest3.cxx )
-TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest3 ITKQuadEdgeMesh ITKIO ITKNumerics)
+ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest1 itkLinearInterpolateMeshFunctionTest1.cxx )
+TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest2 itkLinearInterpolateMeshFunctionTest2.cxx )
 TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest2 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
-ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest1 itkLinearInterpolateMeshFunctionTest1.cxx )
-TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest3 itkLinearInterpolateMeshFunctionTest3.cxx )
+TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest3 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(itkLinearInterpolateMeshFunctionTest4 itkLinearInterpolateMeshFunctionTest4.cxx )
+TARGET_LINK_LIBRARIES(itkLinearInterpolateMeshFunctionTest4 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
 ADD_EXECUTABLE(itkNearestNeighborInterpolateMeshFunctionTest1 itkNearestNeighborInterpolateMeshFunctionTest1.cxx )
 TARGET_LINK_LIBRARIES(itkNearestNeighborInterpolateMeshFunctionTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -149,6 +152,12 @@ ADD_TEST(itkMeshFunctionTest1
   ${CXX_TEST_PATH}/itkMeshFunctionTest1
   )
 
+ADD_TEST(itkLinearInterpolateMeshFunctionTest1
+  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest1
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
+  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
+  )
+
 ADD_TEST(itkLinearInterpolateMeshFunctionTest2
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest2
   ${TEMP}
@@ -159,10 +168,9 @@ ADD_TEST(itkLinearInterpolateMeshFunctionTest3
   ${TEMP}
   )
 
-ADD_TEST(itkLinearInterpolateMeshFunctionTest1
-  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest1
-  ${FREESURFER_DIR}/subjects/bert/surf/lh.pial
-  ${FREESURFER_DIR}/subjects/bert/surf/lh.curv.pial
+ADD_TEST(itkLinearInterpolateMeshFunctionTest4
+  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
+  ${TEMP}
   )
 
 ADD_TEST(itkNearestNeighborInterpolateMeshFunctionTest1
