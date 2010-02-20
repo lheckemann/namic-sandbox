@@ -111,6 +111,8 @@ GENERATE_SPHERE( 100.0  4 )
 GENERATE_SPHERE( 100.0  5 )
 GENERATE_SPHERE( 100.0  6 )
 GENERATE_SPHERE( 100.0  7 )
+GENERATE_SPHERE( 100.0  8 )
+GENERATE_SPHERE( 100.0  9 )
 
 
 
@@ -212,6 +214,16 @@ ADD_TEST(itkLinearInterpolateMeshFunctionTest4c
 ADD_TEST(itkLinearInterpolateMeshFunctionTest4d
   ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
   ${TEMP}/IC7.vtk
+  )
+
+ADD_TEST(itkLinearInterpolateMeshFunctionTest4e
+  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
+  ${TEMP}/IC8.vtk
+  )
+
+ADD_TEST(itkLinearInterpolateMeshFunctionTest4f
+  ${CXX_TEST_PATH}/itkLinearInterpolateMeshFunctionTest4
+  ${TEMP}/IC9.vtk
   )
 
 ADD_TEST(itkNearestNeighborInterpolateMeshFunctionTest1
