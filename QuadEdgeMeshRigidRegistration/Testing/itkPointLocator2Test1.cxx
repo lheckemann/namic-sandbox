@@ -103,8 +103,9 @@ int main(int argc, char *argv[])
 
   unsigned int numberOfPoints = mesh->GetNumberOfPoints();
 
-  PointLocatorType::InstanceIdentifierVectorType   neighbors;
   unsigned int numberOfNeighbors = 1;
+
+  PointLocatorType::InstanceIdentifierVectorType   neighbors(numberOfNeighbors);
 
   MeshType::PointType queryPoint;
 
@@ -115,6 +116,7 @@ int main(int argc, char *argv[])
   for(unsigned int i=0; i<numberOfPoints; i++)
     {
     mesh->GetPoint(i, &queryPoint);
+
     locator->Search( queryPoint, numberOfNeighbors, neighbors ); 
 
     if( neighbors[0] != i )
