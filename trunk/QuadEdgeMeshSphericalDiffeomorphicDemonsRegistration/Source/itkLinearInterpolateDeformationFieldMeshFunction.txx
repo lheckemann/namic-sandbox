@@ -84,7 +84,26 @@ LinearInterpolateDeformationFieldMeshFunction<TInputMesh, TDestinationPointsCont
 
   if( !foundTriangle )
     {
-    return false;
+    if( this->GetUseNearestNeighborInterpolationAsBackup() )
+      {
+      const unsigned int numberOfNeighbors = 1;
+
+      InstanceIdentifierVectorType closestPointIds(numberOfNeighbors);
+
+      this->Search( point, numberOfNeighbors, closestPointIds );
+   
+      PixelType pixelValue0 = itk::NumericTraits< PixelType >::Zero;
+
+      this->GetPointData( pointIds[0], &pixelValue0 ); 
+
+      return pixelValue0;
+
+      return true;
+      }
+    else
+      {
+      return false;
+      }
     }
 
   const PointType & point1 = field->ElementAt( pointIds[0] );
