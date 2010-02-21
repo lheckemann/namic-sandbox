@@ -31,9 +31,9 @@
 
 int main(int argc, char* argv[] )
 {
-  if( argc < 3 )
+  if( argc < 4 )
     {
-    std::cerr << "Usage: itkLinearInterpolateMeshFunctionTest inputFilename outputDeformationFieldMesh";
+    std::cerr << "Usage: itkLinearInterpolateMeshFunctionTest inputFilename radius outputDeformationFieldMesh";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -106,6 +106,7 @@ int main(int argc, char* argv[] )
       std::cerr << "pointIds[0] " << pointIds[0] << std::endl;
       std::cerr << "pointIds[1] " << pointIds[1] << std::endl;
       std::cerr << "pointIds[2] " << pointIds[2] << std::endl;
+      std::cerr << "point = " << point << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -148,7 +149,7 @@ int main(int argc, char* argv[] )
 
   const double factor = 0.01;
 
-  const double sphereRadius = 100.0;
+  const double sphereRadius = atoi( argv[2] );
 
   const double perturbationDistance = sphereRadius * factor;
 
@@ -248,7 +249,7 @@ int main(int argc, char* argv[] )
   typedef itk::QuadEdgeMeshVectorDataVTKPolyDataWriter< MeshWithVectorsType >  VectorMeshWriterType;
   VectorMeshWriterType::Pointer vectorMeshWriter = VectorMeshWriterType::New();
   vectorMeshWriter->SetInput( vectorMesh );
-  vectorMeshWriter->SetFileName( argv[2] );
+  vectorMeshWriter->SetFileName( argv[3] );
   vectorMeshWriter->Update(); 
 
 
