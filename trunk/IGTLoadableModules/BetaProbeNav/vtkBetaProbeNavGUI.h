@@ -26,6 +26,7 @@
 #include "vtkBetaProbeNavLogic.h"
 
 class vtkKWPushButton;
+class vtkKWCheckButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkKWRadioButtonSet;
 class vtkMRMLModelNode;
@@ -125,8 +126,13 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   vtkSlicerNodeSelectorWidget* TransformNode;
   vtkSlicerNodeSelectorWidget* CountNode;
   vtkSlicerNodeSelectorWidget* ImageNode;
+  vtkSlicerNodeSelectorWidget* ModelNode;
   vtkKWRadioButtonSet* SphereTypeButtonSet;
+  vtkKWRadioButtonSet* ModelTypeButtonSet;
+  vtkKWRadioButtonSet* ImageTypeButtonSet;
+  vtkKWCheckButton* ImageCheckButton;
   vtkKWEntry* RangeEntry;
+  vtkKWEntry* ProbeDiameterEntry;
   vtkKWEntry* UpdateEntry;
 
   //----------------------------------------------------------------
