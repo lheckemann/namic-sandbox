@@ -107,6 +107,7 @@ int main(int argc, char* argv[] )
       std::cerr << "pointIds[1] " << pointIds[1] << std::endl;
       std::cerr << "pointIds[2] " << pointIds[2] << std::endl;
       std::cerr << "point = " << point << std::endl;
+      std::cerr << "closest point = " << mesh->GetPoint( pointId ) << std::endl;
       return EXIT_FAILURE;
       }
 
