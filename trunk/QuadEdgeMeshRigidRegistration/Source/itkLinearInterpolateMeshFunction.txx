@@ -34,6 +34,7 @@ LinearInterpolateMeshFunction<TInputMesh>
 {
   this->m_TriangleBasisSystemCalculator = TriangleBasisSystemCalculatorType::New(); 
   this->m_SphereCenter.Fill( 0.0 );
+  this->m_UseNearestNeighborInterpolationAsBackup = true;
 }
 
 
@@ -151,7 +152,24 @@ LinearInterpolateMeshFunction<TInputMesh>
 
   if( !foundTriangle )
     {
-    itkExceptionMacro("Can not find a triangle for point " << point );
+    if( this->GetUseNearestNeighborInterpolationAsBackup() )
+      {
+      const unsigned int numberOfNeighbors = 1;
+
+      InstanceIdentifierVectorType closestPointIds(numberOfNeighbors);
+
+      this->Search( point, numberOfNeighbors, closestPointIds );
+   
+      PixelType pixelValue0 = itk::NumericTraits< PixelType >::Zero;
+
+      this->GetPointData( pointIds[0], &pixelValue0 ); 
+
+      return pixelValue0;
+      }
+    else
+      {
+      itkExceptionMacro("Can not find a triangle for point " << point );
+      }
     }
 
   PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
