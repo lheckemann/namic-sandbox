@@ -37,8 +37,12 @@ class vtkMRMLModelNode;
 class vtkMRMLNode;
 class vtkMRMLModelDisplayNode;
 class vtkMRMLScalarVolumeDisplayNode;
+class vtkMRMLLinearTransformNode;
 class vtkImageData;
 class vtkMRMLScalarVolumeNode;
+class vtkPointLocator;
+class vtkCellLocator;
+class vtkIdList;
 
 class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic 
 {
@@ -59,12 +63,19 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
   void CollectData(vtkMRMLNode*, vtkMRMLNode*);
   vtkMRMLModelNode* RepresentData(vtkMRMLModelNode* mnode);
   vtkMRMLModelNode* RepresentDataRT(vtkMRMLModelNode* mnode);
-  vtkMRMLScalarVolumeNode* PaintImage(vtkMRMLNode* inode, vtkMRMLScalarVolumeNode* snode);
+  vtkMRMLScalarVolumeNode* PaintImage(vtkMRMLScalarVolumeNode* inode, vtkMRMLScalarVolumeNode* snode,  vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode);
+  vtkMRMLModelNode* PaintModel(vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode);
+  vtkMRMLModelNode* PaintModelGaussian(vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode);
+  double* CalculateIntersectionPoint(double pt[3], vtkMRMLLinearTransformNode* tnode, double* intPoint);
+  vtkIdList* CalculateSurroundingPoints(double p1[3], double radius, vtkIdList* result);
   void ClearArrays();
   double GetMaxRange() { return this->maxRange; };
   void SetMaxRange(double rg) { this->maxRange = rg; };
+  double GetProbeDiameter() { return this->probeDiam; };
+  void SetProbeDiameter(double pd) { this->probeDiam = pd; };
   vtkImageData* GetImageData() { return this->image; };
   void SetImageData (vtkImageData* im) { this->image = im; };
+  vtkMRMLModelNode* BuildLocators(vtkMRMLModelNode* mn);
 
  protected:
   
@@ -90,6 +101,9 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
    vtkPolyData* CountMap;
    vtkMRMLModelDisplayNode* dispNode;
    vtkImageData* image;
+   //vtkKdTree* kdTree;
+   vtkPointLocator* pointLocator;
+   vtkCellLocator* cellLocator;
    double maxRange;
    double probeDiam;
 

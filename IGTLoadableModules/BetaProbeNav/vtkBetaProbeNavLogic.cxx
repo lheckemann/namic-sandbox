@@ -40,6 +40,13 @@
 #include "vtkGlyph3D.h"
 #include "vtkImageData.h"
 
+//#include "vtkKdTree.h"
+#include "vtkPointLocator.h"
+#include "vtkCellLocator.h"
+#include "vtkGenericCell.h"
+
+#include <math.h>
+
 vtkCxxRevisionMacro(vtkBetaProbeNavLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkBetaProbeNavLogic);
 
@@ -62,6 +69,9 @@ vtkBetaProbeNavLogic::vtkBetaProbeNavLogic()
   this->nGammaScalars = vtkFloatArray::New();
   this->nGammaScalars->SetName("Gamma");
   this->CountMap = vtkPolyData::New();
+  //this->kdTree = vtkKdTree::New();
+  this->pointLocator = vtkPointLocator::New();
+  this->cellLocator = vtkCellLocator::New();
   this->image = NULL;
   this->probeDiam = 9.0; //(mm) make sure it is an odd number
   //dispNode = vtkMRMLModelDisplayNode::New();
@@ -75,7 +85,30 @@ vtkBetaProbeNavLogic::~vtkBetaProbeNavLogic()
     {
     this->DataCallbackCommand->Delete();
     }
-
+  
+  //Clean up
+  if (this->Points)
+   this->Points->Delete();
+  if (this->SmoothScalars)
+    this->SmoothScalars->Delete();
+  if (this->BetaScalars)
+    this->BetaScalars->Delete();
+  if (this->GammaScalars)
+    this->GammaScalars->Delete();
+  if (this->nSmoothScalars)
+    this->nSmoothScalars->Delete();
+  if (this->nBetaScalars)
+    this->nBetaScalars->Delete();
+  if (this->nGammaScalars)
+    this->nGammaScalars->Delete();
+  if (this->CountMap)
+    this->CountMap->Delete();
+  if (this->pointLocator)
+    this->pointLocator->Delete();
+  if (this->cellLocator)
+    this->cellLocator->Delete();
+  if (this->image)
+    this->image->Delete();
 }
 
 //---------------------------------------------------------------------------
@@ -356,25 +389,22 @@ void vtkBetaProbeNavLogic::ClearArrays()
 }
 
 //----------------------------------------------------------------------------
-vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLNode* inode, vtkMRMLScalarVolumeNode* snode)
+vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNode* inode, vtkMRMLScalarVolumeNode* snode, vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode)
 {
-  if (!inode)
+  if (!(inode && snode && mnode && tnode))
     {
     return snode;
     }
   
-  //Get current image from node
-  vtkMRMLScalarVolumeNode* vnode = vtkMRMLScalarVolumeNode::SafeDownCast(inode);
-  
   // Check to see if image has been created
-  if (!image)
+  if (!this->image)
     {
     std::cerr << "Creating a new image" << std::endl;
     //Create image node
     this->image = vtkImageData::New();
     
-    //Get image characteristics
-    vtkImageData* im = vnode->GetImageData();
+    //Get image characteristics from vnode
+    vtkImageData* im = inode->GetImageData();
     int dim[3];
     im->GetDimensions(dim);
     this->image->SetDimensions(dim[0], dim[1], dim[2]);
@@ -391,57 +421,94 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLNode* inode, vt
     this->image->AllocateScalars();
     
     //Assign properties to snode
-    snode->SetOrigin(vnode->GetOrigin());
+    snode->SetOrigin(inode->GetOrigin());
     snode->SetAndObserveImageData(this->image);
     }
   
   //Extract IJK to RAS Matrix
   vtkMatrix4x4* mat = vtkMatrix4x4::New();
-  vnode->GetIJKToRASMatrix(mat);
+  inode->GetIJKToRASMatrix(mat);
   
   //Set this matrix to snode
   snode->SetIJKToRASMatrix(mat);
   
-  //Convert last point introduced into Points Array and convert to ijk
-  double pt[3];
-  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, pt);
-  double ptt[4];   //Make pt[3] into homogenous form
+  //----------------------------------------------------------------
+  //Calculate intersection point between probe axis and polydata
+  //---------------------------------------------------------------
+  double p1[3];
+  double intPoint[3] = {0, 0, 0};
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1); //Point p1 is the probe tip
+  //Calculate probe axis using two points, the first the tip of the probe and the second
+  //point at k units away from the tip
+  double dir[3];
+  double p2[3];
+  vtkMatrix4x4* mat1 = vtkMatrix4x4::New();
+  tnode->GetMatrixTransformToWorld(mat1);
+  dir[0] = mat1->GetElement(0,2);
+  dir[1] = mat1->GetElement(1,2);
+  dir[2] = mat1->GetElement(2,2);  //direction of the probe axis
+  double k = 50.0; //units from the probe tip
   for (int i = 0; i < 3; i++)
-    {
-    ptt[i] = pt[i];
-    std::cerr << ptt[i] << std::endl;
-    }
-  ptt[3] = 1;
+    p2[i] = p1[i] + k*dir[i];
   
-  //We need Matrix from RAS to IJK, so we invert matrix
+  //Calculate intersection point between probe and polydata and save point in intPoint
+  double t = 0.0;
+  double pcoords[3] = {0, 0, 0};
+  int subId = 0;
+  vtkIdType cellid = -1;
+  vtkGenericCell *cell = vtkGenericCell::New();
+  if (this->cellLocator->IntersectWithLine(p1, p2, 0.001, t, intPoint, pcoords, subId, cellid, cell) == 0)
+    {
+    //No intersection made
+    std::cerr << "No intersection with the model" << std::endl;
+    return snode;
+    }
+  //Print out intersection point
+  std::cerr << "Intersection Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
+
+  //-------------------------------------------------------------------------
+  // Find other polydata points and pixels surrounding the intersection point
+  //--------------------------------------------------------------------------
+  vtkIdList* result = vtkIdList::New();
+  this->pointLocator->FindPointsWithinRadius(this->probeDiam/2, intPoint, result);
+  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
+  
+  //Extract polydata from the model node
+  vtkPolyData* polydata = mnode->GetPolyData();
+  
+  //We need Matrix from RAS to IJK, so we invert matrixIJKtoRAS
   mat->Invert(mat, mat);
-  double npt[4];     //calculate new point in IJK
-  mat->MultiplyPoint(ptt, npt);
- 
-  for (int i = 0; i < 3; i++)
-    {
-    std::cerr << npt[i] << std::endl;
-    }
   
-  //With the ijk point we colorate the pixel of the new image
-  //Get Scalar Pointer of image
-  /*short* scalPointer = (short*) image->GetScalarPointer(npt[0], npt[1], npt[2]);
-  if (scalPointer)
+  //Convert surrounding points into ijk
+  for (int i = 0; i < result->GetNumberOfIds(); i++)
     {
-    double scal = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
-    std::cerr << scal << std::endl;
-    std::cerr << *(scalPointer) << std::endl;
-    //memset(scalPointer, (short)scal, sizeof(short));
-    *(scalPointer) = (short)scal;
-    std::cerr << *(scalPointer) << std::endl;
-    image->Update();
-    }*/
-    
-  //Project value of radiation over a large amount of pixels
-  //With the ijk point we colorate pixels on the new image
-  //Get Scalar Pointer of image
-  short* scalPointer = (short*) image->GetScalarPointer(npt[0], npt[1], npt[2]);
-  //Calculate how many pixels need to be colored
+    //Convert each point into homogenous format
+    double pthom[4];
+    double pt[3];
+    unsigned int id = result->GetId(i);
+    polydata->GetPoint(id, pt);
+    for (int j = 0; j < 4; j++)
+      {
+      if (j < 3)
+        pthom[j] = pt[j];
+      else
+        pthom[j] = 1;
+      }
+    //Convert each point into ijk pixel
+    mat->MultiplyPoint(pthom, pthom);
+    //Print homogenous coordinate
+    std::cerr << "Intersection Coordinates ijk: " << pthom[0] << " " << pthom[1] << " " << pthom[2] << std::endl;
+    //Add the polydata scalar value to that pixel
+    double sc = polydata->GetPointData()->GetScalars()->GetTuple1(id);
+    short* scalPointer = (short*) image->GetScalarPointer(pthom[0], pthom[1], pthom[2]);
+    if (scalPointer)
+      *(scalPointer) = (short)sc;
+    }
+  //Update image
+  image->Update();
+  image->Modified();  
+  
+  /*//Calculate how many pixels need to be colored
   double sp[3];
   this->image->GetSpacing(sp);
   int numPix_i = this->probeDiam/sp[0];
@@ -471,11 +538,298 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLNode* inode, vt
         }
       }
     image->Update();
-    }
+    }*/
   
   //Clean up
   mat->Delete();
+  mat1->Delete();
+  cell->Delete();
+  
   
   return snode; 
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLModelNode* vtkBetaProbeNavLogic::BuildLocators(vtkMRMLModelNode* mnode)
+{
+  //Check integrity of model node
+  if (!mnode)
+    {
+    std::cerr << "Model Node not valid" << std::endl;
+    return mnode;
+    }
+  
+  //Extract polydata from the model node
+  vtkPolyData* polydata = mnode->GetPolyData();
+  
+  /*if (!this->kdTree)
+    {
+    this->kdTree = vtkKdTree::New();
+    }
+  this->kdTree->SetDataSet(polydata);
+  this->kdTree->BuildLocatorFromPoints(polydata->GetPoints());*/
+  
+  //Create Scalar Array, fill its values and add to polydata
+  vtkFloatArray* scals = vtkFloatArray::New();
+  scals->SetName("Counts");
+  for (int i = 0; i < polydata->GetPoints()->GetNumberOfPoints(); i++)
+    {
+    scals->InsertNextTuple1(0.0);
+    }
+  polydata->GetPointData()->SetScalars(scals);
+
+  //Build Point Locator for later point search
+  if (!this->pointLocator)  
+    {
+    this->pointLocator = vtkPointLocator::New();
+    }
+  this->pointLocator->SetDataSet(polydata);
+  this->pointLocator->AutomaticOn();
+  this->pointLocator->SetNumberOfPointsPerBucket(2);
+  this->pointLocator->BuildLocator();
+  
+  //Build Cell Locator for later point search
+  if (!this->cellLocator)  
+    {
+    this->cellLocator = vtkCellLocator::New();
+    }
+  cellLocator->SetDataSet(polydata);
+  cellLocator->AutomaticOn();
+  cellLocator->SetNumberOfCellsPerBucket(10);
+  cellLocator->BuildLocator();
+  
+  //Append polydata back to model data
+  mnode->SetAndObservePolyData(polydata);
+  std::cerr << "Point and Cell Locators have been built" << std::endl;
+  
+  //Clean up and return
+  scals->Delete();
+  return mnode;
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModel(vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode)
+{
+  if (!(mnode && tnode))
+    {
+    std::cerr << "The model node and/or were not valid" << std::endl;
+    return mnode;
+    }
+ 
+  /*//In order to paint the model, we need to find the point on the model that is closest to
+  //the position of the probe in space
+  double pt[3];
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, pt);
+  double dist; //distance from probe position to closest point on model
+  vtkIdType id;
+  id = this->kdTree->FindClosestPoint(pt, dist);
+  std::cerr << "Squared Distance: " << dist << "mm" << std::endl; 
+  
+  //Get the coordinates of the closest point
+  double closestPoint[3];
+  kdTree->GetDataSet()->GetPoint(id, closestPoint);
+  std::cerr << "Coordinates: " << closestPoint[0] << " " << closestPoint[1] << " " << closestPoint[2] << std::endl;
+  */
+  
+  //Calculate intersection point between probe axis and polydata
+  double p1[3];
+  double intPoint[3] = {0, 0, 0};
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1); //Point p1 is the probe tip
+  //Calculate probe axis using two points, the first the tip of the probe and the second
+  //point at k units away from the tip
+  double dir[3];
+  double p2[3];
+  vtkMatrix4x4* mat = vtkMatrix4x4::New();
+  tnode->GetMatrixTransformToWorld(mat);
+  dir[0] = mat->GetElement(0,2);
+  dir[1] = mat->GetElement(1,2);
+  dir[2] = mat->GetElement(2,2);  //direction of the probe axis
+  double k = 50.0; //units from the probe tip
+  for (int i = 0; i < 3; i++)
+    p2[i] = p1[i] + k*dir[i];
+  
+  //Calculate intersection point between probe and polydata and save point in intPoint
+  double t = 0.0;
+  double pcoords[3] = {0, 0, 0};
+  int subId = 0;
+  vtkIdType cellid = -1;
+  vtkGenericCell *cell = vtkGenericCell::New();
+  if (this->cellLocator->IntersectWithLine(p1, p2, 0.001, t, intPoint, pcoords, subId, cellid, cell) == 0)
+    {
+    //No intersection made
+    std::cerr << "No intersection with the model" << std::endl;
+    return mnode;
+    }
+  /*intPoint = CalculateIntersectionPoint(p1, tnode, intPoint);
+  if (!intPoint)
+    {
+    std::cerr << "No intersection found" << std::endl;
+    return mnode;
+    }*/
+  //Print out intersection point
+  std::cerr << "Intersection Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
+
+  // Find other polydata points surrounding the intersection point
+  vtkIdList* result = vtkIdList::New();
+  this->pointLocator->FindPointsWithinRadius(this->probeDiam/2, intPoint, result);
+  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
+ 
+  //-------------------------------------------------
+  // Associate a scalar (radiation counts) to all these points
+  //-------------------------------------------------
+  //Get radiation value and assume a uniform distribution
+  double scal = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1); 
+  std::cerr << "Scalar: " << scal << std::endl;
+  vtkPolyData* polydata = mnode->GetPolyData();
+ 
+ //Assign to all calculated points
+  for(unsigned int i = 0; i < result->GetNumberOfIds (); i++)
+    {
+    unsigned int id = result->GetId(i);
+    //Average with current scalar value on point
+    //double sc = polydata->GetPointData()->GetScalars()->GetTuple1(id);
+    polydata->GetPointData()->GetScalars()->SetTuple1(id, scal);
+    }
+  
+  //Update the model elements
+  polydata->Update();
+  polydata->Modified();
+  mnode->Modified();
+  
+  //Clean up and return
+  result->Delete();
+  mat->Delete();
+  cell->Delete();
+  return mnode;
+}
+
+//----------------------------------------------------------------------------
+vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mnode, vtkMRMLLinearTransformNode* tnode)
+{
+  if (!(mnode && tnode))
+    {
+    std::cerr << "The model node and/or were not valid" << std::endl;
+    return mnode;
+    }
+  
+  //Calculate interesection point between probe axis and polydata
+  double p1[3];
+  double intPoint[3] = {0, 0, 0};
+  this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1); //Point p1 is the probe tip
+  //Calculate probe axis using two points, the first the tip of the probe and the second
+  //point at k units away from the tip
+  double dir[3];
+  double p2[3];
+  vtkMatrix4x4* mat = vtkMatrix4x4::New();
+  tnode->GetMatrixTransformToWorld(mat);
+  dir[0] = mat->GetElement(0,2);
+  dir[1] = mat->GetElement(1,2);
+  dir[2] = mat->GetElement(2,2);  //direction of the probe axis
+  double k = 50.0; //units from the probe tip
+  for (int i = 0; i < 3; i++)
+    p2[i] = p1[i] + k*dir[i];
+  
+  //Calculate intersection point between probe and polydata and save point in intPoint
+  double t = 0.0;
+  double pcoords[3] = {0, 0, 0};
+  int subId = 0;
+  vtkIdType cellid = -1;
+  vtkGenericCell *cell = vtkGenericCell::New();
+  if (this->cellLocator->IntersectWithLine(p1, p2, 0.001, t, intPoint, pcoords, subId, cellid, cell) == 0)
+    {
+    //No intersection made
+    std::cerr << "No intersection with the model" << std::endl;
+    return mnode;
+    }
+  //Print out intersection point
+  std::cerr << "Intersection Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
+
+  // Find other polydata points surrounding the intersection point
+  vtkIdList* result = vtkIdList::New();
+  this->pointLocator->FindPointsWithinRadius(this->probeDiam/2, intPoint, result);
+  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
+  
+  //-------------------------------------------------
+  // Associate a scalar (radiation counts) to all these points using a Gaussian
+  //-------------------------------------------------
+  //Gaussian function f(x)= ScaleFactor * exp( ExponentFactor*((r/Radius)**2) )
+  //These values depend on the probe characteristics
+  double sfact, efact, rad;
+  efact = -5.0;
+  rad = 10.0;
+  sfact = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
+  vtkPolyData* polydata = mnode->GetPolyData();
+ 
+  for(unsigned int i = 0; i < result->GetNumberOfIds (); i++)
+    {
+    unsigned int id = result->GetId(i);
+    //Calculate Gaussian contribution to each point
+    double pnt[3];
+    polydata->GetPoint(id, pnt);
+    double r[3];
+    for (int j = 0; j < 3; j++)
+      r[j] = intPoint[j] - pnt[j];
+    std::cerr << "r vector: " << r[0] << ", " << r[1] << ", " << r[2]<< std::endl;
+    double rnorm = sqrt(pow(r[0],2) + pow(r[1],2) + pow(r[2],2)); 
+    double fx = sfact*exp(efact*pow(rnorm/rad,2));
+    std::cerr << "Gaussian contribution: " << fx << std::endl;
+    polydata->GetPointData()->GetScalars()->SetTuple1(id, fx);
+    }
+
+  //Update the model elements  
+  polydata->Update();
+  polydata->Modified();
+  mnode->Modified();
+  result->Delete();
+  
+  return mnode;
+}
+
+//-------------------------------------------------------------------------------------------------
+double* vtkBetaProbeNavLogic::CalculateIntersectionPoint(double p1[3], vtkMRMLLinearTransformNode* tnode, double* intPoint)
+{
+  //Calculate probe axis using two points, the first the tip of the probe and the second
+  //point at k units away from the tip
+  double dir[3];
+  double p2[3];
+  vtkMatrix4x4* mat = vtkMatrix4x4::New();
+  tnode->GetMatrixTransformToWorld(mat);
+  dir[0] = mat->GetElement(0,2);
+  dir[1] = mat->GetElement(1,2);
+  dir[2] = mat->GetElement(2,2);  //direction of the probe axis
+  double k = 50.0; //units from the probe tip
+  for (int i = 0; i < 3; i++)
+    p2[i] = p1[i] + k*dir[i];
+  
+  //Calculate intersection point between probe and polydata and save point in intPoint
+  double t = 0.0;
+  //double iPoint[3] = {0, 0, 0};  //intersection point
+  double pcoords[3] = {0, 0, 0};
+  int subId = 0;
+  vtkIdType cellid = -1;
+  vtkGenericCell *cell = vtkGenericCell::New();
+  if (this->cellLocator->IntersectWithLine(p1, p2, 0.001, t, intPoint, pcoords, subId, cellid, cell) == 0)
+    {
+    //No intersection made
+    std::cerr << "No intersection with the model" << std::endl;
+    return NULL;
+    }
+  //Print out intersection point
+  std::cerr << "Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
+ 
+  //clean up and return
+  mat->Delete();
+  cell->Delete();
+  return intPoint;
+}
+
+//-------------------------------------------------------------------------------------------------
+vtkIdList* vtkBetaProbeNavLogic::CalculateSurroundingPoints(double p1[3], double radius, vtkIdList* result)
+{
+  //Extrate points within a certain radius of the intersection point
+  std::cerr << p1[0] << ", " << p1[1] << ", " << p1[2] << std::endl;
+  this->pointLocator->FindPointsWithinRadius(radius, p1, result);
+  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
+  return result;
 }
 
