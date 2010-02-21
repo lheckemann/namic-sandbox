@@ -106,6 +106,16 @@ public:
   itkSetMacro( SphereCenter, PointType );
   itkGetConstMacro( SphereCenter, PointType );
 
+  /** When this boolean flag is ON, and the Evaluate() method fails to locate a
+   * triangle that contains the queried point position, the interpolator will
+   * fall-back to using nearest neighbor interpolation, and will make the
+   * Evaluate() method to simply return the value of the mesh point that is
+   * closest to the queried point. This option is useful when dealing with
+   * meshses whose geometry may have folding or poorly shaped triangles. */
+  itkSetMacro( UseNearestNeighborInterpolationAsBackup, bool );
+  itkGetConstMacro( UseNearestNeighborInterpolationAsBackup, bool );
+  itkBooleanMacro( UseNearestNeighborInterpolationAsBackup );
+
 protected:
   LinearInterpolateMeshFunction();
   ~LinearInterpolateMeshFunction();
@@ -136,6 +146,7 @@ private:
 
   typename TriangleBasisSystemCalculatorType::Pointer m_TriangleBasisSystemCalculator;
 
+  bool            m_UseNearestNeighborInterpolationAsBackup;
   PointType       m_SphereCenter;
 };
 
