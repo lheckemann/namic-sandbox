@@ -96,7 +96,15 @@ public:
 
   typedef typename Superclass::InstanceIdentifierVectorType InstanceIdentifierVectorType;
 
+  /** Find the triangle that contains the input point. Return the point Ids of the triangle vertices. */
   virtual bool FindTriangle( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
+
+  /** Find the first triangle touching the closest point to the input point,
+   * and return the point Ids of the triangle vertices. Note that this triangle
+   * will not necessarily contain the input point. Thie method is a good fallback
+   * position to use when the FindTriangle() fails to find a triangle that
+   * contains the input point. */
+  virtual void FindTriangleOfClosestPoint( const PointType& point, InstanceIdentifierVectorType & pointIds ) const;
 
   /** Set Sphere Center.  The implementation of this interpolator assumes that the
    * Mesh surface has a spherical geometry (not only spherical topology). With
