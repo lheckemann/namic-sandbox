@@ -3,8 +3,7 @@
 #include <iostream>
 
 
-//#include "SFLSRobustStatSegmentor3D.h"
-#include "SFLSRobustStatSegmentor3DLabelMap.h"
+#include "SFLSRobustStatSegmentor3DLabelMap_single.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
