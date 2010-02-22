@@ -80,13 +80,30 @@ LinearInterpolateMeshFunction<TInputMesh>
     this->GetPointData( pointIds[1], &pixelValue2 ); 
     this->GetPointData( pointIds[2], &pixelValue3 );
 
-    //Move this part to a different fcn. Re-use if same basis, changing scalar fcn.
     this->GetDerivativeFromPixelsAndBasis(
       pixelValue1, pixelValue2, pixelValue3, m_U12, m_U32, derivative); 
     }
   else
     {
-    derivative.Fill( NumericTraits< RealType >::Zero );
+    if ( this->GetUseNearestNeighborInterpolationAsBackup() )
+      {
+      this->FindTriangleOfClosestPoint( point, pointIds );
+    
+      PixelType pixelValue1 = itk::NumericTraits< PixelType >::Zero;
+      PixelType pixelValue2 = itk::NumericTraits< PixelType >::Zero;
+      PixelType pixelValue3 = itk::NumericTraits< PixelType >::Zero;
+
+      this->GetPointData( pointIds[0], &pixelValue1 ); 
+      this->GetPointData( pointIds[1], &pixelValue2 ); 
+      this->GetPointData( pointIds[2], &pixelValue3 );
+
+      this->GetDerivativeFromPixelsAndBasis(
+        pixelValue1, pixelValue2, pixelValue3, m_U12, m_U32, derivative); 
+      }
+    else
+      {
+      derivative.Fill( NumericTraits< RealType >::Zero );
+      }
     }
 }
 
@@ -250,6 +267,33 @@ LinearInterpolateMeshFunction<TInputMesh>
     }
 
   return false;
+}
+
+
+/**
+ * Find the first triangle of the closest point 
+ */
+template <class TInputMesh>
+void
+LinearInterpolateMeshFunction<TInputMesh>
+::FindTriangleOfClosestPoint( const PointType& point, InstanceIdentifierVectorType & pointIds ) const
+{
+  const unsigned int numberOfNeighbors = 1;
+
+  this->Search( point, numberOfNeighbors, pointIds );
+  
+  const InputMeshType * mesh = this->GetInputMesh(); 
+
+  typedef typename InputMeshType::QEPrimal    EdgeType;
+
+  //
+  // Find the edge connected to the closest point.
+  //
+  EdgeType * edge1 = mesh->FindEdge( pointIds[0] );
+  EdgeType * edge2 = edge1->GetOnext();
+
+  pointIds[1] = edge1->GetDestination();
+  pointIds[2] = edge2->GetDestination();
 }
 
 
