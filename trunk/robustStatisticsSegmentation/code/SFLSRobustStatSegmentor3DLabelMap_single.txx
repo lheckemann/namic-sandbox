@@ -1,7 +1,7 @@
-#ifndef SFLSRobustStatSegmentor3DLabelMap_txx_
-#define SFLSRobustStatSegmentor3DLabelMap_txx_
+#ifndef SFLSRobustStatSegmentor3DLabelMap_single_txx_
+#define SFLSRobustStatSegmentor3DLabelMap_single_txx_
 
-#include "SFLSRobustStatSegmentor3DLabelMap.h"
+#include "SFLSRobustStatSegmentor3DLabelMap_single.h"
 
 #include <algorithm>
 #include <ctime>
@@ -925,16 +925,16 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
 
 
-// #ifndef NDEBUG
-//   std::ofstream pdff("/tmp/pdf.txt");
-//   long npdf = m_PDFlearnedFromSeeds[0].size();
-//   for (long i = 0; i < npdf; ++i)
-//     {
-//       pdff<<std::scientific<<m_PDFlearnedFromSeeds[0][i]<<" ";
-//     }
-//   pdff<<std::endl;
-//   pdff.close();
-// #endif
+  //#ifndef NDEBUG
+  std::ofstream pdff("/tmp/pdf.txt");
+  long npdf = m_PDFlearnedFromSeeds[0].size();
+  for (long i = 0; i < npdf; ++i)
+    {
+      pdff<<std::scientific<<m_PDFlearnedFromSeeds[0][i]<<" ";
+    }
+  pdff<<std::endl;
+  pdff.close();
+  //#endif
 
 
   return;
