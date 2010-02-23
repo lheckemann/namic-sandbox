@@ -298,7 +298,7 @@ int main( int argc, char ** argv )
   std::cout << "cdSeg: growthCnt = " << cdSegGrowthCnt << ", shrinkCnt = " << cdSegShrinkCnt << std::endl;
 
   SaveImage(cdNoSeg, "cdNoSegResult.nrrd");
-  SaveImage(cdNoSeg, "cdSegResult.nrrd");
+  SaveImage(cdSeg, "cdSegResult.nrrd");
 
   return EXIT_SUCCESS;
 }
