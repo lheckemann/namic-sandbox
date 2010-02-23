@@ -184,11 +184,15 @@ endif (Slicer3_FOUND)
 # ADD_EXECUTABLE ( ExampleModule ${ExampleModule_SOURCE})
 # TARGET_LINK_LIBRARIES ( ExampleModule ITKStatistics ITKIO ITKBasicFilters ITKCommon)
 
+
+
+
+
+
 set(seg_SRC SFLSRobustStat3DTest.cxx)
 GENERATECLP(seg_SRC SFLSRobustStat3DTest.xml)
 add_executable( SFLSRobustStat3DModule ${seg_SRC})
 target_link_libraries( SFLSRobustStat3DModule ITKCommon ITKBasicFilters ITKIO itkvnl)
-
 
 
 # ADD_EXECUTABLE(${PROJECT_NAME}
@@ -206,6 +210,21 @@ foreach(targ ${TARGETS})
   slicer3_set_plugins_output_path(${targ})
 endforeach(targ ${TARGETS})
 slicer3_install_plugins(${TARGETS})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # slicer3_set_plugins_output_path(${PROJECT_NAME})
