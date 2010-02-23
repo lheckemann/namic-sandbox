@@ -700,6 +700,13 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       std::vector<double> featureHere(m_numberOfFeature);
       computeFeatureAt(idx, featureHere);
 
+//       //test
+//       for (int tttt = 0; tttt < m_numberOfFeature; ++tttt)
+//         std::cout<<featureHere[tttt]<<"\t";
+//       std::cout<<std::endl;
+//       ////test
+
+
       m_featureAtTheSeeds.push_back(featureHere);
 
 
@@ -744,13 +751,14 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
       m_kernelStddev[i] = sqrt(m_kernelStddev[i]);
     }
 
-// #ifndef NDEBUG
-//   std::ofstream dbgf("/tmp/dbgo.txt", std::ios_base::app);
+// // #ifndef NDEBUG
+// //   std::ofstream dbgf("/tmp/dbgo.txt", std::ios_base::app);
 //   for (long i = 0; i < m_numberOfFeature; ++i)
 //     {
-//       dbgf<<"Feature "<<i<<" has var = "<<m_kernelStddev[i]<<std::endl;
+//       //dbgf<<"Feature "<<i<<" has var = "<<m_kernelStddev[i]<<std::endl;
+//       std::cout<<"Feature "<<i<<" has var = "<<m_kernelStddev[i]<<std::endl;
 //     }
-// #endif
+// // #endif
 
   return;
 }
@@ -882,6 +890,9 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
       double stdDev = m_kernelStddev[ifeature]/m_kernelWidthFactor; // /10 as in Eric's appendix
 
+      //std::cout<<"kernel sigma of "<<ifeature<<"-th feature is "<<stdDev<<std::endl;
+
+
 // #ifndef NDEBUG
 //       std::cout<<"stdDev of "<<ifeature<<"-th feature = "<<stdDev<<std::endl;
 // #endif
@@ -925,16 +936,21 @@ CSFLSRobustStatSegmentor3DLabelMap< TPixel >
 
 
 
-  //#ifndef NDEBUG
-  std::ofstream pdff("/tmp/pdf.txt");
-  long npdf = m_PDFlearnedFromSeeds[0].size();
-  for (long i = 0; i < npdf; ++i)
-    {
-      pdff<<std::scientific<<m_PDFlearnedFromSeeds[0][i]<<" ";
-    }
-  pdff<<std::endl;
-  pdff.close();
-  //#endif
+//   //#ifndef NDEBUG
+//   std::ofstream pdff("/tmp/pdf.txt");
+//   long npdf = m_PDFlearnedFromSeeds[0].size();
+  
+//   std::cout<<npdf<<"\t"<<m_PDFlearnedFromSeeds[1].size()<<"\t"<<m_PDFlearnedFromSeeds[2].size()<<std::endl;
+
+//   for (long i = 0; i < npdf; ++i)
+//     {
+//       pdff<<std::scientific<<m_PDFlearnedFromSeeds[0][i]<<"\t"\
+//           <<m_PDFlearnedFromSeeds[1][i]<<"\t"\
+//           <<m_PDFlearnedFromSeeds[2][i]<<std::endl;
+//     }
+//   pdff<<std::endl;
+//   pdff.close();
+//   //#endif
 
 
   return;
