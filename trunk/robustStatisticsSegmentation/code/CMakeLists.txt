@@ -251,3 +251,7 @@ slicer3_install_plugins(${TARGETS})
 #   ENDIF(ITK_FOUND)
 
 # ENDIF(BUILD_TEST)
+
+
+add_executable( SFLSRobustStat3DTestConsole SFLSRobustStat3DTestConsole.cxx)
+target_link_libraries( SFLSRobustStat3DTestConsole ITKCommon ITKBasicFilters ITKIO itkvnl)
