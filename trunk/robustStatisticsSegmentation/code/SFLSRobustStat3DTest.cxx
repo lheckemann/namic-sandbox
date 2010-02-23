@@ -9,15 +9,7 @@
 #include "itkImageFileWriter.h"
 
 
-// // for reading seeds
-// #include "aux/txtIO.h"
-
-
-// template< typename TImage >
-// void 
-// seedsPreprocess(typename TImage::Pointer img,                           \
-//                 const std::vector<std::vector<float> >& seedListLPS,    \
-//                 std::vector<std::vector<long> >& seedListIJK);
+#include "labelMapPreprocessor.h"
 
 template< typename TPixel >
 itk::Image< short, 3 >::Pointer 
@@ -74,6 +66,9 @@ int main(int argc, char** argv)
       raise(SIGABRT);
     }
 
+  // preprocess label map (labelImg, the naming is confusing.....)
+  LabelImage_t::Pointer newLabelMap = preprocessLabelMap<LabelImage_t::PixelType>(labelImg, labelValue);
+
 
   // do seg
   SFLSRobustStatSegmentor3DLabelMap_c seg;
@@ -81,7 +76,7 @@ int main(int argc, char** argv)
 
   seg.setNumIter(10000); // a large enough number, s.t. will not be stoped by this creteria.
   seg.setMaxVolume(expectedVolume);
-  seg.setInputLabelImage(labelImg);
+  seg.setInputLabelImage(newLabelMap);
 
   //seg.setNumIter(numOfIteration);
   seg.setMaxRunningTime(maxRunningTime);
