@@ -36,6 +36,7 @@
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilter.h"
 #include "itkDeformationFieldFromTransformMeshFilter.h"
 #include "itkResampleDestinationPointsQuadEdgeMeshFilter.h"
+#include "itkQuadEdgeMeshGenerateDeformationFieldFilter.h"
 #include "itkIdentityTransform.h"
 
 
@@ -201,7 +202,7 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 1 ); // FIXME it was 100
+  optimizer->SetNumberOfIterations( 100 );
 
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
@@ -250,14 +251,9 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
+  std::cout << "Transform Parameters = " << transform->GetParameters() << std::endl;
 
-  PointSetType::ConstPointer destinationPoints = 
-    deformationFieldFromTransform->GetOutput();
-
-  const PointSetType::PointsContainer * dstPoints = destinationPoints->GetPoints();
-
-  const FixedMeshType * fixedMesh = fixedMeshReader1->GetOutput();
-  const FixedMeshType::PointsContainer * srcPoints = fixedMesh->GetPoints();
+  PointSetType::ConstPointer destinationPoints = deformationFieldFromTransform->GetOutput();
 
   typedef FixedMeshType::PointType  PointType;
   typedef PointType::VectorType     VectorType;
@@ -265,38 +261,22 @@ int main( int argc, char * argv [] )
   typedef itk::QuadEdgeMeshTraits< VectorType, Dimension, bool, bool > VectorPointSetTraits;
 
   typedef itk::QuadEdgeMesh< VectorType, Dimension, VectorPointSetTraits > MeshWithVectorsType;
-  MeshWithVectorsType::Pointer vectorMesh = MeshWithVectorsType::New();
 
-  typedef MeshWithVectorsType::PointDataContainer  PointDataContainer;
-  PointDataContainer::Pointer vectors = PointDataContainer::New();
+  typedef itk::QuadEdgeMeshGenerateDeformationFieldFilter<
+    FixedMeshType, PointSetType, MeshWithVectorsType >   DeformationFilterType;
 
-  vectors->Reserve( fixedMesh->GetNumberOfPoints() );
+  DeformationFilterType::Pointer deformationFilter = DeformationFilterType::New();
 
-  vectorMesh->SetPoints( const_cast< FixedMeshType::PointsContainer *>( srcPoints ) );
-  vectorMesh->SetPointData( vectors );
-
-  PointDataContainer::Iterator  vitr = vectors->Begin();
-
-  PointSetType::PointsContainer::ConstIterator  dstItr = dstPoints->Begin();
-
-  FixedMeshType::PointsContainer::ConstIterator srcItr = srcPoints->Begin();
-  FixedMeshType::PointsContainer::ConstIterator srcEnd = srcPoints->End();
-
-
-  while( srcItr != srcEnd )
-    {
-    vitr.Value() = dstItr.Value() - srcItr.Value();
-    ++srcItr;
-    ++dstItr;
-    ++vitr;
-    }
+  deformationFilter->SetInputMesh( fixedMeshReader1->GetOutput() );
+  deformationFilter->SetDestinationPoints( destinationPoints );
+  deformationFilter->Update();
 
   typedef itk::QuadEdgeMeshVectorDataVTKPolyDataWriter< MeshWithVectorsType >  VectorMeshWriterType;
   VectorMeshWriterType::Pointer vectorMeshWriter = VectorMeshWriterType::New();
-  vectorMeshWriter->SetInput( vectorMesh );
+  vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
   vectorMeshWriter->SetFileName("VectorMesh.vtk");
   vectorMeshWriter->Update(); 
-
+  std::cout << "Deformation VectorMesh.vtk  Saved" << std::endl;
 
 
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   RegisteredMeshType;
@@ -321,7 +301,7 @@ int main( int argc, char * argv [] )
   const double sigmaX = 1.0;
   const double lambda = 1.0;
   const unsigned int maximumNumberOfSmoothingIterations = 2;
-  const unsigned int maximumNumberOfIterations = 1; // FIXME it was 30
+  const unsigned int maximumNumberOfIterations = 30;
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
@@ -373,6 +353,8 @@ int main( int argc, char * argv [] )
   MovingReaderType::Pointer movingMeshReader2 = MovingReaderType::New();
   movingMeshReader2->SetFileName( argv[5] );
 
+std::cout << "Fixed  mesh second level = " << argv[4] << std::endl;
+std::cout << "Moving mesh second level = " << argv[5] << std::endl;
   try
     {
     fixedMeshReader2->Update( );
@@ -417,6 +399,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   FixedMeshType::Pointer fixedMesh2 = fixedMeshReader2->GetOutput();
   fixedMesh2->DisconnectPipeline();
 
+
   PointSetType::ConstPointer upsampledPointSet = upsampleDestinationPoints->GetOutput();
   
   const PointSetType::PointsContainer * upsampledPoints = upsampledPointSet->GetPoints();
@@ -428,6 +411,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   FixedMeshType::PointsContainerIterator fixedPoint2Itr = fixedPoints2->Begin();
 
+
   while( upsampledPointsItr != upsampledPointsEnd )
     {
     // Point in the QuadEdgeMesh must also keep their pointer to Edge
@@ -435,6 +419,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     ++fixedPoint2Itr;
     ++upsampledPointsItr;
     }
+
 
   // 
   // Now feed this mesh into the Rigid registration of the second resolution level.
@@ -529,6 +514,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   MovingReaderType::Pointer movingMeshReader3 = MovingReaderType::New();
   movingMeshReader3->SetFileName( argv[8] );
 
+std::cout << "Fixed  mesh third level = " << argv[7] << std::endl;
+std::cout << "Moving mesh third level = " << argv[8] << std::endl;
   try
     {
     fixedMeshReader3->Update( );
@@ -678,6 +665,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   MovingReaderType::Pointer movingMeshReader4 = MovingReaderType::New();
   movingMeshReader4->SetFileName( argv[11] );
 
+std::cout << "Fixed  mesh fourth level = " << argv[10] << std::endl;
+std::cout << "Moving mesh fourth level = " << argv[11] << std::endl;
   try
     {
     fixedMeshReader4->Update( );
@@ -827,6 +816,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   MovingReaderType::Pointer movingMeshReader5 = MovingReaderType::New();
   movingMeshReader5->SetFileName( argv[14] );
 
+std::cout << "Fixed  mesh fifth level = " << argv[13] << std::endl;
+std::cout << "Moving mesh fifth level = " << argv[14] << std::endl;
   try
     {
     fixedMeshReader5->Update( );
