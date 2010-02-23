@@ -37,14 +37,14 @@ QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputM
 }
 
 
-template< class TInputMesh, class TFixedMesh, class TReferenceMesh, class TOutputMesh >
+template< class TInputMesh, class TInputPointSet, class TOutputMesh >
 QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputMesh >
 ::~QuadEdgeMeshGenerateDeformationFieldFilter()
 {
 }
 
 
-template< class TInputMesh, class TFixedMesh, class TReferenceMesh, class TOutputMesh >
+template< class TInputMesh, class TInputPointSet, class TOutputMesh >
 void
 QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputMesh >
 ::SetInputMesh( const InputMeshType * mesh )
@@ -58,7 +58,7 @@ QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputM
 }
 
 
-template< class TInputMesh, class TFixedMesh, class TReferenceMesh, class TOutputMesh >
+template< class TInputMesh, class TInputPointSet, class TOutputMesh >
 const typename 
 QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputMesh >::InputMeshType *
 QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputMesh >
@@ -71,22 +71,21 @@ QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputM
 }
 
 
-template< class TInputMesh, class TFixedMesh, class TReferenceMesh, class TOutputMesh >
+template< class TInputMesh, class TInputPointSet, class TOutputMesh >
 void
-QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TFixedMesh, TReferenceMesh, TOutputMesh >
 QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputMesh >
 ::SetDestinationPoints( const InputPointSetType * destinationPointSet )
 {
   itkDebugMacro("setting input ReferenceMesh to " << destinationPointSet);
-  if( mesh != static_cast<const InputPointSetType *>(this->ProcessObject::GetInput( 1 )) )
+  if( destinationPointSet != static_cast<const InputPointSetType *>(this->ProcessObject::GetInput( 1 )) )
     {
-    this->ProcessObject::SetNthInput(1, const_cast< InputPointSetType *>( mesh ) );
+    this->ProcessObject::SetNthInput(1, const_cast< InputPointSetType *>( destinationPointSet ) );
     this->Modified();
     }
 }
 
 
-template< class TInputMesh, class TFixedMesh, class TReferenceMesh, class TOutputMesh >
+template< class TInputMesh, class TInputPointSet, class TOutputMesh >
 const typename 
 QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputMesh >::InputPointSetType *
 QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputMesh >
@@ -99,16 +98,16 @@ QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputM
 }
 
 
-template< class TInputMesh, class TFixedMesh, class TReferenceMesh, class TOutputMesh >
+template< class TInputMesh, class TInputPointSet, class TOutputMesh >
 void
 QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputMesh >
 ::GenerateData()
 {
-  const InputMeshType * inputMesh = this->GetFixedMesh();
+  const InputMeshType * inputMesh = this->GetInputMesh();
 
   if( !inputMesh )
     {
-    itkExceptionMacro("Fixed mesh is missing");
+    itkExceptionMacro("Input mesh is missing");
     }
 
   this->CopyInputMeshToOutputMesh();
@@ -120,7 +119,7 @@ QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputM
     itkExceptionMacro("Input PointSet is missing");
     }
 
-  typedef InputPointSetType::PointsContainer   DestinationPointsContainer;
+  typedef typename InputPointSetType::PointsContainer   DestinationPointsContainer;
 
   const DestinationPointsContainer * destinationPoints = inputPointSet->GetPoints();
 
@@ -146,17 +145,18 @@ QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputM
   DestinationPointIterator destinationPointItr = destinationPoints->Begin();
   DestinationPointIterator destinationPointEnd = destinationPoints->End();
 
-  typedef typename InputMeshType::PoinstContainer         SourcePointContainer;
+  typedef typename InputMeshType::PointsContainer         SourcePointContainer;
   typedef typename SourcePointContainer::ConstIterator    SourcePointIterator;
 
   const SourcePointContainer * sourcePoints = inputMesh->GetPoints();
 
-  SourcePointIterator sourcePointItr = points->Begin();
+  SourcePointIterator sourcePointItr = sourcePoints->Begin();
 
   typedef typename OutputMeshType::PointDataContainer    DisplacementVectorContainer;
+  typedef typename DisplacementVectorContainer::Pointer  DisplacementVectorContainerPointer;
   typedef typename DisplacementVectorContainer::Iterator DisplacementVectorIterator;
 
-  DisplacementVectorContainer::Pointer displacementVectors = DisplacementVectorContainer::New();
+  DisplacementVectorContainerPointer displacementVectors = DisplacementVectorContainer::New();
 
   displacementVectors->Reserve( numberOfPoints );
 
@@ -170,6 +170,7 @@ QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputM
     ++destinationPointItr;
     }
 
+  outputMesh->SetPointData( displacementVectors );
 }
 
 } // end namespace itk
