@@ -55,6 +55,9 @@ TARGET_LINK_LIBRARIES(itkQuadEdgeMeshSphericalDiffeomorphicDemonsFilterTest1 ITK
 ADD_EXECUTABLE(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 itkResampleDestinationPointsQuadEdgeMeshFilterTest1.cxx )
 TARGET_LINK_LIBRARIES(itkResampleDestinationPointsQuadEdgeMeshFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(itkQuadEdgeMeshGenerateDeformationFieldFilterTest1 itkQuadEdgeMeshGenerateDeformationFieldFilterTest1.cxx )
+TARGET_LINK_LIBRARIES(itkQuadEdgeMeshGenerateDeformationFieldFilterTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+
 ADD_EXECUTABLE(itkVersorOperationsTest1 itkVersorOperationsTest1.cxx )
 TARGET_LINK_LIBRARIES(itkVersorOperationsTest1 ITKQuadEdgeMesh ITKIO ITKNumerics)
 
@@ -269,6 +272,13 @@ ADD_TEST(ResampleDestinationFilterTest1
   10      # maximum number of iterations
   )
 
+ADD_TEST(ComputeDeformationFieldMeshTest1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshGenerateDeformationFieldFilterTest1
+  ${TEMP}/fixedMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/registeredMeshWithScalarsGaussianIC4.vtk
+  ${TEMP}/fixedMeshWithDeformationFieldIC4.vtk
+  )
+SET_TESTS_PROPERTIES( ComputeDeformationFieldMeshTest1 PROPERTIES DEPENDS DemonsFilterTest5)
 
 ADD_TEST(VersorOperationsTest1
   ${CXX_TEST_PATH}/itkVersorOperationsTest1
