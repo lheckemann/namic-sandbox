@@ -280,7 +280,9 @@ LinearInterpolateMeshFunction<TInputMesh>
 {
   const unsigned int numberOfNeighbors = 1;
 
-  this->Search( point, numberOfNeighbors, pointIds );
+  InstanceIdentifierVectorType closestPointId(numberOfNeighbors);
+
+  this->Search( point, numberOfNeighbors, closestPointId );
   
   const InputMeshType * mesh = this->GetInputMesh(); 
 
@@ -289,6 +291,8 @@ LinearInterpolateMeshFunction<TInputMesh>
   //
   // Find the edge connected to the closest point.
   //
+  pointIds[0] = closestPointId[0];
+
   EdgeType * edge1 = mesh->FindEdge( pointIds[0] );
   EdgeType * edge2 = edge1->GetOnext();
 
