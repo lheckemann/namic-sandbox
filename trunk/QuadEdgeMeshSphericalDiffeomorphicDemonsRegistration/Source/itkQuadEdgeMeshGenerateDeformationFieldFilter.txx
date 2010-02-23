@@ -112,7 +112,7 @@ QuadEdgeMeshGenerateDeformationFieldFilter< TInputMesh, TInputPointSet, TOutputM
 
   this->CopyInputMeshToOutputMesh();
 
-  const InputPointSetType * inputPointSet = this->GetInput();
+  const InputPointSetType * inputPointSet = this->GetDestinationPoints();
 
   if( !inputPointSet )
     {
