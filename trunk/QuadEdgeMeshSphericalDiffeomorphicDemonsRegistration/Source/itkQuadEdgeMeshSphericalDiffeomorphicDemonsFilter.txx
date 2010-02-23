@@ -51,8 +51,10 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   this->m_ResampledMovingValuesContainer = ResampledMovingValuesContainerType::New();
 
   this->m_ScalarInterpolator = ScalarInterpolatorType::New();
+  this->m_ScalarInterpolator->SetUseNearestNeighborInterpolationAsBackup(true);
 
   this->m_DeformationInterpolator = DeformationInterpolatorType::New();
+  this->m_DeformationInterpolator->SetUseNearestNeighborInterpolationAsBackup(true);
 
   this->m_MaximumNumberOfIterations = 50;
 
