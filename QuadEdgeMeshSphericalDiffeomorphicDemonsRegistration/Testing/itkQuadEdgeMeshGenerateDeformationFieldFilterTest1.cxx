@@ -41,7 +41,11 @@ int main( int argc, char *argv[] )
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   RegisteredMeshType;
 
   typedef itk::Vector< float, Dimension >                         DeformationVectorType;
-  typedef itk::QuadEdgeMesh< DeformationVectorType, Dimension >   DeformationFieldMeshType;
+
+  typedef itk::QuadEdgeMeshTraits< DeformationVectorType, Dimension, bool, bool > VectorPointSetTraits;
+
+  typedef itk::QuadEdgeMesh< 
+    DeformationVectorType, Dimension, VectorPointSetTraits >   DeformationFieldMeshType;
 
   typedef itk::QuadEdgeMeshGenerateDeformationFieldFilter<
     FixedMeshType, RegisteredMeshType, DeformationFieldMeshType >   DeformationFilterType;
