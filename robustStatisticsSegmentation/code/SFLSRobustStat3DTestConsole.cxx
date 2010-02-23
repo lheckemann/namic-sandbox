@@ -7,19 +7,13 @@
 #include "itkImageFileWriter.h"
 
 
-// // for reading seeds
-// #include "aux/txtIO.h"
+#include "labelMapPreprocessor.h"
 
-
-// template< typename TImage >
-// void 
-// seedsPreprocess(typename TImage::Pointer img,                           \
-//                 const std::vector<std::vector<float> >& seedListLPS,    \
-//                 std::vector<std::vector<long> >& seedListIJK);
 
 template< typename TPixel >
 itk::Image< short, 3 >::Pointer 
 getFinalMask(typename itk::Image< TPixel, 3 >::Pointer img, unsigned char l, TPixel thod = 0);
+
 
 
 int main(int argc, char** argv)
@@ -86,15 +80,19 @@ int main(int argc, char** argv)
     }
 
 
+
+  // preprocess label map (labelImg, the naming is confusing.....)
+  LabelImage_t::Pointer newLabelMap = preprocessLabelMap<LabelImage_t::PixelType>(labelImg, labelValue);
+
+
   // do seg
   SFLSRobustStatSegmentor3DLabelMap_c seg;
   seg.setImage(img);
 
   seg.setNumIter(10000); // a large enough number, s.t. will not be stoped by this creteria.
   seg.setMaxVolume(expectedVolume);
-  seg.setInputLabelImage(labelImg);
+  seg.setInputLabelImage(newLabelMap);
 
-  //seg.setNumIter(numOfIteration);
   seg.setMaxRunningTime(maxRunningTime);
 
 
@@ -104,48 +102,6 @@ int main(int argc, char** argv)
   seg.doSegmenation();
 
 
-
-//   typedef int PixelType;
-//   typedef itk::Image< PixelType, 3 > ImageType;
-
-//   typedef itk::ImageFileReader< ImageType > ImageReaderType;
-//   ImageReaderType::Pointer reader = ImageReaderType::New();
-//   reader->SetFileName(originalImageFileName.c_str());
-
-//   ImageType::Pointer img;
-    
-//   try
-//     {
-//       reader->Update();
-//       img = reader->GetOutput();
-//     }
-//   catch ( itk::ExceptionObject &err)
-//     {
-//       std::cerr<< "ExceptionObject caught !" << std::endl; 
-//       std::cerr<< err << std::endl; 
-//       raise(SIGABRT);
-//     }
-
-
-
-
-// //   std::vector<std::vector<long> > seedListIJK;
-// //   seedsPreprocess<ImageType>(img, seed, seedListIJK);
-  
-//   CSFLSRobustStatSegmentor3D< PixelType > seg;
-//   seg.setImage(img);
-
-//   seg.setSeeds(seedListIJK);
-//   seg.setMaxRunningTime(maxRunningTime);
-//   seg.setMaxVolume(expectedVolume);
-
-//   seg.setIntensityHomogeneity(intensityHomogeneity);
-
-//   //seg.setNumIter(numOfIteration);
-
-//   seg.setCurvatureWeight(curvatureWeight/2.0); // in the interface, it's 0~1 scale, internally, it's 0~0.5
-
-//   seg.doSegmenation();
 
 
   typedef itk::Image< short, 3 > MaskImageType;
@@ -174,47 +130,6 @@ int main(int argc, char** argv)
   return EXIT_SUCCESS;
 }
 
-// template< typename TImage >
-// void 
-// seedsPreprocess(typename TImage::Pointer img,                           \
-//                 const std::vector<std::vector<float> >& seedListLPS,    \
-//                 std::vector<std::vector<long> >& seedListIJK)
-// {
-//   long n = seedListLPS.size();
-//   if (n <= 0)
-//     {
-//       std::cerr << "Error: No seeds specified." << std::endl;
-//       raise(SIGABRT);
-//     }
-  
-
-//   seedListIJK.resize(n);
-
-
-//   typename TImage::PointType lpsPoint;
-//   typename TImage::IndexType index;
-//   for (long i = 0; i < n; ++i)
-//     {
-//       // seeds come in ras, convert to lps
-//       lpsPoint[0] = -seedListLPS[i][0];  
-//       lpsPoint[1] = -seedListLPS[i][1];
-//       lpsPoint[2] = seedListLPS[i][2];
-
-//       img->TransformPhysicalPointToIndex(lpsPoint, index);
-          
-//       std::vector<long> s(3);
-//       s[0] = index[0];
-//       s[1] = index[1];
-//       s[2] = index[2];
-
-//       seedListIJK[i] = s;
-
-//       //           f << "LPS: " << lpsPoint << std::endl;
-//       //           f << "IJK: " << index << std::endl;
-//     }
-
-//   return;
-// }
 
 
 template< typename TPixel >
