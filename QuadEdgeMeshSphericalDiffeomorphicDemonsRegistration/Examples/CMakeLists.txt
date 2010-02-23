@@ -238,6 +238,15 @@ ADD_TEST(DemonsExample1
   30     # maximum number of iterations
   )
 
+ADD_TEST(DemonsExampleField1
+  ${CXX_TEST_PATH}/itkQuadEdgeMeshGenerateDeformationFieldFilterTest1
+  ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC1.vtk
+  ${TEMP}/MeshDemonsFilter1_DeformedFixedMesh_IC1.vtk
+  ${TEMP}/DemonsExampleField1DeformationFieldIC1.vtk
+  )
+SET_TESTS_PROPERTIES( DemonsExampleField1 PROPERTIES DEPENDS DemonsExample1)
+
+
 ADD_TEST(DemonsExample2
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalDiffeomorphicDemonsFilter1
   ${TEST_DATA_ROOT}/Input/fixedMeshWithScalarsIC2.vtk
