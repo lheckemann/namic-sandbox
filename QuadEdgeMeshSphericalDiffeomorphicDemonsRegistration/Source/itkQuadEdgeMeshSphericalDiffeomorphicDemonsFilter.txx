@@ -219,9 +219,14 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
   DestinationPointIterator dstPointItr = this->m_DestinationPoints->Begin();
   DestinationPointIterator dstPointEnd = this->m_DestinationPoints->End();
 
+  PointType point;
   while( dstPointItr != dstPointEnd )
     {
-    dstPointItr.Value() = srcPointItr.Value();
+    point = srcPointItr.Value();
+
+    this->ProjectPointToSphereSurface( point );
+
+    dstPointItr.Value() = point;
     ++srcPointItr;
     ++dstPointItr;
     }
@@ -680,7 +685,7 @@ ComputeScalingAndSquaringNumberOfIterations()
 
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
-  const unsigned int minimumNumberOfIterations = 1; // FIXME: This is critical. It used to be 10
+  const unsigned int minimumNumberOfIterations = 5; // FIXME: This is critical. It used to be 10
 
   if( ratio < 1.0 )
     {
@@ -858,9 +863,12 @@ ComposeDeformationUpdateWithPreviousDeformation()
 
     this->ProjectPointToSphereSurface( point );
 
-    newDestinationPointItr.Value() =
+    PointType destinationPoint =
       this->InterpolateDestinationFieldAtPoint( this->m_DestinationPoints, point );
 
+    this->ProjectPointToSphereSurface( destinationPoint );
+
+    newDestinationPointItr.Value() = destinationPoint;
 
     ++newDestinationPointItr;
     ++displacementItr;
