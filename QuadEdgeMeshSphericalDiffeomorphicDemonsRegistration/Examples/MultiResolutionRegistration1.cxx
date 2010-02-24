@@ -202,7 +202,7 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 100 );
+  optimizer->SetNumberOfIterations( 50 );
 
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
@@ -343,9 +343,16 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
+  typedef DemonsFilterType::DestinationPointSetType    DestinationPointSetType;
+  DestinationPointSetType::Pointer finalDestinationPoints = demonsFilter->GetFinalDestinationPoints();
+  
+  finalDestinationPoints->DisconnectPipeline();
+
   deformationFilter->SetInputMesh( fixedMeshReader1->GetOutput() );
-  deformationFilter->SetDestinationPoints( demonsFilter->GetFinalDestinationPoints() );
+  deformationFilter->SetDestinationPoints( finalDestinationPoints );
+std::cout << "BEFORE Computing deformation field " << std::endl;
   deformationFilter->Update();
+std::cout << "AFTER Computing deformation field " << std::endl;
 
   vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
   vectorMeshWriter->SetFileName("VectorMesh1.vtk");
@@ -390,7 +397,7 @@ std::cout << "Moving mesh second level = " << argv[5] << std::endl;
   UpsampleDestinationPointsFilterType::Pointer upsampleDestinationPoints = 
     UpsampleDestinationPointsFilterType::New();
 
-  upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
+  upsampleDestinationPoints->SetInput( finalDestinationPoints );
   upsampleDestinationPoints->SetFixedMesh( fixedMeshReader1->GetOutput() );
   upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader2->GetOutput() );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
@@ -517,9 +524,14 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
+  finalDestinationPoints = demonsFilter->GetFinalDestinationPoints();
+  finalDestinationPoints->DisconnectPipeline();
+
   deformationFilter->SetInputMesh( fixedMeshReader2->GetOutput() );
-  deformationFilter->SetDestinationPoints( demonsFilter->GetFinalDestinationPoints() );
+  deformationFilter->SetDestinationPoints( finalDestinationPoints );
+std::cout << "BEFORE Computing deformation field " << std::endl;
   deformationFilter->Update();
+std::cout << "AFTER Computing deformation field " << std::endl;
 
   vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
   vectorMeshWriter->SetFileName("VectorMesh2.vtk");
@@ -557,7 +569,7 @@ std::cout << "Moving mesh third level = " << argv[8] << std::endl;
   //
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
-  upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
+  upsampleDestinationPoints->SetInput( finalDestinationPoints );
   upsampleDestinationPoints->SetFixedMesh( fixedMesh2 );
   upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader3->GetOutput() );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
@@ -681,9 +693,14 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
+  finalDestinationPoints = demonsFilter->GetFinalDestinationPoints();
+  finalDestinationPoints->DisconnectPipeline();
+
   deformationFilter->SetInputMesh( fixedMeshReader3->GetOutput() );
-  deformationFilter->SetDestinationPoints( demonsFilter->GetFinalDestinationPoints() );
+  deformationFilter->SetDestinationPoints( finalDestinationPoints );
+std::cout << "BEFORE Computing deformation field " << std::endl;
   deformationFilter->Update();
+std::cout << "AFTER Computing deformation field " << std::endl;
 
   vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
   vectorMeshWriter->SetFileName("VectorMesh3.vtk");
@@ -722,7 +739,7 @@ std::cout << "Moving mesh fourth level = " << argv[11] << std::endl;
   //
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
-  upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
+  upsampleDestinationPoints->SetInput( finalDestinationPoints );
   upsampleDestinationPoints->SetFixedMesh( fixedMesh3 );
   upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader4->GetOutput() );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
@@ -845,9 +862,14 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
+  finalDestinationPoints = demonsFilter->GetFinalDestinationPoints();
+  finalDestinationPoints->DisconnectPipeline();
+  
   deformationFilter->SetInputMesh( fixedMeshReader4->GetOutput() );
-  deformationFilter->SetDestinationPoints( demonsFilter->GetFinalDestinationPoints() );
+  deformationFilter->SetDestinationPoints( finalDestinationPoints );
+std::cout << "BEFORE Computing deformation field " << std::endl;
   deformationFilter->Update();
+std::cout << "AFTER Computing deformation field " << std::endl;
 
   vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
   vectorMeshWriter->SetFileName("VectorMesh4.vtk");
@@ -887,7 +909,7 @@ std::cout << "Moving mesh fifth level = " << argv[14] << std::endl;
   //
   // Supersample the list of destination points using the mesh at the next resolution level.
   //
-  upsampleDestinationPoints->SetInput( demonsFilter->GetFinalDestinationPoints() );
+  upsampleDestinationPoints->SetInput( finalDestinationPoints );
   upsampleDestinationPoints->SetFixedMesh( fixedMesh4 );
   upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader5->GetOutput() );
   upsampleDestinationPoints->SetTransform( itk::IdentityTransform<double>::New() );
@@ -914,7 +936,9 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   
   deformationFilter->SetInputMesh( fixedMeshReader5->GetOutput() );
   deformationFilter->SetDestinationPoints( upsampleDestinationPoints->GetOutput() );
+std::cout << "BEFORE Computing deformation field " << std::endl;
   deformationFilter->Update();
+std::cout << "AFTER Computing deformation field " << std::endl;
 
   vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
   vectorMeshWriter->SetFileName("VectorMesh5.vtk");
