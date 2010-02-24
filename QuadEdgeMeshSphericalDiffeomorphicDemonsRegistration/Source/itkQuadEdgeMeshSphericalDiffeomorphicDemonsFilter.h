@@ -136,8 +136,10 @@ public:
    * deformation field to all nodes of the Fixed Mesh. The points are stored
    * in the point container of an itk::PointSet. The content of this array
    * is only valid after the first iteration of the filter execution has been
-   * completed. It can be used for tracking the progress of the filter. */
-  const DestinationPointSetType * GetFinalDestinationPoints() const;
+   * completed. It can be used for tracking the progress of the filter. The
+   * returned point is non-const just to allow users to call
+   * DisconnectPipeline(). */
+  DestinationPointSetType * GetFinalDestinationPoints() const;
 
   /** Set/Get the maximum number of iterations that the filter will be
    * allowed to run.  The default is set to 50. */
@@ -213,6 +215,10 @@ public:
    * it the deformation field that is computed by this filter.  This output is
    * only valid after you have successfully called the Update() method. */ 
   const FixedMeshType * GetDeformedFixedMesh() const;
+
+
+  /**  Create the Output of the proper type for that output number */
+  DataObject::Pointer MakeOutput(unsigned int idx);
 
 protected:
   QuadEdgeMeshSphericalDiffeomorphicDemonsFilter();

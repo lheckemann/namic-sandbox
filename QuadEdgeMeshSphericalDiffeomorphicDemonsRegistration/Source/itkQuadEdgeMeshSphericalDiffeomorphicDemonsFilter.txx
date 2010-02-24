@@ -80,6 +80,28 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
+DataObject::Pointer
+QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
+::MakeOutput(unsigned int idx)
+{
+  DataObject::Pointer output;
+  switch( idx )
+    {
+    case 0:
+      output = (OutputMeshType::New()).GetPointer();
+      break;
+    case 1:
+      output = (FixedMeshType::New()).GetPointer();
+      break;
+    case 2:
+      output = (DestinationPointSetType::New()).GetPointer();
+      break;
+    }
+  return output.GetPointer();
+}
+
+
+template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::SetFixedMesh( const FixedMeshType * fixedMesh )
@@ -151,7 +173,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 
 
 template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
-const typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::DestinationPointSetType *
+typename QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::DestinationPointSetType *
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GetFinalDestinationPoints() const
 {
@@ -160,7 +182,10 @@ GetFinalDestinationPoints() const
     return 0;
     }
 
-  return dynamic_cast< const DestinationPointSetType * >(this->ProcessObject::GetOutput(2));
+  const DestinationPointSetType * pointSet =
+    dynamic_cast< const DestinationPointSetType * >(this->ProcessObject::GetOutput(2));
+
+  return const_cast< DestinationPointSetType * >( pointSet );
 }
 
 
