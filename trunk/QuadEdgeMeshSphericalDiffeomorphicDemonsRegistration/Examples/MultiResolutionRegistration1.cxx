@@ -274,9 +274,9 @@ int main( int argc, char * argv [] )
   typedef itk::QuadEdgeMeshVectorDataVTKPolyDataWriter< MeshWithVectorsType >  VectorMeshWriterType;
   VectorMeshWriterType::Pointer vectorMeshWriter = VectorMeshWriterType::New();
   vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
-  vectorMeshWriter->SetFileName("VectorMesh.vtk");
+  vectorMeshWriter->SetFileName("VectorMesh0.vtk");
   vectorMeshWriter->Update(); 
-  std::cout << "Deformation VectorMesh.vtk  Saved" << std::endl;
+  std::cout << "Deformation VectorMesh0.vtk  Saved" << std::endl;
 
 
   typedef itk::QuadEdgeMesh< MeshPixelType, Dimension >   RegisteredMeshType;
@@ -343,6 +343,20 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
+  deformationFilter->SetInputMesh( fixedMeshReader1->GetOutput() );
+  deformationFilter->SetDestinationPoints( demonsFilter->GetFinalDestinationPoints() );
+  deformationFilter->Update();
+
+  vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
+  vectorMeshWriter->SetFileName("VectorMesh1.vtk");
+  vectorMeshWriter->Update(); 
+  std::cout << "Deformation VectorMesh1.vtk  Saved" << std::endl;
+
+  writer->SetInput( demonsFilter->GetDeformedFixedMesh() );
+  writer->SetFileName("DeformedMesh1.vtk");
+  writer->Update(); 
+  std::cout << "Deformation DeformedMesh1.vtk  Saved" << std::endl;
+ 
 
   //
   //  Starting process for the second resolution level (IC5).
@@ -401,7 +415,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
 
   PointSetType::ConstPointer upsampledPointSet = upsampleDestinationPoints->GetOutput();
-  
+
   const PointSetType::PointsContainer * upsampledPoints = upsampledPointSet->GetPoints();
 
   PointSetType::PointsContainerConstIterator upsampledPointsItr = upsampledPoints->Begin();
@@ -410,7 +424,6 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   FixedMeshType::PointsContainer::Pointer fixedPoints2 = fixedMesh2->GetPoints();
 
   FixedMeshType::PointsContainerIterator fixedPoint2Itr = fixedPoints2->Begin();
-
 
   while( upsampledPointsItr != upsampledPointsEnd )
     {
@@ -504,7 +517,20 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
+  deformationFilter->SetInputMesh( fixedMeshReader2->GetOutput() );
+  deformationFilter->SetDestinationPoints( demonsFilter->GetFinalDestinationPoints() );
+  deformationFilter->Update();
 
+  vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
+  vectorMeshWriter->SetFileName("VectorMesh2.vtk");
+  vectorMeshWriter->Update(); 
+  std::cout << "Deformation VectorMesh2.vtk  Saved" << std::endl;
+
+  writer->SetInput( demonsFilter->GetDeformedFixedMesh() );
+  writer->SetFileName("DeformedMesh2.vtk");
+  writer->Update(); 
+  std::cout << "Deformation DeformedMesh2.vtk  Saved" << std::endl;
+ 
   //
   //  Starting process for the Third resolution level (IC6).
   // 
@@ -655,6 +681,20 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
+  deformationFilter->SetInputMesh( fixedMeshReader3->GetOutput() );
+  deformationFilter->SetDestinationPoints( demonsFilter->GetFinalDestinationPoints() );
+  deformationFilter->Update();
+
+  vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
+  vectorMeshWriter->SetFileName("VectorMesh3.vtk");
+  vectorMeshWriter->Update(); 
+  std::cout << "Deformation VectorMesh3.vtk  Saved" << std::endl;
+
+  writer->SetInput( demonsFilter->GetDeformedFixedMesh() );
+  writer->SetFileName("DeformedMesh3.vtk");
+  writer->Update(); 
+  std::cout << "Deformation DeformedMesh3.vtk  Saved" << std::endl;
+ 
 
   //
   //  Starting process for the Fourth resolution level (IC7).
@@ -777,7 +817,6 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh4 );
   demonsFilter->SetMovingMesh( movingMeshReader4->GetOutput() );
 
-
   // 
   //  Running Fourth Resolution Level Demons Registration.
   //
@@ -805,6 +844,21 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
+
+  deformationFilter->SetInputMesh( fixedMeshReader4->GetOutput() );
+  deformationFilter->SetDestinationPoints( demonsFilter->GetFinalDestinationPoints() );
+  deformationFilter->Update();
+
+  vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
+  vectorMeshWriter->SetFileName("VectorMesh4.vtk");
+  vectorMeshWriter->Update(); 
+  std::cout << "Deformation VectorMesh4.vtk  Saved" << std::endl;
+
+  writer->SetFileName("DeformedMesh4.vtk");
+  writer->SetInput( demonsFilter->GetDeformedFixedMesh() );
+  writer->Update();
+  std::cout << "Deformation DeformedMesh4.vtk  Saved" << std::endl;
+
 
 
   //
@@ -858,6 +912,15 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   upsampledPointSet = upsampleDestinationPoints->GetOutput();
   
+  deformationFilter->SetInputMesh( fixedMeshReader5->GetOutput() );
+  deformationFilter->SetDestinationPoints( upsampleDestinationPoints->GetOutput() );
+  deformationFilter->Update();
+
+  vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
+  vectorMeshWriter->SetFileName("VectorMesh5.vtk");
+  vectorMeshWriter->Update(); 
+  std::cout << "Deformation VectorMesh5.vtk  Saved" << std::endl;
+
   upsampledPoints = upsampledPointSet->GetPoints();
 
   upsampledPointsItr = upsampledPoints->Begin();
@@ -887,6 +950,10 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
     return EXIT_FAILURE;
     }
 
+  writer->SetFileName("DeformedMesh5.vtk");
+  writer->SetInput( fixedMesh5 );
+  writer->Update();
+  std::cout << "Deformation DeformedMesh5.vtk  Saved" << std::endl;
 
   return EXIT_SUCCESS;
 }
