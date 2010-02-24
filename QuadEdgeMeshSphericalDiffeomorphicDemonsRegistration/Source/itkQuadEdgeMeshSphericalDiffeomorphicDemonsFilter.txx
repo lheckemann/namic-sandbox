@@ -721,6 +721,11 @@ ComputeShortestEdgeLength()
     }
 
   this->m_ShortestEdgeLength = shortestLength;
+
+  if( this->m_ShortestEdgeLength < vnl_math::eps )
+    {
+    itkExceptionMacro("The shortest edge length is too close to zero = " << shortestLength );
+    }
 }
 
 
