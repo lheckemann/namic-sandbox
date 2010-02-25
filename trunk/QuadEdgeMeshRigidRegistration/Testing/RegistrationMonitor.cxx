@@ -35,21 +35,21 @@ RegistrationMonitor::RegistrationMonitor()
   this->MovingSurface = NULL; // connected externally
 
   // Variable for the conversion of the ITK transform into VTK Matrix
-  this->Matrix     = vtkMatrix4x4::New();
+  this->Matrix     = vtkSmartPointer<vtkMatrix4x4>::New();
 
   // Own member objects
-  this->FixedActor     = vtkActor::New();
-  this->FixedProperty  = vtkProperty::New();
-  this->FixedMapper    = vtkPolyDataMapper::New();
+  this->FixedActor     = vtkSmartPointer<vtkActor>::New();
+  this->FixedProperty  = vtkSmartPointer<vtkProperty>::New();
+  this->FixedMapper    = vtkSmartPointer<vtkPolyDataMapper>::New();
 
-  this->MovingActor    = vtkActor::New();
-  this->MovingProperty = vtkProperty::New();
-  this->MovingMapper   = vtkPolyDataMapper::New();
+  this->MovingActor    = vtkSmartPointer<vtkActor>::New();
+  this->MovingProperty = vtkSmartPointer<vtkProperty>::New();
+  this->MovingMapper   = vtkSmartPointer<vtkPolyDataMapper>::New();
 
-  this->FixedRenderer                = vtkRenderer::New();
-  this->MovingRenderer                = vtkRenderer::New();
-  this->RenderWindow             = vtkRenderWindow::New();
-  this->RenderWindowInteractor   = vtkRenderWindowInteractor::New();
+  this->FixedRenderer            = vtkSmartPointer<vtkRenderer>::New();
+  this->MovingRenderer           = vtkSmartPointer<vtkRenderer>::New();
+  this->RenderWindow             = vtkSmartPointer<vtkRenderWindow>::New();
+  this->RenderWindowInteractor   = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
   // ITK Objects, does not require to call Delete()
   this->StartObserver       = ObserverType::New();
@@ -70,20 +70,6 @@ RegistrationMonitor::RegistrationMonitor()
 /** Destructor */
 RegistrationMonitor::~RegistrationMonitor()
 {
-  DeleteIfNotNullMacro( Matrix );
-
-  DeleteIfNotNullMacro( FixedRenderer );
-  DeleteIfNotNullMacro( MovingRenderer );
-  DeleteIfNotNullMacro( RenderWindow );
-  DeleteIfNotNullMacro( RenderWindowInteractor );
-
-  DeleteIfNotNullMacro( FixedActor );
-  DeleteIfNotNullMacro( FixedProperty );
-  DeleteIfNotNullMacro( FixedMapper );
-
-  DeleteIfNotNullMacro( MovingActor );
-  DeleteIfNotNullMacro( MovingProperty );
-  DeleteIfNotNullMacro( MovingMapper );
 }
 
 /** Set the Fixed Surface */
