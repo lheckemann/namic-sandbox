@@ -39,6 +39,14 @@
 #include "itkQuadEdgeMeshGenerateDeformationFieldFilter.h"
 #include "itkIdentityTransform.h"
 
+#include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationConfigure.h"
+
+#ifdef USE_VTK
+#include "RegistrationMonitor.h"
+#include "vtkSmartPointer.h"
+#include "vtkPolyDataReader.h"
+#endif
+
 
 class CommandIterationUpdate : public itk::Command 
 {
@@ -207,6 +215,29 @@ int main( int argc, char * argv [] )
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
   optimizer->AddObserver( itk::IterationEvent(), observer );
+
+#ifdef USE_VTK
+  RegistrationMonitor visualMonitor;
+  visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
+  visualMonitor.Observe( optimizer.GetPointer(), transform.GetPointer() );
+  visualMonitor.SetVerbose( false );
+
+  vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
+    vtkSmartPointer< vtkPolyDataReader >::New();
+
+  vtkSmartPointer< vtkPolyDataReader > vtkMovingMeshReader = 
+    vtkSmartPointer< vtkPolyDataReader >::New();
+
+  vtkFixedMeshReader->SetFileName( argv[1] );
+  vtkMovingMeshReader->SetFileName( argv[2] );
+
+  vtkFixedMeshReader->Update();
+  vtkMovingMeshReader->Update();
+
+  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+#endif
+
 
   try
     {
