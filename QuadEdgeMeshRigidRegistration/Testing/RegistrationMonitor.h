@@ -20,14 +20,15 @@
 #include "itkCommand.h"
 #include "itkOptimizer.h"
 
-class vtkPolyData;
-class vtkPolyDataMapper;
-class vtkActor;
-class vtkProperty;
-class vtkMatrix4x4;
-class vtkRenderer;
-class vtkRenderWindow;
-class vtkRenderWindowInteractor;
+#include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkProperty.h"
+#include "vtkMatrix4x4.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkSmartPointer.h"
 
 
 /** \class RegistrationMonitor 
@@ -58,23 +59,23 @@ public:
 
 private:
   
-  vtkMatrix4x4*                   Matrix;
+  vtkSmartPointer< vtkMatrix4x4 >        Matrix;
 
-  vtkPolyData*                    FixedSurface;
-  vtkActor*                       FixedActor;
-  vtkProperty*                    FixedProperty;
-  vtkPolyDataMapper*              FixedMapper;
+  vtkSmartPointer< vtkPolyData >         FixedSurface;
+  vtkSmartPointer< vtkActor >            FixedActor;
+  vtkSmartPointer< vtkProperty >         FixedProperty;
+  vtkSmartPointer< vtkPolyDataMapper >   FixedMapper;
 
-  vtkPolyData*                    MovingSurface;
-  vtkActor*                       MovingActor;
-  vtkProperty*                    MovingProperty;
-  vtkPolyDataMapper*              MovingMapper;
+  vtkSmartPointer< vtkPolyData >         MovingSurface;
+  vtkSmartPointer< vtkActor >            MovingActor;
+  vtkSmartPointer< vtkProperty >         MovingProperty;
+  vtkSmartPointer< vtkPolyDataMapper >   MovingMapper;
 
   // Visualization pipeline
-  vtkRenderer*                    FixedRenderer;
-  vtkRenderer*                    MovingRenderer;
-  vtkRenderWindow*                RenderWindow;
-  vtkRenderWindowInteractor*      RenderWindowInteractor;
+  vtkSmartPointer< vtkRenderer >         FixedRenderer;
+  vtkSmartPointer< vtkRenderer >         MovingRenderer;
+  vtkSmartPointer< vtkRenderWindow >     RenderWindow;
+  vtkSmartPointer< vtkRenderWindowInteractor >   RenderWindowInteractor;
 
   typedef itk::SimpleMemberCommand< Self >  ObserverType;
 
