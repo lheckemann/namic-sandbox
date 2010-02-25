@@ -31,7 +31,7 @@ endif (Subversion_FOUND)
 
 # --------------------------------------------------------------------------
 # Find NDI  tracking stuff
-option(BUILD_USING_NDIOAPI "Build Perk station with NDI tracking support." ON)
+option(BUILD_USING_NDIOAPI "Build Perk station with NDI tracking support." OFF)
 if(BUILD_USING_NDIOAPI)
     FIND_PATH(NDIOAPI_INCLUDE_DIR ndopto.h)
     FIND_LIBRARY(NDIOAPI_LIBRARY oapi)
