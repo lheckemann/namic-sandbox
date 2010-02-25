@@ -24,9 +24,6 @@
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 
-#define DeleteIfNotNullMacro(x) \
-  if( this->x ) this->x->Delete();
-
 /** Constructor */
 RegistrationMonitor::RegistrationMonitor()
 {
