@@ -18,6 +18,7 @@
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
+#include "vtkCamera.h"
 #include "vtkActor.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
@@ -45,7 +46,8 @@ RegistrationMonitor::RegistrationMonitor()
   this->MovingProperty = vtkProperty::New();
   this->MovingMapper   = vtkPolyDataMapper::New();
 
-  this->Renderer                 = vtkRenderer::New();
+  this->FixedRenderer                = vtkRenderer::New();
+  this->MovingRenderer                = vtkRenderer::New();
   this->RenderWindow             = vtkRenderWindow::New();
   this->RenderWindowInteractor   = vtkRenderWindowInteractor::New();
 
@@ -70,7 +72,8 @@ RegistrationMonitor::~RegistrationMonitor()
 {
   DeleteIfNotNullMacro( Matrix );
 
-  DeleteIfNotNullMacro( Renderer );
+  DeleteIfNotNullMacro( FixedRenderer );
+  DeleteIfNotNullMacro( MovingRenderer );
   DeleteIfNotNullMacro( RenderWindow );
   DeleteIfNotNullMacro( RenderWindowInteractor );
 
@@ -124,12 +127,19 @@ void RegistrationMonitor::StartVisualization()
     }
   
   // Setup the RenderWindow and its basic infrastructure
-  this->RenderWindow->SetSize( 600, 600 );
-  this->RenderWindow->AddRenderer( this->Renderer );
+  this->RenderWindow->SetSize( 1200, 600 );
+
+  this->FixedRenderer->SetViewport(0, 0, 0.5, 1.0);
+  this->MovingRenderer->SetViewport(0.5, 0, 1.0, 1.0);
+
+  this->RenderWindow->AddRenderer( this->FixedRenderer );
+  this->RenderWindow->AddRenderer( this->MovingRenderer );
+
   this->RenderWindowInteractor->SetRenderWindow( this->RenderWindow );
 
   // Set the background to something grayish
-  this->Renderer->SetBackground(0.4392, 0.5020, 0.5647);
+  this->FixedRenderer->SetBackground(0.4392, 0.5020, 0.5647);
+  this->MovingRenderer->SetBackground(0.4392, 0.5020, 0.5647);
 
   // Setup the Fixed Surface infrastructure
   this->FixedActor->SetMapper( this->FixedMapper );
@@ -163,12 +173,22 @@ void RegistrationMonitor::StartVisualization()
 
   // Connecting the Fixed and Moving surfaces to the 
   // visualization pipeline
-  //this->Renderer->AddActor( this->FixedActor );
-  this->Renderer->AddActor( this->MovingActor );
+  this->FixedRenderer->AddActor( this->FixedActor );
+  this->MovingRenderer->AddActor( this->MovingActor );
 
 
   // Bring up the render window and begin interaction.
-  this->Renderer->ResetCamera();
+  this->FixedRenderer->ResetCamera();
+  this->MovingRenderer->ResetCamera();
+
+  vtkCamera * fixedCamera = this->FixedRenderer->GetActiveCamera();
+  vtkCamera * movingCamera = this->MovingRenderer->GetActiveCamera();
+
+  const double zoomFactor = 1.5;
+
+  fixedCamera->Zoom( zoomFactor );
+  movingCamera->Zoom( zoomFactor );
+
   this->RenderWindow->Render();
   this->RenderWindowInteractor->Initialize();
 

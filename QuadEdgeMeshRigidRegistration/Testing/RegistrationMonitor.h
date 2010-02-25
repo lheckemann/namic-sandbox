@@ -71,7 +71,8 @@ private:
   vtkPolyDataMapper*              MovingMapper;
 
   // Visualization pipeline
-  vtkRenderer*                    Renderer;
+  vtkRenderer*                    FixedRenderer;
+  vtkRenderer*                    MovingRenderer;
   vtkRenderWindow*                RenderWindow;
   vtkRenderWindowInteractor*      RenderWindowInteractor;
 
