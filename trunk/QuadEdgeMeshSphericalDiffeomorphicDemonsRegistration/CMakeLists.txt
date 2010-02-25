@@ -32,6 +32,7 @@ INCLUDE(CTest)
 
 INCLUDE_DIRECTORIES(
   ${PROJECT_SOURCE_DIR}/Source
+  ${PROJECT_BINARY_DIR}/Source
   ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshRigidRegistration/Source
   ${PROJECT_SOURCE_DIR}/../QuadEdgeMeshRigidRegistration/Testing
   )
@@ -50,6 +51,11 @@ IF(WIN32)
     ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
   ENDIF(DISABLE_MSVC8_DEPRECATED_WARNINGS)
 ENDIF(WIN32)
+
+CONFIGURE_FILE(
+  ${PROJECT_SOURCE_DIR}/Source/itkQuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationConfigure.h.in
+  ${PROJECT_BINARY_DIR}/Source/itkQuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationConfigure.h
+  )
 
 ADD_SUBDIRECTORY( Source )
 ADD_SUBDIRECTORY( Testing )
