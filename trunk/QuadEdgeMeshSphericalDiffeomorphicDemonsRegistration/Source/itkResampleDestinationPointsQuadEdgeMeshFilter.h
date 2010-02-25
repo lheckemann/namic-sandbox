@@ -112,12 +112,7 @@ public:
   /** Get a pointer to the coordinate transform. */
   itkGetConstObjectMacro( Transform, TransformType );
 
-  /** Set the interpolator function.  The default is
-   * itk::LinearInterpolateMeshFunction<InputPointSetType, TInterpolatorPrecisionType>. Some
-   * other options are itk::NearestNeighborInterpolateMeshFunction
-   * (useful for binary masks and other images with a small number of
-   * possible pixel values), and itk::BSplineInterpolateMeshFunction
-   * (which provides a higher order of interpolation).  */
+  /** Set the interpolator function.  The default is a linear interpolator. */
   itkSetObjectMacro( Interpolator, InterpolatorType );
 
   /** Get a pointer to the interpolator function. */
