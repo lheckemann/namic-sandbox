@@ -49,8 +49,15 @@ ELSE(USE_VTK)
   TARGET_LINK_LIBRARIES(RigidMeshRegistration ITKQuadEdgeMesh ITKIO ITKNumerics)
 ENDIF(USE_VTK)
 
-ADD_EXECUTABLE(MultiResolutionRegistration1 MultiResolutionRegistration1.cxx)
-TARGET_LINK_LIBRARIES(MultiResolutionRegistration1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+IF(USE_VTK)
+  ADD_EXECUTABLE(MultiResolutionRegistration1 MultiResolutionRegistration1.cxx
+    ${QuadEdgeMeshRigidRegistration}/Testing/RegistrationMonitor.cxx)
+  TARGET_LINK_LIBRARIES(MultiResolutionRegistration1 ITKQuadEdgeMesh ITKIO ITKNumerics
+    vtkRendering vtkFiltering vtkIO vtkHybrid)
+ELSE(USE_VTK)
+  ADD_EXECUTABLE(MultiResolutionRegistration1 MultiResolutionRegistration1.cxx)
+  TARGET_LINK_LIBRARIES(MultiResolutionRegistration1 ITKQuadEdgeMesh ITKIO ITKNumerics)
+ENDIF(USE_VTK)
 
 ADD_EXECUTABLE(QuadEdgeMeshSphericalRMSDistanceMetric
  QuadEdgeMeshSphericalRMSDistanceMetric.cxx) 
