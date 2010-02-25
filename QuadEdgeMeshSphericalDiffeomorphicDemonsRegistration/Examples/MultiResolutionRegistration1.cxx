@@ -42,7 +42,7 @@
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationConfigure.h"
 
 #ifdef USE_VTK
-#include "RegistrationMonitor.h"
+#include "AffineRegistrationMonitor.h"
 #include "vtkSmartPointer.h"
 #include "vtkPolyDataReader.h"
 #endif
@@ -217,7 +217,7 @@ int main( int argc, char * argv [] )
   optimizer->AddObserver( itk::IterationEvent(), observer );
 
 #ifdef USE_VTK
-  RegistrationMonitor visualMonitor;
+  AffineRegistrationMonitor visualMonitor;
   visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
   visualMonitor.Observe( optimizer.GetPointer(), transform.GetPointer() );
   visualMonitor.SetVerbose( false );
