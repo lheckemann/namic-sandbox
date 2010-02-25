@@ -37,9 +37,17 @@ ADD_EXECUTABLE(ResampleMeshUsingRegularSphere ResampleMeshUsingRegularSphere.cxx
 TARGET_LINK_LIBRARIES(ResampleMeshUsingRegularSphere
  ITKQuadEdgeMesh ITKNumerics ITKIO) 
 
-ADD_EXECUTABLE(RigidMeshRegistration
-  ${QuadEdgeMeshRigidRegistration}/Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx)
-TARGET_LINK_LIBRARIES(RigidMeshRegistration ITKQuadEdgeMesh ITKIO ITKNumerics)
+IF(USE_VTK)
+  ADD_EXECUTABLE(RigidMeshRegistration
+    ${QuadEdgeMeshRigidRegistration}/Examples/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1.cxx
+    ${QuadEdgeMeshRigidRegistration}/Testing/RegistrationMonitor.cxx)
+  TARGET_LINK_LIBRARIES(RigidMeshRegistration ITKQuadEdgeMesh ITKIO ITKNumerics
+    vtkRendering vtkFiltering vtkIO vtkHybrid)
+ELSE(USE_VTK)
+  ADD_EXECUTABLE(RigidMeshRegistration
+    ${QuadEdgeMeshRigidRegistration}/Examples/MeanSquaresMeshToMeshMetricRegistration1.cxx)
+  TARGET_LINK_LIBRARIES(RigidMeshRegistration ITKQuadEdgeMesh ITKIO ITKNumerics)
+ENDIF(USE_VTK)
 
 ADD_EXECUTABLE(MultiResolutionRegistration1 MultiResolutionRegistration1.cxx)
 TARGET_LINK_LIBRARIES(MultiResolutionRegistration1 ITKQuadEdgeMesh ITKIO ITKNumerics)
@@ -399,17 +407,17 @@ IF( USE_TRAINING_SET )
   RESAMPLE_MESH_ALL_LEVELS( 19 )
   RESAMPLE_MESH_ALL_LEVELS( 20 )
 
-  RIGIDLY_REGISTER( 11a  12a  4 )
-  RIGIDLY_REGISTER( 13a  14a  4 )
-  RIGIDLY_REGISTER( 15a  16a  4 )
-  RIGIDLY_REGISTER( 17a  18a  4 )
-  RIGIDLY_REGISTER( 19a  20a  4 )
+  RIGIDLY_REGISTER( 12a  11a  4 )
+  RIGIDLY_REGISTER( 14a  13a  4 )
+  RIGIDLY_REGISTER( 16a  15a  4 )
+  RIGIDLY_REGISTER( 18a  17a  4 )
+  RIGIDLY_REGISTER( 20a  19a  4 )
 
-  DEMONS_REGISTER( 11a  12a  4 )
-  DEMONS_REGISTER( 13a  14a  4 )
-  DEMONS_REGISTER( 15a  16a  4 )
-  DEMONS_REGISTER( 17a  18a  4 )
-  DEMONS_REGISTER( 19a  20a  4 )
+  DEMONS_REGISTER( 12a  11a  4 )
+  DEMONS_REGISTER( 14a  13a  4 )
+  DEMONS_REGISTER( 16a  15a  4 )
+  DEMONS_REGISTER( 18a  17a  4 )
+  DEMONS_REGISTER( 20a  19a  4 )
 
   MULTIRES_REGISTER( 12 11 )
   MULTIRES_REGISTER( 14 13 )
