@@ -210,7 +210,7 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 50 );
+  optimizer->SetNumberOfIterations( 64 );
 
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
@@ -228,8 +228,8 @@ int main( int argc, char * argv [] )
   vtkSmartPointer< vtkPolyDataReader > vtkMovingMeshReader = 
     vtkSmartPointer< vtkPolyDataReader >::New();
 
-  vtkFixedMeshReader->SetFileName( argv[1] );
-  vtkMovingMeshReader->SetFileName( argv[2] );
+  vtkFixedMeshReader->SetFileName( fixedMeshReader1->GetFileName() );
+  vtkMovingMeshReader->SetFileName( movingMeshReader1->GetFileName() );
 
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
@@ -487,23 +487,25 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   //
   //   Save deformed fixed mesh, before initiating rigid registration
   //
-  
   writer->SetInput( fixedMesh2 );
   writer->SetFileName("DeformedMesh2BeforeRigidRegistration.vtk");
   writer->Update(); 
 
+#ifdef USE_VTK
   // 
   //  Reconnecting Registration monitor
   //
   vtkFixedMeshReader->SetFileName("DeformedMesh2BeforeRigidRegistration.vtk");
-  vtkMovingMeshReader->SetFileName( argv[5] );
+  vtkMovingMeshReader->SetFileName( movingMeshReader2->GetFileName() );
+
+  visualMonitor.SetNumberOfIterationsPerUpdate( 2 );
 
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
 
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
-
+#endif
 
   // 
   //  Running Second Resolution Level Rigid Registration.
@@ -674,6 +676,29 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   registration->SetInitialTransformParameters( parameters );
 
+  //
+  //   Save deformed fixed mesh, before initiating rigid registration
+  //
+  writer->SetInput( fixedMesh3 );
+  writer->SetFileName("DeformedMesh3BeforeRigidRegistration.vtk");
+  writer->Update(); 
+
+#ifdef USE_VTK
+  // 
+  //  Reconnecting Registration monitor
+  //
+  vtkFixedMeshReader->SetFileName("DeformedMesh3BeforeRigidRegistration.vtk");
+  vtkMovingMeshReader->SetFileName( movingMeshReader3->GetFileName() );
+
+  visualMonitor.SetNumberOfIterationsPerUpdate( 4 );
+
+  vtkFixedMeshReader->Update();
+  vtkMovingMeshReader->Update();
+
+  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+#endif
+
   // 
   //  Running Third Resolution Level Rigid Registration.
   //
@@ -843,6 +868,31 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   parameters = transform->GetParameters();
 
   registration->SetInitialTransformParameters( parameters );
+
+
+  //
+  //   Save deformed fixed mesh, before initiating rigid registration
+  //
+  writer->SetInput( fixedMesh4 );
+  writer->SetFileName("DeformedMesh4BeforeRigidRegistration.vtk");
+  writer->Update(); 
+
+
+#ifdef USE_VTK
+  // 
+  //  Reconnecting Registration monitor
+  //
+  vtkFixedMeshReader->SetFileName("DeformedMesh4BeforeRigidRegistration.vtk");
+  vtkMovingMeshReader->SetFileName( movingMeshReader4->GetFileName() );
+
+  visualMonitor.SetNumberOfIterationsPerUpdate( 8 );
+
+  vtkFixedMeshReader->Update();
+  vtkMovingMeshReader->Update();
+
+  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+#endif
 
   // 
   //  Running Fourth Resolution Level Rigid Registration.
