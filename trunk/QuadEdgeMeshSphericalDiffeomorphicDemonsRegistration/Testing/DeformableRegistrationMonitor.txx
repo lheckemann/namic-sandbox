@@ -49,6 +49,9 @@ void DeformableRegistrationMonitor<TPointSet>
     itk::StartEvent(), this->StartObserver     );
 
   this->ObservedFilter->AddObserver( 
+    itk::ProgressEvent(), this->IterationObserver );
+
+  this->ObservedFilter->AddObserver( 
     itk::IterationEvent(), this->IterationObserver );
 }
 
