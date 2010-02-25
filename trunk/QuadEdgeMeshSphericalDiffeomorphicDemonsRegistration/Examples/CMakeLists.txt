@@ -40,6 +40,7 @@ TARGET_LINK_LIBRARIES(ResampleMeshUsingRegularSphere
 IF(USE_VTK)
   ADD_EXECUTABLE(RigidMeshRegistration
     ${QuadEdgeMeshRigidRegistration}/Examples/MeanSquaresMeshToMeshMetricRegistrationWithMonitor1.cxx
+    ${QuadEdgeMeshRigidRegistration}/Testing/AffineRegistrationMonitor.cxx
     ${QuadEdgeMeshRigidRegistration}/Testing/RegistrationMonitor.cxx)
   TARGET_LINK_LIBRARIES(RigidMeshRegistration ITKQuadEdgeMesh ITKIO ITKNumerics
     vtkRendering vtkFiltering vtkIO vtkHybrid)
@@ -51,6 +52,7 @@ ENDIF(USE_VTK)
 
 IF(USE_VTK)
   ADD_EXECUTABLE(MultiResolutionRegistration1 MultiResolutionRegistration1.cxx
+    ${QuadEdgeMeshRigidRegistration}/Testing/AffineRegistrationMonitor.cxx
     ${QuadEdgeMeshRigidRegistration}/Testing/RegistrationMonitor.cxx)
   TARGET_LINK_LIBRARIES(MultiResolutionRegistration1 ITKQuadEdgeMesh ITKIO ITKNumerics
     vtkRendering vtkFiltering vtkIO vtkHybrid)
