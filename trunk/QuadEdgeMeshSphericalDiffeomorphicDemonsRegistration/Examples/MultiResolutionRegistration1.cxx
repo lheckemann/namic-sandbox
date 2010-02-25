@@ -43,6 +43,7 @@
 
 #ifdef USE_VTK
 #include "AffineRegistrationMonitor.h"
+#include "DeformableRegistrationMonitor.h"
 #include "vtkSmartPointer.h"
 #include "vtkPolyDataReader.h"
 #endif
@@ -217,10 +218,10 @@ int main( int argc, char * argv [] )
   optimizer->AddObserver( itk::IterationEvent(), observer );
 
 #ifdef USE_VTK
-  AffineRegistrationMonitor visualMonitor;
-  visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
-  visualMonitor.Observe( optimizer.GetPointer(), transform.GetPointer() );
-  visualMonitor.SetVerbose( false );
+  AffineRegistrationMonitor visualMonitorRigid;
+  visualMonitorRigid.SetNumberOfIterationsPerUpdate( 1 );
+  visualMonitorRigid.Observe( optimizer.GetPointer(), transform.GetPointer() );
+  visualMonitorRigid.SetVerbose( false );
 
   vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
     vtkSmartPointer< vtkPolyDataReader >::New();
@@ -234,8 +235,8 @@ int main( int argc, char * argv [] )
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
 
-  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
-  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+  visualMonitorRigid.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitorRigid.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
 #endif
 
 
@@ -315,6 +316,8 @@ int main( int argc, char * argv [] )
   typedef itk::QuadEdgeMeshSphericalDiffeomorphicDemonsFilter<
     FixedMeshType, MovingMeshType, RegisteredMeshType >   DemonsFilterType;
 
+  typedef DemonsFilterType::DestinationPointSetType    DestinationPointSetType;
+
   DemonsFilterType::Pointer demonsFilter = DemonsFilterType::New();
 
   demonsFilter->SetFixedMesh( fixedMeshReader1->GetOutput() );
@@ -347,6 +350,17 @@ int main( int argc, char * argv [] )
   //
   demonsFilter->SetInitialDestinationPoints( destinationPoints );
 
+#ifdef USE_VTK
+  typedef DeformableRegistrationMonitor< DestinationPointSetType > DeformableMonitorType;
+  DeformableMonitorType visualMonitorDeformable;
+  visualMonitorDeformable.SetNumberOfIterationsPerUpdate( 1 );
+  visualMonitorDeformable.Observe( demonsFilter.GetPointer(), demonsFilter->GetFinalDestinationPoints() );
+  visualMonitorDeformable.SetVerbose( false );
+
+  visualMonitorDeformable.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitorDeformable.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+#endif
+
   try
     {
     demonsFilter->Update( );
@@ -374,7 +388,6 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  typedef DemonsFilterType::DestinationPointSetType    DestinationPointSetType;
   DestinationPointSetType::Pointer finalDestinationPoints = demonsFilter->GetFinalDestinationPoints();
   
   finalDestinationPoints->DisconnectPipeline();
@@ -498,13 +511,13 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   vtkFixedMeshReader->SetFileName("DeformedMesh2BeforeRigidRegistration.vtk");
   vtkMovingMeshReader->SetFileName( movingMeshReader2->GetFileName() );
 
-  visualMonitor.SetNumberOfIterationsPerUpdate( 2 );
+  visualMonitorRigid.SetNumberOfIterationsPerUpdate( 2 );
 
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
 
-  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
-  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+  visualMonitorRigid.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitorRigid.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
 #endif
 
   // 
@@ -690,13 +703,13 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   vtkFixedMeshReader->SetFileName("DeformedMesh3BeforeRigidRegistration.vtk");
   vtkMovingMeshReader->SetFileName( movingMeshReader3->GetFileName() );
 
-  visualMonitor.SetNumberOfIterationsPerUpdate( 4 );
+  visualMonitorRigid.SetNumberOfIterationsPerUpdate( 4 );
 
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
 
-  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
-  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+  visualMonitorRigid.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitorRigid.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
 #endif
 
   // 
@@ -885,13 +898,13 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   vtkFixedMeshReader->SetFileName("DeformedMesh4BeforeRigidRegistration.vtk");
   vtkMovingMeshReader->SetFileName( movingMeshReader4->GetFileName() );
 
-  visualMonitor.SetNumberOfIterationsPerUpdate( 8 );
+  visualMonitorRigid.SetNumberOfIterationsPerUpdate( 8 );
 
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
 
-  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
-  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+  visualMonitorRigid.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitorRigid.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
 #endif
 
   // 
