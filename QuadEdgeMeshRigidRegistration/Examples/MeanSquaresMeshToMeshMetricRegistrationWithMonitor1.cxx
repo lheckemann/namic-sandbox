@@ -30,7 +30,7 @@
 #include "itkVTKPolyDataReader.h"
 #include "itkQuadEdgeMeshScalarDataVTKPolyDataWriter.h"
 
-#include "RegistrationMonitor.h"
+#include "AffineRegistrationMonitor.h"
 #include "vtkPolyDataReader.h"
 #include "vtkPolyData.h"
 #include "vtkSmartPointer.h"
@@ -220,7 +220,7 @@ int main( int argc, char * argv [] )
   vtkMovingMeshReader->Update();
 
 
-  RegistrationMonitor visualMonitor;
+  AffineRegistrationMonitor visualMonitor;
 
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );

@@ -34,6 +34,7 @@ IF(QuadEdgeMeshRigidRegistration_USE_VTK)
 
   ADD_EXECUTABLE(MeanSquaresMeshToMeshMetricRegistrationWithMonitor1 
     MeanSquaresMeshToMeshMetricRegistrationWithMonitor1.cxx
+    ${QuadEdgeMeshRigidRegistration_SOURCE_DIR}/Testing/AffineRegistrationMonitor.cxx
     ${QuadEdgeMeshRigidRegistration_SOURCE_DIR}/Testing/RegistrationMonitor.cxx
     ) 
   TARGET_LINK_LIBRARIES(MeanSquaresMeshToMeshMetricRegistrationWithMonitor1 
