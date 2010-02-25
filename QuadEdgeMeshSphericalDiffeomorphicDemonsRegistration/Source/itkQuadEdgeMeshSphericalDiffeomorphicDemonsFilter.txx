@@ -258,7 +258,6 @@ GenerateData()
   this->ComputeMappedMovingValueAtEveryNode();
   this->AssignResampledMovingValuesToOutputMesh();
   this->ComposeFixedMeshOutputDisplacedToMovingMesh();
-  this->ComposeDestinationPointsOutputPointSet();
 }
 
 
@@ -472,6 +471,7 @@ RunIterations()
     this->ComputeDeformationByScalingAndSquaring();
     this->ComposeDeformationUpdateWithPreviousDeformation();
     this->SmoothDeformationField();
+    this->ComposeDestinationPointsOutputPointSet();
 
     // Report progress via Events
     progress.CompletedPixel();
