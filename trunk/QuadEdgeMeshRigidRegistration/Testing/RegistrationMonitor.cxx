@@ -23,7 +23,6 @@
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
-#include "vtkMatrix4x4.h"
 
 #define DeleteIfNotNullMacro(x) \
   if( this->x ) this->x->Delete();
@@ -33,9 +32,6 @@ RegistrationMonitor::RegistrationMonitor()
 {
   this->FixedSurface  = NULL; // connected externally
   this->MovingSurface = NULL; // connected externally
-
-  // Variable for the conversion of the ITK transform into VTK Matrix
-  this->Matrix     = vtkSmartPointer<vtkMatrix4x4>::New();
 
   // Own member objects
   this->FixedActor     = vtkSmartPointer<vtkActor>::New();
@@ -67,10 +63,12 @@ RegistrationMonitor::RegistrationMonitor()
   this->Verbose = true;
 }
 
+
 /** Destructor */
 RegistrationMonitor::~RegistrationMonitor()
 {
 }
+
 
 /** Set the Fixed Surface */
 void RegistrationMonitor::SetFixedSurface(vtkPolyData* surface)
@@ -78,25 +76,13 @@ void RegistrationMonitor::SetFixedSurface(vtkPolyData* surface)
   this->FixedSurface = surface;
 }
 
+
 /** Set the Moving Surface */
 void RegistrationMonitor::SetMovingSurface(vtkPolyData* surface)
 {
   this->MovingSurface = surface;
 }
 
-/** Set transform */
-void RegistrationMonitor
-::Observe( OptimizerType * optimizer, TransformType * transform )
-{
-  this->ObservedOptimizer = optimizer;
-  this->ObservedTransform = transform;
-
-  this->ObservedOptimizer->AddObserver( 
-    itk::StartEvent(), this->StartObserver     );
-
-  this->ObservedOptimizer->AddObserver( 
-    itk::IterationEvent(), this->IterationObserver );
-}
 
 /** Callback for the StartEvent */
 void RegistrationMonitor::StartVisualization()
@@ -181,6 +167,7 @@ void RegistrationMonitor::StartVisualization()
   visualizationPipelineInitialized = true;
 }
 
+
 /** Update the Visualization */
 void RegistrationMonitor
 ::SetNumberOfIterationsPerUpdate( unsigned int number )
@@ -197,10 +184,28 @@ void RegistrationMonitor
 }
 
 
+/** Set the transform in the actor of the moving surface */
+void RegistrationMonitor
+::SetMovingActorMatrix( vtkMatrix4x4 * matrix )
+{
+  if( matrix )
+    {
+    this->MovingActor->SetUserMatrix( matrix );
+    }
+}
+
+
+/** Refresh the rendering of the scene. */
+void RegistrationMonitor
+::RefreshRendering()
+{
+  this->RenderWindowInteractor->Render();
+}
+
+
 /** Update the Visualization */
 void RegistrationMonitor::Update()
 {
-
   if( this->Verbose )
     {
     std::cout << "Iteration " << this->CurrentIterationNumber << std::endl;
@@ -216,24 +221,4 @@ void RegistrationMonitor::Update()
     {
     this->CurrentIterationNumber++;
     }
-
-  TransformType::MatrixType matrix = 
-    this->ObservedTransform->GetMatrix();
- 
-  TransformType::OffsetType offset = 
-    this->ObservedTransform->GetOffset();
-
-  for(unsigned int i=0; i<3; i++ )
-    {
-    for(unsigned int j=0; j<3; j++ )
-      {
-      this->Matrix->SetElement(i,j,
-        matrix.GetVnlMatrix().get(i,j));   
-      }
-
-    this->Matrix->SetElement( i, 3, offset[i]);
-    }
-
-  this->MovingActor->SetUserMatrix( this->Matrix );
-  this->RenderWindowInteractor->Render();
 }
