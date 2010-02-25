@@ -484,6 +484,27 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   registration->SetInitialTransformParameters( parameters );
 
+  //
+  //   Save deformed fixed mesh, before initiating rigid registration
+  //
+  
+  writer->SetInput( fixedMesh2 );
+  writer->SetFileName("DeformedMesh2BeforeRigidRegistration.vtk");
+  writer->Update(); 
+
+  // 
+  //  Reconnecting Registration monitor
+  //
+  vtkFixedMeshReader->SetFileName("DeformedMesh2BeforeRigidRegistration.vtk");
+  vtkMovingMeshReader->SetFileName( argv[5] );
+
+  vtkFixedMeshReader->Update();
+  vtkMovingMeshReader->Update();
+
+  visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+
+
   // 
   //  Running Second Resolution Level Rigid Registration.
   //
