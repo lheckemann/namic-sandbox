@@ -144,12 +144,12 @@ void RegistrationMonitor::StartVisualization()
   // Setup the Fixed Surface infrastructure
   this->FixedActor->SetMapper( this->FixedMapper );
   this->FixedMapper->SetInput( this->FixedSurface );
-  //this->FixedMapper->ScalarVisibilityOff();
+  this->FixedMapper->ScalarVisibilityOn();
 
   this->FixedProperty->SetAmbient(0.1);
   this->FixedProperty->SetDiffuse(0.1);
-  this->FixedProperty->SetSpecular(0.5);
-  this->FixedProperty->SetColor(0.785,0.0,0.0);
+  this->FixedProperty->SetSpecular(0.1);
+  // this->FixedProperty->SetColor(1.0, 1.0, 1.0);
   this->FixedProperty->SetLineWidth(2.0);
   //this->FixedProperty->SetRepresentationToPoints();
 
@@ -159,12 +159,12 @@ void RegistrationMonitor::StartVisualization()
   // Setup the Moving Surface infrastructure
   this->MovingActor->SetMapper( this->MovingMapper );
   this->MovingMapper->SetInput( this->MovingSurface );
-  //this->MovingMapper->ScalarVisibilityOff();
+  this->MovingMapper->ScalarVisibilityOn();
 
   this->MovingProperty->SetAmbient(0.1);
   this->MovingProperty->SetDiffuse(0.1);
-  this->MovingProperty->SetSpecular(0.5);
-  this->MovingProperty->SetColor(0.0,0.0,0.785);
+  this->MovingProperty->SetSpecular(0.1);
+  // this->MovingProperty->SetColor(1.0,1.0,1.0);
   this->MovingProperty->SetLineWidth(2.0);
   //this->MovingProperty->SetRepresentationToPoints();
 
