@@ -653,13 +653,7 @@ ComputeVelocityField()
 
     metricSum += ( Fv - Mv )*( Fv - Mv ) / sigmaN2;
 
-    //
-    // FIXME   velocityItr.Value() = Vn;
-    //
-    // FIXME   velocityItr.Value() = Vn * ( this->m_SphereRadius );
-    //
-    velocityItr.Value() = Vn * (this->m_SphereRadius * this->m_SphereRadius);
-    //
+    velocityItr.Value() = Vn * ( this->m_SphereRadius );
 
     ++velocityItr;
     ++sigmaItr;
