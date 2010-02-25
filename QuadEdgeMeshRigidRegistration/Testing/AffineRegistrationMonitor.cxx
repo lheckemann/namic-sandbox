@@ -17,9 +17,6 @@
 
 #include "vtkMatrix4x4.h"
 
-#define DeleteIfNotNullMacro(x) \
-  if( this->x ) this->x->Delete();
-
 /** Constructor */
 AffineRegistrationMonitor::AffineRegistrationMonitor()
 {
