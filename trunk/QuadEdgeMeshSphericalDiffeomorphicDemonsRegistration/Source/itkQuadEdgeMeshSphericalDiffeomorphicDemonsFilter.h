@@ -26,6 +26,7 @@
 #include "itkTriangleBasisSystem.h"
 #include "itkVectorContainer.h"
 #include "itkVector.h"
+#include "itkTimeProbesCollectorBase.h"
 
 
 namespace itk
@@ -384,6 +385,7 @@ private:
   TangentVectorPointer              m_TangentVectorField;
   TangentVectorPointer              m_TangentVectorFieldSwap;
 
+  TimeProbesCollectorBase           m_Chronometer;
 };
 
 }
