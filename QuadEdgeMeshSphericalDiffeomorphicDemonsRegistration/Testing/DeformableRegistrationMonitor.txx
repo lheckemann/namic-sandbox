@@ -25,14 +25,6 @@ template <class TPointSet>
 DeformableRegistrationMonitor<TPointSet>
 ::DeformableRegistrationMonitor()
 {
-  this->StartObserver       = ObserverType::New();
-  this->IterationObserver   = ObserverType::New();
-
-  this->StartObserver->SetCallbackFunction( 
-    this, & Self::StartVisualization );
-
-  this->IterationObserver->SetCallbackFunction( 
-    this, & Self::Update );
 }
 
 /** Destructor */
@@ -46,71 +38,17 @@ DeformableRegistrationMonitor<TPointSet>
 /** Set the objects to be observed: optimizer and transform */
 template <class TPointSet>
 void DeformableRegistrationMonitor<TPointSet>
-::Observe( ProcessObjectType * filter, const PointSetType * destinationPointSet )
+::ObserveData( const PointSetType * destinationPointSet )
 {
   this->ObservedPointSet = destinationPointSet;
-
-  if( this->ObservedFilter != filter )
-    {
-    this->RemovePreviousObservers();
-
-    this->ObservedFilter = filter;
-
-    unsigned long observerTag =
-      this->ObservedFilter->AddObserver( 
-        itk::StartEvent(), this->StartObserver     );
-    
-    this->ObserverTags.push_back( observerTag );
-
-    observerTag = this->ObservedFilter->AddObserver( 
-      itk::ProgressEvent(), this->IterationObserver );
-
-    this->ObserverTags.push_back( observerTag );
-
-    observerTag = this->ObservedFilter->AddObserver( 
-      itk::IterationEvent(), this->IterationObserver );
-
-    this->ObserverTags.push_back( observerTag );
-    }
-}
-
-
-/** Set the objects to be observed: optimizer and transform */
-template <class TPointSet>
-void DeformableRegistrationMonitor<TPointSet>
-::RemovePreviousObservers()
-{
-  if( this->ObservedFilter.IsNotNull() )
-    {
-    ObserverTagsArrayType::const_iterator observerTagItr = this->ObserverTags.begin();
-    ObserverTagsArrayType::const_iterator observerTagEnd = this->ObserverTags.end();
-
-    while( observerTagItr != observerTagEnd )
-      {
-      this->ObservedFilter->RemoveObserver( *observerTagItr );
-      ++observerTagItr;
-      }
-    }
-}
-
-
-/** Callback for the StartEvent */
-template <class TPointSet>
-void DeformableRegistrationMonitor<TPointSet>
-::StartVisualization()
-{
-  std::cout << "Starting Deformable Visualization" << std::endl;
-  this->Superclass::StartVisualization();
 }
 
 
 /** Update the Visualization */
 template <class TPointSet>
 void DeformableRegistrationMonitor<TPointSet>
-::Update()
+::UpdateDataBeforeRendering()
 {
-  this->Superclass::Update();
-
   typedef typename PointSetType::PointsContainer    PointsContainer;
   typedef typename PointsContainer::ConstIterator   PointsIterator;
   typedef typename PointSetType::PointType          PointType;
@@ -164,6 +102,4 @@ void DeformableRegistrationMonitor<TPointSet>
 
   // FIXME : Do we need to disconnect the fixed mesh from its source ?
   // FIXME : Do we need to call Modified in the fixed mesh ?
-
-  this->RefreshRendering();
 }
