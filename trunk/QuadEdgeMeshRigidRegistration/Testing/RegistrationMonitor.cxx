@@ -23,6 +23,8 @@
 #include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
+#include "vtkWindowToImageFilter.h"
+#include "vtkPNGWriter.h"
 
 /** Constructor */
 RegistrationMonitor::RegistrationMonitor()
@@ -205,6 +207,11 @@ void RegistrationMonitor
 ::RefreshRendering()
 {
   this->RenderWindowInteractor->Render();
+
+  if( ! this->ScreenShotsBaseFileName.empty() )
+    {
+    this->SaveScreenShot();
+    }
 }
 
 
@@ -227,3 +234,42 @@ void RegistrationMonitor::Update()
     this->CurrentIterationNumber++;
     }
 }
+
+
+void 
+RegistrationMonitor
+::SetScreenShotsBaseFileName( const char * screenShotFileName )
+{
+  this->ScreenShotsBaseFileName = screenShotFileName;
+}
+
+
+void 
+RegistrationMonitor
+::SaveScreenShot()
+{
+  vtkSmartPointer< vtkWindowToImageFilter >  windowToImageFilter = 
+    vtkSmartPointer< vtkWindowToImageFilter >::New();
+
+  vtkSmartPointer< vtkPNGWriter > writer = vtkSmartPointer< vtkPNGWriter >::New();
+
+  windowToImageFilter->SetInput( this->RenderWindow );
+
+  windowToImageFilter->Update();
+
+  writer->SetInput( windowToImageFilter->GetOutput() );
+  
+  ::itk::OStringStream message;
+  message << this->ScreenShotsBaseFileName;
+  message.fill(0);
+  message.width(5);
+  message << this->CurrentIterationNumber;
+  message << ".png";
+
+  writer->SetFileName( message.str().c_str() );
+  
+  this->RenderWindow->Render();
+  
+  writer->Write();
+}
+
