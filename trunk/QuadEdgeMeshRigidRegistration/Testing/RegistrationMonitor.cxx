@@ -261,7 +261,7 @@ RegistrationMonitor
   
   ::itk::OStringStream message;
   message << this->ScreenShotsBaseFileName;
-  message.fill(0);
+  message.fill('0');
   message.width(5);
   message << this->CurrentIterationNumber;
   message << ".png";
@@ -271,5 +271,7 @@ RegistrationMonitor
   this->RenderWindow->Render();
   
   writer->Write();
+
+  std::cout << "Wrote : " << message.str().c_str() << std::endl;
 }
 
