@@ -110,7 +110,8 @@ ADD_TEST(anonConvert${ID}b
 ADD_TEST(anonConvert${ID}c
   ${CXX_TEST_PATH}/ReadFreesurferBinarySurfaceWriteVTKMesh
   ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sphere
-  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.curv
+#  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.curv
+  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sulc
   ${TEMP}/sub${ID}c.vtk
   )
  
