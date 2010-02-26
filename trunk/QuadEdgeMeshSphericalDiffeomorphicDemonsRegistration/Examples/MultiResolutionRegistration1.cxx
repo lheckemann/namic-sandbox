@@ -523,6 +523,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   visualMonitor.SetBaseAnnotationText("Rigid Registration Level 2");
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+  visualMonitor.Observe( optimizer.GetPointer() );
   visualMonitor.ObserveData( transform.GetPointer() );
 #endif
 
@@ -572,6 +573,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
   visualMonitor.SetBaseAnnotationText("Demons Registration Level 2");
+  visualMonitor.Observe( demonsFilter.GetPointer() );
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
 
@@ -721,6 +723,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   visualMonitor.SetBaseAnnotationText("Rigid Registration Level 3");
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+  visualMonitor.Observe( optimizer.GetPointer() );
   visualMonitor.ObserveData( transform.GetPointer() );
 #endif
 
@@ -770,6 +773,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
   visualMonitor.SetBaseAnnotationText("Demons Registration Level 3");
+  visualMonitor.Observe( demonsFilter.GetPointer() );
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
 
@@ -922,6 +926,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   visualMonitor.SetBaseAnnotationText("Rigid Registration Level 4");
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+  visualMonitor.Observe( optimizer.GetPointer() );
   visualMonitor.ObserveData( transform.GetPointer() );
 #endif
 
@@ -970,6 +975,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
   visualMonitor.SetBaseAnnotationText("Demons Registration Level 4");
+  visualMonitor.Observe( demonsFilter.GetPointer() );
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
 
