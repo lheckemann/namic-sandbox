@@ -63,14 +63,17 @@ public:
 
 protected:
 
-  virtual void SetMovingActorMatrix( vtkMatrix4x4 * matrix );
-
   virtual void RefreshRendering();
   virtual void UpdateDataBeforeRendering() = 0;
 
+  virtual void SetMovingActorMatrix( vtkMatrix4x4 * matrix );
+  virtual void SetFixedActorMatrix( vtkMatrix4x4 * matrix );
+
   vtkPoints * GetFixedSurfacePoints();
+  vtkPoints * GetMovingSurfacePoints();
 
   virtual void MarkFixedSurfaceAsModified();
+  virtual void MarkMovingSurfaceAsModified();
 
   
 private:
