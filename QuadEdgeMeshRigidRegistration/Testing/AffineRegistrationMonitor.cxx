@@ -24,16 +24,6 @@ AffineRegistrationMonitor::AffineRegistrationMonitor()
 {
   // Variable for the conversion of the ITK transform into VTK Matrix
   this->Matrix     = vtkSmartPointer<vtkMatrix4x4>::New();
-
-  // ITK Objects, does not require to call Delete()
-  this->StartObserver       = ObserverType::New();
-  this->IterationObserver   = ObserverType::New();
-
-  this->StartObserver->SetCallbackFunction( 
-    this, & Self::StartVisualization );
-
-  this->IterationObserver->SetCallbackFunction( 
-    this, & Self::Update );
 }
 
 
@@ -45,16 +35,9 @@ AffineRegistrationMonitor::~AffineRegistrationMonitor()
 
 /** Set the objects to be observed: optimizer and transform */
 void AffineRegistrationMonitor
-::Observe( OptimizerType * optimizer, TransformType * transform )
+::ObserveData( const TransformType * transform )
 {
-  this->ObservedOptimizer = optimizer;
   this->ObservedTransform = transform;
-
-  this->ObservedOptimizer->AddObserver( 
-    itk::StartEvent(), this->StartObserver     );
-
-  this->ObservedOptimizer->AddObserver( 
-    itk::IterationEvent(), this->IterationObserver );
 }
 
 

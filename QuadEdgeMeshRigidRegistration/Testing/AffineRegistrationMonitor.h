@@ -20,7 +20,6 @@
 
 #include "RegistrationMonitor.h"
 #include "itkMatrixOffsetTransformBase.h"
-#include "itkOptimizer.h"
 
 #include "vtkMatrix4x4.h"
 
@@ -36,14 +35,12 @@ public:
   typedef AffineRegistrationMonitor  Self;
   typedef RegistrationMonitor        Superclass;
 
-  typedef itk::Optimizer       OptimizerType;
-
   typedef itk::MatrixOffsetTransformBase< double, 3, 3 > TransformType;
 
   AffineRegistrationMonitor();
   virtual ~AffineRegistrationMonitor();
 
-  void Observe( OptimizerType * optimizer, TransformType * transform );
+  void ObserveData( const TransformType * transform );
 
 protected:
 
@@ -51,15 +48,9 @@ protected:
 
 private:
   
-  vtkSmartPointer< vtkMatrix4x4 >        Matrix;
+  vtkSmartPointer< vtkMatrix4x4 >    Matrix;
 
-  typedef itk::SimpleMemberCommand< Self >  ObserverType;
-
-  ObserverType::Pointer           IterationObserver;
-  ObserverType::Pointer           StartObserver;
-
-  OptimizerType::Pointer          ObservedOptimizer;
-  TransformType::Pointer          ObservedTransform;
+  TransformType::ConstPointer        ObservedTransform;
 };
 
 #endif

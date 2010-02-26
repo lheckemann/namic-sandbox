@@ -49,15 +49,13 @@ public:
 
   void SetNumberOfIterationsPerUpdate( unsigned int number );
     
+  void Observe( itk::Object * processObject );
+
   void SetVerbose( bool );
 
   void SetScreenShotsBaseFileName( const char * screenShotFileName );
 
 protected:
-
-  // These methods will only be called by the Observer
-  virtual void Update();
-  virtual void StartVisualization();
 
   virtual void SetMovingActorMatrix( vtkMatrix4x4 * matrix );
 
@@ -66,10 +64,17 @@ protected:
 
   vtkPoints * GetFixedSurfacePoints();
 
-  virtual void SaveScreenShot();
 
 private:
   
+  // These methods will only be called by the Observer
+  virtual void Update();
+  virtual void StartVisualization();
+
+  virtual void SaveScreenShot();
+
+  void RemovePreviousObservers();
+
   vtkSmartPointer< vtkPolyData >         FixedSurface;
   vtkSmartPointer< vtkActor >            FixedActor;
   vtkSmartPointer< vtkProperty >         FixedProperty;
@@ -91,10 +96,16 @@ private:
   ObserverType::Pointer           IterationObserver;
   ObserverType::Pointer           StartObserver;
 
+  typedef std::vector< unsigned long >      ObserverTagsArrayType;
+
+  ObserverTagsArrayType           ObserverTags;
+
   unsigned int                    CurrentIterationNumber;
   unsigned int                    NumberOfIterationsPerUpdate;
  
   bool                            Verbose;
+
+  itk::Object::Pointer            ObservedObject;
 
   std::string                     ScreenShotsBaseFileName;
 };
