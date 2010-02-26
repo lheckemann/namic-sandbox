@@ -49,6 +49,7 @@ public:
     
   void SetVerbose( bool );
 
+  void SetScreenShotsBaseFileName( const char * screenShotFileName );
 
 protected:
 
@@ -61,6 +62,8 @@ protected:
   virtual void RefreshRendering();
 
   vtkPoints * GetFixedSurfacePoints();
+
+  virtual void SaveScreenShot();
 
 private:
   
@@ -89,6 +92,8 @@ private:
   unsigned int                    NumberOfIterationsPerUpdate;
  
   bool                            Verbose;
+
+  std::string                     ScreenShotsBaseFileName;
 };
 
 #endif
