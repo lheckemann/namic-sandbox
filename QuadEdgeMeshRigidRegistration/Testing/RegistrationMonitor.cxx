@@ -131,8 +131,8 @@ void RegistrationMonitor::StartVisualization()
   this->RenderWindowInteractor->SetRenderWindow( this->RenderWindow );
 
   // Set the background to something grayish
-  this->FixedRenderer->SetBackground(0.4392, 0.5020, 0.5647);
-  this->MovingRenderer->SetBackground(0.4392, 0.5020, 0.5647);
+  this->FixedRenderer->SetBackground(0.8, 0.9, 0.9);
+  this->MovingRenderer->SetBackground(0.8, 0.9, 0.9);
 
   // Setup the Fixed Surface infrastructure
   this->FixedActor->SetMapper( this->FixedMapper );
