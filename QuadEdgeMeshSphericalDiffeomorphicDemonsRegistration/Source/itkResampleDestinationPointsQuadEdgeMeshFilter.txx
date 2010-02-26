@@ -40,6 +40,9 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
   this->m_Interpolator->SetUseNearestNeighborInterpolationAsBackup(true);
 
   this->m_Transform = itk::IdentityTransform<double>::New();
+
+  this->m_SphereCenter.Fill( 0.0 );
+  this->m_SphereRadius = 1.0;
 }
 
 
@@ -101,6 +104,21 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
   const ReferenceMeshType * referenceMesh = 
     static_cast<const ReferenceMeshType *>( surrogate->ProcessObject::GetInput(2) );
   return referenceMesh;
+}
+
+
+template< class TInputMesh, class TFixedMesh, class TReferenceMesh, class TOutputMesh >
+void
+ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceMesh, TOutputMesh >
+::ProjectPointToSphereSurface( OutputPointType & point ) const
+{
+  typedef typename OutputPointType::VectorType    VectorType;
+
+  VectorType vectorToCenter( point - this->m_SphereCenter );
+
+  const double radialDistance = vectorToCenter.GetNorm();
+  vectorToCenter *= this->m_SphereRadius / radialDistance;
+  point = this->m_SphereCenter + vectorToCenter;
 }
 
 
@@ -173,6 +191,8 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
   TransformInputPointType  pointToEvaluate;
   TransformInputPointType  evaluatedPoint;
 
+  OutputPointType  resultingPoint;
+
   while( referenceItr != referenceEnd )
     {
     inputPoint.CastFrom( referenceItr.Value() );
@@ -181,7 +201,11 @@ ResampleDestinationPointsQuadEdgeMeshFilter< TInputMesh, TFixedMesh, TReferenceM
 
     this->m_Interpolator->Evaluate( inputPoints, pointToEvaluate, evaluatedPoint );
 
-    outputPointItr.Value().CastFrom( evaluatedPoint );
+    resultingPoint.CastFrom( evaluatedPoint );
+
+    this->ProjectPointToSphereSurface( resultingPoint );
+
+    outputPointItr.Value() = resultingPoint;
 
     progress.CompletedPixel();
 
