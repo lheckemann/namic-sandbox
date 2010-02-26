@@ -29,8 +29,8 @@
 /** Constructor */
 RegistrationMonitor::RegistrationMonitor()
 {
-  this->FixedSurface  = NULL; // connected externally
-  this->MovingSurface = NULL; // connected externally
+  this->FixedSurface  = vtkSmartPointer< vtkPolyData >::New();
+  this->MovingSurface = vtkSmartPointer< vtkPolyData >::New();
 
   // Own member objects
   this->FixedActor     = vtkSmartPointer<vtkActor>::New();
@@ -77,14 +77,14 @@ RegistrationMonitor::~RegistrationMonitor()
 /** Set the Fixed Surface */
 void RegistrationMonitor::SetFixedSurface(vtkPolyData* surface)
 {
-  this->FixedSurface = surface;
+  this->FixedSurface->DeepCopy( surface );
 }
 
 
 /** Set the Moving Surface */
 void RegistrationMonitor::SetMovingSurface(vtkPolyData* surface)
 {
-  this->MovingSurface = surface;
+  this->MovingSurface->DeepCopy( surface );
 }
 
 
