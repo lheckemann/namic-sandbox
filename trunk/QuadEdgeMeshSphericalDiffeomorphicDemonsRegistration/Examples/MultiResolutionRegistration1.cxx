@@ -135,8 +135,8 @@ int main( int argc, char * argv [] )
 
   try
     {
-    fixedMeshReader1->Update( );
-    movingMeshReader1->Update( );
+    fixedMeshReader1->Update();
+    movingMeshReader1->Update();
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -366,7 +366,7 @@ int main( int argc, char * argv [] )
 
   try
     {
-    demonsFilter->Update( );
+    demonsFilter->Update();
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -425,8 +425,8 @@ std::cout << "Fixed  mesh second level = " << argv[4] << std::endl;
 std::cout << "Moving mesh second level = " << argv[5] << std::endl;
   try
     {
-    fixedMeshReader2->Update( );
-    movingMeshReader2->Update( );
+    fixedMeshReader2->Update();
+    movingMeshReader2->Update();
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -577,7 +577,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   try
     {
-    demonsFilter->Update( );
+    demonsFilter->Update();
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -630,8 +630,8 @@ std::cout << "Fixed  mesh third level = " << argv[7] << std::endl;
 std::cout << "Moving mesh third level = " << argv[8] << std::endl;
   try
     {
-    fixedMeshReader3->Update( );
-    movingMeshReader3->Update( );
+    fixedMeshReader3->Update();
+    movingMeshReader3->Update();
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -773,7 +773,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   try
     {
-    demonsFilter->Update( );
+    demonsFilter->Update();
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -827,8 +827,8 @@ std::cout << "Fixed  mesh fourth level = " << argv[10] << std::endl;
 std::cout << "Moving mesh fourth level = " << argv[11] << std::endl;
   try
     {
-    fixedMeshReader4->Update( );
-    movingMeshReader4->Update( );
+    fixedMeshReader4->Update();
+    movingMeshReader4->Update();
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -971,7 +971,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   try
     {
-    demonsFilter->Update( );
+    demonsFilter->Update();
     }
   catch( itk::ExceptionObject & exp )
     {
@@ -1026,8 +1026,8 @@ std::cout << "Fixed  mesh fifth level = " << argv[13] << std::endl;
 std::cout << "Moving mesh fifth level = " << argv[14] << std::endl;
   try
     {
-    fixedMeshReader5->Update( );
-    movingMeshReader5->Update( );
+    fixedMeshReader5->Update();
+    movingMeshReader5->Update();
     }
   catch( itk::ExceptionObject & exp )
     {
