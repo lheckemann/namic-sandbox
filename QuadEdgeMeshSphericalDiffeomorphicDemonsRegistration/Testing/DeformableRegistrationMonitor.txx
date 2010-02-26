@@ -100,6 +100,5 @@ void DeformableRegistrationMonitor<TPointSet>
     ++pointId;
     }
 
-  // FIXME : Do we need to disconnect the fixed mesh from its source ?
-  // FIXME : Do we need to call Modified in the fixed mesh ?
+  this->MarkFixedSurfaceAsModified();
 }
