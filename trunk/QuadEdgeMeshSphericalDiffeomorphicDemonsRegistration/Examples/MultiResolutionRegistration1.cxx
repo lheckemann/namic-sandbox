@@ -222,6 +222,7 @@ int main( int argc, char * argv [] )
   visualMonitorRigid.SetNumberOfIterationsPerUpdate( 1 );
   visualMonitorRigid.Observe( optimizer.GetPointer(), transform.GetPointer() );
   visualMonitorRigid.SetVerbose( false );
+  visualMonitorRigid.SetScreenShotsBaseFileName("rigidRegistration");
 
   vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
     vtkSmartPointer< vtkPolyDataReader >::New();
@@ -356,6 +357,7 @@ int main( int argc, char * argv [] )
   visualMonitorDeformable.SetNumberOfIterationsPerUpdate( 1 );
   visualMonitorDeformable.Observe( demonsFilter.GetPointer(), demonsFilter->GetFinalDestinationPoints() );
   visualMonitorDeformable.SetVerbose( false );
+  visualMonitorDeformable.SetScreenShotsBaseFileName("demonsRegistration");
 
   visualMonitorDeformable.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitorDeformable.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
