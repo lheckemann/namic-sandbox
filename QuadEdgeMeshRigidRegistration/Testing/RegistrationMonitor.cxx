@@ -46,23 +46,24 @@ RegistrationMonitor::RegistrationMonitor()
   this->RenderWindow             = vtkSmartPointer<vtkRenderWindow>::New();
   this->RenderWindowInteractor   = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
-  this->TextProperty             = vtkSmartPointer<vtkTextProperty>::New();
-  this->TextMapper               = vtkSmartPointer<vtkTextMapper>::New();
-  this->TextActor                = vtkSmartPointer<vtkActor2D>::New();
+  this->TextActor                = vtkSmartPointer<vtkTextActor>::New();
 
   this->BaseAnnotationText = "Registration Monitor";
 
-  this->TextMapper->SetInput( this->BaseAnnotationText.c_str() );
+  this->TextProperty = this->TextActor->GetTextProperty();
 
-  this->TextProperty->SetFontSize(14);
+  this->TextProperty->SetFontSize(24);
   this->TextProperty->SetFontFamilyToArial();
+  this->TextProperty->SetJustificationToLeft();
   this->TextProperty->BoldOff();
   this->TextProperty->ItalicOff();
   this->TextProperty->ShadowOff();
+  this->TextProperty->SetColor(0,0,0);
 
-  this->TextActor->SetMapper( this->TextMapper );
-  this->TextActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
-  this->TextActor->GetPositionCoordinate()->SetValue(0.05, 0.85);
+  this->TextActor->SetDisplayPosition(5,5);
+
+  this->TextActor->SetInput( this->BaseAnnotationText.c_str() );
+
 
   this->WindowToImageFilter = vtkSmartPointer< vtkWindowToImageFilter >::New();
 
@@ -168,7 +169,7 @@ void RegistrationMonitor::StartVisualization()
   this->FixedRenderer->AddActor( this->FixedActor );
   this->MovingRenderer->AddActor( this->MovingActor );
 
-  this->FixedRenderer->AddActor2D( this->TextActor );
+  this->FixedRenderer->AddViewProp( this->TextActor );
 
   // Bring up the render window and begin interaction.
   this->FixedRenderer->ResetCamera();
@@ -347,7 +348,7 @@ RegistrationMonitor
   message.width(5);
   message << this->CurrentIterationNumber;
 
-  this->TextMapper->SetInput( message.str().c_str() );
+  this->TextActor->SetInput( message.str().c_str() );
 }
 
 void 
