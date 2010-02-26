@@ -229,6 +229,7 @@ int main( int argc, char * argv [] )
 
   visualMonitor.Observe( optimizer.GetPointer() );
   visualMonitor.ObserveData( transform.GetPointer() );
+  // visualMonitor.SetScreenShotsBaseFileName("rigidRegistration");
 
   visualMonitor.SetVerbose( false );
 
