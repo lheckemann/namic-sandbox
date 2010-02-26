@@ -346,7 +346,7 @@ int main( int argc, char * argv [] )
   const double sigmaX = 1.0;
   const double lambda = 1.0;
   const unsigned int maximumNumberOfSmoothingIterations = 10;
-  const unsigned int maximumNumberOfIterations = 20;
+  const unsigned int maximumNumberOfIterations = 30;
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
