@@ -345,8 +345,8 @@ int main( int argc, char * argv [] )
   const double epsilon = 1.0;
   const double sigmaX = 1.0;
   const double lambda = 1.0;
-  const unsigned int maximumNumberOfSmoothingIterations = 2;
-  const unsigned int maximumNumberOfIterations = 30;
+  const unsigned int maximumNumberOfSmoothingIterations = 10;
+  const unsigned int maximumNumberOfIterations = 20;
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
@@ -534,6 +534,11 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   //
 
   std::cout << "Running Second Resolution Level Rigid Registration." << std::endl;
+
+  optimizer->SetMaximumStepLength( 0.02 );
+  optimizer->SetMinimumStepLength( 1e-9 );
+  optimizer->SetRelaxationFactor( 0.8 );
+  optimizer->SetNumberOfIterations( 32 );
 
   try
     {
@@ -734,6 +739,11 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   //
 
   std::cout << "Running Third Resolution Level Rigid Registration." << std::endl;
+
+  optimizer->SetMaximumStepLength( 0.01 );
+  optimizer->SetMinimumStepLength( 1e-9 );
+  optimizer->SetRelaxationFactor( 0.6 );
+  optimizer->SetNumberOfIterations( 16 );
 
   try
     {
@@ -937,6 +947,11 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   //
 
   std::cout << "Running Fourth Resolution Level Rigid Registration." << std::endl;
+
+  optimizer->SetMaximumStepLength( 0.005 );
+  optimizer->SetMinimumStepLength( 1e-9 );
+  optimizer->SetRelaxationFactor( 0.5 );
+  optimizer->SetNumberOfIterations( 8 );
 
   try
     {
