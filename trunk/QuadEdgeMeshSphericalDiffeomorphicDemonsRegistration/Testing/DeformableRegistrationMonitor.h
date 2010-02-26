@@ -31,39 +31,22 @@ class DeformableRegistrationMonitor : public RegistrationMonitor
 public:
   
   typedef DeformableRegistrationMonitor  Self;
-  typedef RegistrationMonitor        Superclass;
+  typedef RegistrationMonitor            Superclass;
 
-  typedef itk::ProcessObject         ProcessObjectType;
-
-  typedef TPointSet                  PointSetType;
+  typedef TPointSet                     PointSetType;
 
   DeformableRegistrationMonitor();
   virtual ~DeformableRegistrationMonitor();
 
-  void Observe( 
-    ProcessObjectType * filter, 
-    const PointSetType * destinationPointSet );
+  void ObserveData( const PointSetType * destinationPointSet );
 
 protected:
 
-  // These methods will only be called by the Observer
-  virtual void Update();
-  virtual void StartVisualization();
+  virtual void UpdateDataBeforeRendering();
 
 private:
-  
-  virtual void RemovePreviousObservers();
 
-  typedef itk::SimpleMemberCommand< Self >  ObserverType;
-  typedef std::vector< unsigned long >      ObserverTagsArrayType;
-
-  typename ObserverType::Pointer          IterationObserver;
-  typename ObserverType::Pointer          StartObserver;
-
-  ProcessObjectType::Pointer              ObservedFilter;
   typename PointSetType::ConstPointer     ObservedPointSet;
-
-  ObserverTagsArrayType                   ObserverTags;
 };
 
 #include "DeformableRegistrationMonitor.txx"
