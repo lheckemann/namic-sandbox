@@ -241,6 +241,7 @@ GenerateData()
   // Recommended link
   this->m_SigmaX = this->m_Epsilon;
 
+  this->m_Chronometer.Start("DataPreProcessing");
   // Prepare data
   this->CopyInputMeshToOutputMesh();
   this->AllocateInternalArrays();
@@ -251,14 +252,19 @@ GenerateData()
   this->ComposeDestinationPointsOutputPointSet();
   this->InitializeInterpolators();
   this->InitializeGradientCalculators();
+  this->m_Chronometer.Stop("DataPreProcessing");
 
   // Compute deformations
+  this->m_Chronometer.Start("RunIterations");
   this->RunIterations();
+  this->m_Chronometer.Stop("RunIterations");
 
   // Gathering outputs
+  this->m_Chronometer.Start("DataPostProcessing");
   this->ComputeMappedMovingValueAtEveryNode();
   this->AssignResampledMovingValuesToOutputMesh();
   this->ComposeFixedMeshOutputDisplacedToMovingMesh();
+  this->m_Chronometer.Stop("DataPostProcessing");
 }
 
 
@@ -465,14 +471,37 @@ RunIterations()
 
   for( unsigned int i = 0; i < this->m_MaximumNumberOfIterations; i++ )
     {
+    this->m_Chronometer.Start("ComputeMappedMovingValueAtEveryNode");
     this->ComputeMappedMovingValueAtEveryNode();
+    this->m_Chronometer.Stop("ComputeMappedMovingValueAtEveryNode");
+
+    this->m_Chronometer.Start("ComputeGradientsOfMappedMovingValueAtEveryNode");
     this->ComputeGradientsOfMappedMovingValueAtEveryNode();
+    this->m_Chronometer.Stop("ComputeGradientsOfMappedMovingValueAtEveryNode");
+
+    this->m_Chronometer.Start("ComputeVelocityField");
     this->ComputeVelocityField();
+    this->m_Chronometer.Stop("ComputeVelocityField");
+
+    this->m_Chronometer.Start("ComputeScalingAndSquaringNumberOfIterations");
     this->ComputeScalingAndSquaringNumberOfIterations();
+    this->m_Chronometer.Stop("ComputeScalingAndSquaringNumberOfIterations");
+
+    this->m_Chronometer.Start("ComputeDeformationByScalingAndSquaring");
     this->ComputeDeformationByScalingAndSquaring();
+    this->m_Chronometer.Stop("ComputeDeformationByScalingAndSquaring");
+
+    this->m_Chronometer.Start("ComposeDeformationUpdateWithPreviousDeformation");
     this->ComposeDeformationUpdateWithPreviousDeformation();
+    this->m_Chronometer.Stop("ComposeDeformationUpdateWithPreviousDeformation");
+
+    this->m_Chronometer.Start("SmoothDeformationField");
     this->SmoothDeformationField();
+    this->m_Chronometer.Stop("SmoothDeformationField");
+
+    this->m_Chronometer.Start("ComposeDestinationPointsOutputPointSet");
     this->ComposeDestinationPointsOutputPointSet();
+    this->m_Chronometer.Stop("ComposeDestinationPointsOutputPointSet");
 
     // Report progress via Events
     progress.CompletedPixel();
