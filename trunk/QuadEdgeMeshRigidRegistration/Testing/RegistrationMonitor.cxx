@@ -50,7 +50,9 @@ RegistrationMonitor::RegistrationMonitor()
   this->TextMapper               = vtkSmartPointer<vtkTextMapper>::New();
   this->TextActor                = vtkSmartPointer<vtkActor2D>::New();
 
-  this->TextMapper->SetInput("Registration Monitor");
+  this->BaseAnnotationText = "Registration Monitor";
+
+  this->TextMapper->SetInput( this->BaseAnnotationText.c_str() );
 
   this->TextProperty->SetFontSize(14);
   this->TextProperty->SetFontFamilyToArial();
