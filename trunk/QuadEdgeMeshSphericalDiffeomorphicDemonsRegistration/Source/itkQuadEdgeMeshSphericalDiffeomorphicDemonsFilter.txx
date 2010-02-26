@@ -29,9 +29,11 @@ template< class TFixedMesh, class TMovingMesh, class TOutputMesh >
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::QuadEdgeMeshSphericalDiffeomorphicDemonsFilter()
 {
+  this->SetNumberOfInputs( 2 );
+  this->SetNumberOfOutputs( 3 );
+
   this->SetNumberOfRequiredInputs( 2 );
   this->SetNumberOfRequiredOutputs( 3 );
-  this->SetNumberOfOutputs( 3 );
 
   this->SetNthOutput( 0, OutputMeshType::New() );
   this->SetNthOutput( 1, FixedMeshType::New() );
@@ -165,7 +167,7 @@ QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutput
 {
   if (this->GetNumberOfInputs() < 3)
     {
-    return 0;
+    return NULL;
     }
 
   return static_cast<const DestinationPointSetType * >(this->ProcessObject::GetInput(2) );
@@ -194,9 +196,7 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >
 ::CopyInitialDestinationPoints()
 {
-  const DestinationPointSetType * destinationPointSet =
-    static_cast<const DestinationPointSetType * >( this->ProcessObject::GetInput(2) );
-
+  const DestinationPointSetType * destinationPointSet = this->GetInitialDestinationPoints();
   const DestinationPointContainerType * destinationPoints = destinationPointSet->GetPoints();
 
   itkDebugMacro("setting Destination Points to " << destinationPoints );
@@ -248,6 +248,7 @@ GenerateData()
   this->ComputeBasisSystemAtEveryNode();
   this->ComputeShortestEdgeLength();
   this->ComputeInitialArrayOfDestinationPoints();
+  this->ComposeDestinationPointsOutputPointSet();
   this->InitializeInterpolators();
   this->InitializeGradientCalculators();
 
