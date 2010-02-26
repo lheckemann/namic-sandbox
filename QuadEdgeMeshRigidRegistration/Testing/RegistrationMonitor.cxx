@@ -90,8 +90,6 @@ void RegistrationMonitor::StartVisualization()
   // multiple times:
   static bool visualizationPipelineInitialized = false;
 
-  this->CurrentIterationNumber = 0;
-
   if( visualizationPipelineInitialized )
     {
     return;
@@ -233,6 +231,10 @@ void RegistrationMonitor::Update()
     {
     this->CurrentIterationNumber++;
     }
+
+  this->UpdateDataBeforeRendering();
+
+  this->RefreshRendering();
 }
 
 

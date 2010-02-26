@@ -34,6 +34,7 @@ AffineRegistrationMonitor::AffineRegistrationMonitor()
     this, & Self::Update );
 }
 
+
 /** Destructor */
 AffineRegistrationMonitor::~AffineRegistrationMonitor()
 {
@@ -54,18 +55,10 @@ void AffineRegistrationMonitor
     itk::IterationEvent(), this->IterationObserver );
 }
 
-/** Callback for the StartEvent */
-void AffineRegistrationMonitor::StartVisualization()
-{
-  this->Superclass::StartVisualization();
-}
-
 
 /** Update the Visualization */
-void AffineRegistrationMonitor::Update()
+void AffineRegistrationMonitor::UpdateDataBeforeRendering()
 {
-  this->Superclass::Update();
-
   TransformType::MatrixType matrix = 
     this->ObservedTransform->GetMatrix();
  
@@ -84,6 +77,4 @@ void AffineRegistrationMonitor::Update()
     }
 
   this->SetMovingActorMatrix( this->Matrix );
-
-  this->RefreshRendering();
 }

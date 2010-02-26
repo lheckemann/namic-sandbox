@@ -45,9 +45,7 @@ public:
 
 protected:
 
-  // These methods will only be called by the Observer
-  virtual void Update();
-  virtual void StartVisualization();
+  virtual void UpdateDataBeforeRendering();
 
 private:
   
