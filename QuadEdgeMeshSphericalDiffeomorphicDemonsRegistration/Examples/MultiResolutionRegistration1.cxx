@@ -211,7 +211,7 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 64 );
+  optimizer->SetNumberOfIterations( 4 ); // FIXME set to 64
 
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
@@ -220,7 +220,8 @@ int main( int argc, char * argv [] )
 #ifdef USE_VTK
   AffineRegistrationMonitor visualMonitorRigid;
   visualMonitorRigid.SetNumberOfIterationsPerUpdate( 1 );
-  visualMonitorRigid.Observe( optimizer.GetPointer(), transform.GetPointer() );
+  visualMonitorRigid.Observe( optimizer.GetPointer() );
+  visualMonitorRigid.ObserveData( transform.GetPointer() );
   visualMonitorRigid.SetVerbose( false );
   visualMonitorRigid.SetScreenShotsBaseFileName("rigidRegistration");
 
@@ -355,7 +356,8 @@ int main( int argc, char * argv [] )
   typedef DeformableRegistrationMonitor< DestinationPointSetType > DeformableMonitorType;
   DeformableMonitorType visualMonitorDeformable;
   visualMonitorDeformable.SetNumberOfIterationsPerUpdate( 1 );
-  visualMonitorDeformable.Observe( demonsFilter.GetPointer(), demonsFilter->GetFinalDestinationPoints() );
+  visualMonitorDeformable.Observe( demonsFilter.GetPointer() );
+  visualMonitorDeformable.ObserveData( demonsFilter->GetFinalDestinationPoints() );
   visualMonitorDeformable.SetVerbose( false );
   visualMonitorDeformable.SetScreenShotsBaseFileName("demonsRegistration");
 
@@ -568,7 +570,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 #ifdef USE_VTK
   visualMonitorDeformable.SetNumberOfIterationsPerUpdate( 1 );
   demonsFilter->MakeOutput(2);
-  visualMonitorDeformable.Observe( demonsFilter.GetPointer(), demonsFilter->GetFinalDestinationPoints() );
+  visualMonitorDeformable.ObserveData( demonsFilter->GetFinalDestinationPoints() );
   visualMonitorDeformable.SetVerbose( false );
 
   visualMonitorDeformable.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
@@ -770,7 +772,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 #ifdef USE_VTK
   visualMonitorDeformable.SetNumberOfIterationsPerUpdate( 1 );
   demonsFilter->MakeOutput(2);
-  visualMonitorDeformable.Observe( demonsFilter.GetPointer(), demonsFilter->GetFinalDestinationPoints() );
+  visualMonitorDeformable.ObserveData( demonsFilter->GetFinalDestinationPoints() );
   visualMonitorDeformable.SetVerbose( false );
 
   visualMonitorDeformable.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
@@ -974,7 +976,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 #ifdef USE_VTK
   visualMonitorDeformable.SetNumberOfIterationsPerUpdate( 1 );
   demonsFilter->MakeOutput(2);
-  visualMonitorDeformable.Observe( demonsFilter.GetPointer(), demonsFilter->GetFinalDestinationPoints() );
+  visualMonitorDeformable.ObserveData( demonsFilter->GetFinalDestinationPoints() );
   visualMonitorDeformable.SetVerbose( false );
 
   visualMonitorDeformable.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
