@@ -66,6 +66,8 @@ protected:
 
   vtkPoints * GetFixedSurfacePoints();
 
+  virtual void MarkFixedSurfaceAsModified();
+
 
 private:
   

@@ -301,6 +301,14 @@ void RegistrationMonitor
 
 void 
 RegistrationMonitor
+::MarkFixedSurfaceAsModified()
+{
+  this->FixedSurface->Modified();
+}
+
+
+void 
+RegistrationMonitor
 ::RenderAndSaveScreenShot()
 {
   ::itk::OStringStream message;
