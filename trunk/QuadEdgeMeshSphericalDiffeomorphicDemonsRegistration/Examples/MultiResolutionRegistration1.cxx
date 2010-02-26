@@ -563,6 +563,16 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetMovingMesh( movingMeshReader2->GetOutput() );
 
 
+#ifdef USE_VTK
+  visualMonitorDeformable.SetNumberOfIterationsPerUpdate( 1 );
+  demonsFilter->MakeOutput(2);
+  visualMonitorDeformable.Observe( demonsFilter.GetPointer(), demonsFilter->GetFinalDestinationPoints() );
+  visualMonitorDeformable.SetVerbose( false );
+
+  visualMonitorDeformable.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitorDeformable.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+#endif
+
   // 
   //  Running Second Resolution Level Demons Registration.
   //
@@ -754,6 +764,16 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh3 );
   demonsFilter->SetMovingMesh( movingMeshReader3->GetOutput() );
 
+
+#ifdef USE_VTK
+  visualMonitorDeformable.SetNumberOfIterationsPerUpdate( 1 );
+  demonsFilter->MakeOutput(2);
+  visualMonitorDeformable.Observe( demonsFilter.GetPointer(), demonsFilter->GetFinalDestinationPoints() );
+  visualMonitorDeformable.SetVerbose( false );
+
+  visualMonitorDeformable.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitorDeformable.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+#endif
 
   // 
   //  Running Third Resolution Level Demons Registration.
@@ -948,6 +968,16 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   demonsFilter->SetFixedMesh( fixedMesh4 );
   demonsFilter->SetMovingMesh( movingMeshReader4->GetOutput() );
+
+#ifdef USE_VTK
+  visualMonitorDeformable.SetNumberOfIterationsPerUpdate( 1 );
+  demonsFilter->MakeOutput(2);
+  visualMonitorDeformable.Observe( demonsFilter.GetPointer(), demonsFilter->GetFinalDestinationPoints() );
+  visualMonitorDeformable.SetVerbose( false );
+
+  visualMonitorDeformable.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
+  visualMonitorDeformable.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
+#endif
 
   // 
   //  Running Fourth Resolution Level Demons Registration.
