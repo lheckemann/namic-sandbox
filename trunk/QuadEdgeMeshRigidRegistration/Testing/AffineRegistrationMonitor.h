@@ -39,7 +39,7 @@ public:
   typedef itk::MatrixOffsetTransformBase< double, 3, 3 > TransformType;
 
   AffineRegistrationMonitor();
-  ~AffineRegistrationMonitor();
+  virtual ~AffineRegistrationMonitor();
 
   void Observe( OptimizerType * optimizer, TransformType * transform );
 
