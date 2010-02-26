@@ -29,6 +29,8 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"
+#include "vtkWindowToImageFilter.h"
+#include "vtkPNGWriter.h"
 
 
 /** \class RegistrationMonitor 
@@ -71,7 +73,7 @@ private:
   virtual void Update();
   virtual void StartVisualization();
 
-  virtual void SaveScreenShot();
+  virtual void RenderAndSaveScreenShot();
 
   void RemovePreviousObservers();
 
@@ -86,10 +88,13 @@ private:
   vtkSmartPointer< vtkPolyDataMapper >   MovingMapper;
 
   // Visualization pipeline
-  vtkSmartPointer< vtkRenderer >         FixedRenderer;
-  vtkSmartPointer< vtkRenderer >         MovingRenderer;
-  vtkSmartPointer< vtkRenderWindow >     RenderWindow;
-  vtkSmartPointer< vtkRenderWindowInteractor >   RenderWindowInteractor;
+  vtkSmartPointer< vtkRenderer >                FixedRenderer;
+  vtkSmartPointer< vtkRenderer >                MovingRenderer;
+  vtkSmartPointer< vtkRenderWindow >            RenderWindow;
+  vtkSmartPointer< vtkRenderWindowInteractor >  RenderWindowInteractor;
+  vtkSmartPointer< vtkWindowToImageFilter >     WindowToImageFilter;
+
+  vtkSmartPointer< vtkPNGWriter >   Writer;
 
   typedef itk::SimpleMemberCommand< Self >  ObserverType;
 
