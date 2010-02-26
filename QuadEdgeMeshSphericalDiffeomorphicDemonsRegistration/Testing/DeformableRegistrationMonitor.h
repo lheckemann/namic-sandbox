@@ -36,7 +36,7 @@ public:
   typedef TPointSet                  PointSetType;
 
   DeformableRegistrationMonitor();
-  ~DeformableRegistrationMonitor();
+  virtual ~DeformableRegistrationMonitor();
 
   void Observe( 
     const ProcessObjectType * filter, 
