@@ -30,7 +30,10 @@
 #include "vtkMatrix4x4.h"
 #include "vtkSmartPointer.h"
 #include "vtkWindowToImageFilter.h"
-#include "vtkPNGWriter.h"
+#include "vtkJPEGWriter.h"
+#include "vtkTextProperty.h"
+#include "vtkTextMapper.h"
+#include "vtkActor2D.h"
 
 
 /** \class RegistrationMonitor 
@@ -57,6 +60,8 @@ public:
 
   void SetScreenShotsBaseFileName( const char * screenShotFileName );
 
+  void SetBaseAnnotationText( const char * text );
+
 protected:
 
   virtual void SetMovingActorMatrix( vtkMatrix4x4 * matrix );
@@ -68,7 +73,7 @@ protected:
 
   virtual void MarkFixedSurfaceAsModified();
 
-
+  
 private:
   
   // These methods will only be called by the Observer
@@ -78,6 +83,7 @@ private:
   virtual void RenderAndSaveScreenShot();
 
   void RemovePreviousObservers();
+  void UpdateAnnotationText();
 
   vtkSmartPointer< vtkPolyData >         FixedSurface;
   vtkSmartPointer< vtkActor >            FixedActor;
@@ -96,7 +102,11 @@ private:
   vtkSmartPointer< vtkRenderWindowInteractor >  RenderWindowInteractor;
   vtkSmartPointer< vtkWindowToImageFilter >     WindowToImageFilter;
 
-  vtkSmartPointer< vtkPNGWriter >   Writer;
+  vtkSmartPointer< vtkTextProperty >            TextProperty;
+  vtkSmartPointer< vtkTextMapper >              TextMapper;
+  vtkSmartPointer< vtkActor2D >                 TextActor;
+
+  vtkSmartPointer< vtkJPEGWriter >   Writer;
 
   typedef itk::SimpleMemberCommand< Self >  ObserverType;
 
@@ -115,6 +125,8 @@ private:
   itk::Object::Pointer            ObservedObject;
 
   std::string                     ScreenShotsBaseFileName;
+
+  std::string                     BaseAnnotationText;
 };
 
 #endif

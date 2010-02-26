@@ -46,9 +46,25 @@ RegistrationMonitor::RegistrationMonitor()
   this->RenderWindow             = vtkSmartPointer<vtkRenderWindow>::New();
   this->RenderWindowInteractor   = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
+  this->TextProperty             = vtkSmartPointer<vtkTextProperty>::New();
+  this->TextMapper               = vtkSmartPointer<vtkTextMapper>::New();
+  this->TextActor                = vtkSmartPointer<vtkActor2D>::New();
+
+  this->TextMapper->SetInput("Registration Monitor");
+
+  this->TextProperty->SetFontSize(14);
+  this->TextProperty->SetFontFamilyToArial();
+  this->TextProperty->BoldOff();
+  this->TextProperty->ItalicOff();
+  this->TextProperty->ShadowOff();
+
+  this->TextActor->SetMapper( this->TextMapper );
+  this->TextActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
+  this->TextActor->GetPositionCoordinate()->SetValue(0.05, 0.85);
+
   this->WindowToImageFilter = vtkSmartPointer< vtkWindowToImageFilter >::New();
 
-  this->Writer = vtkSmartPointer< vtkPNGWriter >::New();
+  this->Writer = vtkSmartPointer< vtkJPEGWriter >::New();
 
   this->WindowToImageFilter->SetInput( this->RenderWindow );
 
@@ -150,6 +166,7 @@ void RegistrationMonitor::StartVisualization()
   this->FixedRenderer->AddActor( this->FixedActor );
   this->MovingRenderer->AddActor( this->MovingActor );
 
+  this->FixedRenderer->AddActor2D( this->TextActor );
 
   // Bring up the render window and begin interaction.
   this->FixedRenderer->ResetCamera();
@@ -209,6 +226,8 @@ void RegistrationMonitor
 void RegistrationMonitor
 ::RefreshRendering()
 {
+  this->UpdateAnnotationText();
+
   if( this->ScreenShotsBaseFileName.empty() )
     {
     this->RenderWindowInteractor->Render();
@@ -309,6 +328,28 @@ RegistrationMonitor
 
 void 
 RegistrationMonitor
+::SetBaseAnnotationText(const char * text)
+{
+  this->BaseAnnotationText = text;
+}
+
+
+void 
+RegistrationMonitor
+::UpdateAnnotationText()
+{
+  ::itk::OStringStream message;
+  message << this->BaseAnnotationText;
+  message << "   Iteration = ";
+  message.fill('0');
+  message.width(5);
+  message << this->CurrentIterationNumber;
+
+  this->TextMapper->SetInput( message.str().c_str() );
+}
+
+void 
+RegistrationMonitor
 ::RenderAndSaveScreenShot()
 {
   ::itk::OStringStream message;
@@ -316,11 +357,11 @@ RegistrationMonitor
   message.fill('0');
   message.width(5);
   message << this->CurrentIterationNumber;
-  message << ".png";
+  message << ".jpg";
 
   this->WindowToImageFilter = vtkSmartPointer< vtkWindowToImageFilter >::New();
 
-  this->Writer = vtkSmartPointer< vtkPNGWriter >::New();
+  this->Writer = vtkSmartPointer< vtkJPEGWriter >::New();
 
   this->WindowToImageFilter->SetInput( this->RenderWindow );
 
