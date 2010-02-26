@@ -19,7 +19,6 @@
 #define __DeformableRegistrationMonitor_h
 
 #include "RegistrationMonitor.h"
-#include "itkProcessObject.h"
 
 /** \class DeformableRegistrationMonitor 
  *  This class provides a VTK visualization pipeline configured for monitoring
