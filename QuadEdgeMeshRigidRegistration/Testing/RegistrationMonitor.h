@@ -40,7 +40,7 @@ public:
   typedef RegistrationMonitor  Self;
 
   RegistrationMonitor();
-  ~RegistrationMonitor();
+  virtual ~RegistrationMonitor();
 
   void SetFixedSurface( vtkPolyData* surface );
   void SetMovingSurface( vtkPolyData* surface );
