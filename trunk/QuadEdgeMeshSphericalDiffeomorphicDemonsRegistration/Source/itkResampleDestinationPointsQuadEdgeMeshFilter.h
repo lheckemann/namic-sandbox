@@ -118,6 +118,23 @@ public:
   /** Get a pointer to the interpolator function. */
   itkGetConstObjectMacro( Interpolator, InterpolatorType );
 
+  /** Set Sphere Center.  The implementation of this class assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the coordinates of the center of the sphere
+   * represented by the Mesh. This will be used to project destination points
+   * on the sphere after they have been interpolated.
+   */
+  itkSetMacro( SphereCenter, OutputPointType );
+  itkGetConstMacro( SphereCenter, OutputPointType );
+
+  /** Set Sphere Radius.  The implementation of this class assumes that the
+   * Mesh surface has a spherical geometry (not only spherical topology). With
+   * this method you can specify the radius of the sphere. This will be used to
+   * project destination points on the sphere after they have been interpolated.
+   */
+  itkSetMacro( SphereRadius, double );
+  itkGetConstMacro( SphereRadius, double );
+
 
 protected:
   ResampleDestinationPointsQuadEdgeMeshFilter();
@@ -130,10 +147,13 @@ private:
   ResampleDestinationPointsQuadEdgeMeshFilter( const Self& ); //purposely not implemented
   void operator=( const Self& ); //purposely not implemented
 
+  void ProjectPointToSphereSurface( OutputPointType & point ) const;
 
-  TransformPointerType     m_Transform;         // Coordinate transform to use
-  InterpolatorPointerType  m_Interpolator;      // Image function for
+  TransformPointerType      m_Transform;         // Coordinate transform to use
+  InterpolatorPointerType   m_Interpolator;      // Image function for
 
+  OutputPointType           m_SphereCenter;
+  double                    m_SphereRadius;
 };
 
 }

@@ -447,6 +447,8 @@ std::cout << "Moving mesh second level = " << argv[5] << std::endl;
   UpsampleDestinationPointsFilterType::Pointer upsampleDestinationPoints = 
     UpsampleDestinationPointsFilterType::New();
 
+  upsampleDestinationPoints->SetSphereCenter( center );
+  upsampleDestinationPoints->SetSphereRadius( radius );
   upsampleDestinationPoints->SetInput( finalDestinationPoints );
   upsampleDestinationPoints->SetFixedMesh( fixedMeshReader1->GetOutput() );
   upsampleDestinationPoints->SetReferenceMesh( fixedMeshReader2->GetOutput() );
