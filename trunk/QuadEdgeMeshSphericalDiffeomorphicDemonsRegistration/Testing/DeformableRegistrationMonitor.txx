@@ -15,6 +15,9 @@
 
 #include "DeformableRegistrationMonitor.h"
 
+#include "itkMacro.h"
+#include "vtkPoints.h"
+
 /** Constructor */
 template <class TPointSet>
 DeformableRegistrationMonitor<TPointSet>
@@ -41,9 +44,11 @@ DeformableRegistrationMonitor<TPointSet>
 /** Set the objects to be observed: optimizer and transform */
 template <class TPointSet>
 void DeformableRegistrationMonitor<TPointSet>
-::Observe( const ProcessObjectType * filter, const PointSetType * transform )
+::Observe( const ProcessObjectType * filter, const PointSetType * destinationPointSet )
 {
   this->ObservedFilter = filter;
+
+  this->ObservedPointSet = destinationPointSet;
 
   this->ObservedFilter->AddObserver( 
     itk::StartEvent(), this->StartObserver     );
@@ -71,7 +76,45 @@ void DeformableRegistrationMonitor<TPointSet>
 {
   this->Superclass::Update();
 
-  // HERE COPY destination points into FIXED mesh !!
+  typedef typename PointSetType::PointsContainer    PointsContainer;
+  typedef typename PointsContainer::ConstIterator   PointsIterator;
+  typedef typename PointSetType::PointType          PointType;
+
+  const PointsContainer * displacedPoints = this->ObservedPointSet->GetPoints();
+
+  vtkPoints * vtkpoints = this->GetFixedSurfacePoints();
+
+  unsigned int numberOfPoints = 
+    static_cast< unsigned int>( vtkpoints->GetNumberOfPoints() );
+
+  if( numberOfPoints != displacedPoints->Size() )
+    {
+    itkGenericExceptionMacro("Fixed Mesh and Deformed Points have different size");
+    } 
+
+  PointsIterator pointItr = displacedPoints->Begin();
+  PointsIterator pointEnd = displacedPoints->End();
+
+  vtkFloatingPointType displacedPoint[3];
+
+  int pointId = 0;
+
+  while( pointItr != pointEnd )
+    {
+    const PointType & observedDisplacedPoint = pointItr.Value();
+
+    displacedPoint[0] = observedDisplacedPoint[0];
+    displacedPoint[1] = observedDisplacedPoint[1];
+    displacedPoint[2] = observedDisplacedPoint[2];
+
+    vtkpoints->SetPoint( pointId, displacedPoint );
+    
+    ++pointItr;
+    ++pointId;
+    }
+
+  // FIXME : Do we need to disconnect the fixed mesh from its source ?
+  // FIXME : Do we need to call Modified in the fixed mesh ?
 
   this->RefreshRendering();
 }

@@ -38,7 +38,9 @@ public:
   DeformableRegistrationMonitor();
   ~DeformableRegistrationMonitor();
 
-  void Observe( const ProcessObjectType * filter, const PointSetType * transform );
+  void Observe( 
+    const ProcessObjectType * filter, 
+    const PointSetType * destinationPointSet );
 
 protected:
 
@@ -54,6 +56,7 @@ private:
   typename ObserverType::Pointer       StartObserver;
 
   ProcessObjectType::ConstPointer      ObservedFilter;
+  typename PointSetType::ConstPointer  ObservedPointSet;
 };
 
 #include "DeformableRegistrationMonitor.txx"
