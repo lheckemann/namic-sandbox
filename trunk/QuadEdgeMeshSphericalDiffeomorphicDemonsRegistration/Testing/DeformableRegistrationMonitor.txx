@@ -44,27 +44,60 @@ DeformableRegistrationMonitor<TPointSet>
 /** Set the objects to be observed: optimizer and transform */
 template <class TPointSet>
 void DeformableRegistrationMonitor<TPointSet>
-::Observe( const ProcessObjectType * filter, const PointSetType * destinationPointSet )
+::Observe( ProcessObjectType * filter, const PointSetType * destinationPointSet )
 {
-  this->ObservedFilter = filter;
-
   this->ObservedPointSet = destinationPointSet;
 
-  this->ObservedFilter->AddObserver( 
-    itk::StartEvent(), this->StartObserver     );
+  if( this->ObservedFilter != filter )
+    {
+    this->RemovePreviousObservers();
 
-  this->ObservedFilter->AddObserver( 
-    itk::ProgressEvent(), this->IterationObserver );
+    this->ObservedFilter = filter;
 
-  this->ObservedFilter->AddObserver( 
-    itk::IterationEvent(), this->IterationObserver );
+    unsigned long observerTag =
+      this->ObservedFilter->AddObserver( 
+        itk::StartEvent(), this->StartObserver     );
+    
+    this->ObserverTags.push_back( observerTag );
+
+    observerTag = this->ObservedFilter->AddObserver( 
+      itk::ProgressEvent(), this->IterationObserver );
+
+    this->ObserverTags.push_back( observerTag );
+
+    observerTag = this->ObservedFilter->AddObserver( 
+      itk::IterationEvent(), this->IterationObserver );
+
+    this->ObserverTags.push_back( observerTag );
+    }
 }
+
+
+/** Set the objects to be observed: optimizer and transform */
+template <class TPointSet>
+void DeformableRegistrationMonitor<TPointSet>
+::RemovePreviousObservers()
+{
+  if( this->ObservedFilter.IsNotNull() )
+    {
+    ObserverTagsArrayType::const_iterator observerTagItr = this->ObserverTags.begin();
+    ObserverTagsArrayType::const_iterator observerTagEnd = this->ObserverTags.end();
+
+    while( observerTagItr != observerTagEnd )
+      {
+      this->ObservedFilter->RemoveObserver( *observerTagItr );
+      ++observerTagItr;
+      }
+    }
+}
+
 
 /** Callback for the StartEvent */
 template <class TPointSet>
 void DeformableRegistrationMonitor<TPointSet>
 ::StartVisualization()
 {
+  std::cout << "Starting Deformable Visualization" << std::endl;
   this->Superclass::StartVisualization();
 }
 

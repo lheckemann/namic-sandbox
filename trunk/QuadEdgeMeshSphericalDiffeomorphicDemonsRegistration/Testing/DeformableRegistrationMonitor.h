@@ -39,7 +39,7 @@ public:
   virtual ~DeformableRegistrationMonitor();
 
   void Observe( 
-    const ProcessObjectType * filter, 
+    ProcessObjectType * filter, 
     const PointSetType * destinationPointSet );
 
 protected:
@@ -50,13 +50,18 @@ protected:
 
 private:
   
+  virtual void RemovePreviousObservers();
+
   typedef itk::SimpleMemberCommand< Self >  ObserverType;
+  typedef std::vector< unsigned long >      ObserverTagsArrayType;
 
-  typename ObserverType::Pointer       IterationObserver;
-  typename ObserverType::Pointer       StartObserver;
+  typename ObserverType::Pointer          IterationObserver;
+  typename ObserverType::Pointer          StartObserver;
 
-  ProcessObjectType::ConstPointer      ObservedFilter;
-  typename PointSetType::ConstPointer  ObservedPointSet;
+  ProcessObjectType::Pointer              ObservedFilter;
+  typename PointSetType::ConstPointer     ObservedPointSet;
+
+  ObserverTagsArrayType                   ObserverTags;
 };
 
 #include "DeformableRegistrationMonitor.txx"
