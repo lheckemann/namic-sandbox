@@ -60,6 +60,8 @@ protected:
 
   virtual void RefreshRendering();
 
+  vtkPoints * GetFixedSurfacePoints();
+
 private:
   
   vtkSmartPointer< vtkPolyData >         FixedSurface;
