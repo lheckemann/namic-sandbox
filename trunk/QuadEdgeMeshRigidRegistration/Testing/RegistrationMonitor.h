@@ -32,8 +32,7 @@
 #include "vtkWindowToImageFilter.h"
 #include "vtkJPEGWriter.h"
 #include "vtkTextProperty.h"
-#include "vtkTextMapper.h"
-#include "vtkActor2D.h"
+#include "vtkTextActor.h"
 
 
 /** \class RegistrationMonitor 
@@ -103,8 +102,7 @@ private:
   vtkSmartPointer< vtkWindowToImageFilter >     WindowToImageFilter;
 
   vtkSmartPointer< vtkTextProperty >            TextProperty;
-  vtkSmartPointer< vtkTextMapper >              TextMapper;
-  vtkSmartPointer< vtkActor2D >                 TextActor;
+  vtkSmartPointer< vtkTextActor >               TextActor;
 
   vtkSmartPointer< vtkJPEGWriter >   Writer;
 
