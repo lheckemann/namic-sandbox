@@ -265,6 +265,8 @@ GenerateData()
   this->AssignResampledMovingValuesToOutputMesh();
   this->ComposeFixedMeshOutputDisplacedToMovingMesh();
   this->m_Chronometer.Stop("DataPostProcessing");
+
+  this->m_Chronometer.Report( std::cout );
 }
 
 
