@@ -60,6 +60,7 @@ protected:
   virtual void SetMovingActorMatrix( vtkMatrix4x4 * matrix );
 
   virtual void RefreshRendering();
+  virtual void UpdateDataBeforeRendering() = 0;
 
   vtkPoints * GetFixedSurfacePoints();
 
