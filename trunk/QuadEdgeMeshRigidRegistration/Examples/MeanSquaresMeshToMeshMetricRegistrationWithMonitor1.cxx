@@ -227,7 +227,8 @@ int main( int argc, char * argv [] )
   
   visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
 
-  visualMonitor.Observe( optimizer.GetPointer(), transform.GetPointer() );
+  visualMonitor.Observe( optimizer.GetPointer() );
+  visualMonitor.ObserveData( transform.GetPointer() );
 
   visualMonitor.SetVerbose( false );
 

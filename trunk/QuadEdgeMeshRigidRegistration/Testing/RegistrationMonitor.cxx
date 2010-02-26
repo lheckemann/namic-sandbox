@@ -48,7 +48,6 @@ RegistrationMonitor::RegistrationMonitor()
   this->RenderWindow             = vtkSmartPointer<vtkRenderWindow>::New();
   this->RenderWindowInteractor   = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
-  // ITK Objects, does not require to call Delete()
   this->StartObserver       = ObserverType::New();
   this->IterationObserver   = ObserverType::New();
 
@@ -245,6 +244,52 @@ RegistrationMonitor
 ::SetScreenShotsBaseFileName( const char * screenShotFileName )
 {
   this->ScreenShotsBaseFileName = screenShotFileName;
+}
+
+
+void RegistrationMonitor
+::RemovePreviousObservers()
+{
+  if( this->ObservedObject.IsNotNull() )
+    {
+    ObserverTagsArrayType::const_iterator observerTagItr = this->ObserverTags.begin();
+    ObserverTagsArrayType::const_iterator observerTagEnd = this->ObserverTags.end();
+
+    while( observerTagItr != observerTagEnd )
+      {
+      this->ObservedObject->RemoveObserver( *observerTagItr );
+      ++observerTagItr;
+      }
+    }
+}
+
+
+/** Set the objects to be observed: optimizer and transform */
+void RegistrationMonitor
+::Observe( itk::Object * processObject )
+{
+  if( this->ObservedObject != processObject )
+    {
+    this->RemovePreviousObservers();
+
+    this->ObservedObject = processObject;
+
+    unsigned long observerTag =
+      this->ObservedObject->AddObserver( 
+        itk::StartEvent(), this->StartObserver     );
+    
+    this->ObserverTags.push_back( observerTag );
+
+    observerTag = this->ObservedObject->AddObserver( 
+      itk::ProgressEvent(), this->IterationObserver );
+
+    this->ObserverTags.push_back( observerTag );
+
+    observerTag = this->ObservedObject->AddObserver( 
+      itk::IterationEvent(), this->IterationObserver );
+
+    this->ObserverTags.push_back( observerTag );
+    }
 }
 
 
