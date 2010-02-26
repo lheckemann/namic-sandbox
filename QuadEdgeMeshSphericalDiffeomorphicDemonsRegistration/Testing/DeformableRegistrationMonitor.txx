@@ -82,13 +82,27 @@ void DeformableRegistrationMonitor<TPointSet>
 
   const PointsContainer * displacedPoints = this->ObservedPointSet->GetPoints();
 
+  if( !displacedPoints )
+    {
+    std::cerr << "displacedPoints = NULL" << std::endl;
+    return;
+    }
+
   vtkPoints * vtkpoints = this->GetFixedSurfacePoints();
+
+  if( !vtkpoints )
+    {
+    std::cerr << "vtkpoints = NULL" << std::endl;
+    return;
+    }
 
   unsigned int numberOfPoints = 
     static_cast< unsigned int>( vtkpoints->GetNumberOfPoints() );
 
   if( numberOfPoints != displacedPoints->Size() )
     {
+    std::cerr << "vtkPolyData numberOfPoints  = " << numberOfPoints << std::endl;
+    std::cerr << "number of deformable points = " << displacedPoints->Size() << std::endl;
     itkGenericExceptionMacro("Fixed Mesh and Deformed Points have different size");
     } 
 
