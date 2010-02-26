@@ -234,6 +234,8 @@ int main( int argc, char * argv [] )
   RegistrationMonitorType  visualMonitor;
   visualMonitor.SetNumberOfIterationsPerUpdate( 1 );
 
+  visualMonitor.SetBaseAnnotationText("Rigid Registration Level 1");
+
   visualMonitor.Observe( optimizer.GetPointer() );
   visualMonitor.ObserveData( transform.GetPointer() );
 
@@ -360,6 +362,7 @@ int main( int argc, char * argv [] )
   demonsFilter->SetInitialDestinationPoints( destinationPoints );
 
 #ifdef USE_VTK
+  visualMonitor.SetBaseAnnotationText("Demons Registration Level 1");
   visualMonitor.Observe( demonsFilter.GetPointer() );
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
@@ -517,6 +520,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
 
+  visualMonitor.SetBaseAnnotationText("Rigid Registration Level 2");
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
   visualMonitor.ObserveData( transform.GetPointer() );
@@ -567,6 +571,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
+  visualMonitor.SetBaseAnnotationText("Demons Registration Level 2");
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
 
@@ -713,6 +718,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
 
+  visualMonitor.SetBaseAnnotationText("Rigid Registration Level 3");
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
   visualMonitor.ObserveData( transform.GetPointer() );
@@ -763,6 +769,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
+  visualMonitor.SetBaseAnnotationText("Demons Registration Level 3");
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
 
@@ -912,6 +919,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   vtkFixedMeshReader->Update();
   vtkMovingMeshReader->Update();
 
+  visualMonitor.SetBaseAnnotationText("Rigid Registration Level 4");
   visualMonitor.SetFixedSurface( vtkFixedMeshReader->GetOutput() );
   visualMonitor.SetMovingSurface( vtkMovingMeshReader->GetOutput() );
   visualMonitor.ObserveData( transform.GetPointer() );
@@ -961,6 +969,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
+  visualMonitor.SetBaseAnnotationText("Demons Registration Level 4");
   visualMonitor.ObserveData( demonsFilter->GetFinalDestinationPoints() );
 #endif
 
