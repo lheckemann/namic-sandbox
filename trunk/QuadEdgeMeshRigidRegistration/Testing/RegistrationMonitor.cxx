@@ -181,6 +181,14 @@ void RegistrationMonitor
 }
 
 
+/** Return the points of the Fixed Surface. */
+vtkPoints * 
+RegistrationMonitor
+:: GetFixedSurfacePoints()
+{
+  return this->FixedSurface->GetPoints();
+}
+
 /** Set the transform in the actor of the moving surface */
 void RegistrationMonitor
 ::SetMovingActorMatrix( vtkMatrix4x4 * matrix )
