@@ -1996,6 +1996,7 @@ vtkPerkStationSecondaryMonitor
 }
 
 
+
 /**
  * @param show True makes object visible, false hides it.
  */
