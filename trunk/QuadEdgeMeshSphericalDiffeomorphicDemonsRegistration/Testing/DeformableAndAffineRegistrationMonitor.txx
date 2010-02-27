@@ -152,7 +152,7 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
   TransformType::MatrixType matrix = 
     this->ObservedTransform->GetMatrix();
  
-  vnl_matrix_fixed<double,3,3> inverseMatrix = matrix.GetInverse();
+  vnl_matrix_fixed<double,3,3> inverseMatrix = matrix.GetVnlMatrix();
 
   TransformType::OffsetType offset = 
     this->ObservedTransform->GetOffset();
