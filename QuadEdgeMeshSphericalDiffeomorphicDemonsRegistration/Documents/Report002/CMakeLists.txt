@@ -33,13 +33,13 @@ SET(REPORT_SRCS
   )
 
 SET(THIS_BINARY_DIR 
-  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReports002_BINARY_DIR} )
+  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport002_BINARY_DIR} )
 
 SET(THIS_SOURCE_DIR 
-  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReports002_SOURCE_DIR} )
+  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport002_SOURCE_DIR} )
 
 SET(REPORT001_SOURCE_DIR 
-  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReports002_SOURCE_DIR}/../Report001/ )
+  ${QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport002_SOURCE_DIR}/../Report001/ )
 
 #
 # This adds a custom command for each source file in REPORT_SRCS
@@ -107,7 +107,7 @@ SET(REPORT_ELEMENTS
   )
 
 #
-# This adds a custom target that generates QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReports002.pdf
+# This adds a custom target that generates QuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationReport002.pdf
 # This target depends on the list of copied files created
 # with the custom command above and the Plots target.
 #
