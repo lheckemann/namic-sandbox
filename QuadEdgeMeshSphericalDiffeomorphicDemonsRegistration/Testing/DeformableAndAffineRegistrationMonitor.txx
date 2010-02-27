@@ -136,6 +136,10 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
     ++pointId;
     }
 
+  // Reset the Actor transform given that the surface has been resampled.
+  this->Matrix->Identity();
+  this->SetFixedActorMatrix( this->Matrix );
+
   this->MarkFixedSurfaceAsModified();
 }
 
@@ -148,6 +152,8 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
   TransformType::MatrixType matrix = 
     this->ObservedTransform->GetMatrix();
  
+  vnl_matrix_fixed<double,3,3> inverseMatrix = matrix.GetInverse();
+
   TransformType::OffsetType offset = 
     this->ObservedTransform->GetOffset();
 
@@ -155,12 +161,11 @@ void DeformableAndAffineRegistrationMonitor<TPointSet>
     {
     for(unsigned int j=0; j<3; j++ )
       {
-      this->Matrix->SetElement(i,j,
-        matrix.GetVnlMatrix().get(i,j));   
+      this->Matrix->SetElement(i,j, inverseMatrix.get(i,j));   
       }
 
-    this->Matrix->SetElement( i, 3, offset[i]);
+    this->Matrix->SetElement( i, 3, -offset[i]);
     }
 
-  this->SetMovingActorMatrix( this->Matrix );
+  this->SetFixedActorMatrix( this->Matrix );
 }
