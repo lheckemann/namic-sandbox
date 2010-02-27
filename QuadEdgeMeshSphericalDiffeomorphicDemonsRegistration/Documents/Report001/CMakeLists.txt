@@ -94,7 +94,7 @@ SET(REPORT_ELEMENTS
 # This target depends on the list of copied files created
 # with the custom command above and the Plots target.
 #
-ADD_CUSTOM_TARGET(ReportIJ ALL 
+ADD_CUSTOM_TARGET(Report001IJ ALL 
    COMMAND ${PDFLATEX_COMPILER} 
         ${THIS_SOURCE_DIR}/QuadEdgeMeshSphericalDiffeomorphicDemonsRegistration.tex 
         -output-directory ${THIS_BINARY_DIR}
