@@ -111,6 +111,7 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
   void BuildGUIForHelpFrame();
   void BuildGUIForToolFrame();
   void BuildGUIForCalibrationFrame();
+  void BuildGUIForManualCalibrationFrame();
 
   //----------------------------------------------------------------
   // Update routines
@@ -148,8 +149,15 @@ class VTK_HybridNav_EXPORT vtkHybridNavGUI : public vtkSlicerModuleGUI
   vtkSlicerNodeSelectorWidget* CalibrationNodeSelectorMenu;
   vtkKWEntry* numPointsEntry;
   vtkKWEntry* CalibrationResult;
-    vtkKWEntry* CalibrationError;
+  vtkKWEntry* CalibrationError;
   vtkKWPushButton* StartCalibrateButton;
+
+  //----------------------------------------------------------------
+  //Manual Calibration Frame
+
+  vtkSlicerNodeSelectorWidget* ObjectiveTransformNodeSelectorMenu;
+  vtkSlicerNodeSelectorWidget* CurrentTransformNodeSelectorMenu;
+  vtkKWPushButton* ManualCalibrateButton;
 
   //----------------------------------------------------------------
   // Variables
