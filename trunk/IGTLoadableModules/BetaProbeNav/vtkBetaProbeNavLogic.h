@@ -76,6 +76,8 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
   vtkImageData* GetImageData() { return this->image; };
   void SetImageData (vtkImageData* im) { this->image = im; };
   vtkMRMLModelNode* BuildLocators(vtkMRMLModelNode* mn);
+  void SetActiveDataType (int data) { this->ActiveDataType = data; };
+  int GetActiveDataType() { return this->ActiveDataType; };
 
  protected:
   
@@ -106,6 +108,7 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
    vtkCellLocator* cellLocator;
    double maxRange;
    double probeDiam;
+   int ActiveDataType;
 
 };
 

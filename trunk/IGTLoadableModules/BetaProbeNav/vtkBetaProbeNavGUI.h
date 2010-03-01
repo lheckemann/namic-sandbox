@@ -130,6 +130,7 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   vtkKWRadioButtonSet* SphereTypeButtonSet;
   vtkKWRadioButtonSet* ModelTypeButtonSet;
   vtkKWRadioButtonSet* ImageTypeButtonSet;
+  vtkKWRadioButtonSet* DataTypeButtonSet;
   vtkKWCheckButton* ImageCheckButton;
   vtkKWEntry* RangeEntry;
   vtkKWEntry* ProbeDiameterEntry;
