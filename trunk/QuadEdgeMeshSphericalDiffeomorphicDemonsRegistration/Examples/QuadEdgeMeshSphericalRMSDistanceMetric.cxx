@@ -20,14 +20,16 @@
 
 #include "itkQuadEdgeMeshVTKPolyDataReader.h"
 #include "itkQuadEdgeMesh.h"
+#include "itkQuadEdgeMeshGenerateDeformationFieldFilter.h"
+#include "itkQuadEdgeMeshVectorDataVTKPolyDataWriter.h"
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 3 )
+  if( argc < 4 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " fixedMeshFile  movingMeshFile " << std::endl;
+    std::cerr << " fixedMeshFile  movingMeshFile outputMeshDisplacementFieldfile" << std::endl;
     return EXIT_FAILURE;
     }
   
@@ -39,6 +41,19 @@ int main( int argc, char *argv[] )
 
   typedef itk::QuadEdgeMeshVTKPolyDataReader< FixedMeshType >   FixedReaderType;
   typedef itk::QuadEdgeMeshVTKPolyDataReader< MovingMeshType >  MovingReaderType;
+
+  typedef itk::Vector< float, Dimension >                       DeformationVectorType;
+
+  typedef itk::QuadEdgeMeshTraits< DeformationVectorType, Dimension, bool, bool > VectorPointSetTraits;
+
+  typedef itk::QuadEdgeMesh< 
+    DeformationVectorType, Dimension, VectorPointSetTraits >   DeformationFieldMeshType;
+
+  typedef itk::QuadEdgeMeshGenerateDeformationFieldFilter<
+    FixedMeshType, MovingMeshType, DeformationFieldMeshType >   DeformationFilterType;
+
+  DeformationFilterType::Pointer deformationFilter = DeformationFilterType::New();
+
 
   FixedReaderType::Pointer fixedReader = FixedReaderType::New();
   fixedReader->SetFileName( argv[1] );
@@ -101,6 +116,28 @@ int main( int argc, char *argv[] )
   const double distancesRMS = vcl_sqrt( sumOfDistances / numberOfPoints );
 
   std::cout << "RMS " << distancesRMS << std::endl;
+
+  deformationFilter->SetInputMesh( fixedMesh );
+  deformationFilter->SetDestinationPoints( movingMesh );
+
+  typedef itk::QuadEdgeMeshVectorDataVTKPolyDataWriter< DeformationFieldMeshType >   WriterType;
+  WriterType::Pointer writer = WriterType::New();
+
+  deformationFilter->Update();
+
+  writer->SetFileName( argv[3] );
+  writer->SetInput( deformationFilter->GetOutput() );
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   return EXIT_SUCCESS;
 }
