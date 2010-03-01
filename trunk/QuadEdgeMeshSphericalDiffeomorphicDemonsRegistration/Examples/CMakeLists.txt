@@ -110,8 +110,7 @@ ADD_TEST(anonConvert${ID}b
 ADD_TEST(anonConvert${ID}c
   ${CXX_TEST_PATH}/ReadFreesurferBinarySurfaceWriteVTKMesh
   ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sphere
-#  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.curv
-  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.sulc
+  ${PATIENT_DATA_ROOT}/sub${ID}/surf/lh.curv
   ${TEMP}/sub${ID}c.vtk
   )
  
@@ -237,6 +236,7 @@ ADD_TEST(CompareRegistration_${MESHID1}_${MESHID2}
   ${CXX_TEST_PATH}/QuadEdgeMeshSphericalRMSDistanceMetric
   ${TEMP}/sub${MESHID1}_multiresolution_to_${MESHID2}_Final.vtk
   ${TEMP}/${REFERENCE_MESH_BASE_NAME}.vtk
+  ${TEMP}/sub${MESHID1}_multiresolution_to_${MESHID2}_Final_Difference.vtk
   )
 
 ENDMACRO( COMPARE_MESHES )
