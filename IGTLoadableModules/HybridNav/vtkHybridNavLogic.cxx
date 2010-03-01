@@ -24,6 +24,7 @@
 
 #include "vtkCylinderSource.h"
 #include "vtkSphereSource.h"
+#include "vtkConeSource.h"
 #include "vtkAppendPolyData.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkTransform.h"
@@ -107,21 +108,33 @@ vtkMRMLHybridNavToolNode* vtkHybridNavLogic::CreateToolModel(vtkMRMLHybridNavToo
   vtkTransformPolyDataFilter *tfilter = vtkTransformPolyDataFilter::New();
   vtkTransform* trans =   vtkTransform::New();
   trans->RotateX(90.0);
-  trans->Translate(0.0, -50.0, 0.0);
+  trans->Translate(0.0, -50.0 - 5, 0.0);
   trans->Update();
   tfilter->SetInput(cylinder->GetOutput());
   tfilter->SetTransform(trans);
   tfilter->Update();
   
-  // Sphere represents the tool tracking sensor
-  vtkSphereSource *sphere = vtkSphereSource::New();
-  sphere->SetRadius(3.0);
-  sphere->SetCenter(0, 0, 0);
-  sphere->Update();
+  // Cone represents the tool tracking sensor
+  vtkConeSource *cone = vtkConeSource::New();
+  cone->SetRadius(1.5);
+  cone->SetCenter(0, 0, 0);
+  cone->SetHeight(5);
+  cone->SetDirection(0,0,1);
+  cone->Update();
+  
+  // Translate cone
+  vtkTransformPolyDataFilter *tfilter1 = vtkTransformPolyDataFilter::New();
+  vtkTransform* trans1 =   vtkTransform::New();
+  trans1->RotateZ(30.0);
+  trans1->Translate(0.0, 0.0, -2.5);
+  trans1->Update();
+  tfilter1->SetInput(cone->GetOutput());
+  tfilter1->SetTransform(trans1);
+  tfilter1->Update();
   
   //Append geometries together
   vtkAppendPolyData *apd = vtkAppendPolyData::New();
-  apd->AddInput(sphere->GetOutput());
+  apd->AddInput(tfilter1->GetOutput());
   apd->AddInput(tfilter->GetOutput());
   apd->Update();
   
@@ -138,8 +151,10 @@ vtkMRMLHybridNavToolNode* vtkHybridNavLogic::CreateToolModel(vtkMRMLHybridNavToo
   
   trans->Delete();
   tfilter->Delete();
+  trans1->Delete();
+  tfilter1->Delete();
   cylinder->Delete();
-  sphere->Delete();
+  cone->Delete();
   apd->Delete();
 
   //locatorModel->Delete();
@@ -164,10 +179,11 @@ void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
   sphere->Update();
   
   // Create filter
-  tfilter = vtkTransformPolyDataFilter::New();
+  vtkTransformPolyDataFilter* tfilter = vtkTransformPolyDataFilter::New();
   vtkTransform* trans = vtkTransform::New();
   trans->Identity();
   trans->Translate(0.0, 0.0, -1*(mnode->GetCalibrationMatrix()->GetElement(2,3)));
+  //trans->Translate(0.0, 0.0, -20);
   trans->Update();
   tfilter->SetInput(sphere->GetOutput());
   tfilter->SetTransform(trans);
@@ -176,6 +192,7 @@ void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
   //Append geometries together
   vtkAppendPolyData *apd = vtkAppendPolyData::New();
   apd->AddInput(tfilter->GetOutput());
+  //apd->AddInput(sphere->GetOutput());
   apd->AddInput(pd);
   apd->Update();
 
@@ -192,11 +209,13 @@ void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
   mnode->Modified();
   this->GetApplicationLogic()->GetMRMLScene()->Modified();
   
-  //tfilter->Delete();
-  //sphere->Delete();
-  //apd->Delete();
-  //pd->Delete();
-  //tipDisp->Delete();
+  //Clean up
+  tfilter->Delete();
+  trans->Delete();
+  sphere->Delete();
+  apd->Delete();
+  pd->Delete();
+  tipDisp->Delete();
 }
 
 //---------------------------------------------------------------------------
