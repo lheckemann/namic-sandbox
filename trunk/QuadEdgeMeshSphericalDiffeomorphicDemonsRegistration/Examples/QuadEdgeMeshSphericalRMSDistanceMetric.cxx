@@ -106,11 +106,13 @@ int main( int argc, char *argv[] )
 
   while( ( fixedPointItr != fixedPointEnd ) && ( movingPointItr != movingPointEnd ) )
     {
-    ++fixedPointItr;
-    ++movingPointItr;
     const double distanceSquared = 
       fixedPointItr.Value().SquaredEuclideanDistanceTo( movingPointItr.Value() );
+
     sumOfDistances += distanceSquared;
+
+    ++fixedPointItr;
+    ++movingPointItr;
     }
   
   const double distancesRMS = vcl_sqrt( sumOfDistances / numberOfPoints );
