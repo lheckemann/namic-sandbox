@@ -69,7 +69,6 @@ class VTK_HybridNav_EXPORT vtkHybridNavLogic : public vtkSlicerModuleLogic
 
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
   void UpdateAll();
-  vtkTransformPolyDataFilter *tfilter;
 
   vtkCallbackCommand *DataCallbackCommand;
 
