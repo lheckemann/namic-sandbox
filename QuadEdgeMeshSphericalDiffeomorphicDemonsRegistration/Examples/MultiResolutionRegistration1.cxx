@@ -346,11 +346,10 @@ int main( int argc, char * argv [] )
   const double sigmaX = 1.0;
   const double lambda = 1.0;
   const unsigned int maximumNumberOfSmoothingIterations = 10;
-  const unsigned int maximumNumberOfIterations = 30;
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
-  demonsFilter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+  demonsFilter->SetMaximumNumberOfIterations( 50 );
 
   demonsFilter->SetLambda( lambda );
   demonsFilter->SetMaximumNumberOfSmoothingIterations( maximumNumberOfSmoothingIterations );
@@ -576,6 +575,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh2 );
   demonsFilter->SetMovingMesh( movingMeshReader2->GetOutput() );
 
+  demonsFilter->SetMaximumNumberOfIterations( 60 );
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
@@ -781,6 +781,7 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetFixedMesh( fixedMesh3 );
   demonsFilter->SetMovingMesh( movingMeshReader3->GetOutput() );
 
+  demonsFilter->SetMaximumNumberOfIterations( 80 );
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
@@ -988,6 +989,8 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   demonsFilter->SetFixedMesh( fixedMesh4 );
   demonsFilter->SetMovingMesh( movingMeshReader4->GetOutput() );
+
+  demonsFilter->SetMaximumNumberOfIterations( 100 );
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
