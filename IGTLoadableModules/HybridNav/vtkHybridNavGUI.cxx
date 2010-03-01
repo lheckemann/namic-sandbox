@@ -83,6 +83,12 @@ vtkHybridNavGUI::vtkHybridNavGUI ( )
   this->CalibrationError = NULL;
 
   //----------------------------------------------------------------
+  //Manual Calibration Frame
+  this->ObjectiveTransformNodeSelectorMenu = NULL;
+  this->CurrentTransformNodeSelectorMenu = NULL;
+  this->ManualCalibrateButton = NULL;
+
+  //----------------------------------------------------------------
   // Variables
   this->pivot = vtkPivotCalibration::New();
   Calibrating = 0;
@@ -185,6 +191,27 @@ vtkHybridNavGUI::~vtkHybridNavGUI ( )
     this->StartCalibrateButton->Delete();
     }
 
+
+  //-----------------------------------------------------------------
+  //Manual Calibration Frame
+  if (this->ObjectiveTransformNodeSelectorMenu)
+    {
+    this->ObjectiveTransformNodeSelectorMenu->SetParent(NULL);
+    this->ObjectiveTransformNodeSelectorMenu->Delete();
+    }
+
+  if (this->CurrentTransformNodeSelectorMenu)
+    {
+    this->CurrentTransformNodeSelectorMenu->SetParent(NULL);
+    this->CurrentTransformNodeSelectorMenu->Delete();
+    }
+
+  if (this->ManualCalibrateButton)
+    {
+    this->ManualCalibrateButton->SetParent(NULL);
+    this->ManualCalibrateButton->Delete();
+    }
+
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -281,7 +308,7 @@ void vtkHybridNavGUI::RemoveGUIObservers ( )
     }
 
   //--------------------------------------------------------------------------
-  //Calibration Frame
+  //Pivot Calibration Frame
   if (this->numPointsEntry)
     {
     this->numPointsEntry
@@ -305,6 +332,14 @@ void vtkHybridNavGUI::RemoveGUIObservers ( )
   if (this->CalibrationNodeSelectorMenu)
     {
     this->CalibrationNodeSelectorMenu
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  //--------------------------------------------------------------------------
+  //Manual Calibration Frame
+  if (this->ManualCalibrateButton)
+    {
+    this->ManualCalibrateButton
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
@@ -354,17 +389,22 @@ void vtkHybridNavGUI::AddGUIObservers ( )
      ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
   //----------------------------------------------------------------
-  //Calibration frame
+  //Pivot Calibration frame
   this->CalibrationNodeSelectorMenu
     ->AddObserver(vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->numPointsEntry
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->StartCalibrateButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  
+  //----------------------------------------------------------------
+  //Manual Calibration frame
+  this->ManualCalibrateButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+    
   this->AddLogicObservers();
 
 }
-
 
 //---------------------------------------------------------------------------
 void vtkHybridNavGUI::RemoveLogicObservers ( )
@@ -375,9 +415,6 @@ void vtkHybridNavGUI::RemoveLogicObservers ( )
                                       (vtkCommand *)this->LogicCallbackCommand);
     }
 }
-
-
-
 
 //---------------------------------------------------------------------------
 void vtkHybridNavGUI::AddLogicObservers ( )
@@ -574,6 +611,73 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         }
       }
     }
+   
+  //--------------------------------------------------------------------------
+  // Manual Calibration Frame
+  //Events pressing manual calibration button
+  else if (this->ManualCalibrateButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    //Acknowledge the button has been pressed
+    std::cerr << "Manual Calibrate Button is pressed." << std::endl;
+
+    //Check if the nodes have been selected
+    if ((this->ObjectiveTransformNodeSelectorMenu->GetSelected()) && 
+        (this->CurrentTransformNodeSelectorMenu->GetSelected()))
+      {
+      vtkMRMLHybridNavToolNode* otnode = vtkMRMLHybridNavToolNode::SafeDownCast(this->ObjectiveTransformNodeSelectorMenu->GetSelected());
+      vtkMRMLHybridNavToolNode* ctnode = vtkMRMLHybridNavToolNode::SafeDownCast(this->CurrentTransformNodeSelectorMenu->GetSelected());
+      if ((otnode) && (ctnode))
+        {
+        /*// Annull previous appended calibration matrix
+        vtkMatrix4x4* m1 = vtkMatrix4x4::New();
+        m1->Invert(tnode->GetCalibrationMatrix(), m1);
+        tnode->vtkMRMLTransformableNode::ApplyTransform(m1);
+        m1->Delete();*/
+        
+        /*// Delete any previous calibration matrix
+        vtkMatrix4x4* m2 = vtkMatrix4x4::New();
+        m2->Identity();
+        tnode->SetCalibrationMatrix(m2);*/
+        
+        // Make the translation components of ctnode and otnode the same
+        vtkMatrix4x4* ctmat = vtkMatrix4x4::New();
+        vtkMatrix4x4* otmat = vtkMatrix4x4::New();
+        ctnode->GetParentTransformNode()->GetMatrixTransformToWorld(ctmat);
+        otnode->GetParentTransformNode()->GetMatrixTransformToWorld(otmat);
+        otmat->Multiply4x4(otmat, otnode->GetCalibrationMatrix(), otmat);
+        ctmat->Print(std::cerr);
+        otmat->Print(std::cerr);
+        double deltaX, deltaY, deltaZ;
+        deltaX = otmat->GetElement(0,3) - ctmat->GetElement(0,3);
+        deltaY = otmat->GetElement(1,3) - ctmat->GetElement(1,3);
+        deltaZ = otmat->GetElement(2,3) - ctmat->GetElement(2,3);
+        std::cerr << deltaX << ", " << deltaY << ", " << deltaZ << std::endl;
+        //Create new transform matrix to make tool tips coincide
+        vtkMatrix4x4* manualCalibrationMatrix = vtkMatrix4x4::New();
+        manualCalibrationMatrix->Identity();
+        manualCalibrationMatrix->SetElement(0,3, deltaX);
+        manualCalibrationMatrix->SetElement(1,3, deltaY);
+        manualCalibrationMatrix->SetElement(2,3, deltaZ);
+        manualCalibrationMatrix->Print(std::cerr);
+        
+        //Apply the new transform to the Current Tool
+        ctnode->vtkMRMLTransformableNode::ApplyTransform(manualCalibrationMatrix);
+        ctnode->Modified();
+        this->GetMRMLScene()->Modified();
+
+        //Clean up
+        ctmat->Delete();
+        otmat->Delete();
+        manualCalibrationMatrix->Delete();
+        }
+      }
+    else
+      {
+      std::cerr << "Nodes not selected for calibration" << std::endl;
+      return;
+      }
+    }
 }
 
 //----------------------------------------------------------------------------------------
@@ -725,6 +829,7 @@ void vtkHybridNavGUI::BuildGUI ( )
   BuildGUIForHelpFrame();
   BuildGUIForToolFrame();
   BuildGUIForCalibrationFrame();
+  BuildGUIForManualCalibrationFrame();
 }
 
 //---------------------------------------------------------------------------
@@ -927,7 +1032,6 @@ void vtkHybridNavGUI::BuildGUIForToolFrame()
   UpdateToolPropertyFrame(-1);
 }
 
-
 //---------------------------------------------------------------------------
 void vtkHybridNavGUI::BuildGUIForCalibrationFrame()
 {
@@ -1082,6 +1186,119 @@ void vtkHybridNavGUI::BuildGUIForCalibrationFrame()
   frame->Delete();
   nodeLabel->Delete();
 
+}
+
+
+
+//---------------------------------------------------------------------------
+void vtkHybridNavGUI::BuildGUIForManualCalibrationFrame()
+{
+
+  vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget ("HybridNav");
+
+  vtkSlicerModuleCollapsibleFrame *manualCalibrationFrame = vtkSlicerModuleCollapsibleFrame::New();
+
+  manualCalibrationFrame->SetParent(page);
+  manualCalibrationFrame->Create();
+  manualCalibrationFrame->SetLabelText("Manual Calibration");
+  app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
+               manualCalibrationFrame->GetWidgetName(), page->GetWidgetName());
+
+  // -----------------------------------------
+  // Manual Calibration Frame
+
+  vtkKWFrameWithLabel *mcframe = vtkKWFrameWithLabel::New();
+  mcframe->SetParent(manualCalibrationFrame->GetFrame());
+  mcframe->Create();
+  mcframe->SetLabelText ("Manual Calibration Settings");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 mcframe->GetWidgetName() );
+
+  //Node Selector Menus
+  vtkKWFrame *nodeFrame1 = vtkKWFrame::New();
+  nodeFrame1->SetParent(mcframe->GetFrame());
+  nodeFrame1->Create();
+  //nodeFrame->SetWidth(20);
+  app->Script ( "pack %s -fill both -expand true",
+                nodeFrame1->GetWidgetName());
+
+  vtkKWLabel* nodeLabel1 = vtkKWLabel::New();
+  nodeLabel1->SetParent(nodeFrame1);
+  nodeLabel1->Create();
+  nodeLabel1->SetText("Objective Tool: ");
+  nodeLabel1->SetWidth(20);
+
+  this->ObjectiveTransformNodeSelectorMenu = vtkSlicerNodeSelectorWidget::New();
+  this->ObjectiveTransformNodeSelectorMenu->SetParent(nodeFrame1);
+  this->ObjectiveTransformNodeSelectorMenu->Create();
+  this->ObjectiveTransformNodeSelectorMenu->SetWidth(35);
+  this->ObjectiveTransformNodeSelectorMenu->SetNewNodeEnabled(0);
+  this->ObjectiveTransformNodeSelectorMenu->SetNodeClass("vtkMRMLHybridNavToolNode", NULL, NULL, NULL);
+  this->ObjectiveTransformNodeSelectorMenu->NoneEnabledOn();
+  this->ObjectiveTransformNodeSelectorMenu->SetShowHidden(1);
+  this->ObjectiveTransformNodeSelectorMenu->Create();
+  this->ObjectiveTransformNodeSelectorMenu->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->ObjectiveTransformNodeSelectorMenu->UpdateMenu();
+  this->ObjectiveTransformNodeSelectorMenu->SetBorderWidth(0);
+  this->ObjectiveTransformNodeSelectorMenu->SetBalloonHelpString("Select a HybridTool from the Scene");
+
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+               nodeLabel1->GetWidgetName(), this->ObjectiveTransformNodeSelectorMenu->GetWidgetName());
+
+  vtkKWFrame *nodeFrame2 = vtkKWFrame::New();
+  nodeFrame2->SetParent(mcframe->GetFrame());
+  nodeFrame2->Create();
+  //nodeFrame->SetWidth(20);
+  app->Script ( "pack %s -fill both -expand true",
+                nodeFrame2->GetWidgetName());
+
+  vtkKWLabel* nodeLabel2 = vtkKWLabel::New();
+  nodeLabel2->SetParent(nodeFrame2);
+  nodeLabel2->Create();
+  nodeLabel2->SetText("Calibrate Tool: ");
+  nodeLabel2->SetWidth(20);
+
+  this->CurrentTransformNodeSelectorMenu = vtkSlicerNodeSelectorWidget::New();
+  this->CurrentTransformNodeSelectorMenu->SetParent(nodeFrame2);
+  this->CurrentTransformNodeSelectorMenu->Create();
+  this->CurrentTransformNodeSelectorMenu->SetWidth(35);
+  this->CurrentTransformNodeSelectorMenu->SetNewNodeEnabled(0);
+  this->CurrentTransformNodeSelectorMenu->SetNodeClass("vtkMRMLHybridNavToolNode", NULL, NULL, NULL);
+  this->CurrentTransformNodeSelectorMenu->NoneEnabledOn();
+  this->CurrentTransformNodeSelectorMenu->SetShowHidden(1);
+  this->CurrentTransformNodeSelectorMenu->Create();
+  this->CurrentTransformNodeSelectorMenu->SetMRMLScene(this->Logic->GetMRMLScene());
+  this->CurrentTransformNodeSelectorMenu->UpdateMenu();
+  this->CurrentTransformNodeSelectorMenu->SetBorderWidth(0);
+  this->CurrentTransformNodeSelectorMenu->SetBalloonHelpString("Select a HybridTool from the Scene");
+
+  this->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2",
+               nodeLabel2->GetWidgetName(), this->CurrentTransformNodeSelectorMenu->GetWidgetName());
+
+  //Manual Calibration button
+  vtkKWFrame* CalibrationButtonFrame = vtkKWFrame::New();
+  CalibrationButtonFrame->SetParent(manualCalibrationFrame->GetFrame());
+  CalibrationButtonFrame->Create();
+  this->Script ( "pack %s -fill both -expand true",
+                 CalibrationButtonFrame->GetWidgetName());
+
+  this->ManualCalibrateButton = vtkKWPushButton::New ( );
+  this->ManualCalibrateButton->SetParent (CalibrationButtonFrame );
+  this->ManualCalibrateButton->Create ( );
+  this->ManualCalibrateButton->SetText ("Manual Calibration");
+  this->ManualCalibrateButton->SetWidth (15);
+  this->Script ( "pack %s -side left -expand true",
+                 this->ManualCalibrateButton->GetWidgetName());
+
+  //Delete widget pointers
+  manualCalibrationFrame->Delete();
+  nodeFrame1->Delete();
+  nodeFrame2->Delete();
+  CalibrationButtonFrame->Delete();
+  mcframe->Delete();
+  nodeLabel1->Delete();
+  nodeLabel2->Delete();
 }
 
 //----------------------------------------------------------------------------
