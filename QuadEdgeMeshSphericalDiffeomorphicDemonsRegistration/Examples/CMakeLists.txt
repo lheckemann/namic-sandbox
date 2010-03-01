@@ -188,6 +188,7 @@ ADD_TEST(MultiResRegistration_${MESHID1}_${MESHID2}
   ${FIXEDMESHFINAL}
   ${MOVINGMESHFINAL}
   ${TEMP}/sub${MESHID2}_multiresolution_to_${MESHID1}_Final.vtk
+  registrationLog_${MESHID2}_${MESHID1}_
   )
 
 ENDMACRO( MULTIRES_REGISTER )

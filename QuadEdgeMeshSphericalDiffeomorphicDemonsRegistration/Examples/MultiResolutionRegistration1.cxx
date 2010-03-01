@@ -99,7 +99,7 @@ private:
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 16 )
+  if( argc < 17 )
     {
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
@@ -114,6 +114,7 @@ int main( int argc, char * argv [] )
     std::cerr << "outputResampledMeshRes4 ";
     std::cerr << "inputFixedMeshRes5 inputMovingMeshRes5 ";
     std::cerr << "outputResampledMeshRes5 ";
+    std::cerr << "screenshotsTag ";
     std::cerr << std::endl;
     return EXIT_FAILURE;
     }
@@ -240,7 +241,7 @@ int main( int argc, char * argv [] )
   visualMonitor.ObserveData( transform.GetPointer() );
 
   visualMonitor.SetVerbose( false );
-  visualMonitor.SetScreenShotsBaseFileName("registrationLog");
+  visualMonitor.SetScreenShotsBaseFileName( argv[16] );
 
   vtkSmartPointer< vtkPolyDataReader > vtkFixedMeshReader = 
     vtkSmartPointer< vtkPolyDataReader >::New();
