@@ -98,7 +98,7 @@ int main( int argc, char *argv[] )
    }
    else
    {
-    it3.Set(x);
+    it3.Set(1);
    }
    ++numberOfPixels;
   }

@@ -323,6 +323,153 @@ ADD_TEST(HipTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
   /home/harishd/ChristieHip/Fat.txt
   )
 
+ADD_TEST(HipAsTwoChannelKnnAlgoInteractiveRGB_spgrOutPhase_spgrWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_Hip
+  /home/harishd/AsHip/02_AS/IDEAL-SPGR-OUTPHASE/gradientOutPhase.mhd
+  /home/harishd/AsHip/02_AS/IDEAL-SPGR-WATER/gradientWater.mhd
+  /home/harishd/AsHip/02_AS/OutputKnnLabelMap.mhd
+  3 # Represents number of seed files
+  /home/harishd/AsHip/02_AS/Background.txt
+  /home/harishd/AsHip/02_AS/Bone.txt
+  /home/harishd/AsHip/02_AS/Muscle.txt
+  )
+
+ADD_TEST(HipAs91TwoChannelCreateLabelMap
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap_Hip_Slice
+  /home/harishd/AsHip/02_AS/IDEAL-SPGR-OUTPHASE/Slice91/91.mhd
+  /home/harishd/AsHip/02_AS/IDEAL-SPGR-WATER/Slice91/91.mhd
+  /home/harishd/AsHip/02_AS/OutputKnnLabelMap91.mhd
+  3 # Represents number of seed files
+  /home/harishd/AsHip/02_AS/Background.txt
+  /home/harishd/AsHip/02_AS/Bone.txt
+  /home/harishd/AsHip/02_AS/Muscle.txt
+  )
+
+ADD_TEST(HipAs91TwoChannelHoleFilling
+  ${CXX_TEST_PATH}/HoleFillingFilter_Slice
+  /home/harishd/AsHip/02_AS/ROI91.mhd
+  /home/harishd/AsHip/02_AS/ROI91_Filled.mhd
+     5 # Manhattan Radius
+     5 # Majority
+   400 # Maximum number of iterations
+  )
+
+
+ADD_TEST(HipAs91TwoChannelIterativeBinaryOpeningTest
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter_Hip_Slice
+  /home/harishd/AsHip/02_AS/OutputKnnLabelMap91.mhd
+  /home/harishd/AsHip/02_AS/ConnectedOutput91_BridgeBreaker.mhd
+  1
+  428
+  319
+  406
+  297
+  )
+
+ADD_TEST(HipAs91TwoChannelVotingIterativeBinaryImageTest
+  ${CXX_TEST_PATH}/VotingBinaryIterativeHoleFillingImageFilter
+  /home/harishd/AsHip/02_AS/ROI91.mhd
+  /home/harishd/AsHip/02_AS/VotingOutputROI91.mhd
+  2
+  2
+  400
+  )
+
+ADD_TEST(TwoChannelVotingIterativeBinaryImageTest_New
+  ${CXX_TEST_PATH}/VotingBinaryIterativeHoleFillingImageFilter
+  /home/harishd/MattDemer/BonesBinaryHoleFillingOutput.mhd
+  /home/harishd/MattDemer/BonesBinaryVotingOutput.mhd
+  1
+  1
+  10
+  )
+
+
+ADD_TEST(HipAsTwoChannelCreateLabelMap
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap_Hip
+  /home/harishd/AsHip/02_AS/IDEAL-SPGR-OUTPHASE/gradientOutPhase.mhd
+  /home/harishd/AsHip/02_AS/IDEAL-SPGR-WATER/gradientWater.mhd
+  /home/harishd/AsHip/02_AS/OutputKnnLabelMap.mhd
+  3 # Represents number of seed files
+  /home/harishd/AsHip/02_AS/Background.txt
+  /home/harishd/AsHip/02_AS/Bone.txt
+  /home/harishd/AsHip/02_AS/Muscle.txt
+  )
+
+ADD_TEST(HipAsTwoChannelConnectedImageFilterTestExtractIntensity80
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentImageFilter_Hip
+  /home/harishd/AsHip/02_AS/OutputKnnLabelMap.mhd
+  /home/harishd/AsHip/02_AS/ConnectedOutput80.mhd
+  75
+  85
+  )
+
+ADD_TEST(HipAsTwoChannelConnectedImageFilterTestExtractIntensity250
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentImageFilter_Hip
+  /home/harishd/AsHip/02_AS/OutputKnnLabelMap.mhd
+  /home/harishd/AsHip/02_AS/ConnectedOutput250.mhd
+  245
+  255
+  )
+
+ADD_TEST(HipAsTwoChannelExtractROIWrite
+  ${CXX_TEST_PATH}/ImageROIWrite
+  /home/harishd/AsHip/02_AS/OutputKnnLabelMap91.mhd
+  /home/harishd/AsHip/02_AS/ROI91.mhd
+  50
+  290
+  150
+  220
+  )
+
+ADD_TEST(HipAsTwoChannelConnectedImageFilterTestExtractIntensity200
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentImageFilter_Hip
+  /home/harishd/AsHip/02_AS/ROI91.mhd
+  /home/harishd/AsHip/02_AS/ConnectedOutput200_91.mhd
+  195
+  205
+  )
+
+ADD_TEST(HipAsTwoChannel91BinaryOpeningFilterTest
+  ${CXX_TEST_PATH}/TwoChannelBinaryOpeningFilter_Slice
+  /home/harishd/AsHip/02_AS/ROI91.mhd
+  /home/harishd/AsHip/02_AS/BinaryOpening_91.mhd
+  195
+  205
+  )
+
+
+
+ADD_TEST(HipAsTwoChannelSlice_AddLabelMap
+  ${CXX_TEST_PATH}/TwoChannelLabelMapUnion_Slice
+  /home/harishd/AsHip/02_AS/ROI91.mhd
+  /home/harishd/AsHip/02_AS/ROI91_New.mhd
+  /home/harishd/AsHip/02_AS/Seed_128.txt
+  /home/harishd/AsHip/02_AS/Seed_200.txt
+  )
+
+ADD_TEST(HipAsTwoChannelConnectedImageFilterTestExtractIntensity10
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentImageFilter_Hip
+  /home/harishd/AsHip/02_AS/OutputKnnLabelMap.mhd
+  /home/harishd/AsHip/02_AS/ConnectedOutput10.mhd
+  5
+  15
+  )
+
+
+ADD_TEST(HipAsTwoChannelIterativeBinaryOpeningTest
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter_Hip
+  /home/harishd/AsHip/02_AS/OutputKnnLabelMap.mhd
+  /home/harishd/AsHip/02_AS/ConnectedOutput250_BridgeBreaker.mhd
+  1
+  428
+  319
+  88
+  425
+  302
+  88
+  )
+
 ADD_TEST(HipSpgrTwoChannelKnnAlgoInteractiveRGB_spgrFat_spgrWater
   ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_Hip_Spgr
   /home/harishd/ChristieHip/IDEAL-SPGR-OUTPHASE/ideal-spgr-outphase.mhd
@@ -469,17 +616,409 @@ ADD_TEST(TwoChannelGradMorphOpeningFilter
   /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
   /home/harishd/MattDemer/GradientMorphOpeningOutput.mhd
   )
-# The cycle starts here #
-ADD_TEST(TwoChannelGradientLabelMapKnnAlgo_${DATASET2}_${DATASET1}
+# The cycle for knee segmentation starts here
+# The cycle for femur starts here #
+ADD_TEST(TwoChannelGradientLabelMapKnnAlgo_Femur_Tibia
   ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap
-  /home/harishd/MattDemer/gradientFatOutput.mhd
-  /home/harishd/MattDemer/gradientWaterOutput.mhd
+#  /home/harishd/MattDemer/gradientFatOutput.mhd
+#  /home/harishd/MattDemer/gradientWaterOutput.mhd
+  /home/harishd/MattDemer/IDEAL-SPGR-Fat/ideal-spgr-fat.mhd
+  /home/harishd/MattDemer/IDEAL-SPGR-Water/ideal-spgr-water.mhd
   /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
   4
   /home/harishd/MattDemer/Background.txt
   /home/harishd/MattDemer/Femur.txt
   /home/harishd/MattDemer/Cartilage.txt
   /home/harishd/MattDemer/Fat.txt
+  )
+
+######## CYCLE FOR TIBIA BEGINS HERE ################################
+
+ADD_TEST(TwoChannelCropImage_Tibia
+  ${CXX_TEST_PATH}/CropImage
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_Tibia.mhd
+  156  # startX
+  253  # startY
+    0  # startZ
+  235 # sizeX
+  107 # sizeY
+  156 # sizeZ
+  )
+
+
+ADD_TEST(TwoChannelGetTibia
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_OnlyBones
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_Tibia.mhd
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_TibiaOnly.mhd
+  80
+  )
+
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest1_Tibia
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_TibiaOnly.mhd
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Tibia.mhd
+  1
+  56
+  38
+  93
+  50
+  31
+  93
+  3
+  )
+
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest2_Tibia
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Tibia.mhd
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Tibia2.mhd
+  1
+  23
+  63
+  63
+  28
+  60
+  63
+  1
+  )
+
+ADD_TEST(TwoChannelOrImagesTest_Tibia
+  ${CXX_TEST_PATH}/TwoChannelOrImages
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Tibia2.mhd
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_Tibia.mhd
+  /home/harishd/MattDemer/TibiaOutputWithBackground.mhd
+  10
+  )
+
+ADD_TEST(TwoChannelConnectedImageFilterTest_Tibia
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentFilter
+  /home/harishd/MattDemer/TibiaOutputWithBackground.mhd
+  /home/harishd/MattDemer/TibiaOutputWithBackground_Connected.mhd
+  95
+  86
+  77
+  )
+
+ADD_TEST(TwoChannelConnectedImageFilterTest2_Tibia
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentFilter
+  /home/harishd/MattDemer/TibiaOutputWithBackground_Connected.mhd
+  /home/harishd/MattDemer/TibiaOutputWithBackground_Connected1.mhd
+  95
+  86
+  77
+  )
+
+
+ADD_TEST(TwoChannelConvertToBinaryTest8_Tibia
+  ${CXX_TEST_PATH}/TwoChannelConvertToBinaryImage
+  /home/harishd/MattDemer/TibiaOutputWithBackground_Connected.mhd
+  /home/harishd/MattDemer/TibiaOutputWithBackground_Binary.mhd
+  )
+
+ADD_TEST(TwoChannelHoleFillingTestNew9_Tibia
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/MattDemer/TibiaOutputWithBackground_Binary.mhd
+  /home/harishd/MattDemer/TibiaOutputWithBackground_HoleFilled.mhd
+     1 # Manhattan Radius
+     1 # Majority
+     20 # Maximum number of iterations
+  )
+
+
+ADD_TEST(TwoChannelHoleFillingTestNew10_Tibia
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/MattDemer/TibiaOutputWithBackground_HoleFilled.mhd
+  /home/harishd/MattDemer/TibiaOutputWithBackground_HoleFilledNew.mhd
+     2 # Manhattan Radius
+     1 # Majority
+     10 # Maximum number of iterations
+  )
+
+############ CYCLE FOR TIBIA ENDS HERE #########################
+
+######## CYCLE FOR PATELLA STARTS HERE #######################
+
+ADD_TEST(TwoChannelGradientLabelMapKnnAlgo_Patella
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap_Patella
+  /home/harishd/MattDemer/IDEAL-SPGR-Fat/ideal-spgr-fat.mhd
+  /home/harishd/MattDemer/IDEAL-SPGR-Water/ideal-spgr-water.mhd
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap_Patella.mhd
+  4
+  /home/harishd/MattDemer/Background.txt
+  /home/harishd/MattDemer/Femur.txt
+  /home/harishd/MattDemer/Cartilage.txt
+  /home/harishd/MattDemer/Fat.txt
+  )
+
+
+
+
+ADD_TEST(TwoChannelCropImage_Patella
+  ${CXX_TEST_PATH}/CropImage
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap_Patella.mhd
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_Patella.mhd
+  59  # startX
+  86  # startY
+   0  # startZ
+  100 # sizeX
+  160 # sizeY
+  156 # sizeZ
+  )
+
+
+ADD_TEST(TwoChannelGetPatella
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_OnlyBones
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_Patella.mhd
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_PatellaOnly.mhd
+  80
+  )
+
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest1_Patella
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_PatellaOnly.mhd
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Patella.mhd
+  1
+  40
+  66
+  85
+  88
+  21
+  85
+  4
+  )
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest2_Patella
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Patella.mhd
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Patella2.mhd
+  1
+  57
+  27
+  91
+  62
+  7
+  91
+  4
+  )
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest3_Patella
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Patella2.mhd
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Patella3.mhd
+  1
+   36
+   86
+   76
+   50
+  105
+   76
+  3
+  )
+
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest4_Patella
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Patella3.mhd
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Patella4.mhd
+  1
+   30
+   79
+   77
+   45
+   106
+   77
+   4
+  )
+
+
+ADD_TEST(TwoChannelOrImagesTest_Patella
+  ${CXX_TEST_PATH}/TwoChannelOrImages
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap_Patella4.mhd
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_Patella.mhd
+  /home/harishd/MattDemer/PatellaOutputWithBackground.mhd
+  10
+  )
+
+ADD_TEST(TwoChannelConnectedImageFilterTest_Patella
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentFilter
+  /home/harishd/MattDemer/PatellaOutputWithBackground.mhd
+  /home/harishd/MattDemer/PatellaOutputWithBackground_Connected.mhd
+  25
+  72
+  77
+  )
+
+
+ADD_TEST(TwoChannelConvertToBinaryTest8_Patella
+  ${CXX_TEST_PATH}/TwoChannelConvertToBinaryImage
+  /home/harishd/MattDemer/PatellaOutputWithBackground_Connected.mhd
+  /home/harishd/MattDemer/PatellaOutputWithBackground_Binary.mhd
+  )
+
+ADD_TEST(TwoChannelHoleFillingTestNew9_Patella
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/MattDemer/PatellaOutputWithBackground_Binary.mhd
+  /home/harishd/MattDemer/PatellaOutputWithBackground_HoleFilled.mhd
+     1 # Manhattan Radius
+     1 # Majority
+     20 # Maximum number of iterations
+  )
+
+
+
+######### CYCLE FOR PATELLA ENDS HERE ###########################
+
+
+ADD_TEST(TwoChannelConnectedImageFilterTest2
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentFilter
+  /home/harishd/MattDemer/DilationHoleFillingOutput5.mhd
+  /home/harishd/MattDemer/DilationHoleFillingConnectedOutput5.mhd
+  95
+  86
+  77
+  )
+
+
+##################CYCLE FOR FEMUR STARTS HERE ###############
+
+ADD_TEST(TwoChannelCropImage_Femur
+  ${CXX_TEST_PATH}/CropImage
+  /home/harishd/MattDemer/GradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap.mhd
+  130  # startX
+    7  # startY
+    0  # startZ
+  300 # sizeX
+  280 # sizeY
+  156 # sizeZ
+  )
+
+ADD_TEST(TwoChannelGetFemur
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_OnlyBones
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_Femur.mhd
+  80
+  )
+
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest1_Femur
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap_Femur.mhd
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap.mhd
+  1
+  74
+  81
+  90
+  25
+  106
+  90
+  2
+  )
+
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest3_Femur
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap2.mhd
+  1
+  18
+  146
+  69
+  21
+  153
+  69
+  2
+  )
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest4_Femur
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/DilationOutput3.mhd
+  /home/harishd/MattDemer/DilationOutput3_New.mhd
+  1
+  48
+  125
+  129
+  60
+  137
+  129
+  2
+  )
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest5_Femur
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/DilationOutput3_New.mhd
+  /home/harishd/MattDemer/DilationOutput3_New1.mhd
+  1
+  60
+  113
+  128
+  64
+  122
+  128
+  2
+  )
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest6_Femur
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/DilationOutput3_New1.mhd
+  /home/harishd/MattDemer/DilationOutput3_New2.mhd
+  1
+  69
+  106
+  128
+  73
+  116
+  128
+  2
+  )
+
+ADD_TEST(TwoChannelOrImagesTest_Femur
+  ${CXX_TEST_PATH}/TwoChannelOrImages
+#  /home/harishd/MattDemer/DilationOutput3_New2.mhd
+  /home/harishd/MattDemer/BridgeBreakerCroppedGradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/CroppedGradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/DilationOutput3_New3.mhd
+  10
+  )
+
+
+ADD_TEST(TwoChannelConnectedImageFilterTest7_Femur
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentFilter
+  /home/harishd/MattDemer/DilationOutput3_New3.mhd
+  /home/harishd/MattDemer/DilationOutput3_New4.mhd
+  95
+  86
+  77
+  )
+
+
+ADD_TEST(TwoChannelConvertToBinaryTest8_Femur
+  ${CXX_TEST_PATH}/TwoChannelConvertToBinaryImage
+  /home/harishd/MattDemer/DilationOutput3_New4.mhd
+  /home/harishd/MattDemer/DilationOutput3_New5.mhd
+  )
+
+ADD_TEST(TwoChannelHoleFillingTestNew9_Femur
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/MattDemer/DilationOutput3_New5.mhd
+  /home/harishd/MattDemer/DilationOutput3_New6.mhd
+     2 # Manhattan Radius
+     1 # Majority
+     100 # Maximum number of iterations
+  )
+
+###########################CYCLE ENDS HERE ##############################################
+
+ADD_TEST(TwoChannelConnectedImageFilterTest2
+  ${CXX_TEST_PATH}/TwoChannelConnectedComponentFilter
+  /home/harishd/MattDemer/DilationHoleFillingOutput5.mhd
+  /home/harishd/MattDemer/DilationHoleFillingConnectedOutput5.mhd
+  95
+  86
+  77
   )
 
 
@@ -513,6 +1052,16 @@ ADD_TEST(TwoChannelConnectedBinaryImageFilterTest
   255
   )
 
+ADD_TEST(TwoChannelHoleFillingTestNew
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/MattDemer/BonesBinaryOpeningOutput.mhd
+  /home/harishd/MattDemer/BonesBinaryHoleFillingOutput.mhd
+     1 # Manhattan Radius
+     1 # Majority
+     1 # Maximum number of iterations
+  )
+
+
 ADD_TEST(TwoChannelHoleFillingTest
   ${CXX_TEST_PATH}/HoleFillingFilter
   /home/harishd/MattDemer/ConnectedOutput.mhd
@@ -535,6 +1084,82 @@ ADD_TEST(TwoChannelBakIterativeBinaryOpeningTest
   87
   )
 # The cycle ends here #
+
+ADD_TEST(TwoChannelLabelMapKnnAlgo_JustFat
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap_JustFat
+  /home/harishd/MattDemer/IDEAL-SPGR-Fat/ideal-spgr-fat.mhd
+  /home/harishd/MattDemer/JustFatGradientOutputKnnLabelMap.mhd
+  2
+  /home/harishd/MattDemer/Background_JustFat.txt
+  /home/harishd/MattDemer/Bone_JustFat.txt
+  )
+
+ADD_TEST(TwoChannelBinaryOpening_JustFat
+  ${CXX_TEST_PATH}/TwoChannelBinaryOpeningFilter
+  /home/harishd/MattDemer/JustFatGradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/JustFatBinaryOpeningOutput.mhd
+  10
+  )
+
+ADD_TEST(TwoChannelMorphOpeningFilter_JustFat
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalOpeningImageFilter
+  /home/harishd/MattDemer/JustFatGradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/JustFatMorphOpeningOutput.mhd
+  1
+  )
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest_JustFat
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/JustFatGradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/JustFatBridgeBreakerOutput.mhd
+  1
+  159
+  175
+  72
+  143
+  135
+  72
+  )
+
+ADD_TEST(TwoChannelIterativeBinaryOpeningTest_JustFat2
+  ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter
+  /home/harishd/MattDemer/JustFatBridgeBreakerOutput.mhd
+  /home/harishd/MattDemer/JustFatBridgeBreakerOutput1.mhd
+  1
+  256
+  125
+  77
+  291
+  104
+  77
+  )
+
+ADD_TEST(TwoChannelMorphClosingFilter_JustFat
+  ${CXX_TEST_PATH}/TwoChannelGrayscaleMorphologicalClosingImageFilter
+  /home/harishd/MattDemer/JustFatGradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/JustFatMorphClosingOutput.mhd
+  )
+
+ADD_TEST(TwoChannelHoleFilling_JustFat
+  ${CXX_TEST_PATH}/HoleFillingFilter
+  /home/harishd/MattDemer/JustFatGradientOutputKnnLabelMap.mhd
+  /home/harishd/MattDemer/JustFatHoleFilledOutput.mhd
+     1 # Manhattan Radius
+     1 # Majority
+     1 # Maximum number of iterations
+  )
+
+
+ADD_TEST(TwoChannelLabelMapKnnAlgo_JustWater
+  ${CXX_TEST_PATH}/TwoChannelKnnAlgoRGBInteractive_SD_CreateLabelMap_JustFat
+  /home/harishd/MattDemer/IDEAL-SPGR-Water/ideal-spgr-water.mhd
+  /home/harishd/MattDemer/JustWaterGradientOutputKnnLabelMap.mhd
+  2
+  /home/harishd/MattDemer/Background_JustFat.txt
+  /home/harishd/MattDemer/Cartilage_JustFat.txt
+  )
+
+
 
 ADD_TEST(TwoChannelIterativeBinaryOpeningTest
   ${CXX_TEST_PATH}/TwoChannelIterativeBinaryOpeningFilter

@@ -101,11 +101,11 @@
 
 int main( int argc, char *argv[])
 {
-  if( argc < 8 )
+  if( argc < 7 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " inputImage  outputImage seedX seedY seedZ lowerThreshold upperThreshold" << std::endl;
+    std::cerr << " inputImage  outputImage seedX seedY lowerThreshold upperThreshold" << std::endl;
     return 1;
     }
 
@@ -241,8 +241,8 @@ int main( int argc, char *argv[])
   //
   //  Software Guide : EndLatex 
 
-  const InternalPixelType lowerThreshold = atof( argv[6] );
-  const InternalPixelType upperThreshold = atof( argv[7] );
+  const InternalPixelType lowerThreshold = atof( argv[5] );
+  const InternalPixelType upperThreshold = atof( argv[6] );
 
   // Software Guide : BeginCodeSnippet
   connectedThreshold->SetLower(  lowerThreshold  );
@@ -281,7 +281,7 @@ int main( int argc, char *argv[])
   
   index[0] = atoi( argv[3] );
   index[1] = atoi( argv[4] );
-  index[2] = atoi( argv[5] );
+
 
   // Software Guide : BeginCodeSnippet
   connectedThreshold->SetSeed( index );
