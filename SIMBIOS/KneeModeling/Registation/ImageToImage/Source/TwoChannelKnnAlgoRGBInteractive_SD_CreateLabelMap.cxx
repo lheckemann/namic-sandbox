@@ -35,7 +35,7 @@ unsigned int findClosestClusterCenterIndex(float x, float y, float *xClusterCent
 typedef enum {red, white, green, ran, pink, grey, blue, brown, chocolate, darkkhaki, darkmagenta, darkorange, darkorchid, darkturquoise, deeppink, dimgray, gold, indigo, 
        navy, silver, teal, yellow, yellowgreen, azure, black}colors;
 
-unsigned int greyScalePixels[] = {0, 80, 128, 200, 250};
+unsigned int greyScalePixels[] = {10, 80, 128, 200, 250}; //Recoloring background to 10 instead of 0
 
 unsigned int colorPixels[MAX_SEED_FILES][3] = {
      255,0,0,
@@ -228,16 +228,31 @@ int main( int argc, char *argv[] )
   float xnumberOfSds[totalSeeds];
   float ynumberOfSds[totalSeeds];
 
-  xnumberOfSds[0]=1.5; // background
-  xnumberOfSds[1]=5; // Bones
-  xnumberOfSds[2]=5; // Cartilage
-  xnumberOfSds[3]=1; // Fat
+  xnumberOfSds[0]=5; // background //0
+  xnumberOfSds[1]=10; // Bones // 80 
+  xnumberOfSds[2]=20; // Cartilage //128 
+  xnumberOfSds[3]=0; // Fat // 200 
+  // 225 Conflict
+  // 255 Reject
 
   ynumberOfSds[0]=5; // background
-  ynumberOfSds[1]=5; // Bones
+  ynumberOfSds[1]=20; // Bones
   ynumberOfSds[2]=5; // Cartilage
   ynumberOfSds[3]=5; // Fat
-  
+
+/* *** THIS IS INCLUDING FAT CLUSTER
+  xnumberOfSds[0]=5; // background //0
+  xnumberOfSds[1]=5; // Bones // 80 
+  xnumberOfSds[2]=20; // Cartilage //128 
+  xnumberOfSds[3]=2; // Fat // 200 
+  // 225 Conflict
+  // 255 Reject
+
+  ynumberOfSds[0]=5; // background
+  ynumberOfSds[1]=20; // Bones
+  ynumberOfSds[2]=5; // Cartilage
+  ynumberOfSds[3]=5; // Fat
+*/
   /* For gray scale image */
   ImageType::Pointer outputImage = ImageType::New();
   outputImage->SetRegions( image1->GetRequestedRegion() );
@@ -271,7 +286,9 @@ int main( int argc, char *argv[] )
 //     std::cout << "CIndex = " << cIndex << std::endl;
      it3.Set(greyScalePixels[cIndex]);
     }
-    else
+    else if(cIndex == 21) // Point falling into more than cluster
+     it3.Set(225);
+    else //Point which doesnt fall into any cluster
       it3.Set(255);
   }
   
@@ -293,7 +310,6 @@ findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yC
  {
   if(i == 0) //Case for background
   {
-
    if(x>=0 && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=0 && y<=(yClusterCenter[i]+ynumberOfSds[i]*yStandardDev[i]) && flag==0)
    {
     minIndex=i;
@@ -306,27 +322,50 @@ findClosestClusterCenterIndex(float x, float y, float *xClusterCenter, float *yC
    continue;
   }
 
-  if(x>=(xClusterCenter[i]-xnumberOfSds[i]*xStandardDev[i]) && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=(yClusterCenter[i]-ynumberOfSds[i]*yStandardDev[i]) && y<=(yClusterCenter[i]+ynumberOfSds[i]*yStandardDev[i]) && flag==0)
- {
-  minIndex=i;
-  flag=1;
- }
+  else if(i == 1) // Case for Bones 
+  {
+   if(x>=(xClusterCenter[i-1]+xnumberOfSds[i-1]*xStandardDev[i-1]) && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=(yClusterCenter[i]-ynumberOfSds[i]*yStandardDev[i]) && y<=(yClusterCenter[i]+ynumberOfSds[i]*yStandardDev[i]) && flag==0)
+   {
+    minIndex=i;
+    flag=1;
+   }
 
- else if(x>=(xClusterCenter[i]-xnumberOfSds[i]*xStandardDev[i]) && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=(yClusterCenter[i]-ynumberOfSds[i]*yStandardDev[i]) && y<=(yClusterCenter[i]+ynumberOfSds[i]*yStandardDev[i]) && flag==1)
- {
-//  std::cout << " Going here " << std::endl;
-  return 21;
-//  float distance1 = (x - xClusterCenter[i])*(x - xClusterCenter[i]) + (y - yClusterCenter[i])*(y - yClusterCenter[i]);
-//  float distance2 = (x - xClusterCenter[minIndex])*(x - xClusterCenter[minIndex]) + (y - yClusterCenter[minIndex])*(y - yClusterCenter[minIndex]);
-//  if(distance2 > distance1)
-//   minIndex=i; 
- }
+   else if(x>=(xClusterCenter[i-1]+xnumberOfSds[i-1]*xStandardDev[i-1]) && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=(yClusterCenter[i]-ynumberOfSds[i]*yStandardDev[i]) && y<=(yClusterCenter[i]+ynumberOfSds[i]*yStandardDev[i]) && flag==1)
+   {
+    return 21;
+   }
+   continue;
+  }
+
+  else if(i == 2) // case for cartilage
+  {
+   if(x>=(xClusterCenter[i]-xnumberOfSds[i]*xStandardDev[i]) && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=(yClusterCenter[i]-ynumberOfSds[i]*yStandardDev[i]) && flag==0)
+   {
+    minIndex=i;
+    flag=1;
+   }
+
+   else if(x>=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=(yClusterCenter[i]-ynumberOfSds[i]*yStandardDev[i]) && flag==1)
+   {
+    return 21;
+   }
+   continue;
+  }
+
+  if(x>=(xClusterCenter[i]-xnumberOfSds[i]*xStandardDev[i]) && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=(yClusterCenter[i]-ynumberOfSds[i]*yStandardDev[i]) && y<=(yClusterCenter[i]+ynumberOfSds[i]*yStandardDev[i]) && flag==0)
+  {
+   minIndex=i;
+   flag=1;
+  }
+
+  else if(x>=(xClusterCenter[i]-xnumberOfSds[i]*xStandardDev[i]) && x<=(xClusterCenter[i]+xnumberOfSds[i]*xStandardDev[i]) && y>=(yClusterCenter[i]-ynumberOfSds[i]*yStandardDev[i]) && y<=(yClusterCenter[i]+ynumberOfSds[i]*yStandardDev[i]) && flag==1)
+  {
+   return 21;
+  }
  }
 
  if(flag == 0) /* It doesnt fall into any cluster */
   return MAX_SEED_FILES-1;
-// std::cout << " minIndex = " << minIndex << std::endl;
-// if(minIndex == 3)
-//  return MAX_SEED_FILES-1;
+ 
  return minIndex;
 }

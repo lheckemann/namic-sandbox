@@ -63,6 +63,7 @@ unsigned int colorPixels[MAX_SEED_FILES][3] = {
      0,0,0
      };
 
+unsigned int greyScalePixels[] = {255, 80, 128, 200, 250};
 
 
 int main( int argc, char *argv[] )
@@ -100,7 +101,7 @@ int main( int argc, char *argv[] )
   typedef itk::ImageRegionIterator< RGBImageType > RGBIteratorType;
   typedef itk::ScalarToRGBColormapImageFilter < ImageType, RGBImageType > RGBFilterType;
   
-  typedef  itk::ImageFileWriter< RGBImageType > WriterType;
+  typedef  itk::ImageFileWriter< ImageType > WriterType;
 
   ReaderType::Pointer reader1 = ReaderType::New();
   ReaderType::Pointer reader2 = ReaderType::New();
@@ -233,18 +234,27 @@ int main( int argc, char *argv[] )
   float xnumberOfSds[totalSeeds];
   float ynumberOfSds[totalSeeds];
 
-  xnumberOfSds[0]=10; // background
-  xnumberOfSds[1]=3; // Bone 1
-  xnumberOfSds[2]=1.5; // Bone 2
+/*  xnumberOfSds[0]=2; // background
+  xnumberOfSds[1]=1; // Bone 1
+  xnumberOfSds[2]=1; // Bone 2
   xnumberOfSds[3]=3; // Muscle
-  xnumberOfSds[4]=1.25; // Fat
+  xnumberOfSds[4]=0; // Fat
 
-  ynumberOfSds[0]=20; // background
-  ynumberOfSds[1]=20; // Bone 1
-  ynumberOfSds[2]=20; // Bone 2
+  ynumberOfSds[0]=2; // background
+  ynumberOfSds[1]=1; // Bone 1
+  ynumberOfSds[2]=1; // Bone 2
   ynumberOfSds[3]=1; // Muscle
-  ynumberOfSds[4]=10; // Fat
-  
+  ynumberOfSds[4]=0; // Fat
+*/
+  xnumberOfSds[0]=2; // background
+  xnumberOfSds[1]=1; // Bone 
+  xnumberOfSds[2]=1; // Muscle
+
+  ynumberOfSds[0]=2; // background
+  ynumberOfSds[1]=1; // Bone 
+  ynumberOfSds[2]=1; // Muscle
+
+
   for(unsigned int i=0; i<MAX_SEED_FILES; i++)
   {
    clusterPixelValues[i][0] = colorPixels[i][0];
@@ -255,17 +265,22 @@ int main( int argc, char *argv[] )
   }
 
   /* For RGB Pixels */
-  RGBImageType::Pointer rgbImage = RGBImageType::New();
+/*  RGBImageType::Pointer rgbImage = RGBImageType::New();
   rgbImage->SetRegions( image1->GetRequestedRegion() );
   rgbImage->CopyInformation( image1 );
   rgbImage->Allocate();
-  
+*/
+  ImageType::Pointer outputImage = ImageType::New();
+  outputImage->SetRegions( image1->GetRequestedRegion() );
+  outputImage->CopyInformation( image1 );
+  outputImage->Allocate();
+
 
   /* Iterate through the images */
   IteratorType it1( image1, image1->GetRequestedRegion());
   IteratorType it2( image2, image2->GetRequestedRegion());
   
-  RGBIteratorType it3( rgbImage, rgbImage->GetRequestedRegion());
+  IteratorType it3( outputImage, outputImage->GetRequestedRegion());
 
   /* Get the scatter plot */
   for (it1.GoToBegin(), it2.GoToBegin(), it3.GoToBegin(); !it1.IsAtEnd() && !it2.IsAtEnd() ; ++it1,++it2,++it3)
@@ -278,12 +293,29 @@ int main( int argc, char *argv[] )
    ++numberOfPixels;
    /* Find the cluster center closest to x,y */
     unsigned int cIndex = findClosestClusterCenterIndex(x,y, xClusterCenter, yClusterCenter, xStandardDev, yStandardDev, totalSeeds, xnumberOfSds, ynumberOfSds);
-    
-    it3.Set(clusterPixelValues[cIndex]);
+
+    if(cIndex < 4)
+    {
+     //     std::cout << "CIndex = " << cIndex << std::endl;
+     it3.Set(greyScalePixels[cIndex]);
+    }
+    else if(cIndex == 21) // Conflict Point
+    {
+     it3.Set(180);
+    }
+    else if(cIndex == MAX_SEED_FILES-1)//Discard Point (Point doesnt fall into any cluster)
+    {
+    it3.Set(230);
+    }
+    else
+     it3.Set(0);
+
+//    it3.Set(clusterPixelValues[cIndex]);
   }
   
-  rgbImage->Update();
-  writer->SetInput( rgbImage );
+//  rgbImage->Update();
+  outputImage->Update();
+  writer->SetInput( outputImage );
   writer->Update();
   std::cout << " Number of pixels = "<< numberOfPixels << std::endl;
   return EXIT_SUCCESS;
