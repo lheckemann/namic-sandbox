@@ -149,7 +149,7 @@ vtkMRMLHybridNavToolNode* vtkHybridNavLogic::CreateToolModel(vtkMRMLHybridNavToo
   toolDisp->SetColor(color);
   toolDisp->SetVisibility(1);
   
-  trans->Delete();
+  /*trans->Delete();
   tfilter->Delete();
   trans1->Delete();
   tfilter1->Delete();
@@ -158,7 +158,7 @@ vtkMRMLHybridNavToolNode* vtkHybridNavLogic::CreateToolModel(vtkMRMLHybridNavToo
   apd->Delete();
 
   //locatorModel->Delete();
-  toolDisp->Delete();
+  toolDisp->Delete();*/
 
   return tnode;
 }
@@ -209,13 +209,13 @@ void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
   mnode->Modified();
   this->GetApplicationLogic()->GetMRMLScene()->Modified();
   
-  //Clean up
+  /*//Clean up
   tfilter->Delete();
   trans->Delete();
   sphere->Delete();
   apd->Delete();
   pd->Delete();
-  tipDisp->Delete();
+  tipDisp->Delete();*/
 }
 
 //---------------------------------------------------------------------------
