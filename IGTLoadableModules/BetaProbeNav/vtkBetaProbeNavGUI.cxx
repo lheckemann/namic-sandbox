@@ -73,6 +73,7 @@ vtkBetaProbeNavGUI::vtkBetaProbeNavGUI ( )
   this->SphereTypeButtonSet = NULL;
   this->ModelTypeButtonSet = NULL;
   this->ImageTypeButtonSet = NULL;
+  this->DataTypeButtonSet = NULL;
   this->ImageCheckButton = NULL;
   this->RangeEntry = NULL;
   this->ProbeDiameterEntry = NULL;
@@ -162,6 +163,12 @@ vtkBetaProbeNavGUI::~vtkBetaProbeNavGUI ( )
     this->ImageTypeButtonSet->SetParent(NULL);
     this->ImageTypeButtonSet->Delete();
     }
+ 
+  if (this->DataTypeButtonSet)
+    {
+    this->DataTypeButtonSet->SetParent(NULL);
+    this->DataTypeButtonSet->Delete();
+    } 
     
   if (this->ImageCheckButton)
     {
@@ -481,6 +488,13 @@ void vtkBetaProbeNavGUI::ProcessGUIEvents(vtkObject *caller,
       //Set the range of values for the radiation counts and probe diameter
       this->GetLogic()->SetMaxRange(this->RangeEntry->GetValueAsDouble());
       this->GetLogic()->SetProbeDiameter(this->ProbeDiameterEntry->GetValueAsDouble());
+      //Set data type to output
+      if (this->DataTypeButtonSet->GetWidget(0)->GetSelectedState())
+        this->GetLogic()->SetActiveDataType(0);
+      else if (this->DataTypeButtonSet->GetWidget(1)->GetSelectedState())
+        this->GetLogic()->SetActiveDataType(1);
+      else if (this->DataTypeButtonSet->GetWidget(2)->GetSelectedState())
+        this->GetLogic()->SetActiveDataType(2);
       //Start Timer to collect data points
       this->TimerFlag = 1;
       this->TimerInterval = this->UpdateEntry->GetValueAsInt();
@@ -1001,6 +1015,38 @@ void vtkBetaProbeNavGUI::BuildGUIForImportDataFrame()
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               imageLabel->GetWidgetName() , this->ImageTypeButtonSet->GetWidgetName());
   
+  //Data Type Selection
+  vtkKWFrame *dataFrame = vtkKWFrame::New();
+  dataFrame->SetParent(repFrame->GetFrame());
+  dataFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                dataFrame->GetWidgetName());
+
+  vtkKWLabel *dataLabel = vtkKWLabel::New();
+  dataLabel->SetParent(dataFrame);
+  dataLabel->Create();
+  dataLabel->SetWidth(15);
+  dataLabel->SetText("Data Type: ");
+
+  this->DataTypeButtonSet = vtkKWRadioButtonSet::New();
+  this->DataTypeButtonSet->SetParent(dataFrame);
+  this->DataTypeButtonSet->Create();
+  this->DataTypeButtonSet->PackHorizontallyOn();
+  this->DataTypeButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(3);
+  this->DataTypeButtonSet->UniformColumnsOn();
+  this->DataTypeButtonSet->UniformRowsOn();
+
+  this->DataTypeButtonSet->AddWidget(0);
+  this->DataTypeButtonSet->GetWidget(0)->SetText("Smoothed");
+  this->DataTypeButtonSet->GetWidget(0)->SelectedStateOn();
+  this->DataTypeButtonSet->AddWidget(1);
+  this->DataTypeButtonSet->GetWidget(1)->SetText("Beta");
+  this->DataTypeButtonSet->AddWidget(2);
+  this->DataTypeButtonSet->GetWidget(2)->SetText("Gamma");
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              dataLabel->GetWidgetName() , this->DataTypeButtonSet->GetWidgetName());
+  
    //Clean up
   repFrame->Delete();
   sphereFrame->Delete();
@@ -1009,6 +1055,8 @@ void vtkBetaProbeNavGUI::BuildGUIForImportDataFrame()
   modelFrame->Delete();
   imageLabel->Delete();
   imageFrame->Delete();
+  dataLabel->Delete();
+  dataFrame->Delete();
   
   // -----------------------------------------
   // Probe Data Frame

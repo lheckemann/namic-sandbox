@@ -44,6 +44,7 @@
 #include "vtkPointLocator.h"
 #include "vtkCellLocator.h"
 #include "vtkGenericCell.h"
+#include "vtkPolyDataReader.h"
 
 #include <math.h>
 
@@ -147,7 +148,7 @@ void vtkBetaProbeNavLogic::CollectData(vtkMRMLNode* tn, vtkMRMLNode* cn)
     }*/
 
   //Extract position from transform
-  float pos[3];
+  double pos[3];
   vtkMRMLLinearTransformNode* tnode = vtkMRMLLinearTransformNode::SafeDownCast(tn);
   if (tnode)
     {
@@ -712,7 +713,9 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mno
     return mnode;
     }
   
+  //------------------------------------------------------------------
   //Calculate interesection point between probe axis and polydata
+  //------------------------------------------------------------------
   double p1[3];
   double intPoint[3] = {0, 0, 0};
   this->Points->GetPoint(this->Points->GetNumberOfPoints()-1, p1); //Point p1 is the probe tip
@@ -744,42 +747,77 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModelGaussian(vtkMRMLModelNode* mno
   //Print out intersection point
   std::cerr << "Intersection Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
 
+  //----------------------------------------------------------------
+  // Check to see if the measured counts are useful
+  //----------------------------------------------------------------
+  //Measured Counts
+  double cts;
+  switch (this->ActiveDataType)
+    {
+    case 0:
+      cts = this->nSmoothScalars->GetTuple1(this->nSmoothScalars->GetNumberOfTuples()-1);
+      break;
+    case 1:
+      cts = this->nBetaScalars->GetTuple1(this->nBetaScalars->GetNumberOfTuples()-1);
+      break;
+    default:
+      cts = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
+    }
+  std::cerr << "Count values: " << cts << std::endl;
+  //Current scalar saved in the point of the polydata
+  double dist;
+  int pid = this->pointLocator->FindClosestPointWithinRadius(1, intPoint, dist);
+  std::cerr << "pid value: " << pid << std::endl;
+  vtkPolyData* polydata = mnode->GetPolyData();
+  double sc = polydata->GetPointData()->GetScalars()->GetTuple1(pid);
+  std::cerr << "Count values: " << cts << ", " << sc << std::endl;
+  //Compare them
+  if (sc > cts)
+    return mnode;
+  
+  //-------------------------------------------------
+  // Create a Gaussian Splat onto the PolyData
+  //-------------------------------------------------
+  //The Gaussian splat will affect all points located at two standard deviations from the splat point
+  //Calculate the standard deviation of the Gaussian which depends on the height of the probe from the polydata splat point
+  //Calculate height
+  double h = sqrt(pow(intPoint[0] - p1[0],2) + pow(intPoint[1] - p1[1],2) + pow(intPoint[2] - p1[2],2));
+  //Calculate the standard deviation from the probe model
+  double std = 2.897 + 0.4348*h;
+  std::cerr << "Other values: " << h << ", " << std << std::endl;
+  
   // Find other polydata points surrounding the intersection point
   vtkIdList* result = vtkIdList::New();
-  this->pointLocator->FindPointsWithinRadius(this->probeDiam/2, intPoint, result);
+  this->pointLocator->FindPointsWithinRadius(std, intPoint, result);
   std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
   
   //-------------------------------------------------
   // Associate a scalar (radiation counts) to all these points using a Gaussian
   //-------------------------------------------------
-  //Gaussian function f(x)= ScaleFactor * exp( ExponentFactor*((r/Radius)**2) )
+  //Gaussian function f(x)= Counts * exp( (x-x0)/2std^2) )
+  //where x0 is the intersetion point and std the standard deviation
   //These values depend on the probe characteristics
-  double sfact, efact, rad;
-  efact = -5.0;
-  rad = 10.0;
-  sfact = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1);
-  vtkPolyData* polydata = mnode->GetPolyData();
- 
   for(unsigned int i = 0; i < result->GetNumberOfIds (); i++)
     {
     unsigned int id = result->GetId(i);
     //Calculate Gaussian contribution to each point
     double pnt[3];
     polydata->GetPoint(id, pnt);
-    double r[3];
-    for (int j = 0; j < 3; j++)
-      r[j] = intPoint[j] - pnt[j];
-    std::cerr << "r vector: " << r[0] << ", " << r[1] << ", " << r[2]<< std::endl;
-    double rnorm = sqrt(pow(r[0],2) + pow(r[1],2) + pow(r[2],2)); 
-    double fx = sfact*exp(efact*pow(rnorm/rad,2));
+    double rnorm = pow(pnt[0] - intPoint[0],2) + pow(pnt[1] - intPoint[1],2) + pow(pnt[2] - intPoint[2],2); 
+    double fx = cts*exp(-rnorm/(2*pow(std,2)));
     std::cerr << "Gaussian contribution: " << fx << std::endl;
-    polydata->GetPointData()->GetScalars()->SetTuple1(id, fx);
+    //Check to see if current value is greater than the stored value at this point
+    sc = polydata->GetPointData()->GetScalars()->GetTuple1(id);
+    if (fx > sc)
+      polydata->GetPointData()->GetScalars()->SetTuple1(id, fx);
     }
 
   //Update the model elements  
   polydata->Update();
   polydata->Modified();
   mnode->Modified();
+  
+  //Clean up
   result->Delete();
   
   return mnode;
