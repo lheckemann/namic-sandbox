@@ -653,12 +653,16 @@ void vtkHybridNavGUI::ProcessGUIEvents(vtkObject *caller,
         deltaY = otmat->GetElement(1,3) - ctmat->GetElement(1,3);
         deltaZ = otmat->GetElement(2,3) - ctmat->GetElement(2,3);
         std::cerr << deltaX << ", " << deltaY << ", " << deltaZ << std::endl;
+        //Convert this delta vector into the ctnode frame
+        ctmat->Transpose(ctmat,ctmat);
+        double delta[4] = {deltaX, deltaY, deltaZ, 1};
+        ctmat->MultiplyPoint(delta, delta);
         //Create new transform matrix to make tool tips coincide
         vtkMatrix4x4* manualCalibrationMatrix = vtkMatrix4x4::New();
         manualCalibrationMatrix->Identity();
-        manualCalibrationMatrix->SetElement(0,3, deltaX);
-        manualCalibrationMatrix->SetElement(1,3, deltaY);
-        manualCalibrationMatrix->SetElement(2,3, deltaZ);
+        manualCalibrationMatrix->SetElement(0,3, delta[0]);
+        manualCalibrationMatrix->SetElement(1,3, delta[1]);
+        manualCalibrationMatrix->SetElement(2,3, delta[2]);
         manualCalibrationMatrix->Print(std::cerr);
         
         //Apply the new transform to the Current Tool
