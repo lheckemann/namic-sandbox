@@ -84,7 +84,7 @@ protected:
 
   void GenerateData()
   {
-    Superclass::GenerateData();
+    this->CopyInputMeshToOutputMesh( );
 
     OutputMeshPointer output = this->GetOutput();
     OutputPointsContainerPointer points = output->GetPoints();

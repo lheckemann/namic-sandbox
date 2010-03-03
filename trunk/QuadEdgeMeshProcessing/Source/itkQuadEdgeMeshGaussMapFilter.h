@@ -112,7 +112,7 @@ protected:
 
   void GenerateData( )
   {
-    Superclass::GenerateData();
+    this->CopyInputMeshToOutputMesh( );
 
     OutputMeshPointer output = this->GetOutput();
 
