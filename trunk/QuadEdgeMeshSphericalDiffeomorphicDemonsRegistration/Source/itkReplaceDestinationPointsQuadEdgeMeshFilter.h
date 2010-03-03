@@ -41,7 +41,7 @@ class ReplaceDestinationPointsQuadEdgeMeshFilter :
 public:
   typedef ReplaceDestinationPointsQuadEdgeMeshFilter    Self;
   typedef QuadEdgeMeshToQuadEdgeMeshFilter< 
-    TInputMesh, TInputMesh >                           Superclass;
+    TInputMesh, TInputMesh >                            Superclass;
   typedef SmartPointer< Self >                          Pointer;
   typedef SmartPointer< const Self >                    ConstPointer;
 
@@ -55,7 +55,8 @@ public:
 
   typedef TInputMesh                                         InputMeshType;
 
-  typedef InputMeshType                                      OutputMeshType;
+  typedef typename Superclass::OutputMeshType                OutputMeshType;
+  typedef typename Superclass::OutputPointType               OutputPointType;
 
 
   /** Set Mesh whose grid defines the geometry and topology of the input PointSet.
