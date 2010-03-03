@@ -116,7 +116,7 @@ protected:
   void GenerateData( )
   {
     assert( m_CoefficientsMethod != 0 );
-    Superclass::GenerateData();
+    this->CopyInputMeshToOutputMesh( );
     OutputMeshPointer output = this->GetOutput();
 
     // split the input mesh into two meshes
@@ -132,6 +132,13 @@ protected:
       BorderTransformType::DISK_BORDER_TRANSFORM );
     border_transform->SetRadius( 1. );
 
+    // Inverse stereo projection
+    OutputPointsContainerPointer points;
+    OutputPointType p, q;
+    OutputCoordRepType den, r2;
+    OutputPointsContainerIterator p_it;
+
+    {
     ParametrizationPointer param0 = ParametrizationType::New();
     param0->SetInput( split_filter->GetOutput( 0 ) );
     param0->SetBorderTransform( border_transform );
@@ -140,6 +147,24 @@ protected:
 
     std::cout <<"First part parameterization on a disk: DONE!" <<std::endl;
 
+    points = param0->GetOutput()->GetPoints();
+
+    for( p_it = points->Begin(); p_it != points->End(); ++p_it )
+      {
+      q = output->GetPoint( p_it->Index() );
+      p = p_it->Value();
+      r2 = p[0] * p[0] + p[1] * p[1];
+      den = 1. / ( 1. + r2 );
+      q[0] = m_Radius * ( 2. * p[0] * den );
+      q[1] = m_Radius * ( 2. * p[1] * den );
+      q[2] = m_Radius * ( 2. * r2 * den  - 1. );
+      output->SetPoint( p_it->Index(), q );
+      }
+
+    std::cout << "Inverse stereo projection Part 1: DONE!" <<std::endl;
+    }
+    
+    {
     ParametrizationPointer param1 = ParametrizationType::New();
     param1->SetInput( split_filter->GetOutput( 1 ) );
     param1->SetBorderTransform( border_transform );
@@ -148,41 +173,22 @@ protected:
 
     std::cout <<"Second part parameterization on a disk: DONE!" <<std::endl;
 
-    // Inverse stereo projection
-    OutputPointsContainerPointer points = param0->GetOutput()->GetPoints();
-    OutputPointType p, q;
-    OutputCoordRepType den, r2;
-    OutputPointsContainerIterator p_it;
-
-    for( p_it = points->Begin(); p_it != points->End(); ++p_it )
-      {
-      p = p_it->Value();
-      r2 = p[0] * p[0] + p[1] * p[1];
-      den = 1. / ( 1. + r2 );
-      p[0] = m_Radius * ( 2. * p[0] * den );
-      p[1] = m_Radius * ( 2. * p[1] * den );
-      p[2] = m_Radius * ( 2. * r2 * den  - 1. );
-      q = output->GetPoint( p_it->Index() );
-      q.CastFrom( p );
-      output->SetPoint( p_it->Index(), q );
-      }
-
     points = param1->GetOutput()->GetPoints();
 
     for( p_it = points->Begin(); p_it != points->End(); ++p_it )
       {
+      q = output->GetPoint( p_it->Index() );
       p = p_it->Value();
       r2 = p[0] * p[0] + p[1] * p[1];
       den = 1. / ( 1. + r2 );
-      p[0] = m_Radius * ( 2. * p[0] * den );
-      p[1] = m_Radius * ( 2. * p[1] * den );
-      p[2] = m_Radius * ( -2. * r2 * den + 1. );
-      q = output->GetPoint( p_it->Index() );
-      q.CastFrom( p );
+      q[0] = m_Radius * ( 2. * p[0] * den );
+      q[1] = m_Radius * ( 2. * p[1] * den );
+      q[2] = m_Radius * ( -2. * r2 * den + 1. );
       output->SetPoint( p_it->Index(), q );
       }
 
-
+    std::cout << "Inverse stereo projection Part 2: DONE!" <<std::endl;
+    }
   }
 
 private:
