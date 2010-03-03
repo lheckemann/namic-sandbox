@@ -190,7 +190,7 @@ namespace itk
       {
         assert( m_Mesh.IsNotNull( ) );
         assert( m_SeedFaces.size( ) > 1 );
-        assert( ( iId >= 0 ) && ( iId < m_SeedFaces.size( ) ) );
+        assert( iId < m_SeedFaces.size( ) );
 
         m_Metric.SetMesh( m_Mesh );
 
@@ -235,7 +235,7 @@ namespace itk
       MeshConstPointer m_Mesh;
       MetricType m_Metric;
       SeedVectorType m_SeedFaces;
-      std::vector< bool > m_FaceProcessed;
+      std::map< CellIdentifier, bool > m_FaceProcessed;
       QueueMapType m_ElementMap;
       ClusterVectorType m_ClusterVector;
       std::map< CellIdentifier, size_t > m_FaceClusterMap;
@@ -249,8 +249,6 @@ namespace itk
         {
         m_NumberOfUnprocessedElements = m_Mesh->GetNumberOfCells( );
 
-        m_FaceProcessed.resize( m_NumberOfUnprocessedElements );
-        size_t i( 0 );
         CellsContainerConstPointer meshcells = m_Mesh->GetCells();
 
         CellsContainerConstIterator cell_it = meshcells->Begin();
@@ -259,14 +257,13 @@ namespace itk
           {
           if ( cell_it.Value( )->GetNumberOfPoints( ) > 2 )
             {
-            m_FaceProcessed[i] = false;
+            m_FaceProcessed[ cell_it->Index() ] = false;
             }
           else
             {
-            m_FaceProcessed[i] = true;
+            m_FaceProcessed[ cell_it->Index() ] = true;
             m_NumberOfUnprocessedElements--;
             }
-          ++i;
           ++cell_it;
           }
 
@@ -316,6 +313,7 @@ namespace itk
             if ( edge->GetLeft( ) != iId_face )
               {
               edge = edge->GetSym( );
+              }
 
               // ***
               QEType* temp( edge );
@@ -350,7 +348,7 @@ namespace itk
                 temp = temp->GetLnext( );
                 }
               while ( temp != edge );
-              }
+//               }
             }
           }
       }
