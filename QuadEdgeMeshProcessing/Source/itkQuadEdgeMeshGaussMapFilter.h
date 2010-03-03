@@ -101,7 +101,7 @@ public:
   typedef MatrixCoefficients< InputMeshType >       CoefficientsComputation;
 
   void SetCoefficientsMethod( CoefficientsComputation* iMethod )
-    {}
+    { (void) iMethod; }
   itkSetMacro( Radius, OutputCoordRepType );
 
 protected:

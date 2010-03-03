@@ -124,6 +124,8 @@ protected:
     split_filter->SetInput( this->GetInput() );
     split_filter->Update();
 
+    std::cout <<"Split DONE!" <<std::endl;
+
     BorderTransformPointer border_transform = BorderTransformType::New();
     border_transform->SetInput( split_filter->GetOutput( 0 ) );
     border_transform->SetTransformType(
@@ -136,12 +138,15 @@ protected:
     param0->SetCoefficientsMethod( m_CoefficientsMethod );
     param0->Update();
 
+    std::cout <<"First part parameterization on a disk: DONE!" <<std::endl;
+
     ParametrizationPointer param1 = ParametrizationType::New();
     param1->SetInput( split_filter->GetOutput( 1 ) );
     param1->SetBorderTransform( border_transform );
     param1->SetCoefficientsMethod( m_CoefficientsMethod );
     param1->Update();
 
+    std::cout <<"Second part parameterization on a disk: DONE!" <<std::endl;
 
     // Inverse stereo projection
     OutputPointsContainerPointer points = param0->GetOutput()->GetPoints();
