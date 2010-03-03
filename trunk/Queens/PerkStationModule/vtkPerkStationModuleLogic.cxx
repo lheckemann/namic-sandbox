@@ -1,16 +1,3 @@
-/*=auto=========================================================================
-
-Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-See Doc/copyright/copyright.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
-
-Program:   3D Slicer
-Module:    $RCSfile: vtkPerkStationModuleLogic.cxx,v $
-Date:      $Date: 2006/03/17 15:10:10 $
-Version:   $Revision: 1.2 $
-
-=========================================================================auto=*/
 
 #include <string>
 #include <iostream>
@@ -34,6 +21,15 @@ Version:   $Revision: 1.2 $
 
 #include <itksys/SystemTools.hxx>
 
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkImage.h"
+#include "itkMetaDataDictionary.h"
+#include "itkMetaDataObject.h"
+#include "itkGDCMImageIO.h"
+#include "itkSpatialOrientationAdapter.h"
+
+
 #include <algorithm>
 
 #include <vtksys/stl/string>
@@ -54,10 +50,14 @@ vtkPerkStationModuleLogic* vtkPerkStationModuleLogic::New()
 }
 
 
-//----------------------------------------------------------------------------
-vtkPerkStationModuleLogic::vtkPerkStationModuleLogic()
+/**
+ * Constructor.
+ */
+vtkPerkStationModuleLogic
+::vtkPerkStationModuleLogic()
 {
   this->PerkStationModuleNode = NULL;
+  this->m_PatientPosition = NA;
 }
 
 //----------------------------------------------------------------------------
@@ -244,39 +244,69 @@ bool vtkPerkStationModuleLogic::DoubleEqual(double val1, double val2)
   return result;
 }
 
+
+/**
+ * @returns True if input volume is recorded in supine patient position.
+ */
+vtkPerkStationModuleLogic::PatientPosition
+vtkPerkStationModuleLogic
+::GetPatientPosition()
+{
+  vtkMRMLScalarVolumeNode *volNode =
+    this->PerkStationModuleNode->GetPlanningVolumeNode(); 
+   
+  if (volNode==NULL)
+  {
+    vtkErrorMacro("VolumeNode is undefined");
+    return NA;
+  }
+
+  // remaining information to be had from the meta data dictionary     
+  const itk::MetaDataDictionary &volDictionary =
+    volNode->GetMetaDataDictionary();
+  std::string tagValue; 
+
+  // patient position uid
+  tagValue.clear();
+  
+  itk::ExposeMetaData< std::string >( volDictionary, "0018|5100", tagValue );
+  
+  if ( tagValue == "HFP" ) this->m_PatientPosition = HFP;
+  else if ( tagValue == "HFS" ) this->m_PatientPosition = HFS;
+  else if ( tagValue == "HFDR" ) this->m_PatientPosition = HFDR;
+  else if ( tagValue == "HFDL" ) this->m_PatientPosition = HFDL;
+  else if ( tagValue == "FFDR" ) this->m_PatientPosition = FFDR;
+  else if ( tagValue == "FFDL" ) this->m_PatientPosition = FFDL;
+  else if ( tagValue == "FFP" ) this->m_PatientPosition = FFP;
+  else if ( tagValue == "FFS" ) this->m_PatientPosition = FFS;
+  
+  return this->m_PatientPosition;
+}
+
+
 //---------------------------------------------------------------------------
-void vtkPerkStationModuleLogic::SetSliceViewFromVolume( vtkSlicerApplication *app,vtkMRMLVolumeNode *volumeNode)
+void vtkPerkStationModuleLogic::SetSliceViewFromVolume(
+  vtkSlicerApplication *app,vtkMRMLVolumeNode *volumeNode )
 {
   if (!volumeNode)
     {
     return;
     }
 
-  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer<vtkMatrix4x4> permutationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
-  vtkSmartPointer<vtkMatrix4x4> rotationMatrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  vtkSmartPointer< vtkMatrix4x4 > matrix = 
+    vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > permutationMatrix = 
+    vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkSmartPointer< vtkMatrix4x4 > rotationMatrix = 
+    vtkSmartPointer< vtkMatrix4x4 >::New();
 
-  volumeNode->GetIJKToRASDirectionMatrix(matrix);
-  //slicerCerr("matrix");
-  //slicerCerr("   " << matrix->GetElement(0,0) <<
-//             "   " << matrix->GetElement(0,1) <<
-  //           "   " << matrix->GetElement(0,2));
-  //slicerCerr("   " << matrix->GetElement(1,0) <<
-    //         "   " << matrix->GetElement(1,1) <<
-    //         "   " << matrix->GetElement(1,2));
-  //slicerCerr("   " << matrix->GetElement(2,0) <<
-   //          "   " << matrix->GetElement(2,1) <<
-    //         "   " << matrix->GetElement(2,2));
-
+  volumeNode->GetIJKToRASDirectionMatrix( matrix );
+  
   int permutation[3];
   int flip[3];
-  this->ComputePermutationFromOrientation(matrix, permutation, flip);
+  this->ComputePermutationFromOrientation( matrix, permutation, flip );
 
-  //slicerCerr("permutation " << permutation[0] << " " <<
-//             permutation[1] << " " << permutation[2]);
-  //slicerCerr("flip " << flip[0] << " " <<
-  //           flip[1] << " " << flip[2]);
-
+  
   permutationMatrix->SetElement(0,0,0);
   permutationMatrix->SetElement(1,1,0);
   permutationMatrix->SetElement(2,2,0);
@@ -287,20 +317,9 @@ void vtkPerkStationModuleLogic::SetSliceViewFromVolume( vtkSlicerApplication *ap
                      (flip[permutation[1]] ? -1 : 1));
   permutationMatrix->SetElement(2, permutation[2],
                      (flip[permutation[2]] ? -1 : 1));
-
-  //slicerCerr("permutationMatrix");
-  //slicerCerr("   " << permutationMatrix->GetElement(0,0) <<
-//             "   " << permutationMatrix->GetElement(0,1) <<
-  //           "   " << permutationMatrix->GetElement(0,2));
-  //slicerCerr("   " << permutationMatrix->GetElement(1,0) <<
-    //         "   " << permutationMatrix->GetElement(1,1) <<
-      //       "   " << permutationMatrix->GetElement(1,2));
-  //slicerCerr("   " << permutationMatrix->GetElement(2,0) <<
-        //     "   " << permutationMatrix->GetElement(2,1) <<
-          //   "   " << permutationMatrix->GetElement(2,2));
-
+  
   permutationMatrix->Invert();
-  vtkMatrix4x4::Multiply4x4(matrix, permutationMatrix, rotationMatrix); 
+  vtkMatrix4x4::Multiply4x4( matrix, permutationMatrix, rotationMatrix ); 
 
   vtkSlicerApplicationLogic *appLogic =
     app->GetApplicationGUI()->GetApplicationLogic();
@@ -314,7 +333,7 @@ void vtkPerkStationModuleLogic::SetSliceViewFromVolume( vtkSlicerApplication *ap
     vtkMatrix4x4 *newMatrix = vtkMatrix4x4::New();
 
     vtkSlicerSliceLogic *slice = appLogic->GetSliceLogic(
-      const_cast<char *>(panes[i]));
+      const_cast<char *>( panes[ i ] ) );
     
     vtkMRMLSliceNode *sliceNode = slice->GetSliceNode();
 
@@ -345,8 +364,8 @@ void vtkPerkStationModuleLogic::SetSliceViewFromVolume( vtkSlicerApplication *ap
 
     // Next, set the orientation to match the volume
     sliceNode->SetOrientationToReformat();
-    vtkMatrix4x4::Multiply4x4(rotationMatrix, newMatrix, newMatrix);
-    sliceNode->SetSliceToRAS(newMatrix);
+    vtkMatrix4x4::Multiply4x4( rotationMatrix, newMatrix, newMatrix );
+    sliceNode->SetSliceToRAS( newMatrix );
     sliceNode->UpdateMatrices();
     newMatrix->Delete();
     }
