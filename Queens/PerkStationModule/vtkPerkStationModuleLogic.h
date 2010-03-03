@@ -1,16 +1,4 @@
-/*=auto=========================================================================
 
-  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-  See Doc/copyright/copyright.txt
-  or http://www.slicer.org/copyright/copyright.txt for details.
-
-  Program:   3D Slicer
-  Module:    $RCSfile: vtkPerkStationModuleLogic.h,v $
-  Date:      $Date: 2006/03/19 17:12:29 $
-  Version:   $Revision: 1.3 $
-
-=========================================================================auto=*/
 #ifndef __vtkPerkStationModuleLogic_h
 #define __vtkPerkStationModuleLogic_h
 
@@ -21,9 +9,14 @@
 #include "vtkMRMLPerkStationModuleNode.h"
 
 class vtkSlicerApplication;
-class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleLogic : public vtkSlicerModuleLogic
+
+
+class
+VTK_PERKSTATIONMODULE_EXPORT
+vtkPerkStationModuleLogic
+  : public vtkSlicerModuleLogic
 {
-  public:
+public:
   static vtkPerkStationModuleLogic *New();
   vtkTypeMacro(vtkPerkStationModuleLogic,vtkSlicerModuleLogic);
   void PrintSelf(ostream& os, vtkIndent indent);
@@ -48,6 +41,27 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleLogic : public vtkSlicerM
   bool ReadConfigFile(istream &file);
   static char *strrev(char *s,int n);
   static bool DoubleEqual(double val1, double val2);
+  
+  
+    // DICOM information.
+  //BTX
+  enum PatientPosition
+    {
+    NA,   // Not yet defined
+    HFP,  // Head First-Prone
+    HFS,  // Head First-Supine
+    HFDR, // Head First-Decubitus Right
+    HFDL, // Head First-Decubitus Left
+    FFDR, // Feet First-Decubitus Right
+    FFDL, // Feet First-Decubitus Left
+    FFP,  // Feet First-Prone
+    FFS   // Feet First-Supine
+    };
+  
+  PatientPosition GetPatientPosition();
+  //ETX
+  
+  
 protected:
 
   // Description:
@@ -64,9 +78,14 @@ protected:
 
   vtkMRMLPerkStationModuleNode* PerkStationModuleNode;
  private:
- // Description:
- // Set Slicers's 2D view orientations from the image orientation.
- void SetSliceViewFromVolume(vtkSlicerApplication *app, vtkMRMLVolumeNode *volumeNode);
+   
+   // Description:
+   // Set Slicers's 2D view orientations from the image orientation.
+   void SetSliceViewFromVolume(
+     vtkSlicerApplication *app, vtkMRMLVolumeNode *volumeNode );
+   
+   PatientPosition m_PatientPosition;
+   
 };
 
 #endif
