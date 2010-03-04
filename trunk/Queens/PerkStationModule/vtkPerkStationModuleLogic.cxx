@@ -57,7 +57,6 @@ vtkPerkStationModuleLogic
 ::vtkPerkStationModuleLogic()
 {
   this->PerkStationModuleNode = NULL;
-  this->m_PatientPosition = NA;
 }
 
 //----------------------------------------------------------------------------
@@ -246,41 +245,108 @@ bool vtkPerkStationModuleLogic::DoubleEqual(double val1, double val2)
 
 
 /**
- * @returns True if input volume is recorded in supine patient position.
+ * Update slice viewer position to reflect real world.
  */
-vtkPerkStationModuleLogic::PatientPosition
-vtkPerkStationModuleLogic
-::GetPatientPosition()
+void
+vtkPerkStationModuleLogic::
+AdjustSliceView()
 {
-  vtkMRMLScalarVolumeNode *volNode =
-    this->PerkStationModuleNode->GetPlanningVolumeNode(); 
-   
-  if (volNode==NULL)
-  {
-    vtkErrorMacro("VolumeNode is undefined");
-    return NA;
-  }
-
-  // remaining information to be had from the meta data dictionary     
-  const itk::MetaDataDictionary &volDictionary =
-    volNode->GetMetaDataDictionary();
-  std::string tagValue; 
-
-  // patient position uid
-  tagValue.clear();
+  PatientPosition patientPosition =
+    this->PerkStationModuleNode->GetPatientPosition();
+    
+  vtkSlicerSliceLogic *slice =
+        this->GetApplicationLogic()->GetSliceLogic( "Red" );
   
-  itk::ExposeMetaData< std::string >( volDictionary, "0018|5100", tagValue );
+  vtkMRMLSliceNode *sliceNode = slice->GetSliceNode();
   
-  if ( tagValue == "HFP" ) this->m_PatientPosition = HFP;
-  else if ( tagValue == "HFS" ) this->m_PatientPosition = HFS;
-  else if ( tagValue == "HFDR" ) this->m_PatientPosition = HFDR;
-  else if ( tagValue == "HFDL" ) this->m_PatientPosition = HFDL;
-  else if ( tagValue == "FFDR" ) this->m_PatientPosition = FFDR;
-  else if ( tagValue == "FFDL" ) this->m_PatientPosition = FFDL;
-  else if ( tagValue == "FFP" ) this->m_PatientPosition = FFP;
-  else if ( tagValue == "FFS" ) this->m_PatientPosition = FFS;
+  vtkSmartPointer< vtkMatrix4x4 > newMatrix =
+      vtkSmartPointer< vtkMatrix4x4 >::New();
   
-  return this->m_PatientPosition;
+  vtkMatrix4x4* oldMatrix = sliceNode->GetSliceToRAS();
+  
+  std::stringstream ss;
+  oldMatrix->Print( ss );
+  PERKLOG_INFO( ss.str().c_str() );
+  
+  
+  newMatrix->Identity();
+    
+    // Setting of the Slice view position
+    // ----------------------------------
+    // 
+    // In head first positions (HF), the slice view has to be flipped around 
+    // the vertical axis (multiply first coordinate by -1), because the
+    // physician stands at the feet of the patient, while RAS implies the
+    // physician is standing at the head of the patient.
+    // [ HF => 0 ]
+    //
+    // In prone positions (P), the slice view has to be turned around Z by
+    // 180 degrees, which is identical to a horizontal flip + vertical flip
+    // (mulitply both first and second coordinate by -1).
+    // [ P => 0,1 ]
+    //
+    // Two flips around the same axis annul each other.
+    // Eg. HFP => HF + P => 0, 0,1 => 1
+    // So in HFP patient position, the Slice view has to be flipped around
+    // coordinate 1.
+    //
+    // In Decubitus Right (DR), the patient lies on its right arm, so compared
+    // to the RAS position, a 90 degrees rotation should be applied.
+    // In Decubits Left (DL), a -90 degrees rotation should be applied.
+    // In this way, the patient gets into RAS position.
+    // 
+    // When 90 degrees rotation rotation and flipping is also needed, just
+    // the rotation matrix element corresponding to the flipping has to change
+    // sign.
+  
+  switch ( patientPosition )
+    {
+    case HFP :
+      newMatrix->SetElement( 1, 1, -1 );
+      break;
+    
+    case HFS :
+      newMatrix->SetElement( 0, 0, -1 );
+      break;
+    
+    case HFDR :
+      newMatrix->SetElement( 0, 0, - std::cos( 90.0 ) );
+      newMatrix->SetElement( 0, 1, - std::sin( 90.0 ) );
+      newMatrix->SetElement( 1, 0, - std::sin( 90.0 ) );
+      newMatrix->SetElement( 1, 1, std::cos( 90.0 ) );
+      break;
+    
+    case HFDL :
+      newMatrix->SetElement( 0, 0, - std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0, 1, - std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1, 0, - std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1, 1, std::cos( - 90.0 ) );
+      break;
+    
+    case FFDR :
+      newMatrix->SetElement( 0, 0, std::cos( 90.0 ) );
+      newMatrix->SetElement( 0, 1, - std::sin( 90.0 ) );
+      newMatrix->SetElement( 1, 0, std::sin( 90.0 ) );
+      newMatrix->SetElement( 1, 1, std::cos( 90.0 ) );
+      break;
+    
+    case FFDL :
+      newMatrix->SetElement( 0, 0, std::cos( - 90.0 ) );
+      newMatrix->SetElement( 0, 1, - std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1, 0, std::sin( - 90.0 ) );
+      newMatrix->SetElement( 1, 1, std::cos( - 90.0 ) );
+      break;
+    
+    case FFP :
+      newMatrix->SetElement( 0, 0, -1 );
+      newMatrix->SetElement( 1, 1, -1 );
+      break;
+    
+    case FFS :
+      break;
+    }
+  
+  sliceNode->SetSliceToRAS( newMatrix );
 }
 
 

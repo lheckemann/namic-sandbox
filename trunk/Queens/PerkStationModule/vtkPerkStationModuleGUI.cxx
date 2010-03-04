@@ -2160,7 +2160,9 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
 
 
 //--------------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::LoadPlanningVolumeButtonCallback(const char *fileName)
+void
+vtkPerkStationModuleGUI
+::LoadPlanningVolumeButtonCallback( const char *fileName )
 {
   std::string fileString(fileName);
   for (unsigned int i = 0; i < fileString.length(); i++)
@@ -2172,11 +2174,12 @@ void vtkPerkStationModuleGUI::LoadPlanningVolumeButtonCallback(const char *fileN
     }  
 
   bool planningVolumePreExists = false;
-
-  // in case the planning volume already exists, it is just that the user has
-  // loaded another dicom series as a new planning volume
-  // then later in the code, this implies that the experiment has to be
-  // started over
+  
+  
+    // in case the planning volume already exists, it is just that the user has
+    // loaded another dicom series as a new planning volume
+    // then later in the code, this implies that the experiment has to be
+    // started over
   if (this->MRMLNode->GetPlanningVolumeNode())
     {
     planningVolumePreExists = true;
@@ -2188,130 +2191,82 @@ void vtkPerkStationModuleGUI::LoadPlanningVolumeButtonCallback(const char *fileN
     this->GetApplication() );
   vtkMRMLScalarVolumeNode *volumeNode = this->GetLogic()->
     AddVolumeToScene( app, fileString.c_str(), VOL_CALIBRATE_PLAN );
-        
-  if ( volumeNode )  // Successful image read.
+  
+  
+  
+  if ( ! volumeNode )  // Not successful image read.
     {
-    vtkMRMLScalarVolumeDisplayNode *node = NULL;
-    vtkSetAndObserveMRMLNodeMacro( node,
-      volumeNode->GetScalarVolumeDisplayNode() );
+    std::string msg = std::string( "Unable to read volume file " )
+                      + std::string(fileName);
+    
+    vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
+      dialog->SetStyleToMessage();
+      dialog->SetText( msg.c_str() );
+      dialog->Create();
+      dialog->Invoke();
+      dialog->Delete();
+    
+    return;
+    }
+  
+  
+  vtkMRMLScalarVolumeDisplayNode *node = NULL;
+  vtkSetAndObserveMRMLNodeMacro( node,
+    volumeNode->GetScalarVolumeDisplayNode() );
 
-      // set up the image on secondary monitor    
-    this->SecondaryMonitor->SetupImageData();
-    
-    if (!planningVolumePreExists)
-      {
+    // set up the image on secondary monitor    
+  this->SecondaryMonitor->SetupImageData();
+  
+  if (!planningVolumePreExists)
+    {
       // bring the wizard GUI back to Calibrate step
-      // the volume selection has changed/added, so make sure that the wizard is in the intial calibration state!
-      while (this->WizardWidget->GetWizardWorkflow()->GetCurrentState()!= this->WizardWidget->GetWizardWorkflow()->GetInitialState())
-        {
-        this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
-        }
-        this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
-      }
-    else // Selected image could not be read.
+      // the volume selection has changed/added, so make sure that the wizard
+      // is in the intial calibration state!
+    while( this->WizardWidget->GetWizardWorkflow()->GetCurrentState()
+           != this->WizardWidget->GetWizardWorkflow()->GetInitialState() )
       {
-      this->ResetAndStartNewExperiment();
+      this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
       }
-        
-      // set the window/level controls values from scalar volume display node
-    this->DisplayVolumeLevelValue->SetValue(
-      volumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
-    this->DisplayVolumeWindowValue->SetValue(
-      volumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
-    
+    this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->
+      ShowUserInterface();
+    }
+  else // Selected image could not be read.
+    {
+    this->ResetAndStartNewExperiment();
+    }
       
-      // Update the application logic.
+    // set the window/level controls values from scalar volume display node
+  this->DisplayVolumeLevelValue->SetValue(
+    volumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
+  this->DisplayVolumeWindowValue->SetValue(
+    volumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
+  
     
-    this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
-      volumeNode->GetID() );
-    this->GetApplicationLogic()->PropagateVolumeSelection();
-    
-    
-      // Update slice viewer position to reflect real world.
-    
-    vtkPerkStationModuleLogic::PatientPosition patientPosition =
-      this->Logic->GetPatientPosition();
-    
-    vtkSlicerSliceLogic *slice =
-          this->GetApplicationLogic()->GetSliceLogic( "Red" );
-    vtkMRMLSliceNode *sliceNode = slice->GetSliceNode();
-    
-    vtkSmartPointer< vtkMatrix4x4 > newMatrix =
-        vtkSmartPointer< vtkMatrix4x4 >::New();
-      newMatrix->Identity();
-    
-    vtkMatrix4x4* matrix = sliceNode->GetSliceToRAS();
-    
-    
-    switch ( patientPosition )
-      {
-      case vtkPerkStationModuleLogic::HFP :
-        
-          // Need to turn over the image around Z axis.
-        newMatrix->SetElement( 0, 0, -1 );
-        newMatrix->SetElement( 1, 1, -1 );
-        vtkMatrix4x4::Multiply4x4( matrix, newMatrix, newMatrix );
-        sliceNode->SetSliceToRAS( newMatrix );
-        
-        break;
-      
-      case vtkPerkStationModuleLogic::HFS :
-        // Need no positioning, this is the default display position.
-        break;
-      
-      case vtkPerkStationModuleLogic::HFDR :
-        break;
-      
-      case vtkPerkStationModuleLogic::HFDL :
-        break;
-      
-      case vtkPerkStationModuleLogic::FFDR :
-        break;
-      
-      case vtkPerkStationModuleLogic::FFDL :
-        break;
-      
-      case vtkPerkStationModuleLogic::FFP :
-        
-          // Need to turn over the image around Z axis.
-        newMatrix->SetElement( 0, 0, -1 );
-        newMatrix->SetElement( 1, 1, -1 );
-        vtkMatrix4x4::Multiply4x4( matrix, newMatrix, newMatrix );
-        sliceNode->SetSliceToRAS( newMatrix );
-        
-        break;
-      
-      case vtkPerkStationModuleLogic::FFS :
-        break;
-      }
-    
-    
-    
-      // Make the planning volume the selected volume.
-    this->VolumeSelector->SetSelected( volumeNode );
-    const char *strName = this->VolumeSelector->GetSelected()->GetName();
-    std::string strPlan = std::string( strName ) + "-Plan";
-    this->VolumeSelector->GetSelected()->SetName( strPlan.c_str() );
-    this->VolumeSelector->GetSelected()->SetDescription(
-      "Planning image/volume; created by PerkStation module" );
-    this->VolumeSelector->GetSelected()->Modified();
-    this->VolumeSelector->UpdateMenu();
+    // Update the application logic.
+  this->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
+    volumeNode->GetID() );
+  this->GetApplicationLogic()->PropagateVolumeSelection();
+  
+  
+    // Set the Slice view to the correct position.
+  this->Logic->AdjustSliceView();
+  
+  
+    // Make the planning volume the selected volume.
+  this->VolumeSelector->SetSelected( volumeNode );
+  const char *strName = this->VolumeSelector->GetSelected()->GetName();
+  std::string strPlan = std::string( strName ) + "-Plan";
+  this->VolumeSelector->GetSelected()->SetName( strPlan.c_str() );
+  this->VolumeSelector->GetSelected()->SetDescription(
+    "Planning image/volume; created by PerkStation module" );
+  this->VolumeSelector->GetSelected()->Modified();
+  this->VolumeSelector->UpdateMenu();
 
     // enable the load validation volume button
-    this->EnableLoadValidationVolumeButton( true );
-    }
-  else 
-    {
-    vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
-    //dialog->SetParent ( this-> );
-    dialog->SetStyleToMessage();
-    std::string msg = std::string("Unable to read volume file ") + std::string(fileName);
-    dialog->SetText(msg.c_str());
-    dialog->Create ( );
-    dialog->Invoke();
-    dialog->Delete();
-    }
+  this->EnableLoadValidationVolumeButton( true );
 }
+
+
 //--------------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::LoadValidationVolumeButtonCallback(const char *fileName)
 {

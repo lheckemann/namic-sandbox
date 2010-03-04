@@ -42,25 +42,8 @@ public:
   static char *strrev(char *s,int n);
   static bool DoubleEqual(double val1, double val2);
   
-  
-    // DICOM information.
-  //BTX
-  enum PatientPosition
-    {
-    NA,   // Not yet defined
-    HFP,  // Head First-Prone
-    HFS,  // Head First-Supine
-    HFDR, // Head First-Decubitus Right
-    HFDL, // Head First-Decubitus Left
-    FFDR, // Feet First-Decubitus Right
-    FFDL, // Feet First-Decubitus Left
-    FFP,  // Feet First-Prone
-    FFS   // Feet First-Supine
-    };
-  
-  PatientPosition GetPatientPosition();
-  //ETX
-  
+  void AdjustSliceView();
+   
   
 protected:
 
@@ -83,8 +66,6 @@ protected:
    // Set Slicers's 2D view orientations from the image orientation.
    void SetSliceViewFromVolume(
      vtkSlicerApplication *app, vtkMRMLVolumeNode *volumeNode );
-   
-   PatientPosition m_PatientPosition;
    
 };
 
