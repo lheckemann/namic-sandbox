@@ -38,6 +38,7 @@
 #include "itkResampleDestinationPointsQuadEdgeMeshFilter.h"
 #include "itkQuadEdgeMeshGenerateDeformationFieldFilter.h"
 #include "itkIdentityTransform.h"
+#include "itkReplaceDestinationPointsQuadEdgeMeshFilter.h"
 
 #include "itkQuadEdgeMeshSphericalDiffeomorphicDemonsRegistrationConfigure.h"
 
@@ -332,7 +333,17 @@ int main( int argc, char * argv [] )
 
   DemonsFilterType::Pointer demonsFilter = DemonsFilterType::New();
 
-  demonsFilter->SetFixedMesh( fixedMeshReader1->GetOutput() );
+  typedef itk::ReplaceDestinationPointsQuadEdgeMeshFilter< 
+    FixedMeshType, DestinationPointSetType > ReplacePointsFilterType;
+
+  ReplacePointsFilterType::Pointer replacePointsFilter = ReplacePointsFilterType::New();
+
+  replacePointsFilter->SetInput( fixedMeshReader1->GetOutput() );
+  replacePointsFilter->SetDestinationPoints( destinationPoints );
+
+  replacePointsFilter->Update();
+
+  demonsFilter->SetFixedMesh( replacePointsFilter->GetOutput() );
   demonsFilter->SetMovingMesh( movingMeshReader1->GetOutput() );
 
   DemonsFilterType::PointType center;
@@ -350,6 +361,7 @@ int main( int argc, char * argv [] )
   const double lambda = 1.0;
   const unsigned int maximumNumberOfSmoothingIterations = 10;
 
+  std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
   demonsFilter->SetMaximumNumberOfIterations( 50 );
@@ -361,7 +373,7 @@ int main( int argc, char * argv [] )
   // Initialize the deformable registration stage with 
   // the results of the Rigid Registration.
   //
-  demonsFilter->SetInitialDestinationPoints( destinationPoints );
+// FIXME   demonsFilter->SetInitialDestinationPoints( destinationPoints );
 
 #ifdef USE_VTK
   visualMonitor.SetBaseAnnotationText("Demons Registration Level 1");
@@ -581,9 +593,10 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetMaximumNumberOfIterations( 60 );
 
   // proportional to intervertex spacing of IC5, that is 1/4 of IC4
-  sigmaX /= 4.0;
+  sigmaX /= vcl_sqrt( 2.0 );
   epsilon = 1.0 / (sigmaX * sigmaX );
 
+  std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
 
@@ -794,9 +807,10 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetMaximumNumberOfIterations( 80 );
 
   // proportional to intervertex spacing of IC6, that is 1/4 of IC5
-  sigmaX /= 4.0;
+  sigmaX /= vcl_sqrt( 2.0 );
   epsilon = 1.0 / (sigmaX * sigmaX );
 
+  std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
 
@@ -1010,9 +1024,10 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetMaximumNumberOfIterations( 100 );
 
   // proportional to intervertex spacing of IC7, that is 1/4 of IC6
-  sigmaX /= 4.0;
+  sigmaX /= vcl_sqrt( 2.0 );
   epsilon = 1.0 / (sigmaX * sigmaX );
 
+  std::cout << "SigmaX = " << sigmaX << " Epsilon = " << epsilon << std::endl;
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
 
