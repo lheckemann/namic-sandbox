@@ -343,8 +343,10 @@ int main( int argc, char * argv [] )
   demonsFilter->SetSphereCenter( center );
   demonsFilter->SetSphereRadius( radius );
 
-  const double epsilon = 1.0;
-  const double sigmaX = 1.0;
+  // proportional to intervertex spacing of IC4 (at radius 100.0).
+  double sigmaX = vcl_sqrt( radius / 10.0 );
+  double epsilon = 1.0 / (sigmaX * sigmaX );
+
   const double lambda = 1.0;
   const unsigned int maximumNumberOfSmoothingIterations = 10;
 
@@ -578,6 +580,13 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
 
   demonsFilter->SetMaximumNumberOfIterations( 60 );
 
+  // proportional to intervertex spacing of IC5, that is 1/4 of IC4
+  sigmaX /= 4.0;
+  epsilon = 1.0 / (sigmaX * sigmaX );
+
+  demonsFilter->SetEpsilon( epsilon );
+  demonsFilter->SetSigmaX( sigmaX );
+
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
   visualMonitor.SetBaseAnnotationText("Demons Registration Level 2");
@@ -783,6 +792,13 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetMovingMesh( movingMeshReader3->GetOutput() );
 
   demonsFilter->SetMaximumNumberOfIterations( 80 );
+
+  // proportional to intervertex spacing of IC6, that is 1/4 of IC5
+  sigmaX /= 4.0;
+  epsilon = 1.0 / (sigmaX * sigmaX );
+
+  demonsFilter->SetEpsilon( epsilon );
+  demonsFilter->SetSigmaX( sigmaX );
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
@@ -992,6 +1008,13 @@ std::cout << "AFTER upsampleDestinationPoints Update()" << std::endl;
   demonsFilter->SetMovingMesh( movingMeshReader4->GetOutput() );
 
   demonsFilter->SetMaximumNumberOfIterations( 100 );
+
+  // proportional to intervertex spacing of IC7, that is 1/4 of IC6
+  sigmaX /= 4.0;
+  epsilon = 1.0 / (sigmaX * sigmaX );
+
+  demonsFilter->SetEpsilon( epsilon );
+  demonsFilter->SetSigmaX( sigmaX );
 
 #ifdef USE_VTK
   demonsFilter->MakeOutput(2);
