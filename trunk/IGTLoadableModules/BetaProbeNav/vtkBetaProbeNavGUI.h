@@ -135,6 +135,8 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   vtkKWEntry* RangeEntry;
   vtkKWEntry* ProbeDiameterEntry;
   vtkKWEntry* UpdateEntry;
+  vtkKWRadioButtonSet* DataEntryButtonSet;
+  vtkKWPushButton* DataCaptureButton;
 
   //----------------------------------------------------------------
   // Logic Values
@@ -143,6 +145,11 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   vtkBetaProbeNavLogic *Logic;
   vtkCallbackCommand *DataCallbackCommand;
   int                        CloseScene;
+  
+  //----------------------------------------------------------------
+  // Variables
+  //----------------------------------------------------------------
+  int ManualDataCapture;
 
   //----------------------------------------------------------------
   // Model Nodes
