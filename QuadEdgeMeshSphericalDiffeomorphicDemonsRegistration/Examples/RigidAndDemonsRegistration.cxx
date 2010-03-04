@@ -90,12 +90,13 @@ private:
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 6 )
+  if( argc < 11 )
     {
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << std::endl;
-    std::cerr << "inputFixedMesh inputMovingMesh ";
+    std::cerr << "inputFixedMesh inputMovingMesh radius ";
+    std::cerr << "sigmaX epsilon maximumNumberOfDemonsIterations";
     std::cerr << "outputResampledRigid outputResampledDemons ";
     std::cerr << "outputDeformedFixedMesh DeformationField ";
     std::cerr << std::endl;
@@ -206,7 +207,7 @@ int main( int argc, char * argv [] )
   optimizer->SetMaximumStepLength( 0.05 );
   optimizer->SetMinimumStepLength( 1e-9 );
   optimizer->SetRelaxationFactor( 0.9 );
-  optimizer->SetNumberOfIterations( 100 );
+  optimizer->SetNumberOfIterations( 50 );
 
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
   optimizer->AddObserver( itk::IterationEvent(), observer );
@@ -336,7 +337,7 @@ int main( int argc, char * argv [] )
   typedef itk::QuadEdgeMeshScalarDataVTKPolyDataWriter< MovingMeshType >  WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( meshFixed);
-  writer->SetFileName(argv[3]);
+  writer->SetFileName(argv[7]);
   writer->Update(); 
   std::cout << "resampled mesh after rigid registration Saved" << std::endl;
 
@@ -358,16 +359,17 @@ int main( int argc, char * argv [] )
   DemonsFilterType::PointType center;
   center.Fill( 0.0 );
 
-  const double radius = 1.0;
+  const double radius = atof( argv[3] );
 
   demonsFilter->SetSphereCenter( center );
   demonsFilter->SetSphereRadius( radius );
 
-  const double epsilon = 2.0;
-  const double sigmaX = 0.2;
+  const double sigmaX =  atof( argv[4] ); // It should be proportional to inter-vertex distance
+  const double epsilon = atof( argv[5] ); // It should be proportional to 1/SigmaX^2
+
   const double lambda = 1.5;
   const unsigned int maximumNumberOfSmoothingIterations = 1;
-  const unsigned int maximumNumberOfIterations = 100;
+  const unsigned int maximumNumberOfIterations = atoi( argv[6] );
 
   demonsFilter->SetEpsilon( epsilon );
   demonsFilter->SetSigmaX( sigmaX );
@@ -400,7 +402,7 @@ int main( int argc, char * argv [] )
     return EXIT_FAILURE;
     }
 
-  writer->SetFileName( argv[4] );
+  writer->SetFileName( argv[8] );
   writer->SetInput( demonsFilter->GetOutput() );
 
   try
@@ -424,12 +426,12 @@ int main( int argc, char * argv [] )
   std::cout << "AFTER Computing deformation field " << std::endl;
 
   vectorMeshWriter->SetInput( deformationFilter->GetOutput() );
-  vectorMeshWriter->SetFileName(argv[6]);
+  vectorMeshWriter->SetFileName(argv[10]);
   vectorMeshWriter->Update(); 
   std::cout << "Deformation Field Saved" << std::endl;
 
   writer->SetInput( demonsFilter->GetDeformedFixedMesh() );
-  writer->SetFileName(argv[5]);
+  writer->SetFileName(argv[9]);
   writer->Update(); 
   std::cout << "Deformed Fixed Mesh  Saved" << std::endl;
 
