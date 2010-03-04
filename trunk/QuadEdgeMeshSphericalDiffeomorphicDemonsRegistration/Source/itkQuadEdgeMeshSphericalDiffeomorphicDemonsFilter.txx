@@ -504,6 +504,7 @@ RunIterations()
 
     // Report progress via Events
     progress.CompletedPixel();
+    this->InvokeEvent( IterationEvent() );
     }
 }
 
