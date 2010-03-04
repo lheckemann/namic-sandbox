@@ -78,6 +78,8 @@ vtkBetaProbeNavGUI::vtkBetaProbeNavGUI ( )
   this->RangeEntry = NULL;
   this->ProbeDiameterEntry = NULL;
   this->UpdateEntry = NULL;
+  this->DataEntryButtonSet = NULL;
+  this->DataCaptureButton = NULL;
   
   //----------------------------------------------------------------
   // Locator  (MRML)
@@ -193,7 +195,18 @@ vtkBetaProbeNavGUI::~vtkBetaProbeNavGUI ( )
     this->UpdateEntry->SetParent(NULL);
     this->UpdateEntry->Delete();
     }
-
+  
+  if (this->DataEntryButtonSet)
+    {
+    this->DataEntryButtonSet->SetParent(NULL);
+    this->DataEntryButtonSet->Delete();
+    } 
+    
+  if (this->DataCaptureButton)
+    {
+    this->DataCaptureButton->SetParent(NULL);
+    this->DataCaptureButton->Delete();
+    }
   //----------------------------------------------------------------
   // Unregister Logic class
 
@@ -292,6 +305,12 @@ void vtkBetaProbeNavGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->DataCaptureButton)
+    {
+    this->DataCaptureButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
   this->RemoveLogicObservers();
 
 }
@@ -339,6 +358,8 @@ void vtkBetaProbeNavGUI::AddGUIObservers ( )
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->UpdateEntry
      ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->DataCaptureButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   
   this->AddLogicObservers();
 }
@@ -496,9 +517,17 @@ void vtkBetaProbeNavGUI::ProcessGUIEvents(vtkObject *caller,
       else if (this->DataTypeButtonSet->GetWidget(2)->GetSelectedState())
         this->GetLogic()->SetActiveDataType(2);
       //Start Timer to collect data points
-      this->TimerFlag = 1;
       this->TimerInterval = this->UpdateEntry->GetValueAsInt();
-      ProcessTimerEvents();
+      this->TimerFlag = 1;
+      if (this->DataEntryButtonSet->GetWidget(1)->GetSelectedState())
+        {
+        this->ManualDataCapture = 0;
+        ProcessTimerEvents();
+        }
+      else
+        {
+        this->ManualDataCapture = 1;
+        }
       }
   
   //---------------------------------------
@@ -571,7 +600,18 @@ void vtkBetaProbeNavGUI::ProcessGUIEvents(vtkObject *caller,
     std::cerr << "Update Rate has been modified." << std::endl;
     this->TimerInterval = this->RangeEntry->GetValueAsDouble();
     }
-
+  //---------------------------------------
+  //Data Capture Button pressed
+  else if (this->DataCaptureButton == vtkKWPushButton::SafeDownCast(caller)
+      && event == vtkKWPushButton::InvokedEvent)
+    {
+    std::cerr << "Data capture button is pressed." << std::endl;
+    
+    if (this->DataEntryButtonSet->GetWidget(0)->GetSelectedState())
+      {
+      ProcessTimerEvents();
+      }
+    }
 } 
 
 //--------------------------------------------------------------------------
@@ -668,11 +708,14 @@ void vtkBetaProbeNavGUI::ProcessTimerEvents()
         this->GetMRMLScene()->Modified();
         }
       }
-      
-    // update timer
-    vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
+    
+    if (this->ManualDataCapture == 0)
+      {
+      // update timer
+      vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
-                                         this, "ProcessTimerEvents");        
+                                         this, "ProcessTimerEvents");
+      }  
     }
 }
 
@@ -1120,6 +1163,68 @@ void vtkBetaProbeNavGUI::BuildGUIForImportDataFrame()
   probeFrame->Delete();
   diamFrame->Delete();
   diamLabel->Delete();
+  
+  // -----------------------------------------
+  // Data Entry Frame
+
+  vtkKWFrameWithLabel *entryFrame = vtkKWFrameWithLabel::New();
+  entryFrame->SetParent(conBrowsFrame->GetFrame());
+  entryFrame->Create();
+  entryFrame->SetLabelText ("Data Entry Options");
+  this->Script ( "pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
+                 entryFrame->GetWidgetName() );
+
+  // Sphere Representation Selection
+  vtkKWFrame *optionFrame = vtkKWFrame::New();
+  optionFrame->SetParent(entryFrame->GetFrame());
+  optionFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                optionFrame->GetWidgetName());
+
+  vtkKWLabel *optionLabel = vtkKWLabel::New();
+  optionLabel->SetParent(optionFrame);
+  optionLabel->Create();
+  optionLabel->SetWidth(15);
+  optionLabel->SetText("Data Collection: ");
+
+  this->DataEntryButtonSet = vtkKWRadioButtonSet::New();
+  this->DataEntryButtonSet->SetParent(optionFrame);
+  this->DataEntryButtonSet->Create();
+  this->DataEntryButtonSet->PackHorizontallyOn();
+  this->DataEntryButtonSet->SetMaximumNumberOfWidgetsInPackingDirection(2);
+  this->DataEntryButtonSet->UniformColumnsOn();
+  this->DataEntryButtonSet->UniformRowsOn();
+
+  this->DataEntryButtonSet->AddWidget(0);
+  this->DataEntryButtonSet->GetWidget(0)->SetText("Manual");
+  this->DataEntryButtonSet->GetWidget(0)->SelectedStateOn();
+  this->DataEntryButtonSet->AddWidget(1);
+  this->DataEntryButtonSet->GetWidget(1)->SetText("Timer");
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              optionLabel->GetWidgetName() , this->DataEntryButtonSet->GetWidgetName());
+  
+  //Capture button
+  vtkKWFrame *captureFrame = vtkKWFrame::New();
+  captureFrame->SetParent(entryFrame->GetFrame());
+  captureFrame->Create();
+  app->Script ( "pack %s -padx 2 -pady 2",
+                captureFrame->GetWidgetName());
+  
+  this->DataCaptureButton = vtkKWPushButton::New( );
+  this->DataCaptureButton ->SetParent(captureFrame);
+  this->DataCaptureButton ->Create( );
+  this->DataCaptureButton ->SetText("Capture");
+  this->DataCaptureButton ->SetWidth(12);
+
+  app->Script("pack %s -side left -anchor w -fill x -padx 2 -pady 2",
+              this->DataCaptureButton->GetWidgetName());
+  
+  //Clean up
+  optionFrame->Delete();
+  optionLabel->Delete();
+  entryFrame->Delete();
+  captureFrame->Delete();
   
   conBrowsFrame->Delete();
 

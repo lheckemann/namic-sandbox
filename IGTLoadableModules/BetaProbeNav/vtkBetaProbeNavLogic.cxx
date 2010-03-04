@@ -470,9 +470,13 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNod
   //-------------------------------------------------------------------------
   // Find other polydata points and pixels surrounding the intersection point
   //--------------------------------------------------------------------------
-  vtkIdList* result = vtkIdList::New();
+  /*vtkIdList* result = vtkIdList::New();
   this->pointLocator->FindPointsWithinRadius(this->probeDiam/2, intPoint, result);
-  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
+  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;*/
+  
+  //Find closest point on vtkPolyData to intPoint
+  double dist;
+  vtkIdType id = this->pointLocator->FindClosestPointWithinRadius(2, intPoint, dist);
   
   //Extract polydata from the model node
   vtkPolyData* polydata = mnode->GetPolyData();
@@ -480,8 +484,23 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNod
   //We need Matrix from RAS to IJK, so we invert matrixIJKtoRAS
   mat->Invert(mat, mat);
   
+  //Convert point to ijk
+  double pthom[4];
+  double pt[3];
+  polydata->GetPoint(id, pt);
+  for (int j = 0; j < 4; j++)
+    {
+    if (j < 3)
+      pthom[j] = pt[j];
+    else
+      pthom[j] = 1;
+    }
+  mat->MultiplyPoint(pthom, pthom);
+  double sc = polydata->GetPointData()->GetScalars()->GetTuple1(id);
+  short* scalPointer = (short*) image->GetScalarPointer(pthom[0], pthom[1], pthom[2]);
+  *(scalPointer) = (short)sc;
   //Convert surrounding points into ijk
-  for (int i = 0; i < result->GetNumberOfIds(); i++)
+  /*for (int i = 0; i < result->GetNumberOfIds(); i++)
     {
     //Convert each point into homogenous format
     double pthom[4];
@@ -504,7 +523,7 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNod
     short* scalPointer = (short*) image->GetScalarPointer(pthom[0], pthom[1], pthom[2]);
     if (scalPointer)
       *(scalPointer) = (short)sc;
-    }
+    }*/
   //Update image
   image->Update();
   image->Modified();  
@@ -661,19 +680,18 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModel(vtkMRMLModelNode* mnode, vtkM
     std::cerr << "No intersection with the model" << std::endl;
     return mnode;
     }
-  /*intPoint = CalculateIntersectionPoint(p1, tnode, intPoint);
-  if (!intPoint)
-    {
-    std::cerr << "No intersection found" << std::endl;
-    return mnode;
-    }*/
+
   //Print out intersection point
   std::cerr << "Intersection Coordinates: " << intPoint[0] << " " << intPoint[1] << " " << intPoint[2] << std::endl;
 
-  // Find other polydata points surrounding the intersection point
+  //Find closest point on vtkPolyData to intPoint
+  double dist;
+  vtkIdType id = this->pointLocator->FindClosestPointWithinRadius(2, intPoint, dist);
+    
+  /* // Find other polydata points surrounding the intersection point
   vtkIdList* result = vtkIdList::New();
   this->pointLocator->FindPointsWithinRadius(this->probeDiam/2, intPoint, result);
-  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;
+  std::cerr << "Number of points: " << result->GetNumberOfIds () << std::endl;*/
  
   //-------------------------------------------------
   // Associate a scalar (radiation counts) to all these points
@@ -682,15 +700,18 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModel(vtkMRMLModelNode* mnode, vtkM
   double scal = this->nGammaScalars->GetTuple1(this->nGammaScalars->GetNumberOfTuples()-1); 
   std::cerr << "Scalar: " << scal << std::endl;
   vtkPolyData* polydata = mnode->GetPolyData();
+  
+  //Assign scalar value to single point
+  polydata->GetPointData()->GetScalars()->SetTuple1(id, scal);
  
- //Assign to all calculated points
+  /*//Assign to all calculated points
   for(unsigned int i = 0; i < result->GetNumberOfIds (); i++)
     {
     unsigned int id = result->GetId(i);
     //Average with current scalar value on point
     //double sc = polydata->GetPointData()->GetScalars()->GetTuple1(id);
     polydata->GetPointData()->GetScalars()->SetTuple1(id, scal);
-    }
+    }*/
   
   //Update the model elements
   polydata->Update();
@@ -698,7 +719,7 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::PaintModel(vtkMRMLModelNode* mnode, vtkM
   mnode->Modified();
   
   //Clean up and return
-  result->Delete();
+  //result->Delete();
   mat->Delete();
   cell->Delete();
   return mnode;
