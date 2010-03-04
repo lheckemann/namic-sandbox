@@ -238,9 +238,6 @@ void
 QuadEdgeMeshSphericalDiffeomorphicDemonsFilter< TFixedMesh, TMovingMesh, TOutputMesh >::
 GenerateData()
 {
-  // Recommended link
-  this->m_SigmaX = this->m_Epsilon;
-
   this->m_Chronometer.Start("DataPreProcessing");
   // Prepare data
   this->CopyInputMeshToOutputMesh();
