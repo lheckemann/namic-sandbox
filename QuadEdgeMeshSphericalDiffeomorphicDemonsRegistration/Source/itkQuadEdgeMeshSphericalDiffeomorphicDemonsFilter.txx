@@ -601,11 +601,11 @@ ComputeVelocityField()
   JacobianType destinationJacobian;
 
   EpsilonI22.set_identity();
-  EpsilonI22 *= ( this->m_Epsilon * this->m_Epsilon ) * this->m_ShortestEdgeLength;
+  EpsilonI22 *= ( this->m_Epsilon ); //  FIXME * this->m_Epsilon ) * this->m_ShortestEdgeLength;
 
   double metricSum = 0.0;
 
-  const double sigmaX2 = ( this->m_SigmaX * this->m_SigmaX ) * this->m_ShortestEdgeLength;
+  const double sigmaX2 = ( this->m_SigmaX * this->m_SigmaX ); // * this->m_ShortestEdgeLength;
 
   for( PointIdentifier pointId = 0; pointId < numberOfNodes; pointId++ )
     {
@@ -682,7 +682,7 @@ ComputeVelocityField()
 
     metricSum += ( Fv - Mv )*( Fv - Mv ) / sigmaN2;
 
-    velocityItr.Value() = Vn * ( this->m_SphereRadius );
+    velocityItr.Value() = Vn; // FIXME  * ( this->m_SphereRadius );  needed ?
 
     ++velocityItr;
     ++sigmaItr;
@@ -706,9 +706,11 @@ ComputeScalingAndSquaringNumberOfIterations()
   //
   const double largestVelocityMagnitude = this->ComputeLargestVelocityMagnitude();
 
+std::cout << "largestVelocityMagnitude = " << largestVelocityMagnitude;
+
   const double ratio = largestVelocityMagnitude / ( this->m_ShortestEdgeLength / 2.0 );
 
-  const unsigned int minimumNumberOfIterations = 5; // FIXME: This is critical. It used to be 10
+  const unsigned int minimumNumberOfIterations = 1;
 
   if( ratio < 1.0 )
     {
@@ -725,6 +727,8 @@ ComputeScalingAndSquaringNumberOfIterations()
 
     this->m_ScalingAndSquaringNumberOfIterations = iterations;
     }
+
+std::cout << " scaling & squaring # iterations = " << this->m_ScalingAndSquaringNumberOfIterations << std::endl;
 }
 
 
@@ -774,6 +778,8 @@ ComputeShortestEdgeLength()
     }
 
   this->m_ShortestEdgeLength = shortestLength;
+
+std::cout << "this->m_ShortestEdgeLength = " << this->m_ShortestEdgeLength << std::endl;
 
   if( this->m_ShortestEdgeLength < vnl_math::eps )
     {
