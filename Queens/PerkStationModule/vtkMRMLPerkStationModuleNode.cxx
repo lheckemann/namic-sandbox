@@ -12,9 +12,20 @@ Version:   $Revision: 1.2 $
 
 =========================================================================auto=*/
 
+#include <algorithm>
 #include <string>
 #include <iostream>
 #include <sstream>
+
+
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkImage.h"
+#include "itkMetaDataDictionary.h"
+#include "itkMetaDataObject.h"
+#include "itkGDCMImageIO.h"
+#include "itkSpatialOrientationAdapter.h"
+
 
 #include "vtkObjectFactory.h"
 #include "vtkStringArray.h"
@@ -167,6 +178,10 @@ vtkMRMLPerkStationModuleNode
     this->StepList->InsertNextValue( "Evaluation" );
   this->CurrentStep = 0;
   this->PreviousStep = 0;
+  
+  
+    // Patient position.
+  this->m_PatientPosition = PPNA;
 }
 
 //----------------------------------------------------------------------------
@@ -817,10 +832,12 @@ vtkMRMLScalarVolumeNode *vtkMRMLPerkStationModuleNode::GetActiveVolumeNode()
     return NULL;
     }
 }
+
+
 //-------------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::SetPlanningVolumeNode(vtkMRMLScalarVolumeNode *planVolNode)
 {
-  vtkSetMRMLNodeMacro(this->PlanningVolumeNode, planVolNode);  
+  vtkSetMRMLNodeMacro( this->PlanningVolumeNode, planVolNode );
 }
 
 //-------------------------------------------------------------------------------
@@ -917,3 +934,49 @@ vtkMRMLPerkStationModuleNode
     }
 }
 
+
+/**
+ * @returns Patient Position as read from the input DICOM information.
+ */
+PatientPosition
+vtkMRMLPerkStationModuleNode
+::GetPatientPosition()
+{  
+  if ( this->PlanningVolumeNode == NULL )
+  {
+    vtkErrorMacro( "VolumeNode is undefined" );
+    return PPNA;
+  }
+
+  // remaining information to be had from the meta data dictionary     
+  const itk::MetaDataDictionary &volDictionary =
+    this->PlanningVolumeNode->GetMetaDataDictionary();
+  std::string tagValue; 
+
+  // patient position uid
+  tagValue.clear();
+  
+  itk::ExposeMetaData< std::string >( volDictionary, "0018|5100", tagValue );
+  
+    // Remove spaces.
+  std::stringstream ss;
+  for ( unsigned int i = 0; i < tagValue.size(); i ++ )
+    {
+    if ( tagValue[ i ] != ' ' )
+      {
+      ss << tagValue[ i ];
+      }
+    }
+  std::string tagValueTrimmed = ss.str();
+  
+  if ( tagValueTrimmed == "HFP" ) this->m_PatientPosition = HFP;
+  else if ( tagValueTrimmed == "HFS" ) this->m_PatientPosition = HFS;
+  else if ( tagValueTrimmed == "HFDR" ) this->m_PatientPosition = HFDR;
+  else if ( tagValueTrimmed == "HFDL" ) this->m_PatientPosition = HFDL;
+  else if ( tagValueTrimmed == "FFDR" ) this->m_PatientPosition = FFDR;
+  else if ( tagValueTrimmed == "FFDL" ) this->m_PatientPosition = FFDL;
+  else if ( tagValueTrimmed == "FFP" ) this->m_PatientPosition = FFP;
+  else if ( tagValueTrimmed == "FFS" ) this->m_PatientPosition = FFS;
+  
+  return this->m_PatientPosition;
+}

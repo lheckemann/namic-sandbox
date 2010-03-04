@@ -28,6 +28,20 @@ enum VolumeType
 };
 
 
+enum PatientPosition
+  {
+  PPNA, // Not defined
+  HFP,  // Head First-Prone
+  HFS,  // Head First-Supine
+  HFDR, // Head First-Decubitus Right
+  HFDL, // Head First-Decubitus Left
+  FFDR, // Feet First-Decubitus Right
+  FFDL, // Feet First-Decubitus Left
+  FFP,  // Feet First-Prone
+  FFS   // Feet First-Supine
+  };
+  
+
 class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode
   : public vtkMRMLNode
 {
@@ -279,7 +293,17 @@ public:
   int GetPreviousStep();
   int SwitchStep(int newStep);
   const char* GetStepName(int i);
+  
+  
+  // Patient position
 
+public:
+  PatientPosition GetPatientPosition();
+
+private:
+  PatientPosition m_PatientPosition;
+  
+  
 protected:
 
   vtkMRMLPerkStationModuleNode();
@@ -296,12 +320,18 @@ protected:
   vtkMRMLFiducialListNode *PlanMRMLFiducialListNode;
   
   void InitializeFiducialListNode();
-
+  
+  
   // calibrate parameters:
 
   // "Clinical mode"
   double ClinicalModeRotation;
   double ClinicalModeTranslation[2];
+  
+  double SliceCenterOfRotation[ 2 ];
+  double SliceRotation;
+  
+  
   
   // "Training mode"
   // flip parameters
@@ -320,8 +350,10 @@ protected:
   double UserRotation;  
   double ActualRotation;
   double CenterOfRotation[3];
-
-  // plan parameters
+  
+  
+    // plan parameters
+    
   double PlanEntryPoint[3];
   double PlanTargetPoint[3];
 
@@ -330,7 +362,8 @@ protected:
 
   double UserPlanInsertionDepth;
   double ActualPlanInsertionDepth;
-
+  
+  
   // out of plane tilt angle applicable for new perk station design
   // this is applicable when the entry and target are not on the same slice
   // an oblique slice has to be extracted that contains both entry and target
@@ -339,6 +372,7 @@ protected:
   vtkMatrix4x4 *OriginalSliceToRAS;
   vtkMatrix4x4 *TiltSliceToRAS;
 
+  
   // insert parameters
   vtkMatrix4x4 *TrackerToPhantomMatrix;
   vtkMatrix4x4 *PhantomToImageRASMatrix;
