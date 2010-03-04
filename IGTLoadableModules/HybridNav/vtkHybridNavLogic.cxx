@@ -209,6 +209,14 @@ void vtkHybridNavLogic::AppendToolTipModel(vtkMRMLHybridNavToolNode* mnode)
   mnode->Modified();
   this->GetApplicationLogic()->GetMRMLScene()->Modified();
   
+  //Print onto screen the transform
+  vtkMatrix4x4* m = vtkMatrix4x4::New();
+  mnode->GetParentTransformNode()->GetMatrixTransformToWorld(m);
+  m->Print(std::cerr);
+  mnode->GetCalibrationMatrix()->Print(std::cerr);
+  m->Multiply4x4(m, mnode->GetCalibrationMatrix(), m);
+  m->Print(std::cerr);
+  
   /*//Clean up
   tfilter->Delete();
   trans->Delete();
