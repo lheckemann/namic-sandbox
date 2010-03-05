@@ -1,4 +1,6 @@
+
 #include "vtkPerkStationSecondaryMonitor.h"
+#include "vtkPerkStationModuleConfigure.h"
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkMRMLPerkStationModuleNode.h"
 
@@ -83,6 +85,7 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
   this->XYToRAS = vtkMatrix4x4::New();
   this->CurrentTransformMatrix = vtkMatrix4x4::New();
   this->ResliceTransform = vtkTransform::New();
+  this->ResliceTransform2 = vtkTransform::New();
 
   this->SystemStateResliceMatrix = vtkMatrix4x4::New();
   this->SystemStateXYToIJK = vtkMatrix4x4::New();
@@ -266,6 +269,11 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
     this->ResliceTransform->Delete();
     this->ResliceTransform = NULL;
     }
+  if ( this->ResliceTransform2 )
+    {
+    this->ResliceTransform2->Delete();
+    this->ResliceTransform2 = NULL;
+    }
   if (this->SystemStateResliceMatrix)
     {
     this->SystemStateResliceMatrix->Delete();
@@ -313,6 +321,7 @@ void vtkPerkStationSecondaryMonitor::ResetCalibration()
   this->CurrentTransformMatrix->Identity();
   this->ResliceTransform->Identity();
   
+  
   this->HorizontalFlipped = false;
   this->VerticalFlipped = false;
 
@@ -327,18 +336,26 @@ void vtkPerkStationSecondaryMonitor::ResetCalibration()
   for (int i = 0; i < 3; i++)
    {
    xyToIJK->SetElement(i, i, 1.0);
-   xyToIJK->SetElement(i, 3, -(this->ScreenSize[i]-this->ImageSize[i])/ 2.); //translation assuming both image & display have origins at bottom left respectively
+   
+     //translation assuming both image & display have origins
+     // at bottom left respectively
+   xyToIJK->SetElement( i, 3,
+     - ( this->ScreenSize[ i ] - this->ImageSize[ i ] ) / 2. ); 
    }
- 
+  
   xyToIJK->SetElement(2,3,0.);
+  
   this->XYToIJK->DeepCopy(xyToIJK);
-
+  
+  
   // to have consistent display i.e. same display as in SLICER's slice viewer,
   // and own render window in secondary monitor
   // figure out whether a horizontal flip required or a vertical flip or both
   // Note: this does not counter the flip that will be required due to secondary
   // monitors orientation/mounting
-  // It only makes sure that two displays have same view if they are physically in same orientation
+  // It only makes sure that two displays have same view if they are physically
+  // in same orientation
+  
   vtkMatrix4x4 *directionMatrix = vtkMatrix4x4::New();
   this->VolumeNode->GetIJKToRASDirectionMatrix(directionMatrix);
 
@@ -346,8 +363,10 @@ void vtkPerkStationSecondaryMonitor::ResetCalibration()
   bool verticalFlip = false;
   bool horizontalFlip = false;
 
-  flipMatrix = this->GetFlipMatrixFromDirectionCosines(directionMatrix,verticalFlip,horizontalFlip);
-  this->CurrentTransformMatrix->DeepCopy(flipMatrix);
+  flipMatrix = this->GetFlipMatrixFromDirectionCosines( directionMatrix, 
+    verticalFlip, horizontalFlip );
+  
+  this->CurrentTransformMatrix->DeepCopy( flipMatrix );
 
   this->UpdateMatrices();    
   
@@ -490,14 +509,16 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   vtkMatrix4x4 *xyToIJK = vtkMatrix4x4::New();
   xyToIJK->Identity();
 
+    //translation assuming both image & display have origins at bottom left respectively
   for (int i = 0; i < 3; i++)
    {
-   xyToIJK->SetElement(i, i, 1.0);
-   xyToIJK->SetElement(i, 3, -(this->ScreenSize[i]-this->ImageSize[i])/ 2.); //translation assuming both image & display have origins at bottom left respectively
+   xyToIJK->SetElement( i, i, 1.0 );
+   xyToIJK->SetElement( i, 3,
+     - ( this->ScreenSize[i] - this->ImageSize[i] ) / 2. );
    }
  
   xyToIJK->SetElement(2,3,0.0);
-  this->XYToIJK->DeepCopy(xyToIJK);
+  this->XYToIJK->DeepCopy( xyToIJK );
 
     
   // to have consistent display i.e. same display as in SLICER's slice viewer, and own render window in secondary monitor
@@ -505,14 +526,15 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   // Note: this does not counter the flip that will be required due to secondary monitors orientation/mounting
   // It only makes sure that two displays have same view if they are physically in same orientation
   vtkMatrix4x4 *directionMatrix = vtkMatrix4x4::New();
-  this->VolumeNode->GetIJKToRASDirectionMatrix(directionMatrix);
+  this->VolumeNode->GetIJKToRASDirectionMatrix( directionMatrix );
 
   vtkMatrix4x4 *flipMatrix = vtkMatrix4x4::New();
   bool verticalFlip = false;
   bool horizontalFlip = false;
 
-  flipMatrix = this->GetFlipMatrixFromDirectionCosines(directionMatrix,verticalFlip,horizontalFlip);
-  this->CurrentTransformMatrix->DeepCopy(flipMatrix);
+  flipMatrix = this->GetFlipMatrixFromDirectionCosines(
+    directionMatrix, verticalFlip, horizontalFlip );
+  this->CurrentTransformMatrix->DeepCopy( flipMatrix );
 
 
   this->DisplayInitialized = true;
@@ -605,15 +627,21 @@ void vtkPerkStationSecondaryMonitor::LoadCalibration()
 
   this->CalibrationFromFileLoaded = true;
 }
+
+
 //----------------------------------------------------------------------------
-vtkMatrix4x4 *vtkPerkStationSecondaryMonitor::GetFlipMatrixFromDirectionCosines (vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip)
+vtkMatrix4x4*
+vtkPerkStationSecondaryMonitor
+::GetFlipMatrixFromDirectionCosines ( vtkMatrix4x4 *directionMatrix,
+                                      bool & verticalFlip,
+                                      bool & horizontalFlip )
 {
   vtkMatrix4x4 *flipMatrix = vtkMatrix4x4::New();
   flipMatrix->Identity();
 
   vtkMatrix4x4 *targetMatrix = vtkMatrix4x4::New();
-  targetMatrix->Identity();
-  targetMatrix->SetElement(0,0, -1.);
+    targetMatrix->Identity();
+    targetMatrix->SetElement( 0, 0, -1.0 );
 
   // target 3x3 matrix  -1 0 0 
   //                     0 1 0
@@ -625,16 +653,16 @@ vtkMatrix4x4 *vtkPerkStationSecondaryMonitor::GetFlipMatrixFromDirectionCosines 
   // flipMatrix = source.invert() x target
 
   directionMatrix->Invert();
-  vtkMatrix4x4::Multiply4x4(directionMatrix, targetMatrix, flipMatrix);
+  vtkMatrix4x4::Multiply4x4( directionMatrix, targetMatrix, flipMatrix );
 
-  if (flipMatrix->GetElement(0,0) < 0 ) // i.e. -1
+  if ( flipMatrix->GetElement( 0, 0 ) < 0 ) // i.e. -1
     {
     horizontalFlip = true;
     // flip on y axis and bring back to match center of screen
-    flipMatrix->SetElement(0,3, this->ImageSize[0]);
+    flipMatrix->SetElement( 0, 3, this->ImageSize[0]);
     }
 
-  if (flipMatrix->GetElement(1,1) < 0 ) // i.e. -1
+  if ( flipMatrix->GetElement( 1, 1 ) < 0 ) // i.e. -1
     {
     verticalFlip = true;
     // flip on x-axis and bring back to match center of screen
@@ -643,26 +671,33 @@ vtkMatrix4x4 *vtkPerkStationSecondaryMonitor::GetFlipMatrixFromDirectionCosines 
 
   return flipMatrix;
 }
+
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::UpdateMatrices()
 {
-  vtkMatrix4x4 *resliceMatrix = this->ResliceTransform->GetMatrix();
-  vtkMatrix4x4 *xyToIJK = this->XYToIJK;
-
   //update reslice matrix
-  vtkMatrix4x4::Multiply4x4(this->CurrentTransformMatrix, resliceMatrix,resliceMatrix);
-  this->ResliceTransform->GetMatrix()->DeepCopy(resliceMatrix);
-
+  vtkMatrix4x4 *resliceMatrix = this->ResliceTransform->GetMatrix();
+  vtkMatrix4x4::Multiply4x4(
+    this->CurrentTransformMatrix, resliceMatrix, resliceMatrix );
+  this->ResliceTransform->GetMatrix()->DeepCopy( resliceMatrix );
+  
   //update xyToIJK
-  vtkMatrix4x4::Multiply4x4(this->CurrentTransformMatrix,xyToIJK, xyToIJK);
-  this->XYToIJK->DeepCopy(xyToIJK);
-
+  vtkMatrix4x4 *xyToIJK = this->XYToIJK;
+  vtkMatrix4x4::Multiply4x4( this->CurrentTransformMatrix, xyToIJK, xyToIJK );
+  this->XYToIJK->DeepCopy( xyToIJK );
+  
+  // debug
+  std::stringstream ss;
+  this->XYToIJK->Print( ss );
+  PERKLOG_DEBUG( ss.str().c_str() );
   
   //update xyToRAS
   vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
-  this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
-  vtkMatrix4x4::Multiply4x4(ijkToRAS, this->XYToIJK, this->XYToRAS);
-
+  this->VolumeNode->GetIJKToRASMatrix( ijkToRAS );
+  vtkMatrix4x4::Multiply4x4( ijkToRAS, this->XYToIJK, this->XYToRAS );
+  
   vtkSlicerSliceLogic *sliceLogic = 
     vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() )->
       GetMainSliceGUI( "Red" )->GetLogic();
@@ -675,9 +710,7 @@ void vtkPerkStationSecondaryMonitor::UpdateMatrices()
 void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
 {
   
-    // Visual guides.
-  
-     // switch visibility of needle guide
+     // Switch visibility of needle guide.
      // Show needle guide only in planning plane +/- 0.5 mm.
    
    double entry[ 3 ];
@@ -708,33 +741,33 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
      }
    
   
-  /*
-  std::stringstream ss;
-  ss << this->SliceOffset << " in? " << minOffset << ", " << maxOffset;
-  PERKLOG_DEBUG( ss.str().c_str() );
-  */
+    // Extract slice from the image volume.
   
-  
-  if(this->DisplayInitialized)
+  if( this->DisplayInitialized )
     {
-    this->MapToWindowLevelColors->SetWindow(this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow());
-    this->MapToWindowLevelColors->SetLevel(this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel());
-    this->Reslice->SetOutputExtent(0,this->ScreenSize[0]-1,0,this->ScreenSize[1]-1,0,0);
-    this->Reslice->SetInput( this->ImageData);
+    this->MapToWindowLevelColors->SetWindow(
+        this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
+    this->MapToWindowLevelColors->SetLevel( 
+        this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel() );
+    this->Reslice->SetOutputExtent( 0, this->ScreenSize[ 0 ] - 1,
+                                    0, this->ScreenSize[ 1 ] - 1,
+                                    0, 0 );
+    this->Reslice->SetInput( this->ImageData );
     this->Reslice->SetResliceTransform( this->ResliceTransform );
     this->Reslice->Update();
     
-    if (this->DeviceActive)
-        {
-        this->RenderWindow->Render();  
-        }
+    if ( this->DeviceActive )
+      {
+      this->RenderWindow->Render();  
+      }
     }
   
 }
 
 
 //---------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(double rasOffset)
+void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(
+  double rasOffset )
 {
   this->SliceOffset = rasOffset;
   
@@ -750,22 +783,26 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(double rasOffs
     return;
     }
 
-  if (strcmpi(mrmlNode->GetVolumeInUse(), "Planning"))
+  if ( strcmpi( mrmlNode->GetVolumeInUse(), "Planning" ) )
       return;
 
   // first convert 's' offset into 'k' offset in ijk space
   // this can be done using rastoijk matrix
 
   // we need to update reslice transform and the xytoijk transform
+  
+  
+    // First update XYToIJK transform matrix.
+  
   vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
-  this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
+  this->VolumeNode->GetIJKToRASMatrix( ijkToRAS );
 
   vtkMatrix4x4 *rasToIJK = vtkMatrix4x4::New();
-  vtkMatrix4x4::Invert(ijkToRAS, rasToIJK);
+  vtkMatrix4x4::Invert( ijkToRAS, rasToIJK );
 
-  double rasPt[4] = { 0,0, rasOffset, 1};
-  double ijkPt[4];
-  rasToIJK->MultiplyPoint(rasPt, ijkPt);
+  double rasPt[ 4 ] = { 0, 0, rasOffset, 1 };
+  double ijkPt[ 4 ];
+  rasToIJK->MultiplyPoint( rasPt, ijkPt );
 
   // now we have the ijk offset
   double kOffset = ijkPt[2];
@@ -798,64 +835,19 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(double rasOffs
     }
  
   this->XYToRAS->DeepCopy( xyToRAS );
-  // calculate the xyToRAS matrix
-  vtkMatrix4x4::Multiply4x4(rasToIJK, this->XYToRAS, this->XYToIJK);
+  
+    // calculate the xyToRAS matrix
+  vtkMatrix4x4::Multiply4x4( rasToIJK, this->XYToRAS, this->XYToIJK );
   
   xyToRAS->Delete();
 
-
   
-
-
-  /*
-  //
-  // Set the Offset
-  // - get the current translation in ijk space and convert it to xy space
-  //   by transforming it by the invers of the upper 3x3 of SliceToRAS
-  // - replace the k value of the translation with the new value given by the kOffset
-  // - this preserves whatever translation was already in place
-  //
-
-
-  vtkMatrix4x4 *xyToIJK = vtkMatrix4x4::New();
-  xyToIJK->DeepCopy( this->XYToIJK );
-
-  for (int i = 0; i < 3; i++)
-    {
-    xyToIJK->SetElement( i, 3, 0.0 );  // Zero out the tranlation portion
-    }
-  xyToIJK->Invert();
-  double v1[4], v2[4];
-  for (int i = 0; i < 4; i++)
-    { // get the translation back as a vector
-    v1[i] = this->XYToIJK->GetElement( i, 3 );
-    }
-  // bring the translation into slice space
-  // and overwrite the z part
-  xyToIJK->MultiplyPoint(v1, v2);
-
-  v2[2] = kOffset;
-
-  // Now bring the new translation vector back into RAS space
-  xyToIJK->Invert();
-  xyToIJK->MultiplyPoint(v2, v1);
-  for (int i = 0; i < 4; i++)
-    {
-    xyToIJK->SetElement( i, 3, v1[i] );
-    }
- 
-  // if the translation has changed, update the rest of the matrices
-    if ( xyToIJK->GetElement( 0, 3 ) != this->XYToIJK->GetElement( 0, 3 ) ||
-       xyToIJK->GetElement( 1, 3 ) != this->XYToIJK->GetElement( 1, 3 ) ||
-       xyToIJK->GetElement( 2, 3 ) != this->XYToIJK->GetElement( 2, 3 ) )
-    {
-    this->XYToIJK->DeepCopy( xyToIJK );
-    // calculate the xyToRAS matrix
-    vtkMatrix4x4::Multiply4x4(ijkToRAS, this->XYToIJK, this->XYToRAS);
-    }
-  xyToIJK->Delete();
-*/
-
+  // debug
+  std::stringstream ss;
+  this->XYToIJK->Print( ss );
+  PERKLOG_DEBUG( ss.str().c_str() );
+  
+  
   // same exercise for reslicetransform matrix
 
   vtkMatrix4x4 *resliceMatrix = vtkMatrix4x4::New();
@@ -863,7 +855,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(double rasOffs
 
   for (int i = 0; i < 3; i++)
     {
-    resliceMatrix->SetElement( i, 3, 0.0 );  // Zero out the tranlation portion
+    resliceMatrix->SetElement( i, 3, 0.0 );  // Zero out the translation portion
     }
   resliceMatrix->Invert();
 
@@ -1120,18 +1112,7 @@ void vtkPerkStationSecondaryMonitor::TiltOutOfPlane(double tiltAngle, double ras
   resliceMatrix->SetElement(2,3,xyToIJK->GetElement(2,3)-t[2]);
   this->ResliceTransform->GetMatrix()->DeepCopy(resliceMatrix);
 
-
-  /*vtkMatrix4x4 *resliceMatrix = vtkMatrix4x4::New();
-  resliceMatrix->DeepCopy(this->ResliceTransform->GetMatrix());
-
-  vtkMatrix4x4::Multiply4x4(this->CurrentTransformMatrix, resliceMatrix,resliceMatrix);
-  this->ResliceTransform->GetMatrix()->DeepCopy(resliceMatrix);
   
- // this->ResliceTransform->RotateX(tiltAngle);
-
-  vtkMatrix4x4 *newReslice = vtkMatrix4x4::New();
-  newReslice->DeepCopy(this->ResliceTransform->GetMatrix());
-*/
   this->UpdateImageDisplay();
 
   
