@@ -18,11 +18,11 @@ class vtkMatrix4x4;
 class vtkTransform;
 class vtkMRMLScalarVolumeNode;
 class vtkKWFrame;
-class vtkWin32OpenGLRenderWindow;
+#include "vtkWin32OpenGLRenderWindow.h";
 class vtkImageMapToWindowLevelColors;
-class vtkRenderer;
-class vtkRenderWindowInteractor;
-class vtkImageMapper;
+#include "vtkRenderer.h";
+#include "vtkRenderWindowInteractor.h";
+#include "vtkImageMapper.h";
 class vtkTextActor;
 class vtkTextActorFlippable;
 class vtkActor2D;
@@ -263,8 +263,8 @@ protected:
     // Display/visualization.
   vtkSmartPointer< vtkWin32OpenGLRenderWindow > RenderWindow;
   vtkSmartPointer< vtkRenderer >                Renderer;
-  vtkSmartpointer< vtkRenderWindowInteractor >  Interactor;
-  vtkSmartpointer< vtkImageMapper >             ImageMapper;
+  vtkSmartPointer< vtkRenderWindowInteractor >  Interactor;
+  vtkSmartPointer< vtkImageMapper >             ImageMapper;
   vtkSmartPointer< vtkActor2D >                 ImageActor;
   
     // Real time needle display.

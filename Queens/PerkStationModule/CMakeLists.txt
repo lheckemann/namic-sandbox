@@ -124,8 +124,8 @@ endif(BUILD_USING_NDIOAPI)
 # --------------------------------------------------------------------------
 # Wrapping
 
-include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
-vtk_wrap_tcl3(PerkStationModule PerkStationModule_TCL_SRCS "${PerkStationModule_SRCS}" "")
+# include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
+# vtk_wrap_tcl3(PerkStationModule PerkStationModule_TCL_SRCS "${PerkStationModule_SRCS}" "")
 
 #---------------------------------------------------------------------------
 # Add Loadable Module support

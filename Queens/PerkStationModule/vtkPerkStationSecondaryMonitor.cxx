@@ -4,6 +4,7 @@
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkMRMLPerkStationModuleNode.h"
 
+
 #include "vtkRenderer.h"
 #include "vtkCamera.h"
 #include "vtkImageMapToWindowLevelColors.h"
@@ -16,6 +17,7 @@
 #include "vtkProperty2D.h"
 #include "vtkActorCollection.h"
 #include "vtkActor2DCollection.h"
+#include "vtkSlicerApplication.h"
 
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
@@ -449,8 +451,10 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
   this->VolumeNode->GetIJKToRASMatrix( ijkToRAS );
-  vtkMatrix4x4::Invert( ijkToRAS, this->RASToIJK );
-  
+  vtkSmartPointer< vtkMatrix4x4 > rasToIJK =
+    vtkSmartPointer< vtkMatrix4x4 >::New();
+  vtkMatrix4x4::Invert( ijkToRAS, rasToIJK );
+  this->RASToIJK->SetMatrix( rasToIJK );
 
   this->DisplayInitialized = true;
   
@@ -740,7 +744,8 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(
   this->XYToRAS->DeepCopy( xyToRAS );
   
     // calculate the xyToRAS matrix
-  vtkMatrix4x4::Multiply4x4( rasToIJK, this->XYToRAS, this->XYToIJK );
+  vtkMatrix4x4::Multiply4x4( this->RASToIJK->GetMatrix(),
+    this->XYToRAS, this->XYToIJK );
   
   xyToRAS->Delete();
 
@@ -765,7 +770,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(
   // and overwrite the z part
   resliceMatrix->MultiplyPoint(v1, v2);
 
-  v2[2] = kOffset;
+  v2[ 2 ] = this->SliceOffsetIJK;
 
   // Now bring the new translation vector back into RAS space
   resliceMatrix->Invert();
