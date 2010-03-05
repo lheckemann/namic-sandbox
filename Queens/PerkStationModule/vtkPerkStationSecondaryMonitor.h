@@ -29,6 +29,7 @@ class vtkKWRenderWidget;
 class vtkLineSource;
 class vtkActorCollection;
 
+
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationSecondaryMonitor : public vtkObject
 {
 public:
@@ -41,19 +42,23 @@ public:
   virtual void SetGUI(vtkPerkStationModuleGUI *gui){ this->GUI = gui;};
 
   // About the secondary monitor itself:
-
+  
   // Description:
   // See if the secondary monitor is attached or not
   bool IsSecondaryMonitorActive(){ return this->DeviceActive;};
-
+  
   // Description:
   // Detect the secondary monitor attached to the system, gather information about it
   void Initialize();
-
+  
   // Description:
   // Get Spacing
-  void GetMonitorSpacing(double & xSpacing, double & ySpacing){xSpacing = this->MonitorPhysicalSizeMM[0]/this->MonitorPixelResolution[0]; ySpacing = this->MonitorPhysicalSizeMM[1]/this->MonitorPixelResolution[1];};
-
+  void GetMonitorSpacing(double & xSpacing, double & ySpacing)
+  {
+    xSpacing = this->MonitorPhysicalSizeMM[0] / this->MonitorPixelResolution[0];
+    ySpacing = this->MonitorPhysicalSizeMM[1] / this->MonitorPixelResolution[1];
+  };
+  
   // Description:
   // Get/Set VirtialScreenCoord
   void GetVirtualScreenCoord( int & left, int & top){left = this->VirtualScreenCoord[0]; top = this->VirtualScreenCoord[1];};
@@ -241,14 +246,19 @@ protected:
   vtkMatrix4x4 *SystemStateXYToIJK;
   vtkMatrix4x4 *SystemStateResliceMatrix;
 
-    // transform to be used for Reslice
+    
+    // This transform is used to extract the displayed image from the
+    // planning image volume. 
   vtkTransform *ResliceTransform;
+  vtkTransform* ResliceTransform2; // Tamas.
+  
+  
   vtkMRMLScalarVolumeNode *VolumeNode;
 
   vtkImageData *ImageData; // the image data to be displayed
 
-  vtkMatrix4x4 *GetFlipMatrixFromDirectionCosines (
-  vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip );
+  vtkMatrix4x4* GetFlipMatrixFromDirectionCosines (
+      vtkMatrix4x4* directionMatrix, bool& verticalFlip, bool& horizontalFlip );
  
   
   // about the monitor
