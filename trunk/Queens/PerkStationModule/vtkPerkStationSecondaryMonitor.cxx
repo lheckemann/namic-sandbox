@@ -116,7 +116,11 @@ vtkPerkStationSecondaryMonitor
     this->Reslice->SetBackgroundColor( 0, 0, 0, 0 );
     this->Reslice->SetOutputDimensionality( 2 );
     this->Reslice->SetInterpolationModeToLinear();
- 
+  
+  this->SecMonSpacing[ 0 ] = 1.0;
+  this->SecMonSpacing[ 1 ] = 1.0;
+  this->SecMonSpacing[ 2 ] = 1.0;
+  
  
     // set up render window, renderer, actor, mapper
  
@@ -161,14 +165,30 @@ vtkPerkStationSecondaryMonitor
   this->TextActorsCollection = vtkActor2DCollection::New();
 
   this->LeftSideActor = vtkSmartPointer< vtkTextActorFlippable >::New();
+    this->LeftSideActor->SetInput( "L" );
+    this->LeftSideActor->GetTextProperty()->SetColor( 1, 0.5, 0 );
+    this->LeftSideActor->SetTextScaleModeToNone();
+    this->LeftSideActor->GetTextProperty()->SetFontSize( 30 );
+    this->LeftSideActor->GetTextProperty()->BoldOn();
+    this->LeftSideActor->FlipAroundX( true );
+    this->LeftSideActor->SetOrientation( 180 );
+  
   this->RightSideActor = vtkSmartPointer< vtkTextActorFlippable >::New();
-
+    this->RightSideActor->SetInput( "R" );
+    this->RightSideActor->GetTextProperty()->SetColor( 1, 0.5, 0 );
+    this->RightSideActor->SetTextScaleModeToNone();
+    this->RightSideActor->GetTextProperty()->SetFontSize( 30 );
+    this->RightSideActor->GetTextProperty()->BoldOn();
+    this->RightSideActor->FlipAroundX( true );
+    this->RightSideActor->SetOrientation( 180 );
+  
+  
    // Calibration controls.
   this->CalibrationControlsActor =
    vtkSmartPointer< vtkTextActorFlippable >::New();
 
   this->SliceOffsetRAS = 0.0;
-
+  
   this->RASToIJK = vtkSmartPointer< vtkTransform >::New();
 }
 
@@ -368,26 +388,11 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->Renderer->AddActor( this->ImageActor ); // add new image actor
   
   
-  this->LeftSideActor->SetInput( "L" );
-  this->LeftSideActor->GetTextProperty()->SetColor( 1, 0.5, 0 );
-  this->LeftSideActor->SetTextScaleModeToNone();
-  this->LeftSideActor->GetTextProperty()->SetFontSize( 30 );
-  this->LeftSideActor->GetTextProperty()->BoldOn();
   this->LeftSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50,
                                            this->ScreenSize[ 1 ] - 50 );
-  this->LeftSideActor->FlipAroundX( true );
-  this->LeftSideActor->SetOrientation( 180 );
-  
-  this->RightSideActor->SetInput( "R" );
-  this->RightSideActor->GetTextProperty()->SetColor( 1, 0.5, 0 );
-  this->RightSideActor->SetTextScaleModeToNone();
-  this->RightSideActor->GetTextProperty()->SetFontSize( 30 );
-  this->RightSideActor->GetTextProperty()->BoldOn();
-  this->RightSideActor->SetDisplayPosition( 50, this->ScreenSize[ 1 ] - 50 );
-  this->RightSideActor->FlipAroundX( true );
-  this->RightSideActor->SetOrientation( 180 );
-  
   this->Renderer->AddActor( this->LeftSideActor );
+  
+  this->RightSideActor->SetDisplayPosition( 50, this->ScreenSize[ 1 ] - 50 );
   this->Renderer->AddActor( this->RightSideActor );
   
   
@@ -510,13 +515,18 @@ void vtkPerkStationSecondaryMonitor::LoadCalibration()
   double imgSpacing[3];
   this->VolumeNode->GetSpacing(imgSpacing);
       
-  // set the actual scaling (image/mon) in mrml node
-  mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]));
+    // set the actual scaling (image/mon) in mrml node
+  mrmlNode->SetActualScaling( double( imgSpacing[0] / monSpacing[0] ),
+                              double( imgSpacing[1] / monSpacing[1] ) );
   double scale[2];
-  mrmlNode->GetActualScaling(scale);
+  mrmlNode->GetActualScaling( scale );
   
-  // actually scale the image
-  this->Scale(scale[0], scale[1], 1.0);
+    // actually scale the image
+  this->Scale( scale[ 0 ], scale[ 1 ], 1.0);
+  
+  this->SecMonSpacing[ 0 ] = scale[ 0 ];
+  this->SecMonSpacing[ 1 ] = scale[ 1 ];
+  
 
   // 2) Vertical/Horizonal flip
   bool verticalFlip = false;
@@ -594,6 +604,8 @@ vtkPerkStationSecondaryMonitor
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::UpdateMatrices()
 {
+  // PERKLOG_DEBUG( "UpdateMatrices" );
+  /*
   //update reslice matrix
   vtkMatrix4x4 *resliceMatrix = this->ResliceTransform->GetMatrix();
   vtkMatrix4x4::Multiply4x4(
@@ -614,49 +626,65 @@ void vtkPerkStationSecondaryMonitor::UpdateMatrices()
   vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
   this->VolumeNode->GetIJKToRASMatrix( ijkToRAS );
   vtkMatrix4x4::Multiply4x4( ijkToRAS, this->XYToIJK, this->XYToRAS );
+  */
   
   vtkSlicerSliceLogic *sliceLogic = 
     vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI() )->
       GetMainSliceGUI( "Red" )->GetLogic();
+  
   this->UpdateImageDataOnSliceOffset( sliceLogic->GetSliceOffset() );
+  
   
   this->UpdateImageDisplay();
 
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
 {
   
+    // Tamas
+  
+  vtkSmartPointer< vtkMatrix4x4 > newResliceMatrix = 
+      vtkSmartPointer< vtkMatrix4x4 >::New();
+    newResliceMatrix->Identity();
+    newResliceMatrix->SetElement( 0, 0, this->SecMonSpacing[ 0 ] );
+    newResliceMatrix->SetElement( 1, 1, this->SecMonSpacing[ 1 ] );
+    newResliceMatrix->SetElement( 2, 3, this->SliceOffsetIJK );
+  this->ResliceTransform2->GetMatrix()->DeepCopy( newResliceMatrix );
+  
+  
      // Switch visibility of needle guide.
      // Show needle guide only in planning plane +/- 0.5 mm.
    
-   double entry[ 3 ];
-   double target[ 3 ];
-   this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
-   this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( target );
-   double minOffset = target[ 2 ] - 0.5;
-   double maxOffset = entry[ 2 ] + 0.5;
-   if ( entry[ 2 ] < target[ 2 ] )
-     {
-     minOffset = entry[ 2 ] - 0.5;
-     maxOffset = target[ 2 ] + 0.5;
-     }
-   
-   if (
-        ( this->SliceOffsetRAS <= maxOffset )
-        && ( this->SliceOffsetRAS >= minOffset )
-        && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 )
-      )
-     {
-     this->ShowNeedleGuide( true );
-     this->ShowDepthPerceptionLines( true );
-     }
-   else
-     {
-     this->ShowNeedleGuide( false );
-     this->ShowDepthPerceptionLines( false );
-     }
-   
+  double entry[ 3 ];
+  double target[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( entry );
+  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint( target );
+  double minOffset = target[ 2 ] - 0.5;
+  double maxOffset = entry[ 2 ] + 0.5;
+  if ( entry[ 2 ] < target[ 2 ] )
+   {
+   minOffset = entry[ 2 ] - 0.5;
+   maxOffset = target[ 2 ] + 0.5;
+   }
+
+  if (
+      ( this->SliceOffsetRAS <= maxOffset )
+      && ( this->SliceOffsetRAS >= minOffset )
+      && ( this->GetGUI()->GetMRMLNode()->GetCurrentStep() == 2 )
+    )
+   {
+   this->ShowNeedleGuide( true );
+   this->ShowDepthPerceptionLines( true );
+   }
+  else
+   {
+   this->ShowNeedleGuide( false );
+   this->ShowDepthPerceptionLines( false );
+   }
+ 
   
     // Extract slice from the image volume.
   
@@ -687,6 +715,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
 void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(
   double rasOffset )
 {
+  PERKLOG_DEBUG( "UpdateImageDataOnSliceOffset" );
   this->SliceOffsetRAS = rasOffset;
   
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
@@ -783,18 +812,8 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDataOnSliceOffset(
  this->ResliceTransform->GetMatrix()->DeepCopy( resliceMatrix );
  resliceMatrix->Delete();
 
-
-   // Tamas
- vtkMatrix4x4* newResliceMatrix = vtkMatrix4x4::New();
-   newResliceMatrix->Identity();
-   newResliceMatrix->SetElement( 2, 3, this->SliceOffsetIJK );
- this->ResliceTransform2->GetMatrix()->DeepCopy( newResliceMatrix );
- newResliceMatrix->Delete();
- 
  
  this->UpdateImageDisplay();
-
-
 }
 
 //----------------------------------------------------------------------------
@@ -907,25 +926,33 @@ void vtkPerkStationSecondaryMonitor::FlipHorizontal()
     this->RightSideActor->SetDisplayPosition( this->ScreenSize[ 0 ] - 50,
                                               this->ScreenSize[ 1 ] - 50 );
 }
+
+
 //----------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::Scale(double sx, double sy, double sz)
+// Try to avoid using this function. Tamas.
+void vtkPerkStationSecondaryMonitor::Scale( double sx, double sy, double sz )
 {
   vtkTransform *transform = vtkTransform::New();
   transform->PostMultiply();
   
   // scale about center
-  transform->Translate(-this->ImageSize[0]/2., -this->ImageSize[1]/2., 0);
-  transform->Scale(1./sx, 1./sy, 1./sz);
-  transform->Translate(this->ImageSize[0]/2., this->ImageSize[1]/2., 0);
+  transform->Translate( - this->ImageSize[ 0 ] / 2.0,
+                        - this->ImageSize[ 1 ] / 2.0,
+                        0 );
+  transform->Scale( 1.0 / sx, 1.0 / sy, 1.0 / sz );
+  transform->Translate( this->ImageSize[ 0 ] / 2.0,
+                        this->ImageSize[ 1 ] / 2.0,
+                        0 );
 
   vtkMatrix4x4 *scaleMatrix = vtkMatrix4x4::New();
-  scaleMatrix->DeepCopy(transform->GetMatrix());
+  scaleMatrix->DeepCopy( transform->GetMatrix() );
 
-  this->CurrentTransformMatrix->DeepCopy(scaleMatrix);
+  this->CurrentTransformMatrix->DeepCopy( scaleMatrix );
 
   this->UpdateMatrices();
-
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::Rotate(double angle)
 {

@@ -18,11 +18,15 @@ class vtkMatrix4x4;
 class vtkTransform;
 class vtkMRMLScalarVolumeNode;
 class vtkKWFrame;
-#include "vtkWin32OpenGLRenderWindow.h";
+
+#include "vtkWin32OpenGLRenderWindow.h"
+
 class vtkImageMapToWindowLevelColors;
-#include "vtkRenderer.h";
-#include "vtkRenderWindowInteractor.h";
-#include "vtkImageMapper.h";
+
+#include "vtkRenderer.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkImageMapper.h"
+
 class vtkTextActor;
 class vtkTextActorFlippable;
 class vtkActor2D;
@@ -352,6 +356,7 @@ private:
   double SecMonRotation[ 3 ];
   double SecMonRotationCenter[ 3 ];
   double SecMonTranslation[ 3 ];
+  double SecMonSpacing[ 3 ];
   
   vtkSmartPointer< vtkTransform > SecMonHorizontalFlipTransform;
   vtkSmartPointer< vtkTransform > SecMonVerticalFlipTransform;
@@ -363,7 +368,7 @@ private:
   double SliceOffsetRAS;  // In RAS coordinates.
   double SliceOffsetIJK;  // In IJK coordinates.
   
-    // From Slicer RAS coordinates to IJK.
+    
   vtkSmartPointer< vtkTransform > RASToIJK;
 };
 
