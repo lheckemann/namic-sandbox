@@ -78,18 +78,24 @@ install(FILES
 # Sources
 
 SET(PerkStationModule_SRCS
-  vtkPerkStationModuleLogic.cxx
-  vtkPerkStationModuleGUI.cxx
-  vtkMRMLPerkStationModuleNode.cxx
-  vtkPerkStationSecondaryMonitor.cxx
-  vtkTextActorFlippable.cxx
+  vtkPerkStationModuleLogic.cxx    vtkPerkStationModuleLogic.h
+  vtkPerkStationModuleGUI.cxx      vtkPerkStationModuleGUI.h
+  vtkMRMLPerkStationModuleNode.cxx  vtkMRMLPerkStationModuleNode.h
+  vtkPerkStationSecondaryMonitor.cxx vtkPerkStationSecondaryMonitor.h
+  vtkTextActorFlippable.cxx         vtkTextActorFlippable.h
    # wizard
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationStep.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationCalibrateStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationCalibrateStep.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationPlanStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationPlanStep.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationInsertStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationInsertStep.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationValidateStep.cxx
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationEvaluateStep.cxx  
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationValidateStep.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationEvaluateStep.cxx
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationEvaluateStep.h
 )
 
 if(BUILD_USING_NDIOAPI)
