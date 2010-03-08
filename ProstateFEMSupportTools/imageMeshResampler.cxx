@@ -35,6 +35,9 @@
 #include "itkShiftScaleInPlaceImageFilter.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 
+#include "itkTransformFileReader.h"
+#include "itkAffineTransform.h"
+
 #include "itkImageDuplicator.h"
 
 typedef float PixelType;
@@ -49,6 +52,8 @@ typedef itk::WarpImageFilter<ImageType,ImageType,DFImageType> WarpFilterType;
 typedef itk::ShiftScaleInPlaceImageFilter<DFImageType> ScaleFilterType;
 typedef itk::ChangeInformationImageFilter<ImageType> ChangeInfoType;
 typedef itk::ImageDuplicator<ImageType> DupType;
+typedef itk::TransformFileReader TransformReaderType;
+typedef itk::AffineTransform<double> TransformType;
 
 typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double> NNType;
 
@@ -62,23 +67,44 @@ double getNorm(double* vec){
 int main(int argc, char **argv){
 
   // TODO: add option to choose interpolator
-  if(argc<6){
-    std::cerr << "Usage: " << "input_image input_mesh reference_image output_image output_image_df [0|1]" << std::endl;
+  if(argc<7){
+    std::cerr << "Usage: " << "input_image input_mesh affine_transform reference_image output_image output_image_df [0|1]" << std::endl;
     return -1;
   }
 
   char* inputImageName = argv[1];
   char* inputMeshName = argv[2];
-  char* refImageName = argv[3];
-  char* outImageName = argv[4];
-  char* outDFName = argv[5];
+  char* affineTfmName = argv[3];
+  char* refImageName = argv[4];
+  char* outImageName = argv[5];
+  char* outDFName = argv[6];
 
   bool useNearestNeighbor = false; // linear by default
   
-  if(argc>6)
-    useNearestNeighbor = (bool) atoi(argv[6]);
+  if(argc>7)
+    useNearestNeighbor = (bool) atoi(argv[7]);
 
+  TransformReaderType::Pointer tfmReader = TransformReaderType::New();
+  tfmReader->SetFileName(affineTfmName);
+  tfmReader->Update();
   
+  TransformType::Pointer affineTfm = TransformType::New();
+
+  TransformReaderType::TransformType::Pointer rtfm = 
+    *(tfmReader->GetTransformList()->begin());
+  typedef itk::MatrixOffsetTransformBase<double,3,3> OffsetType;
+  OffsetType::Pointer d =
+    dynamic_cast<OffsetType*>(rtfm.GetPointer());
+
+  if(!d){
+    std::cerr << "Cast failed!" << std::endl;
+    return -1;
+  }
+
+  vnl_svd<double> svd(d->GetMatrix().GetVnlMatrix());
+  affineTfm->SetMatrix(svd.U()*vnl_transpose(svd.V()));
+  affineTfm->SetOffset(d->GetOffset());
+
 
   ImageReaderType::Pointer imageReader = ImageReaderType::New();
   imageReader->SetFileName(inputImageName);
@@ -96,7 +122,7 @@ int main(int argc, char **argv){
 
   vtkUnstructuredGrid *mesh = meshReader->GetOutput();
   vtkDataArray *meshDeformation = mesh->GetPointData()->GetArray("Displacement");
-  ImageType::Pointer image = imageReader->GetOutput();
+  ImageType::Pointer inputImage = imageReader->GetOutput();
 
   DFImageType::Pointer dfImage = DFImageType::New();
   DFImageType::RegionType region;
@@ -252,11 +278,18 @@ int main(int argc, char **argv){
       pointIn[1] = pointRef[1]+dfPixel[1];
       pointIn[2] = pointRef[2]+dfPixel[2];
 
-      if(!image->TransformPhysicalPointToIndex(pointIn, idxOut)){
+      ImageType::PointType affTfmPt;
+      affTfmPt = affineTfm->TransformPoint(pointIn);
+      dfPixel[0] = affTfmPt[0]-pointRef[0];
+      dfPixel[1] = affTfmPt[1]-pointRef[1];
+      dfPixel[2] = affTfmPt[2]-pointRef[2];
+      dfImageI.Set(dfPixel);
+
+      if(!inputImage->TransformPhysicalPointToIndex(pointIn, idxOut)){
         std::cerr << "Point is outside the input image" << std::endl;
         return -2;
       }
-      outputImage->SetPixel(imageI.GetIndex(), image->GetPixel(idxOut));
+      outputImage->SetPixel(imageI.GetIndex(), inputImage->GetPixel(idxOut));
       outputImageMask->SetPixel(imageI.GetIndex(), 1);
     }
   }
@@ -272,7 +305,7 @@ int main(int argc, char **argv){
     std::cout << "Using nearest neighbor interpolator" << std::endl;
   }
 
-  warpFilter->SetInput(image);
+  warpFilter->SetInput(inputImage);
   warpFilter->SetDeformationField(dfImage);
   warpFilter->SetOutputSpacing(refImage->GetSpacing());
   warpFilter->SetOutputDirection(refImage->GetDirection());
