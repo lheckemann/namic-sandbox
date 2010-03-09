@@ -13,18 +13,21 @@
 #include "Windows.h"
 #include <vector>
 
+class vtkActor;
+class vtkActor2D;
+class vtkActor2DCollection;
+class vtkActorCollection;
+class vtkImageData;
+class vtkImageMapToWindowLevelColors;
+class vtkImageReslice;
+class vtkLineSource;
+class vtkMatrix4x4;
+class vtkMRMLScalarVolumeNode;
 class vtkPerkStationModuleGUI;
 class vtkSlicerSliceViewer;
-class vtkImageData;
-class vtkImageReslice;
-class vtkMatrix4x4;
 class vtkTransform;
 class vtkTransformFilter;
-class vtkMRMLScalarVolumeNode;
 class vtkKWFrame;
-
-
-class vtkImageMapToWindowLevelColors;
 
 #include "vtkRenderer.h"
 #include "vtkRenderWindowInteractor.h"
@@ -32,20 +35,21 @@ class vtkImageMapToWindowLevelColors;
 
 class vtkTextActor;
 class vtkTextActorFlippable;
-class vtkActor2D;
-class vtkActor2DCollection;
-class vtkActor;
 class vtkKWRenderWidget;
-class vtkLineSource;
-class vtkActorCollection;
 
 
 /**
  * This class uses the following coordinates:
  * * RAS: From slicer, in mm.
  * * IJK: Image volume indices, in voxels.
+ * * XY: Units in pixels. Origin at the lower left corner of the overlayed
+ *       image. On typical overlay hardware, this is horizontally flipped
+ *       compared to the second monitor screen coordinate system.
  * 
- * Slicer uses RAS coordinates, but gives the IJKToRAS transform.
+ * Slicer uses RAS coordinates, but gives the IJKToRAS transform. XY to IJK
+ * Transform is computed from parameters of the second monitor, and calibration
+ * input from the user.
+ *
  */
 class
 // VTK_PERKSTATIONMODULE_EXPORT
