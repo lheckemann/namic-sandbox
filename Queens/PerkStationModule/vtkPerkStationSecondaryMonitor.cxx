@@ -288,8 +288,9 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayRealTimeNeedleTip()
     if (this->DeviceActive)
         this->RenderWindow->Render();
     }
-
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::SetupImageData()
 {
@@ -307,8 +308,10 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
     return;
     }
 
+  this->Position = mrmlNode->GetPatientPosition();
+  
   this->ImageData = this->VolumeNode->GetImageData();
-
+  
   int imageExtent[ 6 ];
   this->ImageData->GetExtent( imageExtent );
 
@@ -384,10 +387,7 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
   this->VolumeNode->GetIJKToRASMatrix( ijkToRAS );
-  vtkSmartPointer< vtkMatrix4x4 > rasToIJK =
-    vtkSmartPointer< vtkMatrix4x4 >::New();
-  vtkMatrix4x4::Invert( ijkToRAS, rasToIJK );
-  this->RASToIJK->SetMatrix( rasToIJK );
+  vtkMatrix4x4::Invert( ijkToRAS, this->RASToIJK->GetMatrix() );
     
     
   this->DisplayInitialized = true;
@@ -399,8 +399,8 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   double s0 = this->ScreenSize[ 0 ] / this->MonitorPhysicalSizeMM[ 0 ];
   double s1 = this->ScreenSize[ 1 ] / this->MonitorPhysicalSizeMM[ 1 ];
     // These values will be placed in the reslice transform matrix.
-  this->Scale[ 0 ] = 1. / s0 * spacing[ 0 ];
-  this->Scale[ 1 ] = 1. / s1 * spacing[ 1 ];
+  this->Scale[ 0 ] = s0 * spacing[ 0 ];
+  this->Scale[ 1 ] = s1 * spacing[ 1 ];
 }
 
 
@@ -438,40 +438,107 @@ vtkPerkStationSecondaryMonitor
 ::XYToRAS()
 {
   vtkSmartPointer< vtkTransform > ret = vtkSmartPointer< vtkTransform >::New();
-    ret->Identity();
-  
-  ret->RotateZ( this->Rotation );
-  
-  ret->Scale( this->Scale[ 0 ], this->Scale[ 1 ], 1.0 );
-  
-    // Initial position.
-  double tx = - ( this->ScreenSize[ 0 ] - this->ImageSize[ 0 ] ) / 2.0 *
-    this->Scale[ 0 ];
-  double ty = - ( this->ScreenSize[ 1 ] - this->ImageSize[ 1 ] ) / 2.0 *
-    this->Scale[ 1 ];
-  
-  tx = 0;
-  ty = 0;
-  
-    // Calibrated position.
-  tx += this->Translation[ 0 ];
-  ty += this->Translation[ 1 ];
-  
-  ret->Translate( tx, ty, this->SliceOffsetIJK );
   
   
+  
+  return ret;
+}
+
+
+/**
+ * Sets calibration translations, flips to match DICOM patient position and 
+ * slice offset.
+ *
+ * @returns XYToIJK transformation.
+ */
+vtkSmartPointer< vtkTransform >
+vtkPerkStationSecondaryMonitor::XYToIJK()
+{
+  vtkSmartPointer< vtkTransform > ret = vtkSmartPointer< vtkTransform >::New();
+  
+  
+  bool hFlip = false;
+  bool vFlip = false;
+  
+  
+    // Flips to match RAS.
+    
   vtkSmartPointer< vtkMatrix4x4 > dirMatrix = 
     vtkSmartPointer< vtkMatrix4x4 >::New();
   this->VolumeNode->GetIJKToRASDirectionMatrix( dirMatrix );
   
-  for ( int i = 0; i < 2; ++ i )
+  if ( dirMatrix->GetElement( 0, 0 ) < 0.0 ) hFlip = ! hFlip;
+  if ( dirMatrix->GetElement( 1, 1 ) < 0.0 ) vFlip = ! vFlip;
+  
+    // Flips from RAS to patient position.
+  
+  switch ( this->Position )
     {
-      // Apply flips to match RAS.
-    ret->GetMatrix()->SetElement( i, i,
-      ret->GetMatrix()->GetElement( i, i ) *
-      dirMatrix->GetElement( i, i ) );
+    case HFP :
+      vFlip = ! vFlip;
+      break;
+    
+    case HFS :
+      hFlip = ! hFlip;
+      break;
+    
+    case HFDR :
+      hFlip = ! hFlip;
+      break;
+    
+    case HFDL :
+      hFlip = ! hFlip;
+      ret->RotateZ( - 90.0 );
+      break;
+    
+    case FFDR :
+      ret->RotateZ( 90.0 );
+      break;
+    
+    case FFDL :
+      ret->RotateZ( - 90.0 );
+      break;
+    
+    case FFP :
+      hFlip = ! hFlip;
+      vFlip = ! vFlip;
+      break;
+    
+    case FFS :
+      break;
     }
   
+    // Flip for image overlay hardware.
+  
+  hFlip = ! hFlip;
+  
+  
+  double translateForFlipX = 0.0;
+  double translateForFlipY = 0.0;
+  
+  if ( hFlip )
+    {
+    ret->GetMatrix()->SetElement( 0, 0, - ret->GetMatrix()->GetElement( 0, 0 ) );
+    translateForFlipX = - this->ImageSize[ 0 ]; // To flip in place.
+    }
+  
+  if ( vFlip )
+    {
+    ret->GetMatrix()->SetElement( 1, 1, - ret->GetMatrix()->GetElement( 1, 1 ) );
+    translateForFlipY = - this->ImageSize[ 1 ];
+    }
+  
+  ret->Translate( translateForFlipX, translateForFlipY, 0.0 );
+  
+  ret->Scale( 1.0 / this->Scale[ 0 ], 1.0 / this->Scale[ 1 ], 1.0 );
+  
+  ret->Translate( this->Translation[ 0 ],
+                  this->Translation[ 1 ],
+                  this->SliceOffsetIJK );
+  
+  /*
+  
+  */
   
   return ret;
 }
@@ -640,18 +707,21 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
   
     // Extract slice from the image volume.
   
-  this->ResliceTransform->SetMatrix( this->XYToRAS()->GetMatrix() );
+    // It is not possible to apply vtkTransformFilter on an image data.
+    // So all transformations has to be applied in ResliceFilter.
+  
+  this->ResliceTransform->SetMatrix( this->XYToIJK()->GetMatrix() );
   this->ResliceTransform->Update();
   
   this->ResliceFilter->SetOutputExtent( 0, this->ScreenSize[ 0 ] - 1,
                                         0, this->ScreenSize[ 1 ] - 1,
                                         0, 0 );
   this->ResliceFilter->SetOutputSpacing( 1.0, 1.0, 1.0 );
+  this->ResliceFilter->SetOutputOrigin( 0.0, 0.0, 0.0 );
   this->ResliceFilter->SetInput( this->ImageData );
   this->ResliceFilter->SetResliceTransform( this->ResliceTransform );
   
-    // It is not possible to apply vtkTransformFilter on an image data.
-    // So all transformations has to be applied in ResliceFilter.
+    // Adjust color window / level.
   
   this->MapToWindowLevelColors->SetWindow(
       this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow() );
