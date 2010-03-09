@@ -3,8 +3,11 @@
 #define __vtkPerkStationSecondaryMonitor_h
 
 #include "vtkObject.h"
-#include "vtkPerkStationModule.h"
 #include "vtkSmartPointer.h"
+#include "vtkWin32OpenGLRenderWindow.h"
+
+#include "vtkPerkStationModule.h"
+#include "vtkMRMLPerkStationModuleNode.h"
 
 // for getting display device information
 #include "Windows.h"
@@ -20,7 +23,6 @@ class vtkTransformFilter;
 class vtkMRMLScalarVolumeNode;
 class vtkKWFrame;
 
-#include "vtkWin32OpenGLRenderWindow.h"
 
 class vtkImageMapToWindowLevelColors;
 
@@ -255,6 +257,7 @@ public:
 private:
   
   vtkSmartPointer< vtkTransform > XYToRAS();
+  vtkSmartPointer< vtkTransform > XYToIJK();
   
   int NumberOfMonitors; // Number of physical monitors of the computer.
   
@@ -269,6 +272,7 @@ private:
   double RotationCenter[ 2 ];
   double Translation[ 2 ];
   double Scale[ 2 ];
+  PatientPosition Position;
   
     // Calibration transforms.
   vtkSmartPointer< vtkTransform > SecMonFlipTransform;
