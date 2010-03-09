@@ -37,14 +37,6 @@ public:
   // Description:
   // Callbacks to capture keyboard events which will do translation/rotation depending on key pressed only in clinical mode
   virtual void ProcessKeyboardEvents(vtkObject *caller, unsigned long event, void *callData);
-
-  // Description:
-  // Callbacks to capture mouse click on image
-  virtual void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
-
-  // Description:
-  // Callback on value entered in the Image scaling entry set
-  virtual void ImageScalingEntryCallback(int widgetIndex);
   
   // Description:
   // Callback on value entered in COR entry set
@@ -53,18 +45,6 @@ public:
   // Description:
   // Callback on update button in scale frame in clinical mode
   virtual void UpdateAutoScaleCallback();
-  
-  // Description:
-  // Callback on value entered in the Monitor physical size entry set
-  //virtual void MonitorPixelResolutionEntryCallback(int widgetIndex, double value);
-
-  // Description:
-  // Callback on value entered in the Image translation entry set
-  virtual void ImageTranslationEntryCallback(int widgetIndex);
-  
-  // Description:
-  // Callback on value entered in the Image rotation angle entry
-  virtual void ImageRotationEntryCallback();
   
   // Description:
   // Callback on check button of vertical flip
@@ -140,11 +120,6 @@ protected:
 
   void CalculateImageRotation(double & rotationAngle);
 
-  void FlipImage();
-  void ScaleImage();
-  void TranslateImage();
-  void RotateImage();
-  
   void ResetControls();
 
 
@@ -239,7 +214,7 @@ protected:
   // required translation ( to be keyed in by user in TRAINING mode)
   vtkKWFrame  *TransEntryFrame;
   vtkKWLabel    *TransEntryLabel;    
-  vtkKWEntrySet *Translation;
+  // vtkKWEntrySet *Translation;
   
   bool ImageTranslationDone;
 
@@ -289,6 +264,16 @@ private:
   int CurrentSubState; // only used in 'training' mode
   vtkPerkStationCalibrateStep(const vtkPerkStationCalibrateStep&);
   void operator=(const vtkPerkStationCalibrateStep&);
+
+
+  // Second monitor calibration data.
+
+private:
+  
+  double Translation[ 2 ];
+  double Rotation;
+  double RotationCenter[ 2 ];
+
 };
 
 #endif

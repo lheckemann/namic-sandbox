@@ -111,7 +111,7 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   this->SecondaryMonitor = NULL;
 
   this->SecondaryMonitor = vtkPerkStationSecondaryMonitor::New();
-  this->SecondaryMonitor->SetGUI(this);
+  this->SecondaryMonitor->SetGUI( this );
   this->SecondaryMonitor->Initialize();
 
   // state descriptors
@@ -375,20 +375,6 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
     ( vtkCommand* )this->GUICallbackCommand );
   
   
-    // add listener to own render window created for secondary monitor  
-  if ( this->GetMode() == vtkPerkStationModuleGUI::Clinical )
-    {
-    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()
-      ->AddObserver( vtkCommand::KeyPressEvent,
-                     ( vtkCommand* )this->GUICallbackCommand );    
-    }
-  else  // In training mode.
-    {
-    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()
-      ->AddObserver( vtkCommand::LeftButtonPressEvent,
-                     ( vtkCommand* )this->GUICallbackCommand );
-    }
-  
     // load volumes buttons
   if ( this->LoadPlanningVolumeButton )
     {
@@ -471,14 +457,6 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
       ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()
       ->RemoveObserver( (vtkCommand*)( this->GUICallbackCommand ) );
   
-  this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()
-      ->RemoveObserver( (vtkCommand*)( this->GUICallbackCommand ) ); 
-  
-  if ( this->GetMode() == vtkPerkStationModuleGUI::Clinical )
-    {
-    this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()
-        ->RemoveObserver( (vtkCommand*)( this->GUICallbackCommand ) );    
-    }
   
   this->WizardWidget->GetWizardWorkflow()->RemoveObserver(
     static_cast< vtkCommand* >( this->GUICallbackCommand ) );
@@ -563,7 +541,6 @@ vtkPerkStationModuleGUI
     
   if ( strcmp( eventName, "LeftButtonPressEvent" ) == 0 )
     {    
-    this->CalibrateStep->ProcessImageClickEvents( caller, event, callData );
     this->PlanStep->ProcessImageClickEvents( caller, event, callData );
     this->ValidateStep->ProcessImageClickEvents( caller, event, callData );
     }
@@ -1799,7 +1776,6 @@ void vtkPerkStationModuleGUI::SetUpPerkStationWizardWorkflow()
     case vtkPerkStationModuleGUI::Clinical:
         // create transition/program validate button such that it doesn't go further
         wizard_workflow->SetFinishStep(this->ValidateStep);
-        this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::AnyEvent, (vtkCommand *)this->GUICallbackCommand);
         break;
 
     }

@@ -16,6 +16,7 @@ class vtkImageData;
 class vtkImageReslice;
 class vtkMatrix4x4;
 class vtkTransform;
+class vtkTransformFilter;
 class vtkMRMLScalarVolumeNode;
 class vtkKWFrame;
 
@@ -126,98 +127,12 @@ public:
   // Description
   // set up image data, once the volume has been loaded inside slicer
   void SetupImageData();
-
+  
+  
   // Description
   // load calibration, which has been read in from a file already
   void LoadCalibration();
 
-
-  bool GetDepthLinesInitialized()
-  {
-    return this->DepthLinesInitialized;
-  };
-
-  // Description
-  // update matrices
-  // please note that this function calls UpdateImageDisplay at end of recomputing matrices
-  void UpdateMatrices();
-
-  // Description
-  // update display
-  // reads the window/level from scalar display node, and updates the rendering the image
-  void UpdateImageDisplay();
-  
-  
-  vtkWin32OpenGLRenderWindow *GetRenderWindow()
-  {
-    return this->RenderWindow;
-  };
-  
-  
-  vtkRenderer *GetRenderer()
-  {
-    return this->Renderer;
-  };
-  
-  
-  vtkRenderWindowInteractor *GetRenderWindowInteractor()
-  {
-    return this->Interactor;
-  };
-
-  
-  vtkMatrix4x4 *GetXYToRAS()
-  {
-    return this->XYToRAS;
-  };
-
-  
-  vtkMatrix4x4 *GetXYToIJK()
-  {
-    return this->XYToIJK;
-  };
-
-  
-  void GetTranslation( double & translationX, double & translationY )
-  {
-    translationX = this->CurrentTranslation[ 0 ];
-    translationY = this->CurrentTranslation[ 1 ];
-  };
-  
-  
-  void GetRotation( double & rotation )
-  {
-    rotation = this->CurrentRotation;
-  };
-  
-
-  // Description
-  // Flip vertically, i.e., about x-axis (left stays left)
-  void FlipVertical();
-
-  // Description
-  // Flip horizontally, i.e., about y-axis (left becomes right)
-  void FlipHorizontal();
-
-  // Description
-  // Scale image
-  void Scale( double sx, double sy, double sz );
-
-  // Description
-  // Rotate image (units degrees)
-  void Rotate( double angle );
-
-  // Description
-  // Tilt image out of plane (units degrees)
-  void TiltOutOfPlane( double tiltAngle, double rasCor[ 3 ] );
-
-
-  // Description
-  // Translate (translation units mm, so must be converted to pixels inside function)
-  void Translate( double tx, double ty, double tz );
-
-  // Description
-  // Overlay needle guide
   void OverlayNeedleGuide();
 
   void OverlayRealTimeNeedleTip(double tipRAS[3], vtkMatrix4x4 *tranformMatrix=NULL);
@@ -231,34 +146,32 @@ public:
   // remove overlay guide needle actor
   void RemoveOverlayNeedleGuide();
 
-  void ResetTilt();
-
   void SetDepthPerceptionLines();  
-
   void RemoveDepthPerceptionLines();
-
   void RemoveTextActors();
 
   void UpdateImageDataOnSliceOffset( double sliceOffset = 0 );
 
-  // Description
-  // Set visivility of RealTimeNeedleLineActor
   void SetRealTimeNeedleLineActorVisibility( bool v );
 
 
-    // Control display of visual guides.  
+  
+public:
 
+  void UpdateImageDisplay();
+  
   void ShowCalibrationControls( bool show );
   void ShowNeedleGuide( bool show );
   void ShowDepthPerceptionLines( bool show );
   
-
-  // Display calibration workphase controls.
+  
 protected:
+  
   vtkSmartPointer< vtkTextActorFlippable > CalibrationControlsActor;
 
   
 protected:
+  
   vtkPerkStationSecondaryMonitor();
   ~vtkPerkStationSecondaryMonitor();  
 
@@ -286,23 +199,13 @@ protected:
   
   vtkSmartPointer< vtkImageMapToWindowLevelColors > MapToWindowLevelColors;
   
-  vtkSmartPointer< vtkImageReslice > Reslice; // reslice/resample filter
-  
   
     // Transformations (matrices).
-  
-  vtkSmartPointer< vtkMatrix4x4 > XYToIJK;
-  vtkSmartPointer< vtkMatrix4x4 > XYToRAS;
-  vtkSmartPointer< vtkMatrix4x4 > CurrentTransformMatrix;
   
   vtkSmartPointer< vtkMatrix4x4 > SystemStateXYToIJK;
   vtkSmartPointer< vtkMatrix4x4 > SystemStateResliceMatrix;
 
     
-    // This transform is used to extract the displayed image from the
-    // planning image volume. 
-  vtkSmartPointer< vtkTransform > ResliceTransform; // Sid.
-  vtkSmartPointer< vtkTransform > ResliceTransform2; // Tamas.
   
     // the image data to be displayed
   vtkMRMLScalarVolumeNode*  VolumeNode;
@@ -322,9 +225,7 @@ protected:
   int VirtualScreenCoord[ 2 ];
   int ScreenSize[ 3 ]; // Number of pixels on the monitor.
   int ImageSize[ 3 ]; // Number of pixels on image slices, num of slices.
-  bool VerticalFlipped;
-  bool HorizontalFlipped;
-
+  
   double MeasureNeedleLengthInWorldCoordinates;
   unsigned int NumOfDepthPerceptionLines;
   bool DepthLinesInitialized;
@@ -345,31 +246,41 @@ public:
   
   void SetSecMonHorizontalFlip( bool flip );
   void SetSecMonVerticalFlip( bool flip );
-  void SetSecMonRotation( double rotation[ 3 ] );
-  void SetSecMonRotationCenter( double center[ 3 ] );
-  void SetSecMonTranslation( double translation[ 3 ] );
+  
+  void SetRotationCenter( double center[ 2 ] );
+  void SetRotation( double rotation );
+  void SetTranslation( double x, double y );
+  
   
 private:
-    
-  bool SecMonHorizontalFlip;
-  bool SecMonVerticalFlip;
-  double SecMonRotation[ 3 ];
-  double SecMonRotationCenter[ 3 ];
-  double SecMonTranslation[ 3 ];
-  double SecMonSpacing[ 3 ];
   
-  vtkSmartPointer< vtkTransform > SecMonHorizontalFlipTransform;
-  vtkSmartPointer< vtkTransform > SecMonVerticalFlipTransform;
+  vtkSmartPointer< vtkTransform > XYToRAS();
+  
+  int NumberOfMonitors; // Number of physical monitors of the computer.
+  
+    // Extract the displayed image from the planning image volume. 
+  vtkSmartPointer< vtkTransform > ResliceTransform;
+  vtkSmartPointer< vtkImageReslice > ResliceFilter;
+  
+    // Calibration parameters. Used in the post reslice transform.
+  bool HorizontalFlip; // If true, the system design is wrong!
+  bool VerticalFlip; // If true, the system design is wrong!
+  double Rotation;
+  double RotationCenter[ 2 ];
+  double Translation[ 2 ];
+  double Scale[ 2 ];
+  
+    // Calibration transforms.
+  vtkSmartPointer< vtkTransform > SecMonFlipTransform;
   vtkSmartPointer< vtkTransform > SecMonRotateTransform;
   vtkSmartPointer< vtkTransform > SecMonTranslateTransform;
   
+    // Coordinate transforms.  
+  vtkSmartPointer< vtkTransform > RASToIJK;
   
     // Image slice position.
   double SliceOffsetRAS;  // In RAS coordinates.
   double SliceOffsetIJK;  // In IJK coordinates.
-  
-    
-  vtkSmartPointer< vtkTransform > RASToIJK;
 };
 
 #endif
