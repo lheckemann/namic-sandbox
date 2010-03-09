@@ -801,28 +801,19 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
-
+  
   vtkRenderWindowInteractor *rwi;
   vtkMatrix4x4 *matrix;
   vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
 
-  if ( ((s == istyle0) || (s == istyleSecondary))&& (event == vtkCommand::LeftButtonPressEvent))
+  if ( ( s == istyle0) && ( event == vtkCommand::LeftButtonPressEvent ) )
     {
     ++this->ClickNumber;
-    if (s == istyle0)
-      {
-      // mouse click happened in the axial slice view      
-      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
-      rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
-      matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-      }
-    else if (s == istyleSecondary)
-      {   
-      rwi = this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor();
-      matrix = this->GetGUI()->GetSecondaryMonitor()->GetXYToRAS(); 
-      }
     
+    // mouse click happened in the axial slice view      
+    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
+    rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
+    matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
     
     // capture the point
     int point[2];

@@ -1071,15 +1071,12 @@ void vtkPerkStationPlanStep::CalculatePlanInsertionAngleAndDepth()
       vtkSlicerSliceLayerLogic *sliceLayer = sliceLogic->GetBackgroundLayer();
       
       vtkMatrix4x4 *xyToIJK = sliceLayer->GetXYToIJKTransform()->GetMatrix();
-      vtkMatrix4x4 *monXYToIJK = this->GetGUI()->GetSecondaryMonitor()->GetXYToIJK(); 
-      vtkMatrix4x4 *monXYToRAS = this->GetGUI()->GetSecondaryMonitor()->GetXYToRAS(); 
       vtkMatrix4x4::Multiply4x4(transform->GetMatrix(), sliceToRAS, sliceToRAS);
       sliceNode->GetSliceToRAS()->DeepCopy(sliceToRAS);
       sliceNode->UpdateMatrices();
       
       rasCenter[2] = xyToRAS->GetElement(2,3);
-      // display the oblique slice on secondary monitor
-      this->GetGUI()->GetSecondaryMonitor()->TiltOutOfPlane(tiltAngle, rasCenter);
+      
       
       sliceNode->JumpSliceByOffsetting(rasTarget[0], rasTarget[1], rasTarget[2]);
       
@@ -1106,76 +1103,47 @@ void vtkPerkStationPlanStep::CalculatePlanInsertionAngleAndDepth()
 
 
     // now we compute the in-plane insertion angle
-
-    // in clinical mode, the insertion angle reported is the angle with the vertical
-    // also if there was any rotation while calibration, that should be taken into account
-    // in effect, the angle should be calculated from xy space of the secondary monitor
-
-    vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
-    vtkMatrix4x4 *XYToRAS = this->GetGUI()->GetSecondaryMonitor()->GetXYToRAS();
-    vtkMatrix4x4::Invert(XYToRAS, rasToXY);
-
-    int point[2];
-    double xyEntry[2];
-    double xyTarget[2];
-
-    double inPt[4] = {rasEntry[0], rasEntry[1], rasEntry[2], 1};
-    double outPt[4];  
-    rasToXY->MultiplyPoint(inPt, outPt);
-    point[0] = outPt[0];
-    point[1] = outPt[1];
-    xyEntry[0] = point[0];
-    xyEntry[1] = point[1];
-
-    inPt[0] = rasTarget[0];
-    inPt[1] = rasTarget[1];
-    inPt[2] = rasTarget[2];
-    rasToXY->MultiplyPoint(inPt, outPt);
-    point[0] = outPt[0];
-    point[1] = outPt[1];
-    xyTarget[0] = point[0];
-    xyTarget[1] = point[1];
-
-    double denom = xyEntry[0]-xyTarget[0];
-    double numer = xyEntry[1]-xyTarget[1];
-
-    double insAngleXY = double(180/vtkMath::Pi()) * atan(double(numer/denom));
-
+    
+      // Angle in the RAS system.
+    
+    double denom = rasEntry[ 0 ]-rasTarget[ 0 ];
+    double numer = rasEntry[ 1 ]-rasTarget[ 1 ];
+    double insAngle = double( 180.0 / vtkMath::Pi() ) *
+                      atan( double( numer / denom ) );
+    
+    // todo: The calibration rotation angle has to be added to this angle!!!
+    
     if( denom == 0)
       {
-      insAngleXY = 0.0;
+      insAngle = 0.0;
       }
     else if (numer == 0)
       {
-      insAngleXY = 90.0;
+      insAngle = 90.0;
       }
     else if (denom > 0 && numer > 0)
       {
-      // first quadrant
-      // report angle w.r.t vertical
-      insAngleXY = 90 - insAngleXY;
+      // first quadrant, report angle w.r.t vertical
+      insAngle = 90 - insAngle;
       }
     else if (denom < 0 && numer > 0)
       {
-      // second quadrant
-      // report angle w.r.t vertical
-      insAngleXY = 90 + insAngleXY;
+      // second quadrant, report angle w.r.t vertical
+      insAngle = 90 + insAngle;
       }
     else if (denom < 0 && numer < 0)
       {
-      // third quadrant
-      // report angle w.r.t vertical
-      insAngleXY = 90 - insAngleXY;
+      // third quadrant, report angle w.r.t vertical
+      insAngle = 90 - insAngle;
       }
     else if (denom > 0 && numer < 0)
       {
-      // fourth quadrant
-      // report angle w.r.t vertical
-      insAngleXY = 90 + insAngleXY;
+      // fourth quadrant, report angle w.r.t vertical
+      insAngle = 90 + insAngle;
       }
-    this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionAngle(insAngleXY);
-    this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
-    this->InsertionAngle->GetWidget()->SetValueAsDouble(insAngleXY);
+    this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionAngle( insAngle );
+    this->InsertionDepth->GetWidget()->SetValueAsDouble( insDepth );
+    this->InsertionAngle->GetWidget()->SetValueAsDouble( insAngle );
     }
 }
 
@@ -1224,7 +1192,7 @@ void vtkPerkStationPlanStep::Reset()
     // this should reset the display in slicer viewer's
 
     // the display and hence matrices also need to be reset in secondary monitor
-    this->GetGUI()->GetSecondaryMonitor()->ResetTilt();
+    // this->GetGUI()->GetSecondaryMonitor()->ResetTilt();
 
      // repack the slicer viewer's layout to one slice only   
     vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast( this->GetGUI()->GetApplicationGUI ( ));
