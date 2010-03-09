@@ -5,26 +5,27 @@
 #include "vtkMRMLPerkStationModuleNode.h"
 #include "vtkPerkStationSecondaryMonitor.h"
 
-#include "vtkKWFrame.h"
-#include "vtkKWFrameWithLabel.h"
-#include "vtkKWText.h"
 #include "vtkKWCheckButton.h"
 #include "vtkKWCheckButtonWithLabel.h"
-#include "vtkKWLabel.h"
 #include "vtkKWEntry.h"
 #include "vtkKWEntrySet.h"
 #include "vtkKWEntryWithLabel.h"
-#include "vtkKWWizardWidget.h"
-#include "vtkKWWizardWorkflow.h"
+#include "vtkKWFrame.h"
+#include "vtkKWFrameWithLabel.h"
+#include "vtkKWLabel.h"
+#include "vtkKWLoadSaveButton.h"
 #include "vtkKWMenuButton.h"
 #include "vtkKWMenuButtonWithLabel.h"
 #include "vtkKWPushButton.h"
-#include "vtkKWLoadSaveButton.h"
+#include "vtkKWText.h"
+#include "vtkKWWizardWidget.h"
+#include "vtkKWWizardWorkflow.h"
 
 #include "vtkMath.h"
 #include "vtkMatrixToHomogeneousTransform.h"
 #include "vtkTransform.h"
 #include "vtkMRMLLinearTransformNode.h"
+
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPerkStationCalibrateStep);
@@ -48,7 +49,13 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   // save controls
   this->SaveFrame = NULL;
   this->SaveCalibrationFileButton = NULL;
-
+  
+  
+    // Hardware selection.
+  this->HardwareFrame = NULL;
+  this->HardwareMenu = NULL;
+  
+  
   // flip
   this->FlipFrame = NULL;
   this->VerticalFlipCheckButton = NULL;
@@ -161,6 +168,14 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
     this->SaveCalibrationFileButton->Delete();
     this->SaveCalibrationFileButton = NULL;
     }
+    
+  if ( this->HardwareMenu )
+    {
+    this->HardwareMenu->SetParent( NULL );
+    this->HardwareMenu->Delete();
+    this->HardwareMenu = NULL;
+    }
+  
   // flip step
   if (this->FlipFrame)
     {
@@ -686,7 +701,9 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
   
   // load/reset controls, if needed
   this->ShowLoadResetControls();
-
+  
+  this->ShowHardwareSelector();
+  
   //flip components
   this->ShowFlipComponents();
 
@@ -840,59 +857,66 @@ void vtkPerkStationCalibrateStep::ShowSaveControls()
   this->ClearSaveControls();
 
   
-  switch (this->GetGUI()->GetMode())      
+    // Create the frame
+  if (!this->SaveFrame)
     {
-
-    case vtkPerkStationModuleGUI::Training:
-
-      break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-       
-      // in clinical mode
-      {
-      
-      // Create the frame
-      if (!this->SaveFrame)
-        {
-        this->SaveFrame = vtkKWFrame::New();
-        }
-      if (!this->SaveFrame->IsCreated())
-        {
-        this->SaveFrame->SetParent(parent);
-        this->SaveFrame->Create();
-        }
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->SaveFrame->GetWidgetName());
-      /*
-      // create the load file dialog button
-      if (!this->SaveCalibrationFileButton)
-        {
-        this->SaveCalibrationFileButton = vtkKWLoadSaveButton::New();
-        }
-      if (!this->SaveCalibrationFileButton->IsCreated())
-        {
-        this->SaveCalibrationFileButton->SetParent(this->SaveFrame);
-        this->SaveCalibrationFileButton->Create();
-        this->SaveCalibrationFileButton->SetText("Save calibration");
-        this->SaveCalibrationFileButton->SetBorderWidth(2);
-        this->SaveCalibrationFileButton->SetReliefToRaised();       
-        this->SaveCalibrationFileButton->SetHighlightThickness(2);
-        this->SaveCalibrationFileButton->SetBackgroundColor(0.85,0.85,0.85);
-        this->SaveCalibrationFileButton->SetActiveBackgroundColor(1,1,1);               
-        this->SaveCalibrationFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconFloppy);
-        this->SaveCalibrationFileButton->SetBalloonHelpString("Click to save calibration in a file");
-        this->SaveCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode
-        this->SaveCalibrationFileButton->TrimPathFromFileNameOff();
-        this->SaveCalibrationFileButton->SetMaximumFileNameLength(256);
-        this->SaveCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
-        this->SaveCalibrationFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-        }
-      */
-      } // in clinical mode
-      break;
+    this->SaveFrame = vtkKWFrame::New();
     }
+  if (!this->SaveFrame->IsCreated())
+    {
+    this->SaveFrame->SetParent(parent);
+    this->SaveFrame->Create();
+    }
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->SaveFrame->GetWidgetName());
 }
+
+
+void
+vtkPerkStationCalibrateStep
+::ShowHardwareSelector()
+{
+  vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
+  
+  if ( ! this->HardwareFrame )
+    {
+    this->HardwareFrame = vtkKWFrameWithLabel::New();
+    }
+  
+  if ( ! this->HardwareFrame->IsCreated() )
+    {
+    this->HardwareFrame->SetParent( parent );
+    this->HardwareFrame->Create();
+    this->HardwareFrame->SetLabelText( "Overlay hardware" );
+    }
+  
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->HardwareFrame->GetWidgetName());
+  
+    // Contents of the hardware frame.
+    
+  if ( ! this->HardwareMenu )
+    {
+    this->HardwareMenu = vtkKWMenuButtonWithLabel::New();
+    }
+  
+  if ( ! this->HardwareMenu->IsCreated() )
+    {
+    this->HardwareMenu->SetParent( this->HardwareFrame->GetFrame() );
+    this->HardwareMenu->Create();
+    this->HardwareMenu->GetWidget()->GetMenu()->
+      AddRadioButton( "Siemens MR compatible" );
+    this->HardwareMenu->GetWidget()->GetMenu()->
+      AddRadioButton( "PerkStation ViewSonic" );
+    this->HardwareMenu->GetWidget()->SetValue( "Siemens MR compatible" );
+    }
+  
+  this->Script("pack %s -side left -anchor nw -padx 8 -pady 2", 
+                  this->HardwareMenu->GetWidgetName());
+
+}
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ShowFlipComponents()
 {
@@ -900,63 +924,57 @@ void vtkPerkStationCalibrateStep::ShowFlipComponents()
   vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
   this->ClearFlipComponents();
-
-  // gui same for flip components irrespective of the current perk station mode
-  if (    (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Training)
-       || (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::Clinical)
-      )
+  
+  
+  // Create the frame
+  if (!this->FlipFrame)
     {
-    // Create the frame
-    if (!this->FlipFrame)
-      {
-      this->FlipFrame = vtkKWFrameWithLabel::New();
-      }
-    if (!this->FlipFrame->IsCreated())
-      {
-      this->FlipFrame->SetParent(parent);
-      this->FlipFrame->Create();
-      this->FlipFrame->SetLabelText("Flip");
-      this->FlipFrame->SetBalloonHelpString("Check whether vertical flip or horizontal flip required");   
-      }
-    this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->FlipFrame->GetWidgetName());
-
-    // individual components
-    if (!this->VerticalFlipCheckButton)
-      {
-      this->VerticalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
-      }
-    if (!this->VerticalFlipCheckButton->IsCreated())
-      {
-      this->VerticalFlipCheckButton->SetParent(this->FlipFrame->GetFrame());
-      this->VerticalFlipCheckButton->Create();
-      this->VerticalFlipCheckButton->GetLabel()->SetBackgroundColor(0.7,0.7,0.7);
-      this->VerticalFlipCheckButton->SetLabelText("Vertical Flip:");
-      this->VerticalFlipCheckButton->SetHeight(4);
-      this->VerticalFlipCheckButton->GetWidget()->SetIndicatorVisibility(0);
-      }
-     
-    this->Script("pack %s -side left -anchor nw -padx 8 -pady 2", 
-                    this->VerticalFlipCheckButton->GetWidgetName());
-
-    // individual components
-    if (!this->HorizontalFlipCheckButton)
-      {
-      this->HorizontalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
-      }
-    if (!this->HorizontalFlipCheckButton->IsCreated())
-      {
-      this->HorizontalFlipCheckButton->SetParent(this->FlipFrame->GetFrame());
-      this->HorizontalFlipCheckButton->Create();
-      this->HorizontalFlipCheckButton->GetLabel()->SetBackgroundColor(0.7,0.7,0.7);
-      this->HorizontalFlipCheckButton->SetLabelText("Horizontal Flip:");
-      this->HorizontalFlipCheckButton->SetHeight(4);
-      }
-     
-    this->Script("pack %s -side top -anchor nw -padx 8 -pady 2", 
-                    this->HorizontalFlipCheckButton->GetWidgetName());
-      
+    this->FlipFrame = vtkKWFrameWithLabel::New();
     }
+  if (!this->FlipFrame->IsCreated())
+    {
+    this->FlipFrame->SetParent(parent);
+    this->FlipFrame->Create();
+    this->FlipFrame->SetLabelText("Flip");
+    this->FlipFrame->SetBalloonHelpString("Check whether vertical flip or horizontal flip required");   
+    }
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                  this->FlipFrame->GetWidgetName());
+
+  // individual components
+  if (!this->VerticalFlipCheckButton)
+    {
+    this->VerticalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
+    }
+  if (!this->VerticalFlipCheckButton->IsCreated())
+    {
+    this->VerticalFlipCheckButton->SetParent(this->FlipFrame->GetFrame());
+    this->VerticalFlipCheckButton->Create();
+    this->VerticalFlipCheckButton->GetLabel()->SetBackgroundColor(0.7,0.7,0.7);
+    this->VerticalFlipCheckButton->SetLabelText("Vertical Flip:");
+    this->VerticalFlipCheckButton->SetHeight(4);
+    this->VerticalFlipCheckButton->GetWidget()->SetIndicatorVisibility(0);
+    }
+   
+  this->Script("pack %s -side left -anchor nw -padx 8 -pady 2", 
+                  this->VerticalFlipCheckButton->GetWidgetName());
+
+  // individual components
+  if (!this->HorizontalFlipCheckButton)
+    {
+    this->HorizontalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
+    }
+  if (!this->HorizontalFlipCheckButton->IsCreated())
+    {
+    this->HorizontalFlipCheckButton->SetParent(this->FlipFrame->GetFrame());
+    this->HorizontalFlipCheckButton->Create();
+    this->HorizontalFlipCheckButton->GetLabel()->SetBackgroundColor(0.7,0.7,0.7);
+    this->HorizontalFlipCheckButton->SetLabelText("Horizontal Flip:");
+    this->HorizontalFlipCheckButton->SetHeight(4);
+    }
+   
+  this->Script("pack %s -side top -anchor nw -padx 8 -pady 2", 
+                  this->HorizontalFlipCheckButton->GetWidgetName());
 }
 
 //----------------------------------------------------------------------------
@@ -1720,6 +1738,14 @@ void vtkPerkStationCalibrateStep::HorizontalFlipCallback( bool value )
 
   if (mrmlNode)
     this->GetGUI()->GetMRMLNode()->SetHorizontalFlip( ( bool ) value );
+}
+
+
+void
+vtkPerkStationCalibrateStep
+::HardwareMenuCallback()
+{
+  
 }
 
 
@@ -2780,96 +2806,64 @@ void vtkPerkStationCalibrateStep::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
+
+
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::AddGUIObservers()
 {
   this->RemoveGUIObservers();
   // add event handling callbacks for each control
-  switch (this->GetGUI()->GetMode())
+  
+  if ( this->HardwareMenu )
     {
-    case vtkPerkStationModuleGUI::Training:
-      {
-      
-      // flip controls
-      if (this->VerticalFlipCheckButton)
-        {
-        this->VerticalFlipCheckButton->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        }
-      if (this->HorizontalFlipCheckButton)
-        {
-        this->HorizontalFlipCheckButton->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        }
-
-      // scale controls     
-      if(this->ImgScaling)
-        {
-        this->ImgScaling->GetWidget(0)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        this->ImgScaling->GetWidget(1)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        }
-
-      // rotation controls
-      if (this->COR)
-        {
-        this->COR->GetWidget(0)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        this->COR->GetWidget(1)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        }
-   
-      // rotation angle
-      if(this->RotationAngle)
-        {
-        this->RotationAngle->GetWidget()->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        }
-
-      }
-    
-      break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-      {
-       // load reset components
-      if (this->LoadCalibrationFileButton)
-        {
-        this->LoadCalibrationFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-        }
-      if (this->ResetCalibrationButton)
-        {
-        this->ResetCalibrationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-        }
-      // flip controls
-      if (this->VerticalFlipCheckButton)
-        {
-        this->VerticalFlipCheckButton->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        }
-      if (this->HorizontalFlipCheckButton)
-        {
-        this->HorizontalFlipCheckButton->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        }
-
-      // change in monitor physical size/ res, therefore update button
-      if (this->UpdateAutoScale)
-        {
-        this->UpdateAutoScale->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);        
-        }
-
-      // rotation controls
-      if (this->COR)
-        {
-        this->COR->GetWidget(0)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        this->COR->GetWidget(1)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
-        }
-      
-      // save controls
-      if (this->SaveCalibrationFileButton)
-        {
-        this->SaveCalibrationFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
-        }
-      }
-      
-      break;
-
-
+    this->HardwareMenu->GetWidget()->GetMenu()->AddObserver(
+      vtkKWMenu::MenuItemInvokedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
     }
-    this->ObserverCount++;
+  
+   // load reset components
+  if (this->LoadCalibrationFileButton)
+    {
+    this->LoadCalibrationFileButton->GetLoadSaveDialog()->AddObserver(
+      vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    }
+  if (this->ResetCalibrationButton)
+    {
+    this->ResetCalibrationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    }
+  
+  // flip controls
+  if (this->VerticalFlipCheckButton)
+    {
+    this->VerticalFlipCheckButton->GetWidget()->AddObserver(
+      vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }
+  if (this->HorizontalFlipCheckButton)
+    {
+    this->HorizontalFlipCheckButton->GetWidget()->AddObserver(
+      vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }
+
+  // change in monitor physical size/ res, therefore update button
+  if (this->UpdateAutoScale)
+    {
+    this->UpdateAutoScale->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);        
+    }
+
+  // rotation controls
+  if (this->COR)
+    {
+    this->COR->GetWidget(0)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    this->COR->GetWidget(1)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+    }
+  
+  // save controls
+  if (this->SaveCalibrationFileButton)
+    {
+    this->SaveCalibrationFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+    }
+
+
+  this->ObserverCount++;
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::RemoveGUIObservers()

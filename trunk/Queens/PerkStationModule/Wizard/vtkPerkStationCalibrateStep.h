@@ -3,15 +3,16 @@
 
 #include "vtkPerkStationStep.h"
 #include <string>
-class vtkKWFrame;
-class vtkKWLabel;
-class vtkKWText;
-class vtkKWEntrySet;
-class vtkKWPushButton;
-class vtkKWEntryWithLabel;
-class vtkKWFrameWithLabel;
 class vtkKWCheckButtonWithLabel;
+class vtkKWEntrySet;
+class vtkKWEntryWithLabel;
+class vtkKWFrame;
+class vtkKWFrameWithLabel;
+class vtkKWLabel;
 class vtkKWLoadSaveButton;
+class vtkKWMenuButtonWithLabel;
+class vtkKWPushButton;
+class vtkKWText;
 
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationCalibrateStep : public vtkPerkStationStep
@@ -53,7 +54,11 @@ public:
   // Description:
   // Callback on check button of horizontal flip
   virtual void HorizontalFlipCallback(bool value);
-
+  
+  
+  virtual void HardwareMenuCallback();
+  
+  
   // Description
   // Reset
   virtual void Reset();
@@ -85,6 +90,7 @@ protected:
   ~vtkPerkStationCalibrateStep(); 
   
   void ShowLoadResetControls();
+  void ShowHardwareSelector();
   void ShowFlipComponents();
   void ShowScaleComponents();
   void ShowTranslateComponents();
@@ -138,7 +144,12 @@ protected:
   vtkKWFrame *SaveFrame;
 
 
+    // Hardware selector.
+  vtkKWFrameWithLabel* HardwareFrame;
+  vtkKWMenuButtonWithLabel* HardwareMenu;
 
+  
+  
     // for flip, the controls remain same for both modes
     // for monitor associated flip
   vtkKWFrameWithLabel *FlipFrame;
