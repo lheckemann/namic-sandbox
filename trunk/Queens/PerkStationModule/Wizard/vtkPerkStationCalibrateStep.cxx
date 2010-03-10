@@ -2818,6 +2818,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
     {
     this->HardwareMenu->GetWidget()->GetMenu()->AddObserver(
       vtkKWMenu::MenuItemInvokedEvent, ( vtkCommand* )( this->WizardGUICallbackCommand ) );
+    
     }
   
    // load reset components
@@ -2842,7 +2843,7 @@ void vtkPerkStationCalibrateStep::AddGUIObservers()
     this->HorizontalFlipCheckButton->GetWidget()->AddObserver(
       vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
     }
-
+  
   // change in monitor physical size/ res, therefore update button
   if (this->UpdateAutoScale)
     {
@@ -2968,7 +2969,27 @@ void vtkPerkStationCalibrateStep::WizardGUICallback(vtkObject *caller, unsigned 
 void vtkPerkStationCalibrateStep::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-
+  
+  
+  int hardware = -1;
+  
+  if ( this->HardwareMenu->GetWidget()->GetMenu()
+         == vtkKWMenu::SafeDownCast( caller )
+       && event == vtkKWMenu::MenuItemInvokedEvent )
+    {
+    if ( this->HardwareMenu->GetWidget()->GetMenu()->
+         GetIndexOfSelectedItem() == 0 )
+      {
+      hardware = 0;
+      }
+    else if ( this->HardwareMenu->GetWidget()->GetMenu()->
+              GetIndexOfSelectedItem() == 1 )
+      {
+      hardware = 1;
+      }
+    }
+  
+  
   if(!mrmlNode)
       return;
 
@@ -3083,6 +3104,7 @@ void vtkPerkStationCalibrateStep::ProcessGUIEvents(vtkObject *caller, unsigned l
     // y-entry of COR
     this->COREntryCallback(1);
     }
+  
   
   this->ProcessingCallback = false;
 }
