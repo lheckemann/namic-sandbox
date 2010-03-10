@@ -45,7 +45,7 @@ TARGET_LINK_LIBRARIES( Decimate ITKIO ITKQuadEdgeMesh )
 ADD_EXECUTABLE( Smooth
   itkQuadEdgeMeshSmoothingTest.cxx
   )
-TARGET_LINK_LIBRARIES( Smooth IKTIO ITKQuadEdgeMesh )
+TARGET_LINK_LIBRARIES( Smooth ITKIO ITKQuadEdgeMesh )
 
 ###################
 ###################
