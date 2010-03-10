@@ -416,12 +416,6 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
     vtkSlicerNodeSelectorWidget::NodeSelectedEvent,
     ( vtkCommand* )this->GUICallbackCommand );
   
-  // If TRAINING / CLINICAL mode switch is needed, enable this commented part.
-  /*
-  this->ModeListMenu->GetWidget()->GetMenu()->AddObserver(
-    vtkKWMenu::MenuItemInvokedEvent, ( vtkCommand* )this->GUICallbackCommand );
-  */
-  
   if ( this->LoadExperimentFileButton )
     {
     this->LoadExperimentFileButton->GetLoadSaveDialog()->AddObserver(

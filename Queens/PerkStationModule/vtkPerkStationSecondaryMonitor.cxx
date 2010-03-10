@@ -532,8 +532,8 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   
   ret->Scale( 1.0 / this->Scale[ 0 ], 1.0 / this->Scale[ 1 ], 1.0 );
   
-  ret->Translate( this->Translation[ 0 ],
-                  this->Translation[ 1 ],
+  ret->Translate( this->Translation[ 0 ] * this->Scale[ 0 ],
+                  this->Translation[ 1 ] * this->Scale[ 0 ],
                   this->SliceOffsetIJK );
   
   /*
