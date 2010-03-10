@@ -30,6 +30,23 @@ itkQuadEdgeMeshSphericalParameterizationTest.cxx )
 TARGET_LINK_LIBRARIES( itkQuadEdgeMeshSphericalParameterizationTest
 ITKQuadEdgeMesh ITKIO)
 
+# Decimation
+ADD_EXECUTABLE( QuadricDecimate 
+  itkQuadEdgeMeshQuadricDecimationTest.cxx 
+  )
+TARGET_LINK_LIBRARIES( QuadricDecimate ITKIO ITKQuadEdgeMesh )
+
+ADD_EXECUTABLE( Decimate 
+  itkQuadEdgeMeshSquaredEdgeLengthDecimationTest.cxx 
+  )
+TARGET_LINK_LIBRARIES( Decimate ITKIO ITKQuadEdgeMesh )
+
+# Smoothing
+ADD_EXECUTABLE( Smooth
+  itkQuadEdgeMeshSmoothingTest.cxx
+  )
+TARGET_LINK_LIBRARIES( Smooth IKTIO ITKQuadEdgeMesh )
+
 ###################
 ###################
 #
