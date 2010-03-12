@@ -15,5 +15,11 @@ target_link_libraries(ComputeAgreement ITKIO ITKStatistics)
 add_executable(LineProfile LineProfile.cxx)
 target_link_libraries(LineProfile ITKIO ITKStatistics)
 
-add_executable(AddGaussianNoise AddGaussianNoise.cxx)
-target_link_libraries(AddGaussianNoise ITKIO ITKStatistics)
+add_executable(LevelSetSnap LevelSetSnap.cxx)
+target_link_libraries(LevelSetSnap ITKIO ITKStatistics)
+
+add_executable(LaplacianSegmentationLevelSetImageFilter LaplacianSegmentationLevelSetImageFilter.cxx)
+target_link_libraries(LaplacianSegmentationLevelSetImageFilter ITKIO ITKStatistics)
+
+add_executable(DeformableModel1 DeformableModel1.cxx)
+target_link_libraries(DeformableModel1 ITKIO ITKStatistics)
