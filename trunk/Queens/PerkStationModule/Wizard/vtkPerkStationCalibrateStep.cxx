@@ -124,6 +124,8 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   
     // Calibration data.
   
+  this->SecondMonitor = MONITOR_SIEMENS;
+  
   this->Translation[ 0 ] = 0.0;
   this->Translation[ 1 ] = 0.0;
   this->Rotation = 0.0;
@@ -155,7 +157,9 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
     this->ResetCalibrationButton = NULL;
     }
 
-  // save controls
+  
+    // save controls
+  
   if (this->SaveFrame)
     {
     this->SaveFrame->SetParent(NULL);
@@ -176,7 +180,9 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
     this->HardwareMenu = NULL;
     }
   
-  // flip step
+  
+    // flip step
+  
   if (this->FlipFrame)
     {
     this->FlipFrame->SetParent(NULL);
@@ -195,7 +201,10 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
     this->HorizontalFlipCheckButton->Delete();
     this->HorizontalFlipCheckButton = NULL;
     }
-  // scale step
+  
+  
+    // scale step
+  
   if (this->ScaleFrame)
     {
     this->ScaleFrame->SetParent(NULL);
@@ -1553,100 +1562,41 @@ void vtkPerkStationCalibrateStep::PopulateControls()
     return;
     }
  
-  switch (this->GetGUI()->GetMode())
+  
+  if(!this->ClinicalModeControlsPopulated)
     {
-    case vtkPerkStationModuleGUI::Training:
-    if(!this->TrainingModeControlsPopulated)
-      {
-      // populate flip frame components
-      if (this->VerticalFlipCheckButton)
-        {
-        this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(0);
-        }
-      if(this->HorizontalFlipCheckButton)
-        {
-        this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(0);
-        }
+    // populate flip frame components
+    this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(0);
+    this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(0);
 
+    // scale components
+    double monPhySize[2];
+    this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(monPhySize[0], monPhySize[1]);
+    this->MonPhySize->GetWidget(0)->SetValueAsDouble(monPhySize[0]);
+    this->MonPhySize->GetWidget(1)->SetValueAsDouble(monPhySize[1]);
 
-      // populate scale frame controls
-      // 1. image spacing
-      double imgSpacing[3];
-      inVolume->GetSpacing(imgSpacing);
+    double monPixRes[2];
+    this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution(monPixRes[0], monPixRes[1]);
+    this->MonPixRes->GetWidget(0)->SetValueAsDouble(monPixRes[0]);
+    this->MonPixRes->GetWidget(1)->SetValueAsDouble(monPixRes[1]);
 
-      if (this->ImgSpacing)
-        {
-        this->ImgSpacing->GetWidget(0)->SetValueAsDouble(imgSpacing[0]);
-        this->ImgSpacing->GetWidget(1)->SetValueAsDouble(imgSpacing[1]);
-        }
+    double monSpacing[2];
+    this->GetGUI()->GetSecondaryMonitor()->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
+    
+    double imgSpacing[3];
+    inVolume->GetSpacing(imgSpacing);
 
-      // 2. monitor spacing
-      double monSpacing[2];
-      this->GetGUI()->GetSecondaryMonitor()->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
+         
+    // set the actual scaling (image/mon) in mrml node
+    mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]));
 
-      if (this->MonSpacing)
-        {
-        this->MonSpacing->GetWidget(0)->SetValueAsDouble(monSpacing[0]);
-        this->MonSpacing->GetWidget(1)->SetValueAsDouble(monSpacing[1]);
-        }
+    this->ImageScalingDone = false;
 
-          
-      // set the actual scaling (image/mon) in mrml node
-      mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]));
+    this->ImageScalingDone = true;
 
-      // populate translate frame controls
-      // the information will come in a callback that handles the mouse click
-
-      // populate rotation frame controls
-      // center of rotation
-      /*vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red")->GetLogic();
-      double rasDimensions[3], rasCenter[3], sliceCenter[3];
-      sliceLogic->GetVolumeRASBox (inVolume, rasDimensions, rasCenter);
-      this->COR->GetWidget(0)->SetValueAsDouble(rasCenter[0]);
-      this->COR->GetWidget(1)->SetValueAsDouble(rasCenter[1]);
-      sliceLogic->GetVolumeSliceDimensions(inVolume, rasDimensions, sliceCenter);
-      rasCenter[2] = sliceCenter[2];
-      mrmlNode->SetCenterOfRotation(rasCenter);*/
-      this->TrainingModeControlsPopulated = true;
-      }
-      break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-    if(!this->ClinicalModeControlsPopulated)
-      {
-      // populate flip frame components
-      this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(0);
-      this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(0);
-
-      // scale components
-      double monPhySize[2];
-      this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(monPhySize[0], monPhySize[1]);
-      this->MonPhySize->GetWidget(0)->SetValueAsDouble(monPhySize[0]);
-      this->MonPhySize->GetWidget(1)->SetValueAsDouble(monPhySize[1]);
-
-      double monPixRes[2];
-      this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution(monPixRes[0], monPixRes[1]);
-      this->MonPixRes->GetWidget(0)->SetValueAsDouble(monPixRes[0]);
-      this->MonPixRes->GetWidget(1)->SetValueAsDouble(monPixRes[1]);
-
-      double monSpacing[2];
-      this->GetGUI()->GetSecondaryMonitor()->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
+    this->ClinicalModeControlsPopulated = true;
+    }
       
-      double imgSpacing[3];
-      inVolume->GetSpacing(imgSpacing);
-
-           
-      // set the actual scaling (image/mon) in mrml node
-      mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]));
-
-      this->ImageScalingDone = false;
-
-      this->ImageScalingDone = true;
-
-      this->ClinicalModeControlsPopulated = true;
-      }
-      break;
-    } 
 
   
 
@@ -1682,48 +1632,39 @@ void vtkPerkStationCalibrateStep::PopulateControlsOnLoadCalibration()
     return;
     }
  
-  switch (this->GetGUI()->GetMode())
-    {
-    case vtkPerkStationModuleGUI::Training:
-      // error
-      break;
+ 
+  // populate flip frame components
+  this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(
+    mrmlNode->GetVerticalFlip() );
+  this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(
+    mrmlNode->GetHorizontalFlip() );
 
-    case vtkPerkStationModuleGUI::Clinical:
-   
-      {
-      // populate flip frame components
-      this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(mrmlNode->GetVerticalFlip());
-      this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(mrmlNode->GetHorizontalFlip());
+  // scale components
+  double monPhySize[2];
+  this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(monPhySize[0], monPhySize[1]);
+  this->MonPhySize->GetWidget(0)->SetValueAsDouble(monPhySize[0]);
+  this->MonPhySize->GetWidget(1)->SetValueAsDouble(monPhySize[1]);
 
-      // scale components
-      double monPhySize[2];
-      this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(monPhySize[0], monPhySize[1]);
-      this->MonPhySize->GetWidget(0)->SetValueAsDouble(monPhySize[0]);
-      this->MonPhySize->GetWidget(1)->SetValueAsDouble(monPhySize[1]);
+  double monPixRes[2];
+  this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution(monPixRes[0], monPixRes[1]);
+  this->MonPixRes->GetWidget(0)->SetValueAsDouble(monPixRes[0]);
+  this->MonPixRes->GetWidget(1)->SetValueAsDouble(monPixRes[1]);
 
-      double monPixRes[2];
-      this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution(monPixRes[0], monPixRes[1]);
-      this->MonPixRes->GetWidget(0)->SetValueAsDouble(monPixRes[0]);
-      this->MonPixRes->GetWidget(1)->SetValueAsDouble(monPixRes[1]);
-
-      // actual scaling already calculated and set inside LoadCalibrationFromFile function of SecondaryMonitor
+  // actual scaling already calculated and set inside LoadCalibrationFromFile function of SecondaryMonitor
 
 
-      // rotate components    
-      double mrmlCOR[3];
-      mrmlNode->GetCenterOfRotation(mrmlCOR[0], mrmlCOR[1], mrmlCOR[2]);  
-      this->CORSpecified = true;
-    
-      this->COR->GetWidget(0)->SetValueAsDouble(mrmlCOR[0]);
-      this->COR->GetWidget(1)->SetValueAsDouble(mrmlCOR[1]);
+  // rotate components    
+  double mrmlCOR[3];
+  mrmlNode->GetCenterOfRotation(mrmlCOR[0], mrmlCOR[1], mrmlCOR[2]);  
+  this->CORSpecified = true;
 
-      this->GetGUI()->GetWizardWidget()->SetErrorText( "");
-      this->GetGUI()->GetWizardWidget()->Update();      
-      }
+  this->COR->GetWidget(0)->SetValueAsDouble(mrmlCOR[0]);
+  this->COR->GetWidget(1)->SetValueAsDouble(mrmlCOR[1]);
+
+  this->GetGUI()->GetWizardWidget()->SetErrorText( "");
+  this->GetGUI()->GetWizardWidget()->Update();
       
-      break;
-    } 
-  
+   
   this->CurrentSubState = 0;
 }
 
@@ -1736,17 +1677,13 @@ void vtkPerkStationCalibrateStep::HorizontalFlipCallback( bool value )
   // set user scaling in mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
 
-  if (mrmlNode)
+  if ( mrmlNode )
+    {
     this->GetGUI()->GetMRMLNode()->SetHorizontalFlip( ( bool ) value );
+    this->GetGUI()->GetSecondaryMonitor()->SetHorizontalFlip( value );
+    }
 }
 
-
-void
-vtkPerkStationCalibrateStep
-::HardwareMenuCallback()
-{
-  
-}
 
 
 //----------------------------------------------------------------------------
@@ -1757,8 +1694,11 @@ void vtkPerkStationCalibrateStep::VerticalFlipCallback( bool value )
   // set user scaling in mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   
-  if (mrmlNode)
+  if ( mrmlNode )
+    {
     this->GetGUI()->GetMRMLNode()->SetVerticalFlip((bool)value);
+    this->GetGUI()->GetSecondaryMonitor()->SetVerticalFlip( value );
+    }
 }
 
 
@@ -2971,21 +2911,21 @@ void vtkPerkStationCalibrateStep::ProcessGUIEvents(vtkObject *caller, unsigned l
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   
   
-  int hardware = -1;
+    // Hardware selection menu value set.
   
   if ( this->HardwareMenu->GetWidget()->GetMenu()
          == vtkKWMenu::SafeDownCast( caller )
        && event == vtkKWMenu::MenuItemInvokedEvent )
     {
     if ( this->HardwareMenu->GetWidget()->GetMenu()->
-         GetIndexOfSelectedItem() == 0 )
+         GetIndexOfSelectedItem() == MONITOR_SIEMENS )
       {
-      hardware = 0;
+      this->HardwareSelected( MONITOR_SIEMENS );
       }
     else if ( this->HardwareMenu->GetWidget()->GetMenu()->
-              GetIndexOfSelectedItem() == 1 )
+              GetIndexOfSelectedItem() == MONITOR_VIEWSONIC )
       {
-      hardware = 1;
+      this->HardwareSelected( MONITOR_VIEWSONIC );
       }
     }
   
@@ -3129,3 +3069,56 @@ void vtkPerkStationCalibrateStep::Validate()
 }
 
 
+OverlayMonitor
+vtkPerkStationCalibrateStep
+::GetOverlayMonitor()
+{
+  return this->SecondMonitor;
+}
+
+
+/**
+ * Currently, hardware parameters are hardcoded into this function.
+ * TODO: Read hardware parameters from an xml file.
+ */
+void
+vtkPerkStationCalibrateStep
+::HardwareSelected( OverlayMonitor monitor )
+{
+  switch ( monitor )
+    {
+    case MONITOR_SIEMENS :
+      this->SecondMonitor = MONITOR_SIEMENS;
+      this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize( 360, 290 );
+      
+      
+      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
+            SetHorizontalFlip( true );
+      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
+            SetVerticalFlip( false );
+      
+        // Update GUI
+      this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState( 1 );
+      this->VerticalFlipCheckButton->GetWidget()->SetSelectedState( 0 );
+      
+      break;
+    
+    case MONITOR_VIEWSONIC :
+      this->SecondMonitor = MONITOR_VIEWSONIC;
+      this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize( 305, 228 );
+      
+      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
+            SetHorizontalFlip( true );
+      this->GetGUI()->GetLogic()->GetPerkStationModuleNode()->
+            SetVerticalFlip( false );
+       
+        // Update GUI
+      this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState( 1 );
+      this->VerticalFlipCheckButton->GetWidget()->SetSelectedState( 0 );
+      
+      break;
+    }
+  
+    // Update calibration data from new MRMLPerkStationModuleNode data.
+  this->GetGUI()->GetSecondaryMonitor()->UpdateCalibration();
+}

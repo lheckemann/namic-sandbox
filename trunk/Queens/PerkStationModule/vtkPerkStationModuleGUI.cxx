@@ -17,6 +17,7 @@
 
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkPerkStationModuleLogic.h"
+
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLFiducialListNode.h"
 
@@ -96,9 +97,17 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   //logic and mrml nodes
   this->Logic = NULL;
   this->MRMLNode = NULL;
-
+  
+  
   this->WizardWidget = vtkKWWizardWidget::New();
-
+  
+  
+  // secondary monitor
+  this->SecondaryMonitor = vtkPerkStationSecondaryMonitor::New();
+  this->SecondaryMonitor->SetGUI( this );
+  this->SecondaryMonitor->Initialize();
+  
+  
   // wizard workflow
   this->WizardFrame = NULL;  
   this->CalibrateStep = NULL;
@@ -106,14 +115,7 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   this->InsertStep = NULL;
   this->ValidateStep = NULL;
   this->EvaluateStep = NULL;
-
-  // secondary monitor
-  this->SecondaryMonitor = NULL;
-
-  this->SecondaryMonitor = vtkPerkStationSecondaryMonitor::New();
-  this->SecondaryMonitor->SetGUI( this );
-  this->SecondaryMonitor->Initialize();
-
+  
   // state descriptors
   this->ModeListMenu = NULL;
   // this->Mode = vtkPerkStationModuleGUI::Training;
@@ -237,24 +239,6 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
 
   if (this->MRMLNode)
     {
-    /*if (this->MRMLNode->GetCalibrationMRMLTransformNode())
-        {
-        this->Logic->GetMRMLScene()->RemoveNode(this->MRMLNode->GetCalibrationMRMLTransformNode());
-        }
-    if (this->MRMLNode->GetPlanMRMLFiducialListNode())
-        {
-        this->Logic->GetMRMLScene()->RemoveNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
-        }
-    if (this->MRMLNode->GetPlanningVolumeNode())
-        {
-        this->Logic->GetMRMLScene()->RemoveNode(this->MRMLNode->GetPlanningVolumeNode());
-        }
-    if (this->MRMLNode->GetValidationVolumeNode())
-        {
-        this->Logic->GetMRMLScene()->RemoveNode(this->MRMLNode->GetValidationVolumeNode());
-        }*/
-    // do we need to delete the MRML node here? (The ReferenceCount of this object seems inconsistent, when it's deleted here.)
-    //this->MRMLNode->Delete();
     vtkSetMRMLNodeMacro(this->MRMLNode, NULL);
     }
  
@@ -291,9 +275,11 @@ void vtkPerkStationModuleGUI::Enter()
 {
   if ( this->GetApplicationGUI() != NULL )
     {
-    vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast( this->GetApplicationGUI ( ));
+    vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast(
+      this->GetApplicationGUI ( ));
     p->RepackMainViewer ( vtkMRMLLayoutNode::SlicerLayoutOneUpSliceView, "Red");       
     }
+  
   
   vtkMRMLPerkStationModuleNode* n = this->GetMRMLNode();
   
@@ -320,7 +306,7 @@ void vtkPerkStationModuleGUI::Enter()
     // add MRMLFiducialListNode to the scene
     this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
     this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
-
+    
     // add listener to the slice logic, so that any time user makes change to slice viewer in laptop, the display needs to be updated on secondary monitor
     // e.g. user may move to a certain slice in a series of slices
   
@@ -329,24 +315,12 @@ void vtkPerkStationModuleGUI::Enter()
       {  
       sliceLogic->GetSliceNode()->AddObserver(vtkCommand::ModifiedEvent, (vtkCommand *)this->GUICallbackCommand);
       }
-
     
-
-    /*
-    // read the config file
-    bool fileFound = this->GetLogic()->ReadConfigFile();
-    if (fileFound)
-      {
-      this->WizardWidget->SetErrorText("Config file found!");
-      this->WizardWidget->Update();
-      }
-    else
-      {
-      this->WizardWidget->SetErrorText("Config file not found!");
-      this->WizardWidget->Update();
-      }
+      // This is the place where module node is created,
+      // and should be initialized.
     
-    */
+    this->CalibrateStep->HardwareSelected( MONITOR_SIEMENS );
+    
     }
 
 }
@@ -437,6 +411,7 @@ void vtkPerkStationModuleGUI::AddGUIObservers()
     ( vtkCommand* )this->GUICallbackCommand );
 
   this->ObserverCount++;
+  
 }
 
 
@@ -1069,37 +1044,11 @@ void vtkPerkStationModuleGUI::ProcessMRMLEvents ( vtkObject *caller,
   {
     this->UpdateGUI();
   }
-
+  
   if (displayNode != NULL && this->GetMRMLNode()->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode() == displayNode && event == vtkCommand::ModifiedEvent)
     {
     this->GetSecondaryMonitor()->UpdateImageDisplay();
     }
-  /*if (transformNode == this->GetMRMLNode()->GetCalibrationMRMLTransformNode() && event == vtkMRMLTransformableNode::TransformModifiedEvent)
-    {
-    // this is when the user modifies the calibration transform matrix from "Transforms" module
-    // update our internal CalibrationTransform
-    // set node parameters from MRML scene
-  
-    // get the scene collection
-    vtkCollection* collection = this->GetLogic()->GetMRMLScene()->GetNodesByName("PerkStationCalibrationTransform");
-    int nItems = collection->GetNumberOfItems();
-    
-    // traverse through scene collection to get the transform node
-    if (nItems > 0)
-      {
-      // pick the very first, well, in fact, there should be only 1
-      // i.e. if nItems > 1, there is something wrong
-      transformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));        
-//    vtkMatrix4x4* matrix = transformNode->GetMatrixTransformToParent();
-      this->GetMRMLNode()->SetTransformNodeMatrix(transformNode->GetMatrixTransformToParent());
-      //matrix->Delete();
-      // actually transform the volume!
-      // TO DO:
-      }
-    }*/
-    
-
- 
 }
 
 
@@ -1167,39 +1116,7 @@ void vtkPerkStationModuleGUI::BuildGUI()
                       "and the Slicer Community."
                       "See <a>http://www.slicer.org</a> for details. ";
   
-  /*
-  this->BuildHelpAndAboutFrame ( page, help, about );
   
-  vtkKWLabel *NACLabel = vtkKWLabel::New();
-  NACLabel->SetParent ( this->GetLogoFrame() );
-  NACLabel->Create();
-  NACLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetNACLogo() );
-
-  vtkKWLabel *NAMICLabel = vtkKWLabel::New();
-  NAMICLabel->SetParent ( this->GetLogoFrame() );
-  NAMICLabel->Create();
-  NAMICLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetNAMICLogo() );    
-
-  vtkKWLabel *NCIGTLabel = vtkKWLabel::New();
-  NCIGTLabel->SetParent ( this->GetLogoFrame() );
-  NCIGTLabel->Create();
-  NCIGTLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetNCIGTLogo() );
-
-  vtkKWLabel *BIRNLabel = vtkKWLabel::New();
-  BIRNLabel->SetParent ( this->GetLogoFrame() );
-  BIRNLabel->Create();
-  BIRNLabel->SetImageToIcon ( this->GetAcknowledgementIcons()->GetBIRNLogo() );
-
-  app->Script ( "grid %s -row 0 -column 0 -padx 2 -pady 2 -sticky w", NAMICLabel->GetWidgetName());
-  app->Script ( "grid %s -row 0 -column 1 -padx 2 -pady 2 -sticky w",  NACLabel->GetWidgetName());
-  app->Script ( "grid %s -row 1 -column 0 -padx 2 -pady 2 -sticky w", BIRNLabel->GetWidgetName());
-  app->Script ( "grid %s -row 1 -column 1 -padx 2 -pady 2 -sticky w", NCIGTLabel->GetWidgetName());
-  
-  NACLabel->Delete();
-  NAMICLabel->Delete();
-  NCIGTLabel->Delete();
-  BIRNLabel->Delete();
-  */
   
   // add individual collapsible pages/frames
 
@@ -1211,11 +1128,6 @@ void vtkPerkStationModuleGUI::BuildGUI()
     modeFrame->SetLabelText("Mode frame");
     modeFrame->ExpandFrame();
   
-  // If TRAINING / CLINICAL mode switch is needed, enable this commented part.
-  /*
-  app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-              modeFrame->GetWidgetName(), modulePage->GetWidgetName());
-  */
   
   // Add combo box in the frame.
   this->ModeListMenu = vtkKWMenuButtonWithLabel::New();
@@ -1230,11 +1142,6 @@ void vtkPerkStationModuleGUI::BuildGUI()
     // this->ModeListMenu->GetWidget()->SetValue( "TRAINING" );
     this->ModeListMenu->GetWidget()->SetValue( "CLINICAL" );
   
-  // If TRAINING / CLINICAL mode switch is needed, enable this commented part.
-  /*
-  app->Script("pack %s -side top -anchor nw -expand n -padx 4 -pady 4", 
-    this->ModeListMenu->GetWidgetName(), modeFrame->GetWidgetName());
-  */
   
   modeFrame->Delete();
   
@@ -1616,11 +1523,12 @@ void vtkPerkStationModuleGUI::BuildGUI()
   
   // wizard_workflow->CreateGoToTransitionsToFinishStep();
   wizard_workflow->SetInitialStep( this->CalibrateStep );    
-  
- 
   this->SetUpPerkStationWizardWorkflow();
   
+  // this->CalibrateStep->HardwareSelected( MONITOR_SIEMENS );
+  
   this->Built = true;
+  
   
 }
 
@@ -2236,7 +2144,7 @@ vtkPerkStationModuleGUI
   this->EnableLoadValidationVolumeButton( true );
 }
 
-
+  
 //--------------------------------------------------------------------------------
 void vtkPerkStationModuleGUI::LoadValidationVolumeButtonCallback(const char *fileName)
 {
@@ -2247,8 +2155,8 @@ void vtkPerkStationModuleGUI::LoadValidationVolumeButtonCallback(const char *fil
       {
       fileString[i] = '/';
       }
-    }  
-
+    }
+  
   bool validationVolumePreExists = false;
 
   // in case the planning volume already exists, it is just that the user has loaded another dicom series
