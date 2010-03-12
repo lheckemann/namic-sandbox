@@ -250,13 +250,14 @@ private:
 
 public:
   
-  void SetSecMonHorizontalFlip( bool flip );
-  void SetSecMonVerticalFlip( bool flip );
+  void SetHorizontalFlip( bool flip );
+  void SetVerticalFlip( bool flip );
   
   void SetRotationCenter( double center[ 2 ] );
   void SetRotation( double rotation );
   void SetTranslation( double x, double y );
   
+  void UpdateCalibration();
   
 private:
   
@@ -270,8 +271,8 @@ private:
   vtkSmartPointer< vtkImageReslice > ResliceFilter;
   
     // Calibration parameters. Used in the post reslice transform.
-  bool HorizontalFlip; // If true, the system design is wrong!
-  bool VerticalFlip; // If true, the system design is wrong!
+  bool HorizontalFlip;
+  bool VerticalFlip;
   double Rotation;
   double RotationCenter[ 2 ];
   double Translation[ 2 ];

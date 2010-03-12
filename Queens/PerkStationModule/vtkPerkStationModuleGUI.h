@@ -19,7 +19,7 @@
 
 #include "vtkMRMLScene.h"
 #include "vtkPerkStationModuleLogic.h"
-
+#include "vtkMRMLPerkStationModuleNode.h"
 
 class vtkKWWizardWidget;
 class vtkKWFrame;

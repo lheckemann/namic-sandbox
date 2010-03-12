@@ -1,22 +1,10 @@
-/*=auto=========================================================================
 
-Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
-
-See Doc/copyright/copyright.txt
-or http://www.slicer.org/copyright/copyright.txt for details.
-
-Program:   3D Slicer
-Module:    $RCSfile: vtkMRMLPerkStationModuleNode.cxx,v $
-Date:      $Date: 2006/03/17 15:10:10 $
-Version:   $Revision: 1.2 $
-
-=========================================================================auto=*/
+#include "vtkMRMLPerkStationModuleNode.h"
 
 #include <algorithm>
 #include <string>
 #include <iostream>
 #include <sstream>
-
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -26,11 +14,9 @@ Version:   $Revision: 1.2 $
 #include "itkGDCMImageIO.h"
 #include "itkSpatialOrientationAdapter.h"
 
-
 #include "vtkObjectFactory.h"
 #include "vtkStringArray.h"
 
-#include "vtkMRMLPerkStationModuleNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLFiducialListNode.h"
@@ -83,7 +69,9 @@ vtkMRMLPerkStationModuleNode
   // member variables
   this->VerticalFlip = false;
   this->HorizontalFlip = false;
-
+  
+  
+  
   this->ClinicalModeRotation = 0.0;
   this->ClinicalModeTranslation[0] = 0.0;
   this->ClinicalModeTranslation[1] = 0.0;

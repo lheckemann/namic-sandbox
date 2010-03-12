@@ -42,6 +42,13 @@ enum PatientPosition
   };
   
 
+enum OverlayMonitor
+{
+  MONITOR_SIEMENS = 0,
+  MONITOR_VIEWSONIC = 1
+};
+
+
 class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode
   : public vtkMRMLNode
 {
@@ -437,7 +444,7 @@ protected:
   vtkStringArray *StepList;
   int CurrentStep;
   int PreviousStep;
-  
+
 };
 
 #endif

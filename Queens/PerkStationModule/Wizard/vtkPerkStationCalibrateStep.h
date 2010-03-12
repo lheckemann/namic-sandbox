@@ -14,6 +14,8 @@ class vtkKWMenuButtonWithLabel;
 class vtkKWPushButton;
 class vtkKWText;
 
+#include "vtkMRMLPerkStationModuleNode.h"
+
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationCalibrateStep : public vtkPerkStationStep
 {
@@ -55,8 +57,6 @@ public:
   // Callback on check button of horizontal flip
   virtual void HorizontalFlipCallback(bool value);
   
-  
-  virtual void HardwareMenuCallback();
   
   
   // Description
@@ -275,10 +275,19 @@ private:
   int CurrentSubState; // only used in 'training' mode
   vtkPerkStationCalibrateStep(const vtkPerkStationCalibrateStep&);
   void operator=(const vtkPerkStationCalibrateStep&);
-
-
+  
+  
   // Second monitor calibration data.
 
+public:
+  
+  OverlayMonitor GetOverlayMonitor();
+  void HardwareSelected( OverlayMonitor );
+  
+private:
+  
+  OverlayMonitor SecondMonitor;
+  
 private:
   
   double Translation[ 2 ];
