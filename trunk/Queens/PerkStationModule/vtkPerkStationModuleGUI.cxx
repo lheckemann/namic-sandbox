@@ -2229,7 +2229,6 @@ int
 vtkPerkStationModuleGUI
 ::ChangeWorkphase( int phase )
 {
-  
   if ( ! this->MRMLNode->SwitchStep( phase ) ) // Set next phase
     {
     cerr << "ChangeWorkphase: Cannot transition!" << endl;
@@ -2243,12 +2242,22 @@ vtkPerkStationModuleGUI
   
   vtkKWWizardWorkflow *wizard = this->WizardWidget->GetWizardWorkflow();
   
+    // Hide old step UI.
+  vtkPerkStationStep* oldStep =
+    vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
+  if ( oldStep )
+    {
+    oldStep->HideUserInterface();
+    }
+  
+  
   int step_from;
   int step_to;
   
   step_to = this->MRMLNode->GetCurrentStep();
   step_from = this->MRMLNode->GetPreviousStep();
   
+    // Walk from old step to new step.
   int steps =  step_to - step_from;
   if ( steps > 0 )
     {
@@ -2266,12 +2275,12 @@ vtkPerkStationModuleGUI
       }
     }
   
+    // Show new step UI.
   vtkPerkStationStep* step =
     vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
   if ( step )
     {
     step->ShowUserInterface();
-    // step->UpdateGUI();
     }
   
   
@@ -2287,7 +2296,6 @@ vtkPerkStationModuleGUI
     this->SecondaryMonitor->ShowCalibrationControls( false );
     this->SecondaryMonitor->UpdateImageDisplay();
     }
-  
   
   return 1;  // Indicating success.
 }
