@@ -2,15 +2,20 @@
 #ifndef __vtkPerkStationSecondaryMonitor_h
 #define __vtkPerkStationSecondaryMonitor_h
 
+
+#include "vtkImageMapper.h"
 #include "vtkObject.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindowInteractor.h"
 #include "vtkSmartPointer.h"
 #include "vtkWin32OpenGLRenderWindow.h"
 
 #include "vtkPerkStationModule.h"
 #include "vtkMRMLPerkStationModuleNode.h"
 
-// for getting display device information
+  // for getting display device information
 #include "Windows.h"
+
 #include <vector>
 
 class vtkActor;
@@ -28,11 +33,6 @@ class vtkSlicerSliceViewer;
 class vtkTransform;
 class vtkTransformFilter;
 class vtkKWFrame;
-
-#include "vtkRenderer.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkImageMapper.h"
-
 class vtkTextActor;
 class vtkTextActorFlippable;
 class vtkKWRenderWidget;
@@ -41,18 +41,17 @@ class vtkKWRenderWidget;
 /**
  * This class uses the following coordinates:
  * * RAS: From slicer, in mm.
- * * IJK: Image volume indices, in voxels.
+ * * IJK: Image volume, in voxels. Directions different from RAS.
  * * XY: Units in pixels. Origin at the lower left corner of the overlayed
  *       image. On typical overlay hardware, this is horizontally flipped
  *       compared to the second monitor screen coordinate system.
  * 
- * Slicer uses RAS coordinates, but gives the IJKToRAS transform. XY to IJK
- * Transform is computed from parameters of the second monitor, and calibration
- * input from the user.
- *
+ * Second monitor (this) displayes the same image slice, which is displayed
+ * in the "Red" viewport of slicer. It transforms the image to match the
+ * displayed size with the physical size of the image, and to match the
+ * manual calibration (translation and rotation) to the patient.
  */
 class
-// VTK_PERKSTATIONMODULE_EXPORT
 vtkPerkStationSecondaryMonitor : public vtkObject
 {
 public:
@@ -83,6 +82,7 @@ public:
   };
   
   
+  
   void GetVirtualScreenCoord( int & left, int & top )
   {
     left = this->VirtualScreenCoord[ 0 ];
@@ -91,10 +91,10 @@ public:
   
   void SetVirtualScreenCoord( int left, int top )
   {
-    this->VirtualScreenCoord[0] = left;
-    this->VirtualScreenCoord[1] = top;
+    this->VirtualScreenCoord[ 0 ] = left;
+    this->VirtualScreenCoord[ 1 ] = top;
   };
-
+  
   
   void GetPhysicalSize( double & mmX, double & mmY )
   {
@@ -138,18 +138,17 @@ public:
   // Description
   // load calibration, which has been read in from a file already
   void LoadCalibration();
-
+  
+  
   void OverlayNeedleGuide();
-
-  void OverlayRealTimeNeedleTip(double tipRAS[3], vtkMatrix4x4 *tranformMatrix=NULL);
+  void OverlayRealTimeNeedleTip( double tipRAS[3],
+                                 vtkMatrix4x4 *tranformMatrix = NULL );
   void RemoveOverlayRealTimeNeedleTip();
 
-  // Description
-  // reset calibration
+  
   void ResetCalibration();
 
-  // Description
-  // remove overlay guide needle actor
+  
   void RemoveOverlayNeedleGuide();
 
   void SetDepthPerceptionLines();  

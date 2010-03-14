@@ -2242,15 +2242,6 @@ vtkPerkStationModuleGUI
   
   vtkKWWizardWorkflow *wizard = this->WizardWidget->GetWizardWorkflow();
   
-    // Hide old step UI.
-  vtkPerkStationStep* oldStep =
-    vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
-  if ( oldStep )
-    {
-    oldStep->HideUserInterface();
-    }
-  
-  
   int step_from;
   int step_to;
   
@@ -2263,6 +2254,13 @@ vtkPerkStationModuleGUI
     {
     for (int i = 0; i < steps; i ++) 
       {
+        // Hide old step UI.
+      vtkPerkStationStep* oldStep =
+        vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
+      if ( oldStep )
+        {
+        oldStep->HideUserInterface();
+        }
       wizard->AttemptToGoToNextStep();
       }
     }
@@ -2271,6 +2269,13 @@ vtkPerkStationModuleGUI
     steps = - steps;
     for ( int i = 0; i < steps; i ++ )
       {
+        // Hide old step UI.
+      vtkPerkStationStep* oldStep =
+        vtkPerkStationStep::SafeDownCast( wizard->GetCurrentStep() );
+      if ( oldStep )
+        {
+        oldStep->HideUserInterface();
+        }
       wizard->AttemptToGoToPreviousStep();
       }
     }
