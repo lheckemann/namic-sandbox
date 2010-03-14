@@ -663,25 +663,11 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
   
-  switch (this->GetGUI()->GetMode())      
-    {
-
-    case vtkPerkStationModuleGUI::Training:
-
-      this->SetName("1/5. Calibrate");
-      this->GetGUI()->GetWizardWidget()->SetErrorText( "Please note that the order of the click (first image fiducial, then physical fiducial) is important.");
-      this->GetGUI()->GetWizardWidget()->Update();  
-      break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-       
-      // in clinical mode
-      this->SetName("1/4. Calibrate");
-      this->GetGUI()->GetWizardWidget()->SetErrorText( "");
-      this->GetGUI()->GetWizardWidget()->Update();
-      break;
-    }
-
+  // in clinical mode
+  this->SetName("1/4. Calibrate");
+  this->GetGUI()->GetWizardWidget()->SetErrorText( "");
+  this->GetGUI()->GetWizardWidget()->Update();
+  
   
   this->SetDescription("Do image overlay system calibration");
 
@@ -693,7 +679,6 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
   
   // load/reset controls, if needed
   this->ShowLoadResetControls();
-  
   this->ShowHardwareCalibration();
   this->ShowFlipComponents();
   this->ShowScaleComponents();
@@ -854,29 +839,27 @@ vtkPerkStationCalibrateStep
     this->TableFrame->SetParent( parent );
     this->TableFrame->Create();
     this->TableFrame->SetLabelText( "Table calibration" );
-      
-    this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                      this->TableFrame->GetWidgetName());
     
     this->TableScannerLabel->SetParent( this->TableFrame );
     this->TableScannerLabel->Create();
     this->TableScannerLabel->SetText( "Scanner laser (mm): ");
     
-    this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                  this->TableScannerLabel->GetWidgetName() );
-    
     this->TableOverlayLabel->SetParent( this->TableFrame );
     this->TableOverlayLabel->Create();
     this->TableOverlayLabel->SetText( "Overlay laser (mm): ");
     
-    this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                  this->TableOverlayLabel->GetWidgetName() );
-    
     }
+
+  this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->TableFrame->GetWidgetName());
   
+  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                this->TableScannerLabel->GetWidgetName() );
   
+  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                this->TableOverlayLabel->GetWidgetName() );
   
-  
+
     // Hardware selection.
   
   if ( ! this->HardwareFrame->IsCreated() )
