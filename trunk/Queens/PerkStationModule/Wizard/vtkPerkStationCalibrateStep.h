@@ -2,19 +2,24 @@
 #define __vtkPerkStationCalibrateStep_h
 
 #include "vtkPerkStationStep.h"
+#include "vtkMRMLPerkStationModuleNode.h"
+
 #include <string>
+
+#include "vtkSmartPointer.h"
+
+#include "vtkKWEntryWithLabel.h"
+#include "vtkKWFrameWithLabel.h"
+#include "vtkKWLabel.h"
+
 class vtkKWCheckButtonWithLabel;
 class vtkKWEntrySet;
-class vtkKWEntryWithLabel;
 class vtkKWFrame;
-class vtkKWFrameWithLabel;
-class vtkKWLabel;
 class vtkKWLoadSaveButton;
 class vtkKWMenuButtonWithLabel;
 class vtkKWPushButton;
 class vtkKWText;
 
-#include "vtkMRMLPerkStationModuleNode.h"
 
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationCalibrateStep : public vtkPerkStationStep
@@ -28,59 +33,38 @@ public:
   // Reimplement the superclass's method (see vtkKWWizardStep).
   virtual void ShowUserInterface();
   
-  // Description:
-  // Reimplement the superclass's method.
-  // TO DO:
-  //virtual void Validate();
-
-  // Description:
-  // Process GUI events
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
 
-  // Description:
   // Callbacks to capture keyboard events which will do translation/rotation depending on key pressed only in clinical mode
   virtual void ProcessKeyboardEvents(vtkObject *caller, unsigned long event, void *callData);
   
-  // Description:
   // Callback on value entered in COR entry set
   virtual void COREntryCallback(int widgetIndex);
 
-  // Description:
   // Callback on update button in scale frame in clinical mode
   virtual void UpdateAutoScaleCallback();
   
-  // Description:
   // Callback on check button of vertical flip
   virtual void VerticalFlipCallback(bool value);
 
-  // Description:
   // Callback on check button of horizontal flip
   virtual void HorizontalFlipCallback(bool value);
   
   
-  
-  // Description
   // Reset
   virtual void Reset();
 
-  // Description
   // Callback on the load calibration button
   void LoadCalibrationButtonCallback();
 
-  // Description
   // Callback on the save calibration button
   void SaveCalibrationButtonCallback();
 
-  // Description
   // Save calibration
   virtual void SaveCalibration(ostream& of);
 
-  // Description
-  // Save calibration
   virtual void LoadCalibration(istream &file);
 
-  // Description
-  // Save calibration  
   virtual void SuggestFileName();
 
   virtual void Validate();
@@ -90,7 +74,7 @@ protected:
   ~vtkPerkStationCalibrateStep(); 
   
   void ShowLoadResetControls();
-  void ShowHardwareSelector();
+  void ShowHardwareCalibration();
   void ShowFlipComponents();
   void ShowScaleComponents();
   void ShowTranslateComponents();
@@ -98,6 +82,7 @@ protected:
   void ShowSaveControls();
 
   void ClearLoadResetControls();
+  void ClearHardwareCalibration();
   void ClearSaveControls();
   void ClearFlipComponents();
   void ClearScaleComponents();
@@ -128,35 +113,31 @@ protected:
 
   void ResetControls();
 
-
-  // TO DO: Question: other controls in two different modes (CLINICAL or TRANING)
-
-  // in clinical mode, additional buttons
-  // 1)  button: open file dialog box
+  
   vtkKWLoadSaveButton *LoadCalibrationFileButton;
-  // 2) button: save calib file dialog box
   vtkKWLoadSaveButton *SaveCalibrationFileButton;
-  // also display save path??
-  // 3) reset push button
   vtkKWPushButton *ResetCalibrationButton;
-  // also associated frames
   vtkKWFrame *LoadResetFrame;
   vtkKWFrame *SaveFrame;
 
 
-    // Hardware selector.
-  vtkKWFrameWithLabel* HardwareFrame;
-  vtkKWMenuButtonWithLabel* HardwareMenu;
+    // Hardware calibration.
+  
+  vtkSmartPointer< vtkKWFrameWithLabel > TableFrame;
+  vtkSmartPointer< vtkKWLabel >          TableScannerLabel;
+  vtkSmartPointer< vtkKWEntrySet >       TableScannerEntry;
+  vtkSmartPointer< vtkKWLabel >          TableOverlayLabel;
+  vtkSmartPointer< vtkKWEntrySet >       TableOverlayEntry;
+  
+  vtkSmartPointer< vtkKWFrameWithLabel >      HardwareFrame;
+  vtkSmartPointer< vtkKWMenuButtonWithLabel > HardwareMenu;
 
   
+    // Flipping. To be deleted from the final software.
   
-    // for flip, the controls remain same for both modes
-    // for monitor associated flip
-  vtkKWFrameWithLabel *FlipFrame;
-    // information from the user
-  vtkKWCheckButtonWithLabel *VerticalFlipCheckButton;
-  vtkKWCheckButtonWithLabel *HorizontalFlipCheckButton;
-  bool ImageFlipDone;
+  vtkSmartPointer< vtkKWFrameWithLabel > FlipFrame;
+  vtkSmartPointer< vtkKWCheckButtonWithLabel > VerticalFlipCheckButton;
+  vtkSmartPointer< vtkKWCheckButtonWithLabel > HorizontalFlipCheckButton;
   
   
   // for scaling, 

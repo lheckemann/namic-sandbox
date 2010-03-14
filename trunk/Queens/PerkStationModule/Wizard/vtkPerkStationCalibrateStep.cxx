@@ -31,14 +31,15 @@
 vtkStandardNewMacro(vtkPerkStationCalibrateStep);
 vtkCxxRevisionMacro(vtkPerkStationCalibrateStep, "$Revision: 1.0 $");
 
+
 //----------------------------------------------------------------------------
 vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
 {
   this->SetName("1/5. Calibrate");
   this->SetDescription("Do image overlay system calibration");
-
+  
   this->WizardGUICallbackCommand->SetCallback(vtkPerkStationCalibrateStep::WizardGUICallback);
-
+  
   // load/reset controls
   this->LoadResetFrame = NULL;
   this->LoadCalibrationFileButton = NULL;
@@ -51,17 +52,26 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->SaveCalibrationFileButton = NULL;
   
   
-    // Hardware selection.
-  this->HardwareFrame = NULL;
-  this->HardwareMenu = NULL;
+    // Hardware calibration.
+  
+  this->TableFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
+  this->TableScannerLabel = vtkSmartPointer< vtkKWLabel >::New();
+  this->TableScannerEntry = vtkSmartPointer< vtkKWEntrySet >::New();
+  this->TableOverlayLabel = vtkSmartPointer< vtkKWLabel >::New();
+  this->TableOverlayEntry = vtkSmartPointer< vtkKWEntrySet >::New();
+  
+  this->HardwareFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
+  this->HardwareMenu = vtkSmartPointer< vtkKWMenuButtonWithLabel >::New();
   
   
   // flip
-  this->FlipFrame = NULL;
-  this->VerticalFlipCheckButton = NULL;
-  this->HorizontalFlipCheckButton = NULL;
-  this->ImageFlipDone = false;
-
+  this->FlipFrame = vtkSmartPointer< vtkKWFrameWithLabel >::New();
+  this->VerticalFlipCheckButton =
+    vtkSmartPointer< vtkKWCheckButtonWithLabel >::New();
+  this->HorizontalFlipCheckButton =
+    vtkSmartPointer< vtkKWCheckButtonWithLabel >::New();
+  
+  
   // scale step
   this->ScaleFrame = NULL;
   this->MonPhySizeFrame = NULL;
@@ -136,7 +146,8 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
 //----------------------------------------------------------------------------
 vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
 {
-  // load/reset controls
+    // load/reset controls
+  
   if (this->LoadResetFrame)
     {
     this->LoadResetFrame->SetParent(NULL);
@@ -172,35 +183,7 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
     this->SaveCalibrationFileButton->Delete();
     this->SaveCalibrationFileButton = NULL;
     }
-    
-  if ( this->HardwareMenu )
-    {
-    this->HardwareMenu->SetParent( NULL );
-    this->HardwareMenu->Delete();
-    this->HardwareMenu = NULL;
-    }
   
-  
-    // flip step
-  
-  if (this->FlipFrame)
-    {
-    this->FlipFrame->SetParent(NULL);
-    this->FlipFrame->Delete();
-    this->FlipFrame = NULL;
-    }
-  if (this->VerticalFlipCheckButton)
-    {
-    this->VerticalFlipCheckButton->SetParent(NULL);
-    this->VerticalFlipCheckButton->Delete();
-    this->VerticalFlipCheckButton = NULL;
-    }
-  if (this->HorizontalFlipCheckButton)
-    {
-    this->HorizontalFlipCheckButton->SetParent(NULL);
-    this->HorizontalFlipCheckButton->Delete();
-    this->HorizontalFlipCheckButton = NULL;
-    }
   
   
     // scale step
@@ -671,10 +654,10 @@ void vtkPerkStationCalibrateStep::EnableDisableControls()
         EnableDisableSaveControls(true);
         break;
     }
-        
   }
-
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ShowUserInterface()
 {
@@ -711,24 +694,13 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
   // load/reset controls, if needed
   this->ShowLoadResetControls();
   
-  this->ShowHardwareSelector();
-  
-  //flip components
+  this->ShowHardwareCalibration();
   this->ShowFlipComponents();
-
-  // scale step components
   this->ShowScaleComponents();
-  
-  // translate components
   this->ShowTranslateComponents();
-  
-  // rotate components
   this->ShowRotateComponents();
-  
-  // save calibration controls if needed
   this->ShowSaveControls();
   
-  // TO DO: populate controls wherever needed
   this->PopulateControls();
 
    // enable disable controls  
@@ -751,112 +723,96 @@ void vtkPerkStationCalibrateStep::ShowLoadResetControls()
   this->ClearLoadResetControls();
 
   
-  switch (this->GetGUI()->GetMode())      
+  // Create the frame
+  if (!this->LoadResetFrame)
     {
-
-    case vtkPerkStationModuleGUI::Training:
-      // no controls to show at the moment
-
-      break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-       
-      // in clinical mode
-      {
-      // show load dialog box, and reset push button
-      
-      // Create the frame
-      if (!this->LoadResetFrame)
-        {
-        this->LoadResetFrame = vtkKWFrame::New();
-        }
-      if (!this->LoadResetFrame->IsCreated())
-        {
-        this->LoadResetFrame->SetParent(parent);
-        this->LoadResetFrame->Create();     
-        }
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->LoadResetFrame->GetWidgetName());
-
-      // create the load file dialog button
-      if (!this->LoadCalibrationFileButton)
-        {
-        this->LoadCalibrationFileButton = vtkKWLoadSaveButton::New();
-        }
-      if (!this->LoadCalibrationFileButton->IsCreated())
-        {
-        this->LoadCalibrationFileButton->SetParent(this->LoadResetFrame);
-        this->LoadCalibrationFileButton->Create();
-        this->LoadCalibrationFileButton->SetBorderWidth(2);
-        this->LoadCalibrationFileButton->SetReliefToRaised();       
-        this->LoadCalibrationFileButton->SetHighlightThickness(2);
-        this->LoadCalibrationFileButton->SetBackgroundColor(0.85,0.85,0.85);
-        this->LoadCalibrationFileButton->SetActiveBackgroundColor(1,1,1);
-        this->LoadCalibrationFileButton->SetText("Load calibration");
-        this->LoadCalibrationFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
-        this->LoadCalibrationFileButton->SetBalloonHelpString("Click to load a previous calibration file");
-        this->LoadCalibrationFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-        this->LoadCalibrationFileButton->TrimPathFromFileNameOff();
-        this->LoadCalibrationFileButton->SetMaximumFileNameLength(256);
-        this->LoadCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
-        this->LoadCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
-        }
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                            this->LoadCalibrationFileButton->GetWidgetName());
-
-      
-      // create the load file dialog button
-      if (!this->SaveCalibrationFileButton)
-        {
-        this->SaveCalibrationFileButton = vtkKWLoadSaveButton::New();
-        }
-      if (!this->SaveCalibrationFileButton->IsCreated())
-        {
-        this->SaveCalibrationFileButton->SetParent( this->LoadResetFrame );
-        this->SaveCalibrationFileButton->Create();
-        this->SaveCalibrationFileButton->SetText("Save calibration");
-        this->SaveCalibrationFileButton->SetBorderWidth(2);
-        this->SaveCalibrationFileButton->SetReliefToRaised();       
-        this->SaveCalibrationFileButton->SetHighlightThickness(2);
-        this->SaveCalibrationFileButton->SetBackgroundColor(0.85,0.85,0.85);
-        this->SaveCalibrationFileButton->SetActiveBackgroundColor(1,1,1);               
-        this->SaveCalibrationFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconFloppy);
-        this->SaveCalibrationFileButton->SetBalloonHelpString("Click to save calibration in a file");
-        this->SaveCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode
-        this->SaveCalibrationFileButton->TrimPathFromFileNameOff();
-        this->SaveCalibrationFileButton->SetMaximumFileNameLength(256);
-        this->SaveCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
-        this->SaveCalibrationFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
-        }
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                            this->SaveCalibrationFileButton->GetWidgetName());
-      
-      
-      // create the reset calib button
-       if (!this->ResetCalibrationButton)
-        {
-        this->ResetCalibrationButton = vtkKWPushButton::New();
-        }
-      if(!this->ResetCalibrationButton->IsCreated())
-        {
-        this->ResetCalibrationButton->SetParent(this->LoadResetFrame);
-        this->ResetCalibrationButton->SetText("Reset calibration");
-        this->ResetCalibrationButton->SetBorderWidth(2);
-        this->ResetCalibrationButton->SetReliefToRaised();      
-        this->ResetCalibrationButton->SetHighlightThickness(2);
-        this->ResetCalibrationButton->SetBackgroundColor(0.85,0.85,0.85);
-        this->ResetCalibrationButton->SetActiveBackgroundColor(1,1,1);      
-        this->ResetCalibrationButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
-        this->ResetCalibrationButton->Create();
-        }
-      
-      this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
-                        this->ResetCalibrationButton->GetWidgetName());
-      }
-      break;
+    this->LoadResetFrame = vtkKWFrame::New();
     }
+  if (!this->LoadResetFrame->IsCreated())
+    {
+    this->LoadResetFrame->SetParent(parent);
+    this->LoadResetFrame->Create();     
+    }
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->LoadResetFrame->GetWidgetName());
 
+  // create the load file dialog button
+  if (!this->LoadCalibrationFileButton)
+    {
+    this->LoadCalibrationFileButton = vtkKWLoadSaveButton::New();
+    }
+  if (!this->LoadCalibrationFileButton->IsCreated())
+    {
+    this->LoadCalibrationFileButton->SetParent(this->LoadResetFrame);
+    this->LoadCalibrationFileButton->Create();
+    this->LoadCalibrationFileButton->SetBorderWidth(2);
+    this->LoadCalibrationFileButton->SetReliefToRaised();       
+    this->LoadCalibrationFileButton->SetHighlightThickness(2);
+    this->LoadCalibrationFileButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->LoadCalibrationFileButton->SetActiveBackgroundColor(1,1,1);
+    this->LoadCalibrationFileButton->SetText("Load calibration");
+    this->LoadCalibrationFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
+    this->LoadCalibrationFileButton->SetBalloonHelpString("Click to load a previous calibration file");
+    this->LoadCalibrationFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    this->LoadCalibrationFileButton->TrimPathFromFileNameOff();
+    this->LoadCalibrationFileButton->SetMaximumFileNameLength(256);
+    this->LoadCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
+    this->LoadCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
+    }
+  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                        this->LoadCalibrationFileButton->GetWidgetName());
+
+  
+  // create the load file dialog button
+  if (!this->SaveCalibrationFileButton)
+    {
+    this->SaveCalibrationFileButton = vtkKWLoadSaveButton::New();
+    }
+  if (!this->SaveCalibrationFileButton->IsCreated())
+    {
+    this->SaveCalibrationFileButton->SetParent( this->LoadResetFrame );
+    this->SaveCalibrationFileButton->Create();
+    this->SaveCalibrationFileButton->SetText("Save calibration");
+    this->SaveCalibrationFileButton->SetBorderWidth(2);
+    this->SaveCalibrationFileButton->SetReliefToRaised();       
+    this->SaveCalibrationFileButton->SetHighlightThickness(2);
+    this->SaveCalibrationFileButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->SaveCalibrationFileButton->SetActiveBackgroundColor(1,1,1);               
+    this->SaveCalibrationFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconFloppy);
+    this->SaveCalibrationFileButton->SetBalloonHelpString("Click to save calibration in a file");
+    this->SaveCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode
+    this->SaveCalibrationFileButton->TrimPathFromFileNameOff();
+    this->SaveCalibrationFileButton->SetMaximumFileNameLength(256);
+    this->SaveCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
+    this->SaveCalibrationFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    }
+  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                        this->SaveCalibrationFileButton->GetWidgetName());
+  
+  
+  // create the reset calib button
+   if (!this->ResetCalibrationButton)
+    {
+    this->ResetCalibrationButton = vtkKWPushButton::New();
+    }
+  if(!this->ResetCalibrationButton->IsCreated())
+    {
+    this->ResetCalibrationButton->SetParent(this->LoadResetFrame);
+    this->ResetCalibrationButton->SetText("Reset calibration");
+    this->ResetCalibrationButton->SetBorderWidth(2);
+    this->ResetCalibrationButton->SetReliefToRaised();      
+    this->ResetCalibrationButton->SetHighlightThickness(2);
+    this->ResetCalibrationButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->ResetCalibrationButton->SetActiveBackgroundColor(1,1,1);      
+    this->ResetCalibrationButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
+    this->ResetCalibrationButton->Create();
+    }
+  
+  this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
+                    this->ResetCalibrationButton->GetWidgetName());
 }
+
+
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ShowSaveControls()
 {
@@ -876,6 +832,7 @@ void vtkPerkStationCalibrateStep::ShowSaveControls()
     this->SaveFrame->SetParent(parent);
     this->SaveFrame->Create();
     }
+  
   this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
                     this->SaveFrame->GetWidgetName());
 }
@@ -883,14 +840,44 @@ void vtkPerkStationCalibrateStep::ShowSaveControls()
 
 void
 vtkPerkStationCalibrateStep
-::ShowHardwareSelector()
+::ShowHardwareCalibration()
 {
   vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
-  if ( ! this->HardwareFrame )
+  // this->ClearHardwareCalibration();
+  
+  
+    // Table calibration.
+  
+  if ( ! this->TableFrame->IsCreated() )
     {
-    this->HardwareFrame = vtkKWFrameWithLabel::New();
+    this->TableFrame->SetParent( parent );
+    this->TableFrame->Create();
+    this->TableFrame->SetLabelText( "Table calibration" );
+      
+    this->Script( "pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                      this->TableFrame->GetWidgetName());
+    
+    this->TableScannerLabel->SetParent( this->TableFrame );
+    this->TableScannerLabel->Create();
+    this->TableScannerLabel->SetText( "Scanner laser (mm): ");
+    
+    this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                  this->TableScannerLabel->GetWidgetName() );
+    
+    this->TableOverlayLabel->SetParent( this->TableFrame );
+    this->TableOverlayLabel->Create();
+    this->TableOverlayLabel->SetText( "Overlay laser (mm): ");
+    
+    this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                  this->TableOverlayLabel->GetWidgetName() );
+    
     }
+  
+  
+  
+  
+    // Hardware selection.
   
   if ( ! this->HardwareFrame->IsCreated() )
     {
@@ -903,11 +890,6 @@ vtkPerkStationCalibrateStep
                     this->HardwareFrame->GetWidgetName());
   
     // Contents of the hardware frame.
-    
-  if ( ! this->HardwareMenu )
-    {
-    this->HardwareMenu = vtkKWMenuButtonWithLabel::New();
-    }
   
   if ( ! this->HardwareMenu->IsCreated() )
     {
@@ -936,10 +918,6 @@ void vtkPerkStationCalibrateStep::ShowFlipComponents()
   
   
   // Create the frame
-  if (!this->FlipFrame)
-    {
-    this->FlipFrame = vtkKWFrameWithLabel::New();
-    }
   if (!this->FlipFrame->IsCreated())
     {
     this->FlipFrame->SetParent(parent);
@@ -951,10 +929,6 @@ void vtkPerkStationCalibrateStep::ShowFlipComponents()
                   this->FlipFrame->GetWidgetName());
 
   // individual components
-  if (!this->VerticalFlipCheckButton)
-    {
-    this->VerticalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
-    }
   if (!this->VerticalFlipCheckButton->IsCreated())
     {
     this->VerticalFlipCheckButton->SetParent(this->FlipFrame->GetFrame());
@@ -969,10 +943,6 @@ void vtkPerkStationCalibrateStep::ShowFlipComponents()
                   this->VerticalFlipCheckButton->GetWidgetName());
 
   // individual components
-  if (!this->HorizontalFlipCheckButton)
-    {
-    this->HorizontalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
-    }
   if (!this->HorizontalFlipCheckButton->IsCreated())
     {
     this->HorizontalFlipCheckButton->SetParent(this->FlipFrame->GetFrame());
@@ -994,367 +964,160 @@ void vtkPerkStationCalibrateStep::ShowScaleComponents()
   // first clear the components if they created before for other mode
   this->ClearScaleComponents();
 
-  
-  switch (this->GetGUI()->GetMode())      
-    {
 
-    case vtkPerkStationModuleGUI::Training:
-      {
       // Create the frame
-        if (!this->ScaleFrame)
-            {
-            this->ScaleFrame = vtkKWFrameWithLabel::New();
-            }
-        if (!this->ScaleFrame->IsCreated())
-            {
-            this->ScaleFrame->SetParent(parent);
-            this->ScaleFrame->Create();
-            this->ScaleFrame->SetLabelText("Scale");
-            this->ScaleFrame->SetBalloonHelpString("Enter the image scaling require to map image from dicom space to monitor's physical space");
-            }
-        this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->ScaleFrame->GetWidgetName());
-
-      // create the invidual components within the scale frame
-      
-      // frame
-      if (!this->ImgPixSizeFrame)
+    if (!this->ScaleFrame)
         {
-        this->ImgPixSizeFrame = vtkKWFrame::New();
+        this->ScaleFrame = vtkKWFrameWithLabel::New();
         }
-      if (!this->ImgPixSizeFrame->IsCreated())
+    if (!this->ScaleFrame->IsCreated())
         {
-        this->ImgPixSizeFrame->SetParent(this->ScaleFrame->GetFrame());
-        this->ImgPixSizeFrame->Create();
+        this->ScaleFrame->SetParent(parent);
+        this->ScaleFrame->Create();
+        this->ScaleFrame->SetLabelText("Scale");
+        this->ScaleFrame->SetBalloonHelpString("Verify, correct if needed, physical dimensions of secondary monitor, and pixel resolution");
         }
+    this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->ScaleFrame->GetWidgetName());
 
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->ImgPixSizeFrame->GetWidgetName());
+    // monitor physical size
 
-      // label
-      if (!this->ImgPixSizeLabel)
-        { 
-        this->ImgPixSizeLabel = vtkKWLabel::New();
-        }
-      if (!this->ImgPixSizeLabel->IsCreated())
-        {
-        this->ImgPixSizeLabel->SetParent(this->ImgPixSizeFrame);
-        this->ImgPixSizeLabel->Create();
-        this->ImgPixSizeLabel->SetText("Image pixel size:   ");
-        this->ImgPixSizeLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-        }
-      
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                    this->ImgPixSizeLabel->GetWidgetName());
-      
-
-      // entries of image spacing; actual data will be populated in another function, which will be called in the end
-      // after all gui elements have been created
-
-      if (!this->ImgSpacing)
-        {
-        this->ImgSpacing =  vtkKWEntrySet::New();   
-        }
-      if (!this->ImgSpacing->IsCreated())
-        {
-        this->ImgSpacing->SetParent(this->ImgPixSizeFrame);
-        this->ImgSpacing->Create();
-        this->ImgSpacing->SetBorderWidth(2);
-        this->ImgSpacing->SetReliefToGroove();
-        this->ImgSpacing->SetPackHorizontally(1);
-        this->ImgSpacing->SetWidgetsInternalPadX(2);  
-        this->ImgSpacing->SetMaximumNumberOfWidgetsInPackingDirection(2);
-        // two entries of image spacing (x, y)
-        for (int id = 0; id < 2; id++)
-          {
-          vtkKWEntry *entry = this->ImgSpacing->AddWidget(id);  
-          entry->SetWidth(7);
-          entry->ReadOnlyOn();
-          entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-          }
-        }
-
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                    this->ImgSpacing->GetWidgetName());
-
-
-      // monitor pixel spacing
-      if (!this->MonPixSizeFrame)
-        {
-        this->MonPixSizeFrame = vtkKWFrame::New();
-        }
-      if (!this->MonPixSizeFrame->IsCreated())
-        {
-        this->MonPixSizeFrame->SetParent(this->ScaleFrame->GetFrame());
-        this->MonPixSizeFrame->Create();
-        }
-
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->MonPixSizeFrame->GetWidgetName());
-
-      // label
-      if (!this->MonPixSizeLabel)
-        { 
-        this->MonPixSizeLabel = vtkKWLabel::New();
-        }
-      if (!this->MonPixSizeLabel->IsCreated())
-        {
-        this->MonPixSizeLabel->SetParent(this->MonPixSizeFrame);
-        this->MonPixSizeLabel->Create();
-        this->MonPixSizeLabel->SetText("Monitor pixel size: ");
-        this->MonPixSizeLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-        }
-      
-      this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                    this->MonPixSizeLabel->GetWidgetName());
-     
-      if (!this->MonSpacing)
-        {
-        this->MonSpacing =  vtkKWEntrySet::New();   
-        }
-      if (!this->MonSpacing->IsCreated())
-        {
-        this->MonSpacing->SetParent(this->MonPixSizeFrame);
-        this->MonSpacing->Create();
-        this->MonSpacing->SetBorderWidth(2);
-        this->MonSpacing->SetReliefToGroove();
-        this->MonSpacing->SetPackHorizontally(1);
-        this->MonSpacing->SetWidgetsInternalPadX(2);  
-        this->MonSpacing->SetMaximumNumberOfWidgetsInPackingDirection(2);
-        // two entries of monitor spacing (x, y)
-        for (int id = 0; id < 2; id++)
-          {
-          vtkKWEntry *entry = this->MonSpacing->AddWidget(id);    
-          entry->ReadOnlyOn();
-          entry->SetWidth(7);
-          entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-          }
-        }
-
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                    this->MonSpacing->GetWidgetName());
-     
-      // Scaling
-      if (!this->ImgScaleFrame)
-        {
-        this->ImgScaleFrame = vtkKWFrame::New();
-        }
-      if (!this->ImgScaleFrame->IsCreated())
-        {
-        this->ImgScaleFrame->SetParent(this->ScaleFrame->GetFrame());
-        this->ImgScaleFrame->Create();
-        }
-      
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->ImgScaleFrame->GetWidgetName());
-
-     
-      // label
-      if (!this->ImgScaleLabel)
-        { 
-        this->ImgScaleLabel = vtkKWLabel::New();
-        }
-      if (!this->ImgScaleLabel->IsCreated())
-        {
-        this->ImgScaleLabel->SetParent(this->ImgScaleFrame);
-        this->ImgScaleLabel->Create();
-        this->ImgScaleLabel->SetText("Image scaling:       ");
-        this->ImgScaleLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-        }
-      
-      this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                    this->ImgScaleLabel->GetWidgetName());
-      
-      if (!this->ImgScaling)
-        {
-        this->ImgScaling =  vtkKWEntrySet::New();   
-        }
-      if (!this->ImgScaling->IsCreated())
-        {
-        this->ImgScaling->SetParent(this->ImgScaleFrame);
-        this->ImgScaling->Create();
-        this->ImgScaling->SetBorderWidth(2);
-        this->ImgScaling->SetReliefToGroove();
-        this->ImgScaling->SetPackHorizontally(1);
-        this->ImgScaling->SetWidgetsInternalPadX(2);  
-        this->ImgScaling->SetMaximumNumberOfWidgetsInPackingDirection(2);
-        // two entries of monitor spacing (x, y)
-        for (int id = 0; id < 2; id++)
-          {
-          vtkKWEntry *entry = this->ImgScaling->AddWidget(id);
-          entry->SetWidth(7);
-          entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-          //entry->ReadOnlyOn(); 
-          }
-        }
-
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                    this->ImgScaling->GetWidgetName());
-      }
-      break;
-
-    case vtkPerkStationModuleGUI::Clinical:
-       
-      // in clinical mode
-
+    if (!this->MonPhySizeFrame)
       {
-          // Create the frame
-        if (!this->ScaleFrame)
-            {
-            this->ScaleFrame = vtkKWFrameWithLabel::New();
-            }
-        if (!this->ScaleFrame->IsCreated())
-            {
-            this->ScaleFrame->SetParent(parent);
-            this->ScaleFrame->Create();
-            this->ScaleFrame->SetLabelText("Scale");
-            this->ScaleFrame->SetBalloonHelpString("Verify, correct if needed, physical dimensions of secondary monitor, and pixel resolution");
-            }
-        this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->ScaleFrame->GetWidgetName());
-
-      // monitor physical size
-
-      if (!this->MonPhySizeFrame)
-        {
-        this->MonPhySizeFrame = vtkKWFrame::New();
-        }
-      if (!this->MonPhySizeFrame->IsCreated())
-        {
-        this->MonPhySizeFrame->SetParent(this->ScaleFrame->GetFrame());
-        this->MonPhySizeFrame->Create();
-        }
-
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->MonPhySizeFrame->GetWidgetName());
-
-      // label
-      if (!this->MonPhySizeLabel)
-        { 
-        this->MonPhySizeLabel = vtkKWLabel::New();
-        }
-      if (!this->MonPhySizeLabel->IsCreated())
-        {
-        this->MonPhySizeLabel->SetParent(this->MonPhySizeFrame);
-        this->MonPhySizeLabel->Create();
-        this->MonPhySizeLabel->SetText("Monitor physical size (mm):   ");
-        this->MonPhySizeLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-        }
-          
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->MonPhySizeLabel->GetWidgetName());
-          
-
-      // entries of monitor physical size; actual data will be populated in another function, which will be called in the end
-      // after all gui elements have been created
-
-      if (!this->MonPhySize)
-        {
-        this->MonPhySize =  vtkKWEntrySet::New();   
-        }
-      if (!this->MonPhySize->IsCreated())
-        {
-        this->MonPhySize->SetParent(this->MonPhySizeFrame);
-        this->MonPhySize->Create();
-        this->MonPhySize->SetBorderWidth(2);
-        this->MonPhySize->SetReliefToGroove();
-        this->MonPhySize->SetPackHorizontally(1);
-        this->MonPhySize->SetWidgetsInternalPadX(2);  
-        this->MonPhySize->SetMaximumNumberOfWidgetsInPackingDirection(2);
-        
-        // two entries of monitor size (x, y)
-        for (int id = 0; id < 2; id++)
-          {
-          vtkKWEntry *entry = this->MonPhySize->AddWidget(id);  
-          entry->SetWidth(7);
-          //entry->ReadOnlyOn();
-          entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-          }
-        }
-
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->MonPhySize->GetWidgetName());
-
-      // monitor pizel resolution
-
-      if (!this->MonPixResFrame)
-        {
-        this->MonPixResFrame = vtkKWFrame::New();
-        }
-      if (!this->MonPixResFrame->IsCreated())
-        {
-        this->MonPixResFrame->SetParent(this->ScaleFrame->GetFrame());
-        this->MonPixResFrame->Create();
-        }
-
-      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                        this->MonPixResFrame->GetWidgetName());
-
-      // label
-      if (!this->MonPixResLabel)
-        { 
-        this->MonPixResLabel = vtkKWLabel::New();
-        }
-      if (!this->MonPixResLabel->IsCreated())
-        {
-        this->MonPixResLabel->SetParent(this->MonPixResFrame);
-        this->MonPixResLabel->Create();
-        this->MonPixResLabel->SetText("Monitor pixel resolution:   ");
-        this->MonPixResLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-        }
-          
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->MonPixResLabel->GetWidgetName());
-          
-
-      // entries of monitor physical size; actual data will be populated in another function, which will be called in the end
-      // after all gui elements have been created
-
-      if (!this->MonPixRes)
-        {
-        this->MonPixRes =  vtkKWEntrySet::New();   
-        }
-      if (!this->MonPixRes->IsCreated())
-        {
-        this->MonPixRes->SetParent(this->MonPixResFrame);
-        this->MonPixRes->Create();
-        this->MonPixRes->SetBorderWidth(2);
-        this->MonPixRes->SetReliefToGroove();
-        this->MonPixRes->SetPackHorizontally(1);
-        this->MonPixRes->SetWidgetsInternalPadX(2);  
-        this->MonPixRes->SetMaximumNumberOfWidgetsInPackingDirection(2);
-        
-        // two entries of monitor size (x, y)
-        for (int id = 0; id < 2; id++)
-          {
-          vtkKWEntry *entry = this->MonPixRes->AddWidget(id);  
-          entry->SetWidth(7);
-          //entry->ReadOnlyOn();
-          entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-          }
-        }
-
-      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                        this->MonPixRes->GetWidgetName());
-
-
-      if (!this->UpdateAutoScale)
-        {
-        this->UpdateAutoScale = vtkKWPushButton::New();
-        }
-      if(!this->UpdateAutoScale->IsCreated())
-        {
-        this->UpdateAutoScale->SetParent(this->MonPixResFrame);
-        this->UpdateAutoScale->SetText("Update");
-        this->UpdateAutoScale->Create();
-        }
-      
-      this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
-                        this->UpdateAutoScale->GetWidgetName());
+      this->MonPhySizeFrame = vtkKWFrame::New();
       }
-      break;
-    }
+    if (!this->MonPhySizeFrame->IsCreated())
+      {
+      this->MonPhySizeFrame->SetParent(this->ScaleFrame->GetFrame());
+      this->MonPhySizeFrame->Create();
+      }
 
+    this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                      this->MonPhySizeFrame->GetWidgetName());
+
+    // label
+    if (!this->MonPhySizeLabel)
+      { 
+      this->MonPhySizeLabel = vtkKWLabel::New();
+      }
+    if (!this->MonPhySizeLabel->IsCreated())
+      {
+      this->MonPhySizeLabel->SetParent(this->MonPhySizeFrame);
+      this->MonPhySizeLabel->Create();
+      this->MonPhySizeLabel->SetText("Monitor physical size (mm):   ");
+      this->MonPhySizeLabel->SetBackgroundColor(0.7, 0.7, 0.7);
+      }
+        
+    this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                      this->MonPhySizeLabel->GetWidgetName());
+        
+
+    // entries of monitor physical size; actual data will be populated in another function, which will be called in the end
+    // after all gui elements have been created
+
+    if (!this->MonPhySize)
+      {
+      this->MonPhySize =  vtkKWEntrySet::New();   
+      }
+    if (!this->MonPhySize->IsCreated())
+      {
+      this->MonPhySize->SetParent(this->MonPhySizeFrame);
+      this->MonPhySize->Create();
+      this->MonPhySize->SetBorderWidth(2);
+      this->MonPhySize->SetReliefToGroove();
+      this->MonPhySize->SetPackHorizontally(1);
+      this->MonPhySize->SetWidgetsInternalPadX(2);  
+      this->MonPhySize->SetMaximumNumberOfWidgetsInPackingDirection(2);
+      
+      // two entries of monitor size (x, y)
+      for (int id = 0; id < 2; id++)
+        {
+        vtkKWEntry *entry = this->MonPhySize->AddWidget(id);  
+        entry->SetWidth(7);
+        //entry->ReadOnlyOn();
+        entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
+        }
+      }
+
+    this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                      this->MonPhySize->GetWidgetName());
+
+    // monitor pizel resolution
+
+    if (!this->MonPixResFrame)
+      {
+      this->MonPixResFrame = vtkKWFrame::New();
+      }
+    if (!this->MonPixResFrame->IsCreated())
+      {
+      this->MonPixResFrame->SetParent(this->ScaleFrame->GetFrame());
+      this->MonPixResFrame->Create();
+      }
+
+    this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                      this->MonPixResFrame->GetWidgetName());
+
+    // label
+    if (!this->MonPixResLabel)
+      { 
+      this->MonPixResLabel = vtkKWLabel::New();
+      }
+    if (!this->MonPixResLabel->IsCreated())
+      {
+      this->MonPixResLabel->SetParent(this->MonPixResFrame);
+      this->MonPixResLabel->Create();
+      this->MonPixResLabel->SetText("Monitor pixel resolution:   ");
+      this->MonPixResLabel->SetBackgroundColor(0.7, 0.7, 0.7);
+      }
+        
+    this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                      this->MonPixResLabel->GetWidgetName());
+        
+
+    // entries of monitor physical size; actual data will be populated in another function, which will be called in the end
+    // after all gui elements have been created
+
+    if (!this->MonPixRes)
+      {
+      this->MonPixRes =  vtkKWEntrySet::New();   
+      }
+    if (!this->MonPixRes->IsCreated())
+      {
+      this->MonPixRes->SetParent(this->MonPixResFrame);
+      this->MonPixRes->Create();
+      this->MonPixRes->SetBorderWidth(2);
+      this->MonPixRes->SetReliefToGroove();
+      this->MonPixRes->SetPackHorizontally(1);
+      this->MonPixRes->SetWidgetsInternalPadX(2);  
+      this->MonPixRes->SetMaximumNumberOfWidgetsInPackingDirection(2);
+      
+      // two entries of monitor size (x, y)
+      for (int id = 0; id < 2; id++)
+        {
+        vtkKWEntry *entry = this->MonPixRes->AddWidget(id);  
+        entry->SetWidth(7);
+        //entry->ReadOnlyOn();
+        entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
+        }
+      }
+
+    this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                      this->MonPixRes->GetWidgetName());
+
+
+    if (!this->UpdateAutoScale)
+      {
+      this->UpdateAutoScale = vtkKWPushButton::New();
+      }
+    if(!this->UpdateAutoScale->IsCreated())
+      {
+      this->UpdateAutoScale->SetParent(this->MonPixResFrame);
+      this->UpdateAutoScale->SetText("Update");
+      this->UpdateAutoScale->Create();
+      }
+    
+    this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
+                      this->UpdateAutoScale->GetWidgetName());
 }
 
 
@@ -2315,7 +2078,6 @@ void vtkPerkStationCalibrateStep::Reset()
   mrmlNode->CalculateCalibrateRotationError();
 
   // reset member variables to defaults
-  this->ImageFlipDone = false;
   this->ImageScalingDone = false;
   this->ImageTranslationDone = false;
   this->ImageRotationDone = false;
@@ -2426,6 +2188,23 @@ void vtkPerkStationCalibrateStep::ClearLoadResetControls()
     }
     
 }
+
+
+void
+vtkPerkStationCalibrateStep
+::ClearHardwareCalibration()
+{
+  if ( this->TableFrame )
+    {
+    this->Script( "pack forget %s", this->TableFrame->GetWidgetName() );
+    this->Script( "pack forget %s", this->TableOverlayEntry->GetWidgetName() );
+    this->Script( "pack forget %s", this->TableOverlayLabel->GetWidgetName() );
+    this->Script( "pack forget %s", this->TableScannerEntry->GetWidgetName() );
+    this->Script( "pack forget %s", this->TableScannerLabel->GetWidgetName() );
+    }
+}
+
+
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ClearSaveControls()
 {

@@ -797,12 +797,12 @@ MyInfoEnumProc( HMONITOR hMonitor, HDC hdc, LPRECT prc, LPARAM dwData )
       if ( ! ( mi.dwFlags & MONITORINFOF_PRIMARY ) )
         {
         // monitor not primary, store the rect information
-        self->SetVirtualScreenCoord( mi.rcMonitor.left, mi.rcMonitor.top );       
+        self->SetVirtualScreenCoord( mi.rcMonitor.left, mi.rcMonitor.top );
         }
       }
     
     }
-  return TRUE;
+  return 1;
 }
 
 
@@ -1022,64 +1022,77 @@ void vtkPerkStationSecondaryMonitor::OverlayRealTimeNeedleTip(double tipRAS[3], 
     this->RenderWindow->Render(); 
   
 }
-//------------------------------------------------------------------------------
-void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
-{
-  
-  if (!this->DeviceActive)
-    return;
 
-  // get the world coordinates
-  int point[2];
-  double xyEntry[2];
-  double xyTarget[2];
 
-  double worldCoordinate[4];
-  double wcEntryPoint[3];
-  double wcTargetPoint[3];
+/**
+ * 
+ */
+void
+vtkPerkStationSecondaryMonitor
+::OverlayNeedleGuide()
+{ 
+  if ( ! this->DeviceActive ) return;
   
+  
+    // Points in the XY coordinate system.
+  double xyEntry[ 2 ];
+  double xyTarget[ 2 ];
+
+  double worldCoordinate[ 4 ];
+  
+    // Points in Renderer's world coordinate system.
+  double wcEntryPoint[ 3 ];
+  double wcTargetPoint[ 3 ];
+  
+    // Create transform matrix for RAS to XY transform.
   vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
-  vtkMatrix4x4::Invert(this->XYToRAS()->GetMatrix(), rasToXY);
+  vtkMatrix4x4::Invert( this->XYToRAS()->GetMatrix(), rasToXY );
 
-  // entry point
-  double rasEntry[3];
-  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
-  double inPt[4] = {rasEntry[0], rasEntry[1], rasEntry[2], 1};
-  double outPt[4];  
-  rasToXY->MultiplyPoint(inPt, outPt);
-  point[0] = outPt[0];
-  point[1] = outPt[1];
-  xyEntry[0] = point[0];
-  xyEntry[1] = point[1];
-
-  this->Renderer->SetDisplayPoint(point[0],point[1], 0);
+    // Convert entry point position from RAS to XY coordinates.
+  
+  double rasEntry[ 3 ];
+  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint( rasEntry );
+  double inPt[ 4 ] = { rasEntry[ 0 ], rasEntry[ 1 ], rasEntry[ 2 ], 1 };
+  double outPt[ 4 ];  
+  rasToXY->MultiplyPoint( inPt, outPt );
+  xyEntry[ 0 ] = outPt[ 0 ];
+  xyEntry[ 1 ] = outPt[ 1 ];
+  
+  
+    // Actor should be placed in world coordinates, while XY is display
+    // coordinates. vtkRenderer can transform between the two systems.
+    
+  this->Renderer->SetDisplayPoint( xyEntry[ 0 ], xyEntry[ 1 ], 0 );
   this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint(worldCoordinate);
-  wcEntryPoint[0] = worldCoordinate[0];
-  wcEntryPoint[1] = worldCoordinate[1];
-  wcEntryPoint[2] = worldCoordinate[2];
-
+  this->Renderer->GetWorldPoint( worldCoordinate );
+  wcEntryPoint[ 0 ] = worldCoordinate[ 0 ];
+  wcEntryPoint[ 1 ] = worldCoordinate[ 1 ];
+  wcEntryPoint[ 2 ] = worldCoordinate[ 2 ];
+  
+  
   double rasTarget[3];
   this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
-  inPt[0] = rasTarget[0];
-  inPt[1] = rasTarget[1];
-  inPt[2] = rasTarget[2];
-  rasToXY->MultiplyPoint(inPt, outPt);
-  point[0] = outPt[0];
-  point[1] = outPt[1];
-  xyTarget[0] = point[0];
-  xyTarget[1] = point[1];
+  inPt[ 0 ] = rasTarget[ 0 ];
+  inPt[ 1 ] = rasTarget[ 1 ];
+  inPt[ 2 ] = rasTarget[ 2 ];
+  rasToXY->MultiplyPoint( inPt, outPt );
+  xyTarget[ 0 ] = outPt[ 0 ];
+  xyTarget[ 1 ] = outPt[ 1 ];
 
-  this->Renderer->SetDisplayPoint(point[0],point[1], 0);
+  this->Renderer->SetDisplayPoint( xyTarget[ 0 ], xyTarget[ 1 ], 0 );
   this->Renderer->DisplayToWorld();
-  this->Renderer->GetWorldPoint(worldCoordinate);
-  wcTargetPoint[0] = worldCoordinate[0];
-  wcTargetPoint[1] = worldCoordinate[1];
-  wcTargetPoint[2] = worldCoordinate[2];
+  this->Renderer->GetWorldPoint( worldCoordinate );
+  wcTargetPoint[ 0 ] = worldCoordinate[ 0 ];
+  wcTargetPoint[ 1 ] = worldCoordinate[ 1 ];
+  wcTargetPoint[ 2 ] = worldCoordinate[ 2 ];
 
 
-  double halfNeedleGuideLength = sqrt( (wcTargetPoint[0]-wcEntryPoint[0])*(wcTargetPoint[0]-wcEntryPoint[0]) + (wcTargetPoint[1]-wcEntryPoint[1])*(wcTargetPoint[1]-wcEntryPoint[1]));
-
+  double halfNeedleGuideLength =
+    sqrt( ( wcTargetPoint[ 0 ] - wcEntryPoint[ 0 ] ) *
+          ( wcTargetPoint[ 0 ] - wcEntryPoint[ 0 ] ) +
+          ( wcTargetPoint[ 1 ] - wcEntryPoint[ 1 ] ) *
+          ( wcTargetPoint[ 1 ] - wcEntryPoint[ 1 ] ) );
+  
   this->MeasureNeedleLengthInWorldCoordinates = halfNeedleGuideLength;
 
   // steps
@@ -1091,65 +1104,79 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
 
   vtkCylinderSource *needleGuide = vtkCylinderSource::New();
   // TO DO: how to relate this to actual depth???
-  needleGuide->SetHeight(2*halfNeedleGuideLength );
+  needleGuide->SetHeight( 2 * halfNeedleGuideLength );
+  // needleGuide->SetHeight( halfNeedleGuideLength );
   //needleGuide->SetHeight(0.75);
   needleGuide->SetRadius( 0.009 );  
   needleGuide->SetResolution( 20 );
 
   // because cylinder is positioned at the window center
   double needleCenter[3];  
-  needleCenter[0] = wcEntryPoint[0];// - windowSize[0]/2;
-  needleCenter[1] = wcEntryPoint[1];// - windowSize[1]/2;
+  needleCenter[ 0 ] = wcEntryPoint[ 0 ];
+  needleCenter[ 1 ] = wcEntryPoint[ 1 ];
   
   // angle as calculated from xy coordinates
-  double insAngle = -double(180/vtkMath::Pi()) * atan(double((xyEntry[1] - xyTarget[1])/(xyEntry[0] - xyTarget[0])));
+  double insAngle = - double( 180 / vtkMath::Pi() ) *
+                    atan( double( ( xyEntry[ 1 ] - xyTarget[ 1 ] ) /
+                                  ( xyEntry[ 0 ] - xyTarget[ 0 ] ) ) );
   
   
-  // TO DO: transfrom needle mapper using vtkTransformPolyData
+  vtkSmartPointer< vtkTransform > needleTransform =
+      vtkSmartPointer< vtkTransform >::New();
+    needleTransform->Translate( needleCenter[ 0 ], needleCenter[ 1 ], 0.0 );
+    needleTransform->RotateZ( insAngle );
+  
+  /*
+  // TODO: transfrom needle mapper using vtkTransformPolyData
   vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
   transformMatrix->Identity();
-
-
+    
+  double insAngleRad = vtkMath::Pi() / 2.0 - 
+                       double( vtkMath::Pi() / 180 ) * insAngle;
   
-  double insAngleRad = vtkMath::Pi()/2 - double(vtkMath::Pi()/180)*insAngle;
+  transformMatrix->SetElement( 0, 0, cos( insAngleRad ) );
+  transformMatrix->SetElement( 0, 1, - sin( insAngleRad ) );
+  transformMatrix->SetElement( 0, 2, 0 );
+  transformMatrix->SetElement( 0, 3, 0 );
+  transformMatrix->SetElement( 0, 3, needleCenter[ 0 ] );
 
-  transformMatrix->SetElement(0,0, cos(insAngleRad));
-  transformMatrix->SetElement(0,1, -sin(insAngleRad));
-  transformMatrix->SetElement(0,2, 0);
-  transformMatrix->SetElement(0,3, 0);
-  transformMatrix->SetElement(0,3, needleCenter[0]);
+  transformMatrix->SetElement( 1, 0, sin( insAngleRad ) );
+  transformMatrix->SetElement( 1, 1, cos( insAngleRad ) );
+  transformMatrix->SetElement( 1, 2, 0 );
+  transformMatrix->SetElement( 1, 3, 0 );
+  transformMatrix->SetElement( 1, 3, needleCenter[ 1 ] );
 
-  transformMatrix->SetElement(1,0, sin(insAngleRad));
-  transformMatrix->SetElement(1,1, cos(insAngleRad));
-  transformMatrix->SetElement(1,2, 0);
-  transformMatrix->SetElement(1,3, 0);
-  transformMatrix->SetElement(1,3, needleCenter[1]);
+  transformMatrix->SetElement( 2, 0, 0 );
+  transformMatrix->SetElement( 2, 1, 0 );
+  transformMatrix->SetElement( 2, 2, 1 );
+  transformMatrix->SetElement( 2, 3, 0 );
 
-  transformMatrix->SetElement(2,0, 0);
-  transformMatrix->SetElement(2,1, 0);
-  transformMatrix->SetElement(2,2, 1);
-  transformMatrix->SetElement(2,3, 0);
-
-  transformMatrix->SetElement(3,0, 0);
-  transformMatrix->SetElement(3,1, 0);
-  transformMatrix->SetElement(3,2, 0);
-  transformMatrix->SetElement(3,3, 1);
-
-  vtkMatrixToHomogeneousTransform *transform = vtkMatrixToHomogeneousTransform::New();
-  transform->SetInput(transformMatrix);
-  vtkTransformPolyDataFilter *filter = vtkTransformPolyDataFilter::New();
-  filter->SetInputConnection(needleGuide->GetOutputPort()); 
-  filter->SetTransform(transform);
+  transformMatrix->SetElement( 3, 0, 0 );
+  transformMatrix->SetElement( 3, 1, 0 );
+  transformMatrix->SetElement( 3, 2, 0 );
+  transformMatrix->SetElement( 3, 3, 1 );
+  
+  vtkSmartPointer< vtkMatrixToHomogeneousTransform > transform =
+    vtkSmartPointer< vtkMatrixToHomogeneousTransform >::New();
+  transform->SetInput( transformMatrix );
+  */
+  
+  vtkSmartPointer< vtkTransformPolyDataFilter > filter =
+    vtkSmartPointer< vtkTransformPolyDataFilter >::New();
+  filter->SetInputConnection( needleGuide->GetOutputPort() ); 
+  // filter->SetTransform( transform );
+  filter->SetTransform( needleTransform );
 
   // map
-  vtkPolyDataMapper *needleMapper = vtkPolyDataMapper::New();
+  vtkSmartPointer< vtkPolyDataMapper > needleMapper =
+    vtkSmartPointer< vtkPolyDataMapper >::New();
   needleMapper->SetInputConnection( filter->GetOutputPort() );
   
   // after transfrom, set up actor 
-  this->NeedleGuideActor->SetMapper(needleMapper );
+  this->NeedleGuideActor->SetMapper( needleMapper );
   
   // add to renderer of the Axial slice viewer
-  this->Renderer->AddActor(this->NeedleGuideActor);  
+  this->Renderer->AddActor( this->NeedleGuideActor );  
   this->RenderWindow->Render(); 
 }
 
