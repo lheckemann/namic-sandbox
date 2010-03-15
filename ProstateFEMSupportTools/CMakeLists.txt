@@ -18,6 +18,9 @@ target_link_libraries(prostateAddVolDispl ITKCommon ITKIO vtkIO vtkGraphics)
 add_executable(imageMeshResampler imageMeshResampler.cxx)
 target_link_libraries(imageMeshResampler ITKCommon ITKIO vtkIO vtkGraphics)
 
+add_executable(imageMeshResamplerAffine imageMeshResamplerAffine.cxx)
+target_link_libraries(imageMeshResamplerAffine ITKCommon ITKIO vtkIO vtkGraphics)
+
 add_executable(ProstateRegionIdentifier ProstateRegionIdentifier.cxx)
 target_link_libraries(ProstateRegionIdentifier ITKCommon ITKIO vtkIO vtkGraphics)
 

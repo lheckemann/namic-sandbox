@@ -285,7 +285,7 @@ int main(int argc, char **argv){
       dfPixel[2] = affTfmPt[2]-pointRef[2];
       dfImageI.Set(dfPixel);
 
-      if(!inputImage->TransformPhysicalPointToIndex(pointIn, idxOut)){
+      if(!inputImage->TransformPhysicalPointToIndex(affTfmPt, idxOut)){
         std::cerr << "Point is outside the input image" << std::endl;
         return -2;
       }
