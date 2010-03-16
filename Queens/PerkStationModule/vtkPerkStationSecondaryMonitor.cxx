@@ -148,23 +148,27 @@ vtkPerkStationSecondaryMonitor
     this->LeftSideActor->SetTextScaleModeToNone();
     this->LeftSideActor->GetTextProperty()->SetFontSize( 30 );
     this->LeftSideActor->GetTextProperty()->BoldOn();
-    this->LeftSideActor->FlipAroundX( true );
-    this->LeftSideActor->SetOrientation( 180 );
-  
+    if ( this->HorizontalFlip ) this->LeftSideActor->FlipAroundY( true );
+    if ( this->VerticalFlip ) this->LeftSideActor->FlipAroundX( true );
+    
   this->RightSideActor = vtkSmartPointer< vtkTextActorFlippable >::New();
     this->RightSideActor->SetInput( "R" );
     this->RightSideActor->GetTextProperty()->SetColor( 1, 0.5, 0 );
     this->RightSideActor->SetTextScaleModeToNone();
     this->RightSideActor->GetTextProperty()->SetFontSize( 30 );
     this->RightSideActor->GetTextProperty()->BoldOn();
-    this->RightSideActor->FlipAroundX( true );
-    this->RightSideActor->SetOrientation( 180 );
-  
+    if ( this->HorizontalFlip ) this->RightSideActor->FlipAroundY( true );
+    if ( this->VerticalFlip ) this->RightSideActor->FlipAroundX( true );
+    
   
    // Calibration controls.
   this->CalibrationControlsActor =
    vtkSmartPointer< vtkTextActorFlippable >::New();
 
+  
+  this->UpdateCornerPositions();
+  
+  
     // Image geometry.
   
   this->SliceOffsetRAS = 0.0;
@@ -230,9 +234,6 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::ResetCalibration()
 {
-  this->HorizontalFlip = false;
-  this->VerticalFlip = false;
-  
   this->Rotation = 0.0;
   
   this->RotationCenter[ 0 ] = 0.0;
@@ -240,9 +241,6 @@ void vtkPerkStationSecondaryMonitor::ResetCalibration()
   
   this->Translation[ 0 ] = 0.0;
   this->Translation[ 1 ] = 0.0;
-  
-  this->Scale[ 0 ] = 1.0;
-  this->Scale[ 1 ] = 1.0;
 }
 
 
@@ -363,10 +361,15 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   this->CalibrationControlsActor->GetTextProperty()->SetFontSize( 28 );
   this->CalibrationControlsActor->GetTextProperty()->BoldOn();
   this->CalibrationControlsActor->SetDisplayPosition(
-    this->ScreenSize[ 0 ] / 2 + 370, this->ScreenSize[ 1 ] - 40 );
-  this->CalibrationControlsActor->FlipAroundX( true );
-  this->CalibrationControlsActor->SetOrientation( 180 );
-  // this->CalibrationControlsActor->SetVisibility( 0 );
+    this->ScreenSize[ 0 ] / 2 - 370, this->ScreenSize[ 1 ] - 50 );
+  if ( this->HorizontalFlip )
+    {
+    this->CalibrationControlsActor->FlipAroundY( true );
+    }
+  if ( this->VerticalFlip )
+    {
+    this->CalibrationControlsActor->FlipAroundX( true );
+    }
   
   this->Renderer->AddActor( this->CalibrationControlsActor );
   
@@ -395,12 +398,27 @@ void vtkPerkStationSecondaryMonitor::SetupImageData()
   
   double spacing[ 3 ];
   this->VolumeNode->GetSpacing( spacing ); // mm between pixels
+  
     // pixel / mm.
   double s0 = this->MonitorPhysicalSizeMM[ 0 ] / this->ScreenSize[ 0 ];
   double s1 = this->MonitorPhysicalSizeMM[ 1 ] / this->ScreenSize[ 1 ];
     // These values will be placed in the reslice transform matrix.
   this->Scale[ 0 ] = s0;
   this->Scale[ 1 ] = s1;
+}
+
+
+
+/**
+ * @param x Horizontal displacement of the virtual image.
+ * @param y Vertical displacement of the virtual image.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::GetTranslation( double& x, double& y )
+{
+  x = this->Translation[ 0 ];
+  y = this->Translation[ 1 ];
 }
 
 
@@ -435,7 +453,18 @@ vtkPerkStationSecondaryMonitor
 
 
 /**
- * @param angle Set as rotation of the virtual image.
+ * @param angle Will be set in degrees.
+ */
+void
+vtkPerkStationSecondaryMonitor
+::GetRotation( double& angle )
+{
+  angle = this->Rotation;
+}
+
+
+/**
+ * @param angle Set as rotation in degrees of the virtual image.
  */
 void
 vtkPerkStationSecondaryMonitor
@@ -535,13 +564,17 @@ vtkPerkStationSecondaryMonitor::XYToIJK()
   if ( this->HorizontalFlip ) hFlipFactor = - 1.0;
   if ( this->VerticalFlip ) vFlipFactor = - 1.0;
   
+  
     // We are in pre-multiply mode, so write transforms in reverse order.
   
   ret->Translate( this->Translation[ 0 ], this->Translation[ 1 ], 0.0 );
+  
   ret->RotateZ( this->Rotation );
-  ret->Scale( this->Scale[ 0 ] * hFlipFactor,
-              this->Scale[ 1 ] * vFlipFactor,
-              1.0 );
+  
+  double s0 = this->MonitorPhysicalSizeMM[ 0 ] / this->ScreenSize[ 0 ];
+  double s1 = this->MonitorPhysicalSizeMM[ 1 ] / this->ScreenSize[ 1 ];
+  ret->Scale( s0 * hFlipFactor, s1 * vFlipFactor, 1.0 );
+  
   ret->Translate( - this->ScreenSize[ 0 ] / 2.0,
                   - this->ScreenSize[ 1 ] / 2.0,
                   0.0 );
@@ -676,6 +709,9 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
 {
   if ( ! this->GetGUI()->GetMRMLNode() ) return;
   
+  if ( ! this->DisplayInitialized ) return;
+  
+  
      // Switch visibility of needle guide.
      // Show needle guide only in planning plane +/- 0.5 mm.
    
@@ -690,7 +726,7 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    minOffset = entry[ 2 ] - 0.5;
    maxOffset = target[ 2 ] + 0.5;
    }
-
+  
   if (
       ( this->SliceOffsetRAS <= maxOffset )
       && ( this->SliceOffsetRAS >= minOffset )
@@ -706,12 +742,74 @@ void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
    this->ShowDepthPerceptionLines( false );
    }
  
-  
-  if ( ! this->DisplayInitialized )
+ 
+   // Position Left / Right side indicator letters.
+ 
+ bool Lup = false;
+ bool Lleft = false;
+ bool Rup = false;
+ bool Rleft = false;
+ 
+   // Take patient position into account.
+   
+ switch ( this->GetGUI()->GetMRMLNode()->GetPatientPosition() )
+   {
+   case HFP :  Lleft = true;  Lup = true;  Rleft = false; Rup = true;   break;
+   case HFS :  Lleft = false; Lup = true;  Rleft = true;  Rup = true;   break;
+   case HFDR : Lleft = true;  Lup = true;  Rleft = true;  Rup = false;  break;
+   case HFDL : Lleft = true;  Lup = false; Rleft = true;  Rup = true;   break;
+   case FFDR : Lleft = true;  Lup = true;  Rleft = true;  Rup = false;  break;
+   case FFDL : Lleft = true;  Lup = false; Rleft = true;  Rup = true;   break;
+   case FFP :  Lleft = false; Lup = true;  Rleft = true;  Rup = true;   break;
+   case FFS :  Lleft = true;  Lup = true;  Rleft = false; Rup = true;   break;
+   }
+ 
+    // Take hardware into account.
+
+  if ( this->HorizontalFlip )
     {
-    return;
+    Lleft = ! Lleft;
+    Rleft = ! Rleft;
+    this->LeftSideActor->FlipAroundY( true );
+    this->RightSideActor->FlipAroundY( true );
+    this->CalibrationControlsActor->FlipAroundY( true );
     }
-  
+  else
+    {
+    this->LeftSideActor->FlipAroundY( false );
+    this->RightSideActor->FlipAroundY( false );
+    this->CalibrationControlsActor->FlipAroundY( false );
+    }
+
+  if ( this->VerticalFlip )
+    {
+    Lup = ! Lup;
+    Rup = ! Lup;
+    this->LeftSideActor->FlipAroundX( true );
+    this->RightSideActor->FlipAroundX( true );
+    this->CalibrationControlsActor->FlipAroundX( true );
+    }
+  else
+    {
+    this->LeftSideActor->FlipAroundX( false );
+    this->RightSideActor->FlipAroundX( false );
+    this->CalibrationControlsActor->FlipAroundX( false );
+    }
+ 
+    // Position the actors.
+
+  this->LeftSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ],
+                                          this->UpperLeftCorner[ 1 ] );
+  if ( ! Lleft && Lup )
+   this->LeftSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ],
+                                            this->UpperRightCorner[ 1 ] );
+
+  this->RightSideActor->SetDisplayPosition( this->UpperLeftCorner[ 0 ],
+                                           this->UpperLeftCorner[ 1 ] );
+  if ( ! Rleft && Rup )
+   this->RightSideActor->SetDisplayPosition( this->UpperRightCorner[ 0 ],
+                                             this->UpperRightCorner[ 1 ] );
+
   
     // Extract slice from the image volume.
   
@@ -866,6 +964,7 @@ void vtkPerkStationSecondaryMonitor::Initialize()
           this->DeviceActive = true;
           this->ScreenSize[ 0 ] = width_pix;
           this->ScreenSize[ 1 ] = height_pix;
+          this->UpdateCornerPositions();
           }
         
         DeleteDC( hdc );
@@ -1124,42 +1223,7 @@ vtkPerkStationSecondaryMonitor
   vtkSmartPointer< vtkTransform > needleTransform =
       vtkSmartPointer< vtkTransform >::New();
     needleTransform->Translate( needleCenter[ 0 ], needleCenter[ 1 ], 0.0 );
-    needleTransform->RotateZ( insAngle );
-  
-  /*
-  // TODO: transfrom needle mapper using vtkTransformPolyData
-  vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
-  transformMatrix->Identity();
-    
-  double insAngleRad = vtkMath::Pi() / 2.0 - 
-                       double( vtkMath::Pi() / 180 ) * insAngle;
-  
-  transformMatrix->SetElement( 0, 0, cos( insAngleRad ) );
-  transformMatrix->SetElement( 0, 1, - sin( insAngleRad ) );
-  transformMatrix->SetElement( 0, 2, 0 );
-  transformMatrix->SetElement( 0, 3, 0 );
-  transformMatrix->SetElement( 0, 3, needleCenter[ 0 ] );
-
-  transformMatrix->SetElement( 1, 0, sin( insAngleRad ) );
-  transformMatrix->SetElement( 1, 1, cos( insAngleRad ) );
-  transformMatrix->SetElement( 1, 2, 0 );
-  transformMatrix->SetElement( 1, 3, 0 );
-  transformMatrix->SetElement( 1, 3, needleCenter[ 1 ] );
-
-  transformMatrix->SetElement( 2, 0, 0 );
-  transformMatrix->SetElement( 2, 1, 0 );
-  transformMatrix->SetElement( 2, 2, 1 );
-  transformMatrix->SetElement( 2, 3, 0 );
-
-  transformMatrix->SetElement( 3, 0, 0 );
-  transformMatrix->SetElement( 3, 1, 0 );
-  transformMatrix->SetElement( 3, 2, 0 );
-  transformMatrix->SetElement( 3, 3, 1 );
-  
-  vtkSmartPointer< vtkMatrixToHomogeneousTransform > transform =
-    vtkSmartPointer< vtkMatrixToHomogeneousTransform >::New();
-  transform->SetInput( transformMatrix );
-  */
+    needleTransform->RotateZ( 90.0 - insAngle );
   
   vtkSmartPointer< vtkTransformPolyDataFilter > filter =
     vtkSmartPointer< vtkTransformPolyDataFilter >::New();
@@ -1288,56 +1352,46 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
       wcEndPoint[2] = worldCoordinate[2];
 
       // set up the line
-      vtkLineSource *line = vtkLineSource::New();
-      line->SetPoint1(wcStartPoint);
-      line->SetPoint2(wcEndPoint);
+      vtkSmartPointer< vtkLineSource > line =
+          vtkSmartPointer< vtkLineSource >::New();
+        line->SetPoint1( wcStartPoint );
+        line->SetPoint2( wcEndPoint );
 
       // set up the mapper,
-      vtkPolyDataMapper *lineMapper = vtkPolyDataMapper::New();
-      lineMapper->SetInputConnection( line->GetOutputPort() );
-    
-
+      vtkSmartPointer< vtkPolyDataMapper > lineMapper =
+          vtkSmartPointer< vtkPolyDataMapper >::New();
+        lineMapper->SetInputConnection( line->GetOutputPort() );
+      
       // actor
-      vtkActor *lineActor = vtkActor::New();
-      lineActor->SetMapper(lineMapper);
-      lineActor->GetProperty()->SetColor(0,255,0);
-
-
-      char *text = new char[10];
-      sprintf(text,"%d mm",(i+1)*10);     
+      vtkSmartPointer< vtkActor > lineActor = vtkSmartPointer< vtkActor >::New();
+        lineActor->SetMapper( lineMapper );
+        lineActor->GetProperty()->SetColor( 0, 255, 0 );
+      
+      
+      char *text = new char[ 10 ];
+      sprintf( text, "%d mm", ( i + 1 ) * 10 );     
      
       // vtkTextActor *textActor = vtkTextActor::New();
-      vtkTextActorFlippable *textActor = vtkTextActorFlippable::New();
-      textActor->SetInput(text);
-
-      //textActor->SetPosition(wcStartPoint[0],wcStartPoint[1],wcStartPoint[2]);
-      //textActor->GetProperty()->SetColor(0,0,1);
-      textActor->GetTextProperty()->SetColor(0,1,0);
-      textActor->SetTextScaleModeToNone();
-      textActor->GetTextProperty()->SetFontSize(30);
-      textActor->FlipAroundX( true );
-      textActor->SetOrientation( 180 );
+      vtkSmartPointer< vtkTextActorFlippable > textActor =
+          vtkSmartPointer< vtkTextActorFlippable >::New();
+        textActor->SetInput( text );
+        textActor->GetTextProperty()->SetColor( 0, 1, 0 );
+        textActor->SetTextScaleModeToNone();
+        textActor->GetTextProperty()->SetFontSize( 30 );
+        if ( this->HorizontalFlip ) textActor->FlipAroundY( true );
+        if ( this->VerticalFlip ) textActor->FlipAroundX( true );
+          
       
-      if (denom>=0)
+      if ( denom >= 0 )
         {
-        // textActor->SetDisplayPosition(pointXY[0]+100, pointXY[1]+5);
-        textActor->SetDisplayPosition(pointXY[0]+120, pointXY[1]+25);
-        // convert to world coordinate
-        //this->Renderer->SetDisplayPoint(pointXY[0]+100,pointXY[1]+5, 0);
-        //this->Renderer->DisplayToWorld();
-        //this->Renderer->GetWorldPoint(worldCoordinate);
-        //textActor->SetPosition(worldCoordinate[0],worldCoordinate[1],worldCoordinate[2]);       
+          // Already in display coordinate system.
+        textActor->SetDisplayPosition( pointXY[ 0 ] + 120, pointXY[ 1 ] + 2 );
         }
       else
         {
-        textActor->SetDisplayPosition(pointXY[0]-120, pointXY[1]+25);
-        // convert to world coordinate
-        //this->Renderer->SetDisplayPoint(pointXY[0]-100,pointXY[1]+5, 0);
-        //this->Renderer->DisplayToWorld();
-        //this->Renderer->GetWorldPoint(worldCoordinate);
-        //textActor->SetPosition(worldCoordinate[0],worldCoordinate[1],worldCoordinate[2]);
+        textActor->SetDisplayPosition( pointXY[ 0 ] - 120, pointXY[ 1 ] + 2 );
         }
-
+      
       
       // flip vertically the text actor
       if ( this->VerticalFlip )
@@ -1351,17 +1405,9 @@ void vtkPerkStationSecondaryMonitor::SetDepthPerceptionLines()
       // add text actor to the renderer
       this->Renderer->AddActor(textActor);
 
-
-       
       // add to actor collection
       this->DepthPerceptionLines->AddItem(lineActor);
       this->Renderer->AddActor(lineActor);
-
-
-
-      lineMapper->Delete();
-      lineActor->Delete();
-      textActor->Delete();
       }
       
     // add the last line for final target depth
@@ -1541,6 +1587,17 @@ vtkPerkStationSecondaryMonitor
   this->RenderWindow->Render();
 }
 
+
+void
+vtkPerkStationSecondaryMonitor
+::UpdateCornerPositions()
+{
+  this->UpperRightCorner[ 0 ] = 40;
+  this->UpperRightCorner[ 1 ] = this->ScreenSize[ 1 ] - 50;
+  
+  this->UpperLeftCorner[ 0 ] = this->ScreenSize[ 0 ] - 50;
+  this->UpperLeftCorner[ 1 ] = this->ScreenSize[ 1 ] - 50;
+}
 
 
   // New image geometry handling.

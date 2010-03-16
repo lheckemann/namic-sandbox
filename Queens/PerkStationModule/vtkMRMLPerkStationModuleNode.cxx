@@ -205,10 +205,10 @@ vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
 void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
 {  
   Superclass::WriteXML(of, nIndent);
-
+  
   // Write all MRML node attributes into output stream
-
-  vtkIndent indent(nIndent);
+  
+  vtkIndent indent( nIndent );
   
   
   of << "\" \n";
@@ -219,80 +219,80 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
   of << indent << " ValidationVolumeRef=\"" 
      << (this->ValidationVolumeRef ? this->ValidationVolumeRef: "NULL")
      << "\" \n";
-
+  
   // Calibration step parameters
-
+  
   // flip parameters
   of << indent << " VerticalFlip=\"" << this->VerticalFlip   
      << "\" \n";
   
   of << indent << " HorizontalFlip=\"" << this->HorizontalFlip   
      << "\" \n";
-
+  
   // scale parameters
   of << indent << " UserScaling=\"";
   for(int i = 0; i < 2; i++)
       of << this->UserScaling[i] << " ";
   of << "\" \n";
-
+  
   of << indent << " ActualScaling=\"";
   for(int i = 0; i < 2; i++)
       of << this->ActualScaling[i] << " ";
   of << "\" \n";
-
+  
   // translation parameters
   of << indent << " UserTranslation=\"";
   for(int i = 0; i < 3; i++)
       of << this->UserTranslation[i] << " ";
   of << "\" \n";
-
+  
   of << indent << " ActualTranslation=\"";
   for(int i = 0; i < 3; i++)
       of << this->ActualTranslation[i] << " ";
   of << "\" \n";
-
+  
   // rotation parameters
   of << indent << " UserRotation=\"" << this->UserRotation
      << "\" \n";
-
+  
   of << indent << " ActualRotation=\"" << this->ActualRotation
      << "\" \n";
-
+  
   of << indent << " CenterOfRotation=\"";
   for(int i = 0; i < 3; i++)
       of << this->CenterOfRotation[i] << " ";
   of << "\" \n";
-
-
+  
+  
   // PLAN step parameters
-
-
+  
+  
   of << indent << " PlanEntryPoint=\"";
   for(int i = 0; i < 3; i++)
       of << this->PlanEntryPoint[i] << " ";
   of << "\" \n";
-
+  
   of << indent << " PlanTargetPoint=\"";
   for(int i = 0; i < 3; i++)
       of << this->PlanTargetPoint[i] << " ";
   of << "\" \n";
-
+  
   of << indent << " UserPlanInsertionAngle=\"" << this->UserPlanInsertionAngle
      << "\" \n";
-
+  
   of << indent << " ActualPlanInsertionAngle=\"" << this->ActualPlanInsertionAngle
      << "\" \n";
-
+  
   of << indent << " UserPlanInsertionDepth=\"" << this->UserPlanInsertionDepth
      << "\" \n";
-
+  
   of << indent << " ActualPlanInsertionDepth=\"" << this->ActualPlanInsertionDepth
      << "\" \n";
-
-
-
+  
+  
+  
   // Validate step parameters
-
+  
   of << indent << " ValidateEntryPoint=\"";
   for(int i = 0; i < 3; i++)
       of << this->ValidateEntryPoint[i] << " ";
@@ -329,7 +329,13 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
      << "\" \n";
 
   of << indent << " TargetPointError=\"" << this->TargetPointError
-     << "\" \n";  
+     << "\" \n";
+  
+  
+    // Table calibration.
+  
+  of << indent << " TableAtScanner=\"" << this->TableAtScanner << "\" \n";
+  of << indent << " TableAtOverlay=\"" << this->TableAtOverlay << "\" \n";
 }
 
 //----------------------------------------------------------------------------
@@ -681,6 +687,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       ss >> val;
       this->TargetPointError = val;
       } 
+     
     }
   
 }
