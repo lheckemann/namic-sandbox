@@ -106,8 +106,9 @@ public:
   {
     this->MonitorPhysicalSizeMM[ 0 ] = mmX;
     this->MonitorPhysicalSizeMM[ 1 ] = mmY;
+    this->UpdateImageDisplay();
   };
-
+  
   
   void GetPixelResolution( double & pixX, double & pixY )
   {
@@ -119,6 +120,7 @@ public:
   {
     this->MonitorPixelResolution[ 0 ] = pixX;
     this->MonitorPixelResolution[ 1 ] = pixY;
+    this->UpdateCornerPositions();
   };
   
   
@@ -173,15 +175,18 @@ public:
 protected:
   
   vtkSmartPointer< vtkTextActorFlippable > CalibrationControlsActor;
-
+  
   
 protected:
   
   vtkPerkStationSecondaryMonitor();
   ~vtkPerkStationSecondaryMonitor();  
-
+  
   vtkPerkStationModuleGUI *GUI;
-
+  
+  
+  // Visual components --------------------------------------------------------
+  
     // Display/visualization.
   vtkSmartPointer< vtkWin32OpenGLRenderWindow > RenderWindow;
   vtkSmartPointer< vtkRenderer >                Renderer;
@@ -199,8 +204,12 @@ protected:
   vtkSmartPointer< vtkActorCollection > DepthPerceptionLines;  
   vtkSmartPointer< vtkActor2DCollection > TextActorsCollection;
   
+    // Left/Right side letters.
   vtkSmartPointer< vtkTextActorFlippable > LeftSideActor;
   vtkSmartPointer< vtkTextActorFlippable > RightSideActor;
+  
+  // --------------------------------------------------------------------------
+  
   
   vtkSmartPointer< vtkImageMapToWindowLevelColors > MapToWindowLevelColors;
   
@@ -245,6 +254,12 @@ private:
   void operator=( const vtkPerkStationSecondaryMonitor& );
   
   
+  void UpdateCornerPositions();
+  
+  double UpperRightCorner[ 2 ];
+  double UpperLeftCorner[ 2 ];
+  
+  
     // Image geometry.
 
 public:
@@ -253,7 +268,11 @@ public:
   void SetVerticalFlip( bool flip );
   
   void SetRotationCenter( double center[ 2 ] );
-  void SetRotation( double rotation );
+  
+  void GetRotation( double& angle );
+  void SetRotation( double angle );
+  
+  void GetTranslation( double& x, double& y );
   void SetTranslation( double x, double y );
   
   void UpdateCalibration();

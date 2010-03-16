@@ -37,22 +37,22 @@
 #include "vtkMatrixToHomogeneousTransform.h"
 
 #include "vtkKWApplication.h"
-#include "vtkKWLabel.h"
-#include "vtkKWWidget.h"
-#include "vtkKWFrame.h"
 #include "vtkKWComboBox.h"
 #include "vtkKWComboBoxWithLabel.h"
+#include "vtkKWFrame.h"
+#include "vtkKWFrameWithLabel.h"
+#include "vtkKWLabel.h"
+#include "vtkKWLoadSaveButton.h"
 #include "vtkKWMenuButton.h"
 #include "vtkKWMenuButtonWithLabel.h"
+#include "vtkKWMessageDialog.h"
 #include "vtkKWPushButton.h"
 #include "vtkKWPushButtonSet.h"
-#include "vtkKWWizardWidget.h"
-#include "vtkKWWizardWorkflow.h"
-#include "vtkKWLoadSaveButton.h"
-#include "vtkKWFrameWithLabel.h"
 #include "vtkKWScale.h"
 #include "vtkKWScaleWithEntry.h"
-#include "vtkKWMessageDialog.h"
+#include "vtkKWWidget.h"
+#include "vtkKWWizardWidget.h"
+#include "vtkKWWizardWorkflow.h"
 
 #include "vtkPerkStationCalibrateStep.h"
 #include "vtkPerkStationPlanStep.h"
@@ -1799,28 +1799,16 @@ void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
   if (!this->GetMRMLNode())
       return;
 
- 
-
-  switch(this->Mode)
-    {
-    case vtkPerkStationModuleGUI::Training:
-        this->GetMRMLNode()->WriteXML(of, 0);
-        break;
-    
-    case vtkPerkStationModuleGUI::Clinical:
-        // save information about image volumes used
-        this->SaveVolumeInformation(of);
-        // save information about calibration
-        this->CalibrateStep->SaveCalibration(of);
-        // save information about planning
-        this->PlanStep->SavePlanning(of);
-        // save information about insertion
-        this->InsertStep->SaveInsertion(of);
-        // save information about validation 
-        this->ValidateStep->SaveValidation(of);
-        break;
-    }
-  
+  // save information about image volumes used
+  this->SaveVolumeInformation(of);
+  // save information about calibration
+  this->CalibrateStep->SaveCalibration(of);
+  // save information about planning
+  this->PlanStep->SavePlanning(of);
+  // save information about insertion
+  this->InsertStep->SaveInsertion(of);
+  // save information about validation 
+  this->ValidateStep->SaveValidation(of);
 }
 
 
@@ -1927,7 +1915,7 @@ void vtkPerkStationModuleGUI::SaveVolumeInformation(ostream& of)
 
   std::string tagValue;
 
-
+  
 
   // following information needs to be written to the file
 

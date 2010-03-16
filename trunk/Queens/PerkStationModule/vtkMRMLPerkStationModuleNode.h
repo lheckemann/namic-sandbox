@@ -45,39 +45,42 @@ enum PatientPosition
 enum OverlayMonitor
 {
   MONITOR_SIEMENS = 0,
-  MONITOR_VIEWSONIC = 1
+  MONITOR_VIEWSONIC = 1,
+  MONITOR_ACER = 2
 };
 
 
-class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode
-  : public vtkMRMLNode
+class
+VTK_PERKSTATIONMODULE_EXPORT
+vtkMRMLPerkStationModuleNode
+: public vtkMRMLNode
 {
 
 public:
 
   static vtkMRMLPerkStationModuleNode *New();
-  vtkTypeMacro(vtkMRMLPerkStationModuleNode,vtkMRMLNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  vtkTypeMacro( vtkMRMLPerkStationModuleNode, vtkMRMLNode );
+  void PrintSelf( ostream& os, vtkIndent indent );
 
   // Description:
   // Create instance of a PS node.
   virtual vtkMRMLNode* CreateNodeInstance();
-
+  
   // Description:
   // Set node attributes from name/value pairs
   virtual void ReadXMLAttributes( const char** atts);
-
+  
   // Description:
   // Write this node's information to a MRML file in XML format.
-  virtual void WriteXML(ostream& of, int indent);
-
+  virtual void WriteXML( ostream& of, int indent );
+  
   // Description:
   // Copy the node's attributes to this object
-  virtual void Copy(vtkMRMLNode *node);
+  virtual void Copy( vtkMRMLNode *node );
 
   // Description:
   // Get unique node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() {return "PS";};
+  virtual const char* GetNodeTagName() { return "PS"; };
 
   // calibrate parameters:
   
@@ -139,39 +142,39 @@ public:
 
   // Description:
   // Get/Set the Transform Node that encapsulates translation, rotation, scaling
-  vtkGetObjectMacro(CalibrationMRMLTransformNode, vtkMRMLLinearTransformNode);
+  vtkGetObjectMacro( CalibrationMRMLTransformNode, vtkMRMLLinearTransformNode );
   //void SetTransformNodeMatrix(vtkMatrix4x4 *matrix);
   
   // plan parameters:
   
   // Description:
   // Get/Set the Fiducial list node that contains entry point and target point
-  vtkGetObjectMacro(PlanMRMLFiducialListNode, vtkMRMLFiducialListNode);
+  vtkGetObjectMacro( PlanMRMLFiducialListNode, vtkMRMLFiducialListNode );
 
 
   // Description:
   // Get/Set  PlanEntryPoint(module parameter)
-  vtkGetVector3Macro(PlanEntryPoint, double);
-  vtkSetVector3Macro(PlanEntryPoint, double);
+  vtkGetVector3Macro( PlanEntryPoint, double );
+  vtkSetVector3Macro( PlanEntryPoint, double );
 
   // Description:
   // Get/Set  PlanTargetPoint(module parameter)
-  vtkGetVector3Macro(PlanTargetPoint, double);
-  vtkSetVector3Macro(PlanTargetPoint, double);
+  vtkGetVector3Macro( PlanTargetPoint, double );
+  vtkSetVector3Macro( PlanTargetPoint, double );
 
   // Description:
   // Get/Set  UserInsertionAngle(module parameter)
-  vtkGetMacro(UserPlanInsertionAngle, double);
-  vtkSetMacro(UserPlanInsertionAngle, double);
+  vtkGetMacro( UserPlanInsertionAngle, double );
+  vtkSetMacro( UserPlanInsertionAngle, double );
 
   // Description:
   // Get/Set ActualInsertionAngle (module parameter)
-  vtkGetMacro(ActualPlanInsertionAngle, double);
-  vtkSetMacro(ActualPlanInsertionAngle, double);
+  vtkGetMacro( ActualPlanInsertionAngle, double );
+  vtkSetMacro( ActualPlanInsertionAngle, double );
 
   // Get/Set  TiltAngle(module parameter)
-  vtkGetMacro(TiltAngle, double);
-  vtkSetMacro(TiltAngle, double);
+  vtkGetMacro( TiltAngle, double );
+  vtkSetMacro( TiltAngle, double );
 
   void SetOriginalSliceToRAS(vtkMatrix4x4 *matrix){this->OriginalSliceToRAS->DeepCopy(matrix);};
   vtkMatrix4x4 *GetOriginalSliceToRAS(){return this->OriginalSliceToRAS;};
@@ -230,55 +233,57 @@ public:
 
 
   // evaluate parameters:
-  vtkGetVector2Macro(CalibrateTranslationError, double);  
-  vtkGetMacro(CalibrateRotationError, double);
-  vtkGetVector2Macro(CalibrateScaleError, double);
-  vtkGetMacro(PlanInsertionAngleError, double);
-  vtkGetMacro(PlanInsertionDepthError, double);
-  vtkGetMacro(EntryPointError, double);
-  vtkGetMacro(TargetPointError, double);
+  vtkGetVector2Macro( CalibrateTranslationError, double );  
+  vtkGetMacro( CalibrateRotationError, double );
+  vtkGetVector2Macro( CalibrateScaleError, double );
+  vtkGetMacro( PlanInsertionAngleError, double );
+  vtkGetMacro( PlanInsertionDepthError, double );
+  vtkGetMacro( EntryPointError, double );
+  vtkGetMacro( TargetPointError, double );
 
 
   // common:
-  vtkSetMacro(TimeSpentOnCalibrateStep, double);
-  vtkGetMacro(TimeSpentOnCalibrateStep, double);
+  vtkSetMacro( TimeSpentOnCalibrateStep, double );
+  vtkGetMacro( TimeSpentOnCalibrateStep, double );
 
-  vtkSetMacro(TimeSpentOnPlanStep, double);
-  vtkGetMacro(TimeSpentOnPlanStep, double);
+  vtkSetMacro( TimeSpentOnPlanStep, double );
+  vtkGetMacro( TimeSpentOnPlanStep, double );
 
-  vtkSetMacro(TimeSpentOnInsertStep, double);
-  vtkGetMacro(TimeSpentOnInsertStep, double);
+  vtkSetMacro( TimeSpentOnInsertStep, double );
+  vtkGetMacro( TimeSpentOnInsertStep, double );
 
-  vtkSetMacro(TimeSpentOnValidateStep, double);
-  vtkGetMacro(TimeSpentOnValidateStep, double);
+  vtkSetMacro( TimeSpentOnValidateStep, double );
+  vtkGetMacro( TimeSpentOnValidateStep, double );
 
 
   // Description:
 
   // Get/Set volume in use
-  vtkGetStringMacro(VolumeInUse);
-  vtkSetStringMacro(VolumeInUse);
+  vtkGetStringMacro( VolumeInUse );
+  vtkSetStringMacro( VolumeInUse );
 
   // Get/Set input volume MRML Id
-  vtkGetStringMacro(PlanningVolumeRef);
-  vtkSetStringMacro(PlanningVolumeRef);
+  vtkGetStringMacro( PlanningVolumeRef );
+  vtkSetStringMacro( PlanningVolumeRef );
 
-  vtkGetStringMacro(ValidationVolumeRef);
-  vtkSetStringMacro(ValidationVolumeRef);
+  vtkGetStringMacro( ValidationVolumeRef );
+  vtkSetStringMacro( ValidationVolumeRef );
 
   // calibration/planning volume node
-  vtkMRMLScalarVolumeNode *GetPlanningVolumeNode(){return this->PlanningVolumeNode;};
-  void SetPlanningVolumeNode(vtkMRMLScalarVolumeNode *planVolNode);
+  vtkMRMLScalarVolumeNode *GetPlanningVolumeNode()
+  { return this->PlanningVolumeNode; };
+  void SetPlanningVolumeNode( vtkMRMLScalarVolumeNode *planVolNode );
   
   // validation volume node
-  vtkMRMLScalarVolumeNode *GetValidationVolumeNode(){return this->ValidationVolumeNode;};
-  void SetValidationVolumeNode(vtkMRMLScalarVolumeNode *validationVolNode);
+  vtkMRMLScalarVolumeNode *GetValidationVolumeNode()
+  { return this->ValidationVolumeNode; };
+  void SetValidationVolumeNode( vtkMRMLScalarVolumeNode *validationVolNode );
 
   vtkMRMLScalarVolumeNode *GetActiveVolumeNode();
 
   // Description:
   // Update the stored reference to another node in the scene
-  virtual void UpdateReferenceID(const char *oldID, const char *newID);
+  virtual void UpdateReferenceID( const char *oldID, const char *newID );
 
   
 
@@ -302,11 +307,15 @@ public:
   const char* GetStepName(int i);
   
   
-  // Patient position
-
-public:
   PatientPosition GetPatientPosition();
-
+  
+  vtkGetMacro( TableAtScanner, double );
+  vtkSetMacro( TableAtScanner, double );
+  
+  vtkGetMacro( TableAtOverlay, double );
+  vtkSetMacro( TableAtOverlay, double );
+  
+  
 private:
   PatientPosition m_PatientPosition;
   
@@ -437,7 +446,9 @@ protected:
   //ETX
   
   
-    // Keep track of work phases.
+  double TableAtScanner;
+  double TableAtOverlay;
+  
 
 protected:
 
