@@ -23,3 +23,6 @@ target_link_libraries(LaplacianSegmentationLevelSetImageFilter ITKIO ITKStatisti
 
 add_executable(DeformableModel1 DeformableModel1.cxx)
 target_link_libraries(DeformableModel1 ITKIO ITKStatistics)
+
+add_executable(LocalThresholding LocalThresholding.cxx)
+target_link_libraries(LocalThresholding ITKIO ITKStatistics ITKQuadEdgeMesh)
