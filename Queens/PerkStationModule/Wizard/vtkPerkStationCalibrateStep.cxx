@@ -1276,6 +1276,7 @@ vtkPerkStationCalibrateStep
       this->TableOverlayEntry->GetValueAsDouble() );
     this->GetGUI()->GetMRMLNode()->SetTableAtScanner(
       this->TableScannerEntry->GetValueAsDouble() );
+    
     // this->TableUpdateButton->SetBackgroundColor( 0.85, 0.85, 0.85 );
     }
   

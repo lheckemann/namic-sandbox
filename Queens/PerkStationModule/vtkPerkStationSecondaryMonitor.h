@@ -70,54 +70,46 @@ public:
   bool IsSecondaryMonitorActive(){ return this->DeviceActive;};
   
   
-  // Description:
-  // Detect the secondary monitor attached to the system, gather information about it
+  // Detect the secondary monitor attached to the system,
+  // gather information about it
   void Initialize();
   
   
-  void GetMonitorSpacing( double & xSpacing, double & ySpacing )
-  {
+  void GetMonitorSpacing( double & xSpacing, double & ySpacing ) {
     xSpacing = this->MonitorPhysicalSizeMM[0] / this->MonitorPixelResolution[0];
     ySpacing = this->MonitorPhysicalSizeMM[1] / this->MonitorPixelResolution[1];
   };
   
   
-  
-  void GetVirtualScreenCoord( int & left, int & top )
-  {
+  void GetVirtualScreenCoord( int & left, int & top ) {
     left = this->VirtualScreenCoord[ 0 ];
     top = this->VirtualScreenCoord[ 1 ];
   };
   
-  void SetVirtualScreenCoord( int left, int top )
-  {
+  void SetVirtualScreenCoord( int left, int top ) {
     this->VirtualScreenCoord[ 0 ] = left;
     this->VirtualScreenCoord[ 1 ] = top;
   };
   
   
-  void GetPhysicalSize( double & mmX, double & mmY )
-  {
+  void GetPhysicalSize( double & mmX, double & mmY ) {
     mmX = this->MonitorPhysicalSizeMM[ 0 ];
     mmY = this->MonitorPhysicalSizeMM[ 1 ];
   };
   
-  void SetPhysicalSize( double mmX, double mmY )
-  {
+  void SetPhysicalSize( double mmX, double mmY ) {
     this->MonitorPhysicalSizeMM[ 0 ] = mmX;
     this->MonitorPhysicalSizeMM[ 1 ] = mmY;
     this->UpdateImageDisplay();
   };
   
   
-  void GetPixelResolution( double & pixX, double & pixY )
-  {
+  void GetPixelResolution( double & pixX, double & pixY ) {
     pixX = this->MonitorPixelResolution[ 0 ];
     pixY = this->MonitorPixelResolution[ 1 ];
   };
   
-  void SetPixelResolution( double pixX, double pixY )
-  {
+  void SetPixelResolution( double pixX, double pixY ) {
     this->MonitorPixelResolution[ 0 ] = pixX;
     this->MonitorPixelResolution[ 1 ] = pixY;
     this->UpdateCornerPositions();
@@ -126,8 +118,7 @@ public:
   
   // Description:
   // Get/Set ScreenSize
-  void GetScreenDimensions( unsigned int & sizeX, unsigned int & sizeY )
-  {
+  void GetScreenDimensions( unsigned int & sizeX, unsigned int & sizeY ) {
     sizeX = this->ScreenSize[ 0 ];
     sizeY = this->ScreenSize[ 1 ];
   };
@@ -152,29 +143,21 @@ public:
 
   
   void RemoveOverlayNeedleGuide();
-
+  
   void SetDepthPerceptionLines();  
   void RemoveDepthPerceptionLines();
   void RemoveTextActors();
-
+  
   void UpdateImageDataOnSliceOffset( double sliceOffset = 0 );
 
   void SetRealTimeNeedleLineActorVisibility( bool v );
 
-
-  
-public:
 
   void UpdateImageDisplay();
   
   void ShowCalibrationControls( bool show );
   void ShowNeedleGuide( bool show );
   void ShowDepthPerceptionLines( bool show );
-  
-  
-protected:
-  
-  vtkSmartPointer< vtkTextActorFlippable > CalibrationControlsActor;
   
   
 protected:
@@ -195,17 +178,20 @@ protected:
   vtkSmartPointer< vtkActor2D >                 ImageActor;
   
     // Real time needle display.
-  vtkSmartPointer< vtkActor >     NeedleGuideActor;
-  vtkSmartPointer< vtkActor >     NeedleTipActor;
-  vtkSmartPointer< vtkActor >     RealTimeNeedleLineActor;
-  vtkSmartPointer< vtkTextActor > NeedleTipZLocationText;
+  vtkSmartPointer< vtkActor >       NeedleGuideActor;
+  vtkSmartPointer< vtkActor >       NeedleTipActor;
+  vtkSmartPointer< vtkActor >       RealTimeNeedleLineActor;
+  vtkSmartPointer< vtkTextActor >   NeedleTipZLocationText;
   
-    // Collection of depth perception lines with labels.
+    // Collection of depth perception lines and needle measure.
   vtkSmartPointer< vtkActorCollection >    DepthPerceptionLines;  
   vtkSmartPointer< vtkActor2DCollection >  TextActorsCollection;
-  
-    // Needle measure.
   vtkSmartPointer< vtkTextActorFlippable > MeasureDigitsActor;
+  
+    // Guide of keys for calibration.
+  vtkSmartPointer< vtkTextActorFlippable > CalibrationControlsActor;
+  
+  vtkSmartPointer< vtkTextActorFlippable > TablePositionActor;
   
     // Left/Right side letters.
   vtkSmartPointer< vtkTextActorFlippable > LeftSideActor;
@@ -221,8 +207,7 @@ protected:
   
   vtkSmartPointer< vtkMatrix4x4 > SystemStateXYToIJK;
   vtkSmartPointer< vtkMatrix4x4 > SystemStateResliceMatrix;
-
-    
+  
   
     // the image data to be displayed
   vtkMRMLScalarVolumeNode*  VolumeNode;
@@ -261,6 +246,8 @@ private:
   
   double UpperRightCorner[ 2 ];
   double UpperLeftCorner[ 2 ];
+  double LowerRightCorner[ 2 ];
+  double LowerLeftCorner[ 2 ];
   
   
     // Image geometry.
@@ -279,6 +266,7 @@ public:
   void SetTranslation( double x, double y );
   
   void UpdateCalibration();
+  
   
 private:
   
