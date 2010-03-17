@@ -127,7 +127,6 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   vtkSlicerNodeSelectorWidget* CountNode;
   vtkSlicerNodeSelectorWidget* ImageNode;
   vtkSlicerNodeSelectorWidget* ModelNode;
-  vtkKWRadioButtonSet* SphereTypeButtonSet;
   vtkKWRadioButtonSet* ModelTypeButtonSet;
   vtkKWRadioButtonSet* ImageTypeButtonSet;
   vtkKWRadioButtonSet* DataTypeButtonSet;
@@ -158,7 +157,5 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavGUI : public vtkSlicerModuleGUI
   vtkMRMLScalarVolumeNode* scalnode;
 
 };
-
-
 
 #endif

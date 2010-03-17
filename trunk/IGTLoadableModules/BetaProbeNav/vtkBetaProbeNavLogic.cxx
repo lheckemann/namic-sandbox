@@ -24,6 +24,7 @@
 
 #include "vtkPoints.h"
 #include "vtkFloatArray.h"
+#include "vtkCharArray.h"
 #include "vtkMRMLUDPServerNode.h"
 #include "vtkPolyData.h"
 #include "vtkPointData.h"
@@ -63,6 +64,8 @@ vtkBetaProbeNavLogic::vtkBetaProbeNavLogic()
   this->SmoothScalars = vtkFloatArray::New();
   this->BetaScalars = vtkFloatArray::New();
   this->GammaScalars = vtkFloatArray::New();
+  this->TimeStamp = vtkCharArray::New();
+  this->TimeStamp->SetName("Time");
   this->nSmoothScalars = vtkFloatArray::New();
   this->nSmoothScalars->SetName("Smoothed");
   this->nBetaScalars = vtkFloatArray::New();
@@ -96,6 +99,8 @@ vtkBetaProbeNavLogic::~vtkBetaProbeNavLogic()
     this->BetaScalars->Delete();
   if (this->GammaScalars)
     this->GammaScalars->Delete();
+  if (this->TimeStamp)
+    this->TimeStamp->Delete();
   if (this->nSmoothScalars)
     this->nSmoothScalars->Delete();
   if (this->nBetaScalars)
@@ -139,7 +144,6 @@ void vtkBetaProbeNavLogic::UpdateAll()
 void vtkBetaProbeNavLogic::CollectData(vtkMRMLNode* tn, vtkMRMLNode* cn)
 {
   std::cerr << "Collect Data started" << std::endl;
-  
   //Pick up position data from TransformNode
   /*if (this->Points == NULL)
     {
@@ -166,6 +170,7 @@ void vtkBetaProbeNavLogic::CollectData(vtkMRMLNode* tn, vtkMRMLNode* cn)
   SmoothScalars->InsertNextTuple1(cnode->GetSmoothedCounts());
   BetaScalars->InsertNextTuple1(cnode->GetBetaCounts());
   GammaScalars->InsertNextTuple1(cnode->GetGammaCounts());
+  TimeStamp->InsertNextTupleValue((cnode->GetTime()).c_str());
   
   //Normalize value of Scalars for Color mapping purposes
   //Smooth Scalars
@@ -429,6 +434,7 @@ vtkMRMLScalarVolumeNode* vtkBetaProbeNavLogic::PaintImage(vtkMRMLScalarVolumeNod
   //Extract IJK to RAS Matrix
   vtkMatrix4x4* mat = vtkMatrix4x4::New();
   inode->GetIJKToRASMatrix(mat);
+  mat->Print(std::cerr);
   
   //Set this matrix to snode
   snode->SetIJKToRASMatrix(mat);
@@ -581,13 +587,6 @@ vtkMRMLModelNode* vtkBetaProbeNavLogic::BuildLocators(vtkMRMLModelNode* mnode)
   
   //Extract polydata from the model node
   vtkPolyData* polydata = mnode->GetPolyData();
-  
-  /*if (!this->kdTree)
-    {
-    this->kdTree = vtkKdTree::New();
-    }
-  this->kdTree->SetDataSet(polydata);
-  this->kdTree->BuildLocatorFromPoints(polydata->GetPoints());*/
   
   //Create Scalar Array, fill its values and add to polydata
   vtkFloatArray* scals = vtkFloatArray::New();

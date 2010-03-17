@@ -43,6 +43,7 @@ class vtkMRMLScalarVolumeNode;
 class vtkPointLocator;
 class vtkCellLocator;
 class vtkIdList;
+class vtkCharArray;
 
 class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic 
 {
@@ -97,6 +98,7 @@ class VTK_BetaProbeNav_EXPORT vtkBetaProbeNavLogic : public vtkSlicerModuleLogic
    vtkFloatArray* SmoothScalars;
    vtkFloatArray* BetaScalars;
    vtkFloatArray* GammaScalars;
+   vtkCharArray* TimeStamp;
    vtkFloatArray* nSmoothScalars;
    vtkFloatArray* nBetaScalars;
    vtkFloatArray* nGammaScalars;
